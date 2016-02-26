@@ -13,7 +13,10 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeStyle
     {
         private readonly IEnumerable<IOption> _options = new List<IOption>
             {
-                CSharpCodeStyleOptions.UseVarWhenDeclaringLocals
+                CSharpCodeStyleOptions.UseVarWhenDeclaringLocals,
+                CSharpCodeStyleOptions.UseImplicitTypeWherePossible,
+                CSharpCodeStyleOptions.UseImplicitTypeWhereApparent,
+                CSharpCodeStyleOptions.UseImplicitTypeForIntrinsicTypes
             }.ToImmutableArray();
 
         public IEnumerable<IOption> GetOptions()

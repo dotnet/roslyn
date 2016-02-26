@@ -1,7 +1,9 @@
 // Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System;
 using System.Runtime.InteropServices;
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.Completion;
 using Microsoft.CodeAnalysis.CSharp.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.Completion;
@@ -457,6 +459,45 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options
             set { SetBooleanOption(CSharpCodeStyleOptions.UseVarWhenDeclaringLocals, value); }
         }
 
+        public string Style_UseVarWherePossible
+        {
+            get
+            {
+                var option = _optionService.GetOption(CSharpCodeStyleOptions.UseImplicitTypeWherePossible);
+                return GetUseVarOption(option);
+            }
+            set
+            {
+                SetUseVarOption(CSharpCodeStyleOptions.UseImplicitTypeWherePossible, value);
+            }
+        }
+
+        public string Style_UseVarWhenTypeIsApparent
+        {
+            get
+            {
+                var option = _optionService.GetOption(CSharpCodeStyleOptions.UseImplicitTypeWhereApparent);
+                return GetUseVarOption(option);
+            }
+            set
+            {
+                SetUseVarOption(CSharpCodeStyleOptions.UseImplicitTypeWhereApparent, value);
+            }
+        }
+
+        public string Style_UseVarForIntrinsicTypes
+        {
+            get
+            {
+                var option = _optionService.GetOption(CSharpCodeStyleOptions.UseImplicitTypeForIntrinsicTypes);
+                return GetUseVarOption(option);
+            }
+            set
+            {
+                SetUseVarOption(CSharpCodeStyleOptions.UseImplicitTypeForIntrinsicTypes, value);
+            }
+        }
+
         public int WarnOnBuildErrors
         {
             get { return GetBooleanOption(OrganizerOptions.WarnOnBuildErrors); }
@@ -518,6 +559,21 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options
         {
             var optionSet = _optionService.GetOptions();
             optionSet = optionSet.WithChangedOption(key, LanguageNames.CSharp, value != 0);
+            _optionService.SetOptions(optionSet);
+        }
+
+        private static string GetUseVarOption(SimpleCodeStyleOption option)
+        {
+            return option.SerializeObject();
+        }
+
+        private void SetUseVarOption(Option<SimpleCodeStyleOption> option, string value)
+        {
+            SimpleCodeStyleOption convertedValue = SimpleCodeStyleOption.Default;
+            var optionSet = _optionService.GetOptions();
+
+            convertedValue = (SimpleCodeStyleOption)value.DeserializeObject<SimpleCodeStyleOption>();
+            optionSet = optionSet.WithChangedOption(option, convertedValue);
             _optionService.SetOptions(optionSet);
         }
     }

@@ -700,6 +700,15 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Type Inference preferences:.
+        /// </summary>
+        internal static string SetTypeInferencePreferences {
+            get {
+                return ResourceManager.GetString("SetTypeInferencePreferences", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Insert space after cast.
         /// </summary>
         internal static string SpaceAfterCast {
@@ -916,11 +925,38 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Use &apos;var&apos; for built-in types.
+        /// </summary>
+        internal static string UseVarForIntrinsicTypes {
+            get {
+                return ResourceManager.GetString("UseVarForIntrinsicTypes", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Use &apos;var&apos; when generating locals.
         /// </summary>
         internal static string UseVarWhenGeneratingLocals {
             get {
                 return ResourceManager.GetString("UseVarWhenGeneratingLocals", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Use &apos;var&apos; elsewhere.
+        /// </summary>
+        internal static string UseVarWhenPossible {
+            get {
+                return ResourceManager.GetString("UseVarWhenPossible", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Use &apos;var&apos; when typing is apparent.
+        /// </summary>
+        internal static string UseVarWhenTypeIsApparent {
+            get {
+                return ResourceManager.GetString("UseVarWhenTypeIsApparent", resourceCulture);
             }
         }
         

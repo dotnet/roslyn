@@ -2315,6 +2315,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
                 return conditional.WhenNotNull.GetRightmostName();
             }
 
+            var memberBinding = node as MemberBindingExpressionSyntax;
+            if (memberBinding != null)
+            {
+                return memberBinding.Name;
+            }
+
             return null;
         }
 

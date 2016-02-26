@@ -15,6 +15,7 @@ using Roslyn.Utilities;
 using Xunit;
 using System.Collections.Concurrent;
 using Roslyn.Test.Utilities;
+using Microsoft.CodeAnalysis.Options;
 
 namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
 {
@@ -25,14 +26,24 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
 
         internal abstract Tuple<DiagnosticAnalyzer, CodeFixProvider> CreateDiagnosticProviderAndFixer(Workspace workspace);
 
-        private Tuple<DiagnosticAnalyzer, CodeFixProvider> GetOrCreateDiagnosticProviderAndFixer(Workspace workspace)
+        internal virtual Tuple<DiagnosticAnalyzer, CodeFixProvider> CreateDiagnosticProviderAndFixer(
+            Workspace workspace, object fixProviderData)
         {
-            return _analyzerAndFixerMap.GetOrAdd(workspace, CreateDiagnosticProviderAndFixer);
+            return CreateDiagnosticProviderAndFixer(workspace);
         }
 
-        internal async override Task<IEnumerable<Diagnostic>> GetDiagnosticsAsync(TestWorkspace workspace)
+        private Tuple<DiagnosticAnalyzer, CodeFixProvider> GetOrCreateDiagnosticProviderAndFixer(
+            Workspace workspace, object fixProviderData)
         {
-            var providerAndFixer = GetOrCreateDiagnosticProviderAndFixer(workspace);
+            return fixProviderData == null
+                ? _analyzerAndFixerMap.GetOrAdd(workspace, CreateDiagnosticProviderAndFixer)
+                : CreateDiagnosticProviderAndFixer(workspace, fixProviderData);
+        }
+
+        internal async override Task<IEnumerable<Diagnostic>> GetDiagnosticsAsync(
+            TestWorkspace workspace, object fixProviderData = null)
+        {
+            var providerAndFixer = GetOrCreateDiagnosticProviderAndFixer(workspace, fixProviderData);
 
             var provider = providerAndFixer.Item1;
             TextSpan span;
@@ -42,9 +53,10 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
             return allDiagnostics;
         }
 
-        internal override async Task<IEnumerable<Tuple<Diagnostic, CodeFixCollection>>> GetDiagnosticAndFixesAsync(TestWorkspace workspace, string fixAllActionId)
+        internal override async Task<IEnumerable<Tuple<Diagnostic, CodeFixCollection>>> GetDiagnosticAndFixesAsync(
+            TestWorkspace workspace, string fixAllActionId, object fixProviderData)
         {
-            var providerAndFixer = GetOrCreateDiagnosticProviderAndFixer(workspace);
+            var providerAndFixer = GetOrCreateDiagnosticProviderAndFixer(workspace, fixProviderData);
 
             var provider = providerAndFixer.Item1;
             Document document;
@@ -64,6 +76,36 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
                 var ids = new HashSet<string>(fixer.FixableDiagnosticIds);
                 var dxs = diagnostics.Where(d => ids.Contains(d.Id)).ToList();
                 return await GetDiagnosticAndFixesAsync(dxs, provider, fixer, testDriver, document, span, annotation, fixAllActionId);
+            }
+        }
+
+        protected async Task TestDiagnosticSeverityAndCountAsync(
+            string initialMarkup,
+            IDictionary<OptionKey, object> options,
+            int diagnosticCount,
+            string diagnosticId,
+            DiagnosticSeverity diagnosticSeverity)
+        {
+            await TestDiagnosticSeverityAndCountAsync(initialMarkup, null, null, options, diagnosticCount, diagnosticId, diagnosticSeverity);
+            await TestDiagnosticSeverityAndCountAsync(initialMarkup, GetScriptOptions(), null, options, diagnosticCount, diagnosticId, diagnosticSeverity);
+        }
+
+        protected async Task TestDiagnosticSeverityAndCountAsync(
+            string initialMarkup,
+            ParseOptions parseOptions,
+            CompilationOptions compilationOptions,
+            IDictionary<OptionKey, object> options,
+            int diagnosticCount,
+            string diagnosticId,
+            DiagnosticSeverity diagnosticSeverity)
+        {
+            using (var workspace = await CreateWorkspaceFromFileAsync(initialMarkup, parseOptions, compilationOptions))
+            {
+                ApplyOptionsToWorkspace(workspace, options);
+
+                var diagnostics = (await GetDiagnosticsAsync(workspace)).Where(d => d.Id == diagnosticId);
+                Assert.Equal(diagnosticCount, diagnostics.Count());
+                Assert.Equal(diagnosticSeverity, diagnostics.Single().Severity);
             }
         }
 

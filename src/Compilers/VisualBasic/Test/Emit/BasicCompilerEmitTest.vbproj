@@ -127,6 +127,7 @@
     <Compile Include="CodeGen\WinRTCollectionTests.vb" />
     <Compile Include="Emit\CompilationEmitTests.vb" />
     <Compile Include="Emit\DeterministicTests.vb" />
+    <Compile Include="Emit\EditAndContinue\AssemblyReferencesTests.vb" />
     <Compile Include="Emit\EditAndContinue\EditAndContinueClosureTests.vb" />
     <Compile Include="Emit\EditAndContinue\EditAndContinueStateMachineTests.vb" />
     <Compile Include="Emit\EditAndContinue\EditAndContinueTestBase.vb" />

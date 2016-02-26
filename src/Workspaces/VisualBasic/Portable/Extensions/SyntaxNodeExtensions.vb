@@ -16,6 +16,18 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions
         End Function
 
         <Extension()>
+        Public Function IsParentKind(node As SyntaxNode, kind1 As SyntaxKind, kind2 As SyntaxKind) As Boolean
+            Return node IsNot Nothing AndAlso
+                   IsKind(node.Parent, kind1, kind2)
+        End Function
+
+        <Extension()>
+        Public Function IsParentKind(node As SyntaxNode, kind1 As SyntaxKind, kind2 As SyntaxKind, kind3 As SyntaxKind) As Boolean
+            Return node IsNot Nothing AndAlso
+                   IsKind(node.Parent, kind1, kind2, kind3)
+        End Function
+
+        <Extension()>
         Public Function IsKind(node As SyntaxNode, kind1 As SyntaxKind, kind2 As SyntaxKind) As Boolean
             If node Is Nothing Then
                 Return False

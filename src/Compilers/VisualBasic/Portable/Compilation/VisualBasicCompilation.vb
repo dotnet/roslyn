@@ -335,7 +335,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
             Return Create(
                 assemblyName,
-                If(options, New VisualBasicCompilationOptions(OutputKind.DynamicallyLinkedLibrary)),
+                If(options, New VisualBasicCompilationOptions(OutputKind.DynamicallyLinkedLibrary)).WithReferencesSupersedeLowerVersions(True),
                 If((syntaxTree IsNot Nothing), {syntaxTree}, SpecializedCollections.EmptyEnumerable(Of SyntaxTree)()),
                 references,
                 previousScriptCompilation,
@@ -354,6 +354,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             hostObjectType As Type,
             isSubmission As Boolean
         ) As VisualBasicCompilation
+            Debug.Assert(Not isSubmission OrElse options.ReferencesSupersedeLowerVersions)
+
             If options Is Nothing Then
                 options = New VisualBasicCompilationOptions(OutputKind.ConsoleApplication)
             End If

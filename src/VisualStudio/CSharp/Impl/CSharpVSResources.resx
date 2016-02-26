@@ -411,4 +411,16 @@
   <data name="NewLinesForBracesProperty" xml:space="preserve">
     <value>Place open brace on new line for properties, indexers, and events</value>
   </data>
+  <data name="SetTypeInferencePreferences" xml:space="preserve">
+    <value>Type Inference preferences:</value>
+  </data>
+  <data name="UseVarForIntrinsicTypes" xml:space="preserve">
+    <value>Use 'var' for built-in types</value>
+  </data>
+  <data name="UseVarWhenPossible" xml:space="preserve">
+    <value>Use 'var' elsewhere</value>
+  </data>
+  <data name="UseVarWhenTypeIsApparent" xml:space="preserve">
+    <value>Use 'var' when typing is apparent</value>
+  </data>
 </root>

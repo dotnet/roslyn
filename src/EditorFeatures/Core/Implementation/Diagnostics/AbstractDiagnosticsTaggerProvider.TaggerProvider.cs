@@ -3,8 +3,10 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Diagnostics;
+using Microsoft.CodeAnalysis.Editor.Shared.Preview;
 using Microsoft.CodeAnalysis.Editor.Shared.Tagging;
 using Microsoft.CodeAnalysis.Editor.Tagging;
 using Microsoft.CodeAnalysis.Options;
@@ -86,6 +88,13 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics
                     return;
                 }
 
+                // See if we've marked any spans as those we want to suppress diagnostics for.
+                // This can happen for buffers used in the preview workspace where some feature
+                // is generating code that it doesn't want errors shown for.
+                var buffer = spanToTag.SnapshotSpan.Snapshot.TextBuffer;
+                NormalizedSnapshotSpanCollection suppressedDiagnosticsSpans = null;
+                buffer?.Properties.TryGetProperty(PredefinedPreviewTaggerKeys.SuppressDiagnosticsSpansKey, out suppressedDiagnosticsSpans);
+
                 // Producing tags is simple.  We just grab the diagnostics we were already told about,
                 // and we convert them to tag spans.
                 object id;
@@ -120,7 +129,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics
                             .ToSnapshotSpan(editorSnapshot)
                             .TranslateTo(requestedSnapshot, SpanTrackingMode.EdgeExclusive);
 
-                        if (actualSpan.IntersectsWith(requestedSpan))
+                        if (actualSpan.IntersectsWith(requestedSpan) &&
+                            !IsSuppressed(suppressedDiagnosticsSpans, actualSpan))
                         {
                             var tagSpan = _owner.CreateTagSpan(isLiveUpdate, actualSpan, diagnosticData);
                             if (tagSpan != null)
@@ -130,6 +140,11 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics
                         }
                     }
                 }
+            }
+
+            private bool IsSuppressed(NormalizedSnapshotSpanCollection suppressedSpans, SnapshotSpan span)
+            {
+                return suppressedSpans != null && suppressedSpans.IntersectsWith(span);
             }
 
             internal void OnDiagnosticsUpdated(DiagnosticsUpdatedArgs e, SourceText sourceText, ITextSnapshot editorSnapshot)

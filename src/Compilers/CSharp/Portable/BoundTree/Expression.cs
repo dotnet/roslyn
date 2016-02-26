@@ -97,22 +97,23 @@ namespace Microsoft.CodeAnalysis.CSharp
                     argumentIndex = argumentsToParameters.IndexOf(parameterIndex);
                 }
 
-                // No argument has been supplied for the parameter at `parameterIndex`:
-                // 1. `argumentIndex == -1' when the arguments are specified out of parameter order, and no argument is provided for parameter corresponding to `parameters[parameterIndex]`.
-                // 2. `argumentIndex >= boundArguments.Length` when the arguments are specified in parameter order, and no argument is provided at `parameterIndex`.
-                if (argumentIndex == -1 || argumentIndex >= boundArguments.Length)
+                if ((uint)argumentIndex >= (uint)boundArguments.Length)
                 {
+                    // No argument has been supplied for the parameter at `parameterIndex`:
+                    // 1. `argumentIndex == -1' when the arguments are specified out of parameter order, and no argument is provided for parameter corresponding to `parameters[parameterIndex]`.
+                    // 2. `argumentIndex >= boundArguments.Length` when the arguments are specified in parameter order, and no argument is provided at `parameterIndex`.
+
                     Symbols.ParameterSymbol parameter = parameters[parameterIndex];
-                    // Corresponding parameter is optional with default value.
                     if (parameter.HasExplicitDefaultValue)
                     {
-                        arguments.Add(new Argument(ArgumentKind.DefaultValue, parameter, new Literal(parameter.ExplicitDefaultConstantValue, parameter.Type, null)));
+                        // The parameter is optional with a default value.
+                        arguments.Add(new Argument(ArgumentKind.DefaultValue, parameter, new Literal(parameter.ExplicitDefaultConstantValue, parameter.Type, invocationSyntax)));
                     }
                     else
                     {
-                        // If corresponding parameter is Param array, then this means 0 element is provided and an Argument of kind == ParamArray will be added, 
-                        // otherwise it is an error and null is added.
-                        arguments.Add(DeriveArgument(parameterIndex, argumentIndex, boundArguments, argumentNames, argumentRefKinds, parameters, invocationSyntax));
+                        // If the invocation is semantically valid, the parameter will be a params array and an empty array will be provided.
+                        // If the argument is otherwise omitted for a parameter with no default value, the invocation is not valid and a null argument will be provided.
+                        arguments.Add(DeriveArgument(parameterIndex, boundArguments.Length, boundArguments, argumentNames, argumentRefKinds, parameters, invocationSyntax));
                     }
                 }
                 else
@@ -128,7 +129,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private static IArgument DeriveArgument(int parameterIndex, int argumentIndex, ImmutableArray<BoundExpression> boundArguments, ImmutableArray<string> argumentNames, ImmutableArray<RefKind> argumentRefKinds, ImmutableArray<Symbols.ParameterSymbol> parameters, SyntaxNode invocationSyntax)
         {
-            if (argumentIndex >= boundArguments.Length)
+            if ((uint)argumentIndex >= (uint)boundArguments.Length)
             {
                 // Check for an omitted argument that becomes an empty params array.
                 if (parameters.Length > 0)
@@ -141,7 +142,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
 
                 // There is no supplied argument and there is no params parameter. Any action is suspect at this point.
-                return null;
+                return new SimpleArgument(null, null);
             }
 
             return s_argumentMappings.GetValue(
@@ -149,6 +150,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 (argument) =>
                 {
                     string name = !argumentNames.IsDefaultOrEmpty ? argumentNames[argumentIndex] : null;
+                    Symbols.ParameterSymbol parameter = (uint)parameterIndex < (uint)parameters.Length ? parameters[parameterIndex] : null;
 
                     if (name == null)
                     {
@@ -156,7 +158,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                         if (refMode != RefKind.None)
                         {
-                            return new Argument(ArgumentKind.Positional, parameters[parameterIndex], argument);
+                            return new Argument(ArgumentKind.Positional, parameter, argument);
                         }
 
                         if (argumentIndex >= parameters.Length - 1 &&
@@ -171,11 +173,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                         }
                         else
                         {
-                            return new SimpleArgument(parameters[parameterIndex], argument);
+                            return new SimpleArgument(parameter, argument);
                         }
                     }
 
-                    return new Argument(ArgumentKind.Named, parameters[parameterIndex], argument);
+                    return new Argument(ArgumentKind.Named, parameter, argument);
                 });
         }
         
@@ -247,7 +249,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             OperationKind IOperation.Kind => OperationKind.Argument;
 
-            SyntaxNode IOperation.Syntax => this.Value.Syntax;
+            SyntaxNode IOperation.Syntax => this.Value?.Syntax;
 
             public ITypeSymbol Type => null;
 
