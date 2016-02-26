@@ -26,8 +26,9 @@ namespace Microsoft.CodeAnalysis.Scripting.Hosting
                 return false;
             }
 
+            // Type is null for DynamicMethods and global methods.
             // TODO (tomat): we don't want to include awaiter helpers, shouldn't they be marked by DebuggerHidden in FX?
-            if (IsTaskAwaiter(type) || IsTaskAwaiter(type.DeclaringType))
+            if (type == null || IsTaskAwaiter(type) || IsTaskAwaiter(type.DeclaringType))
             {
                 return false;
             }
@@ -44,8 +45,10 @@ namespace Microsoft.CodeAnalysis.Scripting.Hosting
         {
             while (info != null)
             {
+                // GetCustomAttributes returns null when called on DynamicMethod 
+                // (bug https://github.com/dotnet/corefx/issues/6402)
                 if (IsGeneratedMemberName(info.Name) ||
-                    info.GetCustomAttributes<DebuggerHiddenAttribute>().Any())
+                    info.GetCustomAttributes<DebuggerHiddenAttribute>()?.Any() == true)
                 {
                     return true;
                 }

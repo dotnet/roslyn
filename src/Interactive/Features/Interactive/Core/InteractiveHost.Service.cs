@@ -820,7 +820,7 @@ namespace Microsoft.CodeAnalysis.Interactive
                         }
                         catch (Exception e)
                         {
-                            Console.Error.WriteLine(_replServiceProvider.ObjectFormatter.FormatException(e));
+                            Console.Error.Write(_replServiceProvider.ObjectFormatter.FormatException(e));
                             return null;
                         }
                     }))).ConfigureAwait(false);

@@ -22,13 +22,13 @@ namespace Microsoft.CodeAnalysis
         private readonly PEModule _module;
 
         private ModuleMetadata(PEReader peReader)
-            : base(isImageOwner: true, id: new MetadataId())
+            : base(isImageOwner: true, id: MetadataId.CreateNewId())
         {
             _module = new PEModule(this, peReader: peReader, metadataOpt: IntPtr.Zero, metadataSizeOpt: 0);
         }
 
         private ModuleMetadata(IntPtr metadata, int size, bool includeEmbeddedInteropTypes)
-            : base(isImageOwner: true, id: new MetadataId())
+            : base(isImageOwner: true, id: MetadataId.CreateNewId())
         {
             _module = new PEModule(this, peReader: null, metadataOpt: metadata, metadataSizeOpt: size, includeEmbeddedInteropTypes: includeEmbeddedInteropTypes);
         }

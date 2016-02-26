@@ -485,6 +485,77 @@ namespace Microsoft.CodeAnalysis
             aliasesOfReferencedAssemblies = aliasesOfReferencedAssembliesBuilder.ToImmutableAndFree();
         }
 
+        /// <summary>
+        /// Calculates map from the identities of specified symbols to the corresponding identities in the original EnC baseline metadata.
+        /// The map only includes an entry for identities that differ, i.e. for symbols representing assembly references of the current compilation that have different identities 
+        /// than the corresponding identity in baseline metadata AssemblyRef table. The key comparer of the map ignores build and revision parts of the version number, 
+        /// since these might change if the original version included wildcard.
+        /// </summary>
+        /// <param name="symbols">Assembly symbols for references of the current compilation.</param>
+        /// <param name="originalIdentities">Identities in the baseline. <paramref name="originalIdentities"/>[i] corresponds to <paramref name="symbols"/>[i].</param>
+        internal ImmutableDictionary<AssemblyIdentity, AssemblyIdentity> GetAssemblyReferenceIdentityBaselineMap(ImmutableArray<TAssemblySymbol> symbols, ImmutableArray<AssemblyIdentity> originalIdentities)
+        {
+            Debug.Assert(originalIdentities.Length == symbols.Length);
+
+            ImmutableDictionary<AssemblyIdentity, AssemblyIdentity>.Builder lazyBuilder = null;
+            for (int i = 0; i < originalIdentities.Length; i++)
+            {
+                var symbolIdentity = symbols[i].Identity;
+                var versionPattern = symbols[i].AssemblyVersionPattern;
+                var originalIdentity = originalIdentities[i];
+
+                if ((object)versionPattern != null)
+                {
+                    Debug.Assert(versionPattern.Build == ushort.MaxValue || versionPattern.Revision == ushort.MaxValue);
+
+                    lazyBuilder = lazyBuilder ?? ImmutableDictionary.CreateBuilder<AssemblyIdentity, AssemblyIdentity>();
+
+                    var sourceIdentity = symbolIdentity.WithVersion(versionPattern);
+
+                    if (lazyBuilder.ContainsKey(sourceIdentity))
+                    {
+                        // TODO: localize message, report as diagnostic (https://github.com/dotnet/roslyn/issues/8910)
+                        throw new NotSupportedException("The compilation references multiple assemblies whose versions only differ in auto-generated build and/or revision numbers.");
+                    }
+
+                    lazyBuilder.Add(sourceIdentity, originalIdentity);
+                }
+                else
+                {
+                    // by construction of the arguments:
+                    Debug.Assert(originalIdentity == symbolIdentity);
+                }
+            }
+
+            return lazyBuilder?.ToImmutable() ?? ImmutableDictionary<AssemblyIdentity, AssemblyIdentity>.Empty;
+        }
+
+        internal static bool CompareVersionPartsSpecifiedInSource(Version version, Version candidateVersion, TAssemblySymbol candidateSymbol)
+        {
+            // major and minor parts must match exactly
+
+            if (version.Major != candidateVersion.Major || version.Minor != candidateVersion.Minor)
+            {
+                return false;
+            }
+
+            // build and revision parts can differ only if the corresponding source versions were auto-generated:
+            var versionPattern = candidateSymbol.AssemblyVersionPattern;
+            Debug.Assert((object)versionPattern == null || versionPattern.Build == ushort.MaxValue || versionPattern.Revision == ushort.MaxValue);
+
+            if (((object)versionPattern == null || versionPattern.Build < ushort.MaxValue) && version.Build != candidateVersion.Build)
+            {
+                return false;
+            }
+
+            if ((object)versionPattern == null && version.Revision != candidateVersion.Revision)
+            {
+                return false;
+            }
+
+            return true;
+        }
+
         // #r references are recursive, their aliases should be merged into all their dependencies.
         //
         // For example, if a compilation has a reference to LibA with alias A and the user #r's LibB with alias B,

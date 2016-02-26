@@ -1058,7 +1058,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' Throws <see cref="ArgumentException"/> in case the tree is not a submission.
         ''' </summary>
         ''' <param name="tree">Syntax tree.</param>
-        Public Shared Function IsCompleteSubmission(tree As SyntaxTree) As Boolean
+        Friend Shared Function IsCompleteSubmission(tree As SyntaxTree) As Boolean
             If tree Is Nothing Then
                 Throw New ArgumentNullException(NameOf(tree))
             End If
