@@ -20,7 +20,7 @@ namespace Microsoft.CodeAnalysis.Semantics
             // no-op
         }
 
-        internal void VisitNoneOperation(IOperation operation)
+        internal virtual void VisitNoneOperation(IOperation operation)
         {
             // no-op
         }
@@ -415,7 +415,7 @@ namespace Microsoft.CodeAnalysis.Semantics
             return default(TResult);
         }
 
-        internal TResult VisitNoneOperation(IOperation operation, TArgument argument)
+        internal virtual TResult VisitNoneOperation(IOperation operation, TArgument argument)
         {
             return default(TResult);
         }
