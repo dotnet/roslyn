@@ -622,7 +622,7 @@ class Program
     }
     static void Helper(uint x) { }
 }
-", matchPriority: (int)MatchPriority.PreferLess);
+", matchPriority: MatchPriority.Keyword);
         }
     }
 }

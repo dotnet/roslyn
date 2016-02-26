@@ -19,13 +19,8 @@ using System;
 
 namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
 {
-    internal partial class SymbolCompletionProvider : AbstractSymbolCompletionProvider
+    internal partial class SymbolCompletionProvider : AbstractRecommendationServiceBasedCompletionProvider
     {
-        protected override Task<IEnumerable<ISymbol>> GetSymbolsWorker(AbstractSyntaxContext context, int position, OptionSet options, CancellationToken cancellationToken)
-        {
-            return Recommender.GetRecommendedSymbolsAtPositionAsync(context.SemanticModel, position, context.Workspace, options, cancellationToken);
-        }
-
         protected override TextSpan GetTextChangeSpan(SourceText text, int position)
         {
             return CompletionUtilities.GetTextChangeSpan(text, position);
@@ -87,27 +82,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
             return ItemRules.Instance;
         }
 
-        protected override async Task<IEnumerable<ISymbol>> GetPreselectedSymbolsWorker(AbstractSyntaxContext context, int position, OptionSet options, CancellationToken cancellationToken)
-        {
-            var recommender = context.GetLanguageService<IRecommendationService>();
-            var typeInferrer = context.GetLanguageService<ITypeInferenceService>();
-
-            var inferredTypes = typeInferrer.InferTypes(context.SemanticModel, position, cancellationToken)
-                ?.Where(t => t.SpecialType != SpecialType.System_Void)
-                .ToSet();
-            if (inferredTypes == null || !inferredTypes.Any())
-            {
-                return SpecializedCollections.EmptyEnumerable<ISymbol>();
-            }
-
-            var symbols = await recommender.GetRecommendedSymbolsAtPositionAsync(context.Workspace, context.SemanticModel, position, options, cancellationToken).ConfigureAwait(false);
-            return symbols.Where(s => inferredTypes.Contains(s.GetSymbolType()) && !IsInstrinsic(s));
-        }
-
-        private bool IsInstrinsic(ISymbol s)
+        protected override bool IsInstrinsic(ISymbol s)
         {
             var ts = s as ITypeSymbol;
-            return ts != null && ts.SpecialType != SpecialType.None;
+            return ts != null && ts.IsIntrinsicType();
         }
     }
 }

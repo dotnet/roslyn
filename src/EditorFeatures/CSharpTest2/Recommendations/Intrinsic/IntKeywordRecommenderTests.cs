@@ -691,7 +691,7 @@ class Program
     }
     static void Helper(int x) { }
 }
-", matchPriority: (int)MatchPriority.PreferLess);
+", matchPriority: MatchPriority.Keyword);
         }
     }
 }

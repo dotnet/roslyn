@@ -48,7 +48,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.KeywordRecommenders
             if (syntaxKind.HasValue)
             {
                 return SpecializedCollections.SingletonEnumerable(
-                    new RecommendedKeyword(SyntaxFacts.GetText(syntaxKind.Value), shouldFormatOnCommit: this.ShouldFormatOnCommit, matchPriority: ShouldPreselect(context, cancellationToken) ? MatchPriority.PreferLess : MatchPriority.Default));
+                    new RecommendedKeyword(SyntaxFacts.GetText(syntaxKind.Value), 
+                        shouldFormatOnCommit: this.ShouldFormatOnCommit, 
+                        matchPriority: ShouldPreselect(context, cancellationToken) ? MatchPriority.Keyword : MatchPriority.Default));
             }
 
             return null;
@@ -65,7 +67,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.KeywordRecommenders
             if (syntaxKind.HasValue)
             {
                 return SpecializedCollections.SingletonEnumerable(
-                    new RecommendedKeyword(SyntaxFacts.GetText(syntaxKind.Value), matchPriority: ShouldPreselect(context, CancellationToken.None) ? MatchPriority.PreferLess : MatchPriority.Default));
+                    new RecommendedKeyword(SyntaxFacts.GetText(syntaxKind.Value), matchPriority: ShouldPreselect(context, CancellationToken.None) ? MatchPriority.Keyword : MatchPriority.Default));
             }
 
             return null;

@@ -105,7 +105,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.KeywordRecommenders.Type
                 Dim keyword As String = s_intrinsicKeywordNames(i)
                 Dim specialType As SpecialType = DirectCast(s_intrinsicSpecialTypes(i), SpecialType)
 
-                Dim priority = If(inferredSpecialTypes.Contains(specialType), MatchPriority.PreferLess, MatchPriority.Default)
+                Dim priority = If(inferredSpecialTypes.Contains(specialType), MatchPriority.Keyword, MatchPriority.Default)
 
                 recommendedKeywords(i) = New RecommendedKeyword(s_intrinsicKeywordNames(i), Glyph.Keyword,
                                                                 Function(cancellationToken)

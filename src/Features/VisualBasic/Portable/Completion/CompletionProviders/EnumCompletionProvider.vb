@@ -57,7 +57,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
 
             Dim otherInstances = otherSymbols.Where(Function(s) enumType Is GetTypeFromSymbol(s))
 
-            Return Task.FromResult(otherInstances) 'Concat(enumType))
+            Return Task.FromResult(otherInstances)
         End Function
 
         Public Overrides Function IsTriggerCharacter(text As SourceText, characterPosition As Integer, options As OptionSet) As Boolean
@@ -112,12 +112,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
             Return Await VisualBasicSyntaxContext.CreateContextAsync(document.Project.Solution.Workspace, semanticModel, position, cancellationToken).ConfigureAwait(False)
         End Function
 
-        Protected Overrides Function CreateItem(displayAndInsertionText As ValueTuple(Of String, String), position As Integer, symbols As List(Of ISymbol), context As AbstractSyntaxContext, textChangeSpan As TextSpan, preselect As Boolean, supportedPlatformData As SupportedPlatformData) As CompletionItem
+        Protected Overrides Function CreateItem(displayAndInsertionText As ValueTuple(Of String, String), position As Integer, symbols As List(Of ISymbol), context As AbstractSyntaxContext, textChangeSpan As TextSpan, matchPriority As MatchPriority, supportedPlatformData As SupportedPlatformData) As CompletionItem
             Return New SymbolCompletionItem(
                 Me,
                 displayAndInsertionText.Item1,
                 displayAndInsertionText.Item2,
-                GetFilterText(symbols(0), displayAndInsertionText.Item1, context),
+                MyBase.GetFilterText(symbols(0), displayAndInsertionText.Item1, context),
                 textChangeSpan,
                 position,
                 symbols,

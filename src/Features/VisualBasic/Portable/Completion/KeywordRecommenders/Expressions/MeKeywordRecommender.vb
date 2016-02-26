@@ -22,7 +22,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.KeywordRecommenders.Expr
                 Dim priority = MatchPriority.Default
                 Dim enclosingType = context.SemanticModel.GetEnclosingNamedType(context.Position, cancellationToken)
                 If enclosingType IsNot Nothing AndAlso context.InferredTypes.Any(Function(t) t Is enclosingType) Then
-                    priority = MatchPriority.PreferLess
+                    priority = MatchPriority.Keyword
                 End If
 
                 If targetToken.GetContainingMemberBlockBegin().TypeSwitch(

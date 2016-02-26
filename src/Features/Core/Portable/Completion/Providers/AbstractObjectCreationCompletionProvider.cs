@@ -109,7 +109,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             return ValueTuple.Create(displayString, displayString);
         }
 
-        protected override CompletionItem CreateItem(ValueTuple<string, string> displayAndInsertionText, int position, List<ISymbol> symbols, AbstractSyntaxContext context, TextSpan textChangeSpan, bool preselectionPriority, SupportedPlatformData supportedPlatformData)
+        protected override CompletionItem CreateItem(ValueTuple<string, string> displayAndInsertionText, int position, List<ISymbol> symbols, AbstractSyntaxContext context, TextSpan textChangeSpan, MatchPriority matchPriority, SupportedPlatformData supportedPlatformData)
         {
             return new SymbolCompletionItem(
                 this,

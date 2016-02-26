@@ -28,7 +28,7 @@ namespace Microsoft.CodeAnalysis.Completion
         /// to match certain items, but the IDE can't specifically guess what
         /// item (like target type preselection).
         /// </summary>
-        PreferLess = 1,
+        Keyword = 1,
 
         /// <summary>
         /// The matching algorithm will tend to prefer this item unless

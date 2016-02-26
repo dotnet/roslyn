@@ -616,7 +616,7 @@ class Program
     }
     static void Helper(ulong x) { }
 }
-", matchPriority: (int)MatchPriority.PreferLess);
+", matchPriority: MatchPriority.Keyword);
         }
     }
 }

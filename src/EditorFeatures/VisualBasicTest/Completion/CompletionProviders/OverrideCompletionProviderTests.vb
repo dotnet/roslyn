@@ -591,7 +591,7 @@ End Class</a>.Value
             MarkupTestFile.GetPosition(markup.NormalizeLineEndings(), code, position)
 
             Await BaseVerifyWorkerAsync(code, position, "[Class]", "Property CBase.Class As Integer", SourceCodeKind.Regular, False, False, Nothing, experimental:=False, matchPriority:=Nothing)
-    End Function
+        End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Async Function TestEscapedParameterNameInIntelliSenseList() As Task

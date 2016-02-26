@@ -696,8 +696,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return SpecializedCollections.EmptyEnumerable<ITypeSymbol>();
             }
 
-         
-
             private IEnumerable<ITypeSymbol> InferTypeInArrayCreationExpression(
                 ArrayCreationExpressionSyntax arrayCreationExpression, SyntaxToken? previousToken = null)
             {

@@ -213,7 +213,7 @@ Class Program
 End Class
 </File>
 
-            Await VerifyRecommendationsWithPriority(code, CodeAnalysis.Completion.MatchPriority.PreferLess, "Me")
+            Await VerifyRecommendationsWithPriority(code, CodeAnalysis.Completion.MatchPriority.Keyword, "Me")
         End Function
     End Class
 End Namespace

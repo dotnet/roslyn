@@ -108,7 +108,7 @@ Class Program
 End Class
 </File>
 
-            Await VerifyRecommendationsWithPriority(code, CodeAnalysis.Completion.MatchPriority.PreferLess, "Integer")
+            Await VerifyRecommendationsWithPriority(code, CodeAnalysis.Completion.MatchPriority.Keyword, "Integer")
         End Function
 
     End Class

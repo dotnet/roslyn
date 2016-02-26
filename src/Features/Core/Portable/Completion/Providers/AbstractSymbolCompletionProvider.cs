@@ -45,7 +45,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             AbstractSyntaxContext context,
             Dictionary<ISymbol, List<ProjectId>> invalidProjectMap,
             List<ProjectId> totalProjects,
-            bool preselect,
+            MatchPriority matchPriority,
             CancellationToken cancellationToken)
         {
             var tree = context.SyntaxTree;
@@ -55,7 +55,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             var q = from symbol in symbols
                     let texts = GetDisplayAndInsertionText(symbol, context)
                     group symbol by texts into g
-                    select this.CreateItem(g.Key, position, g.ToList(), context, textChangeSpan, invalidProjectMap, totalProjects, preselect, cancellationToken);
+                    select this.CreateItem(g.Key, position, g.ToList(), context, textChangeSpan, invalidProjectMap, totalProjects, matchPriority, cancellationToken);
 
             return q.ToList();
         }
@@ -70,13 +70,13 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             Dictionary<ISymbol, AbstractSyntaxContext> originatingContextMap,
             Dictionary<ISymbol, List<ProjectId>> invalidProjectMap,
             List<ProjectId> totalProjects,
-            bool preselect,
+            MatchPriority matchPriority,
             CancellationToken cancellationToken)
         {
             var q = from symbol in symbols
                     let texts = GetDisplayAndInsertionText(symbol, originatingContextMap[symbol])
                     group symbol by texts into g
-                    select this.CreateItem(g.Key, position, g.ToList(), originatingContextMap[g.First()], textChangeSpan, invalidProjectMap, totalProjects, preselect, cancellationToken);
+                    select this.CreateItem(g.Key, position, g.ToList(), originatingContextMap[g.First()], textChangeSpan, invalidProjectMap, totalProjects, matchPriority, cancellationToken);
 
             return q.ToList();
         }
@@ -92,7 +92,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             TextSpan textChangeSpan,
             Dictionary<ISymbol, List<ProjectId>> invalidProjectMap,
             List<ProjectId> totalProjects,
-            bool preselect,
+            MatchPriority matchPriority,
             CancellationToken cancellationToken)
         {
             Contract.ThrowIfNull(symbols);
@@ -115,10 +115,10 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
                 }
             }
 
-            return CreateItem(displayAndInsertionText, position, symbols, context, textChangeSpan, preselect, supportedPlatformData);
+            return CreateItem(displayAndInsertionText, position, symbols, context, textChangeSpan, matchPriority, supportedPlatformData);
         }
 
-        protected virtual CompletionItem CreateItem(ValueTuple<string, string> displayAndInsertionText, int position, List<ISymbol> symbols, AbstractSyntaxContext context, TextSpan textChangeSpan, bool matchPriority, SupportedPlatformData supportedPlatformData)
+        protected virtual CompletionItem CreateItem(ValueTuple<string, string> displayAndInsertionText, int position, List<ISymbol> symbols, AbstractSyntaxContext context, TextSpan textChangeSpan, MatchPriority matchPriority, SupportedPlatformData supportedPlatformData)
         {
             return new SymbolCompletionItem(
                 this,
@@ -130,7 +130,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
                 symbols,
                 context,
                 supportedPlatforms: supportedPlatformData,
-                matchPriority: matchPriority ? MatchPriority.Prefer : MatchPriority.Default,
+                matchPriority: matchPriority,
                 rules: GetCompletionItemRules());
         }
 
@@ -176,15 +176,15 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
 
             using (Logger.LogBlock(FunctionId.Completion_SymbolCompletionProvider_GetItemsWorker, cancellationToken))
             {
-                var regularItems = await GetItemsWorkerAsync(document, position, triggerInfo, options, preselect: false, cancellationToken: cancellationToken).ConfigureAwait(false);
+                var regularItems = await GetItemsWorkerAsync(document, position, triggerInfo, options, matchPriority: MatchPriority.Default, getSymbols: GetSymbolsWorker, cancellationToken: cancellationToken).ConfigureAwait(false);
                 context.AddItems(regularItems);
 
-                var preselectedItems = await GetItemsWorkerAsync(document, position, triggerInfo, options, preselect: true, cancellationToken: cancellationToken).ConfigureAwait(false);
+                var preselectedItems = await GetItemsWorkerAsync(document, position, triggerInfo, options, matchPriority: MatchPriority.Prefer, getSymbols: GetPreselectedSymbolsWorker, cancellationToken: cancellationToken).ConfigureAwait(false);
                 context.AddItems(preselectedItems);
             }
         }
 
-        private async Task<IEnumerable<CompletionItem>> GetItemsWorkerAsync(Document document, int position, CompletionTriggerInfo triggerInfo, OptionSet options, bool preselect, CancellationToken cancellationToken)
+        private async Task<IEnumerable<CompletionItem>> GetItemsWorkerAsync(Document document, int position, CompletionTriggerInfo triggerInfo, OptionSet options, MatchPriority matchPriority, Func<AbstractSyntaxContext, int, OptionSet, CancellationToken, Task<IEnumerable<ISymbol>>> getSymbols, CancellationToken cancellationToken)
         {
             var relatedDocumentIds = document.GetLinkedDocumentIds();
             var relatedDocuments = relatedDocumentIds.Concat(document.Id).Select(document.Project.Solution.GetDocument);
@@ -210,13 +210,13 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
 
             if (!relatedDocumentIds.Any())
             {
-                IEnumerable<ISymbol> itemsForCurrentDocument = await GetSymbolsWorker(position, preselect, context, options, cancellationToken).ConfigureAwait(false);
+                IEnumerable<ISymbol> itemsForCurrentDocument = await getSymbols( context, position, options, cancellationToken).ConfigureAwait(false);
 
                 itemsForCurrentDocument = itemsForCurrentDocument ?? SpecializedCollections.EmptyEnumerable<ISymbol>();
-                return await CreateItemsAsync(position, itemsForCurrentDocument, context, null, null, preselect, cancellationToken).ConfigureAwait(false);
+                return await CreateItemsAsync(position, itemsForCurrentDocument, context, null, null, matchPriority, cancellationToken).ConfigureAwait(false);
             }
 
-            var contextAndSymbolLists = await GetPerContextSymbols(document, position, options, new[] { document.Id }.Concat(relatedDocumentIds), preselect, cancellationToken).ConfigureAwait(false);
+            var contextAndSymbolLists = await GetPerContextSymbols(document, position, options, new[] { document.Id }.Concat(relatedDocumentIds), getSymbols, cancellationToken).ConfigureAwait(false);
 
             Dictionary<ISymbol, AbstractSyntaxContext> originatingContextMap = null;
             var unionedSymbolsList = UnionSymbols(contextAndSymbolLists, out originatingContextMap);
@@ -225,7 +225,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
 
             var textChangeSpan = await GetTextChangeSpanAsync(position, context, cancellationToken).ConfigureAwait(false);
 
-            return CreateItems(position, unionedSymbolsList, textChangeSpan, originatingContextMap, missingSymbolsMap, totalProjects, preselect: preselect, cancellationToken: cancellationToken);
+            return CreateItems(position, unionedSymbolsList, textChangeSpan, originatingContextMap, missingSymbolsMap, totalProjects, matchPriority: matchPriority, cancellationToken: cancellationToken);
         }
 
         protected virtual bool IsExclusive()
@@ -244,12 +244,12 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             return GetTextChangeSpan(text, position);
         }
 
-        private Task<IEnumerable<ISymbol>> GetSymbolsWorker(int position, bool preselect, AbstractSyntaxContext context, OptionSet options, CancellationToken cancellationToken)
-        {
-            return preselect
-                ? GetPreselectedSymbolsWorker(context, position, options, cancellationToken)
-                : GetSymbolsWorker(context, position, options, cancellationToken);
-        }
+        //private Task<IEnumerable<ISymbol>> GetSymbolsWorker(int position, bool preselect, AbstractSyntaxContext context, OptionSet options, CancellationToken cancellationToken)
+        //{
+        //    return preselect
+        //        ? GetPreselectedSymbolsWorker(context, position, options, cancellationToken)
+        //        : GetSymbolsWorker(context, position, options, cancellationToken);
+        //}
 
         private HashSet<ISymbol> UnionSymbols(List<Tuple<DocumentId, AbstractSyntaxContext, IEnumerable<ISymbol>>> linkedContextSymbolLists, out Dictionary<ISymbol, AbstractSyntaxContext> originDictionary)
         {
@@ -274,7 +274,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             return set;
         }
 
-        protected async Task<List<Tuple<DocumentId, AbstractSyntaxContext, IEnumerable<ISymbol>>>> GetPerContextSymbols(Document document, int position, OptionSet options, IEnumerable<DocumentId> relatedDocuments, bool preselect, CancellationToken cancellationToken)
+        protected async Task<List<Tuple<DocumentId, AbstractSyntaxContext, IEnumerable<ISymbol>>>> GetPerContextSymbols(Document document, int position, OptionSet options, IEnumerable<DocumentId> relatedDocuments, Func<AbstractSyntaxContext, int, OptionSet, CancellationToken, Task<IEnumerable<ISymbol>>> getSymbols, CancellationToken cancellationToken)
         {
             var perContextSymbols = new List<Tuple<DocumentId, AbstractSyntaxContext, IEnumerable<ISymbol>>>();
             foreach (var relatedDocumentId in relatedDocuments)
@@ -284,7 +284,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
 
                 if (IsCandidateProject(context, cancellationToken))
                 {
-                    var symbols = await GetSymbolsWorker(position, preselect, context, options, cancellationToken).ConfigureAwait(false);
+                    var symbols = await getSymbols(context, position, options, cancellationToken).ConfigureAwait(false);
                     perContextSymbols.Add(Tuple.Create(relatedDocument.Id, context, symbols ?? SpecializedCollections.EmptyEnumerable<ISymbol>()));
                 }
             }

@@ -1,12 +1,10 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Completion;
 using Microsoft.CodeAnalysis.Completion.Providers;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.Shared.Extensions.ContextQuery;
-using System.Linq;
 
 namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
 {
@@ -50,8 +48,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
 
                 return symbol.Name.EscapeIdentifier(isQueryContext: context.IsInQuery);
             }
-
-            
         }
     }
 }
