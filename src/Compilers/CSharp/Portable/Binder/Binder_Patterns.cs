@@ -46,8 +46,116 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private BoundPattern BindRecursivePattern(RecursivePatternSyntax node, BoundExpression operand, TypeSymbol operandType, bool hasErrors, DiagnosticBag diagnostics)
         {
-            Error(diagnostics, ErrorCode.ERR_FeatureIsUnimplemented, node, "recursive pattern matching to a user-defined \"is\" operator");
-            return new BoundWildcardPattern(node, true);
+            var type = (NamedTypeSymbol)this.BindType(node.Type, diagnostics);
+            hasErrors = hasErrors || CheckValidPatternType(node.Type, operand, operandType, type, false, diagnostics);
+
+            // We intend that (positional) recursive pattern-matching should be defined in terms of
+            // a pattern of user-defined methods or operators. Tentatively, perhaps a method called
+            // GetValues that has an out parameter for each position of the recursive pattern. But
+            // for now we try to *infer* a positional pattern-matching operation from the presence of
+            // an accessible constructor.
+            var correspondingMembers = default(ImmutableArray<Symbol>);
+            HashSet<DiagnosticInfo> useSiteDiagnostics = null;
+            var memberNames = type.MemberNames;
+            var correspondingMembersForCtor = ArrayBuilder<Symbol>.GetInstance();
+            foreach (var m in type.GetMembers(WellKnownMemberNames.InstanceConstructorName))
+            {
+                var ctor = m as MethodSymbol;
+                if (ctor?.ParameterCount != node.PatternList.SubPatterns.Count) continue;
+                if (!IsAccessible(ctor, useSiteDiagnostics: ref useSiteDiagnostics)) continue;
+                correspondingMembersForCtor.Clear();
+                foreach (var parameter in ctor.Parameters)
+                {
+                    var name = CaseInsensitiveComparison.ToLower(parameter.Name);
+                    Symbol correspondingMember = null;
+                    foreach (var memberName in memberNames)
+                    {
+                        if (!name.Equals(CaseInsensitiveComparison.ToLower(memberName))) continue;
+                        var candidate = LookupMatchableMemberInType(type, memberName, ref useSiteDiagnostics);
+                        if (candidate?.IsStatic != false) continue;
+                        if (candidate.Kind != SymbolKind.Property && candidate.Kind != SymbolKind.Field) continue;
+                        if ((candidate as PropertySymbol)?.IsIndexedProperty == true) continue;
+                        if (!IsAccessible(candidate, useSiteDiagnostics: ref useSiteDiagnostics)) continue;
+                        if (correspondingMember != null)
+                        {
+                            // We have two candidates for this property. Cannot use the constructor.
+                            goto tryAnotherConstructor;
+                        }
+                        correspondingMember = candidate;
+                    }
+
+                    if (correspondingMember == null) goto tryAnotherConstructor;
+                    correspondingMembersForCtor.Add(correspondingMember);
+                }
+                Debug.Assert(correspondingMembersForCtor.Count == node.PatternList.SubPatterns.Count);
+                if (correspondingMembers.IsDefault)
+                {
+                    correspondingMembers = correspondingMembersForCtor.ToImmutable();
+                }
+                else
+                {
+                    if (!correspondingMembersForCtor.SequenceEqual(correspondingMembers, (s1, s2) => s1 == s2))
+                    {
+                        correspondingMembersForCtor.Free();
+                        Error(diagnostics, ErrorCode.ERR_FeatureIsUnimplemented, node, "cannot infer a positional pattern from conflicting constructors");
+                        diagnostics.Add(node, useSiteDiagnostics);
+                        hasErrors = true;
+                        return new BoundWildcardPattern(node, hasErrors);
+                    }
+                }
+                tryAnotherConstructor:;
+            }
+
+            if (correspondingMembers == null)
+            {
+                Error(diagnostics, ErrorCode.ERR_FeatureIsUnimplemented, node, "cannot infer a positional pattern from any accessible constructor");
+                diagnostics.Add(node, useSiteDiagnostics);
+                correspondingMembersForCtor.Free();
+                hasErrors = true;
+                return new BoundWildcardPattern(node, hasErrors);
+            }
+
+            // Given that we infer a set of properties to match, we record the result as a BoundPropertyPattern.
+            // Once we translate recursive (positional) patterns into an invocation of GetValues, or "operator is", we'll
+            // use a dedicated bound node for that form.
+            var properties = correspondingMembers;
+            var boundPatterns = BindRecursiveSubPropertyPatterns(node, properties, type, diagnostics);
+            return new BoundPropertyPattern(node, type, boundPatterns, properties, hasErrors: hasErrors);
+        }
+
+        private ImmutableArray<BoundPattern> BindRecursiveSubPropertyPatterns(RecursivePatternSyntax node, ImmutableArray<Symbol> properties, NamedTypeSymbol type, DiagnosticBag diagnostics)
+        {
+            var boundPatternsBuilder = ArrayBuilder<BoundPattern>.GetInstance();
+            for (int i = 0; i < properties.Length; i++)
+            {
+                var syntax = node.PatternList.SubPatterns[i];
+                var property = properties[i];
+                var pattern = syntax.Pattern;
+                bool hasErrors = false;
+                Debug.Assert(!property.IsStatic);
+                var boundPattern = this.BindPattern(pattern, null, property.GetTypeOrReturnType(), hasErrors, diagnostics);
+                boundPatternsBuilder.Add(boundPattern);
+            }
+
+            return boundPatternsBuilder.ToImmutableAndFree();
+        }
+
+        private Symbol LookupMatchableMemberInType(TypeSymbol operandType, string name, ref HashSet<DiagnosticInfo> useSiteDiagnostics)
+        {
+            var lookupResult = LookupResult.GetInstance();
+            this.LookupMembersInType(
+                lookupResult,
+                operandType,
+                name,
+                arity: 0,
+                basesBeingResolved: null,
+                options: LookupOptions.Default,
+                originalBinder: this,
+                diagnose: false,
+                useSiteDiagnostics: ref useSiteDiagnostics);
+            var result = lookupResult.SingleSymbolOrDefault;
+            lookupResult.Free();
+            return result;
         }
 
         private BoundPattern BindPropertyPattern(PropertyPatternSyntax node, BoundExpression operand, TypeSymbol operandType, bool hasErrors, DiagnosticBag diagnostics)
