@@ -1255,68 +1255,18 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 
             void IVisualStudioWorkspaceHost.OnMetadataReferenceAdded(ProjectId projectId, PortableExecutableReference metadataReference)
             {
-                ReportMissingMetadataReferenceIfNeeded(projectId, metadataReference);
-
                 _workspace.OnMetadataReferenceAdded(projectId, metadataReference);
             }
 
             void IVisualStudioWorkspaceHost.OnMetadataReferenceRemoved(ProjectId projectId, PortableExecutableReference metadataReference)
             {
-                ClearMissingMetadataReferenceIfNeeded(projectId, metadataReference);
-
                 _workspace.OnMetadataReferenceRemoved(projectId, metadataReference);
-            }
-
-            private void ReportMissingMetadataReferencesIfNeeded(ProjectId projectId, IEnumerable<PortableExecutableReference> references)
-            {
-                foreach (var reference in references)
-                {
-                    ReportMissingMetadataReferenceIfNeeded(projectId, reference);
-                }
-            }
-
-            private void ReportMissingMetadataReferenceIfNeeded(ProjectId projectId, PortableExecutableReference metadataReference)
-            {
-                var displayName = metadataReference.Display;
-                var filePath = metadataReference.FilePath;
-                if (!File.Exists(filePath))
-                {
-                    // let user know which reference is missing
-                    ((AbstractProject)_workspace.GetHostProject(projectId))?.HostDiagnosticUpdateSource?.UpdateDiagnosticsForProject(
-                        projectId, ValueTuple.Create(this, filePath), SpecializedCollections.SingletonEnumerable(CreateMissingMetadataReferenceDiagnostic(projectId, displayName, filePath)));
-                }
-            }
-
-            private void ClearMissingMetadataReferenceIfNeeded(ProjectId projectId, PortableExecutableReference metadataReference)
-            {
-                // clear diagnostic reported if there was one.
-                ((AbstractProject)_workspace.GetHostProject(projectId))?.HostDiagnosticUpdateSource?.ClearDiagnosticsForProject(projectId, ValueTuple.Create(this, metadataReference.FilePath));
-            }
-
-            private DiagnosticData CreateMissingMetadataReferenceDiagnostic(ProjectId projectId, string displayName, string filePath)
-            {
-                var message = string.Format(ServicesVSResources.MissingMetadataReferenceMessage, displayName);
-                var searchMessage = string.Format(ServicesVSResources.ResourceManager.GetString(
-                    nameof(ServicesVSResources.MissingMetadataReferenceMessage), CodeAnalysis.Diagnostics.Extensions.s_USCultureInfo), displayName);
-
-                return new DiagnosticData(
-                    IDEDiagnosticIds.MissingMetadataReferenceDiagnosticId,
-                    FeaturesResources.ErrorCategory,
-                    message, searchMessage,
-                    DiagnosticSeverity.Warning,
-                    isEnabledByDefault: true,
-                    warningLevel: 0,
-                    workspace: _workspace,
-                    projectId: projectId,
-                    title: ServicesVSResources.IntellisenseBuildFailedTitle);
             }
 
             void IVisualStudioWorkspaceHost.OnProjectAdded(ProjectInfo projectInfo)
             {
                 using (_workspace.Services.GetService<IGlobalOperationNotificationService>()?.Start("Add Project"))
                 {
-                    ReportMissingMetadataReferencesIfNeeded(projectInfo.Id, projectInfo.MetadataReferences.OfType<PortableExecutableReference>());
-
                     _workspace.OnProjectAdded(projectInfo);
                 }
             }
@@ -1342,11 +1292,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             void IVisualStudioWorkspaceHost.OnSolutionAdded(SolutionInfo solutionInfo)
             {
                 RegisterPrimarySolutionForPersistentStorage(solutionInfo.Id);
-
-                foreach (var projectInfo in solutionInfo.Projects)
-                {
-                    ReportMissingMetadataReferencesIfNeeded(projectInfo.Id, projectInfo.MetadataReferences.OfType<PortableExecutableReference>());
-                }
 
                 _workspace.OnSolutionAdded(solutionInfo);
             }

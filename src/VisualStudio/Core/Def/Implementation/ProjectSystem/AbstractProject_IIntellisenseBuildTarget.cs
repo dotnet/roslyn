@@ -2,10 +2,6 @@
 
 using System;
 using System.IO;
-using System.Linq;
-using System.Reflection;
-using Microsoft.Build.Execution;
-using Microsoft.Build.Logging;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Internal.Log;
@@ -17,10 +13,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
     internal partial class AbstractProject : IIntellisenseBuildTarget
     {
         private static readonly object s_diagnosticKey = new object();
-        private static readonly FieldInfo s_fieldInfo = typeof(BuildManager).GetField("_buildParameters", BindingFlags.GetField | BindingFlags.Instance | BindingFlags.NonPublic);
-
-        // REVIEW: can temp path changed while process running?
-        private static readonly string GeneralLogFile = $"{Path.GetTempPath()}\\<guid>.designtime.log";
 
         // set default to true so that we maintain old behavior when project system doesn't
         // implement IIntellisenseBuildTarget
@@ -79,56 +71,15 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 
         private string GetDescription(string reason)
         {
-            var logFilePath = GetLogFile();
-            var logFileDescription = string.Format(
-                    logFilePath == null ? ServicesVSResources.IntellisenseBuildFailedDescription : ServicesVSResources.IntellisenseBuildFailedDescriptionWithLog,
-                    logFilePath ?? GeneralLogFile);
+            var logFilePath = $"{Path.GetTempPath()}\\{Path.GetFileNameWithoutExtension(this._filePathOpt)}_*.designtime.log";
 
+            var logFileDescription = string.Format(ServicesVSResources.IntellisenseBuildFailedDescription, logFilePath);
             if (string.IsNullOrWhiteSpace(reason))
             {
                 return logFileDescription;
             }
 
             return string.Join(Environment.NewLine, logFileDescription, string.Empty, ServicesVSResources.IntellisenseBuildFailedDescriptionExtra, reason);
-        }
-
-        private string GetLogFile()
-        {
-            var manager = BuildManager.DefaultBuildManager;
-            if (manager == null)
-            {
-                return null;
-            }
-
-            var buildParameters = s_fieldInfo.GetValue(manager) as BuildParameters;
-            if (buildParameters == null)
-            {
-                return null;
-            }
-
-            var fileLogger = buildParameters.Loggers?.OfType<FileLogger>()?.FirstOrDefault();
-            if (fileLogger == null || fileLogger.Parameters == null)
-            {
-                return null;
-            }
-
-            const string logFile = "logfile=";
-            const string designTime = ".designtime.log";
-
-            var startIndex = fileLogger.Parameters.IndexOf(logFile, StringComparison.OrdinalIgnoreCase);
-            var endIndex = fileLogger.Parameters.IndexOf(designTime, StringComparison.OrdinalIgnoreCase);
-            if (startIndex < 0 || endIndex < 0 || endIndex <= startIndex + logFile.Length)
-            {
-                return null;
-            }
-
-            var logFilename = fileLogger.Parameters.Substring(startIndex + logFile.Length, endIndex - startIndex - logFile.Length) + designTime;
-            if (!File.Exists(logFilename))
-            {
-                return null;
-            }
-
-            return logFilename;
         }
     }
 }

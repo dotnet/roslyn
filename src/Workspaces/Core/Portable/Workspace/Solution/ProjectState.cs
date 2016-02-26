@@ -25,7 +25,6 @@ namespace Microsoft.CodeAnalysis
         private readonly IReadOnlyList<DocumentId> _additionalDocumentIds;
         private readonly AsyncLazy<VersionStamp> _lazyLatestDocumentVersion;
         private readonly AsyncLazy<VersionStamp> _lazyLatestDocumentTopLevelChangeVersion;
-        private readonly bool _hasMissingMetadataReference;
 
         // this will be initialized lazily.
         private AnalyzerOptions _analyzerOptionsDoNotAccessDirectly;
@@ -39,8 +38,7 @@ namespace Microsoft.CodeAnalysis
             ImmutableDictionary<DocumentId, DocumentState> documentStates,
             ImmutableDictionary<DocumentId, TextDocumentState> additionalDocumentStates,
             AsyncLazy<VersionStamp> lazyLatestDocumentVersion,
-            AsyncLazy<VersionStamp> lazyLatestDocumentTopLevelChangeVersion,
-            bool hasMissingMetadataReference)
+            AsyncLazy<VersionStamp> lazyLatestDocumentTopLevelChangeVersion)
         {
             _projectInfo = projectInfo;
             _solutionServices = solutionServices;
@@ -51,7 +49,6 @@ namespace Microsoft.CodeAnalysis
             _additionalDocumentStates = additionalDocumentStates;
             _lazyLatestDocumentVersion = lazyLatestDocumentVersion;
             _lazyLatestDocumentTopLevelChangeVersion = lazyLatestDocumentTopLevelChangeVersion;
-            _hasMissingMetadataReference = hasMissingMetadataReference;
         }
 
         internal ProjectState(ProjectInfo projectInfo, HostLanguageServices languageServices, SolutionServices solutionServices)
@@ -83,8 +80,6 @@ namespace Microsoft.CodeAnalysis
 
             _lazyLatestDocumentVersion = new AsyncLazy<VersionStamp>(c => ComputeLatestDocumentVersionAsync(docStates, additionalDocStates, c), cacheResult: true);
             _lazyLatestDocumentTopLevelChangeVersion = new AsyncLazy<VersionStamp>(c => ComputeLatestDocumentTopLevelChangeVersionAsync(docStates, additionalDocStates, c), cacheResult: true);
-
-            _hasMissingMetadataReference = ComputeMissingMetadataReference(projectInfo.MetadataReferences.OfType<PortableExecutableReference>());
         }
 
         private ProjectInfo FixProjectInfo(ProjectInfo projectInfo)
@@ -317,12 +312,6 @@ namespace Microsoft.CodeAnalysis
         }
 
         [DebuggerBrowsable(DebuggerBrowsableState.Collapsed)]
-        public bool HasMissingMetadataReference
-        {
-            get { return _hasMissingMetadataReference; }
-        }
-
-        [DebuggerBrowsable(DebuggerBrowsableState.Collapsed)]
         public bool HasDocuments
         {
             get { return _documentIds.Count > 0; }
@@ -390,8 +379,7 @@ namespace Microsoft.CodeAnalysis
             ImmutableDictionary<DocumentId, TextDocumentState> additionalDocumentStates = null,
             AsyncLazy<VersionStamp> latestDocumentVersion = null,
             AsyncLazy<VersionStamp> latestDocumentTopLevelChangeVersion = null,
-            Lazy<AnalyzerOptions> lazyAnalyzerOptions = null,
-            Optional<bool> hasMissingMetadataReference = default(Optional<bool>))
+            Lazy<AnalyzerOptions> lazyAnalyzerOptions = null)
         {
             return new ProjectState(
                 projectInfo ?? _projectInfo,
@@ -402,8 +390,7 @@ namespace Microsoft.CodeAnalysis
                 documentStates ?? _documentStates,
                 additionalDocumentStates ?? _additionalDocumentStates,
                 latestDocumentVersion ?? _lazyLatestDocumentVersion,
-                latestDocumentTopLevelChangeVersion ?? _lazyLatestDocumentTopLevelChangeVersion,
-                !hasMissingMetadataReference.HasValue ? _hasMissingMetadataReference : hasMissingMetadataReference.Value);
+                latestDocumentTopLevelChangeVersion ?? _lazyLatestDocumentTopLevelChangeVersion);
         }
 
         public ProjectState UpdateName(string name)
@@ -488,16 +475,6 @@ namespace Microsoft.CodeAnalysis
             return this.With(projectInfo: this.ProjectInfo.WithHasAllInformation(hasAllInformation).WithVersion(this.Version.GetNewerVersion()));
         }
 
-        public ProjectState UpdateHasMissingMetadataReference(bool hasMissingMetadataReference)
-        {
-            if (_hasMissingMetadataReference == hasMissingMetadataReference)
-            {
-                return this;
-            }
-
-            return this.With(projectInfo: this.ProjectInfo.WithVersion(this.Version.GetNewerVersion()), hasMissingMetadataReference: hasMissingMetadataReference);
-        }
-
         public static bool IsSameLanguage(ProjectState project1, ProjectState project2)
         {
             return project1.LanguageServices == project2.LanguageServices;
@@ -538,61 +515,39 @@ namespace Microsoft.CodeAnalysis
                 projectInfo: this.ProjectInfo.WithProjectReferences(projectReferences).WithVersion(this.Version.GetNewerVersion()));
         }
 
-        private static bool IsMetadataReferenceMissing(PortableExecutableReference reference)
-        {
-            return reference != null && !PortableShim.File.Exists(reference.FilePath);
-        }
-
-        private static bool ComputeMissingMetadataReference(IEnumerable<PortableExecutableReference> references)
-        {
-            return references.Any(p => !PortableShim.File.Exists(p.FilePath));
-        }
-
         public ProjectState AddMetadataReference(MetadataReference toMetadata)
         {
             Contract.Requires(!this.MetadataReferences.Contains(toMetadata));
 
             return this.With(
-                projectInfo: this.ProjectInfo.WithMetadataReferences(this.MetadataReferences.ToImmutableArray().Add(toMetadata)).WithVersion(this.Version.GetNewerVersion()),
-                hasMissingMetadataReference: _hasMissingMetadataReference || IsMetadataReferenceMissing(toMetadata as PortableExecutableReference));
+                projectInfo: this.ProjectInfo.WithMetadataReferences(this.MetadataReferences.ToImmutableArray().Add(toMetadata)).WithVersion(this.Version.GetNewerVersion()));
         }
 
         public ProjectState RemoveMetadataReference(MetadataReference toMetadata)
         {
             Contract.Requires(this.MetadataReferences.Contains(toMetadata));
 
-            var references = this.MetadataReferences.ToImmutableArray().Remove(toMetadata);
-
-            // this is unfortunate but, if this is called for each metadata removed one by one, calculating
-            // missing metadata reference flag will become n^2 operation.
             return this.With(
-                projectInfo: this.ProjectInfo.WithMetadataReferences(references).WithVersion(this.Version.GetNewerVersion()),
-                hasMissingMetadataReference: ComputeMissingMetadataReference(references.OfType<PortableExecutableReference>()));
+                projectInfo: this.ProjectInfo.WithMetadataReferences(this.MetadataReferences.ToImmutableArray().Remove(toMetadata)).WithVersion(this.Version.GetNewerVersion()));
         }
 
         public ProjectState AddMetadataReferences(IEnumerable<MetadataReference> metadataReferences)
         {
             var newMetaRefs = this.MetadataReferences;
-            var hasMissingMetadataReference = _hasMissingMetadataReference;
-
             foreach (var metadataReference in metadataReferences)
             {
                 Contract.Requires(!newMetaRefs.Contains(metadataReference));
-
-                hasMissingMetadataReference |= IsMetadataReferenceMissing(metadataReference as PortableExecutableReference);
                 newMetaRefs = newMetaRefs.ToImmutableArray().Add(metadataReference);
             }
 
             return this.With(
-                projectInfo: this.ProjectInfo.WithMetadataReferences(newMetaRefs).WithVersion(this.Version.GetNewerVersion()),
-                hasMissingMetadataReference: hasMissingMetadataReference);
+                projectInfo: this.ProjectInfo.WithMetadataReferences(newMetaRefs).WithVersion(this.Version.GetNewerVersion()));
         }
 
         public ProjectState WithMetadataReferences(IEnumerable<MetadataReference> metadataReferences)
         {
             return this.With(
-                projectInfo: this.ProjectInfo.WithMetadataReferences(metadataReferences).WithVersion(this.Version.GetNewerVersion()),
-                hasMissingMetadataReference: ComputeMissingMetadataReference(metadataReferences.OfType<PortableExecutableReference>()));
+                projectInfo: this.ProjectInfo.WithMetadataReferences(metadataReferences).WithVersion(this.Version.GetNewerVersion()));
         }
 
         public ProjectState AddAnalyzerReference(AnalyzerReference analyzerReference)

@@ -587,8 +587,8 @@ namespace Microsoft.CodeAnalysis
             {
                 try
                 {
-                    // if HasAllInformation or !HasMissingMetadataReference are false, then this project is always not completed.
-                    bool hasSuccessfullyLoaded = this.ProjectState.HasAllInformation && !this.ProjectState.HasMissingMetadataReference;
+                    // if HasAllInformation is false, then this project is always not completed.
+                    bool hasSuccessfullyLoaded = this.ProjectState.HasAllInformation;
 
                     var newReferences = new List<MetadataReference>();
                     newReferences.AddRange(this.ProjectState.MetadataReferences);
@@ -637,7 +637,7 @@ namespace Microsoft.CodeAnalysis
                         compilation = compilation.WithReferences(newReferences);
                     }
 
-                    bool hasSuccessfullyLoadedTransitively = await ComputeHasSuccessfullyLoadedTransitivelyAsync(solution, hasSuccessfullyLoaded, cancellationToken).ConfigureAwait(false);
+                    bool hasSuccessfullyLoadedTransitively = !HasMissingReferences(compilation, this.ProjectState.MetadataReferences) && await ComputeHasSuccessfullyLoadedTransitivelyAsync(solution, hasSuccessfullyLoaded, cancellationToken).ConfigureAwait(false);
 
                     this.WriteState(new FinalState(State.CreateValueSource(compilation, solution.Services), hasSuccessfullyLoadedTransitively), solution);
                     return new CompilationInfo(compilation, hasSuccessfullyLoadedTransitively);
@@ -646,6 +646,19 @@ namespace Microsoft.CodeAnalysis
                 {
                     throw ExceptionUtilities.Unreachable;
                 }
+            }
+
+            private bool HasMissingReferences(Compilation compilation, IReadOnlyList<MetadataReference> metadataReferences)
+            {
+                foreach (var reference in metadataReferences)
+                {
+                    if (compilation.GetAssemblyOrModuleSymbol(reference) == null)
+                    {
+                        return true;
+                    }
+                }
+
+                return false;
             }
 
             private async Task<bool> ComputeHasSuccessfullyLoadedTransitivelyAsync(Solution solution, bool hasSuccessfullyLoaded, CancellationToken cancellationToken)
