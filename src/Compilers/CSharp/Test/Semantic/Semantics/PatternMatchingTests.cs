@@ -2006,10 +2006,7 @@ class C1
             var y2Decl = tree.GetRoot().DescendantNodes().OfType<DeclarationPatternSyntax>().Where(p => p.Identifier.ValueText == "y2").Single();
             var y2Ref = tree.GetRoot().DescendantNodes().OfType<IdentifierNameSyntax>().Where(id => id.Identifier.ValueText == "y2").ToArray();
             Assert.Equal(3, y2Ref.Length);
-            foreach (var r in y2Ref)
-            {
-                VerifyModelForDeclarationPattern(model, y2Decl, r);
-            }
+            VerifyModelForDeclarationPattern(model, y2Decl, y2Ref);
 
             var y3Decl = tree.GetRoot().DescendantNodes().OfType<DeclarationPatternSyntax>().Where(p => p.Identifier.ValueText == "y3").Single();
             var y3Ref = tree.GetRoot().DescendantNodes().OfType<IdentifierNameSyntax>().Where(id => id.Identifier.ValueText == "y3").Single();
@@ -2018,8 +2015,7 @@ class C1
             var z3Decl = tree.GetRoot().DescendantNodes().OfType<DeclarationPatternSyntax>().Where(p => p.Identifier.ValueText == "z3").Single();
             var z3Ref = tree.GetRoot().DescendantNodes().OfType<IdentifierNameSyntax>().Where(id => id.Identifier.ValueText == "z3").ToArray();
             Assert.Equal(3, z3Ref.Length);
-            VerifyModelForDeclarationPattern(model, z3Decl, z3Ref[0]);
-            VerifyModelForDeclarationPattern(model, z3Decl, z3Ref[1]);
+            VerifyModelForDeclarationPattern(model, z3Decl, z3Ref[0], z3Ref[1]);
             VerifyNotInScope(model, z3Ref[2]);
 
             var y4Decl = tree.GetRoot().DescendantNodes().OfType<DeclarationPatternSyntax>().Where(p => p.Identifier.ValueText == "y4").Single();
@@ -2033,10 +2029,7 @@ class C1
             var z4Decl = tree.GetRoot().DescendantNodes().OfType<DeclarationPatternSyntax>().Where(p => p.Identifier.ValueText == "z4").Single();
             var z4Ref = tree.GetRoot().DescendantNodes().OfType<IdentifierNameSyntax>().Where(id => id.Identifier.ValueText == "z4").ToArray();
             Assert.Equal(3, z4Ref.Length);
-            foreach (var r in z4Ref)
-            {
-                VerifyModelForDeclarationPattern(model, z4Decl, r);
-            }
+            VerifyModelForDeclarationPattern(model, z4Decl, z4Ref);
 
             var y5Decl = tree.GetRoot().DescendantNodes().OfType<DeclarationPatternSyntax>().Where(p => p.Identifier.ValueText == "y5").Single();
             var y5Ref = tree.GetRoot().DescendantNodes().OfType<IdentifierNameSyntax>().Where(id => id.Identifier.ValueText == "y5").Single();
@@ -2045,10 +2038,7 @@ class C1
             var z5Decl = tree.GetRoot().DescendantNodes().OfType<DeclarationPatternSyntax>().Where(p => p.Identifier.ValueText == "z5").Single();
             var z5Ref = tree.GetRoot().DescendantNodes().OfType<IdentifierNameSyntax>().Where(id => id.Identifier.ValueText == "z5").ToArray();
             Assert.Equal(5, z5Ref.Length);
-            for (int i = 0; i < 4; i++)
-            {
-                VerifyModelForDeclarationPattern(model, z5Decl, z5Ref[i]);
-            }
+            VerifyModelForDeclarationPattern(model, z5Decl, z5Ref[0], z5Ref[1], z5Ref[2], z5Ref[3]);
             VerifyNotInScope(model, z5Ref[4]);
 
             var y6Decl = tree.GetRoot().DescendantNodes().OfType<DeclarationPatternSyntax>().Where(p => p.Identifier.ValueText == "y6").Single();
@@ -2068,8 +2058,7 @@ class C1
             Assert.Equal(5, z7Ref.Length);
             VerifyNotInScope(model, z7Ref[0]);
             VerifyNotInScope(model, z7Ref[1]);
-            VerifyModelForDeclarationPattern(model, z7Decl, z7Ref[2]);
-            VerifyModelForDeclarationPattern(model, z7Decl, z7Ref[3]);
+            VerifyModelForDeclarationPattern(model, z7Decl, z7Ref[2], z7Ref[3]);
             VerifyNotInScope(model, z7Ref[4]);
 
             var y8Decl = tree.GetRoot().DescendantNodes().OfType<DeclarationPatternSyntax>().Where(p => p.Identifier.ValueText == "y8").Single();
@@ -2274,10 +2263,7 @@ public class X
             var x8Ref = tree.GetRoot().DescendantNodes().OfType<IdentifierNameSyntax>().Where(id => id.Identifier.ValueText == "x8").ToArray();
             Assert.Equal(2, x8Decl.Length);
             Assert.Equal(2, x8Ref.Length);
-            for (int i = 0; i < x8Decl.Length; i++)
-            {
-                VerifyModelForDeclarationPattern(model, x8Decl[0], x8Ref[i]);
-            }
+            VerifyModelForDeclarationPattern(model, x8Decl[0], x8Ref);
             VerifyModelForDeclarationPatternDuplicateInSameScope(model, x8Decl[1]);
 
             var x9Decl = tree.GetRoot().DescendantNodes().OfType<DeclarationPatternSyntax>().Where(p => p.Identifier.ValueText == "x9").Single();
@@ -2481,10 +2467,7 @@ public class X
             var x8Ref = tree.GetRoot().DescendantNodes().OfType<IdentifierNameSyntax>().Where(id => id.Identifier.ValueText == "x8").ToArray();
             Assert.Equal(2, x8Decl.Length);
             Assert.Equal(2, x8Ref.Length);
-            for (int i = 0; i < x8Decl.Length; i++)
-            {
-                VerifyModelForDeclarationPattern(model, x8Decl[0], x8Ref[i]);
-            }
+            VerifyModelForDeclarationPattern(model, x8Decl[0], x8Ref);
             VerifyModelForDeclarationPatternDuplicateInSameScope(model, x8Decl[1]);
 
             var x9Decl = tree.GetRoot().DescendantNodes().OfType<DeclarationPatternSyntax>().Where(p => p.Identifier.ValueText == "x9").Single();
@@ -2727,8 +2710,7 @@ public class X
             var x6Decl = tree.GetRoot().DescendantNodes().OfType<DeclarationPatternSyntax>().Where(p => p.Identifier.ValueText == "x6").Single();
             var x6Ref = tree.GetRoot().DescendantNodes().OfType<IdentifierNameSyntax>().Where(id => id.Identifier.ValueText == "x6").ToArray();
             Assert.Equal(2, x6Ref.Length);
-            VerifyModelForDeclarationPattern(model, x6Decl, x6Ref[0]);
-            VerifyModelForDeclarationPattern(model, x6Decl, x6Ref[1]);
+            VerifyModelForDeclarationPattern(model, x6Decl, x6Ref);
 
             var x7Decl = tree.GetRoot().DescendantNodes().OfType<DeclarationPatternSyntax>().Where(p => p.Identifier.ValueText == "x7").Single();
             var x7Ref = tree.GetRoot().DescendantNodes().OfType<IdentifierNameSyntax>().Where(id => id.Identifier.ValueText == "x7").ToArray();
@@ -2772,9 +2754,647 @@ public class X
             var x14Ref = tree.GetRoot().DescendantNodes().OfType<IdentifierNameSyntax>().Where(id => id.Identifier.ValueText == "x14").ToArray();
             Assert.Equal(2, x14Decl.Length);
             Assert.Equal(2, x14Ref.Length);
-            VerifyModelForDeclarationPattern(model, x14Decl[0], x14Ref[0]);
-            VerifyModelForDeclarationPattern(model, x14Decl[0], x14Ref[1]);
+            VerifyModelForDeclarationPattern(model, x14Decl[0], x14Ref);
             VerifyModelForDeclarationPatternDuplicateInSameScope(model, x14Decl[1]);
+        }
+        
+        [Fact]
+        public void ScopeOfPatternVariables_Lambda_01()
+        {
+            var source =
+@"
+public class X
+{
+    public static void Main()
+    {
+    }
+
+    bool Dummy(params object[] x) {return true;}
+
+    System.Action<object> Test1()
+    {
+        return (o) => let x1 = o;
+    }
+
+    System.Action<object> Test2()
+    {
+        return (o) => let var x2 = o;
+    }
+
+    void Test3()
+    {
+        Dummy((System.Func<object, bool>) (o => o is int x3 && x3 > 0));
+    }
+
+    void Test4()
+    {
+        Dummy((System.Func<object, bool>) (o => x4 && o is int x4));
+    }
+
+    void Test5()
+    {
+        Dummy((System.Func<object, object, bool>) ((o1, o2) => o1 is int x5 && 
+                                                               o2 is int x5 && 
+                                                               x5 > 0));
+    }
+
+    void Test6()
+    {
+        Dummy((System.Func<object, bool>) (o => o is int x6 && x6 > 0), (System.Func<object, bool>) (o => o is int x6 && x6 > 0));
+    }
+
+    void Test7()
+    {
+        Dummy(x7, 1);
+        Dummy(x7, 
+             (System.Func<object, bool>) (o => o is int x7 && x7 > 0), 
+              x7);
+        Dummy(x7, 2); 
+    }
+
+    void Test8()
+    {
+        Dummy(true is var x8 && x8, (System.Func<object, bool>) (o => o is int y8 && x8));
+    }
+
+    void Test9()
+    {
+        Dummy(true is var x9, 
+              (System.Func<object, bool>) (o => o is int x9 && 
+                                                x9 > 0), x9);
+    }
+
+    void Test10()
+    {
+        Dummy((System.Func<object, bool>) (o => o is int x10 && 
+                                                x10 > 0),
+              true is var x10, x10);
+    }
+
+    void Test11()
+    {
+        var x11 = 11;
+        Dummy(x11);
+        Dummy((System.Func<object, bool>) (o => o is int x11 && 
+                                                x11 > 0), x11);
+    }
+
+    void Test12()
+    {
+        Dummy((System.Func<object, bool>) (o => o is int x12 && 
+                                                x12 > 0), 
+              x12);
+        var x12 = 11;
+        Dummy(x12);
+    }
+}
+";
+            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe, parseOptions: patternParseOptions);
+            compilation.VerifyDiagnostics(
+    // (12,27): error CS1002: ; expected
+    //         return (o) => let x1 = o;
+    Diagnostic(ErrorCode.ERR_SemicolonExpected, "x1").WithLocation(12, 27),
+    // (17,27): error CS1002: ; expected
+    //         return (o) => let var x2 = o;
+    Diagnostic(ErrorCode.ERR_SemicolonExpected, "var").WithLocation(17, 27),
+    // (12,23): error CS0103: The name 'let' does not exist in the current context
+    //         return (o) => let x1 = o;
+    Diagnostic(ErrorCode.ERR_NameNotInContext, "let").WithArguments("let").WithLocation(12, 23),
+    // (12,23): error CS0201: Only assignment, call, increment, decrement, and new object expressions can be used as a statement
+    //         return (o) => let x1 = o;
+    Diagnostic(ErrorCode.ERR_IllegalStatement, "let").WithLocation(12, 23),
+    // (12,27): error CS0103: The name 'x1' does not exist in the current context
+    //         return (o) => let x1 = o;
+    Diagnostic(ErrorCode.ERR_NameNotInContext, "x1").WithArguments("x1").WithLocation(12, 27),
+    // (12,32): error CS0103: The name 'o' does not exist in the current context
+    //         return (o) => let x1 = o;
+    Diagnostic(ErrorCode.ERR_NameNotInContext, "o").WithArguments("o").WithLocation(12, 32),
+    // (12,27): warning CS0162: Unreachable code detected
+    //         return (o) => let x1 = o;
+    Diagnostic(ErrorCode.WRN_UnreachableCode, "x1").WithLocation(12, 27),
+    // (17,23): error CS0103: The name 'let' does not exist in the current context
+    //         return (o) => let var x2 = o;
+    Diagnostic(ErrorCode.ERR_NameNotInContext, "let").WithArguments("let").WithLocation(17, 23),
+    // (17,23): error CS0201: Only assignment, call, increment, decrement, and new object expressions can be used as a statement
+    //         return (o) => let var x2 = o;
+    Diagnostic(ErrorCode.ERR_IllegalStatement, "let").WithLocation(17, 23),
+    // (17,36): error CS0103: The name 'o' does not exist in the current context
+    //         return (o) => let var x2 = o;
+    Diagnostic(ErrorCode.ERR_NameNotInContext, "o").WithArguments("o").WithLocation(17, 36),
+    // (17,27): warning CS0162: Unreachable code detected
+    //         return (o) => let var x2 = o;
+    Diagnostic(ErrorCode.WRN_UnreachableCode, "var").WithLocation(17, 27),
+    // (27,49): error CS0841: Cannot use local variable 'x4' before it is declared
+    //         Dummy((System.Func<object, bool>) (o => x4 && o is int x4));
+    Diagnostic(ErrorCode.ERR_VariableUsedBeforeDeclaration, "x4").WithArguments("x4").WithLocation(27, 49),
+    // (33,74): error CS0128: A local variable named 'x5' is already defined in this scope
+    //                                                                o2 is int x5 && 
+    Diagnostic(ErrorCode.ERR_LocalDuplicate, "x5").WithArguments("x5").WithLocation(33, 74),
+    // (34,64): error CS0165: Use of unassigned local variable 'x5'
+    //                                                                x5 > 0));
+    Diagnostic(ErrorCode.ERR_UseDefViolation, "x5").WithArguments("x5").WithLocation(34, 64),
+    // (44,15): error CS0103: The name 'x7' does not exist in the current context
+    //         Dummy(x7, 1);
+    Diagnostic(ErrorCode.ERR_NameNotInContext, "x7").WithArguments("x7").WithLocation(44, 15),
+    // (45,15): error CS0103: The name 'x7' does not exist in the current context
+    //         Dummy(x7, 
+    Diagnostic(ErrorCode.ERR_NameNotInContext, "x7").WithArguments("x7").WithLocation(45, 15),
+    // (47,15): error CS0103: The name 'x7' does not exist in the current context
+    //               x7);
+    Diagnostic(ErrorCode.ERR_NameNotInContext, "x7").WithArguments("x7").WithLocation(47, 15),
+    // (48,15): error CS0103: The name 'x7' does not exist in the current context
+    //         Dummy(x7, 2); 
+    Diagnostic(ErrorCode.ERR_NameNotInContext, "x7").WithArguments("x7").WithLocation(48, 15),
+    // (59,58): error CS0136: A local or parameter named 'x9' cannot be declared in this scope because that name is used in an enclosing local scope to define a local or parameter
+    //               (System.Func<object, bool>) (o => o is int x9 && 
+    Diagnostic(ErrorCode.ERR_LocalIllegallyOverrides, "x9").WithArguments("x9").WithLocation(59, 58),
+    // (65,58): error CS0136: A local or parameter named 'x10' cannot be declared in this scope because that name is used in an enclosing local scope to define a local or parameter
+    //         Dummy((System.Func<object, bool>) (o => o is int x10 && 
+    Diagnostic(ErrorCode.ERR_LocalIllegallyOverrides, "x10").WithArguments("x10").WithLocation(65, 58),
+    // (74,58): error CS0136: A local or parameter named 'x11' cannot be declared in this scope because that name is used in an enclosing local scope to define a local or parameter
+    //         Dummy((System.Func<object, bool>) (o => o is int x11 && 
+    Diagnostic(ErrorCode.ERR_LocalIllegallyOverrides, "x11").WithArguments("x11").WithLocation(74, 58),
+    // (80,58): error CS0136: A local or parameter named 'x12' cannot be declared in this scope because that name is used in an enclosing local scope to define a local or parameter
+    //         Dummy((System.Func<object, bool>) (o => o is int x12 && 
+    Diagnostic(ErrorCode.ERR_LocalIllegallyOverrides, "x12").WithArguments("x12").WithLocation(80, 58),
+    // (82,15): error CS0841: Cannot use local variable 'x12' before it is declared
+    //               x12);
+    Diagnostic(ErrorCode.ERR_VariableUsedBeforeDeclaration, "x12").WithArguments("x12").WithLocation(82, 15)
+                );
+
+            var tree = compilation.SyntaxTrees.Single();
+            var model = compilation.GetSemanticModel(tree);
+
+            var x3Decl = tree.GetRoot().DescendantNodes().OfType<DeclarationPatternSyntax>().Where(p => p.Identifier.ValueText == "x3").Single();
+            var x3Ref = tree.GetRoot().DescendantNodes().OfType<IdentifierNameSyntax>().Where(id => id.Identifier.ValueText == "x3").Single();
+            VerifyModelForDeclarationPattern(model, x3Decl, x3Ref);
+
+            var x4Decl = tree.GetRoot().DescendantNodes().OfType<DeclarationPatternSyntax>().Where(p => p.Identifier.ValueText == "x4").Single();
+            var x4Ref = tree.GetRoot().DescendantNodes().OfType<IdentifierNameSyntax>().Where(id => id.Identifier.ValueText == "x4").Single();
+            VerifyModelForDeclarationPattern(model, x4Decl, x4Ref);
+
+            var x5Decl = tree.GetRoot().DescendantNodes().OfType<DeclarationPatternSyntax>().Where(p => p.Identifier.ValueText == "x5").ToArray();
+            var x5Ref = tree.GetRoot().DescendantNodes().OfType<IdentifierNameSyntax>().Where(id => id.Identifier.ValueText == "x5").Single();
+            Assert.Equal(2, x5Decl.Length);
+            VerifyModelForDeclarationPattern(model, x5Decl[0], x5Ref);
+            VerifyModelForDeclarationPatternDuplicateInSameScope(model, x5Decl[1]);
+
+            var x6Decl = tree.GetRoot().DescendantNodes().OfType<DeclarationPatternSyntax>().Where(p => p.Identifier.ValueText == "x6").ToArray();
+            var x6Ref = tree.GetRoot().DescendantNodes().OfType<IdentifierNameSyntax>().Where(id => id.Identifier.ValueText == "x6").ToArray();
+            Assert.Equal(2, x6Decl.Length);
+            Assert.Equal(2, x6Ref.Length);
+            VerifyModelForDeclarationPattern(model, x6Decl[0], x6Ref[0]);
+            VerifyModelForDeclarationPattern(model, x6Decl[1], x6Ref[1]);
+
+            var x7Decl = tree.GetRoot().DescendantNodes().OfType<DeclarationPatternSyntax>().Where(p => p.Identifier.ValueText == "x7").Single();
+            var x7Ref = tree.GetRoot().DescendantNodes().OfType<IdentifierNameSyntax>().Where(id => id.Identifier.ValueText == "x7").ToArray();
+            Assert.Equal(5, x7Ref.Length);
+            VerifyNotInScope(model, x7Ref[0]);
+            VerifyNotInScope(model, x7Ref[1]);
+            VerifyModelForDeclarationPattern(model, x7Decl, x7Ref[2]);
+            VerifyNotInScope(model, x7Ref[3]);
+            VerifyNotInScope(model, x7Ref[4]);
+
+            var x8Decl = tree.GetRoot().DescendantNodes().OfType<DeclarationPatternSyntax>().Where(p => p.Identifier.ValueText == "x8").Single();
+            var x8Ref = tree.GetRoot().DescendantNodes().OfType<IdentifierNameSyntax>().Where(id => id.Identifier.ValueText == "x8").ToArray();
+            Assert.Equal(2, x8Ref.Length);
+            VerifyModelForDeclarationPattern(model, x8Decl, x8Ref);
+
+            var x9Decl = tree.GetRoot().DescendantNodes().OfType<DeclarationPatternSyntax>().Where(p => p.Identifier.ValueText == "x9").ToArray();
+            var x9Ref = tree.GetRoot().DescendantNodes().OfType<IdentifierNameSyntax>().Where(id => id.Identifier.ValueText == "x9").ToArray();
+            Assert.Equal(2, x9Decl.Length);
+            Assert.Equal(2, x9Ref.Length);
+            VerifyModelForDeclarationPattern(model, x9Decl[0], x9Ref[1]);
+            VerifyModelForDeclarationPattern(model, x9Decl[1], x9Ref[0]);
+
+            var x10Decl = tree.GetRoot().DescendantNodes().OfType<DeclarationPatternSyntax>().Where(p => p.Identifier.ValueText == "x10").ToArray();
+            var x10Ref = tree.GetRoot().DescendantNodes().OfType<IdentifierNameSyntax>().Where(id => id.Identifier.ValueText == "x10").ToArray();
+            Assert.Equal(2, x10Decl.Length);
+            Assert.Equal(2, x10Ref.Length);
+            VerifyModelForDeclarationPattern(model, x10Decl[0], x10Ref[0]);
+            VerifyModelForDeclarationPattern(model, x10Decl[1], x10Ref[1]);
+
+            var x11Decl = tree.GetRoot().DescendantNodes().OfType<DeclarationPatternSyntax>().Where(p => p.Identifier.ValueText == "x11").Single();
+            var x11Ref = tree.GetRoot().DescendantNodes().OfType<IdentifierNameSyntax>().Where(id => id.Identifier.ValueText == "x11").ToArray();
+            Assert.Equal(3, x11Ref.Length);
+            VerifyNotAPatternLocal(model, x11Ref[0]);
+            VerifyModelForDeclarationPattern(model, x11Decl, x11Ref[1]);
+            VerifyNotAPatternLocal(model, x11Ref[2]);
+
+            var x12Decl = tree.GetRoot().DescendantNodes().OfType<DeclarationPatternSyntax>().Where(p => p.Identifier.ValueText == "x12").Single();
+            var x12Ref = tree.GetRoot().DescendantNodes().OfType<IdentifierNameSyntax>().Where(id => id.Identifier.ValueText == "x12").ToArray();
+            Assert.Equal(3, x12Ref.Length);
+            VerifyModelForDeclarationPattern(model, x12Decl, x12Ref[0]);
+            VerifyNotAPatternLocal(model, x12Ref[1]);
+            VerifyNotAPatternLocal(model, x12Ref[2]);
+        }
+        
+        [Fact]
+        public void ScopeOfPatternVariables_Query_01()
+        {
+            var source =
+@"
+using System.Linq;
+
+public class X
+{
+    public static void Main()
+    {
+    }
+
+    bool Dummy(params object[] x) {return true;}
+
+    void Test1()
+    {
+        var res = from x in new[] { 1 is var y1 ? y1 : 0, y1}
+                  select x + y1;
+
+        Dummy(y1); 
+    }
+
+    void Test2()
+    {
+        var res = from x1 in new[] { 1 is var y2 ? y2 : 0}
+                  from x2 in new[] { x1 is var z2 ? z2 : 0, z2, y2}
+                  select x1 + x2 + y2 + 
+                         z2;
+
+        Dummy(z2); 
+    }
+
+    void Test3()
+    {
+        var res = from x1 in new[] { 1 is var y3 ? y3 : 0}
+                  let x2 = x1 is var z3 && z3 > 0 && y3 < 0 
+                  select new { x1, x2, y3,
+                               z3};
+
+        Dummy(z3); 
+    }
+
+    void Test4()
+    {
+        var res = from x1 in new[] { 1 is var y4 ? y4 : 0}
+                  join x2 in new[] { 2 is var z4 ? z4 : 0, z4, y4}
+                            on x1 + y4 + z4 + 3 is var u4 ? u4 : 0 + 
+                                  v4 
+                               equals x2 + y4 + z4 + 4 is var v4 ? v4 : 0 +
+                                  u4 
+                  select new { x1, x2, y4, z4, 
+                               u4, v4 };
+
+        Dummy(z4); 
+        Dummy(u4); 
+        Dummy(v4); 
+    }
+
+    void Test5()
+    {
+        var res = from x1 in new[] { 1 is var y5 ? y5 : 0}
+                  join x2 in new[] { 2 is var z5 ? z5 : 0, z5, y5}
+                            on x1 + y5 + z5 + 3 is var u5 ? u5 : 0 + 
+                                  v5 
+                               equals x2 + y5 + z5 + 4 is var v5 ? v5 : 0 +
+                                  u5 
+                  into g
+                  select new { x1, y5, z5, g,
+                               u5, v5 };
+
+        Dummy(z5); 
+        Dummy(u5); 
+        Dummy(v5); 
+    }
+
+    void Test6()
+    {
+        var res = from x in new[] { 1 is var y6 ? y6 : 0}
+                  where x > y6 && 1 is var z6 && z6 == 1
+                  select x + y6 +
+                         z6;
+
+        Dummy(z6); 
+    }
+
+    void Test7()
+    {
+        var res = from x in new[] { 1 is var y7 ? y7 : 0}
+                  orderby x > y7 && 1 is var z7 && z7 == 
+                          u7,
+                          x > y7 && 1 is var u7 && u7 == 
+                          z7   
+                  select x + y7 +
+                         z7 + u7;
+
+        Dummy(z7); 
+        Dummy(u7); 
+    }
+
+    void Test8()
+    {
+        var res = from x in new[] { 1 is var y8 ? y8 : 0}
+                  select x > y8 && 1 is var z8 && z8 == 1;
+
+        Dummy(z8); 
+    }
+
+    void Test9()
+    {
+        var res = from x in new[] { 1 is var y9 ? y9 : 0}
+                  group x > y9 && 1 is var z9 && z9 == 
+                        u9
+                  by
+                        x > y9 && 1 is var u9 && u9 == 
+                        z9;   
+
+        Dummy(z9); 
+        Dummy(u9); 
+    }
+
+    void Test10()
+    {
+        var res = from x1 in new[] { 1 is var y10 ? y10 : 0}
+                  from y10 in new[] { 1 }
+                  select x1 + y10;
+    }
+
+    void Test11()
+    {
+        var res = from x1 in new[] { 1 is var y11 ? y11 : 0}
+                  let y11 = x1 + 1
+                  select x1 + y11;
+    }
+}
+";
+            var compilation = CreateCompilationWithMscorlib45(source, new[] { SystemCoreRef }, options: TestOptions.DebugExe, parseOptions: patternParseOptions);
+            compilation.VerifyDiagnostics(
+    // (17,15): error CS0103: The name 'y1' does not exist in the current context
+    //         Dummy(y1); 
+    Diagnostic(ErrorCode.ERR_NameNotInContext, "y1").WithArguments("y1").WithLocation(17, 15),
+    // (25,26): error CS0103: The name 'z2' does not exist in the current context
+    //                          z2;
+    Diagnostic(ErrorCode.ERR_NameNotInContext, "z2").WithArguments("z2").WithLocation(25, 26),
+    // (27,15): error CS0103: The name 'z2' does not exist in the current context
+    //         Dummy(z2); 
+    Diagnostic(ErrorCode.ERR_NameNotInContext, "z2").WithArguments("z2").WithLocation(27, 15),
+    // (35,32): error CS0103: The name 'z3' does not exist in the current context
+    //                                z3};
+    Diagnostic(ErrorCode.ERR_NameNotInContext, "z3").WithArguments("z3").WithLocation(35, 32),
+    // (37,15): error CS0103: The name 'z3' does not exist in the current context
+    //         Dummy(z3); 
+    Diagnostic(ErrorCode.ERR_NameNotInContext, "z3").WithArguments("z3").WithLocation(37, 15),
+    // (45,35): error CS0103: The name 'v4' does not exist in the current context
+    //                                   v4 
+    Diagnostic(ErrorCode.ERR_NameNotInContext, "v4").WithArguments("v4").WithLocation(45, 35),
+    // (47,35): error CS1938: The name 'u4' is not in scope on the right side of 'equals'.  Consider swapping the expressions on either side of 'equals'.
+    //                                   u4 
+    Diagnostic(ErrorCode.ERR_QueryInnerKey, "u4").WithArguments("u4").WithLocation(47, 35),
+    // (49,32): error CS0103: The name 'u4' does not exist in the current context
+    //                                u4, v4 };
+    Diagnostic(ErrorCode.ERR_NameNotInContext, "u4").WithArguments("u4").WithLocation(49, 32),
+    // (49,36): error CS0103: The name 'v4' does not exist in the current context
+    //                                u4, v4 };
+    Diagnostic(ErrorCode.ERR_NameNotInContext, "v4").WithArguments("v4").WithLocation(49, 36),
+    // (51,15): error CS0103: The name 'z4' does not exist in the current context
+    //         Dummy(z4); 
+    Diagnostic(ErrorCode.ERR_NameNotInContext, "z4").WithArguments("z4").WithLocation(51, 15),
+    // (52,15): error CS0103: The name 'u4' does not exist in the current context
+    //         Dummy(u4); 
+    Diagnostic(ErrorCode.ERR_NameNotInContext, "u4").WithArguments("u4").WithLocation(52, 15),
+    // (53,15): error CS0103: The name 'v4' does not exist in the current context
+    //         Dummy(v4); 
+    Diagnostic(ErrorCode.ERR_NameNotInContext, "v4").WithArguments("v4").WithLocation(53, 15),
+    // (61,35): error CS0103: The name 'v5' does not exist in the current context
+    //                                   v5 
+    Diagnostic(ErrorCode.ERR_NameNotInContext, "v5").WithArguments("v5").WithLocation(61, 35),
+    // (63,35): error CS1938: The name 'u5' is not in scope on the right side of 'equals'.  Consider swapping the expressions on either side of 'equals'.
+    //                                   u5 
+    Diagnostic(ErrorCode.ERR_QueryInnerKey, "u5").WithArguments("u5").WithLocation(63, 35),
+    // (66,32): error CS0103: The name 'u5' does not exist in the current context
+    //                                u5, v5 };
+    Diagnostic(ErrorCode.ERR_NameNotInContext, "u5").WithArguments("u5").WithLocation(66, 32),
+    // (66,36): error CS0103: The name 'v5' does not exist in the current context
+    //                                u5, v5 };
+    Diagnostic(ErrorCode.ERR_NameNotInContext, "v5").WithArguments("v5").WithLocation(66, 36),
+    // (68,15): error CS0103: The name 'z5' does not exist in the current context
+    //         Dummy(z5); 
+    Diagnostic(ErrorCode.ERR_NameNotInContext, "z5").WithArguments("z5").WithLocation(68, 15),
+    // (69,15): error CS0103: The name 'u5' does not exist in the current context
+    //         Dummy(u5); 
+    Diagnostic(ErrorCode.ERR_NameNotInContext, "u5").WithArguments("u5").WithLocation(69, 15),
+    // (70,15): error CS0103: The name 'v5' does not exist in the current context
+    //         Dummy(v5); 
+    Diagnostic(ErrorCode.ERR_NameNotInContext, "v5").WithArguments("v5").WithLocation(70, 15),
+    // (78,26): error CS0103: The name 'z6' does not exist in the current context
+    //                          z6;
+    Diagnostic(ErrorCode.ERR_NameNotInContext, "z6").WithArguments("z6").WithLocation(78, 26),
+    // (80,15): error CS0103: The name 'z6' does not exist in the current context
+    //         Dummy(z6); 
+    Diagnostic(ErrorCode.ERR_NameNotInContext, "z6").WithArguments("z6").WithLocation(80, 15),
+    // (87,27): error CS0103: The name 'u7' does not exist in the current context
+    //                           u7,
+    Diagnostic(ErrorCode.ERR_NameNotInContext, "u7").WithArguments("u7").WithLocation(87, 27),
+    // (89,27): error CS0103: The name 'z7' does not exist in the current context
+    //                           z7   
+    Diagnostic(ErrorCode.ERR_NameNotInContext, "z7").WithArguments("z7").WithLocation(89, 27),
+    // (91,31): error CS0103: The name 'u7' does not exist in the current context
+    //                          z7 + u7;
+    Diagnostic(ErrorCode.ERR_NameNotInContext, "u7").WithArguments("u7").WithLocation(91, 31),
+    // (91,26): error CS0103: The name 'z7' does not exist in the current context
+    //                          z7 + u7;
+    Diagnostic(ErrorCode.ERR_NameNotInContext, "z7").WithArguments("z7").WithLocation(91, 26),
+    // (93,15): error CS0103: The name 'z7' does not exist in the current context
+    //         Dummy(z7); 
+    Diagnostic(ErrorCode.ERR_NameNotInContext, "z7").WithArguments("z7").WithLocation(93, 15),
+    // (94,15): error CS0103: The name 'u7' does not exist in the current context
+    //         Dummy(u7); 
+    Diagnostic(ErrorCode.ERR_NameNotInContext, "u7").WithArguments("u7").WithLocation(94, 15),
+    // (88,52): error CS0165: Use of unassigned local variable 'u7'
+    //                           x > y7 && 1 is var u7 && u7 == 
+    Diagnostic(ErrorCode.ERR_UseDefViolation, "u7").WithArguments("u7").WithLocation(88, 52),
+    // (102,15): error CS0103: The name 'z8' does not exist in the current context
+    //         Dummy(z8); 
+    Diagnostic(ErrorCode.ERR_NameNotInContext, "z8").WithArguments("z8").WithLocation(102, 15),
+    // (112,25): error CS0103: The name 'z9' does not exist in the current context
+    //                         z9;   
+    Diagnostic(ErrorCode.ERR_NameNotInContext, "z9").WithArguments("z9").WithLocation(112, 25),
+    // (109,25): error CS0103: The name 'u9' does not exist in the current context
+    //                         u9
+    Diagnostic(ErrorCode.ERR_NameNotInContext, "u9").WithArguments("u9").WithLocation(109, 25),
+    // (114,15): error CS0103: The name 'z9' does not exist in the current context
+    //         Dummy(z9); 
+    Diagnostic(ErrorCode.ERR_NameNotInContext, "z9").WithArguments("z9").WithLocation(114, 15),
+    // (115,15): error CS0103: The name 'u9' does not exist in the current context
+    //         Dummy(u9); 
+    Diagnostic(ErrorCode.ERR_NameNotInContext, "u9").WithArguments("u9").WithLocation(115, 15),
+    // (121,24): error CS1931: The range variable 'y10' conflicts with a previous declaration of 'y10'
+    //                   from y10 in new[] { 1 }
+    Diagnostic(ErrorCode.ERR_QueryRangeVariableOverrides, "y10").WithArguments("y10").WithLocation(121, 24),
+    // (128,23): error CS1931: The range variable 'y11' conflicts with a previous declaration of 'y11'
+    //                   let y11 = x1 + 1
+    Diagnostic(ErrorCode.ERR_QueryRangeVariableOverrides, "y11").WithArguments("y11").WithLocation(128, 23)
+                );
+
+            var tree = compilation.SyntaxTrees.Single();
+            var model = compilation.GetSemanticModel(tree);
+
+            var y1Decl = tree.GetRoot().DescendantNodes().OfType<DeclarationPatternSyntax>().Where(p => p.Identifier.ValueText == "y1").Single();
+            var y1Ref = tree.GetRoot().DescendantNodes().OfType<IdentifierNameSyntax>().Where(id => id.Identifier.ValueText == "y1").ToArray();
+            Assert.Equal(4, y1Ref.Length);
+            VerifyModelForDeclarationPattern(model, y1Decl, y1Ref[0], y1Ref[1], y1Ref[2]);
+            VerifyNotInScope(model, y1Ref[3]);
+
+            var y2Decl = tree.GetRoot().DescendantNodes().OfType<DeclarationPatternSyntax>().Where(p => p.Identifier.ValueText == "y2").Single();
+            var y2Ref = tree.GetRoot().DescendantNodes().OfType<IdentifierNameSyntax>().Where(id => id.Identifier.ValueText == "y2").ToArray();
+            Assert.Equal(3, y2Ref.Length);
+            VerifyModelForDeclarationPattern(model, y2Decl, y2Ref);
+
+            var z2Decl = tree.GetRoot().DescendantNodes().OfType<DeclarationPatternSyntax>().Where(p => p.Identifier.ValueText == "z2").Single();
+            var z2Ref = tree.GetRoot().DescendantNodes().OfType<IdentifierNameSyntax>().Where(id => id.Identifier.ValueText == "z2").ToArray();
+            Assert.Equal(4, z2Ref.Length);
+            VerifyModelForDeclarationPattern(model, z2Decl, z2Ref[0], z2Ref[1]);
+            VerifyNotInScope(model, z2Ref[2]);
+            VerifyNotInScope(model, z2Ref[3]);
+
+            var y3Decl = tree.GetRoot().DescendantNodes().OfType<DeclarationPatternSyntax>().Where(p => p.Identifier.ValueText == "y3").Single();
+            var y3Ref = tree.GetRoot().DescendantNodes().OfType<IdentifierNameSyntax>().Where(id => id.Identifier.ValueText == "y3").ToArray();
+            Assert.Equal(3, y3Ref.Length);
+            VerifyModelForDeclarationPattern(model, y3Decl, y3Ref);
+
+            var z3Decl = tree.GetRoot().DescendantNodes().OfType<DeclarationPatternSyntax>().Where(p => p.Identifier.ValueText == "z3").Single();
+            var z3Ref = tree.GetRoot().DescendantNodes().OfType<IdentifierNameSyntax>().Where(id => id.Identifier.ValueText == "z3").ToArray();
+            Assert.Equal(3, z3Ref.Length);
+            VerifyModelForDeclarationPattern(model, z3Decl, z3Ref[0]);
+            VerifyNotInScope(model, z3Ref[1]);
+            VerifyNotInScope(model, z3Ref[2]);
+
+            var y4Decl = tree.GetRoot().DescendantNodes().OfType<DeclarationPatternSyntax>().Where(p => p.Identifier.ValueText == "y4").Single();
+            var y4Ref = tree.GetRoot().DescendantNodes().OfType<IdentifierNameSyntax>().Where(id => id.Identifier.ValueText == "y4").ToArray();
+            Assert.Equal(5, y4Ref.Length);
+            VerifyModelForDeclarationPattern(model, y4Decl, y4Ref);
+
+            var z4Decl = tree.GetRoot().DescendantNodes().OfType<DeclarationPatternSyntax>().Where(p => p.Identifier.ValueText == "z4").Single();
+            var z4Ref = tree.GetRoot().DescendantNodes().OfType<IdentifierNameSyntax>().Where(id => id.Identifier.ValueText == "z4").ToArray();
+            Assert.Equal(6, z4Ref.Length);
+            VerifyModelForDeclarationPattern(model, z4Decl, z4Ref[0], z4Ref[1], z4Ref[2], z4Ref[3], z4Ref[4]);
+            VerifyNotInScope(model, z4Ref[5]);
+
+            var u4Decl = tree.GetRoot().DescendantNodes().OfType<DeclarationPatternSyntax>().Where(p => p.Identifier.ValueText == "u4").Single();
+            var u4Ref = tree.GetRoot().DescendantNodes().OfType<IdentifierNameSyntax>().Where(id => id.Identifier.ValueText == "u4").ToArray();
+            Assert.Equal(4, u4Ref.Length);
+            VerifyModelForDeclarationPattern(model, u4Decl, u4Ref[0]);
+            VerifyNotInScope(model, u4Ref[1]);
+            VerifyNotInScope(model, u4Ref[2]);
+            VerifyNotInScope(model, u4Ref[3]);
+
+            var v4Decl = tree.GetRoot().DescendantNodes().OfType<DeclarationPatternSyntax>().Where(p => p.Identifier.ValueText == "v4").Single();
+            var v4Ref = tree.GetRoot().DescendantNodes().OfType<IdentifierNameSyntax>().Where(id => id.Identifier.ValueText == "v4").ToArray();
+            Assert.Equal(4, v4Ref.Length);
+            VerifyNotInScope(model, v4Ref[0]);
+            VerifyModelForDeclarationPattern(model, v4Decl, v4Ref[1]);
+            VerifyNotInScope(model, v4Ref[2]);
+            VerifyNotInScope(model, v4Ref[3]);
+
+            var y5Decl = tree.GetRoot().DescendantNodes().OfType<DeclarationPatternSyntax>().Where(p => p.Identifier.ValueText == "y5").Single();
+            var y5Ref = tree.GetRoot().DescendantNodes().OfType<IdentifierNameSyntax>().Where(id => id.Identifier.ValueText == "y5").ToArray();
+            Assert.Equal(5, y5Ref.Length);
+            VerifyModelForDeclarationPattern(model, y5Decl, y5Ref);
+
+            var z5Decl = tree.GetRoot().DescendantNodes().OfType<DeclarationPatternSyntax>().Where(p => p.Identifier.ValueText == "z5").Single();
+            var z5Ref = tree.GetRoot().DescendantNodes().OfType<IdentifierNameSyntax>().Where(id => id.Identifier.ValueText == "z5").ToArray();
+            Assert.Equal(6, z5Ref.Length);
+            VerifyModelForDeclarationPattern(model, z5Decl, z5Ref[0], z5Ref[1], z5Ref[2], z5Ref[3], z5Ref[4]);
+            VerifyNotInScope(model, z5Ref[5]);
+
+            var u5Decl = tree.GetRoot().DescendantNodes().OfType<DeclarationPatternSyntax>().Where(p => p.Identifier.ValueText == "u5").Single();
+            var u5Ref = tree.GetRoot().DescendantNodes().OfType<IdentifierNameSyntax>().Where(id => id.Identifier.ValueText == "u5").ToArray();
+            Assert.Equal(4, u5Ref.Length);
+            VerifyModelForDeclarationPattern(model, u5Decl, u5Ref[0]);
+            VerifyNotInScope(model, u5Ref[1]);
+            VerifyNotInScope(model, u5Ref[2]);
+            VerifyNotInScope(model, u5Ref[3]);
+
+            var v5Decl = tree.GetRoot().DescendantNodes().OfType<DeclarationPatternSyntax>().Where(p => p.Identifier.ValueText == "v5").Single();
+            var v5Ref = tree.GetRoot().DescendantNodes().OfType<IdentifierNameSyntax>().Where(id => id.Identifier.ValueText == "v5").ToArray();
+            Assert.Equal(4, v5Ref.Length);
+            VerifyNotInScope(model, v5Ref[0]);
+            VerifyModelForDeclarationPattern(model, v5Decl, v5Ref[1]);
+            VerifyNotInScope(model, v5Ref[2]);
+            VerifyNotInScope(model, v5Ref[3]);
+
+            var y6Decl = tree.GetRoot().DescendantNodes().OfType<DeclarationPatternSyntax>().Where(p => p.Identifier.ValueText == "y6").Single();
+            var y6Ref = tree.GetRoot().DescendantNodes().OfType<IdentifierNameSyntax>().Where(id => id.Identifier.ValueText == "y6").ToArray();
+            Assert.Equal(3, y6Ref.Length);
+            VerifyModelForDeclarationPattern(model, y6Decl, y6Ref);
+
+            var z6Decl = tree.GetRoot().DescendantNodes().OfType<DeclarationPatternSyntax>().Where(p => p.Identifier.ValueText == "z6").Single();
+            var z6Ref = tree.GetRoot().DescendantNodes().OfType<IdentifierNameSyntax>().Where(id => id.Identifier.ValueText == "z6").ToArray();
+            Assert.Equal(3, z6Ref.Length);
+            VerifyModelForDeclarationPattern(model, z6Decl, z6Ref[0]);
+            VerifyNotInScope(model, z6Ref[1]);
+            VerifyNotInScope(model, z6Ref[2]);
+
+            var y7Decl = tree.GetRoot().DescendantNodes().OfType<DeclarationPatternSyntax>().Where(p => p.Identifier.ValueText == "y7").Single();
+            var y7Ref = tree.GetRoot().DescendantNodes().OfType<IdentifierNameSyntax>().Where(id => id.Identifier.ValueText == "y7").ToArray();
+            Assert.Equal(4, y7Ref.Length);
+            VerifyModelForDeclarationPattern(model, y7Decl, y7Ref);
+
+            var z7Decl = tree.GetRoot().DescendantNodes().OfType<DeclarationPatternSyntax>().Where(p => p.Identifier.ValueText == "z7").Single();
+            var z7Ref = tree.GetRoot().DescendantNodes().OfType<IdentifierNameSyntax>().Where(id => id.Identifier.ValueText == "z7").ToArray();
+            Assert.Equal(4, z7Ref.Length);
+            VerifyModelForDeclarationPattern(model, z7Decl, z7Ref[0]);
+            VerifyNotInScope(model, z7Ref[1]);
+            VerifyNotInScope(model, z7Ref[2]);
+            VerifyNotInScope(model, z7Ref[3]);
+
+            var u7Decl = tree.GetRoot().DescendantNodes().OfType<DeclarationPatternSyntax>().Where(p => p.Identifier.ValueText == "u7").Single();
+            var u7Ref = tree.GetRoot().DescendantNodes().OfType<IdentifierNameSyntax>().Where(id => id.Identifier.ValueText == "u7").ToArray();
+            Assert.Equal(4, u7Ref.Length);
+            VerifyNotInScope(model, u7Ref[0]);
+            VerifyModelForDeclarationPattern(model, u7Decl, u7Ref[1]);
+            VerifyNotInScope(model, u7Ref[2]);
+            VerifyNotInScope(model, u7Ref[3]);
+
+            var y8Decl = tree.GetRoot().DescendantNodes().OfType<DeclarationPatternSyntax>().Where(p => p.Identifier.ValueText == "y8").Single();
+            var y8Ref = tree.GetRoot().DescendantNodes().OfType<IdentifierNameSyntax>().Where(id => id.Identifier.ValueText == "y8").ToArray();
+            Assert.Equal(2, y8Ref.Length);
+            VerifyModelForDeclarationPattern(model, y8Decl, y8Ref);
+
+            var z8Decl = tree.GetRoot().DescendantNodes().OfType<DeclarationPatternSyntax>().Where(p => p.Identifier.ValueText == "z8").Single();
+            var z8Ref = tree.GetRoot().DescendantNodes().OfType<IdentifierNameSyntax>().Where(id => id.Identifier.ValueText == "z8").ToArray();
+            Assert.Equal(2, z8Ref.Length);
+            VerifyModelForDeclarationPattern(model, z8Decl, z8Ref[0]);
+            VerifyNotInScope(model, z8Ref[1]);
+
+            var y9Decl = tree.GetRoot().DescendantNodes().OfType<DeclarationPatternSyntax>().Where(p => p.Identifier.ValueText == "y9").Single();
+            var y9Ref = tree.GetRoot().DescendantNodes().OfType<IdentifierNameSyntax>().Where(id => id.Identifier.ValueText == "y9").ToArray();
+            Assert.Equal(3, y9Ref.Length);
+            VerifyModelForDeclarationPattern(model, y9Decl, y9Ref);
+
+            var z9Decl = tree.GetRoot().DescendantNodes().OfType<DeclarationPatternSyntax>().Where(p => p.Identifier.ValueText == "z9").Single();
+            var z9Ref = tree.GetRoot().DescendantNodes().OfType<IdentifierNameSyntax>().Where(id => id.Identifier.ValueText == "z9").ToArray();
+            Assert.Equal(3, z9Ref.Length);
+            VerifyModelForDeclarationPattern(model, z9Decl, z9Ref[0]);
+            VerifyNotInScope(model, z9Ref[1]);
+            VerifyNotInScope(model, z9Ref[2]);
+
+            var u9Decl = tree.GetRoot().DescendantNodes().OfType<DeclarationPatternSyntax>().Where(p => p.Identifier.ValueText == "u9").Single();
+            var u9Ref = tree.GetRoot().DescendantNodes().OfType<IdentifierNameSyntax>().Where(id => id.Identifier.ValueText == "u9").ToArray();
+            Assert.Equal(3, u9Ref.Length);
+            VerifyNotInScope(model, u9Ref[0]);
+            VerifyModelForDeclarationPattern(model, u9Decl, u9Ref[1]);
+            VerifyNotInScope(model, u9Ref[2]);
+
+            var y10Decl = tree.GetRoot().DescendantNodes().OfType<DeclarationPatternSyntax>().Where(p => p.Identifier.ValueText == "y10").Single();
+            var y10Ref = tree.GetRoot().DescendantNodes().OfType<IdentifierNameSyntax>().Where(id => id.Identifier.ValueText == "y10").ToArray();
+            Assert.Equal(2, y10Ref.Length);
+            VerifyModelForDeclarationPattern(model, y10Decl, y10Ref[0]);
+            VerifyNotAPatternLocal(model, y10Ref[1]);
+
+            var y11Decl = tree.GetRoot().DescendantNodes().OfType<DeclarationPatternSyntax>().Where(p => p.Identifier.ValueText == "y11").Single();
+            var y11Ref = tree.GetRoot().DescendantNodes().OfType<IdentifierNameSyntax>().Where(id => id.Identifier.ValueText == "y11").ToArray();
+            Assert.Equal(2, y11Ref.Length);
+            VerifyModelForDeclarationPattern(model, y11Decl, y11Ref[0]);
+            VerifyNotAPatternLocal(model, y11Ref[1]);
         }
     }
 }

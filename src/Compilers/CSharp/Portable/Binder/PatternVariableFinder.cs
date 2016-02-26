@@ -67,11 +67,26 @@ namespace Microsoft.CodeAnalysis.CSharp
         public override void VisitParenthesizedLambdaExpression(ParenthesizedLambdaExpressionSyntax node) { }
         public override void VisitSimpleLambdaExpression(SimpleLambdaExpressionSyntax node) { }
         public override void VisitAnonymousMethodExpression(AnonymousMethodExpressionSyntax node) { }
-        public override void VisitQueryExpression(QueryExpressionSyntax node) { }
+
+        public override void VisitQueryExpression(QueryExpressionSyntax node)
+        {
+            // Variables declared in [in] expressions of top level from clause and 
+            // join clauses are in scope 
+            Visit(node.FromClause.Expression);
+
+            foreach (var clause in node.Body.Clauses)
+            {
+                if (clause.Kind() == SyntaxKind.JoinClause)
+                {
+                    Visit(((JoinClauseSyntax)clause).InExpression);
+                }
+            }
+        }
+
         public override void VisitBinaryExpression(BinaryExpressionSyntax node)
         {
-            expressionsToVisit.Add(node.Left);
             expressionsToVisit.Add(node.Right);
+            expressionsToVisit.Add(node.Left);
         }
         public override void VisitPostfixUnaryExpression(PostfixUnaryExpressionSyntax node)
         {
