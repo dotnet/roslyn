@@ -1132,7 +1132,7 @@ class C
     public void Process()
     {
         object o = int.MaxValue;
-        [|int|] i = (int)o;
+        [|Int32|] i = (Int32)o;
     }
 }",
 @"using System;
@@ -1141,7 +1141,7 @@ class C
     public void Process()
     {
         object o = int.MaxValue;
-        var i = (int)o;
+        var i = (Int32)o;
     }
 }", options: ImplicitTypingWhereApparent());
         }
@@ -1156,7 +1156,7 @@ class C
     public void Process()
     {
         A a = new A();
-        [|bool|] s = a is IInterface;
+        [|Boolean|] s = a is IInterface;
     }
 }
 class A : IInterface
@@ -1235,7 +1235,7 @@ class C
 {
     public void Process()
     {
-        [|int|] a = int.Parse(""1"");
+        [|Int32|] a = int.Parse(""1"");
     }
 }",
 @"using System;
@@ -1308,7 +1308,7 @@ class C
     public void Process()
     {
         int integralValue = 12534;
-        [|decimal|] decimalValue = Convert.ToDecimal(integralValue);
+        [|Decimal|] decimalValue = Convert.ToDecimal(integralValue);
     }
 }",
 @"using System;
@@ -1333,7 +1333,7 @@ class C
     {
         int codePoint = 1067;
         IConvertible iConv = codePoint;
-        [|char|] ch = iConv.ToChar(null);
+        [|Char|] ch = iConv.ToChar(null);
     }
 }",
 @"using System;
