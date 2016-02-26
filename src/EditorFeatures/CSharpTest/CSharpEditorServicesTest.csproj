@@ -212,6 +212,8 @@
     <Compile Include="Completion\CompletionProviders\XmlDocumentationCommentCompletionProviderTests.cs" />
     <Compile Include="Completion\LoadDirectiveCompletionProviderTests.cs" />
     <Compile Include="Completion\ReferenceDirectiveCompletionProviderTests.cs" />
+    <Compile Include="Diagnostics\UseImplicitTyping\UseExplicitTypingTests.cs" />
+    <Compile Include="Diagnostics\UseImplicitTyping\UseImplicitTypingTests.cs" />
     <Compile Include="GoToAdjacentMember\CSharpGoToAdjacentMemberTests.cs" />
     <Compile Include="Diagnostics\AbstractCSharpDiagnosticProviderBasedUserDiagnosticTest.cs" />
     <Compile Include="Diagnostics\AddUsing\AddUsingTests.cs" />
@@ -372,6 +374,7 @@
     <Compile Include="TodoComment\TodoCommentTests.cs" />
     <Compile Include="Utilities\CodeSnippets.cs" />
     <Compile Include="Utilities\CSharpServiceTestExtensions.cs" />
+    <Compile Include="Utilities\OptionExtensions.cs" />
     <Compile Include="Utilities\Options.cs" />
     <Compile Include="TypeInferrer\TypeInferrerTests.Delegate.cs" />
     <Compile Include="TypeInferrer\TypeInferrerTests.cs" />

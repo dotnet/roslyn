@@ -7401,7 +7401,7 @@ AssemblyName
 </doc>
 ]]>
 </xml>,
-            stringMapper:=Function(o) StringReplace(o, xmlFile.ToString(), "**FILE**"), ensureEnglishUICulture:=True)
+            stringMapper:=Function(o) StringReplace(o, AsXmlCommentText(xmlFile), "**FILE**"), ensureEnglishUICulture:=True)
         End Sub
 
         <WorkItem(684184, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/684184")>
@@ -7447,7 +7447,7 @@ AssemblyName
 </doc>
 ]]>
 </xml>,
-            stringMapper:=Function(o) StringReplace(o, xmlFile.ToString(), "**FILE**"), ensureEnglishUICulture:=True)
+            stringMapper:=Function(o) StringReplace(o, AsXmlCommentText(xmlFile), "**FILE**"), ensureEnglishUICulture:=True)
         End Sub
 
         <Fact(Skip:="https://github.com/dotnet/roslyn/issues/8807")>
@@ -7492,7 +7492,7 @@ AssemblyName
 </doc>
 ]]>
 </xml>,
-            stringMapper:=Function(o) StringReplace(o, xmlFile.ToString(), "**FILE**"), ensureEnglishUICulture:=True)
+            stringMapper:=Function(o) StringReplace(o, AsXmlCommentText(xmlFile), "**FILE**"), ensureEnglishUICulture:=True)
         End Sub
 
         <Fact(Skip:="https://github.com/dotnet/roslyn/issues/8807")>
@@ -7541,7 +7541,7 @@ AssemblyName
 </doc>
 ]]>
     </xml>,
-                stringMapper:=Function(o) StringReplace(o, xmlFile.ToString(), "**FILE**"),
+                stringMapper:=Function(o) StringReplace(o, AsXmlCommentText(xmlFile), "**FILE**"),
                 ensureEnglishUICulture:=True)
             End Using
         End Sub
@@ -7593,7 +7593,7 @@ AssemblyName
 </doc>
 ]]>
     </xml>,
-                stringMapper:=Function(o) StringReplace(o, xmlFile.ToString(), "**FILE**"), ensureEnglishUICulture:=True)
+                stringMapper:=Function(o) StringReplace(o, AsXmlCommentText(xmlFile), "**FILE**"), ensureEnglishUICulture:=True)
         End Sub
 
         <Fact(Skip:="https://github.com/dotnet/roslyn/issues/8807")>
@@ -7643,7 +7643,7 @@ AssemblyName
 </doc>
 ]]>
     </xml>,
-                stringMapper:=Function(o) StringReplace(o, xmlFile.ToString(), "**FILE**"), ensureEnglishUICulture:=True)
+                stringMapper:=Function(o) StringReplace(o, AsXmlCommentText(xmlFile), "**FILE**"), ensureEnglishUICulture:=True)
         End Sub
 
         <Fact(Skip:="https://github.com/dotnet/roslyn/issues/8807")>
@@ -7677,11 +7677,7 @@ End Class
 </compilation>
 
             CompileCheckDiagnosticsAndXmlDocument(FormatSourceXml(xmlSource, xmlFile),
-    <error>
-        <![CDATA[
-BC42320: Unable to include XML fragment '**FILE**' of file '//target'.
-]]>
-    </error>,
+    <error><%= $"BC42320: Unable to include XML fragment '{xmlFile.ToString()}' of file '//target'." %></error>,
     <xml>
         <![CDATA[
 <?xml version="1.0"?>
@@ -7709,7 +7705,7 @@ AssemblyName
 </doc>
 ]]>
     </xml>,
-                stringMapper:=Function(o) StringReplace(o, xmlFile.ToString(), "**FILE**"), ensureEnglishUICulture:=True)
+                stringMapper:=Function(o) StringReplace(o, AsXmlCommentText(xmlFile), "**FILE**"), ensureEnglishUICulture:=True)
         End Sub
 
         <Fact(Skip:="https://github.com/dotnet/roslyn/issues/8807")>
@@ -7759,7 +7755,7 @@ AssemblyName
 </doc>
 ]]>
     </xml>,
-                stringMapper:=Function(o) StringReplace(o, xmlFile.ToString(), "**FILE**"), ensureEnglishUICulture:=True)
+                stringMapper:=Function(o) StringReplace(o, AsXmlCommentText(xmlFile), "**FILE**"), ensureEnglishUICulture:=True)
         End Sub
 
         <Fact>
@@ -11884,6 +11880,10 @@ xmlDoc)
             Return If(str Is Nothing, obj, str.Replace(what, [with]))
         End Function
 
+        Private Shared Function AsXmlCommentText(file As TempFile) As String
+            Return TestHelpers.AsXmlCommentText(file.ToString())
+        End Function
+
         Private Function FormatSourceXml(xml As XElement, ParamArray obj() As Object) As XElement
             For Each file In xml.<file>
                 file.Value = String.Format(file.Value, obj)
@@ -12326,6 +12326,47 @@ BC42304: XML documentation parse error: Expected beginning '<' for an XML tag. X
     '''<summary>
                 ~
 ]]>)
+        End Sub
+
+        ''' <summary>
+        ''' "--" is not valid within an XML comment.
+        ''' </summary>
+        <WorkItem(8807, "https://github.com/dotnet/roslyn/issues/8807")>
+        <Fact>
+        Public Sub IncludeErrorDashDashInName()
+            Dim dir = Temp.CreateDirectory()
+            Dim path = dir.Path
+            Dim xmlFile = dir.CreateFile("---.xml").WriteAllText("<summary attrib="""" attrib=""""/>")
+            Dim source =
+<compilation name="DashDash">
+    <file name="a.vb">
+        <![CDATA[
+''' <include file='{0}' path='//param'/>
+Class C
+End Class
+]]>
+    </file>
+</compilation>
+            CompileCheckDiagnosticsAndXmlDocument(FormatSourceXml(source, System.IO.Path.Combine(path, "---.xml")),
+    <error/>,
+    <xml>
+        <![CDATA[
+<?xml version="1.0"?>
+<doc>
+<assembly>
+<name>
+DashDash
+</name>
+</assembly>
+<members>
+<member name="T:C">
+ <!--warning BC42320: Unable to include XML fragment '//param' of file '**FILE**'.-->
+</member>
+</members>
+</doc>
+]]>
+    </xml>,
+                stringMapper:=Function(o) StringReplace(o, System.IO.Path.Combine(TestHelpers.AsXmlCommentText(path), "- - -.xml"), "**FILE**"), ensureEnglishUICulture:=True)
         End Sub
 
     End Class

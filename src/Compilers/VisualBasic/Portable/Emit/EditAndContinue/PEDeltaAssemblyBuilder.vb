@@ -181,7 +181,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
             Dim method = DirectCast(members(0), MethodSymbol)
             Debug.Assert(method.Parameters.Length + If(method.IsSub, 0, 1) = type.TypeParameters.Length)
             Dim parameters = ArrayBuilder(Of AnonymousTypeKeyField).GetInstance()
-            parameters.AddRange(method.Parameters.SelectAsArray(Function(p) New AnonymousTypeKeyField(p.Name, isKey:=False, ignoreCase:=True)))
+            parameters.AddRange(method.Parameters.SelectAsArray(Function(p) New AnonymousTypeKeyField(p.Name, isKey:=p.IsByRef, ignoreCase:=True)))
             parameters.Add(New AnonymousTypeKeyField(AnonymousTypeDescriptor.GetReturnParameterName(Not method.IsSub), isKey:=False, ignoreCase:=True))
             Return New AnonymousTypeKey(parameters.ToImmutableAndFree(), isDelegate:=True)
         End Function
