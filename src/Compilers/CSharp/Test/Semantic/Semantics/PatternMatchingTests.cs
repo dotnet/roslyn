@@ -422,6 +422,39 @@ False for 1.2";
         }
 
         [Fact]
+        public void PatternInFromClause()
+        {
+            var source =
+@"using System;
+using System.Collections.Generic;
+using System.Linq;
+
+public class X
+{
+    public static void Main()
+    {
+        object o = 1;
+        var a = from e in M(o is int x && x == 1) select e;
+        foreach (var c in a) Console.WriteLine(c);
+    }
+    private static IEnumerable<char> M(bool arg)
+    {
+        Console.WriteLine(arg);
+        return nameof(arg);
+    }
+}
+";
+            var compilation = CreateCompilationWithMscorlibAndSystemCore(source, options: TestOptions.DebugExe, parseOptions: patternParseOptions);
+            compilation.VerifyDiagnostics();
+            var expectedOutput =
+@"True
+a
+r
+g";
+            var comp = CompileAndVerify(compilation, expectedOutput: expectedOutput);
+        }
+
+        [Fact]
         public void PatternInBadPlaces()
         {
             var source =
