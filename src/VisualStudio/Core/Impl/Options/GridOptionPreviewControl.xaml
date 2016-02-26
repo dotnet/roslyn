@@ -1,0 +1,259 @@
+﻿<options:AbstractOptionPageControl
+    x:Class="Microsoft.VisualStudio.LanguageServices.Implementation.Options.GridOptionPreviewControl"
+    x:ClassModifier="internal"
+    xmlns:local="clr-namespace:Microsoft.VisualStudio.LanguageServices.Implementation.Options"
+    xmlns:converters="clr-namespace:Microsoft.VisualStudio.LanguageServices.Implementation.Options.Converters"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:options="clr-namespace:Microsoft.VisualStudio.LanguageServices.Implementation.Options"
+    xmlns:imaging="clr-namespace:Microsoft.VisualStudio.Imaging;assembly=Microsoft.VisualStudio.Imaging"
+    xmlns:vs="clr-namespace:Microsoft.VisualStudio.PlatformUI;assembly=Microsoft.VisualStudio.Shell.14.0"
+    xmlns:imagingPlatformUI="clr-namespace:Microsoft.VisualStudio.PlatformUI;assembly=Microsoft.VisualStudio.Imaging"
+    mc:Ignorable="d" d:DesignHeight="279" d:DesignWidth="514">
+
+    <Grid>
+        <Grid.Resources>
+            <Style x:Key="DataGridStyle" TargetType="DataGrid">
+                <Setter Property="CellStyle">
+                    <Setter.Value>
+                        <Style TargetType="DataGridCell">
+                            <Setter Property="BorderThickness" Value="1" />
+                        </Style>
+                    </Setter.Value>
+                </Setter>
+            </Style>
+            <Thickness x:Key="cellPadding">8 0 8 0</Thickness>
+            <BooleanToVisibilityConverter x:Key="BooleanToVisibilityConverter" />
+            <converters:MarginConverter x:Key="MarginConverter" />
+        </Grid.Resources>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="*" />
+            <RowDefinition Height="*" />
+        </Grid.RowDefinitions>
+        <DataGrid
+            Grid.Row="0"
+            x:Uid="CodeStyleContent"
+            x:Name="CodeStyleMembers"
+            Margin="0,5,0,0"
+            ItemsSource="{Binding CodeStyleItems, Mode=OneWay}"
+            AutoGenerateColumns="False"
+            CanUserReorderColumns="False"
+            CanUserSortColumns="False"
+            CanUserAddRows="False"
+            CanUserDeleteRows="False"
+            CanUserResizeRows="False"
+            CanUserResizeColumns="False"
+            IsReadOnly="True"
+            BorderThickness="1"
+            BorderBrush="Gray"
+            RowHeaderWidth="0"
+            GridLinesVisibility="None"
+            VerticalAlignment="Stretch"
+            SelectionMode="Single"
+            HorizontalAlignment="Stretch"
+            Style="{StaticResource ResourceKey=DataGridStyle}"
+            SelectionChanged="Options_SelectionChanged"
+            PreviewKeyDown="Options_PreviewKeyDown"
+            LoadingRow="Options_LoadingRow">
+            <!--<DataGrid.RowStyle>
+                <Style TargetType="{x:Type DataGridRow}">
+                    <Setter Property="Height" Value="Auto"/>
+                </Style>
+            </DataGrid.RowStyle>-->
+            <DataGrid.Resources>
+                <Style x:Key="GroupHeaderStyle" TargetType="{x:Type GroupItem}">
+                    <Setter Property="Template">
+                        <Setter.Value>
+                            <ControlTemplate TargetType="{x:Type GroupItem}">
+                                <StackPanel>
+                                    <TextBlock Margin="5" Text="{Binding Name}"/>
+                                    <ItemsPresenter/>
+                                </StackPanel>
+                            </ControlTemplate>
+                        </Setter.Value>
+                    </Setter>
+                </Style>
+            </DataGrid.Resources>
+            <DataGrid.GroupStyle>
+                <GroupStyle ContainerStyle="{StaticResource GroupHeaderStyle}">
+                    <GroupStyle.Panel>
+                        <ItemsPanelTemplate>
+                            <DataGridRowsPresenter/>
+                        </ItemsPanelTemplate>
+                    </GroupStyle.Panel>
+                </GroupStyle>
+            </DataGrid.GroupStyle>
+            <DataGrid.Columns>
+                <!--TODO: Set width and wrapping? -->
+                <!--TODO: text alignment and font?-->
+                <DataGridTextColumn
+                    x:Name="description" 
+                    Header="Description"
+                    Binding="{Binding Description, Mode=OneWay}" 
+                    Width="4.5*"
+                    IsReadOnly="True">
+                    <DataGridTextColumn.ElementStyle>
+                        <Style TargetType="TextBlock">
+                            <Setter Property="Margin" Value="{Binding DescriptionMargin, Converter={StaticResource MarginConverter}}" />
+                            <Setter Property="Padding" Value="{StaticResource ResourceKey=cellPadding}" />
+                            <Setter Property="VerticalAlignment" Value="Center"/>
+                            <Setter Property="HorizontalAlignment" Value="Left" />
+                            <Setter Property="TextWrapping" Value="Wrap" />
+                        </Style>
+                    </DataGridTextColumn.ElementStyle>
+                </DataGridTextColumn>
+                <DataGridTemplateColumn 
+                    x:Name="preference" 
+                    Header="Preference"
+                    Width="3*">
+                    <DataGridTemplateColumn.CellTemplate>
+                        <DataTemplate>
+                            <ComboBox
+                                    ItemsSource="{Binding Preferences}"
+                                    DisplayMemberPath="Name"
+                                    SelectedItem="{Binding SelectedPreference, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" 
+                                    Visibility="{Binding IsVisible, Converter={StaticResource BooleanToVisibilityConverter}}"
+                                    VerticalContentAlignment="Center"
+                                    HorizontalContentAlignment="Left"/>
+                        </DataTemplate>
+                    </DataGridTemplateColumn.CellTemplate>
+                </DataGridTemplateColumn>
+                <DataGridTemplateColumn 
+                    x:Name="notification" 
+                    Header="Notification"
+                    Width="2.5*">
+                    <DataGridTemplateColumn.CellTemplate>
+                        <DataTemplate>
+                            <ComboBox
+                                    ItemsSource="{Binding NotificationPreferences}"
+                                    SelectedItem="{Binding SelectedNotificationPreference,Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                                    Visibility="{Binding IsVisible, Converter={StaticResource BooleanToVisibilityConverter}}"
+                                    VerticalContentAlignment="Center"
+                                    HorizontalContentAlignment="Left">
+                                <ComboBox.ItemTemplate>
+                                    <DataTemplate>
+                                        <Grid>
+                                            <Grid.ColumnDefinitions>
+                                                <ColumnDefinition Width="Auto"/>
+                                                <ColumnDefinition Width="*"/>
+                                            </Grid.ColumnDefinitions>
+                                            <imaging:CrispImage
+                                            Height="16" 
+                                            Width="16" 
+                                            Moniker="{Binding Moniker}"
+                                            Grid.Column="0"/>
+                                            <TextBlock 
+                                            Margin="5, 0, 0, 0" 
+                                            Text="{Binding Notification}"
+                                            Grid.Column="1"/>
+                                        </Grid>
+                                    </DataTemplate>
+                                </ComboBox.ItemTemplate>
+                            </ComboBox>
+                        </DataTemplate>
+                    </DataGridTemplateColumn.CellTemplate>
+                </DataGridTemplateColumn>
+            </DataGrid.Columns>
+        </DataGrid>
+
+
+        <!-- OLD 
+        
+        <DataGrid Grid.Row="0" x:Uid="OptionList"
+                    x:Name="Options"
+                    Grid.Column="0"
+                    SelectionMode="Single"
+                    PreviewKeyDown="Options_PreviewKeyDown"
+                    SelectionChanged="Options_SelectionChanged"
+                    ItemsSource="{Binding Items, Mode=TwoWay}">
+
+            <ListView.Resources>
+                <DataTemplate DataType="{x:Type options:CheckBoxOptionViewModel}">
+                    <StackPanel Orientation="Horizontal">
+                        <CheckBox x:Uid="OptionCheckBox" 
+                                        IsChecked="{Binding IsChecked, Mode=TwoWay}"
+                                        Width="Auto"
+                                        Focusable="False"
+                                        Margin="20, 0, 0, 0">
+                        </CheckBox>
+                        <TextBlock x:Uid="Description" Text="{Binding Description}"/>
+                    </StackPanel>
+                </DataTemplate>
+
+                <DataTemplate DataType="{x:Type options:CheckBoxWithComboOptionViewModel}">
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="Auto" />
+                            <ColumnDefinition Width="Auto" />
+                            <ColumnDefinition Width="*"/>
+                        </Grid.ColumnDefinitions>
+                        <CheckBox x:Uid="OptionCheckBox" 
+                                        IsChecked="{Binding IsChecked, Mode=TwoWay}" 
+                                        Width="Auto"
+                                        Focusable="False"
+                                        Margin="20, 0, 0, 0"
+                                        Grid.Column="0"/>
+
+                        <ComboBox x:Uid="ComboBoxOptions"
+                                  ItemsSource="{Binding NotificationOptions}"
+                                  SelectedItem="{Binding SelectedNotificationOption, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                                  HorizontalContentAlignment="Left"
+                                  VerticalContentAlignment="Center"
+                                  Margin="5, 0, 0, 0"
+                                  Width="100"
+                                  Grid.Column="1">
+                            <ComboBox.ItemTemplate>
+                                <DataTemplate>
+                                    <Grid>
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="Auto"/>
+                                            <ColumnDefinition Width="*"/>
+                                        </Grid.ColumnDefinitions>
+                                        <imaging:CrispImage
+                                            Height="16" 
+                                            Width="16" 
+                                            Moniker="{Binding Moniker}"
+                                            Grid.Column="0"/>
+                                        <TextBlock 
+                                            Margin="5, 0, 0, 0" 
+                                            Text="{Binding Notification}"
+                                            Grid.Column="1"/>
+                                    </Grid>
+                                </DataTemplate>
+                            </ComboBox.ItemTemplate>
+                        </ComboBox>
+
+                        <TextBlock x:Uid="Description" Text="{Binding Description}"
+                                   Margin="5, 0, 0, 0" Grid.Column="2" TextWrapping="WrapWithOverflow"/>
+                    </Grid>
+                </DataTemplate>
+
+                <DataTemplate DataType="{x:Type options:HeaderItemViewModel}">
+                    <TextBlock Text="{Binding Header}" Focusable="False"/>
+                </DataTemplate>
+
+                <DataTemplate DataType="{x:Type options:AbstractRadioButtonViewModel}">
+                    <StackPanel Orientation="Horizontal">
+                        <RadioButton x:Uid="OptionRadioButton" 
+                                        IsChecked="{Binding IsChecked, Mode=TwoWay}"
+                                        Width="Auto"
+                                        Focusable="False"
+                                        GroupName="{Binding GroupName, Mode=OneWay}"
+                                        PreviewKeyDown="Options_PreviewKeyDown"
+                                        Margin="20, 0, 0, 0">
+                        </RadioButton>
+                        <TextBlock x:Uid="Description" Text="{Binding Description}"/>
+                    </StackPanel>
+                </DataTemplate>
+            </ListView.Resources>
+
+        </DataGrid>
+        -->
+
+        <Border Grid.Row="1" BorderBrush="Gray" BorderThickness="1">
+            <ContentControl Name="EditorControl" Content="{Binding TextViewHost, Mode=OneWay}" Focusable="False"></ContentControl>
+        </Border>
+    </Grid>
+</options:AbstractOptionPageControl>

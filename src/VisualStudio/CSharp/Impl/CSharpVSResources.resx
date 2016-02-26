@@ -412,13 +412,13 @@
     <value>Type Inference preferences:</value>
   </data>
   <data name="UseVarForIntrinsicTypes" xml:space="preserve">
-    <value>Use 'var' for built-in types</value>
+    <value>For built-in types</value>
   </data>
   <data name="UseVarWhenPossible" xml:space="preserve">
-    <value>Use 'var' elsewhere</value>
+    <value>Elsewhere</value>
   </data>
   <data name="UseVarWhenTypeIsApparent" xml:space="preserve">
-    <value>Use 'var' when typing is apparent</value>
+    <value>When variable type is apparent</value>
   </data>
   <data name="QualifyEventAccessWithThis" xml:space="preserve">
     <value>Qualify event access with 'this'</value>

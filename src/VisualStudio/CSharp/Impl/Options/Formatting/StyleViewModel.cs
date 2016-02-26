@@ -2,6 +2,8 @@
 
 using System;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
+using System.Windows.Data;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.CodeStyle;
@@ -12,8 +14,11 @@ using Microsoft.VisualStudio.LanguageServices.Implementation.Options;
 
 namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options.Formatting
 {
+    // Must work with GridOptionPreviewControl
     internal class StyleViewModel : AbstractOptionPreviewViewModel
     {
+        public ObservableCollection<SimpleCodeStyleOptionViewModel> CodeStyleItems { get; set; }
+
         internal override bool ShouldPersistOption(OptionKey key)
         {
             return key.Option.Feature == CSharpCodeStyleOptions.FeatureName || key.Option.Feature == SimplificationOptions.PerLanguageFeatureName;
@@ -176,27 +181,87 @@ class C{
 }";
         internal StyleViewModel(OptionSet optionSet, IServiceProvider serviceProvider) : base(optionSet, serviceProvider, LanguageNames.CSharp)
         {
-            Items.Add(new CheckBoxOptionViewModel(SimplificationOptions.QualifyFieldAccess, CSharpVSResources.QualifyFieldAccessWithThis, s_declarationPreviewTrue, s_declarationPreviewFalse, this, optionSet));
-            Items.Add(new CheckBoxOptionViewModel(SimplificationOptions.QualifyPropertyAccess, CSharpVSResources.QualifyPropertyAccessWithThis, s_declarationPreviewTrue, s_declarationPreviewFalse, this, optionSet));
-            Items.Add(new CheckBoxOptionViewModel(SimplificationOptions.QualifyMethodAccess, CSharpVSResources.QualifyPropertyAccessWithThis, s_declarationPreviewTrue, s_declarationPreviewFalse, this, optionSet));
-            Items.Add(new CheckBoxOptionViewModel(SimplificationOptions.QualifyEventAccess, CSharpVSResources.QualifyEventAccessWithThis, s_declarationPreviewTrue, s_declarationPreviewFalse, this, optionSet));
-            Items.Add(new CheckBoxOptionViewModel(SimplificationOptions.PreferIntrinsicPredefinedTypeKeywordInDeclaration, CSharpVSResources.PreferIntrinsicPredefinedTypeKeywordInDeclaration, s_intrinsicPreviewDeclarationTrue, s_intrinsicPreviewDeclarationFalse, this, optionSet));
-            Items.Add(new CheckBoxOptionViewModel(SimplificationOptions.PreferIntrinsicPredefinedTypeKeywordInMemberAccess, CSharpVSResources.PreferIntrinsicPredefinedTypeKeywordInMemberAccess, s_intrinsicPreviewMemberAccessTrue, s_intrinsicPreviewMemberAccessFalse, this, optionSet));
-            Items.Add(new CheckBoxOptionViewModel(CSharpCodeStyleOptions.UseVarWhenDeclaringLocals, CSharpVSResources.UseVarWhenGeneratingLocals, s_varPreviewTrue, s_varPreviewFalse, this, optionSet));
 
-            Items.Add(new HeaderItemViewModel() { Header = CSharpVSResources.SetTypeInferencePreferences });
 
-            var notificationOptions = new List<NotificationOptionViewModel>
-                                      {
-                                          new NotificationOptionViewModel(NotificationOption.None, KnownMonikers.None),
-                                          new NotificationOptionViewModel(NotificationOption.Info, KnownMonikers.StatusInformation),
-                                          new NotificationOptionViewModel(NotificationOption.Warning, KnownMonikers.StatusWarning),
-                                          new NotificationOptionViewModel(NotificationOption.Error, KnownMonikers.StatusError)
-                                      };
+            CodeStyleItems = new ObservableCollection<SimpleCodeStyleOptionViewModel>();
 
-            Items.Add(new CheckBoxWithComboOptionViewModel(CSharpCodeStyleOptions.UseImplicitTypeForIntrinsicTypes, CSharpVSResources.UseVarForIntrinsicTypes, s_varForIntrinsicsPreviewTrue, s_varForIntrinsicsPreviewFalse, this, optionSet, notificationOptions));
-            Items.Add(new CheckBoxWithComboOptionViewModel(CSharpCodeStyleOptions.UseImplicitTypeWhereApparent, CSharpVSResources.UseVarWhenTypeIsApparent, s_varWhereApparentPreviewTrue, s_varWhereApparentPreviewFalse, this, optionSet, notificationOptions));
-            Items.Add(new CheckBoxWithComboOptionViewModel(CSharpCodeStyleOptions.UseImplicitTypeWherePossible, CSharpVSResources.UseVarWhenPossible, s_varWherePossiblePreviewTrue, s_varWherePossiblePreviewFalse, this, optionSet, notificationOptions));
+            ListCollectionView collectionView = (ListCollectionView)CollectionViewSource.GetDefaultView(CodeStyleItems);
+            collectionView.GroupDescriptions.Add(new PropertyGroupDescription(nameof(SimpleCodeStyleOptionViewModel.GroupName)));
+
+            //this works:
+            //CodeStyleItems.Add(new SimpleCodeStyleOptionViewModel(SimplificationOptions.QualifyMemberAccessWithThisOrMe, CSharpVSResources.QualifyMemberAccessWithThis, s_declarationPreviewTrue, s_declarationPreviewFalse, this, optionSet));
+            //CodeStyleItems.Add(new SimpleCodeStyleOptionViewModel(SimplificationOptions.PreferIntrinsicPredefinedTypeKeywordInDeclaration, CSharpVSResources.PreferIntrinsicPredefinedTypeKeywordInDeclaration, s_intrinsicPreviewDeclarationTrue, s_intrinsicPreviewDeclarationFalse, this, optionSet));
+            //CodeStyleItems.Add(new SimpleCodeStyleOptionViewModel(SimplificationOptions.PreferIntrinsicPredefinedTypeKeywordInMemberAccess, CSharpVSResources.PreferIntrinsicPredefinedTypeKeywordInMemberAccess, s_intrinsicPreviewMemberAccessTrue, s_intrinsicPreviewMemberAccessFalse, this, optionSet));
+            
+            //CodeStyleItems.Add(SimpleCodeStyleOptionViewModel.Header("'var' preferences"));
+
+            var useVarPreferences = new List<CodeStylePreference>
+            {
+                // TODO: move to resx for loc.
+                new CodeStylePreference("Prefer 'var'", true),
+                new CodeStylePreference("Prefer explicit type", false),
+            };
+            const string varGroupTitle = "'var' preferences:";
+
+            CodeStyleItems.Add(new SimpleCodeStyleOptionViewModel(CSharpCodeStyleOptions.UseImplicitTypeForIntrinsicTypes, CSharpVSResources.UseVarForIntrinsicTypes, s_varForIntrinsicsPreviewTrue, s_varForIntrinsicsPreviewFalse, this, optionSet, varGroupTitle, useVarPreferences));
+            CodeStyleItems.Add(new SimpleCodeStyleOptionViewModel(CSharpCodeStyleOptions.UseImplicitTypeWhereApparent, CSharpVSResources.UseVarWhenTypeIsApparent, s_varWhereApparentPreviewTrue, s_varWhereApparentPreviewFalse, this, optionSet, varGroupTitle, useVarPreferences));
+            CodeStyleItems.Add(new SimpleCodeStyleOptionViewModel(CSharpCodeStyleOptions.UseImplicitTypeWherePossible, CSharpVSResources.UseVarWhenPossible, s_varWherePossiblePreviewTrue, s_varWherePossiblePreviewFalse, this, optionSet, varGroupTitle, useVarPreferences));
+
+            //trying this:
+            //CodeStyleItems.Add(new StyleOptionViewModel(new CodeStyleItem(CSharpVSResources.UseVarForIntrinsicTypes, defaultPreferences)));
+            //CodeStyleItems.Add(new StyleOptionViewModel(new CodeStyleItem(CSharpVSResources.UseVarWhenTypeIsApparent, defaultPreferences)));
+            //CodeStyleItems.Add(new StyleOptionViewModel(new CodeStyleItem(CSharpVSResources.UseVarWhenPossible, defaultPreferences)));
+
+            // badness ensues when i store it in Items. hrmm..
+
+            // Old code:
+            //Items.Add(new CheckBoxOptionViewModel(SimplificationOptions.QualifyMemberAccessWithThisOrMe, CSharpVSResources.QualifyMemberAccessWithThis, s_declarationPreviewTrue, s_declarationPreviewFalse, this, optionSet));
+            //Items.Add(new CheckBoxOptionViewModel(SimplificationOptions.PreferIntrinsicPredefinedTypeKeywordInDeclaration, CSharpVSResources.PreferIntrinsicPredefinedTypeKeywordInDeclaration, s_intrinsicPreviewDeclarationTrue, s_intrinsicPreviewDeclarationFalse, this, optionSet));
+            //Items.Add(new CheckBoxOptionViewModel(SimplificationOptions.PreferIntrinsicPredefinedTypeKeywordInMemberAccess, CSharpVSResources.PreferIntrinsicPredefinedTypeKeywordInMemberAccess, s_intrinsicPreviewMemberAccessTrue, s_intrinsicPreviewMemberAccessFalse, this, optionSet));
+            //Items.Add(new CheckBoxOptionViewModel(CSharpCodeStyleOptions.UseVarWhenDeclaringLocals, CSharpVSResources.UseVarWhenGeneratingLocals, s_varPreviewTrue, s_varPreviewFalse, this, optionSet));
+
+            //Items.Add(new HeaderItemViewModel() { Header = CSharpVSResources.SetTypeInferencePreferences });
+
+            //var notificationOptions = new List<NotificationOptionViewModel>
+            //                          {
+            //                              new NotificationOptionViewModel(NotificationOption.None, KnownMonikers.None),
+            //                              new NotificationOptionViewModel(NotificationOption.Info, KnownMonikers.StatusInformation),
+            //                              new NotificationOptionViewModel(NotificationOption.Warning, KnownMonikers.StatusWarning),
+            //                              new NotificationOptionViewModel(NotificationOption.Error, KnownMonikers.StatusError)
+            //                          };
+
+            //Items.Add(new CheckBoxWithComboOptionViewModel(CSharpCodeStyleOptions.UseImplicitTypeForIntrinsicTypes, CSharpVSResources.UseVarForIntrinsicTypes, s_varForIntrinsicsPreviewTrue, s_varForIntrinsicsPreviewFalse, this, optionSet, notificationOptions));
+            //Items.Add(new CheckBoxWithComboOptionViewModel(CSharpCodeStyleOptions.UseImplicitTypeWhereApparent, CSharpVSResources.UseVarWhenTypeIsApparent, s_varWhereApparentPreviewTrue, s_varWhereApparentPreviewFalse, this, optionSet, notificationOptions));
+            //Items.Add(new CheckBoxWithComboOptionViewModel(CSharpCodeStyleOptions.UseImplicitTypeWherePossible, CSharpVSResources.UseVarWhenPossible, s_varWherePossiblePreviewTrue, s_varWherePossiblePreviewFalse, this, optionSet, notificationOptions));
         }
+
+        //private List<CodeStyleItem> _codeStyleItems;
+
+        //public List<CodeStyleItem> CodeStyleItems
+        //{
+        //    get
+        //    {
+        //        return _codeStyleItems;
+        //    }
+        //}
+
+        //public class CodeStyleItem // TODO: StyleOptionViewModel?
+        //{
+        //    public CodeStyleItem(string description)
+        //    {
+        //        this.Description = description;
+        //        var selectedPreference = "No";
+        //        this.Preferences = new List<string> { "Yes", selectedPreference };
+        //        this.SelectedPreference = selectedPreference;
+        //        var selectedNotificationPreference = "None";
+        //        this.NotificationPreferences = new List<string> { selectedNotificationPreference, "Info", "Warning", "Error" };
+        //        this.SelectedNotificationPreference = selectedNotificationPreference;
+        //    }
+        //    public string Description { get; set; }
+        //    public List<string> Preferences { get; set; }
+        //    public List<string> NotificationPreferences { get; set; }
+        //    public string SelectedPreference { get; set; }
+        //    public string SelectedNotificationPreference { get; set; }
+        //}
     }
 }
