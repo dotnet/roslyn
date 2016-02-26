@@ -8,6 +8,7 @@ using System.Runtime.InteropServices;
 using System.Windows;
 using System.Windows.Input;
 using Microsoft.VisualStudio.ComponentModelHost;
+using Microsoft.VisualStudio.Imaging.Interop;
 using Microsoft.VisualStudio.OLE.Interop;
 using Microsoft.VisualStudio.Shell.Interop;
 using Microsoft.VisualStudio.Utilities;
@@ -64,5 +65,18 @@ namespace Microsoft.VisualStudio.InteractiveWindow.Shell
         public IInteractiveWindow InteractiveWindow => _windowPane.InteractiveWindow;
 
         public object WindowFrame => _windowPane.Frame;
+
+        ImageMoniker IVsInteractiveWindow2.BitmapImageMoniker
+        {
+            get
+            {
+                return _windowPane.BitmapImageMoniker;
+            }
+
+            set
+            {
+                _windowPane.BitmapImageMoniker = value;
+            }
+        }
     }
 }
