@@ -496,6 +496,11 @@ namespace Microsoft.CodeAnalysis.CSharp
         public abstract SymbolInfo GetSymbolInfo(SelectOrGroupClauseSyntax node, CancellationToken cancellationToken = default(CancellationToken));
 
         /// <summary>
+        /// Gets the symbol information for the property of a sub-property pattern.
+        /// </summary>
+        public abstract SymbolInfo GetSymbolInfo(SubPropertyPatternSyntax node, CancellationToken cancellationToken);
+
+        /// <summary>
         /// Returns what symbol(s), if any, the given expression syntax bound to in the program.
         /// 
         /// An AliasSymbol will never be returned by this method. What the alias refers to will be
@@ -4310,6 +4315,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                 throw new ArgumentNullException(nameof(node));
             }
 
+            var subPropertyPattern = node.Parent as SubPropertyPatternSyntax;
+            if (subPropertyPattern != null && subPropertyPattern.Left == node)
+            {
+                return this.GetSymbolInfo(subPropertyPattern, cancellationToken);
+            }
+
             var expression = node as ExpressionSyntax;
             if (expression != null)
             {
@@ -4344,6 +4355,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (orderingSyntax != null)
             {
                 return this.GetSymbolInfo(orderingSyntax, cancellationToken);
+            }
+
+            subPropertyPattern = node as SubPropertyPatternSyntax;
+            if (subPropertyPattern != null)
+            {
+                return this.GetSymbolInfo(subPropertyPattern, cancellationToken);
             }
 
             return SymbolInfo.None;

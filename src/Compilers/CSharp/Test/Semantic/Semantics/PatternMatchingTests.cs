@@ -1029,6 +1029,39 @@ public class X
             VerifyNotInScope(model, x12Ref[1]);
         }
 
+        [Fact]
+        public void PropertyNamedInComplexPattern()
+        {
+            var source =
+@"
+using System;
+public class Program
+{
+    public static void Main()
+    {
+        object o = nameof(Main);
+        Console.WriteLine(o is string { Length is 4 });
+    }
+}
+";
+            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe, parseOptions: patternParseOptions);
+
+            compilation.VerifyDiagnostics();
+            var tree = compilation.SyntaxTrees.Single();
+            var model = compilation.GetSemanticModel(tree);
+            var propPats = tree.GetRoot().DescendantNodes().OfType<SubPropertyPatternSyntax>().ToArray();
+            foreach (var p in propPats)
+            {
+                var si = model.GetSymbolInfo(p);
+                Assert.NotNull(si.Symbol);
+                Assert.Equal("Length", si.Symbol.Name);
+                si = model.GetSymbolInfo(p.Left);
+                Assert.NotNull(si.Symbol);
+                Assert.Equal("Length", si.Symbol.Name);
+            }
+
+        }
+
         private static void VerifyModelForDeclarationPattern(SemanticModel model, DeclarationPatternSyntax decl, params IdentifierNameSyntax[] references)
         {
             var symbol = model.GetDeclaredSymbol(decl);

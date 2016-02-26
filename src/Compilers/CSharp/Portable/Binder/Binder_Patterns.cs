@@ -120,7 +120,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             // use a dedicated bound node for that form.
             var properties = correspondingMembers;
             var boundPatterns = BindRecursiveSubPropertyPatterns(node, properties, type, diagnostics);
-            return new BoundPropertyPattern(node, type, boundPatterns, properties, hasErrors: hasErrors);
+            var builder = ArrayBuilder<BoundSubPropertyPattern>.GetInstance();
+            for (int i = 0; i < properties.Length; i++)
+            {
+                builder.Add(new BoundSubPropertyPattern(node.PatternList.SubPatterns[i], properties[i].GetTypeOrReturnType(), properties[i], LookupResultKind.Empty, boundPatterns[i], hasErrors));
+            }
+            return new BoundPropertyPattern(node, type, builder.ToImmutableAndFree(), hasErrors: hasErrors);
         }
 
         private ImmutableArray<BoundPattern> BindRecursiveSubPropertyPatterns(RecursivePatternSyntax node, ImmutableArray<Symbol> properties, NamedTypeSymbol type, DiagnosticBag diagnostics)
@@ -162,21 +167,20 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             var type = (NamedTypeSymbol)this.BindType(node.Type, diagnostics);
             hasErrors = hasErrors || CheckValidPatternType(node.Type, operand, operandType, type, false, diagnostics);
-            var properties = ArrayBuilder<Symbol>.GetInstance();
-            var boundPatterns = BindSubPropertyPatterns(node, properties, type, diagnostics);
-            hasErrors |= properties.Count != boundPatterns.Length;
-            return new BoundPropertyPattern(node, type, boundPatterns, properties.ToImmutableAndFree(), hasErrors: hasErrors);
+            var boundPatterns = BindSubPropertyPatterns(node, type, diagnostics);
+            return new BoundPropertyPattern(node, type, boundPatterns, hasErrors: hasErrors);
         }
 
-        private ImmutableArray<BoundPattern> BindSubPropertyPatterns(PropertyPatternSyntax node, ArrayBuilder<Symbol> properties, TypeSymbol type, DiagnosticBag diagnostics)
+        private ImmutableArray<BoundSubPropertyPattern> BindSubPropertyPatterns(PropertyPatternSyntax node, TypeSymbol type, DiagnosticBag diagnostics)
         {
-            var boundPatternsBuilder = ArrayBuilder<BoundPattern>.GetInstance();
+            var result = ArrayBuilder<BoundSubPropertyPattern>.GetInstance();
             foreach (var syntax in node.PatternList.SubPatterns)
             {
                 var propName = syntax.Left;
                 BoundPattern pattern;
                 HashSet<DiagnosticInfo> useSiteDiagnostics = null;
-                Symbol property = FindPropertyByName(type, propName, ref useSiteDiagnostics);
+                LookupResultKind resultKind;
+                Symbol property = FindPropertyByName(type, propName, out resultKind, ref useSiteDiagnostics);
                 if ((object)property != null)
                 {
                     bool hasErrors = false;
@@ -190,30 +194,31 @@ namespace Microsoft.CodeAnalysis.CSharp
                         diagnostics.Add(node, useSiteDiagnostics);
                     }
 
-                    properties.Add(property);
-                    pattern = this.BindPattern(syntax.Pattern, null, property.GetTypeOrReturnType(), hasErrors, diagnostics);
+                    var propertyType = property.GetTypeOrReturnType();
+                    pattern = this.BindPattern(syntax.Pattern, null, propertyType, hasErrors, diagnostics);
+                    result.Add(new BoundSubPropertyPattern(syntax, propertyType, property, resultKind, pattern, hasErrors));
                 }
                 else
                 {
                     Error(diagnostics, ErrorCode.ERR_NoSuchMember, propName, type, propName.Identifier.ValueText);
                     pattern = new BoundWildcardPattern(node, hasErrors: true);
+                    result.Add(new BoundSubPropertyPattern(syntax, CreateErrorType(), null, resultKind, pattern, true));
                 }
-
-                boundPatternsBuilder.Add(pattern);
             }
 
-            return boundPatternsBuilder.ToImmutableAndFree();
+            return result.ToImmutableAndFree();
         }
 
-        private Symbol FindPropertyByName(TypeSymbol type, IdentifierNameSyntax name, ref HashSet<DiagnosticInfo> useSiteDiagnostics)
+        private Symbol FindPropertyByName(TypeSymbol type, IdentifierNameSyntax name, out LookupResultKind resultKind, ref HashSet<DiagnosticInfo> useSiteDiagnostics)
         {
             var symbols = ArrayBuilder<Symbol>.GetInstance();
-            var result = LookupResult.GetInstance();
-            this.LookupMembersWithFallback(result, type, name.Identifier.ValueText, arity: 0, useSiteDiagnostics: ref useSiteDiagnostics);
+            var lookupResult = LookupResult.GetInstance();
+            this.LookupMembersWithFallback(lookupResult, type, name.Identifier.ValueText, arity: 0, useSiteDiagnostics: ref useSiteDiagnostics);
+            resultKind = lookupResult.Kind;
 
-            if (result.IsMultiViable)
+            if (lookupResult.IsMultiViable)
             {
-                foreach (var symbol in result.Symbols)
+                foreach (var symbol in lookupResult.Symbols)
                 {
                     if (symbol.Kind == SymbolKind.Property || symbol.Kind == SymbolKind.Field)
                     {
@@ -222,6 +227,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
             }
 
+            resultKind = lookupResult.Kind;
+            lookupResult.Free();
             return null;
         }
 

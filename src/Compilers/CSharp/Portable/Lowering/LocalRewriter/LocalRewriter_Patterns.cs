@@ -46,10 +46,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                         var temp = _factory.SynthesizedLocal(pat.Type);
                         var matched = DeclPattern(syntax, input, temp);
                         input = _factory.Local(temp);
-                        for (int i = 0; i < pat.Patterns.Length; i++)
+                        for (int i = 0; i < pat.Subpatterns.Length; i++)
                         {
-                            var subProperty = pat.Properties[i];
-                            var subPattern = pat.Patterns[i];
+                            var subProperty = pat.Subpatterns[i].Property;
+                            var subPattern = pat.Subpatterns[i].Pattern;
                             var subExpression =
                                 subProperty.Kind == SymbolKind.Field
                                     ? (BoundExpression)_factory.Field(input, (FieldSymbol)subProperty)

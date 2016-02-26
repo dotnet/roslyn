@@ -2148,6 +2148,13 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             switch (parent.Kind())
             {
+                case SyntaxKind.SubPropertyPattern:
+                    if (((SubPropertyPatternSyntax)parent).Left == node)
+                    {
+                        return parent;
+                    }
+
+                    break;
                 case SyntaxKind.QualifiedName:
                     if (((QualifiedNameSyntax)parent).Right == node)
                     {

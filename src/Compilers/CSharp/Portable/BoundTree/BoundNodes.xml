@@ -1446,10 +1446,16 @@
 
   <Node Name="BoundPropertyPattern" Base="BoundPattern">
     <Field Name="Type" Type="TypeSymbol" Null="disallow"/>
-    <Field Name="Patterns" Type="ImmutableArray&lt;BoundPattern&gt;" Null="disallow"/>
-    <Field Name="Properties" Type="ImmutableArray&lt;Symbol&gt;" Null="disallow"/>
+    <Field Name="Subpatterns" Type="ImmutableArray&lt;BoundSubPropertyPattern&gt;" Null="disallow"/>
   </Node>
-  
+
+  <Node Name="BoundSubPropertyPattern" Base="BoundNode">
+    <Field Name="Type" Type="TypeSymbol" Null="disallow"/>
+    <Field Name="Property" Type="Symbol" Null="allow"/>
+    <Field Name="ResultKind" Type="LookupResultKind"/>
+    <Field Name="Pattern" Type="BoundPattern" Null="disallow"/>
+  </Node>
+
   <Node Name="BoundRecursivePattern" Base="BoundPattern">
     <Field Name="Type" Type="TypeSymbol" Null="disallow"/>
     <Field Name="IsOperator" Type="MethodSymbol" Null="allow"/>
