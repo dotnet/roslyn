@@ -20,17 +20,30 @@ Friend Module CompilationUtils
                                                   Optional options As VisualBasicCompilationOptions = Nothing,
                                                   Optional assemblyName As String = Nothing,
                                                   Optional parseOptions As VisualBasicParseOptions = Nothing) As VisualBasicCompilation
-#If TEST_OPERATION Then
-        Dim compilationForOperationWalking = VisualBasicCompilation.Create(If(assemblyName, "TestOperation"), sourceTrees.Select(Function(s) VisualBasicSyntaxTree.ParseText(s, parseOptions)), If(references Is Nothing, {MscorlibRef}, {MscorlibRef}.Concat(references)), options)
+
+        Dim syntaxTrees = sourceTrees.Select(Function(s) VisualBasicSyntaxTree.ParseText(s, parseOptions))
+        Dim metadataReferences = If(references Is Nothing, {MscorlibRef}, {MscorlibRef}.Concat(references))
+
+#If Test_IOperation_Interface Then
+        Dim compilationForOperationWalking = VisualBasicCompilation.Create(If(assemblyName, "TestOperation"), syntaxTrees, metadataReferences, options)
         WalkOperationTrees(compilationForOperationWalking)
 #End If
-        Return VisualBasicCompilation.Create(If(assemblyName, "Test"), sourceTrees.Select(Function(s) VisualBasicSyntaxTree.ParseText(s, parseOptions)), If(references Is Nothing, {MscorlibRef}, {MscorlibRef}.Concat(references)), options)
+
+        Return VisualBasicCompilation.Create(If(assemblyName, "Test"), syntaxTrees, metadataReferences, options)
     End Function
 
     Public Function CreateCompilationWithMscorlib(sourceTrees As IEnumerable(Of SyntaxTree),
                                                   Optional references As IEnumerable(Of MetadataReference) = Nothing,
                                                   Optional options As VisualBasicCompilationOptions = Nothing) As VisualBasicCompilation
-        Return VisualBasicCompilation.Create(GetUniqueName(), sourceTrees, If(references Is Nothing, {MscorlibRef}, {MscorlibRef}.Concat(references)), options)
+
+        Dim metadataReferences = If(references Is Nothing, {MscorlibRef}, {MscorlibRef}.Concat(references))
+
+#If Test_IOperation_Interface Then
+        Dim compilationForOperationWalking = VisualBasicCompilation.Create(GetUniqueName(), sourceTrees, metadataReferences, options)
+        WalkOperationTrees(compilationForOperationWalking)
+#End If
+
+        Return VisualBasicCompilation.Create(GetUniqueName(), sourceTrees, metadataReferences, options)
     End Function
 
     Public Function CreateCompilationWithMscorlib45(sourceTrees As IEnumerable(Of SyntaxTree),
@@ -227,7 +240,7 @@ Friend Module CompilationUtils
             End If
         End If
 
-#If TEST_OPERATION Then
+#If Test_IOperation_Interface Then
         Dim compilationForOperationWalking = VisualBasicCompilation.Create(If(assemblyName, GetUniqueName()), sourceTrees, references, options)
         WalkOperationTrees(compilationForOperationWalking)
 #End If
@@ -263,7 +276,7 @@ Friend Module CompilationUtils
         Return c
     End Function
 
-#If TEST_OPERATION Then
+#If Test_IOperation_Interface Then
     Private Sub WalkOperationTrees(compilation As VisualBasicCompilation)
         Dim operationWalker = TestOperationWalker.GetInstance()
 
@@ -272,10 +285,9 @@ Friend Module CompilationUtils
             Dim root = tree.GetRoot()
 
             ' need to check other operation root as well (property, etc)
-            For Each methodNode As MethodBlockSyntax In root.DescendantNodesAndSelf().Where(Function(n)
-                                                                                                Dim kind = n.Kind()
-                                                                                                Return kind = SyntaxKind.FunctionBlock OrElse kind = SyntaxKind.SubBlock
-                                                                                            End Function)
+            For Each methodNode As MethodBlockBaseSyntax In root.DescendantNodesAndSelf().OfType(Of MethodBlockBaseSyntax)
+                ' Have to iterate through statements because a bug:
+                ' https://github.com/dotnet/roslyn/issues/8919
                 For Each statement In methodNode.Statements
                     Dim operation = semanticModel.GetOperation(statement)
                     operationWalker.Visit(operation)

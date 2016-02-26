@@ -516,7 +516,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Test.Utilities
                 options = options.WithConcurrentBuild(false);
             }
 
-#if TEST_OPERATION
+#if Test_IOperation_Interface
             // Create a compilation for the purpose of verifying operation tree only,
             // so this won't interfere with test.
             var compilationForOperationWalking = CSharpCompilation.Create(
@@ -541,26 +541,27 @@ namespace Microsoft.CodeAnalysis.CSharp.Test.Utilities
             CSharpParseOptions parseOptions = null)
         {
             var trees = (sources == null) ? null : sources.Select(s => Parse(s, options: parseOptions)).ToArray();
+            var compilationOptions = options ?? TestOptions.ReleaseDll;
 
-#if TEST_OPERATION
+#if Test_IOperation_Interface
             // Create a compilation for the purpose of verifying operation tree only,
             // so this won't interfere with test.
             var compilationForOperationWalking = CSharpCompilation.Create(
                 identity.Name,
-                options: options ?? TestOptions.ReleaseDll,
+                options: compilationOptions,
                 references: references,
                 syntaxTrees: trees);
             WalkOperationTree(compilationForOperationWalking);
 #endif
 
-            var c = CSharpCompilation.Create(identity.Name, options: options ?? TestOptions.ReleaseDll, references: references, syntaxTrees: trees);
+            var c = CSharpCompilation.Create(identity.Name, options: compilationOptions, references: references, syntaxTrees: trees);
             Assert.NotNull(c.Assembly); // force creation of SourceAssemblySymbol
 
             ((SourceAssemblySymbol)c.Assembly).lazyAssemblyIdentity = identity;
             return c;
         }
 
-#if TEST_OPERATION
+#if Test_IOperation_Interface
         private static void WalkOperationTree(CSharpCompilation compilation)
         {
             var operationWalker = TestOperationWalker.GetInstance();
@@ -571,7 +572,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Test.Utilities
                 var root = tree.GetRoot();
 
                 // TODO: check other operation root as well (property, etc.)
-                foreach (MethodDeclarationSyntax methodNode in root.DescendantNodesAndSelf().Where(n => n.Kind() == SyntaxKind.MethodDeclaration))
+                foreach (BaseMethodDeclarationSyntax methodNode in root.DescendantNodesAndSelf().OfType<BaseMethodDeclarationSyntax>())
                 {
                     var bodyNode = methodNode.Body;
                     if (bodyNode != null)

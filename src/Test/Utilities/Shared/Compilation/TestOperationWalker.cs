@@ -22,7 +22,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             return s_instance;
         }
 
-#if TEST_NONE_OPERATION
+#if Test_IOperation_None_Kind
         internal override void VisitNoneOperation(IOperation operation)
         {
             Assert.True(false, "Encountered an IOperation with `Kind == OperationKind.None` while walking the operation tree.");
