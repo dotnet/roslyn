@@ -242,8 +242,23 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 
             if (workspaceRegistration.Workspace == null)
             {
-                // We should now claim this
-                AttachToDocument(docCookie, moniker);
+                HostProject hostProject;
+
+                if (_docCookiesToHostProject.TryGetValue(docCookie, out hostProject))
+                {
+                    // The workspace was taken from us and released and we have only asynchronously found out now.
+                    var document = hostProject.Document;
+
+                    if (document.IsOpen)
+                    {
+                        RegisterText(document.GetOpenTextContainer());
+                    }
+                }
+                else
+                { 
+                    // We should now claim this
+                    AttachToDocument(docCookie, moniker);
+                }
             }
             else if (IsClaimedByAnotherWorkspace(workspaceRegistration))
             {
