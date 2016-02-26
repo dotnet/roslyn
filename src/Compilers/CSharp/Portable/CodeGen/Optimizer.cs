@@ -271,11 +271,6 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
         {
             if (_localDefs != null)
             {
-                foreach (var def in _localDefs)
-                {
-                    def.Free();
-                }
-
                 _localDefs.Free();
                 _localDefs = null;
             }
@@ -304,40 +299,22 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
     // represents a span of a value between definition and use.
     // start/end positions are specified in terms of global node count as visited by 
     // StackOptimizer visitors. (i.e. recursive walk not looking into constants)
-    internal class LocalDefUseSpan
+    internal struct LocalDefUseSpan
     {
-        public int Start { get; private set; }
-        public int End { get; set; }
+        public readonly int Start;
+        public readonly int End;
 
-        private readonly ObjectPool<LocalDefUseSpan> _pool;
+        public LocalDefUseSpan(int start):this(start, start){}
 
-        // global pool
-        private static readonly ObjectPool<LocalDefUseSpan> s_poolInstance = CreatePool();
-
-        private LocalDefUseSpan(ObjectPool<LocalDefUseSpan> pool)
+        private LocalDefUseSpan(int start, int end)
         {
-            _pool = pool;
+            this.Start = start;
+            this.End = end;
         }
 
-        public void Free()
+        internal LocalDefUseSpan WithEnd(int end)
         {
-            _pool?.Free(this);
-        }
-
-        // if someone needs to create a pool;
-        public static ObjectPool<LocalDefUseSpan> CreatePool()
-        {
-            ObjectPool<LocalDefUseSpan> pool = null;
-            pool = new ObjectPool<LocalDefUseSpan>(() => new LocalDefUseSpan(pool), 128);
-            return pool;
-        }
-
-        public static LocalDefUseSpan GetInstance(int assigned)
-        {
-            var instance = s_poolInstance.Allocate();
-            instance.Start = assigned;
-            instance.End = assigned;
-            return instance;
+            return new LocalDefUseSpan(this.Start, end);
         }
 
         public override string ToString()
@@ -1704,7 +1681,8 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
                 return;
             }
 
-            if (locInfo.LocalDefs.Count == 0)
+            var defs = locInfo.LocalDefs;
+            if (defs.Count == 0)
             {
                 //reading before writing.
                 locInfo.ShouldNotSchedule();
@@ -1728,11 +1706,11 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
                 Debug.Assert(local == empty || locInfo.StackAtDeclaration == StackDepth());
             }
 
-            var definedAt = locInfo.LocalDefs.Last();
-            definedAt.End = _counter;
+            var last = defs.Count - 1;
+            defs[last] = defs[last].WithEnd(_counter);
 
-            var locDef = LocalDefUseSpan.GetInstance(_counter);
-            locInfo.LocalDefs.Add(locDef);
+            var nextDef = new LocalDefUseSpan(_counter);
+            defs.Add(nextDef);
         }
 
         private bool EvalStackHasLocal(LocalSymbol local)
@@ -1753,7 +1731,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
             // dummy must be accessed on same stack.
             Debug.Assert(local == empty || locInfo.StackAtDeclaration == StackDepth());
 
-            var locDef = LocalDefUseSpan.GetInstance(_counter);
+            var locDef = new LocalDefUseSpan(_counter);
             locInfo.LocalDefs.Add(locDef);
         }
 
@@ -1783,7 +1761,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
                 return;
             }
 
-            var locDef = LocalDefUseSpan.GetInstance(_counter);
+            var locDef = new LocalDefUseSpan(_counter);
             locInfo.LocalDefs.Add(locDef);
         }
 
