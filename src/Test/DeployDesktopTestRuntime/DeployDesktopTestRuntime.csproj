@@ -10,7 +10,7 @@
     <PlatformTarget>AnyCPU</PlatformTarget>
     <ProjectGuid>{23683607-168A-4189-955E-908F0E80E60D}</ProjectGuid>
     <OutputType>Library</OutputType>
-    <AssemblyName>Roslyn.TestRuntime.FX46</AssemblyName>
+    <AssemblyName>DeplyDesktopTestRuntime_DoNotUse</AssemblyName>
     <Nonshipping>true</Nonshipping>
     <SolutionDir Condition="'$(SolutionDir)' == '' OR '$(SolutionDir)' == '*Undefined*'">..\..\..\</SolutionDir>
     <RestorePackages>true</RestorePackages>

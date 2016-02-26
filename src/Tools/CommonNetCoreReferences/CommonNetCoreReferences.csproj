@@ -7,7 +7,7 @@
     <Platform Condition=" '$(Platform)' == '' ">x64</Platform>
     <ProjectGuid>{B5A6057A-EB4C-49FB-987D-943137E72E47}</ProjectGuid>
     <OutputType>Library</OutputType>
-    <AssemblyName>DoNotUse</AssemblyName>
+    <AssemblyName>CommonNetCoreReferences_DoNotUse</AssemblyName>
     <Prefer32Bit>false</Prefer32Bit>
     <LargeAddressAware>true</LargeAddressAware>
     <SolutionDir Condition="'$(SolutionDir)' == '' OR '$(SolutionDir)' == '*Undefined*'">..\..\..\..\</SolutionDir>

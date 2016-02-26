@@ -9,7 +9,7 @@
     <Platform Condition=" '$(Platform)' == '' ">x64</Platform>
     <ProjectGuid>{59BABFC3-C19B-4472-A93D-3DD3835BC219}</ProjectGuid>
     <OutputType>Exe</OutputType>
-    <AssemblyName>DoNotUse</AssemblyName>
+    <AssemblyName>DeployCoreClrTestRuntime_DoNotUse</AssemblyName>
     <Prefer32Bit>false</Prefer32Bit>
     <LargeAddressAware>true</LargeAddressAware>
     <SolutionDir Condition="'$(SolutionDir)' == '' OR '$(SolutionDir)' == '*Undefined*'">..\..\..\..\</SolutionDir>
