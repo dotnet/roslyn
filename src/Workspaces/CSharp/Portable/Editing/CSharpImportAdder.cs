@@ -70,12 +70,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Editing
                     : UsingsAndExternAliasesDirectiveComparer.NormalInstance;
 
             // find insertion point
+            int existingIndex = 0;
             foreach (var existingImport in gen.GetNamespaceImports(root))
             {
                 if (comparer.Compare(import, existingImport) < 0)
                 {
-                    return gen.InsertNodesBefore(root, existingImport, new[] { import });
+                    return gen.InsertNamespaceImports(root, existingIndex, import);
                 }
+
+                existingIndex++;
             }
 
             return gen.AddNamespaceImports(root, import);
