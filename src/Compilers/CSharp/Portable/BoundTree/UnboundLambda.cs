@@ -866,6 +866,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 var refKind = this.ExpressionRefKind;
                 var body = (ExpressionSyntax)this.Body;
+                lambdaBodyBinder = lambdaBodyBinder.WithPatternVariablesIfAny(body);
                 return lambdaBodyBinder.BindLambdaExpressionAsBlock(refKind, body, diagnostics);
             }
             else

@@ -292,30 +292,30 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             var boundExpr = BindValue(exprSyntax, diagnostics, BindValueKind.RValue);
 
-                // SPEC VIOLATION: The spec requires the thrown exception to have a type, and that the type
-                // be System.Exception or derived from System.Exception. (Or, if a type parameter, to have
-                // an effective base class that meets that criterion.) However, we allow the literal null 
-                // to be thrown, even though it does not meet that criterion and will at runtime always
-                // produce a null reference exception.
+            // SPEC VIOLATION: The spec requires the thrown exception to have a type, and that the type
+            // be System.Exception or derived from System.Exception. (Or, if a type parameter, to have
+            // an effective base class that meets that criterion.) However, we allow the literal null 
+            // to be thrown, even though it does not meet that criterion and will at runtime always
+            // produce a null reference exception.
 
-                if (!boundExpr.IsLiteralNull())
+            if (!boundExpr.IsLiteralNull())
+            {
+                var type = boundExpr.Type;
+
+                // If the expression is a lambda, anonymous method, or method group then it will
+                // have no compile-time type; give the same error as if the type was wrong.
+                HashSet<DiagnosticInfo> useSiteDiagnostics = null;
+
+                if ((object)type == null || !type.IsErrorType() && !Compilation.IsExceptionType(type.EffectiveType(ref useSiteDiagnostics), ref useSiteDiagnostics))
                 {
-                    var type = boundExpr.Type;
-
-                    // If the expression is a lambda, anonymous method, or method group then it will
-                    // have no compile-time type; give the same error as if the type was wrong.
-                    HashSet<DiagnosticInfo> useSiteDiagnostics = null;
-
-                    if ((object)type == null || !type.IsErrorType() && !Compilation.IsExceptionType(type.EffectiveType(ref useSiteDiagnostics), ref useSiteDiagnostics))
-                    {
-                        diagnostics.Add(ErrorCode.ERR_BadExceptionType, exprSyntax.Location);
-                        hasErrors = true;
-                        diagnostics.Add(exprSyntax, useSiteDiagnostics);
-                    }
+                    diagnostics.Add(ErrorCode.ERR_BadExceptionType, exprSyntax.Location);
+                    hasErrors = true;
+                    diagnostics.Add(exprSyntax, useSiteDiagnostics);
                 }
+            }
 
             return boundExpr;
-            }
+        }
 
         private BoundThrowStatement BindThrow(ThrowStatementSyntax node, DiagnosticBag diagnostics)
         {
@@ -3572,7 +3572,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// Binds an expression-bodied member with expression e as either { return e;} or { e; }.
         /// </summary>
         internal BoundBlock BindExpressionBodyAsBlock(ArrowExpressionClauseSyntax expressionBody,
-                                                    DiagnosticBag diagnostics)
+                                                      DiagnosticBag diagnostics)
         {
             RefKind refKind = expressionBody.RefKeyword.Kind().GetRefKind();
             PatternVariableBinder patternBinder = new PatternVariableBinder(expressionBody, expressionBody.Expression, this);
@@ -3586,9 +3586,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// </summary>
         public BoundBlock BindLambdaExpressionAsBlock(RefKind refKind, ExpressionSyntax body, DiagnosticBag diagnostics)
         {
-            PatternVariableBinder patternBinder = new PatternVariableBinder(body, body, this);
-            BoundExpression expression = patternBinder.BindValue(body, diagnostics, refKind != RefKind.None ? BindValueKind.RefReturn : BindValueKind.RValue);
-            expression = patternBinder.WrapWithPatternVariables(expression);
+            BoundExpression expression = BindValue(body, diagnostics, refKind != RefKind.None ? BindValueKind.RefReturn : BindValueKind.RValue);
             return CreateBlockFromExpression(body, this.Locals, refKind, expression, body, diagnostics);
         }
 

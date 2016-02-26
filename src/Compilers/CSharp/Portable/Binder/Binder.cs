@@ -754,6 +754,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             return binders.ToArrayAndFree();
         }
 #endif
-
+        
+        internal Binder WithPatternVariablesIfAny(ExpressionSyntax scopeOpt)
+        {
+            Debug.Assert(Locals.Length == 0);
+            return new PatternVariableBinder(scopeOpt, scopeOpt, this);
+        }
     }
 }
