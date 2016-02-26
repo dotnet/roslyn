@@ -298,6 +298,7 @@
 
     <!-- TODO: Revert to the code below pending https://github.com/dotnet/roslyn/issues/8927 .
          <KeyBinding guid="guidVSStd11" id="cmdidExecuteSelectionInInteractive" editor="guidCSharpEditorFactory" mod1="Control" key1="E" mod2="Control" key2="E" />-->
+    <KeyBinding guid="guidInteractiveWindowCmdSet" id="cmdidExecuteInInteractiveWindow" editor="guidCSharpEditorFactory" mod1="Control" key1="E" key2="E" />
     <KeyBinding guid="guidInteractiveWindowCmdSet" id="cmdidExecuteInInteractiveWindow" editor="guidCSharpEditorFactory" mod1="Control" key1="E" mod2="Control" key2="E" />
     <KeyBinding guid="guidInteractiveWindowCmdSet" id="cmdidCopyToInteractiveWindow" editor="GUID_TextEditorFactory" mod1="Control" key1="K" mod2="Control" key2="VK_RETURN" />
   </KeyBindings>

@@ -23,9 +23,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Interactive
 
         protected override CommandID GetResetInteractiveFromProjectCommandID()
         {
-            // TODO: Revert to the code below pending https://github.com/dotnet/roslyn/issues/8927 .
-            // return new CommandID(ID.InteractiveCommands.CSharpInteractiveCommandSetId, ID.InteractiveCommands.ResetInteractiveFromProject);
-            return new CommandID(Guids.CSharpInteractiveCommandSetId, ID.InteractiveCommands.ResetInteractiveFromProject);
+            return new CommandID(ID.InteractiveCommands.CSharpInteractiveCommandSetId, ID.InteractiveCommands.ResetInteractiveFromProject);
         }
     }
 }
