@@ -1593,12 +1593,22 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                 Return
             End If
 
+            Dim keys As StrongNameKeys
             Dim keyFile As String = _compilation.Options.CryptoKeyFile
 
             ' Public sign requires a keyfile
             If DeclaringCompilation.Options.PublicSign Then
+                If Not String.IsNullOrEmpty(keyFile) AndAlso Not PathUtilities.IsAbsolute(keyFile) Then
+                    ' If keyFile has a relative path then there should be a diagnostic
+                    ' about it
+                    Debug.Assert(Not DeclaringCompilation.Options.Errors.IsEmpty)
+                    keys = StrongNameKeys.None
+                Else
+                    keys = StrongNameKeys.Create(keyFile, MessageProvider.Instance)
+                End If
+
                 ' Public signing doesn't require a strong name provider to be used. 
-                Interlocked.CompareExchange(_lazyStrongNameKeys, StrongNameKeys.Create(keyFile, MessageProvider.Instance), Nothing)
+                Interlocked.CompareExchange(_lazyStrongNameKeys, keys, Nothing)
                 Return
             End If
 
@@ -1621,7 +1631,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                 End If
             End If
 
-            Dim keys = StrongNameKeys.Create(DeclaringCompilation.Options.StrongNameProvider, keyFile, keyContainer, MessageProvider.Instance)
+            keys = StrongNameKeys.Create(DeclaringCompilation.Options.StrongNameProvider, keyFile, keyContainer, MessageProvider.Instance)
             Interlocked.CompareExchange(_lazyStrongNameKeys, keys, Nothing)
         End Sub
 

@@ -457,6 +457,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 // the attributes. Right now we'll just fall through to the
                 // "no key available" error.
 
+                if (!string.IsNullOrEmpty(keyFile) && !PathUtilities.IsAbsolute(keyFile))
+                {
+                    // If keyFile has a relative path then there should be a diagnostic
+                    // about it
+                    Debug.Assert(!DeclaringCompilation.Options.Errors.IsEmpty);
+                    return StrongNameKeys.None;
+                }
+
                 // If we're public signing, we don't need a strong name provider
                 return StrongNameKeys.Create(keyFile, MessageProvider.Instance);
             }
