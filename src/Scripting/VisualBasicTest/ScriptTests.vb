@@ -5,8 +5,6 @@ Imports Microsoft.CodeAnalysis.Scripting
 Imports Roslyn.Test.Utilities
 Imports Xunit
 
-#Disable Warning RS0003 ' Do not directly await a Task
-
 Namespace Microsoft.CodeAnalysis.VisualBasic.Scripting.UnitTests
 
     Public Class ScriptTests

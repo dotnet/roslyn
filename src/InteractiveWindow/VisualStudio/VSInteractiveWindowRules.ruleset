@@ -1,0 +1,5 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<RuleSet Name="Common diagnostic rules for all VSInteractive window project" Description="Enables/disable rules specific to all non-shipping projects." ToolsVersion="14.0">
+  <Include Path="..\..\..\build\Rulesets\Roslyn_BuildRules.ruleset" Action="Default" />
+  <Include Path="MinimumRecommendedRules.ruleset" Action="Default" />
+</RuleSet>

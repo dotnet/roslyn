@@ -19,7 +19,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
 {
     internal sealed class EditSession
     {
-        [SuppressMessage("Performance", "RS0008", Justification = "Equality not actually implemented")]
+        [SuppressMessage("Performance", "CA1067", Justification = "Equality not actually implemented")]
         private struct Analysis
         {
             public readonly Document Document;

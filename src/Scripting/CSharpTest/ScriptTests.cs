@@ -10,8 +10,6 @@ using Roslyn.Test.Utilities;
 using Roslyn.Utilities;
 using Xunit;
 
-#pragma warning disable RS0003 // Do not directly await a Task
-
 namespace Microsoft.CodeAnalysis.CSharp.Scripting.UnitTests
 {
     public class ScriptTests : TestBase
