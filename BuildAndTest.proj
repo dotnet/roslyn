@@ -72,6 +72,8 @@
           SkipUnchangedFiles="true"
           UseHardlinksIfPossible="true" />
 
+    <MakeDir Directories="$(CoreClrTestDirectory)\xUnitResults" />
+
     <ItemGroup>
 
       <!-- MakeConst unit tests tracked by https://github.com/dotnet/roslyn/issues/5918 -->
@@ -92,7 +94,7 @@
         Text="Found test assemblies outside a well-known test directory: 
 @(MisplacedTestAssemblies, '%0a')" />
 
-    <Exec Command="$(CoreClrTestDirectory)\CoreRun.exe $(CoreClrTestDirectory)\xunit.console.netcore.exe @(CoreTestAssemblies, ' ') -parallel all -xml $(CoreClrTestDirectory)\TestResults.xml" />
+    <Exec Command="$(CoreClrTestDirectory)\CoreRun.exe $(CoreClrTestDirectory)\xunit.console.netcore.exe @(CoreTestAssemblies, ' ') -parallel all -xml $(CoreClrTestDirectory)\xUnitResults\TestResults.xml" />
 
     <Exec Command="Binaries\$(Configuration)\RunTests.exe $(NuGetPackageRoot)\xunit.runner.console\$(XunitVersion)\tools $(RunTestArgs) @(TestAssemblies, ' ')" />
 
