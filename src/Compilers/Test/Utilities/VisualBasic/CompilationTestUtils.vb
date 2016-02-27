@@ -40,13 +40,30 @@ Friend Module CompilationUtils
                                                   Optional options As VisualBasicCompilationOptions = Nothing,
                                                   Optional assemblyName As String = Nothing,
                                                   Optional parseOptions As VisualBasicParseOptions = Nothing) As VisualBasicCompilation
-        Return VisualBasicCompilation.Create(If(assemblyName, "Test"), sourceTrees.Select(Function(s) VisualBasicSyntaxTree.ParseText(s, parseOptions)), If(references Is Nothing, {MscorlibRef}, {MscorlibRef}.Concat(references)), options)
+
+        Dim syntaxTrees = sourceTrees.Select(Function(s) VisualBasicSyntaxTree.ParseText(s, parseOptions))
+        Dim metadataReferences = If(references Is Nothing, {MscorlibRef}, {MscorlibRef}.Concat(references))
+
+#If Test_IOperation_Interface Then
+        Dim compilationForOperationWalking = VisualBasicCompilation.Create(If(assemblyName, "TestOperation"), syntaxTrees, metadataReferences, options)
+        WalkOperationTrees(compilationForOperationWalking)
+#End If
+
+        Return VisualBasicCompilation.Create(If(assemblyName, "Test"), syntaxTrees, metadataReferences, options)
     End Function
 
     Public Function CreateCompilationWithMscorlib(sourceTrees As IEnumerable(Of SyntaxTree),
                                                   Optional references As IEnumerable(Of MetadataReference) = Nothing,
                                                   Optional options As VisualBasicCompilationOptions = Nothing) As VisualBasicCompilation
-        Return VisualBasicCompilation.Create(GetUniqueName(), sourceTrees, If(references Is Nothing, {MscorlibRef}, {MscorlibRef}.Concat(references)), options)
+
+        Dim metadataReferences = If(references Is Nothing, {MscorlibRef}, {MscorlibRef}.Concat(references))
+
+#If Test_IOperation_Interface Then
+        Dim compilationForOperationWalking = VisualBasicCompilation.Create(GetUniqueName(), sourceTrees, metadataReferences, options)
+        WalkOperationTrees(compilationForOperationWalking)
+#End If
+
+        Return VisualBasicCompilation.Create(GetUniqueName(), sourceTrees, metadataReferences, options)
     End Function
 
     Public Function CreateCompilationWithMscorlib45(sourceTrees As IEnumerable(Of SyntaxTree),
@@ -243,6 +260,11 @@ Friend Module CompilationUtils
             End If
         End If
 
+#If Test_IOperation_Interface Then
+        Dim compilationForOperationWalking = VisualBasicCompilation.Create(If(assemblyName, GetUniqueName()), sourceTrees, references, options)
+        WalkOperationTrees(compilationForOperationWalking)
+#End If
+
         Return VisualBasicCompilation.Create(If(assemblyName, GetUniqueName()), sourceTrees, references, options)
     End Function
 
@@ -273,6 +295,27 @@ Friend Module CompilationUtils
         DirectCast(c.Assembly, SourceAssemblySymbol).m_lazyIdentity = identity
         Return c
     End Function
+
+#If Test_IOperation_Interface Then
+    Private Sub WalkOperationTrees(compilation As VisualBasicCompilation)
+        Dim operationWalker = TestOperationWalker.GetInstance()
+
+        For Each tree In compilation.SyntaxTrees
+            Dim semanticModel = compilation.GetSemanticModel(tree)
+            Dim root = tree.GetRoot()
+
+            ' need to check other operation root as well (property, etc)
+            For Each methodNode As MethodBlockBaseSyntax In root.DescendantNodesAndSelf().OfType(Of MethodBlockBaseSyntax)
+                ' Have to iterate through statements because a bug:
+                ' https://github.com/dotnet/roslyn/issues/8919
+                For Each statement In methodNode.Statements
+                    Dim operation = semanticModel.GetOperation(statement)
+                    operationWalker.Visit(operation)
+                Next
+            Next
+        Next
+    End Sub
+#End If
 
     ''' <summary>
     ''' 
