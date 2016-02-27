@@ -462,16 +462,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             var csmodel = semanticModel as CSharpSemanticModel;
             if (csmodel != null)
             {
-                // Because it is a Identifier, the left-hand-side of a sub-property pattern appears to be an expression, but really is not an expression.
-                var possibleParentOfProperty = expression.Parent as SubPropertyPatternSyntax;
-                if (possibleParentOfProperty?.Left == expression)
-                {
-                    return csmodel.GetSymbolInfo(possibleParentOfProperty, cancellationToken);
-                }
-                else
-                {
-                    return csmodel.GetSymbolInfo(expression, cancellationToken);
-                }
+                return csmodel.GetSymbolInfo(expression, cancellationToken);
             }
             else
             {

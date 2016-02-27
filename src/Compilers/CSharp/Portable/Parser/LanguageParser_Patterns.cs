@@ -343,7 +343,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
 
         private SubPropertyPatternSyntax ParseSubPropertyPattern()
         {
-            var name = this.ParseIdentifierName();
+            var name = this.EatToken(SyntaxKind.IdentifierToken);
             var operandToken = this.EatToken(SyntaxKind.IsKeyword);
 
             PatternSyntax pattern = this.CurrentToken.Kind == SyntaxKind.CommaToken ?

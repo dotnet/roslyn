@@ -498,7 +498,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <summary>
         /// Gets the symbol information for the property of a sub-property pattern.
         /// </summary>
-        public abstract SymbolInfo GetSymbolInfo(SubPropertyPatternSyntax node, CancellationToken cancellationToken);
+        public abstract SymbolInfo GetSymbolInfo(SubPropertyPatternSyntax node, CancellationToken cancellationToken = default(CancellationToken));
 
         /// <summary>
         /// Returns what symbol(s), if any, the given expression syntax bound to in the program.
@@ -4315,12 +4315,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 throw new ArgumentNullException(nameof(node));
             }
 
-            var subPropertyPattern = node.Parent as SubPropertyPatternSyntax;
-            if (subPropertyPattern != null && subPropertyPattern.Left == node)
-            {
-                return this.GetSymbolInfo(subPropertyPattern, cancellationToken);
-            }
-
             var expression = node as ExpressionSyntax;
             if (expression != null)
             {
@@ -4357,7 +4351,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return this.GetSymbolInfo(orderingSyntax, cancellationToken);
             }
 
-            subPropertyPattern = node as SubPropertyPatternSyntax;
+            var subPropertyPattern = node as SubPropertyPatternSyntax;
             if (subPropertyPattern != null)
             {
                 return this.GetSymbolInfo(subPropertyPattern, cancellationToken);
