@@ -431,12 +431,16 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 
         protected void SetOptions(CompilationOptions compilationOptions, ParseOptions parseOptions)
         {
-            _compilationOptions = compilationOptions;
-            _parseOptions = parseOptions;
-
-            if (_pushingChangesToWorkspaceHosts)
+            // We do not want to allow message pumping/reentrancy when processing project system changes.
+            using (Dispatcher.CurrentDispatcher.DisableProcessing())
             {
-                this.ProjectTracker.NotifyWorkspaceHosts(host => host.OnOptionsChanged(_id, compilationOptions, parseOptions));
+                _compilationOptions = compilationOptions;
+                _parseOptions = parseOptions;
+
+                if (_pushingChangesToWorkspaceHosts)
+                {
+                    this.ProjectTracker.NotifyWorkspaceHosts(host => host.OnOptionsChanged(_id, compilationOptions, parseOptions));
+                }
             }
         }
 
@@ -636,28 +640,36 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 
         private static void OnDocumentOpened(object sender, bool isCurrentContext)
         {
-            IVisualStudioHostDocument document = (IVisualStudioHostDocument)sender;
-            AbstractProject project = (AbstractProject)document.Project;
+            // We do not want to allow message pumping/reentrancy when processing project system changes.
+            using (Dispatcher.CurrentDispatcher.DisableProcessing())
+            {
+                IVisualStudioHostDocument document = (IVisualStudioHostDocument)sender;
+                AbstractProject project = (AbstractProject)document.Project;
 
-            if (project._pushingChangesToWorkspaceHosts)
-            {
-                project.ProjectTracker.NotifyWorkspaceHosts(host => host.OnDocumentOpened(document.Id, document.GetOpenTextBuffer(), isCurrentContext));
-            }
-            else
-            {
-                StartPushingToWorkspaceAndNotifyOfOpenDocuments(project);
+                if (project._pushingChangesToWorkspaceHosts)
+                {
+                    project.ProjectTracker.NotifyWorkspaceHosts(host => host.OnDocumentOpened(document.Id, document.GetOpenTextBuffer(), isCurrentContext));
+                }
+                else
+                {
+                    StartPushingToWorkspaceAndNotifyOfOpenDocuments(project);
+                }
             }
         }
 
         private static void OnDocumentClosing(object sender, bool updateActiveContext)
         {
-            IVisualStudioHostDocument document = (IVisualStudioHostDocument)sender;
-            AbstractProject project = (AbstractProject)document.Project;
-            var projectTracker = project.ProjectTracker;
-
-            if (project._pushingChangesToWorkspaceHosts)
+            // We do not want to allow message pumping/reentrancy when processing project system changes.
+            using (Dispatcher.CurrentDispatcher.DisableProcessing())
             {
-                projectTracker.NotifyWorkspaceHosts(host => host.OnDocumentClosed(document.Id, document.GetOpenTextBuffer(), document.Loader, updateActiveContext));
+                IVisualStudioHostDocument document = (IVisualStudioHostDocument)sender;
+                AbstractProject project = (AbstractProject)document.Project;
+                var projectTracker = project.ProjectTracker;
+
+                if (project._pushingChangesToWorkspaceHosts)
+                {
+                    projectTracker.NotifyWorkspaceHosts(host => host.OnDocumentClosed(document.Id, document.GetOpenTextBuffer(), document.Loader, updateActiveContext));
+                }
             }
         }
 
