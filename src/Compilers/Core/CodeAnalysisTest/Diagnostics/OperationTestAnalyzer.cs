@@ -1593,6 +1593,37 @@ namespace Microsoft.CodeAnalysis.UnitTests.Diagnostics
         }
     }
 
+    public class BinaryOperatorVBTestAnalyzer : DiagnosticAnalyzer
+    {
+        public static readonly DiagnosticDescriptor BinaryUserDefinedOperatorDescriptor = new DiagnosticDescriptor(
+            "BinaryUserDefinedOperator",
+            "Binary user defined operator found",
+            "A Binary user defined operator {0} is found",
+            "Testing",
+            DiagnosticSeverity.Warning,
+            isEnabledByDefault: true);
+
+        public sealed override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics 
+            => ImmutableArray.Create(BinaryUserDefinedOperatorDescriptor);
+
+        public sealed override void Initialize(AnalysisContext context)
+        {
+            context.RegisterOperationAction(
+                (operationContext) =>
+                {
+                    var binary = (IBinaryOperatorExpression)operationContext.Operation;
+                    if (binary.GetBinaryOperandsKind() == BinaryOperandsKind.OperatorMethod)
+                    {
+                        operationContext.ReportDiagnostic(
+                            Diagnostic.Create(BinaryUserDefinedOperatorDescriptor, 
+                                binary.Syntax.GetLocation(),
+                                binary.BinaryOperationKind.ToString()));
+                    }
+                },
+                OperationKind.BinaryOperatorExpression);
+        }
+    }
+
     public class NullOperationSyntaxTestAnalyzer : DiagnosticAnalyzer
     {
         private const string ReliabilityCategory = "Reliability";
