@@ -14,7 +14,7 @@ namespace Microsoft.CodeAnalysis.Utilities
         Wpf,
         StaUnitTest,
         JoinableTask,
-        CommandLineMode,
+        ForcedByPackageInitialize,
         Unknown
     }
 
