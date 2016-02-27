@@ -1549,7 +1549,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     binder = new ExecutableCodeBinder(arrowExpression, sourceMethod, binder);
                     importChain = binder.ImportChain;
                     // Add locals
-                    return binder.BindExpressionBodyAsBlock(arrowExpression, diagnostics);
+                    return binder.WithPatternVariablesIfAny(arrowExpression.Expression).BindExpressionBodyAsBlock(arrowExpression, diagnostics);
                 }
                 else
                 {

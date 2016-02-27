@@ -187,9 +187,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public override void VisitArrowExpressionClause(ArrowExpressionClauseSyntax node)
         {
-            // TODO: Pattern variables in the => expression are local
-            //var arrowBinder = new PatternVariableBinder(node, node.Expression, _enclosing);
-            //AddToMap(node, arrowBinder);
+            var arrowBinder = new PatternVariableBinder(node, node.Expression, _enclosing);
+            AddToMap(node, arrowBinder);
         }
 
         public override void VisitAnonymousMethodExpression(AnonymousMethodExpressionSyntax node)

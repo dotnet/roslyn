@@ -457,7 +457,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
                 else if (node.ExpressionBody != null)
                 {
-                    block = binder.BindExpressionBodyAsBlock(node.ExpressionBody, diagnostics);
+                    block = binder.GetBinder(node.ExpressionBody).BindExpressionBodyAsBlock(node.ExpressionBody, diagnostics);
                 }
                 else
                 {
@@ -3575,9 +3575,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                                                       DiagnosticBag diagnostics)
         {
             RefKind refKind = expressionBody.RefKeyword.Kind().GetRefKind();
-            PatternVariableBinder patternBinder = new PatternVariableBinder(expressionBody, expressionBody.Expression, this);
-            BoundExpression expression = patternBinder.BindValue(expressionBody.Expression, diagnostics, refKind != RefKind.None ? BindValueKind.RefReturn : BindValueKind.RValue);
-            expression = patternBinder.WrapWithPatternVariables(expression);
+            BoundExpression expression = BindValue(expressionBody.Expression, diagnostics, refKind != RefKind.None ? BindValueKind.RefReturn : BindValueKind.RValue);
             return CreateBlockFromExpression(expressionBody, this.Locals, refKind, expression, expressionBody.Expression, diagnostics);
         }
 
