@@ -6,6 +6,7 @@ using System.Linq;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+using static Microsoft.CodeAnalysis.Utilities.ForegroundThreadDataKind;
 
 namespace Microsoft.CodeAnalysis.Utilities
 {
@@ -36,22 +37,15 @@ namespace Microsoft.CodeAnalysis.Utilities
             {
                 case "System.Windows.Threading.DispatcherSynchronizationContext":
 
-                    return ForegroundThreadDataKind.Wpf;
+                    return Wpf;
 
                 case "Microsoft.VisualStudio.Threading.JoinableTask+JoinableTaskSynchronizationContext":
 
-                    return ForegroundThreadDataKind.JoinableTask;
+                    return JoinableTask;
 
                 default:
 
-                    if (defaultKind != null)
-                    {
-                        return defaultKind.Value;
-                    }
-                    else
-                    {
-                        return ForegroundThreadDataKind.Unknown;
-                    }
+                    return defaultKind ?? Unknown;
             }
         }
 

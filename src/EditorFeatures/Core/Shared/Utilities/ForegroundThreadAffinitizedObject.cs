@@ -7,6 +7,7 @@ using System.Windows;
 using System.Windows.Threading;
 using Microsoft.CodeAnalysis.Utilities;
 using Roslyn.Utilities;
+using static Microsoft.CodeAnalysis.Utilities.ForegroundThreadDataKind;
 
 namespace Microsoft.CodeAnalysis.Editor.Shared.Utilities
 {
@@ -28,7 +29,7 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Utilities
         /// </summary>
         /// <param name="defaultKind">The ForegroundThreadDataKind to fall back to if a UI thread cannot be found</param>
         /// <returns>default ForegroundThreadData values</returns>
-        internal static ForegroundThreadData CreateDefault(ForegroundThreadDataKind? defaultKind = null)
+        internal static ForegroundThreadData CreateDefault(ForegroundThreadDataKind defaultKind)
         {
             var kind = ForegroundThreadDataInfo.CreateDefault(defaultKind);
 
@@ -86,7 +87,7 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Utilities
         // they believe to be the foreground. 
         static ForegroundThreadAffinitizedObject()
         {
-            s_fallbackForegroundThreadData = ForegroundThreadData.CreateDefault();
+            s_fallbackForegroundThreadData = ForegroundThreadData.CreateDefault(Unknown);
         }
 
         public ForegroundThreadAffinitizedObject(ForegroundThreadData foregroundThreadData = null, bool assertIsForeground = false)
@@ -115,7 +116,7 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Utilities
         /// <returns></returns>
         public bool IsValid()
         {
-            return _foregroundThreadData.Kind != ForegroundThreadDataKind.Unknown;
+            return _foregroundThreadData.Kind != Unknown;
         }
 
         public void AssertIsForeground()
