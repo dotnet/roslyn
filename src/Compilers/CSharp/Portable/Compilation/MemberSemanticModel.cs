@@ -43,6 +43,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             _compilation = compilation;
             _root = root;
             _memberSymbol = memberSymbol;
+
+            if (root.Kind() == SyntaxKind.ArrowExpressionClause)
+            {
+                rootBinder = rootBinder.WithPatternVariablesIfAny(((ArrowExpressionClauseSyntax)root).Expression);
+            }
+
             this.RootBinder = rootBinder.WithAdditionalFlags(GetSemanticModelBinderFlags());
             _parentSemanticModelOpt = parentSemanticModelOpt;
             _speculatedPosition = speculatedPosition;
@@ -215,11 +221,16 @@ namespace Microsoft.CodeAnalysis.CSharp
                         binder = RootBinder.GetBinder(current);
                     }
                 }
+                else if (current.Kind() == SyntaxKind.ArrowExpressionClause && current.Parent?.Kind() == SyntaxKind.LocalFunctionStatement)
+                {
+                    binder = RootBinder.GetBinder(current);
+                }
                 else
                 {
                     // If this ever breaks, make sure that all callers of
                     // CanHaveAssociatedLocalBinder are in sync.
-                    Debug.Assert(!current.CanHaveAssociatedLocalBinder());
+                    Debug.Assert(!current.CanHaveAssociatedLocalBinder() || 
+                                 (current == _root && current.Kind() == SyntaxKind.ArrowExpressionClause));
                 }
 
                 if (current == _root)
