@@ -46,7 +46,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Packaging
                 swallowException:=s_allButMoqExceptions,
                 cancellationTokenSource:=cancellationTokenSource)
 
-            Await service.UpdateDatabaseInBackgroundAsync()
+            Await service.UpdateSourceInBackgroundAsync(PackageSearchService.NugetOrgSource)
             ioMock.Verify()
             remoteControlService.Verify()
         End Function
@@ -76,7 +76,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Packaging
                 swallowException:=s_allButMoqExceptions,
                 cancellationTokenSource:=cancellationTokenSource)
 
-            Await service.UpdateDatabaseInBackgroundAsync()
+            Await service.UpdateSourceInBackgroundAsync(PackageSearchService.NugetOrgSource)
             ioMock.Verify()
             remoteControlService.Verify()
         End Function
@@ -113,7 +113,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Packaging
                 swallowException:=s_allButMoqExceptions,
                 cancellationTokenSource:=cancellationTokenSource)
 
-            Await searchService.UpdateDatabaseInBackgroundAsync()
+            Await searchService.UpdateSourceInBackgroundAsync(PackageSearchService.NugetOrgSource)
             ioMock.Verify()
             serviceMock.Verify()
             clientMock.Verify()
@@ -147,7 +147,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Packaging
                 swallowException:=s_allButMoqExceptions,
                 cancellationTokenSource:=cancellationTokenSource)
 
-            Await searchService.UpdateDatabaseInBackgroundAsync()
+            Await searchService.UpdateSourceInBackgroundAsync(PackageSearchService.NugetOrgSource)
             ioMock.Verify()
             serviceMock.Verify()
             clientMock.Verify()
@@ -195,7 +195,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Packaging
                 swallowException:=s_allButMoqExceptions,
                 cancellationTokenSource:=cancellationTokenSource)
 
-            Await searchService.UpdateDatabaseInBackgroundAsync()
+            Await searchService.UpdateSourceInBackgroundAsync(PackageSearchService.NugetOrgSource)
             ioMock.Verify()
             remoteControlMock.Verify()
             clientMock.Verify()
@@ -238,7 +238,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Packaging
                 swallowException:=s_allButMoqExceptions,
                 cancellationTokenSource:=cancellationTokenSource)
 
-            Await searchService.UpdateDatabaseInBackgroundAsync()
+            Await searchService.UpdateSourceInBackgroundAsync(PackageSearchService.NugetOrgSource)
             ioMock.Verify()
             remoteControlMock.Verify()
             clientMock.Verify()
@@ -285,7 +285,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Packaging
                 swallowException:=s_allButMoqExceptions,
                 cancellationTokenSource:=cancellationTokenSource)
 
-            Await searchService.UpdateDatabaseInBackgroundAsync()
+            Await searchService.UpdateSourceInBackgroundAsync(PackageSearchService.NugetOrgSource)
             ioMock.Verify()
             remoteControlMock.Verify()
             clientMock.Verify()
@@ -343,7 +343,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Packaging
                 swallowException:=s_allButMoqExceptions,
                 cancellationTokenSource:=cancellationTokenSource)
 
-            Await searchService.UpdateDatabaseInBackgroundAsync()
+            Await searchService.UpdateSourceInBackgroundAsync(PackageSearchService.NugetOrgSource)
             ioMock.Verify()
             remoteControlMock.Verify()
             clientMock.Verify()
@@ -388,7 +388,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Packaging
                 swallowException:=s_allButMoqExceptions,
                 cancellationTokenSource:=cancellationTokenSource)
 
-            Await searchService.UpdateDatabaseInBackgroundAsync()
+            Await searchService.UpdateSourceInBackgroundAsync(PackageSearchService.NugetOrgSource)
             ioMock.Verify()
             remoteControlMock.Verify()
             clientMock.Verify()
@@ -441,7 +441,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Packaging
                 swallowException:=s_allButMoqExceptions,
                 cancellationTokenSource:=cancellationTokenSource)
 
-            Await searchService.UpdateDatabaseInBackgroundAsync()
+            Await searchService.UpdateSourceInBackgroundAsync(PackageSearchService.NugetOrgSource)
             ioMock.Verify()
             remoteControlMock.Verify()
             clientMock.Verify()
@@ -500,7 +500,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Packaging
                 swallowException:=s_allButMoqExceptions,
                 cancellationTokenSource:=cancellationTokenSource)
 
-            Await searchService.UpdateDatabaseInBackgroundAsync()
+            Await searchService.UpdateSourceInBackgroundAsync(PackageSearchService.NugetOrgSource)
             ioMock.Verify()
             remoteControlMock.Verify()
             clientMock.Verify()
@@ -555,7 +555,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Packaging
                 swallowException:=s_allButMoqExceptions,
                 cancellationTokenSource:=cancellationTokenSource)
 
-            Await searchService.UpdateDatabaseInBackgroundAsync()
+            Await searchService.UpdateSourceInBackgroundAsync(PackageSearchService.NugetOrgSource)
             ioMock.Verify()
             remoteControlMock.Verify()
             clientMock.Verify()
@@ -696,6 +696,8 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Packaging
                     Throw New NotImplementedException()
                 End Get
             End Property
+
+            Public Event PackageSourcesChanged As EventHandler Implements IPackageInstallerService.PackageSourcesChanged
 
             Public Sub ShowManagePackagesDialog(packageName As String) Implements IPackageInstallerService.ShowManagePackagesDialog
                 Throw New NotImplementedException()
