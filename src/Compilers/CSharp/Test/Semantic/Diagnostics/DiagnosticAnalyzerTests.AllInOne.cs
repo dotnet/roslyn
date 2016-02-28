@@ -22,7 +22,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 
             // AllInOneCSharpCode has no properties with initializers or named types with primary constructors.
             var symbolKindsWithNoCodeBlocks = new HashSet<SymbolKind>();
-            symbolKindsWithNoCodeBlocks.Add(SymbolKind.Property);
             symbolKindsWithNoCodeBlocks.Add(SymbolKind.NamedType);
 
             var analyzer = new CSharpTrackingDiagnosticAnalyzer();
