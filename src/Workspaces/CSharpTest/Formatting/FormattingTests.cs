@@ -7359,6 +7359,133 @@ Point {x is             42};");
 
         }
 
+        [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
+        public async Task CasePatternDeclarationSimple()
+        {
+            var expected = @"
+switch (o)
+{
+    case Point p:
+}";
+
+            await AssertFormatBodyAsync(expected, expected);
+            await AssertFormatBodyAsync(expected, @"
+switch (o)
+{
+    case Point p   :
+}");
+
+            await AssertFormatBodyAsync(expected, @"
+switch (o)
+{
+    case Point    p   :
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
+        public async Task CasePatternPropertyEmpty()
+        {
+            var expected = @"
+switch (o)
+{
+    case Point { }:
+}";
+
+            await AssertFormatBodyAsync(expected, expected);
+            await AssertFormatBodyAsync(expected, @"
+switch (o)
+{
+    case Point {}   :
+}");
+
+            await AssertFormatBodyAsync(expected, @"
+switch (o)
+{
+    case Point    {    }   :
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
+        public async Task CasePatternPropertySingle()
+        {
+            var expected = @"
+switch (o)
+{
+    case Point { X is 42 }:
+}";
+
+            await AssertFormatBodyAsync(expected, expected);
+            await AssertFormatBodyAsync(expected, @"
+switch (o)
+{
+    case Point {X is 42}   :
+}");
+
+            await AssertFormatBodyAsync(expected, @"
+switch (o)
+{
+    case Point    {  X   is 42  }   :
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
+        public async Task CasePatternPropertySingleFollowedByBreak()
+        {
+            var expected = @"
+switch (o)
+{
+    case Point { X is 42 }:
+        break;
+}";
+
+            await AssertFormatBodyAsync(expected, expected);
+            await AssertFormatBodyAsync(expected, @"
+switch (o)
+{
+    case Point {X is 42}   :
+        break;
+}");
+
+            await AssertFormatBodyAsync(expected, @"
+switch (o)
+{
+    case Point    {  X   is 42  }   :
+        break;
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
+        public async Task CasePatternPropertySingleFollowedByBlock()
+        {
+            var expected = @"
+switch (o)
+{
+    case Point { X is 42 }:
+        {
+            M();
+        }
+}";
+
+            await AssertFormatBodyAsync(expected, expected);
+            await AssertFormatBodyAsync(expected, @"
+switch (o)
+{
+    case Point {X is 42}   :
+        {
+            M();
+        }
+}");
+
+            await AssertFormatBodyAsync(expected, @"
+switch (o)
+{
+    case Point    {  X   is 42  }   :
+        {
+            M();
+        }
+}");
+        }
+
         private Task AssertFormatBodyAsync(string expected, string input)
         {
             Func<string, string> transform = s => 
