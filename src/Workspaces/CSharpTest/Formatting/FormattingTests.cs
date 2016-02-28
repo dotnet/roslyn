@@ -7272,126 +7272,120 @@ class C
 }");
         }
 
-        public abstract class PatternFormattingEngineTests : FormattingEngineTests
+        [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
+        public async Task PropertyDeclarationSimple()
         {
-            private Task AssertFormatBodyAsync(string expected, string input)
-            {
-                Func<string, string> transform = s => 
-                {
-                    var lines = s.Split(new[] { Environment.NewLine }, StringSplitOptions.None);
-                    for (int i = 0; i < lines.Length; i++)
-                    {
-                        if (!string.IsNullOrEmpty(lines[i]))
-                        {
-                            lines[i] = new string(' ', count: 8) + lines[i];
-                        }
-                    }
-                    return string.Join(Environment.NewLine, lines);
-                };
+            var expected = @"if (o is Point p)";
+            await AssertFormatBodyAsync(expected, expected);
+            await AssertFormatBodyAsync(expected, @"if (o is Point   p)");
+            await AssertFormatBodyAsync(expected, @"if (o is Point p  )");
+        }
 
-                var pattern = @"
+        [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
+        public async Task PropertyPatternBodyEmpty()
+        {
+            var expected = @"if (o is Point { })";
+            await AssertFormatBodyAsync(expected, expected);
+            await AssertFormatBodyAsync(expected, @"if (o is Point {})");
+            await AssertFormatBodyAsync(expected, @"if (o is Point {      })");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
+        public async Task PropertyPatternValueSingle()
+        {
+            var expected = @"if (o is Point { x is 3 })";
+            await AssertFormatBodyAsync(expected, expected);
+            await AssertFormatBodyAsync(expected, @"if (o is Point{x is 3})");
+            await AssertFormatBodyAsync(expected, @"if (o is Point{    x is 3})");
+            await AssertFormatBodyAsync(expected, @"if (o is Point{    x is 3    })");
+            await AssertFormatBodyAsync(expected, @"if (o is Point{    x is   3    })");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
+        public async Task PropertyPatternValueMultiple()
+        {
+            var expected = @"if (o is Point { x is 3, y is 42 })";
+            await AssertFormatBodyAsync(expected, expected);
+            await AssertFormatBodyAsync(expected, @"if (o is Point{x is 3,y is 42})");
+            await AssertFormatBodyAsync(expected, @"if (o is Point{x is 3   ,y is 42})");
+            await AssertFormatBodyAsync(expected, @"if (o is Point{x is 3   ,y is   42})");
+            await AssertFormatBodyAsync(expected, @"if (o is Point{x is 3   ,  y is   42})");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
+        public async Task PropertyPatternNestedSingle()
+        {
+            var expected = @"if (o is Point { x is var y }";
+            await AssertFormatBodyAsync(expected, expected);
+            await AssertFormatBodyAsync(expected, @"if (o is Point {x is var y}");
+            await AssertFormatBodyAsync(expected, @"if (o is Point {   x is var y}");
+            await AssertFormatBodyAsync(expected, @"if (o is Point {   x is var y    }");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
+        public async Task PropertyDeclarationTypeOnNewLine()
+        {
+            var expected = @"
+var y = o is
+Point p;";
+            await AssertFormatBodyAsync(expected, expected);
+            await AssertFormatBodyAsync(expected, @"
+var y = o is
+Point p;    ");
+
+            await AssertFormatBodyAsync(expected, @"
+var y = o   is
+Point p    ;");
+
+            await AssertFormatBodyAsync(expected, @"
+var y = o   is
+Point     p    ;");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
+        public async Task PropertyPatternTypeAndPatternOnNewLine()
+        {
+            var expected = @"
+var y = o is
+Point { x is 42 };";
+            await AssertFormatBodyAsync(expected, expected);
+            await AssertFormatBodyAsync(expected, @"
+var y = o is
+Point {x is 42};");
+
+            await AssertFormatBodyAsync(expected, @"
+var y = o is
+Point {x is             42};");
+
+        }
+
+        private Task AssertFormatBodyAsync(string expected, string input)
+        {
+            Func<string, string> transform = s => 
+            {
+                var lines = s.Split(new[] { Environment.NewLine }, StringSplitOptions.None);
+                for (int i = 0; i < lines.Length; i++)
+                {
+                    if (!string.IsNullOrEmpty(lines[i]))
+                    {
+                        lines[i] = new string(' ', count: 8) + lines[i];
+                    }
+                }
+                return string.Join(Environment.NewLine, lines);
+            };
+
+            var pattern = @"
 class C
 {{
-    void M()
-    {{
+void M()
+{{
 {0}
-    }}
+}}
 }}";
 
-                expected = string.Format(pattern, transform(expected));
-                input = string.Format(pattern, transform(input));
-                return AssertFormatAsync(expected, input);
-            }
-
-            public sealed class SameLinePatternFormattingEngineTests : PatternFormattingEngineTests
-            {
-                [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
-                public async Task Declaration()
-                {
-                    var expected = @"if (o is Point p)";
-                    await AssertFormatBodyAsync(expected, expected);
-                    await AssertFormatBodyAsync(expected, @"if (o is Point   p)");
-                    await AssertFormatBodyAsync(expected, @"if (o is Point p  )");
-                }
-
-                [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
-                public async Task PropertyPatternEmpty()
-                {
-                    var expected = @"if (o is Point { })";
-                    await AssertFormatBodyAsync(expected, expected);
-                    await AssertFormatBodyAsync(expected, @"if (o is Point {})");
-                    await AssertFormatBodyAsync(expected, @"if (o is Point {      })");
-                }
-
-                [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
-                public async Task PropertyPatternIsSingle()
-                {
-                    var expected = @"if (o is Point { x is 3 })";
-                    await AssertFormatBodyAsync(expected, expected);
-                    await AssertFormatBodyAsync(expected, @"if (o is Point{x is 3})");
-                    await AssertFormatBodyAsync(expected, @"if (o is Point{    x is 3})");
-                    await AssertFormatBodyAsync(expected, @"if (o is Point{    x is 3    })");
-                    await AssertFormatBodyAsync(expected, @"if (o is Point{    x is   3    })");
-                }
-
-                [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
-                public async Task PropertyPatternIsMulitple()
-                {
-                    var expected = @"if (o is Point { x is 3, y is 42 })";
-                    await AssertFormatBodyAsync(expected, expected);
-                    await AssertFormatBodyAsync(expected, @"if (o is Point{x is 3,y is 42})");
-                    await AssertFormatBodyAsync(expected, @"if (o is Point{x is 3   ,y is 42})");
-                    await AssertFormatBodyAsync(expected, @"if (o is Point{x is 3   ,y is   42})");
-                    await AssertFormatBodyAsync(expected, @"if (o is Point{x is 3   ,  y is   42})");
-                }
-
-                [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
-                public async Task PropertyPatternIsVar()
-                {
-                    var expected = @"if (o is Point { x is var y }";
-                    await AssertFormatBodyAsync(expected, expected);
-                    await AssertFormatBodyAsync(expected, @"if (o is Point {x is var y}");
-                    await AssertFormatBodyAsync(expected, @"if (o is Point {   x is var y}");
-                    await AssertFormatBodyAsync(expected, @"if (o is Point {   x is var y    }");
-                }
-
-                [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
-                public async Task DeclarationTypeOnNewLine()
-                {
-                    var expected = @"
-var y = o is
-    Point p;";
-                    await AssertFormatBodyAsync(expected, expected);
-                    await AssertFormatBodyAsync(expected, @"
-var y = o is
-    Point p;    ");
-
-                    await AssertFormatBodyAsync(expected, @"
-var y = o   is
-    Point p    ;");
-
-                    await AssertFormatBodyAsync(expected, @"
-var y = o   is
-    Point     p    ;");
-                }
-
-                [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
-                public async Task PropertyTypeAndPatternOnNewLine()
-                {
-                    var expected = @"
-var y = o is
-    Point { x is 42 };";
-                    await AssertFormatBodyAsync(expected, expected);
-                    await AssertFormatBodyAsync(expected, @"
-var y = o is
-    Point {x is 42};");
-
-                    await AssertFormatBodyAsync(expected, @"
-var y = o is
-    Point {x is             42};");
-
-                }
-            }
+            expected = string.Format(pattern, transform(expected));
+            input = string.Format(pattern, transform(input));
+            return AssertFormatAsync(expected, input);
         }
     }
 }
