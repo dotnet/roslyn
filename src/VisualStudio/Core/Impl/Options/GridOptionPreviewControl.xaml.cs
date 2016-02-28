@@ -57,9 +57,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options
         {
             this.ViewModel = _createViewModel(this.OptionService.GetOptions(), _serviceProvider);
 
-            // Use the first item's preview.
-            var firstItem = this.ViewModel.Items.OfType<AbstractCodeStyleOptionViewModel>().First();
-            this.ViewModel.SetOptionAndUpdatePreview(firstItem.SelectedPreference.IsChecked, firstItem.Option, firstItem.GetPreview());
+            // TODO: Use the first item's preview. This doesn't work yet.
+            // var firstItem = this.ViewModel.Items.OfType<AbstractCodeStyleOptionViewModel>().First();
+            // this.ViewModel.SetOptionAndUpdatePreview(firstItem.SelectedPreference.IsChecked, firstItem.Option, firstItem.GetPreview());
 
             DataContext = ViewModel;
         }

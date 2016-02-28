@@ -4,6 +4,13 @@ using System.Runtime.Serialization;
 
 namespace Microsoft.CodeAnalysis.CodeStyle
 {
+    /// <summary>
+    /// Offers different notification styles for enforcing
+    /// a code style. Under the hood, it simply maps to <see cref="DiagnosticSeverity"/>
+    /// </summary>
+    /// <remarks>
+    /// This also supports various properties for databinding.
+    /// </remarks>
     [DataContract]
     internal class NotificationOption
     {

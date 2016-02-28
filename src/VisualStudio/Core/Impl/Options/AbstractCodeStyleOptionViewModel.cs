@@ -9,26 +9,34 @@ using Microsoft.VisualStudio.LanguageServices.Implementation.Utilities;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options
 {
+    /// <summary>
+    /// This class acts as a base for any view model that 
+    /// binds to the codestyle options UI.
+    /// </summary>
+    /// <remarks>
+    /// This supports databinding of: 
+    /// Description
+    /// list of CodeStyle preferences
+    /// list of Notification preferences 
+    /// selected code style preference
+    /// selected notification preference
+    /// plus, styling for visual elements.
+    /// </remarks>
     internal abstract class AbstractCodeStyleOptionViewModel : AbstractNotifyPropertyChanged
     {
-        // not data binding
         private readonly string _truePreview;
         private readonly string _falsePreview;
         protected AbstractOptionPreviewViewModel Info { get; }
         public IOption Option { get; }
 
-        // data binding
-
-        // this property is temporarily required because not all code styles implement notification preferences.
-        public abstract bool NotificationsAvailable { get; }
-        public abstract CodeStylePreference SelectedPreference { get; set; }
-        public abstract NotificationOptionViewModel SelectedNotificationPreference { get; set; }
         public string Description { get; set; }
         public double DescriptionMargin { get; set; }
         public string GroupName { get; set; }
-
+        public abstract CodeStylePreference SelectedPreference { get; set; }
+        public abstract NotificationOptionViewModel SelectedNotificationPreference { get; set; }
         public List<CodeStylePreference> Preferences { get; set; }
         public List<NotificationOptionViewModel> NotificationPreferences { get; set; }
+        public abstract bool NotificationsAvailable { get; }
 
         public virtual string GetPreview() => SelectedPreference.IsChecked? _truePreview : _falsePreview;
 

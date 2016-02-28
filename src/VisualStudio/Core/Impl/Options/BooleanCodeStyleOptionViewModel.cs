@@ -3,10 +3,21 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.Options;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options
 {
+    /// <summary>
+    /// This class maps a boolean option into a codestyle option 
+    /// that binds to the codestyle options UI.
+    /// </summary>
+    /// <remarks>
+    /// This exists to support options that are implemented as boolean
+    /// options in the non UI layers, <see cref="Option{Boolean}"/>. 
+    /// In future, if such options are moved to use <see cref="SimpleCodeStyleOption"/>, 
+    /// this class can be completely deleted.
+    /// </remarks>
     internal class BooleanCodeStyleOptionViewModel : AbstractCodeStyleOptionViewModel
     {
         public BooleanCodeStyleOptionViewModel(
@@ -28,9 +39,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options
         }
 
         public override bool NotificationsAvailable => false;
-
         public override NotificationOptionViewModel SelectedNotificationPreference
         {
+            // presently, these options do not support notification styles.
             get
             {
                 throw new NotSupportedException();

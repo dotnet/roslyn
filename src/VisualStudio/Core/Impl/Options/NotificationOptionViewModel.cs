@@ -10,6 +10,9 @@ using Microsoft.VisualStudio.Imaging.Interop;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options
 {
+    /// <summary>
+    /// Represents a view model for <see cref="NotificationOption"/>
+    /// </summary>
     internal class NotificationOptionViewModel
     {
         public NotificationOptionViewModel(NotificationOption notification, ImageMoniker moniker)

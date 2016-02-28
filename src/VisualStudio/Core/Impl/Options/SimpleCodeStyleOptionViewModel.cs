@@ -10,6 +10,10 @@ using Microsoft.VisualStudio.LanguageServices.Implementation.Utilities;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options
 {
+    /// <summary>
+    /// This class represents the view model for a <see cref="SimpleCodeStyleOption"/>
+    /// that binds to the codestyle options UI.
+    /// </summary>
     internal class SimpleCodeStyleOptionViewModel : AbstractCodeStyleOptionViewModel
     {
         private CodeStylePreference _selectedPreference;
