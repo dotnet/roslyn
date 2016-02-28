@@ -28,25 +28,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options
         private void Options_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
             var dataGrid = (DataGrid)sender;
-            var codeStyleItem = (SimpleCodeStyleOptionViewModel)dataGrid.SelectedItem;
+            var codeStyleItem = (AbstractCodeStyleOptionViewModel)dataGrid.SelectedItem;
 
-            if (codeStyleItem != null && codeStyleItem.IsVisible)
+            if (codeStyleItem != null && codeStyleItem.NotificationsAvailable)
             {
                 ViewModel.UpdatePreview(codeStyleItem.GetPreview());
-            }
-        }
-
-        // TODO: do this with DataBinding.
-        private void Options_LoadingRow(object sender, DataGridRowEventArgs e)
-        {
-            DataGridRow row = e.Row;
-
-            if (!((SimpleCodeStyleOptionViewModel)e.Row.Item).IsVisible)
-            {
-                // set height for header row.
-                // the default height won't work well here because this doesn't have combos
-                // while the other rows have one.
-                row.Height = 24;
             }
         }
 

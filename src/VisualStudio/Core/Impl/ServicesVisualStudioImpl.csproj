@@ -310,6 +310,8 @@
     <Compile Include="CodeModel\RootCodeModel.cs" />
     <Compile Include="CodeModel\SyntaxNodeKey.cs" />
     <Compile Include="CodeModel\TextManagerAdapter.cs" />
+    <Compile Include="Options\AbstractCodeStyleOptionViewModel.cs" />
+    <Compile Include="Options\BooleanCodeStyleOptionViewModel.cs" />
     <Compile Include="Options\CodeStylePreference.cs" />
     <Compile Include="Options\Converters\MarginConverter.cs" />
     <Compile Include="Options\SimpleCodeStyleOptionViewModel.cs" />

@@ -55,8 +55,7 @@
             HorizontalAlignment="Stretch"
             Style="{StaticResource ResourceKey=DataGridStyle}"
             SelectionChanged="Options_SelectionChanged"
-            PreviewKeyDown="Options_PreviewKeyDown"
-            LoadingRow="Options_LoadingRow">
+            PreviewKeyDown="Options_PreviewKeyDown">
             <!--<DataGrid.RowStyle>
                 <Style TargetType="{x:Type DataGridRow}">
                     <Setter Property="Height" Value="Auto"/>
@@ -114,7 +113,6 @@
                                     ItemsSource="{Binding Preferences}"
                                     DisplayMemberPath="Name"
                                     SelectedItem="{Binding SelectedPreference, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" 
-                                    Visibility="{Binding IsVisible, Converter={StaticResource BooleanToVisibilityConverter}}"
                                     VerticalContentAlignment="Center"
                                     HorizontalContentAlignment="Left"/>
                         </DataTemplate>
@@ -129,7 +127,7 @@
                             <ComboBox
                                     ItemsSource="{Binding NotificationPreferences}"
                                     SelectedItem="{Binding SelectedNotificationPreference,Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
-                                    Visibility="{Binding IsVisible, Converter={StaticResource BooleanToVisibilityConverter}}"
+                                    Visibility="{Binding NotificationsAvailable, Mode=OneWay, Converter={StaticResource BooleanToVisibilityConverter}}"
                                     VerticalContentAlignment="Center"
                                     HorizontalContentAlignment="Left">
                                 <ComboBox.ItemTemplate>

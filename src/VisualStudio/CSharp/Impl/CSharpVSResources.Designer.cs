@@ -619,7 +619,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Prefer intrinsic predefined type keyword when declaring locals, parameters and members.
+        ///   Looks up a localized string similar to For locals, parameters and members.
         /// </summary>
         internal static string PreferIntrinsicPredefinedTypeKeywordInDeclaration {
             get {
@@ -628,7 +628,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Prefer intrinsic predefined type keyword in member access expressions.
+        ///   Looks up a localized string similar to For member access expressions.
         /// </summary>
         internal static string PreferIntrinsicPredefinedTypeKeywordInMemberAccess {
             get {
