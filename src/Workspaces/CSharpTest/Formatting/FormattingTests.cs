@@ -10,6 +10,7 @@ using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
 using static Microsoft.CodeAnalysis.CSharp.Formatting.CSharpFormattingOptions;
+using System;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Formatting
 {
@@ -7269,6 +7270,128 @@ class C
     Console.WriteLine(""d"");
     }
 }");
+        }
+
+        public abstract class PatternFormattingEngineTests : FormattingEngineTests
+        {
+            private Task AssertFormatBodyAsync(string expected, string input)
+            {
+                Func<string, string> transform = s => 
+                {
+                    var lines = s.Split(new[] { Environment.NewLine }, StringSplitOptions.None);
+                    for (int i = 0; i < lines.Length; i++)
+                    {
+                        if (!string.IsNullOrEmpty(lines[i]))
+                        {
+                            lines[i] = new string(' ', count: 8) + lines[i];
+                        }
+                    }
+                    return string.Join(Environment.NewLine, lines);
+                };
+
+                var pattern = @"
+class C
+{{
+    void M()
+    {{
+{0}
+    }}
+}}";
+
+                expected = string.Format(pattern, transform(expected));
+                input = string.Format(pattern, transform(input));
+                return AssertFormatAsync(expected, input);
+            }
+
+            public sealed class SameLinePatternFormattingEngineTests : PatternFormattingEngineTests
+            {
+                [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
+                public async Task Declaration()
+                {
+                    var expected = @"if (o is Point p)";
+                    await AssertFormatBodyAsync(expected, expected);
+                    await AssertFormatBodyAsync(expected, @"if (o is Point   p)");
+                    await AssertFormatBodyAsync(expected, @"if (o is Point p  )");
+                }
+
+                [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
+                public async Task PropertyPatternEmpty()
+                {
+                    var expected = @"if (o is Point { })";
+                    await AssertFormatBodyAsync(expected, expected);
+                    await AssertFormatBodyAsync(expected, @"if (o is Point {})");
+                    await AssertFormatBodyAsync(expected, @"if (o is Point {      })");
+                }
+
+                [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
+                public async Task PropertyPatternIsSingle()
+                {
+                    var expected = @"if (o is Point { x is 3 })";
+                    await AssertFormatBodyAsync(expected, expected);
+                    await AssertFormatBodyAsync(expected, @"if (o is Point{x is 3})");
+                    await AssertFormatBodyAsync(expected, @"if (o is Point{    x is 3})");
+                    await AssertFormatBodyAsync(expected, @"if (o is Point{    x is 3    })");
+                    await AssertFormatBodyAsync(expected, @"if (o is Point{    x is   3    })");
+                }
+
+                [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
+                public async Task PropertyPatternIsMulitple()
+                {
+                    var expected = @"if (o is Point { x is 3, y is 42 })";
+                    await AssertFormatBodyAsync(expected, expected);
+                    await AssertFormatBodyAsync(expected, @"if (o is Point{x is 3,y is 42})");
+                    await AssertFormatBodyAsync(expected, @"if (o is Point{x is 3   ,y is 42})");
+                    await AssertFormatBodyAsync(expected, @"if (o is Point{x is 3   ,y is   42})");
+                    await AssertFormatBodyAsync(expected, @"if (o is Point{x is 3   ,  y is   42})");
+                }
+
+                [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
+                public async Task PropertyPatternIsVar()
+                {
+                    var expected = @"if (o is Point { x is var y }";
+                    await AssertFormatBodyAsync(expected, expected);
+                    await AssertFormatBodyAsync(expected, @"if (o is Point {x is var y}");
+                    await AssertFormatBodyAsync(expected, @"if (o is Point {   x is var y}");
+                    await AssertFormatBodyAsync(expected, @"if (o is Point {   x is var y    }");
+                }
+
+                [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
+                public async Task DeclarationTypeOnNewLine()
+                {
+                    var expected = @"
+var y = o is
+    Point p;";
+                    await AssertFormatBodyAsync(expected, expected);
+                    await AssertFormatBodyAsync(expected, @"
+var y = o is
+    Point p;    ");
+
+                    await AssertFormatBodyAsync(expected, @"
+var y = o   is
+    Point p    ;");
+
+                    await AssertFormatBodyAsync(expected, @"
+var y = o   is
+    Point     p    ;");
+                }
+
+                [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
+                public async Task PropertyTypeAndPatternOnNewLine()
+                {
+                    var expected = @"
+var y = o is
+    Point { x is 42 };";
+                    await AssertFormatBodyAsync(expected, expected);
+                    await AssertFormatBodyAsync(expected, @"
+var y = o is
+    Point {x is 42};");
+
+                    await AssertFormatBodyAsync(expected, @"
+var y = o is
+    Point {x is             42};");
+
+                }
+            }
         }
     }
 }

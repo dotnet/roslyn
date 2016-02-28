@@ -157,6 +157,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
                     AddSuppressWrappingIfOnSingleLineOperation(list, finallyClause.FinallyKeyword, finallyClause.Block.CloseBraceToken);
                 }
             }
+
+            var propertyPattern = node as PropertyPatternSyntax;
+            if (propertyPattern?.PatternList != null)
+            {
+                AddSuppressWrappingIfOnSingleLineOperation(list, propertyPattern.Type.GetFirstToken(), propertyPattern.PatternList.CloseBraceToken);
+            }
         }
 
         private void AddStatementExceptBlockSuppressOperations(List<SuppressOperation> list, SyntaxNode node)
