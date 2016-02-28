@@ -1,6 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -29,12 +30,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Packaging
     /// </summary>
     internal partial class PackageSearchService : ForegroundThreadAffinitizedObject, IPackageSearchService, IDisposable
     {
-        /// <summary>
-        /// Lock so that <see cref="_database_doNotAccessDirectly"/> is safe to read/write from
-        /// any thread.
-        /// </summary>
-        private readonly object _gate = new object();
-        private AddReferenceDatabase _database_doNotAccessDirectly;
+        private ConcurrentDictionary<string, AddReferenceDatabase> _sourceToDatabase = new ConcurrentDictionary<string, AddReferenceDatabase>();
 
         public PackageSearchService(VSShell.SVsServiceProvider serviceProvider, IPackageInstallerService installerService)
             : this(installerService, 
@@ -49,9 +45,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Packaging
                    e => true,
                    new CancellationTokenSource())
         {
-            // Kick off a database update.  Wait a few seconds before starting so we don't
-            // interfere too much with solution loading.
-            Task.Delay(TimeSpan.FromSeconds(10)).ContinueWith(_ => UpdateDatabaseInBackgroundAsync(), TaskScheduler.Default);
+            installerService.PackageSourcesChanged += OnPackageSourcesChanged;
+            OnPackageSourcesChanged(this, EventArgs.Empty);
         }
 
         private static IPackageSearchRemoteControlService CreateRemoteControlService(VSShell.SVsServiceProvider serviceProvider)
@@ -97,43 +92,24 @@ namespace Microsoft.VisualStudio.LanguageServices.Packaging
             _swallowException = swallowException;
 
             _cacheDirectoryInfo = new DirectoryInfo(Path.Combine(
-                localSettingsDirectory, "NuGetCache", string.Format(Invariant($"Format{_dataFormatVersion}"))));
-            _databaseFileInfo = new FileInfo(Path.Combine(_cacheDirectoryInfo.FullName, "NuGetCache.txt"));
+                localSettingsDirectory, "PackageCache", string.Format(Invariant($"Format{_dataFormatVersion}"))));
+            // _databaseFileInfo = new FileInfo(Path.Combine(_cacheDirectoryInfo.FullName, "NuGetCache.txt"));
 
             _cancellationTokenSource = cancellationTokenSource;
             _cancellationToken = _cancellationTokenSource.Token;
         }
 
-        private AddReferenceDatabase Database
-        {
-            get
-            {
-                lock (_gate)
-                {
-                    return _database_doNotAccessDirectly;
-                }
-            }
-
-            set
-            {
-                lock (_gate)
-                {
-                    _database_doNotAccessDirectly = value;
-                }
-            }
-        }
-
         public IEnumerable<PackageWithTypeResult> FindPackagesWithType(
             string source, string name, int arity, CancellationToken cancellationToken)
         {
-            if (!StringComparer.OrdinalIgnoreCase.Equals(source, NugetOrgSource))
-            {
-                // We only support searching nuget.org
-                yield break;
-            }
+            //if (!StringComparer.OrdinalIgnoreCase.Equals(source, NugetOrgSource))
+            //{
+            //    // We only support searching nuget.org
+            //    yield break;
+            //}
 
-            var database = this.Database;
-            if (database == null)
+            AddReferenceDatabase database;
+            if (!_sourceToDatabase.TryGetValue(source, out database))
             {
                 // Don't have a database to search.  
                 yield break;

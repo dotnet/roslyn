@@ -72,6 +72,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Packaging
 
         public ImmutableArray<string> PackageSources { get; private set; } = ImmutableArray<string>.Empty;
 
+        public event EventHandler PackageSourcesChanged;
+
         internal void Connect(VisualStudioWorkspaceImpl workspace)
         {
             this.AssertIsForeground();
@@ -131,6 +133,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Packaging
             PackageSources = _packageSourceProvider.GetSources(includeUnOfficial: true, includeDisabled: false)
                 .Select(r => r.Key)
                 .ToImmutableArrayOrEmpty();
+
+            PackageSourcesChanged?.Invoke(this, EventArgs.Empty);
         }
 
         public bool TryInstallPackage(
