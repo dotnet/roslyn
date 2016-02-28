@@ -7377,10 +7377,10 @@ Point {x is             42};");
             var pattern = @"
 class C
 {{
-void M()
-{{
+    void M()
+    {{
 {0}
-}}
+    }}
 }}";
 
             expected = string.Format(pattern, transform(expected));
