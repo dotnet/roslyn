@@ -106,6 +106,15 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Do not prefer &apos;this.&apos;.
+        /// </summary>
+        internal static string DoNotPreferThis {
+            get {
+                return ResourceManager.GetString("DoNotPreferThis", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Place &quot;else&quot; on new line.
         /// </summary>
         internal static string ElseOnNewLine {
@@ -619,6 +628,33 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to predefined type preferences:.
+        /// </summary>
+        internal static string PredefinedTypesGroupTitle {
+            get {
+                return ResourceManager.GetString("PredefinedTypesGroupTitle", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Prefer explicit type.
+        /// </summary>
+        internal static string PreferExplicitType {
+            get {
+                return ResourceManager.GetString("PreferExplicitType", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Prefer framework type.
+        /// </summary>
+        internal static string PreferFrameworkType {
+            get {
+                return ResourceManager.GetString("PreferFrameworkType", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to For locals, parameters and members.
         /// </summary>
         internal static string PreferIntrinsicPredefinedTypeKeywordInDeclaration {
@@ -637,6 +673,33 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Prefer predefined type.
+        /// </summary>
+        internal static string PreferPredefinedType {
+            get {
+                return ResourceManager.GetString("PreferPredefinedType", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Prefer &apos;this.&apos;.
+        /// </summary>
+        internal static string PreferThis {
+            get {
+                return ResourceManager.GetString("PreferThis", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Prefer &apos;var&apos;.
+        /// </summary>
+        internal static string PreferVar {
+            get {
+                return ResourceManager.GetString("PreferVar", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Qualify event access with &apos;this&apos;.
         /// </summary>
         internal static string QualifyEventAccessWithThis {
@@ -651,6 +714,15 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp {
         internal static string QualifyFieldAccessWithThis {
             get {
                 return ResourceManager.GetString("QualifyFieldAccessWithThis", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to &apos;this.&apos; preferences:.
+        /// </summary>
+        internal static string QualifyGroupTitle {
+            get {
+                return ResourceManager.GetString("QualifyGroupTitle", resourceCulture);
             }
         }
         
@@ -984,6 +1056,15 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp {
         internal static string UseVarWhenTypeIsApparent {
             get {
                 return ResourceManager.GetString("UseVarWhenTypeIsApparent", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to &apos;var&apos; preferences:.
+        /// </summary>
+        internal static string VarGroupTitle {
+            get {
+                return ResourceManager.GetString("VarGroupTitle", resourceCulture);
             }
         }
         

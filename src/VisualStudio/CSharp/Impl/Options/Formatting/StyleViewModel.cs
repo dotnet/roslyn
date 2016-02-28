@@ -170,31 +170,29 @@ class C{
         {
             CodeStyleItems = new ObservableCollection<AbstractCodeStyleOptionViewModel>();
 
-            ListCollectionView collectionView = (ListCollectionView)CollectionViewSource.GetDefaultView(CodeStyleItems);
+            var collectionView = (ListCollectionView)CollectionViewSource.GetDefaultView(CodeStyleItems);
             collectionView.GroupDescriptions.Add(new PropertyGroupDescription(nameof(AbstractCodeStyleOptionViewModel.GroupName)));
 
-            // TODO: move all strings from here to resx for loc.
-
-            const string qualifyGroupTitle = "this. preferences:";
-            const string predefinedTypesGroupTitle = "predefined type preferences:";
-            const string varGroupTitle = "'var' preferences:";
+            var qualifyGroupTitle = CSharpVSResources.QualifyGroupTitle;
+            var predefinedTypesGroupTitle = CSharpVSResources.PredefinedTypesGroupTitle;
+            var varGroupTitle = CSharpVSResources.VarGroupTitle;
 
             var qualifyMemberAccessPreferences = new List<CodeStylePreference>
             {
-                new CodeStylePreference("Prefer this.", true),
-                new CodeStylePreference("Do not prefer this.", false),
+                new CodeStylePreference(CSharpVSResources.PreferThis, isChecked: true),
+                new CodeStylePreference(CSharpVSResources.DoNotPreferThis, isChecked: false),
             };
 
             var predefinedTypesPreferences = new List<CodeStylePreference>
             {
-                new CodeStylePreference("Prefer predefined type", true),
-                new CodeStylePreference("Prefer framework type", false),
+                new CodeStylePreference(CSharpVSResources.PreferPredefinedType, isChecked: true),
+                new CodeStylePreference(CSharpVSResources.PreferFrameworkType, isChecked: false),
             };
 
             var useVarPreferences = new List<CodeStylePreference>
             {
-                new CodeStylePreference("Prefer 'var'", true),
-                new CodeStylePreference("Prefer explicit type", false),
+                new CodeStylePreference(CSharpVSResources.PreferVar, isChecked: true),
+                new CodeStylePreference(CSharpVSResources.PreferExplicitType, isChecked: false),
             };
 
             CodeStyleItems.Add(new BooleanCodeStyleOptionViewModel(SimplificationOptions.QualifyMemberAccessWithThisOrMe, CSharpVSResources.QualifyMemberAccessWithThis, s_declarationPreviewTrue, s_declarationPreviewFalse, this, optionSet, qualifyGroupTitle, qualifyMemberAccessPreferences));

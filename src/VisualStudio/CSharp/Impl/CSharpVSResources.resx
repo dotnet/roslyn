@@ -432,4 +432,31 @@
   <data name="QualifyPropertyAccessWithThis" xml:space="preserve">
     <value>Qualify property access with 'this'</value>
   </data>
+  <data name="PreferExplicitType" xml:space="preserve">
+    <value>Prefer explicit type</value>
+  </data>
+  <data name="PreferFrameworkType" xml:space="preserve">
+    <value>Prefer framework type</value>
+  </data>
+  <data name="PreferPredefinedType" xml:space="preserve">
+    <value>Prefer predefined type</value>
+  </data>
+  <data name="PreferThis" xml:space="preserve">
+    <value>Prefer 'this.'</value>
+  </data>
+  <data name="PreferVar" xml:space="preserve">
+    <value>Prefer 'var'</value>
+  </data>
+  <data name="QualifyGroupTitle" xml:space="preserve">
+    <value>'this.' preferences:</value>
+  </data>
+  <data name="VarGroupTitle" xml:space="preserve">
+    <value>'var' preferences:</value>
+  </data>
+  <data name="DoNotPreferThis" xml:space="preserve">
+    <value>Do not prefer 'this.'</value>
+  </data>
+  <data name="PredefinedTypesGroupTitle" xml:space="preserve">
+    <value>predefined type preferences:</value>
+  </data>
 </root>

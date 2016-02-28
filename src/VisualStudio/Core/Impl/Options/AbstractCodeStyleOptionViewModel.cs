@@ -37,7 +37,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options
         public List<NotificationOptionViewModel> NotificationPreferences { get; set; }
         public abstract bool NotificationsAvailable { get; }
 
-        public virtual string GetPreview() => SelectedPreference.IsChecked? _truePreview : _falsePreview;
+        public virtual string GetPreview() => SelectedPreference.IsChecked ? _truePreview : _falsePreview;
 
         public AbstractCodeStyleOptionViewModel(
             IOption option,
@@ -77,9 +77,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options
         {
             return new List<CodeStylePreference>
             {
-                // TODO: move to resx for loc.
-                new CodeStylePreference("Yes", true),
-                new CodeStylePreference("No", false),
+                new CodeStylePreference(ServicesVSResources.Yes, isChecked: true),
+                new CodeStylePreference(ServicesVSResources.No, isChecked: false),
             };
         }
 
