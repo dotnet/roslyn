@@ -1029,6 +1029,48 @@ public class X
             VerifyNotInScope(model, x12Ref[1]);
         }
 
+        [Fact]
+        public void PropertyNamedInComplexPattern()
+        {
+            var source =
+@"
+using System;
+public class Program
+{
+    public static void Main()
+    {
+        object o = nameof(Main);
+        Console.WriteLine(o is string { Length is 4 });
+        Console.WriteLine(o is string { NotFound is 4 });
+    }
+}
+";
+            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe, parseOptions: patternParseOptions);
+
+            compilation.VerifyDiagnostics(
+                // (9,41): error CS0117: 'string' does not contain a definition for 'NotFound'
+                //         Console.WriteLine(o is string { NotFound is 4 });
+                Diagnostic(ErrorCode.ERR_NoSuchMember, "NotFound").WithArguments("string", "NotFound").WithLocation(9, 41)
+                );
+            var tree = compilation.SyntaxTrees.Single();
+            var model = compilation.GetSemanticModel(tree);
+            var propPats = tree.GetRoot().DescendantNodes().OfType<SubPropertyPatternSyntax>().ToArray();
+            Assert.Equal(2, propPats.Length);
+
+            var p = propPats[0]; // Length is 4
+            var si = model.GetSymbolInfo(p);
+            Assert.NotNull(si.Symbol);
+            Assert.Equal("Length", si.Symbol.Name);
+            Assert.Equal(CandidateReason.None, si.CandidateReason);
+            Assert.True(si.CandidateSymbols.IsDefaultOrEmpty);
+
+            p = propPats[1]; // NotFound is 4
+            si = model.GetSymbolInfo(p);
+            Assert.Null(si.Symbol);
+            Assert.Equal(CandidateReason.None, si.CandidateReason);
+            Assert.True(si.CandidateSymbols.IsDefaultOrEmpty);
+        }
+
         private static void VerifyModelForDeclarationPattern(SemanticModel model, DeclarationPatternSyntax decl, params IdentifierNameSyntax[] references)
         {
             var symbol = model.GetDeclaredSymbol(decl);

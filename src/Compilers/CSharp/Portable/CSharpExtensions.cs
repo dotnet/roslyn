@@ -431,6 +431,22 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         /// <summary>
+        /// Gets the symbol information for the property of a sub-property pattern.
+        /// </summary>
+        public static SymbolInfo GetSymbolInfo(this SemanticModel semanticModel, SubPropertyPatternSyntax node, CancellationToken cancellationToken = default(CancellationToken))
+        {
+            var csmodel = semanticModel as CSharpSemanticModel;
+            if (csmodel != null)
+            {
+                return csmodel.GetSymbolInfo(node, cancellationToken);
+            }
+            else
+            {
+                return SymbolInfo.None;
+            }
+        }
+
+        /// <summary>
         /// Returns what symbol(s), if any, the given expression syntax bound to in the program.
         /// 
         /// An AliasSymbol will never be returned by this method. What the alias refers to will be

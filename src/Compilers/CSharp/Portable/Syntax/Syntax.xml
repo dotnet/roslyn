@@ -1736,7 +1736,9 @@
   </Node>
   <Node Name="SubPropertyPatternSyntax" Base="CSharpSyntaxNode">
     <Kind Name="SubPropertyPattern"/>
-    <Field Name="Left" Type="IdentifierNameSyntax"/>
+    <Field Name="Left" Type="SyntaxToken">
+      <Kind Name="IdentifierToken"/>
+    </Field>
     <Field Name="IsKeyword" Type="SyntaxToken">
       <Kind Name="IsKeyword"/>
     </Field>

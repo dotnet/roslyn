@@ -1332,9 +1332,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case BoundKind.PropertyPattern:
                     {
                         var pat = (BoundPropertyPattern)pattern;
-                        foreach (var prop in pat.Patterns)
+                        foreach (var prop in pat.Subpatterns)
                         {
-                            AssignPatternVariables(prop);
+                            AssignPatternVariables(prop.Pattern);
                         }
                         break;
                     }
@@ -1407,9 +1407,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case BoundKind.PropertyPattern:
                     {
                         var pat = (BoundPropertyPattern)pattern;
-                        foreach (var prop in pat.Patterns)
+                        foreach (var prop in pat.Subpatterns)
                         {
-                            CreateSlots(prop);
+                            CreateSlots(prop.Pattern);
                         }
                         break;
                     }

@@ -270,12 +270,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                         {
                             // so far so good: the expression is known to match the *type* of the property pattern.
                             // Now check if each subpattern is irrefutable.
-                            Debug.Assert(propPattern.Properties.Length == propPattern.Patterns.Length);
-                            int n = propPattern.Properties.Length;
+                            int n = propPattern.Subpatterns.Length;
                             for (int i = 0; i < n; i++)
                             {
-                                var prop = propPattern.Properties[i];
-                                var pat = propPattern.Patterns[i];
+                                var prop = propPattern.Subpatterns[i].Property;
+                                var pat = propPattern.Subpatterns[i].Pattern;
                                 BoundExpression subExpr;
                                 switch (prop.Kind)
                                 {
