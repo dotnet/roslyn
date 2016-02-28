@@ -38,31 +38,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options
 
         private void Options_PreviewKeyDown(object sender, KeyEventArgs e)
         {
+            // TODO: make the combo to drop down on space or some key.
             if (e.Key == Key.Space && e.KeyboardDevice.Modifiers == ModifierKeys.None)
             {
-                // TODO: make combo drop down on space or some key.
-
-                //var listView = (ListView)sender;
-                //var checkBox = listView.SelectedItem as CheckBoxOptionViewModel;
-                //if (checkBox != null)
-                //{
-                //    checkBox.IsChecked = !checkBox.IsChecked;
-                //    e.Handled = true;
-                //}
-
-                //var radioButton = listView.SelectedItem as AbstractRadioButtonViewModel;
-                //if (radioButton != null)
-                //{
-                //    radioButton.IsChecked = true;
-                //    e.Handled = true;
-                //}
-
-                //var checkBoxWithCombo = listView.SelectedItem as CheckBoxWithComboOptionViewModel;
-                //if (checkBoxWithCombo != null)
-                //{
-                //    checkBoxWithCombo.IsChecked = !checkBoxWithCombo.IsChecked;
-                //    e.Handled = true;
-                //}
             }
         }
 
@@ -80,8 +58,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options
             this.ViewModel = _createViewModel(this.OptionService.GetOptions(), _serviceProvider);
 
             // Use the first item's preview.
-            //var firstItem = this.ViewModel.Items.OfType<CheckBoxOptionViewModel>().First();
-            //this.ViewModel.SetOptionAndUpdatePreview(firstItem.IsChecked, firstItem.Option, firstItem.GetPreview());
+            var firstItem = this.ViewModel.Items.OfType<AbstractCodeStyleOptionViewModel>().First();
+            this.ViewModel.SetOptionAndUpdatePreview(firstItem.SelectedPreference.IsChecked, firstItem.Option, firstItem.GetPreview());
 
             DataContext = ViewModel;
         }

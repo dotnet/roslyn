@@ -9,7 +9,6 @@ using Microsoft.VisualStudio.LanguageServices.Implementation.Utilities;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options
 {
-    // I'm a row in this table.
     internal abstract class AbstractCodeStyleOptionViewModel : AbstractNotifyPropertyChanged
     {
         // not data binding

@@ -56,11 +56,6 @@
             Style="{StaticResource ResourceKey=DataGridStyle}"
             SelectionChanged="Options_SelectionChanged"
             PreviewKeyDown="Options_PreviewKeyDown">
-            <!--<DataGrid.RowStyle>
-                <Style TargetType="{x:Type DataGridRow}">
-                    <Setter Property="Height" Value="Auto"/>
-                </Style>
-            </DataGrid.RowStyle>-->
             <DataGrid.Resources>
                 <Style x:Key="GroupHeaderStyle" TargetType="{x:Type GroupItem}">
                     <Setter Property="Template">
@@ -85,8 +80,6 @@
                 </GroupStyle>
             </DataGrid.GroupStyle>
             <DataGrid.Columns>
-                <!--TODO: Set width and wrapping? -->
-                <!--TODO: text alignment and font?-->
                 <DataGridTextColumn
                     x:Name="description" 
                     Header="Description"
@@ -155,101 +148,7 @@
                 </DataGridTemplateColumn>
             </DataGrid.Columns>
         </DataGrid>
-
-
-        <!-- OLD 
         
-        <DataGrid Grid.Row="0" x:Uid="OptionList"
-                    x:Name="Options"
-                    Grid.Column="0"
-                    SelectionMode="Single"
-                    PreviewKeyDown="Options_PreviewKeyDown"
-                    SelectionChanged="Options_SelectionChanged"
-                    ItemsSource="{Binding Items, Mode=TwoWay}">
-
-            <ListView.Resources>
-                <DataTemplate DataType="{x:Type options:CheckBoxOptionViewModel}">
-                    <StackPanel Orientation="Horizontal">
-                        <CheckBox x:Uid="OptionCheckBox" 
-                                        IsChecked="{Binding IsChecked, Mode=TwoWay}"
-                                        Width="Auto"
-                                        Focusable="False"
-                                        Margin="20, 0, 0, 0">
-                        </CheckBox>
-                        <TextBlock x:Uid="Description" Text="{Binding Description}"/>
-                    </StackPanel>
-                </DataTemplate>
-
-                <DataTemplate DataType="{x:Type options:CheckBoxWithComboOptionViewModel}">
-                    <Grid>
-                        <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width="Auto" />
-                            <ColumnDefinition Width="Auto" />
-                            <ColumnDefinition Width="*"/>
-                        </Grid.ColumnDefinitions>
-                        <CheckBox x:Uid="OptionCheckBox" 
-                                        IsChecked="{Binding IsChecked, Mode=TwoWay}" 
-                                        Width="Auto"
-                                        Focusable="False"
-                                        Margin="20, 0, 0, 0"
-                                        Grid.Column="0"/>
-
-                        <ComboBox x:Uid="ComboBoxOptions"
-                                  ItemsSource="{Binding NotificationOptions}"
-                                  SelectedItem="{Binding SelectedNotificationOption, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
-                                  HorizontalContentAlignment="Left"
-                                  VerticalContentAlignment="Center"
-                                  Margin="5, 0, 0, 0"
-                                  Width="100"
-                                  Grid.Column="1">
-                            <ComboBox.ItemTemplate>
-                                <DataTemplate>
-                                    <Grid>
-                                        <Grid.ColumnDefinitions>
-                                            <ColumnDefinition Width="Auto"/>
-                                            <ColumnDefinition Width="*"/>
-                                        </Grid.ColumnDefinitions>
-                                        <imaging:CrispImage
-                                            Height="16" 
-                                            Width="16" 
-                                            Moniker="{Binding Moniker}"
-                                            Grid.Column="0"/>
-                                        <TextBlock 
-                                            Margin="5, 0, 0, 0" 
-                                            Text="{Binding Notification}"
-                                            Grid.Column="1"/>
-                                    </Grid>
-                                </DataTemplate>
-                            </ComboBox.ItemTemplate>
-                        </ComboBox>
-
-                        <TextBlock x:Uid="Description" Text="{Binding Description}"
-                                   Margin="5, 0, 0, 0" Grid.Column="2" TextWrapping="WrapWithOverflow"/>
-                    </Grid>
-                </DataTemplate>
-
-                <DataTemplate DataType="{x:Type options:HeaderItemViewModel}">
-                    <TextBlock Text="{Binding Header}" Focusable="False"/>
-                </DataTemplate>
-
-                <DataTemplate DataType="{x:Type options:AbstractRadioButtonViewModel}">
-                    <StackPanel Orientation="Horizontal">
-                        <RadioButton x:Uid="OptionRadioButton" 
-                                        IsChecked="{Binding IsChecked, Mode=TwoWay}"
-                                        Width="Auto"
-                                        Focusable="False"
-                                        GroupName="{Binding GroupName, Mode=OneWay}"
-                                        PreviewKeyDown="Options_PreviewKeyDown"
-                                        Margin="20, 0, 0, 0">
-                        </RadioButton>
-                        <TextBlock x:Uid="Description" Text="{Binding Description}"/>
-                    </StackPanel>
-                </DataTemplate>
-            </ListView.Resources>
-
-        </DataGrid>
-        -->
-
         <Border Grid.Row="1" BorderBrush="Gray" BorderThickness="1">
             <ContentControl Name="EditorControl" Content="{Binding TextViewHost, Mode=OneWay}" Focusable="False"></ContentControl>
         </Border>
