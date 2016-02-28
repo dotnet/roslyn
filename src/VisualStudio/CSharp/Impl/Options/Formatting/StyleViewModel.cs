@@ -5,11 +5,9 @@ using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Windows.Data;
 using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.CodeStyle;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Simplification;
-using Microsoft.VisualStudio.Imaging;
 using Microsoft.VisualStudio.LanguageServices.Implementation.Options;
 
 namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options.Formatting
@@ -49,26 +47,6 @@ class C{
     {
 //[
         x = 0;
-//]
-    }
-}";
-
-        private static readonly string s_varPreviewTrue = @"
-class C{
-    void foo()
-    {
-//[
-        var x = 0;
-//]
-    }
-}";
-
-        private static readonly string s_varPreviewFalse = @"
-class C{
-    void foo()
-    {
-//[
-        int x = 0;
 //]
     }
 }";
