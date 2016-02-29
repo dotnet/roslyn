@@ -2570,6 +2570,26 @@ class C
                 expectedIndentation: 8);
         }
 
+        [Fact, Trait(Traits.Feature, Traits.Features.SmartIndent)]
+        public async Task DontCreateIndentOperationForBrokenBracketedArgumentList()
+        {
+            var code = @"
+class Program
+{
+    static void M()
+    {
+        string (userInput == ""Y"")
+
+    }
+}
+";
+
+            await AssertSmartIndentAsync(
+                code,
+                indentationLine: 6,
+                expectedIndentation: 12);
+        }
+
         private static async Task AssertSmartIndentInProjectionAsync(string markup, int expectedIndentation, CSharpParseOptions options = null)
         {
             var optionsSet = options != null
