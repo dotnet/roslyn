@@ -16,7 +16,7 @@ using Xunit;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.UseImplicitTyping
 {
-    public class UseImplicitTypingTests : AbstractCSharpDiagnosticProviderBasedUserDiagnosticTest
+    public partial class UseImplicitTypeTests : AbstractCSharpDiagnosticProviderBasedUserDiagnosticTest
     {
         internal override Tuple<DiagnosticAnalyzer, CodeFixProvider> CreateDiagnosticProviderAndFixer(Workspace workspace) =>
             new Tuple<DiagnosticAnalyzer, CodeFixProvider>(
@@ -987,7 +987,7 @@ class C
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsUseImplicitTyping)]
-        public async Task DoNotSuggestVarOnIntrinsicTypeWithOption()
+        public async Task DoNotSuggestVarOnBuiltInType_Literal_WithOption()
         {
             await TestMissingAsync(
 @"using System;
@@ -996,6 +996,48 @@ class C
     static void M()
     {
         [|int|] s = 5;
+    }
+}", options: ImplicitTypingButKeepIntrinsics());
+        }
+
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsUseImplicitTyping)]
+        public async Task DoNotSuggestVarOnBuiltInType_WithOption()
+        {
+            await TestMissingAsync(
+@"using System;
+class C
+{
+    private const int maxValue = int.MaxValue;
+
+    static void M()
+    {
+        [|int|] s = (unchecked(maxValue + 10));
+    }
+}", options: ImplicitTypingButKeepIntrinsics());
+        }
+
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsUseImplicitTyping)]
+        public async Task SuggestVarOnFrameworkTypeEquivalentToBuiltInType()
+        {
+            await TestAsync(
+@"using System;
+class C
+{
+    private const int maxValue = int.MaxValue;
+
+    static void M()
+    {
+        [|Int32|] s = (unchecked(maxValue + 10));
+    }
+}",
+@"using System;
+class C
+{
+    private const int maxValue = int.MaxValue;
+
+    static void M()
+    {
+        var s = (unchecked(maxValue + 10));
     }
 }", options: ImplicitTypingButKeepIntrinsics());
         }
@@ -1090,7 +1132,7 @@ class C
     public void Process()
     {
         object o = int.MaxValue;
-        [|int|] i = (int)o;
+        [|Int32|] i = (Int32)o;
     }
 }",
 @"using System;
@@ -1099,7 +1141,29 @@ class C
     public void Process()
     {
         object o = int.MaxValue;
-        var i = (int)o;
+        var i = (Int32)o;
+    }
+}", options: ImplicitTypingWhereApparent());
+        }
+
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsUseImplicitTyping)]
+        public async Task SuggestVar_BuiltInTypesRulePrecedesOverTypeIsApparentRule()
+        {
+            // The option settings here say 
+            // "use explicit type for built-in types" and
+            // "use implicit type where apparent".
+            // The rationale for preferring explicit type for built-in types is 
+            // they have short names and using var doesn't gain anything.
+            // Accordingly, the `built-in type` rule precedes over the `where apparent` rule
+            // and we do not suggest `use var` here.
+            await TestMissingAsync(
+@"using System;
+class C
+{
+    public void Process()
+    {
+        object o = int.MaxValue;
+        [|int|] i = (Int32)o;
     }
 }", options: ImplicitTypingWhereApparent());
         }
@@ -1114,7 +1178,7 @@ class C
     public void Process()
     {
         A a = new A();
-        [|bool|] s = a is IInterface;
+        [|Boolean|] s = a is IInterface;
     }
 }
 class A : IInterface
@@ -1193,7 +1257,7 @@ class C
 {
     public void Process()
     {
-        [|int|] a = int.Parse(""1"");
+        [|Int32|] a = int.Parse(""1"");
     }
 }",
 @"using System;
@@ -1266,7 +1330,7 @@ class C
     public void Process()
     {
         int integralValue = 12534;
-        [|decimal|] decimalValue = Convert.ToDecimal(integralValue);
+        [|Decimal|] decimalValue = Convert.ToDecimal(integralValue);
     }
 }",
 @"using System;
@@ -1291,7 +1355,7 @@ class C
     {
         int codePoint = 1067;
         IConvertible iConv = codePoint;
-        [|char|] ch = iConv.ToChar(null);
+        [|Char|] ch = iConv.ToChar(null);
     }
 }",
 @"using System;
