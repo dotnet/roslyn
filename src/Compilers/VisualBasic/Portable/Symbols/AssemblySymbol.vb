@@ -16,7 +16,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
     ''' </summary>
     Friend MustInherit Class AssemblySymbol
         Inherits Symbol
-        Implements IAssemblySymbolInternal
+        Implements IAssemblySymbol
 
         ' !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
         ' Changes to the public interface of this class should remain synchronized with the C# version of Symbol.
@@ -89,8 +89,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         ''' Get the name of this assembly.
         ''' </summary>
         Public MustOverride ReadOnly Property Identity As AssemblyIdentity Implements IAssemblySymbol.Identity
-
-        Public MustOverride ReadOnly Property AssemblyVersionPattern As Version Implements IAssemblySymbolInternal.AssemblyVersionPattern
 
         ''' <summary>
         ''' Target architecture of the machine.
