@@ -110,7 +110,6 @@
     <Compile Include="..\..\Debugging\Roslyn.Reflection.Metadata.Decoding\SignatureTypeHandleCode.cs">
       <Link>Roslyn.Reflection.Metadata.Decoding\SignatureTypeHandleCode.cs</Link>
     </Compile>
-    <Compile Include="Metadata\AggregatedMetadataReader.cs" />
     <Compile Include="Metadata\ILVisualizer.cs" />
     <Compile Include="Metadata\ILVisualizerAsTokens.cs" />
     <Compile Include="Metadata\MetadataVisualizer.cs" />
