@@ -5107,6 +5107,8 @@
                                   source files.
 /delaysign[+|-]                   Delay-sign the assembly using only the public
                                   portion of the strong name key.
+/publicsign[+|-]                  Public-sign the assembly using only the public
+                                  portion of the strong name key.
 /errorreport:&lt;string&gt;             Specifies how to handle internal compiler
                                   errors; must be prompt, send, none, or queue
                                   (default).
