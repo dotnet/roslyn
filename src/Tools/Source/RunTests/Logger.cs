@@ -17,6 +17,7 @@ namespace RunTests
         {
             lock (s_lines)
             {
+                Console.WriteLine(line);
                 s_lines.Add(line);
             }
         }
