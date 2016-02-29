@@ -1300,6 +1300,19 @@ Class C
                 Exit Select
         End Select
     End Sub
+     
+    Public Property Fred As Integer  
+        Set(value As Integer)  
+            Exit Property  
+        End Set  
+        Get  
+            Return 12  
+        End Get  
+    End Property  
+  
+    Public Sub Barney  
+        Resume  
+    End Sub
 End Class
 ]]>
                              </file>
@@ -1307,7 +1320,8 @@ End Class
 
             Dim comp = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(source)
             comp.VerifyDiagnostics()
-            comp.VerifyAnalyzerDiagnostics({New NoneOperationTestAnalyzer}, Nothing, Nothing, False)
+            comp.VerifyAnalyzerDiagnostics({New NoneOperationTestAnalyzer}, Nothing, Nothing, False,
+                                           Diagnostic(NoneOperationTestAnalyzer.NoneOperationDescriptor.Id, "Resume").WithLocation(23, 9))
         End Sub
 
         <Fact>
