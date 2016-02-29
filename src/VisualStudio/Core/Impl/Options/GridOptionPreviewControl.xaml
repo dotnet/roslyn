@@ -112,8 +112,8 @@
                     </DataGridTemplateColumn.CellTemplate>
                 </DataGridTemplateColumn>
                 <DataGridTemplateColumn 
-                    x:Name="notification" 
-                    Header="Notification"
+                    x:Name="severity" 
+                    Header="Severity"
                     Width="2.5*">
                     <DataGridTemplateColumn.CellTemplate>
                         <DataTemplate>
