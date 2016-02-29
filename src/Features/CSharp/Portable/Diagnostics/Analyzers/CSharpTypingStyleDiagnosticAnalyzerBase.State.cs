@@ -65,8 +65,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.TypingStyles
                      && IsTypeApparentInDeclaration((VariableDeclarationSyntax)declaration, semanticModel, TypeStyle, cancellationToken);
 
                 IsInIntrinsicTypeContext =
-                        IsIntrinsicTypeInDeclaration(declaration)
-                     || IsInferredIntrinsicType(declaration, semanticModel, cancellationToken);
+                        IsPredefinedTypeInDeclaration(declaration)
+                     || IsInferredPredefinedType(declaration, semanticModel, cancellationToken);
             }
 
             /// <summary>
@@ -166,7 +166,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.TypingStyles
             /// to var. <see cref="SyntaxFacts.IsPredefinedType(SyntaxKind)"/> considers string
             /// and object but the compiler's implementation of IsIntrinsicType does not.
             /// </remarks>
-            private bool IsIntrinsicTypeInDeclaration(SyntaxNode declarationStatement)
+            private bool IsPredefinedTypeInDeclaration(SyntaxNode declarationStatement)
             {
                 var predefinedType = GetTypeSyntaxFromDeclaration(declarationStatement) as PredefinedTypeSyntax;
 
@@ -175,7 +175,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.TypingStyles
                     : false;
             }
 
-            private bool IsInferredIntrinsicType(SyntaxNode declarationStatement, SemanticModel semanticModel, CancellationToken cancellationToken)
+            private bool IsInferredPredefinedType(SyntaxNode declarationStatement, SemanticModel semanticModel, CancellationToken cancellationToken)
             {
                 TypeSyntax typeSyntax = GetTypeSyntaxFromDeclaration(declarationStatement);
 
