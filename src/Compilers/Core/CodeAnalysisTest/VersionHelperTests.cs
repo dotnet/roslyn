@@ -1,6 +1,10 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using Microsoft.CodeAnalysis.Text;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.UnitTests
@@ -15,25 +19,12 @@ namespace Microsoft.CodeAnalysis.UnitTests
             Assert.True(VersionHelper.TryParseAssemblyVersion("3.2.*", allowWildcard: true, version: out version));
             Assert.Equal(3, version.Major);
             Assert.Equal(2, version.Minor);
-            Assert.Equal(65535, version.Build);
-            Assert.Equal(65535, version.Revision);
-            Assert.True(VersionHelper.TryParseAssemblyVersion("1.2.3.*", allowWildcard: true, version: out version));
-            Assert.Equal(3, version.Build);
-            Assert.Equal(65535, version.Revision);
-        }
-
-        [Fact]
-        public void TimeBased()
-        {
-            var version = VersionHelper.GenerateVersionFromPatternAndCurrentTime(new Version(3, 2, 65535, 65535));
-            
             //number of days since Jan 1, 2000
             Assert.Equal((int)(DateTime.Now - new DateTime(2000, 1, 1)).TotalDays, version.Build);
             //number of seconds since midnight divided by two
             int s = (int)DateTime.Now.TimeOfDay.TotalSeconds / 2;
             Assert.InRange(version.Revision, s - 2, s + 2);
-
-            version = VersionHelper.GenerateVersionFromPatternAndCurrentTime(new Version(1, 2, 3, 65535));
+            Assert.True(VersionHelper.TryParseAssemblyVersion("1.2.3.*", allowWildcard: true, version: out version));
             s = (int)DateTime.Now.TimeOfDay.TotalSeconds / 2;
             Assert.InRange(version.Revision, s - 2, s + 2);
         }

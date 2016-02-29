@@ -23,12 +23,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
             End Get
         End Property
 
-        Public ReadOnly Property AssemblyVersionPattern As Version Implements Cci.IAssemblyReference.AssemblyVersionPattern
-            Get
-                Return _targetAssembly.AssemblyVersionPattern
-            End Get
-        End Property
-
         Private Sub IReferenceDispatch(visitor As Cci.MetadataVisitor) Implements Cci.IReference.Dispatch
             visitor.Visit(DirectCast(Me, Cci.IAssemblyReference))
         End Sub

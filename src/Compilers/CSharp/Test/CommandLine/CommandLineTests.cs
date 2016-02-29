@@ -3730,6 +3730,15 @@ C:\*.cs(100,7): error CS0103: The name 'Foo' does not exist in the current conte
             Assert.False(parsedArgs.CompilationOptions.PublicSign);
         }
 
+        [WorkItem(8360, "https://github.com/dotnet/roslyn/issues/8360")]
+        [Fact]
+        public void PublicSign_KeyFileRelativePath()
+        {
+            var parsedArgs = DefaultParse(new[] { "/publicsign", "/keyfile:test.snk", "a.cs" }, _baseDirectory);
+            parsedArgs.Errors.Verify();
+            Assert.Equal(Path.Combine(_baseDirectory, "test.snk"), parsedArgs.CompilationOptions.CryptoKeyFile);
+        }
+
         [WorkItem(546301, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546301")]
         [Fact]
         public void SubsystemVersionTests()

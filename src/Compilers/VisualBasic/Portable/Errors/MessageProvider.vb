@@ -236,6 +236,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End Get
         End Property
 
+        Public Overrides ReadOnly Property ERR_MutuallyExclusiveOptions As Integer
+            Get
+                Return ERRID.ERR_MutuallyExclusiveOptions
+            End Get
+        End Property
+
         ' emit options:
 
         Public Overrides ReadOnly Property ERR_InvalidDebugInformationFormat As Integer

@@ -520,6 +520,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         internal override void ValidateOptions(ArrayBuilder<Diagnostic> builder)
         {
+            ValidateOptions(builder, MessageProvider.Instance);
+
             //  /main & /target:{library|netmodule|winmdobj}
             if (this.MainTypeName != null)
             {
@@ -581,24 +583,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             // TODO: add check for 
             //          (kind == 'arm' || kind == 'appcontainer' || kind == 'winmdobj') &&
             //          (version >= "6.2")
-
-            if (!CryptoPublicKey.IsEmpty)
-            {
-                if (CryptoKeyFile != null)
-                {
-                    builder.Add(Diagnostic.Create(MessageProvider.Instance, (int)ErrorCode.ERR_MutuallyExclusiveOptions, nameof(CryptoPublicKey), nameof(CryptoKeyFile)));
-                }
-
-                if (CryptoKeyContainer != null)
-                {
-                    builder.Add(Diagnostic.Create(MessageProvider.Instance, (int)ErrorCode.ERR_MutuallyExclusiveOptions, nameof(CryptoPublicKey), nameof(CryptoKeyContainer)));
-                }
-            }
-
-            if (PublicSign && DelaySign == true)
-            {
-                builder.Add(Diagnostic.Create(MessageProvider.Instance, (int)ErrorCode.ERR_MutuallyExclusiveOptions, nameof(PublicSign), nameof(DelaySign)));
-            }
         }
 
         public bool Equals(CSharpCompilationOptions other)
