@@ -25,7 +25,6 @@ namespace Roslyn.VisualStudio.CSharp.UnitTests.ProjectSystemShim
                 projectSystemName: projectName,
                 hierarchy: hierarchy,
                 serviceProvider: environment.ServiceProvider,
-                miscellaneousFilesWorkspaceOpt: null,
                 visualStudioWorkspaceOpt: null,
                 hostDiagnosticUpdateSourceOpt: null);
         }
