@@ -729,12 +729,6 @@ Friend Class MockAssemblySymbol
         End Get
     End Property
 
-    Public Overrides ReadOnly Property AssemblyVersionPattern As Version
-        Get
-            Return Nothing
-        End Get
-    End Property
-
     Public Overloads Overrides Function GetAttributes() As ImmutableArray(Of VisualBasicAttributeData)
         Return ImmutableArray.Create(Of VisualBasicAttributeData)()
     End Function
