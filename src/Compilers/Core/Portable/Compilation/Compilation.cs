@@ -1495,31 +1495,6 @@ namespace Microsoft.CodeAnalysis
                 options,
                 debugEntryPoint,
                 testData: null,
-                getHostDiagnostics: null,
-                cancellationToken: cancellationToken);
-        }
-
-        internal EmitResult Emit(
-            EmitStreamProvider peStreamProvider,
-            EmitStreamProvider pdbStreamProvider,
-            EmitStreamProvider xmlDocumentationStreamProvider,
-            EmitStreamProvider win32ResourcesProvider,
-            IEnumerable<ResourceDescription> manifestResources,
-            EmitOptions options,
-            IMethodSymbol debugEntryPoint,
-            Func<ImmutableArray<Diagnostic>> getHostDiagnostics,
-            CancellationToken cancellationToken)
-        {
-            return Emit(
-                peStreamProvider,
-                pdbStreamProvider,
-                xmlDocumentationStreamProvider,
-                win32ResourcesProvider,
-                manifestResources,
-                options,
-                debugEntryPoint,
-                testData: null,
-                getHostDiagnostics: getHostDiagnostics,
                 cancellationToken: cancellationToken);
         }
 
@@ -1527,7 +1502,6 @@ namespace Microsoft.CodeAnalysis
         /// This overload is only intended to be directly called by tests that want to pass <paramref name="testData"/>.
         /// The map is used for storing a list of methods and their associated IL.
         /// </summary>
-        /// <returns>True if emit succeeded.</returns>
         internal EmitResult Emit(
             Stream peStream,
             Stream pdbStream,
@@ -1537,7 +1511,6 @@ namespace Microsoft.CodeAnalysis
             EmitOptions options,
             IMethodSymbol debugEntryPoint,
             CompilationTestData testData,
-            Func<ImmutableArray<Diagnostic>> getHostDiagnostics,
             CancellationToken cancellationToken)
         {
             return Emit(
@@ -1549,7 +1522,7 @@ namespace Microsoft.CodeAnalysis
                 options,
                 debugEntryPoint,
                 testData,
-                getHostDiagnostics,
+                null,
                 cancellationToken);
         }
 
@@ -1636,11 +1609,6 @@ namespace Microsoft.CodeAnalysis
             CompilationTestData testData,
             CancellationToken cancellationToken);
 
-        /// <summary>
-        /// This overload is only intended to be directly called by tests that want to pass <paramref name="testData"/>.
-        /// The map is used for storing a list of methods and their associated IL.
-        /// </summary>
-        /// <returns>True if emit succeeded.</returns>
         internal EmitResult Emit(
             EmitStreamProvider peStreamProvider,
             EmitStreamProvider pdbStreamProvider,
@@ -1650,7 +1618,7 @@ namespace Microsoft.CodeAnalysis
             EmitOptions options,
             IMethodSymbol debugEntryPoint,
             CompilationTestData testData,
-            Func<ImmutableArray<Diagnostic>> getHostDiagnostics,
+            Func<DiagnosticBag, bool, bool> getHostDiagnostics,
             CancellationToken cancellationToken)
         {
             Debug.Assert(peStreamProvider != null);
@@ -1711,27 +1679,22 @@ namespace Microsoft.CodeAnalysis
 
             var win32Resources = win32ResourcesStreamProvider?.GetOrCreateStream(diagnostics);
             var xmlDocumentationStream = xmlDocumentationStreamProvider?.GetOrCreateStream(diagnostics);
-            if (!this.Compile(
+            var success = this.Compile(
                 moduleBeingBuilt,
                 win32Resources,
                 xmlDocumentationStream,
                 emittingPdb: pdbStreamProvider != null,
                 diagnostics: diagnostics,
                 filterOpt: null,
-                cancellationToken: cancellationToken))
+                cancellationToken: cancellationToken);
+
+            if (((getHostDiagnostics != null) && !getHostDiagnostics(diagnostics, success)) ||
+                !success)
             {
                 return ToEmitResultAndFree(diagnostics, success: false);
             }
 
-            var hostDiagnostics = getHostDiagnostics?.Invoke() ?? ImmutableArray<Diagnostic>.Empty;
-
-            diagnostics.AddRange(hostDiagnostics);
-            if (hostDiagnostics.Any(x => x.Severity == DiagnosticSeverity.Error))
-            {
-                return ToEmitResultAndFree(diagnostics, success: false);
-            }
-
-            bool success = SerializeToPeStream(
+            success = SerializeToPeStream(
                 moduleBeingBuilt,
                 peStreamProvider,
                 pdbStreamProvider,

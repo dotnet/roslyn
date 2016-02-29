@@ -370,8 +370,7 @@ namespace Microsoft.CodeAnalysis
             ImmutableDictionary<DocumentId, DocumentState> documentStates = null,
             ImmutableDictionary<DocumentId, TextDocumentState> additionalDocumentStates = null,
             AsyncLazy<VersionStamp> latestDocumentVersion = null,
-            AsyncLazy<VersionStamp> latestDocumentTopLevelChangeVersion = null,
-            Lazy<AnalyzerOptions> lazyAnalyzerOptions = null)
+            AsyncLazy<VersionStamp> latestDocumentTopLevelChangeVersion = null)
         {
             return new ProjectState(
                 projectInfo ?? _projectInfo,

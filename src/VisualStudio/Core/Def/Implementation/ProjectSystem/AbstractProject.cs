@@ -388,6 +388,28 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             return document;
         }
 
+        public IVisualStudioHostDocument AddGeneratedDocument(DocumentId id, string filePath)
+        {
+            IVisualStudioHostDocument document;
+            using (this.DocumentProvider.ProvideDocumentIdHint(filePath, id))
+            {
+                document = this.DocumentProvider.TryGetDocumentForFile(
+                    this,
+                    (uint)VSConstants.VSITEMID.Nil,
+                    filePath,
+                    SourceCodeKind.Regular,
+                    isGenerated: true,
+                    canUseTextBuffer: _ => true);
+            }
+            AddDocument(document, isCurrentContext: LinkedFileUtilities.IsCurrentContextHierarchy(document, RunningDocumentTable));
+            return document;
+        }
+
+        public void RemoveGeneratedDocument(DocumentId id)
+        {
+            throw new NotImplementedException(); // TODO
+        }
+
         public bool HasMetadataReference(string filename)
         {
             return _metadataReferences.Any(r => StringComparer.OrdinalIgnoreCase.Equals(r.FilePath, filename));
@@ -712,7 +734,13 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 
         protected void AddFile(string filename, SourceCodeKind sourceCodeKind, uint itemId, Func<ITextBuffer, bool> canUseTextBuffer)
         {
-            var document = this.DocumentProvider.TryGetDocumentForFile(this, itemId, filePath: filename, sourceCodeKind: sourceCodeKind, canUseTextBuffer: canUseTextBuffer);
+            var document = this.DocumentProvider.TryGetDocumentForFile(
+                this,
+                itemId,
+                filePath: filename,
+                sourceCodeKind: sourceCodeKind,
+                isGenerated: false,
+                canUseTextBuffer: canUseTextBuffer);
 
             if (document == null)
             {
@@ -726,7 +754,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 
             AddDocument(
                 document,
-                isCurrentContext: document.Project.Hierarchy == LinkedFileUtilities.GetContextHierarchy(document, RunningDocumentTable));
+                isCurrentContext: LinkedFileUtilities.IsCurrentContextHierarchy(document, RunningDocumentTable));
         }
 
         protected void AddUntrackedFile(string filename)
@@ -838,6 +866,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             _documentMonikers.Remove(document.Key.Moniker);
 
             UninitializeAdditionalDocument(document);
+        }
+
+        internal void UpdateGeneratedFiles()
+        {
+            this.ProjectTracker.NotifyWorkspaceHosts(host => host.UpdateGeneratedDocumentsIfNecessary(_id));
         }
 
         public virtual void Disconnect()

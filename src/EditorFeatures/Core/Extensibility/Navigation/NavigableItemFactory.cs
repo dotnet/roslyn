@@ -22,7 +22,6 @@ namespace Microsoft.CodeAnalysis.Editor.Navigation
             return new DeclaredSymbolNavigableItem(document, declaredSymbolInfo);
         }
 
-
         public static IEnumerable<INavigableItem> GetItemsFromPreferredSourceLocations(Solution solution, ISymbol symbol, string displayString = null)
         {
             var locations = GetPreferredSourceLocations(solution, symbol);
@@ -62,18 +61,21 @@ namespace Microsoft.CodeAnalysis.Editor.Navigation
         public static string GetSymbolDisplayString(Project project, ISymbol symbol)
         {
             var symbolDisplayService = project.LanguageServices.GetRequiredService<ISymbolDisplayService>();
+            return symbolDisplayService.ToDisplayString(symbol, GetSymbolDisplayFormat(symbol));
+        }
+
+        private static SymbolDisplayFormat GetSymbolDisplayFormat(ISymbol symbol)
+        {
             switch (symbol.Kind)
             {
                 case SymbolKind.NamedType:
-                    return symbolDisplayService.ToDisplayString(symbol, s_shortFormatWithModifiers);
+                    return s_shortFormatWithModifiers;
 
                 case SymbolKind.Method:
-                    return symbol.IsStaticConstructor()
-                        ? symbolDisplayService.ToDisplayString(symbol, s_shortFormatWithModifiers)
-                        : symbolDisplayService.ToDisplayString(symbol, s_shortFormat);
+                    return symbol.IsStaticConstructor() ? s_shortFormatWithModifiers : s_shortFormat;
 
                 default:
-                    return symbolDisplayService.ToDisplayString(symbol, s_shortFormat);
+                    return s_shortFormat;
             }
         }
 

@@ -119,6 +119,11 @@
     <Compile Include="ContextMenuController.cs" />
     <Compile Include="DiagnosticItem\DiagnosticItemSource.DiagnosticDescriptorComparer.cs" />
     <Compile Include="DiagnosticItem\RuleSelectionImage.cs" />
+    <Compile Include="GeneratedSourceItem\GeneratedSourceFolderItem.cs" />
+    <Compile Include="GeneratedSourceItem\GeneratedSourceFolderItemProvider.cs" />
+    <Compile Include="GeneratedSourceItem\GeneratedSourceFolderItemSource.cs" />
+    <Compile Include="GeneratedSourceItem\GeneratedSourceItemProvider.cs" />
+    <Compile Include="GeneratedSourceItem\GeneratedSourceItemSource.cs" />
     <Compile Include="HierarchyItemToProjectIdMap.cs" />
     <Compile Include="IAnalyzersCommandHandler.cs" />
     <Compile Include="IHierarchyItemToProjectIdMap.cs" />
@@ -126,6 +131,8 @@
     <Compile Include="LocalizableProperties.cs" />
     <Compile Include="DiagnosticItem\DiagnosticItemSource.cs" />
     <Compile Include="DiagnosticItem\DiagnosticItem.cs" />
+    <Compile Include="ProjectItem\ProjectFolderItemProvider.cs" />
+    <Compile Include="ProjectItem\ProjectItemSource.cs" />
     <Compile Include="RuleSetDocumentExtensions.cs" />
     <Compile Include="SolutionExplorerShim.Designer.cs">
       <AutoGen>True</AutoGen>

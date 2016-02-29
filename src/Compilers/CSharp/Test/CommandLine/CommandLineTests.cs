@@ -6848,7 +6848,7 @@ public class C { }
 
             var outWriter = new StringWriter(CultureInfo.InvariantCulture);
             var csc = new MockCSharpCompiler(null, _baseDirectory, new[] { "/t:library", srcFile.Path },
-               analyzer: new AnalyzerThatThrowsInGetMessage());
+               analyzers: ImmutableArray.Create<DiagnosticAnalyzer>(new AnalyzerThatThrowsInGetMessage()));
 
             var exitCode = csc.Run(outWriter);
             Assert.Equal(0, exitCode);
@@ -6873,7 +6873,7 @@ public class C { }
 
             var outWriter = new StringWriter(CultureInfo.InvariantCulture);
             var csc = new MockCSharpCompiler(null, _baseDirectory, new[] { "/t:library", $"/warnaserror:{AnalyzerExecutor.AnalyzerExceptionDiagnosticId}", srcFile.Path },
-               analyzer: new AnalyzerThatThrowsInGetMessage());
+               analyzers: ImmutableArray.Create<DiagnosticAnalyzer>(new AnalyzerThatThrowsInGetMessage()));
 
             var exitCode = csc.Run(outWriter);
             Assert.NotEqual(0, exitCode);
@@ -6895,7 +6895,7 @@ public class C { }
 
             var outWriter = new StringWriter(CultureInfo.InvariantCulture);
             var csc = new MockCSharpCompiler(null, _baseDirectory, new[] { "/t:library", srcFile.Path },
-               analyzer: new AnalyzerReportingMisformattedDiagnostic());
+               analyzers: ImmutableArray.Create<DiagnosticAnalyzer>(new AnalyzerReportingMisformattedDiagnostic()));
 
             var exitCode = csc.Run(outWriter);
             Assert.Equal(0, exitCode);
@@ -8121,6 +8121,53 @@ class C {
             parsedArgs = DefaultParse(new[] { "/pathmap:k=v=bad", "a.cs" }, _baseDirectory);
             Assert.Equal(1, parsedArgs.Errors.Count());
             Assert.Equal((int)ErrorCode.ERR_InvalidPathMap, parsedArgs.Errors[0].Code);
+        }
+
+        [Fact]
+        public void Generator()
+        {
+            string source =
+@"class A : System.Attribute
+{
+}
+[A]
+class C
+{
+    D F() { return (D)G; }
+}";
+            var dir = Temp.CreateDirectory();
+            var file = dir.CreateFile("a.cs");
+            file.WriteAllText(source);
+
+            var output = VerifyOutput(dir, file, additionalFlags: new[] { "/nowarn:Warning01" }, expectedWarningCount: 1);
+            Assert.Contains("warning CS8032", output, StringComparison.Ordinal);
+
+            CleanupAllGeneratedFiles(file.Path);
+        }
+    }
+
+    [SourceGenerator(LanguageNames.CSharp)]
+    internal sealed class CSharpGenerator : SourceGenerator
+    {
+        public override void Execute(SourceGeneratorContext context)
+        {
+            context.AddCompilationUnit(
+                "other",
+CSharpSyntaxTree.ParseText(@"partial class C
+{
+    const object G = null;
+}
+class D
+{
+}"));
+        }
+    }
+
+    [SourceGenerator(LanguageNames.VisualBasic)]
+    internal sealed class VisualBasicGenerator : SourceGenerator
+    {
+        public override void Execute(SourceGeneratorContext context)
+        {
         }
     }
 

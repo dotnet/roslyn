@@ -2387,19 +2387,29 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Fact]
-        public void TestPartialAsLocalVariableType1()
+        public void TestContextualKeywordsAsLocalVariableTypes()
         {
-            var text = "partial v1 = null;";
+            TestContextualKeywordAsLocalVariableType(SyntaxKind.PartialKeyword);
+            TestContextualKeywordAsLocalVariableType(SyntaxKind.AsyncKeyword);
+            TestContextualKeywordAsLocalVariableType(SyntaxKind.AwaitKeyword);
+            TestContextualKeywordAsLocalVariableType(SyntaxKind.ReplaceKeyword);
+            TestContextualKeywordAsLocalVariableType(SyntaxKind.OriginalKeyword);
+        }
+
+        private void TestContextualKeywordAsLocalVariableType(SyntaxKind kind)
+        {
+            var keywordText = SyntaxFacts.GetText(kind);
+            var text = keywordText + " o = null;";
             var statement = this.ParseStatement(text);
             Assert.NotNull(statement);
             Assert.Equal(SyntaxKind.LocalDeclarationStatement, statement.Kind());
             Assert.Equal(text, statement.ToString());
 
             var decl = (LocalDeclarationStatementSyntax)statement;
-            Assert.Equal("partial", decl.Declaration.Type.ToString());
+            Assert.Equal(keywordText, decl.Declaration.Type.ToString());
             Assert.IsType(typeof(IdentifierNameSyntax), decl.Declaration.Type);
             var name = (IdentifierNameSyntax)decl.Declaration.Type;
-            Assert.Equal(SyntaxKind.PartialKeyword, name.Identifier.ContextualKind());
+            Assert.Equal(kind, name.Identifier.ContextualKind());
             Assert.Equal(SyntaxKind.IdentifierToken, name.Identifier.Kind());
         }
 

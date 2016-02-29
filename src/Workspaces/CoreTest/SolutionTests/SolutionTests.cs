@@ -1453,5 +1453,103 @@ public class C : A {
             Assert.True(frozenSolution.GetProject(project1.Id).HasCompleteReferencesAsync().Result);
             Assert.True(frozenSolution.GetProject(project2.Id).HasCompleteReferencesAsync().Result);
         }
+
+        [Fact]
+        public void TestSourceGenerators()
+        {
+            string source =
+@"class A : System.Attribute
+{
+}
+[A]
+class C
+{
+    D F() { return (D)G; }
+}
+class P
+{
+    static void Main()
+    {
+    }
+}";
+            var pid = ProjectId.CreateNewId();
+            var did = DocumentId.CreateNewId(pid);
+            var solution = CreateSolution()
+                .AddProject(pid, "C", "C.dll", LanguageNames.CSharp)
+                .AddMetadataReference(pid, s_mscorlib)
+                .AddDocument(did, "C.cs", source);
+            Assert.Empty(solution.GetProject(pid).AnalyzerReferences);
+
+            var generator = new MockSourceGenerator();
+            var generatorReference = new MockSourceGeneratorReference(ImmutableArray.Create<SourceGenerator>(generator));
+
+            solution = solution.AddAnalyzerReference(pid, generatorReference);
+            var actualAnalyzerReferences = solution.GetProject(pid).AnalyzerReferences;
+            Assert.Equal(1, actualAnalyzerReferences.Count);
+            Assert.Equal(generatorReference, actualAnalyzerReferences[0]);
+            var actualGenerators = actualAnalyzerReferences[0].GetSourceGenerators(LanguageNames.CSharp);
+            Assert.Equal(1, actualGenerators.Length);
+            Assert.Equal(generator, actualGenerators[0]);
+
+            var doc = solution.GetDocument(did);
+            var model = doc.GetSemanticModelAsync().Result;
+            Assert.NotNull(model);
+            var compilation = model.Compilation;
+            var trees = compilation.SyntaxTrees.ToArray();
+            Assert.Equal(2, trees.Length);
+            var diagnostics = compilation.GetDiagnostics();
+            diagnostics.Verify();
+        }
+
+        private sealed class MockSourceGenerator : SourceGenerator
+        {
+            public override void Execute(SourceGeneratorContext context)
+            {
+                context.AddCompilationUnit(
+                    "other",
+CSharpSyntaxTree.ParseText(@"partial class C
+{
+    const object G = null;
+}
+class D
+{
+}"));
+            }
+        }
+
+        private sealed class MockSourceGeneratorReference : AnalyzerReference
+        {
+            private readonly ImmutableArray<SourceGenerator> _generators;
+
+            internal MockSourceGeneratorReference(ImmutableArray<SourceGenerator> generators)
+            {
+                _generators = generators;
+            }
+
+            public override string FullPath
+            {
+                get { throw new NotImplementedException(); }
+            }
+
+            public override object Id
+            {
+                get { throw new NotImplementedException(); }
+            }
+
+            public override ImmutableArray<DiagnosticAnalyzer> GetAnalyzers(string language)
+            {
+                return ImmutableArray<DiagnosticAnalyzer>.Empty;
+            }
+
+            public override ImmutableArray<DiagnosticAnalyzer> GetAnalyzersForAllLanguages()
+            {
+                return ImmutableArray<DiagnosticAnalyzer>.Empty;
+            }
+
+            public override ImmutableArray<SourceGenerator> GetSourceGenerators(string language)
+            {
+                return _generators;
+            }
+        }
     }
 }

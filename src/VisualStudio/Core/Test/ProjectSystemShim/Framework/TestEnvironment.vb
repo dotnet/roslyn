@@ -241,6 +241,10 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.ProjectSystemShim.Fr
                 Throw New NotImplementedException()
             End Sub
 
+            Public Sub UpdateGeneratedDocumentsIfNecessary(projectInfo As ProjectId) Implements IVisualStudioWorkspaceHost.UpdateGeneratedDocumentsIfNecessary
+                Throw New NotImplementedException()
+            End Sub
+
             Public Sub OnMetadataReferenceAdded(projectId As ProjectId, metadataReference As PortableExecutableReference) Implements IVisualStudioWorkspaceHost.OnMetadataReferenceAdded
                 _workspace.OnMetadataReferenceAdded(projectId, metadataReference)
             End Sub

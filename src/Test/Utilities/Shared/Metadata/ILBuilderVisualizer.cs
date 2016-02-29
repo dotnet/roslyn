@@ -3,7 +3,6 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
-using System.Reflection.Metadata;
 using System.Text;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CodeGen;
@@ -70,7 +69,7 @@ namespace Roslyn.Test.Utilities
             {
                 HandlerSpan span;
 
-                if (region.HandlerKind == ExceptionRegionKind.Filter)
+                if (region.HandlerKind == System.Reflection.Metadata.ExceptionRegionKind.Filter)
                 {
                     span = new HandlerSpan(HandlerKind.Filter, null, region.FilterDecisionStartOffset, region.HandlerEndOffset, region.HandlerStartOffset);
                 }
@@ -80,13 +79,13 @@ namespace Roslyn.Test.Utilities
 
                     switch (region.HandlerKind)
                     {
-                        case ExceptionRegionKind.Catch:
+                        case System.Reflection.Metadata.ExceptionRegionKind.Catch:
                             kind = HandlerKind.Catch;
                             break;
-                        case ExceptionRegionKind.Fault:
+                        case System.Reflection.Metadata.ExceptionRegionKind.Fault:
                             kind = HandlerKind.Fault;
                             break;
-                        case ExceptionRegionKind.Filter:
+                        case System.Reflection.Metadata.ExceptionRegionKind.Filter:
                             kind = HandlerKind.Filter;
                             break;
                         default:
