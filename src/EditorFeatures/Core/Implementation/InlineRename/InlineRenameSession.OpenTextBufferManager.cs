@@ -202,7 +202,10 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
 
                     _activeSpan = _activeSpan.HasValue && spans.Contains(_activeSpan.Value)
                         ? _activeSpan
-                        : spans.Where(s => ActiveTextview.GetSpanInView(_subjectBuffer.CurrentSnapshot.GetSpan(s.ToSpan())).Count != 0)
+                        : spans.Where(s =>
+                                // in tests `ActiveTextview` can be null so don't depend on it
+                                ActiveTextview == null ||
+                                ActiveTextview.GetSpanInView(_subjectBuffer.CurrentSnapshot.GetSpan(s.ToSpan())).Count != 0) // spans were successfully projected
                             .FirstOrNullable(); // filter to spans that have a projection
 
                     UpdateReadOnlyRegions();
@@ -256,7 +259,13 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
             /// </summary>
             private bool AreAllReferenceSpansMappable()
             {
-                return _referenceSpanToLinkedRenameSpanMap.Keys.All(s => ActiveTextview.GetSpanInView(_subjectBuffer.CurrentSnapshot.GetSpan(s.ToSpan())).Count != 0);
+                // in tests `ActiveTextview` could be null so don't depend on it
+                return ActiveTextview == null ||
+                    _referenceSpanToLinkedRenameSpanMap.Keys
+                    .Select(s => s.ToSpan())
+                    .All(s =>
+                        s.End <= _subjectBuffer.CurrentSnapshot.Length && // span is valid for the snapshot
+                        ActiveTextview.GetSpanInView(_subjectBuffer.CurrentSnapshot.GetSpan(s)).Count != 0); // spans were successfully projected
             }
 
             internal void ApplyReplacementText(bool updateSelection = true)
