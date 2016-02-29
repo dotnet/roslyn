@@ -654,8 +654,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                         Return UnaryOperationKind.OperatorMethodMinus
                     Case UnaryOperatorKind.Not
                         Return UnaryOperationKind.OperatorMethodBitwiseNegation
+                    Case UnaryOperatorKind.IsTrue
+                        Return UnaryOperationKind.OperatorMethodTrue
+                    Case UnaryOperatorKind.IsFalse
+                        Return UnaryOperationKind.OperatorMethodFalse
                     Case Else
-                        Throw ExceptionUtilities.UnexpectedValue(OperatorKind And UnaryOperatorKind.OpMask)
+                        Return UnaryOperationKind.Invalid
                 End Select
             End Get
         End Property
