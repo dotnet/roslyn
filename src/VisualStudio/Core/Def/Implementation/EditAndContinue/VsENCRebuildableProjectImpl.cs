@@ -1002,7 +1002,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.EditAndContinue
 #if DEBUG
                 fixed (byte* deltaMetadataPtr = &delta.Metadata.Bytes[0])
                 {
-                    var reader = new MetadataReader(deltaMetadataPtr, delta.Metadata.Bytes.Length);
+                    var reader = new System.Reflection.Metadata.MetadataReader(deltaMetadataPtr, delta.Metadata.Bytes.Length);
                     var moduleDef = reader.GetModuleDefinition();
 
                     log.DebugWrite("Gen {0}: MVID={1}, BaseId={2}, EncId={3}",
