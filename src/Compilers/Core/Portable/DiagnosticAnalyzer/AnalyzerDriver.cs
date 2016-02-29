@@ -51,14 +51,19 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         private ImmutableDictionary<DiagnosticAnalyzer, GeneratedCodeAnalysisFlags> _generatedCodeAnalysisFlagsMap;
 
         /// <summary>
+        /// True if all analyzers need to analyze and report diagnostics in generated code - we can assume all code to be non-generated code.
+        /// </summary>
+        private bool _treatAllCodeAsNonGeneratedCode;
+
+        /// <summary>
         /// True if no analyzer needs generated code analysis - we can skip all analysis on a generated code symbol/tree.
         /// </summary>
         private bool _doNotAnalyzeGeneratedCode;
 
         /// <summary>
-        /// Set of generated code files.
+        /// Lazily populated dictionary indicating whether a source file is a generated code file or not.
         /// </summary>
-        private ImmutableHashSet<SyntaxTree> _generatedCodeFiles;
+        private Dictionary<SyntaxTree, bool> _lazyGeneratedCodeFilesMap;
 
         /// <summary>
         /// Symbol for <see cref="System.CodeDom.Compiler.GeneratedCodeAttribute"/>.
@@ -133,7 +138,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
                     _generatedCodeAnalysisFlagsMap = await GetGeneratedCodeAnalysisFlagsAsync(unsuppressedAnalyzers, analyzerManager, analyzerExecutor).ConfigureAwait(false);
                     _doNotAnalyzeGeneratedCode = ShouldSkipAnalysisOnGeneratedCode(unsuppressedAnalyzers);
-                    _generatedCodeFiles = GetGeneratedCodeFiles(analyzerExecutor.Compilation, cancellationToken);
+                    _treatAllCodeAsNonGeneratedCode = ShouldTreatAllCodeAsNonGeneratedCode(unsuppressedAnalyzers, _generatedCodeAnalysisFlagsMap);
+                    _lazyGeneratedCodeFilesMap = _treatAllCodeAsNonGeneratedCode ? null : new Dictionary<SyntaxTree, bool>();
                     _generatedCodeAttribute = analyzerExecutor.Compilation?.GetTypeByMetadataName("System.CodeDom.Compiler.GeneratedCodeAttribute");
 
                     _symbolActionsByKind = MakeSymbolActionsByKind();
@@ -255,14 +261,40 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             return true;
         }
 
+        private bool ShouldTreatAllCodeAsNonGeneratedCode(ImmutableArray<DiagnosticAnalyzer> analyzers, ImmutableDictionary<DiagnosticAnalyzer, GeneratedCodeAnalysisFlags> generatedCodeAnalysisFlagsMap)
+        {
+            foreach (var analyzer in analyzers)
+            {
+                var flags = generatedCodeAnalysisFlagsMap[analyzer];
+                var analyze = (flags & GeneratedCodeAnalysisFlags.Analyze) != 0;
+                var report = (flags & GeneratedCodeAnalysisFlags.ReportDiagnostics) != 0;
+                if (!analyze || !report)
+                {
+                    return false;
+                }
+            }
+
+            return true;
+        }
+
         private bool ShouldSkipAnalysisOnGeneratedCode(DiagnosticAnalyzer analyzer)
         {
+            if (_treatAllCodeAsNonGeneratedCode)
+            {
+                return false;
+            }
+
             var mode = _generatedCodeAnalysisFlagsMap[analyzer];
             return (mode & GeneratedCodeAnalysisFlags.Analyze) == 0;
         }
 
         private bool ShouldSuppressGeneratedCodeDiagnostic(Diagnostic diagnostic, DiagnosticAnalyzer analyzer, Compilation compilation, CancellationToken cancellationToken)
         {
+            if (_treatAllCodeAsNonGeneratedCode)
+            {
+                return false;
+            }
+
             var generatedCodeAnalysisFlags = _generatedCodeAnalysisFlagsMap[analyzer];
             var suppressInGeneratedCode = (generatedCodeAnalysisFlags & GeneratedCodeAnalysisFlags.ReportDiagnostics) == 0;
             return suppressInGeneratedCode && IsInGeneratedCode(diagnostic.Location, compilation, cancellationToken);
@@ -547,7 +579,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
         private bool IsInGeneratedCode(Location location, Compilation compilation, CancellationToken cancellationToken)
         {
-            if (!location.IsInSource)
+            if (_treatAllCodeAsNonGeneratedCode || !location.IsInSource)
             {
                 return false;
             }
@@ -1069,30 +1101,16 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             return builder.ToImmutable();
         }
 
-        private ImmutableHashSet<SyntaxTree> GetGeneratedCodeFiles(Compilation compilationOpt, CancellationToken cancellationToken)
-        {
-            var builder = ImmutableHashSet.CreateBuilder<SyntaxTree>();
-            foreach (var tree in compilationOpt?.SyntaxTrees)
-            {
-                if (_isGeneratedCode(tree, cancellationToken))
-                {
-                    builder.Add(tree);
-                }
-            }
-
-            return builder.ToImmutable();
-        }
-
         private bool IsGeneratedCodeSymbol(ISymbol symbol)
         {
+            if (_treatAllCodeAsNonGeneratedCode)
+            {
+                return false;
+            }
+
             if (_generatedCodeAttribute != null && GeneratedCodeUtilities.IsGeneratedSymbolWithGeneratedCodeAttribute(symbol, _generatedCodeAttribute))
             {
                 return true;
-            }
-
-            if (_generatedCodeFiles.Count == 0)
-            {
-                return false;
             }
 
             foreach (var declaringRef in symbol.DeclaringSyntaxReferences)
@@ -1108,7 +1126,24 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
         protected bool IsGeneratedCode(SyntaxTree tree)
         {
-            return _generatedCodeFiles.Contains(tree);
+            if (_treatAllCodeAsNonGeneratedCode)
+            {
+                return false;
+            }
+
+            Debug.Assert(_lazyGeneratedCodeFilesMap != null);
+
+            lock (_lazyGeneratedCodeFilesMap)
+            {
+                bool isGenerated;
+                if (!_lazyGeneratedCodeFilesMap.TryGetValue(tree, out isGenerated))
+                {
+                    isGenerated = _isGeneratedCode(tree, analyzerExecutor.CancellationToken);
+                    _lazyGeneratedCodeFilesMap.Add(tree, isGenerated);
+                }
+
+                return isGenerated;
+            }
         }
 
         protected bool DoNotAnalyzeGeneratedCode => _doNotAnalyzeGeneratedCode;
