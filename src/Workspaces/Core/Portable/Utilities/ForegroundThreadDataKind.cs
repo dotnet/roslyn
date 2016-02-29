@@ -29,7 +29,7 @@ namespace Microsoft.CodeAnalysis.Utilities
             s_fallbackForegroundThreadDataKind = CreateDefault();
         }
 
-        internal static ForegroundThreadDataKind CreateDefault(ForegroundThreadDataKind? defaultKind = null)
+        internal static ForegroundThreadDataKind CreateDefault(ForegroundThreadDataKind defaultKind = Unknown)
         {
             var syncConextTypeName = SynchronizationContext.Current?.GetType().FullName;
 
@@ -45,7 +45,7 @@ namespace Microsoft.CodeAnalysis.Utilities
 
                 default:
 
-                    return defaultKind ?? Unknown;
+                    return defaultKind;
             }
         }
 
