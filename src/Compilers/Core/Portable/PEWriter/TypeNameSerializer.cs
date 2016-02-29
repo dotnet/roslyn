@@ -69,9 +69,10 @@ namespace Microsoft.Cci
             INamespaceTypeReference namespaceType = typeReference.AsNamespaceTypeReference;
             if (namespaceType != null)
             {
-                if (namespaceType.NamespaceName.Length != 0)
+                var name = namespaceType.NamespaceName;
+                if (name.Length != 0)
                 {
-                    sb.Append(namespaceType.NamespaceName);
+                    sb.Append(name);
                     sb.Append('.');
                 }
 

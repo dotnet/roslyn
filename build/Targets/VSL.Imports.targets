@@ -104,13 +104,21 @@
   <Import Project="$(MSBuildExtensionsPath)\Microsoft\NuGet\Microsoft.NuGet.targets"
           Condition="'$(OS)' != 'Windows_NT'" />
 
-  <PropertyGroup Condition="
-      '$(TargetFrameworkIdentifier)' == '.NETPortable' AND
-      '$(TargetFrameworkVersion)' == 'v5.0' AND
-      '$(OutputType)' == 'Exe'">
-    <NuGetTargetMoniker>DNXCore,Version=v5.0</NuGetTargetMoniker>
-    <BaseNuGetRuntimeIdentifier Condition="'$(OS)' == 'Windows_NT'">win7</BaseNuGetRuntimeIdentifier>
-  </PropertyGroup>
+  <Choose>
+    <When Condition="'$(TargetFrameworkIdentifier)' == '.NETPortable' AND
+                     '$(TargetFrameworkVersion)' == 'v5.0'">
+      <!-- Treat portable exes as CoreClr-targeting-exes -->
+      <PropertyGroup Condition="'$(OutputType)' == 'Exe'">
+        <NuGetTargetMoniker>DNXCore,Version=v5.0</NuGetTargetMoniker>
+        <BaseNuGetRuntimeIdentifier Condition="'$(OS)' == 'Windows_NT'">win7</BaseNuGetRuntimeIdentifier>
+      </PropertyGroup>
+
+      <!-- Upgrade portable DLLs to v5.4 -->
+      <PropertyGroup Condition="'$(OutputType)' == 'Library'">
+        <NuGetTargetMoniker>.NETPlatform,Version=v5.4</NuGetTargetMoniker>
+      </PropertyGroup>
+    </When>
+  </Choose>
 
   <!-- It looks like MSBuild has a bug on *nix where they aggressively
        directory separators from '\' to '/', even when the '\'

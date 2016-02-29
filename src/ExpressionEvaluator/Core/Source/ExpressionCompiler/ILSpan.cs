@@ -7,7 +7,7 @@ using Roslyn.Utilities;
 namespace Microsoft.CodeAnalysis.ExpressionEvaluator
 {
     // TODO: use TextSpan?
-    public struct ILSpan : IEquatable<ILSpan>
+    internal struct ILSpan : IEquatable<ILSpan>
     {
         public static readonly ILSpan MaxValue = new ILSpan(0, uint.MaxValue);
 

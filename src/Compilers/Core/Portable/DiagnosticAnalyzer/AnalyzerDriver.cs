@@ -41,6 +41,15 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         private ImmutableDictionary<DiagnosticAnalyzer, ImmutableArray<CompilationAnalyzerAction>> _compilationEndActionsMap;
 
         /// <summary>
+        /// Default analysis mode for generated code.
+        /// </summary>
+        /// <remarks>
+        /// This mode should always guarantee that analyzer action callbacks are enabled for generated code, i.e. <see cref="GeneratedCodeAnalysisFlags.Analyze"/> is set.
+        /// However, the default diagnostic reporting mode is liable to change in future.
+        /// </remarks>
+        internal static readonly GeneratedCodeAnalysisFlags DefaultGeneratedCodeAnalysisFlags = GeneratedCodeAnalysisFlags.Analyze | GeneratedCodeAnalysisFlags.ReportDiagnostics;
+
+        /// <summary>
         /// Map from non-concurrent analyzers to the gate guarding callback into the analyzer. 
         /// </summary>
         private ImmutableDictionary<DiagnosticAnalyzer, SemaphoreSlim> _analyzerGateMap = ImmutableDictionary<DiagnosticAnalyzer, SemaphoreSlim>.Empty;
