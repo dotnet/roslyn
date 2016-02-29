@@ -392,7 +392,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 if (state.NotePartComplete(CompletionPart.StartAsyncMethodChecks))
                 {
-                    if (IsPartialDefinition) DeclaringCompilation.SymbolDeclaredEvent(this);
+                    if (IsPartialDefinition && (object)PartialImplementationPart == null)
+                    {
+                        DeclaringCompilation.SymbolDeclaredEvent(this);
+                    }
+
                     state.NotePartComplete(CompletionPart.FinishAsyncMethodChecks);
                 }
                 else

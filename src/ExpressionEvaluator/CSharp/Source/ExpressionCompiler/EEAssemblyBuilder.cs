@@ -167,7 +167,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
                 get { return null; }
             }
 
-            public override bool TryGetPreviousHoistedLocalSlotIndex(SyntaxNode currentDeclarator, Cci.ITypeReference currentType, SynthesizedLocalKind synthesizedKind, LocalDebugId currentId, out int slotIndex)
+            public override bool TryGetPreviousHoistedLocalSlotIndex(SyntaxNode currentDeclarator, Cci.ITypeReference currentType, SynthesizedLocalKind synthesizedKind, LocalDebugId currentId, DiagnosticBag diagnostics, out int slotIndex)
             {
                 slotIndex = -1;
                 return false;
@@ -178,7 +178,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
                 get { return 0; }
             }
 
-            public override bool TryGetPreviousAwaiterSlotIndex(Cci.ITypeReference currentType, out int slotIndex)
+            public override bool TryGetPreviousAwaiterSlotIndex(Cci.ITypeReference currentType, DiagnosticBag diagnostics, out int slotIndex)
             {
                 slotIndex = -1;
                 return false;

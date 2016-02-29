@@ -190,8 +190,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
         /// <summary>
         /// Configure analysis mode of generated code for this analyzer.
-        /// Non-configured analyzers will default to <see cref="GeneratedCodeAnalysisFlags.Default"/> mode for generated code.
-        /// It is recommended for the analyzer to always invoke this API with the required <see cref="GeneratedCodeAnalysisFlags"/> setting.
+        /// Non-configured analyzers will default to an appropriate default mode for generated code.
+        /// It is recommended for the analyzer to invoke this API with the required <see cref="GeneratedCodeAnalysisFlags"/> setting.
         /// </summary>
         public virtual void ConfigureGeneratedCodeAnalysis(GeneratedCodeAnalysisFlags analysisMode)
         {
@@ -229,27 +229,22 @@ namespace Microsoft.CodeAnalysis.Diagnostics
     {
         /// <summary>
         /// Disable analyzer action callbacks and diagnostic reporting for generated code.
+        /// Analyzer driver will not make callbacks into the analyzer for entities (source files, symbols, etc.) that it classifies as generated code.
+        /// Additionally, any diagnostic reported by the analyzer with location in generated code will not be reported.
         /// </summary>
         None = 0x00,
 
         /// <summary>
         /// Enable analyzer action callbacks for generated code.
+        /// Analyzer driver will make callbacks into the analyzer for all entities (source files, symbols, etc.) in the compilation, including generated code.
         /// </summary>
         Analyze = 0x01,
 
         /// <summary>
         /// Enable reporting diagnostics on generated code.
+        /// Analyzer driver will not suppress any analyzer diagnostic based on whether or not it's location is in generated code.
         /// </summary>
-        ReportDiagnostics = 0x10,
-
-        /// <summary>
-        /// Default analysis mode for generated code.
-        /// </summary>
-        /// <remarks>
-        /// This mode will always guarantee that analyzer action callbacks are enabled for generated code, i.e. <see cref="Analyze"/> will be set.
-        /// However, the default diagnostic reporting mode is liable to change in future.
-        /// </remarks>
-        Default = Analyze | ReportDiagnostics,
+        ReportDiagnostics = 0x02,
     }
 
     /// <summary>

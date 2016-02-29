@@ -1,7 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
-using System.Collections.Immutable;
 using System.IO;
 using System.Linq;
 using System.Reflection;
@@ -2699,10 +2698,16 @@ class C
             var compilation = CreateCompilationWithMscorlib(source);
 
             var output = new BrokenStream();
-            Assert.Throws<IOException>(() => compilation.Emit(output));
+            var result = compilation.Emit(output);
+            result.Diagnostics.Verify(
+                // error CS8104: An error occurred while writing the Portable Executable file.
+                Diagnostic(ErrorCode.ERR_PeWritingFailure).WithArguments("I/O error occurred.").WithLocation(1, 1));
 
             output.BreakHow = 1;
-            Assert.Throws<NotSupportedException>(() => compilation.Emit(output));
+            result = compilation.Emit(output);
+            result.Diagnostics.Verify(    
+                // error CS8104: An error occurred while writing the Portable Executable file.
+                Diagnostic(ErrorCode.ERR_PeWritingFailure).WithArguments("Specified method is not supported.").WithLocation(1, 1));
 
             // disposed stream is not writable
             var outReal = new MemoryStream();
@@ -2948,6 +2953,28 @@ class C4
                     };
                 AssertEx.Equal(expectedNames, actualNames);
             }
+        }
+
+        [Fact]
+        [WorkItem(3240, "https://github.com/dotnet/roslyn/pull/8227")]
+        public void FailingEmitter()
+        {
+            string source = @"
+public class X
+{
+    public static void Main()
+    {
+  
+    }
+}";
+            var compilation = CreateCompilationWithMscorlib(source);
+            var broken = new BrokenStream();
+            broken.BreakHow = 0;
+            var result = compilation.Emit(broken);
+            Assert.False(result.Success);
+            result.Diagnostics.Verify(
+                // error CS8104: An error occurred while writing the Portable Executable file.
+                Diagnostic(ErrorCode.ERR_PeWritingFailure).WithArguments("I/O error occurred.").WithLocation(1, 1));
         }
     }
 }

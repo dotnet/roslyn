@@ -98,16 +98,9 @@ namespace Microsoft.CodeAnalysis.Semantics
     }
 
     /// <summary>
-    /// Represents a reference, which refers to a symbol or an element of a collection.
-    /// </summary>
-    public interface IReferenceExpression : IOperation
-    {
-    }
-
-    /// <summary>
     /// Represents a reference to an array element.
     /// </summary>
-    public interface IArrayElementReferenceExpression : IReferenceExpression
+    public interface IArrayElementReferenceExpression : IOperation
     {
         /// <summary>
         /// Array to be indexed.
@@ -122,7 +115,7 @@ namespace Microsoft.CodeAnalysis.Semantics
     /// <summary>
     /// Represents a reference through a pointer.
     /// </summary>
-    public interface IPointerIndirectionReferenceExpression : IReferenceExpression
+    public interface IPointerIndirectionReferenceExpression : IOperation
     {
         /// <summary>
         /// Pointer to be dereferenced.
@@ -133,7 +126,7 @@ namespace Microsoft.CodeAnalysis.Semantics
     /// <summary>
     /// Represents a reference to a declared local variable.
     /// </summary>
-    public interface ILocalReferenceExpression : IReferenceExpression
+    public interface ILocalReferenceExpression : IOperation
     {
         /// <summary>
         /// Referenced local variable.
@@ -144,7 +137,7 @@ namespace Microsoft.CodeAnalysis.Semantics
     /// <summary>
     /// Represents a reference to a parameter.
     /// </summary>
-    public interface IParameterReferenceExpression : IReferenceExpression
+    public interface IParameterReferenceExpression : IOperation
     {
         /// <summary>
         /// Referenced parameter.
@@ -155,7 +148,7 @@ namespace Microsoft.CodeAnalysis.Semantics
     /// <summary>
     /// Represents a reference to a local variable synthesized by language analysis.
     /// </summary>
-    public interface ISyntheticLocalReferenceExpression : IReferenceExpression
+    public interface ISyntheticLocalReferenceExpression : IOperation
     {
         /// <summary>
         /// Kind of the synthetic local.
@@ -212,7 +205,7 @@ namespace Microsoft.CodeAnalysis.Semantics
     /// <summary>
     /// Represents a reference to a member of a class, struct, or interface.
     /// </summary>
-    public interface IMemberReferenceExpression : IReferenceExpression
+    public interface IMemberReferenceExpression : IOperation
     {
         /// <summary>
         /// Instance of the type. Null if the reference is to a static/shared member.
@@ -570,6 +563,7 @@ namespace Microsoft.CodeAnalysis.Semantics
         OperatorMethodSubtract = BinaryOperandsKind.OperatorMethod | SimpleBinaryOperationKind.Subtract,
         OperatorMethodMultiply = BinaryOperandsKind.OperatorMethod | SimpleBinaryOperationKind.Multiply,
         OperatorMethodDivide = BinaryOperandsKind.OperatorMethod | SimpleBinaryOperationKind.Divide,
+        OperatorMethodIntegerDivide = BinaryOperandsKind.OperatorMethod | SimpleBinaryOperationKind.IntegerDivide,
         OperatorMethodRemainder = BinaryOperandsKind.OperatorMethod | SimpleBinaryOperationKind.Remainder,
         OperatorMethodLeftShift = BinaryOperandsKind.OperatorMethod | SimpleBinaryOperationKind.LeftShift,
         OperatorMethodRightShift = BinaryOperandsKind.OperatorMethod | SimpleBinaryOperationKind.RightShift,
@@ -877,7 +871,11 @@ namespace Microsoft.CodeAnalysis.Semantics
         /// <summary>
         /// Conversion is implemented by a conversion operator method.
         /// </summary>
-        OperatorMethod = 0x5
+        OperatorMethod = 0x5,
+        /// <summary>
+        /// Conversion is invalid.
+        /// </summary>
+        Invalid = 0xf
     }
 
     /// <summary>
@@ -999,7 +997,7 @@ namespace Microsoft.CodeAnalysis.Semantics
         /// <summary>
         /// Addressed reference.
         /// </summary>
-        IReferenceExpression Reference { get; }
+        IOperation Reference { get; }
     }
 
     /// <summary>
@@ -1096,7 +1094,7 @@ namespace Microsoft.CodeAnalysis.Semantics
         /// <summary>
         /// Target of the assignment.
         /// </summary>
-        IReferenceExpression Target { get; }
+        IOperation Target { get; }
         /// <summary>
         /// Value to be assigned to the target of the assignment.
         /// </summary>
@@ -1139,7 +1137,7 @@ namespace Microsoft.CodeAnalysis.Semantics
     /// <summary>
     /// Represents a late-bound reference to a member of a class or struct.
     /// </summary>
-    public interface ILateBoundMemberReferenceExpression : IReferenceExpression
+    public interface ILateBoundMemberReferenceExpression : IOperation
     {
         /// <summary>
         /// Instance used to bind the member reference.
