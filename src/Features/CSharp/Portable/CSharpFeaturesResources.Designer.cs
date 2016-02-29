@@ -683,6 +683,15 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Remove &apos;this&apos; qualification.
+        /// </summary>
+        internal static string RemoveThisQualification {
+            get {
+                return ResourceManager.GetString("RemoveThisQualification", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Remove Unnecessary Cast.
         /// </summary>
         internal static string RemoveUnnecessaryCast {
@@ -823,15 +832,6 @@ namespace Microsoft.CodeAnalysis.CSharp {
         internal static string SimplifyName {
             get {
                 return ResourceManager.GetString("SimplifyName", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Remove &apos;this&apos; qualification.
-        /// </summary>
-        internal static string SimplifyThisQualification {
-            get {
-                return ResourceManager.GetString("SimplifyThisQualification", resourceCulture);
             }
         }
         

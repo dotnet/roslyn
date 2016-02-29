@@ -176,7 +176,10 @@ class C{
 }";
         internal StyleViewModel(OptionSet optionSet, IServiceProvider serviceProvider) : base(optionSet, serviceProvider, LanguageNames.CSharp)
         {
-            Items.Add(new CheckBoxOptionViewModel(SimplificationOptions.QualifyMemberAccessWithThisOrMe, CSharpVSResources.QualifyMemberAccessWithThis, s_declarationPreviewTrue, s_declarationPreviewFalse, this, optionSet));
+            Items.Add(new CheckBoxOptionViewModel(SimplificationOptions.QualifyFieldAccess, CSharpVSResources.QualifyFieldAccessWithThis, s_declarationPreviewTrue, s_declarationPreviewFalse, this, optionSet));
+            Items.Add(new CheckBoxOptionViewModel(SimplificationOptions.QualifyPropertyAccess, CSharpVSResources.QualifyPropertyAccessWithThis, s_declarationPreviewTrue, s_declarationPreviewFalse, this, optionSet));
+            Items.Add(new CheckBoxOptionViewModel(SimplificationOptions.QualifyMethodAccess, CSharpVSResources.QualifyPropertyAccessWithThis, s_declarationPreviewTrue, s_declarationPreviewFalse, this, optionSet));
+            Items.Add(new CheckBoxOptionViewModel(SimplificationOptions.QualifyEventAccess, CSharpVSResources.QualifyEventAccessWithThis, s_declarationPreviewTrue, s_declarationPreviewFalse, this, optionSet));
             Items.Add(new CheckBoxOptionViewModel(SimplificationOptions.PreferIntrinsicPredefinedTypeKeywordInDeclaration, CSharpVSResources.PreferIntrinsicPredefinedTypeKeywordInDeclaration, s_intrinsicPreviewDeclarationTrue, s_intrinsicPreviewDeclarationFalse, this, optionSet));
             Items.Add(new CheckBoxOptionViewModel(SimplificationOptions.PreferIntrinsicPredefinedTypeKeywordInMemberAccess, CSharpVSResources.PreferIntrinsicPredefinedTypeKeywordInMemberAccess, s_intrinsicPreviewMemberAccessTrue, s_intrinsicPreviewMemberAccessFalse, this, optionSet));
             Items.Add(new CheckBoxOptionViewModel(CSharpCodeStyleOptions.UseVarWhenDeclaringLocals, CSharpVSResources.UseVarWhenGeneratingLocals, s_varPreviewTrue, s_varPreviewFalse, this, optionSet));
