@@ -62,11 +62,6 @@ namespace Roslyn.Utilities
                 return _many.IsDefault ? 1 : _many.Length;
             }
         }
-
-        public OneOrMany<T> Add(T item)
-        {
-            return new OneOrMany<T>(_many.IsDefault ? ImmutableArray.Create(_one, item) : _many.Add(item));
-        }
     }
 
     internal static class OneOrMany
