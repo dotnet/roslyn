@@ -44,6 +44,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Setup
         {
             base.Initialize();
 
+            // Assume that we are being initialized on the UI thread at this point.
             ForegroundThreadAffinitizedObject.CurrentForegroundThreadData = ForegroundThreadData.CreateDefault(defaultKind: ForcedByPackageInitialize);
             Debug.Assert(ForegroundThreadAffinitizedObject.CurrentForegroundThreadData.Kind != Unknown);
 

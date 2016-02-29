@@ -26,10 +26,10 @@ namespace Microsoft.CodeAnalysis.Utilities
 
         static ForegroundThreadDataInfo()
         {
-            s_fallbackForegroundThreadDataKind = CreateDefault();
+            s_fallbackForegroundThreadDataKind = CreateDefault(Unknown);
         }
 
-        internal static ForegroundThreadDataKind CreateDefault(ForegroundThreadDataKind defaultKind = Unknown)
+        internal static ForegroundThreadDataKind CreateDefault(ForegroundThreadDataKind defaultKind)
         {
             var syncConextTypeName = SynchronizationContext.Current?.GetType().FullName;
 

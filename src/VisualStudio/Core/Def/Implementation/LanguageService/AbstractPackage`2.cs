@@ -29,6 +29,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
         protected override void Initialize()
         {
             base.Initialize();
+            // Assume that we are being initialized on the UI thread at this point.
             var defaultForegroundThreadData = ForegroundThreadData.CreateDefault(defaultKind: ForcedByPackageInitialize);
             ForegroundThreadAffinitizedObject.CurrentForegroundThreadData = defaultForegroundThreadData;
             _foregroundObject = new ForegroundThreadAffinitizedObject(defaultForegroundThreadData);
