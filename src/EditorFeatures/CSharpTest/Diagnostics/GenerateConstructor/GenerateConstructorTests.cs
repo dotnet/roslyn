@@ -94,7 +94,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.GenerateCon
             await TestAsync(
 @"class C { void M(int X) { new [|D|](X); } } class D { int X; }",
 @"class C { void M(int X) { new D(X); } } class D { int X; public D(int x) { this.X = x; } }",
-                options: new Dictionary<OptionKey, object> { { new OptionKey(SimplificationOptions.QualifyMemberAccessWithThisOrMe, "C#"), true } });
+                options: Option(SimplificationOptions.QualifyFieldAccess, true));
         }
 
         [WorkItem(539444, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539444")]
@@ -122,7 +122,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.GenerateCon
             await TestAsync(
 @"class C { void M(int X) { new [|D|](X); } } class B { protected int X; } class D : B { }",
 @"class C { void M(int X) { new D(X); } } class B { protected int X; } class D : B { public D(int x) { this.X = x; } }",
-                options: new Dictionary<OptionKey, object> { { new OptionKey(SimplificationOptions.QualifyMemberAccessWithThisOrMe, "C#"), true } });
+                options: Option(SimplificationOptions.QualifyFieldAccess, true));
         }
 
         [WorkItem(539444, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539444")]
@@ -159,7 +159,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.GenerateCon
             await TestAsync(
 @"class C { void M(int X) { new [|D|](X); } } class D { public int X { get; private set; } }",
 @"class C { void M(int X) { new D(X); } } class D { public D(int x) { this.X = x; } public int X { get; private set; } }",
-                options: new Dictionary<OptionKey, object> { { new OptionKey(SimplificationOptions.QualifyMemberAccessWithThisOrMe, "C#"), true } });
+                options: Option(SimplificationOptions.QualifyPropertyAccess, true));
         }
 
         [WorkItem(539444, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539444")]
@@ -187,7 +187,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.GenerateCon
             await TestAsync(
 @"class C { void M(int X) { new [|D|](X); } } class B { public int X { get; protected set; } } class D : B { }",
 @"class C { void M(int X) { new D(X); } } class B { public int X { get; protected set; } } class D : B { public D(int x) { this.X = x; } }",
-                options: new Dictionary<OptionKey, object> { { new OptionKey(SimplificationOptions.QualifyMemberAccessWithThisOrMe, "C#"), true } });
+                options: Option(SimplificationOptions.QualifyPropertyAccess, true));
         }
 
         [WorkItem(539444, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539444")]
@@ -206,7 +206,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.GenerateCon
             await TestAsync(
 @"class C { void M(int X) { new [|D|](X); } } class B { protected int X { get; set; } } class D : B { }",
 @"class C { void M(int X) { new D(X); } } class B { protected int X { get; set; } } class D : B { public D(int x) { this.X = x; } }",
-                options: new Dictionary<OptionKey, object> { { new OptionKey(SimplificationOptions.QualifyMemberAccessWithThisOrMe, "C#"), true } });
+                options: Option(SimplificationOptions.QualifyPropertyAccess, true));
         }
 
         [WorkItem(539444, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539444")]
