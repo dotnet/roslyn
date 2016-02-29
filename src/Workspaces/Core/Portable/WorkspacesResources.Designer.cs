@@ -674,6 +674,15 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Member access should be qualified..
+        /// </summary>
+        internal static string MemberAccessShouldBeQualified {
+            get {
+                return ResourceManager.GetString("MemberAccessShouldBeQualified", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Metadata is already referenced..
         /// </summary>
         internal static string MetadataIsAlreadyReferenced {
