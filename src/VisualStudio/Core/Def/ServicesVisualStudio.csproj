@@ -157,7 +157,7 @@
     <Compile Include="Packaging\IPackageSearchRemoteControlService.cs" />
     <Compile Include="Packaging\PackageInstallerServiceFactory.cs" />
     <Compile Include="Packaging\PackageInstallerServiceFactory_UndoRedo.cs" />
-    <Compile Include="Packaging\PackageSearchService_Update.cs" />
+    <Compile Include="Packaging\PackageSearchService.Update.cs" />
     <Compile Include="Packaging\PackageSearchService.cs" />
     <Compile Include="Packaging\PackageSearchService.DatabaseFactoryService.cs" />
     <Compile Include="Packaging\PackageSearchService.DelayService.cs" />
