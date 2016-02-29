@@ -91,13 +91,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
             End Get
         End Property
 
-        Public Overrides ReadOnly Property AssemblyVersionPattern As Version
-            Get
-                ' TODO: https://github.com/dotnet/roslyn/issues/9000
-                Return Nothing
-            End Get
-        End Property
-
         Friend Overrides ReadOnly Property PublicKey As ImmutableArray(Of Byte)
             Get
                 Return _assembly.Identity.PublicKey
