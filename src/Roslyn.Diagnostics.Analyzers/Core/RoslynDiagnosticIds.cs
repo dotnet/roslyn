@@ -24,8 +24,8 @@ namespace Roslyn.Diagnostics.Analyzers
         // public const string DoNotCreateTasksWithoutTaskSchedulerRuleId = "RS0018";   // Now RS0018 => System.Threading.Tasks.Analyzers.DoNotCreateTasksWithoutPassingATaskSchedulerAnalyzer
         public const string SymbolDeclaredEventRuleId = "RS0019";
         // public const string DeadCodeRuleId = "RS0020";                               // Now ???
-        // public const string DeadCodeTriggerRuleId = "RS0021";
-        public const string ExposedNoninstantiableTypeRuleId = "RS0022";                // Now ???
+        // public const string DeadCodeTriggerRuleId = "RS0021";                        // Now ???
+        public const string ExposedNoninstantiableTypeRuleId = "RS0022";                
         // public const string MissingSharedAttributeRuleId = "RS0023";                 // Now RS0023 => Microsoft.Composition.Analyzers.PartsExportedWithMEFv2MustBeMarkedAsSharedAnalyzer
         public const string PublicApiFilesInvalid = "RS0024";
         public const string DuplicatedSymbolInPublicApiFiles = "RS0025";
