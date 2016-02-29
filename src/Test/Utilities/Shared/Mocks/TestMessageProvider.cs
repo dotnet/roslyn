@@ -355,6 +355,14 @@ namespace Roslyn.Test.Utilities
             }
         }
 
+        public override int ERR_MutuallyExclusiveOptions
+        {
+            get
+            {
+                throw new NotImplementedException();
+            }
+        }
+
         public override int ERR_TooManyUserStrings
         {
             get

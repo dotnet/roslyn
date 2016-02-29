@@ -1673,6 +1673,45 @@ BC37254: Public sign was specified and requires a public key, but no public key 
         Assert.True(comp.Assembly.PublicKey.IsDefaultOrEmpty)
     End Sub
 
+
+    <Fact>
+    Public Sub KeyFileFromAttributes_PublicSign()
+        Dim source = <compilation>
+                         <file name="a.vb"><![CDATA[
+<assembly: System.Reflection.AssemblyKeyFile("test.snk")>
+Public Class C
+End Class
+]]>
+                         </file>
+                     </compilation>
+        Dim c = CreateCompilationWithMscorlib(source, options:=TestOptions.ReleaseDll.WithPublicSign(True))
+        AssertTheseDiagnostics(c,
+                               <errors>
+BC37254: Public sign was specified and requires a public key, but no public key was specified
+                               </errors>)
+
+        Assert.True(c.Options.PublicSign)
+    End Sub
+
+    <Fact>
+    Public Sub KeyContainerFromAttributes_PublicSign()
+        Dim source = <compilation>
+                         <file name="a.vb"><![CDATA[
+<assembly: System.Reflection.AssemblyKeyName("roslynTestContainer")>
+Public Class C
+End Class
+]]>
+                         </file>
+                     </compilation>
+        Dim c = CreateCompilationWithMscorlib(source, options:=TestOptions.ReleaseDll.WithPublicSign(True))
+        AssertTheseDiagnostics(c,
+                               <errors>
+BC37254: Public sign was specified and requires a public key, but no public key was specified
+                               </errors>)
+
+        Assert.True(c.Options.PublicSign)
+    End Sub
+
     <Fact>
     Public Sub PublicSign_FromKeyFileNoStrongNameProvider()
         Dim snk = Temp.CreateFile().WriteAllBytes(TestResources.General.snKey)
@@ -1699,6 +1738,24 @@ BC37254: Public sign was specified and requires a public key, but no public key 
         Dim snk = Temp.CreateFile().WriteAllBytes(TestResources.General.snPublicKey2)
         Dim options = TestOptions.ReleaseDll.WithCryptoKeyFile(snk.Path).WithPublicSign(True)
         PublicSignCore(options)
+    End Sub
+
+    <Fact>
+    Public Sub PublicSign_KeyContainerOnly()
+        Dim source =
+            <compilation>
+                <file name="a.vb"><![CDATA[
+Public Class C
+End Class
+]]>
+                </file>
+            </compilation>
+        Dim options = TestOptions.ReleaseDll.WithCryptoKeyContainer("testContainer").WithPublicSign(True)
+        Dim compilation = CreateCompilationWithMscorlib(source, options:=options)
+        AssertTheseDiagnostics(compilation, <errors>
+BC2046: Compilation options 'PublicSign' and 'CryptoKeyContainer' can't both be specified at the same time.
+BC37254: Public sign was specified and requires a public key, but no public key was specified
+                                            </errors>)
     End Sub
 
     <Fact>
