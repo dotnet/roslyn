@@ -6,4 +6,12 @@ namespace Microsoft.CodeAnalysis.Host
     {
         PortableExecutableReference GetReference(string resolvedPath, MetadataReferenceProperties properties);
     }
+
+    internal interface IAssemblyPathResolver : IWorkspaceService
+    {
+        /// <summary>
+        /// Returns null if the assembly name could not be resolved.
+        /// </summary>
+        string ResolveAssemblyPath(ProjectId project, string assemblyName);
+    }
 }

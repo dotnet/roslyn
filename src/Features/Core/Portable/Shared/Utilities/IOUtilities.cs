@@ -8,6 +8,15 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
 {
     internal static class IOUtilities
     {
+        public static void PerformIO(Action action)
+        {
+            PerformIO<object>(() =>
+            {
+                action();
+                return null;
+            });
+        }
+
         public static T PerformIO<T>(Func<T> function, T defaultValue = default(T))
         {
             try
