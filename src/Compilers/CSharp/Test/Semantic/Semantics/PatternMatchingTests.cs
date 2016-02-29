@@ -1071,6 +1071,49 @@ public class Program
             Assert.True(si.CandidateSymbols.IsDefaultOrEmpty);
         }
 
+        [Fact]
+        public void AmbiguousNamedProperty()
+        {
+            var source =
+@"
+using System;
+public class Program
+{
+    public static void Main()
+    {
+        object o = nameof(Main);
+        Console.WriteLine(o is I3 { Property is 4 });
+    }
+}
+interface I1
+{
+    int Property { get; }
+}
+interface I2
+{
+    int Property { get; }
+}
+interface I3 : I1, I2 { }
+";
+            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe, parseOptions: patternParseOptions);
+
+            compilation.VerifyDiagnostics(
+                // (8,37): error CS0117: 'I3' does not contain a definition for 'Property'
+                //         Console.WriteLine(o is I3 { Property is 4 });
+                Diagnostic(ErrorCode.ERR_NoSuchMember, "Property").WithArguments("I3", "Property").WithLocation(8, 37)
+                );
+            var tree = compilation.SyntaxTrees.Single();
+            var model = compilation.GetSemanticModel(tree);
+            var propPats = tree.GetRoot().DescendantNodes().OfType<SubPropertyPatternSyntax>().ToArray();
+            Assert.Equal(1, propPats.Length);
+
+            var p = propPats[0]; // Property is 4
+            var si = model.GetSymbolInfo(p);
+            Assert.Null(si.Symbol);
+            Assert.Equal(CandidateReason.Ambiguous, si.CandidateReason);
+            // Assert.Equal(2, si.CandidateSymbols.Length); // skipped due to https://github.com/dotnet/roslyn/issues/9284
+        }
+
         private static void VerifyModelForDeclarationPattern(SemanticModel model, DeclarationPatternSyntax decl, params IdentifierNameSyntax[] references)
         {
             var symbol = model.GetDeclaredSymbol(decl);
