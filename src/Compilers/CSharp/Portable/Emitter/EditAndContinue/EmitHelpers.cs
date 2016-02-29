@@ -35,7 +35,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
             }
             catch (BadImageFormatException)
             {
-                // TODO (https://github.com/dotnet/roslyn/issues/8910):
+                // TODO:
                 // return MakeEmitResult(success: false, diagnostics: ..., baseline: null);
                 throw;
             }
@@ -47,25 +47,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
             var serializationProperties = compilation.ConstructModuleSerializationProperties(emitOptions, runtimeMDVersion, moduleVersionId);
             var manifestResources = SpecializedCollections.EmptyEnumerable<ResourceDescription>();
 
-            PEDeltaAssemblyBuilder moduleBeingBuilt;
-            try
-            {
-                moduleBeingBuilt = new PEDeltaAssemblyBuilder(
-                    compilation.SourceAssembly,
-                    emitOptions: emitOptions,
-                    outputKind: compilation.Options.OutputKind,
-                    serializationProperties: serializationProperties,
-                    manifestResources: manifestResources,
-                    previousGeneration: baseline,
-                    edits: edits,
-                    isAddedSymbol: isAddedSymbol);
-            }
-            catch (NotSupportedException)
-            {
-                // TODO: better error code (https://github.com/dotnet/roslyn/issues/8910)
-                diagnostics.Add(ErrorCode.ERR_ModuleEmitFailure, NoLocation.Singleton, compilation.AssemblyName);
-                return new EmitDifferenceResult(success: false, diagnostics: diagnostics.ToReadOnlyAndFree(), baseline: null);
-            }
+            var moduleBeingBuilt = new PEDeltaAssemblyBuilder(
+                compilation.SourceAssembly,
+                emitOptions: emitOptions,
+                outputKind: compilation.Options.OutputKind,
+                serializationProperties: serializationProperties,
+                manifestResources: manifestResources,
+                previousGeneration: baseline,
+                edits: edits,
+                isAddedSymbol: isAddedSymbol);
 
             if (testData != null)
             {

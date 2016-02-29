@@ -24,8 +24,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             get { return new AssemblyIdentity(_name); }
         }
 
-        public override Version AssemblyVersionPattern => null;
-
         internal override ImmutableArray<byte> PublicKey
         {
             get { throw new NotImplementedException(); }
