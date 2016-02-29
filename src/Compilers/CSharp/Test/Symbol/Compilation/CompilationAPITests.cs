@@ -26,6 +26,20 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 {
     public class CompilationAPITests : CSharpTestBase
     {
+        [WorkItem(8360, "https://github.com/dotnet/roslyn/issues/8360")]
+        [Fact]
+        public void PublicSignWithRelativeKeyPath()
+        {
+            var options = new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary)
+                .WithPublicSign(true).WithCryptoKeyFile("test.snk");
+            var comp = CSharpCompilation.Create("test", options: options);
+            comp.VerifyDiagnostics(
+    // error CS7088: Invalid 'CryptoKeyFile' value: 'test.snk'.
+    Diagnostic(ErrorCode.ERR_BadCompilationOptionValue).WithArguments("CryptoKeyFile", "test.snk").WithLocation(1, 1),
+    // error CS8102: Public signing was specified and requires a public key, but no public key was specified.
+    Diagnostic(ErrorCode.ERR_PublicSignButNoKey).WithLocation(1, 1));
+        }
+
         [Fact]
         public void CompilationName()
         {

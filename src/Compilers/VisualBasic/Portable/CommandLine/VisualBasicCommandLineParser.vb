@@ -1191,6 +1191,11 @@ lVbRuntimePlus:
             ' Build search path
             Dim searchPaths As ImmutableArray(Of String) = BuildSearchPaths(baseDirectory, sdkPaths, responsePaths, libPaths)
 
+            ' Public sign doesn't use legacy search path settings
+            If publicSign AndAlso Not String.IsNullOrWhiteSpace(keyFileSetting) Then
+                keyFileSetting = ParseGenericPathToFile(keyFileSetting, diagnostics, baseDirectory)
+            End If
+
             ValidateWin32Settings(noWin32Manifest, win32ResourceFile, win32IconFile, win32ManifestFile, outputKind, diagnostics)
 
             ' Validate root namespace if specified

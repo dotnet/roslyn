@@ -878,6 +878,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
 
         Friend Overrides Sub ValidateOptions(builder As ArrayBuilder(Of Diagnostic))
+            ValidateOptions(builder, MessageProvider.Instance)
+
             If Me.EmbedVbCoreRuntime AndAlso Me.OutputKind.IsNetModule() Then
                 builder.Add(Diagnostic.Create(MessageProvider.Instance, ERRID.ERR_VBCoreNetModuleConflict))
             End If
@@ -925,20 +927,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             ' TODO: add check for 
             '          (kind == 'arm' || kind == 'appcontainer' || kind == 'winmdobj') &&
             '          (version >= "6.2")
-
-            If Not CryptoPublicKey.IsEmpty Then
-                If CryptoKeyFile IsNot Nothing Then
-                    builder.Add(Diagnostic.Create(MessageProvider.Instance, ERRID.ERR_MutuallyExclusiveOptions, NameOf(CryptoPublicKey), NameOf(CryptoKeyFile)))
-                End If
-
-                If CryptoKeyContainer IsNot Nothing Then
-                    builder.Add(Diagnostic.Create(MessageProvider.Instance, ERRID.ERR_MutuallyExclusiveOptions, NameOf(CryptoPublicKey), NameOf(CryptoKeyContainer)))
-                End If
-            End If
-
-            If PublicSign AndAlso DelaySign = True Then
-                builder.Add(Diagnostic.Create(MessageProvider.Instance, ERRID.ERR_MutuallyExclusiveOptions, NameOf(PublicSign), NameOf(DelaySign)))
-            End If
         End Sub
 
         ''' <summary>

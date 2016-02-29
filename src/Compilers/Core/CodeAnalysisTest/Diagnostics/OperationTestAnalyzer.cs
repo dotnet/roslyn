@@ -3,6 +3,7 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Diagnostics;
 using System.Linq;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Semantics;
@@ -493,6 +494,14 @@ namespace Microsoft.CodeAnalysis.UnitTests.Diagnostics
             DiagnosticSeverity.Warning,
             isEnabledByDefault: true);
 
+        public static readonly DiagnosticDescriptor InvalidArgumentDescriptor = new DiagnosticDescriptor(
+            "InvalidArgument",
+            "Invalid argument",
+            "Invocation has invalid argument",
+            ReliabilityCategory,
+            DiagnosticSeverity.Warning,
+            isEnabledByDefault: true);
+
         /// <summary>Gets the set of supported diagnostic descriptors from this analyzer.</summary>
         public sealed override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics
         {
@@ -500,7 +509,8 @@ namespace Microsoft.CodeAnalysis.UnitTests.Diagnostics
             {
                 return ImmutableArray.Create(BigParamArrayArgumentsDescriptor,
                                              OutOfNumericalOrderArgumentsDescriptor,
-                                             UseDefaultArgumentDescriptor);
+                                             UseDefaultArgumentDescriptor,
+                                             InvalidArgumentDescriptor);
             }
         }
 
@@ -513,6 +523,12 @@ namespace Microsoft.CodeAnalysis.UnitTests.Diagnostics
                      long priorArgumentValue = long.MinValue;
                      foreach (IArgument argument in invocation.ArgumentsInParameterOrder)
                      {
+                         if (argument.IsInvalid)
+                         {
+                             operationContext.ReportDiagnostic(Diagnostic.Create(InvalidArgumentDescriptor, argument.Syntax.GetLocation()));
+                             return;
+                         }
+
                          if (argument.ArgumentKind == ArgumentKind.DefaultValue)
                          {
                              operationContext.ReportDiagnostic(Diagnostic.Create(UseDefaultArgumentDescriptor, invocation.Syntax.GetLocation(), argument.Parameter.Name));
@@ -935,6 +951,14 @@ namespace Microsoft.CodeAnalysis.UnitTests.Diagnostics
             DiagnosticSeverity.Warning,
             isEnabledByDefault: true);
 
+        public static readonly DiagnosticDescriptor InvalidEventDescriptor = new DiagnosticDescriptor(
+            "InvalidEvent",
+            "Invalid Event",
+            "A EventAssignmentExpression with invalid event found.",
+            "Testing",
+            DiagnosticSeverity.Warning,
+            isEnabledByDefault: true);
+
         public static readonly DiagnosticDescriptor HandlerAddedDescriptor = new DiagnosticDescriptor(
             "HandlerAdded",
             "Handler Added",
@@ -975,7 +999,14 @@ namespace Microsoft.CodeAnalysis.UnitTests.Diagnostics
             DiagnosticSeverity.Warning,
             isEnabledByDefault: true);
 
-        public sealed override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics => ImmutableArray.Create(EventReferenceDescriptor, HandlerAddedDescriptor, HandlerRemovedDescriptor, PropertyReferenceDescriptor, FieldReferenceDescriptor, MethodBindingDescriptor);
+        public sealed override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics => 
+            ImmutableArray.Create(EventReferenceDescriptor, 
+                HandlerAddedDescriptor, 
+                HandlerRemovedDescriptor, 
+                PropertyReferenceDescriptor, 
+                FieldReferenceDescriptor, 
+                MethodBindingDescriptor,
+                InvalidEventDescriptor);
 
         public sealed override void Initialize(AnalysisContext context)
         {
@@ -991,6 +1022,15 @@ namespace Microsoft.CodeAnalysis.UnitTests.Diagnostics
                  {
                      IEventAssignmentExpression eventAssignment = (IEventAssignmentExpression)operationContext.Operation;
                      operationContext.ReportDiagnostic(Diagnostic.Create(eventAssignment.Adds ? HandlerAddedDescriptor : HandlerRemovedDescriptor, operationContext.Operation.Syntax.GetLocation()));
+
+                     if (eventAssignment.Event == null)
+                     {
+                         if (eventAssignment.EventInstance == null && eventAssignment.IsInvalid)
+                         {
+                             // report inside after checking for null to make sure it does't crash.
+                             operationContext.ReportDiagnostic(Diagnostic.Create(InvalidEventDescriptor, eventAssignment.Syntax.GetLocation()));
+                         }
+                     }
                  },
                  OperationKind.EventAssignmentExpression);
 
@@ -1028,7 +1068,15 @@ namespace Microsoft.CodeAnalysis.UnitTests.Diagnostics
             DiagnosticSeverity.Warning,
             isEnabledByDefault: true);
 
-        public sealed override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics => ImmutableArray.Create(LongParamsDescriptor);
+        public static readonly DiagnosticDescriptor InvalidConstructorDescriptor = new DiagnosticDescriptor(
+            "InvalidConstructor",
+            "Invalid Constructor",
+            "Invalid Constructor.",
+            "Testing",
+            DiagnosticSeverity.Warning,
+            isEnabledByDefault: true);
+
+        public sealed override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics => ImmutableArray.Create(LongParamsDescriptor, InvalidConstructorDescriptor);
 
         public sealed override void Initialize(AnalysisContext context)
         {
@@ -1075,7 +1123,12 @@ namespace Microsoft.CodeAnalysis.UnitTests.Diagnostics
                 (operationContext) =>
                 {
                     IObjectCreationExpression creation = (IObjectCreationExpression)operationContext.Operation;
-                    
+
+                    if (creation.Constructor == null)
+                    {
+                        operationContext.ReportDiagnostic(Diagnostic.Create(InvalidConstructorDescriptor, creation.Syntax.GetLocation()));
+                    }
+
                     foreach (IArgument argument in creation.ArgumentsInParameterOrder)
                     {
                         if (argument.Parameter.IsParams)
@@ -1178,6 +1231,46 @@ namespace Microsoft.CodeAnalysis.UnitTests.Diagnostics
                  },
                  // None kind is only supposed to be used internally and will not actually register actions.
                  OperationKind.None);
+        }
+    }
+    
+    public class AddressOfTestAnalyzer : DiagnosticAnalyzer
+    {
+        private const string ReliabilityCategory = "Reliability";
+        
+        public static readonly DiagnosticDescriptor AddressOfDescriptor = new DiagnosticDescriptor(
+            "AddressOfOperation",
+            "AddressOf operation found",
+            "An AddressOf operation found",
+            ReliabilityCategory,
+            DiagnosticSeverity.Warning,
+            isEnabledByDefault: true);
+
+        public static readonly DiagnosticDescriptor InvalidAddressOfReferenceDescriptor = new DiagnosticDescriptor(
+            "InvalidAddressOfReference",
+            "Invalid AddressOf reference found",
+            "An invalid AddressOf reference found",
+            ReliabilityCategory,
+            DiagnosticSeverity.Warning,
+            isEnabledByDefault: true);
+
+        public sealed override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics =>
+            ImmutableArray.Create(AddressOfDescriptor, InvalidAddressOfReferenceDescriptor);
+
+        public sealed override void Initialize(AnalysisContext context)
+        {
+            context.RegisterOperationAction(
+                 (operationContext) =>
+                 {
+                     var addressOfOperation = (IAddressOfExpression)operationContext.Operation;
+                     operationContext.ReportDiagnostic(Diagnostic.Create(AddressOfDescriptor, addressOfOperation.Syntax.GetLocation()));
+
+                     if (addressOfOperation.Reference.Kind == OperationKind.InvalidExpression && addressOfOperation.IsInvalid)
+                     {
+                         operationContext.ReportDiagnostic(Diagnostic.Create(InvalidAddressOfReferenceDescriptor, addressOfOperation.Reference.Syntax.GetLocation()));
+                     }
+                 },
+                 OperationKind.AddressOfExpression);
         }
     }
 
@@ -1500,6 +1593,37 @@ namespace Microsoft.CodeAnalysis.UnitTests.Diagnostics
         }
     }
 
+    public class BinaryOperatorVBTestAnalyzer : DiagnosticAnalyzer
+    {
+        public static readonly DiagnosticDescriptor BinaryUserDefinedOperatorDescriptor = new DiagnosticDescriptor(
+            "BinaryUserDefinedOperator",
+            "Binary user defined operator found",
+            "A Binary user defined operator {0} is found",
+            "Testing",
+            DiagnosticSeverity.Warning,
+            isEnabledByDefault: true);
+
+        public sealed override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics 
+            => ImmutableArray.Create(BinaryUserDefinedOperatorDescriptor);
+
+        public sealed override void Initialize(AnalysisContext context)
+        {
+            context.RegisterOperationAction(
+                (operationContext) =>
+                {
+                    var binary = (IBinaryOperatorExpression)operationContext.Operation;
+                    if (binary.GetBinaryOperandsKind() == BinaryOperandsKind.OperatorMethod)
+                    {
+                        operationContext.ReportDiagnostic(
+                            Diagnostic.Create(BinaryUserDefinedOperatorDescriptor, 
+                                binary.Syntax.GetLocation(),
+                                binary.BinaryOperationKind.ToString()));
+                    }
+                },
+                OperationKind.BinaryOperatorExpression);
+        }
+    }
+
     public class NullOperationSyntaxTestAnalyzer : DiagnosticAnalyzer
     {
         private const string ReliabilityCategory = "Reliability";
@@ -1709,7 +1833,39 @@ namespace Microsoft.CodeAnalysis.UnitTests.Diagnostics
                 OperationKind.PlaceholderExpression);
         }
     }
-    
+
+    public class ConversionExpressionCSharpTestAnalyzer : DiagnosticAnalyzer
+    {
+        private const string ReliabilityCategory = "Reliability";
+
+        public static readonly DiagnosticDescriptor InvalidConversionExpressionDescriptor = new DiagnosticDescriptor(
+            "InvalidConversionExpression",
+            "Invalid conversion expression",
+            "Invalid conversion expression.",
+            ReliabilityCategory,
+            DiagnosticSeverity.Warning,
+            isEnabledByDefault: true);
+
+        public sealed override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics
+        {
+            get { return ImmutableArray.Create(InvalidConversionExpressionDescriptor); }
+        }
+
+        public sealed override void Initialize(AnalysisContext context)
+        {
+            context.RegisterOperationAction(
+                 (operationContext) =>
+                 {
+                     var conversion = (IConversionExpression)operationContext.Operation;
+                     if (conversion.ConversionKind == ConversionKind.Invalid)
+                     {
+                         Debug.Assert(conversion.IsInvalid == true);
+                         operationContext.ReportDiagnostic(Diagnostic.Create(InvalidConversionExpressionDescriptor, conversion.Syntax.GetLocation()));
+                     }
+                 },
+                 OperationKind.ConversionExpression);
+        }
+    }
 
     public class ForLoopConditionCrashVBTestAnalyzer : DiagnosticAnalyzer
     {
@@ -1747,6 +1903,35 @@ namespace Microsoft.CodeAnalysis.UnitTests.Diagnostics
                      }
                  },
                  OperationKind.LoopStatement);
+        }
+    }
+
+    public class LiteralTestAnalyzer : DiagnosticAnalyzer
+    {
+        private const string ReliabilityCategory = "Reliability";
+        
+        public static readonly DiagnosticDescriptor LiteralDescriptor = new DiagnosticDescriptor(
+            "Literal",
+            "A literal is found",
+            "A literal of value {0} is found",
+            ReliabilityCategory,
+            DiagnosticSeverity.Warning,
+            isEnabledByDefault: true);
+
+        public sealed override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics
+        {
+            get { return ImmutableArray.Create(LiteralDescriptor); }
+        }
+
+        public sealed override void Initialize(AnalysisContext context)
+        {
+            context.RegisterOperationAction(
+                 (operationContext) =>
+                 {
+                     var literal = (ILiteralExpression)operationContext.Operation;
+                     operationContext.ReportDiagnostic(Diagnostic.Create(LiteralDescriptor, literal.Syntax.GetLocation(), literal.Text));
+                 },
+                 OperationKind.LiteralExpression);
         }
     }
 }
