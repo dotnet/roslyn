@@ -48,6 +48,19 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Public MustOverride Overloads Sub Accept(visitor As OperationVisitor) Implements IOperation.Accept
 
         Public MustOverride Overloads Function Accept(Of TArgument, TResult)(visitor As OperationVisitor(Of TArgument, TResult), argument As TArgument) As TResult Implements IOperation.Accept
+
+        Protected Shared Function GetBadChild(parent As BoundNode, index As Integer) As IOperation
+            Dim badParent As BoundBadExpression = TryCast(parent, BoundBadExpression)
+            If badParent IsNot Nothing AndAlso badParent.ChildBoundNodes.Length > index Then
+                Dim child As IOperation = TryCast(badParent.ChildBoundNodes(index), IOperation)
+                If child IsNot Nothing Then
+                    Return child
+                End If
+            End If
+
+            Return New InvalidExpression(parent.Syntax)
+        End Function
+
     End Class
 
     Friend Partial Class BoundAssignmentOperator
@@ -70,7 +83,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
                     Dim rightOperatorBinary As BoundUserDefinedBinaryOperator = TryCast(Me.Right, BoundUserDefinedBinaryOperator)
                     If rightOperatorBinary IsNot Nothing Then
-                        Return rightOperatorBinary.Right
+                        Return DirectCast(rightOperatorBinary, IBinaryOperatorExpression).RightOperand
                     End If
                 End If
 
@@ -99,7 +112,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Private ReadOnly Property IHasOperatorMethodExpression_OperatorMethod As IMethodSymbol Implements IHasOperatorMethodExpression.OperatorMethod
             Get
                 If Me.IHasOperatorMethodExpression_UsesOperatorMethod Then
-                    Return DirectCast(Me.Right, BoundUserDefinedBinaryOperator).Call.Method
+                    Return DirectCast(Me.Right, IBinaryOperatorExpression).OperatorMethod
                 End If
 
                 Return Nothing
@@ -109,7 +122,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Private ReadOnly Property IHasOperatorMethodExpression_UsesOperatorMethod As Boolean Implements IHasOperatorMethodExpression.UsesOperatorMethod
             Get
                 If ExpressionKind() = OperationKind.CompoundAssignmentExpression Then
-                    Return TypeOf Me.Right Is BoundUserDefinedBinaryOperator
+                    Dim rightBinary As IBinaryOperatorExpression = TryCast(Me.Right, IBinaryOperatorExpression)
+                    Return rightBinary IsNot Nothing AndAlso rightBinary.UsesOperatorMethod
                 End If
 
                 Return False
@@ -126,7 +140,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
             Dim rightOperatorBinary As BoundUserDefinedBinaryOperator = TryCast(Me.Right, BoundUserDefinedBinaryOperator)
             If rightOperatorBinary IsNot Nothing Then
-                If TypeOf rightOperatorBinary.Left Is BoundCompoundAssignmentTargetPlaceholder Then
+                If TypeOf DirectCast(rightOperatorBinary, IBinaryOperatorExpression).LeftOperand Is BoundCompoundAssignmentTargetPlaceholder Then
                     Return OperationKind.CompoundAssignmentExpression
                 End If
             End If
@@ -311,8 +325,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Private ReadOnly Property IInvocationExpression_IsVirtual As Boolean Implements IInvocationExpression.IsVirtual
             Get
                 Dim method As IMethodSymbol = Me.Method
+                Dim instance As IOperation = Me.ReceiverOpt
 
-                Return (method.IsVirtual OrElse method.IsAbstract OrElse method.IsOverride) AndAlso Me.ReceiverOpt.Kind <> BoundKind.MyBaseReference AndAlso Me.ReceiverOpt.Kind <> BoundKind.MyClassReference
+                Return method IsNot Nothing AndAlso instance IsNot Nothing AndAlso (method.IsVirtual OrElse method.IsAbstract OrElse method.IsOverride) AndAlso instance.Kind <> BoundKind.MyBaseReference AndAlso instance.Kind <> BoundKind.MyClassReference
             End Get
         End Property
 
@@ -629,19 +644,23 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         Private ReadOnly Property IHasOperatorMethodExpression_OperatorMethod As IMethodSymbol Implements IHasOperatorMethodExpression.OperatorMethod
             Get
-                Return Me.Call.Method
+                Return If(TypeOf Me.UnderlyingExpression Is BoundCall, Me.Call.Method, Nothing)
             End Get
         End Property
 
         Private ReadOnly Property IHasOperatorMethodExpression_UsesOperatorMethod As Boolean Implements IHasOperatorMethodExpression.UsesOperatorMethod
             Get
-                Return True
+                Return IHasOperatorMethodExpression_OperatorMethod IsNot Nothing
             End Get
         End Property
 
         Private ReadOnly Property IUnaryOperatorExpression_Operand As IOperation Implements IUnaryOperatorExpression.Operand
             Get
-                Return Me.Operand
+                If TypeOf Me.UnderlyingExpression Is BoundCall Then
+                    Return Me.Operand
+                Else
+                    Return GetBadChild(Me.UnderlyingExpression, 0)
+                End If
             End Get
         End Property
 
@@ -724,7 +743,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         Private ReadOnly Property IBinaryOperatorExpression_LeftOperand As IOperation Implements IBinaryOperatorExpression.LeftOperand
             Get
-                Return Me.Left
+                If TypeOf Me.UnderlyingExpression Is BoundCall Then
+                    Return Me.Left
+                Else
+                    Return GetBadChild(Me.UnderlyingExpression, 0)
+                End If
             End Get
         End Property
 
@@ -769,42 +792,39 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                         Return BinaryOperationKind.OperatorMethodGreaterThanOrEqual
                     Case BinaryOperatorKind.GreaterThan
                         Return BinaryOperationKind.OperatorMethodGreaterThan
+                    Case BinaryOperatorKind.Power
+                        Return BinaryOperationKind.OperatorMethodPower
                     Case Else
-                        Throw ExceptionUtilities.UnexpectedValue(OperatorKind And BinaryOperatorKind.OpMask)
+                        Return BinaryOperationKind.Invalid
                 End Select
             End Get
         End Property
 
         Private ReadOnly Property IBinaryOperatorExpression_RightOperand As IOperation Implements IBinaryOperatorExpression.RightOperand
             Get
-                Return Me.Right
+
+                If TypeOf Me.UnderlyingExpression Is BoundCall Then
+                    Return Me.Right
+                Else
+                    Return GetBadChild(Me.UnderlyingExpression, 1)
+                End If
             End Get
         End Property
 
         Private ReadOnly Property IHasOperatorMethodExpression_OperatorMethod As IMethodSymbol Implements IHasOperatorMethodExpression.OperatorMethod
             Get
-                Return Me.Call.Method
+                Return If(TypeOf Me.UnderlyingExpression Is BoundCall, Me.Call.Method, Nothing)
             End Get
         End Property
 
         Private ReadOnly Property IHasOperatorMethodExpression_UsesOperatorMethod As Boolean Implements IHasOperatorMethodExpression.UsesOperatorMethod
             Get
-                Return True
+                Return IHasOperatorMethodExpression_OperatorMethod IsNot Nothing
             End Get
         End Property
 
         Protected Overrides Function ExpressionKind() As OperationKind
-            Select Case Me.OperatorKind And BinaryOperatorKind.OpMask
-                Case BinaryOperatorKind.Add, BinaryOperatorKind.Concatenate, BinaryOperatorKind.Subtract, BinaryOperatorKind.Multiply, BinaryOperatorKind.Divide,
-                    BinaryOperatorKind.IntegerDivide, BinaryOperatorKind.Modulo, BinaryOperatorKind.Power, BinaryOperatorKind.LeftShift, BinaryOperatorKind.RightShift,
-                    BinaryOperatorKind.And, BinaryOperatorKind.Or, BinaryOperatorKind.Xor, BinaryOperatorKind.AndAlso, BinaryOperatorKind.OrElse,
-                    BinaryOperatorKind.LessThan, BinaryOperatorKind.LessThanOrEqual, BinaryOperatorKind.Equals, BinaryOperatorKind.NotEquals,
-                    BinaryOperatorKind.Is, BinaryOperatorKind.IsNot, BinaryOperatorKind.Like, BinaryOperatorKind.GreaterThanOrEqual, BinaryOperatorKind.GreaterThan
-
-                    Return OperationKind.BinaryOperatorExpression
-            End Select
-
-            Throw ExceptionUtilities.UnexpectedValue(Me.OperatorKind And BinaryOperatorKind.OpMask)
+            Return OperationKind.BinaryOperatorExpression
         End Function
 
         Public Overrides Sub Accept(visitor As OperationVisitor)

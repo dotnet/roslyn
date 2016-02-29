@@ -1499,6 +1499,54 @@ class C
                  );
         }
 
+        [Fact]
+        public void InvalidOperatorsCSharp()
+        {
+            const string source = @"
+public class A
+{
+    readonly int _value;
+
+    public A (int value)
+    {
+        _value = value;
+    }
+
+    public static A operator +(A x, A y)
+    {
+        return new A(x._value + y._value);
+    }
+
+    public static A operator -(A x, A y)
+    {
+        return new A(x._value - y._value);
+    }
+}
+
+class C
+{
+    static void Main()
+    {
+        A a1 = new A(0);
+        A a2 = new A(100);
+
+        a1 = a1 + 10;
+        a1 = a1 + a2;
+        a1 = -a1;
+   }
+}
+";
+            CreateCompilationWithMscorlib45(source)
+             .VerifyDiagnostics(Diagnostic(ErrorCode.ERR_BadBinaryOps, "a1 + 10", new object[] { "+", "A", "int"}).WithLocation(29, 14),
+                                Diagnostic(ErrorCode.ERR_BadUnaryOp, "-a1", new object[] { "-", "A"}).WithLocation(31, 14))
+             .VerifyAnalyzerDiagnostics(new DiagnosticAnalyzer[] { new OperatorPropertyPullerTestAnalyzer() }, null, null, false,
+                 Diagnostic(OperatorPropertyPullerTestAnalyzer.BinaryOperatorDescriptor.Id, "x._value + y._value").WithArguments("IntegerAdd").WithLocation(13, 22),
+                 Diagnostic(OperatorPropertyPullerTestAnalyzer.BinaryOperatorDescriptor.Id, "x._value - y._value").WithArguments("IntegerSubtract").WithLocation(18, 22),
+                 Diagnostic(OperatorPropertyPullerTestAnalyzer.BinaryOperatorDescriptor.Id, "a1 + 10").WithArguments("Invalid").WithLocation(29, 14),
+                 Diagnostic(OperatorPropertyPullerTestAnalyzer.UnaryOperatorDescriptor.Id, "-a1").WithArguments("Invalid").WithLocation(31, 14)
+                 );
+        }
+
         [WorkItem(8520, "https://github.com/dotnet/roslyn/issues/8520")]
         [Fact]
         public void NullOperationSyntaxCSharp()

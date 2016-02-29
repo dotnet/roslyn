@@ -287,6 +287,7 @@ Microsoft.CodeAnalysis.Semantics.BinaryOperationKind.OperatorMethodLessThanOrEqu
 Microsoft.CodeAnalysis.Semantics.BinaryOperationKind.OperatorMethodMultiply = 259 -> Microsoft.CodeAnalysis.Semantics.BinaryOperationKind
 Microsoft.CodeAnalysis.Semantics.BinaryOperationKind.OperatorMethodNotEquals = 274 -> Microsoft.CodeAnalysis.Semantics.BinaryOperationKind
 Microsoft.CodeAnalysis.Semantics.BinaryOperationKind.OperatorMethodOr = 267 -> Microsoft.CodeAnalysis.Semantics.BinaryOperationKind
+Microsoft.CodeAnalysis.Semantics.BinaryOperationKind.OperatorMethodPower = 263 -> Microsoft.CodeAnalysis.Semantics.BinaryOperationKind
 Microsoft.CodeAnalysis.Semantics.BinaryOperationKind.OperatorMethodRemainder = 262 -> Microsoft.CodeAnalysis.Semantics.BinaryOperationKind
 Microsoft.CodeAnalysis.Semantics.BinaryOperationKind.OperatorMethodRightShift = 265 -> Microsoft.CodeAnalysis.Semantics.BinaryOperationKind
 Microsoft.CodeAnalysis.Semantics.BinaryOperationKind.OperatorMethodSubtract = 258 -> Microsoft.CodeAnalysis.Semantics.BinaryOperationKind
