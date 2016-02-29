@@ -244,7 +244,7 @@
     <Compile Include="Options\Formatting\FormattingSpacingPage.cs" />
     <Compile Include="Options\Formatting\StyleViewModel.cs" />
     <Compile Include="Options\Formatting\WrappingViewModel.cs" />
-    <Compile Include="Options\Formatting\FormattingStylePage.cs" />
+    <Compile Include="Options\Formatting\CodeStylePage.cs" />
     <Compile Include="Options\Formatting\FormattingWrappingPage.cs" />
     <Compile Include="Options\IntelliSenseOptionPage.cs" />
     <Compile Include="Options\IntelliSenseOptionPageControl.xaml.cs">

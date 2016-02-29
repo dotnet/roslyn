@@ -67,7 +67,7 @@
     <InternalsVisibleToTest Include="Roslyn.VisualStudio.Services.UnitTests" />
     <InternalsVisibleToTypeScript Include="Microsoft.VisualStudio.LanguageServices.TypeScript" />
     <InternalsVisibleToTypeScript Include="Microsoft.CodeAnalysis.TypeScript.EditorFeatures" />
-    <InternalsVisibleToFSharp Include="FSharp.Editor" />    
+    <InternalsVisibleToFSharp Include="FSharp.Editor" />
     <InternalsVisibleToFSharp Include="FSharp.LanguageService" />
   </ItemGroup>
   <ItemGroup>
@@ -97,6 +97,7 @@
       <Private>false</Private>
     </Reference>
     <Reference Include="Microsoft.VisualStudio.GraphModel, Version=$(VisualStudioReferenceAssemblyVersion), Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a" />
+    <Reference Include="Microsoft.VisualStudio.ImageCatalog, Version=14.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL" />
     <Reference Include="Microsoft.VisualStudio.Imaging, Version=14.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL" />
     <Reference Include="Microsoft.VisualStudio.Imaging.Interop.14.0.DesignTime, Version=14.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
       <EmbedInteropTypes>True</EmbedInteropTypes>
@@ -309,8 +310,16 @@
     <Compile Include="CodeModel\RootCodeModel.cs" />
     <Compile Include="CodeModel\SyntaxNodeKey.cs" />
     <Compile Include="CodeModel\TextManagerAdapter.cs" />
+    <Compile Include="Options\AbstractCodeStyleOptionViewModel.cs" />
+    <Compile Include="Options\BooleanCodeStyleOptionViewModel.cs" />
+    <Compile Include="Options\CodeStylePreference.cs" />
+    <Compile Include="Options\Converters\MarginConverter.cs" />
+    <Compile Include="Options\SimpleCodeStyleOptionViewModel.cs" />
     <Compile Include="Options\AbstractCheckBoxViewModel.cs" />
     <Compile Include="Options\CheckBoxWithComboViewModel.cs" />
+    <Compile Include="Options\GridOptionPreviewControl.xaml.cs">
+      <DependentUpon>GridOptionPreviewControl.xaml</DependentUpon>
+    </Compile>
     <Compile Include="Options\NotificationOptionViewModel.cs" />
     <Compile Include="Options\FullSolutionAnalysisOptionBinding.cs" />
     <Compile Include="Options\OptionLogger.cs" />
@@ -332,6 +341,10 @@
     <Compile Include="RoslynVisualStudioWorkspace.cs" />
   </ItemGroup>
   <ItemGroup>
+    <Page Include="Options\GridOptionPreviewControl.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
     <Page Include="Options\OptionPreviewControl.xaml">
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>

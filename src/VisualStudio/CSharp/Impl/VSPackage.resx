@@ -205,7 +205,7 @@
     <comment>"Code Style" node under Tools &gt; Options, Text Editor, C#.</comment>
   </data>
   <data name="313" xml:space="preserve">
-    <value>Style;Qualify;This;Code Style</value>
+    <value>Style;Qualify;This;Code Style;var;member access;locals;parameters;var preferences;predefined type;framework type;built-in types;when variable type is apparent;elsewhere;qualify field access;qualify property access; qualify method access;qualify event access;</value>
     <comment>C# Code Style options page keywords</comment>
   </data>
 </root>
