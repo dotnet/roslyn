@@ -15,18 +15,49 @@ namespace Microsoft.CodeAnalysis.UnitTests
         public void ParseGood()
         {
             Version version;
-            Assert.True(VersionHelper.TryParseAssemblyVersion("1.234.56.7", allowWildcard: true, version: out version));
+
             Assert.True(VersionHelper.TryParseAssemblyVersion("3.2.*", allowWildcard: true, version: out version));
             Assert.Equal(3, version.Major);
             Assert.Equal(2, version.Minor);
-            //number of days since Jan 1, 2000
-            Assert.Equal((int)(DateTime.Now - new DateTime(2000, 1, 1)).TotalDays, version.Build);
-            //number of seconds since midnight divided by two
-            int s = (int)DateTime.Now.TimeOfDay.TotalSeconds / 2;
-            Assert.InRange(version.Revision, s - 2, s + 2);
+
+            Assert.Equal(65535, version.Build);
+            Assert.Equal(65535, version.Revision);
+
             Assert.True(VersionHelper.TryParseAssemblyVersion("1.2.3.*", allowWildcard: true, version: out version));
-            s = (int)DateTime.Now.TimeOfDay.TotalSeconds / 2;
+            Assert.Equal(1, version.Major);
+            Assert.Equal(2, version.Minor);
+            Assert.Equal(3, version.Build);
+            Assert.Equal(65535, version.Revision);
+        }
+
+        [Fact]
+        public void TimeBased()
+        {
+            var version = VersionHelper.GenerateVersionFromPatternAndCurrentTime(new Version(3, 2, 65535, 65535));
+            int d = (int)(DateTime.Now - new DateTime(2000, 1, 1)).TotalDays; // number of days since Jan 1, 2000
+            int s = (int)DateTime.Now.TimeOfDay.TotalSeconds / 2; // number of seconds since midnight divided by two
+
+            Assert.Equal(3, version.Major);
+            Assert.Equal(2, version.Minor);
+            Assert.Equal(d, version.Build); 
             Assert.InRange(version.Revision, s - 2, s + 2);
+
+            version = VersionHelper.GenerateVersionFromPatternAndCurrentTime(new Version(1, 2, 3, 65535));
+            s = (int)DateTime.Now.TimeOfDay.TotalSeconds / 2; // number of seconds since midnight divided by two
+
+            Assert.Equal(1, version.Major);
+            Assert.Equal(2, version.Minor);
+            Assert.Equal(3, version.Build);
+
+            Assert.InRange(version.Revision, s - 2, s + 2);
+
+            version = VersionHelper.GenerateVersionFromPatternAndCurrentTime(new Version(1, 2, 3, 4));
+            Assert.Equal(1, version.Major);
+            Assert.Equal(2, version.Minor);
+            Assert.Equal(3, version.Build);
+            Assert.Equal(4, version.Revision);
+
+            Assert.Null(VersionHelper.GenerateVersionFromPatternAndCurrentTime(null));
         }
 
         [Fact]
@@ -34,11 +65,28 @@ namespace Microsoft.CodeAnalysis.UnitTests
         {
             Version version;
             Assert.True(VersionHelper.TryParse("1.234.56.7", out version));
+            Assert.Equal(1, version.Major);
+            Assert.Equal(234, version.Minor);
+            Assert.Equal(56, version.Build);
+            Assert.Equal(7, version.Revision);
+
+            Assert.True(VersionHelper.TryParse("3.2.1", out version));
+            Assert.Equal(3, version.Major);
+            Assert.Equal(2, version.Minor);
+            Assert.Equal(1, version.Build);
+            Assert.Equal(0, version.Revision);
+
             Assert.True(VersionHelper.TryParse("3.2", out version));
             Assert.Equal(3, version.Major);
             Assert.Equal(2, version.Minor);
+            Assert.Equal(0, version.Build);
+            Assert.Equal(0, version.Revision);
+
             Assert.True(VersionHelper.TryParse("3", out version));
             Assert.Equal(3, version.Major);
+            Assert.Equal(0, version.Minor);
+            Assert.Equal(0, version.Build);
+            Assert.Equal(0, version.Revision);
         }
 
         [Fact]
@@ -46,6 +94,8 @@ namespace Microsoft.CodeAnalysis.UnitTests
         {
             Version version;
             Assert.False(VersionHelper.TryParseAssemblyVersion("1.234.56.7.*", allowWildcard: true, version: out version));
+            Assert.Null(version);
+            Assert.False(VersionHelper.TryParseAssemblyVersion("1.234.56.7.1", allowWildcard: true, version: out version));
             Assert.Null(version);
             Assert.False(VersionHelper.TryParseAssemblyVersion("*", allowWildcard: true, version: out version));
             Assert.Null(version);
@@ -58,6 +108,8 @@ namespace Microsoft.CodeAnalysis.UnitTests
             Assert.False(VersionHelper.TryParseAssemblyVersion("1.1.*.*", allowWildcard: true, version: out version));
             Assert.Null(version);
             Assert.False(VersionHelper.TryParseAssemblyVersion("", allowWildcard: true, version: out version));
+            Assert.Null(version);
+            Assert.False(VersionHelper.TryParseAssemblyVersion("   ", allowWildcard: true, version: out version));
             Assert.Null(version);
             Assert.False(VersionHelper.TryParseAssemblyVersion(null, allowWildcard: true, version: out version));
             Assert.Null(version);
@@ -74,6 +126,16 @@ namespace Microsoft.CodeAnalysis.UnitTests
             Assert.False(VersionHelper.TryParseAssemblyVersion("65535.65535.65535.65535", allowWildcard: true, version: out version));
             Assert.Null(version);
             Assert.False(VersionHelper.TryParseAssemblyVersion("65535.65535.65535.65535", allowWildcard: false, version: out version));
+            Assert.Null(version);
+            Assert.False(VersionHelper.TryParseAssemblyVersion(" 1.2.3.4", allowWildcard: true, version: out version));
+            Assert.Null(version);
+            Assert.False(VersionHelper.TryParseAssemblyVersion("1 .2.3.4", allowWildcard: true, version: out version));
+            Assert.Null(version);
+            Assert.False(VersionHelper.TryParseAssemblyVersion("1.2.3.4 ", allowWildcard: true, version: out version));
+            Assert.Null(version);
+            Assert.False(VersionHelper.TryParseAssemblyVersion("1.2.3. 4", allowWildcard: true, version: out version));
+            Assert.Null(version);
+            Assert.False(VersionHelper.TryParseAssemblyVersion("1.2. 3.4", allowWildcard: true, version: out version));
             Assert.Null(version);
 
             // U+FF11 FULLWIDTH DIGIT ONE 
@@ -110,6 +172,10 @@ namespace Microsoft.CodeAnalysis.UnitTests
             Assert.False(VersionHelper.TryParse("1.a", out version));
             Assert.Null(version);
             Assert.False(VersionHelper.TryParse("1.2.a.b", out version));
+            Assert.Null(version);
+            Assert.False(VersionHelper.TryParse("-1.2.3.4", out version));
+            Assert.Null(version);
+            Assert.False(VersionHelper.TryParse("1.-2.3.4", out version));
             Assert.Null(version);
 
             // U+FF11 FULLWIDTH DIGIT ONE 

@@ -73,6 +73,25 @@ namespace Microsoft.CodeAnalysis
             }
 
             if (hasWildcard)
+
+            {
+                for (int i = lastExplicitValue; i < values.Length; i++)
+                {
+                    values[i] = ushort.MaxValue;
+                }
+            }
+
+            version = new Version(values[0], values[1], values[2], values[3]);
+            return true;
+        }
+
+        /// <summary>
+        /// If build and/or revision numbers are 65535 they are replaced with time-based values.
+        /// </summary>
+        public static Version GenerateVersionFromPatternAndCurrentTime(Version pattern)
+        {
+            if (pattern == null || pattern.Revision != ushort.MaxValue)
+
             {
                 int seconds = ((int)(DateTime.Now.TimeOfDay.TotalSeconds)) / 2;
                 if (seconds > (int)maxValue)
