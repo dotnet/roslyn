@@ -430,7 +430,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             internal void AddExtensions(ImmutableDictionary<string, ImmutableArray<TExtension>>.Builder builder)
             {
                 ImmutableDictionary<string, ImmutableHashSet<string>> analyzerTypeNameMap;
-                Assembly analyzerAssembly = null;
+                Assembly analyzerAssembly;
 
                 try
                 {
@@ -474,7 +474,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             internal void AddExtensions(ImmutableArray<TExtension>.Builder builder, string language)
             {
                 ImmutableDictionary<string, ImmutableHashSet<string>> analyzerTypeNameMap;
-                Assembly analyzerAssembly = null;
+                Assembly analyzerAssembly;
 
                 try
                 {

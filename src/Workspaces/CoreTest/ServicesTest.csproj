@@ -74,7 +74,11 @@
     <Compile Include="LinkedFileDiffMerging\LinkedFileDiffMergingTests.TextMerging.cs" />
     <Compile Include="LinkedFileDiffMerging\LinkedFileDiffMergingTests.Features.cs" />
     <Compile Include="LinkedFileDiffMerging\LinkedFileDiffMergingTests.cs" />
+<<<<<<< HEAD
     <Compile Include="ServicesTestBase.cs" />
+=======
+    <Compile Include="SolutionTests\SourceGeneratorTests.cs" />
+>>>>>>> e633afd... Support replace/original in C#
     <Compile Include="UtilityTest\AsyncLazyTests.cs" />
     <Compile Include="CodeCleanup\AddMissingTokensTests.cs" />
     <Compile Include="CodeCleanup\CodeCleanupTests.cs" />

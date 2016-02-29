@@ -1376,11 +1376,16 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_BadIteratorLocalType = 8941,
         ERR_BadAsyncLocalType = 8942,
         ERR_RefReturningCallAndAwait = 8943,
+
         ERR_TupleTooFewElements = 8200,
         ERR_TupleReservedMemberName = 8201,
         ERR_TupleDuplicateMemberName = 8202,
         ERR_TupleExplicitNamesOnAllMembersOrNone = 8203,
 
         ERR_PrototypeNotYetImplemented = 8204,
+
+        ERR_NoOriginalMember = 8944,
+        ERR_DuplicateReplace = 8945,
+        ERR_PartialReplace = 8946,
     }
 }

@@ -1,5 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Xunit;
@@ -9,7 +10,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
     public class ReplaceParsingTests
     {
         [Fact]
-        public void TestClassReplace()
+        public void ReplaceClass()
         {
             var root = SyntaxFactory.ParseCompilationUnit("abstract replace override class C { }");
             root.Errors().Verify();
@@ -20,9 +21,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Fact]
-        public void TestMethodReplace()
+        public void ReplaceMethod()
         {
-            var root = SyntaxFactory.ParseCompilationUnit("class C { abstract replace override void M(); }");
+            var root = SyntaxFactory.ParseCompilationUnit("class C { virtual replace protected void M() { } }");
             root.Errors().Verify();
             var type = (TypeDeclarationSyntax)root.Members[0];
             Assert.Equal(
@@ -31,7 +32,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             var method = (MethodDeclarationSyntax)type.Members[0];
             Assert.Equal(
                 method.Modifiers.ToDeclarationModifiers(),
-                DeclarationModifiers.Abstract | DeclarationModifiers.Override | DeclarationModifiers.Replace);
+                DeclarationModifiers.Virtual | DeclarationModifiers.Protected | DeclarationModifiers.Replace);
         }
 
         [Fact]
@@ -41,34 +42,43 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             expr.Errors().Verify();
             Assert.Equal(SyntaxKind.IdentifierName, expr.Kind());
             Assert.Equal(SyntaxKind.OriginalKeyword, ((IdentifierNameSyntax)expr).Identifier.ContextualKind());
-
             var opKind = SyntaxFacts.GetInstanceExpression(SyntaxKind.OriginalKeyword);
             Assert.Equal(SyntaxKind.None, opKind);
         }
 
         [Fact]
-        public void OriginalInReplaceIndexer()
+        public void OriginalNoReplace()
         {
-            const string text =
-@"class C
-{
-        replace object this[int index]
-        {
-            get { return original[index]; }
-            set { original[index] = value; }
-        }
-}";
-            var root = SyntaxFactory.ParseCompilationUnit(text);
-            root.Errors().Verify();
-            Assert.Equal(SyntaxKind.IdentifierName, root.Kind());
+            OriginalInMember("class C { void F() { original(); } }", inReplace: false);
+            OriginalInMember("class C { object P { get { return original; } } }", inReplace: false);
+            OriginalInMember("class C { object this[int index] { set { original[index] = value; } } }", inReplace: false);
+            OriginalInMember("class C { event System.EventHandler E { add { original.Add(value); } } }", inReplace: false);
+            OriginalInMember("class C { object F() => original(); }", inReplace: false);
+            OriginalInMember("class C { object P => original; }", inReplace: false);
+            OriginalInMember("class C { object this[int index] => original[index]; }", inReplace: false);
         }
 
-        private void OriginalInMethod(string text, bool isContextualKeyword)
+        [Fact]
+        public void OriginalInReplace()
+        {
+            OriginalInMember("class C { replace void F() { original(); } }", inReplace: true);
+            OriginalInMember("class C { replace object P { get { return original; } } }", inReplace: true);
+            OriginalInMember("class C { replace object this[int index] { set { original[index] = value; } } }", inReplace: true);
+            OriginalInMember("class C { replace event System.EventHandler E { add { original.Add(value); } } }", inReplace: true);
+            OriginalInMember("class C { replace object F() => original(); }", inReplace: true);
+            OriginalInMember("class C { replace object P => original; }", inReplace: true);
+            OriginalInMember("class C { replace object this[int index] => original[index]; }", inReplace: true);
+        }
+
+        private void OriginalInMember(string text, bool inReplace)
         {
             var tree = SyntaxFactory.ParseSyntaxTree(text);
             var root = tree.GetCompilationUnitRoot();
             root.Errors().Verify();
-            Assert.Equal(SyntaxKind.IdentifierName, root.Kind());
+            var token = root.DescendantTokens().Where(t => t.Text == "original").Single();
+            var expr = token.Parent;
+            var expectedKind = inReplace ? SyntaxKind.OriginalExpression : SyntaxKind.IdentifierName;
+            Assert.Equal(expectedKind, expr.Kind());
         }
     }
 }

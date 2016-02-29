@@ -353,7 +353,7 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         internal void OnDocumentContextUpdated(DocumentId documentId, SourceTextContainer container)
         {
-            using (new SerializationLock(this))
+            using (_serializationLock.DisposableWait())
             {
                 using (_stateLock.DisposableWait())
                 {
@@ -402,7 +402,7 @@ namespace Microsoft.CodeAnalysis
             CheckDocumentIsInCurrentSolution(documentId);
             CheckDocumentIsClosed(documentId);
 
-            using (new SerializationLock(this))
+            using (_serializationLock.DisposableWait())
             {
                 var oldSolution = this.CurrentSolution;
                 var oldDocument = oldSolution.GetDocument(documentId);
@@ -512,7 +512,7 @@ namespace Microsoft.CodeAnalysis
             CheckAdditionalDocumentIsInCurrentSolution(documentId);
             CheckDocumentIsClosed(documentId);
 
-            using (new SerializationLock(this))
+            using (_serializationLock.DisposableWait())
             {
                 var oldSolution = this.CurrentSolution;
                 var oldDocument = oldSolution.GetAdditionalDocument(documentId);
@@ -556,7 +556,7 @@ namespace Microsoft.CodeAnalysis
             // SetDocumentContext after releasing the serializationLock.
             DocumentId currentContextDocumentId;
 
-            using (new SerializationLock(this))
+            using (_serializationLock.DisposableWait())
             {
                 // forget any open document info
                 currentContextDocumentId = ForgetAnyOpenDocumentInfo(documentId);
@@ -598,7 +598,7 @@ namespace Microsoft.CodeAnalysis
         {
             this.CheckAdditionalDocumentIsInCurrentSolution(documentId);
 
-            using (new SerializationLock(this))
+            using (_serializationLock.DisposableWait())
             {
                 // forget any open document info
                 ForgetAnyOpenDocumentInfo(documentId);

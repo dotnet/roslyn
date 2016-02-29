@@ -3,7 +3,6 @@
 using System;
 using System.Collections.Immutable;
 using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.Text;
 
 namespace Roslyn.Utilities
 {
@@ -60,6 +59,49 @@ namespace Roslyn.Utilities
             get
             {
                 return _many.IsDefault ? 1 : _many.Length;
+            }
+        }
+
+        public OneOrMany<T> Add(T one)
+        {
+            var builder = ArrayBuilder<T>.GetInstance();
+            if (_many.IsDefault)
+            {
+                builder.Add(_one);
+            }
+            else
+            {
+                builder.AddRange(_many);
+            }
+            builder.Add(one);
+            return new OneOrMany<T>(builder.ToImmutableAndFree());
+        }
+
+        public Enumerator GetEnumerator()
+        {
+            return new Enumerator(this);
+        }
+
+        internal struct Enumerator
+        {
+            private readonly OneOrMany<T> _collection;
+            private int _index;
+
+            internal Enumerator(OneOrMany<T> collection)
+            {
+                _collection = collection;
+                _index = -1;
+            }
+
+            public bool MoveNext()
+            {
+                _index++;
+                return _index < _collection.Count;
+            }
+
+            public T Current
+            {
+                get { return _collection[_index]; }
             }
         }
     }

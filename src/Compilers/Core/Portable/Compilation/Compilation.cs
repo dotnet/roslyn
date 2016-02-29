@@ -1326,20 +1326,30 @@ namespace Microsoft.CodeAnalysis
             DiagnosticBag diagnostics,
             CancellationToken cancellationToken);
 
-        // TODO: private protected
-        internal abstract bool CompileImpl(
+        /// <summary>
+        /// Report declaration diagnostics and compile and synthesize method bodies.
+        /// </summary>
+        /// <returns>True if successful.</returns>
+        internal abstract bool CompileMethods(
             CommonPEModuleBuilder moduleBuilder,
-            Stream win32Resources,
-            Stream xmlDocStream,
             bool emittingPdb,
             DiagnosticBag diagnostics,
             Predicate<ISymbol> filterOpt,
             CancellationToken cancellationToken);
 
+        /// <summary>
+        /// Update resources and generate XML documentation comments.
+        /// </summary>
+        /// <returns>True if successful.</returns>
+        internal abstract bool GenerateResourcesAndDocumentationComments(
+            CommonPEModuleBuilder moduleBeingBuilt,
+            Stream xmlDocumentationStream,
+            Stream win32ResourcesStream,
+            DiagnosticBag diagnostics,
+            CancellationToken cancellationToken);
+
         internal bool Compile(
             CommonPEModuleBuilder moduleBuilder,
-            Stream win32Resources,
-            Stream xmlDocStream,
             bool emittingPdb,
             DiagnosticBag diagnostics,
             Predicate<ISymbol> filterOpt,
@@ -1347,10 +1357,8 @@ namespace Microsoft.CodeAnalysis
         {
             try
             {
-                return CompileImpl(
+                return CompileMethods(
                     moduleBuilder,
-                    win32Resources,
-                    xmlDocStream,
                     emittingPdb,
                     diagnostics,
                     filterOpt,
@@ -1384,10 +1392,8 @@ namespace Microsoft.CodeAnalysis
                     {
                         Compile(
                             moduleBeingBuilt,
-                            win32Resources: null,
-                            xmlDocStream: null,
-                            emittingPdb: false,
                             diagnostics: discardedDiagnostics,
+                            emittingPdb: false,
                             filterOpt: null,
                             cancellationToken: cancellationToken);
                     }
@@ -1513,17 +1519,58 @@ namespace Microsoft.CodeAnalysis
             CompilationTestData testData,
             CancellationToken cancellationToken)
         {
-            return Emit(
-                new SimpleEmitStreamProvider(peStream),
-                (pdbStream != null) ? new SimpleEmitStreamProvider(pdbStream) : null,
-                (xmlDocumentationStream != null) ? new SimpleEmitStreamProvider(xmlDocumentationStream) : null,
-                (win32Resources != null) ? new SimpleEmitStreamProvider(win32Resources) : null,
+            var diagnostics = DiagnosticBag.GetInstance();
+
+            var moduleBeingBuilt = CheckOptionsAndCreateModuleBuilder(
+                diagnostics,
                 manifestResources,
                 options,
                 debugEntryPoint,
                 testData,
-                null,
                 cancellationToken);
+
+            bool success = false;
+
+            if (moduleBeingBuilt != null)
+            {
+                try
+                {
+                    success = CompileMethods(
+                        moduleBeingBuilt,
+                        pdbStream != null,
+                        diagnostics,
+                        filterOpt: null,
+                        cancellationToken: cancellationToken);
+
+                    if (success)
+                    {
+                        success = GenerateResourcesAndDocumentationComments(
+                            moduleBeingBuilt,
+                            xmlDocumentationStream,
+                            win32Resources,
+                            diagnostics,
+                            cancellationToken);
+                    }
+                }
+                finally
+                {
+                    moduleBeingBuilt.CompilationFinished();
+                }
+
+                if (success)
+                {
+                    success = SerializeToPeStream(
+                        moduleBeingBuilt,
+                        new SimpleEmitStreamProvider(peStream),
+                        (pdbStream != null) ? new SimpleEmitStreamProvider(pdbStream) : null,
+                        testData?.SymWriterFactory,
+                        diagnostics,
+                        metadataOnly: (options != null) && options.EmitMetadataOnly,
+                        cancellationToken: cancellationToken);
+                }
+            }
+
+            return new EmitResult(success, diagnostics.ToReadOnlyAndFree());
         }
 
         /// <summary>
@@ -1609,21 +1656,18 @@ namespace Microsoft.CodeAnalysis
             CompilationTestData testData,
             CancellationToken cancellationToken);
 
-        internal EmitResult Emit(
-            EmitStreamProvider peStreamProvider,
-            EmitStreamProvider pdbStreamProvider,
-            EmitStreamProvider xmlDocumentationStreamProvider,
-            EmitStreamProvider win32ResourcesStreamProvider,
+        /// <summary>
+        /// Check compilation options and create <see cref="CommonPEModuleBuilder"/>.
+        /// </summary>
+        /// <returns><see cref="CommonPEModuleBuilder"/> if successful.</returns>
+        internal CommonPEModuleBuilder CheckOptionsAndCreateModuleBuilder(
+            DiagnosticBag diagnostics,
             IEnumerable<ResourceDescription> manifestResources,
             EmitOptions options,
             IMethodSymbol debugEntryPoint,
             CompilationTestData testData,
-            Func<DiagnosticBag, bool, bool> getHostDiagnostics,
             CancellationToken cancellationToken)
         {
-            Debug.Assert(peStreamProvider != null);
-
-            DiagnosticBag diagnostics = DiagnosticBag.GetInstance();
             if (options != null)
             {
                 options.ValidateOptions(diagnostics, this.MessageProvider);
@@ -1652,7 +1696,7 @@ namespace Microsoft.CodeAnalysis
 
             if (diagnostics.HasAnyErrors())
             {
-                return ToEmitResultAndFree(diagnostics, success: false);
+                return null;
             }
 
             // Do not waste a slot in the submission chain for submissions that contain no executable code
@@ -1661,57 +1705,19 @@ namespace Microsoft.CodeAnalysis
             {
                 // Still report diagnostics since downstream submissions will assume there are no errors.
                 diagnostics.AddRange(this.GetDiagnostics());
-                return ToEmitResultAndFree(diagnostics, success: false);
+                return null;
             }
 
-            var moduleBeingBuilt = this.CreateModuleBuilder(
+            return this.CreateModuleBuilder(
                 options,
                 debugEntryPoint,
                 manifestResources,
                 testData,
                 diagnostics,
                 cancellationToken);
-
-            if (moduleBeingBuilt == null)
-            {
-                return ToEmitResultAndFree(diagnostics, success: false);
-            }
-
-            var win32Resources = win32ResourcesStreamProvider?.GetOrCreateStream(diagnostics);
-            var xmlDocumentationStream = xmlDocumentationStreamProvider?.GetOrCreateStream(diagnostics);
-            var success = this.Compile(
-                moduleBeingBuilt,
-                win32Resources,
-                xmlDocumentationStream,
-                emittingPdb: pdbStreamProvider != null,
-                diagnostics: diagnostics,
-                filterOpt: null,
-                cancellationToken: cancellationToken);
-
-            if (((getHostDiagnostics != null) && !getHostDiagnostics(diagnostics, success)) ||
-                !success)
-            {
-                return ToEmitResultAndFree(diagnostics, success: false);
-            }
-
-            success = SerializeToPeStream(
-                moduleBeingBuilt,
-                peStreamProvider,
-                pdbStreamProvider,
-                testData?.SymWriterFactory,
-                diagnostics,
-                metadataOnly: options.EmitMetadataOnly,
-                cancellationToken: cancellationToken);
-
-            return ToEmitResultAndFree(diagnostics, success);
         }
 
         internal abstract void ValidateDebugEntryPoint(IMethodSymbol debugEntryPoint, DiagnosticBag diagnostics);
-
-        private static EmitResult ToEmitResultAndFree(DiagnosticBag diagnostics, bool success)
-        {
-            return new EmitResult(success, diagnostics.ToReadOnlyAndFree());
-        }
 
         internal bool IsEmitDeterministic => this.Options.Deterministic;
 
