@@ -89,7 +89,8 @@ namespace RunTests.Cache
                     standardOutput: testResult.StandardOutput,
                     errorOutput: testResult.ErrorOutput,
                     resultsFileName: Path.GetFileName(testResult.ResultsFilePath),
-                    resultsFileContent: resultFileContent);
+                    resultsFileContent: resultFileContent,
+                    ellapsed: testResult.Elapsed);
                 await _dataStorage.AddCachedTestResult(contentFile, cachedTestResult).ConfigureAwait(true);
             }
             catch (Exception ex)

@@ -22,6 +22,7 @@ namespace RunTests.Cache
             ErrorOutput,
             ResultsFileContent,
             ResultsFileName,
+            EllapsedSeconds,
             Content
         }
 
@@ -64,13 +65,15 @@ namespace RunTests.Cache
                 var errorOutput = Read(checksum, StorageKind.ErrorOutput);
                 var resultsFileName = Read(checksum, StorageKind.ResultsFileName);
                 var resultsFileContent = Read(checksum, StorageKind.ResultsFileContent);
+                var ellapsed = Read(checksum, StorageKind.EllapsedSeconds);
 
                 testResult = new CachedTestResult(
                     exitCode: int.Parse(exitCode),
                     standardOutput: standardOutput,
                     errorOutput: errorOutput,
                     resultsFileName: resultsFileName,
-                    resultsFileContent: resultsFileContent);
+                    resultsFileContent: resultsFileContent,
+                    ellapsed: TimeSpan.FromSeconds(int.Parse(ellapsed)));
                 return true;
             }
             catch (Exception e)
@@ -98,6 +101,7 @@ namespace RunTests.Cache
                 Write(checksum, StorageKind.ErrorOutput, testResult.ErrorOutput);
                 Write(checksum, StorageKind.ResultsFileName, testResult.ResultsFileName);
                 Write(checksum, StorageKind.ResultsFileContent, testResult.ResultsFileContent);
+                Write(checksum, StorageKind.EllapsedSeconds, testResult.Ellapsed.TotalSeconds.ToString());
                 Write(checksum, StorageKind.Content, contentFile.Content);
             }
             catch (Exception e)
