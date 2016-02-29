@@ -22,6 +22,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.SolutionExplore
 
         protected override IAttachedCollectionSource CreateCollectionSource(IVsHierarchyItem item, string relationshipName)
         {
+            // Check the parent is a top-level (project) item.
             if (item != null &&
                 item.Parent != null &&
                 item.Parent.Parent == null)

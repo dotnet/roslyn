@@ -8122,53 +8122,6 @@ class C {
             Assert.Equal(1, parsedArgs.Errors.Count());
             Assert.Equal((int)ErrorCode.ERR_InvalidPathMap, parsedArgs.Errors[0].Code);
         }
-
-        [Fact]
-        public void Generator()
-        {
-            string source =
-@"class A : System.Attribute
-{
-}
-[A]
-class C
-{
-    D F() { return (D)G; }
-}";
-            var dir = Temp.CreateDirectory();
-            var file = dir.CreateFile("a.cs");
-            file.WriteAllText(source);
-
-            var output = VerifyOutput(dir, file, additionalFlags: new[] { "/nowarn:Warning01" }, expectedWarningCount: 1);
-            Assert.Contains("warning CS8032", output, StringComparison.Ordinal);
-
-            CleanupAllGeneratedFiles(file.Path);
-        }
-    }
-
-    [SourceGenerator(LanguageNames.CSharp)]
-    internal sealed class CSharpGenerator : SourceGenerator
-    {
-        public override void Execute(SourceGeneratorContext context)
-        {
-            context.AddCompilationUnit(
-                "other",
-CSharpSyntaxTree.ParseText(@"partial class C
-{
-    const object G = null;
-}
-class D
-{
-}"));
-        }
-    }
-
-    [SourceGenerator(LanguageNames.VisualBasic)]
-    internal sealed class VisualBasicGenerator : SourceGenerator
-    {
-        public override void Execute(SourceGeneratorContext context)
-        {
-        }
     }
 
     [DiagnosticAnalyzer(LanguageNames.CSharp, LanguageNames.VisualBasic)]

@@ -756,7 +756,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     {
                         var propAccess = (BoundPropertyAccess)node;
 
-                        if (Binder.AccessingAutopropertyFromConstructor(propAccess, this.currentMethodOrLambda))
+                        if (Binder.AccessingAutoPropertyFromConstructor(propAccess, this.currentMethodOrLambda))
                         {
                             var propSymbol = propAccess.PropertySymbol;
                             var backingField = (propSymbol as SourcePropertySymbol)?.BackingField;
@@ -894,7 +894,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case BoundKind.PropertyAccess:
                     {
                         var propertyAccess = (BoundPropertyAccess)node;
-                        if (Binder.AccessingAutopropertyFromConstructor(propertyAccess, this.currentMethodOrLambda))
+                        if (Binder.AccessingAutoPropertyFromConstructor(propertyAccess, this.currentMethodOrLambda))
                         {
                             var property = propertyAccess.PropertySymbol;
                             var backingField = (property as SourcePropertySymbol)?.BackingField;
@@ -1929,7 +1929,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         public override BoundNode VisitPropertyAccess(BoundPropertyAccess node)
         {
             var result = base.VisitPropertyAccess(node);
-            if (Binder.AccessingAutopropertyFromConstructor(node, this.currentMethodOrLambda))
+            if (Binder.AccessingAutoPropertyFromConstructor(node, this.currentMethodOrLambda))
             {
                 var property = node.PropertySymbol;
                 var backingField = (property as SourcePropertySymbol)?.BackingField;

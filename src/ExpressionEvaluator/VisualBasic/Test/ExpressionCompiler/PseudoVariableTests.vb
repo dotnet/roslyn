@@ -452,7 +452,7 @@ End Class"
 
             If valid Then
                 Dim expectedNames = {"<>x.<>m0(C)", "<invalid-global-code>..ctor()"} ' Unnecessary <invalid-global-code> (DevDiv #1010243)
-                Dim actualNames = testData.Methods.Keys
+                Dim actualNames = testData.GetMethodsByName().Keys
                 AssertEx.SetEqual(expectedNames, actualNames)
             Else
                 Assert.Equal(

@@ -643,6 +643,21 @@
       <summary>Creates an BaseExpressionSyntax node.</summary>
     </FactoryComment>
   </Node>
+  <Node Name="OriginalExpressionSyntax" Base="InstanceExpressionSyntax">
+    <Kind Name="OriginalExpression"/>
+    <Field Name="Token" Type="SyntaxToken">
+      <Kind Name="OriginalKeyword"/>
+      <PropertyComment>
+        <summary>SyntaxToken representing the original keyword.</summary>
+      </PropertyComment>
+    </Field>
+    <TypeComment>
+      <summary>Class which represents the syntax node for an original expression.</summary>
+    </TypeComment>
+    <FactoryComment>
+      <summary>Creates an OriginalExpressionSyntax node.</summary>
+    </FactoryComment>
+  </Node>
   <Node Name="LiteralExpressionSyntax" Base="ExpressionSyntax">
     <Kind Name="ArgListExpression"/>
     <Kind Name="NumericLiteralExpression"/>

@@ -388,7 +388,19 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             return document;
         }
 
-        public IVisualStudioHostDocument AddGeneratedDocument(DocumentId id, string filePath)
+        public void UpdateGeneratedDocuments(ImmutableArray<DocumentInfo> documentsRemoved, ImmutableArray<DocumentInfo> documentsAdded)
+        {
+            foreach (var info in documentsRemoved)
+            {
+                RemoveGeneratedDocument(info.Id);
+            }
+            foreach (var info in documentsAdded)
+            {
+                AddGeneratedDocument(info.Id, info.FilePath);
+            }
+        }
+
+        private IVisualStudioHostDocument AddGeneratedDocument(DocumentId id, string filePath)
         {
             IVisualStudioHostDocument document;
             using (this.DocumentProvider.ProvideDocumentIdHint(filePath, id))
@@ -401,13 +413,17 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                     isGenerated: true,
                     canUseTextBuffer: _ => true);
             }
-            AddDocument(document, isCurrentContext: LinkedFileUtilities.IsCurrentContextHierarchy(document, RunningDocumentTable));
+            AddGeneratedDocument(document, isCurrentContext: LinkedFileUtilities.IsCurrentContextHierarchy(document, RunningDocumentTable));
             return document;
         }
 
-        public void RemoveGeneratedDocument(DocumentId id)
+        private void RemoveGeneratedDocument(DocumentId id)
         {
-            throw new NotImplementedException(); // TODO
+            IVisualStudioHostDocument doc;
+            if (_documents.TryGetValue(id, out doc))
+            {
+                RemoveGeneratedDocument(doc);
+            }
         }
 
         public bool HasMetadataReference(string filename)
@@ -871,6 +887,53 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
         internal void UpdateGeneratedFiles()
         {
             this.ProjectTracker.NotifyWorkspaceHosts(host => host.UpdateGeneratedDocumentsIfNecessary(_id));
+        }
+
+        private void AddGeneratedDocument(IVisualStudioHostDocument document, bool isCurrentContext)
+        {
+            // We do not want to allow message pumping/reentrancy when processing project system changes.
+            using (Dispatcher.CurrentDispatcher.DisableProcessing())
+            {
+                if (_miscellaneousFilesWorkspaceOpt != null)
+                {
+                    _miscellaneousFilesWorkspaceOpt.OnFileIncludedInProject(document);
+                }
+
+                _documents.Add(document.Id, document);
+                _documentMonikers.Add(document.Key.Moniker, document);
+
+                if (_pushingChangesToWorkspaceHosts)
+                {
+                    if (document.IsOpen)
+                    {
+                        this.ProjectTracker.NotifyWorkspaceHosts(host => host.OnDocumentOpened(document.Id, document.GetOpenTextBuffer(), isCurrentContext));
+                    }
+                }
+
+                document.Opened += s_documentOpenedEventHandler;
+                document.Closing += s_documentClosingEventHandler;
+                document.UpdatedOnDisk += s_documentUpdatedOnDiskEventHandler;
+
+                DocumentProvider.NotifyDocumentRegisteredToProject(document);
+
+                if (!_pushingChangesToWorkspaceHosts && document.IsOpen)
+                {
+                    StartPushingToWorkspaceAndNotifyOfOpenDocuments();
+                }
+            }
+        }
+
+        private void RemoveGeneratedDocument(IVisualStudioHostDocument document)
+        {
+            // We do not want to allow message pumping/reentrancy when processing project system changes.
+            using (Dispatcher.CurrentDispatcher.DisableProcessing())
+            {
+                _documents.Remove(document.Id);
+                _documentMonikers.Remove(document.Key.Moniker);
+
+                UninitializeDocument(document);
+                OnDocumentRemoved(document.Key.Moniker);
+            }
         }
 
         public virtual void Disconnect()

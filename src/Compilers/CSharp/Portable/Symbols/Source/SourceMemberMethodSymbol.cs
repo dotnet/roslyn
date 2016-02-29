@@ -2,8 +2,8 @@
 
 using System.Collections.Immutable;
 using System.Diagnostics;
-using System.Linq;
 using System.Globalization;
+using System.Linq;
 using System.Threading;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
@@ -38,14 +38,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// </summary>
         private SourceMemberMethodSymbol _otherPartOfPartial;
 
-        /// <summary>
-        /// A binder to use for binding generic constraints. The field is only non-null while the .ctor
-        /// is executing, and allows constraints to be bound before the method is added to the
-        /// containing type. (Until the method symbol has been added to the container, we cannot
-        /// get a binder for the method without triggering a recursive attempt to bind the method.)
-        /// </summary>
-        private readonly Binder _constraintClauseBinder;
-
         public static SourceMemberMethodSymbol CreateMethodSymbol(
             NamedTypeSymbol containingType,
             Binder bodyBinder,
@@ -64,7 +56,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 ? MethodKind.Ordinary
                 : MethodKind.ExplicitInterfaceImplementation;
 
-            return new SourceMemberMethodSymbol(containingType, explicitInterfaceType, name, location, bodyBinder, syntax, methodKind, diagnostics);
+            return new SourceMemberMethodSymbol(containingType, explicitInterfaceType, name, location, syntax, methodKind, diagnostics);
         }
 
         private SourceMemberMethodSymbol(
@@ -72,7 +64,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             TypeSymbol explicitInterfaceType,
             string name,
             Location location,
-            Binder bodyBinder,
             MethodDeclarationSyntax syntax,
             MethodKind methodKind,
             DiagnosticBag diagnostics) :
@@ -104,25 +95,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             this.MakeFlags(methodKind, declarationModifiers, returnsVoid, isExtensionMethod, isMetadataVirtualIgnoringModifiers);
 
-            // NOTE: by creating a WithMethodTypeParametersBinder, we are effectively duplicating the
-            // functionality of the BinderFactory.  Unfortunately, we cannot use the BinderFactory
-            // because it depends on having access to the member list of our containing type and
-            // that list cannot be complete because we're not finished constructing this member.
-            // TODO: at least keep this in sync with BinderFactory.VisitMethodDeclaration.
-            bodyBinder = bodyBinder.WithUnsafeRegionIfNecessary(modifiers);
-
-            Binder withTypeParamsBinder;
-            if (syntax.Arity == 0)
-            {
-                withTypeParamsBinder = bodyBinder;
-                _typeParameters = ImmutableArray<TypeParameterSymbol>.Empty;
-            }
-            else
-            {
-                var parameterBinder = new WithMethodTypeParametersBinder(this, bodyBinder);
-                withTypeParamsBinder = parameterBinder;
-                _typeParameters = MakeTypeParameters(syntax, diagnostics);
-            }
+            _typeParameters = (syntax.Arity == 0) ?
+                ImmutableArray<TypeParameterSymbol>.Empty :
+                MakeTypeParameters(syntax, diagnostics);
 
             bool hasBlockBody = syntax.Body != null;
             _isExpressionBodied = !hasBlockBody && syntax.ExpressionBody != null;
@@ -143,18 +118,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             if (this.IsPartial)
             {
                 // Partial methods must be completed early because they are matched up
-                // by signature while producing the enclosing type's member list. However,
-                // that means any type parameter constraints will be bound before the method
-                // is added to the containing type. To enable binding of constraints before the
-                // .ctor completes we hold on to the current binder while the .ctor is executing.
-                // If we change the handling of partial methods, so that partial methods are
-                // completed lazily, the 'constraintClauseBinder' field should be removed.
-                _constraintClauseBinder = withTypeParamsBinder;
-
+                // by signature while producing the enclosing type's member list.
                 state.NotePartComplete(CompletionPart.StartMethodChecks);
-                MethodChecks(syntax, withTypeParamsBinder, diagnostics);
+                MethodChecks(diagnostics);
                 state.NotePartComplete(CompletionPart.FinishMethodChecks);
-                _constraintClauseBinder = null;
             }
         }
 
@@ -459,7 +426,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         protected override void MethodChecks(DiagnosticBag diagnostics)
         {
             var syntax = GetSyntax();
-            var withTypeParamsBinder = this.DeclaringCompilation.GetBinderFactory(syntax.SyntaxTree).GetBinder(syntax.ReturnType);
+            var withTypeParamsBinder = this.DeclaringCompilation.GetBinderFactory(syntax.SyntaxTree).GetBinder(syntax.ReturnType, syntax, this);
             MethodChecks(syntax, withTypeParamsBinder, diagnostics);
         }
 
@@ -518,17 +485,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
 
             var syntaxTree = syntax.SyntaxTree;
-
-            // If we're binding these constraints before the method has been
-            // fully constructed (see partial method comment in .ctor), we have
-            // a binder. Otherwise, lookup the binder in the BinderFactory.
-            var binder = _constraintClauseBinder;
-            if (binder == null)
-            {
-                var compilation = this.DeclaringCompilation;
-                var binderFactory = compilation.GetBinderFactory(syntaxTree);
-                binder = binderFactory.GetBinder(constraintClauses[0]);
-            }
+            var compilation = this.DeclaringCompilation;
+            var binderFactory = compilation.GetBinderFactory(syntaxTree);
+            var binder = binderFactory.GetBinder(constraintClauses[0], syntax, this);
 
             // Wrap binder from factory in a generic constraints specific binder
             // to avoid checking constraints when binding type names.
@@ -787,7 +746,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             if (!isInterface)
             {
                 allowedModifiers |= DeclarationModifiers.Extern |
-                    DeclarationModifiers.Async;
+                    DeclarationModifiers.Async |
+                    DeclarationModifiers.Replace;
             }
 
             var mods = ModifierUtils.MakeAndCheckNontypeMemberModifiers(modifiers, defaultAccess, allowedModifiers, location, diagnostics, out modifierErrors);

@@ -2201,10 +2201,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return moduleBeingBuilt
         End Function
 
-        Friend Overrides Function CompileImpl(
+        Friend Overrides Function CompileMethods(
             moduleBuilder As CommonPEModuleBuilder,
-            win32Resources As Stream,
-            xmlDocStream As Stream,
             emittingPdb As Boolean,
             diagnostics As DiagnosticBag,
             filterOpt As Predicate(Of ISymbol),
@@ -2258,22 +2256,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     methodBodyDiagnosticBag,
                     cancellationToken)
 
-                Dim assemblyName = FileNameUtilities.ChangeExtension(moduleBeingBuilt.EmitOptions.OutputNameOverride, extension:=Nothing)
-
-                DocumentationCommentCompiler.WriteDocumentationCommentXml(Me, assemblyName, xmlDocStream, methodBodyDiagnosticBag, cancellationToken)
-                Me.ReportUnusedImports(Nothing, methodBodyDiagnosticBag, cancellationToken)
-
-                SetupWin32Resources(moduleBeingBuilt, win32Resources, methodBodyDiagnosticBag)
-
-                ' give the name of any added modules, but not the name of the primary module.
-                ReportManifestResourceDuplicates(
-                    moduleBeingBuilt.ManifestResources,
-                    SourceAssembly.Modules.Skip(1).Select(Function(x) x.Name),
-                    AddedModulesResourceNames(methodBodyDiagnosticBag),
-                    methodBodyDiagnosticBag)
-
                 Dim hasMethodBodyErrors As Boolean = Not FilterAndAppendAndFreeDiagnostics(diagnostics, methodBodyDiagnosticBag)
-
                 If hasDeclarationErrors OrElse hasMethodBodyErrors Then
                     Return False
                 End If
@@ -2283,6 +2266,37 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
             ' TODO (tomat): XML doc comments diagnostics
             Return True
+        End Function
+
+        Friend Overrides Function GenerateResourcesAndDocumentationComments(
+            moduleBuilder As CommonPEModuleBuilder,
+            win32Resources As Stream,
+            xmlDocStream As Stream,
+            diagnostics As DiagnosticBag,
+            cancellationToken As CancellationToken) As Boolean
+
+            Debug.Assert(Not moduleBuilder.EmitOptions.EmitMetadataOnly)
+
+            Dim moduleBeingBuilt = DirectCast(moduleBuilder, PEModuleBuilder)
+
+            ' Use a temporary bag so we don't have to refilter pre-existing diagnostics.
+            Dim methodBodyDiagnosticBag = DiagnosticBag.GetInstance()
+
+            Dim assemblyName = FileNameUtilities.ChangeExtension(moduleBeingBuilt.EmitOptions.OutputNameOverride, extension:=Nothing)
+
+            DocumentationCommentCompiler.WriteDocumentationCommentXml(Me, assemblyName, xmlDocStream, methodBodyDiagnosticBag, cancellationToken)
+            Me.ReportUnusedImports(Nothing, methodBodyDiagnosticBag, cancellationToken)
+
+            SetupWin32Resources(moduleBeingBuilt, win32Resources, methodBodyDiagnosticBag)
+
+            ' give the name of any added modules, but not the name of the primary module.
+            ReportManifestResourceDuplicates(
+                    moduleBeingBuilt.ManifestResources,
+                    SourceAssembly.Modules.Skip(1).Select(Function(x) x.Name),
+                    AddedModulesResourceNames(methodBodyDiagnosticBag),
+                    methodBodyDiagnosticBag)
+
+            Return FilterAndAppendAndFreeDiagnostics(diagnostics, methodBodyDiagnosticBag)
         End Function
 
         Private Function StartSourceChecksumCalculation(moduleBeingBuilt As PEModuleBuilder, diagnostics As DiagnosticBag) As Boolean

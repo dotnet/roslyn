@@ -11,7 +11,6 @@ using System.Reflection.PortableExecutable;
 using System.Threading;
 using Microsoft.CodeAnalysis.CodeGen;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
-using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Emit;
 using Roslyn.Utilities;
 
@@ -40,12 +39,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
         /// The compiler-generated implementation type for each fixed-size buffer.
         /// </summary>
         private Dictionary<FieldSymbol, NamedTypeSymbol> _fixedImplementationTypes;
-
-        // These fields will only be set when running tests.  They allow realized IL for a given method to be looked up by method display name.
-        private ConcurrentDictionary<string, CompilationTestData.MethodData> _testData;
-
-        private SymbolDisplayFormat _testDataKeyFormat;
-        private SymbolDisplayFormat _testDataOperatorKeyFormat;
 
         internal PEModuleBuilder(
             SourceModuleSymbol sourceModule,
@@ -1307,130 +1300,5 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
             Debug.Assert(found);
             return result;
         }
-
-        #region Test Hooks
-
-        internal bool SaveTestData
-        {
-            get
-            {
-                return _testData != null;
-            }
-        }
-
-        internal void SetMethodTestData(MethodSymbol methodSymbol, ILBuilder builder)
-        {
-            if (_testData == null)
-            {
-                throw new InvalidOperationException(CSharpResources.MustCallSetMethodTestData);
-            }
-
-            // If this ever throws "ArgumentException: An item with the same key has already been added.", then
-            // the ilBuilderMapKeyFormat will need to be updated to provide a unique key (see SetMethodTestData).
-            _testData.Add(
-                GetMethodKey(methodSymbol),
-                new CompilationTestData.MethodData(builder, methodSymbol));
-        }
-
-        private string GetMethodKey(MethodSymbol methodSymbol)
-        {
-            // It is possible for two methods to have the same symbol display string.  For example,
-            //
-            //   extern alias A;
-            //   extern alias B;
-            //   
-            //   class C : A::I, B::I
-            //   {
-            //       void A::I.M() { }
-            //       void B::I.M() { }
-            //   }
-            //
-            // Note that symbol display does not incorporate the extern aliases, since they are specific to
-            // declaration context.
-            //
-            // We compensate by prepending the alias qualifier to unique-ify the method key.
-            string aliasQualifierOpt = null;
-            if (methodSymbol.IsExplicitInterfaceImplementation)
-            {
-                Symbol symbol = methodSymbol.AssociatedSymbol ?? methodSymbol;
-                Debug.Assert(symbol.DeclaringSyntaxReferences.Length < 2, "Can't have a partial explicit interface implementation");
-                SyntaxReference reference = symbol.DeclaringSyntaxReferences.FirstOrDefault();
-                if (reference != null)
-                {
-                    var syntax = reference.GetSyntax();
-                    switch (syntax.Kind())
-                    {
-                        case SyntaxKind.MethodDeclaration:
-                            MethodDeclarationSyntax methodDecl = (MethodDeclarationSyntax)syntax;
-                            aliasQualifierOpt = methodDecl.ExplicitInterfaceSpecifier.Name.GetAliasQualifierOpt();
-                            break;
-                        case SyntaxKind.IndexerDeclaration:
-                        case SyntaxKind.PropertyDeclaration:
-                        case SyntaxKind.EventDeclaration:
-                            BasePropertyDeclarationSyntax propertyDecl = (BasePropertyDeclarationSyntax)syntax;
-                            aliasQualifierOpt = propertyDecl.ExplicitInterfaceSpecifier.Name.GetAliasQualifierOpt();
-                            break;
-                        case SyntaxKind.EventFieldDeclaration: // Field-like events are never explicit interface implementations
-                        default:
-                            throw ExceptionUtilities.UnexpectedValue(syntax.Kind());
-                    }
-                }
-            }
-
-            string result = methodSymbol.ToDisplayString(methodSymbol.IsOperator() ? _testDataOperatorKeyFormat : _testDataKeyFormat);
-
-            if (aliasQualifierOpt != null)
-            {
-                // Not using the colon-colon syntax since it won't be in the right place anyway.
-                result = aliasQualifierOpt + "$$" + result;
-            }
-
-            return result;
-        }
-
-        internal void SetMethodTestData(ConcurrentDictionary<string, CompilationTestData.MethodData> methods)
-        {
-            _testData = methods;
-            _testDataKeyFormat = new SymbolDisplayFormat(
-                compilerInternalOptions: SymbolDisplayCompilerInternalOptions.UseMetadataMethodNames,
-                globalNamespaceStyle: SymbolDisplayGlobalNamespaceStyle.OmittedAsContaining,
-                typeQualificationStyle: SymbolDisplayTypeQualificationStyle.NameAndContainingTypesAndNamespaces,
-                genericsOptions: SymbolDisplayGenericsOptions.IncludeTypeParameters | SymbolDisplayGenericsOptions.IncludeVariance,
-                memberOptions:
-                    SymbolDisplayMemberOptions.IncludeParameters |
-                    SymbolDisplayMemberOptions.IncludeContainingType |
-                    SymbolDisplayMemberOptions.IncludeExplicitInterface,
-                parameterOptions:
-                    SymbolDisplayParameterOptions.IncludeParamsRefOut |
-                    SymbolDisplayParameterOptions.IncludeExtensionThis |
-                    SymbolDisplayParameterOptions.IncludeType,
-                // Not showing the name is important because we visit parameters to display their
-                // types.  If we visited their types directly, we wouldn't get ref/out/params.
-                miscellaneousOptions:
-                    SymbolDisplayMiscellaneousOptions.EscapeKeywordIdentifiers |
-                    SymbolDisplayMiscellaneousOptions.UseSpecialTypes |
-                    SymbolDisplayMiscellaneousOptions.UseAsterisksInMultiDimensionalArrays |
-                    SymbolDisplayMiscellaneousOptions.UseErrorTypeSymbolName);
-            // most methods don't need return type to disambiguate signatures, however,
-            // it is necessary to disambiguate user defined operators:
-            //   int op_Implicit(Type)
-            //   float op_Implicit(Type)
-            //   ... etc ...
-            _testDataOperatorKeyFormat = new SymbolDisplayFormat(
-                _testDataKeyFormat.CompilerInternalOptions,
-                _testDataKeyFormat.GlobalNamespaceStyle,
-                _testDataKeyFormat.TypeQualificationStyle,
-                _testDataKeyFormat.GenericsOptions,
-                _testDataKeyFormat.MemberOptions | SymbolDisplayMemberOptions.IncludeType,
-                _testDataKeyFormat.ParameterOptions,
-                _testDataKeyFormat.DelegateStyle,
-                _testDataKeyFormat.ExtensionMethodStyle,
-                _testDataKeyFormat.PropertyStyle,
-                _testDataKeyFormat.LocalOptions,
-                _testDataKeyFormat.KindOptions,
-                _testDataKeyFormat.MiscellaneousOptions);
-        }
-
-        #endregion
     }
 }

@@ -259,7 +259,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
                 return VisualizeIL(_testData.GetMethodData(qualifiedMethodName), realIL, sequencePoints, useRefEmitter);
             }
 
-            private string VisualizeIL(CompilationTestData.MethodData methodData, bool realIL, string sequencePoints, bool useRefEmitter)
+            internal string VisualizeIL(CompilationTestData.MethodData methodData, bool realIL, string sequencePoints = null, bool useRefEmitter = false)
             {
                 Dictionary<int, string> markers = null;
 
@@ -293,7 +293,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
 
             public CompilationVerifier VerifyMemberInIL(string methodName, bool expected)
             {
-                Assert.Equal(expected, _testData.Methods.ContainsKey(methodName));
+                Assert.Equal(expected, _testData.GetMethodsByName().ContainsKey(methodName));
                 return this;
             }
 

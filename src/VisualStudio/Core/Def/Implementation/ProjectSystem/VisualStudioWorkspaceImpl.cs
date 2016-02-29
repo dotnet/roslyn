@@ -431,29 +431,12 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             AddDocumentCore(info, text, isAdditionalDocument: true);
         }
 
-        protected override void UpdateGeneratedDocuments(ImmutableArray<DocumentInfo> documentsRemoved, ImmutableArray<DocumentInfo> documentsAdded)
+        protected override void UpdateGeneratedDocuments(ProjectId projectId, ImmutableArray<DocumentInfo> documentsRemoved, ImmutableArray<DocumentInfo> documentsAdded)
         {
-            foreach (var info in documentsRemoved)
-            {
-                Debug.Assert(info.IsGenerated);
-                var documentId = info.Id;
-                var project = GetHostProject(documentId.ProjectId);
-                if (project != null)
-                {
-                    project.RemoveGeneratedDocument(documentId);
-                }
-            }
-
-            foreach (var info in documentsAdded)
-            {
-                Debug.Assert(info.IsGenerated);
-                var documentId = info.Id;
-                var project = GetHostProject(documentId.ProjectId);
-                if (project != null)
-                {
-                    project.AddGeneratedDocument(documentId, info.FilePath);
-                }
-            }
+            Debug.Assert(documentsRemoved.All(d => d.Id.ProjectId == projectId));
+            Debug.Assert(documentsAdded.All(d => d.Id.ProjectId == projectId));
+            var project = GetHostProject(projectId);
+            project.UpdateGeneratedDocuments(documentsRemoved, documentsAdded);
         }
 
         private void AddDocumentCore(DocumentInfo info, SourceText initialText, bool isAdditionalDocument)
@@ -1168,7 +1151,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
         /// A trivial implementation of <see cref="IVisualStudioWorkspaceHost" /> that just
         /// forwards the calls down to the underlying Workspace.
         /// </summary>
-        private sealed class VisualStudioWorkspaceHost : IVisualStudioWorkspaceHost, IVisualStudioWorkingFolder
+        protected class VisualStudioWorkspaceHost : IVisualStudioWorkspaceHost, IVisualStudioWorkingFolder
         {
             private readonly VisualStudioWorkspaceImpl _workspace;
 

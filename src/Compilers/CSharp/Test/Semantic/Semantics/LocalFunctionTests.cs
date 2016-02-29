@@ -13,7 +13,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         public static IMethodSymbol FindLocalFunction(this CommonTestBase.CompilationVerifier verifier, string localFunctionName)
         {
             localFunctionName = (char)GeneratedNameKind.LocalFunction + "__" + localFunctionName;
-            var methods = verifier.TestData.Methods;
+            var methods = verifier.TestData.GetMethodsByName();
             IMethodSymbol result = null;
             foreach (var kvp in methods)
             {

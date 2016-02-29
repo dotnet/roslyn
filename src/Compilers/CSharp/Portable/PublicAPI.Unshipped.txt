@@ -140,3 +140,15 @@ static Microsoft.CodeAnalysis.CSharp.SyntaxFactory.XmlValueElement(Microsoft.Cod
 static Microsoft.CodeAnalysis.CSharp.SyntaxFactory.XmlValueElement(params Microsoft.CodeAnalysis.CSharp.Syntax.XmlNodeSyntax[] content) -> Microsoft.CodeAnalysis.CSharp.Syntax.XmlElementSyntax
 virtual Microsoft.CodeAnalysis.CSharp.CSharpSyntaxVisitor.VisitLocalFunctionStatement(Microsoft.CodeAnalysis.CSharp.Syntax.LocalFunctionStatementSyntax node) -> void
 virtual Microsoft.CodeAnalysis.CSharp.CSharpSyntaxVisitor<TResult>.VisitLocalFunctionStatement(Microsoft.CodeAnalysis.CSharp.Syntax.LocalFunctionStatementSyntax node) -> TResult
+Microsoft.CodeAnalysis.CSharp.Syntax.OriginalExpressionSyntax
+Microsoft.CodeAnalysis.CSharp.Syntax.OriginalExpressionSyntax.Token.get -> Microsoft.CodeAnalysis.SyntaxToken
+Microsoft.CodeAnalysis.CSharp.Syntax.OriginalExpressionSyntax.Update(Microsoft.CodeAnalysis.SyntaxToken token) -> Microsoft.CodeAnalysis.CSharp.Syntax.OriginalExpressionSyntax
+Microsoft.CodeAnalysis.CSharp.Syntax.OriginalExpressionSyntax.WithToken(Microsoft.CodeAnalysis.SyntaxToken token) -> Microsoft.CodeAnalysis.CSharp.Syntax.OriginalExpressionSyntax
+override Microsoft.CodeAnalysis.CSharp.CSharpSyntaxRewriter.VisitOriginalExpression(Microsoft.CodeAnalysis.CSharp.Syntax.OriginalExpressionSyntax node) -> Microsoft.CodeAnalysis.SyntaxNode
+override Microsoft.CodeAnalysis.CSharp.Syntax.OriginalExpressionSyntax.Accept(Microsoft.CodeAnalysis.CSharp.CSharpSyntaxVisitor visitor) -> void
+override Microsoft.CodeAnalysis.CSharp.Syntax.OriginalExpressionSyntax.Accept<TResult>(Microsoft.CodeAnalysis.CSharp.CSharpSyntaxVisitor<TResult> visitor) -> TResult
+static Microsoft.CodeAnalysis.CSharp.SyntaxFactory.OriginalExpression() -> Microsoft.CodeAnalysis.CSharp.Syntax.OriginalExpressionSyntax
+static Microsoft.CodeAnalysis.CSharp.SyntaxFactory.OriginalExpression(Microsoft.CodeAnalysis.SyntaxToken token) -> Microsoft.CodeAnalysis.CSharp.Syntax.OriginalExpressionSyntax
+virtual Microsoft.CodeAnalysis.CSharp.CSharpSyntaxVisitor.VisitOriginalExpression(Microsoft.CodeAnalysis.CSharp.Syntax.OriginalExpressionSyntax node) -> void
+virtual Microsoft.CodeAnalysis.CSharp.CSharpSyntaxVisitor<TResult>.VisitOriginalExpression(Microsoft.CodeAnalysis.CSharp.Syntax.OriginalExpressionSyntax node) -> TResult
+

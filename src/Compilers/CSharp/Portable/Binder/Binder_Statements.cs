@@ -1826,40 +1826,25 @@ namespace Microsoft.CodeAnalysis.CSharp
             return propertySymbol;
         }
 
-        private static EventSymbol GetEventSymbol(BoundExpression expr, out BoundExpression receiver, out CSharpSyntaxNode eventSyntax)
+        private static CSharpSyntaxNode GetEventName(BoundEventAccess expr)
         {
-            if (expr.Kind != BoundKind.EventAccess)
-            {
-                receiver = null;
-                eventSyntax = null;
-                return null;
-            }
-
             CSharpSyntaxNode syntax = expr.Syntax;
             switch (syntax.Kind())
             {
                 case SyntaxKind.SimpleMemberAccessExpression:
                 case SyntaxKind.PointerMemberAccessExpression:
-                    eventSyntax = ((MemberAccessExpressionSyntax)syntax).Name;
-                    break;
+                    return ((MemberAccessExpressionSyntax)syntax).Name;
                 case SyntaxKind.QualifiedName:
                     // This case is reachable only through SemanticModel
-                    eventSyntax = ((QualifiedNameSyntax)syntax).Right;
-                    break;
+                    return ((QualifiedNameSyntax)syntax).Right;
                 case SyntaxKind.IdentifierName:
-                    eventSyntax = syntax;
-                    break;
+                case SyntaxKind.OriginalExpression:
+                    return syntax;
                 case SyntaxKind.MemberBindingExpression:
-                    eventSyntax = ((MemberBindingExpressionSyntax)syntax).Name;
-                    break;
+                    return ((MemberBindingExpressionSyntax)syntax).Name;
                 default:
                     throw ExceptionUtilities.UnexpectedValue(syntax.Kind());
             }
-
-            BoundEventAccess eventAccess = (BoundEventAccess)expr;
-            receiver = eventAccess.ReceiverOpt;
-
-            return eventAccess.EventSymbol;
         }
 
         /// <summary>
@@ -1991,9 +1976,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             // Other operations are allowed only for field-like events and only where the backing field is accessible
             // (i.e. in the declaring type) - subject to use site errors and receiver variable-ness.
 
-            BoundExpression receiver;
-            CSharpSyntaxNode eventSyntax; //does not include receiver
-            EventSymbol eventSymbol = GetEventSymbol(boundEvent, out receiver, out eventSyntax);
+            BoundExpression receiver = boundEvent.ReceiverOpt;
+            CSharpSyntaxNode eventSyntax = GetEventName(boundEvent); //does not include receiver
+            EventSymbol eventSymbol = boundEvent.EventSymbol;
 
             switch (valueKind)
             {
@@ -2098,8 +2083,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (RequiresAddressableValue(valueKind) && propertySymbol.RefKind == RefKind.None)
             {
-                // We know the outcome, we just want the diagnostics.
-                bool isVariable = CheckIsVariable(node, expr, valueKind, false, diagnostics);
+                Error(diagnostics, valueKind == BindValueKind.RefOrOut ? ErrorCode.ERR_RefProperty : GetStandardLvalueError(valueKind), node, propertySymbol);
                 return false;
             }
 
@@ -2110,7 +2094,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 if ((object)setMethod == null)
                 {
                     var containing = this.ContainingMemberOrLambda;
-                    if (!AccessingAutopropertyFromConstructor(receiver, propertySymbol, containing))
+                    if (!AccessingAutoPropertyFromConstructor(receiver, propertySymbol, containing))
                     {
                         Error(diagnostics, ErrorCode.ERR_AssgReadonlyProp, node, propertySymbol);
                         return false;
@@ -2202,12 +2186,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             return true;
         }
 
-        internal static bool AccessingAutopropertyFromConstructor(BoundPropertyAccess propertyAccess, Symbol fromMember)
+        internal static bool AccessingAutoPropertyFromConstructor(BoundPropertyAccess propertyAccess, Symbol fromMember)
         {
-            return AccessingAutopropertyFromConstructor(propertyAccess.ReceiverOpt, propertyAccess.PropertySymbol, fromMember);
+            return AccessingAutoPropertyFromConstructor(propertyAccess.ReceiverOpt, propertyAccess.PropertySymbol, fromMember);
         }
 
-        internal static bool AccessingAutopropertyFromConstructor(BoundExpression receiver, PropertySymbol propertySymbol, Symbol fromMember)
+        private static bool AccessingAutoPropertyFromConstructor(BoundExpression receiver, PropertySymbol propertySymbol, Symbol fromMember)
         {
             var sourceProperty = propertySymbol as SourcePropertySymbol;
             var propertyIsStatic = propertySymbol.IsStatic;
@@ -3266,7 +3250,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             diagnostics.Add(syntax, useSiteDiagnostics);
-
 
             if (!argument.HasAnyErrors)
             {

@@ -513,7 +513,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case BoundKind.PropertyAccess:
                     var access = (BoundPropertyAccess)node;
 
-                    if (Binder.AccessingAutopropertyFromConstructor(access, _member))
+                    if (Binder.AccessingAutoPropertyFromConstructor(access, _member))
                     {
                         var backingField = (access.PropertySymbol as SourcePropertySymbol)?.BackingField;
                         if (backingField != null)
@@ -1464,7 +1464,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return false;
             }
 
-            return !Binder.AccessingAutopropertyFromConstructor((BoundPropertyAccess)expr, _member);
+            return !Binder.AccessingAutoPropertyFromConstructor((BoundPropertyAccess)expr, _member);
         }
 
         public override BoundNode VisitAssignmentOperator(BoundAssignmentOperator node)
@@ -1563,7 +1563,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             var property = node.PropertySymbol;
 
-            if (Binder.AccessingAutopropertyFromConstructor(node, _member))
+            if (Binder.AccessingAutoPropertyFromConstructor(node, _member))
             {
                 var backingField = (property as SourcePropertySymbol)?.BackingField;
                 if (backingField != null)

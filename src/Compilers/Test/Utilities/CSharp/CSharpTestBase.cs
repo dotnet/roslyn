@@ -936,6 +936,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Test.Utilities
             return sb.ToString();
         }
 
+        internal static string VisualizeIL(CompilationTestData testData, Func<MethodSymbol, bool> predicate)
+        {
+            var builder = testData.GetIL(m => predicate((MethodSymbol)m));
+            return ILBuilderVisualizer.ILBuilderToString(builder);
+        }
+
         private static string GetContainingTypeMetadataName(IMethodSymbol method)
         {
             var type = method.ContainingType;

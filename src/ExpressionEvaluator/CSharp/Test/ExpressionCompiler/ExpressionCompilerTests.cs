@@ -3235,8 +3235,9 @@ class B : A
             // Verify anonymous types were generated. (There
             // shouldn't be any reuse of existing anonymous types
             // since the existing types were from metadata.)
-            Assert.True(testData.Methods.ContainsKey("<>f__AnonymousType0<<A>j__TPar, <B>j__TPar>..ctor(<A>j__TPar, <B>j__TPar)"));
-            Assert.True(testData.Methods.ContainsKey("<>f__AnonymousType1..ctor()"));
+            var methods = testData.GetMethodsByName();
+            Assert.True(methods.ContainsKey("<>f__AnonymousType0<<A>j__TPar, <B>j__TPar>..ctor(<A>j__TPar, <B>j__TPar)"));
+            Assert.True(methods.ContainsKey("<>f__AnonymousType1..ctor()"));
 
             // Verify evaluation method.
             testData.GetMethodData("<>x.<>m0").VerifyIL(@"
