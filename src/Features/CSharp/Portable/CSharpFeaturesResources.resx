@@ -174,7 +174,7 @@
   <data name="SimplifyMemberAccess" xml:space="preserve">
     <value>Simplify member access '{0}'</value>
   </data>
-  <data name="SimplifyThisQualification" xml:space="preserve">
+  <data name="RemoveThisQualification" xml:space="preserve">
     <value>Remove 'this' qualification</value>
   </data>
   <data name="NameCanBeSimplified" xml:space="preserve">

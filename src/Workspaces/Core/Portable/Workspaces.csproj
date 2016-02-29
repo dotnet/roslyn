@@ -771,7 +771,7 @@
     <Compile Include="Simplification\AliasAnnotation.cs" />
     <Compile Include="Simplification\ISimplificationService.cs" />
     <Compile Include="Simplification\SimplificationHelpers.cs" />
-    <Compile Include="Simplification\SimplificationOption.cs" />
+    <Compile Include="Simplification\SimplificationOptions.cs" />
     <Compile Include="Simplification\Simplifier.cs" />
     <Compile Include="Simplification\SpecialTypeAnnotation.cs" />
     <Compile Include="Simplification\SymbolAnnotation.cs" />

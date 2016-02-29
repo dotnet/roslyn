@@ -949,8 +949,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions
                 Return False
             End If
 
-            If optionSet.GetOption(SimplificationOptions.QualifyMemberAccessWithThisOrMe, semanticModel.Language) AndAlso
-                 memberAccess.Expression.Kind() = SyntaxKind.MeExpression Then
+            If memberAccess.Expression.IsKind(SyntaxKind.MeExpression) AndAlso
+                Not SimplificationHelpers.ShouldSimplifyMemberAccessExpression(semanticModel, memberAccess.Name, optionSet) Then
                 Return False
             End If
 

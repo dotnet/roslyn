@@ -309,9 +309,6 @@
   <data name="NewLineKeywords" xml:space="preserve">
     <value>New line options for keywords</value>
   </data>
-  <data name="QualifyMemberAccessWithThis" xml:space="preserve">
-    <value>Qualify member access with 'this'</value>
-  </data>
   <data name="UseVarWhenGeneratingLocals" xml:space="preserve">
     <value>Use 'var' when generating locals</value>
   </data>
@@ -422,5 +419,17 @@
   </data>
   <data name="UseVarWhenTypeIsApparent" xml:space="preserve">
     <value>Use 'var' when typing is apparent</value>
+  </data>
+  <data name="QualifyEventAccessWithThis" xml:space="preserve">
+    <value>Qualify event access with 'this'</value>
+  </data>
+  <data name="QualifyFieldAccessWithThis" xml:space="preserve">
+    <value>Qualify field access with 'this'</value>
+  </data>
+  <data name="QualifyMethodAccessWithThis" xml:space="preserve">
+    <value>Qualify method access with 'this'</value>
+  </data>
+  <data name="QualifyPropertyAccessWithThis" xml:space="preserve">
+    <value>Qualify property access with 'this'</value>
   </data>
 </root>

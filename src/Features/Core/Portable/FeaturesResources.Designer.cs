@@ -224,11 +224,29 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Add qualification..
+        /// </summary>
+        internal static string AddQualification {
+            get {
+                return ResourceManager.GetString("AddQualification", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Add reference to &apos;{0}&apos;..
         /// </summary>
         internal static string AddReferenceTo {
             get {
                 return ResourceManager.GetString("AddReferenceTo", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Add &apos;this&apos; or &apos;Me&apos; qualification..
+        /// </summary>
+        internal static string AddThisOrMeQualification {
+            get {
+                return ResourceManager.GetString("AddThisOrMeQualification", resourceCulture);
             }
         }
         
@@ -1691,6 +1709,15 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Remove qualification.
+        /// </summary>
+        internal static string RemoveQualification {
+            get {
+                return ResourceManager.GetString("RemoveQualification", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Remove Suppression.
         /// </summary>
         internal static string RemoveSuppressionEquivalenceKeyPrefix {
@@ -1831,15 +1858,6 @@ namespace Microsoft.CodeAnalysis {
         internal static string SimplifyNames {
             get {
                 return ResourceManager.GetString("SimplifyNames", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Remove &apos;this&apos; or &apos;Me&apos; Qualification.
-        /// </summary>
-        internal static string SimplifyThisOrMe {
-            get {
-                return ResourceManager.GetString("SimplifyThisOrMe", resourceCulture);
             }
         }
         
