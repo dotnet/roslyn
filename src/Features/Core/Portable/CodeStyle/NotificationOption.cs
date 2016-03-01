@@ -1,7 +1,5 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System.Runtime.Serialization;
-
 namespace Microsoft.CodeAnalysis.CodeStyle
 {
     /// <summary>
@@ -11,13 +9,10 @@ namespace Microsoft.CodeAnalysis.CodeStyle
     /// <remarks>
     /// This also supports various properties for databinding.
     /// </remarks>
-    [DataContract]
     internal class NotificationOption
     {
-        [DataMember]
         public string Name { get; set; }
 
-        [DataMember]
         public DiagnosticSeverity Value { get; set; }
 
         public static readonly NotificationOption None = new NotificationOption(nameof(None), DiagnosticSeverity.Hidden);
