@@ -82,8 +82,6 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Rename
                     Next
                 End If
 
-                AssertIsComplete(workspace.CurrentSolution)
-
                 Dim locations = RenameLocations.FindAsync(symbol, workspace.CurrentSolution, optionSet, CancellationToken.None).Result
                 Dim originalName = symbol.Name.Split("."c).Last()
 
@@ -233,6 +231,10 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Rename
         End Sub
 
         Private Sub Dispose() Implements IDisposable.Dispose
+            If _failedAssert Then
+                FailFast.OnFatalException(New Exception("Failed assert!"))
+            End If
+
             ' Make sure we're cleaned up. Don't want the test harness crashing...
             GC.SuppressFinalize(Me)
             _workspace.Dispose()
