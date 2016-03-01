@@ -3,7 +3,9 @@
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Internal.Log;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.SolutionCrawler
 {
@@ -15,8 +17,8 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
             {
                 private readonly Dictionary<ProjectId, WorkItem> _projectWorkQueue = new Dictionary<ProjectId, WorkItem>();
 
-                public AsyncProjectWorkItemQueue(SolutionCrawlerProgressReporter progressReporter) :
-                    base(progressReporter)
+                public AsyncProjectWorkItemQueue(SolutionCrawlerProgressReporter progressReporter, Workspace workspace) :
+                    base(progressReporter, workspace)
                 {
                 }
 
@@ -49,33 +51,24 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                     return _projectWorkQueue.Remove(key);
                 }
 
-                protected override bool TryTakeAnyWork_NoLock(ProjectId preferableProjectId, ProjectDependencyGraph dependencyGraph, out WorkItem workItem)
+                protected override bool TryTakeAnyWork_NoLock(
+                    ProjectId preferableProjectId, ProjectDependencyGraph dependencyGraph, IDiagnosticAnalyzerService analyzerService,
+                    out WorkItem workItem)
                 {
-                    if (preferableProjectId != null)
+                    // there must be at least one item in the map when this is called unless host is shutting down.
+                    if (_projectWorkQueue.Count == 0)
                     {
-                        if (TryTake_NoLock(preferableProjectId, out workItem))
-                        {
-                            return true;
-                        }
-
-                        foreach (var dependingProjectId in dependencyGraph.GetProjectsThatDirectlyDependOnThisProject(preferableProjectId))
-                        {
-                            if (TryTake_NoLock(dependingProjectId, out workItem))
-                            {
-                                return true;
-                            }
-                        }
+                        workItem = default(WorkItem);
+                        return false;
                     }
 
-                    // explicitly iterate so that we can use struct enumerator
-                    foreach (var kvp in _projectWorkQueue)
+                    var projectId = GetBestProjectId_NoLock(_projectWorkQueue, preferableProjectId, dependencyGraph, analyzerService);
+                    if (TryTake_NoLock(projectId, out workItem))
                     {
-                        workItem = kvp.Value;
-                        return _projectWorkQueue.Remove(kvp.Key);
+                        return true;
                     }
 
-                    workItem = default(WorkItem);
-                    return false;
+                    return Contract.FailWithReturn<bool>("how?");
                 }
 
                 protected override bool AddOrReplace_NoLock(WorkItem item)

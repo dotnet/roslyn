@@ -921,7 +921,7 @@ $@"Exception of type 'System.Exception' was thrown.
             }
         }
 
-        [Fact]
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/9221"), WorkItem(9221, "https://github.com/dotnet/roslyn/issues/9221")]
         public void StackTrace_Dynamic()
         {
             try
