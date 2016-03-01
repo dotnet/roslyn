@@ -891,4 +891,41 @@ Do you want to continue?</value>
   <data name="AddQualification" xml:space="preserve">
     <value>Add qualification.</value>
   </data>
+  <data name="FixNamingViolation" xml:space="preserve">
+    <value>Fix Name Violation: {0}</value>
+  </data>
+  <data name="NamingViolationDescription" xml:space="preserve">
+    <value>'{0}' naming violation - {1}</value>
+    <comment>{0} is the rule title, {1} is the way in which the rule was violated</comment>
+  </data>
+  <data name="NamingViolation_FirstWordMustBeginWithLowercase" xml:space="preserve">
+    <value>The first word, '{0}', must begin with a lower case character</value>
+  </data>
+  <data name="NamingViolation_FirstWordMustBeginWithUppercase" xml:space="preserve">
+    <value>The first word, '{0}', must begin with an upper case character</value>
+  </data>
+  <data name="NamingViolation_MissingPrefix" xml:space="preserve">
+    <value>Missing prefix: '{0}'</value>
+  </data>
+  <data name="NamingViolation_MissingSuffix" xml:space="preserve">
+    <value>Missing suffix: '{0}'</value>
+  </data>
+  <data name="NamingViolation_NonLeadingWordsMustBeginWithLowercase" xml:space="preserve">
+    <value>These non-leading words must begin with a lowercase letter: {0}</value>
+  </data>
+  <data name="NamingViolation_NonLeadingWordsMustBeginWithUppercase" xml:space="preserve">
+    <value>These non-leading words must begin with an upper case letter: {0}</value>
+  </data>
+  <data name="NamingViolation_WordsCannotContainLowercaseLetters" xml:space="preserve">
+    <value>These words cannot contain lower case characters: {0}</value>
+  </data>
+  <data name="NamingViolation_WordsCannotContainUppercaseLetters" xml:space="preserve">
+    <value>These words cannot contain upper case characters: {0}</value>
+  </data>
+  <data name="NamingViolation_WordsMustBeginWithUppercase" xml:space="preserve">
+    <value>These words must begin with upper case characters: {0}</value>
+  </data>
+  <data name="NamingStylesDiagnosticTitle" xml:space="preserve">
+    <value>Naming Styles</value>
+  </data>
 </root>

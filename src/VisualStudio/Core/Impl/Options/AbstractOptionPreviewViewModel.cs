@@ -40,7 +40,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options
 
         public List<object> Items { get; set; }
 
-        public OptionSet Options { get; private set; }
+        public OptionSet Options { get; set; }
 
         protected AbstractOptionPreviewViewModel(OptionSet options, IServiceProvider serviceProvider, string language)
         {

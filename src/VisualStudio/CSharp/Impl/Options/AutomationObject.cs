@@ -447,6 +447,21 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options
             set { SetBooleanOption(SimplificationOptions.PreferIntrinsicPredefinedTypeKeywordInMemberAccess, value); }
         }
 
+        public string Style_NamingPreferences
+        {
+            get
+            {
+                return _optionService.GetOption(SimplificationOptions.NamingPreferences, LanguageNames.CSharp);
+            }
+
+            set
+            {
+                var optionSet = _optionService.GetOptions();
+                optionSet = optionSet.WithChangedOption(SimplificationOptions.NamingPreferences, LanguageNames.CSharp, value);
+                _optionService.SetOptions(optionSet);
+            }
+        }
+
         public int Style_QualifyFieldAccess
         {
             get { return GetBooleanOption(SimplificationOptions.QualifyFieldAccess); }

@@ -4,6 +4,7 @@ using System.Collections.Immutable;
 using System.Threading;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.Extensions;
+using Microsoft.CodeAnalysis.Simplification;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
@@ -92,7 +93,10 @@ namespace Microsoft.CodeAnalysis.Diagnostics.SimplifyTypeNames
             }
 
             var tree = model.SyntaxTree;
-            diagnostic = Diagnostic.Create(descriptor, tree.GetLocation(issueSpan));
+            var builder = ImmutableDictionary.CreateBuilder<string, string>();
+            builder["OptionName"] = nameof(SimplificationOptions.PreferIntrinsicPredefinedTypeKeywordInMemberAccess); // TODO: need the actual one
+            builder["OptionLanguage"] = model.Language;
+            diagnostic = Diagnostic.Create(descriptor, tree.GetLocation(issueSpan), builder.ToImmutable());
             return true;
         }
 
