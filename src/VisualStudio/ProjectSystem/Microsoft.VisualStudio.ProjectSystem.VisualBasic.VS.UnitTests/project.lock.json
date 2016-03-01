@@ -92,7 +92,7 @@
           "lib/net45/Microsoft.VisualStudio.Validation.dll": {}
         }
       },
-      "Moq/4.2.1510.2205": {
+      "Moq/4.2.1402.2112": {
         "compile": {
           "lib/net40/Moq.dll": {}
         },
@@ -271,33 +271,29 @@
         "package/services/metadata/core-properties/bc0320ca467749b1ac7a79765ec3e8cb.psmdcp"
       ]
     },
-    "Moq/4.2.1510.2205": {
-      "sha512": "nqMoHSP5f04/kyKbRUjGgzqtIb5LUUs0H6llHOkQJ5Takx4Ezr2H+59pkIgxkmpbHAcGmc/KsyRZUs1ehnPYag==",
-      "type": "Package",
+    "Moq/4.2.1402.2112": {
+      "sha512": "/TWoXE2OIjJjSvcxER7HMoZwpgETSGlKbLZiME7sVVoPMoqgLvDyjSISveTyHxNoDXd18cZlM8aHdS9ZOAbjMw==",
+      "type": "package",
       "files": [
+        "Moq.4.2.1402.2112.nupkg.sha512",
         "Moq.nuspec",
-        "[Content_Types].xml",
-        "_rels/.rels",
         "lib/net35/Moq.dll",
         "lib/net35/Moq.xml",
         "lib/net40/Moq.dll",
         "lib/net40/Moq.xml",
-        "lib/sl5/Moq.Silverlight.dll",
-        "lib/sl5/Moq.Silverlight.xml",
-        "package/services/metadata/core-properties/33e61c84c2dc4a3e8a7af089453712d1.psmdcp"
+        "lib/sl4/Moq.Silverlight.dll",
+        "lib/sl4/Moq.Silverlight.xml"
       ]
     },
     "System.Collections.Immutable/1.1.36": {
       "sha512": "MOlivTIeAIQPPMUPWIIoMCvZczjFRLYUWSYwqi1szu8QPyeIbsaPeI+hpXe1DzTxNwnRnmfYaoToi6kXIfSPNg==",
-      "type": "Package",
+      "type": "package",
       "files": [
         "License-Stable.rtf",
+        "System.Collections.Immutable.1.1.36.nupkg.sha512",
         "System.Collections.Immutable.nuspec",
-        "[Content_Types].xml",
-        "_rels/.rels",
         "lib/portable-net45+win8+wp8+wpa81/System.Collections.Immutable.dll",
-        "lib/portable-net45+win8+wp8+wpa81/System.Collections.Immutable.xml",
-        "package/services/metadata/core-properties/c8b7b781850445db852bd2d848380ca6.psmdcp"
+        "lib/portable-net45+win8+wp8+wpa81/System.Collections.Immutable.xml"
       ]
     },
     "xunit.abstractions/2.0.0": {

@@ -250,15 +250,13 @@
     },
     "System.Collections.Immutable/1.1.36": {
       "sha512": "MOlivTIeAIQPPMUPWIIoMCvZczjFRLYUWSYwqi1szu8QPyeIbsaPeI+hpXe1DzTxNwnRnmfYaoToi6kXIfSPNg==",
-      "type": "Package",
+      "type": "package",
       "files": [
         "License-Stable.rtf",
+        "System.Collections.Immutable.1.1.36.nupkg.sha512",
         "System.Collections.Immutable.nuspec",
-        "[Content_Types].xml",
-        "_rels/.rels",
         "lib/portable-net45+win8+wp8+wpa81/System.Collections.Immutable.dll",
-        "lib/portable-net45+win8+wp8+wpa81/System.Collections.Immutable.xml",
-        "package/services/metadata/core-properties/c8b7b781850445db852bd2d848380ca6.psmdcp"
+        "lib/portable-net45+win8+wp8+wpa81/System.Collections.Immutable.xml"
       ]
     }
   },
