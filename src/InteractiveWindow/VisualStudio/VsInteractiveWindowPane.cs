@@ -15,7 +15,7 @@ namespace Microsoft.VisualStudio.InteractiveWindow.Shell
     /// The backing type for <see cref="VsInteractiveWindow"/>.  It subclasses <see cref="ToolWindowPane"/> so
     /// that the instance handed out through the public API does not.
     /// </summary>
-    internal sealed class VsInteractiveWindowPane : ToolWindowPane
+    internal sealed class VsInteractiveWindowPane : ToolWindowPane, IOleCommandTarget
     {
         // Keep in sync with Microsoft.VisualStudio.Editor.Implementation.EnableFindOptionDefinition.OptionName.
         private const string EnableFindOptionName = "Enable Autonomous Find";
@@ -138,5 +138,11 @@ namespace Microsoft.VisualStudio.InteractiveWindow.Shell
             ErrorHandler.ThrowOnFailure(frame.GetProperty((int)__VSFPROPID.VSFPROPID_ToolbarHost, out result));
             return (IVsToolWindowToolbarHost)result;
         }
+
+        public int QueryStatus(ref Guid pguidCmdGroup, uint cCmds, OLECMD[] prgCmds, IntPtr pCmdText) =>
+            _commandTarget.QueryStatus(ref pguidCmdGroup, cCmds, prgCmds, pCmdText);
+
+        public int Exec(ref Guid pguidCmdGroup, uint nCmdID, uint nCmdexecopt, IntPtr pvaIn, IntPtr pvaOut) =>
+            _commandTarget.Exec(ref pguidCmdGroup, nCmdID, nCmdexecopt, pvaIn, pvaOut);
     }
 }
