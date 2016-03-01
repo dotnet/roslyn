@@ -1,6 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Collections.Immutable;
+using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.UnitTests.Diagnostics;
 using Microsoft.CodeAnalysis.UnitTests.Diagnostics.SystemLanguage;
@@ -748,7 +749,8 @@ enum E
                 Diagnostic(SeventeenTestAnalyzer.SeventeenDescriptor.Id, "17").WithLocation(4, 40),
                 Diagnostic(SeventeenTestAnalyzer.SeventeenDescriptor.Id, "17").WithLocation(9, 21),
                 Diagnostic(SeventeenTestAnalyzer.SeventeenDescriptor.Id, "17").WithLocation(14, 16),
-                Diagnostic(SeventeenTestAnalyzer.SeventeenDescriptor.Id, "17").WithLocation(24, 9)
+                Diagnostic(SeventeenTestAnalyzer.SeventeenDescriptor.Id, "17").WithLocation(24, 9),
+                Diagnostic(SeventeenTestAnalyzer.SeventeenDescriptor.Id, "M0()").WithLocation(16, 9)
                 );
         }
 
@@ -1260,6 +1262,66 @@ class C
             .VerifyAnalyzerDiagnostics(new DiagnosticAnalyzer[] { new NoneOperationTestAnalyzer() }, null, null, false);
         }
 
+        [WorkItem(9020, "https://github.com/dotnet/roslyn/issues/9020")]
+        [Fact]
+        public void AddressOfExpressionCSharp()
+        {
+            const string source = @"
+public class C
+{
+   unsafe public void M1()
+   {
+      int a = 0, b = 0;
+      int *i = &(a + b);   // CS0211, the addition of two local variables
+
+      int *j = &a;
+   }
+
+   unsafe public void M2()
+   {
+       int x;
+       int* p = &x;
+       p = &(*p);
+       p = &p[0];
+   }
+}
+
+class A
+{
+    public unsafe void M1()
+    {
+        int[] ints = new int[] { 1, 2, 3 };
+        foreach (int i in ints)
+        {
+            int *j = &i;  // CS0459
+        }
+
+        fixed (int *i = &_i)
+        {
+            int **j = &i;  // CS0459
+        }
+    }
+
+    private int _i = 0;
+}";
+            CreateCompilationWithMscorlib45(source, options: TestOptions.UnsafeReleaseDll)
+            .VerifyDiagnostics(Diagnostic(ErrorCode.ERR_InvalidAddrOp, "a + b").WithLocation(7, 18),
+                Diagnostic(ErrorCode.ERR_AddrOnReadOnlyLocal, "i").WithLocation(28, 23),
+                Diagnostic(ErrorCode.ERR_AddrOnReadOnlyLocal, "i").WithLocation(33, 24))
+            .VerifyAnalyzerDiagnostics(new DiagnosticAnalyzer[] { new AddressOfTestAnalyzer() }, null, null, false,
+                Diagnostic(AddressOfTestAnalyzer.AddressOfDescriptor.Id, "&(a + b)").WithLocation(7, 16),
+                Diagnostic(AddressOfTestAnalyzer.InvalidAddressOfReferenceDescriptor.Id, "a + b").WithLocation(7, 18),
+                Diagnostic(AddressOfTestAnalyzer.AddressOfDescriptor.Id, "&a").WithLocation(9, 16),
+                Diagnostic(AddressOfTestAnalyzer.AddressOfDescriptor.Id, "&x").WithLocation(15, 17),
+                Diagnostic(AddressOfTestAnalyzer.AddressOfDescriptor.Id, "&(*p)").WithLocation(16, 12),
+                Diagnostic(AddressOfTestAnalyzer.AddressOfDescriptor.Id, "&p[0]").WithLocation(17, 12),
+                Diagnostic(AddressOfTestAnalyzer.AddressOfDescriptor.Id, "&i").WithLocation(28, 22),
+                Diagnostic(AddressOfTestAnalyzer.InvalidAddressOfReferenceDescriptor.Id, "i").WithLocation(28, 23),
+                Diagnostic(AddressOfTestAnalyzer.AddressOfDescriptor.Id, "&_i").WithLocation(31, 25),
+                Diagnostic(AddressOfTestAnalyzer.AddressOfDescriptor.Id, "&i").WithLocation(33, 23),
+                Diagnostic(AddressOfTestAnalyzer.InvalidAddressOfReferenceDescriptor.Id, "i").WithLocation(33, 24));
+        }
+
         [Fact]
         public void LambdaExpressionCSharp()
         {
@@ -1462,8 +1524,7 @@ class C
             CreateCompilationWithMscorlib45(source)
             .VerifyDiagnostics()
             .VerifyAnalyzerDiagnostics(new DiagnosticAnalyzer[] { new NullOperationSyntaxTestAnalyzer() }, null, null, false,
-                // TODO: missing a params array for M0() 
-                // https://github.com/dotnet/roslyn/issues/8566
+                Diagnostic(NullOperationSyntaxTestAnalyzer.ParamsArrayOperationDescriptor.Id, "M0()").WithLocation(10, 9),
                 Diagnostic(NullOperationSyntaxTestAnalyzer.ParamsArrayOperationDescriptor.Id, "1").WithLocation(11, 12),
                 Diagnostic(NullOperationSyntaxTestAnalyzer.ParamsArrayOperationDescriptor.Id, "1").WithLocation(12, 12));
         }
@@ -1500,6 +1561,36 @@ public class A
                 Diagnostic(InvalidOperatorExpressionTestAnalyzer.InvalidBinaryDescriptor.Id, "f == float.Nan").WithLocation(6, 16),
                 Diagnostic(InvalidOperatorExpressionTestAnalyzer.InvalidUnaryDescriptor.Id, "-f").WithLocation(11, 16),
                 Diagnostic(InvalidOperatorExpressionTestAnalyzer.InvalidIncrementDescriptor.Id, "f++").WithLocation(16, 9));
+        }
+
+        [WorkItem(9114, "https://github.com/dotnet/roslyn/issues/9114")]
+        [Fact]
+        public void InvalidArgumentCSharp()
+        {
+            const string source = @"
+public class A
+{
+    public static void Foo(params int a) {}
+
+    public static int Main()
+    {
+        Foo();
+        Foo(1);
+        return 1;
+    }
+}
+";
+            CreateCompilationWithMscorlib45(source)
+            .VerifyDiagnostics(
+                // (4,28): error CS0225: The params parameter must be a single dimensional array
+                //     public static void Foo(params int a) {}
+                Diagnostic(ErrorCode.ERR_ParamsMustBeArray, "params").WithLocation(4, 28),
+                // (8,9): error CS7036: There is no argument given that corresponds to the required formal parameter 'a' of 'A.Foo(params int)'
+                //         Foo();
+                Diagnostic(ErrorCode.ERR_NoCorrespondingArgument, "Foo").WithArguments("a", "A.Foo(params int)").WithLocation(8, 9))
+            .VerifyAnalyzerDiagnostics(new DiagnosticAnalyzer[] { new InvocationTestAnalyzer() }, null, null, false,
+                Diagnostic(InvocationTestAnalyzer.InvalidArgumentDescriptor.Id, "Foo()").WithLocation(8, 9),
+                Diagnostic(InvocationTestAnalyzer.InvalidArgumentDescriptor.Id, "Foo(1)").WithLocation(9, 9));
         }
 
         [Fact]
@@ -1559,6 +1650,44 @@ class C
                 Diagnostic(ConditionalAccessOperationTestAnalyzer.ConditionalAccessInstanceOperationDescriptor.Id, "Field1").WithLocation(31, 13),
                 Diagnostic(ConditionalAccessOperationTestAnalyzer.ConditionalAccessOperationDescriptor.Id, "Field1?.M0(null)").WithLocation(32, 9),
                 Diagnostic(ConditionalAccessOperationTestAnalyzer.ConditionalAccessInstanceOperationDescriptor.Id, "Field1").WithLocation(32, 9));
+        }
+
+        [WorkItem(9116, "https://github.com/dotnet/roslyn/issues/9116")]
+        [Fact]
+        public void LiteralCSharp()
+        {
+            const string source = @"
+public class A
+{
+    public void M()
+    {
+        object a = null;
+    }
+}
+
+struct S
+{
+    void M(
+        int i = 1,
+        string str = ""hello"",
+        object o = null,
+        S s = default(S))
+    {
+        M();
+    }
+}
+";
+            CreateCompilationWithMscorlib45(source)
+             .VerifyDiagnostics(Diagnostic(ErrorCode.WRN_UnreferencedVarAssg, "a").WithArguments("a").WithLocation(6, 16))
+             .VerifyAnalyzerDiagnostics(new DiagnosticAnalyzer[] { new LiteralTestAnalyzer() }, null, null, false,
+                Diagnostic("Literal", "null").WithArguments("null").WithLocation(6, 20),
+                Diagnostic("Literal", "1").WithArguments("1").WithLocation(13, 17),
+                Diagnostic("Literal", @"""hello""").WithArguments(@"""hello""").WithLocation(14, 22),
+                Diagnostic("Literal", "null").WithArguments("null").WithLocation(15, 20),
+                Diagnostic("Literal", "M()").WithArguments("1").WithLocation(18, 9),
+                Diagnostic("Literal", "M()").WithArguments(@"""hello""").WithLocation(18, 9),
+                Diagnostic("Literal", "M()").WithArguments("null").WithLocation(18, 9),
+                Diagnostic("Literal", "M()").WithArguments("null").WithLocation(18, 9));
         }
     }
 }

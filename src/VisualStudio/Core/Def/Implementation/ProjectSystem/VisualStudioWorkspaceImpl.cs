@@ -934,7 +934,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             return matchingDocumentId ?? base.GetDocumentIdInCurrentContext(documentId);
         }
 
-        private bool TryGetHierarchy(ProjectId projectId, out IVsHierarchy hierarchy)
+        internal bool TryGetHierarchy(ProjectId projectId, out IVsHierarchy hierarchy)
         {
             hierarchy = this.GetHierarchy(projectId);
             return hierarchy != null;

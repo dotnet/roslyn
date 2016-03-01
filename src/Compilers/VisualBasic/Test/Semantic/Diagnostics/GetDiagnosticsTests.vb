@@ -125,20 +125,20 @@ End Class
         Public Sub TestCompilationEventQueueWithSemanticModelGetDiagnostics()
             Dim source1 = <file>
 Namespace N1
-	Partial Class C
-		Private Sub NonPartialMethod1()
-		End Sub
-	End Class
+    Partial Class C
+        Private Sub NonPartialMethod1()
+        End Sub
+    End Class
 End Namespace
 </file>.Value
 
             Dim source2 =
                <file>
 Namespace N1
-	Partial Class C
-		Private Sub NonPartialMethod2()
-		End Sub
-	End Class
+    Partial Class C
+        Private Sub NonPartialMethod2()
+        End Sub
+    End Class
 End Namespace
 </file>.Value
 
@@ -167,17 +167,20 @@ End Namespace
             Assert.True(completedCompilationUnits.Contains(tree.FilePath))
         End Sub
 
-        <Fact(Skip:="7477"), WorkItem(7477, "https://github.com/dotnet/roslyn/issues/7477")>
+        <Fact, WorkItem(7477, "https://github.com/dotnet/roslyn/issues/7477")>
         Public Sub TestCompilationEventsForPartialMethod()
             Dim source1 = <file>
 Namespace N1
-	Partial Class C
-		Private Sub NonPartialMethod1()
-		End Sub
+    Partial Class C
+        Private Sub NonPartialMethod1()
+        End Sub
 
-		Private Partial Sub PartialMethod() ' Declaration
-		End Sub
-	End Class
+        Private Partial Sub PartialMethod() ' Declaration
+        End Sub
+
+        Private Partial Sub ImpartialMethod() ' Declaration
+        End Sub
+    End Class
 End Namespace
 </file>.Value
 
@@ -216,6 +219,7 @@ End Namespace
             Assert.True(declaredSymbolNames.Contains("N1"))
             Assert.True(declaredSymbolNames.Contains("C"))
             Assert.True(declaredSymbolNames.Contains("NonPartialMethod1"))
+            Assert.True(declaredSymbolNames.Contains("ImpartialMethod"))
             Assert.True(declaredSymbolNames.Contains("PartialMethod"))
             Assert.True(completedCompilationUnits.Contains(tree.FilePath))
         End Sub
@@ -236,7 +240,10 @@ End Namespace
                 Else
                     Dim symbolDeclaredEvent = TryCast(compEvent, SymbolDeclaredCompilationEvent)
                     If symbolDeclaredEvent IsNot Nothing Then
-                        Assert.True(declaredSymbolNames.Add(symbolDeclaredEvent.Symbol.Name), "Unexpected multiple symbol declared events for same symbol")
+                        Dim symbol = symbolDeclaredEvent.Symbol
+                        Assert.True(declaredSymbolNames.Add(symbol.Name), "Unexpected multiple symbol declared events for same symbol")
+                        Dim method = TryCast(symbol, Symbols.MethodSymbol)
+                        Assert.Null(method?.PartialDefinitionPart) ' we should never get a partial method's implementation part
                     Else
                         Dim compilationCompeletedEvent = TryCast(compEvent, CompilationUnitCompletedEvent)
                         If compilationCompeletedEvent IsNot Nothing Then

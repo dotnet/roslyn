@@ -3526,5 +3526,39 @@ class Program
                 result.AssertLabeledSpansAre("Conflict", replacement:="Program.nameof(Program.field);", type:=RelatedLocationType.ResolvedNonReferenceConflict)
             End Using
         End Sub
+
+        <Fact>
+        <Trait(Traits.Feature, Traits.Features.Rename)>
+        <WorkItem(7440, "https://github.com/dotnet/roslyn/issues/7440")>
+        Public Sub RenameTypeParameterInPartialClass()
+            Using result = RenameEngineResult.Create(
+                    <Workspace>
+                        <Project Language="C#" CommonReferences="true">
+                            <Document>
+partial class C&lt;[|$$T|]&gt; {}
+partial class C&lt;[|T|]&gt; {}
+                            </Document>
+                        </Project>
+                    </Workspace>, renameTo:="T2")
+            End Using
+        End Sub
+
+        <Fact>
+        <Trait(Traits.Feature, Traits.Features.Rename)>
+        <WorkItem(7440, "https://github.com/dotnet/roslyn/issues/7440")>
+        Public Sub RenameMethodToConflictWithTypeParameter()
+            Using result = RenameEngineResult.Create(
+                    <Workspace>
+                        <Project Language="C#" CommonReferences="true">
+                            <Document>
+partial class C&lt;{|Conflict:T|}&gt; { void [|$$M|]() { } }
+partial class C&lt;{|Conflict:T|}&gt; {}
+                            </Document>
+                        </Project>
+                    </Workspace>, renameTo:="T")
+
+                result.AssertLabeledSpansAre("Conflict", type:=RelatedLocationType.UnresolvedConflict)
+            End Using
+        End Sub
     End Class
 End Namespace

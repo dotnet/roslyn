@@ -590,7 +590,9 @@
     <Compile Include="Workspace\Host\Mef\MefWorkspaceServices.cs" />
     <Compile Include="Workspace\Host\Mef\ServiceLayer.cs" />
     <Compile Include="Workspace\Host\Documentation\IDocumentationProviderService.cs" />
+    <Compile Include="Workspace\Host\Metadata\FrameworkAssemblyPathResolverFactory.cs" />
     <Compile Include="Workspace\Host\Metadata\IAnalyzerService.cs" />
+    <Compile Include="Workspace\Host\Metadata\IFrameworkAssemblyPathResolver.cs" />
     <Compile Include="Workspace\Host\Metadata\MetadataReferenceCache.cs" />
     <Compile Include="Workspace\Host\Metadata\WorkspaceMetadataFileReferenceResolver.cs" />
     <Compile Include="Workspace\Host\PersistentStorage\PersistentStorageOptionsProvider.cs" />
