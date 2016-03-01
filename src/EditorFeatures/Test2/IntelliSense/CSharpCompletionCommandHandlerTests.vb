@@ -1755,6 +1755,27 @@ class Program
             End Using
         End Function
 
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function TargetTypePreselectionFieldOverMethod() As Task
+            Using state = TestState.CreateCSharpTestState(
+                           <Document><![CDATA[
+class Program
+{
+    bool f;
+
+    void foo(bool x) { }
+
+    void Main(string[] args) 
+    {
+        foo($$) // Not "Equals"
+    }
+}]]></Document>, extraExportedTypes:={GetType(CSharpEditorFormattingService)}.ToList())
+                state.SendInvokeCompletionList()
+                Await state.WaitForAsynchronousOperationsAsync().ConfigureAwait(True)
+                Await state.AssertSelectedCompletionItem("f", isHardSelected:=True).ConfigureAwait(True)
+            End Using
+        End Function
+
         <WpfFact(Skip:="https://github.com/dotnet/roslyn/issues/6942"), Trait(Traits.Feature, Traits.Features.Completion)>
         Public Async Function TargetTypePreselectionConvertibility1() As Task
             Using state = TestState.CreateCSharpTestState(

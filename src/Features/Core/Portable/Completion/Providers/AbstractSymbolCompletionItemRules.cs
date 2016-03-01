@@ -31,8 +31,16 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             var symbolItem = item as SymbolCompletionItem;
             var otherSymbolItem = other as SymbolCompletionItem;
 
-            // Locals and parameters are most preferable
-            if (symbolItem.Symbols.First().MatchesKind(SymbolKind.Local, SymbolKind.Parameter) && !otherSymbolItem.Symbols.First().MatchesKind(SymbolKind.Local, SymbolKind.Parameter))
+            // locals and parameters are most preferable
+            if (symbolItem.Symbols.First().MatchesKind(SymbolKind.Local, SymbolKind.Parameter) 
+                && !otherSymbolItem.Symbols.First().MatchesKind(SymbolKind.Local, SymbolKind.Parameter))
+            {
+                return true;
+            }
+
+            // followed by fields and properties
+            if (symbolItem.Symbols.First().MatchesKind(SymbolKind.Field, SymbolKind.Property)
+                && !otherSymbolItem.Symbols.First().MatchesKind(SymbolKind.Field, SymbolKind.Property))
             {
                 return true;
             }
