@@ -122,7 +122,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Packaging
             }
 
             var query = new MemberQuery(name, isFullSuffix: true, isFullNamespace: false);
-
             var symbols = new PartialArray<Symbol>(100);
 
             if (query.TryFindMembers(database, ref symbols))
@@ -163,7 +162,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Packaging
                         bestRank = bestRank == null ? rank : Math.Max(bestRank.Value, rank);
                     }
 
-                    yield return CreateResult(type);
+                    yield return CreateResult(database, type);
                 }
 
                 // For all other hits include as long as the popularity is high enough.  
@@ -187,24 +186,41 @@ namespace Microsoft.VisualStudio.LanguageServices.Packaging
                         }
                     }
 
-                    yield return CreateResult(type);
+                    yield return CreateResult(database, type);
                 }
             }
         }
 
-        private PackageWithTypeResult CreateResult(Symbol type)
+        private PackageWithTypeResult CreateResult(AddReferenceDatabase database, Symbol type)
         {
             var nameParts = new List<string>();
             GetFullName(nameParts, type.FullName.Parent);
 
             var packageName = type.PackageName.ToString();
+
+            var version = database.GetPackageVersion(type.Index).ToString();
+
             return new PackageWithTypeResult(
                 isDesktopFramework: packageName == MicrosoftAssemblyReferencesName,
                 packageName: packageName, 
                 assemblyName: type.AssemblyNameWithoutExtension.ToString(),
                 typeName: type.Name.ToString(), 
+                version: version,
                 containingNamespaceNames: nameParts);
         }
+
+        //private string GetVersion(Symbol symbol)
+        //{
+        //    for (var current = symbol; current.IsValid; current = current.Parent())
+        //    {
+        //        if (current.Type == SymbolType.Version)
+        //        {
+        //            return current.Name.ToString();
+        //        }
+        //    }
+
+        //    return null;
+        //}
 
         private int GetRank(Symbol symbol)
         {
@@ -223,7 +239,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Packaging
         {
             for (var current = symbol; current.IsValid; current = current.Parent())
             {
-                if (current.Type == SymbolType.Package)
+                if (current.Type == SymbolType.Package || current.Type == SymbolType.Version)
                 {
                     return TryGetRankingSymbolForPackage(current, out rankingSymbol);
                 }

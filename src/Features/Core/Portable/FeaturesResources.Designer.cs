@@ -1214,6 +1214,24 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Install &apos;{0} {1}&apos;.
+        /// </summary>
+        internal static string Install_0_1 {
+            get {
+                return ResourceManager.GetString("Install_0_1", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Install version &apos;{0}&apos;.
+        /// </summary>
+        internal static string Install_version_0 {
+            get {
+                return ResourceManager.GetString("Install_version_0", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Install with package manager....
         /// </summary>
         internal static string Install_with_package_manager {

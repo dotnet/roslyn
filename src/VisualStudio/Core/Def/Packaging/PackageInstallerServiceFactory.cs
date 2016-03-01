@@ -7,12 +7,10 @@ using System.Collections.Immutable;
 using System.Composition;
 using System.Diagnostics;
 using System.Linq;
-using System.Reflection;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
-using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Packaging;
 using Microsoft.CodeAnalysis.Shared.Utilities;
@@ -23,7 +21,6 @@ using Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem;
 using Microsoft.VisualStudio.Shell.Interop;
 using NuGet.VisualStudio;
 using Roslyn.Utilities;
-using VSShell = Microsoft.VisualStudio.Shell;
 
 namespace Microsoft.VisualStudio.LanguageServices.Packaging
 {
@@ -70,7 +67,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Packaging
             _editorAdaptersFactoryService = editorAdaptersFactoryService;
         }
 
-        public ImmutableArray<string> PackageSources { get; private set; } = ImmutableArray<string>.Empty;
+        public ImmutableArray<PackageSource> PackageSources { get; private set; } = ImmutableArray<PackageSource>.Empty;
 
         public event EventHandler PackageSourcesChanged;
 
@@ -131,14 +128,19 @@ namespace Microsoft.VisualStudio.LanguageServices.Packaging
             this.AssertIsForeground();
 
             PackageSources = _packageSourceProvider.GetSources(includeUnOfficial: true, includeDisabled: false)
-                .Select(r => r.Key)
+                .Select(r => new PackageSource(r.Key, r.Value))
                 .ToImmutableArrayOrEmpty();
 
             PackageSourcesChanged?.Invoke(this, EventArgs.Empty);
         }
 
         public bool TryInstallPackage(
-            Workspace workspace, DocumentId documentId, string packageName, string versionOpt, CancellationToken cancellationToken)
+            Workspace workspace,
+            DocumentId documentId,
+            string source,
+            string packageName,
+            string versionOpt,
+            CancellationToken cancellationToken)
         {
             this.AssertIsForeground();
 
@@ -160,7 +162,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Packaging
                     var textBuffer = textSnapshot?.TextBuffer;
                     var undoManager = GetUndoManager(textBuffer);
 
-                    return TryInstallAndAddUndoAction(packageName, versionOpt, dte, dteProject, undoManager);
+                    return TryInstallAndAddUndoAction(source, packageName, versionOpt, dte, dteProject, undoManager);
                 }
             }
 
@@ -168,14 +170,18 @@ namespace Microsoft.VisualStudio.LanguageServices.Packaging
         }
 
         private bool TryInstallPackage(
-            string packageName, string versionOpt, EnvDTE.DTE dte, EnvDTE.Project dteProject)
+            string source,
+            string packageName,
+            string versionOpt,
+            EnvDTE.DTE dte,
+            EnvDTE.Project dteProject)
         {
             try
             {
                 if (!_packageInstallerServices.IsPackageInstalled(dteProject, packageName))
                 {
                     dte.StatusBar.Text = string.Format(ServicesVSResources.Installing_0, packageName);
-                    _packageInstaller.InstallPackage(source: null, project: dteProject, packageId: packageName, version: versionOpt, ignoreDependencies: false);
+                    _packageInstaller.InstallPackage(source, dteProject, packageName, versionOpt, ignoreDependencies: false);
 
                     var installedVersion = GetInstalledVersion(packageName, dteProject);
                     dte.StatusBar.Text = string.Format(ServicesVSResources.Installing_0_completed,

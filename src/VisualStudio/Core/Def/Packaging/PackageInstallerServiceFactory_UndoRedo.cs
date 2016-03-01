@@ -8,24 +8,25 @@ namespace Microsoft.VisualStudio.LanguageServices.Packaging
 {
     internal partial class PackageInstallerService
     {
-        private bool TryInstallAndAddUndoAction(string packageName, string versionOpt, EnvDTE.DTE dte, EnvDTE.Project dteProject, IOleUndoManager undoManager)
+        private bool TryInstallAndAddUndoAction(
+            string source, string packageName, string versionOpt, EnvDTE.DTE dte, EnvDTE.Project dteProject, IOleUndoManager undoManager)
         {
-            var installed = TryInstallPackage(packageName, versionOpt, dte, dteProject);
+            var installed = TryInstallPackage(source, packageName, versionOpt, dte, dteProject);
             if (installed)
             {
                 // if the install succeeded, then add an uninstall item to the undo manager.
-                undoManager?.Add(new UninstallPackageUndoUnit(this, packageName, versionOpt, dte, dteProject, undoManager));
+                undoManager?.Add(new UninstallPackageUndoUnit(this, source, packageName, versionOpt, dte, dteProject, undoManager));
             }
             return installed;
         }
 
-        private bool TryUninstallAndAddRedoAction(string packageName, string versionOpt, EnvDTE.DTE dte, EnvDTE.Project dteProject, IOleUndoManager undoManager)
+        private bool TryUninstallAndAddRedoAction(string source, string packageName, string versionOpt, EnvDTE.DTE dte, EnvDTE.Project dteProject, IOleUndoManager undoManager)
         {
             var uninstalled = TryUninstallPackage(packageName, dte, dteProject);
             if (uninstalled)
             {
                 // if the install succeeded, then add an uninstall item to the undo manager.
-                undoManager?.Add(new InstallPackageUndoUnit(this, packageName, versionOpt, dte, dteProject, undoManager));
+                undoManager?.Add(new InstallPackageUndoUnit(this, source, packageName, versionOpt, dte, dteProject, undoManager));
             }
             return uninstalled;
         }
@@ -50,12 +51,14 @@ namespace Microsoft.VisualStudio.LanguageServices.Packaging
             protected readonly EnvDTE.DTE dte;
             protected readonly EnvDTE.Project dteProject;
             protected readonly PackageInstallerService packageInstallerService;
+            protected readonly string source;
             protected readonly string packageName;
             protected readonly IOleUndoManager undoManager;
             protected readonly string versionOpt;
 
             protected BaseUndoUnit(
                 PackageInstallerService packageInstallerService,
+                string source,
                 string packageName,
                 string versionOpt,
                 EnvDTE.DTE dte,
@@ -88,17 +91,18 @@ namespace Microsoft.VisualStudio.LanguageServices.Packaging
         {
             public UninstallPackageUndoUnit(
                 PackageInstallerService packageInstallerService,
+                string source,
                 string packageName,
                 string versionOpt,
                 EnvDTE.DTE dte,
                 EnvDTE.Project dteProject,
-                IOleUndoManager undoManager) : base(packageInstallerService, packageName, versionOpt, dte, dteProject, undoManager)
+                IOleUndoManager undoManager) : base(packageInstallerService, source, packageName, versionOpt, dte, dteProject, undoManager)
             {
             }
 
             public override void Do(IOleUndoManager pUndoManager)
             {
-                packageInstallerService.TryUninstallAndAddRedoAction(packageName, versionOpt, dte, dteProject, undoManager);
+                packageInstallerService.TryUninstallAndAddRedoAction(source, packageName, versionOpt, dte, dteProject, undoManager);
             }
 
             public override void GetDescription(out string pBstr)
@@ -111,11 +115,12 @@ namespace Microsoft.VisualStudio.LanguageServices.Packaging
         {
             public InstallPackageUndoUnit(
                 PackageInstallerService packageInstallerService,
+                string source,
                 string packageName,
                 string versionOpt,
                 EnvDTE.DTE dte,
                 EnvDTE.Project dteProject,
-                IOleUndoManager undoManager) : base(packageInstallerService, packageName, versionOpt, dte, dteProject, undoManager)
+                IOleUndoManager undoManager) : base(packageInstallerService, source, packageName, versionOpt, dte, dteProject, undoManager)
             {
             }
 
@@ -126,7 +131,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Packaging
 
             public override void Do(IOleUndoManager pUndoManager)
             {
-                packageInstallerService.TryInstallAndAddUndoAction(packageName, versionOpt, dte, dteProject, undoManager);
+                packageInstallerService.TryInstallAndAddUndoAction(source, packageName, versionOpt, dte, dteProject, undoManager);
             }
         }
     }

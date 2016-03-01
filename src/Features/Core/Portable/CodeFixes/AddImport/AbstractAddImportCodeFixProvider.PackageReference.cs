@@ -16,35 +16,44 @@ namespace Microsoft.CodeAnalysis.CodeFixes.AddImport
         private class PackageReference : Reference
         {
             private readonly IPackageInstallerService _installerService;
+            private readonly string _source;
             private readonly string _packageName;
+            private readonly string _versionOpt;
 
             public PackageReference(
                 AbstractAddImportCodeFixProvider<TSimpleNameSyntax> provider,
                 IPackageInstallerService installerService,
                 SearchResult searchResult,
-                string packageName)
+                string source,
+                string packageName,
+                string versionOpt)
                 : base(provider, searchResult)
             {
                 _installerService = installerService;
+                _source = source;
                 _packageName = packageName;
+                _versionOpt = versionOpt;
             }
 
             public override Task<CodeAction> CreateCodeActionAsync(
                 Document document, SyntaxNode node, bool placeSystemNamespaceFirst, CancellationToken cancellationToken)
             {
-                return Task.FromResult<CodeAction>(new PackageReferenceCodeAction(this, document, node, placeSystemNamespaceFirst));
+                return Task.FromResult<CodeAction>(new PackageReferenceCodeAction(
+                    this, document, node, placeSystemNamespaceFirst));
             }
 
             public override bool Equals(object obj)
             {
                 var reference = obj as PackageReference;
                 return base.Equals(obj) &&
-                    _packageName == reference._packageName;
+                    _packageName == reference._packageName &&
+                    _versionOpt == reference._versionOpt;
             }
 
             public override int GetHashCode()
             {
-                return Hash.Combine(_packageName, base.GetHashCode());
+                return Hash.Combine(_versionOpt,
+                    Hash.Combine(_packageName, base.GetHashCode()));
             }
 
             private class PackageReferenceCodeAction : CodeAction
@@ -81,10 +90,16 @@ namespace Microsoft.CodeAnalysis.CodeFixes.AddImport
                     var codeActions = new List<CodeAction>();
 
                     // First add the actions to install a specific version.
-                    codeActions.AddRange(installedVersions.Select(v => CreateCodeAction(document, node, placeSystemNamespaceFirst, versionOpt: v)));
+                    codeActions.AddRange(installedVersions.Select(
+                        v => CreateCodeAction(document, node, placeSystemNamespaceFirst, versionOpt: v, isLocal: true)));
 
-                    // Now add the action to install the latest version.
-                    codeActions.Add(CreateCodeAction(document, node, placeSystemNamespaceFirst, versionOpt: null));
+                    // Now add the action to install the specific version.
+                    var preferredVersion = _reference._versionOpt;
+                    if (preferredVersion == null || !installedVersions.Contains(preferredVersion))
+                    {
+                        codeActions.Add(CreateCodeAction(document, node, placeSystemNamespaceFirst,
+                            versionOpt: _reference._versionOpt, isLocal: false));
+                    }
 
                     // And finally the action to show the package manager dialog.
                     codeActions.Add(new InstallWithPackageManagerCodeAction(reference));
@@ -96,21 +111,29 @@ namespace Microsoft.CodeAnalysis.CodeFixes.AddImport
                     Document document,
                     SyntaxNode node,
                     bool placeSystemNamespaceFirst,
-                    string versionOpt)
+                    string versionOpt,
+                    bool isLocal)
                 {
                     var title = versionOpt == null
                         ? FeaturesResources.Find_and_install_latest_version
-                        : string.Format(FeaturesResources.Use_local_version_0, versionOpt);
+                        : isLocal
+                            ? string.Format(FeaturesResources.Use_local_version_0, versionOpt)
+                            : string.Format(FeaturesResources.Install_version_0, versionOpt);
 
                     // Nuget hits should always come after other results.
                     return new OperationBasedCodeAction(
                         title, glyph: null, priority: CodeActionPriority.Low,
-                        getOperations: c => GetOperationsAsync(versionOpt, document, node, placeSystemNamespaceFirst, c),
+                        getOperations: c => GetOperationsAsync(versionOpt, isLocal, document, node, placeSystemNamespaceFirst, c),
                         isApplicable: null);
                 }
 
                 private async Task<IEnumerable<CodeActionOperation>> GetOperationsAsync(
-                    string versionOpt, Document document, SyntaxNode node, bool placeSystemNamespaceFirst, CancellationToken cancellationToken)
+                    string versionOpt, 
+                    bool isLocal,
+                    Document document, 
+                    SyntaxNode node, 
+                    bool placeSystemNamespaceFirst, 
+                    CancellationToken cancellationToken)
                 {
                     _reference.ReplaceNameNode(ref node, ref document, cancellationToken);
 
@@ -122,7 +145,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes.AddImport
 
                     var text = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
                     var operation2 = new InstallNugetPackageOperation(
-                        _reference._installerService, document, _reference._packageName, versionOpt);
+                        _reference._installerService, document, _reference._source, _reference._packageName, versionOpt, isLocal);
 
                     var operations = ImmutableArray.Create<CodeActionOperation>(operation1, operation2);
                     return operations;
@@ -168,17 +191,26 @@ namespace Microsoft.CodeAnalysis.CodeFixes.AddImport
             {
                 private readonly Document _document;
                 private readonly IPackageInstallerService _installerService;
+                private readonly string _source;
                 private readonly string _packageName;
                 private readonly string _versionOpt;
+                private readonly bool _isLocal;
                 private readonly List<string> _projectsWithMatchingVersion;
 
                 public InstallNugetPackageOperation(
-                    IPackageInstallerService installerService, Document document, string packageName, string versionOpt)
+                    IPackageInstallerService installerService,
+                    Document document,
+                    string source,
+                    string packageName,
+                    string versionOpt,
+                    bool isLocal)
                 {
                     _installerService = installerService;
                     _document = document;
+                    _source = source;
                     _packageName = packageName;
                     _versionOpt = versionOpt;
+                    _isLocal = isLocal;
                     if (versionOpt != null)
                     {
                         const int projectsToShow = 5;
@@ -194,14 +226,16 @@ namespace Microsoft.CodeAnalysis.CodeFixes.AddImport
 
                 public override string Title => _versionOpt == null
                     ? string.Format(FeaturesResources.Find_and_install_latest_version_of_0, _packageName)
-                    : string.Format(FeaturesResources.Use_locally_installed_0_version_1_This_version_used_in_2,
-                        _packageName, _versionOpt, string.Join(", ", _projectsWithMatchingVersion));
+                    : _isLocal
+                        ? string.Format(FeaturesResources.Use_locally_installed_0_version_1_This_version_used_in_2, _packageName, _versionOpt, string.Join(", ", _projectsWithMatchingVersion))
+                        : string.Format(FeaturesResources.Install_0_1, _packageName, _versionOpt);
 
                 internal override bool ApplyDuringTests => true;
 
                 public override void Apply(Workspace workspace, CancellationToken cancellationToken)
                 {
-                    _installerService.TryInstallPackage(workspace, _document.Id, _packageName, _versionOpt, cancellationToken);
+                    _installerService.TryInstallPackage(
+                        workspace, _document.Id, _source, _packageName, _versionOpt, cancellationToken);
                 }
             }
         }

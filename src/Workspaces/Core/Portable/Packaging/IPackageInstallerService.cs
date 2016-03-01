@@ -18,7 +18,7 @@ namespace Microsoft.CodeAnalysis.Packaging
 
         bool IsInstalled(Workspace workspace, ProjectId projectId, string packageName);
 
-        bool TryInstallPackage(Workspace workspace, DocumentId documentId, string packageName, string versionOpt, CancellationToken cancellationToken);
+        bool TryInstallPackage(Workspace workspace, DocumentId documentId, string source, string packageName, string versionOpt, CancellationToken cancellationToken);
 
         IEnumerable<string> GetInstalledVersions(string packageName);
 
@@ -26,7 +26,19 @@ namespace Microsoft.CodeAnalysis.Packaging
 
         void ShowManagePackagesDialog(string packageName);
 
-        ImmutableArray<string> PackageSources { get; }
+        ImmutableArray<PackageSource> PackageSources { get; }
         event EventHandler PackageSourcesChanged;
+    }
+
+    internal struct PackageSource
+    {
+        public readonly string Name;
+        public readonly string Source;
+
+        public PackageSource(string name, string source)
+        {
+            this.Name = name;
+            this.Source = source;
+        }
     }
 }

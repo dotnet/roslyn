@@ -32,18 +32,21 @@ namespace Microsoft.CodeAnalysis.Packaging
         public readonly string PackageName;
         public readonly string AssemblyName;
         public readonly string TypeName;
+        public readonly string Version;
 
         public PackageWithTypeResult(
             bool isDesktopFramework,
             string packageName,
             string assemblyName,
             string typeName, 
+            string version,
             IReadOnlyList<string> containingNamespaceNames)
         {
             IsDesktopFramework = isDesktopFramework;
             PackageName = packageName;
             AssemblyName = assemblyName;
             TypeName = typeName;
+            Version = string.IsNullOrWhiteSpace(version) ? null : version;
             ContainingNamespaceNames = containingNamespaceNames;
         }
     }

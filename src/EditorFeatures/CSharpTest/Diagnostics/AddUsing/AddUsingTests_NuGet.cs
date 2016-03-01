@@ -24,8 +24,8 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.AddUsing
 
         public class NuGet : AddUsingTests
         {
-            private static readonly ImmutableArray<string> NugetPackageSources =
-                ImmutableArray.Create(NugetOrgSource);
+            private static readonly ImmutableArray<PackageSource> NugetPackageSources =
+                ImmutableArray.Create(new PackageSource(NugetOrgSource, "http://nuget.org/"));
 
             internal override Tuple<DiagnosticAnalyzer, CodeFixProvider> CreateDiagnosticProviderAndFixer(
                 Workspace workspace, object fixProviderData)
@@ -178,7 +178,7 @@ fixProviderData: data);
                 installerServiceMock.SetupGet(i => i.IsEnabled).Returns(true);
                 installerServiceMock.SetupGet(i => i.PackageSources).Returns(NugetPackageSources);
                 installerServiceMock.Setup(s => s.TryInstallPackage(
-                    It.IsAny<Workspace>(), It.IsAny<DocumentId>(), "NuGetPackage", /*versionOpt*/ null, It.IsAny<CancellationToken>()));
+                    It.IsAny<Workspace>(), It.IsAny<DocumentId>(), It.IsAny<string>(), "NuGetPackage", /*versionOpt*/ null, It.IsAny<CancellationToken>()));
 
                 var packageServiceMock = new Mock<IPackageSearchService>();
                 packageServiceMock.Setup(s => s.FindPackagesWithType(
@@ -210,7 +210,7 @@ class C
                 installerServiceMock.Setup(s => s.GetInstalledVersions("NuGetPackage"))
                     .Returns(new[] { "1.0" });
                 installerServiceMock.Setup(s => s.TryInstallPackage(
-                    It.IsAny<Workspace>(), It.IsAny<DocumentId>(), "NuGetPackage", "1.0", It.IsAny<CancellationToken>()));
+                    It.IsAny<Workspace>(), It.IsAny<DocumentId>(), It.IsAny<string>(), "NuGetPackage", "1.0", It.IsAny<CancellationToken>()));
 
                 var packageServiceMock = new Mock<IPackageSearchService>();
                 packageServiceMock.Setup(s => s.FindPackagesWithType(NugetOrgSource, "NuGetType", 0, It.IsAny<CancellationToken>()))
@@ -236,7 +236,8 @@ class C
                 string packageName, string typeName, IReadOnlyList<string> containingNamespaceNames)
             {
                 return CreateSearchResult(new PackageWithTypeResult(
-                    isDesktopFramework: false, packageName: packageName, assemblyName: packageName, typeName: typeName, containingNamespaceNames: containingNamespaceNames));
+                    isDesktopFramework: false, packageName: packageName, assemblyName: packageName, 
+                    typeName: typeName, version: null, containingNamespaceNames: containingNamespaceNames));
             }
 
             private IEnumerable<PackageWithTypeResult> CreateSearchResult(params PackageWithTypeResult[] results) => results;

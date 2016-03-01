@@ -904,4 +904,10 @@ This version used in: {2}</value>
   <data name="Install_with_package_manager" xml:space="preserve">
     <value>Install with package manager...</value>
   </data>
+  <data name="Install_0_1" xml:space="preserve">
+    <value>Install '{0} {1}'</value>
+  </data>
+  <data name="Install_version_0" xml:space="preserve">
+    <value>Install version '{0}'</value>
+  </data>
 </root>

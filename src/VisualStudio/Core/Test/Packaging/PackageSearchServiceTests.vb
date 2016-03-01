@@ -691,7 +691,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Packaging
                 End Get
             End Property
 
-            Public ReadOnly Property PackageSources As ImmutableArray(Of String) Implements IPackageInstallerService.PackageSources
+            Public ReadOnly Property PackageSources As ImmutableArray(Of PackageSource) Implements IPackageInstallerService.PackageSources
                 Get
                     Throw New NotImplementedException()
                 End Get
@@ -714,7 +714,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Packaging
                 Throw New NotImplementedException()
             End Function
 
-            Public Function TryInstallPackage(workspace As Workspace, documentId As DocumentId, packageName As String, versionOpt As String, cancellationToken As CancellationToken) As Boolean Implements IPackageInstallerService.TryInstallPackage
+            Public Function TryInstallPackage(workspace As Workspace, documentId As DocumentId, source As String, packageName As String, versionOpt As String, cancellationToken As CancellationToken) As Boolean Implements IPackageInstallerService.TryInstallPackage
                 Throw New NotImplementedException()
             End Function
         End Class

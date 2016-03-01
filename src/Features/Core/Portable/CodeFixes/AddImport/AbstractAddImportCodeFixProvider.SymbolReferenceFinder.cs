@@ -247,7 +247,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes.AddImport
             }
 
             private async Task FindNugetOrReferenceAssemblyTypeReferencesAsync(
-                string source,
+                PackageSource source,
                 IPackageSearchService searchService,
                 IPackageInstallerService installerService,
                 List<Reference> allReferences,
@@ -258,7 +258,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes.AddImport
                 CancellationToken cancellationToken)
             {
                 cancellationToken.ThrowIfCancellationRequested();
-                var results = searchService.FindPackagesWithType(source, name, arity, cancellationToken);
+                var results = searchService.FindPackagesWithType(source.Name, name, arity, cancellationToken);
 
                 var project = _document.Project;
                 var projectId = project.Id;
@@ -277,7 +277,8 @@ namespace Microsoft.CodeAnalysis.CodeFixes.AddImport
                     else
                     {
                         await HandleNugetReferenceAsync(
-                            installerService, allReferences, nameNode, project, isAttributeSearch, result, weight).ConfigureAwait(false);
+                            source.Source, installerService, allReferences, nameNode, 
+                            project, isAttributeSearch, result, weight).ConfigureAwait(false);
                     }
 
                     weight++;
@@ -312,6 +313,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes.AddImport
             }
 
             private Task HandleNugetReferenceAsync(
+                string source,
                 IPackageInstallerService installerService,
                 List<Reference> allReferences,
                 TSimpleNameSyntax nameNode,
@@ -324,7 +326,8 @@ namespace Microsoft.CodeAnalysis.CodeFixes.AddImport
                 {
                     var desiredName = GetDesiredName(isAttributeSearch, result);
                     allReferences.Add(new PackageReference(_owner, installerService,
-                        new SearchResult(desiredName, nameNode, result.ContainingNamespaceNames, weight), result.PackageName));
+                        new SearchResult(desiredName, nameNode, result.ContainingNamespaceNames, weight), 
+                        source, result.PackageName, result.Version));
                 }
 
                 return SpecializedTasks.EmptyTask;

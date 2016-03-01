@@ -82,7 +82,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Packaging
             foreach (var source in sources)
             {
                 Task.Delay(TimeSpan.FromSeconds(10)).ContinueWith(_ =>
-                    UpdateSourceInBackgroundAsync(source), TaskScheduler.Default);
+                    UpdateSourceInBackgroundAsync(source.Name), TaskScheduler.Default);
             }
         }
 
