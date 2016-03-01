@@ -1672,5 +1672,536 @@ class Program
 }");
         }
 
+        [Fact]
+        public void RefReturnConditionalAccess01()
+        {
+            var text = @"
+    using System;
+ 
+    class Program
+    {
+        class C1<T> where T : IDisposable
+        {
+            T inst = default(T);
+
+            public ref T GetDisposable()
+            {
+                return ref inst;
+            }
+
+            public void Test()
+            {
+                GetDisposable().Dispose();
+                System.Console.Write(inst.ToString());
+
+                GetDisposable()?.Dispose();
+                System.Console.Write(inst.ToString());
+            }
+        }
+
+        static void Main(string[] args)
+        {
+            var v = new C1<Mutable>();
+            v.Test();
+        }
+    }
+
+    struct Mutable : IDisposable
+    {
+        public int disposed;
+         
+        public void Dispose()
+        {
+            disposed += 1;
+        }
+
+        public override string ToString()
+        {
+            return disposed.ToString();
+        }
+    }
+";
+
+            CompileAndVerifyExperimental(text, expectedOutput: "12")
+                .VerifyIL("Program.C1<T>.Test()", @"
+{
+  // Code size      114 (0x72)
+  .maxstack  2
+  .locals init (T V_0)
+  IL_0000:  ldarg.0
+  IL_0001:  call       ""ref T Program.C1<T>.GetDisposable()""
+  IL_0006:  constrained. ""T""
+  IL_000c:  callvirt   ""void System.IDisposable.Dispose()""
+  IL_0011:  ldarg.0
+  IL_0012:  ldflda     ""T Program.C1<T>.inst""
+  IL_0017:  constrained. ""T""
+  IL_001d:  callvirt   ""string object.ToString()""
+  IL_0022:  call       ""void System.Console.Write(string)""
+  IL_0027:  ldarg.0
+  IL_0028:  call       ""ref T Program.C1<T>.GetDisposable()""
+  IL_002d:  ldloca.s   V_0
+  IL_002f:  initobj    ""T""
+  IL_0035:  ldloc.0
+  IL_0036:  box        ""T""
+  IL_003b:  brtrue.s   IL_0050
+  IL_003d:  ldobj      ""T""
+  IL_0042:  stloc.0
+  IL_0043:  ldloca.s   V_0
+  IL_0045:  ldloc.0
+  IL_0046:  box        ""T""
+  IL_004b:  brtrue.s   IL_0050
+  IL_004d:  pop
+  IL_004e:  br.s       IL_005b
+  IL_0050:  constrained. ""T""
+  IL_0056:  callvirt   ""void System.IDisposable.Dispose()""
+  IL_005b:  ldarg.0
+  IL_005c:  ldflda     ""T Program.C1<T>.inst""
+  IL_0061:  constrained. ""T""
+  IL_0067:  callvirt   ""string object.ToString()""
+  IL_006c:  call       ""void System.Console.Write(string)""
+  IL_0071:  ret
+}");
+        }
+
+        [Fact]
+        public void RefReturnConditionalAccess02()
+        {
+            var text = @"
+using System;
+
+class Program
+{
+    class C1<T> where T : IDisposable
+    {
+        T inst = default(T);
+
+        public ref T GetDisposable(ref T arg)
+        {
+            return ref arg;
+        }
+
+        public void Test()
+        {
+            ref T temp = ref GetDisposable(ref inst);
+            temp.Dispose();
+            System.Console.Write(inst.ToString());
+
+            temp?.Dispose();
+            System.Console.Write(inst.ToString());
+        }
+    }
+
+    static void Main(string[] args)
+    {
+        var v = new C1<Mutable>();
+        v.Test();
+    }
+}
+
+struct Mutable : IDisposable
+{
+    public int disposed;
+
+    public void Dispose()
+    {
+        disposed += 1;
+    }
+
+    public override string ToString()
+    {
+        return disposed.ToString();
+    }
+}
+";
+
+            CompileAndVerifyExperimental(text, expectedOutput: "12", verify: false)
+                .VerifyIL("Program.C1<T>.Test()", @"
+{
+  // Code size      115 (0x73)
+  .maxstack  2
+  .locals init (T V_0)
+  IL_0000:  ldarg.0
+  IL_0001:  ldarg.0
+  IL_0002:  ldflda     ""T Program.C1<T>.inst""
+  IL_0007:  call       ""ref T Program.C1<T>.GetDisposable(ref T)""
+  IL_000c:  dup
+  IL_000d:  constrained. ""T""
+  IL_0013:  callvirt   ""void System.IDisposable.Dispose()""
+  IL_0018:  ldarg.0
+  IL_0019:  ldflda     ""T Program.C1<T>.inst""
+  IL_001e:  constrained. ""T""
+  IL_0024:  callvirt   ""string object.ToString()""
+  IL_0029:  call       ""void System.Console.Write(string)""
+  IL_002e:  ldloca.s   V_0
+  IL_0030:  initobj    ""T""
+  IL_0036:  ldloc.0
+  IL_0037:  box        ""T""
+  IL_003c:  brtrue.s   IL_0051
+  IL_003e:  ldobj      ""T""
+  IL_0043:  stloc.0
+  IL_0044:  ldloca.s   V_0
+  IL_0046:  ldloc.0
+  IL_0047:  box        ""T""
+  IL_004c:  brtrue.s   IL_0051
+  IL_004e:  pop
+  IL_004f:  br.s       IL_005c
+  IL_0051:  constrained. ""T""
+  IL_0057:  callvirt   ""void System.IDisposable.Dispose()""
+  IL_005c:  ldarg.0
+  IL_005d:  ldflda     ""T Program.C1<T>.inst""
+  IL_0062:  constrained. ""T""
+  IL_0068:  callvirt   ""string object.ToString()""
+  IL_006d:  call       ""void System.Console.Write(string)""
+  IL_0072:  ret
+}");
+        }
+
+        [Fact]
+        public void RefReturnConditionalAccess03()
+        {
+            var text = @"
+using System;
+
+class Program
+{
+    class C1<T> where T : IDisposable
+    {
+        T inst = default(T);
+
+        public ref T GetDisposable(ref T arg)
+        {
+            return ref arg;
+        }
+
+        public void Test()
+        {
+            ref T temp = ref GetDisposable(ref inst);
+
+            // prevent eliding of temp 
+            for(int i = 0; i < 2; i++)
+            {
+                temp.Dispose();
+                System.Console.Write(inst.ToString());
+
+                temp?.Dispose();
+                System.Console.Write(inst.ToString());
+            }
+        }
+    }
+
+    static void Main(string[] args)
+    {
+        var v = new C1<Mutable>();
+        v.Test();
+    }
+}
+
+struct Mutable : IDisposable
+{
+    public int disposed;
+
+    public void Dispose()
+    {
+        disposed += 1;
+    }
+
+    public override string ToString()
+    {
+        return disposed.ToString();
+    }
+}
+";
+
+            CompileAndVerifyExperimental(text, expectedOutput: "1234", verify: false)
+                .VerifyIL("Program.C1<T>.Test()", @"
+{
+  // Code size      129 (0x81)
+  .maxstack  2
+  .locals init (T& V_0, //temp
+                int V_1, //i
+                T V_2)
+  IL_0000:  ldarg.0
+  IL_0001:  ldarg.0
+  IL_0002:  ldflda     ""T Program.C1<T>.inst""
+  IL_0007:  call       ""ref T Program.C1<T>.GetDisposable(ref T)""
+  IL_000c:  stloc.0
+  IL_000d:  ldc.i4.0
+  IL_000e:  stloc.1
+  IL_000f:  br.s       IL_007c
+  IL_0011:  ldloc.0
+  IL_0012:  constrained. ""T""
+  IL_0018:  callvirt   ""void System.IDisposable.Dispose()""
+  IL_001d:  ldarg.0
+  IL_001e:  ldflda     ""T Program.C1<T>.inst""
+  IL_0023:  constrained. ""T""
+  IL_0029:  callvirt   ""string object.ToString()""
+  IL_002e:  call       ""void System.Console.Write(string)""
+  IL_0033:  ldloc.0
+  IL_0034:  ldloca.s   V_2
+  IL_0036:  initobj    ""T""
+  IL_003c:  ldloc.2
+  IL_003d:  box        ""T""
+  IL_0042:  brtrue.s   IL_0057
+  IL_0044:  ldobj      ""T""
+  IL_0049:  stloc.2
+  IL_004a:  ldloca.s   V_2
+  IL_004c:  ldloc.2
+  IL_004d:  box        ""T""
+  IL_0052:  brtrue.s   IL_0057
+  IL_0054:  pop
+  IL_0055:  br.s       IL_0062
+  IL_0057:  constrained. ""T""
+  IL_005d:  callvirt   ""void System.IDisposable.Dispose()""
+  IL_0062:  ldarg.0
+  IL_0063:  ldflda     ""T Program.C1<T>.inst""
+  IL_0068:  constrained. ""T""
+  IL_006e:  callvirt   ""string object.ToString()""
+  IL_0073:  call       ""void System.Console.Write(string)""
+  IL_0078:  ldloc.1
+  IL_0079:  ldc.i4.1
+  IL_007a:  add
+  IL_007b:  stloc.1
+  IL_007c:  ldloc.1
+  IL_007d:  ldc.i4.2
+  IL_007e:  blt.s      IL_0011
+  IL_0080:  ret
+}");
+        }
+
+        [Fact]
+        public void RefReturnConditionalAccess04()
+        {
+            var text = @"
+using System;
+
+class Program
+{
+    class C1<T> where T : IFoo<T>, new()
+    {
+        T inst = new T();
+
+        public ref T GetDisposable(ref T arg)
+        {
+            return ref arg;
+        }
+
+        public void Test()
+        {
+            GetDisposable(ref inst)?.Blah(ref inst);
+            System.Console.Write(inst == null);
+        }
+    }
+
+    static void Main(string[] args)
+    {
+        var v = new C1<Foo>();
+        v.Test();
+    }
+}
+
+interface IFoo<T>
+{
+    void Blah(ref T arg);
+}
+
+class Foo : IFoo<Foo>
+{
+    public int disposed;
+
+    public void Blah(ref Foo arg)
+    {
+        arg = null;
+        disposed++;
+        System.Console.Write(disposed);
+    }
+}
+";
+
+            CompileAndVerifyExperimental(text, expectedOutput: "1True", verify: false)
+                .VerifyIL("Program.C1<T>.Test()", @"
+{
+  // Code size       84 (0x54)
+  .maxstack  2
+  .locals init (T V_0)
+  IL_0000:  ldarg.0
+  IL_0001:  ldarg.0
+  IL_0002:  ldflda     ""T Program.C1<T>.inst""
+  IL_0007:  call       ""ref T Program.C1<T>.GetDisposable(ref T)""
+  IL_000c:  ldloca.s   V_0
+  IL_000e:  initobj    ""T""
+  IL_0014:  ldloc.0
+  IL_0015:  box        ""T""
+  IL_001a:  brtrue.s   IL_002f
+  IL_001c:  ldobj      ""T""
+  IL_0021:  stloc.0
+  IL_0022:  ldloca.s   V_0
+  IL_0024:  ldloc.0
+  IL_0025:  box        ""T""
+  IL_002a:  brtrue.s   IL_002f
+  IL_002c:  pop
+  IL_002d:  br.s       IL_0040
+  IL_002f:  ldarg.0
+  IL_0030:  ldflda     ""T Program.C1<T>.inst""
+  IL_0035:  constrained. ""T""
+  IL_003b:  callvirt   ""void IFoo<T>.Blah(ref T)""
+  IL_0040:  ldarg.0
+  IL_0041:  ldfld      ""T Program.C1<T>.inst""
+  IL_0046:  box        ""T""
+  IL_004b:  ldnull
+  IL_004c:  ceq
+  IL_004e:  call       ""void System.Console.Write(bool)""
+  IL_0053:  ret
+}");
+        }
+
+        [Fact]
+        public void RefReturnConditionalAccess05()
+        {
+            var text = @"
+using System;
+
+class Program
+{
+    class C1<T> where T : IFoo<T>, new()
+    {
+        T inst = new T();
+
+        public ref T GetDisposable(ref T arg)
+        {
+            return ref arg;
+        }
+
+        public void Test()
+        {
+            ref T temp = ref GetDisposable(ref inst);
+
+            // prevent eliding of temp 
+            for(int i = 0; i < 2; i++)
+            {
+                temp?.Blah(ref temp);
+                System.Console.Write(temp == null);
+                System.Console.Write(inst == null);
+
+                inst = new T();
+                temp?.Blah(ref temp);
+                System.Console.Write(temp == null);
+                System.Console.Write(inst == null);
+            }
+        }
+    }
+
+    static void Main(string[] args)
+    {
+        var v = new C1<Foo>();
+        v.Test();
+    }
+}
+
+interface IFoo<T>
+{
+    void Blah(ref T arg);
+}
+
+class Foo : IFoo<Foo>
+{
+    public int disposed;
+
+    public void Blah(ref Foo arg)
+    {
+        arg = null;
+        disposed++;
+        System.Console.Write(disposed);
+    }
+}
+";
+
+            CompileAndVerifyExperimental(text, expectedOutput: "1TrueTrue1TrueTrueTrueTrue1TrueTrue", verify: false)
+                .VerifyIL("Program.C1<T>.Test()", @"
+{
+  // Code size      215 (0xd7)
+  .maxstack  2
+  .locals init (T& V_0, //temp
+                int V_1, //i
+                T V_2)
+  IL_0000:  ldarg.0
+  IL_0001:  ldarg.0
+  IL_0002:  ldflda     ""T Program.C1<T>.inst""
+  IL_0007:  call       ""ref T Program.C1<T>.GetDisposable(ref T)""
+  IL_000c:  stloc.0
+  IL_000d:  ldc.i4.0
+  IL_000e:  stloc.1
+  IL_000f:  br         IL_00cf
+  IL_0014:  ldloc.0
+  IL_0015:  ldloca.s   V_2
+  IL_0017:  initobj    ""T""
+  IL_001d:  ldloc.2
+  IL_001e:  box        ""T""
+  IL_0023:  brtrue.s   IL_0038
+  IL_0025:  ldobj      ""T""
+  IL_002a:  stloc.2
+  IL_002b:  ldloca.s   V_2
+  IL_002d:  ldloc.2
+  IL_002e:  box        ""T""
+  IL_0033:  brtrue.s   IL_0038
+  IL_0035:  pop
+  IL_0036:  br.s       IL_0044
+  IL_0038:  ldloc.0
+  IL_0039:  constrained. ""T""
+  IL_003f:  callvirt   ""void IFoo<T>.Blah(ref T)""
+  IL_0044:  ldloc.0
+  IL_0045:  ldobj      ""T""
+  IL_004a:  box        ""T""
+  IL_004f:  ldnull
+  IL_0050:  ceq
+  IL_0052:  call       ""void System.Console.Write(bool)""
+  IL_0057:  ldarg.0
+  IL_0058:  ldfld      ""T Program.C1<T>.inst""
+  IL_005d:  box        ""T""
+  IL_0062:  ldnull
+  IL_0063:  ceq
+  IL_0065:  call       ""void System.Console.Write(bool)""
+  IL_006a:  ldarg.0
+  IL_006b:  call       ""T System.Activator.CreateInstance<T>()""
+  IL_0070:  stfld      ""T Program.C1<T>.inst""
+  IL_0075:  ldloc.0
+  IL_0076:  ldloca.s   V_2
+  IL_0078:  initobj    ""T""
+  IL_007e:  ldloc.2
+  IL_007f:  box        ""T""
+  IL_0084:  brtrue.s   IL_0099
+  IL_0086:  ldobj      ""T""
+  IL_008b:  stloc.2
+  IL_008c:  ldloca.s   V_2
+  IL_008e:  ldloc.2
+  IL_008f:  box        ""T""
+  IL_0094:  brtrue.s   IL_0099
+  IL_0096:  pop
+  IL_0097:  br.s       IL_00a5
+  IL_0099:  ldloc.0
+  IL_009a:  constrained. ""T""
+  IL_00a0:  callvirt   ""void IFoo<T>.Blah(ref T)""
+  IL_00a5:  ldloc.0
+  IL_00a6:  ldobj      ""T""
+  IL_00ab:  box        ""T""
+  IL_00b0:  ldnull
+  IL_00b1:  ceq
+  IL_00b3:  call       ""void System.Console.Write(bool)""
+  IL_00b8:  ldarg.0
+  IL_00b9:  ldfld      ""T Program.C1<T>.inst""
+  IL_00be:  box        ""T""
+  IL_00c3:  ldnull
+  IL_00c4:  ceq
+  IL_00c6:  call       ""void System.Console.Write(bool)""
+  IL_00cb:  ldloc.1
+  IL_00cc:  ldc.i4.1
+  IL_00cd:  add
+  IL_00ce:  stloc.1
+  IL_00cf:  ldloc.1
+  IL_00d0:  ldc.i4.2
+  IL_00d1:  blt        IL_0014
+  IL_00d6:  ret
+}");
+        }
+
     }
 }

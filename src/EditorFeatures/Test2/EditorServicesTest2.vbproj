@@ -164,11 +164,18 @@
   <ItemGroup>
     <Compile Include="CallHierarchy\CallHierarchyTests.vb" />
     <Compile Include="Diagnostics\InMemoryAssemblyLoader.vb" />
+    <Compile Include="Diagnostics\NamingStyles\NamingStyleTests.IdentifierCreation.Compliance.vb" />
+    <Compile Include="Diagnostics\NamingStyles\NamingStyleTests.IdentifierCreation.ComplexTests.vb" />
+    <Compile Include="Diagnostics\NamingStyles\NamingStyleTests.IdentifierCreation.WordSeparator.vb" />
+    <Compile Include="Diagnostics\NamingStyles\NamingStyleTests.vb" />
+    <Compile Include="Diagnostics\NamingStyles\NamingStyleTests.IdentifierCreation.PrefixSuffix.vb" />
+    <Compile Include="Diagnostics\NamingStyles\NamingStyleTests.IdentifierCreation.Casing.vb" />
     <Compile Include="Diagnostics\UseAutoProperty\UseAutoPropertyTests.vb" />
     <Compile Include="GoToImplementation\GoToImplementationTests.vb" />
     <Compile Include="InteractivePaste\InteractivePasteCommandHandlerTests.vb" />
     <Compile Include="IntelliSense\CompletionRulesTests.vb" />
     <Compile Include="LanguageServices\SyntaxFactsServiceTests.vb" />
+    <Compile Include="NamingStyles\NamingStylesTests.vb" />
     <Compile Include="Simplification\SimplifierAPITests.vb" />
     <Compile Include="Utilities\GoToHelpers\GoToTestHelpers.vb" />
     <Compile Include="Utilities\MockDocumentNavigationServiceProvider.vb" />

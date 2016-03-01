@@ -207,6 +207,12 @@
   <data name="IDS_FeatureNullable" xml:space="preserve">
     <value>nullable types</value>
   </data>
+  <data name="IDS_FeaturePatternMatching" xml:space="preserve">
+    <value>pattern matching</value>
+  </data>
+  <data name="IDS_FeaturePatternMatching2" xml:space="preserve">
+    <value>pattern matching experimental features</value>
+  </data>
   <data name="IDS_FeatureImplicitArray" xml:space="preserve">
     <value>implicitly typed array</value>
   </data>
@@ -4321,7 +4327,10 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
     <value>Feature '{0}' is not available in C# 6.  Please use language version {1} or greater.</value>
   </data>
   <data name="ERR_FeatureIsExperimental" xml:space="preserve">
-    <value>Feature '{0}' is only available in 'experimental' language version.</value>
+    <value>Feature '{0}' is experimental and unsupported; use '/features:{1}' to enable.</value>
+  </data>
+  <data name="ERR_FeatureIsUnimplemented" xml:space="preserve">
+    <value>Feature '{0}' is not implemented in this compiler.</value>
   </data>
   <data name="IDS_VersionExperimental" xml:space="preserve">
     <value>'experimental'</value>
@@ -4821,5 +4830,23 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   </data>
   <data name="ERR_TooManyUserStrings" xml:space="preserve">
     <value>Combined length of user strings used by the program exceeds allowed limit. Try to decrease use of string literals.</value>
+  </data>
+  <data name="ERR_PatternNullableType" xml:space="preserve">
+    <value>It is not legal to use nullable type '{0}' in a pattern; use the underlying type '{1}' instead.</value>
+  </data>
+  <data name="ERR_BadIsPatternExpression" xml:space="preserve">
+    <value>Invalid operand for pattern match.</value>
+  </data>
+  <data name="ERR_AmbigMatch0" xml:space="preserve">
+    <value>Type of match expression cannot be determined because no branch has a type.</value>
+  </data>
+  <data name="ERR_AmbigMatch1" xml:space="preserve">
+    <value>Type of match expression cannot be determined because no branch has a most specific type.</value>
+  </data>
+  <data name="ERR_ThrowMisplaced" xml:space="preserve">
+    <value>A throw expression is not allowed here.</value>
+  </data>
+  <data name="ERR_ElseClauseRequiredWithWhenClause" xml:space="preserve">
+    <value>An 'else' clause is required when a 'when' clause is present.</value>
   </data>
 </root>

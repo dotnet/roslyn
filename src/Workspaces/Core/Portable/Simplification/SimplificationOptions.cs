@@ -80,5 +80,11 @@ namespace Microsoft.CodeAnalysis.Simplification
         /// This option says if we should prefer keyword for Intrinsic Predefined Types in Member Access Expression
         /// </summary>
         public static PerLanguageOption<bool> PreferIntrinsicPredefinedTypeKeywordInMemberAccess { get; } = new PerLanguageOption<bool>(PerLanguageFeatureName, "PreferIntrinsicPredefinedTypeKeywordInMemberAccess", defaultValue: true);
+
+        /// <summary>
+        /// This option describes the naming rules that should be applied to specified categories of symbols, 
+        /// and the level to which those rules should be enforced.
+        /// </summary>
+        public static PerLanguageOption<string> NamingPreferences { get; } = new PerLanguageOption<string>(PerLanguageFeatureName, "NamingPreferences", defaultValue: "");
     }
 }

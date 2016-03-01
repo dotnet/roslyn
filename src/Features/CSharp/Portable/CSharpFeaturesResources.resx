@@ -219,6 +219,9 @@
   <data name="SelectionCanNotBePartOfConstInitializerExpr" xml:space="preserve">
     <value>Selection can not be part of constant initializer expression.</value>
   </data>
+  <data name="SelectionCanNotContainPattern" xml:space="preserve">
+    <value>Selection can not contain a pattern expression.</value>
+  </data>
   <data name="TheSelectedCodeIsInsideAnUnsafeContext" xml:space="preserve">
     <value>The selected code is inside an unsafe context.</value>
   </data>

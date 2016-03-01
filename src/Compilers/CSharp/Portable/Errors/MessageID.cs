@@ -55,6 +55,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         IDS_FeatureDefault = MessageBase + 12525,
         IDS_FeatureNullable = MessageBase + 12528,
         IDS_Lambda = MessageBase + 12531,
+        IDS_FeaturePatternMatching = MessageBase + 12532,
+        IDS_FeaturePatternMatching2 = MessageBase + 12533,
 
         IDS_FeatureImplicitArray = MessageBase + 12557,
         IDS_FeatureImplicitLocal = MessageBase + 12558,
@@ -166,9 +168,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return "digitSeparators";
                 case MessageID.IDS_FeatureLocalFunctions:
                     return "localFunctions";
-
                 case MessageID.IDS_FeatureRefLocalsReturns:
                     return "refLocalsAndReturns";
+                case MessageID.IDS_FeaturePatternMatching:
+                    return "patterns";
+                case MessageID.IDS_FeaturePatternMatching2:
+                    return "patternsExperimental";
                 default:
                     return null;
             }

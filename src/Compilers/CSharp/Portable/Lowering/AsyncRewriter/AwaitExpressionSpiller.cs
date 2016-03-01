@@ -316,7 +316,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             var substituterOpt = (substituteTemps && _tempSubstitution.Count > 0) ? new LocalSubstituter(_tempSubstitution, RecursionDepth) : null;
-            var result = _F.Block(builder.GetLocals(), ImmutableArray<LocalFunctionSymbol>.Empty, builder.GetStatements(substituterOpt));
+            var result = _F.Block(builder.GetLocals(), builder.GetStatements(substituterOpt));
 
             builder.Free();
             return result;
@@ -518,7 +518,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             EnterStatement(node);
 
             BoundSpillSequenceBuilder builder = null;
-            var boundExpression = VisitExpression(ref builder, node.BoundExpression);
+            var boundExpression = VisitExpression(ref builder, node.Expression);
             var switchSections = this.VisitList(node.SwitchSections);
             return UpdateStatement(builder, node.Update(boundExpression, node.ConstantTargetOpt, node.InnerLocals, node.InnerLocalFunctions, switchSections, node.BreakLabel, node.StringEquality), substituteTemps: true);
         }

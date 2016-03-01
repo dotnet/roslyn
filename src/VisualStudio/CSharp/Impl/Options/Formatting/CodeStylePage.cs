@@ -6,11 +6,12 @@ using Microsoft.VisualStudio.LanguageServices.Implementation.Options;
 
 namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options.Formatting
 {
-    internal class FormattingStylePage : AbstractOptionPage
+    [Guid(Guids.CSharpOptionPageCodeStyleIdString)]
+    internal class CodeStylePage : AbstractOptionPage
     {
         protected override AbstractOptionPageControl CreateOptionPage(IServiceProvider serviceProvider)
         {
-            return new OptionPreviewControl(serviceProvider, (o, s) => new StyleViewModel(o, s));
+            return new GridOptionPreviewControl(serviceProvider, (o, s) => new StyleViewModel(o, s));
         }
     }
 }

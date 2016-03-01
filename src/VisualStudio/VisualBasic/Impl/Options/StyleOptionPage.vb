@@ -4,6 +4,7 @@ Imports System.Runtime.InteropServices
 Imports Microsoft.VisualStudio.LanguageServices.Implementation.Options
 
 Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Options
+    <Guid(Guids.VisualBasicOptionPageCodeStyleIdString)>
     Friend Class StyleOptionPage
         Inherits AbstractOptionPage
 

@@ -483,12 +483,11 @@
   "libraries": {
     "Microsoft.Composition/1.0.27": {
       "sha512": "pwu80Ohe7SBzZ6i69LVdzowp6V+LaVRzd5F7A6QlD42vQkX0oT7KXKWWPlM/S00w1gnMQMRnEdbtOV12z6rXdQ==",
-      "type": "Package",
+      "type": "package",
       "files": [
         "License-Stable.rtf",
+        "Microsoft.Composition.1.0.27.nupkg.sha512",
         "Microsoft.Composition.nuspec",
-        "[Content_Types].xml",
-        "_rels/.rels",
         "lib/portable-net45+win8+wp8+wpa81/System.Composition.AttributedModel.XML",
         "lib/portable-net45+win8+wp8+wpa81/System.Composition.AttributedModel.dll",
         "lib/portable-net45+win8+wp8+wpa81/System.Composition.Convention.dll",
@@ -498,48 +497,42 @@
         "lib/portable-net45+win8+wp8+wpa81/System.Composition.Runtime.XML",
         "lib/portable-net45+win8+wp8+wpa81/System.Composition.Runtime.dll",
         "lib/portable-net45+win8+wp8+wpa81/System.Composition.TypedParts.XML",
-        "lib/portable-net45+win8+wp8+wpa81/System.Composition.TypedParts.dll",
-        "package/services/metadata/core-properties/12e2c94035674b25b911285cc26e3260.psmdcp"
+        "lib/portable-net45+win8+wp8+wpa81/System.Composition.TypedParts.dll"
       ]
     },
     "Microsoft.Tpl.Dataflow/4.5.24": {
       "sha512": "6BE4Vu74+dkv5AkJd+UxW1sFMepMZOVlUoMZDUKqhc4Bf7pe7yySzCj6QrowUZbCqcDPwOiQsAgz3nXiLQSyMw==",
-      "type": "Package",
+      "type": "package",
       "files": [
         "License-Stable.rtf",
+        "Microsoft.Tpl.Dataflow.4.5.24.nupkg.sha512",
         "Microsoft.Tpl.Dataflow.nuspec",
-        "[Content_Types].xml",
-        "_rels/.rels",
         "lib/portable-net45+win8+wp8+wpa81/System.Threading.Tasks.Dataflow.dll",
         "lib/portable-net45+win8+wp8+wpa81/system.threading.tasks.dataflow.xml",
         "lib/portable-net45+win8+wpa81/System.Threading.Tasks.Dataflow.dll",
-        "lib/portable-net45+win8+wpa81/system.threading.tasks.dataflow.xml",
-        "package/services/metadata/core-properties/3dd86853af3a4ae392f3331459714ce0.psmdcp"
+        "lib/portable-net45+win8+wpa81/system.threading.tasks.dataflow.xml"
       ]
     },
     "Microsoft.VisualStudio.Composition/14.0.50715-pre": {
       "sha512": "iW0ZItSqec+q0wmUHbFCDb/kxdKqa5LaoLYRso7sbnnx8DZst/WGc86ooxBg+P6imWVV69a5ABUAE14EIkDzHw==",
-      "type": "Package",
+      "type": "package",
       "files": [
+        "Microsoft.VisualStudio.Composition.14.0.50715-pre.nupkg.sha512",
         "Microsoft.VisualStudio.Composition.nuspec",
-        "[Content_Types].xml",
-        "_rels/.rels",
         "lib/net45/Microsoft.VisualStudio.Composition.dll",
         "lib/net45/Microsoft.VisualStudio.Composition.xml",
         "lib/net451/Microsoft.VisualStudio.Composition.Configuration.dll",
         "lib/net451/Microsoft.VisualStudio.Composition.Configuration.xml",
         "lib/net451/Microsoft.VisualStudio.Composition.dll",
-        "lib/net451/Microsoft.VisualStudio.Composition.xml",
-        "package/services/metadata/core-properties/49476b50df234fd0aa965545b1ff4537.psmdcp"
+        "lib/net451/Microsoft.VisualStudio.Composition.xml"
       ]
     },
     "Microsoft.VisualStudio.ProjectSystem/14.0.50729-pre": {
       "sha512": "+JSSRR94Y+4abD+q1dEKH8oQngfGUjcg0n9T7OG3bYEiLACJBkm+TCdajskhOvlc0Q4kfPtm3Z/PCS7Ph3LH0g==",
-      "type": "Package",
+      "type": "package",
       "files": [
+        "Microsoft.VisualStudio.ProjectSystem.14.0.50729-pre.nupkg.sha512",
         "Microsoft.VisualStudio.ProjectSystem.nuspec",
-        "[Content_Types].xml",
-        "_rels/.rels",
         "lib/net451/Microsoft.VisualStudio.ProjectSystem.Interop.dll",
         "lib/net451/Microsoft.VisualStudio.ProjectSystem.Interop.xml",
         "lib/net451/Microsoft.VisualStudio.ProjectSystem.Utilities.v14.0.dll",
@@ -547,71 +540,60 @@
         "lib/net451/Microsoft.VisualStudio.ProjectSystem.V14Only.dll",
         "lib/net451/Microsoft.VisualStudio.ProjectSystem.V14Only.xml",
         "lib/net451/Microsoft.VisualStudio.ProjectSystem.VS.V14Only.dll",
-        "lib/net451/Microsoft.VisualStudio.ProjectSystem.VS.V14Only.xml",
-        "package/services/metadata/core-properties/fe999f7ab0874e64b777f1794da9d9b4.psmdcp"
+        "lib/net451/Microsoft.VisualStudio.ProjectSystem.VS.V14Only.xml"
       ]
     },
     "Microsoft.VisualStudio.ProjectSystem.SDK/14.0.50729-pre": {
       "sha512": "hW9/MpuMxPHW4q2rPDIrgN/o2CpkUm+4E1+CIEDlh3LiXKUyVRRy79IpEaUW0txe4KgFZyB5NSYyVEYQLl3k2Q==",
-      "type": "Package",
+      "type": "package",
       "files": [
+        "Microsoft.VisualStudio.ProjectSystem.SDK.14.0.50729-pre.nupkg.sha512",
         "Microsoft.VisualStudio.ProjectSystem.SDK.nuspec",
-        "README.txt",
-        "[Content_Types].xml",
-        "_rels/.rels",
-        "package/services/metadata/core-properties/a93e83fc8f73442b87d4f9965d3fc30a.psmdcp"
+        "README.txt"
       ]
     },
     "Microsoft.VisualStudio.ProjectSystem.SDK.Tools/14.0.50729-pre": {
       "sha512": "0i4en63Z6RREy+ntj8mVO1tJ1Ei62oFVPMAnl/DIUp10972MWCb6ZisPYCxkXCTdziJq8r+KIHRQUsYJ7aU+7Q==",
-      "type": "Package",
+      "type": "package",
       "files": [
+        "Microsoft.VisualStudio.ProjectSystem.SDK.Tools.14.0.50729-pre.nupkg.sha512",
         "Microsoft.VisualStudio.ProjectSystem.SDK.Tools.nuspec",
         "README.txt",
-        "[Content_Types].xml",
-        "_rels/.rels",
         "build/Microsoft.VisualStudio.ProjectSystem.Sdk.Tasks.dll",
         "build/Microsoft.VisualStudio.ProjectSystem.Sdk.Tasks.xml",
         "build/Microsoft.VisualStudio.ProjectSystem.Sdk.Tools.targets",
         "build/XamlPropertyRule.ContentType.xaml",
         "build/XamlPropertyRule.xaml",
-        "content/ProjectProperties.cs.pp",
-        "package/services/metadata/core-properties/fd313fe67dbf4ade866edd89b9ac578e.psmdcp"
+        "content/ProjectProperties.cs.pp"
       ]
     },
     "Microsoft.VisualStudio.SDK.VsixSuppression/14.0.50703": {
       "sha512": "lNXT1x3ts/dDcQBuEAvuO04AOvH5zlOWnxdPMnQmAk32oNqq8QZZ9sf2hHDhIAd4RhYHh5gjQ/8yqAP1V03KVw==",
-      "type": "Package",
+      "type": "package",
       "files": [
+        "Microsoft.VisualStudio.SDK.VsixSuppression.14.0.50703.nupkg.sha512",
         "Microsoft.VisualStudio.SDK.VsixSuppression.nuspec",
-        "[Content_Types].xml",
-        "_rels/.rels",
-        "build/Microsoft.VisualStudio.SDK.VsixSuppression.targets",
-        "package/services/metadata/core-properties/d13cf0951f2743589e7f65ce5966d899.psmdcp"
+        "build/Microsoft.VisualStudio.SDK.VsixSuppression.targets"
       ]
     },
     "Microsoft.VisualStudio.Threading/14.0.50702": {
       "sha512": "dHdvEGfDv5PbGsCbtBtPkCsXkmPJcJTmnQ3m9V4JxqBCMJWO8N4Dyut4ssw46KKr8MS64RWiJSslPhDLiSfQDA==",
-      "type": "Package",
+      "type": "package",
       "files": [
+        "Microsoft.VisualStudio.Threading.14.0.50702.nupkg.sha512",
         "Microsoft.VisualStudio.Threading.nuspec",
-        "[Content_Types].xml",
-        "_rels/.rels",
         "lib/net45/Microsoft.VisualStudio.Threading.dll",
-        "lib/net45/Microsoft.VisualStudio.Threading.xml",
-        "package/services/metadata/core-properties/77685921fcf14c9593f228a4558113ac.psmdcp"
+        "lib/net45/Microsoft.VisualStudio.Threading.xml"
       ]
     },
     "Microsoft.VisualStudio.Validation/14.0.50702": {
       "sha512": "+fqBUMqpfk8b1BwegIalBHoNzfnJUWFI/qrOGD6xEfhEH+732zZGlzO3Kuci+wiVX1NCD6HW5jZDEePVejGHcg==",
-      "type": "Package",
+      "type": "package",
       "files": [
+        "Microsoft.VisualStudio.Validation.14.0.50702.nupkg.sha512",
         "Microsoft.VisualStudio.Validation.nuspec",
-        "[Content_Types].xml",
-        "_rels/.rels",
         "lib/net45/Microsoft.VisualStudio.Validation.dll",
-        "lib/net45/Microsoft.VisualStudio.Validation.xml",
-        "package/services/metadata/core-properties/bc0320ca467749b1ac7a79765ec3e8cb.psmdcp"
+        "lib/net45/Microsoft.VisualStudio.Validation.xml"
       ]
     },
     "Moq/4.2.1402.2112": {
@@ -641,50 +623,42 @@
     },
     "xunit/2.1.0": {
       "sha512": "u/7VQSOSXa7kSG4iK6Lcn7RqKZQ3hk7cnyMNVMpXHSP0RI5VQEtc44hvkG3LyWOVsx1dhUDD3rPAHAxyOUDQJw==",
-      "type": "Package",
+      "type": "package",
       "files": [
-        "[Content_Types].xml",
-        "_rels/.rels",
-        "package/services/metadata/core-properties/645916a897f44189a642f33e571d5b90.psmdcp",
+        "xunit.2.1.0.nupkg.sha512",
         "xunit.nuspec"
       ]
     },
     "xunit.abstractions/2.0.0": {
       "sha512": "NAdxKQRzuLnCZ0g++x6i87/8rMBpQoRiRlRNLAqfODm2zJPbteHRoSER3DXfxnqrHXyBJT8rFaZ8uveBeQyaMA==",
-      "type": "Package",
+      "type": "package",
       "files": [
-        "[Content_Types].xml",
-        "_rels/.rels",
         "lib/net35/xunit.abstractions.dll",
         "lib/net35/xunit.abstractions.xml",
         "lib/portable-net45+win+wpa81+wp80+monotouch+monoandroid+Xamarin.iOS/xunit.abstractions.dll",
         "lib/portable-net45+win+wpa81+wp80+monotouch+monoandroid+Xamarin.iOS/xunit.abstractions.xml",
-        "package/services/metadata/core-properties/24083640fee244bf9de77f4c35d40a72.psmdcp",
+        "xunit.abstractions.2.0.0.nupkg.sha512",
         "xunit.abstractions.nuspec"
       ]
     },
     "xunit.assert/2.1.0": {
       "sha512": "Hhhw+YaTe+BGhbr57dxVE+6VJk8BfThqFFii1XIsSZ4qx+SSCixprJC10JkiLRVSTfWyT8W/4nAf6NQgIrmBxA==",
-      "type": "Package",
+      "type": "package",
       "files": [
-        "[Content_Types].xml",
-        "_rels/.rels",
         "lib/dotnet/xunit.assert.dll",
         "lib/dotnet/xunit.assert.pdb",
         "lib/dotnet/xunit.assert.xml",
         "lib/portable-net45+win8+wp8+wpa81/xunit.assert.dll",
         "lib/portable-net45+win8+wp8+wpa81/xunit.assert.pdb",
         "lib/portable-net45+win8+wp8+wpa81/xunit.assert.xml",
-        "package/services/metadata/core-properties/4f538d979dfc48ed9b4c20e5a69d87b1.psmdcp",
+        "xunit.assert.2.1.0.nupkg.sha512",
         "xunit.assert.nuspec"
       ]
     },
     "xunit.core/2.1.0": {
       "sha512": "jlbYdPbnkPIRwJllcT/tQZCNsSElVDEymdpJfH79uTUrPARkELVYw9o/zhAjKZXmeikGqGK5C2Yny4gTNoEu0Q==",
-      "type": "Package",
+      "type": "package",
       "files": [
-        "[Content_Types].xml",
-        "_rels/.rels",
         "build/_desktop/xunit.execution.desktop.dll",
         "build/dnx451/_._",
         "build/monoandroid/_._",
@@ -696,16 +670,14 @@
         "build/wp8/_._",
         "build/wpa81/xunit.core.props",
         "build/xamarinios/_._",
-        "package/services/metadata/core-properties/cce23a490b7f4272adfe9aa57c4e1ca3.psmdcp",
+        "xunit.core.2.1.0.nupkg.sha512",
         "xunit.core.nuspec"
       ]
     },
     "xunit.extensibility.core/2.1.0": {
       "sha512": "ANWM3WxeaeHjACLRlmrv+xOc0WAcr3cvIiJE+gqbdzTv1NCH4p1VDyT+8WmmdCc9db0WFiJLaDy4YTYsL1wWXw==",
-      "type": "Package",
+      "type": "package",
       "files": [
-        "[Content_Types].xml",
-        "_rels/.rels",
         "lib/dotnet/xunit.core.dll",
         "lib/dotnet/xunit.core.dll.tdnet",
         "lib/dotnet/xunit.core.pdb",
@@ -718,16 +690,14 @@
         "lib/portable-net45+win8+wp8+wpa81/xunit.core.xml",
         "lib/portable-net45+win8+wp8+wpa81/xunit.runner.tdnet.dll",
         "lib/portable-net45+win8+wp8+wpa81/xunit.runner.utility.desktop.dll",
-        "package/services/metadata/core-properties/5218831c5b01422bb82b23cafd6488b3.psmdcp",
+        "xunit.extensibility.core.2.1.0.nupkg.sha512",
         "xunit.extensibility.core.nuspec"
       ]
     },
     "xunit.extensibility.execution/2.1.0": {
       "sha512": "tAoNafoVknKa3sZJPMvtZRnhOSk3gasEGeceSm7w/gyGwsR/OXFxndWJB1xSHeoy33d3Z6jFqn4A3j+pWCF0Ew==",
-      "type": "Package",
+      "type": "package",
       "files": [
-        "[Content_Types].xml",
-        "_rels/.rels",
         "lib/dnx451/xunit.execution.dotnet.dll",
         "lib/dnx451/xunit.execution.dotnet.pdb",
         "lib/dnx451/xunit.execution.dotnet.xml",
@@ -758,17 +728,14 @@
         "lib/xamarinios/xunit.execution.dotnet.dll",
         "lib/xamarinios/xunit.execution.dotnet.pdb",
         "lib/xamarinios/xunit.execution.dotnet.xml",
-        "package/services/metadata/core-properties/9f5f1211ea9a4e748cecce63d1c73e30.psmdcp",
+        "xunit.extensibility.execution.2.1.0.nupkg.sha512",
         "xunit.extensibility.execution.nuspec"
       ]
     },
     "xunit.runner.console/2.1.0": {
       "sha512": "dryP6nBDWD2aH6OUidwoPQLebelnfA6DDKUs9PxJ6iPDbT9t5eSKyjqLSas/nQFEJZwXXWVnbImrgK/IgiyOdQ==",
-      "type": "Package",
+      "type": "package",
       "files": [
-        "[Content_Types].xml",
-        "_rels/.rels",
-        "package/services/metadata/core-properties/3ff6ecc00c3b4e6c93baf7de3f0b9697.psmdcp",
         "tools/HTML.xslt",
         "tools/NUnitXml.xslt",
         "tools/xUnit1.xslt",
@@ -779,15 +746,14 @@
         "tools/xunit.console.x86.exe.config",
         "tools/xunit.runner.reporters.desktop.dll",
         "tools/xunit.runner.utility.desktop.dll",
+        "xunit.runner.console.2.1.0.nupkg.sha512",
         "xunit.runner.console.nuspec"
       ]
     },
     "xunit.runner.visualstudio/2.1.0": {
       "sha512": "44vJFEQopk8SHfPMjgzn4QevRNfITO7zRZBo9lb+OPhID7v/q2gFaOgyEUomKilq2rwWUQ0m9yquBOzJL4L4aA==",
-      "type": "Package",
+      "type": "package",
       "files": [
-        "[Content_Types].xml",
-        "_rels/.rels",
         "build/_common/xunit.abstractions.dll",
         "build/_common/xunit.runner.utility.desktop.dll",
         "build/_common/xunit.runner.utility.dotnet.dll",
@@ -811,7 +777,7 @@
         "build/wpa81/xunit.runner.visualstudio.wpa81.dll",
         "build/wpa81/xunit.runner.visualstudio.wpa81.pri",
         "build/xamarinios/_._",
-        "package/services/metadata/core-properties/75d77ac04d244734b920caf67c66919b.psmdcp",
+        "xunit.runner.visualstudio.2.1.0.nupkg.sha512",
         "xunit.runner.visualstudio.nuspec"
       ]
     }

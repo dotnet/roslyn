@@ -70,6 +70,15 @@ namespace Microsoft.VisualStudio.LanguageServices {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Accessibilities (can match any).
+        /// </summary>
+        internal static string AccessibilitiesLabel {
+            get {
+                return ResourceManager.GetString("AccessibilitiesLabel", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Add a reference to &apos;{0}&apos;.
         /// </summary>
         internal static string AddAReference {
@@ -124,11 +133,74 @@ namespace Microsoft.VisualStudio.LanguageServices {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Capitalization:.
+        /// </summary>
+        internal static string CapitalizationLabel {
+            get {
+                return ResourceManager.GetString("CapitalizationLabel", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to all lower.
+        /// </summary>
+        internal static string CapitalizationStyleExample_AllLower {
+            get {
+                return ResourceManager.GetString("CapitalizationStyleExample_AllLower", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to ALL UPPER.
+        /// </summary>
+        internal static string CapitalizationStyleExample_AllUpper {
+            get {
+                return ResourceManager.GetString("CapitalizationStyleExample_AllUpper", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to camel Case Name.
+        /// </summary>
+        internal static string CapitalizationStyleExample_CamelCase {
+            get {
+                return ResourceManager.GetString("CapitalizationStyleExample_CamelCase", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to First word upper.
+        /// </summary>
+        internal static string CapitalizationStyleExample_FirstWordUpper {
+            get {
+                return ResourceManager.GetString("CapitalizationStyleExample_FirstWordUpper", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Pascal Case Name.
+        /// </summary>
+        internal static string CapitalizationStyleExample_PascalCase {
+            get {
+                return ResourceManager.GetString("CapitalizationStyleExample_PascalCase", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Change Signature.
         /// </summary>
         internal static string ChangeSignature {
             get {
                 return ResourceManager.GetString("ChangeSignature", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Choose a Symbol Specification and a Naming Style..
+        /// </summary>
+        internal static string ChooseASymbolSpecificationAndNamingStyle {
+            get {
+                return ResourceManager.GetString("ChooseASymbolSpecificationAndNamingStyle", resourceCulture);
             }
         }
         
@@ -201,6 +273,15 @@ namespace Microsoft.VisualStudio.LanguageServices {
         internal static string CurrentBlock {
             get {
                 return ResourceManager.GetString("CurrentBlock", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Custom Tags (must match all).
+        /// </summary>
+        internal static string CustomTagsLabel {
+            get {
+                return ResourceManager.GetString("CustomTagsLabel", resourceCulture);
             }
         }
         
@@ -327,6 +408,42 @@ namespace Microsoft.VisualStudio.LanguageServices {
         internal static string EndPositionMustBeGreaterThanStart {
             get {
                 return ResourceManager.GetString("EndPositionMustBeGreaterThanStart", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Severity:.
+        /// </summary>
+        internal static string EnforcementLevelEntryLabel {
+            get {
+                return ResourceManager.GetString("EnforcementLevelEntryLabel", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Enter a title for this Naming Rule..
+        /// </summary>
+        internal static string EnterATitleForThisNamingRule {
+            get {
+                return ResourceManager.GetString("EnterATitleForThisNamingRule", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Enter a title for this Naming Style..
+        /// </summary>
+        internal static string EnterATitleForThisNamingStyle {
+            get {
+                return ResourceManager.GetString("EnterATitleForThisNamingStyle", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Enter a title for this Symbol Specification..
+        /// </summary>
+        internal static string EnterATitleForThisSymbolSpecification {
+            get {
+                return ResourceManager.GetString("EnterATitleForThisSymbolSpecification", resourceCulture);
             }
         }
         
@@ -462,6 +579,24 @@ namespace Microsoft.VisualStudio.LanguageServices {
         internal static string GettingDataTipText {
             get {
                 return ResourceManager.GetString("GettingDataTipText", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to example.
+        /// </summary>
+        internal static string IdentifierWord_Example {
+            get {
+                return ResourceManager.GetString("IdentifierWord_Example", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to identifier.
+        /// </summary>
+        internal static string IdentifierWord_Identifier {
+            get {
+                return ResourceManager.GetString("IdentifierWord_Identifier", resourceCulture);
             }
         }
         
@@ -718,11 +853,83 @@ namespace Microsoft.VisualStudio.LanguageServices {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Modifiers (must match all).
+        /// </summary>
+        internal static string ModifiersLabel {
+            get {
+                return ResourceManager.GetString("ModifiersLabel", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Name:.
         /// </summary>
         internal static string Name {
             get {
                 return ResourceManager.GetString("Name", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Name:.
+        /// </summary>
+        internal static string NameEntryLabel {
+            get {
+                return ResourceManager.GetString("NameEntryLabel", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Naming Rule.
+        /// </summary>
+        internal static string NamingRuleDialogTitle {
+            get {
+                return ResourceManager.GetString("NamingRuleDialogTitle", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Naming Style.
+        /// </summary>
+        internal static string NamingStyleDialogTitle {
+            get {
+                return ResourceManager.GetString("NamingStyleDialogTitle", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Naming Style:.
+        /// </summary>
+        internal static string NamingStyleEntryLabel {
+            get {
+                return ResourceManager.GetString("NamingStyleEntryLabel", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Naming Rules allow you to define how particular sets of symbols should be named and how incorrectly-named symbols should be handled..
+        /// </summary>
+        internal static string NamingStylesExplanationPart1 {
+            get {
+                return ResourceManager.GetString("NamingStylesExplanationPart1", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The first matching top-level Naming Rule is used by default when naming a symbol, while any special cases are handled by a matching child rule..
+        /// </summary>
+        internal static string NamingStylesExplanationPart2 {
+            get {
+                return ResourceManager.GetString("NamingStylesExplanationPart2", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Naming Style Title:.
+        /// </summary>
+        internal static string NamingStyleTitleLabel {
+            get {
+                return ResourceManager.GetString("NamingStyleTitleLabel", resourceCulture);
             }
         }
         
@@ -761,6 +968,15 @@ namespace Microsoft.VisualStudio.LanguageServices {
         internal static string NewInterfaceName {
             get {
                 return ResourceManager.GetString("NewInterfaceName", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to No.
+        /// </summary>
+        internal static string No {
+            get {
+                return ResourceManager.GetString("No", resourceCulture);
             }
         }
         
@@ -824,6 +1040,15 @@ namespace Microsoft.VisualStudio.LanguageServices {
         internal static string Parameters {
             get {
                 return ResourceManager.GetString("Parameters", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Parent Rule:.
+        /// </summary>
+        internal static string ParentRuleEntryLabel {
+            get {
+                return ResourceManager.GetString("ParentRuleEntryLabel", resourceCulture);
             }
         }
         
@@ -994,6 +1219,24 @@ namespace Microsoft.VisualStudio.LanguageServices {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Required Prefix:.
+        /// </summary>
+        internal static string RequiredPrefixLabel {
+            get {
+                return ResourceManager.GetString("RequiredPrefixLabel", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Required Suffix:.
+        /// </summary>
+        internal static string RequiredSuffixLabel {
+            get {
+                return ResourceManager.GetString("RequiredSuffixLabel", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Resolving breakpoint location....
         /// </summary>
         internal static string ResolvingBreakpointLocation {
@@ -1008,6 +1251,15 @@ namespace Microsoft.VisualStudio.LanguageServices {
         internal static string Restore {
             get {
                 return ResourceManager.GetString("Restore", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Sample Identifier:.
+        /// </summary>
+        internal static string SampleIdentifierLabel {
+            get {
+                return ResourceManager.GetString("SampleIdentifierLabel", resourceCulture);
             }
         }
         
@@ -1062,6 +1314,42 @@ namespace Microsoft.VisualStudio.LanguageServices {
         internal static string SuppressMultipleOccurrences {
             get {
                 return ResourceManager.GetString("SuppressMultipleOccurrences", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Symbol Kinds (can match any).
+        /// </summary>
+        internal static string SymbolKindsLabel {
+            get {
+                return ResourceManager.GetString("SymbolKindsLabel", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Symbol Specification.
+        /// </summary>
+        internal static string SymbolSpecificationDialogTitle {
+            get {
+                return ResourceManager.GetString("SymbolSpecificationDialogTitle", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Symbol Specification:.
+        /// </summary>
+        internal static string SymbolSpecificationEntryLabel {
+            get {
+                return ResourceManager.GetString("SymbolSpecificationEntryLabel", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Symbol Specification Title:.
+        /// </summary>
+        internal static string SymbolSpecificationTitleLabel {
+            get {
+                return ResourceManager.GetString("SymbolSpecificationTitleLabel", resourceCulture);
             }
         }
         
@@ -1156,6 +1444,15 @@ namespace Microsoft.VisualStudio.LanguageServices {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Word Separator:.
+        /// </summary>
+        internal static string WordSeparatorLabel {
+            get {
+                return ResourceManager.GetString("WordSeparatorLabel", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to IntelliSense.
         /// </summary>
         internal static string WorkspaceOutputPaneTitle {
@@ -1224,6 +1521,15 @@ namespace Microsoft.VisualStudio.LanguageServices {
         internal static string WRN_MissingAnalyzerReferenceTitle {
             get {
                 return ResourceManager.GetString("WRN_MissingAnalyzerReferenceTitle", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Yes.
+        /// </summary>
+        internal static string Yes {
+            get {
+                return ResourceManager.GetString("Yes", resourceCulture);
             }
         }
         
