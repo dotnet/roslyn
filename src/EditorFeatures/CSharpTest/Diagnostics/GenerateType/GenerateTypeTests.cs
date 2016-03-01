@@ -783,7 +783,7 @@ index: 1);
 @"class Class { void M(int i) { Base b = new [|T|](i); } } class Base { protected int I; } ",
 @"class Class { void M(int i) { Base b = new T(i); } } internal class T : Base { public T(int i) { this.I = i; } } class Base { protected int I; }",
 index: 1,
-options: new Dictionary<OptionKey, object> { { new OptionKey(SimplificationOptions.QualifyMemberAccessWithThisOrMe, "C#"), true } });
+options: Option(SimplificationOptions.QualifyFieldAccess, true));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
@@ -838,7 +838,7 @@ index: 1);
 @"class Class { void M(int i) { Base b = new [|T|](i); } } class Base { public int I { get; protected set; } } ",
 @"class Class { void M(int i) { Base b = new T(i); } } internal class T : Base { public T(int i) { this.I = i; } } class Base { public int I { get; protected set; } }",
 index: 1,
-options: new Dictionary<OptionKey, object> { { new OptionKey(SimplificationOptions.QualifyMemberAccessWithThisOrMe, "C#"), true } });
+options: Option(SimplificationOptions.QualifyPropertyAccess, true));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
@@ -857,7 +857,7 @@ index: 1);
 @"class Class { void M(int i) { Base b = new [|T|](i); } } class Base { protected int I { get; set; } } ",
 @"class Class { void M(int i) { Base b = new T(i); } } internal class T : Base { public T(int i) { this.I = i; } } class Base { protected int I { get; set; } }",
 index: 1,
-options: new Dictionary<OptionKey, object> { { new OptionKey(SimplificationOptions.QualifyMemberAccessWithThisOrMe, "C#"), true } });
+options: Option(SimplificationOptions.QualifyPropertyAccess, true));
         }
 
         [WorkItem(942568, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/942568")]

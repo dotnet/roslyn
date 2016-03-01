@@ -15,7 +15,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
     /// <summary>
     /// Represents a .NET assembly, consisting of one or more modules.
     /// </summary>
-    internal abstract class AssemblySymbol : Symbol, IAssemblySymbol
+    internal abstract class AssemblySymbol : Symbol, IAssemblySymbolInternal
     {
         // !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
         // Changes to the public interface of this class should remain synchronized with the VB version.
@@ -77,6 +77,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// Gets the identity of this assembly.
         /// </summary>
         public abstract AssemblyIdentity Identity { get; }
+
+        /// <summary>
+        /// Assembly version pattern with wildcards represented by <see cref="ushort.MaxValue"/>,
+        /// or null if the version string specified in the <see cref="AssemblyVersionAttribute"/> doesn't contain a wildcard.
+        /// 
+        /// For example, 
+        ///   AssemblyVersion("1.2.*") is represented as 1.2.65535.65535,
+        ///   AssemblyVersion("1.2.3.*") is represented as 1.2.3.65535.
+        /// </summary>
+        public abstract Version AssemblyVersionPattern { get; }
 
         /// <summary>
         /// Target architecture of the machine.

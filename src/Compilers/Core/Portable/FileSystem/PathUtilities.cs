@@ -17,7 +17,7 @@ namespace Roslyn.Utilities
         internal static readonly string DirectorySeparatorStr = new string(DirectorySeparatorChar, 1);
         internal const char VolumeSeparatorChar = ':';
 
-        private static bool IsUnixLikePlatform
+        internal static bool IsUnixLikePlatform
         {
             get
             {

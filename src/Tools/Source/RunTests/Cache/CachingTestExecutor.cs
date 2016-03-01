@@ -36,21 +36,23 @@ namespace RunTests.Cache
             builder.AppendLine("===");
             Logger.Log(builder.ToString());
 
-            TestResult testResult;
-            CachedTestResult cachedTestResult;
-            if (!_dataStorage.TryGetCachedTestResult(contentFile.Checksum, out cachedTestResult))
+            try
             {
-                Logger.Log($"{Path.GetFileName(assemblyPath)} - running");
-                testResult = await _testExecutor.RunTestAsync(assemblyPath, cancellationToken);
-                Logger.Log($"{Path.GetFileName(assemblyPath)} - caching");
-                CacheTestResult(contentFile, testResult);
+                var cachedTestResult = await _dataStorage.TryGetCachedTestResult(contentFile.Checksum);
+                if (cachedTestResult.HasValue)
+                {
+                    Logger.Log($"{Path.GetFileName(assemblyPath)} - cache hit");
+                    return Migrate(assemblyPath, cachedTestResult.Value);
+                }
             }
-            else
+            catch (Exception ex)
             {
-                testResult = Migrate(assemblyPath, cachedTestResult);
-                Logger.Log($"{Path.GetFileName(assemblyPath)} - cache hit");
+                Logger.Log($"Error reading cache {ex}");
             }
 
+            Logger.Log($"{Path.GetFileName(assemblyPath)} - running");
+            var testResult = await _testExecutor.RunTestAsync(assemblyPath, cancellationToken);
+            await CacheTestResult(contentFile, testResult).ConfigureAwait(true);
             return testResult;
         }
 
@@ -77,7 +79,7 @@ namespace RunTests.Cache
                 errorOutput: cachedTestResult.ErrorOutput);
         }
 
-        private void CacheTestResult(ContentFile contentFile, TestResult testResult)
+        private async Task CacheTestResult(ContentFile contentFile, TestResult testResult)
         {
             try
             {
@@ -87,8 +89,9 @@ namespace RunTests.Cache
                     standardOutput: testResult.StandardOutput,
                     errorOutput: testResult.ErrorOutput,
                     resultsFileName: Path.GetFileName(testResult.ResultsFilePath),
-                    resultsFileContent: resultFileContent);
-                _dataStorage.AddCachedTestResult(contentFile, cachedTestResult);
+                    resultsFileContent: resultFileContent,
+                    ellapsed: testResult.Elapsed);
+                await _dataStorage.AddCachedTestResult(contentFile, cachedTestResult).ConfigureAwait(true);
             }
             catch (Exception ex)
             {

@@ -911,5 +911,37 @@ $@"Exception of type 'System.Exception' was thrown.
                 Assert.Equal(expected, actual);
             }
         }
+
+        private static class Fixture2
+        {
+            [MethodImpl(MethodImplOptions.NoInlining)]
+            public static void MethodDynamic()
+            {
+                ((dynamic)new object()).x();
+            }
+        }
+
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/9221"), WorkItem(9221, "https://github.com/dotnet/roslyn/issues/9221")]
+        public void StackTrace_Dynamic()
+        {
+            try
+            {
+                Fixture2.MethodDynamic();
+                Assert.False(true);
+            }
+            catch (Exception e)
+            {
+                const string filePath = @"z:\Fixture.cs";
+
+                var expected =
+$@"'object' does not contain a definition for 'x'
+  + System.Dynamic.UpdateDelegates.UpdateAndExecuteVoid1<T0>(System.Runtime.CompilerServices.CallSite, T0)
+  + Microsoft.CodeAnalysis.CSharp.Scripting.Hosting.UnitTests.ObjectFormatterTests.Fixture2.MethodDynamic(){string.Format(ScriptingResources.AtFileLine, filePath, 10123)}
+  + Microsoft.CodeAnalysis.CSharp.Scripting.Hosting.UnitTests.ObjectFormatterTests.StackTrace_Dynamic(){string.Format(ScriptingResources.AtFileLine, filePath, 10132)}
+";
+                var actual = s_formatter.FormatException(e);
+                Assert.Equal(expected, actual);
+            }
+        }
     }
 }

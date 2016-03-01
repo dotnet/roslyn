@@ -1,6 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -15,9 +16,16 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ExtractMethod
 {
     public class ExtractMethodBase
     {
-        protected async Task ExpectExtractMethodToFailAsync(string codeWithMarker, bool allowMovingDeclaration = true, bool dontPutOutOrRefOnStruct = true)
+        protected async Task ExpectExtractMethodToFailAsync(string codeWithMarker, bool allowMovingDeclaration = true, bool dontPutOutOrRefOnStruct = true, string[] features = null)
         {
-            using (var workspace = await TestWorkspace.CreateCSharpAsync(codeWithMarker))
+            ParseOptions parseOptions = null;
+            if (features != null)
+            {
+                var featuresMapped = features.Select(x => new KeyValuePair<string, string>(x, string.Empty));
+                parseOptions = new CSharpParseOptions().WithFeatures(featuresMapped);
+            }
+
+            using (var workspace = await TestWorkspace.CreateCSharpAsync(codeWithMarker, parseOptions: parseOptions))
             {
                 var testDocument = workspace.Documents.First();
                 var textSpan = testDocument.SelectedSpans.Single();

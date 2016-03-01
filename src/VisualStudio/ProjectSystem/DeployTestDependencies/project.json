@@ -3,7 +3,7 @@
     "xunit": "2.1.0",
     "xunit.runner.console": "2.1.0",
     "xunit.runner.visualstudio": "2.1.0",
-    "Moq": "4.2.1510.2205"
+    "Moq": "4.2.1402.2112"
   },
   "frameworks": {
     "net46": { }

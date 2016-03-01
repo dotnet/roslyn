@@ -274,7 +274,7 @@ namespace Microsoft.Cci
         /// The assembly references to be emitted, in row order. These
         /// are just the assembly references from the current generation.
         /// </summary>
-        protected abstract IReadOnlyList<IAssemblyReference> GetAssemblyRefs();
+        protected abstract IReadOnlyList<AssemblyIdentity> GetAssemblyRefs();
 
         // ModuleRef table contains module names for TypeRefs that target types in netmodules (represented by IModuleReference),
         // and module names specified by P/Invokes (plain strings). Names in the table must be unique and are case sensitive.
@@ -655,25 +655,42 @@ namespace Microsoft.Cci
 
         private ImmutableArray<IParameterDefinition> GetParametersToEmitCore(IMethodDefinition methodDef)
         {
-            var builder = ArrayBuilder<IParameterDefinition>.GetInstance();
+            ArrayBuilder<IParameterDefinition> builder = null;
+            var parameters = methodDef.Parameters;
+
             if (methodDef.ReturnValueIsMarshalledExplicitly || IteratorHelper.EnumerableIsNotEmpty(methodDef.ReturnValueAttributes))
             {
+                builder = ArrayBuilder<IParameterDefinition>.GetInstance(parameters.Length + 1);
                 builder.Add(new ReturnValueParameter(methodDef));
             }
 
-            foreach (IParameterDefinition parDef in methodDef.Parameters)
+            for (int i = 0; i < parameters.Length; i++)
             {
+                IParameterDefinition parDef = parameters[i];
+
                 // No explicit param row is needed if param has no flags (other than optionally IN),
                 // no name and no references to the param row, such as CustomAttribute, Constant, or FieldMarshal
-                if (parDef.HasDefaultValue || parDef.IsOptional || parDef.IsOut || parDef.IsMarshalledExplicitly ||
-                    parDef.Name != String.Empty ||
+                if (parDef.Name != String.Empty || 
+                    parDef.HasDefaultValue || parDef.IsOptional || parDef.IsOut || parDef.IsMarshalledExplicitly ||                   
                     IteratorHelper.EnumerableIsNotEmpty(parDef.GetAttributes(Context)))
                 {
-                    builder.Add(parDef);
+                    if (builder != null)
+                    {
+                        builder.Add(parDef);
+                    }
+                }
+                else
+                {
+                    // we have a parameter that does not need to be emitted (not common)
+                    if (builder == null)
+                    {
+                        builder = ArrayBuilder<IParameterDefinition>.GetInstance(parameters.Length);
+                        builder.AddRange(parameters, i);
+                    }
                 }
             }
 
-            return builder.ToImmutableAndFree();
+            return builder?.ToImmutableAndFree() ?? parameters;
         }
 
         /// <summary>
@@ -2565,43 +2582,21 @@ namespace Microsoft.Cci
             var assemblyRefs = this.GetAssemblyRefs();
             _assemblyRefTable.Capacity = assemblyRefs.Count;
 
-            foreach (var assemblyRef in assemblyRefs)
+            foreach (var identity in assemblyRefs)
             {
                 AssemblyRefTableRow r = new AssemblyRefTableRow();
-                var identity = assemblyRef.Identity;
 
                 r.Version = identity.Version;
                 r.PublicKeyToken = heaps.GetBlobIndex(identity.PublicKeyToken);
 
-                Debug.Assert(!string.IsNullOrEmpty(assemblyRef.Name));
-                r.Name = this.GetStringIndexForPathAndCheckLength(assemblyRef.Name, assemblyRef);
+                Debug.Assert(!string.IsNullOrEmpty(identity.Name));
+                r.Name = this.GetStringIndexForPathAndCheckLength(identity.Name);
 
                 r.Culture = heaps.GetStringIndex(identity.CultureName);
 
                 r.IsRetargetable = identity.IsRetargetable;
                 r.ContentType = identity.ContentType;
                 _assemblyRefTable.Add(r);
-            }
-        }
-
-        /// <summary>
-        /// Compares quality of assembly references to achieve unique rows in AssemblyRef table.
-        /// Metadata spec: "The AssemblyRef table shall contain no duplicates (where duplicate rows are deemed to 
-        /// be those having the same MajorVersion, MinorVersion, BuildNumber, RevisionNumber, PublicKeyOrToken, 
-        /// Name, and Culture)".
-        /// </summary>
-        protected sealed class AssemblyReferenceComparer : IEqualityComparer<IAssemblyReference>
-        {
-            internal static readonly AssemblyReferenceComparer Instance = new AssemblyReferenceComparer();
-
-            public bool Equals(IAssemblyReference x, IAssemblyReference y)
-            {
-                return x.Identity == y.Identity;
-            }
-
-            public int GetHashCode(IAssemblyReference reference)
-            {
-                return reference.Identity.GetHashCode();
             }
         }
 
@@ -5413,11 +5408,6 @@ namespace Microsoft.Cci
 
             public HeapOrReferenceIndex(MetadataWriter writer, int lastRowId = 0)
                 : this(writer, new Dictionary<T, int>(), lastRowId)
-            {
-            }
-
-            public HeapOrReferenceIndex(MetadataWriter writer, IEqualityComparer<T> comparer, int lastRowId = 0)
-                : this(writer, new Dictionary<T, int>(comparer), lastRowId)
             {
             }
 

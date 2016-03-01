@@ -10,6 +10,7 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.CodeStyle;
+using Microsoft.CodeAnalysis.CSharp.CodeStyle.TypeStyle;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Formatting;
@@ -127,7 +128,9 @@ namespace Microsoft.CodeAnalysis.CSharp.IntroduceVariable
                 return SyntaxFactory.IdentifierName("var");
             }
 
-            if (!isConstant && options.GetOption(CSharpCodeStyleOptions.UseVarWhenDeclaringLocals) && CanUseVar(typeSymbol))
+            if (!isConstant && 
+                CanUseVar(typeSymbol) && 
+                TypeStyleHelper.IsImplicitTypePreferred(expression, document.SemanticModel, options, cancellationToken))
             {
                 return SyntaxFactory.IdentifierName("var");
             }

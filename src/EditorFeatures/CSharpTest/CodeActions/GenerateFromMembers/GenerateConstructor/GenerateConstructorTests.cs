@@ -93,7 +93,7 @@ index: 0);
             await TestAsync(
 @"class Z { [|public int A { get ; private set ; } public string B { get ; private set ; }|] } ",
 @"class Z { public Z ( int a , string b ) { this . A = a ; this . B = b ; } public int A { get ; private set ; } public string B { get ; private set ; } } ",
-index: 0, options: new Dictionary<OptionKey, object> { { new OptionKey(SimplificationOptions.QualifyMemberAccessWithThisOrMe, "C#"), true } });
+index: 0, options: Option(SimplificationOptions.QualifyPropertyAccess, true));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructor)]

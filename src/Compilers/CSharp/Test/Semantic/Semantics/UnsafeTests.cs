@@ -2265,7 +2265,7 @@ Yes, Parameter 'x' is a non-moveable variable with underlying symbol 'x'
             Assert.Equal(SymbolKind.Method, binder.ContainingMemberOrLambda.Kind);
 
             var unusedDiagnostics = DiagnosticBag.GetInstance();
-            var block = binder.BindBlock(methodBody, unusedDiagnostics);
+            var block = binder.BindEmbeddedBlock(methodBody, unusedDiagnostics);
             unusedDiagnostics.Free();
 
             var builder = ArrayBuilder<string>.GetInstance();

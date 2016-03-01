@@ -1,0 +1,135 @@
+{
+  "locked": false,
+  "version": 2,
+  "targets": {
+    ".NETFramework,Version=v4.5": {
+      "Newtonsoft.Json/8.0.2": {
+        "type": "package",
+        "compile": {
+          "lib/net45/Newtonsoft.Json.dll": {}
+        },
+        "runtime": {
+          "lib/net45/Newtonsoft.Json.dll": {}
+        }
+      },
+      "RestSharp/105.2.3": {
+        "type": "package",
+        "compile": {
+          "lib/net45/RestSharp.dll": {}
+        },
+        "runtime": {
+          "lib/net45/RestSharp.dll": {}
+        }
+      }
+    },
+    ".NETFramework,Version=v4.5/win7": {
+      "Newtonsoft.Json/8.0.2": {
+        "type": "package",
+        "compile": {
+          "lib/net45/Newtonsoft.Json.dll": {}
+        },
+        "runtime": {
+          "lib/net45/Newtonsoft.Json.dll": {}
+        }
+      },
+      "RestSharp/105.2.3": {
+        "type": "package",
+        "compile": {
+          "lib/net45/RestSharp.dll": {}
+        },
+        "runtime": {
+          "lib/net45/RestSharp.dll": {}
+        }
+      }
+    },
+    ".NETFramework,Version=v4.5/win7-anycpu": {
+      "Newtonsoft.Json/8.0.2": {
+        "type": "package",
+        "compile": {
+          "lib/net45/Newtonsoft.Json.dll": {}
+        },
+        "runtime": {
+          "lib/net45/Newtonsoft.Json.dll": {}
+        }
+      },
+      "RestSharp/105.2.3": {
+        "type": "package",
+        "compile": {
+          "lib/net45/RestSharp.dll": {}
+        },
+        "runtime": {
+          "lib/net45/RestSharp.dll": {}
+        }
+      }
+    }
+  },
+  "libraries": {
+    "Newtonsoft.Json/8.0.2": {
+      "sha512": "e5yWmEfu68rmtG431zl9N/7PlNKQDIuiDW5MHlEFAZcecakcxrIGnKqrPAtWNILzK2oNanRB5cD150MYhECK3g==",
+      "type": "Package",
+      "files": [
+        "Newtonsoft.Json.nuspec",
+        "[Content_Types].xml",
+        "_rels/.rels",
+        "lib/net20/Newtonsoft.Json.dll",
+        "lib/net20/Newtonsoft.Json.xml",
+        "lib/net35/Newtonsoft.Json.dll",
+        "lib/net35/Newtonsoft.Json.xml",
+        "lib/net40/Newtonsoft.Json.dll",
+        "lib/net40/Newtonsoft.Json.xml",
+        "lib/net45/Newtonsoft.Json.dll",
+        "lib/net45/Newtonsoft.Json.xml",
+        "lib/portable-net40+sl5+wp80+win8+wpa81/Newtonsoft.Json.dll",
+        "lib/portable-net40+sl5+wp80+win8+wpa81/Newtonsoft.Json.xml",
+        "lib/portable-net45+wp80+win8+wpa81+dnxcore50/Newtonsoft.Json.dll",
+        "lib/portable-net45+wp80+win8+wpa81+dnxcore50/Newtonsoft.Json.xml",
+        "package/services/metadata/core-properties/cc8c591d554640789c6a6ef6456f7772.psmdcp",
+        "tools/install.ps1"
+      ]
+    },
+    "RestSharp/105.2.3": {
+      "sha512": "50LkciOclb7Lza9QXqR9reKeUoPlDQiFD4iBdOmd6twOBmTtqEFIOXQgdDdsTHQg4HcGh6EvrM6gN1X72vkJLA==",
+      "type": "Package",
+      "files": [
+        "RestSharp.nuspec",
+        "[Content_Types].xml",
+        "_rels/.rels",
+        "lib/MonoAndroid10/RestSharp.dll",
+        "lib/MonoAndroid10/RestSharp.xml",
+        "lib/MonoTouch10/RestSharp.dll",
+        "lib/MonoTouch10/RestSharp.xml",
+        "lib/Xamarin.iOS10/RestSharp.dll",
+        "lib/Xamarin.iOS10/RestSharp.xml",
+        "lib/net35/RestSharp.dll",
+        "lib/net35/RestSharp.xml",
+        "lib/net4-client/RestSharp.dll",
+        "lib/net4-client/RestSharp.xml",
+        "lib/net4/RestSharp.dll",
+        "lib/net4/RestSharp.xml",
+        "lib/net45/RestSharp.dll",
+        "lib/net45/RestSharp.xml",
+        "lib/net451/RestSharp.dll",
+        "lib/net451/RestSharp.xml",
+        "lib/net452/RestSharp.dll",
+        "lib/net452/RestSharp.xml",
+        "lib/net46/RestSharp.dll",
+        "lib/net46/RestSharp.xml",
+        "lib/sl5/RestSharp.dll",
+        "lib/sl5/RestSharp.xml",
+        "lib/windowsphone8/RestSharp.dll",
+        "lib/windowsphone8/RestSharp.xml",
+        "lib/windowsphone81/RestSharp.dll",
+        "lib/windowsphone81/RestSharp.xml",
+        "package/services/metadata/core-properties/fe62c7f38ace4dbeaf729ff7b329d22a.psmdcp",
+        "readme.txt"
+      ]
+    }
+  },
+  "projectFileDependencyGroups": {
+    "": [
+      "Newtonsoft.Json >= 8.0.2",
+      "RestSharp >= 105.2.3"
+    ],
+    ".NETFramework,Version=v4.5": []
+  }
+}
