@@ -39,19 +39,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options
         }
 
         public override bool NotificationsAvailable => false;
-        public override NotificationOptionViewModel SelectedNotificationPreference
-        {
-            // presently, these options do not support notification styles.
-            get
-            {
-                throw new NotSupportedException();
-            }
-
-            set
-            {
-                throw new NotSupportedException();
-            }
-        }
 
         private CodeStylePreference _selectedPreference;
         public override CodeStylePreference SelectedPreference

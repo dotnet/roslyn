@@ -1,6 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Collections.Generic;
+using System.Linq;
 using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.VisualStudio.Imaging;
@@ -32,12 +33,16 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options
         public double DescriptionMargin { get; set; }
         public string GroupName { get; set; }
         public abstract CodeStylePreference SelectedPreference { get; set; }
-        public abstract NotificationOptionViewModel SelectedNotificationPreference { get; set; }
         public List<CodeStylePreference> Preferences { get; set; }
         public List<NotificationOptionViewModel> NotificationPreferences { get; set; }
         public abstract bool NotificationsAvailable { get; }
 
         public virtual string GetPreview() => SelectedPreference.IsChecked ? _truePreview : _falsePreview;
+        public virtual NotificationOptionViewModel SelectedNotificationPreference
+        {
+            get { return NotificationPreferences.First(); }
+            set { }
+        }
 
         public AbstractCodeStyleOptionViewModel(
             IOption option,
