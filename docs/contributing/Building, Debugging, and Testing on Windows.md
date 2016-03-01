@@ -1,7 +1,16 @@
 # Required Software
 
 1. [Visual Studio 2015 with Update 1](http://go.microsoft.com/fwlink/?LinkId=691129). _You need Update 1_.
-2. Visual Studio 2015 Extensibility Tools. If you already installed Visual Studio, choose "Modify" from the Programs and Features control panel, and check "Visual Studio Extensibility".
+2. Visual Studio 2015 Extensibility Tools.
+ 
+    If you already installed Visual Studio, the Extensibility Tools can be added as follows: 
+    - Open Control Panel -> Programs and Features
+    - Select "Microsoft Visual Studio Professional 2015" and press the 'Change' button
+    - In the resulting window, press the 'Modify' button
+    - Check the "Visual Studio Extensibility Tools Update 1" item and press the 'Next' button
+    - Press the 'Update' button
+
+
 
 # Getting the Code
 
