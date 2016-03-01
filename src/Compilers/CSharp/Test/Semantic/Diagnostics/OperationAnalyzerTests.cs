@@ -1,5 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System;
 using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Diagnostics;
@@ -1260,6 +1261,47 @@ class C
             CreateCompilationWithMscorlib45(source)
             .VerifyDiagnostics()
             .VerifyAnalyzerDiagnostics(new DiagnosticAnalyzer[] { new NoneOperationTestAnalyzer() }, null, null, false);
+        }
+
+        // This test can't reliablely trigger stack overflow on Linux
+        [ClrOnlyFact, WorkItem(9025, "https://github.com/dotnet/roslyn/issues/9025")]
+        public void LongArithmeticExpressionCSharp()
+        {
+            Func<int, string> buildSequenceOfBinaryExpressions =
+                (count) =>
+                {
+                    var builder = new System.Text.StringBuilder();
+                    int i;
+                    for (i = 0; i < count; i++)
+                    {
+                        builder.Append(i + 1);
+                        builder.Append(" * ");
+                        builder.Append("f[");
+                        builder.Append(i);
+                        builder.Append("] + ");
+                    }
+
+                    builder.Append(i + 1);
+
+                    return builder.ToString();
+                };
+            // This code will cause OperationWalker to throw `InsufficientExecutionStackException`
+            var source = @"
+class Test
+{ 
+    public static long Calculate1(long[] f)
+    {
+        long x;
+" + $"        x = { buildSequenceOfBinaryExpressions(8192) };" + @"
+        return x;
+    }
+}";
+
+            CreateCompilationWithMscorlib45(source)
+            .VerifyDiagnostics()
+            .VerifyAnalyzerDiagnostics(new DiagnosticAnalyzer[] { new AssignmentOperationSyntaxTestAnalyzer() }, null, null, true,
+                Diagnostic("AD0002").WithArguments("System.InsufficientExecutionStackException", "Insufficient stack to continue executing the program safely. This can happen from having too many functions on the call stack or function on the stack using too much stack space.").WithLocation(1, 1),
+                Diagnostic(AssignmentOperationSyntaxTestAnalyzer.AssignmentSyntaxDescriptor.Id, $"x = { buildSequenceOfBinaryExpressions(8192) }").WithLocation(7, 9));
         }
 
         [WorkItem(9020, "https://github.com/dotnet/roslyn/issues/9020")]

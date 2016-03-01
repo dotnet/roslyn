@@ -1948,6 +1948,50 @@ namespace Microsoft.CodeAnalysis.UnitTests.Diagnostics
         }
     }
 
+    public class AssignmentOperationSyntaxTestAnalyzer : DiagnosticAnalyzer
+    {
+        private const string ReliabilityCategory = "Reliability";
+
+        public static readonly DiagnosticDescriptor AssignmentOperationDescriptor = new DiagnosticDescriptor(
+            "AssignmentOperation",
+            "An assignment operation is found",
+            "An assignment operation is found",
+            ReliabilityCategory,
+            DiagnosticSeverity.Warning,
+            isEnabledByDefault: true);
+
+        public static readonly DiagnosticDescriptor AssignmentSyntaxDescriptor = new DiagnosticDescriptor(
+            "AssignmentSyntax",
+            "An assignment syntax is found",
+            "An assignment syntax is found",
+            ReliabilityCategory,
+            DiagnosticSeverity.Warning,
+            isEnabledByDefault: true);
+
+        public sealed override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics
+        {
+            get { return ImmutableArray.Create(AssignmentOperationDescriptor, AssignmentSyntaxDescriptor); }
+        }
+
+        public sealed override void Initialize(AnalysisContext context)
+        {
+            context.RegisterOperationAction(
+                 (operationContext) =>
+                 {
+                     operationContext.ReportDiagnostic(Diagnostic.Create(AssignmentOperationDescriptor, operationContext.Operation.Syntax.GetLocation()));
+                 },
+                 OperationKind.AssignmentExpression);
+
+            context.RegisterSyntaxNodeAction(
+                 (syntaxContext) =>
+                 {
+                     
+                     syntaxContext.ReportDiagnostic(Diagnostic.Create(AssignmentSyntaxDescriptor, syntaxContext.Node.GetLocation()));
+                 },
+                 CSharp.SyntaxKind.SimpleAssignmentExpression);
+        }
+    }
+
     public class LiteralTestAnalyzer : DiagnosticAnalyzer
     {
         private const string ReliabilityCategory = "Reliability";
