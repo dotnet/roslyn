@@ -892,9 +892,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
 
         private void CheckFeatureAvailability(MessageID feature)
         {
+            var options = this.Options;
+            if (options.IsFeatureEnabled(feature))
+            {
+                return;
+            }
+
             if (feature.RequiredFeature() != null)
             {
-                if (!this.Options.IsFeatureEnabled(feature))
+                if (!options.IsFeatureEnabled(feature))
                 {
                     this.AddError(ErrorCode.ERR_FeatureIsExperimental, feature.Localize());
                 }
