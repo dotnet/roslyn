@@ -1658,15 +1658,15 @@ Module Module1
         r = x / y      
         r = x \ y      
         r = x Mod y    
-        ' r = x ^ y  TODO: Bug https://github.com/dotnet/roslyn/issues/9174
+        r = x ^ y      ' TODO: Bug https://github.com/dotnet/roslyn/issues/9174
         r = x = y      
         r = x <> y     
         r = x < y      
         r = x > y      
         r = x <= y     
         r = x >= y     
-        ' r = x Like y   TODO: Bug https://github.com/dotnet/roslyn/issues/9174
-        ' r = x & y      TODO: Bug https://github.com/dotnet/roslyn/issues/9174
+        r = x Like y   ' TODO: Bug https://github.com/dotnet/roslyn/issues/9174
+        r = x & y      ' TODO: Bug https://github.com/dotnet/roslyn/issues/9174
         r = x And y    
         r = x Or y     
         r = x Xor y    

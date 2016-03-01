@@ -770,7 +770,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     Case BinaryOperatorKind.GreaterThan
                         Return BinaryOperationKind.OperatorMethodGreaterThan
                     Case Else
-                        Throw ExceptionUtilities.UnexpectedValue(OperatorKind And BinaryOperatorKind.OpMask)
+                        Return BinaryOperationKind.Invalid
                 End Select
             End Get
         End Property
