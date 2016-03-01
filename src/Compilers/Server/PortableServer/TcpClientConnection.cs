@@ -28,7 +28,9 @@ namespace Microsoft.CodeAnalysis.CompilerServer
 
         public async Task<IClientConnection> CreateListenTask(CancellationToken cancellationToken)
         {
+            Console.WriteLine("About to listen");
             var tcpClient = await _listener.AcceptTcpClientAsync().ConfigureAwait(true);
+            Console.WriteLine("Accepted a connection");
             return new TcpClientConnection(_compilerServerHost, tcpClient, _connectionCount++.ToString());
         }
 
@@ -53,4 +55,3 @@ namespace Microsoft.CodeAnalysis.CompilerServer
         }
     }
 }
-
