@@ -4,30 +4,13 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.FindSymbols;
-using Microsoft.CodeAnalysis.Text;
 using Roslyn.Test.Utilities;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.UnitTests
 {
-    public class DependentTypeFinderTests : TestBase
+    public class DependentTypeFinderTests : ServicesTestBase
     {
-        private Solution AddProject(Solution solution, string projectName, string languageName, string code, MetadataReference metadataReference, params ProjectId[] projectReferences)
-        {
-            var suffix = languageName == LanguageNames.CSharp ? "cs" : "vb";
-            var pid = ProjectId.CreateNewId();
-            var did = DocumentId.CreateNewId(pid);
-            var pi = ProjectInfo.Create(
-                pid,
-                VersionStamp.Default,
-                projectName,
-                projectName,
-                languageName,
-                metadataReferences: new[] { metadataReference },
-                projectReferences: projectReferences.Select(p => new ProjectReference(p)));
-            return solution.AddProject(pi).AddDocument(did, $"{projectName}.{suffix}", SourceText.From(code));
-        }
-
         [WorkItem(4973, "https://github.com/dotnet/roslyn/issues/4973")]
         [Fact]
         public async Task ImmediatelyDerivedTypes_CSharp()
@@ -35,7 +18,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
             var solution = new AdhocWorkspace().CurrentSolution;
 
             // create portable assembly with an abstract base class
-            solution = AddProject(solution, "PortableProject", LanguageNames.CSharp, @"
+            solution = AddProjectWithMetadataReferences(solution, "PortableProject", LanguageNames.CSharp, @"
 namespace N
 {
     public abstract class BaseClass { }
@@ -43,7 +26,7 @@ namespace N
 ", MscorlibRefPortable);
 
             // create a normal assembly with a type derived from the portable abstract base
-            solution = AddProject(solution, "NormalProject", LanguageNames.CSharp, @"
+            solution = AddProjectWithMetadataReferences(solution, "NormalProject", LanguageNames.CSharp, @"
 using N;
 namespace M
 {
@@ -74,7 +57,7 @@ namespace M
             var solution = new AdhocWorkspace().CurrentSolution;
 
             // create portable assembly with an abstract base class
-            solution = AddProject(solution, "PortableProject", LanguageNames.CSharp, @"
+            solution = AddProjectWithMetadataReferences(solution, "PortableProject", LanguageNames.CSharp, @"
 namespace N
 {
     public abstract class BaseClass { }
@@ -82,7 +65,7 @@ namespace N
 ", MscorlibRefPortable);
 
             // create a normal assembly with a type derived from the portable abstract base
-            solution = AddProject(solution, "NormalProject", LanguageNames.CSharp, @"
+            solution = AddProjectWithMetadataReferences(solution, "NormalProject", LanguageNames.CSharp, @"
 using N;
 namespace M
 {
@@ -113,7 +96,7 @@ namespace M
             var solution = new AdhocWorkspace().CurrentSolution;
 
             // create portable assembly with an abstract base class
-            solution = AddProject(solution, "PortableProject", LanguageNames.VisualBasic, @"
+            solution = AddProjectWithMetadataReferences(solution, "PortableProject", LanguageNames.VisualBasic, @"
 Namespace N
     Public MustInherit Class BaseClass
     End Class
@@ -121,7 +104,7 @@ End Namespace
 ", MscorlibRefPortable);
 
             // create a normal assembly with a type derived from the portable abstract base
-            solution = AddProject(solution, "NormalProject", LanguageNames.VisualBasic, @"
+            solution = AddProjectWithMetadataReferences(solution, "NormalProject", LanguageNames.VisualBasic, @"
 Imports N
 Namespace M
     Public Class DerivedClass
@@ -153,7 +136,7 @@ End Namespace
             var solution = new AdhocWorkspace().CurrentSolution;
 
             // create portable assembly with an abstract base class
-            solution = AddProject(solution, "PortableProject", LanguageNames.CSharp, @"
+            solution = AddProjectWithMetadataReferences(solution, "PortableProject", LanguageNames.CSharp, @"
 namespace N
 {
     public abstract class BaseClass { }
@@ -161,7 +144,7 @@ namespace N
 ", MscorlibRefPortable);
 
             // create a normal assembly with a type derived from the portable abstract base
-            solution = AddProject(solution, "NormalProject", LanguageNames.VisualBasic, @"
+            solution = AddProjectWithMetadataReferences(solution, "NormalProject", LanguageNames.VisualBasic, @"
 Imports N
 Namespace M
     Public Class DerivedClass
@@ -193,7 +176,7 @@ End Namespace
             var solution = new AdhocWorkspace().CurrentSolution;
 
             // create portable assembly with an interface
-            solution = AddProject(solution, "PortableProject", LanguageNames.CSharp, @"
+            solution = AddProjectWithMetadataReferences(solution, "PortableProject", LanguageNames.CSharp, @"
 namespace N
 {
     public interface IBaseInterface { }
@@ -201,7 +184,7 @@ namespace N
 ", MscorlibRefPortable);
 
             // create a normal assembly with a type implementing that interface
-            solution = AddProject(solution, "NormalProject", LanguageNames.CSharp, @"
+            solution = AddProjectWithMetadataReferences(solution, "NormalProject", LanguageNames.CSharp, @"
 using N;
 namespace M
 {
@@ -231,7 +214,7 @@ namespace M
             var solution = new AdhocWorkspace().CurrentSolution;
 
             // create portable assembly with an interface
-            solution = AddProject(solution, "PortableProject", LanguageNames.VisualBasic, @"
+            solution = AddProjectWithMetadataReferences(solution, "PortableProject", LanguageNames.VisualBasic, @"
 Namespace N
     Public Interface IBaseInterface
     End Interface
@@ -239,7 +222,7 @@ End Namespace
 ", MscorlibRefPortable);
 
             // create a normal assembly with a type implementing that interface
-            solution = AddProject(solution, "NormalProject", LanguageNames.VisualBasic, @"
+            solution = AddProjectWithMetadataReferences(solution, "NormalProject", LanguageNames.VisualBasic, @"
 Imports N
 Namespace M
     Public Class ImplementingClass
@@ -270,7 +253,7 @@ End Namespace
             var solution = new AdhocWorkspace().CurrentSolution;
 
             // create portable assembly with an interface
-            solution = AddProject(solution, "PortableProject", LanguageNames.VisualBasic, @"
+            solution = AddProjectWithMetadataReferences(solution, "PortableProject", LanguageNames.VisualBasic, @"
 Namespace N
     Public Interface IBaseInterface
     End Interface
@@ -278,7 +261,7 @@ End Namespace
 ", MscorlibRefPortable);
 
             // create a normal assembly with a type implementing that interface
-            solution = AddProject(solution, "NormalProject", LanguageNames.CSharp, @"
+            solution = AddProjectWithMetadataReferences(solution, "NormalProject", LanguageNames.CSharp, @"
 using N;
 namespace M
 {
