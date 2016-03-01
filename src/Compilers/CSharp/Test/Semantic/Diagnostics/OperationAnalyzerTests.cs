@@ -1724,5 +1724,48 @@ struct S
                 Diagnostic("Literal", "M()").WithArguments("null").WithLocation(18, 9),
                 Diagnostic("Literal", "M()").WithArguments("null").WithLocation(18, 9));
         }
+
+        [Fact]
+        public void UnaryTrueFalseOperationCSharp()
+        {
+            const string source = @"
+public struct S
+{
+    private int value;
+    public S(int v)
+    {
+        value = v;
+    }
+    public static S operator &(S x, S y)
+    {
+        return new S(x.value + y.value);    
+    }
+    public static bool operator true(S x)
+    {
+        return x.value > 0;
+    }
+    public static bool operator false(S x)
+    {
+        return x.value <= 0;
+    }
+}
+
+class C
+{
+    public void M()
+    {
+        var x = new S(-1);
+        var y = new S(1);
+        if (x && y) { }
+        else if (x) { }
+    }
+}
+";
+            CreateCompilationWithMscorlib45(source)
+            .VerifyDiagnostics()
+            .VerifyAnalyzerDiagnostics(new DiagnosticAnalyzer[] { new TrueFalseUnaryOperationTestAnalyzer() }, null, null, false,
+                Diagnostic(TrueFalseUnaryOperationTestAnalyzer.UnaryTrueDescriptor.Id, "x && y").WithLocation(29, 13),
+                Diagnostic(TrueFalseUnaryOperationTestAnalyzer.UnaryTrueDescriptor.Id, "x").WithLocation(30, 18));
+        }
     }
 }
