@@ -25,7 +25,10 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         /// <param name="s">The version string to parse.</param>
         /// <param name="allowWildcard">Indicates whether or not a wildcard is accepted as the terminal component.</param>
-        /// <param name="version">If parsing succeeded, the parsed version. Null otherwise.</param>
+        /// <param name="version">
+        /// If parsing succeeded, the parsed version. Null otherwise.
+        /// If <paramref name="s"/> contains * the version build and/or revision numbers are set to <see cref="ushort.MaxValue"/>.
+        /// </param>
         /// <returns>True when parsing succeeds completely (i.e. every character in the string was consumed), false otherwise.</returns>
         internal static bool TryParseAssemblyVersion(string s, bool allowWildcard, out Version version)
         {
@@ -39,10 +42,15 @@ namespace Microsoft.CodeAnalysis
         /// <param name="s">The version string to parse.</param>
         /// <param name="allowWildcard">Indicates whether or not we're parsing an assembly version string. If so, wildcards are accepted and each component must be less than 65535.</param>
         /// <param name="maxValue">The maximum value that a version component may have.</param>
-        /// <param name="version">If parsing succeeded, the parsed version. Null otherwise.</param>
+        /// <param name="version">
+        /// If parsing succeeded, the parsed version. Null otherwise. 
+        /// If <paramref name="s"/> contains * and wildcard is allowed the version build and/or revision numbers are set to <see cref="ushort.MaxValue"/>.
+        /// </param>
         /// <returns>True when parsing succeeds completely (i.e. every character in the string was consumed), false otherwise.</returns>
         private static bool TryParse(string s, bool allowWildcard, ushort maxValue, out Version version)
         {
+            Debug.Assert(!allowWildcard || maxValue < ushort.MaxValue);
+
             if (s == null)
             {
                 version = null;
@@ -104,8 +112,8 @@ namespace Microsoft.CodeAnalysis
 
             int revision = (int)time.TimeOfDay.TotalSeconds / 2;
 
-            // 24 * 60 * 60 / 2 = 43200 < 65534
-            Debug.Assert(revision < 0xffff);
+            // 24 * 60 * 60 / 2 = 43200 < 65535
+            Debug.Assert(revision < ushort.MaxValue);
 
             if (pattern.Build == ushort.MaxValue)
             {
