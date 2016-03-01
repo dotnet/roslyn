@@ -278,6 +278,7 @@
     <InternalsVisibleToTest Include="Roslyn.VisualStudio.Services.UnitTests" />
     <InternalsVisibleToTest Include="RoslynETAHost" />
     <InternalsVisibleToTest Include="RoslynTaoActions" />
+    <InternalsVisibleToMoq Include="DynamicProxyGenAssembly2" />
   </ItemGroup>
   <ItemGroup>
     <Compile Include="CaseCorrection\AbstractCaseCorrectionService.cs" />
@@ -291,6 +292,8 @@
     <Compile Include="Classification\Classifier.cs" />
     <Compile Include="Classification\Classifiers\ISyntaxClassifier.cs" />
     <Compile Include="Classification\IClassificationService.cs" />
+    <Compile Include="CodeActions\Annotations\SuppressDiagnosticsAnnotation.cs" />
+    <Compile Include="CodeActions\CodeActionPriority.cs" />
     <Compile Include="CodeActions\Operations\PreviewOperation.cs" />
     <Compile Include="CodeCleanup\AbstractCodeCleanerService.cs" />
     <Compile Include="CodeCleanup\CodeCleaner.cs" />
@@ -383,6 +386,8 @@
     <Compile Include="ExtensionManager\IErrorReportingService.cs" />
     <Compile Include="FindSymbols\DeclaredSymbolInfo.cs" />
     <Compile Include="FindSymbols\FindReferences\Finders\ILanguageServiceReferenceFinder.cs" />
+    <Compile Include="Packaging\IPackageInstallerService.cs" />
+    <Compile Include="Packaging\IPackageSearchService.cs" />
     <Compile Include="FindSymbols\SymbolTree\ISymbolTreeInfoCacheService.cs" />
     <Compile Include="FindSymbols\FindReferences\MetadataUnifyingEquivalenceComparer.cs" />
     <Compile Include="Utilities\ArraySlice.cs" />
@@ -589,7 +594,9 @@
     <Compile Include="Workspace\Host\Mef\MefWorkspaceServices.cs" />
     <Compile Include="Workspace\Host\Mef\ServiceLayer.cs" />
     <Compile Include="Workspace\Host\Documentation\IDocumentationProviderService.cs" />
+    <Compile Include="Workspace\Host\Metadata\FrameworkAssemblyPathResolverFactory.cs" />
     <Compile Include="Workspace\Host\Metadata\IAnalyzerService.cs" />
+    <Compile Include="Workspace\Host\Metadata\IFrameworkAssemblyPathResolver.cs" />
     <Compile Include="Workspace\Host\Metadata\MetadataReferenceCache.cs" />
     <Compile Include="Workspace\Host\Metadata\WorkspaceMetadataFileReferenceResolver.cs" />
     <Compile Include="Workspace\Host\PersistentStorage\PersistentStorageOptionsProvider.cs" />

@@ -6,5 +6,6 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Preview
     {
         public static readonly object ConflictSpansKey = new object();
         public static readonly object WarningSpansKey = new object();
+        public static readonly object SuppressDiagnosticsSpansKey = new object();
     }
 }

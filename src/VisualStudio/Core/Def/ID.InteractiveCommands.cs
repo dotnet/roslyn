@@ -2,7 +2,7 @@
 
 using System;
 
-namespace Microsoft.VisualStudio.LanguageServices.Implementation.Interactive
+namespace Microsoft.VisualStudio.LanguageServices
 {
     internal static partial class ID
     {
@@ -10,6 +10,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Interactive
         {
             public const int InteractiveToolWindow = 0x0001;
             public const int ResetInteractiveFromProject = 0x0002;
+
+            // TODO: Remove pending https://github.com/dotnet/roslyn/issues/8927 .
+            public const int ExecuteInInteractiveWindow = 0x0010C;
 
             public static readonly string CSharpInteractiveCommandSetIdString = "1492DB0A-85A2-4E43-BF0D-CE55B89A8CC6";
             public static readonly Guid CSharpInteractiveCommandSetId = new Guid(CSharpInteractiveCommandSetIdString);
