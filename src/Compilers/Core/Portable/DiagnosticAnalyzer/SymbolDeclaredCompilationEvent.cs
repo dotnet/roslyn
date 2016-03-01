@@ -24,6 +24,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         {
             _lazySemanticModel = lazySemanticModel;
         }
+
         private SymbolDeclaredCompilationEvent(SymbolDeclaredCompilationEvent original, SemanticModel newSemanticModel) : this(original.Compilation, original.Symbol)
         {
             _semanticModel = newSemanticModel;

@@ -1,0 +1,4 @@
+Microsoft.VisualStudio.InteractiveWindow.Shell.IVsInteractiveWindow2
+Microsoft.VisualStudio.InteractiveWindow.Shell.IVsInteractiveWindow2.WindowFrame.get -> object
+Microsoft.VisualStudio.InteractiveWindow.Shell.IVsInteractiveWindow2.BitmapImageMoniker.get -> Microsoft.VisualStudio.Imaging.Interop.ImageMoniker
+Microsoft.VisualStudio.InteractiveWindow.Shell.IVsInteractiveWindow2.BitmapImageMoniker.set -> void

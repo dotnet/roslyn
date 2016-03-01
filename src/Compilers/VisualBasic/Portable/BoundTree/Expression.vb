@@ -54,9 +54,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Implements IAssignmentExpression
         Implements ICompoundAssignmentExpression
 
-        Private ReadOnly Property IAssignmentExpression_Target As IReferenceExpression Implements IAssignmentExpression.Target
+        Private ReadOnly Property IAssignmentExpression_Target As IOperation Implements IAssignmentExpression.Target
             Get
-                Return TryCast(Me.Left, IReferenceExpression)
+                Return Me.Left
             End Get
         End Property
 
@@ -1167,7 +1167,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         Private ReadOnly Property IHasArgumentsExpression_ArgumentsInParameterOrder As ImmutableArray(Of IArgument) Implements IHasArgumentsExpression.ArgumentsInParameterOrder
             Get
-                Return BoundCall.DeriveArguments(Me.Arguments, Me.ConstructorOpt.Parameters)
+                Debug.Assert(Me.ConstructorOpt IsNot Nothing OrElse Me.Arguments.IsEmpty())
+                Return If(Me.ConstructorOpt Is Nothing, ImmutableArray(Of IArgument).Empty, BoundCall.DeriveArguments(Me.Arguments, Me.ConstructorOpt.Parameters))
             End Get
         End Property
 

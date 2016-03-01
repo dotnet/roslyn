@@ -1,9 +1,10 @@
 {
   "locked": false,
-  "version": 1,
+  "version": 2,
   "targets": {
     ".NETFramework,Version=v2.0": {
       "Microsoft.NetFX20/1.0.3": {
+        "type": "package",
         "compile": {
           "lib/net20/mscorlib.dll": {}
         },
@@ -16,13 +17,11 @@
   "libraries": {
     "Microsoft.NetFX20/1.0.3": {
       "sha512": "7hPxu4q65ap1yiAuniskpMIJyTwviBIRItCYXozm/6Ikt03Uw3NNQNNzf7mjOEYYi9CG9VIv1KYwBGEa3FWAcg==",
-      "type": "Package",
+      "type": "package",
       "files": [
-        "[Content_Types].xml",
-        "_rels/.rels",
-        "lib/net20/mscorlib.dll",
+        "Microsoft.NetFX20.1.0.3.nupkg.sha512",
         "Microsoft.NetFX20.nuspec",
-        "package/services/metadata/core-properties/92df590a790045efaea1dc300f16b60b.psmdcp"
+        "lib/net20/mscorlib.dll"
       ]
     }
   },

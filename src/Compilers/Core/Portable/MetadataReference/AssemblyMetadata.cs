@@ -81,14 +81,14 @@ namespace Microsoft.CodeAnalysis
         }
 
         internal AssemblyMetadata(ImmutableArray<ModuleMetadata> modules)
-            : base(isImageOwner: true, id: new MetadataId())
+            : base(isImageOwner: true, id: MetadataId.CreateNewId())
         {
             Debug.Assert(!modules.IsDefaultOrEmpty);
             _initialModules = modules;
         }
 
         internal AssemblyMetadata(ModuleMetadata manifestModule, Func<string, ModuleMetadata> moduleFactory)
-            : base(isImageOwner: true, id: new MetadataId())
+            : base(isImageOwner: true, id: MetadataId.CreateNewId())
         {
             Debug.Assert(manifestModule != null);
             Debug.Assert(moduleFactory != null);

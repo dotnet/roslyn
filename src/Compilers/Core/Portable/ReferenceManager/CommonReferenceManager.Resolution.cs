@@ -22,7 +22,7 @@ namespace Microsoft.CodeAnalysis
     /// <typeparam name="TAssemblySymbol">Language specific representation for an assembly symbol.</typeparam>
     internal abstract partial class CommonReferenceManager<TCompilation, TAssemblySymbol>
         where TCompilation : Compilation
-        where TAssemblySymbol : class, IAssemblySymbol
+        where TAssemblySymbol : class, IAssemblySymbolInternal
     {
         protected abstract CommonMessageProvider MessageProvider { get; }
 
