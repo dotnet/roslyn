@@ -237,6 +237,13 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
                                        Function(i) i.DisplayText = v))
         End Function
 
+        Public Function CompletionItemsContainsAllInOrder(displayText As String()) As Boolean
+            AssertNoAsynchronousOperationsRunning()
+            Dim actualItemsOfInterest = CurrentCompletionPresenterSession.CompletionItems.SkipWhile(Function(i) i.DisplayText <> displayText.First()).Take(displayText.Count())
+            Dim actualDisplayText = actualItemsOfInterest.Select(Function(i) i.DisplayText)
+            Return displayText.SequenceEqual(actualDisplayText)
+        End Function
+
         Public Async Function AssertSelectedCompletionItem(Optional displayText As String = Nothing,
                                Optional description As String = Nothing,
                                Optional isSoftSelected As Boolean? = Nothing,

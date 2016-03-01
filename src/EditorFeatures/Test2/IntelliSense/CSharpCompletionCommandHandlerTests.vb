@@ -1009,6 +1009,23 @@ class TestException : Exception { }
         End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function GenericTypesInDocCommentAreOrderedRegardlessOfPunctuation() As Task
+            Using state = TestState.CreateCSharpTestState(
+                    <Document><![CDATA[
+using System;
+
+/// <see cref="$$
+class C { }
+]]></Document>)
+
+                state.SendTypeChars("Acti")
+
+                Await state.AssertCompletionSession()
+                Assert.True(state.CompletionItemsContainsAllInOrder(displayText:={"Action", "Action{T}", "Action{T1, T2}", "Action{T1, T2, T3}"}))
+            End Using
+        End Function
+
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Async Function InvokeCompletionDoesNotFilter() As Task
             Using state = TestState.CreateCSharpTestState(
                 <Document><![CDATA[

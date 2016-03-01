@@ -291,6 +291,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                 .Replace('>', '}')
                 .ToString();
 
+            // Sorting on symbolText or insertionText would have an annoying result for types like Action or Tuple.
+            // See issue: https://github.com/dotnet/roslyn/issues/8623
+            var sortText = builder
+                .Replace('{', ' ')
+                .Replace('}', ' ')
+                .ToString();
+
             return new Item(
                 completionProvider: this,
                 displayText: insertionText,
@@ -298,7 +305,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                 textSpan: filterSpan,
                 descriptionFactory: CommonCompletionUtilities.CreateDescriptionFactory(workspace, semanticModel, position, symbol),
                 glyph: symbol.GetGlyph(),
-                sortText: symbolText);
+                sortText: sortText);
         }
     }
 }
