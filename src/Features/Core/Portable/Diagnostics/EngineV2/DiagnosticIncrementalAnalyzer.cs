@@ -224,5 +224,11 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                         ValueTuple.Create(this, kv.Key), workspace, solution, project.Id, kv.Key, kv.ToImmutableArrayOrEmpty()));
             }
         }
+
+        public override bool ContainsDiagnostics(Workspace workspace, ProjectId projectId)
+        {
+            // for now, it always return false;
+            return false;
+        }
     }
 }

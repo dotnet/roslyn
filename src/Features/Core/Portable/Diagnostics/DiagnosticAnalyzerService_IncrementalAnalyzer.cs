@@ -172,6 +172,11 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             {
                 return Analyzer.GetDiagnosticsForSpanAsync(document, range, includeSuppressedDiagnostics, cancellationToken);
             }
+
+            public override bool ContainsDiagnostics(Workspace workspace, ProjectId projectId)
+            {
+                return Analyzer.ContainsDiagnostics(workspace, projectId);
+            }
             #endregion
 
             #region build synchronization
