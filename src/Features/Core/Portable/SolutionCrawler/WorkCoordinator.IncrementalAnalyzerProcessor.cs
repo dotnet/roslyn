@@ -68,7 +68,8 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                 private IDiagnosticAnalyzerService GetDiagnosticAnalyzerService(IEnumerable<Lazy<IIncrementalAnalyzerProvider, IncrementalAnalyzerProviderMetadata>> analyzerProviders)
                 {
                     // alternatively, we could just MEF import IDiagnosticAnalyzerService directly
-                    return (IDiagnosticAnalyzerService)analyzerProviders.Where(p => p.Value is IDiagnosticAnalyzerService).Single().Value;
+                    // this can be null in test env.
+                    return (IDiagnosticAnalyzerService)analyzerProviders.Where(p => p.Value is IDiagnosticAnalyzerService).SingleOrDefault()?.Value;
                 }
 
                 private static ImmutableArray<IIncrementalAnalyzer> GetActiveFileIncrementalAnalyzers(

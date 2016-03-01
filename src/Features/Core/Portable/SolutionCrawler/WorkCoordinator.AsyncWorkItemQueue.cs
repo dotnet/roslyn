@@ -241,7 +241,7 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                         // process
                         foreach (var dependingProjectId in dependencyGraph.GetProjectsThatDirectlyDependOnThisProject(projectId))
                         {
-                            if (workQueue.ContainsKey(dependingProjectId) && analyzerService.ContainsDiagnostics(Workspace, dependingProjectId))
+                            if (workQueue.ContainsKey(dependingProjectId) && analyzerService?.ContainsDiagnostics(Workspace, dependingProjectId) == true)
                             {
                                 return dependingProjectId;
                             }
@@ -251,7 +251,7 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                     // prefer a project that has diagnostics as next project to process.
                     foreach (var pendingProjectId in workQueue.Keys)
                     {
-                        if (analyzerService.ContainsDiagnostics(Workspace, pendingProjectId))
+                        if (analyzerService?.ContainsDiagnostics(Workspace, pendingProjectId) == true)
                         {
                             return pendingProjectId;
                         }
