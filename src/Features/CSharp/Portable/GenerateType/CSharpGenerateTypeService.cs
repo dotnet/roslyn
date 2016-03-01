@@ -459,6 +459,15 @@ namespace Microsoft.CodeAnalysis.CSharp.GenerateType
                 }
             }
 
+            if (nameOrMemberAccessExpression.Parent is PropertyPatternSyntax)
+            {
+                var propertyPattern = nameOrMemberAccessExpression.Parent as PropertyPatternSyntax;
+                foreach (var subPattern in propertyPattern.PatternList.SubPatterns)
+                {
+                    generateTypeServiceStateOptions.PropertiesToGenerate.Add(subPattern);
+                }
+            }
+
             return true;
         }
 
@@ -865,28 +874,58 @@ namespace Microsoft.CodeAnalysis.CSharp.GenerateType
         }
 
         private ITypeSymbol GetPropertyType(
-            SimpleNameSyntax property,
+            SyntaxNode propertyNode,
             SemanticModel semanticModel,
             ITypeInferenceService typeInference,
             CancellationToken cancellationToken)
         {
-            var parent = property.Parent as AssignmentExpressionSyntax;
-            if (parent != null)
+            var parentAssignment = propertyNode.Parent as AssignmentExpressionSyntax;
+            if (parentAssignment != null)
             {
-                return typeInference.InferType(semanticModel, parent.Left, true, cancellationToken);
+                return typeInference.InferType(semanticModel, parentAssignment.Left, true, cancellationToken);
+            }
+
+            var patternNode = propertyNode as SubPropertyPatternSyntax;
+            if (patternNode != null)
+            {
+                return GetPatternType(patternNode.Pattern, semanticModel, cancellationToken);
             }
 
             return null;
         }
 
-        private IPropertySymbol CreatePropertySymbol(SimpleNameSyntax propertyName, ITypeSymbol propertyType)
+        private ITypeSymbol GetPatternType(
+            PatternSyntax pattern, SemanticModel semanticModel, CancellationToken cancellationToken)
         {
+            var typeInfo = pattern.TypeSwitch(
+                (DeclarationPatternSyntax declarationPattern) => semanticModel.GetTypeInfo(declarationPattern.Type),
+                (ConstantPatternSyntax constantPattern) => semanticModel.GetTypeInfo(constantPattern.Expression),
+                (RecursivePatternSyntax recursivePattern) => semanticModel.GetTypeInfo(recursivePattern.Type),
+                (PropertyPatternSyntax propertyPattern) => semanticModel.GetTypeInfo(propertyPattern.Type));
+
+            return typeInfo.Type ?? typeInfo.ConvertedType;
+        }
+
+        private IPropertySymbol CreatePropertySymbol(
+            SyntaxNode propertyNode, ITypeSymbol propertyType)
+        {
+            var nameToken = propertyNode is SimpleNameSyntax
+                ? ((SimpleNameSyntax)propertyNode).Identifier
+                : propertyNode is SubPropertyPatternSyntax
+                    ? ((SubPropertyPatternSyntax)propertyNode).Left
+                    : (SyntaxToken?)null;
+
+            if (nameToken == null)
+            {
+                return null;
+            }
+
             return CodeGenerationSymbolFactory.CreatePropertySymbol(
                 attributes: SpecializedCollections.EmptyList<AttributeData>(),
                 accessibility: Accessibility.Public,
                 modifiers: new DeclarationModifiers(),
                 explicitInterfaceSymbol: null,
-                name: propertyName.ToString(),
+                name: nameToken.Value.ValueText,
                 type: propertyType,
                 parameters: null,
                 getMethod: s_accessor,
@@ -900,22 +939,22 @@ namespace Microsoft.CodeAnalysis.CSharp.GenerateType
                     statements: null);
 
         internal override bool TryGenerateProperty(
-            SimpleNameSyntax propertyName,
+            SyntaxNode propertyNode,
             SemanticModel semanticModel,
             ITypeInferenceService typeInference,
             CancellationToken cancellationToken,
             out IPropertySymbol property)
         {
             property = null;
-            var propertyType = GetPropertyType(propertyName, semanticModel, typeInference, cancellationToken);
+            var propertyType = GetPropertyType(propertyNode, semanticModel, typeInference, cancellationToken);
             if (propertyType == null || propertyType is IErrorTypeSymbol)
             {
-                property = CreatePropertySymbol(propertyName, semanticModel.Compilation.ObjectType);
-                return true;
+                property = CreatePropertySymbol(propertyNode, semanticModel.Compilation.ObjectType);
+                return property != null;
             }
 
-            property = CreatePropertySymbol(propertyName, propertyType);
-            return true;
+            property = CreatePropertySymbol(propertyNode, propertyType);
+            return property != null;
         }
 
         internal override IMethodSymbol GetDelegatingConstructor(

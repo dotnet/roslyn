@@ -700,20 +700,26 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.GenerateType
                             isIndexer:=False)
         End Function
 
-        Friend Overrides Function TryGenerateProperty(propertyName As SimpleNameSyntax,
+        Friend Overrides Function TryGenerateProperty(propertyNode As SyntaxNode,
                                                       semanticModel As SemanticModel,
                                                       typeInferenceService As ITypeInferenceService,
                                                       cancellationToken As CancellationToken,
                                                       ByRef propertySymbol As IPropertySymbol) As Boolean
             propertySymbol = Nothing
+
+            Dim propertyName = TryCast(propertyNode, SimpleNameSyntax)
+            If propertyNode Is Nothing Then
+                Return False
+            End If
+
             Dim typeSymbol = GetPropertyType(propertyName, semanticModel, typeInferenceService, cancellationToken)
             If typeSymbol Is Nothing OrElse TypeOf typeSymbol Is IErrorTypeSymbol Then
                 propertySymbol = GenerateProperty(propertyName, semanticModel.Compilation.ObjectType)
-                Return True
+                Return propertySymbol IsNot Nothing
             End If
 
             propertySymbol = GenerateProperty(propertyName, typeSymbol)
-            Return True
+            Return propertySymbol IsNot Nothing
         End Function
 
         Friend Overrides Function GetDelegatingConstructor(document As SemanticDocument,

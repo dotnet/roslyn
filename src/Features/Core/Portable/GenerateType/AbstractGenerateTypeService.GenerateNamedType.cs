@@ -350,6 +350,6 @@ namespace Microsoft.CodeAnalysis.GenerateType
             }
         }
 
-        internal abstract bool TryGenerateProperty(TSimpleNameSyntax propertyName, SemanticModel semanticModel, ITypeInferenceService typeInference, CancellationToken cancellationToken, out IPropertySymbol property);
+        internal abstract bool TryGenerateProperty(SyntaxNode propertyNode, SemanticModel semanticModel, ITypeInferenceService typeInference, CancellationToken cancellationToken, out IPropertySymbol property);
     }
 }

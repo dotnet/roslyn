@@ -58,7 +58,7 @@ namespace Microsoft.CodeAnalysis.GenerateType
             public Compilation Compilation { get; }
             public bool IsDelegateOnly { get; private set; }
             public bool IsClassInterfaceTypes { get; private set; }
-            public List<TSimpleNameSyntax> PropertiesToGenerate { get; private set; }
+            public List<SyntaxNode> PropertiesToGenerate { get; private set; }
 
             private State(Compilation compilation)
             {
@@ -419,7 +419,7 @@ namespace Microsoft.CodeAnalysis.GenerateType
             public TExpressionSyntax NameOrMemberAccessExpression { get; set; }
             public TObjectCreationExpressionSyntax ObjectCreationExpressionOpt { get; set; }
             public IMethodSymbol DelegateCreationMethodSymbol { get; set; }
-            public List<TSimpleNameSyntax> PropertiesToGenerate { get; }
+            public List<SyntaxNode> PropertiesToGenerate { get; }
             public bool IsMembersWithModule { get; set; }
             public bool IsTypeGeneratedIntoNamespaceFromMemberAccess { get; set; }
             public bool IsInterfaceOrEnumNotAllowedInTypeContext { get; set; }
@@ -434,7 +434,7 @@ namespace Microsoft.CodeAnalysis.GenerateType
                 ObjectCreationExpressionOpt = null;
                 DelegateCreationMethodSymbol = null;
                 IsMembersWithModule = false;
-                PropertiesToGenerate = new List<TSimpleNameSyntax>();
+                PropertiesToGenerate = new List<SyntaxNode>();
                 IsTypeGeneratedIntoNamespaceFromMemberAccess = false;
                 IsInterfaceOrEnumNotAllowedInTypeContext = false;
                 IsDelegateAllowed = true;
