@@ -78,7 +78,7 @@
           "lib/net45/_._": {}
         }
       },
-      "System.Reflection.Metadata/1.2.0-rc3-23811": {
+      "System.Reflection.Metadata/1.2.0-rc2-23826": {
         "dependencies": {
           "System.Collections.Immutable": "[1.1.37, )"
         },
@@ -249,7 +249,7 @@
           "lib/net45/_._": {}
         }
       },
-      "System.Reflection.Metadata/1.2.0-rc3-23811": {
+      "System.Reflection.Metadata/1.2.0-rc2-23826": {
         "dependencies": {
           "System.Collections.Immutable": "[1.1.37, )"
         },
@@ -598,8 +598,8 @@
         "System.Linq.nuspec"
       ]
     },
-    "System.Reflection.Metadata/1.2.0-rc3-23811": {
-      "sha512": "gAOQV1dsGyQfQUuzsCYFLMlI6BhfK1/2aA7JGf6gJphaLgjU4dV4hzjbE0iZXgo61VUuda2LtCBrWWZBw5897Q==",
+    "System.Reflection.Metadata/1.2.0-rc2-23826": {
+      "sha512": "iaq5zpluF7mUMd5hFyhmZGyCSzF6glZjvNI2VAhLFQEp8sGA/tROj6NoZL42q6HhoHxi1XyGeoIXPi5hyw0+5w==",
       "type": "Package",
       "files": [
         "[Content_Types].xml",
@@ -609,7 +609,7 @@
         "lib/dotnet5.2/System.Reflection.Metadata.xml",
         "lib/portable-net45+win8/System.Reflection.Metadata.dll",
         "lib/portable-net45+win8/System.Reflection.Metadata.xml",
-        "package/services/metadata/core-properties/9aa921f066b94690988804574c5d2231.psmdcp",
+        "package/services/metadata/core-properties/26ea3eeed81e48b5a161d7b4bfaa534d.psmdcp",
         "System.Reflection.Metadata.nuspec",
         "ThirdPartyNotices.txt"
       ]

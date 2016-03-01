@@ -54,8 +54,8 @@ class C
                 options: options);
 
             comp.VerifyEmitDiagnostics(
-    // error CS7028: Error signing output with public key from container 'RoslynTestContainer' -- This is a test IOException
-    Diagnostic(ErrorCode.ERR_PublicKeyContainerFailure).WithArguments("RoslynTestContainer", "This is a test IOException").WithLocation(1, 1));
+                // error CS8104: An error occurred while writing the Portable Executable file.
+                Diagnostic(ErrorCode.ERR_PeWritingFailure).WithArguments("This is a test IOException").WithLocation(1, 1));
         }
     }
 }

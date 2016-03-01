@@ -17,6 +17,10 @@ using VSLangProj;
 using Project = EnvDTE.Project;
 using System.Collections.Immutable;
 using Microsoft.VisualStudio.Text.Editor;
+using Microsoft.VisualStudio.InteractiveWindow;
+using Microsoft.CodeAnalysis.Text;
+using System.Linq;
+using core::Microsoft.CodeAnalysis.Shared.Extensions;
 
 namespace Microsoft.VisualStudio.LanguageServices.Interactive
 {
@@ -49,7 +53,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Interactive
             out ImmutableArray<string> references,
             out ImmutableArray<string> referenceSearchPaths,
             out ImmutableArray<string> sourceSearchPaths,
-            out ImmutableArray<string> namespacesToImport,
+            out ImmutableArray<string> projectNamespaces,
             out string projectDirectory)
         {
             var hierarchyPointer = default(IntPtr);
@@ -57,7 +61,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Interactive
             references = ImmutableArray<string>.Empty;
             referenceSearchPaths = ImmutableArray<string>.Empty;
             sourceSearchPaths = ImmutableArray<string>.Empty;
-            namespacesToImport = ImmutableArray<string>.Empty;
+            projectNamespaces = ImmutableArray<string>.Empty;
             projectDirectory = null;
 
             try
@@ -69,7 +73,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Interactive
 
                 if (hierarchyPointer != IntPtr.Zero)
                 {
-                    GetProjectProperties(hierarchyPointer, out references, out referenceSearchPaths, out sourceSearchPaths, out namespacesToImport, out projectDirectory);
+                    GetProjectProperties(hierarchyPointer, out references, out referenceSearchPaths, out sourceSearchPaths, out projectNamespaces, out projectDirectory);
                     return true;
                 }
             }
@@ -87,7 +91,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Interactive
             out ImmutableArray<string> references,
             out ImmutableArray<string> referenceSearchPaths,
             out ImmutableArray<string> sourceSearchPaths,
-            out ImmutableArray<string> namespacesToImport,
+            out ImmutableArray<string> projectNamespaces,
             out string projectDirectory)
         {
             var hierarchy = (IVsHierarchy)Marshal.GetObjectForIUnknown(hierarchyPointer);
@@ -143,7 +147,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Interactive
             references = referencesBuilder.ToImmutableArray();
             referenceSearchPaths = referenceSearchPathsBuilder.ToImmutableArray();
             sourceSearchPaths = sourceSearchPathsBuilder.ToImmutableArray();
-            namespacesToImport = namespacesToImportBuilder.ToImmutableArray();
+            projectNamespaces = namespacesToImportBuilder.ToImmutableArray();
         }
 
         private static string GetReferenceString(Reference reference)
@@ -258,6 +262,16 @@ namespace Microsoft.VisualStudio.LanguageServices.Interactive
         protected override IWaitIndicator GetWaitIndicator()
         {
             return _componentModel.GetService<IWaitIndicator>();
+        }
+
+        /// <summary>
+        /// Return namespaces that can be resolved in the latest interactive compilation.
+        /// </summary>
+        protected override async Task<IEnumerable<string>> GetNamespacesToImportAsync(IEnumerable<string> namespacesToImport, IInteractiveWindow interactiveWindow)
+        {
+            var document = interactiveWindow.CurrentLanguageBuffer.CurrentSnapshot.GetOpenDocumentInCurrentContextWithChanges();
+            var compilation = await document.Project.GetCompilationAsync().ConfigureAwait(true);
+            return namespacesToImport.Where(ns => compilation.GlobalNamespace.GetQualifiedNamespace(ns) != null);
         }
     }
 }
