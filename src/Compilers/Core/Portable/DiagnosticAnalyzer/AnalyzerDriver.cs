@@ -70,7 +70,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         private bool _doNotAnalyzeGeneratedCode;
 
         /// <summary>
-        /// Lazily populated dictionary indicating whether a source file is a generated code file or not.
+        /// Lazily populated dictionary indicating whether a source file is a generated code file or not - we populate it lazily to avoid realizing all syntax trees in the compilation upfront.
         /// </summary>
         private Dictionary<SyntaxTree, bool> _lazyGeneratedCodeFilesMap;
 
@@ -270,6 +270,9 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             return true;
         }
 
+        /// <summary>
+        /// Returns true if all analyzers need to analyze and report diagnostics in generated code - we can assume all code to be non-generated code.
+        /// </summary>
         private bool ShouldTreatAllCodeAsNonGeneratedCode(ImmutableArray<DiagnosticAnalyzer> analyzers, ImmutableDictionary<DiagnosticAnalyzer, GeneratedCodeAnalysisFlags> generatedCodeAnalysisFlagsMap)
         {
             foreach (var analyzer in analyzers)

@@ -22,6 +22,7 @@ namespace RunTests.Cache
             ErrorOutput,
             ResultsFileContent,
             ResultsFileName,
+            EllapsedSeconds,
             Content
         }
 
@@ -35,8 +36,20 @@ namespace RunTests.Cache
             _storagePath = storagePath ?? Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), DirectoryName);
         }
 
-        public bool TryGetCachedTestResult(string checksum, out CachedTestResult testResult)
+        public Task<CachedTestResult?> TryGetCachedTestResult(string checksum)
         {
+            CachedTestResult testResult;
+            CachedTestResult? value = null;
+            if (TryGetCachedTestResult(checksum, out testResult))
+            {
+                value = testResult;
+            }
+
+            return Task.FromResult(value);
+        }
+
+        public bool TryGetCachedTestResult(string checksum, out CachedTestResult testResult)
+        { 
             testResult = default(CachedTestResult);
 
             var storageFolder = GetStorageFolder(checksum);
@@ -52,13 +65,15 @@ namespace RunTests.Cache
                 var errorOutput = Read(checksum, StorageKind.ErrorOutput);
                 var resultsFileName = Read(checksum, StorageKind.ResultsFileName);
                 var resultsFileContent = Read(checksum, StorageKind.ResultsFileContent);
+                var ellapsed = Read(checksum, StorageKind.EllapsedSeconds);
 
                 testResult = new CachedTestResult(
                     exitCode: int.Parse(exitCode),
                     standardOutput: standardOutput,
                     errorOutput: errorOutput,
                     resultsFileName: resultsFileName,
-                    resultsFileContent: resultsFileContent);
+                    resultsFileContent: resultsFileContent,
+                    ellapsed: TimeSpan.FromSeconds(int.Parse(ellapsed)));
                 return true;
             }
             catch (Exception e)
@@ -70,7 +85,7 @@ namespace RunTests.Cache
             return false;
         }
 
-        public void AddCachedTestResult(ContentFile contentFile, CachedTestResult testResult)
+        public Task AddCachedTestResult(ContentFile contentFile, CachedTestResult testResult)
         {
             var checksum = contentFile.Checksum;
             var storagePath = Path.Combine(_storagePath, checksum);
@@ -78,7 +93,7 @@ namespace RunTests.Cache
             {
                 if (!FileUtil.EnsureDirectory(storagePath))
                 {
-                    return;
+                    return Task.FromResult(true);
                 }
 
                 Write(checksum, StorageKind.ExitCode, testResult.ExitCode.ToString());
@@ -86,6 +101,7 @@ namespace RunTests.Cache
                 Write(checksum, StorageKind.ErrorOutput, testResult.ErrorOutput);
                 Write(checksum, StorageKind.ResultsFileName, testResult.ResultsFileName);
                 Write(checksum, StorageKind.ResultsFileContent, testResult.ResultsFileContent);
+                Write(checksum, StorageKind.EllapsedSeconds, testResult.Ellapsed.TotalSeconds.ToString());
                 Write(checksum, StorageKind.Content, contentFile.Content);
             }
             catch (Exception e)
@@ -94,6 +110,8 @@ namespace RunTests.Cache
                 Logger.Log($"Failed to log {checksum} {e.Message}");
                 FileUtil.DeleteDirectory(storagePath);
             }
+
+            return Task.FromResult(true);
         }
 
         private string GetStorageFolder(string checksum)

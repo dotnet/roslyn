@@ -10,7 +10,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.ProjectSystemShim
 
         Public ReadOnly Property ProjectCodeModel As AbstractProjectCodeModel Implements IProjectCodeModelProvider.ProjectCodeModel
             Get
-                LazyInitialization.EnsureInitialized(_projectCodeModel, Function() New VisualBasicProjectCodeModel(Me, Me.VisualStudioWorkspace, ServiceProvider))
+                LazyInitialization.EnsureInitialized(_projectCodeModel, Function() New VisualBasicProjectCodeModel(Me, DirectCast(Me.Workspace, VisualStudioWorkspace), ServiceProvider))
                 Return _projectCodeModel
             End Get
         End Property

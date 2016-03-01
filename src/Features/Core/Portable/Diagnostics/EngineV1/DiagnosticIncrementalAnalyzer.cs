@@ -10,7 +10,6 @@ using Microsoft.CodeAnalysis.Diagnostics.Log;
 using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.LanguageServices;
-using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.Options;
 using Microsoft.CodeAnalysis.Text;
@@ -509,6 +508,43 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV1
             Contract.Requires(result);
 
             return getter.Diagnostics;
+        }
+
+        public override bool ContainsDiagnostics(Workspace workspace, ProjectId projectId)
+        {
+            // need to improve perf in v2.
+            foreach (var stateSet in _stateManager.GetStateSets(projectId))
+            {
+                for (var stateType = 0; stateType < s_stateTypeCount; stateType++)
+                {
+                    var state = stateSet.GetState((StateType)stateType);
+                    if (state.Count == 0)
+                    {
+                        continue;
+                    }
+
+                    if (state.GetDataCount(projectId) > 0)
+                    {
+                        return true;
+                    }
+
+                    var project = workspace.CurrentSolution.GetProject(projectId);
+                    if (project == null)
+                    {
+                        continue;
+                    }
+
+                    foreach (var documentId in project.DocumentIds)
+                    {
+                        if (state.GetDataCount(documentId) > 0)
+                        {
+                            return true;
+                        }
+                    }
+                }
+            }
+
+            return false;
         }
 
         private bool ShouldRunAnalyzerForClosedFile(CompilationOptions options, bool openedDocument, DiagnosticAnalyzer analyzer)
