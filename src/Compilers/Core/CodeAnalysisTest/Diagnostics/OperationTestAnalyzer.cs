@@ -1651,12 +1651,28 @@ namespace Microsoft.CodeAnalysis.UnitTests.Diagnostics
                 (operationContext) =>
                 {
                     var binary = (IBinaryOperatorExpression)operationContext.Operation;
-                    if (!binary.LeftOperand.IsInvalid && !binary.RightOperand.IsInvalid && !binary.UsesOperatorMethod && binary.OperatorMethod == null)
+                    var left = binary.LeftOperand;
+                    var right = binary.RightOperand;
+                    if (!left.IsInvalid && !right.IsInvalid && !binary.UsesOperatorMethod && binary.OperatorMethod == null)
                     {
-                        operationContext.ReportDiagnostic(
-                            Diagnostic.Create(BinaryOperatorDescriptor,
-                                binary.Syntax.GetLocation(),
-                                binary.BinaryOperationKind.ToString()));
+                        if (left.Kind == OperationKind.LocalReferenceExpression)
+                        {
+                            var leftLocal = ((ILocalReferenceExpression)left).Local;
+                            if (leftLocal.Name == "x")
+                            {
+                                if (right.Kind == OperationKind.LiteralExpression)
+                                {
+                                    var rightValue = right.ConstantValue;
+                                    if (rightValue.HasValue && rightValue.Value is int && (int)rightValue.Value == 10)
+                                    {
+                                        operationContext.ReportDiagnostic(
+                                            Diagnostic.Create(BinaryOperatorDescriptor,
+                                            binary.Syntax.GetLocation(),
+                                            binary.BinaryOperationKind.ToString()));
+                                    }
+                                }
+                            }
+                        }
                     }
                 },
                 OperationKind.BinaryOperatorExpression);
@@ -1665,12 +1681,20 @@ namespace Microsoft.CodeAnalysis.UnitTests.Diagnostics
                 (operationContext) =>
                 {
                     var unary = (IUnaryOperatorExpression)operationContext.Operation;
-                    if (!unary.Operand.IsInvalid && !unary.UsesOperatorMethod && unary.OperatorMethod == null)
+                    var operand = unary.Operand;
+                    if (operand.Kind == OperationKind.LocalReferenceExpression)
                     {
-                        operationContext.ReportDiagnostic(
-                            Diagnostic.Create(UnaryOperatorDescriptor,
-                                unary.Syntax.GetLocation(),
-                                unary.UnaryOperationKind.ToString()));
+                        var operandLocal = ((ILocalReferenceExpression)operand).Local;
+                        if (operandLocal.Name == "x")
+                        {
+                            if (!operand.IsInvalid && !unary.UsesOperatorMethod && unary.OperatorMethod == null)
+                            {
+                                operationContext.ReportDiagnostic(
+                                    Diagnostic.Create(UnaryOperatorDescriptor,
+                                        unary.Syntax.GetLocation(),
+                                        unary.UnaryOperationKind.ToString()));
+                            }
+                        }
                     }
                 },
                 OperationKind.UnaryOperatorExpression);

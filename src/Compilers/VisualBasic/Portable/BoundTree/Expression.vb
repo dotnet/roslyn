@@ -140,7 +140,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
             Dim rightOperatorBinary As BoundUserDefinedBinaryOperator = TryCast(Me.Right, BoundUserDefinedBinaryOperator)
             If rightOperatorBinary IsNot Nothing Then
-                If DirectCast(rightOperatorBinary, IBinaryOperatorExpression).LeftOperand.Kind = BoundKind.CompoundAssignmentTargetPlaceholder Then
+                If DirectCast(rightOperatorBinary, IBinaryOperatorExpression).LeftOperand.Kind = OperationKind.PlaceholderExpression Then
                     Return OperationKind.CompoundAssignmentExpression
                 End If
             End If

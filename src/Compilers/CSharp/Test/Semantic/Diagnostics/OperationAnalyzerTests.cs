@@ -1527,23 +1527,21 @@ class C
 {
     static void Main()
     {
-        A a1 = new A(0);
-        A a2 = new A(100);
+        A x = new A(0);
+        A y = new A(100);
 
-        a1 = a1 + 10;
-        a1 = a1 + a2;
-        a1 = -a1;
+        x = x + 10;
+        x = x + y;
+        x = -x;
    }
 }
 ";
             CreateCompilationWithMscorlib45(source)
-             .VerifyDiagnostics(Diagnostic(ErrorCode.ERR_BadBinaryOps, "a1 + 10", new object[] { "+", "A", "int"}).WithLocation(29, 14),
-                                Diagnostic(ErrorCode.ERR_BadUnaryOp, "-a1", new object[] { "-", "A"}).WithLocation(31, 14))
+             .VerifyDiagnostics(Diagnostic(ErrorCode.ERR_BadBinaryOps, "x + 10", new object[] { "+", "A", "int"}).WithLocation(29, 13),
+                                Diagnostic(ErrorCode.ERR_BadUnaryOp, "-x", new object[] { "-", "A"}).WithLocation(31, 13))
              .VerifyAnalyzerDiagnostics(new DiagnosticAnalyzer[] { new OperatorPropertyPullerTestAnalyzer() }, null, null, false,
-                 Diagnostic(OperatorPropertyPullerTestAnalyzer.BinaryOperatorDescriptor.Id, "x._value + y._value").WithArguments("IntegerAdd").WithLocation(13, 22),
-                 Diagnostic(OperatorPropertyPullerTestAnalyzer.BinaryOperatorDescriptor.Id, "x._value - y._value").WithArguments("IntegerSubtract").WithLocation(18, 22),
-                 Diagnostic(OperatorPropertyPullerTestAnalyzer.BinaryOperatorDescriptor.Id, "a1 + 10").WithArguments("Invalid").WithLocation(29, 14),
-                 Diagnostic(OperatorPropertyPullerTestAnalyzer.UnaryOperatorDescriptor.Id, "-a1").WithArguments("Invalid").WithLocation(31, 14)
+                 Diagnostic(OperatorPropertyPullerTestAnalyzer.BinaryOperatorDescriptor.Id, "x + 10").WithArguments("Invalid").WithLocation(29, 13),
+                 Diagnostic(OperatorPropertyPullerTestAnalyzer.UnaryOperatorDescriptor.Id, "-x").WithArguments("Invalid").WithLocation(31, 13)
                  );
         }
 
