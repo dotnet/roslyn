@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using Microsoft.CodeAnalysis.CSharp.CodeStyle;
+using Microsoft.CodeAnalysis.CSharp.CodeStyle.TypeStyle;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Options;
@@ -71,90 +72,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.TypingStyles
 
             /// <summary>
             /// Returns true if type information could be gleaned by simply looking at the given statement.
-            /// This typically means that the type name occurs in either left hand or right hand side of an assignment.
+            /// This typically means that the type name occurs in right hand side of an assignment.
             /// </summary>
             private bool IsTypeApparentInDeclaration(VariableDeclarationSyntax variableDeclaration, SemanticModel semanticModel, TypeStyle stylePreferences, CancellationToken cancellationToken)
             {
                 var initializer = variableDeclaration.Variables.Single().Initializer;
                 var initializerExpression = GetInitializerExpression(initializer);
-
-                // default(type)
-                if (initializerExpression.IsKind(SyntaxKind.DefaultExpression))
-                {
-                    return true;
-                }
-
-                // literals, use var if options allow usage here.
-                if (initializerExpression.IsAnyLiteralExpression())
-                {
-                    return stylePreferences.HasFlag(TypeStyle.ImplicitTypeForIntrinsicTypes);
-                }
-
-                // constructor invocations cases:
-                //      = new type();
-                if (initializerExpression.IsKind(SyntaxKind.ObjectCreationExpression) &&
-                    !initializerExpression.IsKind(SyntaxKind.AnonymousObjectCreationExpression))
-                {
-                    return true;
-                }
-
-                // explicit conversion cases: 
-                //      (type)expr, expr is type, expr as type
-                if (initializerExpression.IsKind(SyntaxKind.CastExpression) ||
-                    initializerExpression.IsKind(SyntaxKind.IsExpression) ||
-                    initializerExpression.IsKind(SyntaxKind.AsExpression))
-                {
-                    return true;
-                }
-
-                // other Conversion cases:
-                //      a. conversion with helpers like: int.Parse methods
-                //      b. types that implement IConvertible and then invoking .ToType()
-                //      c. System.Convert.Totype()
                 var declaredTypeSymbol = semanticModel.GetTypeInfo(variableDeclaration.Type, cancellationToken).Type;
-
-                var memberName = GetRightmostInvocationExpression(initializerExpression).GetRightmostName();
-                if (memberName == null)
-                {
-                    return false;
-                }
-
-                var methodSymbol = semanticModel.GetSymbolInfo(memberName, cancellationToken).Symbol as IMethodSymbol;
-                if (methodSymbol == null)
-                {
-                    return false;
-                }
-
-                if (memberName.IsRightSideOfDot())
-                {
-                    var typeName = memberName.GetLeftSideOfDot();
-                    return IsPossibleCreationOrConversionMethod(methodSymbol, declaredTypeSymbol, semanticModel, typeName, cancellationToken);
-                }
-
-                return false;
-            }
-
-            private ExpressionSyntax GetRightmostInvocationExpression(ExpressionSyntax node)
-            {
-                var awaitExpression = node as AwaitExpressionSyntax;
-                if (awaitExpression != null && awaitExpression.Expression != null)
-                {
-                    return GetRightmostInvocationExpression(awaitExpression.Expression);
-                }
-
-                var invocationExpression = node as InvocationExpressionSyntax;
-                if (invocationExpression != null && invocationExpression.Expression != null)
-                {
-                    return GetRightmostInvocationExpression(invocationExpression.Expression);
-                }
-
-                var conditional = node as ConditionalAccessExpressionSyntax;
-                if (conditional != null)
-                {
-                    return GetRightmostInvocationExpression(conditional.WhenNotNull);
-                }
-
-                return node;
+                return TypeStyleHelper.IsTypeApparentInAssignmentExpression(stylePreferences, initializerExpression, semanticModel,cancellationToken, declaredTypeSymbol);
             }
 
             /// <summary>
@@ -197,75 +122,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.TypingStyles
                 }
 
                 return null;
-            }
-
-            private bool IsPossibleCreationOrConversionMethod(IMethodSymbol methodSymbol, ITypeSymbol declaredType, SemanticModel semanticModel, ExpressionSyntax typeName, CancellationToken cancellationToken)
-            {
-                if (methodSymbol.ReturnsVoid)
-                {
-                    return false;
-                }
-
-                var typeInInvocation = semanticModel.GetTypeInfo(typeName, cancellationToken).Type;
-
-                return IsPossibleCreationMethod(methodSymbol, declaredType, typeInInvocation)
-                    || IsPossibleConversionMethod(methodSymbol, declaredType, typeInInvocation, semanticModel, cancellationToken);
-            }
-
-            /// <summary>
-            /// Looks for types that have static methods that return the same type as the container.
-            /// e.g: int.Parse, XElement.Load, Tuple.Create etc.
-            /// </summary>
-            private bool IsPossibleCreationMethod(IMethodSymbol methodSymbol, ITypeSymbol declaredType, ITypeSymbol typeInInvocation)
-            {
-                if (!methodSymbol.IsStatic)
-                {
-                    return false;
-                }
-
-                return IsDeclaredTypeEqualToReturnType(methodSymbol, declaredType, typeInInvocation);
-            }
-
-            /// <summary>
-            /// If we have a method ToXXX and its return type is also XXX, then type name is apparent
-            /// e.g: Convert.ToString.
-            /// </summary>
-            private bool IsPossibleConversionMethod(IMethodSymbol methodSymbol, ITypeSymbol declaredType, ITypeSymbol typeInInvocation, SemanticModel semanticModel, CancellationToken cancellationToken)
-            {
-                // take `char` from `char? c = `
-                var declaredTypeName = declaredType.IsNullable()
-                        ? declaredType.GetTypeArguments().First().Name
-                        : declaredType.Name;
-
-                var returnType = methodSymbol.ReturnType;
-
-                if (methodSymbol.Name.Equals("To" + declaredTypeName, StringComparison.Ordinal))
-                {
-                    return IsDeclaredTypeEqualToReturnType(methodSymbol, declaredType, typeInInvocation);
-                }
-
-                return false;
-            }
-
-            /// <remarks>
-            /// If there are type arguments on either side of assignment, we match type names instead of type equality 
-            /// to account for inferred generic type arguments.
-            /// e.g: Tuple.Create(0, true) returns Tuple&lt;X,y&gt; which isn't the same as type Tuple.
-            /// otherwise, we match for type equivalence
-            /// </remarks>
-            private static bool IsDeclaredTypeEqualToReturnType(IMethodSymbol methodSymbol, ITypeSymbol declaredType, ITypeSymbol typeInInvocation)
-            {
-                var returnType = methodSymbol.ReturnType;
-
-                if (declaredType.GetTypeArguments().Length > 0 ||
-                    typeInInvocation.GetTypeArguments().Length > 0)
-                {
-                    return declaredType.Name.Equals(returnType.Name);
-                }
-                else
-                {
-                    return declaredType.Equals(returnType);
-                }
             }
 
             private TypeStyle GetCurrentTypingStylePreferences(OptionSet optionSet)
