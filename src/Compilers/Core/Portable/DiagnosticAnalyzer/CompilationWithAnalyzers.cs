@@ -104,7 +104,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         /// <param name="options">Options that are passed to analyzers.</param>
         /// <param name="cancellationToken">A cancellation token that can be used to abort analysis.</param>
         public CompilationWithAnalyzers(Compilation compilation, ImmutableArray<DiagnosticAnalyzer> analyzers, AnalyzerOptions options, CancellationToken cancellationToken)
-            : this(compilation, analyzers, new CompilationWithAnalyzersOptions(options, onAnalyzerException: null, analyzerExceptionFilter: null, concurrentAnalysis: true, logAnalyzerExecutionTime: true), cancellationToken)
+            : this(compilation, analyzers, new CompilationWithAnalyzersOptions(options, onAnalyzerException: null, analyzerExceptionFilter: null, concurrentAnalysis: true, logAnalyzerExecutionTime: true, reportSuppressedDiagnostics: false), cancellationToken)
         {
         }
 
