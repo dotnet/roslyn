@@ -10,7 +10,8 @@
     "System.Runtime.Extensions": "4.0.10",
     "System.Threading": "4.0.10",
     "xunit": "2.1.0",
-    "xunit.runner.console": "2.1.0"
+    "xunit.runner.console": "2.1.0",
+    "Microsoft.VisualStudio.Composition": "14.0.50715-pre"
   },
   "frameworks": {
     "net46": {}
