@@ -290,7 +290,7 @@
 
   <PropertyGroup>
     <CopyVSReferencesToOutput>True</CopyVSReferencesToOutput>
-    <AuthenticodeCertificateName>MicrosoftSHA1</AuthenticodeCertificateName>
+    <AuthenticodeCertificateName>Microsoft402</AuthenticodeCertificateName>
     <FakeSignToolPath>$(NuGetPackageRoot)\FakeSign\0.9.2\tools\FakeSign.exe</FakeSignToolPath>
   </PropertyGroup>
 

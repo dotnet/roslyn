@@ -174,7 +174,7 @@ static void addStandardJob(def myJob, String jobName, String branchName, String 
   }
 }
 
-['master', 'future', 'stabilization', 'prtest'].each { branchName ->
+['master', 'future', 'stabilization', 'future-stabilization', 'hotfixes', 'prtest'].each { branchName ->
   // folder("${branchName.substring(0, 6)}")
   ['win', 'linux', 'mac'].each { opsys ->
     // folder("${branchName.substring(0, 6)}/${opsys.substring(0, 3)}")

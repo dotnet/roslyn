@@ -542,7 +542,6 @@ End Class
             End Using
         End Sub
 
-
         <WpfFact>
         <WorkItem(539513, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539513")>
         <Trait(Traits.Feature, Traits.Features.Rename)>
@@ -1400,6 +1399,50 @@ End Module
                 session.Commit()
 
                 Await VerifyTagsAreCorrect(workspace, "x")
+            End Using
+        End Function
+
+        <WpfFact>
+        <Trait(Traits.Feature, Traits.Features.Rename)>
+        <WorkItem(9117, "https://github.com/dotnet/roslyn/issues/9117")>
+        Public Async Function VerifyVBRenameCrashDoesNotRepro() As Task
+            Using workspace = CreateWorkspaceWithWaiter(
+                    <Workspace>
+                        <Project Language="Visual Basic" CommonReferences="true">
+                            <Document>
+Public Class Class1 
+  Public Property [|$$Field1|] As Integer
+End Class 
+
+Public Class Class2 
+  Public Shared Property DataSource As IEnumerable(Of Class1) 
+  Public ReadOnly Property Dict As IReadOnlyDictionary(Of Integer, IEnumerable(Of Class1)) = 
+  ( 
+    From data 
+    In DataSource 
+    Group By 
+    data.Field1
+    Into Group1 = Group 
+  ).ToDictionary( 
+    Function(group) group.Field1,
+    Function(group) group.Group1) 
+End Class 
+                            </Document>
+                        </Project>
+                    </Workspace>)
+
+                Dim session = StartSession(workspace)
+
+                ' Type a bit in the file
+                Dim caretPosition = workspace.Documents.Single(Function(d) d.CursorPosition.HasValue).CursorPosition.Value
+                Dim textBuffer = workspace.Documents.Single().TextBuffer
+
+                textBuffer.Delete(New Span(caretPosition, 1))
+                textBuffer.Insert(caretPosition, "x")
+
+                session.Commit()
+
+                Await VerifyTagsAreCorrect(workspace, "xield1")
             End Using
         End Function
     End Class

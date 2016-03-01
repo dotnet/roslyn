@@ -49,7 +49,6 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.ProjectSystemShim
             string projectSystemName,
             IVsHierarchy hierarchy,
             IServiceProvider serviceProvider,
-            MiscellaneousFilesWorkspace miscellaneousFilesWorkspaceOpt,
             VisualStudioWorkspaceImpl visualStudioWorkspaceOpt,
             HostDiagnosticUpdateSource hostDiagnosticUpdateSourceOpt)
             : base(projectTracker,
@@ -58,7 +57,6 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.ProjectSystemShim
                    hierarchy,
                    LanguageNames.CSharp,
                    serviceProvider,
-                   miscellaneousFilesWorkspaceOpt,
                    visualStudioWorkspaceOpt,
                    hostDiagnosticUpdateSourceOpt)
         {

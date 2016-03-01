@@ -729,6 +729,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             End Get
         End Property
 
+        ''' <summary>
+        ''' Raw assembly version as specified in the AssemblyVersionAttribute, or Nothing if none specified.
+        ''' If the string passed to AssemblyVersionAttribute contains * the version build and/or revision numbers are set to <see cref="UShort.MaxValue"/>.
+        ''' </summary>
         Private ReadOnly Property AssemblyVersionAttributeSetting As Version
             Get
                 Dim defaultValue As Version = Nothing
@@ -747,6 +751,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                 End If
 
                 Return fieldValue
+            End Get
+        End Property
+
+        Public Overrides ReadOnly Property AssemblyVersionPattern As Version
+            Get
+                Dim attributeValue = AssemblyVersionAttributeSetting
+                Return If(attributeValue Is Nothing OrElse (attributeValue.Build <> UShort.MaxValue AndAlso attributeValue.Revision <> UShort.MaxValue), Nothing, attributeValue)
             End Get
         End Property
 
@@ -1401,7 +1412,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             End Get
         End Property
 
-        Friend Overrides Sub AddSynthesizedAttributes(compilationState as ModuleCompilationState, ByRef attributes As ArrayBuilder(Of SynthesizedAttributeData))
+        Friend Overrides Sub AddSynthesizedAttributes(compilationState As ModuleCompilationState, ByRef attributes As ArrayBuilder(Of SynthesizedAttributeData))
             MyBase.AddSynthesizedAttributes(compilationState, attributes)
 
             Debug.Assert(_lazyEmitExtensionAttribute <> ThreeState.Unknown)
@@ -1629,7 +1640,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             EnsureAttributesAreBound()
 
             Return New AssemblyIdentity(_assemblySimpleName,
-                                        Me.AssemblyVersionAttributeSetting,
+                                        VersionHelper.GenerateVersionFromPatternAndCurrentTime(Me.AssemblyVersionAttributeSetting),
                                         Me.AssemblyCultureAttributeSetting,
                                         StrongNameKeys.PublicKey,
                                         hasPublicKey:=Not StrongNameKeys.PublicKey.IsDefault)

@@ -19,6 +19,7 @@
     <TargetFrameworkIdentifier>.NETPortable</TargetFrameworkIdentifier>
     <ProjectTypeGuids>{786C830F-07A1-408B-BD7F-6EE04809D6DB};{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}</ProjectTypeGuids>
     <DefineConstants>$(DefineConstants);DNX</DefineConstants>
+    <NoStdLib>true</NoStdLib>
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="Microsoft.CodeAnalysis.Test.Resources.Proprietary">
@@ -27,12 +28,6 @@
     </Reference>
   </ItemGroup>
   <ItemGroup Label="Project References">
-    <ProjectReference Include="..\Runtime.FX46\TestRuntime.FX46.csproj">
-      <Project>{23683607-168A-4189-955E-908F0E80E60D}</Project>
-      <Name>TestRuntime.FX46</Name>
-      <!-- TestRuntime.FX46 exists only to have a single project copying binaries into the output directory. We should not reference it's output -->
-      <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
-    </ProjectReference>
     <ProjectReference Include="..\..\..\Compilers\Test\Resources\Core\CompilerTestResources.csproj">
       <Project>{7fe6b002-89d8-4298-9b1b-0b5c247dd1fd}</Project>
       <Name>CompilerTestResources</Name>
@@ -110,13 +105,32 @@
     <InternalsVisibleToTest Include="Microsoft.CodeAnalysis.VisualBasic.Scripting.Desktop.UnitTests" />
     <InternalsVisibleToTest Include="Roslyn.Services.Editor.UnitTests" />
     <InternalsVisibleToTest Include="Roslyn.Services.Editor.CSharp.UnitTests" />
-    <InternalsVisibleToTest Include="Roslyn.Services.Editor.VisualBasic.UnitTests" />    
+    <InternalsVisibleToTest Include="Roslyn.Services.Editor.VisualBasic.UnitTests" />
     <InternalsVisibleToTest Include="Roslyn.Services.Test.Utilities" />
     <InternalsVisibleToTest Include="Roslyn.Services.UnitTests" />
   </ItemGroup>
   <ItemGroup>
     <None Include="..\app.config" />
     <None Include="project.json" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="CommonTestBase.cs" />
+    <Compile Include="ICompilationVerifier.cs" />
+    <Compile Include="MetadataSignatureUnitTestHelper.cs" />
+    <Compile Include="ModuleData.cs" />
+    <Compile Include="ReflectionAssert.cs" />
+    <Compile Include="TestResource.Designer.cs">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>TestResource.resx</DependentUpon>
+    </Compile>
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="TestResource.resx">
+      <Generator>PublicResXFileCodeGenerator</Generator>
+      <LastGenOutput>TestResource.Designer.cs</LastGenOutput>
+      <CustomToolNamespace>Roslyn.Test.Utilities</CustomToolNamespace>
+    </EmbeddedResource>
   </ItemGroup>
   <ImportGroup Label="Targets">
     <Import Project="..\..\..\..\build\Targets\VSL.Imports.targets" />
