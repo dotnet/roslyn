@@ -16,15 +16,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.TypingStyles
 {
     internal abstract partial class CSharpTypingStyleDiagnosticAnalyzerBase : DiagnosticAnalyzer, IBuiltInAnalyzer
     {
-        [Flags]
-        internal enum TypeStyle
-        {
-            None = 0,
-            ImplicitTypeForIntrinsicTypes = 1 << 0,
-            ImplicitTypeWhereApparent = 1 << 1,
-            ImplicitTypeWherePossible = 1 << 2,
-        }
-
         private readonly string _diagnosticId;
         private readonly LocalizableString _title;
         private readonly LocalizableString _message;
