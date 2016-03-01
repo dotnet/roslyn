@@ -53,7 +53,8 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
             return diagnostics.ToImmutableArray();
         }
 
-        internal override async Task<IEnumerable<Diagnostic>> GetDiagnosticsAsync(TestWorkspace workspace)
+        internal override async Task<IEnumerable<Diagnostic>> GetDiagnosticsAsync(
+            TestWorkspace workspace, object fixProviderData)
         {
             var providerAndFixer = CreateDiagnosticProviderAndFixer(workspace);
 
@@ -64,7 +65,8 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
             return FilterDiagnostics(diagnostics);
         }
 
-        internal override async Task<IEnumerable<Tuple<Diagnostic, CodeFixCollection>>> GetDiagnosticAndFixesAsync(TestWorkspace workspace, string fixAllActionId)
+        internal override async Task<IEnumerable<Tuple<Diagnostic, CodeFixCollection>>> GetDiagnosticAndFixesAsync(
+            TestWorkspace workspace, string fixAllActionId, object fixProviderData)
         {
             var providerAndFixer = CreateDiagnosticProviderAndFixer(workspace);
 

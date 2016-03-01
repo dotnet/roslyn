@@ -11,6 +11,14 @@
           "lib/net40/Esent.Interop.dll": {}
         }
       },
+      "Microsoft.CodeAnalysis.Elfie/0.10.6-rc2": {
+        "compile": {
+          "lib/net46/Microsoft.CodeAnalysis.Elfie.dll": {}
+        },
+        "runtime": {
+          "lib/net46/Microsoft.CodeAnalysis.Elfie.dll": {}
+        }
+      },
       "Microsoft.Composition/1.0.27": {
         "compile": {
           "lib/portable-net45+win8+wp8+wpa81/System.Composition.AttributedModel.dll": {},
@@ -144,6 +152,17 @@
         "lib/netcore45/Esent.Interop.Wsa.pdb",
         "ManagedEsent.nuspec",
         "package/services/metadata/core-properties/3134d22c105a484d9c266dc3ead61c55.psmdcp"
+      ]
+    },
+    "Microsoft.CodeAnalysis.Elfie/0.10.6-rc2": {
+      "sha512": "nw8Gelt5AYgv9PLxK3MIB5hPnMoMoC2s73YXwcM3dxxim5yxRdPbzmBy0ddEeUa9zb57qoaDLYpCF8Zajg54Dg==",
+      "type": "Package",
+      "files": [
+        "[Content_Types].xml",
+        "_rels/.rels",
+        "lib/net46/Microsoft.CodeAnalysis.Elfie.dll",
+        "Microsoft.CodeAnalysis.Elfie.nuspec",
+        "package/services/metadata/core-properties/177ee6f038264cc2a36b3d69a588b6ea.psmdcp"
       ]
     },
     "Microsoft.Composition/1.0.27": {

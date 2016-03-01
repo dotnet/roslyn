@@ -121,7 +121,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.PreviewPane
                 }
                 else if (previewItem is string)
                 {
-                    previewElement = GetPreviewForString((string)previewItem, createBorder: previewItems.Count == 0);
+                    previewElement = GetPreviewForString((string)previewItem);
                 }
                 else if (previewItem is FrameworkElement)
                 {
@@ -159,38 +159,15 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.PreviewPane
             LearnMoreHyperlink.ToolTip = helpLinkToolTipText;
         }
 
-        public static FrameworkElement GetPreviewForString(string previewContent, bool useItalicFontStyle = false, bool centerAlignTextHorizontally = false, bool createBorder = false)
+        private static FrameworkElement GetPreviewForString(string previewContent)
         {
-            var textBlock = new TextBlock()
+            return new TextBlock()
             {
                 Margin = new Thickness(5),
                 VerticalAlignment = VerticalAlignment.Center,
                 Text = previewContent,
                 TextWrapping = TextWrapping.Wrap,
             };
-
-            if (useItalicFontStyle)
-            {
-                textBlock.FontStyle = FontStyles.Italic;
-            }
-
-            if (centerAlignTextHorizontally)
-            {
-                textBlock.TextAlignment = TextAlignment.Center;
-            }
-
-            FrameworkElement preview = textBlock;
-            if (createBorder)
-            {
-                preview = new Border()
-                {
-                    Width = DefaultWidth,
-                    MinHeight = 75,
-                    Child = textBlock
-                };
-            }
-
-            return preview;
         }
 
         // This method adjusts the width of the header section to match that of the preview content

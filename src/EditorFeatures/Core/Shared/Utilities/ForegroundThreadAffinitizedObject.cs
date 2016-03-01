@@ -123,6 +123,17 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Utilities
             Contract.ThrowIfTrue(IsForeground());
         }
 
+        /// <summary>
+        /// A helpful marker method that can be used by deriving classes to indicate that a 
+        /// method can be called from any thread and is not foreground or background affinitized.
+        /// This is useful so that every method in deriving class can have some sort of marker
+        /// on each method stating the threading constraints (FG-only/BG-only/Any-thread).
+        /// </summary>
+        public void ThisCanBeCalledOnAnyThread()
+        {
+            // Does nothing.
+        }
+
         public Task InvokeBelowInputPriority(Action action, CancellationToken cancellationToken = default(CancellationToken))
         {
             if (IsForeground() && !IsInputPending())
