@@ -41,9 +41,9 @@ namespace Microsoft.CodeAnalysis.CSharp
     {
         IMethodSymbol IInvocationExpression.TargetMethod => this.Method;
 
-        IOperation IInvocationExpression.Instance => (this.Method == null || this.Method.IsStatic) ? null : this.ReceiverOpt;
+        IOperation IInvocationExpression.Instance => ((object)this.Method == null || this.Method.IsStatic) ? null : this.ReceiverOpt;
 
-        bool IInvocationExpression.IsVirtual => this.Method != null && this.ReceiverOpt != null && (this.Method.IsVirtual || this.Method.IsAbstract || this.Method.IsOverride) && !this.ReceiverOpt.SuppressVirtualCalls;
+        bool IInvocationExpression.IsVirtual => (object)this.Method != null && this.ReceiverOpt != null && (this.Method.IsVirtual || this.Method.IsAbstract || this.Method.IsOverride) && !this.ReceiverOpt.SuppressVirtualCalls;
 
         ImmutableArray<IArgument> IInvocationExpression.ArgumentsInSourceOrder
         {
@@ -152,7 +152,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     string name = !argumentNames.IsDefaultOrEmpty ? argumentNames[argumentIndex] : null;
                     Symbols.ParameterSymbol parameter = (uint)parameterIndex < (uint)parameters.Length ? parameters[parameterIndex] : null;
 
-                    if (name == null)
+                    if ((object)name == null)
                     {
                         RefKind refMode = argumentRefKinds.IsDefaultOrEmpty ? RefKind.None : argumentRefKinds[argumentIndex];
 
@@ -247,7 +247,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             IOperation IArgument.OutConversion => null;
 
-            bool IOperation.IsInvalid => this.Parameter == null || this.Value.IsInvalid;
+            bool IOperation.IsInvalid => (object)this.Parameter == null || this.Value.IsInvalid;
 
             OperationKind IOperation.Kind => OperationKind.Argument;
 
@@ -438,7 +438,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        bool IMethodBindingExpression.IsVirtual => this.MethodOpt != null && (this.MethodOpt.IsVirtual || this.MethodOpt.IsAbstract || this.MethodOpt.IsOverride) && !this.SuppressVirtualCalls;
+        bool IMethodBindingExpression.IsVirtual => (object)this.MethodOpt != null && (this.MethodOpt.IsVirtual || this.MethodOpt.IsAbstract || this.MethodOpt.IsOverride) && !this.SuppressVirtualCalls;
 
         ISymbol IMemberReferenceExpression.Member => this.MethodOpt;
 
@@ -524,7 +524,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                                 var assignment = memberAssignment as BoundAssignmentOperator;
                                 var leftSymbol = (assignment?.Left as BoundObjectInitializerMember)?.MemberSymbol;
 
-                                if (leftSymbol == null)
+                                if ((object)leftSymbol == null)
                                 {
                                     continue;
                                 }
@@ -577,7 +577,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             public SyntaxNode Syntax { get; }
 
-            bool IOperation.IsInvalid => this.Value.IsInvalid || this.InitializedField == null;
+            bool IOperation.IsInvalid => this.Value.IsInvalid || (object)this.InitializedField == null;
 
             public ITypeSymbol Type => null;
 
@@ -611,7 +611,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             public SyntaxNode Syntax { get; }
 
-            bool IOperation.IsInvalid => this.Value.IsInvalid || this.InitializedProperty == null;
+            bool IOperation.IsInvalid => this.Value.IsInvalid || (object)this.InitializedProperty == null;
 
             public ITypeSymbol Type => null;
 
@@ -725,7 +725,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             get
             {
                 IMethodSymbol method = ((IMethodBindingExpression)this).Method;
-                return method != null && (method.IsAbstract || method.IsOverride || method.IsVirtual) && !this.SuppressVirtualCalls;
+                return (object)method != null && (method.IsAbstract || method.IsOverride || method.IsVirtual) && !this.SuppressVirtualCalls;
             }
         }
 
@@ -853,7 +853,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             get
             {
                 IArrayTypeSymbol arrayType = this.Type as IArrayTypeSymbol;
-                if (arrayType != null)
+                if ((object)arrayType != null)
                 {
                     return arrayType.ElementType;
                 }

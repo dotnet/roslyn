@@ -1651,7 +1651,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Diagnostics
                 (operationContext) =>
                 {
                     var binary = (IBinaryOperatorExpression)operationContext.Operation;
-                    if (binary.LeftOperand != null && binary.RightOperand != null && !binary.UsesOperatorMethod && binary.OperatorMethod == null)
+                    if (!binary.LeftOperand.IsInvalid && !binary.RightOperand.IsInvalid && !binary.UsesOperatorMethod && binary.OperatorMethod == null)
                     {
                         operationContext.ReportDiagnostic(
                             Diagnostic.Create(BinaryOperatorDescriptor,
@@ -1665,7 +1665,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Diagnostics
                 (operationContext) =>
                 {
                     var unary = (IUnaryOperatorExpression)operationContext.Operation;
-                    if (unary.Operand != null && !unary.UsesOperatorMethod && unary.OperatorMethod == null)
+                    if (!unary.Operand.IsInvalid && !unary.UsesOperatorMethod && unary.OperatorMethod == null)
                     {
                         operationContext.ReportDiagnostic(
                             Diagnostic.Create(UnaryOperatorDescriptor,

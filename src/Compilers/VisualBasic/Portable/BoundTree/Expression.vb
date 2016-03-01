@@ -49,7 +49,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         Public MustOverride Overloads Function Accept(Of TArgument, TResult)(visitor As OperationVisitor(Of TArgument, TResult), argument As TArgument) As TResult Implements IOperation.Accept
 
-        Protected Shared Function GetBadChild(parent As BoundNode, index As Integer) As IOperation
+        Protected Shared Function GetChildOfBadExpression(parent As BoundNode, index As Integer) As IOperation
             Dim badParent As BoundBadExpression = TryCast(parent, BoundBadExpression)
             If badParent IsNot Nothing AndAlso badParent.ChildBoundNodes.Length > index Then
                 Dim child As IOperation = TryCast(badParent.ChildBoundNodes(index), IOperation)
@@ -63,7 +63,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
     End Class
 
-    Friend Partial Class BoundAssignmentOperator
+    Partial Friend Class BoundAssignmentOperator
         Implements IAssignmentExpression
         Implements ICompoundAssignmentExpression
 
@@ -133,14 +133,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Protected Overrides Function ExpressionKind() As OperationKind
             Dim rightBinary As BoundBinaryOperator = TryCast(Me.Right, BoundBinaryOperator)
             If rightBinary IsNot Nothing Then
-                If TypeOf rightBinary.Left Is BoundCompoundAssignmentTargetPlaceholder Then
+                If rightBinary.Left.Kind = BoundKind.CompoundAssignmentTargetPlaceholder Then
                     Return OperationKind.CompoundAssignmentExpression
                 End If
             End If
 
             Dim rightOperatorBinary As BoundUserDefinedBinaryOperator = TryCast(Me.Right, BoundUserDefinedBinaryOperator)
             If rightOperatorBinary IsNot Nothing Then
-                If TypeOf DirectCast(rightOperatorBinary, IBinaryOperatorExpression).LeftOperand Is BoundCompoundAssignmentTargetPlaceholder Then
+                If DirectCast(rightOperatorBinary, IBinaryOperatorExpression).LeftOperand.Kind = BoundKind.CompoundAssignmentTargetPlaceholder Then
                     Return OperationKind.CompoundAssignmentExpression
                 End If
             End If
@@ -165,7 +165,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
     End Class
 
-    Friend Partial Class BoundMeReference
+    Partial Friend Class BoundMeReference
         Implements IInstanceReferenceExpression
 
         Private ReadOnly Property IInstanceReferenceExpression_InstanceReferenceKind As InstanceReferenceKind Implements IInstanceReferenceExpression.InstanceReferenceKind
@@ -187,7 +187,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
     End Class
 
-    Friend Partial Class BoundMyBaseReference
+    Partial Friend Class BoundMyBaseReference
         Implements IInstanceReferenceExpression
 
         Private ReadOnly Property IInstanceReferenceExpression_InstanceReferenceKind As InstanceReferenceKind Implements IInstanceReferenceExpression.InstanceReferenceKind
@@ -209,7 +209,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
     End Class
 
-    Friend Partial Class BoundMyClassReference
+    Partial Friend Class BoundMyClassReference
         Implements IInstanceReferenceExpression
 
         Private ReadOnly Property IInstanceReferenceExpression_InstanceReferenceKind As InstanceReferenceKind Implements IInstanceReferenceExpression.InstanceReferenceKind
@@ -231,7 +231,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
     End Class
 
-    Friend Partial Class BoundLiteral
+    Partial Friend Class BoundLiteral
         Implements ILiteralExpression
 
         Private ReadOnly Property ILiteralExpression_Text As String Implements ILiteralExpression.Text
@@ -253,7 +253,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
     End Class
 
-    Friend Partial Class BoundAwaitOperator
+    Partial Friend Class BoundAwaitOperator
         Implements IAwaitExpression
 
         Private ReadOnly Property IAwaitExpression_AwaitedValue As IOperation Implements IAwaitExpression.AwaitedValue
@@ -275,7 +275,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
     End Class
 
-    Friend Partial Class BoundLambda
+    Partial Friend Class BoundLambda
         Implements ILambdaExpression
 
         Private ReadOnly Property ILambdaExpression_Body As IBlockStatement Implements ILambdaExpression.Body
@@ -303,7 +303,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
     End Class
 
-    Friend Partial Class BoundCall
+    Partial Friend Class BoundCall
         Implements IInvocationExpression
 
         Private Function IHasArgumentsExpression_GetArgumentMatchingParameter(parameter As IParameterSymbol) As IArgument Implements IHasArgumentsExpression.GetArgumentMatchingParameter
@@ -549,7 +549,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
     End Class
 
-    Friend Partial Class BoundParenthesized
+    Partial Friend Class BoundParenthesized
         Implements IParenthesizedExpression
 
         Private ReadOnly Property IParenthesizedExpression_Operand As IOperation Implements IParenthesizedExpression.Operand
@@ -571,7 +571,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
     End Class
 
-    Friend Partial Class BoundArrayAccess
+    Partial Friend Class BoundArrayAccess
         Implements IArrayElementReferenceExpression
 
         Private ReadOnly Property IArrayElementReferenceExpression_ArrayReference As IOperation Implements IArrayElementReferenceExpression.ArrayReference
@@ -599,7 +599,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
     End Class
 
-    Friend Partial Class BoundUnaryOperator
+    Partial Friend Class BoundUnaryOperator
         Implements IUnaryOperatorExpression
 
         Private ReadOnly Property IHasOperatorMethodExpression_OperatorMethod As IMethodSymbol Implements IHasOperatorMethodExpression.OperatorMethod
@@ -639,12 +639,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
     End Class
 
-    Friend Partial Class BoundUserDefinedUnaryOperator
+    Partial Friend Class BoundUserDefinedUnaryOperator
         Implements IUnaryOperatorExpression
 
         Private ReadOnly Property IHasOperatorMethodExpression_OperatorMethod As IMethodSymbol Implements IHasOperatorMethodExpression.OperatorMethod
             Get
-                Return If(TypeOf Me.UnderlyingExpression Is BoundCall, Me.Call.Method, Nothing)
+                Return If(Me.UnderlyingExpression.Kind = BoundKind.Call, Me.Call.Method, Nothing)
             End Get
         End Property
 
@@ -656,10 +656,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         Private ReadOnly Property IUnaryOperatorExpression_Operand As IOperation Implements IUnaryOperatorExpression.Operand
             Get
-                If TypeOf Me.UnderlyingExpression Is BoundCall Then
+                If Me.UnderlyingExpression.Kind = BoundKind.Call Then
                     Return Me.Operand
                 Else
-                    Return GetBadChild(Me.UnderlyingExpression, 0)
+                    Return GetChildOfBadExpression(Me.UnderlyingExpression, 0)
                 End If
             End Get
         End Property
@@ -692,7 +692,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
     End Class
 
-    Friend Partial Class BoundBinaryOperator
+    Partial Friend Class BoundBinaryOperator
         Implements IBinaryOperatorExpression
 
         Private ReadOnly Property IBinaryOperatorExpression_LeftOperand As IOperation Implements IBinaryOperatorExpression.LeftOperand
@@ -743,10 +743,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         Private ReadOnly Property IBinaryOperatorExpression_LeftOperand As IOperation Implements IBinaryOperatorExpression.LeftOperand
             Get
-                If TypeOf Me.UnderlyingExpression Is BoundCall Then
+                If Me.UnderlyingExpression.Kind = BoundKind.Call Then
                     Return Me.Left
                 Else
-                    Return GetBadChild(Me.UnderlyingExpression, 0)
+                    Return GetChildOfBadExpression(Me.UnderlyingExpression, 0)
                 End If
             End Get
         End Property
@@ -803,17 +803,17 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Private ReadOnly Property IBinaryOperatorExpression_RightOperand As IOperation Implements IBinaryOperatorExpression.RightOperand
             Get
 
-                If TypeOf Me.UnderlyingExpression Is BoundCall Then
+                If Me.UnderlyingExpression.Kind = BoundKind.Call Then
                     Return Me.Right
                 Else
-                    Return GetBadChild(Me.UnderlyingExpression, 1)
+                    Return GetChildOfBadExpression(Me.UnderlyingExpression, 1)
                 End If
             End Get
         End Property
 
         Private ReadOnly Property IHasOperatorMethodExpression_OperatorMethod As IMethodSymbol Implements IHasOperatorMethodExpression.OperatorMethod
             Get
-                Return If(TypeOf Me.UnderlyingExpression Is BoundCall, Me.Call.Method, Nothing)
+                Return If(Me.UnderlyingExpression.Kind = BoundKind.Call, Me.Call.Method, Nothing)
             End Get
         End Property
 
