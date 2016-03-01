@@ -12,13 +12,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
         private readonly FieldInfo[] _fieldInfos;
         private static readonly FieldInfo[] s_emptyFieldInfos = { };
 
-        public string ClassName
-        {
-            get
-            {
-                return _className;
-            }
-        }
+        public string ClassName => _className;
 
         public FieldInfo[] FieldInfos
         {

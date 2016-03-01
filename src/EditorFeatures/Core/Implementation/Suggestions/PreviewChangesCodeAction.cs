@@ -21,13 +21,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
             _changeSummary = changeSummary;
         }
 
-        public override string Title
-        {
-            get
-            {
-                return EditorFeaturesResources.PreviewChangesSummaryText;
-            }
-        }
+        public override string Title => EditorFeaturesResources.PreviewChangesSummaryText;
 
         protected override async Task<IEnumerable<CodeActionOperation>> ComputeOperationsAsync(CancellationToken cancellationToken)
         {

@@ -45,10 +45,7 @@ namespace Microsoft.CodeAnalysis.Formatting
                 _indentation = indentation;
             }
 
-            public override int Indentation
-            {
-                get { return _indentation; }
-            }
+            public override int Indentation => _indentation;
         }
 
         private class LazyIndentationData : IndentationData
@@ -60,10 +57,7 @@ namespace Microsoft.CodeAnalysis.Formatting
                 _indentationGetter = indentationGetter;
             }
 
-            public override int Indentation
-            {
-                get { return _indentationGetter.Value; }
-            }
+            public override int Indentation => _indentationGetter.Value;
         }
 
         private class RelativeIndentationData : LazyIndentationData
@@ -78,10 +72,7 @@ namespace Microsoft.CodeAnalysis.Formatting
             public TextSpan InseparableRegionSpan { get; }
             public IndentBlockOperation Operation { get; }
 
-            public SyntaxToken EndToken
-            {
-                get { return this.Operation.EndToken; }
-            }
+            public SyntaxToken EndToken => this.Operation.EndToken;
         }
 
         int IIntervalIntrospector<IndentationData>.GetStart(IndentationData value)

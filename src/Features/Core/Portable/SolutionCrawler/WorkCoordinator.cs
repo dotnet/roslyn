@@ -77,10 +77,7 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                 }
             }
 
-            public int CorrelationId
-            {
-                get { return _registration.CorrelationId; }
-            }
+            public int CorrelationId => _registration.CorrelationId;
 
             public void Shutdown(bool blockingShutdown)
             {

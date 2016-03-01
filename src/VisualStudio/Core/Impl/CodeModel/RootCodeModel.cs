@@ -97,10 +97,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
             get { return (EnvDTE.Project)_parentHandle.Value; }
         }
 
-        public bool IsCaseSensitive
-        {
-            get { return SyntaxFactsService.IsCaseSensitive; }
-        }
+        public bool IsCaseSensitive => SyntaxFactsService.IsCaseSensitive;
 
         public EnvDTE.CodeAttribute AddAttribute(string name, object location, string value, object position)
         {

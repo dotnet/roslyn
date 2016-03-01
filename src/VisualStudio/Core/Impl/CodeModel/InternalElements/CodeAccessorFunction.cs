@@ -35,10 +35,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel.Inter
             _kind = kind;
         }
 
-        private AbstractCodeMember ParentMember
-        {
-            get { return _parentHandle.Value; }
-        }
+        private AbstractCodeMember ParentMember => _parentHandle.Value;
 
         private bool IsPropertyAccessor()
         {
@@ -65,15 +62,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel.Inter
             return node != null;
         }
 
-        public override EnvDTE.vsCMElement Kind
-        {
-            get { return EnvDTE.vsCMElement.vsCMElementFunction; }
-        }
+        public override EnvDTE.vsCMElement Kind => EnvDTE.vsCMElement.vsCMElementFunction;
 
-        public override object Parent
-        {
-            get { return _parentHandle.Value; }
-        }
+        public override object Parent => _parentHandle.Value;
 
         public override EnvDTE.CodeElements Children
         {

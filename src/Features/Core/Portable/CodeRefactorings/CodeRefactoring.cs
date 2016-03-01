@@ -16,10 +16,7 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings
         private readonly CodeRefactoringProvider _provider;
         private readonly IReadOnlyList<CodeAction> _actions;
 
-        public CodeRefactoringProvider Provider
-        {
-            get { return _provider; }
-        }
+        public CodeRefactoringProvider Provider => _provider;
 
         /// <summary>
         /// List of possible actions that can be used to transform the code.

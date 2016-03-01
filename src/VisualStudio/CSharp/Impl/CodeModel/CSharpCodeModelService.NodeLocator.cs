@@ -28,10 +28,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.CodeModel
             {
             }
 
-            protected override EnvDTE.vsCMPart DefaultPart
-            {
-                get { return EnvDTE.vsCMPart.vsCMPartWholeWithAttributes; }
-            }
+            protected override EnvDTE.vsCMPart DefaultPart => EnvDTE.vsCMPart.vsCMPartWholeWithAttributes;
 
             protected override VirtualTreePoint? GetStartPoint(SourceText text, SyntaxNode node, EnvDTE.vsCMPart part)
             {

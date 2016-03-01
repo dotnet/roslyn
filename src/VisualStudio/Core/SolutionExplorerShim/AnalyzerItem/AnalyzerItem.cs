@@ -21,21 +21,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.SolutionExplore
             _contextMenuController = contextMenuController;
         }
 
-        public override ImageMoniker IconMoniker
-        {
-            get
-            {
-                return KnownMonikers.CodeInformation;
-            }
-        }
+        public override ImageMoniker IconMoniker => KnownMonikers.CodeInformation;
 
-        public override ImageMoniker ExpandedIconMoniker
-        {
-            get
-            {
-                return KnownMonikers.CodeInformation;
-            }
-        }
+        public override ImageMoniker ExpandedIconMoniker => KnownMonikers.CodeInformation;
 
         public override ImageMoniker OverlayIconMoniker
         {
@@ -57,20 +45,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.SolutionExplore
             return new BrowseObject(this);
         }
 
-        public AnalyzerReference AnalyzerReference
-        {
-            get { return _analyzerReference; }
-        }
+        public AnalyzerReference AnalyzerReference => _analyzerReference;
 
-        public override IContextMenuController ContextMenuController
-        {
-            get { return _contextMenuController; }
-        }
+        public override IContextMenuController ContextMenuController => _contextMenuController;
 
-        public AnalyzersFolderItem AnalyzersFolder
-        {
-            get { return _analyzersFolder; }
-        }
+        public AnalyzersFolderItem AnalyzersFolder => _analyzersFolder;
 
         /// <summary>
         /// Remove this AnalyzerItem from it's folder.

@@ -18,15 +18,9 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Utilities
             _maxUpdates = maxUpdates;
         }
 
-        public int Updates
-        {
-            get { return _updates; }
-        }
+        public int Updates => _updates;
 
-        public CancellationToken CancellationToken
-        {
-            get { return _cancellationTokenSource.Token; }
-        }
+        public CancellationToken CancellationToken => _cancellationTokenSource.Token;
 
         public void UpdateProgress()
         {

@@ -55,10 +55,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.SolutionExplore
             }
         }
 
-        public FontStyle FontStyle
-        {
-            get { return FontStyles.Normal; }
-        }
+        public FontStyle FontStyle => FontStyles.Normal; 
 
         public FontWeight FontWeight
         {
@@ -130,20 +127,14 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.SolutionExplore
             return Text;
         }
 
-        public string Text
-        {
-            get { return _name; }
-        }
+        public string Text => _name;
 
         public object ToolTipContent
         {
             get { return null; }
         }
 
-        public string ToolTipText
-        {
-            get { return _name; }
-        }
+        public string ToolTipText => _name;
 
         private static readonly HashSet<Type> s_supportedPatterns = new HashSet<Type>()
         {

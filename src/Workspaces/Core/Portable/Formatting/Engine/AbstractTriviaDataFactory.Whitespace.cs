@@ -37,10 +37,7 @@ namespace Microsoft.CodeAnalysis.Formatting
                 this.Spaces = indentation;
             }
 
-            public override bool TreatAsElastic
-            {
-                get { return _elastic; }
-            }
+            public override bool TreatAsElastic => _elastic;
 
             public override bool IsWhitespaceOnlyTrivia
             {

@@ -37,10 +37,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CommentSelection
                 get { return "//"; }
             }
 
-            public override bool SupportsBlockComment
-            {
-                get { return _supportBlockComments; }
-            }
+            public override bool SupportsBlockComment => _supportBlockComments;
 
             public override string BlockCommentStartString
             {

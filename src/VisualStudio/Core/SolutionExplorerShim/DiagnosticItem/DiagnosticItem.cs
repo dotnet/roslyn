@@ -41,42 +41,18 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.SolutionExplore
             }
         }
 
-        public AnalyzerItem AnalyzerItem
-        {
-            get
-            {
-                return _analyzerItem;
-            }
-        }
+        public AnalyzerItem AnalyzerItem => _analyzerItem;
 
-        public DiagnosticDescriptor Descriptor
-        {
-            get
-            {
-                return _descriptor;
-            }
-        }
+        public DiagnosticDescriptor Descriptor => _descriptor;
 
-        public ReportDiagnostic EffectiveSeverity
-        {
-            get
-            {
-                return _effectiveSeverity;
-            }
-        }
+        public ReportDiagnostic EffectiveSeverity => _effectiveSeverity;
 
         public override object GetBrowseObject()
         {
             return new BrowseObject(this);
         }
 
-        public override IContextMenuController ContextMenuController
-        {
-            get
-            {
-                return _contextMenuController;
-            }
-        }
+        public override IContextMenuController ContextMenuController => _contextMenuController;
 
         public Uri GetHelpLink()
         {

@@ -40,10 +40,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.EditAndContinue
             }
         }
 
-        public Workspace Workspace
-        {
-            get { return _workspace; }
-        }
+        public Workspace Workspace => _workspace;
 
         private void OnDocumentOpened(object sender, DocumentEventArgs e)
         {

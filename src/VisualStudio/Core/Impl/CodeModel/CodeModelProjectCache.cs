@@ -32,10 +32,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
             _state = new CodeModelState(serviceProvider, languageServices, workspace);
         }
 
-        private bool IsZombied
-        {
-            get { return _zombied; }
-        }
+        private bool IsZombied => _zombied;
 
         /// <summary>
         /// Look for an existing instance of FileCodeModel in our cache.

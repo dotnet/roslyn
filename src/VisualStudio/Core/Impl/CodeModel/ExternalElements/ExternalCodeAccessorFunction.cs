@@ -87,10 +87,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel.Exter
             return _parentHandle.Value;
         }
 
-        public override EnvDTE.vsCMElement Kind
-        {
-            get { return EnvDTE.vsCMElement.vsCMElementFunction; }
-        }
+        public override EnvDTE.vsCMElement Kind => EnvDTE.vsCMElement.vsCMElementFunction;
 
         public EnvDTE.vsCMFunction FunctionKind
         {

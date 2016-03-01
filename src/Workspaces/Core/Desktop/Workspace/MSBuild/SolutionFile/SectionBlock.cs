@@ -46,25 +46,13 @@ namespace Microsoft.CodeAnalysis.MSBuild
             _keyValuePairs = keyValuePairs.ToList().AsReadOnly();
         }
 
-        public string Type
-        {
-            get { return _type; }
-        }
+        public string Type => _type;
 
-        public string ParenthesizedName
-        {
-            get { return _parenthesizedName; }
-        }
+        public string ParenthesizedName => _parenthesizedName;
 
-        public string Value
-        {
-            get { return _value; }
-        }
+        public string Value => _value;
 
-        public IEnumerable<KeyValuePair<string, string>> KeyValuePairs
-        {
-            get { return _keyValuePairs; }
-        }
+        public IEnumerable<KeyValuePair<string, string>> KeyValuePairs => _keyValuePairs;
 
         internal string GetText(int indent)
         {

@@ -40,10 +40,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel.Exter
             throw new NotImplementedException();
         }
 
-        public override EnvDTE.vsCMElement Kind
-        {
-            get { return EnvDTE.vsCMElement.vsCMElementProperty; }
-        }
+        public override EnvDTE.vsCMElement Kind => EnvDTE.vsCMElement.vsCMElementProperty;
 
         public EnvDTE.CodeFunction Getter
         {

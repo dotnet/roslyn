@@ -41,13 +41,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.CallHierarchy.Finders
 
         public abstract string DisplayName { get; }
 
-        public virtual string SearchCategory
-        {
-            get
-            {
-                return DisplayName;
-            }
-        }
+        public virtual string SearchCategory => DisplayName;
 
         public void CancelSearch()
         {

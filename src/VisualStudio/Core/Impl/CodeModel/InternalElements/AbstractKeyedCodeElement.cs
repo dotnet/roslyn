@@ -40,10 +40,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel.Inter
             _name = name;
         }
 
-        internal SyntaxNodeKey NodeKey
-        {
-            get { return _nodeKey; }
-        }
+        internal SyntaxNodeKey NodeKey => _nodeKey;
 
         internal bool IsUnknown
         {

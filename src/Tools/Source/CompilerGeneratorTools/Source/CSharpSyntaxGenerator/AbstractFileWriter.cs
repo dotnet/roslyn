@@ -29,9 +29,9 @@ namespace CSharpSyntaxGenerator
             _childMap = tree.Types.ToLookup(n => n.Base, n => n.Name);
         }
 
-        protected IDictionary<string, string> ParentMap { get { return _parentMap; } }
-        protected ILookup<string, string> ChildMap { get { return _childMap; } }
-        protected Tree Tree { get { return _tree; } }
+        protected IDictionary<string, string> ParentMap => _parentMap;
+        protected ILookup<string, string> ChildMap => _childMap;
+        protected Tree Tree => _tree;
 
         #region Output helpers
 

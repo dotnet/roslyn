@@ -35,55 +35,28 @@ namespace Microsoft.CodeAnalysis
             _projectState = projectState;
         }
 
-        internal ProjectState State
-        {
-            get { return _projectState; }
-        }
+        internal ProjectState State => _projectState;
 
         /// <summary>
         /// The solution this project is part of.
         /// </summary>
-        public Solution Solution
-        {
-            get
-            {
-                return _solution;
-            }
-        }
+        public Solution Solution => _solution;
 
         /// <summary>
         /// The ID of the project. Multiple <see cref="Project"/> instances may share the same ID. However, only
         /// one project may have this ID in any given solution.
         /// </summary>
-        public ProjectId Id
-        {
-            get
-            {
-                return _projectState.Id;
-            }
-        }
+        public ProjectId Id => _projectState.Id;
 
         /// <summary>
         /// The path to the project file or null if there is no project file.
         /// </summary>
-        public string FilePath
-        {
-            get
-            {
-                return _projectState.FilePath;
-            }
-        }
+        public string FilePath => _projectState.FilePath;
 
         /// <summary>
         /// The path to the output file, or null if it is not known.
         /// </summary>
-        public string OutputFilePath
-        {
-            get
-            {
-                return _projectState.OutputFilePath;
-            }
-        }
+        public string OutputFilePath => _projectState.OutputFilePath;
 
         /// <summary>
         /// <code>true</code> if this <see cref="Project"/> supports providing data through the
@@ -102,54 +75,27 @@ namespace Microsoft.CodeAnalysis
         /// <summary>
         /// The language services from the host environment associated with this project's language.
         /// </summary>
-        public HostLanguageServices LanguageServices
-        {
-            get { return _projectState.LanguageServices; }
-        }
+        public HostLanguageServices LanguageServices => _projectState.LanguageServices;
 
         /// <summary>
         /// The language associated with the project.
         /// </summary>
-        public string Language
-        {
-            get
-            {
-                return _projectState.LanguageServices.Language;
-            }
-        }
+        public string Language => _projectState.LanguageServices.Language;
 
         /// <summary>
         /// The name of the assembly this project represents.
         /// </summary>
-        public string AssemblyName
-        {
-            get
-            {
-                return _projectState.AssemblyName;
-            }
-        }
+        public string AssemblyName => _projectState.AssemblyName;
 
         /// <summary>
         /// The name of the project. This may be different than the assembly name.
         /// </summary>
-        public string Name
-        {
-            get
-            {
-                return _projectState.Name;
-            }
-        }
+        public string Name => _projectState.Name;
 
         /// <summary>
         /// The list of all other metadata sources (assemblies) that this project references.
         /// </summary>
-        public IReadOnlyList<MetadataReference> MetadataReferences
-        {
-            get
-            {
-                return _projectState.MetadataReferences;
-            }
-        }
+        public IReadOnlyList<MetadataReference> MetadataReferences => _projectState.MetadataReferences;
 
         /// <summary>
         /// The list of all other projects within the same solution that this project references.
@@ -166,101 +112,47 @@ namespace Microsoft.CodeAnalysis
         /// The list of all other projects that this project references, including projects that 
         /// are not part of the solution.
         /// </summary>
-        public IReadOnlyList<ProjectReference> AllProjectReferences
-        {
-            get
-            {
-                return _projectState.ProjectReferences;
-            }
-        }
+        public IReadOnlyList<ProjectReference> AllProjectReferences => _projectState.ProjectReferences;
 
         /// <summary>
         /// The list of all the diagnostic analyzer references for this project.
         /// </summary>
-        public IReadOnlyList<AnalyzerReference> AnalyzerReferences
-        {
-            get
-            {
-                return _projectState.AnalyzerReferences;
-            }
-        }
+        public IReadOnlyList<AnalyzerReference> AnalyzerReferences => _projectState.AnalyzerReferences;
 
         /// <summary>
         /// The options used by analyzers for this project.
         /// </summary>
-        public AnalyzerOptions AnalyzerOptions
-        {
-            get
-            {
-                return _projectState.AnalyzerOptions;
-            }
-        }
+        public AnalyzerOptions AnalyzerOptions => _projectState.AnalyzerOptions;
 
         /// <summary>
         /// The options used when building the compilation for this project.
         /// </summary>
-        public CompilationOptions CompilationOptions
-        {
-            get
-            {
-                return _projectState.CompilationOptions;
-            }
-        }
+        public CompilationOptions CompilationOptions => _projectState.CompilationOptions;
 
         /// <summary>
         /// The options used when parsing documents for this project.
         /// </summary>
-        public ParseOptions ParseOptions
-        {
-            get
-            {
-                return _projectState.ParseOptions;
-            }
-        }
+        public ParseOptions ParseOptions => _projectState.ParseOptions;
 
         /// <summary>
         /// Returns true if this is a submission project.
         /// </summary>
-        public bool IsSubmission
-        {
-            get
-            {
-                return _projectState.IsSubmission;
-            }
-        }
+        public bool IsSubmission => _projectState.IsSubmission;
 
         /// <summary>
         /// True if the project has any documents.
         /// </summary>
-        public bool HasDocuments
-        {
-            get
-            {
-                return _projectState.HasDocuments;
-            }
-        }
+        public bool HasDocuments => _projectState.HasDocuments;
 
         /// <summary>
         /// All the document IDs associated with this project.
         /// </summary>
-        public IReadOnlyList<DocumentId> DocumentIds
-        {
-            get
-            {
-                return _projectState.DocumentIds;
-            }
-        }
+        public IReadOnlyList<DocumentId> DocumentIds => _projectState.DocumentIds;
 
         /// <summary>
         /// All the additional document IDs associated with this project.
         /// </summary>
-        public IReadOnlyList<DocumentId> AdditionalDocumentIds
-        {
-            get
-            {
-                return _projectState.AdditionalDocumentIds;
-            }
-        }
+        public IReadOnlyList<DocumentId> AdditionalDocumentIds => _projectState.AdditionalDocumentIds;
 
         /// <summary>
         /// All the documents associated with this project.
@@ -422,13 +314,7 @@ namespace Microsoft.CodeAnalysis
         /// <summary>
         /// The project version. This equates to the version of the project file.
         /// </summary>
-        public VersionStamp Version
-        {
-            get
-            {
-                return _projectState.Version;
-            }
-        }
+        public VersionStamp Version => _projectState.Version;
 
         /// <summary>
         /// The version of the most recently modified document.

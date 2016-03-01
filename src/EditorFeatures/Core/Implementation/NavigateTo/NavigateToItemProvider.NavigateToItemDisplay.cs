@@ -26,13 +26,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.NavigateTo
                 _iconFactory = iconFactory;
             }
 
-            public string AdditionalInformation
-            {
-                get
-                {
-                    return _searchResult.AdditionalInformation;
-                }
-            }
+            public string AdditionalInformation => _searchResult.AdditionalInformation;
 
             public string Description
             {
@@ -106,13 +100,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.NavigateTo
                 }
             }
 
-            public string Name
-            {
-                get
-                {
-                    return _searchResult.NavigableItem.DisplayString;
-                }
-            }
+            public string Name => _searchResult.NavigableItem.DisplayString;
 
             public void NavigateTo()
             {

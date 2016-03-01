@@ -9,10 +9,7 @@ namespace Microsoft.CodeAnalysis.Shared.Options
     {
         public const string FeatureName = "Organizer";
 
-        public static PerLanguageOption<bool> PlaceSystemNamespaceFirst
-        {
-            get { return Editing.GenerationOptions.PlaceSystemNamespaceFirst; }
-        }
+        public static PerLanguageOption<bool> PlaceSystemNamespaceFirst => Editing.GenerationOptions.PlaceSystemNamespaceFirst;
 
         /// <summary>
         /// This option is currently unused by Roslyn, but we might want to implement it in the 

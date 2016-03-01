@@ -168,13 +168,7 @@ namespace Roslyn.Utilities
                 this.chunks = new List<byte[]>();
             }
 
-            public override long Length
-            {
-                get
-                {
-                    return this.length;
-                }
-            }
+            public override long Length => this.length;
 
             public override bool CanRead
             {

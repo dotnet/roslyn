@@ -47,21 +47,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
             _waitIndicator = _componentModel.GetService<IWaitIndicator>();
         }
 
-        protected IServiceProvider ServiceProvider
-        {
-            get
-            {
-                return _package;
-            }
-        }
+        protected IServiceProvider ServiceProvider => _package;
 
-        protected IComponentModel ComponentModel
-        {
-            get
-            {
-                return _componentModel;
-            }
-        }
+        protected IComponentModel ComponentModel => _componentModel;
 
         protected abstract string ContentTypeName { get; }
 

@@ -18,9 +18,9 @@ namespace Microsoft.CodeAnalysis.Editor
             _documentTooltip = documentTooltip;
         }
 
-        public string FilePath { get { return _filePath; } }
-        public Location IdentifierLocation { get { return _identifierLocation; } }
-        public string DocumentTitle { get { return _documentTitle; } }
-        public string DocumentTooltip { get { return _documentTooltip; } }
+        public string FilePath => _filePath;
+        public Location IdentifierLocation => _identifierLocation;
+        public string DocumentTitle => _documentTitle;
+        public string DocumentTooltip => _documentTooltip;
     }
 }

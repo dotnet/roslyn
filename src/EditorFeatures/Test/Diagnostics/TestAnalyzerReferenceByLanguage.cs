@@ -30,13 +30,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             }
         }
 
-        public override object Id
-        {
-            get
-            {
-                return Display;
-            }
-        }
+        public override object Id => Display;
 
         public override ImmutableArray<DiagnosticAnalyzer> GetAnalyzersForAllLanguages()
         {

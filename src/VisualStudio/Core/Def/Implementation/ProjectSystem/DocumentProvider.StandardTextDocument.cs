@@ -90,10 +90,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                 get { return _openTextBuffer != null; }
             }
 
-            public string FilePath
-            {
-                get { return Key.Moniker; }
-            }
+            public string FilePath => Key.Moniker;
 
             public string Name
             {

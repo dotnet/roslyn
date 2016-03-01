@@ -33,10 +33,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel.Exter
             throw new NotImplementedException();
         }
 
-        public override EnvDTE.vsCMElement Kind
-        {
-            get { return EnvDTE.vsCMElement.vsCMElementEvent; }
-        }
+        public override EnvDTE.vsCMElement Kind => EnvDTE.vsCMElement.vsCMElementEvent;
 
         public EnvDTE.CodeFunction Adder
         {

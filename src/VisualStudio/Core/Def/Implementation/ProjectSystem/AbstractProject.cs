@@ -279,25 +279,13 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
         /// matches the display name of the project the user actually sees in the solution explorer.
         /// These can be assumed to be unique within the Visual Studio workspace.
         /// </summary>
-        public string ProjectSystemName
-        {
-            get { return _projectSystemName; }
-        }
+        public string ProjectSystemName => _projectSystemName;
 
-        protected DocumentProvider DocumentProvider
-        {
-            get { return this.ProjectTracker.DocumentProvider; }
-        }
+        protected DocumentProvider DocumentProvider => this.ProjectTracker.DocumentProvider;
 
-        protected VisualStudioMetadataReferenceManager MetadataReferenceProvider
-        {
-            get { return this.ProjectTracker.MetadataReferenceProvider; }
-        }
+        protected VisualStudioMetadataReferenceManager MetadataReferenceProvider => this.ProjectTracker.MetadataReferenceProvider;
 
-        protected IContentTypeRegistryService ContentTypeRegistryService
-        {
-            get { return _contentTypeRegistryService; }
-        }
+        protected IContentTypeRegistryService ContentTypeRegistryService => _contentTypeRegistryService;
 
         public ProjectInfo CreateProjectInfoForCurrentState()
         {
@@ -1105,13 +1093,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             StartPushingToWorkspaceAndNotifyOfOpenDocuments(this);
         }
 
-        internal bool PushingChangesToWorkspaceHosts
-        {
-            get
-            {
-                return _pushingChangesToWorkspaceHosts;
-            }
-        }
+        internal bool PushingChangesToWorkspaceHosts => _pushingChangesToWorkspaceHosts;
 
         protected void UpdateRuleSetError(IRuleSetFile ruleSetFile)
         {

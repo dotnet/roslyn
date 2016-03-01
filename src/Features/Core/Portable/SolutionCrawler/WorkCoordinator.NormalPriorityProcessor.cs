@@ -64,13 +64,7 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                         Start();
                     }
 
-                    internal ImmutableArray<IIncrementalAnalyzer> Analyzers
-                    {
-                        get
-                        {
-                            return _lazyAnalyzers.Value;
-                        }
-                    }
+                    internal ImmutableArray<IIncrementalAnalyzer> Analyzers => _lazyAnalyzers.Value;
 
                     public void Enqueue(WorkItem item)
                     {
@@ -131,21 +125,9 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                         return _workItemQueue.WaitAsync(cancellationToken);
                     }
 
-                    public Task Running
-                    {
-                        get
-                        {
-                            return _running;
-                        }
-                    }
+                    public Task Running => _running;
 
-                    public bool HasAnyWork
-                    {
-                        get
-                        {
-                            return _workItemQueue.HasAnyWork;
-                        }
-                    }
+                    public bool HasAnyWork => _workItemQueue.HasAnyWork;
 
                     protected override async Task ExecuteAsync()
                     {
@@ -202,21 +184,9 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                         }
                     }
 
-                    protected override Task HigherQueueOperationTask
-                    {
-                        get
-                        {
-                            return this.Processor._highPriorityProcessor.Running;
-                        }
-                    }
+                    protected override Task HigherQueueOperationTask => this.Processor._highPriorityProcessor.Running;
 
-                    protected override bool HigherQueueHasWorkItem
-                    {
-                        get
-                        {
-                            return this.Processor._highPriorityProcessor.HasAnyWork;
-                        }
-                    }
+                    protected override bool HigherQueueHasWorkItem => this.Processor._highPriorityProcessor.HasAnyWork;
 
                     protected override void PauseOnGlobalOperation()
                     {

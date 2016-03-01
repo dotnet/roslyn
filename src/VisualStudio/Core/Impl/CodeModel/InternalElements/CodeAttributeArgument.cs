@@ -78,10 +78,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel.Inter
             }
         }
 
-        public override object Parent
-        {
-            get { return _parentHandle.Value; }
-        }
+        public override object Parent => _parentHandle.Value;
 
         public override EnvDTE.CodeElements Children
         {

@@ -25,13 +25,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     _tree = tree;
                 }
 
-                public override SyntaxTree SyntaxTree
-                {
-                    get
-                    {
-                        return _tree;
-                    }
-                }
+                public override SyntaxTree SyntaxTree => _tree;
 
                 public override SyntaxNode GetSyntax(CancellationToken cancellationToken)
                 {

@@ -45,13 +45,7 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
                 this.HasValueTypeConstraint, this.Ordinal);
         }
 
-        public new ITypeParameterSymbol OriginalDefinition
-        {
-            get
-            {
-                return this;
-            }
-        }
+        public new ITypeParameterSymbol OriginalDefinition => this;
 
         public ITypeParameterSymbol ReducedFrom
         {
@@ -61,13 +55,7 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
             }
         }
 
-        public override SymbolKind Kind
-        {
-            get
-            {
-                return SymbolKind.TypeParameter;
-            }
-        }
+        public override SymbolKind Kind => SymbolKind.TypeParameter;
 
         public override void Accept(SymbolVisitor visitor)
         {
@@ -79,13 +67,7 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
             return visitor.VisitTypeParameter(this);
         }
 
-        public override TypeKind TypeKind
-        {
-            get
-            {
-                return TypeKind.TypeParameter;
-            }
-        }
+        public override TypeKind TypeKind => TypeKind.TypeParameter;
 
         public TypeParameterKind TypeParameterKind
         {

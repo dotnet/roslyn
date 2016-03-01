@@ -57,10 +57,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Library.ObjectB
             return DisplayText;
         }
 
-        public ObjectList ParentList
-        {
-            get { return _parentList; }
-        }
+        public ObjectList ParentList => _parentList;
 
         public ObjectListKind ParentListKind
         {
@@ -72,13 +69,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Library.ObjectB
             }
         }
 
-        public ProjectId ProjectId
-        {
-            get
-            {
-                return _projectId;
-            }
-        }
+        public ProjectId ProjectId => _projectId;
 
         public Compilation GetCompilation(Workspace workspace)
         {
@@ -93,14 +84,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Library.ObjectB
                 .WaitAndGetResult_ObjectBrowser(CancellationToken.None);
         }
 
-        public ushort GlyphIndex
-        {
-            get { return _glyphIndex; }
-        }
+        public ushort GlyphIndex => _glyphIndex;
 
-        public bool IsHidden
-        {
-            get { return _isHidden; }
-        }
+        public bool IsHidden => _isHidden;
     }
 }

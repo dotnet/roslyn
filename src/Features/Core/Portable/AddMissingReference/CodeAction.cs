@@ -66,10 +66,7 @@ namespace Microsoft.CodeAnalysis.AddMissingReference
             _missingAssemblyIdentity = missingAssemblyIdentity;
         }
 
-        public override string Title
-        {
-            get { return _title; }
-        }
+        public override string Title => _title;
 
         protected override Task<IEnumerable<CodeActionOperation>> ComputeOperationsAsync(CancellationToken cancellationToken)
         {

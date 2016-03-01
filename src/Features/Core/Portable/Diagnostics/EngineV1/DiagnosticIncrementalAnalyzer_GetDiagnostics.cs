@@ -92,10 +92,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV1
                 _builder = null;
             }
 
-            protected StateManager StateManager
-            {
-                get { return this.Owner._stateManager; }
-            }
+            protected StateManager StateManager => this.Owner._stateManager;
 
             protected abstract Task AppendDocumentDiagnosticsOfStateTypeAsync(Document document, StateType stateType, CancellationToken cancellationToken);
             protected abstract Task AppendProjectStateDiagnosticsAsync(Project project, Document document, Func<DiagnosticData, bool> predicate, CancellationToken cancellationToken);
@@ -524,10 +521,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV1
                 return (Project)documentOrProject;
             }
 
-            private DiagnosticLogAggregator DiagnosticLogAggregator
-            {
-                get { return this.Owner.DiagnosticLogAggregator; }
-            }
+            private DiagnosticLogAggregator DiagnosticLogAggregator => this.Owner.DiagnosticLogAggregator;
         }
 
         private class IDELatestDiagnosticGetter : LatestDiagnosticsGetter
@@ -629,10 +623,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV1
                 }
             }
 
-            protected AnalyzerExecutor AnalyzerExecutor
-            {
-                get { return this.Owner._executor; }
-            }
+            protected AnalyzerExecutor AnalyzerExecutor => this.Owner._executor;
         }
     }
 }

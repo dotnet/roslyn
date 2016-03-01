@@ -169,13 +169,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
                 return false;
             }
 
-            public string DisplayName
-            {
-                get
-                {
-                    return this.RenameSymbol.Name;
-                }
-            }
+            public string DisplayName => this.RenameSymbol.Name;
 
             public string FullDisplayName
             {

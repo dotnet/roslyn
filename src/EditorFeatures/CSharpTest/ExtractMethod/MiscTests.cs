@@ -170,10 +170,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ExtractMethod
                 }
             }
 
-            public override string Language
-            {
-                get { return LanguageNames.CSharp; }
-            }
+            public override string Language => LanguageNames.CSharp;
 
             public override TLanguageService GetService<TLanguageService>()
             {

@@ -60,50 +60,23 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.DebuggerIntelli
             get;
         }
 
-        public ITextCaret Caret
-        {
-            get { return _innerTextView.Caret; }
-        }
+        public ITextCaret Caret => _innerTextView.Caret;
 
-        public bool HasAggregateFocus
-        {
-            get { return _innerTextView.HasAggregateFocus; }
-        }
+        public bool HasAggregateFocus => _innerTextView.HasAggregateFocus;
 
-        public bool InLayout
-        {
-            get { return _innerTextView.InLayout; }
-        }
+        public bool InLayout => _innerTextView.InLayout;
 
-        public bool IsClosed
-        {
-            get { return _innerTextView.IsClosed; }
-        }
+        public bool IsClosed => _innerTextView.IsClosed;
 
-        public bool IsMouseOverViewOrAdornments
-        {
-            get { return _innerTextView.IsMouseOverViewOrAdornments; }
-        }
+        public bool IsMouseOverViewOrAdornments => _innerTextView.IsMouseOverViewOrAdornments;
 
-        public double LineHeight
-        {
-            get { return _innerTextView.LineHeight; }
-        }
+        public double LineHeight => _innerTextView.LineHeight;
 
-        public double MaxTextRightCoordinate
-        {
-            get { return _innerTextView.MaxTextRightCoordinate; }
-        }
+        public double MaxTextRightCoordinate => _innerTextView.MaxTextRightCoordinate;
 
-        public IEditorOptions Options
-        {
-            get { return _innerTextView.Options; }
-        }
+        public IEditorOptions Options => _innerTextView.Options;
 
-        public PropertyCollection Properties
-        {
-            get { return _innerTextView.Properties; }
-        }
+        public PropertyCollection Properties => _innerTextView.Properties;
 
         public ITrackingSpan ProvisionalTextHighlight
         {
@@ -118,40 +91,19 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.DebuggerIntelli
             }
         }
 
-        public ITextViewRoleSet Roles
-        {
-            get { return _innerTextView.Roles; }
-        }
+        public ITextViewRoleSet Roles => _innerTextView.Roles;
 
-        public ITextSelection Selection
-        {
-            get { return _innerTextView.Selection; }
-        }
+        public ITextSelection Selection => _innerTextView.Selection;
 
-        public ITextViewLineCollection TextViewLines
-        {
-            get { return _innerTextView.TextViewLines; }
-        }
+        public ITextViewLineCollection TextViewLines => _innerTextView.TextViewLines;
 
-        public ITextViewModel TextViewModel
-        {
-            get { return _innerTextView.TextViewModel; }
-        }
+        public ITextViewModel TextViewModel => _innerTextView.TextViewModel;
 
-        public IViewScroller ViewScroller
-        {
-            get { return _innerTextView.ViewScroller; }
-        }
+        public IViewScroller ViewScroller => _innerTextView.ViewScroller;
 
-        public double ViewportBottom
-        {
-            get { return _innerTextView.ViewportBottom; }
-        }
+        public double ViewportBottom => _innerTextView.ViewportBottom;
 
-        public double ViewportHeight
-        {
-            get { return _innerTextView.ViewportHeight; }
-        }
+        public double ViewportHeight => _innerTextView.ViewportHeight;
 
         public double ViewportLeft
         {
@@ -166,25 +118,13 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.DebuggerIntelli
             }
         }
 
-        public double ViewportRight
-        {
-            get { return _innerTextView.ViewportRight; }
-        }
+        public double ViewportRight => _innerTextView.ViewportRight;
 
-        public double ViewportTop
-        {
-            get { return _innerTextView.ViewportTop; }
-        }
+        public double ViewportTop => _innerTextView.ViewportTop;
 
-        public double ViewportWidth
-        {
-            get { return _innerTextView.ViewportWidth; }
-        }
+        public double ViewportWidth => _innerTextView.ViewportWidth;
 
-        public ITextSnapshot VisualSnapshot
-        {
-            get { return _innerTextView.VisualSnapshot; }
-        }
+        public ITextSnapshot VisualSnapshot => _innerTextView.VisualSnapshot;
 
         public ITextDataModel TextDataModel
         {
@@ -194,29 +134,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.DebuggerIntelli
             }
         }
 
-        public ITextBuffer TextBuffer
-        {
-            get
-            {
-                return _innerTextView.TextBuffer;
-            }
-        }
+        public ITextBuffer TextBuffer => _innerTextView.TextBuffer;
 
-        public ITextSnapshot TextSnapshot
-        {
-            get
-            {
-                return _innerTextView.TextSnapshot;
-            }
-        }
+        public ITextSnapshot TextSnapshot => _innerTextView.TextSnapshot;
 
-        public FrameworkElement VisualElement
-        {
-            get
-            {
-                return _innerTextView.VisualElement;
-            }
-        }
+        public FrameworkElement VisualElement => _innerTextView.VisualElement;
 
         public Brush Background
         {
@@ -231,29 +153,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.DebuggerIntelli
             }
         }
 
-        IWpfTextViewLineCollection IWpfTextView.TextViewLines
-        {
-            get
-            {
-                return _innerTextView.TextViewLines;
-            }
-        }
+        IWpfTextViewLineCollection IWpfTextView.TextViewLines => _innerTextView.TextViewLines;
 
-        public IFormattedLineSource FormattedLineSource
-        {
-            get
-            {
-                return _innerTextView.FormattedLineSource;
-            }
-        }
+        public IFormattedLineSource FormattedLineSource => _innerTextView.FormattedLineSource;
 
-        public ILineTransformSource LineTransformSource
-        {
-            get
-            {
-                return _innerTextView.LineTransformSource;
-            }
-        }
+        public ILineTransformSource LineTransformSource => _innerTextView.LineTransformSource;
 
         public double ZoomLevel
         {

@@ -50,7 +50,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
         /// </summary>
         private bool _solutionLoadComplete = false;
 
-        internal IEnumerable<AbstractProject> Projects { get { return _projectMap.Values; } }
+        internal IEnumerable<AbstractProject> Projects => _projectMap.Values;
 
         IEnumerable<IVisualStudioHostProject> IVisualStudioHostProjectContainer.GetProjects()
         {

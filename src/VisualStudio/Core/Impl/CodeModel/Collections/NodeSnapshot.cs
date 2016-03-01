@@ -31,15 +31,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel.Colle
             _nodes = nodes;
         }
 
-        private ICodeModelService CodeModelService
-        {
-            get { return _state.CodeModelService; }
-        }
+        private ICodeModelService CodeModelService => _state.CodeModelService;
 
-        private FileCodeModel FileCodeModel
-        {
-            get { return _fileCodeModel.Object; }
-        }
+        private FileCodeModel FileCodeModel => _fileCodeModel.Object;
 
         private EnvDTE.CodeElement CreateCodeOptionsStatement(SyntaxNode node)
         {
@@ -75,10 +69,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel.Colle
             return (EnvDTE.CodeElement)CodeParameter.Create(_state, (AbstractCodeMember)_parentElement, name);
         }
 
-        public override int Count
-        {
-            get { return _nodes.Length; }
-        }
+        public override int Count => _nodes.Length;
 
         public override EnvDTE.CodeElement this[int index]
         {

@@ -34,106 +34,31 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
         public IEnumerable<TestHostDocument> Documents;
         public IEnumerable<TestHostDocument> AdditionalDocuments;
 
-        public string Name
-        {
-            get
-            {
-                return _name;
-            }
-        }
+        public string Name => _name;
 
-        public IEnumerable<ProjectReference> ProjectReferences
-        {
-            get
-            {
-                return _projectReferences;
-            }
-        }
+        public IEnumerable<ProjectReference> ProjectReferences => _projectReferences;
 
-        public IEnumerable<MetadataReference> MetadataReferences
-        {
-            get
-            {
-                return _metadataReferences;
-            }
-        }
+        public IEnumerable<MetadataReference> MetadataReferences => _metadataReferences;
 
-        public IEnumerable<AnalyzerReference> AnalyzerReferences
-        {
-            get
-            {
-                return _analyzerReferences;
-            }
-        }
+        public IEnumerable<AnalyzerReference> AnalyzerReferences => _analyzerReferences;
 
-        public CompilationOptions CompilationOptions
-        {
-            get
-            {
-                return _compilationOptions;
-            }
-        }
+        public CompilationOptions CompilationOptions => _compilationOptions;
 
-        public ParseOptions ParseOptions
-        {
-            get
-            {
-                return _parseOptions;
-            }
-        }
+        public ParseOptions ParseOptions => _parseOptions;
 
-        public ProjectId Id
-        {
-            get
-            {
-                return _id;
-            }
-        }
+        public ProjectId Id => _id;
 
-        public bool IsSubmission
-        {
-            get
-            {
-                return _isSubmission;
-            }
-        }
+        public bool IsSubmission => _isSubmission;
 
-        public string AssemblyName
-        {
-            get
-            {
-                return _assemblyName;
-            }
-        }
+        public string AssemblyName => _assemblyName;
 
-        public Type HostObjectType
-        {
-            get
-            {
-                return _hostObjectType;
-            }
-        }
+        public Type HostObjectType => _hostObjectType;
 
-        public VersionStamp Version
-        {
-            get
-            {
-                return _version;
-            }
-        }
+        public VersionStamp Version => _version;
 
-        public string FilePath
-        {
-            get
-            {
-                return _filePath;
-            }
-        }
+        public string FilePath => _filePath;
 
-        public string OutputFilePath
-        {
-            get { return _outputFilePath; }
-        }
+        public string OutputFilePath => _outputFilePath;
 
         internal TestHostProject(
             HostLanguageServices languageServices,
@@ -287,21 +212,9 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
             this.AdditionalDocuments = this.AdditionalDocuments.Where(d => d != document);
         }
 
-        public string Language
-        {
-            get
-            {
-                return _languageServices.Language;
-            }
-        }
+        public string Language => _languageServices.Language;
 
-        internal HostLanguageServices LanguageServiceProvider
-        {
-            get
-            {
-                return _languageServices;
-            }
-        }
+        internal HostLanguageServices LanguageServiceProvider => _languageServices;
 
         public ProjectInfo ToProjectInfo()
         {

@@ -80,13 +80,13 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.DebuggerIntelli
             _isImmediateWindow = isImmediateWindow;
         }
 
-        public IVsTextLines DebuggerTextLines { get { return _debuggerTextLines; } }
+        public IVsTextLines DebuggerTextLines => _debuggerTextLines;
 
-        public ITextView DebuggerTextView { get { return _debuggerTextView; } }
+        public ITextView DebuggerTextView => _debuggerTextView;
 
-        public ITextBuffer Buffer { get { return _projectionBuffer; } }
+        public ITextBuffer Buffer => _projectionBuffer;
 
-        public IContentType ContentType { get { return _contentType; } }
+        public IContentType ContentType => _contentType;
 
         protected bool InImmediateWindow { get { return _immediateWindowContext != null; } }
 

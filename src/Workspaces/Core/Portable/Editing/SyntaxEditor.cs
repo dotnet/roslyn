@@ -41,18 +41,12 @@ namespace Microsoft.CodeAnalysis.Editing
         /// <summary>
         /// The <see cref="SyntaxNode"/> that was specified when the <see cref="SyntaxEditor"/> was constructed.
         /// </summary>
-        public SyntaxNode OriginalRoot
-        {
-            get { return _root; }
-        }
+        public SyntaxNode OriginalRoot => _root;
 
         /// <summary>
         /// A <see cref="SyntaxGenerator"/> to use to create and change <see cref="SyntaxNode"/>'s.
         /// </summary>
-        public SyntaxGenerator Generator
-        {
-            get { return _generator; }
-        }
+        public SyntaxGenerator Generator => _generator;
 
         /// <summary>
         /// Returns the changed root node.

@@ -253,10 +253,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel.Exter
             throw Exceptions.ThrowEFail();
         }
 
-        public EnvDTE.vsCMInfoLocation InfoLocation
-        {
-            get { return EnvDTE.vsCMInfoLocation.vsCMInfoLocationExternal; }
-        }
+        public EnvDTE.vsCMInfoLocation InfoLocation => EnvDTE.vsCMInfoLocation.vsCMInfoLocationExternal;
 
         public virtual bool IsCodeType
         {

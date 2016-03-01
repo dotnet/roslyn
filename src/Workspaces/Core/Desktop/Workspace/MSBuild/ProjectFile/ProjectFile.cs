@@ -38,10 +38,7 @@ namespace Microsoft.CodeAnalysis.MSBuild
             }
         }
 
-        public virtual string FilePath
-        {
-            get { return _loadedProject.FullPath; }
-        }
+        public virtual string FilePath => _loadedProject.FullPath;
 
         public string GetPropertyValue(string name)
         {

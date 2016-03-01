@@ -41,10 +41,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
                 }
             }
 
-            public override bool TreatAsElastic
-            {
-                get { return _original.TreatAsElastic; }
-            }
+            public override bool TreatAsElastic => _original.TreatAsElastic;
 
             public override bool IsWhitespaceOnlyTrivia
             {

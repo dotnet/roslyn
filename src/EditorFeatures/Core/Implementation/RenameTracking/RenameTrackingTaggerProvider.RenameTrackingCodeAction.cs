@@ -30,7 +30,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.RenameTracking
                 _undoHistoryRegistry = undoHistoryRegistry;
             }
 
-            public override string Title { get { return _title; } }
+            public override string Title => _title;
 
             protected override Task<IEnumerable<CodeActionOperation>> ComputeOperationsAsync(CancellationToken cancellationToken)
             {

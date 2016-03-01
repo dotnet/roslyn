@@ -41,7 +41,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.RenameTracking
             private int _refCount;
 
             public TrackingSession TrackingSession { get; private set; }
-            public ITextBuffer Buffer { get { return _buffer; } }
+            public ITextBuffer Buffer => _buffer;
 
             public event Action TrackingSessionUpdated = delegate { };
             public event Action<ITrackingSpan> TrackingSessionCleared = delegate { };

@@ -60,20 +60,11 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Utilities
             }
         }
 
-        internal ForegroundThreadData ForegroundThreadData
-        {
-            get { return _foregroundThreadData; }
-        }
+        internal ForegroundThreadData ForegroundThreadData => _foregroundThreadData;
 
-        internal Thread ForegroundThread
-        {
-            get { return _foregroundThreadData.Thread; }
-        }
+        internal Thread ForegroundThread => _foregroundThreadData.Thread;
 
-        internal TaskScheduler ForegroundTaskScheduler
-        {
-            get { return _foregroundThreadData.TaskScheduler; }
-        }
+        internal TaskScheduler ForegroundTaskScheduler => _foregroundThreadData.TaskScheduler;
 
         // HACK: This is a dangerous way of establishing the 'foreground' thread affinity of an 
         // AppDomain.  This method should be deleted in favor of forcing derivations of this type

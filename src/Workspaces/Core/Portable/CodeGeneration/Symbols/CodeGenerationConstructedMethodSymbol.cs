@@ -26,21 +26,9 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
             _typeArguments = typeArguments;
         }
 
-        public override int Arity
-        {
-            get
-            {
-                return _constructedFrom.Arity;
-            }
-        }
+        public override int Arity => _constructedFrom.Arity;
 
-        public override bool ReturnsVoid
-        {
-            get
-            {
-                return _constructedFrom.ReturnsVoid;
-            }
-        }
+        public override bool ReturnsVoid => _constructedFrom.ReturnsVoid;
 
         public override ITypeSymbol ReturnType
         {
@@ -59,13 +47,7 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
             }
         }
 
-        public override ImmutableArray<ITypeParameterSymbol> TypeParameters
-        {
-            get
-            {
-                return _constructedFrom.TypeParameters;
-            }
-        }
+        public override ImmutableArray<ITypeParameterSymbol> TypeParameters => _constructedFrom.TypeParameters;
 
         public override ImmutableArray<IParameterSymbol> Parameters
         {
@@ -76,13 +58,7 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
             }
         }
 
-        public override IMethodSymbol ConstructedFrom
-        {
-            get
-            {
-                return _constructedFrom;
-            }
-        }
+        public override IMethodSymbol ConstructedFrom => _constructedFrom;
 
         public override IMethodSymbol OverriddenMethod
         {

@@ -39,13 +39,7 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                         Start();
                     }
 
-                    internal ImmutableArray<IIncrementalAnalyzer> Analyzers
-                    {
-                        get
-                        {
-                            return _lazyAnalyzers.Value;
-                        }
-                    }
+                    internal ImmutableArray<IIncrementalAnalyzer> Analyzers => _lazyAnalyzers.Value;
 
                     protected override Task WaitAsync(CancellationToken cancellationToken)
                     {

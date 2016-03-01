@@ -39,20 +39,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             _fileChangeTracker.StartFileChangeListeningAsync();
         }
 
-        public string FilePath
-        {
-            get { return _fileChangeTracker.FilePath; }
-        }
+        public string FilePath => _fileChangeTracker.FilePath;
 
-        public IVisualStudioHostProject Project
-        {
-            get { return _hostProject; }
-        }
+        public IVisualStudioHostProject Project => _hostProject;
 
-        public MetadataReferenceProperties Properties
-        {
-            get { return _properties; }
-        }
+        public MetadataReferenceProperties Properties => _properties;
 
         public PortableExecutableReference CurrentSnapshot
         {

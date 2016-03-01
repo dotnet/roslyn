@@ -28,14 +28,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Library
             }
         }
 
-        public IServiceProvider ServiceProvider
-        {
-            get { return _serviceProvider; }
-        }
+        public IServiceProvider ServiceProvider => _serviceProvider;
 
-        public IntPtr ImageListPtr
-        {
-            get { return _imageListPtr; }
-        }
+        public IntPtr ImageListPtr => _imageListPtr;
     }
 }

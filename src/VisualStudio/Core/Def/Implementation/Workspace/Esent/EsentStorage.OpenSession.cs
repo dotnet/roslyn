@@ -42,8 +42,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Esent
                 _cancellationTokenRegistration = shutdownCancellationToken.Register(() => Dispose(), useSynchronizationContext: false);
             }
 
-            public JET_SESID SessionId { get { return _session.JetSesid; } }
-            public JET_DBID DatabaseId { get { return _databaseId; } }
+            public JET_SESID SessionId => _session.JetSesid;
+            public JET_DBID DatabaseId => _databaseId;
 
             public void Dispose()
             {

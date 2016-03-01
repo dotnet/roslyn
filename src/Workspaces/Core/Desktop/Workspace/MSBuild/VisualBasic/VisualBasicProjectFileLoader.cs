@@ -24,10 +24,7 @@ namespace Microsoft.CodeAnalysis.VisualBasic
 {
     internal class VisualBasicProjectFileLoader : ProjectFileLoader
     {
-        public override string Language
-        {
-            get { return LanguageNames.VisualBasic; }
-        }
+        public override string Language => LanguageNames.VisualBasic;
 
         internal VisualBasicProjectFileLoader()
         {
@@ -218,40 +215,19 @@ namespace Microsoft.CodeAnalysis.VisualBasic
                     _outputDirectory = projectFile.GetOutputDirectory();
                 }
 
-                public bool Initialized
-                {
-                    get { return _initialized; }
-                }
+                public bool Initialized => _initialized; 
 
-                public List<string> CommandLineArgs
-                {
-                    get { return _commandLineArgs; }
-                }
+                public List<string> CommandLineArgs => _commandLineArgs;
 
-                public IEnumerable<ITaskItem> Sources
-                {
-                    get { return _sources; }
-                }
+                public IEnumerable<ITaskItem> Sources => _sources;
 
-                public IEnumerable<ITaskItem> AdditionalFiles
-                {
-                    get { return _additionalFiles; }
-                }
+                public IEnumerable<ITaskItem> AdditionalFiles => _additionalFiles;
 
-                public string OutputFileName
-                {
-                    get { return _outputFileName; }
-                }
+                public string OutputFileName => _outputFileName;
 
-                public string OutputDirectory
-                {
-                    get { return _outputDirectory; }
-                }
+                public string OutputDirectory => _outputDirectory;
 
-                public string ProjectDirectory
-                {
-                    get { return _projectDirectory; }
-                }
+                public string ProjectDirectory => _projectDirectory;
 
                 public void BeginInitialization()
                 {

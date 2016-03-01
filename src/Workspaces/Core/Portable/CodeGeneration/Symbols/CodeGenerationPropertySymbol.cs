@@ -59,13 +59,7 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
             return result;
         }
 
-        public override SymbolKind Kind
-        {
-            get
-            {
-                return SymbolKind.Property;
-            }
-        }
+        public override SymbolKind Kind => SymbolKind.Property;
 
         public override void Accept(SymbolVisitor visitor)
         {
@@ -93,13 +87,7 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
             }
         }
 
-        public new IPropertySymbol OriginalDefinition
-        {
-            get
-            {
-                return this;
-            }
-        }
+        public new IPropertySymbol OriginalDefinition => this;
 
         public IPropertySymbol OverriddenProperty
         {

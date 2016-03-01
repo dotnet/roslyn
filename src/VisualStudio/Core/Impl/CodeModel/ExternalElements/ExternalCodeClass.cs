@@ -24,10 +24,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel.Exter
         {
         }
 
-        public override EnvDTE.vsCMElement Kind
-        {
-            get { return EnvDTE.vsCMElement.vsCMElementClass; }
-        }
+        public override EnvDTE.vsCMElement Kind => EnvDTE.vsCMElement.vsCMElementClass;
 
         public EnvDTE80.vsCMClassKind ClassKind
         {

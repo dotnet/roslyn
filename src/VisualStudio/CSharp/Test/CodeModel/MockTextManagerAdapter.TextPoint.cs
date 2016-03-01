@@ -18,10 +18,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.UnitTests.CodeModel
                 _point = point;
             }
 
-            public int AbsoluteCharOffset
-            {
-                get { return _point.Position; }
-            }
+            public int AbsoluteCharOffset => _point.Position;
 
             public bool AtEndOfDocument
             {

@@ -46,30 +46,15 @@ namespace Microsoft.CodeAnalysis.MSBuild
             _globalSectionBlocks = globalSectionBlocks.ToList().AsReadOnly();
         }
 
-        public IEnumerable<string> HeaderLines
-        {
-            get { return _headerLines; }
-        }
+        public IEnumerable<string> HeaderLines => _headerLines;
 
-        public string VisualStudioVersionLineOpt
-        {
-            get { return _visualStudioVersionLineOpt; }
-        }
+        public string VisualStudioVersionLineOpt => _visualStudioVersionLineOpt;
 
-        public string MinimumVisualStudioVersionLineOpt
-        {
-            get { return _minimumVisualStudioVersionLineOpt; }
-        }
+        public string MinimumVisualStudioVersionLineOpt => _minimumVisualStudioVersionLineOpt;
 
-        public IEnumerable<ProjectBlock> ProjectBlocks
-        {
-            get { return _projectBlocks; }
-        }
+        public IEnumerable<ProjectBlock> ProjectBlocks => _projectBlocks;
 
-        public IEnumerable<SectionBlock> GlobalSectionBlocks
-        {
-            get { return _globalSectionBlocks; }
-        }
+        public IEnumerable<SectionBlock> GlobalSectionBlocks => _globalSectionBlocks;
 
         public string GetText()
         {

@@ -46,10 +46,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.MetadataAsSource
                 _textBufferFactoryService = _workspace.GetService<ITextBufferFactoryService>();
             }
 
-            public Solution CurrentSolution
-            {
-                get { return _workspace.CurrentSolution; }
-            }
+            public Solution CurrentSolution => _workspace.CurrentSolution;
 
             public Project DefaultProject
             {

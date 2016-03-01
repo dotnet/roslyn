@@ -98,13 +98,7 @@ namespace Microsoft.CodeAnalysis.Rename.ConflictEngine
             }
         }
 
-        public RenamedSpansTracker RenamedSpansTracker
-        {
-            get
-            {
-                return _renamedSpansTracker;
-            }
-        }
+        public RenamedSpansTracker RenamedSpansTracker => _renamedSpansTracker;
 
         public int GetAdjustedTokenStartingPosition(
             int startingPosition,
@@ -124,13 +118,7 @@ namespace Microsoft.CodeAnalysis.Rename.ConflictEngine
         /// <summary>
         /// The list of all document ids of documents that have been touched for this rename operation.
         /// </summary>
-        public IEnumerable<DocumentId> DocumentIds
-        {
-            get
-            {
-                return _renamedSpansTracker.DocumentIds;
-            }
-        }
+        public IEnumerable<DocumentId> DocumentIds => _renamedSpansTracker.DocumentIds;
 
         public IEnumerable<RelatedLocation> GetRelatedLocationsForDocument(DocumentId documentId)
         {
@@ -168,24 +156,12 @@ namespace Microsoft.CodeAnalysis.Rename.ConflictEngine
         /// <summary>
         /// The new workspace snapshot
         /// </summary>
-        public Solution NewSolution
-        {
-            get
-            {
-                return _newSolution;
-            }
-        }
+        public Solution NewSolution => _newSolution;
 
         /// <summary>
         /// The base workspace snapshot
         /// </summary>
-        public Solution OldSolution
-        {
-            get
-            {
-                return _oldSolution;
-            }
-        }
+        public Solution OldSolution => _oldSolution;
 
         /// <summary>
         /// Whether the text that was resolved with was even valid. This may be false if the

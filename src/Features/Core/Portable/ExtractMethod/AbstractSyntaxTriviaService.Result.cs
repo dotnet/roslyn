@@ -38,10 +38,7 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
                 _triviaList = triviaList;
             }
 
-            public SyntaxNode Root
-            {
-                get { return _root; }
-            }
+            public SyntaxNode Root => _root;
 
             public SyntaxNode RestoreTrivia(
                 SyntaxNode root,

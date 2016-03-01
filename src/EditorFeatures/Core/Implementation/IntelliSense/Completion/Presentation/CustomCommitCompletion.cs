@@ -41,21 +41,9 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion.P
             _completionPresenterSession.OnCompletionItemCommitted(CompletionItem);
         }
 
-        public override string DisplayText
-        {
-            get
-            {
-                return _displayText;
-            }
-        }
+        public override string DisplayText => _displayText;
 
-        public override string InsertionText
-        {
-            get
-            {
-                return _displayText; // [sic] Same as DisplayText
-            }
-        }
+        public override string InsertionText => _displayText; // [sic] Same as DisplayText
 
         public override string Description
         {
@@ -97,13 +85,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion.P
                 ?? defaultHighlightedTextRunProperties;
         }
 
-        public override ImageMoniker IconMoniker
-        {
-            get
-            {
-                return _imageMoniker;
-            }
-        }
+        public override ImageMoniker IconMoniker => _imageMoniker;
 
         public override string IconAutomationText
         {

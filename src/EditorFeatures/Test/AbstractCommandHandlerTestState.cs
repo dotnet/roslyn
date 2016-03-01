@@ -143,15 +143,9 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests
             return MinimalTestExportProvider.CreateExportProvider(baseCatalog.WithParts(extraParts));
         }
 
-        public virtual ITextView TextView
-        {
-            get { return _textView; }
-        }
+        public virtual ITextView TextView => _textView;
 
-        public virtual ITextBuffer SubjectBuffer
-        {
-            get { return _subjectBuffer; }
-        }
+        public virtual ITextBuffer SubjectBuffer => _subjectBuffer;
 
         #region MEF
         public Lazy<TExport, TMetadata> GetExport<TExport, TMetadata>()

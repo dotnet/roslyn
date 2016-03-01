@@ -19,19 +19,19 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings
         /// <summary>
         /// Document corresponding to the <see cref="CodeRefactoringContext.Span"/> to refactor.
         /// </summary>
-        public Document Document { get { return _document; } }
+        public Document Document => _document;
 
         /// <summary>
         /// Text span within the <see cref="CodeRefactoringContext.Document"/> to refactor.
         /// </summary>
-        public TextSpan Span { get { return _span; } }
+        public TextSpan Span => _span;
 
         private readonly Action<CodeAction> _registerRefactoring;
 
         /// <summary>
         /// CancellationToken.
         /// </summary>
-        public CancellationToken CancellationToken { get { return _cancellationToken; } }
+        public CancellationToken CancellationToken => _cancellationToken;
 
         /// <summary>
         /// Creates a code refactoring context to be passed into <see cref="CodeRefactoringProvider.ComputeRefactoringsAsync(CodeRefactoringContext)"/> method.

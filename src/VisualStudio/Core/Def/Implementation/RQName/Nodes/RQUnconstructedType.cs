@@ -19,10 +19,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.RQName.Nodes
             this.TypeInfos = new ReadOnlyCollection<RQUnconstructedTypeInfo>(typeInfos);
         }
 
-        protected override string RQKeyword
-        {
-            get { return RQNameStrings.Agg; }
-        }
+        protected override string RQKeyword => RQNameStrings.Agg;
 
         protected override void AppendChildren(List<SimpleTreeNode> childList)
         {

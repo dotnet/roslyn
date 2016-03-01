@@ -34,10 +34,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel.Colle
             _elements = elements;
         }
 
-        public override int Count
-        {
-            get { return _elements.Length; }
-        }
+        public override int Count => _elements.Length;
 
         public override EnvDTE.CodeElement this[int index]
         {

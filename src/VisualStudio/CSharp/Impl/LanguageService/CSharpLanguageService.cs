@@ -26,45 +26,15 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.LanguageService
         {
         }
 
-        protected override Guid DebuggerLanguageId
-        {
-            get
-            {
-                return Guids.CSharpDebuggerLanguageId;
-            }
-        }
+        protected override Guid DebuggerLanguageId => Guids.CSharpDebuggerLanguageId;
 
-        protected override string ContentTypeName
-        {
-            get
-            {
-                return ContentTypeNames.CSharpContentType;
-            }
-        }
+        protected override string ContentTypeName => ContentTypeNames.CSharpContentType;
 
-        public override Guid LanguageServiceId
-        {
-            get
-            {
-                return Guids.CSharpLanguageServiceId;
-            }
-        }
+        public override Guid LanguageServiceId => Guids.CSharpLanguageServiceId;
 
-        protected override string LanguageName
-        {
-            get
-            {
-                return CSharpVSResources.C;
-            }
-        }
+        protected override string LanguageName => CSharpVSResources.C;
 
-        protected override string RoslynLanguageName
-        {
-            get
-            {
-                return LanguageNames.CSharp;
-            }
-        }
+        protected override string RoslynLanguageName => LanguageNames.CSharp;
 
         protected override AbstractDebuggerIntelliSenseContext CreateContext(
             IWpfTextView view,

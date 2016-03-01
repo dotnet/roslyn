@@ -93,13 +93,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options
 
         protected abstract ImmutableDictionary<string, IOption> CreateStorageKeyToOptionMap();
 
-        protected ImmutableDictionary<string, IOption> StorageKeyToOptionMap
-        {
-            get
-            {
-                return _storageKeyToOptionMap.Value;
-            }
-        }
+        protected ImmutableDictionary<string, IOption> StorageKeyToOptionMap => _storageKeyToOptionMap.Value;
 
         protected KeyValuePair<string, IOption> GetOptionInfo(FieldInfo fieldInfo)
         {

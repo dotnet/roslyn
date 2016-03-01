@@ -24,15 +24,9 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                 _parentIndex = parentIndex;
             }
 
-            public string Name
-            {
-                get { return _name; }
-            }
+            public string Name => _name;
 
-            public int ParentIndex
-            {
-                get { return _parentIndex; }
-            }
+            public int ParentIndex => _parentIndex;
 
             public bool IsRoot
             {

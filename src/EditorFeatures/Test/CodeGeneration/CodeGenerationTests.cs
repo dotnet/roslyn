@@ -824,7 +824,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeGeneration
                 return new TestContext(initial, expected, compareTokens, ignoreResult, language, workspace, semanticModel);
             }
 
-            public Solution Solution { get { return _workspace.CurrentSolution; } }
+            public Solution Solution => _workspace.CurrentSolution;
 
             public SyntaxNode GetDestinationNode()
             {

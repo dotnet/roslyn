@@ -29,10 +29,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel.Inter
             _nodeKind = nodeKind;
         }
 
-        internal FileCodeModel FileCodeModel
-        {
-            get { return _fileCodeModel.Object; }
-        }
+        internal FileCodeModel FileCodeModel => _fileCodeModel.Object;
 
         protected SyntaxTree GetSyntaxTree()
         {
@@ -214,10 +211,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel.Inter
             get { return false; }
         }
 
-        public EnvDTE.ProjectItem ProjectItem
-        {
-            get { return FileCodeModel.Parent; }
-        }
+        public EnvDTE.ProjectItem ProjectItem => FileCodeModel.Parent;
 
         public string ExtenderCATID
         {

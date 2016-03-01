@@ -50,10 +50,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             _callLog.Enqueue(new Entry(abstractMemberName, callerName, node, symbol));
         }
 
-        public IEnumerable<Entry> CallLog
-        {
-            get { return _callLog; }
-        }
+        public IEnumerable<Entry> CallLog => _callLog;
 
         #endregion
 

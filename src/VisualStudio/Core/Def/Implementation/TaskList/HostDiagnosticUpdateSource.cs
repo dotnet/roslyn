@@ -29,13 +29,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TaskList
             registrationService.Register(this);
         }
 
-        public override Workspace Workspace
-        {
-            get
-            {
-                return _workspace;
-            }
-        }
+        public override Workspace Workspace => _workspace;
 
         private void RaiseDiagnosticsCreatedForProject(ProjectId projectId, object key, IEnumerable<DiagnosticData> items)
         {

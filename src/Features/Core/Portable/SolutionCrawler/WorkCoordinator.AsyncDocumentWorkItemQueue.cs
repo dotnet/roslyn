@@ -20,13 +20,7 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                 {
                 }
 
-                protected override int WorkItemCount_NoLock
-                {
-                    get
-                    {
-                        return _documentWorkQueue.Count;
-                    }
-                }
+                protected override int WorkItemCount_NoLock => _documentWorkQueue.Count;
 
                 protected override bool TryTake_NoLock(DocumentId key, out WorkItem workInfo)
                 {

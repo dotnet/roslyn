@@ -125,45 +125,15 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
             }
         }
 
-        public bool IsStatic
-        {
-            get
-            {
-                return this.Modifiers.IsStatic;
-            }
-        }
+        public bool IsStatic => this.Modifiers.IsStatic;
 
-        public bool IsVirtual
-        {
-            get
-            {
-                return this.Modifiers.IsVirtual;
-            }
-        }
+        public bool IsVirtual => this.Modifiers.IsVirtual;
 
-        public bool IsOverride
-        {
-            get
-            {
-                return this.Modifiers.IsOverride;
-            }
-        }
+        public bool IsOverride => this.Modifiers.IsOverride;
 
-        public bool IsAbstract
-        {
-            get
-            {
-                return this.Modifiers.IsAbstract;
-            }
-        }
+        public bool IsAbstract => this.Modifiers.IsAbstract;
 
-        public bool IsSealed
-        {
-            get
-            {
-                return this.Modifiers.IsSealed;
-            }
-        }
+        public bool IsSealed => this.Modifiers.IsSealed;
 
         public bool IsExtern
         {
@@ -228,13 +198,7 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
             return GetAttributes().WhereAsArray(a => a.AttributeConstructor.Equals(attributeConstructor));
         }
 
-        public ISymbol OriginalDefinition
-        {
-            get
-            {
-                return this;
-            }
-        }
+        public ISymbol OriginalDefinition => this;
 
         public abstract void Accept(SymbolVisitor visitor);
 
@@ -278,13 +242,7 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
             return null;
         }
 
-        public virtual string MetadataName
-        {
-            get
-            {
-                return this.Name;
-            }
-        }
+        public virtual string MetadataName => this.Name;
 
         public bool HasUnsupportedMetadata
         {

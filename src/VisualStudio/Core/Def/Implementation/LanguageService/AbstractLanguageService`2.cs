@@ -59,13 +59,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
             this.Package = package;
         }
 
-        public override IServiceProvider SystemServiceProvider
-        {
-            get
-            {
-                return this.Package;
-            }
-        }
+        public override IServiceProvider SystemServiceProvider => this.Package;
 
         /// <summary>
         /// Setup and TearDown go in reverse order.

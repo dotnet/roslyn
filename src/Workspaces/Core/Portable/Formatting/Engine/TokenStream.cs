@@ -137,13 +137,7 @@ namespace Microsoft.CodeAnalysis.Formatting
             }
         }
 
-        public int TokenCount
-        {
-            get
-            {
-                return _tokens.Count;
-            }
-        }
+        public int TokenCount => _tokens.Count;
 
         public SyntaxToken GetToken(int index)
         {

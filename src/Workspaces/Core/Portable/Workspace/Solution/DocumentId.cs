@@ -70,7 +70,7 @@ namespace Microsoft.CodeAnalysis
             return string.Format("({0}, #{1} - {2})", this.GetType().Name, this.Id, _debugName);
         }
 
-        internal string DebugName { get { return _debugName; } }
+        internal string DebugName => _debugName;
 
         public override string ToString()
         {

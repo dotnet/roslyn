@@ -30,13 +30,7 @@ namespace Roslyn.Utilities
             _map = new Dictionary<T, LinkedListNode<T>>(comparer);
         }
 
-        public int Count
-        {
-            get
-            {
-                return _list.Count;
-            }
-        }
+        public int Count => _list.Count;
 
         public void Clear()
         {
@@ -45,13 +39,7 @@ namespace Roslyn.Utilities
             _insertionIndex = 0;
         }
 
-        public T First
-        {
-            get
-            {
-                return _list.First.Value;
-            }
-        }
+        public T First => _list.First.Value;
 
         /// <summary>
         /// Adds this item (or moves it if it's already in the queue) to the end.  If the item is not

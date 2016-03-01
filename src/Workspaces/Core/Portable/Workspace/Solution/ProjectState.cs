@@ -186,46 +186,22 @@ namespace Microsoft.CodeAnalysis
             return doc;
         }
 
-        public ProjectId Id
-        {
-            get { return this.ProjectInfo.Id; }
-        }
+        public ProjectId Id => this.ProjectInfo.Id;
 
-        public string FilePath
-        {
-            get { return this.ProjectInfo.FilePath; }
-        }
+        public string FilePath => this.ProjectInfo.FilePath;
 
-        public string OutputFilePath
-        {
-            get { return this.ProjectInfo.OutputFilePath; }
-        }
+        public string OutputFilePath => this.ProjectInfo.OutputFilePath;
 
-        public HostLanguageServices LanguageServices
-        {
-            get { return _languageServices; }
-        }
+        public HostLanguageServices LanguageServices => _languageServices;
 
-        public string Name
-        {
-            get { return this.ProjectInfo.Name; }
-        }
+        public string Name => this.ProjectInfo.Name;
 
-        public bool IsSubmission
-        {
-            get { return this.ProjectInfo.IsSubmission; }
-        }
+        public bool IsSubmission => this.ProjectInfo.IsSubmission;
 
-        public Type HostObjectType
-        {
-            get { return this.ProjectInfo.HostObjectType; }
-        }
+        public Type HostObjectType => this.ProjectInfo.HostObjectType;
 
         [DebuggerBrowsable(DebuggerBrowsableState.Collapsed)]
-        public VersionStamp Version
-        {
-            get { return this.ProjectInfo.Version; }
-        }
+        public VersionStamp Version => this.ProjectInfo.Version;
 
         public AnalyzerOptions AnalyzerOptions
         {
@@ -262,46 +238,25 @@ namespace Microsoft.CodeAnalysis
         }
 
         [DebuggerBrowsable(DebuggerBrowsableState.Collapsed)]
-        public ProjectInfo ProjectInfo
-        {
-            get { return _projectInfo; }
-        }
+        public ProjectInfo ProjectInfo => _projectInfo;
 
         [DebuggerBrowsable(DebuggerBrowsableState.Collapsed)]
-        public string AssemblyName
-        {
-            get { return this.ProjectInfo.AssemblyName; }
-        }
+        public string AssemblyName => this.ProjectInfo.AssemblyName;
 
         [DebuggerBrowsable(DebuggerBrowsableState.Collapsed)]
-        public CompilationOptions CompilationOptions
-        {
-            get { return this.ProjectInfo.CompilationOptions; }
-        }
+        public CompilationOptions CompilationOptions => this.ProjectInfo.CompilationOptions;
 
         [DebuggerBrowsable(DebuggerBrowsableState.Collapsed)]
-        public ParseOptions ParseOptions
-        {
-            get { return this.ProjectInfo.ParseOptions; }
-        }
+        public ParseOptions ParseOptions => this.ProjectInfo.ParseOptions;
 
         [DebuggerBrowsable(DebuggerBrowsableState.Collapsed)]
-        public IReadOnlyList<MetadataReference> MetadataReferences
-        {
-            get { return this.ProjectInfo.MetadataReferences; }
-        }
+        public IReadOnlyList<MetadataReference> MetadataReferences => this.ProjectInfo.MetadataReferences;
 
         [DebuggerBrowsable(DebuggerBrowsableState.Collapsed)]
-        public IReadOnlyList<AnalyzerReference> AnalyzerReferences
-        {
-            get { return this.ProjectInfo.AnalyzerReferences; }
-        }
+        public IReadOnlyList<AnalyzerReference> AnalyzerReferences => this.ProjectInfo.AnalyzerReferences;
 
         [DebuggerBrowsable(DebuggerBrowsableState.Collapsed)]
-        public IReadOnlyList<ProjectReference> ProjectReferences
-        {
-            get { return this.ProjectInfo.ProjectReferences; }
-        }
+        public IReadOnlyList<ProjectReference> ProjectReferences => this.ProjectInfo.ProjectReferences;
 
         [DebuggerBrowsable(DebuggerBrowsableState.Collapsed)]
         public bool HasDocuments
@@ -316,28 +271,16 @@ namespace Microsoft.CodeAnalysis
         }
 
         [DebuggerBrowsable(DebuggerBrowsableState.Collapsed)]
-        public IReadOnlyList<DocumentId> DocumentIds
-        {
-            get { return _documentIds; }
-        }
+        public IReadOnlyList<DocumentId> DocumentIds => _documentIds;
 
         [DebuggerBrowsable(DebuggerBrowsableState.Collapsed)]
-        public IReadOnlyList<DocumentId> AdditionalDocumentIds
-        {
-            get { return _additionalDocumentIds; }
-        }
+        public IReadOnlyList<DocumentId> AdditionalDocumentIds => _additionalDocumentIds;
 
         [DebuggerBrowsable(DebuggerBrowsableState.Collapsed)]
-        private ImmutableDictionary<DocumentId, DocumentState> DocumentStates
-        {
-            get { return _documentStates; }
-        }
+        private ImmutableDictionary<DocumentId, DocumentState> DocumentStates => _documentStates;
 
         [DebuggerBrowsable(DebuggerBrowsableState.Collapsed)]
-        private ImmutableDictionary<DocumentId, TextDocumentState> AdditionalDocumentStates
-        {
-            get { return _additionalDocumentStates; }
-        }
+        private ImmutableDictionary<DocumentId, TextDocumentState> AdditionalDocumentStates => _additionalDocumentStates;
 
         public bool ContainsDocument(DocumentId documentId)
         {

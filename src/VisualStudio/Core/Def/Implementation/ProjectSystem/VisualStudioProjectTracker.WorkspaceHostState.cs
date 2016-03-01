@@ -32,7 +32,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                 _solutionAdded = false;
             }
 
-            public IVisualStudioWorkspaceHost Host { get { return _workspaceHost; } }
+            public IVisualStudioWorkspaceHost Host => _workspaceHost;
 
             /// <summary>
             /// Whether or not the project tracker has been notified that it should start to push state

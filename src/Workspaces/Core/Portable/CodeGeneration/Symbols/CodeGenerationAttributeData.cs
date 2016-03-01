@@ -14,10 +14,10 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
         private readonly ImmutableArray<TypedConstant> _constructorArguments;
         private readonly ImmutableArray<KeyValuePair<string, TypedConstant>> _namedArguments;
 
-        protected override INamedTypeSymbol CommonAttributeClass { get { return _attributeClass; } }
+        protected override INamedTypeSymbol CommonAttributeClass => _attributeClass;
         protected override IMethodSymbol CommonAttributeConstructor { get { return null; } }
-        protected override ImmutableArray<TypedConstant> CommonConstructorArguments { get { return _constructorArguments; } }
-        protected override ImmutableArray<KeyValuePair<string, TypedConstant>> CommonNamedArguments { get { return _namedArguments; } }
+        protected override ImmutableArray<TypedConstant> CommonConstructorArguments => _constructorArguments;
+        protected override ImmutableArray<KeyValuePair<string, TypedConstant>> CommonNamedArguments => _namedArguments;
         protected override SyntaxReference CommonApplicationSyntaxReference { get { return null; } }
 
         public CodeGenerationAttributeData(

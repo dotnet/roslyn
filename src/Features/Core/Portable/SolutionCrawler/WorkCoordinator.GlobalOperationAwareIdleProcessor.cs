@@ -69,13 +69,7 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                         this.UpdateLastAccessTime();
                     }
 
-                    protected Task GlobalOperationTask
-                    {
-                        get
-                        {
-                            return _globalOperationTask;
-                        }
-                    }
+                    protected Task GlobalOperationTask => _globalOperationTask;
 
                     protected abstract void PauseOnGlobalOperation();
 
