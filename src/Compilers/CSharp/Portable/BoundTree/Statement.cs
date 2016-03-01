@@ -50,10 +50,10 @@ namespace Microsoft.CodeAnalysis.CSharp
         public override void Accept(OperationVisitor visitor)
         {
             visitor.VisitBlockStatement(this);
-    }
+        }
 
         public override TResult Accept<TArgument, TResult>(OperationVisitor<TArgument, TResult> visitor, TArgument argument)
-    {
+        {
             return visitor.VisitBlockStatement(this, argument);
         }
     }
@@ -69,10 +69,10 @@ namespace Microsoft.CodeAnalysis.CSharp
         public override void Accept(OperationVisitor visitor)
         {
             visitor.VisitBranchStatement(this);
-    }
+        }
 
         public override TResult Accept<TArgument, TResult>(OperationVisitor<TArgument, TResult> visitor, TArgument argument)
-    {
+        {
             return visitor.VisitBranchStatement(this, argument);
         }
     }
@@ -88,10 +88,10 @@ namespace Microsoft.CodeAnalysis.CSharp
         public override void Accept(OperationVisitor visitor)
         {
             visitor.VisitBranchStatement(this);
-    }
+        }
 
         public override TResult Accept<TArgument, TResult>(OperationVisitor<TArgument, TResult> visitor, TArgument argument)
-    {
+        {
             return visitor.VisitBranchStatement(this, argument);
         }
     }
@@ -105,10 +105,10 @@ namespace Microsoft.CodeAnalysis.CSharp
         public override void Accept(OperationVisitor visitor)
         {
             visitor.VisitYieldBreakStatement(this);
-    }
+        }
 
         public override TResult Accept<TArgument, TResult>(OperationVisitor<TArgument, TResult> visitor, TArgument argument)
-    {
+        {
             return visitor.VisitYieldBreakStatement(this, argument);
         }
     }
@@ -124,10 +124,10 @@ namespace Microsoft.CodeAnalysis.CSharp
         public override void Accept(OperationVisitor visitor)
         {
             visitor.VisitBranchStatement(this);
-    }
+        }
 
         public override TResult Accept<TArgument, TResult>(OperationVisitor<TArgument, TResult> visitor, TArgument argument)
-    {
+        {
             return visitor.VisitBranchStatement(this, argument);
         }
     }
@@ -139,10 +139,10 @@ namespace Microsoft.CodeAnalysis.CSharp
         public override void Accept(OperationVisitor visitor)
         {
             visitor.VisitEmptyStatement(this);
-    }
+        }
 
         public override TResult Accept<TArgument, TResult>(OperationVisitor<TArgument, TResult> visitor, TArgument argument)
-    {
+        {
             return visitor.VisitEmptyStatement(this, argument);
         }
     }
@@ -160,10 +160,10 @@ namespace Microsoft.CodeAnalysis.CSharp
         public override void Accept(OperationVisitor visitor)
         {
             visitor.VisitIfStatement(this);
-    }
+        }
 
         public override TResult Accept<TArgument, TResult>(OperationVisitor<TArgument, TResult> visitor, TArgument argument)
-    {
+        {
             return visitor.VisitIfStatement(this, argument);
         }
     }
@@ -185,10 +185,10 @@ namespace Microsoft.CodeAnalysis.CSharp
         public override void Accept(OperationVisitor visitor)
         {
             visitor.VisitWhileUntilLoopStatement(this);
-    }
+        }
 
         public override TResult Accept<TArgument, TResult>(OperationVisitor<TArgument, TResult> visitor, TArgument argument)
-    {
+        {
             return visitor.VisitWhileUntilLoopStatement(this, argument);
         }
     }
@@ -210,10 +210,10 @@ namespace Microsoft.CodeAnalysis.CSharp
         public override void Accept(OperationVisitor visitor)
         {
             visitor.VisitWhileUntilLoopStatement(this);
-    }
+        }
 
         public override TResult Accept<TArgument, TResult>(OperationVisitor<TArgument, TResult> visitor, TArgument argument)
-    {
+        {
             return visitor.VisitWhileUntilLoopStatement(this, argument);
         }
     }
@@ -252,10 +252,10 @@ namespace Microsoft.CodeAnalysis.CSharp
         public override void Accept(OperationVisitor visitor)
         {
             visitor.VisitForLoopStatement(this);
-    }
+        }
 
         public override TResult Accept<TArgument, TResult>(OperationVisitor<TArgument, TResult> visitor, TArgument argument)
-    {
+        {
             return visitor.VisitForLoopStatement(this, argument);
         }
     }
@@ -275,10 +275,10 @@ namespace Microsoft.CodeAnalysis.CSharp
         public override void Accept(OperationVisitor visitor)
         {
             visitor.VisitForEachLoopStatement(this);
-    }
+        }
 
         public override TResult Accept<TArgument, TResult>(OperationVisitor<TArgument, TResult> visitor, TArgument argument)
-    {
+        {
             return visitor.VisitForEachLoopStatement(this, argument);
         }
     }
@@ -341,12 +341,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             void IOperation.Accept(OperationVisitor visitor)
             {
                 visitor.VisitSwitchCase(this);
-        }
+            }
 
             TResult IOperation.Accept<TArgument, TResult>(OperationVisitor<TArgument, TResult> visitor, TArgument argument)
-    {
+            {
                 return visitor.VisitSwitchCase(this, argument);
-    }
+            }
         }
     }
 
@@ -408,10 +408,10 @@ namespace Microsoft.CodeAnalysis.CSharp
         void IOperation.Accept(OperationVisitor visitor)
         {
             visitor.VisitSingleValueCaseClause(this);
-    }
+        }
 
         TResult IOperation.Accept<TArgument, TResult>(OperationVisitor<TArgument, TResult> visitor, TArgument argument)
-    {
+        {
             return visitor.VisitSingleValueCaseClause(this, argument);
         }
     }
@@ -429,10 +429,10 @@ namespace Microsoft.CodeAnalysis.CSharp
         public override void Accept(OperationVisitor visitor)
         {
             visitor.VisitTryStatement(this);
-    }
+        }
 
         public override TResult Accept<TArgument, TResult>(OperationVisitor<TArgument, TResult> visitor, TArgument argument)
-    {
+        {
             return visitor.VisitTryStatement(this, argument);
         }
     }
@@ -568,12 +568,12 @@ namespace Microsoft.CodeAnalysis.CSharp
         protected override OperationKind StatementKind => OperationKind.LockStatement;
 
         public override void Accept(OperationVisitor visitor)
-    {
+        {
             visitor.VisitLockStatement(this);
-    }
+        }
 
         public override TResult Accept<TArgument, TResult>(OperationVisitor<TArgument, TResult> visitor, TArgument argument)
-    {
+        {
             return visitor.VisitLockStatement(this, argument);
         }
     }
@@ -583,14 +583,14 @@ namespace Microsoft.CodeAnalysis.CSharp
         protected override OperationKind StatementKind => OperationKind.InvalidStatement;
 
         public override void Accept(OperationVisitor visitor)
-    {
+        {
             visitor.VisitInvalidStatement(this);
-    }
+        }
 
         public override TResult Accept<TArgument, TResult>(OperationVisitor<TArgument, TResult> visitor, TArgument argument)
-    {
+        {
             return visitor.VisitInvalidStatement(this, argument);
-    }
+        }
     }
 
     internal partial class BoundLocalDeclaration : IVariableDeclarationStatement
