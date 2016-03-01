@@ -3,11 +3,10 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
-using System.ComponentModel;
 using System.Composition;
 using System.Diagnostics;
-using System.Linq;
 using System.Reflection;
+using System.Xml.Linq;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.Completion;
@@ -18,16 +17,10 @@ using Microsoft.CodeAnalysis.Editor.Shared.Options;
 using Microsoft.CodeAnalysis.ExtractMethod;
 using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Options;
-using Microsoft.CodeAnalysis.Options.Providers;
 using Microsoft.CodeAnalysis.Shared.Options;
 using Microsoft.CodeAnalysis.Simplification;
-using Microsoft.Internal.VisualStudio.Shell.Interop;
 using Microsoft.VisualStudio.LanguageServices.Implementation.Options;
-using Microsoft.VisualStudio.Settings;
 using Microsoft.VisualStudio.Shell;
-using Microsoft.Win32;
-
-using Task = System.Threading.Tasks.Task;
 
 namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options
 {
@@ -315,7 +308,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options
 
         private bool PersistUseVarOption(string option, object value)
         {
-            var serializedValue = ((SimpleCodeStyleOption)value).SerializeObject();
+            var serializedValue = ((SimpleCodeStyleOption)value).ToXElement().ToString();
             this.Manager.SetValueAsync(option, value: serializedValue, isMachineLocal: false);
             return true;
         }
@@ -328,7 +321,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options
             }
             else
             {
-                value = useVarOptionValue.DeserializeObject<SimpleCodeStyleOption>();
+                value = SimpleCodeStyleOption.FromXElement(XElement.Parse(useVarOptionValue));
             }
 
             return true;

@@ -1,7 +1,7 @@
 // Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System;
 using System.Runtime.InteropServices;
+using System.Xml.Linq;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.Completion;
@@ -582,7 +582,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options
 
         private static string GetUseVarOption(SimpleCodeStyleOption option)
         {
-            return option.SerializeObject();
+            return option.ToXElement().ToString();
         }
 
         private void SetUseVarOption(Option<SimpleCodeStyleOption> option, string value)
@@ -590,7 +590,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options
             SimpleCodeStyleOption convertedValue = SimpleCodeStyleOption.Default;
             var optionSet = _optionService.GetOptions();
 
-            convertedValue = (SimpleCodeStyleOption)value.DeserializeObject<SimpleCodeStyleOption>();
+            convertedValue = SimpleCodeStyleOption.FromXElement(XElement.Parse(value));
             optionSet = optionSet.WithChangedOption(option, convertedValue);
             _optionService.SetOptions(optionSet);
         }

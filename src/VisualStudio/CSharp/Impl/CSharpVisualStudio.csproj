@@ -207,7 +207,6 @@
     <Compile Include="ObjectBrowser\ListItemFactory.cs" />
     <Compile Include="Options\AdvancedOptionPageStrings.cs" />
     <Compile Include="Options\IntelliSenseOptionPageStrings.cs" />
-    <Compile Include="Options\SerializationHelpers.cs" />
     <Compile Include="Venus\CSharpAdditionalFormattingRuleLanguageService.cs" />
     <Compile Include="CSharpPackage.cs" />
     <Compile Include="CSharpVSResources.Designer.cs">
