@@ -813,36 +813,36 @@ namespace Microsoft.CodeAnalysis.CSharp
     partial class BoundPatternSwitchStatement
     {
         // TODO: this may need its own OperationKind.
-        protected override OperationKind StatementKind => OperationKind.SwitchStatement;
+        protected override OperationKind StatementKind => OperationKind.None;
 
         public override void Accept(OperationVisitor visitor)
         {
             // TODO: implement IOperation for pattern-matching constructs (https://github.com/dotnet/roslyn/issues/8699)
-            throw new NotImplementedException();
+            visitor.VisitNoneOperation(this);
         }
 
         public override TResult Accept<TArgument, TResult>(OperationVisitor<TArgument, TResult> visitor, TArgument argument)
         {
             // TODO: implement IOperation for pattern-matching constructs (https://github.com/dotnet/roslyn/issues/8699)
-            throw new NotImplementedException();
+            return visitor.VisitNoneOperation(this, argument);
         }
     }
 
     partial class BoundLetStatement
     {
         // TODO: this may need its own OperationKind.
-        protected override OperationKind StatementKind => OperationKind.IfStatement;
+        protected override OperationKind StatementKind => OperationKind.None;
 
         public override void Accept(OperationVisitor visitor)
         {
             // TODO: implement IOperation for pattern-matching constructs (https://github.com/dotnet/roslyn/issues/8699)
-            throw new NotImplementedException();
+            visitor.VisitNoneOperation(this);
         }
 
         public override TResult Accept<TArgument, TResult>(OperationVisitor<TArgument, TResult> visitor, TArgument argument)
         {
             // TODO: implement IOperation for pattern-matching constructs (https://github.com/dotnet/roslyn/issues/8699)
-            throw new NotImplementedException();
+            return visitor.VisitNoneOperation(this, argument);
         }
     }
 }
