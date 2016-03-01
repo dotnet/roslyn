@@ -43,7 +43,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Packaging
                 patchService:=Nothing,
                 databaseFactoryService:=Nothing,
                 localSettingsDirectory:="TestDirectory",
-                swallowException:=s_allButMoqExceptions,
+                reportAndSwallowException:=s_allButMoqExceptions,
                 cancellationTokenSource:=cancellationTokenSource)
 
             Await service.UpdateSourceInBackgroundAsync(PackageSearchService.NugetOrgSource)
@@ -73,7 +73,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Packaging
                 patchService:=Nothing,
                 databaseFactoryService:=Nothing,
                 localSettingsDirectory:="TestDirectory",
-                swallowException:=s_allButMoqExceptions,
+                reportAndSwallowException:=s_allButMoqExceptions,
                 cancellationTokenSource:=cancellationTokenSource)
 
             Await service.UpdateSourceInBackgroundAsync(PackageSearchService.NugetOrgSource)
@@ -110,7 +110,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Packaging
                 patchService:=Nothing,
                 databaseFactoryService:=Nothing,
                 localSettingsDirectory:="TestDirectory",
-                swallowException:=s_allButMoqExceptions,
+                reportAndSwallowException:=s_allButMoqExceptions,
                 cancellationTokenSource:=cancellationTokenSource)
 
             Await searchService.UpdateSourceInBackgroundAsync(PackageSearchService.NugetOrgSource)
@@ -144,7 +144,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Packaging
                 patchService:=Nothing,
                 databaseFactoryService:=Nothing,
                 localSettingsDirectory:="TestDirectory",
-                swallowException:=s_allButMoqExceptions,
+                reportAndSwallowException:=s_allButMoqExceptions,
                 cancellationTokenSource:=cancellationTokenSource)
 
             Await searchService.UpdateSourceInBackgroundAsync(PackageSearchService.NugetOrgSource)
@@ -192,7 +192,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Packaging
                 patchService:=Nothing,
                 databaseFactoryService:=Nothing,
                 localSettingsDirectory:="TestDirectory",
-                swallowException:=s_allButMoqExceptions,
+                reportAndSwallowException:=s_allButMoqExceptions,
                 cancellationTokenSource:=cancellationTokenSource)
 
             Await searchService.UpdateSourceInBackgroundAsync(PackageSearchService.NugetOrgSource)
@@ -235,7 +235,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Packaging
                 patchService:=Nothing,
                 databaseFactoryService:=factoryMock.Object,
                 localSettingsDirectory:="TestDirectory",
-                swallowException:=s_allButMoqExceptions,
+                reportAndSwallowException:=s_allButMoqExceptions,
                 cancellationTokenSource:=cancellationTokenSource)
 
             Await searchService.UpdateSourceInBackgroundAsync(PackageSearchService.NugetOrgSource)
@@ -282,7 +282,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Packaging
                 patchService:=Nothing,
                 databaseFactoryService:=factoryMock.Object,
                 localSettingsDirectory:="TestDirectory",
-                swallowException:=s_allButMoqExceptions,
+                reportAndSwallowException:=s_allButMoqExceptions,
                 cancellationTokenSource:=cancellationTokenSource)
 
             Await searchService.UpdateSourceInBackgroundAsync(PackageSearchService.NugetOrgSource)
@@ -340,7 +340,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Packaging
                 patchService:=Nothing,
                 databaseFactoryService:=factoryMock.Object,
                 localSettingsDirectory:="TestDirectory",
-                swallowException:=s_allButMoqExceptions,
+                reportAndSwallowException:=s_allButMoqExceptions,
                 cancellationTokenSource:=cancellationTokenSource)
 
             Await searchService.UpdateSourceInBackgroundAsync(PackageSearchService.NugetOrgSource)
@@ -385,7 +385,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Packaging
                 patchService:=Nothing,
                 databaseFactoryService:=databaseFactoryMock.Object,
                 localSettingsDirectory:="TestDirectory",
-                swallowException:=s_allButMoqExceptions,
+                reportAndSwallowException:=s_allButMoqExceptions,
                 cancellationTokenSource:=cancellationTokenSource)
 
             Await searchService.UpdateSourceInBackgroundAsync(PackageSearchService.NugetOrgSource)
@@ -438,7 +438,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Packaging
                 patchService:=Nothing,
                 databaseFactoryService:=databaseFactoryMock.Object,
                 localSettingsDirectory:="TestDirectory",
-                swallowException:=s_allButMoqExceptions,
+                reportAndSwallowException:=s_allButMoqExceptions,
                 cancellationTokenSource:=cancellationTokenSource)
 
             Await searchService.UpdateSourceInBackgroundAsync(PackageSearchService.NugetOrgSource)
@@ -497,7 +497,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Packaging
                 patchService:=Nothing,
                 databaseFactoryService:=databaseFactoryMock.Object,
                 localSettingsDirectory:="TestDirectory",
-                swallowException:=s_allButMoqExceptions,
+                reportAndSwallowException:=s_allButMoqExceptions,
                 cancellationTokenSource:=cancellationTokenSource)
 
             Await searchService.UpdateSourceInBackgroundAsync(PackageSearchService.NugetOrgSource)
@@ -552,7 +552,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Packaging
                 patchService:=patchMock.Object,
                 databaseFactoryService:=databaseFactoryMock.Object,
                 localSettingsDirectory:="TestDirectory",
-                swallowException:=s_allButMoqExceptions,
+                reportAndSwallowException:=s_allButMoqExceptions,
                 cancellationTokenSource:=cancellationTokenSource)
 
             Await searchService.UpdateSourceInBackgroundAsync(PackageSearchService.NugetOrgSource)
