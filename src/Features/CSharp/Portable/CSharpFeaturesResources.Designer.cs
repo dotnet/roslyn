@@ -764,6 +764,15 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Selection can not contain a pattern expression..
+        /// </summary>
+        internal static string SelectionCanNotContainPattern {
+            get {
+                return ResourceManager.GetString("SelectionCanNotContainPattern", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Selection can not contain throw statement..
         /// </summary>
         internal static string SelectionCanNotContainThrowStatement {

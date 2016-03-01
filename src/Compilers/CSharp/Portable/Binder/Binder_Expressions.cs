@@ -604,6 +604,15 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case SyntaxKind.InterpolatedStringExpression:
                     return BindInterpolatedString((InterpolatedStringExpressionSyntax)node, diagnostics);
 
+                case SyntaxKind.IsPatternExpression:
+                    return BindIsPatternExpression((IsPatternExpressionSyntax)node, diagnostics);
+
+                case SyntaxKind.MatchExpression:
+                    return BindMatchExpression((MatchExpressionSyntax)node, diagnostics);
+
+                case SyntaxKind.ThrowExpression:
+                    return BindThrowExpression((ThrowExpressionSyntax)node, diagnostics);
+
                 default:
                     // NOTE: We could probably throw an exception here, but it's conceivable
                     // that a non-parser syntax tree could reach this point with an unexpected
@@ -2631,6 +2640,19 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// This method should be kept consistent with Compiler.BindConstructorInitializer (e.g. same error codes).
         /// </remarks>
         internal BoundExpression BindConstructorInitializer(
+            ArgumentListSyntax initializerArgumentListOpt,
+            MethodSymbol constructor,
+            DiagnosticBag diagnostics)
+        {
+            // Handle scoping for possible pattern variables declared in the initializer
+            PatternVariableBinder patBinder = (initializerArgumentListOpt != null)
+                ? new PatternVariableBinder(initializerArgumentListOpt, initializerArgumentListOpt.Arguments, this)
+                : null;
+            var result = (patBinder ?? this).BindConstructorInitializerCore(initializerArgumentListOpt, constructor, diagnostics);
+            return patBinder?.WrapWithPatternVariables(result) ?? result;
+        }
+
+        private BoundExpression BindConstructorInitializerCore(
             ArgumentListSyntax initializerArgumentListOpt,
             MethodSymbol constructor,
             DiagnosticBag diagnostics)

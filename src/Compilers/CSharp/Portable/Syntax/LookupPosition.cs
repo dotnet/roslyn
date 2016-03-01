@@ -234,6 +234,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         }
 
         /// <remarks>
+        /// Used to determine whether it would be appropriate to use the binder for the switch section (if any).
+        /// Not used to determine whether the position is syntactically within the statement.
+        /// </remarks>
+        internal static bool IsInSwitchSectionScope(int position, SwitchSectionSyntax section)
+        {
+            Debug.Assert(section != null);
+            return section.Span.Contains(position);
+        }
+
+        /// <remarks>
         /// Used to determine whether it would be appropriate to use the binder for the statement (if any).
         /// Not used to determine whether the position is syntactically within the statement.
         /// </remarks>
@@ -324,6 +334,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
                 case SyntaxKind.YieldReturnStatement:
                 case SyntaxKind.YieldBreakStatement:
                     return ((YieldStatementSyntax)statement).YieldKeyword;
+                case SyntaxKind.LetStatement:
+                    return ((LetStatementSyntax)statement).LetKeyword;
                 case SyntaxKind.LocalFunctionStatement:
                     return statement.GetFirstToken();
                 default:
@@ -401,6 +413,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
                 case SyntaxKind.YieldReturnStatement:
                 case SyntaxKind.YieldBreakStatement:
                     return ((YieldStatementSyntax)statement).SemicolonToken;
+                case SyntaxKind.LetStatement:
+                    {
+                        var letStatement = (LetStatementSyntax)statement;
+                        if (letStatement.SemicolonToken != default(SyntaxToken)) return letStatement.SemicolonToken;
+                        return GetFirstExcludedToken(letStatement.ElseClause?.Statement);
+                    }
                 case SyntaxKind.LocalFunctionStatement:
                     LocalFunctionStatementSyntax localFunctionStmt = (LocalFunctionStatementSyntax)statement;
                     if (localFunctionStmt.Body != null)
