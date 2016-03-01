@@ -2760,13 +2760,13 @@ namespace Microsoft.CodeAnalysis.CSharp
         public override void Accept(OperationVisitor visitor)
         {
             // TODO: implement IOperation for pattern-matching constructs (https://github.com/dotnet/roslyn/issues/8699)
-            throw new NotImplementedException();
+            visitor.VisitNoneOperation(this);
         }
 
         public override TResult Accept<TArgument, TResult>(OperationVisitor<TArgument, TResult> visitor, TArgument argument)
         {
             // TODO: implement IOperation for pattern-matching constructs (https://github.com/dotnet/roslyn/issues/8699)
-            throw new NotImplementedException();
+            return visitor.VisitNoneOperation(this, argument);
         }
 
         protected override OperationKind ExpressionKind
@@ -2774,7 +2774,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             get
             {
                 // TODO: implement IOperation for pattern-matching constructs (https://github.com/dotnet/roslyn/issues/8699)
-                throw new NotImplementedException();
+                return OperationKind.None;
             }
         }
     }
@@ -2784,13 +2784,13 @@ namespace Microsoft.CodeAnalysis.CSharp
         public override void Accept(OperationVisitor visitor)
         {
             // TODO: implement IOperation for pattern-matching constructs (https://github.com/dotnet/roslyn/issues/8699)
-            throw new NotImplementedException();
+            visitor.VisitNoneOperation(this);
         }
 
         public override TResult Accept<TArgument, TResult>(OperationVisitor<TArgument, TResult> visitor, TArgument argument)
         {
             // TODO: implement IOperation for pattern-matching constructs (https://github.com/dotnet/roslyn/issues/8699)
-            throw new NotImplementedException();
+            return visitor.VisitNoneOperation(this, argument);
         }
 
         protected override OperationKind ExpressionKind
@@ -2798,7 +2798,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             get
             {
                 // TODO: implement IOperation for pattern-matching constructs (https://github.com/dotnet/roslyn/issues/8699)
-                throw new NotImplementedException();
+                return OperationKind.None;
             }
         }
     }
@@ -2808,13 +2808,13 @@ namespace Microsoft.CodeAnalysis.CSharp
         public override void Accept(OperationVisitor visitor)
         {
             // TODO: implement IOperation for pattern-matching constructs (https://github.com/dotnet/roslyn/issues/8699)
-            throw new NotImplementedException();
+            visitor.VisitNoneOperation(this);
         }
 
         public override TResult Accept<TArgument, TResult>(OperationVisitor<TArgument, TResult> visitor, TArgument argument)
         {
             // TODO: implement IOperation for pattern-matching constructs (https://github.com/dotnet/roslyn/issues/8699)
-            throw new NotImplementedException();
+            return visitor.VisitNoneOperation(this, argument);
         }
 
         protected override OperationKind ExpressionKind
@@ -2822,7 +2822,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             get
             {
                 // TODO: implement IOperation for pattern-matching constructs (https://github.com/dotnet/roslyn/issues/8699)
-                throw new NotImplementedException();
+                return OperationKind.None;
             }
         }
     }
