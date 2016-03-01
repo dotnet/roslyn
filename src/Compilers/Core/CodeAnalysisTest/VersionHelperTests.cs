@@ -1,10 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using Microsoft.CodeAnalysis.Text;
+using Microsoft.CodeAnalysis.Test.Utilities;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.UnitTests
@@ -33,31 +30,30 @@ namespace Microsoft.CodeAnalysis.UnitTests
         [Fact]
         public void TimeBased()
         {
-            var version = VersionHelper.GenerateVersionFromPatternAndCurrentTime(new Version(3, 2, 65535, 65535));
-            int d = (int)(DateTime.Now - new DateTime(2000, 1, 1)).TotalDays; // number of days since Jan 1, 2000
-            int s = (int)DateTime.Now.TimeOfDay.TotalSeconds / 2; // number of seconds since midnight divided by two
+            var now = DateTime.Now;
+            int days, seconds;
+            VersionTestHelpers.GetDefautVersion(now, out days, out seconds);
 
+            var version = VersionHelper.GenerateVersionFromPatternAndCurrentTime(now, new Version(3, 2, 65535, 65535));
             Assert.Equal(3, version.Major);
             Assert.Equal(2, version.Minor);
-            Assert.Equal(d, version.Build); 
-            Assert.InRange(version.Revision, s - 2, s + 2);
+            Assert.Equal(days, version.Build); 
+            Assert.Equal(seconds, version.Revision);
 
-            version = VersionHelper.GenerateVersionFromPatternAndCurrentTime(new Version(1, 2, 3, 65535));
-            s = (int)DateTime.Now.TimeOfDay.TotalSeconds / 2; // number of seconds since midnight divided by two
+            version = VersionHelper.GenerateVersionFromPatternAndCurrentTime(now, new Version(1, 2, 3, 65535));
 
             Assert.Equal(1, version.Major);
             Assert.Equal(2, version.Minor);
             Assert.Equal(3, version.Build);
+            Assert.Equal(seconds, version.Revision);
 
-            Assert.InRange(version.Revision, s - 2, s + 2);
-
-            version = VersionHelper.GenerateVersionFromPatternAndCurrentTime(new Version(1, 2, 3, 4));
+            version = VersionHelper.GenerateVersionFromPatternAndCurrentTime(now, new Version(1, 2, 3, 4));
             Assert.Equal(1, version.Major);
             Assert.Equal(2, version.Minor);
             Assert.Equal(3, version.Build);
             Assert.Equal(4, version.Revision);
 
-            Assert.Null(VersionHelper.GenerateVersionFromPatternAndCurrentTime(null));
+            Assert.Null(VersionHelper.GenerateVersionFromPatternAndCurrentTime(now, null));
         }
 
         [Fact]
