@@ -3128,7 +3128,8 @@ class Program
         End Sub
 
         <WorkItem(622086, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/622086")>
-        <Fact, Trait(Traits.Feature, Traits.Features.Rename)>
+        <Fact(Skip:="https://github.com/dotnet/roslyn/issues/9412")>
+        <Trait(Traits.Feature, Traits.Features.Rename)>
         Public Sub Bug622086_CSRenameExplicitInterfaceImplementation()
             Using result = RenameEngineResult.Create(
                 <Workspace>

@@ -1,5 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using RunTests.Cache;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -14,6 +15,8 @@ namespace RunTests
     internal sealed class ProcessTestExecutor : ITestExecutor
     {
         private readonly Options _options;
+
+        public IDataStorage DataStorage => EmptyDataStorage.Instance;
 
         internal ProcessTestExecutor(Options options)
         {
@@ -125,7 +128,8 @@ namespace RunTests
                     commandLine: commandLine,
                     elapsed: span,
                     standardOutput: standardOutput,
-                    errorOutput: errorOutput);
+                    errorOutput: errorOutput,
+                    isResultFromCache: false);
             }
             catch (Exception ex)
             {
