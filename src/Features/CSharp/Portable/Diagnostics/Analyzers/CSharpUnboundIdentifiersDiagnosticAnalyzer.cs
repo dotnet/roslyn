@@ -29,6 +29,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics
             }
         }
 
+        protected override bool AnalyzeIncompleteMembers => false;
+
         protected override DiagnosticDescriptor DiagnosticDescriptor => GetDiagnosticDescriptor(NameNotInContext, _nameNotInContextMessageFormat);
 
         protected override DiagnosticDescriptor DiagnosticDescriptor2 => GetDiagnosticDescriptor(ConstructorOverloadResolutionFailure, _constructorOverloadResolutionFailureMessageFormat);

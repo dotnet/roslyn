@@ -2452,7 +2452,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                         ErrorCode.ERR_BadModifierLocation,
                         misplacedModifier.Text);
 
-                    return _syntaxFactory.IncompleteMember(attributes, modifiers.ToTokenList(), type);
+                    // We have a complete type, but it's followed by a modifier.  This is likely 
+                    // something like:
+                    //
+                    //      WebClient
+                    //      public SomethingElse...
+                    //
+                    // In a case like this, just parse out a field with a missing variable declarator.
+                    // By doing this, all the rest of our features will light up properly (analyzers/etc.)
+                    return this.ParseNormalFieldDeclaration(attributes, modifiers, type, parentKind);
                 }
 
             parse_member_name:;
@@ -2492,22 +2500,22 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                         return null;
                     }
 
-                    var incompleteMember = _syntaxFactory.IncompleteMember(attributes, modifiers.ToTokenList(), type.IsMissing ? null : type);
-                    if (incompleteMember.ContainsDiagnostics)
+                    var incompleteField = CreateIncompleteField(attributes, modifiers, type);
+                    if (incompleteField.ContainsDiagnostics)
                     {
-                        return incompleteMember;
+                        return incompleteField;
                     }
                     else if (parentKind == SyntaxKind.NamespaceDeclaration ||
                              parentKind == SyntaxKind.CompilationUnit && !IsScript)
                     {
-                        return this.AddErrorToLastToken(incompleteMember, ErrorCode.ERR_NamespaceUnexpected);
+                        return this.AddErrorToLastToken(incompleteField, ErrorCode.ERR_NamespaceUnexpected);
                     }
                     else
                     {
                         //the error position should indicate CurrentToken
                         return this.AddError(
-                            incompleteMember,
-                            incompleteMember.FullWidth + this.CurrentToken.GetLeadingTriviaWidth(),
+                            incompleteField,
+                            incompleteField.FullWidth + this.CurrentToken.GetLeadingTriviaWidth(),
                             this.CurrentToken.Width,
                             ErrorCode.ERR_InvalidMemberDecl,
                             this.CurrentToken.Text);
@@ -2556,6 +2564,17 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 _pool.Free(attributes);
                 _termState = saveTermState;
             }
+        }
+
+        private FieldDeclarationSyntax CreateIncompleteField(
+            SyntaxListBuilder<AttributeListSyntax> attributes, SyntaxListBuilder modifiers, TypeSyntax type)
+        {
+            // Make a field declaration with all the provided values along with a missing name.
+            var variableDeclarator = _syntaxFactory.VariableDeclarator(CreateMissingIdentifierToken(), argumentList: null, initializer: null);
+            var variableDeclarators = SeparatedSyntaxListBuilder<VariableDeclaratorSyntax>.Create().Add(variableDeclarator).ToList();
+            var variableDeclaration = _syntaxFactory.VariableDeclaration(type, variableDeclarators);
+            return _syntaxFactory.FieldDeclaration(
+                attributes, modifiers.ToTokenList(), variableDeclaration, EatToken(SyntaxKind.SemicolonToken));
         }
 
         // if the modifiers do not contain async and the type is the identifier "async", then

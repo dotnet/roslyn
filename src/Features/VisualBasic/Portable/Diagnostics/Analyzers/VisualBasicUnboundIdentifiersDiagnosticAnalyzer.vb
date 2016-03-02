@@ -31,6 +31,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Diagnostics
             End Get
         End Property
 
+        Protected Overrides ReadOnly Property AnalyzeIncompleteMembers As Boolean
+            Get
+                Return False
+            End Get
+        End Property
+
         Protected Overrides ReadOnly Property DiagnosticDescriptor As DiagnosticDescriptor
             Get
                 Return GetDiagnosticDescriptor(s_undefinedType1, _messageFormat)
