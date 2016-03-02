@@ -1844,17 +1844,8 @@ namespace Microsoft.CodeAnalysis
                     {
                         Debug.Assert(Options.StrongNameProvider != null);
 
-                        // Targeted try-catch for errors during CreateInputStream as found in TFS 1140649
-                        // TODO: Put this wrapping in PeWriter to catch all potential PE writing exceptions
-                        try
-                        {
-                            signingInputStream = Options.StrongNameProvider.CreateInputStream();
-                            retStream = signingInputStream;
-                        }
-                        catch (Exception e)
-                        {
-                            throw new Cci.PeWritingException(e);
-                        }
+                        signingInputStream = Options.StrongNameProvider.CreateInputStream();
+                        retStream = signingInputStream;
                     }
                     else
                     {
@@ -1917,9 +1908,8 @@ namespace Microsoft.CodeAnalysis
                 }
                 catch (Cci.PeWritingException e)
                 {
-                    // Targeted fix for TFS 1140649
-                    // TODO: Add resource and better error message for a variety of PE exceptions
-                    diagnostics.Add(StrongNameKeys.GetError(StrongNameKeys.KeyFilePath, StrongNameKeys.KeyContainer, e.Message, MessageProvider));
+                    diagnostics.Add(MessageProvider.CreateDiagnostic(MessageProvider.ERR_PeWritingFailure, Location.None, e.Message));
+                    return false;
                 }
                 catch (ResourceException e)
                 {

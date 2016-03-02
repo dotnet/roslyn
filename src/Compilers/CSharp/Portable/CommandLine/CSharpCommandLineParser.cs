@@ -1118,6 +1118,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                 keyFileSearchPaths.Add(outputDirectory);
             }
 
+            // Public sign doesn't use the legacy search path settings
+            if (publicSign && !string.IsNullOrWhiteSpace(keyFileSetting))
+            {
+                keyFileSetting = ParseGenericPathToFile(keyFileSetting, diagnostics, baseDirectory);
+            }
+
             var parsedFeatures = CompilerOptionParseUtilities.ParseFeatures(features);
 
             string compilationName;
