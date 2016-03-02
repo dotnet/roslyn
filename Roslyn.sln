@@ -290,7 +290,9 @@ Project("{F184B08F-C81C-45F6-A57F-5ABD9991F28F}") = "BasicScriptingTest", "src\S
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Diagnostics", "src\Test\Diagnostics\Diagnostics.csproj", "{E2E889A5-2489-4546-9194-47C63E49EAEB}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TestRuntime.FX46", "src\Test\Utilities\Runtime.FX46\TestRuntime.FX46.csproj", "{23683607-168A-4189-955E-908F0E80E60D}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CSharpCompilerPerformanceTest", "src\Compilers\CSharp\Test\Performance\CSharpCompilerPerformanceTest.csproj", "{ECBB1F28-2672-4344-8CB3-83882F291739}"
+EndProject
+Project("{F184B08F-C81C-45F6-A57F-5ABD9991F28F}") = "BasicCompilerPerformanceTest", "src\Compilers\VisualBasic\Test\Performance\BasicCompilerPerformanceTest.vbproj", "{0835A7FB-C472-4F7D-A500-F9FD072CFF21}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CsiCore", "src\Interactive\CsiCore\CsiCore.csproj", "{D1B051A4-F2A1-4E97-9747-C41D13E475FD}"
 EndProject
@@ -360,10 +362,7 @@ Global
 		src\ExpressionEvaluator\Core\Source\ResultProvider\ResultProvider.projitems*{fa0e905d-ec46-466d-b7b2-3b5557f9428c}*SharedItemsImports = 4
 		src\Compilers\Core\AnalyzerDriver\AnalyzerDriver.projitems*{1ee8cad3-55f9-4d91-96b2-084641da9a6c}*SharedItemsImports = 4
 		src\Compilers\Core\SharedCollections\SharedCollections.projitems*{1ee8cad3-55f9-4d91-96b2-084641da9a6c}*SharedItemsImports = 4
-<<<<<<< HEAD
-=======
 		src\Compilers\Core\CommandLine\CommandLine.projitems*{7ad4fe65-9a30-41a6-8004-aa8f89bcb7f3}*SharedItemsImports = 4
->>>>>>> b884520... removed old unfinished perf work
 		src\Compilers\Core\MSBuildTask\Shared\MSBuildTask.Shared.projitems*{7ad4fe65-9a30-41a6-8004-aa8f89bcb7f3}*SharedItemsImports = 4
 		src\Compilers\Core\CommandLine\CommandLine.projitems*{7ad4fe65-9a30-41a6-8004-aa8f89bcb7f3}*SharedItemsImports = 4
 		src\Compilers\CSharp\CSharpAnalyzerDriver\CSharpAnalyzerDriver.projitems*{3973b09a-4fbf-44a5-8359-3d22ceb71f71}*SharedItemsImports = 4
@@ -2581,7 +2580,6 @@ Global
 		{E2E889A5-2489-4546-9194-47C63E49EAEB}.Release|x64.Build.0 = Release|Any CPU
 		{E2E889A5-2489-4546-9194-47C63E49EAEB}.Release|x86.ActiveCfg = Release|Any CPU
 		{E2E889A5-2489-4546-9194-47C63E49EAEB}.Release|x86.Build.0 = Release|Any CPU
-<<<<<<< HEAD
 		{ECBB1F28-2672-4344-8CB3-83882F291739}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{ECBB1F28-2672-4344-8CB3-83882F291739}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{ECBB1F28-2672-4344-8CB3-83882F291739}.Debug|ARM.ActiveCfg = Debug|Any CPU
@@ -2642,28 +2640,6 @@ Global
 		{0835A7FB-C472-4F7D-A500-F9FD072CFF21}.Release|x64.Build.0 = Release|Any CPU
 		{0835A7FB-C472-4F7D-A500-F9FD072CFF21}.Release|x86.ActiveCfg = Release|Any CPU
 		{0835A7FB-C472-4F7D-A500-F9FD072CFF21}.Release|x86.Build.0 = Release|Any CPU
-=======
-		{23683607-168A-4189-955E-908F0E80E60D}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{23683607-168A-4189-955E-908F0E80E60D}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{23683607-168A-4189-955E-908F0E80E60D}.Debug|ARM.ActiveCfg = Debug|Any CPU
-		{23683607-168A-4189-955E-908F0E80E60D}.Debug|ARM.Build.0 = Debug|Any CPU
-		{23683607-168A-4189-955E-908F0E80E60D}.Debug|Mixed Platforms.ActiveCfg = Debug|Any CPU
-		{23683607-168A-4189-955E-908F0E80E60D}.Debug|Mixed Platforms.Build.0 = Debug|Any CPU
-		{23683607-168A-4189-955E-908F0E80E60D}.Debug|x64.ActiveCfg = Debug|Any CPU
-		{23683607-168A-4189-955E-908F0E80E60D}.Debug|x64.Build.0 = Debug|Any CPU
-		{23683607-168A-4189-955E-908F0E80E60D}.Debug|x86.ActiveCfg = Debug|Any CPU
-		{23683607-168A-4189-955E-908F0E80E60D}.Debug|x86.Build.0 = Debug|Any CPU
-		{23683607-168A-4189-955E-908F0E80E60D}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{23683607-168A-4189-955E-908F0E80E60D}.Release|Any CPU.Build.0 = Release|Any CPU
-		{23683607-168A-4189-955E-908F0E80E60D}.Release|ARM.ActiveCfg = Release|Any CPU
-		{23683607-168A-4189-955E-908F0E80E60D}.Release|ARM.Build.0 = Release|Any CPU
-		{23683607-168A-4189-955E-908F0E80E60D}.Release|Mixed Platforms.ActiveCfg = Release|Any CPU
-		{23683607-168A-4189-955E-908F0E80E60D}.Release|Mixed Platforms.Build.0 = Release|Any CPU
-		{23683607-168A-4189-955E-908F0E80E60D}.Release|x64.ActiveCfg = Release|Any CPU
-		{23683607-168A-4189-955E-908F0E80E60D}.Release|x64.Build.0 = Release|Any CPU
-		{23683607-168A-4189-955E-908F0E80E60D}.Release|x86.ActiveCfg = Release|Any CPU
-		{23683607-168A-4189-955E-908F0E80E60D}.Release|x86.Build.0 = Release|Any CPU
->>>>>>> b884520... removed old unfinished perf work
 		{D1B051A4-F2A1-4E97-9747-C41D13E475FD}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{D1B051A4-F2A1-4E97-9747-C41D13E475FD}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{D1B051A4-F2A1-4E97-9747-C41D13E475FD}.Debug|ARM.ActiveCfg = Debug|Any CPU
@@ -2980,13 +2956,9 @@ Global
 		{24973B4C-FD09-4EE1-97F4-EA03E6B12040} = {38940C5F-97FD-4B2A-B2CD-C4E4EF601B05}
 		{ABC7262E-1053-49F3-B846-E3091BB92E8C} = {38940C5F-97FD-4B2A-B2CD-C4E4EF601B05}
 		{E2E889A5-2489-4546-9194-47C63E49EAEB} = {8DBA5174-B0AA-4561-82B1-A46607697753}
-<<<<<<< HEAD
 		{ECBB1F28-2672-4344-8CB3-83882F291739} = {32A48625-F0AD-419D-828B-A50BDABA38EA}
 		{308CEBD4-418A-4C3B-97A5-24723B288157} = {A41D1B99-F489-4C43-BBDF-96D61B19A6B9}
 		{0835A7FB-C472-4F7D-A500-F9FD072CFF21} = {C65C6143-BED3-46E6-869E-9F0BE6E84C37}
-=======
-		{23683607-168A-4189-955E-908F0E80E60D} = {A41D1B99-F489-4C43-BBDF-96D61B19A6B9}
->>>>>>> b884520... removed old unfinished perf work
 		{D1B051A4-F2A1-4E97-9747-C41D13E475FD} = {5CA5F70E-0FDB-467B-B22C-3CD5994F0087}
 		{1EEFB4B6-A6CC-4869-AF05-A43C8B82A8FD} = {5CA5F70E-0FDB-467B-B22C-3CD5994F0087}
 		{E8F0BAA5-7327-43D1-9A51-644E81AE55F1} = {C65C6143-BED3-46E6-869E-9F0BE6E84C37}
