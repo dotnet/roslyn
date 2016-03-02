@@ -634,6 +634,7 @@ namespace Microsoft.CodeAnalysis
                                 var metadataReference = await solution.GetMetadataReferenceAsync(
                                     projectReference, this.ProjectState, cancellationToken).ConfigureAwait(false);
 
+                                solution.Workspace.LogMessage($"Failed to get metadata reference for {referencedProject.Name}");
 
                                 // A reference can fail to be created if a skeleton assembly could not be constructed.
                                 if (metadataReference != null)
@@ -799,6 +800,10 @@ namespace Microsoft.CodeAnalysis
                                 var compilationInfo = await this.GetOrBuildCompilationInfoAsync(solution, lockGate: false, cancellationToken: cancellationToken).ConfigureAwait(false);
                                 reference = MetadataOnlyReference.GetOrBuildReference(solution, projectReference, compilationInfo.Compilation, version, cancellationToken);
                             }
+                        }
+                        else
+                        {
+                            solution.Workspace.LogMessage($"Got already cached metadata only skeleton reference for ${ProjectState.Name}");
                         }
 
                         return reference;

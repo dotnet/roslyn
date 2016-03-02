@@ -1,13 +1,20 @@
 ' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports Microsoft.CodeAnalysis.Rename.ConflictEngine
+Imports Xunit.Abstractions
 
 Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Rename.CSharp
     Public Class AliasTests
+        Private ReadOnly _outputHelper As ITestOutputHelper
+
+        Sub New(outputHelper As ITestOutputHelper)
+            _outputHelper = outputHelper
+        End Sub
+
         <WorkItem(543759, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543759")>
         <Fact, Trait(Traits.Feature, Traits.Features.Rename)>
         Public Sub RenameNamespaceAlias()
-            Using result = RenameEngineResult.Create(
+            Using result = RenameEngineResult.Create(_outputHelper,
                     <Workspace>
                         <Project Language="C#" CommonReferences="true">
                             <Document>
@@ -27,7 +34,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Rename.CSharp
         <Fact>
         <Trait(Traits.Feature, Traits.Features.Rename)>
         Public Sub RenameNamespaceAndAlias()
-            Using result = RenameEngineResult.Create(
+            Using result = RenameEngineResult.Create(_outputHelper,
                 <Workspace>
                     <Project Language="C#" CommonReferences="true">
                         <Document>
@@ -48,7 +55,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Rename.CSharp
         <Fact>
         <Trait(Traits.Feature, Traits.Features.Rename)>
         Public Sub RenameNamespaceButNotDifferentlyNamedAlias()
-            Using result = RenameEngineResult.Create(
+            Using result = RenameEngineResult.Create(_outputHelper,
                 <Workspace>
                     <Project Language="C#" CommonReferences="true">
                         <Document>
@@ -70,7 +77,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Rename.CSharp
         <Fact>
         <Trait(Traits.Feature, Traits.Features.Rename)>
         Public Sub RenameConstructedTypeAliasFromUse()
-            Using result = RenameEngineResult.Create(
+            Using result = RenameEngineResult.Create(_outputHelper,
                 <Workspace>
                     <Project Language="C#" CommonReferences="true">
                         <Document><![CDATA[
@@ -94,7 +101,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Rename.CSharp
         <Fact>
         <Trait(Traits.Feature, Traits.Features.Rename)>
         Public Sub RenameConstructedTypeAliasFromDeclaration()
-            Using result = RenameEngineResult.Create(
+            Using result = RenameEngineResult.Create(_outputHelper,
                 <Workspace>
                     <Project Language="C#" CommonReferences="true">
                         <Document><![CDATA[
@@ -116,7 +123,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Rename.CSharp
         <Fact>
         <Trait(Traits.Feature, Traits.Features.Rename)>
         Public Sub RenameConstructedTypeAliasFromDeclaration2()
-            Using result = RenameEngineResult.Create(
+            Using result = RenameEngineResult.Create(_outputHelper,
                 <Workspace>
                     <Project Language="C#" CommonReferences="true">
                         <Document><![CDATA[
@@ -138,7 +145,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Rename.CSharp
         <Fact>
         <Trait(Traits.Feature, Traits.Features.Rename)>
         Public Sub RenameSimpleTypeAliasFromUse()
-            Using result = RenameEngineResult.Create(
+            Using result = RenameEngineResult.Create(_outputHelper,
                 <Workspace>
                     <Project Language="C#" CommonReferences="true">
                         <Document>
@@ -160,7 +167,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Rename.CSharp
         <Fact>
         <Trait(Traits.Feature, Traits.Features.Rename)>
         Public Sub RenameSimpleTypeAliasFromDeclaration()
-            Using result = RenameEngineResult.Create(
+            Using result = RenameEngineResult.Create(_outputHelper,
                 <Workspace>
                     <Project Language="C#" CommonReferences="true">
                         <Document>
@@ -182,7 +189,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Rename.CSharp
         <Fact>
         <Trait(Traits.Feature, Traits.Features.Rename)>
         Public Sub RenameSimpleSpecialTypeAliasVariable()
-            Using result = RenameEngineResult.Create(
+            Using result = RenameEngineResult.Create(_outputHelper,
                 <Workspace>
                     <Project Language="C#" CommonReferences="true">
                         <Document>
@@ -204,7 +211,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Rename.CSharp
         <Fact>
         <Trait(Traits.Feature, Traits.Features.Rename)>
         Public Sub RenameSimpleSpecialTypeDoubleAliasVariable()
-            Using result = RenameEngineResult.Create(
+            Using result = RenameEngineResult.Create(_outputHelper,
                 <Workspace>
                     <Project Language="C#" CommonReferences="true">
                         <Document>
@@ -227,7 +234,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Rename.CSharp
         <Fact>
         <Trait(Traits.Feature, Traits.Features.Rename)>
         Public Sub RenameSimpleTypeAliasVariable()
-            Using result = RenameEngineResult.Create(
+            Using result = RenameEngineResult.Create(_outputHelper,
                 <Workspace>
                     <Project Language="C#" CommonReferences="true">
                         <Document>
@@ -249,7 +256,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Rename.CSharp
         <Fact>
         <Trait(Traits.Feature, Traits.Features.Rename)>
         Public Sub RenameAliasNoConflict()
-            Using result = RenameEngineResult.Create(
+            Using result = RenameEngineResult.Create(_outputHelper,
                 <Workspace>
                     <Project Language="C#" CommonReferences="true">
                         <Document>
@@ -282,7 +289,7 @@ public class C3
         <Fact>
         <Trait(Traits.Feature, Traits.Features.Rename)>
         Public Sub RenameAliasToSameNameNoConflict()
-            Using result = RenameEngineResult.Create(
+            Using result = RenameEngineResult.Create(_outputHelper,
                 <Workspace>
                     <Project Language="C#" CommonReferences="true">
                         <Document>
@@ -310,7 +317,7 @@ public class C3
         <WorkItem(586743, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/586743")>
         <Trait(Traits.Feature, Traits.Features.Rename)>
         Public Sub RenameOneDuplicateAliasToNoConflict()
-            Using result = RenameEngineResult.Create(
+            Using result = RenameEngineResult.Create(_outputHelper,
                 <Workspace>
                     <Project Language="C#" CommonReferences="true">
                         <Document>
@@ -339,7 +346,7 @@ public class C3
         <WorkItem(542693, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542693")>
         <Trait(Traits.Feature, Traits.Features.Rename)>
         Public Sub RenameOuterAliasWithNestedAlias()
-            Using result = RenameEngineResult.Create(
+            Using result = RenameEngineResult.Create(_outputHelper,
                 <Workspace>
                     <Project Language="C#" CommonReferences="true">
                         <Document><![CDATA[
@@ -365,7 +372,7 @@ namespace N
         <WorkItem(10028, "DevDiv_Projects/Roslyn")>
         <Trait(Traits.Feature, Traits.Features.Rename)>
         Public Sub RenameConflictWithAlias()
-            Using result = RenameEngineResult.Create(
+            Using result = RenameEngineResult.Create(_outputHelper,
                 <Workspace>
                     <Project Language="C#" CommonReferences="true">
                         <Document><![CDATA[
@@ -395,7 +402,7 @@ class C1
         <WorkItem(579200, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/579200")>
         <Trait(Traits.Feature, Traits.Features.Rename)>
         Public Sub Bug579200_RenameNestedAliasTarget()
-            Using result = RenameEngineResult.Create(
+            Using result = RenameEngineResult.Create(_outputHelper,
                 <Workspace>
                     <Project Language="C#" CommonReferences="true">
                         <Document><![CDATA[
@@ -423,7 +430,7 @@ namespace N
         <WorkItem(579214, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/579214")>
         <Trait(Traits.Feature, Traits.Features.Rename)>
         Public Sub Bug579214_RenameAttributeNamedDynamic()
-            Using result = RenameEngineResult.Create(
+            Using result = RenameEngineResult.Create(_outputHelper,
                 <Workspace>
                     <Project Language="C#" CommonReferences="true">
                         <Document><![CDATA[
@@ -440,7 +447,7 @@ class C : [|$$dynamic|]::Object { }
         <WorkItem(629695, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/629695")>
         <Trait(Traits.Feature, Traits.Features.Rename)>
         Public Sub Bug629695_DetectConflictWithAliasInSameBlockCompUnit()
-            Using result = RenameEngineResult.Create(
+            Using result = RenameEngineResult.Create(_outputHelper,
                 <Workspace>
                     <Project Language="C#" CommonReferences="true">
                         <Document><![CDATA[
@@ -485,7 +492,7 @@ class Program
         <WorkItem(629695, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/629695")>
         <Trait(Traits.Feature, Traits.Features.Rename)>
         Public Sub Bug629695_DetectConflictWithAliasInSameBlockNSDecl()
-            Using result = RenameEngineResult.Create(
+            Using result = RenameEngineResult.Create(_outputHelper,
                 <Workspace>
                     <Project Language="C#" CommonReferences="true">
                         <Document><![CDATA[
@@ -533,7 +540,7 @@ namespace X
         <WorkItem(629695, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/629695")>
         <Trait(Traits.Feature, Traits.Features.Rename)>
         Public Sub Bug629695_DetectConflictWithAliasInSameBlockWithEscaping()
-            Using result = RenameEngineResult.Create(
+            Using result = RenameEngineResult.Create(_outputHelper,
                 <Workspace>
                     <Project Language="C#" CommonReferences="true">
                         <Document><![CDATA[
@@ -581,7 +588,7 @@ namespace X
         <WorkItem(603365, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/603365"), WorkItem(745833, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/745833")>
         <Trait(Traits.Feature, Traits.Features.Rename)>
         Public Sub Bug603365_RenameAliasToClassNameOnlyFixesAliasUsages_1()
-            Using result = RenameEngineResult.Create(
+            Using result = RenameEngineResult.Create(_outputHelper,
                 <Workspace>
                     <Project Language="C#" CommonReferences="true">
                         <Document><![CDATA[
@@ -609,7 +616,7 @@ namespace N
         <WorkItem(603365, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/603365")>
         <Trait(Traits.Feature, Traits.Features.Rename)>
         Public Sub Bug603365_RenameAliasToClassNameOnlyFixesAliasUsages_2()
-            Using result = RenameEngineResult.Create(
+            Using result = RenameEngineResult.Create(_outputHelper,
                 <Workspace>
                     <Project Language="C#" CommonReferences="true">
                         <Document><![CDATA[
@@ -639,7 +646,7 @@ namespace N
         <WorkItem(632303, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/632303")>
         <Trait(Traits.Feature, Traits.Features.Rename)>
         Public Sub RenameAliasToAttributeAndEndingWithAttributeAttribute()
-            Using result = RenameEngineResult.Create(
+            Using result = RenameEngineResult.Create(_outputHelper,
                 <Workspace>
                     <Project Language="C#" CommonReferences="true">
                         <Document><![CDATA[
@@ -674,7 +681,7 @@ class Program
         <WorkItem(632303, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/632303")>
         <Trait(Traits.Feature, Traits.Features.Rename)>
         Public Sub RenameAliasToAttributeAndEndingWithAttributeAttributeWithResolvedConflict()
-            Using result = RenameEngineResult.Create(
+            Using result = RenameEngineResult.Create(_outputHelper,
                 <Workspace>
                     <Project Language="C#" CommonReferences="true">
                         <Document><![CDATA[
@@ -711,7 +718,7 @@ class Program
         <WorkItem(529531, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529531")>
         <Trait(Traits.Feature, Traits.Features.Rename)>
         Public Sub RenameAliasToNullableWithResolvedConflict()
-            Using result = RenameEngineResult.Create(
+            Using result = RenameEngineResult.Create(_outputHelper,
                 <Workspace>
                     <Project Language="C#" CommonReferences="true">
                         <Document><![CDATA[

@@ -11,6 +11,7 @@ Imports Microsoft.VisualStudio.Text
 Imports Xunit.Sdk
 Imports Microsoft.CodeAnalysis.Options
 Imports Microsoft.CodeAnalysis.ErrorReporting
+Imports Xunit.Abstractions
 
 Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Rename
     ''' <summary>
@@ -55,8 +56,9 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Rename
             _renameTo = renameTo
         End Sub
 
-        Public Shared Function Create(workspaceXml As XElement, renameTo As String, Optional changedOptionSet As Dictionary(Of OptionKey, Object) = Nothing) As RenameEngineResult
+        Public Shared Function Create(helper As ITestOutputHelper, workspaceXml As XElement, renameTo As String, Optional changedOptionSet As Dictionary(Of OptionKey, Object) = Nothing) As RenameEngineResult
             Dim workspace = TestWorkspace.CreateWorkspace(workspaceXml)
+            workspace.SetLogger(AddressOf helper.WriteLine)
 
             Dim engineResult As RenameEngineResult = Nothing
             If workspace.Documents.Where(Function(d) d.CursorPosition.HasValue).Count <> 1 Then
@@ -176,7 +178,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Rename
                 AssertEx.Fail(String.Format("The label '{0}' was not mentioned in the test.", label))
             End If
 
-                Return locations
+            Return locations
         End Function
 
         Private Sub AssertLocationReplacedWith(location As Location, replacementText As String, Optional isRenameWithinStringOrComment As Boolean = False)
