@@ -16,8 +16,9 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             SyntaxNode expression,
             CancellationToken cancellationToken)
         {
-            var type = typeInferenceService.InferType(semanticModel, expression, objectAsDefault: false, cancellationToken: cancellationToken);
-            return type.GetDelegateType(semanticModel.Compilation);
+            var types = typeInferenceService.InferTypes(semanticModel, expression, cancellationToken);
+            var delegateTypes = types.Select(t => t?.GetDelegateType(semanticModel.Compilation));
+            return delegateTypes.WhereNotNull().FirstOrDefault();
         }
 
         public static ITypeSymbol InferType(this ITypeInferenceService typeInferenceService,
