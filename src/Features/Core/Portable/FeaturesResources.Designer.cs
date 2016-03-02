@@ -881,15 +881,6 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Generate variable.
-        /// </summary>
-        internal static string Generate_variable {
-            get {
-                return ResourceManager.GetString("Generate_variable", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   Looks up a localized string similar to Generate abstract method &apos;{0}&apos; in &apos;{1}&apos;.
         /// </summary>
         internal static string GenerateAbstractMethod {

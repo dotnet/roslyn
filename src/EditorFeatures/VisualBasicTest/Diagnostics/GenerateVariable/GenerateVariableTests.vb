@@ -3,7 +3,6 @@
 Option Strict Off
 
 Imports System.Threading.Tasks
-Imports Microsoft.CodeAnalysis.CodeActions
 Imports Microsoft.CodeAnalysis.CodeFixes
 Imports Microsoft.CodeAnalysis.Diagnostics
 Imports Microsoft.CodeAnalysis.VisualBasic.CodeFixes.GenerateVariable
@@ -14,10 +13,6 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Diagnostics.Genera
 
         Friend Overrides Function CreateDiagnosticProviderAndFixer(workspace As Workspace) As Tuple(Of DiagnosticAnalyzer, CodeFixProvider)
             Return New Tuple(Of DiagnosticAnalyzer, CodeFixProvider)(Nothing, New GenerateVariableCodeFixProvider())
-        End Function
-
-        Protected Overrides Function MassageActions(actions As IList(Of CodeAction)) As IList(Of CodeAction)
-            Return FlattenActions(actions)
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)>
