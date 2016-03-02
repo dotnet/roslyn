@@ -153,6 +153,14 @@ namespace Microsoft.CodeAnalysis
         public bool Deterministic { get; protected set; }
 
         /// <summary>
+        /// Used for time-based version generation when <see cref="System.Reflection.AssemblyVersionAttribute"/> contains a wildcard.
+        /// If equal to default(<see cref="DateTime"/>) the actual current local time will be used.
+        /// </summary>
+        internal DateTime CurrentLocalTime { get; private set; }
+
+        internal DateTime CurrentLocalTime_internal_protected_set { set { CurrentLocalTime = value; } }
+       
+        /// <summary>
         /// Emit extended custom debug information to the PDB file.
         /// </summary>
         internal bool ExtendedCustomDebugInformation { get; private set; }
@@ -269,6 +277,7 @@ namespace Microsoft.CodeAnalysis
             ImmutableDictionary<string, ReportDiagnostic> specificDiagnosticOptions,
             bool concurrentBuild,
             bool deterministic,
+            DateTime currentLocalTime,
             bool extendedCustomDebugInformation,
             bool debugPlusMode,
             XmlReferenceResolver xmlReferenceResolver,
@@ -296,6 +305,7 @@ namespace Microsoft.CodeAnalysis
             this.OptimizationLevel = optimizationLevel;
             this.ConcurrentBuild = concurrentBuild;
             this.Deterministic = deterministic;
+            this.CurrentLocalTime = currentLocalTime;
             this.ExtendedCustomDebugInformation = extendedCustomDebugInformation;
             this.DebugPlusMode = debugPlusMode;
             this.XmlReferenceResolver = xmlReferenceResolver;
@@ -535,6 +545,7 @@ namespace Microsoft.CodeAnalysis
                    this.CheckOverflow == other.CheckOverflow &&
                    this.ConcurrentBuild == other.ConcurrentBuild &&
                    this.Deterministic == other.Deterministic &&
+                   this.CurrentLocalTime == other.CurrentLocalTime &&
                    this.ExtendedCustomDebugInformation == other.ExtendedCustomDebugInformation &&
                    this.DebugPlusMode == other.DebugPlusMode &&
                    string.Equals(this.CryptoKeyContainer, other.CryptoKeyContainer, StringComparison.Ordinal) &&
@@ -570,6 +581,7 @@ namespace Microsoft.CodeAnalysis
             return Hash.Combine(this.CheckOverflow,
                    Hash.Combine(this.ConcurrentBuild,
                    Hash.Combine(this.Deterministic,
+                   Hash.Combine(this.CurrentLocalTime.GetHashCode(),
                    Hash.Combine(this.ExtendedCustomDebugInformation,
                    Hash.Combine(this.DebugPlusMode,
                    Hash.Combine(this.CryptoKeyContainer != null ? StringComparer.Ordinal.GetHashCode(this.CryptoKeyContainer) : 0,
@@ -592,7 +604,7 @@ namespace Microsoft.CodeAnalysis
                    Hash.Combine(this.SourceReferenceResolver,
                    Hash.Combine(this.StrongNameProvider,
                    Hash.Combine(this.AssemblyIdentityComparer,
-                   Hash.Combine(this.PublicSign, 0))))))))))))))))))))))))));
+                   Hash.Combine(this.PublicSign, 0)))))))))))))))))))))))))));
         }
 
         public static bool operator ==(CompilationOptions left, CompilationOptions right)
