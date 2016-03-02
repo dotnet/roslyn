@@ -690,7 +690,7 @@ namespace Microsoft.CodeAnalysis
                             {
                                 if (type.Locations.Any(l => l.IsInSource))
                                 {
-                                    var typeMetadataName = type.ContainingNamespace.IsGlobalNamespace ? type.MetadataName : type.ContainingNamespace.MetadataName + "." + type.MetadataName;
+                                    var typeMetadataName = type.ContainingNamespace.IsGlobalNamespace ? type.MetadataName : type.ContainingNamespace.ToDisplayString() + "." + type.MetadataName;
                                     var foundType = assemblySymbol.GetTypeByMetadataName(typeMetadataName);
 
                                     if (foundType == null)
