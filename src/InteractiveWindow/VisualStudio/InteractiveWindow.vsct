@@ -53,7 +53,7 @@
       <Group guid="guidInteractiveWindowCmdSet" id="ConsoleMenuClearGroup" priority="0x300">
         <Parent guid="guidInteractiveWindowCmdSet" id="menuIdInteractiveContextMenu"/>
       </Group>
-      <Group guid="guidInteractiveWindowCmdSet" id="TextEditorGroup" priority="0x101">
+      <Group guid="guidInteractiveWindowCmdSet" id="TextEditorGroup" priority="0x370">
         <Parent guid="guidSHLMainMenu" id="IDM_VS_CTXT_CODEWIN"/>
       </Group>
     </Groups>
@@ -231,6 +231,17 @@
             -->
 
       <!-- Text editor commands -->
+      <!-- TODO: Remove once https://github.com/dotnet/roslyn/issues/8927 is done. -->
+      <Button guid="guidInteractiveWindowCmdSet" id="cmdidExecuteInInteractiveWindow" priority="0x101" type="Button">
+        <Parent guid="guidInteractiveWindowCmdSet" id="TextEditorGroup" />
+        <CommandFlag>DynamicVisibility</CommandFlag>
+        <CommandFlag>DefaultInvisible</CommandFlag>
+        <Strings>
+          <ButtonText>Execute in Interactive</ButtonText>
+          <CanonicalName>.InteractiveConsole.ExecuteInInteractive</CanonicalName>
+          <LocCanonicalName>.InteractiveConsole.ExecuteInInteractive</LocCanonicalName>
+        </Strings>
+      </Button>
 
       <Button guid="guidInteractiveWindowCmdSet" id="cmdidCopyToInteractiveWindow" priority="0x102" type="Button">
         <CommandFlag>DynamicVisibility</CommandFlag>
@@ -285,7 +296,10 @@
     <KeyBinding guid="guidInteractiveWindowCmdSet" id="cmdidSearchHistoryPrevious" key1="VK_UP" mod1="Control Alt" editor="guidInteractiveWindow" />
     <KeyBinding guid="guidInteractiveWindowCmdSet" id="cmdidCopyCode" key1="C" mod1="Control Shift" editor="guidInteractiveWindow" />
 
-    <KeyBinding guid="guidVSStd11" id="cmdidExecuteSelectionInInteractive" editor="guidCSharpEditorFactory" mod1="Control" key1="E" mod2="Control" key2="E" />
+    <!-- TODO: Revert to the code below pending https://github.com/dotnet/roslyn/issues/8927 .
+         <KeyBinding guid="guidVSStd11" id="cmdidExecuteSelectionInInteractive" editor="guidCSharpEditorFactory" mod1="Control" key1="E" mod2="Control" key2="E" />-->
+    <KeyBinding guid="guidInteractiveWindowCmdSet" id="cmdidExecuteInInteractiveWindow" editor="guidCSharpEditorFactory" mod1="Control" key1="E" key2="E" />
+    <KeyBinding guid="guidInteractiveWindowCmdSet" id="cmdidExecuteInInteractiveWindow" editor="guidCSharpEditorFactory" mod1="Control" key1="E" mod2="Control" key2="E" />
     <KeyBinding guid="guidInteractiveWindowCmdSet" id="cmdidCopyToInteractiveWindow" editor="GUID_TextEditorFactory" mod1="Control" key1="K" mod2="Control" key2="VK_RETURN" />
   </KeyBindings>
 

@@ -1658,15 +1658,15 @@ Module Module1
         r = x / y      
         r = x \ y      
         r = x Mod y    
-        ' r = x ^ y  TODO: Bug https://github.com/dotnet/roslyn/issues/9174
+        r = x ^ y
         r = x = y      
         r = x <> y     
         r = x < y      
         r = x > y      
         r = x <= y     
         r = x >= y     
-        ' r = x Like y   TODO: Bug https://github.com/dotnet/roslyn/issues/9174
-        ' r = x & y      TODO: Bug https://github.com/dotnet/roslyn/issues/9174
+        r = x Like y   ' TODO: Bug https://github.com/dotnet/roslyn/issues/9174
+        r = x & y      ' TODO: Bug https://github.com/dotnet/roslyn/issues/9174
         r = x And y    
         r = x Or y     
         r = x Xor y    
@@ -1687,6 +1687,7 @@ End Module
                 Diagnostic(BinaryOperatorVBTestAnalyzer.BinaryUserDefinedOperatorDescriptor.Id, "x / y").WithArguments("OperatorMethodDivide").WithLocation(112, 13),
                 Diagnostic(BinaryOperatorVBTestAnalyzer.BinaryUserDefinedOperatorDescriptor.Id, "x \ y").WithArguments("OperatorMethodIntegerDivide").WithLocation(113, 13),
                 Diagnostic(BinaryOperatorVBTestAnalyzer.BinaryUserDefinedOperatorDescriptor.Id, "x Mod y").WithArguments("OperatorMethodRemainder").WithLocation(114, 13),
+                Diagnostic(BinaryOperatorVBTestAnalyzer.BinaryUserDefinedOperatorDescriptor.Id, "x ^ y").WithArguments("OperatorMethodPower").WithLocation(115, 13),
                 Diagnostic(BinaryOperatorVBTestAnalyzer.BinaryUserDefinedOperatorDescriptor.Id, "x = y").WithArguments("OperatorMethodEquals").WithLocation(116, 13),
                 Diagnostic(BinaryOperatorVBTestAnalyzer.BinaryUserDefinedOperatorDescriptor.Id, "x <> y").WithArguments("OperatorMethodNotEquals").WithLocation(117, 13),
                 Diagnostic(BinaryOperatorVBTestAnalyzer.BinaryUserDefinedOperatorDescriptor.Id, "x < y").WithArguments("OperatorMethodLessThan").WithLocation(118, 13),
@@ -2052,6 +2053,60 @@ End Module
                 Diagnostic(MemberReferenceAnalyzer.InvalidEventDescriptor.Id, "AddHandler receiver?.TestEvent, AddressOf Main").WithLocation(15, 9),
                 Diagnostic(MemberReferenceAnalyzer.HandlerAddedDescriptor.Id, "AddHandler Function(ByVal x) x").WithLocation(6, 9),
                 Diagnostic(MemberReferenceAnalyzer.InvalidEventDescriptor.Id, "AddHandler Function(ByVal x) x").WithLocation(6, 9))
+        End Sub
+
+        <Fact, WorkItem(9127, "https://github.com/dotnet/roslyn/issues/9127")>
+        Public Sub UnaryTrueFalseOperationVisualBasic()
+            ' BoundCaseStatement is OperationKind.None
+            Dim source = <compilation>
+                             <file name="c.vb">
+                                 <![CDATA[
+Module Module1
+    Structure S8
+        Public Shared Narrowing Operator CType(x As S8) As Boolean
+            System.Console.WriteLine("Narrowing Operator CType(x As S8) As Boolean")
+            Return Nothing
+        End Operator
+
+        Public Shared Operator IsTrue(x As S8) As Boolean
+            System.Console.WriteLine("IsTrue(x As S8) As Boolean")
+            Return False
+        End Operator
+
+        Public Shared Operator IsFalse(x As S8) As Boolean
+            System.Console.WriteLine("IsFalse(x As S8) As Boolean")
+            Return False
+        End Operator
+
+        Public Shared Operator And(x As S8, y As S8) As S8
+            Return New S8()
+        End Operator
+    End Structure
+
+    Sub Main()
+        Dim x As New S8
+        Dim y As New S8
+
+        If x Then 'BIND1:"x"
+            System.Console.WriteLine("If")
+        Else
+            System.Console.WriteLine("Else")
+        End If
+
+        If x AndAlso y Then
+
+        End If
+    End Sub
+End Module
+]]>
+                             </file>
+                         </compilation>
+
+            Dim comp = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(source)
+            comp.VerifyDiagnostics()
+            comp.VerifyAnalyzerDiagnostics({New TrueFalseUnaryOperationTestAnalyzer}, Nothing, Nothing, False,
+                Diagnostic(TrueFalseUnaryOperationTestAnalyzer.UnaryTrueDescriptor.Id, "x").WithLocation(27, 12),
+                Diagnostic(TrueFalseUnaryOperationTestAnalyzer.UnaryTrueDescriptor.Id, "x AndAlso y").WithLocation(33, 12))
         End Sub
     End Class
 End Namespace

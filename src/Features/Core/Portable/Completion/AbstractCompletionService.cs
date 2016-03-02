@@ -8,6 +8,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Completion.Providers;
+using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Snippets;
 using Microsoft.CodeAnalysis.Text;
@@ -277,10 +278,31 @@ namespace Microsoft.CodeAnalysis.Completion
             CancellationToken cancellationToken)
         {
             var context = new CompletionListContext(document, position, triggerInfo, options, cancellationToken);
-
-            await provider.ProduceCompletionListAsync(context).ConfigureAwait(false);
+            var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
+            if (!root.FullSpan.IntersectsWith(position))
+            {
+                try
+                {
+                    // Trying to track down source of https://github.com/dotnet/roslyn/issues/9325
+                    var sourceText = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
+                    ReportException(position, root, sourceText);
+                }
+                catch (Exception e) when (FatalError.ReportWithoutCrash(e))
+                {
+                }
+            }
+            else
+            {
+                await provider.ProduceCompletionListAsync(context).ConfigureAwait(false);
+            }
 
             return new CompletionList(context.GetItems(), context.Builder, context.IsExclusive);
+        }
+
+        private static void ReportException(int position, SyntaxNode root, SourceText sourceText)
+        {
+            throw new InvalidOperationException(
+                $"Position '{position}' is not contained in SyntaxTree Span '{root.FullSpan}' source text length '{sourceText.Length}'");
         }
 
         public bool IsTriggerCharacter(SourceText text, int characterPosition, IEnumerable<CompletionListProvider> completionProviders, OptionSet options)

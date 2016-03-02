@@ -398,7 +398,9 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Preview
                                                         .Select(a => WarningAnnotation.GetDescription(a))
                                                         .Distinct();
 
-                AttachConflictAndWarningAnnotationToBuffer(newBuffer, conflictSpans, warningSpans);
+                var suppressDiagnosticsNodes = newRoot.GetAnnotatedNodesAndTokens(SuppressDiagnosticsAnnotation.Kind);
+                var suppressDiagnosticsSpans = suppressDiagnosticsNodes.Select(n => n.Span.ToSpan()).ToList();
+                AttachAnnotationsToBuffer(newBuffer, conflictSpans, warningSpans, suppressDiagnosticsSpans);
 
                 description = conflictSpans.Count == 0 && warningSpans.Count == 0
                     ? null
@@ -520,11 +522,13 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Preview
             return CreateNewDifferenceViewerAsync(leftWorkspace, rightWorkspace, originalBuffer, changedBuffer, zoomLevel, cancellationToken);
         }
 
-        private static void AttachConflictAndWarningAnnotationToBuffer(ITextBuffer newBuffer, IEnumerable<Span> conflictSpans, IEnumerable<Span> warningSpans)
+        private static void AttachAnnotationsToBuffer(
+            ITextBuffer newBuffer, IEnumerable<Span> conflictSpans, IEnumerable<Span> warningSpans, IEnumerable<Span> suppressDiagnosticsSpans)
         {
             // Attach the spans to the buffer.
             newBuffer.Properties.AddProperty(PredefinedPreviewTaggerKeys.ConflictSpansKey, new NormalizedSnapshotSpanCollection(newBuffer.CurrentSnapshot, conflictSpans));
             newBuffer.Properties.AddProperty(PredefinedPreviewTaggerKeys.WarningSpansKey, new NormalizedSnapshotSpanCollection(newBuffer.CurrentSnapshot, warningSpans));
+            newBuffer.Properties.AddProperty(PredefinedPreviewTaggerKeys.SuppressDiagnosticsSpansKey, new NormalizedSnapshotSpanCollection(newBuffer.CurrentSnapshot, suppressDiagnosticsSpans));
         }
 
         private ITextBuffer CreateNewBuffer(Document document, CancellationToken cancellationToken)

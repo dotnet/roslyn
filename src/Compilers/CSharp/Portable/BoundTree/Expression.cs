@@ -1123,7 +1123,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         return OperationKind.BinaryOperatorExpression;
 
                     default:
-                        throw ExceptionUtilities.UnexpectedValue(this.OperatorKind & BinaryOperatorKind.OpMask);
+                        return OperationKind.InvalidExpression;
                 }
             }
         }
