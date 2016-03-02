@@ -20,9 +20,8 @@ namespace RunTests.Cache
         private const string NameResultsFileName = "ResultsFileName";
         private const string NameResultsFileContent = "ResultsFileContent";
         private const string NameEllapsedSeconds = "EllapsedSeconds";
-        private const string DashboardUriString = "http://jdash.azurewebsites.net";
 
-        private readonly RestClient _restClient = new RestClient(DashboardUriString);
+        private readonly RestClient _restClient = new RestClient(Constants.DashboardUriString);
 
         public async Task AddCachedTestResult(ContentFile contentFile, CachedTestResult testResult)
         {

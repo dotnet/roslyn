@@ -125,7 +125,8 @@ namespace RunTests
                     commandLine: commandLine,
                     elapsed: span,
                     standardOutput: standardOutput,
-                    errorOutput: errorOutput);
+                    errorOutput: errorOutput,
+                    isResultFromCache: false);
             }
             catch (Exception ex)
             {

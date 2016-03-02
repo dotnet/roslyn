@@ -37,8 +37,7 @@ namespace RunTests
                 // and Jenkins runs by default until we work on this a bit more.  Anyone reading this who wants
                 // to try it out should feel free to opt into this. 
                 IDataStorage dataStorage = new LocalDataStorage();
-                if (StringComparer.OrdinalIgnoreCase.Equals("REDMOND", Environment.UserDomainName) || 
-                    !string.IsNullOrEmpty(Environment.GetEnvironmentVariable("JENKINS_URL")))
+                if (StringComparer.OrdinalIgnoreCase.Equals("REDMOND", Environment.UserDomainName) || Constants.IsJenkinsRun)
                 {
                     Console.WriteLine("Using web cache");
                     dataStorage = new WebDataStorage();

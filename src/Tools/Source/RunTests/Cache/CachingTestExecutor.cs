@@ -76,7 +76,8 @@ namespace RunTests.Cache
                 commandLine: commandLine,
                 elapsed: TimeSpan.FromMilliseconds(0),
                 standardOutput: cachedTestResult.StandardOutput,
-                errorOutput: cachedTestResult.ErrorOutput);
+                errorOutput: cachedTestResult.ErrorOutput,
+                isResultFromCache: true);
         }
 
         private async Task CacheTestResult(ContentFile contentFile, TestResult testResult)
