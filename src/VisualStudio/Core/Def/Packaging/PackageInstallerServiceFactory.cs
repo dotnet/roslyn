@@ -13,6 +13,7 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Host.Mef;
+using Microsoft.CodeAnalysis.Notification;
 using Microsoft.CodeAnalysis.Packaging;
 using Microsoft.CodeAnalysis.Shared.Utilities;
 using Microsoft.CodeAnalysis.Text;
@@ -196,6 +197,12 @@ namespace Microsoft.VisualStudio.LanguageServices.Packaging
             catch (Exception e) when (FatalError.ReportWithoutCrash(e))
             {
                 dte.StatusBar.Text = string.Format(ServicesVSResources.Package_install_failed_0, e.Message);
+
+                var notificationService = _workspace.Services.GetService<INotificationService>();
+                notificationService?.SendNotification(
+                    string.Format(ServicesVSResources.Installing_0_failed_Additional_information_1, packageName, e.Message),
+                    severity: NotificationSeverity.Error);
+
                 // fall through.
             }
 
@@ -231,6 +238,12 @@ namespace Microsoft.VisualStudio.LanguageServices.Packaging
             catch (Exception e) when (FatalError.ReportWithoutCrash(e))
             {
                 dte.StatusBar.Text = string.Format(ServicesVSResources.Package_uninstall_failed_0, e.Message);
+
+                var notificationService = _workspace.Services.GetService<INotificationService>();
+                notificationService?.SendNotification(
+                    string.Format(ServicesVSResources.Uninstalling_0_failed_Additional_information_1, packageName, e.Message),
+                    severity: NotificationSeverity.Error);
+
                 // fall through.
             }
 
