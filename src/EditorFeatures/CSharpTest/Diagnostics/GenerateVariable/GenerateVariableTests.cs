@@ -2850,5 +2850,41 @@ index: 2);
 @"using System ; public class Test { public static int Property1 { get { int _field = 0 ; return _field ; } } } ",
 index: 3);
         }
+
+        [WorkItem(8358, "https://github.com/dotnet/roslyn/issues/8358")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
+        public async Task TestSameNameAsInstanceVariableInContainingType()
+        {
+            await TestAsync(
+@"
+class Outer
+{
+    int _field;
+
+    class Inner
+    {
+        public Inner(int field)
+        {
+            [|_field|] = field;
+        }
+    }
+}",
+@"
+class Outer
+{
+    int _field;
+
+    class Inner
+    {
+        private int _field;
+
+        public Inner(int field)
+        {
+            _field = field;
+        }
+    }
+}
+");
+        }
     }
 }
