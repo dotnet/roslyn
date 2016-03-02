@@ -31,6 +31,8 @@ namespace RunTests.Cache
 
         private readonly string _storagePath;
 
+        public string Name => "local";
+
         internal LocalDataStorage(string storagePath = null)
         {
             _storagePath = storagePath ?? Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), DirectoryName);

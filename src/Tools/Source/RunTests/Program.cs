@@ -30,26 +30,12 @@ namespace RunTests
                 cts.Cancel();
             };
 
-            ITestExecutor testExecutor = new ProcessTestExecutor(options);
-            if (options.UseCachedResults)
-            {
-                // The web caching layer is still being worked on.  For now want to limit it to Roslyn developers
-                // and Jenkins runs by default until we work on this a bit more.  Anyone reading this who wants
-                // to try it out should feel free to opt into this. 
-                IDataStorage dataStorage = new LocalDataStorage();
-                if (StringComparer.OrdinalIgnoreCase.Equals("REDMOND", Environment.UserDomainName) || Constants.IsJenkinsRun)
-                {
-                    Console.WriteLine("Using web cache");
-                    dataStorage = new WebDataStorage();
-                }
-
-                testExecutor = new CachingTestExecutor(options, testExecutor, dataStorage);
-            }
-
+            var testExecutor = CreateTestExecutor(options);
             var testRunner = new TestRunner(options, testExecutor);
             var start = DateTime.Now;
 
-            Console.WriteLine("Running {0} test assemblies", options.Assemblies.Count());
+            Console.WriteLine($"Data Storage: {testExecutor.DataStorage.Name}");
+            Console.WriteLine($"Running {options.Assemblies.Count()} test assemblies");
 
             var orderedList = OrderAssemblyList(options.Assemblies);
             var result = testRunner.RunAllAsync(orderedList, cts.Token).Result;
@@ -70,6 +56,26 @@ namespace RunTests
 
             Console.WriteLine("All tests passed: {0}", span);
             return options.MissingAssemblies.Any() ? 1 : 0;
+        }
+
+        private static ITestExecutor CreateTestExecutor(Options options)
+        {
+            var processTestExecutor = new ProcessTestExecutor(options);
+            if (!options.UseCachedResults)
+            {
+                return processTestExecutor;
+            }
+
+            // The web caching layer is still being worked on.  For now want to limit it to Roslyn developers
+            // and Jenkins runs by default until we work on this a bit more.  Anyone reading this who wants
+            // to try it out should feel free to opt into this. 
+            IDataStorage dataStorage = new LocalDataStorage();
+            if (StringComparer.OrdinalIgnoreCase.Equals("REDMOND", Environment.UserDomainName) || Constants.IsJenkinsRun)
+            {
+                dataStorage = new WebDataStorage();
+            }
+
+            return new CachingTestExecutor(options, processTestExecutor, dataStorage);
         }
 
         /// <summary>

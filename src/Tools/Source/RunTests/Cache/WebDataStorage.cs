@@ -23,6 +23,8 @@ namespace RunTests.Cache
 
         private readonly RestClient _restClient = new RestClient(Constants.DashboardUriString);
 
+        public string Name => "web";
+
         public async Task AddCachedTestResult(ContentFile contentFile, CachedTestResult testResult)
         {
             var obj = new JObject();

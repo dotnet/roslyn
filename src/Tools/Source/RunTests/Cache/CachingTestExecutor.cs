@@ -14,6 +14,8 @@ namespace RunTests.Cache
         private readonly ContentUtil _contentUtil;
         private readonly IDataStorage _dataStorage;
 
+        public IDataStorage DataStorage => _dataStorage;
+
         internal CachingTestExecutor(Options options, ITestExecutor testExecutor, IDataStorage dataStorage)
         {
             _testExecutor = testExecutor;
