@@ -94,7 +94,7 @@ namespace RunTests.Cache
                     resultsFileName: Path.GetFileName(testResult.ResultsFilePath),
                     resultsFileContent: resultFileContent,
                     ellapsed: testResult.Elapsed);
-                await _dataStorage.AddCachedTestResult(contentFile, cachedTestResult).ConfigureAwait(true);
+                await _dataStorage.AddCachedTestResult(testResult.AssemblyName, contentFile, cachedTestResult).ConfigureAwait(true);
             }
             catch (Exception ex)
             {

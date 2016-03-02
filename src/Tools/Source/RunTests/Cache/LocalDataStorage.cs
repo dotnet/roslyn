@@ -87,7 +87,7 @@ namespace RunTests.Cache
             return false;
         }
 
-        public Task AddCachedTestResult(ContentFile contentFile, CachedTestResult testResult)
+        public Task AddCachedTestResult(string assemblyName, ContentFile contentFile, CachedTestResult testResult)
         {
             var checksum = contentFile.Checksum;
             var storagePath = Path.Combine(_storagePath, checksum);
