@@ -114,7 +114,7 @@ namespace RunTests
         {
             var obj = new JObject();
             obj["Cache"] = dataStorage.Name;
-            obj["EllapsedSeconds"] = ellapsed.TotalSeconds;
+            obj["EllapsedSeconds"] = (int)ellapsed.TotalSeconds;
             obj["IsJenkins"] = Constants.IsJenkinsRun;
             obj["Is32Bit"] = !options.Test64;
             obj["AssemblyCount"] = options.Assemblies.Count;
