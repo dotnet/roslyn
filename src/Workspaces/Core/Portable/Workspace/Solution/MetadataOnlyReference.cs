@@ -50,6 +50,8 @@ namespace Microsoft.CodeAnalysis
                 solution.Workspace.LogMessage($"Our metadata came back empty!");
                 if (TryGetReference(solution, projectReference, finalCompilation, VersionStamp.Default, out reference))
                 {
+                    solution.Workspace.LogMessage($"We got one from the earlier version!");
+
                     // we have one from previous compilation!!, it might be out-of-date big time, but better than nothing.
                     // re-use it
                     return reference;
