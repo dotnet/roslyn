@@ -2886,5 +2886,37 @@ class Outer
 }
 ");
         }
+
+        [WorkItem(8358, "https://github.com/dotnet/roslyn/issues/8358")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
+        public async Task TestNotOnStaticWithExistingInstance1()
+        {
+            await TestMissingAsync(
+@"
+class C
+{
+    int _field;
+    void M()
+    {
+        C.[|_field|] = 42;
+    }
+}");
+        }
+
+        [WorkItem(8358, "https://github.com/dotnet/roslyn/issues/8358")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
+        public async Task TestNotOnStaticWithExistingInstance2()
+        {
+            await TestMissingAsync(
+@"
+class C
+{
+    int _field;
+    static C()
+    {
+        [|_field|] = 42;
+    }
+}");
+        }
     }
 }
