@@ -1,7 +1,6 @@
 // Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Collections.Generic;
-using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -46,7 +45,7 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateVariable
                     return SpecializedCollections.EmptyEnumerable<CodeAction>();
                 }
 
-                var actions = new List<CodeAction>();
+                var result = new List<CodeAction>();
 
                 var canGenerateMember = CodeGenerator.CanAdd(document.Project.Solution, state.TypeToGenerateIn, cancellationToken);
 
@@ -57,32 +56,24 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateVariable
                 {
                     if (canGenerateMember)
                     {
-                        AddPropertyCodeActions(actions, document, state);
-                        AddFieldCodeActions(actions, document, state);
+                        AddPropertyCodeActions(result, document, state);
+                        AddFieldCodeActions(result, document, state);
                     }
 
-                    AddLocalCodeActions(actions, document, state);
+                    AddLocalCodeActions(result, document, state);
                 }
                 else
                 {
                     if (canGenerateMember)
                     {
-                        AddFieldCodeActions(actions, document, state);
-                        AddPropertyCodeActions(actions, document, state);
+                        AddFieldCodeActions(result, document, state);
+                        AddPropertyCodeActions(result, document, state);
                     }
 
-                    AddLocalCodeActions(actions, document, state);
+                    AddLocalCodeActions(result, document, state);
                 }
 
-                if (actions.Count > 1)
-                {
-                    // Wrap the generate variable actions into a single top level suggestion
-                    // so as to not clutter the list.
-                    return SpecializedCollections.SingletonEnumerable(
-                        new MyCodeAction(FeaturesResources.Generate_variable, actions.AsImmutable()));
-                }
-
-                return actions;
+                return result;
             }
         }
 
@@ -143,14 +134,6 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateVariable
             if (state.CanGenerateLocal())
             {
                 result.Add(new GenerateLocalCodeAction((TService)this, document, state));
-            }
-        }
-
-        private class MyCodeAction : CodeAction.SimpleCodeAction
-        {
-            public MyCodeAction(string title, ImmutableArray<CodeAction> nestedActions)
-                : base(title, nestedActions)
-            {
             }
         }
     }
