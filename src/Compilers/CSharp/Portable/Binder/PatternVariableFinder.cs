@@ -32,6 +32,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                     if (subExpression != null) expressionsToVisit.Add(subExpression);
                 }
             }
+
+            expressionsToVisit.ReverseContents();
+
             finder.VisitExpressions();
 
             if (!patterns.IsDefaultOrEmpty)
