@@ -2058,56 +2058,6 @@ static class M
             Await TestAsync(input, expected, simplificationOption)
         End Function
 
-        <Fact, WorkItem(838109, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/838109"), Trait(Traits.Feature, Traits.Features.Simplification)>
-        Public Async Function TestDontSimplifyAwayThisExpression() As Task
-            Dim simplificationOption = New Dictionary(Of OptionKey, Object) From {{New OptionKey(SimplificationOptions.QualifyMemberAccessWithThisOrMe, LanguageNames.CSharp), True}}
-
-            Dim input =
-        <Workspace>
-            <Project Language="C#" CommonReferences="true">
-                <Document>
-                    <![CDATA[
-using System;
-
-class Program
-{
-    private int s;
-    static void Main(string[] args)
-    {
-        
-    }
-
-    public int give()
-    {
-        return {|SimplifyParent:this.s|};
-    }
-}]]>
-                </Document>
-            </Project>
-        </Workspace>
-
-            Dim expected =
-              <text>
-                  <![CDATA[
-using System;
-
-class Program
-{
-    private int s;
-    static void Main(string[] args)
-    {
-        
-    }
-
-    public int give()
-    {
-        return this.s;
-    }
-}]]></text>
-
-            Await TestAsync(input, expected, simplificationOption)
-        End Function
-
         <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
         Public Async Function TestSimplifyTypeNameInCodeWithSyntaxErrors() As Task
             Dim input =
@@ -2450,6 +2400,650 @@ class C
 ]]></text>
 
             Await TestAsync(input, expected)
+        End Function
+
+        <WorkItem(7065, "https://github.com/dotnet/roslyn/issues/7065")>
+        <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
+        Public Async Function QualifyFieldAccessWithThis_AsLHS_CSharp() As Task
+            Dim input =
+                <Workspace>
+                    <Project Language="C#" CommonReferences="true">
+                        <Document>
+                            <![CDATA[
+class C
+{
+    int i;
+    void M()
+    {
+        {|Simplify:this.i|} = 1;
+    }
+}
+]]>
+                        </Document>
+                    </Project>
+                </Workspace>
+
+            Dim expected =
+                <text>
+                    <![CDATA[
+class C
+{
+    int i;
+    void M()
+    {
+        this.i = 1;
+    }
+}
+]]>
+                </text>
+            Dim simplificationOptionSet = New Dictionary(Of OptionKey, Object) From {{New OptionKey(SimplificationOptions.QualifyFieldAccess, LanguageNames.CSharp), True}}
+            Await TestAsync(input, expected, simplificationOptionSet)
+        End Function
+
+        <WorkItem(7065, "https://github.com/dotnet/roslyn/issues/7065")>
+        <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
+        Public Async Function QualifyFieldAccessWithThis_AsRHS_CSharp() As Task
+            Dim input =
+                <Workspace>
+                    <Project Language="C#" CommonReferences="true">
+                        <Document>
+                            <![CDATA[
+class C
+{
+    int i;
+    void M()
+    {
+        int x = {|Simplify:this.i|};
+    }
+}
+]]>
+                        </Document>
+                    </Project>
+                </Workspace>
+
+            Dim expected =
+                <text>
+                    <![CDATA[
+class C
+{
+    int i;
+    void M()
+    {
+        int x = this.i;
+    }
+}
+]]>
+                </text>
+            Await TestAsync(input, expected, QualifyFieldAccessOption(LanguageNames.CSharp))
+        End Function
+
+        <WorkItem(7065, "https://github.com/dotnet/roslyn/issues/7065")>
+        <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
+        Public Async Function QualifyFieldAccessWithThis_AsMethodArgument_CSharp() As Task
+            Dim input =
+                <Workspace>
+                    <Project Language="C#" CommonReferences="true">
+                        <Document>
+                            <![CDATA[
+class C
+{
+    int i;
+    void M(int ii)
+    {
+        M({|Simplify:this.i|});
+    }
+}
+]]>
+                        </Document>
+                    </Project>
+                </Workspace>
+
+            Dim expected =
+                <text>
+                    <![CDATA[
+class C
+{
+    int i;
+    void M(int ii)
+    {
+        M(this.i);
+    }
+}
+]]>
+                </text>
+            Await TestAsync(input, expected, QualifyFieldAccessOption(LanguageNames.CSharp))
+        End Function
+
+        <WorkItem(7065, "https://github.com/dotnet/roslyn/issues/7065")>
+        <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
+        Public Async Function QualifyFieldAccessWithThis_ChainedAccess_CSharp() As Task
+            Dim input =
+                <Workspace>
+                    <Project Language="C#" CommonReferences="true">
+                        <Document>
+                            <![CDATA[
+class C
+{
+    int i;
+    void M()
+    {
+        var s = {|Simplify:this.i|}.ToString();
+    }
+}
+]]>
+                        </Document>
+                    </Project>
+                </Workspace>
+
+            Dim expected =
+                <text>
+                    <![CDATA[
+class C
+{
+    int i;
+    void M()
+    {
+        var s = this.i.ToString();
+    }
+}
+]]>
+                </text>
+            Await TestAsync(input, expected, QualifyFieldAccessOption(LanguageNames.CSharp))
+        End Function
+
+        <WorkItem(7065, "https://github.com/dotnet/roslyn/issues/7065")>
+        <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
+        Public Async Function QualifyFieldAccessWithThis_ConditionalAccess_CSharp() As Task
+            Dim input =
+                <Workspace>
+                    <Project Language="C#" CommonReferences="true">
+                        <Document>
+                            <![CDATA[
+class C
+{
+    string s;
+    void M()
+    {
+        var x = {|Simplify:this.s|}?.ToString();
+    }
+}
+]]>
+                        </Document>
+                    </Project>
+                </Workspace>
+
+            Dim expected =
+                <text>
+                    <![CDATA[
+class C
+{
+    string s;
+    void M()
+    {
+        var x = this.s?.ToString();
+    }
+}
+]]>
+                </text>
+            Await TestAsync(input, expected, QualifyFieldAccessOption(LanguageNames.CSharp))
+        End Function
+
+        <WorkItem(7065, "https://github.com/dotnet/roslyn/issues/7065")>
+        <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
+        Public Async Function QualifyPropertyAccessWithThis_AsLHS_CSharp() As Task
+            Dim input =
+                <Workspace>
+                    <Project Language="C#" CommonReferences="true">
+                        <Document>
+                            <![CDATA[
+class C
+{
+    int i { get; set; }
+    void M()
+    {
+        {|Simplify:this.i|} = 1;
+    }
+}
+]]>
+                        </Document>
+                    </Project>
+                </Workspace>
+
+            Dim expected =
+                <text>
+                    <![CDATA[
+class C
+{
+    int i { get; set; }
+    void M()
+    {
+        this.i = 1;
+    }
+}
+]]>
+                </text>
+            Await TestAsync(input, expected, QualifyPropertyAccessOption(LanguageNames.CSharp))
+        End Function
+
+        <WorkItem(7065, "https://github.com/dotnet/roslyn/issues/7065")>
+        <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
+        Public Async Function QualifyPropertyAccessWithThis_AsRHS_CSharp() As Task
+            Dim input =
+                <Workspace>
+                    <Project Language="C#" CommonReferences="true">
+                        <Document>
+                            <![CDATA[
+class C
+{
+    int i { get; set; }
+    void M()
+    {
+        int x = {|Simplify:this.i|};
+    }
+}
+]]>
+                        </Document>
+                    </Project>
+                </Workspace>
+
+            Dim expected =
+                <text>
+                    <![CDATA[
+class C
+{
+    int i { get; set; }
+    void M()
+    {
+        int x = this.i;
+    }
+}
+]]>
+                </text>
+            Await TestAsync(input, expected, QualifyPropertyAccessOption(LanguageNames.CSharp))
+        End Function
+
+        <WorkItem(7065, "https://github.com/dotnet/roslyn/issues/7065")>
+        <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
+        Public Async Function QualifyPropertyAccessWithThis_AsMethodArgument_CSharp() As Task
+            Dim input =
+                <Workspace>
+                    <Project Language="C#" CommonReferences="true">
+                        <Document>
+                            <![CDATA[
+class C
+{
+    int i { get; set; }
+    void M(int ii)
+    {
+        M({|Simplify:this.i|});
+    }
+}
+]]>
+                        </Document>
+                    </Project>
+                </Workspace>
+
+            Dim expected =
+                <text>
+                    <![CDATA[
+class C
+{
+    int i { get; set; }
+    void M(int ii)
+    {
+        M(this.i);
+    }
+}
+]]>
+                </text>
+            Await TestAsync(input, expected, QualifyPropertyAccessOption(LanguageNames.CSharp))
+        End Function
+
+        <WorkItem(7065, "https://github.com/dotnet/roslyn/issues/7065")>
+        <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
+        Public Async Function QualifyPropertyAccessWithThis_ChainedAccess_CSharp() As Task
+            Dim input =
+                <Workspace>
+                    <Project Language="C#" CommonReferences="true">
+                        <Document>
+                            <![CDATA[
+class C
+{
+    int i { get; set; }
+    void M()
+    {
+        var s = {|Simplify:this.i|}.ToString();
+    }
+}
+]]>
+                        </Document>
+                    </Project>
+                </Workspace>
+
+            Dim expected =
+                <text>
+                    <![CDATA[
+class C
+{
+    int i { get; set; }
+    void M()
+    {
+        var s = this.i.ToString();
+    }
+}
+]]>
+                </text>
+            Await TestAsync(input, expected, QualifyPropertyAccessOption(LanguageNames.CSharp))
+        End Function
+
+        <WorkItem(7065, "https://github.com/dotnet/roslyn/issues/7065")>
+        <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
+        Public Async Function QualifyPropertyAccessWithThis_ConditionalAccess_CSharp() As Task
+            Dim input =
+                <Workspace>
+                    <Project Language="C#" CommonReferences="true">
+                        <Document>
+                            <![CDATA[
+class C
+{
+    string s { get; set; }
+    void M()
+    {
+        var x = {|Simplify:this.s|}?.ToString();
+    }
+}
+]]>
+                        </Document>
+                    </Project>
+                </Workspace>
+
+            Dim expected =
+                <text>
+                    <![CDATA[
+class C
+{
+    string s { get; set; }
+    void M()
+    {
+        var x = this.s?.ToString();
+    }
+}
+]]>
+                </text>
+            Await TestAsync(input, expected, QualifyPropertyAccessOption(LanguageNames.CSharp))
+        End Function
+
+        <WorkItem(7065, "https://github.com/dotnet/roslyn/issues/7065")>
+        <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
+        Public Async Function QualifyMethodAccessWithThis_AsVoidCallWithArguments_CSharp() As Task
+            Dim input =
+                <Workspace>
+                    <Project Language="C#" CommonReferences="true">
+                        <Document>
+                            <![CDATA[
+class C
+{
+    void M(int i)
+    {
+        {|Simplify:this.M|}(0);
+    }
+}
+]]>
+                        </Document>
+                    </Project>
+                </Workspace>
+
+            Dim expected =
+                <text>
+                    <![CDATA[
+class C
+{
+    void M(int i)
+    {
+        this.M(0);
+    }
+}
+]]>
+                </text>
+            Await TestAsync(input, expected, QualifyMethodAccessOption(LanguageNames.CSharp))
+        End Function
+
+        <WorkItem(7065, "https://github.com/dotnet/roslyn/issues/7065")>
+        <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
+        Public Async Function QualifyMethodAccessWithThis_WithReturnType_CSharp() As Task
+            Dim input =
+                <Workspace>
+                    <Project Language="C#" CommonReferences="true">
+                        <Document>
+                            <![CDATA[
+class C
+{
+    int M()
+    {
+        return {|Simplify:this.M|}();
+    }
+}
+]]>
+                        </Document>
+                    </Project>
+                </Workspace>
+
+            Dim expected =
+                <text>
+                    <![CDATA[
+class C
+{
+    int M()
+    {
+        return this.M();
+    }
+}
+]]>
+                </text>
+            Await TestAsync(input, expected, QualifyMethodAccessOption(LanguageNames.CSharp))
+        End Function
+
+        <WorkItem(7065, "https://github.com/dotnet/roslyn/issues/7065")>
+        <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
+        Public Async Function QualifyMethodAccessWithThis_ChainedAccess_CSharp() As Task
+            Dim input =
+                <Workspace>
+                    <Project Language="C#" CommonReferences="true">
+                        <Document>
+                            <![CDATA[
+class C
+{
+    int M()
+    {
+        var s = {|Simplify:this.M|}().ToString();
+        return 0;
+    }
+}
+]]>
+                        </Document>
+                    </Project>
+                </Workspace>
+
+            Dim expected =
+                <text>
+                    <![CDATA[
+class C
+{
+    int M()
+    {
+        var s = this.M().ToString();
+        return 0;
+    }
+}
+]]>
+                </text>
+            Await TestAsync(input, expected, QualifyMethodAccessOption(LanguageNames.CSharp))
+        End Function
+
+        <WorkItem(7065, "https://github.com/dotnet/roslyn/issues/7065")>
+        <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
+        Public Async Function QualifyMethodAccessWithThis_ConditionalAccess_CSharp() As Task
+            Dim input =
+                <Workspace>
+                    <Project Language="C#" CommonReferences="true">
+                        <Document>
+                            <![CDATA[
+class C
+{
+    string M()
+    {
+        return {|Simplify:this.M|}()?.ToString();
+    }
+}
+]]>
+                        </Document>
+                    </Project>
+                </Workspace>
+
+            Dim expected =
+                <text>
+                    <![CDATA[
+class C
+{
+    string M()
+    {
+        return this.M()?.ToString();
+    }
+}
+]]>
+                </text>
+            Await TestAsync(input, expected, QualifyMethodAccessOption(LanguageNames.CSharp))
+        End Function
+
+        <WorkItem(7065, "https://github.com/dotnet/roslyn/issues/7065")>
+        <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
+        Public Async Function QualifyMethodAccessWithThis_EventSubscription_CSharp() As Task
+            Dim input =
+                <Workspace>
+                    <Project Language="C#" CommonReferences="true">
+                        <Document>
+                            <![CDATA[
+using System;
+class C
+{
+    event EventHandler e;
+    void Handler(object sender, EventArgs args)
+    {
+        e += {|Simplify:this.Handler|};
+        e -= {|Simplify:this.Handler|};
+
+        e += new EventHandler({|Simplify:this.Handler|});
+        e -= new EventHandler({|Simplify:this.Handler|});
+    }
+}
+]]>
+                        </Document>
+                    </Project>
+                </Workspace>
+
+            Dim expected =
+                <text>
+                    <![CDATA[
+using System;
+class C
+{
+    event EventHandler e;
+    void Handler(object sender, EventArgs args)
+    {
+        e += this.Handler;
+        e -= this.Handler;
+
+        e += new EventHandler(this.Handler);
+        e -= new EventHandler(this.Handler);
+    }
+}
+]]>
+                </text>
+            Await TestAsync(input, expected, QualifyMethodAccessOption(LanguageNames.CSharp))
+        End Function
+
+        <WorkItem(7065, "https://github.com/dotnet/roslyn/issues/7065")>
+        <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
+        Public Async Function QualifyEventAccessWithThis_AddAndRemoveHandler_CSharp() As Task
+            Dim input =
+                <Workspace>
+                    <Project Language="C#" CommonReferences="true">
+                        <Document>
+                            <![CDATA[
+using System;
+class C
+{
+    event EventHandler e;
+    void Handler(object sender, EventArgs args)
+    {
+        {|Simplify:this.e|} += Handler;
+        {|Simplify:this.e|} -= Handler;
+    }
+}
+]]>
+                        </Document>
+                    </Project>
+                </Workspace>
+
+            Dim expected =
+                <text>
+                    <![CDATA[
+using System;
+class C
+{
+    event EventHandler e;
+    void Handler(object sender, EventArgs args)
+    {
+        this.e += Handler;
+        this.e -= Handler;
+    }
+}
+]]>
+                </text>
+            Await TestAsync(input, expected, QualifyEventAccessOption(LanguageNames.CSharp))
+        End Function
+
+        <WorkItem(7065, "https://github.com/dotnet/roslyn/issues/7065")>
+        <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
+        Public Async Function QualifyEventAccessWithThis_InvokeEvent_CSharp() As Task
+            Dim input =
+                <Workspace>
+                    <Project Language="C#" CommonReferences="true">
+                        <Document>
+                            <![CDATA[
+using System;
+class C
+{
+    event EventHandler e;
+    void OnSomeEvent()
+    {
+        {|Simplify:this.e|}(this, new EventArgs());
+        {|Simplify:this.e|}.Invoke(this, new EventArgs());
+        {|Simplify:this.e|}?.Invoke(this, new EventArgs());
+    }
+}
+]]>
+                        </Document>
+                    </Project>
+                </Workspace>
+
+            Dim expected =
+                <text>
+                    <![CDATA[
+using System;
+class C
+{
+    event EventHandler e;
+    void OnSomeEvent()
+    {
+        this.e(this, new EventArgs());
+        this.e.Invoke(this, new EventArgs());
+        this.e?.Invoke(this, new EventArgs());
+    }
+}
+]]>
+                </text>
+            Await TestAsync(input, expected, QualifyEventAccessOption(LanguageNames.CSharp))
         End Function
 #End Region
 
@@ -4104,44 +4698,6 @@ End Class]]></text>
             Await TestAsync(input, expected, simplificationOption)
         End Function
 
-        <Fact, WorkItem(838109, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/838109"), Trait(Traits.Feature, Traits.Features.Simplification)>
-        Public Async Function TestVisualBasic_TestDontSimplifyAwayMeExpression() As Task
-            Dim simplificationOption = New Dictionary(Of OptionKey, Object) From {{New OptionKey(SimplificationOptions.QualifyMemberAccessWithThisOrMe, LanguageNames.VisualBasic), True}}
-
-            Dim input =
-        <Workspace>
-            <Project Language="Visual Basic" CommonReferences="true">
-                <Document>
-                    <![CDATA[
-Imports System
-Class Program
-    Private s As Integer
-    Shared Sub Main(args As String())
-    End Sub
-    Public Function give() As Integer
-        Return {|SimplifyParent:Me.s|}
-    End Function
-End Class]]>
-                </Document>
-            </Project>
-        </Workspace>
-
-            Dim expected =
-              <text>
-                  <![CDATA[
-Imports System
-Class Program
-    Private s As Integer
-    Shared Sub Main(args As String())
-    End Sub
-    Public Function give() As Integer
-        Return Me.s
-    End Function
-End Class]]></text>
-
-            Await TestAsync(input, expected, simplificationOption)
-        End Function
-
         <Fact, WorkItem(881746, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/881746"), Trait(Traits.Feature, Traits.Features.Simplification)>
         Public Async Function TestVisualBasic_SimplyToAlias() As Task
 
@@ -4391,6 +4947,542 @@ End Class
             Await TestAsync(input, expected)
         End Function
 
+        <WorkItem(7065, "https://github.com/dotnet/roslyn/issues/7065")>
+        <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
+        Public Async Function QualifyFieldAccessWithMe_AsLHS_VisualBasic() As Task
+            Dim input =
+                <Workspace>
+                    <Project Language="Visual Basic" CommonReferences="true">
+                        <Document>
+                            <![CDATA[
+Class C
+    Dim i As Integer
+    Sub M()
+        {|Simplify:Me.i|} = 1
+    End Sub
+End Class
+]]>
+                        </Document>
+                    </Project>
+                </Workspace>
+
+            Dim expected =
+                <text>
+                    <![CDATA[
+Class C
+    Dim i As Integer
+    Sub M()
+        Me.i = 1
+    End Sub
+End Class
+]]>
+                </text>
+            Await TestAsync(input, expected, QualifyFieldAccessOption(LanguageNames.VisualBasic))
+        End Function
+
+        <WorkItem(7065, "https://github.com/dotnet/roslyn/issues/7065")>
+        <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
+        Public Async Function QualifyFieldAccessWithMe_AsRHS_VisualBasic() As Task
+            Dim input =
+                <Workspace>
+                    <Project Language="Visual Basic" CommonReferences="true">
+                        <Document>
+                            <![CDATA[
+Class C
+    Dim i As Integer
+    Sub M()
+        Dim x = {|Simplify:Me.i|}
+    End Sub
+End Class
+]]>
+                        </Document>
+                    </Project>
+                </Workspace>
+
+            Dim expected =
+                <text>
+                    <![CDATA[
+Class C
+    Dim i As Integer
+    Sub M()
+        Dim x = Me.i
+    End Sub
+End Class
+]]>
+                </text>
+            Await TestAsync(input, expected, QualifyFieldAccessOption(LanguageNames.VisualBasic))
+        End Function
+
+        <WorkItem(7065, "https://github.com/dotnet/roslyn/issues/7065")>
+        <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
+        Public Async Function QualifyFieldAccessWithMe_AsMethodArgument_VisualBasic() As Task
+            Dim input =
+                <Workspace>
+                    <Project Language="Visual Basic" CommonReferences="true">
+                        <Document>
+                            <![CDATA[
+Class C
+    Dim i As Integer
+    Sub M(ii As Integer)
+        M({|Simplify:Me.i|})
+    End Sub
+End Class
+]]>
+                        </Document>
+                    </Project>
+                </Workspace>
+
+            Dim expected =
+                <text>
+                    <![CDATA[
+Class C
+    Dim i As Integer
+    Sub M(ii As Integer)
+        M(Me.i)
+    End Sub
+End Class
+]]>
+                </text>
+            Await TestAsync(input, expected, QualifyFieldAccessOption(LanguageNames.VisualBasic))
+        End Function
+
+        <WorkItem(7065, "https://github.com/dotnet/roslyn/issues/7065")>
+        <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
+        Public Async Function QualifyFieldAccessWithMe_ChainedAccess_VisualBasic() As Task
+            Dim input =
+                <Workspace>
+                    <Project Language="Visual Basic" CommonReferences="true">
+                        <Document>
+                            <![CDATA[
+Class C
+    Dim i As Integer
+    Sub M()
+        Dim s = {|Simplify:Me.i|}.ToString()
+    End Sub
+End Class
+]]>
+                        </Document>
+                    </Project>
+                </Workspace>
+
+            Dim expected =
+                <text>
+                    <![CDATA[
+Class C
+    Dim i As Integer
+    Sub M()
+        Dim s = Me.i.ToString()
+    End Sub
+End Class
+]]>
+                </text>
+            Await TestAsync(input, expected, QualifyFieldAccessOption(LanguageNames.VisualBasic))
+        End Function
+
+        <WorkItem(7065, "https://github.com/dotnet/roslyn/issues/7065")>
+        <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
+        Public Async Function QualifyFieldAccessWithMe_ConditionalAccess_VisualBasic() As Task
+            Dim input =
+                <Workspace>
+                    <Project Language="Visual Basic" CommonReferences="true">
+                        <Document>
+                            <![CDATA[
+Class C
+    Dim s As String
+    Sub M()
+        Dim x = {|Simplify:Me.s|}?.ToString()
+    End Sub
+End Class
+]]>
+                        </Document>
+                    </Project>
+                </Workspace>
+
+            Dim expected =
+                <text>
+                    <![CDATA[
+Class C
+    Dim s As String
+    Sub M()
+        Dim x = Me.s?.ToString()
+    End Sub
+End Class
+]]>
+                </text>
+            Await TestAsync(input, expected, QualifyFieldAccessOption(LanguageNames.VisualBasic))
+        End Function
+
+        <WorkItem(7065, "https://github.com/dotnet/roslyn/issues/7065")>
+        <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
+        Public Async Function QualifyPropertyAccessWithMe_AsLHS_VisualBasic() As Task
+            Dim input =
+                <Workspace>
+                    <Project Language="Visual Basic" CommonReferences="true">
+                        <Document>
+                            <![CDATA[
+Class C
+    Property i As Integer
+    Sub M()
+        {|Simplify:Me.i|} = 1
+    End Sub
+End Class
+]]>
+                        </Document>
+                    </Project>
+                </Workspace>
+
+            Dim expected =
+                <text>
+                    <![CDATA[
+Class C
+    Property i As Integer
+    Sub M()
+        Me.i = 1
+    End Sub
+End Class
+]]>
+                </text>
+            Await TestAsync(input, expected, QualifyPropertyAccessOption(LanguageNames.VisualBasic))
+        End Function
+
+        <WorkItem(7065, "https://github.com/dotnet/roslyn/issues/7065")>
+        <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
+        Public Async Function QualifyPropertyAccessWithMe_AsRHS_VisualBasic() As Task
+            Dim input =
+                <Workspace>
+                    <Project Language="Visual Basic" CommonReferences="true">
+                        <Document>
+                            <![CDATA[
+Class C
+    Property i As Integer
+    Sub M()
+        Dim x = {|Simplify:Me.i|}
+    End Sub
+End Class
+]]>
+                        </Document>
+                    </Project>
+                </Workspace>
+
+            Dim expected =
+                <text>
+                    <![CDATA[
+Class C
+    Property i As Integer
+    Sub M()
+        Dim x = Me.i
+    End Sub
+End Class
+]]>
+                </text>
+            Await TestAsync(input, expected, QualifyPropertyAccessOption(LanguageNames.VisualBasic))
+        End Function
+
+        <WorkItem(7065, "https://github.com/dotnet/roslyn/issues/7065")>
+        <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
+        Public Async Function QualifyPropertyAccessWithMe_AsMethodArgument_VisualBasic() As Task
+            Dim input =
+                <Workspace>
+                    <Project Language="Visual Basic" CommonReferences="true">
+                        <Document>
+                            <![CDATA[
+Class C
+    Property i As Integer
+    Sub M(ii As Integer)
+        M({|Simplify:Me.i|})
+    End Sub
+End Class
+]]>
+                        </Document>
+                    </Project>
+                </Workspace>
+
+            Dim expected =
+                <text>
+                    <![CDATA[
+Class C
+    Property i As Integer
+    Sub M(ii As Integer)
+        M(Me.i)
+    End Sub
+End Class
+]]>
+                </text>
+            Await TestAsync(input, expected, QualifyPropertyAccessOption(LanguageNames.VisualBasic))
+        End Function
+
+        <WorkItem(7065, "https://github.com/dotnet/roslyn/issues/7065")>
+        <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
+        Public Async Function QualifyPropertyAccessWithMe_ChainedAccess_VisualBasic() As Task
+            Dim input =
+                <Workspace>
+                    <Project Language="Visual Basic" CommonReferences="true">
+                        <Document>
+                            <![CDATA[
+Class C
+    Property i As Integer
+    Sub M()
+        Dim s = {|Simplify:Me.i|}.ToString()
+    End Sub
+End Class
+]]>
+                        </Document>
+                    </Project>
+                </Workspace>
+
+            Dim expected =
+                <text>
+                    <![CDATA[
+Class C
+    Property i As Integer
+    Sub M()
+        Dim s = Me.i.ToString()
+    End Sub
+End Class
+]]>
+                </text>
+            Await TestAsync(input, expected, QualifyPropertyAccessOption(LanguageNames.VisualBasic))
+        End Function
+
+        <WorkItem(7065, "https://github.com/dotnet/roslyn/issues/7065")>
+        <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
+        Public Async Function QualifyPropertyAccessWithMe_ConditionalAccess_VisualBasic() As Task
+            Dim input =
+                <Workspace>
+                    <Project Language="Visual Basic" CommonReferences="true">
+                        <Document>
+                            <![CDATA[
+Class C
+    Property s As String
+    Sub M()
+        Dim x = {|Simplify:Me.s|}?.ToString()
+    End Sub
+End Class
+]]>
+                        </Document>
+                    </Project>
+                </Workspace>
+
+            Dim expected =
+                <text>
+                    <![CDATA[
+Class C
+    Property s As String
+    Sub M()
+        Dim x = Me.s?.ToString()
+    End Sub
+End Class
+]]>
+                </text>
+            Await TestAsync(input, expected, QualifyPropertyAccessOption(LanguageNames.VisualBasic))
+        End Function
+
+        <WorkItem(7065, "https://github.com/dotnet/roslyn/issues/7065")>
+        <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
+        Public Async Function QualifyMethodAccessWithMe_AsSubCallWithArguments_VisualBasic() As Task
+            Dim input =
+                <Workspace>
+                    <Project Language="Visual Basic" CommonReferences="true">
+                        <Document>
+                            <![CDATA[
+Class C
+    Sub M(i As Integer)
+        {|Simplify:Me.M|}(0)
+    End Sub
+End Class
+]]>
+                        </Document>
+                    </Project>
+                </Workspace>
+
+            Dim expected =
+                <text>
+                    <![CDATA[
+Class C
+    Sub M(i As Integer)
+        Me.M(0)
+    End Sub
+End Class
+]]>
+                </text>
+            Await TestAsync(input, expected, QualifyMethodAccessOption(LanguageNames.VisualBasic))
+        End Function
+
+        <WorkItem(7065, "https://github.com/dotnet/roslyn/issues/7065")>
+        <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
+        Public Async Function QualifyMethodAccessWithMe_WithReturnType_VisualBasic() As Task
+            Dim input =
+                <Workspace>
+                    <Project Language="Visual Basic" CommonReferences="true">
+                        <Document>
+                            <![CDATA[
+Class C
+    Function M() As Integer
+        Return {|Simplify:Me.M|}()
+    End Function
+End Class
+]]>
+                        </Document>
+                    </Project>
+                </Workspace>
+
+            Dim expected =
+                <text>
+                    <![CDATA[
+Class C
+    Function M() As Integer
+        Return Me.M()
+    End Function
+End Class
+]]>
+                </text>
+            Await TestAsync(input, expected, QualifyMethodAccessOption(LanguageNames.VisualBasic))
+        End Function
+
+        <WorkItem(7065, "https://github.com/dotnet/roslyn/issues/7065")>
+        <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
+        Public Async Function QualifyMethodAccessWithMe_ChainedAccess_VisualBasic() As Task
+            Dim input =
+                <Workspace>
+                    <Project Language="Visual Basic" CommonReferences="true">
+                        <Document>
+                            <![CDATA[
+Class C
+    Function M() As Integer
+        Dim s = {|Simplify:Me.M|}().ToString()
+        Return 0
+    End Function
+End Class
+]]>
+                        </Document>
+                    </Project>
+                </Workspace>
+
+            Dim expected =
+                <text>
+                    <![CDATA[
+Class C
+    Function M() As Integer
+        Dim s = Me.M().ToString()
+        Return 0
+    End Function
+End Class
+]]>
+                </text>
+            Await TestAsync(input, expected, QualifyMethodAccessOption(LanguageNames.VisualBasic))
+        End Function
+
+        <WorkItem(7065, "https://github.com/dotnet/roslyn/issues/7065")>
+        <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
+        Public Async Function QualifyMethodAccessWithMe_ConditionalAccess_VisualBasic() As Task
+            Dim input =
+                <Workspace>
+                    <Project Language="Visual Basic" CommonReferences="true">
+                        <Document>
+                            <![CDATA[
+Class C
+    Function M() As String
+        Return {|Simplify:Me.M|}()?.ToString()
+    End Function
+End Class
+]]>
+                        </Document>
+                    </Project>
+                </Workspace>
+
+            Dim expected =
+                <text>
+                    <![CDATA[
+Class C
+    Function M() As String
+        Return Me.M()?.ToString()
+    End Function
+End Class
+]]>
+                </text>
+            Await TestAsync(input, expected, QualifyMethodAccessOption(LanguageNames.VisualBasic))
+        End Function
+
+        <WorkItem(7065, "https://github.com/dotnet/roslyn/issues/7065")>
+        <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
+        Public Async Function QualifyMethodAccessWithMe_EventSubscription_VisualBasic() As Task
+            Dim input =
+                <Workspace>
+                    <Project Language="Visual Basic" CommonReferences="true">
+                        <Document>
+                            <![CDATA[
+Imports System
+Class C
+    Event e As EventHandler
+    Sub Handler(sender As Object, args As EventArgs)
+        AddHandler e, AddressOf {|Simplify:Me.Handler|}
+        RemoveHandler e, AddressOf {|Simplify:Me.Handler|}
+
+        AddHandler e, New EventHandler(AddressOf {|Simplify:Me.Handler|})
+        RemoveHandler e, New EventHandler(AddressOf {|Simplify:Me.Handler|})
+    End Sub
+End Class
+]]>
+                        </Document>
+                    </Project>
+                </Workspace>
+
+            Dim expected =
+                <text>
+                    <![CDATA[
+Imports System
+Class C
+    Event e As EventHandler
+    Sub Handler(sender As Object, args As EventArgs)
+        AddHandler e, AddressOf Me.Handler
+        RemoveHandler e, AddressOf Me.Handler
+
+        AddHandler e, New EventHandler(AddressOf Me.Handler)
+        RemoveHandler e, New EventHandler(AddressOf Me.Handler)
+    End Sub
+End Class
+]]>
+                </text>
+            Await TestAsync(input, expected, QualifyMethodAccessOption(LanguageNames.VisualBasic))
+        End Function
+
+        <WorkItem(7065, "https://github.com/dotnet/roslyn/issues/7065")>
+        <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
+        Public Async Function QualifyEventAccessWithMe_AddAndRemoveHandler_VisualBasic() As Task
+            Dim input =
+                <Workspace>
+                    <Project Language="Visual Basic" CommonReferences="true">
+                        <Document>
+                            <![CDATA[
+Imports System
+Class C
+    Event e As EventHandler
+    Sub Handler(sender As Object, args As EventArgs)
+        AddHandler {|Simplify:Me.e|}, AddressOf Handler
+        RemoveHandler {|Simplify:Me.e|}, AddressOf Handler
+    End Sub
+End Class
+]]>
+                        </Document>
+                    </Project>
+                </Workspace>
+
+            Dim expected =
+                <text>
+                    <![CDATA[
+Imports System
+Class C
+    Event e As EventHandler
+    Sub Handler(sender As Object, args As EventArgs)
+        AddHandler Me.e, AddressOf Handler
+        RemoveHandler Me.e, AddressOf Handler
+    End Sub
+End Class
+]]>
+                </text>
+            Await TestAsync(input, expected, QualifyEventAccessOption(LanguageNames.VisualBasic))
+        End Function
+
         <WorkItem(7955, "https://github.com/dotnet/roslyn/issues/7955")>
         <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
         Public Async Function UsePredefinedTypeKeywordIfTextIsTheSame() As Task
@@ -4421,7 +5513,7 @@ Class C
 End Class
 ]]></text>
 
-            Await TestAsync(input, expected, s_dontPreferIntrinsicPredefinedTypeKeywordInDeclaration)
+            Await TestAsync(input, expected, DontPreferIntrinsicPredefinedTypeKeywordInDeclaration)
         End Function
 
         <WorkItem(7955, "https://github.com/dotnet/roslyn/issues/7955")>
@@ -4454,175 +5546,30 @@ Class C
 End Class
 ]]></text>
 
-            Await TestAsync(input, expected, s_dontPreferIntrinsicPredefinedTypeKeywordInDeclaration)
-        End Function
-
-        <WorkItem(8381, "https://github.com/dotnet/roslyn/issues/8381")>
-        <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
-        Public Async Function SimplifyMeRegardlessOfTypeAndOptionStrict1() As Task
-            Dim input =
-        <Workspace>
-            <Project Language="Visual Basic" CommonReferences="true">
-                <Document>
-Option Strict On
-
-Class Class1
-    Private field1 As Short
-    Private field2 As Integer
-
-    Public Sub New()
-        {|SimplifyParent:Me.field1|} = 0
-        Me.field2 = 0
-    End Sub
-End Class
-                </Document>
-            </Project>
-        </Workspace>
-
-            Dim expected =
-              <text>
-Option Strict On
-
-Class Class1
-    Private field1 As Short
-    Private field2 As Integer
-
-    Public Sub New()
-        field1 = 0
-        Me.field2 = 0
-    End Sub
-End Class
-</text>
-
-            Await TestAsync(input, expected, s_dontQualifyMemberAccessWithThisOrMe)
-        End Function
-
-        <WorkItem(8381, "https://github.com/dotnet/roslyn/issues/8381")>
-        <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
-        Public Async Function SimplifyMeRegardlessOfTypeAndOptionStrict2() As Task
-            Dim input =
-        <Workspace>
-            <Project Language="Visual Basic" CommonReferences="true">
-                <Document>
-Option Strict On
-
-Class Class1
-    Private field1 As Short
-    Private field2 As Integer
-
-    Public Sub New()
-        Me.field1 = 0
-        {|SimplifyParent:Me.field2|} = 0
-    End Sub
-End Class
-                </Document>
-            </Project>
-        </Workspace>
-
-            Dim expected =
-              <text>
-Option Strict On
-
-Class Class1
-    Private field1 As Short
-    Private field2 As Integer
-
-    Public Sub New()
-        Me.field1 = 0
-        field2 = 0
-    End Sub
-End Class
-</text>
-
-            Await TestAsync(input, expected, s_dontQualifyMemberAccessWithThisOrMe)
-        End Function
-
-        <WorkItem(8381, "https://github.com/dotnet/roslyn/issues/8381")>
-        <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
-        Public Async Function SimplifyMeRegardlessOfTypeAndOptionStrict3() As Task
-            Dim input =
-        <Workspace>
-            <Project Language="Visual Basic" CommonReferences="true">
-                <Document>
-Option Strict Off
-
-Class Class1
-    Private field1 As Short
-    Private field2 As Integer
-
-    Public Sub New()
-        {|SimplifyParent:Me.field1|} = 0
-        Me.field2 = 0
-    End Sub
-End Class
-                </Document>
-            </Project>
-        </Workspace>
-
-            Dim expected =
-              <text>
-Option Strict Off
-
-Class Class1
-    Private field1 As Short
-    Private field2 As Integer
-
-    Public Sub New()
-        field1 = 0
-        Me.field2 = 0
-    End Sub
-End Class
-</text>
-
-            Await TestAsync(input, expected, s_dontQualifyMemberAccessWithThisOrMe)
-        End Function
-
-        <WorkItem(8381, "https://github.com/dotnet/roslyn/issues/8381")>
-        <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
-        Public Async Function SimplifyMeRegardlessOfTypeAndOptionStrict4() As Task
-            Dim input =
-        <Workspace>
-            <Project Language="Visual Basic" CommonReferences="true">
-                <Document>
-Option Strict Off
-
-Class Class1
-    Private field1 As Short
-    Private field2 As Integer
-
-    Public Sub New()
-        Me.field1 = 0
-        {|SimplifyParent:Me.field2|} = 0
-    End Sub
-End Class
-                </Document>
-            </Project>
-        </Workspace>
-
-            Dim expected =
-              <text>
-Option Strict Off
-
-Class Class1
-    Private field1 As Short
-    Private field2 As Integer
-
-    Public Sub New()
-        Me.field1 = 0
-        field2 = 0
-    End Sub
-End Class
-</text>
-
-            Await TestAsync(input, expected, s_dontQualifyMemberAccessWithThisOrMe)
+            Await TestAsync(input, expected, DontPreferIntrinsicPredefinedTypeKeywordInDeclaration)
         End Function
 
 #End Region
 
 #Region "Helpers"
 
-        Private Shared s_dontPreferIntrinsicPredefinedTypeKeywordInDeclaration As Dictionary(Of OptionKey, Object) = New Dictionary(Of OptionKey, Object) From {{New OptionKey(SimplificationOptions.PreferIntrinsicPredefinedTypeKeywordInDeclaration, LanguageNames.VisualBasic), False}}
-        Private Shared s_dontQualifyMemberAccessWithThisOrMe As Dictionary(Of OptionKey, Object) = New Dictionary(Of OptionKey, Object) From {{New OptionKey(SimplificationOptions.QualifyMemberAccessWithThisOrMe, LanguageNames.VisualBasic), False}}
+        Protected Function QualifyFieldAccessOption(languageName As String) As Dictionary(Of OptionKey, Object)
+            Return New Dictionary(Of OptionKey, Object) From {{New OptionKey(SimplificationOptions.QualifyFieldAccess, languageName), True}}
+        End Function
+
+        Protected Function QualifyPropertyAccessOption(languageName As String) As Dictionary(Of OptionKey, Object)
+            Return New Dictionary(Of OptionKey, Object) From {{New OptionKey(SimplificationOptions.QualifyPropertyAccess, languageName), True}}
+        End Function
+
+        Protected Function QualifyMethodAccessOption(languageName As String) As Dictionary(Of OptionKey, Object)
+            Return New Dictionary(Of OptionKey, Object) From {{New OptionKey(SimplificationOptions.QualifyMethodAccess, languageName), True}}
+        End Function
+
+        Protected Function QualifyEventAccessOption(languageName As String) As Dictionary(Of OptionKey, Object)
+            Return New Dictionary(Of OptionKey, Object) From {{New OptionKey(SimplificationOptions.QualifyEventAccess, languageName), True}}
+        End Function
+
+        Shared DontPreferIntrinsicPredefinedTypeKeywordInDeclaration As Dictionary(Of OptionKey, Object) = New Dictionary(Of OptionKey, Object) From {{New OptionKey(SimplificationOptions.PreferIntrinsicPredefinedTypeKeywordInDeclaration, LanguageNames.VisualBasic), False}}
 
 #End Region
 

@@ -219,7 +219,7 @@ namespace Microsoft.CodeAnalysis
             var assembliesBuilder = ArrayBuilder<AssemblyData>.GetInstance();
             ArrayBuilder<PEModule> lazyModulesBuilder = null;
 
-            bool supersedeLowerVersions = compilation.IsSubmission;
+            bool supersedeLowerVersions = compilation.Options.ReferencesSupersedeLowerVersions;
 
             // When duplicate references with conflicting EmbedInteropTypes flag are encountered,
             // VB uses the flag from the last one, C# reports an error. We need to enumerate in reverse order

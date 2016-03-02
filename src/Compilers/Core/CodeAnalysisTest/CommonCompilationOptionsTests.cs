@@ -40,6 +40,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
                 "OutputKind",
                 "Platform",
                 "PublicSign",
+                "ReferencesSupersedeLowerVersions",
                 "ScriptClassName",
                 "SourceReferenceResolver",
                 "SpecificDiagnosticOptions",

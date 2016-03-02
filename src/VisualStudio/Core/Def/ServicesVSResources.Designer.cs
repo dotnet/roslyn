@@ -765,6 +765,15 @@ namespace Microsoft.VisualStudio.LanguageServices {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to No.
+        /// </summary>
+        internal static string No {
+            get {
+                return ResourceManager.GetString("No", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to No Changes.
         /// </summary>
         internal static string NoChanges {
@@ -1224,6 +1233,15 @@ namespace Microsoft.VisualStudio.LanguageServices {
         internal static string WRN_MissingAnalyzerReferenceTitle {
             get {
                 return ResourceManager.GetString("WRN_MissingAnalyzerReferenceTitle", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Yes.
+        /// </summary>
+        internal static string Yes {
+            get {
+                return ResourceManager.GetString("Yes", resourceCulture);
             }
         }
         

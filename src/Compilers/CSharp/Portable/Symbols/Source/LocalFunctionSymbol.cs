@@ -168,6 +168,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 // The return type of an async method must be void, Task or Task<T>
                 diagnostics.Add(ErrorCode.ERR_BadAsyncReturn, this.Locations[0]);
             }
+
+            if (this.RefKind != RefKind.None && returnType.SpecialType == SpecialType.System_Void)
+            {
+                diagnostics.Add(ErrorCode.ERR_VoidReturningMethodCannotReturnByRef, this.Locations[0]);
+            }
+
             // TODO: note there is a race condition here that will ultimately need to be fixed.
             // Specifically, the Interlocked.CompareExchange above succeeds, and will be seen by
             // other threads, before the diagnostics have been recorded in this symbol, below.

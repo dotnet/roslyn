@@ -38,6 +38,7 @@
     <Compile Include="Diagnostics\FieldCouldBeReadOnlyAnalyzer.cs" />
     <Compile Include="Emit\EmitOptionsTests.cs" />
     <Compile Include="Emit\CustomDebugInfoTests.cs" />
+    <Compile Include="FileSystem\PathUtilitiesTests.cs" />
     <Compile Include="InternalUtilities\StreamExtensionsTests.cs" />
     <Compile Include="InternalUtilities\StringExtensionsTests.cs" />
     <Compile Include="MetadataReferences\AssemblyIdentityExtensions.cs" />
@@ -176,7 +177,6 @@
     </EmbeddedResource>
   </ItemGroup>
   <ItemGroup>
-    <None Include="app.config" />
     <None Include="project.json" />
     <None Include="Resources/default.win32manifest" />
     <None Include="Resources/nativeWithStringIDsAndTypesAndIntTypes.res" />

@@ -6,6 +6,7 @@ using System.IO;
 using System.Linq;
 using System.Reflection.Metadata;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
+using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.CSharp.UnitTests;
 using Microsoft.CodeAnalysis.Emit;
 using Microsoft.CodeAnalysis.Test.Utilities;
@@ -156,6 +157,72 @@ class C
   IL_0007:  ret
 }";
             AssertEx.AssertEqualToleratingWhitespaceDifferences(expectedIL, actualIL);
+        }
+
+        /// <summary>
+        /// Symbol matcher considers two source types that only differ in the declaring compilations different.
+        /// </summary>
+        [Fact]
+        public void ChangingCompilationDependencies()
+        {
+            string srcLib = @"
+public class D { }
+";
+
+            string src0 = @"
+class C 
+{ 
+    public static int F(D a) { return 1; }
+}
+";
+            string src1 = @"
+class C 
+{ 
+    public static int F(D a) { return 2; }
+}
+";
+            string src2 = @"
+class C 
+{ 
+    public static int F(D a) { return 3; }
+}
+";
+            var lib0 = CreateCompilationWithMscorlib(srcLib, assemblyName: "Lib", options: TestOptions.DebugDll);
+            lib0.VerifyDiagnostics();
+
+            var lib1 = CreateCompilationWithMscorlib(srcLib, assemblyName: "Lib", options: TestOptions.DebugDll);
+            lib1.VerifyDiagnostics();
+
+            var lib2 = CreateCompilationWithMscorlib(srcLib, assemblyName: "Lib", options: TestOptions.DebugDll);
+            lib2.VerifyDiagnostics();
+
+            var compilation0 = CreateCompilation(src0, new[] { MscorlibRef, lib0.ToMetadataReference() }, assemblyName: "C", options: TestOptions.DebugDll);
+            var compilation1 = compilation0.WithSource(src1).WithReferences(new[] { MscorlibRef, lib1.ToMetadataReference() });
+            var compilation2 = compilation1.WithSource(src2).WithReferences(new[] { MscorlibRef, lib2.ToMetadataReference() });
+
+            var v0 = CompileAndVerify(compilation0);
+            var v1 = CompileAndVerify(compilation1);
+            var v2 = CompileAndVerify(compilation2);
+
+            var f0 = compilation0.GetMember<MethodSymbol>("C.F");
+            var f1 = compilation1.GetMember<MethodSymbol>("C.F");
+            var f2 = compilation2.GetMember<MethodSymbol>("C.F");
+
+            var md0 = ModuleMetadata.CreateFromImage(v0.EmittedAssemblyData);
+            var generation0 = EmitBaseline.CreateInitialBaseline(md0, EmptyLocalsProvider);
+
+            var diff1 = compilation1.EmitDifference(
+                generation0,
+                ImmutableArray.Create(new SemanticEdit(SemanticEditKind.Update, f0, f1)));
+
+            diff1.EmitResult.Diagnostics.Verify();
+
+            var diff2 = compilation2.EmitDifference(
+                diff1.NextGeneration,
+                ImmutableArray.Create(
+                    new SemanticEdit(SemanticEditKind.Update, f1, f2)));
+
+            diff2.EmitResult.Diagnostics.Verify();
         }
     }
 }

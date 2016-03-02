@@ -2,13 +2,13 @@
 
 using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeFixes.Suppression;
+using Microsoft.CodeAnalysis.Editor.UnitTests.Extensions;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Text;
@@ -24,21 +24,6 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
         protected abstract string GetLanguage();
         protected abstract ParseOptions GetScriptOptions();
         protected abstract Task<TestWorkspace> CreateWorkspaceFromFileAsync(string definition, ParseOptions parseOptions, CompilationOptions compilationOptions);
-
-        protected void ApplyOptionsToWorkspace(Workspace workspace, IDictionary<OptionKey, object> options)
-        {
-            if (options != null)
-            {
-                var optionService = workspace.Services.GetService<IOptionService>();
-                var optionSet = optionService.GetOptions();
-                foreach (var option in options)
-                {
-                    optionSet = optionSet.WithChangedOption(option.Key, option.Value);
-                }
-
-                optionService.SetOptions(optionSet);
-            }
-        }
 
         private void TestAnnotations(
             string expectedText,
@@ -72,53 +57,59 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
         protected async Task TestMissingAsync(
             string initialMarkup,
             IDictionary<OptionKey, object> options = null,
-            string fixAllActionEquivalenceKey = null)
+            string fixAllActionEquivalenceKey = null,
+            object fixProviderData = null)
         {
-            await TestMissingAsync(initialMarkup, parseOptions: null, options: options, fixAllActionEquivalenceKey: fixAllActionEquivalenceKey);
-            await TestMissingAsync(initialMarkup, parseOptions: GetScriptOptions(), options: options, fixAllActionEquivalenceKey: fixAllActionEquivalenceKey);
+            await TestMissingAsync(initialMarkup, parseOptions: null, options: options, fixAllActionEquivalenceKey: fixAllActionEquivalenceKey, fixProviderData: fixProviderData);
+            await TestMissingAsync(initialMarkup, parseOptions: GetScriptOptions(), options: options, fixAllActionEquivalenceKey: fixAllActionEquivalenceKey, fixProviderData: fixProviderData);
         }
 
         protected Task TestMissingAsync(
             string initialMarkup,
             ParseOptions parseOptions,
             IDictionary<OptionKey, object> options = null,
-            string fixAllActionEquivalenceKey = null)
+            string fixAllActionEquivalenceKey = null,
+            object fixProviderData = null)
         {
-            return TestMissingAsync(initialMarkup, parseOptions, compilationOptions: null, options: options, fixAllActionEquivalenceKey: fixAllActionEquivalenceKey);
+            return TestMissingAsync(initialMarkup, parseOptions, compilationOptions: null, options: options, fixAllActionEquivalenceKey: fixAllActionEquivalenceKey, fixProviderData: fixProviderData);
         }
 
         protected async Task TestMissingAsync(
             string initialMarkup,
             ParseOptions parseOptions, CompilationOptions compilationOptions,
             IDictionary<OptionKey, object> options = null,
-            string fixAllActionEquivalenceKey = null)
+            string fixAllActionEquivalenceKey = null,
+            object fixProviderData = null)
         {
             using (var workspace = await CreateWorkspaceFromFileAsync(initialMarkup, parseOptions, compilationOptions))
             {
-                ApplyOptionsToWorkspace(workspace, options);
+                workspace.ApplyOptions(options);
 
-                var actions = await GetCodeActionsAsync(workspace, fixAllActionEquivalenceKey);
+                var actions = await GetCodeActionsAsync(workspace, fixAllActionEquivalenceKey, fixProviderData);
                 Assert.True(actions == null || actions.Count == 0);
             }
         }
 
-        protected async Task<IList<CodeAction>> GetCodeActionsAsync(TestWorkspace workspace, string fixAllActionEquivalenceKey)
+        protected async Task<IList<CodeAction>> GetCodeActionsAsync(
+            TestWorkspace workspace, string fixAllActionEquivalenceKey, object fixProviderData = null)
         {
-            return MassageActions(await GetCodeActionsWorkerAsync(workspace, fixAllActionEquivalenceKey));
+            return MassageActions(await GetCodeActionsWorkerAsync(workspace, fixAllActionEquivalenceKey, fixProviderData));
         }
 
-        protected abstract Task<IList<CodeAction>> GetCodeActionsWorkerAsync(TestWorkspace workspace, string fixAllActionEquivalenceKey);
+        protected abstract Task<IList<CodeAction>> GetCodeActionsWorkerAsync(
+            TestWorkspace workspace, string fixAllActionEquivalenceKey, object fixProviderData = null);
 
         protected async Task TestSmartTagTextAsync(
             string initialMarkup,
             string displayText,
             int index = 0,
             ParseOptions parseOptions = null,
-            CompilationOptions compilationOptions = null)
+            CompilationOptions compilationOptions = null,
+            object fixProviderData = null)
         {
             using (var workspace = await CreateWorkspaceFromFileAsync(initialMarkup, parseOptions, compilationOptions))
             {
-                var actions = await GetCodeActionsAsync(workspace, fixAllActionEquivalenceKey: null);
+                var actions = await GetCodeActionsAsync(workspace, fixAllActionEquivalenceKey: null, fixProviderData: fixProviderData);
                 Assert.Equal(displayText, actions.ElementAt(index).Title);
             }
         }
@@ -157,10 +148,11 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
             string initialMarkup, string expectedMarkup,
             int index = 0, bool compareTokens = true,
             IDictionary<OptionKey, object> options = null,
-            string fixAllActionEquivalenceKey = null)
+            string fixAllActionEquivalenceKey = null,
+            object fixProviderData = null)
         {
-            await TestAsync(initialMarkup, expectedMarkup, null, index, compareTokens, options, fixAllActionEquivalenceKey);
-            await TestAsync(initialMarkup, expectedMarkup, GetScriptOptions(), index, compareTokens, options, fixAllActionEquivalenceKey);
+            await TestAsync(initialMarkup, expectedMarkup, null, index, compareTokens, options, fixAllActionEquivalenceKey, fixProviderData);
+            await TestAsync(initialMarkup, expectedMarkup, GetScriptOptions(), index, compareTokens, options, fixAllActionEquivalenceKey, fixProviderData);
         }
 
         protected Task TestAsync(
@@ -168,9 +160,10 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
             ParseOptions parseOptions,
             int index = 0, bool compareTokens = true,
             IDictionary<OptionKey, object> options = null,
-            string fixAllActionEquivalenceKey = null)
+            string fixAllActionEquivalenceKey = null,
+            object fixProviderData = null)
         {
-            return TestAsync(initialMarkup, expectedMarkup, parseOptions, null, index, compareTokens, options, fixAllActionEquivalenceKey);
+            return TestAsync(initialMarkup, expectedMarkup, parseOptions, null, index, compareTokens, options, fixAllActionEquivalenceKey, fixProviderData);
         }
 
         protected async Task TestAsync(
@@ -178,7 +171,8 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
             ParseOptions parseOptions, CompilationOptions compilationOptions,
             int index = 0, bool compareTokens = true,
             IDictionary<OptionKey, object> options = null,
-            string fixAllActionEquivalenceKey = null)
+            string fixAllActionEquivalenceKey = null,
+            object fixProviderData = null)
         {
             string expected;
             IDictionary<string, IList<TextSpan>> spanMap;
@@ -192,9 +186,9 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
                 ? await TestWorkspace.CreateAsync(initialMarkup)
                 : await CreateWorkspaceFromFileAsync(initialMarkup, parseOptions, compilationOptions))
             {
-                ApplyOptionsToWorkspace(workspace, options);
+                workspace.ApplyOptions(options);
 
-                var actions = await GetCodeActionsAsync(workspace, fixAllActionEquivalenceKey);
+                var actions = await GetCodeActionsAsync(workspace, fixAllActionEquivalenceKey, fixProviderData);
                 await TestActionsAsync(
                     workspace, expected, index,
                     actions,
@@ -323,11 +317,27 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
             TestWorkspace workspace,
             IEnumerable<CodeActionOperation> operations)
         {
-            var applyChangesOperation = operations.OfType<ApplyChangesOperation>().First();
-            var oldSolution = workspace.CurrentSolution;
-            var newSolution = applyChangesOperation.ChangedSolution;
+            Tuple<Solution, Solution> result = null;
+            foreach (var operation in operations)
+            {
+                if (operation is ApplyChangesOperation && result == null)
+                {
+                    var oldSolution = workspace.CurrentSolution;
+                    var newSolution = ((ApplyChangesOperation)operation).ChangedSolution;
+                    result = Tuple.Create(oldSolution, newSolution);
+                }
+                else if (operation.ApplyDuringTests)
+                {
+                    operation.Apply(workspace, CancellationToken.None);
+                }
+            }
 
-            return Tuple.Create(oldSolution, newSolution);
+            if (result == null)
+            {
+                throw new InvalidOperationException("No ApplyChangesOperation found");
+            }
+
+            return result;
         }
 
         protected virtual IList<CodeAction> MassageActions(IList<CodeAction> actions)
@@ -338,6 +348,11 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
         protected static IList<CodeAction> FlattenActions(IEnumerable<CodeAction> codeActions)
         {
             return codeActions?.SelectMany(a => a.HasCodeActions ? a.GetCodeActions().ToArray() : new[] { a }).ToList();
+        }
+
+        protected IDictionary<OptionKey, object> Option(PerLanguageOption<bool> option, bool value)
+        {
+            return new Dictionary<OptionKey, object>() { { new OptionKey(option, GetLanguage()), value } };
         }
     }
 }
