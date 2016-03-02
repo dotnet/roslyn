@@ -1548,7 +1548,20 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                             if (shouldExecuteOperationActions || shouldExecuteOperationBlockActions)
                             {
                                 var operationBlocksToAnalyze = GetOperationBlocksToAnalyze(executableCodeBlocks, semanticModel, cancellationToken);
-                                var operationsToAnalyze = GetOperationsToAnalyze(operationBlocksToAnalyze);
+                                var operationsToAnalyze = ImmutableArray<IOperation>.Empty;
+                                try
+                                {
+                                    operationsToAnalyze = GetOperationsToAnalyze(operationBlocksToAnalyze);
+                                }
+                                catch (Exception ex) when (StackGuard.IsInsufficientExecutionStackException(ex) || FatalError.ReportWithoutCrashUnlessCanceled(ex))
+                                {
+                                    // the exception filter will short-circuit if `ex` is `InsufficientExecutionStackException` (from OperationWalker)
+                                    // and no non-fatal-watson will be logged as a result.
+                                    var diagnostic = AnalyzerExecutor.CreateDriverExceptionDiagnostic(ex);
+                                    var analyzer = this.analyzers[0];
+
+                                    analyzerExecutor.OnAnalyzerException(ex, analyzer, diagnostic);
+                                }
 
                                 if (!operationsToAnalyze.IsEmpty)
                                 {
