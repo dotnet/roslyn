@@ -31,29 +31,15 @@ namespace Microsoft.CodeAnalysis.UnitTests
 
     public class PEBuilderTests
     {
-        [Fact]
-        public void Basic()
+        private static void WritePEImage(Stream peStream, MetadataBuilder metadataBuilder, BlobBuilder ilBuilder, MethodDefinitionHandle entryPointHandle)
         {
-            using (var peStream = new MemoryStream())
-            {
-                WritePEImage(peStream);
+            var mappedFieldDataBuilder = new BlobBuilder();
+            var managedResourceDataBuilder = new BlobBuilder();
 
-                peStream.Position = 0;
-                var r = new PEReader(peStream);
-                var h = r.PEHeaders;
-                var mdReader = r.GetMetadataReader();
-
-                peStream.Position = 0;
-                // File.WriteAllBytes(@"c:\temp\test.exe", peStream.ToArray());
-            }
-        }
-
-        public static void WritePEImage(Stream peStream)
-        {
             var peBuilder = new PEBuilder(
-                machine: 0, 
+                machine: 0,
                 sectionAlignment: 0x2000,
-                fileAlignment: 0x200, 
+                fileAlignment: 0x200,
                 imageBase: 0x00400000,
                 majorLinkerVersion: 0x30, // (what is ref.emit using?)
                 minorLinkerVersion: 0,
@@ -65,32 +51,23 @@ namespace Microsoft.CodeAnalysis.UnitTests
                 minorSubsystemVersion: 0,
                 subsystem: Subsystem.WindowsCui,
                 dllCharacteristics: DllCharacteristics.DynamicBase | DllCharacteristics.NxCompatible | DllCharacteristics.NoSeh | DllCharacteristics.TerminalServerAware,
-                imageCharacteristics: Characteristics.ExecutableImage,
+                imageCharacteristics: entryPointHandle.IsNil ? Characteristics.Dll : Characteristics.ExecutableImage,
                 sizeOfStackReserve: 0x00100000,
                 sizeOfStackCommit: 0x1000,
                 sizeOfHeapReserve: 0x00100000,
                 sizeOfHeapCommit: 0x1000);
 
-            var ilBuilder = new BlobBuilder();
-            var metadataBlobBuilder = new BlobBuilder();
-            var mappedFieldDataBuilder = new BlobBuilder();
-            var managedResourceDataBuilder = new BlobBuilder();
-
-            var metadata = new MetadataBuilder();
-            MethodDefinitionHandle mainMethodDef;
-            EmitMetadataAndIL(metadata, ilBuilder, out mainMethodDef);
-
             var peDirectoriesBuilder = new PEDirectoriesBuilder();
 
             peBuilder.AddManagedSections(
                 peDirectoriesBuilder,
-                new TypeSystemMetadataSerializer(metadata, "v4.0.30319", isMinimalDelta: false),
+                new TypeSystemMetadataSerializer(metadataBuilder, "v4.0.30319", isMinimalDelta: false),
                 ilBuilder,
                 mappedFieldDataBuilder,
                 managedResourceDataBuilder,
                 nativeResourceSectionSerializer: null,
                 strongNameSignatureSize: 0,
-                entryPoint: mainMethodDef,
+                entryPoint: entryPointHandle,
                 pdbPathOpt: null,
                 nativePdbContentId: default(ContentId),
                 portablePdbContentId: default(ContentId),
@@ -103,9 +80,31 @@ namespace Microsoft.CodeAnalysis.UnitTests
             peBlob.WriteContentTo(peStream);
         }
 
-        private static void EmitMetadataAndIL(MetadataBuilder metadata, BlobBuilder ilBuilder, out MethodDefinitionHandle mainMethodDef)
+        [Fact]
+        public void BasicValidation()
         {
-            metadata.AddModule(0, metadata.GetString("ConsoleApplication.exe"), metadata.GetGuid(Guid.NewGuid()), default(GuidHandle), default(GuidHandle));
+            using (var peStream = new MemoryStream())
+            {
+                var ilBuilder = new BlobBuilder();
+                var metadataBuilder = new MetadataBuilder();
+                var entryPoint = BasicValidationEmit(metadataBuilder, ilBuilder);
+                WritePEImage(peStream, metadataBuilder, ilBuilder, entryPoint);
+
+                peStream.Position = 0;
+                var r = new PEReader(peStream);
+                var h = r.PEHeaders;
+                var mdReader = r.GetMetadataReader();
+            }
+        }
+
+        private static MethodDefinitionHandle BasicValidationEmit(MetadataBuilder metadata, BlobBuilder ilBuilder)
+        {
+            metadata.AddModule(
+                0, 
+                metadata.GetString("ConsoleApplication.exe"), 
+                metadata.GetGuid(Guid.NewGuid()),
+                default(GuidHandle), 
+                default(GuidHandle));
 
             metadata.AddAssembly(
                 metadata.GetString("ConsoleApplication"),
@@ -239,7 +238,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
 
             buffer.Clear();
             
-            mainMethodDef = metadata.AddMethodDefinition(
+            var mainMethodDef = metadata.AddMethodDefinition(
                 MethodAttributes.Public | MethodAttributes.Static | MethodAttributes.HideBySig,
                 MethodImplAttributes.IL | MethodImplAttributes.Managed,
                 metadata.GetString("Main"),
@@ -261,7 +260,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
                 metadata.GetString("<Module>"),
                 baseType: default(EntityHandle),
                 fieldList: MetadataTokens.FieldDefinitionHandle(1),
-                methodList: MetadataTokens.MethodDefinitionHandle(1));
+                methodList: mainMethodDef);
 
             metadata.AddTypeDefinition(
                 TypeAttributes.Class | TypeAttributes.Public | TypeAttributes.AutoLayout | TypeAttributes.BeforeFieldInit,
@@ -270,6 +269,161 @@ namespace Microsoft.CodeAnalysis.UnitTests
                 systemObjectTypeRef,
                 fieldList: MetadataTokens.FieldDefinitionHandle(1),
                 methodList: mainMethodDef);
+           
+            return mainMethodDef;
+        }
+
+        [Fact]
+        public void Complex()
+        {
+            using (var peStream = new MemoryStream())
+            {
+                var ilBuilder = new BlobBuilder();
+                var metadataBuilder = new MetadataBuilder();
+                var entryPoint = ComplexEmit(metadataBuilder, ilBuilder);
+
+                WritePEImage(peStream, metadataBuilder, ilBuilder, entryPoint);
+
+                peStream.Position = 0;
+                File.WriteAllBytes(@"c:\temp\test.dll", peStream.ToArray());
+            }
+        }
+
+        private static BlobBuilder BuildSignature(Action<BlobEncoder> action)
+        {
+            var builder = new BlobBuilder();
+            action(new BlobEncoder(builder));
+            return builder;
+        }
+
+        private static MethodDefinitionHandle ComplexEmit(MetadataBuilder metadata, BlobBuilder ilBuilder)
+        {
+            metadata.AddModule(
+                0,
+                metadata.GetString("ConsoleApplication.exe"),
+                metadata.GetGuid(Guid.NewGuid()),
+                default(GuidHandle),
+                default(GuidHandle));
+
+            metadata.AddAssembly(
+                metadata.GetString("ConsoleApplication"),
+                version: new Version(0, 0, 0, 0),
+                culture: default(StringHandle),
+                publicKey: default(BlobHandle),
+                flags: default(AssemblyFlags),
+                hashAlgorithm: AssemblyHashAlgorithm.Sha1);
+
+            var mscorlibAssemblyRef = metadata.AddAssemblyReference(
+                name: metadata.GetString("mscorlib"),
+                version: new Version(4, 0, 0, 0),
+                culture: default(StringHandle),
+                publicKeyOrToken: metadata.GetBlob(ImmutableArray.Create<byte>(0xB7, 0x7A, 0x5C, 0x56, 0x19, 0x34, 0xE0, 0x89)),
+                flags: default(AssemblyFlags),
+                hashValue: default(BlobHandle));
+
+            // TypeRefs:
+
+            var systemObjectTypeRef = metadata.AddTypeReference(mscorlibAssemblyRef, metadata.GetString("System"), metadata.GetString("Object"));
+            var dictionaryTypeRef = metadata.AddTypeReference(mscorlibAssemblyRef, metadata.GetString("System.Collections.Generic"), metadata.GetString("Dictionary`2"));
+            var strignBuilderTypeRef = metadata.AddTypeReference(mscorlibAssemblyRef, metadata.GetString("System.Text"), metadata.GetString("StringBuilder"));
+            var typeTypeRef = metadata.AddTypeReference(mscorlibAssemblyRef, metadata.GetString("System"), metadata.GetString("Type"));
+            var int32TypeRef = metadata.AddTypeReference(mscorlibAssemblyRef, metadata.GetString("System"), metadata.GetString("Int32"));
+            var runtimeTypeHandleRef = metadata.AddTypeReference(mscorlibAssemblyRef, metadata.GetString("System"), metadata.GetString("RuntimeTypeHandle"));
+            var invalidOperationExceptionTypeRef = metadata.AddTypeReference(mscorlibAssemblyRef, metadata.GetString("System"), metadata.GetString("InvalidOperationException"));
+
+            // TypeDefs:
+
+            metadata.AddTypeDefinition(
+               default(TypeAttributes),
+               default(StringHandle),
+               metadata.GetString("<Module>"),
+               baseType: default(EntityHandle),
+               fieldList: MetadataTokens.FieldDefinitionHandle(1),
+               methodList: MetadataTokens.MethodDefinitionHandle(1));
+
+            var baseClassTypeDef = metadata.AddTypeDefinition(
+                TypeAttributes.Class | TypeAttributes.Public | TypeAttributes.AutoLayout | TypeAttributes.BeforeFieldInit | TypeAttributes.Abstract,
+                metadata.GetString("Lib"),
+                metadata.GetString("BaseClass"),
+                systemObjectTypeRef,
+                fieldList: MetadataTokens.FieldDefinitionHandle(1),
+                methodList: MetadataTokens.MethodDefinitionHandle(1));
+
+            var derivedClassTypeDef = metadata.AddTypeDefinition(
+                TypeAttributes.Class | TypeAttributes.Public | TypeAttributes.AutoLayout | TypeAttributes.BeforeFieldInit,
+                metadata.GetString("Lib"),
+                metadata.GetString("DerivedClass"),
+                baseClassTypeDef,
+                fieldList: MetadataTokens.FieldDefinitionHandle(4),
+                methodList: MetadataTokens.MethodDefinitionHandle(1));
+
+            // FieldDefs:
+
+            // Field1
+            var baseClassNumberFieldDef = metadata.AddFieldDefinition(
+                FieldAttributes.Private,
+                metadata.GetString("_number"),
+                metadata.GetBlob(BuildSignature(e => e.FieldSignature().Int32())));
+
+            // Field2
+            var baseClassNegativeFieldDef = metadata.AddFieldDefinition(
+                FieldAttributes.Assembly,
+                metadata.GetString("negative"),
+                metadata.GetBlob(BuildSignature(e => e.FieldSignature().Boolean())));
+
+            // Field3
+            var derivedClassSumCacheFieldDef = metadata.AddFieldDefinition(
+                FieldAttributes.Assembly,
+                metadata.GetString("_sumCache"),
+                metadata.GetBlob(BuildSignature(e => 
+                {
+                    var inst = e.FieldSignature().GenericInstantiation(isValueType: false, typeRefDefSpec: dictionaryTypeRef, genericArgumentCount: 2);
+                    inst.AddArgument().Int32();
+                    inst.AddArgument().Object();
+                })));
+
+            // Field4
+            var derivedClassCountFieldDef = metadata.AddFieldDefinition(
+                FieldAttributes.Assembly,
+                metadata.GetString("_count"),
+                metadata.GetBlob(BuildSignature(e => e.FieldSignature().SZArray().Int32())));
+
+            // Field5
+            var derivedClassBCFieldDef = metadata.AddFieldDefinition(
+              FieldAttributes.Assembly,
+              metadata.GetString("_bc"),
+              metadata.GetBlob(BuildSignature(e => e.FieldSignature().TypeDefOrRefOrSpec(isValueType: false, typeRefDefSpec: baseClassTypeDef))));
+
+            var methodBodies = new MethodBodiesEncoder(ilBuilder);
+
+            var buffer = new BlobBuilder();
+            InstructionEncoder il;
+
+            //
+            // Foo
+            //
+            int fooBodyOffset;
+            il = new InstructionEncoder(buffer);
+
+            il.LoadString(metadata.GetUserString("asdsad"));
+            il.OpCode(ILOpCode.Newobj);
+            il.Token(invalidOperationExceptionTypeRef);
+            il.OpCode(ILOpCode.Throw);
+
+            methodBodies.AddMethodBody().WriteInstructions(buffer, out fooBodyOffset);
+            buffer.Clear();
+
+            // Method1
+            var derivedClassFooMethodDef = metadata.AddMethodDefinition(
+                MethodAttributes.PrivateScope | MethodAttributes.Private | MethodAttributes.HideBySig,
+                MethodImplAttributes.IL,
+                metadata.GetString("Foo"),
+                metadata.GetBlob(BuildSignature(e =>
+                    e.MethodSignature(isInstanceMethod: true).Parameters(0, returnType => returnType.Void(), parameters => parameters.EndParameters()))),
+                fooBodyOffset,
+                default(ParameterHandle));
+
+            return default(MethodDefinitionHandle);
         }
     }
 }
