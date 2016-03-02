@@ -1712,7 +1712,12 @@ Public Class B2
         Return x
     End Operator
 
-    Public Shared Operator -(x As B2, y As B2) As B2 
+    Public Shared Operator -(x As B2) As B2 
+        System.Console.WriteLine("-")
+        Return x
+    End Operator
+
+    Public Shared Operator -(x As B2) As B2 
         System.Console.WriteLine("-")
         Return x
     End Operator
@@ -1732,11 +1737,12 @@ End Module
                          </compilation>
 
             Dim comp = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(source)
-            comp.VerifyDiagnostics(Diagnostic(ERRID.ERR_TypeMismatch2, "10", New Object() {"Integer", "B2"}).WithLocation(18, 17),
-                                   Diagnostic(ERRID.ERR_UnaryOperand2, "-x", New Object() {"-", "B2"}).WithLocation(20, 13))
+            comp.VerifyDiagnostics(Diagnostic(ERRID.ERR_DuplicateProcDef1, "-", New Object() {"Public Shared Operator -(x As B2) As B2"}).WithLocation(8, 28),
+                                   Diagnostic(ERRID.ERR_TypeMismatch2, "10", New Object() {"Integer", "B2"}).WithLocation(23, 17),
+                                   Diagnostic(ERRID.ERR_NoMostSpecificOverload2, "-x", New Object() {"-", vbCrLf & "    'Public Shared Operator -(x As B2) As B2': Not most specific." & vbCrLf & "    'Public Shared Operator -(x As B2) As B2': Not most specific."}).WithLocation(25, 13))
             comp.VerifyAnalyzerDiagnostics({New OperatorPropertyPullerTestAnalyzer}, Nothing, Nothing, False,
-                                           Diagnostic(OperatorPropertyPullerTestAnalyzer.BinaryOperatorDescriptor.Id, "x + 10").WithArguments("OperatorMethodAdd").WithLocation(18, 13),
-                                           Diagnostic(OperatorPropertyPullerTestAnalyzer.UnaryOperatorDescriptor.Id, "-x").WithArguments("Invalid").WithLocation(20, 13))
+                                           Diagnostic(OperatorPropertyPullerTestAnalyzer.BinaryOperatorDescriptor.Id, "x + 10").WithArguments("OperatorMethodAdd").WithLocation(23, 13),
+                                           Diagnostic(OperatorPropertyPullerTestAnalyzer.UnaryOperatorDescriptor.Id, "-x").WithArguments("OperatorMethodMinus").WithLocation(25, 13))
         End Sub
 
         <Fact>
