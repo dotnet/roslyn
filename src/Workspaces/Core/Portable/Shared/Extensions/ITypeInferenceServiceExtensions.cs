@@ -17,7 +17,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             CancellationToken cancellationToken)
         {
             var types = typeInferenceService.InferTypes(semanticModel, expression, cancellationToken);
-            var delegateTypes = types.Select(t => t?.GetDelegateType(semanticModel.Compilation));
+            var delegateTypes = types.Select(t => t.GetDelegateType(semanticModel.Compilation));
             return delegateTypes.WhereNotNull().FirstOrDefault();
         }
 
