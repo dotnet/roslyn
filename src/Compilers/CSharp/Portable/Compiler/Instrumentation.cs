@@ -6,7 +6,6 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeGen;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
-using Microsoft.CodeAnalysis.Semantics;
 
 namespace Microsoft.CodeAnalysis.CSharp
 {
@@ -17,7 +16,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (methodBody != null)
             {
                 ArrayBuilder<Cci.SequencePoint> pointsBuilder = new ArrayBuilder<Cci.SequencePoint>();
-                OperationWalker collector = new InstrumentationCollectionWalker(pointsBuilder, debugDocumentProvider);
+                BoundTreeWalker collector = new InstrumentationCollectionWalker(pointsBuilder, debugDocumentProvider);
                 collector.Visit(methodBody);
 
                 ImmutableArray<Cci.SequencePoint> points = pointsBuilder.ToImmutableAndFree();
@@ -25,7 +24,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
     }
 
-    internal sealed class InstrumentationCollectionWalker : OperationWalker
+    internal sealed class InstrumentationCollectionWalker : BoundTreeWalkerWithStackGuard
     {
         private readonly ArrayBuilder<Cci.SequencePoint> _pointsBuilder;
         private readonly DebugDocumentProvider _debugDocumentProvider;
@@ -36,26 +35,28 @@ namespace Microsoft.CodeAnalysis.CSharp
             _debugDocumentProvider = debugDocumentProvider;
         }
 
-        public override void Visit(IOperation operation)
+        public override BoundNode Visit(BoundNode operation)
         {
             if (operation == null)
             {
-                return;
+                return null;
             }
-            
-            if (operation.IsStatement())
+
+            BoundStatement statement = operation as BoundStatement;
+            if (statement != null)
             {
-                FileLinePositionSpan lineSpan = operation.Syntax.GetLocation().GetMappedLineSpan();
+                FileLinePositionSpan lineSpan = statement.Syntax.GetLocation().GetMappedLineSpan();
                 string path = lineSpan.Path;
                 if (path == "")
                 {
-                    path = operation.Syntax.SyntaxTree.FilePath;
+                    path = statement.Syntax.SyntaxTree.FilePath;
                 }
 
                 _pointsBuilder.Add(new Cci.SequencePoint(_debugDocumentProvider.Invoke(path, ""), 0, lineSpan.Span.Start.Line, lineSpan.Span.Start.Character, lineSpan.Span.End.Line, lineSpan.Span.End.Character));
             }
 
             base.Visit(operation);
+            return null;
         }
     }
 }
