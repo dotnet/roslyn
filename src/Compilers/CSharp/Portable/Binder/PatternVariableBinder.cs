@@ -100,6 +100,23 @@ namespace Microsoft.CodeAnalysis.CSharp
             this.Syntax = syntax;
         }
 
+        internal PatternVariableBinder(AttributeSyntax syntax, Binder next) : base(next)
+        {
+            this.Syntax = syntax;
+
+            if (syntax.ArgumentList?.Arguments.Count > 0)
+            {
+                var expressions = ArrayBuilder<ExpressionSyntax>.GetInstance(syntax.ArgumentList.Arguments.Count);
+
+                foreach (var argument in syntax.ArgumentList.Arguments)
+                {
+                    expressions.Add(argument.Expression);
+                }
+
+                this.Expressions = expressions.ToImmutableAndFree();
+            }
+        }
+
         protected override ImmutableArray<LocalSymbol> BuildLocals()
         {
             var patterns = PatternVariableFinder.FindPatternVariables(Expression, Expressions, this.Patterns);
@@ -110,13 +127,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
             patterns.Free();
             return builder.ToImmutableAndFree();
-        }
-
-        internal BoundExpression WrapWithPatternVariables(BoundExpression expression)
-        {
-            return (Locals.Length == 0)
-                ? expression
-                : new BoundSequence(expression.Syntax, Locals, ImmutableArray<BoundExpression>.Empty, expression, expression.Type);
         }
     }
 }

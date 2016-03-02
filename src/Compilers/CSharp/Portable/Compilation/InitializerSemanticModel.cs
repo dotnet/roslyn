@@ -194,6 +194,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         }
                         if (result != null)
                         {
+                            result = binder.WrapWithVariablesIfAny(result);
                             return new BoundFieldEqualsValue(equalsValue, field, result);
                         }
                         break;
@@ -203,6 +204,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     {
                         var property = (PropertySymbol)this.MemberSymbol;
                         BoundExpression result = binder.BindVariableOrAutoPropInitializer(equalsValue, RefKind.None, property.Type, diagnostics);
+                        result = binder.WrapWithVariablesIfAny(result);
                         if (result != null)
                         {
                             return new BoundPropertyEqualsValue(equalsValue, property, result);
