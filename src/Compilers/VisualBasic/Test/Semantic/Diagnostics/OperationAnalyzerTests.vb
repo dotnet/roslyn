@@ -1658,7 +1658,7 @@ Module Module1
         r = x / y      
         r = x \ y      
         r = x Mod y    
-        r = x ^ y      ' TODO: Bug https://github.com/dotnet/roslyn/issues/9174
+        r = x ^ y
         r = x = y      
         r = x <> y     
         r = x < y      
@@ -1687,6 +1687,7 @@ End Module
                 Diagnostic(BinaryOperatorVBTestAnalyzer.BinaryUserDefinedOperatorDescriptor.Id, "x / y").WithArguments("OperatorMethodDivide").WithLocation(112, 13),
                 Diagnostic(BinaryOperatorVBTestAnalyzer.BinaryUserDefinedOperatorDescriptor.Id, "x \ y").WithArguments("OperatorMethodIntegerDivide").WithLocation(113, 13),
                 Diagnostic(BinaryOperatorVBTestAnalyzer.BinaryUserDefinedOperatorDescriptor.Id, "x Mod y").WithArguments("OperatorMethodRemainder").WithLocation(114, 13),
+                Diagnostic(BinaryOperatorVBTestAnalyzer.BinaryUserDefinedOperatorDescriptor.Id, "x ^ y").WithArguments("OperatorMethodPower").WithLocation(115, 13),
                 Diagnostic(BinaryOperatorVBTestAnalyzer.BinaryUserDefinedOperatorDescriptor.Id, "x = y").WithArguments("OperatorMethodEquals").WithLocation(116, 13),
                 Diagnostic(BinaryOperatorVBTestAnalyzer.BinaryUserDefinedOperatorDescriptor.Id, "x <> y").WithArguments("OperatorMethodNotEquals").WithLocation(117, 13),
                 Diagnostic(BinaryOperatorVBTestAnalyzer.BinaryUserDefinedOperatorDescriptor.Id, "x < y").WithArguments("OperatorMethodLessThan").WithLocation(118, 13),
@@ -1698,6 +1699,51 @@ End Module
                 Diagnostic(BinaryOperatorVBTestAnalyzer.BinaryUserDefinedOperatorDescriptor.Id, "x Xor y").WithArguments("OperatorMethodExclusiveOr").WithLocation(126, 13),
                 Diagnostic(BinaryOperatorVBTestAnalyzer.BinaryUserDefinedOperatorDescriptor.Id, "x << 2").WithArguments("OperatorMethodLeftShift").WithLocation(127, 13),
                 Diagnostic(BinaryOperatorVBTestAnalyzer.BinaryUserDefinedOperatorDescriptor.Id, "x >> 3").WithArguments("OperatorMethodRightShift").WithLocation(128, 13))
+        End Sub
+
+        <Fact>
+        Public Sub InvalidOperatorsVisualBasic()
+            Dim source = <compilation>
+                             <file name="c.vb">
+                                 <![CDATA[
+Public Class B2
+
+    Public Shared Operator +(x As B2, y As B2) As B2 
+        System.Console.WriteLine("+")
+        Return x
+    End Operator
+
+    Public Shared Operator -(x As B2) As B2 
+        System.Console.WriteLine("-")
+        Return x
+    End Operator
+
+    Public Shared Operator -(x As B2) As B2 
+        System.Console.WriteLine("-")
+        Return x
+    End Operator
+End Class
+
+Module Module1
+
+    Sub Main() 
+        Dim x, y As New B2()
+        x = x + 10
+        x = x + y
+        x = -x
+    End Sub
+End Module
+]]>
+                             </file>
+                         </compilation>
+
+            Dim comp = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(source)
+            comp.VerifyDiagnostics(Diagnostic(ERRID.ERR_DuplicateProcDef1, "-", New Object() {"Public Shared Operator -(x As B2) As B2"}).WithLocation(8, 28),
+                                   Diagnostic(ERRID.ERR_TypeMismatch2, "10", New Object() {"Integer", "B2"}).WithLocation(23, 17),
+                                   Diagnostic(ERRID.ERR_NoMostSpecificOverload2, "-x", New Object() {"-", vbCrLf & "    'Public Shared Operator -(x As B2) As B2': Not most specific." & vbCrLf & "    'Public Shared Operator -(x As B2) As B2': Not most specific."}).WithLocation(25, 13))
+            comp.VerifyAnalyzerDiagnostics({New OperatorPropertyPullerTestAnalyzer}, Nothing, Nothing, False,
+                                           Diagnostic(OperatorPropertyPullerTestAnalyzer.BinaryOperatorDescriptor.Id, "x + 10").WithArguments("OperatorMethodAdd").WithLocation(23, 13),
+                                           Diagnostic(OperatorPropertyPullerTestAnalyzer.UnaryOperatorDescriptor.Id, "-x").WithArguments("OperatorMethodMinus").WithLocation(25, 13))
         End Sub
 
         <Fact>

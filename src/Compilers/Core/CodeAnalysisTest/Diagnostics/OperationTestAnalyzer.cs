@@ -1624,6 +1624,83 @@ namespace Microsoft.CodeAnalysis.UnitTests.Diagnostics
         }
     }
 
+    public class OperatorPropertyPullerTestAnalyzer : DiagnosticAnalyzer
+    {
+        public static readonly DiagnosticDescriptor BinaryOperatorDescriptor = new DiagnosticDescriptor(
+            "BinaryOperator",
+            "Binary operator found",
+            "A Binary operator {0} was found",
+            "Testing",
+            DiagnosticSeverity.Warning,
+            isEnabledByDefault: true);
+
+        public static readonly DiagnosticDescriptor UnaryOperatorDescriptor = new DiagnosticDescriptor(
+           "UnaryOperator",
+           "Unary operator found",
+           "A Unary operator {0} was found",
+           "Testing",
+           DiagnosticSeverity.Warning,
+           isEnabledByDefault: true);
+
+        public sealed override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics
+            => ImmutableArray.Create(BinaryOperatorDescriptor, UnaryOperatorDescriptor);
+
+        public sealed override void Initialize(AnalysisContext context)
+        {
+            context.RegisterOperationAction(
+                (operationContext) =>
+                {
+                    var binary = (IBinaryOperatorExpression)operationContext.Operation;
+                    var left = binary.LeftOperand;
+                    var right = binary.RightOperand;
+                    if (!left.IsInvalid && !right.IsInvalid && !binary.UsesOperatorMethod && binary.OperatorMethod == null)
+                    {
+                        if (left.Kind == OperationKind.LocalReferenceExpression)
+                        {
+                            var leftLocal = ((ILocalReferenceExpression)left).Local;
+                            if (leftLocal.Name == "x")
+                            {
+                                if (right.Kind == OperationKind.LiteralExpression)
+                                {
+                                    var rightValue = right.ConstantValue;
+                                    if (rightValue.HasValue && rightValue.Value is int && (int)rightValue.Value == 10)
+                                    {
+                                        operationContext.ReportDiagnostic(
+                                            Diagnostic.Create(BinaryOperatorDescriptor,
+                                            binary.Syntax.GetLocation(),
+                                            binary.BinaryOperationKind.ToString()));
+                                    }
+                                }
+                            }
+                        }
+                    }
+                },
+                OperationKind.BinaryOperatorExpression);
+
+            context.RegisterOperationAction(
+                (operationContext) =>
+                {
+                    var unary = (IUnaryOperatorExpression)operationContext.Operation;
+                    var operand = unary.Operand;
+                    if (operand.Kind == OperationKind.LocalReferenceExpression)
+                    {
+                        var operandLocal = ((ILocalReferenceExpression)operand).Local;
+                        if (operandLocal.Name == "x")
+                        {
+                            if (!operand.IsInvalid && !unary.UsesOperatorMethod && unary.OperatorMethod == null)
+                            {
+                                operationContext.ReportDiagnostic(
+                                    Diagnostic.Create(UnaryOperatorDescriptor,
+                                        unary.Syntax.GetLocation(),
+                                        unary.UnaryOperationKind.ToString()));
+                            }
+                        }
+                    }
+                },
+                OperationKind.UnaryOperatorExpression);
+        }
+    }
+
     public class NullOperationSyntaxTestAnalyzer : DiagnosticAnalyzer
     {
         private const string ReliabilityCategory = "Reliability";
