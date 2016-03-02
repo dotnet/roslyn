@@ -12,6 +12,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
     {
         public static void Verify(this IEnumerable<RudeEditDiagnostic> diagnostics, string newSource, params RudeEditDiagnosticDescription[] expectedDiagnostics)
         {
+            expectedDiagnostics = expectedDiagnostics ?? Array.Empty<RudeEditDiagnosticDescription>();
             var actualDiagnostics = diagnostics.ToDescription(newSource, expectedDiagnostics.Any(d => d.FirstLine != null)).ToArray();
             AssertEx.SetEqual(expectedDiagnostics, actualDiagnostics, itemSeparator: ",\r\n");
         }

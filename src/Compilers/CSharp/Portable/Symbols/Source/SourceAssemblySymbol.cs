@@ -352,10 +352,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        /// <summary>
-        /// Raw assembly version as specified in the AssemblyVersionAttribute, or null if none specified.
-        /// If the string passed to AssemblyVersionAttribute contains * the version build and/or revision numbers are set to <see cref="ushort.MaxValue"/>.
-        /// </summary>
         private Version AssemblyVersionAttributeSetting
         {
             get
@@ -382,15 +378,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        public override Version AssemblyVersionPattern
-        {
-            get
-            {
-                var attributeValue = AssemblyVersionAttributeSetting;
-                return (object)attributeValue == null || (attributeValue.Build != ushort.MaxValue && attributeValue.Revision != ushort.MaxValue) ? null : attributeValue;
-            }
-        }
-         
         internal AssemblyHashAlgorithm AssemblyHashAlgorithm
         {
             get
@@ -462,6 +449,26 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             // when both attributes and command-line options specified, cmd line wins.
             string keyFile = _compilation.Options.CryptoKeyFile;
 
+            // Public sign requires a keyfile
+            if (DeclaringCompilation.Options.PublicSign)
+            {
+                // TODO(https://github.com/dotnet/roslyn/issues/9150):
+                // Provide better error message if keys are provided by
+                // the attributes. Right now we'll just fall through to the
+                // "no key available" error.
+
+                if (!string.IsNullOrEmpty(keyFile) && !PathUtilities.IsAbsolute(keyFile))
+                {
+                    // If keyFile has a relative path then there should be a diagnostic
+                    // about it
+                    Debug.Assert(!DeclaringCompilation.Options.Errors.IsEmpty);
+                    return StrongNameKeys.None;
+                }
+
+                // If we're public signing, we don't need a strong name provider
+                return StrongNameKeys.Create(keyFile, MessageProvider.Instance);
+            }
+
             if (string.IsNullOrEmpty(keyFile))
             {
                 keyFile = this.AssemblyKeyFileAttributeSetting;
@@ -484,16 +491,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 }
             }
 
-            // If we're public signing, we don't need a strong name provider, just 
-            // the file containing the public key
-            if (DeclaringCompilation.Options.PublicSign && keyFile != null)
-            {
-                return StrongNameKeys.Create(keyFile, MessageProvider.Instance);
-            }
-            else
-            {
-                return StrongNameKeys.Create(DeclaringCompilation.Options.StrongNameProvider, keyFile, keyContainer, MessageProvider.Instance);
-            }
+            return StrongNameKeys.Create(DeclaringCompilation.Options.StrongNameProvider, keyFile, keyContainer, MessageProvider.Instance);
         }
 
         // A collection of assemblies to which we were granted internals access by only checking matches for assembly name
@@ -1898,7 +1896,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             return new AssemblyIdentity(
                 _assemblySimpleName,
-                VersionHelper.GenerateVersionFromPatternAndCurrentTime(this.AssemblyVersionAttributeSetting),
+                this.AssemblyVersionAttributeSetting,
                 this.AssemblyCultureAttributeSetting,
                 StrongNameKeys.PublicKey,
                 hasPublicKey: !StrongNameKeys.PublicKey.IsDefault);
@@ -2126,7 +2124,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 Version dummy;
                 string verString = (string)attribute.CommonConstructorArguments[0].Value;
-                if (!VersionHelper.TryParse(verString, version: out dummy))
+                if (!VersionHelper.TryParseAssemblyVersion(verString, allowWildcard: false, version: out dummy))
                 {
                     Location attributeArgumentSyntaxLocation = attribute.GetAttributeArgumentSyntaxLocation(0, arguments.AttributeSyntaxOpt);
                     arguments.Diagnostics.Add(ErrorCode.WRN_InvalidVersionFormat, attributeArgumentSyntaxLocation);

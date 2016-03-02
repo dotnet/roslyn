@@ -4702,5 +4702,119 @@ class Program
                 "<>f__AnonymousType5<<<>h__TransparentIdentifier0>j__TPar, <length>j__TPar>: {Equals, GetHashCode, ToString}",
                 "<>f__AnonymousType2<<<>h__TransparentIdentifier0>j__TPar, <y>j__TPar>: {Equals, GetHashCode, ToString}");
         }
+
+        [Fact, WorkItem(9119, "https://github.com/dotnet/roslyn/issues/9119")]
+        public void MissingIteratorStateMachineAttribute()
+        {
+            var source0 = MarkedSource(@"
+using System;
+using System.Collections.Generic;
+
+class C
+{
+    public IEnumerable<int> F()
+    {
+        int <N:0>a = 0</N:0>;
+        <N:1>yield return 0;</N:1>
+        Console.WriteLine(a);
+    }
+}
+");
+            var source1 = MarkedSource(@"
+using System;
+using System.Collections.Generic;
+
+class C
+{
+    public IEnumerable<int> F()
+    {
+        int <N:0>a = 1</N:0>;
+        <N:1>yield return 1;</N:1>
+        Console.WriteLine(a);
+    }
+}
+");
+            
+            var compilation0 = CreateCompilationWithMscorlib(new[] { source0.Tree }, options: ComSafeDebugDll);
+            var compilation1 = compilation0.WithSource(source1.Tree);
+
+            // older versions of mscorlib don't contain IteratorStateMachineAttribute
+            Assert.Null(compilation0.GetWellKnownTypeMember(WellKnownMember.System_Runtime_CompilerServices_IteratorStateMachineAttribute__ctor));
+
+            var v0 = CompileAndVerify(compilation0);
+            v0.VerifyDiagnostics();
+            var md0 = ModuleMetadata.CreateFromImage(v0.EmittedAssemblyData);
+
+            var f0 = compilation0.GetMember<MethodSymbol>("C.F");
+            var f1 = compilation1.GetMember<MethodSymbol>("C.F");
+
+            var generation0 = EmitBaseline.CreateInitialBaseline(md0, v0.CreateSymReader().GetEncMethodDebugInfo);
+
+            var diff1 = compilation1.EmitDifference(
+                generation0,
+                ImmutableArray.Create(
+                    new SemanticEdit(SemanticEditKind.Update, f0, f1, GetSyntaxMapFromMarkers(source0, source1), preserveLocalVariables: true)));
+
+            diff1.EmitResult.Diagnostics.Verify(
+                // error CS7038: Failed to emit module '{0}'.
+                Diagnostic(ErrorCode.ERR_ModuleEmitFailure).WithArguments(compilation0.SourceModule.Name));
+        }
+
+        [Fact, WorkItem(9119, "https://github.com/dotnet/roslyn/issues/9119")]
+        public void MissingAsyncStateMachineAttribute()
+        {
+            var source0 = MarkedSource(@"
+using System.Threading.Tasks;
+
+class C
+{
+    public async Task<int> F()
+    {
+        int <N:0>a = 0</N:0>;
+        <N:1>await new Task();</N:1>
+        return a;
+    }
+}
+");
+            var source1 = MarkedSource(@"
+using System.Threading.Tasks;
+
+class C
+{
+    public async Task<int> F()
+    {
+        int <N:0>a = 1</N:0>;
+        <N:1>await new Task();</N:1>
+        return a;
+    }
+}
+");
+
+            var compilation0 = CreateCompilation(new[] { source0.Tree }, new[] { TestReferences.NetFx.Minimal.mincorlib, TestReferences.NetFx.Minimal.minasync }, options: ComSafeDebugDll);
+            var compilation1 = compilation0.WithSource(source1.Tree);
+
+            // older versions of mscorlib don't contain AsyncStateMachineAttribute, IteratorStateMachineAttribute
+            Assert.Null(compilation0.GetWellKnownTypeMember(WellKnownMember.System_Runtime_CompilerServices_AsyncStateMachineAttribute__ctor));
+            Assert.Null(compilation0.GetWellKnownTypeMember(WellKnownMember.System_Runtime_CompilerServices_IteratorStateMachineAttribute__ctor));
+
+            var v0 = CompileAndVerify(compilation0, verify: false);
+            var md0 = ModuleMetadata.CreateFromImage(v0.EmittedAssemblyData);
+
+            var f0 = compilation0.GetMember<MethodSymbol>("C.F");
+            var f1 = compilation1.GetMember<MethodSymbol>("C.F");
+
+            var generation0 = EmitBaseline.CreateInitialBaseline(md0, v0.CreateSymReader().GetEncMethodDebugInfo);
+
+            var diff1 = compilation1.EmitDifference(
+                generation0,
+                ImmutableArray.Create(
+                    new SemanticEdit(SemanticEditKind.Update, f0, f1, GetSyntaxMapFromMarkers(source0, source1), preserveLocalVariables: true)));
+
+            diff1.EmitResult.Diagnostics.Verify(
+                // error CS7038: Failed to emit module '{0}'.
+                Diagnostic(ErrorCode.ERR_ModuleEmitFailure).WithArguments(compilation0.SourceModule.Name),
+                // error CS7038: Failed to emit module '{0}'.
+                Diagnostic(ErrorCode.ERR_ModuleEmitFailure).WithArguments(compilation0.SourceModule.Name));
+        }
     }
 }

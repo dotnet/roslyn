@@ -3,6 +3,7 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Diagnostics;
 using System.Linq;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Semantics;
@@ -1592,6 +1593,37 @@ namespace Microsoft.CodeAnalysis.UnitTests.Diagnostics
         }
     }
 
+    public class BinaryOperatorVBTestAnalyzer : DiagnosticAnalyzer
+    {
+        public static readonly DiagnosticDescriptor BinaryUserDefinedOperatorDescriptor = new DiagnosticDescriptor(
+            "BinaryUserDefinedOperator",
+            "Binary user defined operator found",
+            "A Binary user defined operator {0} is found",
+            "Testing",
+            DiagnosticSeverity.Warning,
+            isEnabledByDefault: true);
+
+        public sealed override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics 
+            => ImmutableArray.Create(BinaryUserDefinedOperatorDescriptor);
+
+        public sealed override void Initialize(AnalysisContext context)
+        {
+            context.RegisterOperationAction(
+                (operationContext) =>
+                {
+                    var binary = (IBinaryOperatorExpression)operationContext.Operation;
+                    if (binary.GetBinaryOperandsKind() == BinaryOperandsKind.OperatorMethod)
+                    {
+                        operationContext.ReportDiagnostic(
+                            Diagnostic.Create(BinaryUserDefinedOperatorDescriptor, 
+                                binary.Syntax.GetLocation(),
+                                binary.BinaryOperationKind.ToString()));
+                    }
+                },
+                OperationKind.BinaryOperatorExpression);
+        }
+    }
+
     public class NullOperationSyntaxTestAnalyzer : DiagnosticAnalyzer
     {
         private const string ReliabilityCategory = "Reliability";
@@ -1800,7 +1832,40 @@ namespace Microsoft.CodeAnalysis.UnitTests.Diagnostics
                 },
                 OperationKind.PlaceholderExpression);
         }
-    }    
+    }
+
+    public class ConversionExpressionCSharpTestAnalyzer : DiagnosticAnalyzer
+    {
+        private const string ReliabilityCategory = "Reliability";
+
+        public static readonly DiagnosticDescriptor InvalidConversionExpressionDescriptor = new DiagnosticDescriptor(
+            "InvalidConversionExpression",
+            "Invalid conversion expression",
+            "Invalid conversion expression.",
+            ReliabilityCategory,
+            DiagnosticSeverity.Warning,
+            isEnabledByDefault: true);
+
+        public sealed override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics
+        {
+            get { return ImmutableArray.Create(InvalidConversionExpressionDescriptor); }
+        }
+
+        public sealed override void Initialize(AnalysisContext context)
+        {
+            context.RegisterOperationAction(
+                 (operationContext) =>
+                 {
+                     var conversion = (IConversionExpression)operationContext.Operation;
+                     if (conversion.ConversionKind == ConversionKind.Invalid)
+                     {
+                         Debug.Assert(conversion.IsInvalid == true);
+                         operationContext.ReportDiagnostic(Diagnostic.Create(InvalidConversionExpressionDescriptor, conversion.Syntax.GetLocation()));
+                     }
+                 },
+                 OperationKind.ConversionExpression);
+        }
+    }
 
     public class ForLoopConditionCrashVBTestAnalyzer : DiagnosticAnalyzer
     {
