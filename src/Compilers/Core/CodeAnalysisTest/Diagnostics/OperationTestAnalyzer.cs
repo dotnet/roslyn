@@ -1906,6 +1906,48 @@ namespace Microsoft.CodeAnalysis.UnitTests.Diagnostics
         }
     }
 
+    public class TrueFalseUnaryOperationTestAnalyzer : DiagnosticAnalyzer
+    {
+        private const string ReliabilityCategory = "Reliability";
+
+        public static readonly DiagnosticDescriptor UnaryTrueDescriptor = new DiagnosticDescriptor(
+            "UnaryTrue",
+            "An unary True operation is found",
+            "A unary True operation is found",
+            ReliabilityCategory,
+            DiagnosticSeverity.Warning,
+            isEnabledByDefault: true);
+
+        public static readonly DiagnosticDescriptor UnaryFalseDescriptor = new DiagnosticDescriptor(
+            "UnaryFalse",
+            "An unary False operation is found",
+            "A unary False operation is found",
+            ReliabilityCategory,
+            DiagnosticSeverity.Warning,
+            isEnabledByDefault: true);
+
+        public sealed override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics
+            => ImmutableArray.Create(UnaryTrueDescriptor, UnaryFalseDescriptor);
+
+        public sealed override void Initialize(AnalysisContext context)
+        {
+            context.RegisterOperationAction(
+                 (operationContext) =>
+                 {
+                     var unary = (IUnaryOperatorExpression)operationContext.Operation;
+                     if (unary.UnaryOperationKind == UnaryOperationKind.OperatorMethodTrue)
+                     {
+                         operationContext.ReportDiagnostic(Diagnostic.Create(UnaryTrueDescriptor, unary.Syntax.GetLocation()));
+                     }
+                     else if (unary.UnaryOperationKind == UnaryOperationKind.OperatorMethodFalse)
+                     {
+                         operationContext.ReportDiagnostic(Diagnostic.Create(UnaryFalseDescriptor, unary.Syntax.GetLocation()));
+                     }
+                 },
+                 OperationKind.UnaryOperatorExpression);
+        }
+    }
+
     public class LiteralTestAnalyzer : DiagnosticAnalyzer
     {
         private const string ReliabilityCategory = "Reliability";

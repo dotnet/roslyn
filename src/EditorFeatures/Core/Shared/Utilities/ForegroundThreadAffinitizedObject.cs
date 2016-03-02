@@ -7,6 +7,7 @@ using System.Windows;
 using System.Windows.Threading;
 using Microsoft.CodeAnalysis.Utilities;
 using Roslyn.Utilities;
+using static Microsoft.CodeAnalysis.Utilities.ForegroundThreadDataKind;
 
 namespace Microsoft.CodeAnalysis.Editor.Shared.Utilities
 {
@@ -23,9 +24,14 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Utilities
             Kind = kind;
         }
 
-        internal static ForegroundThreadData CreateDefault()
+        /// <summary>
+        /// Creates the default ForegroundThreadData assuming that the current thread is the UI thread.
+        /// </summary>
+        /// <param name="defaultKind">The ForegroundThreadDataKind to fall back to if a UI thread cannot be found</param>
+        /// <returns>default ForegroundThreadData values</returns>
+        internal static ForegroundThreadData CreateDefault(ForegroundThreadDataKind defaultKind)
         {
-            var kind = ForegroundThreadDataInfo.CreateDefault();
+            var kind = ForegroundThreadDataInfo.CreateDefault(defaultKind);
 
             // None of the work posted to the foregroundTaskScheduler should block pending keyboard/mouse input from the user.
             // So instead of using the default priority which is above user input, we use Background priority which is 1 level
@@ -81,7 +87,7 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Utilities
         // they believe to be the foreground. 
         static ForegroundThreadAffinitizedObject()
         {
-            s_fallbackForegroundThreadData = ForegroundThreadData.CreateDefault();
+            s_fallbackForegroundThreadData = ForegroundThreadData.CreateDefault(Unknown);
         }
 
         public ForegroundThreadAffinitizedObject(ForegroundThreadData foregroundThreadData = null, bool assertIsForeground = false)
@@ -110,7 +116,7 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Utilities
         /// <returns></returns>
         public bool IsValid()
         {
-            return _foregroundThreadData.Kind != ForegroundThreadDataKind.Unknown;
+            return _foregroundThreadData.Kind != Unknown;
         }
 
         public void AssertIsForeground()

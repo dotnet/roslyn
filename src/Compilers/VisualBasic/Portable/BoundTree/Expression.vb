@@ -654,8 +654,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                         Return UnaryOperationKind.OperatorMethodMinus
                     Case UnaryOperatorKind.Not
                         Return UnaryOperationKind.OperatorMethodBitwiseNegation
+                    Case UnaryOperatorKind.IsTrue
+                        Return UnaryOperationKind.OperatorMethodTrue
+                    Case UnaryOperatorKind.IsFalse
+                        Return UnaryOperationKind.OperatorMethodFalse
                     Case Else
-                        Throw ExceptionUtilities.UnexpectedValue(OperatorKind And UnaryOperatorKind.OpMask)
+                        Return UnaryOperationKind.Invalid
                 End Select
             End Get
         End Property
@@ -770,7 +774,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     Case BinaryOperatorKind.GreaterThan
                         Return BinaryOperationKind.OperatorMethodGreaterThan
                     Case Else
-                        Throw ExceptionUtilities.UnexpectedValue(OperatorKind And BinaryOperatorKind.OpMask)
+                        Return BinaryOperationKind.Invalid
                 End Select
             End Get
         End Property
@@ -804,7 +808,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     Return OperationKind.BinaryOperatorExpression
             End Select
 
-            Throw ExceptionUtilities.UnexpectedValue(Me.OperatorKind And BinaryOperatorKind.OpMask)
+            Return OperationKind.InvalidExpression
         End Function
 
         Public Overrides Sub Accept(visitor As OperationVisitor)

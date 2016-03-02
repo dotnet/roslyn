@@ -11,6 +11,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
+using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Packaging;
 using Microsoft.CodeAnalysis.Shared.Utilities;
@@ -192,7 +193,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Packaging
 
                 // fall through.
             }
-            catch (Exception e)
+            catch (Exception e) when (FatalError.ReportWithoutCrash(e))
             {
                 dte.StatusBar.Text = string.Format(ServicesVSResources.Package_install_failed_0, e.Message);
                 // fall through.
@@ -227,7 +228,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Packaging
 
                 // fall through.
             }
-            catch (Exception e)
+            catch (Exception e) when (FatalError.ReportWithoutCrash(e))
             {
                 dte.StatusBar.Text = string.Format(ServicesVSResources.Package_uninstall_failed_0, e.Message);
                 // fall through.
@@ -246,7 +247,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Packaging
                 var metadata = installedPackages.FirstOrDefault(m => m.Id == packageName);
                 return metadata?.VersionString;
             }
-            catch
+            catch (Exception e) when (FatalError.ReportWithoutCrash(e))
             {
                 return null;
             }
@@ -391,9 +392,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Packaging
                 var installedPackageMetadata = _packageInstallerServices.GetInstalledPackages(dteProject);
                 installedPackages.AddRange(installedPackageMetadata.Select(m => new KeyValuePair<string, string>(m.Id, m.VersionString)));
             }
-            catch
+            catch (Exception e) when (FatalError.ReportWithoutCrash(e))
             {
-                // TODO(cyrusn): Telemetry on this.
             }
 
             _projectToInstalledPackageAndVersion.AddOrUpdate(projectId, installedPackages, (_1, _2) => installedPackages);

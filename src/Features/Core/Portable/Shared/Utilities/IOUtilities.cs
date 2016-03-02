@@ -23,26 +23,21 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
             {
                 return function();
             }
-            catch (IOException)
-            {
-            }
-            catch (SecurityException)
-            {
-            }
-            catch (ArgumentException)
-            {
-            }
-            catch (UnauthorizedAccessException)
-            {
-            }
-            catch (NotSupportedException)
-            {
-            }
-            catch (InvalidOperationException)
+            catch (Exception e) when (IsNormalIOException(e))
             {
             }
 
             return defaultValue;
+        }
+
+        public static bool IsNormalIOException(Exception e)
+        {
+            return e is IOException ||
+                   e is SecurityException ||
+                   e is ArgumentException ||
+                   e is UnauthorizedAccessException ||
+                   e is NotSupportedException ||
+                   e is InvalidOperationException;
         }
     }
 }
