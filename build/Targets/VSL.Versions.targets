@@ -70,8 +70,9 @@
     <!-- Only set when building RTM with no dependencies on pre-release packages
     <NuGetReleaseVersion>$(RoslynSemanticVersion)</NuGetReleaseVersion>
     -->
-    <NuGetPreReleaseVersion>$(RoslynSemanticVersion)-beta1</NuGetPreReleaseVersion>
-    <NuGetPerBuildPreReleaseVersion Condition="'$(BuildNumberSuffix)' != ''">$(NuGetPreReleaseVersion)-$(BuildNumberPart1.Trim())-$(BuildNumberPart2.Trim())</NuGetPerBuildPreReleaseVersion>
+    <NuGetPreReleaseBase>$(RoslynSemanticVersion)-rc1</NuGetPreReleaseBase>
+    <NuGetPreReleaseVersion>$(RoslynPreReleaseBase)-final</NuGetPreReleaseVersion>
+    <NuGetPerBuildPreReleaseVersion Condition="'$(BuildNumberSuffix)' != ''">$(NuGetPreReleaseBase)-$(BuildNumberPart1.Trim())-$(BuildNumberPart2.Trim())</NuGetPerBuildPreReleaseVersion>
   </PropertyGroup>
   
 </Project>
