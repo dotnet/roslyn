@@ -20,7 +20,8 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics.GenerateMethod
             End If
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)>
+        <Fact(Skip:="https://github.com/dotnet/roslyn/issues/9412")>
+        <Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)>
         Public Async Function TestSimpleInstanceMethod_CSharpToVisualBasic() As System.Threading.Tasks.Task
             Dim input =
         <Workspace>
