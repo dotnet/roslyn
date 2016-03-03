@@ -10,8 +10,35 @@ namespace RunTests.Cache
 {
     internal interface IDataStorage
     {
-        bool TryGetTestResult(string checksum, out TestResult testResult);
+        Task<CachedTestResult?> TryGetCachedTestResult(string checksum);
 
-        void AddTestResult(ContentFile conentFile, TestResult testResult);
+        Task AddCachedTestResult(ContentFile conentFile, CachedTestResult testResult);
+    }
+
+    internal struct CachedTestResult
+    {
+        internal int ExitCode { get; }
+        internal string StandardOutput { get; }
+        internal string ErrorOutput { get; }
+        internal string ResultsFileName { get; }
+        internal string ResultsFileContent { get; }
+        internal TimeSpan Ellapsed { get; }
+
+        internal CachedTestResult(
+            int exitCode,
+            string standardOutput,
+            string errorOutput,
+            string resultsFileName,
+            string resultsFileContent,
+            TimeSpan ellapsed)
+        {
+            ExitCode = exitCode;
+            StandardOutput = standardOutput;
+            ErrorOutput = errorOutput;
+            ResultsFileName = resultsFileName;
+            ResultsFileContent = resultsFileContent;
+            Ellapsed = ellapsed;
+        }
     }
 }
+

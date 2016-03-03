@@ -4,21 +4,26 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
+using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.Internal.Log;
 
 namespace Roslyn.Utilities
 {
     internal class SpellChecker
     {
-        public static readonly SpellChecker Empty = new SpellChecker(BKTree.Empty);
+        private const string SerializationFormat = "1";
 
+        public VersionStamp Version { get; }
         private readonly BKTree _bkTree;
 
-        public SpellChecker(BKTree bKTree)
+        public SpellChecker(VersionStamp version, BKTree bKTree)
         {
+            Version = version;
             _bkTree = bKTree;
         }
 
-        public SpellChecker(IEnumerable<string> corpus) : this(BKTree.Create(corpus))
+        public SpellChecker(VersionStamp version, IEnumerable<string> corpus) 
+            : this(version, BKTree.Create(corpus))
         {
         }
 
@@ -34,12 +39,32 @@ namespace Roslyn.Utilities
 
         internal void WriteTo(ObjectWriter writer)
         {
+            writer.WriteString(SerializationFormat);
+            Version.WriteTo(writer);
             _bkTree.WriteTo(writer);
         }
 
         internal static SpellChecker ReadFrom(ObjectReader reader)
         {
-            return new SpellChecker(BKTree.ReadFrom(reader));
+            try
+            {
+                var formatVersion = reader.ReadString();
+                if (string.Equals(formatVersion, SerializationFormat, StringComparison.Ordinal))
+                {
+                    var version = VersionStamp.ReadFrom(reader);
+                    var bkTree = BKTree.ReadFrom(reader);
+                    if (bkTree != null)
+                    {
+                        return new SpellChecker(version, bkTree);
+                    }
+                }
+            }
+            catch
+            {
+                Logger.Log(FunctionId.SpellChecker_ExceptionInCacheRead);
+            }
+
+            return null;
         }
     }
 

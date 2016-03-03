@@ -235,6 +235,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             this IndexerDeclarationSyntax syntax,
             SyntaxList<AttributeListSyntax> attributeLists,
             SyntaxTokenList modifiers,
+            SyntaxToken refKeyword,
             TypeSyntax type,
             ExplicitInterfaceSpecifierSyntax explicitInterfaceSpecifier,
             SyntaxToken thisKeyword,
@@ -244,6 +245,30 @@ namespace Microsoft.CodeAnalysis.CSharp
             return syntax.Update(
                 attributeLists,
                 modifiers,
+                refKeyword,
+                type,
+                explicitInterfaceSpecifier,
+                thisKeyword,
+                parameterList,
+                accessorList,
+                default(ArrowExpressionClauseSyntax),
+                default(SyntaxToken));
+        }
+
+        public static IndexerDeclarationSyntax Update(
+            this IndexerDeclarationSyntax syntax,
+            SyntaxList<AttributeListSyntax> attributeLists,
+            SyntaxTokenList modifiers,
+            TypeSyntax type,
+            ExplicitInterfaceSpecifierSyntax explicitInterfaceSpecifier,
+            SyntaxToken thisKeyword,
+            BracketedParameterListSyntax parameterList,
+            AccessorListSyntax accessorList)
+        {
+            return syntax.Update(
+                attributeLists,
+                modifiers,
+                default(SyntaxToken),
                 type,
                 explicitInterfaceSpecifier,
                 thisKeyword,
@@ -280,6 +305,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             this MethodDeclarationSyntax syntax,
             SyntaxList<AttributeListSyntax> attributeLists,
             SyntaxTokenList modifiers,
+            SyntaxToken refKeyword,
             TypeSyntax returnType,
             ExplicitInterfaceSpecifierSyntax explicitInterfaceSpecifier,
             SyntaxToken identifier,
@@ -292,6 +318,35 @@ namespace Microsoft.CodeAnalysis.CSharp
             return syntax.Update(
                 attributeLists,
                 modifiers,
+                refKeyword,
+                returnType,
+                explicitInterfaceSpecifier,
+                identifier,
+                typeParameterList,
+                parameterList,
+                constraintClauses,
+                block,
+                default(ArrowExpressionClauseSyntax),
+                semicolonToken);
+        }
+
+        public static MethodDeclarationSyntax Update(
+            this MethodDeclarationSyntax syntax,
+            SyntaxList<AttributeListSyntax> attributeLists,
+            SyntaxTokenList modifiers,
+            TypeSyntax returnType,
+            ExplicitInterfaceSpecifierSyntax explicitInterfaceSpecifier,
+            SyntaxToken identifier,
+            TypeParameterListSyntax typeParameterList,
+            ParameterListSyntax parameterList,
+            SyntaxList<TypeParameterConstraintClauseSyntax> constraintClauses,
+            BlockSyntax block,
+            SyntaxToken semicolonToken)
+        {
+            return syntax.Update(
+                attributeLists,
+                modifiers,
+                default(SyntaxToken),
                 returnType,
                 explicitInterfaceSpecifier,
                 identifier,

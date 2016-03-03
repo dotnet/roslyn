@@ -75,6 +75,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
                 case ConversionKind.MethodGroup:
                 case ConversionKind.ImplicitDynamic:
                 case ConversionKind.ExplicitDynamic:
+                case ConversionKind.ImplicitThrow:
                     // None of these things should reach codegen (yet? maybe?)
                     throw ExceptionUtilities.UnexpectedValue(conversion.ConversionKind);
                 case ConversionKind.PointerToVoid:

@@ -25,7 +25,8 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
     {
         protected abstract object CreateCodeRefactoringProvider(Workspace workspace);
 
-        protected override async Task<IList<CodeAction>> GetCodeActionsWorkerAsync(TestWorkspace workspace, string fixAllActionEquivalenceKey)
+        protected override async Task<IList<CodeAction>> GetCodeActionsWorkerAsync(
+            TestWorkspace workspace, string fixAllActionEquivalenceKey, object fixProviderData)
         {
             return (await GetCodeRefactoringAsync(workspace))?.Actions?.ToList();
         }

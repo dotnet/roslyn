@@ -14,8 +14,6 @@
     <OutputType>Library</OutputType>
     <RootNamespace>Microsoft.CodeAnalysis.Editor</RootNamespace>
     <AssemblyName>Microsoft.CodeAnalysis.EditorFeatures</AssemblyName>
-    <!-- Disable the architecture mismatch warning -->
-    <ResolveAssemblyWarnOrErrorOnTargetArchitectureMismatch>None</ResolveAssemblyWarnOrErrorOnTargetArchitectureMismatch>
     <TargetFrameworkVersion>v4.6</TargetFrameworkVersion>
     <CopyNuGetImplementations>false</CopyNuGetImplementations>
   </PropertyGroup>
@@ -105,6 +103,7 @@
     <InternalsVisibleTo Include="Microsoft.VisualStudio.LanguageServices.CSharp" />
     <InternalsVisibleTo Include="Microsoft.VisualStudio.LanguageServices.Implementation" />
     <InternalsVisibleTo Include="Microsoft.VisualStudio.LanguageServices.SolutionExplorer" />
+    <InternalsVisibleTo Include="Microsoft.VisualStudio.LanguageServices.Telemetry" />
     <InternalsVisibleTo Include="Microsoft.VisualStudio.LanguageServices.VisualBasic" />
     <InternalsVisibleTo Include="csi" />
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.CSharp.InteractiveEditorFeatures" />
@@ -142,7 +141,9 @@
     <Compile Include="CommandHandlers\AbstractCompletionCommandHandler.cs" />
     <Compile Include="CommandHandlers\AbstractIntelliSenseCommandHandler.cs" />
     <Compile Include="CommandHandlers\CompletionCommandHandler.cs" />
+    <Compile Include="CommandHandlers\ExecuteInInteractiveCommandHandler.cs" />
     <Compile Include="CommandHandlers\GoToAdjacentMemberCommandHandler.cs" />
+    <Compile Include="CommandHandlers\IExecuteInInteractiveCommandHandler.cs" />
     <Compile Include="CommandHandlers\IntelliSenseCommandHandler.cs" />
     <Compile Include="CommandHandlers\InteractivePasteCommandHandler.cs" />
     <Compile Include="CommandHandlers\QuickInfoCommandHandlerAndSourceProvider.cs" />
@@ -225,6 +226,7 @@
     <Compile Include="Extensibility\BraceMatching\ExportBraceMatcherAttribute.cs" />
     <Compile Include="Extensibility\BraceMatching\IBraceMatcher.cs" />
     <Compile Include="Extensibility\Commands\ExportCommandHandlerAttribute.cs" />
+    <Compile Include="Extensibility\Commands\ExportInteractiveCommandAttribute.cs" />
     <Compile Include="Extensibility\Commands\ICommandHandler.cs" />
     <Compile Include="Extensibility\Commands\PredefinedCommandHandlerNames.cs" />
     <Compile Include="Extensibility\Completion\CompletionItemEventArgs.cs" />
@@ -283,9 +285,13 @@
     <Compile Include="Implementation\Classification\SemanticClassificationBufferTaggerProvider.cs" />
     <Compile Include="Implementation\Classification\SemanticClassificationBufferTaggerProvider.Tagger.cs" />
     <Compile Include="Implementation\Classification\SemanticClassificationUtilities.cs" />
+    <Compile Include="Implementation\CodeFixes\CodeFixService.cs" />
+    <Compile Include="Implementation\CodeFixes\CodeFixService.ProjectCodeFixProvider.cs" />
+    <Compile Include="Implementation\CodeFixes\ICodeFixService.cs" />
     <Compile Include="Implementation\GoToImplementation\AbstractGoToImplementationService.cs" />
     <Compile Include="Implementation\GoToImplementation\IGoToImplementationService.cs" />
     <Compile Include="Implementation\Intellisense\Completion\OptionSetExtensions.cs" />
+    <Compile Include="Implementation\Interactive\IAbstractResetInteractiveCommand.cs" />
     <Compile Include="Implementation\Outlining\AbstractSyntaxOutliner.cs" />
     <Compile Include="Implementation\Outlining\InvalidOutliningRegionException.cs" />
     <Compile Include="Implementation\Suggestions\FixMultipleOccurrencesService.cs" />

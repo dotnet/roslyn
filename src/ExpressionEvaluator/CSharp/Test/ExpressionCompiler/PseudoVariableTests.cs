@@ -700,61 +700,61 @@ class C
                     VariableAlias("x", typeof(int)));
                 string error;
 
-                // $exception
-                context.CompileExpression(
-                    "$exception = null",
-                    DkmEvaluationFlags.TreatAsExpression,
-                    aliases,
-                    out error);
-                Assert.Equal(error, "error CS0131: The left-hand side of an assignment must be a variable, property or indexer");
-                context.CompileExpression(
-                    "F(ref $exception)",
-                    DkmEvaluationFlags.TreatAsExpression,
-                    aliases,
-                    out error);
-                Assert.Equal(error, "error CS1510: A ref or out argument must be an assignable variable");
+            // $exception
+            context.CompileExpression(
+                "$exception = null",
+                DkmEvaluationFlags.TreatAsExpression,
+                aliases,
+                out error);
+            Assert.Equal(error, "error CS0131: The left-hand side of an assignment must be a variable, property or indexer");
+            context.CompileExpression(
+                "F(ref $exception)",
+                DkmEvaluationFlags.TreatAsExpression,
+                aliases,
+                out error);
+            Assert.Equal(error, "error CS1510: A ref or out value must be an assignable variable");
 
-                // Object at address
-                context.CompileExpression(
-                    "@0x123 = null",
-                    DkmEvaluationFlags.TreatAsExpression,
-                    aliases,
-                    out error);
-                Assert.Equal(error, "error CS0131: The left-hand side of an assignment must be a variable, property or indexer");
-                context.CompileExpression(
-                    "F(ref @0x123)",
-                    DkmEvaluationFlags.TreatAsExpression,
-                    aliases,
-                    out error);
-                Assert.Equal(error, "error CS1510: A ref or out argument must be an assignable variable");
+            // Object at address
+            context.CompileExpression(
+                "@0x123 = null",
+                DkmEvaluationFlags.TreatAsExpression,
+                aliases,
+                out error);
+            Assert.Equal(error, "error CS0131: The left-hand side of an assignment must be a variable, property or indexer");
+            context.CompileExpression(
+                "F(ref @0x123)",
+                DkmEvaluationFlags.TreatAsExpression,
+                aliases,
+                out error);
+            Assert.Equal(error, "error CS1510: A ref or out value must be an assignable variable");
 
-                // $ReturnValue
-                context.CompileExpression(
-                    "$ReturnValue = null",
-                    DkmEvaluationFlags.TreatAsExpression,
-                    aliases,
-                    out error);
-                Assert.Equal(error, "error CS0131: The left-hand side of an assignment must be a variable, property or indexer");
-                context.CompileExpression(
-                    "F(ref $ReturnValue)",
-                    DkmEvaluationFlags.TreatAsExpression,
-                    aliases,
-                    out error);
-                Assert.Equal(error, "error CS1510: A ref or out argument must be an assignable variable");
+            // $ReturnValue
+            context.CompileExpression(
+                "$ReturnValue = null",
+                DkmEvaluationFlags.TreatAsExpression,
+                aliases,
+                out error);
+            Assert.Equal(error, "error CS0131: The left-hand side of an assignment must be a variable, property or indexer");
+            context.CompileExpression(
+                "F(ref $ReturnValue)",
+                DkmEvaluationFlags.TreatAsExpression,
+                aliases,
+                out error);
+            Assert.Equal(error, "error CS1510: A ref or out value must be an assignable variable");
 
-                // Object id
-                context.CompileExpression(
-                    "$1 = null",
-                    DkmEvaluationFlags.TreatAsExpression,
-                    aliases,
-                    out error);
-                Assert.Equal(error, "error CS0131: The left-hand side of an assignment must be a variable, property or indexer");
-                context.CompileExpression(
-                    "F(ref $1)",
-                    DkmEvaluationFlags.TreatAsExpression,
-                    aliases,
-                    out error);
-                Assert.Equal(error, "error CS1510: A ref or out argument must be an assignable variable");
+            // Object id
+            context.CompileExpression(
+                "$1 = null",
+                DkmEvaluationFlags.TreatAsExpression,
+                aliases,
+                out error);
+            Assert.Equal(error, "error CS0131: The left-hand side of an assignment must be a variable, property or indexer");
+            context.CompileExpression(
+                "F(ref $1)",
+                DkmEvaluationFlags.TreatAsExpression,
+                aliases,
+                out error);
+            Assert.Equal(error, "error CS1510: A ref or out value must be an assignable variable");
 
                 // Declared variable
                 var testData = new CompilationTestData();

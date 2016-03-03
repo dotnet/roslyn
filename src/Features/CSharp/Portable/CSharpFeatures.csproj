@@ -80,12 +80,16 @@
     <Compile Include="CodeFixes\ImplementInterface\ImplementInterfaceCodeFixProvider.cs" />
     <Compile Include="CodeFixes\Iterator\CSharpAddYieldCodeFixProvider.cs" />
     <Compile Include="CodeFixes\Iterator\CSharpChangeToIEnumerableCodeFixProvider.cs" />
+    <Compile Include="CodeFixes\QualifyMemberAccess\CSharpQualifyMemberAccessCodeFixProvider.cs" />
+    <Compile Include="CodeFixes\NamingStyles\CSharpNamingStyleCodeFixProvider.cs" />
     <Compile Include="CodeFixes\RemoveUnnecessaryCast\RemoveUnnecessaryCastCodeFixProvider.RemoveUnnecessaryCastFixAllProvider.cs" />
     <Compile Include="CodeFixes\RemoveUnnecessaryCast\RemoveUnnecessaryCastCodeFixProvider.cs" />
     <Compile Include="CodeFixes\RemoveUnnecessaryUsings\RemoveUnnecessaryUsingsCodeFixProvider.cs" />
     <Compile Include="CodeFixes\SimplifyTypeNames\SimplifyTypeNamesCodeFixProvider.SimplifyTypeNamesFixAllProvider.cs" />
     <Compile Include="CodeFixes\SimplifyTypeNames\SimplifyTypeNamesCodeFixProvider.cs" />
     <Compile Include="CodeFixes\Suppression\CSharpSuppressionCodeFixProvider.cs" />
+    <Compile Include="CodeFixes\UseImplicitTyping\UseExplicitTypingCodeFixProvider.cs" />
+    <Compile Include="CodeFixes\UseImplicitTyping\UseImplicitTypingCodeFixProvider.cs" />
     <Compile Include="CodeRefactorings\EncapsulateField\EncapsulateFieldCodeRefactoringProvider.cs" />
     <Compile Include="CodeRefactorings\ExtractInterface\ExtractInterfaceCodeRefactoringProvider.cs" />
     <Compile Include="CodeRefactorings\ExtractMethod\ExtractMethodCodeRefactoringProvider.cs" />
@@ -105,6 +109,8 @@
     <Compile Include="CodeRefactorings\MoveDeclarationNearReference\MoveDeclarationNearReferenceCodeRefactoringProvider.State.cs" />
     <Compile Include="CodeStyle\CSharpCodeStyleOptions.cs" />
     <Compile Include="CodeStyle\CSharpCodeStyleOptionsProvider.cs" />
+    <Compile Include="CodeStyle\TypeStyle\TypeStyle.cs" />
+    <Compile Include="CodeStyle\TypeStyle\TypeStyleHelper.cs" />
     <Compile Include="Completion\CompletionProviders\AttributeNamedParameterCompletionProvider.ItemRules.cs" />
     <Compile Include="Completion\CompletionProviders\AttributeNamedParameterCompletionProvider.cs" />
     <Compile Include="Completion\CompletionProviders\CompletionUtilities.cs" />
@@ -265,10 +271,16 @@
       <DesignTime>True</DesignTime>
       <DependentUpon>CSharpFeaturesResources.resx</DependentUpon>
     </Compile>
+    <Compile Include="Diagnostics\Analyzers\CSharpTypingStyleDiagnosticAnalyzerBase.cs" />
+    <Compile Include="Diagnostics\Analyzers\CSharpTypingStyleDiagnosticAnalyzerBase.State.cs" />
+    <Compile Include="Diagnostics\Analyzers\CSharpQualifyMemberAccessDiagnosticAnalyzer.cs" />
+    <Compile Include="Diagnostics\Analyzers\CSharpNamingStyleDiagnosticAnalyzer.cs" />
     <Compile Include="Diagnostics\Analyzers\CSharpUnboundIdentifiersDiagnosticAnalyzer.cs" />
     <Compile Include="Diagnostics\Analyzers\CSharpRemoveUnnecessaryCastDiagnosticAnalyzer.cs" />
     <Compile Include="Diagnostics\Analyzers\CSharpRemoveUnnecessaryImportsDiagnosticAnalyzer.cs" />
     <Compile Include="Diagnostics\Analyzers\CSharpSimplifyTypeNamesDiagnosticAnalyzer.cs" />
+    <Compile Include="Diagnostics\Analyzers\CSharpUseExplicitTypingDiagnosticAnalyzer.cs" />
+    <Compile Include="Diagnostics\Analyzers\CSharpUseImplicitTypingDiagnosticAnalyzer.cs" />
     <Compile Include="Diagnostics\CSharpAnalyzerDriverService.cs" />
     <Compile Include="DocumentationComments\CSharpDocumentationCommentFormattingService.cs" />
     <Compile Include="DocumentationComments\DocumentationCommentUtilities.cs" />

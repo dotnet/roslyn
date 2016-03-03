@@ -573,6 +573,12 @@ Friend Class MockMethodSymbol
         End Get
     End Property
 
+    Public Overrides ReadOnly Property ReturnsByRef As Boolean
+        Get
+            Return False
+        End Get
+    End Property
+
     Public Overrides ReadOnly Property ReturnType As TypeSymbol
         Get
             Return Nothing ' Not really kosher, but its a MOCK...
@@ -726,6 +732,12 @@ Friend Class MockAssemblySymbol
     Public Overrides ReadOnly Property Identity As AssemblyIdentity
         Get
             Return New AssemblyIdentity(_name)
+        End Get
+    End Property
+
+    Public Overrides ReadOnly Property AssemblyVersionPattern As Version
+        Get
+            Return Nothing
         End Get
     End Property
 

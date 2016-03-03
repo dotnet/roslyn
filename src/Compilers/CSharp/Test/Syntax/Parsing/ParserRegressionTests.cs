@@ -83,5 +83,20 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Parsing
         {
             CSharpSyntaxTree.ParseText(new RandomizedSourceText());
         }
+
+        [WorkItem(8200, "https://github.com/dotnet/roslyn/issues/8200")]
+        [Fact]
+        public void EolParsing()
+        {
+            var code = "\n\r"; // Note, it's not "\r\n"
+            var tree = CSharpSyntaxTree.ParseText(code);
+            var lines1 = tree.GetText().Lines.Count; // 3
+
+            var textSpan = Text.TextSpan.FromBounds(0, tree.Length);
+            var fileLinePositionSpan = tree.GetLineSpan(textSpan);    // throws ArgumentOutOfRangeException
+            var endLinePosition = fileLinePositionSpan.EndLinePosition;
+            var line = endLinePosition.Line;
+            var lines2 = line + 1;
+        }
     }
 }

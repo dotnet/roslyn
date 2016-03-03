@@ -38,7 +38,7 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                         _lazyAnalyzers = lazyAnalyzers;
 
                         _running = SpecializedTasks.EmptyTask;
-                        _workItemQueue = new AsyncDocumentWorkItemQueue(processor._registration.ProgressReporter);
+                        _workItemQueue = new AsyncDocumentWorkItemQueue(processor._registration.ProgressReporter, processor._registration.Workspace);
 
                         Start();
                     }
@@ -155,6 +155,7 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                         return _workItemQueue.TryTakeAnyWork(
                             preferableProjectId: null,
                             dependencyGraph: _processor.DependencyGraph,
+                            analyzerService: _processor.DiagnosticAnalyzerService,
                             workItem: out workItem,
                             source: out documentCancellation);
                     }

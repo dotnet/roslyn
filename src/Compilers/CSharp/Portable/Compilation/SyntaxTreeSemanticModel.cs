@@ -423,6 +423,13 @@ namespace Microsoft.CodeAnalysis.CSharp
             return (model == null) ? default(TypeInfo) : model.GetTypeInfo(node, cancellationToken);
         }
 
+        public override SymbolInfo GetSymbolInfo(SubPropertyPatternSyntax node, CancellationToken cancellationToken)
+        {
+            CheckSyntaxNode(node);
+            var model = this.GetMemberModel(node);
+            return (model == null) ? default(SymbolInfo) : model.GetSymbolInfo(node, cancellationToken);
+        }
+
         public override IPropertySymbol GetDeclaredSymbol(AnonymousObjectMemberDeclaratorSyntax declaratorSyntax, CancellationToken cancellationToken = default(CancellationToken))
         {
             CheckSyntaxNode(declaratorSyntax);
@@ -1623,6 +1630,30 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             // Might be a local variable.
+            var memberModel = this.GetMemberModel(declarationSyntax);
+            return memberModel == null ? null : memberModel.GetDeclaredSymbol(declarationSyntax, cancellationToken);
+        }
+
+        /// <summary>
+        /// Given a declaration pattern syntax, get the corresponding symbol.
+        /// </summary>
+        /// <param name="declarationSyntax">The syntax node that declares a variable.</param>
+        /// <param name="cancellationToken">The cancellation token.</param>
+        /// <returns>The symbol that was declared.</returns>
+        public override ISymbol GetDeclaredSymbol(DeclarationPatternSyntax declarationSyntax, CancellationToken cancellationToken = default(CancellationToken))
+        {
+            var memberModel = this.GetMemberModel(declarationSyntax);
+            return memberModel == null ? null : memberModel.GetDeclaredSymbol(declarationSyntax, cancellationToken);
+        }
+
+        /// <summary>
+        /// Given a let statement syntax, get the corresponding symbol if the statement uses [let &lt;identifier&gt; = ...] form.
+        /// </summary>
+        /// <param name="declarationSyntax">The syntax node that declares a variable.</param>
+        /// <param name="cancellationToken">The cancellation token.</param>
+        /// <returns>The symbol that was declared.</returns>
+        public override ISymbol GetDeclaredSymbol(LetStatementSyntax declarationSyntax, CancellationToken cancellationToken = default(CancellationToken))
+        {
             var memberModel = this.GetMemberModel(declarationSyntax);
             return memberModel == null ? null : memberModel.GetDeclaredSymbol(declarationSyntax, cancellationToken);
         }

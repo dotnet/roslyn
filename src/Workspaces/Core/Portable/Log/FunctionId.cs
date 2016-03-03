@@ -317,5 +317,12 @@ namespace Microsoft.CodeAnalysis.Internal.Log
         CodefixInfobar_EnableAndIgnoreFutureErrors,
         CodefixInfobar_LeaveDisabled,
         CodefixInfobar_ErrorIgnored,
+
+        Refactoring_NamingStyle,
+
+        // Caches
+        SymbolTreeInfo_ExceptionInCacheRead,
+        SpellChecker_ExceptionInCacheRead,
+        BKTree_ExceptionInCacheRead,
     }
 }

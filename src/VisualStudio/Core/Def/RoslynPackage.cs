@@ -23,6 +23,7 @@ using Microsoft.VisualStudio.PlatformUI;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
 using Task = System.Threading.Tasks.Task;
+using Microsoft.VisualStudio.LanguageServices.Implementation.Interactive;
 
 namespace Microsoft.VisualStudio.LanguageServices.Setup
 {
@@ -169,9 +170,22 @@ namespace Microsoft.VisualStudio.LanguageServices.Setup
             // Perf: Initialize the command handlers.
             var commandHandlerServiceFactory = this.ComponentModel.GetService<ICommandHandlerServiceFactory>();
             commandHandlerServiceFactory.Initialize(ContentTypeNames.RoslynContentType);
+            LoadInteractiveMenus();
 
             this.ComponentModel.GetService<MiscellaneousTodoListTable>();
             this.ComponentModel.GetService<MiscellaneousDiagnosticListTable>();
+        }
+
+        private void LoadInteractiveMenus()
+        {
+            var menuCommandService = (OleMenuCommandService)GetService(typeof(IMenuCommandService));
+            var monitorSelectionService = (IVsMonitorSelection)this.GetService(typeof(SVsShellMonitorSelection));
+
+            new CSharpResetInteractiveMenuCommand(menuCommandService, monitorSelectionService, ComponentModel)
+                .InitializeResetInteractiveFromProjectCommand();
+
+            new VisualBasicResetInteractiveMenuCommand(menuCommandService, monitorSelectionService, ComponentModel)
+                .InitializeResetInteractiveFromProjectCommand();
         }
 
         internal IComponentModel ComponentModel

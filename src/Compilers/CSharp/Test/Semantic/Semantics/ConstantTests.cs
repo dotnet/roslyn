@@ -2839,9 +2839,9 @@ class Program
 }
 ";
             CreateCompilationWithMscorlib(source).VerifyDiagnostics(
-    // (6,9): error CS8058: Feature 'local functions' is only available in 'experimental' language version.
+    // (6,9): error CS8058: Feature 'local functions' is experimental and unsupported; use '/features:localFunctions' to enable.
     //         void f() { if () const int i = 0; }
-    Diagnostic(ErrorCode.ERR_FeatureIsExperimental, "void f() { if () const int i = 0; }").WithArguments("local functions").WithLocation(6, 9),
+    Diagnostic(ErrorCode.ERR_FeatureIsExperimental, "void f() { if () const int i = 0; }").WithArguments("local functions", "localFunctions").WithLocation(6, 9),
     // (6,24): error CS1525: Invalid expression term ')'
     //         void f() { if () const int i = 0; }
     Diagnostic(ErrorCode.ERR_InvalidExprTerm, ")").WithArguments(")").WithLocation(6, 24),
@@ -2867,9 +2867,15 @@ class C
     }
 }";
             CreateCompilationWithMscorlib(source).VerifyDiagnostics(
-                // (6,51): error CS0133: The expression being assigned to 'b' must be constant
-                //         const Func<int> a = () => { const int b = a(); return 1; };
-                Diagnostic(ErrorCode.ERR_NotConstantExpression, "a()").WithArguments("b").WithLocation(6, 51)
+    // (6,51): error CS0133: The expression being assigned to 'b' must be constant
+    //         const Func<int> a = () => { const int b = a(); return 1; };
+    Diagnostic(ErrorCode.ERR_NotConstantExpression, "a()").WithArguments("b").WithLocation(6, 51),
+    // (6,51): error CS0110: The evaluation of the constant value for 'a' involves a circular definition
+    //         const Func<int> a = () => { const int b = a(); return 1; };
+    Diagnostic(ErrorCode.ERR_CircConstValue, "a").WithArguments("a").WithLocation(6, 51),
+    // (6,51): error CS0133: The expression being assigned to 'b' must be constant
+    //         const Func<int> a = () => { const int b = a(); return 1; };
+    Diagnostic(ErrorCode.ERR_NotConstantExpression, "a()").WithArguments("b").WithLocation(6, 51)
                 );
         }
 

@@ -23,10 +23,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             IVsHierarchy hierarchy,
             string language,
             IServiceProvider serviceProvider,
-            MiscellaneousFilesWorkspace miscellaneousFilesWorkspaceOpt,
             VisualStudioWorkspaceImpl visualStudioWorkspaceOpt,
             HostDiagnosticUpdateSource hostDiagnosticUpdateSourceOpt)
-            : base(projectTracker, reportExternalErrorCreatorOpt, projectSystemName, hierarchy, language, serviceProvider, miscellaneousFilesWorkspaceOpt, visualStudioWorkspaceOpt, hostDiagnosticUpdateSourceOpt)
+            : base(projectTracker, reportExternalErrorCreatorOpt, projectSystemName, hierarchy, language, serviceProvider, visualStudioWorkspaceOpt, hostDiagnosticUpdateSourceOpt)
         {
             if (visualStudioWorkspaceOpt != null)
             {

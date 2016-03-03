@@ -6,6 +6,7 @@ using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Test.Utilities;
 using Xunit;
+using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 {
@@ -23,8 +24,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 
         private ExpressionSyntax ParseExpressionExperimental(string text)
         {
-            var experimentalFeatures = new SmallDictionary<string, string>(); // no experimental features to enable
-            return SyntaxFactory.ParseExpression(text, options: CSharpParseOptions.Default.WithFeatures(experimentalFeatures));
+            return SyntaxFactory.ParseExpression(text, options: TestOptions.ExperimentalParseOptions);
         }
 
         [Fact]
@@ -1178,6 +1178,25 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Fact]
+        public void TestSimpleLambdaWithRefReturn()
+        {
+            var text = "a => ref b";
+            var expr = this.ParseExpressionExperimental(text);
+
+            Assert.NotNull(expr);
+            Assert.Equal(SyntaxKind.SimpleLambdaExpression, expr.Kind());
+            Assert.Equal(text, expr.ToString());
+            Assert.Equal(0, expr.Errors().Length);
+            var lambda = (SimpleLambdaExpressionSyntax)expr;
+            Assert.NotNull(lambda.Parameter.Identifier);
+            Assert.False(lambda.Parameter.Identifier.IsMissing);
+            Assert.Equal("a", lambda.Parameter.Identifier.ToString());
+            Assert.NotNull(lambda.RefKeyword);
+            Assert.NotNull(lambda.Body);
+            Assert.Equal("b", lambda.Body.ToString());
+        }
+
+        [Fact]
         public void TestSimpleLambdaWithBlock()
         {
             var text = "a => { }";
@@ -1213,6 +1232,27 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.False(lambda.ParameterList.OpenParenToken.IsMissing);
             Assert.False(lambda.ParameterList.CloseParenToken.IsMissing);
             Assert.Equal(0, lambda.ParameterList.Parameters.Count);
+            Assert.NotNull(lambda.Body);
+            Assert.Equal("b", lambda.Body.ToString());
+        }
+
+        [Fact]
+        public void TestLambdaWithNoParametersAndRefReturn()
+        {
+            var text = "() => ref b";
+            var expr = this.ParseExpressionExperimental(text);
+
+            Assert.NotNull(expr);
+            Assert.Equal(SyntaxKind.ParenthesizedLambdaExpression, expr.Kind());
+            Assert.Equal(text, expr.ToString());
+            Assert.Equal(0, expr.Errors().Length);
+            var lambda = (ParenthesizedLambdaExpressionSyntax)expr;
+            Assert.NotNull(lambda.ParameterList.OpenParenToken);
+            Assert.NotNull(lambda.ParameterList.CloseParenToken);
+            Assert.False(lambda.ParameterList.OpenParenToken.IsMissing);
+            Assert.False(lambda.ParameterList.CloseParenToken.IsMissing);
+            Assert.Equal(0, lambda.ParameterList.Parameters.Count);
+            Assert.NotNull(lambda.RefKeyword);
             Assert.NotNull(lambda.Body);
             Assert.Equal("b", lambda.Body.ToString());
         }
