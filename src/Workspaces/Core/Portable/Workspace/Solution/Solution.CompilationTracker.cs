@@ -632,8 +632,6 @@ namespace Microsoft.CodeAnalysis
                                 var metadataReference = await solution.GetMetadataReferenceAsync(
                                     projectReference, this.ProjectState, cancellationToken).ConfigureAwait(false);
 
-                                solution.Workspace.LogMessage($"Failed to get metadata reference for {referencedProject.Name}");
-
                                 // A reference can fail to be created if a skeleton assembly could not be constructed.
                                 if (metadataReference != null)
                                 {
@@ -641,6 +639,8 @@ namespace Microsoft.CodeAnalysis
                                 }
                                 else
                                 {
+                                    solution.Workspace.LogMessage($"{nameof(CompilationTracker)}: Failed to get metadata reference for {referencedProject.Name}");
+
                                     hasCompleteReferences = false;
                                 }
                             }
