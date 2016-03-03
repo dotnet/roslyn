@@ -56,8 +56,7 @@ namespace RunTests
 
             // TODO: Do we still need to order by file size? 
             // var orderedList = OrderAssemblyList(options.Assemblies);
-            var scheduler = new AssemblyScheduler(options);
-            var assemblyInfoList = scheduler.Schedule(options.Assemblies);
+            var assemblyInfoList = GetAssemblyList(options);
             var result = await testRunner.RunAllAsync(assemblyInfoList, cancellationToken).ConfigureAwait(true);
             var ellapsed = DateTime.Now - start;
 
@@ -76,6 +75,32 @@ namespace RunTests
 
             Console.WriteLine($"All tests passed: {ellapsed}");
             return options.MissingAssemblies.Any() ? 1 : 0;
+        }
+
+        private static IEnumerable<AssemblyInfo> GetAssemblyList(Options options)
+        {
+            var scheduler = new AssemblyScheduler(options);
+            var list = new List<AssemblyInfo>();
+
+            foreach (var assemblyPath in options.Assemblies)
+            {
+                var name = Path.GetFileName(assemblyPath);
+                if (name == "Roslyn.Compilers.CSharp.Emit.UnitTests.dll" ||
+                    name == "Roslyn.Services.Editor.UnitTests.dll" ||
+                    name == "Roslyn.Services.Editor.UnitTests2.dll" ||
+                    name == "Roslyn.VisualStudio.Services.UnitTests.dll" ||
+                    name == "Roslyn.Services.Editor.CSharp.UnitTests.dll" ||
+                    name == "Roslyn.Services.Editor.VisualBasic.UnitTests.dll")
+                {
+                    list.AddRange(scheduler.Schedule(assemblyPath));
+                }
+                else
+                {
+                    list.Add(new AssemblyInfo(assemblyPath, options.UseHtml));
+                }
+            }
+
+            return list.OrderByDescending((info) => new FileInfo(info.AssemblyPath).Length);
         }
 
         private static bool CanUseWebStorage()

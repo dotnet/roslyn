@@ -28,7 +28,7 @@ namespace RunTests.Cache
             return _testExecutor.GetCommandLine(assemblyInfo);
         }
 
-        public async Task<TestResult> RunTestAsync(AssemblyInfo assemblyInfo, CancellationToken cancellationToken)
+        public Task<TestResult> RunTestAsync(AssemblyInfo assemblyInfo, CancellationToken cancellationToken)
         {
             throw new Exception();
             /*
