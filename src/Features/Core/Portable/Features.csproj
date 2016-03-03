@@ -179,6 +179,11 @@
     <Compile Include="Diagnostics\DiagnosticEventTaskScheduler.cs" />
     <Compile Include="Diagnostics\DiagnosticService_UpdateSourceRegistrationService.cs" />
     <Compile Include="Common\UpdatedEventArgs.cs" />
+    <Compile Include="Diagnostics\EngineV2\CompilerDiagnosticExecutor.cs" />
+    <Compile Include="Diagnostics\EngineV2\DiagnosticIncrementalAnalyzer_BuildSynchronization.cs" />
+    <Compile Include="Diagnostics\EngineV2\DiagnosticIncrementalAnalyzer_GetDiagnostics.cs" />
+    <Compile Include="Diagnostics\EngineV2\DiagnosticIncrementalAnalyzer_GetDiagnosticsForSpan.cs" />
+    <Compile Include="Diagnostics\EngineV2\DiagnosticIncrementalAnalyzer_IncrementalAnalyzer.cs" />
     <Compile Include="Diagnostics\HostDiagnosticAnalyzerPackage.cs" />
     <Compile Include="Diagnostics\IDiagnosticUpdateSourceRegistrationService.cs" />
     <Compile Include="Diagnostics\InternalDiagnosticsOptionsProvider.cs" />
