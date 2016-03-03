@@ -153,7 +153,7 @@ static void addStandardJob(def myJob, String jobName, String branchName, String 
   addLogRotator(myJob)
   addWrappers(myJob)
 
-  def includePattern = "Binaries/**/*.pdb,Binaries/**/*.xml,Binaries/**/*.log,Binaries/**/*.dmp,Binaries/**/*.zip"
+  def includePattern = "Binaries/**/*.pdb,Binaries/**/*.xml,Binaries/**/*.log,Binaries/**/*.dmp,Binaries/**/*.zip,Binaries/**/*.png,Binaries/**/*.xml"
   def excludePattern = "Binaries/Obj/**,Binaries/Bootstrap/**,Binaries/**/nuget*.zip"
   addArtifactArchiving(myJob, includePattern, excludePattern)
 
