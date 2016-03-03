@@ -5834,6 +5834,88 @@ class [|C|]
             End Using
         End Sub
 
+        <WorkItem(9079, "https://github.com/dotnet/roslyn/issues/9079")>
+        <Fact, Trait(Traits.Feature, Traits.Features.Rename)>
+        Public Sub RenameFieldInPropertyPattern()
+            Using result = RenameEngineResult.Create(
+                    <Workspace>
+                        <Project Language="C#" AssemblyName="Project1" CommonReferences="true">
+                            <Document><![CDATA[
+    public class Expression { }
+    public class Constant : Expression
+    {
+        public readonly int Value;
+        public Constant(int Value)
+        {
+            this.Value = Value;
+        }
+    }
+    public class Plus : Expression
+    {
+        public readonly Expression [|$$Left|], Right;
+        public Plus(Expression Left, Expression Right)
+        {
+            this.[|Left|] = Left;
+            this.Right = Right;
+        }
+    }
+    public class X
+    {
+        public static void Main()
+        {
+            Expression expr = new Plus(new Plus(new Constant(1), new Plus(new Constant(2), new Constant(3))), new Constant(6));
+
+            if (expr is Plus { [|Left|] is Plus p,Right is Constant c })
+            {
+            }
+]]>
+                            </Document>
+                        </Project>
+                    </Workspace>, renameTo:="Quack")
+            End Using
+        End Sub
+
+        <WorkItem(9080, "https://github.com/dotnet/roslyn/issues/9080")>
+        <Fact, Trait(Traits.Feature, Traits.Features.Rename)>
+        Public Sub RenameFieldFromPropertyPattern()
+            Using result = RenameEngineResult.Create(
+                    <Workspace>
+                        <Project Language="C#" AssemblyName="Project1" CommonReferences="true">
+                            <Document><![CDATA[
+    public class Expression { }
+    public class Constant : Expression
+    {
+        public readonly int Value;
+        public Constant(int Value)
+        {
+            this.Value = Value;
+        }
+    }
+    public class Plus : Expression
+    {
+        public readonly Expression [|Left|], Right;
+        public Plus(Expression Left, Expression Right)
+        {
+            this.[|Left|] = Left;
+            this.Right = Right;
+        }
+    }
+    public class X
+    {
+        public static void Main()
+        {
+            Expression expr = new Plus(new Plus(new Constant(1), new Plus(new Constant(2), new Constant(3))), new Constant(6));
+
+            if (expr is Plus { [|$$Left|] is Plus p,Right is Constant c })
+            {
+            }
+]]>
+                            </Document>
+                        </Project>
+                    </Workspace>, renameTo:="Woof")
+            End Using
+        End Sub
+
         <WorkItem(1009633, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1009633")>
         <Fact, Trait(Traits.Feature, Traits.Features.Rename)>
         Public Sub RenameWithTryCatchBlock1()
