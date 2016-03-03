@@ -299,6 +299,34 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.FindReferences
             Await TestAsync(input)
         End Function
 
+        <WorkItem(9073, "https://github.com/dotnet/roslyn/issues/9073")>
+        <Fact, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        Public Async Function TestCSharp_FromDefinition_PatternField2() As Task
+            Dim input =
+<Workspace>
+    <Project Language="C#" CommonReferences="true">
+        <Document>
+    public class Expression { }
+    public class Plus : Expression
+    {
+        public Expression {|Definition:Le$$ft|} = null;
+    }
+    public class X
+    {
+        public static void Main()
+        {
+            Expression expr = null;
+            if (expr is Plus { [|Left|] is Plus })
+            {
+            }
+        }
+    }
+        </Document>
+    </Project>
+</Workspace>
+            Await TestAsync(input)
+        End Function
+
         <Fact, Trait(Traits.Feature, Traits.Features.FindReferences)>
         Public Async Function TestField_VBInaccessibleInstanceProtectedField() As Task
             Dim input =
