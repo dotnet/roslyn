@@ -1585,10 +1585,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
         {
             get
             {
-                if (_lazyKind == TypeKind.Unknown)
-                {
-                    TypeKind result;
+                TypeKind result = _lazyKind;
 
+                if (result == TypeKind.Unknown)
+                {
                     if (_flags.IsInterface())
                     {
                         result = TypeKind.Interface;
@@ -1603,22 +1603,26 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                         {
                             SpecialType baseCorTypeId = @base.SpecialType;
 
-                            // Code is cloned from MetaImport::DoImportBaseAndImplements()
-                            if (baseCorTypeId == SpecialType.System_Enum)
+                            switch (baseCorTypeId)
                             {
-                                // Enum
-                                result = TypeKind.Enum;
-                            }
-                            else if (baseCorTypeId == SpecialType.System_MulticastDelegate)
-                            {
-                                // Delegate
-                                result = TypeKind.Delegate;
-                            }
-                            else if (baseCorTypeId == SpecialType.System_ValueType &&
-                                     this.SpecialType != SpecialType.System_Enum)
-                            {
-                                // Struct
-                                result = TypeKind.Struct;
+                                case SpecialType.System_Enum:
+                                    // Enum
+                                    result = TypeKind.Enum;
+                                    break;
+
+                                case SpecialType.System_MulticastDelegate:
+                                    // Delegate
+                                    result = TypeKind.Delegate;
+                                    break;
+
+                                case SpecialType.System_ValueType:
+                                    // System.Enum is the only class that derives from ValueType
+                                    if (this.SpecialType != SpecialType.System_Enum)
+                                    {
+                                        // Struct
+                                        result = TypeKind.Struct;
+                                    }
+                                    break;
                             }
                         }
                     }
@@ -1626,7 +1630,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                     _lazyKind = result;
                 }
 
-                return _lazyKind;
+                return result;
             }
         }
 
