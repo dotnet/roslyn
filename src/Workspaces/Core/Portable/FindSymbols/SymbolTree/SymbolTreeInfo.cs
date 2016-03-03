@@ -471,4 +471,3 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         }
     }
 }
-
