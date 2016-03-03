@@ -652,26 +652,27 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
             End If
         End Function
 
-        Public Overrides Function OperatorDeclaration(kind As OperatorKind,
-                                                      Optional parameters As IEnumerable(Of SyntaxNode) = Nothing,
-                                                      Optional returnType As SyntaxNode = Nothing,
-                                                      Optional accessibility As Accessibility = Accessibility.NotApplicable,
-                                                      Optional modifiers As DeclarationModifiers = Nothing,
-                                                      Optional statements As IEnumerable(Of SyntaxNode) = Nothing) As SyntaxNode
+        Private Function CreateOperator(kind As SyntaxKind,
+                                        Optional parameters As IEnumerable(Of SyntaxNode) = Nothing,
+                                        Optional returnType As SyntaxNode = Nothing,
+                                        Optional accessibility As Accessibility = Accessibility.NotApplicable,
+                                        Optional modifiers As DeclarationModifiers = Nothing,
+                                        Optional statements As IEnumerable(Of SyntaxNode) = Nothing) As SyntaxNode
 
             Dim statement As OperatorStatementSyntax
             Dim asClause = If(returnType IsNot Nothing, SyntaxFactory.SimpleAsClause(DirectCast(returnType, TypeSyntax)), Nothing)
             Dim parameterList = GetParameterList(parameters)
-            Dim operatorToken = SyntaxFactory.Token(GetTokenKind(kind))
             Dim modifierList As SyntaxTokenList = GetModifierList(accessibility, modifiers And s_methodModifiers, DeclarationKind.Operator)
 
-            If kind = OperatorKind.ImplicitConversion OrElse kind = OperatorKind.ExplicitConversion Then
-                modifierList = modifierList.Add(SyntaxFactory.Token(
-                    If(kind = OperatorKind.ImplicitConversion, SyntaxKind.WideningKeyword, SyntaxKind.NarrowingKeyword)))
+            If kind = SyntaxKind.NarrowingKeyword OrElse kind = SyntaxKind.WideningKeyword Then
+                modifierList = modifierList.Add(SyntaxFactory.Token(kind))
+
+                Dim operatorToken = SyntaxFactory.Token(SyntaxKind.CTypeKeyword)
                 statement = SyntaxFactory.OperatorStatement(
                     attributeLists:=Nothing, modifiers:=modifierList, operatorToken:=operatorToken,
                     parameterList:=parameterList, asClause:=asClause)
             Else
+                Dim operatorToken = SyntaxFactory.Token(kind)
                 statement = SyntaxFactory.OperatorStatement(
                     attributeLists:=Nothing, modifiers:=modifierList,
                     operatorToken:=operatorToken, parameterList:=parameterList,
@@ -689,56 +690,108 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
             End If
         End Function
 
-        Private Function GetTokenKind(kind As OperatorKind) As SyntaxKind
-            Select Case kind
-                Case OperatorKind.ImplicitConversion,
-                     OperatorKind.ExplicitConversion
-                    Return SyntaxKind.CTypeKeyword
-                Case OperatorKind.Addition
-                    Return SyntaxKind.PlusToken
-                Case OperatorKind.BitwiseAnd
-                    Return SyntaxKind.AndKeyword
-                Case OperatorKind.BitwiseOr
-                    Return SyntaxKind.OrKeyword
-                Case OperatorKind.Division
-                    Return SyntaxKind.SlashToken
-                Case OperatorKind.Equality
-                    Return SyntaxKind.EqualsToken
-                Case OperatorKind.ExclusiveOr
-                    Return SyntaxKind.XorKeyword
-                Case OperatorKind.False
-                    Return SyntaxKind.IsFalseKeyword
-                Case OperatorKind.GreaterThan
-                    Return SyntaxKind.GreaterThanToken
-                Case OperatorKind.GreaterThanOrEqual
-                    Return SyntaxKind.GreaterThanEqualsToken
-                Case OperatorKind.Inequality
-                    Return SyntaxKind.LessThanGreaterThanToken
-                Case OperatorKind.LeftShift
-                    Return SyntaxKind.LessThanLessThanToken
-                Case OperatorKind.LessThan
-                    Return SyntaxKind.LessThanToken
-                Case OperatorKind.LessThanOrEqual
-                    Return SyntaxKind.LessThanEqualsToken
-                Case OperatorKind.LogicalNot
-                    Return SyntaxKind.NotKeyword
-                Case OperatorKind.Modulus
-                    Return SyntaxKind.ModKeyword
-                Case OperatorKind.Multiply
-                    Return SyntaxKind.AsteriskToken
-                Case OperatorKind.RightShift
-                    Return SyntaxKind.GreaterThanGreaterThanToken
-                Case OperatorKind.Subtraction
-                    Return SyntaxKind.MinusToken
-                Case OperatorKind.True
-                    Return SyntaxKind.IsTrueKeyword
-                Case OperatorKind.UnaryNegation
-                    Return SyntaxKind.MinusToken
-                Case OperatorKind.UnaryPlus
-                    Return SyntaxKind.PlusToken
-                Case Else
-                    Throw New ArgumentException($"Operator {kind} cannot be generated in Visual Basic.")
-            End Select
+        Public Overrides Function ExplicitConversionDeclaration(Optional parameters As IEnumerable(Of SyntaxNode) = Nothing, Optional returnType As SyntaxNode = Nothing, Optional accessibility As Accessibility = Accessibility.NotApplicable, Optional modifiers As DeclarationModifiers = Nothing, Optional statements As IEnumerable(Of SyntaxNode) = Nothing) As SyntaxNode
+            Return CreateOperator(SyntaxKind.NarrowingKeyword, parameters, returnType, accessibility, modifiers, statements)
+        End Function
+
+        Public Overrides Function ImplicitConversionDeclaration(Optional parameters As IEnumerable(Of SyntaxNode) = Nothing, Optional returnType As SyntaxNode = Nothing, Optional accessibility As Accessibility = Accessibility.NotApplicable, Optional modifiers As DeclarationModifiers = Nothing, Optional statements As IEnumerable(Of SyntaxNode) = Nothing) As SyntaxNode
+            Return CreateOperator(SyntaxKind.WideningKeyword, parameters, returnType, accessibility, modifiers, statements)
+        End Function
+
+        Public Overrides Function AdditionOperatorDeclaration(Optional parameters As IEnumerable(Of SyntaxNode) = Nothing, Optional returnType As SyntaxNode = Nothing, Optional accessibility As Accessibility = Accessibility.NotApplicable, Optional modifiers As DeclarationModifiers = Nothing, Optional statements As IEnumerable(Of SyntaxNode) = Nothing) As SyntaxNode
+            Return CreateOperator(SyntaxKind.PlusToken, parameters, returnType, accessibility, modifiers, statements)
+        End Function
+
+        Public Overrides Function BitwiseAndOperatorDeclaration(Optional parameters As IEnumerable(Of SyntaxNode) = Nothing, Optional returnType As SyntaxNode = Nothing, Optional accessibility As Accessibility = Accessibility.NotApplicable, Optional modifiers As DeclarationModifiers = Nothing, Optional statements As IEnumerable(Of SyntaxNode) = Nothing) As SyntaxNode
+            Return CreateOperator(SyntaxKind.AndKeyword, parameters, returnType, accessibility, modifiers, statements)
+        End Function
+
+        Public Overrides Function BitwiseOrOperatorDeclaration(Optional parameters As IEnumerable(Of SyntaxNode) = Nothing, Optional returnType As SyntaxNode = Nothing, Optional accessibility As Accessibility = Accessibility.NotApplicable, Optional modifiers As DeclarationModifiers = Nothing, Optional statements As IEnumerable(Of SyntaxNode) = Nothing) As SyntaxNode
+            Return CreateOperator(SyntaxKind.OrKeyword, parameters, returnType, accessibility, modifiers, statements)
+        End Function
+
+        Public Overrides Function DecrementOperatorDeclaration(Optional parameters As IEnumerable(Of SyntaxNode) = Nothing, Optional returnType As SyntaxNode = Nothing, Optional accessibility As Accessibility = Accessibility.NotApplicable, Optional modifiers As DeclarationModifiers = Nothing, Optional statements As IEnumerable(Of SyntaxNode) = Nothing) As SyntaxNode
+            Throw New NotSupportedException($"{NameOf(DecrementOperatorDeclaration)} cannot be generated in Visual Basic.")
+        End Function
+
+        Public Overrides Function DivisionOperatorDeclaration(Optional parameters As IEnumerable(Of SyntaxNode) = Nothing, Optional returnType As SyntaxNode = Nothing, Optional accessibility As Accessibility = Accessibility.NotApplicable, Optional modifiers As DeclarationModifiers = Nothing, Optional statements As IEnumerable(Of SyntaxNode) = Nothing) As SyntaxNode
+            Return CreateOperator(SyntaxKind.SlashToken, parameters, returnType, accessibility, modifiers, statements)
+        End Function
+
+        Public Overrides Function EqualityOperatorDeclaration(Optional parameters As IEnumerable(Of SyntaxNode) = Nothing, Optional returnType As SyntaxNode = Nothing, Optional accessibility As Accessibility = Accessibility.NotApplicable, Optional modifiers As DeclarationModifiers = Nothing, Optional statements As IEnumerable(Of SyntaxNode) = Nothing) As SyntaxNode
+            Return CreateOperator(SyntaxKind.EqualsToken, parameters, returnType, accessibility, modifiers, statements)
+        End Function
+
+        Public Overrides Function ExclusiveOrOperatorDeclaration(Optional parameters As IEnumerable(Of SyntaxNode) = Nothing, Optional returnType As SyntaxNode = Nothing, Optional accessibility As Accessibility = Accessibility.NotApplicable, Optional modifiers As DeclarationModifiers = Nothing, Optional statements As IEnumerable(Of SyntaxNode) = Nothing) As SyntaxNode
+            Return CreateOperator(SyntaxKind.XorKeyword, parameters, returnType, accessibility, modifiers, statements)
+        End Function
+
+        Public Overrides Function FalseOperatorDeclaration(Optional parameters As IEnumerable(Of SyntaxNode) = Nothing, Optional returnType As SyntaxNode = Nothing, Optional accessibility As Accessibility = Accessibility.NotApplicable, Optional modifiers As DeclarationModifiers = Nothing, Optional statements As IEnumerable(Of SyntaxNode) = Nothing) As SyntaxNode
+            Return CreateOperator(SyntaxKind.IsFalseKeyword, parameters, returnType, accessibility, modifiers, statements)
+        End Function
+
+        Public Overrides Function GreaterThanOperatorDeclaration(Optional parameters As IEnumerable(Of SyntaxNode) = Nothing, Optional returnType As SyntaxNode = Nothing, Optional accessibility As Accessibility = Accessibility.NotApplicable, Optional modifiers As DeclarationModifiers = Nothing, Optional statements As IEnumerable(Of SyntaxNode) = Nothing) As SyntaxNode
+            Return CreateOperator(SyntaxKind.GreaterThanToken, parameters, returnType, accessibility, modifiers, statements)
+        End Function
+
+        Public Overrides Function GreaterThanOrEqualOperatorDeclaration(Optional parameters As IEnumerable(Of SyntaxNode) = Nothing, Optional returnType As SyntaxNode = Nothing, Optional accessibility As Accessibility = Accessibility.NotApplicable, Optional modifiers As DeclarationModifiers = Nothing, Optional statements As IEnumerable(Of SyntaxNode) = Nothing) As SyntaxNode
+            Return CreateOperator(SyntaxKind.GreaterThanEqualsToken, parameters, returnType, accessibility, modifiers, statements)
+        End Function
+
+        Public Overrides Function IncrementOperatorDeclaration(Optional parameters As IEnumerable(Of SyntaxNode) = Nothing, Optional returnType As SyntaxNode = Nothing, Optional accessibility As Accessibility = Accessibility.NotApplicable, Optional modifiers As DeclarationModifiers = Nothing, Optional statements As IEnumerable(Of SyntaxNode) = Nothing) As SyntaxNode
+            Throw New NotSupportedException($"{NameOf(IncrementOperatorDeclaration)} cannot be generated in Visual Basic.")
+        End Function
+
+        Public Overrides Function InequalityOperatorDeclaration(Optional parameters As IEnumerable(Of SyntaxNode) = Nothing, Optional returnType As SyntaxNode = Nothing, Optional accessibility As Accessibility = Accessibility.NotApplicable, Optional modifiers As DeclarationModifiers = Nothing, Optional statements As IEnumerable(Of SyntaxNode) = Nothing) As SyntaxNode
+            Return CreateOperator(SyntaxKind.LessThanGreaterThanToken, parameters, returnType, accessibility, modifiers, statements)
+        End Function
+
+        Public Overrides Function LeftShiftOperatorDeclaration(Optional parameters As IEnumerable(Of SyntaxNode) = Nothing, Optional returnType As SyntaxNode = Nothing, Optional accessibility As Accessibility = Accessibility.NotApplicable, Optional modifiers As DeclarationModifiers = Nothing, Optional statements As IEnumerable(Of SyntaxNode) = Nothing) As SyntaxNode
+            Return CreateOperator(SyntaxKind.LessThanLessThanToken, parameters, returnType, accessibility, modifiers, statements)
+        End Function
+
+        Public Overrides Function LessThanOperatorDeclaration(Optional parameters As IEnumerable(Of SyntaxNode) = Nothing, Optional returnType As SyntaxNode = Nothing, Optional accessibility As Accessibility = Accessibility.NotApplicable, Optional modifiers As DeclarationModifiers = Nothing, Optional statements As IEnumerable(Of SyntaxNode) = Nothing) As SyntaxNode
+            Return CreateOperator(SyntaxKind.LessThanToken, parameters, returnType, accessibility, modifiers, statements)
+        End Function
+
+        Public Overrides Function LessThanOrEqualOperatorDeclaration(Optional parameters As IEnumerable(Of SyntaxNode) = Nothing, Optional returnType As SyntaxNode = Nothing, Optional accessibility As Accessibility = Accessibility.NotApplicable, Optional modifiers As DeclarationModifiers = Nothing, Optional statements As IEnumerable(Of SyntaxNode) = Nothing) As SyntaxNode
+            Return CreateOperator(SyntaxKind.LessThanEqualsToken, parameters, returnType, accessibility, modifiers, statements)
+        End Function
+
+        Public Overrides Function LogicalNotOperatorDeclaration(Optional parameters As IEnumerable(Of SyntaxNode) = Nothing, Optional returnType As SyntaxNode = Nothing, Optional accessibility As Accessibility = Accessibility.NotApplicable, Optional modifiers As DeclarationModifiers = Nothing, Optional statements As IEnumerable(Of SyntaxNode) = Nothing) As SyntaxNode
+            Return CreateOperator(SyntaxKind.NotKeyword, parameters, returnType, accessibility, modifiers, statements)
+        End Function
+
+        Public Overrides Function ModulusOperatorDeclaration(Optional parameters As IEnumerable(Of SyntaxNode) = Nothing, Optional returnType As SyntaxNode = Nothing, Optional accessibility As Accessibility = Accessibility.NotApplicable, Optional modifiers As DeclarationModifiers = Nothing, Optional statements As IEnumerable(Of SyntaxNode) = Nothing) As SyntaxNode
+            Return CreateOperator(SyntaxKind.ModKeyword, parameters, returnType, accessibility, modifiers, statements)
+        End Function
+
+        Public Overrides Function MultiplyOperatorDeclaration(Optional parameters As IEnumerable(Of SyntaxNode) = Nothing, Optional returnType As SyntaxNode = Nothing, Optional accessibility As Accessibility = Accessibility.NotApplicable, Optional modifiers As DeclarationModifiers = Nothing, Optional statements As IEnumerable(Of SyntaxNode) = Nothing) As SyntaxNode
+            Return CreateOperator(SyntaxKind.AsteriskToken, parameters, returnType, accessibility, modifiers, statements)
+        End Function
+
+        Public Overrides Function RightShiftOperatorDeclaration(Optional parameters As IEnumerable(Of SyntaxNode) = Nothing, Optional returnType As SyntaxNode = Nothing, Optional accessibility As Accessibility = Accessibility.NotApplicable, Optional modifiers As DeclarationModifiers = Nothing, Optional statements As IEnumerable(Of SyntaxNode) = Nothing) As SyntaxNode
+            Return CreateOperator(SyntaxKind.GreaterThanGreaterThanToken, parameters, returnType, accessibility, modifiers, statements)
+        End Function
+
+        Public Overrides Function SubtractionOperatorDeclaration(Optional parameters As IEnumerable(Of SyntaxNode) = Nothing, Optional returnType As SyntaxNode = Nothing, Optional accessibility As Accessibility = Accessibility.NotApplicable, Optional modifiers As DeclarationModifiers = Nothing, Optional statements As IEnumerable(Of SyntaxNode) = Nothing) As SyntaxNode
+            Return CreateOperator(SyntaxKind.MinusToken, parameters, returnType, accessibility, modifiers, statements)
+        End Function
+
+        Public Overrides Function TrueOperatorDeclaration(Optional parameters As IEnumerable(Of SyntaxNode) = Nothing, Optional returnType As SyntaxNode = Nothing, Optional accessibility As Accessibility = Accessibility.NotApplicable, Optional modifiers As DeclarationModifiers = Nothing, Optional statements As IEnumerable(Of SyntaxNode) = Nothing) As SyntaxNode
+            Return CreateOperator(SyntaxKind.IsTrueKeyword, parameters, returnType, accessibility, modifiers, statements)
+        End Function
+
+        Public Overrides Function UnaryNegationOperatorDeclaration(Optional parameters As IEnumerable(Of SyntaxNode) = Nothing, Optional returnType As SyntaxNode = Nothing, Optional accessibility As Accessibility = Accessibility.NotApplicable, Optional modifiers As DeclarationModifiers = Nothing, Optional statements As IEnumerable(Of SyntaxNode) = Nothing) As SyntaxNode
+            Return CreateOperator(SyntaxKind.MinusToken, parameters, returnType, accessibility, modifiers, statements)
+        End Function
+
+        Public Overrides Function UnaryPlusOperatorDeclaration(Optional parameters As IEnumerable(Of SyntaxNode) = Nothing, Optional returnType As SyntaxNode = Nothing, Optional accessibility As Accessibility = Accessibility.NotApplicable, Optional modifiers As DeclarationModifiers = Nothing, Optional statements As IEnumerable(Of SyntaxNode) = Nothing) As SyntaxNode
+            Return CreateOperator(SyntaxKind.PlusToken, parameters, returnType, accessibility, modifiers, statements)
+        End Function
+
+        Public Overrides Function OnesComplementOperatorDeclaration(Optional parameters As IEnumerable(Of SyntaxNode) = Nothing, Optional returnType As SyntaxNode = Nothing, Optional accessibility As Accessibility = Accessibility.NotApplicable, Optional modifiers As DeclarationModifiers = Nothing, Optional statements As IEnumerable(Of SyntaxNode) = Nothing) As SyntaxNode
+            Throw New NotSupportedException($"{NameOf(OnesComplementOperatorDeclaration)} cannot be generated in Visual Basic.")
         End Function
 
         Private Function GetParameterList(parameters As IEnumerable(Of SyntaxNode)) As ParameterListSyntax
