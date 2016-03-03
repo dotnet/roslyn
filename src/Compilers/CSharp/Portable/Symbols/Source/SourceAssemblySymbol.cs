@@ -382,6 +382,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
+        public override Version AssemblyVersionPattern
+        {
+            get
+            {
+                var attributeValue = AssemblyVersionAttributeSetting;
+                return (object)attributeValue == null || (attributeValue.Build != ushort.MaxValue && attributeValue.Revision != ushort.MaxValue) ? null : attributeValue;
+            }
+        }
+         
         internal AssemblyHashAlgorithm AssemblyHashAlgorithm
         {
             get
