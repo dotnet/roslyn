@@ -60,6 +60,7 @@ namespace Microsoft.CodeAnalysis.Internal.Log
 
         CommandHandler_GetCommandState,
         CommandHandler_ExecuteHandlers,
+        CommandHandler_FormatCommand,
 
         Workspace_SourceText_GetChangeRanges,
         Workspace_Recoverable_RecoverRootAsync,
