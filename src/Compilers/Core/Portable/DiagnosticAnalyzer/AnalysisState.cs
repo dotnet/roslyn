@@ -92,8 +92,17 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             // Free the per-analyzer state tracking objects.
             foreach (var analyzerState in _analyzerStates)
             {
-                analyzerState.Free();
-                s_perAnalyzerStatePool.Free(analyzerState);
+                var shouldReturnToPool = analyzerState.Free();
+
+                // If we have too many symbols then just discard the state object from the pool - we don't want to hold onto really large dictionaries.
+                if (shouldReturnToPool)
+                {
+                    s_perAnalyzerStatePool.Free(analyzerState);
+                }
+                else
+                {
+                    s_perAnalyzerStatePool.ForgetTrackedObject(analyzerState);
+                }
             }
         }
 
