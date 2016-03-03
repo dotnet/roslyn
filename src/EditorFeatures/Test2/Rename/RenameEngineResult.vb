@@ -104,7 +104,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Rename
 
             For Each project In currentSolution.Projects
                 If Not project.HasCompleteReferencesAsync().Result Then
-                    FailFast.Assert(False, $"This shouldn't have happened with {whichSolutionWasBroken} in project {project.Name}")
+                    'FailFast.Assert(False, $"This shouldn't have happened with {whichSolutionWasBroken} in project {project.Name}")
                 End If
             Next
         End Sub
