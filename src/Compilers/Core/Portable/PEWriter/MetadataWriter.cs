@@ -2105,7 +2105,7 @@ namespace Microsoft.Cci
                 version: assembly.Identity.Version,
                 publicKey: heaps.GetBlobIndex(assembly.PublicKey),
                 name: GetStringIndexForPathAndCheckLength(assembly.Name, assembly),
-                culture: heaps.GetStringIndex(assembly.Culture));
+                culture: heaps.GetStringIndex(assembly.Identity.CultureName));
         }
         
         private void PopulateCustomAttributeTableRows()
