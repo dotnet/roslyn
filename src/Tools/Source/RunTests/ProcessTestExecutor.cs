@@ -127,6 +127,7 @@ namespace RunTests
                 return new TestResult(
                     exitCode: processOutput.ExitCode,
                     assemblyPath: assemblyInfo.AssemblyPath,
+                    displayName: assemblyInfo.DisplayName,
                     resultDir: resultsDir,
                     resultsFilePath: resultsFilePath,
                     commandLine: commandLine,

@@ -29,6 +29,16 @@ namespace RunTests
             ExtraArguments = extraArguments;
         }
 
+        internal AssemblyInfo(string assemblyPath, bool useHmtl)
+        {
+            AssemblyPath = assemblyPath;
+            DisplayName = Path.GetFileName(assemblyPath);
+
+            var suffix = useHmtl ? "html" : "xml";
+            ResultsFileName = $"{DisplayName}.{suffix}";
+            ExtraArguments = string.Empty;
+        }
+
         public override string ToString() => DisplayName;
     }
 
@@ -54,7 +64,7 @@ namespace RunTests
             return list;
         }
 
-        private IEnumerable<AssemblyInfo> Schedule(string assemblyPath)
+        public IEnumerable<AssemblyInfo> Schedule(string assemblyPath)
         {
             var scheduleList = new List<AssemblyInfo>();
             var id = 0;
@@ -63,7 +73,7 @@ namespace RunTests
             {
                 count += tuple.Item2;
                 _builder.Append($@"-class ""{tuple.Item1}"" ");
-                if (count > 750)
+                if (count > 700)
                 {
                     scheduleList.Add(CreateAssemblyInfo(assemblyPath, id, _builder.ToString()));
                     _builder.Length = 0;
