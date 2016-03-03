@@ -1029,6 +1029,38 @@ public class X
             VerifyNotInScope(model, x12Ref[1]);
         }
 
+        [Fact, WorkItem(9258, "https://github.com/dotnet/roslyn/issues/9258")]
+        public void PatternVariableOrder()
+        {
+            var source =
+@"
+public class X
+{
+    public static void Main()
+    {
+    }
+
+    static void Dummy(params object[] x) {}
+
+    void Test1(object o1, object o2)
+    {
+        Dummy(o1 is int i && i < 10,
+              o2 is int @i && @i > 10);
+    }
+}
+";
+            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe, parseOptions: patternParseOptions);
+
+            compilation.VerifyDiagnostics(
+                // (13,25): error CS0128: A local variable named 'i' is already defined in this scope
+                //               o2 is int @i && @i > 10);
+                Diagnostic(ErrorCode.ERR_LocalDuplicate, "@i").WithArguments("i").WithLocation(13, 25),
+                // (13,31): error CS0165: Use of unassigned local variable 'i'
+                //               o2 is int @i && @i > 10);
+                Diagnostic(ErrorCode.ERR_UseDefViolation, "@i").WithArguments("i").WithLocation(13, 31)
+                );
+        }
+
         [Fact]
         public void PropertyNamedInComplexPattern()
         {
