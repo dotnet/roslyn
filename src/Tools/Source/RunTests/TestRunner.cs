@@ -35,12 +35,12 @@ namespace RunTests
             _options = options;
         }
 
-        internal async Task<RunAllResult> RunAllAsync(IEnumerable<string> assemblyList, CancellationToken cancellationToken)
+        internal async Task<RunAllResult> RunAllAsync(IEnumerable<AssemblyInfo> assemblyInfoList, CancellationToken cancellationToken)
         {
             var max = (int)Environment.ProcessorCount * 1.5;
             var allPassed = true;
             var cacheCount = 0;
-            var waiting = new Stack<string>(assemblyList);
+            var waiting = new Stack<AssemblyInfo>(assemblyInfoList);
             var running = new List<Task<TestResult>>();
             var completed = new List<TestResult>();
 

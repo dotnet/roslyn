@@ -23,13 +23,15 @@ namespace RunTests.Cache
             _contentUtil = new ContentUtil(options);
         }
 
-        public string GetCommandLine(string assemblyPath)
+        public string GetCommandLine(AssemblyInfo assemblyInfo)
         {
-            return _testExecutor.GetCommandLine(assemblyPath);
+            return _testExecutor.GetCommandLine(assemblyInfo);
         }
 
-        public async Task<TestResult> RunTestAsync(string assemblyPath, CancellationToken cancellationToken)
+        public async Task<TestResult> RunTestAsync(AssemblyInfo assemblyInfo, CancellationToken cancellationToken)
         {
+            throw new Exception();
+            /*
             var contentFile = _contentUtil.GetTestResultContentFile(assemblyPath);
             var builder = new StringBuilder();
             builder.AppendLine($"{Path.GetFileName(assemblyPath)} - {contentFile.Checksum}");
@@ -56,6 +58,7 @@ namespace RunTests.Cache
             var testResult = await _testExecutor.RunTestAsync(assemblyPath, cancellationToken);
             await CacheTestResult(contentFile, testResult).ConfigureAwait(true);
             return testResult;
+            */
         }
 
         /// <summary>
@@ -64,6 +67,8 @@ namespace RunTests.Cache
         /// </summary>
         private TestResult Migrate(string assemblyPath, CachedTestResult cachedTestResult)
         {
+            throw new Exception();
+            /*
             var resultsDir = Path.Combine(Path.GetDirectoryName(assemblyPath), Constants.ResultsDirectoryName);
             FileUtil.EnsureDirectory(resultsDir);
             var resultsFilePath = Path.Combine(resultsDir, cachedTestResult.ResultsFileName);
@@ -80,6 +85,7 @@ namespace RunTests.Cache
                 standardOutput: cachedTestResult.StandardOutput,
                 errorOutput: cachedTestResult.ErrorOutput,
                 isResultFromCache: true);
+                */
         }
 
         private async Task CacheTestResult(ContentFile contentFile, TestResult testResult)
