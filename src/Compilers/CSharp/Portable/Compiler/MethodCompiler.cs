@@ -89,7 +89,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             _hasDeclarationErrors = hasDeclarationErrors;
             SetGlobalErrorIfTrue(hasDeclarationErrors);
 
-            if (emittingPdb)
+            if (emittingPdb || moduleBeingBuiltOpt?.EmitOptions.EmitDynamicAnalysisData == true)
             {
                 _debugDocumentProvider = (path, basePath) => moduleBeingBuiltOpt.GetOrAddDebugDocument(path, basePath, CreateDebugDocumentForFile);
             }
@@ -1368,6 +1368,33 @@ namespace Microsoft.CodeAnalysis.CSharp
                     Debug.Assert(!diagnostics.HasAnyErrors());
                 }
 
+                DynamicAnalysisMethodBodyData dynamicAnalysisDataOpt = null;
+                if (moduleBuilder.EmitOptions.EmitDynamicAnalysisData)
+                {
+                    Debug.Assert(debugDocumentProvider != null);
+
+                    // TODO: collect information from bound trees
+                    if (method.Name == "Main")
+                    {
+                        var doc1 = debugDocumentProvider.Invoke(@"C:\myproject\doc1.cs", "");
+                        var doc2 = debugDocumentProvider.Invoke(@"C:\myproject\doc2.cs", "");
+
+                        dynamicAnalysisDataOpt = new DynamicAnalysisMethodBodyData(
+                            spans: ImmutableArray.Create(
+                                       new SourceSpan(doc1, 10, 1, 10, 20),
+                                       new SourceSpan(doc1, 20, 1, 30, 20),
+                                       new SourceSpan(doc2, 10, 1, 10, 20)));
+                    }
+                    else if (method.Name == ".ctor")
+                    {
+                        var doc1 = debugDocumentProvider.Invoke(@"C:\myproject\doc1.cs", "");
+
+                        dynamicAnalysisDataOpt = new DynamicAnalysisMethodBodyData(
+                            spans: ImmutableArray.Create(
+                                       new SourceSpan(doc1, 1, 1, 3, 10)));
+                    }
+                }
+
                 return new MethodBody(
                     builder.RealizedIL,
                     builder.MaxStack,
@@ -1386,7 +1413,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                     stateMachineHoistedLocalScopes,
                     stateMachineHoistedLocalSlots,
                     stateMachineAwaiterSlots,
-                    asyncDebugInfo);
+                    asyncDebugInfo,
+                    dynamicAnalysisDataOpt);
             }
             finally
             {

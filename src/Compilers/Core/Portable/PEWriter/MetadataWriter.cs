@@ -25,7 +25,7 @@ namespace Microsoft.Cci
 {
     internal abstract partial class MetadataWriter
     {
-        private static readonly Encoding s_utf8Encoding = Encoding.UTF8;
+        internal static readonly Encoding s_utf8Encoding = Encoding.UTF8;
 
         /// <summary>
         /// This is the maximum length of a type or member name in metadata, assuming
@@ -74,6 +74,7 @@ namespace Microsoft.Cci
         protected MetadataWriter(
             MetadataHeapsBuilder heaps,
             MetadataHeapsBuilder debugHeapsOpt,
+            DynamicAnalysisDataWriter dynamicAnalysisDataWriterOpt,
             EmitContext context,
             CommonMessageProvider messageProvider,
             bool allowMissingMethodBodies,
@@ -98,6 +99,7 @@ namespace Microsoft.Cci
 
             this.heaps = heaps;
             _debugHeapsOpt = debugHeapsOpt;
+            _dynamicAnalysisDataWriterOpt = dynamicAnalysisDataWriterOpt;
             _smallMethodBodies = new Dictionary<ImmutableArray<byte>, int>(ByteSequenceComparer.Instance);
         }
 
@@ -432,6 +434,8 @@ namespace Microsoft.Cci
         // Shared heap builder (reference equals heaps) if we are embedding Portable PDB into the metadata stream.
         // Null otherwise.
         private readonly MetadataHeapsBuilder _debugHeapsOpt;
+
+        private readonly DynamicAnalysisDataWriter _dynamicAnalysisDataWriterOpt;
 
         private bool EmitStandaloneDebugMetadata => _debugHeapsOpt != null && heaps != _debugHeapsOpt;
 
@@ -1009,6 +1013,15 @@ namespace Microsoft.Cci
 
             int result = resourceWriter.Position;
             resource.WriteData(resourceWriter);
+            return (uint)result;
+        }
+
+        private static uint GetManagedResourceOffset(BlobBuilder resource, BlobBuilder resourceWriter)
+        {
+            int result = resourceWriter.Position;
+            resourceWriter.WriteInt32(resource.Count);
+            resource.WriteContentTo(resourceWriter);
+            resourceWriter.Align(8);
             return (uint)result;
         }
 
@@ -2123,7 +2136,14 @@ namespace Microsoft.Cci
 
             ReportReferencesToAddedSymbols();
 
-            PopulateTables(methodBodyRvas, mappedFieldDataWriter, managedResourceDataWriter);
+            BlobBuilder dynamicAnalysisDataOpt = null;
+            if (_dynamicAnalysisDataWriterOpt != null)
+            {
+                dynamicAnalysisDataOpt = new BlobBuilder();
+                _dynamicAnalysisDataWriterOpt.SerializeMetadataTables(dynamicAnalysisDataOpt);
+            }
+
+            PopulateTables(methodBodyRvas, mappedFieldDataWriter, managedResourceDataWriter, dynamicAnalysisDataOpt);
 
             int debugEntryPointToken;
             if (IsFullMetadata)
@@ -2505,7 +2525,7 @@ namespace Microsoft.Cci
             Debug.Assert(metadataSizes.MetadataTableStreamSize == endPosition - startPosition);
         }
 
-        private void PopulateTables(int[] methodBodyRvas, BlobBuilder mappedFieldDataWriter, BlobBuilder resourceWriter)
+        private void PopulateTables(int[] methodBodyRvas, BlobBuilder mappedFieldDataWriter, BlobBuilder resourceWriter, BlobBuilder dynamicAnalysisDataOpt)
         {
             this.PopulateAssemblyRefTableRows();
             this.PopulateAssemblyTableRows();
@@ -2524,7 +2544,7 @@ namespace Microsoft.Cci
             this.PopulateGenericParamConstraintTableRows();
             this.PopulateImplMapTableRows();
             this.PopulateInterfaceImplTableRows();
-            this.PopulateManifestResourceTableRows(resourceWriter);
+            this.PopulateManifestResourceTableRows(resourceWriter, dynamicAnalysisDataOpt);
             this.PopulateMemberRefTableRows();
             this.PopulateMethodImplTableRows();
             this.PopulateMethodTableRows(methodBodyRvas);
@@ -3344,8 +3364,18 @@ namespace Microsoft.Cci
 
         private readonly List<InterfaceImplRow> _interfaceImplTable = new List<InterfaceImplRow>();
 
-        private void PopulateManifestResourceTableRows(BlobBuilder resourceDataWriter)
+        private void PopulateManifestResourceTableRows(BlobBuilder resourceDataWriter, BlobBuilder dynamicAnalysisDataOpt)
         {
+            if (dynamicAnalysisDataOpt != null)
+            {
+                _manifestResourceTable.Add(new ManifestResourceRow()
+                {
+                    Offset = GetManagedResourceOffset(dynamicAnalysisDataOpt, resourceDataWriter),
+                    Flags = (uint)ManifestResourceAttributes.Private,
+                    Name = heaps.GetStringIndex("<DynamicAnalysisData>"),
+                });
+            }
+            
             foreach (var resource in this.module.GetResources(Context))
             {
                 ManifestResourceRow r = new ManifestResourceRow();
@@ -4268,6 +4298,8 @@ namespace Microsoft.Cci
                 {
                     SerializeMethodDebugInfo(body, methodRid, localSignatureRid);
                 }
+
+                _dynamicAnalysisDataWriterOpt?.SerializeMethodDynamicAnalysisData(body);
 
                 rvas[methodRid - 1] = rva;
 

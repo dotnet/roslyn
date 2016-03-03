@@ -12,6 +12,9 @@ namespace Microsoft.CodeAnalysis.Emit
     {
         internal static readonly EmitOptions Default = new EmitOptions();
 
+        // TODO:
+        internal bool EmitDynamicAnalysisData { get; private set; }
+
         /// <summary>
         /// True to emit an assembly excluding executable code such as method bodies.
         /// </summary>
@@ -219,6 +222,16 @@ namespace Microsoft.CodeAnalysis.Emit
                 default:
                     return false;
             }
+        }
+
+        internal EmitOptions WithEmitDynamicAnalysisData(bool value)
+        {
+            if (this.EmitDynamicAnalysisData == value)
+            {
+                return this;
+            }
+
+            return new EmitOptions(this) { EmitDynamicAnalysisData = value };
         }
 
         public EmitOptions WithEmitMetadataOnly(bool value)
