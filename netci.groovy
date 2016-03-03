@@ -60,16 +60,19 @@ static void addArtifactArchiving(def myJob, String patternString, String exclude
     publishers {
       flexiblePublish {
         conditionalAction {
-          status('ABORTED', 'FAILURE')
-        }
-        publishers {
-          archiveArtifacts {
-            allowEmpty(true)
-            defaultExcludes(false)
-            exclude(excludeString)
-            fingerprint(false)
-            onlyIfSuccessful(false)
-            pattern(patternString)
+          condition {
+            status('ABORTED', 'FAILURE')
+          }
+
+          publishers {
+            archiveArtifacts {
+              allowEmpty(true)
+              defaultExcludes(false)
+              exclude(excludeString)
+              fingerprint(false)
+              onlyIfSuccessful(false)
+              pattern(patternString)
+            }
           }
         }
       }
