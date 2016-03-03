@@ -37,6 +37,38 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 _currentlyAnalyzingDeclarationsMapPool = currentlyAnalyzingDeclarationsMapPool;
             }
 
+            public void Free()
+            {
+                lock (_gate)
+                {
+                    foreach (var analyzerStateData in _pendingEvents.Values)
+                    {
+                        FreeState_NoLock(analyzerStateData, _analyzerStateDataPool);
+                    }
+
+                    foreach (var analyzerStateData in _pendingSymbols.Values)
+                    {
+                        FreeState_NoLock(analyzerStateData, _analyzerStateDataPool);
+                    }
+
+                    foreach (var declarationDataMap in _pendingDeclarations.Values)
+                    {
+                        foreach (var declarationStateData in declarationDataMap.Values)
+                        {
+                            FreeDeclarationAnalyzerState_NoLock(declarationStateData);
+                        }
+
+                        FreeDeclarationDataMap_NoLock(declarationDataMap);
+                    }
+
+                    _pendingEvents.Clear();
+                    _pendingSymbols.Clear();
+                    _pendingDeclarations.Clear();
+                    _lazySyntaxTreesWithAnalysisData = null;
+                    _pendingSyntaxAnalysisTreesCount = 0;
+                }
+            }
+
             public void AddPendingEvents(HashSet<CompilationEvent> uniqueEvents)
             {
                 lock (_gate)
@@ -275,7 +307,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             private static void FreeState_NoLock<TAnalyzerStateData>(TAnalyzerStateData state, ObjectPool<TAnalyzerStateData> pool)
                 where TAnalyzerStateData : AnalyzerStateData
             {
-                if (state != null)
+                if (state != null && !ReferenceEquals(state, AnalyzerStateData.FullyProcessedInstance))
                 {
                     state.Free();
                     pool.Free(state);
