@@ -16,8 +16,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
     {
         private static CSharpParseOptions patternParseOptions =
             TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp6)
-                    .WithFeature("patterns", "true")
-                    .WithFeature("patternsExperimental", "true");
+                    .WithFeature(MessageID.IDS_FeaturePatternMatching.RequiredFeature(), "true")
+                    .WithFeature(MessageID.IDS_FeaturePatternMatching2.RequiredFeature(), "true");
 
         [Fact]
         public void SimplePatternTest()
@@ -419,7 +419,7 @@ public class X
     }
 }
 ";
-            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe, parseOptions: patternParseOptions.WithFeature("localFunctions", "true"));
+            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe, parseOptions: patternParseOptions.WithFeature(MessageID.IDS_FeatureLocalFunctions.RequiredFeature(), "true"));
             compilation.VerifyDiagnostics();
             var expectedOutput =
 @"False for 1

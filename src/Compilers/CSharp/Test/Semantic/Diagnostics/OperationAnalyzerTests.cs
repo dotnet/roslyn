@@ -12,10 +12,10 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 {
     public class OperationAnalyzerTests : CompilingTestBase
     {
-        private static CSharpParseOptions patternParseOptions =
+        private readonly static CSharpParseOptions patternParseOptions =
             TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp6)
-                    .WithFeature("patterns", "true")
-                    .WithFeature("patternsExperimental", "true");
+                    .WithFeature(MessageID.IDS_FeaturePatternMatching.RequiredFeature(), "true")
+                    .WithFeature(MessageID.IDS_FeaturePatternMatching2.RequiredFeature(), "true");
 
         [Fact]
         public void EmptyArrayCSharp()

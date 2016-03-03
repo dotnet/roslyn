@@ -14,7 +14,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Test.Utilities
         public static readonly CSharpParseOptions Regular = new CSharpParseOptions(kind: SourceCodeKind.Regular, documentationMode: DocumentationMode.None);
         public static readonly CSharpParseOptions RegularWithDocumentationComments = new CSharpParseOptions(kind: SourceCodeKind.Regular, documentationMode: DocumentationMode.Diagnose);
 
-        private static readonly SmallDictionary<string, string> s_experimentalFeatures = new SmallDictionary<string, string> { { "localFunctions", "true" }, { "refLocalsAndReturns", "true" } };
+        private static readonly SmallDictionary<string, string> s_experimentalFeatures = new SmallDictionary<string, string> { { MessageID.IDS_FeatureLocalFunctions.RequiredFeature(), "true" }, { MessageID.IDS_FeatureRefLocalsReturns.RequiredFeature(), "true" } };
         public static readonly CSharpParseOptions ExperimentalParseOptions =
             new CSharpParseOptions(kind: SourceCodeKind.Regular, documentationMode: DocumentationMode.None, languageVersion: LanguageVersion.CSharp6).WithFeatures(s_experimentalFeatures);
 
@@ -56,12 +56,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Test.Utilities
 
         public static CSharpParseOptions WithLocalFunctionsFeature(this CSharpParseOptions options)
         {
-            return options.WithFeature("localFunctions", "true");
+            return options.WithFeature(MessageID.IDS_FeatureLocalFunctions.RequiredFeature(), "true");
         }
 
         public static CSharpParseOptions WithRefsFeature(this CSharpParseOptions options)
         {
-            return options.WithFeature("refLocalsAndReturns", "true");
+            return options.WithFeature(MessageID.IDS_FeatureRefLocalsReturns.RequiredFeature()
+, "true");
         }
     }
 }
