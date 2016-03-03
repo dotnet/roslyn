@@ -15,6 +15,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
     {
         private class PerAnalyzerState
         {
+            private const int SymbolLimitForPooling = 100;
             private readonly object _gate = new object();
             private readonly Dictionary<CompilationEvent, AnalyzerStateData> _pendingEvents = new Dictionary<CompilationEvent, AnalyzerStateData>();
             private readonly Dictionary<ISymbol, AnalyzerStateData> _pendingSymbols = new Dictionary<ISymbol, AnalyzerStateData>();
@@ -37,7 +38,10 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 _currentlyAnalyzingDeclarationsMapPool = currentlyAnalyzingDeclarationsMapPool;
             }
 
-            public void Free()
+            /// <summary>
+            /// Returns true if the object should be returned to the pool.
+            /// </summary>
+            public bool Free()
             {
                 lock (_gate)
                 {
@@ -61,11 +65,18 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                         FreeDeclarationDataMap_NoLock(declarationDataMap);
                     }
 
+                    // If we have too many symbols then just discard the state object from the pool - we don't want to hold onto really large dictionaries.
+                    if (_pendingSymbols.Count > SymbolLimitForPooling)
+                    {
+                        return false;
+                    }
+
                     _pendingEvents.Clear();
                     _pendingSymbols.Clear();
                     _pendingDeclarations.Clear();
                     _lazySyntaxTreesWithAnalysisData = null;
                     _pendingSyntaxAnalysisTreesCount = 0;
+                    return true;
                 }
             }
 
