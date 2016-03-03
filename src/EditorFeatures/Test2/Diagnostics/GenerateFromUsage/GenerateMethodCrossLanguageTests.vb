@@ -3,10 +3,17 @@
 Imports System.Threading.Tasks
 Imports Microsoft.CodeAnalysis.CodeFixes
 Imports Microsoft.CodeAnalysis.Diagnostics
+Imports Xunit.Abstractions
 
 Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics.GenerateMethod
     Partial Public Class GenerateMethodCrossLanguageTests
         Inherits AbstractCrossLanguageUserDiagnosticTest
+
+        Private ReadOnly _outputHelper As ITestOutputHelper
+
+        Public Sub New(outputHelper As ITestOutputHelper)
+            _outputHelper = outputHelper
+        End Sub
 
         Friend Overrides Function CreateDiagnosticProviderAndFixer(workspace As Workspace, language As String) As Tuple(Of DiagnosticAnalyzer, CodeFixProvider)
             If language = LanguageNames.CSharp Then
@@ -55,7 +62,7 @@ public class VBClass
 end class
                 </text>.Value.Trim()
 
-            Await TestAsync(input, expected)
+            Await TestAsync(input, expected, onAfterWorkspaceCreated:=Sub(w) w.SetLogger(AddressOf _outputHelper.WriteLine))
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)>
@@ -92,7 +99,7 @@ public class VBClass
 end class
                 </text>.Value.Trim()
 
-            Await TestAsync(input, expected)
+            Await TestAsync(input, expected, onAfterWorkspaceCreated:=Sub(w) w.SetLogger(AddressOf _outputHelper.WriteLine))
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)>
@@ -134,7 +141,7 @@ public class VBClass
 end class
                 </text>.Value.Trim()
 
-            Await TestAsync(input, expected)
+            Await TestAsync(input, expected, onAfterWorkspaceCreated:=Sub(w) w.SetLogger(AddressOf _outputHelper.WriteLine))
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)>
@@ -168,7 +175,7 @@ end class
                     end interface
                 </text>.Value.Trim()
 
-            Await TestAsync(input, expected)
+            Await TestAsync(input, expected, onAfterWorkspaceCreated:=Sub(w) w.SetLogger(AddressOf _outputHelper.WriteLine))
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)>
@@ -210,7 +217,7 @@ end class
                     end class
                 </text>.Value.Trim()
 
-            Await TestAsync(input, expected)
+            Await TestAsync(input, expected, onAfterWorkspaceCreated:=Sub(w) w.SetLogger(AddressOf _outputHelper.WriteLine))
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)>
@@ -285,7 +292,7 @@ end class
                     }
                 </text>.Value.Trim()
 
-            Await TestAsync(input, expected)
+            Await TestAsync(input, expected, onAfterWorkspaceCreated:=Sub(w) w.SetLogger(AddressOf _outputHelper.WriteLine))
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)>
@@ -326,7 +333,7 @@ end class
                     end class
                 </text>.Value.Trim()
 
-            Await TestAsync(input, expected)
+            Await TestAsync(input, expected, onAfterWorkspaceCreated:=Sub(w) w.SetLogger(AddressOf _outputHelper.WriteLine))
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)>
@@ -367,7 +374,7 @@ end class
     end class
                 </text>.Value.Trim()
 
-            Await TestAsync(input, expected)
+            Await TestAsync(input, expected, onAfterWorkspaceCreated:=Sub(w) w.SetLogger(AddressOf _outputHelper.WriteLine))
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)>
@@ -412,7 +419,7 @@ end class
                     }
                 </text>.Value.Trim()
 
-            Await TestAsync(input, expected)
+            Await TestAsync(input, expected, onAfterWorkspaceCreated:=Sub(w) w.SetLogger(AddressOf _outputHelper.WriteLine))
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)>
@@ -457,7 +464,7 @@ end class
                     }]]>
                 </text>.Value.Trim()
 
-            Await TestAsync(input, expected)
+            Await TestAsync(input, expected, onAfterWorkspaceCreated:=Sub(w) w.SetLogger(AddressOf _outputHelper.WriteLine))
         End Function
 
         <WorkItem(608827, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/608827")>
@@ -512,7 +519,7 @@ Module Program
 End Module]]>
                 </text>.Value.Trim()
 
-            Await TestAsync(input, expected)
+            Await TestAsync(input, expected, onAfterWorkspaceCreated:=Sub(w) w.SetLogger(AddressOf _outputHelper.WriteLine))
         End Function
 
         <WorkItem(608827, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/608827")>
@@ -582,7 +589,7 @@ Module Program
 End Module]]>
                 </text>.Value.Trim()
 
-            Await TestAsync(input, expected)
+            Await TestAsync(input, expected, onAfterWorkspaceCreated:=Sub(w) w.SetLogger(AddressOf _outputHelper.WriteLine))
         End Function
 
         <WorkItem(608827, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/608827")>
@@ -652,7 +659,7 @@ Module Program
 End Module]]>
                 </text>.Value.Trim()
 
-            Await TestAsync(input, expected)
+            Await TestAsync(input, expected, onAfterWorkspaceCreated:=Sub(w) w.SetLogger(AddressOf _outputHelper.WriteLine))
         End Function
 
         <WorkItem(608827, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/608827")>
@@ -732,7 +739,7 @@ Module Program
 End Module]]>
                 </text>.Value.Trim()
 
-            Await TestAsync(input, expected)
+            Await TestAsync(input, expected, onAfterWorkspaceCreated:=Sub(w) w.SetLogger(AddressOf _outputHelper.WriteLine))
         End Function
 
         Public Async Function GenerateMethodUsingTypeConstraint_3BaseTypeConstraints_CommonDerived() As Task
@@ -820,7 +827,7 @@ Module Program
 End Module]]>
                 </text>.Value.Trim()
 
-            Await TestAsync(input, expected)
+            Await TestAsync(input, expected, onAfterWorkspaceCreated:=Sub(w) w.SetLogger(AddressOf _outputHelper.WriteLine))
         End Function
 
         <WorkItem(608827, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/608827")>
@@ -905,7 +912,7 @@ Module Program
 End Module]]>
                 </text>.Value.Trim()
 
-            Await TestAsync(input, expected)
+            Await TestAsync(input, expected, onAfterWorkspaceCreated:=Sub(w) w.SetLogger(AddressOf _outputHelper.WriteLine))
         End Function
 
         <WorkItem(608827, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/608827")>
@@ -997,7 +1004,7 @@ Module Program
 End Module]]>
                 </text>.Value.Trim()
 
-            Await TestAsync(input, expected)
+            Await TestAsync(input, expected, onAfterWorkspaceCreated:=Sub(w) w.SetLogger(AddressOf _outputHelper.WriteLine))
         End Function
 
         <WorkItem(608827, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/608827")>
@@ -1070,7 +1077,7 @@ Module Program
 End Module]]>
                 </text>.Value.Trim()
 
-            Await TestAsync(input, expected)
+            Await TestAsync(input, expected, onAfterWorkspaceCreated:=Sub(w) w.SetLogger(AddressOf _outputHelper.WriteLine))
         End Function
 
 #Region "Normal tests"
