@@ -237,7 +237,15 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
         {
             var workspaceRegistration = (WorkspaceRegistration)sender;
             uint docCookie;
-            Contract.ThrowIfFalse(_docCookieToWorkspaceRegistration.TryGetKey(workspaceRegistration, out docCookie));
+
+            // external workspace that listens to events from IVSRunningDocumentTable4 (just like MiscellaneousFilesWorkspace does) and registers the text buffer for opened document prior to Miscellaneous workspace getting notified of the docCookie - the prior contract assumes that MiscellaneousFilesWorkspace is always the first one to get notified
+            if (!_docCookieToWorkspaceRegistration.TryGetKey(workspaceRegistration, out docCookie))
+            {
+                // We haven't even started tracking the document corresponding to this registration - likely because some external workspace registered the document's buffer prior to MiscellaneousWorkspace getting notified of it.
+                // Just bail out for now, we will eventually receive the opened document notification and track its docCookie registration.
+                return;
+            }
+
             var moniker = _runningDocumentTable.GetDocumentMoniker(docCookie);
 
             if (workspaceRegistration.Workspace == null)
@@ -255,7 +263,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                     }
                 }
                 else
-                { 
+                {
                     // We should now claim this
                     AttachToDocument(docCookie, moniker);
                 }
