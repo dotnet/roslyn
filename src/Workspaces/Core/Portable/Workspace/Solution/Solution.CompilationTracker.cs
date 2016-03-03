@@ -639,6 +639,8 @@ namespace Microsoft.CodeAnalysis
                                 }
                                 else
                                 {
+                                    solution.Workspace.LogMessage($"{nameof(CompilationTracker)}: Failed to get metadata reference for {referencedProject.Name}");
+
                                     hasCompleteReferences = false;
                                 }
                             }
@@ -750,6 +752,10 @@ namespace Microsoft.CodeAnalysis
                                 var compilationInfo = await this.GetOrBuildCompilationInfoAsync(solution, lockGate: false, cancellationToken: cancellationToken).ConfigureAwait(false);
                                 reference = MetadataOnlyReference.GetOrBuildReference(solution, projectReference, compilationInfo.Compilation, version, cancellationToken);
                             }
+                        }
+                        else
+                        {
+                            solution.Workspace.LogMessage($"Got already cached metadata only skeleton reference for ${ProjectState.Name}");
                         }
 
                         return reference;

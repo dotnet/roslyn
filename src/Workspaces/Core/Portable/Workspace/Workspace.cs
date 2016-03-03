@@ -46,6 +46,18 @@ namespace Microsoft.CodeAnalysis
 
         internal bool TestHookPartialSolutionsDisabled { get; set; }
 
+        private Action<string> _messageLogger;
+
+        internal void LogMessage(string message)
+        {
+            _messageLogger?.Invoke(message);
+        }
+
+        internal void SetLogger(Action<string> messageLogger)
+        {
+            _messageLogger = messageLogger;
+        }
+
         /// <summary>
         /// Constructs a new workspace instance.
         /// </summary>

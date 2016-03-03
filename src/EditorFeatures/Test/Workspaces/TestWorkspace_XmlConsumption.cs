@@ -134,6 +134,8 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
             var solution = new TestHostSolution(projectNameToTestHostProject.Values.ToArray());
             workspace.AddTestSolution(solution);
 
+            var referencesToValidate = new List<Tuple<ProjectId, ProjectId>>();
+
             foreach (var projectElement in workspaceElement.Elements(ProjectElementName))
             {
                 foreach (var projectReference in projectElement.Elements(ProjectReferenceElementName))
@@ -147,6 +149,8 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
                     var aliases = projectReference.Attributes(AliasAttributeName).Select(a => a.Value).ToImmutableArray();
 
                     workspace.OnProjectReferenceAdded(fromProject.Id, new ProjectReference(toProject.Id, aliases.Any() ? aliases : default(ImmutableArray<string>)));
+
+                    referencesToValidate.Add(Tuple.Create(fromProject.Id, toProject.Id));
                 }
             }
 
@@ -178,6 +182,13 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
 
                     workspace.Documents.Add(document);
                 }
+            }
+
+            // Let's assert sanity in the project references
+            foreach (var reference in referencesToValidate)
+            {
+                var workspaceProject = workspace.CurrentSolution.GetProject(reference.Item1);
+                Assert.Contains(workspaceProject.ProjectReferences, p => p.ProjectId == reference.Item2);
             }
 
             return Task.FromResult(workspace);
