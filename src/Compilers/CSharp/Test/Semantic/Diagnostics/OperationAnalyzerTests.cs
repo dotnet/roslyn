@@ -165,6 +165,13 @@ class C
             case System.Collections.ArrayList(2):
                 break;
         }
+        let x = o is object t ? t : null;
+        o = o match (
+            case string { Length is 2 }: null
+            case string s: s
+            case System.Collections.ArrayList(2): x
+            case *: throw null
+        );
     }
 }
 ";
