@@ -65,6 +65,7 @@
     <Compile Include="System\Reflection\Metadata\Ecma335\Blobs\MethodBodyEncoder.cs" />
     <Compile Include="System\Reflection\Metadata\Ecma335\MetadataSizes.cs" />
     <Compile Include="System\Reflection\Metadata\Ecma335\MetadataBuilder.Heaps.cs" />
+    <Compile Include="System\Reflection\Metadata\ILOpCode.cs" />
     <Compile Include="System\Reflection\Metadata\Internal\HeapSizeFlag.cs" />
     <Compile Include="System\Reflection\Metadata\Internal\MetadataWriterUtilities.cs" />
     <Compile Include="System\Reflection\PortableExecutable\ContentId.cs" />
