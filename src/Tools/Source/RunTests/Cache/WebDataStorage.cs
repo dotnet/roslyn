@@ -56,7 +56,7 @@ namespace RunTests.Cache
                     errorOutput: obj.Value<string>(NameOutputError),
                     resultsFileName: obj.Value<string>(NameResultsFileName),
                     resultsFileContent: obj.Value<string>(NameResultsFileContent),
-                    ellapsed: TimeSpan.FromSeconds(0));
+                    ellapsed: TimeSpan.FromSeconds(obj.Value<int>(NameEllapsedSeconds))));
                 return result;
             }
             catch

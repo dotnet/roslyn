@@ -111,7 +111,7 @@ namespace RunTests
             foreach (var testResult in testResults)
             {
                 var color = testResult.Succeeded ? Console.ForegroundColor : ConsoleColor.Red;
-                ConsoleUtil.WriteLine(color, "{0,-75} {1} {2}", testResult.DisplayName, testResult.Succeeded ? "PASSED" : "FAILED", testResult.Elapsed);
+                ConsoleUtil.WriteLine(color, "{0,-75} {1} {2}{3}", testResult.DisplayName, testResult.Succeeded ? "PASSED" : "FAILED", testResult.Elapsed, testResult.IsResultFromCache ? "*" : "");
             }
             Console.WriteLine("================");
         }
