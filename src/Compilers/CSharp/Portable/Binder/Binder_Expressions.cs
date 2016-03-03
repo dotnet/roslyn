@@ -2645,12 +2645,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             MethodSymbol constructor,
             DiagnosticBag diagnostics)
         {
-            // Handle scoping for possible pattern variables declared in the initializer
-            PatternVariableBinder patBinder = (initializerArgumentListOpt != null)
-                ? new PatternVariableBinder(initializerArgumentListOpt, initializerArgumentListOpt.Arguments, this)
-                : null;
-            var result = (patBinder ?? this).BindConstructorInitializerCore(initializerArgumentListOpt, constructor, diagnostics);
-            return patBinder?.WrapWithVariablesIfAny(result) ?? result;
+            var result = BindConstructorInitializerCore(initializerArgumentListOpt, constructor, diagnostics);
+            return WrapWithVariablesIfAny(result);
         }
 
         private BoundExpression BindConstructorInitializerCore(

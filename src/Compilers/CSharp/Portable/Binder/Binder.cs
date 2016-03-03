@@ -761,6 +761,18 @@ namespace Microsoft.CodeAnalysis.CSharp
             return new PatternVariableBinder(scopeOpt, scopeOpt, this);
         }
 
+        internal Binder WithPatternVariablesIfAny(ArgumentListSyntax initializerArgumentListOpt)
+        {
+            Debug.Assert(Locals.Length == 0);
+
+            if (initializerArgumentListOpt == null || initializerArgumentListOpt.Arguments.Count == 0)
+            {
+                return this;
+            }
+
+            return new PatternVariableBinder(initializerArgumentListOpt, initializerArgumentListOpt.Arguments, this);
+        }
+
         internal BoundExpression WrapWithVariablesIfAny(BoundExpression expression)
         {
             return (Locals.Length == 0)

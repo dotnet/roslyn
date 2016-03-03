@@ -1042,7 +1042,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                             (ConstructorInitializerSyntax)node,
                             constructorSymbol,
                             //insert an extra binder to perform constructor initialization checks
-                            outer.WithAdditionalFlagsAndContainingMemberOrLambda(BinderFlags.ConstructorInitializer, constructorSymbol));
+                            // Handle scoping for possible pattern variables declared in the initializer
+                            outer.WithAdditionalFlagsAndContainingMemberOrLambda(BinderFlags.ConstructorInitializer, constructorSymbol).
+                                WithPatternVariablesIfAny(((ConstructorInitializerSyntax)node).ArgumentList));
                     }
 
                 case SyntaxKind.Attribute:

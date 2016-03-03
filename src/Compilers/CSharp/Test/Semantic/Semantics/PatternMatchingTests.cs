@@ -4556,5 +4556,260 @@ class Test : System.Attribute
             VerifyNotInScope(model, x7Ref[1]);
             VerifyNotInScope(model, x7Ref[2]);
         }
+
+        [Fact]
+        public void ScopeOfPatternVariables_ConstructorInitializers_01()
+        {
+            var source =
+@"
+public class X
+{
+    public static void Main()
+    {
+    }
+
+    X(byte x)
+        : this(3 is int x3 && x3 > 0)
+    {}
+
+    X(sbyte x)
+        : this(x4 && 4 is int x4)
+    {}
+
+    X(short x)
+        : this(51 is int x5 && 
+               52 is int x5 && 
+               x5 > 0)
+    {}
+
+    X(ushort x)
+        : this(6 is int x6 && x6 > 0, 6 is int x6 && x6 > 0)
+    {}
+
+    X(int x)
+        : this(7 is int x7 && x7 > 0)
+    {}
+    X(uint x)
+        : this(x7, 2)
+    {}
+    void Test73() { Dummy(x7, 3); } 
+
+    X(params object[] x) {}
+    bool Dummy(params object[] x) {return true;}
+}
+";
+            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe, parseOptions: patternParseOptions);
+            compilation.VerifyDiagnostics(
+    // (13,16): error CS0841: Cannot use local variable 'x4' before it is declared
+    //         : this(x4 && 4 is int x4)
+    Diagnostic(ErrorCode.ERR_VariableUsedBeforeDeclaration, "x4").WithArguments("x4").WithLocation(13, 16),
+    // (18,26): error CS0128: A local variable named 'x5' is already defined in this scope
+    //                52 is int x5 && 
+    Diagnostic(ErrorCode.ERR_LocalDuplicate, "x5").WithArguments("x5").WithLocation(18, 26),
+    // (23,48): error CS0128: A local variable named 'x6' is already defined in this scope
+    //         : this(6 is int x6 && x6 > 0, 6 is int x6 && x6 > 0)
+    Diagnostic(ErrorCode.ERR_LocalDuplicate, "x6").WithArguments("x6").WithLocation(23, 48),
+    // (30,16): error CS0103: The name 'x7' does not exist in the current context
+    //         : this(x7, 2)
+    Diagnostic(ErrorCode.ERR_NameNotInContext, "x7").WithArguments("x7").WithLocation(30, 16),
+    // (32,27): error CS0103: The name 'x7' does not exist in the current context
+    //     void Test73() { Dummy(x7, 3); } 
+    Diagnostic(ErrorCode.ERR_NameNotInContext, "x7").WithArguments("x7").WithLocation(32, 27)
+                );
+
+            var tree = compilation.SyntaxTrees.Single();
+            var model = compilation.GetSemanticModel(tree);
+
+            var x3Decl = tree.GetRoot().DescendantNodes().OfType<DeclarationPatternSyntax>().Where(p => p.Identifier.ValueText == "x3").Single();
+            var x3Ref = tree.GetRoot().DescendantNodes().OfType<IdentifierNameSyntax>().Where(id => id.Identifier.ValueText == "x3").Single();
+            VerifyModelForDeclarationPattern(model, x3Decl, x3Ref);
+
+            var x4Decl = tree.GetRoot().DescendantNodes().OfType<DeclarationPatternSyntax>().Where(p => p.Identifier.ValueText == "x4").Single();
+            var x4Ref = tree.GetRoot().DescendantNodes().OfType<IdentifierNameSyntax>().Where(id => id.Identifier.ValueText == "x4").Single();
+            VerifyModelForDeclarationPattern(model, x4Decl, x4Ref);
+
+            var x5Decl = tree.GetRoot().DescendantNodes().OfType<DeclarationPatternSyntax>().Where(p => p.Identifier.ValueText == "x5").ToArray();
+            var x5Ref = tree.GetRoot().DescendantNodes().OfType<IdentifierNameSyntax>().Where(id => id.Identifier.ValueText == "x5").Single();
+            Assert.Equal(2, x5Decl.Length);
+            VerifyModelForDeclarationPattern(model, x5Decl[0], x5Ref);
+            VerifyModelForDeclarationPatternDuplicateInSameScope(model, x5Decl[1]);
+
+            var x6Decl = tree.GetRoot().DescendantNodes().OfType<DeclarationPatternSyntax>().Where(p => p.Identifier.ValueText == "x6").ToArray();
+            var x6Ref = tree.GetRoot().DescendantNodes().OfType<IdentifierNameSyntax>().Where(id => id.Identifier.ValueText == "x6").ToArray();
+            Assert.Equal(2, x6Decl.Length);
+            Assert.Equal(2, x6Ref.Length);
+            VerifyModelForDeclarationPattern(model, x6Decl[0], x6Ref);
+            VerifyModelForDeclarationPatternDuplicateInSameScope(model, x6Decl[1]);
+
+            var x7Decl = tree.GetRoot().DescendantNodes().OfType<DeclarationPatternSyntax>().Where(p => p.Identifier.ValueText == "x7").Single();
+            var x7Ref = tree.GetRoot().DescendantNodes().OfType<IdentifierNameSyntax>().Where(id => id.Identifier.ValueText == "x7").ToArray();
+            Assert.Equal(3, x7Ref.Length);
+            VerifyModelForDeclarationPattern(model, x7Decl, x7Ref[0]);
+            VerifyNotInScope(model, x7Ref[1]);
+            VerifyNotInScope(model, x7Ref[2]);
+        }
+
+        [Fact]
+        public void ScopeOfPatternVariables_ConstructorInitializers_02()
+        {
+            var source =
+@"
+public class X : Y
+{
+    public static void Main()
+    {
+    }
+
+    X(byte x)
+        : base(3 is int x3 && x3 > 0)
+    {}
+
+    X(sbyte x)
+        : base(x4 && 4 is int x4)
+    {}
+
+    X(short x)
+        : base(51 is int x5 && 
+               52 is int x5 && 
+               x5 > 0)
+    {}
+
+    X(ushort x)
+        : base(6 is int x6 && x6 > 0, 6 is int x6 && x6 > 0)
+    {}
+
+    X(int x)
+        : base(7 is int x7 && x7 > 0)
+    {}
+    X(uint x)
+        : base(x7, 2)
+    {}
+    void Test73() { Dummy(x7, 3); } 
+
+    bool Dummy(params object[] x) {return true;}
+}
+
+public class Y
+{
+    public Y(params object[] x) {}
+}
+";
+            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe, parseOptions: patternParseOptions);
+            compilation.VerifyDiagnostics(
+    // (13,16): error CS0841: Cannot use local variable 'x4' before it is declared
+    //         : base(x4 && 4 is int x4)
+    Diagnostic(ErrorCode.ERR_VariableUsedBeforeDeclaration, "x4").WithArguments("x4").WithLocation(13, 16),
+    // (18,26): error CS0128: A local variable named 'x5' is already defined in this scope
+    //                52 is int x5 && 
+    Diagnostic(ErrorCode.ERR_LocalDuplicate, "x5").WithArguments("x5").WithLocation(18, 26),
+    // (23,48): error CS0128: A local variable named 'x6' is already defined in this scope
+    //         : base(6 is int x6 && x6 > 0, 6 is int x6 && x6 > 0)
+    Diagnostic(ErrorCode.ERR_LocalDuplicate, "x6").WithArguments("x6").WithLocation(23, 48),
+    // (30,16): error CS0103: The name 'x7' does not exist in the current context
+    //         : base(x7, 2)
+    Diagnostic(ErrorCode.ERR_NameNotInContext, "x7").WithArguments("x7").WithLocation(30, 16),
+    // (32,27): error CS0103: The name 'x7' does not exist in the current context
+    //     void Test73() { Dummy(x7, 3); } 
+    Diagnostic(ErrorCode.ERR_NameNotInContext, "x7").WithArguments("x7").WithLocation(32, 27)
+                );
+
+            var tree = compilation.SyntaxTrees.Single();
+            var model = compilation.GetSemanticModel(tree);
+
+            var x3Decl = tree.GetRoot().DescendantNodes().OfType<DeclarationPatternSyntax>().Where(p => p.Identifier.ValueText == "x3").Single();
+            var x3Ref = tree.GetRoot().DescendantNodes().OfType<IdentifierNameSyntax>().Where(id => id.Identifier.ValueText == "x3").Single();
+            VerifyModelForDeclarationPattern(model, x3Decl, x3Ref);
+
+            var x4Decl = tree.GetRoot().DescendantNodes().OfType<DeclarationPatternSyntax>().Where(p => p.Identifier.ValueText == "x4").Single();
+            var x4Ref = tree.GetRoot().DescendantNodes().OfType<IdentifierNameSyntax>().Where(id => id.Identifier.ValueText == "x4").Single();
+            VerifyModelForDeclarationPattern(model, x4Decl, x4Ref);
+
+            var x5Decl = tree.GetRoot().DescendantNodes().OfType<DeclarationPatternSyntax>().Where(p => p.Identifier.ValueText == "x5").ToArray();
+            var x5Ref = tree.GetRoot().DescendantNodes().OfType<IdentifierNameSyntax>().Where(id => id.Identifier.ValueText == "x5").Single();
+            Assert.Equal(2, x5Decl.Length);
+            VerifyModelForDeclarationPattern(model, x5Decl[0], x5Ref);
+            VerifyModelForDeclarationPatternDuplicateInSameScope(model, x5Decl[1]);
+
+            var x6Decl = tree.GetRoot().DescendantNodes().OfType<DeclarationPatternSyntax>().Where(p => p.Identifier.ValueText == "x6").ToArray();
+            var x6Ref = tree.GetRoot().DescendantNodes().OfType<IdentifierNameSyntax>().Where(id => id.Identifier.ValueText == "x6").ToArray();
+            Assert.Equal(2, x6Decl.Length);
+            Assert.Equal(2, x6Ref.Length);
+            VerifyModelForDeclarationPattern(model, x6Decl[0], x6Ref);
+            VerifyModelForDeclarationPatternDuplicateInSameScope(model, x6Decl[1]);
+
+            var x7Decl = tree.GetRoot().DescendantNodes().OfType<DeclarationPatternSyntax>().Where(p => p.Identifier.ValueText == "x7").Single();
+            var x7Ref = tree.GetRoot().DescendantNodes().OfType<IdentifierNameSyntax>().Where(id => id.Identifier.ValueText == "x7").ToArray();
+            Assert.Equal(3, x7Ref.Length);
+            VerifyModelForDeclarationPattern(model, x7Decl, x7Ref[0]);
+            VerifyNotInScope(model, x7Ref[1]);
+            VerifyNotInScope(model, x7Ref[2]);
+        }
+
+        [Fact]
+        public void ScopeOfPatternVariables_ConstructorInitializers_03()
+        {
+            var source =
+@"using System;
+public class X
+{
+    public static void Main()
+    {
+        new D(1);
+        new D(10);
+        new D(1.2);
+    }
+}
+class D
+{
+    public D(object o) : this(o is int x && x >= 5) 
+    {
+        Console.WriteLine(x);
+    }
+
+    public D(bool b) { Console.WriteLine(b); }
+}
+";
+            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe, parseOptions: patternParseOptions);
+            compilation.VerifyDiagnostics(
+    // (15,27): error CS0103: The name 'x' does not exist in the current context
+    //         Console.WriteLine(x);
+    Diagnostic(ErrorCode.ERR_NameNotInContext, "x").WithArguments("x").WithLocation(15, 27)
+                );
+        }
+
+        [Fact]
+        public void ScopeOfPatternVariables_ConstructorInitializers_04()
+        {
+            var source =
+@"using System;
+public class X
+{
+    public static void Main()
+    {
+        new D(1);
+        new D(10);
+        new D(1.2);
+    }
+}
+class D : C
+{
+    public D(object o) : base(o is int x && x >= 5) 
+    {
+        Console.WriteLine(x);
+    }
+}
+
+class C
+{
+    public C(bool b) { Console.WriteLine(b); }
+}
+";
+            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe, parseOptions: patternParseOptions);
+            compilation.VerifyDiagnostics(
+    // (15,27): error CS0103: The name 'x' does not exist in the current context
+    //         Console.WriteLine(x);
+    Diagnostic(ErrorCode.ERR_NameNotInContext, "x").WithArguments("x").WithLocation(15, 27)
+                );
+        }
     }
 }
