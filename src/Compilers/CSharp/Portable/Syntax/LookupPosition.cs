@@ -165,9 +165,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
             Debug.Assert(constructorDecl != null);
 
             var initializerOpt = constructorDecl.Initializer;
-            var blockOpt = constructorDecl.Body;
+            var hasBody = constructorDecl.Body != null || constructorDecl.ExpressionBody != null;
 
-            if (blockOpt == null)
+            if (!hasBody)
             {
                 var nextToken = (SyntaxToken)SyntaxNavigator.Instance.GetNextToken(constructorDecl, predicate: null, stepInto: null);
                 return initializerOpt == null ?
@@ -175,9 +175,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
                     IsBetweenTokens(position, initializerOpt.ColonToken, nextToken);
             }
 
+            Debug.Assert(constructorDecl.Body != null || (constructorDecl.ExpressionBody != null && constructorDecl.SemicolonToken!= null), 
+                "Either complete body or complete expression body with semicolon must be set here");
             return initializerOpt == null ?
-                IsInBlock(position, blockOpt) :
-                IsBetweenTokens(position, initializerOpt.ColonToken, blockOpt.CloseBraceToken);
+                IsInBody(position, constructorDecl) :
+                IsBetweenTokens(position, initializerOpt.ColonToken, constructorDecl.Body?.CloseBraceToken ?? constructorDecl.SemicolonToken);
         }
 
         internal static bool IsInMethodTypeParameterScope(int position, MethodDeclarationSyntax methodDecl)

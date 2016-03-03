@@ -701,7 +701,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                         var constructorDecl = (ConstructorDeclarationSyntax)memberDecl;
                         outsideMemberDecl =
                             !LookupPosition.IsInConstructorParameterScope(position, constructorDecl) &&
-                            !LookupPosition.IsInParameterList(position, constructorDecl);
+                            !LookupPosition.IsInParameterList(position, constructorDecl) &&
+                            !LookupPosition.IsInExpressionBody(position, constructorDecl.GetExpressionBodySyntax(), constructorDecl.SemicolonToken);
                         break;
                     case SyntaxKind.ConversionOperatorDeclaration:
                     case SyntaxKind.DestructorDeclaration:
