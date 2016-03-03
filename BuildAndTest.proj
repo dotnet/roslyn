@@ -9,7 +9,7 @@
     <RoslynSolution Condition="'$(RoslynSolution)' == ''">$(MSBuildThisFileDirectory)Roslyn.sln</RoslynSolution>
     <SamplesSolution>$(MSBuildThisFileDirectory)src\Samples\Samples.sln</SamplesSolution>
     <Configuration Condition="'$(Configuration)' == ''">Debug</Configuration>
-    <RunTestArgs Condition="'$(ManualTest)' == ''">$(RunTestArgs) -xml</RunTestArgs>
+    <RunTestArgs Condition="'$(ManualTest)' == ''">$(RunTestArgs) -xml -nocache</RunTestArgs>
     <RunTestArgs Condition="'$(Test64)' == 'true'">$(RunTestArgs) -test64</RunTestArgs>
     <RunTestArgs Condition="'$(Trait)' != ''">$(RunTestArgs) -trait:$(Trait)</RunTestArgs>
     <RunTestArgs Condition="'$(NoTrait)' != ''">$(RunTestArgs) -notrait:$(NoTrait)</RunTestArgs>
