@@ -28,11 +28,10 @@ namespace RunTests.Cache
             return _testExecutor.GetCommandLine(assemblyInfo);
         }
 
-        public Task<TestResult> RunTestAsync(AssemblyInfo assemblyInfo, CancellationToken cancellationToken)
+        public async Task<TestResult> RunTestAsync(AssemblyInfo assemblyInfo, CancellationToken cancellationToken)
         {
-            throw new Exception();
-            /*
-            var contentFile = _contentUtil.GetTestResultContentFile(assemblyPath);
+            var contentFile = _contentUtil.GetTestResultContentFile(assemblyInfo);
+            var assemblyPath = assemblyInfo.AssemblyPath;
             var builder = new StringBuilder();
             builder.AppendLine($"{Path.GetFileName(assemblyPath)} - {contentFile.Checksum}");
             builder.AppendLine("===");
@@ -46,7 +45,7 @@ namespace RunTests.Cache
                 if (cachedTestResult.HasValue)
                 {
                     Logger.Log($"{Path.GetFileName(assemblyPath)} - cache hit");
-                    return Migrate(assemblyPath, cachedTestResult.Value);
+                    return Migrate(assemblyInfo, cachedTestResult.Value);
                 }
             }
             catch (Exception ex)
@@ -55,29 +54,33 @@ namespace RunTests.Cache
             }
 
             Logger.Log($"{Path.GetFileName(assemblyPath)} - running");
-            var testResult = await _testExecutor.RunTestAsync(assemblyPath, cancellationToken);
+            var testResult = await _testExecutor.RunTestAsync(assemblyInfo, cancellationToken);
             await CacheTestResult(contentFile, testResult).ConfigureAwait(true);
             return testResult;
-            */
         }
 
         /// <summary>
         /// Recreate the on disk artifacts for the cached data and return the correct <see cref="TestResult"/>
         /// value.
         /// </summary>
-        private TestResult Migrate(string assemblyPath, CachedTestResult cachedTestResult)
+        private TestResult Migrate(AssemblyInfo assemblyInfo, CachedTestResult cachedTestResult)
         {
-            throw new Exception();
-            /*
-            var resultsDir = Path.Combine(Path.GetDirectoryName(assemblyPath), Constants.ResultsDirectoryName);
+            var resultsDir = Path.Combine(Path.GetDirectoryName(assemblyInfo.AssemblyPath), Constants.ResultsDirectoryName);
             FileUtil.EnsureDirectory(resultsDir);
-            var resultsFilePath = Path.Combine(resultsDir, cachedTestResult.ResultsFileName);
+
+            // TODO: ResultsFileName is now both a part of the cached data and the assembly info.  What if 
+            // they differ?  Who wins? 
+            // Maybe just drop this in the content file and then if they differ it won't be a cache hit.  One less
+            // item to store.
+            var resultsFilePath = Path.Combine(resultsDir, assemblyInfo.ResultsFileName);
             File.WriteAllText(resultsFilePath, cachedTestResult.ResultsFileContent);
-            var commandLine = _testExecutor.GetCommandLine(assemblyPath);
+            var commandLine = _testExecutor.GetCommandLine(assemblyInfo);
 
             return new TestResult(
                 exitCode: cachedTestResult.ExitCode,
-                assemblyPath: assemblyPath,
+                assemblyPath: assemblyInfo.AssemblyPath,
+                // TODO: another place where cache and assembly info could have diff data.
+                displayName: assemblyInfo.DisplayName,
                 resultDir: resultsDir,
                 resultsFilePath: resultsFilePath,
                 commandLine: commandLine,
@@ -85,7 +88,6 @@ namespace RunTests.Cache
                 standardOutput: cachedTestResult.StandardOutput,
                 errorOutput: cachedTestResult.ErrorOutput,
                 isResultFromCache: true);
-                */
         }
 
         private async Task CacheTestResult(ContentFile contentFile, TestResult testResult)

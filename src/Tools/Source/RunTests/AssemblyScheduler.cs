@@ -10,6 +10,7 @@ using System.Threading.Tasks;
 
 namespace RunTests
 {
+    // TODO: AssemblyInfo now carries the result file name ... does it need to participate in the caching?
     internal struct AssemblyInfo
     {
         internal readonly string AssemblyPath;

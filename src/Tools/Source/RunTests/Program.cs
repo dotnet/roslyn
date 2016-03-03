@@ -50,13 +50,11 @@ namespace RunTests
             var testExecutor = CreateTestExecutor(options);
             var testRunner = new TestRunner(options, testExecutor);
             var start = DateTime.Now;
+            var assemblyInfoList = GetAssemblyList(options);
 
             Console.WriteLine($"Data Storage: {testExecutor.DataStorage.Name}");
-            Console.WriteLine($"Running {options.Assemblies.Count()} test assemblies");
+            Console.WriteLine($"Running {options.Assemblies.Count()} test assemblies in {assemblyInfoList.Count} chunks");
 
-            // TODO: Do we still need to order by file size? 
-            // var orderedList = OrderAssemblyList(options.Assemblies);
-            var assemblyInfoList = GetAssemblyList(options);
             var result = await testRunner.RunAllAsync(assemblyInfoList, cancellationToken).ConfigureAwait(true);
             var ellapsed = DateTime.Now - start;
 
@@ -64,7 +62,7 @@ namespace RunTests
 
             if (CanUseWebStorage())
             {
-                await SendRunStats(options, testExecutor.DataStorage, ellapsed, result, cancellationToken).ConfigureAwait(true);
+                await SendRunStats(options, testExecutor.DataStorage, ellapsed, result, assemblyInfoList.Count, cancellationToken).ConfigureAwait(true);
             }
 
             if (!result.Succeeded)
@@ -77,14 +75,17 @@ namespace RunTests
             return options.MissingAssemblies.Any() ? 1 : 0;
         }
 
-        private static IEnumerable<AssemblyInfo> GetAssemblyList(Options options)
+        private static List<AssemblyInfo> GetAssemblyList(Options options)
         {
             var scheduler = new AssemblyScheduler(options);
             var list = new List<AssemblyInfo>();
 
-            foreach (var assemblyPath in options.Assemblies)
+            foreach (var assemblyPath in options.Assemblies.OrderByDescending(x => new FileInfo(x).Length))
             {
                 var name = Path.GetFileName(assemblyPath);
+
+                // As a starting point we will just schedule the items we know to be a performance 
+                // bottleneck.  Can adjust as we get real data.
                 if (name == "Roslyn.Compilers.CSharp.Emit.UnitTests.dll" ||
                     name == "Roslyn.Services.Editor.UnitTests.dll" ||
                     name == "Roslyn.Services.Editor.UnitTests2.dll" ||
@@ -100,7 +101,7 @@ namespace RunTests
                 }
             }
 
-            return list.OrderByDescending((info) => new FileInfo(info.AssemblyPath).Length);
+            return list;
         }
 
         private static bool CanUseWebStorage()
@@ -121,10 +122,6 @@ namespace RunTests
                 return processTestExecutor;
             }
 
-            return processTestExecutor;
-
-            /* TODO: fix this
-
             // The web caching layer is still being worked on.  For now want to limit it to Roslyn developers
             // and Jenkins runs by default until we work on this a bit more.  Anyone reading this who wants
             // to try it out should feel free to opt into this. 
@@ -135,7 +132,6 @@ namespace RunTests
             }
 
             return new CachingTestExecutor(options, processTestExecutor, dataStorage);
-            */
         }
 
         /// <summary>
@@ -148,7 +144,7 @@ namespace RunTests
             return list.OrderByDescending((assemblyName) => new FileInfo(assemblyName).Length);
         }
 
-        private static async Task SendRunStats(Options options, IDataStorage dataStorage, TimeSpan ellapsed, RunAllResult result, CancellationToken cancellationToken)
+        private static async Task SendRunStats(Options options, IDataStorage dataStorage, TimeSpan ellapsed, RunAllResult result, int chunkCount, CancellationToken cancellationToken)
         {
             var obj = new JObject();
             obj["Cache"] = dataStorage.Name;
@@ -157,6 +153,7 @@ namespace RunTests
             obj["Is32Bit"] = !options.Test64;
             obj["AssemblyCount"] = options.Assemblies.Count;
             obj["CacheCount"] = result.CacheCount;
+            obj["ChunkCount"] = chunkCount;
             obj["Succeeded"] = result.Succeeded;
 
             var request = new RestRequest("api/testrun", Method.POST);
