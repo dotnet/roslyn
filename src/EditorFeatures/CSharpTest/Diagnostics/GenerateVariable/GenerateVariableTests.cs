@@ -3,6 +3,7 @@
 using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.CSharp.CodeFixes.GenerateVariable;
 using Microsoft.CodeAnalysis.CSharp.CodeStyle;
@@ -19,6 +20,11 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.GenerateVar
         {
             return new Tuple<DiagnosticAnalyzer, CodeFixProvider>(
                 null, new GenerateVariableCodeFixProvider());
+        }
+
+        protected override IList<CodeAction> MassageActions(IList<CodeAction> actions)
+        {
+            return FlattenActions(actions);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
