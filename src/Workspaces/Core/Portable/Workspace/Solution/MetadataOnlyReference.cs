@@ -92,6 +92,7 @@ namespace Microsoft.CodeAnalysis
             MetadataOnlyReferenceSet referenceSet;
             if (s_snapshotCache.TryGetValue(finalOrDeclarationCompilation, out referenceSet))
             {
+                solution.Workspace.LogMessage($"Got already cached metadata only skeleton reference from {nameof(s_snapshotCache)}");
                 reference = referenceSet.GetMetadataReference(finalOrDeclarationCompilation, projectReference.Aliases, projectReference.EmbedInteropTypes);
                 return true;
             }
@@ -101,6 +102,7 @@ namespace Microsoft.CodeAnalysis
             // get one for the branch
             if (TryGetReferenceFromBranch(solution.BranchId, projectReference, finalOrDeclarationCompilation, version, out reference))
             {
+                solution.Workspace.LogMessage($"Got already cached metadata only skeleton reference from {nameof(TryGetReferenceFromBranch)}");
                 return true;
             }
 
@@ -109,6 +111,7 @@ namespace Microsoft.CodeAnalysis
             if (solution.BranchId != primaryBranchId &&
                 TryGetReferenceFromBranch(primaryBranchId, projectReference, finalOrDeclarationCompilation, version, out reference))
             {
+                solution.Workspace.LogMessage($"Got already cached metadata only skeleton reference from {nameof(TryGetReferenceFromBranch)} via the primary branch ID");
                 return true;
             }
 
