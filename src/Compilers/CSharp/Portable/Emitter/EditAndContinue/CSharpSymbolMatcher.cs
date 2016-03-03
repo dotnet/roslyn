@@ -402,15 +402,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
                     return _otherAssembly;
                 }
 
-                // find a referenced assembly with the exactly same source identity:
+                // find a referenced assembly with the exactly same identity:
                 foreach (var otherReferencedAssembly in _otherAssembly.Modules[0].ReferencedAssemblySymbols)
                 {
-                    var identity = symbol.Identity;
-                    var otherIdentity = otherReferencedAssembly.Identity;
-
-                    if (AssemblyIdentityComparer.SimpleNameComparer.Equals(identity.Name, otherIdentity.Name) &&
-                        (symbol.AssemblyVersionPattern ?? symbol.Identity.Version).Equals(otherReferencedAssembly.AssemblyVersionPattern ?? otherReferencedAssembly.Identity.Version) &&
-                        AssemblyIdentity.EqualIgnoringNameAndVersion(identity, otherIdentity))
+                    if (symbol.Identity.Equals(otherReferencedAssembly.Identity))
                     {
                         return otherReferencedAssembly;
                     }
