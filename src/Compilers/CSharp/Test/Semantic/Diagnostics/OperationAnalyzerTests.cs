@@ -12,6 +12,11 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 {
     public class OperationAnalyzerTests : CompilingTestBase
     {
+        private static CSharpParseOptions patternParseOptions =
+            TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp6)
+                    .WithFeature("patterns", "true")
+                    .WithFeature("patternsExperimental", "true");
+
         [Fact]
         public void EmptyArrayCSharp()
         {
@@ -138,6 +143,34 @@ class C
                 Diagnostic(BadStuffTestAnalyzer.IsInvalidDescriptor.Id, "M1(y + d)").WithLocation(10, 9),
                 Diagnostic(BadStuffTestAnalyzer.InvalidStatementDescriptor.Id, "goto;").WithLocation(11, 9),
                 Diagnostic(BadStuffTestAnalyzer.IsInvalidDescriptor.Id, "goto;").WithLocation(11, 9)
+                );
+        }
+
+        [Fact]
+        public void PatternsNoCrash()
+        {
+            // ensure that the combination of pattern-matching with ioperation analyzers does not crash.
+            const string source = @"
+class C
+{
+    public static void Main() {}
+    public void M1(object o)
+    {
+        switch (o)
+        {
+            case string { Length is 2 }:
+                break;
+            case string s:
+                break;
+            case System.Collections.ArrayList(2):
+                break;
+        }
+    }
+}
+";
+            CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe, parseOptions: patternParseOptions)
+            .VerifyDiagnostics()
+            .VerifyAnalyzerDiagnostics(new DiagnosticAnalyzer[] { new BadStuffTestAnalyzer() }, null, null, false
                 );
         }
 
