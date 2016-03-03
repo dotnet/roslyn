@@ -639,6 +639,34 @@ class C
             Await TestAsync(input)
         End Function
 
+        <WorkItem(9073, "https://github.com/dotnet/roslyn/issues/9073")>
+        <Fact, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        Public Async Function TestCSharp_FromDefinition_PatternProperty2() As Task
+            Dim input =
+<Workspace>
+    <Project Language="C#" CommonReferences="true">
+        <Document>
+    public class Expression { }
+    public class Plus : Expression
+    {
+        public Expression {|Definition:Le$$ft|} => null;
+    }
+    public class X
+    {
+        public static void Main()
+        {
+            Expression expr = null;
+            if (expr is Plus { [|Left|] is Plus })
+            {
+            }
+        }
+    }
+        </Document>
+    </Project>
+</Workspace>
+            Await TestAsync(input)
+        End Function
+
         <WorkItem(542881, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542881")>
         <Fact, Trait(Traits.Feature, Traits.Features.FindReferences)>
         Public Async Function TestBasic_AnonymousTypeProperties1() As Task
