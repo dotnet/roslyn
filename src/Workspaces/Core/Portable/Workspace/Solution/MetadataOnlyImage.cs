@@ -55,10 +55,10 @@ namespace Microsoft.CodeAnalysis
                     }
                     else
                     {
-                        workspace.LogMessage("Failed to emit reference!");
+                        workspace.LogMessage($"emitting metadata reference: Failed to emit reference!");
                         foreach (var diagnostic in emitResult.Diagnostics)
                         {
-                            workspace.LogMessage(diagnostic.GetMessage());
+                            workspace.LogMessage("emitting metadata reference: " + diagnostic.GetMessage());
                         }
                     }
                 }
