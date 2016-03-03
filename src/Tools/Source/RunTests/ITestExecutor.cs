@@ -46,8 +46,8 @@ namespace RunTests
     {
         IDataStorage DataStorage { get; }
 
-        string GetCommandLine(string assemblyPath);
+        string GetCommandLine(AssemblyInfo assemblyInfo);
 
-        Task<TestResult> RunTestAsync(string assemblyPath, CancellationToken cancellationToken);
+        Task<TestResult> RunTestAsync(AssemblyInfo assemblyInfo, CancellationToken cancellationToken);
     }
 }

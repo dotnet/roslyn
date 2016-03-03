@@ -37,6 +37,16 @@ namespace RunTests
 
         private static async Task<int> RunCore(Options options, CancellationToken cancellationToken)
         {
+            if (options.MissingAssemblies.Count > 0)
+            {
+                foreach (var assemblyPath in options.MissingAssemblies)
+                {
+                    ConsoleUtil.WriteLine(ConsoleColor.Red, $"The file '{assemblyPath}' does not exist, is an invalid file name, or you do not have sufficient permissions to read the specified file.");
+                }
+
+                return 1;
+            }
+
             var testExecutor = CreateTestExecutor(options);
             var testRunner = new TestRunner(options, testExecutor);
             var start = DateTime.Now;
@@ -44,14 +54,12 @@ namespace RunTests
             Console.WriteLine($"Data Storage: {testExecutor.DataStorage.Name}");
             Console.WriteLine($"Running {options.Assemblies.Count()} test assemblies");
 
-            var orderedList = OrderAssemblyList(options.Assemblies);
-            var result = await testRunner.RunAllAsync(orderedList, cancellationToken).ConfigureAwait(true);
+            // TODO: Do we still need to order by file size? 
+            // var orderedList = OrderAssemblyList(options.Assemblies);
+            var scheduler = new AssemblyScheduler(options);
+            var assemblyInfoList = scheduler.Schedule(options.Assemblies);
+            var result = await testRunner.RunAllAsync(assemblyInfoList, cancellationToken).ConfigureAwait(true);
             var ellapsed = DateTime.Now - start;
-
-            foreach (var assemblyPath in options.MissingAssemblies)
-            {
-                ConsoleUtil.WriteLine(ConsoleColor.Red, $"The file '{assemblyPath}' does not exist, is an invalid file name, or you do not have sufficient permissions to read the specified file.");
-            }
 
             Logger.Finish();
 
@@ -88,6 +96,10 @@ namespace RunTests
                 return processTestExecutor;
             }
 
+            return processTestExecutor;
+
+            /* TODO: fix this
+
             // The web caching layer is still being worked on.  For now want to limit it to Roslyn developers
             // and Jenkins runs by default until we work on this a bit more.  Anyone reading this who wants
             // to try it out should feel free to opt into this. 
@@ -98,6 +110,7 @@ namespace RunTests
             }
 
             return new CachingTestExecutor(options, processTestExecutor, dataStorage);
+            */
         }
 
         /// <summary>
