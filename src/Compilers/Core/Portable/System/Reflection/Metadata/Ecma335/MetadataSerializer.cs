@@ -4,6 +4,7 @@ using System;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
+using System.Reflection.Metadata;
 using System.Reflection.Metadata.Ecma335;
 
 #if SRM
@@ -26,16 +27,16 @@ namespace Roslyn.Reflection.Metadata.Ecma335
         private const string DebugMetadataVersionString = "PDB v1.0";
 
         private Blob _pdbIdBlob;
-        private readonly int _entryPointToken;
+        private readonly MethodDefinitionHandle _entryPoint;
 
         public StandaloneDebugMetadataSerializer(
             MetadataBuilder builder, 
             ImmutableArray<int> typeSystemRowCounts,
-            int entryPointToken,
+            MethodDefinitionHandle entryPoint,
             bool isMinimalDelta)
             : base(builder, CreateSizes(builder, typeSystemRowCounts, isMinimalDelta, isStandaloneDebugMetadata: true), DebugMetadataVersionString)
         {
-            _entryPointToken = entryPointToken;
+            _entryPoint = entryPoint;
         }
 
         /// <summary>
@@ -48,7 +49,7 @@ namespace Roslyn.Reflection.Metadata.Ecma335
             // the id will be filled in later
             _pdbIdBlob = builder.ReserveBytes(MetadataSizes.PdbIdSize);
             
-            builder.WriteUInt32((uint)_entryPointToken);
+            builder.WriteInt32(_entryPoint.IsNil ? 0 : MetadataTokens.GetToken(_entryPoint));
 
             builder.WriteUInt64(MetadataSizes.ExternalTablesMask);
             MetadataWriterUtilities.SerializeRowCounts(builder, MetadataSizes.ExternalRowCounts);

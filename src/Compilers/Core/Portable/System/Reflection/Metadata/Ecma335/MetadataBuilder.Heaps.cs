@@ -207,7 +207,12 @@ namespace Roslyn.Reflection.Metadata.Ecma335
             return MetadataTokens.GetHeapOffset(handle);
         }
 
-        public int GetUserStringToken(string str)
+        public int GetHeapOffset(UserStringHandle handle)
+        {
+            return MetadataTokens.GetHeapOffset(handle);
+        }
+
+        public UserStringHandle GetUserString(string str)
         {
             int index;
             if (!_userStrings.TryGetValue(str, out index))
@@ -280,7 +285,7 @@ namespace Roslyn.Reflection.Metadata.Ecma335
                 _userStringWriter.WriteByte(stringKind);
             }
 
-            return 0x70000000 | index;
+            return MetadataTokens.UserStringHandle(index);
         }
 
         internal void CompleteHeaps()

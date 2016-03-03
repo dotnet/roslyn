@@ -78,7 +78,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
                 managedResourceDataBuilder,
                 nativeResourceSectionSerializer: null,
                 strongNameSignatureSize: 0,
-                entryPointToken: MetadataTokens.GetToken(mainMethodDef),
+                entryPoint: mainMethodDef,
                 pdbPathOpt: null,
                 nativePdbContentId: default(ContentId),
                 portablePdbContentId: default(ContentId),
@@ -181,7 +181,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
             int tryOffset = il.Offset;
 
             //   ldstr "hello"
-            il.LoadString(metadata.GetUserStringToken("hello"));
+            il.LoadString(metadata.GetUserString("hello"));
 
             //   call void [mscorlib]System.Console::WriteLine(string)
             il.Call(consoleWriteLineMemberRef);
@@ -195,7 +195,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
             int handlerOffset = il.Offset;
 
             //   ldstr "world"
-            il.LoadString(metadata.GetUserStringToken("world"));
+            il.LoadString(metadata.GetUserString("world"));
 
             //   call void [mscorlib]System.Console::WriteLine(string)
             il.Call(consoleWriteLineMemberRef);
