@@ -460,15 +460,8 @@ public class C
 ");
 
             comp.VerifyDiagnostics(
-    // (8,5): error CS1519: Invalid token '=>' in class, struct, or interface member declaration
-    //     => P1;
-    Diagnostic(ErrorCode.ERR_InvalidMemberDecl, "=>").WithArguments("=>").WithLocation(8, 5),
-    // (8,10): error CS1519: Invalid token ';' in class, struct, or interface member declaration
-    //     => P1;
-    Diagnostic(ErrorCode.ERR_InvalidMemberDecl, ";").WithArguments(";").WithLocation(8, 10),
-    // (8,10): error CS1519: Invalid token ';' in class, struct, or interface member declaration
-    //     => P1;
-    Diagnostic(ErrorCode.ERR_InvalidMemberDecl, ";").WithArguments(";").WithLocation(8, 10)
+    // (5,5): error  CS8057: Methods cannot combine block bodies with expression bodies.
+    Diagnostic(ErrorCode.ERR_BlockBodyAndExpressionBody, "=>").WithArguments("=>").WithLocation(5, 5)
                 );
 
             var tree = comp.SyntaxTrees[0];
@@ -490,15 +483,8 @@ public class C
 ");
 
             comp.VerifyDiagnostics(
-    // (8,5): error CS1519: Invalid token '=>' in class, struct, or interface member declaration
-    //     => P1;
-    Diagnostic(ErrorCode.ERR_InvalidMemberDecl, "=>").WithArguments("=>").WithLocation(8, 5),
-    // (8,10): error CS1519: Invalid token ';' in class, struct, or interface member declaration
-    //     => P1;
-    Diagnostic(ErrorCode.ERR_InvalidMemberDecl, ";").WithArguments(";").WithLocation(8, 10),
-    // (8,10): error CS1519: Invalid token ';' in class, struct, or interface member declaration
-    //     => P1;
-    Diagnostic(ErrorCode.ERR_InvalidMemberDecl, ";").WithArguments(";").WithLocation(8, 10)
+    // (5,5): error  CS8057: Methods cannot combine block bodies with expression bodies.
+    Diagnostic(ErrorCode.ERR_BlockBodyAndExpressionBody, "=>").WithArguments("=>").WithLocation(5, 5)
                 );
 
             var tree = comp.SyntaxTrees[0];
