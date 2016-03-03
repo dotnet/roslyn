@@ -59,9 +59,6 @@ namespace Microsoft.Cci
         private struct TypeDefRow { public uint Flags; public StringIdx Name; public StringIdx Namespace; public uint Extends; public uint FieldList; public uint MethodList; }
         private struct TypeRefRow { public uint ResolutionScope; public StringIdx Name; public StringIdx Namespace; }
         private struct TypeSpecRow { public BlobIdx Signature; }
-
-        private struct StandaloneSigRow { public BlobIdx Signature; }
-
        
         // debug table rows:
         private struct DocumentRow { public BlobIdx Name; public uint HashAlgorithm; public BlobIdx Hash; public uint Language; }
