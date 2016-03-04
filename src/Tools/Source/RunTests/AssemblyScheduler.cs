@@ -134,7 +134,7 @@ namespace RunTests
             }
 
             // Ensure we get classes back in a deterministic order.
-            list.Sort((x, y) => x.Item1.CompareTo(x.Item2));
+            list.Sort((x, y) => x.Item1.CompareTo(y.Item1));
             return list;
         }
 
@@ -149,6 +149,11 @@ namespace RunTests
             foreach (var handle in type.GetMethods())
             {
                 var methodDefinition = reader.GetMethodDefinition(handle);
+                if (methodDefinition.GetCustomAttributes().Count == 0)
+                {
+                    continue;
+                }
+
                 if (MethodAttributes.Public != (methodDefinition.Attributes & MethodAttributes.Public))
                 {
                     continue;
