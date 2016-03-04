@@ -285,7 +285,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Packaging
                 }
                 catch (Exception e) when (_service._reportAndSwallowException(e))
                 {
-                    // We retrieved bytes from teh server, but we couldn't make a DB
+                    // We retrieved bytes from the server, but we couldn't make a DB
                     // out of it.  That's very bad.  Just trying again one minute later
                     // isn't going to help.  We need to wait until there is good data
                     // on the server for us to download.
@@ -625,9 +625,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Packaging
                 {
                     var expectedChecksum64 = checksumAttribute.Value;
                     var expectedChecksum = Convert.FromBase64String(expectedChecksum64);
-                    using (var md5 = MD5.Create())
+                    using (var sha256 = SHA256.Create())
                     {
-                        var actualChecksum = md5.ComputeHash(contentBytes);
+                        var actualChecksum = sha256.ComputeHash(contentBytes);
                         if (!expectedChecksum.SequenceEqual(actualChecksum))
                         {
                             _service._reportAndSwallowException(
