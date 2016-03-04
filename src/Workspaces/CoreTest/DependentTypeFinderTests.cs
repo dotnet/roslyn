@@ -12,6 +12,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
 {
     public class DependentTypeFinderTests : TestBase
     {
+
         private Solution AddProject(Solution solution, string projectName, string languageName, string code, MetadataReference metadataReference, params ProjectId[] projectReferences)
         {
             var suffix = languageName == LanguageNames.CSharp ? "cs" : "vb";
