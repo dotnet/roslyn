@@ -3,10 +3,17 @@
 Imports System.Threading.Tasks
 Imports Microsoft.CodeAnalysis.CodeFixes
 Imports Microsoft.CodeAnalysis.Diagnostics
+Imports Xunit.Abstractions
 
 Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics.GenerateVariable
     Partial Public Class GenerateVariableCrossLanguageTests
         Inherits AbstractCrossLanguageUserDiagnosticTest
+
+        Private ReadOnly _outputHelper As ITestOutputHelper
+
+        Public Sub New(outputHelper As ITestOutputHelper)
+            _outputHelper = outputHelper
+        End Sub
 
         Friend Overrides Function CreateDiagnosticProviderAndFixer(workspace As Workspace, language As String) As Tuple(Of DiagnosticAnalyzer, CodeFixProvider)
             If language = LanguageNames.CSharp Then
@@ -52,7 +59,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics.GenerateVariable
                     }
                 </text>.Value.Trim()
 
-            Await TestAsync(input, expected)
+            Await TestAsync(input, expected, onAfterWorkspaceCreated:=Sub(w) w.SetTestLogger(AddressOf _outputHelper.WriteLine))
         End Function
     End Class
 End Namespace
