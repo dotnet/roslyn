@@ -7,22 +7,12 @@ using System.IO;
 var ngen = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.Windows), @"Microsoft.NET\Framework\v4.0.30319\ngen.exe");
 var ngen64 = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.Windows), @"Microsoft.NET\Framework64\v4.0.30319\ngen.exe");
 
-int NGen(string file, bool x86Only = false)
+void NGen(string file, bool x86Only = false)
 {
-    var result = ShellOut(ngen, $"install {file} /nodependencies");
-    if (!result.Succeeded)
-    {
-        return result.Code;
-    }
-
+    ShellOutVital(ngen, $"install {file} /nodependencies");
+    
     if (!x86Only)
     {
-        result = ShellOut(ngen64, $"install {file} /nodependencies");
-        if (!result.Succeeded)
-        {
-            return result.Code;
-        }
+        ShellOutVital(ngen64, $"install {file} /nodependencies");
     }
-
-    return 0;
 }

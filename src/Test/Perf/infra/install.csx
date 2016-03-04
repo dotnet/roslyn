@@ -40,21 +40,9 @@ foreach (var file in IDEFiles)
 }
 
 var devenv = Path.Combine(devenvFolder, "devenv.exe");
-var result = ShellOut(devenv, "/clearcache");
-if (!result.Succeeded)
-{
-    return result.Code;
-}
-result = ShellOut(devenv, "/updateconfiguration");
-if (!result.Succeeded)
-{
-    return result.Code;
-}
-result = ShellOut(devenv, $"/resetsettingsfull {Path.Combine(sourceFolder, "Default.vssettings")} /command \"File.Exit\"");
-if (!result.Succeeded)
-{
-    return result.Code;
-}
+ShellOutVital(devenv, "/clearcache");
+ShellOutVital(devenv, "/updateconfiguration");
+ShellOutVital(devenv, $"/resetsettingsfull {Path.Combine(sourceFolder, "Default.vssettings")} /command \"File.Exit\"");
 
 Log($"{message} compilers in MSBuild folders.");
 destinationFolder = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ProgramFilesX86), @"MSBuild\14.0\Bin");
