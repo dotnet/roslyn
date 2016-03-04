@@ -632,7 +632,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Packaging
                     if (expectedChecksum != actualChecksum)
                     {
                         _service._reportAndSwallowException(
-                            new FormatException($"Expected checksum {expectedChecksum} not equal to actual checksum {actualChecksum}"));
+                            new FormatException($"Checksum mismatch: expected != actual. {expectedChecksum} != {actualChecksum}"));
 
                         bytes = null;
                         return false;
