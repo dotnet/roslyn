@@ -629,7 +629,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Packaging
                         actualChecksum = Convert.ToBase64String(sha256.ComputeHash(contentBytes));
                     }
 
-                    if (expectedChecksum != actualChecksum)
+                    if (!StringComparer.Ordinal.Equals(expectedChecksum, actualChecksum))
                     {
                         _service._reportAndSwallowException(
                             new FormatException($"Checksum mismatch: expected != actual. {expectedChecksum} != {actualChecksum}"));
