@@ -556,50 +556,6 @@ namespace Microsoft.VisualStudio.LanguageServices {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to To see what caused the issue, please try below.
-        ///
-        ///1. Close Visual Studio
-        ///2. Open a Visual Studio Developer Command Prompt
-        ///3. Set environment variable “TraceDesignTime” to true (set TraceDesignTime=true)
-        ///4. Delete .vs directory/.suo file
-        ///5. Restart VS from the command prompt you set the environment varaible (devenv)
-        ///6. Open the solution
-        ///7. Check &apos;{0}&apos; and look for the failed tasks (FAILED).
-        /// </summary>
-        internal static string IntellisenseBuildFailedDescription {
-            get {
-                return ResourceManager.GetString("IntellisenseBuildFailedDescription", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Additional information:.
-        /// </summary>
-        internal static string IntellisenseBuildFailedDescriptionExtra {
-            get {
-                return ResourceManager.GetString("IntellisenseBuildFailedDescriptionExtra", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Error encountered while loading the project. Some project features, such as full solution analysis for the failed project and projects that depend on it, have been disabled..
-        /// </summary>
-        internal static string IntellisenseBuildFailedMessage {
-            get {
-                return ResourceManager.GetString("IntellisenseBuildFailedMessage", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Project loading failed..
-        /// </summary>
-        internal static string IntellisenseBuildFailedTitle {
-            get {
-                return ResourceManager.GetString("IntellisenseBuildFailedTitle", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   Looks up a localized string similar to Installing &apos;{0}&apos; failed.
         ///
         ///Additional information: {1}.

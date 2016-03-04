@@ -9,7 +9,6 @@ using Microsoft.CodeAnalysis.Diagnostics.Log;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.SolutionCrawler;
 using Microsoft.CodeAnalysis.Text;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Diagnostics
 {
@@ -17,8 +16,6 @@ namespace Microsoft.CodeAnalysis.Diagnostics
     {
         protected BaseDiagnosticIncrementalAnalyzer(DiagnosticAnalyzerService owner, Workspace workspace, HostAnalyzerManager hostAnalyzerManager, AbstractHostDiagnosticUpdateSource hostDiagnosticUpdateSource)
         {
-            Contract.ThrowIfNull(owner);
-
             this.Owner = owner;
             this.Workspace = workspace;
             this.HostAnalyzerManager = hostAnalyzerManager;
@@ -30,7 +27,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         /// <summary>
         /// Analyze a single document such that local diagnostics for that document become available,
         /// prioritizing analyzing this document over analyzing the rest of the project.
-        /// Calls <see cref="DiagnosticAnalyzerService.RaiseDiagnosticsUpdated(DiagnosticsUpdatedArgs)"/> for each
+        /// Calls <see cref="DiagnosticAnalyzerService.RaiseDiagnosticsUpdated(object, DiagnosticsUpdatedArgs)"/> for each
         /// unique group of diagnostics, where a group is identified by analysis classification (syntax/semantics), document, and analyzer.
         /// </summary>
         /// <param name="document">The document to analyze.</param>
@@ -40,7 +37,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         public abstract Task AnalyzeDocumentAsync(Document document, SyntaxNode bodyOpt, CancellationToken cancellationToken);
         /// <summary>
         /// Analyze a single project such that diagnostics for the entire project become available.
-        /// Calls <see cref="DiagnosticAnalyzerService.RaiseDiagnosticsUpdated(DiagnosticsUpdatedArgs)"/> for each
+        /// Calls <see cref="DiagnosticAnalyzerService.RaiseDiagnosticsUpdated(object, DiagnosticsUpdatedArgs)"/> for each
         /// unique group of diagnostics, where a group is identified by analysis classification (project), project, and analyzer.
         /// </summary>
         /// <param name="project">The project to analyze.</param>
@@ -50,7 +47,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         public abstract Task AnalyzeProjectAsync(Project project, bool semanticsChanged, CancellationToken cancellationToken);
         /// <summary>
         /// Apply syntax tree actions (that have not already been applied) to a document.
-        /// Calls <see cref="DiagnosticAnalyzerService.RaiseDiagnosticsUpdated(DiagnosticsUpdatedArgs)"/> for each
+        /// Calls <see cref="DiagnosticAnalyzerService.RaiseDiagnosticsUpdated(object, DiagnosticsUpdatedArgs)"/> for each
         /// unique group of diagnostics, where a group is identified by analysis classification (syntax), document, and analyzer.
         /// </summary>
         /// <param name="document">The document to analyze.</param>
@@ -90,14 +87,14 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         /// <summary>
         /// Flush diagnostics produced by a prior analysis of a document,
         /// and suppress future analysis of the document.
-        /// Calls <see cref="DiagnosticAnalyzerService.RaiseDiagnosticsUpdated(DiagnosticsUpdatedArgs)"/> with an empty collection.
+        /// Calls <see cref="DiagnosticAnalyzerService.RaiseDiagnosticsUpdated(object, DiagnosticsUpdatedArgs)"/> with an empty collection.
         /// </summary>
         /// <param name="documentId"></param>
         public abstract void RemoveDocument(DocumentId documentId);
         /// <summary>
         /// Flush diagnostics produced by a prior analysis of a project,
         /// and suppress future analysis of the project.
-        /// Calls <see cref="DiagnosticAnalyzerService.RaiseDiagnosticsUpdated(DiagnosticsUpdatedArgs)"/> with an empty collection.
+        /// Calls <see cref="DiagnosticAnalyzerService.RaiseDiagnosticsUpdated(object, DiagnosticsUpdatedArgs)"/> with an empty collection.
         /// </summary>
         /// <param name="projectId"></param>
         public abstract void RemoveProject(ProjectId projectId);
@@ -109,7 +106,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         /// analysis classification (syntax/semantics/project), document/project, and analyzer.
         /// </summary>
         /// <param name="solution">The solution.</param>
-        /// <param name="id">Matched against values supplied in a <see cref="DiagnosticsUpdatedArgs"/> to <see cref="DiagnosticAnalyzerService.RaiseDiagnosticsUpdated(DiagnosticsUpdatedArgs)"/>.</param>
+        /// <param name="id">Matched against values supplied in a <see cref="DiagnosticsUpdatedArgs"/> to <see cref="DiagnosticAnalyzerService.RaiseDiagnosticsUpdated(object, DiagnosticsUpdatedArgs)"/>.</param>
         /// <param name="includeSuppressedDiagnostics">Flag indicating whether diagnostics with source suppressions (pragma/SuppressMessageAttribute) should be included.</param>
         /// <param name="cancellationToken"></param>
         /// <returns></returns>
@@ -129,7 +126,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         /// analysis classification (syntax/semantics/project), document/project, and analyzer.
         /// </summary>
         /// <param name="solution">The solution.</param>
-        /// <param name="id">Matched against values supplied in a <see cref="DiagnosticsUpdatedArgs"/> to <see cref="DiagnosticAnalyzerService.RaiseDiagnosticsUpdated(DiagnosticsUpdatedArgs)"/>.</param>
+        /// <param name="id">Matched against values supplied in a <see cref="DiagnosticsUpdatedArgs"/> to <see cref="DiagnosticAnalyzerService.RaiseDiagnosticsUpdated(object, DiagnosticsUpdatedArgs)"/>.</param>
         /// <param name="includeSuppressedDiagnostics">Flag indicating whether diagnostics with source suppressions (pragma/SuppressMessageAttribute) should be included.</param>
         /// <param name="cancellationToken"></param>
         /// <returns></returns>
@@ -235,7 +232,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         // internal for testing purposes.
         internal Action<Exception, DiagnosticAnalyzer, Diagnostic> GetOnAnalyzerException(ProjectId projectId)
         {
-            return Owner.GetOnAnalyzerException(projectId, DiagnosticLogAggregator);
+            return Owner?.GetOnAnalyzerException(projectId, DiagnosticLogAggregator);
         }
     }
 }

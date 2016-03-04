@@ -229,7 +229,6 @@
     <Compile Include="Diagnostics\AbstractSuppressionDiagnosticTest.cs" />
     <Compile Include="Diagnostics\AbstractDiagnosticProviderBasedUserDiagnosticTest.cs" />
     <Compile Include="Diagnostics\AbstractUserDiagnosticTest.cs" />
-    <Compile Include="Diagnostics\DiagnosticAnalyzerServiceTests.cs" />
     <Compile Include="Diagnostics\MockDiagnosticUpdateSourceRegistrationService.cs" />
     <Compile Include="Diagnostics\TestAnalyzerReferenceByLanguage.cs" />
     <Compile Include="Diagnostics\TestDiagnosticAnalyzerDriver.cs" />

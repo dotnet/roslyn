@@ -39,10 +39,10 @@ namespace Microsoft.CodeAnalysis
                 public ValueSource<Compilation> Compilation { get; }
 
                 /// <summary>
-                /// Specifies whether <see cref="FinalCompilation"/> and all compilations it depends on contain full information or not. This can return
+                /// Specifies if there are references that got dropped in the production of <see cref="FinalCompilation"/>. This can return
                 /// null if the state isn't at the point where it would know, and it's necessary to transition to <see cref="FinalState"/> to figure that out.
                 /// </summary>
-                public virtual bool? HasSuccessfullyLoadedTransitively => null;
+                public virtual bool? HasCompleteReferences => null;
 
                 /// <summary>
                 /// The final compilation if available, otherwise an empty <see cref="ValueSource{Compilation}"/>.
@@ -135,15 +135,19 @@ namespace Microsoft.CodeAnalysis
             /// </summary>
             private sealed class FinalState : State
             {
-                private readonly bool _hasSuccessfullyLoadedTransitively;
+                private readonly bool _hasCompleteReferences;
 
-                public override bool? HasSuccessfullyLoadedTransitively => _hasSuccessfullyLoadedTransitively;
-                public override ValueSource<Compilation> FinalCompilation => this.Compilation;
+                public override ValueSource<Compilation> FinalCompilation
+                {
+                    get { return this.Compilation; }
+                }
 
-                public FinalState(ValueSource<Compilation> finalCompilationSource, bool hasSuccessfullyLoadedTransitively)
+                public override bool? HasCompleteReferences => _hasCompleteReferences;
+
+                public FinalState(ValueSource<Compilation> finalCompilationSource, bool hasCompleteReferences)
                     : base(finalCompilationSource, finalCompilationSource.GetValue().Clone().RemoveAllReferences())
                 {
-                    _hasSuccessfullyLoadedTransitively = hasSuccessfullyLoadedTransitively;
+                    _hasCompleteReferences = hasCompleteReferences;
                 }
             }
         }

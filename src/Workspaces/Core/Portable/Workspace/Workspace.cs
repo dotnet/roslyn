@@ -704,25 +704,6 @@ namespace Microsoft.CodeAnalysis
         }
 
         /// <summary>
-        /// Call this method when status of project has changed to incomplete.
-        /// See <see cref="ProjectInfo.HasAllInformation"/> for more information.
-        /// </summary>
-        // TODO: make it public
-        internal void OnHasAllInformationChanged(ProjectId projectId, bool hasAllInformation)
-        {
-            using (_serializationLock.DisposableWait())
-            {
-                CheckProjectIsInCurrentSolution(projectId);
-
-                // if state is different than what we have
-                var oldSolution = this.CurrentSolution;
-                var newSolution = this.SetCurrentSolution(oldSolution.WithHasAllInformation(projectId, hasAllInformation));
-
-                this.RaiseWorkspaceChangedEventAsync(WorkspaceChangeKind.ProjectChanged, oldSolution, newSolution, projectId);
-            }
-        }
-
-        /// <summary>
         /// Call this method when the text of a document is updated in the host environment.
         /// </summary>
         protected internal void OnDocumentTextChanged(DocumentId documentId, SourceText newText, PreservationMode mode)

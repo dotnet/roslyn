@@ -39,18 +39,10 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV1
                 return _state[(int)stateType];
             }
 
-            public void Remove(object documentOrProjectId, bool onlyDocumentStates = false)
+            public void Remove(object documentOrProjectId)
             {
-                // this is to clear up states. some caller such as re-analyzing a file wants to
-                // reset only document related states, some like removing a file wants to clear up
-                // states all together.
                 for (var stateType = 0; stateType < s_stateTypeCount; stateType++)
                 {
-                    if (onlyDocumentStates && stateType == (int)StateType.Project)
-                    {
-                        continue;
-                    }
-
                     _state[stateType].Remove(documentOrProjectId);
                 }
             }
