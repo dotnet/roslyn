@@ -606,6 +606,8 @@ namespace Microsoft.CodeAnalysis
                     var newReferences = new List<MetadataReference>();
                     newReferences.AddRange(this.ProjectState.MetadataReferences);
 
+                    var skeletonAssembliesToValidate = new List<Tuple<MetadataReference, Compilation>>();
+
                     foreach (var projectReference in this.ProjectState.ProjectReferences)
                     {
                         var referencedProject = solution.GetProject(projectReference.ProjectId);
@@ -635,10 +637,21 @@ namespace Microsoft.CodeAnalysis
                                 // A reference can fail to be created if a skeleton assembly could not be constructed.
                                 if (metadataReference != null)
                                 {
+                                    if (referencedProject.Language != this.ProjectState.LanguageServices.Language)
+                                    {
+                                        Compilation c;
+                                        if (referencedProject.TryGetCompilation(out c))
+                                        {
+                                            skeletonAssembliesToValidate.Add(Tuple.Create(metadataReference, c));
+                                        }
+                                    }
+
                                     newReferences.Add(metadataReference);
                                 }
                                 else
                                 {
+                                    solution.Workspace.LogMessage($"{nameof(CompilationTracker)}: Failed to get metadata reference for {referencedProject.Name}");
+
                                     hasCompleteReferences = false;
                                 }
                             }
@@ -651,6 +664,43 @@ namespace Microsoft.CodeAnalysis
                     }
 
                     this.WriteState(new FinalState(State.CreateValueSource(compilation, solution.Services), hasCompleteReferences), solution);
+
+                    foreach (var skeletonAssemblyToValidate in skeletonAssembliesToValidate)
+                    {
+                        var assemblySymbol = (IAssemblySymbol)compilation.GetAssemblyOrModuleSymbol(skeletonAssemblyToValidate.Item1);
+
+                        if (assemblySymbol == null)
+                        {
+                            throw new Exception("assemblySymbol could not be found");
+                        }
+
+                        var namespacesToLookAt = new Queue<INamespaceSymbol>();
+                        namespacesToLookAt.Enqueue(skeletonAssemblyToValidate.Item2.Assembly.GlobalNamespace);
+
+                        while (namespacesToLookAt.Count > 0)
+                        {
+                            INamespaceSymbol ns = namespacesToLookAt.Dequeue();
+
+                            foreach (var childNamespace in ns.GetNamespaceMembers())
+                            {
+                                namespacesToLookAt.Enqueue(childNamespace);
+                            }
+
+                            foreach (var type in ns.GetTypeMembers())
+                            {
+                                if (type.Locations.Any(l => l.IsInSource))
+                                {
+                                    var typeMetadataName = type.ContainingNamespace.IsGlobalNamespace ? type.MetadataName : type.ContainingNamespace.ToDisplayString() + "." + type.MetadataName;
+                                    var foundType = assemblySymbol.GetTypeByMetadataName(typeMetadataName);
+
+                                    if (foundType == null)
+                                    {
+                                        throw new Exception("Type could not be found.");
+                                    }
+                                }
+                            }
+                        }
+                    }
 
                     return new CompilationInfo(compilation, hasCompleteReferences);
                 }
@@ -750,6 +800,10 @@ namespace Microsoft.CodeAnalysis
                                 var compilationInfo = await this.GetOrBuildCompilationInfoAsync(solution, lockGate: false, cancellationToken: cancellationToken).ConfigureAwait(false);
                                 reference = MetadataOnlyReference.GetOrBuildReference(solution, projectReference, compilationInfo.Compilation, version, cancellationToken);
                             }
+                        }
+                        else
+                        {
+                            solution.Workspace.LogMessage($"Got already cached metadata only skeleton reference for ${ProjectState.Name}");
                         }
 
                         return reference;

@@ -30,7 +30,7 @@ namespace Microsoft.CodeAnalysis
             get { return _storage == null; }
         }
 
-        public static MetadataOnlyImage Create(ITemporaryStorageService service, Compilation compilation, CancellationToken cancellationToken)
+        public static MetadataOnlyImage Create(Workspace workspace, ITemporaryStorageService service, Compilation compilation, CancellationToken cancellationToken)
         {
             cancellationToken.ThrowIfCancellationRequested();
 
@@ -52,6 +52,14 @@ namespace Microsoft.CodeAnalysis
                         storage.WriteStream(stream, cancellationToken);
 
                         return new MetadataOnlyImage(storage, compilation.AssemblyName);
+                    }
+                    else
+                    {
+                        workspace.LogMessage($"emitting metadata reference: Failed to emit reference!");
+                        foreach (var diagnostic in emitResult.Diagnostics)
+                        {
+                            workspace.LogMessage("emitting metadata reference: " + diagnostic.GetMessage());
+                        }
                     }
                 }
             }

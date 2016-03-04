@@ -10,6 +10,8 @@ Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.VisualStudio.Text
 Imports Xunit.Sdk
 Imports Microsoft.CodeAnalysis.Options
+Imports Microsoft.CodeAnalysis.ErrorReporting
+Imports Xunit.Abstractions
 
 Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Rename
     ''' <summary>
@@ -54,66 +56,57 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Rename
             _renameTo = renameTo
         End Sub
 
-        Public Shared Function Create(workspaceXml As XElement, renameTo As String, Optional changedOptionSet As Dictionary(Of OptionKey, Object) = Nothing) As RenameEngineResult
+        Public Shared Function Create(helper As ITestOutputHelper, workspaceXml As XElement, renameTo As String, Optional changedOptionSet As Dictionary(Of OptionKey, Object) = Nothing) As RenameEngineResult
             Dim workspace = TestWorkspace.CreateWorkspace(workspaceXml)
+            workspace.SetLogger(AddressOf helper.WriteLine)
 
             Dim engineResult As RenameEngineResult = Nothing
-            Try
-                If workspace.Documents.Where(Function(d) d.CursorPosition.HasValue).Count <> 1 Then
-                    AssertEx.Fail("The test must have a single $$ marking the symbol being renamed.")
-                End If
+            If workspace.Documents.Where(Function(d) d.CursorPosition.HasValue).Count <> 1 Then
+                AssertEx.Fail("The test must have a single $$ marking the symbol being renamed.")
+            End If
 
-                Dim cursorDocument = workspace.Documents.Single(Function(d) d.CursorPosition.HasValue)
-                Dim cursorPosition = cursorDocument.CursorPosition.Value
+            Dim cursorDocument = workspace.Documents.Single(Function(d) d.CursorPosition.HasValue)
+            Dim cursorPosition = cursorDocument.CursorPosition.Value
 
-                Dim document = workspace.CurrentSolution.GetDocument(cursorDocument.Id)
+            Dim document = workspace.CurrentSolution.GetDocument(cursorDocument.Id)
 
-                Dim symbol = RenameLocations.ReferenceProcessing.GetRenamableSymbolAsync(document, cursorPosition, CancellationToken.None).Result
+            Dim symbol = RenameLocations.ReferenceProcessing.GetRenamableSymbolAsync(document, cursorPosition, CancellationToken.None).Result
 
-                If symbol Is Nothing Then
-                    AssertEx.Fail("The symbol touching the $$ could not be found.")
-                End If
+            If symbol Is Nothing Then
+                AssertEx.Fail("The symbol touching the $$ could not be found.")
+            End If
 
-                Dim optionSet = workspace.Options
+            Dim optionSet = workspace.Options
 
-                If changedOptionSet IsNot Nothing Then
-                    For Each entry In changedOptionSet
-                        optionSet = optionSet.WithChangedOption(entry.Key, entry.Value)
-                    Next
-                End If
+            If changedOptionSet IsNot Nothing Then
+                For Each entry In changedOptionSet
+                    optionSet = optionSet.WithChangedOption(entry.Key, entry.Value)
+                Next
+            End If
 
-                AssertIsComplete(workspace.CurrentSolution)
+            Dim locations = RenameLocations.FindAsync(symbol, workspace.CurrentSolution, optionSet, CancellationToken.None).Result
+            Dim originalName = symbol.Name.Split("."c).Last()
 
-                Dim locations = RenameLocations.FindAsync(symbol, workspace.CurrentSolution, optionSet, CancellationToken.None).Result
-                Dim originalName = symbol.Name.Split("."c).Last()
+            Dim result = ConflictResolver.ResolveConflictsAsync(locations, originalName, renameTo, optionSet, hasConflict:=Nothing, cancellationToken:=CancellationToken.None).Result
 
-                Dim result = ConflictResolver.ResolveConflictsAsync(locations, originalName, renameTo, optionSet, hasConflict:=Nothing, cancellationToken:=CancellationToken.None).Result
+            AssertIsComplete(result.OldSolution, NameOf(result.OldSolution))
+            AssertIsComplete(result.NewSolution, NameOf(result.NewSolution))
 
-                AssertIsComplete(result.OldSolution)
-                AssertIsComplete(result.NewSolution)
-
-                engineResult = New RenameEngineResult(workspace, result, renameTo)
-                engineResult.AssertUnlabeledSpansRenamedAndHaveNoConflicts()
-            Catch
-                ' Something blew up, so we still own the test workspace
-                If engineResult IsNot Nothing Then
-                    engineResult.Dispose()
-                Else
-                    workspace.Dispose()
-                End If
-                Throw
-            End Try
+            engineResult = New RenameEngineResult(workspace, result, renameTo)
+            engineResult.AssertUnlabeledSpansRenamedAndHaveNoConflicts()
 
             Return engineResult
         End Function
 
-        Private Shared Sub AssertIsComplete(currentSolution As Solution)
+        Private Shared Sub AssertIsComplete(currentSolution As Solution, whichSolutionWasBroken As String)
             ' Ensure we don't have a partial solution. This is to detect for possible root causes of
             ' https://github.com/dotnet/roslyn/issues/9298
 
-            If currentSolution.Projects.Any(Function(p) Not p.HasCompleteReferencesAsync().Result) Then
-                AssertEx.Fail("We have an incomplete project floating around which we should not.")
-            End If
+            For Each project In currentSolution.Projects
+                If Not project.HasCompleteReferencesAsync().Result Then
+                    'FailFast.Assert(False, $"This shouldn't have happened with {whichSolutionWasBroken} in project {project.Name}")
+                End If
+            Next
         End Sub
 
         Friend ReadOnly Property ConflictResolution As ConflictResolution
@@ -243,12 +236,6 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Rename
                 If _unassertedRelatedLocations.Count > 0 Then
                     AssertEx.Fail("There were additional related locations than were unasserted.")
                 End If
-            End If
-        End Sub
-
-        Protected Overrides Sub Finalize()
-            If Not Environment.HasShutdownStarted Then
-                Throw New Exception("Dispose was not called in a Rename test.")
             End If
         End Sub
 
