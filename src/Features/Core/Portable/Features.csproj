@@ -180,6 +180,8 @@
     <Compile Include="Diagnostics\DiagnosticService_UpdateSourceRegistrationService.cs" />
     <Compile Include="Common\UpdatedEventArgs.cs" />
     <Compile Include="Diagnostics\EngineV2\CompilerDiagnosticExecutor.cs" />
+    <Compile Include="Diagnostics\EngineV2\DiagnosticIncrementalAnalyzer.ActiveFileState.cs" />
+    <Compile Include="Diagnostics\EngineV2\DiagnosticIncrementalAnalyzer.ProjectState.cs" />
     <Compile Include="Diagnostics\EngineV2\DiagnosticIncrementalAnalyzer_BuildSynchronization.cs" />
     <Compile Include="Diagnostics\EngineV2\DiagnosticIncrementalAnalyzer_GetDiagnostics.cs" />
     <Compile Include="Diagnostics\EngineV2\DiagnosticIncrementalAnalyzer_GetDiagnosticsForSpan.cs" />

@@ -5,10 +5,13 @@ using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.Shared.Extensions;
+using Microsoft.CodeAnalysis.Shared.Options;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
 {
+    // TODO: implement correct events and etc.
     internal partial class DiagnosticIncrementalAnalyzer : BaseDiagnosticIncrementalAnalyzer
     {
         private readonly int _correlationId;
@@ -22,6 +25,19 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
             : base(owner, workspace, hostAnalyzerManager, hostDiagnosticUpdateSource)
         {
             _correlationId = correlationId;
+        }
+
+        private static bool AnalysisEnabled(Document document)
+        {
+            // change it to check active file (or visible files), not open files if active file tracking is enabled.
+            // otherwise, use open file.
+            return document.IsOpen();
+        }
+
+        private bool FullAnalysisEnabled(Workspace workspace, string language)
+        {
+            return workspace.Options.GetOption(ServiceFeatureOnOffOptions.ClosedFileDiagnostic, language) &&
+                   workspace.Options.GetOption(RuntimeOptions.FullSolutionAnalysis);
         }
 
         private async Task<ImmutableArray<DiagnosticData>> GetProjectDiagnosticsAsync(Project project, bool includeSuppressedDiagnostics, CancellationToken cancellationToken)
