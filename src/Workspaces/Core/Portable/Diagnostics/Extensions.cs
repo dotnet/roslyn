@@ -14,7 +14,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 {
     internal static class Extensions
     {
-        public static readonly CultureInfo s_USCultureInfo = new CultureInfo("en-US");
+        private static readonly CultureInfo s_USCultureInfo = new CultureInfo("en-US");
 
         public static string GetBingHelpMessage(this Diagnostic diagnostic, Workspace workspace = null)
         {

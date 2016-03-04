@@ -1,9 +1,13 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
+using System.Collections.Generic;
+using System.Linq;
 using System.Runtime.InteropServices;
+using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.VisualStudio;
 using Microsoft.VisualStudio.Shell.Interop;
 using Roslyn.Utilities;
 
@@ -11,8 +15,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 {
     internal sealed class FileChangeTracker : IVsFileChangeEvents, IDisposable
     {
-        private const uint FileChangeFlags = (uint)(_VSFILECHANGEFLAGS.VSFILECHG_Time | _VSFILECHANGEFLAGS.VSFILECHG_Add | _VSFILECHANGEFLAGS.VSFILECHG_Del | _VSFILECHANGEFLAGS.VSFILECHG_Size);
-
         private static readonly Lazy<uint> s_none = new Lazy<uint>(() => /* value doesn't matter*/ 42424242, LazyThreadSafetyMode.ExecutionAndPublication);
 
         private readonly IVsFileChangeEx _fileChangeService;
@@ -72,7 +74,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             {
                 uint newCookie;
                 Marshal.ThrowExceptionForHR(
-                    _fileChangeService.AdviseFileChange(_filePath, FileChangeFlags, this, out newCookie));
+                    _fileChangeService.AdviseFileChange(_filePath, (uint)_VSFILECHANGEFLAGS.VSFILECHG_Time, this, out newCookie));
                 return newCookie;
             }, LazyThreadSafetyMode.ExecutionAndPublication);
 

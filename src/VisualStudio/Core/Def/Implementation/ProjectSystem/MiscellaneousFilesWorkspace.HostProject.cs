@@ -46,7 +46,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 
             public ProjectInfo CreateProjectInfoForCurrentState()
             {
-                var info = ProjectInfo.Create(
+                return ProjectInfo.Create(
                     this.Id,
                     _version,
                     name: ServicesVSResources.MiscellaneousFiles,
@@ -60,10 +60,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                     metadataReferences: _metadataReferences,
                     isSubmission: false,
                     hostObjectType: null);
-
-                // misc project will never be fully loaded since, by defintion, it won't know
-                // what the full set of information is.
-                return info.WithHasAllInformation(hasAllInformation: false);
             }
 
             public Microsoft.VisualStudio.Shell.Interop.IVsHierarchy Hierarchy => null;

@@ -317,6 +317,5 @@ namespace Microsoft.CodeAnalysis.Internal.Log
         CodefixInfobar_EnableAndIgnoreFutureErrors,
         CodefixInfobar_LeaveDisabled,
         CodefixInfobar_ErrorIgnored,
-        IntellisenseBuild_Failed,
     }
 }

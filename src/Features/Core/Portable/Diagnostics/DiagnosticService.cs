@@ -57,76 +57,49 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
         private void RaiseDiagnosticsUpdated(object sender, DiagnosticsUpdatedArgs args)
         {
-            Contract.ThrowIfNull(sender);
-            var source = (IDiagnosticUpdateSource)sender;
-
             var ev = _eventMap.GetEventHandlers<EventHandler<DiagnosticsUpdatedArgs>>(DiagnosticsUpdatedEventName);
-            if (!RequireRunningEventTasks(source, ev))
+            if (ev.HasHandlers)
+            {
+                var eventToken = _listener.BeginAsyncOperation(DiagnosticsUpdatedEventName);
+                _eventQueue.ScheduleTask(() =>
+                {
+                    UpdateDataMap(sender, args);
+                    ev.RaiseEvent(handler => handler(sender, args));
+                }).CompletesAsyncOperation(eventToken);
+            }
+        }
+
+        private void UpdateDataMap(object sender, DiagnosticsUpdatedArgs args)
+        {
+            var updateSource = sender as IDiagnosticUpdateSource;
+            if (updateSource == null)
             {
                 return;
             }
 
-            var eventToken = _listener.BeginAsyncOperation(DiagnosticsUpdatedEventName);
-            _eventQueue.ScheduleTask(() =>
+            Contract.Requires(_updateSources.Contains(updateSource));
+
+            // we expect someone who uses this ability to small.
+            lock (_gate)
             {
-                if (!UpdateDataMap(source, args))
+                // check cheap early bail out
+                if (args.Diagnostics.Length == 0 && !_map.ContainsKey(updateSource))
                 {
-                    // there is no change, nothing to raise events for.
+                    // no new diagnostic, and we don't have update source for it.
                     return;
                 }
 
-                ev.RaiseEvent(handler => handler(sender, args));
-            }).CompletesAsyncOperation(eventToken);
-        }
+                var list = _map.GetOrAdd(updateSource, _ => new Dictionary<object, Data>());
+                var data = updateSource.SupportGetDiagnostics ? new Data(args) : new Data(args, args.Diagnostics);
 
-        private bool RequireRunningEventTasks(
-            IDiagnosticUpdateSource source, EventMap.EventHandlerSet<EventHandler<DiagnosticsUpdatedArgs>> ev)
-        {
-            // basically there are 2 cases when there is no event handler registered. 
-            // first case is when diagnostic update source itself provide GetDiagnostics functionality. 
-            // in that case, DiagnosticService doesn't need to track diagnostics reported. so, it bail out right away.
-            // second case is when diagnostic source doesn't provide GetDiagnostics functionality. 
-            // in that case, DiagnosticService needs to track diagnostics reported. so it need to enqueue background 
-            // work to process given data regardless whether there is event handler registered or not.
-            // this could be separated in 2 tasks, but we already saw cases where there are too many tasks enqueued, 
-            // so I merged it to one. 
-
-            // if it doesn't SupportGetDiagnostics, we need to process reported data, so enqueue task.
-            if (!source.SupportGetDiagnostics)
-            {
-                return true;
-            }
-
-            return ev.HasHandlers;
-        }
-
-        private bool UpdateDataMap(IDiagnosticUpdateSource source, DiagnosticsUpdatedArgs args)
-        {
-            // we expect source who uses this ability to have small number of diagnostics.
-            lock (_gate)
-            {
-                Contract.Requires(_updateSources.Contains(source));
-
-                // check cheap early bail out
-                if (args.Diagnostics.Length == 0 && !_map.ContainsKey(source))
+                list.Remove(data.Id);
+                if (list.Count == 0 && args.Diagnostics.Length == 0)
                 {
-                    // no new diagnostic, and we don't have update source for it.
-                    return false;
+                    _map.Remove(updateSource);
+                    return;
                 }
 
-                var diagnosticDataMap = _map.GetOrAdd(source, _ => new Dictionary<object, Data>());
-
-                diagnosticDataMap.Remove(args.Id);
-                if (diagnosticDataMap.Count == 0 && args.Diagnostics.Length == 0)
-                {
-                    _map.Remove(source);
-                    return true;
-                }
-
-                var data = source.SupportGetDiagnostics ? new Data(args) : new Data(args, args.Diagnostics);
-                diagnosticDataMap.Add(args.Id, data);
-
-                return true;
+                list.Add(args.Id, data);
             }
         }
 
