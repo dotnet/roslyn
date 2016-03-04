@@ -558,12 +558,13 @@ namespace Microsoft.VisualStudio.LanguageServices {
         /// <summary>
         ///   Looks up a localized string similar to To see what caused the issue, please try below.
         ///
-        ///1. Close VS
-        ///2. Set environment variable (set TraceDesignTime=true)
-        ///3. Delete .vs directory/.suo file
-        ///4. Restart VS from the VS developer command prompt you set the environment varaible (devenv)
-        ///5. Open the solution
-        ///6. Check &apos;{0}&apos; and look for the failed tasks (FAILED).
+        ///1. Close Visual Studio
+        ///2. Open a Visual Studio Developer Command Prompt
+        ///3. Set environment variable “TraceDesignTime” to true (set TraceDesignTime=true)
+        ///4. Delete .vs directory/.suo file
+        ///5. Restart VS from the command prompt you set the environment varaible (devenv)
+        ///6. Open the solution
+        ///7. Check &apos;{0}&apos; and look for the failed tasks (FAILED).
         /// </summary>
         internal static string IntellisenseBuildFailedDescription {
             get {

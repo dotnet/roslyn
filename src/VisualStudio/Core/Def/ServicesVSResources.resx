@@ -546,12 +546,13 @@ Use the dropdown to view and switch to other projects this file may belong to.</
   <data name="IntellisenseBuildFailedDescription" xml:space="preserve">
     <value>To see what caused the issue, please try below.
 
-1. Close VS
-2. Set environment variable (set TraceDesignTime=true)
-3. Delete .vs directory/.suo file
-4. Restart VS from the VS developer command prompt you set the environment varaible (devenv)
-5. Open the solution
-6. Check '{0}' and look for the failed tasks (FAILED)</value>
+1. Close Visual Studio
+2. Open a Visual Studio Developer Command Prompt
+3. Set environment variable “TraceDesignTime” to true (set TraceDesignTime=true)
+4. Delete .vs directory/.suo file
+5. Restart VS from the command prompt you set the environment varaible (devenv)
+6. Open the solution
+7. Check '{0}' and look for the failed tasks (FAILED)</value>
   </data>
   <data name="IntellisenseBuildFailedDescriptionExtra" xml:space="preserve">
     <value>Additional information:</value>

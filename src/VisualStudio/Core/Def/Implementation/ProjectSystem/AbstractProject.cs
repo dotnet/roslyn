@@ -492,7 +492,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             // But, this doesn't sovle the issue where actual metadata reference 
             // (not cross language p2p reference) is missing at the time project is opened.
             //
-            // in that case, msbuild itself filter those references out, so project system doesn't know 
+            // in that case, msbuild filter those actual metadata references out, so project system doesn't know 
             // path to the reference. since it doesn't know where dll is, it can't (or currently doesn't) 
             // setup file change notification either to find out when dll becomes available. 
             //
