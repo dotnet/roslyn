@@ -37,7 +37,7 @@ namespace RunTests
 
         internal async Task<RunAllResult> RunAllAsync(IEnumerable<AssemblyInfo> assemblyInfoList, CancellationToken cancellationToken)
         {
-            var max = (int)((double)Environment.ProcessorCount * .8);
+            var max = Environment.ProcessorCount;
             var allPassed = true;
             var cacheCount = 0;
             var waiting = new Stack<AssemblyInfo>(assemblyInfoList);
@@ -111,7 +111,9 @@ namespace RunTests
             foreach (var testResult in testResults)
             {
                 var color = testResult.Succeeded ? Console.ForegroundColor : ConsoleColor.Red;
-                ConsoleUtil.WriteLine(color, "{0,-75} {1} {2}{3}", testResult.DisplayName, testResult.Succeeded ? "PASSED" : "FAILED", testResult.Elapsed, testResult.IsResultFromCache ? "*" : "");
+                var message = string.Format("{0,-75} {1} {2}{3}", testResult.DisplayName, testResult.Succeeded ? "PASSED" : "FAILED", testResult.Elapsed, testResult.IsResultFromCache ? "*" : "");
+                ConsoleUtil.WriteLine(color, message);
+                Logger.Log(message);
             }
             Console.WriteLine("================");
         }

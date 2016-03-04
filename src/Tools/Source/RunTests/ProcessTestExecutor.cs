@@ -120,6 +120,7 @@ namespace RunTests
                 }
 
                 var commandLine = GetCommandLine(assemblyInfo);
+                Logger.Log($"Command line {assemblyInfo.DisplayName}: {commandLine}");
                 var standardOutput = string.Join(Environment.NewLine, processOutput.OutputLines);
                 var errorOutput = string.Join(Environment.NewLine, processOutput.ErrorLines);
 
