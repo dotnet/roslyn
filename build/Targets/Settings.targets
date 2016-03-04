@@ -36,8 +36,7 @@
     Bug tracking removing this: https://github.com/dotnet/roslyn/issues/8421
   -->
   <UsingTask TaskName="Roslyn.MSBuild.Util.WriteCodeFragmentEx"
-             AssemblyFile="$(RoslynBuildUtilFilePath)"
-             Condition="'$(OS)' == 'Windows_NT'" />
+             AssemblyFile="$(RoslynBuildUtilFilePath)" />
 
   <Target Name="RestoreToolsetCheck"
       Condition="'$(BuildingProject)' == 'true'">
