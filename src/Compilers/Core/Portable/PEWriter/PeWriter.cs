@@ -96,7 +96,7 @@ namespace Microsoft.Cci
 
                 return peWriter.WritePeToStream(mdWriter, getPeStream, getPortablePdbStreamOpt, nativePdbWriterOpt);
             }
-            catch (Exception ex) when (!(ex is PdbWritingException || ex is ResourceException || ex is PermissionSetFileReadException))
+            catch (Exception ex) when (!(ex is PdbWritingException || ex is ResourceException || ex is PermissionSetFileReadException || ex is OperationCanceledException))
             {
                 throw new PeWritingException(ex);
             }
