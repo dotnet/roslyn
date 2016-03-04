@@ -4456,26 +4456,6 @@ End Class
 Imports System
 Imports System.Threading.Tasks
 
-' TODO: the attribute shouldn't be needed (https://github.com/dotnet/roslyn/issues/9167)
-Namespace System.Runtime.CompilerServices
-    <AttributeUsage(AttributeTargets.All)>
-    Public Class CompilerGeneratedAttribute
-        Inherits Attribute
-        Public Sub New()
-        End Sub
-    End Class
-End Namespace
-
-' TODO: the attribute shouldn't be needed  (https://github.com/dotnet/roslyn/issues/9167)
-Namespace System.Diagnostics
-    <AttributeUsage(AttributeTargets.All)>
-    Public Class DebuggerHiddenAttribute
-        Inherits Attribute
-        Public Sub New()
-        End Sub
-    End Class
-End Namespace
-
 Namespace Microsoft.VisualBasic.CompilerServices
     Class ProjectData
         Shared Sub  SetProjectError(e As Exception)

@@ -86,11 +86,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 hasErrors = True
             End If
 
-            ' NOTE: in current implementation these attributes must exist
-            ' TODO: change to "don't use if not found"
-            EnsureWellKnownMember(Of MethodSymbol)(WellKnownMember.System_Runtime_CompilerServices_CompilerGeneratedAttribute__ctor, hasErrors)
-            EnsureWellKnownMember(Of MethodSymbol)(WellKnownMember.System_Diagnostics_DebuggerNonUserCodeAttribute__ctor, hasErrors)
-
             ' NOTE: We don't ensure DebuggerStepThroughAttribute, it is just not emitted if not found
             ' EnsureWellKnownMember(Of MethodSymbol)(WellKnownMember.System_Diagnostics_DebuggerStepThroughAttribute__ctor, hasErrors)
 
