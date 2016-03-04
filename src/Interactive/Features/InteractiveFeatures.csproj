@@ -88,6 +88,7 @@
     <PublicAPI Include="PublicAPI.Shipped.txt" />
   </ItemGroup>
   <ItemGroup>
+    <Reference Include="System" />
     <Reference Include="System.Runtime.Remoting" />
     <Reference Include="System.Windows.Forms" />
   </ItemGroup>
