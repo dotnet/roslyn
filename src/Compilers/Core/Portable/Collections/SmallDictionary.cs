@@ -149,28 +149,18 @@ namespace Microsoft.CodeAnalysis
             public override Node Next => next;
         }
 
-        // separate class to ensure that HashCode field 
-        // is layed out in ram  before other AvlNode fields
-        private abstract class HashedNode : Node
+        private class AvlNode : Node
         {
+            public AvlNode Left;
+            public AvlNode Right;
             public readonly int HashCode;
+            public sbyte Balance;
 
-            protected HashedNode(int hashCode, K key, V value)
+            public AvlNode(int hashCode, K key, V value)
                 : base(key, value)
             {
                 this.HashCode = hashCode;
             }
-        }
-
-        private class AvlNode : HashedNode
-        {
-            public AvlNode Left;
-            public AvlNode Right;
-            public sbyte Balance;
-
-            public AvlNode(int hashCode, K key, V value)
-                : base(hashCode, key, value)
-            { }
 
 #if DEBUG
             public static int AssertBalanced(AvlNode V)

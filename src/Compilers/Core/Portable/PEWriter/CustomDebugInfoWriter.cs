@@ -125,16 +125,27 @@ namespace Microsoft.Cci
         {
             if (!debugInfo.LocalSlots.IsDefaultOrEmpty)
             {
-                customDebugInfo.Add(SerializeRecord(CDI.CdiKindEditAndContinueLocalSlotMap, debugInfo.SerializeLocalSlots));
+                customDebugInfo.Add(
+                    SerializeRecord(
+                        CDI.CdiKindEditAndContinueLocalSlotMap, 
+                        debugInfo,
+                        (info, builder) => info.SerializeLocalSlots(builder)));
             }
 
             if (!debugInfo.Lambdas.IsDefaultOrEmpty)
             {
-                customDebugInfo.Add(SerializeRecord(CDI.CdiKindEditAndContinueLambdaMap, debugInfo.SerializeLambdaMap));
+                customDebugInfo.Add(
+                    SerializeRecord(
+                        CDI.CdiKindEditAndContinueLambdaMap,
+                        debugInfo,
+                        (info, builder) => info.SerializeLambdaMap(builder)));
             }
         }
 
-        private static PooledBlobBuilder SerializeRecord(byte kind, Action<BlobBuilder> data)
+        private static PooledBlobBuilder SerializeRecord(
+            byte kind,
+            EditAndContinueMethodDebugInformation debugInfo,
+            Action<EditAndContinueMethodDebugInformation, BlobBuilder> recordSerializer)
         {
             var cmw = PooledBlobBuilder.GetInstance();
             cmw.WriteByte(CDI.CdiVersion);
@@ -144,7 +155,7 @@ namespace Microsoft.Cci
             // alignment size and length (will be patched)
             var alignmentSizeAndLengthWriter = cmw.ReserveBytes(sizeof(byte) + sizeof(uint));
 
-            data(cmw);
+            recordSerializer(debugInfo, cmw);
 
             int length = cmw.Position;
             int alignedLength = 4 * ((length + 3) / 4);
