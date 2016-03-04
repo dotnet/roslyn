@@ -11,6 +11,7 @@ using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Elfie.Model;
 using Microsoft.CodeAnalysis.Elfie.Model.Structures;
 using Microsoft.CodeAnalysis.Elfie.Model.Tree;
+using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Packaging;
 using Microsoft.Internal.VisualStudio.Shell.Interop;
 using Microsoft.VisualStudio.Settings;
@@ -41,8 +42,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Packaging
                    new PatchService(),
                    new DatabaseFactoryService(),
                    new ShellSettingsManager(serviceProvider).GetApplicationDataFolder(ApplicationDataFolder.LocalSettings),
-                   // swallow all exceptions
-                   e => true,
+                   // Report all exceptions we encounter, but don't crash on them.
+                   FatalError.ReportWithoutCrash,
                    new CancellationTokenSource())
         {
             installerService.PackageSourcesChanged += OnPackageSourcesChanged;
@@ -73,7 +74,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Packaging
             IPackageSearchPatchService patchService,
             IPackageSearchDatabaseFactoryService databaseFactoryService,
             string localSettingsDirectory,
-            Func<Exception, bool> swallowException,
+            Func<Exception, bool> reportAndSwallowException,
             CancellationTokenSource cancellationTokenSource)
         {
             if (remoteControlService == null)
@@ -89,7 +90,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Packaging
             _remoteControlService = remoteControlService;
             _patchService = patchService;
             _databaseFactoryService = databaseFactoryService;
-            _swallowException = swallowException;
+            _reportAndSwallowException = reportAndSwallowException;
 
             _cacheDirectoryInfo = new DirectoryInfo(Path.Combine(
                 localSettingsDirectory, "PackageCache", string.Format(Invariant($"Format{_dataFormatVersion}"))));

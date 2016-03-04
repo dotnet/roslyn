@@ -52,6 +52,7 @@ namespace Microsoft.Cci
     internal interface IAssemblyReference : IModuleReference
     {
         AssemblyIdentity Identity { get; }
+        Version AssemblyVersionPattern { get; }
     }
 
     /// <summary>

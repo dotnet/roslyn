@@ -11,7 +11,9 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
+using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Host.Mef;
+using Microsoft.CodeAnalysis.Notification;
 using Microsoft.CodeAnalysis.Packaging;
 using Microsoft.CodeAnalysis.Shared.Utilities;
 using Microsoft.CodeAnalysis.Text;
@@ -192,9 +194,15 @@ namespace Microsoft.VisualStudio.LanguageServices.Packaging
 
                 // fall through.
             }
-            catch (Exception e)
+            catch (Exception e) when (FatalError.ReportWithoutCrash(e))
             {
                 dte.StatusBar.Text = string.Format(ServicesVSResources.Package_install_failed_0, e.Message);
+
+                var notificationService = _workspace.Services.GetService<INotificationService>();
+                notificationService?.SendNotification(
+                    string.Format(ServicesVSResources.Installing_0_failed_Additional_information_1, packageName, e.Message),
+                    severity: NotificationSeverity.Error);
+
                 // fall through.
             }
 
@@ -227,9 +235,15 @@ namespace Microsoft.VisualStudio.LanguageServices.Packaging
 
                 // fall through.
             }
-            catch (Exception e)
+            catch (Exception e) when (FatalError.ReportWithoutCrash(e))
             {
                 dte.StatusBar.Text = string.Format(ServicesVSResources.Package_uninstall_failed_0, e.Message);
+
+                var notificationService = _workspace.Services.GetService<INotificationService>();
+                notificationService?.SendNotification(
+                    string.Format(ServicesVSResources.Uninstalling_0_failed_Additional_information_1, packageName, e.Message),
+                    severity: NotificationSeverity.Error);
+
                 // fall through.
             }
 
@@ -246,7 +260,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Packaging
                 var metadata = installedPackages.FirstOrDefault(m => m.Id == packageName);
                 return metadata?.VersionString;
             }
-            catch
+            catch (Exception e) when (FatalError.ReportWithoutCrash(e))
             {
                 return null;
             }
@@ -391,9 +405,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Packaging
                 var installedPackageMetadata = _packageInstallerServices.GetInstalledPackages(dteProject);
                 installedPackages.AddRange(installedPackageMetadata.Select(m => new KeyValuePair<string, string>(m.Id, m.VersionString)));
             }
-            catch
+            catch (Exception e) when (FatalError.ReportWithoutCrash(e))
             {
-                // TODO(cyrusn): Telemetry on this.
             }
 
             _projectToInstalledPackageAndVersion.AddOrUpdate(projectId, installedPackages, (_1, _2) => installedPackages);

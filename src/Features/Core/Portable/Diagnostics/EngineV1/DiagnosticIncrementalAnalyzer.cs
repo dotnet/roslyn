@@ -175,8 +175,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV1
             var analysisOptions = new CompilationWithAnalyzersOptions(
                 new WorkspaceAnalyzerOptions(project.AnalyzerOptions, project.Solution.Workspace),
                 GetOnAnalyzerException(project.Id),
-                analyzerExceptionFilter,
-                concurrentAnalysis,
+                analyzerExceptionFilter: analyzerExceptionFilter,
+                concurrentAnalysis: concurrentAnalysis,
                 logAnalyzerExecutionTime: true,
                 reportSuppressedDiagnostics: reportSuppressedDiagnostics);
 

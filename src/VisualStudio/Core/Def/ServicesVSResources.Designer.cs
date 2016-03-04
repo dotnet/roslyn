@@ -600,6 +600,17 @@ namespace Microsoft.VisualStudio.LanguageServices {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Installing &apos;{0}&apos; failed.
+        ///
+        ///Additional information: {1}.
+        /// </summary>
+        internal static string Installing_0_failed_Additional_information_1 {
+            get {
+                return ResourceManager.GetString("Installing_0_failed_Additional_information_1", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Interface name conflicts with an existing type name..
         /// </summary>
         internal static string InterfaceNameConflictsWithTypeName {
@@ -1241,6 +1252,17 @@ namespace Microsoft.VisualStudio.LanguageServices {
         internal static string Uninstalling_0_completed {
             get {
                 return ResourceManager.GetString("Uninstalling_0_completed", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Uninstalling &apos;{0}&apos; failed.
+        ///
+        ///Additional information: {1}.
+        /// </summary>
+        internal static string Uninstalling_0_failed_Additional_information_1 {
+            get {
+                return ResourceManager.GetString("Uninstalling_0_failed_Additional_information_1", resourceCulture);
             }
         }
         

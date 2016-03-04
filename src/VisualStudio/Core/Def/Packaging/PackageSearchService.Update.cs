@@ -62,7 +62,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Packaging
         private readonly IPackageSearchRemoteControlService _remoteControlService;
         private readonly IPackageSearchPatchService _patchService;
         private readonly IPackageSearchDatabaseFactoryService _databaseFactoryService;
-        private readonly Func<Exception, bool> _swallowException;
+        private readonly Func<Exception, bool> _reportAndSwallowException;
 
         public void Dispose()
         {
@@ -212,7 +212,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Packaging
                     // Just allow our caller to handle this (they will use this to stop their loop).
                     throw;
                 }
-                catch (Exception e) when (_service._swallowException(e))
+                catch (Exception e) when (_service._reportAndSwallowException(e))
                 {
                     // Something bad happened (IO Exception, network exception etc.).
                     // ask our caller to try updating again a minute from now.
@@ -222,7 +222,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Packaging
                     // down.
                     var delay = _service._delayService.UpdateFailedDelay;
                     _service.LogException(e, $"Error occurred updating. Retrying update in {delay}");
-                    return _service._delayService.UpdateFailedDelay;
+                    return delay;
                 }
             }
 
@@ -346,7 +346,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Packaging
                 {
                     database = CreateAndSetInMemoryDatabase(databaseBytes);
                 }
-                catch (Exception e) when (_service._swallowException(e))
+                catch (Exception e) when (_service._reportAndSwallowException(e))
                 {
                     _service.LogException(e, "Error creating database from local copy. Downloading full database");
                     return await DownloadFullDatabaseAsync().ConfigureAwait(false);
@@ -395,7 +395,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Packaging
 
                     // Fall through and download full database.
                 }
-                catch (Exception e) when (_service._swallowException(e))
+                catch (Exception e) when (_service._reportAndSwallowException(e))
                 {
                     _service.LogException(e, "Error occurred while processing patch element. Downloading full database");
                     // Fall through and download full database.
@@ -560,10 +560,17 @@ namespace Microsoft.VisualStudio.LanguageServices.Packaging
                     try
                     {
                         action();
-                        return;
                     }
-                    catch (Exception e) when (_service._swallowException(e))
+                    catch (Exception e)
                     {
+                        // Normal IO exception. Don't bother reporting it.  We don't want to get
+                        // lots of hits just because we couldn't write a file because of something
+                        // like an anti-virus tool lockign the file.
+                        if (!IOUtilities.IsNormalIOException(e))
+                        {
+                            _service._reportAndSwallowException(e);
+                        }
+
                         var delay = _service._delayService.FileWriteDelay;
                         _service.LogException(e, $"Operation failed. Trying again after {delay}");
                         await Task.Delay(delay, _service._cancellationToken).ConfigureAwait(false);
