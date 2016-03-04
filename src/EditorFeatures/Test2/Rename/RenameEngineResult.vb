@@ -111,7 +111,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Rename
             ' Ensure we don't have a partial solution. This is to detect for possible root causes of
             ' https://github.com/dotnet/roslyn/issues/9298
 
-            If currentSolution.Projects.Any(Function(p) Not p.HasCompleteReferencesAsync().Result) Then
+            If currentSolution.Projects.Any(Function(p) Not p.HasSuccessfullyLoadedAsync().Result) Then
                 AssertEx.Fail("We have an incomplete project floating around which we should not.")
             End If
         End Sub
