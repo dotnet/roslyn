@@ -316,68 +316,12 @@ namespace Microsoft.CodeAnalysis
 
         private void LogLinkedFileDiffMergingSessionInfo(LinkedFileDiffMergingSessionInfo sessionInfo)
         {
-            // don't report telemetry
             if (!_logSessionInfo)
             {
                 return;
             }
 
-            var sessionId = SessionLogMessage.GetNextId();
-
-            Logger.Log(FunctionId.Workspace_Solution_LinkedFileDiffMergingSession, SessionLogMessage.Create(sessionId, sessionInfo));
-
-            foreach (var groupInfo in sessionInfo.LinkedFileGroups)
-            {
-                Logger.Log(FunctionId.Workspace_Solution_LinkedFileDiffMergingSession_LinkedFileGroup, SessionLogMessage.Create(sessionId, groupInfo));
-            }
-        }
-
-        internal static class SessionLogMessage
-        {
-            private const string SessionId = nameof(SessionId);
-            private const string HasLinkedFile = nameof(HasLinkedFile);
-
-            private const string LinkedDocuments = nameof(LinkedDocuments);
-            private const string DocumentsWithChanges = nameof(DocumentsWithChanges);
-            private const string IdenticalDiffs = nameof(IdenticalDiffs);
-            private const string IsolatedDiffs = nameof(IsolatedDiffs);
-            private const string OverlappingDistinctDiffs = nameof(OverlappingDistinctDiffs);
-            private const string OverlappingDistinctDiffsWithSameSpan = nameof(OverlappingDistinctDiffsWithSameSpan);
-            private const string OverlappingDistinctDiffsWithSameSpanAndSubstringRelation = nameof(OverlappingDistinctDiffsWithSameSpanAndSubstringRelation);
-            private const string InsertedMergeConflictComments = nameof(InsertedMergeConflictComments);
-            private const string InsertedMergeConflictCommentsAtAdjustedLocation = nameof(InsertedMergeConflictCommentsAtAdjustedLocation);
-
-            public static KeyValueLogMessage Create(int sessionId, LinkedFileDiffMergingSessionInfo sessionInfo)
-            {
-                return KeyValueLogMessage.Create(m =>
-                {
-                    m[SessionId] = sessionId;
-                    m[HasLinkedFile] = sessionInfo.LinkedFileGroups.Count > 0;
-                });
-            }
-
-            public static KeyValueLogMessage Create(int sessionId, LinkedFileGroupSessionInfo groupInfo)
-            {
-                return KeyValueLogMessage.Create(m =>
-                {
-                    m[SessionId] = sessionId;
-
-                    m[LinkedDocuments] = groupInfo.LinkedDocuments;
-                    m[DocumentsWithChanges] = groupInfo.DocumentsWithChanges;
-                    m[IdenticalDiffs] = groupInfo.IdenticalDiffs;
-                    m[IsolatedDiffs] = groupInfo.IsolatedDiffs;
-                    m[OverlappingDistinctDiffs] = groupInfo.OverlappingDistinctDiffs;
-                    m[OverlappingDistinctDiffsWithSameSpan] = groupInfo.OverlappingDistinctDiffsWithSameSpan;
-                    m[OverlappingDistinctDiffsWithSameSpanAndSubstringRelation] = groupInfo.OverlappingDistinctDiffsWithSameSpanAndSubstringRelation;
-                    m[InsertedMergeConflictComments] = groupInfo.InsertedMergeConflictComments;
-                    m[InsertedMergeConflictCommentsAtAdjustedLocation] = groupInfo.InsertedMergeConflictCommentsAtAdjustedLocation;
-                });
-            }
-
-            public static int GetNextId()
-            {
-                return LogAggregator.GetNextId();
-            }
+            LinkedFileDiffMergingLogger.LogSession(this._newSolution.Workspace, sessionInfo);
         }
 
         internal class LinkedFileDiffMergingSessionInfo
