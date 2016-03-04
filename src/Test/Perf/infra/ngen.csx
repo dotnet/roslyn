@@ -4,24 +4,12 @@
 
 using System.IO;
 
-var fakeSign = Path.GetFullPath(Environment.GetFolderPath(Environment.SpecialFolder.UserProfile), @".nuget\FakeSign\0.9.2\tools\FakeSign.exe");
+var ngen = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.Windows), @"Microsoft.NET\Framework\v4.0.30319\ngen.exe");
+var ngen64 = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.Windows), @"Microsoft.NET\Framework64\v4.0.30319\ngen.exe");
 
-if (!File.Exists(fakeSign))
+int NGen(string file, bool x86Only = false)
 {
-    throw new FileNotFoundException("NGen requires the FakeSign utility.", fakeSign);
-}
-
-var ngen = Path.GetFullPath(Environment.GetFolderPath(Environment.SpecialFolder.Windows), @"Microsoft.NET\Framework\ngen.exe");
-var ngen64 = Path.GetFullPath(Environment.GetFolderPath(Environment.SpecialFolder.UserProfile), @"Microsoft.NET\Framework64\ngen.exe");
-
-void NGen(string file, bool x86Only = false)
-{
-    // We'll have to remove the "fake sign" bit in order to ngen.
-    // Note: "FakeSign -u" may fail for reasons that should not prevent us from trying to ngen
-    // (for instance, if the binary was not "fake signed" to begin with).
-    ShellOut(fakeSign + " -u " + destinationFile);
-
-    var result = ShellOut(ngen, $"install {destinationFile} /nodependencies");
+    var result = ShellOut(ngen, $"install {file} /nodependencies");
     if (!result.Succeeded)
     {
         return result.Code;
@@ -29,10 +17,12 @@ void NGen(string file, bool x86Only = false)
 
     if (!x86Only)
     {
-        result = ShellOut(ngen64, $"install {destinationFile} /nodependencies");
+        result = ShellOut(ngen64, $"install {file} /nodependencies");
         if (!result.Succeeded)
         {
             return result.Code;
         }
     }
+
+    return 0;
 }
