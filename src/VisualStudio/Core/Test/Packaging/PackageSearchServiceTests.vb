@@ -120,6 +120,50 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Packaging
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.Packaging)>
+        Public Async Function FailureToParseFullDBAtXmlLevelTakesCatastrophicPath() As Task
+            Dim cancellationTokenSource = New CancellationTokenSource()
+
+            Dim ioMock = New Mock(Of IPackageSearchIOService)()
+
+            ' Simlute the local database being missing.
+            ioMock.Setup(Function(s) s.Exists(It.IsAny(Of FileSystemInfo))).Returns(False)
+
+            Dim clientMock = CreateClientMock(CreateStream(New XElement("Database",
+                New XAttribute(PackageSearchService.ContentAttributeName, ""),
+                New XAttribute(PackageSearchService.ChecksumAttributeName, Convert.ToBase64String(New Byte() {0, 1, 2})))))
+
+            Dim serviceMock = New Mock(Of IPackageSearchRemoteControlService)(MockBehavior.Strict)
+
+            ' The client should request the 'Latest' database from the server. 
+            ' Cancel processing at that point so the test can complete.
+            serviceMock.Setup(
+                Function(s) s.CreateClient(It.IsAny(Of String), It.IsRegex(".*Latest.*"), It.IsAny(Of Integer))).
+                Returns(clientMock.Object)
+
+            Dim delayMock = New Mock(Of IPackageSearchDelayService)(MockBehavior.Strict)
+            delayMock.SetupGet(Function(s) s.CatastrophicFailureDelay).Returns(TimeSpan.Zero).Callback(
+                AddressOf cancellationTokenSource.Cancel)
+
+            Dim searchService = New PackageSearchService(
+                installerService:=TestInstallerService.Instance,
+                remoteControlService:=serviceMock.Object,
+                logService:=TestLogService.Instance,
+                delayService:=delayMock.Object,
+                ioService:=ioMock.Object,
+                patchService:=Nothing,
+                databaseFactoryService:=Nothing,
+                localSettingsDirectory:="TestDirectory",
+                reportAndSwallowException:=s_allButMoqExceptions,
+                cancellationTokenSource:=cancellationTokenSource)
+
+            Await searchService.UpdateSourceInBackgroundAsync(PackageSearchService.NugetOrgSource)
+            ioMock.Verify()
+            serviceMock.Verify()
+            clientMock.Verify()
+            delayMock.Verify()
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.Packaging)>
         Public Async Function TestClientDisposedAfterUse() As Task
             Dim cancellationTokenSource = New CancellationTokenSource()
 
@@ -180,7 +224,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Packaging
             ' control when we do our next loop.
             ' Cancel processing at that point so the test can complete.
             Dim delayMock = New Mock(Of IPackageSearchDelayService)(MockBehavior.Strict)
-            delayMock.SetupGet(Function(s) s.UpdateFailedDelay).Returns(TimeSpan.Zero).Callback(
+            delayMock.SetupGet(Function(s) s.ExpectedFailureDelay).Returns(TimeSpan.Zero).Callback(
                 AddressOf cancellationTokenSource.Cancel)
 
             Dim searchService = New PackageSearchService(
@@ -203,7 +247,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Packaging
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.Packaging)>
-        Public Async Function FailureToParseDBRunsFailureLoopPath() As Task
+        Public Async Function FailureToParseFullDBAtElfieLevelTakesCatastrophicPath() As Task
             Dim cancellationTokenSource = New CancellationTokenSource()
 
             Dim ioMock = New Mock(Of IPackageSearchIOService)()
@@ -223,7 +267,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Packaging
             ' control when we do our next loop.
             ' Cancel processing at that point so the test can complete.
             Dim delayMock = New Mock(Of IPackageSearchDelayService)(MockBehavior.Strict)
-            delayMock.SetupGet(Function(s) s.UpdateFailedDelay).Returns(TimeSpan.Zero).Callback(
+            delayMock.SetupGet(Function(s) s.CatastrophicFailureDelay).Returns(TimeSpan.Zero).Callback(
                 AddressOf cancellationTokenSource.Cancel)
 
             Dim searchService = New PackageSearchService(
@@ -667,13 +711,19 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Packaging
                 End Get
             End Property
 
-            Public ReadOnly Property UpdateFailedDelay As TimeSpan Implements IPackageSearchDelayService.UpdateFailedDelay
+            Public ReadOnly Property ExpectedFailureDelay As TimeSpan Implements IPackageSearchDelayService.ExpectedFailureDelay
                 Get
                     Return TimeSpan.Zero
                 End Get
             End Property
 
             Public ReadOnly Property UpdateSucceededDelay As TimeSpan Implements IPackageSearchDelayService.UpdateSucceededDelay
+                Get
+                    Return TimeSpan.Zero
+                End Get
+            End Property
+
+            Public ReadOnly Property CatastrophicFailureDelay As TimeSpan Implements IPackageSearchDelayService.CatastrophicFailureDelay
                 Get
                     Return TimeSpan.Zero
                 End Get

@@ -5,6 +5,8 @@ using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.IO;
 using System.IO.Compression;
+using System.Linq;
+using System.Security.Cryptography;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
@@ -30,6 +32,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Packaging
     {
         // Internal for testing purposes.
         internal const string ContentAttributeName = "content";
+        internal const string ChecksumAttributeName = "checksum";
         internal const string UpToDateAttributeName = "upToDate";
         internal const string TooOldAttributeName = "tooOld";
         internal const string NugetOrgSource = "nuget.org";
@@ -220,7 +223,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Packaging
                     // Note: we skip OperationCanceledException because it's not 'bad'.
                     // It's the standard way to indicate that we've been asked to shut
                     // down.
-                    var delay = _service._delayService.UpdateFailedDelay;
+                    var delay = _service._delayService.ExpectedFailureDelay;
                     _service.LogException(e, $"Error occurred updating. Retrying update in {delay}");
                     return delay;
                 }
@@ -261,11 +264,35 @@ namespace Microsoft.VisualStudio.LanguageServices.Packaging
                 _service.LogInfo("Processing full database element");
 
                 // Convert the database contents in the xml to a byte[].
-                var bytes = ParseDatabaseElement(element);
+                byte[] bytes;
+                if (!TryParseDatabaseElement(element, out bytes))
+                {
+                    // Something was wrong with the full database.  Trying again soon after won't
+                    // really help.  We'll just get the same busted XML from the remote service
+                    // cache.  So we want to actually wait some long enough amount of time so that
+                    // we can retrieve good data the next time around.
+
+                    var failureDelay = _service._delayService.CatastrophicFailureDelay;
+                    _service.LogInfo($"Unable to parse full database element. Update again in {failureDelay}");
+                    return failureDelay;
+                }
 
                 // Make a database out of that and set it to our in memory database that we'll be 
                 // searching.
-                CreateAndSetInMemoryDatabase(bytes);
+                try
+                {
+                    CreateAndSetInMemoryDatabase(bytes);
+                }
+                catch (Exception e) when (_service._reportAndSwallowException(e))
+                {
+                    // We retrieved bytes from teh server, but we couldn't make a DB
+                    // out of it.  That's very bad.  Just trying again one minute later
+                    // isn't going to help.  We need to wait until there is good data
+                    // on the server for us to download.
+                    var failureDelay = _service._delayService.CatastrophicFailureDelay;
+                    _service.LogInfo($"Unable to create database from full database element. Update again in {failureDelay}");
+                    return failureDelay;
+                }
 
                 // Write the file out to disk so we'll have it the next time we launch VS.  Do this
                 // after we set the in-memory instance so we at least have something to search while
@@ -578,21 +605,52 @@ namespace Microsoft.VisualStudio.LanguageServices.Packaging
                 }
             }
 
-            private byte[] ParseDatabaseElement(XElement element)
+            private bool TryParseDatabaseElement(XElement element, out byte[] bytes)
             {
                 _service.LogInfo("Parsing database element");
                 var contentsAttribute = element.Attribute(ContentAttributeName);
                 if (contentsAttribute == null)
                 {
-                    throw new FormatException($"Database element invalid. Missing '{ContentAttributeName}' attribute");
+                    _service._reportAndSwallowException(
+                        new FormatException($"Database element invalid. Missing '{ContentAttributeName}' attribute"));
+
+                    bytes = null;
+                    return false;
                 }
 
+                var contentBytes = ConvertContentAttribute(contentsAttribute);
+
+                var checksumAttribute = element.Attribute(ChecksumAttributeName);
+                if (checksumAttribute != null)
+                {
+                    var expectedChecksum64 = checksumAttribute.Value;
+                    var expectedChecksum = Convert.FromBase64String(expectedChecksum64);
+                    using (var md5 = MD5.Create())
+                    {
+                        var actualChecksum = md5.ComputeHash(contentBytes);
+                        if (!expectedChecksum.SequenceEqual(actualChecksum))
+                        {
+                            _service._reportAndSwallowException(
+                                new FormatException($"Expected checksum {expectedChecksum64} not equal to actual checksum {Convert.ToBase64String(actualChecksum)}"));
+
+                            bytes = null;
+                            return false;
+                        }
+                    }
+                }
+
+                bytes = contentBytes;
+                return true;
+            }
+
+            private byte[] ConvertContentAttribute(XAttribute contentsAttribute)
+            {
                 var text = contentsAttribute.Value;
                 var compressedBytes = Convert.FromBase64String(text);
 
-                using (var inStream = new MemoryStream(compressedBytes))
                 using (var outStream = new MemoryStream())
                 {
+                    using (var inStream = new MemoryStream(compressedBytes))
                     using (var deflateStream = new DeflateStream(inStream, CompressionMode.Decompress))
                     {
                         deflateStream.CopyTo(outStream);
