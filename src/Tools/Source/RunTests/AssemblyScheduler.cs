@@ -153,7 +153,7 @@ namespace RunTests
         /// <summary>
         /// Default number of methods to include per chunk.
         /// </summary>
-        internal const int DefaultMethodLimit = 750;
+        internal const int DefaultMethodLimit = 2000;
 
         private readonly Options _options;
         private readonly int _methodLimit;
