@@ -5,7 +5,6 @@ using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.IO;
 using System.IO.Compression;
-using System.Linq;
 using System.Security.Cryptography;
 using System.Text;
 using System.Threading;
@@ -623,19 +622,20 @@ namespace Microsoft.VisualStudio.LanguageServices.Packaging
                 var checksumAttribute = element.Attribute(ChecksumAttributeName);
                 if (checksumAttribute != null)
                 {
-                    var expectedChecksum64 = checksumAttribute.Value;
-                    var expectedChecksum = Convert.FromBase64String(expectedChecksum64);
+                    var expectedChecksum = checksumAttribute.Value;
+                    string actualChecksum;
                     using (var sha256 = SHA256.Create())
                     {
-                        var actualChecksum = sha256.ComputeHash(contentBytes);
-                        if (!expectedChecksum.SequenceEqual(actualChecksum))
-                        {
-                            _service._reportAndSwallowException(
-                                new FormatException($"Expected checksum {expectedChecksum64} not equal to actual checksum {Convert.ToBase64String(actualChecksum)}"));
+                        actualChecksum = Convert.ToBase64String(sha256.ComputeHash(contentBytes));
+                    }
 
-                            bytes = null;
-                            return false;
-                        }
+                    if (expectedChecksum != actualChecksum)
+                    {
+                        _service._reportAndSwallowException(
+                            new FormatException($"Expected checksum {expectedChecksum} not equal to actual checksum {actualChecksum}"));
+
+                        bytes = null;
+                        return false;
                     }
                 }
 
