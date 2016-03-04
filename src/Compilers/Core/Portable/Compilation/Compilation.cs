@@ -1885,7 +1885,15 @@ namespace Microsoft.CodeAnalysis
                     {
                         Debug.Assert(Options.StrongNameProvider != null);
 
-                        signingInputStream = Options.StrongNameProvider.CreateInputStream();
+                        try
+                        {
+                            signingInputStream = Options.StrongNameProvider.CreateInputStream();
+                        }
+                        catch (IOException e)
+                        {
+                            throw new Cci.PeWritingException(e);
+                        }
+
                         retStream = signingInputStream;
                     }
                     else
