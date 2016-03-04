@@ -78,6 +78,8 @@ namespace RunTests
                 // an empty log just in case, so our runner will still fail.
                 File.Create(resultsFilePath).Close();
 
+                var dumpOutputFilePath = Path.Combine(resultsDir, Path.GetFileNameWithoutExtension(assemblyPath) + ".dmp");
+
                 var start = DateTime.UtcNow;
                 var xunitPath = _options.XunitPath;
                 var processOutput = await ProcessRunner.RunProcessAsync(
@@ -86,7 +88,8 @@ namespace RunTests
                     lowPriority: false,
                     displayWindow: false,
                     captureOutput: true,
-                    cancellationToken: cancellationToken).ConfigureAwait(false);
+                    cancellationToken: cancellationToken,
+                    processMonitor: p => CrashDumps.TryMonitorProcess(p, dumpOutputFilePath)).ConfigureAwait(false);
                 var span = DateTime.UtcNow - start;
 
                 if (processOutput.ExitCode != 0)
