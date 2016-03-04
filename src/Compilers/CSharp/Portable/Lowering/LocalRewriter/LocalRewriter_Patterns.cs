@@ -48,12 +48,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                         input = _factory.Local(temp);
                         for (int i = 0; i < pat.Subpatterns.Length; i++)
                         {
-                            var subProperty = pat.Subpatterns[i].Property;
+                            var subProperty = (pat.Subpatterns[i].Member as BoundPropertyPatternMember)?.MemberSymbol;
                             var subPattern = pat.Subpatterns[i].Pattern;
                             var subExpression =
-                                subProperty.Kind == SymbolKind.Field
-                                    ? (BoundExpression)_factory.Field(input, (FieldSymbol)subProperty)
-                                    : _factory.Call(input, ((PropertySymbol)subProperty).GetMethod);
+                                subProperty?.Kind == SymbolKind.Field ? _factory.Field(input, (FieldSymbol)subProperty) :
+                                subProperty?.Kind == SymbolKind.Property ? _factory.Call(input, ((PropertySymbol)subProperty).GetMethod) :
+                                (BoundExpression)new BoundBadExpression(_factory.Syntax, LookupResultKind.Inaccessible, ImmutableArray<Symbol>.Empty, ImmutableArray<BoundNode>.Empty, pat.Type);
                             var partialMatch = this.TranslatePattern(subExpression, subPattern);
                             matched = _factory.LogicalAnd(matched, partialMatch);
                         }

@@ -123,7 +123,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             var builder = ArrayBuilder<BoundSubPropertyPattern>.GetInstance(properties.Length);
             for (int i = 0; i < properties.Length; i++)
             {
-                builder.Add(new BoundSubPropertyPattern(node.PatternList.SubPatterns[i], properties[i].GetTypeOrReturnType(), properties[i], LookupResultKind.Empty, boundPatterns[i], hasErrors));
+                var member = new BoundPropertyPatternMember(node.PatternList.SubPatterns[i], properties[i], ImmutableArray<BoundExpression>.Empty, ImmutableArray<string>.Empty, ImmutableArray<RefKind>.Empty, false, default(ImmutableArray<int>), LookupResultKind.Empty, properties[i].GetTypeOrReturnType(), hasErrors);
+                builder.Add(new BoundSubPropertyPattern(node.PatternList.SubPatterns[i], member, boundPatterns[i], hasErrors));
             }
 
             return new BoundPropertyPattern(node, type, builder.ToImmutableAndFree(), hasErrors: hasErrors);
@@ -175,39 +176,142 @@ namespace Microsoft.CodeAnalysis.CSharp
         private ImmutableArray<BoundSubPropertyPattern> BindSubPropertyPatterns(PropertyPatternSyntax node, TypeSymbol type, DiagnosticBag diagnostics)
         {
             var result = ArrayBuilder<BoundSubPropertyPattern>.GetInstance();
-            foreach (var syntax in node.PatternList.SubPatterns)
+            foreach (var e in node.Expressions)
             {
-                var propName = syntax.Left;
-                BoundPattern pattern;
-                HashSet<DiagnosticInfo> useSiteDiagnostics = null;
-                LookupResultKind resultKind;
-                Symbol property = FindPropertyOrFieldByName(type, propName, out resultKind, ref useSiteDiagnostics);
-                if ((object)property != null)
-                {
-                    bool hasErrors = false;
-                    if (property.IsStatic)
-                    {
-                        Error(diagnostics, ErrorCode.ERR_ObjectProhibited, propName, property);
-                        hasErrors = true;
-                    }
-                    else
-                    {
-                        diagnostics.Add(node, useSiteDiagnostics);
-                    }
-
-                    var propertyType = property.GetTypeOrReturnType();
-                    pattern = this.BindPattern(syntax.Pattern, null, propertyType, hasErrors, diagnostics);
-                    result.Add(new BoundSubPropertyPattern(syntax, propertyType, property, resultKind, pattern, hasErrors));
-                }
-                else
-                {
-                    Error(diagnostics, ErrorCode.ERR_NoSuchMember, propName, type, propName.ValueText);
-                    pattern = new BoundWildcardPattern(node, hasErrors: true);
-                    result.Add(new BoundSubPropertyPattern(syntax, CreateErrorType(), null, resultKind, pattern, true));
-                }
+                var syntax = e as IsPatternExpressionSyntax;
+                var identifier = syntax.Expression as IdentifierNameSyntax;
+                var propName = identifier.Identifier;
+                var boundMember = BindPropertyPatternMember(type, identifier, diagnostics);
+                var boundPattern = BindPattern(syntax.Pattern, null, boundMember.Type, boundMember.HasErrors, diagnostics);
+                result.Add(new BoundSubPropertyPattern(e, boundMember, boundPattern, boundPattern.HasErrors));
             }
 
             return result.ToImmutableAndFree();
+        }
+
+        // returns BadBoundExpression or BoundObjectInitializerMember
+        private BoundExpression BindPropertyPatternMember(
+            TypeSymbol patternType,
+            IdentifierNameSyntax memberName,
+            DiagnosticBag diagnostics)
+        {
+            // TODO: consider refactoring out common code with BindObjectInitializerMember
+
+            BoundImplicitReceiver implicitReceiver = new BoundImplicitReceiver(memberName.Parent, patternType);
+
+            // SPEC:    Each member initializer must name an accessible field or property of the object being initialized, followed by an equals sign and
+            // SPEC:    an expression or an object initializer or collection initializer.
+            // SPEC:    A member initializer that specifies an expression after the equals sign is processed in the same way as an assignment (7.17.1) to the field or property.
+
+            // SPEC VIOLATION:  Native compiler also allows initialization of field-like events in object initializers, so we allow it as well.
+
+            BoundExpression boundMember = BindInstanceMemberAccess(
+                node: memberName,
+                right: memberName,
+                boundLeft: implicitReceiver,
+                rightName: memberName.Identifier.ValueText,
+                rightArity: 0,
+                typeArgumentsSyntax: default(SeparatedSyntaxList<TypeSyntax>),
+                typeArguments: default(ImmutableArray<TypeSymbol>),
+                invoked: false,
+                diagnostics: diagnostics);
+
+            LookupResultKind resultKind = boundMember.ResultKind;
+            bool hasErrors = boundMember.HasAnyErrors || implicitReceiver.HasAnyErrors;
+
+            if (boundMember.Kind == BoundKind.PropertyGroup)
+            {
+                boundMember = BindIndexedPropertyAccess((BoundPropertyGroup)boundMember, mustHaveAllOptionalParameters: true, diagnostics: diagnostics);
+                if (boundMember.HasAnyErrors)
+                {
+                    hasErrors = true;
+                }
+            }
+
+            ImmutableArray<BoundExpression> arguments = ImmutableArray<BoundExpression>.Empty;
+            ImmutableArray<string> argumentNamesOpt = default(ImmutableArray<string>);
+            ImmutableArray<int> argsToParamsOpt = default(ImmutableArray<int>);
+            ImmutableArray<RefKind> argumentRefKindsOpt = default(ImmutableArray<RefKind>);
+            bool expanded = false;
+
+            switch (boundMember.Kind)
+            {
+                case BoundKind.FieldAccess:
+                case BoundKind.EventAccess:
+                case BoundKind.PropertyAccess:
+                    break;
+
+                case BoundKind.IndexerAccess:
+                    {
+                        var indexer = (BoundIndexerAccess)boundMember;
+                        arguments = indexer.Arguments;
+                        argumentNamesOpt = indexer.ArgumentNamesOpt;
+                        argsToParamsOpt = indexer.ArgsToParamsOpt;
+                        argumentRefKindsOpt = indexer.ArgumentRefKindsOpt;
+                        expanded = indexer.Expanded;
+                        break;
+                    }
+
+                case BoundKind.DynamicIndexerAccess:
+                    {
+                        var indexer = (BoundDynamicIndexerAccess)boundMember;
+                        arguments = indexer.Arguments;
+                        argumentNamesOpt = indexer.ArgumentNamesOpt;
+                        argumentRefKindsOpt = indexer.ArgumentRefKindsOpt;
+                        break;
+                    }
+
+                default:
+                    return BadSubpatternMemberAccess(boundMember, implicitReceiver, memberName, diagnostics, hasErrors);
+            }
+
+            if (!hasErrors && !CheckValueKind(boundMember, BindValueKind.RValue, diagnostics))
+            {
+                hasErrors = true;
+                resultKind = LookupResultKind.NotAValue;
+            }
+
+            return new BoundPropertyPatternMember(
+                memberName,
+                boundMember.ExpressionSymbol,
+                arguments,
+                argumentNamesOpt,
+                argumentRefKindsOpt,
+                expanded,
+                argsToParamsOpt,
+                resultKind,
+                boundMember.Type,
+                hasErrors);
+        }
+
+        private BoundExpression BadSubpatternMemberAccess(
+            BoundExpression boundMember,
+            BoundImplicitReceiver implicitReceiver,
+            IdentifierNameSyntax memberName,
+            DiagnosticBag diagnostics,
+            bool suppressErrors)
+        {
+            if (!suppressErrors)
+            {
+                string member = memberName.Identifier.ValueText;
+                switch (boundMember.ResultKind)
+                {
+                    case LookupResultKind.Empty:
+                        Error(diagnostics, ErrorCode.ERR_NoSuchMember, memberName, implicitReceiver.Type, member);
+                        break;
+
+                    case LookupResultKind.Inaccessible:
+                        boundMember = CheckValue(boundMember, BindValueKind.RValue, diagnostics);
+                        Debug.Assert(boundMember.HasAnyErrors);
+                        break;
+
+                    default:
+                        Error(diagnostics, ErrorCode.ERR_PropertyLacksGet, memberName, member);
+                        break;
+                }
+            }
+
+            return ToBadExpression(boundMember, LookupResultKind.NotAValue);
         }
 
         private Symbol FindPropertyOrFieldByName(TypeSymbol type, SyntaxToken name, out LookupResultKind resultKind, ref HashSet<DiagnosticInfo> useSiteDiagnostics)

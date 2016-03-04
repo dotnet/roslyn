@@ -53,7 +53,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                         // X.Y.Z { ... } : PropertyPattern
                         else if (tk == SyntaxKind.OpenBraceToken)
                         {
-                            node = _syntaxFactory.PropertyPattern(type, this.ParseSubPropertyPatternList());
+                            var open = this.EatToken(SyntaxKind.OpenBraceToken);
+                            var list = this.ParseSubPropertyPatternList(ref open);
+                            var close = this.EatToken(SyntaxKind.CloseBraceToken);
+                            node = _syntaxFactory.PropertyPattern(type, open, list, close);
                         }
                         // X.Y.Z id
                         else if (this.IsTrueIdentifier())
@@ -243,7 +246,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                         // X.Y.Z { ... } : PropertyPattern
                         else if (tk == SyntaxKind.OpenBraceToken)
                         {
-                            node = _syntaxFactory.PropertyPattern(type, this.ParseSubPropertyPatternList());
+                            var openBrace = this.EatToken(SyntaxKind.OpenBraceToken);
+                            var contents = this.ParseSubPropertyPatternList(ref openBrace);
+                            var closeBrace = this.EatToken(SyntaxKind.CloseBraceToken);
+                            node = _syntaxFactory.PropertyPattern(type, openBrace, contents, closeBrace);
                         }
                         // X.Y.Z id
                         else if (this.IsTrueIdentifier())
@@ -272,28 +278,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             return node;
         }
 
-        private SubPropertyPatternListSyntax ParseSubPropertyPatternList()
+        private SeparatedSyntaxList<ExpressionSyntax> ParseSubPropertyPatternList(ref SyntaxToken openBrace)
         {
-            var openBrace = this.EatToken(SyntaxKind.OpenBraceToken);
-
-            var subPatterns = _pool.AllocateSeparated<SubPropertyPatternSyntax>();
-            try
-            {
-                this.ParseSubPropertyPatternList(ref openBrace, subPatterns);
-
-                var closeBrace = this.EatToken(SyntaxKind.CloseBraceToken);
-                return _syntaxFactory.SubPropertyPatternList(
-                    openBrace,
-                    subPatterns,
-                    closeBrace);
-            }
-            finally
-            {
-                _pool.Free(subPatterns);
-            }
+            var subPatterns = _pool.AllocateSeparated<ExpressionSyntax>();
+            this.ParseSubPropertyPatternList(ref openBrace, subPatterns);
+            var result = subPatterns.ToList();
+            _pool.Free(subPatterns);
+            return result;
         }
 
-        private void ParseSubPropertyPatternList(ref SyntaxToken startToken, SeparatedSyntaxListBuilder<SubPropertyPatternSyntax> list)
+        private void ParseSubPropertyPatternList(ref SyntaxToken openBrace, SeparatedSyntaxListBuilder<ExpressionSyntax> list)
         {
             if (this.CurrentToken.Kind != SyntaxKind.CloseBraceToken)
             {
@@ -323,13 +317,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                             list.Add(ParseSubPropertyPattern());
                             continue;
                         }
-                        else if (this.SkipBadSubPatternListTokens(ref startToken, list, SyntaxKind.CommaToken, SyntaxKind.CloseBraceToken) == PostSkipAction.Abort)
+                        else if (this.SkipBadSubPatternListTokens(ref openBrace, list, SyntaxKind.CommaToken, SyntaxKind.CloseBraceToken) == PostSkipAction.Abort)
                         {
                             break;
                         }
                     }
                 }
-                else if (this.SkipBadSubPatternListTokens(ref startToken, list, SyntaxKind.IdentifierToken, SyntaxKind.CloseBraceToken) == PostSkipAction.Continue)
+                else if (this.SkipBadSubPatternListTokens(ref openBrace, list, SyntaxKind.IdentifierToken, SyntaxKind.CloseBraceToken) == PostSkipAction.Continue)
                 {
                     goto tryAgain;
                 }
@@ -341,16 +335,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             return (this.CurrentToken.Kind == SyntaxKind.IdentifierToken) && (this.PeekToken(1).Kind == SyntaxKind.IsKeyword);
         }
 
-        private SubPropertyPatternSyntax ParseSubPropertyPattern()
+        private IsPatternExpressionSyntax ParseSubPropertyPattern()
         {
             var name = this.EatToken(SyntaxKind.IdentifierToken);
-            var operandToken = this.EatToken(SyntaxKind.IsKeyword);
+            var identifier = _syntaxFactory.IdentifierName(name);
+            var isKeyword = this.EatToken(SyntaxKind.IsKeyword);
 
             PatternSyntax pattern = this.CurrentToken.Kind == SyntaxKind.CommaToken ?
                                                         this.AddError(_syntaxFactory.ConstantPattern(this.CreateMissingIdentifierName()), ErrorCode.ERR_MissingArgument) :
                                                         ParsePattern();
-
-            return _syntaxFactory.SubPropertyPattern(name, operandToken, pattern);
+            return _syntaxFactory.IsPatternExpression(identifier, isKeyword, pattern);
         }
 
         private PostSkipAction SkipBadSubPatternListTokens<TNode>(ref SyntaxToken open, SeparatedSyntaxListBuilder<TNode> list, SyntaxKind expected, SyntaxKind closeKind) where TNode : CSharpSyntaxNode

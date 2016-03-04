@@ -273,10 +273,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                             int n = propPattern.Subpatterns.Length;
                             for (int i = 0; i < n; i++)
                             {
-                                var prop = propPattern.Subpatterns[i].Property;
+                                var prop = (propPattern.Subpatterns[i].Member as BoundPropertyPatternMember)?.MemberSymbol;
                                 var pat = propPattern.Subpatterns[i].Pattern;
                                 BoundExpression subExpr;
-                                switch (prop.Kind)
+                                switch (prop?.Kind)
                                 {
                                     case SymbolKind.Property:
                                         var propSymbol = (PropertySymbol)prop;
@@ -286,6 +286,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                                         var fieldSymbol = (FieldSymbol)prop;
                                         subExpr = new BoundFieldAccess(pat.Syntax, null, fieldSymbol, null);
                                         break;
+                                    // TODO: what about events?
                                     default:
                                         return false;
                                 }

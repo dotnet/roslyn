@@ -1450,10 +1450,22 @@
   </Node>
 
   <Node Name="BoundSubPropertyPattern" Base="BoundNode">
-    <Field Name="Type" Type="TypeSymbol" Null="disallow"/>
-    <Field Name="Property" Type="Symbol" Null="allow"/>
-    <Field Name="ResultKind" Type="LookupResultKind"/>
+    <!-- Member is either a BoundPropertyPatternMember or an error expression -->
+    <Field Name="Member" Type="BoundExpression" Null="disallow"/>
     <Field Name="Pattern" Type="BoundPattern" Null="disallow"/>
+  </Node>
+
+  <Node Name="BoundPropertyPatternMember" Base="BoundExpression">
+    <!-- Non-null type is required for this node kind -->
+    <Field Name="Type" Type="TypeSymbol" Override="true" Null="disallow"/>
+
+    <Field Name="MemberSymbol" Type="Symbol" Null="allow"/>
+    <Field Name="Arguments" Type="ImmutableArray&lt;BoundExpression&gt;"/>
+    <Field Name="ArgumentNamesOpt" Type="ImmutableArray&lt;string&gt;" Null="allow"/>
+    <Field Name="ArgumentRefKindsOpt" Type="ImmutableArray&lt;RefKind&gt;" Null="allow"/>
+    <Field Name="Expanded" Type="bool"/>
+    <Field Name="ArgsToParamsOpt" Type="ImmutableArray&lt;int&gt;" Null="allow"/>
+    <Field Name="ResultKind" PropertyOverrides="true" Type="LookupResultKind"/>
   </Node>
 
   <Node Name="BoundRecursivePattern" Base="BoundPattern">
