@@ -2976,5 +2976,23 @@ public class X
                 // error CS8104: An error occurred while writing the Portable Executable file.
                 Diagnostic(ErrorCode.ERR_PeWritingFailure).WithArguments(broken.ThrownException.ToString()).WithLocation(1, 1));
         }
+
+        [Fact]
+        [WorkItem(9308, "https://github.com/dotnet/roslyn/issues/9308")]
+        public void FailingEmitterAllowsCancelationExceptionsThrough()
+        {
+            string source = @"
+public class X
+{
+    public static void Main()
+    {
+  
+    }
+}";
+            var compilation = CreateCompilationWithMscorlib(source);
+            var broken = new BrokenStream();
+            broken.BreakHow = BrokenStream.BreakHowType.ThrowOnWriteWithOperationCancled;
+            Assert.Throws<OperationCanceledException>(() => compilation.Emit(broken));
+        }
     }
 }
