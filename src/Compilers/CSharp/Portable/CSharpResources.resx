@@ -4676,6 +4676,6 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
     <value>Combined length of user strings used by the program exceeds allowed limit. Try to decrease use of string literals.</value>
   </data>
   <data name="ERR_PeWritingFailure" xml:space="preserve">
-    <value>An error occurred while writing the output file.</value>
+    <value>An error occurred while writing the output file: {0}</value>
   </data>
 </root>

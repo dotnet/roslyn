@@ -7,7 +7,15 @@ namespace Roslyn.Test.Utilities
 {
     internal class BrokenStream : Stream
     {
-        public int BreakHow;
+        public enum BreakHowType
+        {
+            ThrowOnSetPosition,
+            ThrowOnWrite,
+            ThrowOnSetLength
+        }
+
+        public BreakHowType BreakHow;
+        public Exception ThrownException { get; private set; }
 
         public override bool CanRead
         {
@@ -44,8 +52,11 @@ namespace Roslyn.Test.Utilities
             }
             set
             {
-                if (BreakHow == 1)
-                    throw new NotSupportedException();
+                if (BreakHow == BreakHowType.ThrowOnSetPosition)
+                {
+                    ThrownException = new NotSupportedException();
+                    throw ThrownException;
+                }
             }
         }
 
@@ -61,14 +72,20 @@ namespace Roslyn.Test.Utilities
 
         public override void SetLength(long value)
         {
-            if (BreakHow == 2)
-                throw new IOException();
+            if (BreakHow == BreakHowType.ThrowOnSetLength)
+            {
+                ThrownException = new IOException();
+                throw ThrownException;
+            }
         }
 
         public override void Write(byte[] buffer, int offset, int count)
         {
-            if (BreakHow == 0)
-                throw new IOException();
+            if (BreakHow == BreakHowType.ThrowOnWrite)
+            {
+                ThrownException = new IOException();
+                throw ThrownException;
+            }
         }
     }
 }
