@@ -58,6 +58,8 @@ namespace RunTests
             var result = await testRunner.RunAllAsync(assemblyInfoList, cancellationToken).ConfigureAwait(true);
             var ellapsed = DateTime.Now - start;
 
+            Console.WriteLine($"Test execution time: {ellapsed}");
+
             Logger.Finish();
 
             if (CanUseWebStorage())
@@ -67,11 +69,11 @@ namespace RunTests
 
             if (!result.Succeeded)
             {
-                ConsoleUtil.WriteLine(ConsoleColor.Red, $"Test failures encountered: {ellapsed}");
+                ConsoleUtil.WriteLine(ConsoleColor.Red, $"Test failures encountered");
                 return 1;
             }
 
-            Console.WriteLine($"All tests passed: {ellapsed}");
+            Console.WriteLine($"All tests passed");
             return options.MissingAssemblies.Any() ? 1 : 0;
         }
 

@@ -37,7 +37,7 @@ namespace RunTests
 
         internal async Task<RunAllResult> RunAllAsync(IEnumerable<AssemblyInfo> assemblyInfoList, CancellationToken cancellationToken)
         {
-            var max = Environment.ProcessorCount;
+            var max = (int)(Environment.ProcessorCount * 1.5);
             var allPassed = true;
             var cacheCount = 0;
             var waiting = new Stack<AssemblyInfo>(assemblyInfoList);
@@ -122,14 +122,15 @@ namespace RunTests
         {
             // Save out the error output for easy artifact inspecting
             var resultsDir = testResult.ResultDir;
-            var outputLogPath = Path.Combine(resultsDir, $"{testResult.AssemblyName}.out.log");
+            var outputLogPath = Path.Combine(resultsDir, $"{testResult.DisplayName}.out.log");
             File.WriteAllText(outputLogPath, testResult.StandardOutput);
 
             Console.WriteLine("Errors {0}: ", testResult.AssemblyName);
             Console.WriteLine(testResult.ErrorOutput);
 
+            // TODO: Put this in the log and take it off the console output to keep it simple? 
             Console.WriteLine($"Command: {testResult.CommandLine}");
-            Console.WriteLine($"xUnit output: {outputLogPath}");
+            Console.WriteLine($"xUnit output log: {outputLogPath}");
 
             if (!string.IsNullOrEmpty(testResult.ErrorOutput))
             {
