@@ -68,7 +68,13 @@ namespace Roslyn.Test.Utilities
         public override void Write(byte[] buffer, int offset, int count)
         {
             if (BreakHow == 0)
+            {
                 throw new IOException();
+            }
+            if (BreakHow == 3)
+            {
+                throw new OperationCanceledException();
+            }
         }
     }
 }
