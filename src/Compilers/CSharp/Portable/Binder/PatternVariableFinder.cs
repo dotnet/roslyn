@@ -13,51 +13,42 @@ namespace Microsoft.CodeAnalysis.CSharp
     class PatternVariableFinder : CSharpSyntaxWalker
     {
         ArrayBuilder<DeclarationPatternSyntax> declarationPatterns;
-        ArrayBuilder<ExpressionSyntax> expressionsToVisit = ArrayBuilder<ExpressionSyntax>.GetInstance();
+        ArrayBuilder<CSharpSyntaxNode> nodesToVisit = ArrayBuilder<CSharpSyntaxNode>.GetInstance();
         internal static ArrayBuilder<DeclarationPatternSyntax> FindPatternVariables(
-            ExpressionSyntax expression = null,
-            ImmutableArray<ExpressionSyntax> expressions = default(ImmutableArray<ExpressionSyntax>),
-            ImmutableArray<PatternSyntax> patterns = default(ImmutableArray<PatternSyntax>))
+            CSharpSyntaxNode node = null,
+            ImmutableArray<CSharpSyntaxNode> nodes = default(ImmutableArray<CSharpSyntaxNode>))
         {
             var finder = s_poolInstance.Allocate();
             finder.declarationPatterns = ArrayBuilder<DeclarationPatternSyntax>.GetInstance();
 
-            // push expressions to be visited onto a stack
-            var expressionsToVisit = finder.expressionsToVisit;
-            if (expression != null) expressionsToVisit.Add(expression);
-            if (!expressions.IsDefaultOrEmpty)
+            // push nodes to be visited onto a stack
+            var nodesToVisit = finder.nodesToVisit;
+            if (node != null) nodesToVisit.Add(node);
+            if (!nodes.IsDefaultOrEmpty)
             {
-                foreach (var subExpression in expressions)
+                foreach (var subExpression in nodes)
                 {
-                    if (subExpression != null) expressionsToVisit.Add(subExpression);
+                    if (subExpression != null) nodesToVisit.Add(subExpression);
                 }
             }
 
-            expressionsToVisit.ReverseContents();
+            nodesToVisit.ReverseContents();
 
-            finder.VisitExpressions();
-
-            if (!patterns.IsDefaultOrEmpty)
-            {
-                foreach (var pattern in patterns)
-                {
-                    finder.Visit(pattern);
-                }
-            }
+            finder.VisitNodes();
 
             var result = finder.declarationPatterns;
             finder.declarationPatterns = null;
-            Debug.Assert(finder.expressionsToVisit.Count == 0);
+            Debug.Assert(finder.nodesToVisit.Count == 0);
             s_poolInstance.Free(finder);
             return result;
         }
 
-        private void VisitExpressions()
+        private void VisitNodes()
         {
-            while (expressionsToVisit.Count != 0)
+            while (nodesToVisit.Count != 0)
             {
-                var e = expressionsToVisit[expressionsToVisit.Count - 1];
-                expressionsToVisit.RemoveLast();
+                var e = nodesToVisit[nodesToVisit.Count - 1];
+                nodesToVisit.RemoveLast();
                 Visit(e);
             }
         }
@@ -88,16 +79,16 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public override void VisitBinaryExpression(BinaryExpressionSyntax node)
         {
-            expressionsToVisit.Add(node.Right);
-            expressionsToVisit.Add(node.Left);
+            nodesToVisit.Add(node.Right);
+            nodesToVisit.Add(node.Left);
         }
         public override void VisitPostfixUnaryExpression(PostfixUnaryExpressionSyntax node)
         {
-            expressionsToVisit.Add(node.Operand);
+            nodesToVisit.Add(node.Operand);
         }
         public override void VisitPrefixUnaryExpression(PrefixUnaryExpressionSyntax node)
         {
-            expressionsToVisit.Add(node.Operand);
+            nodesToVisit.Add(node.Operand);
         }
         public override void VisitMatchExpression(MatchExpressionSyntax node)
         {

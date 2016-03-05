@@ -16,7 +16,8 @@ namespace Microsoft.CodeAnalysis.CSharp
     {
         private BoundPatternSwitchStatement BindPatternSwitch(SwitchStatementSyntax node, DiagnosticBag diagnostics)
         {
-            var boundSwitchExpression = BindValue(node.Expression, diagnostics, BindValueKind.RValue);
+            // See BindSwitchExpression for an explanation why we should use Next binder here.
+            var boundSwitchExpression = this.Next.BindValue(node.Expression, diagnostics, BindValueKind.RValue);
             // TODO: any constraints on a switch expression must be enforced here. For example,
             // it must have a type (not be target-typed, lambda, null, etc)
 
