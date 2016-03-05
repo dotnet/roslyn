@@ -1121,7 +1121,7 @@ interface I3 : I1, I2 { }
                 );
             var tree = compilation.SyntaxTrees.Single();
             var model = compilation.GetSemanticModel(tree);
-            var propPats = tree.GetRoot().DescendantNodes().OfType<PropertyPatternSyntax>().SelectMany(s => s.Expressions).OfType<IsPatternExpressionSyntax>().ToArray();
+            var propPats = tree.GetRoot().DescendantNodes().OfType<PropertyPatternSyntax>().SelectMany(s => s.SubPatterns).OfType<IsPatternExpressionSyntax>().ToArray();
             Assert.Equal(1, propPats.Length);
 
             var p = propPats[0].Expression; // 'Property' in "Property is 4"
@@ -1160,7 +1160,7 @@ class Point
                 );
             var tree = compilation.SyntaxTrees.Single();
             var model = compilation.GetSemanticModel(tree);
-            var propPats = tree.GetRoot().DescendantNodes().OfType<PropertyPatternSyntax>().SelectMany(s => s.Expressions).OfType<IsPatternExpressionSyntax>().ToArray();
+            var propPats = tree.GetRoot().DescendantNodes().OfType<PropertyPatternSyntax>().SelectMany(s => s.SubPatterns).OfType<IsPatternExpressionSyntax>().ToArray();
             Assert.Equal(1, propPats.Length);
 
             var p = propPats[0].Expression; // 'X' in "X is 4"

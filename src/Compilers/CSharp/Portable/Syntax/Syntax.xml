@@ -1722,7 +1722,7 @@
         <summary>SyntaxToken representing the open brace.</summary>
       </PropertyComment>
     </Field>
-    <Field Name="Expressions" Type="SeparatedSyntaxList&lt;ExpressionSyntax&gt;">
+    <Field Name="SubPatterns" Type="SeparatedSyntaxList&lt;ExpressionSyntax&gt;">
       <PropertyComment>
         <summary>SeparatedSyntaxList of ExpressionSyntax representing the list of "ID is Pattern" expressions in the property pattern.</summary>
       </PropertyComment>

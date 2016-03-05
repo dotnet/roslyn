@@ -218,10 +218,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             DiagnosticBag diagnostics)
         {
             var result = ArrayBuilder<BoundSubPropertyPattern>.GetInstance();
-            foreach (var e in node.Expressions)
+            foreach (var e in node.SubPatterns)
             {
-                var syntax = (IsPatternExpressionSyntax)e;
-                var identifier = (IdentifierNameSyntax)syntax.Expression;
+                var syntax = e as IsPatternExpressionSyntax;
+                var identifier = syntax?.Expression as IdentifierNameSyntax;
+                if (identifier == null) throw ExceptionUtilities.UnexpectedValue(syntax?.Expression.Kind() ?? e.Kind());
                 var propName = identifier.Identifier;
                 var boundMember = BindPropertyPatternMember(type, identifier, diagnostics);
                 var boundPattern = BindPattern(syntax.Pattern, null, boundMember.Type, boundMember.HasErrors, diagnostics);
