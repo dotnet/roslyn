@@ -220,8 +220,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             var result = ArrayBuilder<BoundSubPropertyPattern>.GetInstance();
             foreach (var e in node.Expressions)
             {
-                var syntax = e as IsPatternExpressionSyntax;
-                var identifier = syntax.Expression as IdentifierNameSyntax;
+                var syntax = (IsPatternExpressionSyntax)e;
+                var identifier = (IdentifierNameSyntax)syntax.Expression;
                 var propName = identifier.Identifier;
                 var boundMember = BindPropertyPatternMember(type, identifier, diagnostics);
                 var boundPattern = BindPattern(syntax.Pattern, null, boundMember.Type, boundMember.HasErrors, diagnostics);
