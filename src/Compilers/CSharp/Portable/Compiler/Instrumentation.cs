@@ -4,6 +4,7 @@ using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CodeGen;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 
@@ -11,64 +12,58 @@ namespace Microsoft.CodeAnalysis.CSharp
 {
     internal sealed class Instrumentation
     {
-        internal static BoundBlock InjectInstrumentation(MethodSymbol method, BoundBlock methodBody, DebugDocumentProvider debugDocumentProvider)
+        internal static BoundBlock InjectInstrumentation(MethodSymbol method, BoundBlock methodBody, int methodOrdinal, TypeCompilationState compilationState, CSharpCompilation compilation, DiagnosticBag diagnostics, DebugDocumentProvider debugDocumentProvider)
         {
             if (methodBody != null)
             {
+                // Create the symbol for the instrumentation payload.
+                SyntheticBoundNodeFactory payloadArrayFactory = new SyntheticBoundNodeFactory(method, methodBody.Syntax, compilationState, diagnostics);
+                TypeSymbol boolType = compilation.GetSpecialType(SpecialType.System_Boolean);
+                TypeSymbol payloadElementType = boolType;
+                ArrayTypeSymbol payloadArrayType = ArrayTypeSymbol.CreateCSharpArray(compilation.Assembly, payloadElementType);
+                SynthesizedFieldSymbol instrumentationPayload = new SynthesizedFieldSymbol(method.ContainingType, payloadArrayType, method.Name + "*instrumentation*" + methodOrdinal.ToString(), isStatic: true);
+                payloadArrayFactory.AddField(method.ContainingType, instrumentationPayload);
+                
+                // Synthesize the instrumentation and collect the points of interest.
+
                 ArrayBuilder<Cci.SequencePoint> pointsBuilder = new ArrayBuilder<Cci.SequencePoint>();
                 BoundTreeRewriter collector = new InstrumentationInjectionWalker(pointsBuilder, debugDocumentProvider);
                 BoundBlock newMethodBody = (BoundBlock)collector.Visit(methodBody);
 
                 ImmutableArray<Cci.SequencePoint> points = pointsBuilder.ToImmutableAndFree();
+
+                // Synthesize the initialization of the instrumentation payload array. It should actually be done either statically or with concurrency-safe code.
+                //
+                // if (payloadArray == null)
+                //     payloadArray = new PayloadType[] { default0, default1, ... defaultN };
+                //
+                // but should be
+                //
+                // if (payloadArray == null)
+                //     Interlocked.CompareExchange(ref payloadArray, new PayloadType[] { default0, default1, ... defaultN }, null);
+
+                ArrayBuilder<BoundExpression> elementsBuilder = new ArrayBuilder<BoundExpression>(points.Length);
+                for (int i = 0; i < points.Length; i++)
+                {
+                    elementsBuilder.Add(payloadArrayFactory.Literal(false));
+                }
+                BoundStatement payloadAssignment =
+                    payloadArrayFactory.Assignment(
+                        payloadArrayFactory.Field(null, instrumentationPayload),
+                        payloadArrayFactory.Array(payloadElementType, elementsBuilder.ToImmutableAndFree()));
+
+                BoundExpression payloadNullTest =
+                    payloadArrayFactory.Binary(BinaryOperatorKind.ObjectEqual, boolType, payloadArrayFactory.Field(null, instrumentationPayload), payloadArrayFactory.Null(payloadArrayType));
+
+                BoundStatement payloadIf =
+                    payloadArrayFactory.If(payloadNullTest, payloadAssignment);
+
+                ImmutableArray<BoundStatement> newStatements = newMethodBody.Statements.Insert(0, payloadIf);
+                newMethodBody = newMethodBody.Update(newMethodBody.Locals, newMethodBody.LocalFunctions, newStatements);
+
                 return newMethodBody;
             }
 
-            return null;
-        }
-    }
-
-    internal sealed class InstrumentationCollectionWalker : BoundTreeWalkerWithStackGuard
-    {
-        private readonly ArrayBuilder<Cci.SequencePoint> _pointsBuilder;
-        private readonly DebugDocumentProvider _debugDocumentProvider;
-        private readonly HashSet<BoundStatement> _statementsToSkip = new HashSet<BoundStatement>();
-
-        public InstrumentationCollectionWalker(ArrayBuilder<Cci.SequencePoint> pointsBuilder, DebugDocumentProvider debugDocumentProvider)
-        {
-            _pointsBuilder = pointsBuilder;
-            _debugDocumentProvider = debugDocumentProvider;
-        }
-
-        public override BoundNode Visit(BoundNode operation)
-        {
-            if (operation == null)
-            {
-                return null;
-            }
-
-            BoundStatement statement = operation as BoundStatement;
-            if (statement != null && !_statementsToSkip.Contains(statement))
-            {
-                if (statement.Kind == BoundKind.SequencePointWithSpan)
-                {
-                    BoundSequencePointWithSpan sequence = (BoundSequencePointWithSpan)statement;
-                    if (sequence.StatementOpt != null)
-                    {
-                        _statementsToSkip.Add(sequence.StatementOpt);
-                    }
-                }
-
-                FileLinePositionSpan lineSpan = statement.Syntax.GetLocation().GetMappedLineSpan();
-                string path = lineSpan.Path;
-                if (path == "")
-                {
-                    path = statement.Syntax.SyntaxTree.FilePath;
-                }
-
-                _pointsBuilder.Add(new Cci.SequencePoint(_debugDocumentProvider.Invoke(path, ""), 0, lineSpan.Span.Start.Line, lineSpan.Span.Start.Character, lineSpan.Span.End.Line, lineSpan.Span.End.Character));
-            }
-
-            base.Visit(operation);
             return null;
         }
     }
@@ -77,7 +72,6 @@ namespace Microsoft.CodeAnalysis.CSharp
     {
         private readonly ArrayBuilder<Cci.SequencePoint> _pointsBuilder;
         private readonly DebugDocumentProvider _debugDocumentProvider;
-        private readonly HashSet<BoundStatement> _statementsToSkip = new HashSet<BoundStatement>();
 
         public InstrumentationInjectionWalker(ArrayBuilder<Cci.SequencePoint> pointsBuilder, DebugDocumentProvider debugDocumentProvider)
         {
@@ -142,8 +136,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public override BoundNode VisitLabeledStatement(BoundLabeledStatement node)
         {
-            MarkStatementToSkip(node.Body);
-            return CollectDynamicAnalysis(base.VisitLabeledStatement(node));
+            // This construct can be ignored in favor of the underlying statement.
+            return base.VisitLabeledStatement(node);
         }
 
         public override BoundNode VisitLabelStatement(BoundLabelStatement node)
@@ -183,8 +177,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public override BoundNode VisitSequencePointWithSpan(BoundSequencePointWithSpan node)
         {
-            MarkStatementToSkip(node.StatementOpt);
-            return CollectDynamicAnalysis(base.VisitSequencePointWithSpan(node));
+            // This construct can be ignored in favor of the underlying statement.
+            return base.VisitSequencePointWithSpan(node);
         }
 
         public override BoundNode VisitStatementList(BoundStatementList node)
@@ -227,14 +221,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             return CollectDynamicAnalysis(base.VisitYieldReturnStatement(node));
         }
 
-        private void MarkStatementToSkip(BoundStatement statement)
-        {
-            if (statement != null)
-            {
-                _statementsToSkip.Add(statement);
-            }
-        }
-
         private BoundNode CollectDynamicAnalysis(BoundNode node)
         {
             BoundStatement statement = node as BoundStatement;
@@ -248,7 +234,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private BoundNode CollectDynamicAnalysis(BoundStatement statement)
         {
-            if (_statementsToSkip.Contains(statement))
+            if (statement.WasCompilerGenerated)
             {
                 return statement;
             }

@@ -973,7 +973,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // Any errors generated below here are considered Emit diagnostics 
                 // and will not be reported to callers Compilation.GetDiagnostics()
 
-                Instrumentation.InjectInstrumentation(methodSymbol, flowAnalyzedBody, _debugDocumentProvider);
+                flowAnalyzedBody = Instrumentation.InjectInstrumentation(methodSymbol, flowAnalyzedBody, methodOrdinal, compilationState, _compilation, _diagnostics, _debugDocumentProvider);
 
                 bool hasBody = flowAnalyzedBody != null;
                 VariableSlotAllocator lazyVariableSlotAllocator = null;
