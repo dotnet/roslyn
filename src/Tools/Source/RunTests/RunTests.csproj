@@ -33,6 +33,7 @@
     <Compile Include="Cache\EmptyDataStorage.cs" />
     <Compile Include="Cache\WebDataStorage.cs" />
     <Compile Include="Constants.cs" />
+    <Compile Include="CrashDumps.cs" />
     <Compile Include="FileUtil.cs" />
     <Compile Include="Cache\IDataStorage.cs" />
     <Compile Include="ITestExecutor.cs" />
