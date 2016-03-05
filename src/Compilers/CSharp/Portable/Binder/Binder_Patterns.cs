@@ -17,24 +17,34 @@ namespace Microsoft.CodeAnalysis.CSharp
             var expression = BindExpression(node.Expression, diagnostics);
             var hasErrors = IsOperandErrors(node, expression, diagnostics);
             var pattern = BindPattern(node.Pattern, expression, expression.Type, hasErrors, diagnostics);
-            return new BoundIsPatternExpression(node, expression, pattern, GetSpecialType(SpecialType.System_Boolean, diagnostics, node), hasErrors);
+            return new BoundIsPatternExpression(
+                node, expression, pattern, GetSpecialType(SpecialType.System_Boolean, diagnostics, node), hasErrors);
         }
 
-        internal BoundPattern BindPattern(PatternSyntax node, BoundExpression operand, TypeSymbol operandType, bool hasErrors, DiagnosticBag diagnostics)
+        internal BoundPattern BindPattern(
+            PatternSyntax node,
+            BoundExpression operand,
+            TypeSymbol operandType,
+            bool hasErrors,
+            DiagnosticBag diagnostics)
         {
             switch (node.Kind())
             {
                 case SyntaxKind.DeclarationPattern:
-                    return BindDeclarationPattern((DeclarationPatternSyntax)node, operand, operandType, hasErrors, diagnostics);
+                    return BindDeclarationPattern(
+                        (DeclarationPatternSyntax)node, operand, operandType, hasErrors, diagnostics);
 
                 case SyntaxKind.ConstantPattern:
-                    return BindConstantPattern((ConstantPatternSyntax)node, operand, operandType, hasErrors, diagnostics);
+                    return BindConstantPattern(
+                        (ConstantPatternSyntax)node, operand, operandType, hasErrors, diagnostics);
 
                 case SyntaxKind.PropertyPattern:
-                    return BindPropertyPattern((PropertyPatternSyntax)node, operand, operandType, hasErrors, diagnostics);
+                    return BindPropertyPattern(
+                        (PropertyPatternSyntax)node, operand, operandType, hasErrors, diagnostics);
 
                 case SyntaxKind.RecursivePattern:
-                    return BindRecursivePattern((RecursivePatternSyntax)node, operand, operandType, hasErrors, diagnostics);
+                    return BindRecursivePattern(
+                        (RecursivePatternSyntax)node, operand, operandType, hasErrors, diagnostics);
 
                 case SyntaxKind.WildcardPattern:
                     return new BoundWildcardPattern(node);
@@ -44,7 +54,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        private BoundPattern BindRecursivePattern(RecursivePatternSyntax node, BoundExpression operand, TypeSymbol operandType, bool hasErrors, DiagnosticBag diagnostics)
+        private BoundPattern BindRecursivePattern(
+            RecursivePatternSyntax node,
+            BoundExpression operand,
+            TypeSymbol operandType,
+            bool hasErrors,
+            DiagnosticBag diagnostics)
         {
             var type = (NamedTypeSymbol)this.BindType(node.Type, diagnostics);
             hasErrors = hasErrors || CheckValidPatternType(node.Type, operand, operandType, type, false, diagnostics);
@@ -97,7 +112,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                     if (!correspondingMembersForCtor.SequenceEqual(correspondingMembers, (s1, s2) => s1 == s2))
                     {
                         correspondingMembersForCtor.Free();
-                        Error(diagnostics, ErrorCode.ERR_FeatureIsUnimplemented, node, "cannot infer a positional pattern from conflicting constructors");
+                        Error(diagnostics, ErrorCode.ERR_FeatureIsUnimplemented, node,
+                            "cannot infer a positional pattern from conflicting constructors");
                         diagnostics.Add(node, useSiteDiagnostics);
                         hasErrors = true;
                         return new BoundWildcardPattern(node, hasErrors);
@@ -108,7 +124,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (correspondingMembers == null)
             {
-                Error(diagnostics, ErrorCode.ERR_FeatureIsUnimplemented, node, "cannot infer a positional pattern from any accessible constructor");
+                Error(diagnostics, ErrorCode.ERR_FeatureIsUnimplemented, node,
+                    "cannot infer a positional pattern from any accessible constructor");
                 diagnostics.Add(node, useSiteDiagnostics);
                 correspondingMembersForCtor.Free();
                 hasErrors = true;
@@ -123,14 +140,28 @@ namespace Microsoft.CodeAnalysis.CSharp
             var builder = ArrayBuilder<BoundSubPropertyPattern>.GetInstance(properties.Length);
             for (int i = 0; i < properties.Length; i++)
             {
-                var member = new BoundPropertyPatternMember(node.PatternList.SubPatterns[i], properties[i], ImmutableArray<BoundExpression>.Empty, ImmutableArray<string>.Empty, ImmutableArray<RefKind>.Empty, false, default(ImmutableArray<int>), LookupResultKind.Empty, properties[i].GetTypeOrReturnType(), hasErrors);
+                var member = new BoundPropertyPatternMember(
+                    syntax: node.PatternList.SubPatterns[i],
+                    memberSymbol: properties[i],
+                    arguments: ImmutableArray<BoundExpression>.Empty,
+                    argumentNamesOpt: ImmutableArray<string>.Empty,
+                    argumentRefKindsOpt: ImmutableArray<RefKind>.Empty,
+                    expanded: false,
+                    argsToParamsOpt: default(ImmutableArray<int>),
+                    resultKind: LookupResultKind.Empty,
+                    type: properties[i].GetTypeOrReturnType(),
+                    hasErrors: hasErrors);
                 builder.Add(new BoundSubPropertyPattern(node.PatternList.SubPatterns[i], member, boundPatterns[i], hasErrors));
             }
 
             return new BoundPropertyPattern(node, type, builder.ToImmutableAndFree(), hasErrors: hasErrors);
         }
 
-        private ImmutableArray<BoundPattern> BindRecursiveSubPropertyPatterns(RecursivePatternSyntax node, ImmutableArray<Symbol> properties, NamedTypeSymbol type, DiagnosticBag diagnostics)
+        private ImmutableArray<BoundPattern> BindRecursiveSubPropertyPatterns(
+            RecursivePatternSyntax node,
+            ImmutableArray<Symbol> properties,
+            NamedTypeSymbol type,
+            DiagnosticBag diagnostics)
         {
             var boundPatternsBuilder = ArrayBuilder<BoundPattern>.GetInstance();
             for (int i = 0; i < properties.Length; i++)
@@ -147,7 +178,10 @@ namespace Microsoft.CodeAnalysis.CSharp
             return boundPatternsBuilder.ToImmutableAndFree();
         }
 
-        private Symbol LookupMatchableMemberInType(TypeSymbol operandType, string name, ref HashSet<DiagnosticInfo> useSiteDiagnostics)
+        private Symbol LookupMatchableMemberInType(
+            TypeSymbol operandType,
+            string name,
+            ref HashSet<DiagnosticInfo> useSiteDiagnostics)
         {
             var lookupResult = LookupResult.GetInstance();
             this.LookupMembersInType(
@@ -165,7 +199,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             return result;
         }
 
-        private BoundPattern BindPropertyPattern(PropertyPatternSyntax node, BoundExpression operand, TypeSymbol operandType, bool hasErrors, DiagnosticBag diagnostics)
+        private BoundPattern BindPropertyPattern(
+            PropertyPatternSyntax node,
+            BoundExpression operand,
+            TypeSymbol operandType,
+            bool hasErrors,
+            DiagnosticBag diagnostics)
         {
             var type = (NamedTypeSymbol)this.BindType(node.Type, diagnostics);
             hasErrors = hasErrors || CheckValidPatternType(node.Type, operand, operandType, type, false, diagnostics);
@@ -173,7 +212,10 @@ namespace Microsoft.CodeAnalysis.CSharp
             return new BoundPropertyPattern(node, type, boundPatterns, hasErrors: hasErrors);
         }
 
-        private ImmutableArray<BoundSubPropertyPattern> BindSubPropertyPatterns(PropertyPatternSyntax node, TypeSymbol type, DiagnosticBag diagnostics)
+        private ImmutableArray<BoundSubPropertyPattern> BindSubPropertyPatterns(
+            PropertyPatternSyntax node,
+            TypeSymbol type,
+            DiagnosticBag diagnostics)
         {
             var result = ArrayBuilder<BoundSubPropertyPattern>.GetInstance();
             foreach (var e in node.Expressions)
@@ -199,12 +241,6 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             BoundImplicitReceiver implicitReceiver = new BoundImplicitReceiver(memberName.Parent, patternType);
 
-            // SPEC:    Each member initializer must name an accessible field or property of the object being initialized, followed by an equals sign and
-            // SPEC:    an expression or an object initializer or collection initializer.
-            // SPEC:    A member initializer that specifies an expression after the equals sign is processed in the same way as an assignment (7.17.1) to the field or property.
-
-            // SPEC VIOLATION:  Native compiler also allows initialization of field-like events in object initializers, so we allow it as well.
-
             BoundExpression boundMember = BindInstanceMemberAccess(
                 node: memberName,
                 right: memberName,
@@ -221,7 +257,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (boundMember.Kind == BoundKind.PropertyGroup)
             {
-                boundMember = BindIndexedPropertyAccess((BoundPropertyGroup)boundMember, mustHaveAllOptionalParameters: true, diagnostics: diagnostics);
+                boundMember = BindIndexedPropertyAccess(
+                    (BoundPropertyGroup)boundMember, mustHaveAllOptionalParameters: true, diagnostics: diagnostics);
                 if (boundMember.HasAnyErrors)
                 {
                     hasErrors = true;
@@ -314,11 +351,16 @@ namespace Microsoft.CodeAnalysis.CSharp
             return ToBadExpression(boundMember, LookupResultKind.NotAValue);
         }
 
-        private Symbol FindPropertyOrFieldByName(TypeSymbol type, SyntaxToken name, out LookupResultKind resultKind, ref HashSet<DiagnosticInfo> useSiteDiagnostics)
+        private Symbol FindPropertyOrFieldByName(
+            TypeSymbol type,
+            SyntaxToken name,
+            out LookupResultKind resultKind,
+            ref HashSet<DiagnosticInfo> useSiteDiagnostics)
         {
             var symbols = ArrayBuilder<Symbol>.GetInstance();
             var lookupResult = LookupResult.GetInstance();
-            this.LookupMembersWithFallback(lookupResult, type, name.ValueText, arity: 0, useSiteDiagnostics: ref useSiteDiagnostics);
+            this.LookupMembersWithFallback(
+                lookupResult, type, name.ValueText, arity: 0, useSiteDiagnostics: ref useSiteDiagnostics);
             resultKind = lookupResult.Kind;
             Symbol result = null;
 
@@ -346,7 +388,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             return result;
         }
 
-        private BoundPattern BindConstantPattern(ConstantPatternSyntax node, BoundExpression operand, TypeSymbol operandType, bool hasErrors, DiagnosticBag diagnostics)
+        private BoundPattern BindConstantPattern(
+            ConstantPatternSyntax node,
+            BoundExpression operand,
+            TypeSymbol operandType,
+            bool hasErrors,
+            DiagnosticBag diagnostics)
         {
             var expression = BindValue(node.Expression, diagnostics, BindValueKind.RValue);
             if (!node.HasErrors && expression.ConstantValue == null)
@@ -359,7 +406,13 @@ namespace Microsoft.CodeAnalysis.CSharp
             return new BoundConstantPattern(node, expression, hasErrors);
         }
 
-        private bool CheckValidPatternType(CSharpSyntaxNode typeSyntax, BoundExpression operand, TypeSymbol operandType, TypeSymbol patternType, bool isVar, DiagnosticBag diagnostics)
+        private bool CheckValidPatternType(
+            CSharpSyntaxNode typeSyntax,
+            BoundExpression operand,
+            TypeSymbol operandType,
+            TypeSymbol patternType,
+            bool isVar,
+            DiagnosticBag diagnostics)
         {
             if (operandType?.IsErrorType() == true || patternType?.IsErrorType() == true)
             {
@@ -409,7 +462,11 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         private BoundPattern BindDeclarationPattern(
-            DeclarationPatternSyntax node, BoundExpression operand, TypeSymbol operandType, bool hasErrors, DiagnosticBag diagnostics)
+            DeclarationPatternSyntax node,
+            BoundExpression operand,
+            TypeSymbol operandType,
+            bool hasErrors,
+            DiagnosticBag diagnostics)
         {
             Debug.Assert(operand != null || (object)operandType != null);
             var typeSyntax = node.Type;
@@ -462,7 +519,10 @@ namespace Microsoft.CodeAnalysis.CSharp
             return new BoundDeclarationPattern(node, localSymbol, boundDeclType, isVar, hasErrors);
         }
 
-        private TypeSymbol BestType(MatchExpressionSyntax node, ArrayBuilder<BoundMatchCase> cases, DiagnosticBag diagnostics)
+        private TypeSymbol BestType(
+            MatchExpressionSyntax node,
+            ArrayBuilder<BoundMatchCase> cases,
+            DiagnosticBag diagnostics)
         {
             var types = ArrayBuilder<TypeSymbol>.GetInstance();
 
@@ -514,7 +574,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             return bestType;
         }
 
-        private BoundExpression BindMatchExpression(MatchExpressionSyntax node, DiagnosticBag diagnostics)
+        private BoundExpression BindMatchExpression(
+            MatchExpressionSyntax node,
+            DiagnosticBag diagnostics)
         {
             var expression = BindValue(node.Left, diagnostics, BindValueKind.RValue);
             // TODO: any constraints on a switch expression must be enforced here. For example,
@@ -591,7 +653,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
             if (hasErrors && expression.Type == (object)null)
             {
-                expression = new BoundBadExpression(node.Expression, LookupResultKind.Viable, ImmutableArray<Symbol>.Empty, ImmutableArray.Create<BoundNode>(expression), CreateErrorType());
+                expression = new BoundBadExpression(
+                    syntax: node.Expression,
+                    resultKind: LookupResultKind.Viable,
+                    symbols: ImmutableArray<Symbol>.Empty,
+                    childBoundNodes: ImmutableArray.Create<BoundNode>(expression),
+                    type: CreateErrorType());
             }
 
             BoundPattern pattern;
@@ -615,9 +682,10 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 localSymbol.SetTypeSymbol(expression.Type);
 
-                pattern = new BoundDeclarationPattern(node, localSymbol, null, true, 
-                                                      expression.HasErrors | 
-                                                          this.ValidateDeclarationNameConflictsInScope(localSymbol, diagnostics)); // Check for variable declaration errors.
+                pattern = new BoundDeclarationPattern(
+                    node, localSymbol, null, true,
+                    // Check for variable declaration errors.
+                    expression.HasErrors | this.ValidateDeclarationNameConflictsInScope(localSymbol, diagnostics));
             }
             else
             {

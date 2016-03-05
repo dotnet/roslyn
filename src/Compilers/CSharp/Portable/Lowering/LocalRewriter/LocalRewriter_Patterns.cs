@@ -51,9 +51,13 @@ namespace Microsoft.CodeAnalysis.CSharp
                             var subProperty = (pat.Subpatterns[i].Member as BoundPropertyPatternMember)?.MemberSymbol;
                             var subPattern = pat.Subpatterns[i].Pattern;
                             var subExpression =
-                                subProperty?.Kind == SymbolKind.Field ? _factory.Field(input, (FieldSymbol)subProperty) :
-                                subProperty?.Kind == SymbolKind.Property ? _factory.Call(input, ((PropertySymbol)subProperty).GetMethod) :
-                                (BoundExpression)new BoundBadExpression(_factory.Syntax, LookupResultKind.Inaccessible, ImmutableArray<Symbol>.Empty, ImmutableArray<BoundNode>.Empty, pat.Type);
+                                subProperty?.Kind == SymbolKind.Field ?
+                                    _factory.Field(input, (FieldSymbol)subProperty) :
+                                subProperty?.Kind == SymbolKind.Property ?
+                                    _factory.Call(input, ((PropertySymbol)subProperty).GetMethod) :
+                                (BoundExpression)new BoundBadExpression(
+                                    _factory.Syntax, LookupResultKind.Inaccessible, ImmutableArray<Symbol>.Empty,
+                                    ImmutableArray<BoundNode>.Empty, pat.Type);
                             var partialMatch = this.TranslatePattern(subExpression, subPattern);
                             matched = _factory.LogicalAnd(matched, partialMatch);
                         }
@@ -128,7 +132,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                 var tmpType = _factory.SpecialType(SpecialType.System_Nullable_T).Construct(type);
                 var tmp = _factory.SynthesizedLocal(tmpType, syntax);
                 var asg1 = _factory.AssignmentExpression(_factory.Local(tmp), _factory.As(input, tmpType));
-                var value = _factory.Call(_factory.Local(tmp), GetNullableMethod(syntax, tmpType, SpecialMember.System_Nullable_T_GetValueOrDefault));
+                var value = _factory.Call(
+                    _factory.Local(tmp),
+                    GetNullableMethod(syntax, tmpType, SpecialMember.System_Nullable_T_GetValueOrDefault));
                 var asg2 = _factory.AssignmentExpression(_factory.Local(target), value);
                 var result = MakeNullableHasValue(syntax, _factory.Local(tmp));
                 return _factory.Sequence(tmp, asg1, asg2, result);
@@ -143,7 +149,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                 //     return s;
                 // }
                 return _factory.Conditional(_factory.Is(input, type),
-                    _factory.Sequence(_factory.AssignmentExpression(_factory.Local(target), _factory.Convert(type, input)), _factory.Literal(true)),
+                    _factory.Sequence(_factory.AssignmentExpression(
+                        _factory.Local(target),
+                        _factory.Convert(type, input)),
+                        _factory.Literal(true)),
                     _factory.Literal(false),
                     _factory.SpecialType(SpecialType.System_Boolean));
             }
