@@ -11,77 +11,73 @@ namespace Microsoft.CodeAnalysis.CSharp
 {
     internal sealed class PatternVariableBinder : LocalScopeBinder
     {
-        private readonly ExpressionSyntax Expression;
-        private readonly ImmutableArray<ExpressionSyntax> Expressions;
-        private readonly ImmutableArray<PatternSyntax> Patterns;
+        private readonly CSharpSyntaxNode _node;
+        private readonly ImmutableArray<CSharpSyntaxNode> _nodes;
         public readonly SyntaxNode Syntax;
 
         internal PatternVariableBinder(SyntaxNode syntax, ImmutableArray<ExpressionSyntax> expressions, Binder next) : base(next)
         {
             this.Syntax = syntax;
-            this.Expressions = expressions;
+            this._nodes = StaticCast<CSharpSyntaxNode>.From(expressions);
         }
 
         internal PatternVariableBinder(SyntaxNode syntax, IEnumerable<VariableDeclaratorSyntax> declarations, Binder next) : base(next)
         {
             this.Syntax = syntax;
-            var expressions = ArrayBuilder<ExpressionSyntax>.GetInstance();
+            var nodes = ArrayBuilder<CSharpSyntaxNode>.GetInstance();
             foreach (var decl in declarations)
             {
                 var value = decl.Initializer?.Value;
-                if (value != null) expressions.Add(value);
+                if (value != null) nodes.Add(value);
             }
-            this.Expressions = expressions.ToImmutableAndFree();
+            this._nodes = nodes.ToImmutableAndFree();
         }
 
         internal PatternVariableBinder(SyntaxNode syntax, IEnumerable<ArgumentSyntax> arguments, Binder next) : base(next)
         {
             this.Syntax = syntax;
-            var expressions = ArrayBuilder<ExpressionSyntax>.GetInstance();
+            var nodes = ArrayBuilder<CSharpSyntaxNode>.GetInstance();
             foreach (var arg in arguments)
             {
                 var value = arg.Expression;
-                if (value != null) expressions.Add(value);
+                if (value != null) nodes.Add(value);
             }
-            this.Expressions = expressions.ToImmutableAndFree();
+            this._nodes = nodes.ToImmutableAndFree();
         }
 
         internal PatternVariableBinder(SwitchSectionSyntax syntax, Binder next) : base(next)
         {
             this.Syntax = syntax;
-            var expressions = ArrayBuilder<ExpressionSyntax>.GetInstance();
-            var patterns = ArrayBuilder<PatternSyntax>.GetInstance();
+            var nodes = ArrayBuilder<CSharpSyntaxNode>.GetInstance();
             foreach (var label in syntax.Labels)
             {
                 var match = label as CasePatternSwitchLabelSyntax;
                 if (match != null)
                 {
-                    patterns.Add(match.Pattern);
+                    nodes.Add(match.Pattern);
                     if (match.WhenClause != null)
                     {
-                        expressions.Add(match.WhenClause.Condition);
+                        nodes.Add(match.WhenClause.Condition);
                     }
                 }
             }
 
-            this.Expressions = expressions.ToImmutableAndFree();
-            this.Patterns = patterns.ToImmutableAndFree();
+            this._nodes = nodes.ToImmutableAndFree();
         }
 
         internal PatternVariableBinder(MatchSectionSyntax syntax, Binder next) : base(next)
         {
             this.Syntax = syntax;
-            this.Patterns = ImmutableArray.Create<PatternSyntax>(syntax.Pattern);
-            this.Expressions = syntax.WhenClause != null
-                ? ImmutableArray.Create<ExpressionSyntax>(syntax.Expression, syntax.WhenClause.Condition)
-                : ImmutableArray.Create<ExpressionSyntax>(syntax.Expression)
+            this._nodes = syntax.WhenClause != null
+                ? ImmutableArray.Create<CSharpSyntaxNode>(syntax.Pattern, syntax.WhenClause.Condition, syntax.Expression)
+                : ImmutableArray.Create<CSharpSyntaxNode>(syntax.Pattern, syntax.Expression)
                 ;
         }
 
         internal PatternVariableBinder(ForStatementSyntax syntax, Binder next) : base(next)
         {
             this.Syntax = syntax;
-            var expressions = ArrayBuilder<ExpressionSyntax>.GetInstance();
+            var expressions = ArrayBuilder<CSharpSyntaxNode>.GetInstance();
             if (syntax.Declaration != null) foreach(var decl in syntax.Declaration.Variables)
             {
                 var value = decl.Initializer?.Value;
@@ -91,12 +87,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (syntax.Initializers != null) expressions.AddRange(syntax.Initializers);
             if (syntax.Condition != null) expressions.Add(syntax.Condition);
             if (syntax.Incrementors != null) expressions.AddRange(syntax.Incrementors);
-            this.Expressions = expressions.ToImmutableAndFree();
+            this._nodes = expressions.ToImmutableAndFree();
         }
 
         internal PatternVariableBinder(SyntaxNode syntax, ExpressionSyntax expression, Binder next) : base(next)
         {
-            this.Expression = expression;
+            this._node = expression;
             this.Syntax = syntax;
         }
 
@@ -106,20 +102,20 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (syntax.ArgumentList?.Arguments.Count > 0)
             {
-                var expressions = ArrayBuilder<ExpressionSyntax>.GetInstance(syntax.ArgumentList.Arguments.Count);
+                var expressions = ArrayBuilder<CSharpSyntaxNode>.GetInstance(syntax.ArgumentList.Arguments.Count);
 
                 foreach (var argument in syntax.ArgumentList.Arguments)
                 {
                     expressions.Add(argument.Expression);
                 }
 
-                this.Expressions = expressions.ToImmutableAndFree();
+                this._nodes = expressions.ToImmutableAndFree();
             }
         }
 
         protected override ImmutableArray<LocalSymbol> BuildLocals()
         {
-            var patterns = PatternVariableFinder.FindPatternVariables(Expression, Expressions, this.Patterns);
+            var patterns = PatternVariableFinder.FindPatternVariables(_node, _nodes);
             var builder = ArrayBuilder<LocalSymbol>.GetInstance();
             foreach (var pattern in patterns)
             {
