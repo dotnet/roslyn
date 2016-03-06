@@ -1724,7 +1724,8 @@
     </Field>
     <Field Name="SubPatterns" Type="SeparatedSyntaxList&lt;ExpressionSyntax&gt;">
       <PropertyComment>
-        <summary>SeparatedSyntaxList of ExpressionSyntax representing the list of "ID is Pattern" expressions in the property pattern.</summary>
+        <summary>
+          The list of "ID is Pattern" expressions in the property pattern represented as IsPatternExpressionSyntax nodes.</summary>
       </PropertyComment>
     </Field>
     <Field Name="CloseBraceToken" Type="SyntaxToken">

@@ -50,14 +50,25 @@ namespace Microsoft.CodeAnalysis.CSharp
                         {
                             var subProperty = (pat.Subpatterns[i].Member as BoundPropertyPatternMember)?.MemberSymbol;
                             var subPattern = pat.Subpatterns[i].Pattern;
-                            var subExpression =
-                                subProperty?.Kind == SymbolKind.Field ?
-                                    _factory.Field(input, (FieldSymbol)subProperty) :
-                                subProperty?.Kind == SymbolKind.Property ?
-                                    _factory.Call(input, ((PropertySymbol)subProperty).GetMethod) :
-                                (BoundExpression)new BoundBadExpression(
-                                    _factory.Syntax, LookupResultKind.Inaccessible, ImmutableArray<Symbol>.Empty,
-                                    ImmutableArray<BoundNode>.Empty, pat.Type);
+                            BoundExpression subExpression;
+                            switch (subProperty?.Kind)
+                            {
+                                case SymbolKind.Field:
+                                    subExpression = _factory.Field(input, (FieldSymbol)subProperty);
+                                    break;
+                                case SymbolKind.Property:
+                                    subExpression = _factory.Call(input, ((PropertySymbol)subProperty).GetMethod);
+                                    break;
+                                case SymbolKind.Event:
+                                    // TODO: should a property pattern be capable of referencing an event?
+                                    // https://github.com/dotnet/roslyn/issues/9515
+                                default:
+                                    subExpression = new BoundBadExpression(
+                                        _factory.Syntax, LookupResultKind.Inaccessible, ImmutableArray<Symbol>.Empty,
+                                        ImmutableArray<BoundNode>.Empty, pat.Type);
+                                    break;
+                            }
+
                             var partialMatch = this.TranslatePattern(subExpression, subPattern);
                             matched = _factory.LogicalAnd(matched, partialMatch);
                         }

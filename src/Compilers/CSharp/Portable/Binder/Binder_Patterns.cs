@@ -223,7 +223,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 var syntax = e as IsPatternExpressionSyntax;
                 var identifier = syntax?.Expression as IdentifierNameSyntax;
                 if (identifier == null) throw ExceptionUtilities.UnexpectedValue(syntax?.Expression.Kind() ?? e.Kind());
-                var propName = identifier.Identifier;
                 var boundMember = BindPropertyPatternMember(type, identifier, diagnostics);
                 var boundPattern = BindPattern(syntax.Pattern, null, boundMember.Type, boundMember.HasErrors, diagnostics);
                 result.Add(new BoundSubPropertyPattern(e, boundMember, boundPattern, boundPattern.HasErrors));
@@ -232,7 +231,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return result.ToImmutableAndFree();
         }
 
-        // returns BadBoundExpression or BoundObjectInitializerMember
+        // returns BadBoundExpression or BoundPropertyPatternMember
         private BoundExpression BindPropertyPatternMember(
             TypeSymbol patternType,
             IdentifierNameSyntax memberName,
@@ -275,29 +274,36 @@ namespace Microsoft.CodeAnalysis.CSharp
             switch (boundMember.Kind)
             {
                 case BoundKind.FieldAccess:
-                case BoundKind.EventAccess:
                 case BoundKind.PropertyAccess:
                     break;
 
                 case BoundKind.IndexerAccess:
-                    {
-                        var indexer = (BoundIndexerAccess)boundMember;
-                        arguments = indexer.Arguments;
-                        argumentNamesOpt = indexer.ArgumentNamesOpt;
-                        argsToParamsOpt = indexer.ArgsToParamsOpt;
-                        argumentRefKindsOpt = indexer.ArgumentRefKindsOpt;
-                        expanded = indexer.Expanded;
-                        break;
-                    }
+                // TODO: Should a property pattern be capable of referencing an indexed property?
+                // https://github.com/dotnet/roslyn/issues/9375
+                //{
+                //    var indexer = (BoundIndexerAccess)boundMember;
+                //    arguments = indexer.Arguments;
+                //    argumentNamesOpt = indexer.ArgumentNamesOpt;
+                //    argsToParamsOpt = indexer.ArgsToParamsOpt;
+                //    argumentRefKindsOpt = indexer.ArgumentRefKindsOpt;
+                //    expanded = indexer.Expanded;
+                //    break;
+                //}
 
                 case BoundKind.DynamicIndexerAccess:
-                    {
-                        var indexer = (BoundDynamicIndexerAccess)boundMember;
-                        arguments = indexer.Arguments;
-                        argumentNamesOpt = indexer.ArgumentNamesOpt;
-                        argumentRefKindsOpt = indexer.ArgumentRefKindsOpt;
-                        break;
-                    }
+                // TODO: Should a property pattern be capable of referencing a dynamic indexer?
+                // https://github.com/dotnet/roslyn/issues/9375
+                //{
+                //    var indexer = (BoundDynamicIndexerAccess)boundMember;
+                //    arguments = indexer.Arguments;
+                //    argumentNamesOpt = indexer.ArgumentNamesOpt;
+                //    argumentRefKindsOpt = indexer.ArgumentRefKindsOpt;
+                //    break;
+                //}
+
+                case BoundKind.EventAccess:
+                // TODO: Should a property pattern be capable of referencing an event?
+                // https://github.com/dotnet/roslyn/issues/9515
 
                 default:
                     return BadSubpatternMemberAccess(boundMember, implicitReceiver, memberName, diagnostics, hasErrors);
@@ -349,44 +355,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
             }
 
-            return ToBadExpression(boundMember, LookupResultKind.NotAValue);
-        }
-
-        private Symbol FindPropertyOrFieldByName(
-            TypeSymbol type,
-            SyntaxToken name,
-            out LookupResultKind resultKind,
-            ref HashSet<DiagnosticInfo> useSiteDiagnostics)
-        {
-            var symbols = ArrayBuilder<Symbol>.GetInstance();
-            var lookupResult = LookupResult.GetInstance();
-            this.LookupMembersWithFallback(
-                lookupResult, type, name.ValueText, arity: 0, useSiteDiagnostics: ref useSiteDiagnostics);
-            resultKind = lookupResult.Kind;
-            Symbol result = null;
-
-            if (lookupResult.IsMultiViable)
-            {
-                foreach (var symbol in lookupResult.Symbols)
-                {
-                    if (symbol.Kind == SymbolKind.Property || symbol.Kind == SymbolKind.Field)
-                    {
-                        if (result != null && symbol != result)
-                        {
-                            resultKind = LookupResultKind.Ambiguous;
-                            result = null;
-                            break;
-                        }
-                        else
-                        {
-                            result = symbol;
-                        }
-                    }
-                }
-            }
-
-            lookupResult.Free();
-            return result;
+            return ToBadExpression(boundMember, LookupResultKind.Inaccessible);
         }
 
         private BoundPattern BindConstantPattern(

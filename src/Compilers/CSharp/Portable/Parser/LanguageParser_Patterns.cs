@@ -53,10 +53,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                         // X.Y.Z { ... } : PropertyPattern
                         else if (tk == SyntaxKind.OpenBraceToken)
                         {
-                            var open = this.EatToken(SyntaxKind.OpenBraceToken);
-                            var list = this.ParseSubPropertyPatternList(ref open);
-                            var close = this.EatToken(SyntaxKind.CloseBraceToken);
-                            node = _syntaxFactory.PropertyPattern(type, open, list, close);
+                            node = ParsePropertyPatternBody(type);
                         }
                         // X.Y.Z id
                         else if (this.IsTrueIdentifier())
@@ -97,6 +94,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 node = _syntaxFactory.ConstantPattern(this.ParseExpressionCore());
             }
             return node;
+        }
+
+        private PropertyPatternSyntax ParsePropertyPatternBody(TypeSyntax type)
+        {
+            var open = this.EatToken(SyntaxKind.OpenBraceToken);
+            var list = this.ParseSubPropertyPatternList(ref open);
+            var close = this.EatToken(SyntaxKind.CloseBraceToken);
+            return _syntaxFactory.PropertyPattern(type, open, list, close);
         }
 
         private SubRecursivePatternListSyntax ParseSubRecursivePatternList()
@@ -246,10 +251,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                         // X.Y.Z { ... } : PropertyPattern
                         else if (tk == SyntaxKind.OpenBraceToken)
                         {
-                            var openBrace = this.EatToken(SyntaxKind.OpenBraceToken);
-                            var contents = this.ParseSubPropertyPatternList(ref openBrace);
-                            var closeBrace = this.EatToken(SyntaxKind.CloseBraceToken);
-                            node = _syntaxFactory.PropertyPattern(type, openBrace, contents, closeBrace);
+                            node = ParsePropertyPatternBody(type);
                         }
                         // X.Y.Z id
                         else if (this.IsTrueIdentifier())
