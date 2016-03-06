@@ -336,6 +336,13 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
 
             using (var equivalentTypesWithDifferingAssemblies = SharedPools.Default<Dictionary<INamedTypeSymbol, INamedTypeSymbol>>().GetPooledObject())
             {
+                // 0) If they're from the same project, compare them directly.
+                var searchSymbolProject = solution.GetProject(searchSymbol.ContainingAssembly);
+                if (searchSymbolProject == solution.GetProject(symbolToMatch.ContainingAssembly))
+                {
+                    return searchSymbol == symbolToMatch;
+                }
+
                 // 1) Compare searchSymbol and symbolToMatch using SymbolEquivalenceComparer.IgnoreAssembliesInstance
                 if (!SymbolEquivalenceComparer.IgnoreAssembliesInstance.Equals(searchSymbol, symbolToMatch, equivalentTypesWithDifferingAssemblies.Object))
                 {
