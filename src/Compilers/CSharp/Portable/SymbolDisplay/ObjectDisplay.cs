@@ -149,8 +149,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         /// <summary>
         /// Returns true if the character should be replaced and sets
-        /// <paramref name="replaceWith"/> to the replacement text if the
-        /// character is replaced with text other than the Unicode escape sequence.
+        /// <paramref name="replaceWith"/> to the replacement text.
         /// </summary>
         private static bool TryReplaceChar(char c, out string replaceWith)
         {
@@ -191,11 +190,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return true;
             }
 
-            switch (CharUnicodeInfo.GetUnicodeCategory(c))
+            switch (UnicodeCharacterUtilities.GetUnicodeCategory(c))
             {
                 case UnicodeCategory.Control:
                 case UnicodeCategory.OtherNotAssigned:
                 case UnicodeCategory.ParagraphSeparator:
+                case UnicodeCategory.LineSeparator:
                     replaceWith = "\\u" + ((int)c).ToString("x4");
                     return true;
                 default:

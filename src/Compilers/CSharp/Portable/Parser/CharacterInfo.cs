@@ -135,7 +135,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                                   // up in the identifier or keyword.
                 || ch == '\uFEFF'
                 || ch == '\u001A'
-                || (ch > 255 && CharUnicodeInfo.GetUnicodeCategory(ch) == UnicodeCategory.SpaceSeparator);
+                || (ch > 255 && UnicodeCharacterUtilities.GetUnicodeCategory(ch) == UnicodeCategory.SpaceSeparator);
         }
 
         /// <summary>
