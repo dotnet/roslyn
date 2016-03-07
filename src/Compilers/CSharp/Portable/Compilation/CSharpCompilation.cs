@@ -2332,8 +2332,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             // EmbeddedSymbolManager.MarkAllDeferredSymbolsAsReferenced(this)
 
             var moduleBeingBuilt = (PEModuleBuilder)moduleBuilder;
+            var emitOptions = moduleBeingBuilt.EmitOptions;
 
-            if (moduleBeingBuilt.EmitOptions.EmitMetadataOnly)
+            if (emitOptions.EmitMetadataOnly)
             {
                 if (hasDeclarationErrors)
                 {
@@ -2351,7 +2352,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
             else
             {
-                if (emittingPdb && !StartSourceChecksumCalculation(moduleBeingBuilt, diagnostics))
+                if ((emittingPdb || emitOptions.EmitDynamicAnalysisData) && !StartSourceChecksumCalculation(moduleBeingBuilt, diagnostics))
                 {
                     return false;
                 }
@@ -2392,7 +2393,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // Use a temporary bag so we don't have to refilter pre-existing diagnostics.
             DiagnosticBag xmlDiagnostics = DiagnosticBag.GetInstance();
 
-            string assemblyName = FileNameUtilities.ChangeExtension(moduleBeingBuilt.EmitOptions.OutputNameOverride, extension: null);
+            string assemblyName = FileNameUtilities.ChangeExtension(emitOptions.OutputNameOverride, extension: null);
             DocumentationCommentCompiler.WriteDocumentationCommentXml(this, assemblyName, xmlDocStream, xmlDiagnostics, cancellationToken);
 
             if (!FilterAndAppendAndFreeDiagnostics(diagnostics, ref xmlDiagnostics))

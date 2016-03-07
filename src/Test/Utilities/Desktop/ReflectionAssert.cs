@@ -16,7 +16,7 @@ namespace Roslyn.Test.Utilities
                                  properties.Where(p => p.GetMethod != null && !p.GetMethod.IsPrivate).Select(p => p.Name)).
                                  OrderBy(s => s);
 
-            AssertEx.SetEqual(fieldsAndProps, expectedFieldsAndProperties, itemSeparator: "\r\n");
+            AssertEx.SetEqual(expectedFieldsAndProperties, fieldsAndProps, itemSeparator: "\r\n");
         }
     }
 }

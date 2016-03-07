@@ -129,6 +129,8 @@
     <Compile Include="CodeGen\SwitchTests.cs" />
     <Compile Include="CodeGen\UnsafeTests.cs" />
     <Compile Include="CodeGen\WinMdDelegateTests.cs" />
+    <Compile Include="Emit\DynamicAnalysis\DynamicAnalysisDataReader.cs" />
+    <Compile Include="Emit\DynamicAnalysis\DynamicAnalysisResourceTests.cs" />
     <Compile Include="Emit\CompilationEmitTests.cs" />
     <Compile Include="Emit\DeterministicTests.cs" />
     <Compile Include="Emit\EditAndContinue\AssemblyReferencesTests.cs" />

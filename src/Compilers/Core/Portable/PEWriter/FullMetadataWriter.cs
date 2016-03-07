@@ -57,18 +57,20 @@ namespace Microsoft.Cci
                     break;
             }
 
-            return new FullMetadataWriter(context, heaps, debugHeapsOpt, messageProvider, allowMissingMethodBodies, deterministic, cancellationToken);
+            var dynamicAnalysisDataWriterOpt = context.ModuleBuilder.EmitOptions.EmitDynamicAnalysisData ? new DynamicAnalysisDataWriter() : null;
+            return new FullMetadataWriter(context, heaps, debugHeapsOpt, dynamicAnalysisDataWriterOpt, messageProvider, allowMissingMethodBodies, deterministic, cancellationToken);
         }
 
         private FullMetadataWriter(
             EmitContext context,
             MetadataHeapsBuilder heaps,
             MetadataHeapsBuilder debugHeapsOpt,
+            DynamicAnalysisDataWriter dynamicAnalysisDataWriterOpt,
             CommonMessageProvider messageProvider,
             bool allowMissingMethodBodies,
             bool deterministic,
             CancellationToken cancellationToken)
-            : base(heaps, debugHeapsOpt, context, messageProvider, allowMissingMethodBodies, deterministic, cancellationToken)
+            : base(heaps, debugHeapsOpt, dynamicAnalysisDataWriterOpt, context, messageProvider, allowMissingMethodBodies, deterministic, cancellationToken)
         {
             // EDMAURER make some intelligent guesses for the initial sizes of these things.
             int numMethods = this.module.HintNumberOfMethodDefinitions;
