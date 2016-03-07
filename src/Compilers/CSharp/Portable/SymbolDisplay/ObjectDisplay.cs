@@ -149,8 +149,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         /// <summary>
         /// Returns true if the character should be replaced and sets
-        /// <paramref name="replaceWith"/> to the replacement text if the
-        /// character is replaced with text other than the Unicode escape sequence.
+        /// <paramref name="replaceWith"/> to the replacement text.
         /// </summary>
         private static bool TryReplaceChar(char c, out string replaceWith)
         {
@@ -183,6 +182,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                     break;
                 case '\v':
                     replaceWith = "\\v";
+                    break;
+                case '\u2028':
+                    // U+2028 "LINE SEPARATOR" should be classified by CharUnicodeInfo.GetUnicodeCategory as
+                    // UnicodeCategory.LineSeparator but due to a bug is incorrectly categorized as
+                    // UnicodeCategory.Format. See https://github.com/dotnet/coreclr/issues/3542
+                    replaceWith = "\\u2028";
                     break;
             }
 
