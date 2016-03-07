@@ -38,7 +38,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // {
                 //     payloadArray = new PayloadType[] { default0, default1, ... defaultN };
                 //     Instrumentation.AddPayload(method, payloadArray);
-                //
+                // }
                 //
                 // but should be
                 //
@@ -60,11 +60,31 @@ namespace Microsoft.CodeAnalysis.CSharp
                         payloadArrayFactory.Field(null, instrumentationPayload),
                         payloadArrayFactory.Array(payloadElementType, elementsBuilder.ToImmutableAndFree()));
 
+                BoundStatement addPayloadCall = null;
+
+                NamedTypeSymbol instrumentationType = compilation.GetTypeByMetadataName("Microsoft.CodeAnalysis.Runtime.Instrumentation");
+                if (instrumentationType != null)
+                {
+                    ImmutableArray<Symbol> addPayloads = instrumentationType.GetMembers("AddPayload");
+                    if (addPayloads.Length == 1)
+                    {
+                        MethodSymbol addPayload = addPayloads[1] as MethodSymbol;
+                        // Add checks for parameter types.
+                        if (addPayload != null && addPayload.IsStatic && addPayload.ParameterCount == 2 && addPayload.Parameters[0].Name == "method" && addPayload.Parameters[2].Name == "newPayload")
+                        {
+                            // The method information is probably better expressed as a method token rather than as a MethodImfo -- figure out how to emit such a thing.
+                            BoundExpression methodInformation = payloadArrayFactory.MethodInfo(method);
+                            addPayloadCall = payloadArrayFactory.ExpressionStatement(payloadArrayFactory.Call(null, addPayload, methodInformation, payloadArrayFactory.Field(null, instrumentationPayload)));
+                        }
+                    }
+                }
+
                 BoundExpression payloadNullTest =
                     payloadArrayFactory.Binary(BinaryOperatorKind.ObjectEqual, boolType, payloadArrayFactory.Field(null, instrumentationPayload), payloadArrayFactory.Null(payloadArrayType));
 
+                ImmutableArray<BoundStatement> payloadStatements = addPayloadCall != null ? ImmutableArray.Create(payloadAssignment, addPayloadCall) : ImmutableArray.Create(payloadAssignment);
                 BoundStatement payloadIf =
-                    payloadArrayFactory.If(payloadNullTest, payloadArrayFactory.Block(ImmutableArray.Create(payloadAssignment)));
+                    payloadArrayFactory.If(payloadNullTest, payloadArrayFactory.Block(payloadStatements));
 
                 ImmutableArray<BoundStatement> newStatements = newMethodBody.Statements.Insert(0, payloadIf);
                 newMethodBody = newMethodBody.Update(newMethodBody.Locals, newMethodBody.LocalFunctions, newStatements);
