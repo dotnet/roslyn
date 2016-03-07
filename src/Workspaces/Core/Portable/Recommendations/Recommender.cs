@@ -1,5 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System;
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
@@ -12,6 +13,10 @@ namespace Microsoft.CodeAnalysis.Recommendations
 {
     public static class Recommender
     {
+        /// <summary>
+        /// Obsolete.  Use <see cref="GetRecommendedSymbolsAtPositionAsync(SemanticModel, int, Workspace, OptionSet, CancellationToken)"/>.
+        /// </summary>
+        [Obsolete("Use GetRecommendedSymbolsAtPositionAsync instead.")]
         public static IEnumerable<ISymbol> GetRecommendedSymbolsAtPosition(
             SemanticModel semanticModel,
             int position,

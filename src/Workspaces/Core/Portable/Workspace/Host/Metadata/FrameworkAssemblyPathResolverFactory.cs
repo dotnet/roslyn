@@ -20,7 +20,7 @@ namespace Microsoft.CodeAnalysis.Host
             {
             }
 
-            public string ResolveAssemblyPath(ProjectId projectId, string assemblyName)
+            public string ResolveAssemblyPath(ProjectId projectId, string assemblyName, string fullyQualifiedTypeName = null)
             {
                 // Assembly path resolution not supported at the default workspace level.
                 return null;
