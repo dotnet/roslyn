@@ -23,7 +23,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 ArrayTypeSymbol payloadArrayType = ArrayTypeSymbol.CreateCSharpArray(compilation.Assembly, payloadElementType);
                 SynthesizedFieldSymbol instrumentationPayload = new SynthesizedFieldSymbol(method.ContainingType, payloadArrayType, method.Name + "*instrumentation*" + methodOrdinal.ToString(), isStatic: true);
                 payloadArrayFactory.AddField(method.ContainingType, instrumentationPayload);
-                
+
                 // Synthesize the instrumentation and collect the points of interest.
 
                 ArrayBuilder<Cci.SequencePoint> pointsBuilder = new ArrayBuilder<Cci.SequencePoint>();
@@ -54,11 +54,32 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     elementsBuilder.Add(payloadArrayFactory.Literal(false));
                 }
+                BoundExpression payloadArrayCreation = payloadArrayFactory.Array(payloadElementType, elementsBuilder.ToImmutableAndFree());
 
-                BoundStatement payloadAssignment =
-                    payloadArrayFactory.Assignment(
-                        payloadArrayFactory.Field(null, instrumentationPayload),
-                        payloadArrayFactory.Array(payloadElementType, elementsBuilder.ToImmutableAndFree()));
+                MethodSymbol interlockedExchange = null;
+                NamedTypeSymbol interlocked = compilation.GetTypeByMetadataName("System.Threading.Interlocked");
+                if (interlocked != null)
+                {
+                    ImmutableArray<Symbol> compareExchanges = interlocked.GetMembers("CompareExchange");
+                    if (compareExchanges.Length > 0)
+                    {
+                        foreach (Symbol candidate in compareExchanges)
+                        {
+                            MethodSymbol candidateMethod = candidate as MethodSymbol;
+                            if (candidateMethod != null)
+                            {
+                                // Add some more checks to make this more robust.
+                                if (candidateMethod.ParameterCount == 3 && candidateMethod.ReturnType.IsObjectType())
+                                {
+                                    interlockedExchange = candidateMethod;
+                                    break;
+                                }
+                            }
+                        }
+                    }
+                }
+
+                BoundStatement payloadAssignment = payloadArrayFactory.Assignment(payloadArrayFactory.Field(null, instrumentationPayload), payloadArrayCreation);
 
                 BoundStatement addPayloadCall = null;
 
