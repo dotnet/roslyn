@@ -27,7 +27,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // Synthesize the instrumentation and collect the points of interest.
 
                 ArrayBuilder<Cci.SequencePoint> pointsBuilder = new ArrayBuilder<Cci.SequencePoint>();
-                BoundTreeRewriter collector = new InstrumentationInjectionWalker(pointsBuilder, debugDocumentProvider);
+                BoundTreeRewriter collector = new InstrumentationInjectionWalker(method, pointsBuilder, instrumentationPayload, compilationState, diagnostics, debugDocumentProvider);
                 BoundBlock newMethodBody = (BoundBlock)collector.Visit(methodBody);
 
                 ImmutableArray<Cci.SequencePoint> points = pointsBuilder.ToImmutableAndFree();
@@ -35,18 +35,26 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // Synthesize the initialization of the instrumentation payload array. It should actually be done either statically or with concurrency-safe code.
                 //
                 // if (payloadArray == null)
+                // {
                 //     payloadArray = new PayloadType[] { default0, default1, ... defaultN };
+                //     Instrumentation.AddPayload(method, payloadArray);
+                //
                 //
                 // but should be
                 //
                 // if (payloadArray == null)
-                //     Interlocked.CompareExchange(ref payloadArray, new PayloadType[] { default0, default1, ... defaultN }, null);
+                // {
+                //     payloadArray = new PayloadType[] { default0, default1, ... defaultN };
+                //     if (Interlocked.CompareExchange(ref payloadArray, payloadArray, null) == null)
+                //         Instrumentation.AddPayload(method, payloadArray);
+                // }
 
                 ArrayBuilder<BoundExpression> elementsBuilder = new ArrayBuilder<BoundExpression>(points.Length);
                 for (int i = 0; i < points.Length; i++)
                 {
                     elementsBuilder.Add(payloadArrayFactory.Literal(false));
                 }
+
                 BoundStatement payloadAssignment =
                     payloadArrayFactory.Assignment(
                         payloadArrayFactory.Field(null, instrumentationPayload),
@@ -56,7 +64,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     payloadArrayFactory.Binary(BinaryOperatorKind.ObjectEqual, boolType, payloadArrayFactory.Field(null, instrumentationPayload), payloadArrayFactory.Null(payloadArrayType));
 
                 BoundStatement payloadIf =
-                    payloadArrayFactory.If(payloadNullTest, payloadAssignment);
+                    payloadArrayFactory.If(payloadNullTest, payloadArrayFactory.Block(ImmutableArray.Create(payloadAssignment)));
 
                 ImmutableArray<BoundStatement> newStatements = newMethodBody.Statements.Insert(0, payloadIf);
                 newMethodBody = newMethodBody.Update(newMethodBody.Locals, newMethodBody.LocalFunctions, newStatements);
@@ -70,12 +78,20 @@ namespace Microsoft.CodeAnalysis.CSharp
 
     internal sealed class InstrumentationInjectionWalker : BoundTreeRewriterWithStackGuard
     {
+        private readonly MethodSymbol _method;
         private readonly ArrayBuilder<Cci.SequencePoint> _pointsBuilder;
+        private readonly FieldSymbol _payload;
+        private readonly TypeCompilationState _compilationState;
+        private readonly DiagnosticBag _diagnostics;
         private readonly DebugDocumentProvider _debugDocumentProvider;
 
-        public InstrumentationInjectionWalker(ArrayBuilder<Cci.SequencePoint> pointsBuilder, DebugDocumentProvider debugDocumentProvider)
+        public InstrumentationInjectionWalker(MethodSymbol method, ArrayBuilder<Cci.SequencePoint> pointsBuilder, FieldSymbol payload, TypeCompilationState compilationState, DiagnosticBag diagnostics, DebugDocumentProvider debugDocumentProvider)
         {
+            _method = method;
             _pointsBuilder = pointsBuilder;
+            _payload = payload;
+            _compilationState = compilationState;
+            _diagnostics = diagnostics;
             _debugDocumentProvider = debugDocumentProvider;
         }
 
@@ -246,9 +262,16 @@ namespace Microsoft.CodeAnalysis.CSharp
                 path = statement.Syntax.SyntaxTree.FilePath;
             }
 
+            int pointsIndex = _pointsBuilder.Count;
             _pointsBuilder.Add(new Cci.SequencePoint(_debugDocumentProvider.Invoke(path, ""), 0, lineSpan.Span.Start.Line, lineSpan.Span.Start.Character, lineSpan.Span.End.Line, lineSpan.Span.End.Character));
 
-            return statement;
+            // Generate "_payload[pointIndex] = true".
+
+            SyntheticBoundNodeFactory statementFactory = new SyntheticBoundNodeFactory(_method, statement.Syntax, _compilationState, _diagnostics);
+            BoundArrayAccess payloadCell = statementFactory.ArrayAccess(statementFactory.Field(null, _payload), statementFactory.Literal(pointsIndex));
+            BoundExpressionStatement cellAssignment = statementFactory.Assignment(payloadCell, statementFactory.Literal(true));
+            
+            return statementFactory.Block(ImmutableArray.Create(cellAssignment, statement));
         }
     }
 }
