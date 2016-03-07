@@ -267,7 +267,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             bodyBuilder.Add(F.Return(F.Local(resultVariable)));
-            F.CloseMethod(F.Block(ImmutableArray.Create(resultVariable), ImmutableArray<LocalFunctionSymbol>.Empty, bodyBuilder.ToImmutableAndFree()));
+            F.CloseMethod(F.Block(ImmutableArray.Create(resultVariable), bodyBuilder.ToImmutableAndFree()));
 
             // Generate IEnumerable.GetEnumerator
             var getEnumerator = OpenMethodImplementation(IEnumerable_GetEnumerator);

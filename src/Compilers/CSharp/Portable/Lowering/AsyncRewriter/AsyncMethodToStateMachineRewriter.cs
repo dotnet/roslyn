@@ -130,7 +130,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             bodyBuilder.Add(
                 F.Try(
                     F.Block(ImmutableArray<LocalSymbol>.Empty,
-                        ImmutableArray<LocalFunctionSymbol>.Empty,
                         // switch (state) ...
                         F.HiddenSequencePoint(),
                         Dispatch(),
@@ -202,7 +201,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                     body.Syntax,
                     F.Block(
                         locals.ToImmutableAndFree(), 
-                        ImmutableArray<LocalFunctionSymbol>.Empty,
                         newStatements));
 
             if (rootScopeHoistedLocals.Length > 0)
@@ -303,11 +301,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                 LocalSymbol resultTemp = F.SynthesizedLocal(type);
                 return F.Block(
                     ImmutableArray.Create(awaiterTemp, resultTemp),
-                    ImmutableArray<LocalFunctionSymbol>.Empty,
-                        awaitIfIncomplete,
-                        F.Assignment(F.Local(resultTemp), getResultCall),
-                        F.ExpressionStatement(nullAwaiter),
-                        F.Assignment(resultPlace, F.Local(resultTemp)));
+                    awaitIfIncomplete,
+                    F.Assignment(F.Local(resultTemp), getResultCall),
+                    F.ExpressionStatement(nullAwaiter),
+                    F.Assignment(resultPlace, F.Local(resultTemp)));
             }
             else
             {
@@ -315,10 +312,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // $awaiterTemp = null;
                 return F.Block(
                     ImmutableArray.Create(awaiterTemp),
-                    ImmutableArray<LocalFunctionSymbol>.Empty,
-                        awaitIfIncomplete,
-                        F.ExpressionStatement(getResultCall),
-                        F.ExpressionStatement(nullAwaiter));
+                    awaitIfIncomplete,
+                    F.ExpressionStatement(getResultCall),
+                    F.ExpressionStatement(nullAwaiter));
             }
         }
 
@@ -478,7 +474,6 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                     thenClause: F.Block(
                         ImmutableArray.Create(notifyCompletionTemp),
-                        ImmutableArray<LocalFunctionSymbol>.Empty,
                         F.Assignment(
                             F.Local(notifyCompletionTemp),
                                 // Use reference conversion rather than dynamic conversion:
@@ -510,7 +505,6 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             return F.Block(
                 SingletonOrPair(criticalNotifyCompletedTemp, thisTemp),
-                ImmutableArray<LocalFunctionSymbol>.Empty,
                 blockBuilder.ToImmutableAndFree());
         }
 

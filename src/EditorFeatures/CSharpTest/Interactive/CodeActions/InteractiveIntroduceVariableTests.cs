@@ -123,7 +123,7 @@ class C
     {
         for (int i = 0; i < 10; i++)
         {
-            var {|Rename:v|} = i + 1;
+            int {|Rename:v|} = i + 1;
             Console.WriteLine(v);
         }
     }

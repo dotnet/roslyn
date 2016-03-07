@@ -423,19 +423,19 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         internal static bool IsPartialMethod(this Symbol member)
         {
             var sms = member as SourceMethodSymbol;
-            return (object)sms != null && sms.IsPartial;
+            return sms?.IsPartial == true;
         }
 
         internal static bool IsPartialImplementation(this Symbol member)
         {
             var sms = member as SourceMemberMethodSymbol;
-            return (object)sms != null && sms.IsPartialImplementation;
+            return sms?.IsPartialImplementation == true;
         }
 
         internal static bool IsPartialDefinition(this Symbol member)
         {
             var sms = member as SourceMemberMethodSymbol;
-            return (object)sms != null && sms.IsPartialDefinition;
+            return sms?.IsPartialDefinition == true;
         }
 
         internal static ImmutableArray<Symbol> GetExplicitInterfaceImplementations(this Symbol member)
@@ -470,7 +470,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     FieldSymbol field = (FieldSymbol)member;
                     refKind = RefKind.None;
                     returnType = field.Type;
-                    returnTypeCustomModifiers = ImmutableArray<CustomModifier>.Empty;
+                    returnTypeCustomModifiers = field.CustomModifiers;
                     break;
                 case SymbolKind.Method:
                     MethodSymbol method = (MethodSymbol)member;

@@ -39,18 +39,21 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateVariable
                 }
             }
 
-            protected override Task<Document> GetChangedDocumentAsync(CancellationToken cancellationToken)
+            protected async override Task<Document> GetChangedDocumentAsync(CancellationToken cancellationToken)
             {
-                var newRoot = GetNewRoot(cancellationToken);
+                var newRoot = await GetNewRoot(cancellationToken).ConfigureAwait(false);
                 var newDocument = _document.WithSyntaxRoot(newRoot);
 
-                return Task.FromResult(newDocument);
+                return newDocument;
             }
 
-            private SyntaxNode GetNewRoot(CancellationToken cancellationToken)
+            private async Task<SyntaxNode> GetNewRoot(CancellationToken cancellationToken)
             {
                 SyntaxNode newRoot;
-                if (_service.TryConvertToLocalDeclaration(_state.LocalType, _state.IdentifierToken, _document.Project.Solution.Workspace.Options, out newRoot))
+
+                var semanticModel = await _document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
+
+                if (_service.TryConvertToLocalDeclaration(_state.LocalType, _state.IdentifierToken, _document.Project.Solution.Workspace.Options, semanticModel, cancellationToken, out newRoot))
                 {
                     return newRoot;
                 }

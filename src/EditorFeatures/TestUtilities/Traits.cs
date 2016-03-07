@@ -112,6 +112,7 @@ namespace Roslyn.Test.Utilities
             public const string LineCommit = nameof(LineCommit);
             public const string LineSeparators = nameof(LineSeparators);
             public const string MetadataAsSource = nameof(MetadataAsSource);
+            public const string NamingStyle = nameof(NamingStyle);
             public const string NavigateTo = nameof(NavigateTo);
             public const string NavigationBar = nameof(NavigationBar);
             public const string ObjectBrowser = nameof(ObjectBrowser);

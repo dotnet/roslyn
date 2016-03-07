@@ -25,7 +25,7 @@ namespace Microsoft.Cci
 {
     internal abstract partial class MetadataWriter
     {
-        private static readonly Encoding s_utf8Encoding = Encoding.UTF8;
+        internal static readonly Encoding s_utf8Encoding = Encoding.UTF8;
 
         /// <summary>
         /// This is the maximum length of a type or member name in metadata, assuming
@@ -74,6 +74,7 @@ namespace Microsoft.Cci
         protected MetadataWriter(
             MetadataHeapsBuilder heaps,
             MetadataHeapsBuilder debugHeapsOpt,
+            DynamicAnalysisDataWriter dynamicAnalysisDataWriterOpt,
             EmitContext context,
             CommonMessageProvider messageProvider,
             bool allowMissingMethodBodies,
@@ -98,6 +99,7 @@ namespace Microsoft.Cci
 
             this.heaps = heaps;
             _debugHeapsOpt = debugHeapsOpt;
+            _dynamicAnalysisDataWriterOpt = dynamicAnalysisDataWriterOpt;
             _smallMethodBodies = new Dictionary<ImmutableArray<byte>, int>(ByteSequenceComparer.Instance);
         }
 
@@ -433,6 +435,8 @@ namespace Microsoft.Cci
         // Null otherwise.
         private readonly MetadataHeapsBuilder _debugHeapsOpt;
 
+        private readonly DynamicAnalysisDataWriter _dynamicAnalysisDataWriterOpt;
+
         private bool EmitStandaloneDebugMetadata => _debugHeapsOpt != null && heaps != _debugHeapsOpt;
 
         private readonly Dictionary<ICustomAttribute, BlobIdx> _customAttributeSignatureIndex = new Dictionary<ICustomAttribute, BlobIdx>();
@@ -655,25 +659,42 @@ namespace Microsoft.Cci
 
         private ImmutableArray<IParameterDefinition> GetParametersToEmitCore(IMethodDefinition methodDef)
         {
-            var builder = ArrayBuilder<IParameterDefinition>.GetInstance();
+            ArrayBuilder<IParameterDefinition> builder = null;
+            var parameters = methodDef.Parameters;
+
             if (methodDef.ReturnValueIsMarshalledExplicitly || IteratorHelper.EnumerableIsNotEmpty(methodDef.ReturnValueAttributes))
             {
+                builder = ArrayBuilder<IParameterDefinition>.GetInstance(parameters.Length + 1);
                 builder.Add(new ReturnValueParameter(methodDef));
             }
 
-            foreach (IParameterDefinition parDef in methodDef.Parameters)
+            for (int i = 0; i < parameters.Length; i++)
             {
+                IParameterDefinition parDef = parameters[i];
+
                 // No explicit param row is needed if param has no flags (other than optionally IN),
                 // no name and no references to the param row, such as CustomAttribute, Constant, or FieldMarshal
-                if (parDef.HasDefaultValue || parDef.IsOptional || parDef.IsOut || parDef.IsMarshalledExplicitly ||
-                    parDef.Name != String.Empty ||
+                if (parDef.Name != String.Empty || 
+                    parDef.HasDefaultValue || parDef.IsOptional || parDef.IsOut || parDef.IsMarshalledExplicitly ||                   
                     IteratorHelper.EnumerableIsNotEmpty(parDef.GetAttributes(Context)))
                 {
-                    builder.Add(parDef);
+                    if (builder != null)
+                    {
+                        builder.Add(parDef);
+                    }
+                }
+                else
+                {
+                    // we have a parameter that does not need to be emitted (not common)
+                    if (builder == null)
+                    {
+                        builder = ArrayBuilder<IParameterDefinition>.GetInstance(parameters.Length);
+                        builder.AddRange(parameters, i);
+                    }
                 }
             }
 
-            return builder.ToImmutableAndFree();
+            return builder?.ToImmutableAndFree() ?? parameters;
         }
 
         /// <summary>
@@ -1009,6 +1030,15 @@ namespace Microsoft.Cci
 
             int result = resourceWriter.Position;
             resource.WriteData(resourceWriter);
+            return (uint)result;
+        }
+
+        private static uint GetManagedResourceOffset(BlobBuilder resource, BlobBuilder resourceWriter)
+        {
+            int result = resourceWriter.Position;
+            resourceWriter.WriteInt32(resource.Count);
+            resource.WriteContentTo(resourceWriter);
+            resourceWriter.Align(8);
             return (uint)result;
         }
 
@@ -2123,7 +2153,14 @@ namespace Microsoft.Cci
 
             ReportReferencesToAddedSymbols();
 
-            PopulateTables(methodBodyRvas, mappedFieldDataWriter, managedResourceDataWriter);
+            BlobBuilder dynamicAnalysisDataOpt = null;
+            if (_dynamicAnalysisDataWriterOpt != null)
+            {
+                dynamicAnalysisDataOpt = new BlobBuilder();
+                _dynamicAnalysisDataWriterOpt.SerializeMetadataTables(dynamicAnalysisDataOpt);
+            }
+
+            PopulateTables(methodBodyRvas, mappedFieldDataWriter, managedResourceDataWriter, dynamicAnalysisDataOpt);
 
             int debugEntryPointToken;
             if (IsFullMetadata)
@@ -2505,7 +2542,7 @@ namespace Microsoft.Cci
             Debug.Assert(metadataSizes.MetadataTableStreamSize == endPosition - startPosition);
         }
 
-        private void PopulateTables(int[] methodBodyRvas, BlobBuilder mappedFieldDataWriter, BlobBuilder resourceWriter)
+        private void PopulateTables(int[] methodBodyRvas, BlobBuilder mappedFieldDataWriter, BlobBuilder resourceWriter, BlobBuilder dynamicAnalysisDataOpt)
         {
             this.PopulateAssemblyRefTableRows();
             this.PopulateAssemblyTableRows();
@@ -2524,7 +2561,7 @@ namespace Microsoft.Cci
             this.PopulateGenericParamConstraintTableRows();
             this.PopulateImplMapTableRows();
             this.PopulateInterfaceImplTableRows();
-            this.PopulateManifestResourceTableRows(resourceWriter);
+            this.PopulateManifestResourceTableRows(resourceWriter, dynamicAnalysisDataOpt);
             this.PopulateMemberRefTableRows();
             this.PopulateMethodImplTableRows();
             this.PopulateMethodTableRows(methodBodyRvas);
@@ -3344,8 +3381,18 @@ namespace Microsoft.Cci
 
         private readonly List<InterfaceImplRow> _interfaceImplTable = new List<InterfaceImplRow>();
 
-        private void PopulateManifestResourceTableRows(BlobBuilder resourceDataWriter)
+        private void PopulateManifestResourceTableRows(BlobBuilder resourceDataWriter, BlobBuilder dynamicAnalysisDataOpt)
         {
+            if (dynamicAnalysisDataOpt != null)
+            {
+                _manifestResourceTable.Add(new ManifestResourceRow()
+                {
+                    Offset = GetManagedResourceOffset(dynamicAnalysisDataOpt, resourceDataWriter),
+                    Flags = (uint)ManifestResourceAttributes.Private,
+                    Name = heaps.GetStringIndex("<DynamicAnalysisData>"),
+                });
+            }
+            
             foreach (var resource in this.module.GetResources(Context))
             {
                 ManifestResourceRow r = new ManifestResourceRow();
@@ -4268,6 +4315,8 @@ namespace Microsoft.Cci
                 {
                     SerializeMethodDebugInfo(body, methodRid, localSignatureRid);
                 }
+
+                _dynamicAnalysisDataWriterOpt?.SerializeMethodDynamicAnalysisData(body);
 
                 rvas[methodRid - 1] = rva;
 

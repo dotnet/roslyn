@@ -89,7 +89,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             _hasDeclarationErrors = hasDeclarationErrors;
             SetGlobalErrorIfTrue(hasDeclarationErrors);
 
-            if (emittingPdb)
+            if (emittingPdb || moduleBeingBuiltOpt?.EmitOptions.EmitDynamicAnalysisData == true)
             {
                 _debugDocumentProvider = (path, basePath) => moduleBeingBuiltOpt.GetOrAddDebugDocument(path, basePath, CreateDebugDocumentForFile);
             }
@@ -957,7 +957,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                         return semanticModel;
                     });
 
-                    _compilation.EventQueue.Enqueue(new SymbolDeclaredCompilationEvent(_compilation, methodSymbol, lazySemanticModel));
+                    MethodSymbol symbolToProduce = methodSymbol.PartialDefinitionPart ?? methodSymbol;
+                    _compilation.EventQueue.Enqueue(new SymbolDeclaredCompilationEvent(_compilation, symbolToProduce, lazySemanticModel));
                 }
 
                 // Don't lower if we're not emitting or if there were errors. 
@@ -1370,6 +1371,33 @@ namespace Microsoft.CodeAnalysis.CSharp
                     Debug.Assert(!diagnostics.HasAnyErrors());
                 }
 
+                DynamicAnalysisMethodBodyData dynamicAnalysisDataOpt = null;
+                if (moduleBuilder.EmitOptions.EmitDynamicAnalysisData)
+                {
+                    Debug.Assert(debugDocumentProvider != null);
+
+                    // TODO: collect information from bound trees
+                    if (method.Name == "Main")
+                    {
+                        var doc1 = debugDocumentProvider.Invoke(@"C:\myproject\doc1.cs", "");
+                        var doc2 = debugDocumentProvider.Invoke(@"C:\myproject\doc2.cs", "");
+
+                        dynamicAnalysisDataOpt = new DynamicAnalysisMethodBodyData(
+                            spans: ImmutableArray.Create(
+                                       new SourceSpan(doc1, 10, 1, 10, 20),
+                                       new SourceSpan(doc1, 20, 1, 30, 20),
+                                       new SourceSpan(doc2, 10, 1, 10, 20)));
+                    }
+                    else if (method.Name == ".ctor")
+                    {
+                        var doc1 = debugDocumentProvider.Invoke(@"C:\myproject\doc1.cs", "");
+
+                        dynamicAnalysisDataOpt = new DynamicAnalysisMethodBodyData(
+                            spans: ImmutableArray.Create(
+                                       new SourceSpan(doc1, 1, 1, 3, 10)));
+                    }
+                }
+
                 return new MethodBody(
                     builder.RealizedIL,
                     builder.MaxStack,
@@ -1388,7 +1416,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                     stateMachineHoistedLocalScopes,
                     stateMachineHoistedLocalSlots,
                     stateMachineAwaiterSlots,
-                    asyncDebugInfo);
+                    asyncDebugInfo,
+                    dynamicAnalysisDataOpt);
             }
             finally
             {
@@ -1508,8 +1537,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     var inMethodBinder = factory.GetBinder(blockSyntax);
 
                     var binder = new ExecutableCodeBinder(blockSyntax, sourceMethod, inMethodBinder);
-                    body = binder.BindBlock(blockSyntax, diagnostics);
-
+                    body = (BoundBlock)binder.BindEmbeddedBlock(blockSyntax, diagnostics);
                     importChain = binder.ImportChain;
 
                     if (method.MethodKind == MethodKind.Destructor)
@@ -1552,7 +1580,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     binder = new ExecutableCodeBinder(arrowExpression, sourceMethod, binder);
                     importChain = binder.ImportChain;
                     // Add locals
-                    return binder.BindExpressionBodyAsBlock(arrowExpression, diagnostics);
+                    return binder.WithPatternVariablesIfAny(arrowExpression.Expression).BindExpressionBodyAsBlock(arrowExpression, diagnostics);
                 }
                 else
                 {
@@ -1578,8 +1606,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 if (body != null)
                 {
-                    return body;
-                }
+                        return body;
+                    }
                 statements = ImmutableArray<BoundStatement>.Empty;
             }
             else if (body == null)
@@ -1727,7 +1755,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 outerBinder = compilation.GetBinderFactory(sourceConstructor.SyntaxTree).GetBinder(initializerArgumentListOpt);
             }
 
-            //wrap in ConstructorInitializerBinder for appropriate errors
+            // wrap in ConstructorInitializerBinder for appropriate errors
             Binder initializerBinder = outerBinder.WithAdditionalFlagsAndContainingMemberOrLambda(BinderFlags.ConstructorInitializer, constructor);
 
             return initializerBinder.BindConstructorInitializer(initializerArgumentListOpt, constructor, diagnostics);

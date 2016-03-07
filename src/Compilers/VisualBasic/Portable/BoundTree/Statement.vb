@@ -556,7 +556,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                         If operators IsNot Nothing Then
                             ' Use the operator methods. Figure out the precise rules first.
                         Else
-                            Dim controlReference As IReferenceExpression = TryCast(BoundFor.ControlVariable, IReferenceExpression)
+                            Dim controlReference As IOperation = BoundFor.ControlVariable
                             If controlReference IsNot Nothing Then
 
                                 ' ControlVariable += StepValue
@@ -590,7 +590,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                         Dim statements As ArrayBuilder(Of IOperation) = ArrayBuilder(Of IOperation).GetInstance()
 
                         ' ControlVariable = InitialValue
-                        Dim controlReference As IReferenceExpression = TryCast(BoundFor.ControlVariable, IReferenceExpression)
+                        Dim controlReference As IOperation = BoundFor.ControlVariable
                         If controlReference IsNot Nothing Then
                             statements.Add(New Assignment(controlReference, BoundFor.InitialValue, BoundFor.InitialValue.Syntax))
                         End If
@@ -1545,7 +1545,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
             Public ReadOnly Property EventInstance As IOperation Implements IEventAssignmentExpression.EventInstance
                 Get
-                    If [Event].IsStatic Then
+                    If [Event] Is Nothing OrElse [Event].IsStatic Then
                         Return Nothing
                     End If
 

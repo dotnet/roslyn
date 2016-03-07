@@ -157,6 +157,24 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
                     AddSuppressWrappingIfOnSingleLineOperation(list, finallyClause.FinallyKeyword, finallyClause.Block.CloseBraceToken);
                 }
             }
+
+            var propertyPattern = node as PropertyPatternSyntax;
+            if (propertyPattern?.PatternList != null)
+            {
+                AddSuppressWrappingIfOnSingleLineOperation(list, propertyPattern.Type.GetFirstToken(), propertyPattern.PatternList.CloseBraceToken);
+            }
+
+            var casePatternLabel = node as CasePatternSwitchLabelSyntax;
+            if (casePatternLabel != null)
+            {
+                // Need to suppress the addition of a newline between }: in the pattern property case.
+                // case Point { X is 42 }:
+                propertyPattern = casePatternLabel.Pattern as PropertyPatternSyntax;
+                if (propertyPattern != null)
+                {
+                    AddSuppressOperation(list, propertyPattern.PatternList.CloseBraceToken, casePatternLabel.ColonToken, SuppressOption.NoWrapping);
+                }
+            }
         }
 
         private void AddStatementExceptBlockSuppressOperations(List<SuppressOperation> list, SyntaxNode node)

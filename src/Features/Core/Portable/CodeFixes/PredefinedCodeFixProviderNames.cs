@@ -6,6 +6,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes
     {
         public const string AddAwait = "Add Await For Expression";
         public const string AddAsync = "Add Async To Member";
+        public const string ApplyNamingStyle = "Apply Naming Style";
         public const string ChangeReturnType = "Change Return Type";
         public const string ChangeToYield = "Change To Yield";
         public const string ConvertToAsync = "Convert To Async";
