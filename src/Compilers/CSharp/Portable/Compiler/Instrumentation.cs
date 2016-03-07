@@ -12,6 +12,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 {
     internal sealed class Instrumentation
     {
+        private static MethodSymbol _interlockedExchange = null;
+
         internal static BoundBlock InjectInstrumentation(MethodSymbol method, BoundBlock methodBody, int methodOrdinal, TypeCompilationState compilationState, CSharpCompilation compilation, DiagnosticBag diagnostics, DebugDocumentProvider debugDocumentProvider)
         {
             if (methodBody != null)
@@ -56,29 +58,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
                 BoundExpression payloadArrayCreation = payloadArrayFactory.Array(payloadElementType, elementsBuilder.ToImmutableAndFree());
 
-                MethodSymbol interlockedExchange = null;
-                NamedTypeSymbol interlocked = compilation.GetTypeByMetadataName("System.Threading.Interlocked");
-                if (interlocked != null)
-                {
-                    ImmutableArray<Symbol> compareExchanges = interlocked.GetMembers("CompareExchange");
-                    if (compareExchanges.Length > 0)
-                    {
-                        foreach (Symbol candidate in compareExchanges)
-                        {
-                            MethodSymbol candidateMethod = candidate as MethodSymbol;
-                            if (candidateMethod != null)
-                            {
-                                // Add some more checks to make this more robust.
-                                if (candidateMethod.ParameterCount == 3 && candidateMethod.ReturnType.IsObjectType())
-                                {
-                                    interlockedExchange = candidateMethod;
-                                    break;
-                                }
-                            }
-                        }
-                    }
-                }
-
+                MethodSymbol interlockedExchange = GetInterlockedExchange(compilation);
+               
                 BoundStatement payloadAssignment = payloadArrayFactory.Assignment(payloadArrayFactory.Field(null, instrumentationPayload), payloadArrayCreation);
 
                 BoundStatement addPayloadCall = null;
@@ -114,6 +95,36 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             return null;
+        }
+
+        private static MethodSymbol GetInterlockedExchange(CSharpCompilation compilation)
+        {
+            if (_interlockedExchange == null)
+            {
+                NamedTypeSymbol interlocked = compilation.GetTypeByMetadataName("System.Threading.Interlocked");
+                if (interlocked != null)
+                {
+                    ImmutableArray<Symbol> compareExchanges = interlocked.GetMembers("CompareExchange");
+                    if (compareExchanges.Length > 0)
+                    {
+                        foreach (Symbol candidate in compareExchanges)
+                        {
+                            MethodSymbol candidateMethod = candidate as MethodSymbol;
+                            if (candidateMethod != null)
+                            {
+                                // Add some more checks to make this more robust.
+                                if (candidateMethod.ParameterCount == 3 && candidateMethod.ReturnType.IsObjectType())
+                                {
+                                    _interlockedExchange = candidateMethod;
+                                    break;
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+
+            return _interlockedExchange;
         }
     }
 
