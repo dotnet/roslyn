@@ -102,10 +102,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
             // We need to transfer the references from the current source compilation but don't need its syntax trees.
             var metadataCompilation = compilation.RemoveAllSyntaxTrees();
 
-            var metadataAssembly = metadataCompilation.GetBoundReferenceManager().CreatePEAssemblyForAssemblyMetadata(AssemblyMetadata.Create(originalMetadata), MetadataImportOptions.All);
+            ImmutableDictionary<AssemblyIdentity, AssemblyIdentity> assemblyReferenceIdentityMap;
+            var metadataAssembly = metadataCompilation.GetBoundReferenceManager().CreatePEAssemblyForAssemblyMetadata(AssemblyMetadata.Create(originalMetadata), MetadataImportOptions.All, out assemblyReferenceIdentityMap);
             var metadataDecoder = new MetadataDecoder(metadataAssembly.PrimaryModule);
             var metadataAnonymousTypes = GetAnonymousTypeMapFromMetadata(originalMetadata.MetadataReader, metadataDecoder);
-            var metadataSymbols = new EmitBaseline.MetadataSymbols(metadataAnonymousTypes, metadataDecoder);
+            var metadataSymbols = new EmitBaseline.MetadataSymbols(metadataAnonymousTypes, metadataDecoder, assemblyReferenceIdentityMap);
 
             return InterlockedOperations.Initialize(ref initialBaseline.LazyMetadataSymbols, metadataSymbols);
         }

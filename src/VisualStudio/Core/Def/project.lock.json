@@ -11,6 +11,14 @@
           "lib/net40/Esent.Interop.dll": {}
         }
       },
+      "Microsoft.CodeAnalysis.Elfie/0.10.6-rc2": {
+        "compile": {
+          "lib/net46/Microsoft.CodeAnalysis.Elfie.dll": {}
+        },
+        "runtime": {
+          "lib/net46/Microsoft.CodeAnalysis.Elfie.dll": {}
+        }
+      },
       "Microsoft.Composition/1.0.27": {
         "compile": {
           "lib/portable-net45+win8+wp8+wpa81/System.Composition.AttributedModel.dll": {},
@@ -33,6 +41,14 @@
         },
         "runtime": {
           "lib/net20/Microsoft.DiaSymReader.dll": {}
+        }
+      },
+      "NuGet.VisualStudio/3.3.0": {
+        "compile": {
+          "lib/net45/NuGet.VisualStudio.dll": {}
+        },
+        "runtime": {
+          "lib/net45/NuGet.VisualStudio.dll": {}
         }
       },
       "System.Collections/4.0.0": {
@@ -133,24 +149,38 @@
   "libraries": {
     "ManagedEsent/1.9.2": {
       "sha512": "SgF21lefi66R2nVFtWw8OSRCrMakuwLXQohI1lTRhNSiZ0VJBqv0zLdgi9ShNhrz9pGxKijWJvUI21djYg2Tqw==",
-      "type": "package",
+      "type": "Package",
       "files": [
-        "ManagedEsent.1.9.2.nupkg.sha512",
         "ManagedEsent.nuspec",
+        "[Content_Types].xml",
+        "_rels/.rels",
         "lib/net40/Esent.Interop.dll",
         "lib/net40/Esent.Interop.pdb",
         "lib/net40/Esent.Interop.xml",
         "lib/netcore45/Esent.Interop.Wsa.dll",
-        "lib/netcore45/Esent.Interop.Wsa.pdb"
+        "lib/netcore45/Esent.Interop.Wsa.pdb",
+        "package/services/metadata/core-properties/3134d22c105a484d9c266dc3ead61c55.psmdcp"
+      ]
+    },
+    "Microsoft.CodeAnalysis.Elfie/0.10.6-rc2": {
+      "sha512": "nw8Gelt5AYgv9PLxK3MIB5hPnMoMoC2s73YXwcM3dxxim5yxRdPbzmBy0ddEeUa9zb57qoaDLYpCF8Zajg54Dg==",
+      "type": "Package",
+      "files": [
+        "Microsoft.CodeAnalysis.Elfie.nuspec",
+        "[Content_Types].xml",
+        "_rels/.rels",
+        "lib/net46/Microsoft.CodeAnalysis.Elfie.dll",
+        "package/services/metadata/core-properties/177ee6f038264cc2a36b3d69a588b6ea.psmdcp"
       ]
     },
     "Microsoft.Composition/1.0.27": {
       "sha512": "pwu80Ohe7SBzZ6i69LVdzowp6V+LaVRzd5F7A6QlD42vQkX0oT7KXKWWPlM/S00w1gnMQMRnEdbtOV12z6rXdQ==",
-      "type": "package",
+      "type": "Package",
       "files": [
         "License-Stable.rtf",
-        "Microsoft.Composition.1.0.27.nupkg.sha512",
         "Microsoft.Composition.nuspec",
+        "[Content_Types].xml",
+        "_rels/.rels",
         "lib/portable-net45+win8+wp8+wpa81/System.Composition.AttributedModel.XML",
         "lib/portable-net45+win8+wp8+wpa81/System.Composition.AttributedModel.dll",
         "lib/portable-net45+win8+wp8+wpa81/System.Composition.Convention.dll",
@@ -160,7 +190,8 @@
         "lib/portable-net45+win8+wp8+wpa81/System.Composition.Runtime.XML",
         "lib/portable-net45+win8+wp8+wpa81/System.Composition.Runtime.dll",
         "lib/portable-net45+win8+wp8+wpa81/System.Composition.TypedParts.XML",
-        "lib/portable-net45+win8+wp8+wpa81/System.Composition.TypedParts.dll"
+        "lib/portable-net45+win8+wp8+wpa81/System.Composition.TypedParts.dll",
+        "package/services/metadata/core-properties/12e2c94035674b25b911285cc26e3260.psmdcp"
       ]
     },
     "Microsoft.DiaSymReader/1.0.7-beta1-51221": {
@@ -173,6 +204,19 @@
         "lib/net20/Microsoft.DiaSymReader.xml",
         "lib/portable-net45+win8/Microsoft.DiaSymReader.dll",
         "lib/portable-net45+win8/Microsoft.DiaSymReader.xml"
+      ]
+    },
+    "NuGet.VisualStudio/3.3.0": {
+      "sha512": "ZVBJ43/IxaAl5iX+OuuDLQ9tSNJaRlP85SUMAdiGoqEbyK/ZPfQmPfqSMZMFpucRlf8HgsEK/hR73DwpCmqcLA==",
+      "type": "Package",
+      "files": [
+        "NuGet.VisualStudio.nuspec",
+        "[Content_Types].xml",
+        "_rels/.rels",
+        "lib/net45/NuGet.VisualStudio.XML",
+        "lib/net45/NuGet.VisualStudio.dll",
+        "package/services/metadata/core-properties/1756613ca7244d47b55cb2c46c446486.psmdcp",
+        "tools/install.ps1"
       ]
     },
     "System.Collections/4.0.0": {
@@ -224,14 +268,16 @@
     },
     "System.Collections.Immutable/1.1.37": {
       "sha512": "fTpqwZYBzoklTT+XjTRK8KxvmrGkYHzBiylCcKyQcxiOM8k+QvhNBxRvFHDWzy4OEP5f8/9n+xQ9mEgEXY+muA==",
-      "type": "package",
+      "type": "Package",
       "files": [
-        "System.Collections.Immutable.1.1.37.nupkg.sha512",
         "System.Collections.Immutable.nuspec",
+        "[Content_Types].xml",
+        "_rels/.rels",
         "lib/dotnet/System.Collections.Immutable.dll",
         "lib/dotnet/System.Collections.Immutable.xml",
         "lib/portable-net45+win8+wp8+wpa81/System.Collections.Immutable.dll",
-        "lib/portable-net45+win8+wp8+wpa81/System.Collections.Immutable.xml"
+        "lib/portable-net45+win8+wp8+wpa81/System.Collections.Immutable.xml",
+        "package/services/metadata/core-properties/a02fdeabe1114a24bba55860b8703852.psmdcp"
       ]
     },
     "System.Diagnostics.Debug/4.0.0": {
@@ -330,16 +376,18 @@
     },
     "System.Linq/4.0.0": {
       "sha512": "r6Hlc+ytE6m/9UBr+nNRRdoJEWjoeQiT3L3lXYFDHoXk3VYsRBCDNXrawcexw7KPLaH0zamQLiAb6avhZ50cGg==",
-      "type": "package",
+      "type": "Package",
       "files": [
-        "System.Linq.4.0.0.nupkg.sha512",
         "System.Linq.nuspec",
+        "[Content_Types].xml",
+        "_rels/.rels",
         "lib/dotnet/System.Linq.dll",
         "lib/net45/_._",
         "lib/netcore50/System.Linq.dll",
         "lib/win8/_._",
         "lib/wp80/_._",
         "lib/wpa81/_._",
+        "package/services/metadata/core-properties/6fcde56ce4094f6a8fff4b28267da532.psmdcp",
         "ref/dotnet/System.Linq.dll",
         "ref/dotnet/System.Linq.xml",
         "ref/dotnet/de/System.Linq.xml",
@@ -361,30 +409,34 @@
     },
     "System.Reflection.Metadata/1.2.0-rc2-23826": {
       "sha512": "iaq5zpluF7mUMd5hFyhmZGyCSzF6glZjvNI2VAhLFQEp8sGA/tROj6NoZL42q6HhoHxi1XyGeoIXPi5hyw0+5w==",
-      "type": "package",
+      "type": "Package",
       "files": [
-        "System.Reflection.Metadata.1.2.0-rc2-23826.nupkg.sha512",
         "System.Reflection.Metadata.nuspec",
         "ThirdPartyNotices.txt",
+        "[Content_Types].xml",
+        "_rels/.rels",
         "dotnet_library_license.txt",
         "lib/dotnet5.2/System.Reflection.Metadata.dll",
         "lib/dotnet5.2/System.Reflection.Metadata.xml",
         "lib/portable-net45+win8/System.Reflection.Metadata.dll",
-        "lib/portable-net45+win8/System.Reflection.Metadata.xml"
+        "lib/portable-net45+win8/System.Reflection.Metadata.xml",
+        "package/services/metadata/core-properties/26ea3eeed81e48b5a161d7b4bfaa534d.psmdcp"
       ]
     },
     "System.Resources.ResourceManager/4.0.0": {
       "sha512": "qmqeZ4BJgjfU+G2JbrZt4Dk1LsMxO4t+f/9HarNY6w8pBgweO6jT+cknUH7c3qIrGvyUqraBhU45Eo6UtA0fAw==",
-      "type": "package",
+      "type": "Package",
       "files": [
-        "System.Resources.ResourceManager.4.0.0.nupkg.sha512",
         "System.Resources.ResourceManager.nuspec",
+        "[Content_Types].xml",
+        "_rels/.rels",
         "lib/DNXCore50/System.Resources.ResourceManager.dll",
         "lib/net45/_._",
         "lib/netcore50/System.Resources.ResourceManager.dll",
         "lib/win8/_._",
         "lib/wp80/_._",
         "lib/wpa81/_._",
+        "package/services/metadata/core-properties/657a73ee3f09479c9fedb9538ade8eac.psmdcp",
         "ref/dotnet/System.Resources.ResourceManager.dll",
         "ref/dotnet/System.Resources.ResourceManager.xml",
         "ref/dotnet/de/System.Resources.ResourceManager.xml",
@@ -550,8 +602,10 @@
   "projectFileDependencyGroups": {
     "": [
       "ManagedEsent >= 1.9.2",
+      "Microsoft.CodeAnalysis.Elfie >= 0.10.6-rc2",
       "Microsoft.Composition >= 1.0.27",
-      "Microsoft.DiaSymReader >= 1.0.7-beta1-51221"
+      "Microsoft.DiaSymReader >= 1.0.7-beta1-51221",
+      "NuGet.VisualStudio >= 3.3.0"
     ],
     ".NETFramework,Version=v4.6": []
   }
