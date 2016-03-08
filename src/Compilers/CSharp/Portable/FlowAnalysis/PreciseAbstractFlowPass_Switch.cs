@@ -241,6 +241,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
+        public override BoundNode VisitPropertyPatternMember(BoundPropertyPatternMember node)
+        {
+            throw ExceptionUtilities.Unreachable;
+        }
+
         /// <summary>
         /// Check if the given expression is known to *always* match, or *always* fail against the given pattern.
         /// Return true for known match, false for known fail, and null otherwise.

@@ -48,6 +48,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                         input = _factory.Local(temp);
                         for (int i = 0; i < pat.Subpatterns.Length; i++)
                         {
+                            // TODO: review and test this code path.
+                            // https://github.com/dotnet/roslyn/issues/9542
                             var subProperty = (pat.Subpatterns[i].Member as BoundPropertyPatternMember)?.MemberSymbol;
                             var subPattern = pat.Subpatterns[i].Pattern;
                             BoundExpression subExpression;
@@ -63,10 +65,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                                     // TODO: should a property pattern be capable of referencing an event?
                                     // https://github.com/dotnet/roslyn/issues/9515
                                 default:
-                                    subExpression = new BoundBadExpression(
-                                        _factory.Syntax, LookupResultKind.Inaccessible, ImmutableArray<Symbol>.Empty,
-                                        ImmutableArray<BoundNode>.Empty, pat.Type);
-                                    break;
+                                    throw ExceptionUtilities.Unreachable;
                             }
 
                             var partialMatch = this.TranslatePattern(subExpression, subPattern);

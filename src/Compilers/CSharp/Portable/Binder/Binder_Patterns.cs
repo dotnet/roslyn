@@ -143,11 +143,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                 var member = new BoundPropertyPatternMember(
                     syntax: node.PatternList.SubPatterns[i],
                     memberSymbol: properties[i],
-                    arguments: ImmutableArray<BoundExpression>.Empty,
-                    argumentNamesOpt: ImmutableArray<string>.Empty,
-                    argumentRefKindsOpt: ImmutableArray<RefKind>.Empty,
-                    expanded: false,
-                    argsToParamsOpt: default(ImmutableArray<int>),
+                    //arguments: ImmutableArray<BoundExpression>.Empty,
+                    //argumentNamesOpt: ImmutableArray<string>.Empty,
+                    //argumentRefKindsOpt: ImmutableArray<RefKind>.Empty,
+                    //expanded: false,
+                    //argsToParamsOpt: default(ImmutableArray<int>),
                     resultKind: LookupResultKind.Empty,
                     type: properties[i].GetTypeOrReturnType(),
                     hasErrors: hasErrors);
@@ -265,11 +265,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
             }
 
-            ImmutableArray<BoundExpression> arguments = ImmutableArray<BoundExpression>.Empty;
-            ImmutableArray<string> argumentNamesOpt = default(ImmutableArray<string>);
-            ImmutableArray<int> argsToParamsOpt = default(ImmutableArray<int>);
-            ImmutableArray<RefKind> argumentRefKindsOpt = default(ImmutableArray<RefKind>);
-            bool expanded = false;
+            //ImmutableArray<BoundExpression> arguments = ImmutableArray<BoundExpression>.Empty;
+            //ImmutableArray<string> argumentNamesOpt = default(ImmutableArray<string>);
+            //ImmutableArray<int> argsToParamsOpt = default(ImmutableArray<int>);
+            //ImmutableArray<RefKind> argumentRefKindsOpt = default(ImmutableArray<RefKind>);
+            //bool expanded = false;
 
             switch (boundMember.Kind)
             {
@@ -318,11 +318,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             return new BoundPropertyPatternMember(
                 memberName,
                 boundMember.ExpressionSymbol,
-                arguments,
-                argumentNamesOpt,
-                argumentRefKindsOpt,
-                expanded,
-                argsToParamsOpt,
+                //arguments,
+                //argumentNamesOpt,
+                //argumentRefKindsOpt,
+                //expanded,
+                //argsToParamsOpt,
                 resultKind,
                 boundMember.Type,
                 hasErrors);
@@ -350,11 +350,15 @@ namespace Microsoft.CodeAnalysis.CSharp
                         break;
 
                     default:
+                        // TODO: review and test this code path.
+                        // https://github.com/dotnet/roslyn/issues/9542
                         Error(diagnostics, ErrorCode.ERR_PropertyLacksGet, memberName, member);
                         break;
                 }
             }
 
+            // TODO: review and test this code path. Is LookupResultKind.Inaccessible appropriate?
+            // https://github.com/dotnet/roslyn/issues/9542
             return ToBadExpression(boundMember, LookupResultKind.Inaccessible);
         }
 

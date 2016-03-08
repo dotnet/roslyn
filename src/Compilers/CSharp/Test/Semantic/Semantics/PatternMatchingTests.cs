@@ -1044,6 +1044,7 @@ public class Program
         Console.WriteLine(o is P { NotFound is 4 });
         Console.WriteLine(o is P { Unreadable1 is 4 });
         Console.WriteLine(o is P { Unreadable2 is 4 });
+        Console.WriteLine(o is P { Unreadable3 is 4 });
 
     }
 }
@@ -1052,6 +1053,7 @@ class P
     public int Good = 2;
     public int Unreadable1 { set { } }
     public int Unreadable2 { set { } protected get { return 0; } }
+    protected int Unreadable3 = 3;
 }
 ";
             var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe, parseOptions: patternParseOptions);
@@ -1065,13 +1067,16 @@ class P
                 Diagnostic(ErrorCode.ERR_PropertyLacksGet, "Unreadable1").WithArguments("P.Unreadable1").WithLocation(10, 36),
                 // (11,36): error CS0271: The property or indexer 'P.Unreadable2' cannot be used in this context because the get accessor is inaccessible
                 //         Console.WriteLine(o is P { Unreadable2 is 4 });
-                Diagnostic(ErrorCode.ERR_InaccessibleGetter, "Unreadable2").WithArguments("P.Unreadable2").WithLocation(11, 36)
+                Diagnostic(ErrorCode.ERR_InaccessibleGetter, "Unreadable2").WithArguments("P.Unreadable2").WithLocation(11, 36),
+                // (12,36): error CS0122: 'P.Unreadable3' is inaccessible due to its protection level
+                //         Console.WriteLine(o is P { Unreadable3 is 4 });
+                Diagnostic(ErrorCode.ERR_BadAccess, "Unreadable3").WithArguments("P.Unreadable3").WithLocation(12, 36)
                 );
             var tree = compilation.SyntaxTrees.Single();
             var model = compilation.GetSemanticModel(tree);
 
             var propPats = tree.GetRoot().DescendantNodes().OfType<IsPatternExpressionSyntax>().Where(e => e.Parent is PropertyPatternSyntax).ToArray();
-            Assert.Equal(4, propPats.Length);
+            Assert.Equal(5, propPats.Length);
 
             var p = propPats[0].Expression; // 'Good' in Good is 4
             var si = model.GetSymbolInfo(p);
@@ -1099,6 +1104,13 @@ class P
             Assert.Equal(CandidateReason.NotAValue, si.CandidateReason);
             Assert.Equal(1, si.CandidateSymbols.Length);
             Assert.Equal("Unreadable2", si.CandidateSymbols[0].Name);
+
+            p = propPats[4].Expression; // 'Unreadable3' in Unreadable3 is 4
+            si = model.GetSymbolInfo(p);
+            Assert.Null(si.Symbol);
+            Assert.Equal(CandidateReason.Inaccessible, si.CandidateReason);
+            Assert.Equal(1, si.CandidateSymbols.Length);
+            Assert.Equal("Unreadable3", si.CandidateSymbols[0].Name);
         }
 
         [Fact, WorkItem(9284, "https://github.com/dotnet/roslyn/issues/9284")]
@@ -1182,6 +1194,7 @@ class Point
             var si = model.GetSymbolInfo(p);
             Assert.Null(si.Symbol);
             Assert.Equal(1, si.CandidateSymbols.Length);
+            Assert.Equal("X", si.CandidateSymbols[0].Name);
             Assert.Equal(CandidateReason.StaticInstanceMismatch, si.CandidateReason);
         }
 
@@ -1221,6 +1234,7 @@ class Point
             var si = model.GetSymbolInfo(p);
             Assert.Null(si.Symbol);
             Assert.Equal(1, si.CandidateSymbols.Length);
+            Assert.Equal("X", si.CandidateSymbols[0].Name);
             Assert.Equal(CandidateReason.Inaccessible, si.CandidateReason);
         }
 
