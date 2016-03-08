@@ -28,7 +28,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             bool hasBlockBody = syntax.Body != null;
             _isExpressionBodied = !hasBlockBody && syntax.ExpressionBody != null;
 
-            if (hasBlockBody || IsExpressionBodied)
+            if (hasBlockBody || _isExpressionBodied)
             {
                 if (IsExtern)
                 {
@@ -36,7 +36,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 }
             }
 
-            if (!modifierErrors && bodySyntaxReferenceOpt == null && !IsExtern && !IsExpressionBodied)
+            if (!modifierErrors && bodySyntaxReferenceOpt == null && !IsExtern)
             {
                 diagnostics.Add(ErrorCode.ERR_ConcreteMissingBody, location, this);
             }
@@ -119,7 +119,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         }
 
         internal override bool IsExpressionBodied
-            => _isExpressionBodied;
+        {
+            get
+            {
+                return _isExpressionBodied;
+            }
+        }
 
         internal override OneOrMany<SyntaxList<AttributeListSyntax>> GetAttributeDeclarations()
         {

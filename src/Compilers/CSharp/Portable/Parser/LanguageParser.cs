@@ -2733,7 +2733,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 ArrowExpressionClauseSyntax expressionBody;
                 SyntaxToken semicolon;
                 this.ParseBlockAndExpressionBodiesWithSemicolon(out body, out expressionBody, out semicolon);
-
+                if (expressionBody != null)
+                {
+                    expressionBody = CheckFeatureAvailability(expressionBody, MessageID.IDS_FeatureExpressionBodiedDeOrConstructor);
+                }
                 var decl = _syntaxFactory.ConstructorDeclaration(attributes, modifiers.ToTokenList(), name, paramList, initializer, body, expressionBody, semicolon);
                 return CheckForBlockAndExpressionBody(body, expressionBody, decl);
             }
@@ -2804,12 +2807,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             ArrowExpressionClauseSyntax expressionBody;
             SyntaxToken semicolon;
             this.ParseBlockAndExpressionBodiesWithSemicolon(out body, out expressionBody, out semicolon);
+            if (expressionBody != null)
+            {
+                expressionBody = CheckFeatureAvailability(expressionBody, MessageID.IDS_FeatureExpressionBodiedDeOrConstructor);
+            }
 
             var parameterList = _syntaxFactory.ParameterList(openParen, default(SeparatedSyntaxList<ParameterSyntax>), closeParen);
 
             var decl = _syntaxFactory.DestructorDeclaration(attributes, modifiers.ToTokenList(), tilde, name, parameterList, body, expressionBody, semicolon);
             return CheckForBlockAndExpressionBody(body, expressionBody, decl);
-
         }
 
         /// <summary>
@@ -2820,8 +2826,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             out BlockSyntax blockBody,
             out ArrowExpressionClauseSyntax expressionBody,
             out SyntaxToken semicolon,
-            bool parseSemicolonAfterBlock = true,
-            bool isAccessorBody = false)
+            bool parseSemicolonAfterBlock = true)
         {
             // Check for 'forward' declarations with no block of any kind
             if (this.CurrentToken.Kind == SyntaxKind.SemicolonToken)
@@ -2837,7 +2842,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
 
             if (this.CurrentToken.Kind == SyntaxKind.OpenBraceToken)
             {
-                blockBody = this.ParseBlock(isMethodBody: true, isAccessorBody: isAccessorBody);
+                blockBody = this.ParseBlock(isMethodBody: true);
             }
 
             if (this.CurrentToken.Kind == SyntaxKind.EqualsGreaterThanToken)
@@ -3774,7 +3779,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 else if (this.CurrentToken.Kind == SyntaxKind.EqualsGreaterThanToken)
                 {
                     expressionBody = this.ParseArrowExpressionClause();
-                    expressionBody = CheckFeatureAvailability(expressionBody, MessageID.IDS_FeatureExpressionBodiedMethod);
+                    expressionBody = CheckFeatureAvailability(expressionBody, MessageID.IDS_FeatureExpressionBodiedAccessor);
                     // Expression-bodies need semicolons and native behavior
                     if (expressionBody != null)
                     {

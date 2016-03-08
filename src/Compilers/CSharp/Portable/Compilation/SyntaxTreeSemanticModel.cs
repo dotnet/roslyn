@@ -758,15 +758,19 @@ namespace Microsoft.CodeAnalysis.CSharp
                     case SyntaxKind.ConstructorDeclaration:
                         {
                             ConstructorDeclarationSyntax constructorDecl = (ConstructorDeclarationSyntax)memberDecl;
+                            var expressionBody = constructorDecl.GetExpressionBodySyntax();
                             return GetOrAddModelForParameterDefaultValue(constructorDecl.ParameterList.Parameters, span) ??
-                                GetOrAddModelIfContains(constructorDecl.Initializer, span) ??
-                                GetOrAddModelIfContains(constructorDecl.Body, span);
+                                   GetOrAddModelIfContains(constructorDecl.Initializer, span) ??
+                                   GetOrAddModelIfContains(expressionBody, span) ??
+                                   GetOrAddModelIfContains(constructorDecl.Body, span);
                         }
 
                     case SyntaxKind.DestructorDeclaration:
                         {
                             DestructorDeclarationSyntax destructorDecl = (DestructorDeclarationSyntax)memberDecl;
-                            return GetOrAddModelIfContains(destructorDecl.Body, span);
+                            var expressionBody = destructorDecl.GetExpressionBodySyntax();
+                            return GetOrAddModelIfContains(expressionBody, span) ?? 
+                                   GetOrAddModelIfContains(destructorDecl.Body, span);
                         }
 
                     case SyntaxKind.IndexerDeclaration:
@@ -812,7 +816,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                     case SyntaxKind.AddAccessorDeclaration:
                     case SyntaxKind.RemoveAccessorDeclaration:
                         // NOTE: not UnknownAccessorDeclaration since there's no corresponding method symbol from which to build a member model.
-                        return GetOrAddModelIfContains(((AccessorDeclarationSyntax)memberDecl).Body, span);
+                        return GetOrAddModelIfContains(((AccessorDeclarationSyntax)memberDecl).ExpressionBody, span) ?? 
+                               GetOrAddModelIfContains(((AccessorDeclarationSyntax)memberDecl).Body, span);
 
                     case SyntaxKind.GlobalStatement:
                         return GetOrAddModel(memberDecl);

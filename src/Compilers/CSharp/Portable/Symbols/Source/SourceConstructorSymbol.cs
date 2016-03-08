@@ -46,7 +46,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     diagnostics.Add(ErrorCode.ERR_ExternHasConstructorInitializer, location, this);
                 }
 
-                if (hasBlockBody || IsExpressionBodied)
+                if (hasBlockBody || _isExpressionBodied)
                 {
                     diagnostics.Add(ErrorCode.ERR_ExternHasBody, location, this);
                 }
@@ -229,7 +229,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         }
 
         internal override bool IsExpressionBodied
-            => _isExpressionBodied;
+        {
+            get
+            {
+                return _isExpressionBodied;
+            }
+        }
 
         internal override bool GenerateDebugInfo
         {
