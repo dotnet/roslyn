@@ -127,7 +127,7 @@ class C{
     void foo()
     {
 //[
-        C cobj = new C(); // typing is apparent from assignment expression
+        C cobj = new C(); // type is apparent from assignment expression
 //]
     }
 }";
@@ -138,7 +138,7 @@ class C{
     void foo()
     {
 //[
-        var cobj = new C(); // typing is apparent from assignment expression
+        var cobj = new C(); // type is apparent from assignment expression
 //]
     }
 }";
