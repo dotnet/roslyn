@@ -14,7 +14,7 @@ namespace Microsoft.CodeAnalysis.CSharp
     {
         private static MethodSymbol _interlockedExchange = null;
 
-        internal static BoundBlock InjectInstrumentation(MethodSymbol method, BoundBlock methodBody, int methodOrdinal, TypeCompilationState compilationState, CSharpCompilation compilation, DiagnosticBag diagnostics, DebugDocumentProvider debugDocumentProvider)
+        internal static BoundBlock InjectInstrumentation(MethodSymbol method, BoundBlock methodBody, int methodOrdinal, TypeCompilationState compilationState, CSharpCompilation compilation, DiagnosticBag diagnostics, DebugDocumentProvider debugDocumentProvider, out ImmutableArray<SourceSpan> dynamicAnalysisSpans)
         {
             if (methodBody != null)
             {
@@ -26,13 +26,13 @@ namespace Microsoft.CodeAnalysis.CSharp
                 SynthesizedFieldSymbol instrumentationPayload = new SynthesizedFieldSymbol(method.ContainingType, payloadArrayType, method.Name + "*instrumentation*" + methodOrdinal.ToString(), isStatic: true);
                 payloadArrayFactory.AddField(method.ContainingType, instrumentationPayload);
 
-                // Synthesize the instrumentation and collect the points of interest.
+                // Synthesize the instrumentation and collect the spans of interest.
 
-                ArrayBuilder<Cci.SequencePoint> pointsBuilder = new ArrayBuilder<Cci.SequencePoint>();
-                BoundTreeRewriter collector = new InstrumentationInjectionWalker(method, pointsBuilder, instrumentationPayload, compilationState, diagnostics, debugDocumentProvider);
+                ArrayBuilder<SourceSpan> spansBuilder = new ArrayBuilder<SourceSpan>();
+                BoundTreeRewriter collector = new InstrumentationInjectionWalker(method, spansBuilder, instrumentationPayload, compilationState, diagnostics, debugDocumentProvider);
                 BoundBlock newMethodBody = (BoundBlock)collector.Visit(methodBody);
 
-                ImmutableArray<Cci.SequencePoint> points = pointsBuilder.ToImmutableAndFree();
+                dynamicAnalysisSpans = spansBuilder.ToImmutableAndFree();
 
                 // Synthesize the initialization of the instrumentation payload array. It should actually be done either statically or with concurrency-safe code.
                 //
@@ -51,8 +51,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 //         Instrumentation.AddPayload(method, payloadArray);
                 // }
 
-                ArrayBuilder<BoundExpression> elementsBuilder = new ArrayBuilder<BoundExpression>(points.Length);
-                for (int i = 0; i < points.Length; i++)
+                ArrayBuilder<BoundExpression> elementsBuilder = new ArrayBuilder<BoundExpression>(dynamicAnalysisSpans.Length);
+                for (int i = 0; i < dynamicAnalysisSpans.Length; i++)
                 {
                     elementsBuilder.Add(payloadArrayFactory.Literal(false));
                 }
@@ -94,6 +94,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return newMethodBody;
             }
 
+            dynamicAnalysisSpans = ImmutableArray<SourceSpan>.Empty;
             return null;
         }
 
@@ -131,16 +132,16 @@ namespace Microsoft.CodeAnalysis.CSharp
     internal sealed class InstrumentationInjectionWalker : BoundTreeRewriterWithStackGuard
     {
         private readonly MethodSymbol _method;
-        private readonly ArrayBuilder<Cci.SequencePoint> _pointsBuilder;
+        private readonly ArrayBuilder<SourceSpan> _spansBuilder;
         private readonly FieldSymbol _payload;
         private readonly TypeCompilationState _compilationState;
         private readonly DiagnosticBag _diagnostics;
         private readonly DebugDocumentProvider _debugDocumentProvider;
 
-        public InstrumentationInjectionWalker(MethodSymbol method, ArrayBuilder<Cci.SequencePoint> pointsBuilder, FieldSymbol payload, TypeCompilationState compilationState, DiagnosticBag diagnostics, DebugDocumentProvider debugDocumentProvider)
+        public InstrumentationInjectionWalker(MethodSymbol method, ArrayBuilder<SourceSpan> spansBuilder, FieldSymbol payload, TypeCompilationState compilationState, DiagnosticBag diagnostics, DebugDocumentProvider debugDocumentProvider)
         {
             _method = method;
-            _pointsBuilder = pointsBuilder;
+            _spansBuilder = spansBuilder;
             _payload = payload;
             _compilationState = compilationState;
             _diagnostics = diagnostics;
@@ -307,20 +308,21 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return statement;
             }
 
-            FileLinePositionSpan lineSpan = statement.Syntax.GetLocation().GetMappedLineSpan();
+            Location statementLocation = statement.Syntax.GetLocation();
+            FileLinePositionSpan lineSpan = statementLocation.GetMappedLineSpan();
             string path = lineSpan.Path;
             if (path == "")
             {
                 path = statement.Syntax.SyntaxTree.FilePath;
             }
 
-            int pointsIndex = _pointsBuilder.Count;
-            _pointsBuilder.Add(new Cci.SequencePoint(_debugDocumentProvider.Invoke(path, ""), 0, lineSpan.Span.Start.Line, lineSpan.Span.Start.Character, lineSpan.Span.End.Line, lineSpan.Span.End.Character));
+            int spansIndex = _spansBuilder.Count;
+            _spansBuilder.Add(new SourceSpan(_debugDocumentProvider.Invoke(path, ""), lineSpan.StartLinePosition.Line, lineSpan.StartLinePosition.Character, lineSpan.EndLinePosition.Line, lineSpan.EndLinePosition.Character));
 
             // Generate "_payload[pointIndex] = true".
 
             SyntheticBoundNodeFactory statementFactory = new SyntheticBoundNodeFactory(_method, statement.Syntax, _compilationState, _diagnostics);
-            BoundArrayAccess payloadCell = statementFactory.ArrayAccess(statementFactory.Field(null, _payload), statementFactory.Literal(pointsIndex));
+            BoundArrayAccess payloadCell = statementFactory.ArrayAccess(statementFactory.Field(null, _payload), statementFactory.Literal(spansIndex));
             BoundExpressionStatement cellAssignment = statementFactory.Assignment(payloadCell, statementFactory.Literal(true));
             
             return statementFactory.Block(ImmutableArray.Create(cellAssignment, statement));

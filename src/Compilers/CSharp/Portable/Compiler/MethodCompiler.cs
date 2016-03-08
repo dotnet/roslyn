@@ -215,7 +215,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                     diagnostics: diagnostics,
                     debugDocumentProvider: null,
                     importChainOpt: null,
-                    emittingPdb: false);
+                    emittingPdb: false,
+                    dynamicAnalysisSpans: ImmutableArray<SourceSpan>.Empty);
                 moduleBeingBuilt.SetMethodBody(synthesizedEntryPoint, emittedBody);
             }
 
@@ -640,7 +641,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                             diagnosticsThisMethod,
                             _debugDocumentProvider,
                                 method.GenerateDebugInfo ? importChain : null,
-                            emittingPdb: _emittingPdb);
+                            emittingPdb: _emittingPdb,
+                            dynamicAnalysisSpans: ImmutableArray<SourceSpan>.Empty);
                     }
                 }
                 catch (BoundTreeVisitor.CancelledByStackGuardException ex)
@@ -744,7 +746,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                         diagnostics: diagnosticsThisMethod,
                         debugDocumentProvider: _debugDocumentProvider,
                         importChainOpt: null,
-                        emittingPdb: false);
+                        emittingPdb: false,
+                        dynamicAnalysisSpans: ImmutableArray<SourceSpan>.Empty);
 
                     _moduleBeingBuiltOpt.SetMethodBody(accessor, emittedBody);
                     // Definition is already in the symbol table, so don't call moduleBeingBuilt.AddCompilerGeneratedDefinition
@@ -974,7 +977,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // Any errors generated below here are considered Emit diagnostics 
                 // and will not be reported to callers Compilation.GetDiagnostics()
 
-                flowAnalyzedBody = Instrumentation.InjectInstrumentation(methodSymbol, flowAnalyzedBody, methodOrdinal, compilationState, _compilation, _diagnostics, _debugDocumentProvider);
+                ImmutableArray<SourceSpan> dynamicAnalysisSpans = ImmutableArray<SourceSpan>.Empty;
+                if (_moduleBeingBuiltOpt.EmitOptions.EmitDynamicAnalysisData)
+                {
+                    flowAnalyzedBody = Instrumentation.InjectInstrumentation(methodSymbol, flowAnalyzedBody, methodOrdinal, compilationState, _compilation, _diagnostics, _debugDocumentProvider, out dynamicAnalysisSpans);
+                }
 
                 bool hasBody = flowAnalyzedBody != null;
                 VariableSlotAllocator lazyVariableSlotAllocator = null;
@@ -1112,7 +1119,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                             diagsForCurrentMethod,
                             _debugDocumentProvider,
                             importChain,
-                            _emittingPdb);
+                            _emittingPdb,
+                            dynamicAnalysisSpans);
 
                         _moduleBeingBuiltOpt.SetMethodBody(methodSymbol.PartialDefinitionPart ?? methodSymbol, emittedBody);
                     }
@@ -1283,7 +1291,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             DiagnosticBag diagnostics,
             DebugDocumentProvider debugDocumentProvider,
             ImportChain importChainOpt,
-            bool emittingPdb)
+            bool emittingPdb,
+            ImmutableArray<SourceSpan> dynamicAnalysisSpans)
         {
             // Note: don't call diagnostics.HasAnyErrors() in release; could be expensive if compilation has many warnings.
             Debug.Assert(!diagnostics.HasAnyErrors(), "Running code generator when errors exist might be dangerous; code generator not expecting errors");
@@ -1375,27 +1384,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 if (moduleBuilder.EmitOptions.EmitDynamicAnalysisData)
                 {
                     Debug.Assert(debugDocumentProvider != null);
-
-                    // TODO: collect information from bound trees
-                    if (method.Name == "Main")
-                    {
-                        var doc1 = debugDocumentProvider.Invoke(@"C:\myproject\doc1.cs", "");
-                        var doc2 = debugDocumentProvider.Invoke(@"C:\myproject\doc2.cs", "");
-
-                        dynamicAnalysisDataOpt = new DynamicAnalysisMethodBodyData(
-                            spans: ImmutableArray.Create(
-                                       new SourceSpan(doc1, 10, 1, 10, 20),
-                                       new SourceSpan(doc1, 20, 1, 30, 20),
-                                       new SourceSpan(doc2, 10, 1, 10, 20)));
-                    }
-                    else if (method.Name == ".ctor")
-                    {
-                        var doc1 = debugDocumentProvider.Invoke(@"C:\myproject\doc1.cs", "");
-
-                        dynamicAnalysisDataOpt = new DynamicAnalysisMethodBodyData(
-                            spans: ImmutableArray.Create(
-                                       new SourceSpan(doc1, 1, 1, 3, 10)));
-                    }
+                    dynamicAnalysisDataOpt = new DynamicAnalysisMethodBodyData(dynamicAnalysisSpans);
                 }
 
                 return new MethodBody(
