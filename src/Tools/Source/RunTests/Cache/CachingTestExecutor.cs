@@ -78,9 +78,7 @@ namespace RunTests.Cache
 
             return new TestResult(
                 exitCode: cachedTestResult.ExitCode,
-                assemblyPath: assemblyInfo.AssemblyPath,
-                // TODO: another place where cache and assembly info could have diff data.
-                displayName: assemblyInfo.DisplayName,
+                assemblyInfo: assemblyInfo,
                 resultDir: resultsDir,
                 resultsFilePath: resultsFilePath,
                 commandLine: commandLine,
@@ -99,10 +97,9 @@ namespace RunTests.Cache
                     exitCode: testResult.ExitCode,
                     standardOutput: testResult.StandardOutput,
                     errorOutput: testResult.ErrorOutput,
-                    resultsFileName: Path.GetFileName(testResult.ResultsFilePath),
                     resultsFileContent: resultFileContent,
                     ellapsed: testResult.Elapsed);
-                await _dataStorage.AddCachedTestResult(testResult.AssemblyName, contentFile, cachedTestResult).ConfigureAwait(true);
+                await _dataStorage.AddCachedTestResult(testResult.AssemblyInfo, contentFile, cachedTestResult).ConfigureAwait(true);
             }
             catch (Exception ex)
             {

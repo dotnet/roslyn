@@ -43,6 +43,7 @@ namespace RunTests.Cache
             var assemblyPath = assemblyInfo.AssemblyPath;
             builder.AppendLine($"Assembly: {Path.GetFileName(assemblyPath)} {GetFileChecksum(assemblyPath)}");
             builder.AppendLine($"Display Name: {assemblyInfo.DisplayName}");
+            builder.AppendLine($"Results File Name; {assemblyInfo.ResultsFileName}");
 
             var configFilePath = $"{assemblyPath}.config";
             var configFileChecksum = File.Exists(configFilePath)
@@ -59,8 +60,6 @@ namespace RunTests.Cache
             builder.AppendLine($"\t{nameof(_options.NoTrait)} - {_options.NoTrait}");
             builder.AppendLine($"Extra Options: {assemblyInfo.ExtraArguments}");
 
-            // TODO: Need to include dependency information here, option data, etc ...
-            // Test file alone isn't enough.  Makes it easy to test though.
             return builder.ToString();
         }
 
