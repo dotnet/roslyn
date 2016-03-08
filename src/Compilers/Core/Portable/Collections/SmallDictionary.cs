@@ -149,18 +149,29 @@ namespace Microsoft.CodeAnalysis
             public override Node Next => next;
         }
 
-        private class AvlNode : Node
+        // separate class to ensure that HashCode field 
+        // is located before other AvlNode fields
+        // Balance is also here for better packing of AvlNode on 64bit
+        private abstract class HashedNode : Node
         {
-            public AvlNode Left;
-            public AvlNode Right;
             public readonly int HashCode;
             public sbyte Balance;
 
-            public AvlNode(int hashCode, K key, V value)
+            protected HashedNode(int hashCode, K key, V value)
                 : base(key, value)
             {
                 this.HashCode = hashCode;
             }
+        }
+
+        private class AvlNode : HashedNode
+        {
+            public AvlNode Left;
+            public AvlNode Right;
+
+            public AvlNode(int hashCode, K key, V value)
+                : base(hashCode, key, value)
+            { }
 
 #if DEBUG
             public static int AssertBalanced(AvlNode V)
@@ -204,7 +215,7 @@ namespace Microsoft.CodeAnalysis
             value = default(V);
             return false;
 
-        hasBucket:
+            hasBucket:
             if (CompareKeys(b.Key, key))
             {
                 value = b.Value;

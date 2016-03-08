@@ -487,7 +487,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     return false;
 
                 case 2:
-                    if (ReferenceEquals(array[0].OriginalDefinition, array[1].OriginalDefinition))
+                    if ((object)array[0].OriginalDefinition == array[1].OriginalDefinition)
                     {
                         break;
                     }

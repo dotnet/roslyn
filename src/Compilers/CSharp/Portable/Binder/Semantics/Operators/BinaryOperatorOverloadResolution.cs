@@ -253,8 +253,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             var rightType = right.Type;
             var simpleCase = leftType?.IsValueType == true &&
                              rightType?.IsValueType == true &&
-                             leftType?.IsNullableType() == false &&
-                             rightType?.IsNullableType() == false;
+                             leftType.IsNullableType() == false &&
+                             rightType.IsNullableType() == false;
 
             if (!simpleCase)
             {

@@ -123,6 +123,9 @@ namespace Microsoft.Cci
         // internal for testing
         internal static void SerializeCustomDebugInformation(EditAndContinueMethodDebugInformation debugInfo, ArrayBuilder<PooledBlobBuilder> customDebugInfo)
         {
+            // PERF: note that we pass debugInfo as explicit parameter
+            //       that is intentional to avoid capturing debugInfo as that 
+            //       would result in a lot of delegate allocations here that are otherwise can be avoided.
             if (!debugInfo.LocalSlots.IsDefaultOrEmpty)
             {
                 customDebugInfo.Add(
