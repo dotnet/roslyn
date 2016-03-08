@@ -11,7 +11,6 @@ namespace RunTests.Cache
 {
     /// <summary>
     /// Data storage that works under %LOCALAPPDATA%
-    /// TODO: need to do garbage collection on the files
     /// </summary>
     internal sealed class LocalDataStorage : IDataStorage
     {
@@ -36,6 +35,7 @@ namespace RunTests.Cache
         internal LocalDataStorage(string storagePath = null)
         {
             _storagePath = storagePath ?? Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), DirectoryName);
+            CleanupStorage();
         }
 
         public Task<CachedTestResult?> TryGetCachedTestResult(string checksum)
@@ -159,7 +159,7 @@ namespace RunTests.Cache
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"Unable to cleanup storage {ex.Message}");
+                Logger.Log($"Unable to cleanup storage {ex.Message}");
             }
         }
     }

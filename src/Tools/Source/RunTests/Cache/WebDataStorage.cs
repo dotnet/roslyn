@@ -27,15 +27,26 @@ namespace RunTests.Cache
 
         public async Task AddCachedTestResult(AssemblyInfo assemblyInfo, ContentFile contentFile, CachedTestResult testResult)
         {
-            var obj = new JObject();
-            obj["TestResultData"] = CreateTestResultData(assemblyInfo.ResultsFileName, testResult);
-            obj["TestSourceData"] = CreateTestSourceData(assemblyInfo);
+            try
+            {
+                var obj = new JObject();
+                obj["TestResultData"] = CreateTestResultData(assemblyInfo.ResultsFileName, testResult);
+                obj["TestSourceData"] = CreateTestSourceData(assemblyInfo);
 
-            var request = new RestRequest($"api/testcache/{contentFile.Checksum}");
-            request.Method = Method.PUT;
-            request.RequestFormat = DataFormat.Json;
-            request.AddParameter("text/json", obj.ToString(), ParameterType.RequestBody);
-            var response = await _restClient.ExecuteTaskAsync(request);
+                var request = new RestRequest($"api/testcache/{contentFile.Checksum}");
+                request.Method = Method.PUT;
+                request.RequestFormat = DataFormat.Json;
+                request.AddParameter("text/json", obj.ToString(), ParameterType.RequestBody);
+                var response = await _restClient.ExecuteTaskAsync(request);
+                if (response.StatusCode != HttpStatusCode.NoContent)
+                {
+                    Logger.Log($"Error adding web cached result: {response.StatusCode}");
+                }
+            }
+            catch (Exception ex)
+            {
+                Logger.Log($"Exception adding web cached result:  {ex}");
+            }
         }
 
         public async Task<CachedTestResult?> TryGetCachedTestResult(string checksum)
@@ -58,16 +69,15 @@ namespace RunTests.Cache
                     ellapsed: TimeSpan.FromSeconds(obj.Value<int>(NameEllapsedSeconds)));
                 return result;
             }
-            catch
+            catch (Exception ex)
             {
+                Logger.Log($"Exception retrieving cached test result {checksum}: {ex}");
                 return null;
             }
         }
 
         private static JObject CreateTestResultData(string resultsFileName, CachedTestResult testResult)
         {
-            // TODO: we should remove ResultsFileName from the web storage.  It's redundant data at this 
-            // point.
             var obj = new JObject();
             obj[NameExitCode] = testResult.ExitCode;
             obj[NameOutputStandard] = testResult.StandardOutput;
