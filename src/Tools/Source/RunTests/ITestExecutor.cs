@@ -8,7 +8,6 @@ using System.Threading.Tasks;
 
 namespace RunTests
 {
-    // TODO: lots of redudant fields here ... remove them.
     internal struct TestResult
     {
         internal int ExitCode { get; }

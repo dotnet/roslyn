@@ -67,11 +67,6 @@ namespace RunTests.Cache
         {
             var resultsDir = Path.Combine(Path.GetDirectoryName(assemblyInfo.AssemblyPath), Constants.ResultsDirectoryName);
             FileUtil.EnsureDirectory(resultsDir);
-
-            // TODO: ResultsFileName is now both a part of the cached data and the assembly info.  What if 
-            // they differ?  Who wins? 
-            // Maybe just drop this in the content file and then if they differ it won't be a cache hit.  One less
-            // item to store.
             var resultsFilePath = Path.Combine(resultsDir, assemblyInfo.ResultsFileName);
             File.WriteAllText(resultsFilePath, cachedTestResult.ResultsFileContent);
             var commandLine = _testExecutor.GetCommandLine(assemblyInfo);
