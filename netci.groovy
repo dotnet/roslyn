@@ -58,13 +58,23 @@ static void addWrappers(def myJob) {
 static void addArtifactArchiving(def myJob, String patternString, String excludeString) {
   myJob.with {
     publishers {
-      archiveArtifacts {
-        allowEmpty(true)
-        defaultExcludes(false)
-        exclude(excludeString)
-        fingerprint(false)
-        onlyIfSuccessful(false)
-        pattern(patternString)
+      flexiblePublish {
+        conditionalAction {
+          condition {
+            status('ABORTED', 'FAILURE')
+          }
+
+          publishers {
+            archiveArtifacts {
+              allowEmpty(true)
+              defaultExcludes(false)
+              exclude(excludeString)
+              fingerprint(false)
+              onlyIfSuccessful(false)
+              pattern(patternString)
+            }
+          }
+        }
       }
     }
   }
