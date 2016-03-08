@@ -14,27 +14,17 @@ namespace Microsoft.CodeAnalysis.CSharp
     {
         ArrayBuilder<DeclarationPatternSyntax> declarationPatterns;
         internal static ArrayBuilder<DeclarationPatternSyntax> FindPatternVariables(
-            ExpressionSyntax expression = null,
-            ImmutableArray<ExpressionSyntax> expressions = default(ImmutableArray<ExpressionSyntax>),
-            ImmutableArray<PatternSyntax> patterns = default(ImmutableArray<PatternSyntax>))
+            CSharpSyntaxNode node = null,
+            ImmutableArray<CSharpSyntaxNode> nodes = default(ImmutableArray<CSharpSyntaxNode>))
         {
             var finder = s_poolInstance.Allocate();
             finder.declarationPatterns = ArrayBuilder<DeclarationPatternSyntax>.GetInstance();
-
-            finder.Visit(expression);
-            if (!expressions.IsDefaultOrEmpty)
+            finder.Visit(node);
+            if (!nodes.IsDefaultOrEmpty)
             {
-                foreach (var subExpression in expressions)
+                foreach (var n in nodes)
                 {
-                    finder.Visit(subExpression);
-                }
-            }
-
-            if (!patterns.IsDefaultOrEmpty)
-            {
-                foreach (var pattern in patterns)
-                {
-                    finder.Visit(pattern);
+                    finder.Visit(n);
                 }
             }
 

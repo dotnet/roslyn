@@ -3450,7 +3450,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 Error(diagnostics, ErrorCode.WRN_FilterIsConstant, filter.FilterExpression);
             }
 
-            boundFilter = patternBinder.WrapWithPatternVariables(boundFilter);
+            boundFilter = patternBinder.WrapWithVariablesIfAny(boundFilter);
             boundFilter = new BoundSequencePointExpression(filter, boundFilter, boundFilter.Type);
             return boundFilter;
         }
