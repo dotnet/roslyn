@@ -6,6 +6,7 @@ using System.Linq;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+using static Microsoft.CodeAnalysis.Utilities.ForegroundThreadDataKind;
 
 namespace Microsoft.CodeAnalysis.Utilities
 {
@@ -14,6 +15,7 @@ namespace Microsoft.CodeAnalysis.Utilities
         Wpf,
         StaUnitTest,
         JoinableTask,
+        ForcedByPackageInitialize,
         Unknown
     }
 
@@ -24,10 +26,10 @@ namespace Microsoft.CodeAnalysis.Utilities
 
         static ForegroundThreadDataInfo()
         {
-            s_fallbackForegroundThreadDataKind = CreateDefault();
+            s_fallbackForegroundThreadDataKind = CreateDefault(Unknown);
         }
 
-        internal static ForegroundThreadDataKind CreateDefault()
+        internal static ForegroundThreadDataKind CreateDefault(ForegroundThreadDataKind defaultKind)
         {
             var syncConextTypeName = SynchronizationContext.Current?.GetType().FullName;
 
@@ -35,15 +37,15 @@ namespace Microsoft.CodeAnalysis.Utilities
             {
                 case "System.Windows.Threading.DispatcherSynchronizationContext":
 
-                    return ForegroundThreadDataKind.Wpf;
+                    return Wpf;
 
                 case "Microsoft.VisualStudio.Threading.JoinableTask+JoinableTaskSynchronizationContext":
 
-                    return ForegroundThreadDataKind.JoinableTask;
+                    return JoinableTask;
 
                 default:
 
-                    return ForegroundThreadDataKind.Unknown;
+                    return defaultKind;
             }
         }
 

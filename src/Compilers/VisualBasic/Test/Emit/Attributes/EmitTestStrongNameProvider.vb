@@ -54,7 +54,8 @@ End Class
             </compilation>, options:=options)
 
         comp.VerifyEmitDiagnostics(
-    Diagnostic(ERRID.ERR_PublicKeyContainerFailure).WithArguments("RoslynTestContainer", "This is a test IOException").WithLocation(1, 1))
+            Diagnostic(ERRID.ERR_PeWritingFailure).WithArguments("This is a test IOException").WithLocation(1, 1))
+
     End Sub
 
 End Class

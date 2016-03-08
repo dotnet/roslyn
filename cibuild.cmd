@@ -2,6 +2,8 @@
 
 REM Parse Arguments.
 
+set NugetZipUrlRoot=https://dotnetci.blob.core.windows.net/roslyn
+set NugetZipUrl=%NuGetZipUrlRoot%/nuget.64.zip
 set RoslynRoot=%~dp0
 set BuildConfiguration=Debug
 
@@ -30,7 +32,7 @@ echo Building this commit:
 git show --no-patch --pretty=raw HEAD
 
 REM Restore the NuGet packages 
-call "%RoslynRoot%\Restore.cmd" || goto :BuildFailed
+    call "%RoslynRoot%\Restore.cmd" || goto :BuildFailed
 
 REM Ensure the binaries directory exists because msbuild can fail when part of the path to LogFile isn't present.
 set bindir=%RoslynRoot%Binaries

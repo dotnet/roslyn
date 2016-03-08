@@ -32,6 +32,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
             Me._metadataDecoder = metadataDecoder
         End Sub
 
+        Friend Overrides ReadOnly Property MessageProvider As CommonMessageProvider
+            Get
+                Return VisualBasic.MessageProvider.Instance
+            End Get
+        End Property
+
         Friend Function TryGetAnonymousTypeName(template As NamedTypeSymbol, <Out> ByRef name As String, <Out> ByRef index As Integer) As Boolean
             Return Me.mapToPrevious.TryGetAnonymousTypeName(template, name, index)
         End Function

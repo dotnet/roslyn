@@ -32,6 +32,7 @@ using Roslyn.VisualStudio.Setup;
     GenerateCodeBase = true)]
 
 [assembly: ProvideCodeBase(CodeBase = @"$PackageFolder$\Esent.Interop.dll")]
+[assembly: ProvideCodeBase(CodeBase = @"$PackageFolder$\Microsoft.CodeAnalysis.Elfie.dll")]
 
 [assembly: ProvideBindingRedirection(
     AssemblyName = "Microsoft.DiaSymReader",

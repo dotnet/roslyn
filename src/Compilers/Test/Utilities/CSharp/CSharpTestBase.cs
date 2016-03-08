@@ -13,13 +13,14 @@ using System.Threading;
 using Microsoft.CodeAnalysis.CodeGen;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE;
+using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.UnitTests;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
-using Xunit;
 using Roslyn.Test.Utilities;
 using Roslyn.Test.MetadataUtilities;
+using Xunit;
 
 namespace Microsoft.CodeAnalysis.CSharp.Test.Utilities
 {
@@ -520,6 +521,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Test.Utilities
                 options = options.WithConcurrentBuild(false);
             }
 
+#if Test_IOperation_Interface
+            // Create a compilation for the purpose of verifying operation tree only,
+            // so this won't interfere with test.
+            var compilationForOperationWalking = CSharpCompilation.Create(
+                assemblyName == "" ? GetUniqueName() : assemblyName,
+                trees,
+                references,
+                options);
+            WalkOperationTree(compilationForOperationWalking);
+#endif
             return CSharpCompilation.Create(
                 assemblyName == "" ? GetUniqueName() : assemblyName,
                 trees,
@@ -535,12 +546,49 @@ namespace Microsoft.CodeAnalysis.CSharp.Test.Utilities
             CSharpParseOptions parseOptions = null)
         {
             var trees = (sources == null) ? null : sources.Select(s => Parse(s, options: parseOptions)).ToArray();
-            var c = CSharpCompilation.Create(identity.Name, options: options ?? TestOptions.ReleaseDll, references: references, syntaxTrees: trees);
+            var compilationOptions = options ?? TestOptions.ReleaseDll;
+
+#if Test_IOperation_Interface
+            // Create a compilation for the purpose of verifying operation tree only,
+            // so this won't interfere with test.
+            var compilationForOperationWalking = CSharpCompilation.Create(
+                identity.Name,
+                options: compilationOptions,
+                references: references,
+                syntaxTrees: trees);
+            WalkOperationTree(compilationForOperationWalking);
+#endif
+
+            var c = CSharpCompilation.Create(identity.Name, options: compilationOptions, references: references, syntaxTrees: trees);
             Assert.NotNull(c.Assembly); // force creation of SourceAssemblySymbol
 
             ((SourceAssemblySymbol)c.Assembly).lazyAssemblyIdentity = identity;
             return c;
         }
+
+#if Test_IOperation_Interface
+        private static void WalkOperationTree(CSharpCompilation compilation)
+        {
+            var operationWalker = TestOperationWalker.GetInstance();
+
+            foreach (var tree in compilation.SyntaxTrees)
+            {
+                var semanticModel = compilation.GetSemanticModel(tree);
+                var root = tree.GetRoot();
+
+                // TODO: check other operation root as well (property, etc.)
+                foreach (BaseMethodDeclarationSyntax methodNode in root.DescendantNodesAndSelf().OfType<BaseMethodDeclarationSyntax>())
+                {
+                    var bodyNode = methodNode.Body;
+                    if (bodyNode != null)
+                    {
+                        var operation = semanticModel.GetOperation(bodyNode);
+                        operationWalker.Visit(operation);
+                    }
+                }
+            }
+        }
+#endif
 
         public static CSharpCompilation CreateSubmissionWithExactReferences(
            string code,
@@ -794,7 +842,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Test.Utilities
                 }
 
                 if (expectedDiagnostics != null)
-                {
+                    {
                     diagnostics.Verify(expectedDiagnostics);
                 }
                 diagnostics.Free();
@@ -803,7 +851,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Test.Utilities
                 ArraySegment<byte> bufferSegment;
                 if (stream.TryGetBuffer(out bufferSegment) &&
                     bufferSegment.Count == bufferSegment.Array.Length)
-                {
+                    {
                     buffer = bufferSegment.Array;
                 }
                 else
