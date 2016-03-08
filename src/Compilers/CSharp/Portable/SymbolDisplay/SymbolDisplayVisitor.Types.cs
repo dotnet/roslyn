@@ -178,6 +178,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                 if (format.DelegateStyle == SymbolDisplayDelegateStyle.NameAndSignature)
                 {
                     var invokeMethod = symbol.DelegateInvokeMethod;
+                    var invokeMethodSymbol = invokeMethod as MethodSymbol;
+                    if (invokeMethodSymbol != null)
+                    {
+                        AddRefKindIfRequired(invokeMethodSymbol.RefKind);
+                    }
+
                     if (invokeMethod.ReturnsVoid)
                     {
                         AddKeyword(SyntaxKind.VoidKeyword);
@@ -531,7 +537,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 AddPunctuation(SyntaxKind.LessThanToken);
 
                 var first = true;
-                for (int i =0; i < typeArguments.Length; i++)
+                for (int i = 0; i < typeArguments.Length; i++)
                 {
                     var typeArg = typeArguments[i];
 
@@ -557,7 +563,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                     if (!modifiers.IsDefault)
                     {
-                        AddCustomModifiersIfRequired(modifiers[i], leadingSpace: true, trailingSpace:false);
+                        AddCustomModifiersIfRequired(modifiers[i], leadingSpace: true, trailingSpace: false);
                     }
                 }
 

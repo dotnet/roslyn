@@ -137,5 +137,8 @@ Options:
   /define:<name>=<value>,...     Declare global conditional compilation symbol(s) (Short form: /d)
   @<file>                        Read response file for more options
 ]]></value>  
-    </data>
+  </data>
+  <data name="ExceptionEscapeWithoutQuote" xml:space="preserve">
+    <value>Cannot escape non-printable characters in Visual Basic notation unless quotes are used.</value>
+  </data>
 </root>

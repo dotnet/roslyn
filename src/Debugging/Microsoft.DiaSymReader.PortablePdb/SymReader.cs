@@ -1,4 +1,5 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+
 using System;
 using System.Diagnostics;
 using System.Linq;
@@ -6,6 +7,7 @@ using System.Reflection.Metadata;
 using System.Reflection.Metadata.Ecma335;
 using System.Runtime.InteropServices;
 using System.Runtime.InteropServices.ComTypes;
+using Roslyn.Utilities;
 
 namespace Microsoft.DiaSymReader.PortablePdb
 {
@@ -14,7 +16,7 @@ namespace Microsoft.DiaSymReader.PortablePdb
     // ISymUnmanagedSourceServerModule?
 
     [ComVisible(false)]
-    public sealed class SymReader : ISymUnmanagedReader3, ISymUnmanagedDispose
+    public sealed class SymReader : ISymUnmanagedReader4, ISymUnmanagedDispose
     {
         private readonly PortablePdbReader _pdbReader;
         private readonly Lazy<DocumentMap> _lazyDocumentMap;
@@ -24,7 +26,7 @@ namespace Microsoft.DiaSymReader.PortablePdb
         private int _version;
 
         // Takes ownership of <paramref name="pdbReader"/>.
-        internal SymReader(PortablePdbReader pdbReader)
+        private SymReader(PortablePdbReader pdbReader)
         {
             Debug.Assert(pdbReader != null);
 
@@ -34,6 +36,31 @@ namespace Microsoft.DiaSymReader.PortablePdb
             _lazyDocumentMap = new Lazy<DocumentMap>(() => new DocumentMap(MetadataReader));
             _lazyVbSemantics = new Lazy<bool>(() => IsVisualBasicAssembly());
             _lazyMethodMap = new Lazy<MethodMap>(() => new MethodMap(MetadataReader));
+        }
+
+        internal static SymReader CreateFromFile(string path, LazyMetadataImport metadataImport)
+        {
+            byte[] bytes;
+            try
+            {
+                // TODO: use memory mapped files?
+                bytes = PortableShim.File.ReadAllBytes(path);
+            }
+            catch
+            {
+                return null;
+            }
+
+            return new SymReader(new PortablePdbReader(bytes, bytes.Length, metadataImport));
+        }
+
+        internal static ISymUnmanagedReader CreateFromStream(IStream stream, LazyMetadataImport metadataImport)
+        {
+            byte[] bytes;
+            int size;
+            stream.ReadAllBytes(out bytes, out size);
+
+            return new SymReader(new PortablePdbReader(bytes, size, metadataImport));
         }
 
         internal MetadataReader MetadataReader => _pdbReader.MetadataReader;
@@ -84,9 +111,9 @@ namespace Microsoft.DiaSymReader.PortablePdb
 
         public int GetDocument(
             [MarshalAs(UnmanagedType.LPWStr)]string url,
-            Guid language,          
-            Guid languageVendor,    
-            Guid documentType,      
+            Guid language,
+            Guid languageVendor,
+            Guid documentType,
             [MarshalAs(UnmanagedType.Interface)]out ISymUnmanagedDocument document)
         {
             DocumentHandle documentHandle;
@@ -109,8 +136,8 @@ namespace Microsoft.DiaSymReader.PortablePdb
         }
 
         public int GetDocuments(
-            int bufferLength, 
-            out int count, 
+            int bufferLength,
+            out int count,
             [In, MarshalAs(UnmanagedType.LPArray, SizeParamIndex = 0), Out]ISymUnmanagedDocument[] documents)
         {
             count = MetadataReader.Documents.Count;
@@ -158,7 +185,7 @@ namespace Microsoft.DiaSymReader.PortablePdb
         }
 
         public int GetMethodByVersion(
-            int methodToken, 
+            int methodToken,
             int version,
             [MarshalAs(UnmanagedType.Interface)]out ISymUnmanagedMethod method)
         {
@@ -196,9 +223,9 @@ namespace Microsoft.DiaSymReader.PortablePdb
         }
 
         public int GetMethodFromDocumentPosition(
-            ISymUnmanagedDocument document, 
-            int line, 
-            int column, 
+            ISymUnmanagedDocument document,
+            int line,
+            int column,
             [MarshalAs(UnmanagedType.Interface)]out ISymUnmanagedMethod method)
         {
             var symDocument = AsSymDocument(document);
@@ -236,9 +263,9 @@ namespace Microsoft.DiaSymReader.PortablePdb
         }
 
         public int GetMethodsFromDocumentPosition(
-            ISymUnmanagedDocument document, 
-            int line, 
-            int column, 
+            ISymUnmanagedDocument document,
+            int line,
+            int column,
             int bufferLength,
             out int count,
             [In, MarshalAs(UnmanagedType.LPArray, SizeParamIndex = 3), Out]ISymUnmanagedMethod[] methods)
@@ -287,7 +314,7 @@ namespace Microsoft.DiaSymReader.PortablePdb
 
         public int GetMethodsInDocument(
             ISymUnmanagedDocument document,
-            int bufferLength, 
+            int bufferLength,
             out int count,
             [In, MarshalAs(UnmanagedType.LPArray, SizeParamIndex = 1), Out]ISymUnmanagedMethod[] methods)
         {
@@ -344,8 +371,8 @@ namespace Microsoft.DiaSymReader.PortablePdb
         }
 
         public int GetNamespaces(
-            int bufferLength, 
-            out int count, 
+            int bufferLength,
+            out int count,
             [In, MarshalAs(UnmanagedType.LPArray, SizeParamIndex = 0), Out]ISymUnmanagedNamespace[] namespaces)
         {
             // SymReader doesn't support
@@ -353,8 +380,8 @@ namespace Microsoft.DiaSymReader.PortablePdb
             return HResult.E_NOTIMPL;
         }
 
-        public int GetSymAttribute(int methodToken, 
-            [MarshalAs(UnmanagedType.LPWStr)]string name, 
+        public int GetSymAttribute(int methodToken,
+            [MarshalAs(UnmanagedType.LPWStr)]string name,
             int bufferLength,
             out int count,
             [In, MarshalAs(UnmanagedType.LPArray, SizeParamIndex = 2), Out]byte[] customDebugInformation)
@@ -363,8 +390,8 @@ namespace Microsoft.DiaSymReader.PortablePdb
         }
 
         public int GetSymAttributeByVersion(
-            int methodToken, 
-            int version, 
+            int methodToken,
+            int version,
             [MarshalAs(UnmanagedType.LPWStr)]string name,
             int bufferLength,
             out int count,
@@ -442,9 +469,9 @@ namespace Microsoft.DiaSymReader.PortablePdb
         }
 
         public int GetVariables(
-            int methodToken, 
-            int bufferLength, 
-            out int count, 
+            int methodToken,
+            int bufferLength,
+            out int count,
             [In, MarshalAs(UnmanagedType.LPArray, SizeParamIndex = 1), Out]ISymUnmanagedVariable[] variables)
         {
             // SymReader doesn't support non-local variables.
@@ -454,8 +481,8 @@ namespace Microsoft.DiaSymReader.PortablePdb
 
         public int Initialize(
             [MarshalAs(UnmanagedType.Interface)]object metadataImporter,
-            [MarshalAs(UnmanagedType.LPWStr)]string fileName, 
-            [MarshalAs(UnmanagedType.LPWStr)]string searchPath, 
+            [MarshalAs(UnmanagedType.LPWStr)]string fileName,
+            [MarshalAs(UnmanagedType.LPWStr)]string searchPath,
             IStream stream)
         {
             return HResult.S_OK;
@@ -471,6 +498,62 @@ namespace Microsoft.DiaSymReader.PortablePdb
         {
             // TODO:
             throw new NotImplementedException();
+        }
+
+        /// <summary>
+        /// Checkes whether the id stored in the PDB matches the PDB ID stored in the PE/COFF Debug Directory.
+        /// </summary>
+        [PreserveSig]
+        public int MatchesModule(Guid guid, uint stamp, int age, [MarshalAs(UnmanagedType.Bool)]out bool result)
+        {
+            result = _pdbReader.MatchesModule(guid, stamp, age);
+            return HResult.S_OK;
+        }
+
+        /// <summary>
+        /// Returns a pointer to Portable Debug Metadata. Only available for Portable PDBs.
+        /// </summary>
+        /// <param name="metadata">
+        /// A pointer to memory where Portable Debug Metadata start. The memory is owned by the SymReader and 
+        /// valid until <see cref="ISymUnmanagedDispose.Destroy"/> is invoked. 
+        /// 
+        /// Null if the PDB is not portable.
+        /// </param>
+        /// <param name="size">Size of the metadata block.</param>
+        [PreserveSig]
+        public unsafe int GetPortableDebugMetadata(out byte* metadata, out int size)
+        {
+            try
+            {
+                metadata = (byte*)_pdbReader.ImagePtr;
+            }
+            catch (InvalidOperationException)
+            {
+                metadata = null;
+                size = 0;
+                return HResult.E_UNEXPECTED;
+            }
+
+            size = _pdbReader.ImageSize;
+            return HResult.S_OK;
+        }
+
+        /// <summary>
+        /// Returns a pointer to Source Server data stored in the PDB.
+        /// </summary>
+        /// <param name="data">
+        /// A pointer to memory where Source Server data start. The memory is owned by the SymReader and 
+        /// valid until <see cref="ISymUnmanagedDispose.Destroy"/> is invoked. 
+        /// 
+        /// Null if the PDB doesn't contain Source Server data.
+        /// </param>
+        /// <param name="size">Size of the data in bytes.</param>
+        [PreserveSig]
+        public unsafe int GetSourceServerData(out byte* data, out int size)
+        {
+            data = null;
+            size = 0;
+            return HResult.S_OK;
         }
     }
 }

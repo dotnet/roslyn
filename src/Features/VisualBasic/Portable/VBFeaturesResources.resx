@@ -231,7 +231,7 @@
   <data name="SimplifyMemberAccess" xml:space="preserve">
     <value>Simplify member access '{0}'</value>
   </data>
-  <data name="SimplifyMeQualification" xml:space="preserve">
+  <data name="RemoveMeQualification" xml:space="preserve">
     <value>Remove 'Me' qualification</value>
   </data>
   <data name="NameCanBeSimplified" xml:space="preserve">
@@ -302,9 +302,6 @@
   </data>
   <data name="AwaitableExtension" xml:space="preserve">
     <value>Awaitable, Extension</value>
-  </data>
-  <data name="Await" xml:space="preserve">
-    <value>Await</value>
   </data>
   <data name="NewVariable" xml:space="preserve">
     <value>&lt;new variable&gt;</value>
@@ -1200,5 +1197,8 @@ Sub(&lt;parameterList&gt;) &lt;statement&gt;</value>
   </data>
   <data name="AddOverloadsKeyword" xml:space="preserve">
     <value>Add Overloads</value>
+  </data>
+  <data name="ReferenceKeywordTooltip" xml:space="preserve">
+    <value>Add a metadata reference to specified assembly and all its dependencies, e.g. #r "myLib.dll".</value>
   </data>
 </root>

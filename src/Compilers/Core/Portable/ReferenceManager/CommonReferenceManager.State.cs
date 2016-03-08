@@ -32,7 +32,7 @@ namespace Microsoft.CodeAnalysis
         /// Enumerates all referenced assemblies.
         /// </summary>
         internal abstract IEnumerable<KeyValuePair<MetadataReference, IAssemblySymbol>> GetReferencedAssemblies();
-       
+
         /// <summary>
         /// Enumerates all referenced assemblies and their aliases.
         /// </summary>
@@ -414,10 +414,10 @@ namespace Microsoft.CodeAnalysis
 
         /// <summary>
         /// Global namespaces of assembly references that have been superseded by an assembly reference with a higher version are 
-        /// hidden behind <see cref="SupersededAlias"/> to avoid ambiguity when they are accessed from source.
+        /// hidden behind <see cref="s_supersededAlias"/> to avoid ambiguity when they are accessed from source.
         /// All existing aliases of a superseded assembly are discarded.
         /// </summary>
-        private static readonly ImmutableArray<string> SupersededAlias = ImmutableArray.Create("<superseded>");
+        private static readonly ImmutableArray<string> s_supersededAlias = ImmutableArray.Create("<superseded>");
 
         protected static void BuildReferencedAssembliesAndModulesMaps(
             BoundInputAssembly[] bindingResult,
@@ -477,7 +477,7 @@ namespace Microsoft.CodeAnalysis
                     for (int i = 1; i < assemblyReference.Value.Count; i++)
                     {
                         int assemblyIndex = assemblyReference.Value[i].GetAssemblyIndex(explicitlyReferencedAsemblyCount);
-                        aliasesOfReferencedAssembliesBuilder[assemblyIndex] = SupersededAlias;
+                        aliasesOfReferencedAssembliesBuilder[assemblyIndex] = s_supersededAlias;
                     }
                 }
             }
@@ -512,7 +512,7 @@ namespace Microsoft.CodeAnalysis
 
                     Debug.Assert(reference.Kind == MetadataImageKind.Assembly);
                     visitedAssemblies.Clear();
-                    
+
                     Debug.Assert(assemblyIndicesToProcess.Count == 0);
                     assemblyIndicesToProcess.Add(reference.Index);
 

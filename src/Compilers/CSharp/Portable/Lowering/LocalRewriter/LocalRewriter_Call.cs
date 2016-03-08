@@ -323,6 +323,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                                     break;
                                 case ConversionKind.ExplicitUserDefined:
                                 case ConversionKind.ImplicitUserDefined:
+                                case ConversionKind.ImplicitThrow:
                                     return false;
                                 default:
                                     // Unhandled conversion kind in reordering logic
@@ -476,7 +477,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             // Step three: Now fill in the optional arguments.
             InsertMissingOptionalArguments(syntax, optionalParametersMethod.Parameters, actualArguments, enableCallerInfo);
-            
+
             if (isComReceiver)
             {
                 RewriteArgumentsForComCall(parameters, actualArguments, refKinds, temporariesBuilder);

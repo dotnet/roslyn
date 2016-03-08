@@ -331,8 +331,14 @@ namespace Microsoft.CodeAnalysis.EncapsulateField
 
         protected IMethodSymbol CreateGet(string originalFieldName, IFieldSymbol field, SyntaxGenerator factory)
         {
+            var value = !field.IsStatic
+                ? factory.MemberAccessExpression(
+                    factory.ThisExpression(),
+                    factory.IdentifierName(originalFieldName))
+                : factory.IdentifierName(originalFieldName);
+
             var body = factory.ReturnStatement(
-                factory.IdentifierName(originalFieldName));
+                value.WithAdditionalAnnotations(Simplifier.Annotation));
 
             return CodeGenerationSymbolFactory.CreateAccessorSymbol(SpecializedCollections.EmptyList<AttributeData>(),
                 Accessibility.NotApplicable,

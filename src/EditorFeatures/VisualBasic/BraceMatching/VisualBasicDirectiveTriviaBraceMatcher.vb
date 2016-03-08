@@ -14,7 +14,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.BraceMatching
              RegionDirectiveTriviaSyntax, EndRegionDirectiveTriviaSyntax)
 
         Friend Overrides Function GetMatchingConditionalDirectives(directive As DirectiveTriviaSyntax, cancellationToken As CancellationToken) As List(Of DirectiveTriviaSyntax)
-            Return directive.GetMatchingConditionalDirectives(cancellationToken).ToList()
+            Return directive.GetMatchingConditionalDirectives(cancellationToken)?.ToList()
         End Function
 
         Friend Overrides Function GetMatchingDirective(directive As DirectiveTriviaSyntax, cancellationToken As CancellationToken) As DirectiveTriviaSyntax

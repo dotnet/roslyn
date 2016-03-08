@@ -12,19 +12,19 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Diagnostics.Suppre
         Inherits AbstractSuppressionAllCodeTests
 
         Protected Overrides Function CreateWorkspaceFromFileAsync(definition As String, parseOptions As ParseOptions) As Threading.Tasks.Task(Of TestWorkspace)
-            Return VisualBasicWorkspaceFactory.CreateWorkspaceFromFileAsync(definition, DirectCast(parseOptions, VisualBasicParseOptions))
+            Return TestWorkspace.CreateVisualBasicAsync(definition, DirectCast(parseOptions, VisualBasicParseOptions))
         End Function
 
         Friend Overrides Function CreateDiagnosticProviderAndFixer(workspace As Workspace) As Tuple(Of Analyzer, ISuppressionFixProvider)
             Return New Tuple(Of Analyzer, ISuppressionFixProvider)(New Analyzer(), New VisualBasicSuppressionCodeFixProvider())
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsSuppression)>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSuppression)>
         Public Async Function TestPragmaWarningOnEveryNodes() As Threading.Tasks.Task
             Await TestPragmaAsync(TestResource.AllInOneVisualBasicCode, VisualBasicParseOptions.Default, verifier:=Function(t) t.IndexOf("#Disable Warning", StringComparison.Ordinal) >= 0)
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsSuppression)>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSuppression)>
         Public Async Function TestSuppressionWithAttributeOnEveryNodes() As Threading.Tasks.Task
             Dim facts = New VisualBasicSyntaxFactsService()
 

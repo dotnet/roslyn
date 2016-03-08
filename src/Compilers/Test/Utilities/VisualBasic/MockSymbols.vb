@@ -573,6 +573,12 @@ Friend Class MockMethodSymbol
         End Get
     End Property
 
+    Public Overrides ReadOnly Property ReturnsByRef As Boolean
+        Get
+            Return False
+        End Get
+    End Property
+
     Public Overrides ReadOnly Property ReturnType As TypeSymbol
         Get
             Return Nothing ' Not really kosher, but its a MOCK...
@@ -706,6 +712,10 @@ Friend Class MockModuleSymbol
             Return Nothing
         End Get
     End Property
+
+    Public Overrides Function GetMetadata() As ModuleMetadata
+        Return Nothing
+    End Function
 End Class
 
 Friend Class MockAssemblySymbol
@@ -800,6 +810,10 @@ Friend Class MockAssemblySymbol
     End Property
 
     Friend Overrides Function TryLookupForwardedMetadataTypeWithCycleDetection(ByRef emittedName As MetadataTypeName, visitedAssemblies As ConsList(Of AssemblySymbol), ignoreCase As Boolean) As NamedTypeSymbol
+        Return Nothing
+    End Function
+
+    Public Overrides Function GetMetadata() As AssemblyMetadata
         Return Nothing
     End Function
 End Class

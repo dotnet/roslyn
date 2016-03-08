@@ -17,105 +17,105 @@ Imports System.Threading.Tasks
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.TodoComment
     Public Class TodoCommentTests
-        <WpfFact>
+        <Fact>
         Public Async Function TestSingleLineTodoComment_Colon() As Task
             Dim code = <code>' [|TODO:test|]</code>
 
             Await TestAsync(code)
         End Function
 
-        <WpfFact>
+        <Fact>
         Public Async Function TestSingleLineTodoComment_Space() As Task
             Dim code = <code>' [|TODO test|]</code>
 
             Await TestAsync(code)
         End Function
 
-        <WpfFact>
+        <Fact>
         Public Async Function TestSingleLineTodoComment_Underscore() As Task
             Dim code = <code>' TODO_test</code>
 
             Await TestAsync(code)
         End Function
 
-        <WpfFact>
+        <Fact>
         Public Async Function TestSingleLineTodoComment_Number() As Task
             Dim code = <code>' TODO1 test</code>
 
             Await TestAsync(code)
         End Function
 
-        <WpfFact>
+        <Fact>
         Public Async Function TestSingleLineTodoComment_Quote() As Task
             Dim code = <code>' "TODO test"</code>
 
             Await TestAsync(code)
         End Function
 
-        <WpfFact>
+        <Fact>
         Public Async Function TestSingleLineTodoComment_Middle() As Task
             Dim code = <code>' Hello TODO test</code>
 
             Await TestAsync(code)
         End Function
 
-        <WpfFact>
+        <Fact>
         Public Async Function TestSingleLineTodoComment_Document() As Task
             Dim code = <code>'''        [|TODO test|]</code>
 
             Await TestAsync(code)
         End Function
 
-        <WpfFact>
+        <Fact>
         Public Async Function TestSingleLineTodoComment_Preprocessor1() As Task
             Dim code = <code>#If DEBUG Then ' [|TODO test|]</code>
 
             Await TestAsync(code)
         End Function
 
-        <WpfFact>
+        <Fact>
         Public Async Function TestSingleLineTodoComment_Preprocessor2() As Task
             Dim code = <code>#If DEBUG Then ''' [|TODO test|]</code>
 
             Await TestAsync(code)
         End Function
 
-        <WpfFact>
+        <Fact>
         Public Async Function TestSingleLineTodoComment_Region() As Task
             Dim code = <code>#Region ' [|TODO test      |]</code>
 
             Await TestAsync(code)
         End Function
 
-        <WpfFact>
+        <Fact>
         Public Async Function TestSingleLineTodoComment_EndRegion() As Task
             Dim code = <code>#End Region        '        [|TODO test      |]</code>
 
             Await TestAsync(code)
         End Function
 
-        <WpfFact>
+        <Fact>
         Public Async Function TestSingleLineTodoComment_TrailingSpan() As Task
             Dim code = <code>'        [|TODO test                   |]</code>
 
             Await TestAsync(code)
         End Function
 
-        <WpfFact>
+        <Fact>
         Public Async Function TestSingleLineTodoComment_REM() As Task
             Dim code = <code>REM        [|TODO test                   |]</code>
 
             Await TestAsync(code)
         End Function
 
-        <WpfFact>
+        <Fact>
         Public Async Function TestSingleLineTodoComment_Preprocessor_REM() As Task
             Dim code = <code>#If Debug Then    REM        [|TODO test                   |]</code>
 
             Await TestAsync(code)
         End Function
 
-        <WpfFact>
+        <Fact>
         Public Async Function TestSinglelineDocumentComment_Multiline() As Task
             Dim code = <code>
         ''' <summary>
@@ -126,8 +126,8 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.TodoComment
             Await TestAsync(code)
         End Function
 
-        <WpfFact>
-        <WorkItem(606010)>
+        <Fact>
+        <WorkItem(606010, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/606010")>
         Public Async Function TestLeftRightSingleQuote() As Task
             Dim code = <code>
          ‘[|todo　ｆｕｌｌｗｉｄｔｈ 1|]
@@ -137,8 +137,8 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.TodoComment
             Await TestAsync(code)
         End Function
 
-        <WpfFact>
-        <WorkItem(606019)>
+        <Fact>
+        <WorkItem(606019, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/606019")>
         Public Async Function TestHalfFullTodo() As Task
             Dim code = <code>
             '[|ｔoｄo whatever|]
@@ -146,8 +146,8 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.TodoComment
             Await TestAsync(code)
         End Function
 
-        <WpfFact>
-        <WorkItem(627723)>
+        <Fact>
+        <WorkItem(627723, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/627723")>
         Public Async Function TestSingleQuote_Invalid1() As Task
             Dim code = <code>
             '' todo whatever
@@ -155,8 +155,8 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.TodoComment
             Await TestAsync(code)
         End Function
 
-        <WpfFact>
-        <WorkItem(627723)>
+        <Fact>
+        <WorkItem(627723, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/627723")>
         Public Async Function TestSingleQuote_Invalid2() As Task
             Dim code = <code>
             '''' todo whatever
@@ -164,8 +164,8 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.TodoComment
             Await TestAsync(code)
         End Function
 
-        <WpfFact>
-        <WorkItem(627723)>
+        <Fact>
+        <WorkItem(627723, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/627723")>
         Public Async Function TestSingleQuote_Invalid3() As Task
             Dim code = <code>
             ' '' todo whatever
@@ -178,14 +178,14 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.TodoComment
             Dim list As IList(Of TextSpan) = Nothing
             MarkupTestFile.GetSpans(codeWithMarker.NormalizedValue, code, list)
 
-            Using workspace = Await VisualBasicWorkspaceFactory.CreateWorkspaceFromLinesAsync(code)
+            Using workspace = Await TestWorkspace.CreateVisualBasicAsync(code)
                 Dim commentTokens = New TodoCommentTokens()
                 Dim provider = New TodoCommentIncrementalAnalyzerProvider(commentTokens)
                 Dim worker = DirectCast(provider.CreateIncrementalAnalyzer(workspace), TodoCommentIncrementalAnalyzer)
 
                 Dim document = workspace.Documents.First()
                 Dim documentId = document.Id
-                worker.AnalyzeSyntaxAsync(workspace.CurrentSolution.GetDocument(documentId), CancellationToken.None).Wait()
+                Await worker.AnalyzeSyntaxAsync(workspace.CurrentSolution.GetDocument(documentId), CancellationToken.None)
 
                 Dim todoLists = worker.GetItems_TestingOnly(documentId)
 

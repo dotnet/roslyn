@@ -912,7 +912,7 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
                 return null;
             }
 
-            if(declaredType.IsFunctionPointer())
+            if (declaredType.IsFunctionPointer())
             {
                 // Function pointers have no expansion
                 return null;
@@ -1001,7 +1001,7 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
                 }
             }
 
-            internal void Execute()
+            private void Execute()
             {
                 Debug.Assert(_state != State.Executing);
                 _state = State.Executing;

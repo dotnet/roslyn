@@ -13,7 +13,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.MetadataAsSource
 {
     public partial class MetadataAsSourceTests : AbstractMetadataAsSourceTests
     {
-        [WpfFact, Trait(Traits.Feature, Traits.Features.MetadataAsSource)]
+        [Fact, Trait(Traits.Feature, Traits.Features.MetadataAsSource)]
         public async Task TestClass()
         {
             var metadataSource = "public class C {}";
@@ -38,8 +38,8 @@ Public Class [|C|]
 End Class");
         }
 
-        [WorkItem(546241)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.MetadataAsSource)]
+        [WorkItem(546241, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546241")]
+        [Fact, Trait(Traits.Feature, Traits.Features.MetadataAsSource)]
         public async Task TestInterface()
         {
             var metadataSource = "public interface I {}";
@@ -62,7 +62,7 @@ Public Interface [|I|]
 End Interface");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.MetadataAsSource)]
+        [Fact, Trait(Traits.Feature, Traits.Features.MetadataAsSource)]
         public async Task TestConstructor()
         {
             var metadataSource = "public class C {}";
@@ -87,7 +87,7 @@ Public Class C
 End Class");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.MetadataAsSource)]
+        [Fact, Trait(Traits.Feature, Traits.Features.MetadataAsSource)]
         public async Task TestMethod()
         {
             var metadataSource = "public class C { public void Foo() {} }";
@@ -116,7 +116,7 @@ Public Class C
 End Class");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.MetadataAsSource)]
+        [Fact, Trait(Traits.Feature, Traits.Features.MetadataAsSource)]
         public async Task TestField()
         {
             var metadataSource = "public class C { public string S; }";
@@ -145,8 +145,8 @@ Public Class C
 End Class");
         }
 
-        [WorkItem(546240)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.MetadataAsSource)]
+        [WorkItem(546240, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546240")]
+        [Fact, Trait(Traits.Feature, Traits.Features.MetadataAsSource)]
         public async Task TestProperty()
         {
             var metadataSource = "public class C { public string S { get; protected set; } }";
@@ -175,9 +175,9 @@ Public Class C
 End Class");
         }
 
-        [WorkItem(546194)]
-        [WorkItem(546291)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.MetadataAsSource)]
+        [WorkItem(546194, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546194")]
+        [WorkItem(546291, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546291")]
+        [Fact, Trait(Traits.Feature, Traits.Features.MetadataAsSource)]
         public async Task TestEvent()
         {
             var metadataSource = "using System; public class C { public event Action E; }";
@@ -210,7 +210,7 @@ Public Class C
 End Class");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.MetadataAsSource)]
+        [Fact, Trait(Traits.Feature, Traits.Features.MetadataAsSource)]
         public async Task TestNestedType()
         {
             var metadataSource = "public class C { protected class D { } }";
@@ -244,8 +244,8 @@ Public Class C
 End Class");
         }
 
-        [WorkItem(546195), WorkItem(546269)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.MetadataAsSource)]
+        [WorkItem(546195, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546195"), WorkItem(546269, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546269")]
+        [Fact, Trait(Traits.Feature, Traits.Features.MetadataAsSource)]
         public async Task TestEnum()
         {
             var metadataSource = "public enum E { A, B, C }";
@@ -274,8 +274,8 @@ Public Enum [|E|]
 End Enum");
         }
 
-        [WorkItem(546195), WorkItem(546269)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.MetadataAsSource)]
+        [WorkItem(546195, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546195"), WorkItem(546269, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546269")]
+        [Fact, Trait(Traits.Feature, Traits.Features.MetadataAsSource)]
         public async Task TestEnumFromField()
         {
             var metadataSource = "public enum E { A, B, C }";
@@ -304,8 +304,8 @@ Public Enum E
 End Enum");
         }
 
-        [WorkItem(546273)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.MetadataAsSource)]
+        [WorkItem(546273, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546273")]
+        [Fact, Trait(Traits.Feature, Traits.Features.MetadataAsSource)]
         public async Task TestEnumWithUnderlyingType()
         {
             var metadataSource = "public enum E : short { A = 0, B = 1, C = 2 }";
@@ -334,8 +334,8 @@ Public Enum E As Short
 End Enum");
         }
 
-        [WorkItem(650741)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.MetadataAsSource)]
+        [WorkItem(650741, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/650741")]
+        [Fact, Trait(Traits.Feature, Traits.Features.MetadataAsSource)]
         public async Task TestEnumWithOverflowingUnderlyingType()
         {
             var metadataSource = "public enum E : ulong { A = 9223372036854775808 }";
@@ -360,7 +360,7 @@ Public Enum E As ULong
 End Enum");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.MetadataAsSource)]
+        [Fact, Trait(Traits.Feature, Traits.Features.MetadataAsSource)]
         public async Task TestEnumWithDifferentValues()
         {
             var metadataSource = "public enum E : short { A = 1, B = 2, C = 3 }";
@@ -389,8 +389,8 @@ Public Enum E As Short
 End Enum");
         }
 
-        [WorkItem(546198)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.MetadataAsSource)]
+        [WorkItem(546198, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546198")]
+        [Fact, Trait(Traits.Feature, Traits.Features.MetadataAsSource)]
         public async Task TestTypeInNamespace()
         {
             var metadataSource = "namespace N { public class C {} }";
@@ -420,8 +420,8 @@ Namespace N
 End Namespace");
         }
 
-        [WorkItem(546223)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.MetadataAsSource)]
+        [WorkItem(546223, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546223")]
+        [Fact, Trait(Traits.Feature, Traits.Features.MetadataAsSource)]
         public async Task TestInlineConstant()
         {
             var metadataSource = @"public class C { public const string S = ""Hello mas""; }";
@@ -450,8 +450,8 @@ Public Class C
 End Class");
         }
 
-        [WorkItem(546221)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.MetadataAsSource)]
+        [WorkItem(546221, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546221")]
+        [Fact, Trait(Traits.Feature, Traits.Features.MetadataAsSource)]
         public async Task TestInlineTypeOf()
         {
             var metadataSource = @"
@@ -488,8 +488,8 @@ Public Class [|C|]
 End Class");
         }
 
-        [WorkItem(546231)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.MetadataAsSource)]
+        [WorkItem(546231, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546231")]
+        [Fact, Trait(Traits.Feature, Traits.Features.MetadataAsSource)]
         public async Task TestNoDefaultConstructorInStructs()
         {
             var metadataSource = "public struct S {}";
@@ -512,7 +512,7 @@ Public Structure [|S|]
 End Structure");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.MetadataAsSource)]
+        [Fact, Trait(Traits.Feature, Traits.Features.MetadataAsSource)]
         public async Task TestReferenceDefinedType()
         {
             var metadataSource = "public class C { public static C Create() { return new C(); } }";
@@ -541,8 +541,8 @@ Public Class [|C|]
 End Class");
         }
 
-        [WorkItem(546227)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.MetadataAsSource)]
+        [WorkItem(546227, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546227")]
+        [Fact, Trait(Traits.Feature, Traits.Features.MetadataAsSource)]
         public async Task TestGenericType()
         {
             var metadataSource = "public class G<SomeType> { public SomeType S; }";
@@ -571,8 +571,8 @@ Public Class [|G|](Of SomeType)
 End Class");
         }
 
-        [WorkItem(546227)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.MetadataAsSource)]
+        [WorkItem(546227, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546227")]
+        [Fact, Trait(Traits.Feature, Traits.Features.MetadataAsSource)]
         public async Task TestGenericDelegate()
         {
             var metadataSource = "public class C { public delegate void D<SomeType>(SomeType s); }";
@@ -601,8 +601,8 @@ Public Class C
 End Class");
         }
 
-        [WorkItem(546200)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.MetadataAsSource)]
+        [WorkItem(546200, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546200")]
+        [Fact, Trait(Traits.Feature, Traits.Features.MetadataAsSource)]
         public async Task TestAttribute()
         {
             var metadataSource = @"
@@ -646,66 +646,73 @@ Public Class [|C|]
 End Class");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.MetadataAsSource)]
+        [Fact, Trait(Traits.Feature, Traits.Features.MetadataAsSource)]
         public async Task TestSymbolIdMatchesMetadata()
         {
             await TestSymbolIdMatchesMetadataAsync(LanguageNames.CSharp);
             await TestSymbolIdMatchesMetadataAsync(LanguageNames.VisualBasic);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.MetadataAsSource)]
+        [Fact, Trait(Traits.Feature, Traits.Features.MetadataAsSource)]
         public async Task TestNotReusedOnAssemblyDiffers()
         {
             await TestNotReusedOnAssemblyDiffersAsync(LanguageNames.CSharp);
             await TestNotReusedOnAssemblyDiffersAsync(LanguageNames.VisualBasic);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.MetadataAsSource)]
+        [Fact, Trait(Traits.Feature, Traits.Features.MetadataAsSource)]
         public async Task TestThrowsOnGenerateNamespace()
         {
             var namespaceSymbol = CodeGenerationSymbolFactory.CreateNamespaceSymbol("Outerspace");
 
             using (var context = await TestContext.CreateAsync())
             {
-                Assert.Throws<ArgumentException>(() =>
+                await Assert.ThrowsAsync<ArgumentException>(async () =>
                 {
-                    try
-                    {
-                        context.GenerateSource(namespaceSymbol);
-                    }
-                    catch (AggregateException ae)
-                    {
-                        throw ae.InnerException;
-                    }
+                    await context.GenerateSourceAsync(namespaceSymbol);
                 });
             }
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.MetadataAsSource)]
+        [Fact, Trait(Traits.Feature, Traits.Features.MetadataAsSource)]
         public async Task TestReuseGenerateMemberOfGeneratedType()
         {
             var metadataSource = "public class C { public bool Is; }";
 
             using (var context = await TestContext.CreateAsync(LanguageNames.CSharp, SpecializedCollections.SingletonEnumerable(metadataSource)))
             {
-                var a = context.GenerateSource("C");
-                var b = context.GenerateSource("C.Is");
+                var a = await context.GenerateSourceAsync("C");
+                var b = await context.GenerateSourceAsync("C.Is");
                 context.VerifyDocumentReused(a, b);
             }
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.MetadataAsSource)]
+        [Fact, Trait(Traits.Feature, Traits.Features.MetadataAsSource)]
         public async Task TestReuseRepeatGeneration()
         {
             using (var context = await TestContext.CreateAsync())
             {
-                var a = context.GenerateSource();
-                var b = context.GenerateSource();
+                var a = await context.GenerateSourceAsync();
+                var b = await context.GenerateSourceAsync();
                 context.VerifyDocumentReused(a, b);
             }
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.MetadataAsSource)]
+        [Fact, Trait(Traits.Feature, Traits.Features.MetadataAsSource)]
+        public async Task TestWorkspaceContextHasReasonableProjectName()
+        {
+            using (var context = await TestContext.CreateAsync())
+            {
+                var compilation = await context.DefaultProject.GetCompilationAsync();
+                var result = await context.GenerateSourceAsync(compilation.ObjectType);
+                var openedDocument = context.GetDocument(result);
+
+                Assert.Equal(openedDocument.Project.AssemblyName, "mscorlib");
+                Assert.Equal(openedDocument.Project.Name, "mscorlib");
+            }
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.MetadataAsSource)]
         public async Task TestReuseGenerateFromDifferentProject()
         {
             using (var context = await TestContext.CreateAsync())
@@ -715,13 +722,13 @@ End Class");
                     .WithMetadataReferences(context.DefaultProject.MetadataReferences)
                     .WithCompilationOptions(new CS.CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary));
 
-                var a = context.GenerateSource(project: context.DefaultProject);
-                var b = context.GenerateSource(project: project);
+                var a = await context.GenerateSourceAsync(project: context.DefaultProject);
+                var b = await context.GenerateSourceAsync(project: project);
                 context.VerifyDocumentReused(a, b);
             }
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.MetadataAsSource)]
+        [Fact, Trait(Traits.Feature, Traits.Features.MetadataAsSource)]
         public async Task TestNotReusedGeneratingForDifferentLanguage()
         {
             using (var context = await TestContext.CreateAsync(LanguageNames.CSharp))
@@ -731,26 +738,26 @@ End Class");
                     .WithMetadataReferences(context.DefaultProject.MetadataReferences)
                     .WithCompilationOptions(new VB.VisualBasicCompilationOptions(OutputKind.DynamicallyLinkedLibrary));
 
-                var a = context.GenerateSource(project: context.DefaultProject);
-                var b = context.GenerateSource(project: project);
+                var a = await context.GenerateSourceAsync(project: context.DefaultProject);
+                var b = await context.GenerateSourceAsync(project: project);
                 context.VerifyDocumentNotReused(a, b);
             }
         }
 
-        [WorkItem(546311)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.MetadataAsSource)]
+        [WorkItem(546311, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546311")]
+        [Fact, Trait(Traits.Feature, Traits.Features.MetadataAsSource)]
         public async Task FormatMetadataAsSource()
         {
             using (var context = await TestContext.CreateAsync(LanguageNames.CSharp))
             {
-                var file = context.GenerateSource("System.Console", project: context.DefaultProject);
+                var file = await context.GenerateSourceAsync("System.Console", project: context.DefaultProject);
                 var document = context.GetDocument(file);
-                Microsoft.CodeAnalysis.Formatting.Formatter.FormatAsync(document).Wait();
+                await Formatting.Formatter.FormatAsync(document);
             }
         }
 
-        [WorkItem(530829)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.MetadataAsSource)]
+        [WorkItem(530829, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530829")]
+        [Fact, Trait(Traits.Feature, Traits.Features.MetadataAsSource)]
         public async Task IndexedProperty()
         {
             var metadataSource = @"
@@ -780,8 +787,8 @@ public class C
             await GenerateAndVerifySourceAsync(metadataSource, symbolName, LanguageNames.CSharp, expected);
         }
 
-        [WorkItem(566688)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.MetadataAsSource)]
+        [WorkItem(566688, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/566688")]
+        [Fact, Trait(Traits.Feature, Traits.Features.MetadataAsSource)]
         public async Task AttributeReferencingInternalNestedType()
         {
             var metadataSource = @"using System;
@@ -811,8 +818,8 @@ public class [|C|]
             await GenerateAndVerifySourceAsync(metadataSource, symbolName, LanguageNames.CSharp, expected);
         }
 
-        [WorkItem(530978)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.MetadataAsSource)]
+        [WorkItem(530978, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530978")]
+        [Fact, Trait(Traits.Feature, Traits.Features.MetadataAsSource)]
         public async Task TestAttributesOnMembers()
         {
             var metadataSource = @"using System;
@@ -939,8 +946,8 @@ End Class
             await GenerateAndVerifySourceAsync(metadataSource, symbolName, LanguageNames.VisualBasic, expectedVB);
         }
 
-        [WorkItem(530923)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.MetadataAsSource)]
+        [WorkItem(530923, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530923")]
+        [Fact, Trait(Traits.Feature, Traits.Features.MetadataAsSource)]
         public async Task TestEmptyLineBetweenMembers()
         {
             var metadataSource = @"using System;
@@ -1030,8 +1037,8 @@ End Class";
             await GenerateAndVerifySourceAsync(metadataSource, symbolName, LanguageNames.VisualBasic, expectedVB, compareTokens: false);
         }
 
-        [WorkItem(728644)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.MetadataAsSource)]
+        [WorkItem(728644, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/728644")]
+        [Fact, Trait(Traits.Feature, Traits.Features.MetadataAsSource)]
         public async Task TestEmptyLineBetweenMembers2()
         {
             var source = @"
@@ -1095,8 +1102,8 @@ End Interface
             await GenerateAndVerifySourceAsync(source, symbolName, LanguageNames.VisualBasic, expectedVB, compareTokens: false, includeXmlDocComments: true);
         }
 
-        [WorkItem(679114), WorkItem(715013)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.MetadataAsSource)]
+        [WorkItem(679114, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/679114"), WorkItem(715013, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/715013")]
+        [Fact, Trait(Traits.Feature, Traits.Features.MetadataAsSource)]
         public async Task TestDefaultValueEnum()
         {
             var source = @"
@@ -1134,8 +1141,8 @@ End Class";
             await GenerateAndVerifySourceAsync(source, symbolName, LanguageNames.VisualBasic, expectedVB);
         }
 
-        [WorkItem(651261)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.MetadataAsSource)]
+        [WorkItem(651261, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/651261")]
+        [Fact, Trait(Traits.Feature, Traits.Features.MetadataAsSource)]
         public async Task TestNullAttribute()
         {
             var source = @"
@@ -1177,8 +1184,8 @@ End Class";
             await GenerateAndVerifySourceAsync(source, symbolName, LanguageNames.VisualBasic, expectedVB);
         }
 
-        [WorkItem(897006)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.MetadataAsSource)]
+        [WorkItem(897006, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/897006")]
+        [Fact, Trait(Traits.Feature, Traits.Features.MetadataAsSource)]
         public async Task TestNavigationViaReducedExtensionMethodCS()
         {
             var metadata = @"using System;
@@ -1210,14 +1217,14 @@ public static class ObjectExtensions
                 includeXmlDocComments: false,
                 sourceWithSymbolReference: sourceWithSymbolReference))
             {
-                var navigationSymbol = context.GetNavigationSymbol();
-                var metadataAsSourceFile = context.GenerateSource(navigationSymbol);
+                var navigationSymbol = await context.GetNavigationSymbolAsync();
+                var metadataAsSourceFile = await context.GenerateSourceAsync(navigationSymbol);
                 context.VerifyResult(metadataAsSourceFile, expected);
             }
         }
 
-        [WorkItem(897006)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.MetadataAsSource)]
+        [WorkItem(897006, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/897006")]
+        [Fact, Trait(Traits.Feature, Traits.Features.MetadataAsSource)]
         public async Task TestNavigationViaReducedExtensionMethodVB()
         {
             var metadata = @"Imports System.Runtime.CompilerServices
@@ -1254,13 +1261,13 @@ End Namespace";
                 includeXmlDocComments: false,
                 sourceWithSymbolReference: sourceWithSymbolReference))
             {
-                var navigationSymbol = context.GetNavigationSymbol();
-                var metadataAsSourceFile = context.GenerateSource(navigationSymbol);
+                var navigationSymbol = await context.GetNavigationSymbolAsync();
+                var metadataAsSourceFile = await context.GenerateSourceAsync(navigationSymbol);
                 context.VerifyResult(metadataAsSourceFile, expected);
             }
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.MetadataAsSource)]
+        [Fact, Trait(Traits.Feature, Traits.Features.MetadataAsSource)]
         public async Task TestIndexersAndOperators()
         {
             var metadataSource = @"public class Program

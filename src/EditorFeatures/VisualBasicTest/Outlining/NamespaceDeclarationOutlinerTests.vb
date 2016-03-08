@@ -13,7 +13,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Outlining
             Return New NamespaceDeclarationOutliner()
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.Outlining)>
+        <Fact, Trait(Traits.Feature, Traits.Features.Outlining)>
         Public Async Function TestNamespace() As Task
             Const code = "
 {|span:$$Namespace N1
@@ -24,7 +24,7 @@ End Namespace|}
                 Region("span", "Namespace N1 ...", autoCollapse:=False))
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.Outlining)>
+        <Fact, Trait(Traits.Feature, Traits.Features.Outlining)>
         Public Async Function TestNamespaceWithComments() As Task
             Const code = "
 {|span1:'My
@@ -38,7 +38,7 @@ End Namespace|}
                 Region("span2", "Namespace N1 ...", autoCollapse:=False))
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.Outlining)>
+        <Fact, Trait(Traits.Feature, Traits.Features.Outlining)>
         Public Async Function TestNamespaceWithNestedComments() As Task
             Const code = "
 {|span1:$$Namespace N1

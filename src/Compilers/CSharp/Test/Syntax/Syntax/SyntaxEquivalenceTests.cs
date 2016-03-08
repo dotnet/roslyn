@@ -3,6 +3,7 @@
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Text;
+using Roslyn.Test.Utilities;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests
@@ -438,7 +439,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             VerifyNotEquivalent(tree1, tree2, topLevel: false);
         }
 
-        [Fact(DisplayName = "https://github.com/dotnet/roslyn/issues/7380")]
+        [Fact, WorkItem(7380, "https://github.com/dotnet/roslyn/issues/7380")]
         public void TestExpressionBodiedMethod()
         {
             var tree1 = SyntaxFactory.ParseSyntaxTree("class C { void M() => 1; }");

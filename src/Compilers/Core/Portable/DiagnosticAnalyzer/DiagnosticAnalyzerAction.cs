@@ -78,18 +78,18 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
     internal sealed class OperationAnalyzerAction : AnalyzerAction
     {
-        private readonly Action<OperationAnalysisContext> action;
-        private readonly ImmutableArray<OperationKind> kinds;
+        private readonly Action<OperationAnalysisContext> _action;
+        private readonly ImmutableArray<OperationKind> _kinds;
 
         public OperationAnalyzerAction(Action<OperationAnalysisContext> action, ImmutableArray<OperationKind> kinds, DiagnosticAnalyzer analyzer)
             : base(analyzer)
         {
-            this.action = action;
-            this.kinds = kinds;
+            _action = action;
+            _kinds = kinds;
         }
 
-        public Action<OperationAnalysisContext> Action { get { return this.action; } }
-        public ImmutableArray<OperationKind> Kinds { get { return this.kinds; } }
+        public Action<OperationAnalysisContext> Action { get { return _action; } }
+        public ImmutableArray<OperationKind> Kinds { get { return _kinds; } }
     }
 
     internal sealed class CompilationStartAnalyzerAction : AnalyzerAction

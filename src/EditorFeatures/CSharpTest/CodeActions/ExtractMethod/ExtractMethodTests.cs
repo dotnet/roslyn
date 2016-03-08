@@ -14,8 +14,8 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeRefactorings.Extrac
             return new ExtractMethodCodeRefactoringProvider();
         }
 
-        [WorkItem(540799)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractMethod)]
+        [WorkItem(540799, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540799")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractMethod)]
         public async Task TestPartialSelection()
         {
             await TestAsync(
@@ -24,8 +24,8 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeRefactorings.Extrac
 index: 0);
         }
 
-        [WorkItem(540796)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractMethod)]
+        [WorkItem(540796, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540796")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractMethod)]
         public async Task TestReadOfDataThatDoesNotFlowIn()
         {
             await TestAsync(
@@ -34,15 +34,15 @@ index: 0);
 index: 0);
         }
 
-        [WorkItem(540819)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractMethod)]
+        [WorkItem(540819, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540819")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractMethod)]
         public async Task TestMissingOnGoto()
         {
             await TestMissingAsync(@"delegate int del ( int i ) ; class C { static void Main ( string [ ] args ) { del q = x => { [|goto label2 ; return x * x ;|] } ; label2 : return ; } } ");
         }
 
-        [WorkItem(540819)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractMethod)]
+        [WorkItem(540819, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540819")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractMethod)]
         public async Task TestOnStatementAfterUnconditionalGoto()
         {
             await TestAsync(
@@ -51,7 +51,7 @@ index: 0);
 index: 0);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractMethod)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractMethod)]
         public async Task TestMissingOnNamespace()
         {
             await TestAsync(
@@ -59,7 +59,7 @@ index: 0);
 @"class Program { void Main ( ) { {|Rename:NewMethod|} ( ) ; } private static void NewMethod ( ) { System . Console . WriteLine ( 4 ) ; } } ");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractMethod)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractMethod)]
         public async Task TestMissingOnType()
         {
             await TestAsync(
@@ -67,7 +67,7 @@ index: 0);
 @"class Program { void Main ( ) { {|Rename:NewMethod|} ( ) ; } private static void NewMethod ( ) { System . Console . WriteLine ( 4 ) ; } } ");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractMethod)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractMethod)]
         public async Task TestMissingOnBase()
         {
             await TestAsync(
@@ -75,8 +75,8 @@ index: 0);
 @"class Program { void Main ( ) { {|Rename:NewMethod|} ( ) ; } private void NewMethod ( ) { base . ToString ( ) ; } } ");
         }
 
-        [WorkItem(545623)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractMethod)]
+        [WorkItem(545623, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545623")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractMethod)]
         public async Task TestOnActionInvocation()
         {
             await TestAsync(
@@ -84,8 +84,8 @@ index: 0);
 @"using System ; class C { public static Action X { get ; set ; } } class Program { void Main ( ) { {|Rename:GetX|} ( ) ( ) ; } private static Action GetX ( ) { return C . X ; } } ");
         }
 
-        [WorkItem(529841), WorkItem(714632)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractMethod)]
+        [WorkItem(529841, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529841"), WorkItem(714632, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/714632")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractMethod)]
         public async Task DisambiguateCallSiteIfNecessary1()
         {
             await TestAsync(
@@ -125,8 +125,8 @@ class Program
 compareTokens: false);
         }
 
-        [WorkItem(529841), WorkItem(714632)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractMethod)]
+        [WorkItem(529841, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529841"), WorkItem(714632, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/714632")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractMethod)]
         public async Task DisambiguateCallSiteIfNecessary2()
         {
             await TestAsync(
@@ -166,9 +166,9 @@ class Program
 compareTokens: false);
         }
 
-        [WorkItem(530709)]
-        [WorkItem(632182)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractMethod)]
+        [WorkItem(530709, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530709")]
+        [WorkItem(632182, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/632182")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractMethod)]
         public async Task DontOverparenthesize()
         {
             await TestAsync(
@@ -228,8 +228,8 @@ static class E
 parseOptions: Options.Regular);
         }
 
-        [WorkItem(632182)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractMethod)]
+        [WorkItem(632182, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/632182")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractMethod)]
         public async Task DontOverparenthesizeGenerics()
         {
             await TestAsync(
@@ -289,8 +289,8 @@ static class E
 parseOptions: Options.Regular);
         }
 
-        [WorkItem(984831)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractMethod)]
+        [WorkItem(984831, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/984831")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractMethod)]
         public async Task PreserveCommentsBeforeDeclaration_1()
         {
             await TestAsync(
@@ -333,8 +333,8 @@ parseOptions: Options.Regular);
 compareTokens: false);
         }
 
-        [WorkItem(984831)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractMethod)]
+        [WorkItem(984831, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/984831")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractMethod)]
         public async Task PreserveCommentsBeforeDeclaration_2()
         {
             await TestAsync(
@@ -385,8 +385,8 @@ compareTokens: false);
 compareTokens: false);
         }
 
-        [WorkItem(984831)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractMethod)]
+        [WorkItem(984831, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/984831")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractMethod)]
         public async Task PreserveCommentsBeforeDeclaration_3()
         {
             await TestAsync(

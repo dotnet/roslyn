@@ -183,6 +183,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                         // A ExplicitInterfaceSpecifier represents the left part (QN) of the member name, so it
                         // should be treated like a QualifiedName.
                         return ((ExplicitInterfaceSpecifierSyntax)parent).Name == node;
+
+                    case DeclarationPattern:
+                        return ((DeclarationPatternSyntax)parent).Type == node;
                 }
             }
 

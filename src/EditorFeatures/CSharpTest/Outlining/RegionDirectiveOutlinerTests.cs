@@ -13,7 +13,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Outlining
     {
         internal override AbstractSyntaxOutliner CreateOutliner() => new RegionDirectiveOutliner();
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Outlining)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Outlining)]
         public async Task BrokenRegion()
         {
             const string code = @"
@@ -22,7 +22,7 @@ $$#region Foo";
             await VerifyNoRegionsAsync(code);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Outlining)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Outlining)]
         public async Task SimpleRegion()
         {
             const string code = @"
@@ -33,8 +33,8 @@ $$#region Foo";
                 Region("span", "Foo", autoCollapse: true, isDefaultCollapsed: true));
         }
 
-        [WorkItem(539361)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Outlining)]
+        [WorkItem(539361, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539361")]
+        [Fact, Trait(Traits.Feature, Traits.Features.Outlining)]
         public async Task RegressionFor5284()
         {
             const string code = @"
@@ -69,8 +69,8 @@ namespace BasicGenerateFromUsage
                 Region("span", "TaoRegion", autoCollapse: true, isDefaultCollapsed: true));
         }
 
-        [WorkItem(953668)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Outlining)]
+        [WorkItem(953668, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/953668")]
+        [Fact, Trait(Traits.Feature, Traits.Features.Outlining)]
         public async Task RegionsShouldBeCollapsedByDefault()
         {
             const string code = @"
@@ -88,7 +88,7 @@ class C
         }
 
         [WorkItem(4105, "https://github.com/dotnet/roslyn/issues/4105")]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Outlining)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Outlining)]
         public async Task SpacesBetweenPoundAndRegionShouldNotAffectBanner()
         {
             const string code = @"

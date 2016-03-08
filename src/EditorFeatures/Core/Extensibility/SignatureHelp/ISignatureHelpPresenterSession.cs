@@ -13,5 +13,7 @@ namespace Microsoft.CodeAnalysis.Editor
         void SelectNextItem();
 
         event EventHandler<SignatureHelpItemEventArgs> ItemSelected;
+
+        bool EditorSessionIsActive { get; }
     }
 }

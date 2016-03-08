@@ -13,13 +13,13 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.TextEditor
 {
     public class TryGetDocumentTests
     {
-        [WpfFact]
-        [WorkItem(624315)]
+        [Fact]
+        [WorkItem(624315, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/624315")]
         public async Task MultipleTextChangesTest()
         {
             var code = @"class C
 ";
-            using (var workspace = await CSharpWorkspaceFactory.CreateWorkspaceFromLinesAsync(code))
+            using (var workspace = await TestWorkspace.CreateCSharpAsync(code))
             {
                 var hostDocument = workspace.Documents.First();
                 var document = workspace.CurrentSolution.GetDocument(workspace.GetDocumentId(hostDocument));
@@ -45,11 +45,11 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.TextEditor
             }
         }
 
-        [WpfFact]
+        [Fact]
         public async Task EmptyTextChanges()
         {
             var code = @"class C";
-            using (var workspace = await CSharpWorkspaceFactory.CreateWorkspaceFromLinesAsync(code))
+            using (var workspace = await TestWorkspace.CreateCSharpAsync(code))
             {
                 var hostDocument = workspace.Documents.First();
                 var document = workspace.CurrentSolution.GetDocument(workspace.GetDocumentId(hostDocument));

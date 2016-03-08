@@ -61,7 +61,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Squiggles
     </Project>
 </Workspace>";
 
-            using (var workspace = await TestWorkspaceFactory.CreateWorkspaceAsync(workspaceXml))
+            using (var workspace = await TestWorkspace.CreateAsync(workspaceXml))
             {
                 var spans = (await GetDiagnosticsAndErrorSpans(workspace)).Item2;
 
@@ -95,7 +95,7 @@ class Program
     </Project>
 </Workspace>";
 
-            using (var workspace = await TestWorkspaceFactory.CreateWorkspaceAsync(workspaceXml))
+            using (var workspace = await TestWorkspace.CreateAsync(workspaceXml))
             {
                 var analyzerMap = new Dictionary<string, DiagnosticAnalyzer[]>
                 {
@@ -156,7 +156,7 @@ class Program
         [WpfFact, Trait(Traits.Feature, Traits.Features.ErrorSquiggles)]
         public async Task TestNoErrorsAfterDocumentRemoved()
         {
-            using (var workspace = await CSharpWorkspaceFactory.CreateWorkspaceFromLinesAsync("class"))
+            using (var workspace = await TestWorkspace.CreateCSharpAsync("class"))
             using (var wrapper = new DiagnosticTaggerWrapper(workspace))
             {
                 var tagger = wrapper.TaggerProvider.CreateTagger<IErrorTag>(workspace.Documents.First().GetTextBuffer());
@@ -186,7 +186,7 @@ class Program
         [WpfFact, Trait(Traits.Feature, Traits.Features.ErrorSquiggles)]
         public async Task TestNoErrorsAfterProjectRemoved()
         {
-            using (var workspace = await CSharpWorkspaceFactory.CreateWorkspaceFromLinesAsync("class"))
+            using (var workspace = await TestWorkspace.CreateCSharpAsync("class"))
             using (var wrapper = new DiagnosticTaggerWrapper(workspace))
             {
                 var tagger = wrapper.TaggerProvider.CreateTagger<IErrorTag>(workspace.Documents.First().GetTextBuffer());
@@ -228,7 +228,7 @@ class Program
     </Project>
 </Workspace>";
 
-            using (var workspace = await TestWorkspaceFactory.CreateWorkspaceAsync(workspaceXml))
+            using (var workspace = await TestWorkspace.CreateAsync(workspaceXml))
             {
                 var document = workspace.Documents.First();
 
@@ -261,7 +261,7 @@ class Program
     </Project>
 </Workspace>";
 
-            using (var workspace = await TestWorkspaceFactory.CreateWorkspaceAsync(workspaceXml))
+            using (var workspace = await TestWorkspace.CreateAsync(workspaceXml))
             {
                 var document = workspace.Documents.First();
 
@@ -289,9 +289,9 @@ class Program
             }
         }
 
-        private static async Task<IEnumerable<ITagSpan<IErrorTag>>> GetErrorSpans(params string[] content)
+        private static async Task<IEnumerable<ITagSpan<IErrorTag>>> GetErrorSpans(string content)
         {
-            using (var workspace = await CSharpWorkspaceFactory.CreateWorkspaceFromLinesAsync(content))
+            using (var workspace = await TestWorkspace.CreateCSharpAsync(content))
             {
                 return (await GetDiagnosticsAndErrorSpans(workspace)).Item2;
             }

@@ -13,7 +13,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Outlining
             Return New TypeDeclarationOutliner()
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.Outlining)>
+        <Fact, Trait(Traits.Feature, Traits.Features.Outlining)>
         Public Async Function TestClass() As Task
             Const code = "
 {|span:Class $$C1
@@ -24,7 +24,7 @@ End Class|}
                 Region("span", "Class C1 ...", autoCollapse:=False))
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.Outlining)>
+        <Fact, Trait(Traits.Feature, Traits.Features.Outlining)>
         Public Async Function TestFriendClass() As Task
             Const code = "
 {|span:Friend Class $$C1
@@ -35,7 +35,7 @@ End Class|}
                 Region("span", "Friend Class C1 ...", autoCollapse:=False))
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.Outlining)>
+        <Fact, Trait(Traits.Feature, Traits.Features.Outlining)>
         Public Async Function TestClassWithLeadingComments() As Task
             Const code = "
 {|span1:'Hello
@@ -49,7 +49,7 @@ End Class|}
                 Region("span2", "Class C1 ...", autoCollapse:=False))
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.Outlining)>
+        <Fact, Trait(Traits.Feature, Traits.Features.Outlining)>
         Public Async Function TestClassWithNestedComments() As Task
             Const code = "
 {|span1:Class $$C1
@@ -63,7 +63,7 @@ End Class|}
                 Region("span2", "' Hello ...", autoCollapse:=True))
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.Outlining)>
+        <Fact, Trait(Traits.Feature, Traits.Features.Outlining)>
         Public Async Function TestModule() As Task
             Const code = "
 {|span:Module $$M1
@@ -74,7 +74,7 @@ End Module|}
                 Region("span", "Module M1 ...", autoCollapse:=False))
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.Outlining)>
+        <Fact, Trait(Traits.Feature, Traits.Features.Outlining)>
         Public Async Function TestModuleWithLeadingComments() As Task
             Const code = "
 {|span1:'Hello
@@ -88,7 +88,7 @@ End Module|}
                 Region("span2", "Module M1 ...", autoCollapse:=False))
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.Outlining)>
+        <Fact, Trait(Traits.Feature, Traits.Features.Outlining)>
         Public Async Function TestModuleWithNestedComments() As Task
             Const code = "
 {|span1:Module $$M1
@@ -102,7 +102,7 @@ End Module|}
                 Region("span2", "' Hello ...", autoCollapse:=True))
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.Outlining)>
+        <Fact, Trait(Traits.Feature, Traits.Features.Outlining)>
         Public Async Function TestInterface() As Task
             Const code = "
 {|span:Interface $$I1
@@ -113,7 +113,7 @@ End Interface|}
                 Region("span", "Interface I1 ...", autoCollapse:=False))
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.Outlining)>
+        <Fact, Trait(Traits.Feature, Traits.Features.Outlining)>
         Public Async Function TestInterfaceWithLeadingComments() As Task
             Const code = "
 {|span1:'Hello
@@ -127,7 +127,7 @@ End Interface|}
                 Region("span2", "Interface I1 ...", autoCollapse:=False))
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.Outlining)>
+        <Fact, Trait(Traits.Feature, Traits.Features.Outlining)>
         Public Async Function TestInterfaceWithNestedComments() As Task
             Const code = "
 {|span1:Interface $$I1
@@ -141,7 +141,7 @@ End Interface|}
                 Region("span2", "' Hello ...", autoCollapse:=True))
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.Outlining)>
+        <Fact, Trait(Traits.Feature, Traits.Features.Outlining)>
         Public Async Function TestStructure() As Task
             Const code = "
 {|span:Structure $$S1
@@ -152,7 +152,7 @@ End Structure|}
                 Region("span", "Structure S1 ...", autoCollapse:=False))
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.Outlining)>
+        <Fact, Trait(Traits.Feature, Traits.Features.Outlining)>
         Public Async Function TestStructureWithLeadingComments() As Task
             Const code = "
 {|span1:'Hello
@@ -166,7 +166,7 @@ End Structure|}
                 Region("span2", "Structure S1 ...", autoCollapse:=False))
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.Outlining)>
+        <Fact, Trait(Traits.Feature, Traits.Features.Outlining)>
         Public Async Function TestStructureWithNestedComments() As Task
             Const code = "
 {|span1:Structure $$S1

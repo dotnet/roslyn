@@ -491,9 +491,9 @@ namespace Microsoft.CodeAnalysis.CSharp
 
     internal sealed partial class BoundReturnStatement
     {
-        public static BoundReturnStatement Synthesized(CSharpSyntaxNode syntax, BoundExpression expression, bool hasErrors = false)
+        public static BoundReturnStatement Synthesized(CSharpSyntaxNode syntax, RefKind refKind, BoundExpression expression, bool hasErrors = false)
         {
-            return new BoundReturnStatement(syntax, expression, hasErrors) { WasCompilerGenerated = true };
+            return new BoundReturnStatement(syntax, refKind, expression, hasErrors) { WasCompilerGenerated = true };
         }
     }
 
@@ -538,6 +538,14 @@ namespace Microsoft.CodeAnalysis.CSharp
         public static BoundBlock SynthesizedNoLocals(CSharpSyntaxNode syntax, params BoundStatement[] statements)
         {
             return new BoundBlock(syntax, ImmutableArray<LocalSymbol>.Empty, ImmutableArray<LocalFunctionSymbol>.Empty, statements.AsImmutableOrNull()) { WasCompilerGenerated = true };
+        }
+    }
+
+    internal partial class BoundIfStatement
+    {
+        public BoundIfStatement(CSharpSyntaxNode syntax, BoundExpression condition, BoundStatement consequence, BoundStatement alternativeOpt, bool hasErrors = false)
+            : this(syntax, ImmutableArray<LocalSymbol>.Empty, condition, consequence, alternativeOpt, hasErrors)
+        {
         }
     }
 

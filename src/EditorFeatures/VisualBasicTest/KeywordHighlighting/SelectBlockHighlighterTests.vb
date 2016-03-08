@@ -11,7 +11,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.KeywordHighlightin
             Return New SelectBlockHighlighter()
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)>
+        <Fact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)>
         Public Async Function TestSelectBlock1() As Task
             Await TestAsync(<Text>
 Class C
@@ -28,7 +28,7 @@ End Sub
 End Class</Text>)
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)>
+        <Fact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)>
         Public Async Function TestSelectBlock2() As Task
             Await TestAsync(<Text>
 Class C
@@ -45,7 +45,7 @@ End Sub
 End Class</Text>)
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)>
+        <Fact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)>
         Public Async Function TestSelectBlock3() As Task
             Await TestAsync(<Text>
 Class C
@@ -62,7 +62,7 @@ End Sub
 End Class</Text>)
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)>
+        <Fact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)>
         Public Async Function TestSelectBlock4() As Task
             Await TestAsync(<Text>
 Class C
@@ -79,7 +79,7 @@ End Sub
 End Class</Text>)
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)>
+        <Fact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)>
         Public Async Function TestSelectBlock5() As Task
             Await TestAsync(<Text>
 Class C
@@ -96,7 +96,7 @@ End Sub
 End Class</Text>)
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)>
+        <Fact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)>
         Public Async Function TestSelectBlock6() As Task
             Await TestAsync(<Text>
 Class C

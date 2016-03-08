@@ -1,17 +1,12 @@
 ' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-Imports Microsoft.CodeAnalysis.Text
-Imports Microsoft.CodeAnalysis.VisualBasic
-Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
-Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
-Imports Roslyn.Test.Utilities
-Imports Xunit
+Imports System.Threading.Tasks
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Recommendations.EventHandling
     Public Class RaiseEventKeywordRecommenderTests
-        <WorkItem(808406)>
+        <WorkItem(808406, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/808406")>
         <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Sub RaiseEventInCustomEvent()
+        Public Async Function RaiseEventInCustomEventTest() As Task
             Dim code = <File>
 Public Class Z
     Public Custom Event E As Action
@@ -19,12 +14,12 @@ Public Class Z
     End Event
 End Class</File>
 
-            VerifyRecommendationsContain(code, "RaiseEvent")
-        End Sub
+            Await VerifyRecommendationsContainAsync(code, "RaiseEvent")
+        End Function
 
-        <WorkItem(899057)>
+        <WorkItem(899057, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/899057")>
         <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Sub RaiseEventInSingleLineLambda()
+        Public Async Function RaiseEventInSingleLineLambdaTest() As Task
             Dim code = <File>
 Public Class Z
     Public Sub Main()
@@ -32,13 +27,13 @@ Public Class Z
     End Sub
 End Class</File>
 
-            VerifyRecommendationsContain(code, "RaiseEvent")
-        End Sub
+            Await VerifyRecommendationsContainAsync(code, "RaiseEvent")
+        End Function
 
-        <WpfFact>
-        <WorkItem(808406)>
+        <Fact>
+        <WorkItem(808406, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/808406")>
         <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Sub NotRaiseEventInCustomEventWithRaiseEvent()
+        Public Async Function NotRaiseEventInCustomEventWithRaiseEventTest() As Task
             Dim code = <File>
 Public Class Z
     Public Custom Event E As Action
@@ -48,7 +43,7 @@ Public Class Z
     End Event
 End Class</File>
 
-            VerifyRecommendationsMissing(code, "RaiseEvent")
-        End Sub
+            Await VerifyRecommendationsMissingAsync(code, "RaiseEvent")
+        End Function
     End Class
 End Namespace

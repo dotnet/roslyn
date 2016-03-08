@@ -10,8 +10,12 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Workspaces
     {
         public void ShowErrorInfoForCodeFix(string codefixName, Action OnEnableClicked, Action OnEnableAndIgnoreClicked, Action OnClose)
         {
-            var message = LogMessage.Create($"{codefixName} crashed");
-            Logger.Log(FunctionId.Extension_Exception, message);
+            ShowErrorInfo($"{codefixName} crashed", OnClose);
+        }
+
+        public void ShowErrorInfo(string title, Action OnClose)
+        {
+            Logger.Log(FunctionId.Extension_Exception, title);
         }
     }
 }

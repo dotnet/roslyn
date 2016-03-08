@@ -1,8 +1,6 @@
 {
   "dependencies": {
-    "System.Reflection": "4.0.10",
-    "System.Runtime": "4.0.20",
-    "System.Runtime.Extensions": "4.0.10",
+    "System.Runtime": "4.0.21-beta-23504"
   },
   "frameworks": {
     "net46": { }

@@ -510,54 +510,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return Nothing
         End Function
 
-        Friend Shared Function FindTriviaByOffset(node As SyntaxNode, textOffset As Integer, Optional stepInto As Func(Of SyntaxTrivia, Boolean) = Nothing) As SyntaxTrivia
-            If textOffset >= 0 Then
-                For Each element In node.ChildNodesAndTokens()
-                    Dim fullWidth = element.FullWidth
-                    If textOffset < fullWidth Then
-                        If element.IsNode Then
-                            Return FindTriviaByOffset(element.AsNode(), textOffset, stepInto)
-                        ElseIf element.IsToken Then
-                            Dim token = element.AsToken()
-                            Dim leading = token.LeadingWidth
-                            If textOffset < token.LeadingWidth Then
-                                For Each trivia In token.LeadingTrivia
-                                    If textOffset < trivia.FullWidth Then
-                                        If trivia.HasStructure AndAlso stepInto IsNot Nothing AndAlso stepInto(trivia) Then
-                                            Return FindTriviaByOffset(DirectCast(trivia.GetStructure(), VisualBasicSyntaxNode), textOffset, stepInto)
-                                        End If
-
-                                        Return trivia
-                                    End If
-
-                                    textOffset -= trivia.FullWidth
-                                Next
-                            ElseIf textOffset >= leading + token.Width Then
-                                textOffset -= leading + token.Width
-                                For Each trivia In token.TrailingTrivia
-                                    If textOffset < trivia.FullWidth Then
-                                        If trivia.HasStructure AndAlso stepInto IsNot Nothing AndAlso stepInto(trivia) Then
-                                            Return FindTriviaByOffset(DirectCast(trivia.GetStructure(), VisualBasicSyntaxNode), textOffset, stepInto)
-                                        End If
-
-                                        Return trivia
-                                    End If
-
-                                    textOffset -= trivia.FullWidth
-                                Next
-                            End If
-
-                            Return Nothing
-                        End If
-                    End If
-
-                    textOffset -= fullWidth
-                Next
-            End If
-
-            Return Nothing
-        End Function
-
 #Region "Node Lookup"
         ''' <summary>
         ''' Returns child node or token that contains given position.
@@ -578,18 +530,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 #Region "Core Overloads"
         Protected NotOverridable Overrides Function EquivalentToCore(other As SyntaxNode) As Boolean
             Return Me.IsEquivalentTo(TryCast(other, VisualBasicSyntaxNode))
-        End Function
-
-        Protected NotOverridable Overrides Function FindTokenCore(position As Integer, findInsideTrivia As Boolean) As SyntaxToken
-            Return FindToken(position, findInsideTrivia)
-        End Function
-
-        Protected Overrides Function FindTokenCore(position As Integer, stepInto As Func(Of SyntaxTrivia, Boolean)) As SyntaxToken
-            Return FindToken(position, stepInto.ToLanguageSpecific())
-        End Function
-
-        Protected NotOverridable Overrides Function FindTriviaCore(position As Integer, findInsideTrivia As Boolean) As SyntaxTrivia
-            Return FindTrivia(position, findInsideTrivia)
         End Function
 
         Protected Overrides ReadOnly Property SyntaxTreeCore As SyntaxTree

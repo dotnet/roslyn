@@ -13,7 +13,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Outlining
             Return New EventDeclarationOutliner()
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.Outlining)>
+        <Fact, Trait(Traits.Feature, Traits.Features.Outlining)>
         Public Async Function TestEvent() As Task
             Const code = "
 Class C1
@@ -24,7 +24,7 @@ End Class
             Await VerifyNoRegionsAsync(code)
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.Outlining)>
+        <Fact, Trait(Traits.Feature, Traits.Features.Outlining)>
         Public Async Function TestEventWithComments() As Task
             Const code = "
 Class C1
@@ -38,7 +38,7 @@ End Class
                 Region("span", "' My ...", autoCollapse:=True))
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.Outlining)>
+        <Fact, Trait(Traits.Feature, Traits.Features.Outlining)>
         Public Async Function TestCustomEvent() As Task
             Const code = "
 Class C1
@@ -57,7 +57,7 @@ End Class
                 Region("span", "Custom Event eventName As EventHandler ...", autoCollapse:=True))
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.Outlining)>
+        <Fact, Trait(Traits.Feature, Traits.Features.Outlining)>
         Public Async Function TestPrivateCustomEvent() As Task
             Const code = "
 Class C1
@@ -76,7 +76,7 @@ End Class
                 Region("span", "Private Custom Event eventName As EventHandler ...", autoCollapse:=True))
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.Outlining)>
+        <Fact, Trait(Traits.Feature, Traits.Features.Outlining)>
         Public Async Function TestCustomEventWithComments() As Task
             Const code = "
 Class C1

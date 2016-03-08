@@ -13,7 +13,7 @@ Imports Roslyn.Test.EditorUtilities
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Formatting
     Public Class FormattingTestBase
         Protected Async Function AssertFormatSpanAsync(content As String, expected As String, Optional baseIndentation As Integer? = Nothing, Optional span As TextSpan = Nothing) As Tasks.Task
-            Using workspace = Await VisualBasicWorkspaceFactory.CreateWorkspaceFromLinesAsync(content)
+            Using workspace = Await TestWorkspace.CreateVisualBasicAsync(content)
                 Dim hostdoc = workspace.Documents.First()
 
                 ' get original buffer
@@ -36,7 +36,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Formatting
                 Dim rules = formattingRuleProvider.CreateRule(document, 0).Concat(Formatter.GetDefaultFormattingRules(document))
 
                 Dim changes = Formatter.GetFormattedTextChanges(
-                    syntaxTree.GetRoot(CancellationToken.None),
+                    Await syntaxTree.GetRootAsync(),
                     workspace.Documents.First(Function(d) d.SelectedSpans.Any()).SelectedSpans,
                     workspace, workspace.Options, rules, CancellationToken.None)
                 AssertResult(expected, clonedBuffer, changes)

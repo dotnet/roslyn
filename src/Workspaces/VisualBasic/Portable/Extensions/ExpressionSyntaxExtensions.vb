@@ -949,8 +949,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions
                 Return False
             End If
 
-            If optionSet.GetOption(SimplificationOptions.QualifyMemberAccessWithThisOrMe, semanticModel.Language) AndAlso
-                 memberAccess.Expression.Kind() = SyntaxKind.MeExpression Then
+            If memberAccess.Expression.IsKind(SyntaxKind.MeExpression) AndAlso
+                Not SimplificationHelpers.ShouldSimplifyMemberAccessExpression(semanticModel, memberAccess.Name, optionSet) Then
                 Return False
             End If
 
@@ -1290,20 +1290,22 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions
                     ' QualifiedNames can't contain PredefinedTypeNames (although MemberAccessExpressions can).
                     ' In other words, the left side of a QualifiedName can't be a PredefinedTypeName.
                     If nameHasNoAlias AndAlso aliasInfo Is Nothing AndAlso Not name.Parent.IsKind(SyntaxKind.QualifiedName) Then
-                        If PreferPredefinedTypeKeywordInDeclarations(name, optionSet) OrElse
-                           PreferPredefinedTypeKeywordInMemberAccess(name, optionSet) Then
-                            Dim type = semanticModel.GetTypeInfo(name).Type
-                            If type IsNot Nothing Then
-                                Dim keywordKind = GetPredefinedKeywordKind(type.SpecialType)
-                                If keywordKind <> SyntaxKind.None Then
-                                    replacementNode = SyntaxFactory.PredefinedType(
-                                                        SyntaxFactory.Token(
-                                                            name.GetLeadingTrivia(),
-                                                            keywordKind,
-                                                            name.GetTrailingTrivia()))
-
+                        Dim type = semanticModel.GetTypeInfo(name).Type
+                        If type IsNot Nothing Then
+                            Dim keywordKind = GetPredefinedKeywordKind(type.SpecialType)
+                            If keywordKind <> SyntaxKind.None Then
+                                ' But do simplify to predefined type if not simplifying results in just the addition of escaping
+                                '   brackets.  E.g., even if specified otherwise, prefer `String` to `[String]`.
+                                Dim token = SyntaxFactory.Token(
+                                    name.GetLeadingTrivia(),
+                                    keywordKind,
+                                    name.GetTrailingTrivia())
+                                Dim valueText = TryCast(name, IdentifierNameSyntax)?.Identifier.ValueText
+                                If token.Text = valueText OrElse
+                                   PreferPredefinedTypeKeywordInDeclarations(name, optionSet) OrElse
+                                   PreferPredefinedTypeKeywordInMemberAccess(name, optionSet) Then
+                                    replacementNode = SyntaxFactory.PredefinedType(token)
                                     issueSpan = name.Span
-
                                     Return name.CanReplaceWithReducedNameInContext(replacementNode, semanticModel, cancellationToken)
                                 End If
                             End If

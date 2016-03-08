@@ -35,12 +35,18 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV1
                 _language = language;
             }
 
-            internal string Name
+            /// <summary>
+            /// Only For Testing
+            /// </summary>
+            internal string Name_TestingOnly
             {
                 get { return _stateName; }
             }
 
-            internal string Language
+            /// <summary>
+            /// Only For Testing
+            /// </summary>
+            internal string Language_TestingOnly
             {
                 get { return _language; }
             }
@@ -55,6 +61,11 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV1
 
                 var project = (Project)value;
                 return project.Id;
+            }
+
+            protected override int GetCount(AnalysisData data)
+            {
+                return data.Items.Length;
             }
 
             protected override Solution GetSolution(object value)

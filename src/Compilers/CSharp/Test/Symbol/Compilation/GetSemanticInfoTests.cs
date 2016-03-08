@@ -16,7 +16,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 {
     public partial class GetSemanticInfoTests : SemanticModelTestBase
     {
-        [WorkItem(544320, "DevDiv")]
+        [WorkItem(544320, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544320")]
         [Fact]
         public void TestBug12592()
         {
@@ -40,7 +40,7 @@ class D : B
             Assert.Equal("x", sym.Symbol.Name);
         }
 
-        [WorkItem(541948, "DevDiv")]
+        [WorkItem(541948, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541948")]
         [Fact]
         public void DelegateArgumentType()
         {
@@ -73,7 +73,7 @@ class Test
             Assert.NotNull(info.ConvertedType);
         }
 
-        [WorkItem(541949, "DevDiv")]
+        [WorkItem(541949, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541949")]
         [Fact]
         public void LambdaWithParenthesis_BindOutsideOfParenthesis()
         {
@@ -106,8 +106,8 @@ public class Test
             Assert.Equal("Test.D", info.ConvertedType.ToTestDisplayString());
         }
 
-        [WorkItem(529056, "DevDiv")]
-        [WorkItem(529056, "DevDiv")]
+        [WorkItem(529056, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529056")]
+        [WorkItem(529056, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529056")]
         [Fact]
         public void LambdaWithParenthesis_BindInsideOfParenthesis()
         {
@@ -140,7 +140,7 @@ public class Test
             Assert.Equal("Test.D", info.ConvertedType.ToTestDisplayString());
         }
 
-        [Fact, WorkItem(528656, "DevDiv")]
+        [Fact, WorkItem(528656, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/528656")]
         public void SemanticInfoForInvalidExpression()
         {
             var text = @"
@@ -161,7 +161,7 @@ public class A
             Assert.Null(sym.Symbol);
         }
 
-        [WorkItem(541973, "DevDiv")]
+        [WorkItem(541973, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541973")]
         [Fact]
         public void LambdaAsAttributeArgumentErr()
         {
@@ -336,7 +336,7 @@ class C
             }
         }
 
-        [WorkItem(527486, "DevDiv")]
+        [WorkItem(527486, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/527486")]
         [Fact]
         public void ClassifyConversionExplicit()
         {
@@ -489,7 +489,7 @@ public class Test
             Assert.Equal(0, errs.Count());
         }
 
-        [WorkItem(527767, "DevDiv")]
+        [WorkItem(527767, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/527767")]
         [Fact]
         public void ClassifyConversionNullable()
         {
@@ -547,7 +547,7 @@ enum E { zero, one }
             ConversionTestHelper(model, v5[0].Initializer.Value, ConversionKind.ImplicitEnumeration, ConversionKind.ExplicitNullable);
         }
 
-        [Fact, WorkItem(543994, "DevDiv")]
+        [Fact, WorkItem(543994, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543994")]
         public void ClassifyConversionImplicitUserDef()
         {
             var text = @"using System;
@@ -605,7 +605,7 @@ class MyClass
             Assert.Equal(impconv, conv);
         }
 
-        [Fact, WorkItem(1019372, "DevDiv")]
+        [Fact, WorkItem(1019372, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1019372")]
         public void ClassifyConversionImplicitUserDef02()
         {
             var text = @"
@@ -633,7 +633,7 @@ class C {
             Assert.True(conv.IsUserDefined);
         }
 
-        [Fact, WorkItem(544151, "DevDiv")]
+        [Fact, WorkItem(544151, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544151")]
         public void PublicViewOfPointerConversions()
         {
             ValidateConversion(Conversion.PointerToVoid, ConversionKind.PointerToVoid);
@@ -987,7 +987,7 @@ class C
             Assert.Equal(0, info.CandidateSymbols.Length);
         }
 
-        [WorkItem(540279, "DevDiv")]
+        [WorkItem(540279, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540279")]
         [Fact]
         public void NoMembersForVoidReturnType()
         {
@@ -1011,7 +1011,7 @@ class C
             Assert.Equal(0, symbols.Length);
         }
 
-        [WorkItem(540767, "DevDiv")]
+        [WorkItem(540767, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540767")]
         [Fact]
         public void BindIncompleteVarDeclWithDoKeyword()
         {
@@ -1076,7 +1076,7 @@ class C
             Assert.Equal("C..ctor(System.Int32 x)", baseConstructor.ToTestDisplayString());
         }
 
-        [WorkItem(540862, "DevDiv")]
+        [WorkItem(540862, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540862")]
         [Fact]
         public void BindThisStaticConstructorInitializer()
         {
@@ -1099,7 +1099,7 @@ class MyClass
             Assert.Equal("MyClass..ctor()", invokedConstructor.ToTestDisplayString());
         }
 
-        [WorkItem(541053, "DevDiv")]
+        [WorkItem(541053, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541053")]
         [Fact]
         public void CheckAndAdjustPositionOutOfRange()
         {
@@ -1480,7 +1480,7 @@ class C
             Assert.Null(bindInfo.ConstantValue.Value);
         }
 
-        [WorkItem(542296, "DevDiv")]
+        [WorkItem(542296, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542296")]
         [Fact]
         public void TypeArgumentsOnFieldAccess1()
         {
@@ -1511,7 +1511,7 @@ public class Test
             Assert.Equal("Fld", candidate.Name);
         }
 
-        [WorkItem(542296, "DevDiv")]
+        [WorkItem(542296, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542296")]
         [Fact]
         public void TypeArgumentsOnFieldAccess2()
         {
@@ -1540,7 +1540,7 @@ public class Test
             Assert.Equal("Test", symbol.Name);
         }
 
-        [WorkItem(528785, "DevDiv")]
+        [WorkItem(528785, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/528785")]
         [Fact]
         public void TopLevelIndexer()
         {
@@ -1562,7 +1562,7 @@ this[double E] { get { return /*<bind>*/E/*</bind>*/; } }
             Assert.Equal("E", symbol.Name);
         }
 
-        [WorkItem(542360, "DevDiv")]
+        [WorkItem(542360, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542360")]
         [Fact]
         public void TypeAndMethodHaveSameTypeParameterName()
         {
@@ -1593,7 +1593,7 @@ class A<T> : I<T>
             Assert.Equal(comp.GlobalNamespace.GetMember<NamedTypeSymbol>("A"), symbol.ContainingSymbol); //from the type, not the method
         }
 
-        [WorkItem(542436, "DevDiv")]
+        [WorkItem(542436, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542436")]
         [Fact]
         public void RecoveryFromBadNamespaceDeclaration()
         {
@@ -1610,7 +1610,7 @@ namespace N { }
             var bindInfo = model.GetSemanticInfoSummary(exprSyntaxToBind);
         }
 
-        [WorkItem(542634, "DevDiv")]
+        [WorkItem(542634, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542634")]
         /// Test that binding a local declared with var binds the same way when localSymbol.Type is called before BindVariableDeclaration.
         /// Assert occurs if the two do not compute the same type.
         [Fact]
@@ -1657,7 +1657,7 @@ class Program
             bindInfo = model.GetSemanticInfoSummary(varIdentifier);
         }
 
-        [WorkItem(542186, "DevDiv")]
+        [WorkItem(542186, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542186")]
         [Fact]
         public void IndexerParameter()
         {
@@ -1692,7 +1692,7 @@ class C
             Assert.Equal(symbol, lookupSymbols.Single());
         }
 
-        [WorkItem(542186, "DevDiv")]
+        [WorkItem(542186, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542186")]
         [Fact]
         public void IndexerValueParameter()
         {
@@ -1727,7 +1727,7 @@ class C
             Assert.Equal(symbol, lookupSymbols.Single());
         }
 
-        [WorkItem(542777, "DevDiv")]
+        [WorkItem(542777, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542777")]
         [Fact]
         public void IndexerThisParameter()
         {
@@ -1759,7 +1759,7 @@ class C
             Assert.Equal(SymbolKind.Method, symbol.ContainingSymbol.Kind);
         }
 
-        [WorkItem(542592, "DevDiv")]
+        [WorkItem(542592, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542592")]
         [Fact]
         public void TypeParameterParamsParameter()
         {
@@ -1798,7 +1798,7 @@ class Program
             Assert.Equal(TypeKind.TypeParameter, ((MethodSymbol)candidate.OriginalDefinition).Parameters.Last().Type.TypeKind);
         }
 
-        [WorkItem(542458, "DevDiv")]
+        [WorkItem(542458, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542458")]
         [Fact]
         public void ParameterDefaultValues()
         {
@@ -1843,7 +1843,7 @@ struct S
             Assert.Null(parameters[3].ExplicitDefaultValue);
         }
 
-        [WorkItem(542764, "DevDiv")]
+        [WorkItem(542764, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542764")]
         [Fact]
         public void UnboundGenericTypeArity()
         {
@@ -1899,7 +1899,7 @@ class C
             Assert.Equal("System.Void[]", arrayType.ToTestDisplayString());
         }
 
-        [WorkItem(543295, "DevDiv")]
+        [WorkItem(543295, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543295")]
         [Fact]
         public void TypeParameterDiamondInheritance1()
         {
@@ -1932,7 +1932,7 @@ public class C<T> where T : IA, IB // can find IA.P in two different ways
             Assert.Equal("System.Collections.Generic.IEnumerable<System.Object> System.Collections.Generic.IEnumerable<T>.Select<T, System.Object>(System.Func<T, System.Object> selector)", bindInfo.Symbol.ToTestDisplayString());
         }
 
-        [WorkItem(543295, "DevDiv")]
+        [WorkItem(543295, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543295")]
         [Fact]
         public void TypeParameterDiamondInheritance2() //add hiding member in derived interface
         {
@@ -1968,7 +1968,7 @@ public class C<T> where T : IA, IB
             Assert.Equal("System.Collections.Generic.IEnumerable<System.Int32> System.Collections.Generic.IEnumerable<T>.Select<T, System.Int32>(System.Func<T, System.Int32> selector)", bindInfo.Symbol.ToTestDisplayString());
         }
 
-        [WorkItem(543295, "DevDiv")]
+        [WorkItem(543295, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543295")]
         [Fact]
         public void TypeParameterDiamondInheritance3() //reverse order of interface list (shouldn't matter)
         {
@@ -2004,7 +2004,7 @@ public class C<T> where T : IB, IA
             Assert.Equal("System.Collections.Generic.IEnumerable<System.Int32> System.Collections.Generic.IEnumerable<T>.Select<T, System.Int32>(System.Func<T, System.Int32> selector)", bindInfo.Symbol.ToTestDisplayString());
         }
 
-        [WorkItem(543295, "DevDiv")]
+        [WorkItem(543295, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543295")]
         [Fact]
         public void TypeParameterDiamondInheritance4() //Two interfaces with a common base
         {
@@ -2039,7 +2039,7 @@ public class C<T> where T : IB, IC
             Assert.Equal("System.Collections.Generic.IEnumerable<System.Object> System.Collections.Generic.IEnumerable<T>.Select<T, System.Object>(System.Func<T, System.Object> selector)", bindInfo.Symbol.ToTestDisplayString());
         }
 
-        [WorkItem(543295, "DevDiv")]
+        [WorkItem(543295, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543295")]
         [Fact]
         public void TypeParameterMemberLookup1()
         {
@@ -2054,7 +2054,7 @@ public interface IA
             Assert.Equal("System.Object IA.P { get; }", members.Single().ToTestDisplayString());
         }
 
-        [WorkItem(543295, "DevDiv")]
+        [WorkItem(543295, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543295")]
         [Fact]
         public void TypeParameterMemberLookup2()
         {
@@ -2075,7 +2075,7 @@ public interface IB
             Assert.True(members.SetEquals(typeParameter.AllEffectiveInterfacesNoUseSiteDiagnostics.Select(i => i.GetMember<PropertySymbol>("P"))));
         }
 
-        [WorkItem(543295, "DevDiv")]
+        [WorkItem(543295, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543295")]
         [Fact]
         public void TypeParameterMemberLookup3()
         {
@@ -2096,7 +2096,7 @@ public interface IB : IA
             Assert.Equal("System.Object IB.P { get; }", members.Single().ToTestDisplayString());
         }
 
-        [WorkItem(543295, "DevDiv")]
+        [WorkItem(543295, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543295")]
         [Fact]
         public void TypeParameterMemberLookup4()
         {
@@ -2116,7 +2116,7 @@ public class D
             Assert.Equal("System.Object D.P { get; set; }", members.Single().ToTestDisplayString());
         }
 
-        [WorkItem(543295, "DevDiv")]
+        [WorkItem(543295, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543295")]
         [Fact]
         public void TypeParameterMemberLookup5()
         {
@@ -2139,7 +2139,7 @@ public class D
             Assert.True(members.Select(m => m.ToTestDisplayString()).SetEquals(new[] { "void IA.M()", "void D.M()" }));
         }
 
-        [WorkItem(543295, "DevDiv")]
+        [WorkItem(543295, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543295")]
         [Fact]
         public void TypeParameterMemberLookup6()
         {
@@ -2163,7 +2163,7 @@ public class D
             Assert.True(members.Select(m => m.ToTestDisplayString()).SetEquals(new[] { "void D.M()", "void IA.M()", "void IA.M(System.Int32 x)" }));
         }
 
-        [WorkItem(543295, "DevDiv")]
+        [WorkItem(543295, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543295")]
         [Fact]
         public void TypeParameterMemberLookup7()
         {
@@ -2214,7 +2214,7 @@ public class C<T> where T : {1}
             return model.LookupSymbols(exprSyntaxToBind.SpanStart, typeParameter, memberName);
         }
 
-        [WorkItem(542966, "DevDiv")]
+        [WorkItem(542966, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542966")]
         [Fact]
         public void IndexerMemberRace()
         {
@@ -2273,8 +2273,8 @@ class Program
                 }
                 else
                 {
-                    thread1.Start();
                     thread2.Start();
+                    thread1.Start();
                 }
 
                 comp.VerifyDiagnostics();
@@ -2313,7 +2313,7 @@ class C
             Assert.Equal("System.IO.StreamReader", typeInfo.Symbol.ToTestDisplayString());
         }
 
-        [WorkItem(543169, "DevDiv")]
+        [WorkItem(543169, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543169")]
         [Fact]
         public void ParameterOfLambdaPassedToOutParameter()
         {
@@ -2344,7 +2344,7 @@ class D
             Assert.Equal(MethodKind.AnonymousFunction, ((MethodSymbol)parameterSymbol.ContainingSymbol).MethodKind);
         }
 
-        [WorkItem(529096, "DevDiv")]
+        [WorkItem(529096, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529096")]
         [Fact]
         public void MemberAccessExpressionResults()
         {
@@ -2415,7 +2415,7 @@ class C
             }
         }
 
-        [WorkItem(543554, "DevDiv")]
+        [WorkItem(543554, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543554")]
         [Fact]
         public void SemanticInfoForUncheckedExpression()
         {
@@ -2443,7 +2443,7 @@ public class A
             Assert.Equal(SpecialType.System_Double, info.ConvertedType.SpecialType);
         }
 
-        [WorkItem(543554, "DevDiv")]
+        [WorkItem(543554, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543554")]
         [Fact]
         public void SemanticInfoForCheckedExpression()
         {
@@ -2472,7 +2472,7 @@ class Program
             Assert.Equal(SpecialType.System_Int32, info.ConvertedType.SpecialType);
         }
 
-        [WorkItem(543554, "DevDiv")]
+        [WorkItem(543554, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543554")]
         [Fact]
         public void CheckedUncheckedExpression()
         {
@@ -2496,7 +2496,7 @@ class Test
             Assert.Equal(SpecialType.System_Int32, info.ConvertedType.SpecialType);
         }
 
-        [WorkItem(543543, "DevDiv")]
+        [WorkItem(543543, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543543")]
         [Fact]
         public void SymbolInfoForImplicitOperatorParameter()
         {
@@ -2526,8 +2526,8 @@ class Program
             Assert.Equal(MethodKind.Conversion, ((MethodSymbol)symbol.ContainingSymbol).MethodKind);
         }
 
-        [WorkItem(543494, "DevDiv")]
-        [WorkItem(543560, "DevDiv")]
+        [WorkItem(543494, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543494")]
+        [WorkItem(543560, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543560")]
         [Fact]
         public void BrokenPropertyDeclaration()
         {
@@ -2551,7 +2551,7 @@ Class Program // this will get a Property declaration ... *sigh*
             var declaredSymbol = model.GetDeclaredSymbol(expr);
         }
 
-        [WorkItem(543550, "DevDiv")]
+        [WorkItem(543550, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543550")]
         [Fact]
         public void SemanticInfoForUserDefinedBinaryOperator()
         {
@@ -2574,7 +2574,7 @@ class C
             CheckOperatorSemanticInfo(text, WellKnownMemberNames.AdditionOperatorName);
         }
 
-        [WorkItem(543550, "DevDiv")]
+        [WorkItem(543550, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543550")]
         [Fact]
         public void SemanticInfoForUserDefinedLogicalOperator()
         {
@@ -2607,7 +2607,7 @@ class C
             CheckOperatorSemanticInfo(text, WellKnownMemberNames.BitwiseAndOperatorName);
         }
 
-        [WorkItem(543550, "DevDiv")]
+        [WorkItem(543550, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543550")]
         [Fact]
         public void SemanticInfoForUserDefinedUnaryOperator()
         {
@@ -2629,7 +2629,7 @@ class C
             CheckOperatorSemanticInfo(text, WellKnownMemberNames.UnaryPlusOperatorName);
         }
 
-        [WorkItem(543550, "DevDiv")]
+        [WorkItem(543550, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543550")]
         [Fact]
         public void SemanticInfoForUserDefinedExplicitConversion()
         {
@@ -2650,7 +2650,7 @@ class C
             CheckOperatorSemanticInfo(text, WellKnownMemberNames.ExplicitConversionName);
         }
 
-        [WorkItem(543550, "DevDiv")]
+        [WorkItem(543550, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543550")]
         [Fact]
         public void SemanticInfoForUserDefinedImplicitConversion()
         {
@@ -2671,7 +2671,7 @@ class C
             CheckOperatorSemanticInfo(text, WellKnownMemberNames.ImplicitConversionName);
         }
 
-        [WorkItem(543550, "DevDiv")]
+        [WorkItem(543550, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543550")]
         [Fact]
         public void SemanticInfoForUserDefinedTrueOperator()
         {
@@ -2721,7 +2721,7 @@ class C
             Assert.False(model.GetConstantValue(expr).HasValue);
         }
 
-        [WorkItem(543550, "DevDiv")]
+        [WorkItem(543550, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543550")]
         [Fact]
         public void SemanticInfoForUserDefinedIncrement()
         {
@@ -2743,7 +2743,7 @@ class C
             CheckOperatorSemanticInfo(text, WellKnownMemberNames.IncrementOperatorName);
         }
 
-        [WorkItem(543550, "DevDiv")]
+        [WorkItem(543550, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543550")]
         [Fact]
         public void SemanticInfoForUserDefinedCompoundAssignment()
         {
@@ -2792,7 +2792,7 @@ class C
             Assert.False(model.GetConstantValue(expr).HasValue);
         }
 
-        [Fact, WorkItem(543550, "DevDiv"), WorkItem(543439, "DevDiv")]
+        [Fact, WorkItem(543550, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543550"), WorkItem(543439, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543439")]
         public void SymbolInfoForUserDefinedConversionOverloadResolutionFailure()
         {
             var text = @"
@@ -2832,7 +2832,7 @@ struct S
             Assert.True(candidates.SetEquals(conversions, EqualityComparer<ISymbol>.Default));
         }
 
-        [Fact, WorkItem(543550, "DevDiv"), WorkItem(543439, "DevDiv")]
+        [Fact, WorkItem(543550, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543550"), WorkItem(543439, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543439")]
         public void SymbolInfoForUserDefinedConversionOverloadResolutionFailureEmpty()
         {
             var text = @"
@@ -2862,7 +2862,7 @@ struct S
             Assert.Equal(0, candidates.Length);
         }
 
-        [WorkItem(543550, "DevDiv")]
+        [WorkItem(543550, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543550")]
         [Fact]
         public void SymbolInfoForUserDefinedUnaryOperatorOverloadResolutionFailure()
         {
@@ -2923,7 +2923,7 @@ class Program
             Assert.True(candidates.SetEquals(operators, EqualityComparer<ISymbol>.Default));
         }
 
-        [WorkItem(543550, "DevDiv")]
+        [WorkItem(543550, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543550")]
         [Fact]
         public void SymbolInfoForUserDefinedUnaryOperatorOverloadResolutionFailureEmpty()
         {
@@ -2955,7 +2955,7 @@ class C
             Assert.Equal(0, candidates.Length);
         }
 
-        [WorkItem(543550, "DevDiv")]
+        [WorkItem(543550, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543550")]
         [Fact]
         public void SymbolInfoForUserDefinedIncrementOperatorOverloadResolutionFailure()
         {
@@ -3015,7 +3015,7 @@ class Program
             Assert.True(candidates.SetEquals(operators, EqualityComparer<ISymbol>.Default));
         }
 
-        [WorkItem(543550, "DevDiv")]
+        [WorkItem(543550, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543550")]
         [Fact]
         public void SymbolInfoForUserDefinedIncrementOperatorOverloadResolutionFailureEmpty()
         {
@@ -3047,7 +3047,7 @@ class C
             Assert.Equal(0, candidates.Length);
         }
 
-        [WorkItem(543550, "DevDiv")]
+        [WorkItem(543550, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543550")]
         [Fact]
         public void SymbolInfoForUserDefinedBinaryOperatorOverloadResolutionFailure()
         {
@@ -3089,7 +3089,7 @@ class C
             Assert.True(candidates.SetEquals(operators, EqualityComparer<ISymbol>.Default));
         }
 
-        [WorkItem(543550, "DevDiv")]
+        [WorkItem(543550, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543550")]
         [Fact]
         public void SymbolInfoForUserDefinedBinaryOperatorOverloadResolutionFailureEmpty()
         {
@@ -3121,7 +3121,7 @@ class C
             Assert.Equal(0, candidates.Length);
         }
 
-        [WorkItem(543550, "DevDiv")]
+        [WorkItem(543550, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543550")]
         [Fact]
         public void SymbolInfoForUserDefinedCompoundAssignmentOperatorOverloadResolutionFailure()
         {
@@ -3163,7 +3163,7 @@ class C
             Assert.True(candidates.SetEquals(operators, EqualityComparer<ISymbol>.Default));
         }
 
-        [WorkItem(543550, "DevDiv")]
+        [WorkItem(543550, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543550")]
         [Fact]
         public void SymbolInfoForUserDefinedCompoundAssignmentOperatorOverloadResolutionFailureEmpty()
         {
@@ -3195,7 +3195,7 @@ class C
             Assert.Equal(0, candidates.Length);
         }
 
-        [WorkItem(543550, "DevDiv"), WorkItem(529158, "DevDiv")]
+        [WorkItem(543550, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543550"), WorkItem(529158, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529158")]
         [Fact]
         public void MethodGroupForUserDefinedBinaryOperator()
         {
@@ -3279,7 +3279,7 @@ class C
             Assert.False(sawWrongConversionKind);
         }
 
-        [WorkItem(543674, "DevDiv")]
+        [WorkItem(543674, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543674")]
         [Fact()]
         public void SemanticInfo_NormalVsLiftedUserDefinedImplicitConversion()
         {
@@ -3342,7 +3342,7 @@ class Z
             Assert.Equal("ImplicitUserDefined", conversion.ToString());
         }
 
-        [WorkItem(543715, "DevDiv")]
+        [WorkItem(543715, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543715")]
         [Fact]
         public void SemanticInfo_NormalVsLiftedUserDefinedConversion_ImplicitConversion()
         {
@@ -3709,8 +3709,8 @@ class C
             Assert.Equal(ConversionKind.Boxing, model.ClassifyConversion(cast1, (TypeSymbol)cast2TypeInfo.Type).Kind);
         }
 
-        [WorkItem(545136, "DevDiv")]
-        [WorkItem(538320, "DevDiv")]
+        [WorkItem(545136, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545136")]
+        [WorkItem(538320, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538320")]
         [Fact()] // TODO: Dev10 does not report ERR_SameFullNameAggAgg here - source wins.
         public void SpecialTypeInSourceAndMetadata()
         {
@@ -3741,7 +3741,7 @@ namespace System
             Assert.Equal(0, symbolInfo.CandidateSymbols.Length);
         }
 
-        [WorkItem(544651, "DevDiv")]
+        [WorkItem(544651, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544651")]
         [Fact]
         public void SpeculativelyBindMethodGroup1()
         {
@@ -3770,7 +3770,7 @@ class C
             Assert.Equal(CandidateReason.OverloadResolutionFailure, info.CandidateReason);
         }
 
-        [WorkItem(544651, "DevDiv")]
+        [WorkItem(544651, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544651")]
         [Fact]
         public void SpeculativelyBindMethodGroup2()
         {
@@ -3804,7 +3804,7 @@ class C
             Assert.Equal(2, info.CandidateSymbols.Length);
         }
 
-        [WorkItem(546046, "DevDiv")]
+        [WorkItem(546046, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546046")]
         [Fact]
         public void UnambiguousMethodGroupWithoutBoundParent1()
         {
@@ -3830,7 +3830,7 @@ class C
             Assert.Equal(CandidateReason.OverloadResolutionFailure, info.CandidateReason);
         }
 
-        [WorkItem(546046, "DevDiv")]
+        [WorkItem(546046, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546046")]
         [Fact]
         public void UnambiguousMethodGroupWithoutBoundParent2()
         {
@@ -3857,7 +3857,7 @@ class C
             Assert.Equal(1, info.CandidateSymbols.Length);
         }
 
-        [WorkItem(544651, "DevDiv")]
+        [WorkItem(544651, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544651")]
         [ClrOnlyFact]
         public void SpeculativelyBindPropertyGroup1()
         {
@@ -3896,7 +3896,7 @@ class C
             Assert.Equal(compilation.GlobalNamespace.GetMember<NamedTypeSymbol>("IA").GetMember<PropertySymbol>("P"), info.Symbol);
         }
 
-        [WorkItem(544651, "DevDiv")]
+        [WorkItem(544651, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544651")]
         [ClrOnlyFact]
         public void SpeculativelyBindPropertyGroup2()
         {
@@ -3945,7 +3945,7 @@ class C
         //[Fact]
         //public void UnambiguousPropertyGroupWithoutBoundParent1()
 
-        [WorkItem(546117, "DevDiv")]
+        [WorkItem(546117, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546117")]
         [ClrOnlyFact]
         public void UnambiguousPropertyGroupWithoutBoundParent2()
         {
@@ -3983,7 +3983,7 @@ class C
             Assert.Equal(1, info.CandidateSymbols.Length);
         }
 
-        [WorkItem(544648, "DevDiv")]
+        [WorkItem(544648, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544648")]
         [Fact]
         public void SpeculativelyBindExtensionMethod()
         {
@@ -4062,7 +4062,7 @@ static class Program
         /// because it was set to IEnumerable&lt;int&gt; before binding the declaration of x but to an error
         /// type after binding the declaration of x.
         /// </summary>
-        [WorkItem(545097, "DevDiv")]
+        [WorkItem(545097, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545097")]
         [Fact]
         public void NameConflictDuringLambdaBinding1()
         {
@@ -4117,7 +4117,7 @@ class C
         /// This test reverses the order of statement binding from NameConflictDuringLambdaBinding2 to confirm that
         /// the results are the same.
         /// </summary>
-        [WorkItem(545097, "DevDiv")]
+        [WorkItem(545097, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545097")]
         [Fact]
         public void NameConflictDuringLambdaBinding2()
         {
@@ -4164,7 +4164,7 @@ class C
     );
         }
 
-        [WorkItem(546263, "DevDiv")]
+        [WorkItem(546263, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546263")]
         [Fact]
         public void SpeculativeSymbolInfoForOmittedTypeArgumentSyntaxNode()
         {
@@ -4194,7 +4194,7 @@ class C
             Assert.Null(info.Symbol);
         }
 
-        [WorkItem(530313, "DevDiv")]
+        [WorkItem(530313, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530313")]
         [Fact]
         public void SpeculativeTypeInfoForOmittedTypeArgumentSyntaxNode()
         {
@@ -4224,7 +4224,7 @@ class C
             Assert.Equal(default(TypeInfo), info);
         }
 
-        [WorkItem(546266, "DevDiv")]
+        [WorkItem(546266, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546266")]
         [Fact]
         public void SpeculativeTypeInfoForGenericNameSyntaxWithinTypeOfInsideAnonMethod()
         {
@@ -4254,8 +4254,8 @@ class C
             Assert.NotNull(info.Type);
         }
 
-        [WorkItem(547160, "DevDiv")]
-        [Fact, WorkItem(531496, "DevDiv")]
+        [WorkItem(547160, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/547160")]
+        [Fact, WorkItem(531496, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/531496")]
         public void SemanticInfoForOmittedTypeArgumentInIncompleteMember()
         {
             var text = @"
@@ -4284,8 +4284,8 @@ class Test
             Assert.Null(info.Type);
         }
 
-        [WorkItem(547160, "DevDiv")]
-        [Fact, WorkItem(531496, "DevDiv")]
+        [WorkItem(547160, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/547160")]
+        [Fact, WorkItem(531496, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/531496")]
         public void CollectionInitializerSpeculativeInfo()
         {
             var text = @"
@@ -4308,7 +4308,7 @@ class Test
             Assert.Equal(TypeInfo.None, typeInfo);
         }
 
-        [WorkItem(531362, "DevDiv")]
+        [WorkItem(531362, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/531362")]
         [Fact]
         public void DelegateElementAccess()
         {
@@ -4361,7 +4361,7 @@ class C
             Assert.Equal(ConversionKind.Identity, conv.Kind);
         }
 
-        [WorkItem(531534, "DevDiv")]
+        [WorkItem(531534, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/531534")]
         [Fact]
         public void LambdaOutsideMemberModel()
         {
@@ -4382,7 +4382,7 @@ int P
             Assert.Null(symbol);
         }
 
-        [WorkItem(633340, "DevDiv")]
+        [WorkItem(633340, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/633340")]
         [Fact]
         public void MemberOfInaccessibleType()
         {
@@ -4435,7 +4435,7 @@ public class B : A
                 Diagnostic(ErrorCode.ERR_BadAccess, "Nested").WithArguments("A.Nested"));
         }
 
-        [WorkItem(633340, "DevDiv")]
+        [WorkItem(633340, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/633340")]
         [Fact]
         public void NotReferencableMemberOfInaccessibleType()
         {
@@ -4482,7 +4482,7 @@ class B : A
 );
         }
 
-        [WorkItem(633340, "DevDiv")]
+        [WorkItem(633340, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/633340")]
         [Fact]
         public void AccessibleMemberOfInaccessibleType()
         {
@@ -4528,7 +4528,7 @@ public class B : A
                 Diagnostic(ErrorCode.ERR_BadAccess, "Nested").WithArguments("A.Nested"));
         }
 
-        [WorkItem(530252, "DevDiv")]
+        [WorkItem(530252, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530252")]
         [Fact]
         public void MethodGroupHiddenSymbols1()
         {
@@ -4581,7 +4581,7 @@ class Test
             Assert.Equal("System.Int32 S.GetHashCode()", structInfo.CandidateSymbols.Single().ToTestDisplayString());
         }
 
-        [WorkItem(530252, "DevDiv")]
+        [WorkItem(530252, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530252")]
         [Fact]
         public void MethodGroupHiddenSymbols2()
         {
@@ -4627,7 +4627,7 @@ class Program
         }
 
         [Fact]
-        [WorkItem(645512, "DevDiv")]
+        [WorkItem(645512, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/645512")]
         public void LookupProtectedMemberOnConstrainedTypeParameter()
         {
             var source = @"
@@ -4670,7 +4670,7 @@ class C : A
         }
 
         [Fact]
-        [WorkItem(645512, "DevDiv")]
+        [WorkItem(645512, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/645512")]
         public void LookupProtectedMemberOnConstrainedTypeParameter2()
         {
             var source = @"
@@ -4715,7 +4715,7 @@ class C : A
         }
 
         [Fact]
-        [WorkItem(652583, "DevDiv")]
+        [WorkItem(652583, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/652583")]
         public void ParameterDefaultValueWithoutParameter()
         {
             var source = @"
@@ -4740,7 +4740,7 @@ class A
         }
 
         [Fact]
-        [WorkItem(530791, "DevDiv")]
+        [WorkItem(530791, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530791")]
         public void Repro530791()
         {
             var source = @"
@@ -4812,7 +4812,7 @@ public class Test
         }
 
         [Fact]
-        [WorkItem(654753, "DevDiv")]
+        [WorkItem(654753, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/654753")]
         public void Repro654753()
         {
             var source = @"
@@ -4866,7 +4866,7 @@ public class D : C
         }
 
         [Fact]
-        [WorkItem(750557, "DevDiv")]
+        [WorkItem(750557, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/750557")]
         public void MethodGroupFromMetadata()
         {
             var source = @"
@@ -4895,7 +4895,7 @@ void M()
             Assert.Equal(CandidateReason.OverloadResolutionFailure, symbolInfo.CandidateReason);
         }
 
-        [Fact, WorkItem(531304, "DevDiv")]
+        [Fact, WorkItem(531304, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/531304")]
         public void GetPreprocessingSymbolInfoForDefinedSymbol()
         {
             string sourceCode = @"
@@ -4941,7 +4941,7 @@ void M()
             Assert.Equal(symbolInfo.Symbol.GetHashCode(), symbolInfo2.Symbol.GetHashCode());
         }
 
-        [Fact, WorkItem(531304, "DevDiv")]
+        [Fact, WorkItem(531304, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/531304")]
         public void GetPreprocessingSymbolInfoForUndefinedSymbol()
         {
             string sourceCode = @"
@@ -4992,7 +4992,7 @@ public class T
             Assert.Null(symbolInfo.Symbol);
         }
 
-        [Fact, WorkItem(531304, "DevDiv"), WorkItem(720566, "DevDiv")]
+        [Fact, WorkItem(531304, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/531304"), WorkItem(720566, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/720566")]
         public void GetPreprocessingSymbolInfoForSymbolDefinedLaterInSource()
         {
             string sourceCode = @"
@@ -5006,7 +5006,7 @@ public class T
             Assert.False(symbolInfo.IsDefined, "must not be defined");
         }
 
-        [Fact, WorkItem(720566, "DevDiv")]
+        [Fact, WorkItem(720566, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/720566")]
         public void Bug720566_01()
         {
             string sourceCode = @"
@@ -5020,7 +5020,7 @@ public class T
             Assert.True(symbolInfo.IsDefined, "must be defined");
         }
 
-        [Fact, WorkItem(720566, "DevDiv")]
+        [Fact, WorkItem(720566, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/720566")]
         public void Bug720566_02()
         {
             string sourceCode = @"
@@ -5036,7 +5036,7 @@ public class T
             Assert.True(symbolInfo.IsDefined, "must be defined");
         }
 
-        [Fact, WorkItem(720566, "DevDiv")]
+        [Fact, WorkItem(720566, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/720566")]
         public void Bug720566_03()
         {
             string sourceCode = @"
@@ -5052,7 +5052,7 @@ public class T
             Assert.True(symbolInfo.IsDefined, "must be defined");
         }
 
-        [Fact, WorkItem(720566, "DevDiv")]
+        [Fact, WorkItem(720566, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/720566")]
         public void Bug720566_04()
         {
             string sourceCode = @"
@@ -5068,7 +5068,7 @@ public class T
             Assert.True(symbolInfo.IsDefined, "must be defined");
         }
 
-        [Fact, WorkItem(720566, "DevDiv")]
+        [Fact, WorkItem(720566, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/720566")]
         public void Bug720566_05()
         {
             string sourceCode = @"
@@ -5084,7 +5084,7 @@ public class T
             Assert.False(symbolInfo.IsDefined, "must not be defined");
         }
 
-        [Fact, WorkItem(720566, "DevDiv")]
+        [Fact, WorkItem(720566, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/720566")]
         public void Bug720566_06()
         {
             string sourceCode = @"
@@ -5101,7 +5101,7 @@ public class T
             Assert.True(symbolInfo.IsDefined, "must be defined");
         }
 
-        [Fact, WorkItem(720566, "DevDiv")]
+        [Fact, WorkItem(720566, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/720566")]
         public void Bug720566_07()
         {
             string sourceCode = @"
@@ -5118,7 +5118,7 @@ public class T
             Assert.True(symbolInfo.IsDefined, "must be defined");
         }
 
-        [Fact, WorkItem(720566, "DevDiv")]
+        [Fact, WorkItem(720566, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/720566")]
         public void Bug720566_08()
         {
             string sourceCode = @"
@@ -5134,7 +5134,7 @@ public class T
             Assert.False(symbolInfo.IsDefined, "must not be defined");
         }
 
-        [Fact, WorkItem(720566, "DevDiv")]
+        [Fact, WorkItem(720566, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/720566")]
         public void Bug720566_09()
         {
             string sourceCode = @"
@@ -5150,7 +5150,7 @@ public class T
             Assert.False(symbolInfo.IsDefined, "must not be defined");
         }
 
-        [Fact, WorkItem(720566, "DevDiv")]
+        [Fact, WorkItem(720566, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/720566")]
         public void Bug720566_10()
         {
             string sourceCode = @"
@@ -5167,7 +5167,7 @@ public class T
             Assert.True(symbolInfo.IsDefined, "must be defined");
         }
 
-        [Fact, WorkItem(720566, "DevDiv")]
+        [Fact, WorkItem(720566, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/720566")]
         public void Bug720566_11()
         {
             string sourceCode = @"
@@ -5184,7 +5184,7 @@ public class T
             Assert.True(symbolInfo.IsDefined, "must be defined");
         }
 
-        [Fact, WorkItem(720566, "DevDiv")]
+        [Fact, WorkItem(720566, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/720566")]
         public void Bug720566_12()
         {
             string sourceCode = @"
@@ -5201,7 +5201,7 @@ public class T
             Assert.True(symbolInfo.IsDefined, "must be defined");
         }
 
-        [Fact, WorkItem(720566, "DevDiv")]
+        [Fact, WorkItem(720566, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/720566")]
         public void Bug720566_13()
         {
             string sourceCode = @"
@@ -5217,7 +5217,7 @@ public class T
             Assert.False(symbolInfo.IsDefined, "must not be defined");
         }
 
-        [Fact, WorkItem(720566, "DevDiv")]
+        [Fact, WorkItem(720566, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/720566")]
         public void Bug720566_14()
         {
             string sourceCode = @"
@@ -5233,7 +5233,7 @@ public class T
             Assert.False(symbolInfo.IsDefined, "must not be defined");
         }
 
-        [Fact, WorkItem(720566, "DevDiv")]
+        [Fact, WorkItem(720566, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/720566")]
         public void Bug720566_15()
         {
             string sourceCode = @"
@@ -5249,7 +5249,7 @@ public class T
             Assert.False(symbolInfo.IsDefined, "must not be defined");
         }
 
-        [Fact, WorkItem(720566, "DevDiv")]
+        [Fact, WorkItem(720566, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/720566")]
         public void Bug720566_16()
         {
             string sourceCode = @"
@@ -5265,7 +5265,7 @@ public class T
             Assert.False(symbolInfo.IsDefined, "must not be defined");
         }
 
-        [Fact, WorkItem(720566, "DevDiv")]
+        [Fact, WorkItem(720566, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/720566")]
         public void Bug720566_17()
         {
             string sourceCode = @"
@@ -5282,7 +5282,7 @@ public class T
             Assert.True(symbolInfo.IsDefined, "must be defined");
         }
 
-        [Fact, WorkItem(720566, "DevDiv")]
+        [Fact, WorkItem(720566, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/720566")]
         public void Bug720566_18()
         {
             string sourceCode = @"
@@ -5299,7 +5299,7 @@ public class T
             Assert.True(symbolInfo.IsDefined, "must be defined");
         }
 
-        [Fact, WorkItem(720566, "DevDiv")]
+        [Fact, WorkItem(720566, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/720566")]
         public void Bug720566_19()
         {
             string sourceCode = @"
@@ -5316,7 +5316,7 @@ public class T
             Assert.False(symbolInfo.IsDefined, "must not be defined");
         }
 
-        [Fact, WorkItem(720566, "DevDiv")]
+        [Fact, WorkItem(720566, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/720566")]
         public void Bug720566_20()
         {
             string sourceCode = @"
@@ -5333,7 +5333,7 @@ public class T
             Assert.False(symbolInfo.IsDefined, "must not be defined");
         }
 
-        [Fact, WorkItem(720566, "DevDiv")]
+        [Fact, WorkItem(720566, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/720566")]
         public void Bug720566_21()
         {
             string sourceCode = @"
@@ -5350,7 +5350,7 @@ public class T
             Assert.False(symbolInfo.IsDefined, "must not be defined");
         }
 
-        [Fact, WorkItem(720566, "DevDiv")]
+        [Fact, WorkItem(720566, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/720566")]
         public void Bug720566_22()
         {
             string sourceCode = @"
@@ -5367,7 +5367,7 @@ public class T
             Assert.False(symbolInfo.IsDefined, "must not be defined");
         }
 
-        [WorkItem(835391, "DevDiv")]
+        [WorkItem(835391, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/835391")]
         [Fact]
         public void ConstructedErrorTypeValidation()
         {
@@ -5410,7 +5410,7 @@ class C2<T> : E2<T> { }";
         }
 
         [Fact]
-        [WorkItem(849371, "DevDiv")]
+        [WorkItem(849371, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/849371")]
         public void NestedLambdaErrorRecovery()
         {
             var source = @"
@@ -5466,9 +5466,9 @@ class Program
             }
         }
 
-        [WorkItem(849371, "DevDiv")]
-        [WorkItem(854543, "DevDiv")]
-        [WorkItem(854548, "DevDiv")]
+        [WorkItem(849371, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/849371")]
+        [WorkItem(854543, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/854543")]
+        [WorkItem(854548, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/854548")]
         [Fact]
         public void SemanticModelLambdaErrorRecovery()
         {
@@ -5523,7 +5523,7 @@ class Program
         }
 
         [Fact]
-        [WorkItem(854543, "DevDiv")]
+        [WorkItem(854543, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/854543")]
         public void ClassifyConversionOnNull()
         {
             var source = @"
@@ -5565,7 +5565,7 @@ class C { }
             Assert.Equal(ConversionKind.ImplicitReference, conversion.Kind);
         }
 
-        [WorkItem(854543, "DevDiv")]
+        [WorkItem(854543, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/854543")]
         [Fact]
         public void ClassifyConversionOnLambda()
         {
@@ -5603,7 +5603,7 @@ class B { }
             Assert.Equal(ConversionKind.AnonymousFunction, conversion.Kind);
         }
 
-        [WorkItem(854543, "DevDiv")]
+        [WorkItem(854543, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/854543")]
         [Fact]
         public void ClassifyConversionOnAmbiguousLambda()
         {
@@ -5649,7 +5649,7 @@ class C { }
             Assert.Equal(ConversionKind.AnonymousFunction, conversion.Kind);
         }
 
-        [WorkItem(854543, "DevDiv")]
+        [WorkItem(854543, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/854543")]
         [Fact]
         public void ClassifyConversionOnAmbiguousMethodGroup()
         {
@@ -5715,7 +5715,7 @@ class C { }
             Assert.Equal(ConversionKind.MethodGroup, conversionC.Kind);
         }
 
-        [WorkItem(872064, "DevDiv")]
+        [WorkItem(872064, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/872064")]
         [Fact]
         public void PartialMethodImplementationDiagnostics()
         {
@@ -5764,7 +5764,7 @@ namespace ConsoleApplication1
             Assert.Equal(2, errs.Count());
         }
 
-        [WorkItem(1076661, "DevDiv")]
+        [WorkItem(1076661, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1076661")]
         [Fact]
         public void Bug1076661()
         {

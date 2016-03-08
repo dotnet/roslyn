@@ -22,7 +22,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.InvokeDeleg
                 new InvokeDelegateWithConditionalAccessCodeFixProvider());
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsInvokeDelegateWithConditionalAccess)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInvokeDelegateWithConditionalAccess)]
         public async Task Test1()
         {
             await TestAsync(
@@ -49,7 +49,7 @@ class C
 }");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsInvokeDelegateWithConditionalAccess)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInvokeDelegateWithConditionalAccess)]
         public async Task TestInvertedIf()
         {
             await TestAsync(
@@ -76,7 +76,7 @@ class C
 }");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsInvokeDelegateWithConditionalAccess)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInvokeDelegateWithConditionalAccess)]
         public async Task TestIfWithNoBraces()
         {
             await TestAsync(
@@ -101,7 +101,7 @@ class C
 }");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsInvokeDelegateWithConditionalAccess)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInvokeDelegateWithConditionalAccess)]
         public async Task TestWithComplexExpression()
         {
             await TestAsync(
@@ -130,7 +130,7 @@ class C
 }");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsInvokeDelegateWithConditionalAccess)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInvokeDelegateWithConditionalAccess)]
         public async Task TestMissingWithElseClause()
         {
             await TestMissingAsync(
@@ -149,8 +149,8 @@ class C
 }");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsInvokeDelegateWithConditionalAccess)]
-        public async Task TestMissingWithMultipleVariables()
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInvokeDelegateWithConditionalAccess)]
+        public async Task TestMissingOnDeclarationWithMultipleVariables()
         {
             await TestMissingAsync(
 @"class C
@@ -163,13 +163,47 @@ class C
         {
             v();
         }
-        else {}
     }
 }");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsInvokeDelegateWithConditionalAccess)]
-        public async Task TestMissingIfUsedOutside()
+        /// <remarks>
+        /// With multiple variables in the same declaration, the fix _is not_ offered on the declaration
+        /// itself, but _is_ offered on the invocation pattern.
+        /// </remarks>
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInvokeDelegateWithConditionalAccess)]
+        public async Task TestLocationWhereOfferedWithMultipleVariables()
+        {
+            await TestAsync(
+@"class C
+{
+    System.Action a;
+    void Foo()
+    {
+        var v = a, x = a;
+        [||]if (v != null)
+        {
+            v();
+        }
+    }
+}",
+@"class C
+{
+    System.Action a;
+    void Foo()
+    {
+        var v = a, x = a;
+        v?.Invoke();
+    }
+}");
+        }
+
+        /// <remarks>
+        /// If we have a variable declaration and if it is read/written outside the delegate 
+        /// invocation pattern, the fix is not offered on the declaration.
+        /// </remarks>
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInvokeDelegateWithConditionalAccess)]
+        public async Task TestMissingOnDeclarationIfUsedOutside()
         {
             await TestMissingAsync(
 @"class C
@@ -188,7 +222,43 @@ class C
 }");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsInvokeDelegateWithConditionalAccess)]
+        /// <remarks>
+        /// If we have a variable declaration and if it is read/written outside the delegate 
+        /// invocation pattern, the fix is not offered on the declaration but is offered on
+        /// the invocation pattern itself.
+        /// </remarks>
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInvokeDelegateWithConditionalAccess)]
+        public async Task TestLocationWhereOfferedIfUsedOutside()
+        {
+            await TestAsync(
+@"class C
+{
+    System.Action a;
+    void Foo()
+    {
+        var v = a;
+        [||]if (v != null)
+        {
+            v();
+        }
+
+        v = null;
+    }
+}",
+@"class C
+{
+    System.Action a;
+    void Foo()
+    {
+        var v = a;
+        v?.Invoke();
+
+        v = null;
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInvokeDelegateWithConditionalAccess)]
         public async Task TestSimpleForm1()
         {
             await TestAsync(
@@ -219,7 +289,7 @@ class C
 }");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsInvokeDelegateWithConditionalAccess)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInvokeDelegateWithConditionalAccess)]
         public async Task TestInElseClause1()
         {
             await TestAsync(
@@ -259,7 +329,7 @@ class C
 }");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsInvokeDelegateWithConditionalAccess)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInvokeDelegateWithConditionalAccess)]
         public async Task TestInElseClause2()
         {
             await TestAsync(
@@ -294,7 +364,7 @@ class C
 }");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsInvokeDelegateWithConditionalAccess)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInvokeDelegateWithConditionalAccess)]
         public async Task TestTrivia1()
         {
             await TestAsync(
@@ -322,7 +392,7 @@ class C
 }", compareTokens: false);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsInvokeDelegateWithConditionalAccess)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInvokeDelegateWithConditionalAccess)]
         public async Task TestTrivia2()
         {
             await TestAsync(
@@ -347,6 +417,220 @@ class C
         a?.Invoke();
     }
 }", compareTokens: false);
+        }
+
+        /// <remarks>
+        /// tests locations where the fix is offered.
+        /// </remarks>
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInvokeDelegateWithConditionalAccess)]
+        public async Task TestFixOfferedOnIf()
+        {
+            await TestAsync(
+@"class C
+{
+    System.Action a;
+    void Foo()
+    {
+        var v = a;
+        [||]if (v != null)
+        {
+            v();
+        }
+    }
+}",
+@"
+class C
+{
+    System.Action a;
+    void Foo()
+    {
+        a?.Invoke();
+    }
+}");
+        }
+
+        /// <remarks>
+        /// tests locations where the fix is offered.
+        /// </remarks>
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInvokeDelegateWithConditionalAccess)]
+        public async Task TestFixOfferedInsideIf()
+        {
+            await TestAsync(
+@"class C
+{
+    System.Action a;
+    void Foo()
+    {
+        var v = a;
+        if (v != null)
+        {
+            [||]v();
+        }
+    }
+}",
+@"
+class C
+{
+    System.Action a;
+    void Foo()
+    {
+        a?.Invoke();
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInvokeDelegateWithConditionalAccess)]
+        public async Task TestMissingOnConditionalInvocation()
+        {
+            await TestMissingAsync(
+@"class C
+{
+    System.Action a;
+    void Foo()
+    {
+        [||]var v = a;
+        v?.Invoke();
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInvokeDelegateWithConditionalAccess)]
+        public async Task TestMissingOnConditionalInvocation2()
+        {
+            await TestMissingAsync(
+@"class C
+{
+    System.Action a;
+    void Foo()
+    {
+        var v = a;
+        [||]v?.Invoke();
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInvokeDelegateWithConditionalAccess)]
+        public async Task TestMissingOnConditionalInvocation3()
+        {
+            await TestMissingAsync(
+@"class C
+{
+    System.Action a;
+    void Foo()
+    {
+        [||]a?.Invoke();
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInvokeDelegateWithConditionalAccess)]
+        public async Task TestMissingOnNonNullCheckExpressions()
+        {
+            await TestMissingAsync(
+@"class C
+{
+    System.Action a;
+    void Foo()
+    {
+        var v = a;
+        if (v == a)
+        {
+            [||]v();
+        }
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInvokeDelegateWithConditionalAccess)]
+        public async Task TestMissingOnNonNullCheckExpressions2()
+        {
+            await TestMissingAsync(
+@"class C
+{
+    System.Action a;
+    void Foo()
+    {
+        var v = a;
+        if (v == null)
+        {
+            [||]v();
+        }
+    }
+}");
+        }
+
+        /// <remarks>
+        /// if local declaration is not immediately preceding the invocation pattern, 
+        /// the fix is not offered on the declaration.
+        /// </remarks>
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInvokeDelegateWithConditionalAccess)]
+        public async Task TestLocalNotImmediatelyPrecedingNullCheckAndInvokePattern()
+        {
+            await TestMissingAsync(
+@"class C
+{
+    System.Action a;
+    void Foo()
+    {
+        [||]var v = a;
+        int x;
+        if (v != null)
+        {
+            v();
+        }
+    }
+}");
+        }
+
+        /// <remarks>
+        /// if local declaration is not immediately preceding the invocation pattern, 
+        /// the fix is not offered on the declaration but is offered on the invocation pattern itself.
+        /// </remarks>
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInvokeDelegateWithConditionalAccess)]
+        public async Task TestLocalDNotImmediatelyPrecedingNullCheckAndInvokePattern2()
+        {
+            await TestAsync(
+@"class C
+{
+    System.Action a;
+    void Foo()
+    {
+        var v = a;
+        int x;
+        [||]if (v != null)
+        {
+            v();
+        }
+    }
+}",
+@"class C
+{
+    System.Action a;
+    void Foo()
+    {
+        var v = a;
+        int x;
+        v?.Invoke();
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInvokeDelegateWithConditionalAccess)]
+        public async Task TestMissingOnFunc()
+        {
+            await TestMissingAsync(
+@"class C
+{
+    System.Func<int> a;
+    int Foo()
+    {
+        var v = a;
+        [||]if (v != null)
+        {
+            return v();
+        }
+    }
+}");
         }
     }
 }

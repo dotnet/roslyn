@@ -472,7 +472,7 @@ Diagnostic(ErrorCode.ERR_AmbigCall, "M1").WithArguments("P.M1(System.Threading.T
         }
 
         [Fact]
-        public void BetterDelegateType()
+        public void BetterDelegateType_01()
         {
             string source1 = @"
 using System;
@@ -518,6 +518,61 @@ Diagnostic(ErrorCode.ERR_AmbigCall, "M1").WithArguments("P.M1(System.Func<int>, 
 //     M2(null,0);
 Diagnostic(ErrorCode.ERR_AmbigCall, "M2").WithArguments("P.M2(System.Func<int>, uint)", "P.M2(System.Action, int)")
                 );
+        }
+
+        [Fact, WorkItem(6560, "https://github.com/dotnet/roslyn/issues/6560")]
+        public void BetterDelegateType_02()
+        {
+            string source1 = @"
+using System;
+
+class C
+{
+    public static void Main()
+    {
+        Run1(() => MethodReturnsVoid());
+        Run1(MethodReturnsVoid);
+        Run2(() => MethodReturnsVoid());
+        Run2(MethodReturnsVoid);
+    }
+
+    public static object Run1(Action action)
+    {
+        Console.WriteLine(""Run1(Action action)"");
+        action();
+        return null;
+    }
+
+    public static object Run1(Func<object> action, bool optional = false)
+    {
+        Console.WriteLine(""Run1(Func<object> action, bool optional = false)"");
+        return action();
+    }
+
+    public static object Run2(Func<object> action, bool optional = false)
+    {
+        Console.WriteLine(""Run2(Func<object> action, bool optional = false)"");
+        return action();
+    }
+
+    public static object Run2(Action action)
+    {
+        Console.WriteLine(""Run2(Action action)"");
+        action();
+        return null;
+    }
+
+    private static void MethodReturnsVoid()
+    {
+    }
+}
+";
+
+            CompileAndVerify(source1, expectedOutput:
+@"Run1(Action action)
+Run1(Action action)
+Run2(Action action)
+Run2(Action action)");
         }
 
         [Fact]
@@ -650,7 +705,7 @@ class p
         }
 
 
-        [Fact, WorkItem(1157097, "DevDiv"), WorkItem(2298, "https://github.com/dotnet/roslyn/issues/2298")]
+        [Fact, WorkItem(1157097, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1157097"), WorkItem(2298, "https://github.com/dotnet/roslyn/issues/2298")]
         public void TestOverloadResolutionTiebreaker()
         {
             // Testing that we get the same ambiguity error as the one reported by the native compiler. 
@@ -1030,7 +1085,7 @@ class C
 ");
         }
 
-        [WorkItem(540153, "DevDiv")]
+        [WorkItem(540153, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540153")]
         [Fact]
         public void TestOverridingMismatchedParamsErrorCase_Source()
         {
@@ -1133,8 +1188,8 @@ class Test2
                 Diagnostic(ErrorCode.ERR_BadArgCount, "Method2").WithArguments("Method2", "5"));
         }
 
-        [WorkItem(540153, "DevDiv")]
-        [WorkItem(540406, "DevDiv")]
+        [WorkItem(540153, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540153")]
+        [WorkItem(540406, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540406")]
         [ClrOnlyFact(ClrOnlyReason.Ilasm)]
         public void TestOverridingMismatchedParamsErrorCase_Metadata()
         {
@@ -1429,7 +1484,7 @@ long
 ");
         }
 
-        [Fact, WorkItem(546694, "DevDiv")]
+        [Fact, WorkItem(546694, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546694")]
         public void Bug16581_ConstructorOverloadResolution_BaseClass()
         {
             var source = @"
@@ -1467,7 +1522,7 @@ class B: A
 PASS");
         }
 
-        [Fact, WorkItem(529847, "DevDiv")]
+        [Fact, WorkItem(529847, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529847")]
         public void Bug14585_ConstructorOverloadResolution_BaseClass()
         {
             var source = @"
@@ -1642,7 +1697,7 @@ class Test
             CompileAndVerify(source, expectedOutput: @"20");
         }
 
-        [WorkItem(546733, "DevDiv")]
+        [WorkItem(546733, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546733")]
         [Fact]
         public void RefOmittedComCall_Iterator()
         {
@@ -1952,7 +2007,7 @@ class Test
             CreateCompilationWithMscorlib(source).VerifyDiagnostics();
         }
 
-        [Fact, WorkItem(530747, "DevDiv")]
+        [Fact, WorkItem(530747, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530747")]
         public void RefOmittedComCall_Unsafe()
         {
             // Native compiler generates invalid IL for ref omitted argument of pointer type, while Roslyn generates correct IL.
@@ -2219,7 +2274,7 @@ public class MainClass
                 Diagnostic(ErrorCode.ERR_BadArgRef, "x").WithArguments("1", "ref").WithLocation(7, 26));
         }
 
-        [Fact, WorkItem(546122, "DevDiv")]
+        [Fact, WorkItem(546122, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546122")]
         public void TestComImportOverloadResolutionCantOmitRef()
         {
             string source = @"
@@ -2254,7 +2309,7 @@ class D : C
                 Diagnostic(ErrorCode.ERR_BadArgRef, "x").WithArguments("1", "ref"));
         }
 
-        [Fact, WorkItem(546122, "DevDiv")]
+        [Fact, WorkItem(546122, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546122")]
         public void RefOmittedComCall_BaseTypeComImport()
         {
             string source = @"
@@ -2361,7 +2416,7 @@ class J : I
                 Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "M").WithArguments("I", "M"));
         }
 
-        [Fact, WorkItem(546122, "DevDiv")]
+        [Fact, WorkItem(546122, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546122")]
         public void RefOmittedComCall_DerivedComImport()
         {
             string source = @"
@@ -2412,7 +2467,7 @@ class C: B
                 Diagnostic(ErrorCode.ERR_BadArgRef, "x").WithArguments("1", "ref"));
         }
 
-        [Fact, WorkItem(546122, "DevDiv")]
+        [Fact, WorkItem(546122, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546122")]
         public void RefOmittedComCall_TypeParameterConstrainedToComImportType()
         {
             string source = @"
@@ -2442,7 +2497,7 @@ class H<T> where T: K, new()
                 Diagnostic(ErrorCode.ERR_BadArgRef, "x").WithArguments("1", "ref"));
         }
 
-        [Fact, WorkItem(546122, "DevDiv")]
+        [Fact, WorkItem(546122, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546122")]
         public void RefOmittedComCall_StaticMethod1()
         {
             string source = @"
@@ -2474,7 +2529,7 @@ class Y
             CreateCompilationWithMscorlib(source).VerifyDiagnostics();
         }
 
-        [Fact, WorkItem(546122, "DevDiv")]
+        [Fact, WorkItem(546122, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546122")]
         public void RefOmittedComCall_StaticMethod2()
         {
             string source = @"
@@ -2513,7 +2568,7 @@ class Y
                 Diagnostic(ErrorCode.WRN_UnreferencedVarAssg, "E").WithArguments("E").WithLocation(22, 11));
         }
 
-        [Fact, WorkItem(546122, "DevDiv"), WorkItem(842476, "DevDiv")]
+        [Fact, WorkItem(546122, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546122"), WorkItem(842476, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/842476")]
         public void RefOmittedComCall_ExtensionMethod()
         {
             string source = @"
@@ -3073,7 +3128,7 @@ class Test
                 Diagnostic(ErrorCode.ERR_BadArgType, "l").WithArguments("1", "ref long", "ref char"));
         }
 
-        [Fact, WorkItem(546176, "DevDiv")]
+        [Fact, WorkItem(546176, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546176")]
         public void RefOmittedComCall_OverloadResolution_SingleArgument_IndexedProperties()
         {
             var source1 =
@@ -3832,7 +3887,7 @@ class Test
             CompileAndVerify(compilation, expectedOutput: expectedOutput);
         }
 
-        [Fact, WorkItem(546176, "DevDiv")]
+        [Fact, WorkItem(546176, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546176")]
         public void RefOmittedComCall_OverloadResolution_SingleArgument_IndexedProperties_ErrorCases()
         {
             var source1 =
@@ -5676,8 +5731,8 @@ public class AggTest {
                 Diagnostic(ErrorCode.ERR_CantInferMethTypeArgs, "M3").WithArguments("AggTest.B1.M3<S, T>(G1<G2<S, T>>)"));
         }
 
-        [WorkItem(528425, "DevDiv")]
-        [WorkItem(528425, "DevDiv")]
+        [WorkItem(528425, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/528425")]
+        [WorkItem(528425, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/528425")]
         [Fact(Skip = "528425")]
         public void ExactInaccessibleMatch()
         {
@@ -5708,7 +5763,7 @@ public class D
                 Diagnostic(ErrorCode.ERR_BadAccess, "d.M"));
         }
 
-        [WorkItem(545382, "DevDiv")]
+        [WorkItem(545382, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545382")]
         [Fact]
         public void Whidbey133503a()
         {
@@ -5770,7 +5825,7 @@ class baz
                 );
         }
 
-        [WorkItem(545382, "DevDiv")]
+        [WorkItem(545382, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545382")]
         [Fact]
         public void Whidbey133503b()
         {
@@ -5844,7 +5899,7 @@ public class Q
                 Diagnostic(ErrorCode.ERR_AmbigCall, "F").WithArguments("Ambig.F(P1)", "Ambig.F(P2)"));
         }
 
-        [WorkItem(545467, "DevDiv")]
+        [WorkItem(545467, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545467")]
         [Fact]
         public void ClassPlusLambda1()
         {
@@ -5971,7 +6026,7 @@ class MainClass
             comp.VerifyDiagnostics();
         }
 
-        [WorkItem(545467, "DevDiv")]
+        [WorkItem(545467, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545467")]
         [Fact]
         public void ClassPlusLambda2()
         {
@@ -6005,7 +6060,7 @@ class MainClass
                 Diagnostic(ErrorCode.ERR_BadBinaryOps, "r + ((MainClass x) => x + (MainClass)((MainClass y) => (y + null)))").WithArguments("+", "MainClass", "lambda expression"));
         }
 
-        [WorkItem(545467, "DevDiv")]
+        [WorkItem(545467, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545467")]
         [Fact]
         public void ClassPlusLambda3()
         {
@@ -6052,7 +6107,7 @@ class MainClass
                 Diagnostic(ErrorCode.ERR_BadBinaryOps, "x + (y => y)").WithArguments("+", "MainClass", "lambda expression"));
         }
 
-        [WorkItem(545467, "DevDiv")]
+        [WorkItem(545467, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545467")]
         [Fact]
         public void ClassPlusLambda4()
         {
@@ -6086,8 +6141,8 @@ class MainClass
                 Diagnostic(ErrorCode.ERR_BadBinaryOps, "r + ((MainClass x) => x + (MainClass)((MainClass y) => (y + null)))").WithArguments("+", "MainClass", "lambda expression"));
         }
 
-        [WorkItem(546875, "DevDiv")]
-        [WorkItem(530930, "DevDiv")]
+        [WorkItem(546875, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546875")]
+        [WorkItem(530930, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530930")]
         [Fact]
         public void BigVisitor()
         {
@@ -6111,7 +6166,7 @@ public class Test
             Assert.InRange(elapsed.TotalSeconds, 0, 10.0); // Was originally over 30 minutes, so we have some wiggle room here.
         }
 
-        [WorkItem(546730, "DevDiv"), WorkItem(546739, "DevDiv")]
+        [WorkItem(546730, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546730"), WorkItem(546739, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546739")]
         [Fact]
         public void TestNamedParamsParam()
         {
@@ -6139,7 +6194,7 @@ class C
 }", expectedOutput: "2").VerifyDiagnostics();
         }
 
-        [WorkItem(531173, "DevDiv")]
+        [WorkItem(531173, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/531173")]
         [Fact]
         public void InvokeMethodOverridingNothing()
         {
@@ -6163,8 +6218,8 @@ public class C
                 Diagnostic(ErrorCode.ERR_OverrideNotExpected, "Override").WithArguments("C.Override<T>(T)"));
         }
 
-        [WorkItem(547186, "DevDiv")]
-        [Fact, WorkItem(531613, "DevDiv")]
+        [WorkItem(547186, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/547186")]
+        [Fact, WorkItem(531613, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/531613")]
         public void IndexerWithoutAccessors()
         {
             var source = @"
@@ -6254,7 +6309,7 @@ public class C
             TestOverloadResolutionWithDiff(source);
         }
 
-        [Fact, WorkItem(624410, "DevDiv")]
+        [Fact, WorkItem(624410, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/624410")]
         public void DynamicTypeInferenceAndPointer()
         {
             string source = @"
@@ -6279,7 +6334,7 @@ class D<T>
             CreateCompilationWithMscorlibAndSystemCore(source, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics();
         }
 
-        [Fact, WorkItem(598032, "DevDiv"), WorkItem(1157097, "DevDiv"), WorkItem(2298, "https://github.com/dotnet/roslyn/issues/2298")]
+        [Fact, WorkItem(598032, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/598032"), WorkItem(1157097, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1157097"), WorkItem(2298, "https://github.com/dotnet/roslyn/issues/2298")]
         public void GenericVsOptionalParameter()
         {
             string source = @"
@@ -6300,7 +6355,7 @@ class C
             CompileAndVerify(compilation, expectedOutput: "0");
         }
 
-        [WorkItem(598029, "DevDiv")]
+        [WorkItem(598029, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/598029")]
         [Fact]
         public void TypeParameterInterfaceVersusNonInterface()
         {
@@ -6325,7 +6380,7 @@ class C : IA
             TestOverloadResolutionWithDiff(source);
         }
 
-        [WorkItem(649807, "DevDiv")]
+        [WorkItem(649807, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/649807")]
         [Fact]
         public void OverloadResolution649807()
         {
@@ -6362,7 +6417,7 @@ public class Test
                 );
         }
 
-        [WorkItem(662641, "DevDiv")]
+        [WorkItem(662641, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/662641")]
         [Fact]
         public void GenericMethodConversionToDelegateWithDynamic()
         {
@@ -6397,7 +6452,7 @@ public struct start
                 );
         }
 
-        [WorkItem(690966, "DevDiv")]
+        [WorkItem(690966, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/690966")]
         [Fact]
         public void OptionalParameterInDelegateConversion()
         {
@@ -6429,7 +6484,7 @@ class C
                 model.GetSymbolInfo(callSyntax).Symbol.ToTestDisplayString());
         }
 
-        [WorkItem(718294, "DevDiv")]
+        [WorkItem(718294, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/718294")]
         [Fact]
         public void MethodGroupConversion_BetterCandidateHasOptionalParameter()
         {
@@ -6468,7 +6523,7 @@ static class Extensions
                 Diagnostic(ErrorCode.WRN_DeprecatedSymbolStr, "v.Add").WithArguments("Extensions.Add(IViewable2)", "A"));
         }
 
-        [WorkItem(718294, "DevDiv")]
+        [WorkItem(718294, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/718294")]
         [Fact]
         public void MethodGroupConversion_BetterCandidateHasParameterArray()
         {
@@ -6507,7 +6562,7 @@ static class Extensions
                 Diagnostic(ErrorCode.WRN_DeprecatedSymbolStr, "v.Add").WithArguments("Extensions.Add(IViewable2)", "A"));
         }
 
-        [WorkItem(709114, "DevDiv")]
+        [WorkItem(709114, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/709114")]
         [Fact]
         public void RenameTypeParameterInOverride()
         {
@@ -6540,7 +6595,7 @@ public class Derived : Base
         }
 
         [Fact]
-        [WorkItem(675327, "DevDiv")]
+        [WorkItem(675327, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/675327")]
         public void OverloadInheritanceAsync()
         {
             string source = @"
@@ -6578,7 +6633,7 @@ class TestCase : Test
         }
 
         [Fact]
-        [WorkItem(675327, "DevDiv")]
+        [WorkItem(675327, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/675327")]
         public void OverloadInheritance001()
         {
             string source = @"
@@ -6606,7 +6661,7 @@ class TestCase : Test
             CreateCompilationWithMscorlib45(source).VerifyDiagnostics();
         }
 
-        [Fact, WorkItem(718294, "DevDiv")]
+        [Fact, WorkItem(718294, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/718294")]
         public void ResolveExtensionMethodGroupOverloadWithOptional()
         {
             string source = @"
@@ -6643,7 +6698,7 @@ static class Extensions
             CreateCompilationWithMscorlib45(source).VerifyDiagnostics();
         }
 
-        [Fact, WorkItem(667132, "DevDiv")]
+        [Fact, WorkItem(667132, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/667132")]
         public void ExtensionMethodOnComInterfaceMissingRefToken()
         {
             string source = @"using System;
@@ -6674,7 +6729,7 @@ static class Program
         }
 
         [Fact]
-        [WorkItem(737971, "DevDiv")]
+        [WorkItem(737971, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/737971")]
         public void Repro737971a()
         {
             var source = @"
@@ -6715,7 +6770,7 @@ public class Test
         }
 
         [Fact]
-        [WorkItem(737971, "DevDiv")]
+        [WorkItem(737971, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/737971")]
         public void Repro737971b()
         {
             var source = @"
@@ -6756,7 +6811,7 @@ public class Test
         }
 
         [Fact]
-        [WorkItem(754406, "DevDiv")]
+        [WorkItem(754406, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/754406")]
         public void TestBug754406()
         {
             string source =
@@ -6785,7 +6840,7 @@ class Program
         }
 
         [Fact]
-        [WorkItem(528811, "DevDiv")]
+        [WorkItem(528811, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/528811")]
         public void TestBug528811()
         {
             string source =
@@ -6872,7 +6927,7 @@ class Program
 
 
         [Fact]
-        [WorkItem(655409, "DevDiv")]
+        [WorkItem(655409, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/655409")]
         public void TestBug655409()
         {
             string source =
@@ -6903,7 +6958,7 @@ class C
                 );
         }
 
-        [Fact, WorkItem(30)]
+        [Fact, WorkItem(30, "https://roslyn.codeplex.com/workitem/30")]
         public void BugCodePlex_30_01()
         {
             string source1 = @"
@@ -6924,7 +6979,7 @@ class C
 2");
         }
 
-        [Fact, WorkItem(30)]
+        [Fact, WorkItem(30, "https://roslyn.codeplex.com/workitem/30")]
         public void BugCodePlex_30_02()
         {
             string source1 = @"
@@ -6950,7 +7005,7 @@ class C
 1");
         }
 
-        [Fact, WorkItem(30)]
+        [Fact, WorkItem(30, "https://roslyn.codeplex.com/workitem/30")]
         public void BugCodePlex_30_03()
         {
             string source1 = @"
@@ -7068,7 +7123,7 @@ class C
         }
 
         [Fact]
-        [WorkItem(1079899, "DevDiv")]
+        [WorkItem(1079899, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1079899")]
         [WorkItem(364, "CodePlex")]
         public void TestBug1079899()
         {
@@ -7119,7 +7174,7 @@ namespace C
             Assert.Equal("(30,19): error CS0121: The call is ambiguous between the following methods or properties: 'A.B.X.Test(int)' and 'A.C.X.Test(int)'", DiagnosticFormatter.Instance.Format(comp.GetDiagnostics()[0], EnsureEnglishUICulture.PreferredOrNull));
         }
 
-        [Fact, WorkItem(1080896, "Devdiv"), WorkItem(367, "Devdiv")]
+        [Fact, WorkItem(1080896, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1080896"), WorkItem(367, "Devdiv")]
         public void Bug1080896_0()
         {
             string source1 = @"
@@ -7157,7 +7212,7 @@ namespace ConsoleApplication2
             CompileAndVerify(compilation, expectedOutput: @"Create(Func<T, bool> filter)");
         }
 
-        [Fact, WorkItem(1080896, "Devdiv"), WorkItem(367, "Devdiv")]
+        [Fact, WorkItem(1080896, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1080896"), WorkItem(367, "Devdiv")]
         public void Bug1080896_1()
         {
             string source1 = @"
@@ -7199,7 +7254,7 @@ namespace ConsoleApplication2
                 );
         }
 
-        [Fact, WorkItem(1080896, "Devdiv"), WorkItem(367, "Devdiv")]
+        [Fact, WorkItem(1080896, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1080896"), WorkItem(367, "Devdiv")]
         public void Bug1080896_2()
         {
             string source1 = @"
@@ -7237,7 +7292,7 @@ namespace ConsoleApplication2
             CompileAndVerify(compilation, expectedOutput: @"Create(Func<T, V> propertyPrev, Func<T, bool> filter = null)");
         }
 
-        [Fact, WorkItem(1080896, "Devdiv"), WorkItem(367, "Devdiv")]
+        [Fact, WorkItem(1080896, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1080896"), WorkItem(367, "Devdiv")]
         public void Bug1080896_3()
         {
             string source1 = @"
@@ -7279,7 +7334,7 @@ namespace ConsoleApplication2
                 );
         }
 
-        [Fact, WorkItem(1080896, "Devdiv"), WorkItem(367, "Devdiv")]
+        [Fact, WorkItem(1080896, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1080896"), WorkItem(367, "Devdiv")]
         public void Bug1080896_4()
         {
             string source1 = @"
@@ -7321,7 +7376,7 @@ namespace ConsoleApplication2
                 );
         }
 
-        [Fact, WorkItem(1080896, "Devdiv"), WorkItem(367, "Devdiv")]
+        [Fact, WorkItem(1080896, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1080896"), WorkItem(367, "Devdiv")]
         public void Bug1080896_5()
         {
             string source1 = @"
@@ -7363,7 +7418,7 @@ namespace ConsoleApplication2
                 );
         }
 
-        [Fact, WorkItem(1080896, "Devdiv"), WorkItem(367, "Devdiv")]
+        [Fact, WorkItem(1080896, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1080896"), WorkItem(367, "Devdiv")]
         public void Bug1080896_6()
         {
             string source1 = @"
@@ -7403,7 +7458,7 @@ namespace ConsoleApplication2
                 );
         }
 
-        [Fact, WorkItem(1081302, "Devdiv"), WorkItem(371, "Devdiv")]
+        [Fact, WorkItem(1081302, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1081302"), WorkItem(371, "Devdiv")]
         public void Bug1081302_0()
         {
             string source1 = @"
@@ -7442,7 +7497,7 @@ namespace ConsoleApplication2
 IfNotNull<T, U>(this T? source, Func<T, U> selector)");
         }
 
-        [Fact, WorkItem(1081302, "Devdiv"), WorkItem(371, "Devdiv")]
+        [Fact, WorkItem(1081302, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1081302"), WorkItem(371, "Devdiv")]
         public void Bug1081302_1()
         {
             string source1 = @"
@@ -7486,7 +7541,7 @@ namespace ConsoleApplication2
                 );
         }
 
-        [Fact, WorkItem(1081302, "Devdiv"), WorkItem(371, "Devdiv")]
+        [Fact, WorkItem(1081302, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1081302"), WorkItem(371, "Devdiv")]
         public void Bug1081302_2()
         {
             string source1 = @"
@@ -7565,7 +7620,7 @@ class CTest
         }
 
         [Fact]
-        [WorkItem(1034429, "DevDiv")]
+        [WorkItem(1034429, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1034429")]
         public void TestBug1034429()
         {
             string source =
@@ -7673,16 +7728,16 @@ class Program
             CompileAndVerify(source, expectedOutput: @"pass
 pass").VerifyDiagnostics();
             CreateCompilationWithMscorlib(source, options: TestOptions.ReleaseDll, parseOptions: TestOptions.Regular.WithStrictFeature()).VerifyDiagnostics(
-                // (12,36): error CS1657: Cannot pass 'M' as a ref or out argument because it is a 'method group'
-                //         Action a1 = new Action(ref M);
-                Diagnostic(ErrorCode.ERR_RefReadonlyLocalCause, "M").WithArguments("M", "method group").WithLocation(12, 36),
-                // (14,36): error CS0149: Method name expected
-                //         Action a2 = new Action(out a1);
-                Diagnostic(ErrorCode.ERR_MethodNameExpected, "a1").WithLocation(14, 36)
+    // (12,36): error CS1657: Cannot use 'M' as a ref or out value because it is a 'method group'
+    //         Action a1 = new Action(ref M);
+    Diagnostic(ErrorCode.ERR_RefReadonlyLocalCause, "M").WithArguments("M", "method group").WithLocation(12, 36),
+    // (14,36): error CS0149: Method name expected
+    //         Action a2 = new Action(out a1);
+    Diagnostic(ErrorCode.ERR_MethodNameExpected, "a1").WithLocation(14, 36)
                 );
         }
 
-        [Fact, WorkItem(1157097, "DevDiv"), WorkItem(2298, "https://github.com/dotnet/roslyn/issues/2298")]
+        [Fact, WorkItem(1157097, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1157097"), WorkItem(2298, "https://github.com/dotnet/roslyn/issues/2298")]
         public void ParamsAndOptionals()
         {
             string source1 = @"
@@ -7766,7 +7821,7 @@ int Properties2(this IFirstInterface source)
 void Test2(params int[] x)");
         }
 
-        [Fact, WorkItem(1157097, "DevDiv"), WorkItem(2298, "https://github.com/dotnet/roslyn/issues/2298")]
+        [Fact, WorkItem(1157097, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1157097"), WorkItem(2298, "https://github.com/dotnet/roslyn/issues/2298")]
         public void TieBreakOnNumberOfDeclaredParameters_01()
         {
             string source1 = @"
@@ -7817,7 +7872,7 @@ void Test3(int x, int y, params int[] z)
 void Test3(int x, int y, params int[] z)");
         }
 
-        [Fact, WorkItem(1157097, "DevDiv"), WorkItem(2298, "https://github.com/dotnet/roslyn/issues/2298")]
+        [Fact, WorkItem(1157097, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1157097"), WorkItem(2298, "https://github.com/dotnet/roslyn/issues/2298")]
         public void TieBreakOnNumberOfDeclaredParameters_02()
         {
             string source1 = @"
@@ -7860,7 +7915,7 @@ namespace VS2015CompilerBug
 void Test3(int x, int y = 0, int z = 0)");
         }
 
-        [Fact, WorkItem(1157097, "DevDiv"), WorkItem(2298, "https://github.com/dotnet/roslyn/issues/2298")]
+        [Fact, WorkItem(1157097, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1157097"), WorkItem(2298, "https://github.com/dotnet/roslyn/issues/2298")]
         public void TieBreakOnNumberOfDeclaredParameters_03()
         {
             string source1 = @"
@@ -7988,7 +8043,7 @@ class Test
             CompileAndVerify(compilation, expectedOutput: @"2");
         }
 
-        [Fact, WorkItem(1099752, "DevDiv"), WorkItem(2291, "https://github.com/dotnet/roslyn/issues/2291")]
+        [Fact, WorkItem(1099752, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1099752"), WorkItem(2291, "https://github.com/dotnet/roslyn/issues/2291")]
         public void BetterErrorMessage_01()
         {
             string source1 = @"
@@ -8192,7 +8247,7 @@ class C
             compilation.VerifyDiagnostics();
         }
 
-        [Fact, WorkItem(1171723, "DevDiv"), WorkItem(2985, "https://github.com/dotnet/roslyn/issues/2985")]
+        [Fact, WorkItem(1171723, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1171723"), WorkItem(2985, "https://github.com/dotnet/roslyn/issues/2985")]
         public void BetterErrorMessage_02()
         {
             string source1 = @"
@@ -8298,7 +8353,7 @@ public static class Class
         System.Console.WriteLine(""RemoveDetail"");
     }
 }";
-            var compilation = CreateCompilationWithMscorlib45(source, options:TestOptions.ReleaseExe);
+            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseExe);
             CompileAndVerify(compilation, expectedOutput:
 @"RemoveDetail
 RemoveDetail
@@ -8346,6 +8401,5 @@ class D
             Assert.Equal("void D.M(System.Int32 i)", candidates[0].ToTestDisplayString());
             Assert.Equal("void D.M(System.Double d)", candidates[1].ToTestDisplayString());
         }
-
     }
 }

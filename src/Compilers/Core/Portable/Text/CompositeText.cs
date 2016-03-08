@@ -212,7 +212,7 @@ namespace Microsoft.CodeAnalysis.Text
 
         // Segments must be less than (or equal) to this size to be combined with other segments.
         // This is some arbitrary number that is a fraction of max int.
-        private const int MAXIMUM_SEGMENT_SIZE_FOR_COMBINING = int.MaxValue / 16; 
+        private const int MAXIMUM_SEGMENT_SIZE_FOR_COMBINING = int.MaxValue / 16;
 
         /// <summary>
         /// Determines the segment size to use for call to CombineSegments, that will result in the segment count
@@ -269,7 +269,7 @@ namespace Microsoft.CodeAnalysis.Text
         }
 
         /// <summary>
-        /// Combines continguous segments with lengths that are each less than or equal to the specified segment size.
+        /// Combines contiguous segments with lengths that are each less than or equal to the specified segment size.
         /// </summary>
         private static void CombineSegments(ArrayBuilder<SourceText> segments, int segmentSize)
         {

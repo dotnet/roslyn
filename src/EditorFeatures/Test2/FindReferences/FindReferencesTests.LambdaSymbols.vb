@@ -4,7 +4,7 @@ Imports System.Threading.Tasks
 
 Namespace Microsoft.CodeAnalysis.Editor.UnitTests.FindReferences
     Partial Public Class FindReferencesTests
-        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <Fact, Trait(Traits.Feature, Traits.Features.FindReferences)>
         Public Async Function TestLambdaParameterDefinition() As Task
             Dim input =
 <Workspace>
@@ -26,7 +26,7 @@ class Program
             Await TestAsync(input)
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <Fact, Trait(Traits.Feature, Traits.Features.FindReferences)>
         Public Async Function TestLambdaParameterReferencesInDifferentLambdas1() As Task
             Dim input =
 <Workspace>
@@ -55,7 +55,7 @@ class Program
             Await TestAsync(input)
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <Fact, Trait(Traits.Feature, Traits.Features.FindReferences)>
         Public Async Function TestLambdaParameterReferencesInDifferentLambdas2() As Task
             Dim input =
 <Workspace>
@@ -84,7 +84,7 @@ class Program
             Await TestAsync(input)
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <Fact, Trait(Traits.Feature, Traits.Features.FindReferences)>
         Public Async Function TestLambdaParameterReferencesInDifferentLambdas3() As Task
             Dim input =
 <Workspace>
@@ -113,7 +113,7 @@ class Program
             Await TestAsync(input)
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <Fact, Trait(Traits.Feature, Traits.Features.FindReferences)>
         Public Async Function TestLambdaParameterReferencesInDifferentLambdas4() As Task
             Dim input =
 <Workspace>
@@ -142,7 +142,7 @@ class Program
             Await TestAsync(input)
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <Fact, Trait(Traits.Feature, Traits.Features.FindReferences)>
         Public Async Function TestLambdaParameterReferencesInDifferentLambdas5() As Task
             Dim input =
 <Workspace>

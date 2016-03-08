@@ -13,7 +13,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Outlining
     {
         internal override AbstractSyntaxOutliner CreateOutliner() => new DocumentationCommentOutliner();
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Outlining)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Outlining)]
         public async Task TestDocumentationCommentWithoutSummaryTag1()
         {
             const string code = @"
@@ -29,7 +29,7 @@ class Class3
                 Region("span", "/// XML doc comment ...", autoCollapse: true));
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Outlining)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Outlining)]
         public async Task TestDocumentationCommentWithoutSummaryTag2()
         {
             const string code = @"
@@ -46,7 +46,7 @@ class Class3
                 Region("span", "/** Block comment ...", autoCollapse: true));
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Outlining)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Outlining)]
         public async Task TestDocumentationCommentWithoutSummaryTag3()
         {
             const string code = @"
@@ -59,7 +59,7 @@ class Class3
                 Region("span", "/// <param name=\"tree\"></param> ...", autoCollapse: true));
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Outlining)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Outlining)]
         public async Task TestDocumentationComment()
         {
             const string code = @"
@@ -74,7 +74,7 @@ class Class3
                 Region("span", "/// <summary> Hello C#!", autoCollapse: true));
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Outlining)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Outlining)]
         public async Task TestDocumentationCommentWithLongBannerText()
         {
             var code = @"
@@ -89,7 +89,7 @@ class Class3
                 Region("span", "/// <summary> " + new string('x', 106) + " ...", autoCollapse: true));
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Outlining)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Outlining)]
         public async Task TestMultilineDocumentationComment()
         {
             const string code = @"
@@ -104,7 +104,7 @@ class Class3
                 Region("span", "/** <summary> Hello C#!", autoCollapse: true));
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Outlining)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Outlining)]
         public async Task TestIndentedDocumentationComment()
         {
             const string code = @"
@@ -119,7 +119,7 @@ class Class3
                 Region("span", "/// <summary> Hello C#!", autoCollapse: true));
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Outlining)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Outlining)]
         public async Task TestIndentedMultilineDocumentationComment()
         {
             const string code = @"
@@ -134,7 +134,7 @@ class Class3
                 Region("span", "/** <summary> Hello C#!", autoCollapse: true));
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Outlining)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Outlining)]
         public async Task TestDocumentationCommentOnASingleLine()
         {
             const string code = @"
@@ -147,7 +147,7 @@ class Class3
                 Region("span", "/// <summary> Hello C#!", autoCollapse: true));
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Outlining)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Outlining)]
         public async Task TestMultilineDocumentationCommentOnASingleLine()
         {
             const string code = @"
@@ -160,7 +160,7 @@ class Class3
                 Region("span", "/** <summary> Hello C#!", autoCollapse: true));
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Outlining)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Outlining)]
         public async Task TestIndentedDocumentationCommentOnASingleLine()
         {
             const string code = @"
@@ -173,7 +173,7 @@ class Class3
                 Region("span", "/// <summary> Hello C#!", autoCollapse: true));
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Outlining)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Outlining)]
         public async Task TestIndentedMultilineDocumentationCommentOnASingleLine()
         {
             const string code = @"
@@ -186,7 +186,7 @@ class Class3
                 Region("span", "/** <summary> Hello C#!", autoCollapse: true));
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Outlining)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Outlining)]
         public async Task TestMultilineSummaryInDocumentationComment1()
         {
             const string code = @"
@@ -202,7 +202,7 @@ class Class3
                 Region("span", "/// <summary> Hello C#!", autoCollapse: true));
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Outlining)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Outlining)]
         public async Task TestMultilineSummaryInDocumentationComment2()
         {
             const string code = @"
@@ -219,7 +219,7 @@ class Class3
                 Region("span", "/// <summary> Hello C#!", autoCollapse: true));
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Outlining)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Outlining)]
         [WorkItem(2129, "https://github.com/dotnet/roslyn/issues/2129")]
         public async Task CrefInSummary()
         {

@@ -10,7 +10,7 @@ using System.Diagnostics;
 using Xunit;
 using Type = Microsoft.VisualStudio.Debugger.Metadata.Type;
 
-namespace Microsoft.CodeAnalysis.CSharp.UnitTests
+namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator.UnitTests
 {
     public class FunctionPointerTests : CSharpResultProviderTestBase
     {

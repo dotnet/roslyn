@@ -22,7 +22,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Completion.CompletionPr
             return new ObjectInitializerCompletionProvider();
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task NothingToInitialize()
         {
             var markup = @"
@@ -40,7 +40,7 @@ class d
             await VerifyExclusiveAsync(markup, true);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task OneItem1()
         {
             var markup = @"
@@ -59,7 +59,7 @@ class d
             await VerifyExclusiveAsync(markup, true);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task ShowWithEqualsSign()
         {
             var markup = @"
@@ -78,7 +78,7 @@ class d
             await VerifyExclusiveAsync(markup, true);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task OneItem2()
         {
             var markup = @"
@@ -97,7 +97,7 @@ class c
             await VerifyExclusiveAsync(markup, true);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task FieldAndProperty()
         {
             var markup = @"
@@ -120,7 +120,7 @@ class d
             await VerifyExclusiveAsync(markup, true);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task HidePreviouslyTyped()
         {
             var markup = @"
@@ -143,7 +143,7 @@ class d
             await VerifyItemExistsAsync(markup, "otherValue");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task NotInEqualsValue()
         {
             var markup = @"
@@ -164,7 +164,7 @@ class d
             await VerifyNoItemsExistAsync(markup);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task NothingLeftToShow()
         {
             var markup = @"
@@ -186,7 +186,7 @@ class d
             await VerifyExclusiveAsync(markup, true);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task NestedObjectInitializers()
         {
             var markup = @"
@@ -214,7 +214,7 @@ class e
             await VerifyExclusiveAsync(markup, true);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task NotExclusive1()
         {
             var markup = @"using System.Collections.Generic;
@@ -235,7 +235,7 @@ class d
             await VerifyExclusiveAsync(markup, false);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task NotExclusive2()
         {
             var markup = @"using System.Collections;
@@ -256,8 +256,8 @@ class d
             await VerifyExclusiveAsync(markup, false);
         }
 
-        [WorkItem(544242)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [WorkItem(544242, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544242")]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task NotInArgumentList()
         {
             var markup = @"class C
@@ -271,8 +271,8 @@ class d
             await VerifyNoItemsExistAsync(markup);
         }
 
-        [WorkItem(530075)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [WorkItem(530075, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530075")]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task NotInArgumentList2()
         {
             var markup = @"class C
@@ -287,8 +287,8 @@ class d
             await VerifyNoItemsExistAsync(markup);
         }
 
-        [WorkItem(544289)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [WorkItem(544289, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544289")]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task DerivedMembers()
         {
             var markup = @"using System;
@@ -324,8 +324,8 @@ namespace ConsoleApplication1
             await VerifyItemIsAbsentAsync(markup, "BasePrivate");
         }
 
-        [WorkItem(544242)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [WorkItem(544242, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544242")]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task NotInCollectionInitializer()
         {
             var markup = @"using System.Collections.Generic;
@@ -340,7 +340,7 @@ class C
             await VerifyNoItemsExistAsync(markup);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task InitializeDerivedType()
         {
             var markup = @"using System.Collections.Generic;
@@ -362,8 +362,8 @@ class C
             await VerifyItemExistsAsync(markup, "foo");
         }
 
-        [WorkItem(544550)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [WorkItem(544550, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544550")]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task ReadOnlyPropertiesShouldNotBePresent()
         {
             var markup = @"using System.Collections.Generic;
@@ -380,8 +380,8 @@ class C
             await VerifyItemIsAbsentAsync(markup, "Count");
         }
 
-        [WorkItem(544550)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [WorkItem(544550, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544550")]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task IndexersShouldNotBePresent()
         {
             var markup = @"using System.Collections.Generic;
@@ -398,7 +398,7 @@ class C
             await VerifyItemIsAbsentAsync(markup, "this[]");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task ReadOnlyPropertiesThatFollowTheCollectionPatternShouldBePresent()
         {
             var markup = @"using System.Collections.Generic;
@@ -418,8 +418,8 @@ class C
             await VerifyItemExistsAsync(markup, "bar");
         }
 
-        [WorkItem(544607)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [WorkItem(544607, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544607")]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task DoNotIncludeStaticMember()
         {
             var markup = @"
@@ -439,8 +439,8 @@ class Bar
             await VerifyItemIsAbsentAsync(markup, "Gibberish");
         }
 
-        [WpfFact]
-        [WorkItem(545678)]
+        [Fact]
+        [WorkItem(545678, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545678")]
         [Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task EditorBrowsable_PropertyInObjectCreationAlways()
         {
@@ -469,8 +469,8 @@ public class Foo
                 referencedLanguage: LanguageNames.CSharp);
         }
 
-        [WpfFact]
-        [WorkItem(545678)]
+        [Fact]
+        [WorkItem(545678, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545678")]
         [Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task EditorBrowsable_PropertyInObjectCreationNever()
         {
@@ -498,8 +498,8 @@ public class Foo
                 referencedLanguage: LanguageNames.CSharp);
         }
 
-        [WpfFact]
-        [WorkItem(545678)]
+        [Fact]
+        [WorkItem(545678, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545678")]
         [Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task EditorBrowsable_PropertyInObjectCreationAdvanced()
         {
@@ -538,7 +538,7 @@ public class Foo
                 hideAdvancedMembers: false);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task TestCommitCharacter()
         {
             const string markup = @"
@@ -555,7 +555,7 @@ class d
             await VerifyCommonCommitCharactersAsync(markup, textTypedSoFar: "v");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task TestEnter()
         {
             const string markup = @"
@@ -569,14 +569,14 @@ class d
     }
 }";
 
-            using (var workspace = await CSharpWorkspaceFactory.CreateWorkspaceFromFileAsync(markup))
+            using (var workspace = await TestWorkspace.CreateCSharpAsync(markup))
             {
                 var hostDocument = workspace.Documents.Single();
                 var position = hostDocument.CursorPosition.Value;
                 var document = workspace.CurrentSolution.GetDocument(hostDocument.Id);
                 var triggerInfo = CompletionTriggerInfo.CreateTypeCharTriggerInfo('a');
 
-                var completionList = GetCompletionList(document, position, triggerInfo);
+                var completionList = await GetCompletionListAsync(document, position, triggerInfo);
                 var item = completionList.Items.First();
 
                 var completionService = document.Project.LanguageServices.GetService<ICompletionService>();
@@ -586,14 +586,14 @@ class d
             }
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task TestTrigger()
         {
             await TestCommonIsTextualTriggerCharacterAsync();
         }
 
-        [WorkItem(530828)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [WorkItem(530828, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530828")]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task DoNotIncludeIndexedPropertyWithNonOptionalParameter()
         {
             var markup = @"C c01 = new C() {$$ }";
@@ -745,14 +745,14 @@ class Container
 
         private async Task VerifyExclusiveAsync(string markup, bool exclusive)
         {
-            using (var workspace = await CSharpWorkspaceFactory.CreateWorkspaceFromFileAsync(markup))
+            using (var workspace = await TestWorkspace.CreateCSharpAsync(markup))
             {
                 var hostDocument = workspace.Documents.Single();
                 var position = hostDocument.CursorPosition.Value;
                 var document = workspace.CurrentSolution.GetDocument(hostDocument.Id);
                 var triggerInfo = CompletionTriggerInfo.CreateTypeCharTriggerInfo('a');
 
-                var completionList = GetCompletionList(document, position, triggerInfo);
+                var completionList = await GetCompletionListAsync(document, position, triggerInfo);
 
                 if (completionList != null)
                 {

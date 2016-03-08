@@ -809,7 +809,7 @@ class C
                          })
         End Function
 
-        <WorkItem(888785, "devdiv")>
+        <WorkItem(888785, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/888785")>
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
         Public Async Function TestArrayTypeName() As Task
             Dim code =

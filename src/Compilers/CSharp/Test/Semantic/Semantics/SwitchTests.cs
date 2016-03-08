@@ -14,7 +14,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
     {
         #region "Common Error Tests"
 
-        [WorkItem(543285, "DevDiv")]
+        [WorkItem(543285, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543285")]
         [Fact]
         public void NoCS0029ForUsedLocalConstInSwitch()
         {
@@ -42,34 +42,34 @@ class Program
 
 public class Test
 {
-	enum eTypes {
-		kFirst,
-		kSecond,
-		kThird,
-	};
+    enum eTypes {
+        kFirst,
+        kSecond,
+        kThird,
+    };
     public static int Main(string [] args)
     {
-		int ret = 0;
-		ret = DoEnum();
+        int ret = 0;
+        ret = DoEnum();
         return(ret);
     }
-	
-	private static int DoEnum()
-	{
-	    int ret = 0;
+    
+    private static int DoEnum()
+    {
+        int ret = 0;
         eTypes e = eTypes.kSecond;
 
-	    switch (e) {
+        switch (e) {
             case null:
                 break;
-	        default:
-	            ret = 1;
-        	    break;
-	    }
+            default:
+                ret = 1;
+                break;
+        }
 
-	    Console.WriteLine(ret);
-	    return(ret);
-	}
+        Console.WriteLine(ret);
+        return(ret);
+    }
 }";
             CreateCompilationWithMscorlib(text).VerifyDiagnostics(
                 // (23,18): error CS0037: Cannot convert null to 'Test.eTypes' because it is a non-nullable value type
@@ -77,7 +77,7 @@ public class Test
                 Diagnostic(ErrorCode.ERR_ValueCantBeNull, "null").WithArguments("Test.eTypes").WithLocation(23, 18));
         }
 
-        [WorkItem(542773, "DevDiv")]
+        [WorkItem(542773, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542773")]
         [Fact]
         public void CS0119_TypeUsedAsSwitchExpression()
         {
@@ -114,27 +114,28 @@ public class Test
 {
     public static int Main(string [] args)
     {
-		int ret = 1;
-		int value = 23;
+        int ret = 1;
+        int value = 23;
         int test = 1;
 
-		switch (value) {
-		    case test:
-			    ret = 1;
-			    break;
-		    default:
-			    ret = 1;
+        switch (value) {
+            case test:
+                ret = 1;
                 break;
-		}
+            default:
+                ret = 1;
+                break;
+        }
 
         return(ret);
     }
 }";
 
             CreateCompilationWithMscorlib(text).VerifyDiagnostics(
-                // (11,7): error CS0150: A constant value is expected
-                // 		    case test:
-                Diagnostic(ErrorCode.ERR_ConstantExpected, "case test:").WithLocation(11, 7));
+                // (11,13): error CS0150: A constant value is expected
+                //             case test:
+                Diagnostic(ErrorCode.ERR_ConstantExpected, "case test:").WithLocation(11, 13)
+            );
         }
 
         [Fact]
@@ -143,18 +144,18 @@ public class Test
             var text = @"
 public class A
 {
-	public static int Main()
-	{
-		int i = 0;
+    public static int Main()
+    {
+        int i = 0;
 
-		switch (i)
-		{
-			case 1: break;
+        switch (i)
+        {
+            case 1: break;
             case 1: break;   // CS0152
-		}
+        }
 
-		return 1;
-	}
+        return 1;
+    }
 
     public void foo(char c)
     {
@@ -183,18 +184,18 @@ public class A
             var text = @"
 public class A
 {
-	public static int Main()
-	{
-		long i = 0;
+    public static int Main()
+    {
+        long i = 0;
 
-		switch (i)
-		{
-			case 1L: break;
+        switch (i)
+        {
+            case 1L: break;
             case 1: break;   // CS0152
-		}
+        }
 
-		return 1;
-	}
+        return 1;
+    }
 
     public void foo(int i)
     {
@@ -278,27 +279,27 @@ public class Test
 {
     public static int Main(string [] args)
     {
-		switch (5) {
-		case 5: 
-			switch (2) {
-			case 1:
-				goto case 5;
-			}
-			break;
-		}
+        switch (5) {
+        case 5: 
+            switch (2) {
+            case 1:
+                goto case 5;
+            }
+            break;
+        }
 
-		return(0);
+        return(0);
     }
 }";
             // CONSIDER: Cascading diagnostics should be disabled in flow analysis?
 
             CreateCompilationWithMscorlib(text).VerifyDiagnostics(
-                // (10,5): error CS0159: No such label 'case 5:' within the scope of the goto statement
-                // 				goto case 5;
-                Diagnostic(ErrorCode.ERR_LabelNotFound, "goto case 5;").WithArguments("case 5:").WithLocation(10, 5),
-                // (10,5): warning CS0162: Unreachable code detected
-                // 				goto case 5;
-                Diagnostic(ErrorCode.WRN_UnreachableCode, "goto").WithLocation(10, 5));
+                // (10,17): error CS0159: No such label 'case 5:' within the scope of the goto statement
+                //                 goto case 5;
+                Diagnostic(ErrorCode.ERR_LabelNotFound, "goto case 5;").WithArguments("case 5:").WithLocation(10, 17),
+                // (10,17): warning CS0162: Unreachable code detected
+                //                 goto case 5;
+                Diagnostic(ErrorCode.WRN_UnreachableCode, "goto").WithLocation(10, 17));
         }
 
         [Fact]
@@ -309,17 +310,17 @@ public class Test
 {
     public static int Main(string [] args)
     {
-		double test = 1.1;
+        double test = 1.1;
         int ret = 1;
 
-		switch (test) {
-		    case 1:
-			    ret = 1;
-			    break;
-		    default:
-			    ret = 1;
+        switch (test) {
+            case 1:
+                ret = 1;
                 break;
-		}
+            default:
+                ret = 1;
+                break;
+        }
 
         return(ret);
     }
@@ -328,7 +329,7 @@ public class Test
             CreateCompilationWithMscorlib(text).VerifyDiagnostics(
                 // (9,11): error CS0166: A switch expression or case label must be a bool, char, string, integral, enum, or corresponding nullable type
                 // 		switch (test) {
-                Diagnostic(ErrorCode.ERR_SwitchGoverningTypeValueExpected, "test").WithLocation(9, 11));
+                Diagnostic(ErrorCode.ERR_SwitchGoverningTypeValueExpected, "test").WithLocation(9, 17));
         }
 
         [Fact]
@@ -410,32 +411,32 @@ class T
             var text = @"
 class Conv
 {
-	public static implicit operator int (Conv C)
-	{
-		return 1;
-	}
-	
+    public static implicit operator int (Conv C)
+    {
+        return 1;
+    }
+    
     public static implicit operator int? (Conv C)
-	{
-		return null;
-	}
+    {
+        return null;
+    }
 
     public static int Main()
-	{
-		Conv C = new Conv();
-		switch(C)
-		{
-		    default:
+    {
+        Conv C = new Conv();
+        switch(C)
+        {
+            default:
                 System.Console.WriteLine(""Fail"");
                 return 1;
-		}
-	}		
+        }
+    }		
 }";
 
             CreateCompilationWithMscorlib(text).VerifyDiagnostics(
-                // (17,10): error CS0151: A switch expression or case label must be a bool, char, string, integral, enum, or corresponding nullable type
-                // 		switch(C)
-                Diagnostic(ErrorCode.ERR_SwitchGoverningTypeValueExpected, "C").WithLocation(17, 10));
+                // (17,16): error CS0151: A switch expression or case label must be a bool, char, string, integral, enum, or corresponding nullable type
+                //         switch(C)
+                Diagnostic(ErrorCode.ERR_SwitchGoverningTypeValueExpected, "C").WithLocation(17, 16));
         }
 
         [Fact()]
@@ -449,32 +450,32 @@ class Conv
             var text = @"
 class Conv
 {
-	public static implicit operator int (Conv C)
-	{
-		return 1;
-	}
-	
+    public static implicit operator int (Conv C)
+    {
+        return 1;
+    }
+    
     public static implicit operator char? (Conv C)
-	{
-		return null;
-	}
+    {
+        return null;
+    }
 
     public static int Main()
-	{
-		Conv C = new Conv();
-		switch(C)
-		{
-		    default:
+    {
+        Conv C = new Conv();
+        switch(C)
+        {
+            default:
                 System.Console.WriteLine(""Fail"");
                 return 1;
-		}
-	}		
+        }
+    }
 }";
 
             CreateCompilationWithMscorlib(text).VerifyDiagnostics(
-                // (17,10): error CS0151: A switch expression or case label must be a bool, char, string, integral, enum, or corresponding nullable type
-                // 		switch(C)
-                Diagnostic(ErrorCode.ERR_SwitchGoverningTypeValueExpected, "C").WithLocation(17, 10));
+                // (17,16): error CS0151: A switch expression or case label must be a bool, char, string, integral, enum, or corresponding nullable type
+                //         switch(C)
+                Diagnostic(ErrorCode.ERR_SwitchGoverningTypeValueExpected, "C").WithLocation(17, 16));
         }
 
         [Fact()]
@@ -488,32 +489,32 @@ class Conv
             var text = @"
 struct Conv
 {
-	public static implicit operator int (Conv C)
-	{
-		return 1;
-	}
-	
+    public static implicit operator int (Conv C)
+    {
+        return 1;
+    }
+    
     public static implicit operator int? (Conv? C)
-	{
-		return null;
-	}
-	
+    {
+        return null;
+    }
+    
     public static int Main()
-	{
-		Conv C = new Conv();
-		switch(C)
-		{
-		    default:
+    {
+        Conv C = new Conv();
+        switch(C)
+        {
+            default:
                 System.Console.WriteLine(""Fail"");
                 return 0;
-		}
-	}		
+        }
+    }		
 }";
 
             CreateCompilationWithMscorlib(text).VerifyDiagnostics(
                 // (17,10): error CS0151: A switch expression or case label must be a bool, char, string, integral, enum, or corresponding nullable type
                 //         switch(C)
-                Diagnostic(ErrorCode.ERR_SwitchGoverningTypeValueExpected, "C").WithLocation(17, 10));
+                Diagnostic(ErrorCode.ERR_SwitchGoverningTypeValueExpected, "C").WithLocation(17, 16));
         }
 
         [Fact()]
@@ -527,40 +528,41 @@ struct Conv
             var text = @"
 struct Conv
 {
-	public static implicit operator int (Conv C)
-	{
-		return 1;
-	}
-	
+    public static implicit operator int (Conv C)
+    {
+        return 1;
+    }
+    
     public static implicit operator int? (Conv? C)
-	{
-		return null;
-	}
-	
+    {
+        return null;
+    }
+    
     public static int Main()
-	{
-		Conv C = new Conv();
-		switch(C)
-		{
-		    default:
+    {
+        Conv C = new Conv();
+        switch(C)
+        {
+            default:
                 System.Console.WriteLine(""Fail"");
                 break;
-		}
+        }
 
         Conv? D = new Conv();
-		switch(D)
-		{
-		    default:
+        switch(D)
+        {
+            default:
                 System.Console.WriteLine(""Fail"");
                 return 0;
-		}
-	}		
+        }
+    }		
 }";
 
             CreateCompilationWithMscorlib(text).VerifyDiagnostics(
-                // (17,10): error CS0151: A switch expression or case label must be a bool, char, string, integral, enum, or corresponding nullable type
-                // 		switch(C)
-                Diagnostic(ErrorCode.ERR_SwitchGoverningTypeValueExpected, "C").WithLocation(17, 10));
+                // (17,16): error CS0151: A switch expression or case label must be a bool, char, string, integral, enum, or corresponding nullable type
+                //         switch(C)
+                Diagnostic(ErrorCode.ERR_SwitchGoverningTypeValueExpected, "C").WithLocation(17, 16)
+            );
         }
 
         [Fact()]
@@ -595,23 +597,23 @@ struct Conv
     }	
     
     public static int Main()
-	{
-		Conv C = new Conv();
-		switch(C)
-		{
-		    default:
+    {
+        Conv C = new Conv();
+        switch(C)
+        {
+            default:
                 System.Console.WriteLine(""Fail"");
                 break;
-		}
+        }
 
         return 0;
-	}		
+    }		
 }";
 
             CreateCompilationWithMscorlib(text).VerifyDiagnostics(
-                // (27,10): error CS0151: A switch expression or case label must be a bool, char, string, integral, enum, or corresponding nullable type
-                // 		switch(C)
-                Diagnostic(ErrorCode.ERR_SwitchGoverningTypeValueExpected, "C").WithLocation(27, 10));
+                // (27,16): error CS0151: A switch expression or case label must be a bool, char, string, integral, enum, or corresponding nullable type
+                //         switch(C)
+                Diagnostic(ErrorCode.ERR_SwitchGoverningTypeValueExpected, "C").WithLocation(27, 16));
         }
 
         [Fact()]
@@ -646,23 +648,23 @@ struct Conv
     }	
     
     public static int Main()
-	{
-		Conv? C = new Conv();
-		switch(C)
-		{
-		    default:
+    {
+        Conv? C = new Conv();
+        switch(C)
+        {
+            default:
                 System.Console.WriteLine(""Fail"");
                 break;
-		}
+        }
 
         return 0;
-	}		
+    }		
 }";
 
             CreateCompilationWithMscorlib(text).VerifyDiagnostics(
                 // (27,10): error CS0151: A switch expression or case label must be a bool, char, string, integral, enum, or corresponding nullable type
                 // 		switch(C)
-                Diagnostic(ErrorCode.ERR_SwitchGoverningTypeValueExpected, "C").WithLocation(27, 10));
+                Diagnostic(ErrorCode.ERR_SwitchGoverningTypeValueExpected, "C").WithLocation(27, 16));
         }
 
         [Fact()]
@@ -683,32 +685,32 @@ struct Conv
             var text = @"
 struct Conv
 {
-	public static implicit operator int (Conv C)
-	{
-		return 1;
-	}
-	
+    public static implicit operator int (Conv C)
+    {
+        return 1;
+    }
+    
     public static implicit operator int (Conv? C2)
-	{
-		return 0;
-	}
-	
+    {
+        return 0;
+    }
+    
     public static int Main()
-	{
-		Conv? D = new Conv();
-		switch(D)
-		{
-		    case 1:
+    {
+        Conv? D = new Conv();
+        switch(D)
+        {
+            case 1:
                 System.Console.WriteLine(""Fail"");
                 return 1;
-		    case 0:
+            case 0:
                 System.Console.WriteLine(""Pass"");
                 return 0;
-		    default:
+            default:
                 System.Console.WriteLine(""Fail"");
                 return 1;
-		}
-	}		
+        }
+    }		
 }
 ";
 
@@ -726,28 +728,29 @@ struct Conv
             var text = @"
 class Conv
 {
-	// bool type is not valid
-	public static implicit operator bool (Conv C)
-	{
-		return false;
-	}
-	
+    // bool type is not valid
+    public static implicit operator bool (Conv C)
+    {
+        return false;
+    }
+    
     public static int Main()
-	{
-		Conv C = new Conv();
-		switch(C)
-		{
-		    default:
+    {
+        Conv C = new Conv();
+        switch(C)
+        {
+            default:
                 System.Console.WriteLine(""Fail"");
                 return 1;
-		}
-	}		
+        }
+    }		
 }";
 
             CreateCompilationWithMscorlib(text).VerifyDiagnostics(
-                // (13,10): error CS0151: A switch expression or case label must be a bool, char, string, integral, enum, or corresponding nullable type
-                // 		switch(C)
-                Diagnostic(ErrorCode.ERR_SwitchGoverningTypeValueExpected, "C").WithLocation(13, 10));
+                // (13,16): error CS0151: A switch expression or case label must be a bool, char, string, integral, enum, or corresponding nullable type
+                //         switch(C)
+                Diagnostic(ErrorCode.ERR_SwitchGoverningTypeValueExpected, "C").WithLocation(13, 16)
+            );
         }
 
         [Fact()]
@@ -762,28 +765,28 @@ class Conv
 enum X { F = 0 }
 class Conv
 {
-	// enum type is not valid
-	public static implicit operator X (Conv C)
-	{
-		return X.F;
-	}
-	
+    // enum type is not valid
+    public static implicit operator X (Conv C)
+    {
+        return X.F;
+    }
+    
     public static int Main()
-	{
-		Conv C = new Conv();
-		switch(C)
-		{
-		    default:
+    {
+        Conv C = new Conv();
+        switch(C)
+        {
+            default:
                 System.Console.WriteLine(""Fail"");
                 return 1;
-		}
-	}		
+        }
+    }		
 }";
 
             CreateCompilationWithMscorlib(text).VerifyDiagnostics(
-                // (14,10): error CS0151: A switch expression or case label must be a bool, char, string, integral, enum, or corresponding nullable type
-                // 		switch(C)
-                Diagnostic(ErrorCode.ERR_SwitchGoverningTypeValueExpected, "C").WithLocation(14, 10));
+                // (14,16): error CS0151: A switch expression or case label must be a bool, char, string, integral, enum, or corresponding nullable type
+                //         switch(C)
+                Diagnostic(ErrorCode.ERR_SwitchGoverningTypeValueExpected, "C").WithLocation(14, 16));
         }
 
         [Fact()]
@@ -797,33 +800,33 @@ class Conv
             var text = @"
 class Conv
 {
-	// object type is not valid
-	public static implicit operator object(Conv C)
-	{
-		return null;
-	}
+    // object type is not valid
+    public static implicit operator object(Conv C)
+    {
+        return null;
+    }
 
     public static implicit operator int(Conv C)
-	{
-		return 1;
-	}
-	
+    {
+        return 1;
+    }
+    
     public static int Main()
-	{
-		Conv C = new Conv();
-		switch(C)
-		{
-		    default:
+    {
+        Conv C = new Conv();
+        switch(C)
+        {
+            default:
                 System.Console.WriteLine(""Fail"");
                 return 1;
-		}
-	}		
+        }
+    }		
 }";
 
             CreateCompilationWithMscorlib(text).VerifyDiagnostics(
                 // (5,34): error CS0553: 'Conv.implicit operator object(Conv)': user-defined conversions to or from a base class are not allowed
                 // 	public static implicit operator object(Conv C)
-                Diagnostic(ErrorCode.ERR_ConversionWithBase, "object").WithArguments("Conv.implicit operator object(Conv)").WithLocation(5, 34));
+                Diagnostic(ErrorCode.ERR_ConversionWithBase, "object").WithArguments("Conv.implicit operator object(Conv)").WithLocation(5, 37));
         }
 
         [Fact]
@@ -836,7 +839,7 @@ class C
     {
         switch (o)
         {
-            case F(null):
+            case ((o.GetType().Name.Length)):
                 M();
                 break;
             case 0:
@@ -856,12 +859,10 @@ class C
                 // (6,17): error CS0151: A switch expression or case label must be a bool, char, string, integral, enum, or corresponding nullable type
                 //         switch (o)
                 Diagnostic(ErrorCode.ERR_SwitchGoverningTypeValueExpected, "o").WithLocation(6, 17),
-                // (8,20): error CS1503: Argument 1: cannot convert from '<null>' to 'int'
-                //             case F(null):
-                Diagnostic(ErrorCode.ERR_BadArgType, "null").WithArguments("1", "<null>", "int").WithLocation(8, 20),
                 // (9,17): error CS7036: There is no argument given that corresponds to the required formal parameter 'o' of 'C.M(object)'
                 //                 M();
-                Diagnostic(ErrorCode.ERR_NoCorrespondingArgument, "M").WithArguments("o", "C.M(object)").WithLocation(9, 17));
+                Diagnostic(ErrorCode.ERR_NoCorrespondingArgument, "M").WithArguments("o", "C.M(object)").WithLocation(9, 17)
+                );
         }
 
         [Fact]
@@ -890,7 +891,7 @@ public class Test
                 Diagnostic(ErrorCode.ERR_NoImplicitConvCast, "1.2f").WithArguments("float", "int").WithLocation(10, 12));
         }
 
-        [Fact, WorkItem(546812, "DevDiv")]
+        [Fact, WorkItem(546812, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546812")]
         public void Bug16878()
         {
             var text = @"
@@ -1012,29 +1013,29 @@ public class Test
 class X {}
 class Conv
 {
-	public static implicit operator int (Conv C)
-	{
-		return 1;
-	}
-	
-	public static implicit operator X (Conv C2)
-	{
-		return new X();
-	}
-	
-	public static int Main()
-	{
-		Conv C = new Conv();
-		switch(C)
-		{
-		    case 1:
+    public static implicit operator int (Conv C)
+    {
+        return 1;
+    }
+    
+    public static implicit operator X (Conv C2)
+    {
+        return new X();
+    }
+    
+    public static int Main()
+    {
+        Conv C = new Conv();
+        switch(C)
+        {
+            case 1:
                 System.Console.WriteLine(""Pass"");
                 return 0;
-		    default:
+            default:
                 System.Console.WriteLine(""Fail"");
                 return 1;
-		}
-	}		
+        }
+    }		
 }
 ";
             CreateCompilationWithMscorlib(text).VerifyDiagnostics();
@@ -1052,38 +1053,38 @@ class Conv
 enum X { F = 0 }
 class Conv
 {
-	// only valid operator
-	public static implicit operator int (Conv C)
-	{
-		return 1;
-	}
-	
+    // only valid operator
+    public static implicit operator int (Conv C)
+    {
+        return 1;
+    }
+    
     // bool type is not valid
-	public static implicit operator bool (Conv C2)
-	{
-		return false;
-	}
+    public static implicit operator bool (Conv C2)
+    {
+        return false;
+    }
 
     // enum type is not valid
     public static implicit operator X (Conv C3)
-	{
-		return X.F;
-	}
-	
-	
-	public static int Main()
-	{
-		Conv C = new Conv();
-		switch(C)
-		{
-		    case 1:
+    {
+        return X.F;
+    }
+    
+    
+    public static int Main()
+    {
+        Conv C = new Conv();
+        switch(C)
+        {
+            case 1:
                 System.Console.WriteLine(""Pass"");
                 return 0;
-		    default:
+            default:
                 System.Console.WriteLine(""Fail"");
                 return 1;
-		}
-	}		
+        }
+    }		
 }
 ";
             CreateCompilationWithMscorlib(text).VerifyDiagnostics();
@@ -1100,32 +1101,32 @@ class Conv
             var text = @"
 struct Conv
 {
-	public static implicit operator int (Conv C)
-	{
-		return 1;
-	}
-	
+    public static implicit operator int (Conv C)
+    {
+        return 1;
+    }
+    
     public static implicit operator int? (Conv? C2)
-	{
-		return null;
-	}
-	
+    {
+        return null;
+    }
+    
     public static int Main()
-	{
-		Conv? D = new Conv();
-		switch(D)
-		{
-		    case 1:
+    {
+        Conv? D = new Conv();
+        switch(D)
+        {
+            case 1:
                 System.Console.WriteLine(""Fail"");
                 return 1;
-		    case null:
+            case null:
                 System.Console.WriteLine(""Pass"");
                 return 0;
-		    default:
+            default:
                 System.Console.WriteLine(""Fail"");
                 return 1;
-		}
-	}		
+        }
+    }		
 }
 ";
             CreateCompilationWithMscorlib(text).VerifyDiagnostics();
@@ -1142,27 +1143,27 @@ struct Conv
             var text = @"
 struct Conv
 {
-	public static implicit operator int (Conv C)
-	{
-		return 1;
-	}
-	
+    public static implicit operator int (Conv C)
+    {
+        return 1;
+    }
+    
     public static int Main()
-	{
-		Conv? C = new Conv();
-		switch(C)
-		{
-		    case 1:
+    {
+        Conv? C = new Conv();
+        switch(C)
+        {
+            case 1:
                 System.Console.WriteLine(""Pass"");
                 return 0;
             case null:
                 System.Console.WriteLine(""Fail"");
                 return 1;
-		    default:
+            default:
                 System.Console.WriteLine(""Fail"");
                 return 1;
-		}
-	}		
+        }
+    }		
 }
 ";
             CreateCompilationWithMscorlib(text).VerifyDiagnostics();
@@ -1179,32 +1180,32 @@ struct Conv
             var text = @"
 struct Conv
 {
-	public static implicit operator int (Conv C)
-	{
-		return 1;
-	}
-	
+    public static implicit operator int (Conv C)
+    {
+        return 1;
+    }
+    
     public static implicit operator int? (Conv? C)
-	{
-		return null;
-	}
-	
+    {
+        return null;
+    }
+    
     public static int Main()
-	{
-		Conv? C = new Conv();
-		switch(C)
-		{
-		    case null:
+    {
+        Conv? C = new Conv();
+        switch(C)
+        {
+            case null:
                 System.Console.WriteLine(""Pass"");
                 return 0;
-		    case 1:
+            case 1:
                 System.Console.WriteLine(""Fail"");
                 return 0;
-		    default:
+            default:
                 System.Console.WriteLine(""Fail"");
                 return 0;
-		}
-	}		
+        }
+    }		
 }
 ";
             CreateCompilationWithMscorlib(text).VerifyDiagnostics();
@@ -1255,7 +1256,7 @@ class C
                 Diagnostic(ErrorCode.ERR_SwitchGoverningTypeValueExpected, "b1.F()").WithLocation(20, 17));
         }
 
-        [WorkItem(543673, "DevDiv")]
+        [WorkItem(543673, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543673")]
         [Fact()]
         public void ImplicitUserDefinedConversionToSwitchGoverningType_11564_2_1()
         {
@@ -1304,7 +1305,7 @@ struct A
                 Diagnostic(ErrorCode.ERR_SwitchGoverningTypeValueExpected, "a").WithLocation(28, 20));
         }
 
-        [WorkItem(543673, "DevDiv")]
+        [WorkItem(543673, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543673")]
         [Fact()]
         public void ImplicitUserDefinedConversionToSwitchGoverningType_11564_2_2()
         {
@@ -1356,7 +1357,7 @@ struct A
                 Diagnostic(ErrorCode.ERR_SwitchGoverningTypeValueExpected, "a"));
         }
 
-        [WorkItem(543673, "DevDiv")]
+        [WorkItem(543673, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543673")]
         [Fact()]
         public void ImplicitUserDefinedConversionToSwitchGoverningType_11564_2_3()
         {
@@ -1404,7 +1405,7 @@ struct A
                 Diagnostic(ErrorCode.ERR_SwitchGoverningTypeValueExpected, "a"));
         }
 
-        [WorkItem(543673, "DevDiv")]
+        [WorkItem(543673, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543673")]
         [Fact()]
         public void ImplicitUserDefinedConversionToSwitchGoverningType_11564_2_4()
         {
@@ -1452,7 +1453,7 @@ struct A
                 Diagnostic(ErrorCode.ERR_SwitchGoverningTypeValueExpected, "a"));
         }
 
-        [WorkItem(543673, "DevDiv")]
+        [WorkItem(543673, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543673")]
         [Fact()]
         public void ImplicitUserDefinedConversionToSwitchGoverningType_11564_2_5()
         {
@@ -1501,7 +1502,7 @@ struct A
                 );
         }
 
-        [WorkItem(543673, "DevDiv")]
+        [WorkItem(543673, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543673")]
         [Fact()]
         public void ImplicitUserDefinedConversionToSwitchGoverningType_11564_2_6()
         {
@@ -1550,7 +1551,7 @@ struct A
                 );
         }
 
-        [WorkItem(543673, "DevDiv")]
+        [WorkItem(543673, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543673")]
         [Fact()]
         public void ImplicitUserDefinedConversionToSwitchGoverningType_11564_3_1()
         {
@@ -1604,7 +1605,7 @@ struct A
                 Diagnostic(ErrorCode.ERR_SwitchGoverningTypeValueExpected, "a"));
         }
 
-        [WorkItem(543673, "DevDiv")]
+        [WorkItem(543673, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543673")]
         [Fact()]
         public void ImplicitUserDefinedConversionToSwitchGoverningType_11564_3_2()
         {
@@ -1662,7 +1663,7 @@ struct A
                 Diagnostic(ErrorCode.ERR_SwitchGoverningTypeValueExpected, "a"));
         }
 
-        [WorkItem(543673, "DevDiv")]
+        [WorkItem(543673, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543673")]
         [Fact()]
         public void ImplicitUserDefinedConversionToSwitchGoverningType_11564_3_3()
         {
@@ -1716,7 +1717,7 @@ struct A
                 Diagnostic(ErrorCode.ERR_SwitchGoverningTypeValueExpected, "a"));
         }
 
-        [WorkItem(543673, "DevDiv")]
+        [WorkItem(543673, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543673")]
         [Fact()]
         public void ImplicitUserDefinedConversionToSwitchGoverningType_11564_3_4()
         {
@@ -1774,7 +1775,7 @@ struct A
                 Diagnostic(ErrorCode.ERR_SwitchGoverningTypeValueExpected, "a"));
         }
 
-        [WorkItem(543673, "DevDiv")]
+        [WorkItem(543673, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543673")]
         [Fact()]
         public void ImplicitUserDefinedConversionToSwitchGoverningType_11564_4_1()
         {
@@ -1998,25 +1999,25 @@ struct A
             var text = @"using System;
 class Test
 {
-	public static void DoTest(int i)
-	{
-		switch (i)
-		{
-			case 1:
-				Console.WriteLine(i);
-				break;
-			case 2:
-				Console.WriteLine(i);
-				break;
+    public static void DoTest(int i)
+    {
+        switch (i)
+        {
+            case 1:
+                Console.WriteLine(i);
+                break;
+            case 2:
+                Console.WriteLine(i);
+                break;
             default:                        // CS8070
                 Console.WriteLine(i);
-		}
-	}
+        }
+    }
 
-	public static int Main()
+    public static int Main()
     {
-		return 1;
-	}
+        return 1;
+    }
 }
 ";
 
@@ -2170,32 +2171,33 @@ switch (1)
             var text = @"using System;
 class Test
 {
-	public static void DoTest(int i)
-	{
-		switch (i)
-		{
-			case 1:
-				Console.WriteLine(i);
-				break;
-			case 2:                         // CS0163
-				Console.WriteLine(i);
+    public static void DoTest(int i)
+    {
+        switch (i)
+        {
+            case 1:
+                Console.WriteLine(i);
+                break;
+            case 2:                         // CS0163
+                Console.WriteLine(i);
             default:
                 Console.WriteLine(i);
-				break;
-		}
-	}
+                break;
+        }
+    }
 
-	public static int Main()
+    public static int Main()
     {
-		return 1;
-	}
+        return 1;
+    }
 }
 ";
 
             CreateCompilationWithMscorlib(text).VerifyDiagnostics(
-                // (11,4): error CS0163: Control cannot fall through from one case label ('case 2:') to another
-                // 			case 2:                         // CS0163
-                Diagnostic(ErrorCode.ERR_SwitchFallThrough, "case 2:").WithArguments("case 2:").WithLocation(11, 4));
+                // (11,13): error CS0163: Control cannot fall through from one case label ('case 2:') to another
+                //             case 2:                         // CS0163
+                Diagnostic(ErrorCode.ERR_SwitchFallThrough, "case 2:").WithArguments("case 2:").WithLocation(11, 13)
+                );
         }
 
         [Fact]
@@ -2266,37 +2268,37 @@ namespace Test
             var text = @"
 public class Foo
 {
-	public Foo() { i = 99; }
-	public void Bar() { i = 0; }
-	public int GetI() { return(i); }
-	int i;
+    public Foo() { i = 99; }
+    public void Bar() { i = 0; }
+    public int GetI() { return(i); }
+    int i;
 }
 
 public class Test
 {
     public static int Main(string [] args)
     {
-		int s = 23;
-		switch (s) {
-		case 21:
-			int j = 0;
-			Foo f = new Foo();
-			j++;
-			break;
-		case 23:
-			int i = 22;
-			j = i;
-			f.Bar();        // unassigned variable f
-			break;
-		}
-		return(1);
+        int s = 23;
+        switch (s) {
+        case 21:
+            int j = 0;
+            Foo f = new Foo();
+            j++;
+            break;
+        case 23:
+            int i = 22;
+            j = i;
+            f.Bar();        // unassigned variable f
+            break;
+        }
+        return(1);
     }
 }";
 
             CreateCompilationWithMscorlib(text).VerifyDiagnostics(
                 // (24,4): error CS0165: Use of unassigned local variable 'f'
-                // 			f.Bar();        // unassigned variable f
-                Diagnostic(ErrorCode.ERR_UseDefViolation, "f").WithArguments("f").WithLocation(24, 4));
+                //            f.Bar();        // unassigned variable f
+                Diagnostic(ErrorCode.ERR_UseDefViolation, "f").WithArguments("f").WithLocation(24, 13));
         }
 
         [Fact]
@@ -2394,7 +2396,7 @@ class SwitchTest
 
         #region regressions
 
-        [WorkItem(543849, "DevDiv")]
+        [WorkItem(543849, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543849")]
         [Fact()]
         public void NamespaceInCaseExpression()
         {

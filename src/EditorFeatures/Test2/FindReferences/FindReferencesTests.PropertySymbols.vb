@@ -4,8 +4,8 @@ Imports System.Threading.Tasks
 
 Namespace Microsoft.CodeAnalysis.Editor.UnitTests.FindReferences
     Partial Public Class FindReferencesTests
-        <WorkItem(538886)>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WorkItem(538886, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538886")>
+        <Fact, Trait(Traits.Feature, Traits.Features.FindReferences)>
         Public Async Function TestCSharp_Property1() As Task
             Dim input =
 <Workspace>
@@ -35,8 +35,8 @@ namespace ConsoleApplication22
             Await TestAsync(input)
         End Function
 
-        <WorkItem(538886)>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WorkItem(538886, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538886")>
+        <Fact, Trait(Traits.Feature, Traits.Features.FindReferences)>
         Public Async Function TestCSharp_Property2() As Task
             Dim input =
 <Workspace>
@@ -66,8 +66,8 @@ namespace ConsoleApplication22
             Await TestAsync(input)
         End Function
 
-        <WorkItem(539022)>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WorkItem(539022, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539022")>
+        <Fact, Trait(Traits.Feature, Traits.Features.FindReferences)>
         Public Async Function TestCSharp_PropertyCascadeThroughInterface1() As Task
             Dim input =
 <Workspace>
@@ -88,8 +88,8 @@ namespace ConsoleApplication22
             Await TestAsync(input)
         End Function
 
-        <WorkItem(539022)>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WorkItem(539022, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539022")>
+        <Fact, Trait(Traits.Feature, Traits.Features.FindReferences)>
         Public Async Function TestCSharp_PropertyCascadeThroughInterface2() As Task
             Dim input =
 <Workspace>
@@ -110,8 +110,8 @@ namespace ConsoleApplication22
             Await TestAsync(input)
         End Function
 
-        <WorkItem(539047)>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WorkItem(539047, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539047")>
+        <Fact, Trait(Traits.Feature, Traits.Features.FindReferences)>
         Public Async Function TestCSharp_PropertyThroughBase1() As Task
             Dim input =
 <Workspace>
@@ -143,8 +143,8 @@ class C2 : C1
             Await TestAsync(input)
         End Function
 
-        <WorkItem(539047)>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WorkItem(539047, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539047")>
+        <Fact, Trait(Traits.Feature, Traits.Features.FindReferences)>
         Public Async Function TestCSharp_PropertyThroughBase2() As Task
             Dim input =
 <Workspace>
@@ -176,8 +176,8 @@ class C2 : C1
             Await TestAsync(input)
         End Function
 
-        <WorkItem(539047)>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WorkItem(539047, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539047")>
+        <Fact, Trait(Traits.Feature, Traits.Features.FindReferences)>
         Public Async Function TestCSharp_PropertyThroughBase3() As Task
             Dim input =
 <Workspace>
@@ -209,8 +209,8 @@ class C2 : C1
             Await TestAsync(input)
         End Function
 
-        <WorkItem(539047)>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WorkItem(539047, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539047")>
+        <Fact, Trait(Traits.Feature, Traits.Features.FindReferences)>
         Public Async Function TestCSharp_PropertyThroughBase4() As Task
             Dim input =
 <Workspace>
@@ -242,8 +242,8 @@ class C2 : C1
             Await TestAsync(input)
         End Function
 
-        <WorkItem(539523)>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WorkItem(539523, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539523")>
+        <Fact, Trait(Traits.Feature, Traits.Features.FindReferences)>
         Public Async Function TestCSharp_ExplicitProperty1() As Task
             Dim input =
 <Workspace>
@@ -267,8 +267,8 @@ public class A : DD
             Await TestAsync(input)
         End Function
 
-        <WorkItem(539523)>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WorkItem(539523, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539523")>
+        <Fact, Trait(Traits.Feature, Traits.Features.FindReferences)>
         Public Async Function TestCSharp_ExplicitProperty2() As Task
             Dim input =
 <Workspace>
@@ -292,8 +292,8 @@ public class A : DD
             Await TestAsync(input)
         End Function
 
-        <WorkItem(539885)>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WorkItem(539885, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539885")>
+        <Fact, Trait(Traits.Feature, Traits.Features.FindReferences)>
         Public Async Function TestCSharp_PropertyFromGenericInterface1() As Task
             Dim input =
 <Workspace>
@@ -329,8 +329,8 @@ public class M<T> : I1<T>, I3<T>
             Await TestAsync(input)
         End Function
 
-        <WorkItem(539885)>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WorkItem(539885, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539885")>
+        <Fact, Trait(Traits.Feature, Traits.Features.FindReferences)>
         Public Async Function TestCSharp_PropertyFromGenericInterface2() As Task
             Dim input =
 <Workspace>
@@ -366,8 +366,8 @@ public class M<T> : I1<T>, I3<T>
             Await TestAsync(input)
         End Function
 
-        <WorkItem(539885)>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WorkItem(539885, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539885")>
+        <Fact, Trait(Traits.Feature, Traits.Features.FindReferences)>
         Public Async Function TestCSharp_PropertyFromGenericInterface3() As Task
             Dim input =
 <Workspace>
@@ -403,8 +403,8 @@ public class M<T> : I1<T>, I3<T>
             Await TestAsync(input)
         End Function
 
-        <WorkItem(539885)>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WorkItem(539885, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539885")>
+        <Fact, Trait(Traits.Feature, Traits.Features.FindReferences)>
         Public Async Function TestCSharp_PropertyFromGenericInterface4() As Task
             Dim input =
 <Workspace>
@@ -440,8 +440,8 @@ public class M<T> : I1<T>, I3<T>
             Await TestAsync(input)
         End Function
 
-        <WorkItem(539885)>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WorkItem(539885, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539885")>
+        <Fact, Trait(Traits.Feature, Traits.Features.FindReferences)>
         Public Async Function TestCSharp_PropertyFromGenericInterface5() As Task
             Dim input =
 <Workspace>
@@ -477,8 +477,8 @@ public class M<T> : I1<T>, I3<T>
             Await TestAsync(input)
         End Function
 
-        <WorkItem(540440)>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WorkItem(540440, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540440")>
+        <Fact, Trait(Traits.Feature, Traits.Features.FindReferences)>
         Public Async Function TestBasic_PropertyFunctionValue1() As Task
             Dim input =
 <Workspace>
@@ -498,8 +498,8 @@ End Module]]>
             Await TestAsync(input)
         End Function
 
-        <WorkItem(540440)>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WorkItem(540440, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540440")>
+        <Fact, Trait(Traits.Feature, Traits.Features.FindReferences)>
         Public Async Function TestBasic_PropertyFunctionValue2() As Task
             Dim input =
 <Workspace>
@@ -519,8 +519,8 @@ End Module]]>
             Await TestAsync(input)
         End Function
 
-        <WorkItem(543125)>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WorkItem(543125, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543125")>
+        <Fact, Trait(Traits.Feature, Traits.Features.FindReferences)>
         Public Async Function TestCSharp_AnonymousTypeProperties1() As Task
             Dim input =
 <Workspace>
@@ -542,8 +542,8 @@ class C
             Await TestAsync(input)
         End Function
 
-        <WorkItem(543125)>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WorkItem(543125, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543125")>
+        <Fact, Trait(Traits.Feature, Traits.Features.FindReferences)>
         Public Async Function TestCSharp_AnonymousTypeProperties2() As Task
             Dim input =
 <Workspace>
@@ -565,8 +565,8 @@ class C
             Await TestAsync(input)
         End Function
 
-        <WorkItem(543125)>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WorkItem(543125, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543125")>
+        <Fact, Trait(Traits.Feature, Traits.Features.FindReferences)>
         Public Async Function TestCSharp_AnonymousTypeProperties3() As Task
             Dim input =
 <Workspace>
@@ -588,8 +588,8 @@ class C
             Await TestAsync(input)
         End Function
 
-        <WorkItem(543125)>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WorkItem(543125, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543125")>
+        <Fact, Trait(Traits.Feature, Traits.Features.FindReferences)>
         Public Async Function TestCSharp_AnonymousTypeProperties4() As Task
             Dim input =
 <Workspace>
@@ -611,8 +611,8 @@ class C
             Await TestAsync(input)
         End Function
 
-        <WorkItem(542881)>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WorkItem(542881, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542881")>
+        <Fact, Trait(Traits.Feature, Traits.Features.FindReferences)>
         Public Async Function TestBasic_AnonymousTypeProperties1() As Task
             Dim input =
 <Workspace>
@@ -635,8 +635,8 @@ End Module
             Await TestAsync(input)
         End Function
 
-        <WorkItem(542881)>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WorkItem(542881, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542881")>
+        <Fact, Trait(Traits.Feature, Traits.Features.FindReferences)>
         Public Async Function TestBasic_AnonymousTypeProperties2() As Task
             Dim input =
 <Workspace>
@@ -659,8 +659,8 @@ End Module
             Await TestAsync(input)
         End Function
 
-        <WorkItem(542881)>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WorkItem(542881, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542881")>
+        <Fact, Trait(Traits.Feature, Traits.Features.FindReferences)>
         Public Async Function TestBasic_AnonymousTypeProperties3() As Task
             Dim input =
 <Workspace>
@@ -683,8 +683,8 @@ End Module
             Await TestAsync(input)
         End Function
 
-        <WorkItem(545576)>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WorkItem(545576, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545576")>
+        <Fact, Trait(Traits.Feature, Traits.Features.FindReferences)>
         Public Async Function TestBasic_CascadeBetweenPropertyAndField1() As Task
             Dim input =
 <Workspace>
@@ -703,8 +703,8 @@ End Class
             Await TestAsync(input)
         End Function
 
-        <WorkItem(545576)>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WorkItem(545576, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545576")>
+        <Fact, Trait(Traits.Feature, Traits.Features.FindReferences)>
         Public Async Function TestBasic_CascadeBetweenPropertyAndField2() As Task
             Dim input =
 <Workspace>
@@ -723,8 +723,8 @@ End Class
             Await TestAsync(input)
         End Function
 
-        <WorkItem(529765)>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WorkItem(529765, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529765")>
+        <Fact, Trait(Traits.Feature, Traits.Features.FindReferences)>
         Public Async Function TestBasic_CascadeBetweenParameterizedVBPropertyAndCSharpMethod1() As Task
             Dim input =
 <Workspace>
@@ -756,8 +756,8 @@ class B : A
             Await TestAsync(input)
         End Function
 
-        <WorkItem(529765)>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WorkItem(529765, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529765")>
+        <Fact, Trait(Traits.Feature, Traits.Features.FindReferences)>
         Public Async Function TestBasic_CascadeBetweenParameterizedVBPropertyAndCSharpMethod2() As Task
             Dim input =
 <Workspace>
@@ -789,8 +789,8 @@ class B : A
             Await TestAsync(input)
         End Function
 
-        <WorkItem(529765)>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WorkItem(529765, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529765")>
+        <Fact, Trait(Traits.Feature, Traits.Features.FindReferences)>
         Public Async Function TestBasic_CascadeBetweenParameterizedVBPropertyAndCSharpMethod3() As Task
             Dim input =
 <Workspace>
@@ -822,8 +822,8 @@ class B : A
             Await TestAsync(input)
         End Function
 
-        <WorkItem(665876)>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WorkItem(665876, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/665876")>
+        <Fact, Trait(Traits.Feature, Traits.Features.FindReferences)>
         Public Async Function TestBasic_DefaultProperties() As Task
             Dim input =
 <Workspace>
@@ -858,8 +858,8 @@ End Class
             Await TestAsync(input)
         End Function
 
-        <WorkItem(665876)>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WorkItem(665876, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/665876")>
+        <Fact, Trait(Traits.Feature, Traits.Features.FindReferences)>
         Public Async Function TestBasic_DefaultProperties2() As Task
             Dim input =
 <Workspace>

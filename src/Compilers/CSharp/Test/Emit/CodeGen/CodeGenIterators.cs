@@ -681,7 +681,7 @@ class C: Base
             CompileAndVerify(source, expectedOutput: "444888");
         }
 
-        [WorkItem(543165, "DevDiv")]
+        [WorkItem(543165, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543165")]
         [Fact]
         public void TestIteratorWithLambda()
         {
@@ -760,7 +760,7 @@ class Program
             CompileAndVerify(source, expectedOutput: "ab01");
         }
 
-        [WorkItem(543178, "DevDiv")]
+        [WorkItem(543178, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543178")]
         [Fact]
         public void TestIteratorWithLambda02()
         {
@@ -794,7 +794,7 @@ public class A
             CompileAndVerify(source, expectedOutput: "abc");
         }
 
-        [WorkItem(543373, "DevDiv")]
+        [WorkItem(543373, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543373")]
         [Fact]
         public void TestIteratorWithNestedForEachAndThrow()
         {
@@ -870,7 +870,7 @@ public class MyEnumerator : IEnumerator<int>
             CompileAndVerify(source, expectedOutput: "InnerOuterExInner");
         }
 
-        [WorkItem(543542, "DevDiv")]
+        [WorkItem(543542, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543542")]
         [Fact]
         public void TestIteratorWithSwitchBreak()
         {
@@ -907,7 +907,7 @@ class Test
             CompileAndVerify(source, expectedOutput: "234");
         }
 
-        [WorkItem(546128, "DevDiv")]
+        [WorkItem(546128, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546128")]
         [Fact]
         public void TestIteratorWithCapturedStruct()
         {
@@ -947,7 +947,7 @@ struct B
             CompileAndVerify(source, expectedOutput: "3210");
         }
 
-        [Fact, WorkItem(544908, "DevDiv")]
+        [Fact, WorkItem(544908, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544908")]
         public void TestIteratorWithNullableAsCollectionVariable_NonNull()
         {
             var source = @"
@@ -1031,7 +1031,7 @@ struct S : IEnumerable
 }");
         }
 
-        [Fact, WorkItem(544908, "DevDiv")]
+        [Fact, WorkItem(544908, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544908")]
         public void TestIteratorWithNullableAsCollectionVariable_Null()
         {
             var source = @"
@@ -1129,7 +1129,7 @@ struct S : IEnumerable
         }
 
         [Fact]
-        [WorkItem(545650, "DevDiv")]
+        [WorkItem(545650, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545650")]
         public void TestIteratorWithUsing()
         {
             var source =
@@ -1156,7 +1156,7 @@ class T
             CompileAndVerify(source, expectedOutput: "");
         }
 
-        [Fact, WorkItem(545767, "DevDiv")]
+        [Fact, WorkItem(545767, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545767")]
         public void DoNotCaptureUnusedParameters_Release()
         {
             var source = @"
@@ -1404,7 +1404,7 @@ class Test
         }
 
         [Fact]
-        [WorkItem(563925, "DevDiv")]
+        [WorkItem(563925, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/563925")]
         public void CaptureRefLocalNoParts()
         {
             var source =
@@ -1473,7 +1473,7 @@ class Program
         }
 
         [Fact]
-        [WorkItem(620862, "DevDiv")]
+        [WorkItem(620862, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/620862")]
         public void DelegateCreationInIterator()
         {
             var source =
@@ -1920,7 +1920,7 @@ class A
         }
 
         [Fact]
-        [WorkItem(703361, "DevDiv")]
+        [WorkItem(703361, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/703361")]
         public void VerifyHelpers()
         {
             var source =
@@ -1944,7 +1944,7 @@ class Program
         }
 
         [Fact]
-        [WorkItem(703361, "DevDiv")]
+        [WorkItem(703361, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/703361")]
         public void VerifyHelpers001()
         {
             var source =
@@ -2087,7 +2087,7 @@ class Program
             CompileAndVerify(source, expectedOutput: @"");
         }
 
-        [WorkItem(718498, "DevDiv")]
+        [WorkItem(718498, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/718498")]
         [Fact]
         public void Regress718498a()
         {
@@ -2128,7 +2128,7 @@ class Program
             CompileAndVerify(source, expectedOutput: @"12");
         }
 
-        [WorkItem(718498, "DevDiv")]
+        [WorkItem(718498, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/718498")]
         [Fact]
         public void Regress718498b()
         {
@@ -2173,7 +2173,7 @@ class Program
             CompileAndVerify(source, expectedOutput: @"12");
         }
 
-        [WorkItem(718498, "DevDiv")]
+        [WorkItem(718498, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/718498")]
         [Fact]
         public void Regress718498c()
         {
@@ -2215,7 +2215,7 @@ class Program
         /// Name of public fields for spill temps must start with
         /// "&lt;&gt;[c]__" so the fields are hidden in the debugger.
         /// </summary>
-        [WorkItem(808600, "DevDiv")]
+        [WorkItem(808600, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/808600")]
         [Fact]
         public void SpillFieldName()
         {
@@ -2325,6 +2325,74 @@ class Program
   IL_00af:  ret
 }");
             Assert.True(expectedIL.IndexOf("<>_", StringComparison.Ordinal) < 0);
+        }
+
+        [Fact, WorkItem(9167, "https://github.com/dotnet/roslyn/issues/9167")]
+        public void IteratorShouldCompileWithoutOptionalAttributes()
+        {
+            #region IL for corlib without CompilerGeneratedAttribute or DebuggerNonUserCodeAttribute
+            var corlib = @"
+namespace System
+{
+    public class Object { }
+    public struct Int32 { }
+    public struct Boolean { }
+    public class String { }
+    public class Exception { }
+    public class NotSupportedException : Exception { }
+    public class ValueType { }
+    public class Enum { }
+    public struct Void { }
+
+    public interface IDisposable
+    {
+        void Dispose();
+    }
+}
+
+namespace System.Collections
+{
+    public interface IEnumerable
+    {
+        IEnumerator GetEnumerator();
+    }
+
+    public interface IEnumerator
+    {
+        bool MoveNext();
+        object Current { get; }
+        void Reset();
+    }
+
+    namespace Generic
+    {
+        public interface IEnumerable<T> : IEnumerable
+        {
+            new IEnumerator<T> GetEnumerator();
+        }
+
+        public interface IEnumerator<T> : IEnumerator
+        {
+            new T Current { get; }
+        }
+    }
+}";
+            #endregion
+
+            var source = @"
+public class C
+{
+    public System.Collections.IEnumerable SomeNumbers()
+    {
+        yield return 42;
+    }
+}";
+            // The compilation succeeds even though CompilerGeneratedAttribute and DebuggerNonUserCodeAttribute are not available.
+            var compilation = CreateCompilation(new[] { Parse(source), Parse(corlib) });
+            var verifier = CompileAndVerify(compilation, verify: false);
+            verifier.VerifyDiagnostics(
+                // warning CS8021: No value for RuntimeMetadataVersion found. No assembly containing System.Object was found nor was a value for RuntimeMetadataVersion specified through options.
+                Diagnostic(ErrorCode.WRN_NoRuntimeMetadataVersion).WithLocation(1, 1));
         }
     }
 }

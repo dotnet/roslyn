@@ -939,7 +939,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 var modifierType = (NamedTypeSymbol)modifier.Modifier;
 
                 // Unbound generic type is valid as a modifier, let's not report any use site diagnostics because of that.
-                if (modifierType.IsUnboundGenericType )
+                if (modifierType.IsUnboundGenericType)
                 {
                     modifierType = modifierType.OriginalDefinition;
                 }

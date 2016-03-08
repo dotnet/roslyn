@@ -7,24 +7,33 @@ using Microsoft.VisualStudio.InteractiveWindow;
 using Microsoft.VisualStudio.Text.Editor;
 using Microsoft.VisualStudio.Text.Operations;
 using Microsoft.VisualStudio.Utilities;
+using Microsoft.CodeAnalysis.Editor.Host;
+using Microsoft.CodeAnalysis.Editor.CSharp.Interactive;
+using Microsoft.CodeAnalysis.Editor.CommandHandlers;
 
 namespace Microsoft.VisualStudio.LanguageServices.CSharp.Interactive
 {
-    [ExportCommandHandler("Interactive Command Handler")]
-    internal sealed class CSharpInteractiveCommandHandler : InteractiveCommandHandler
+    [ExportInteractive(typeof(IExecuteInInteractiveCommandHandler), ContentTypeNames.CSharpContentType)]
+    internal sealed class CSharpInteractiveCommandHandler : InteractiveCommandHandler, IExecuteInInteractiveCommandHandler
     {
         private readonly CSharpVsInteractiveWindowProvider _interactiveWindowProvider;
+
+        private readonly ISendToInteractiveSubmissionProvider _sendToInteractiveSubmissionProvider;
 
         [ImportingConstructor]
         public CSharpInteractiveCommandHandler(
             CSharpVsInteractiveWindowProvider interactiveWindowProvider,
             IContentTypeRegistryService contentTypeRegistryService,
             IEditorOptionsFactoryService editorOptionsFactoryService,
-            IEditorOperationsFactoryService editorOperationsFactoryService)
-            : base(contentTypeRegistryService, editorOptionsFactoryService, editorOperationsFactoryService)
+            IEditorOperationsFactoryService editorOperationsFactoryService,
+            IWaitIndicator waitIndicator)
+            : base(contentTypeRegistryService, editorOptionsFactoryService, editorOperationsFactoryService, waitIndicator)
         {
             _interactiveWindowProvider = interactiveWindowProvider;
+            _sendToInteractiveSubmissionProvider = new CSharpSendToInteractiveSubmissionProvider();
         }
+
+        protected override ISendToInteractiveSubmissionProvider SendToInteractiveSubmissionProvider => _sendToInteractiveSubmissionProvider;
 
         protected override IInteractiveWindow OpenInteractiveWindow(bool focus)
         {

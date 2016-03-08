@@ -82,7 +82,7 @@ False
         End Sub
 
         ' Function call in return expression 
-        <WorkItem(541647, "DevDiv")>
+        <WorkItem(541647, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541647")>
         <Fact()>
         Public Sub FunctionCallAsArgument()
             CompileAndVerify(
@@ -365,7 +365,7 @@ End Module
         End Sub
 
         ' Not boolean type as conditional-argument 
-        <WorkItem(541647, "DevDiv")>
+        <WorkItem(541647, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541647")>
         <Fact()>
         Public Sub NotBooleanAsConditionalArgument()
             Dim compilation1 = CompileAndVerify(
@@ -406,7 +406,7 @@ End Module
         End Sub
 
         ' Not boolean type as conditional-argument 
-        <WorkItem(541647, "DevDiv")>
+        <WorkItem(541647, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541647")>
         <Fact()>
         Public Sub NotBooleanAsConditionalArgument_2()
             CompileAndVerify(
@@ -434,7 +434,7 @@ End Enum
 ]]>)
         End Sub
 
-        <WorkItem(541647, "DevDiv")>
+        <WorkItem(541647, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541647")>
         <Fact>
         Public Sub FunctionWithNoReturnType()
             Dim compilation1 = CompileAndVerify(
@@ -474,7 +474,7 @@ End Module
         End Sub
 
         ' Const as conditional- argument
-        <WorkItem(541452, "DevDiv")>
+        <WorkItem(541452, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541452")>
         <Fact()>
         Public Sub ConstAsArgument()
             Dim compilation1 = CompileAndVerify(
@@ -523,7 +523,7 @@ End Module
         End Sub
 
         ' IF used in Redim 
-        <WorkItem(528563, "DevDiv")>
+        <WorkItem(528563, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/528563")>
         <Fact>
         Public Sub IfUsedInRedim()
             Dim compilation1 = CompileAndVerify(
@@ -652,7 +652,7 @@ End Module
         End Sub
 
         ' Passing IF as byref arg 
-        <WorkItem(541647, "DevDiv")>
+        <WorkItem(541647, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541647")>
         <Fact()>
         Public Sub IFAsByrefArg()
             CompileAndVerify(
@@ -687,7 +687,7 @@ End Module
 }]]>)
         End Sub
 
-        <WorkItem(541674, "DevDiv")>
+        <WorkItem(541674, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541674")>
         <Fact>
         Public Sub TypeConversionInRuntime()
             Dim compilation1 = CompileAndVerify(
@@ -728,7 +728,7 @@ End Class
 ]]>).Compilation
         End Sub
 
-        <WorkItem(541673, "DevDiv")>
+        <WorkItem(541673, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541673")>
         <Fact>
         Public Sub TypeConversionInRuntime_1()
             Dim compilation1 = CompileAndVerify(
@@ -1209,7 +1209,7 @@ End Structure
 }]]>).Compilation
         End Sub
 
-        <Fact, WorkItem(545065, "DevDiv")>
+        <Fact, WorkItem(545065, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545065")>
         Public Sub IfOnMethodTypeParameter()
             CompileAndVerify(
 <compilation>

@@ -31,7 +31,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Preview
 {
     public class PreviewWorkspaceTests
     {
-        [WpfFact, Trait(Traits.Editor, Traits.Editors.Preview)]
+        [Fact, Trait(Traits.Editor, Traits.Editors.Preview)]
         public void TestPreviewCreationDefault()
         {
             using (var previewWorkspace = new PreviewWorkspace())
@@ -40,7 +40,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Preview
             }
         }
 
-        [WpfFact, Trait(Traits.Editor, Traits.Editors.Preview)]
+        [Fact, Trait(Traits.Editor, Traits.Editors.Preview)]
         public void TestPreviewCreationWithExplicitHostServices()
         {
             var assembly = typeof(ISolutionCrawlerRegistrationService).Assembly;
@@ -50,7 +50,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Preview
             }
         }
 
-        [WpfFact, Trait(Traits.Editor, Traits.Editors.Preview)]
+        [Fact, Trait(Traits.Editor, Traits.Editors.Preview)]
         public void TestPreviewCreationWithSolution()
         {
             using (var custom = new AdhocWorkspace())
@@ -60,7 +60,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Preview
             }
         }
 
-        [WpfFact, Trait(Traits.Editor, Traits.Editors.Preview)]
+        [Fact, Trait(Traits.Editor, Traits.Editors.Preview)]
         public void TestPreviewAddRemoveProject()
         {
             using (var previewWorkspace = new PreviewWorkspace())
@@ -76,7 +76,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Preview
             }
         }
 
-        [WpfFact, Trait(Traits.Editor, Traits.Editors.Preview)]
+        [Fact, Trait(Traits.Editor, Traits.Editors.Preview)]
         public void TestPreviewProjectChanges()
         {
             using (var previewWorkspace = new PreviewWorkspace())
@@ -107,7 +107,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Preview
             }
         }
 
-        [WorkItem(923121)]
+        [WorkItem(923121, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/923121")]
         [WpfFact, Trait(Traits.Editor, Traits.Editors.Preview)]
         public void TestPreviewOpenCloseFile()
         {
@@ -129,7 +129,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Preview
             }
         }
 
-        [WpfFact, Trait(Traits.Editor, Traits.Editors.Preview)]
+        [Fact, Trait(Traits.Editor, Traits.Editors.Preview)]
         public void TestPreviewServices()
         {
             using (var previewWorkspace = new PreviewWorkspace(MefV1HostServices.Create(TestExportProvider.ExportProviderWithCSharpAndVisualBasic.AsExportProvider())))
@@ -145,7 +145,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Preview
             }
         }
 
-        [WorkItem(923196)]
+        [WorkItem(923196, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/923196")]
         [WpfFact, Trait(Traits.Editor, Traits.Editors.Preview)]
         public void TestPreviewDiagnostic()
         {
@@ -183,7 +183,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Preview
         [WpfFact]
         public async Task TestPreviewDiagnosticTagger()
         {
-            using (var workspace = await CSharpWorkspaceFactory.CreateWorkspaceFromLinesAsync("class { }"))
+            using (var workspace = await TestWorkspace.CreateCSharpAsync("class { }"))
             using (var previewWorkspace = new PreviewWorkspace(workspace.CurrentSolution))
             {
                 //// preview workspace and owner of the solution now share solution and its underlying text buffer
@@ -204,7 +204,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Preview
         [WpfFact]
         public async Task TestPreviewDiagnosticTaggerInPreviewPane()
         {
-            using (var workspace = await CSharpWorkspaceFactory.CreateWorkspaceFromLinesAsync("class { }"))
+            using (var workspace = await TestWorkspace.CreateCSharpAsync("class { }"))
             {
                 // set up listener to wait until diagnostic finish running
                 var diagnosticService = workspace.ExportProvider.GetExportedValue<IDiagnosticService>() as DiagnosticService;

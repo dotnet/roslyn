@@ -7,7 +7,7 @@ Imports Xunit
 
 Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Progression
     Public Class InheritsGraphQueryTests
-        <WpfFact, Trait(Traits.Feature, Traits.Features.Progression)>
+        <Fact, Trait(Traits.Feature, Traits.Features.Progression)>
         Public Async Function BaseTypesOfSimpleType() As Threading.Tasks.Task
             Using testState = Await ProgressionTestState.CreateAsync(
                     <Workspace>
@@ -39,8 +39,8 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Progression
             End Using
         End Function
 
-        <WorkItem(546199)>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.Progression)>
+        <WorkItem(546199, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546199")>
+        <Fact, Trait(Traits.Feature, Traits.Features.Progression)>
         Public Async Function TestErrorBaseType() As Threading.Tasks.Task
             Using testState = Await ProgressionTestState.CreateAsync(
                     <Workspace>
@@ -71,7 +71,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Progression
             End Using
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.Progression)>
+        <Fact, Trait(Traits.Feature, Traits.Features.Progression)>
         Public Async Function TestSolutionWithMultipleProjects() As Threading.Tasks.Task
             Using testState = Await ProgressionTestState.CreateAsync(
                     <Workspace>

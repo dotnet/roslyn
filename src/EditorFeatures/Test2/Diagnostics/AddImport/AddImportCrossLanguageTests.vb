@@ -1,9 +1,14 @@
 ' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+Imports System.Collections.Immutable
 Imports System.Threading.Tasks
 Imports Microsoft.CodeAnalysis.CodeFixes
 Imports Microsoft.CodeAnalysis.CSharp.CodeFixes.AddImport
 Imports Microsoft.CodeAnalysis.Diagnostics
+Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
+Imports Microsoft.CodeAnalysis.Host.Mef
+Imports Microsoft.CodeAnalysis.IncrementalCaches
+Imports Microsoft.CodeAnalysis.SolutionCrawler
 Imports Microsoft.CodeAnalysis.UnitTests
 Imports Microsoft.CodeAnalysis.VisualBasic.CodeFixes.AddImport
 
@@ -23,7 +28,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics.AddImport
             Return Tuple.Create(Of DiagnosticAnalyzer, CodeFixProvider)(Nothing, fixer)
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsAddImport)>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddImport)>
         Public Async Function Test_CSharpToVisualBasic1() As Task
             Dim input =
                 <Workspace>
@@ -65,7 +70,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics.AddImport
             Await TestAsync(input, expected)
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsAddImport)>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddImport)>
         Public Async Function Test_VisualBasicToCSharp1() As Task
             Dim input =
                 <Workspace>
@@ -105,8 +110,8 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics.AddImport
             Await TestAsync(input, expected)
         End Function
 
-        <WorkItem(1083419)>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsAddImport)>
+        <WorkItem(1083419, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1083419")>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddImport)>
         Public Async Function TestExtensionMethods1() As Task
             Dim input =
                 <Workspace>
@@ -163,8 +168,8 @@ namespace CSAssembly1
             Await TestAsync(input, expected, codeActionIndex:=1)
         End Function
 
-        <WorkItem(1083419)>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsAddImport)>
+        <WorkItem(1083419, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1083419")>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddImport)>
         Public Async Function TestExtensionMethods2() As Task
             Dim input =
                 <Workspace>
@@ -217,8 +222,8 @@ End Namespace
             Await TestAsync(input, expected, codeActionIndex:=0)
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsAddImport)>
-        Public Async Function TestAddProjectReference_CSharpToCSharp() As Task
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddImport)>
+        Public Async Function AddProjectReference_CSharpToCSharp_Test() As Task
             Dim input =
                 <Workspace>
                     <Project Language='C#' AssemblyName='CSAssembly1' CommonReferences='true'>
@@ -259,10 +264,61 @@ namespace CSAssembly2
 }
                 </text>.Value.Trim()
 
-            Await TestAsync(input, expected, codeActionIndex:=0, addedReference:="CSAssembly1")
+            Await TestAsync(input, expected, codeActionIndex:=0, addedReference:="CSAssembly1", onAfterWorkspaceCreated:=AddressOf WaitForSolutionCrawler)
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsAddImport)>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddImport)>
+        Public Async Function TestAddProjectReference_CSharpToCSharp_WithProjectRenamed() As Task
+            Dim input =
+                <Workspace>
+                    <Project Language='C#' AssemblyName='CSAssembly1' CommonReferences='true'>
+                        <Document FilePath='Test1.cs'>
+using System.Collections.Generic;
+namespace CSAssembly1
+{
+    public class Class1
+    {
+    }
+}
+                        </Document>
+                    </Project>
+                    <Project Language='C#' AssemblyName='CSAssembly2' CommonReferences='true'>
+                        <CompilationOptions></CompilationOptions>
+                        <Document FilePath="Test2.cs">
+namespace CSAssembly2
+{
+    public class Class2
+    {
+        $$Class1 c;
+    }
+}
+                        </Document>
+                    </Project>
+                </Workspace>
+
+            Dim expected =
+                <text>
+using CSAssembly1;
+
+namespace CSAssembly2
+{
+    public class Class2
+    {
+        Class1 c;
+    }
+}
+                </text>.Value.Trim()
+
+            Await TestAsync(input, expected, codeActionIndex:=0, addedReference:="NewName", onAfterWorkspaceCreated:=
+                            Sub(workspace As TestWorkspace)
+                                WaitForSolutionCrawler(workspace)
+                                Dim project = workspace.CurrentSolution.Projects.Single(Function(p) p.AssemblyName = "CSAssembly1")
+                                workspace.OnProjectNameChanged(project.Id, "NewName", "NewFilePath")
+                                WaitForSolutionCrawler(workspace)
+                            End Sub)
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddImport)>
         Public Async Function TestAddProjectReference_VBToVB() As Task
             Dim input =
                 <Workspace>
@@ -297,10 +353,61 @@ Namespace VBAssembly2
 End Namespace
                 </text>.Value.Trim()
 
-            Await TestAsync(input, expected, codeActionIndex:=0, addedReference:="VBAssembly1")
+            Await TestAsync(input, expected, codeActionIndex:=0, addedReference:="VBAssembly1", onAfterWorkspaceCreated:=AddressOf WaitForSolutionCrawler)
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsAddImport)>
+        Private Sub WaitForSolutionCrawler(workspace As TestWorkspace)
+            Dim solutionCrawler = DirectCast(workspace.Services.GetService(Of ISolutionCrawlerRegistrationService), SolutionCrawlerRegistrationService)
+            solutionCrawler.Register(workspace)
+            Dim provider = DirectCast(workspace.ExportProvider.GetExports(Of IWorkspaceServiceFactory).First(
+                        Function(f) TypeOf f.Value Is SymbolTreeInfoIncrementalAnalyzerProvider).Value, SymbolTreeInfoIncrementalAnalyzerProvider)
+            Dim analyzer = provider.CreateIncrementalAnalyzer(workspace)
+            solutionCrawler.WaitUntilCompletion_ForTestingPurposesOnly(workspace, ImmutableArray.Create(analyzer))
+        End Sub
+
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddImport)>
+        <WorkItem(8036, "https://github.com/dotnet/Roslyn/issues/8036")>
+        Public Async Function TestAddProjectReference_CSharpToVB_ExtensionMethod() As Task
+            Dim input =
+                <Workspace>
+                    <Project Language='Visual Basic' AssemblyName='VBAssembly1' CommonReferences='true'>
+                        <Document FilePath='Test1.vb'>
+Imports System.Runtime.CompilerServices
+
+Namespace N
+    Public Module M
+        &lt;Extension&gt;
+        Public Sub Extension(o As Object)
+        End Sub
+    End Module
+End Namespace
+                        </Document>
+                    </Project>
+                    <Project Language='C#' AssemblyName='CSAssembly1' CommonReferences='true'>
+                        <CompilationOptions></CompilationOptions>
+                        <Document FilePath="Test1.cs">
+class C
+{
+    void M()
+    {
+        object o;
+        o.$$Extension();
+    }
+}
+                        </Document>
+                    </Project>
+                </Workspace>
+
+            ' This is not currently supported because we can't find extension methods across
+            ' projects of different languge types.  This is due to being unable to 'Reduce'
+            ' the extension method properly when the extension method and the receiver are
+            ' from different languages (the compilation layer doesn't allow for this).
+            '
+            ' This test just verifies that we don't crash trying.
+            Await TestMissing(input)
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddImport)>
         Public Async Function TestAddProjectReferenceMissingForCircularReference() As Task
             Dim input =
                 <Workspace>
@@ -333,11 +440,11 @@ namespace CSAssembly2
             Await TestMissing(input)
         End Function
 
-
-        Protected Overloads Async Function TestAsync(definition As XElement,
-                           Optional expected As String = Nothing,
-                           Optional codeActionIndex As Integer = 0,
-                           Optional addedReference As String = Nothing) As Task
+        Friend Overloads Async Function TestAsync(definition As XElement,
+                            Optional expected As String = Nothing,
+                            Optional codeActionIndex As Integer = 0,
+                            Optional addedReference As String = Nothing,
+                            Optional onAfterWorkspaceCreated As Action(Of TestWorkspace) = Nothing) As Task
             Dim verifySolutions As Action(Of Solution, Solution) = Nothing
             If addedReference IsNot Nothing Then
                 verifySolutions =
@@ -359,7 +466,7 @@ namespace CSAssembly2
                     End Sub
             End If
 
-            Await TestAsync(definition, expected, codeActionIndex, verifySolutions:=verifySolutions)
+            Await TestAsync(definition, expected, codeActionIndex, verifySolutions:=verifySolutions, onAfterWorkspaceCreated:=onAfterWorkspaceCreated)
         End Function
     End Class
 End Namespace

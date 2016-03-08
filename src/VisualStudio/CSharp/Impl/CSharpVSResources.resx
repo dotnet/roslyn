@@ -247,13 +247,13 @@
     <value>Insert space between method name and its opening parenthesis</value>
   </data>
   <data name="SpaceBetweenEmptyMethodDeclarationParentheses" xml:space="preserve">
-    <value>Insert space within empty argument list parentheses</value>
+    <value>Insert space within empty parameter list parentheses</value>
   </data>
   <data name="SpacingAfterMethodDeclarationName" xml:space="preserve">
     <value>Insert space between method name and its opening parenthesis</value>
   </data>
   <data name="SpaceWithinMethodDeclarationParenthesis" xml:space="preserve">
-    <value>Insert space within argument list parentheses</value>
+    <value>Insert space within parameter list parentheses</value>
   </data>
   <data name="SpaceAfterControlFlowStatementKeyword" xml:space="preserve">
     <value>Insert space after keywords in control flow statements</value>
@@ -309,23 +309,20 @@
   <data name="NewLineKeywords" xml:space="preserve">
     <value>New line options for keywords</value>
   </data>
-  <data name="QualifyMemberAccessWithThis" xml:space="preserve">
-    <value>Qualify member access with 'this'</value>
-  </data>
   <data name="UseVarWhenGeneratingLocals" xml:space="preserve">
     <value>Use 'var' when generating locals</value>
   </data>
   <data name="PreferIntrinsicPredefinedTypeKeywordInDeclaration" xml:space="preserve">
-    <value>Prefer intrinsic predefined type keyword when declaring locals, parameters and members</value>
+    <value>For locals, parameters and members</value>
   </data>
   <data name="PreferIntrinsicPredefinedTypeKeywordInMemberAccess" xml:space="preserve">
-    <value>Prefer intrinsic predefined type keyword in member access expressions</value>
+    <value>For member access expressions</value>
   </data>
   <data name="Option_AllowMovingDeclaration" xml:space="preserve">
     <value>_Move local declaration to the extracted method if it is not used elsewhere</value>
   </data>
   <data name="Option_ClosedFileDiagnostics" xml:space="preserve">
-    <value>Show diagnostics for closed _files</value>
+    <value>Enable full solution _analysis</value>
   </data>
   <data name="Option_DisplayLineSeparators" xml:space="preserve">
     <value>_Show procedure line separators</value>
@@ -353,6 +350,9 @@
   </data>
   <data name="Option_Highlighting" xml:space="preserve">
     <value>Highlighting</value>
+  </data>
+  <data name="Option_InsertAsteriskAtTheStartOfNewLinesWhenWritingBlockComments" xml:space="preserve">
+    <value>_Insert * at the start of new lines when writing /* */ comments</value>
   </data>
   <data name="Option_OptimizeForSolutionSize" xml:space="preserve">
     <value>Optimize for solution size</value>
@@ -407,5 +407,56 @@
   </data>
   <data name="NewLinesForBracesProperty" xml:space="preserve">
     <value>Place open brace on new line for properties, indexers, and events</value>
+  </data>
+  <data name="SetTypeInferencePreferences" xml:space="preserve">
+    <value>Type Inference preferences:</value>
+  </data>
+  <data name="UseVarForIntrinsicTypes" xml:space="preserve">
+    <value>For built-in types</value>
+  </data>
+  <data name="UseVarWhenPossible" xml:space="preserve">
+    <value>Elsewhere</value>
+  </data>
+  <data name="UseVarWhenTypeIsApparent" xml:space="preserve">
+    <value>When variable type is apparent</value>
+  </data>
+  <data name="QualifyEventAccessWithThis" xml:space="preserve">
+    <value>Qualify event access with 'this'</value>
+  </data>
+  <data name="QualifyFieldAccessWithThis" xml:space="preserve">
+    <value>Qualify field access with 'this'</value>
+  </data>
+  <data name="QualifyMethodAccessWithThis" xml:space="preserve">
+    <value>Qualify method access with 'this'</value>
+  </data>
+  <data name="QualifyPropertyAccessWithThis" xml:space="preserve">
+    <value>Qualify property access with 'this'</value>
+  </data>
+  <data name="PreferExplicitType" xml:space="preserve">
+    <value>Prefer explicit type</value>
+  </data>
+  <data name="PreferFrameworkType" xml:space="preserve">
+    <value>Prefer framework type</value>
+  </data>
+  <data name="PreferPredefinedType" xml:space="preserve">
+    <value>Prefer predefined type</value>
+  </data>
+  <data name="PreferThis" xml:space="preserve">
+    <value>Prefer 'this.'</value>
+  </data>
+  <data name="PreferVar" xml:space="preserve">
+    <value>Prefer 'var'</value>
+  </data>
+  <data name="QualifyGroupTitle" xml:space="preserve">
+    <value>'this.' preferences:</value>
+  </data>
+  <data name="VarGroupTitle" xml:space="preserve">
+    <value>'var' preferences:</value>
+  </data>
+  <data name="DoNotPreferThis" xml:space="preserve">
+    <value>Do not prefer 'this.'</value>
+  </data>
+  <data name="PredefinedTypesGroupTitle" xml:space="preserve">
+    <value>predefined type preferences:</value>
   </data>
 </root>

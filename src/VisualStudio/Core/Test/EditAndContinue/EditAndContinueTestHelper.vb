@@ -21,7 +21,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.EditAndContinue
                                     </Document>
                            </Project>
                        </Workspace>
-            Return TestWorkspaceFactory.CreateWorkspaceAsync(test)
+            Return TestWorkspace.CreateAsync(test)
         End Function
 
         Public Class TestDiagnosticAnalyzerService
@@ -101,6 +101,10 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.EditAndContinue
 
             Public Function IsCompilerDiagnosticAnalyzer(language As String, analyzer As DiagnosticAnalyzer) As Boolean Implements IDiagnosticAnalyzerService.IsCompilerDiagnosticAnalyzer
                 Return False
+            End Function
+
+            Public Function ContainsDiagnostics(workspace As Workspace, projectId As ProjectId) As Boolean Implements IDiagnosticAnalyzerService.ContainsDiagnostics
+                Throw New NotImplementedException()
             End Function
         End Class
     End Class

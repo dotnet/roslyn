@@ -26,7 +26,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.DocCommentFormatting
             TestFormat(xmlFragment, expected, expected);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.DocCommentFormatting)]
+        [Fact, Trait(Traits.Feature, Traits.Features.DocCommentFormatting)]
         public void CTag()
         {
             var comment = "Class <c>Point</c> models a point in a two-dimensional plane.";
@@ -35,7 +35,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.DocCommentFormatting
             TestFormat(comment, expected);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.DocCommentFormatting)]
+        [Fact, Trait(Traits.Feature, Traits.Features.DocCommentFormatting)]
         public void ExampleAndCodeTags()
         {
             var comment = @"This method changes the point's location by the given x- and y-offsets.
@@ -52,7 +52,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.DocCommentFormatting
             TestFormat(comment, expected);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.DocCommentFormatting)]
+        [Fact, Trait(Traits.Feature, Traits.Features.DocCommentFormatting)]
         public void ListTag()
         {
             var comment = @"Here is an example of a bulleted list:
@@ -70,7 +70,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.DocCommentFormatting
             TestFormat(comment, expected);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.DocCommentFormatting)]
+        [Fact, Trait(Traits.Feature, Traits.Features.DocCommentFormatting)]
         public void ParaTag()
         {
             var comment = @"This is the entry point of the Point class testing program.
@@ -86,7 +86,7 @@ This program tests each method and operator, and is intended to be run after any
             TestFormat(comment, expected);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.DocCommentFormatting)]
+        [Fact, Trait(Traits.Feature, Traits.Features.DocCommentFormatting)]
         public void TestPermissionTag()
         {
             var comment = @"<permission cref=""System.Security.PermissionSet"">Everyone can access this method.</permission>";
@@ -96,7 +96,7 @@ This program tests each method and operator, and is intended to be run after any
             TestFormat(comment, expected);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.DocCommentFormatting)]
+        [Fact, Trait(Traits.Feature, Traits.Features.DocCommentFormatting)]
         public void SeeTag()
         {
             var comment = @"<see cref=""AnotherFunction""/>";
@@ -106,7 +106,7 @@ This program tests each method and operator, and is intended to be run after any
             TestFormat(comment, expected);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.DocCommentFormatting)]
+        [Fact, Trait(Traits.Feature, Traits.Features.DocCommentFormatting)]
         public void SeeAlsoTag()
         {
             var comment = @"<seealso cref=""AnotherFunction""/>";
@@ -116,7 +116,7 @@ This program tests each method and operator, and is intended to be run after any
             TestFormat(comment, expected);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.DocCommentFormatting)]
+        [Fact, Trait(Traits.Feature, Traits.Features.DocCommentFormatting)]
         public void ValueTag()
         {
             var comment = @"<value>Property <c>X</c> represents the point's x-coordinate.</value>";
@@ -126,7 +126,7 @@ This program tests each method and operator, and is intended to be run after any
             TestFormat(comment, expected);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.DocCommentFormatting)]
+        [Fact, Trait(Traits.Feature, Traits.Features.DocCommentFormatting)]
         public void TestParamRefTag()
         {
             var comment =
@@ -138,7 +138,7 @@ This program tests each method and operator, and is intended to be run after any
             TestFormat(comment, expected);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.DocCommentFormatting)]
+        [Fact, Trait(Traits.Feature, Traits.Features.DocCommentFormatting)]
         public void TestTypeParamRefTag()
         {
             var comment = @"This method fetches data and returns a list of  <typeparamref name=""Z""/>.";
@@ -148,7 +148,7 @@ This program tests each method and operator, and is intended to be run after any
             TestFormat(comment, expected);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.DocCommentFormatting)]
+        [Fact, Trait(Traits.Feature, Traits.Features.DocCommentFormatting)]
         public void Whitespace1()
         {
             var comment = "  This has extra whitespace.  ";
@@ -158,7 +158,7 @@ This program tests each method and operator, and is intended to be run after any
             TestFormat(comment, expected);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.DocCommentFormatting)]
+        [Fact, Trait(Traits.Feature, Traits.Features.DocCommentFormatting)]
         public void Whitespace2()
         {
             var comment =
@@ -172,7 +172,7 @@ whitespace.
             TestFormat(comment, expected);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.DocCommentFormatting)]
+        [Fact, Trait(Traits.Feature, Traits.Features.DocCommentFormatting)]
         public void Whitespace3()
         {
             var comment = "This  has  extra  whitespace.";
@@ -181,7 +181,7 @@ whitespace.
             TestFormat(comment, expected);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.DocCommentFormatting)]
+        [Fact, Trait(Traits.Feature, Traits.Features.DocCommentFormatting)]
         public void Paragraphs1()
         {
             var comment =
@@ -193,7 +193,7 @@ whitespace.
             TestFormat(comment, expected);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.DocCommentFormatting)]
+        [Fact, Trait(Traits.Feature, Traits.Features.DocCommentFormatting)]
         public void Paragraphs2()
         {
             var comment =
@@ -210,7 +210,7 @@ This is also part of a paragraph.";
             TestFormat(comment, expected);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.DocCommentFormatting)]
+        [Fact, Trait(Traits.Feature, Traits.Features.DocCommentFormatting)]
         public void Paragraphs3()
         {
             var comment =
@@ -227,7 +227,7 @@ This is part of a paragraph.";
             TestFormat(comment, expected);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.DocCommentFormatting)]
+        [Fact, Trait(Traits.Feature, Traits.Features.DocCommentFormatting)]
         public void Paragraphs4()
         {
             var comment =
@@ -243,7 +243,7 @@ This is part of the summary, too.";
             TestFormat(comment, expected);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.DocCommentFormatting)]
+        [Fact, Trait(Traits.Feature, Traits.Features.DocCommentFormatting)]
         public void See1()
         {
             var comment = @"See <see cref=""T:System.Object"" />";
@@ -253,7 +253,7 @@ This is part of the summary, too.";
             TestFormat(comment, expected);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.DocCommentFormatting)]
+        [Fact, Trait(Traits.Feature, Traits.Features.DocCommentFormatting)]
         public void See2()
         {
             var comment = @"See <see />";
@@ -263,7 +263,7 @@ This is part of the summary, too.";
             TestFormat(comment, expected);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.DocCommentFormatting)]
+        [Fact, Trait(Traits.Feature, Traits.Features.DocCommentFormatting)]
         public void SeeAlso1()
         {
             var comment = @"See also <seealso cref=""T:System.Object"" />";
@@ -273,7 +273,7 @@ This is part of the summary, too.";
             TestFormat(comment, expected);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.DocCommentFormatting)]
+        [Fact, Trait(Traits.Feature, Traits.Features.DocCommentFormatting)]
         public void SeeAlso2()
         {
             var comment = @"See also <seealso />";

@@ -94,7 +94,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         internal CSharpAttributeData GetAttribute(AttributeSyntax node, NamedTypeSymbol boundAttributeType, DiagnosticBag diagnostics)
         {
-            var boundAttribute = BindAttribute(node, boundAttributeType, diagnostics);
+            var boundAttribute = new PatternVariableBinder(node, this).BindAttribute(node, boundAttributeType, diagnostics);
 
             return GetAttribute(boundAttribute, diagnostics);
         }

@@ -15,48 +15,48 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Diagnostics.FullyQ
             Return Tuple.Create(Of DiagnosticAnalyzer, CodeFixProvider)(Nothing, New IncorrectFunctionReturnTypeCodeFixProvider())
         End Function
 
-        <WorkItem(718494)>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsCorrectFunctionReturnType)>
+        <WorkItem(718494, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/718494")>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsCorrectFunctionReturnType)>
         Public Async Function TestAsyncFunction1() As Task
             Await TestAsync(
 NewLines("Imports System.Threading.Tasks \n Module Program \n [|Async Function F()|] \n Return Nothing \n End Function \n End Module"),
 NewLines("Imports System.Threading.Tasks \n Module Program \n Async Function F() As Task \n Return Nothing \n End Function \n End Module"))
         End Function
 
-        <WorkItem(718494)>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsCorrectFunctionReturnType)>
+        <WorkItem(718494, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/718494")>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsCorrectFunctionReturnType)>
         Public Async Function TestAsyncFunction2() As Task
             Await TestAsync(
 NewLines("Imports System.Threading.Tasks \n Module Program \n [|Async Function F() As   Integer|]   \n Return Nothing \n End Function \n End Module"),
 NewLines("Imports System.Threading.Tasks \n Module Program \n Async Function F() As   Task(Of Integer)   \n Return Nothing \n End Function \n End Module"))
         End Function
 
-        <WorkItem(718494)>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsCorrectFunctionReturnType)>
+        <WorkItem(718494, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/718494")>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsCorrectFunctionReturnType)>
         Public Async Function TestAsyncFunction3() As Task
             Await TestAsync(
 NewLines("Imports System.Threading.Tasks \n Module Program \n Async Function F() As Task \n Dim a = [|Async Function() As Integer|] \n Return Nothing \n End Function\n Return Nothing \n End Function \n End Module"),
 NewLines("Imports System.Threading.Tasks \n Module Program \n Async Function F() As Task \n Dim a = Async Function() As Task(Of Integer) \n Return Nothing \n End Function\n Return Nothing \n End Function \n End Module"))
         End Function
 
-        <WorkItem(718494)>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsCorrectFunctionReturnType)>
+        <WorkItem(718494, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/718494")>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsCorrectFunctionReturnType)>
         Public Async Function TestIteratorFunction1() As Task
             Await TestAsync(
 NewLines("Imports System.Collections \n Imports System.Collections.Generic \n Module Program \n [|Iterator Function F()|] \n Return Nothing \n End Function \n End Module"),
 NewLines("Imports System.Collections \n Imports System.Collections.Generic \n Module Program \n Iterator Function F() As IEnumerable \n Return Nothing \n End Function \n End Module"))
         End Function
 
-        <WorkItem(718494)>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsCorrectFunctionReturnType)>
+        <WorkItem(718494, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/718494")>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsCorrectFunctionReturnType)>
         Public Async Function TestIteratorFunction2() As Task
             Await TestAsync(
 NewLines("Imports System.Collections \n Imports System.Collections.Generic \n Module Program \n [|Iterator Function F() As   Integer|]   \n Return Nothing \n End Function \n End Module"),
 NewLines("Imports System.Collections \n Imports System.Collections.Generic \n Module Program \n Iterator Function F() As   IEnumerable(Of Integer)   \n Return Nothing \n End Function \n End Module"))
         End Function
 
-        <WorkItem(718494)>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsCorrectFunctionReturnType)>
+        <WorkItem(718494, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/718494")>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsCorrectFunctionReturnType)>
         Public Async Function TestIteratorFunction3() As Task
             Await TestAsync(
 NewLines("Imports System.Collections \n Imports System.Collections.Generic \n Module Program \n Async Function F() As Task \n Dim a = [|Iterator Function() As Integer|] \n Return Nothing \n End Function\n Return Nothing \n End Function \n End Module"),

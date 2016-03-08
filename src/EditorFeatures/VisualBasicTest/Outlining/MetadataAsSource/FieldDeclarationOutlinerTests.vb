@@ -20,7 +20,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Outlining.Metadata
             Return New MaSOutliners.FieldDeclarationOutliner()
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.MetadataAsSource)>
+        <Fact, Trait(Traits.Feature, Traits.Features.MetadataAsSource)>
         Public Async Function NoCommentsOrAttributes() As Task
             Dim code = "
 Class C
@@ -31,7 +31,7 @@ End Class
             Await VerifyNoRegionsAsync(code)
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.MetadataAsSource)>
+        <Fact, Trait(Traits.Feature, Traits.Features.MetadataAsSource)>
         Public Async Function WithAttributes() As Task
             Dim code = "
 Class C
@@ -44,7 +44,7 @@ End Class
                 Region("collapse", "hint", VisualBasicOutliningHelpers.Ellipsis, autoCollapse:=True))
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.MetadataAsSource)>
+        <Fact, Trait(Traits.Feature, Traits.Features.MetadataAsSource)>
         Public Async Function WithCommentsAndAttributes() As Task
             Dim code = "
 Class C

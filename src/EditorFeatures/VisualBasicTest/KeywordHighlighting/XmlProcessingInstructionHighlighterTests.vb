@@ -11,7 +11,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.KeywordHighlightin
             Return New XmlProcessingInstructionHighlighter()
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)>
+        <Fact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)>
         Public Async Function TestXmlProcessingInstruction1() As Task
             Await TestAsync(<Text><![CDATA[
 Class C
@@ -21,7 +21,7 @@ End Sub
 End Class]]></Text>)
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)>
+        <Fact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)>
         Public Async Function TestXmlProcessingInstruction2() As Task
             Await TestAsync(<Text><![CDATA[
 Class C
@@ -31,7 +31,7 @@ End Sub
 End Class]]></Text>)
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)>
+        <Fact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)>
         Public Async Function TestXmlProcessingInstruction3() As Task
             Await TestAsync(<Text><![CDATA[
 Class C

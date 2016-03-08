@@ -7,7 +7,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
         Inherits BasicTestBase
 
         <Fact>
-        <WorkItem(1081584)>
+        <WorkItem(1081584, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1081584")>
         Public Sub TestYieldInSelectCase()
             CompileAndVerify(
 <compilation>
@@ -1559,7 +1559,7 @@ End Module
 ]]>)
         End Sub
         <Fact>
-        <WorkItem(703361, "DevDiv")>
+        <WorkItem(703361, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/703361")>
         Public Sub VerifyHelpers()
             Dim source = <compilation>
                              <file name="a.vb"><![CDATA[
@@ -1576,7 +1576,7 @@ End Class]]></file>
             Assert.Contains("System.Environment.get_CurrentManagedThreadId()", il, StringComparison.Ordinal)
         End Sub
 
-        <WorkItem(835430, "DevDiv")>
+        <WorkItem(835430, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/835430")>
         <Fact>
         Public Sub YieldInWith()
             Dim source =
@@ -1618,5 +1618,75 @@ End Module
             CompileAndVerify(source, expectedOutput:="420420")
         End Sub
 
+        <Fact, WorkItem(9167, "https://github.com/dotnet/roslyn/issues/9167")>
+        Public Sub IteratorShouldCompileWithoutOptionalAttributes()
+
+#Region "IL For corlib without CompilerGeneratedAttribute Or DebuggerNonUserCodeAttribute"
+            Dim corlib = "
+Namespace System
+    Public Class [Object]
+    End Class
+    Public Class [Int32]
+    End Class
+    Public Class [Boolean]
+    End Class
+    Public Class [String]
+    End Class
+    Public Class Exception
+    End Class
+    Public Class NotSupportedException
+        Inherits Exception
+    End Class
+    Public Class ValueType
+    End Class
+    Public Class [Enum]
+    End Class
+    Public Class Void
+    End Class
+    Public Interface IDisposable
+        Sub Dispose()
+    End Interface
+End Namespace
+Namespace System.Collections
+    Public Interface IEnumerable
+        Function GetEnumerator() As IEnumerator
+    End Interface
+    Public Interface IEnumerator
+        Function MoveNext() As Boolean
+        Property Current As Object
+        Sub Reset()
+    End Interface
+    Namespace Generic
+        Public Interface IEnumerable(Of T)
+            Inherits IEnumerable
+            Overloads Function GetEnumerator() As IEnumerator(Of T)
+        End Interface
+        Public Interface IEnumerator(Of T)
+            Inherits IEnumerator
+            Overloads Property Current As T
+        End Interface
+    End Namespace
+End Namespace
+Namespace System.Threading
+    Public Class Thread
+        Shared Property CurrentThread As Thread
+        Property ManagedThreadId As Integer
+    End Class
+End Namespace
+"
+#End Region
+
+            Dim source = "
+Class C
+    Public Iterator Function SomeNumbers() As System.Collections.IEnumerable
+        Yield Nothing
+    End Function
+End Class
+"
+            ' The compilation succeeds even though CompilerGeneratedAttribute and DebuggerNonUserCodeAttribute are not available.
+            Dim compilation = CompilationUtils.CreateCompilation({Parse(source), Parse(corlib)})
+            Dim verifier = CompileAndVerify(compilation, verify:=False)
+            verifier.VerifyDiagnostics()
+        End Sub
     End Class
 End Namespace

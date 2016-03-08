@@ -6,6 +6,7 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
+using System.IO.Pipes;
 using System.Linq;
 using System.Reflection;
 using System.Runtime.InteropServices;
@@ -42,8 +43,8 @@ namespace Microsoft.CodeAnalysis.CompilerServer.UnitTests
         static CompilerServerUnitTests()
         {
             var basePath = Path.GetDirectoryName(typeof(CompilerServerUnitTests).Assembly.Location);
-            if (!File.Exists(Path.Combine(basePath, CompilerServerExeName)) || 
-                !File.Exists(Path.Combine(basePath, CSharpClientExeName)) || 
+            if (!File.Exists(Path.Combine(basePath, CompilerServerExeName)) ||
+                !File.Exists(Path.Combine(basePath, CSharpClientExeName)) ||
                 !File.Exists(Path.Combine(basePath, BasicClientExeName)))
             {
                 IsRunningAgainstInstallation = true;
@@ -253,13 +254,6 @@ End Module")
 
         #endregion
 
-        private static async Task Verify(ServerData serverData, int connections, int completed)
-        {
-            var serverStats = await serverData.Complete().ConfigureAwait(true);
-            Assert.Equal(connections, serverStats.Connections);
-            Assert.Equal(completed, serverStats.CompletedConnections);
-        }
-
         [Fact]
         public async Task FallbackToCsc()
         {
@@ -268,7 +262,7 @@ End Module")
             {
                 var result = RunCommandLineCompiler(CSharpCompilerClientExecutable, $"/shared:{serverData.PipeName} /nologo hello.cs", _tempDirectory, s_helloWorldSrcCs);
                 VerifyResultAndOutput(result, _tempDirectory, "Hello, world.\r\n");
-                await Verify(serverData, connections: 1, completed: 0).ConfigureAwait(true);
+                await serverData.Verify(connections: 1, completed: 0).ConfigureAwait(true);
             }
         }
 
@@ -284,7 +278,7 @@ End Module")
                 Assert.Equal(result.ExitCode, 1);
                 Assert.True(result.ContainsErrors);
                 Assert.Equal("hello.cs(1,1): error CS1056: Unexpected character '?'", result.Output.Trim());
-                await Verify(serverData, connections: 1, completed: 0).ConfigureAwait(true);
+                await serverData.Verify(connections: 1, completed: 0).ConfigureAwait(true);
             }
         }
 
@@ -307,7 +301,7 @@ End Module")
                 Assert.Equal("test.cs(1,1): error CS1056: Unexpected character '♕'".Trim(),
                     tempOut.ReadAllText().Trim().Replace(srcFile, "test.cs"));
                 Assert.Equal(1, result.ExitCode);
-                await Verify(serverData, connections: 1, completed: 0).ConfigureAwait(true);
+                await serverData.Verify(connections: 1, completed: 0).ConfigureAwait(true);
             }
         }
 
@@ -329,7 +323,7 @@ End Module")
 
 ?
 ~", result.Output.Trim().Replace(srcFile, "test.vb"));
-                await Verify(serverData, connections: 1, completed: 0).ConfigureAwait(true);
+                await serverData.Verify(connections: 1, completed: 0).ConfigureAwait(true);
             }
         }
 
@@ -344,7 +338,7 @@ End Module")
                 var result = ProcessUtilities.Run("cmd",
                     string.Format("/C {0} /shared:{3} /utf8output /nologo /t:library {1} > {2}",
                     BasicCompilerClientExecutable,
-                    srcFile, 
+                    srcFile,
                     tempOut.Path,
                     serverData.PipeName));
 
@@ -354,7 +348,7 @@ End Module")
 ♕
 ~", tempOut.ReadAllText().Trim().Replace(srcFile, "test.vb"));
                 Assert.Equal(1, result.ExitCode);
-                await Verify(serverData, connections: 1, completed: 0).ConfigureAwait(true);
+                await serverData.Verify(connections: 1, completed: 0).ConfigureAwait(true);
             }
         }
 
@@ -365,7 +359,7 @@ End Module")
             {
                 var result = RunCommandLineCompiler(BasicCompilerClientExecutable, $"/shared:{serverData.PipeName} /nologo hello.vb", _tempDirectory, s_helloWorldSrcVb);
                 VerifyResultAndOutput(result, _tempDirectory, "Hello from VB\r\n");
-                await Verify(serverData, connections: 1, completed: 0).ConfigureAwait(true);
+                await serverData.Verify(connections: 1, completed: 0).ConfigureAwait(true);
             }
         }
 
@@ -377,12 +371,12 @@ End Module")
             {
                 var result = RunCommandLineCompiler(CSharpCompilerClientExecutable, $"/shared:{serverData.PipeName} /nologo hello.cs", _tempDirectory, s_helloWorldSrcCs);
                 VerifyResultAndOutput(result, _tempDirectory, "Hello, world.\r\n");
-                await Verify(serverData, connections: 1, completed: 1).ConfigureAwait(true);
+                await serverData.Verify(connections: 1, completed: 1).ConfigureAwait(true);
             }
         }
 
         [Fact]
-        [WorkItem(946954)]
+        [WorkItem(946954, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/946954")]
         public void CompilerBinariesAreNotX86()
         {
             Assert.NotEqual(ProcessorArchitecture.X86,
@@ -408,7 +402,7 @@ End Module")
                                                     _tempDirectory,
                                                     files);
                 VerifyResult(result);
-                await Verify(serverData, connections: 1, completed: 1).ConfigureAwait(true);
+                await serverData.Verify(connections: 1, completed: 1).ConfigureAwait(true);
             }
         }
 
@@ -424,7 +418,7 @@ End Module")
                                                     _tempDirectory,
                                                     files);
                 VerifyResult(result);
-                await Verify(serverData, connections: 1, completed: 1).ConfigureAwait(true);
+                await serverData.Verify(connections: 1, completed: 1).ConfigureAwait(true);
             }
         }
 
@@ -439,7 +433,7 @@ End Module")
                                                     _tempDirectory,
                                                     s_helloWorldSrcCs);
                 VerifyResultAndOutput(result, _tempDirectory, "Hello, world.\r\n");
-                await Verify(serverData, connections: 1, completed: 1).ConfigureAwait(true);
+                await serverData.Verify(connections: 1, completed: 1).ConfigureAwait(true);
             }
         }
 
@@ -454,7 +448,7 @@ End Module")
                                                     _tempDirectory,
                                                     s_helloWorldSrcVb);
                 VerifyResultAndOutput(result, _tempDirectory, "Hello from VB\r\n");
-                await Verify(serverData, connections: 1, completed: 1).ConfigureAwait(true);
+                await serverData.Verify(connections: 1, completed: 1).ConfigureAwait(true);
             }
         }
 
@@ -469,7 +463,7 @@ End Module")
                     _tempDirectory,
                     s_helloWorldSrcVb);
                 VerifyResultAndOutput(result, _tempDirectory, "Hello from VB\r\n");
-                await Verify(serverData, connections: 1, completed: 1).ConfigureAwait(true);
+                await serverData.Verify(connections: 1, completed: 1).ConfigureAwait(true);
             }
         }
 
@@ -497,7 +491,7 @@ class Hello
                 Assert.Equal("", result.Errors);
                 Assert.Equal(1, result.ExitCode);
                 Assert.False(File.Exists(Path.Combine(_tempDirectory.Path, "hello.exe")));
-                await Verify(serverData, connections: 1, completed: 1).ConfigureAwait(true);
+                await serverData.Verify(connections: 1, completed: 1).ConfigureAwait(true);
             }
         }
 
@@ -527,7 +521,7 @@ End Class"}};
                 Assert.Equal("", result.Errors);
                 Assert.Equal(1, result.ExitCode);
                 Assert.False(File.Exists(Path.Combine(_tempDirectory.Path, "hello.exe")));
-                await Verify(serverData, connections: 1, completed: 1).ConfigureAwait(true);
+                await serverData.Verify(connections: 1, completed: 1).ConfigureAwait(true);
             }
         }
 
@@ -545,7 +539,7 @@ End Class"}};
                 Assert.Contains("error CS2001: Source file", result.Output, StringComparison.Ordinal);
                 Assert.Equal(1, result.ExitCode);
                 Assert.False(File.Exists(Path.Combine(_tempDirectory.Path, "missingfile.exe")));
-                await Verify(serverData, connections: 1, completed: 1).ConfigureAwait(true);
+                await serverData.Verify(connections: 1, completed: 1).ConfigureAwait(true);
             }
         }
 
@@ -563,11 +557,11 @@ End Class"}};
                 Assert.Contains("error CS0006: Metadata file", result.Output, StringComparison.Ordinal);
                 Assert.Equal(1, result.ExitCode);
                 Assert.False(File.Exists(Path.Combine(_tempDirectory.Path, "hello.exe")));
-                await Verify(serverData, connections: 1, completed: 1).ConfigureAwait(true);
+                await serverData.Verify(connections: 1, completed: 1).ConfigureAwait(true);
             }
         }
 
-        [WorkItem(546067, "DevDiv")]
+        [WorkItem(546067, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546067")]
         [Fact]
         [Trait(Traits.Environment, Traits.Environments.VSProductInstall)]
         public async Task InvalidMetadataFileErrorCS()
@@ -588,7 +582,7 @@ End Class"}};
                 Assert.Contains("error CS0009: Metadata file", result.Output, StringComparison.Ordinal);
                 Assert.Equal(1, result.ExitCode);
                 Assert.False(File.Exists(Path.Combine(_tempDirectory.Path, "app.exe")));
-                await Verify(serverData, connections: 1, completed: 1).ConfigureAwait(true);
+                await serverData.Verify(connections: 1, completed: 1).ConfigureAwait(true);
             }
         }
 
@@ -606,11 +600,11 @@ End Class"}};
                 Assert.Contains("error BC2001", result.Output, StringComparison.Ordinal);
                 Assert.Equal(1, result.ExitCode);
                 Assert.False(File.Exists(Path.Combine(_tempDirectory.Path, "missingfile.exe")));
-                await Verify(serverData, connections: 1, completed: 1).ConfigureAwait(true);
+                await serverData.Verify(connections: 1, completed: 1).ConfigureAwait(true);
             }
         }
 
-        [Fact(), WorkItem(761131, "DevDiv")]
+        [Fact(), WorkItem(761131, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/761131")]
         [Trait(Traits.Environment, Traits.Environments.VSProductInstall)]
         public async Task MissingReferenceErrorVB()
         {
@@ -635,11 +629,11 @@ End Module"}};
                 Assert.Contains("error BC2017: could not find library", result.Output, StringComparison.Ordinal);
                 Assert.Equal(1, result.ExitCode);
                 Assert.False(File.Exists(Path.Combine(_tempDirectory.Path, "hellovb.exe")));
-                await Verify(serverData, connections: 1, completed: 1).ConfigureAwait(true);
+                await serverData.Verify(connections: 1, completed: 1).ConfigureAwait(true);
             }
         }
 
-        [WorkItem(546067, "DevDiv")]
+        [WorkItem(546067, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546067")]
         [Fact]
         [Trait(Traits.Environment, Traits.Environments.VSProductInstall)]
         public async Task InvalidMetadataFileErrorVB()
@@ -664,12 +658,12 @@ End Module"}};
                 Assert.Contains("error BC31519", result.Output, StringComparison.Ordinal);
                 Assert.Equal(1, result.ExitCode);
                 Assert.False(File.Exists(Path.Combine(_tempDirectory.Path, "app.exe")));
-                await Verify(serverData, connections: 1, completed: 1).ConfigureAwait(true);
+                await serverData.Verify(connections: 1, completed: 1).ConfigureAwait(true);
             }
         }
 
         [Fact()]
-        [WorkItem(723280, "DevDiv")]
+        [WorkItem(723280, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/723280")]
         [Trait(Traits.Environment, Traits.Environments.VSProductInstall)]
         public async Task ReferenceCachingVB()
         {
@@ -786,14 +780,14 @@ End Module
                     }
                 }
 
-                await Verify(serverData, connections: 5, completed: 5).ConfigureAwait(true);
+                await serverData.Verify(connections: 5, completed: 5).ConfigureAwait(true);
             }
 
             GC.KeepAlive(rootDirectory);
         }
 
         [Fact()]
-        [WorkItem(723280, "DevDiv")]
+        [WorkItem(723280, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/723280")]
         [Trait(Traits.Environment, Traits.Environments.VSProductInstall)]
         public async Task ReferenceCachingCS()
         {
@@ -906,64 +900,74 @@ class Hello
                     }
                 }
 
-                await Verify(serverData, connections: 5, completed: 5).ConfigureAwait(true);
+                await serverData.Verify(connections: 5, completed: 5).ConfigureAwait(true);
             }
 
             GC.KeepAlive(rootDirectory);
         }
 
-        // Set up directory for multiple simultaneous compilers.
-        private TempDirectory SetupDirectory(TempRoot root, int i)
+        private async Task RunCompilationAsync(RequestLanguage language, string pipeName, int i)
         {
-            TempDirectory dir = root.CreateDirectory();
-            var helloFileCs = dir.CreateFile(string.Format("hello{0}.cs", i));
-            helloFileCs.WriteAllText(string.Format(
-@"using System;
+            var compilationDir = Temp.CreateDirectory();
+
+            TempFile sourceFile;
+            string exeFileName;
+            string prefix;
+            string sourceText;
+
+            if (language == RequestLanguage.CSharpCompile)
+            {
+                exeFileName = $"hellocs{i}.exe";
+                prefix = "CS";
+                sourceFile = compilationDir.CreateFile($"hello{i}.cs");
+                sourceText =
+$@"using System;
 class Hello 
 {{
     public static void Main()
-    {{ Console.WriteLine(""CS Hello number {0}""); }}
-}}", i));
-
-            var helloFileVb = dir.CreateFile(string.Format("hello{0}.vb", i));
-            helloFileVb.WriteAllText(string.Format(
-@"Imports System
+    {{ Console.WriteLine(""CS Hello number {i}""); }}
+}}";
+            }
+            else
+            {
+                exeFileName = $"hellovb{i}.exe";
+                prefix = "VB";
+                sourceFile = compilationDir.CreateFile($"hello{i}.vb");
+                sourceText =
+$@"Imports System
 Module Hello 
     Sub Main()
-       Console.WriteLine(""VB Hello number {0}"") 
+       Console.WriteLine(""VB Hello number {i}"") 
     End Sub
-End Module", i));
+End Module";
+            }
 
-            return dir;
+            await sourceFile.WriteAllTextAsync(sourceText);
+
+            // Create a client to run the build.  Infinite timeout is used to account for the 
+            // case where these tests are run under extreme load.  In high load scenarios the 
+            // client will correctly drop down to a local compilation if the server doesn't respond
+            // fast enough.
+            var client = ServerUtil.CreateBuildClient(language);
+            client.TimeoutOverride = Timeout.Infinite;
+
+            // Compile the code.  Use
+            var buildPaths = new BuildPaths(
+                clientDir: CompilerDirectory,
+                workingDir: compilationDir.Path,
+                sdkDir: RuntimeEnvironment.GetRuntimeDirectory());
+            var result = await client.RunCompilationAsync(new[] { $"/shared:{pipeName}", "/nologo", Path.GetFileName(sourceFile.Path), $"/out:{exeFileName}" }, buildPaths);
+            Assert.Equal(0, result.ExitCode);
+            Assert.True(result.RanOnServer);
+
+            // Run the EXE and verify it prints the desired output.
+            var exeFile = Temp.AddFile(GetResultFile(compilationDir, exeFileName));
+            var exeResult = RunCompilerOutput(exeFile);
+            Assert.Equal($"{prefix} Hello number {i}\r\n", exeResult.Output);
         }
 
-        // Run compiler in directory set up by SetupDirectory
-        private Process RunCompilerCS(TempDirectory dir, int i, ServerData serverData)
-        {
-            return StartProcess(CSharpCompilerClientExecutable, string.Format("/shared:{1} /nologo hello{0}.cs /out:hellocs{0}.exe", i, serverData.PipeName), dir.Path);
-        }
-
-        // Run compiler in directory set up by SetupDirectory
-        private Process RunCompilerVB(TempDirectory dir, int i, ServerData serverData)
-        {
-            return StartProcess(BasicCompilerClientExecutable, string.Format("/shared:{1} /nologo hello{0}.vb /r:Microsoft.VisualBasic.dll /out:hellovb{0}.exe", i, serverData.PipeName), dir.Path);
-        }
-
-        // Run output in directory set up by SetupDirectory
-        private void RunOutput(TempRoot root, TempDirectory dir, int i)
-        {
-            var exeFile = root.AddFile(GetResultFile(dir, string.Format("hellocs{0}.exe", i)));
-            var runningResult = RunCompilerOutput(exeFile);
-            Assert.Equal(string.Format("CS Hello number {0}\r\n", i), runningResult.Output);
-
-            exeFile = root.AddFile(GetResultFile(dir, string.Format("hellovb{0}.exe", i)));
-            runningResult = RunCompilerOutput(exeFile);
-            Assert.Equal(string.Format("VB Hello number {0}\r\n", i), runningResult.Output);
-        }
-
-
-        [WorkItem(997372)]
-        [WorkItem(761326, "DevDiv")]
+        [WorkItem(997372, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/997372")]
+        [WorkItem(761326, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/761326")]
         [Fact]
         [Trait(Traits.Environment, Traits.Environments.VSProductInstall)]
         public async Task MultipleSimultaneousCompiles()
@@ -971,50 +975,19 @@ End Module", i));
             using (var serverData = ServerUtil.CreateServer())
             {
                 // Run this many compiles simultaneously in different directories.
-                const int numberOfCompiles = 10;
-                TempDirectory[] directories = new TempDirectory[numberOfCompiles];
-                Process[] processesVB = new Process[numberOfCompiles];
-                Process[] processesCS = new Process[numberOfCompiles];
+                const int numberOfCompiles = 20;
+                var tasks = new Task[numberOfCompiles];
 
                 for (int i = 0; i < numberOfCompiles; ++i)
                 {
-                    directories[i] = SetupDirectory(Temp, i);
+                    var language = i % 2 == 0 ? RequestLanguage.CSharpCompile : RequestLanguage.VisualBasicCompile;
+                    tasks[i] = RunCompilationAsync(language, serverData.PipeName, i);
                 }
 
-                for (int i = 0; i < numberOfCompiles; ++i)
-                {
-                    processesCS[i] = RunCompilerCS(directories[i], i, serverData);
-                }
+                await Task.WhenAll(tasks);
 
-                for (int i = 0; i < numberOfCompiles; ++i)
-                {
-                    processesVB[i] = RunCompilerVB(directories[i], i, serverData);
-                }
-
-                for (int i = 0; i < numberOfCompiles; ++i)
-                {
-                    AssertNoOutputOrErrors(processesCS[i]);
-                    processesCS[i].WaitForExit();
-                    processesCS[i].Close();
-                    AssertNoOutputOrErrors(processesVB[i]);
-                    processesVB[i].WaitForExit();
-                    processesVB[i].Close();
-                }
-
-                for (int i = 0; i < numberOfCompiles; ++i)
-                {
-                    RunOutput(Temp, directories[i], i);
-                }
-
-                var total = numberOfCompiles * 2;
-                await Verify(serverData, total, total);
+                await serverData.Verify(numberOfCompiles, numberOfCompiles);
             }
-        }
-
-        private void AssertNoOutputOrErrors(Process process)
-        {
-            Assert.Equal(string.Empty, process.StandardOutput.ReadToEnd());
-            Assert.Equal(string.Empty, process.StandardError.ReadToEnd());
         }
 
         [Fact]
@@ -1063,7 +1036,7 @@ class Hello
                 Assert.Equal(0, result.ExitCode);
 
                 var resultFile = Temp.AddFile(GetResultFile(_tempDirectory, "hello1.exe"));
-                await Verify(serverData, connections: 2, completed: 2).ConfigureAwait(true);
+                await serverData.Verify(connections: 2, completed: 2).ConfigureAwait(true);
             }
         }
 
@@ -1116,11 +1089,11 @@ End Module
                 Assert.Equal(0, result.ExitCode);
 
                 var resultFile = Temp.AddFile(GetResultFile(_tempDirectory, "hello1.exe"));
-                await Verify(serverData, connections: 2, completed: 2).ConfigureAwait(true);
+                await serverData.Verify(connections: 2, completed: 2).ConfigureAwait(true);
             }
         }
 
-        [WorkItem(545446, "DevDiv")]
+        [WorkItem(545446, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545446")]
         [Fact()]
         [Trait(Traits.Environment, Traits.Environments.VSProductInstall)]
         public async Task Utf8Output_WithRedirecting_Off_Shared()
@@ -1133,7 +1106,7 @@ End Module
                 var result = ProcessUtilities.Run("cmd",
                     string.Format("/C {0} /shared:{3} /nologo /t:library {1} > {2}",
                     CSharpCompilerClientExecutable,
-                    srcFile, 
+                    srcFile,
                     tempOut.Path,
                     serverData.PipeName));
 
@@ -1141,11 +1114,11 @@ End Module
                 Assert.Equal("SRC.CS(1,1): error CS1056: Unexpected character '?'".Trim(),
                     tempOut.ReadAllText().Trim().Replace(srcFile, "SRC.CS"));
                 Assert.Equal(1, result.ExitCode);
-                await Verify(serverData, connections: 1, completed: 1).ConfigureAwait(true);
+                await serverData.Verify(connections: 1, completed: 1).ConfigureAwait(true);
             }
         }
 
-        [WorkItem(545446, "DevDiv")]
+        [WorkItem(545446, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545446")]
         [Fact()]
         [Trait(Traits.Environment, Traits.Environments.VSProductInstall)]
         public async Task Utf8Output_WithRedirecting_Off_Share()
@@ -1169,11 +1142,11 @@ End Module
 ".Trim(),
                             tempOut.ReadAllText().Trim().Replace(srcFile, "SRC.VB"));
                 Assert.Equal(1, result.ExitCode);
-                await Verify(serverData, connections: 1, completed: 1).ConfigureAwait(true);
+                await serverData.Verify(connections: 1, completed: 1).ConfigureAwait(true);
             }
         }
 
-        [WorkItem(545446, "DevDiv")]
+        [WorkItem(545446, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545446")]
         [Fact()]
         [Trait(Traits.Environment, Traits.Environments.VSProductInstall)]
         public async Task Utf8Output_WithRedirecting_On_Shared_CS()
@@ -1193,11 +1166,11 @@ End Module
                 Assert.Equal("SRC.CS(1,1): error CS1056: Unexpected character '♕'".Trim(),
                     tempOut.ReadAllText().Trim().Replace(srcFile, "SRC.CS"));
                 Assert.Equal(1, result.ExitCode);
-                await Verify(serverData, connections: 1, completed: 1).ConfigureAwait(true);
+                await serverData.Verify(connections: 1, completed: 1).ConfigureAwait(true);
             }
         }
 
-        [WorkItem(545446, "DevDiv")]
+        [WorkItem(545446, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545446")]
         [Fact()]
         [Trait(Traits.Environment, Traits.Environments.VSProductInstall)]
         public async Task Utf8Output_WithRedirecting_On_Shared_VB()
@@ -1221,11 +1194,11 @@ End Module
 ".Trim(),
                             tempOut.ReadAllText().Trim().Replace(srcFile, "SRC.VB"));
                 Assert.Equal(1, result.ExitCode);
-                await Verify(serverData, connections: 1, completed: 1).ConfigureAwait(true);
+                await serverData.Verify(connections: 1, completed: 1).ConfigureAwait(true);
             }
         }
 
-        [WorkItem(871477, "DevDiv")]
+        [WorkItem(871477, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/871477")]
         [Fact]
         [Trait(Traits.Environment, Traits.Environments.VSProductInstall)]
         public async Task AssemblyIdentityComparer1()
@@ -1279,11 +1252,11 @@ class Program
                 Assert.Equal("", result.Output);
                 Assert.Equal("", result.Errors);
                 Assert.Equal(0, result.ExitCode);
-                await Verify(serverData, connections: 2, completed: 2).ConfigureAwait(true);
+                await serverData.Verify(connections: 2, completed: 2).ConfigureAwait(true);
             }
         }
 
-        [WorkItem(979588)]
+        [WorkItem(979588, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/979588")]
         [Fact]
         public async Task Utf8OutputInRspFileCsc()
         {
@@ -1306,11 +1279,11 @@ class Program
                 Assert.Equal("src.cs(1,1): error CS1056: Unexpected character '♕'",
                     tempOut.ReadAllText().Trim().Replace(srcFile, "src.cs"));
                 Assert.Equal(1, result.ExitCode);
-                await Verify(serverData, connections: 1, completed: 1).ConfigureAwait(true);
+                await serverData.Verify(connections: 1, completed: 1).ConfigureAwait(true);
             }
         }
 
-        [WorkItem(979588)]
+        [WorkItem(979588, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/979588")]
         [Fact]
         public async Task Utf8OutputInRspFileVbc()
         {
@@ -1335,11 +1308,11 @@ class Program
 ♕
 ~", tempOut.ReadAllText().Trim().Replace(srcFile, "src.vb"));
                 Assert.Equal(1, result.ExitCode);
-                await Verify(serverData, connections: 1, completed: 1).ConfigureAwait(true);
+                await serverData.Verify(connections: 1, completed: 1).ConfigureAwait(true);
             }
         }
 
-        [Fact(Skip = "DevDiv 1095079"), WorkItem(1095079)]
+        [Fact(Skip = "DevDiv 1095079"), WorkItem(1095079, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1095079")]
         public async Task ServerRespectsAppConfig()
         {
             var exeConfigPath = Path.Combine(CompilerDirectory, CompilerServerExeName + ".config");
@@ -1359,7 +1332,7 @@ class Program
             var exited = proc.HasExited;
             if (!exited)
             {
-                proc.Kill();
+                Kill(proc);
                 Assert.True(false, "Compiler server did not exit in time");
             }
         }
@@ -1408,7 +1381,8 @@ class Program
             Assert.Equal("", result.Errors);
         }
 
-        [Fact, WorkItem(1024619, "DevDiv")]
+        [Fact]
+        [WorkItem(1024619, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1024619")]
         public async Task Bug1024619_01()
         {
             using (var serverData = ServerUtil.CreateServer())
@@ -1436,11 +1410,12 @@ class Program
 
                 Assert.Equal("", result.Output.Trim());
                 Assert.Equal(0, result.ExitCode);
-                await Verify(serverData, connections: 1, completed: 1).ConfigureAwait(true);
+                await serverData.Verify(connections: 1, completed: 1).ConfigureAwait(true);
             }
         }
 
-        [Fact, WorkItem(1024619, "DevDiv")]
+        [Fact]
+        [WorkItem(1024619, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1024619")]
         public async Task Bug1024619_02()
         {
             using (var serverData = ServerUtil.CreateServer())
@@ -1469,7 +1444,7 @@ class Program
 
                 Assert.Equal("", result.Output.Trim());
                 Assert.Equal(0, result.ExitCode);
-                await Verify(serverData, connections: 2, completed: 2).ConfigureAwait(true);
+                await serverData.Verify(connections: 2, completed: 2).ConfigureAwait(true);
             }
         }
     }

@@ -88,7 +88,7 @@ class C : Abracadabra
             DiagnosticsHelper.VerifyDiagnostics(model, source, @"bracadabra[\r\n]+", ErrorId);
         }
 
-        [Fact, WorkItem(1066483)]
+        [Fact, WorkItem(1066483, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1066483")]
         public void TestDiagnosticWithSeverity()
         {
             var source = @"
@@ -153,7 +153,7 @@ namespace N1
             var tree2 = CSharpSyntaxTree.ParseText(source2, path: "file2");
             var eventQueue = new AsyncQueue<CompilationEvent>();
             var compilation = CreateCompilationWithMscorlib45(new[] { tree1, tree2 }).WithEventQueue(eventQueue);
-            
+
             // Invoke SemanticModel.GetDiagnostics to force populate the event queue for symbols in the first source file.
             var model = compilation.GetSemanticModel(tree1);
             model.GetDiagnostics(tree1.GetRoot().FullSpan);
@@ -172,7 +172,7 @@ namespace N1
             Assert.True(completedCompilationUnits.Contains(tree1.FilePath));
         }
 
-        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/7477"), WorkItem(7477, "https://github.com/dotnet/roslyn/issues/7477")]
+        [Fact, WorkItem(7477, "https://github.com/dotnet/roslyn/issues/7477")]
         public void TestCompilationEventsForPartialMethod()
         {
             var source1 = @"
@@ -181,6 +181,8 @@ namespace N1
     partial class Class
     {
         private void NonPartialMethod1() { }
+        partial void ImpartialMethod1();
+        partial void ImpartialMethod2() { }
         partial void PartialMethod();
     }
 } 
@@ -216,6 +218,8 @@ namespace N1
             Assert.True(declaredSymbolNames.Contains("N1"));
             Assert.True(declaredSymbolNames.Contains("Class"));
             Assert.True(declaredSymbolNames.Contains("NonPartialMethod1"));
+            Assert.True(declaredSymbolNames.Contains("ImpartialMethod1"));
+            Assert.True(declaredSymbolNames.Contains("ImpartialMethod2"));
             Assert.True(declaredSymbolNames.Contains("PartialMethod"));
             Assert.True(completedCompilationUnits.Contains(tree1.FilePath));
         }
@@ -243,8 +247,11 @@ namespace N1
                     var symbolDeclaredEvent = compEvent as SymbolDeclaredCompilationEvent;
                     if (symbolDeclaredEvent != null)
                     {
-                        var added = declaredSymbolNames.Add(symbolDeclaredEvent.Symbol.Name);
-                        Assert.True(added, "Unexpected multiple symbol declared events for symbol " + symbolDeclaredEvent.Symbol);
+                        var symbol = symbolDeclaredEvent.Symbol;
+                        var added = declaredSymbolNames.Add(symbol.Name);
+                        Assert.True(added, "Unexpected multiple symbol declared events for symbol " + symbol);
+                        var method = symbol as Symbols.MethodSymbol;
+                        Assert.Null(method?.PartialDefinitionPart); // we should never get a partial method's implementation part
                     }
                     else
                     {

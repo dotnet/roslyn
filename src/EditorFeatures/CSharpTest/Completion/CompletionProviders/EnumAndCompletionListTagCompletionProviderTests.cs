@@ -20,7 +20,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Completion.CompletionPr
             return new EnumAndCompletionListTagCompletionProvider();
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task NullableEnum()
         {
             var markup = @"class Program
@@ -42,8 +42,8 @@ enum Colors
             await VerifyItemExistsAsync(markup, "Colors");
         }
 
-        [WpfFact]
-        [WorkItem(545678)]
+        [Fact]
+        [WorkItem(545678, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545678")]
         [Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task EditorBrowsable_EnumMemberAlways()
         {
@@ -72,8 +72,8 @@ public enum Foo
                 referencedLanguage: LanguageNames.CSharp);
         }
 
-        [WpfFact]
-        [WorkItem(545678)]
+        [Fact]
+        [WorkItem(545678, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545678")]
         [Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task EditorBrowsable_EnumMemberNever()
         {
@@ -102,8 +102,8 @@ public enum Foo
                 referencedLanguage: LanguageNames.CSharp);
         }
 
-        [WpfFact]
-        [WorkItem(545678)]
+        [Fact]
+        [WorkItem(545678, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545678")]
         [Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task EditorBrowsable_EnumMemberAdvanced()
         {
@@ -143,8 +143,8 @@ public enum Foo
                 hideAdvancedMembers: false);
         }
 
-        [WorkItem(8540099)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [WorkItem(854099, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/854099")]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task NotInComment()
         {
             var markup = @"class Program
@@ -165,8 +165,8 @@ enum Colors
             await VerifyNoItemsExistAsync(markup);
         }
 
-        [WorkItem(827897)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [WorkItem(827897, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/827897")]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task InYieldReturn()
         {
             var markup =
@@ -183,8 +183,8 @@ class Program
             await VerifyItemExistsAsync(markup, "DayOfWeek");
         }
 
-        [WorkItem(827897)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [WorkItem(827897, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/827897")]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task InAsyncMethodReturnStatement()
         {
             var markup =
@@ -202,7 +202,7 @@ class Program
             await VerifyItemExistsAsync(markup, "DayOfWeek");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task NoCompletionListTag()
         {
             var markup =
@@ -224,7 +224,7 @@ class Program
             await VerifyNoItemsExistAsync(markup);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task CompletionList()
         {
             var markup =
@@ -247,7 +247,7 @@ class Program
             await VerifyItemExistsAsync(markup, "C");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task CompletionListCrefToString()
         {
             var markup =
@@ -270,7 +270,7 @@ class Program
             await VerifyItemExistsAsync(markup, "string", glyph: (int)Glyph.ClassPublic);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task CompletionListEmptyCref()
         {
             var markup =
@@ -293,7 +293,7 @@ class Program
             await VerifyNoItemsExistAsync(markup);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task CompletionListInaccessibleType()
         {
             var markup =
@@ -318,7 +318,7 @@ class Program
             await VerifyNoItemsExistAsync(markup);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task CompletionListNotAType()
         {
             var markup =
@@ -343,8 +343,8 @@ class Program
             await VerifyNoItemsExistAsync(markup);
         }
 
-        [WorkItem(828196)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [WorkItem(828196, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/828196")]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task SuggestAlias()
         {
             var markup = @"
@@ -359,8 +359,8 @@ class Program
             await VerifyItemExistsAsync(markup, "D");
         }
 
-        [WorkItem(828196)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [WorkItem(828196, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/828196")]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task SuggestAlias2()
         {
             var markup = @"
@@ -380,8 +380,8 @@ class Program
             await VerifyItemExistsAsync(markup, "D");
         }
 
-        [WorkItem(828196)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [WorkItem(828196, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/828196")]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task SuggestAlias3()
         {
             var markup = @"
@@ -405,8 +405,8 @@ class Program
             await VerifyItemExistsAsync(markup, "D");
         }
 
-        [WorkItem(828196)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [WorkItem(828196, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/828196")]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task NotInParameterNameContext()
         {
             var markup = @"
@@ -427,7 +427,7 @@ class C
         }
 
         [WorkItem(4310, "https://github.com/dotnet/roslyn/issues/4310")]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task InExpressionBodiedProperty()
         {
             var markup =
@@ -447,7 +447,7 @@ enum Colors
         }
 
         [WorkItem(4310, "https://github.com/dotnet/roslyn/issues/4310")]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task InExpressionBodiedMethod()
         {
             var markup =

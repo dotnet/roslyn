@@ -431,6 +431,15 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Failure.
+        /// </summary>
+        internal static string Failure {
+            get {
+                return ResourceManager.GetString("Failure", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to File was externally modified: {0}..
         /// </summary>
         internal static string FileWasExternallyModified {
@@ -661,6 +670,15 @@ namespace Microsoft.CodeAnalysis {
         internal static string MatchingNodesMustHaveTheSameLabel {
             get {
                 return ResourceManager.GetString("MatchingNodesMustHaveTheSameLabel", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Member access should be qualified..
+        /// </summary>
+        internal static string MemberAccessShouldBeQualified {
+            get {
+                return ResourceManager.GetString("MemberAccessShouldBeQualified", resourceCulture);
             }
         }
         
@@ -1066,6 +1084,15 @@ namespace Microsoft.CodeAnalysis {
         internal static string ValueTooLargeToBeRepresented {
             get {
                 return ResourceManager.GetString("ValueTooLargeToBeRepresented", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Warning.
+        /// </summary>
+        internal static string Warning {
+            get {
+                return ResourceManager.GetString("Warning", resourceCulture);
             }
         }
         

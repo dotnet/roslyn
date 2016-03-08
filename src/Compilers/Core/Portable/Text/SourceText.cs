@@ -415,14 +415,14 @@ namespace Microsoft.CodeAnalysis.Text
             }
         }
 
-        internal ImmutableArray<byte> GetChecksum()
+        internal ImmutableArray<byte> GetChecksum(bool useDefaultEncodingIfNull = false)
         {
             if (_lazyChecksum.IsDefault)
             {
-                // we shouldn't be asking for a checksum of encoding-less source text:
-                Debug.Assert(this.Encoding != null);
+                // we shouldn't be asking for a checksum of encoding-less source text, except for SourceText comparison.
+                Debug.Assert(this.Encoding != null || useDefaultEncodingIfNull);
 
-                using (var stream = new SourceTextStream(this))
+                using (var stream = new SourceTextStream(this, useDefaultEncodingIfNull: useDefaultEncodingIfNull))
                 {
                     ImmutableInterlocked.InterlockedInitialize(ref _lazyChecksum, CalculateChecksum(stream, _checksumAlgorithm));
                 }
@@ -431,7 +431,16 @@ namespace Microsoft.CodeAnalysis.Text
             return _lazyChecksum;
         }
 
-        private static ImmutableArray<byte> CalculateChecksum(Stream stream, SourceHashAlgorithm algorithmId)
+        private static ImmutableArray<byte> CalculateChecksum(byte[] buffer, int offset, int count, SourceHashAlgorithm algorithmId)
+        {
+            using (var algorithm = CryptographicHashProvider.TryGetAlgorithm(algorithmId))
+            {
+                Debug.Assert(algorithm != null);
+                return ImmutableArray.Create(algorithm.ComputeHash(buffer, offset, count));
+            }
+        }
+
+        internal static ImmutableArray<byte> CalculateChecksum(Stream stream, SourceHashAlgorithm algorithmId)
         {
             using (var algorithm = CryptographicHashProvider.TryGetAlgorithm(algorithmId))
             {
@@ -441,15 +450,6 @@ namespace Microsoft.CodeAnalysis.Text
                     stream.Seek(0, SeekOrigin.Begin);
                 }
                 return ImmutableArray.Create(algorithm.ComputeHash(stream));
-            }
-        }
-
-        private static ImmutableArray<byte> CalculateChecksum(byte[] buffer, int offset, int count, SourceHashAlgorithm algorithmId)
-        {
-            using (var algorithm = CryptographicHashProvider.TryGetAlgorithm(algorithmId))
-            {
-                Debug.Assert(algorithm != null);
-                return ImmutableArray.Create(algorithm.ComputeHash(buffer, offset, count));
             }
         }
 
@@ -801,7 +801,7 @@ namespace Microsoft.CodeAnalysis.Text
                 var index = 0;
                 if (lastWasCR)
                 {
-                    if (buffer.Length > 0 && buffer[0] == '\n')
+                    if (length > 0 && buffer[0] == '\n')
                     {
                         index++;
                     }

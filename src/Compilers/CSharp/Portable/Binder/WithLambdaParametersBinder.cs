@@ -45,8 +45,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        protected override TypeSymbol GetCurrentReturnType()
+        protected override TypeSymbol GetCurrentReturnType(out RefKind refKind)
         {
+            refKind = lambdaSymbol.RefKind;
             return lambdaSymbol.ReturnType;
         }
 
@@ -132,13 +133,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 // CS0412: 'X': a parameter or local variable cannot have the same name as a method type parameter
                 diagnostics.Add(ErrorCode.ERR_LocalSameNameAsTypeParam, newLocation, name);
-                return true;
-            }
-
-            if (newSymbolKind == SymbolKind.Parameter || newSymbolKind == SymbolKind.Local)
-            {
-                // A local or parameter named '{0}' cannot be declared in this scope because that name is used in an enclosing local scope to define a local or parameter
-                diagnostics.Add(ErrorCode.ERR_LocalIllegallyOverrides, newLocation, name);
                 return true;
             }
 

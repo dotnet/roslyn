@@ -10,14 +10,14 @@ Imports Roslyn.Utilities
 Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Help
     Public Class HelpTests
         Public Async Function TestAsync(markup As String, expected As String) As Tasks.Task
-            Using workspace = Await VisualBasicWorkspaceFactory.CreateWorkspaceFromFileAsync(markup)
+            Using workspace = Await TestWorkspace.CreateVisualBasicAsync(markup)
                 Dim caret = workspace.Documents.First().CursorPosition
                 Dim service = New VisualBasicHelpContextService()
                 Assert.Equal(expected, Await service.GetHelpTermAsync(workspace.CurrentSolution.Projects.First().Documents.First(), workspace.Documents.First().SelectedSpans.First(), CancellationToken.None))
             End Using
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.F1Help)>
+        <Fact, Trait(Traits.Feature, Traits.Features.F1Help)>
         Public Async Function TestAddHandler1() As Task
             Dim text = <a>
 Class G
@@ -31,7 +31,7 @@ End Class</a>
             Await TestAsync(text.Value, "vb.AddHandler")
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.F1Help)>
+        <Fact, Trait(Traits.Feature, Traits.Features.F1Help)>
         Public Async Function TestAddHandler2() As Task
             Dim text = <a>
 Class G
@@ -45,7 +45,7 @@ End Class</a>
             Await TestAsync(text.Value, "vb.AddHandler")
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.F1Help)>
+        <Fact, Trait(Traits.Feature, Traits.Features.F1Help)>
         Public Async Function TestArrayInitializer() As Task
             Dim text = <a>
 Class G
@@ -57,7 +57,7 @@ End Class</a>
             Await TestAsync(text.Value, "vb.Array")
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.F1Help)>
+        <Fact, Trait(Traits.Feature, Traits.Features.F1Help)>
         Public Async Function TestArrayInitializer2() As Task
             Dim text = <a>
 Class G
@@ -69,7 +69,7 @@ End Class</a>
             Await TestAsync(text.Value, "vb.Array")
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.F1Help)>
+        <Fact, Trait(Traits.Feature, Traits.Features.F1Help)>
         Public Async Function TestAssignment1() As Task
             Dim text = <a>
 Class G
@@ -81,7 +81,7 @@ End Class</a>
             Await TestAsync(text.Value, "vb.=")
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.F1Help)>
+        <Fact, Trait(Traits.Feature, Traits.Features.F1Help)>
         Public Async Function TestAttribute() As Task
             Dim text = <a><![CDATA[
 Class GAttribute
@@ -96,7 +96,7 @@ End Class]]></a>
             Await TestAsync(text.Value, HelpKeywords.Attributes)
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.F1Help)>
+        <Fact, Trait(Traits.Feature, Traits.Features.F1Help)>
         Public Async Function TestModuleAttribute() As Task
             Dim text = <a><![CDATA[
 Imports System.Reflection
@@ -108,7 +108,7 @@ End Module]]></a>
             Await TestAsync(text.Value, HelpKeywords.ModuleAttribute)
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.F1Help)>
+        <Fact, Trait(Traits.Feature, Traits.Features.F1Help)>
         Public Async Function TestAssemblyAttribute() As Task
             Dim text = <a><![CDATA[
 Imports System.Reflection
@@ -120,7 +120,7 @@ End Module]]></a>
             Await TestAsync(text.Value, HelpKeywords.AssemblyAttribute)
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.F1Help)>
+        <Fact, Trait(Traits.Feature, Traits.Features.F1Help)>
         Public Async Function TestBinaryOperator() As Task
             Dim text = <a><![CDATA[
 Class G
@@ -132,7 +132,7 @@ ENd Class]]></a>
             Await TestAsync(text.Value, "vb.+")
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.F1Help)>
+        <Fact, Trait(Traits.Feature, Traits.Features.F1Help)>
         Public Async Function TestCallStatement() As Task
             Dim text = <a><![CDATA[
 Class G
@@ -144,7 +144,7 @@ ENd Class]]></a>
             Await TestAsync(text.Value, "vb.Call")
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.F1Help)>
+        <Fact, Trait(Traits.Feature, Traits.Features.F1Help)>
         Public Async Function TestCase1() As Task
             Dim text = <a><![CDATA[
 Class G
@@ -162,7 +162,7 @@ End Class]]></a>
             Await TestAsync(text.Value, "vb.Select")
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.F1Help)>
+        <Fact, Trait(Traits.Feature, Traits.Features.F1Help)>
         Public Async Function TestCase2() As Task
             Dim text = <a><![CDATA[
 Class G
@@ -180,7 +180,7 @@ End Class]]></a>
             Await TestAsync(text.Value, "vb.Select")
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.F1Help)>
+        <Fact, Trait(Traits.Feature, Traits.Features.F1Help)>
         Public Async Function TestTryCatch() As Task
             Dim text = <a><![CDATA[
 Class G
@@ -196,7 +196,7 @@ End Class]]></a>
             Await TestAsync(text.Value, "vb.As")
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.F1Help)>
+        <Fact, Trait(Traits.Feature, Traits.Features.F1Help)>
         Public Async Function TestTryCatch2() As Task
             Dim text = <a><![CDATA[
 Class G
@@ -212,7 +212,7 @@ End Class]]></a>
             Await TestAsync(text.Value, "vb.When")
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.F1Help)>
+        <Fact, Trait(Traits.Feature, Traits.Features.F1Help)>
         Public Async Function TestTryCatch3() As Task
             Dim text = <a><![CDATA[
 Class G
@@ -230,7 +230,7 @@ End Class]]></a>
             Await TestAsync(text.Value, "vb.Try")
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.F1Help)>
+        <Fact, Trait(Traits.Feature, Traits.Features.F1Help)>
         Public Async Function TestCollectionInitializer() As Task
             Dim text = <a><![CDATA[
 Class G
@@ -243,7 +243,7 @@ End Class]]></a>
             Await TestAsync(text.Value, HelpKeywords.CollectionInitializer)
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.F1Help)>
+        <Fact, Trait(Traits.Feature, Traits.Features.F1Help)>
         Public Async Function TestCollectionInitializer2() As Task
             Dim text = <a><![CDATA[
 Class G
@@ -257,7 +257,7 @@ End Class]]></a>
         End Function
 
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.F1Help)>
+        <Fact, Trait(Traits.Feature, Traits.Features.F1Help)>
         Public Async Function TestConstructor() As Task
             Dim text = <a><![CDATA[
 Class G
@@ -269,7 +269,7 @@ End Class]]></a>
         End Function
 
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.F1Help)>
+        <Fact, Trait(Traits.Feature, Traits.Features.F1Help)>
         Public Async Function TestDistinct() As Task
             Dim text = <a><![CDATA[
 Class G
@@ -284,7 +284,7 @@ End Class]]></a>
             Await TestAsync(text.Value, HelpKeywords.QueryDistinct)
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.F1Help)>
+        <Fact, Trait(Traits.Feature, Traits.Features.F1Help)>
         Public Async Function TestDoLoop() As Task
             Dim text = <a><![CDATA[
 Class G
@@ -298,7 +298,7 @@ End Class]]></a>
             Await TestAsync(text.Value, "vb.Do")
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.F1Help)>
+        <Fact, Trait(Traits.Feature, Traits.Features.F1Help)>
         Public Async Function TestDoLoop2() As Task
             Dim text = <a><![CDATA[
 Class G
@@ -312,7 +312,7 @@ End Class]]></a>
             Await TestAsync(text.Value, "vb.Do")
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.F1Help)>
+        <Fact, Trait(Traits.Feature, Traits.Features.F1Help)>
         Public Async Function TestDoLoop3() As Task
             Dim text = <a><![CDATA[
 Class G
@@ -326,7 +326,7 @@ End Class]]></a>
             Await TestAsync(text.Value, "vb.Do")
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.F1Help)>
+        <Fact, Trait(Traits.Feature, Traits.Features.F1Help)>
         Public Async Function TestIfThenElse1() As Task
             Dim text = <a><![CDATA[
 Class G
@@ -342,7 +342,7 @@ End Class]]></a>
             Await TestAsync(text.Value, "vb.Then")
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.F1Help)>
+        <Fact, Trait(Traits.Feature, Traits.Features.F1Help)>
         Public Async Function TestIfThenElse2() As Task
             Dim text = <a><![CDATA[
 Class G
@@ -360,7 +360,7 @@ End Class]]></a>
             Await TestAsync(text.Value, "vb.ElseIf")
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.F1Help)>
+        <Fact, Trait(Traits.Feature, Traits.Features.F1Help)>
         Public Async Function TestIfThenElse3() As Task
             Dim text = <a><![CDATA[
 Class G
@@ -378,7 +378,7 @@ End Class]]></a>
             Await TestAsync(text.Value, "vb.Else")
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.F1Help)>
+        <Fact, Trait(Traits.Feature, Traits.Features.F1Help)>
         Public Async Function TestIfThenElse4() As Task
             Dim text = <a><![CDATA[
 Class G
@@ -394,7 +394,7 @@ End Class]]></a>
             Await TestAsync(text.Value, "vb.If")
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.F1Help)>
+        <Fact, Trait(Traits.Feature, Traits.Features.F1Help)>
         Public Async Function TestEndFunctionLambda() As Task
             Dim text = <a><![CDATA[
 Class G
@@ -408,7 +408,7 @@ End Class]]></a>
             Await TestAsync(text.Value, HelpKeywords.LambdaFunction)
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.F1Help)>
+        <Fact, Trait(Traits.Feature, Traits.Features.F1Help)>
         Public Async Function TestEndBlockKind() As Task
             Dim text = <a><![CDATA[
 Class G
@@ -417,7 +417,7 @@ En[||]d Class]]></a>
             Await TestAsync(text.Value, "vb.Class")
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.F1Help)>
+        <Fact, Trait(Traits.Feature, Traits.Features.F1Help)>
         Public Async Function TestEndAddHandler() As Task
             Dim text = <a><![CDATA[
 Class G
@@ -437,7 +437,7 @@ Class G
             Await TestAsync(text.Value, "vb.AddHandler")
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.F1Help)>
+        <Fact, Trait(Traits.Feature, Traits.Features.F1Help)>
         Public Async Function TestEndSub() As Task
             Dim text = <a><![CDATA[
 Class G
@@ -449,7 +449,7 @@ End Class]]></a>
             Await TestAsync(text.Value, "vb.End")
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.F1Help)>
+        <Fact, Trait(Traits.Feature, Traits.Features.F1Help)>
         Public Async Function TestEnumMember() As Task
             Dim text = <a><![CDATA[
 Enum G
@@ -459,7 +459,7 @@ End Enum]]></a>
             Await TestAsync(text.Value, "vb.Enum")
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.F1Help)>
+        <Fact, Trait(Traits.Feature, Traits.Features.F1Help)>
         Public Async Function TestEraseStatement() As Task
             Dim text = <a><![CDATA[
 Class G
@@ -473,7 +473,7 @@ End Class]]></a>
         End Function
 
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.F1Help)>
+        <Fact, Trait(Traits.Feature, Traits.Features.F1Help)>
         Public Async Function TestEraseStatement2() As Task
             Dim text = <a><![CDATA[
 Class G
@@ -487,7 +487,7 @@ End Class]]></a>
         End Function
 
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.F1Help)>
+        <Fact, Trait(Traits.Feature, Traits.Features.F1Help)>
         Public Async Function TestError() As Task
             Dim text = <a><![CDATA[
 Class G
@@ -499,7 +499,7 @@ End Class]]></a>
             Await TestAsync(text.Value, "vb.Error")
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.F1Help)>
+        <Fact, Trait(Traits.Feature, Traits.Features.F1Help)>
         Public Async Function TestEvent() As Task
             Dim text = <a><![CDATA[
 Class G
@@ -509,7 +509,7 @@ End Class]]></a>
             Await TestAsync(text.Value, "vb.Event")
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.F1Help)>
+        <Fact, Trait(Traits.Feature, Traits.Features.F1Help)>
         Public Async Function TestExit1() As Task
             Dim text = <a><![CDATA[
 Class G
@@ -523,7 +523,7 @@ End Class]]></a>
             Await TestAsync(text.Value, "vb.Exit")
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.F1Help)>
+        <Fact, Trait(Traits.Feature, Traits.Features.F1Help)>
         Public Async Function TestExit2() As Task
             Dim text = <a><![CDATA[
 Class G
@@ -538,7 +538,7 @@ End Class]]></a>
             Await TestAsync(text.Value, "vb.Exit")
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.F1Help)>
+        <Fact, Trait(Traits.Feature, Traits.Features.F1Help)>
         Public Async Function TestField1() As Task
             Dim text = <a><![CDATA[
 Class G
@@ -548,7 +548,7 @@ End Class]]></a>
             Await TestAsync(text.Value, "vb.Protected")
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.F1Help)>
+        <Fact, Trait(Traits.Feature, Traits.Features.F1Help)>
         Public Async Function TestField2() As Task
             Dim text = <a><![CDATA[
 Class G
@@ -558,7 +558,7 @@ End Class]]></a>
             Await TestAsync(text.Value, "vb.ReadOnly")
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.F1Help)>
+        <Fact, Trait(Traits.Feature, Traits.Features.F1Help)>
         Public Async Function TestField3() As Task
             Dim text = <a><![CDATA[
 Class G
@@ -568,7 +568,7 @@ End Class]]></a>
             Await TestAsync(text.Value, "vb.Dim")
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.F1Help)>
+        <Fact, Trait(Traits.Feature, Traits.Features.F1Help)>
         Public Async Function TestForEach() As Task
             Dim text = <a><![CDATA[
 Class G
@@ -579,7 +579,7 @@ End Class]]></a>
             Await TestAsync(text.Value, "vb.In")
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.F1Help)>
+        <Fact, Trait(Traits.Feature, Traits.Features.F1Help)>
         Public Async Function TestForEach2() As Task
             Dim text = <a><![CDATA[
 Class G
@@ -590,7 +590,7 @@ End Class]]></a>
             Await TestAsync(text.Value, "vb.Each")
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.F1Help)>
+        <Fact, Trait(Traits.Feature, Traits.Features.F1Help)>
         Public Async Function TestForEach3() As Task
             Dim text = <a><![CDATA[
 Class G
@@ -601,7 +601,7 @@ End Class]]></a>
             Await TestAsync(text.Value, HelpKeywords.ForEach)
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.F1Help)>
+        <Fact, Trait(Traits.Feature, Traits.Features.F1Help)>
         Public Async Function TestFor() As Task
             Dim text = <a><![CDATA[
 Class G
@@ -612,7 +612,7 @@ End Class]]></a>
             Await TestAsync(text.Value, "vb.Step")
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.F1Help)>
+        <Fact, Trait(Traits.Feature, Traits.Features.F1Help)>
         Public Async Function TestFor2() As Task
             Dim text = <a><![CDATA[
 Class G
@@ -623,7 +623,7 @@ End Class]]></a>
             Await TestAsync(text.Value, "vb.To")
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.F1Help)>
+        <Fact, Trait(Traits.Feature, Traits.Features.F1Help)>
         Public Async Function TestFor3() As Task
             Dim text = <a><![CDATA[
 Class G
@@ -634,7 +634,7 @@ End Class]]></a>
             Await TestAsync(text.Value, "vb.For")
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.F1Help)>
+        <Fact, Trait(Traits.Feature, Traits.Features.F1Help)>
         Public Async Function TestFrom() As Task
             Dim text = <a><![CDATA[
 Class G
@@ -644,7 +644,7 @@ End Class]]></a>
             Await TestAsync(text.Value, HelpKeywords.QueryFrom)
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.F1Help)>
+        <Fact, Trait(Traits.Feature, Traits.Features.F1Help)>
         Public Async Function TestTypeParameter1() As Task
             Dim text = <a><![CDATA[
 Interface I(Of [|Out|] R)
@@ -654,7 +654,7 @@ End Interface]]></a>
             Await TestAsync(text.Value, HelpKeywords.VarianceOut)
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.F1Help)>
+        <Fact, Trait(Traits.Feature, Traits.Features.F1Help)>
         Public Async Function TestGetType() As Task
             Dim text = <a><![CDATA[
 Class G
@@ -666,7 +666,7 @@ End Class]]></a>
             Await TestAsync(text.Value, "vb.GetType")
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.F1Help)>
+        <Fact, Trait(Traits.Feature, Traits.Features.F1Help)>
         Public Async Function TestGoTo() As Task
             Dim text = <a><![CDATA[
 Class G
@@ -679,7 +679,7 @@ End Class]]></a>
             Await TestAsync(text.Value, "vb.GoTo")
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.F1Help)>
+        <Fact, Trait(Traits.Feature, Traits.Features.F1Help)>
         Public Async Function TestLabel() As Task
             Dim text = <a><![CDATA[
 Class G
@@ -692,7 +692,7 @@ End Class]]></a>
             Await TestAsync(text.Value, HelpKeywords.Colon)
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.F1Help)>
+        <Fact, Trait(Traits.Feature, Traits.Features.F1Help)>
         Public Async Function TestIfOperator() As Task
             Dim text = <a><![CDATA[
 Class G
@@ -704,7 +704,7 @@ End Class]]></a>
             Await TestAsync(text.Value, HelpKeywords.IfOperator)
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.F1Help)>
+        <Fact, Trait(Traits.Feature, Traits.Features.F1Help)>
         Public Async Function TestImplements1() As Task
             Dim text = <a><![CDATA[
 Interface IFoo 
@@ -718,7 +718,7 @@ End Class]]></a>
             Await TestAsync(text.Value, "vb.Implements")
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.F1Help)>
+        <Fact, Trait(Traits.Feature, Traits.Features.F1Help)>
         Public Async Function TestImplements2() As Task
             Dim text = <a><![CDATA[
 Interface IFoo 
@@ -732,7 +732,7 @@ End Class]]></a>
             Await TestAsync(text.Value, "vb.Implements")
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.F1Help)>
+        <Fact, Trait(Traits.Feature, Traits.Features.F1Help)>
         Public Async Function TestAnonymousType1() As Task
             Dim text = <a><![CDATA[
 Class G
@@ -744,7 +744,7 @@ End Class]]></a>
             Await TestAsync(text.Value, HelpKeywords.AnonymousType)
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.F1Help)>
+        <Fact, Trait(Traits.Feature, Traits.Features.F1Help)>
         Public Async Function TestAnonymousType2() As Task
             Dim text = <a><![CDATA[
 Class G
@@ -756,7 +756,7 @@ End Class]]></a>
             Await TestAsync(text.Value, HelpKeywords.AnonymousType)
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.F1Help)>
+        <Fact, Trait(Traits.Feature, Traits.Features.F1Help)>
         Public Async Function TestAnonymousType3() As Task
             Dim text = <a><![CDATA[
 Class G
@@ -768,7 +768,7 @@ End Class]]></a>
             Await TestAsync(text.Value, HelpKeywords.AnonymousKey)
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.F1Help)>
+        <Fact, Trait(Traits.Feature, Traits.Features.F1Help)>
         Public Async Function TestAnonymousType4() As Task
             Dim text = <a><![CDATA[
 Class G
@@ -780,7 +780,7 @@ End Class]]></a>
             Await TestAsync(text.Value, HelpKeywords.AnonymousType)
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.F1Help)>
+        <Fact, Trait(Traits.Feature, Traits.Features.F1Help)>
         Public Async Function TestJoinOn() As Task
             Dim text = <a><![CDATA[
 Class G
@@ -792,7 +792,7 @@ End Class]]></a>
             Await TestAsync(text.Value, HelpKeywords.AnonymousType)
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.F1Help)>
+        <Fact, Trait(Traits.Feature, Traits.Features.F1Help)>
         Public Async Function TestTypeOf1() As Task
             Dim text = <a><![CDATA[
 Class G
@@ -805,7 +805,7 @@ End Class]]></a>
             Await TestAsync(text.Value, "vb.TypeOf")
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.F1Help)>
+        <Fact, Trait(Traits.Feature, Traits.Features.F1Help)>
         Public Async Function TestTypeOf2() As Task
             Dim text = <a><![CDATA[
 Class G
@@ -818,7 +818,7 @@ End Class]]></a>
             Await TestAsync(text.Value, "vb.TypeOf")
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.F1Help)>
+        <Fact, Trait(Traits.Feature, Traits.Features.F1Help)>
         Public Async Function TestLambda1() As Task
             Dim text = <a><![CDATA[
 Class G
@@ -833,7 +833,7 @@ End Class]]></a>
             Await TestAsync(text.Value, "vb.Async")
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.F1Help)>
+        <Fact, Trait(Traits.Feature, Traits.Features.F1Help)>
         Public Async Function TestLambda2() As Task
             Dim text = <a><![CDATA[
 Class G
@@ -848,7 +848,7 @@ End Class]]></a>
             Await TestAsync(text.Value, HelpKeywords.LambdaFunction)
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.F1Help)>
+        <Fact, Trait(Traits.Feature, Traits.Features.F1Help)>
         Public Async Function TestLetClause() As Task
             Dim text = <a><![CDATA[
 Class G
@@ -863,7 +863,7 @@ End Class]]></a>
             Await TestAsync(text.Value, HelpKeywords.QueryLet)
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.F1Help)>
+        <Fact, Trait(Traits.Feature, Traits.Features.F1Help)>
         Public Async Function TestPartialMethod() As Task
             Dim text = <a><![CDATA[
 Class G
@@ -874,7 +874,7 @@ End Class]]></a>
             Await TestAsync(text.Value, HelpKeywords.PartialMethod)
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.F1Help)>
+        <Fact, Trait(Traits.Feature, Traits.Features.F1Help)>
         Public Async Function TestMainMethod() As Task
             Dim text = <a><![CDATA[
 Module Foo
@@ -885,7 +885,7 @@ End Module]]></a>
             Await TestAsync(text.Value, HelpKeywords.Main)
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.F1Help)>
+        <Fact, Trait(Traits.Feature, Traits.Features.F1Help)>
         Public Async Function TestMeToken() As Task
             Dim text = <a><![CDATA[
 Module Foo
@@ -897,7 +897,7 @@ End Module]]></a>
             Await TestAsync(text.Value, "vb.Me")
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.F1Help)>
+        <Fact, Trait(Traits.Feature, Traits.Features.F1Help)>
         Public Async Function TestConstructRatherThanName() As Task
             Dim text = <a><![CDATA[
 Module [|Foo|]
@@ -909,7 +909,7 @@ End Module]]></a>
             Await TestAsync(text.Value, "vb.Module")
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.F1Help)>
+        <Fact, Trait(Traits.Feature, Traits.Features.F1Help)>
         Public Async Function TestMyBase() As Task
             Dim text = <a><![CDATA[
 Class Foo
@@ -921,7 +921,7 @@ End Module]]></a>
             Await TestAsync(text.Value, "vb.MyBase")
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.F1Help)>
+        <Fact, Trait(Traits.Feature, Traits.Features.F1Help)>
         Public Async Function TestMyClass() As Task
             Dim text = <a><![CDATA[
 Class Foo
@@ -933,7 +933,7 @@ End Module]]></a>
             Await TestAsync(text.Value, "vb.MyBase")
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.F1Help)>
+        <Fact, Trait(Traits.Feature, Traits.Features.F1Help)>
         Public Async Function TestNewConstraint() As Task
             Dim text = <a><![CDATA[
 Interface IBar
@@ -947,7 +947,7 @@ End Module]]></a>
             Await TestAsync(text.Value, HelpKeywords.NewConstraint)
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.F1Help)>
+        <Fact, Trait(Traits.Feature, Traits.Features.F1Help)>
         Public Async Function TestObjectInitializer() As Task
             Dim text = <a><![CDATA[
 Class Program
@@ -960,7 +960,7 @@ End Class]]></a>
             Await TestAsync(text.Value, HelpKeywords.ObjectInitializer)
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.F1Help)>
+        <Fact, Trait(Traits.Feature, Traits.Features.F1Help)>
         Public Async Function TestNothingToken() As Task
             Dim text = <a><![CDATA[
 Class Program
@@ -973,7 +973,7 @@ End Class]]></a>
             Await TestAsync(text.Value, HelpKeywords.ObjectInitializer)
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.F1Help)>
+        <Fact, Trait(Traits.Feature, Traits.Features.F1Help)>
         Public Async Function TestNullable1() As Task
             Dim text = <a><![CDATA[
 Class Program
@@ -985,7 +985,7 @@ End Class]]></a>
             Await TestAsync(text.Value, HelpKeywords.Nullable)
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.F1Help)>
+        <Fact, Trait(Traits.Feature, Traits.Features.F1Help)>
         Public Async Function TestOnError() As Task
             Dim text = <a><![CDATA[
 Class Program
@@ -997,7 +997,7 @@ End Class]]></a>
             Await TestAsync(text.Value, HelpKeywords.OnError)
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.F1Help)>
+        <Fact, Trait(Traits.Feature, Traits.Features.F1Help)>
         Public Async Function TestOptionCompare() As Task
             Dim text = <a><![CDATA[
 Class Program
@@ -1009,7 +1009,7 @@ End Class]]></a>
             Await TestAsync(text.Value, HelpKeywords.OptionCompare)
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.F1Help)>
+        <Fact, Trait(Traits.Feature, Traits.Features.F1Help)>
         Public Async Function TestOptionExplicit() As Task
             Dim text = <a><![CDATA[
 Class Program
@@ -1021,7 +1021,7 @@ End Class]]></a>
             Await TestAsync(text.Value, HelpKeywords.OptionExplicit)
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.F1Help)>
+        <Fact, Trait(Traits.Feature, Traits.Features.F1Help)>
         Public Async Function TestOptionInfer() As Task
             Dim text = <a><![CDATA[
 Class Program
@@ -1033,7 +1033,7 @@ End Class]]></a>
             Await TestAsync(text.Value, HelpKeywords.OptionInfer)
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.F1Help)>
+        <Fact, Trait(Traits.Feature, Traits.Features.F1Help)>
         Public Async Function TestOptionStrict() As Task
             Dim text = <a><![CDATA[
 Class Program
@@ -1045,7 +1045,7 @@ End Class]]></a>
             Await TestAsync(text.Value, HelpKeywords.OptionStrict)
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.F1Help)>
+        <Fact, Trait(Traits.Feature, Traits.Features.F1Help)>
         Public Async Function TestOption() As Task
             Dim text = <a><![CDATA[
 Class Program
@@ -1057,7 +1057,7 @@ End Class]]></a>
             Await TestAsync(text.Value, "vb.Option")
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.F1Help)>
+        <Fact, Trait(Traits.Feature, Traits.Features.F1Help)>
         Public Async Function TestPredefinedCast() As Task
             Dim text = <a><![CDATA[
 Class Program
@@ -1069,7 +1069,7 @@ End Class]]></a>
             Await TestAsync(text.Value, "vb.CInt")
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.F1Help)>
+        <Fact, Trait(Traits.Feature, Traits.Features.F1Help)>
         Public Async Function TestPreprocessorConst() As Task
             Dim text = <a><![CDATA[
 Class Program
@@ -1081,7 +1081,7 @@ End Class]]></a>
             Await TestAsync(text.Value, HelpKeywords.PreprocessorConst)
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.F1Help)>
+        <Fact, Trait(Traits.Feature, Traits.Features.F1Help)>
         Public Async Function TestPreprocessorConditional1() As Task
             Dim text = <a><![CDATA[
 Class Program
@@ -1096,7 +1096,7 @@ End Class]]></a>
             Await TestAsync(text.Value, HelpKeywords.PreprocessorIf)
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.F1Help)>
+        <Fact, Trait(Traits.Feature, Traits.Features.F1Help)>
         Public Async Function TestPreprocessorConditional2() As Task
             Dim text = <a><![CDATA[
 Class Program
@@ -1111,7 +1111,7 @@ End Class]]></a>
             Await TestAsync(text.Value, HelpKeywords.PreprocessorIf)
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.F1Help)>
+        <Fact, Trait(Traits.Feature, Traits.Features.F1Help)>
         Public Async Function TestPreprocessorConditional3() As Task
             Dim text = <a><![CDATA[
 Class Program
@@ -1126,7 +1126,7 @@ End Class]]></a>
             Await TestAsync(text.Value, HelpKeywords.PreprocessorIf)
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.F1Help)>
+        <Fact, Trait(Traits.Feature, Traits.Features.F1Help)>
         Public Async Function TestPreprocessorConditional4() As Task
             Dim text = <a><![CDATA[
 Class Program
@@ -1141,7 +1141,7 @@ End Class]]></a>
             Await TestAsync(text.Value, HelpKeywords.PreprocessorIf)
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.F1Help)>
+        <Fact, Trait(Traits.Feature, Traits.Features.F1Help)>
         Public Async Function TestPreprocessorRegion1() As Task
             Dim text = <a><![CDATA[
 Class Program
@@ -1154,7 +1154,7 @@ End Class]]></a>
             Await TestAsync(text.Value, HelpKeywords.Region)
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.F1Help)>
+        <Fact, Trait(Traits.Feature, Traits.Features.F1Help)>
         Public Async Function TestPreprocessorRegion2() As Task
             Dim text = <a><![CDATA[
 Class Program
@@ -1167,7 +1167,7 @@ End Class]]></a>
             Await TestAsync(text.Value, HelpKeywords.Region)
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.F1Help)>
+        <Fact, Trait(Traits.Feature, Traits.Features.F1Help)>
         Public Async Function TestRaiseEvent() As Task
             Dim text = <a><![CDATA[
 Class Program
@@ -1180,7 +1180,7 @@ End Class]]></a>
             Await TestAsync(text.Value, "vb.RaiseEvent")
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.F1Help)>
+        <Fact, Trait(Traits.Feature, Traits.Features.F1Help)>
         Public Async Function TestReDim() As Task
             Dim text = <a><![CDATA[
 Class Program
@@ -1193,7 +1193,7 @@ End Class]]></a>
             Await TestAsync(text.Value, HelpKeywords.Redim)
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.F1Help)>
+        <Fact, Trait(Traits.Feature, Traits.Features.F1Help)>
         Public Async Function TestIsOperator() As Task
             Dim text = <a><![CDATA[
 Class Program
@@ -1206,7 +1206,7 @@ End Class]]></a>
             Await TestAsync(text.Value, "vb.Is")
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.F1Help)>
+        <Fact, Trait(Traits.Feature, Traits.Features.F1Help)>
         Public Async Function TestRemoveHandler() As Task
             Dim text = <a><![CDATA[
 Class Program
@@ -1222,7 +1222,7 @@ End Class]]></a>
             Await TestAsync(text.Value, "vb.RemoveHandler")
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.F1Help)>
+        <Fact, Trait(Traits.Feature, Traits.Features.F1Help)>
         Public Async Function TestResume() As Task
             Dim text = <a><![CDATA[
 Class Program
@@ -1234,7 +1234,7 @@ End Class]]></a>
             Await TestAsync(text.Value, "vb.Resume")
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.F1Help)>
+        <Fact, Trait(Traits.Feature, Traits.Features.F1Help)>
         Public Async Function TestReturn() As Task
             Dim text = <a><![CDATA[
 Class Program
@@ -1246,7 +1246,7 @@ End Class]]></a>
             Await TestAsync(text.Value, "vb.Return")
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.F1Help)>
+        <Fact, Trait(Traits.Feature, Traits.Features.F1Help)>
         Public Async Function TestStop() As Task
             Dim text = <a><![CDATA[
 Class Program
@@ -1258,7 +1258,7 @@ End Class]]></a>
             Await TestAsync(text.Value, "vb.Stop")
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.F1Help)>
+        <Fact, Trait(Traits.Feature, Traits.Features.F1Help)>
         Public Async Function TestSyncLock() As Task
             Dim text = <a><![CDATA[
 Class Program
@@ -1272,7 +1272,7 @@ End Class]]></a>
             Await TestAsync(text.Value, "vb.SyncLock")
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.F1Help)>
+        <Fact, Trait(Traits.Feature, Traits.Features.F1Help)>
         Public Async Function TestThrow() As Task
             Dim text = <a><![CDATA[
 Class Program
@@ -1284,7 +1284,7 @@ End Class]]></a>
             Await TestAsync(text.Value, "vb.Throw")
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.F1Help)>
+        <Fact, Trait(Traits.Feature, Traits.Features.F1Help)>
         Public Async Function TestNegate() As Task
             Dim text = <a><![CDATA[
 Class Program
@@ -1297,7 +1297,7 @@ End Class]]></a>
             Await TestAsync(text.Value, HelpKeywords.Negate)
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.F1Help)>
+        <Fact, Trait(Traits.Feature, Traits.Features.F1Help)>
         Public Async Function TestUsingStatement() As Task
             Dim text = <a><![CDATA[
 Class Program
@@ -1311,7 +1311,7 @@ End Class]]></a>
             Await TestAsync(text.Value, "vb.Using")
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.F1Help)>
+        <Fact, Trait(Traits.Feature, Traits.Features.F1Help)>
         Public Async Function TestYieldStatement() As Task
             Dim text = <a><![CDATA[
 Class Program
@@ -1323,7 +1323,7 @@ End Class]]></a>
             Await TestAsync(text.Value, "vb.Yield")
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.F1Help)>
+        <Fact, Trait(Traits.Feature, Traits.Features.F1Help)>
         Public Sub TestLocalDeclaration()
             Dim text = <a><![CDATA[
 Class Program
@@ -1333,7 +1333,7 @@ Class Program
 End Class]]></a>
         End Sub
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.F1Help)>
+        <Fact, Trait(Traits.Feature, Traits.Features.F1Help)>
         Public Async Function TestPredefinedType() As Task
             Dim text = <a><![CDATA[
 Class Program
@@ -1345,7 +1345,7 @@ End Class]]></a>
             Await TestAsync(text.Value, "vb.Integer")
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.F1Help)>
+        <Fact, Trait(Traits.Feature, Traits.Features.F1Help)>
         Public Async Function TestIdentifierName() As Task
             Dim text = <a><![CDATA[
 Class Program
@@ -1357,7 +1357,7 @@ End Class]]></a>
             Await TestAsync(text.Value, "System.Console.WriteLine")
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.F1Help)>
+        <Fact, Trait(Traits.Feature, Traits.Features.F1Help)>
         Public Async Function TestDateLiteral() As Task
             Dim text = <a><![CDATA[
 Class Program
@@ -1369,7 +1369,7 @@ End Class]]></a>
             Await TestAsync(text.Value, "vb.Date")
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.F1Help)>
+        <Fact, Trait(Traits.Feature, Traits.Features.F1Help)>
         Public Async Function TestDocComment() As Task
             Await TestAsync(<a><![CDATA[Imports System
 Imports System.Collections.Generic
@@ -1386,8 +1386,8 @@ Module Program
 End Module]]></a>.Value, HelpKeywords.XmlDocComment)
         End Function
 
-        <WorkItem(864194)>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.F1Help)>
+        <WorkItem(864194, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/864194")>
+        <Fact, Trait(Traits.Feature, Traits.Features.F1Help)>
         Public Async Function TestAnonymousType() As Task
             Await TestAsync(<a><![CDATA[Public Class Test
     Sub Subroutine()
@@ -1396,8 +1396,8 @@ End Module]]></a>.Value, HelpKeywords.XmlDocComment)
 End Class]]></a>.Value, "vb.AnonymousType")
         End Function
 
-        <WorkItem(864189)>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.F1Help)>
+        <WorkItem(864189, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/864189")>
+        <Fact, Trait(Traits.Feature, Traits.Features.F1Help)>
         Public Async Function TestAnonymousProperty() As Task
             Await TestAsync(<a><![CDATA[Imports System
 Imports System.Collections.Generic
@@ -1413,8 +1413,8 @@ Module Program
 End Module]]></a>.Value, "vb.AnonymousType")
         End Function
 
-        <WorkItem(863684)>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.F1Help)>
+        <WorkItem(863684, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/863684")>
+        <Fact, Trait(Traits.Feature, Traits.Features.F1Help)>
         Public Async Function TestByVal() As Task
             Await TestAsync(<a><![CDATA[Imports System
 Imports System.Collections.Generic
@@ -1427,8 +1427,8 @@ Module Program
 End Module]]></a>.Value, "vb.ByVal")
         End Function
 
-        <WorkItem(864207)>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.F1Help)>
+        <WorkItem(864207, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/864207")>
+        <Fact, Trait(Traits.Feature, Traits.Features.F1Help)>
         Public Async Function TestOf() As Task
             Await TestAsync(<a><![CDATA[Imports System
 Imports System.Collections.Generic
@@ -1441,8 +1441,8 @@ Module Program
 End Module]]></a>.Value, "vb.Of")
         End Function
 
-        <WorkItem(863680)>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.F1Help)>
+        <WorkItem(863680, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/863680")>
+        <Fact, Trait(Traits.Feature, Traits.Features.F1Help)>
         Public Async Function TestCompoundAssign() As Task
             Await TestAsync(<a><![CDATA[Public Class Test
     Sub Subroutine()
@@ -1456,8 +1456,8 @@ End Class
 ]]></a>.Value, "vb.+=")
         End Function
 
-        <WorkItem(863661)>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.F1Help)>
+        <WorkItem(863661, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/863661")>
+        <Fact, Trait(Traits.Feature, Traits.Features.F1Help)>
         Public Async Function TestGeneric() As Task
             Await TestAsync(<a><![CDATA[Imports System
 Imports System.Collections.Generic
@@ -1471,8 +1471,8 @@ Module Program
 End Module]]></a>.Value, "System.Collections.Generic.IEnumerable`1")
         End Function
 
-        <WorkItem(863652)>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.F1Help)>
+        <WorkItem(863652, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/863652")>
+        <Fact, Trait(Traits.Feature, Traits.Features.F1Help)>
         Public Async Function TestSub() As Task
             Await TestAsync(<a><![CDATA[Imports System
 Imports System.Collections.Generic
@@ -1485,8 +1485,8 @@ Module Program
 End Module]]></a>.Value, "vb.Sub")
         End Function
 
-        <WorkItem(863340)>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.F1Help)>
+        <WorkItem(863340, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/863340")>
+        <Fact, Trait(Traits.Feature, Traits.Features.F1Help)>
         Public Async Function TestAsNew() As Task
             Await TestAsync(<a><![CDATA[Imports System.Text
 Public Class Test
@@ -1499,8 +1499,8 @@ End Class
 
         End Function
 
-        <WorkItem(863305)>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.F1Help)>
+        <WorkItem(863305, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/863305")>
+        <Fact, Trait(Traits.Feature, Traits.Features.F1Help)>
         Public Async Function TestAwait() As Task
             Await TestAsync(<a><![CDATA[Public Class Test
     Async Sub AsyncSub()
@@ -1512,16 +1512,16 @@ End Class
 ]]></a>.Value, "vb.Await")
         End Function
 
-        <WorkItem(864243)>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.F1Help)>
+        <WorkItem(864243, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/864243")>
+        <Fact, Trait(Traits.Feature, Traits.Features.F1Help)>
         Public Async Function TestProperty() As Task
             Await TestAsync(<a><![CDATA[Class Program
     Prope[||]rty prop As Integer
 End Class]]></a>.Value, "vb.AutoImplementedProperty")
         End Function
 
-        <WorkItem(864226)>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.F1Help)>
+        <WorkItem(864226, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/864226")>
+        <Fact, Trait(Traits.Feature, Traits.Features.F1Help)>
         Public Async Function TestPredefinedTypeMember() As Task
             Await TestAsync(<a><![CDATA[Module Program
     Sub Main(args As String())
@@ -1530,8 +1530,8 @@ End Class]]></a>.Value, "vb.AutoImplementedProperty")
 End Module]]></a>.Value, "System.Int32.MaxValue")
         End Function
 
-        <WorkItem(864237)>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.F1Help)>
+        <WorkItem(864237, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/864237")>
+        <Fact, Trait(Traits.Feature, Traits.Features.F1Help)>
         Public Async Function TestModuleModifier() As Task
             Await TestAsync(<a><![CDATA[Publi[||]c Module M
     Public Class C
@@ -1549,8 +1549,8 @@ Public Delegate Sub Dele()
 ]]></a>.Value, "vb.Public")
         End Function
 
-        <WorkItem(864237)>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.F1Help)>
+        <WorkItem(864237, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/864237")>
+        <Fact, Trait(Traits.Feature, Traits.Features.F1Help)>
         Public Async Function TestDelegateModifiers() As Task
             Await TestAsync(<a><![CDATA[Public Module M
     Public Class C
@@ -1568,8 +1568,8 @@ Publi[||]c Delegate Sub Dele()
 ]]></a>.Value, "vb.Public")
         End Function
 
-        <WorkItem(863273)>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.F1Help)>
+        <WorkItem(863273, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/863273")>
+        <Fact, Trait(Traits.Feature, Traits.Features.F1Help)>
         Public Async Function TestAssignment() As Task
             Await TestAsync(<a><![CDATA[Public Class Test
     Sub Subroutine()
@@ -1579,8 +1579,8 @@ End Class
 ]]></a>.Value, "vb.=")
         End Function
 
-        <WorkItem(863228)>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.F1Help)>
+        <WorkItem(863228, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/863228")>
+        <Fact, Trait(Traits.Feature, Traits.Features.F1Help)>
         Public Async Function TestRem() As Task
             Await TestAsync(<a><![CDATA[Module Program
     Sub Main(args As String())
@@ -1589,8 +1589,8 @@ End Class
 End Module]]></a>.Value, "vb.Rem")
         End Function
 
-        <WorkItem(863228)>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.F1Help)>
+        <WorkItem(863228, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/863228")>
+        <Fact, Trait(Traits.Feature, Traits.Features.F1Help)>
         Public Async Function TestTodo() As Task
             Await TestAsync(<a><![CDATA[Module Program
     Sub Main(args As String())
@@ -1599,8 +1599,8 @@ End Module]]></a>.Value, "vb.Rem")
 End Module]]></a>.Value, HelpKeywords.TaskListUserComments)
         End Function
 
-        <WorkItem(863220)>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.F1Help)>
+        <WorkItem(863220, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/863220")>
+        <Fact, Trait(Traits.Feature, Traits.Features.F1Help)>
         Public Async Function TestMethodInvocation() As Task
             Await TestAsync(<a><![CDATA[Public Class Test
     Sub Subroutine()
@@ -1612,14 +1612,14 @@ End Class
 ]]></a>.Value, "vb.Call")
         End Function
 
-        <WorkItem(864202)>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.F1Help)>
+        <WorkItem(864202, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/864202")>
+        <Fact, Trait(Traits.Feature, Traits.Features.F1Help)>
         Public Async Function TestImportsXmlns() As Task
             Await TestAsync(<a><![CDATA[Imports <xmln[||]s:ns="foo">]]></a>.Value, "vb.ImportsXmlns")
         End Function
 
-        <WorkItem(862420)>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.F1Help)>
+        <WorkItem(862420, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/862420")>
+        <Fact, Trait(Traits.Feature, Traits.Features.F1Help)>
         Public Async Function TestParameter() As Task
             Await TestAsync(<a><![CDATA[Imports System
 Imports System.Collections.Generic
@@ -1632,8 +1632,8 @@ Module Program
 End Module]]></a>.Value, "System.String()")
         End Function
 
-        <WorkItem(862396)>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.F1Help)>
+        <WorkItem(862396, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/862396")>
+        <Fact, Trait(Traits.Feature, Traits.Features.F1Help)>
         Public Async Function TestNoToken() As Task
             Await TestAsync(<a><![CDATA[Module Program
     Sub Main(args As String())
@@ -1642,8 +1642,8 @@ End Module]]></a>.Value, "System.String()")
 End Module]]></a>.Value, "")
         End Function
 
-        <WorkItem(863293)>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.F1Help)>
+        <WorkItem(863293, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/863293")>
+        <Fact, Trait(Traits.Feature, Traits.Features.F1Help)>
         Public Async Function TestMemberAccess() As Task
             Await TestAsync(<a><![CDATA[Imports System
 Imports System.Collections.Generic
@@ -1656,8 +1656,8 @@ Module Program
 End Module]]></a>.Value, "System.Int32.Parse")
         End Function
 
-        <WorkItem(864661)>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.F1Help)>
+        <WorkItem(864661, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/864661")>
+        <Fact, Trait(Traits.Feature, Traits.Features.F1Help)>
         Public Async Function TestCtype2() As Task
             Await TestAsync(<a><![CDATA[Imports System
 Imports System.Collections.Generic
@@ -1671,8 +1671,8 @@ Module Program
 End Module]]></a>.Value, "vb.CType")
         End Function
 
-        <WorkItem(864661)>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.F1Help)>
+        <WorkItem(864661, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/864661")>
+        <Fact, Trait(Traits.Feature, Traits.Features.F1Help)>
         Public Async Function TestNothing() As Task
             Await TestAsync(<a><![CDATA[Imports System
 Imports System.Collections.Generic
@@ -1686,8 +1686,8 @@ Module Program
 End Module]]></a>.Value, "vb.Nothing")
         End Function
 
-        <WorkItem(864658)>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.F1Help)>
+        <WorkItem(864658, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/864658")>
+        <Fact, Trait(Traits.Feature, Traits.Features.F1Help)>
         Public Async Function TestNullable() As Task
             Await TestAsync(<a><![CDATA[Imports System
 Imports System.Collections.Generic
@@ -1700,8 +1700,8 @@ Module Program
 End Module]]></a>.Value, "vb.Nullable")
         End Function
 
-        <WorkItem(864209)>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.F1Help)>
+        <WorkItem(864209, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/864209")>
+        <Fact, Trait(Traits.Feature, Traits.Features.F1Help)>
         Public Async Function TestRegionTrivia() As Task
             Await TestAsync(<a><![CDATA[Imports System
 Imports System.Collections.Generic
@@ -1717,8 +1717,8 @@ Module Program
 End Module]]></a>.Value, "vb.String")
         End Function
 
-        <WorkItem(865034)>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.F1Help)>
+        <WorkItem(865034, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/865034")>
+        <Fact, Trait(Traits.Feature, Traits.Features.F1Help)>
         Public Async Function TestTypeCharacter() As Task
             Await TestAsync(<a><![CDATA[Public Module M
     Sub M1()
@@ -1729,16 +1729,16 @@ End Module]]></a>.Value, "vb.String")
 End Module]]></a>.Value, "vb.UInteger")
         End Function
 
-        <WorkItem(865061)>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.F1Help)>
+        <WorkItem(865061, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/865061")>
+        <Fact, Trait(Traits.Feature, Traits.Features.F1Help)>
         Public Async Function TestStructure() As Task
             Await TestAsync(<a><![CDATA[Structure S[||]1
 End Structure
 ]]></a>.Value, "vb.Structure")
         End Function
 
-        <WorkItem(865047)>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.F1Help)>
+        <WorkItem(865047, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/865047")>
+        <Fact, Trait(Traits.Feature, Traits.Features.F1Help)>
         Public Async Function TestXmlLiteralDocument() As Task
             Await TestAsync(<a><![CDATA[Public Module M
     Sub M1()
@@ -1755,8 +1755,8 @@ End Module
 ]]></a>.Value, "vb.XmlLiteralDocument")
         End Function
 
-        <WorkItem(865047)>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.F1Help)>
+        <WorkItem(865047, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/865047")>
+        <Fact, Trait(Traits.Feature, Traits.Features.F1Help)>
         Public Async Function TestXmlEmptyElement() As Task
             Await TestAsync(<a><![CDATA[Public Module M
     Sub M1()
@@ -1773,8 +1773,8 @@ End Module
 ]]></a>.Value, "vb.XmlLiteralElement")
         End Function
 
-        <WorkItem(865047)>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.F1Help)>
+        <WorkItem(865047, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/865047")>
+        <Fact, Trait(Traits.Feature, Traits.Features.F1Help)>
         Public Async Function TestXmlLiteralComment() As Task
             Await TestAsync(<a><![CDATA[Public Module M
     Sub M1()
@@ -1791,8 +1791,8 @@ End Module
 ]]></a>.Value, "vb.XmlLiteralComment")
         End Function
 
-        <WorkItem(865088)>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.F1Help)>
+        <WorkItem(865088, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/865088")>
+        <Fact, Trait(Traits.Feature, Traits.Features.F1Help)>
         Public Async Function TestWhile() As Task
             Await TestAsync(<a><![CDATA[Class C
     Sub M()
@@ -1805,8 +1805,8 @@ End Module
 End Class]]></a>.Value, "vb.While")
         End Function
 
-        <WorkItem(865326)>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.F1Help)>
+        <WorkItem(865326, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/865326")>
+        <Fact, Trait(Traits.Feature, Traits.Features.F1Help)>
         Public Async Function TestImplements() As Task
             Await TestAsync(<a><![CDATA[Interface I1
 Sub M()
@@ -1819,8 +1819,8 @@ End Class
 ]]></a>.Value, "vb.ImplementsClause")
         End Function
 
-        <WorkItem(865306)>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.F1Help)>
+        <WorkItem(865306, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/865306")>
+        <Fact, Trait(Traits.Feature, Traits.Features.F1Help)>
         Public Async Function TestAddressOf() As Task
             Await TestAsync(<a><![CDATA[Delegate Sub mydele()
 Class C
@@ -1834,68 +1834,68 @@ End Class
 ]]></a>.Value, "vb.AddressOf")
         End Function
 
-        <WorkItem(898157)>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.F1Help)>
+        <WorkItem(898157, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/898157")>
+        <Fact, Trait(Traits.Feature, Traits.Features.F1Help)>
         Public Async Function TestShared() As Task
             Await TestAsync(<a><![CDATA[[|Shared|]]]></a>.Value, "vb.Shared")
         End Function
 
-        <WorkItem(898157)>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.F1Help)>
+        <WorkItem(898157, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/898157")>
+        <Fact, Trait(Traits.Feature, Traits.Features.F1Help)>
         Public Async Function TestWidening() As Task
             Await TestAsync(<a><![CDATA[[|Widening|]]]></a>.Value, "vb.Widening")
         End Function
 
-        <WorkItem(898157)>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.F1Help)>
+        <WorkItem(898157, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/898157")>
+        <Fact, Trait(Traits.Feature, Traits.Features.F1Help)>
         Public Async Function TestCType() As Task
             Await TestAsync(<a><![CDATA[[|CType|]]]></a>.Value, "vb.CType")
         End Function
 
-        <WorkItem(898157)>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.F1Help)>
+        <WorkItem(898157, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/898157")>
+        <Fact, Trait(Traits.Feature, Traits.Features.F1Help)>
         Public Async Function TestNarrowing() As Task
             Await TestAsync(<a><![CDATA[[|Narrowing|]]]></a>.Value, "vb.Narrowing")
         End Function
 
-        <WorkItem(898157)>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.F1Help)>
+        <WorkItem(898157, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/898157")>
+        <Fact, Trait(Traits.Feature, Traits.Features.F1Help)>
         Public Async Function TestOperator() As Task
             Await TestAsync(<a><![CDATA[[|Operator|]]]></a>.Value, "vb.Operator")
         End Function
 
-        <WorkItem(898157)>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.F1Help)>
+        <WorkItem(898157, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/898157")>
+        <Fact, Trait(Traits.Feature, Traits.Features.F1Help)>
         Public Async Function TestAddHandler() As Task
             Await TestAsync(<a><![CDATA[[|AddHandler|]]]></a>.Value, "vb.AddHandler")
         End Function
 
-        <WorkItem(898157)>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.F1Help)>
+        <WorkItem(898157, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/898157")>
+        <Fact, Trait(Traits.Feature, Traits.Features.F1Help)>
         Public Async Function TestAnsi() As Task
             Await TestAsync(<a><![CDATA[Declare [|Ansi|]]]></a>.Value, "vb.Ansi")
         End Function
 
-        <WorkItem(898157)>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.F1Help)>
+        <WorkItem(898157, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/898157")>
+        <Fact, Trait(Traits.Feature, Traits.Features.F1Help)>
         Public Async Function TestAuto() As Task
             Await TestAsync(<a><![CDATA[Declare [|Auto|]]]></a>.Value, "vb.Auto")
         End Function
 
-        <WorkItem(898157)>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.F1Help)>
+        <WorkItem(898157, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/898157")>
+        <Fact, Trait(Traits.Feature, Traits.Features.F1Help)>
         Public Async Function TestUnicode() As Task
             Await TestAsync(<a><![CDATA[Declare [|Unicode|]]]></a>.Value, "vb.Unicode")
         End Function
 
-        <WorkItem(898157)>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.F1Help)>
+        <WorkItem(898157, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/898157")>
+        <Fact, Trait(Traits.Feature, Traits.Features.F1Help)>
         Public Async Function TestHandles() As Task
             Await TestAsync(<a><![CDATA[[|Handles|]]]></a>.Value, "vb.Handles")
         End Function
 
-        <WorkItem(867738)>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.F1Help)>
+        <WorkItem(867738, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/867738")>
+        <Fact, Trait(Traits.Feature, Traits.Features.F1Help)>
         Public Async Function TestImplementsIDisposable() As Task
             Await TestAsync(<a><![CDATA[Imports System
 Class C
@@ -1907,7 +1907,7 @@ End Class
 ]]></a>.Value, "vb.IDisposable")
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.F1Help)>
+        <Fact, Trait(Traits.Feature, Traits.Features.F1Help)>
         Public Async Function TestInherits() As Task
             Await TestAsync(<a><![CDATA[Imports System
 Class C
@@ -1917,7 +1917,7 @@ End Class
 ]]></a>.Value, "System.Exception")
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.F1Help)>
+        <Fact, Trait(Traits.Feature, Traits.Features.F1Help)>
         Public Async Function TestNot() As Task
             Await TestAsync(<a><![CDATA[Class C
     Sub M()
@@ -1927,7 +1927,7 @@ End Class
 End Class]]></a>.Value, "vb.Not")
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.F1Help)>
+        <Fact, Trait(Traits.Feature, Traits.Features.F1Help)>
         Public Async Function TestArrayIndex() As Task
             Await TestAsync(<a><![CDATA[Class C
     Sub M()
@@ -1938,8 +1938,8 @@ End Class]]></a>.Value, "vb.Integer")
         End Function
 
 
-        <WorkItem(866074)>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.F1Help)>
+        <WorkItem(866074, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/866074")>
+        <Fact, Trait(Traits.Feature, Traits.Features.F1Help)>
         Public Async Function TestGroupJoin() As Task
             Await TestAsync(<a><![CDATA[Module LINQ
     Sub Linq()
@@ -1962,8 +1962,8 @@ End Class]]></a>.Value, "vb.Integer")
 End Module]]></a>.Value, "vb.QueryGroupJoin")
         End Function
 
-        <WorkItem(866074)>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.F1Help)>
+        <WorkItem(866074, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/866074")>
+        <Fact, Trait(Traits.Feature, Traits.Features.F1Help)>
         Public Async Function TestGroupJoinIn() As Task
             Await TestAsync(<a><![CDATA[Module LINQ
     Sub Linq()
@@ -1986,8 +1986,8 @@ End Module]]></a>.Value, "vb.QueryGroupJoin")
 End Module]]></a>.Value, "vb.QueryGroupJoinIn")
         End Function
 
-        <WorkItem(866074)>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.F1Help)>
+        <WorkItem(866074, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/866074")>
+        <Fact, Trait(Traits.Feature, Traits.Features.F1Help)>
         Public Async Function TestLinqEquals() As Task
             Await TestAsync(<a><![CDATA[Module LINQ
     Sub Linq()
@@ -2010,8 +2010,8 @@ End Module]]></a>.Value, "vb.QueryGroupJoinIn")
 End Module]]></a>.Value, "vb.Equals")
         End Function
 
-        <WorkItem(866074)>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.F1Help)>
+        <WorkItem(866074, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/866074")>
+        <Fact, Trait(Traits.Feature, Traits.Features.F1Help)>
         Public Async Function TestSelect() As Task
             Await TestAsync(<a><![CDATA[Module LINQ
     Sub Linq()
@@ -2034,8 +2034,8 @@ End Module]]></a>.Value, "vb.Equals")
 End Module]]></a>.Value, "vb.QuerySelect")
         End Function
 
-        <WorkItem(866074)>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.F1Help)>
+        <WorkItem(866074, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/866074")>
+        <Fact, Trait(Traits.Feature, Traits.Features.F1Help)>
         Public Async Function TestCountLinq() As Task
             Await TestAsync(<a><![CDATA[Module LINQ
     Sub Linq()
@@ -2058,8 +2058,8 @@ End Module]]></a>.Value, "vb.QuerySelect")
 End Module]]></a>.Value, "System.Linq.Enumerable.Count")
         End Function
 
-        <WorkItem(867747)>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.F1Help)>
+        <WorkItem(867747, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/867747")>
+        <Fact, Trait(Traits.Feature, Traits.Features.F1Help)>
         Public Async Function TestOperatorOverload() As Task
             Await TestAsync(<a><![CDATA[Class C
     Public Shared Operator IsTr[||]ue(ByVal a As C) As Boolean
@@ -2068,8 +2068,8 @@ End Module]]></a>.Value, "System.Linq.Enumerable.Count")
 End Class]]></a>.Value, "vb.IsTrue")
         End Function
 
-        <WorkItem(866058)>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.F1Help)>
+        <WorkItem(866058, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/866058")>
+        <Fact, Trait(Traits.Feature, Traits.Features.F1Help)>
         Public Async Function TestAnonymousLocal() As Task
             Await TestAsync(<a><![CDATA[Imports System
 Imports System.Collections.Generic
@@ -2082,8 +2082,8 @@ Module Program
 End Module]]></a>.Value, "vb.AnonymousType")
         End Function
 
-        <WorkItem(866046)>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.F1Help)>
+        <WorkItem(866046, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/866046")>
+        <Fact, Trait(Traits.Feature, Traits.Features.F1Help)>
         Public Async Function TestNoEscaping() As Task
             Await TestAsync(<a><![CDATA[Imports System
 Class C
@@ -2095,7 +2095,7 @@ End Class]]></a>.Value, "System.Object.GetType")
         End Function
 
         <WorkItem(4150, "https://github.com/dotnet/roslyn/issues/4150")>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.F1Help)>
+        <Fact, Trait(Traits.Feature, Traits.Features.F1Help)>
         Public Async Function TestPropertyFromMemberAccess() As Task
             Await TestAsync(<a><![CDATA[Imports System
 Imports System.Collections.Generic
@@ -2108,7 +2108,7 @@ Module Program
 End Module]]></a>.Value, "System.Array.Length")
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.F1Help)>
+        <Fact, Trait(Traits.Feature, Traits.Features.F1Help)>
         Public Async Function TestParameterFromReference() As Task
             Await TestAsync(<a><![CDATA[Module Program
     Sub Main(args As String())
@@ -2117,7 +2117,7 @@ End Module]]></a>.Value, "System.Array.Length")
 End Module]]></a>.Value, "System.String()")
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.F1Help)>
+        <Fact, Trait(Traits.Feature, Traits.Features.F1Help)>
         Public Async Function TestLocalFromReference() As Task
             Await TestAsync(<a><![CDATA[Module Program
     Sub Main(args As String())
@@ -2127,7 +2127,7 @@ End Module]]></a>.Value, "System.String()")
 End Module]]></a>.Value, "System.Int32")
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.F1Help)>
+        <Fact, Trait(Traits.Feature, Traits.Features.F1Help)>
         Public Async Function TestAliasFromReference() As Task
             Await TestAsync(<a><![CDATA[Imports s = System.Linq.Enumerable
 
@@ -2138,7 +2138,7 @@ Module Program
 End Module]]></a>.Value, "System.Linq.Enumerable")
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.F1Help)>
+        <Fact, Trait(Traits.Feature, Traits.Features.F1Help)>
         Public Async Function TestRangeVariable() As Task
             Await TestAsync(<a><![CDATA[Module Program
     Sub Main(args As String())

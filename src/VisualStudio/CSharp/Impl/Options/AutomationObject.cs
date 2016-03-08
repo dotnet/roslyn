@@ -1,7 +1,9 @@
 // Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Runtime.InteropServices;
+using System.Xml.Linq;
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.Completion;
 using Microsoft.CodeAnalysis.CSharp.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.Completion;
@@ -445,16 +447,88 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options
             set { SetBooleanOption(SimplificationOptions.PreferIntrinsicPredefinedTypeKeywordInMemberAccess, value); }
         }
 
-        public int Style_QualifyMemberAccessWithThisOrMe
+        public string Style_NamingPreferences
         {
-            get { return GetBooleanOption(SimplificationOptions.QualifyMemberAccessWithThisOrMe); }
-            set { SetBooleanOption(SimplificationOptions.QualifyMemberAccessWithThisOrMe, value); }
+            get
+            {
+                return _optionService.GetOption(SimplificationOptions.NamingPreferences, LanguageNames.CSharp);
+            }
+
+            set
+            {
+                var optionSet = _optionService.GetOptions();
+                optionSet = optionSet.WithChangedOption(SimplificationOptions.NamingPreferences, LanguageNames.CSharp, value);
+                _optionService.SetOptions(optionSet);
+            }
+        }
+
+        public int Style_QualifyFieldAccess
+        {
+            get { return GetBooleanOption(SimplificationOptions.QualifyFieldAccess); }
+            set { SetBooleanOption(SimplificationOptions.QualifyFieldAccess, value); }
+        }
+
+        public int Style_QualifyPropertyAccess
+        {
+            get { return GetBooleanOption(SimplificationOptions.QualifyPropertyAccess); }
+            set { SetBooleanOption(SimplificationOptions.QualifyPropertyAccess, value); }
+        }
+
+        public int Style_QualifyMethodAccess
+        {
+            get { return GetBooleanOption(SimplificationOptions.QualifyMethodAccess); }
+            set { SetBooleanOption(SimplificationOptions.QualifyMethodAccess, value); }
+        }
+
+        public int Style_QualifyEventAccess
+        {
+            get { return GetBooleanOption(SimplificationOptions.QualifyEventAccess); }
+            set { SetBooleanOption(SimplificationOptions.QualifyEventAccess, value); }
         }
 
         public int Style_UseVarWhenDeclaringLocals
         {
             get { return GetBooleanOption(CSharpCodeStyleOptions.UseVarWhenDeclaringLocals); }
             set { SetBooleanOption(CSharpCodeStyleOptions.UseVarWhenDeclaringLocals, value); }
+        }
+
+        public string Style_UseVarWherePossible
+        {
+            get
+            {
+                var option = _optionService.GetOption(CSharpCodeStyleOptions.UseImplicitTypeWherePossible);
+                return GetUseVarOption(option);
+            }
+            set
+            {
+                SetUseVarOption(CSharpCodeStyleOptions.UseImplicitTypeWherePossible, value);
+            }
+        }
+
+        public string Style_UseVarWhenTypeIsApparent
+        {
+            get
+            {
+                var option = _optionService.GetOption(CSharpCodeStyleOptions.UseImplicitTypeWhereApparent);
+                return GetUseVarOption(option);
+            }
+            set
+            {
+                SetUseVarOption(CSharpCodeStyleOptions.UseImplicitTypeWhereApparent, value);
+            }
+        }
+
+        public string Style_UseVarForIntrinsicTypes
+        {
+            get
+            {
+                var option = _optionService.GetOption(CSharpCodeStyleOptions.UseImplicitTypeForIntrinsicTypes);
+                return GetUseVarOption(option);
+            }
+            set
+            {
+                SetUseVarOption(CSharpCodeStyleOptions.UseImplicitTypeForIntrinsicTypes, value);
+            }
         }
 
         public int WarnOnBuildErrors
@@ -518,6 +592,21 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options
         {
             var optionSet = _optionService.GetOptions();
             optionSet = optionSet.WithChangedOption(key, LanguageNames.CSharp, value != 0);
+            _optionService.SetOptions(optionSet);
+        }
+
+        private static string GetUseVarOption(SimpleCodeStyleOption option)
+        {
+            return option.ToXElement().ToString();
+        }
+
+        private void SetUseVarOption(Option<SimpleCodeStyleOption> option, string value)
+        {
+            SimpleCodeStyleOption convertedValue = SimpleCodeStyleOption.Default;
+            var optionSet = _optionService.GetOptions();
+
+            convertedValue = SimpleCodeStyleOption.FromXElement(XElement.Parse(value));
+            optionSet = optionSet.WithChangedOption(option, convertedValue);
             _optionService.SetOptions(optionSet);
         }
     }

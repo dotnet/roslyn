@@ -46,6 +46,8 @@ namespace Microsoft.CodeAnalysis
 
         internal bool TestHookPartialSolutionsDisabled { get; set; }
 
+        private Action<string> _testMessageLogger;
+
         /// <summary>
         /// Constructs a new workspace instance.
         /// </summary>
@@ -64,6 +66,20 @@ namespace Microsoft.CodeAnalysis
 
             // initialize with empty solution
             _latestSolution = CreateSolution(SolutionId.CreateNewId());
+        }
+
+        internal void LogTestMessage(string message)
+        {
+            _testMessageLogger?.Invoke(message);
+        }
+
+        /// <summary>
+        /// Sets an internal logger that will receive some messages.
+        /// </summary>
+        /// <param name="writeLineMessageLogger">An action called to write a single line to the log.</param>
+        internal void SetTestLogger(Action<string> writeLineMessageLogger)
+        {
+            _testMessageLogger = writeLineMessageLogger;
         }
 
         /// <summary>
@@ -879,6 +895,15 @@ namespace Microsoft.CodeAnalysis
         }
 
         /// <summary>
+        /// Returns <code>true</code> if a reference to referencedProject can be added to 
+        /// referencingProject.  <code>false</code> otherwise.
+        /// </summary>
+        internal virtual bool CanAddProjectReference(ProjectId referencingProject, ProjectId referencedProject)
+        {
+            return false;
+        }
+
+        /// <summary>
         /// Apply changes made to a solution back to the workspace.
         /// 
         /// The specified solution must be one that originated from this workspace. If it is not, or the workspace
@@ -1098,7 +1123,7 @@ namespace Microsoft.CodeAnalysis
                 this.ApplyDocumentRemoved(documentId);
             }
 
-            // removed documents
+            // removed additional documents
             foreach (var documentId in projectChanges.GetRemovedAdditionalDocuments())
             {
                 this.ApplyAdditionalDocumentRemoved(documentId);

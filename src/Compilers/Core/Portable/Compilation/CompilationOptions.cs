@@ -65,9 +65,8 @@ namespace Microsoft.CodeAnalysis
         /// but not both. If both are specified <see cref="CryptoKeyContainer"/> is ignored.
         /// </para>
         /// <para>
-        /// This setting is obsolete and only supported on Microsoft Windows platform.
-        /// Use <see cref="CryptoPublicKey"/> to generate assemblies with strong name and 
-        /// a signing tool (Microsoft .NET Framework Strong Name Utility (sn.exe) or equivalent) to sign them.
+        /// If <see cref="PublicSign" /> is also set, <see cref="CryptoKeyFile"/> must be the absolute
+        /// path to key file.
         /// </para>
         /// </remarks>
         public string CryptoKeyFile { get; protected set; }
@@ -107,7 +106,13 @@ namespace Microsoft.CodeAnalysis
         /// Mark the compilation assembly as fully signed, but only sign with the public key.
         /// </summary>
         /// <remarks>
+        /// <para>
         /// If true, the assembly is marked as signed, but is only signed with the public key.
+        /// </para>
+        /// <para>
+        /// The key must be provided through either an absolute path in <see cref="CryptoKeyFile"/>
+        /// or directly via <see cref="CryptoPublicKey" />.
+        /// </para>
         /// </remarks>
         public bool PublicSign { get; protected set; }
 
@@ -170,6 +175,14 @@ namespace Microsoft.CodeAnalysis
 
         // TODO: change visibility of the MetadataImportOptions setter to internal & protected
         internal MetadataImportOptions MetadataImportOptions_internal_protected_set { set { MetadataImportOptions = value; } }
+
+        /// <summary>
+        /// Apply additional disambiguation rules during resolution of referenced assemblies.
+        /// </summary>
+        internal bool ReferencesSupersedeLowerVersions { get; private set; }
+
+        // TODO: change visibility of the ReferencesSupersedeLowerVersions setter to internal & protected
+        internal bool ReferencesSupersedeLowerVersions_internal_protected_set { set { ReferencesSupersedeLowerVersions = value; } }
 
         /// <summary>
         /// Modifies the incoming diagnostic, for example escalating its severity, or discarding it (returning null) based on the compilation options.
@@ -263,7 +276,8 @@ namespace Microsoft.CodeAnalysis
             MetadataReferenceResolver metadataReferenceResolver,
             AssemblyIdentityComparer assemblyIdentityComparer,
             StrongNameProvider strongNameProvider,
-            MetadataImportOptions metadataImportOptions)
+            MetadataImportOptions metadataImportOptions,
+            bool referencesSupersedeLowerVersions)
         {
             this.OutputKind = outputKind;
             this.ModuleName = moduleName;
@@ -290,6 +304,7 @@ namespace Microsoft.CodeAnalysis
             this.StrongNameProvider = strongNameProvider;
             this.AssemblyIdentityComparer = assemblyIdentityComparer ?? AssemblyIdentityComparer.Default;
             this.MetadataImportOptions = metadataImportOptions;
+            this.ReferencesSupersedeLowerVersions = referencesSupersedeLowerVersions;
             this.PublicSign = publicSign;
 
             _lazyErrors = new Lazy<ImmutableArray<Diagnostic>>(() =>
@@ -307,6 +322,7 @@ namespace Microsoft.CodeAnalysis
             // Can't reuse when file resolver or identity comparers change.
             // Can reuse even if StrongNameProvider changes. When resolving a cyclic reference only the simple name is considered, not the strong name.
             return this.MetadataImportOptions == other.MetadataImportOptions
+                && this.ReferencesSupersedeLowerVersions == other.ReferencesSupersedeLowerVersions
                 && this.OutputKind.IsNetModule() == other.OutputKind.IsNetModule()
                 && object.Equals(this.XmlReferenceResolver, other.XmlReferenceResolver)
                 && object.Equals(this.MetadataReferenceResolver, other.MetadataReferenceResolver)
@@ -455,6 +471,47 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         internal abstract void ValidateOptions(ArrayBuilder<Diagnostic> builder);
 
+        internal void ValidateOptions(ArrayBuilder<Diagnostic> builder, CommonMessageProvider messageProvider)
+        {
+            if (!CryptoPublicKey.IsEmpty)
+            {
+                if (CryptoKeyFile != null)
+                {
+                    builder.Add(messageProvider.CreateDiagnostic(messageProvider.ERR_MutuallyExclusiveOptions,
+                        Location.None, nameof(CryptoPublicKey), nameof(CryptoKeyFile)));
+                }
+
+                if (CryptoKeyContainer != null)
+                {
+                    builder.Add(messageProvider.CreateDiagnostic(messageProvider.ERR_MutuallyExclusiveOptions,
+                        Location.None, nameof(CryptoPublicKey), nameof(CryptoKeyContainer)));
+                }
+            }
+
+            if (PublicSign)
+            {
+                if (CryptoKeyFile != null && !PathUtilities.IsAbsolute(CryptoKeyFile))
+                {
+                    // TODO(https://github.com/dotnet/roslyn/issues/9153):
+                    // Produce better diagnostic message for passing a key file with a relative path
+                    builder.Add(messageProvider.CreateDiagnostic(messageProvider.ERR_BadCompilationOptionValue,
+                        Location.None, nameof(CryptoKeyFile), CryptoKeyFile));
+                }
+
+                if (CryptoKeyContainer != null)
+                {
+                    builder.Add(messageProvider.CreateDiagnostic(messageProvider.ERR_MutuallyExclusiveOptions,
+                        Location.None, nameof(PublicSign), nameof(CryptoKeyContainer)));
+                }
+
+                if (DelaySign == true)
+                {
+                    builder.Add(messageProvider.CreateDiagnostic(messageProvider.ERR_MutuallyExclusiveOptions,
+                        Location.None, nameof(PublicSign), nameof(DelaySign)));
+                }
+            }
+        }
+
         /// <summary>
         /// Errors collection related to an incompatible set of compilation options
         /// </summary>
@@ -487,6 +544,7 @@ namespace Microsoft.CodeAnalysis
                    this.GeneralDiagnosticOption == other.GeneralDiagnosticOption &&
                    string.Equals(this.MainTypeName, other.MainTypeName, StringComparison.Ordinal) &&
                    this.MetadataImportOptions == other.MetadataImportOptions &&
+                   this.ReferencesSupersedeLowerVersions == other.ReferencesSupersedeLowerVersions &&
                    string.Equals(this.ModuleName, other.ModuleName, StringComparison.Ordinal) &&
                    this.OptimizationLevel == other.OptimizationLevel &&
                    this.OutputKind == other.OutputKind &&
@@ -520,6 +578,7 @@ namespace Microsoft.CodeAnalysis
                    Hash.Combine((int)this.GeneralDiagnosticOption,
                    Hash.Combine(this.MainTypeName != null ? StringComparer.Ordinal.GetHashCode(this.MainTypeName) : 0,
                    Hash.Combine((int)this.MetadataImportOptions,
+                   Hash.Combine(this.ReferencesSupersedeLowerVersions,
                    Hash.Combine(this.ModuleName != null ? StringComparer.Ordinal.GetHashCode(this.ModuleName) : 0,
                    Hash.Combine((int)this.OptimizationLevel,
                    Hash.Combine((int)this.OutputKind,
@@ -532,8 +591,8 @@ namespace Microsoft.CodeAnalysis
                    Hash.Combine(this.XmlReferenceResolver,
                    Hash.Combine(this.SourceReferenceResolver,
                    Hash.Combine(this.StrongNameProvider,
-                   Hash.Combine(this.AssemblyIdentityComparer, 
-                   Hash.Combine(this.PublicSign, 0)))))))))))))))))))))))));
+                   Hash.Combine(this.AssemblyIdentityComparer,
+                   Hash.Combine(this.PublicSign, 0))))))))))))))))))))))))));
         }
 
         public static bool operator ==(CompilationOptions left, CompilationOptions right)

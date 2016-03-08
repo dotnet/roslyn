@@ -29,9 +29,10 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
 
         string IDkmClrFormatter.GetValueString(DkmClrValue value, DkmInspectionContext inspectionContext, ReadOnlyCollection<string> formatSpecifiers)
         {
-            var options = ((inspectionContext.EvaluationFlags & DkmEvaluationFlags.NoQuotes) == 0) ?
-                ObjectDisplayOptions.UseQuotes :
-                ObjectDisplayOptions.None;
+            var useQuotes = (inspectionContext.EvaluationFlags & DkmEvaluationFlags.NoQuotes) == 0;
+            var options = useQuotes
+                ? ObjectDisplayOptions.UseQuotes | ObjectDisplayOptions.EscapeNonPrintableCharacters
+                : ObjectDisplayOptions.None;
             return GetValueString(value, inspectionContext, options, GetValueFlags.IncludeObjectId);
         }
 

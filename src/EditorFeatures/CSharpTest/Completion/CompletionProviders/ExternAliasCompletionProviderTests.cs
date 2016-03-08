@@ -20,7 +20,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Completion.CompletionPr
             return new ExternAliasCompletionProvider();
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task NoAliases()
         {
             await VerifyNoItemsExistAsync(@"
@@ -30,7 +30,7 @@ class C
 }");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task ExternAlias()
         {
             var markup = @"
@@ -38,7 +38,7 @@ extern alias $$ ";
             await VerifyItemWithAliasedMetadataReferencesAsync(markup, "foo", "foo", 1, "C#", "C#", false);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task NotAfterExternAlias()
         {
             var markup = @"
@@ -46,7 +46,7 @@ extern alias foo $$ ";
             await VerifyItemWithAliasedMetadataReferencesAsync(markup, "foo", "foo", 0, "C#", "C#", false);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task NotGlobal()
         {
             var markup = @"
@@ -54,7 +54,7 @@ extern alias $$ ";
             await VerifyItemWithAliasedMetadataReferencesAsync(markup, "foo", "global", 0, "C#", "C#", false);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task NotIfAlreadyUsed()
         {
             var markup = @"
@@ -63,8 +63,8 @@ extern alias $$";
             await VerifyItemWithAliasedMetadataReferencesAsync(markup, "foo", "foo", 0, "C#", "C#", false);
         }
 
-        [WorkItem(1075278)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [WorkItem(1075278, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1075278")]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task NotInComment()
         {
             var markup = @"

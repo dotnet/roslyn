@@ -329,7 +329,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 var method = GetSpecialTypeMethod(syntax, member);
                 Debug.Assert((object)method != null);
 
-                var array = _factory.Array(elementType, loweredArgs);
+                var array = _factory.ArrayOrEmpty(elementType, loweredArgs);
 
                 return (BoundExpression)BoundCall.Synthesized(syntax, null, method, array);
             }
@@ -386,7 +386,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                             var type = (NamedTypeSymbol)operand.Type;
                             var toStringMembers = type.GetMembers(toString.Name);
-                            foreach(var member in toStringMembers)
+                            foreach (var member in toStringMembers)
                             {
                                 var toStringMethod = member as MethodSymbol;
                                 if (toStringMethod.GetLeastOverriddenMethod(type) == (object)toString)

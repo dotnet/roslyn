@@ -17,7 +17,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Organizing
 {
     public class OrganizeTypeDeclarationTests : AbstractOrganizerTests
     {
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Organizing)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Organizing)]
         public async Task TestFieldsWithoutInitializers1()
         {
             var initial =
@@ -36,7 +36,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Organizing
             await CheckAsync(initial, final);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Organizing)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Organizing)]
         public async Task TestFieldsWithoutInitializers2()
         {
             var initial =
@@ -55,7 +55,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Organizing
             await CheckAsync(initial, final);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Organizing)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Organizing)]
         public async Task TestFieldsWithInitializers1()
         {
             var initial =
@@ -74,7 +74,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Organizing
             await CheckAsync(initial, final);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Organizing)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Organizing)]
         public async Task TestFieldsWithInitializers2()
         {
             var initial =
@@ -93,7 +93,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Organizing
             await CheckAsync(initial, final);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Organizing)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Organizing)]
         public async Task TestEventFieldDeclaration()
         {
             var initial =
@@ -110,7 +110,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Organizing
             await CheckAsync(initial, final);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Organizing)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Organizing)]
         public async Task TestEventDeclaration()
         {
             var initial =
@@ -139,7 +139,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Organizing
             await CheckAsync(initial, final);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Organizing)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Organizing)]
         public async Task TestOperator()
         {
             var initial =
@@ -162,7 +162,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Organizing
             await CheckAsync(initial, final);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Organizing)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Organizing)]
         public async Task TestIndexer()
         {
             var initial =
@@ -195,7 +195,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Organizing
             await CheckAsync(initial, final);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Organizing)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Organizing)]
         public async Task TestConstructorAndDestructors()
         {
             var initial =
@@ -214,7 +214,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Organizing
             await CheckAsync(initial, final);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Organizing)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Organizing)]
         public async Task TestInterface()
         {
             var initial =
@@ -237,7 +237,7 @@ interface I
             await CheckAsync(initial, final);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Organizing)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Organizing)]
         public async Task TestStaticInstance()
         {
             var initial =
@@ -258,7 +258,7 @@ interface I
             await CheckAsync(initial, final);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Organizing)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Organizing)]
         public async Task TestAccessibility()
         {
             var initial =
@@ -283,7 +283,7 @@ interface I
             await CheckAsync(initial, final);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Organizing)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Organizing)]
         public async Task TestStaticAccessibility()
         {
             var initial =
@@ -316,7 +316,7 @@ interface I
             await CheckAsync(initial, final);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Organizing)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Organizing)]
         public async Task TestGenerics()
         {
             var initial =
@@ -341,7 +341,7 @@ interface I
             await CheckAsync(initial, final);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Organizing)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Organizing)]
         public async Task TestInsidePPRegion()
         {
             var initial =
@@ -364,7 +364,7 @@ interface I
             await CheckAsync(initial, final);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Organizing)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Organizing)]
         public async Task TestInsidePPRegion2()
         {
             var initial =
@@ -397,7 +397,7 @@ interface I
             await CheckAsync(initial, final);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Organizing)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Organizing)]
         public async Task TestInsidePPRegion3()
         {
             var initial =
@@ -426,7 +426,7 @@ interface I
             await CheckAsync(initial, final);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Organizing)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Organizing)]
         public async Task TestInsidePPRegion4()
         {
             var initial =
@@ -455,7 +455,7 @@ interface I
             await CheckAsync(initial, final);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Organizing)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Organizing)]
         public async Task TestInsidePPRegion5()
         {
             var initial =
@@ -486,7 +486,7 @@ interface I
             await CheckAsync(initial, final);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Organizing)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Organizing)]
         public async Task TestInsidePPRegion6()
         {
             var initial =
@@ -527,7 +527,7 @@ interface I
             await CheckAsync(initial, final);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Organizing)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Organizing)]
         public async Task TestPinned()
         {
             var initial =
@@ -572,7 +572,7 @@ interface I
             await CheckAsync(initial, final);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Organizing)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Organizing)]
         public async Task TestSensitivity()
         {
             var initial =
@@ -664,8 +664,8 @@ interface I
             await CheckAsync(initial, final);
         }
 
-        [WorkItem(537614)]
-        [WpfFact]
+        [WorkItem(537614, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/537614")]
+        [Fact]
         public async Task TestWhitespaceBetweenMethods1()
         {
             var initial =
@@ -694,8 +694,8 @@ interface I
             await CheckAsync(initial, final);
         }
 
-        [WorkItem(537614)]
-        [WpfFact]
+        [WorkItem(537614, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/537614")]
+        [Fact]
         public async Task TestWhitespaceBetweenMethods2()
         {
             var initial =
@@ -726,8 +726,8 @@ interface I
             await CheckAsync(initial, final);
         }
 
-        [WorkItem(537614)]
-        [WpfFact]
+        [WorkItem(537614, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/537614")]
+        [Fact]
         public async Task TestWhitespaceBetweenMethods3()
         {
             var initial =
@@ -758,8 +758,8 @@ interface I
             await CheckAsync(initial, final);
         }
 
-        [WorkItem(537614)]
-        [WpfFact]
+        [WorkItem(537614, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/537614")]
+        [Fact]
         public async Task TestWhitespaceBetweenMethods4()
         {
             var initial =
@@ -792,8 +792,8 @@ interface I
             await CheckAsync(initial, final);
         }
 
-        [WorkItem(537614)]
-        [WpfFact]
+        [WorkItem(537614, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/537614")]
+        [Fact]
         public async Task TestWhitespaceBetweenMethods5()
         {
             var initial =
@@ -828,8 +828,8 @@ interface I
             await CheckAsync(initial, final);
         }
 
-        [WorkItem(537614)]
-        [WpfFact]
+        [WorkItem(537614, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/537614")]
+        [Fact]
         public async Task TestWhitespaceBetweenMethods6()
         {
             var initial =
@@ -866,8 +866,8 @@ interface I
             await CheckAsync(initial, final);
         }
 
-        [WorkItem(537614)]
-        [WpfFact]
+        [WorkItem(537614, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/537614")]
+        [Fact]
         public async Task TestMoveComments1()
         {
             var initial =
@@ -898,8 +898,8 @@ interface I
             await CheckAsync(initial, final);
         }
 
-        [WorkItem(537614)]
-        [WpfFact]
+        [WorkItem(537614, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/537614")]
+        [Fact]
         public async Task TestMoveComments2()
         {
             var initial =
@@ -932,8 +932,8 @@ interface I
             await CheckAsync(initial, final);
         }
 
-        [WorkItem(537614)]
-        [WpfFact]
+        [WorkItem(537614, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/537614")]
+        [Fact]
         public async Task TestMoveDocComments1()
         {
             var initial =
@@ -964,8 +964,8 @@ interface I
             await CheckAsync(initial, final);
         }
 
-        [WorkItem(537614)]
-        [WpfFact]
+        [WorkItem(537614, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/537614")]
+        [Fact]
         public async Task TestMoveDocComments2()
         {
             var initial =
@@ -998,8 +998,8 @@ interface I
             await CheckAsync(initial, final);
         }
 
-        [WorkItem(537614)]
-        [WpfFact]
+        [WorkItem(537614, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/537614")]
+        [Fact]
         public async Task TestDontMoveBanner()
         {
             var initial =
@@ -1032,8 +1032,8 @@ interface I
             await CheckAsync(initial, final);
         }
 
-        [WorkItem(537614)]
-        [WpfFact]
+        [WorkItem(537614, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/537614")]
+        [Fact]
         public async Task TestDontMoveBanner2()
         {
             var initial =
@@ -1080,7 +1080,7 @@ interface I
             var exportProvider = MinimalTestExportProvider.CreateExportProvider(
                 TestExportProvider.EntireAssemblyCatalogWithCSharpAndVisualBasic.WithParts(typeof(InteractiveDocumentSupportsFeatureService)));
 
-            using (var workspace = await TestWorkspaceFactory.CreateWorkspaceAsync(XElement.Parse(@"
+            using (var workspace = await TestWorkspace.CreateAsync(XElement.Parse(@"
                 <Workspace>
                     <Submission Language=""C#"" CommonReferences=""true"">  
                         class C

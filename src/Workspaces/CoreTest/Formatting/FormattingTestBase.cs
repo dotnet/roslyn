@@ -55,7 +55,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Formatting
                     }
                 }
 
-                var root = syntaxTree.GetRoot();
+                var root = await syntaxTree.GetRootAsync();
                 await AssertFormatAsync(workspace, expected, root, spans, options, await document.GetTextAsync());
 
                 // format with node and transform

@@ -20,7 +20,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Completion.CompletionPr
             return new ExplicitInterfaceCompletionProvider();
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task ExplicitInterfaceMember()
         {
             var markup = @"
@@ -41,8 +41,8 @@ class Bar : IFoo
             await VerifyItemExistsAsync(markup, "Prop");
         }
 
-        [WorkItem(709988)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [WorkItem(709988, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/709988")]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task CommitOnNotParen()
         {
             var markup = @"
@@ -70,8 +70,8 @@ class Bar : IFoo
             await VerifyProviderCommitAsync(markup, "Foo()", expected, null, "");
         }
 
-        [WorkItem(709988)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [WorkItem(709988, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/709988")]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task CommitOnParen()
         {
             var markup = @"

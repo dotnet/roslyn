@@ -13,6 +13,7 @@ using System.Collections.Generic;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
+using System.Threading;
 
 namespace Microsoft.CodeAnalysis.CompilerServer.UnitTests
 {
@@ -22,15 +23,18 @@ namespace Microsoft.CodeAnalysis.CompilerServer.UnitTests
         {
             private readonly string _pipeName;
             private readonly Func<string, bool> _createServerFunc;
+            private readonly Func<Task<BuildResponse>> _runServerCompilationFunc;
 
             public TestableDesktopBuildClient(
                 RequestLanguage langauge,
                 CompileFunc compileFunc,
                 string pipeName,
-                Func<string, bool> createServerFunc) : base(langauge, compileFunc, new Mock<IAnalyzerAssemblyLoader>().Object)
+                Func<string, bool> createServerFunc,
+                Func<Task<BuildResponse>> runServerCompilationFunc) : base(langauge, compileFunc, new Mock<IAnalyzerAssemblyLoader>().Object)
             {
                 _pipeName = pipeName;
                 _createServerFunc = createServerFunc;
+                _runServerCompilationFunc = runServerCompilationFunc;
             }
 
             protected override string GetSessionKey(BuildPaths buildPaths)
@@ -43,10 +47,14 @@ namespace Microsoft.CodeAnalysis.CompilerServer.UnitTests
                 return _createServerFunc(pipeName);
             }
 
-            protected override int HandleResponse(BuildResponse response, List<string> arguments, BuildPaths buildPaths)
+            protected override Task<BuildResponse> RunServerCompilation(List<string> arguments, BuildPaths buildPaths, string sessionKey, string keepAlive, string libDirectory, CancellationToken cancellationToken)
             {
-                // Override the base so we don't print the compilation output to Console.Out
-                return 0;
+                if (_runServerCompilationFunc != null)
+                {
+                    return _runServerCompilationFunc();
+                }
+
+                return base.RunServerCompilation(arguments, buildPaths, sessionKey, keepAlive, libDirectory, cancellationToken);
             }
         }
 
@@ -76,11 +84,16 @@ namespace Microsoft.CodeAnalysis.CompilerServer.UnitTests
                 base.Dispose();
             }
 
-            private TestableDesktopBuildClient CreateClient(RequestLanguage? language = null, CompileFunc compileFunc = null)
+            private TestableDesktopBuildClient CreateClient(
+                RequestLanguage? language = null,
+                CompileFunc compileFunc = null,
+                Func<string, bool> createServerFunc = null,
+                Func<Task<BuildResponse>> runServerCompilationFunc = null)
             {
                 language = language ?? RequestLanguage.CSharpCompile;
                 compileFunc = compileFunc ?? delegate { return 0; };
-                return new TestableDesktopBuildClient(language.Value, compileFunc, _pipeName, TryCreateServer);
+                createServerFunc = createServerFunc ?? TryCreateServer;
+                return new TestableDesktopBuildClient(language.Value, compileFunc, _pipeName, createServerFunc, runServerCompilationFunc);
             }
 
             private bool TryCreateServer(string pipeName)
@@ -97,18 +110,46 @@ namespace Microsoft.CodeAnalysis.CompilerServer.UnitTests
             }
 
             [Fact]
+            public void ConnectToServerFails()
+            {
+                // Create and grab the mutex for the server. This should make
+                // the client believe that a server is active and it will try
+                // to connect. When it fails it should fall back to in-proc
+                // compilation.
+                bool holdsMutex;
+                using (var serverMutex = new Mutex(initiallyOwned: true,
+                                                   name: BuildProtocolConstants.GetServerMutexName(_pipeName),
+                                                   createdNew: out holdsMutex))
+                {
+                    Assert.True(holdsMutex);
+                    var ranLocal = false;
+                    // Note: Connecting to a server can take up to a second to time out
+                    var client = CreateClient(
+                        compileFunc: delegate
+                        {
+                            ranLocal = true;
+                            return 0;
+                        });
+                    var exitCode = client.RunCompilation(new[] { "/shared" }, _buildPaths).ExitCode;
+                    Assert.Equal(0, exitCode);
+                    Assert.True(ranLocal);
+                }
+            }
+
+            [Fact]
             public void OnlyStartsOneServer()
             {
                 var ranLocal = false;
-                var client = CreateClient(compileFunc: delegate
-                {
-                    ranLocal = true;
-                    throw new Exception();
-                });
+                var client = CreateClient(
+                    compileFunc: delegate
+                    {
+                        ranLocal = true;
+                        throw new Exception();
+                    });
 
                 for (var i = 0; i < 5; i++)
                 {
-                    client.RunCompilation(new[] { "/shared" }, _buildPaths);
+                    client.RunCompilation(new[] { "/shared" }, _buildPaths, new StringWriter());
                 }
 
                 Assert.Equal(1, _serverDataList.Count);
@@ -126,11 +167,44 @@ namespace Microsoft.CodeAnalysis.CompilerServer.UnitTests
                     return 0;
                 });
 
-                var exitCode = client.RunCompilation(new[] { "/shared" }, _buildPaths);
+                var exitCode = client.RunCompilation(new[] { "/shared" }, _buildPaths).ExitCode;
                 Assert.Equal(0, exitCode);
                 Assert.True(ranLocal);
                 Assert.Equal(1, _failedCreatedServerCount);
                 Assert.Equal(0, _serverDataList.Count);
+            }
+
+            [Fact]
+            [WorkItem(7866, "https://github.com/dotnet/roslyn/issues/7866")]
+            public void RunServerCompilationThrows()
+            {
+                bool ranLocal;
+                Func<int> compileFunc = () =>
+                {
+                    ranLocal = true;
+                    return CommonCompiler.Succeeded;
+                };
+
+                TestableDesktopBuildClient client;
+                RunCompilationResult result;
+
+                ranLocal = false;
+                client = CreateClient(
+                    compileFunc: delegate { return compileFunc(); },
+                    runServerCompilationFunc: () => Task.FromException<BuildResponse>(new Exception()));
+                result = client.RunCompilation(new[] { "/shared" }, _buildPaths);
+                Assert.Equal(CommonCompiler.Succeeded, result.ExitCode);
+                Assert.False(result.RanOnServer);
+                Assert.True(ranLocal);
+
+                ranLocal = false;
+                client = CreateClient(
+                    compileFunc: delegate { return compileFunc(); },
+                    runServerCompilationFunc: () => { throw new Exception(); });
+                result = client.RunCompilation(new[] { "/shared" }, _buildPaths);
+                Assert.Equal(CommonCompiler.Succeeded, result.ExitCode);
+                Assert.False(result.RanOnServer);
+                Assert.True(ranLocal);
             }
         }
 
@@ -250,6 +324,19 @@ namespace Microsoft.CodeAnalysis.CompilerServer.UnitTests
                 Assert.Equal(new[] { "test.cs" }, _parsedArgs);
                 Assert.True(_hasShared);
                 Assert.Null(_sessionKey);
+            }
+        }
+
+        public class MiscTest
+        {
+            [Fact]
+            public void GetBasePipeNameSlashes()
+            {
+                var path = string.Format(@"q:{0}the{0}path", Path.DirectorySeparatorChar);
+                var name = DesktopBuildClient.GetBasePipeName(path);
+                Assert.Equal(name, DesktopBuildClient.GetBasePipeName(path));
+                Assert.Equal(name, DesktopBuildClient.GetBasePipeName(path + Path.DirectorySeparatorChar));
+                Assert.Equal(name, DesktopBuildClient.GetBasePipeName(path + Path.DirectorySeparatorChar + Path.DirectorySeparatorChar));
             }
         }
     }

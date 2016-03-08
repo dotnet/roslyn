@@ -1,17 +1,15 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System.IO;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
-using Microsoft.CodeAnalysis.Text;
 using Roslyn.Test.Utilities;
+using Roslyn.Test.Utilities.Syntax;
 using Xunit;
-using System.Text;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Parsing
 {
     public class ParserRegressionTests : CSharpTestBase
     {
-        [WorkItem(540005, "DevDiv")]
+        [WorkItem(540005, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540005")]
         [Fact]
         public void c01()
         {
@@ -20,7 +18,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Parsing
             var tree = SyntaxFactory.ParseSyntaxTree(test);
         }
 
-        [WorkItem(540006, "DevDiv")]
+        [WorkItem(540006, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540006")]
         [Fact]
         public void c02()
         {
@@ -29,7 +27,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Parsing
             var tree = SyntaxFactory.ParseSyntaxTree(test);
         }
 
-        [WorkItem(540007, "DevDiv")]
+        [WorkItem(540007, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540007")]
         [Fact]
         public void c03()
         {
@@ -39,7 +37,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Parsing
             var tree = SyntaxFactory.ParseSyntaxTree(test);
         }
 
-        [WorkItem(540007, "DevDiv")]
+        [WorkItem(540007, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540007")]
         [Fact]
         public void c04()
         {
@@ -49,7 +47,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Parsing
             var tree = SyntaxFactory.ParseSyntaxTree(test);
         }
 
-        [WorkItem(540007, "DevDiv")]
+        [WorkItem(540007, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540007")]
         [Fact]
         public void c000138()
         {
@@ -59,7 +57,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Parsing
             var tree = SyntaxFactory.ParseSyntaxTree(test);
         }
 
-        [WorkItem(540007, "DevDiv")]
+        [WorkItem(540007, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540007")]
         [Fact]
         public void c000241()
         {
@@ -69,7 +67,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Parsing
             var tree = SyntaxFactory.ParseSyntaxTree(test);
         }
 
-        [WorkItem(540007, "DevDiv")]
+        [WorkItem(540007, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540007")]
         [Fact]
         public void c024928()
         {
@@ -80,27 +78,25 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Parsing
         }
 
         [WorkItem(2771, "https://github.com/dotnet/roslyn/issues/2771")]
-        [Fact]
+        [ConditionalFact(typeof(IsRelease))]
         public void TestBinary()
         {
-            // Apparently this fixed seed exposed a bug at some point
-            var random = new System.Random(12345);
-            // 40 million "character"s
-            const int n = 40 * 1000 * 1000;
-            var str = new string(' ', n);
+            CSharpSyntaxTree.ParseText(new RandomizedSourceText());
+        }
 
-            unsafe
-            {
-                fixed(char* chars = str)
-                {
-                    for(int i = 0; i < n; i++)
-                    {
-                        chars[i] = (char)random.Next(char.MaxValue);
-                    }
-                }
-            }
+        [WorkItem(8200, "https://github.com/dotnet/roslyn/issues/8200")]
+        [Fact]
+        public void EolParsing()
+        {
+            var code = "\n\r"; // Note, it's not "\r\n"
+            var tree = CSharpSyntaxTree.ParseText(code);
+            var lines1 = tree.GetText().Lines.Count; // 3
 
-            var tree = CSharpSyntaxTree.ParseText(str);
+            var textSpan = Text.TextSpan.FromBounds(0, tree.Length);
+            var fileLinePositionSpan = tree.GetLineSpan(textSpan);    // throws ArgumentOutOfRangeException
+            var endLinePosition = fileLinePositionSpan.EndLinePosition;
+            var line = endLinePosition.Line;
+            var lines2 = line + 1;
         }
     }
 }

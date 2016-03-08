@@ -406,7 +406,7 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
 
         protected override bool IsByRefImpl()
         {
-            throw new NotImplementedException();
+            return Type.IsByRef;
         }
 
         protected override bool IsCOMObjectImpl()

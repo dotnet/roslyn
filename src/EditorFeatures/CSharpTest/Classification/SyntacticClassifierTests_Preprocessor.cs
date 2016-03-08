@@ -9,7 +9,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Classification
 {
     public partial class SyntacticClassifierTests
     {
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Classification)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
         public async Task PP_IfTrue()
         {
             var code =
@@ -23,7 +23,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Classification
                 PPKeyword("endif"));
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Classification)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
         public async Task PP_IfTrueWithComment()
         {
             var code =
@@ -38,7 +38,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Classification
                 PPKeyword("endif"));
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Classification)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
         public async Task PP_IfFalse()
         {
             var code =
@@ -52,7 +52,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Classification
                 PPKeyword("endif"));
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Classification)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
         public async Task PP_IfFOO()
         {
             var code =
@@ -66,7 +66,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Classification
                 PPKeyword("endif"));
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Classification)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
         public async Task PP_IfNotTrue()
         {
             var code =
@@ -81,7 +81,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Classification
                 PPKeyword("endif"));
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Classification)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
         public async Task PP_IfNotFalse()
         {
             var code =
@@ -96,7 +96,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Classification
                 PPKeyword("endif"));
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Classification)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
         public async Task PP_IfNotFOO()
         {
             var code =
@@ -111,7 +111,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Classification
                 PPKeyword("endif"));
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Classification)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
         public async Task PP_IfTrueWithParens()
         {
             var code =
@@ -127,7 +127,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Classification
                 PPKeyword("endif"));
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Classification)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
         public async Task PP_IfFalseWithParens()
         {
             var code =
@@ -143,7 +143,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Classification
                 PPKeyword("endif"));
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Classification)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
         public async Task PP_IfFOOWithParens()
         {
             var code =
@@ -159,7 +159,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Classification
                 PPKeyword("endif"));
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Classification)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
         public async Task PP_IfOrExpression()
         {
             var code =
@@ -176,7 +176,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Classification
                 PPKeyword("endif"));
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Classification)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
         public async Task PP_IfAndExpression()
         {
             var code =
@@ -193,7 +193,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Classification
                 PPKeyword("endif"));
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Classification)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
         public async Task PP_IfOrAndExpression()
         {
             var code =
@@ -212,7 +212,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Classification
                 PPKeyword("endif"));
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Classification)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
         public async Task PP_IfOrExpressionWithParens()
         {
             var code =
@@ -231,7 +231,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Classification
                 PPKeyword("endif"));
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Classification)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
         public async Task PP_IfAndExpressionWithParens()
         {
             var code =
@@ -250,7 +250,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Classification
                 PPKeyword("endif"));
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Classification)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
         public async Task PP_IfOrAndExpressionWithParens()
         {
             var code =
@@ -271,7 +271,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Classification
                 PPKeyword("endif"));
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Classification)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
         public async Task PP_If1()
         {
             await TestAsync("#if foo",
@@ -280,7 +280,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Classification
                 Identifier("foo"));
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Classification)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
         public async Task PP_If2()
         {
             await TestAsync(" #if foo",
@@ -289,7 +289,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Classification
                 Identifier("foo"));
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Classification)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
         public async Task PP_If3()
         {
             var code =
@@ -303,7 +303,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Classification
                 PPKeyword("endif"));
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Classification)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
         public async Task PP_If4()
         {
             var code =
@@ -316,7 +316,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Classification
                 PPKeyword("endif"));
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Classification)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
         public async Task PP_If5()
         {
             var code =
@@ -334,7 +334,7 @@ aoeu
      PPKeyword("endif"));
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Classification)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
         public async Task PP_If6()
         {
             var code =
@@ -349,7 +349,7 @@ aeu";
                 Identifier("aeu"));
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Classification)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
         public async Task PP_If7()
         {
             var code =
@@ -367,7 +367,7 @@ aeu";
                 Identifier("aeu"));
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Classification)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
         public async Task PP_If8()
         {
             var code =
@@ -391,7 +391,7 @@ aeu";
                 Identifier("aeu"));
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Classification)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
         public async Task PP_If9()
         {
             var code =
@@ -418,7 +418,7 @@ aeu";
                 Identifier("aeu"));
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Classification)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
         public async Task PP_Region1()
         {
             await TestAsync("#region Foo",
@@ -427,7 +427,7 @@ aeu";
                 PPText("Foo"));
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Classification)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
         public async Task PP_Region2()
         {
             await TestAsync("   #region foo",
@@ -436,7 +436,7 @@ aeu";
                 PPText("foo"));
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Classification)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
         public async Task PP_EndRegion1()
         {
             await TestAsync("#endregion",
@@ -444,7 +444,7 @@ aeu";
                 PPKeyword("endregion"));
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Classification)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
         public async Task PP_EndRegion2()
         {
             await TestAsync("   #endregion",
@@ -452,7 +452,7 @@ aeu";
                 PPKeyword("endregion"));
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Classification)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
         public async Task PP_EndRegion3()
         {
             await TestAsync("#endregion adsf",
@@ -461,7 +461,7 @@ aeu";
                 PPText("adsf"));
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Classification)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
         public async Task PP_EndRegion4()
         {
             await TestAsync("   #endregion adsf",
@@ -470,7 +470,7 @@ aeu";
                 PPText("adsf"));
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Classification)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
         public async Task PP_RegionEndRegion1()
         {
             await TestAsync(
@@ -482,7 +482,7 @@ aeu";
                 PPKeyword("endregion"));
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Classification)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
         public async Task PP_CommentAfterRegion1()
         {
             await TestAsync(
@@ -495,7 +495,7 @@ aeu";
                 PPKeyword("endregion"));
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Classification)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
         public async Task PP_CommentAfterRegion2()
         {
             await TestAsync(
@@ -508,7 +508,7 @@ aeu";
                 PPKeyword("endregion"));
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Classification)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
         public async Task PP_CommentAfterEndRegion1()
         {
             await TestAsync(
@@ -521,7 +521,7 @@ aeu";
                 PPText("adsf //comment"));
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Classification)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
         public async Task PP_CommentAfterEndRegion2()
         {
             await TestAsync(
@@ -534,7 +534,7 @@ aeu";
                 Comment("//comment"));
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Classification)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
         public async Task PP_DeclarationDirectives()
         {
             await TestAsync(
@@ -548,7 +548,7 @@ aeu";
                 Identifier("B"));
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Classification)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
         public async Task PP_IfElseEndIfDirectives()
         {
             var code =
@@ -569,7 +569,7 @@ aeu";
                 PPKeyword("endif"));
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Classification)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
         public async Task PP_DefineDirective()
         {
             var code = @"#define FOO";
@@ -579,7 +579,7 @@ aeu";
                 Identifier("FOO"));
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Classification)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
         public async Task PP_DefineDirectiveWithCommentAndNoName()
         {
             var code = @"#define //Foo";
@@ -589,7 +589,7 @@ aeu";
                 Comment("//Foo"));
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Classification)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
         public async Task PP_DefineDirectiveWithComment()
         {
             var code = @"#define FOO //Foo";
@@ -600,7 +600,7 @@ aeu";
                 Comment("//Foo"));
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Classification)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
         public async Task PP_UndefDirectives()
         {
             var code = @"#undef FOO";
@@ -611,7 +611,7 @@ aeu";
                 Identifier("FOO"));
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Classification)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
         public async Task PP_UndefDirectiveWithCommentAndNoName()
         {
             var code = @"#undef //Foo";
@@ -621,7 +621,7 @@ aeu";
                 Comment("//Foo"));
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Classification)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
         public async Task PP_UndefDirectiveWithComment()
         {
             var code = @"#undef FOO //Foo";
@@ -632,7 +632,7 @@ aeu";
                 Comment("//Foo"));
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Classification)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
         public async Task PP_ErrorDirective()
         {
             var code = @"#error FOO";
@@ -643,7 +643,7 @@ aeu";
                 PPText("FOO"));
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Classification)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
         public async Task PP_ErrorDirectiveWithComment()
         {
             var code = @"#error FOO //Foo";
@@ -654,7 +654,7 @@ aeu";
                 PPText("FOO //Foo"));
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Classification)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
         public async Task PP_WarningDirective()
         {
             var code = @"#warning FOO";
@@ -665,7 +665,7 @@ aeu";
                 PPText("FOO"));
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Classification)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
         public async Task PP_WarningDirectiveWithComment()
         {
             var code = @"#warning FOO //Foo";
@@ -676,7 +676,7 @@ aeu";
                 PPText("FOO //Foo"));
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Classification)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
         public async Task PP_LineHidden()
         {
             var code = @"#line hidden";
@@ -687,7 +687,7 @@ aeu";
                 PPKeyword("hidden"));
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Classification)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
         public async Task PP_LineHiddenWithComment()
         {
             var code = @"#line hidden //Foo";
@@ -699,7 +699,7 @@ aeu";
                 Comment("//Foo"));
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Classification)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
         public async Task PP_LineDefault()
         {
             var code = @"#line default";
@@ -710,7 +710,7 @@ aeu";
                 PPKeyword("default"));
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Classification)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
         public async Task PP_LineDefaultWithComment()
         {
             var code = @"#line default //Foo";
@@ -722,7 +722,7 @@ aeu";
                 Comment("//Foo"));
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Classification)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
         public async Task PP_LineNumber()
         {
             var code = @"#line 100";
@@ -733,7 +733,7 @@ aeu";
                 Number("100"));
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Classification)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
         public async Task PP_LineNumberWithComment()
         {
             var code = @"#line 100 //Foo";
@@ -745,7 +745,7 @@ aeu";
                 Comment("//Foo"));
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Classification)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
         public async Task PP_LineNumberWithFilename()
         {
             var code = @"#line 100 ""C:\Foo""";
@@ -757,7 +757,7 @@ aeu";
                 String("\"C:\\Foo\""));
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Classification)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
         public async Task PP_LineNumberWithFilenameAndComment()
         {
             var code = @"#line 100 ""C:\Foo"" //Foo";
@@ -770,7 +770,7 @@ aeu";
                 Comment("//Foo"));
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Classification)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
         public async Task PP_PragmaChecksum1()
         {
             await TestAsync(
@@ -781,7 +781,7 @@ aeu";
                 PPText("stuff"));
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Classification)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
         public async Task PP_PragmaChecksum2()
         {
             await TestAsync(
@@ -794,7 +794,7 @@ aeu";
                 String("\"2453\""));
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Classification)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
         public async Task PP_PragmaChecksum3()
         {
             await TestAsync(
@@ -808,7 +808,7 @@ aeu";
                 Comment("// Foo"));
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Classification)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
         public async Task PP_PragmaWarningDisableOne()
         {
             var code = @"#pragma warning disable 100";
@@ -821,7 +821,7 @@ aeu";
                 Number("100"));
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Classification)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
         public async Task PP_PragmaWarningDisableOneWithComment()
         {
             var code = @"#pragma warning disable 100 //Foo";
@@ -835,7 +835,7 @@ aeu";
                 Comment("//Foo"));
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Classification)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
         public async Task PP_PragmaWarningRestoreOne()
         {
             var code = @"#pragma warning restore 100";
@@ -848,7 +848,7 @@ aeu";
                 Number("100"));
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Classification)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
         public async Task PP_PragmaWarningRestoreOneWithComment()
         {
             var code = @"#pragma warning restore 100 //Foo";
@@ -862,7 +862,7 @@ aeu";
                 Comment("//Foo"));
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Classification)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
         public async Task PP_PragmaWarningDisableTwo()
         {
             var code = @"#pragma warning disable 100, 101";
@@ -877,7 +877,7 @@ aeu";
                 Number("101"));
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Classification)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
         public async Task PP_PragmaWarningRestoreTwo()
         {
             var code = @"#pragma warning restore 100, 101";
@@ -892,7 +892,7 @@ aeu";
                 Number("101"));
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Classification)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
         public async Task PP_PragmaWarningDisableThree()
         {
             var code = @"#pragma warning disable 100, 101, 102";
@@ -909,7 +909,7 @@ aeu";
                 Number("102"));
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Classification)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
         public async Task PP_PragmaWarningRestoreThree()
         {
             var code = @"#pragma warning restore 100, 101, 102";

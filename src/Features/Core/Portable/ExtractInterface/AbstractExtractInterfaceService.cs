@@ -22,7 +22,7 @@ namespace Microsoft.CodeAnalysis.ExtractInterface
 {
     internal abstract class AbstractExtractInterfaceService : ILanguageService
     {
-        internal abstract SyntaxNode GetTypeDeclaration(
+        internal abstract Task<SyntaxNode> GetTypeDeclarationAsync(
             Document document,
             int position,
             TypeDiscoveryRule typeDiscoveryRule,
@@ -76,7 +76,7 @@ namespace Microsoft.CodeAnalysis.ExtractInterface
             TypeDiscoveryRule typeDiscoveryRule,
             CancellationToken cancellationToken)
         {
-            var typeNode = GetTypeDeclaration(document, position, typeDiscoveryRule, cancellationToken);
+            var typeNode = await GetTypeDeclarationAsync(document, position, typeDiscoveryRule, cancellationToken).ConfigureAwait(false);
             if (typeNode == null)
             {
                 var errorMessage = FeaturesResources.CouldNotExtractInterfaceSelection;

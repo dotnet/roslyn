@@ -22,7 +22,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.SignatureHelp
             return new GenericNamePartiallyWrittenSignatureHelpProvider();
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.SignatureHelp)]
+        [Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)]
         public async Task NestedGenericUnterminated()
         {
             var markup = @"
@@ -42,8 +42,8 @@ class C
             await TestAsync(markup, expectedOrderedItems);
         }
 
-        [WorkItem(544088)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.SignatureHelp)]
+        [WorkItem(544088, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544088")]
+        [Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)]
         public async Task DeclaringGenericTypeWith1ParameterUnterminated()
         {
             var markup = @"
@@ -63,7 +63,7 @@ class C
             await TestAsync(markup, expectedOrderedItems);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.SignatureHelp)]
+        [Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)]
         public async Task CallingGenericAsyncMethod()
         {
             var markup = @"
@@ -92,7 +92,7 @@ class Program
         }
 
         [WorkItem(7336, "DevDiv_Projects/Roslyn")]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.SignatureHelp)]
+        [Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)]
         public async Task EditorBrowsable_GenericMethod_BrowsableAlways()
         {
             var markup = @"
@@ -125,7 +125,7 @@ public class C
         }
 
         [WorkItem(7336, "DevDiv_Projects/Roslyn")]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.SignatureHelp)]
+        [Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)]
         public async Task EditorBrowsable_GenericMethod_BrowsableNever()
         {
             var markup = @"
@@ -158,7 +158,7 @@ public class C
         }
 
         [WorkItem(7336, "DevDiv_Projects/Roslyn")]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.SignatureHelp)]
+        [Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)]
         public async Task EditorBrowsable_GenericMethod_BrowsableAdvanced()
         {
             var markup = @"
@@ -200,7 +200,7 @@ public class C
         }
 
         [WorkItem(7336, "DevDiv_Projects/Roslyn")]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.SignatureHelp)]
+        [Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)]
         public async Task EditorBrowsable_GenericMethod_BrowsableMixed()
         {
             var markup = @"
@@ -239,7 +239,7 @@ public class C
                                                        referencedLanguage: LanguageNames.CSharp);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.SignatureHelp)]
+        [Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)]
         public async Task GenericExtensionMethod()
         {
             var markup = @"
@@ -272,8 +272,8 @@ class Program
             await TestAsync(markup, expectedOrderedItems, sourceCodeKind: SourceCodeKind.Regular);
         }
 
-        [WorkItem(544088)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.SignatureHelp)]
+        [WorkItem(544088, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544088")]
+        [Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)]
         public async Task InvokingGenericMethodWith1ParameterUnterminated()
         {
             var markup = @"
@@ -298,7 +298,7 @@ class C
             await TestAsync(markup, expectedOrderedItems);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.SignatureHelp)]
+        [Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)]
         public async Task TestInvocationOnTriggerBracket()
         {
             var markup = @"
@@ -318,7 +318,7 @@ class C
             await TestAsync(markup, expectedOrderedItems, usePreviousCharAsTrigger: true);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.SignatureHelp)]
+        [Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)]
         public async Task TestInvocationOnTriggerComma()
         {
             var markup = @"
@@ -338,8 +338,8 @@ class C
             await TestAsync(markup, expectedOrderedItems, usePreviousCharAsTrigger: true);
         }
 
-        [WorkItem(1067933)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.SignatureHelp)]
+        [WorkItem(1067933, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1067933")]
+        [Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)]
         public async Task InvokedWithNoToken()
         {
             var markup = @"

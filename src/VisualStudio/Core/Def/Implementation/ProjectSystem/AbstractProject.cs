@@ -41,7 +41,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
         /// </summary>
         private string _filePathOpt;
 
-        private readonly MiscellaneousFilesWorkspace _miscellaneousFilesWorkspaceOpt;
         private readonly VisualStudioWorkspaceImpl _visualStudioWorkspaceOpt;
         private readonly IContentTypeRegistryService _contentTypeRegistryService;
         private readonly IVsReportExternalErrors _externalErrorReporter;
@@ -107,7 +106,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             IVsHierarchy hierarchy,
             string language,
             IServiceProvider serviceProvider,
-            MiscellaneousFilesWorkspace miscellaneousFilesWorkspaceOpt,
             VisualStudioWorkspaceImpl visualStudioWorkspaceOpt,
             HostDiagnosticUpdateSource hostDiagnosticUpdateSourceOpt)
         {
@@ -132,7 +130,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             this.ProjectTracker = projectTracker;
 
             _projectSystemName = projectSystemName;
-            _miscellaneousFilesWorkspaceOpt = miscellaneousFilesWorkspaceOpt;
             _visualStudioWorkspaceOpt = visualStudioWorkspaceOpt;
             _hostDiagnosticUpdateSourceOpt = hostDiagnosticUpdateSourceOpt;
 
@@ -232,8 +229,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
         /// </summary>
         internal string TryGetBinOutputPath() => _binOutputPathOpt;
 
-        internal VisualStudioWorkspaceImpl VisualStudioWorkspace => _visualStudioWorkspaceOpt;
-
         internal IRuleSetFile RuleSetFile => this.ruleSet;
 
         internal HostDiagnosticUpdateSource HostDiagnosticUpdateSource => _hostDiagnosticUpdateSourceOpt;
@@ -248,7 +243,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 
         public string ProjectType => _projectType;
 
-        public Workspace Workspace => (Workspace)_visualStudioWorkspaceOpt ?? _miscellaneousFilesWorkspaceOpt;
+        public Workspace Workspace => _visualStudioWorkspaceOpt;
 
         public VersionStamp Version => _version;
 
@@ -351,6 +346,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
         public ImmutableArray<ProjectReference> GetCurrentProjectReferences()
         {
             return ImmutableArray.CreateRange(_projectReferences);
+        }
+        
+        public ImmutableArray<VisualStudioMetadataReference> GetCurrentMetadataReferences()
+        {
+            return ImmutableArray.CreateRange(_metadataReferences);
         }
 
         public IVisualStudioHostDocument GetDocumentOrAdditionalDocument(DocumentId id)
@@ -540,7 +540,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             AddAnalyzerAssembly(analyzer.FullPath);
         }
 
-        protected void AddProjectReference(ProjectReference projectReference)
+        // Internal for unit testing
+        internal void AddProjectReference(ProjectReference projectReference)
         {
             // dev11 is sometimes calling us multiple times for the same data
             if (!CanAddProjectReference(projectReference))
@@ -750,11 +751,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             // We do not want to allow message pumping/reentrancy when processing project system changes.
             using (Dispatcher.CurrentDispatcher.DisableProcessing())
             {
-                if (_miscellaneousFilesWorkspaceOpt != null)
-                {
-                    _miscellaneousFilesWorkspaceOpt.OnFileIncludedInProject(document);
-                }
-
                 _documents.Add(document.Id, document);
                 _documentMonikers.Add(document.Key.Moniker, document);
 
@@ -796,11 +792,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 
         internal void AddAdditionalDocument(IVisualStudioHostDocument document, bool isCurrentContext)
         {
-            if (_miscellaneousFilesWorkspaceOpt != null)
-            {
-                _miscellaneousFilesWorkspaceOpt.OnFileIncludedInProject(document);
-            }
-
             _additionalDocuments.Add(document.Id, document);
             _documentMonikers.Add(document.Key.Moniker, document);
 
@@ -975,11 +966,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                 this.ProjectTracker.NotifyWorkspaceHosts(host => host.OnDocumentRemoved(document.Id));
             }
 
-            if (_miscellaneousFilesWorkspaceOpt != null)
-            {
-                _miscellaneousFilesWorkspaceOpt.OnFileRemovedFromProject(document);
-            }
-
             document.Opened -= s_documentOpenedEventHandler;
             document.Closing -= s_documentClosingEventHandler;
             document.UpdatedOnDisk -= s_documentUpdatedOnDiskEventHandler;
@@ -999,11 +985,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                 this.ProjectTracker.NotifyWorkspaceHosts(host => host.OnAdditionalDocumentRemoved(document.Id));
             }
 
-            if (_miscellaneousFilesWorkspaceOpt != null)
-            {
-                _miscellaneousFilesWorkspaceOpt.OnFileRemovedFromProject(document);
-            }
-
             document.Opened -= s_additionalDocumentOpenedEventHandler;
             document.Closing -= s_additionalDocumentClosingEventHandler;
             document.UpdatedOnDisk -= s_additionalDocumentUpdatedOnDiskEventHandler;
@@ -1015,7 +996,12 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
         {
         }
 
-        protected virtual void UpdateAnalyzerRules()
+        /// <summary>
+        /// Implemented by derived types to provide a way for <see cref="AbstractProject"/> to indicate that options will need to be refreshed.
+        /// It is expected that derived types will read in shared option state stored in this class, create new Compilation and Parse options,
+        /// and call <see cref="SetOptions"/> in response. The default implementation does nothing.
+        /// </summary>
+        protected virtual void UpdateOptions()
         {
         }
 

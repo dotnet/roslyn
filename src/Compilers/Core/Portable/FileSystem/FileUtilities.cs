@@ -160,14 +160,13 @@ namespace Roslyn.Utilities
                         return null;
                     }
 
-                    if (baseRoot == null)
+                    if (string.IsNullOrEmpty(baseRoot))
                     {
                         return null;
                     }
 
                     Debug.Assert(PathUtilities.IsDirectorySeparator(path[0]));
                     Debug.Assert(path.Length == 1 || !PathUtilities.IsDirectorySeparator(path[1]));
-                    Debug.Assert(baseRoot.Length >= 3);
                     return PathUtilities.CombinePathsUnchecked(baseRoot, path.Substring(1));
 
                 case PathKind.RelativeToDriveDirectory:

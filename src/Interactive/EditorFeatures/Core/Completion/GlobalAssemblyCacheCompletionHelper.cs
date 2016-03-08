@@ -7,6 +7,7 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Completion;
 using Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion.FileSystem;
 using Microsoft.CodeAnalysis.Shared.Extensions;
+using Microsoft.CodeAnalysis.Shared.Utilities;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
@@ -15,7 +16,7 @@ namespace Microsoft.CodeAnalysis.Editor.Completion.FileSystem
     internal sealed class GlobalAssemblyCacheCompletionHelper
     {
         private static readonly Lazy<List<string>> s_lazyAssemblySimpleNames =
-            new Lazy<List<string>>(() => GlobalAssemblyCache.GetAssemblySimpleNames().ToList());
+            new Lazy<List<string>>(() => GlobalAssemblyCache.Instance.GetAssemblySimpleNames().ToList());
         private readonly CompletionListProvider _completionProvider;
         private readonly TextSpan _textChangeSpan;
         private readonly CompletionItemRules _itemRules;
@@ -54,7 +55,7 @@ namespace Microsoft.CodeAnalysis.Editor.Completion.FileSystem
                        select new CompletionItem(
                            _completionProvider,
                            displayName, _textChangeSpan,
-                           descriptionFactory: c => Task.FromResult(GlobalAssemblyCache.ResolvePartialName(displayName).GetDisplayName().ToSymbolDisplayParts()),
+                           descriptionFactory: c => Task.FromResult(GlobalAssemblyCache.Instance.ResolvePartialName(displayName).GetDisplayName().ToSymbolDisplayParts()),
                            glyph: Glyph.Assembly,
                            rules: _itemRules);
             }
@@ -62,7 +63,7 @@ namespace Microsoft.CodeAnalysis.Editor.Completion.FileSystem
 
         private IEnumerable<AssemblyIdentity> GetAssemblyIdentities(string pathSoFar)
         {
-            return IOUtilities.PerformIO(() => GlobalAssemblyCache.GetAssemblyIdentities(pathSoFar),
+            return IOUtilities.PerformIO(() => GlobalAssemblyCache.Instance.GetAssemblyIdentities(pathSoFar),
                 SpecializedCollections.EmptyEnumerable<AssemblyIdentity>());
         }
     }

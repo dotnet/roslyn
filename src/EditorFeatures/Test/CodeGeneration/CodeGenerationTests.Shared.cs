@@ -17,7 +17,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeGeneration
     {
         public class Shared
         {
-            [WpfFact, Trait(Traits.Feature, Traits.Features.CodeGenerationSortDeclarations)]
+            [Fact, Trait(Traits.Feature, Traits.Features.CodeGenerationSortDeclarations)]
             public async Task TestSorting()
             {
                 var initial = "namespace [|N|] { }";
@@ -397,7 +397,7 @@ End Namespace";
                     forceLanguage: LanguageNames.VisualBasic);
             }
 
-            [WpfFact, Trait(Traits.Feature, Traits.Features.CodeGenerationSortDeclarations)]
+            [Fact, Trait(Traits.Feature, Traits.Features.CodeGenerationSortDeclarations)]
             public async Task TestSortingDefaultTypeMemberAccessibility1()
             {
                 var generationSource = "public class [|C|] { private string B; public string C; }";
@@ -449,7 +449,7 @@ End Structure";
                 await TestGenerateFromSourceSymbolAsync(generationSource, initial, expected, onlyGenerateMembers: true);
             }
 
-            [WpfFact, Trait(Traits.Feature, Traits.Features.CodeGenerationSortDeclarations)]
+            [Fact, Trait(Traits.Feature, Traits.Features.CodeGenerationSortDeclarations)]
             public async Task TestDefaultTypeMemberAccessibility2()
             {
                 var generationSource = "public class [|C|] { private void B(){} public void C(){}  }";
@@ -497,7 +497,7 @@ End Module";
                 await TestGenerateFromSourceSymbolAsync(generationSource, initial, expected, onlyGenerateMembers: true);
             }
 
-            [WpfFact, Trait(Traits.Feature, Traits.Features.CodeGenerationSortDeclarations)]
+            [Fact, Trait(Traits.Feature, Traits.Features.CodeGenerationSortDeclarations)]
             public async Task TestDefaultNamespaceMemberAccessibility1()
             {
                 var generationSource = "internal class [|B|]{}";
@@ -510,7 +510,7 @@ End Module";
                 await TestGenerateFromSourceSymbolAsync(generationSource, initial, expected);
             }
 
-            [WpfFact, Trait(Traits.Feature, Traits.Features.CodeGenerationSortDeclarations)]
+            [Fact, Trait(Traits.Feature, Traits.Features.CodeGenerationSortDeclarations)]
             public async Task TestDefaultNamespaceMemberAccessibility2()
             {
                 var generationSource = "public class [|C|]{}";
@@ -523,7 +523,7 @@ End Module";
                 await TestGenerateFromSourceSymbolAsync(generationSource, initial, expected);
             }
 
-            [WpfFact, Trait(Traits.Feature, Traits.Features.MetadataAsSource)]
+            [Fact, Trait(Traits.Feature, Traits.Features.MetadataAsSource)]
             public async Task TestDocumentationComment()
             {
                 var generationSource = @"
@@ -544,7 +544,7 @@ public class C
                     onlyGenerateMembers: true);
             }
 
-            [WpfFact, Trait(Traits.Feature, Traits.Features.CodeGeneration)]
+            [Fact, Trait(Traits.Feature, Traits.Features.CodeGeneration)]
             public async Task TestModifiers()
             {
                 var generationSource = @"

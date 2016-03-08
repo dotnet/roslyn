@@ -4,8 +4,8 @@ Imports System.Threading.Tasks
 
 Namespace Microsoft.CodeAnalysis.Editor.UnitTests.FindReferences
     Partial Public Class FindReferencesTests
-        <WorkItem(529629)>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WorkItem(529629, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529629")>
+        <Fact, Trait(Traits.Feature, Traits.Features.FindReferences)>
         Public Async Function TestCSharp_Indexer1() As Task
             Dim input =
 <Workspace>
@@ -30,8 +30,8 @@ class D
             Await TestAsync(input)
         End Function
 
-        <WorkItem(529629)>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WorkItem(529629, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529629")>
+        <Fact, Trait(Traits.Feature, Traits.Features.FindReferences)>
         Public Async Function TestBasic_Indexer1() As Task
             Dim input =
 <Workspace>
@@ -57,8 +57,8 @@ end class
             Await TestAsync(input)
         End Function
 
-        <WorkItem(545577)>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WorkItem(545577, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545577")>
+        <Fact, Trait(Traits.Feature, Traits.Features.FindReferences)>
         Public Async Function TestBasic_Indexer2() As Task
             Dim input =
 <Workspace>
@@ -80,8 +80,8 @@ End Class
             Await TestAsync(input)
         End Function
 
-        <WorkItem(650779)>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WorkItem(650779, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/650779")>
+        <Fact, Trait(Traits.Feature, Traits.Features.FindReferences)>
         Public Async Function TestBasic_Indexer3() As Task
             Dim input =
 <Workspace>
@@ -110,8 +110,8 @@ End Class
             Await TestAsync(input)
         End Function
 
-        <WorkItem(661362)>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WorkItem(661362, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/661362")>
+        <Fact, Trait(Traits.Feature, Traits.Features.FindReferences)>
         Public Async Function TestBasic_Indexer4() As Task
             Dim input =
 <Workspace>

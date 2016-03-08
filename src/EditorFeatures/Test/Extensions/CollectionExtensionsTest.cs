@@ -11,7 +11,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Extensions
 {
     public class CollectionExtensionsTest
     {
-        [WpfFact]
+        [Fact]
         public void PushReverse1()
         {
             var stack = new Stack<int>();
@@ -22,7 +22,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Extensions
             Assert.Equal(0, stack.Count);
         }
 
-        [WpfFact]
+        [Fact]
         public void PushReverse2()
         {
             var stack = new Stack<int>();
@@ -30,7 +30,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Extensions
             Assert.Equal(0, stack.Count);
         }
 
-        [WpfFact]
+        [Fact]
         public void PushReverse3()
         {
             var stack = new Stack<int>();

@@ -101,23 +101,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Return symbol.ToString()
             End If
 
-            ' cases where we actually want fully qualified name
-            If errorCode = ERRID.ERR_AmbiguousAcrossInterfaces3 OrElse
-               errorCode = ERRID.ERR_TypeConflict6 OrElse
-               errorCode = ERRID.ERR_ExportedTypesConflict OrElse
-               errorCode = ERRID.ERR_ForwardedTypeConflictsWithDeclaration OrElse
-               errorCode = ERRID.ERR_ForwardedTypeConflictsWithExportedType OrElse
-               errorCode = ERRID.ERR_ForwardedTypesConflict Then
-                Return symbol.ToString()
-            End If
-
-            ' show fully qualified name for missing special types
-            If errorCode = ERRID.ERR_UnreferencedAssembly3 AndAlso
-               TypeOf symbol Is ITypeSymbol AndAlso
-               DirectCast(symbol, ITypeSymbol).SpecialType <> SpecialType.None Then
-                Return symbol.ToString()
-            End If
-
             Return SymbolDisplay.ToDisplayString(symbol, SymbolDisplayFormat.VisualBasicShortErrorMessageFormat)
         End Function
 
@@ -250,6 +233,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Public Overrides ReadOnly Property ERR_BadCompilationOptionValue As Integer
             Get
                 Return ERRID.ERR_InvalidSwitchValue
+            End Get
+        End Property
+
+        Public Overrides ReadOnly Property ERR_MutuallyExclusiveOptions As Integer
+            Get
+                Return ERRID.ERR_MutuallyExclusiveOptions
             End Get
         End Property
 
@@ -489,6 +478,24 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Public Overrides ReadOnly Property ERR_EncReferenceToAddedMember As Integer
             Get
                 Return ERRID.ERR_EncReferenceToAddedMember
+            End Get
+        End Property
+
+        Public Overrides ReadOnly Property ERR_TooManyUserStrings As Integer
+            Get
+                Return ERRID.ERR_TooManyUserStrings
+            End Get
+        End Property
+
+        Public Overrides ReadOnly Property ERR_PeWritingFailure As Integer
+            Get
+                Return ERRID.ERR_PeWritingFailure
+            End Get
+        End Property
+
+        Public Overrides ReadOnly Property ERR_ModuleEmitFailure As Integer
+            Get
+                Return ERRID.ERR_ModuleEmitFailure
             End Get
         End Property
     End Class

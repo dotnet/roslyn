@@ -20,7 +20,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Completion.CompletionPr
             return new ObjectCreationCompletionProvider();
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task InObjectCreation()
         {
             var markup = @"
@@ -34,7 +34,7 @@ void foo()
             await VerifyItemExistsAsync(markup, "MyGeneric<string>");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task NotInAnonymousTypeObjectCreation1()
         {
             var markup = @"
@@ -49,8 +49,8 @@ class C
             await VerifyItemIsAbsentAsync(markup, "<anonymous type: string Foo, int Bar>");
         }
 
-        [WorkItem(854497)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [WorkItem(854497, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/854497")]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task NotVoid()
         {
             var markup = @"
@@ -65,8 +65,8 @@ class C
             await VerifyItemIsAbsentAsync(markup, "void");
         }
 
-        [WorkItem(827897)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [WorkItem(827897, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/827897")]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task InYieldReturn()
         {
             var markup =
@@ -83,8 +83,8 @@ class Program
             await VerifyItemExistsAsync(markup, "FieldAccessException");
         }
 
-        [WorkItem(827897)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [WorkItem(827897, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/827897")]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task InAsyncMethodReturnStatement()
         {
             var markup =
@@ -102,7 +102,7 @@ class Program
             await VerifyItemExistsAsync(markup, "FieldAccessException");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task IsCommitCharacterTest()
         {
             const string markup = @"
@@ -120,7 +120,7 @@ class Program
                 invalidChars: new[] { 'x', ',', '#' });
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task IsTextualTriggerCharacterTest()
         {
             await VerifyTextualTriggerCharacterAsync("Abc$$ ", shouldTriggerWithTriggerOnLettersEnabled: true, shouldTriggerWithTriggerOnLettersDisabled: true);
@@ -130,7 +130,7 @@ class Program
             await VerifyTextualTriggerCharacterAsync("Abc$$.", shouldTriggerWithTriggerOnLettersEnabled: false, shouldTriggerWithTriggerOnLettersDisabled: false);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task SendEnterThroughToEditorTest()
         {
             const string markup = @"
@@ -147,8 +147,8 @@ class Program
             await VerifySendEnterThroughToEnterAsync(markup, "D", sendThroughEnterEnabled: true, expected: true);
         }
 
-        [WorkItem(828196)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [WorkItem(828196, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/828196")]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task SuggestAlias()
         {
             var markup = @"
@@ -163,8 +163,8 @@ class Program
             await VerifyItemExistsAsync(markup, "D");
         }
 
-        [WorkItem(828196)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [WorkItem(828196, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/828196")]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task SuggestAlias2()
         {
             var markup = @"
@@ -184,8 +184,8 @@ class Program
             await VerifyItemExistsAsync(markup, "D");
         }
 
-        [WorkItem(1075275)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [WorkItem(1075275, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1075275")]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task CommitAlias()
         {
             var markup = @"
@@ -210,8 +210,8 @@ class Program
             await VerifyProviderCommitAsync(markup, "D", expected, '(', "");
         }
 
-        [WorkItem(1090377)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [WorkItem(1090377, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1090377")]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task AfterNewFollowedByAssignment()
         {
             var markup = @"
@@ -236,8 +236,8 @@ class Foo
             await VerifyItemExistsAsync(markup, "Location");
         }
 
-        [WorkItem(1090377)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [WorkItem(1090377, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1090377")]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task AfterNewFollowedByAssignment_GrandParentIsSimpleAssignment()
         {
             var markup = @"
@@ -253,7 +253,7 @@ class Program
         }
 
         [WorkItem(2836, "https://github.com/dotnet/roslyn/issues/2836")]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task AfterNewFollowedBySimpleAssignment_GrandParentIsEqualsValueClause()
         {
             var markup = @"
@@ -270,7 +270,7 @@ class Program
         }
 
         [WorkItem(2836, "https://github.com/dotnet/roslyn/issues/2836")]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task AfterNewFollowedByCompoundAssignment_GrandParentIsEqualsValueClause()
         {
             var markup = @"
@@ -287,7 +287,7 @@ class Program
         }
 
         [WorkItem(2836, "https://github.com/dotnet/roslyn/issues/2836")]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task AfterNewFollowedByCompoundAssignment_GrandParentIsEqualsValueClause2()
         {
             var markup = @"
@@ -304,7 +304,7 @@ class Program
         }
 
         [WorkItem(4115, "https://github.com/dotnet/roslyn/issues/4115")]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task CommitObjectWithParenthesis1()
         {
             var markup = @"
@@ -329,7 +329,7 @@ class C
         }
 
         [WorkItem(4115, "https://github.com/dotnet/roslyn/issues/4115")]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task CommitObjectWithParenthesis2()
         {
             var markup = @"
@@ -358,7 +358,7 @@ class C
         }
 
         [WorkItem(4115, "https://github.com/dotnet/roslyn/issues/4115")]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task DontCommitObjectWithOpenBrace1()
         {
             var markup = @"
@@ -383,7 +383,7 @@ class C
         }
 
         [WorkItem(4115, "https://github.com/dotnet/roslyn/issues/4115")]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task DontCommitObjectWithOpenBrace2()
         {
             var markup = @"
@@ -412,7 +412,7 @@ class C
         }
 
         [WorkItem(4310, "https://github.com/dotnet/roslyn/issues/4310")]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task InExpressionBodiedProperty()
         {
             var markup =
@@ -425,7 +425,7 @@ class C
         }
 
         [WorkItem(4310, "https://github.com/dotnet/roslyn/issues/4310")]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task InExpressionBodiedMethod()
         {
             var markup =

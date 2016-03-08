@@ -27,7 +27,7 @@ class Foo { }
 
 #End Region
 
-        <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
+        <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
         Public Async Function TestDotNetNameFromLanguageSpecific1() As Task
             Dim code =
 <code>
@@ -49,7 +49,7 @@ namespace N
                 End Sub)
         End Function
 
-        <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
+        <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
         Public Async Function TestDotNetNameFromLanguageSpecific2() As Task
             Await TestRootCodeModelWithCodeFile(<code></code>,
                 Sub(rootCodeModel)
@@ -58,7 +58,7 @@ namespace N
                 End Sub)
         End Function
 
-        <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
+        <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
         Public Async Function TestDotNetNameFromLanguageSpecificWithAssemblyQualifiedName() As Task
             Await TestRootCodeModelWithCodeFile(<code></code>,
                 Sub(rootCodeModel)
@@ -91,7 +91,7 @@ class Foo { }
 
 #Region "CreateCodeTypeRef"
 
-        <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
+        <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
         Public Async Function TestCreateCodeTypeRef_Int32() As Task
             Await TestCreateCodeTypeRef("System.Int32",
                                   New CodeTypeRefData With {
@@ -102,7 +102,7 @@ class Foo { }
                                   })
         End Function
 
-        <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
+        <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
         Public Async Function TestCreateCodeTypeRef_System_Text_StringBuilder() As Task
             Await TestCreateCodeTypeRef("System.Text.StringBuilder",
                                   New CodeTypeRefData With {
@@ -113,7 +113,7 @@ class Foo { }
                                   })
         End Function
 
-        <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
+        <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
         Public Async Function TestCreateCodeTypeRef_NullableInteger() As Task
             Await TestCreateCodeTypeRef("int?",
                                   New CodeTypeRefData With {
@@ -124,7 +124,7 @@ class Foo { }
                                   })
         End Function
 
-        <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
+        <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
         Public Async Function TestCreateCodeTypeRef_ListOfInt() As Task
             Await TestCreateCodeTypeRef("System.Collections.Generic.List<int>",
                                   New CodeTypeRefData With {
@@ -139,7 +139,7 @@ class Foo { }
 
 #Region "CodeTypeFromFullName"
 
-        <WorkItem(1107453)>
+        <WorkItem(1107453, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1107453")>
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
         Public Async Function TestCodeTypeFromFullName_NonGenerated() As Task
 
@@ -177,7 +177,7 @@ namespace N
         End Function
 
 
-        <WorkItem(1107453)>
+        <WorkItem(1107453, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1107453")>
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
         Public Async Function TestCodeTypeFromFullName_Generated() As Task
 
@@ -214,7 +214,7 @@ namespace N
 
         End Function
 
-        <WorkItem(1107453)>
+        <WorkItem(1107453, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1107453")>
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
         Public Async Function TestCodeTypeFromFullName_NonGenerated_Generated() As Task
 
@@ -259,7 +259,7 @@ namespace N
 
         End Function
 
-        <WorkItem(1107453)>
+        <WorkItem(1107453, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1107453")>
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
         Public Async Function TestCodeTypeFromFullName_Generated_NonGenerated() As Task
 

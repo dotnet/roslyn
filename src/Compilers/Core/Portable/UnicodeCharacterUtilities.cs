@@ -39,11 +39,11 @@ namespace Microsoft.CodeAnalysis
 
             return IsLetterChar(CharUnicodeInfo.GetUnicodeCategory(ch));
         }
-        
+
         /// <summary>
-         /// Returns true if the Unicode character can be a part of an identifier.
-         /// </summary>
-         /// <param name="ch">The Unicode character.</param>
+        /// Returns true if the Unicode character can be a part of an identifier.
+        /// </summary>
+        /// <param name="ch">The Unicode character.</param>
         public static bool IsIdentifierPartCharacter(char ch)
         {
             // identifier-part-character:

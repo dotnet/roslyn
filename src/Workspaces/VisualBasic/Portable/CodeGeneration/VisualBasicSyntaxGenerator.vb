@@ -2594,7 +2594,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
             End Select
 
             If modifiers.IsAbstract Then
-                _list = _list.Add(SyntaxFactory.Token(SyntaxKind.MustInheritKeyword))
+                If kind = DeclarationKind.Class Then
+                    _list = _list.Add(SyntaxFactory.Token(SyntaxKind.MustInheritKeyword))
+                Else
+                    _list = _list.Add(SyntaxFactory.Token(SyntaxKind.MustOverrideKeyword))
+                End If
             End If
 
             If modifiers.IsNew Then
@@ -2689,7 +2693,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
                         Else
                             accessibility = Accessibility.Protected
                         End If
-                    Case SyntaxKind.MustInheritKeyword
+                    Case SyntaxKind.MustInheritKeyword, SyntaxKind.MustOverrideKeyword
                         modifiers = modifiers Or DeclarationModifiers.Abstract
                     Case SyntaxKind.ShadowsKeyword
                         modifiers = modifiers Or DeclarationModifiers.[New]

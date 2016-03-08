@@ -10,6 +10,10 @@ namespace RunTests
 {
     internal static class Constants
     {
-        internal const string ResultsDirectoryName = "xUnitResults";
+        internal static string ResultsDirectoryName => "xUnitResults";
+
+        internal static bool IsJenkinsRun => !string.IsNullOrEmpty(Environment.GetEnvironmentVariable("JENKINS_URL"));
+
+        internal static string DashboardUriString => "http://jdash.azurewebsites.net";
     }
 }

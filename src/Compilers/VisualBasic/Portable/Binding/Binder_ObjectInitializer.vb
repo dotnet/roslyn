@@ -646,7 +646,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 If Not fieldName.HasErrors Then
 
                     ' no need to use the memberInitializerBinder here, because there is no MemberAccessExpression 
-                    target = BindMemberAccess(fieldName, variableOrTempPlaceholder, fieldName, False, False, memberBindingDiagnostics)
+                    target = BindMemberAccess(fieldName, variableOrTempPlaceholder, fieldName, False, memberBindingDiagnostics)
                     diagnostics.AddRange(memberBindingDiagnostics)
 
                     Dim identifierName As String = fieldName.Identifier.ValueText

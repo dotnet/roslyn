@@ -90,7 +90,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
                         "The provided IL cannot be compiled." + Environment.NewLine +
                         program + " " + arguments + Environment.NewLine +
                         result,
-                        "declarations");
+                        nameof(declarations));
                 }
             }
         }

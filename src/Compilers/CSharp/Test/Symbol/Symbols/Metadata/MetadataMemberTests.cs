@@ -139,7 +139,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 } // end of class Interface
 ";
 
-        [WorkItem(537346, "DevDiv")]
+        [WorkItem(537346, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/537346")]
         [Fact]
         public void MetadataMethodSymbolCtor01()
         {
@@ -174,7 +174,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.Empty(compilation.GetDeclarationDiagnostics());
         }
 
-        [WorkItem(537345, "DevDiv")]
+        [WorkItem(537345, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/537345")]
         [Fact]
         public void MetadataMethodSymbol01()
         {
@@ -225,8 +225,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.Empty(compilation.GetDeclarationDiagnostics());
         }
 
-        [WorkItem(527150, "DevDiv")]
-        [WorkItem(527151, "DevDiv")]
+        [WorkItem(527150, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/527150")]
+        [WorkItem(527151, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/527151")]
         [Fact]
         public void MetadataParameterSymbol01()
         {
@@ -373,7 +373,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.Empty(compilation.GetDeclarationDiagnostics());
         }
 
-        [WorkItem(537424, "DevDiv")]
+        [WorkItem(537424, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/537424")]
         [Fact]
         public void MetadataMethodStaticAndInstanceCtor()
         {
@@ -465,7 +465,7 @@ class B {
         }
 
         // TODO: Update this test if we decide to include gaps in the symbol table for NoPIA (DevDiv #17472).
-        [WorkItem(546951, "DevDiv")]
+        [WorkItem(546951, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546951")]
         [Fact]
         public void VTableGapsNotInSymbolTable()
         {
@@ -496,7 +496,7 @@ class B {
             Assert.False(propWithoutSetter.MustCallMethodsDirectly);
         }
 
-        [WorkItem(546951, "DevDiv")]
+        [WorkItem(546951, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546951")]
         [Fact]
         public void CallVTableGap()
         {
@@ -541,7 +541,7 @@ class Test
                 Diagnostic(ErrorCode.ERR_AssgReadonlyProp, "c.SetterIsGap").WithArguments("Class.SetterIsGap"));
         }
 
-        [WorkItem(546951, "DevDiv")]
+        [WorkItem(546951, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546951")]
         [Fact]
         public void ImplementVTableGap()
         {
@@ -589,7 +589,7 @@ class Explicit : Interface
                 Diagnostic(ErrorCode.ERR_InterfaceMemberNotFound, "_VtblGap1_1").WithArguments("Explicit._VtblGap1_1()"));
         }
 
-        [Fact, WorkItem(1094411, "DevDiv")]
+        [Fact, WorkItem(1094411, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1094411")]
         public void Bug1094411_01()
         {
             var source1 =
@@ -629,7 +629,7 @@ class Test
             }
         }
 
-        [Fact, WorkItem(1094411, "DevDiv")]
+        [Fact, WorkItem(1094411, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1094411")]
         public void Bug1094411_02()
         {
             var source1 =

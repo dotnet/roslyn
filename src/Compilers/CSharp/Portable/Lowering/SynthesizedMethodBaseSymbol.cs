@@ -126,6 +126,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return builder.ToImmutableAndFree();
         }
 
+        internal sealed override RefKind RefKind
+        {
+            get { return this.BaseMethod.RefKind; }
+        }
+
         public sealed override TypeSymbol ReturnType
         {
             get { return this.TypeMap.SubstituteType(this.BaseMethod.OriginalDefinition.ReturnType).Type; }

@@ -2455,7 +2455,7 @@ BC36754: 'Func(Of ArgumentException, Exception)' cannot be converted to 'Func(Of
 </expected>)
         End Sub
 
-        <WorkItem(542068, "DevDiv")>
+        <WorkItem(542068, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542068")>
         <Fact>
         Public Sub DelegateBindingForGenericMethods01()
             For Each OptionStrict In {"On", "Off"}
@@ -2681,7 +2681,7 @@ End Module
             CompileAndVerify(source, expectedOutput:="Test111()").VerifyDiagnostics()
         End Sub
 
-        <WorkItem(544065, "DevDiv")>
+        <WorkItem(544065, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544065")>
         <Fact()>
         Public Sub Bug12211()
             Dim source =
@@ -2771,7 +2771,7 @@ BC30950: No accessible method 'foo' has a signature compatible with delegate 'De
 
         End Sub
 
-        <Fact(), WorkItem(545253, "DevDiv")>
+        <Fact(), WorkItem(545253, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545253")>
         Public Sub Bug13571()
             Dim source =
     <compilation>
@@ -2894,7 +2894,7 @@ End Class
 ]]>)
         End Sub
 
-        <Fact(), WorkItem(629369, "DevDiv")>
+        <Fact(), WorkItem(629369, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/629369")>
         Public Sub DelegateConversionOfNothing()
             Dim source =
     <compilation>
@@ -2916,7 +2916,7 @@ End Module
             CompileAndVerify(source, expectedOutput:="pass").VerifyDiagnostics()
         End Sub
 
-        <Fact(), WorkItem(629369, "DevDiv")>
+        <Fact(), WorkItem(629369, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/629369")>
         Public Sub DelegateConversionOfNothing_02()
             Dim source =
     <compilation>

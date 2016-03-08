@@ -11,15 +11,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Inherits CompilationOptions
         Implements IEquatable(Of VisualBasicCompilationOptions)
 
-        Private Const s_globalImportsString = "GlobalImports"
-        Private Const s_rootNamespaceString = "RootNamespace"
-        Private Const s_optionStrictString = "OptionStrict"
-        Private Const s_optionInferString = "OptionInfer"
-        Private Const s_optionExplicitString = "OptionExplicit"
-        Private Const s_optionCompareTextString = "OptionCompareText"
-        Private Const s_embedVbCoreRuntimeString = "EmbedVbCoreRuntime"
-        Private Const s_parseOptionsString = "ParseOptions"
-
         Private _globalImports As ImmutableArray(Of GlobalImport)
         Private _rootNamespace As String
         Private _optionStrict As OptionStrict
@@ -131,7 +122,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 metadataReferenceResolver:=metadataReferenceResolver,
                 assemblyIdentityComparer:=assemblyIdentityComparer,
                 strongNameProvider:=strongNameProvider,
-                metadataImportOptions:=MetadataImportOptions.Public)
+                metadataImportOptions:=MetadataImportOptions.Public,
+                referencesSupersedeLowerVersions:=False)
 
         End Sub
 
@@ -169,7 +161,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             metadataReferenceResolver As MetadataReferenceResolver,
             assemblyIdentityComparer As AssemblyIdentityComparer,
             strongNameProvider As StrongNameProvider,
-            metadataImportOptions As MetadataImportOptions)
+            metadataImportOptions As MetadataImportOptions,
+            referencesSupersedeLowerVersions As Boolean)
 
             MyBase.New(
                 outputKind:=outputKind,
@@ -197,7 +190,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 metadataReferenceResolver:=metadataReferenceResolver,
                 assemblyIdentityComparer:=assemblyIdentityComparer,
                 strongNameProvider:=strongNameProvider,
-                metadataImportOptions:=metadataImportOptions)
+                metadataImportOptions:=metadataImportOptions,
+                referencesSupersedeLowerVersions:=referencesSupersedeLowerVersions)
 
             _globalImports = globalImports.AsImmutableOrEmpty()
             _rootNamespace = If(rootNamespace, String.Empty)
@@ -235,9 +229,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 cryptoKeyFile:=other.CryptoKeyFile,
                 cryptoPublicKey:=other.CryptoPublicKey,
                 delaySign:=other.DelaySign,
-                Platform:=other.Platform,
-                GeneralDiagnosticOption:=other.GeneralDiagnosticOption,
-                SpecificDiagnosticOptions:=other.SpecificDiagnosticOptions,
+                platform:=other.Platform,
+                generalDiagnosticOption:=other.GeneralDiagnosticOption,
+                specificDiagnosticOptions:=other.SpecificDiagnosticOptions,
                 concurrentBuild:=other.ConcurrentBuild,
                 deterministic:=other.Deterministic,
                 extendedCustomDebugInformation:=other.ExtendedCustomDebugInformation,
@@ -248,6 +242,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 assemblyIdentityComparer:=other.AssemblyIdentityComparer,
                 strongNameProvider:=other.StrongNameProvider,
                 metadataImportOptions:=other.MetadataImportOptions,
+                referencesSupersedeLowerVersions:=other.ReferencesSupersedeLowerVersions,
                 publicSign:=other.PublicSign)
         End Sub
 
@@ -783,6 +778,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return New VisualBasicCompilationOptions(Me) With {.MetadataImportOptions_internal_protected_set = value}
         End Function
 
+        Friend Function WithReferencesSupersedeLowerVersions(value As Boolean) As VisualBasicCompilationOptions
+            If value = Me.ReferencesSupersedeLowerVersions Then
+                Return Me
+            End If
+
+            Return New VisualBasicCompilationOptions(Me) With {.ReferencesSupersedeLowerVersions_internal_protected_set = value}
+        End Function
+
         ''' <summary>
         ''' Creates a new <see cref="VisualBasicCompilationOptions"/> instance with a different parse option specified.
         ''' </summary>
@@ -875,6 +878,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
 
         Friend Overrides Sub ValidateOptions(builder As ArrayBuilder(Of Diagnostic))
+            ValidateOptions(builder, MessageProvider.Instance)
+
             If Me.EmbedVbCoreRuntime AndAlso Me.OutputKind.IsNetModule() Then
                 builder.Add(Diagnostic.Create(MessageProvider.Instance, ERRID.ERR_VBCoreNetModuleConflict))
             End If
@@ -922,16 +927,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             ' TODO: add check for 
             '          (kind == 'arm' || kind == 'appcontainer' || kind == 'winmdobj') &&
             '          (version >= "6.2")
-
-            If Not CryptoPublicKey.IsEmpty Then
-                If CryptoKeyFile IsNot Nothing Then
-                    builder.Add(Diagnostic.Create(MessageProvider.Instance, ERRID.ERR_MutuallyExclusiveOptions, NameOf(CryptoPublicKey), NameOf(CryptoKeyFile)))
-                End If
-
-                If CryptoKeyContainer IsNot Nothing Then
-                    builder.Add(Diagnostic.Create(MessageProvider.Instance, ERRID.ERR_MutuallyExclusiveOptions, NameOf(CryptoPublicKey), NameOf(CryptoKeyContainer)))
-                End If
-            End If
         End Sub
 
         ''' <summary>
@@ -1170,9 +1165,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 cryptoPublicKey,
                 delaySign,
                 publicSign:=False,
-                Platform:=platform,
-                GeneralDiagnosticOption:=generalDiagnosticOption,
-                SpecificDiagnosticOptions:=specificDiagnosticOptions,
+                platform:=platform,
+                generalDiagnosticOption:=generalDiagnosticOption,
+                specificDiagnosticOptions:=specificDiagnosticOptions,
                 concurrentBuild:=concurrentBuild,
                 deterministic:=deterministic,
                 suppressEmbeddedDeclarations:=False,
@@ -1183,7 +1178,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 metadataReferenceResolver:=metadataReferenceResolver,
                 assemblyIdentityComparer:=assemblyIdentityComparer,
                 strongNameProvider:=strongNameProvider,
-                metadataImportOptions:=MetadataImportOptions.Public)
+                metadataImportOptions:=MetadataImportOptions.Public,
+                referencesSupersedeLowerVersions:=False)
 
         End Sub
     End Class

@@ -14,7 +14,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Outlining.MetadataAsSou
         protected override string WorkspaceKind => CodeAnalysis.WorkspaceKind.MetadataAsSource;
         internal override AbstractSyntaxOutliner CreateOutliner() => new MaSOutliners.RegionDirectiveOutliner();
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.MetadataAsSource)]
+        [Fact, Trait(Traits.Feature, Traits.Features.MetadataAsSource)]
         public async Task FileHeader()
         {
             const string code = @"
@@ -26,7 +26,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Outlining.MetadataAsSou
                 Region("span", "Assembly mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089", autoCollapse: true));
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.MetadataAsSource)]
+        [Fact, Trait(Traits.Feature, Traits.Features.MetadataAsSource)]
         public async Task EmptyFileHeader()
         {
             const string code = @"

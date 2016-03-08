@@ -10,8 +10,8 @@ Namespace Microsoft.CodeAnalysis.Editor.Implementation.Compilation.UnitTests
             Return snapshot.Projects.Single(Function(p) p.AssemblyName = assemblyName)
         End Function
 
-        <WpfFact>
-        <WorkItem(1107492)>
+        <Fact>
+        <WorkItem(1107492, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1107492")>
         Public Async Function TestProjectThatDoesntSupportCompilations() As Tasks.Task
             Dim workspaceDefinition =
 <Workspace>
@@ -22,14 +22,14 @@ Namespace Microsoft.CodeAnalysis.Editor.Implementation.Compilation.UnitTests
     </Project>
 </Workspace>
 
-            Using workspace = Await TestWorkspaceFactory.CreateWorkspaceAsync(workspaceDefinition)
+            Using workspace = Await TestWorkspace.CreateAsync(workspaceDefinition)
                 Dim project = GetProject(workspace.CurrentSolution, "TestAssembly")
-                Assert.Null(project.GetCompilationAsync().Result)
+                Assert.Null(Await project.GetCompilationAsync())
 
                 Dim solution = project.Solution
                 Assert.Null(Await project.GetCompilationAsync())
-                Assert.False(solution.ContainsSymbolsWithNameAsync(project.Id, Function(dummy) True, SymbolFilter.TypeAndMember, CancellationToken.None).Result)
-                Assert.Empty(solution.GetDocumentsWithName(project.Id, Function(dummy) True, SymbolFilter.TypeAndMember, CancellationToken.None).Result)
+                Assert.False(Await solution.ContainsSymbolsWithNameAsync(project.Id, Function(dummy) True, SymbolFilter.TypeAndMember, CancellationToken.None))
+                Assert.Empty(Await solution.GetDocumentsWithNameAsync(project.Id, Function(dummy) True, SymbolFilter.TypeAndMember, CancellationToken.None))
             End Using
         End Function
     End Class

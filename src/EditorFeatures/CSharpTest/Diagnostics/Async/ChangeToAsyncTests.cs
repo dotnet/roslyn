@@ -12,7 +12,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.Async
 {
     public partial class ChangeToAsyncTests : AbstractCSharpDiagnosticProviderBasedUserDiagnosticTest
     {
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsChangeToAsync)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsChangeToAsync)]
         public async Task CantAwaitAsyncVoid()
         {
             var initial =

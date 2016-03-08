@@ -224,6 +224,13 @@ namespace Microsoft.CodeAnalysis.CSharp
                     }
                     break;
 
+                case ConversionKind.ImplicitThrow:
+                    {
+                        // the operand must be a bound throw expression
+                        var operand = (BoundThrowExpression)rewrittenOperand;
+                        return _factory.ThrowExpression(operand.Expression, rewrittenType);
+                    }
+
                 case ConversionKind.ImplicitEnumeration:
                     // A conversion from constant zero to nullable is actually classified as an 
                     // implicit enumeration conversion, not an implicit nullable conversion. 
@@ -556,13 +563,13 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 TypeSymbol userDefinedConversionRewrittenType = conversion.Method.ReturnType;
 
-                if (rewrittenOperand.Type != conversion.Method.ParameterTypes[0])
+                // Lifted conversion, wrap return type in Nullable
+                // The conversion only needs to happen for non-nullable valuetypes
+                if (rewrittenOperand.Type.IsNullableType() &&
+                        conversion.Method.ParameterTypes[0] == rewrittenOperand.Type.GetNullableUnderlyingType() &&
+                        !userDefinedConversionRewrittenType.IsNullableType() &&
+                        userDefinedConversionRewrittenType.IsValueType)
                 {
-                    Debug.Assert(rewrittenOperand.Type.IsNullableType());
-                    Debug.Assert(rewrittenOperand.Type.GetNullableUnderlyingType() == conversion.Method.ParameterTypes[0]);
-                    Debug.Assert(!userDefinedConversionRewrittenType.IsNullableType());
-
-                    // Lifted conversion, wrap return type in Nullable
                     userDefinedConversionRewrittenType = ((NamedTypeSymbol)rewrittenOperand.Type.OriginalDefinition).Construct(userDefinedConversionRewrittenType);
                 }
 

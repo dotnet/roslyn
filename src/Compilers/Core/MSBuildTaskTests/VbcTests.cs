@@ -37,18 +37,18 @@ namespace Microsoft.CodeAnalysis.BuildTasks.UnitTests
             Assert.Equal("/optionstrict:custom /out:test.exe test.vb", vbc.GenerateResponseFileContents());
         }
 
-        [Fact] 
+        [Fact]
         public void DeterministicFlag()
         {
             var vbc = new Vbc();
             vbc.Sources = MSBuildUtil.CreateTaskItems("test.vb");
             vbc.Deterministic = true;
-            Assert.Equal("/optionstrict:custom /deterministic+ /out:test.exe test.vb", vbc.GenerateResponseFileContents());
+            Assert.Equal("/optionstrict:custom /out:test.exe /deterministic+ test.vb", vbc.GenerateResponseFileContents());
 
             vbc = new Vbc();
             vbc.Sources = MSBuildUtil.CreateTaskItems("test.vb");
             vbc.Deterministic = false;
-            Assert.Equal("/optionstrict:custom /deterministic- /out:test.exe test.vb", vbc.GenerateResponseFileContents());
+            Assert.Equal("/optionstrict:custom /out:test.exe /deterministic- test.vb", vbc.GenerateResponseFileContents());
 
             vbc = new Vbc();
             vbc.Sources = MSBuildUtil.CreateTaskItems("test.vb");
@@ -61,12 +61,12 @@ namespace Microsoft.CodeAnalysis.BuildTasks.UnitTests
             var vbc = new Vbc();
             vbc.Sources = MSBuildUtil.CreateTaskItems("test.vb");
             vbc.PublicSign = true;
-            Assert.Equal("/optionstrict:custom /publicsign+ /out:test.exe test.vb", vbc.GenerateResponseFileContents());
+            Assert.Equal("/optionstrict:custom /out:test.exe /publicsign+ test.vb", vbc.GenerateResponseFileContents());
 
             vbc = new Vbc();
             vbc.Sources = MSBuildUtil.CreateTaskItems("test.vb");
             vbc.PublicSign = false;
-            Assert.Equal("/optionstrict:custom /publicsign- /out:test.exe test.vb", vbc.GenerateResponseFileContents());
+            Assert.Equal("/optionstrict:custom /out:test.exe /publicsign- test.vb", vbc.GenerateResponseFileContents());
 
             vbc = new Vbc();
             vbc.Sources = MSBuildUtil.CreateTaskItems("test.vb");

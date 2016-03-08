@@ -120,11 +120,10 @@ namespace Roslyn.Test.Utilities
             }
         }
 
-
         /// <summary>
         /// Reference to an assembly that defines Expression Trees.
         /// </summary>
-        public static MetadataReference ExpressionAssemblyRef => SystemCoreRef;
+        public static MetadataReference ExpressionAssemblyRef => SystemCoreRef_v46;
 
         /// <summary>
         /// Reference to an assembly that defines LINQ operators.
@@ -135,6 +134,20 @@ namespace Roslyn.Test.Utilities
         /// Reference to an assembly that defines ExtensionAttribute.
         /// </summary>
         public static MetadataReference ExtensionAssemblyRef => SystemCoreRef;
+
+        private static MetadataReference s_systemCoreRef;
+        public static MetadataReference SystemCoreRef
+        {
+            get
+            {
+                if (s_systemCoreRef == null)
+                {
+                    s_systemCoreRef = AssemblyMetadata.CreateFromImage(TestResources.NetFX.v4_0_30319.System_Core).GetReference(display: "System.Core.v4_0_30319.dll");
+                }
+
+                return s_systemCoreRef;
+            }
+        }
 
         private static MetadataReference s_systemCoreRef_v4_0_30319_17929;
         public static MetadataReference SystemCoreRef_v4_0_30319_17929
@@ -150,17 +163,17 @@ namespace Roslyn.Test.Utilities
             }
         }
 
-        private static MetadataReference s_systemCoreRef;
-        public static MetadataReference SystemCoreRef
+        private static MetadataReference s_systemCoreRef_v46;
+        public static MetadataReference SystemCoreRef_v46
         {
             get
             {
-                if (s_systemCoreRef == null)
+                if (s_systemCoreRef_v46 == null)
                 {
-                    s_systemCoreRef = AssemblyMetadata.CreateFromImage(TestResources.NetFX.v4_0_30319.System_Core).GetReference(display: "System.Core.v4_0_30319.dll");
+                    s_systemCoreRef_v46 = AssemblyMetadata.CreateFromImage(TestResources.NetFX.v4_6_1038_0.System_Core).GetReference(display: "System.Core.v4_6_1038_0.dll");
                 }
 
-                return s_systemCoreRef;
+                return s_systemCoreRef_v46;
             }
         }
 
@@ -263,20 +276,6 @@ namespace Roslyn.Test.Utilities
             }
         }
 
-        private static MetadataReference s_mscorlibRef_v4_0_30316_17626;
-        public static MetadataReference MscorlibRef_v4_0_30316_17626
-        {
-            get
-            {
-                if (s_mscorlibRef_v4_0_30316_17626 == null)
-                {
-                    s_mscorlibRef_v4_0_30316_17626 = AssemblyMetadata.CreateFromImage(TestResources.NetFX.v4_0_30316_17626.mscorlib).GetReference(display: "mscorlib.v4_0_30319_17626.dll", filePath: @"Z:\FxReferenceAssembliesUri");
-                }
-
-                return s_mscorlibRef_v4_0_30316_17626;
-            }
-        }
-
         private static MetadataReference s_mscorlibRef_v20;
         public static MetadataReference MscorlibRef_v20
         {
@@ -288,6 +287,22 @@ namespace Roslyn.Test.Utilities
                 }
 
                 return s_mscorlibRef_v20;
+            }
+        }
+
+        public static MetadataReference MscorlibRef_v4_0_30316_17626 => TestReferences.NetFx.v4_0_30316_17626.mscorlib;
+
+        private static MetadataReference s_mscorlibRef_v46;
+        public static MetadataReference MscorlibRef_v46
+        {
+            get
+            {
+                if (s_mscorlibRef_v46 == null)
+                {
+                    s_mscorlibRef_v46 = AssemblyMetadata.CreateFromImage(TestResources.NetFX.v4_6_1038_0.mscorlib).GetReference(display: "mscorlib.v4_6_1038_0.dll", filePath: @"Z:\FxReferenceAssembliesUri");
+                }
+
+                return s_mscorlibRef_v46;
             }
         }
 
@@ -308,19 +323,7 @@ namespace Roslyn.Test.Utilities
             }
         }
 
-        private static MetadataReference s_minCorlibRef;
-        public static MetadataReference MinCorlibRef
-        {
-            get
-            {
-                if (s_minCorlibRef == null)
-                {
-                    s_minCorlibRef = AssemblyMetadata.CreateFromImage(TestResources.NetFX.Minimal.mincorlib).GetReference(display: "minCorLib.dll");
-                }
-
-                return s_minCorlibRef;
-            }
-        }
+        public static MetadataReference MinCorlibRef => TestReferences.NetFx.Minimal.mincorlib;
 
         private static MetadataReference s_msvbRef;
         public static MetadataReference MsvbRef

@@ -16,7 +16,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.SolutionExplore
                 _analyzerItem = analyzerItem;
             }
 
-            [DisplayName("(Name)")]
+            [BrowseObjectDisplayName(nameof(SolutionExplorerShim.AnalyzerItemNameDisplayName))]
             public string Name
             {
                 get
@@ -25,7 +25,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.SolutionExplore
                 }
             }
 
-            [DisplayName("Path")]
+            [BrowseObjectDisplayName(nameof(SolutionExplorerShim.AnalyzerItemPathDisplayName))]
             public string Path
             {
                 get

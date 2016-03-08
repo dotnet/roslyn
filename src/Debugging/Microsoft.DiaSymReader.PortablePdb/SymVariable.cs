@@ -1,4 +1,5 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+
 using System;
 using System.Collections.Immutable;
 using System.Diagnostics;
@@ -6,18 +7,10 @@ using System.Reflection.Metadata;
 using System.Reflection.Metadata.Ecma335;
 using System.Runtime.InteropServices;
 
-// Point-in-time conflict between System.Reflection.Metadata and temporary internal Roslyn.Reflection.Metadata
-// Replace this with using System.Reflection.Metadata.Decoding and uncomment type parameters when switching
-// back to public System.Reflection.Metadata API. 
-using ArrayShape = Roslyn.Reflection.Metadata.Decoding.ArrayShape;
-using CustomModifier = Roslyn.Reflection.Metadata.Decoding.CustomModifier<object>;
-using MethodSignature = Roslyn.Reflection.Metadata.Decoding.MethodSignature<object>;
-using ISignatureTypeProvider = Roslyn.Reflection.Metadata.Decoding.ISignatureTypeProvider<object>;
-using PrimitiveTypeCode = Roslyn.Reflection.Metadata.Decoding.PrimitiveTypeCode;
-using SignatureDecoder = Roslyn.Reflection.Metadata.Decoding.SignatureDecoder;
-
 namespace Microsoft.DiaSymReader.PortablePdb
 {
+    using Roslyn.Reflection.Metadata.Decoding;
+
     [ComVisible(false)]
     public sealed class SymVariable : ISymUnmanagedVariable
     {
@@ -84,8 +77,8 @@ namespace Microsoft.DiaSymReader.PortablePdb
         }
 
         public int GetName(
-            int bufferLength, 
-            out int count, 
+            int bufferLength,
+            out int count,
             [In, MarshalAs(UnmanagedType.LPArray, SizeParamIndex = 0), Out]char[] name)
         {
             var variable = MetadataReader.GetLocalVariable(_handle);
@@ -99,7 +92,7 @@ namespace Microsoft.DiaSymReader.PortablePdb
             [In, MarshalAs(UnmanagedType.LPArray, SizeParamIndex = 0), Out]byte[] signature)
         {
             var localSignatureHandle = _symMethod.MetadataReader.GetMethodDebugInformation(_symMethod.DebugHandle).LocalSignature;
-            var metadataImport = _symMethod.SymReader.PdbReader.MetadataImport;
+            var metadataImport = _symMethod.SymReader.PdbReader.GetMetadataImport();
             var local = _symMethod.MetadataReader.GetLocalVariable(_handle);
 
             byte* signaturePtr;
@@ -113,7 +106,7 @@ namespace Microsoft.DiaSymReader.PortablePdb
 
             var signatureReader = new BlobReader(signaturePtr, signatureLength);
 
-           SignatureHeader header = signatureReader.ReadSignatureHeader();
+            SignatureHeader header = signatureReader.ReadSignatureHeader();
             if (header.Kind != SignatureKind.LocalVariables)
             {
                 count = 0;
@@ -130,13 +123,14 @@ namespace Microsoft.DiaSymReader.PortablePdb
 
             var typeProvider = new DummyTypeProvider(_symMethod.MetadataReader);
 
+            var decoder = new SignatureDecoder<object>(typeProvider);
             for (int i = 0; i < slotIndex - 1; i++)
             {
-                SignatureDecoder.DecodeType(ref signatureReader, typeProvider);
+                decoder.DecodeType(ref signatureReader, allowTypeSpecifications: false);
             }
 
             int localSlotStart = signatureReader.Offset;
-            SignatureDecoder.DecodeType(ref signatureReader, typeProvider);
+            decoder.DecodeType(ref signatureReader, allowTypeSpecifications: false);
             int localSlotLength = signatureReader.Offset - localSlotStart;
 
             if (localSlotLength <= bufferLength)
@@ -148,7 +142,7 @@ namespace Microsoft.DiaSymReader.PortablePdb
             return HResult.S_OK;
         }
 
-        private sealed class DummyTypeProvider : ISignatureTypeProvider/*<object>*/
+        private sealed class DummyTypeProvider : ISignatureTypeProvider<object>
         {
             public DummyTypeProvider(MetadataReader reader)
             {
@@ -160,17 +154,18 @@ namespace Microsoft.DiaSymReader.PortablePdb
 
             public object GetArrayType(object elementType, ArrayShape shape) => null;
             public object GetByReferenceType(object elementType) => null;
-            public object GetFunctionPointerType(MethodSignature/*<object>*/ signature) => null;
+            public object GetFunctionPointerType(MethodSignature<object> signature) => null;
             public object GetGenericInstance(object genericType, ImmutableArray<object> typeArguments) => null;
             public object GetGenericMethodParameter(int index) => null;
             public object GetGenericTypeParameter(int index) => null;
-            public object GetModifiedType(object unmodifiedType, ImmutableArray<CustomModifier/*<object>*/> customModifiers) => null;
+            public object GetModifiedType(MetadataReader reader, bool isRequired, object modifier, object unmodifiedType) => null;
             public object GetPinnedType(object elementType) => null;
             public object GetPointerType(object elementType) => null;
             public object GetPrimitiveType(PrimitiveTypeCode typeCode) => null;
             public object GetSZArrayType(object elementType) => null;
-            public object GetTypeFromDefinition(TypeDefinitionHandle handle, bool? isValueType) => null;
-            public object GetTypeFromReference(TypeReferenceHandle handle, bool? isValueType) => null;
+            public object GetTypeFromDefinition(MetadataReader reader, TypeDefinitionHandle handle, SignatureTypeHandleCode code) => null;
+            public object GetTypeFromReference(MetadataReader reader, TypeReferenceHandle handle, SignatureTypeHandleCode code) => null;
+            public object GetTypeFromSpecification(MetadataReader reader, TypeSpecificationHandle handle, SignatureTypeHandleCode code) => null;
         }
     }
 }

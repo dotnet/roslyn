@@ -30,7 +30,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics.AddMissingReferenc
             Return Tuple.Create(Of DiagnosticAnalyzer, CodeFixProvider)(Nothing, fixer)
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsAddMissingReference)>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddMissingReference)>
         Public Async Function AddProjectReferenceBetweenCSharpProjects() As Task
             Await TestAddProjectReferenceAsync(<Workspace>
                                                    <Project Language="C#" AssemblyName="ProjectA" CommonReferences="true">
@@ -48,7 +48,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics.AddMissingReferenc
                                     "ProjectC", "ProjectA")
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsAddMissingReference)>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddMissingReference)>
         Public Async Function AddProjectReferenceBetweenVisualBasicProjects() As Task
             Await TestAddProjectReferenceAsync(<Workspace>
                                                    <Project Language="Visual Basic" AssemblyName="ProjectA" CommonReferences="true">
@@ -66,7 +66,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics.AddMissingReferenc
                                     "ProjectC", "ProjectA")
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsAddMissingReference)>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddMissingReference)>
         Public Async Function AddProjectReferenceBetweenMixedLanguages1() As Task
             Await TestAddProjectReferenceAsync(<Workspace>
                                                    <Project Language="C#" AssemblyName="ProjectA" CommonReferences="true">
@@ -84,7 +84,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics.AddMissingReferenc
                                     "ProjectC", "ProjectA")
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsAddMissingReference)>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddMissingReference)>
         Public Async Function AddProjectReferenceBetweenMixedLanguages2() As Task
             Await TestAddProjectReferenceAsync(<Workspace>
                                                    <Project Language="Visual Basic" AssemblyName="ProjectA" CommonReferences="true">
@@ -102,7 +102,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics.AddMissingReferenc
                                     "ProjectC", "ProjectA")
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsAddMissingReference)>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddMissingReference)>
         Public Async Function AddMetadataReferenceToVisualBasicProjectErrorCode30005() As Task
             Await TestAddUnresolvedMetadataReferenceAsync(
                 <Workspace>
@@ -128,7 +128,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics.AddMissingReferenc
                 "VBProject", s_windowsBaseAssembly.FullName)
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsAddMissingReference)>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddMissingReference)>
         Public Async Function AddMetadataReferenceToVisualBasicProjectErrorCode30007() As Task
             Await TestAddUnresolvedMetadataReferenceAsync(
                 <Workspace>
@@ -140,7 +140,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics.AddMissingReferenc
                 "VBProject", s_windowsBaseAssembly.FullName)
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsAddMissingReference)>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddMissingReference)>
         Public Async Function AddMetadataReferenceToVisualBasicProjectErrorCode30652() As Task
             Await TestAddUnresolvedMetadataReferenceAsync(
                 <Workspace>
@@ -166,7 +166,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics.AddMissingReferenc
                 "VBProject", s_windowsBaseAssembly.FullName)
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsAddMissingReference)>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddMissingReference)>
         Public Async Function AddMetadataReferenceToCSharpProject() As Task
             Await TestAddUnresolvedMetadataReferenceAsync(
                 <Workspace>

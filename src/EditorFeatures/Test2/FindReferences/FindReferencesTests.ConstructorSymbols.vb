@@ -4,7 +4,7 @@ Imports System.Threading.Tasks
 
 Namespace Microsoft.CodeAnalysis.Editor.UnitTests.FindReferences
     Partial Public Class FindReferencesTests
-        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <Fact, Trait(Traits.Feature, Traits.Features.FindReferences)>
         Public Async Function TestThisConstructorInitializerSameFile1() As Task
             Dim input =
 <Workspace>
@@ -28,7 +28,7 @@ class Program
             Await TestAsync(input)
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <Fact, Trait(Traits.Feature, Traits.Features.FindReferences)>
         Public Async Function TestThisConstructorInitializerSameFile2() As Task
             Dim input =
 <Workspace>
@@ -52,7 +52,7 @@ class Program
             Await TestAsync(input)
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <Fact, Trait(Traits.Feature, Traits.Features.FindReferences)>
         Public Async Function TestThisConstructorInitializerDifferentFile1() As Task
             Dim input =
 <Workspace>
@@ -80,7 +80,7 @@ partial class Program
             Await TestAsync(input)
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <Fact, Trait(Traits.Feature, Traits.Features.FindReferences)>
         Public Async Function TestThisConstructorInitializerDifferentFile2() As Task
             Dim input =
 <Workspace>
@@ -108,7 +108,7 @@ partial class Program
             Await TestAsync(input)
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <Fact, Trait(Traits.Feature, Traits.Features.FindReferences)>
         Public Async Function TestBaseConstructorInitializerSameFile1() As Task
             Dim input =
 <Workspace>
@@ -135,7 +135,7 @@ class BaseType
             Await TestAsync(input)
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <Fact, Trait(Traits.Feature, Traits.Features.FindReferences)>
         Public Async Function TestBaseConstructorInitializerSameFile2() As Task
             Dim input =
 <Workspace>
@@ -162,7 +162,7 @@ class BaseType
             Await TestAsync(input)
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <Fact, Trait(Traits.Feature, Traits.Features.FindReferences)>
         Public Async Function TestBaseConstructorInitializerDifferentFile1() As Task
             Dim input =
 <Workspace>
@@ -190,7 +190,7 @@ class BaseType
             Await TestAsync(input)
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <Fact, Trait(Traits.Feature, Traits.Features.FindReferences)>
         Public Async Function TestBaseConstructorInitializerDifferentFile2() As Task
             Dim input =
 <Workspace>
@@ -218,7 +218,7 @@ class BaseType
             Await TestAsync(input)
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <Fact, Trait(Traits.Feature, Traits.Features.FindReferences)>
         Public Async Function TestBaseConstructorInitializerDifferentFile3() As Task
             Dim input =
 <Workspace>
@@ -251,8 +251,8 @@ class BaseType
             Await TestAsync(input)
         End Function
 
-        <WorkItem(541658)>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WorkItem(541658, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541658")>
+        <Fact, Trait(Traits.Feature, Traits.Features.FindReferences)>
         Public Async Function TestAttribute1() As Task
             Dim input =
 <Workspace>
@@ -274,8 +274,8 @@ internal class {|Definition:$$AttClassAttribute|} : Attribute
             Await TestAsync(input)
         End Function
 
-        <WorkItem(541658)>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WorkItem(541658, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541658")>
+        <Fact, Trait(Traits.Feature, Traits.Features.FindReferences)>
         Public Async Function TestAttribute2() As Task
             Dim input =
 <Workspace>
@@ -297,8 +297,8 @@ internal class {|Definition:$$AttClassAttribute|} : Attribute
             Await TestAsync(input)
         End Function
 
-        <WorkItem(541658)>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WorkItem(541658, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541658")>
+        <Fact, Trait(Traits.Feature, Traits.Features.FindReferences)>
         Public Async Function TestAttribute3() As Task
             Dim input =
 <Workspace>
@@ -318,8 +318,8 @@ internal class {|Definition:$$AttClassAttribute|} : Attribute
             Await TestAsync(input)
         End Function
 
-        <WorkItem(541658)>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WorkItem(541658, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541658")>
+        <Fact, Trait(Traits.Feature, Traits.Features.FindReferences)>
         Public Async Function TestAttribute4() As Task
             Dim input =
 <Workspace>
@@ -339,7 +339,7 @@ internal class {|Definition:$$AttClassAttribute|} : Attribute
             Await TestAsync(input)
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <Fact, Trait(Traits.Feature, Traits.Features.FindReferences)>
         Public Async Function TestThisAtEndOfFile() As Task
             Dim input =
 <Workspace>
@@ -360,7 +360,7 @@ class Program
             Await TestAsync(input)
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <Fact, Trait(Traits.Feature, Traits.Features.FindReferences)>
         Public Async Function TestConstructor_ThroughAlias1() As Task
             Dim input =
 <Workspace>
@@ -386,7 +386,7 @@ class Program
             Await TestAsync(input)
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <Fact, Trait(Traits.Feature, Traits.Features.FindReferences)>
         Public Async Function TestAttributeConstructor_ThroughAlias1() As Task
             Dim input =
 <Workspace>
@@ -414,7 +414,7 @@ class Program
             Await TestAsync(input)
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <Fact, Trait(Traits.Feature, Traits.Features.FindReferences)>
         Public Async Function TestAttributeConstructor_ThroughAlias2() As Task
             Dim input =
 <Workspace>
@@ -444,8 +444,8 @@ class Program
             Await TestAsync(input)
         End Function
 
-        <WorkItem(542218)>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WorkItem(542218, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542218")>
+        <Fact, Trait(Traits.Feature, Traits.Features.FindReferences)>
         Public Async Function TestAttributeConstructor_ThroughAlias3() As Task
             Dim input =
 <Workspace>
@@ -472,8 +472,8 @@ class Program
             Await TestAsync(input)
         End Function
 
-        <WorkItem(542218)>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WorkItem(542218, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542218")>
+        <Fact, Trait(Traits.Feature, Traits.Features.FindReferences)>
         Public Async Function TestAttributeConstructor_ThroughAlias4() As Task
             Dim input =
 <Workspace>
@@ -500,8 +500,8 @@ class Program
             Await TestAsync(input)
         End Function
 
-        <WorkItem(542218)>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WorkItem(542218, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542218")>
+        <Fact, Trait(Traits.Feature, Traits.Features.FindReferences)>
         Public Async Function TestAttributeConstructor_ThroughAlias5() As Task
             Dim input =
 <Workspace>
@@ -528,8 +528,8 @@ class Program
             Await TestAsync(input)
         End Function
 
-        <WorkItem(542218)>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WorkItem(542218, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542218")>
+        <Fact, Trait(Traits.Feature, Traits.Features.FindReferences)>
         Public Async Function TestAttributeConstructor_ThroughAlias6() As Task
             Dim input =
 <Workspace>
@@ -556,8 +556,8 @@ class Program
             Await TestAsync(input)
         End Function
 
-        <WorkItem(542218)>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WorkItem(542218, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542218")>
+        <Fact, Trait(Traits.Feature, Traits.Features.FindReferences)>
         Public Async Function TestAttributeConstructor_ThroughAlias7() As Task
             Dim input =
 <Workspace>
@@ -584,8 +584,8 @@ class Program
             Await TestAsync(input)
         End Function
 
-        <WorkItem(542218)>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WorkItem(542218, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542218")>
+        <Fact, Trait(Traits.Feature, Traits.Features.FindReferences)>
         Public Async Function TestAttributeConstructor_ThroughAlias8() As Task
             Dim input =
 <Workspace>
@@ -612,8 +612,8 @@ class Program
             Await TestAsync(input)
         End Function
 
-        <WorkItem(542218)>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WorkItem(542218, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542218")>
+        <Fact, Trait(Traits.Feature, Traits.Features.FindReferences)>
         Public Async Function TestAttributeConstructor_ThroughAlias9() As Task
             Dim input =
 <Workspace>
@@ -640,8 +640,8 @@ class Program
             Await TestAsync(input)
         End Function
 
-        <WorkItem(542979)>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WorkItem(542979, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542979")>
+        <Fact, Trait(Traits.Feature, Traits.Features.FindReferences)>
         Public Async Function TestAttributeConstructor_ThroughAlias10() As Task
             Dim input =
 <Workspace>
@@ -682,8 +682,8 @@ class C { }
         End Sub
 #End If
 
-        <WorkItem(542386)>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WorkItem(542386, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542386")>
+        <Fact, Trait(Traits.Feature, Traits.Features.FindReferences)>
         Public Async Function TestClassCalledNew1() As Task
             Dim input =
 <Workspace>
@@ -708,8 +708,8 @@ End Class
             Await TestAsync(input)
         End Function
 
-        <WorkItem(531200)>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WorkItem(531200, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/531200")>
+        <Fact, Trait(Traits.Feature, Traits.Features.FindReferences)>
         Public Async Function TestCSharpCascadeFromTypeToConstructorsAndDestructors() As Task
             Dim input =
 <Workspace>
@@ -738,8 +738,8 @@ namespace Tester
             Await TestAsync(input)
         End Function
 
-        <WorkItem(531200)>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WorkItem(531200, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/531200")>
+        <Fact, Trait(Traits.Feature, Traits.Features.FindReferences)>
         Public Async Function TestVBCascadeFromTypeToConstructorsAndDestructors() As Task
             Dim input =
 <Workspace>
@@ -766,8 +766,8 @@ End Namespace
             Await TestAsync(input)
         End Function
 
-        <WorkItem(652809)>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WorkItem(652809, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/652809")>
+        <Fact, Trait(Traits.Feature, Traits.Features.FindReferences)>
         Public Async Function TestCSharpStaticCtorVsInstanceCtorReferences() As Task
             Dim input =
 <Workspace>

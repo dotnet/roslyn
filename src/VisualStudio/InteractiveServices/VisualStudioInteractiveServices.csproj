@@ -84,6 +84,7 @@
     <InternalsVisibleToTest Include="Roslyn.VisualStudio.Services.UnitTests" />
     <InternalsVisibleToTest Include="RoslynETAHost" />
     <InternalsVisibleToTest Include="RoslynTaoActions" />
+    <InternalsVisibleToTest Include="Roslyn.VisualStudio.Integration.Test.Utilities" />
   </ItemGroup>
   <ItemGroup>
     <Reference Include="envdte, Version=8.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a">
@@ -195,11 +196,12 @@
     <Reference Include="WindowsFormsIntegration" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Interactive\AbstractResetInteractiveCommand.cs" />
     <Compile Include="Interactive\LogMessage.cs" />
     <Compile Include="Interactive\VsInteractiveWindowPackage.cs" />
     <Compile Include="Interactive\VsInteractiveWindowProvider.cs" />
     <Compile Include="Interactive\CommonVsUtils.cs" />
-    <Compile Include="Interactive\ResetInteractive.cs" />
+    <Compile Include="Interactive\VsResetInteractive.cs" />
     <Compile Include="Interactive\ScriptingOleCommandTarget.cs" />
     <Compile Include="Interactive\VsUpdateSolutionEvents.cs" />
   </ItemGroup>

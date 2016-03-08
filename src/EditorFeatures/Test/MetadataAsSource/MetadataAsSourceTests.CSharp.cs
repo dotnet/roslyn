@@ -10,7 +10,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.MetadataAsSource
     {
         public class CSharp
         {
-            [WpfFact, Trait(Traits.Feature, Traits.Features.MetadataAsSource)]
+            [Fact, Trait(Traits.Feature, Traits.Features.MetadataAsSource)]
             public void ExtractXMLFromDocComment()
             {
                 var docCommentText = @"/// <summary>

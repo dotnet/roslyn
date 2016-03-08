@@ -20,7 +20,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Outlining.Metadata
             Return New MaSOutliners.EnumDeclarationOutliner()
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.MetadataAsSource)>
+        <Fact, Trait(Traits.Feature, Traits.Features.MetadataAsSource)>
         Public Async Function NoCommentsOrAttributes() As Task
             Dim code = "
 Enum $$Foo
@@ -32,7 +32,7 @@ End Enum
             Await VerifyNoRegionsAsync(code)
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.MetadataAsSource)>
+        <Fact, Trait(Traits.Feature, Traits.Features.MetadataAsSource)>
         Public Async Function WithAttributes() As Task
             Dim code = "
 {|hint:{|collapse:<Foo>
@@ -46,7 +46,7 @@ End Enum
                 Region("collapse", "hint", VisualBasicOutliningHelpers.Ellipsis, autoCollapse:=True))
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.MetadataAsSource)>
+        <Fact, Trait(Traits.Feature, Traits.Features.MetadataAsSource)>
         Public Async Function WithCommentsAndAttributes() As Task
             Dim code = "
 {|hint:{|collapse:' Summary:
@@ -62,7 +62,7 @@ End Enum
                 Region("collapse", "hint", VisualBasicOutliningHelpers.Ellipsis, autoCollapse:=True))
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.MetadataAsSource)>
+        <Fact, Trait(Traits.Feature, Traits.Features.MetadataAsSource)>
         Public Async Function WithCommentsAttributesAndModifiers() As Task
             Dim code = "
 {|hint:{|collapse:' Summary:

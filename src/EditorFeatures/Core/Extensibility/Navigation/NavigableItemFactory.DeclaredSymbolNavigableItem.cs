@@ -17,7 +17,7 @@ namespace Microsoft.CodeAnalysis.Editor.Navigation
         {
             public string DisplayString => _lazyDisplayString.Value;
             public Document Document { get; }
-            public Glyph Glyph => _lazySymbol.Value?.GetGlyph() ?? Glyph.Error;
+            public Glyph Glyph => Symbol?.GetGlyph() ?? Glyph.Error;
             public TextSpan SourceSpan => _declaredSymbolInfo.Span;
             public ISymbol Symbol => _lazySymbol.Value;
             public ImmutableArray<INavigableItem> ChildItems => ImmutableArray<INavigableItem>.Empty;
@@ -33,9 +33,7 @@ namespace Microsoft.CodeAnalysis.Editor.Navigation
                 Document = document;
                 _declaredSymbolInfo = declaredSymbolInfo;
 
-                // Cancellation isn't supported when computing the various properties that depend on the symbol, hence
-                // CancellationToken.None.
-                _lazySymbol = new Lazy<ISymbol>(() => declaredSymbolInfo.GetSymbolAsync(document, CancellationToken.None).ConfigureAwait(false).GetAwaiter().GetResult());
+                _lazySymbol = new Lazy<ISymbol>(FindSymbol);
                 _lazyDisplayString = new Lazy<string>(() =>
                 {
                     try
@@ -52,6 +50,22 @@ namespace Microsoft.CodeAnalysis.Editor.Navigation
                         throw ExceptionUtilities.Unreachable;
                     }
                 });
+            }
+
+            private ISymbol FindSymbol()
+            {
+                // Here, we will use partial semantics. We are going to use this symbol to get a glyph, display string,
+                // and potentially documentation comments. The first two should work fine even if we don't have full
+                // references, and the latter will probably be fine. (It wouldn't be if you have a partial type
+                // and we didn't get all the trees parsed yet to know that. In other words, an edge case we don't care about.)
+
+                // Cancellation isn't supported when computing the various properties that depend on the symbol, hence
+                // CancellationToken.None.
+                var semanticModel = Document.GetPartialSemanticModelAsync(CancellationToken.None).GetAwaiter().GetResult();
+
+                var root = semanticModel.SyntaxTree.GetRoot(CancellationToken.None);
+                var node = root.FindNode(_declaredSymbolInfo.Span);
+                return semanticModel.GetDeclaredSymbol(node, CancellationToken.None);
             }
         }
     }

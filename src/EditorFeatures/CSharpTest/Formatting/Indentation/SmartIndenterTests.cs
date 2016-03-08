@@ -13,7 +13,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Formatting.Indentation
 {
     public partial class SmartIndenterTests : FormatterTestsBase
     {
-        [WpfFact]
+        [Fact]
         [Trait(Traits.Feature, Traits.Features.SmartIndent)]
         public async Task EmptyFile()
         {
@@ -23,7 +23,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Formatting.Indentation
                 expectedIndentation: 0);
         }
 
-        [WpfFact]
+        [Fact]
         [Trait(Traits.Feature, Traits.Features.SmartIndent)]
         public async Task NoPreviousLine()
         {
@@ -48,7 +48,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Formatting.Indentation
                 expectedIndentation: 0);
         }
 
-        [WpfFact]
+        [Fact]
         [Trait(Traits.Feature, Traits.Features.SmartIndent)]
         public async Task EndOfFileInactive()
         {
@@ -64,7 +64,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Formatting.Indentation
                 expectedIndentation: 4);
         }
 
-        [WpfFact]
+        [Fact]
         [Trait(Traits.Feature, Traits.Features.SmartIndent)]
         public async Task EndOfFileInactive2()
         {
@@ -81,7 +81,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Formatting.Indentation
                 expectedIndentation: 0);
         }
 
-        [WpfFact]
+        [Fact]
         [Trait(Traits.Feature, Traits.Features.SmartIndent)]
         public async Task Comments()
         {
@@ -99,7 +99,7 @@ class Class
                 expectedIndentation: 4);
         }
 
-        [WpfFact]
+        [Fact]
         [Trait(Traits.Feature, Traits.Features.SmartIndent)]
         public async Task UsingDirective()
         {
@@ -112,7 +112,7 @@ class Class
                 expectedIndentation: 0);
         }
 
-        [WpfFact]
+        [Fact]
         [Trait(Traits.Feature, Traits.Features.SmartIndent)]
         public async Task DottedName()
         {
@@ -125,7 +125,7 @@ class Class
                 expectedIndentation: 4);
         }
 
-        [WpfFact]
+        [Fact]
         [Trait(Traits.Feature, Traits.Features.SmartIndent)]
         public async Task Namespace()
         {
@@ -140,7 +140,7 @@ namespace NS
                 expectedIndentation: 4);
         }
 
-        [WpfFact]
+        [Fact]
         [Trait(Traits.Feature, Traits.Features.SmartIndent)]
         public async Task NamespaceDottedName()
         {
@@ -155,7 +155,7 @@ namespace NS.
                 expectedIndentation: 4);
         }
 
-        [WpfFact]
+        [Fact]
         [Trait(Traits.Feature, Traits.Features.SmartIndent)]
         public async Task NamespaceBody()
         {
@@ -171,7 +171,7 @@ namespace NS
                 expectedIndentation: 4);
         }
 
-        [WpfFact]
+        [Fact]
         [Trait(Traits.Feature, Traits.Features.SmartIndent)]
         public async Task Class()
         {
@@ -188,7 +188,7 @@ namespace NS
                 expectedIndentation: 8);
         }
 
-        [WpfFact]
+        [Fact]
         [Trait(Traits.Feature, Traits.Features.SmartIndent)]
         public async Task ClassBody()
         {
@@ -206,7 +206,7 @@ namespace NS
                 expectedIndentation: 8);
         }
 
-        [WpfFact]
+        [Fact]
         [Trait(Traits.Feature, Traits.Features.SmartIndent)]
         public async Task Method()
         {
@@ -226,7 +226,7 @@ namespace NS
                 expectedIndentation: 12);
         }
 
-        [WpfFact]
+        [Fact]
         [Trait(Traits.Feature, Traits.Features.SmartIndent)]
         public async Task MethodBody()
         {
@@ -247,7 +247,7 @@ namespace NS
                 expectedIndentation: 12);
         }
 
-        [WpfFact]
+        [Fact]
         [Trait(Traits.Feature, Traits.Features.SmartIndent)]
         public async Task Property()
         {
@@ -267,7 +267,7 @@ namespace NS
                 expectedIndentation: 12);
         }
 
-        [WpfFact]
+        [Fact]
         [Trait(Traits.Feature, Traits.Features.SmartIndent)]
         public async Task PropertyGetBody()
         {
@@ -289,7 +289,7 @@ namespace NS
                 expectedIndentation: 16);
         }
 
-        [WpfFact]
+        [Fact]
         [Trait(Traits.Feature, Traits.Features.SmartIndent)]
         public async Task PropertySetBody()
         {
@@ -312,7 +312,7 @@ namespace NS
                 expectedIndentation: 16);
         }
 
-        [WpfFact]
+        [Fact]
         [Trait(Traits.Feature, Traits.Features.SmartIndent)]
         public async Task Statement()
         {
@@ -334,7 +334,7 @@ namespace NS
                 expectedIndentation: 12);
         }
 
-        [WpfFact]
+        [Fact]
         [Trait(Traits.Feature, Traits.Features.SmartIndent)]
         public async Task FieldInitializer()
         {
@@ -349,7 +349,7 @@ namespace NS
                 expectedIndentation: 4);
         }
 
-        [WpfFact]
+        [Fact]
         [Trait(Traits.Feature, Traits.Features.SmartIndent)]
         public async Task FieldInitializerWithNamespace()
         {
@@ -367,7 +367,7 @@ namespace NS
                 expectedIndentation: 8);
         }
 
-        [WpfFact]
+        [Fact]
         [Trait(Traits.Feature, Traits.Features.SmartIndent)]
         public async Task MethodCall()
         {
@@ -395,7 +395,7 @@ namespace NS
                 expectedIndentation: null);
         }
 
-        [WpfFact]
+        [Fact]
         [Trait(Traits.Feature, Traits.Features.SmartIndent)]
         public async Task Switch()
         {
@@ -417,7 +417,7 @@ namespace NS
                 expectedIndentation: 16);
         }
 
-        [WpfFact]
+        [Fact]
         [Trait(Traits.Feature, Traits.Features.SmartIndent)]
         public async Task SwitchBody()
         {
@@ -440,7 +440,7 @@ namespace NS
                 expectedIndentation: 16);
         }
 
-        [WpfFact]
+        [Fact]
         [Trait(Traits.Feature, Traits.Features.SmartIndent)]
         public async Task SwitchCase()
         {
@@ -464,7 +464,7 @@ namespace NS
                 expectedIndentation: 20);
         }
 
-        [WpfFact]
+        [Fact]
         [Trait(Traits.Feature, Traits.Features.SmartIndent)]
         public async Task Block()
         {
@@ -489,7 +489,7 @@ namespace NS
                 expectedIndentation: 24);
         }
 
-        [WpfFact]
+        [Fact]
         [Trait(Traits.Feature, Traits.Features.SmartIndent)]
         public async Task MultilineStatement1()
         {
@@ -511,7 +511,7 @@ namespace NS
                 expectedIndentation: 16);
         }
 
-        [WpfFact]
+        [Fact]
         [Trait(Traits.Feature, Traits.Features.SmartIndent)]
         public async Task MultilineStatement2()
         {
@@ -535,7 +535,7 @@ namespace NS
         }
 
         // Bug number 902477
-        [WpfFact]
+        [Fact]
         [Trait(Traits.Feature, Traits.Features.SmartIndent)]
         public async Task Comments2()
         {
@@ -554,7 +554,7 @@ namespace NS
                 expectedIndentation: 12);
         }
 
-        [WpfFact]
+        [Fact]
         [Trait(Traits.Feature, Traits.Features.SmartIndent)]
         public async Task AfterCompletedBlock()
         {
@@ -574,7 +574,7 @@ namespace NS
                 expectedIndentation: 8);
         }
 
-        [WpfFact]
+        [Fact]
         [Trait(Traits.Feature, Traits.Features.SmartIndent)]
         public async Task AfterCompletedBlockNestedInOtherBlock()
         {
@@ -595,7 +595,7 @@ namespace NS
                 expectedIndentation: 12);
         }
 
-        [WpfFact]
+        [Fact]
         [Trait(Traits.Feature, Traits.Features.SmartIndent)]
         public async Task AfterTopLevelAttribute()
         {
@@ -612,8 +612,8 @@ namespace NS
                 expectedIndentation: 4);
         }
 
-        [WorkItem(537802)]
-        [WpfFact]
+        [WorkItem(537802, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/537802")]
+        [Fact]
         [Trait(Traits.Feature, Traits.Features.SmartIndent)]
         public async Task EmbeddedStatement()
         {
@@ -634,8 +634,8 @@ namespace NS
                 expectedIndentation: 8);
         }
 
-        [WorkItem(537883)]
-        [WpfFact]
+        [WorkItem(537883, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/537883")]
+        [Fact]
         [Trait(Traits.Feature, Traits.Features.SmartIndent)]
         public async Task EnterAfterComment()
         {
@@ -655,8 +655,8 @@ namespace NS
                 expectedIndentation: 8);
         }
 
-        [WorkItem(538121)]
-        [WpfFact]
+        [WorkItem(538121, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538121")]
+        [Fact]
         [Trait(Traits.Feature, Traits.Features.SmartIndent)]
         public async Task NestedBlock1()
         {
@@ -676,7 +676,7 @@ namespace NS
                 expectedIndentation: 12);
         }
 
-        [WpfFact]
+        [Fact]
         [Trait(Traits.Feature, Traits.Features.SmartIndent)]
         public async Task NestedEmbeddedStatement1()
         {
@@ -698,7 +698,7 @@ namespace NS
                 expectedIndentation: 8);
         }
 
-        [WpfFact]
+        [Fact]
         [Trait(Traits.Feature, Traits.Features.SmartIndent)]
         public async Task NestedEmbeddedStatement2()
         {
@@ -721,7 +721,7 @@ namespace NS
                 expectedIndentation: 8);
         }
 
-        [WpfFact]
+        [Fact]
         [Trait(Traits.Feature, Traits.Features.SmartIndent)]
         public async Task NestedEmbeddedStatement3()
         {
@@ -744,7 +744,7 @@ namespace NS
                 expectedIndentation: 8);
         }
 
-        [WpfFact]
+        [Fact]
         [Trait(Traits.Feature, Traits.Features.SmartIndent)]
         public async Task NestedEmbeddedStatement4()
         {
@@ -765,7 +765,7 @@ namespace NS
                 expectedIndentation: 8);
         }
 
-        [WpfFact]
+        [Fact]
         [Trait(Traits.Feature, Traits.Features.SmartIndent)]
         public async Task NestedEmbeddedStatement5()
         {
@@ -786,7 +786,7 @@ namespace NS
                 expectedIndentation: 8);
         }
 
-        [WpfFact]
+        [Fact]
         [Trait(Traits.Feature, Traits.Features.SmartIndent)]
         public async Task NestedEmbeddedStatement6()
         {
@@ -807,7 +807,7 @@ namespace NS
                 expectedIndentation: 8);
         }
 
-        [WpfFact]
+        [Fact]
         [Trait(Traits.Feature, Traits.Features.SmartIndent)]
         public async Task NestedEmbeddedStatement7()
         {
@@ -830,7 +830,7 @@ namespace NS
                 expectedIndentation: 8);
         }
 
-        [WpfFact]
+        [Fact]
         [Trait(Traits.Feature, Traits.Features.SmartIndent)]
         public async Task NestedEmbeddedStatement8()
         {
@@ -854,7 +854,7 @@ namespace NS
                 expectedIndentation: 8);
         }
 
-        [WpfFact]
+        [Fact]
         [Trait(Traits.Feature, Traits.Features.SmartIndent)]
         public async Task Label1()
         {
@@ -876,7 +876,7 @@ namespace NS
                 expectedIndentation: 8);
         }
 
-        [WpfFact]
+        [Fact]
         [Trait(Traits.Feature, Traits.Features.SmartIndent)]
         public async Task Label2()
         {
@@ -896,7 +896,7 @@ namespace NS
                 expectedIndentation: 8);
         }
 
-        [WpfFact]
+        [Fact]
         [Trait(Traits.Feature, Traits.Features.SmartIndent)]
         public async Task Label3()
         {
@@ -919,7 +919,7 @@ namespace NS
                 expectedIndentation: 16);
         }
 
-        [WpfFact]
+        [Fact]
         [Trait(Traits.Feature, Traits.Features.SmartIndent)]
         public async Task Label4()
         {
@@ -941,7 +941,7 @@ namespace NS
                 expectedIndentation: 16);
         }
 
-        [WpfFact]
+        [Fact]
         [Trait(Traits.Feature, Traits.Features.SmartIndent)]
         public async Task Label5()
         {
@@ -963,7 +963,7 @@ namespace NS
                 expectedIndentation: 16);
         }
 
-        [WpfFact]
+        [Fact]
         [Trait(Traits.Feature, Traits.Features.SmartIndent)]
         public async Task Label6()
         {
@@ -983,7 +983,7 @@ namespace NS
                 expectedIndentation: 8);
         }
 
-        [WpfFact]
+        [Fact]
         [Trait(Traits.Feature, Traits.Features.SmartIndent)]
         public async Task QueryExpression1()
         {
@@ -1003,7 +1003,7 @@ namespace NS
                 expectedIndentation: 20);
         }
 
-        [WpfFact]
+        [Fact]
         [Trait(Traits.Feature, Traits.Features.SmartIndent)]
         public async Task QueryExpression2()
         {
@@ -1023,7 +1023,7 @@ namespace NS
                 expectedIndentation: 16);
         }
 
-        [WpfFact]
+        [Fact]
         [Trait(Traits.Feature, Traits.Features.SmartIndent)]
         public async Task QueryExpression3()
         {
@@ -1043,7 +1043,7 @@ namespace NS
                 expectedIndentation: 16);
         }
 
-        [WpfFact]
+        [Fact]
         [Trait(Traits.Feature, Traits.Features.SmartIndent)]
         public async Task QueryExpression4()
         {
@@ -1063,7 +1063,7 @@ namespace NS
                 expectedIndentation: 16);
         }
 
-        [WpfFact]
+        [Fact]
         [Trait(Traits.Feature, Traits.Features.SmartIndent)]
         public async Task QueryExpression5()
         {
@@ -1084,7 +1084,7 @@ namespace NS
                 expectedIndentation: 20);
         }
 
-        [WpfFact]
+        [Fact]
         [Trait(Traits.Feature, Traits.Features.SmartIndent)]
         public async Task QueryExpression6()
         {
@@ -1106,8 +1106,8 @@ namespace NS
                 expectedIndentation: 20);
         }
 
-        [WpfFact]
-        [WorkItem(538779)]
+        [Fact]
+        [WorkItem(538779, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538779")]
         [Trait(Traits.Feature, Traits.Features.SmartIndent)]
         public async Task QueryExpression7()
         {
@@ -1129,8 +1129,8 @@ namespace NS
                 expectedIndentation: 16);
         }
 
-        [WpfFact]
-        [WorkItem(538779)]
+        [Fact]
+        [WorkItem(538779, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538779")]
         [Trait(Traits.Feature, Traits.Features.SmartIndent)]
         public async Task QueryExpression8()
         {
@@ -1153,8 +1153,8 @@ namespace NS
                 expectedIndentation: 30);
         }
 
-        [WpfFact]
-        [WorkItem(538780)]
+        [Fact]
+        [WorkItem(538780, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538780")]
         [Trait(Traits.Feature, Traits.Features.SmartIndent)]
         public async Task QueryExpression9()
         {
@@ -1176,8 +1176,8 @@ namespace NS
                 expectedIndentation: 16);
         }
 
-        [WpfFact]
-        [WorkItem(538780)]
+        [Fact]
+        [WorkItem(538780, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538780")]
         [Trait(Traits.Feature, Traits.Features.SmartIndent)]
         public async Task QueryExpression10()
         {
@@ -1200,8 +1200,8 @@ namespace NS
                 expectedIndentation: 24);
         }
 
-        [WorkItem(538333)]
-        [WpfFact]
+        [WorkItem(538333, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538333")]
+        [Fact]
         [Trait(Traits.Feature, Traits.Features.SmartIndent)]
         public async Task Statement1()
         {
@@ -1216,8 +1216,8 @@ namespace NS
                 expectedIndentation: 4);
         }
 
-        [WorkItem(538933)]
-        [WpfFact]
+        [WorkItem(538933, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538933")]
+        [Fact]
         [Trait(Traits.Feature, Traits.Features.SmartIndent)]
         public async Task EndOfFile1()
         {
@@ -1235,8 +1235,8 @@ namespace NS
                 expectedIndentation: 8);
         }
 
-        [WorkItem(539059)]
-        [WpfFact]
+        [WorkItem(539059, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539059")]
+        [Fact]
         [Trait(Traits.Feature, Traits.Features.SmartIndent)]
         public async Task VerbatimString()
         {
@@ -1253,8 +1253,8 @@ namespace NS
                 expectedIndentation: 0);
         }
 
-        [WpfFact]
-        [WorkItem(539892)]
+        [Fact]
+        [WorkItem(539892, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539892")]
         [Trait(Traits.Feature, Traits.Features.SmartIndent)]
         public async Task Bug5994()
         {
@@ -1281,8 +1281,8 @@ class Program
                 expectedIndentation: 15);
         }
 
-        [WpfFact]
-        [WorkItem(539990)]
+        [Fact]
+        [WorkItem(539990, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539990")]
         [Trait(Traits.Feature, Traits.Features.SmartIndent)]
         public async Task Bug6124()
         {
@@ -1308,8 +1308,8 @@ class Program
                 expectedIndentation: 12);
         }
 
-        [WpfFact]
-        [WorkItem(539990)]
+        [Fact]
+        [WorkItem(539990, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539990")]
         [Trait(Traits.Feature, Traits.Features.SmartIndent)]
         public async Task Bug6124_1()
         {
@@ -1336,7 +1336,7 @@ class Program
                 expectedIndentation: 16);
         }
 
-        [WpfFact]
+        [Fact]
         [Trait(Traits.Feature, Traits.Features.SmartIndent)]
         public async Task AfterIfWithSingleStatementInTopLevelMethod_Bug7291_1()
         {
@@ -1353,7 +1353,7 @@ class Program
                 options: Options.Script);
         }
 
-        [WpfFact]
+        [Fact]
         [Trait(Traits.Feature, Traits.Features.SmartIndent)]
         public async Task AfterIfWithSingleStatementInTopLevelMethod_Bug7291_2()
         {
@@ -1371,9 +1371,9 @@ class Program
                 options: Options.Script);
         }
 
-        [WorkItem(540634)]
-        [WorkItem(544268)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.SmartIndent)]
+        [WorkItem(540634, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540634")]
+        [WorkItem(544268, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544268")]
+        [Fact, Trait(Traits.Feature, Traits.Features.SmartIndent)]
         public async Task FirstArgumentInArgumentList()
         {
             var code = @"class Program
@@ -1400,7 +1400,7 @@ class Program
                 expectedIndentation: 16);
         }
 
-        [WpfFact]
+        [Fact]
         [Trait(Traits.Feature, Traits.Features.SmartIndent)]
         public async Task ForLoop()
         {
@@ -1418,7 +1418,7 @@ class Program
                 expectedIndentation: 12);
         }
 
-        [WpfFact]
+        [Fact]
         [Trait(Traits.Feature, Traits.Features.SmartIndent)]
         public async Task CallBaseCtor()
         {
@@ -1434,7 +1434,7 @@ class Program
                 expectedIndentation: 8);
         }
 
-        [WpfFact]
+        [Fact]
         [Trait(Traits.Feature, Traits.Features.SmartIndent)]
         public async Task MultipleDeclarations()
         {
@@ -1453,7 +1453,7 @@ class Program
                 expectedIndentation: 12);
         }
 
-        [WpfFact]
+        [Fact]
         [Trait(Traits.Feature, Traits.Features.SmartIndent)]
         public async Task CloseBracket()
         {
@@ -1472,7 +1472,7 @@ class Program
                 expectedIndentation: 12);
         }
 
-        [WpfFact]
+        [Fact]
         [Trait(Traits.Feature, Traits.Features.SmartIndent)]
         public async Task SwitchLabel()
         {
@@ -1495,7 +1495,7 @@ class Program
                 expectedIndentation: 16);
         }
 
-        [WpfFact]
+        [Fact]
         [Trait(Traits.Feature, Traits.Features.SmartIndent)]
         public async Task TypeParameters()
         {
@@ -1510,8 +1510,8 @@ T2>() { }
                 expectedIndentation: 8);
         }
 
-        [WpfFact]
-        [WorkItem(542428)]
+        [Fact]
+        [WorkItem(542428, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542428")]
         [Trait(Traits.Feature, Traits.Features.SmartIndent)]
         public async Task TypeArguments()
         {
@@ -1531,8 +1531,8 @@ T2>() { }
                 expectedIndentation: 16);
         }
 
-        [WpfFact]
-        [WorkItem(542983)]
+        [Fact]
+        [WorkItem(542983, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542983")]
         [Trait(Traits.Feature, Traits.Features.SmartIndent)]
         public async Task ConstructorInitializer1()
         {
@@ -1547,8 +1547,8 @@ T2>() { }
                 expectedIndentation: 8);
         }
 
-        [WpfFact]
-        [WorkItem(542983)]
+        [Fact]
+        [WorkItem(542983, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542983")]
         [Trait(Traits.Feature, Traits.Features.SmartIndent)]
         public async Task ConstructorInitializer2()
         {
@@ -1564,8 +1564,8 @@ T2>() { }
                 expectedIndentation: 14);
         }
 
-        [WpfFact]
-        [WorkItem(542983)]
+        [Fact]
+        [WorkItem(542983, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542983")]
         [Trait(Traits.Feature, Traits.Features.SmartIndent)]
         public async Task ConstructorInitializer3()
         {
@@ -1581,8 +1581,8 @@ T2>() { }
                 expectedIndentation: 12);
         }
 
-        [WpfFact]
-        [WorkItem(543131)]
+        [Fact]
+        [WorkItem(543131, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543131")]
         [Trait(Traits.Feature, Traits.Features.SmartIndent)]
         public async Task LockStatement1()
         {
@@ -1606,8 +1606,8 @@ class Program
                 expectedIndentation: 12);
         }
 
-        [WpfFact]
-        [WorkItem(543533)]
+        [Fact]
+        [WorkItem(543533, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543533")]
         [Trait(Traits.Feature, Traits.Features.SmartIndent)]
         public async Task ConstructorInitializer()
         {
@@ -1622,8 +1622,8 @@ class Program
                 expectedIndentation: 8);
         }
 
-        [WpfFact]
-        [WorkItem(952803)]
+        [Fact]
+        [WorkItem(952803, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/952803")]
         [Trait(Traits.Feature, Traits.Features.SmartIndent)]
         public async Task ArrayInitializer()
         {
@@ -1646,8 +1646,8 @@ class Program
                 expectedIndentation: 12);
         }
 
-        [WpfFact]
-        [WorkItem(543563)]
+        [Fact]
+        [WorkItem(543563, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543563")]
         [Trait(Traits.Feature, Traits.Features.SmartIndent)]
         public async Task LambdaEmbededInExpression()
         {
@@ -1686,8 +1686,8 @@ class FooClass : IDisposable
                 expectedIndentation: 12);
         }
 
-        [WpfFact]
-        [WorkItem(543563)]
+        [Fact]
+        [WorkItem(543563, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543563")]
         [Trait(Traits.Feature, Traits.Features.SmartIndent)]
         public async Task LambdaEmbededInExpression_1()
         {
@@ -1705,8 +1705,8 @@ class FooClass : IDisposable
                 expectedIndentation: 16);
         }
 
-        [WpfFact]
-        [WorkItem(543563)]
+        [Fact]
+        [WorkItem(543563, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543563")]
         [Trait(Traits.Feature, Traits.Features.SmartIndent)]
         public async Task LambdaEmbededInExpression_3()
         {
@@ -1743,8 +1743,8 @@ class FooClass : IDisposable
                 expectedIndentation: 12);
         }
 
-        [WpfFact]
-        [WorkItem(543563)]
+        [Fact]
+        [WorkItem(543563, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543563")]
         [Trait(Traits.Feature, Traits.Features.SmartIndent)]
         public async Task LambdaEmbededInExpression_2()
         {
@@ -1763,8 +1763,8 @@ class FooClass : IDisposable
                 expectedIndentation: 16);
         }
 
-        [WpfFact]
-        [WorkItem(543563)]
+        [Fact]
+        [WorkItem(543563, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543563")]
         [Trait(Traits.Feature, Traits.Features.SmartIndent)]
         public async Task LambdaEmbededInExpression_4()
         {
@@ -1790,8 +1790,8 @@ class Class
                 expectedIndentation: 16);
         }
 
-        [WpfFact]
-        [WorkItem(530074)]
+        [Fact]
+        [WorkItem(530074, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530074")]
         [Trait(Traits.Feature, Traits.Features.SmartIndent)]
         public async Task EnterInArgumentList1()
         {
@@ -1809,8 +1809,8 @@ class Class
                 expectedIndentation: 12);
         }
 
-        [WpfFact]
-        [WorkItem(530074)]
+        [Fact]
+        [WorkItem(530074, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530074")]
         [Trait(Traits.Feature, Traits.Features.SmartIndent)]
         public async Task EnterInArgumentList2()
         {
@@ -1828,8 +1828,8 @@ class Class
                 expectedIndentation: 12);
         }
 
-        [WpfFact]
-        [WorkItem(806266)]
+        [Fact]
+        [WorkItem(806266, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/806266")]
         [Trait(Traits.Feature, Traits.Features.SmartIndent)]
         public async Task EnterInArgumentList3()
         {
@@ -1848,7 +1848,7 @@ class Class
         }
 
         [WorkItem(9216, "DevDiv_Projects/Roslyn")]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.SmartIndent)]
+        [Fact, Trait(Traits.Feature, Traits.Features.SmartIndent)]
         public async Task FollowPreviousLineInMultilineStatements()
         {
             var code = @"class Program
@@ -1864,8 +1864,8 @@ class Class
             await AssertSmartIndentAsync(code, indentationLine: 7, expectedIndentation: 39);
         }
 
-        [WorkItem(648068)]
-        [WorkItem(674611)]
+        [WorkItem(648068, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/648068")]
+        [WorkItem(674611, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/674611")]
         [WpfFact(Skip = "674611"), Trait(Traits.Feature, Traits.Features.SmartIndent), Trait(Traits.Feature, Traits.Features.Venus)]
         public async Task AtBeginningOfSpanInNugget()
         {
@@ -2161,7 +2161,7 @@ $$
                 expectedIndentation: BaseIndentationOfNugget + 12);
         }
 
-        [WpfFact, WorkItem(529876), Trait(Traits.Feature, Traits.Features.SmartIndent), Trait(Traits.Feature, Traits.Features.Venus)]
+        [WpfFact, WorkItem(529876, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529876"), Trait(Traits.Feature, Traits.Features.SmartIndent), Trait(Traits.Feature, Traits.Features.Venus)]
         public async Task InEmptyNugget()
         {
             var markup = @"class Program
@@ -2180,7 +2180,7 @@ $$|]|}
                 expectedIndentation: BaseIndentationOfNugget + 4);
         }
 
-        [WorkItem(1190278)]
+        [WorkItem(1190278, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1190278")]
         [WpfFact, Trait(Traits.Feature, Traits.Features.SmartIndent), Trait(Traits.Feature, Traits.Features.Venus)]
         public async Task GetNextTokenForFormattingSpanCalculationIncludesZeroWidthToken_CS()
         {
@@ -2254,7 +2254,7 @@ if(languages == null || languages.Length == 0)
                 expectedIndentation: 16);
         }
 
-        [WpfFact, WorkItem(530948), Trait(Traits.Feature, Traits.Features.SmartIndent)]
+        [Fact, WorkItem(530948, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530948"), Trait(Traits.Feature, Traits.Features.SmartIndent)]
         public async Task CommaSeparatedListEnumMembers()
         {
             var code = @"enum MyEnum
@@ -2269,7 +2269,7 @@ if(languages == null || languages.Length == 0)
                 expectedIndentation: 4);
         }
 
-        [WpfFact, WorkItem(530796), Trait(Traits.Feature, Traits.Features.SmartIndent)]
+        [Fact, WorkItem(530796, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530796"), Trait(Traits.Feature, Traits.Features.SmartIndent)]
         public async Task RelativeIndentationForBracesInExpression()
         {
             var code = @"class C
@@ -2290,7 +2290,7 @@ if(languages == null || languages.Length == 0)
                 expectedIndentation: 12);
         }
 
-        [WpfFact, WorkItem(584599), Trait(Traits.Feature, Traits.Features.SmartIndent)]
+        [Fact, WorkItem(584599, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/584599"), Trait(Traits.Feature, Traits.Features.SmartIndent)]
         public async Task SwitchSection()
         {
             var code = @"class C
@@ -2338,7 +2338,7 @@ if(languages == null || languages.Length == 0)
                 expectedIndentation: 16);
         }
 
-        [WpfFact, WorkItem(584599), Trait(Traits.Feature, Traits.Features.SmartIndent)]
+        [Fact, WorkItem(584599, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/584599"), Trait(Traits.Feature, Traits.Features.SmartIndent)]
         public async Task SwitchSection2()
         {
             var code = @"class C
@@ -2391,7 +2391,7 @@ if(languages == null || languages.Length == 0)
                 expectedIndentation: 12);
         }
 
-        [WpfFact, WorkItem(584599), Trait(Traits.Feature, Traits.Features.SmartIndent)]
+        [Fact, WorkItem(584599, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/584599"), Trait(Traits.Feature, Traits.Features.SmartIndent)]
         public async Task CommentAtTheEndOfLine()
         {
             var code = @"using System;
@@ -2419,7 +2419,7 @@ class Program
                 expectedIndentation: 8);
         }
 
-        [WpfFact, WorkItem(912735), Trait(Traits.Feature, Traits.Features.SmartIndent)]
+        [Fact, WorkItem(912735, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/912735"), Trait(Traits.Feature, Traits.Features.SmartIndent)]
         public async Task CommentAtTheEndOfLineWithExecutableAfterCaret()
         {
             var code = @"using System;
@@ -2447,7 +2447,7 @@ class Program
                 expectedIndentation: 8);
         }
 
-        [WpfFact, WorkItem(912735), Trait(Traits.Feature, Traits.Features.SmartIndent)]
+        [Fact, WorkItem(912735, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/912735"), Trait(Traits.Feature, Traits.Features.SmartIndent)]
         public async Task CommentAtTheEndOfLineInsideInitializer()
         {
             var code = @"using System;
@@ -2570,6 +2570,119 @@ class C
                 expectedIndentation: 8);
         }
 
+        [Fact, Trait(Traits.Feature, Traits.Features.SmartIndent)]
+        public async Task DontCreateIndentOperationForBrokenBracketedArgumentList()
+        {
+            var code = @"
+class Program
+{
+    static void M()
+    {
+        string (userInput == ""Y"")
+
+    }
+}
+";
+
+            await AssertSmartIndentAsync(
+                code,
+                indentationLine: 6,
+                expectedIndentation: 12);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.SmartIndent)]
+        public async Task PatternPropertyIndentFirst()
+        {
+            var code = @"
+class C
+{
+    void M(object o)
+    {
+        var y = o is Point
+        {
+
+        }
+    }
+}";
+
+            await AssertSmartIndentAsync(
+                code,
+                indentationLine: 7,
+                expectedIndentation: 12);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.SmartIndent)]
+        public async Task PatternPropertyIndentSecond()
+        {
+            var code = @"
+class C
+{
+    void M(object o)
+    {
+        var y = o is Point
+        {
+            X is 4,
+
+        }
+    }
+}";
+
+            await AssertSmartIndentAsync(
+                code,
+                indentationLine: 8,
+                expectedIndentation: 12);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.SmartIndent)]
+        public async Task PatternPropertyIndentNestedFirst()
+        {
+            var code = @"
+class C
+{
+    void M(object o)
+    {
+        var y = o is Point
+        {
+            X is Widget 
+            {
+
+            },
+
+        }
+    }
+}";
+
+            await AssertSmartIndentAsync(
+                code,
+                indentationLine: 9,
+                expectedIndentation: 16);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.SmartIndent)]
+        public async Task PatternPropertyIndentNestedSecond()
+        {
+            var code = @"
+class C
+{
+    void M(object o)
+    {
+        var y = o is Point
+        {
+            X is Widget 
+            {
+                Y is 42,
+
+            },
+        }
+    }
+}";
+
+            await AssertSmartIndentAsync(
+                code,
+                indentationLine: 10,
+                expectedIndentation: 16);
+        }
+
         private static async Task AssertSmartIndentInProjectionAsync(string markup, int expectedIndentation, CSharpParseOptions options = null)
         {
             var optionsSet = options != null
@@ -2578,7 +2691,7 @@ class C
 
             foreach (var option in optionsSet)
             {
-                using (var workspace = await CSharpWorkspaceFactory.CreateWorkspaceFromLinesAsync(new string[] { markup }, parseOptions: option))
+                using (var workspace = await TestWorkspace.CreateCSharpAsync(markup, parseOptions: option))
                 {
                     var subjectDocument = workspace.Documents.Single();
 
@@ -2613,7 +2726,7 @@ class C
 
             foreach (var option in optionsSet)
             {
-                using (var workspace = await CSharpWorkspaceFactory.CreateWorkspaceFromFileAsync(code, parseOptions: option))
+                using (var workspace = await TestWorkspace.CreateCSharpAsync(code, parseOptions: option))
                 {
                     await TestIndentationAsync(indentationLine, expectedIndentation, workspace);
                 }
@@ -2631,7 +2744,7 @@ class C
 
             foreach (var option in optionsSet)
             {
-                using (var workspace = await CSharpWorkspaceFactory.CreateWorkspaceFromFileAsync(code, parseOptions: option))
+                using (var workspace = await TestWorkspace.CreateCSharpAsync(code, parseOptions: option))
                 {
                     var wpfTextView = workspace.Documents.First().GetTextView();
                     var line = wpfTextView.TextBuffer.CurrentSnapshot.GetLineFromPosition(wpfTextView.Caret.Position.BufferPosition).LineNumber;

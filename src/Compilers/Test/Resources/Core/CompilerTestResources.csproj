@@ -28,37 +28,31 @@
     <DebugSymbols>true</DebugSymbols>
     <DefineDebug>true</DefineDebug>
     <DefineTrace>true</DefineTrace>
-    <DebugType>full</DebugType>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Release|AnyCPU'">
     <DefineTrace>true</DefineTrace>
     <Optimize>true</Optimize>
-    <DebugType>pdbonly</DebugType>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug|x64'">
     <DebugSymbols>true</DebugSymbols>
     <DefineDebug>true</DefineDebug>
     <DefineTrace>true</DefineTrace>
-    <DebugType>full</DebugType>
     <OutDir>..\..\..\..\..\Binaries\Debug\amd64</OutDir>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Release|x64'">
     <DefineTrace>true</DefineTrace>
     <Optimize>true</Optimize>
-    <DebugType>pdbonly</DebugType>
     <OutDir>..\..\..\..\..\Binaries\Release\amd64</OutDir>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug|ARM'">
     <DebugSymbols>true</DebugSymbols>
     <DefineDebug>true</DefineDebug>
     <DefineTrace>true</DefineTrace>
-    <DebugType>full</DebugType>
     <PlatformTarget>ARM</PlatformTarget>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Release|ARM'">
     <DefineTrace>true</DefineTrace>
     <Optimize>true</Optimize>
-    <DebugType>pdbonly</DebugType>
     <PlatformTarget>ARM</PlatformTarget>
   </PropertyGroup>
   <ItemGroup>
@@ -117,6 +111,12 @@
     <EmbeddedResource Include="MetadataTests\Invalid\ManyMethodSpecs.vb" />
     <EmbeddedResource Include="MetadataTests\Invalid\Obfuscated.dll" />
     <EmbeddedResource Include="MetadataTests\Invalid\Obfuscated2.dll" />
+    <Content Include="MetadataTests\Invalid\Signatures\build.bat" />
+    <Content Include="MetadataTests\Invalid\Signatures\munge.csx" />
+    <Content Include="MetadataTests\Invalid\Signatures\SignatureCycle2.il" />
+    <Content Include="MetadataTests\Invalid\Signatures\TypeSpecInWrongPlace.il" />
+    <EmbeddedResource Include="MetadataTests\Invalid\Signatures\SignatureCycle2.exe" />
+    <EmbeddedResource Include="MetadataTests\Invalid\Signatures\TypeSpecInWrongPlace.exe" />
     <Content Include="MetadataTests\Members.cs" />
     <EmbeddedResource Include="MetadataTests\Members.dll" />
     <EmbeddedResource Include="MetadataTests\NativeApp.exe" />
@@ -129,10 +129,15 @@
     <EmbeddedResource Include="MetadataTests\NetModule01\ModuleVB01.mod" />
     <Content Include="MetadataTests\NetModule01\ModuleVB01.vb.txt" />
     <EmbeddedResource Include="NetFX\aacorlib\aacorlib.v15.0.3928.cs" />
+    <Content Include="NetFX\aacorlib\build.cmd" />
+    <Content Include="NetFX\aacorlib\Key.snk" />
+    <EmbeddedResource Include="NetFX\Minimal\minasync.dll" />
+    <EmbeddedResource Include="NetFX\Minimal\mincorlib.dll" />
     <Content Include="NetFX\Minimal\build.cmd" />
     <Content Include="NetFX\Minimal\Key.snk" />
+    <Content Include="NetFX\Minimal\minasync.cs" />
     <Content Include="NetFX\Minimal\mincorlib.cs" />
-    <EmbeddedResource Include="NetFX\Minimal\mincorlib.dll" />
+    <Content Include="SymbolsTests\NoPia\ParametersWithoutNames.cs" />
     <EmbeddedResource Include="PerfTests\CSPerfTest.cs" />
     <Content Include="Resources\License.txt" />
     <Content Include="Resources\nativeCOFFResources.obj" />
@@ -311,6 +316,7 @@
     <Content Include="SymbolsTests\NoPia\LocalTypes3.vb" />
     <EmbeddedResource Include="SymbolsTests\NoPia\NoPIAGenerics1-Asm1.dll" />
     <EmbeddedResource Include="SymbolsTests\NoPia\Pia1.dll" />
+    <EmbeddedResource Include="SymbolsTests\NoPia\ParametersWithoutNames.dll" />
     <Content Include="SymbolsTests\NoPia\Pia1.vb" />
     <EmbeddedResource Include="SymbolsTests\NoPia\Pia1Copy.dll" />
     <EmbeddedResource Include="SymbolsTests\NoPia\Pia2.dll" />

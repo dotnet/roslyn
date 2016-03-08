@@ -1,50 +1,49 @@
 ' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-Imports Microsoft.CodeAnalysis.Text
-Imports Roslyn.Test.Utilities
+Imports System.Threading.Tasks
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Recommendations.Declarations
     Public Class InKeywordRecommenderTests
-        <WpfFact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Sub InInForEach1()
-            VerifyRecommendationsContain(<MethodBody>For Each x |</MethodBody>, "In")
-        End Sub
+        <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
+        Public Async Function InInForEach1Test() As Task
+            Await VerifyRecommendationsContainAsync(<MethodBody>For Each x |</MethodBody>, "In")
+        End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Sub InInForEach2()
-            VerifyRecommendationsContain(<MethodBody>For Each x As Foo |</MethodBody>, "In")
-        End Sub
+        <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
+        Public Async Function InInForEach2Test() As Task
+            Await VerifyRecommendationsContainAsync(<MethodBody>For Each x As Foo |</MethodBody>, "In")
+        End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Sub InInFromQuery1()
-            VerifyRecommendationsContain(<MethodBody>Dim x = From x |</MethodBody>, "In")
-        End Sub
+        <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
+        Public Async Function InInFromQuery1Test() As Task
+            Await VerifyRecommendationsContainAsync(<MethodBody>Dim x = From x |</MethodBody>, "In")
+        End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Sub InInFromQuery2()
-            VerifyRecommendationsContain(<MethodBody>Dim x = From x As Foo |</MethodBody>, "In")
-        End Sub
+        <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
+        Public Async Function InInFromQuery2Test() As Task
+            Await VerifyRecommendationsContainAsync(<MethodBody>Dim x = From x As Foo |</MethodBody>, "In")
+        End Function
 
-        <WorkItem(543231)>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Sub InInFromQuery3()
-            VerifyRecommendationsAreExactly(<MethodBody>Dim x = From x As Integer |</MethodBody>, "In")
-        End Sub
+        <WorkItem(543231, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543231")>
+        <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
+        Public Async Function InInFromQuery3Test() As Task
+            Await VerifyRecommendationsAreExactlyAsync(<MethodBody>Dim x = From x As Integer |</MethodBody>, "In")
+        End Function
 
-        <WorkItem(530953)>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Sub NotAfterEol()
-            VerifyRecommendationsMissing(
+        <WorkItem(530953, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530953")>
+        <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
+        Public Async Function NotAfterEolTest() As Task
+            Await VerifyRecommendationsMissingAsync(
 <MethodBody>For Each x 
 |</MethodBody>, "In")
-        End Sub
+        End Function
 
-        <WorkItem(530953)>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Sub AfterExplicitLineContinuation()
-            VerifyRecommendationsContain(
+        <WorkItem(530953, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530953")>
+        <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
+        Public Async Function AfterExplicitLineContinuationTest() As Task
+            Await VerifyRecommendationsContainAsync(
 <MethodBody>For Each x _
 |</MethodBody>, "In")
-        End Sub
+        End Function
     End Class
 End Namespace

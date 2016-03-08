@@ -486,14 +486,7 @@ namespace Microsoft.CodeAnalysis.BuildTasks
             }
             catch (Exception e)
             {
-                if (HostCompilerSupportsAllParameters)
-                {
-                    // If the host compiler doesn't support everything we need, we're going to end up 
-                    // shelling out to the command-line compiler anyway.  That means the command-line
-                    // compiler will log the error.  So here, we only log the error if we would've
-                    // tried to use the host compiler.
-                    Log.LogErrorWithCodeFromResources("General_CouldNotSetHostObjectParameter", param, e.Message);
-                }
+                Log.LogErrorWithCodeFromResources("General_CouldNotSetHostObjectParameter", param, e.Message);
                 return false;
             }
 
@@ -606,6 +599,8 @@ namespace Microsoft.CodeAnalysis.BuildTasks
                     }
                 }
 
+                InitializeHostObjectSupportForNewSwitches(cscHostObject, ref param);
+
                 // If we have been given a property value that the host compiler doesn't support
                 // then we need to state that we are falling back to the command line compiler.
                 // Null is supported because it means that option should be omitted, and compiler default used - obviously always valid.
@@ -618,14 +613,7 @@ namespace Microsoft.CodeAnalysis.BuildTasks
             }
             catch (Exception e)
             {
-                if (HostCompilerSupportsAllParameters)
-                {
-                    // If the host compiler doesn't support everything we need, we're going to end up 
-                    // shelling out to the command-line compiler anyway.  That means the command-line
-                    // compiler will log the error.  So here, we only log the error if we would've
-                    // tried to use the host compiler.
-                    Log.LogErrorWithCodeFromResources("General_CouldNotSetHostObjectParameter", param, e.Message);
-                }
+                Log.LogErrorWithCodeFromResources("General_CouldNotSetHostObjectParameter", param, e.Message);
                 return false;
             }
             finally

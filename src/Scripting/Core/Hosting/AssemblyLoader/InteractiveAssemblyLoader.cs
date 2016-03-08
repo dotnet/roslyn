@@ -243,7 +243,7 @@ namespace Microsoft.CodeAnalysis.Scripting.Hosting
             lock (_referencesLock)
             {
                 LoadedAssembly loadedAssembly;
-                if (requestingAssemblyOpt != null && 
+                if (requestingAssemblyOpt != null &&
                     _assembliesLoadedFromLocation.TryGetValue(requestingAssemblyOpt, out loadedAssembly))
                 {
                     loadDirectoryOpt = Path.GetDirectoryName(loadedAssembly.OriginalPath);
@@ -288,7 +288,7 @@ namespace Microsoft.CodeAnalysis.Scripting.Hosting
                             conflictingLoadedAssemblyOpt = loadedInfos.FirstOrDefault(info => !info.Identity.IsStrongName);
                         }
 
-                        loadedAssemblyWithEqualNameAndVersionOpt = loadedInfos.FirstOrDefault(info => 
+                        loadedAssemblyWithEqualNameAndVersionOpt = loadedInfos.FirstOrDefault(info =>
                             AssemblyIdentityComparer.SimpleNameComparer.Equals(info.Identity.Name, identity.Name) &&
                             info.Identity.Version == identity.Version);
                     }

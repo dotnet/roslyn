@@ -20,7 +20,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Venus
         End Function
 
         Private Async Function AssertValidIdAsync(id As String, assertion As Action(Of Boolean)) As Threading.Tasks.Task
-            Using workspace = Await TestWorkspaceFactory.CreateWorkspaceAsync(
+            Using workspace = Await TestWorkspace.CreateAsync(
 <Workspace>
     <Project Language=<%= Language %> AssemblyName="Assembly" CommonReferences="true">
         <Document>
@@ -35,7 +35,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Venus
         End Function
 
         Protected Function GetWorkspaceAsync(code As String) As Threading.Tasks.Task(Of TestWorkspace)
-            Return TestWorkspaceFactory.CreateWorkspaceAsync(
+            Return TestWorkspace.CreateAsync(
 <Workspace>
     <Project Language=<%= Language %> AssemblyName="Assembly" CommonReferences="true">
         <Document FilePath="file">

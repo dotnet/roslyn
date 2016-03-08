@@ -3,8 +3,10 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Diagnostics;
+using Microsoft.CodeAnalysis.Editor.Shared.Preview;
 using Microsoft.CodeAnalysis.Editor.Shared.Tagging;
 using Microsoft.CodeAnalysis.Editor.Tagging;
 using Microsoft.CodeAnalysis.Options;
@@ -52,6 +54,11 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics
             void ITaggerEventSource.Connect() { }
             void ITaggerEventSource.Disconnect() { }
 
+            // we will show new tags to users very slowly. 
+            // don't confused this with data changed event which is for tag producer (which is set to NearImmediate).
+            // this delay is for letting editor know about newly added tags.
+            protected override TaggerDelay AddedTagNotificationDelay => TaggerDelay.OnIdle;
+
             protected override ITaggerEventSource CreateEventSource(ITextView textViewOpt, ITextBuffer subjectBuffer)
             {
                 // We act as a source of events ourselves.  When the diagnostics service tells
@@ -80,6 +87,13 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics
                 {
                     return;
                 }
+
+                // See if we've marked any spans as those we want to suppress diagnostics for.
+                // This can happen for buffers used in the preview workspace where some feature
+                // is generating code that it doesn't want errors shown for.
+                var buffer = spanToTag.SnapshotSpan.Snapshot.TextBuffer;
+                NormalizedSnapshotSpanCollection suppressedDiagnosticsSpans = null;
+                buffer?.Properties.TryGetProperty(PredefinedPreviewTaggerKeys.SuppressDiagnosticsSpansKey, out suppressedDiagnosticsSpans);
 
                 // Producing tags is simple.  We just grab the diagnostics we were already told about,
                 // and we convert them to tag spans.
@@ -115,7 +129,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics
                             .ToSnapshotSpan(editorSnapshot)
                             .TranslateTo(requestedSnapshot, SpanTrackingMode.EdgeExclusive);
 
-                        if (actualSpan.IntersectsWith(requestedSpan))
+                        if (actualSpan.IntersectsWith(requestedSpan) &&
+                            !IsSuppressed(suppressedDiagnosticsSpans, actualSpan))
                         {
                             var tagSpan = _owner.CreateTagSpan(isLiveUpdate, actualSpan, diagnosticData);
                             if (tagSpan != null)
@@ -125,6 +140,11 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics
                         }
                     }
                 }
+            }
+
+            private bool IsSuppressed(NormalizedSnapshotSpanCollection suppressedSpans, SnapshotSpan span)
+            {
+                return suppressedSpans != null && suppressedSpans.IntersectsWith(span);
             }
 
             internal void OnDiagnosticsUpdated(DiagnosticsUpdatedArgs e, SourceText sourceText, ITextSnapshot editorSnapshot)
@@ -138,7 +158,11 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics
                     _latestSourceText = sourceText;
                     _latestEditorSnapshot = editorSnapshot;
                 }
-                this.Changed?.Invoke(this, new TaggerEventArgs(TaggerDelay.Medium));
+
+                // unlike any other tagger, actual work to produce data is done by other service rather than tag provider itself.
+                // so we don't need to do any big delay for diagnostic tagger (producer) to reduce doing expensive work repeatedly. that is already
+                // taken cared by the external service (diagnostic service).
+                this.Changed?.Invoke(this, new TaggerEventArgs(TaggerDelay.NearImmediate));
             }
         }
     }

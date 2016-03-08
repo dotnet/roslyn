@@ -261,7 +261,7 @@ namespace Microsoft.CodeAnalysis
                             if (metadata == null)
                             {
                                 // if we failed to get the metadata, check to see if we previously had existing metadata and reuse it instead.
-                                metadata = inProgressCompilation.References.FirstOrDefault(r => solution.GetProjectId(r) == projectReference.ProjectId);
+                                metadata = inProgressCompilation.ExternalReferences.FirstOrDefault(r => solution.GetProjectId(r) == projectReference.ProjectId);
                             }
 
                             if (metadata != null)
@@ -274,7 +274,7 @@ namespace Microsoft.CodeAnalysis
                 }
 
                 inProgressProject = inProgressProject.AddProjectReferences(newProjectReferences);
-                if (!Enumerable.SequenceEqual(inProgressCompilation.References, metadataReferences))
+                if (!Enumerable.SequenceEqual(inProgressCompilation.ExternalReferences, metadataReferences))
                 {
                     inProgressCompilation = inProgressCompilation.WithReferences(metadataReferences);
                 }
@@ -645,7 +645,7 @@ namespace Microsoft.CodeAnalysis
                         }
                     }
 
-                    if (!Enumerable.SequenceEqual(compilation.References, newReferences))
+                    if (!Enumerable.SequenceEqual(compilation.ExternalReferences, newReferences))
                     {
                         compilation = compilation.WithReferences(newReferences);
                     }
@@ -741,15 +741,24 @@ namespace Microsoft.CodeAnalysis
                         var declarationCompilation = await this.GetOrBuildDeclarationCompilationAsync(solution, cancellationToken: cancellationToken).ConfigureAwait(false);
 
                         MetadataReference reference;
+
+                        solution.Workspace.LogTestMessage($"Looking for a cached skeleton assembly for {projectReference.ProjectId} before taking the lock...");
+
                         if (!MetadataOnlyReference.TryGetReference(solution, projectReference, declarationCompilation, version, out reference))
                         {
                             // using async build lock so we don't get multiple consumers attempting to build metadata-only images for the same compilation.
                             using (await _buildLock.DisposableWaitAsync(cancellationToken).ConfigureAwait(false))
                             {
+                                solution.Workspace.LogTestMessage($"Build lock taken for {ProjectState.Id}...");
+
                                 // okay, we still don't have one. bring the compilation to final state since we are going to use it to create skeleton assembly
                                 var compilationInfo = await this.GetOrBuildCompilationInfoAsync(solution, lockGate: false, cancellationToken: cancellationToken).ConfigureAwait(false);
                                 reference = MetadataOnlyReference.GetOrBuildReference(solution, projectReference, compilationInfo.Compilation, version, cancellationToken);
                             }
+                        }
+                        else
+                        {
+                            solution.Workspace.LogTestMessage($"Reusing the already cached skeleton assembly for {projectReference.ProjectId}");
                         }
 
                         return reference;

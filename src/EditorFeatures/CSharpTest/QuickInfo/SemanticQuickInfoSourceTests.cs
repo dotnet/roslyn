@@ -26,7 +26,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.QuickInfo
     {
         private async Task TestWithOptionsAsync(CSharpParseOptions options, string markup, params Action<object>[] expectedResults)
         {
-            using (var workspace = await CSharpWorkspaceFactory.CreateWorkspaceFromFileAsync(markup, options))
+            using (var workspace = await TestWorkspace.CreateCSharpAsync(markup, options))
             {
                 await TestWithOptionsAsync(workspace, expectedResults);
             }
@@ -51,7 +51,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.QuickInfo
             await TestWithOptionsAsync(document, provider, position, expectedResults);
 
             // speculative semantic model
-            if (CanUseSpeculativeSemanticModel(document, position))
+            if (await CanUseSpeculativeSemanticModelAsync(document, position))
             {
                 var buffer = testDocument.TextBuffer;
                 using (var edit = buffer.CreateEdit())
@@ -99,7 +99,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.QuickInfo
     </Project>
 </Workspace>", SecurityElement.Escape(markup));
 
-            using (var workspace = await TestWorkspaceFactory.CreateWorkspaceAsync(xmlString))
+            using (var workspace = await TestWorkspace.CreateAsync(xmlString))
             {
                 var position = workspace.Documents.Single(d => d.Name == "SourceDocument").CursorPosition.Value;
                 var documentId = workspace.Documents.Where(d => d.Name == "SourceDocument").Single().Id;
@@ -256,7 +256,7 @@ using System.Linq;
 
         private async Task VerifyWithReferenceWorkerAsync(string xmlString, params Action<object>[] expectedResults)
         {
-            using (var workspace = await TestWorkspaceFactory.CreateWorkspaceAsync(xmlString))
+            using (var workspace = await TestWorkspace.CreateAsync(xmlString))
             {
                 var position = workspace.Documents.First(d => d.Name == "SourceDocument").CursorPosition.Value;
                 var documentId = workspace.Documents.First(d => d.Name == "SourceDocument").Id;
@@ -299,43 +299,43 @@ using System.Linq;
             await TestAsync(codeInClass);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
         public async Task TestNamespaceInUsingDirective()
         {
             await TestAsync("using $$System;",
                 MainDescription("namespace System"));
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
         public async Task TestNamespaceInUsingDirective2()
         {
             await TestAsync("using System.Coll$$ections.Generic;",
                 MainDescription("namespace System.Collections"));
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
         public async Task TestNamespaceInUsingDirective3()
         {
             await TestAsync("using System.L$$inq;",
                 MainDescription("namespace System.Linq"));
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
         public async Task TestNamespaceInUsingDirectiveWithAlias()
         {
             await TestAsync("using Foo = Sys$$tem.Console;",
                 MainDescription("namespace System"));
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
         public async Task TestTypeInUsingDirectiveWithAlias()
         {
             await TestAsync("using Foo = System.Con$$sole;",
                 MainDescription("class System.Console"));
         }
 
-        [WorkItem(991466)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        [WorkItem(991466, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/991466")]
+        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
         public async Task TestDocumentationInUsingDirectiveWithAlias()
         {
             var markup =
@@ -348,8 +348,8 @@ interface IFoo {  }";
                 Documentation("summary for interface IFoo"));
         }
 
-        [WorkItem(991466)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        [WorkItem(991466, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/991466")]
+        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
         public async Task TestDocumentationInUsingDirectiveWithAlias2()
         {
             var markup =
@@ -363,8 +363,8 @@ class C : I$$ { }";
                 Documentation("summary for interface IFoo"));
         }
 
-        [WorkItem(991466)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        [WorkItem(991466, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/991466")]
+        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
         public async Task TestDocumentationInUsingDirectiveWithAlias3()
         {
             var markup =
@@ -381,7 +381,7 @@ class C : I$$ { }";
                 Documentation("summary for interface IFoo"));
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
         public async Task TestThis()
         {
             var markup =
@@ -394,7 +394,7 @@ class C { string M() {  return thi$$s.ToString(); } }";
                 Documentation("summary for Class C"));
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
         public async Task TestClassWithDocComment()
         {
             var markup =
@@ -407,7 +407,7 @@ class C { void M() { $$C obj; } }";
                 Documentation("Hello!"));
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
         public async Task TestSingleLineDocComments()
         {
             // Tests chosen to maximize code coverage in DocumentationCommentCompiler.WriteFormattedSingleLineComment
@@ -448,7 +448,7 @@ class C { void M() { $$C obj; } }",
                 Documentation("Hello!"));
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
         public async Task TestMultiLineDocComments()
         {
             // Tests chosen to maximize code coverage in DocumentationCommentCompiler.WriteFormattedMultiLineComment
@@ -514,7 +514,7 @@ class C { void M() { $$C obj; } }",
                 Documentation("Hello!"));
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
         public async Task TestMethodWithDocComment()
         {
             var markup =
@@ -527,94 +527,94 @@ void M() { M$$() }";
                 Documentation("Hello!"));
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
         public async Task TestInt32()
         {
             await TestInClassAsync(@"$$Int32 i;",
                 MainDescription("struct System.Int32"));
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
         public async Task TestBuiltInInt()
         {
             await TestInClassAsync(@"$$int i;",
                 MainDescription("struct System.Int32"));
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
         public async Task TestString()
         {
             await TestInClassAsync(@"$$String s;",
                 MainDescription("class System.String"));
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
         public async Task TestBuiltInString()
         {
             await TestInClassAsync(@"$$string s;",
                 MainDescription("class System.String"));
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
         public async Task TestBuiltInStringAtEndOfToken()
         {
             await TestInClassAsync(@"string$$ s;",
                 MainDescription("class System.String"));
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
         public async Task TestBoolean()
         {
             await TestInClassAsync(@"$$Boolean b;",
                 MainDescription("struct System.Boolean"));
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
         public async Task TestBuiltInBool()
         {
             await TestInClassAsync(@"$$bool b;",
                 MainDescription("struct System.Boolean"));
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
         public async Task TestSingle()
         {
             await TestInClassAsync(@"$$Single s;",
                 MainDescription("struct System.Single"));
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
         public async Task TestBuiltInFloat()
         {
             await TestInClassAsync(@"$$float f;",
                 MainDescription("struct System.Single"));
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
         public async Task TestVoidIsInvalid()
         {
             await TestInvalidTypeInClassAsync(@"$$void M() { }");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
         public async Task TestInvalidPointer1_931958()
         {
             await TestInvalidTypeInClassAsync(@"$$T* i;");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
         public async Task TestInvalidPointer2_931958()
         {
             await TestInvalidTypeInClassAsync(@"T$$* i;");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
         public async Task TestInvalidPointer3_931958()
         {
             await TestInvalidTypeInClassAsync(@"T*$$ i;");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
         public async Task TestListOfString()
         {
             await TestInClassAsync(@"$$List<string> l;",
@@ -622,7 +622,7 @@ void M() { M$$() }";
                 TypeParameterMap($"\r\nT {FeaturesResources.Is} string"));
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
         public async Task TestListOfSomethingFromSource()
         {
             var markup =
@@ -636,14 +636,14 @@ public class GenericList<T> { Generic$$List<int> t; }";
                 TypeParameterMap($"\r\nT {FeaturesResources.Is} int"));
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
         public async Task TestListOfT()
         {
             await TestInMethodAsync(@"class C<T> { $$List<T> l; }",
                 MainDescription("class System.Collections.Generic.List<T>"));
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
         public async Task TestDictionaryOfIntAndString()
         {
             await TestInClassAsync(@"$$Dictionary<int, string> d;",
@@ -653,7 +653,7 @@ public class GenericList<T> { Generic$$List<int> t; }";
                           $"TValue {FeaturesResources.Is} string")));
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
         public async Task TestDictionaryOfTAndU()
         {
             await TestInMethodAsync(@"class C<T, U> { $$Dictionary<T, U> d; }",
@@ -663,7 +663,7 @@ public class GenericList<T> { Generic$$List<int> t; }";
                           $"TValue {FeaturesResources.Is} U")));
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
         public async Task TestIEnumerableOfInt()
         {
             await TestInClassAsync(@"$$IEnumerable<int> M() { yield break; }",
@@ -671,22 +671,22 @@ public class GenericList<T> { Generic$$List<int> t; }";
                 TypeParameterMap($"\r\nT {FeaturesResources.Is} int"));
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
         public async Task TestEventHandler()
         {
             await TestInClassAsync(@"event $$EventHandler e;",
                 MainDescription("delegate void System.EventHandler(object sender, System.EventArgs e)"));
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
         public async Task TestTypeParameter()
         {
             await TestAsync(@"class C<T> { $$T t; }",
                 MainDescription($"T {FeaturesResources.In} C<T>"));
         }
 
-        [WorkItem(538636)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        [WorkItem(538636, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538636")]
+        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
         public async Task TestTypeParameterWithDocComment()
         {
             var markup =
@@ -700,35 +700,35 @@ class C<T> { $$T t; }";
                 Documentation("T is Type Parameter"));
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
         public async Task TestTypeParameter1_Bug931949()
         {
             await TestAsync(@"class T1<T11> { $$T11 t; }",
                 MainDescription($"T11 {FeaturesResources.In} T1<T11>"));
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
         public async Task TestTypeParameter2_Bug931949()
         {
             await TestAsync(@"class T1<T11> { T$$11 t; }",
                 MainDescription($"T11 {FeaturesResources.In} T1<T11>"));
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
         public async Task TestTypeParameter3_Bug931949()
         {
             await TestAsync(@"class T1<T11> { T1$$1 t; }",
                 MainDescription($"T11 {FeaturesResources.In} T1<T11>"));
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
         public async Task TestTypeParameter4_Bug931949()
         {
             await TestAsync(@"class T1<T11> { T11$$ t; }",
                 MainDescription($"T11 {FeaturesResources.In} T1<T11>"));
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
         public async Task TestNullableOfInt()
         {
             await TestInClassAsync(@"$$Nullable<int> i; }",
@@ -736,77 +736,77 @@ class C<T> { $$T t; }";
                 TypeParameterMap($"\r\nT {FeaturesResources.Is} int"));
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
         public async Task TestGenericTypeDeclaredOnMethod1_Bug1946()
         {
             await TestAsync(@"class C { static void Meth1<T1>($$T1 i) where T1 : struct { T1 i; } }",
                 MainDescription($"T1 {FeaturesResources.In} C.Meth1<T1> where T1 : struct"));
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
         public async Task TestGenericTypeDeclaredOnMethod2_Bug1946()
         {
             await TestAsync(@"class C { static void Meth1<T1>(T1 i) where $$T1 : struct { T1 i; } }",
                 MainDescription($"T1 {FeaturesResources.In} C.Meth1<T1> where T1 : struct"));
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
         public async Task TestGenericTypeDeclaredOnMethod3_Bug1946()
         {
             await TestAsync(@"class C { static void Meth1<T1>(T1 i) where T1 : struct { $$T1 i; } }",
                 MainDescription($"T1 {FeaturesResources.In} C.Meth1<T1> where T1 : struct"));
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
         public async Task TestGenericTypeParameterConstraint_Class()
         {
             await TestAsync(@"class C<T> where $$T : class { }",
                 MainDescription($"T {FeaturesResources.In} C<T> where T : class"));
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
         public async Task TestGenericTypeParameterConstraint_Struct()
         {
             await TestAsync(@"struct S<T> where $$T : class { }",
                 MainDescription($"T {FeaturesResources.In} S<T> where T : class"));
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
         public async Task TestGenericTypeParameterConstraint_Interface()
         {
             await TestAsync(@"interface I<T> where $$T : class { }",
                 MainDescription($"T {FeaturesResources.In} I<T> where T : class"));
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
         public async Task TestGenericTypeParameterConstraint_Delegate()
         {
             await TestAsync(@"delegate void D<T>() where $$T : class;",
                 MainDescription($"T {FeaturesResources.In} D<T> where T : class"));
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
         public async Task TestMinimallyQualifiedConstraint()
         {
             await TestAsync(@"class C<T> where $$T : IEnumerable<int>",
                 MainDescription($"T {FeaturesResources.In} C<T> where T : IEnumerable<int>"));
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
         public async Task FullyQualifiedConstraint()
         {
             await TestAsync(@"class C<T> where $$T : System.Collections.Generic.IEnumerable<int>",
                 MainDescription($"T {FeaturesResources.In} C<T> where T : System.Collections.Generic.IEnumerable<int>"));
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
         public async Task TestMethodReferenceInSameMethod()
         {
             await TestAsync("class C { void M() { M$$(); } }",
                 MainDescription("void C.M()"));
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
         public async Task TestMethodReferenceInSameMethodWithDocComment()
         {
             var markup =
@@ -819,7 +819,7 @@ void M() { M$$(); }";
                 Documentation("Hello World"));
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
         public async Task TestFieldInMethodBuiltIn()
         {
             var markup =
@@ -834,55 +834,55 @@ void M()
                 MainDescription($"({FeaturesResources.Field}) int C.field"));
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
         public async Task TestFieldInMethodBuiltIn2()
         {
             await TestInClassAsync("int field; void M() { int f = field$$; }",
                 MainDescription($"({FeaturesResources.Field}) int C.field"));
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
         public async Task TestFieldInMethodBuiltInWithFieldInitializer()
         {
             await TestInClassAsync("int field = 1; void M() { int f = field $$; }");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
         public async Task TestOperatorBuiltIn()
         {
             await TestInMethodAsync("int x; x = x$$+1;",
                 MainDescription("int int.operator +(int left, int right)"));
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
         public async Task TestOperatorBuiltIn1()
         {
             await TestInMethodAsync("int x; x = x$$ + 1;",
                 MainDescription($"({FeaturesResources.LocalVariable}) int x"));
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
         public async Task TestOperatorBuiltIn2()
         {
             await TestInMethodAsync("int x; x = x+$$x;",
                 MainDescription($"({FeaturesResources.LocalVariable}) int x"));
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
         public async Task TestOperatorBuiltIn3()
         {
             await TestInMethodAsync("int x; x = x +$$ x;",
                 MainDescription("int int.operator +(int left, int right)"));
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
         public async Task TestOperatorBuiltIn4()
         {
             await TestInMethodAsync("int x; x = x + $$x;",
                 MainDescription($"({FeaturesResources.LocalVariable}) int x"));
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
         public async Task TestOperatorCustomTypeBuiltIn()
         {
             var markup =
@@ -894,7 +894,7 @@ void M()
             await TestAsync(markup);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
         public async Task TestOperatorCustomTypeOverload()
         {
             var markup =
@@ -908,7 +908,7 @@ void M()
                 MainDescription("C C.operator +(C a, C b)"));
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
         public async Task TestFieldInMethodMinimal()
         {
             var markup =
@@ -923,7 +923,7 @@ void M()
                 MainDescription($"({FeaturesResources.Field}) DateTime C.field"));
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
         public async Task TestFieldInMethodQualified()
         {
             var markup =
@@ -938,7 +938,7 @@ void M()
                 MainDescription($"({FeaturesResources.Field}) System.IO.FileInfo C.file"));
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
         public async Task TestMemberOfStructFromSource()
         {
             var markup =
@@ -950,8 +950,8 @@ static class Test { int a = MyStruct.Some$$Field; }";
                 MainDescription($"({FeaturesResources.Field}) int MyStruct.SomeField"));
         }
 
-        [WorkItem(538638)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        [WorkItem(538638, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538638")]
+        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
         public async Task TestMemberOfStructFromSourceWithDocComment()
         {
             var markup =
@@ -965,7 +965,7 @@ static class Test { int a = MyStruct.Some$$Field; }";
                 Documentation("My Field"));
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
         public async Task TestMemberOfStructInsideMethodFromSource()
         {
             var markup =
@@ -977,8 +977,8 @@ static class Test { static void Method() { int a = MyStruct.Some$$Field; } }";
                 MainDescription($"({FeaturesResources.Field}) int MyStruct.SomeField"));
         }
 
-        [WorkItem(538638)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        [WorkItem(538638, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538638")]
+        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
         public async Task TestMemberOfStructInsideMethodFromSourceWithDocComment()
         {
             var markup =
@@ -992,14 +992,14 @@ static class Test { static void Method() { int a = MyStruct.Some$$Field; } }";
                 Documentation("My Field"));
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
         public async Task TestMetadataFieldMinimal()
         {
             await TestInMethodAsync(@"DateTime dt = DateTime.MaxValue$$",
                 MainDescription($"({FeaturesResources.Field}) DateTime DateTime.MaxValue"));
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
         public async Task TestMetadataFieldQualified1()
         {
             // NOTE: we qualify the field type, but not the type that contains the field in Dev10
@@ -1014,7 +1014,7 @@ static class Test { static void Method() { int a = MyStruct.Some$$Field; } }";
                 MainDescription($"({FeaturesResources.Field}) System.DateTime System.DateTime.MaxValue"));
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
         public async Task TestMetadataFieldQualified2()
         {
             await TestAsync(@"
@@ -1027,7 +1027,7 @@ class C {
                 MainDescription($"({FeaturesResources.Field}) System.DateTime System.DateTime.MaxValue"));
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
         public async Task TestMetadataFieldQualified3()
         {
             await TestAsync(@"
@@ -1041,7 +1041,7 @@ class C {
                 MainDescription($"({FeaturesResources.Field}) DateTime DateTime.MaxValue"));
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
         public async Task ConstructedGenericField()
         {
             await TestAsync(@"class C<T> { public T Field; }
@@ -1054,7 +1054,7 @@ class D {
                 MainDescription($"({FeaturesResources.Field}) int C<int>.Field"));
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
         public async Task UnconstructedGenericField()
         {
             await TestAsync(@"
@@ -1068,29 +1068,29 @@ class C<T> {
                 MainDescription($"({FeaturesResources.Field}) T C<T>.Field"));
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
         public async Task TestIntegerLiteral()
         {
             await TestInMethodAsync(@"int f = 37$$",
                 MainDescription("struct System.Int32"));
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
         public async Task TestTrueKeyword()
         {
             await TestInMethodAsync(@"bool f = true$$",
                 MainDescription("struct System.Boolean"));
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
         public async Task TestFalseKeyword()
         {
             await TestInMethodAsync(@"bool f = false$$",
                 MainDescription("struct System.Boolean"));
         }
 
-        [WorkItem(756226)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        [WorkItem(756226, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/756226")]
+        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
         public async Task TestAwaitKeywordOnGenericTaskReturningAsync()
         {
             var markup = @"using System.Threading.Tasks;
@@ -1105,8 +1105,8 @@ class C
             await TestAsync(markup, MainDescription($"{FeaturesResources.PrefixTextForAwaitKeyword} struct System.Int32"));
         }
 
-        [WorkItem(756226)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        [WorkItem(756226, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/756226")]
+        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
         public async Task TestAwaitKeywordInDeclarationStatement()
         {
             var markup = @"using System.Threading.Tasks;
@@ -1121,8 +1121,8 @@ class C
             await TestAsync(markup, MainDescription($"{FeaturesResources.PrefixTextForAwaitKeyword} struct System.Int32"));
         }
 
-        [WorkItem(756226)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        [WorkItem(756226, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/756226")]
+        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
         public async Task TestAwaitKeywordOnTaskReturningAsync()
         {
             var markup = @"using System.Threading.Tasks;
@@ -1136,8 +1136,8 @@ class C
             await TestAsync(markup, MainDescription($"{FeaturesResources.PrefixTextForAwaitKeyword} {FeaturesResources.TextForSystemVoid}"));
         }
 
-        [WorkItem(756226), WorkItem(756337)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        [WorkItem(756226, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/756226"), WorkItem(756337, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/756337")]
+        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
         public async Task TestNestedAwaitKeywords1()
         {
             var markup = @"using System;
@@ -1172,8 +1172,8 @@ class AsyncExample2
                          TypeParameterMap($"\r\nTResult {FeaturesResources.Is} int"));
         }
 
-        [WorkItem(756226)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        [WorkItem(756226, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/756226")]
+        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
         public async Task TestNestedAwaitKeywords2()
         {
             var markup = @"using System;
@@ -1207,8 +1207,8 @@ class AsyncExample2
             await TestAsync(markup, MainDescription($"{FeaturesResources.PrefixTextForAwaitKeyword} struct System.Int32"));
         }
 
-        [WorkItem(756226), WorkItem(756337)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        [WorkItem(756226, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/756226"), WorkItem(756337, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/756337")]
+        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
         public async Task TestAwaitablePrefixOnCustomAwaiter()
         {
             var markup = @"using System;
@@ -1234,8 +1234,8 @@ class MyAwaiter : INotifyCompletion
             await TestAsync(markup, MainDescription($"({CSharpFeaturesResources.Awaitable}) class C"));
         }
 
-        [WorkItem(756226), WorkItem(756337)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        [WorkItem(756226, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/756226"), WorkItem(756337, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/756337")]
+        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
         public async Task TestTaskType()
         {
             var markup = @"using System.Threading.Tasks;
@@ -1249,8 +1249,8 @@ class C
             await TestAsync(markup, MainDescription($"({CSharpFeaturesResources.Awaitable}) class System.Threading.Tasks.Task"));
         }
 
-        [WorkItem(756226), WorkItem(756337)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        [WorkItem(756226, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/756226"), WorkItem(756337, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/756337")]
+        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
         public async Task TestTaskOfTType()
         {
             var markup = @"using System;
@@ -1266,7 +1266,24 @@ class C
                          TypeParameterMap($"\r\nTResult {FeaturesResources.Is} int"));
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        [WorkItem(7100, "https://github.com/dotnet/roslyn/issues/7100")]
+        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        public async Task TestDynamicIsntAwaitable()
+        {
+            var markup = @"
+class C
+{
+    dynamic D() { return null; }
+    void M()
+    {
+        D$$();
+    }
+}
+";
+            await TestAsync(markup, MainDescription("dynamic C.D()"));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
         public async Task TestStringLiteral()
         {
             await TestInMethodAsync(@"string f = ""Foo""$$",
@@ -1274,7 +1291,7 @@ class C
         }
 
         [WorkItem(1280, "https://github.com/dotnet/roslyn/issues/1280")]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
         public async Task TestVerbatimStringLiteral()
         {
             await TestInMethodAsync(@"string f = @""cat""$$",
@@ -1282,7 +1299,7 @@ class C
         }
 
         [WorkItem(1280, "https://github.com/dotnet/roslyn/issues/1280")]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
         public async Task TestInterpolatedStringLiteral()
         {
             await TestInMethodAsync(@"string f = $""cat""$$", MainDescription("class System.String"));
@@ -1292,7 +1309,7 @@ class C
         }
 
         [WorkItem(1280, "https://github.com/dotnet/roslyn/issues/1280")]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
         public async Task TestVerbatimInterpolatedStringLiteral()
         {
             await TestInMethodAsync(@"string f = $@""cat""$$", MainDescription("class System.String"));
@@ -1301,14 +1318,14 @@ class C
             await TestInMethodAsync(@"string f = $@""cat {1$$ + 2} dog""", MainDescription("struct System.Int32"));
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
         public async Task TestCharLiteral()
         {
             await TestInMethodAsync(@"string f = 'x'$$",
                 MainDescription("struct System.Char"));
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
         public async Task DynamicKeyword()
         {
             await TestInMethodAsync(@"dyn$$amic dyn;",
@@ -1316,7 +1333,7 @@ class C
                 Documentation(FeaturesResources.RepresentsAnObjectWhoseOperations));
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
         public async Task DynamicField()
         {
             await TestInClassAsync(@"dynamic dyn;
@@ -1327,7 +1344,7 @@ void M()
                 MainDescription($"({FeaturesResources.Field}) dynamic C.dyn"));
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
         public async Task LocalProperty_Minimal()
         {
             await TestInClassAsync(@"DateTime Prop { get; set; }
@@ -1338,7 +1355,7 @@ void M()
                 MainDescription("DateTime C.Prop { get; set; }"));
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
         public async Task LocalProperty_Minimal_PrivateSet()
         {
             await TestInClassAsync(@"public DateTime Prop { get; private set; }
@@ -1349,7 +1366,7 @@ void M()
                 MainDescription("DateTime C.Prop { get; private set; }"));
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
         public async Task LocalProperty_Minimal_PrivateSet1()
         {
             await TestInClassAsync(@"protected internal int Prop { get; private set; }
@@ -1360,7 +1377,7 @@ void M()
                 MainDescription("int C.Prop { get; private set; }"));
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
         public async Task LocalProperty_Qualified()
         {
             await TestInClassAsync(@"System.IO.FileInfo Prop { get; set; }
@@ -1371,21 +1388,21 @@ void M()
                 MainDescription("System.IO.FileInfo C.Prop { get; set; }"));
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
         public async Task NonLocalProperty_Minimal()
         {
             await TestInMethodAsync(@"DateTime.No$$w.ToString();",
                 MainDescription("DateTime DateTime.Now { get; }"));
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
         public async Task NonLocalProperty_Qualified()
         {
             await TestInMethodAsync(@"System.IO.FileInfo f; f.Att$$ributes.ToString();",
                 MainDescription("System.IO.FileAttributes System.IO.FileSystemInfo.Attributes { get; set; }"));
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
         public async Task ConstructedGenericProperty()
         {
             await TestAsync(@"
@@ -1401,7 +1418,7 @@ class D {
                 MainDescription("int C<int>.Property { get; set; }"));
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
         public async Task UnconstructedGenericProperty()
         {
             await TestAsync(@"
@@ -1415,42 +1432,42 @@ class C<T> {
                 MainDescription("T C<T>.Property { get; set; }"));
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
         public async Task ValueInProperty()
         {
             await TestInClassAsync(@"public DateTime Property {set { foo = val$$ue; } }",
                 MainDescription($"({FeaturesResources.Parameter}) DateTime value"));
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
         public async Task EnumTypeName()
         {
             await TestInMethodAsync(@"Consol$$eColor c",
                 MainDescription("enum System.ConsoleColor"));
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
         public async Task EnumMemberNameFromMetadata()
         {
             await TestInMethodAsync(@"ConsoleColor c = ConsoleColor.Bla$$ck",
                 MainDescription("ConsoleColor.Black = 0"));
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
         public async Task FlagsEnumMemberNameFromMetadata1()
         {
             await TestInMethodAsync(@"AttributeTargets a = AttributeTargets.Cl$$ass",
                 MainDescription("AttributeTargets.Class = 4"));
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
         public async Task FlagsEnumMemberNameFromMetadata2()
         {
             await TestInMethodAsync(@"AttributeTargets a = AttributeTargets.A$$ll",
                 MainDescription("AttributeTargets.All = AttributeTargets.Assembly | AttributeTargets.Module | AttributeTargets.Class | AttributeTargets.Struct | AttributeTargets.Enum | AttributeTargets.Constructor | AttributeTargets.Method | AttributeTargets.Property | AttributeTargets.Field | AttributeTargets.Event | AttributeTargets.Interface | AttributeTargets.Parameter | AttributeTargets.Delegate | AttributeTargets.ReturnValue | AttributeTargets.GenericParameter"));
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
         public async Task EnumMemberNameFromSource1()
         {
             await TestAsync(@"
@@ -1471,7 +1488,7 @@ class C
     MainDescription("E.B = 1 << 1"));
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
         public async Task EnumMemberNameFromSource2()
         {
             await TestAsync(@"
@@ -1492,28 +1509,28 @@ class C
     MainDescription("E.B = 1"));
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
         public async Task Parameter_InMethod_Minimal()
         {
             await TestInClassAsync(@"void M(DateTime dt) { d$$t.ToString();",
                 MainDescription($"({FeaturesResources.Parameter}) DateTime dt"));
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
         public async Task Parameter_InMethod_Qualified()
         {
             await TestInClassAsync(@"void M(System.IO.FileInfo fileInfo) { file$$Info.ToString();",
                 MainDescription($"({FeaturesResources.Parameter}) System.IO.FileInfo fileInfo"));
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
         public async Task Parameter_FromReferenceToNamedParameter()
         {
             await TestInMethodAsync(@"Console.WriteLine(va$$lue: ""Hi"");",
                 MainDescription($"({FeaturesResources.Parameter}) string value"));
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
         public async Task Parameter_DefaultValue()
         {
             // NOTE: Dev10 doesn't show the default value, but it would be nice if we did.
@@ -1522,49 +1539,49 @@ class C
                 MainDescription($"({FeaturesResources.Parameter}) int param = 42"));
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
         public async Task Parameter_Params()
         {
             await TestInClassAsync(@"void M(params DateTime[] arg) { ar$$g.ToString(); }",
                 MainDescription($"({FeaturesResources.Parameter}) params DateTime[] arg"));
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
         public async Task Parameter_Ref()
         {
             await TestInClassAsync(@"void M(ref DateTime arg) { ar$$g.ToString(); }",
                 MainDescription($"({FeaturesResources.Parameter}) ref DateTime arg"));
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
         public async Task Parameter_Out()
         {
             await TestInClassAsync(@"void M(out DateTime arg) { ar$$g.ToString(); }",
                 MainDescription($"({FeaturesResources.Parameter}) out DateTime arg"));
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
         public async Task Local_Minimal()
         {
             await TestInMethodAsync(@"DateTime dt; d$$t.ToString();",
                 MainDescription($"({FeaturesResources.LocalVariable}) DateTime dt"));
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
         public async Task Local_Qualified()
         {
             await TestInMethodAsync(@"System.IO.FileInfo fileInfo; file$$Info.ToString();",
                 MainDescription($"({FeaturesResources.LocalVariable}) System.IO.FileInfo fileInfo"));
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
         public async Task Method_MetadataOverload()
         {
             await TestInMethodAsync("Console.Write$$Line();",
                 MainDescription($"void Console.WriteLine() (+ 18 {FeaturesResources.Overloads})"));
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
         public async Task Method_SimpleWithOverload()
         {
             await TestInClassAsync(@"
@@ -1573,7 +1590,7 @@ void Method(int i) { }",
                 MainDescription($"void C.Method() (+ 1 {FeaturesResources.Overload})"));
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
         public async Task Method_MoreOverloads()
         {
             await TestInClassAsync(@"
@@ -1584,14 +1601,14 @@ void Method(System.IO.FileInfo fileInfo) { }",
                 MainDescription($"void C.Method(System.IO.FileInfo fileInfo) (+ 3 {FeaturesResources.Overloads})"));
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
         public async Task Method_SimpleInSameClass()
         {
             await TestInClassAsync(@"DateTime GetDate(System.IO.FileInfo ft) { Get$$Date(null); }",
                 MainDescription("DateTime C.GetDate(System.IO.FileInfo ft)"));
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
         public async Task Method_OptionalParameter()
         {
             await TestInClassAsync(@"
@@ -1600,7 +1617,7 @@ void Method(int i = 0) { }",
                 MainDescription("void C.Method([int i = 0])"));
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
         public async Task Method_OptionalDecimalParameter()
         {
             await TestInClassAsync(@"
@@ -1608,7 +1625,7 @@ void Foo(decimal x$$yz = 10) { }",
                 MainDescription($"({FeaturesResources.Parameter}) decimal xyz = 10"));
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
         public async Task Method_Generic()
         {
             // Generic method don't get the instantiation info yet.  NOTE: We don't display
@@ -1620,7 +1637,7 @@ void Foo(decimal x$$yz = 10) { }",
             MainDescription("DateTime C.Foo<int, DateTime>(int arg)"));
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
         public async Task Method_UnconstructedGeneric()
         {
             await TestInClassAsync(@"TOut Foo<TIn, TOut>(TIn arg) {
@@ -1630,7 +1647,7 @@ void Foo(decimal x$$yz = 10) { }",
                 MainDescription("TOut C.Foo<TIn, TOut>(TIn arg)"));
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
         public async Task Method_Inferred()
         {
             await TestInClassAsync(@"void Foo<TIn>(TIn arg) {
@@ -1639,7 +1656,7 @@ void Foo(decimal x$$yz = 10) { }",
                 MainDescription("void C.Foo<int>(int arg)"));
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
         public async Task Method_MultipleParams()
         {
             await TestInClassAsync(@"void Foo(DateTime dt, System.IO.FileInfo fi, int number) {
@@ -1648,7 +1665,7 @@ void Foo(decimal x$$yz = 10) { }",
                 MainDescription("void C.Foo(DateTime dt, System.IO.FileInfo fi, int number)"));
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
         public async Task Method_OptionalParam()
         {
             // NOTE - Default values aren't actually returned by symbols yet.
@@ -1658,7 +1675,7 @@ void Foo(decimal x$$yz = 10) { }",
                 MainDescription("void C.Foo([int num = 42])"));
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
         public async Task Method_ParameterModifiers()
         {
             // NOTE - Default values aren't actually returned by symbols yet.
@@ -1668,14 +1685,14 @@ void Foo(decimal x$$yz = 10) { }",
                 MainDescription("void C.Foo(ref DateTime dt, out System.IO.FileInfo fi, params int[] numbers)"));
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
         public async Task Constructor()
         {
             await TestInClassAsync(@"public C() {} void M() { new C$$ ().ToString(); }",
                 MainDescription("C.C()"));
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
         public async Task Constructor_Overloads()
         {
             await TestInClassAsync(@"
@@ -1693,7 +1710,7 @@ void M()
         /// <summary>
         /// Regression for 3923
         /// </summary>
-        [WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
         public async Task Constructor_OverloadFromStringLiteral()
         {
             await TestInMethodAsync(@"new InvalidOperatio$$nException("""");",
@@ -1703,7 +1720,7 @@ void M()
         /// <summary>
         /// Regression for 3923
         /// </summary>
-        [WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
         public async Task Constructor_UnknownType()
         {
             await TestInvalidTypeInClassAsync(@"void M() { new F$$oo(); }");
@@ -1712,28 +1729,28 @@ void M()
         /// <summary>
         /// Regression for 3923
         /// </summary>
-        [WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
         public async Task Constructor_OverloadFromProperty()
         {
             await TestInMethodAsync(@"new InvalidOperatio$$nException(this.GetType().Name);",
                 MainDescription($"InvalidOperationException.InvalidOperationException(string message) (+ 2 {FeaturesResources.Overloads})"));
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
         public async Task Constructor_Metadata()
         {
             await TestInMethodAsync(@"new Argument$$NullException();",
                 MainDescription($"ArgumentNullException.ArgumentNullException() (+ 3 {FeaturesResources.Overloads})"));
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
         public async Task Constructor_MetadataQualified()
         {
             await TestInMethodAsync(@"new System.IO.File$$Info(null);",
                 MainDescription("System.IO.FileInfo.FileInfo(string fileName)"));
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
         public async Task InterfaceProperty()
         {
             await TestInMethodAsync(@"
@@ -1744,7 +1761,7 @@ interface I
                 MainDescription("string I.Name { get; set; }"));
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
         public async Task ExplicitInterfacePropertyImplementation()
         {
             await TestInMethodAsync(@"
@@ -1764,7 +1781,7 @@ class C : I
                 MainDescription("string C.Name { get; set; }"));
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
         public async Task Operator()
         {
             await TestInClassAsync(@"
@@ -1775,7 +1792,7 @@ void M(C left, C right) { return left +$$ right; }
         }
 
         [WorkItem(792629, "generic type parameter constraints for methods in quick info")]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
         public async Task GenericMethodWithConstraintsAtDeclaration()
         {
             await TestInClassAsync(@"TOut F$$oo<TIn, TOut>(TIn arg) where TIn : IEquatable<TIn> {
@@ -1785,7 +1802,7 @@ void M(C left, C right) { return left +$$ right; }
         }
 
         [WorkItem(792629, "generic type parameter constraints for methods in quick info")]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
         public async Task GenericMethodWithMultipleConstraintsAtDeclaration()
         {
             await TestInClassAsync(@"TOut Foo<TIn, TOut>(TIn arg) where TIn : Employee, new()
@@ -1798,7 +1815,7 @@ void M(C left, C right) { return left +$$ right; }
         }
 
         [WorkItem(792629, "generic type parameter constraints for methods in quick info")]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
         public async Task UnConstructedGenericMethodWithConstraintsAtInvocation()
         {
             await TestInClassAsync(@"TOut Foo<TIn, TOut>(TIn arg) where TIn : Employee
@@ -1810,7 +1827,7 @@ void M(C left, C right) { return left +$$ right; }
             MainDescription("TOut C.Foo<TIn, TOut>(TIn arg) where TIn : Employee"));
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
         public async Task GenericTypeWithConstraintsAtDeclaration()
         {
             await TestAsync(@"public class Employee : IComparable<Employee>
@@ -1827,7 +1844,7 @@ class Emplo$$yeeList<T> : IEnumerable<T> where T : Employee, System.IComparable<
             MainDescription("class EmployeeList<T> where T : Employee, System.IComparable<T>, new()"));
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
         public async Task GenericType()
         {
             await TestAsync(@"
@@ -1839,7 +1856,7 @@ class T1<T11>
                 MainDescription($"T11 {FeaturesResources.In} T1<T11>"));
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
         public async Task GenericMethod()
         {
             await TestInClassAsync(@"
@@ -1851,7 +1868,7 @@ class T1<T11>
                 MainDescription($"T1 {FeaturesResources.In} C.Meth1<T1> where T1 : struct"));
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
         public async Task Var()
         {
             await TestInMethodAsync(@"
@@ -1861,7 +1878,7 @@ var y = $$x;
                 MainDescription($"({FeaturesResources.LocalVariable}) Exception x"));
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
         public async Task NestedInGeneric()
         {
             await TestInMethodAsync(@"
@@ -1871,7 +1888,7 @@ var y = $$x;
                 TypeParameterMap($"\r\nT {FeaturesResources.Is} int"));
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
         public async Task NestedGenericInGeneric()
         {
             await TestAsync(@"
@@ -1893,7 +1910,7 @@ var y = $$x;
                           $"U {FeaturesResources.Is} string")));
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
         public async Task ObjectInitializer1()
         {
             await TestInClassAsync(@"
@@ -1910,7 +1927,7 @@ var y = $$x;
                 MainDescription($"({FeaturesResources.Field}) int test.z"));
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
         public async Task ObjectInitializer2()
         {
             await TestInMethodAsync(@"
@@ -1930,8 +1947,8 @@ class C
                 MainDescription("struct System.Int32"));
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
-        [WorkItem(537880)]
+        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        [WorkItem(537880, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/537880")]
         public async Task TypeArgument()
         {
             await TestAsync(@"
@@ -1946,7 +1963,7 @@ class C<T, Y>
                 MainDescription($"({FeaturesResources.LocalVariable}) C<int, DateTime> variable"));
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
         public async Task ForEachLoop_1()
         {
             await TestInMethodAsync(@"
@@ -1960,7 +1977,7 @@ bb = bb + 21;
                 MainDescription($"({FeaturesResources.LocalVariable}) int cc"));
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
         public async Task TryCatchFinally_1()
         {
             await TestInMethodAsync(@"
@@ -1978,7 +1995,7 @@ bb = bb + 21;
                 MainDescription($"({FeaturesResources.LocalVariable}) int aa"));
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
         public async Task TryCatchFinally_2()
         {
             await TestInMethodAsync(@"
@@ -1997,7 +2014,7 @@ bb = bb + 21;
                 MainDescription($"({FeaturesResources.LocalVariable}) Exception ex"));
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
         public async Task TryCatchFinally_3()
         {
             await TestInMethodAsync(@"
@@ -2016,7 +2033,7 @@ bb = bb + 21;
                 MainDescription($"({FeaturesResources.LocalVariable}) int aa"));
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
         public async Task TryCatchFinally_4()
         {
             await TestInMethodAsync(@"
@@ -2035,7 +2052,7 @@ bb = bb + 21;
                 MainDescription($"({FeaturesResources.LocalVariable}) int aa"));
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
         public async Task GenericVariable()
         {
             await TestAsync(@"
@@ -2051,7 +2068,7 @@ bb = bb + 21;
                 MainDescription($"({FeaturesResources.LocalVariable}) C<int, DateTime> variable"));
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
         public async Task TestInstantiation()
         {
             await TestAsync(@"
@@ -2066,7 +2083,7 @@ class Program<T>
                 MainDescription($"Dictionary<int, string>.Dictionary() (+ 5 {FeaturesResources.Overloads})"));
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
         public async Task TestUsingAlias_Bug4141()
         {
             await TestAsync(@"using X = A.C;
@@ -2078,7 +2095,7 @@ class D : X$$ { }
                 MainDescription(@"class A.C"));
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
         public async Task TestFieldOnDeclaration()
         {
             await TestInClassAsync(@"
@@ -2086,8 +2103,8 @@ DateTime fie$$ld;",
                 MainDescription($"({FeaturesResources.Field}) DateTime C.field"));
         }
 
-        [WorkItem(538767)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        [WorkItem(538767, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538767")]
+        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
         public async Task TestGenericErrorFieldOnDeclaration()
         {
             await TestInClassAsync(@"
@@ -2095,8 +2112,8 @@ NonExistentType<int> fi$$eld;",
                 MainDescription($"({FeaturesResources.Field}) NonExistentType<int> C.field"));
         }
 
-        [WorkItem(538822)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        [WorkItem(538822, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538822")]
+        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
         public async Task TestDelegateType()
         {
             await TestInClassAsync(@"
@@ -2107,8 +2124,8 @@ Fun$$c<int, string> field;",
                           $"TResult {FeaturesResources.Is} string")));
         }
 
-        [WorkItem(538824)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        [WorkItem(538824, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538824")]
+        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
         public async Task TestOnDelegateInvocation()
         {
             await TestAsync(@"
@@ -2125,8 +2142,8 @@ class Program
                 MainDescription($"({FeaturesResources.LocalVariable}) D1 d"));
         }
 
-        [WorkItem(539240)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        [WorkItem(539240, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539240")]
+        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
         public async Task TestOnArrayCreation1()
         {
             await TestAsync(@"
@@ -2139,8 +2156,8 @@ class Program
 }");
         }
 
-        [WorkItem(539240)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        [WorkItem(539240, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539240")]
+        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
         public async Task TestOnArrayCreation2()
         {
             await TestAsync(@"
@@ -2154,8 +2171,8 @@ class Program
                 MainDescription("struct System.Int32"));
         }
 
-        [WorkItem(539841)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        [WorkItem(539841, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539841")]
+        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
         public async Task TestIsNamedTypeAccessibleForErrorTypes()
         {
             await TestAsync(@"sealed class B<T1, T2> : A<B<T1, T2>>{
@@ -2163,8 +2180,8 @@ class Program
                 MainDescription("class A<T>"));
         }
 
-        [WorkItem(540075)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        [WorkItem(540075, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540075")]
+        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
         public async Task TestErrorType()
         {
             await TestAsync(@"using Foo = Foo;
@@ -2178,8 +2195,8 @@ class C
                 MainDescription("Foo"));
         }
 
-        [WorkItem(540871)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        [WorkItem(540871, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540871")]
+        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
         public async Task TestLiterals()
         {
             await TestAsync(@"class MyClass
@@ -2202,8 +2219,8 @@ class C
                 MainDescription("struct System.Int32"));
         }
 
-        [WorkItem(541444)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        [WorkItem(541444, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541444")]
+        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
         public async Task TestErrorInForeach()
         {
             await TestAsync(@"
@@ -2220,8 +2237,8 @@ class C
                 MainDescription($"({FeaturesResources.LocalVariable}) int cc"));
         }
 
-        [WorkItem(540438)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        [WorkItem(540438, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540438")]
+        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
         public async Task TestNoQuickInfoOnAnonymousDelegate()
         {
             await TestAsync(@"
@@ -2236,8 +2253,8 @@ class Program
 }");
         }
 
-        [WorkItem(541678)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        [WorkItem(541678, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541678")]
+        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
         public async Task TestQuickInfoOnEvent()
         {
             await TestAsync(@"
@@ -2263,32 +2280,32 @@ public class Publisher
                 MainDescription("SampleEventHandler Publisher.SampleEvent"));
         }
 
-        [WorkItem(542157)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        [WorkItem(542157, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542157")]
+        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
         public async Task TestEvent()
         {
             await TestInMethodAsync(@"System.Console.CancelKeyPres$$s += null;",
                 MainDescription("ConsoleCancelEventHandler Console.CancelKeyPress"));
         }
 
-        [WorkItem(542157)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        [WorkItem(542157, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542157")]
+        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
         public async Task TestEventPlusEqualsOperator()
         {
             await TestInMethodAsync(@"System.Console.CancelKeyPress +$$= null;",
                 MainDescription("void Console.CancelKeyPress.add"));
         }
 
-        [WorkItem(542157)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        [WorkItem(542157, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542157")]
+        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
         public async Task TestEventMinusEqualsOperator()
         {
             await TestInMethodAsync(@"System.Console.CancelKeyPress -$$= null;",
                 MainDescription("void Console.CancelKeyPress.remove"));
         }
 
-        [WorkItem(541885)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        [WorkItem(541885, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541885")]
+        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
         public async Task TestQuickInfoOnExtensionMethod()
         {
             await TestWithOptionsAsync(Options.Regular, @"
@@ -2316,7 +2333,7 @@ public static class MyExtensions
                 MainDescription($"({CSharpFeaturesResources.Extension}) bool int.In<int>(IEnumerable<int> items)"));
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
         public async Task TestQuickInfoOnExtensionMethodOverloads()
         {
             await TestWithOptionsAsync(Options.Regular, @"
@@ -2341,7 +2358,7 @@ public static class Ex
                 MainDescription($"({CSharpFeaturesResources.Extension}) void string.TestExt<string>() (+ 2 {FeaturesResources.Overloads})"));
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
         public async Task TestQuickInfoOnExtensionMethodOverloads2()
         {
             await TestWithOptionsAsync(Options.Regular, @"
@@ -2366,7 +2383,7 @@ public static class Ex
                 MainDescription($"({CSharpFeaturesResources.Extension}) void string.TestExt<string>() (+ 1 {FeaturesResources.Overload})"));
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
         public async Task Query1()
         {
             await TestAsync(@"
@@ -2383,7 +2400,7 @@ class C
                 MainDescription($"({FeaturesResources.RangeVariable}) int n"));
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
         public async Task Query2()
         {
             await TestAsync(@"
@@ -2400,7 +2417,7 @@ class C
                 MainDescription($"({FeaturesResources.RangeVariable}) int n"));
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
         public async Task Query3()
         {
             await TestAsync(@"
@@ -2416,7 +2433,7 @@ class C
                 MainDescription($"({FeaturesResources.RangeVariable}) ? n"));
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
         public async Task Query4()
         {
             await TestAsync(@"
@@ -2432,7 +2449,7 @@ class C
                 MainDescription($"({FeaturesResources.RangeVariable}) ? n"));
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
         public async Task Query5()
         {
             await TestAsync(@"
@@ -2450,7 +2467,7 @@ class C
                 MainDescription($"({FeaturesResources.RangeVariable}) object n"));
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
         public async Task Query6()
         {
             await TestAsync(@"
@@ -2468,7 +2485,7 @@ class C
                 MainDescription($"({FeaturesResources.RangeVariable}) object n"));
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
         public async Task Query7()
         {
             await TestAsync(@"
@@ -2486,7 +2503,7 @@ class C
                 MainDescription($"({FeaturesResources.RangeVariable}) int n"));
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
         public async Task Query8()
         {
             await TestAsync(@"
@@ -2504,7 +2521,7 @@ class C
                 MainDescription($"({FeaturesResources.RangeVariable}) int n"));
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
         public async Task Query9()
         {
             await TestAsync(@"
@@ -2523,7 +2540,7 @@ class C
                 MainDescription($"({FeaturesResources.RangeVariable}) List<int> x"));
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
         public async Task Query10()
         {
             await TestAsync(@"
@@ -2542,7 +2559,7 @@ class C
                 MainDescription($"({FeaturesResources.RangeVariable}) List<int> x"));
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
         public async Task Query11()
         {
             await TestAsync(@"
@@ -2561,7 +2578,7 @@ class C
                 MainDescription($"({FeaturesResources.RangeVariable}) int y"));
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
         public async Task Query12()
         {
             await TestAsync(@"
@@ -2580,8 +2597,8 @@ class C
                 MainDescription($"({FeaturesResources.RangeVariable}) int y"));
         }
 
-        [WorkItem(543205)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        [WorkItem(543205, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543205")]
+        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
         public async Task TestErrorGlobal()
         {
             await TestAsync(@"extern alias global;
@@ -2597,7 +2614,7 @@ class myClass
                 MainDescription("<global namespace>"));
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
         public async Task DontRemoveAttributeSuffixAndProduceInvalidIdentifier1()
         {
             await TestAsync(@"
@@ -2609,8 +2626,8 @@ class classAttribute : Attribute
                 MainDescription($"({FeaturesResources.Field}) classAttribute classAttribute.x"));
         }
 
-        [WorkItem(544026)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        [WorkItem(544026, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544026")]
+        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
         public async Task DontRemoveAttributeSuffix2()
         {
             await TestAsync(@"
@@ -2623,7 +2640,7 @@ class class1Attribute : Attribute
         }
 
         [WorkItem(1696, "https://github.com/dotnet/roslyn/issues/1696")]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
         public async Task AttributeQuickInfoBindsToClassTest()
         {
             await TestAsync(@"
@@ -2647,7 +2664,7 @@ class SomeAttribute : Attribute
         }
 
         [WorkItem(1696, "https://github.com/dotnet/roslyn/issues/1696")]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
         public async Task AttributeConstructorQuickInfo()
         {
             await TestAsync(@"
@@ -2670,15 +2687,15 @@ class SomeAttribute : Attribute
                 Documentation("ctor comment"));
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
         public async Task TestLabel()
         {
             await TestInClassAsync(@"void M() { Foo: int Foo; goto Foo$$; }",
                 MainDescription($"({FeaturesResources.Label}) Foo"));
         }
 
-        [WorkItem(542613)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        [WorkItem(542613, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542613")]
+        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
         public async Task TestUnboundGeneric()
         {
             await TestAsync(@"
@@ -2695,8 +2712,8 @@ class C
                 NoTypeParameterMap);
         }
 
-        [WorkItem(543113)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        [WorkItem(543113, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543113")]
+        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
         public async Task TestAnonymousTypeNew1()
         {
             await TestAsync(@"
@@ -2715,8 +2732,8 @@ $@"
     'a {FeaturesResources.Is} new {{  }}"));
         }
 
-        [WorkItem(543873)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        [WorkItem(543873, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543873")]
+        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
         public async Task TestNestedAnonymousType()
         {
             // verify nested anonymous types are listed in the same order for different properties
@@ -2741,8 +2758,8 @@ $@"
     'b {FeaturesResources.Is} new {{ string Street, string Zip }}"));
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
-        [WorkItem(543183)]
+        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        [WorkItem(543183, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543183")]
         public async Task TestAssignmentOperatorInAnonymousType()
         {
             await TestAsync(@"class C
@@ -2755,7 +2772,7 @@ $@"
 ");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
         [WorkItem(10731, "DevDiv_Projects/Roslyn")]
         public async Task TestErrorAnonymousTypeDoesntShow()
         {
@@ -2768,8 +2785,8 @@ $@"
     'a {FeaturesResources.Is} new {{ int N }}"));
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
-        [WorkItem(543553)]
+        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        [WorkItem(543553, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543553")]
         public async Task TestArrayAssignedToVar()
         {
             await TestAsync(@"class C
@@ -2783,8 +2800,8 @@ $@"
                 MainDescription("string[]"));
         }
 
-        [WorkItem(529139)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        [WorkItem(529139, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529139")]
+        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
         public async Task ColorColorRangeVariable()
         {
             await TestAsync(@"
@@ -2809,8 +2826,8 @@ namespace N1
                 MainDescription($"({FeaturesResources.RangeVariable}) N1.yield yield"));
         }
 
-        [WorkItem(543550)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        [WorkItem(543550, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543550")]
+        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
         public async Task QuickInfoOnOperator()
         {
             await TestAsync(@"using System.Collections.Generic;
@@ -2837,21 +2854,21 @@ class Program
                 MainDescription("IEnumerable<Program> Program.operator +(Program p1, Program p2)"));
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
         public async Task TestConstantField()
         {
             await TestAsync("class C { const int $$F = 1;",
                 MainDescription($"({FeaturesResources.Constant}) int C.F = 1"));
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
         public async Task TestMultipleConstantFields()
         {
             await TestAsync("class C { public const double X = 1.0, Y = 2.0, $$Z = 3.5;",
                 MainDescription($"({FeaturesResources.Constant}) double C.Z = 3.5"));
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
         public async Task TestConstantDependencies()
         {
             await TestAsync(@"class A
@@ -2866,7 +2883,7 @@ class B
                 MainDescription($"({FeaturesResources.Constant}) int A.X = B.Z + 1"));
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
         public async Task TestConstantCircularDependencies()
         {
             await TestAsync(@"class A
@@ -2880,8 +2897,8 @@ class B
                 MainDescription($"({FeaturesResources.Constant}) int B.Z = A.X + 1"));
         }
 
-        [WorkItem(544620)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        [WorkItem(544620, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544620")]
+        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
         public async Task TestConstantOverflow()
         {
             await TestAsync(@"class B
@@ -2891,8 +2908,8 @@ class B
                 MainDescription($"({FeaturesResources.Constant}) int B.Z = int.MaxValue + 1"));
         }
 
-        [WorkItem(544620)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        [WorkItem(544620, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544620")]
+        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
         public async Task TestConstantOverflowInUncheckedContext()
         {
             await TestAsync(@"class B
@@ -2902,7 +2919,7 @@ class B
                 MainDescription($"({FeaturesResources.Constant}) int B.Z = unchecked(int.MaxValue + 1)"));
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
         public async Task TestEnumInConstantField()
         {
             await TestAsync(@"public class EnumTest
@@ -2916,7 +2933,7 @@ class B
                 MainDescription($"({FeaturesResources.LocalConstant}) int x = (int)Days.Sun"));
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
         public async Task TestConstantInDefaultExpression()
         {
             await TestAsync(@"public class EnumTest
@@ -2930,118 +2947,118 @@ class B
                 MainDescription($"({FeaturesResources.LocalConstant}) Days x = default(Days)"));
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
         public async Task TestConstantParameter()
         {
             await TestAsync("class C { void Bar(int $$b = 1); }",
                 MainDescription($"({FeaturesResources.Parameter}) int b = 1"));
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
         public async Task TestConstantLocal()
         {
             await TestAsync("class C { void Bar() { const int $$loc = 1; }",
                 MainDescription($"({FeaturesResources.LocalConstant}) int loc = 1"));
         }
 
-        [WorkItem(544416)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        [WorkItem(544416, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544416")]
+        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
         public async Task TestErrorType1()
         {
             await TestInMethodAsync("var $$v1 = new Foo();",
                 MainDescription($"({FeaturesResources.LocalVariable}) Foo v1"));
         }
 
-        [WorkItem(544416)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        [WorkItem(544416, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544416")]
+        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
         public async Task TestErrorType2()
         {
             await TestInMethodAsync("var $$v1 = v1;",
                 MainDescription($"({FeaturesResources.LocalVariable}) var v1"));
         }
 
-        [WorkItem(544416)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        [WorkItem(544416, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544416")]
+        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
         public async Task TestErrorType3()
         {
             await TestInMethodAsync("var $$v1 = new Foo<Bar>();",
                 MainDescription($"({FeaturesResources.LocalVariable}) Foo<Bar> v1"));
         }
 
-        [WorkItem(544416)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        [WorkItem(544416, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544416")]
+        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
         public async Task TestErrorType4()
         {
             await TestInMethodAsync("var $$v1 = &(x => x);",
                 MainDescription($"({FeaturesResources.LocalVariable}) ?* v1"));
         }
 
-        [WorkItem(544416)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        [WorkItem(544416, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544416")]
+        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
         public async Task TestErrorType5()
         {
             await TestInMethodAsync("var $$v1 = &v1",
                 MainDescription($"({FeaturesResources.LocalVariable}) var* v1"));
         }
 
-        [WorkItem(544416)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        [WorkItem(544416, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544416")]
+        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
         public async Task TestErrorType6()
         {
             await TestInMethodAsync("var $$v1 = new Foo[1]",
                 MainDescription($"({FeaturesResources.LocalVariable}) Foo[] v1"));
         }
 
-        [WorkItem(544416)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        [WorkItem(544416, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544416")]
+        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
         public async Task TestErrorType7()
         {
             await TestInClassAsync("class C { void Method() { } void Foo() { var $$v1 = MethodGroup; } }",
                 MainDescription($"({FeaturesResources.LocalVariable}) ? v1"));
         }
 
-        [WorkItem(544416)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        [WorkItem(544416, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544416")]
+        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
         public async Task TestErrorType8()
         {
             await TestInMethodAsync("var $$v1 = Unknown",
                 MainDescription($"({FeaturesResources.LocalVariable}) ? v1"));
         }
 
-        [WorkItem(545072)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        [WorkItem(545072, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545072")]
+        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
         public async Task TestDelegateSpecialTypes()
         {
             await TestAsync("delegate void $$F(int x);",
                 MainDescription("delegate void F(int x)"));
         }
 
-        [WorkItem(545108)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        [WorkItem(545108, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545108")]
+        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
         public async Task TestNullPointerParameter()
         {
             await TestAsync("class C { unsafe void $$Foo(int* x = null) { } }",
                 MainDescription("void C.Foo([int* x = null])"));
         }
 
-        [WorkItem(545098)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        [WorkItem(545098, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545098")]
+        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
         public async Task TestLetIdentifier1()
         {
             await TestInMethodAsync("var q = from e in \"\" let $$y = 1 let a = new { y } select a;",
                 MainDescription($"({FeaturesResources.RangeVariable}) int y"));
         }
 
-        [WorkItem(545295)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        [WorkItem(545295, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545295")]
+        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
         public async Task TestNullableDefaultValue()
         {
             await TestAsync("class Test { void $$Method(int? t1 = null) { } }",
                 MainDescription("void Test.Method([int? t1 = null])"));
         }
 
-        [WorkItem(529586)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        [WorkItem(529586, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529586")]
+        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
         public async Task TestInvalidParameterInitializer()
         {
             await TestAsync(
@@ -3051,8 +3068,8 @@ class B
                 MainDescription($@"({FeaturesResources.Parameter}) float j1 = ""Hello"" + ""World"""));
         }
 
-        [WorkItem(545230)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        [WorkItem(545230, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545230")]
+        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
         public async Task TestComplexConstLocal()
         {
             await TestAsync(
@@ -3069,8 +3086,8 @@ class B
                 MainDescription($@"({FeaturesResources.LocalConstant}) int MEGABYTE = 1024 * 1024 + true"));
         }
 
-        [WorkItem(545230)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        [WorkItem(545230, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545230")]
+        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
         public async Task TestComplexConstField()
         {
             await TestAsync(
@@ -3087,7 +3104,7 @@ class B
                 MainDescription($"({FeaturesResources.Constant}) int Program.a = true - false"));
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
         public async Task TestTypeParameterCrefDoesNotHaveQuickInfo()
         {
             await TestAsync(
@@ -3100,7 +3117,7 @@ class B
 }");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
         public async Task TestCref1()
         {
             await TestAsync(
@@ -3114,7 +3131,7 @@ class B
                 MainDescription(@"void Program.Main(string[] args)"));
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
         public async Task TestCref2()
         {
             await TestAsync(
@@ -3128,7 +3145,7 @@ class B
                 MainDescription(@"void Program.Main(string[] args)"));
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
         public async Task TestCref3()
         {
             await TestAsync(
@@ -3141,7 +3158,7 @@ class B
 }");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
         public async Task TestCref4()
         {
             await TestAsync(
@@ -3154,7 +3171,7 @@ class B
 }");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
         public async Task TestCref5()
         {
             await TestAsync(
@@ -3167,8 +3184,8 @@ class B
 }");
         }
 
-        [WorkItem(546849)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        [WorkItem(546849, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546849")]
+        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
         public async Task TestIndexedProperty()
         {
             var markup = @"class Program
@@ -3214,8 +3231,8 @@ End Class";
                 expectedResults: MainDescription("string CCC.IndexProp[int p1, [int p2 = 0]] { get; set; }"));
         }
 
-        [WorkItem(546918)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        [WorkItem(546918, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546918")]
+        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
         public async Task TestUnconstructedGeneric()
         {
             await TestAsync(
@@ -3232,8 +3249,8 @@ End Class";
                 MainDescription(@"enum A<T>.SortOrder"));
         }
 
-        [WorkItem(546970)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        [WorkItem(546970, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546970")]
+        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
         public async Task TestUnconstructedGenericInCRef()
         {
             await TestAsync(
@@ -3244,7 +3261,7 @@ class C<T> { }
                 MainDescription(@"class C<T>"));
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
         public async Task TestAwaitableMethod()
         {
             var markup = @"using System.Threading.Tasks;
@@ -3259,12 +3276,12 @@ class C
 
             var documentation = $@"
 {WorkspacesResources.Usage}
-  {CSharpFeaturesResources.Await} Foo();";
+  {SyntaxFacts.GetText(SyntaxKind.AwaitKeyword)} Foo();";
 
             await VerifyWithMscorlib45Async(markup, new[] { MainDescription(description), Usage(documentation) });
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
         public async Task ObsoleteItem()
         {
             var markup = @"
@@ -3281,8 +3298,8 @@ class Program
             await TestAsync(markup, MainDescription($"[{CSharpFeaturesResources.Deprecated}] void Program.foo()"));
         }
 
-        [WorkItem(751070)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        [WorkItem(751070, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/751070")]
+        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
         public async Task DynamicOperator()
         {
             var markup = @"
@@ -3302,7 +3319,7 @@ public class Test
             await TestAsync(markup, MainDescription("dynamic dynamic.operator ==(dynamic left, dynamic right)"));
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
         public async Task TextOnlyDocComment()
         {
             await TestAsync(@"
@@ -3314,7 +3331,7 @@ class C$$
 }", Documentation("foo"));
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
         public async Task TestTrimConcatMultiLine()
         {
             await TestAsync(@"
@@ -3327,7 +3344,7 @@ class C$$
 }", Documentation("foo bar"));
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
         public async Task TestCref()
         {
             await TestAsync(@"
@@ -3340,7 +3357,7 @@ class C$$
 }", Documentation("C C"));
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
         public async Task ExcludeTextOutsideSummaryBlock()
         {
             await TestAsync(@"
@@ -3354,7 +3371,7 @@ class C$$
 }", Documentation("green"));
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
         public async Task NewlineAfterPara()
         {
             await TestAsync(@"
@@ -3366,7 +3383,7 @@ class C$$
 }", Documentation("foo"));
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
         public async Task TextOnlyDocComment_Metadata()
         {
             var referenced = @"
@@ -3388,7 +3405,7 @@ class G
             await TestWithMetadataReferenceHelperAsync(code, referenced, "C#", "C#", Documentation("foo"));
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
         public async Task TestTrimConcatMultiLine_Metadata()
         {
             var referenced = @"
@@ -3411,7 +3428,7 @@ class G
             await TestWithMetadataReferenceHelperAsync(code, referenced, "C#", "C#", Documentation("foo bar"));
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
         public async Task TestCref_Metadata()
         {
             var code = @"
@@ -3433,7 +3450,7 @@ public class C
             await TestWithMetadataReferenceHelperAsync(code, referenced, "C#", "C#", Documentation("C C"));
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
         public async Task ExcludeTextOutsideSummaryBlock_Metadata()
         {
             var code = @"
@@ -3457,7 +3474,7 @@ public class C
             await TestWithMetadataReferenceHelperAsync(code, referenced, "C#", "C#", Documentation("green"));
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
         public async Task Param()
         {
             await TestAsync(@"
@@ -3473,7 +3490,7 @@ public class C
 }", Documentation("First parameter of C.Foo<T>(string[], T)"));
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
         public async Task Param_Metadata()
         {
             var code = @"
@@ -3499,7 +3516,7 @@ public class C
             await TestWithMetadataReferenceHelperAsync(code, referenced, "C#", "C#", Documentation("First parameter of C.Foo<T>(string[], T)"));
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
         public async Task Param2()
         {
             await TestAsync(@"
@@ -3515,7 +3532,7 @@ public class C
 }", Documentation("Another parameter of C.Foo<T>(string[], T)"));
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
         public async Task Param2_Metadata()
         {
             var code = @"
@@ -3541,7 +3558,7 @@ public class C
             await TestWithMetadataReferenceHelperAsync(code, referenced, "C#", "C#", Documentation("Another parameter of C.Foo<T>(string[], T)"));
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
         public async Task TypeParam()
         {
             await TestAsync(@"
@@ -3557,7 +3574,7 @@ public class C
 }", Documentation("A type parameter of C.Foo<T>(string[], T)"));
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
         public async Task UnboundCref()
         {
             await TestAsync(@"
@@ -3573,7 +3590,7 @@ public class C
 }", Documentation("A type parameter of foo<T>(string[], T)"));
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
         public async Task CrefInConstructor()
         {
             await TestAsync(@"
@@ -3588,7 +3605,7 @@ public class TestClass
 }", Documentation("This sample shows how to specify the TestClass constructor as a cref attribute."));
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
         public async Task CrefInConstructorOverloaded()
         {
             await TestAsync(@"
@@ -3610,7 +3627,7 @@ public class TestClass
     }", Documentation("This sample shows how to specify the TestClass(int) constructor as a cref attribute."));
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
         public async Task CrefInGenericMethod1()
         {
             await TestAsync(@"
@@ -3625,7 +3642,7 @@ public class TestClass
     }", Documentation("The GetGenericValue method.\r\n\r\nThis sample shows how to specify the TestClass.GetGenericValue<T>(T) method as a cref attribute."));
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
         public async Task CrefInGenericMethod2()
         {
             await TestAsync(@"
@@ -3640,8 +3657,8 @@ public class TestClass
     }", Documentation("The GetGenericValue method.\r\n\r\nThis sample shows how to specify the TestClass.GetGenericValue<T>(T) method as a cref attribute."));
         }
 
-        [WorkItem(813350)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        [WorkItem(813350, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/813350")]
+        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
         public async Task CrefInMethodOverloading1()
         {
             await TestAsync(@"
@@ -3666,8 +3683,8 @@ public class TestClass
     }", Documentation("This sample shows how to specify the TestClass.GetGenericValue() method as a cref attribute."));
         }
 
-        [WorkItem(813350)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        [WorkItem(813350, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/813350")]
+        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
         public async Task CrefInMethodOverloading2()
         {
             await TestAsync(@"
@@ -3692,7 +3709,7 @@ public class TestClass
     }", Documentation("This sample shows how to call the TestClass.GetGenericValue<T>(T) method"));
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
         public async Task CrefInGenericType()
         {
             await TestAsync(@"
@@ -3712,8 +3729,8 @@ public class TestClass
             Text("cref."))));
         }
 
-        [WorkItem(812720)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        [WorkItem(812720, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/812720")]
+        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
         public async Task ClassificationOfCrefsFromMetadata()
         {
             var code = @"
@@ -3750,7 +3767,7 @@ public class C
                         Text("method"))));
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
         public async Task FieldAvailableInBothLinkedFiles()
         {
             var markup = @"<Workspace>
@@ -3775,7 +3792,7 @@ class C
             await VerifyWithReferenceWorkerAsync(markup, new[] { MainDescription($"({FeaturesResources.Field}) int C.x"), Usage("") });
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
         public async Task FieldUnavailableInOneLinkedFile()
         {
             var markup = @"<Workspace>
@@ -3803,7 +3820,7 @@ class C
             await VerifyWithReferenceWorkerAsync(markup, new[] { expectedDescription });
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
         public async Task BindSymbolInOtherFile()
         {
             var markup = @"<Workspace>
@@ -3831,7 +3848,7 @@ class C
             await VerifyWithReferenceWorkerAsync(markup, new[] { expectedDescription });
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
         public async Task FieldUnavailableInTwoLinkedFiles()
         {
             var markup = @"<Workspace>
@@ -3864,7 +3881,7 @@ class C
             await VerifyWithReferenceWorkerAsync(markup, new[] { expectedDescription });
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
         public async Task ExcludeFilesWithInactiveRegions()
         {
             var markup = @"<Workspace>
@@ -3897,8 +3914,8 @@ class C
             await VerifyWithReferenceWorkerAsync(markup, new[] { expectedDescription });
         }
 
-        [WorkItem(962353)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        [WorkItem(962353, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/962353")]
+        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
         public async Task NoValidSymbolsInLinkedDocuments()
         {
             var markup = @"<Workspace>
@@ -3925,8 +3942,8 @@ class C
             await VerifyWithReferenceWorkerAsync(markup);
         }
 
-        [WorkItem(1020944)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        [WorkItem(1020944, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1020944")]
+        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
         public async Task LocalsValidInLinkedDocuments()
         {
             var markup = @"<Workspace>
@@ -3950,8 +3967,8 @@ class C
             await VerifyWithReferenceWorkerAsync(markup, new[] { MainDescription($"({FeaturesResources.LocalVariable}) int x"), Usage("") });
         }
 
-        [WorkItem(1020944)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        [WorkItem(1020944, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1020944")]
+        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
         public async Task LocalWarningInLinkedDocuments()
         {
             var markup = @"<Workspace>
@@ -3979,8 +3996,8 @@ class C
             await VerifyWithReferenceWorkerAsync(markup, new[] { MainDescription($"({FeaturesResources.LocalVariable}) int x"), Usage($"\r\n{string.Format(FeaturesResources.ProjectAvailability, "Proj1", FeaturesResources.Available)}\r\n{string.Format(FeaturesResources.ProjectAvailability, "Proj2", FeaturesResources.NotAvailable)}\r\n\r\n{FeaturesResources.UseTheNavigationBarToSwitchContext}", expectsWarningGlyph: true) });
         }
 
-        [WorkItem(1020944)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        [WorkItem(1020944, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1020944")]
+        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
         public async Task LabelsValidInLinkedDocuments()
         {
             var markup = @"<Workspace>
@@ -4004,8 +4021,8 @@ class C
             await VerifyWithReferenceWorkerAsync(markup, new[] { MainDescription($"({FeaturesResources.Label}) LABEL"), Usage("") });
         }
 
-        [WorkItem(1020944)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        [WorkItem(1020944, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1020944")]
+        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
         public async Task RangeVariablesValidInLinkedDocuments()
         {
             var markup = @"<Workspace>
@@ -4030,8 +4047,8 @@ class C
             await VerifyWithReferenceWorkerAsync(markup, new[] { MainDescription($"({FeaturesResources.RangeVariable}) int y"), Usage("") });
         }
 
-        [WorkItem(1019766)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        [WorkItem(1019766, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1019766")]
+        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
         public async Task PointerAccessibility()
         {
             var markup = @"class C
@@ -4047,8 +4064,8 @@ class C
             await TestAsync(markup, MainDescription("bool void*.operator ==(void* left, void* right)"));
         }
 
-        [WorkItem(1114300)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        [WorkItem(1114300, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1114300")]
+        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
         public async Task AwaitingTaskOfArrayType()
         {
             var markup = @"
@@ -4064,8 +4081,8 @@ class Program
             await TestAsync(markup, MainDescription("int[]"));
         }
 
-        [WorkItem(1114300)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        [WorkItem(1114300, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1114300")]
+        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
         public async Task AwaitingTaskOfDynamic()
         {
             var markup = @"
@@ -4081,7 +4098,7 @@ class Program
             await TestAsync(markup, MainDescription("dynamic"));
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task MethodOverloadDifferencesIgnored()
         {
             var markup = @"<Workspace>
@@ -4111,7 +4128,7 @@ class C
             await VerifyWithReferenceWorkerAsync(markup, MainDescription(expectedDescription));
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task MethodOverloadDifferencesIgnored_ContainingType()
         {
             var markup = @"<Workspace>
@@ -4227,7 +4244,7 @@ class C
     </Submission>
 </Workspace>
 ";
-            using (var workspace = await TestWorkspaceFactory.CreateWorkspaceAsync(XElement.Parse(workspaceDefinition), workspaceKind: WorkspaceKind.Interactive))
+            using (var workspace = await TestWorkspace.CreateAsync(XElement.Parse(workspaceDefinition), workspaceKind: WorkspaceKind.Interactive))
             {
                 await TestWithOptionsAsync(workspace, MainDescription("(parameter) int x = 1"));
             }

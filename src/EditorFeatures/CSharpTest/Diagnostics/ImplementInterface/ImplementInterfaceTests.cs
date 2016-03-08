@@ -20,7 +20,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.ImplementIn
             return new Tuple<DiagnosticAnalyzer, CodeFixProvider>(null, new ImplementInterfaceCodeFixProvider());
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
         public async Task TestMethod()
         {
             await TestAsync(
@@ -28,7 +28,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.ImplementIn
 @"using System; interface IInterface { void Method1 ( ) ; } class Class : IInterface { public void Method1 ( ) { throw new NotImplementedException ( ) ; } } ");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
         public async Task TestMethodWhenClassBracesAreMissing()
         {
             await TestAsync(
@@ -36,7 +36,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.ImplementIn
 @"using System; interface IInterface { void Method1 ( ) ; } class Class : IInterface { public void Method1 ( ) { throw new NotImplementedException ( ) ; } } ");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
         public async Task TestInheritance1()
         {
             await TestAsync(
@@ -44,7 +44,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.ImplementIn
 @"using System; interface IInterface1 { void Method1 ( ) ; } interface IInterface2 : IInterface1 { } class Class : IInterface2 { public void Method1 ( ) { throw new NotImplementedException ( ) ; } } ");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
         public async Task TestInheritance2()
         {
             await TestAsync(
@@ -52,7 +52,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.ImplementIn
 @"using System; interface IInterface1 { } interface IInterface2 : IInterface1 { void Method1 ( ) ; } class Class : IInterface2 { public void Method1 ( ) { throw new NotImplementedException ( ) ; } } ");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
         public async Task TestInheritance3()
         {
             await TestAsync(
@@ -60,7 +60,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.ImplementIn
 @"using System; interface IInterface1 { void Method1 ( ) ; } interface IInterface2 : IInterface1 { void Method2 ( ) ; } class Class : IInterface2 { public void Method1 ( ) { throw new NotImplementedException ( ) ; } public void Method2 ( ) { throw new NotImplementedException ( ) ; } } ");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
         public async Task TestInheritanceMatchingMethod()
         {
             await TestAsync(
@@ -68,7 +68,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.ImplementIn
 @"using System; interface IInterface1 { void Method1 ( ) ; } interface IInterface2 : IInterface1 { void Method1 ( ) ; } class Class : IInterface2 { public void Method1 ( ) { throw new NotImplementedException ( ) ; } } ");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
         public async Task TestExistingConflictingMethodReturnType()
         {
             await TestAsync(
@@ -76,7 +76,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.ImplementIn
 @"using System; interface IInterface1 { void Method1 ( ) ; } class Class : IInterface1 { public int Method1 ( ) { return 0 ; } void IInterface1 . Method1 ( ) { throw new NotImplementedException ( ) ; } } ");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
         public async Task TestExistingConflictingMethodParameters()
         {
             await TestAsync(
@@ -84,7 +84,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.ImplementIn
 @"using System; interface IInterface1 { void Method1 ( int i ) ; } class Class : IInterface1 { public void Method1 ( int i ) { throw new NotImplementedException ( ) ; } public void Method1 ( string i ) { } } ");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
         public async Task TestImplementGenericType()
         {
             await TestAsync(
@@ -92,7 +92,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.ImplementIn
 @"using System; interface IInterface1 < T > { void Method1 ( T t ) ; } class Class : IInterface1 < int > { public void Method1 ( int t ) { throw new NotImplementedException ( ) ; } } ");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
         public async Task TestImplementGenericTypeWithGenericMethod()
         {
             await TestAsync(
@@ -100,7 +100,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.ImplementIn
 @"using System; interface IInterface1 < T > { void Method1 < U > ( T t , U u ) ; } class Class : IInterface1 < int > { public void Method1 < U > ( int t , U u ) { throw new NotImplementedException ( ) ; } } ");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
         public async Task TestImplementGenericTypeWithGenericMethodWithNaturalConstraint()
         {
             await TestAsync(
@@ -108,7 +108,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.ImplementIn
 @"using System; interface IInterface1 < T > { void Method1 < U > ( T t , U u ) where U : IList < T > ; } class Class : IInterface1 < int > { public void Method1 < U > ( int t , U u ) where U : IList<int> { throw new NotImplementedException ( ) ; } } ");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
         public async Task TestImplementGenericTypeWithGenericMethodWithUnexpressibleConstraint()
         {
             await TestAsync(
@@ -116,7 +116,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.ImplementIn
 @"using System; interface IInterface1 < T > { void Method1 < U > ( T t , U u ) where U : T ; } class Class : IInterface1 < int > { void IInterface1 < int > . Method1 < U > ( int t , U u ) { throw new NotImplementedException ( ) ; } } ");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
         public async Task TestArrayType()
         {
             await TestAsync(
@@ -124,7 +124,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.ImplementIn
 @"using System; interface I { string [ ] M ( ) ; } class C : I { public string [ ] M ( ) { throw new NotImplementedException ( ) ; } } ");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
         public async Task TestImplementThroughFieldMember()
         {
             await TestAsync(
@@ -133,7 +133,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.ImplementIn
 index: 1);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
         public async Task TestImplementThroughFieldMemberInterfaceWithIndexer()
         {
             await TestAsync(
@@ -143,7 +143,7 @@ index: 1);
         }
 
         [WorkItem(472, "https://github.com/dotnet/roslyn/issues/472")]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
         public async Task TestImplementThroughFieldMemberRemoveUnnecessaryCast()
         {
             await TestAsync(
@@ -153,7 +153,7 @@ index: 1);
         }
 
         [WorkItem(472, "https://github.com/dotnet/roslyn/issues/472")]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
         public async Task TestImplementThroughFieldMemberRemoveUnnecessaryCastAndThis()
         {
             await TestAsync(
@@ -162,7 +162,7 @@ index: 1);
 index: 1);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
         public async Task TestImplementAbstract()
         {
             await TestAsync(
@@ -171,7 +171,7 @@ index: 1);
 index: 1);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
         public async Task TestImplementInterfaceWithRefOutParameters()
         {
             await TestAsync(
@@ -180,7 +180,7 @@ index: 1);
 index: 1);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
         public async Task TestConflictingMethods1()
         {
             await TestAsync(
@@ -188,7 +188,7 @@ index: 1);
 @"using System; class B { public int Method1 ( ) { } } class C : B , I { void I.Method1 ( ) { throw new NotImplementedException ( ) ; } } interface I { void Method1 ( ) ; } ");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
         public async Task TestConflictingProperties()
         {
             await TestAsync(
@@ -196,16 +196,16 @@ index: 1);
 @"using System ; class Test : I1 { int I1 . Prop { get { throw new NotImplementedException ( ) ; } set { throw new NotImplementedException ( ) ; } } int Prop { get ; set ; } } interface I1 { int Prop { get ; set ; } } ");
         }
 
-        [WorkItem(539043)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
+        [WorkItem(539043, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539043")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
         public async Task TestExplicitProperties()
         {
             await TestMissingAsync(
 @"interface I2 { decimal Calc { get ; } } class C : [|I2|] { protected decimal pay ; decimal I2 . Calc { get { return pay ; } } } ");
         }
 
-        [WorkItem(539489)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
+        [WorkItem(539489, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539489")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
         public async Task TestEscapedMethodName()
         {
             await TestAsync(
@@ -213,8 +213,8 @@ index: 1);
 @"using System; interface IInterface { void @M ( ) ; } class Class : IInterface { public void M ( ) { throw new NotImplementedException ( ) ; } } ");
         }
 
-        [WorkItem(539489)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
+        [WorkItem(539489, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539489")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
         public async Task TestEscapedMethodKeyword()
         {
             await TestAsync(
@@ -222,8 +222,8 @@ index: 1);
 @"using System; interface IInterface { void @int ( ) ; } class Class : IInterface { public void @int ( ) { throw new NotImplementedException ( ) ; } } ");
         }
 
-        [WorkItem(539489)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
+        [WorkItem(539489, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539489")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
         public async Task TestEscapedInterfaceName1()
         {
             await TestAsync(
@@ -231,8 +231,8 @@ index: 1);
 @"using System; interface @IInterface { void M ( ) ; } class Class : @IInterface { void IInterface . M ( ) { throw new NotImplementedException ( ) ; } string M ( ) ; } ");
         }
 
-        [WorkItem(539489)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
+        [WorkItem(539489, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539489")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
         public async Task TestEscapedInterfaceName2()
         {
             await TestAsync(
@@ -240,8 +240,8 @@ index: 1);
 @"using System; interface @IInterface { void @M ( ) ; } class Class : @IInterface { void IInterface . M ( ) { throw new NotImplementedException ( ) ; } string M ( ) ; } ");
         }
 
-        [WorkItem(539489)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
+        [WorkItem(539489, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539489")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
         public async Task TestEscapedInterfaceKeyword1()
         {
             await TestAsync(
@@ -249,8 +249,8 @@ index: 1);
 @"using System; interface @int { void M ( ) ; } class Class : @int { void @int . M ( ) { throw new NotImplementedException ( ) ; } string M ( ) ; } ");
         }
 
-        [WorkItem(539489)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
+        [WorkItem(539489, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539489")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
         public async Task TestEscapedInterfaceKeyword2()
         {
             await TestAsync(
@@ -258,8 +258,8 @@ index: 1);
 @"using System; interface @int { void @bool ( ) ; } class Class : @int { void @int . @bool ( ) { throw new NotImplementedException ( ) ; } string @bool ( ) ; } ");
         }
 
-        [WorkItem(539522)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
+        [WorkItem(539522, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539522")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
         public async Task TestPropertyFormatting()
         {
             await TestAsync(
@@ -294,7 +294,7 @@ public class A : DD
 compareTokens: false);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
         public async Task TestCommentPlacement()
         {
             await TestAsync(
@@ -323,8 +323,8 @@ public class A : DD
 compareTokens: false);
         }
 
-        [WorkItem(539991)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
+        [WorkItem(539991, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539991")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
         public async Task TestBracePlacement()
         {
             await TestAsync(
@@ -342,16 +342,16 @@ class C : IServiceProvider
 compareTokens: false);
         }
 
-        [WorkItem(540318)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
+        [WorkItem(540318, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540318")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
         public async Task TestMissingWithIncompleteMember()
         {
             await TestMissingAsync(
 @"interface ITest { void Method ( ) ; } class Test : [|ITest|] { p public void Method ( ) { throw new NotImplementedException ( ) ; } } ");
         }
 
-        [WorkItem(541380)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
+        [WorkItem(541380, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541380")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
         public async Task TestExplicitProperty()
         {
             await TestAsync(
@@ -360,8 +360,8 @@ compareTokens: false);
 index: 1);
         }
 
-        [WorkItem(541981)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
+        [WorkItem(541981, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541981")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
         public async Task TestNoDelegateThroughField1()
         {
             await TestActionCountAsync(
@@ -381,8 +381,8 @@ index: 1);
 index: 2);
         }
 
-        [WorkItem(768799)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
+        [WorkItem(768799, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/768799")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
         public async Task TestImplementIReadOnlyListThroughField()
         {
             await TestAsync(
@@ -396,8 +396,8 @@ IEnumerator IEnumerable.GetEnumerator() { return ((IReadOnlyList<int>)field).Get
 index: 1);
         }
 
-        [WorkItem(768799)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
+        [WorkItem(768799, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/768799")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
         public async Task TestImplementIReadOnlyListThroughProperty()
         {
             await TestAsync(
@@ -411,8 +411,8 @@ IEnumerator IEnumerable.GetEnumerator() { return ((IReadOnlyList<int>)field).Get
 index: 1);
         }
 
-        [WorkItem(768799)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
+        [WorkItem(768799, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/768799")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
         public async Task TestImplementInterfaceThroughField()
         {
             await TestAsync(
@@ -421,8 +421,8 @@ index: 1);
 index: 1);
         }
 
-        [WorkItem(768799)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
+        [WorkItem(768799, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/768799")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
         public async Task TestImplementInterfaceThroughField_FieldImplementsMultipleInterfaces()
         {
             await TestActionCountAsync(
@@ -441,8 +441,8 @@ index: 1);
 index: 1);
         }
 
-        [WorkItem(768799)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
+        [WorkItem(768799, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/768799")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
         public async Task TestImplementInterfaceThroughField_MultipleFieldsCanImplementInterface()
         {
             await TestActionCountAsync(
@@ -458,8 +458,8 @@ index: 1);
 index: 2);
         }
 
-        [WorkItem(768799)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
+        [WorkItem(768799, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/768799")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
         public async Task TestImplementInterfaceThroughField_MultipleFieldsForMultipleInterfaces()
         {
             await TestActionCountAsync(
@@ -478,8 +478,8 @@ index: 1);
 index: 1);
         }
 
-        [WorkItem(768799)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
+        [WorkItem(768799, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/768799")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
         public async Task TestNoImplementThroughIndexer()
         {
             await TestActionCountAsync(
@@ -487,8 +487,8 @@ index: 1);
 count: 2);
         }
 
-        [WorkItem(768799)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
+        [WorkItem(768799, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/768799")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
         public async Task TestNoImplementThroughWriteOnlyProperty()
         {
             await TestActionCountAsync(
@@ -496,7 +496,7 @@ count: 2);
 count: 2);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
         public async Task TestImplementEvent()
         {
             await TestAsync(
@@ -505,7 +505,7 @@ count: 2);
 index: 0);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
         public async Task TestImplementEventAbstractly()
         {
             await TestAsync(
@@ -514,7 +514,7 @@ index: 0);
 index: 1);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
         public async Task TestImplementEventExplicitly()
         {
             await TestAsync(
@@ -523,7 +523,7 @@ index: 1);
 index: 2);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
         public async Task TestFaultToleranceInStaticMembers()
         {
             await TestAsync(
@@ -531,7 +531,7 @@ index: 2);
 @"using System ; interface IFoo { static string Name { set ; get ; } static int Foo ( string s ) ; } class Program : IFoo { public string Name { get { throw new NotImplementedException ( ) ; } set { throw new NotImplementedException ( ) ; } } public int Foo ( string s ) { throw new NotImplementedException ( ) ; } } ");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
         public async Task TestIndexers()
         {
             await TestAsync(
@@ -539,7 +539,7 @@ index: 2);
 @"using System ; public interface ISomeInterface { int this [ int index ] { get ; set ; } } class IndexerClass : ISomeInterface { public int this [ int index ] { get { throw new NotImplementedException ( ) ; } set { throw new NotImplementedException ( ) ; } } } ");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
         public async Task TestIndexersExplicit()
         {
             await TestAsync(
@@ -548,7 +548,7 @@ index: 2);
 index: 1);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
         public async Task TestIndexersWithASingleAccessor()
         {
             await TestAsync(
@@ -556,8 +556,8 @@ index: 1);
 @"using System ; public interface ISomeInterface { int this [ int index ] { get ; } } class IndexerClass : ISomeInterface { public int this [ int index ] { get { throw new NotImplementedException ( ) ; } } } ");
         }
 
-        [WorkItem(542357)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
+        [WorkItem(542357, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542357")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
         public async Task TestConstraints1()
         {
             await TestAsync(
@@ -565,8 +565,8 @@ index: 1);
 @"using System ; interface I { void Foo < T > ( ) where T : class ; } class A : I { public void Foo < T > ( ) where T : class { throw new NotImplementedException ( ) ; } } ");
         }
 
-        [WorkItem(542357)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
+        [WorkItem(542357, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542357")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
         public async Task TestConstraintsExplicit()
         {
             await TestAsync(
@@ -575,8 +575,8 @@ index: 1);
 index: 1);
         }
 
-        [WorkItem(542357)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
+        [WorkItem(542357, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542357")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
         public async Task TestUsingAddedForConstraint()
         {
             await TestAsync(
@@ -584,8 +584,8 @@ index: 1);
 @"using System ; interface I { void Foo < T > ( ) where T : System . Attribute ; } class A : I { public void Foo < T > ( ) where T : Attribute { throw new NotImplementedException ( ) ; } } ");
         }
 
-        [WorkItem(542379)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
+        [WorkItem(542379, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542379")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
         public async Task TestIndexer()
         {
             await TestAsync(
@@ -593,8 +593,8 @@ index: 1);
 @"using System ; interface I { int this [ int x ] { get ; set ; } } class C : I { public int this [ int x ] { get { throw new NotImplementedException ( ) ; } set { throw new NotImplementedException ( ) ; } } } ");
         }
 
-        [WorkItem(542588)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
+        [WorkItem(542588, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542588")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
         public async Task TestRecursiveConstraint1()
         {
             await TestAsync(
@@ -602,8 +602,8 @@ index: 1);
 @"using System ; interface I { void Foo < T > ( ) where T : IComparable < T > ; } class C : I { public void Foo < T > ( ) where T : IComparable < T > { throw new NotImplementedException ( ) ; } } ");
         }
 
-        [WorkItem(542588)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
+        [WorkItem(542588, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542588")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
         public async Task TestRecursiveConstraint2()
         {
             await TestAsync(
@@ -612,8 +612,8 @@ index: 1);
 index: 1);
         }
 
-        [WorkItem(542587)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
+        [WorkItem(542587, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542587")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
         public async Task TestUnexpressibleConstraint1()
         {
             await TestAsync(
@@ -621,8 +621,8 @@ index: 1);
 @"using System ; interface I < S > { void Foo < T > ( ) where T : class , S ; } class A : I < string > { void I < string > . Foo < T > ( ) { throw new NotImplementedException ( ) ; } } ");
         }
 
-        [WorkItem(542587)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
+        [WorkItem(542587, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542587")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
         public async Task TestUnexpressibleConstraint2()
         {
             await TestAsync(
@@ -630,8 +630,8 @@ index: 1);
 @"using System ; interface I < S > { void Foo < T > ( ) where T : class , S ; } class A : I < object > { public void Foo < T > ( ) where T : class { throw new NotImplementedException ( ) ; } } ");
         }
 
-        [WorkItem(542587)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
+        [WorkItem(542587, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542587")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
         public async Task TestUnexpressibleConstraint3()
         {
             await TestAsync(
@@ -640,8 +640,8 @@ index: 1);
 index: 1);
         }
 
-        [WorkItem(542587)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
+        [WorkItem(542587, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542587")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
         public async Task TestUnexpressibleConstraint4()
         {
             await TestAsync(
@@ -649,8 +649,8 @@ index: 1);
 @"using System ; interface I < S > { void Foo < T > ( ) where T : class , S ; } class A : I < Delegate > { void I < Delegate > . Foo < T > ( ) { throw new NotImplementedException ( ) ; } } ");
         }
 
-        [WorkItem(542587)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
+        [WorkItem(542587, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542587")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
         public async Task TestUnexpressibleConstraint5()
         {
             await TestAsync(
@@ -658,8 +658,8 @@ index: 1);
 @"using System ; interface I < S > { void Foo < T > ( ) where T : class , S ; } class A : I < MulticastDelegate > { void I < MulticastDelegate > . Foo < T > ( ) { throw new NotImplementedException ( ) ; } } ");
         }
 
-        [WorkItem(542587)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
+        [WorkItem(542587, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542587")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
         public async Task TestUnexpressibleConstraint6()
         {
             await TestAsync(
@@ -667,8 +667,8 @@ index: 1);
 @"using System ; interface I < S > { void Foo < T > ( ) where T : class , S ; } delegate void Bar ( ) ; class A : I < Bar > { void I < Bar > . Foo < T > ( ) { throw new NotImplementedException ( ) ; } } ");
         }
 
-        [WorkItem(542587)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
+        [WorkItem(542587, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542587")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
         public async Task TestUnexpressibleConstraint7()
         {
             await TestAsync(
@@ -676,8 +676,8 @@ index: 1);
 @"using System ; interface I < S > { void Foo < T > ( ) where T : class , S ; } class A : I < Enum > { void I < Enum > . Foo < T > ( ) { throw new NotImplementedException ( ) ; } } ");
         }
 
-        [WorkItem(542587)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
+        [WorkItem(542587, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542587")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
         public async Task TestUnexpressibleConstraint8()
         {
             await TestAsync(
@@ -685,8 +685,8 @@ index: 1);
 @"using System ; interface I < S > { void Foo < T > ( ) where T : class , S ; } class A : I < int [ ] > { void I < int [ ] > . Foo < T > ( ) { throw new NotImplementedException ( ) ; } } ");
         }
 
-        [WorkItem(542587)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
+        [WorkItem(542587, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542587")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
         public async Task TestUnexpressibleConstraint9()
         {
             await TestAsync(
@@ -694,8 +694,8 @@ index: 1);
 @"using System ; interface I < S > { void Foo < T > ( ) where T : class , S ; } enum E { } class A : I < E > { void I < E > . Foo < T > ( ) { throw new NotImplementedException ( ) ; } } ");
         }
 
-        [WorkItem(542621)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
+        [WorkItem(542621, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542621")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
         public async Task TestUnexpressibleConstraint10()
         {
             await TestAsync(
@@ -703,8 +703,8 @@ index: 1);
 @"using System ; interface I < S > { void Foo < T > ( ) where T : S ; } class A : I < ValueType > { void I < ValueType > . Foo < T > ( ) { throw new NotImplementedException ( ) ; } } ");
         }
 
-        [WorkItem(542669)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
+        [WorkItem(542669, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542669")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
         public async Task TestArrayConstraint()
         {
             await TestAsync(
@@ -712,8 +712,8 @@ index: 1);
 @"using System ; interface I < S > { void Foo < T > ( ) where T : S ; } class C : I < Array > { void I < Array > . Foo < T > ( ) { throw new NotImplementedException ( ) ; } } ");
         }
 
-        [WorkItem(542743)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
+        [WorkItem(542743, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542743")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
         public async Task TestMultipleClassConstraints()
         {
             await TestAsync(
@@ -721,8 +721,8 @@ index: 1);
 @"using System ; interface I < S > { void Foo < T > ( ) where T : Exception , S ; } class C : I < Attribute > { void I < Attribute > . Foo < T > ( ) { throw new NotImplementedException ( ) ; } } ");
         }
 
-        [WorkItem(542751)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
+        [WorkItem(542751, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542751")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
         public async Task TestClassConstraintAndRefConstraint()
         {
             await TestAsync(
@@ -730,8 +730,8 @@ index: 1);
 @"using System ; interface I < S > { void Foo < T > ( ) where T : class , S ; } class C : I < Exception > { void I < Exception > . Foo < T > ( ) { throw new NotImplementedException ( ) ; } } ");
         }
 
-        [WorkItem(542505)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
+        [WorkItem(542505, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542505")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
         public async Task TestRenameConflictingTypeParameters1()
         {
             await TestAsync(
@@ -739,8 +739,8 @@ index: 1);
 @"using System ; using System . Collections . Generic ; interface I < T > { void Foo < S > ( T x , IList < S > list ) where S : T ; } class A < S > : I < S > { public void Foo < S1 > ( S x , IList < S1 > list ) where S1 : S { throw new NotImplementedException ( ) ; } } ");
         }
 
-        [WorkItem(542505)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
+        [WorkItem(542505, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542505")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
         public async Task TestRenameConflictingTypeParameters2()
         {
             await TestAsync(
@@ -749,8 +749,8 @@ index: 1);
 index: 1);
         }
 
-        [WorkItem(542505)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
+        [WorkItem(542505, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542505")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
         public async Task TestRenameConflictingTypeParameters3()
         {
             await TestAsync(
@@ -758,8 +758,8 @@ index: 1);
 @"using System ; using System . Collections . Generic ; interface I < X , Y > { void Foo < A , B > ( X x , Y y , IList < A > list1 , IList < B > list2 ) where A : IList < B > where B : IList < A > ; } class C < A , B > : I < A , B > { public void Foo < A1 , B1 > ( A x , B y , IList < A1 > list1 , IList < B1 > list2 ) where A1 : IList < B1 > where B1 : IList < A1 > { throw new NotImplementedException ( ) ; } } ");
         }
 
-        [WorkItem(542505)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
+        [WorkItem(542505, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542505")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
         public async Task TestRenameConflictingTypeParameters4()
         {
             await TestAsync(
@@ -768,8 +768,8 @@ index: 1);
 index: 1);
         }
 
-        [WorkItem(542506)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
+        [WorkItem(542506, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542506")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
         public async Task TestNameSimplification()
         {
             await TestAsync(
@@ -777,8 +777,8 @@ index: 1);
 @"using System ; class A < T > { class B { } interface I { void Foo ( B x ) ; } class C < U > : I { public void Foo ( B x ) { throw new NotImplementedException ( ) ; } } } ");
         }
 
-        [WorkItem(542506)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
+        [WorkItem(542506, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542506")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
         public async Task TestNameSimplification2()
         {
             await TestAsync(
@@ -786,8 +786,8 @@ index: 1);
 @"using System ; class A < T > { class B { } interface I { void Foo ( B [ ] x ) ; } class C < U > : I { public void Foo ( B [ ] x ) { throw new NotImplementedException ( ) ; } } } ");
         }
 
-        [WorkItem(542506)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
+        [WorkItem(542506, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542506")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
         public async Task TestNameSimplification3()
         {
             await TestAsync(
@@ -795,8 +795,8 @@ index: 1);
 @"using System ; class A < T > { class B { } interface I { void Foo ( B [ ] [ , ] [ , , ] [ , , , ] x ) ; } class C < U > : I { public void Foo ( B [ ] [ , ] [ , , ] [ , , , ] x ) { throw new NotImplementedException ( ) ; } } } ");
         }
 
-        [WorkItem(544166)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
+        [WorkItem(544166, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544166")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
         public async Task TestImplementAbstractProperty()
         {
             await TestAsync(
@@ -805,16 +805,16 @@ index: 1);
 index: 1);
         }
 
-        [WorkItem(544210)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
+        [WorkItem(544210, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544210")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
         public async Task TestMissingOnWrongArity()
         {
             await TestMissingAsync(
 @"interface I1<T> { int X { get; set; } } class C : [|I1|] { }");
         }
 
-        [WorkItem(544281)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
+        [WorkItem(544281, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544281")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
         public async Task TestImplicitDefaultValue()
         {
             await TestAsync(
@@ -822,8 +822,8 @@ index: 1);
 @"using System ; interface IOptional { int Foo ( int g = 0 ) ; } class Opt : IOptional { public int Foo ( int g = 0 ) { throw new NotImplementedException ( ) ; } } ");
         }
 
-        [WorkItem(544281)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
+        [WorkItem(544281, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544281")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
         public async Task TestExplicitDefaultValue()
         {
             await TestAsync(
@@ -832,7 +832,7 @@ index: 1);
 index: 1);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
         public async Task TestMissingInHiddenType()
         {
             await TestMissingAsync(
@@ -845,7 +845,7 @@ class Program : [|IComparable|]
 #line default");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
         public async Task TestGenerateIntoVisiblePart()
         {
             await TestAsync(
@@ -879,7 +879,7 @@ partial class Program : IComparable
 compareTokens: false);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
         public async Task TestGenerateIfAvailableRegionExists()
         {
             await TestAsync(
@@ -912,8 +912,8 @@ partial class Program
 compareTokens: false);
         }
 
-        [WorkItem(545334)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
+        [WorkItem(545334, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545334")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
         public async Task TestNoGenerateInVenusCase1()
         {
             await TestMissingAsync(
@@ -925,8 +925,8 @@ class Foo : [|IComparable|]
 ");
         }
 
-        [WorkItem(545476)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
+        [WorkItem(545476, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545476")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
         public async Task TestOptionalDateTime1()
         {
             await TestAsync(
@@ -934,8 +934,8 @@ class Foo : [|IComparable|]
 @"using System ; using System . Runtime . CompilerServices ; using System . Runtime . InteropServices ; interface IFoo { void Foo ( [ Optional ] [ DateTimeConstant ( 100 ) ] DateTime x ) ; } public class C : IFoo { public void Foo ( [ DateTimeConstant ( 100 ), Optional ] DateTime x ) { throw new NotImplementedException ( ) ; } } ");
         }
 
-        [WorkItem(545476)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
+        [WorkItem(545476, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545476")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
         public async Task TestOptionalDateTime2()
         {
             await TestAsync(
@@ -944,8 +944,8 @@ class Foo : [|IComparable|]
 index: 1);
         }
 
-        [WorkItem(545477)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
+        [WorkItem(545477, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545477")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
         public async Task TestIUnknownIDispatchAttributes1()
         {
             await TestAsync(
@@ -953,8 +953,8 @@ index: 1);
 @"using System ; using System . Runtime . CompilerServices ; using System . Runtime . InteropServices ; interface IFoo { void Foo1 ( [ Optional ] [ IUnknownConstant ] object x ) ; void Foo2 ( [ Optional ] [ IDispatchConstant ] object x ) ; } public class C : IFoo { public void Foo1 ( [ IUnknownConstant, Optional ] object x ) { throw new NotImplementedException ( ) ; } public void Foo2 ( [ IDispatchConstant, Optional ] object x ) { throw new NotImplementedException ( ) ; } } ");
         }
 
-        [WorkItem(545477)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
+        [WorkItem(545477, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545477")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
         public async Task TestIUnknownIDispatchAttributes2()
         {
             await TestAsync(
@@ -963,8 +963,8 @@ index: 1);
 index: 1);
         }
 
-        [WorkItem(545464)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
+        [WorkItem(545464, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545464")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
         public async Task TestTypeNameConflict()
         {
             await TestAsync(
@@ -972,7 +972,7 @@ index: 1);
 @"using System ; interface IFoo { void Foo ( ) ; } public class Foo : IFoo { void IFoo . Foo ( ) { throw new NotImplementedException ( ) ; } } ");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
         public async Task TestStringLiteral()
         {
             await TestAsync(
@@ -980,8 +980,8 @@ index: 1);
 @"using System ; interface IFoo { void Foo ( string s = ""\"""" ) ; } class B : IFoo { public void Foo ( string s = ""\"""" ) { throw new NotImplementedException ( ) ; } } ");
         }
 
-        [WorkItem(916114)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
+        [WorkItem(916114, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/916114")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
         public async Task TestOptionalNullableStructParameter1()
         {
             await TestAsync(
@@ -989,8 +989,8 @@ index: 1);
 @"using System ; struct b { } interface d { void m ( b? x = null, b? y = default(b?) ) ; } class c : d { public void m ( b? x = default(b?), b? y = default(b?) ) { throw new NotImplementedException ( ) ; } }");
         }
 
-        [WorkItem(916114)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
+        [WorkItem(916114, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/916114")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
         public async Task TestOptionalNullableStructParameter2()
         {
             await TestAsync(
@@ -998,8 +998,8 @@ index: 1);
 @"using System ; struct b { } interface d { void m ( b? x = null, b? y = default(b?) ) ; } class c : d { void d.m ( b? x, b? y ) { throw new NotImplementedException ( ) ; } }", 1);
         }
 
-        [WorkItem(916114)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
+        [WorkItem(916114, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/916114")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
         public async Task TestOptionalNullableIntParameter()
         {
             await TestAsync(
@@ -1007,8 +1007,8 @@ index: 1);
 @"using System ; interface d { void m ( int? x = 5, int? y = null ) ; } class c : d { public void m ( int? x = 5, int? y = default(int?) ) { throw new NotImplementedException ( ) ; } }");
         }
 
-        [WorkItem(545613)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
+        [WorkItem(545613, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545613")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
         public async Task TestOptionalWithNoDefaultValue()
         {
             await TestAsync(
@@ -1016,7 +1016,7 @@ index: 1);
 @"using System ; using System . Runtime . InteropServices ; interface I { void Foo ( [ Optional ] I o ) ; } class C : I { public void Foo ( [ Optional ] I o ) { throw new NotImplementedException ( ) ; } } ");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
         public async Task TestIntegralAndFloatLiterals()
         {
             await TestAsync(
@@ -1206,7 +1206,7 @@ class C : I
 compareTokens: false);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
         public async Task TestEnumLiterals()
         {
             await TestAsync(
@@ -1270,7 +1270,7 @@ class C : I
 compareTokens: false);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
         public async Task TestCharLiterals()
         {
             await TestAsync(
@@ -1371,8 +1371,8 @@ class C : I
 compareTokens: false);
         }
 
-        [WorkItem(545695)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
+        [WorkItem(545695, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545695")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
         public async Task TestRemoveParenthesesAroundTypeReference1()
         {
             await TestAsync(
@@ -1380,8 +1380,8 @@ compareTokens: false);
 @"using System ; interface I { void Foo ( DayOfWeek x = DayOfWeek . Friday ) ; } class C : I { DayOfWeek DayOfWeek { get ; set ; } public void Foo ( DayOfWeek x = DayOfWeek . Friday ) { throw new NotImplementedException ( ) ; } } ");
         }
 
-        [WorkItem(545696)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
+        [WorkItem(545696, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545696")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
         public async Task TestDecimalConstants1()
         {
             await TestAsync(
@@ -1389,8 +1389,8 @@ compareTokens: false);
 @"using System ; interface I { void Foo ( decimal x = decimal . MaxValue ) ; } class C : I { public void Foo ( decimal x = decimal . MaxValue ) { throw new NotImplementedException ( ) ; } } ");
         }
 
-        [WorkItem(545711)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
+        [WorkItem(545711, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545711")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
         public async Task TestNullablePrimitiveLiteral()
         {
             await TestAsync(
@@ -1398,8 +1398,8 @@ compareTokens: false);
 @"using System ; interface I { void Foo ( decimal ? x = decimal . MaxValue ) ; } class C : I { public void Foo ( decimal ? x = decimal . MaxValue ) { throw new NotImplementedException ( ) ; } } ");
         }
 
-        [WorkItem(545715)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
+        [WorkItem(545715, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545715")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
         public async Task TestNullableEnumType()
         {
             await TestAsync(
@@ -1407,8 +1407,8 @@ compareTokens: false);
 @"using System ; interface I { void Foo ( DayOfWeek ? x = DayOfWeek . Friday ) ; } class C : I { public void Foo ( DayOfWeek ? x = DayOfWeek . Friday ) { throw new NotImplementedException ( ) ; } } ");
         }
 
-        [WorkItem(545752)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
+        [WorkItem(545752, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545752")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
         public async Task TestByteLiterals()
         {
             await TestAsync(
@@ -1416,8 +1416,8 @@ compareTokens: false);
 @"using System ; interface I { void Foo ( byte x = 1 ) ; } class C : I { public void Foo ( byte x = 1 ) { throw new NotImplementedException ( ) ; } } ");
         }
 
-        [WorkItem(545736)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
+        [WorkItem(545736, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545736")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
         public async Task TestCastedOptionalParameter1()
         {
             const string code = @"
@@ -1449,8 +1449,8 @@ class C : I
             await TestAsync(code, expected, compareTokens: false);
         }
 
-        [WorkItem(545737)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
+        [WorkItem(545737, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545737")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
         public async Task TestCastedEnumValue()
         {
             await TestAsync(
@@ -1458,8 +1458,8 @@ class C : I
 @"using System ; interface I { void Foo ( ConsoleColor x = ( ConsoleColor ) int . MaxValue ) ; } class C : I { public void Foo ( ConsoleColor x = ( ConsoleColor ) int . MaxValue ) { throw new NotImplementedException ( ) ; } } ");
         }
 
-        [WorkItem(545785)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
+        [WorkItem(545785, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545785")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
         public async Task TestNoCastFromZeroToEnum()
         {
             await TestAsync(
@@ -1467,8 +1467,8 @@ class C : I
 @"using System ; enum E { A = 1 , } interface I { void Foo ( E x = 0 ) ; } class C : I { public void Foo ( E x = 0 ) { throw new NotImplementedException ( ) ; } } ");
         }
 
-        [WorkItem(545793)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
+        [WorkItem(545793, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545793")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
         public async Task TestMultiDimArray()
         {
             await TestAsync(
@@ -1476,8 +1476,8 @@ class C : I
 @"using System ; using System . Runtime . InteropServices ; interface I { void Foo ( [ Optional ] [ DefaultParameterValue ( 1 ) ] int x , int [ , ] y ) ; } class C : I { public void Foo ( [ DefaultParameterValue ( 1 ), Optional ] int x = 1 , int [ , ] y = null ) { throw new NotImplementedException ( ) ; } } ");
         }
 
-        [WorkItem(545794)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
+        [WorkItem(545794, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545794")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
         public async Task TestParametersAfterOptionalParameter()
         {
             await TestAsync(
@@ -1485,8 +1485,8 @@ class C : I
 @"using System ; using System . Runtime . InteropServices ; interface I { void Foo ( [ Optional , DefaultParameterValue ( 1 ) ] int x , int [ ] y , int [ ] z ) ; } class C : I { public void Foo ( [ DefaultParameterValue ( 1 ), Optional ] int x = 1 , int [ ] y = null , int [ ] z = null ) { throw new NotImplementedException ( ) ; } } ");
         }
 
-        [WorkItem(545605)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
+        [WorkItem(545605, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545605")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
         public async Task TestAttributeInParameter()
         {
             await TestAsync(
@@ -1521,8 +1521,8 @@ class C : I
 compareTokens: false);
         }
 
-        [WorkItem(545897)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
+        [WorkItem(545897, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545897")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
         public async Task TestNameConflictBetweenMethodAndTypeParameter()
         {
             await TestAsync(
@@ -1530,8 +1530,8 @@ compareTokens: false);
 @"using System ; interface I < S > { void T1 < T > ( S x , T y ) ; } class C < T > : I < T > { public void T1 < T2 > ( T x , T2 y ) { throw new NotImplementedException ( ) ; } } ");
         }
 
-        [WorkItem(545895)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
+        [WorkItem(545895, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545895")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
         public async Task TestTypeParameterReplacementWithOuterType()
         {
             await TestAsync(
@@ -1539,8 +1539,8 @@ compareTokens: false);
 @"using System ; using System . Collections . Generic ; interface I < S > { void Foo < T > ( S y , List < T > . Enumerator x ) ; } class D < T > : I < T > { public void Foo < T1 > ( T y , List < T1 > . Enumerator x ) { throw new NotImplementedException ( ) ; } } ");
         }
 
-        [WorkItem(545864)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
+        [WorkItem(545864, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545864")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
         public async Task TestFloatConstant()
         {
             await TestAsync(
@@ -1548,8 +1548,8 @@ compareTokens: false);
 @"using System ; interface I { void Foo ( float x = 1E10F ) ; } class C : I { public void Foo ( float x = 1E+10F ) { throw new NotImplementedException ( ) ; } } ");
         }
 
-        [WorkItem(544640)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
+        [WorkItem(544640, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544640")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
         public async Task TestKeywordForTypeParameterName()
         {
             await TestAsync(
@@ -1557,8 +1557,8 @@ compareTokens: false);
 @"using System ; interface I { void Foo < @class > ( ) ; } class C : I { public void Foo < @class > ( ) { throw new NotImplementedException ( ) ; } } ");
         }
 
-        [WorkItem(545922)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
+        [WorkItem(545922, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545922")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
         public async Task TestExtremeDecimals()
         {
             await TestAsync(
@@ -1566,8 +1566,8 @@ compareTokens: false);
 @"using System ; interface I { void Foo1 ( decimal x = 1E28M ) ; void Foo2 ( decimal x = - 1E28M ) ; } class C : I { public void Foo1 ( decimal x = 10000000000000000000000000000M ) { throw new NotImplementedException ( ) ; } public void Foo2 ( decimal x = -10000000000000000000000000000M ) { throw new NotImplementedException ( ) ; } } ");
         }
 
-        [WorkItem(544659)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
+        [WorkItem(544659, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544659")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
         public async Task TestNonZeroScaleDecimals()
         {
             await TestAsync(
@@ -1575,8 +1575,8 @@ compareTokens: false);
 @"using System ; interface I { void Foo ( decimal x = 0.1M ) ; } class C : I { public void Foo ( decimal x = 0.1M ) { throw new NotImplementedException ( ) ; } } ");
         }
 
-        [WorkItem(544639)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
+        [WorkItem(544639, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544639")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
         public async Task TestUnterminatedComment()
         {
             await TestAsync(
@@ -1599,8 +1599,8 @@ class C : IServiceProvider /*
 ", compareTokens: false);
         }
 
-        [WorkItem(529920)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
+        [WorkItem(529920, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529920")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
         public async Task TestNewLineBeforeDirective()
         {
             await TestAsync(
@@ -1624,8 +1624,8 @@ class C : IServiceProvider
 ", compareTokens: false);
         }
 
-        [WorkItem(529947)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
+        [WorkItem(529947, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529947")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
         public async Task TestCommentAfterInterfaceList1()
         {
             await TestAsync(
@@ -1645,8 +1645,8 @@ class C : IServiceProvider // Implement interface
 ", compareTokens: false);
         }
 
-        [WorkItem(529947)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
+        [WorkItem(529947, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529947")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
         public async Task TestCommentAfterInterfaceList2()
         {
             await TestAsync(
@@ -1668,9 +1668,9 @@ class C : IServiceProvider
 ", compareTokens: false);
         }
 
-        [WorkItem(994456)]
-        [WorkItem(958699)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
+        [WorkItem(994456, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/994456")]
+        [WorkItem(958699, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/958699")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
         public async Task TestImplementIDisposable_NoDisposePattern()
         {
             await TestAsync(
@@ -1687,9 +1687,9 @@ class C : IDisposable
 ", index: 0, compareTokens: false);
         }
 
-        [WorkItem(994456)]
-        [WorkItem(958699)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
+        [WorkItem(994456, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/994456")]
+        [WorkItem(958699, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/958699")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
         public async Task TestImplementIDisposable_DisposePattern()
         {
             await TestAsync(
@@ -1703,9 +1703,9 @@ class C : IDisposable
 ", index: 1, compareTokens: false);
         }
 
-        [WorkItem(994456)]
-        [WorkItem(958699)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
+        [WorkItem(994456, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/994456")]
+        [WorkItem(958699, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/958699")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
         public async Task TestImplementIDisposableExplicitly_NoDisposePattern()
         {
             await TestAsync(
@@ -1722,9 +1722,9 @@ class C : IDisposable
 ", index: 2, compareTokens: false);
         }
 
-        [WorkItem(994456)]
-        [WorkItem(941469)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
+        [WorkItem(994456, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/994456")]
+        [WorkItem(941469, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/941469")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
         public async Task TestImplementIDisposableExplicitly_DisposePattern()
         {
             await TestAsync(
@@ -1746,9 +1746,9 @@ class C : System.IDisposable
 }}", index: 3, compareTokens: false);
         }
 
-        [WorkItem(994456)]
-        [WorkItem(958699)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
+        [WorkItem(994456, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/994456")]
+        [WorkItem(958699, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/958699")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
         public async Task TestImplementIDisposableAbstractly_NoDisposePattern()
         {
             await TestAsync(
@@ -1762,9 +1762,9 @@ abstract class C : IDisposable
 ", index: 2, compareTokens: false);
         }
 
-        [WorkItem(994456)]
-        [WorkItem(958699)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
+        [WorkItem(994456, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/994456")]
+        [WorkItem(958699, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/958699")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
         public async Task TestImplementIDisposableThroughMember_NoDisposePattern()
         {
             await TestAsync(
@@ -1785,8 +1785,8 @@ class C : IDisposable
 }", index: 2, compareTokens: false);
         }
 
-        [WorkItem(941469)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
+        [WorkItem(941469, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/941469")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
         public async Task TestImplementIDisposableExplicitly_NoNamespaceImportForSystem()
         {
             await TestAsync(
@@ -1798,8 +1798,8 @@ $@"class C : System.IDisposable
 ", index: 3, compareTokens: false);
         }
 
-        [WorkItem(951968)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
+        [WorkItem(951968, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/951968")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
         public async Task TestImplementIDisposableViaBaseInterface_NoDisposePattern()
         {
             await TestAsync(
@@ -1830,8 +1830,8 @@ class C : I
 }", index: 0, compareTokens: false);
         }
 
-        [WorkItem(951968)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
+        [WorkItem(951968, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/951968")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
         public async Task TestImplementIDisposableViaBaseInterface()
         {
             await TestAsync(
@@ -1859,8 +1859,8 @@ class C : I
 }}", index: 1, compareTokens: false);
         }
 
-        [WorkItem(951968)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
+        [WorkItem(951968, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/951968")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
         public async Task TestImplementIDisposableExplicitlyViaBaseInterface()
         {
             await TestAsync(
@@ -1888,8 +1888,8 @@ class C : I
 }}", index: 3, compareTokens: false);
         }
 
-        [WorkItem(941469)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
+        [WorkItem(941469, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/941469")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
         public async Task TestDontImplementDisposePatternForLocallyDefinedIDisposable()
         {
             await TestAsync(
@@ -1919,7 +1919,7 @@ class C : I
 }", index: 1, compareTokens: false);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
         public async Task TestDontImplementDisposePatternForStructures1()
         {
             await TestAsync(
@@ -1936,7 +1936,7 @@ struct S : IDisposable
 ", compareTokens: false);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
         public async Task TestDontImplementDisposePatternForStructures2()
         {
             await TestAsync(
@@ -1953,8 +1953,8 @@ struct S : IDisposable
 ", index: 1, compareTokens: false);
         }
 
-        [WorkItem(545924)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
+        [WorkItem(545924, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545924")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
         public async Task TestEnumNestedInGeneric()
         {
             await TestAsync(
@@ -1962,8 +1962,8 @@ struct S : IDisposable
 @"using System ; class C < T > { public enum E { X } } interface I { void Foo < T > ( C < T > . E x = C < T > . E . X ) ; } class D : I { public void Foo < T > ( C < T > . E x = C < T > . E . X ) { throw new NotImplementedException ( ) ; } } ");
         }
 
-        [WorkItem(545939)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
+        [WorkItem(545939, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545939")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
         public async Task TestUnterminatedString1()
         {
             await TestAsync(
@@ -1971,8 +1971,8 @@ struct S : IDisposable
 @"using System ; class C : IServiceProvider @"" "" { public object GetService (Type serviceType) { throw new NotImplementedException ( ) ; } } ");
         }
 
-        [WorkItem(545939)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
+        [WorkItem(545939, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545939")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
         public async Task TestUnterminatedString2()
         {
             await TestAsync(
@@ -1980,8 +1980,8 @@ struct S : IDisposable
 @"using System ; class C : IServiceProvider "" "" { public object GetService (Type serviceType) { throw new NotImplementedException ( ) ; } } ");
         }
 
-        [WorkItem(545939)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
+        [WorkItem(545939, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545939")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
         public async Task TestUnterminatedString3()
         {
             await TestAsync(
@@ -1989,8 +1989,8 @@ struct S : IDisposable
 @"using System ; class C : IServiceProvider @"""" { public object GetService (Type serviceType) { throw new NotImplementedException ( ) ; } } ");
         }
 
-        [WorkItem(545939)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
+        [WorkItem(545939, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545939")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
         public async Task TestUnterminatedString4()
         {
             await TestAsync(
@@ -1998,8 +1998,8 @@ struct S : IDisposable
 @"using System ; class C : IServiceProvider """" { public object GetService (Type serviceType) { throw new NotImplementedException ( ) ; } } ");
         }
 
-        [WorkItem(545940)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
+        [WorkItem(545940, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545940")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
         public async Task TestDecimalENotation()
         {
             await TestAsync(
@@ -2048,8 +2048,8 @@ class C : I
 }");
         }
 
-        [WorkItem(545938)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
+        [WorkItem(545938, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545938")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
         public async Task TestGenericEnumWithRenamedTypeParameters()
         {
             await TestAsync(
@@ -2057,8 +2057,8 @@ class C : I
 @"using System ; class C < T > { public enum E { X } } interface I < S > { void Foo < T > ( S y , C < T > . E x = C < T > . E . X ) ; } class D < T > : I < T > { public void Foo < T1 > ( T y , C < T1 > . E x = C < T1 > . E . X ) { throw new NotImplementedException ( ) ; } } ");
         }
 
-        [WorkItem(545919)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
+        [WorkItem(545919, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545919")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
         public async Task TestDoNotRenameTypeParameterToParameterName()
         {
             await TestAsync(
@@ -2066,8 +2066,8 @@ class C : I
 @"using System ; interface I < S > { void Foo < T > ( S T1 ) ; } class C < T > : I < T > { public void Foo < T2 > ( T T1 ) { throw new NotImplementedException ( ) ; } } ");
         }
 
-        [WorkItem(530265)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
+        [WorkItem(530265, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530265")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
         public async Task TestAttributes()
         {
             await TestAsync(
@@ -2075,8 +2075,8 @@ class C : I
 @"using System ; using System . Runtime . InteropServices ; interface I { [ return : MarshalAs ( UnmanagedType . U1 ) ] bool Foo ( [ MarshalAs ( UnmanagedType . U1 ) ] bool x ) ; } class C : I { [ return : MarshalAs ( UnmanagedType . U1 ) ] public bool Foo ( [ MarshalAs ( UnmanagedType . U1 ) ] bool x ) { throw new NotImplementedException ( ) ; } } ");
         }
 
-        [WorkItem(530265)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
+        [WorkItem(530265, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530265")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
         public async Task TestAttributesExplicit()
         {
             await TestAsync(
@@ -2085,8 +2085,8 @@ class C : I
 index: 1);
         }
 
-        [WorkItem(546443)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
+        [WorkItem(546443, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546443")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
         public async Task TestParameterNameWithTypeName()
         {
             await TestAsync(
@@ -2094,8 +2094,8 @@ index: 1);
 @"using System ; interface IFoo { void Bar ( DateTime DateTime ) ; } class C : IFoo { public void Bar ( DateTime DateTime ) { throw new NotImplementedException ( ) ; } } ");
         }
 
-        [WorkItem(530521)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
+        [WorkItem(530521, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530521")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
         public async Task TestUnboundGeneric()
         {
             await TestAsync(
@@ -2103,8 +2103,8 @@ index: 1);
 @"using System ; using System . Collections . Generic ; using System . Runtime . InteropServices ; interface I { [ return : MarshalAs ( UnmanagedType . CustomMarshaler , MarshalTypeRef = typeof ( List < > ) ) ] void Foo ( ) ; } class C : I { [ return : MarshalAs ( UnmanagedType . CustomMarshaler , MarshalTypeRef = typeof ( List < > ) ) ] public void Foo ( ) { throw new NotImplementedException ( ) ; } } ");
         }
 
-        [WorkItem(752436)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
+        [WorkItem(752436, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/752436")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
         public async Task TestQualifiedNameImplicitInterface()
         {
             await TestAsync(
@@ -2112,8 +2112,8 @@ index: 1);
 @"using System ; namespace N { public interface I { void M ( ) ; } } class C : N . I { public void M ( ) { throw new NotImplementedException ( ) ; } } ");
         }
 
-        [WorkItem(752436)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
+        [WorkItem(752436, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/752436")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
         public async Task TestQualifiedNameExplicitInterface()
         {
             await TestAsync(
@@ -2121,8 +2121,8 @@ index: 1);
 @"using System ; using N ; namespace N { public interface I { void M ( ) ; } } class C : N . I { void I . M ( ) { throw new NotImplementedException ( ) ; } } ", index: 1);
         }
 
-        [WorkItem(847464)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
+        [WorkItem(847464, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/847464")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
         public async Task TestImplementInterfaceForPartialType()
         {
             await TestAsync(
@@ -2145,8 +2145,8 @@ partial class C : I
 ", index: 1);
         }
 
-        [WorkItem(847464)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
+        [WorkItem(847464, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/847464")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
         public async Task TestImplementInterfaceForPartialType2()
         {
             await TestAsync(
@@ -2169,8 +2169,8 @@ partial class C { }
 ", index: 1);
         }
 
-        [WorkItem(847464)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
+        [WorkItem(847464, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/847464")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
         public async Task TestImplementInterfaceForPartialType3()
         {
             await TestAsync(
@@ -2195,8 +2195,8 @@ partial class C : I2 { }
 ", index: 1);
         }
 
-        [WorkItem(752447)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
+        [WorkItem(752447, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/752447")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
         public async Task TestExplicitImplOfIndexedProperty()
         {
             var initial = @"
@@ -2238,8 +2238,8 @@ public class Test : IFoo
             await TestAsync(initial, expected, index: 1);
         }
 
-        [WorkItem(602475)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
+        [WorkItem(602475, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/602475")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
         public async Task TestImplicitImplOfIndexedProperty()
         {
             var initial = @"
@@ -2297,7 +2297,7 @@ class Foo : [|IComparable|]
         }
 #endif
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
         public async Task TestImplementInterfaceForImplicitIDisposable()
         {
             await TestAsync(
@@ -2318,7 +2318,7 @@ class Program : IDisposable
 ", index: 1);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
         public async Task TestImplementInterfaceForExplicitIDisposable()
         {
             await TestAsync(
@@ -2341,7 +2341,7 @@ class Program : IDisposable
 ", index: 3);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
         public async Task TestImplementInterfaceForIDisposableNonApplicable1()
         {
             await TestAsync(
@@ -2368,7 +2368,7 @@ class Program : IDisposable
 ", index: 0);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
         public async Task TestImplementInterfaceForIDisposableNonApplicable2()
         {
             await TestAsync(
@@ -2399,7 +2399,7 @@ class Program : IDisposable
 ", index: 0);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
         public async Task TestImplementInterfaceForExplicitIDisposableWithSealedClass()
         {
             await TestAsync(
@@ -2420,8 +2420,8 @@ sealed class Program : IDisposable
 ", index: 3);
         }
 
-        [WorkItem(939123)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
+        [WorkItem(939123, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/939123")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
         public async Task TestNoComAliasNameAttributeOnMethodParameters()
         {
             await TestAsync(
@@ -2432,8 +2432,8 @@ interface I { void M([System.Runtime.InteropServices.ComAliasName(""pAlias"")]in
 class C : I { public void M(int p) { throw new NotImplementedException(); } }");
         }
 
-        [WorkItem(939123)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
+        [WorkItem(939123, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/939123")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
         public async Task TestNoComAliasNameAttributeOnMethodReturnType()
         {
             await TestAsync(
@@ -2446,8 +2446,8 @@ interface I { [return:ComAliasName(""pAlias1"")] long M([ComAliasName(""pAlias2"
 class C : I { public long M(int p) { throw new NotImplementedException(); } }");
         }
 
-        [WorkItem(939123)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
+        [WorkItem(939123, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/939123")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
         public async Task TestNoComAliasNameAttributeOnIndexerParameters()
         {
             await TestAsync(
@@ -2458,8 +2458,8 @@ interface I { long this[[System.Runtime.InteropServices.ComAliasName(""pAlias"")
 class C : I { public long this[int p] { get { throw new NotImplementedException(); } } }");
         }
 
-        [WorkItem(947819)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
+        [WorkItem(947819, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/947819")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
         public async Task TestMissingOpenBrace()
         {
             await TestAsync(
@@ -2492,8 +2492,8 @@ namespace Scenarios
 }");
         }
 
-        [WorkItem(994328)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
+        [WorkItem(994328, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/994328")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
         public async Task TestDisposePatternWhenAdditionalUsingsAreIntroduced1()
         {
             //CSharpFeaturesResources.DisposePattern
@@ -2545,8 +2545,8 @@ partial class C : I<System.Exception, System.AggregateException>, System.IDispos
 }}", index: 1, compareTokens: false);
         }
 
-        [WorkItem(994328)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
+        [WorkItem(994328, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/994328")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
         public async Task TestDisposePatternWhenAdditionalUsingsAreIntroduced2()
         {
             await TestAsync(
@@ -2635,8 +2635,8 @@ partial class C
     #endregion";
         }
 
-        [WorkItem(1132014)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
+        [WorkItem(1132014, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1132014")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
         public async Task TestInaccessibleAttributes()
         {
             await TestAsync(

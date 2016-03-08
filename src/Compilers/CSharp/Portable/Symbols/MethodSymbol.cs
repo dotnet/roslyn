@@ -163,6 +163,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         public abstract bool IsAsync { get; }
 
         /// <summary>
+        /// Indicates whether or not the method returns by reference
+        /// </summary>
+        public bool ReturnsByRef { get { return this.RefKind != RefKind.None; } }
+
+        /// <summary>
+        /// Gets the ref kind of the method's return value
+        /// </summary>
+        internal abstract RefKind RefKind { get; }
+
+        /// <summary>
         /// Gets the return type of the method
         /// </summary>
         public abstract TypeSymbol ReturnType { get; }
@@ -755,12 +765,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             if (typeArguments.Any(TypeSymbolIsNullFunction))
             {
-                throw new ArgumentException(CSharpResources.TypeArgumentCannotBeNull, "typeArguments");
+                throw new ArgumentException(CSharpResources.TypeArgumentCannotBeNull, nameof(typeArguments));
             }
 
             if (typeArguments.Length != this.Arity)
             {
-                throw new ArgumentException(CSharpResources.WrongNumberOfTypeArguments, "typeArguments");
+                throw new ArgumentException(CSharpResources.WrongNumberOfTypeArguments, nameof(typeArguments));
             }
 
             if (TypeParametersMatchTypeArguments(this.TypeParameters, typeArguments))

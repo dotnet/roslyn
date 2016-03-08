@@ -27,7 +27,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.ProjectSystemShim
     /// effectively methods that just QI from one interface to another), are implemented here.
     /// </remarks>
     [ExcludeFromCodeCoverage]
-    internal abstract partial class CSharpProjectShim : CSharpProject
+    internal abstract partial class CSharpProjectShim : AbstractRoslynProject
     {
         /// <summary>
         /// This member is used to store a raw array of warning numbers, which is needed to properly implement
@@ -49,28 +49,35 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.ProjectSystemShim
             string projectSystemName,
             IVsHierarchy hierarchy,
             IServiceProvider serviceProvider,
-            MiscellaneousFilesWorkspace miscellaneousFilesWorkspaceOpt,
             VisualStudioWorkspaceImpl visualStudioWorkspaceOpt,
             HostDiagnosticUpdateSource hostDiagnosticUpdateSourceOpt)
             : base(projectTracker,
                    reportExternalErrorCreatorOpt,
                    projectSystemName,
                    hierarchy,
+                   LanguageNames.CSharp,
                    serviceProvider,
-                   miscellaneousFilesWorkspaceOpt,
                    visualStudioWorkspaceOpt,
                    hostDiagnosticUpdateSourceOpt)
         {
             _projectRoot = projectRoot;
             _warningNumberArrayPointer = Marshal.AllocHGlobal(0);
+
+            InitializeOptions();
+
+            projectTracker.AddProject(this);
         }
 
-        protected override void InitializeOptions()
+        private void InitializeOptions()
         {
             // Ensure the default options are set up
             ResetAllOptions();
+            UpdateOptions();
+        }
 
-            base.InitializeOptions();
+        protected override void UpdateOptions()
+        {
+            this.SetOptions(this.CreateCompilationOptions(), this.CreateParseOptions());
         }
 
         public override void Disconnect()
@@ -85,7 +92,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.ProjectSystemShim
             return "CS" + errorCode.ToString("0000");
         }
 
-        protected override CSharpCompilationOptions CreateCompilationOptions()
+        protected CSharpCompilationOptions CreateCompilationOptions()
         {
             IDictionary<string, ReportDiagnostic> ruleSetSpecificDiagnosticOptions = null;
 
@@ -213,7 +220,14 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.ProjectSystemShim
                 sourceReferenceResolver: new SourceFileResolver(sourceSearchPaths, projectDirectory),
                 metadataReferenceResolver: referenceResolver,
                 assemblyIdentityComparer: DesktopAssemblyIdentityComparer.Default,
-                strongNameProvider: new DesktopStrongNameProvider(GetStrongNameKeyPaths()));
+                strongNameProvider: new DesktopStrongNameProvider(GetStrongNameKeyPaths()),
+                deterministic: GetParsedCommandLineArguments().CompilationOptions.Deterministic,
+                publicSign: GetParsedCommandLineArguments().CompilationOptions.PublicSign);
+        }
+
+        protected override CommandLineArguments ParseCommandLineArguments(IEnumerable<string> arguments)
+        {
+            return CSharpCommandLineParser.Default.Parse(arguments, this.ContainingDirectoryPathOpt, sdkDirectory: null);
         }
 
         private IEnumerable<string> ParseWarningCodes(CompilerOptions compilerOptions)
@@ -275,7 +289,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.ProjectSystemShim
             }
         }
 
-        protected override CSharpParseOptions CreateParseOptions()
+        protected CSharpParseOptions CreateParseOptions()
         {
             var symbols = GetStringOption(CompilerOptions.OPTID_CCSYMBOLS, defaultValue: "").Split(new[] { ';' }, StringSplitOptions.RemoveEmptyEntries);
 
@@ -289,9 +303,11 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.ProjectSystemShim
                                   ?? CSharpParseOptions.Default.LanguageVersion;
 
             return new CSharpParseOptions(
+                kind: SourceCodeKind.Regular,
                 languageVersion: languageVersion,
                 preprocessorSymbols: symbols.AsImmutable(),
-                documentationMode: documentationMode);
+                documentationMode: documentationMode)
+                .WithFeatures(GetParsedCommandLineArguments().ParseOptions.Features);
         }
 
         ~CSharpProjectShim()

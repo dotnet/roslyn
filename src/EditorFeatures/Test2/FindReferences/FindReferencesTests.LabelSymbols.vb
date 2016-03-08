@@ -4,7 +4,7 @@ Imports System.Threading.Tasks
 
 Namespace Microsoft.CodeAnalysis.Editor.UnitTests.FindReferences
     Partial Public Class FindReferencesTests
-        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <Fact, Trait(Traits.Feature, Traits.Features.FindReferences)>
         Public Async Function TestLabel1() As Task
             Dim input =
 <Workspace>
@@ -25,7 +25,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.FindReferences
             Await TestAsync(input)
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <Fact, Trait(Traits.Feature, Traits.Features.FindReferences)>
         Public Async Function TestLabel2() As Task
             Dim input =
 <Workspace>
@@ -46,8 +46,8 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.FindReferences
             Await TestAsync(input)
         End Function
 
-        <WorkItem(529060)>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WorkItem(529060, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529060")>
+        <Fact, Trait(Traits.Feature, Traits.Features.FindReferences)>
         Public Async Function TestNumericLabel1() As Task
             Dim input =
 <Workspace>
@@ -65,8 +65,8 @@ End Module
             Await TestAsync(input)
         End Function
 
-        <WorkItem(529060)>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WorkItem(529060, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529060")>
+        <Fact, Trait(Traits.Feature, Traits.Features.FindReferences)>
         Public Async Function TestNumericLabel2() As Task
             Dim input =
 <Workspace>

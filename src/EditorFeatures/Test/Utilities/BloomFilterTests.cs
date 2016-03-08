@@ -78,19 +78,19 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Utilities
             }
         }
 
-        [WpfFact]
+        [Fact]
         public void Test1()
         {
             Test(isCaseSensitive: true);
         }
 
-        [WpfFact]
+        [Fact]
         public void TestInsensitive()
         {
             Test(isCaseSensitive: false);
         }
 
-        [WpfFact]
+        [Fact]
         public void TestEmpty()
         {
             for (var d = 0.1; d >= 0.0001; d /= 10)
@@ -109,7 +109,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Utilities
             }
         }
 
-        [WpfFact]
+        [Fact]
         public void TestSerialization()
         {
             var stream = new MemoryStream();

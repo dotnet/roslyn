@@ -21,7 +21,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ExtractMethod
 {
     public partial class ExtractMethodTests : ExtractMethodBase
     {
-        [WpfFact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
+        [Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
         public async Task ExtractMethod1()
         {
             var code = @"using System;
@@ -56,7 +56,7 @@ class Program
             await TestExtractMethodAsync(code, expected);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
+        [Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
         public async Task ExtractMethod2()
         {
             var code = @"using System;
@@ -92,7 +92,7 @@ class Program
             await TestExtractMethodAsync(code, expected);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
+        [Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
         public async Task ExtractMethod3()
         {
             var code = @"using System;
@@ -128,7 +128,7 @@ class Program
             await TestExtractMethodAsync(code, expected);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
+        [Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
         public async Task ExtractMethod4()
         {
             var code = @"using System;
@@ -169,7 +169,7 @@ class Program
             await TestExtractMethodAsync(code, expected, temporaryFailing: true);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
+        [Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
         public async Task ExtractMethod5()
         {
             var code = @"using System;
@@ -209,7 +209,7 @@ class Program
             await TestExtractMethodAsync(code, expected);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
+        [Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
         public async Task ExtractMethod6()
         {
             var code = @"using System;
@@ -251,7 +251,7 @@ class Program
             await TestExtractMethodAsync(code, expected);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
+        [Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
         public async Task ExtractMethod7()
         {
             var code = @"using System;
@@ -289,7 +289,7 @@ class Program
             await TestExtractMethodAsync(code, expected);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
+        [Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
         public async Task ExtractMethod8()
         {
             var code = @"using System;
@@ -327,7 +327,7 @@ class Program
             await TestExtractMethodAsync(code, expected);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
+        [Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
         public async Task ExtractMethod9()
         {
             var code = @"using System;
@@ -368,7 +368,7 @@ class Program
             await TestExtractMethodAsync(code, expected);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
+        [Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
         public async Task ExtractMethod10()
         {
             var code = @"using System;
@@ -416,7 +416,7 @@ class Program
             await TestExtractMethodAsync(code, expected);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
+        [Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
         public async Task ExtractMethod11()
         {
             var code = @"using System;
@@ -454,7 +454,7 @@ class Program
             await TestExtractMethodAsync(code, expected);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
+        [Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
         public async Task ExtractMethod11_1()
         {
             var code = @"using System;
@@ -490,7 +490,7 @@ class Program
             await TestExtractMethodAsync(code, expected);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
+        [Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
         public async Task ExtractMethod12()
         {
             var code = @"using System;
@@ -533,7 +533,7 @@ class Program
             await TestExtractMethodAsync(code, expected);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
+        [Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
         public async Task ControlVariableInForeachStatement()
         {
             var code = @"using System;
@@ -573,7 +573,7 @@ class Program
             await TestExtractMethodAsync(code, expected);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
+        [Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
         public async Task ExtractMethod14()
         {
             var code = @"using System;
@@ -614,7 +614,7 @@ class Program
             await TestExtractMethodAsync(code, expected, temporaryFailing: true);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
+        [Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
         public async Task ExtractMethod15()
         {
             var code = @"using System;
@@ -658,7 +658,7 @@ class Program
             await TestExtractMethodAsync(code, expected);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
+        [Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
         public async Task ExtractMethod16()
         {
             var code = @"using System;
@@ -696,8 +696,8 @@ class Program
             await TestExtractMethodAsync(code, expected);
         }
 
-        [WorkItem(538932)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
+        [WorkItem(538932, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538932")]
+        [Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
         public async Task ExtractMethod17()
         {
             var code = @"using System;
@@ -739,7 +739,7 @@ class Program
             await TestExtractMethodAsync(code, expected);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
+        [Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
         public async Task ExtractMethod18()
         {
             var code = @"using System;
@@ -786,7 +786,7 @@ class Program
             await TestExtractMethodAsync(code, expected);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
+        [Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
         public async Task ExtractMethod19()
         {
             var code = @"using System;
@@ -820,7 +820,7 @@ unsafe class Program
             await TestExtractMethodAsync(code, expected);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
+        [Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
         public async Task ExtractMethod20()
         {
             var code = @"using System;
@@ -854,8 +854,8 @@ class Program
             await TestExtractMethodAsync(code, expected);
         }
 
-        [WorkItem(542677)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
+        [WorkItem(542677, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542677")]
+        [Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
         public async Task ExtractMethod21()
         {
             var code = @"using System;
@@ -895,7 +895,7 @@ class Program
             await TestExtractMethodAsync(code, expected);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
+        [Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
         public async Task ExtractMethod22()
         {
             var code = @"using System;
@@ -947,7 +947,7 @@ class Program
             await TestExtractMethodAsync(code, expected);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
+        [Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
         public async Task ExtractMethod23()
         {
             var code = @"using System;
@@ -983,7 +983,7 @@ class Program
             await TestExtractMethodAsync(code, expected);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
+        [Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
         public async Task ExtractMethod24()
         {
             var code = @"using System;
@@ -1012,7 +1012,7 @@ class Program
             await TestExtractMethodAsync(code, expected);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
+        [Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
         public async Task ExtractMethod25()
         {
             var code = @"using System;
@@ -1052,7 +1052,7 @@ class Program
             await TestExtractMethodAsync(code, expected);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
+        [Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
         public async Task ExtractMethod26()
         {
             var code = @"using System;
@@ -1092,7 +1092,7 @@ class Program
             await TestExtractMethodAsync(code, expected);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
+        [Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
         public async Task ExtractMethod27()
         {
             var code = @"using System;
@@ -1144,7 +1144,7 @@ class Program
             await TestExtractMethodAsync(code, expected);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
+        [Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
         public async Task ExtractMethod28()
         {
             var code = @"using System;
@@ -1178,7 +1178,7 @@ class Program
             await TestExtractMethodAsync(code, expected);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
+        [Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
         public async Task ExtractMethod29()
         {
             var code = @"using System;
@@ -1230,7 +1230,7 @@ class Program
             await TestExtractMethodAsync(code, expected);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
+        [Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
         public async Task ExtractMethod30()
         {
             var code = @"using System;
@@ -1264,7 +1264,7 @@ class Program
             await TestExtractMethodAsync(code, expected);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
+        [Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
         public async Task ExtractMethod31()
         {
             var code = @"using System;
@@ -1306,7 +1306,7 @@ class Program
             await TestExtractMethodAsync(code, expected);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
+        [Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
         public async Task ExtractMethod32()
         {
             var code = @"using System;
@@ -1339,7 +1339,7 @@ class Program
         }
 
         [WorkItem(3792, "DevDiv_Projects/Roslyn")]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
+        [Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
         public async Task ExtractMethod33()
         {
             var code = @"using System;
@@ -1379,7 +1379,7 @@ class Program
             await TestExtractMethodAsync(code, expected);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
+        [Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
         public async Task ExtractMethod34()
         {
             var code = @"using System;
@@ -1415,8 +1415,8 @@ class Program
             await TestExtractMethodAsync(code, expected);
         }
 
-        [WorkItem(538239)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
+        [WorkItem(538239, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538239")]
+        [Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
         public async Task ExtractMethod35()
         {
             var code = @"using System;
@@ -1446,7 +1446,7 @@ class Program
             await TestExtractMethodAsync(code, expected);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
+        [Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
         public async Task ExtractMethod36()
         {
             var code = @"using System;
@@ -1476,7 +1476,7 @@ class Program
             await TestExtractMethodAsync(code, expected);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
+        [Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
         public async Task ExtractMethod37()
         {
             var code = @"using System;
@@ -1506,8 +1506,8 @@ class Program
             await TestExtractMethodAsync(code, expected);
         }
 
-        [WorkItem(538231)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
+        [WorkItem(538231, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538231")]
+        [Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
         public async Task ExtractMethod38()
         {
             var code = @"using System;
@@ -1569,8 +1569,8 @@ class Program
             await TestExtractMethodAsync(code, expected);
         }
 
-        [WorkItem(538231)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
+        [WorkItem(538231, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538231")]
+        [Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
         public async Task ExtractMethod39()
         {
             var code = @"using System;
@@ -1635,8 +1635,8 @@ class Program
             await TestExtractMethodAsync(code, expected);
         }
 
-        [WorkItem(538303)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
+        [WorkItem(538303, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538303")]
+        [Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
         public async Task ExtractMethod40()
         {
             var code = @"class Program
@@ -1649,8 +1649,8 @@ class Program
             await ExpectExtractMethodToFailAsync(code);
         }
 
-        [WorkItem(868414)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
+        [WorkItem(868414, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/868414")]
+        [Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
         public async Task ExtractMethodWithLeadingTrivia()
         {
             // ensure that the extraction doesn't result in trivia moving up a line:
@@ -1684,8 +1684,8 @@ class C
 ");
         }
 
-        [WorkItem(632351)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
+        [WorkItem(632351, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/632351")]
+        [Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
         public async Task ExtractMethodFailForTypeInFromClause()
         {
             var code = @"class Program
@@ -1698,8 +1698,8 @@ class C
             await ExpectExtractMethodToFailAsync(code);
         }
 
-        [WorkItem(632351)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
+        [WorkItem(632351, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/632351")]
+        [Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
         public async Task ExtractMethodFailForTypeInFromClause_1()
         {
             var code = @"class Program
@@ -1712,8 +1712,8 @@ class C
             await ExpectExtractMethodToFailAsync(code);
         }
 
-        [WorkItem(538314)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
+        [WorkItem(538314, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538314")]
+        [Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
         public async Task ExtractMethod41()
         {
             var code = @"class Program
@@ -1747,8 +1747,8 @@ class C
             await TestExtractMethodAsync(code, expected);
         }
 
-        [WorkItem(538327)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
+        [WorkItem(538327, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538327")]
+        [Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
         public async Task ExtractMethod42()
         {
             var code = @"using System;
@@ -1784,8 +1784,8 @@ class Program
             await TestExtractMethodAsync(code, expected);
         }
 
-        [WorkItem(538327)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
+        [WorkItem(538327, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538327")]
+        [Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
         public async Task ExtractMethod43()
         {
             var code = @"using System;
@@ -1835,8 +1835,8 @@ class Program
             await TestExtractMethodAsync(code, expected);
         }
 
-        [WorkItem(538328)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
+        [WorkItem(538328, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538328")]
+        [Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
         public async Task ExtractMethod44()
         {
             var code = @"using System;
@@ -1874,8 +1874,8 @@ class Program
             await TestExtractMethodAsync(code, expected);
         }
 
-        [WorkItem(538393)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
+        [WorkItem(538393, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538393")]
+        [Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
         public async Task ExtractMethod45()
         {
             var code = @"using System;
@@ -1908,8 +1908,8 @@ class Program
             await TestExtractMethodAsync(code, expected);
         }
 
-        [WorkItem(538393)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
+        [WorkItem(538393, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538393")]
+        [Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
         public async Task ExtractMethod46()
         {
             var code = @"using System;
@@ -1957,8 +1957,8 @@ class Program
             await TestExtractMethodAsync(code, expected);
         }
 
-        [WorkItem(538399)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
+        [WorkItem(538399, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538399")]
+        [Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
         public async Task ExtractMethod47()
         {
             var code = @"using System;
@@ -1994,8 +1994,8 @@ class Program
             await TestExtractMethodAsync(code, expected);
         }
 
-        [WorkItem(538401)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
+        [WorkItem(538401, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538401")]
+        [Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
         public async Task ExtractMethod48()
         {
             var code = @"using System;
@@ -2029,8 +2029,8 @@ class Program
             await TestExtractMethodAsync(code, expected);
         }
 
-        [WorkItem(538405)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
+        [WorkItem(538405, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538405")]
+        [Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
         public async Task ExtractMethod49()
         {
             var code = @"using System;
@@ -2062,7 +2062,7 @@ class Program
             await TestExtractMethodAsync(code, expected);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
+        [Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
         public async Task ExtractMethodNormalProperty()
         {
             var code = @"
@@ -2102,8 +2102,8 @@ class Class
             await TestExtractMethodAsync(code, expected);
         }
 
-        [WorkItem(538932)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
+        [WorkItem(538932, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538932")]
+        [Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
         public async Task ExtractMethodAutoProperty()
         {
             var code = @"
@@ -2137,8 +2137,8 @@ class Class
             await TestExtractMethodAsync(code, expected);
         }
 
-        [WorkItem(538402)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
+        [WorkItem(538402, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538402")]
+        [Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
         public async Task BugFix3994()
         {
             var code = @"using System;
@@ -2172,8 +2172,8 @@ class Program
             await TestExtractMethodAsync(code, expected);
         }
 
-        [WorkItem(538404)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
+        [WorkItem(538404, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538404")]
+        [Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
         public async Task BugFix3996()
         {
             var code = @"class A<T>
@@ -2222,7 +2222,7 @@ class Program
             await TestExtractMethodAsync(code, expected);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
+        [Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
         public async Task InsertionPoint()
         {
             var code = @"class Test
@@ -2257,8 +2257,8 @@ class Program
             await TestExtractMethodAsync(code, expected);
         }
 
-        [WorkItem(538980)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
+        [WorkItem(538980, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538980")]
+        [Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
         public async Task BugFix4757()
         {
             var code = @"class GenericMethod
@@ -2286,8 +2286,8 @@ class Program
             await TestExtractMethodAsync(code, expected);
         }
 
-        [WorkItem(538980)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
+        [WorkItem(538980, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538980")]
+        [Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
         public async Task BugFix4757_2()
         {
             var code = @"class GenericMethod<T1>
@@ -2320,8 +2320,8 @@ class Program
             await TestExtractMethodAsync(code, expected);
         }
 
-        [WorkItem(538980)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
+        [WorkItem(538980, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538980")]
+        [Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
         public async Task BugFix4757_3()
         {
             var code = @"class GenericMethod
@@ -2354,8 +2354,8 @@ class Program
             await TestExtractMethodAsync(code, expected);
         }
 
-        [WorkItem(538422)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
+        [WorkItem(538422, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538422")]
+        [Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
         public async Task BugFix4758()
         {
             var code = @"using System;
@@ -2386,8 +2386,8 @@ class TestOutParameter
             await TestExtractMethodAsync(code, expected);
         }
 
-        [WorkItem(538422)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
+        [WorkItem(538422, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538422")]
+        [Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
         public async Task BugFix4758_2()
         {
             var code = @"class TestOutParameter
@@ -2416,8 +2416,8 @@ class TestOutParameter
             await TestExtractMethodAsync(code, expected);
         }
 
-        [WorkItem(538984)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
+        [WorkItem(538984, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538984")]
+        [Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
         public async Task BugFix4761()
         {
             var code = @"using System;
@@ -2448,8 +2448,8 @@ class A
             await TestExtractMethodAsync(code, expected);
         }
 
-        [WorkItem(538997)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
+        [WorkItem(538997, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538997")]
+        [Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
         public async Task BugFix4779()
         {
             var code = @"using System;
@@ -2484,8 +2484,8 @@ class Program
             await TestExtractMethodAsync(code, expected);
         }
 
-        [WorkItem(538997)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
+        [WorkItem(538997, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538997")]
+        [Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
         public async Task BugFix4779_2()
         {
             var code = @"using System;
@@ -2521,7 +2521,7 @@ class Program
         }
 
         [WorkItem(4780, "DevDiv_Projects/Roslyn")]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
+        [Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
         public async Task BugFix4780()
         {
             var code = @"using System;
@@ -2555,7 +2555,7 @@ class Program
         }
 
         [WorkItem(4780, "DevDiv_Projects/Roslyn")]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
+        [Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
         public async Task BugFix4780_2()
         {
             var code = @"using System;
@@ -2589,7 +2589,7 @@ class Program
         }
 
         [WorkItem(4782, "DevDiv_Projects/Roslyn")]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
+        [Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
         public async Task BugFix4782()
         {
             var code = @"class A<T>
@@ -2628,7 +2628,7 @@ class Program
         }
 
         [WorkItem(4782, "DevDiv_Projects/Roslyn")]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
+        [Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
         public async Task BugFix4782_2()
         {
             var code = @"class A<T>
@@ -2649,7 +2649,7 @@ class Program
         }
 
         [WorkItem(4791, "DevDiv_Projects/Roslyn")]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
+        [Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
         public async Task BugFix4791()
         {
             var code = @"class Program
@@ -2680,8 +2680,8 @@ class Program
             await TestExtractMethodAsync(code, expected);
         }
 
-        [WorkItem(539019)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
+        [WorkItem(539019, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539019")]
+        [Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
         public async Task BugFix4809()
         {
             var code = @"class Program
@@ -2708,8 +2708,8 @@ class Program
             await TestExtractMethodAsync(code, expected);
         }
 
-        [WorkItem(539029)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
+        [WorkItem(539029, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539029")]
+        [Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
         public async Task BugFix4813()
         {
             var code = @"using System;
@@ -2740,8 +2740,8 @@ class Program
             await TestExtractMethodAsync(code, expected);
         }
 
-        [WorkItem(538425)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
+        [WorkItem(538425, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538425")]
+        [Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
         public async Task BugFix4031()
         {
             var code = @"using System;
@@ -2782,8 +2782,8 @@ class Program
             await TestExtractMethodAsync(code, expected);
         }
 
-        [WorkItem(527499)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
+        [WorkItem(527499, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/527499")]
+        [Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
         public async Task BugFix3992()
         {
             var code = @"using System;
@@ -2817,8 +2817,8 @@ class Program
             await TestExtractMethodAsync(code, expected);
         }
 
-        [WorkItem(539029)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
+        [WorkItem(539029, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539029")]
+        [Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
         public async Task BugFix4823()
         {
             var code = @"class Program
@@ -2861,8 +2861,8 @@ class Program
             await TestExtractMethodAsync(code, expected);
         }
 
-        [WorkItem(538985)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
+        [WorkItem(538985, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538985")]
+        [Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
         public async Task BugFix4762()
         {
             var code = @"class Program
@@ -2893,8 +2893,8 @@ class Program
             await TestExtractMethodAsync(code, expected);
         }
 
-        [WorkItem(538966)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
+        [WorkItem(538966, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538966")]
+        [Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
         public async Task BugFix4744()
         {
             var code = @"class Program
@@ -2925,7 +2925,7 @@ class Program
             await TestExtractMethodAsync(code, expected);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
+        [Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
         public async Task MatrixCase_NoNoNoNoNoYesNoNo()
         {
             var code = @"using System;
@@ -2968,7 +2968,7 @@ class Program
             await TestExtractMethodAsync(code, expected);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
+        [Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
         public async Task MatrixCase_NoNoNoNoNoYesNoYes()
         {
             var code = @"using System;
@@ -3011,7 +3011,7 @@ class Program
             await TestExtractMethodAsync(code, expected);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
+        [Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
         public async Task MatrixCase_NoNoNoNoNoYesYesNo()
         {
             var code = @"using System;
@@ -3058,7 +3058,7 @@ class Program
             await TestExtractMethodAsync(code, expected);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
+        [Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
         public async Task MatrixCase_NoNoNoNoNoYesYesYes()
         {
             var code = @"using System;
@@ -3105,7 +3105,7 @@ class Program
             await TestExtractMethodAsync(code, expected);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
+        [Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
         public async Task MatrixCase_NoNoNoNoYesYesNoNo()
         {
             var code = @"using System;
@@ -3149,7 +3149,7 @@ class Program
             await TestExtractMethodAsync(code, expected);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
+        [Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
         public async Task MatrixCase_NoNoNoNoYesYesNoYes()
         {
             var code = @"using System;
@@ -3194,7 +3194,7 @@ class Program
             await TestExtractMethodAsync(code, expected);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
+        [Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
         public async Task MatrixCase_NoNoNoNoYesYesYesNo()
         {
             var code = @"using System;
@@ -3244,7 +3244,7 @@ class Program
             await TestExtractMethodAsync(code, expected);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
+        [Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
         public async Task MatrixCase_NoNoNoNoYesYesYesYes()
         {
             var code = @"using System;
@@ -3293,7 +3293,7 @@ class Program
             await TestExtractMethodAsync(code, expected);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
+        [Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
         public async Task MatrixCase_NoNoNoYesNoNoNoNo()
         {
             var code = @"using System;
@@ -3311,7 +3311,7 @@ class Program
             await ExpectExtractMethodToFailAsync(code);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
+        [Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
         public async Task MatrixCase_NoNoNoYesNoNoNoYes()
         {
             var code = @"using System;
@@ -3331,7 +3331,7 @@ class Program
             await ExpectExtractMethodToFailAsync(code);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
+        [Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
         public async Task MatrixCase_NoNoNoYesNoYesNoNo()
         {
             var code = @"using System;
@@ -3374,7 +3374,7 @@ class Program
             await TestExtractMethodAsync(code, expected);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
+        [Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
         public async Task MatrixCase_NoNoNoYesNoYesNoYes()
         {
             var code = @"using System;
@@ -3422,7 +3422,7 @@ class Program
             await TestExtractMethodAsync(code, expected);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
+        [Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
         public async Task MatrixCase_NoNoNoYesYesNoNoNo()
         {
             var code = @"using System;
@@ -3459,7 +3459,7 @@ class Program
             await TestExtractMethodAsync(code, expected);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
+        [Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
         public async Task MatrixCase_NoNoNoYesYesNoNoYes()
         {
             var code = @"using System;
@@ -3501,7 +3501,7 @@ class Program
             await TestExtractMethodAsync(code, expected);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
+        [Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
         public async Task MatrixCase_NoNoNoYesYesYesNoNo()
         {
             var code = @"using System;
@@ -3548,7 +3548,7 @@ class Program
             await TestExtractMethodAsync(code, expected);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
+        [Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
         public async Task MatrixCase_NoNoNoYesYesYesNoYes()
         {
             var code = @"using System;
@@ -3600,7 +3600,7 @@ class Program
             await TestExtractMethodAsync(code, expected);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
+        [Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
         public async Task MatrixCase_NoNoYesNoNoYesNoNo()
         {
             var code = @"using System;
@@ -3635,7 +3635,7 @@ class Program
             await TestExtractMethodAsync(code, expected);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
+        [Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
         public async Task MatrixCase_NoNoYesNoNoYesNoYes()
         {
             var code = @"using System;
@@ -3676,7 +3676,7 @@ class Program
             await TestExtractMethodAsync(code, expected);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
+        [Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
         public async Task MatrixCase_NoNoYesNoNoYesYesNo()
         {
             var code = @"using System;
@@ -3717,7 +3717,7 @@ class Program
             await TestExtractMethodAsync(code, expected);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
+        [Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
         public async Task MatrixCase_NoNoYesNoNoYesYesYes()
         {
             var code = @"using System;
@@ -3762,7 +3762,7 @@ class Program
             await TestExtractMethodAsync(code, expected);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
+        [Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
         public async Task MatrixCase_NoNoYesNoYesYesNoNo()
         {
             var code = @"using System;
@@ -3799,7 +3799,7 @@ class Program
             await TestExtractMethodAsync(code, expected);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
+        [Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
         public async Task MatrixCase_NoNoYesNoYesYesNoYes()
         {
             var code = @"using System;
@@ -3838,7 +3838,7 @@ class Program
             await TestExtractMethodAsync(code, expected);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
+        [Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
         public async Task MatrixCase_NoNoYesNoYesYesYesNo()
         {
             var code = @"using System;
@@ -3881,7 +3881,7 @@ class Program
             await TestExtractMethodAsync(code, expected);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
+        [Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
         public async Task MatrixCase_NoNoYesNoYesYesYesYes()
         {
             var code = @"using System;
@@ -3924,7 +3924,7 @@ class Program
             await TestExtractMethodAsync(code, expected);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
+        [Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
         public async Task MatrixCase_NoNoYesYesNoYesNoNo()
         {
             var code = @"using System;
@@ -3957,7 +3957,7 @@ class Program
             await TestExtractMethodAsync(code, expected);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
+        [Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
         public async Task MatrixCase_NoNoYesYesNoYesNoYes()
         {
             var code = @"using System;
@@ -3995,7 +3995,7 @@ class Program
             await TestExtractMethodAsync(code, expected);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
+        [Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
         public async Task MatrixCase_NoNoYesYesYesYesNoNo()
         {
             var code = @"using System;
@@ -4030,7 +4030,7 @@ class Program
             await TestExtractMethodAsync(code, expected);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
+        [Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
         public async Task MatrixCase_NoNoYesYesYesYesNoYes()
         {
             var code = @"using System;
@@ -4070,7 +4070,7 @@ class Program
             await TestExtractMethodAsync(code, expected);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
+        [Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
         public async Task MatrixCase_NoYesNoNoNoYesYesNo()
         {
             var code = @"using System;
@@ -4119,7 +4119,7 @@ class Program
             await TestExtractMethodAsync(code, expected);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
+        [Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
         public async Task MatrixCase_NoYesNoNoNoYesYesYes()
         {
             var code = @"using System;
@@ -4168,7 +4168,7 @@ class Program
             await TestExtractMethodAsync(code, expected);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
+        [Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
         public async Task MatrixCase_NoYesNoNoYesYesYesNo()
         {
             var code = @"using System;
@@ -4219,7 +4219,7 @@ class Program
             await TestExtractMethodAsync(code, expected);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
+        [Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
         public async Task MatrixCase_NoYesNoNoYesYesYesYes()
         {
             var code = @"using System;
@@ -4270,7 +4270,7 @@ class Program
             await TestExtractMethodAsync(code, expected);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
+        [Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
         public async Task MatrixCase_NoYesNoYesNoNoYesNo()
         {
             var code = @"using System;
@@ -4290,7 +4290,7 @@ class Program
             await ExpectExtractMethodToFailAsync(code);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
+        [Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
         public async Task MatrixCase_NoYesNoYesNoNoYesYes()
         {
             var code = @"using System;
@@ -4312,7 +4312,7 @@ class Program
             await ExpectExtractMethodToFailAsync(code);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
+        [Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
         public async Task MatrixCase_NoYesNoYesNoYesYesNo()
         {
             var code = @"using System;
@@ -4361,7 +4361,7 @@ class Program
             await TestExtractMethodAsync(code, expected);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
+        [Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
         public async Task MatrixCase_NoYesNoYesNoYesYesYes()
         {
             var code = @"using System;
@@ -4414,7 +4414,7 @@ class Program
             await TestExtractMethodAsync(code, expected);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
+        [Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
         public async Task MatrixCase_NoYesNoYesYesNoYesNo()
         {
             var code = @"using System;
@@ -4456,7 +4456,7 @@ class Program
             await TestExtractMethodAsync(code, expected);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
+        [Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
         public async Task MatrixCase_NoYesNoYesYesNoYesYes()
         {
             var code = @"using System;
@@ -4502,7 +4502,7 @@ class Program
             await TestExtractMethodAsync(code, expected);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
+        [Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
         public async Task MatrixCase_NoYesNoYesYesYesYesNo()
         {
             var code = @"using System;
@@ -4554,7 +4554,7 @@ class Program
             await TestExtractMethodAsync(code, expected);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
+        [Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
         public async Task MatrixCase_NoYesNoYesYesYesYesYes()
         {
             var code = @"using System;
@@ -4610,7 +4610,7 @@ class Program
             await TestExtractMethodAsync(code, expected);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
+        [Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
         public async Task MatrixCase_NoYesYesNoNoYesYesNo()
         {
             var code = @"using System;
@@ -4651,7 +4651,7 @@ class Program
             await TestExtractMethodAsync(code, expected);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
+        [Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
         public async Task MatrixCase_NoYesYesNoNoYesYesYes()
         {
             var code = @"using System;
@@ -4696,7 +4696,7 @@ class Program
             await TestExtractMethodAsync(code, expected);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
+        [Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
         public async Task MatrixCase_NoYesYesNoYesYesYesNo()
         {
             var code = @"using System;
@@ -4740,7 +4740,7 @@ class Program
             await TestExtractMethodAsync(code, expected);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
+        [Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
         public async Task MatrixCase_NoYesYesNoYesYesYesYes()
         {
             var code = @"using System;
@@ -4784,7 +4784,7 @@ class Program
             await TestExtractMethodAsync(code, expected);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
+        [Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
         public async Task MatrixCase_NoYesYesYesNoYesYesNo()
         {
             var code = @"using System;
@@ -4821,7 +4821,7 @@ class Program
             await TestExtractMethodAsync(code, expected);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
+        [Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
         public async Task MatrixCase_NoYesYesYesNoYesYesYes()
         {
             var code = @"using System;
@@ -4862,7 +4862,7 @@ class Program
             await TestExtractMethodAsync(code, expected);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
+        [Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
         public async Task MatrixCase_NoYesYesYesYesYesYesNo()
         {
             var code = @"using System;
@@ -4904,7 +4904,7 @@ class Program
             await TestExtractMethodAsync(code, expected);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
+        [Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
         public async Task MatrixCase_NoYesYesYesYesYesYesYes()
         {
             var code = @"using System;
@@ -4950,7 +4950,7 @@ class Program
             await TestExtractMethodAsync(code, expected);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
+        [Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
         public async Task MatrixCase_YesNoNoNoYesNoNoNo()
         {
             var code = @"using System;
@@ -4987,7 +4987,7 @@ class Program
             await TestExtractMethodAsync(code, expected);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
+        [Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
         public async Task MatrixCase_YesNoNoNoYesNoNoYes()
         {
             var code = @"using System;
@@ -5024,7 +5024,7 @@ class Program
             await TestExtractMethodAsync(code, expected);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
+        [Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
         public async Task MatrixCase_YesNoNoNoYesNoYesNo()
         {
             var code = @"using System;
@@ -5065,7 +5065,7 @@ class Program
             await TestExtractMethodAsync(code, expected);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
+        [Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
         public async Task MatrixCase_YesNoNoNoYesNoYesYes()
         {
             var code = @"using System;
@@ -5106,7 +5106,7 @@ class Program
             await TestExtractMethodAsync(code, expected);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
+        [Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
         public async Task MatrixCase_YesNoNoNoYesYesNoNo()
         {
             var code = @"using System;
@@ -5153,7 +5153,7 @@ class Program
             await TestExtractMethodAsync(code, expected);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
+        [Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
         public async Task MatrixCase_YesNoNoNoYesYesNoYes()
         {
             var code = @"using System;
@@ -5200,7 +5200,7 @@ class Program
             await TestExtractMethodAsync(code, expected);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
+        [Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
         public async Task MatrixCase_YesNoNoNoYesYesYesNo()
         {
             var code = @"using System;
@@ -5251,7 +5251,7 @@ class Program
             await TestExtractMethodAsync(code, expected);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
+        [Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
         public async Task MatrixCase_YesNoNoNoYesYesYesYes()
         {
             var code = @"using System;
@@ -5302,7 +5302,7 @@ class Program
             await TestExtractMethodAsync(code, expected);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
+        [Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
         public async Task MatrixCase_YesNoYesNoYesYesNoNo()
         {
             var code = @"using System;
@@ -5343,7 +5343,7 @@ class Program
             await TestExtractMethodAsync(code, expected);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
+        [Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
         public async Task MatrixCase_YesNoYesNoYesYesNoYes()
         {
             var code = @"using System;
@@ -5384,7 +5384,7 @@ class Program
             await TestExtractMethodAsync(code, expected);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
+        [Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
         public async Task MatrixCase_YesNoYesNoYesYesYesNo()
         {
             var code = @"using System;
@@ -5429,7 +5429,7 @@ class Program
             await TestExtractMethodAsync(code, expected);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
+        [Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
         public async Task MatrixCase_YesNoYesNoYesYesYesYes()
         {
             var code = @"using System;
@@ -5474,7 +5474,7 @@ class Program
             await TestExtractMethodAsync(code, expected);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
+        [Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
         public async Task MatrixCase_YesYesNoNoYesYesYesNo()
         {
             var code = @"using System;
@@ -5527,7 +5527,7 @@ class Program
             await TestExtractMethodAsync(code, expected);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
+        [Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
         public async Task MatrixCase_YesYesNoNoYesYesYesYes()
         {
             var code = @"using System;
@@ -5580,7 +5580,7 @@ class Program
             await TestExtractMethodAsync(code, expected);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
+        [Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
         public async Task MatrixCase_YesYesYesNoYesYesYesNo()
         {
             var code = @"using System;
@@ -5626,7 +5626,7 @@ class Program
             await TestExtractMethodAsync(code, expected);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
+        [Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
         public async Task MatrixCase_YesYesYesNoYesYesYesYes()
         {
             var code = @"using System;
@@ -5672,8 +5672,8 @@ class Program
             await TestExtractMethodAsync(code, expected);
         }
 
-        [WorkItem(539049)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
+        [WorkItem(539049, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539049")]
+        [Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
         public async Task ExtractMethodInProperty1()
         {
             var code = @"class C2
@@ -5724,8 +5724,8 @@ class C3
             await TestExtractMethodAsync(code, expected);
         }
 
-        [WorkItem(539049)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
+        [WorkItem(539049, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539049")]
+        [Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
         public async Task ExtractMethodInProperty2()
         {
             var code = @"class C3
@@ -5761,8 +5761,8 @@ class C3
             await TestExtractMethodAsync(code, expected);
         }
 
-        [WorkItem(539049)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
+        [WorkItem(539049, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539049")]
+        [Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
         public async Task ExtractMethodInProperty3()
         {
             var code = @"class C3
@@ -5797,8 +5797,8 @@ class C3
             await TestExtractMethodAsync(code, expected);
         }
 
-        [WorkItem(539029)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
+        [WorkItem(539029, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539029")]
+        [Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
         public async Task ExtractMethodProperty()
         {
             var code = @"class Program
@@ -5844,8 +5844,8 @@ class C3
             await TestExtractMethodAsync(code, expected);
         }
 
-        [WorkItem(539196)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
+        [WorkItem(539196, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539196")]
+        [Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
         public async Task ExtractMethodWithDeclareOneMoreVariablesInSameLineBeUsedAfter()
         {
             var code = @"class C
@@ -5875,8 +5875,8 @@ class C3
             await TestExtractMethodAsync(code, expected);
         }
 
-        [WorkItem(539196)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
+        [WorkItem(539196, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539196")]
+        [Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
         public async Task ExtractMethodWithDeclareOneMoreVariablesInSameLineNotBeUsedAfter()
         {
             var code = @"class C
@@ -5901,8 +5901,8 @@ class C3
             await TestExtractMethodAsync(code, expected);
         }
 
-        [WorkItem(539214)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
+        [WorkItem(539214, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539214")]
+        [Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
         public async Task ExtractMethodForSplitOutStatementWithComments()
         {
             var code = @"class C
@@ -5937,8 +5937,8 @@ class C3
             await TestExtractMethodAsync(code, expected);
         }
 
-        [WorkItem(539225)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
+        [WorkItem(539225, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539225")]
+        [Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
         public async Task Bug5098()
         {
             var code = @"class Program
@@ -5953,8 +5953,8 @@ class C3
             await ExpectExtractMethodToFailAsync(code);
         }
 
-        [WorkItem(539229)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
+        [WorkItem(539229, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539229")]
+        [Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
         public async Task Bug5107()
         {
             var code = @"class Program
@@ -5987,8 +5987,8 @@ class C3
             await TestExtractMethodAsync(code, expected);
         }
 
-        [WorkItem(539500)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
+        [WorkItem(539500, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539500")]
+        [Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
         public async Task LambdaLiftedVariable1()
         {
             var code = @"class Program
@@ -6031,8 +6031,8 @@ class C3
             await TestExtractMethodAsync(code, expected);
         }
 
-        [WorkItem(539488)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
+        [WorkItem(539488, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539488")]
+        [Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
         public async Task LambdaLiftedVariable2()
         {
             var code = @"class Program
@@ -6081,8 +6081,8 @@ class C3
             await TestExtractMethodAsync(code, expected);
         }
 
-        [WorkItem(539531)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
+        [WorkItem(539531, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539531")]
+        [Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
         public async Task Bug5533()
         {
             var code = @"using System;
@@ -6119,8 +6119,8 @@ class Program
             await TestExtractMethodAsync(code, expected);
         }
 
-        [WorkItem(539531)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
+        [WorkItem(539531, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539531")]
+        [Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
         public async Task Bug5533_1()
         {
             var code = @"using System;
@@ -6157,8 +6157,8 @@ class Program
             await TestExtractMethodAsync(code, expected);
         }
 
-        [WorkItem(539531)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
+        [WorkItem(539531, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539531")]
+        [Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
         public async Task Bug5533_2()
         {
             var code = @"using System;
@@ -6196,8 +6196,8 @@ class Program
             await TestExtractMethodAsync(code, expected);
         }
 
-        [WorkItem(539531)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
+        [WorkItem(539531, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539531")]
+        [Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
         public async Task Bug5533_3()
         {
             var code = @"using System;
@@ -6234,8 +6234,8 @@ class Program
             await TestExtractMethodAsync(code, expected);
         }
 
-        [WorkItem(539859)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
+        [WorkItem(539859, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539859")]
+        [Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
         public async Task LambdaLiftedVariable3()
         {
             var code = @"using System;
@@ -6284,8 +6284,8 @@ class Program
             await TestExtractMethodAsync(code, expected);
         }
 
-        [WorkItem(539882)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
+        [WorkItem(539882, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539882")]
+        [Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
         public async Task Bug5982()
         {
             var code = @"using System;
@@ -6320,8 +6320,8 @@ class Program
             await TestExtractMethodAsync(code, expected);
         }
 
-        [WorkItem(539932)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
+        [WorkItem(539932, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539932")]
+        [Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
         public async Task Bug6041()
         {
             var code = @"using System;
@@ -6354,8 +6354,8 @@ class Program
             await TestExtractMethodAsync(code, expected, allowMovingDeclaration: false);
         }
 
-        [WorkItem(540183)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
+        [WorkItem(540183, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540183")]
+        [Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
         public async Task ExtractMethod50()
         {
             var code = @"class C
@@ -6396,7 +6396,7 @@ class Program
             await TestExtractMethodAsync(code, expected);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
+        [Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
         public async Task ExtractMethod51()
         {
             var code = @"class C
@@ -6445,7 +6445,7 @@ class Program
             await TestExtractMethodAsync(code, expected);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
+        [Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
         public async Task ExtractMethod52()
         {
             var code = @"class C
@@ -6480,8 +6480,8 @@ class Program
             await TestExtractMethodAsync(code, expected);
         }
 
-        [WorkItem(539963)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
+        [WorkItem(539963, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539963")]
+        [Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
         public async Task ExtractMethod53()
         {
             var code = @"class Class
@@ -6496,8 +6496,8 @@ enum Enum { }";
             await ExpectExtractMethodToFailAsync(code);
         }
 
-        [WorkItem(539964)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
+        [WorkItem(539964, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539964")]
+        [Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
         public async Task ExtractMethod54()
         {
             var code = @"class Class
@@ -6510,8 +6510,8 @@ enum Enum { }";
             await ExpectExtractMethodToFailAsync(code);
         }
 
-        [WorkItem(540072)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
+        [WorkItem(540072, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540072")]
+        [Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
         public async Task Bug6220()
         {
             var code = @"class C
@@ -6539,8 +6539,8 @@ enum Enum { }";
             await TestExtractMethodAsync(code, expected);
         }
 
-        [WorkItem(540072)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
+        [WorkItem(540072, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540072")]
+        [Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
         public async Task Bug6220_1()
         {
             var code = @"class C
@@ -6568,8 +6568,8 @@ enum Enum { }";
             await TestExtractMethodAsync(code, expected);
         }
 
-        [WorkItem(540071)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
+        [WorkItem(540071, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540071")]
+        [Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
         public async Task Bug6219()
         {
             var code = @"class C
@@ -6597,8 +6597,8 @@ enum Enum { }";
             await TestExtractMethodAsync(code, expected);
         }
 
-        [WorkItem(540080)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
+        [WorkItem(540080, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540080")]
+        [Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
         public async Task Bug6230()
         {
             var code = @"class C
@@ -6626,8 +6626,8 @@ enum Enum { }";
             await TestExtractMethodAsync(code, expected);
         }
 
-        [WorkItem(540080)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
+        [WorkItem(540080, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540080")]
+        [Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
         public async Task Bug6230_1()
         {
             var code = @"class C
@@ -6655,8 +6655,8 @@ enum Enum { }";
             await TestExtractMethodAsync(code, expected);
         }
 
-        [WorkItem(540052)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
+        [WorkItem(540052, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540052")]
+        [Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
         public async Task Bug6197()
         {
             var code = @"using System;
@@ -6699,7 +6699,7 @@ class Program
         }
 
         [WorkItem(6277, "DevDiv_Projects/Roslyn")]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
+        [Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
         public async Task Bug6277()
         {
             var code = @"using System;
@@ -6734,8 +6734,8 @@ class Program
             await TestExtractMethodAsync(code, expected);
         }
 
-        [WorkItem(540151)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
+        [WorkItem(540151, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540151")]
+        [Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
         public async Task ArgumentlessReturnWithConstIfExpression()
         {
             var code = @"using System;
@@ -6770,8 +6770,8 @@ class Program
             await TestExtractMethodAsync(code, expected);
         }
 
-        [WorkItem(540151)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
+        [WorkItem(540151, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540151")]
+        [Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
         public async Task ArgumentlessReturnWithConstIfExpression_1()
         {
             var code = @"using System;
@@ -6810,8 +6810,8 @@ class Program
             await TestExtractMethodAsync(code, expected);
         }
 
-        [WorkItem(540151)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
+        [WorkItem(540151, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540151")]
+        [Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
         public async Task ArgumentlessReturnWithConstIfExpression_2()
         {
             var code = @"using System;
@@ -6843,8 +6843,8 @@ class Program
             await TestExtractMethodAsync(code, expected);
         }
 
-        [WorkItem(540151)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
+        [WorkItem(540151, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540151")]
+        [Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
         public async Task ArgumentlessReturnWithConstIfExpression_3()
         {
             var code = @"using System;
@@ -6881,8 +6881,8 @@ class Program
             await TestExtractMethodAsync(code, expected);
         }
 
-        [WorkItem(540154)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
+        [WorkItem(540154, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540154")]
+        [Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
         public async Task Bug6313()
         {
             var code = @"using System;
@@ -6920,8 +6920,8 @@ class Program
             await TestExtractMethodAsync(code, expected);
         }
 
-        [WorkItem(540154)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
+        [WorkItem(540154, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540154")]
+        [Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
         public async Task Bug6313_1()
         {
             var code = @"using System;
@@ -6941,8 +6941,8 @@ class Program
             await ExpectExtractMethodToFailAsync(code);
         }
 
-        [WorkItem(540154)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
+        [WorkItem(540154, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540154")]
+        [Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
         public async Task Bug6313_2()
         {
             var code = @"using System;
@@ -6962,8 +6962,8 @@ class Program
             await ExpectExtractMethodToFailAsync(code);
         }
 
-        [WorkItem(540154)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
+        [WorkItem(540154, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540154")]
+        [Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
         public async Task Bug6313_3()
         {
             var code = @"using System;
@@ -7018,8 +7018,8 @@ class Program
             await TestExtractMethodAsync(code, expected);
         }
 
-        [WorkItem(540154)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
+        [WorkItem(540154, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540154")]
+        [Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
         public async Task Bug6313_4()
         {
             var code = @"using System;
@@ -7088,8 +7088,8 @@ class Program
             await TestExtractMethodAsync(code, expected);
         }
 
-        [WorkItem(540154)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
+        [WorkItem(540154, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540154")]
+        [Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
         public async Task Bug6313_5()
         {
             var code = @"using System;
@@ -7134,8 +7134,8 @@ class Program
             await TestExtractMethodAsync(code, expected);
         }
 
-        [WorkItem(540154)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
+        [WorkItem(540154, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540154")]
+        [Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
         public async Task Bug6313_6()
         {
             var code = @"using System;
@@ -7158,8 +7158,8 @@ class Program
             await ExpectExtractMethodToFailAsync(code);
         }
 
-        [WorkItem(540170)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
+        [WorkItem(540170, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540170")]
+        [Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
         public async Task Bug6333()
         {
             var code = @"using System;
@@ -7191,8 +7191,8 @@ class Program
             await TestExtractMethodAsync(code, expected);
         }
 
-        [WorkItem(540216)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
+        [WorkItem(540216, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540216")]
+        [Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
         public async Task Bug6393()
         {
             var code = @"using System;
@@ -7224,8 +7224,8 @@ class Program
             await TestExtractMethodAsync(code, expected);
         }
 
-        [WorkItem(540184)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
+        [WorkItem(540184, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540184")]
+        [Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
         public async Task Bug6351()
         {
             var code = @"class Test
@@ -7269,8 +7269,8 @@ class Program
             await TestExtractMethodAsync(code, expected);
         }
 
-        [WorkItem(540184)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
+        [WorkItem(540184, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540184")]
+        [Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
         public async Task Bug6351_1()
         {
             var code = @"class Test
@@ -7314,8 +7314,8 @@ class Program
             await TestExtractMethodAsync(code, expected);
         }
 
-        [WorkItem(540184)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
+        [WorkItem(540184, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540184")]
+        [Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
         public async Task Bug6351_2()
         {
             var code = @"class Test
@@ -7357,8 +7357,8 @@ class Program
             await TestExtractMethodAsync(code, expected);
         }
 
-        [WorkItem(538229)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
+        [WorkItem(538229, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538229")]
+        [Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
         public async Task Bug3790()
         {
             var code = @"class Test
@@ -7399,8 +7399,8 @@ class Program
             await TestExtractMethodAsync(code, expected);
         }
 
-        [WorkItem(538229)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
+        [WorkItem(538229, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538229")]
+        [Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
         public async Task Bug3790_1()
         {
             var code = @"class Test
@@ -7440,8 +7440,8 @@ class Program
             await TestExtractMethodAsync(code, expected);
         }
 
-        [WorkItem(538229)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
+        [WorkItem(538229, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538229")]
+        [Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
         public async Task Bug3790_2()
         {
             var code = @"class Test
@@ -7481,8 +7481,8 @@ class Program
             await TestExtractMethodAsync(code, expected);
         }
 
-        [WorkItem(540333)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
+        [WorkItem(540333, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540333")]
+        [Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
         public async Task Bug6560()
         {
             var code = @"using System;
@@ -7512,8 +7512,8 @@ class Program
             await TestExtractMethodAsync(code, expected);
         }
 
-        [WorkItem(540335)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
+        [WorkItem(540335, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540335")]
+        [Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
         public async Task Bug6562()
         {
             var code = @"using System;
@@ -7535,8 +7535,8 @@ class Program
             await TestExtractMethodAsync(code, expected);
         }
 
-        [WorkItem(540335)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
+        [WorkItem(540335, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540335")]
+        [Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
         public async Task Bug6562_1()
         {
             var code = @"using System;
@@ -7547,8 +7547,8 @@ class Program
             await ExpectExtractMethodToFailAsync(code);
         }
 
-        [WorkItem(540335)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
+        [WorkItem(540335, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540335")]
+        [Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
         public async Task Bug6562_2()
         {
             var code = @"using System;
@@ -7570,8 +7570,8 @@ class Program
             await TestExtractMethodAsync(code, expected);
         }
 
-        [WorkItem(540335)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
+        [WorkItem(540335, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540335")]
+        [Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
         public async Task Bug6562_3()
         {
             var code = @"using System;
@@ -7593,8 +7593,8 @@ class Program
             await TestExtractMethodAsync(code, expected);
         }
 
-        [WorkItem(540361)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
+        [WorkItem(540361, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540361")]
+        [Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
         public async Task Bug6598()
         {
             var code = @"using System;
@@ -7611,8 +7611,8 @@ class
             await ExpectExtractMethodToFailAsync(code);
         }
 
-        [WorkItem(540372)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
+        [WorkItem(540372, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540372")]
+        [Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
         public async Task Bug6613()
         {
             var code = @"#define A
@@ -7648,8 +7648,8 @@ class Program
             await TestExtractMethodAsync(code, expected);
         }
 
-        [WorkItem(540396)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
+        [WorkItem(540396, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540396")]
+        [Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
         public async Task InvalidSelection_MethodBody()
         {
             var code = @"using System;
@@ -7673,8 +7673,8 @@ class Program
             await ExpectExtractMethodToFailAsync(code);
         }
 
-        [WorkItem(541586)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
+        [WorkItem(541586, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541586")]
+        [Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
         public async Task StructThis()
         {
             var code = @"struct S
@@ -7699,8 +7699,8 @@ class Program
             await TestExtractMethodAsync(code, expected);
         }
 
-        [WorkItem(541627)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
+        [WorkItem(541627, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541627")]
+        [Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
         public async Task DontUseConvertedTypeForImplicitNumericConversion()
         {
             var code = @"class T
@@ -7727,8 +7727,8 @@ class Program
             await TestExtractMethodAsync(code, expected);
         }
 
-        [WorkItem(541668)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
+        [WorkItem(541668, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541668")]
+        [Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
         public async Task BreakInSelection()
         {
             var code = @"using System;
@@ -7767,8 +7767,8 @@ class Program
             await ExpectExtractMethodToFailAsync(code);
         }
 
-        [WorkItem(541671)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
+        [WorkItem(541671, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541671")]
+        [Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
         public async Task UnreachableCodeWithReturnStatement()
         {
             var code = @"class Program
@@ -7803,8 +7803,8 @@ class Program
             await TestExtractMethodAsync(code, expected);
         }
 
-        [WorkItem(539862)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
+        [WorkItem(539862, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539862")]
+        [Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
         public async Task DontBlindlyPutCapturedVariable1()
         {
             var code = @"using System;
@@ -7861,8 +7861,8 @@ namespace Ros
             await TestExtractMethodAsync(code, expected);
         }
 
-        [WorkItem(539862)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
+        [WorkItem(539862, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539862")]
+        [Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
         public async Task DontBlindlyPutCapturedVariable2()
         {
             var code = @"using System;
@@ -7899,8 +7899,8 @@ class Program
             await TestExtractMethodAsync(code, expected);
         }
 
-        [WorkItem(541889)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
+        [WorkItem(541889, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541889")]
+        [Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
         public async Task DontCrashOnRangeVariableSymbol()
         {
             var code = @"class Test
@@ -7914,7 +7914,7 @@ class Program
             await ExpectExtractMethodToFailAsync(code);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
+        [Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
         public async Task ExtractRangeVariable()
         {
             var code = @"using System.Linq;
@@ -7944,8 +7944,8 @@ class Test
             await TestExtractMethodAsync(code, expected);
         }
 
-        [WorkItem(542155)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
+        [WorkItem(542155, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542155")]
+        [Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
         public async Task GenericWithErrorType()
         {
             var code = @"using Foo.Utilities;
@@ -8005,8 +8005,8 @@ namespace Foo.Utilities
             await TestExtractMethodAsync(code, expected);
         }
 
-        [WorkItem(542105)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
+        [WorkItem(542105, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542105")]
+        [Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
         public async Task NamedArgument()
         {
             var code = @"using System;
@@ -8040,8 +8040,8 @@ class C
             await TestExtractMethodAsync(code, expected);
         }
 
-        [WorkItem(542213)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
+        [WorkItem(542213, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542213")]
+        [Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
         public async Task QueryExpressionVariable()
         {
             var code = @"using System;
@@ -8083,8 +8083,8 @@ class Program
             await TestExtractMethodAsync(code, expected);
         }
 
-        [WorkItem(542465)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
+        [WorkItem(542465, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542465")]
+        [Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
         public async Task IsExpression()
         {
             var code = @"using System;
@@ -8125,8 +8125,8 @@ class IsTest
             await TestExtractMethodAsync(code, expected);
         }
 
-        [WorkItem(542526)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
+        [WorkItem(542526, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542526")]
+        [Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
         public async Task TypeParametersInConstraint()
         {
             var code = @"using System;
@@ -8158,8 +8158,8 @@ class A
             await TestExtractMethodAsync(code, expected);
         }
 
-        [WorkItem(542619)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
+        [WorkItem(542619, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542619")]
+        [Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
         public async Task GlobalNamespaceInReturnType()
         {
             var code = @"class Program
@@ -8187,8 +8187,8 @@ class A
             await TestExtractMethodAsync(code, expected);
         }
 
-        [WorkItem(542582)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
+        [WorkItem(542582, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542582")]
+        [Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
         public async Task ExtractMethodExpandSelectionOnFor()
         {
             var code = @"using System;
@@ -8223,7 +8223,7 @@ class Program
             await TestExtractMethodAsync(code, expected);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
+        [Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
         public async Task ExtractMethodNotContainerOnFor()
         {
             var code = @"using System;
@@ -8254,7 +8254,7 @@ class Program
             await TestExtractMethodAsync(code, expected);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
+        [Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
         public async Task ExtractMethodExpandSelectionOnForeach()
         {
             var code = @"using System;
@@ -8289,7 +8289,7 @@ class Program
             await TestExtractMethodAsync(code, expected);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
+        [Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
         public async Task ExtractMethodNotContainerOnForeach()
         {
             var code = @"using System;
@@ -8326,7 +8326,7 @@ class Program
             await TestExtractMethodAsync(code, expected);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
+        [Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
         public async Task ExtractMethodNotContainerOnElseClause()
         {
             var code = @"using System;
@@ -8367,7 +8367,7 @@ class Program
             await TestExtractMethodAsync(code, expected);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
+        [Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
         public async Task ExtractMethodExpandSelectionOnLabel()
         {
             var code = @"using System;
@@ -8404,7 +8404,7 @@ class Program
             await TestExtractMethodAsync(code, expected);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
+        [Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
         public async Task ExtractMethodNotContainerOnLabel()
         {
             var code = @"using System;
@@ -8441,7 +8441,7 @@ class Program
             await TestExtractMethodAsync(code, expected);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
+        [Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
         public async Task ExtractMethodExpandSelectionOnSwitch()
         {
             var code = @"using System;
@@ -8480,7 +8480,7 @@ class Program
             await TestExtractMethodAsync(code, expected);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
+        [Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
         public async Task ExtractMethodNotContainerOnSwitch()
         {
             var code = @"using System;
@@ -8519,7 +8519,7 @@ class Program
             await TestExtractMethodAsync(code, expected);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
+        [Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
         public async Task ExtractMethodExpandSelectionOnDo()
         {
             var code = @"using System;
@@ -8554,7 +8554,7 @@ class Program
             await TestExtractMethodAsync(code, expected);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
+        [Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
         public async Task ExtractMethodNotContainerOnDo()
         {
             var code = @"using System;
@@ -8591,7 +8591,7 @@ class Program
             await TestExtractMethodAsync(code, expected);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
+        [Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
         public async Task ExtractMethodExpandSelectionOnWhile()
         {
             var code = @"using System;
@@ -8626,7 +8626,7 @@ class Program
             await TestExtractMethodAsync(code, expected);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
+        [Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
         public async Task ExtractMethodExpandSelectionOnStruct()
         {
             var code = @"using System;
@@ -8651,8 +8651,8 @@ struct Foo
             await TestExtractMethodAsync(code, expected);
         }
 
-        [WorkItem(542619)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
+        [WorkItem(542619, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542619")]
+        [Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
         public async Task ExtractMethodIncludeGlobal()
         {
             var code = @"class Program
@@ -8688,8 +8688,8 @@ struct Foo
             await TestExtractMethodAsync(code, expected);
         }
 
-        [WorkItem(542582)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
+        [WorkItem(542582, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542582")]
+        [Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
         public async Task ExtractMethodExpandSelection()
         {
             var code = @"class Program
@@ -8720,8 +8720,8 @@ struct Foo
             await TestExtractMethodAsync(code, expected);
         }
 
-        [WorkItem(542594)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
+        [WorkItem(542594, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542594")]
+        [Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
         public async Task ExtractMethodRename1()
         {
             var code = @"class Program
@@ -8755,8 +8755,8 @@ struct Foo
             await TestExtractMethodAsync(code, expected);
         }
 
-        [WorkItem(542594)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
+        [WorkItem(542594, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542594")]
+        [Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
         public async Task ExtractMethodRename2()
         {
             var code = @"class Program
@@ -8801,8 +8801,8 @@ struct Foo
             await TestExtractMethodAsync(code, expected);
         }
 
-        [WorkItem(542632)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
+        [WorkItem(542632, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542632")]
+        [Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
         public async Task ExtractMethodInInteractive1()
         {
             var code = @"int i; [|i = 2|]; i = 3;";
@@ -8817,8 +8817,8 @@ i = 3;";
             await TestExtractMethodAsync(code, expected, parseOptions: Options.Script);
         }
 
-        [WorkItem(542670)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
+        [WorkItem(542670, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542670")]
+        [Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
         public async Task TypeParametersInConstraint1()
         {
             var code = @"using System;
@@ -8850,9 +8850,9 @@ class A
             await TestExtractMethodAsync(code, expected);
         }
 
-        [WorkItem(706894)]
-        [WorkItem(543012)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
+        [WorkItem(706894, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/706894")]
+        [WorkItem(543012, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543012")]
+        [Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
         public async Task TypeParametersInConstraint2()
         {
             var code = @"
@@ -8898,9 +8898,9 @@ class A
             await TestExtractMethodAsync(code, expected);
         }
 
-        [WorkItem(706894)]
-        [WorkItem(543012)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
+        [WorkItem(706894, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/706894")]
+        [WorkItem(543012, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543012")]
+        [Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
         public async Task TypeParametersInConstraint3()
         {
             var code = @"
@@ -8946,8 +8946,8 @@ class A
             await TestExtractMethodAsync(code, expected);
         }
 
-        [WorkItem(543012)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
+        [WorkItem(543012, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543012")]
+        [Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
         public async Task TypeParametersInConstraint4()
         {
             var code = @"
@@ -9017,8 +9017,8 @@ class B : A
             await TestExtractMethodAsync(code, expected);
         }
 
-        [WorkItem(543012)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
+        [WorkItem(543012, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543012")]
+        [Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
         public async Task TypeParametersInConstraintBestEffort()
         {
             var code = @"
@@ -9070,8 +9070,8 @@ class B : A<string>
             await TestExtractMethodAsync(code, expected);
         }
 
-        [WorkItem(542672)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
+        [WorkItem(542672, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542672")]
+        [Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
         public async Task ConstructedTypes()
         {
             var code = @"using System;
@@ -9105,8 +9105,8 @@ class Program
             await TestExtractMethodAsync(code, expected);
         }
 
-        [WorkItem(542792)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
+        [WorkItem(542792, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542792")]
+        [Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
         public async Task TypeInDefault()
         {
             var code = @"using System;
@@ -9168,8 +9168,8 @@ class Node<K, T> where T : new()
             await TestExtractMethodAsync(code, expected);
         }
 
-        [WorkItem(542708)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
+        [WorkItem(542708, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542708")]
+        [Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
         public async Task Script_ArgumentException()
         {
             var code = @"using System;
@@ -9193,8 +9193,8 @@ Type GetDelegateType(Type delegateType)
             await TestExtractMethodAsync(code, expected, parseOptions: Options.Script);
         }
 
-        [WorkItem(529008)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
+        [WorkItem(529008, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529008")]
+        [Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
         public async Task ReadOutSideIsUnReachable()
         {
             var code = @"class Test
@@ -9235,8 +9235,8 @@ Type GetDelegateType(Type delegateType)
             await TestExtractMethodAsync(code, expected, allowMovingDeclaration: false);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
-        [WorkItem(543186)]
+        [Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
+        [WorkItem(543186, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543186")]
         public async Task AnonymousTypePropertyName()
         {
             var code = @"class C
@@ -9261,8 +9261,8 @@ Type GetDelegateType(Type delegateType)
             await TestExtractMethodAsync(code, expected);
         }
 
-        [WorkItem(543662)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
+        [WorkItem(543662, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543662")]
+        [Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
         public async Task ArgumentOfBaseConstrInit()
         {
             var code = @"class O
@@ -9286,7 +9286,7 @@ Type GetDelegateType(Type delegateType)
             await TestExtractMethodAsync(code, expected);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
+        [Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
         public async Task UnsafeType()
         {
             var code = @"
@@ -9314,8 +9314,8 @@ unsafe class O
             await TestExtractMethodAsync(code, expected);
         }
 
-        [WorkItem(544144)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
+        [WorkItem(544144, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544144")]
+        [Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
         public async Task CastExpressionWithImplicitUserDefinedConversion()
         {
             var code = @"
@@ -9355,8 +9355,8 @@ class C
             await TestExtractMethodAsync(code, expected);
         }
 
-        [WorkItem(544387)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
+        [WorkItem(544387, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544387")]
+        [Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
         public async Task FixedPointerVariable()
         {
             var code = @"
@@ -9392,8 +9392,8 @@ class Test
             await TestExtractMethodAsync(code, expected);
         }
 
-        [WorkItem(544444)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
+        [WorkItem(544444, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544444")]
+        [Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
         public async Task PointerDeclarationStatement()
         {
             var code = @"
@@ -9423,8 +9423,8 @@ class Program
             await TestExtractMethodAsync(code, expected);
         }
 
-        [WorkItem(544446)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
+        [WorkItem(544446, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544446")]
+        [Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
         public async Task PrecededByCastExpr()
         {
             var code = @"
@@ -9452,8 +9452,8 @@ class Program
             await TestExtractMethodAsync(code, expected);
         }
 
-        [WorkItem(542944)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
+        [WorkItem(542944, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542944")]
+        [Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
         public async Task ExpressionWithLocalConst()
         {
             var code = @"class Program
@@ -9481,8 +9481,8 @@ class Program
             await TestExtractMethodAsync(code, expected, allowMovingDeclaration: true);
         }
 
-        [WorkItem(542944)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
+        [WorkItem(542944, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542944")]
+        [Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
         public async Task ExpressionWithLocalConst2()
         {
             var code = @"class Program
@@ -9511,8 +9511,8 @@ class Program
             await TestExtractMethodAsync(code, expected, allowMovingDeclaration: false);
         }
 
-        [WorkItem(544675)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
+        [WorkItem(544675, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544675")]
+        [Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
         public async Task HiddenPosition()
         {
             var code = @"class Program
@@ -9529,8 +9529,8 @@ class Program
             await ExpectExtractMethodToFailAsync(code);
         }
 
-        [WorkItem(530609)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
+        [WorkItem(530609, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530609")]
+        [Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
         public async Task NoCrashInteractive()
         {
             var code = @"[|if (true)
@@ -9548,8 +9548,8 @@ void NewMethod()
             await TestExtractMethodAsync(code, expected, parseOptions: new CSharpParseOptions(kind: SourceCodeKind.Script));
         }
 
-        [WorkItem(530322)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
+        [WorkItem(530322, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530322")]
+        [Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
         public async Task ExtractMethodShouldNotBreakFormatting()
         {
             var code =
@@ -9580,8 +9580,8 @@ void NewMethod()
             await TestExtractMethodAsync(code, expected);
         }
 
-        [WorkItem(604389)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
+        [WorkItem(604389, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/604389")]
+        [Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
         public async Task TestExtractLiteralExpression()
         {
             var code =
@@ -9618,8 +9618,8 @@ class C
             await TestExtractMethodAsync(code, expected);
         }
 
-        [WorkItem(604389)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
+        [WorkItem(604389, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/604389")]
+        [Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
         public async Task TestExtractCollectionInitializer()
         {
             var code =
@@ -9656,8 +9656,8 @@ class C
             await TestExtractMethodAsync(code, expected);
         }
 
-        [WorkItem(854662)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
+        [WorkItem(854662, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/854662")]
+        [Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
         public async Task TestExtractCollectionInitializer2()
         {
             var code =
@@ -9692,8 +9692,8 @@ class Program
             await TestExtractMethodAsync(code, expected);
         }
 
-        [WorkItem(530267)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
+        [WorkItem(530267, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530267")]
+        [Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
         public async Task TestCoClassImplicitConversion()
         {
             var code =
@@ -9736,8 +9736,8 @@ class C : I
             await TestExtractMethodAsync(code, expected);
         }
 
-        [WorkItem(530710)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
+        [WorkItem(530710, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530710")]
+        [Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
         public async Task TestOverloadResolution()
         {
             var code =
@@ -9796,8 +9796,8 @@ static class E
             await TestExtractMethodAsync(code, expected);
         }
 
-        [WorkItem(530710)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
+        [WorkItem(530710, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530710")]
+        [Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
         public async Task TestOverloadResolution1()
         {
             var code =
@@ -9856,8 +9856,8 @@ static class E
             await TestExtractMethodAsync(code, expected);
         }
 
-        [WorkItem(530710)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
+        [WorkItem(530710, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530710")]
+        [Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
         public async Task TestOverloadResolution2()
         {
             var code =
@@ -9916,8 +9916,8 @@ static class E
             await TestExtractMethodAsync(code, expected);
         }
 
-        [WorkItem(731924)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
+        [WorkItem(731924, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/731924")]
+        [Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
         public async Task TestTreatEnumSpecial()
         {
             var code =
@@ -9964,8 +9964,8 @@ class Program
             await TestExtractMethodAsync(code, expected);
         }
 
-        [WorkItem(756222)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
+        [WorkItem(756222, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/756222")]
+        [Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
         public async Task TestReturnStatementInAsyncMethod()
         {
             var code =
@@ -9998,8 +9998,8 @@ class C
             await TestExtractMethodAsync(code, expected);
         }
 
-        [WorkItem(574576)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
+        [WorkItem(574576, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/574576")]
+        [Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
         public async Task TestAsyncMethodWithRefOrOutParameters()
         {
             var code =
@@ -10020,8 +10020,8 @@ class C
             await ExpectExtractMethodToFailAsync(code);
         }
 
-        [WorkItem(1025272)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
+        [WorkItem(1025272, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1025272")]
+        [Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
         public async Task TestAsyncMethodWithWellKnownValueType()
         {
             var code =
@@ -10077,7 +10077,7 @@ class Program
             await ExpectExtractMethodToFailAsync(code, expected);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
+        [Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
         public async Task TestAsyncMethodWithWellKnownValueType1()
         {
             var code =
@@ -10106,7 +10106,7 @@ class Program
             await ExpectExtractMethodToFailAsync(code, allowMovingDeclaration: false);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
+        [Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
         public async Task TestDontPutOutOrRefForStructOff()
         {
             var code =
@@ -10139,7 +10139,7 @@ namespace ClassLibrary9
             await ExpectExtractMethodToFailAsync(code, dontPutOutOrRefOnStruct: false);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
+        [Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
         public async Task TestDontPutOutOrRefForStructOn()
         {
             var code =
@@ -10205,7 +10205,7 @@ namespace ClassLibrary9
             await TestExtractMethodAsync(code, expected, dontPutOutOrRefOnStruct: true);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
+        [Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
         public async Task ExtractMethod_Argument1()
         {
             var service = new CSharpExtractMethodService();
@@ -10215,7 +10215,7 @@ namespace ClassLibrary9
             }));
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
+        [Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
         public async Task ExtractMethod_Argument2()
         {
             var solution = new AdhocWorkspace().CurrentSolution;
@@ -10238,7 +10238,7 @@ namespace ClassLibrary9
             var exportProvider = MinimalTestExportProvider.CreateExportProvider(
                 TestExportProvider.EntireAssemblyCatalogWithCSharpAndVisualBasic.WithParts(typeof(InteractiveDocumentSupportsFeatureService)));
 
-            using (var workspace = await TestWorkspaceFactory.CreateWorkspaceAsync(XElement.Parse(@"
+            using (var workspace = await TestWorkspace.CreateAsync(XElement.Parse(@"
                 <Workspace>
                     <Submission Language=""C#"" CommonReferences=""true"">  
                         typeof(string).$$Name

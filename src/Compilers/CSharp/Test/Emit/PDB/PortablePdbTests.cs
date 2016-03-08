@@ -1,4 +1,5 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+
 using System;
 using System.IO;
 using System.Reflection.Metadata;
@@ -77,7 +78,7 @@ class C
 18: (9,9)-(9,10)
 19: (10,5)-(10,6)
 ", spString);
-                            AssertEx.Equal(new byte[] 
+                            AssertEx.Equal(new byte[]
                             {
                                 0x01, // local signature
 
@@ -125,7 +126,7 @@ class C
 
                         case "F":
                             AssertEx.AssertEqualToleratingWhitespaceDifferences("0: (12,31)-(12,36)", spString);
-                            AssertEx.Equal(new byte[] 
+                            AssertEx.Equal(new byte[]
                             {
                                 0x00, // local signature
 

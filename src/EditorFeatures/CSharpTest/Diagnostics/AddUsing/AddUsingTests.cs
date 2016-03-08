@@ -37,7 +37,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.AddUsing
             });
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsAddUsing)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddUsing)]
         public async Task TestTypeFromMultipleNamespaces1()
         {
             await TestAsync(
@@ -45,7 +45,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.AddUsing
 @"using System.Collections; class Class { IDictionary Method() { Foo(); } }");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsAddUsing)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddUsing)]
         public async Task TestTypeFromMultipleNamespaces2()
         {
             await TestAsync(
@@ -54,7 +54,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.AddUsing
 index: 1);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsAddUsing)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddUsing)]
         public async Task TestGenericWithNoArgs()
         {
             await TestAsync(
@@ -62,7 +62,7 @@ index: 1);
 @"using System.Collections.Generic; class Class { List Method() { Foo(); } }");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsAddUsing)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddUsing)]
         public async Task TestGenericWithCorrectArgs()
         {
             await TestAsync(
@@ -70,21 +70,21 @@ index: 1);
 @"using System.Collections.Generic; class Class { List<int> Method() { Foo(); } }");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsAddUsing)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddUsing)]
         public async Task TestGenericWithWrongArgs1()
         {
             await TestMissingAsync(
 @"class Class { [|List<int,string,bool>|] Method() { Foo(); } }");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsAddUsing)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddUsing)]
         public async Task TestGenericWithWrongArgs2()
         {
             await TestMissingAsync(
 @"class Class { [|List<int,string>|] Method() { Foo(); } }");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsAddUsing)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddUsing)]
         public async Task TestGenericInLocalDeclaration()
         {
             await TestAsync(
@@ -92,7 +92,7 @@ index: 1);
 @"using System.Collections.Generic; class Class { void Foo() { List<int> a = new List<int>(); } }");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsAddUsing)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddUsing)]
         public async Task TestGenericItemType()
         {
             await TestAsync(
@@ -100,7 +100,7 @@ index: 1);
 @"using System; using System.Collections.Generic; class Class { List<Int32> l; }");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsAddUsing)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddUsing)]
         public async Task TestGenerateWithExistingUsings()
         {
             await TestAsync(
@@ -108,7 +108,7 @@ index: 1);
 @"using System; using System.Collections.Generic; class Class { List<int> Method() { Foo(); } }");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsAddUsing)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddUsing)]
         public async Task TestGenerateInNamespace()
         {
             await TestAsync(
@@ -116,7 +116,7 @@ index: 1);
 @"using System.Collections.Generic; namespace N { class Class { List<int> Method() { Foo(); } } }");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsAddUsing)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddUsing)]
         public async Task TestGenerateInNamespaceWithUsings()
         {
             await TestAsync(
@@ -124,7 +124,7 @@ index: 1);
 @"namespace N { using System; using System.Collections.Generic; class Class { List<int> Method() { Foo(); } } }");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsAddUsing)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddUsing)]
         public async Task TestExistingUsing()
         {
             await TestActionCountAsync(
@@ -136,8 +136,8 @@ count: 1);
 @"using System.Collections; using System.Collections.Generic; class Class { IDictionary Method() { Foo(); } }");
         }
 
-        [WorkItem(541730)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsAddUsing)]
+        [WorkItem(541730, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541730")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddUsing)]
         public async Task TestAddUsingForGenericExtensionMethod()
         {
             await TestAsync(
@@ -145,8 +145,8 @@ count: 1);
 @"using System.Collections.Generic; using System.Linq; class Class { void Method(IList<int> args) { args.Where() } }");
         }
 
-        [WorkItem(541730)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsAddUsing)]
+        [WorkItem(541730, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541730")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddUsing)]
         public async Task TestAddUsingForNormalExtensionMethod()
         {
             await TestAsync(
@@ -155,7 +155,7 @@ count: 1);
 parseOptions: Options.Regular);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsAddUsing)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddUsing)]
         public async Task TestOnEnum()
         {
             await TestAsync(
@@ -163,7 +163,7 @@ parseOptions: Options.Regular);
 @"using A; class Class { void Foo() { var a = Colors.Red; } } namespace A { enum Colors {Red, Green, Blue} }");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsAddUsing)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddUsing)]
         public async Task TestOnClassInheritance()
         {
             await TestAsync(
@@ -171,7 +171,7 @@ parseOptions: Options.Regular);
 @"using A; class Class : Class2 { } namespace A { class Class2 { } }");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsAddUsing)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddUsing)]
         public async Task TestOnImplementedInterface()
         {
             await TestAsync(
@@ -179,7 +179,7 @@ parseOptions: Options.Regular);
 @"using A; class Class : IFoo { } namespace A { interface IFoo { } }");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsAddUsing)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddUsing)]
         public async Task TestAllInBaseList()
         {
             await TestAsync(
@@ -191,7 +191,7 @@ parseOptions: Options.Regular);
 @"using A; using B; class Class : IFoo, Class2 { } namespace A { class Class2 { } } namespace B { interface IFoo { } }");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsAddUsing)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddUsing)]
         public async Task TestAttributeUnexpanded()
         {
             await TestAsync(
@@ -199,7 +199,7 @@ parseOptions: Options.Regular);
 @"using System; [Obsolete]class Class { }");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsAddUsing)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddUsing)]
         public async Task TestAttributeExpanded()
         {
             await TestAsync(
@@ -207,8 +207,8 @@ parseOptions: Options.Regular);
 @"using System; [ObsoleteAttribute]class Class { }");
         }
 
-        [WorkItem(538018)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsAddUsing)]
+        [WorkItem(538018, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538018")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddUsing)]
         public async Task TestAfterNew()
         {
             await TestAsync(
@@ -216,7 +216,7 @@ parseOptions: Options.Regular);
 @"using System.Collections.Generic; class Class { void Foo() { List<int> l; l = new List<int>(); } }");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsAddUsing)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddUsing)]
         public async Task TestArgumentsInMethodCall()
         {
             await TestAsync(
@@ -224,7 +224,7 @@ parseOptions: Options.Regular);
 @"using System; class Class { void Test() { Console.WriteLine(DateTime.Today); } }");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsAddUsing)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddUsing)]
         public async Task TestCallSiteArgs()
         {
             await TestAsync(
@@ -232,7 +232,7 @@ parseOptions: Options.Regular);
 @"using System; class Class { void Test(DateTime dt) { } }");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsAddUsing)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddUsing)]
         public async Task TestUsePartialClass()
         {
             await TestAsync(
@@ -240,7 +240,7 @@ parseOptions: Options.Regular);
 @"using B; namespace A { public class Class { PClass c; } } namespace B{ public partial class PClass { } }");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsAddUsing)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddUsing)]
         public async Task TestGenericClassInNestedNamespace()
         {
             await TestAsync(
@@ -248,8 +248,8 @@ parseOptions: Options.Regular);
 @"using A.B; namespace A { namespace B { class GenericClass<T> { } } } namespace C { class Class { GenericClass<int> c; } }");
         }
 
-        [WorkItem(541730)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsAddUsing)]
+        [WorkItem(541730, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541730")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddUsing)]
         public async Task TestExtensionMethods()
         {
             await TestAsync(
@@ -257,8 +257,8 @@ parseOptions: Options.Regular);
 @"using System . Collections . Generic ; using System . Linq ; class Foo { void Bar ( ) { var values = new List < int > ( ) ; values . Where ( i => i > 1 ) ; } } ");
         }
 
-        [WorkItem(541730)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsAddUsing)]
+        [WorkItem(541730, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541730")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddUsing)]
         public async Task TestQueryPatterns()
         {
             await TestAsync(
@@ -267,7 +267,7 @@ parseOptions: Options.Regular);
         }
 
         // Tests for Insertion Order
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsAddUsing)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddUsing)]
         public async Task TestSimplePresortedUsings1()
         {
             await TestAsync(
@@ -275,7 +275,7 @@ parseOptions: Options.Regular);
 @"using B; using C; using D; class Class { void Method() { Foo.Bar(); } } namespace D { class Foo { public static void Bar() { } } }");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsAddUsing)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddUsing)]
         public async Task TestSimplePresortedUsings2()
         {
             await TestAsync(
@@ -283,7 +283,7 @@ parseOptions: Options.Regular);
 @"using A; using B; using C; class Class { void Method() { Foo.Bar(); } } namespace A { class Foo { public static void Bar() { } } }");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsAddUsing)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddUsing)]
         public async Task TestSimpleUnsortedUsings1()
         {
             await TestAsync(
@@ -291,7 +291,7 @@ parseOptions: Options.Regular);
 @"using C; using B; using A; class Class { void Method() { Foo.Bar(); } } namespace A { class Foo { public static void Bar() { } } }");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsAddUsing)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddUsing)]
         public async Task TestSimpleUnsortedUsings2()
         {
             await TestAsync(
@@ -299,7 +299,7 @@ parseOptions: Options.Regular);
 @"using D; using B; using C; class Class { void Method() { Foo.Bar(); } } namespace C { class Foo { public static void Bar() { } } }");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsAddUsing)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddUsing)]
         public async Task TestMultiplePresortedUsings1()
         {
             await TestAsync(
@@ -307,7 +307,7 @@ parseOptions: Options.Regular);
 @"using B; using B.X; using B.Y; class Class { void Method() { Foo.Bar(); } } namespace B { class Foo { public static void Bar() { } } }");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsAddUsing)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddUsing)]
         public async Task TestMultiplePresortedUsings2()
         {
             await TestAsync(
@@ -315,7 +315,7 @@ parseOptions: Options.Regular);
 @"using B.A; using B.X; using B.Y; class Class { void Method() { Foo.Bar(); } } namespace B.A { class Foo { public static void Bar() { } } }");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsAddUsing)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddUsing)]
         public async Task TestMultiplePresortedUsings3()
         {
             await TestAsync(
@@ -323,7 +323,7 @@ parseOptions: Options.Regular);
 @"using B.A; using B.X; using B.Y; class Class { void Method() { Foo.Bar(); } } namespace B { namespace A { class Foo { public static void Bar() { } } } }");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsAddUsing)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddUsing)]
         public async Task TestMultipleUnsortedUsings1()
         {
             await TestAsync(
@@ -331,7 +331,7 @@ parseOptions: Options.Regular);
 @"using B.Y; using B.X; using B.A; class Class { void Method() { Foo.Bar(); } } namespace B { namespace A { class Foo { public static void Bar() { } } } }");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsAddUsing)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddUsing)]
         public async Task TestMultipleUnsortedUsings2()
         {
             await TestAsync(
@@ -340,7 +340,7 @@ parseOptions: Options.Regular);
         }
 
         // System on top cases
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsAddUsing)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddUsing)]
         public async Task TestSimpleSystemSortedUsings1()
         {
             await TestAsync(
@@ -349,7 +349,7 @@ parseOptions: Options.Regular);
 systemSpecialCase: true);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsAddUsing)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddUsing)]
         public async Task TestSimpleSystemSortedUsings2()
         {
             await TestAsync(
@@ -358,7 +358,7 @@ systemSpecialCase: true);
 systemSpecialCase: true);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsAddUsing)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddUsing)]
         public async Task TestSimpleSystemSortedUsings3()
         {
             await TestAsync(
@@ -367,7 +367,7 @@ systemSpecialCase: true);
 systemSpecialCase: true);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsAddUsing)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddUsing)]
         public async Task TestSimpleSystemUnsortedUsings1()
         {
             await TestAsync(
@@ -376,7 +376,7 @@ systemSpecialCase: true);
 systemSpecialCase: true);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsAddUsing)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddUsing)]
         public async Task TestSimpleSystemUnsortedUsings2()
         {
             await TestAsync(
@@ -385,7 +385,7 @@ systemSpecialCase: true);
 systemSpecialCase: true);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsAddUsing)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddUsing)]
         public async Task TestSimpleSystemUnsortedUsings3()
         {
             await TestAsync(
@@ -394,7 +394,7 @@ systemSpecialCase: true);
 systemSpecialCase: true);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsAddUsing)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddUsing)]
         public async Task TestSimpleBogusSystemUsings1()
         {
             await TestAsync(
@@ -403,7 +403,7 @@ systemSpecialCase: true);
 systemSpecialCase: true);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsAddUsing)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddUsing)]
         public async Task TestSimpleBogusSystemUsings2()
         {
             await TestAsync(
@@ -412,7 +412,7 @@ systemSpecialCase: true);
 systemSpecialCase: true);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsAddUsing)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddUsing)]
         public async Task TestUsingsWithComments()
         {
             await TestAsync(
@@ -422,7 +422,7 @@ systemSpecialCase: true);
         }
 
         // System Not on top cases
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsAddUsing)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddUsing)]
         public async Task TestSimpleSystemUnsortedUsings4()
         {
             await TestAsync(
@@ -431,7 +431,7 @@ systemSpecialCase: true);
 systemSpecialCase: false);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsAddUsing)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddUsing)]
         public async Task TestSimpleSystemSortedUsings5()
         {
             await TestAsync(
@@ -440,7 +440,7 @@ systemSpecialCase: false);
 systemSpecialCase: false);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsAddUsing)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddUsing)]
         public async Task TestSimpleSystemSortedUsings4()
         {
             await TestAsync(
@@ -449,17 +449,17 @@ systemSpecialCase: false);
 systemSpecialCase: false);
         }
 
-        [WorkItem(538136)]
-        [WorkItem(538763)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsAddUsing)]
+        [WorkItem(538136, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538136")]
+        [WorkItem(538763, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538763")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddUsing)]
         public async Task TestAddUsingForNamespace()
         {
             await TestMissingAsync(
 @"namespace A { class Class { [|C|].Test t; } } namespace B { namespace C { class Test { } } }");
         }
 
-        [WorkItem(538220)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsAddUsing)]
+        [WorkItem(538220, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538220")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddUsing)]
         public async Task TestAddUsingForFieldWithFormatting()
         {
             await TestAsync(
@@ -470,8 +470,8 @@ class C { DateTime t; }",
 compareTokens: false);
         }
 
-        [WorkItem(539657)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsAddUsing)]
+        [WorkItem(539657, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539657")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddUsing)]
         public async Task BugFix5688()
         {
             await TestAsync(
@@ -479,8 +479,8 @@ compareTokens: false);
 @"using System ; class Program { static void Main ( string [ ] args ) { Console . Out . NewLine = ""\r\n\r\n"" ; } } ");
         }
 
-        [WorkItem(539853)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsAddUsing)]
+        [WorkItem(539853, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539853")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddUsing)]
         public async Task BugFix5950()
         {
             await TestAsync(
@@ -489,8 +489,8 @@ compareTokens: false);
 parseOptions: GetScriptOptions());
         }
 
-        [WorkItem(540339)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsAddUsing)]
+        [WorkItem(540339, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540339")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddUsing)]
         public async Task TestAddAfterDefineDirective1()
         {
             await TestAsync(
@@ -522,8 +522,8 @@ class Program
 compareTokens: false);
         }
 
-        [WorkItem(540339)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsAddUsing)]
+        [WorkItem(540339, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540339")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddUsing)]
         public async Task TestAddAfterDefineDirective2()
         {
             await TestAsync(
@@ -550,7 +550,7 @@ class Program
 compareTokens: false);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsAddUsing)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddUsing)]
         public async Task TestAddAfterDefineDirective3()
         {
             await TestAsync(
@@ -578,7 +578,7 @@ class Program
 compareTokens: false);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsAddUsing)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddUsing)]
         public async Task TestAddAfterDefineDirective4()
         {
             await TestAsync(
@@ -607,7 +607,7 @@ class Program
 compareTokens: false);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsAddUsing)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddUsing)]
         public async Task TestAddAfterExistingBanner()
         {
             await TestAsync(
@@ -636,7 +636,7 @@ class Program
 compareTokens: false);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsAddUsing)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddUsing)]
         public async Task TestAddAfterExternAlias1()
         {
             await TestAsync(
@@ -667,7 +667,7 @@ class Program
 compareTokens: false);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsAddUsing)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddUsing)]
         public async Task TestAddAfterExternAlias2()
         {
             await TestAsync(
@@ -701,7 +701,7 @@ class Program
 compareTokens: false);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsAddUsing)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddUsing)]
         public async Task TestWithReferenceDirective()
         {
             var resolver = new TestMetadataReferenceResolver(assemblyNames: new Dictionary<string, PortableExecutableReference>()
@@ -721,8 +721,8 @@ compilationOptions: TestOptions.ReleaseDll.WithMetadataReferenceResolver(resolve
 compareTokens: false);
         }
 
-        [WorkItem(542643)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsAddUsing)]
+        [WorkItem(542643, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542643")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddUsing)]
         public async Task TestAssemblyAttribute()
         {
             await TestAsync(
@@ -730,7 +730,7 @@ compareTokens: false);
 @"using System . Runtime . CompilerServices ; [ assembly : InternalsVisibleTo ( ""Project"" ) ] ");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsAddUsing)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddUsing)]
         public async Task TestDoNotAddIntoHiddenRegion()
         {
             await TestMissingAsync(
@@ -747,7 +747,7 @@ class Program
 }");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsAddUsing)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddUsing)]
         public async Task TestAddToVisibleRegion()
         {
             await TestAsync(
@@ -783,8 +783,8 @@ class Program
 compareTokens: false);
         }
 
-        [WorkItem(545248)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsAddUsing)]
+        [WorkItem(545248, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545248")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddUsing)]
         public async Task TestVenusGeneration1()
         {
             await TestMissingAsync(
@@ -801,8 +801,8 @@ class C
 }");
         }
 
-        [WorkItem(545774)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsAddUsing)]
+        [WorkItem(545774, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545774")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddUsing)]
         public async Task TestAttribute()
         {
             var input = @"[ assembly : [|Guid|] ( ""9ed54f84-a89d-4fcd-a854-44251e925f09"" ) ] ";
@@ -813,8 +813,8 @@ input,
 @"using System . Runtime . InteropServices ; [ assembly : Guid ( ""9ed54f84-a89d-4fcd-a854-44251e925f09"" ) ] ");
         }
 
-        [WorkItem(546833)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsAddUsing)]
+        [WorkItem(546833, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546833")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddUsing)]
         public async Task TestNotOnOverloadResolutionError()
         {
             await TestMissingAsync(
@@ -822,7 +822,7 @@ input,
         }
 
         [WorkItem(17020, "DevDiv_Projects/Roslyn")]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsAddUsing)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddUsing)]
         public async Task TestAddUsingForGenericArgument()
         {
             await TestAsync(
@@ -830,8 +830,8 @@ input,
 @"using System . Collections . Generic ; namespace ConsoleApplication10 { class Program { static void Main ( string [ ] args ) { var inArgument = new InArgument < IEnumerable < int > > ( new int [ ] { 1 , 2 , 3 } ) ; } } public class InArgument < T > { public InArgument ( T constValue ) { } } } ");
         }
 
-        [WorkItem(775448)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsAddUsing)]
+        [WorkItem(775448, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/775448")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddUsing)]
         public async Task ShouldTriggerOnCS0308()
         {
             // CS0308: The non-generic type 'A' cannot be used with type arguments
@@ -857,8 +857,8 @@ class Test
 }");
         }
 
-        [WorkItem(838253)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsAddUsing)]
+        [WorkItem(838253, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/838253")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddUsing)]
         public async Task TestConflictedInaccessibleType()
         {
             await TestAsync(
@@ -867,8 +867,8 @@ class Test
 systemSpecialCase: true);
         }
 
-        [WorkItem(858085)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsAddUsing)]
+        [WorkItem(858085, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/858085")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddUsing)]
         public async Task TestConflictedAttributeName()
         {
             await TestAsync(
@@ -876,8 +876,8 @@ systemSpecialCase: true);
 @"using System.ComponentModel; [Description]class Description { }");
         }
 
-        [WorkItem(872908)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsAddUsing)]
+        [WorkItem(872908, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/872908")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddUsing)]
         public async Task TestConflictedGenericName()
         {
             await TestAsync(
@@ -885,8 +885,8 @@ systemSpecialCase: true);
 @"using System.Threading.Tasks; using Task = System.AccessViolationException; class X { Task<X> x; }");
         }
 
-        [WorkItem(913300)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsAddUsing)]
+        [WorkItem(913300, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/913300")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddUsing)]
         public async Task TestNoDuplicateReport()
         {
             await TestActionCountInAllFixesAsync(
@@ -907,8 +907,8 @@ systemSpecialCase: true);
 @"using System; class C { void M(P p) { Console } static void Main(string[] args) { } }");
         }
 
-        [WorkItem(938296)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsAddUsing)]
+        [WorkItem(938296, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/938296")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddUsing)]
         public async Task TestNullParentInNode()
         {
             await TestMissingAsync(
@@ -923,15 +923,15 @@ class MultiDictionary<K, V> : Dictionary<K, HashSet<V>>
 }");
         }
 
-        [WorkItem(968303)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsAddUsing)]
+        [WorkItem(968303, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/968303")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddUsing)]
         public async Task TestMalformedUsingSection()
         {
             await TestMissingAsync("[ class Class { [|List<|] }");
         }
 
-        [WorkItem(875899)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsAddUsing)]
+        [WorkItem(875899, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/875899")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddUsing)]
         public async Task TestAddUsingsWithExternAlias()
         {
             const string InitialWorkspace = @"
@@ -980,8 +980,8 @@ namespace ExternAliases
             await TestAsync(InitialWorkspace, ExpectedDocumentText);
         }
 
-        [WorkItem(875899)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsAddUsing)]
+        [WorkItem(875899, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/875899")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddUsing)]
         public async Task TestAddUsingsWithPreExistingExternAlias()
         {
             const string InitialWorkspace = @"
@@ -1042,8 +1042,8 @@ namespace ExternAliases
             await TestAsync(InitialWorkspace, ExpectedDocumentText);
         }
 
-        [WorkItem(875899)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsAddUsing)]
+        [WorkItem(875899, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/875899")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddUsing)]
         public async Task TestAddUsingsNoExtern()
         {
             const string InitialWorkspace = @"
@@ -1092,8 +1092,8 @@ namespace ExternAliases
             await TestAsync(InitialWorkspace, ExpectedDocumentText);
         }
 
-        [WorkItem(875899)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsAddUsing)]
+        [WorkItem(875899, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/875899")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddUsing)]
         public async Task TestAddUsingsNoExternFilterGlobalAlias()
         {
             await TestAsync(
@@ -1115,8 +1115,8 @@ class Program
 }");
         }
 
-        [WorkItem(916368)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsAddUsing)]
+        [WorkItem(916368, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/916368")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddUsing)]
         public async Task TestAddUsingForCref()
         {
             var initialText =
@@ -1137,8 +1137,8 @@ interface MyNotifyPropertyChanged { }";
             await TestAsync(initialText, expectedText, parseOptions: options);
         }
 
-        [WorkItem(916368)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsAddUsing)]
+        [WorkItem(916368, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/916368")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddUsing)]
         public async Task TestAddUsingForCref2()
         {
             var initialText =
@@ -1159,8 +1159,8 @@ interface MyNotifyPropertyChanged { }";
             await TestAsync(initialText, expectedText, parseOptions: options);
         }
 
-        [WorkItem(916368)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsAddUsing)]
+        [WorkItem(916368, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/916368")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddUsing)]
         public async Task TestAddUsingForCref3()
         {
             var initialText =
@@ -1208,8 +1208,8 @@ public class MyClass2
             await TestAsync(initialText, expectedText, parseOptions: options);
         }
 
-        [WorkItem(916368)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsAddUsing)]
+        [WorkItem(916368, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/916368")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddUsing)]
         public async Task TestAddUsingForCref4()
         {
             var initialText =
@@ -1247,8 +1247,8 @@ public class MyClass
             await TestAsync(initialText, expectedText, parseOptions: options);
         }
 
-        [WorkItem(773614)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsAddUsing)]
+        [WorkItem(773614, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/773614")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddUsing)]
         public async Task TestAddStaticType()
         {
             var initialText =
@@ -1287,8 +1287,8 @@ class Test
             await TestAsync(initialText, expectedText);
         }
 
-        [WorkItem(773614)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsAddUsing)]
+        [WorkItem(773614, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/773614")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddUsing)]
         public async Task TestAddStaticType2()
         {
             var initialText =
@@ -1331,8 +1331,8 @@ class Test
             await TestAsync(initialText, expectedText);
         }
 
-        [WorkItem(773614)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsAddUsing)]
+        [WorkItem(773614, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/773614")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddUsing)]
         public async Task TestAddStaticType3()
         {
             await TestAsync(
@@ -1340,8 +1340,8 @@ class Test
              @"using System ; using static Outer . Inner ; public static class Outer { public class Inner { [ AttributeUsage ( AttributeTargets . All ) ] public class MyAttribute : Attribute { } } } [ My ] class Test { } ");
         }
 
-        [WorkItem(773614)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsAddUsing)]
+        [WorkItem(773614, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/773614")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddUsing)]
         public async Task TestAddStaticType4()
         {
             var initialText =
@@ -1386,8 +1386,8 @@ class Test
             await TestAsync(initialText, expectedText);
         }
 
-        [WorkItem(991463)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsAddUsing)]
+        [WorkItem(991463, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/991463")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddUsing)]
         public async Task TestAddInsideUsingDirective1()
         {
             await TestAsync(
@@ -1395,8 +1395,8 @@ class Test
 @"using System; namespace ns { using B = Byte; }");
         }
 
-        [WorkItem(991463)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsAddUsing)]
+        [WorkItem(991463, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/991463")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddUsing)]
         public async Task TestAddInsideUsingDirective2()
         {
             await TestAsync(
@@ -1404,8 +1404,8 @@ class Test
 @"using System; using System.Collections; namespace ns { using B = Byte; }");
         }
 
-        [WorkItem(991463)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsAddUsing)]
+        [WorkItem(991463, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/991463")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddUsing)]
         public async Task TestAddInsideUsingDirective3()
         {
             await TestAsync(
@@ -1413,8 +1413,8 @@ class Test
 @"using System; namespace ns2 { namespace ns3 { namespace ns { using B = Byte; namespace ns4 { } } } }");
         }
 
-        [WorkItem(991463)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsAddUsing)]
+        [WorkItem(991463, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/991463")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddUsing)]
         public async Task TestAddInsideUsingDirective4()
         {
             await TestAsync(
@@ -1422,8 +1422,8 @@ class Test
 @"namespace ns2 { using System; using System.Collections; namespace ns3 { namespace ns { using System.IO; using B = Byte; } } }");
         }
 
-        [WorkItem(991463)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsAddUsing)]
+        [WorkItem(991463, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/991463")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddUsing)]
         public async Task TestAddInsideUsingDirective5()
         {
             await TestAsync(
@@ -1431,16 +1431,16 @@ class Test
 @"using System.IO; namespace ns2 { using System.Diagnostics; namespace ns3 { using System; using System.Collections; namespace ns { using B = Byte; } } }");
         }
 
-        [WorkItem(991463)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsAddUsing)]
+        [WorkItem(991463, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/991463")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddUsing)]
         public async Task TestAddInsideUsingDirective6()
         {
             await TestMissingAsync(
 @"using B = [|Byte|];");
         }
 
-        [WorkItem(1064748)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsAddUsing)]
+        [WorkItem(1064748, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1064748")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddUsing)]
         public async Task TestAddConditionalAccessExpression()
         {
             var initialText =
@@ -1479,8 +1479,8 @@ public class C
             await TestAsync(initialText, expectedText);
         }
 
-        [WorkItem(1064748)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsAddUsing)]
+        [WorkItem(1064748, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1064748")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddUsing)]
         public async Task TestAddConditionalAccessExpression2()
         {
             var initialText =
@@ -1531,8 +1531,8 @@ public class C
             await TestAsync(initialText, expectedText);
         }
 
-        [WorkItem(1089138)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsAddUsing)]
+        [WorkItem(1089138, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1089138")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddUsing)]
         public async Task TestAmbiguousUsingName()
         {
             await TestAsync(
@@ -1540,7 +1540,7 @@ public class C
 @"namespace ClassLibrary1 { using System ; using global::SubNamespaceName ; public class SomeTypeUser { SomeType field ; } } namespace SubNamespaceName { using System ; class SomeType { } } namespace ClassLibrary1 . SubNamespaceName { using System ; class SomeOtherFile { } } ");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsAddUsing)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddUsing)]
         public async Task TestAddUsingInDirective()
         {
             await TestAsync(
@@ -1565,7 +1565,7 @@ using System.IO;
 class Program { static void Main ( string [ ] args ) { var a = File . OpenRead ( """" ) ; } } ");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsAddUsing)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddUsing)]
         public async Task TestAddUsingInDirective2()
         {
             await TestAsync(
@@ -1590,7 +1590,7 @@ using System.Text;
 class Program { static void Main ( string [ ] args ) { var a = File . OpenRead ( """" ) ; } } ", compareTokens: false);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsAddUsing)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddUsing)]
         public async Task TestAddUsingInDirective3()
         {
             await TestAsync(
@@ -1616,7 +1616,7 @@ using System.IO;
 class Program { static void Main ( string [ ] args ) { var a = File . OpenRead ( """" ) ; } } ", compareTokens: false);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsAddUsing)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddUsing)]
         public async Task TestAddUsingInDirective4()
         {
             await TestAsync(
@@ -1642,7 +1642,7 @@ using System.IO;
 class Program { static void Main ( string [ ] args ) { var a = File . OpenRead ( """" ) ; } } ", compareTokens: false);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsAddUsing)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddUsing)]
         public async Task TestInaccessibleExtensionMethod()
         {
             const string initial = @"
@@ -1670,8 +1670,8 @@ namespace N2
             await TestMissingAsync(initial);
         }
 
-        [WorkItem(1116011)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsAddUsing)]
+        [WorkItem(1116011, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1116011")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddUsing)]
         public async Task TestAddUsingForProperty()
         {
             await TestAsync(
@@ -1679,8 +1679,8 @@ namespace N2
 @"using System ; using System . Collections . Generic ; using System . Linq ; using System . Reflection ; using System . Threading . Tasks ; class Program { public BindingFlags BindingFlags { get { return BindingFlags . Instance ; } } } ");
         }
 
-        [WorkItem(1116011)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsAddUsing)]
+        [WorkItem(1116011, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1116011")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddUsing)]
         public async Task TestAddUsingForField()
         {
             await TestAsync(
@@ -1689,7 +1689,7 @@ namespace N2
         }
 
         [WorkItem(1893, "https://github.com/dotnet/roslyn/issues/1893")]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsAddUsing)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddUsing)]
         public async Task TestNameSimplification()
         {
             // Generated using directive must be simplified from "using A.B;" to "using B;" below.
@@ -1732,7 +1732,7 @@ namespace A.C
         }
 
         [WorkItem(935, "https://github.com/dotnet/roslyn/issues/935")]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsAddUsing)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddUsing)]
         public async Task TestAddUsingWithOtherExtensionsInScope()
         {
             await TestAsync(
@@ -1741,7 +1741,7 @@ namespace A.C
         }
 
         [WorkItem(935, "https://github.com/dotnet/roslyn/issues/935")]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsAddUsing)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddUsing)]
         public async Task TestAddUsingWithOtherExtensionsInScope2()
         {
             await TestAsync(
@@ -1750,7 +1750,7 @@ namespace A.C
         }
 
         [WorkItem(562, "https://github.com/dotnet/roslyn/issues/562")]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsAddUsing)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddUsing)]
         public async Task TestAddUsingWithOtherExtensionsInScope3()
         {
             await TestAsync(
@@ -1759,7 +1759,7 @@ namespace A.C
         }
 
         [WorkItem(562, "https://github.com/dotnet/roslyn/issues/562")]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsAddUsing)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddUsing)]
         public async Task TestAddUsingWithOtherExtensionsInScope4()
         {
             await TestAsync(
@@ -1896,6 +1896,254 @@ namespace A.C
 @"using lowercase ; namespace A { class A { static void Main ( string [ ] args ) { var a = new b ( ) ; } } } namespace lowercase { class b { } } namespace Uppercase { class B { } } ");
         }
 
+        [WorkItem(7443, "https://github.com/dotnet/roslyn/issues/7443")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddUsing)]
+        public async Task TestWithExistingIncompatibleExtension()
+        {
+            await TestAsync(
+@"using N;
+
+class C
+{
+    int x()
+    {
+        System.Collections.Generic.IEnumerable<int> x = null;
+        return x.[|Any|]
+    }
+}
+
+namespace N
+{
+    static class Extensions
+    {
+        public static void Any(this string s)
+        {
+        }
+    }
+}",
+@"using System.Linq;
+using N;
+
+class C
+{
+    int x()
+    {
+        System.Collections.Generic.IEnumerable<int> x = null;
+        return x.Any
+    }
+}
+
+namespace N
+{
+    static class Extensions
+    {
+        public static void Any(this string s)
+        {
+        }
+    }
+}");
+        }
+
+        [WorkItem(1744, @"https://github.com/dotnet/roslyn/issues/1744")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddUsing)]
+        public async Task TestIncompleteCatchBlockInLambda()
+        {
+            await TestAsync(
+@"class A { System . Action a = ( ) => { try { } catch ( [|Exception|] ",
+@"using System ; class A { System . Action a = ( ) => { try { } catch ( Exception ");
+        }
+
+        [WorkItem(1033612, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1033612")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddUsing)]
+        public async Task TestAddInsideLambda()
+        {
+            var initialText =
+@"using System;
+
+static void Main(string[] args)
+{
+    Func<int> f = () => { [|List<int>|]. }
+}";
+
+            var expectedText =
+@"using System;
+using System.Collections.Generic;
+
+static void Main(string[] args)
+{
+    Func<int> f = () => { List<int>.}
+}";
+            await TestAsync(initialText, expectedText);
+        }
+
+        [WorkItem(1033612, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1033612")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddUsing)]
+        public async Task TestAddInsideLambda2()
+        {
+            var initialText =
+@"using System;
+
+static void Main(string[] args)
+{
+    Func<int> f = () => { [|List<int>|] }
+}";
+
+            var expectedText =
+@"using System;
+using System.Collections.Generic;
+
+static void Main(string[] args)
+{
+    Func<int> f = () => { List<int>}
+}";
+            await TestAsync(initialText, expectedText);
+        }
+
+        [WorkItem(1033612, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1033612")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddUsing)]
+        public async Task TestAddInsideLambda3()
+        {
+            var initialText =
+@"using System;
+
+static void Main(string[] args)
+{
+    Func<int> f = () => { 
+        var a = 3;
+        [|List<int>|].
+        return a;
+        };
+}";
+
+            var expectedText =
+@"using System;
+using System.Collections.Generic;
+
+static void Main(string[] args)
+{
+    Func<int> f = () => { 
+        var a = 3;
+        List<int>.
+        return a;
+        };
+}";
+            await TestAsync(initialText, expectedText);
+        }
+
+        [WorkItem(1033612, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1033612")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddUsing)]
+        public async Task TestAddInsideLambda4()
+        {
+            var initialText =
+@"using System;
+
+static void Main(string[] args)
+{
+    Func<int> f = () => { 
+        var a = 3;
+        [|List<int>|]
+        return a;
+        };
+}";
+
+            var expectedText =
+@"using System;
+using System.Collections.Generic;
+
+static void Main(string[] args)
+{
+    Func<int> f = () => { 
+        var a = 3;
+        List<int>
+        return a;
+        };
+}";
+            await TestAsync(initialText, expectedText);
+        }
+
+        [WorkItem(860648, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/860648")]
+        [WorkItem(902014, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/902014")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddUsing)]
+        public async Task TestIncompleteParenthesizedLambdaExpression()
+        {
+            await TestAsync(
+@"using System;
+
+class Test
+{
+    void Foo()
+    {
+        Action a = () => { [|IBindCtx|] };
+        string a;        
+    }
+}",
+@"using System;
+using System.Runtime.InteropServices.ComTypes;
+
+class Test
+{
+    void Foo()
+    {
+        Action a = () => { IBindCtx };
+        string a;        
+    }
+}");
+        }
+
+        [WorkItem(7461, "https://github.com/dotnet/roslyn/issues/7461")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddUsing)]
+        public async Task TestExtensionWithIncompatibleInstance()
+        {
+            await TestAsync(
+@"using System.IO;
+
+namespace Namespace1
+{
+    static class StreamExtensions
+    {
+        public static void Write(this Stream stream, byte[] bytes)
+        {
+        }
+    }
+}
+
+namespace Namespace2
+{
+    class Foo
+    {
+        void Bar()
+        {
+            Stream stream = null;
+            stream.[|Write|](new byte[] { 1, 2, 3 });
+        }
+    }
+}",
+@"using System.IO;
+using Namespace1;
+
+namespace Namespace1
+{
+    static class StreamExtensions
+    {
+        public static void Write(this Stream stream, byte[] bytes)
+        {
+        }
+    }
+}
+
+namespace Namespace2
+{
+    class Foo
+    {
+        void Bar()
+        {
+            Stream stream = null;
+            stream.Write(new byte[] { 1, 2, 3 });
+        }
+    }
+}");
+        }
+
         public partial class AddUsingTestsWithAddImportDiagnosticProvider : AbstractCSharpDiagnosticProviderBasedUserDiagnosticTest
         {
             internal override Tuple<DiagnosticAnalyzer, CodeFixProvider> CreateDiagnosticProviderAndFixer(Workspace workspace)
@@ -1917,82 +2165,8 @@ namespace A.C
                 });
             }
 
-            [WorkItem(752640)]
-            [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsAddUsing)]
-            public async Task TestUnknownIdentifierWithSyntaxError()
-            {
-                await TestAsync(
-    @"class C { [|Directory|] private int i ; } ",
-    @"using System . IO ; class C { Directory private int i ; } ");
-            }
-
-            [WorkItem(829970)]
-            [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsAddUsing)]
-            public async Task TestUnknownIdentifierInAttributeSyntaxWithoutTarget()
-            {
-                await TestAsync(
-    @"class C { [[|Extension|]] } ",
-    @"using System.Runtime.CompilerServices; class C { [Extension] } ");
-            }
-
-            [WorkItem(829970)]
-            [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsAddUsing)]
-            public async Task TestUnknownIdentifierGenericName()
-            {
-                await TestAsync(
-    @"class C { private [|List<int>|] } ",
-    @"using System.Collections.Generic; class C { private List<int> } ");
-            }
-
-            [WorkItem(855748)]
-            [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsAddUsing)]
-            public async Task TestGenericNameWithBrackets()
-            {
-                await TestAsync(
-    @"class Class { [|List|] }",
-    @"using System.Collections.Generic; class Class { List }");
-
-                await TestAsync(
-    @"class Class { [|List<>|] }",
-    @"using System.Collections.Generic; class Class { List<> }");
-
-                await TestAsync(
-    @"class Class { List[|<>|] }",
-    @"using System.Collections.Generic; class Class { List<> }");
-            }
-
-            [WorkItem(867496)]
-            [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsAddUsing)]
-            public async Task TestMalformedGenericParameters()
-            {
-                await TestAsync(
-    @"class Class { [|List<|] }",
-    @"using System.Collections.Generic; class Class { List< }");
-
-                await TestAsync(
-    @"class Class { [|List<Y x;|] }",
-    @"using System.Collections.Generic; class Class { List<Y x; }");
-            }
-
-            [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsAddUsing)]
-            public async Task TestOutsideOfMethodWithMalformedGenericParameters()
-            {
-                await TestAsync(
-    @"using System ; class Program { Func < [|FlowControl|] x } ",
-    @"using System ; using System . Reflection . Emit ; class Program { Func < FlowControl x } ");
-            }
-
-            [WorkItem(1744, @"https://github.com/dotnet/roslyn/issues/1744")]
-            [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsAddUsing)]
-            public async Task TestIncompleteCatchBlockInLambda()
-            {
-                await TestAsync(
-    @"class A { System . Action a = ( ) => { try { } catch ( [|Exception|] ",
-    @"using System ; class A { System . Action a = ( ) => { try { } catch ( Exception ");
-            }
-
             [WorkItem(1239, @"https://github.com/dotnet/roslyn/issues/1239")]
-            [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsAddUsing)]
+            [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddUsing)]
             public async Task TestIncompleteLambda1()
             {
                 await TestAsync(
@@ -2001,7 +2175,7 @@ namespace A.C
             }
 
             [WorkItem(1239, @"https://github.com/dotnet/roslyn/issues/1239")]
-            [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsAddUsing)]
+            [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddUsing)]
             public async Task TestIncompleteLambda2()
             {
                 await TestAsync(
@@ -2009,146 +2183,9 @@ namespace A.C
     @"using System ; using System . Linq ; class C { C ( ) { """" . Select ( ( ) => { new Byte ( ) } ");
             }
 
-            [WorkItem(1033612)]
-            [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsAddUsing)]
-            public async Task TestAddInsideLambda()
-            {
-                var initialText =
-    @"using System;
-
-static void Main(string[] args)
-{
-    Func<int> f = () => { [|List<int>|]. }
-}";
-
-                var expectedText =
-    @"using System;
-using System.Collections.Generic;
-
-static void Main(string[] args)
-{
-    Func<int> f = () => { List<int>.}
-}";
-                await TestAsync(initialText, expectedText);
-            }
-
-            [WorkItem(1033612)]
-            [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsAddUsing)]
-            public async Task TestAddInsideLambda2()
-            {
-                var initialText =
-    @"using System;
-
-static void Main(string[] args)
-{
-    Func<int> f = () => { [|List<int>|] }
-}";
-
-                var expectedText =
-    @"using System;
-using System.Collections.Generic;
-
-static void Main(string[] args)
-{
-    Func<int> f = () => { List<int>}
-}";
-                await TestAsync(initialText, expectedText);
-            }
-
-            [WorkItem(1033612)]
-            [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsAddUsing)]
-            public async Task TestAddInsideLambda3()
-            {
-                var initialText =
-    @"using System;
-
-static void Main(string[] args)
-{
-    Func<int> f = () => { 
-        var a = 3;
-        [|List<int>|].
-        return a;
-        };
-}";
-
-                var expectedText =
-    @"using System;
-using System.Collections.Generic;
-
-static void Main(string[] args)
-{
-    Func<int> f = () => { 
-        var a = 3;
-        List<int>.
-        return a;
-        };
-}";
-                await TestAsync(initialText, expectedText);
-            }
-
-            [WorkItem(1033612)]
-            [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsAddUsing)]
-            public async Task TestAddInsideLambda4()
-            {
-                var initialText =
-    @"using System;
-
-static void Main(string[] args)
-{
-    Func<int> f = () => { 
-        var a = 3;
-        [|List<int>|]
-        return a;
-        };
-}";
-
-                var expectedText =
-    @"using System;
-using System.Collections.Generic;
-
-static void Main(string[] args)
-{
-    Func<int> f = () => { 
-        var a = 3;
-        List<int>
-        return a;
-        };
-}";
-                await TestAsync(initialText, expectedText);
-            }
-
-            [WorkItem(860648)]
-            [WorkItem(902014)]
-            [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsAddUsing)]
-            public async Task TestIncompleteParenthesizedLambdaExpression()
-            {
-                await TestAsync(
-    @"using System;
-
-class Test
-{
-    void Foo()
-    {
-        Action a = () => { [|IBindCtx|] };
-        string a;        
-    }
-}",
-    @"using System;
-using System.Runtime.InteropServices.ComTypes;
-
-class Test
-{
-    void Foo()
-    {
-        Action a = () => { IBindCtx };
-        string a;        
-    }
-}");
-            }
-
-            [WorkItem(860648)]
-            [WorkItem(902014)]
-            [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsAddUsing)]
+            [WorkItem(860648, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/860648")]
+            [WorkItem(902014, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/902014")]
+            [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddUsing)]
             public async Task TestIncompleteSimpleLambdaExpression()
             {
                 await TestAsync(
@@ -2173,6 +2210,71 @@ class Program
         string a;
     }
 }");
+            }
+
+            [WorkItem(829970, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/829970")]
+            [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddUsing)]
+            public async Task TestUnknownIdentifierGenericName()
+            {
+                await TestAsync(
+    @"class C { private [|List<int>|] } ",
+    @"using System.Collections.Generic; class C { private List<int> } ");
+            }
+
+            [WorkItem(829970, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/829970")]
+            [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddUsing)]
+            public async Task TestUnknownIdentifierInAttributeSyntaxWithoutTarget()
+            {
+                await TestAsync(
+    @"class C { [[|Extension|]] } ",
+    @"using System.Runtime.CompilerServices; class C { [Extension] } ");
+            }
+
+            [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddUsing)]
+            public async Task TestOutsideOfMethodWithMalformedGenericParameters()
+            {
+                await TestAsync(
+    @"using System ; class Program { Func < [|FlowControl|] x } ",
+    @"using System ; using System . Reflection . Emit ; class Program { Func < FlowControl x } ");
+            }
+
+            [WorkItem(752640, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/752640")]
+            [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddUsing)]
+            public async Task TestUnknownIdentifierWithSyntaxError()
+            {
+                await TestAsync(
+    @"class C { [|Directory|] private int i ; } ",
+    @"using System . IO ; class C { Directory private int i ; } ");
+            }
+
+            [WorkItem(855748, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/855748")]
+            [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddUsing)]
+            public async Task TestGenericNameWithBrackets()
+            {
+                await TestAsync(
+    @"class Class { [|List|] }",
+    @"using System.Collections.Generic; class Class { List }");
+
+                await TestAsync(
+    @"class Class { [|List<>|] }",
+    @"using System.Collections.Generic; class Class { List<> }");
+
+                await TestAsync(
+    @"class Class { List[|<>|] }",
+    @"using System.Collections.Generic; class Class { List<> }");
+            }
+
+            [WorkItem(867496, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/867496")]
+            [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddUsing)]
+            public async Task TestMalformedGenericParameters()
+            {
+                await TestAsync(
+    @"class Class { [|List<|] }",
+    @"using System.Collections.Generic; class Class { List< }");
+
+                await TestAsync(
+    @"class Class { [|List<Y x;|] }",
+    @"using System.Collections.Generic; class Class { List<Y x; }");
             }
         }
     }

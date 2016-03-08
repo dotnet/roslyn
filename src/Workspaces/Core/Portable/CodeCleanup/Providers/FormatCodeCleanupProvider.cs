@@ -48,7 +48,7 @@ namespace Microsoft.CodeAnalysis.CodeCleanup.Providers
                     return root;
                 }
 
-                return root.SyntaxTree.WithChangedText(oldText.WithChanges(changes)).GetRoot(cancellationToken);
+                return await root.SyntaxTree.WithChangedText(oldText.WithChanges(changes)).GetRootAsync(cancellationToken).ConfigureAwait(false);
             }
 
             return await Formatter.FormatAsync(root, spans, workspace, cancellationToken: cancellationToken).ConfigureAwait(false);

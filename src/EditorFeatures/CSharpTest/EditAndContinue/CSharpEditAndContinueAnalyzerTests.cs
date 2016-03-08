@@ -91,7 +91,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue.UnitTests
 
         #endregion
 
-        [WpfFact]
+        [Fact]
         public void ErrorSpans_TopLevel()
         {
             string source = @"
@@ -165,7 +165,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue.UnitTests
             TestSpans(source, kind => TopSyntaxComparer.HasLabel(kind, ignoreVariableDeclarations: false));
         }
 
-        [WpfFact]
+        [Fact]
         public void ErrorSpans_StatementLevel_Update()
         {
             string source = @"
@@ -224,14 +224,14 @@ class C
         /// <summary>
         /// Verifies that <see cref="CSharpEditAndContinueAnalyzer.GetDiagnosticSpanImpl"/> handles all <see cref="SyntaxKind"/>s.
         /// </summary>
-        [WpfFact]
+        [Fact]
         public void ErrorSpansAllKinds()
         {
             TestErrorSpansAllKinds(StatementSyntaxComparer.IgnoreLabeledChild);
             TestErrorSpansAllKinds(kind => TopSyntaxComparer.HasLabel(kind, ignoreVariableDeclarations: false));
         }
 
-        [WpfFact]
+        [Fact]
         public async Task AnalyzeDocumentAsync_InsignificantChangesInMethodBody()
         {
             string source1 = @"
@@ -255,7 +255,7 @@ class C
 ";
             var analyzer = new CSharpEditAndContinueAnalyzer();
 
-            using (var workspace = await CSharpWorkspaceFactory.CreateWorkspaceFromLinesAsync(source1))
+            using (var workspace = await TestWorkspace.CreateCSharpAsync(source1))
             {
                 var documentId = workspace.CurrentSolution.Projects.First().Documents.First().Id;
                 var oldSolution = workspace.CurrentSolution;
@@ -289,7 +289,7 @@ class C
             }
         }
 
-        [WpfFact]
+        [Fact]
         public async Task AnalyzeDocumentAsync_SyntaxError_Change()
         {
             string source1 = @"
@@ -312,7 +312,7 @@ class C
 ";
             var analyzer = new CSharpEditAndContinueAnalyzer();
 
-            using (var workspace = await CSharpWorkspaceFactory.CreateWorkspaceFromLinesAsync(source1))
+            using (var workspace = await TestWorkspace.CreateCSharpAsync(source1))
             {
                 var documentId = workspace.CurrentSolution.Projects.First().Documents.First().Id;
                 var oldSolution = workspace.CurrentSolution;
@@ -327,7 +327,7 @@ class C
             }
         }
 
-        [WpfFact]
+        [Fact]
         public async Task AnalyzeDocumentAsync_SyntaxError_NoChange()
         {
             string source = @"
@@ -341,7 +341,7 @@ class C
 ";
             var analyzer = new CSharpEditAndContinueAnalyzer();
 
-            using (var workspace = await CSharpWorkspaceFactory.CreateWorkspaceFromLinesAsync(source))
+            using (var workspace = await TestWorkspace.CreateCSharpAsync(source))
             {
                 var document = workspace.CurrentSolution.Projects.First().Documents.First();
                 var baseActiveStatements = ImmutableArray.Create<ActiveStatementSpan>();
@@ -353,7 +353,7 @@ class C
             }
         }
 
-        [WpfFact]
+        [Fact]
         public async Task AnalyzeDocumentAsync_SyntaxError_NoChange2()
         {
             string source1 = @"
@@ -376,7 +376,7 @@ class C
 ";
             var analyzer = new CSharpEditAndContinueAnalyzer();
 
-            using (var workspace = await CSharpWorkspaceFactory.CreateWorkspaceFromLinesAsync(source1))
+            using (var workspace = await TestWorkspace.CreateCSharpAsync(source1))
             {
                 var documentId = workspace.CurrentSolution.Projects.First().Documents.First().Id;
                 var oldSolution = workspace.CurrentSolution;
@@ -391,7 +391,7 @@ class C
             }
         }
 
-        [WpfFact]
+        [Fact]
         public async Task AnalyzeDocumentAsync_Features_NoChange()
         {
             string source = @"
@@ -407,8 +407,8 @@ class C
             var experimentalFeatures = new Dictionary<string, string>(); // no experimental features to enable
             var experimental = TestOptions.Regular.WithFeatures(experimentalFeatures);
 
-            using (var workspace = await CSharpWorkspaceFactory.CreateWorkspaceFromLinesAsync(
-                new[] { source }, parseOptions: experimental, compilationOptions: null, exportProvider: null))
+            using (var workspace = await TestWorkspace.CreateCSharpAsync(
+                source, parseOptions: experimental, compilationOptions: null, exportProvider: null))
             {
                 var document = workspace.CurrentSolution.Projects.First().Documents.First();
                 var baseActiveStatements = ImmutableArray.Create<ActiveStatementSpan>();
@@ -421,7 +421,7 @@ class C
             }
         }
 
-        [WpfFact]
+        [Fact]
         public async Task AnalyzeDocumentAsync_Features_Change()
         {
             // these are all the experimental features currently implemented
@@ -452,8 +452,8 @@ class C
                 var featuresToEnable = new Dictionary<string, string>() { { feature, "enabled" } };
                 var experimental = TestOptions.Regular.WithFeatures(featuresToEnable);
 
-                using (var workspace = await CSharpWorkspaceFactory.CreateWorkspaceFromLinesAsync(
-                    new[] { source1 }, parseOptions: experimental, compilationOptions: null, exportProvider: null))
+                using (var workspace = await TestWorkspace.CreateCSharpAsync(
+                    source1, parseOptions: experimental, compilationOptions: null, exportProvider: null))
                 {
                     var documentId = workspace.CurrentSolution.Projects.First().Documents.First().Id;
                     var oldSolution = workspace.CurrentSolution;
@@ -470,7 +470,7 @@ class C
             }
         }
 
-        [WpfFact]
+        [Fact]
         public async Task AnalyzeDocumentAsync_SemanticError_NoChange()
         {
             string source = @"
@@ -485,7 +485,7 @@ class C
 ";
             var analyzer = new CSharpEditAndContinueAnalyzer();
 
-            using (var workspace = await CSharpWorkspaceFactory.CreateWorkspaceFromLinesAsync(source))
+            using (var workspace = await TestWorkspace.CreateCSharpAsync(source))
             {
                 var document = workspace.CurrentSolution.Projects.First().Documents.First();
                 var baseActiveStatements = ImmutableArray.Create<ActiveStatementSpan>();
@@ -497,7 +497,7 @@ class C
             }
         }
 
-        [WpfFact]
+        [Fact]
         public async Task AnalyzeDocumentAsync_SemanticError_Change()
         {
             string source1 = @"
@@ -522,7 +522,7 @@ class C
 ";
             var analyzer = new CSharpEditAndContinueAnalyzer();
 
-            using (var workspace = await CSharpWorkspaceFactory.CreateWorkspaceFromLinesAsync(source1))
+            using (var workspace = await TestWorkspace.CreateCSharpAsync(source1))
             {
                 var documentId = workspace.CurrentSolution.Projects.First().Documents.First().Id;
                 var oldSolution = workspace.CurrentSolution;
@@ -537,7 +537,7 @@ class C
             }
         }
 
-        [WpfFact]
+        [Fact]
         public async Task AnalyzeDocumentAsync_AddingNewFileHavingRudeEdits()
         {
             string source1 = @"
@@ -561,7 +561,7 @@ namespace N
 ";
             var analyzer = new CSharpEditAndContinueAnalyzer();
 
-            using (var workspace = await CSharpWorkspaceFactory.CreateWorkspaceFromLinesAsync(source1))
+            using (var workspace = await TestWorkspace.CreateCSharpAsync(source1))
             {
                 // fork the solution to introduce a change
                 var project = workspace.CurrentSolution.Projects.Single();
@@ -593,7 +593,7 @@ namespace N
             }
         }
 
-        [WpfFact]
+        [Fact]
         public async Task AnalyzeDocumentAsync_AddingNewFile()
         {
             string source1 = @"
@@ -611,7 +611,7 @@ namespace N
 ";
             var analyzer = new CSharpEditAndContinueAnalyzer();
 
-            using (var workspace = await CSharpWorkspaceFactory.CreateWorkspaceFromLinesAsync(source1))
+            using (var workspace = await TestWorkspace.CreateCSharpAsync(source1))
             {
                 // fork the solution to introduce a change
                 var project = workspace.CurrentSolution.Projects.Single();

@@ -224,11 +224,29 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Add qualification..
+        /// </summary>
+        internal static string AddQualification {
+            get {
+                return ResourceManager.GetString("AddQualification", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Add reference to &apos;{0}&apos;..
         /// </summary>
         internal static string AddReferenceTo {
             get {
                 return ResourceManager.GetString("AddReferenceTo", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Add &apos;this&apos; or &apos;Me&apos; qualification..
+        /// </summary>
+        internal static string AddThisOrMeQualification {
+            get {
+                return ResourceManager.GetString("AddThisOrMeQualification", resourceCulture);
             }
         }
         
@@ -845,6 +863,15 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Fix Name Violation: {0}.
+        /// </summary>
+        internal static string FixNamingViolation {
+            get {
+                return ResourceManager.GetString("FixNamingViolation", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Generate {0} &apos;{1}&apos;.
         /// </summary>
         internal static string Generate_0_1 {
@@ -877,6 +904,15 @@ namespace Microsoft.CodeAnalysis {
         internal static string Generate_type {
             get {
                 return ResourceManager.GetString("Generate_type", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Generate variable.
+        /// </summary>
+        internal static string Generate_variable {
+            get {
+                return ResourceManager.GetString("Generate_variable", resourceCulture);
             }
         }
         
@@ -1358,6 +1394,15 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Make method synchronous..
+        /// </summary>
+        internal static string Make_method_synchronous {
+            get {
+                return ResourceManager.GetString("Make_method_synchronous", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to method.
         /// </summary>
         internal static string Method {
@@ -1516,6 +1561,105 @@ namespace Microsoft.CodeAnalysis {
         internal static string Namespace {
             get {
                 return ResourceManager.GetString("Namespace", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Naming Styles.
+        /// </summary>
+        internal static string NamingStylesDiagnosticTitle {
+            get {
+                return ResourceManager.GetString("NamingStylesDiagnosticTitle", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The first word, &apos;{0}&apos;, must begin with a lower case character.
+        /// </summary>
+        internal static string NamingViolation_FirstWordMustBeginWithLowercase {
+            get {
+                return ResourceManager.GetString("NamingViolation_FirstWordMustBeginWithLowercase", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The first word, &apos;{0}&apos;, must begin with an upper case character.
+        /// </summary>
+        internal static string NamingViolation_FirstWordMustBeginWithUppercase {
+            get {
+                return ResourceManager.GetString("NamingViolation_FirstWordMustBeginWithUppercase", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Missing prefix: &apos;{0}&apos;.
+        /// </summary>
+        internal static string NamingViolation_MissingPrefix {
+            get {
+                return ResourceManager.GetString("NamingViolation_MissingPrefix", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Missing suffix: &apos;{0}&apos;.
+        /// </summary>
+        internal static string NamingViolation_MissingSuffix {
+            get {
+                return ResourceManager.GetString("NamingViolation_MissingSuffix", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to These non-leading words must begin with a lowercase letter: {0}.
+        /// </summary>
+        internal static string NamingViolation_NonLeadingWordsMustBeginWithLowercase {
+            get {
+                return ResourceManager.GetString("NamingViolation_NonLeadingWordsMustBeginWithLowercase", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to These non-leading words must begin with an upper case letter: {0}.
+        /// </summary>
+        internal static string NamingViolation_NonLeadingWordsMustBeginWithUppercase {
+            get {
+                return ResourceManager.GetString("NamingViolation_NonLeadingWordsMustBeginWithUppercase", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to These words cannot contain lower case characters: {0}.
+        /// </summary>
+        internal static string NamingViolation_WordsCannotContainLowercaseLetters {
+            get {
+                return ResourceManager.GetString("NamingViolation_WordsCannotContainLowercaseLetters", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to These words cannot contain upper case characters: {0}.
+        /// </summary>
+        internal static string NamingViolation_WordsCannotContainUppercaseLetters {
+            get {
+                return ResourceManager.GetString("NamingViolation_WordsCannotContainUppercaseLetters", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to These words must begin with upper case characters: {0}.
+        /// </summary>
+        internal static string NamingViolation_WordsMustBeginWithUppercase {
+            get {
+                return ResourceManager.GetString("NamingViolation_WordsMustBeginWithUppercase", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to &apos;{0}&apos; naming violation - {1}.
+        /// </summary>
+        internal static string NamingViolationDescription {
+            get {
+                return ResourceManager.GetString("NamingViolationDescription", resourceCulture);
             }
         }
         
@@ -1682,6 +1826,15 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Remove qualification.
+        /// </summary>
+        internal static string RemoveQualification {
+            get {
+                return ResourceManager.GetString("RemoveQualification", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Remove Suppression.
         /// </summary>
         internal static string RemoveSuppressionEquivalenceKeyPrefix {
@@ -1822,15 +1975,6 @@ namespace Microsoft.CodeAnalysis {
         internal static string SimplifyNames {
             get {
                 return ResourceManager.GetString("SimplifyNames", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Remove &apos;this&apos; or &apos;Me&apos; Qualification.
-        /// </summary>
-        internal static string SimplifyThisOrMe {
-            get {
-                return ResourceManager.GetString("SimplifyThisOrMe", resourceCulture);
             }
         }
         

@@ -42,7 +42,6 @@
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     <CheckForOverflowUnderflow>true</CheckForOverflowUnderflow>
     <NoWarn>1591</NoWarn>
-    <DebugType>full</DebugType>
     <PlatformTarget>x64</PlatformTarget>
     <ErrorReport>prompt</ErrorReport>
     <CodeAnalysisRuleSet>MinimumRecommendedRules.ruleset</CodeAnalysisRuleSet>
@@ -52,7 +51,6 @@
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     <Optimize>true</Optimize>
     <NoWarn>1591</NoWarn>
-    <DebugType>pdbonly</DebugType>
     <PlatformTarget>x64</PlatformTarget>
     <ErrorReport>prompt</ErrorReport>
     <CodeAnalysisRuleSet>MinimumRecommendedRules.ruleset</CodeAnalysisRuleSet>
@@ -73,29 +71,44 @@
     <Compile Include="..\..\Compilers\Core\Portable\InternalUtilities\StreamExtensions.cs">
       <Link>InternalUtilities\StreamExtensions.cs</Link>
     </Compile>
+    <Compile Include="..\..\Compilers\Core\Portable\MetadataReader\PortableCustomDebugInfoKinds.cs">
+      <Link>Shared\PortableCustomDebugInfoKinds.cs</Link>
+    </Compile>
     <Compile Include="..\..\Compilers\Core\Portable\PEWriter\CustomDebugInfoConstants.cs">
       <Link>Shared\CustomDebugInfoConstants.cs</Link>
     </Compile>
     <Compile Include="..\..\Debugging\Roslyn.Reflection.Metadata.Decoding\ArrayShape.cs">
       <Link>Roslyn.Reflection.Metadata.Decoding\ArrayShape.cs</Link>
     </Compile>
-    <Compile Include="..\..\Debugging\Roslyn.Reflection.Metadata.Decoding\CustomModifier.cs">
-      <Link>Roslyn.Reflection.Metadata.Decoding\CustomModifier.cs</Link>
+    <Compile Include="..\..\Debugging\Roslyn.Reflection.Metadata.Decoding\IConstructedTypeProvider.cs">
+      <Link>Roslyn.Reflection.Metadata.Decoding\IConstructedTypeProvider.cs</Link>
+    </Compile>
+    <Compile Include="..\..\Debugging\Roslyn.Reflection.Metadata.Decoding\IPrimitiveTypeProvider.cs">
+      <Link>Roslyn.Reflection.Metadata.Decoding\IPrimitiveTypeProvider.cs</Link>
     </Compile>
     <Compile Include="..\..\Debugging\Roslyn.Reflection.Metadata.Decoding\ISignatureTypeProvider.cs">
       <Link>Roslyn.Reflection.Metadata.Decoding\ISignatureTypeProvider.cs</Link>
     </Compile>
+    <Compile Include="..\..\Debugging\Roslyn.Reflection.Metadata.Decoding\ISZArrayTypeProvider.cs">
+      <Link>Roslyn.Reflection.Metadata.Decoding\ISZArrayTypeProvider.cs</Link>
+    </Compile>
     <Compile Include="..\..\Debugging\Roslyn.Reflection.Metadata.Decoding\ITypeProvider.cs">
-      <Link>Roslyn.Reflection.Metadata.Decoding\ISignatureTypeProvider.cs</Link>
+      <Link>Roslyn.Reflection.Metadata.Decoding\ITypeProvider.cs</Link>
     </Compile>
     <Compile Include="..\..\Debugging\Roslyn.Reflection.Metadata.Decoding\MethodSignature.cs">
-      <Link>Roslyn.Reflection.Metadata.Decoding\ISignatureTypeProvider.cs</Link>
+      <Link>Roslyn.Reflection.Metadata.Decoding\MethodSignature.cs</Link>
     </Compile>
     <Compile Include="..\..\Debugging\Roslyn.Reflection.Metadata.Decoding\PrimitiveTypeCode.cs">
-      <Link>Roslyn.Reflection.Metadata.Decoding\ISignatureTypeProvider.cs</Link>
+      <Link>Roslyn.Reflection.Metadata.Decoding\PrimitiveTypeCode.cs</Link>
     </Compile>
     <Compile Include="..\..\Debugging\Roslyn.Reflection.Metadata.Decoding\SignatureDecoder.cs">
-      <Link>Roslyn.Reflection.Metadata.Decoding\ISignatureTypeProvider.cs</Link>
+      <Link>Roslyn.Reflection.Metadata.Decoding\SignatureDecoder.cs</Link>
+    </Compile>
+    <Compile Include="..\..\Debugging\Roslyn.Reflection.Metadata.Decoding\SignatureDecoderOptions.cs">
+      <Link>Roslyn.Reflection.Metadata.Decoding\SignatureDecoderOptions.cs</Link>
+    </Compile>
+    <Compile Include="..\..\Debugging\Roslyn.Reflection.Metadata.Decoding\SignatureTypeHandleCode.cs">
+      <Link>Roslyn.Reflection.Metadata.Decoding\SignatureTypeHandleCode.cs</Link>
     </Compile>
     <Compile Include="Metadata\ILVisualizer.cs" />
     <Compile Include="Metadata\ILVisualizerAsTokens.cs" />
@@ -104,7 +117,6 @@
     <Compile Include="Pdb\CustomDebugInfoUtilities.cs" />
     <Compile Include="Pdb\PdbToXml.cs" />
     <Compile Include="Pdb\PdbToXmlOptions.cs" />
-    <Compile Include="Pdb\SymReader.cs" />
     <Compile Include="Pdb\SymReaderFactory.cs" />
     <Compile Include="Pdb\Token2SourceLineExporter.cs" />
     <Compile Include="Shared\CustomDebugInfoReader.cs" />

@@ -14,39 +14,39 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.CodeRefactorings.I
             Return New Tuple(Of DiagnosticAnalyzer, CodeFixProvider)(Nothing, New VisualBasicConvertToIteratorCodeFixProvider())
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertToIterator)>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertToIterator)>
         Public Async Function TestConvertToIteratorFunction() As Task
             Await TestAsync(
 NewLines("Imports System \n Imports System.Collections.Generic \n \n Module Module1 \n Function M() As IEnumerable(Of Integer) \n [|Yield|] 1 \n End Function \n End Module"),
 NewLines("Imports System \n Imports System.Collections.Generic \n \n Module Module1 \n Iterator Function M() As IEnumerable(Of Integer) \n Yield 1 \n End Function \n End Module"))
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertToIterator)>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertToIterator)>
         Public Async Function TestConvertToIteratorSub() As Task
             Await TestMissingAsync(
 NewLines("Module Module1 \n Sub M() As \n [|Yield|] 1 \n End Sub \n End Module"))
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertToIterator)>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertToIterator)>
         Public Async Function TestConvertToIteratorFunctionLambda() As Task
             Await TestAsync(
 NewLines("Imports System \n Imports System.Collections.Generic \n \n Module Module1 \n Sub M() \n Dim a As Func(Of IEnumerable(Of Integer)) = Function() \n [|Yield|] 0 \n End Function \n End Sub \n End Module"),
 NewLines("Imports System \n Imports System.Collections.Generic \n \n Module Module1 \n Sub M() \n Dim a As Func(Of IEnumerable(Of Integer)) = Iterator Function() \n Yield 0 \n End Function \n End Sub \n End Module"))
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertToIterator)>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertToIterator)>
         Public Async Function TestConvertToIteratorSubLambda() As Task
             Await TestMissingAsync(
 NewLines("Imports System \n Imports System.Collections.Generic \n \n Module Module1 \n Sub M() \n Dim a As Func(Of IEnumerable(Of Integer)) = Sub() \n [|Yield|] 0 \n End Sub \n End Sub \n End Module"))
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertToIterator)>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertToIterator)>
         Public Async Function TestConvertToIteratorSingleLineFunctionLambda() As Task
             Await TestMissingAsync(
 NewLines("Imports System \n Imports System.Collections.Generic \n \n Module Module1 \n Sub M() \n Dim a As Func(Of IEnumerable(Of Integer)) = Function() [|Yield|] 0 \n End Sub \n End Module"))
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertToIterator)>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertToIterator)>
         Public Async Function TestConvertToIteratorSingleLineSubLambda() As Task
             Await TestMissingAsync(
 NewLines("Imports System \n Imports System.Collections.Generic \n \n Module Module1 \n Sub M() \n Dim a As Func(Of IEnumerable(Of Integer)) = Sub() [|Yield|] 0 \n End Sub \n End Module"))
@@ -60,40 +60,40 @@ NewLines("Imports System \n Imports System.Collections.Generic \n \n Module Modu
             Return New Tuple(Of DiagnosticAnalyzer, CodeFixProvider)(Nothing, New VisualBasicChangeToYieldCodeFixProvider())
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsChangeToYield)>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsChangeToYield)>
         Public Async Function TestChangeToYieldCodeFixProviderFunction() As Task
             Await TestAsync(
 NewLines("Module Module1 \n Iterator Function M() As IEnumerable(Of Integer) \n [|Return|] 1 \n End Function \n End Module"),
 NewLines("Module Module1 \n Iterator Function M() As IEnumerable(Of Integer) \n Yield 1 \n End Function \n End Module"))
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsChangeToYield)>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsChangeToYield)>
         Public Async Function TestChangeToYieldCodeFixProviderSub() As Task
             Await TestAsync(
 NewLines("Module Module1 \n Iterator Sub M() \n [|Return|] 1 \n End Sub \n End Module"),
 NewLines("Module Module1 \n Iterator Sub M() \n Yield 1 \n End Sub \n End Module"))
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsChangeToYield)>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsChangeToYield)>
         Public Async Function TestChangeToYieldCodeFixProviderFunctionLambda() As Task
             Await TestAsync(
 NewLines("Module Module1 \n Sub M() \n Dim a = Iterator Function() \n [|Return|] 0 \n End Function \n End Sub \n End Module"),
 NewLines("Module Module1 \n Sub M() \n Dim a = Iterator Function() \n Yield 0 \n End Function \n End Sub \n End Module"))
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsChangeToYield)>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsChangeToYield)>
         Public Async Function TestChangeToYieldCodeFixProviderSubLambda() As Task
             Await TestAsync(
 NewLines("Module Module1 \n Sub M() \n Dim a = Iterator Sub() \n [|Return|] 0 \n End Sub \n End Sub \n End Module"),
 NewLines("Module Module1 \n Sub M() \n Dim a = Iterator Sub() \n Yield 0 \n End Sub \n End Sub \n End Module"))
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsChangeToYield)>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsChangeToYield)>
         Public Async Function TestChangeToYieldCodeFixProviderSingleLineFunctionLambda() As Task
             Await TestMissingAsync(NewLines("Module Module1 \n Sub M() \n Dim a = Iterator Function() [|Return|] 0 \n End Sub \n End Module"))
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsChangeToYield)>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsChangeToYield)>
         Public Async Function TestChangeToYieldCodeFixProviderSingleLineSubLambda() As Task
             Await TestAsync(
 NewLines("Module Module1 \n Sub M() \n Dim a = Iterator Sub() [|Return|] 0 \n End Sub \n End Module"),

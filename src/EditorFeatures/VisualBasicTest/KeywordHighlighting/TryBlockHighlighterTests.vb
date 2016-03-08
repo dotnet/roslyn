@@ -11,7 +11,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.KeywordHighlightin
             Return New TryBlockHighlighter()
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)>
+        <Fact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)>
         Public Async Function TestTryBlock1() As Task
             Await TestAsync(<Text>
 Class C
@@ -28,7 +28,7 @@ End Sub
 End Class</Text>)
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)>
+        <Fact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)>
         Public Async Function TestTryBlock2() As Task
             Await TestAsync(<Text>
 Class C
@@ -45,7 +45,7 @@ End Sub
 End Class</Text>)
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)>
+        <Fact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)>
         Public Async Function TestTryBlock3() As Task
             Await TestAsync(<Text>
 Class C
@@ -62,7 +62,7 @@ End Sub
 End Class</Text>)
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)>
+        <Fact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)>
         Public Async Function TestTryBlock4() As Task
             Await TestAsync(<Text>
 Class C
@@ -79,7 +79,7 @@ End Sub
 End Class</Text>)
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)>
+        <Fact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)>
         Public Async Function TestTryBlock5() As Task
             Await TestAsync(<Text>
 Class C
@@ -96,7 +96,7 @@ End Sub
 End Class</Text>)
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)>
+        <Fact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)>
         Public Async Function TestTryBlock6() As Task
             Await TestAsync(<Text>
 Class C
@@ -113,7 +113,7 @@ End Sub
 End Class</Text>)
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)>
+        <Fact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)>
         Public Async Function TestExitTryInCatchBlock() As Task
             Await TestAsync(<Text>
 Class C
@@ -130,7 +130,7 @@ End Sub
 End Class</Text>)
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)>
+        <Fact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)>
         Public Async Function TestExitTryInCatchBlock2() As Task
             Await TestAsync(<Text>
 Class C
@@ -147,7 +147,7 @@ End Sub
 End Class</Text>)
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)>
+        <Fact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)>
         Public Async Function NegativeTestExitTryInNestedTry() As Task
             Await TestAsync(<Text>
 Class C

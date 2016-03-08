@@ -12,7 +12,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Outlining
     {
         internal override AbstractSyntaxOutliner CreateOutliner() => new DisabledTextTriviaOutliner();
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Outlining)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Outlining)]
         public async Task TestDisabledIf()
         {
             const string code = @"
@@ -27,7 +27,7 @@ Blah|}
                 Region("span", CSharpOutliningHelpers.Ellipsis, autoCollapse: true));
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Outlining)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Outlining)]
         public async Task TestDisabledElse()
         {
             const string code = @"
@@ -43,7 +43,7 @@ Blah|}
                 Region("span", CSharpOutliningHelpers.Ellipsis, autoCollapse: true));
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Outlining)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Outlining)]
         public async Task TestDisabledElIf()
         {
             const string code = @"
@@ -59,8 +59,8 @@ Blah|}
                 Region("span", CSharpOutliningHelpers.Ellipsis, autoCollapse: true));
         }
 
-        [WorkItem(531360)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Outlining)]
+        [WorkItem(531360, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/531360")]
+        [Fact, Trait(Traits.Feature, Traits.Features.Outlining)]
         public async Task DisabledCodeWithEmbeddedPreprocessorDirectivesShouldCollapseEntireDisabledRegion()
         {
             const string code = @"
@@ -80,8 +80,8 @@ class P {
                 Region("span", CSharpOutliningHelpers.Ellipsis, autoCollapse: true));
         }
 
-        [WorkItem(531360)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Outlining)]
+        [WorkItem(531360, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/531360")]
+        [Fact, Trait(Traits.Feature, Traits.Features.Outlining)]
         public async Task DisabledCodeShouldNotCollapseUnlessItFollowsADirective()
         {
             const string code = @"
@@ -100,8 +100,8 @@ class P {
             await VerifyNoRegionsAsync(code);
         }
 
-        [WorkItem(1070677)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Outlining)]
+        [WorkItem(1070677, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1070677")]
+        [Fact, Trait(Traits.Feature, Traits.Features.Outlining)]
         public async Task NestedDisabledCodePreProcessorDirectivesShouldCollapseEntireDisabledRegion()
         {
             const string code = @"
@@ -121,8 +121,8 @@ class P {
                 Region("span", CSharpOutliningHelpers.Ellipsis, autoCollapse: true));
         }
 
-        [WorkItem(1070677)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Outlining)]
+        [WorkItem(1070677, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1070677")]
+        [Fact, Trait(Traits.Feature, Traits.Features.Outlining)]
         public async Task NestedDisabledCodePreProcessorDirectivesShouldCollapseEntireDisabledRegion2()
         {
             const string code = @"
@@ -143,8 +143,8 @@ class P {
                 Region("span", CSharpOutliningHelpers.Ellipsis, autoCollapse: true));
         }
 
-        [WorkItem(1070677)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Outlining)]
+        [WorkItem(1070677, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1070677")]
+        [Fact, Trait(Traits.Feature, Traits.Features.Outlining)]
         public async Task NestedDisabledCodePreProcessorDirectivesShouldCollapseEntireDisabledRegion3()
         {
             const string code = @"
@@ -164,8 +164,8 @@ class P {
                 Region("span", CSharpOutliningHelpers.Ellipsis, autoCollapse: true));
         }
 
-        [WorkItem(1070677)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Outlining)]
+        [WorkItem(1070677, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1070677")]
+        [Fact, Trait(Traits.Feature, Traits.Features.Outlining)]
         public async Task NestedDisabledCodePreProcessorDirectivesShouldCollapseEntireDisabledRegion4()
         {
             const string code = @"
@@ -194,8 +194,8 @@ class P {
                 Region("span", CSharpOutliningHelpers.Ellipsis, autoCollapse: true));
         }
 
-        [WorkItem(1100600)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Outlining)]
+        [WorkItem(1100600, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1100600")]
+        [Fact, Trait(Traits.Feature, Traits.Features.Outlining)]
         public async Task PreprocessorDirectivesInTrailingTrivia()
         {
             const string code = @"

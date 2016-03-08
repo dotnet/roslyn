@@ -13,7 +13,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Outlining
             Return New EnumDeclarationOutliner()
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.Outlining)>
+        <Fact, Trait(Traits.Feature, Traits.Features.Outlining)>
         Public Async Function TestEnum() As Task
             Const code = "
 {|span:Enum $$E1
@@ -24,7 +24,7 @@ End Enum|} ' Foo
                 Region("span", "Enum E1 ...", autoCollapse:=True))
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.Outlining)>
+        <Fact, Trait(Traits.Feature, Traits.Features.Outlining)>
         Public Async Function TestEnumWithLeadingComments() As Task
             Const code = "
 {|span1:'Hello
@@ -38,7 +38,7 @@ End Enum|} ' Foo
                 Region("span2", "Enum E1 ...", autoCollapse:=True))
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.Outlining)>
+        <Fact, Trait(Traits.Feature, Traits.Features.Outlining)>
         Public Async Function TestEnumWithNestedComments() As Task
             Const code = "
 {|span1:Enum $$E1

@@ -11,7 +11,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.KeywordHighlightin
             Return New AccessorDeclarationHighlighter()
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)>
+        <Fact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)>
         Public Async Function TestPropertyAccessorsSample1_1() As Task
             Await TestAsync(<Text>
 Class C
@@ -26,7 +26,7 @@ End Property
 End Class</Text>)
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)>
+        <Fact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)>
         Public Async Function TestPropertyAccessorsSample1_2() As Task
             Await TestAsync(<Text>
 Class C
@@ -41,7 +41,7 @@ End Property
 End Class</Text>)
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)>
+        <Fact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)>
         Public Async Function TestPropertyAccessorsSample1_3() As Task
             Await TestAsync(<Text>
 Class C
@@ -56,7 +56,7 @@ End Property
 End Class</Text>)
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)>
+        <Fact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)>
         Public Async Function TestPropertyAccessorsSample2_1() As Task
             Await TestAsync(<Text>
 Class C
@@ -71,7 +71,7 @@ End Property
 End Class</Text>)
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)>
+        <Fact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)>
         Public Async Function TestPropertyAccessorsSample2_2() As Task
             Await TestAsync(<Text>
 Class C
@@ -86,7 +86,7 @@ End Property
 End Class</Text>)
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)>
+        <Fact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)>
         Public Async Function TestPropertyAccessorsSample2_3() As Task
             Await TestAsync(<Text>
 Class C
@@ -101,7 +101,7 @@ End Property
 End Class</Text>)
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)>
+        <Fact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)>
         Public Async Function TestEventAccessorsSample1_1() As Task
             Await TestAsync(<Text>
 Class C
@@ -117,7 +117,7 @@ End Event
 End Class</Text>)
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)>
+        <Fact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)>
         Public Async Function TestEventAccessorsSample1_2() As Task
             Await TestAsync(<Text>
 Class C
@@ -133,7 +133,7 @@ End Event
 End Class</Text>)
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)>
+        <Fact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)>
         Public Async Function TestEventAccessorsSample1_3() As Task
             Await TestAsync(<Text>
 Class C
@@ -149,7 +149,7 @@ End Event
 End Class</Text>)
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)>
+        <Fact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)>
         Public Async Function TestEventAccessorsSample2_1() As Task
             Await TestAsync(<Text>
 Class C
@@ -165,7 +165,7 @@ End Event
 End Class</Text>)
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)>
+        <Fact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)>
         Public Async Function TestEventAccessorsSample2_2() As Task
             Await TestAsync(<Text>
 Class C
@@ -181,7 +181,7 @@ End Event
 End Class</Text>)
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)>
+        <Fact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)>
         Public Async Function TestEventAccessorsSample3_1() As Task
             Await TestAsync(<Text>
 Class C
@@ -197,7 +197,7 @@ End Event
 End Class</Text>)
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)>
+        <Fact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)>
         Public Async Function TestEventAccessorsSample3_2() As Task
             Await TestAsync(<Text>
 Class C
@@ -213,7 +213,7 @@ End Event
 End Class</Text>)
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)>
+        <Fact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)>
         Public Async Function TestProperty_IteratorExample5_1() As Task
             Await TestAsync(
 <Text>
@@ -225,7 +225,7 @@ End Property
 </Text>)
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)>
+        <Fact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)>
         Public Async Function TestProperty_IteratorExample5_2() As Task
             Await TestAsync(
 <Text>
@@ -237,7 +237,7 @@ End Property
 </Text>)
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)>
+        <Fact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)>
         Public Async Function TestProperty_IteratorExample5_3() As Task
             Await TestAsync(
 <Text>

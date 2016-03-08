@@ -59,7 +59,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests
         End Function
 
         Public Overrides Function GetFileCodeModel(documentId As DocumentId) As EnvDTE.FileCodeModel
-            Return CType(_fileCodeModels(documentId).Handle, EnvDTE.FileCodeModel)
+            Return _fileCodeModels(documentId).Handle
         End Function
 
         Public Overrides Function TryGoToDefinition(symbol As ISymbol, project As Project, cancellationToken As CancellationToken) As Boolean

@@ -13,7 +13,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Outlining
             Return New ConstructorDeclarationOutliner()
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.Outlining)>
+        <Fact, Trait(Traits.Feature, Traits.Features.Outlining)>
         Public Async Function TestConstructor1() As Task
             Const code = "
 Class C1
@@ -25,7 +25,7 @@ End Class
                 Region("span", "Sub New() ...", autoCollapse:=True))
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.Outlining)>
+        <Fact, Trait(Traits.Feature, Traits.Features.Outlining)>
         Public Async Function TestConstructor2() As Task
             Const code = "
 Class C1
@@ -37,7 +37,7 @@ End Class
                 Region("span", "Sub New() ...", autoCollapse:=True))
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.Outlining)>
+        <Fact, Trait(Traits.Feature, Traits.Features.Outlining)>
         Public Async Function TestConstructor3() As Task
             Const code = "
 Class C1
@@ -49,7 +49,7 @@ End Class
                 Region("span", "Sub New() ...", autoCollapse:=True))
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.Outlining)>
+        <Fact, Trait(Traits.Feature, Traits.Features.Outlining)>
         Public Async Function TestPrivateConstructor() As Task
             Const code = "
 Class C1
@@ -61,7 +61,7 @@ End Class
                 Region("span", "Private Sub New() ...", autoCollapse:=True))
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.Outlining)>
+        <Fact, Trait(Traits.Feature, Traits.Features.Outlining)>
         Public Async Function TestConstructorWithComments() As Task
             Const code = "
 Class C1

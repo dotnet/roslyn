@@ -10,7 +10,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.AddUsing
 {
     public partial class AddUsingTests : AbstractCSharpDiagnosticProviderBasedUserDiagnosticTest
     {
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsAddUsing)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddUsing)]
         public async Task TestWhereExtension()
         {
             await TestAsync(
@@ -18,7 +18,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.AddUsing
 @"using System ; using System . Collections . Generic ; using System . Linq ; class Program { static void Main ( string [ ] args ) { var q = args . Where } } ");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsAddUsing)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddUsing)]
         public async Task TestSelectExtension()
         {
             await TestAsync(
@@ -26,7 +26,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.AddUsing
 @"using System ; using System . Collections . Generic ; using System . Linq ; class Program { static void Main ( string [ ] args ) { var q = args . Select } } ");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsAddUsing)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddUsing)]
         public async Task TestGroupByExtension()
         {
             await TestAsync(
@@ -34,7 +34,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.AddUsing
 @"using System ; using System . Collections . Generic ; using System . Linq ; class Program { static void Main ( string [ ] args ) { var q = args . GroupBy } } ");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsAddUsing)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddUsing)]
         public async Task TestJoinExtension()
         {
             await TestAsync(
@@ -42,15 +42,15 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.AddUsing
 @"using System ; using System . Collections . Generic ; using System . Linq ; class Program { static void Main ( string [ ] args ) { var q = args . Join } } ");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsAddUsing)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddUsing)]
         public async Task RegressionFor8455()
         {
             await TestMissingAsync(
 @"class C { void M ( ) { int dim = ( int ) Math . [|Min|] ( ) ; } } ");
         }
 
-        [WorkItem(772321)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsAddUsing)]
+        [WorkItem(772321, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/772321")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddUsing)]
         public async Task TestExtensionWithThePresenceOfTheSameNameNonExtensionMethod()
         {
             await TestAsync(
@@ -58,9 +58,9 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.AddUsing
 @"using NS2; namespace NS1 { class Program { void Main() { new C().Foo(4); } } class C { public void Foo(string y) { } } } namespace NS2 { static class CExt { public static void Foo(this NS1.C c, int x) { } } } ");
         }
 
-        [WorkItem(772321)]
-        [WorkItem(920398)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsAddUsing)]
+        [WorkItem(772321, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/772321")]
+        [WorkItem(920398, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/920398")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddUsing)]
         public async Task TestExtensionWithThePresenceOfTheSameNameNonExtensionPrivateMethod()
         {
             await TestAsync(
@@ -68,9 +68,9 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.AddUsing
 @"using NS2; namespace NS1 { class Program { void Main() { new C().Foo(4); } } class C { private void Foo(int x) { } } } namespace NS2 { static class CExt { public static void Foo(this NS1.C c, int x) { } } } ");
         }
 
-        [WorkItem(772321)]
-        [WorkItem(920398)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsAddUsing)]
+        [WorkItem(772321, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/772321")]
+        [WorkItem(920398, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/920398")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddUsing)]
         public async Task TestExtensionWithThePresenceOfTheSameNameExtensionPrivateMethod()
         {
             await TestAsync(
@@ -78,8 +78,8 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.AddUsing
 @"using NS2; using NS3; namespace NS1 { class Program { void Main() { new C().Foo(4); } } class C { } } namespace NS2 { static class CExt { private static void Foo(this NS1.C c, int x) { } } } namespace NS3 { static class CExt { public static void Foo(this NS1.C c, int x) { } } } ");
         }
 
-        [WorkItem(269)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsAddUsing)]
+        [WorkItem(269, "https://github.com/dotnet/roslyn/issues/269")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddUsing)]
         public async Task TestAddUsingForAddExtentionMethod()
         {
             await TestAsync(
@@ -88,8 +88,8 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.AddUsing
 parseOptions: null);
         }
 
-        [WorkItem(269)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsAddUsing)]
+        [WorkItem(269, "https://github.com/dotnet/roslyn/issues/269")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddUsing)]
         public async Task TestAddUsingForAddExtentionMethod2()
         {
             await TestAsync(
@@ -98,8 +98,8 @@ parseOptions: null);
 parseOptions: null);
         }
 
-        [WorkItem(269)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsAddUsing)]
+        [WorkItem(269, "https://github.com/dotnet/roslyn/issues/269")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddUsing)]
         public async Task TestAddUsingForAddExtentionMethod3()
         {
             await TestAsync(
@@ -108,8 +108,8 @@ parseOptions: null);
 parseOptions: null);
         }
 
-        [WorkItem(269)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsAddUsing)]
+        [WorkItem(269, "https://github.com/dotnet/roslyn/issues/269")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddUsing)]
         public async Task TestAddUsingForAddExtentionMethod4()
         {
             await TestAsync(
@@ -118,8 +118,8 @@ parseOptions: null);
 parseOptions: null);
         }
 
-        [WorkItem(269)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsAddUsing)]
+        [WorkItem(269, "https://github.com/dotnet/roslyn/issues/269")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddUsing)]
         public async Task TestAddUsingForAddExtentionMethod5()
         {
             await TestAsync(
@@ -128,8 +128,8 @@ parseOptions: null);
 parseOptions: null);
         }
 
-        [WorkItem(269)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsAddUsing)]
+        [WorkItem(269, "https://github.com/dotnet/roslyn/issues/269")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddUsing)]
         public async Task TestAddUsingForAddExtentionMethod6()
         {
             await TestAsync(
@@ -138,8 +138,8 @@ parseOptions: null);
 parseOptions: null);
         }
 
-        [WorkItem(269)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsAddUsing)]
+        [WorkItem(269, "https://github.com/dotnet/roslyn/issues/269")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddUsing)]
         public async Task TestAddUsingForAddExtentionMethod7()
         {
             await TestAsync(
@@ -148,8 +148,8 @@ parseOptions: null);
 parseOptions: null);
         }
 
-        [WorkItem(269)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsAddUsing)]
+        [WorkItem(269, "https://github.com/dotnet/roslyn/issues/269")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddUsing)]
         public async Task TestAddUsingForAddExtentionMethod8()
         {
             await TestAsync(
@@ -158,8 +158,8 @@ parseOptions: null);
 parseOptions: null);
         }
 
-        [WorkItem(269)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsAddUsing)]
+        [WorkItem(269, "https://github.com/dotnet/roslyn/issues/269")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddUsing)]
         public async Task TestAddUsingForAddExtentionMethod9()
         {
             await TestAsync(
@@ -168,8 +168,8 @@ parseOptions: null);
 parseOptions: null);
         }
 
-        [WorkItem(269)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsAddUsing)]
+        [WorkItem(269, "https://github.com/dotnet/roslyn/issues/269")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddUsing)]
         public async Task TestAddUsingForAddExtentionMethod10()
         {
             await TestAsync(
@@ -178,8 +178,8 @@ parseOptions: null);
 parseOptions: null);
         }
 
-        [WorkItem(269)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsAddUsing)]
+        [WorkItem(269, "https://github.com/dotnet/roslyn/issues/269")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddUsing)]
         public async Task TestAddUsingForAddExtentionMethod11()
         {
             await TestAsync(

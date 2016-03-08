@@ -258,7 +258,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Friend Function CreateAndSetSourceAssemblyFullBind(compilation As VisualBasicCompilation) As Boolean
 
                 Dim resolutionDiagnostics = DiagnosticBag.GetInstance()
-                Dim supersedeLowerVersions = compilation.IsSubmission
+                Dim supersedeLowerVersions = compilation.Options.ReferencesSupersedeLowerVersions
                 Dim assemblyReferencesBySimpleName = PooledDictionary(Of String, List(Of ReferencedAssemblyIdentity)).GetInstance()
 
                 Try
@@ -693,9 +693,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Inherits AssemblyData
 
                 Private _assemblies As List(Of AssemblySymbol)
-                Private ReadOnly m_Identity As AssemblyIdentity
-                Private ReadOnly m_ReferencedAssemblies As ImmutableArray(Of AssemblyIdentity)
-                Private ReadOnly m_EmbedInteropTypes As Boolean
+                Private ReadOnly _identity As AssemblyIdentity
+                Private ReadOnly _referencedAssemblies As ImmutableArray(Of AssemblyIdentity)
+                Private ReadOnly _embedInteropTypes As Boolean
 
                 Protected Sub New(identity As AssemblyIdentity,
                                   referencedAssemblies As ImmutableArray(Of AssemblyIdentity),
@@ -704,16 +704,16 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     Debug.Assert(identity IsNot Nothing)
                     Debug.Assert(Not referencedAssemblies.IsDefault)
 
-                    m_EmbedInteropTypes = embedInteropTypes
-                    m_Identity = identity
-                    m_ReferencedAssemblies = referencedAssemblies
+                    _embedInteropTypes = embedInteropTypes
+                    _identity = identity
+                    _referencedAssemblies = referencedAssemblies
                 End Sub
 
                 Friend MustOverride Function CreateAssemblySymbol() As AssemblySymbol
 
                 Public Overrides ReadOnly Property Identity As AssemblyIdentity
                     Get
-                        Return m_Identity
+                        Return _identity
                     End Get
                 End Property
 
@@ -736,17 +736,17 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
                 Public Overrides ReadOnly Property AssemblyReferences As ImmutableArray(Of AssemblyIdentity)
                     Get
-                        Return m_ReferencedAssemblies
+                        Return _referencedAssemblies
                     End Get
                 End Property
 
                 Public Overrides Function BindAssemblyReferences(assemblies As ImmutableArray(Of AssemblyData), assemblyIdentityComparer As AssemblyIdentityComparer) As AssemblyReferenceBinding()
-                    Return ResolveReferencedAssemblies(m_ReferencedAssemblies, assemblies, definitionStartIndex:=0, assemblyIdentityComparer:=assemblyIdentityComparer)
+                    Return ResolveReferencedAssemblies(_referencedAssemblies, assemblies, definitionStartIndex:=0, assemblyIdentityComparer:=assemblyIdentityComparer)
                 End Function
 
                 Public NotOverridable Overrides ReadOnly Property IsLinked As Boolean
                     Get
-                        Return m_EmbedInteropTypes
+                        Return _embedInteropTypes
                     End Get
                 End Property
             End Class

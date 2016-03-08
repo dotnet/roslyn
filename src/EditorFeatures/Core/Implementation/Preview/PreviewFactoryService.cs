@@ -137,35 +137,35 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Preview
                     foreach (var metadataReference in projectChanges.GetRemovedMetadataReferences())
                     {
                         cancellationToken.ThrowIfCancellationRequested();
-                        previewItems.Add(new SolutionPreviewItem(oldProject.Id, null, 
+                        previewItems.Add(new SolutionPreviewItem(oldProject.Id, null,
                             string.Format(EditorFeaturesResources.RemovingReferenceFrom, metadataReference.Display, oldProject.Name)));
                     }
 
                     foreach (var projectReference in projectChanges.GetAddedProjectReferences())
                     {
                         cancellationToken.ThrowIfCancellationRequested();
-                        previewItems.Add(new SolutionPreviewItem(oldProject.Id, null, 
+                        previewItems.Add(new SolutionPreviewItem(oldProject.Id, null,
                             string.Format(EditorFeaturesResources.AddingReferenceTo, newSolution.GetProject(projectReference.ProjectId).Name, oldProject.Name)));
                     }
 
                     foreach (var projectReference in projectChanges.GetRemovedProjectReferences())
                     {
                         cancellationToken.ThrowIfCancellationRequested();
-                        previewItems.Add(new SolutionPreviewItem(oldProject.Id, null, 
+                        previewItems.Add(new SolutionPreviewItem(oldProject.Id, null,
                             string.Format(EditorFeaturesResources.RemovingReferenceFrom, oldSolution.GetProject(projectReference.ProjectId).Name, oldProject.Name)));
                     }
 
                     foreach (var analyzer in projectChanges.GetAddedAnalyzerReferences())
                     {
                         cancellationToken.ThrowIfCancellationRequested();
-                        previewItems.Add(new SolutionPreviewItem(oldProject.Id, null, 
+                        previewItems.Add(new SolutionPreviewItem(oldProject.Id, null,
                             string.Format(EditorFeaturesResources.AddingAnalyzerReferenceTo, analyzer.Display, oldProject.Name)));
                     }
 
                     foreach (var analyzer in projectChanges.GetRemovedAnalyzerReferences())
                     {
                         cancellationToken.ThrowIfCancellationRequested();
-                        previewItems.Add(new SolutionPreviewItem(oldProject.Id, null, 
+                        previewItems.Add(new SolutionPreviewItem(oldProject.Id, null,
                             string.Format(EditorFeaturesResources.RemovingAnalyzerReferenceFrom, analyzer.Display, oldProject.Name)));
                     }
                 }
@@ -173,21 +173,21 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Preview
                 foreach (var project in solutionChanges.GetAddedProjects())
                 {
                     cancellationToken.ThrowIfCancellationRequested();
-                    previewItems.Add(new SolutionPreviewItem(project.Id, null, 
+                    previewItems.Add(new SolutionPreviewItem(project.Id, null,
                         string.Format(EditorFeaturesResources.AddingProject, project.Name)));
                 }
 
                 foreach (var project in solutionChanges.GetRemovedProjects())
                 {
                     cancellationToken.ThrowIfCancellationRequested();
-                    previewItems.Add(new SolutionPreviewItem(project.Id, null, 
+                    previewItems.Add(new SolutionPreviewItem(project.Id, null,
                         string.Format(EditorFeaturesResources.RemovingProject, project.Name)));
                 }
 
                 foreach (var projectChanges in solutionChanges.GetProjectChanges().Where(ProjectReferencesChanged))
                 {
                     cancellationToken.ThrowIfCancellationRequested();
-                    previewItems.Add(new SolutionPreviewItem(projectChanges.OldProject.Id, null, 
+                    previewItems.Add(new SolutionPreviewItem(projectChanges.OldProject.Id, null,
                         string.Format(EditorFeaturesResources.ChangingProjectReferencesFor, projectChanges.OldProject.Name)));
                 }
 
@@ -398,7 +398,9 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Preview
                                                         .Select(a => WarningAnnotation.GetDescription(a))
                                                         .Distinct();
 
-                AttachConflictAndWarningAnnotationToBuffer(newBuffer, conflictSpans, warningSpans);
+                var suppressDiagnosticsNodes = newRoot.GetAnnotatedNodesAndTokens(SuppressDiagnosticsAnnotation.Kind);
+                var suppressDiagnosticsSpans = suppressDiagnosticsNodes.Select(n => n.Span.ToSpan()).ToList();
+                AttachAnnotationsToBuffer(newBuffer, conflictSpans, warningSpans, suppressDiagnosticsSpans);
 
                 description = conflictSpans.Count == 0 && warningSpans.Count == 0
                     ? null
@@ -520,11 +522,13 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Preview
             return CreateNewDifferenceViewerAsync(leftWorkspace, rightWorkspace, originalBuffer, changedBuffer, zoomLevel, cancellationToken);
         }
 
-        private static void AttachConflictAndWarningAnnotationToBuffer(ITextBuffer newBuffer, IEnumerable<Span> conflictSpans, IEnumerable<Span> warningSpans)
+        private static void AttachAnnotationsToBuffer(
+            ITextBuffer newBuffer, IEnumerable<Span> conflictSpans, IEnumerable<Span> warningSpans, IEnumerable<Span> suppressDiagnosticsSpans)
         {
             // Attach the spans to the buffer.
             newBuffer.Properties.AddProperty(PredefinedPreviewTaggerKeys.ConflictSpansKey, new NormalizedSnapshotSpanCollection(newBuffer.CurrentSnapshot, conflictSpans));
             newBuffer.Properties.AddProperty(PredefinedPreviewTaggerKeys.WarningSpansKey, new NormalizedSnapshotSpanCollection(newBuffer.CurrentSnapshot, warningSpans));
+            newBuffer.Properties.AddProperty(PredefinedPreviewTaggerKeys.SuppressDiagnosticsSpansKey, new NormalizedSnapshotSpanCollection(newBuffer.CurrentSnapshot, suppressDiagnosticsSpans));
         }
 
         private ITextBuffer CreateNewBuffer(Document document, CancellationToken cancellationToken)

@@ -4033,7 +4033,7 @@ End Module]]>,
             CompileAndVerify(vbCompilation, expectedOutput:="A").VerifyDiagnostics()
         End Sub
 
-        <WorkItem(544919, "DevDiv")>
+        <WorkItem(544919, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544919")>
         <Fact>
         Public Sub TestClassifyConversion()
             Dim source =
@@ -4119,7 +4119,7 @@ End Module
         End Sub
 
         <WorkItem(15925, "DevDiv_Projects/Roslyn")>
-        <WorkItem(544919, "DevDiv")>
+        <WorkItem(544919, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544919")>
         <Fact>
         Public Sub TestClassifyConversionStaticLocal()
             Dim source =
@@ -4204,7 +4204,7 @@ End Module
             Assert.True(conversion.IsNumeric)
         End Sub
 
-        <WorkItem(544620, "DevDiv")>
+        <WorkItem(544620, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544620")>
         <Fact()>
         Public Sub Bug13088()
             Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(
@@ -4237,7 +4237,7 @@ End Module
             Assert.False(DirectCast(symbol, FieldSymbol).HasConstantValue)
         End Sub
 
-        <WorkItem(545760, "DevDiv")>
+        <WorkItem(545760, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545760")>
         <Fact()>
         Public Sub Bug14409()
             Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(
@@ -4260,7 +4260,7 @@ End Module
             CompileAndVerify(compilation)
         End Sub
 
-        <WorkItem(545760, "DevDiv")>
+        <WorkItem(545760, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545760")>
         <Fact()>
         Public Sub Bug14409_2()
             Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(
@@ -4293,7 +4293,7 @@ BC30519: Overload resolution failed because no accessible 'Test' can be called w
 
         End Sub
 
-        <WorkItem(571095, "DevDiv")>
+        <WorkItem(571095, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/571095")>
         <Fact()>
         Public Sub Bug571095()
             Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(
@@ -4330,7 +4330,7 @@ BC30311: Value of type 'Integer' cannot be converted to 'Integer(*,*)'.
 
         End Sub
 
-        <WorkItem(31)>
+        <WorkItem(31, "https://roslyn.codeplex.com/workitem/31")>
         <Fact()>
         Public Sub BugCodePlex_31()
             Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(
@@ -4412,7 +4412,7 @@ CType(value As BooleanEx) As Boolean
 CType(value As BooleanEx) As Boolean")
         End Sub
 
-        <WorkItem(1099862, "DevDiv")>
+        <WorkItem(1099862, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1099862")>
         <Fact()>
         Public Sub Bug1099862_01()
             Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(
@@ -4451,7 +4451,7 @@ BC30439: Constant expression not representable in type 'Integer'.
             AssertTheseDiagnostics(compilation, expectedErr)
         End Sub
 
-        <WorkItem(1099862, "DevDiv")>
+        <WorkItem(1099862, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1099862")>
         <Fact()>
         Public Sub Bug1099862_02()
             Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(
@@ -4490,7 +4490,7 @@ BC30439: Constant expression not representable in type 'Integer?'.
             AssertTheseDiagnostics(compilation, expectedError)
         End Sub
 
-        <WorkItem(1099862, "DevDiv")>
+        <WorkItem(1099862, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1099862")>
         <Fact()>
         Public Sub Bug1099862_03()
             Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(
@@ -4531,7 +4531,7 @@ BC30439: Constant expression not representable in type 'Short'.
             AssertTheseDiagnostics(compilation, expectedError)
         End Sub
 
-        <WorkItem(1099862, "DevDiv")>
+        <WorkItem(1099862, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1099862")>
         <Fact()>
         Public Sub Bug1099862_04()
             Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(
@@ -4593,7 +4593,7 @@ BC30439: Constant expression not representable in type 'Short?'.
             AssertTheseDiagnostics(compilation, expectedError)
         End Sub
 
-        <WorkItem(1099862, "DevDiv")>
+        <WorkItem(1099862, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1099862")>
         <Fact()>
         Public Sub Bug1099862_05()
             Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(
@@ -4627,7 +4627,7 @@ End Module
             CompileAndVerify(compilation, expectedOutput:="32767").VerifyDiagnostics()
         End Sub
 
-        <WorkItem(1099862, "DevDiv")>
+        <WorkItem(1099862, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1099862")>
         <Fact()>
         Public Sub Bug1099862_06()
             Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(
@@ -4661,7 +4661,7 @@ End Module
             CompileAndVerify(compilation, expectedOutput:="32767").VerifyDiagnostics()
         End Sub
 
-        <WorkItem(1099862, "DevDiv")>
+        <WorkItem(1099862, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1099862")>
         <Fact()>
         Public Sub Bug1099862_07()
             Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(
@@ -4725,6 +4725,29 @@ Expected - 2
 
             compilation = compilation.WithOptions(TestOptions.DebugExe)
             CompileAndVerify(compilation, expectedOutput:=expectedOutput).VerifyDiagnostics()
+        End Sub
+
+        <WorkItem(8475, "https://github.com/dotnet/roslyn/issues/8475")>
+        <Fact()>
+        Public Sub ConvertConstantBeforeItsDeclaration()
+            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(
+    <compilation>
+        <file name="a.vb"><![CDATA[
+Class Program
+    Shared Sub Main()
+        Dim x as Integer = STR
+        Const STR As String = ""
+    End Sub
+End Class
+    ]]></file>
+    </compilation>, options:=TestOptions.ReleaseExe)
+
+            compilation.AssertTheseDiagnostics(
+<expected>
+BC32000: Local variable 'STR' cannot be referred to before it is declared.
+        Dim x as Integer = STR
+                           ~~~
+</expected>)
         End Sub
 
     End Class

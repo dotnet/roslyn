@@ -51,12 +51,13 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
                 });
 
             pfBlockAvailable = foundBlock != null ? 1 : 0;
-            pbstrDescription = foundBlock.Item1;
+            pbstrDescription = foundBlock?.Item1;
 
             if (foundBlock != null && ptsBlockSpan != null && ptsBlockSpan.Length >= 1)
             {
                 ptsBlockSpan[0] = foundBlock.Item2.ToSnapshotSpan(snapshot).ToVsTextSpan();
             }
+
             return VSConstants.S_OK;
         }
     }

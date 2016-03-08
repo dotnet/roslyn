@@ -12,6 +12,14 @@ Imports TypeKind = Microsoft.CodeAnalysis.TypeKind
 Namespace Microsoft.CodeAnalysis.VisualBasic
     Partial Friend NotInheritable Class LocalRewriter
 
+        Public Overrides Function VisitFieldInitializer(node As BoundFieldInitializer) As BoundNode
+            Return VisitFieldOrPropertyInitializer(node, ImmutableArray(Of Symbol).CastUp(node.InitializedFields))
+        End Function
+
+        Public Overrides Function VisitPropertyInitializer(node As BoundPropertyInitializer) As BoundNode
+            Return VisitFieldOrPropertyInitializer(node, ImmutableArray(Of Symbol).CastUp(node.InitializedProperties))
+        End Function
+
         ''' <summary>
         ''' Field initializers need to be rewritten multiple times in case of an AsNew declaration with multiple field names because the 
         ''' initializer may contain references to the current field like in the following example:
@@ -24,7 +32,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' We moved the final rewriting for field initializers to the local 
         ''' rewriters because here we already have the infrastructure to replace placeholders. 
         ''' </summary>
-        Public Overrides Function VisitFieldOrPropertyInitializer(node As BoundFieldOrPropertyInitializer) As BoundNode
+        Private Function VisitFieldOrPropertyInitializer(node As BoundFieldOrPropertyInitializer, initializedSymbols As ImmutableArray(Of Symbol)) As BoundNode
             Dim syntax = node.Syntax
 
             Debug.Assert(
@@ -32,7 +40,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 syntax.IsKind(SyntaxKind.ModifiedIdentifier) OrElse         ' Dim a(1) As Integer
                 syntax.IsKind(SyntaxKind.EqualsValue))                      ' Dim a = 1; Property P As Integer = 1
 
-            Dim initializedSymbols = node.InitializedSymbols
             Dim rewrittenStatements = ArrayBuilder(Of BoundStatement).GetInstance(initializedSymbols.Length)
 
             ' it's enough to create one me reference if the symbols are not shared that gets reused for all following rewritings.
@@ -56,7 +63,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End If
 
             For symbolIndex = 0 To initializedSymbols.Length - 1
-                Dim symbol = node.InitializedSymbols(symbolIndex)
+                Dim symbol = initializedSymbols(symbolIndex)
                 Dim accessExpression As BoundExpression
 
                 ' if there are more than one symbol we need to create a field or property access for each of them

@@ -278,8 +278,8 @@ Public Class XmlInternalSyntax
         End Using
     End Sub
 
-    <WorkItem(538550, "DevDiv")>
-    <WorkItem(538551, "DevDiv")>
+    <WorkItem(538550, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538550")>
+    <WorkItem(538551, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538551")>
     <Fact>
     Public Sub ScannerXml_SmartStrings()
         ' smart strings
@@ -349,7 +349,7 @@ Public Class XmlInternalSyntax
         End Using
     End Sub
 
-    <WorkItem(541284, "DevDiv")>
+    <WorkItem(541284, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541284")>
     <Fact>
     Public Sub ParseWithChrw0()
         Dim code = <![CDATA[
@@ -362,7 +362,7 @@ Public Class XmlInternalSyntax
         VisualBasicSyntaxTree.ParseText(code)
     End Sub
 
-    <Fact(), WorkItem(825859, "DevDiv")>
+    <Fact(), WorkItem(825859, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/825859")>
     Public Sub NbspFollowedByXmlDocComment()
         Dim tree = SyntaxFactory.ParseSyntaxTree("")
 

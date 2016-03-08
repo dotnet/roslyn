@@ -1,231 +1,226 @@
 ' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-Imports Microsoft.CodeAnalysis.Text
-Imports Microsoft.CodeAnalysis.VisualBasic
-Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
-Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
-Imports Roslyn.Test.Utilities
-Imports Xunit
+Imports System.Threading.Tasks
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Recommendations.Declarations
     Public Class DelegateKeywordRecommenderTests
-        <WpfFact>
+        <Fact>
         <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Sub DelegateInClassDeclaration()
-            VerifyRecommendationsContain(<ClassDeclaration>|</ClassDeclaration>, "Delegate")
-        End Sub
+        Public Async Function DelegateInClassDeclarationTest() As Task
+            Await VerifyRecommendationsContainAsync(<ClassDeclaration>|</ClassDeclaration>, "Delegate")
+        End Function
 
-        <WpfFact>
+        <Fact>
         <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Sub DelegateNotInMethodDeclaration()
-            VerifyRecommendationsMissing(<MethodBody>|</MethodBody>, "Delegate")
-        End Sub
+        Public Async Function DelegateNotInMethodDeclarationTest() As Task
+            Await VerifyRecommendationsMissingAsync(<MethodBody>|</MethodBody>, "Delegate")
+        End Function
 
-        <WpfFact>
+        <Fact>
         <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Sub DelegateInNamespace()
-            VerifyRecommendationsContain(<NamespaceDeclaration>|</NamespaceDeclaration>, "Delegate")
-        End Sub
+        Public Async Function DelegateInNamespaceTest() As Task
+            Await VerifyRecommendationsContainAsync(<NamespaceDeclaration>|</NamespaceDeclaration>, "Delegate")
+        End Function
 
-        <WpfFact>
+        <Fact>
         <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Sub DelegateInInterface()
-            VerifyRecommendationsContain(<InterfaceDeclaration>|</InterfaceDeclaration>, "Delegate")
-        End Sub
+        Public Async Function DelegateInInterfaceTest() As Task
+            Await VerifyRecommendationsContainAsync(<InterfaceDeclaration>|</InterfaceDeclaration>, "Delegate")
+        End Function
 
-        <WpfFact>
+        <Fact>
         <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Sub DelegateNotInEnum()
-            VerifyRecommendationsMissing(<EnumDeclaration>|</EnumDeclaration>, "Delegate")
-        End Sub
+        Public Async Function DelegateNotInEnumTest() As Task
+            Await VerifyRecommendationsMissingAsync(<EnumDeclaration>|</EnumDeclaration>, "Delegate")
+        End Function
 
-        <WpfFact>
+        <Fact>
         <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Sub DelegateInStructure()
-            VerifyRecommendationsContain(<StructureDeclaration>|</StructureDeclaration>, "Delegate")
-        End Sub
+        Public Async Function DelegateInStructureTest() As Task
+            Await VerifyRecommendationsContainAsync(<StructureDeclaration>|</StructureDeclaration>, "Delegate")
+        End Function
 
-        <WpfFact>
+        <Fact>
         <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Sub DelegateInModule()
-            VerifyRecommendationsContain(<ModuleDeclaration>|</ModuleDeclaration>, "Delegate")
-        End Sub
+        Public Async Function DelegateInModuleTest() As Task
+            Await VerifyRecommendationsContainAsync(<ModuleDeclaration>|</ModuleDeclaration>, "Delegate")
+        End Function
 
-        <WpfFact>
+        <Fact>
         <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Sub DelegateNotAfterPartial()
-            VerifyRecommendationsMissing(<File>Partial |</File>, "Delegate")
-        End Sub
+        Public Async Function DelegateNotAfterPartialTest() As Task
+            Await VerifyRecommendationsMissingAsync(<File>Partial |</File>, "Delegate")
+        End Function
 
-        <WpfFact>
+        <Fact>
         <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Sub DelegateAfterPublicInFile()
-            VerifyRecommendationsContain(<File>Public |</File>, "Delegate")
-        End Sub
+        Public Async Function DelegateAfterPublicInFileTest() As Task
+            Await VerifyRecommendationsContainAsync(<File>Public |</File>, "Delegate")
+        End Function
 
-        <WpfFact>
+        <Fact>
         <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Sub DelegateAfterPublicInClassDeclaration()
-            VerifyRecommendationsContain(<ClassDeclaration>Public |</ClassDeclaration>, "Delegate")
-        End Sub
+        Public Async Function DelegateAfterPublicInClassDeclarationTest() As Task
+            Await VerifyRecommendationsContainAsync(<ClassDeclaration>Public |</ClassDeclaration>, "Delegate")
+        End Function
 
-        <WpfFact>
+        <Fact>
         <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Sub DelegateMissingAfterProtectedInFile()
-            VerifyRecommendationsMissing(<File>Protected |</File>, "Delegate")
-        End Sub
+        Public Async Function DelegateMissingAfterProtectedInFileTest() As Task
+            Await VerifyRecommendationsMissingAsync(<File>Protected |</File>, "Delegate")
+        End Function
 
-        <WpfFact>
+        <Fact>
         <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Sub DelegateExistsAfterProtectedInClassDeclaration()
-            VerifyRecommendationsContain(<ClassDeclaration>Protected |</ClassDeclaration>, "Delegate")
-        End Sub
+        Public Async Function DelegateExistsAfterProtectedInClassDeclarationTest() As Task
+            Await VerifyRecommendationsContainAsync(<ClassDeclaration>Protected |</ClassDeclaration>, "Delegate")
+        End Function
 
-        <WpfFact>
+        <Fact>
         <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Sub DelegateAfterFriendInFile()
-            VerifyRecommendationsContain(<File>Friend |</File>, "Delegate")
-        End Sub
+        Public Async Function DelegateAfterFriendInFileTest() As Task
+            Await VerifyRecommendationsContainAsync(<File>Friend |</File>, "Delegate")
+        End Function
 
-        <WpfFact>
+        <Fact>
         <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Sub DelegateAfterFriendInClassDeclaration()
-            VerifyRecommendationsContain(<ClassDeclaration>Friend |</ClassDeclaration>, "Delegate")
-        End Sub
+        Public Async Function DelegateAfterFriendInClassDeclarationTest() As Task
+            Await VerifyRecommendationsContainAsync(<ClassDeclaration>Friend |</ClassDeclaration>, "Delegate")
+        End Function
 
-        <WpfFact>
+        <Fact>
         <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Sub DelegateNotAfterPrivateInFile()
-            VerifyRecommendationsMissing(<File>Private |</File>, "Delegate")
-        End Sub
+        Public Async Function DelegateNotAfterPrivateInFileTest() As Task
+            Await VerifyRecommendationsMissingAsync(<File>Private |</File>, "Delegate")
+        End Function
 
-        <WpfFact>
+        <Fact>
         <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Sub DelegateAfterPrivateInNestedClass()
-            VerifyRecommendationsContain(<ClassDeclaration>Private |</ClassDeclaration>, "Delegate")
-        End Sub
+        Public Async Function DelegateAfterPrivateInNestedClassTest() As Task
+            Await VerifyRecommendationsContainAsync(<ClassDeclaration>Private |</ClassDeclaration>, "Delegate")
+        End Function
 
-        <WpfFact>
+        <Fact>
         <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Sub DelegateNotAfterPrivateInNamespace()
-            VerifyRecommendationsMissing(<File>
+        Public Async Function DelegateNotAfterPrivateInNamespaceTest() As Task
+            Await VerifyRecommendationsMissingAsync(<File>
 Namespace Foo
     Private |
 End Namespace</File>, "Delegate")
-        End Sub
+        End Function
 
-        <WpfFact>
+        <Fact>
         <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Sub DelegateNotAfterProtectedFriendInFile()
-            VerifyRecommendationsMissing(<File>Protected Friend |</File>, "Delegate")
-        End Sub
+        Public Async Function DelegateNotAfterProtectedFriendInFileTest() As Task
+            Await VerifyRecommendationsMissingAsync(<File>Protected Friend |</File>, "Delegate")
+        End Function
 
-        <WpfFact>
+        <Fact>
         <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Sub DelegateAfterProtectedFriendInClass()
-            VerifyRecommendationsContain(<ClassDeclaration>Protected Friend |</ClassDeclaration>, "Delegate")
-        End Sub
+        Public Async Function DelegateAfterProtectedFriendInClassTest() As Task
+            Await VerifyRecommendationsContainAsync(<ClassDeclaration>Protected Friend |</ClassDeclaration>, "Delegate")
+        End Function
 
-        <WpfFact>
+        <Fact>
         <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Sub DelegateNotAfterOverloads()
-            VerifyRecommendationsMissing(<ClassDeclaration>Overloads |</ClassDeclaration>, "Delegate")
-        End Sub
+        Public Async Function DelegateNotAfterOverloadsTest() As Task
+            Await VerifyRecommendationsMissingAsync(<ClassDeclaration>Overloads |</ClassDeclaration>, "Delegate")
+        End Function
 
-        <WpfFact>
+        <Fact>
         <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Sub DelegateNotAfterOverrides()
-            VerifyRecommendationsMissing(<ClassDeclaration>Overrides |</ClassDeclaration>, "Delegate")
-        End Sub
+        Public Async Function DelegateNotAfterOverridesTest() As Task
+            Await VerifyRecommendationsMissingAsync(<ClassDeclaration>Overrides |</ClassDeclaration>, "Delegate")
+        End Function
 
-        <WpfFact>
+        <Fact>
         <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Sub DelegateNotAfterOverridable()
-            VerifyRecommendationsMissing(<ClassDeclaration>Overridable |</ClassDeclaration>, "Delegate")
-        End Sub
+        Public Async Function DelegateNotAfterOverridableTest() As Task
+            Await VerifyRecommendationsMissingAsync(<ClassDeclaration>Overridable |</ClassDeclaration>, "Delegate")
+        End Function
 
-        <WpfFact>
+        <Fact>
         <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Sub DelegateNotAfterNotOverridable()
-            VerifyRecommendationsMissing(<ClassDeclaration>NotOverridable |</ClassDeclaration>, "Delegate")
-        End Sub
+        Public Async Function DelegateNotAfterNotOverridableTest() As Task
+            Await VerifyRecommendationsMissingAsync(<ClassDeclaration>NotOverridable |</ClassDeclaration>, "Delegate")
+        End Function
 
-        <WpfFact>
+        <Fact>
         <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Sub DelegateNotAfterMustOverride()
-            VerifyRecommendationsMissing(<ClassDeclaration>MustOverride |</ClassDeclaration>, "Delegate")
-        End Sub
+        Public Async Function DelegateNotAfterMustOverrideTest() As Task
+            Await VerifyRecommendationsMissingAsync(<ClassDeclaration>MustOverride |</ClassDeclaration>, "Delegate")
+        End Function
 
-        <WpfFact>
+        <Fact>
         <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Sub DelegateNotAfterMustOverrideOverrides()
-            VerifyRecommendationsMissing(<ClassDeclaration>MustOverride Overrides |</ClassDeclaration>, "Delegate")
-        End Sub
+        Public Async Function DelegateNotAfterMustOverrideOverridesTest() As Task
+            Await VerifyRecommendationsMissingAsync(<ClassDeclaration>MustOverride Overrides |</ClassDeclaration>, "Delegate")
+        End Function
 
-        <WpfFact>
+        <Fact>
         <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Sub DelegateNotAfterNotOverridableOverrides()
-            VerifyRecommendationsMissing(<ClassDeclaration>NotOverridable Overrides |</ClassDeclaration>, "Delegate")
-        End Sub
+        Public Async Function DelegateNotAfterNotOverridableOverridesTest() As Task
+            Await VerifyRecommendationsMissingAsync(<ClassDeclaration>NotOverridable Overrides |</ClassDeclaration>, "Delegate")
+        End Function
 
-        <WpfFact>
+        <Fact>
         <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Sub DelegateNotAfterConst()
-            VerifyRecommendationsMissing(<ClassDeclaration>Const |</ClassDeclaration>, "Delegate")
-        End Sub
+        Public Async Function DelegateNotAfterConstTest() As Task
+            Await VerifyRecommendationsMissingAsync(<ClassDeclaration>Const |</ClassDeclaration>, "Delegate")
+        End Function
 
-        <WpfFact>
+        <Fact>
         <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Sub DelegateNotAfterDefault()
-            VerifyRecommendationsMissing(<ClassDeclaration>Default |</ClassDeclaration>, "Delegate")
-        End Sub
+        Public Async Function DelegateNotAfterDefaultTest() As Task
+            Await VerifyRecommendationsMissingAsync(<ClassDeclaration>Default |</ClassDeclaration>, "Delegate")
+        End Function
 
-        <WpfFact>
+        <Fact>
         <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Sub DelegateNotAfterMustInherit()
-            VerifyRecommendationsMissing(<ClassDeclaration>MustInherit |</ClassDeclaration>, "Delegate")
-        End Sub
+        Public Async Function DelegateNotAfterMustInheritTest() As Task
+            Await VerifyRecommendationsMissingAsync(<ClassDeclaration>MustInherit |</ClassDeclaration>, "Delegate")
+        End Function
 
-        <WpfFact>
+        <Fact>
         <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Sub DelegateNotAfterNotInheritable()
-            VerifyRecommendationsMissing(<ClassDeclaration>NotInheritable |</ClassDeclaration>, "Delegate")
-        End Sub
+        Public Async Function DelegateNotAfterNotInheritableTest() As Task
+            Await VerifyRecommendationsMissingAsync(<ClassDeclaration>NotInheritable |</ClassDeclaration>, "Delegate")
+        End Function
 
-        <WpfFact>
+        <Fact>
         <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Sub DelegateNotAfterNarrowing()
-            VerifyRecommendationsMissing(<ClassDeclaration>Narrowing |</ClassDeclaration>, "Delegate")
-        End Sub
+        Public Async Function DelegateNotAfterNarrowingTest() As Task
+            Await VerifyRecommendationsMissingAsync(<ClassDeclaration>Narrowing |</ClassDeclaration>, "Delegate")
+        End Function
 
-        <WpfFact>
+        <Fact>
         <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Sub DelegateNotAfterWidening()
-            VerifyRecommendationsMissing(<ClassDeclaration>Widening |</ClassDeclaration>, "Delegate")
-        End Sub
+        Public Async Function DelegateNotAfterWideningTest() As Task
+            Await VerifyRecommendationsMissingAsync(<ClassDeclaration>Widening |</ClassDeclaration>, "Delegate")
+        End Function
 
-        <WpfFact>
+        <Fact>
         <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Sub DelegateNotAfterReadOnly()
-            VerifyRecommendationsMissing(<ClassDeclaration>ReadOnly |</ClassDeclaration>, "Delegate")
-        End Sub
+        Public Async Function DelegateNotAfterReadOnlyTest() As Task
+            Await VerifyRecommendationsMissingAsync(<ClassDeclaration>ReadOnly |</ClassDeclaration>, "Delegate")
+        End Function
 
-        <WpfFact>
+        <Fact>
         <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Sub DelegateNotAfterWriteOnly()
-            VerifyRecommendationsMissing(<ClassDeclaration>WriteOnly |</ClassDeclaration>, "Delegate")
-        End Sub
+        Public Async Function DelegateNotAfterWriteOnlyTest() As Task
+            Await VerifyRecommendationsMissingAsync(<ClassDeclaration>WriteOnly |</ClassDeclaration>, "Delegate")
+        End Function
 
-        <WpfFact>
+        <Fact>
         <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Sub DelegateNotAfterCustom()
-            VerifyRecommendationsMissing(<ClassDeclaration>Custom |</ClassDeclaration>, "Delegate")
-        End Sub
+        Public Async Function DelegateNotAfterCustomTest() As Task
+            Await VerifyRecommendationsMissingAsync(<ClassDeclaration>Custom |</ClassDeclaration>, "Delegate")
+        End Function
 
-        <WpfFact>
+        <Fact>
         <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Sub DelegateNotAfterShared()
-            VerifyRecommendationsMissing(<ClassDeclaration>Shared |</ClassDeclaration>, "Delegate")
-        End Sub
+        Public Async Function DelegateNotAfterSharedTest() As Task
+            Await VerifyRecommendationsMissingAsync(<ClassDeclaration>Shared |</ClassDeclaration>, "Delegate")
+        End Function
     End Class
 End Namespace

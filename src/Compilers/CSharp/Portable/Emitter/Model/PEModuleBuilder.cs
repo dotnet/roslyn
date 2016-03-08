@@ -6,6 +6,7 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
+using System.Reflection;
 using System.Reflection.PortableExecutable;
 using System.Threading;
 using Microsoft.CodeAnalysis.CodeGen;
@@ -136,10 +137,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
         private void ValidateReferencedAssembly(AssemblySymbol assembly, AssemblyReference asmRef, DiagnosticBag diagnostics)
         {
             AssemblyIdentity asmIdentity = SourceModule.ContainingAssembly.Identity;
-            AssemblyIdentity refIdentity = asmRef.MetadataIdentity;
+            AssemblyIdentity refIdentity = asmRef.Identity;
 
             if (asmIdentity.IsStrongName && !refIdentity.IsStrongName &&
-                ((Cci.IAssemblyReference)asmRef).ContentType != System.Reflection.AssemblyContentType.WindowsRuntime)
+                asmRef.Identity.ContentType != AssemblyContentType.WindowsRuntime)
             {
                 // Dev12 reported error, we have changed it to a warning to allow referencing libraries 
                 // built for platforms that don't support strong names.

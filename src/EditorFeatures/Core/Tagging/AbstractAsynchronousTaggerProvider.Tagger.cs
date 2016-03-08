@@ -4,6 +4,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
+using Microsoft.CodeAnalysis.Editor.Shared.Tagging;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Tagging;
@@ -77,7 +78,7 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
                 _batchChangeNotifier.Resume();
             }
 
-            private void OnTagsChangedForBuffer(ICollection<KeyValuePair<ITextBuffer, NormalizedSnapshotSpanCollection>> changes)
+            private void OnTagsChangedForBuffer(ICollection<KeyValuePair<ITextBuffer, DiffResult>> changes)
             {
                 _tagSource.AssertIsForeground();
 
@@ -94,8 +95,33 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
                     }
 
                     // Now report them back to the UI on the main thread.
-                    _batchChangeNotifier.EnqueueChanges(change.Value);
+
+                    // We ask to update UI immediately for removed tags
+                    NotifyEditors(change.Value.Removed, _tagSource.RemovedTagNotificationDelay);
+                    NotifyEditors(change.Value.Added, _tagSource.AddedTagNotificationDelay);
                 }
+            }
+
+            private void NotifyEditors(NormalizedSnapshotSpanCollection changes, TaggerDelay delay)
+            {
+                _tagSource.AssertIsForeground();
+
+                if (changes.Count == 0)
+                {
+                    // nothing to do.
+                    return;
+                }
+
+                if (delay == TaggerDelay.NearImmediate)
+                {
+                    // if delay is immediate, we let notifier knows about the change right away
+                    _batchChangeNotifier.EnqueueChanges(changes);
+                    return;
+                }
+
+                // if delay is anything more than that, we let notifier knows about the change after given delay
+                // event notification is not cancellable.
+                _tagSource.RegisterNotification(() => _batchChangeNotifier.EnqueueChanges(changes), (int)delay.ComputeTimeDelay(_subjectBuffer).TotalMilliseconds, CancellationToken.None);
             }
 
             public IEnumerable<ITagSpan<TTag>> GetTags(NormalizedSnapshotSpanCollection requestedSpans)

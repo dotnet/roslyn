@@ -90,6 +90,17 @@ recurse:
         End Function
 
         <Extension()>
+        Public Function IsEntirelyWithinStringLiteral(syntaxTree As SyntaxTree, position As Integer, cancellationToken As CancellationToken) As Boolean
+            Dim token = syntaxTree.FindTokenOnLeftOfPosition(position, cancellationToken, includeDirectives:=True, includeDocumentationComments:=True)
+
+            If token.IsKind(SyntaxKind.StringLiteralToken) Then
+                Return token.SpanStart < position AndAlso position < token.Span.End OrElse AtEndOfIncompleteStringOrCharLiteral(token, position, """")
+            End If
+
+            Return False
+        End Function
+
+        <Extension()>
         Public Function IsEntirelyWithinStringOrCharOrNumericLiteral(syntaxTree As SyntaxTree, position As Integer, cancellationToken As CancellationToken) As Boolean
             Dim token = syntaxTree.FindTokenOnLeftOfPosition(position, cancellationToken, includeDirectives:=True, includeDocumentationComments:=True)
 
@@ -103,13 +114,25 @@ recurse:
                 Return True
             End If
 
+            ' If it is a numeric literal, all checks are done and we're okay. 
+            If token.IsKind(SyntaxKind.IntegerLiteralToken, SyntaxKind.DecimalLiteralToken,
+                            SyntaxKind.DateLiteralToken, SyntaxKind.FloatingLiteralToken) Then
+                Return False
+            End If
+
+            ' For char or string literals, check if we're at the end of an incomplete literal.
+            Dim lastChar = If(token.IsKind(SyntaxKind.CharacterLiteralToken), "'", """")
+
+            Return AtEndOfIncompleteStringOrCharLiteral(token, position, lastChar)
+        End Function
+
+        Private Function AtEndOfIncompleteStringOrCharLiteral(token As SyntaxToken, position As Integer, lastChar As String) As Boolean
             ' Check if it's a token that was started, but not ended
             Dim startLength = 1
             If token.IsKind(SyntaxKind.CharacterLiteralToken) Then
                 startLength = 2
             End If
 
-            Dim lastChar = If(token.IsKind(SyntaxKind.CharacterLiteralToken), "'", """")
             Return _
                 position = token.Span.End AndAlso
                  (token.Span.Length = startLength OrElse
@@ -189,38 +212,6 @@ recurse:
             End If
 
             Return IsGlobalStatementContext(token, position)
-        End Function
-
-        ''' <summary>
-        ''' If the position is inside of token, return that token; otherwise, return the token to right.
-        ''' </summary>
-        <Extension()>
-        Public Function FindTokenOnRightOfPosition(
-            syntaxTree As SyntaxTree,
-            position As Integer,
-            cancellationToken As CancellationToken,
-            Optional includeSkipped As Boolean = True,
-            Optional includeDirectives As Boolean = False,
-            Optional includeDocumentationComments As Boolean = False) As SyntaxToken
-
-            Return syntaxTree.GetRoot(cancellationToken).FindTokenOnRightOfPosition(
-                position, includeSkipped, includeDirectives, includeDocumentationComments)
-        End Function
-
-        ''' <summary>
-        ''' If the position is inside of token, return that token; otherwise, return the token to left. 
-        ''' </summary>
-        <Extension()>
-        Public Function FindTokenOnLeftOfPosition(
-            syntaxTree As SyntaxTree,
-            position As Integer,
-            cancellationToken As CancellationToken,
-            Optional includeSkipped As Boolean = True,
-            Optional includeDirectives As Boolean = False,
-            Optional includeDocumentationComments As Boolean = False) As SyntaxToken
-
-            Return syntaxTree.GetRoot(cancellationToken).FindTokenOnLeftOfPosition(
-                position, includeSkipped, includeDirectives, includeDocumentationComments)
         End Function
 
         <Extension()>

@@ -19,40 +19,8 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
             _identity = identity;
         }
 
-        AssemblyContentType IAssemblyReference.ContentType
-        {
-            get { return _identity.ContentType; }
-        }
-
-        string IAssemblyReference.Culture
-        {
-            get { return _identity.CultureName; }
-        }
-
-        bool IAssemblyReference.IsRetargetable
-        {
-            get { return _identity.IsRetargetable; }
-        }
-
-        string INamedEntity.Name
-        {
-            get { return _identity.Name; }
-        }
-
-        ImmutableArray<byte> IAssemblyReference.PublicKeyToken
-        {
-            get { return _identity.PublicKeyToken; }
-        }
-
-        Version IAssemblyReference.Version
-        {
-            get { return _identity.Version; }
-        }
-
-        string IAssemblyReference.GetDisplayName()
-        {
-            return _identity.GetDisplayName();
-        }
+        AssemblyIdentity IAssemblyReference.Identity => _identity;
+        string INamedEntity.Name => _identity.Name;
 
         IAssemblyReference IModuleReference.GetContainingAssembly(EmitContext context)
         {

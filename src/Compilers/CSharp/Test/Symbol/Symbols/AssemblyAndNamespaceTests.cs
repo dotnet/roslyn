@@ -42,7 +42,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.Null(sym.ContainingSymbol);
         }
 
-        [Fact, WorkItem(1979, "DevDiv_Projects/Roslyn"), WorkItem(2026, "DevDiv_Projects/Roslyn"), WorkItem(544009, "DevDiv")]
+        [Fact, WorkItem(1979, "DevDiv_Projects/Roslyn"), WorkItem(2026, "DevDiv_Projects/Roslyn"), WorkItem(544009, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544009")]
         public void SourceModule()
         {
             var text = @"namespace NS.NS1.NS2
@@ -224,7 +224,7 @@ namespace NS.NS1 {
             }
         }
 
-        [WorkItem(537287, "DevDiv")]
+        [WorkItem(537287, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/537287")]
         [Fact]
         public void MultiModulesNamespaceCorLibraries()
         {
@@ -302,7 +302,7 @@ namespace NS.NS1 {
             Assert.Equal(5, b.Length);
         }
 
-        [WorkItem(537958, "DevDiv")]
+        [WorkItem(537958, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/537958")]
         [Fact]
         public void GetDeclaredSymbolDupNsAliasErr()
         {
@@ -333,7 +333,7 @@ namespace NS
             var b = type1.BaseType;
         }
 
-        [WorkItem(540785, "DevDiv")]
+        [WorkItem(540785, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540785")]
         [Fact]
         public void GenericNamespace()
         {
@@ -360,7 +360,7 @@ namespace Foo<T>
             Assert.NotNull(method);
         }
 
-        [WorkItem(690871, "DevDiv")]
+        [WorkItem(690871, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/690871")]
         [Fact]
         public void SpecialTypesAndAliases()
         {
@@ -382,7 +382,7 @@ namespace Foo<T>
             Assert.Equal(objectType, comp.Assembly.CorLibrary.GetSpecialType(SpecialType.System_Object));
         }
 
-        [WorkItem(690871, "DevDiv")]
+        [WorkItem(690871, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/690871")]
         [Fact]
         public void WellKnownTypesAndAliases()
         {

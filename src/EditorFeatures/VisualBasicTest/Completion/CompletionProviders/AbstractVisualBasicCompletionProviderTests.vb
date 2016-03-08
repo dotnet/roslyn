@@ -105,13 +105,13 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Completion.Complet
         End Function
 
         Protected Async Function VerifySendEnterThroughToEditorAsync(initialMarkup As String, textTypedSoFar As String, expected As Boolean) As Threading.Tasks.Task
-            Using workspace = Await VisualBasicWorkspaceFactory.CreateWorkspaceFromFileAsync(initialMarkup)
+            Using workspace = Await TestWorkspace.CreateVisualBasicAsync(initialMarkup)
                 Dim hostDocument = workspace.DocumentWithCursor
                 Dim documentId = workspace.GetDocumentId(hostDocument)
                 Dim document = workspace.CurrentSolution.GetDocument(documentId)
                 Dim position = hostDocument.CursorPosition.Value
 
-                Dim completionList = GetCompletionList(document, position, CompletionTriggerInfo.CreateInvokeCompletionTriggerInfo())
+                Dim completionList = Await GetCompletionListAsync(document, position, CompletionTriggerInfo.CreateInvokeCompletionTriggerInfo())
                 Dim item = completionList.Items.First(Function(i) i.DisplayText.StartsWith(textTypedSoFar))
 
                 Dim completionService = document.Project.LanguageServices.GetService(Of ICompletionService)()
@@ -127,13 +127,13 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Completion.Complet
         End Function
 
         Protected Async Function VerifyCommitCharactersAsync(initialMarkup As String, textTypedSoFar As String, ParamArray chars As Char()) As Threading.Tasks.Task
-            Using workspace = Await VisualBasicWorkspaceFactory.CreateWorkspaceFromFileAsync(initialMarkup)
+            Using workspace = Await TestWorkspace.CreateVisualBasicAsync(initialMarkup)
                 Dim hostDocument = workspace.DocumentWithCursor
                 Dim documentId = workspace.GetDocumentId(hostDocument)
                 Dim document = workspace.CurrentSolution.GetDocument(documentId)
                 Dim position = hostDocument.CursorPosition.Value
 
-                Dim completionList = GetCompletionList(document, position, CompletionTriggerInfo.CreateInvokeCompletionTriggerInfo())
+                Dim completionList = Await GetCompletionListAsync(document, position, CompletionTriggerInfo.CreateInvokeCompletionTriggerInfo())
                 Dim item = completionList.Items.First()
 
                 Dim completionService = document.Project.LanguageServices.GetService(Of ICompletionService)()
@@ -195,7 +195,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Completion.Complet
 
             MarkupTestFile.GetPosition(markup, code, position)
 
-            Using workspace = Await VisualBasicWorkspaceFactory.CreateWorkspaceFromFileAsync(code)
+            Using workspace = Await TestWorkspace.CreateVisualBasicAsync(code)
                 Dim document = workspace.Documents.First()
                 Dim text = document.TextBuffer.CurrentSnapshot.AsText()
                 Dim options = workspace.Options.WithChangedOption(CompletionOptions.TriggerOnTypingLetters, LanguageNames.VisualBasic, triggerOnLetter)
