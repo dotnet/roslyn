@@ -273,15 +273,12 @@ namespace Microsoft.CodeAnalysis.CodeFixes.AddImport
                 var projectId = project.Id;
                 var workspace = project.Solution.Workspace;
 
-                int weight = 0;
                 foreach (var result in results)
                 {
                     cancellationToken.ThrowIfCancellationRequested();
                     await HandleReferenceAssemblyReferenceAsync(
                         allReferences, nameNode, project,
-                        isAttributeSearch, result, weight, cancellationToken).ConfigureAwait(false);
-
-                    weight++;
+                        isAttributeSearch, result, weight: allReferences.Count, cancellationToken: cancellationToken).ConfigureAwait(false);
                 }
             }
 
@@ -303,15 +300,12 @@ namespace Microsoft.CodeAnalysis.CodeFixes.AddImport
                 var projectId = project.Id;
                 var workspace = project.Solution.Workspace;
 
-                int weight = 0;
                 foreach (var result in results)
                 {
                     cancellationToken.ThrowIfCancellationRequested();
                     await HandleNugetReferenceAsync(
                         source.Source, installerService, allReferences, nameNode,
-                        project, isAttributeSearch, result, weight).ConfigureAwait(false);
-
-                    weight++;
+                        project, isAttributeSearch, result, weight: allReferences.Count).ConfigureAwait(false);
                 }
             }
 
