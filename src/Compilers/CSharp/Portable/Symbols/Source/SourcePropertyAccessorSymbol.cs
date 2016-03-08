@@ -200,7 +200,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             _explicitInterfaceImplementations = explicitInterfaceImplementations;
             _name = name;
             _isAutoPropertyAccessor = isAutoPropertyAccessor;
-            _isExpressionBodied = (syntax.Body == null && syntax.ExpressionBody != null) ? true : _property.IsExpressionBodied;
+            Debug.Assert(_property.IsExpressionBodied == false, "Cannot have accessors in expression bodied lightweight properties");
+            _isExpressionBodied = (syntax.Body == null && syntax.ExpressionBody != null);
 
             bool modifierErrors;
             var declarationModifiers = this.MakeModifiers(syntax, location, diagnostics, out modifierErrors);

@@ -221,6 +221,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     return VisitCore(parent.Parent);
                 }
+
                 bool inBody = LookupPosition.IsInBody(_position, parent);
                 var extraInfo = inBody ? NodeUsage.AccessorBody : NodeUsage.Normal;  // extra info for the cache.
                 var key = CreateBinderCacheKey(parent, extraInfo);

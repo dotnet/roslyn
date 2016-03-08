@@ -34,6 +34,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case SyntaxKind.SetAccessorDeclaration:
                 case SyntaxKind.AddAccessorDeclaration:
                 case SyntaxKind.RemoveAccessorDeclaration:
+                case SyntaxKind.UnknownAccessorDeclaration:
                     arrowExpr = ((AccessorDeclarationSyntax)node).ExpressionBody;
                     break;
                 case SyntaxKind.OperatorDeclaration:

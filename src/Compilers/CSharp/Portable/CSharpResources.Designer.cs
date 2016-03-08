@@ -2249,7 +2249,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Methods cannot combine block bodies with expression bodies..
+        ///   Looks up a localized string similar to Methods and accessors cannot combine block bodies with expression bodies..
         /// </summary>
         internal static string ERR_BlockBodyAndExpressionBody {
             get {

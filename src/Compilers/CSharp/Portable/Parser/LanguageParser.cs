@@ -2826,7 +2826,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             out BlockSyntax blockBody,
             out ArrowExpressionClauseSyntax expressionBody,
             out SyntaxToken semicolon,
-            bool parseSemicolonAfterBlock = true)
+            bool parseSemicolonAfterBlock = true,
+            bool isAccessorBody = false)
         {
             // Check for 'forward' declarations with no block of any kind
             if (this.CurrentToken.Kind == SyntaxKind.SemicolonToken)
@@ -2842,13 +2843,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
 
             if (this.CurrentToken.Kind == SyntaxKind.OpenBraceToken)
             {
-                blockBody = this.ParseBlock(isMethodBody: true);
+                blockBody = this.ParseBlock(isMethodBody: true, isAccessorBody: isAccessorBody);
             }
 
             if (this.CurrentToken.Kind == SyntaxKind.EqualsGreaterThanToken)
             {
                 expressionBody = this.ParseArrowExpressionClause();
-                expressionBody = CheckFeatureAvailability(expressionBody, MessageID.IDS_FeatureExpressionBodiedMethod);
+                expressionBody = CheckFeatureAvailability(expressionBody, 
+                        isAccessorBody ?  MessageID.IDS_FeatureExpressionBodiedAccessor : MessageID.IDS_FeatureExpressionBodiedMethod);
             }
 
             semicolon = null;
@@ -2875,6 +2877,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             {
                 ErrorCode code;
                 if (syntax is BaseMethodDeclarationSyntax)
+                {
+                    code = ErrorCode.ERR_BlockBodyAndExpressionBody;
+                }
+                else if (syntax is AccessorDeclarationSyntax)
                 {
                     code = ErrorCode.ERR_BlockBodyAndExpressionBody;
                 }
@@ -3770,23 +3776,17 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 SyntaxToken semicolon = null;
                 bool currentTokenIsSemicolon = this.CurrentToken.Kind == SyntaxKind.SemicolonToken;
                 bool currentTokenIsArrow = this.CurrentToken.Kind == SyntaxKind.EqualsGreaterThanToken;
+                bool currentTokenIsOpenBraceToken = this.CurrentToken.Kind == SyntaxKind.OpenBraceToken;
 
-                if (this.CurrentToken.Kind == SyntaxKind.OpenBraceToken
-                            || (validAccName && !currentTokenIsSemicolon && !currentTokenIsArrow && !IsTerminator()))
+                if (currentTokenIsOpenBraceToken || currentTokenIsArrow)
                 {
-                    blockBody = this.ParseBlock(isMethodBody: true, isAccessorBody: true);
-                }
-                else if (this.CurrentToken.Kind == SyntaxKind.EqualsGreaterThanToken)
-                {
-                    expressionBody = this.ParseArrowExpressionClause();
-                    expressionBody = CheckFeatureAvailability(expressionBody, MessageID.IDS_FeatureExpressionBodiedAccessor);
-                    // Expression-bodies need semicolons and native behavior
+                    ParseBlockAndExpressionBodiesWithSemicolon(out blockBody, out expressionBody, out semicolon, isAccessorBody: true);
                     if (expressionBody != null)
                     {
-                        semicolon = this.EatToken(SyntaxKind.SemicolonToken);
+                        expressionBody = CheckFeatureAvailability(expressionBody, MessageID.IDS_FeatureExpressionBodiedAccessor);
                     }
                 }
-                else if (currentTokenIsSemicolon || validAccName)
+                else if (currentTokenIsSemicolon || validAccName || IsTerminator())
                 {
                     semicolon = this.EatToken(SyntaxKind.SemicolonToken,
                                         IsFeatureEnabled(MessageID.IDS_FeatureExpressionBodiedAccessor)
@@ -3800,7 +3800,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                     }
                 }
 
-                return _syntaxFactory.AccessorDeclaration(accessorKind, accAttrs, accMods.ToTokenList(), accessorName, blockBody, expressionBody, semicolon);
+                var decl=_syntaxFactory.AccessorDeclaration(accessorKind, accAttrs, accMods.ToTokenList(), accessorName, blockBody, expressionBody, semicolon);
+                return CheckForBlockAndExpressionBody(blockBody, expressionBody, decl);
             }
             finally
             {
@@ -7093,13 +7094,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             }
 
             // There's a special error code for a missing token after an accessor keyword
-            var openBrace = isAccessorBody && this.CurrentToken.Kind != SyntaxKind.OpenBraceToken
-                ? this.AddError(SyntaxFactory.MissingToken(SyntaxKind.OpenBraceToken),
-                    IsFeatureEnabled(MessageID.IDS_FeatureExpressionBodiedAccessor) 
-                    ? ErrorCode.ERR_SemiOrLBraceOrArrowExpected
-                    : ErrorCode.ERR_SemiOrLBraceExpected
-                  )
-                : this.EatToken(SyntaxKind.OpenBraceToken);
+            Debug.Assert(!isAccessorBody || this.CurrentToken.Kind == SyntaxKind.OpenBraceToken,
+                "We only parse really existing block bodies for accesors here");
+            var openBrace = this.EatToken(SyntaxKind.OpenBraceToken);
 
             var statements = _pool.Allocate<StatementSyntax>();
             try
