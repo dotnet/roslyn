@@ -2097,4 +2097,110 @@ namespace Microsoft.CodeAnalysis.UnitTests.Diagnostics
                  OperationKind.LiteralExpression);
         }
     }
+
+    // This analyzer is to test operation action registration method in AnalysisContext
+    public class IOperationFeatureFlagTestAnalyzer1 : DiagnosticAnalyzer
+    {
+        private const string ReliabilityCategory = "Reliability";
+
+        public static readonly DiagnosticDescriptor OperationActionDescriptor = new DiagnosticDescriptor(
+            "OperationAction1",
+            "An operation related action is invoked",
+            "An {0} action is invoked in {1} context.",
+            ReliabilityCategory,
+            DiagnosticSeverity.Warning,
+            isEnabledByDefault: true);
+
+        public sealed override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics 
+            => ImmutableArray.Create(OperationActionDescriptor);
+
+        public sealed override void Initialize(AnalysisContext context)
+        {
+            context.RegisterOperationAction(
+                (operationContext) =>
+                {
+                    operationContext.ReportDiagnostic(
+                        Diagnostic.Create(OperationActionDescriptor, operationContext.Operation.Syntax.GetLocation(), "Operation", "Analysis"));
+                },
+                OperationKind.LiteralExpression);
+        }
+    }
+
+    // This analyzer is to test operation action registration method in CompilationStartAnalysisContext
+    public class IOperationFeatureFlagTestAnalyzer2 : DiagnosticAnalyzer
+    {
+        private const string ReliabilityCategory = "Reliability";
+
+        public static readonly DiagnosticDescriptor OperationActionDescriptor = new DiagnosticDescriptor(
+            "OperationAction2",
+            "An operation related action is invoked",
+            "An {0} action is invoked in {1} context.",
+            ReliabilityCategory,
+            DiagnosticSeverity.Warning,
+            isEnabledByDefault: true);
+
+        public sealed override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics
+            => ImmutableArray.Create(OperationActionDescriptor);
+
+        public sealed override void Initialize(AnalysisContext context)
+        {
+            context.RegisterCompilationStartAction(
+                (compilationStartContext) =>
+                {
+                    compilationStartContext.RegisterOperationAction(
+                        (operationContext) =>
+                        {
+                            operationContext.ReportDiagnostic(
+                                Diagnostic.Create(OperationActionDescriptor, operationContext.Operation.Syntax.GetLocation(), "Operation", "CompilationStart within Analysis"));
+                        },
+                        OperationKind.LiteralExpression);
+                });
+        }
+    }
+
+    // This analyzer is to test GetOperation method in SemanticModel
+    public class IOperationFeatureFlagTestAnalyzer3 : DiagnosticAnalyzer
+    {
+        private const string ReliabilityCategory = "Reliability";
+
+        
+        public static readonly DiagnosticDescriptor GetOperationDescriptor = new DiagnosticDescriptor(
+            "GetOperation",
+            "An IOperation is returned by SemanticModel",
+            "An IOperation is returned by SemanticModel.",
+            ReliabilityCategory,
+            DiagnosticSeverity.Warning,
+            isEnabledByDefault: true);
+        
+
+        public sealed override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics
+            => ImmutableArray.Create(GetOperationDescriptor);
+
+        public sealed override void Initialize(AnalysisContext context)
+        {
+            context.RegisterSyntaxNodeAction(
+                (syntaxContext) =>
+                {
+                    var node = syntaxContext.Node;
+                    var model = syntaxContext.SemanticModel;
+                    if (model.GetOperation(node) != null)
+                    {
+                        syntaxContext.ReportDiagnostic(Diagnostic.Create(GetOperationDescriptor, node.GetLocation()));
+                    }
+                },
+                Microsoft.CodeAnalysis.CSharp.SyntaxKind.NumericLiteralExpression);
+
+            context.RegisterSyntaxNodeAction(
+                (syntaxContext) =>
+                {
+                    var node = syntaxContext.Node;
+                    var model = syntaxContext.SemanticModel;
+                    if (model.GetOperation(node) != null)
+                    {
+                        syntaxContext.ReportDiagnostic(Diagnostic.Create(GetOperationDescriptor, node.GetLocation()));
+                    }
+                },
+                Microsoft.CodeAnalysis.VisualBasic.SyntaxKind.NumericLiteralExpression);
+        }
+    }
 }

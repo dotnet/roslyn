@@ -146,10 +146,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         public override BoundNode VisitSwitchStatement(BoundSwitchStatement node)
         {
+            var preambleOpt = (BoundStatement)this.Visit(node.LoweredPreambleOpt);
             var newInnerLocals = RewriteLocals(node.InnerLocals);
             BoundExpression boundExpression = (BoundExpression)this.Visit(node.BoundExpression);
             ImmutableArray<BoundSwitchSection> switchSections = (ImmutableArray<BoundSwitchSection>)this.VisitList(node.SwitchSections);
-            return node.Update(boundExpression, node.ConstantTargetOpt, newInnerLocals, switchSections, node.BreakLabel, node.StringEquality);
+            return node.Update(preambleOpt, boundExpression, node.ConstantTargetOpt, newInnerLocals, switchSections, node.BreakLabel, node.StringEquality);
         }
 
         public override BoundNode VisitForStatement(BoundForStatement node)

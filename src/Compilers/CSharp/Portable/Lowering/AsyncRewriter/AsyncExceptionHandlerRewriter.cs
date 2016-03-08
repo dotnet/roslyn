@@ -692,7 +692,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         /// <summary>
-        /// Analyses method body for try blocks with awaits in finally blocks 
+        /// Analyzes method body for try blocks with awaits in finally blocks 
         /// Also collects labels that such blocks contain.
         /// </summary>
         private sealed class AwaitInFinallyAnalysis : LabelCollector

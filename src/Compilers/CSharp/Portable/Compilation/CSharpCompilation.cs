@@ -325,7 +325,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             _syntaxAndDeclarations = syntaxAndDeclarations;
 
             Debug.Assert((object)_lazyAssemblySymbol == null);
-            if (EventQueue != null) EventQueue.Enqueue(new CompilationStartedEvent(this));
+            if (EventQueue != null) EventQueue.TryEnqueue(new CompilationStartedEvent(this));
         }
 
         internal override void ValidateDebugEntryPoint(IMethodSymbol debugEntryPoint, DiagnosticBag diagnostics)
@@ -1716,13 +1716,15 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (completedCompilationUnit)
             {
-                EventQueue.Enqueue(new CompilationUnitCompletedEvent(this, tree));
+                EventQueue.TryEnqueue(new CompilationUnitCompletedEvent(this, tree));
             }
 
             if (completedCompilation)
             {
-                EventQueue.Enqueue(new CompilationCompletedEvent(this));
-                EventQueue.Complete(); // signal the end of compilation events
+                // signal the end of compilation events
+                EventQueue.TryEnqueue(new CompilationCompletedEvent(this));
+                EventQueue.PromiseNotToEnqueue();
+                EventQueue.TryComplete();
             }
         }
 
@@ -2886,7 +2888,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         internal void SymbolDeclaredEvent(Symbol symbol)
         {
-            EventQueue?.Enqueue(new SymbolDeclaredCompilationEvent(this, symbol));
+            EventQueue?.TryEnqueue(new SymbolDeclaredCompilationEvent(this, symbol));
         }
 
         /// <summary>
@@ -2905,6 +2907,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                 var sustainedLowLatency = GetWellKnownTypeMember(WellKnownMember.System_Runtime_GCLatencyMode__SustainedLowLatency);
                 return sustainedLowLatency != null && sustainedLowLatency.ContainingAssembly == Assembly.CorLibrary;
             }
+        }
+        
+        internal override bool IsIOperationFeatureEnabled()
+        {
+            var options = (CSharpParseOptions)this.SyntaxTrees.FirstOrDefault()?.Options;
+            return options?.IsFeatureEnabled(MessageID.IDS_FeatureIOperation) ?? false;
         }
 
         private class SymbolSearcher
