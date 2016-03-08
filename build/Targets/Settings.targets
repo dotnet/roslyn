@@ -102,6 +102,10 @@
     <UseRoslynAnalyzers Condition="'$(UseRoslynAnalyzers)' == ''">true</UseRoslynAnalyzers>
 
     <Deterministic>True</Deterministic>
+
+    <!-- Only portable PDBs are supported xplat -->
+    <DebugType Condition="'$(OS)' != 'Windows_NT'">portable</DebugType>
+    <DebugType Condition="'$(OS)' == 'Windows_NT'">pdbonly</DebugType>
   </PropertyGroup>
 
   <Choose>
@@ -233,12 +237,10 @@
         <DebugSymbols>true</DebugSymbols>
         <DefineDebug>true</DefineDebug>
         <DefineTrace>true</DefineTrace>
-        <DebugType>full</DebugType>
       </PropertyGroup>
       <PropertyGroup Condition="'$(Configuration)' == 'Release'">
         <DefineTrace>true</DefineTrace>
         <Optimize>true</Optimize>
-        <DebugType>pdbonly</DebugType>
       </PropertyGroup>
     </When>
 
@@ -259,11 +261,9 @@
       </PropertyGroup>
       <PropertyGroup Condition="'$(Configuration)' == 'Debug'">
         <DebugSymbols>true</DebugSymbols>
-        <DebugType>full</DebugType>
         <DefineConstants>DEBUG;TRACE</DefineConstants>
       </PropertyGroup>
       <PropertyGroup Condition="'$(Configuration)' == 'Release'">
-        <DebugType>pdbonly</DebugType>
         <DefineConstants>TRACE</DefineConstants>
         <Optimize>true</Optimize>
       </PropertyGroup>
