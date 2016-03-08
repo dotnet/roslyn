@@ -1,7 +1,7 @@
 ﻿{
   "dependencies": {
     "System.Collections.Immutable": "1.1.37",
-    "System.Reflection.Metadata": "1.2.0-rc3-23811",
+    "System.Reflection.Metadata": "1.2.0-rc2-23826",
     "Microsoft.Composition": "1.0.27"
   },
   "frameworks": {

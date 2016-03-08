@@ -20,15 +20,16 @@ namespace RunTests.Cache
         private const string NameResultsFileName = "ResultsFileName";
         private const string NameResultsFileContent = "ResultsFileContent";
         private const string NameEllapsedSeconds = "EllapsedSeconds";
-        private const string DashboardUriString = "http://jdash.azurewebsites.net";
 
-        private readonly RestClient _restClient = new RestClient(DashboardUriString);
+        private readonly RestClient _restClient = new RestClient(Constants.DashboardUriString);
 
-        public async Task AddCachedTestResult(ContentFile contentFile, CachedTestResult testResult)
+        public string Name => "web";
+
+        public async Task AddCachedTestResult(string assemblyName, ContentFile contentFile, CachedTestResult testResult)
         {
             var obj = new JObject();
             obj["TestResultData"] = CreateTestResultData(testResult);
-            obj["TestSourceData"] = CreateTestSourceData();
+            obj["TestSourceData"] = CreateTestSourceData(assemblyName);
 
             var request = new RestRequest($"api/testcache/{contentFile.Checksum}");
             request.Method = Method.PUT;
@@ -72,15 +73,17 @@ namespace RunTests.Cache
             obj[NameOutputStandard] = testResult.ErrorOutput;
             obj[NameResultsFileName] = testResult.ResultsFileName;
             obj[NameResultsFileContent] = testResult.ResultsFileContent;
-            obj[NameEllapsedSeconds] = testResult.Ellapsed.TotalSeconds;
+            obj[NameEllapsedSeconds] = (int)testResult.Ellapsed.TotalSeconds;
             return obj;
         }
 
-        private static JObject CreateTestSourceData()
+        private JObject CreateTestSourceData(string assemblyName)
         {
             var obj = new JObject();
             obj["MachineName"] = Environment.MachineName;
             obj["TestRoot"] = "";
+            obj["AssemblyName"] = assemblyName;
+            obj["IsJenkins"] = Constants.IsJenkinsRun;
             return obj;
         }
     }

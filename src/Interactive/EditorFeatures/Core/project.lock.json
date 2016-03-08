@@ -75,24 +75,6 @@
           "lib/net46/_._": {}
         }
       },
-      "System.Diagnostics.Process/4.1.0-beta-23504": {
-        "dependencies": {
-          "System.IO": "4.0.0",
-          "System.Runtime": "4.0.0",
-          "System.Runtime.Handles": "4.0.0",
-          "System.Text.Encoding": "4.0.0"
-        },
-        "frameworkAssemblies": [
-          "System",
-          "mscorlib"
-        ],
-        "compile": {
-          "ref/net46/System.Diagnostics.Process.dll": {}
-        },
-        "runtime": {
-          "lib/net46/System.Diagnostics.Process.dll": {}
-        }
-      },
       "System.Diagnostics.StackTrace/4.0.0": {
         "dependencies": {
           "System.Reflection": "4.0.0",
@@ -197,7 +179,7 @@
           "lib/net45/_._": {}
         }
       },
-      "System.Reflection.Metadata/1.2.0-rc3-23811": {
+      "System.Reflection.Metadata/1.2.0-rc2-23826": {
         "dependencies": {
           "System.Collections.Immutable": "1.1.37"
         },
@@ -478,49 +460,6 @@
         "ref/xamarinios10/_._",
         "ref/xamarinmac20/_._",
         "runtimes/win8-aot/lib/netcore50/System.Diagnostics.Debug.dll"
-      ]
-    },
-    "System.Diagnostics.Process/4.1.0-beta-23504": {
-      "sha512": "x2J3Sww13e9um3rXRf+iBh06z3elsh2ihbKaJyn3rT97PMY/AJUpySARe9eqvs5SnzuI9FT+4++iSdWV5Ftmgg==",
-      "type": "package",
-      "files": [
-        "System.Diagnostics.Process.4.1.0-beta-23504.nupkg.sha512",
-        "System.Diagnostics.Process.nuspec",
-        "lib/MonoAndroid10/_._",
-        "lib/MonoTouch10/_._",
-        "lib/net46/System.Diagnostics.Process.dll",
-        "lib/net461/System.Diagnostics.Process.dll",
-        "lib/xamarinios10/_._",
-        "lib/xamarinmac20/_._",
-        "ref/MonoAndroid10/_._",
-        "ref/MonoTouch10/_._",
-        "ref/dotnet5.4/System.Diagnostics.Process.dll",
-        "ref/dotnet5.4/System.Diagnostics.Process.xml",
-        "ref/dotnet5.4/de/System.Diagnostics.Process.xml",
-        "ref/dotnet5.4/es/System.Diagnostics.Process.xml",
-        "ref/dotnet5.4/fr/System.Diagnostics.Process.xml",
-        "ref/dotnet5.4/it/System.Diagnostics.Process.xml",
-        "ref/dotnet5.4/ja/System.Diagnostics.Process.xml",
-        "ref/dotnet5.4/ko/System.Diagnostics.Process.xml",
-        "ref/dotnet5.4/ru/System.Diagnostics.Process.xml",
-        "ref/dotnet5.4/zh-hans/System.Diagnostics.Process.xml",
-        "ref/dotnet5.4/zh-hant/System.Diagnostics.Process.xml",
-        "ref/dotnet5.5/System.Diagnostics.Process.dll",
-        "ref/dotnet5.5/System.Diagnostics.Process.xml",
-        "ref/dotnet5.5/de/System.Diagnostics.Process.xml",
-        "ref/dotnet5.5/es/System.Diagnostics.Process.xml",
-        "ref/dotnet5.5/fr/System.Diagnostics.Process.xml",
-        "ref/dotnet5.5/it/System.Diagnostics.Process.xml",
-        "ref/dotnet5.5/ja/System.Diagnostics.Process.xml",
-        "ref/dotnet5.5/ko/System.Diagnostics.Process.xml",
-        "ref/dotnet5.5/ru/System.Diagnostics.Process.xml",
-        "ref/dotnet5.5/zh-hans/System.Diagnostics.Process.xml",
-        "ref/dotnet5.5/zh-hant/System.Diagnostics.Process.xml",
-        "ref/net46/System.Diagnostics.Process.dll",
-        "ref/net461/System.Diagnostics.Process.dll",
-        "ref/xamarinios10/_._",
-        "ref/xamarinmac20/_._",
-        "runtime.json"
       ]
     },
     "System.Diagnostics.StackTrace/4.0.0": {
@@ -840,11 +779,11 @@
         "runtimes/win8-aot/lib/netcore50/System.Reflection.Extensions.dll"
       ]
     },
-    "System.Reflection.Metadata/1.2.0-rc3-23811": {
-      "sha512": "gAOQV1dsGyQfQUuzsCYFLMlI6BhfK1/2aA7JGf6gJphaLgjU4dV4hzjbE0iZXgo61VUuda2LtCBrWWZBw5897Q==",
+    "System.Reflection.Metadata/1.2.0-rc2-23826": {
+      "sha512": "iaq5zpluF7mUMd5hFyhmZGyCSzF6glZjvNI2VAhLFQEp8sGA/tROj6NoZL42q6HhoHxi1XyGeoIXPi5hyw0+5w==",
       "type": "package",
       "files": [
-        "System.Reflection.Metadata.1.2.0-rc3-23811.nupkg.sha512",
+        "System.Reflection.Metadata.1.2.0-rc2-23826.nupkg.sha512",
         "System.Reflection.Metadata.nuspec",
         "ThirdPartyNotices.txt",
         "dotnet_library_license.txt",
