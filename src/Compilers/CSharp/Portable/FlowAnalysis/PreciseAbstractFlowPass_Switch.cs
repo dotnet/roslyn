@@ -275,7 +275,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                         {
                             // so far so good: the expression is known to match the *type* of the property pattern.
                             // Now check if each subpattern is irrefutable.
-                            int n = propPattern.Subpatterns.Length;
                             foreach (var subpattern in propPattern.Subpatterns)
                             {
                                 var prop = (subpattern.Member as BoundPropertyPatternMember)?.MemberSymbol;

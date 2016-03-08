@@ -251,19 +251,14 @@ namespace Microsoft.CodeAnalysis.CSharp
                 typeArguments: default(ImmutableArray<TypeSymbol>),
                 invoked: false,
                 diagnostics: diagnostics);
-
             LookupResultKind resultKind = boundMember.ResultKind;
-            bool hasErrors = boundMember.HasAnyErrors || implicitReceiver.HasAnyErrors;
-
             if (boundMember.Kind == BoundKind.PropertyGroup)
             {
                 boundMember = BindIndexedPropertyAccess(
                     (BoundPropertyGroup)boundMember, mustHaveAllOptionalParameters: true, diagnostics: diagnostics);
-                if (boundMember.HasAnyErrors)
-                {
-                    hasErrors = true;
-                }
             }
+
+            bool hasErrors = boundMember.HasAnyErrors || implicitReceiver.HasAnyErrors;
 
             //ImmutableArray<BoundExpression> arguments = ImmutableArray<BoundExpression>.Empty;
             //ImmutableArray<string> argumentNamesOpt = default(ImmutableArray<string>);
