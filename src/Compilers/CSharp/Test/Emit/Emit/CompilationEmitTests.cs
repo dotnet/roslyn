@@ -1,7 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
-using System.Collections.Immutable;
 using System.IO;
 using System.Linq;
 using System.Reflection;
@@ -2699,10 +2698,16 @@ class C
             var compilation = CreateCompilationWithMscorlib(source);
 
             var output = new BrokenStream();
-            Assert.Throws<IOException>(() => compilation.Emit(output));
+            var result = compilation.Emit(output);
+            result.Diagnostics.Verify(
+                // error CS8104: An error occurred while writing the Portable Executable file.
+                Diagnostic(ErrorCode.ERR_PeWritingFailure).WithArguments(output.ThrownException.ToString()).WithLocation(1, 1));
 
-            output.BreakHow = 1;
-            Assert.Throws<NotSupportedException>(() => compilation.Emit(output));
+            output.BreakHow = BrokenStream.BreakHowType.ThrowOnSetPosition;
+            result = compilation.Emit(output);
+            result.Diagnostics.Verify(    
+                // error CS8104: An error occurred while writing the Portable Executable file.
+                Diagnostic(ErrorCode.ERR_PeWritingFailure).WithArguments(output.ThrownException.ToString()).WithLocation(1, 1));
 
             // disposed stream is not writable
             var outReal = new MemoryStream();
@@ -2718,7 +2723,7 @@ class C
 
             var output = new MemoryStream();
             var pdb = new BrokenStream();
-            pdb.BreakHow = 2;
+            pdb.BreakHow = BrokenStream.BreakHowType.ThrowOnSetLength;
             var result = compilation.Emit(output, pdb);
 
             // error CS0041: Unexpected error writing debug information -- 'Exception from HRESULT: 0x806D0004'
@@ -2948,6 +2953,28 @@ class C4
                     };
                 AssertEx.Equal(expectedNames, actualNames);
             }
+        }
+
+        [Fact]
+        [WorkItem(3240, "https://github.com/dotnet/roslyn/pull/8227")]
+        public void FailingEmitter()
+        {
+            string source = @"
+public class X
+{
+    public static void Main()
+    {
+  
+    }
+}";
+            var compilation = CreateCompilationWithMscorlib(source);
+            var broken = new BrokenStream();
+            broken.BreakHow = BrokenStream.BreakHowType.ThrowOnWrite;
+            var result = compilation.Emit(broken);
+            Assert.False(result.Success);
+            result.Diagnostics.Verify(
+                // error CS8104: An error occurred while writing the Portable Executable file.
+                Diagnostic(ErrorCode.ERR_PeWritingFailure).WithArguments(broken.ThrownException.ToString()).WithLocation(1, 1));
         }
     }
 }

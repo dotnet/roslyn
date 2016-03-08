@@ -4849,4 +4849,7 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   <data name="ERR_ElseClauseRequiredWithWhenClause" xml:space="preserve">
     <value>An 'else' clause is required when a 'when' clause is present.</value>
   </data>
+  <data name="ERR_PeWritingFailure" xml:space="preserve">
+    <value>An error occurred while writing the output file: {0}</value>
+  </data>
 </root>

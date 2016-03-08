@@ -9010,6 +9010,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Property
         
         '''<summary>
+        '''  Looks up a localized string similar to An error occurred while writing the output file: {0}.
+        '''</summary>
+        Friend ReadOnly Property ERR_PeWritingFailure() As String
+            Get
+                Return ResourceManager.GetString("ERR_PeWritingFailure", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
         '''  Looks up a localized string similar to Cannot embed interop types from assembly &apos;{0}&apos; because it is missing the &apos;{1}&apos; attribute..
         '''</summary>
         Friend ReadOnly Property ERR_PIAHasNoAssemblyGuid1() As String

@@ -69,7 +69,7 @@
           "lib/net45/_._": {}
         }
       },
-      "System.Reflection.Metadata/1.2.0-rc3-23811": {
+      "System.Reflection.Metadata/1.2.0-rc2-23826": {
         "dependencies": {
           "System.Collections.Immutable": "1.1.37"
         },
@@ -180,7 +180,7 @@
           "lib/net45/_._": {}
         }
       },
-      "System.Reflection.Metadata/1.2.0-rc3-23811": {
+      "System.Reflection.Metadata/1.2.0-rc2-23826": {
         "dependencies": {
           "System.Collections.Immutable": "1.1.37"
         },
@@ -291,7 +291,7 @@
           "lib/net45/_._": {}
         }
       },
-      "System.Reflection.Metadata/1.2.0-rc3-23811": {
+      "System.Reflection.Metadata/1.2.0-rc2-23826": {
         "dependencies": {
           "System.Collections.Immutable": "1.1.37"
         },
@@ -540,11 +540,11 @@
         "ref/wpa81/_._"
       ]
     },
-    "System.Reflection.Metadata/1.2.0-rc3-23811": {
-      "sha512": "gAOQV1dsGyQfQUuzsCYFLMlI6BhfK1/2aA7JGf6gJphaLgjU4dV4hzjbE0iZXgo61VUuda2LtCBrWWZBw5897Q==",
+    "System.Reflection.Metadata/1.2.0-rc2-23826": {
+      "sha512": "iaq5zpluF7mUMd5hFyhmZGyCSzF6glZjvNI2VAhLFQEp8sGA/tROj6NoZL42q6HhoHxi1XyGeoIXPi5hyw0+5w==",
       "type": "package",
       "files": [
-        "System.Reflection.Metadata.1.2.0-rc3-23811.nupkg.sha512",
+        "System.Reflection.Metadata.1.2.0-rc2-23826.nupkg.sha512",
         "System.Reflection.Metadata.nuspec",
         "ThirdPartyNotices.txt",
         "dotnet_library_license.txt",
@@ -731,7 +731,7 @@
   "projectFileDependencyGroups": {
     "": [
       "System.Collections.Immutable >= 1.1.37",
-      "System.Reflection.Metadata >= 1.2.0-rc3-23811"
+      "System.Reflection.Metadata >= 1.2.0-rc2-23826"
     ],
     ".NETFramework,Version=v4.5.2": []
   }

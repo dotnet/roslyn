@@ -1529,6 +1529,41 @@ class C
                 Diagnostic(NullOperationSyntaxTestAnalyzer.ParamsArrayOperationDescriptor.Id, "1").WithLocation(12, 12));
         }
 
+        [WorkItem(9113, "https://github.com/dotnet/roslyn/issues/9113")]
+        [Fact]
+        public void ConversionExpressionCSharp()
+        {
+            const string source = @"
+class X
+{
+    static void Main()
+    {
+        string three = 3.ToString();
+
+        int x = null.Length;
+
+        int y = string.Empty;
+
+        int i = global::MyType();
+    }
+}";
+            CreateCompilationWithMscorlib45(source)
+            .VerifyDiagnostics(
+                // (8,17): error CS0023: Operator '.' cannot be applied to operand of type '<null>'
+                //         int x = null.Length;
+                Diagnostic(ErrorCode.ERR_BadUnaryOp, "null.Length").WithArguments(".", "<null>").WithLocation(8, 17),
+                // (10,17): error CS0029: Cannot implicitly convert type 'string' to 'int'
+                //         int y = string.Empty;
+                Diagnostic(ErrorCode.ERR_NoImplicitConv, "string.Empty").WithArguments("string", "int").WithLocation(10, 17),
+                // (12,25): error CS0400: The type or namespace name 'MyType' could not be found in the global namespace (are you missing an assembly reference?)
+                //         int i = global::MyType();
+                Diagnostic(ErrorCode.ERR_GlobalSingleTypeNameNotFound, "MyType").WithArguments("MyType", "<global namespace>").WithLocation(12, 25))
+            .VerifyAnalyzerDiagnostics(new DiagnosticAnalyzer[] { new ConversionExpressionCSharpTestAnalyzer() }, null, null, false,
+                Diagnostic(ConversionExpressionCSharpTestAnalyzer.InvalidConversionExpressionDescriptor.Id, "null.Length").WithLocation(8, 17),
+                Diagnostic(ConversionExpressionCSharpTestAnalyzer.InvalidConversionExpressionDescriptor.Id, "string.Empty").WithLocation(10, 17),
+                Diagnostic(ConversionExpressionCSharpTestAnalyzer.InvalidConversionExpressionDescriptor.Id, "global::MyType()").WithLocation(12, 17));
+        }
+
         [WorkItem(8114, "https://github.com/dotnet/roslyn/issues/8114")]
         [Fact]
         public void InvalidOperatorCSharp()

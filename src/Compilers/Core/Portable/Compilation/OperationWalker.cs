@@ -165,6 +165,7 @@ namespace Microsoft.CodeAnalysis.Semantics
         {
             Visit(operation.Declaration);
             Visit(operation.Value);
+            Visit(operation.Body);
         }
 
         public override void VisitFixedStatement(IFixedStatement operation)
@@ -257,8 +258,8 @@ namespace Microsoft.CodeAnalysis.Semantics
 
         public override void VisitConditionalAccessExpression(IConditionalAccessExpression operation)
         {
-            Visit(operation.ConditionalValue);
             Visit(operation.ConditionalInstance);
+            Visit(operation.ConditionalValue);
         }
 
         public override void VisitConditionalAccessInstanceExpression(IConditionalAccessInstanceExpression operation)

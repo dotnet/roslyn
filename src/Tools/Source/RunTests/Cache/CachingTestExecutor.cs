@@ -14,6 +14,8 @@ namespace RunTests.Cache
         private readonly ContentUtil _contentUtil;
         private readonly IDataStorage _dataStorage;
 
+        public IDataStorage DataStorage => _dataStorage;
+
         internal CachingTestExecutor(Options options, ITestExecutor testExecutor, IDataStorage dataStorage)
         {
             _testExecutor = testExecutor;
@@ -76,7 +78,8 @@ namespace RunTests.Cache
                 commandLine: commandLine,
                 elapsed: TimeSpan.FromMilliseconds(0),
                 standardOutput: cachedTestResult.StandardOutput,
-                errorOutput: cachedTestResult.ErrorOutput);
+                errorOutput: cachedTestResult.ErrorOutput,
+                isResultFromCache: true);
         }
 
         private async Task CacheTestResult(ContentFile contentFile, TestResult testResult)
@@ -91,7 +94,7 @@ namespace RunTests.Cache
                     resultsFileName: Path.GetFileName(testResult.ResultsFilePath),
                     resultsFileContent: resultFileContent,
                     ellapsed: testResult.Elapsed);
-                await _dataStorage.AddCachedTestResult(contentFile, cachedTestResult).ConfigureAwait(true);
+                await _dataStorage.AddCachedTestResult(testResult.AssemblyName, contentFile, cachedTestResult).ConfigureAwait(true);
             }
             catch (Exception ex)
             {
