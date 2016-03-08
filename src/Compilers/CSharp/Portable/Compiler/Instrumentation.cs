@@ -12,81 +12,78 @@ namespace Microsoft.CodeAnalysis.CSharp
 {
     internal sealed class Instrumentation
     {
-        private static MethodSymbol _interlockedExchange = null;
+        private static MethodSymbol _compareExchange = null;
+        private static MethodSymbol _addPayload = null;
 
         internal static BoundBlock InjectInstrumentation(MethodSymbol method, BoundBlock methodBody, int methodOrdinal, TypeCompilationState compilationState, CSharpCompilation compilation, DiagnosticBag diagnostics, DebugDocumentProvider debugDocumentProvider, out ImmutableArray<SourceSpan> dynamicAnalysisSpans)
         {
             if (methodBody != null)
             {
                 // Create the symbol for the instrumentation payload.
-                SyntheticBoundNodeFactory payloadArrayFactory = new SyntheticBoundNodeFactory(method, methodBody.Syntax, compilationState, diagnostics);
+                SyntheticBoundNodeFactory factory = new SyntheticBoundNodeFactory(method, methodBody.Syntax, compilationState, diagnostics);
                 TypeSymbol boolType = compilation.GetSpecialType(SpecialType.System_Boolean);
                 TypeSymbol payloadElementType = boolType;
-                ArrayTypeSymbol payloadArrayType = ArrayTypeSymbol.CreateCSharpArray(compilation.Assembly, payloadElementType);
-                SynthesizedFieldSymbol instrumentationPayload = new SynthesizedFieldSymbol(method.ContainingType, payloadArrayType, method.Name + "*instrumentation*" + methodOrdinal.ToString(), isStatic: true);
-                payloadArrayFactory.AddField(method.ContainingType, instrumentationPayload);
+                ArrayTypeSymbol payloadType = ArrayTypeSymbol.CreateCSharpArray(compilation.Assembly, payloadElementType);
+                FieldSymbol payloadField = GetPayloadField(method, methodOrdinal, payloadType, factory);
 
                 // Synthesize the instrumentation and collect the spans of interest.
 
                 ArrayBuilder<SourceSpan> spansBuilder = new ArrayBuilder<SourceSpan>();
-                BoundTreeRewriter collector = new InstrumentationInjectionWalker(method, spansBuilder, instrumentationPayload, compilationState, diagnostics, debugDocumentProvider);
+                BoundTreeRewriter collector = new InstrumentationInjectionWalker(method, spansBuilder, payloadField, compilationState, diagnostics, debugDocumentProvider);
                 BoundBlock newMethodBody = (BoundBlock)collector.Visit(methodBody);
 
                 dynamicAnalysisSpans = spansBuilder.ToImmutableAndFree();
 
-                // Synthesize the initialization of the instrumentation payload array. It should actually be done either statically or with concurrency-safe code.
+                // Synthesize the initialization of the instrumentation payload array. It should be done either statically or with concurrency-safe code:
                 //
-                // if (payloadArray == null)
+                // if (payloadField == null)
+                //     if (Interlocked.CompareExchange(ref payloadField, new PayloadType[] { default0, default1, ... defaultN }, null) == null)
+                //         Instrumentation.AddPayload(method, payloadField);
+                //
+                // Or, less correctly, if Interlocked.CompareExchange is not available:
+                //
+                // if (payloadField == null)
                 // {
-                //     payloadArray = new PayloadType[] { default0, default1, ... defaultN };
-                //     Instrumentation.AddPayload(method, payloadArray);
-                // }
-                //
-                // but should be
-                //
-                // if (payloadArray == null)
-                // {
-                //     payloadArray = new PayloadType[] { default0, default1, ... defaultN };
-                //     if (Interlocked.CompareExchange(ref payloadArray, payloadArray, null) == null)
-                //         Instrumentation.AddPayload(method, payloadArray);
+                //     payloadField = new PayloadType[] { default0, default1, ... defaultN };
+                //     Instrumentation.AddPayload(method, payloadField);
                 // }
 
                 ArrayBuilder<BoundExpression> elementsBuilder = new ArrayBuilder<BoundExpression>(dynamicAnalysisSpans.Length);
                 for (int i = 0; i < dynamicAnalysisSpans.Length; i++)
                 {
-                    elementsBuilder.Add(payloadArrayFactory.Literal(false));
+                    elementsBuilder.Add(factory.Literal(false));
                 }
-                BoundExpression payloadArrayCreation = payloadArrayFactory.Array(payloadElementType, elementsBuilder.ToImmutableAndFree());
-
-                MethodSymbol interlockedExchange = GetInterlockedExchange(compilation);
-               
-                BoundStatement payloadAssignment = payloadArrayFactory.Assignment(payloadArrayFactory.Field(null, instrumentationPayload), payloadArrayCreation);
+                BoundExpression payloadArrayCreation = factory.Array(payloadElementType, elementsBuilder.ToImmutableAndFree());
 
                 BoundStatement addPayloadCall = null;
-
-                NamedTypeSymbol instrumentationType = compilation.GetTypeByMetadataName("Microsoft.CodeAnalysis.Runtime.Instrumentation");
-                if (instrumentationType != null)
+                MethodSymbol addPayload = GetAddPayload(compilation);
+                if (addPayload != null)
                 {
-                    ImmutableArray<Symbol> addPayloads = instrumentationType.GetMembers("AddPayload");
-                    if (addPayloads.Length == 1)
-                    {
-                        MethodSymbol addPayload = addPayloads[1] as MethodSymbol;
-                        // Add checks for parameter types.
-                        if (addPayload != null && addPayload.IsStatic && addPayload.ParameterCount == 2 && addPayload.Parameters[0].Name == "method" && addPayload.Parameters[2].Name == "newPayload")
-                        {
-                            // The method information is probably better expressed as a method token rather than as a MethodImfo -- figure out how to emit such a thing.
-                            BoundExpression methodInformation = payloadArrayFactory.MethodInfo(method);
-                            addPayloadCall = payloadArrayFactory.ExpressionStatement(payloadArrayFactory.Call(null, addPayload, methodInformation, payloadArrayFactory.Field(null, instrumentationPayload)));
-                        }
-                    }
+                    // The method information is probably better expressed as a method token rather than as a MethodImfo -- figure out how to emit such a thing.
+                    BoundExpression methodInformation = factory.MethodInfo(method);
+                    addPayloadCall = factory.ExpressionStatement(factory.Call(null, addPayload, methodInformation, factory.Field(null, payloadField)));
+                }
+                else
+                {
+                    addPayloadCall = factory.NoOp(NoOpStatementFlavor.Default);
                 }
 
-                BoundExpression payloadNullTest =
-                    payloadArrayFactory.Binary(BinaryOperatorKind.ObjectEqual, boolType, payloadArrayFactory.Field(null, instrumentationPayload), payloadArrayFactory.Null(payloadArrayType));
-
-                ImmutableArray<BoundStatement> payloadStatements = addPayloadCall != null ? ImmutableArray.Create(payloadAssignment, addPayloadCall) : ImmutableArray.Create(payloadAssignment);
-                BoundStatement payloadIf =
-                    payloadArrayFactory.If(payloadNullTest, payloadArrayFactory.Block(payloadStatements));
+                BoundStatement payloadStatement;
+                MethodSymbol CompareExchange = GetCompareExchange(compilation, payloadType);
+                if (CompareExchange != null)
+                {
+                    BoundCall interlockedExchangeCall = factory.Call(null, CompareExchange, ImmutableArray.Create(RefKind.Ref, RefKind.None, RefKind.None), ImmutableArray.Create(factory.Field(null, payloadField), payloadArrayCreation, factory.Null(payloadType)));
+                    BoundExpression interlockedExchangeComparison = factory.Binary(BinaryOperatorKind.ObjectEqual, boolType, interlockedExchangeCall, factory.Null(compilation.ObjectType));
+                    payloadStatement = factory.If(interlockedExchangeComparison, addPayloadCall);
+                }
+                else
+                {
+                    BoundStatement payloadAssignment = factory.Assignment(factory.Field(null, payloadField), payloadArrayCreation);
+                    payloadStatement = factory.Block(ImmutableArray.Create(payloadAssignment, addPayloadCall));
+                }
+                
+                BoundExpression payloadNullTest = factory.Binary(BinaryOperatorKind.ObjectEqual, boolType, factory.Field(null, payloadField), factory.Null(payloadType));
+                BoundStatement payloadIf = factory.If(payloadNullTest, payloadStatement);
 
                 ImmutableArray<BoundStatement> newStatements = newMethodBody.Statements.Insert(0, payloadIf);
                 newMethodBody = newMethodBody.Update(newMethodBody.Locals, newMethodBody.LocalFunctions, newStatements);
@@ -98,9 +95,20 @@ namespace Microsoft.CodeAnalysis.CSharp
             return methodBody;
         }
 
-        private static MethodSymbol GetInterlockedExchange(CSharpCompilation compilation)
+        private static FieldSymbol GetPayloadField(MethodSymbol method, int methodOrdinal, TypeSymbol payloadType, SyntheticBoundNodeFactory factory)
         {
-            if (_interlockedExchange == null)
+            // If the type containing the method is generic, synthesize a helper type and put the payload field there.
+            // If the payload field is part of a generic type, there will be a new instance of the field per instantiation of the generic.
+
+            SynthesizedFieldSymbol payloadField = new SynthesizedFieldSymbol(method.ContainingType, payloadType, method.Name + "*instrumentation*" + methodOrdinal.ToString(), isStatic: true);
+            factory.AddField(method.ContainingType, payloadField);
+
+            return payloadField;
+        }
+
+        private static MethodSymbol GetCompareExchange(CSharpCompilation compilation, TypeSymbol payloadType)
+        {
+            if (_compareExchange == null)
             {
                 NamedTypeSymbol interlocked = compilation.GetTypeByMetadataName("System.Threading.Interlocked");
                 if (interlocked != null)
@@ -114,9 +122,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                             if (candidateMethod != null)
                             {
                                 // Add some more checks to make this more robust.
-                                if (candidateMethod.ParameterCount == 3 && candidateMethod.ReturnType.IsObjectType())
+                                if (candidateMethod.ParameterCount == 3 && candidateMethod.IsGenericMethod && candidateMethod.ReturnType.TypeKind == TypeKind.TypeParameter)
                                 {
-                                    _interlockedExchange = candidateMethod;
+                                    _compareExchange = candidateMethod.Construct(ImmutableArray.Create(payloadType));
                                     break;
                                 }
                             }
@@ -125,7 +133,30 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
             }
 
-            return _interlockedExchange;
+            return _compareExchange;
+        }
+
+        private static MethodSymbol GetAddPayload(CSharpCompilation compilation)
+        {
+            if (_addPayload == null)
+            {
+                NamedTypeSymbol instrumentationType = compilation.GetTypeByMetadataName("Microsoft.CodeAnalysis.Runtime.Instrumentation");
+                if (instrumentationType != null)
+                {
+                    ImmutableArray<Symbol> addPayloads = instrumentationType.GetMembers("AddPayload");
+                    if (addPayloads.Length == 1)
+                    {
+                        MethodSymbol addPayload = addPayloads[1] as MethodSymbol;
+                        // Add checks for parameter types.
+                        if (addPayload != null && addPayload.IsStatic && addPayload.ParameterCount == 2 && addPayload.Parameters[0].Name == "method" && addPayload.Parameters[2].Name == "newPayload")
+                        {
+                            _addPayload = addPayload;
+                        }
+                    }
+                }
+            }
+
+            return _addPayload;
         }
     }
 

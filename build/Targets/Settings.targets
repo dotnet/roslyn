@@ -17,8 +17,8 @@
     -->
     <BaseNuGetRuntimeIdentifier Condition="'$(OS)' == 'Windows_NT'">win7</BaseNuGetRuntimeIdentifier>
 
-    <!-- Turn on hard-linking on Windows to reduce copy time and disk space -->
-    <CreateHardLinksForCopyLocalIfPossible Condition="'$(OS)' == 'Windows_NT'">true</CreateHardLinksForCopyLocalIfPossible>
+    <!-- Turn on hard-linking on Windows to reduce copy time and disk space NOT -->
+    <CreateHardLinksForCopyLocalIfPossible Condition="'$(OS)' == 'Windows_NT'">false</CreateHardLinksForCopyLocalIfPossible>
   </PropertyGroup>
 
   <!-- Import the global NuGet packages -->
