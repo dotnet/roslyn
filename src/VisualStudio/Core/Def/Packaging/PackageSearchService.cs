@@ -29,7 +29,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Packaging
     /// This implementation also spawns a task which will attempt to keep that database up to
     /// date by downloading patches on a daily basis.
     /// </summary>
-    internal partial class PackageSearchService : ForegroundThreadAffinitizedObject, IPackageSearchService, IDisposable
+    internal partial class PackageSearchService :
+        ForegroundThreadAffinitizedObject,
+        IPackageSearchService,
+        IReferenceAssemblySearchService,
+        IDisposable
     {
         private ConcurrentDictionary<string, AddReferenceDatabase> _sourceToDatabase = new ConcurrentDictionary<string, AddReferenceDatabase>();
 
@@ -103,12 +107,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Packaging
         public IEnumerable<PackageWithTypeResult> FindPackagesWithType(
             string source, string name, int arity, CancellationToken cancellationToken)
         {
-            //if (!StringComparer.OrdinalIgnoreCase.Equals(source, NugetOrgSource))
-            //{
-            //    // We only support searching nuget.org
-            //    yield break;
-            //}
-
             AddReferenceDatabase database;
             if (!_sourceToDatabase.TryGetValue(source, out database))
             {
@@ -127,27 +125,25 @@ namespace Microsoft.VisualStudio.LanguageServices.Packaging
 
             if (query.TryFindMembers(database, ref symbols))
             {
-                // Don't return nested types.  Currently their value does not seem worth
-                // it given all the extra stuff we'd have to plumb through.  Namely 
-                // going down the "using static" code path and whatnot.
-                var types = new List<Symbol>(
-                    from symbol in symbols
-                    where this.IsType(symbol) && !this.IsType(symbol.Parent())
-                    select symbol);
+                var types = FilterToViableTypes(symbols);
 
                 var typesFromPackagesUsedInOtherProjects = new List<Symbol>();
                 var typesFromPackagesNotUsedInOtherProjects = new List<Symbol>();
 
                 foreach (var type in types)
                 {
-                    var packageName = type.PackageName.ToString();
-                    if (_installerService.GetInstalledVersions(packageName).Any())
+                    // Ignore any reference assembly results.
+                    if (type.PackageName.ToString() != MicrosoftAssemblyReferencesName)
                     {
-                        typesFromPackagesUsedInOtherProjects.Add(type);
-                    }
-                    else
-                    {
-                        typesFromPackagesNotUsedInOtherProjects.Add(type);
+                        var packageName = type.PackageName.ToString();
+                        if (_installerService.GetInstalledVersions(packageName).Any())
+                        {
+                            typesFromPackagesUsedInOtherProjects.Add(type);
+                        }
+                        else
+                        {
+                            typesFromPackagesNotUsedInOtherProjects.Add(type);
+                        }
                     }
                 }
 
@@ -157,12 +153,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Packaging
                 int? bestRank = null;
                 foreach (var type in typesFromPackagesUsedInOtherProjects)
                 {
-                    if (type.PackageName.ToString() != MicrosoftAssemblyReferencesName)
-                    {
-                        var rank = GetRank(type);
-                        bestRank = bestRank == null ? rank : Math.Max(bestRank.Value, rank);
-                    }
-
                     yield return CreateResult(database, type);
                 }
 
@@ -171,25 +161,68 @@ namespace Microsoft.VisualStudio.LanguageServices.Packaging
                 // one rank, then one is at least twice as popular as the next.  Two 
                 // ranks would be four times as popular.  Three ranks = 8 times,  etc. 
                 // etc.  We keep packages that within 1 rank of the best package we find.
-                //
-                // Note: we only do rankings for nuget packages.  Results from reference 
-                // assemblies are always returned.
                 foreach (var type in typesFromPackagesNotUsedInOtherProjects)
                 {
-                    if (type.PackageName.ToString() != MicrosoftAssemblyReferencesName)
-                    {
-                        var rank = GetRank(type);
-                        bestRank = bestRank == null ? rank : Math.Max(bestRank.Value, rank);
+                    var rank = GetRank(type);
+                    bestRank = bestRank == null ? rank : Math.Max(bestRank.Value, rank);
 
-                        if (Math.Abs(bestRank.Value - rank) > 1)
-                        {
-                            yield break;
-                        }
+                    if (Math.Abs(bestRank.Value - rank) > 1)
+                    {
+                        yield break;
                     }
 
                     yield return CreateResult(database, type);
                 }
             }
+        }
+
+        public IEnumerable<ReferenceAssemblyWithTypeResult> FindReferenceAssembliesWithType(
+            string name, int arity, CancellationToken cancellationToken)
+        {
+            // Our reference assembly data is stored in the nuget.org DB.
+            AddReferenceDatabase database;
+            if (!_sourceToDatabase.TryGetValue(NugetOrgSource, out database))
+            {
+                // Don't have a database to search.  
+                yield break;
+            }
+
+            if (name == "var")
+            {
+                // never find anything named 'var'.
+                yield break;
+            }
+
+            var query = new MemberQuery(name, isFullSuffix: true, isFullNamespace: false);
+            var symbols = new PartialArray<Symbol>(100);
+
+            if (query.TryFindMembers(database, ref symbols))
+            {
+                var types = FilterToViableTypes(symbols);
+
+                foreach (var type in types)
+                {
+                    // Only look at reference assembly results.
+                    if (type.PackageName.ToString() == MicrosoftAssemblyReferencesName)
+                    {
+                        var nameParts = new List<string>();
+                        GetFullName(nameParts, type.FullName.Parent);
+                        yield return new ReferenceAssemblyWithTypeResult(
+                            type.AssemblyName.ToString(), type.Name.ToString(), containingNamespaceNames: nameParts);
+                    }
+                }
+            }
+        }
+
+        private List<Symbol> FilterToViableTypes(PartialArray<Symbol> symbols)
+        {
+            // Don't return nested types.  Currently their value does not seem worth
+            // it given all the extra stuff we'd have to plumb through.  Namely 
+            // going down the "using static" code path and whatnot.
+            return new List<Symbol>(
+                from symbol in symbols
+                where this.IsType(symbol) && !this.IsType(symbol.Parent())
+                select symbol);
         }
 
         private PackageWithTypeResult CreateResult(AddReferenceDatabase database, Symbol type)
@@ -202,26 +235,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Packaging
             var version = database.GetPackageVersion(type.Index).ToString();
 
             return new PackageWithTypeResult(
-                isDesktopFramework: packageName == MicrosoftAssemblyReferencesName,
                 packageName: packageName, 
-                assemblyName: type.AssemblyNameWithoutExtension.ToString(),
                 typeName: type.Name.ToString(), 
                 version: version,
                 containingNamespaceNames: nameParts);
         }
-
-        //private string GetVersion(Symbol symbol)
-        //{
-        //    for (var current = symbol; current.IsValid; current = current.Parent())
-        //    {
-        //        if (current.Type == SymbolType.Version)
-        //        {
-        //            return current.Name.ToString();
-        //        }
-        //    }
-
-        //    return null;
-        //}
 
         private int GetRank(Symbol symbol)
         {
