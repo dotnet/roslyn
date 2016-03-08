@@ -927,7 +927,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                                     variableDecl,   //pass in the entire field initializer to permit region analysis. 
                                     fieldSymbol,
                                     //if we're in regular C#, then insert an extra binder to perform field initialization checks
-                                    GetFieldOrPropertyInitializerBinder(fieldSymbol, outer));
+                                    GetFieldOrPropertyInitializerBinder(fieldSymbol, outer, variableDecl.Initializer?.Value));
                             }
 
                         case SyntaxKind.PropertyDeclaration:
@@ -938,7 +938,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                                     this.Compilation,
                                     propertyDecl,
                                     propertySymbol,
-                                    GetFieldOrPropertyInitializerBinder(propertySymbol.BackingField, outer));
+                                    GetFieldOrPropertyInitializerBinder(propertySymbol.BackingField, outer, propertyDecl.Initializer?.Value));
                             }
 
                         case SyntaxKind.Parameter:
@@ -969,7 +969,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                                     this.Compilation,
                                     enumDecl,
                                     enumSymbol,
-                                    GetFieldOrPropertyInitializerBinder(enumSymbol, outer));
+                                    GetFieldOrPropertyInitializerBinder(enumSymbol, outer, enumDecl.EqualsValue?.Value));
                             }
                         default:
                             throw ExceptionUtilities.UnexpectedValue(node.Parent.Kind());
@@ -1043,7 +1043,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                             (ConstructorInitializerSyntax)node,
                             constructorSymbol,
                             //insert an extra binder to perform constructor initialization checks
-                            outer.WithAdditionalFlagsAndContainingMemberOrLambda(BinderFlags.ConstructorInitializer, constructorSymbol));
+                            // Handle scoping for possible pattern variables declared in the initializer
+                            outer.WithAdditionalFlagsAndContainingMemberOrLambda(BinderFlags.ConstructorInitializer, constructorSymbol).
+                                WithPatternVariablesIfAny(((ConstructorInitializerSyntax)node).ArgumentList));
                     }
 
                 case SyntaxKind.Attribute:
@@ -1085,7 +1087,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return null;
         }
 
-        private Binder GetFieldOrPropertyInitializerBinder(FieldSymbol symbol, Binder outer)
+        private Binder GetFieldOrPropertyInitializerBinder(FieldSymbol symbol, Binder outer, ExpressionSyntax valueSyntaxOpt)
         {
             BinderFlags flags = BinderFlags.None;
 
@@ -1095,7 +1097,13 @@ namespace Microsoft.CodeAnalysis.CSharp
                 flags |= BinderFlags.FieldInitializer;
             }
 
-            return new LocalScopeBinder(outer).WithAdditionalFlagsAndContainingMemberOrLambda(flags, symbol);
+            Binder result = new LocalScopeBinder(outer).WithAdditionalFlagsAndContainingMemberOrLambda(flags, symbol);
+            if (valueSyntaxOpt != null)
+            {
+                result = result.WithPatternVariablesIfAny(valueSyntaxOpt);
+            }
+
+            return result;
         }
 
         private static bool IsMemberDeclaration(CSharpSyntaxNode node)

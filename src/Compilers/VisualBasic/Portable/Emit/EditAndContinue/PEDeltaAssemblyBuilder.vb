@@ -33,11 +33,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
             MyBase.New(sourceAssembly, emitOptions, outputKind, serializationProperties, manifestResources, additionalTypes:=ImmutableArray(Of NamedTypeSymbol).Empty)
 
             Dim initialBaseline = previousGeneration.InitialBaseline
+
             Dim context = New EmitContext(Me, Nothing, New DiagnosticBag())
 
             ' Hydrate symbols from initial metadata. Once we do so it is important to reuse these symbols across all generations,
             ' in order for the symbol matcher to be able to use reference equality once it maps symbols to initial metadata.
-            Dim metadataSymbols = GetOrCreateMetadataSymbols(initialBaseline, sourceAssembly.DeclaringCompilation)
+            Dim metadataSymbols = GetMetadataSymbols(initialBaseline, sourceAssembly.DeclaringCompilation)
 
             Dim metadataDecoder = DirectCast(metadataSymbols.MetadataDecoder, MetadataDecoder)
             Dim metadataAssembly = DirectCast(metadataDecoder.ModuleSymbol.ContainingAssembly, PEAssemblySymbol)
@@ -90,7 +91,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
             End Get
         End Property
 
-        Private Function GetOrCreateMetadataSymbols(initialBaseline As EmitBaseline, compilation As VisualBasicCompilation) As EmitBaseline.MetadataSymbols
+        Private Function GetMetadataSymbols(initialBaseline As EmitBaseline, compilation As VisualBasicCompilation) As EmitBaseline.MetadataSymbols
             If initialBaseline.LazyMetadataSymbols IsNot Nothing Then
                 Return initialBaseline.LazyMetadataSymbols
             End If
@@ -101,11 +102,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
             ' We need to transfer the references from the current source compilation but don't need its syntax trees.
             Dim metadataCompilation = compilation.RemoveAllSyntaxTrees()
 
-            Dim assemblyReferenceIdentityMap As ImmutableDictionary(Of AssemblyIdentity, AssemblyIdentity) = Nothing
-            Dim metadataAssembly = metadataCompilation.GetBoundReferenceManager().CreatePEAssemblyForAssemblyMetadata(AssemblyMetadata.Create(originalMetadata), MetadataImportOptions.All, assemblyReferenceIdentityMap)
+            Dim metadataAssembly = metadataCompilation.GetBoundReferenceManager().CreatePEAssemblyForAssemblyMetadata(AssemblyMetadata.Create(originalMetadata), MetadataImportOptions.All)
             Dim metadataDecoder = New MetadataDecoder(metadataAssembly.PrimaryModule)
             Dim metadataAnonymousTypes = GetAnonymousTypeMapFromMetadata(originalMetadata.MetadataReader, metadataDecoder)
-            Dim metadataSymbols = New EmitBaseline.MetadataSymbols(metadataAnonymousTypes, metadataDecoder, assemblyReferenceIdentityMap)
+            Dim metadataSymbols = New EmitBaseline.MetadataSymbols(metadataAnonymousTypes, metadataDecoder)
 
             Return InterlockedOperations.Initialize(initialBaseline.LazyMetadataSymbols, metadataSymbols)
         End Function

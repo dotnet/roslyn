@@ -12,7 +12,11 @@ namespace Microsoft.CodeAnalysis.CSharp.CommandLine
             => Main(args, SpecializedCollections.EmptyArray<string>());
 
         public static int Main(string[] args, string[] extraArgs)
-            => DesktopBuildClient.Run(args, extraArgs, RequestLanguage.CSharpCompile, Csc.Run, new SimpleAnalyzerAssemblyLoader());
+        {
+            var result = DesktopBuildClient.Run(args, extraArgs, RequestLanguage.CSharpCompile, Csc.Run, new SimpleAnalyzerAssemblyLoader());
+            if (System.Diagnostics.Debugger.IsAttached) System.Console.ReadLine();
+            return result;
+        }
 
         public static int Run(string[] args, string clientDir, string workingDir, string sdkDir, TextWriter textWriter, IAnalyzerAssemblyLoader analyzerLoader)
             => Csc.Run(args, new BuildPaths(clientDir: clientDir, workingDir: workingDir, sdkDir: sdkDir), textWriter, analyzerLoader);

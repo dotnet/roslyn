@@ -22,7 +22,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
         }
 
         public AssemblyIdentity Identity => _targetAssembly.Identity;
-        public Version AssemblyVersionPattern => _targetAssembly.AssemblyVersionPattern;
 
         public override string ToString()
         {

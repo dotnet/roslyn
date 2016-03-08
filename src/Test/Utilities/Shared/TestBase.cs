@@ -290,19 +290,7 @@ namespace Roslyn.Test.Utilities
             }
         }
 
-        private static MetadataReference s_mscorlibRef_v4_0_30316_17626;
-        public static MetadataReference MscorlibRef_v4_0_30316_17626
-        {
-            get
-            {
-                if (s_mscorlibRef_v4_0_30316_17626 == null)
-                {
-                    s_mscorlibRef_v4_0_30316_17626 = AssemblyMetadata.CreateFromImage(TestResources.NetFX.v4_0_30316_17626.mscorlib).GetReference(display: "mscorlib.v4_0_30319_17626.dll", filePath: @"Z:\FxReferenceAssembliesUri");
-                }
-
-                return s_mscorlibRef_v4_0_30316_17626;
-            }
-        }
+        public static MetadataReference MscorlibRef_v4_0_30316_17626 => TestReferences.NetFx.v4_0_30316_17626.mscorlib;
 
         private static MetadataReference s_mscorlibRef_v46;
         public static MetadataReference MscorlibRef_v46
@@ -335,19 +323,7 @@ namespace Roslyn.Test.Utilities
             }
         }
 
-        private static MetadataReference s_minCorlibRef;
-        public static MetadataReference MinCorlibRef
-        {
-            get
-            {
-                if (s_minCorlibRef == null)
-                {
-                    s_minCorlibRef = AssemblyMetadata.CreateFromImage(TestResources.NetFX.Minimal.mincorlib).GetReference(display: "minCorLib.dll");
-                }
-
-                return s_minCorlibRef;
-            }
-        }
+        public static MetadataReference MinCorlibRef => TestReferences.NetFx.Minimal.mincorlib;
 
         private static MetadataReference s_msvbRef;
         public static MetadataReference MsvbRef

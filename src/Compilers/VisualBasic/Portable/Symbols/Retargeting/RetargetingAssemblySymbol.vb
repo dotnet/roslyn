@@ -125,12 +125,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Retargeting
             End Get
         End Property
 
-        Public Overrides ReadOnly Property AssemblyVersionPattern As Version
-            Get
-                Return _underlyingAssembly.AssemblyVersionPattern
-            End Get
-        End Property
-
         Friend Overrides ReadOnly Property PublicKey As ImmutableArray(Of Byte)
             Get
                 Return _underlyingAssembly.PublicKey

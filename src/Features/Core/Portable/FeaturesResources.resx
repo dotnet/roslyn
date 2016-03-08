@@ -928,4 +928,7 @@ Do you want to continue?</value>
   <data name="NamingStylesDiagnosticTitle" xml:space="preserve">
     <value>Naming Styles</value>
   </data>
+  <data name="Generate_variable" xml:space="preserve">
+    <value>Generate variable</value>
+  </data>
 </root>
