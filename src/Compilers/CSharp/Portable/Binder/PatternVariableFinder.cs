@@ -13,44 +13,25 @@ namespace Microsoft.CodeAnalysis.CSharp
     class PatternVariableFinder : CSharpSyntaxWalker
     {
         ArrayBuilder<DeclarationPatternSyntax> declarationPatterns;
-        ArrayBuilder<CSharpSyntaxNode> nodesToVisit = ArrayBuilder<CSharpSyntaxNode>.GetInstance();
         internal static ArrayBuilder<DeclarationPatternSyntax> FindPatternVariables(
             CSharpSyntaxNode node = null,
             ImmutableArray<CSharpSyntaxNode> nodes = default(ImmutableArray<CSharpSyntaxNode>))
         {
             var finder = s_poolInstance.Allocate();
             finder.declarationPatterns = ArrayBuilder<DeclarationPatternSyntax>.GetInstance();
-
-            // push nodes to be visited onto a stack
-            var nodesToVisit = finder.nodesToVisit;
-            if (node != null) nodesToVisit.Add(node);
+            finder.Visit(node);
             if (!nodes.IsDefaultOrEmpty)
             {
-                foreach (var subExpression in nodes)
+                foreach (var n in nodes)
                 {
-                    if (subExpression != null) nodesToVisit.Add(subExpression);
+                    finder.Visit(n);
                 }
             }
 
-            nodesToVisit.ReverseContents();
-
-            finder.VisitNodes();
-
             var result = finder.declarationPatterns;
             finder.declarationPatterns = null;
-            Debug.Assert(finder.nodesToVisit.Count == 0);
             s_poolInstance.Free(finder);
             return result;
-        }
-
-        private void VisitNodes()
-        {
-            while (nodesToVisit.Count != 0)
-            {
-                var e = nodesToVisit[nodesToVisit.Count - 1];
-                nodesToVisit.RemoveLast();
-                Visit(e);
-            }
         }
 
         public override void VisitDeclarationPattern(DeclarationPatternSyntax node)
@@ -79,17 +60,30 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public override void VisitBinaryExpression(BinaryExpressionSyntax node)
         {
-            nodesToVisit.Add(node.Right);
-            nodesToVisit.Add(node.Left);
+            // The binary operators (except ??) are left-associative, and expressions of the form
+            // a + b + c + d .... are relatively common in machine-generated code. The parser can handle
+            // creating a deep-on-the-left syntax tree no problem, and then we promptly blow the stack during
+            // semantic analysis. Here we build an explicit stack to handle left recursion.
+
+            var operands = ArrayBuilder<ExpressionSyntax>.GetInstance();
+            ExpressionSyntax current = node;
+            do
+            {
+                var binOp = (BinaryExpressionSyntax)current;
+                operands.Push(binOp.Right);
+                current = binOp.Left;
+            }
+            while (current is BinaryExpressionSyntax);
+
+            Visit(current);
+            while (operands.Count > 0)
+            {
+                Visit(operands.Pop());
+            }
+
+            operands.Free();
         }
-        public override void VisitPostfixUnaryExpression(PostfixUnaryExpressionSyntax node)
-        {
-            nodesToVisit.Add(node.Operand);
-        }
-        public override void VisitPrefixUnaryExpression(PrefixUnaryExpressionSyntax node)
-        {
-            nodesToVisit.Add(node.Operand);
-        }
+
         public override void VisitMatchExpression(MatchExpressionSyntax node)
         {
             Visit(node.Left);
