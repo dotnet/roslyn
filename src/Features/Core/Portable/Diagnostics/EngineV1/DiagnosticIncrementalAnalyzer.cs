@@ -10,7 +10,6 @@ using Microsoft.CodeAnalysis.Diagnostics.Log;
 using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.LanguageServices;
-using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.Options;
 using Microsoft.CodeAnalysis.Text;
@@ -61,14 +60,37 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV1
             }
 
             // events will be automatically serialized.
-            ClearProjectStatesAsync(e.Project, e.Removed, CancellationToken.None);
+            var project = e.Project;
+            var stateSets = e.Removed;
+
+            // first remove all states
+            foreach (var stateSet in stateSets)
+            {
+                foreach (var document in project.Documents)
+                {
+                    stateSet.Remove(document.Id);
+                }
+
+                stateSet.Remove(project.Id);
+            }
+
+            // now raise events
+            Owner.RaiseBulkDiagnosticsUpdated(raiseEvents =>
+            {
+                foreach (var document in project.Documents)
+                {
+                    RaiseDocumentDiagnosticsRemoved(document, stateSets, includeProjectState: true, raiseEvents: raiseEvents);
+                }
+
+                RaiseProjectDiagnosticsRemoved(project, stateSets, raiseEvents);
+            });
         }
 
         public override Task DocumentOpenAsync(Document document, CancellationToken cancellationToken)
         {
             using (Logger.LogBlock(FunctionId.Diagnostics_DocumentOpen, GetOpenLogMessage, document, cancellationToken))
             {
-                return ClearOnlyDocumentStates(document, raiseEvent: true, cancellationToken: cancellationToken);
+                return ClearOnlyDocumentStates(document);
             }
         }
 
@@ -79,7 +101,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV1
                 // we don't need the info for closed file
                 _memberRangeMap.Remove(document.Id);
 
-                return ClearOnlyDocumentStates(document, raiseEvent: true, cancellationToken: cancellationToken);
+                return ClearOnlyDocumentStates(document);
             }
         }
 
@@ -89,23 +111,38 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV1
             {
                 // clear states for re-analysis and raise events about it. otherwise, some states might not updated on re-analysis
                 // due to our build-live de-duplication logic where we put all state in Documents state.
-                return ClearOnlyDocumentStates(document, raiseEvent: true, cancellationToken: cancellationToken);
+                return ClearOnlyDocumentStates(document);
             }
         }
 
-        private Task ClearOnlyDocumentStates(Document document, bool raiseEvent, CancellationToken cancellationToken)
+        private Task ClearOnlyDocumentStates(Document document)
         {
+            // since managing states and raising events are separated, it can't be cancelled.
+            var stateSets = _stateManager.GetStateSets(document.Project);
+
             // we remove whatever information we used to have on document open/close and re-calculate diagnostics
             // we had to do this since some diagnostic analyzer changes its behavior based on whether the document is opened or not.
             // so we can't use cached information.
-            ClearDocumentStates(document, _stateManager.GetStateSets(document.Project), raiseEvent, includeProjectState: false, cancellationToken: cancellationToken);
+
+            // clean up states
+            foreach (var stateSet in stateSets)
+            {
+                stateSet.Remove(document.Id, onlyDocumentStates: true);
+            }
+
+            // raise events
+            Owner.RaiseBulkDiagnosticsUpdated(raiseEvents =>
+            {
+                RaiseDocumentDiagnosticsRemoved(document, stateSets, includeProjectState: false, raiseEvents: raiseEvents);
+            });
 
             return SpecializedTasks.EmptyTask;
         }
 
-        private bool CheckOption(Workspace workspace, string language, bool forceAnalysis)
+        private bool CheckOptions(Project project, bool forceAnalysis)
         {
-            if (workspace.Options.GetOption(ServiceFeatureOnOffOptions.ClosedFileDiagnostic, language) &&
+            var workspace = project.Solution.Workspace;
+            if (workspace.Options.GetOption(ServiceFeatureOnOffOptions.ClosedFileDiagnostic, project.Language) &&
                 workspace.Options.GetOption(RuntimeOptions.FullSolutionAnalysis))
             {
                 return true;
@@ -158,14 +195,14 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV1
 
         public override async Task AnalyzeSyntaxAsync(Document document, CancellationToken cancellationToken)
         {
-            await AnalyzeSyntaxAsync(document, diagnosticIds: null, skipClosedFileChecks: false, cancellationToken: cancellationToken).ConfigureAwait(false);
+            await AnalyzeSyntaxAsync(document, diagnosticIds: null, cancellationToken: cancellationToken).ConfigureAwait(false);
         }
 
-        private async Task AnalyzeSyntaxAsync(Document document, ImmutableHashSet<string> diagnosticIds, bool skipClosedFileChecks, CancellationToken cancellationToken)
+        private async Task AnalyzeSyntaxAsync(Document document, ImmutableHashSet<string> diagnosticIds, CancellationToken cancellationToken)
         {
             try
             {
-                if (!skipClosedFileChecks && !CheckOption(document.Project.Solution.Workspace, document.Project.Language, document.IsOpen()))
+                if (!CheckOptions(document.Project, document.IsOpen()))
                 {
                     return;
                 }
@@ -182,7 +219,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV1
 
                 foreach (var stateSet in _stateManager.GetOrUpdateStateSets(document.Project))
                 {
-                    if (SkipRunningAnalyzer(document.Project.CompilationOptions, userDiagnosticDriver, openedDocument, skipClosedFileChecks, stateSet))
+                    if (await SkipRunningAnalyzerAsync(document.Project, stateSet.Analyzer, openedDocument, skipClosedFileCheck: false, cancellationToken: cancellationToken).ConfigureAwait(false))
                     {
                         await ClearExistingDiagnostics(document, stateSet, StateType.Syntax, cancellationToken).ConfigureAwait(false);
                         continue;
@@ -212,14 +249,14 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV1
 
         public override async Task AnalyzeDocumentAsync(Document document, SyntaxNode bodyOpt, CancellationToken cancellationToken)
         {
-            await AnalyzeDocumentAsync(document, bodyOpt, diagnosticIds: null, skipClosedFileChecks: false, cancellationToken: cancellationToken).ConfigureAwait(false);
+            await AnalyzeDocumentAsync(document, bodyOpt, diagnosticIds: null, cancellationToken: cancellationToken).ConfigureAwait(false);
         }
 
-        private async Task AnalyzeDocumentAsync(Document document, SyntaxNode bodyOpt, ImmutableHashSet<string> diagnosticIds, bool skipClosedFileChecks, CancellationToken cancellationToken)
+        private async Task AnalyzeDocumentAsync(Document document, SyntaxNode bodyOpt, ImmutableHashSet<string> diagnosticIds, CancellationToken cancellationToken)
         {
             try
             {
-                if (!skipClosedFileChecks && !CheckOption(document.Project.Solution.Workspace, document.Project.Language, document.IsOpen()))
+                if (!CheckOptions(document.Project, document.IsOpen()))
                 {
                     return;
                 }
@@ -231,7 +268,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV1
                 var versions = new VersionArgument(textVersion, dataVersion, projectVersion);
                 if (bodyOpt == null)
                 {
-                    await AnalyzeDocumentAsync(document, versions, diagnosticIds, skipClosedFileChecks, cancellationToken).ConfigureAwait(false);
+                    await AnalyzeDocumentAsync(document, versions, diagnosticIds, cancellationToken).ConfigureAwait(false);
                 }
                 else
                 {
@@ -295,7 +332,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV1
             }
         }
 
-        private async Task AnalyzeDocumentAsync(Document document, VersionArgument versions, ImmutableHashSet<string> diagnosticIds, bool skipClosedFileChecks, CancellationToken cancellationToken)
+        private async Task AnalyzeDocumentAsync(Document document, VersionArgument versions, ImmutableHashSet<string> diagnosticIds, CancellationToken cancellationToken)
         {
             try
             {
@@ -307,7 +344,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV1
 
                 foreach (var stateSet in _stateManager.GetOrUpdateStateSets(document.Project))
                 {
-                    if (SkipRunningAnalyzer(document.Project.CompilationOptions, userDiagnosticDriver, openedDocument, skipClosedFileChecks, stateSet))
+                    if (await SkipRunningAnalyzerAsync(document.Project, stateSet.Analyzer, openedDocument, skipClosedFileCheck: false, cancellationToken: cancellationToken).ConfigureAwait(false))
                     {
                         await ClearExistingDiagnostics(document, stateSet, StateType.Document, cancellationToken).ConfigureAwait(false);
                         continue;
@@ -349,8 +386,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV1
         {
             try
             {
-                // Compilation actions can report diagnostics on open files, so "documentOpened = true"
-                if (!CheckOption(project.Solution.Workspace, project.Language, forceAnalysis: false))
+                if (!CheckOptions(project, forceAnalysis: false))
                 {
                     return;
                 }
@@ -364,7 +400,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV1
                 foreach (var stateSet in _stateManager.GetOrUpdateStateSets(project))
                 {
                     // Compilation actions can report diagnostics on open files, so we skipClosedFileChecks.
-                    if (SkipRunningAnalyzer(project.CompilationOptions, analyzerDriver, openedDocument: true, skipClosedFileChecks: true, stateSet: stateSet))
+                    if (await SkipRunningAnalyzerAsync(project, stateSet.Analyzer, openedDocument: false, skipClosedFileCheck: true, cancellationToken: cancellationToken).ConfigureAwait(false))
                     {
                         await ClearExistingDiagnostics(project, stateSet, cancellationToken).ConfigureAwait(false);
                         continue;
@@ -392,24 +428,20 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV1
             }
         }
 
-        private bool SkipRunningAnalyzer(
-            CompilationOptions compilationOptions,
-            DiagnosticAnalyzerDriver userDiagnosticDriver,
-            bool openedDocument,
-            bool skipClosedFileChecks,
-            StateSet stateSet)
+        private async Task<bool> SkipRunningAnalyzerAsync(Project project, DiagnosticAnalyzer analyzer, bool openedDocument, bool skipClosedFileCheck, CancellationToken cancellationToken)
         {
-            if (Owner.IsAnalyzerSuppressed(stateSet.Analyzer, userDiagnosticDriver.Project))
+            // this project is not in a good state. only continue if it is opened document.
+            if (!await project.HasSuccessfullyLoadedAsync(cancellationToken).ConfigureAwait(false) && !openedDocument)
             {
                 return true;
             }
 
-            if (skipClosedFileChecks)
+            if (Owner.IsAnalyzerSuppressed(analyzer, project))
             {
-                return false;
+                return true;
             }
 
-            if (ShouldRunAnalyzerForClosedFile(compilationOptions, openedDocument, stateSet.Analyzer))
+            if (skipClosedFileCheck || ShouldRunAnalyzerForClosedFile(analyzer, project.CompilationOptions, openedDocument))
             {
                 return false;
             }
@@ -464,16 +496,24 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV1
             {
                 _memberRangeMap.Remove(documentId);
 
-                foreach (var stateSet in _stateManager.GetStateSets(documentId.ProjectId))
+                var stateSets = _stateManager.GetStateSets(documentId.ProjectId);
+
+                foreach (var stateSet in stateSets)
                 {
                     stateSet.Remove(documentId);
-
-                    var solutionArgs = new SolutionArgument(null, documentId.ProjectId, documentId);
-                    for (var stateType = 0; stateType < s_stateTypeCount; stateType++)
-                    {
-                        RaiseDiagnosticsRemoved((StateType)stateType, documentId, stateSet, solutionArgs);
-                    }
                 }
+
+                Owner.RaiseBulkDiagnosticsUpdated(raiseEvents =>
+                {
+                    foreach (var stateSet in stateSets)
+                    {
+                        var solutionArgs = new SolutionArgument(null, documentId.ProjectId, documentId);
+                        for (var stateType = 0; stateType < s_stateTypeCount; stateType++)
+                        {
+                            RaiseDiagnosticsRemoved((StateType)stateType, documentId, stateSet, solutionArgs, raiseEvents);
+                        }
+                    }
+                });
             }
         }
 
@@ -481,16 +521,24 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV1
         {
             using (Logger.LogBlock(FunctionId.Diagnostics_RemoveProject, GetRemoveLogMessage, projectId, CancellationToken.None))
             {
-                foreach (var stateSet in _stateManager.GetStateSets(projectId))
+                var stateSets = _stateManager.GetStateSets(projectId);
+
+                foreach (var stateSet in stateSets)
                 {
                     stateSet.Remove(projectId);
-
-                    var solutionArgs = new SolutionArgument(null, projectId, null);
-                    RaiseDiagnosticsRemoved(StateType.Project, projectId, stateSet, solutionArgs);
                 }
-            }
 
-            _stateManager.RemoveStateSet(projectId);
+                _stateManager.RemoveStateSet(projectId);
+
+                Owner.RaiseBulkDiagnosticsUpdated(raiseEvents =>
+                {
+                    foreach (var stateSet in stateSets)
+                    {
+                        var solutionArgs = new SolutionArgument(null, projectId, null);
+                        RaiseDiagnosticsRemoved(StateType.Project, projectId, stateSet, solutionArgs, raiseEvents);
+                    }
+                });
+            }
         }
 
         public override async Task<bool> TryAppendDiagnosticsForSpanAsync(Document document, TextSpan range, List<DiagnosticData> diagnostics, bool includeSuppressedDiagnostics = false, CancellationToken cancellationToken = default(CancellationToken))
@@ -511,20 +559,16 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV1
             return getter.Diagnostics;
         }
 
-        private bool ShouldRunAnalyzerForClosedFile(CompilationOptions options, bool openedDocument, DiagnosticAnalyzer analyzer)
+        private bool ShouldRunAnalyzerForClosedFile(DiagnosticAnalyzer analyzer, CompilationOptions options, bool openedDocument)
         {
             // we have opened document, doesn't matter
+            // PERF: Don't query descriptors for compiler analyzer, always execute it.
             if (openedDocument || analyzer.IsCompilerAnalyzer())
             {
                 return true;
             }
 
-            // PERF: Don't query descriptors for compiler analyzer, always execute it.
-            if (analyzer.IsCompilerAnalyzer())
-            {
-                return true;
-            }
-
+            // most of analyzers, number of descriptor is quite small, so this should be cheap.
             return Owner.GetDiagnosticDescriptors(analyzer).Any(d => GetEffectiveSeverity(d, options) != ReportDiagnostic.Hidden);
         }
 
@@ -667,34 +711,40 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV1
                 return;
             }
 
-            var removedItems = existingItems.GroupBy(d => d.DocumentId).Select(g => g.Key).Except(newItems.GroupBy(d => d.DocumentId).Select(g => g.Key));
-            foreach (var documentId in removedItems)
+            Owner.RaiseBulkDiagnosticsUpdated(raiseEvents =>
             {
-                if (documentId == null)
+                var removedItems = existingItems.GroupBy(d => d.DocumentId).Select(g => g.Key).Except(newItems.GroupBy(d => d.DocumentId).Select(g => g.Key));
+                foreach (var documentId in removedItems)
                 {
-                    RaiseDiagnosticsRemoved(StateType.Project, project.Id, stateSet, new SolutionArgument(project));
-                    continue;
-                }
+                    if (documentId == null)
+                    {
+                        RaiseDiagnosticsRemoved(StateType.Project, project.Id, stateSet, new SolutionArgument(project), raiseEvents);
+                        continue;
+                    }
 
-                var document = project.GetDocument(documentId);
-                var argument = documentId == null ? new SolutionArgument(null, documentId.ProjectId, documentId) : new SolutionArgument(document);
-                RaiseDiagnosticsRemoved(StateType.Project, documentId, stateSet, argument);
-            }
+                    var document = project.GetDocument(documentId);
+                    var argument = document == null ? new SolutionArgument(null, documentId.ProjectId, documentId) : new SolutionArgument(document);
+                    RaiseDiagnosticsRemoved(StateType.Project, documentId, stateSet, argument, raiseEvents);
+                }
+            });
         }
 
         private void RaiseProjectDiagnosticsUpdated(Project project, StateSet stateSet, ImmutableArray<DiagnosticData> diagnostics)
         {
-            var group = diagnostics.GroupBy(d => d.DocumentId);
-            foreach (var kv in group)
+            Owner.RaiseBulkDiagnosticsUpdated(raiseEvents =>
             {
-                if (kv.Key == null)
+                var group = diagnostics.GroupBy(d => d.DocumentId);
+                foreach (var kv in group)
                 {
-                    RaiseDiagnosticsCreated(StateType.Project, project.Id, stateSet, new SolutionArgument(project), kv.ToImmutableArrayOrEmpty());
-                    continue;
-                }
+                    if (kv.Key == null)
+                    {
+                        RaiseDiagnosticsCreated(StateType.Project, project.Id, stateSet, new SolutionArgument(project), kv.ToImmutableArrayOrEmpty(), raiseEvents);
+                        continue;
+                    }
 
-                RaiseDiagnosticsCreated(StateType.Project, kv.Key, stateSet, new SolutionArgument(project.GetDocument(kv.Key)), kv.ToImmutableArrayOrEmpty());
-            }
+                    RaiseDiagnosticsCreated(StateType.Project, kv.Key, stateSet, new SolutionArgument(project.GetDocument(kv.Key)), kv.ToImmutableArrayOrEmpty(), raiseEvents);
+                }
+            });
         }
 
         private static ImmutableArray<DiagnosticData> GetDiagnosticData(ILookup<DocumentId, DiagnosticData> lookup, DocumentId documentId)
@@ -705,16 +755,55 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV1
         private void RaiseDiagnosticsCreated(
             StateType type, object key, StateSet stateSet, SolutionArgument solution, ImmutableArray<DiagnosticData> diagnostics)
         {
-            if (Owner == null)
-            {
-                return;
-            }
+            RaiseDiagnosticsCreated(type, key, stateSet, solution, diagnostics, Owner.RaiseDiagnosticsUpdated);
+        }
 
+        private void RaiseDiagnosticsCreated(
+            StateType type, object key, StateSet stateSet, SolutionArgument solution, ImmutableArray<DiagnosticData> diagnostics, Action<DiagnosticsUpdatedArgs> raiseEvents)
+        {
             // get right arg id for the given analyzer
             var id = CreateArgumentKey(type, key, stateSet);
+            raiseEvents(DiagnosticsUpdatedArgs.DiagnosticsCreated(id, Workspace, solution.Solution, solution.ProjectId, solution.DocumentId, diagnostics));
+        }
 
-            Owner.RaiseDiagnosticsUpdated(this,
-                DiagnosticsUpdatedArgs.DiagnosticsCreated(id, Workspace, solution.Solution, solution.ProjectId, solution.DocumentId, diagnostics));
+        private void RaiseDiagnosticsRemoved(
+            StateType type, object key, StateSet stateSet, SolutionArgument solution)
+        {
+            RaiseDiagnosticsRemoved(type, key, stateSet, solution, Owner.RaiseDiagnosticsUpdated);
+        }
+
+        private void RaiseDiagnosticsRemoved(
+            StateType type, object key, StateSet stateSet, SolutionArgument solution, Action<DiagnosticsUpdatedArgs> raiseEvents)
+        {
+            // get right arg id for the given analyzer
+            var id = CreateArgumentKey(type, key, stateSet);
+            raiseEvents(DiagnosticsUpdatedArgs.DiagnosticsRemoved(id, Workspace, solution.Solution, solution.ProjectId, solution.DocumentId));
+        }
+
+        private void RaiseDocumentDiagnosticsRemoved(Document document, IEnumerable<StateSet> stateSets, bool includeProjectState, Action<DiagnosticsUpdatedArgs> raiseEvents)
+        {
+            foreach (var stateSet in stateSets)
+            {
+                for (var stateType = 0; stateType < s_stateTypeCount; stateType++)
+                {
+                    if (!includeProjectState && stateType == (int)StateType.Project)
+                    {
+                        // don't re-set project state type
+                        continue;
+                    }
+
+                    // raise diagnostic updated event
+                    RaiseDiagnosticsRemoved((StateType)stateType, document.Id, stateSet, new SolutionArgument(document), raiseEvents);
+                }
+            }
+        }
+
+        private void RaiseProjectDiagnosticsRemoved(Project project, IEnumerable<StateSet> stateSets, Action<DiagnosticsUpdatedArgs> raiseEvents)
+        {
+            foreach (var stateSet in stateSets)
+            {
+                RaiseDiagnosticsRemoved(StateType.Project, project.Id, stateSet, new SolutionArgument(project), raiseEvents);
+            }
         }
 
         private static ArgumentKey CreateArgumentKey(StateType type, object key, StateSet stateSet)
@@ -722,21 +811,6 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV1
             return stateSet.ErrorSourceName != null
                 ? new HostAnalyzerKey(stateSet.Analyzer, type, key, stateSet.ErrorSourceName)
                 : new ArgumentKey(stateSet.Analyzer, type, key);
-        }
-
-        private void RaiseDiagnosticsRemoved(
-            StateType type, object key, StateSet stateSet, SolutionArgument solution)
-        {
-            if (Owner == null)
-            {
-                return;
-            }
-
-            // get right arg id for the given analyzer
-            var id = CreateArgumentKey(type, key, stateSet);
-
-            Owner.RaiseDiagnosticsUpdated(this,
-                DiagnosticsUpdatedArgs.DiagnosticsRemoved(id, Workspace, solution.Solution, solution.ProjectId, solution.DocumentId));
         }
 
         private ImmutableArray<DiagnosticData> UpdateDocumentDiagnostics(
@@ -948,78 +1022,17 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV1
             }
         }
 
-        private void ClearDocumentStates(
-            Document document, IEnumerable<StateSet> states,
-            bool raiseEvent, bool includeProjectState,
-            CancellationToken cancellationToken)
-        {
-            // Compiler + User diagnostics
-            foreach (var state in states)
-            {
-                for (var stateType = 0; stateType < s_stateTypeCount; stateType++)
-                {
-                    if (!includeProjectState && stateType == (int)StateType.Project)
-                    {
-                        // don't re-set project state type
-                        continue;
-                    }
-
-                    cancellationToken.ThrowIfCancellationRequested();
-                    ClearDocumentState(document, state, (StateType)stateType, raiseEvent);
-                }
-            }
-        }
-
-        private void ClearDocumentState(Document document, StateSet stateSet, StateType type, bool raiseEvent)
-        {
-            var state = stateSet.GetState(type);
-
-            // remove saved info
-            state.Remove(document.Id);
-
-            if (raiseEvent)
-            {
-                // raise diagnostic updated event
-                var documentId = document.Id;
-                var solutionArgs = new SolutionArgument(document);
-
-                RaiseDiagnosticsRemoved(type, document.Id, stateSet, solutionArgs);
-            }
-        }
-
-        private void ClearProjectStatesAsync(Project project, IEnumerable<StateSet> states, CancellationToken cancellationToken)
-        {
-            foreach (var document in project.Documents)
-            {
-                ClearDocumentStates(document, states, raiseEvent: true, includeProjectState: true, cancellationToken: cancellationToken);
-            }
-
-            foreach (var stateSet in states)
-            {
-                cancellationToken.ThrowIfCancellationRequested();
-                ClearProjectState(project, stateSet);
-            }
-        }
-
-        private void ClearProjectState(Project project, StateSet stateSet)
-        {
-            var state = stateSet.GetState(StateType.Project);
-
-            // remove saved cache
-            state.Remove(project.Id);
-
-            // raise diagnostic updated event
-            var solutionArgs = new SolutionArgument(project);
-            RaiseDiagnosticsRemoved(StateType.Project, project.Id, stateSet, solutionArgs);
-        }
-
         private async Task ClearExistingDiagnostics(Document document, StateSet stateSet, StateType type, CancellationToken cancellationToken)
         {
             var state = stateSet.GetState(type);
             var existingData = await state.TryGetExistingDataAsync(document, cancellationToken).ConfigureAwait(false);
             if (existingData?.Items.Length > 0)
             {
-                ClearDocumentState(document, stateSet, type, raiseEvent: true);
+                // remove saved info
+                state.Remove(document.Id);
+
+                // raise diagnostic updated event
+                RaiseDiagnosticsRemoved(type, document.Id, stateSet, new SolutionArgument(document));
             }
         }
 
@@ -1029,7 +1042,11 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV1
             var existingData = await state.TryGetExistingDataAsync(project, cancellationToken).ConfigureAwait(false);
             if (existingData?.Items.Length > 0)
             {
-                ClearProjectState(project, stateSet);
+                // remove saved cache
+                state.Remove(project.Id);
+
+                // raise diagnostic updated event
+                RaiseDiagnosticsRemoved(StateType.Project, project.Id, stateSet, new SolutionArgument(project));
             }
         }
 
