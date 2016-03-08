@@ -24,7 +24,7 @@ namespace Microsoft.Cci
         private readonly Dictionary<ITypeDefinition, int> _methodDefIndex;
         private readonly Dictionary<IMethodDefinition, int> _parameterListIndex;
 
-        private readonly HeapOrReferenceIndex<IAssemblyReference> _assemblyRefIndex;
+        private readonly HeapOrReferenceIndex<AssemblyIdentity> _assemblyRefIndex;
         private readonly HeapOrReferenceIndex<string> _moduleRefIndex;
         private readonly InstanceAndStructuralReferenceIndex<ITypeMemberReference> _memberRefIndex;
         private readonly InstanceAndStructuralReferenceIndex<IGenericMethodInstanceReference> _methodSpecIndex;
@@ -88,7 +88,7 @@ namespace Microsoft.Cci
             _methodDefIndex = new Dictionary<ITypeDefinition, int>(numTypeDefsGuess);
             _parameterListIndex = new Dictionary<IMethodDefinition, int>(numMethods);
 
-            _assemblyRefIndex = new HeapOrReferenceIndex<IAssemblyReference>(this, AssemblyReferenceComparer.Instance);
+            _assemblyRefIndex = new HeapOrReferenceIndex<AssemblyIdentity>(this);
             _moduleRefIndex = new HeapOrReferenceIndex<string>(this);
             _memberRefIndex = new InstanceAndStructuralReferenceIndex<ITypeMemberReference>(this, new MemberRefComparer(this));
             _methodSpecIndex = new InstanceAndStructuralReferenceIndex<IGenericMethodInstanceReference>(this, new MethodSpecComparer(this));
@@ -214,10 +214,10 @@ namespace Microsoft.Cci
 
         protected override int GetOrAddAssemblyRefIndex(IAssemblyReference reference)
         {
-            return _assemblyRefIndex.GetOrAdd(reference);
+            return _assemblyRefIndex.GetOrAdd(reference.Identity);
         }
 
-        protected override IReadOnlyList<IAssemblyReference> GetAssemblyRefs()
+        protected override IReadOnlyList<AssemblyIdentity> GetAssemblyRefs()
         {
             return _assemblyRefIndex.Rows;
         }

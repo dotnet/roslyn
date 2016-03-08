@@ -79,6 +79,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             TestProperty((old, value) => old.WithReportSuppressedDiagnostics(value), opt => opt.ReportSuppressedDiagnostics, true);
 
             TestProperty((old, value) => old.WithConcurrentBuild(value), opt => opt.ConcurrentBuild, false);
+            TestProperty((old, value) => old.WithCurrentLocalTime(value), opt => opt.CurrentLocalTime, new DateTime(2005,1,1));
             TestProperty((old, value) => old.WithExtendedCustomDebugInformation(value), opt => opt.ExtendedCustomDebugInformation, false);
             TestProperty((old, value) => old.WithDebugPlusMode(value), opt => opt.DebugPlusMode, true);
 
@@ -352,6 +353,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             IEnumerable<KeyValuePair<string, ReportDiagnostic>> specificDiagnosticOptions = null;
             bool concurrentBuild = false;
             bool deterministic = false;
+            DateTime currentLocalTime = default(DateTime);
             bool extendedCustomDebugInformation = true;
             bool debugPlusMode = false;
             XmlReferenceResolver xmlReferenceResolver = new XmlFileResolver(null);
@@ -368,7 +370,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             return new CSharpCompilationOptions(OutputKind.ConsoleApplication, reportSuppressedDiagnostics, moduleName, mainTypeName, scriptClassName, usings,
                 optimizationLevel, checkOverflow, allowUnsafe, cryptoKeyContainer, cryptoKeyFile, cryptoPublicKey, delaySign,
                 platform, generalDiagnosticOption, warningLevel, specificDiagnosticOptions,
-                concurrentBuild, deterministic, extendedCustomDebugInformation, debugPlusMode, xmlReferenceResolver, sourceReferenceResolver, metadataReferenceResolver,
+                concurrentBuild, deterministic, currentLocalTime, extendedCustomDebugInformation, debugPlusMode, xmlReferenceResolver, sourceReferenceResolver, metadataReferenceResolver,
                 assemblyIdentityComparer, strongNameProvider, metadataImportOptions, referencesSupersedeLowerVersions, publicSign, topLevelBinderFlags);
         }
 
