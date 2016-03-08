@@ -60,7 +60,7 @@ namespace RunTests
 
             Console.WriteLine($"Test execution time: {ellapsed}");
 
-            Logger.Finish();
+            Logger.Finish(Path.GetDirectoryName(options.Assemblies.FirstOrDefault() ?? ""));
 
             if (CanUseWebStorage())
             {
