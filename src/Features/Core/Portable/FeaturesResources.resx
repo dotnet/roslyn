@@ -885,4 +885,7 @@ Do you want to continue?</value>
   <data name="Make_method_synchronous" xml:space="preserve">
     <value>Make method synchronous.</value>
   </data>
+  <data name="Generate_variable" xml:space="preserve">
+    <value>Generate variable</value>
+  </data>
 </root>

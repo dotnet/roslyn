@@ -20,7 +20,6 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
         }
 
         AssemblyIdentity IAssemblyReference.Identity => _identity;
-        Version IAssemblyReference.AssemblyVersionPattern => null;
         string INamedEntity.Name => _identity.Name;
 
         IAssemblyReference IModuleReference.GetContainingAssembly(EmitContext context)

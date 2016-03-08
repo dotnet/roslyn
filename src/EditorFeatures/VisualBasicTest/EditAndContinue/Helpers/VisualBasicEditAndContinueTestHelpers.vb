@@ -13,9 +13,22 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.EditAndContinue
     Friend NotInheritable Class VisualBasicEditAndContinueTestHelpers
         Inherits EditAndContinueTestHelpers
 
-        Friend Shared ReadOnly Instance As VisualBasicEditAndContinueTestHelpers = New VisualBasicEditAndContinueTestHelpers()
+        Private ReadOnly _fxReferences As ImmutableArray(Of PortableExecutableReference)
+
+        Friend Shared ReadOnly Instance As VisualBasicEditAndContinueTestHelpers = New VisualBasicEditAndContinueTestHelpers(
+            ImmutableArray.Create(TestReferences.NetFx.v4_0_30316_17626.mscorlib, TestReferences.NetFx.v4_0_30319.System, TestReferences.NetFx.v4_0_30319.System_Core))
+
+        Friend Shared ReadOnly Instance40 As VisualBasicEditAndContinueTestHelpers = New VisualBasicEditAndContinueTestHelpers(
+            ImmutableArray.Create(TestReferences.NetFx.v4_0_30319.mscorlib, TestReferences.NetFx.v4_0_30319.System_Core))
+
+        Friend Shared ReadOnly InstanceMinAsync As VisualBasicEditAndContinueTestHelpers = New VisualBasicEditAndContinueTestHelpers(
+            ImmutableArray.Create(TestReferences.NetFx.Minimal.mincorlib, TestReferences.NetFx.Minimal.minasync))
 
         Private Shared ReadOnly s_analyzer As VisualBasicEditAndContinueAnalyzer = New VisualBasicEditAndContinueAnalyzer()
+
+        Sub New(fxReferences As ImmutableArray(Of PortableExecutableReference))
+            _fxReferences = fxReferences
+        End Sub
 
         Public Overrides ReadOnly Property Analyzer As AbstractEditAndContinueAnalyzer
             Get
@@ -26,7 +39,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.EditAndContinue
         Public Overrides Function CreateLibraryCompilation(name As String, trees As IEnumerable(Of SyntaxTree)) As Compilation
             Return VisualBasicCompilation.Create("New",
                                                  trees,
-                                                 {TestReferences.NetFx.v4_0_30319.mscorlib, TestReferences.NetFx.v4_0_30319.System, TestReferences.NetFx.v4_0_30319.System_Core},
+                                                 _fxReferences,
                                                  TestOptions.ReleaseDll.WithEmbedVbCoreRuntime(True))
         End Function
 

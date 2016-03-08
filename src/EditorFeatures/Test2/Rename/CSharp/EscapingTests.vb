@@ -4,10 +4,16 @@ Imports Microsoft.CodeAnalysis.Rename.ConflictEngine
 
 Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Rename.CSharp
     Public Class EscapingTests
+        Private ReadOnly _outputHelper As Abstractions.ITestOutputHelper
+
+        Public Sub New(outputHelper As Abstractions.ITestOutputHelper)
+            _outputHelper = outputHelper
+        End Sub
+
         <Fact>
         <Trait(Traits.Feature, Traits.Features.Rename)>
         Public Sub EscapeWhenRenamingToEscapedKeyword1()
-            Using result = RenameEngineResult.Create(
+            Using result = RenameEngineResult.Create(_outputHelper,
                 <Workspace>
                     <Project Language="C#" CommonReferences="true">
                         <Document>
@@ -25,7 +31,7 @@ class [|$$Foo|]
         <Fact>
         <Trait(Traits.Feature, Traits.Features.Rename)>
         Public Sub EscapeWhenRenamingToEscapedKeyword2()
-            Using result = RenameEngineResult.Create(
+            Using result = RenameEngineResult.Create(_outputHelper,
                 <Workspace>
                     <Project Language="C#" CommonReferences="true">
                         <Document>
@@ -44,7 +50,7 @@ class {|escaped:$$Foo|}
         <Fact>
         <Trait(Traits.Feature, Traits.Features.Rename)>
         Public Sub UseFullAttributeNameWhenShortNameIsKeyword()
-            Using result = RenameEngineResult.Create(
+            Using result = RenameEngineResult.Create(_outputHelper,
                 <Workspace>
                     <Project Language="C#" CommonReferences="true">
                         <Document>
@@ -70,7 +76,7 @@ class [|$$MainAttribute|] : System.Attribute
         <Fact>
         <Trait(Traits.Feature, Traits.Features.Rename)>
         Public Sub EscapeAttributeIfKeyword()
-            Using result = RenameEngineResult.Create(
+            Using result = RenameEngineResult.Create(_outputHelper,
                 <Workspace>
                     <Project Language="C#" CommonReferences="true">
                         <Document>
@@ -97,7 +103,7 @@ class {|escaped:$$MainAttribute|} : System.Attribute
         <Fact>
         <Trait(Traits.Feature, Traits.Features.Rename)>
         Public Sub DoNotStickTokensTogetherForRefParameter_1()
-            Using result = RenameEngineResult.Create(
+            Using result = RenameEngineResult.Create(_outputHelper,
                 <Workspace>
                     <Project Language="C#" CommonReferences="true">
                         <Document>
@@ -117,7 +123,7 @@ class {|escaped:$$MainAttribute|} : System.Attribute
         <Fact>
         <Trait(Traits.Feature, Traits.Features.Rename)>
         Public Sub DoNotStickTokensTogetherForRefParameter_2()
-            Using result = RenameEngineResult.Create(
+            Using result = RenameEngineResult.Create(_outputHelper,
                 <Workspace>
                     <Project Language="C#" CommonReferences="true">
                         <Document>
@@ -136,7 +142,7 @@ class {|escaped:$$MainAttribute|} : System.Attribute
         <Fact>
         <Trait(Traits.Feature, Traits.Features.Rename)>
         Public Sub RenameEscapedIdentifierUnescapes()
-            Using result = RenameEngineResult.Create(
+            Using result = RenameEngineResult.Create(_outputHelper,
                 <Workspace>
                     <Project Language="C#" CommonReferences="true">
                         <Document>
@@ -157,7 +163,7 @@ class {|escaped:$$MainAttribute|} : System.Attribute
         <Fact>
         <Trait(Traits.Feature, Traits.Features.Rename)>
         Public Sub RenameEscapedIdentifierUnescapes_2()
-            Using result = RenameEngineResult.Create(
+            Using result = RenameEngineResult.Create(_outputHelper,
                 <Workspace>
                     <Project Language="C#" CommonReferences="true">
                         <Document>
@@ -179,7 +185,7 @@ class {|escaped:$$MainAttribute|} : System.Attribute
         <Fact>
         <Trait(Traits.Feature, Traits.Features.Rename)>
         Public Sub RenameEscapedIdentifierUnescapes_3()
-            Using result = RenameEngineResult.Create(
+            Using result = RenameEngineResult.Create(_outputHelper,
                 <Workspace>
                     <Project Language="C#" CommonReferences="true">
                         <Document>
