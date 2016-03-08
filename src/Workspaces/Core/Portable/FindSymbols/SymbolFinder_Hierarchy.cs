@@ -43,7 +43,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                         if (member != null &&
                             member.IsOverride &&
                             member.OverriddenMember() != null &&
-                           SymbolEquivalenceComparer.Instance.Equals(member.OverriddenMember().OriginalDefinition, symbol.OriginalDefinition))
+                            DependentTypeFinder.OriginalSymbolsMatch(member.OverriddenMember().OriginalDefinition, symbol.OriginalDefinition, solution, cancellationToken))
                         {
                             results = results ?? new List<ISymbol>();
                             results.Add(member);

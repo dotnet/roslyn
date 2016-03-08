@@ -1682,6 +1682,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ERR_InvalidPathMap = 37253
         ERR_PublicSignNoKey = 37254
         ERR_TooManyUserStrings = 37255
+        ERR_PeWritingFailure = 37256
 
         ERR_LastPlusOne
 
