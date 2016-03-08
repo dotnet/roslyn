@@ -95,7 +95,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             dynamicAnalysisSpans = ImmutableArray<SourceSpan>.Empty;
-            return null;
+            return methodBody;
         }
 
         private static MethodSymbol GetInterlockedExchange(CSharpCompilation compilation)
