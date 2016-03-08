@@ -3788,7 +3788,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 }
                 else if (currentTokenIsSemicolon || validAccName)
                 {
-                    semicolon = this.EatToken(SyntaxKind.SemicolonToken, ErrorCode.ERR_SemiOrLBraceOrArrowExpected);
+                    semicolon = this.EatToken(SyntaxKind.SemicolonToken,
+                                        IsFeatureEnabled(MessageID.IDS_FeatureExpressionBodiedAccessor)
+                                            ? ErrorCode.ERR_SemiOrLBraceOrArrowExpected
+                                            : ErrorCode.ERR_SemiOrLBraceExpected
+                                );
 
                     if (isEvent)
                     {
@@ -7090,7 +7094,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
 
             // There's a special error code for a missing token after an accessor keyword
             var openBrace = isAccessorBody && this.CurrentToken.Kind != SyntaxKind.OpenBraceToken
-                ? this.AddError(SyntaxFactory.MissingToken(SyntaxKind.OpenBraceToken), ErrorCode.ERR_SemiOrLBraceOrArrowExpected)
+                ? this.AddError(SyntaxFactory.MissingToken(SyntaxKind.OpenBraceToken),
+                    IsFeatureEnabled(MessageID.IDS_FeatureExpressionBodiedAccessor) 
+                    ? ErrorCode.ERR_SemiOrLBraceOrArrowExpected
+                    : ErrorCode.ERR_SemiOrLBraceExpected
+                  )
                 : this.EatToken(SyntaxKind.OpenBraceToken);
 
             var statements = _pool.Allocate<StatementSyntax>();

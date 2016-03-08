@@ -32,16 +32,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
                 && IsBeforeToken(position, expressionBodyOpt, semicolonToken);
         }
 
-        /// <summary>
-        /// A position is inside a property body only if it is inside an expression body.
-        /// All block bodies for properties are part of the accessor declaration (a type
-        /// of BaseMethodDeclaration), not the property declaration.
-        /// </summary>
-        internal static bool IsInBody(int position,
-            PropertyDeclarationSyntax property)
+        internal static bool IsInBody(int position, BlockSyntax blockOpt = default(BlockSyntax),
+                                      ArrowExpressionClauseSyntax exprOpt = default(ArrowExpressionClauseSyntax),
+                                      SyntaxToken semiOpt = default(SyntaxToken))
         {
-            var exprOpt = property.GetExpressionBodySyntax();
-            return IsInExpressionBody(position, exprOpt, property.SemicolonToken);
+            return IsInExpressionBody(position, exprOpt, semiOpt)
+                || IsInBlock(position, blockOpt);
         }
 
         /// <summary>
@@ -50,11 +46,24 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         /// of BaseMethodDeclaration), not the property declaration.
         /// </summary>
         internal static bool IsInBody(int position,
+            PropertyDeclarationSyntax property)
+            => IsInBody(position, exprOpt: property.GetExpressionBodySyntax(), semiOpt: property.SemicolonToken);
+
+        /// <summary>
+        /// A position is inside a property body only if it is inside an expression body.
+        /// All block bodies for properties are part of the accessor declaration (a type
+        /// of BaseMethodDeclaration), not the property declaration.
+        /// </summary>
+        internal static bool IsInBody(int position,
             IndexerDeclarationSyntax indexer)
-        {
-            var exprOpt = indexer.GetExpressionBodySyntax();
-            return IsInExpressionBody(position, exprOpt, indexer.SemicolonToken);
-        }
+            => IsInBody(position, exprOpt: indexer.GetExpressionBodySyntax(), semiOpt: indexer.SemicolonToken);
+
+        /// <summary>
+        /// A position is inside an accessor body if it is inside the block or expression
+        /// body. 
+        /// </summary>
+        internal static bool IsInBody(int position, AccessorDeclarationSyntax method)
+            => IsInBody(position, method.Body, method.GetExpressionBodySyntax(), method.SemicolonToken);
 
         /// <summary>
         /// A position is inside a body if it is inside the block or expression
@@ -66,12 +75,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         /// the '=>' and strictly before the semicolon.
         /// </summary>
         internal static bool IsInBody(int position, BaseMethodDeclarationSyntax method)
-        {
-            var exprOpt = method.GetExpressionBodySyntax();
-
-            return IsInExpressionBody(position, exprOpt, method.SemicolonToken)
-                || IsInBlock(position, method.Body);
-        }
+            => IsInBody(position, method.Body, method.GetExpressionBodySyntax(), method.SemicolonToken);
 
         internal static bool IsBetweenTokens(int position, SyntaxToken firstIncluded, SyntaxToken firstExcluded)
         {

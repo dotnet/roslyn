@@ -695,14 +695,13 @@ namespace Microsoft.CodeAnalysis.CSharp
                     case SyntaxKind.GetAccessorDeclaration:
                     case SyntaxKind.SetAccessorDeclaration:
                         // NOTE: not UnknownAccessorDeclaration since there's no corresponding method symbol from which to build a member model.
-                        outsideMemberDecl = !LookupPosition.IsInBlock(position, ((AccessorDeclarationSyntax)memberDecl).Body);
+                        outsideMemberDecl = !LookupPosition.IsInBody(position, (AccessorDeclarationSyntax)memberDecl);
                         break;
                     case SyntaxKind.ConstructorDeclaration:
                         var constructorDecl = (ConstructorDeclarationSyntax)memberDecl;
                         outsideMemberDecl =
                             !LookupPosition.IsInConstructorParameterScope(position, constructorDecl) &&
-                            !LookupPosition.IsInParameterList(position, constructorDecl) &&
-                            !LookupPosition.IsInExpressionBody(position, constructorDecl.GetExpressionBodySyntax(), constructorDecl.SemicolonToken);
+                            !LookupPosition.IsInParameterList(position, constructorDecl);
                         break;
                     case SyntaxKind.ConversionOperatorDeclaration:
                     case SyntaxKind.DestructorDeclaration:
@@ -710,9 +709,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                     case SyntaxKind.OperatorDeclaration:
                         var methodDecl = (BaseMethodDeclarationSyntax)memberDecl;
                         outsideMemberDecl =
-                            !LookupPosition.IsInBlock(position, methodDecl.Body) &&
-                            !LookupPosition.IsInParameterList(position, methodDecl) &&
-                            !LookupPosition.IsInExpressionBody(position, methodDecl.GetExpressionBodySyntax(), methodDecl.SemicolonToken);
+                            !LookupPosition.IsInBody(position, methodDecl) &&
+                            !LookupPosition.IsInParameterList(position, methodDecl);
                         break;
                 }
             }
@@ -993,6 +991,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                         else if ((memberSyntax = node.Parent as MemberDeclarationSyntax) != null)
                         {
                             symbol = (SourceMethodSymbol)GetDeclaredSymbol(node.Parent as MemberDeclarationSyntax);
+                        }
+                        else if (node.Parent is AccessorDeclarationSyntax)
+                        {
+                            symbol = (SourceMethodSymbol)GetDeclaredSymbol(node.Parent as AccessorDeclarationSyntax);
                         }
                         else
                         {

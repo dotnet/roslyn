@@ -213,6 +213,12 @@
   <data name="IDS_FeaturePatternMatching2" xml:space="preserve">
     <value>pattern matching experimental features</value>
   </data>
+  <data name="IDS_FeatureExpressionBodiedAccessor" xml:space="preserve">
+    <value>property accessor expression body experimental features</value>
+  </data>
+  <data name="IDS_FeatureExpressionBodiedDeOrConstructor" xml:space="preserve">
+    <value>constructor and destructor expression body experimental features</value>
+  </data>
   <data name="IDS_FeatureImplicitArray" xml:space="preserve">
     <value>implicitly typed array</value>
   </data>

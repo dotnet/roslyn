@@ -221,10 +221,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     return VisitCore(parent.Parent);
                 }
-
-                bool inBlock = LookupPosition.IsInBlock(_position, parent.Body)
-                                    || LookupPosition.IsInExpressionBody(_position, parent.ExpressionBody, parent.SemicolonToken);
-                var extraInfo = inBlock ? NodeUsage.AccessorBody : NodeUsage.Normal;  // extra info for the cache.
+                bool inBody = LookupPosition.IsInBody(_position, parent);
+                var extraInfo = inBody ? NodeUsage.AccessorBody : NodeUsage.Normal;  // extra info for the cache.
                 var key = CreateBinderCacheKey(parent, extraInfo);
 
                 Binder resultBinder;
@@ -232,7 +230,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     resultBinder = VisitCore(parent.Parent);
 
-                    if (inBlock)
+                    if (inBody)
                     {
                         var propertyOrEventDecl = parent.Parent.Parent;
                         MethodSymbol accessor = null;

@@ -9477,6 +9477,24 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to property accessor expression body experimental features.
+        /// </summary>
+        internal static string IDS_FeatureExpressionBodiedAccessor {
+            get {
+                return ResourceManager.GetString("IDS_FeatureExpressionBodiedAccessor", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to constructor and destructor expression body experimental features.
+        /// </summary>
+        internal static string IDS_FeatureExpressionBodiedDeOrConstructor {
+            get {
+                return ResourceManager.GetString("IDS_FeatureExpressionBodiedDeOrConstructor", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to expression-bodied indexer.
         /// </summary>
         internal static string IDS_FeatureExpressionBodiedIndexer {
