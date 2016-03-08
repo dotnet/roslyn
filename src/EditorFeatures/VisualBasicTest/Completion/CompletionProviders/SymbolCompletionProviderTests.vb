@@ -2309,6 +2309,12 @@ End Class
             Await VerifyItemExistsAsync(markup, "Configure")
         End Function
 
+        <WorkItem(7648, "http://github.com/dotnet/roslyn/issues/7648")>
+        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function TestNothingMyBaseDotInScriptContext() As Task
+            Await VerifyItemIsAbsentAsync("MyBase.$$", "ToString", sourceCodeKind:=SourceCodeKind.Script)
+        End Function
+
         <WorkItem(543580, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543580")>
         <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Async Function TestAfterMyBaseDot2() As Task
