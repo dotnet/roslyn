@@ -218,7 +218,7 @@ namespace RunTests
                 }
 
                 var methodCount = GetMethodCount(reader, type);
-                if (methodCount == 0)
+                if (!ShouldIncludeType(reader, type, methodCount))
                 {
                     continue;
                 }
@@ -234,13 +234,42 @@ namespace RunTests
             return list;
         }
 
+        /// <summary>
+        /// Determine if this type should be one of the `class` values passed to xunit.  This
+        /// code doesn't actually resolve base types or trace through inherrited Fact attributes
+        /// hence we have to error on the side of including types with no tests vs. excluding them.
+        /// </summary>
+        private static bool ShouldIncludeType(MetadataReader reader, TypeDefinition type, int testMethodCount)
+        {
+            // xunit only handles public, non-abstract classes
+            if (TypeAttributes.Public != (type.Attributes & TypeAttributes.Public) ||
+                TypeAttributes.Abstract == (type.Attributes & TypeAttributes.Abstract)  ||
+                TypeAttributes.Class != (type.Attributes & TypeAttributes.Class))
+            {
+                return false;
+            }
+
+            // Compiler generated types / methods have the shape of the heuristic that we are looking
+            // at here.  Filter them out as well.
+            if (!IsValidIdentifier(reader, type.Name))
+            {
+                return false;
+            }
+
+            if (testMethodCount > 0)
+            {
+                return true;
+            }
+
+            // The case we still have to consider at this point is a class with 0 defined methods, 
+            // inheritting from a class with > 0 defined test methods.  That is a completely valid
+            // xunit scenario.  For now we're just going to exclude types that inherit from object
+            // because they clearly don't fit that category.
+            return !(InheritsFromObject(reader, type) ?? false);
+        }
+
         private static int GetMethodCount(MetadataReader reader, TypeDefinition type)
         {
-            if (TypeAttributes.Public != (type.Attributes & TypeAttributes.Public) ||
-                TypeAttributes.Abstract == (type.Attributes & TypeAttributes.Abstract))
-            {
-                return 0;
-            }
 
             var count = 0;
             foreach (var handle in type.GetMethods())
@@ -277,6 +306,19 @@ namespace RunTests
             }
 
             return true;
+        }
+
+        private static bool? InheritsFromObject(MetadataReader reader, TypeDefinition type)
+        {
+            if (type.BaseType.Kind != HandleKind.TypeReference)
+            {
+                return null;
+            }
+
+            var typeRef = reader.GetTypeReference((TypeReferenceHandle)type.BaseType);
+            return 
+                reader.GetString(typeRef.Namespace) == "System" && 
+                reader.GetString(typeRef.Name) == "Object";
         }
     }
 }
