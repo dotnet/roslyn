@@ -2653,15 +2653,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
             Return New SymbolSearcher(Me).GetSymbolsWithName(predicate, filter, cancellationToken)
         End Function
-
-        Friend Overrides Function IsIOperationFeatureEnabled() As Boolean
-            Dim options = DirectCast(Me.SyntaxTrees.First().Options, VisualBasicParseOptions)
-            Dim IOperationFeatureFlag = InternalSyntax.FeatureExtensions.GetFeatureFlag(InternalSyntax.Feature.IOperation)
-            If IOperationFeatureFlag IsNot Nothing Then
-                Return options.Features.ContainsKey(IOperationFeatureFlag)
-            End If
-            Return False
-        End Function
 #End Region
 
         Private Class SymbolSearcher

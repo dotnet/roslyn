@@ -350,12 +350,6 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
                 parseOptions = parseOptions.WithDocumentationMode(documentationMode.Value);
             }
 
-            var featuresAttribute = projectElement.Attribute(FeaturesAttributeName);
-            if (featuresAttribute != null)
-            {
-                parseOptions = parseOptions.WithFeatures(featuresAttribute.Value.Split(',').Select(f => KeyValuePair.Create(f, "true")));
-            }
-
             return parseOptions;
         }
 

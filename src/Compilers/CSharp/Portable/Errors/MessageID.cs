@@ -112,8 +112,6 @@ namespace Microsoft.CodeAnalysis.CSharp
         IDS_OperationCausedStackOverflow = MessageBase + 12703,
         IDS_AwaitInCatchAndFinally = MessageBase + 12704,
         IDS_FeatureReadonlyAutoImplementedProperties = MessageBase + 12705,
-        
-        IDS_FeatureIOperation = MessageBase + 12706,
     }
 
     // Message IDs may refer to strings that need to be localized.
@@ -151,8 +149,6 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             switch (feature)
             {
-                case MessageID.IDS_FeatureIOperation:
-                    return "IOperation";
                 default:
                     return null;
             }
