@@ -2124,7 +2124,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 Version dummy;
                 string verString = (string)attribute.CommonConstructorArguments[0].Value;
-                if (!VersionHelper.TryParseAssemblyVersion(verString, allowWildcard: false, version: out dummy))
+                if (!VersionHelper.TryParse(verString, version: out dummy))
                 {
                     Location attributeArgumentSyntaxLocation = attribute.GetAttributeArgumentSyntaxLocation(0, arguments.AttributeSyntaxOpt);
                     arguments.Diagnostics.Add(ErrorCode.WRN_InvalidVersionFormat, attributeArgumentSyntaxLocation);
