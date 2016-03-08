@@ -14,6 +14,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Test.Utilities
         public static readonly CSharpParseOptions Regular = new CSharpParseOptions(kind: SourceCodeKind.Regular, documentationMode: DocumentationMode.None);
         public static readonly CSharpParseOptions RegularWithDocumentationComments = new CSharpParseOptions(kind: SourceCodeKind.Regular, documentationMode: DocumentationMode.Diagnose);
 
+        public static readonly CSharpParseOptions RegularWithIOperationFeature = Regular.WithIOperationsFeature();
+
         private static readonly SmallDictionary<string, string> s_experimentalFeatures = new SmallDictionary<string, string> { { "localFunctions", "true" }, { "refLocalsAndReturns", "true" } };
         public static readonly CSharpParseOptions ExperimentalParseOptions =
             new CSharpParseOptions(kind: SourceCodeKind.Regular, documentationMode: DocumentationMode.None, languageVersion: LanguageVersion.CSharp6).WithFeatures(s_experimentalFeatures);
@@ -47,6 +49,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Test.Utilities
         public static CSharpParseOptions WithFeature(this CSharpParseOptions options, string feature, string value)
         {
             return options.WithFeatures(options.Features.Concat(new[] { new KeyValuePair<string, string>(feature, value) }));
+        }
+
+        public static CSharpParseOptions WithIOperationsFeature(this CSharpParseOptions options)
+        {
+            return options.WithFeature("IOperation", "true");
         }
 
         public static CSharpParseOptions WithLocalFunctionsFeature(this CSharpParseOptions options)

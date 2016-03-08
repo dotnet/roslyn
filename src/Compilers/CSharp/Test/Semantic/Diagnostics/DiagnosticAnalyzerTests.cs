@@ -892,7 +892,7 @@ public class B
         {
             var source1 = @"class C1 { void M() { int i = 0; i++; } }";
             var source2 = @"class C2 { void M() { int i = 0; i++; } }";
-            var compilation = CreateCompilationWithMscorlib45(source1);
+            var compilation = CreateCompilationWithMscorlib45(source1, parseOptions: TestOptions.RegularWithIOperationFeature);
             var anotherCompilation = CreateCompilationWithMscorlib45(source2);
             var treeInAnotherCompilation = anotherCompilation.SyntaxTrees.Single();
 

@@ -119,6 +119,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         IDS_FeatureLocalFunctions = MessageBase + 12708,
 
         IDS_FeatureRefLocalsReturns = MessageBase + 12710,
+        
+        IDS_FeatureIOperation = MessageBase + 12711,
     }
 
     // Message IDs may refer to strings that need to be localized.
@@ -174,6 +176,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return "patterns";
                 case MessageID.IDS_FeaturePatternMatching2:
                     return "patternsExperimental";
+                case MessageID.IDS_FeatureIOperation:
+                    return "IOperation";
                 default:
                     return null;
             }
