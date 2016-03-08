@@ -18,9 +18,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Diagnostics
         public void InitializeTest()
         {
             var code = @"class C { void M() { return; } }";
-            var parseOptions = new CSharpParseOptions(kind: SourceCodeKind.Regular, documentationMode: DocumentationMode.None)
-                .WithFeatures(new[] { new KeyValuePair<string, string>("IOperation", "true") });
-            var compilation = CreateCompilation(code, parseOptions: parseOptions);
+            var compilation = CreateCompilation(code);
 
             Verify(compilation, nameof(AnalysisContext.RegisterCodeBlockAction));
             Verify(compilation, nameof(AnalysisContext.RegisterCodeBlockStartAction));
@@ -97,12 +95,12 @@ namespace Microsoft.CodeAnalysis.UnitTests.Diagnostics
                 isEnabledByDefault: true);
         }
 
-        private static Compilation CreateCompilation(string source, CSharpParseOptions parseOptions = null)
+        private static Compilation CreateCompilation(string source)
         {
             string fileName = "Test.cs";
             string projectName = "TestProject";
 
-            var syntaxTree = CSharpSyntaxTree.ParseText(source, path: fileName, options: parseOptions);
+            var syntaxTree = CSharpSyntaxTree.ParseText(source, path: fileName);
 
             return CSharpCompilation.Create(
                 projectName,

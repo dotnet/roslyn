@@ -510,7 +510,4 @@
     <value>Exception occurred with following context:
 {0}</value>
   </data>
-  <data name="IOperationFeatureDisabled" xml:space="preserve">
-    <value>Feature 'IOperation' is disabled.</value>
-  </data>
 </root>
