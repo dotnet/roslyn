@@ -3887,6 +3887,73 @@ End Class
 </compilation>
             CompileAndVerify(source)
         End Sub
+
+        <Fact>
+        Public Sub ClosureInSwitchStatementWithNullableExpression()
+            Dim verifier = CompileAndVerify(
+<compilation>
+    <file name="a.vb">
+Imports System
+Class C
+    Shared Sub Main()
+        Dim i As Integer? = Nothing
+        Select Case i
+        Case 0
+        Case Else
+            Dim o As Object = Nothing
+            Dim f = Function() o
+            Console.Write("{0}", f() Is Nothing)
+        End Select
+    End Sub
+End Class
+    </file>
+</compilation>, expectedOutput:="True")
+            verifier.VerifyIL("C.Main",
+            <![CDATA[
+{
+  // Code size      104 (0x68)
+  .maxstack  3
+  .locals init (Integer? V_0,
+                Boolean? V_1,
+                VB$AnonymousDelegate_0(Of Object) V_2) //f
+  IL_0000:  ldloca.s   V_0
+  IL_0002:  initobj    "Integer?"
+  IL_0008:  ldloc.0
+  IL_0009:  stloc.0
+  IL_000a:  ldloca.s   V_0
+  IL_000c:  call       "Function Integer?.get_HasValue() As Boolean"
+  IL_0011:  brtrue.s   IL_001e
+  IL_0013:  ldloca.s   V_1
+  IL_0015:  initobj    "Boolean?"
+  IL_001b:  ldloc.1
+  IL_001c:  br.s       IL_002d
+  IL_001e:  ldloca.s   V_0
+  IL_0020:  call       "Function Integer?.GetValueOrDefault() As Integer"
+  IL_0025:  ldc.i4.0
+  IL_0026:  ceq
+  IL_0028:  newobj     "Sub Boolean?..ctor(Boolean)"
+  IL_002d:  stloc.1
+  IL_002e:  ldloca.s   V_1
+  IL_0030:  call       "Function Boolean?.GetValueOrDefault() As Boolean"
+  IL_0035:  brtrue.s   IL_0067
+  IL_0037:  newobj     "Sub C._Closure$__1-0..ctor()"
+  IL_003c:  dup
+  IL_003d:  ldnull
+  IL_003e:  stfld      "C._Closure$__1-0.$VB$Local_o As Object"
+  IL_0043:  ldftn      "Function C._Closure$__1-0._Lambda$__0() As Object"
+  IL_0049:  newobj     "Sub VB$AnonymousDelegate_0(Of Object)..ctor(Object, System.IntPtr)"
+  IL_004e:  stloc.2
+  IL_004f:  ldstr      "{0}"
+  IL_0054:  ldloc.2
+  IL_0055:  callvirt   "Function VB$AnonymousDelegate_0(Of Object).Invoke() As Object"
+  IL_005a:  ldnull
+  IL_005b:  ceq
+  IL_005d:  box        "Boolean"
+  IL_0062:  call       "Sub System.Console.Write(String, Object)"
+  IL_0067:  ret
+}
+]]>)
+        End Sub
     End Class
 End Namespace
 

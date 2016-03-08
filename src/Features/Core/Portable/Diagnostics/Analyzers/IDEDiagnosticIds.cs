@@ -12,6 +12,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         public const string AddQualificationDiagnosticId = "IDE0006";
         public const string UseImplicitTypingDiagnosticId = "IDE0007";
         public const string UseExplicitTypingDiagnosticId = "IDE0008";
+        public const string IntellisenseBuildFailedDiagnosticId = "IDE0006";
 
         // Analyzer error Ids
         public const string AnalyzerChangedId = "IDE1001";
