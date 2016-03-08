@@ -7,6 +7,7 @@ using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editor.Host;
+using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.VisualStudio.Language.Intellisense;
 using Microsoft.VisualStudio.Text;
 using Roslyn.Utilities;
@@ -29,8 +30,9 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
             CodeFix fix,
             CodeAction action,
             object provider,
-            SuggestedActionSet fixAllSuggestedActionSet)
-            : base(workspace, subjectBuffer, editHandler, waitIndicator, action, provider)
+            SuggestedActionSet fixAllSuggestedActionSet,
+            IAsynchronousOperationListener operationListener)
+            : base(workspace, subjectBuffer, editHandler, waitIndicator, action, provider, operationListener)
         {
             _fix = fix;
             _fixAllSuggestedActionSet = fixAllSuggestedActionSet;
@@ -47,7 +49,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
             Workspace workspace,
             ITextBuffer subjectBuffer,
             ICodeActionEditHandlerService editHandler,
-            IWaitIndicator waitIndicator)
+            IWaitIndicator waitIndicator,
+            IAsynchronousOperationListener operationListener)
         {
             if (fixAllCodeActionContext == null)
             {
@@ -64,8 +67,9 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
             {
                 var fixAllContext = fixAllCodeActionContext.GetContextForScopeAndActionId(scope, action.EquivalenceKey);
                 var fixAllAction = new FixAllCodeAction(fixAllContext, fixAllCodeActionContext.FixAllProvider, showPreviewChangesDialog: true);
-                var fixAllSuggestedAction = new FixAllSuggestedAction(workspace, subjectBuffer, editHandler, waitIndicator,
-                    fixAllAction, fixAllCodeActionContext.FixAllProvider, fixAllCodeActionContext.OriginalDiagnostics.First());
+                var fixAllSuggestedAction = new FixAllSuggestedAction(
+                    workspace, subjectBuffer, editHandler, waitIndicator, fixAllAction, fixAllCodeActionContext.FixAllProvider,
+                    fixAllCodeActionContext.OriginalDiagnostics.First(), operationListener);
                 fixAllSuggestedActions.Add(fixAllSuggestedAction);
             }
 

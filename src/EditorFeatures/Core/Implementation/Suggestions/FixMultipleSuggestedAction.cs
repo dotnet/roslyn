@@ -11,6 +11,7 @@ using Microsoft.VisualStudio.Text;
 using Roslyn.Utilities;
 using Microsoft.CodeAnalysis.Extensions;
 using Microsoft.CodeAnalysis.Editor.Host;
+using Microsoft.CodeAnalysis.Shared.TestHooks;
 
 namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
 {
@@ -23,13 +24,14 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
         private readonly string _telemetryId;
 
         internal FixMultipleSuggestedAction(
+            IAsynchronousOperationListener operationListener,
             Workspace workspace,
             ICodeActionEditHandlerService editHandler,
             IWaitIndicator waitIndicator,
             FixMultipleCodeAction codeAction,
             FixAllProvider provider,
             ITextBuffer subjectBufferOpt = null)
-            : base(workspace, subjectBufferOpt, editHandler, waitIndicator, codeAction, provider, originalFixedDiagnostic: codeAction.GetTriggerDiagnostic())
+            : base(workspace, subjectBufferOpt, editHandler, waitIndicator, codeAction, provider, originalFixedDiagnostic: codeAction.GetTriggerDiagnostic(), operationListener: operationListener)
         {
             _triggerDocumentOpt = codeAction.FixAllContext.Document;
 
@@ -79,19 +81,19 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
             return newSolution;
         }
 
-        public override void Invoke(CancellationToken cancellationToken)
+        protected override async Task InvokeAsync(CancellationToken cancellationToken)
         {
             using (Logger.LogBlock(FunctionId.CodeFixes_FixAllOccurrencesSession, cancellationToken))
             {
                 // We might not have an origin subject buffer, for example if we are fixing selected diagnostics in the error list.
                 if (this.SubjectBuffer != null)
                 {
-                    base.Invoke(cancellationToken);
+                    await base.InvokeAsync(cancellationToken).ConfigureAwait(true);
                 }
                 else
                 {
                     Func<Document> getDocument = () => _triggerDocumentOpt;
-                    InvokeCore(getDocument, cancellationToken);
+                    await InvokeCoreAsync(getDocument, cancellationToken).ConfigureAwait(true);
                 }
             }
         }

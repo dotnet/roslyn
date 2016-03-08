@@ -104,5 +104,10 @@ namespace Microsoft.VisualStudio.LanguageServices
         public static readonly Guid RoslynCommandSetId = new Guid(RoslynCommandSetIdString);
         public static readonly Guid RoslynGroupId = new Guid(RoslynGroupIdString);
         public static readonly Guid RoslynLibraryId = new Guid(RoslynLibraryIdString);
+
+        // TODO: Remove pending https://github.com/dotnet/roslyn/issues/8927 .
+        // Interactive guids
+        public const string InteractiveCommandSetIdString = "00B8868B-F9F5-4970-A048-410B05508506";
+        public static readonly Guid InteractiveCommandSetId = new Guid(InteractiveCommandSetIdString);
     }
 }

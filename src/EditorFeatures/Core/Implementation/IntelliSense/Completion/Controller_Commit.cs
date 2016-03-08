@@ -124,8 +124,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
             var document = this.SubjectBuffer.CurrentSnapshot.GetOpenDocumentInCurrentContextWithChanges();
             var formattingService = document.GetLanguageService<IEditorFormattingService>();
 
-            var commitCharTriggersFormatting = commitChar != null && 
-                    (formattingService?.SupportsFormattingOnTypedCharacter(document, commitChar.GetValueOrDefault()) 
+            var commitCharTriggersFormatting = commitChar != null &&
+                    (formattingService?.SupportsFormattingOnTypedCharacter(document, commitChar.GetValueOrDefault())
                      ?? false);
 
             if (formattingService != null && (item.ShouldFormatOnCommit || commitCharTriggersFormatting))

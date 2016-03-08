@@ -4436,6 +4436,8 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
                         - SECURITY -
  /delaysign[+|-]               Delay-sign the assembly using only the public 
                                portion of the strong name key
+ /publicsign[+|-]              Public-sign the assembly using only the public
+                               portion of the strong name key
  /keyfile:&lt;file&gt;               Specify a strong name key file
  /keycontainer:&lt;string&gt;        Specify a strong name key container
  /highentropyva[+|-]           Enable high-entropy ASLR

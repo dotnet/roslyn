@@ -47,6 +47,8 @@ namespace Microsoft.CodeAnalysis.CodeActions
 
         internal virtual bool IsInvokable => true;
 
+        internal virtual CodeActionPriority Priority => CodeActionPriority.Medium;
+
         /// <summary>
         /// Will map this int to the Glyph enum in 'Features'.  Once a proper image abstration moves
         /// to the workspace layer we can appropriately use that here instead of a raw int.

@@ -48,9 +48,22 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Public MustOverride Overloads Sub Accept(visitor As OperationVisitor) Implements IOperation.Accept
 
         Public MustOverride Overloads Function Accept(Of TArgument, TResult)(visitor As OperationVisitor(Of TArgument, TResult), argument As TArgument) As TResult Implements IOperation.Accept
+
+        Protected Shared Function GetChildOfBadExpression(parent As BoundNode, index As Integer) As IOperation
+            Dim badParent As BoundBadExpression = TryCast(parent, BoundBadExpression)
+            If badParent IsNot Nothing AndAlso badParent.ChildBoundNodes.Length > index Then
+                Dim child As IOperation = TryCast(badParent.ChildBoundNodes(index), IOperation)
+                If child IsNot Nothing Then
+                    Return child
+                End If
+            End If
+
+            Return New InvalidExpression(parent.Syntax)
+        End Function
+
     End Class
 
-    Friend Partial Class BoundAssignmentOperator
+    Partial Friend Class BoundAssignmentOperator
         Implements IAssignmentExpression
         Implements ICompoundAssignmentExpression
 
@@ -63,15 +76,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Private ReadOnly Property IAssignmentExpression_Value As IOperation Implements IAssignmentExpression.Value
             Get
                 If ExpressionKind() = OperationKind.CompoundAssignmentExpression Then
-                    Dim rightBinary As BoundBinaryOperator = TryCast(Me.Right, BoundBinaryOperator)
-                    If rightBinary IsNot Nothing Then
-                        Return rightBinary.Right
-                    End If
-
-                    Dim rightOperatorBinary As BoundUserDefinedBinaryOperator = TryCast(Me.Right, BoundUserDefinedBinaryOperator)
-                    If rightOperatorBinary IsNot Nothing Then
-                        Return rightOperatorBinary.Right
-                    End If
+                    Return DirectCast(Me.Right, IBinaryOperatorExpression).RightOperand
                 End If
 
                 Return Me.Right
@@ -81,15 +86,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Private ReadOnly Property ICompoundAssignmentExpression_BinaryOperationKind As BinaryOperationKind Implements ICompoundAssignmentExpression.BinaryOperationKind
             Get
                 If ExpressionKind() = OperationKind.CompoundAssignmentExpression Then
-                    Dim rightBinary As BoundBinaryOperator = TryCast(Me.Right, BoundBinaryOperator)
-                    If rightBinary IsNot Nothing Then
-                        Return Expression.DeriveBinaryOperationKind(rightBinary.OperatorKind, Me.Left)
-                    End If
-
-                    Dim rightOperatorBinary As BoundUserDefinedBinaryOperator = TryCast(Me.Right, BoundUserDefinedBinaryOperator)
-                    If rightOperatorBinary IsNot Nothing Then
-                        Return Expression.DeriveBinaryOperationKind(rightOperatorBinary.OperatorKind, Me.Left)
-                    End If
+                    Return DirectCast(Me.Right, IBinaryOperatorExpression).BinaryOperationKind
                 End If
 
                 Return BinaryOperationKind.Invalid
@@ -99,7 +96,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Private ReadOnly Property IHasOperatorMethodExpression_OperatorMethod As IMethodSymbol Implements IHasOperatorMethodExpression.OperatorMethod
             Get
                 If Me.IHasOperatorMethodExpression_UsesOperatorMethod Then
-                    Return DirectCast(Me.Right, BoundUserDefinedBinaryOperator).Call.Method
+                    Return DirectCast(Me.Right, IBinaryOperatorExpression).OperatorMethod
                 End If
 
                 Return Nothing
@@ -109,7 +106,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Private ReadOnly Property IHasOperatorMethodExpression_UsesOperatorMethod As Boolean Implements IHasOperatorMethodExpression.UsesOperatorMethod
             Get
                 If ExpressionKind() = OperationKind.CompoundAssignmentExpression Then
-                    Return TypeOf Me.Right Is BoundUserDefinedBinaryOperator
+                    Return DirectCast(Me.Right, IBinaryOperatorExpression).UsesOperatorMethod
                 End If
 
                 Return False
@@ -117,18 +114,22 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Property
 
         Protected Overrides Function ExpressionKind() As OperationKind
-            Dim rightBinary As BoundBinaryOperator = TryCast(Me.Right, BoundBinaryOperator)
-            If rightBinary IsNot Nothing Then
-                If TypeOf rightBinary.Left Is BoundCompoundAssignmentTargetPlaceholder Then
-                    Return OperationKind.CompoundAssignmentExpression
-                End If
-            End If
-
-            Dim rightOperatorBinary As BoundUserDefinedBinaryOperator = TryCast(Me.Right, BoundUserDefinedBinaryOperator)
-            If rightOperatorBinary IsNot Nothing Then
-                If TypeOf rightOperatorBinary.Left Is BoundCompoundAssignmentTargetPlaceholder Then
-                    Return OperationKind.CompoundAssignmentExpression
-                End If
+            If Me.LeftOnTheRightOpt IsNot Nothing Then
+                Select Case Me.Right.Kind
+                    Case BoundKind.BinaryOperator
+                        Dim rightBinary As BoundBinaryOperator = DirectCast(Me.Right, BoundBinaryOperator)
+                        If rightBinary.Left Is Me.LeftOnTheRightOpt Then
+                            Return OperationKind.CompoundAssignmentExpression
+                        End If
+                    Case BoundKind.UserDefinedBinaryOperator
+                        Dim rightOperatorBinary As IBinaryOperatorExpression = DirectCast(Me.Right, BoundUserDefinedBinaryOperator)
+                        ' It is not permissible to access the Left property of a BoundUserDefinedBinaryOperator unconditionally,
+                        ' because that property can throw an exception if the operator expression is semantically invalid.
+                        ' Fetching the left operand through IBinaryOperatorExpression is safe.
+                        If rightOperatorBinary.LeftOperand Is Me.LeftOnTheRightOpt Then
+                            Return OperationKind.CompoundAssignmentExpression
+                        End If
+                End Select
             End If
 
             Return OperationKind.AssignmentExpression
@@ -151,7 +152,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
     End Class
 
-    Friend Partial Class BoundMeReference
+    Partial Friend Class BoundMeReference
         Implements IInstanceReferenceExpression
 
         Private ReadOnly Property IInstanceReferenceExpression_InstanceReferenceKind As InstanceReferenceKind Implements IInstanceReferenceExpression.InstanceReferenceKind
@@ -173,7 +174,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
     End Class
 
-    Friend Partial Class BoundMyBaseReference
+    Partial Friend Class BoundMyBaseReference
         Implements IInstanceReferenceExpression
 
         Private ReadOnly Property IInstanceReferenceExpression_InstanceReferenceKind As InstanceReferenceKind Implements IInstanceReferenceExpression.InstanceReferenceKind
@@ -195,7 +196,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
     End Class
 
-    Friend Partial Class BoundMyClassReference
+    Partial Friend Class BoundMyClassReference
         Implements IInstanceReferenceExpression
 
         Private ReadOnly Property IInstanceReferenceExpression_InstanceReferenceKind As InstanceReferenceKind Implements IInstanceReferenceExpression.InstanceReferenceKind
@@ -217,7 +218,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
     End Class
 
-    Friend Partial Class BoundLiteral
+    Partial Friend Class BoundLiteral
         Implements ILiteralExpression
 
         Private ReadOnly Property ILiteralExpression_Text As String Implements ILiteralExpression.Text
@@ -239,7 +240,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
     End Class
 
-    Friend Partial Class BoundAwaitOperator
+    Partial Friend Class BoundAwaitOperator
         Implements IAwaitExpression
 
         Private ReadOnly Property IAwaitExpression_AwaitedValue As IOperation Implements IAwaitExpression.AwaitedValue
@@ -261,7 +262,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
     End Class
 
-    Friend Partial Class BoundLambda
+    Partial Friend Class BoundLambda
         Implements ILambdaExpression
 
         Private ReadOnly Property ILambdaExpression_Body As IBlockStatement Implements ILambdaExpression.Body
@@ -289,7 +290,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
     End Class
 
-    Friend Partial Class BoundCall
+    Partial Friend Class BoundCall
         Implements IInvocationExpression
 
         Private Function IHasArgumentsExpression_GetArgumentMatchingParameter(parameter As IParameterSymbol) As IArgument Implements IHasArgumentsExpression.GetArgumentMatchingParameter
@@ -311,8 +312,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Private ReadOnly Property IInvocationExpression_IsVirtual As Boolean Implements IInvocationExpression.IsVirtual
             Get
                 Dim method As IMethodSymbol = Me.Method
+                Dim instance As IOperation = Me.ReceiverOpt
 
-                Return (method.IsVirtual OrElse method.IsAbstract OrElse method.IsOverride) AndAlso Me.ReceiverOpt.Kind <> BoundKind.MyBaseReference AndAlso Me.ReceiverOpt.Kind <> BoundKind.MyClassReference
+                Return method IsNot Nothing AndAlso instance IsNot Nothing AndAlso (method.IsVirtual OrElse method.IsAbstract OrElse method.IsOverride) AndAlso instance.Kind <> BoundKind.MyBaseReference AndAlso instance.Kind <> BoundKind.MyClassReference
             End Get
         End Property
 
@@ -534,7 +536,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
     End Class
 
-    Friend Partial Class BoundParenthesized
+    Partial Friend Class BoundParenthesized
         Implements IParenthesizedExpression
 
         Private ReadOnly Property IParenthesizedExpression_Operand As IOperation Implements IParenthesizedExpression.Operand
@@ -556,7 +558,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
     End Class
 
-    Friend Partial Class BoundArrayAccess
+    Partial Friend Class BoundArrayAccess
         Implements IArrayElementReferenceExpression
 
         Private ReadOnly Property IArrayElementReferenceExpression_ArrayReference As IOperation Implements IArrayElementReferenceExpression.ArrayReference
@@ -584,7 +586,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
     End Class
 
-    Friend Partial Class BoundUnaryOperator
+    Partial Friend Class BoundUnaryOperator
         Implements IUnaryOperatorExpression
 
         Private ReadOnly Property IHasOperatorMethodExpression_OperatorMethod As IMethodSymbol Implements IHasOperatorMethodExpression.OperatorMethod
@@ -624,24 +626,28 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
     End Class
 
-    Friend Partial Class BoundUserDefinedUnaryOperator
+    Partial Friend Class BoundUserDefinedUnaryOperator
         Implements IUnaryOperatorExpression
 
         Private ReadOnly Property IHasOperatorMethodExpression_OperatorMethod As IMethodSymbol Implements IHasOperatorMethodExpression.OperatorMethod
             Get
-                Return Me.Call.Method
+                Return If(Me.UnderlyingExpression.Kind = BoundKind.Call, Me.Call.Method, Nothing)
             End Get
         End Property
 
         Private ReadOnly Property IHasOperatorMethodExpression_UsesOperatorMethod As Boolean Implements IHasOperatorMethodExpression.UsesOperatorMethod
             Get
-                Return True
+                Return IHasOperatorMethodExpression_OperatorMethod IsNot Nothing
             End Get
         End Property
 
         Private ReadOnly Property IUnaryOperatorExpression_Operand As IOperation Implements IUnaryOperatorExpression.Operand
             Get
-                Return Me.Operand
+                If Me.UnderlyingExpression.Kind = BoundKind.Call Then
+                    Return Me.Operand
+                Else
+                    Return GetChildOfBadExpression(Me.UnderlyingExpression, 0)
+                End If
             End Get
         End Property
 
@@ -654,8 +660,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                         Return UnaryOperationKind.OperatorMethodMinus
                     Case UnaryOperatorKind.Not
                         Return UnaryOperationKind.OperatorMethodBitwiseNegation
+                    Case UnaryOperatorKind.IsTrue
+                        Return UnaryOperationKind.OperatorMethodTrue
+                    Case UnaryOperatorKind.IsFalse
+                        Return UnaryOperationKind.OperatorMethodFalse
                     Case Else
-                        Throw ExceptionUtilities.UnexpectedValue(OperatorKind And UnaryOperatorKind.OpMask)
+                        Return UnaryOperationKind.Invalid
                 End Select
             End Get
         End Property
@@ -673,7 +683,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
     End Class
 
-    Friend Partial Class BoundBinaryOperator
+    Partial Friend Class BoundBinaryOperator
         Implements IBinaryOperatorExpression
 
         Private ReadOnly Property IBinaryOperatorExpression_LeftOperand As IOperation Implements IBinaryOperatorExpression.LeftOperand
@@ -724,7 +734,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         Private ReadOnly Property IBinaryOperatorExpression_LeftOperand As IOperation Implements IBinaryOperatorExpression.LeftOperand
             Get
-                Return Me.Left
+                If Me.UnderlyingExpression.Kind = BoundKind.Call Then
+                    Return Me.Left
+                Else
+                    Return GetChildOfBadExpression(Me.UnderlyingExpression, 0)
+                End If
             End Get
         End Property
 
@@ -769,42 +783,39 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                         Return BinaryOperationKind.OperatorMethodGreaterThanOrEqual
                     Case BinaryOperatorKind.GreaterThan
                         Return BinaryOperationKind.OperatorMethodGreaterThan
+                    Case BinaryOperatorKind.Power
+                        Return BinaryOperationKind.OperatorMethodPower
                     Case Else
-                        Throw ExceptionUtilities.UnexpectedValue(OperatorKind And BinaryOperatorKind.OpMask)
+                        Return BinaryOperationKind.Invalid
                 End Select
             End Get
         End Property
 
         Private ReadOnly Property IBinaryOperatorExpression_RightOperand As IOperation Implements IBinaryOperatorExpression.RightOperand
             Get
-                Return Me.Right
+
+                If Me.UnderlyingExpression.Kind = BoundKind.Call Then
+                    Return Me.Right
+                Else
+                    Return GetChildOfBadExpression(Me.UnderlyingExpression, 1)
+                End If
             End Get
         End Property
 
         Private ReadOnly Property IHasOperatorMethodExpression_OperatorMethod As IMethodSymbol Implements IHasOperatorMethodExpression.OperatorMethod
             Get
-                Return Me.Call.Method
+                Return If(Me.UnderlyingExpression.Kind = BoundKind.Call, Me.Call.Method, Nothing)
             End Get
         End Property
 
         Private ReadOnly Property IHasOperatorMethodExpression_UsesOperatorMethod As Boolean Implements IHasOperatorMethodExpression.UsesOperatorMethod
             Get
-                Return True
+                Return IHasOperatorMethodExpression_OperatorMethod IsNot Nothing
             End Get
         End Property
 
         Protected Overrides Function ExpressionKind() As OperationKind
-            Select Case Me.OperatorKind And BinaryOperatorKind.OpMask
-                Case BinaryOperatorKind.Add, BinaryOperatorKind.Concatenate, BinaryOperatorKind.Subtract, BinaryOperatorKind.Multiply, BinaryOperatorKind.Divide,
-                    BinaryOperatorKind.IntegerDivide, BinaryOperatorKind.Modulo, BinaryOperatorKind.Power, BinaryOperatorKind.LeftShift, BinaryOperatorKind.RightShift,
-                    BinaryOperatorKind.And, BinaryOperatorKind.Or, BinaryOperatorKind.Xor, BinaryOperatorKind.AndAlso, BinaryOperatorKind.OrElse,
-                    BinaryOperatorKind.LessThan, BinaryOperatorKind.LessThanOrEqual, BinaryOperatorKind.Equals, BinaryOperatorKind.NotEquals,
-                    BinaryOperatorKind.Is, BinaryOperatorKind.IsNot, BinaryOperatorKind.Like, BinaryOperatorKind.GreaterThanOrEqual, BinaryOperatorKind.GreaterThan
-
-                    Return OperationKind.BinaryOperatorExpression
-            End Select
-
-            Throw ExceptionUtilities.UnexpectedValue(Me.OperatorKind And BinaryOperatorKind.OpMask)
+            Return OperationKind.BinaryOperatorExpression
         End Function
 
         Public Overrides Sub Accept(visitor As OperationVisitor)
@@ -2886,7 +2897,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         Friend Function DeriveBinaryOperationKind(operatorKind As BinaryOperatorKind, left As BoundExpression) As BinaryOperationKind
             Select Case left.Type.SpecialType
-                Case SpecialType.System_Byte, SpecialType.System_UInt16, SpecialType.System_UInt32, SpecialType.System_UInt64, SpecialType.System_Char
+
+                Case SpecialType.System_SByte, SpecialType.System_Int16, SpecialType.System_Int32, SpecialType.System_Int64
                     Select Case operatorKind And BinaryOperatorKind.OpMask
                         Case BinaryOperatorKind.Add
                             Return BinaryOperationKind.IntegerAdd
@@ -2909,19 +2921,19 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                         Case BinaryOperatorKind.RightShift
                             Return BinaryOperationKind.IntegerRightShift
                         Case BinaryOperatorKind.LessThan
-                            Return BinaryOperationKind.UnsignedLessThan
+                            Return BinaryOperationKind.IntegerLessThan
                         Case BinaryOperatorKind.LessThanOrEqual
-                            Return BinaryOperationKind.UnsignedLessThanOrEqual
+                            Return BinaryOperationKind.IntegerLessThanOrEqual
                         Case BinaryOperatorKind.Equals
                             Return BinaryOperationKind.IntegerEquals
                         Case BinaryOperatorKind.NotEquals
                             Return BinaryOperationKind.IntegerNotEquals
                         Case BinaryOperatorKind.GreaterThanOrEqual
-                            Return BinaryOperationKind.UnsignedGreaterThanOrEqual
+                            Return BinaryOperationKind.IntegerGreaterThanOrEqual
                         Case BinaryOperatorKind.GreaterThan
-                            Return BinaryOperationKind.UnsignedGreaterThan
+                            Return BinaryOperationKind.IntegerGreaterThan
                     End Select
-                Case SpecialType.System_SByte, SpecialType.System_Int16, SpecialType.System_Int32, SpecialType.System_Int64
+                Case SpecialType.System_Byte, SpecialType.System_UInt16, SpecialType.System_UInt32, SpecialType.System_UInt64, SpecialType.System_Char
                     Select Case operatorKind And BinaryOperatorKind.OpMask
                         Case BinaryOperatorKind.Add
                             Return BinaryOperationKind.UnsignedAdd
@@ -2944,17 +2956,17 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                         Case BinaryOperatorKind.RightShift
                             Return BinaryOperationKind.UnsignedRightShift
                         Case BinaryOperatorKind.LessThan
-                            Return BinaryOperationKind.IntegerLessThan
+                            Return BinaryOperationKind.UnsignedLessThan
                         Case BinaryOperatorKind.LessThanOrEqual
-                            Return BinaryOperationKind.IntegerLessThanOrEqual
+                            Return BinaryOperationKind.UnsignedLessThanOrEqual
                         Case BinaryOperatorKind.Equals
                             Return BinaryOperationKind.IntegerEquals
                         Case BinaryOperatorKind.NotEquals
                             Return BinaryOperationKind.IntegerNotEquals
                         Case BinaryOperatorKind.GreaterThanOrEqual
-                            Return BinaryOperationKind.IntegerGreaterThanOrEqual
+                            Return BinaryOperationKind.UnsignedGreaterThanOrEqual
                         Case BinaryOperatorKind.GreaterThan
-                            Return BinaryOperationKind.IntegerGreaterThan
+                            Return BinaryOperationKind.UnsignedGreaterThan
                     End Select
                 Case SpecialType.System_Single, SpecialType.System_Double
                     Select Case operatorKind And BinaryOperatorKind.OpMask
