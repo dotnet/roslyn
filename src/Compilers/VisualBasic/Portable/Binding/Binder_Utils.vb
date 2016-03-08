@@ -159,7 +159,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 ElseIf (currentModifier And SourceMemberFlags.AllAccessibilityModifiers) <> 0 AndAlso
                        (foundModifiers And SourceMemberFlags.AllAccessibilityModifiers) <> 0 AndAlso
                        Not ((foundModifiers Or currentModifier) And SourceMemberFlags.AllAccessibilityModifiers) = (SourceMemberFlags.Protected Or SourceMemberFlags.Friend) AndAlso
-                       Not (((foundModifiers Or currentModifier) And SourceMemberFlags.AllAccessibilityModifiers) = (SourceMemberFlags.Protected Or SourceMemberFlags.Private) AndAlso Me.Compilation.Feature("privateProtected") = Nothing) Then
+                       Not (((foundModifiers Or currentModifier) And SourceMemberFlags.AllAccessibilityModifiers) = (SourceMemberFlags.Protected Or SourceMemberFlags.Private) AndAlso Me.Compilation.Feature("privateProtected") <> Nothing) Then
                     ReportDiagnostic(diagBag, keywordSyntax, ERRID.ERR_DuplicateAccessCategoryUsed)
                 ElseIf (currentModifier And SourceMemberFlags.AllOverrideModifiers) <> 0 AndAlso
                        (foundModifiers And SourceMemberFlags.AllOverrideModifiers) <> 0 Then
