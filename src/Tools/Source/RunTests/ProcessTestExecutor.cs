@@ -81,7 +81,7 @@ namespace RunTests
                 // an empty log just in case, so our runner will still fail.
                 File.Create(resultsFilePath).Close();
 
-                var dumpOutputFilePath = Path.Combine(resultsDir, Path.GetFileNameWithoutExtension(assemblyPath) + ".dmp");
+                var dumpOutputFilePath = Path.Combine(resultsDir, $"{assemblyInfo.DisplayName}.dmp");
 
                 var start = DateTime.UtcNow;
                 var xunitPath = _options.XunitPath;
