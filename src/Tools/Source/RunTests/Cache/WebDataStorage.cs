@@ -25,11 +25,11 @@ namespace RunTests.Cache
 
         public string Name => "web";
 
-        public async Task AddCachedTestResult(string assemblyName, ContentFile contentFile, CachedTestResult testResult)
+        public async Task AddCachedTestResult(AssemblyInfo assemblyInfo, ContentFile contentFile, CachedTestResult testResult)
         {
             var obj = new JObject();
-            obj["TestResultData"] = CreateTestResultData(testResult);
-            obj["TestSourceData"] = CreateTestSourceData(assemblyName);
+            obj["TestResultData"] = CreateTestResultData(assemblyInfo.ResultsFileName, testResult);
+            obj["TestSourceData"] = CreateTestSourceData(assemblyInfo);
 
             var request = new RestRequest($"api/testcache/{contentFile.Checksum}");
             request.Method = Method.PUT;
@@ -54,7 +54,6 @@ namespace RunTests.Cache
                     exitCode: obj.Value<int>(NameExitCode),
                     standardOutput: obj.Value<string>(NameOutputStandard),
                     errorOutput: obj.Value<string>(NameOutputError),
-                    resultsFileName: obj.Value<string>(NameResultsFileName),
                     resultsFileContent: obj.Value<string>(NameResultsFileContent),
                     ellapsed: TimeSpan.FromSeconds(obj.Value<int>(NameEllapsedSeconds)));
                 return result;
@@ -65,24 +64,26 @@ namespace RunTests.Cache
             }
         }
 
-        private static JObject CreateTestResultData(CachedTestResult testResult)
+        private static JObject CreateTestResultData(string resultsFileName, CachedTestResult testResult)
         {
+            // TODO: we should remove ResultsFileName from the web storage.  It's redundant data at this 
+            // point.
             var obj = new JObject();
             obj[NameExitCode] = testResult.ExitCode;
             obj[NameOutputStandard] = testResult.StandardOutput;
             obj[NameOutputStandard] = testResult.ErrorOutput;
-            obj[NameResultsFileName] = testResult.ResultsFileName;
+            obj[NameResultsFileName] = resultsFileName;
             obj[NameResultsFileContent] = testResult.ResultsFileContent;
             obj[NameEllapsedSeconds] = (int)testResult.Ellapsed.TotalSeconds;
             return obj;
         }
 
-        private JObject CreateTestSourceData(string assemblyName)
+        private JObject CreateTestSourceData(AssemblyInfo assemblyInfo)
         {
             var obj = new JObject();
             obj["MachineName"] = Environment.MachineName;
             obj["TestRoot"] = "";
-            obj["AssemblyName"] = assemblyName;
+            obj["AssemblyName"] = assemblyInfo.DisplayName;
             obj["IsJenkins"] = Constants.IsJenkinsRun;
             return obj;
         }

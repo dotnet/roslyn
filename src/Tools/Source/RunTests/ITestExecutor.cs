@@ -8,12 +8,14 @@ using System.Threading.Tasks;
 
 namespace RunTests
 {
+    // TODO: lots of redudant fields here ... remove them.
     internal struct TestResult
     {
         internal int ExitCode { get; }
-        internal string AssemblyPath { get; }
-        internal string AssemblyName { get; }
-        internal string DisplayName { get; }
+        internal AssemblyInfo AssemblyInfo { get; }
+        internal string AssemblyPath => AssemblyInfo.AssemblyPath;
+        internal string AssemblyName => Path.GetFileName(AssemblyPath);
+        internal string DisplayName => AssemblyInfo.DisplayName;
         internal string CommandLine { get; }
         internal TimeSpan Elapsed { get; }
         internal string StandardOutput { get; }
@@ -28,12 +30,10 @@ namespace RunTests
         internal string ResultDir { get; }
         internal bool Succeeded => ExitCode == 0;
 
-        internal TestResult(int exitCode, string assemblyPath, string displayName, string resultDir, string resultsFilePath, string commandLine, TimeSpan elapsed, string standardOutput, string errorOutput, bool isResultFromCache)
+        internal TestResult(int exitCode, AssemblyInfo assemblyInfo, string resultDir, string resultsFilePath, string commandLine, TimeSpan elapsed, string standardOutput, string errorOutput, bool isResultFromCache)
         {
             ExitCode = exitCode;
-            AssemblyName = Path.GetFileName(assemblyPath);
-            AssemblyPath = assemblyPath;
-            DisplayName = displayName;
+            AssemblyInfo = assemblyInfo;
             CommandLine = commandLine;
             ResultDir = resultDir;
             ResultsFilePath = resultsFilePath;

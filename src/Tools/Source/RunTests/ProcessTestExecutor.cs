@@ -124,11 +124,9 @@ namespace RunTests
                 var standardOutput = string.Join(Environment.NewLine, processOutput.OutputLines);
                 var errorOutput = string.Join(Environment.NewLine, processOutput.ErrorLines);
 
-                // TODO: Need to include assemblyinfo here? 
                 return new TestResult(
                     exitCode: processOutput.ExitCode,
-                    assemblyPath: assemblyInfo.AssemblyPath,
-                    displayName: assemblyInfo.DisplayName,
+                    assemblyInfo: assemblyInfo,
                     resultDir: resultsDir,
                     resultsFilePath: resultsFilePath,
                     commandLine: commandLine,
