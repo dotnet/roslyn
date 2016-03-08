@@ -12,7 +12,7 @@ namespace Roslyn.Test.Utilities
             ThrowOnSetPosition,
             ThrowOnWrite,
             ThrowOnSetLength,
-            ThrowOnCancellation
+            ThrowOnWriteWithOperationCancelled,
         }
 
         public BreakHowType BreakHow;
@@ -87,11 +87,10 @@ namespace Roslyn.Test.Utilities
                 ThrownException = new IOException();
                 throw ThrownException;
             }
-
-            if (BreakHow == BreakHowType.ThrowOnCancellation)
+            else if (BreakHow == BreakHowType.ThrowOnWriteWithOperationCancelled)
             {
                 ThrownException = new OperationCanceledException();
-                throw ThrownException;
+                throw new OperationCanceledException();
             }
         }
     }
