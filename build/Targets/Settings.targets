@@ -138,7 +138,7 @@
   <!-- Import the props files from the toolset NuGet packages if we're not in a bootstrap build -->
   <ImportGroup Label="GlobalNuGets" Condition="'$(BootstrapBuildPath)' == ''">
     <Import Project="$(ToolsetCompilerPropsFilePath)"
-            Condition="Exists('$(ToolsetCompilerPropsFilePath)')" />
+            Condition="Exists('$(ToolsetCompilerPropsFilePath)') And '$(OS)' == 'Windows_NT'" />
   </ImportGroup>
 
   <ImportGroup>
