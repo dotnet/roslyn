@@ -1008,6 +1008,7 @@ class TestException : Exception { }
             End Using
         End Function
 
+        <WorkItem(8623, "https://github.com/dotnet/roslyn/issues/8623")>
         <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Async Function GenericTypesInDocCommentAreOrderedRegardlessOfPunctuation() As Task
             Using state = TestState.CreateCSharpTestState(
