@@ -46,12 +46,13 @@ namespace Microsoft.CodeAnalysis.CSharp
                         var temp = _factory.SynthesizedLocal(pat.Type);
                         var matched = DeclPattern(syntax, input, temp);
                         input = _factory.Local(temp);
-                        for (int i = 0; i < pat.Subpatterns.Length; i++)
+                        foreach (var subpattern in pat.Subpatterns)
                         {
                             // TODO: review and test this code path.
                             // https://github.com/dotnet/roslyn/issues/9542
-                            var subProperty = (pat.Subpatterns[i].Member as BoundPropertyPatternMember)?.MemberSymbol;
-                            var subPattern = pat.Subpatterns[i].Pattern;
+                            // e.g. Can the `as` below result in `null`?
+                            var subProperty = (subpattern.Member as BoundPropertyPatternMember)?.MemberSymbol;
+                            var subPattern = subpattern.Pattern;
                             BoundExpression subExpression;
                             switch (subProperty?.Kind)
                             {
@@ -59,6 +60,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                                     subExpression = _factory.Field(input, (FieldSymbol)subProperty);
                                     break;
                                 case SymbolKind.Property:
+                                    // TODO: review and test this code path.
+                                    // https://github.com/dotnet/roslyn/issues/9542
+                                    // e.g. https://github.com/dotnet/roslyn/pull/9505#discussion_r55320220
                                     subExpression = _factory.Call(input, ((PropertySymbol)subProperty).GetMethod);
                                     break;
                                 case SymbolKind.Event:
