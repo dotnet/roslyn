@@ -339,7 +339,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
         Box
     }
 
-    // Analyses the tree trying to figure which locals may live on stack.
+    // Analyzes the tree trying to figure which locals may live on stack.
     // It is a fairly delicate process and must be very familiar with how CodeGen works.
     // It is essentially a part of CodeGen.
     //
@@ -1364,6 +1364,9 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
         public override BoundNode VisitSwitchStatement(BoundSwitchStatement node)
         {
             Debug.Assert(EvalStackIsEmpty());
+
+            var preambleOpt = (BoundStatement)this.Visit(node.LoweredPreambleOpt);
+
             DeclareLocals(node.InnerLocals, 0);
 
             // switch needs a byval local or a parameter as a key.
@@ -1396,7 +1399,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
                 this.RecordLabel(breakLabel);
             }
 
-            var result = node.Update(boundExpression, node.ConstantTargetOpt, node.InnerLocals, switchSections, breakLabel, node.StringEquality);
+            var result = node.Update(preambleOpt, boundExpression, node.ConstantTargetOpt, node.InnerLocals, switchSections, breakLabel, node.StringEquality);
 
             // implicit control flow
             EnsureOnlyEvalStack();

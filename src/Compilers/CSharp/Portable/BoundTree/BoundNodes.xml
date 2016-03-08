@@ -670,6 +670,7 @@
   </Node>
 
   <Node Name="BoundSwitchStatement" Base="BoundStatement">
+    <Field Name="LoweredPreambleOpt" Type="BoundStatement" Null="allow"/>
     <Field Name="BoundExpression" Type="BoundExpression"/>
     <Field Name="ConstantTargetOpt" Type="LabelSymbol" Null= "allow"/>
     
