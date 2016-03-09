@@ -174,12 +174,20 @@ namespace RunTests
             return list;
         }
 
-        public IEnumerable<AssemblyInfo> Schedule(string assemblyPath)
+        public IEnumerable<AssemblyInfo> Schedule(string assemblyPath, bool force = false)
         {
             var typeInfoList = GetTypeInfoList(assemblyPath);
             var assemblyInfoList = new List<AssemblyInfo>();
             var chunkList = new List<Chunk>();
             AssemblyInfoBuilder.Build(assemblyPath, _methodLimit, _options.UseHtml, typeInfoList, out chunkList, out assemblyInfoList);
+
+            // If the scheduling didn't actually produce multiple chunks then send back an unchunked
+            // representation.
+            if (assemblyInfoList.Count == 1 && !force)
+            {
+                Logger.Log($"Assembly schedule produced a single chunk {assemblyPath}");
+                return new[] { CreateAssemblyInfo(assemblyPath) };
+            }
 
             Logger.Log($"Assembly Schedule: {Path.GetFileName(assemblyPath)}");
             foreach (var chunk in chunkList)
@@ -194,6 +202,11 @@ namespace RunTests
             }
 
             return assemblyInfoList;
+        }
+
+        public AssemblyInfo CreateAssemblyInfo(string assemblyPath)
+        {
+            return new AssemblyInfo(assemblyPath, _options.UseHtml);
         }
 
         private static List<TypeInfo> GetTypeInfoList(string assemblyPath)

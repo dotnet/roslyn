@@ -99,7 +99,7 @@ namespace RunTests
                 }
                 else
                 {
-                    list.Add(new AssemblyInfo(assemblyPath, options.UseHtml));
+                    list.Add(scheduler.CreateAssemblyInfo(assemblyPath));
                 }
             }
 
