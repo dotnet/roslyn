@@ -1806,11 +1806,9 @@ namespace CSharpSyntaxGenerator
             }
             else
             {
-                // otherwise, if there are optional nodes, use that..
+                // otherwise, if there is a single optional node, use that..
                 int nodeCount = nd.Fields.Count(f => IsNode(f.Type) && f.Type != "SyntaxToken");
-                // AccessorDeclarationSyntax is the only node hat has nodeCount == 2 and must be handled
-                // as well to return a correct method signature
-                if (nodeCount == 1 || nodeCount == 2)
+                if (nodeCount == 1)
                 {
                     return nd.Fields.First(f => IsNode(f.Type) && f.Type != "SyntaxToken");
                 }

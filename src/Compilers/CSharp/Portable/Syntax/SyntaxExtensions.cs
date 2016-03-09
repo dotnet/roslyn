@@ -28,7 +28,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                     arrowExpr = (ArrowExpressionClauseSyntax)node;
                     break;
                 case SyntaxKind.MethodDeclaration:
-                    arrowExpr = ((MethodDeclarationSyntax)node).ExpressionBody;
+                case SyntaxKind.OperatorDeclaration:
+                case SyntaxKind.ConversionOperatorDeclaration:
+                case SyntaxKind.ConstructorDeclaration:
+                case SyntaxKind.DestructorDeclaration:
+                    arrowExpr = ((BaseMethodDeclarationSyntax)node).ExpressionBody;
                     break;
                 case SyntaxKind.GetAccessorDeclaration:
                 case SyntaxKind.SetAccessorDeclaration:
@@ -37,23 +41,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case SyntaxKind.UnknownAccessorDeclaration:
                     arrowExpr = ((AccessorDeclarationSyntax)node).ExpressionBody;
                     break;
-                case SyntaxKind.OperatorDeclaration:
-                    arrowExpr = ((OperatorDeclarationSyntax)node).ExpressionBody;
-                    break;
-                case SyntaxKind.ConversionOperatorDeclaration:
-                    arrowExpr = ((ConversionOperatorDeclarationSyntax)node).ExpressionBody;
-                    break;
                 case SyntaxKind.PropertyDeclaration:
                     arrowExpr = ((PropertyDeclarationSyntax)node).ExpressionBody;
                     break;
                 case SyntaxKind.IndexerDeclaration:
                     arrowExpr = ((IndexerDeclarationSyntax)node).ExpressionBody;
-                    break;
-                case SyntaxKind.ConstructorDeclaration:
-                    arrowExpr = ((ConstructorDeclarationSyntax)node).ExpressionBody;
-                    break;
-                case SyntaxKind.DestructorDeclaration:
-                    arrowExpr = ((DestructorDeclarationSyntax)node).ExpressionBody;
                     break;
                 default:
                     // Don't throw, just use for the assert in case this is used in the semantic model

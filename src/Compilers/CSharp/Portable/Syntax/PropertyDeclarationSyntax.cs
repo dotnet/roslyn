@@ -57,6 +57,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                 initializer: initializer, 
                 semicolonToken: semicolonToken);
         }
+
+        /// <summary>Creates a new AccessorDeclarationSyntax instance.</summary>
+        public static AccessorDeclarationSyntax AccessorDeclaration(SyntaxKind kind, BlockSyntax body = default(BlockSyntax))
+        {
+            return SyntaxFactory.AccessorDeclaration(kind, default(SyntaxList<AttributeListSyntax>), default(SyntaxTokenList), SyntaxFactory.Token(GetAccessorDeclarationKeywordKind(kind)), body, default(ArrowExpressionClauseSyntax), default(SyntaxToken));
+        }
     }
 }
 
