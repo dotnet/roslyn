@@ -66,9 +66,7 @@ namespace CSharpSyntaxGenerator
 
             if (writeSignatures)
             {
-                var tw = new StreamWriter(@"D:\api.txt");
-                SignatureWriter.Write(tw, tree);
-                tw.Close();
+                SignatureWriter.Write(Console.Out, tree);
             }
             else
             {
