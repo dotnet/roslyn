@@ -32,6 +32,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Packaging
     internal partial class PackageSearchService : ForegroundThreadAffinitizedObject, IPackageSearchService, IDisposable
     {
         private ConcurrentDictionary<string, AddReferenceDatabase> _sourceToDatabase = new ConcurrentDictionary<string, AddReferenceDatabase>();
+        private readonly bool _enabled;
 
         public PackageSearchService(VSShell.SVsServiceProvider serviceProvider, IPackageInstallerService installerService)
             : this(installerService, 
@@ -44,7 +45,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Packaging
                    new ShellSettingsManager(serviceProvider).GetApplicationDataFolder(ApplicationDataFolder.LocalSettings),
                    // Report all exceptions we encounter, but don't crash on them.
                    FatalError.ReportWithoutCrash,
-                   new CancellationTokenSource())
+                   new CancellationTokenSource(),
+                   enabled: false)
         {
             installerService.PackageSourcesChanged += OnPackageSourcesChanged;
             OnPackageSourcesChanged(this, EventArgs.Empty);
@@ -75,7 +77,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Packaging
             IPackageSearchDatabaseFactoryService databaseFactoryService,
             string localSettingsDirectory,
             Func<Exception, bool> reportAndSwallowException,
-            CancellationTokenSource cancellationTokenSource)
+            CancellationTokenSource cancellationTokenSource,
+            bool enabled = true)
         {
             if (remoteControlService == null)
             {
@@ -91,6 +94,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Packaging
             _patchService = patchService;
             _databaseFactoryService = databaseFactoryService;
             _reportAndSwallowException = reportAndSwallowException;
+            _enabled = enabled;
 
             _cacheDirectoryInfo = new DirectoryInfo(Path.Combine(
                 localSettingsDirectory, "PackageCache", string.Format(Invariant($"Format{_dataFormatVersion}"))));
