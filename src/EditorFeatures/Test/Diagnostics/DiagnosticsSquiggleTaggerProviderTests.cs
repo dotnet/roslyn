@@ -75,7 +75,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
 
             if (analyzerMap != null || updateSource == null)
             {
-                AnalyzerService = CreateDiagnosticAnalyzerService(analyzerMap, new AggregateAsynchronousOperationListener(_listeners, FeatureAttribute.DiagnosticService));
+                AnalyzerService = CreateDiagnosticAnalyzerService(analyzerMap, _asyncListener);
             }
 
             if (updateSource == null)

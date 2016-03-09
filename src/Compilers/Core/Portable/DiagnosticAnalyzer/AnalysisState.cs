@@ -196,7 +196,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             var fullSpan = tree.GetRoot(cancellationToken).FullSpan;
             var declarationInfos = new List<DeclarationInfo>();
             model.ComputeDeclarationsInSpan(fullSpan, getSymbol: true, builder: declarationInfos, cancellationToken: cancellationToken);
-            return declarationInfos.Select(declInfo => declInfo.DeclaredSymbol).WhereNotNull();
+            return declarationInfos.Select(declInfo => declInfo.DeclaredSymbol).Distinct().WhereNotNull();
         }
 
         private static ImmutableArray<CompilationEvent> CreateCompilationEventsForTree(IEnumerable<ISymbol> declaredSymbols, SyntaxTree tree, Compilation compilation)

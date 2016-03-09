@@ -958,7 +958,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     });
 
                     MethodSymbol symbolToProduce = methodSymbol.PartialDefinitionPart ?? methodSymbol;
-                    _compilation.EventQueue.Enqueue(new SymbolDeclaredCompilationEvent(_compilation, symbolToProduce, lazySemanticModel));
+                    _compilation.EventQueue.TryEnqueue(new SymbolDeclaredCompilationEvent(_compilation, symbolToProduce, lazySemanticModel));
                 }
 
                 // Don't lower if we're not emitting or if there were errors. 

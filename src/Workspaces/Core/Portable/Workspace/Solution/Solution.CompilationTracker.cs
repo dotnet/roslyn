@@ -181,7 +181,7 @@ namespace Microsoft.CodeAnalysis
                 // have the compilation immediately disappear.  So we force it to stay around with a ConstantValueSource.
                 // As a policy, all partial-state projects are said to have incomplete references, since the state has no guarantees.
                 return new CompilationTracker(inProgressProject,
-                    new FinalState(new ConstantValueSource<Compilation>(inProgressCompilation), hasCompleteReferences: false));
+                    new FinalState(new ConstantValueSource<Compilation>(inProgressCompilation), hasSuccessfullyLoadedTransitively: false));
             }
 
             /// <summary>
@@ -313,21 +313,6 @@ namespace Microsoft.CodeAnalysis
                 }
             }
 
-            public Task<bool> HasCompleteReferencesAsync(Solution solution, CancellationToken cancellationToken)
-            {
-                var state = this.ReadState();
-
-                if (state.HasCompleteReferences.HasValue)
-                {
-                    return Task.FromResult(state.HasCompleteReferences.Value);
-                }
-                else
-                {
-                    return GetOrBuildCompilationInfoAsync(solution, lockGate: true, cancellationToken: cancellationToken)
-                        .ContinueWith(t => t.Result.HasCompleteReferences, cancellationToken, TaskContinuationOptions.ExecuteSynchronously | TaskContinuationOptions.OnlyOnRanToCompletion, TaskScheduler.Default);
-                }
-            }
-
             private static string LogBuildCompilationAsync(ProjectState state)
             {
                 return string.Join(",", state.AssemblyName, state.DocumentIds.Count);
@@ -406,7 +391,7 @@ namespace Microsoft.CodeAnalysis
                         var finalCompilation = state.FinalCompilation.GetValue(cancellationToken);
                         if (finalCompilation != null)
                         {
-                            return new CompilationInfo(finalCompilation, hasCompleteReferences: state.HasCompleteReferences.Value);
+                            return new CompilationInfo(finalCompilation, state.HasSuccessfullyLoadedTransitively.Value);
                         }
 
                         // Otherwise, we actually have to build it.  Ensure that only one thread is trying to
@@ -447,7 +432,7 @@ namespace Microsoft.CodeAnalysis
                 var compilation = state.FinalCompilation.GetValue(cancellationToken);
                 if (compilation != null)
                 {
-                    return Task.FromResult(new CompilationInfo(compilation, state.HasCompleteReferences.Value));
+                    return Task.FromResult(new CompilationInfo(compilation, state.HasSuccessfullyLoadedTransitively.Value));
                 }
 
                 compilation = state.Compilation.GetValue(cancellationToken);
@@ -582,12 +567,12 @@ namespace Microsoft.CodeAnalysis
             private struct CompilationInfo
             {
                 public Compilation Compilation { get; }
-                public bool HasCompleteReferences { get; }
+                public bool HasSuccessfullyLoadedTransitively { get; }
 
-                public CompilationInfo(Compilation compilation, bool hasCompleteReferences)
+                public CompilationInfo(Compilation compilation, bool hasSuccessfullyLoadedTransitively)
                 {
                     this.Compilation = compilation;
-                    this.HasCompleteReferences = hasCompleteReferences;
+                    this.HasSuccessfullyLoadedTransitively = hasSuccessfullyLoadedTransitively;
                 }
             }
 
@@ -602,7 +587,9 @@ namespace Microsoft.CodeAnalysis
             {
                 try
                 {
-                    bool hasCompleteReferences = true;
+                    // if HasAllInformation is false, then this project is always not completed.
+                    bool hasSuccessfullyLoaded = this.ProjectState.HasAllInformation;
+
                     var newReferences = new List<MetadataReference>();
                     newReferences.AddRange(this.ProjectState.MetadataReferences);
 
@@ -639,7 +626,7 @@ namespace Microsoft.CodeAnalysis
                                 }
                                 else
                                 {
-                                    hasCompleteReferences = false;
+                                    hasSuccessfullyLoaded = false;
                                 }
                             }
                         }
@@ -650,14 +637,52 @@ namespace Microsoft.CodeAnalysis
                         compilation = compilation.WithReferences(newReferences);
                     }
 
-                    this.WriteState(new FinalState(State.CreateValueSource(compilation, solution.Services), hasCompleteReferences), solution);
+                    bool hasSuccessfullyLoadedTransitively = !HasMissingReferences(compilation, this.ProjectState.MetadataReferences) && await ComputeHasSuccessfullyLoadedTransitivelyAsync(solution, hasSuccessfullyLoaded, cancellationToken).ConfigureAwait(false);
 
-                    return new CompilationInfo(compilation, hasCompleteReferences);
+                    this.WriteState(new FinalState(State.CreateValueSource(compilation, solution.Services), hasSuccessfullyLoadedTransitively), solution);
+                    return new CompilationInfo(compilation, hasSuccessfullyLoadedTransitively);
                 }
                 catch (Exception e) when (FatalError.ReportUnlessCanceled(e))
                 {
                     throw ExceptionUtilities.Unreachable;
                 }
+            }
+
+            private bool HasMissingReferences(Compilation compilation, IReadOnlyList<MetadataReference> metadataReferences)
+            {
+                foreach (var reference in metadataReferences)
+                {
+                    if (compilation.GetAssemblyOrModuleSymbol(reference) == null)
+                    {
+                        return true;
+                    }
+                }
+
+                return false;
+            }
+
+            private async Task<bool> ComputeHasSuccessfullyLoadedTransitivelyAsync(Solution solution, bool hasSuccessfullyLoaded, CancellationToken cancellationToken)
+            {
+                if (!hasSuccessfullyLoaded)
+                {
+                    return false;
+                }
+
+                foreach (var projectReference in this.ProjectState.ProjectReferences)
+                {
+                    var project = solution.GetProject(projectReference.ProjectId);
+                    if (project == null)
+                    {
+                        return false;
+                    }
+
+                    if (!await solution.HasSuccessfullyLoadedAsync(project, cancellationToken).ConfigureAwait(false))
+                    {
+                        return false;
+                    }
+                }
+
+                return true;
             }
 
             /// <summary>
@@ -792,6 +817,21 @@ namespace Microsoft.CodeAnalysis
                 // use cloned compilation since this will cause symbols to be created.
                 var clone = state.DeclarationOnlyCompilation.Clone();
                 return clone.GetSymbolsWithName(predicate, filter, cancellationToken).SelectMany(s => s.DeclaringSyntaxReferences.Select(r => r.SyntaxTree));
+            }
+
+            public Task<bool> HasSuccessfullyLoadedAsync(Solution solution, CancellationToken cancellationToken)
+            {
+                var state = this.ReadState();
+
+                if (state.HasSuccessfullyLoadedTransitively.HasValue)
+                {
+                    return state.HasSuccessfullyLoadedTransitively.Value ? SpecializedTasks.True : SpecializedTasks.False;
+                }
+                else
+                {
+                    return GetOrBuildCompilationInfoAsync(solution, lockGate: true, cancellationToken: cancellationToken)
+                        .ContinueWith(t => t.Result.HasSuccessfullyLoadedTransitively, cancellationToken, TaskContinuationOptions.ExecuteSynchronously | TaskContinuationOptions.OnlyOnRanToCompletion, TaskScheduler.Default);
+                }
             }
 
             #region Versions
