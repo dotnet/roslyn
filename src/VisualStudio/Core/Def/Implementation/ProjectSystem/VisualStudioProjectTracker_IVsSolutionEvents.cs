@@ -56,7 +56,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                 p.StopPushingToWorkspaceHosts();
             }
 
-            _solutionLoadComplete = false;
+            SolutionLoadComplete = false;
 
             return VSConstants.S_OK;
         }

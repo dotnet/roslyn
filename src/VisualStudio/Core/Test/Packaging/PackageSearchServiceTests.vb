@@ -35,6 +35,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Packaging
             Dim remoteControlService = New Mock(Of IPackageSearchRemoteControlService)
 
             Dim service = New PackageSearchService(
+                solutionLoadCompleteService:=TestSolutionLoadCompleteService.Instance,
                 installerService:=TestInstallerService.Instance,
                 remoteControlService:=remoteControlService.Object,
                 logService:=TestLogService.Instance,
@@ -65,6 +66,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Packaging
             Dim remoteControlService = New Mock(Of IPackageSearchRemoteControlService)
 
             Dim service = New PackageSearchService(
+                solutionLoadCompleteService:=TestSolutionLoadCompleteService.Instance,
                 installerService:=TestInstallerService.Instance,
                 remoteControlService:=remoteControlService.Object,
                 logService:=TestLogService.Instance,
@@ -102,6 +104,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Packaging
                 Callback(AddressOf cancellationTokenSource.Cancel)
 
             Dim searchService = New PackageSearchService(
+                solutionLoadCompleteService:=TestSolutionLoadCompleteService.Instance,
                 installerService:=TestInstallerService.Instance,
                 remoteControlService:=serviceMock.Object,
                 logService:=TestLogService.Instance,
@@ -145,6 +148,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Packaging
                 AddressOf cancellationTokenSource.Cancel)
 
             Dim searchService = New PackageSearchService(
+                solutionLoadCompleteService:=TestSolutionLoadCompleteService.Instance,
                 installerService:=TestInstallerService.Instance,
                 remoteControlService:=serviceMock.Object,
                 logService:=TestLogService.Instance,
@@ -180,6 +184,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Packaging
                 Callback(AddressOf cancellationTokenSource.Cancel)
 
             Dim searchService = New PackageSearchService(
+                solutionLoadCompleteService:=TestSolutionLoadCompleteService.Instance,
                 installerService:=TestInstallerService.Instance,
                 remoteControlService:=serviceMock.Object,
                 logService:=TestLogService.Instance,
@@ -228,6 +233,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Packaging
                 AddressOf cancellationTokenSource.Cancel)
 
             Dim searchService = New PackageSearchService(
+                solutionLoadCompleteService:=TestSolutionLoadCompleteService.Instance,
                 installerService:=TestInstallerService.Instance,
                 remoteControlService:=remoteControlMock.Object,
                 logService:=TestLogService.Instance,
@@ -271,6 +277,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Packaging
                 AddressOf cancellationTokenSource.Cancel)
 
             Dim searchService = New PackageSearchService(
+                solutionLoadCompleteService:=TestSolutionLoadCompleteService.Instance,
                 installerService:=TestInstallerService.Instance,
                 remoteControlService:=remoteControlMock.Object,
                 logService:=TestLogService.Instance,
@@ -318,6 +325,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Packaging
                 Callback(AddressOf cancellationTokenSource.Cancel)
 
             Dim searchService = New PackageSearchService(
+                solutionLoadCompleteService:=TestSolutionLoadCompleteService.Instance,
                 installerService:=TestInstallerService.Instance,
                 remoteControlService:=remoteControlMock.Object,
                 logService:=TestLogService.Instance,
@@ -376,6 +384,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Packaging
                 Callback(AddressOf cancellationTokenSource.Cancel)
 
             Dim searchService = New PackageSearchService(
+                solutionLoadCompleteService:=TestSolutionLoadCompleteService.Instance,
                 installerService:=TestInstallerService.Instance,
                 remoteControlService:=remoteControlMock.Object,
                 logService:=TestLogService.Instance,
@@ -421,6 +430,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Packaging
                 Callback(AddressOf cancellationTokenSource.Cancel)
 
             Dim searchService = New PackageSearchService(
+                solutionLoadCompleteService:=TestSolutionLoadCompleteService.Instance,
                 installerService:=TestInstallerService.Instance,
                 remoteControlService:=remoteControlMock.Object,
                 logService:=TestLogService.Instance,
@@ -474,6 +484,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Packaging
                 Callback(AddressOf cancellationTokenSource.Cancel)
 
             Dim searchService = New PackageSearchService(
+                solutionLoadCompleteService:=TestSolutionLoadCompleteService.Instance,
                 installerService:=TestInstallerService.Instance,
                 remoteControlService:=remoteControlMock.Object,
                 logService:=TestLogService.Instance,
@@ -533,6 +544,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Packaging
                 Callback(AddressOf cancellationTokenSource.Cancel)
 
             Dim searchService = New PackageSearchService(
+                solutionLoadCompleteService:=TestSolutionLoadCompleteService.Instance,
                 installerService:=TestInstallerService.Instance,
                 remoteControlService:=remoteControlMock.Object,
                 logService:=TestLogService.Instance,
@@ -588,6 +600,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Packaging
                 Callback(AddressOf cancellationTokenSource.Cancel)
 
             Dim searchService = New PackageSearchService(
+                solutionLoadCompleteService:=TestSolutionLoadCompleteService.Instance,
                 installerService:=TestInstallerService.Instance,
                 remoteControlService:=remoteControlMock.Object,
                 logService:=TestLogService.Instance,
@@ -726,6 +739,18 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Packaging
             Public ReadOnly Property CatastrophicFailureDelay As TimeSpan Implements IPackageSearchDelayService.CatastrophicFailureDelay
                 Get
                     Return TimeSpan.Zero
+                End Get
+            End Property
+        End Class
+
+        Private Class TestSolutionLoadCompleteService
+            Implements IPackageSearchSolutionLoadCompleteService
+
+            Public Shared ReadOnly Instance As TestSolutionLoadCompleteService = New TestSolutionLoadCompleteService()
+
+            Public ReadOnly Property SolutionLoadComplete As Boolean Implements IPackageSearchSolutionLoadCompleteService.SolutionLoadComplete
+                Get
+                    Return True
                 End Get
             End Property
         End Class

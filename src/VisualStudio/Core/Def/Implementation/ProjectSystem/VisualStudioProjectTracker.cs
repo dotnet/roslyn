@@ -48,7 +48,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
         /// should be pushed immediately to the workspace hosts. This may not actually result in changes
         /// being pushed to a particular host if <see cref="WorkspaceHostState.HostReadyForEvents"/> isn't true yet.
         /// </summary>
-        private bool _solutionLoadComplete = false;
+        internal bool SolutionLoadComplete { get; private set; }
 
         internal IEnumerable<AbstractProject> Projects { get { return _projectMap.Values; } }
 
@@ -89,7 +89,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                 int fActive;
                 if (ErrorHandler.Succeeded(shellMonitorSelection.IsCmdUIContextActive(fullyLoadedContextCookie, out fActive)) && fActive != 0)
                 {
-                    _solutionLoadComplete = true;
+                    SolutionLoadComplete = true;
                 }
             }
         }
@@ -203,7 +203,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 
             UpdateProjectBinPath(project, null, project.TryGetBinOutputPath());
 
-            if (_solutionLoadComplete)
+            if (SolutionLoadComplete)
             {
                 StartPushingToWorkspaceAndNotifyOfOpenDocuments(SpecializedCollections.SingletonEnumerable(project));
             }

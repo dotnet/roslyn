@@ -14,6 +14,7 @@ using Microsoft.CodeAnalysis.Elfie.Model.Tree;
 using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Packaging;
 using Microsoft.Internal.VisualStudio.Shell.Interop;
+using Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem;
 using Microsoft.VisualStudio.Settings;
 using Microsoft.VisualStudio.Shell.Interop;
 using Microsoft.VisualStudio.Shell.Settings;
@@ -33,8 +34,12 @@ namespace Microsoft.VisualStudio.LanguageServices.Packaging
     {
         private ConcurrentDictionary<string, AddReferenceDatabase> _sourceToDatabase = new ConcurrentDictionary<string, AddReferenceDatabase>();
 
-        public PackageSearchService(VSShell.SVsServiceProvider serviceProvider, IPackageInstallerService installerService)
-            : this(installerService, 
+        public PackageSearchService(
+            VisualStudioWorkspaceImpl workspace,
+            VSShell.SVsServiceProvider serviceProvider,
+            IPackageInstallerService installerService)
+            : this(new SolutionLoadCompleteService(workspace),
+                   installerService, 
                    CreateRemoteControlService(serviceProvider),
                    new LogService((IVsActivityLog)serviceProvider.GetService(typeof(SVsActivityLog))),
                    new DelayService(),
@@ -66,6 +71,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Packaging
         /// For testing purposes only.
         /// </summary>
         internal PackageSearchService(
+            IPackageSearchSolutionLoadCompleteService solutionLoadCompleteService,
             IPackageInstallerService installerService,
             IPackageSearchRemoteControlService remoteControlService,
             IPackageSearchLogService logService,
@@ -83,6 +89,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Packaging
                 return;
             }
 
+            _solutionLoadCompleteService = solutionLoadCompleteService;
             _installerService = installerService;
             _delayService = delayService;
             _ioService = ioService;

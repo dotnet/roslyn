@@ -158,8 +158,10 @@
     <Compile Include="Packaging\IPackageSearchLogService.cs" />
     <Compile Include="Packaging\IPackageSearchPatchService.cs" />
     <Compile Include="Packaging\IPackageSearchRemoteControlService.cs" />
+    <Compile Include="Packaging\IPackageSolutionLoadCompletedService.cs" />
     <Compile Include="Packaging\PackageInstallerServiceFactory.cs" />
     <Compile Include="Packaging\PackageInstallerServiceFactory_UndoRedo.cs" />
+    <Compile Include="Packaging\PackageSearchService.SolutionLoadCompleteService.cs" />
     <Compile Include="Packaging\PackageSearchService.Update.cs" />
     <Compile Include="Packaging\PackageSearchService.cs" />
     <Compile Include="Packaging\PackageSearchService.DatabaseFactoryService.cs" />

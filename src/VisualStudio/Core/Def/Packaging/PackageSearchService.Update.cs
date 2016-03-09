@@ -57,6 +57,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Packaging
 
         // Interfaces that abstract out the external functionality we need.  Used so we can easily
         // mock behavior during tests.
+        private readonly IPackageSearchSolutionLoadCompleteService _solutionLoadCompleteService;
         private readonly IPackageInstallerService _installerService;
         private readonly IPackageSearchDelayService _delayService;
         private readonly IPackageSearchIOService _ioService;
@@ -83,14 +84,27 @@ namespace Microsoft.VisualStudio.LanguageServices.Packaging
             var sources = _installerService.PackageSources;
             foreach (var source in sources)
             {
-                Task.Delay(TimeSpan.FromSeconds(10)).ContinueWith(_ =>
+                Task.Delay(TimeSpan.FromSeconds(1)).ContinueWith(_ =>
                     UpdateSourceInBackgroundAsync(source.Name), TaskScheduler.Default);
             }
         }
 
         // internal for testing purposes.
-        internal Task UpdateSourceInBackgroundAsync(string source)
+        internal async Task UpdateSourceInBackgroundAsync(string source)
         {
+            if (_cancellationToken.IsCancellationRequested)
+            {
+                return;
+            }
+
+            // If the solution hasn't loaded.  Back off a second until it does.
+            if (!_solutionLoadCompleteService.SolutionLoadComplete)
+            {
+                await Task.Delay(TimeSpan.FromSeconds(1)).ConfigureAwait(false);
+                await UpdateSourceInBackgroundAsync(source).ConfigureAwait(false);
+                return;
+            }
+
             // Only the first thread to try to update this source should succeed
             // and cause us to actually being the update loop. 
             var ourSentinel = new object();
@@ -99,12 +113,12 @@ namespace Microsoft.VisualStudio.LanguageServices.Packaging
             if (ourSentinel != currentSentinel)
             {
                 // We already have an update loop for this source.  Nothing for us to do.
-                return SpecializedTasks.EmptyTask;
+                return;
             }
 
             // We were the first ones to try to update this source.  Spawn off a task to do
             // the updating.
-            return new Updater(this, source).UpdateInBackgroundAsync();
+            await new Updater(this, source).UpdateInBackgroundAsync().ConfigureAwait(false);
         }
 
         private class Updater

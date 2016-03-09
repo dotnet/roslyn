@@ -50,7 +50,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             StartPushingToWorkspaceAndNotifyOfOpenDocuments(_projectMap.Values);
 
             // Also, all remaining project adds need to immediately pushed as well, since we're now "interactive"
-            _solutionLoadComplete = true;
+            SolutionLoadComplete = true;
 
             // Check that the set of analyzers is complete and consistent.
             GetAnalyzerDependencyCheckingService()?.CheckForConflictsAsync();
