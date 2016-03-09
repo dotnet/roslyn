@@ -7,7 +7,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Rename.CSharp
     Public Class AliasTests
         Private ReadOnly _outputHelper As ITestOutputHelper
 
-        Sub New(outputHelper As ITestOutputHelper)
+        Public Sub New(outputHelper As ITestOutputHelper)
             _outputHelper = outputHelper
         End Sub
 
