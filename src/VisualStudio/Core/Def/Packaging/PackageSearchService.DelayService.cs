@@ -10,7 +10,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Packaging
         {
             public TimeSpan CachePollDelay { get; } = TimeSpan.FromMinutes(1);
             public TimeSpan FileWriteDelay { get; } = TimeSpan.FromSeconds(10);
-            public TimeSpan UpdateFailedDelay { get; } = TimeSpan.FromMinutes(1);
+            public TimeSpan ExpectedFailureDelay { get; } = TimeSpan.FromMinutes(1);
+            public TimeSpan CatastrophicFailureDelay { get; } = TimeSpan.FromDays(1);
             public TimeSpan UpdateSucceededDelay { get; } = TimeSpan.FromDays(1);
         }
     }

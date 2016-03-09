@@ -508,9 +508,10 @@ namespace Microsoft.CodeAnalysis.CSharp
             EnterStatement(node);
 
             BoundSpillSequenceBuilder builder = null;
+            var preambleOpt = (BoundStatement)this.Visit(node.LoweredPreambleOpt);
             var boundExpression = VisitExpression(ref builder, node.BoundExpression);
             var switchSections = this.VisitList(node.SwitchSections);
-            return UpdateStatement(builder, node.Update(boundExpression, node.ConstantTargetOpt, node.InnerLocals, switchSections, node.BreakLabel, node.StringEquality), substituteTemps: true);
+            return UpdateStatement(builder, node.Update(preambleOpt, boundExpression, node.ConstantTargetOpt, node.InnerLocals, switchSections, node.BreakLabel, node.StringEquality), substituteTemps: true);
         }
 
         public override BoundNode VisitThrowStatement(BoundThrowStatement node)
