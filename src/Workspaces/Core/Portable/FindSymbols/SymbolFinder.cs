@@ -14,6 +14,10 @@ namespace Microsoft.CodeAnalysis.FindSymbols
 {
     public static partial class SymbolFinder
     {
+        /// <summary>
+        /// Obsolete.  Use <see cref="FindSymbolAtPositionAsync(SemanticModel, int, Workspace, CancellationToken)"/>.
+        /// </summary>
+        [Obsolete("Use FindSymbolAtPositionAsync instead.")]
         public static ISymbol FindSymbolAtPosition(
             SemanticModel semanticModel,
             int position,

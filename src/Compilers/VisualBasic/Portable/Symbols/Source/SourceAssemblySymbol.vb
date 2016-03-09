@@ -1005,7 +1005,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             ElseIf attrData.IsTargetAttribute(Me, AttributeDescription.AssemblyFileVersionAttribute) Then
                 Dim dummy As Version = Nothing
                 Dim verString = DirectCast(attrData.CommonConstructorArguments(0).Value, String)
-                If Not VersionHelper.TryParseAssemblyVersion(verString, allowWildcard:=False, version:=dummy) Then
+                If Not VersionHelper.TryParse(verString, version:=dummy) Then
                     arguments.Diagnostics.Add(ERRID.WRN_InvalidVersionFormat, GetAssemblyAttributeFirstArgumentLocation(arguments.AttributeSyntaxOpt))
                 End If
 
@@ -1631,8 +1631,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                 End If
             End If
 
-            keys = StrongNameKeys.Create(DeclaringCompilation.Options.StrongNameProvider, keyFile, keyContainer, MessageProvider.Instance)
-            Interlocked.CompareExchange(_lazyStrongNameKeys, keys, Nothing)
+                    keys = StrongNameKeys.Create(DeclaringCompilation.Options.StrongNameProvider, keyFile, keyContainer, MessageProvider.Instance)
+                Interlocked.CompareExchange(_lazyStrongNameKeys, keys, Nothing)
         End Sub
 
         Private Function ComputeIdentity() As AssemblyIdentity
@@ -1640,7 +1640,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             EnsureAttributesAreBound()
 
             Return New AssemblyIdentity(_assemblySimpleName,
-                                        Me.AssemblyVersionAttributeSetting,
+                                        VersionHelper.GenerateVersionFromPatternAndCurrentTime(_compilation.Options.CurrentLocalTime, AssemblyVersionAttributeSetting),
                                         Me.AssemblyCultureAttributeSetting,
                                         StrongNameKeys.PublicKey,
                                         hasPublicKey:=Not StrongNameKeys.PublicKey.IsDefault)

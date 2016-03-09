@@ -19,6 +19,14 @@
           "lib/net40/Esent.Interop.dll": {}
         }
       },
+      "Microsoft.CodeAnalysis.Elfie/0.10.6-rc2": {
+        "compile": {
+          "lib/net46/Microsoft.CodeAnalysis.Elfie.dll": {}
+        },
+        "runtime": {
+          "lib/net46/Microsoft.CodeAnalysis.Elfie.dll": {}
+        }
+      },
       "Microsoft.CodeAnalysis.Test.Resources.Proprietary/1.2.0-beta1-20160105-04": {
         "compile": {
           "lib/net45/Microsoft.CodeAnalysis.Test.Resources.Proprietary.dll": {}
@@ -415,6 +423,14 @@
         },
         "runtime": {
           "lib/net40/Esent.Interop.dll": {}
+        }
+      },
+      "Microsoft.CodeAnalysis.Elfie/0.10.6-rc2": {
+        "compile": {
+          "lib/net46/Microsoft.CodeAnalysis.Elfie.dll": {}
+        },
+        "runtime": {
+          "lib/net46/Microsoft.CodeAnalysis.Elfie.dll": {}
         }
       },
       "Microsoft.CodeAnalysis.Test.Resources.Proprietary/1.2.0-beta1-20160105-04": {
@@ -820,6 +836,15 @@
         "lib/net40/Esent.Interop.xml",
         "lib/netcore45/Esent.Interop.Wsa.dll",
         "lib/netcore45/Esent.Interop.Wsa.pdb"
+      ]
+    },
+    "Microsoft.CodeAnalysis.Elfie/0.10.6-rc2": {
+      "sha512": "nw8Gelt5AYgv9PLxK3MIB5hPnMoMoC2s73YXwcM3dxxim5yxRdPbzmBy0ddEeUa9zb57qoaDLYpCF8Zajg54Dg==",
+      "type": "package",
+      "files": [
+        "Microsoft.CodeAnalysis.Elfie.0.10.6-rc2.nupkg.sha512",
+        "Microsoft.CodeAnalysis.Elfie.nuspec",
+        "lib/net46/Microsoft.CodeAnalysis.Elfie.dll"
       ]
     },
     "Microsoft.CodeAnalysis.Test.Resources.Proprietary/1.2.0-beta1-20160105-04": {

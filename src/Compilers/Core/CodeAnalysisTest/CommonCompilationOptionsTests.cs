@@ -24,6 +24,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
                 "CryptoKeyContainer",
                 "CryptoKeyFile",
                 "CryptoPublicKey",
+                "CurrentLocalTime",
                 "DelaySign",
                 "Deterministic",
                 "EnableEditAndContinue",

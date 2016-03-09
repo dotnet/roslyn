@@ -661,6 +661,7 @@ namespace Microsoft.CodeAnalysis.Semantics
         OperatorMethodLessThanOrEqual = BinaryOperandsKind.OperatorMethod | SimpleBinaryOperationKind.LessThanOrEqual,
         OperatorMethodGreaterThanOrEqual = BinaryOperandsKind.OperatorMethod | SimpleBinaryOperationKind.GreaterThanOrEqual,
         OperatorMethodGreaterThan = BinaryOperandsKind.OperatorMethod | SimpleBinaryOperationKind.GreaterThan,
+        OperatorMethodPower = BinaryOperandsKind.OperatorMethod | SimpleBinaryOperationKind.Power,
 
         IntegerEquals = BinaryOperandsKind.Integer | SimpleBinaryOperationKind.Equals,
         IntegerNotEquals = BinaryOperandsKind.Integer | SimpleBinaryOperationKind.NotEquals,
