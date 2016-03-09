@@ -7,6 +7,7 @@ using System.Collections.Immutable;
 using System.Composition;
 using System.Diagnostics;
 using System.Linq;
+using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
@@ -15,6 +16,7 @@ using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Notification;
 using Microsoft.CodeAnalysis.Packaging;
+using Microsoft.CodeAnalysis.Shared.Options;
 using Microsoft.CodeAnalysis.Shared.Utilities;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.ComponentModelHost;
@@ -77,6 +79,20 @@ namespace Microsoft.VisualStudio.LanguageServices.Packaging
         {
             this.AssertIsForeground();
 
+            var options = workspace.Options;
+            if (!options.GetOption(ServiceComponentOnOffOptions.PackageSearch))
+            {
+                return;
+            }
+
+            ConnectWorker(workspace);
+        }
+
+        // Don't inline this method.  The references to nuget types will cause the nuget packages 
+        // to load.
+        [MethodImpl(MethodImplOptions.NoInlining)]
+        private void ConnectWorker(VisualStudioWorkspaceImpl workspace)
+        {
             var componentModel = workspace.GetVsService<SComponentModel, IComponentModel>();
             _packageInstallerServices = componentModel.GetExtensions<IVsPackageInstallerServices>().FirstOrDefault();
             _packageInstaller = componentModel.GetExtensions<IVsPackageInstaller>().FirstOrDefault();
@@ -106,13 +122,12 @@ namespace Microsoft.VisualStudio.LanguageServices.Packaging
         {
             this.AssertIsForeground();
 
-            Debug.Assert(workspace == _workspace);
-
             if (!this.IsEnabled)
             {
                 return;
             }
 
+            Debug.Assert(workspace == _workspace);
             _packageSourceProvider.SourcesChanged -= OnSourceProviderSourcesChanged;
             _workspace.WorkspaceChanged -= OnWorkspaceChanged;
 
