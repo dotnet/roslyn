@@ -46,14 +46,32 @@ namespace Microsoft.CodeAnalysis.CSharp
                         var temp = _factory.SynthesizedLocal(pat.Type);
                         var matched = DeclPattern(syntax, input, temp);
                         input = _factory.Local(temp);
-                        for (int i = 0; i < pat.Subpatterns.Length; i++)
+                        foreach (var subpattern in pat.Subpatterns)
                         {
-                            var subProperty = pat.Subpatterns[i].Property;
-                            var subPattern = pat.Subpatterns[i].Pattern;
-                            var subExpression =
-                                subProperty.Kind == SymbolKind.Field
-                                    ? (BoundExpression)_factory.Field(input, (FieldSymbol)subProperty)
-                                    : _factory.Call(input, ((PropertySymbol)subProperty).GetMethod);
+                            // TODO: review and test this code path.
+                            // https://github.com/dotnet/roslyn/issues/9542
+                            // e.g. Can the `as` below result in `null`?
+                            var subProperty = (subpattern.Member as BoundPropertyPatternMember)?.MemberSymbol;
+                            var subPattern = subpattern.Pattern;
+                            BoundExpression subExpression;
+                            switch (subProperty?.Kind)
+                            {
+                                case SymbolKind.Field:
+                                    subExpression = _factory.Field(input, (FieldSymbol)subProperty);
+                                    break;
+                                case SymbolKind.Property:
+                                    // TODO: review and test this code path.
+                                    // https://github.com/dotnet/roslyn/issues/9542
+                                    // e.g. https://github.com/dotnet/roslyn/pull/9505#discussion_r55320220
+                                    subExpression = _factory.Call(input, ((PropertySymbol)subProperty).GetMethod);
+                                    break;
+                                case SymbolKind.Event:
+                                    // TODO: should a property pattern be capable of referencing an event?
+                                    // https://github.com/dotnet/roslyn/issues/9515
+                                default:
+                                    throw ExceptionUtilities.Unreachable;
+                            }
+
                             var partialMatch = this.TranslatePattern(subExpression, subPattern);
                             matched = _factory.LogicalAnd(matched, partialMatch);
                         }
@@ -128,7 +146,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                 var tmpType = _factory.SpecialType(SpecialType.System_Nullable_T).Construct(type);
                 var tmp = _factory.SynthesizedLocal(tmpType, syntax);
                 var asg1 = _factory.AssignmentExpression(_factory.Local(tmp), _factory.As(input, tmpType));
-                var value = _factory.Call(_factory.Local(tmp), GetNullableMethod(syntax, tmpType, SpecialMember.System_Nullable_T_GetValueOrDefault));
+                var value = _factory.Call(
+                    _factory.Local(tmp),
+                    GetNullableMethod(syntax, tmpType, SpecialMember.System_Nullable_T_GetValueOrDefault));
                 var asg2 = _factory.AssignmentExpression(_factory.Local(target), value);
                 var result = MakeNullableHasValue(syntax, _factory.Local(tmp));
                 return _factory.Sequence(tmp, asg1, asg2, result);
@@ -143,7 +163,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                 //     return s;
                 // }
                 return _factory.Conditional(_factory.Is(input, type),
-                    _factory.Sequence(_factory.AssignmentExpression(_factory.Local(target), _factory.Convert(type, input)), _factory.Literal(true)),
+                    _factory.Sequence(_factory.AssignmentExpression(
+                        _factory.Local(target),
+                        _factory.Convert(type, input)),
+                        _factory.Literal(true)),
                     _factory.Literal(false),
                     _factory.SpecialType(SpecialType.System_Boolean));
             }

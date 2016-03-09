@@ -948,23 +948,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             return GetTypeInfoForQuery(bound);
         }
 
-        /// <summary>
-        /// Gets the symbol information for the property of a sub-property pattern.
-        /// </summary>
-        public override SymbolInfo GetSymbolInfo(SubPropertyPatternSyntax node, CancellationToken cancellationToken)
-        {
-            var boundNode = GetLowerBoundNode(node) as BoundSubPropertyPattern;
-            if (boundNode != null)
-            {
-                var property = boundNode.Property;
-                return new SymbolInfo(property, boundNode.ResultKind == LookupResultKind.Viable ? CandidateReason.None : boundNode.ResultKind.ToCandidateReason());
-            }
-            else
-            {
-                return default(SymbolInfo);
-            }
-        }
-
         private void GetBoundNodes(CSharpSyntaxNode node, out CSharpSyntaxNode bindableNode, out BoundNode lowestBoundNode, out BoundNode highestBoundNode, out BoundNode boundParent)
         {
             bindableNode = this.GetBindableSyntaxNode(node);
@@ -1637,8 +1620,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                             !(node is OrderingSyntax) &&
                             !(node is JoinIntoClauseSyntax) &&
                             !(node is QueryContinuationSyntax) &&
-                            !(node is ArrowExpressionClauseSyntax) &&
-                            !(node is SubPropertyPatternSyntax))
+                            !(node is ArrowExpressionClauseSyntax))
                         {
                             return GetBindableSyntaxNode(parent);
                         }

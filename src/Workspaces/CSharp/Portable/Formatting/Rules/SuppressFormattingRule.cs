@@ -159,9 +159,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
             }
 
             var propertyPattern = node as PropertyPatternSyntax;
-            if (propertyPattern?.PatternList != null)
+            if (propertyPattern != null)
             {
-                AddSuppressWrappingIfOnSingleLineOperation(list, propertyPattern.Type.GetFirstToken(), propertyPattern.PatternList.CloseBraceToken);
+                AddSuppressWrappingIfOnSingleLineOperation(list, propertyPattern.Type.GetFirstToken(), propertyPattern.CloseBraceToken);
             }
 
             var casePatternLabel = node as CasePatternSwitchLabelSyntax;
@@ -172,7 +172,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
                 propertyPattern = casePatternLabel.Pattern as PropertyPatternSyntax;
                 if (propertyPattern != null)
                 {
-                    AddSuppressOperation(list, propertyPattern.PatternList.CloseBraceToken, casePatternLabel.ColonToken, SuppressOption.NoWrapping);
+                    AddSuppressOperation(list, propertyPattern.CloseBraceToken, casePatternLabel.ColonToken, SuppressOption.NoWrapping);
                 }
             }
         }

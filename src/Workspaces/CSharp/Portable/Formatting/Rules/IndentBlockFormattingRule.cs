@@ -156,9 +156,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
             }
 
             var propertyPattern = node as PropertyPatternSyntax;
-            if (propertyPattern?.PatternList != null)
+            if (propertyPattern != null)
             {
-                SetAlignmentBlockOperation(list, propertyPattern.Type.GetFirstToken(), propertyPattern.PatternList.OpenBraceToken, propertyPattern.PatternList.CloseBraceToken, IndentBlockOption.RelativeToFirstTokenOnBaseTokenLine);
+                SetAlignmentBlockOperation(list, propertyPattern.Type.GetFirstToken(), propertyPattern.OpenBraceToken, propertyPattern.CloseBraceToken, IndentBlockOption.RelativeToFirstTokenOnBaseTokenLine);
                 return;
             }
         }

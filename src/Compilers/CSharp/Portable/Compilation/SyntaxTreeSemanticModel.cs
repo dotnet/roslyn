@@ -423,13 +423,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             return (model == null) ? default(TypeInfo) : model.GetTypeInfo(node, cancellationToken);
         }
 
-        public override SymbolInfo GetSymbolInfo(SubPropertyPatternSyntax node, CancellationToken cancellationToken)
-        {
-            CheckSyntaxNode(node);
-            var model = this.GetMemberModel(node);
-            return (model == null) ? default(SymbolInfo) : model.GetSymbolInfo(node, cancellationToken);
-        }
-
         public override IPropertySymbol GetDeclaredSymbol(AnonymousObjectMemberDeclaratorSyntax declaratorSyntax, CancellationToken cancellationToken = default(CancellationToken))
         {
             CheckSyntaxNode(declaratorSyntax);

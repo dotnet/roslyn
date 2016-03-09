@@ -241,6 +241,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
+        public override BoundNode VisitPropertyPatternMember(BoundPropertyPatternMember node)
+        {
+            throw ExceptionUtilities.Unreachable;
+        }
+
         /// <summary>
         /// Check if the given expression is known to *always* match, or *always* fail against the given pattern.
         /// Return true for known match, false for known fail, and null otherwise.
@@ -270,13 +275,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                         {
                             // so far so good: the expression is known to match the *type* of the property pattern.
                             // Now check if each subpattern is irrefutable.
-                            int n = propPattern.Subpatterns.Length;
-                            for (int i = 0; i < n; i++)
+                            foreach (var subpattern in propPattern.Subpatterns)
                             {
-                                var prop = propPattern.Subpatterns[i].Property;
-                                var pat = propPattern.Subpatterns[i].Pattern;
+                                var prop = (subpattern.Member as BoundPropertyPatternMember)?.MemberSymbol;
+                                var pat = subpattern.Pattern;
                                 BoundExpression subExpr;
-                                switch (prop.Kind)
+                                switch (prop?.Kind)
                                 {
                                     case SymbolKind.Property:
                                         var propSymbol = (PropertySymbol)prop;
@@ -286,6 +290,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                                         var fieldSymbol = (FieldSymbol)prop;
                                         subExpr = new BoundFieldAccess(pat.Syntax, null, fieldSymbol, null);
                                         break;
+                                    // TODO: what about events?
                                     default:
                                         return false;
                                 }
