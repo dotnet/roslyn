@@ -102,9 +102,16 @@ namespace Microsoft.VisualStudio.LanguageServices.Packaging
                 return SpecializedTasks.EmptyTask;
             }
 
-            // We were the first ones to try to update this source.  Spawn off a task to do
-            // the updating.
-            return new Updater(this, source).UpdateInBackgroundAsync();
+            if (_enabled)
+            {
+                // We were the first ones to try to update this source.  Spawn off a task to do
+                // the updating.
+                return new Updater(this, source).UpdateInBackgroundAsync();
+            }
+            else
+            {
+                return SpecializedTasks.EmptyTask;
+            }
         }
 
         private class Updater
