@@ -57,7 +57,7 @@ run_make()
     local is_good=false
  
     MAKE="make"
-    if [[ $OSTYPE == *bsd* ]]; then
+    if [[ $OSTYPE == *[Bb][Ss][Dd]* ]]; then
         MAKE="gmake"
     fi
 
@@ -87,6 +87,9 @@ if [ "$USE_CACHE" == "false" ]; then
     echo Clean out the toolsets
     make clean_toolset
 fi
+
+echo Building this commit:
+git show --no-patch --pretty=raw HEAD
 
 echo Building Bootstrap
 run_make bootstrap

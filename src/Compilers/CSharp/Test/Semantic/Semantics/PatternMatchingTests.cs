@@ -16,8 +16,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
     {
         private static CSharpParseOptions patternParseOptions =
             TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp6)
-                    .WithFeature("patterns", "true")
-                    .WithFeature("patternsExperimental", "true");
+                    .WithFeature(MessageID.IDS_FeaturePatternMatching.RequiredFeature(), "true")
+                    .WithFeature(MessageID.IDS_FeaturePatternMatching2.RequiredFeature(), "true");
 
         [Fact]
         public void SimplePatternTest()
@@ -419,7 +419,7 @@ public class X
     }
 }
 ";
-            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe, parseOptions: patternParseOptions.WithFeature("localFunctions", "true"));
+            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe, parseOptions: patternParseOptions.WithFeature(MessageID.IDS_FeatureLocalFunctions.RequiredFeature(), "true"));
             compilation.VerifyDiagnostics();
             var expectedOutput =
 @"False for 1
@@ -1040,38 +1040,80 @@ public class Program
     public static void Main()
     {
         object o = nameof(Main);
-        Console.WriteLine(o is string { Length is 4 });
-        Console.WriteLine(o is string { NotFound is 4 });
+        Console.WriteLine(o is P { Good is 4 });
+        Console.WriteLine(o is P { NotFound is 4 });
+        Console.WriteLine(o is P { Unreadable1 is 4 });
+        Console.WriteLine(o is P { Unreadable2 is 4 });
+        Console.WriteLine(o is P { Unreadable3 is 4 });
+
     }
+}
+class P
+{
+    public int Good = 2;
+    public int Unreadable1 { set { } }
+    public int Unreadable2 { set { } protected get { return 0; } }
+    protected int Unreadable3 = 3;
 }
 ";
             var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe, parseOptions: patternParseOptions);
 
             compilation.VerifyDiagnostics(
-                // (9,41): error CS0117: 'string' does not contain a definition for 'NotFound'
-                //         Console.WriteLine(o is string { NotFound is 4 });
-                Diagnostic(ErrorCode.ERR_NoSuchMember, "NotFound").WithArguments("string", "NotFound").WithLocation(9, 41)
+                // (9,36): error CS0117: 'P' does not contain a definition for 'NotFound'
+                //         Console.WriteLine(o is P { NotFound is 4 });
+                Diagnostic(ErrorCode.ERR_NoSuchMember, "NotFound").WithArguments("P", "NotFound").WithLocation(9, 36),
+                // (10,36): error CS0154: The property or indexer 'P.Unreadable1' cannot be used in this context because it lacks the get accessor
+                //         Console.WriteLine(o is P { Unreadable1 is 4 });
+                Diagnostic(ErrorCode.ERR_PropertyLacksGet, "Unreadable1").WithArguments("P.Unreadable1").WithLocation(10, 36),
+                // (11,36): error CS0271: The property or indexer 'P.Unreadable2' cannot be used in this context because the get accessor is inaccessible
+                //         Console.WriteLine(o is P { Unreadable2 is 4 });
+                Diagnostic(ErrorCode.ERR_InaccessibleGetter, "Unreadable2").WithArguments("P.Unreadable2").WithLocation(11, 36),
+                // (12,36): error CS0122: 'P.Unreadable3' is inaccessible due to its protection level
+                //         Console.WriteLine(o is P { Unreadable3 is 4 });
+                Diagnostic(ErrorCode.ERR_BadAccess, "Unreadable3").WithArguments("P.Unreadable3").WithLocation(12, 36)
                 );
             var tree = compilation.SyntaxTrees.Single();
             var model = compilation.GetSemanticModel(tree);
-            var propPats = tree.GetRoot().DescendantNodes().OfType<SubPropertyPatternSyntax>().ToArray();
-            Assert.Equal(2, propPats.Length);
 
-            var p = propPats[0]; // Length is 4
+            var propPats = tree.GetRoot().DescendantNodes().OfType<IsPatternExpressionSyntax>().Where(e => e.Parent is PropertyPatternSyntax).ToArray();
+            Assert.Equal(5, propPats.Length);
+
+            var p = propPats[0].Expression; // 'Good' in Good is 4
             var si = model.GetSymbolInfo(p);
             Assert.NotNull(si.Symbol);
-            Assert.Equal("Length", si.Symbol.Name);
+            Assert.Equal("Good", si.Symbol.Name);
             Assert.Equal(CandidateReason.None, si.CandidateReason);
             Assert.True(si.CandidateSymbols.IsDefaultOrEmpty);
 
-            p = propPats[1]; // NotFound is 4
+            p = propPats[1].Expression; // 'NotFound' in NotFound is 4
             si = model.GetSymbolInfo(p);
             Assert.Null(si.Symbol);
             Assert.Equal(CandidateReason.None, si.CandidateReason);
             Assert.True(si.CandidateSymbols.IsDefaultOrEmpty);
+
+            p = propPats[2].Expression; // 'Unreadable1' in Unreadable1 is 4
+            si = model.GetSymbolInfo(p);
+            Assert.Null(si.Symbol);
+            Assert.Equal(CandidateReason.NotAValue, si.CandidateReason);
+            Assert.Equal(1, si.CandidateSymbols.Length);
+            Assert.Equal("Unreadable1", si.CandidateSymbols[0].Name);
+
+            p = propPats[3].Expression; // 'Unreadable2' in Unreadable2 is 4
+            si = model.GetSymbolInfo(p);
+            Assert.Null(si.Symbol);
+            Assert.Equal(CandidateReason.NotAValue, si.CandidateReason);
+            Assert.Equal(1, si.CandidateSymbols.Length);
+            Assert.Equal("Unreadable2", si.CandidateSymbols[0].Name);
+
+            p = propPats[4].Expression; // 'Unreadable3' in Unreadable3 is 4
+            si = model.GetSymbolInfo(p);
+            Assert.Null(si.Symbol);
+            Assert.Equal(CandidateReason.Inaccessible, si.CandidateReason);
+            Assert.Equal(1, si.CandidateSymbols.Length);
+            Assert.Equal("Unreadable3", si.CandidateSymbols[0].Name);
         }
 
-        [Fact]
+        [Fact, WorkItem(9284, "https://github.com/dotnet/roslyn/issues/9284")]
         public void AmbiguousNamedProperty()
         {
             var source =
@@ -1081,7 +1123,7 @@ public class Program
 {
     public static void Main()
     {
-        object o = nameof(Main);
+        object o = null;
         Console.WriteLine(o is I3 { Property is 4 });
     }
 }
@@ -1098,20 +1140,102 @@ interface I3 : I1, I2 { }
             var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe, parseOptions: patternParseOptions);
 
             compilation.VerifyDiagnostics(
-                // (8,37): error CS0117: 'I3' does not contain a definition for 'Property'
+                // (8,37): error CS0229: Ambiguity between 'I1.Property' and 'I2.Property'
                 //         Console.WriteLine(o is I3 { Property is 4 });
-                Diagnostic(ErrorCode.ERR_NoSuchMember, "Property").WithArguments("I3", "Property").WithLocation(8, 37)
+                Diagnostic(ErrorCode.ERR_AmbigMember, "Property").WithArguments("I1.Property", "I2.Property").WithLocation(8, 37)
                 );
             var tree = compilation.SyntaxTrees.Single();
             var model = compilation.GetSemanticModel(tree);
-            var propPats = tree.GetRoot().DescendantNodes().OfType<SubPropertyPatternSyntax>().ToArray();
+            var propPats = tree.GetRoot().DescendantNodes().OfType<PropertyPatternSyntax>().SelectMany(s => s.SubPatterns).OfType<IsPatternExpressionSyntax>().ToArray();
             Assert.Equal(1, propPats.Length);
 
-            var p = propPats[0]; // Property is 4
+            var p = propPats[0].Expression; // 'Property' in "Property is 4"
             var si = model.GetSymbolInfo(p);
             Assert.Null(si.Symbol);
             Assert.Equal(CandidateReason.Ambiguous, si.CandidateReason);
-            // Assert.Equal(2, si.CandidateSymbols.Length); // skipped due to https://github.com/dotnet/roslyn/issues/9284
+            Assert.Equal(2, si.CandidateSymbols.Length);
+            Assert.Equal("I1", si.CandidateSymbols[0].ContainingSymbol.Name);
+            Assert.Equal("I2", si.CandidateSymbols[1].ContainingSymbol.Name);
+        }
+
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/9284"), WorkItem(9284, "https://github.com/dotnet/roslyn/issues/9284")]
+        public void StaticNamedProperty()
+        {
+            var source =
+@"
+using System;
+public class Program
+{
+    public static void Main()
+    {
+        object o = null;
+        Console.WriteLine(o is Point { X is 4 });
+    }
+}
+class Point
+{
+    public static int X => 0;
+}
+";
+            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe, parseOptions: patternParseOptions);
+
+            // TODO: need a better diagnostic for this
+            compilation.VerifyDiagnostics(
+                // (8,40): error CS0176: Member 'Point.X' cannot be accessed with an instance reference; qualify it with a type name instead
+                //         Console.WriteLine(o is Point { X is 4 });
+                Diagnostic(ErrorCode.ERR_ObjectProhibited, "X").WithArguments("Point.X").WithLocation(8, 40)
+                );
+            var tree = compilation.SyntaxTrees.Single();
+            var model = compilation.GetSemanticModel(tree);
+            var propPats = tree.GetRoot().DescendantNodes().OfType<PropertyPatternSyntax>().SelectMany(s => s.SubPatterns).OfType<IsPatternExpressionSyntax>().ToArray();
+            Assert.Equal(1, propPats.Length);
+
+            var p = propPats[0].Expression; // 'X' in "X is 4"
+            var si = model.GetSymbolInfo(p);
+            Assert.Null(si.Symbol);
+            Assert.Equal(1, si.CandidateSymbols.Length);
+            Assert.Equal("X", si.CandidateSymbols[0].Name);
+            Assert.Equal(CandidateReason.StaticInstanceMismatch, si.CandidateReason);
+        }
+
+        [Fact]
+        public void InaccessibleNamedProperty()
+        {
+            var source =
+@"
+using System;
+public class Program
+{
+    public static void Main()
+    {
+        object o = null;
+        Console.WriteLine(o is Point { X is 4 });
+    }
+}
+class Point
+{
+    protected int X => 0;
+}
+";
+            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe, parseOptions: patternParseOptions);
+
+            // TODO: need a better diagnostic for this
+            compilation.VerifyDiagnostics(
+                // (8,40): error CS0122: 'Point.X' is inaccessible due to its protection level
+                //         Console.WriteLine(o is Point { X is 4 });
+                Diagnostic(ErrorCode.ERR_BadAccess, "X").WithArguments("Point.X").WithLocation(8, 40)
+                );
+            var tree = compilation.SyntaxTrees.Single();
+            var model = compilation.GetSemanticModel(tree);
+            var propPats = tree.GetRoot().DescendantNodes().OfType<PropertyPatternSyntax>().SelectMany(s => s.SubPatterns).OfType<IsPatternExpressionSyntax>().ToArray();
+            Assert.Equal(1, propPats.Length);
+
+            var p = propPats[0].Expression; // 'X' in "X is 4"
+            var si = model.GetSymbolInfo(p);
+            Assert.Null(si.Symbol);
+            Assert.Equal(1, si.CandidateSymbols.Length);
+            Assert.Equal("X", si.CandidateSymbols[0].Name);
+            Assert.Equal(CandidateReason.Inaccessible, si.CandidateReason);
         }
 
         private static void VerifyModelForDeclarationPattern(SemanticModel model, DeclarationPatternSyntax decl, params IdentifierNameSyntax[] references)

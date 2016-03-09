@@ -774,6 +774,8 @@ End Class";
             using (var workspace = await TestWorkspace.CreateAsync(
                 SolutionCrawler, language, compilationOptions: null, parseOptions: null, content: code))
             {
+                SetOptions(workspace);
+
                 var analyzer = new Analyzer();
                 var lazyWorker = new Lazy<IIncrementalAnalyzerProvider, IncrementalAnalyzerProviderMetadata>(() => new AnalyzerProvider(analyzer), Metadata.Crawler);
                 var service = new SolutionCrawlerRegistrationService(new[] { lazyWorker }, GetListeners(workspace.ExportProvider));
@@ -934,6 +936,19 @@ End Class";
             }
         }
 
+        private static void SetOptions(Workspace workspace)
+        {
+            var optionService = workspace.Services.GetService<IOptionService>();
+
+            // override default timespan to make test run faster
+            optionService.SetOptions(optionService.GetOptions().WithChangedOption(InternalSolutionCrawlerOptions.ActiveFileWorkerBackOffTimeSpanInMS, 0)
+                                                               .WithChangedOption(InternalSolutionCrawlerOptions.AllFilesWorkerBackOffTimeSpanInMS, 0)
+                                                               .WithChangedOption(InternalSolutionCrawlerOptions.PreviewBackOffTimeSpanInMS, 0)
+                                                               .WithChangedOption(InternalSolutionCrawlerOptions.ProjectPropagationBackOffTimeSpanInMS, 0)
+                                                               .WithChangedOption(InternalSolutionCrawlerOptions.SemanticChangeBackOffTimeSpanInMS, 0)
+                                                               .WithChangedOption(InternalSolutionCrawlerOptions.EntireProjectWorkerBackOffTimeSpanInMS, 100));
+        }
+
         private class WorkCoordinatorWorkspace : TestWorkspace
         {
             private readonly IAsynchronousOperationWaiter _workspaceWaiter;
@@ -947,6 +962,8 @@ End Class";
 
                 Assert.False(_workspaceWaiter.HasPendingWork);
                 Assert.False(_solutionCrawlerWaiter.HasPendingWork);
+
+                SetOptions(this);
             }
 
             protected override void Dispose(bool finalize)

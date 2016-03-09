@@ -164,7 +164,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV1
                     }
                 }
 
-                if (!_document.SupportsSyntaxTree)
+                if (!_document.SupportsSyntaxTree || compilation == null)
                 {
                     return ImmutableArray<Diagnostic>.Empty;
                 }
@@ -245,7 +245,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV1
                     }
                 }
 
-                if (!_document.SupportsSyntaxTree)
+                if (!_document.SupportsSyntaxTree || compilation == null)
                 {
                     return ImmutableArray<Diagnostic>.Empty;
                 }

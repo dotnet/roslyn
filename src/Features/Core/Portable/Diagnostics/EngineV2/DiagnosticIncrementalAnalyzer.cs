@@ -186,7 +186,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
             }
         }
 
-        public override Task SynchronizeWithBuildAsync(Project project, ImmutableArray<DiagnosticData> diagnostics)
+        public override Task SynchronizeWithBuildAsync(DiagnosticAnalyzerService.BatchUpdateToken token, Project project, ImmutableArray<DiagnosticData> diagnostics)
         {
             // V2 engine doesn't do anything. 
             // it means live error always win over build errors. build errors that can't be reported by live analyzer
@@ -194,7 +194,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
             return SpecializedTasks.EmptyTask;
         }
 
-        public override Task SynchronizeWithBuildAsync(Document document, ImmutableArray<DiagnosticData> diagnostics)
+        public override Task SynchronizeWithBuildAsync(DiagnosticAnalyzerService.BatchUpdateToken token, Document document, ImmutableArray<DiagnosticData> diagnostics)
         {
             // V2 engine doesn't do anything. 
             // it means live error always win over build errors. build errors that can't be reported by live analyzer
@@ -223,6 +223,12 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                     this, DiagnosticsUpdatedArgs.DiagnosticsCreated(
                         ValueTuple.Create(this, kv.Key), workspace, solution, project.Id, kv.Key, kv.ToImmutableArrayOrEmpty()));
             }
+        }
+
+        public override bool ContainsDiagnostics(Workspace workspace, ProjectId projectId)
+        {
+            // for now, it always return false;
+            return false;
         }
     }
 }

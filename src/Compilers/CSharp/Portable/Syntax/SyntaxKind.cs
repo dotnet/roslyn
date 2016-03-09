@@ -547,8 +547,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         SubRecursivePattern = 9004,
         SubRecursivePatternList = 9005,
         PropertyPattern = 9006,
-        SubPropertyPattern = 9007,
-        SubPropertyPatternList = 9008,
+
         CasePatternSwitchLabel = 9009,
         MatchSection = 9010,
         MatchExpression = 9011,

@@ -313,10 +313,10 @@
     <value>Use 'var' when generating locals</value>
   </data>
   <data name="PreferIntrinsicPredefinedTypeKeywordInDeclaration" xml:space="preserve">
-    <value>Prefer intrinsic predefined type keyword when declaring locals, parameters and members</value>
+    <value>For locals, parameters and members</value>
   </data>
   <data name="PreferIntrinsicPredefinedTypeKeywordInMemberAccess" xml:space="preserve">
-    <value>Prefer intrinsic predefined type keyword in member access expressions</value>
+    <value>For member access expressions</value>
   </data>
   <data name="Option_AllowMovingDeclaration" xml:space="preserve">
     <value>_Move local declaration to the extracted method if it is not used elsewhere</value>
@@ -412,13 +412,13 @@
     <value>Type Inference preferences:</value>
   </data>
   <data name="UseVarForIntrinsicTypes" xml:space="preserve">
-    <value>Use 'var' for built-in types</value>
+    <value>For built-in types</value>
   </data>
   <data name="UseVarWhenPossible" xml:space="preserve">
-    <value>Use 'var' elsewhere</value>
+    <value>Elsewhere</value>
   </data>
   <data name="UseVarWhenTypeIsApparent" xml:space="preserve">
-    <value>Use 'var' when typing is apparent</value>
+    <value>When variable type is apparent</value>
   </data>
   <data name="QualifyEventAccessWithThis" xml:space="preserve">
     <value>Qualify event access with 'this'</value>
@@ -431,5 +431,32 @@
   </data>
   <data name="QualifyPropertyAccessWithThis" xml:space="preserve">
     <value>Qualify property access with 'this'</value>
+  </data>
+  <data name="PreferExplicitType" xml:space="preserve">
+    <value>Prefer explicit type</value>
+  </data>
+  <data name="PreferFrameworkType" xml:space="preserve">
+    <value>Prefer framework type</value>
+  </data>
+  <data name="PreferPredefinedType" xml:space="preserve">
+    <value>Prefer predefined type</value>
+  </data>
+  <data name="PreferThis" xml:space="preserve">
+    <value>Prefer 'this.'</value>
+  </data>
+  <data name="PreferVar" xml:space="preserve">
+    <value>Prefer 'var'</value>
+  </data>
+  <data name="QualifyGroupTitle" xml:space="preserve">
+    <value>'this.' preferences:</value>
+  </data>
+  <data name="VarGroupTitle" xml:space="preserve">
+    <value>'var' preferences:</value>
+  </data>
+  <data name="DoNotPreferThis" xml:space="preserve">
+    <value>Do not prefer 'this.'</value>
+  </data>
+  <data name="PredefinedTypesGroupTitle" xml:space="preserve">
+    <value>predefined type preferences:</value>
   </data>
 </root>

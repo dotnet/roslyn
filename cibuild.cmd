@@ -25,6 +25,10 @@ call "C:\Program Files (x86)\Microsoft Visual Studio 14.0\Common7\Tools\VsDevCmd
 
 powershell -noprofile -executionPolicy RemoteSigned -file "%RoslynRoot%\build\scripts\check-branch.ps1" || goto :BuildFailed
 
+REM Output the commit that we're building, for reference in Jenkins logs
+echo Building this commit:
+git show --no-patch --pretty=raw HEAD
+
 REM Restore the NuGet packages 
 call "%RoslynRoot%\Restore.cmd" || goto :BuildFailed
 
@@ -36,6 +40,7 @@ REM Set the build version only so the assembly version is set to the semantic ve
 REM which allows analyzers to load because the compiler has binding redirects to the
 REM semantic version
 msbuild %MSBuildAdditionalCommandLineArgs% /p:BuildVersion=0.0.0.0 "%RoslynRoot%build\Toolset.sln" /p:NuGetRestorePackages=false /p:Configuration=%BuildConfiguration% /fileloggerparameters:LogFile="%bindir%\Bootstrap.log" || goto :BuildFailed
+powershell -noprofile -executionPolicy RemoteSigned -file "%RoslynRoot%\build\scripts\check-msbuild.ps1" "%bindir%\Bootstrap.log" || goto :BuildFailed
 
 if not exist "%bindir%\Bootstrap" mkdir "%bindir%\Bootstrap" || goto :BuildFailed
 move "Binaries\%BuildConfiguration%\*" "%bindir%\Bootstrap" || goto :BuildFailed
@@ -53,6 +58,7 @@ if defined TestDeterminism (
 )
 
 msbuild %MSBuildAdditionalCommandLineArgs% /p:BootstrapBuildPath="%bindir%\Bootstrap" BuildAndTest.proj /p:Configuration=%BuildConfiguration% /p:Test64=%Test64% /fileloggerparameters:LogFile="%bindir%\Build.log";verbosity=diagnostic || goto :BuildFailed
+powershell -noprofile -executionPolicy RemoteSigned -file "%RoslynRoot%\build\scripts\check-msbuild.ps1" "%bindir%\Build.log" || goto :BuildFailed
 
 call :TerminateBuildProcesses
 
