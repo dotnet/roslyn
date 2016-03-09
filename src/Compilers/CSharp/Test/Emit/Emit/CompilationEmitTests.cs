@@ -2991,7 +2991,8 @@ public class X
 }";
             var compilation = CreateCompilationWithMscorlib(source);
             var broken = new BrokenStream();
-            broken.BreakHow = BrokenStream.BreakHowType.ThrowOnWriteWithOperationCancelled;
+            broken.BreakHow = BrokenStream.BreakHowType.CancelOnWrite;
+
             Assert.Throws<OperationCanceledException>(() => compilation.Emit(broken));
         }
     }

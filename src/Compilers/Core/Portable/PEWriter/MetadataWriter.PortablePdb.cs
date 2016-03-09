@@ -102,7 +102,9 @@ namespace Microsoft.Cci
 
             // documents & sequence points:
             int singleDocumentRowId;
-            BlobIdx sequencePointsBlob = SerializeSequencePoints(localSignatureRowId, bodyOpt.GetSequencePoints(), _documentIndex, out singleDocumentRowId);
+            ArrayBuilder<Cci.SequencePoint> sequencePoints = ArrayBuilder<Cci.SequencePoint>.GetInstance();
+            bodyOpt.GetSequencePoints(sequencePoints);
+            BlobIdx sequencePointsBlob = SerializeSequencePoints(localSignatureRowId, sequencePoints.ToImmutableAndFree(), _documentIndex, out singleDocumentRowId);
             _methodDebugInformationTable.Add(new MethodDebugInformationRow { Document = (uint)singleDocumentRowId, SequencePoints = sequencePointsBlob });
 
             // Unlike native PDB we don't emit an empty root scope.
