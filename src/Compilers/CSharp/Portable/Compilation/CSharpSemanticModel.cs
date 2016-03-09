@@ -1378,13 +1378,21 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 Debug.Assert((object)container == null);
                 TypeSymbol containingType = binder.ContainingType;
-                TypeSymbol baseType;
+                TypeSymbol baseType = null;
+
+                // For a script class or a submission class base should have no members.
+                if ((object)containingType != null && containingType.Kind == SymbolKind.NamedType && ((NamedTypeSymbol)containingType).IsScriptClass)
+                {
+                    return ImmutableArray<Symbol>.Empty;
+                }
+
                 if ((object)containingType == null || (object)(baseType = containingType.BaseTypeNoUseSiteDiagnostics) == null)
                 {
                     throw new ArgumentException(
                         "Not a valid position for a call to LookupBaseMembers (must be in a type with a base type)",
                         nameof(position));
                 }
+
                 container = baseType;
             }
 
