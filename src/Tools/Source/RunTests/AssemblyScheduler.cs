@@ -223,9 +223,7 @@ namespace RunTests
                     continue;
                 }
 
-                var namespaceName = reader.GetString(type.Namespace);
-                var typeName = reader.GetString(type.Name);
-                var fullName = $"{namespaceName}.{typeName}";
+                var fullName = GetFullName(reader, type);
                 list.Add(new TypeInfo(fullName, methodCount));
             }
 
@@ -242,7 +240,10 @@ namespace RunTests
         private static bool ShouldIncludeType(MetadataReader reader, TypeDefinition type, int testMethodCount)
         {
             // xunit only handles public, non-abstract classes
-            if (TypeAttributes.Public != (type.Attributes & TypeAttributes.Public) ||
+            var isPublic =
+                TypeAttributes.Public == (type.Attributes & TypeAttributes.Public) ||
+                TypeAttributes.NestedPublic == (type.Attributes & TypeAttributes.NestedPublic);
+            if (!isPublic ||
                 TypeAttributes.Abstract == (type.Attributes & TypeAttributes.Abstract)  ||
                 TypeAttributes.Class != (type.Attributes & TypeAttributes.Class))
             {
@@ -270,7 +271,6 @@ namespace RunTests
 
         private static int GetMethodCount(MetadataReader reader, TypeDefinition type)
         {
-
             var count = 0;
             foreach (var handle in type.GetMethods())
             {
@@ -319,6 +319,22 @@ namespace RunTests
             return 
                 reader.GetString(typeRef.Namespace) == "System" && 
                 reader.GetString(typeRef.Name) == "Object";
+        }
+
+        private static string GetFullName(MetadataReader reader, TypeDefinition type)
+        {
+            var typeName = reader.GetString(type.Name);
+
+            if (TypeAttributes.NestedPublic == (type.Attributes & TypeAttributes.NestedPublic))
+            {
+                // Need to take into account the containing type.
+                var declaringType = reader.GetTypeDefinition(type.GetDeclaringType());
+                var declaringTypeFullName = GetFullName(reader, declaringType);
+                return $"{declaringTypeFullName}+{typeName}";
+            }
+            
+            var namespaceName = reader.GetString(type.Namespace);
+            return $"{namespaceName}.{typeName}";
         }
     }
 }
