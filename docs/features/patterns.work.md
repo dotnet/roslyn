@@ -9,6 +9,7 @@ Open design issues (needing LDM decisions)
 - [ ] What do we think about the let statement?
 - [ ] There are some scoping questions for pattern variables. #9452
   - [ ] Need to get LDM approval for design change around scope of pattern variables declared within a constructor initializer #9452 
+  - [ ] Also questions about multiple field initializers, local initializers, ctor-initializers (how far does the scope extend?)
 - [ ] Need detailed spec for name lookup of property in a property pattern #9255
   - [ ] [Pattern Matching] Should a property-pattern be capable of referencing an event? #9515
 - [ ] Two small clarifications need to be integrated into the spec (#7703)
