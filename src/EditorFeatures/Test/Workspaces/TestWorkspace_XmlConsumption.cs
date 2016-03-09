@@ -382,7 +382,11 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
             var features = entries.Select(x =>
             {
                 var split = x.Split('=');
-                return new KeyValuePair<string, string>(split[0], split[1]);
+
+                var key = split[0];
+                var value = split.Length == 2 ? split[1] : "true";
+
+                return new KeyValuePair<string, string>(key, value);
             });
 
             return parseOptions.WithFeatures(features);

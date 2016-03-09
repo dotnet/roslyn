@@ -641,6 +641,26 @@ Use the dropdown to view and switch to other projects this file may belong to.</
   <data name="Package_uninstall_failed_0" xml:space="preserve">
     <value>Package uninstall failed: {0}</value>
   </data>
+  <data name="IntellisenseBuildFailedMessage" xml:space="preserve">
+    <value>Error encountered while loading the project. Some project features, such as full solution analysis for the failed project and projects that depend on it, have been disabled.</value>
+  </data>
+  <data name="IntellisenseBuildFailedTitle" xml:space="preserve">
+    <value>Project loading failed.</value>
+  </data>
+  <data name="IntellisenseBuildFailedDescription" xml:space="preserve">
+    <value>To see what caused the issue, please try below.
+
+1. Close Visual Studio
+2. Open a Visual Studio Developer Command Prompt
+3. Set environment variable “TraceDesignTime” to true (set TraceDesignTime=true)
+4. Delete .vs directory/.suo file
+5. Restart VS from the command prompt you set the environment varaible (devenv)
+6. Open the solution
+7. Check '{0}' and look for the failed tasks (FAILED)</value>
+  </data>
+  <data name="IntellisenseBuildFailedDescriptionExtra" xml:space="preserve">
+    <value>Additional information:</value>
+  </data>
   <data name="Installing_0_failed_Additional_information_1" xml:space="preserve">
     <value>Installing '{0}' failed.
 
