@@ -352,6 +352,14 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             CultureInfo.CurrentCulture = culture;
         }
 
+        [WorkItem(9484, "https://github.com/dotnet/roslyn/issues/9484")]
+        [Fact]
+        public void TestEscapeLineSeparator()
+        {
+            var literal = SyntaxFactory.Literal("\u2028");
+            Assert.Equal("\"\\u2028\"", literal.Text);
+        }
+
         private static void CheckLiteralToString(dynamic value, string expected)
         {
             var literal = SyntaxFactory.Literal(value);

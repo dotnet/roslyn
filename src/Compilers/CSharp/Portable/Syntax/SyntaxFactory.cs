@@ -723,15 +723,15 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         /// <summary>
-        /// Creates a threadsafty element within an xml documentation comment.
+        /// Creates a threadsafety element within an xml documentation comment.
         /// </summary>
-        /// <param name="static">Indicates whether static member of this class are safe for multi-threaded operations.</param>
-        /// <param name="instance">Indicates whether members of instances of this type are safe for multi-threaded operations.</param>
-        public static XmlEmptyElementSyntax XmlThreadSafetyElement(bool @static, bool instance)
+        /// <param name="isStatic">Indicates whether static member of this type are safe for multi-threaded operations.</param>
+        /// <param name="isInstance">Indicates whether instance members of this type are safe for multi-threaded operations.</param>
+        public static XmlEmptyElementSyntax XmlThreadSafetyElement(bool isStatic, bool isInstance)
         {
             return XmlEmptyElement(DocumentationCommentXmlNames.ThreadSafetyElementName).AddAttributes(
-                XmlTextAttribute(DocumentationCommentXmlNames.StaticAttributeName, @static.ToString().ToLowerInvariant()),
-                XmlTextAttribute(DocumentationCommentXmlNames.InstanceAttributeName, instance.ToString().ToLowerInvariant()));
+                XmlTextAttribute(DocumentationCommentXmlNames.StaticAttributeName, isStatic.ToString().ToLowerInvariant()),
+                XmlTextAttribute(DocumentationCommentXmlNames.InstanceAttributeName, isInstance.ToString().ToLowerInvariant()));
         }
 
         /// <summary>

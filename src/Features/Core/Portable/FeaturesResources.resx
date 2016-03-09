@@ -928,6 +928,31 @@ Do you want to continue?</value>
   <data name="NamingStylesDiagnosticTitle" xml:space="preserve">
     <value>Naming Styles</value>
   </data>
+  <data name="from_0" xml:space="preserve">
+    <value>from {0}</value>
+  </data>
+  <data name="Find_and_install_latest_version" xml:space="preserve">
+    <value>Find and install latest version</value>
+  </data>
+  <data name="Use_local_version_0" xml:space="preserve">
+    <value>Use local version '{0}'</value>
+  </data>
+  <data name="Use_locally_installed_0_version_1_This_version_used_in_2" xml:space="preserve">
+    <value>Use locally installed '{0}' version '{1}'
+This version used in: {2}</value>
+  </data>
+  <data name="Find_and_install_latest_version_of_0" xml:space="preserve">
+    <value>Find and install latest version of '{0}'</value>
+  </data>
+  <data name="Install_with_package_manager" xml:space="preserve">
+    <value>Install with package manager...</value>
+  </data>
+  <data name="Install_0_1" xml:space="preserve">
+    <value>Install '{0} {1}'</value>
+  </data>
+  <data name="Install_version_0" xml:space="preserve">
+    <value>Install version '{0}'</value>
+  </data>
   <data name="Generate_variable" xml:space="preserve">
     <value>Generate variable</value>
   </data>

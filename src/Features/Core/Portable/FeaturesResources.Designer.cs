@@ -827,6 +827,24 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Find and install latest version.
+        /// </summary>
+        internal static string Find_and_install_latest_version {
+            get {
+                return ResourceManager.GetString("Find_and_install_latest_version", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Find and install latest version of &apos;{0}&apos;.
+        /// </summary>
+        internal static string Find_and_install_latest_version_of_0 {
+            get {
+                return ResourceManager.GetString("Find_and_install_latest_version_of_0", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Fix all occurrences.
         /// </summary>
         internal static string FixAllOccurrences {
@@ -859,6 +877,15 @@ namespace Microsoft.CodeAnalysis {
         internal static string FixAllTitle_Solution {
             get {
                 return ResourceManager.GetString("FixAllTitle_Solution", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to from {0}.
+        /// </summary>
+        internal static string from_0 {
+            get {
+                return ResourceManager.GetString("from_0", resourceCulture);
             }
         }
         
@@ -1219,6 +1246,33 @@ namespace Microsoft.CodeAnalysis {
         internal static string InsertLambdaWithMultiScopeCapture {
             get {
                 return ResourceManager.GetString("InsertLambdaWithMultiScopeCapture", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Install &apos;{0} {1}&apos;.
+        /// </summary>
+        internal static string Install_0_1 {
+            get {
+                return ResourceManager.GetString("Install_0_1", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Install version &apos;{0}&apos;.
+        /// </summary>
+        internal static string Install_version_0 {
+            get {
+                return ResourceManager.GetString("Install_version_0", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Install with package manager....
+        /// </summary>
+        internal static string Install_with_package_manager {
+            get {
+                return ResourceManager.GetString("Install_with_package_manager", resourceCulture);
             }
         }
         
@@ -2382,6 +2436,25 @@ namespace Microsoft.CodeAnalysis {
         internal static string UpdatingTheVarianceOf {
             get {
                 return ResourceManager.GetString("UpdatingTheVarianceOf", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Use local version &apos;{0}&apos;.
+        /// </summary>
+        internal static string Use_local_version_0 {
+            get {
+                return ResourceManager.GetString("Use_local_version_0", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Use locally installed &apos;{0}&apos; version &apos;{1}&apos;
+        ///This version used in: {2}.
+        /// </summary>
+        internal static string Use_locally_installed_0_version_1_This_version_used_in_2 {
+            get {
+                return ResourceManager.GetString("Use_locally_installed_0_version_1_This_version_used_in_2", resourceCulture);
             }
         }
         

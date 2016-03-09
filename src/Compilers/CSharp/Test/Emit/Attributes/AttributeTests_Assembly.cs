@@ -13,6 +13,7 @@ using Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Emit;
 using Microsoft.CodeAnalysis.Test.Utilities;
+using Microsoft.CodeAnalysis.UnitTests;
 using Roslyn.Test.Utilities;
 using Xunit;
 
@@ -33,7 +34,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Fact]
-        public void VersionAttribute02()
+        public void VersionAttribute_FourParts()
         {
             string s = @"[assembly: System.Reflection.AssemblyVersion(""1.22.333.4444"")] public class C {}";
 
@@ -42,13 +43,51 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             {
                 Assert.Equal(new Version(1, 22, 333, 4444), r.Version);
             });
+        }
 
-            s = @"[assembly: System.Reflection.AssemblyVersion(""10101.0.*"")] public class C {}";
-            comp = CreateCompilationWithMscorlib(s, options: TestOptions.ReleaseDll);
+        [Fact]
+        public void VersionAttribute_TwoParts()
+        {
+            var s = @"[assembly: System.Reflection.AssemblyVersion(""1.2"")] public class C {}";
+            var comp = CreateCompilationWithMscorlib(s, options: TestOptions.ReleaseDll);
+            VerifyAssemblyTable(comp, r =>
+            {
+                Assert.Equal(1, r.Version.Major);
+                Assert.Equal(2, r.Version.Minor);
+                Assert.Equal(0, r.Version.Build);
+                Assert.Equal(0, r.Version.Revision);
+            });
+        }
+
+        [Fact]
+        public void VersionAttribute_WildCard()
+        {
+            var now = DateTime.Now;
+            int days, seconds;
+            VersionTestHelpers.GetDefautVersion(now, out days, out seconds);
+
+            var s = @"[assembly: System.Reflection.AssemblyVersion(""10101.0.*"")] public class C {}";
+            var comp = CreateCompilationWithMscorlib(s, options: TestOptions.ReleaseDll.WithCurrentLocalTime(now));
             VerifyAssemblyTable(comp, r =>
             {
                 Assert.Equal(10101, r.Version.Major);
                 Assert.Equal(0, r.Version.Minor);
+                Assert.Equal(days, r.Version.Build);
+                Assert.Equal(seconds, r.Version.Revision);
+            });
+        }
+
+        [Fact]
+        public void VersionAttribute_Overflow()
+        {
+            var s = @"[assembly: System.Reflection.AssemblyVersion(""10101.0.*"")] public class C {}";
+            var comp = CreateCompilationWithMscorlib(s, options: TestOptions.ReleaseDll.WithCurrentLocalTime(new DateTime(2300, 1, 1)));
+            VerifyAssemblyTable(comp, r =>
+            {
+                Assert.Equal(10101, r.Version.Major);
+                Assert.Equal(0, r.Version.Minor);
+                Assert.Equal(65535, r.Version.Build);
+                Assert.Equal(0, r.Version.Revision);
             });
         }
 
@@ -82,7 +121,27 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Fact]
-        public void FileVersionAttributeWrn()
+        public void FileVersionAttribute_MissingParts()
+        {
+            string s = @"[assembly: System.Reflection.AssemblyFileVersion(""1.2"")] public class C {}";
+
+            var other = CreateCompilationWithMscorlib(s, options: TestOptions.ReleaseDll);
+            Assert.Empty(other.GetDiagnostics());
+            Assert.Equal("1.2", ((SourceAssemblySymbol)other.Assembly).FileVersion);
+        }
+
+        [Fact]
+        public void FileVersionAttribute_MaxValue()
+        {
+            string s = @"[assembly: System.Reflection.AssemblyFileVersion(""65535.65535.65535.65535"")] public class C {}";
+
+            var other = CreateCompilationWithMscorlib(s, options: TestOptions.ReleaseDll);
+            Assert.Empty(other.GetDiagnostics());
+            Assert.Equal("65535.65535.65535.65535", ((SourceAssemblySymbol)other.Assembly).FileVersion);
+        }
+
+        [Fact]
+        public void FileVersionAttributeWrn_Wildcard()
         {
             string s = @"[assembly: System.Reflection.AssemblyFileVersion(""1.2.*"")] public class C {}";
 
@@ -90,7 +149,22 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             other.VerifyDiagnostics(Diagnostic(ErrorCode.WRN_InvalidVersionFormat, @"""1.2.*"""));
 
             // Confirm that suppressing the old alink warning 1607 shuts off WRN_ConflictingMachineAssembly
-            var warnings = new System.Collections.Generic.Dictionary<string, ReportDiagnostic>();
+            var warnings = new Dictionary<string, ReportDiagnostic>();
+            warnings.Add(MessageProvider.Instance.GetIdForErrorCode((int)ErrorCode.WRN_ALinkWarn), ReportDiagnostic.Suppress);
+            other = other.WithOptions(other.Options.WithSpecificDiagnosticOptions(warnings));
+            other.VerifyEmitDiagnostics();
+        }
+
+        [Fact]
+        public void FileVersionAttributeWarning_OutOfRange()
+        {
+            string s = @"[assembly: System.Reflection.AssemblyFileVersion(""1.65536"")] public class C {}";
+
+            var other = CreateCompilationWithMscorlib(s, options: TestOptions.ReleaseDll);
+            other.VerifyDiagnostics(Diagnostic(ErrorCode.WRN_InvalidVersionFormat, @"""1.65536"""));
+
+            // Confirm that suppressing the old alink warning 1607 shuts off WRN_ConflictingMachineAssembly
+            var warnings = new Dictionary<string, ReportDiagnostic>();
             warnings.Add(MessageProvider.Instance.GetIdForErrorCode((int)ErrorCode.WRN_ALinkWarn), ReportDiagnostic.Suppress);
             other = other.WithOptions(other.Options.WithSpecificDiagnosticOptions(warnings));
             other.VerifyEmitDiagnostics();

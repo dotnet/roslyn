@@ -175,6 +175,7 @@
     <Compile Include="CodeActions\IntroduceVariable\IntroduceVariableTests.cs" />
     <Compile Include="CodeActions\InvertIf\InvertIfTests.cs" />
     <Compile Include="CodeActions\LambdaSimplifier\LambdaSimplifierTests.cs" />
+    <Compile Include="Diagnostics\AddUsing\AddUsingTests_NuGet.cs" />
     <Compile Include="Diagnostics\MakeMethodSynchronous\MakeMethodSynchronousTests.cs" />
     <Compile Include="CodeActions\MoveDeclarationNearReference\MoveDeclarationNearReferenceTests.cs" />
     <Compile Include="CodeActions\Preview\ErrorCases\ExceptionInCodeAction.cs" />
