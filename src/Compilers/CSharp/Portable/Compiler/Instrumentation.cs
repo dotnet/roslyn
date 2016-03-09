@@ -1,4 +1,6 @@
-﻿using System;
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+
+using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
@@ -98,7 +100,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         private static FieldSymbol GetPayloadField(MethodSymbol method, int methodOrdinal, TypeSymbol payloadType, SyntheticBoundNodeFactory factory)
         {
             // If the type containing the method is generic, synthesize a helper type and put the payload field there.
-            // If the payload field is part of a generic type, there will be a new instance of the field per instantiation of the generic.
+            // If the payload field is part of a generic type, there will be a new instance of the field per instantiation of the generic,
+            // and so the payload field must be a member of another type.
 
             SynthesizedFieldSymbol payloadField = new SynthesizedFieldSymbol(method.ContainingType, payloadType, method.Name + "*instrumentation*" + methodOrdinal.ToString(), isStatic: true);
             factory.AddField(method.ContainingType, payloadField);
