@@ -32,9 +32,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
                 && IsBeforeToken(position, expressionBodyOpt, semicolonToken);
         }
 
-        internal static bool IsInBody(int position, BlockSyntax blockOpt = default(BlockSyntax),
-                                      ArrowExpressionClauseSyntax exprOpt = default(ArrowExpressionClauseSyntax),
-                                      SyntaxToken semiOpt = default(SyntaxToken))
+        private static bool IsInBody(int position, BlockSyntax blockOpt, ArrowExpressionClauseSyntax exprOpt, SyntaxToken semiOpt)
         {
             return IsInExpressionBody(position, exprOpt, semiOpt)
                 || IsInBlock(position, blockOpt);
@@ -47,7 +45,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         /// </summary>
         internal static bool IsInBody(int position,
             PropertyDeclarationSyntax property)
-            => IsInBody(position, exprOpt: property.GetExpressionBodySyntax(), semiOpt: property.SemicolonToken);
+            => IsInBody(position, default(BlockSyntax), property.GetExpressionBodySyntax(), property.SemicolonToken);
 
         /// <summary>
         /// A position is inside a property body only if it is inside an expression body.
@@ -56,7 +54,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         /// </summary>
         internal static bool IsInBody(int position,
             IndexerDeclarationSyntax indexer)
-            => IsInBody(position, exprOpt: indexer.GetExpressionBodySyntax(), semiOpt: indexer.SemicolonToken);
+            => IsInBody(position, default(BlockSyntax), indexer.GetExpressionBodySyntax(), indexer.SemicolonToken);
 
         /// <summary>
         /// A position is inside an accessor body if it is inside the block or expression
@@ -179,8 +177,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
                     IsBetweenTokens(position, initializerOpt.ColonToken, nextToken);
             }
 
-            Debug.Assert(constructorDecl.Body != null || (constructorDecl.ExpressionBody != null && constructorDecl.SemicolonToken!= null), 
-                "Either complete body or complete expression body with semicolon must be set here");
             return initializerOpt == null ?
                 IsInBody(position, constructorDecl) :
                 IsBetweenTokens(position, initializerOpt.ColonToken, constructorDecl.Body?.CloseBraceToken ?? constructorDecl.SemicolonToken);

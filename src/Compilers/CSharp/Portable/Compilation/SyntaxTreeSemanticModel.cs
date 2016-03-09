@@ -982,6 +982,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                     {
                         SourceMethodSymbol symbol = null;
                         MemberDeclarationSyntax memberSyntax;
+                        AccessorDeclarationSyntax accessorSyntax;
+
                         var exprDecl = (ArrowExpressionClauseSyntax)node;
 
                         if (node.Parent is BasePropertyDeclarationSyntax)
@@ -990,11 +992,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                         }
                         else if ((memberSyntax = node.Parent as MemberDeclarationSyntax) != null)
                         {
-                            symbol = (SourceMethodSymbol)GetDeclaredSymbol(node.Parent as MemberDeclarationSyntax);
+                            symbol = (SourceMethodSymbol)GetDeclaredSymbol(memberSyntax);
                         }
-                        else if (node.Parent is AccessorDeclarationSyntax)
+                        else if ((accessorSyntax = node.Parent as AccessorDeclarationSyntax) != null)
                         {
-                            symbol = (SourceMethodSymbol)GetDeclaredSymbol(node.Parent as AccessorDeclarationSyntax);
+                            symbol = (SourceMethodSymbol)GetDeclaredSymbol(accessorSyntax);
                         }
                         else
                         {
