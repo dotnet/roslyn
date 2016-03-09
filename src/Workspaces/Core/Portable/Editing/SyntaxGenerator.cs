@@ -4,12 +4,9 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
-using System.Threading;
-using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Shared.Extensions;
-using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Editing
@@ -22,6 +19,11 @@ namespace Microsoft.CodeAnalysis.Editing
     public abstract class SyntaxGenerator : ILanguageService
     {
         public static SyntaxRemoveOptions DefaultRemoveOptions = SyntaxRemoveOptions.KeepUnbalancedDirectives | SyntaxRemoveOptions.AddElasticMarker;
+
+        //// Use an internal constructor so this is only derivable by our own types.
+        internal SyntaxGenerator()
+        {
+        }
 
         /// <summary>
         /// Gets the <see cref="SyntaxGenerator"/> for the specified language.
@@ -155,18 +157,264 @@ namespace Microsoft.CodeAnalysis.Editing
         }
 
         /// <summary>
-        /// Creates a method declaration.
+        /// Creates an implicit conversion declaration.
         /// </summary>
-        public virtual SyntaxNode OperatorDeclaration(
-            OperatorKind kind,
+        public abstract SyntaxNode ImplicitConversionDeclaration(
             IEnumerable<SyntaxNode> parameters = null,
             SyntaxNode returnType = null,
             Accessibility accessibility = Accessibility.NotApplicable,
             DeclarationModifiers modifiers = default(DeclarationModifiers),
-            IEnumerable<SyntaxNode> statements = null)
-        {
-            throw new NotImplementedException();
-        }
+            IEnumerable<SyntaxNode> statements = null);
+
+        /// <summary>
+        /// Creates an explicit conversion declaration.
+        /// </summary>
+        public abstract SyntaxNode ExplicitConversionDeclaration(
+            IEnumerable<SyntaxNode> parameters = null,
+            SyntaxNode returnType = null,
+            Accessibility accessibility = Accessibility.NotApplicable,
+            DeclarationModifiers modifiers = default(DeclarationModifiers),
+            IEnumerable<SyntaxNode> statements = null);
+
+        /// <summary>
+        /// Creates an addition operator declaration.
+        /// </summary>
+        public abstract SyntaxNode AdditionOperatorDeclaration(
+            IEnumerable<SyntaxNode> parameters = null,
+            SyntaxNode returnType = null,
+            Accessibility accessibility = Accessibility.NotApplicable,
+            DeclarationModifiers modifiers = default(DeclarationModifiers),
+            IEnumerable<SyntaxNode> statements = null);
+
+        /// <summary>
+        /// Creates an bitwise and operator declaration.
+        /// </summary>
+        public abstract SyntaxNode BitwiseAndOperatorDeclaration(
+            IEnumerable<SyntaxNode> parameters = null,
+            SyntaxNode returnType = null,
+            Accessibility accessibility = Accessibility.NotApplicable,
+            DeclarationModifiers modifiers = default(DeclarationModifiers),
+            IEnumerable<SyntaxNode> statements = null);
+
+        /// <summary>
+        /// Creates a bitwise or operator declaration.
+        /// </summary>
+        public abstract SyntaxNode BitwiseOrOperatorDeclaration(
+            IEnumerable<SyntaxNode> parameters = null,
+            SyntaxNode returnType = null,
+            Accessibility accessibility = Accessibility.NotApplicable,
+            DeclarationModifiers modifiers = default(DeclarationModifiers),
+            IEnumerable<SyntaxNode> statements = null);
+
+        /// <summary>
+        /// Creates an decrement operator declaration.
+        /// </summary>
+        public abstract SyntaxNode DecrementOperatorDeclaration(
+            IEnumerable<SyntaxNode> parameters = null,
+            SyntaxNode returnType = null,
+            Accessibility accessibility = Accessibility.NotApplicable,
+            DeclarationModifiers modifiers = default(DeclarationModifiers),
+            IEnumerable<SyntaxNode> statements = null);
+
+        /// <summary>
+        /// Creates a division operator declaration.
+        /// </summary>
+        public abstract SyntaxNode DivisionOperatorDeclaration(
+            IEnumerable<SyntaxNode> parameters = null,
+            SyntaxNode returnType = null,
+            Accessibility accessibility = Accessibility.NotApplicable,
+            DeclarationModifiers modifiers = default(DeclarationModifiers),
+            IEnumerable<SyntaxNode> statements = null);
+
+        /// <summary>
+        /// Creates an equality operator declaration.
+        /// </summary>
+        public abstract SyntaxNode EqualityOperatorDeclaration(
+            IEnumerable<SyntaxNode> parameters = null,
+            SyntaxNode returnType = null,
+            Accessibility accessibility = Accessibility.NotApplicable,
+            DeclarationModifiers modifiers = default(DeclarationModifiers),
+            IEnumerable<SyntaxNode> statements = null);
+
+        /// <summary>
+        /// Creates an exclusive or operator declaration.
+        /// </summary>
+        public abstract SyntaxNode ExclusiveOrOperatorDeclaration(
+            IEnumerable<SyntaxNode> parameters = null,
+            SyntaxNode returnType = null,
+            Accessibility accessibility = Accessibility.NotApplicable,
+            DeclarationModifiers modifiers = default(DeclarationModifiers),
+            IEnumerable<SyntaxNode> statements = null);
+
+        /// <summary>
+        /// Creates a false operator declaration.
+        /// </summary>
+        public abstract SyntaxNode FalseOperatorDeclaration(
+            IEnumerable<SyntaxNode> parameters = null,
+            SyntaxNode returnType = null,
+            Accessibility accessibility = Accessibility.NotApplicable,
+            DeclarationModifiers modifiers = default(DeclarationModifiers),
+            IEnumerable<SyntaxNode> statements = null);
+
+        /// <summary>
+        /// Creates a greater than operator declaration.
+        /// </summary>
+        public abstract SyntaxNode GreaterThanOperatorDeclaration(
+            IEnumerable<SyntaxNode> parameters = null,
+            SyntaxNode returnType = null,
+            Accessibility accessibility = Accessibility.NotApplicable,
+            DeclarationModifiers modifiers = default(DeclarationModifiers),
+            IEnumerable<SyntaxNode> statements = null);
+
+        /// <summary>
+        /// Creates a greater than or equal operator declaration.
+        /// </summary>
+        public abstract SyntaxNode GreaterThanOrEqualOperatorDeclaration(
+            IEnumerable<SyntaxNode> parameters = null,
+            SyntaxNode returnType = null,
+            Accessibility accessibility = Accessibility.NotApplicable,
+            DeclarationModifiers modifiers = default(DeclarationModifiers),
+            IEnumerable<SyntaxNode> statements = null);
+
+        /// <summary>
+        /// Creates an increment operator declaration.
+        /// </summary>
+        public abstract SyntaxNode IncrementOperatorDeclaration(
+            IEnumerable<SyntaxNode> parameters = null,
+            SyntaxNode returnType = null,
+            Accessibility accessibility = Accessibility.NotApplicable,
+            DeclarationModifiers modifiers = default(DeclarationModifiers),
+            IEnumerable<SyntaxNode> statements = null);
+
+        /// <summary>
+        /// Creates an inequality operator declaration.
+        /// </summary>
+        public abstract SyntaxNode InequalityOperatorDeclaration(
+            IEnumerable<SyntaxNode> parameters = null,
+            SyntaxNode returnType = null,
+            Accessibility accessibility = Accessibility.NotApplicable,
+            DeclarationModifiers modifiers = default(DeclarationModifiers),
+            IEnumerable<SyntaxNode> statements = null);
+
+        /// <summary>
+        /// Creates an left shift operator declaration.
+        /// </summary>
+        public abstract SyntaxNode LeftShiftOperatorDeclaration(
+            IEnumerable<SyntaxNode> parameters = null,
+            SyntaxNode returnType = null,
+            Accessibility accessibility = Accessibility.NotApplicable,
+            DeclarationModifiers modifiers = default(DeclarationModifiers),
+            IEnumerable<SyntaxNode> statements = null);
+
+        /// <summary>
+        /// Creates a less than operator declaration.
+        /// </summary>
+        public abstract SyntaxNode LessThanOperatorDeclaration(
+            IEnumerable<SyntaxNode> parameters = null,
+            SyntaxNode returnType = null,
+            Accessibility accessibility = Accessibility.NotApplicable,
+            DeclarationModifiers modifiers = default(DeclarationModifiers),
+            IEnumerable<SyntaxNode> statements = null);
+
+        /// <summary>
+        /// Creates a less than or equal operator declaration.
+        /// </summary>
+        public abstract SyntaxNode LessThanOrEqualOperatorDeclaration(
+            IEnumerable<SyntaxNode> parameters = null,
+            SyntaxNode returnType = null,
+            Accessibility accessibility = Accessibility.NotApplicable,
+            DeclarationModifiers modifiers = default(DeclarationModifiers),
+            IEnumerable<SyntaxNode> statements = null);
+
+        /// <summary>
+        /// Creates a logical not operator declaration.
+        /// </summary>
+        public abstract SyntaxNode LogicalNotOperatorDeclaration(
+            IEnumerable<SyntaxNode> parameters = null,
+            SyntaxNode returnType = null,
+            Accessibility accessibility = Accessibility.NotApplicable,
+            DeclarationModifiers modifiers = default(DeclarationModifiers),
+            IEnumerable<SyntaxNode> statements = null);
+
+        /// <summary>
+        /// Creates a modulus operator declaration.
+        /// </summary>
+        public abstract SyntaxNode ModulusOperatorDeclaration(
+            IEnumerable<SyntaxNode> parameters = null,
+            SyntaxNode returnType = null,
+            Accessibility accessibility = Accessibility.NotApplicable,
+            DeclarationModifiers modifiers = default(DeclarationModifiers),
+            IEnumerable<SyntaxNode> statements = null);
+
+        /// <summary>
+        /// Creates a multiply operator declaration.
+        /// </summary>
+        public abstract SyntaxNode MultiplyOperatorDeclaration(
+            IEnumerable<SyntaxNode> parameters = null,
+            SyntaxNode returnType = null,
+            Accessibility accessibility = Accessibility.NotApplicable,
+            DeclarationModifiers modifiers = default(DeclarationModifiers),
+            IEnumerable<SyntaxNode> statements = null);
+
+        /// <summary>
+        /// Creates a ones complement operator declaration.
+        /// </summary>
+        public abstract SyntaxNode OnesComplementOperatorDeclaration(
+            IEnumerable<SyntaxNode> parameters = null,
+            SyntaxNode returnType = null,
+            Accessibility accessibility = Accessibility.NotApplicable,
+            DeclarationModifiers modifiers = default(DeclarationModifiers),
+            IEnumerable<SyntaxNode> statements = null);
+
+        /// <summary>
+        /// Creates a right shift operator declaration.
+        /// </summary>
+        public abstract SyntaxNode RightShiftOperatorDeclaration(
+            IEnumerable<SyntaxNode> parameters = null,
+            SyntaxNode returnType = null,
+            Accessibility accessibility = Accessibility.NotApplicable,
+            DeclarationModifiers modifiers = default(DeclarationModifiers),
+            IEnumerable<SyntaxNode> statements = null);
+
+        /// <summary>
+        /// Creates an subtraction operator declaration.
+        /// </summary>
+        public abstract SyntaxNode SubtractionOperatorDeclaration(
+            IEnumerable<SyntaxNode> parameters = null,
+            SyntaxNode returnType = null,
+            Accessibility accessibility = Accessibility.NotApplicable,
+            DeclarationModifiers modifiers = default(DeclarationModifiers),
+            IEnumerable<SyntaxNode> statements = null);
+
+        /// <summary>
+        /// Creates a true operator declaration.
+        /// </summary>
+        public abstract SyntaxNode TrueOperatorDeclaration(
+            IEnumerable<SyntaxNode> parameters = null,
+            SyntaxNode returnType = null,
+            Accessibility accessibility = Accessibility.NotApplicable,
+            DeclarationModifiers modifiers = default(DeclarationModifiers),
+            IEnumerable<SyntaxNode> statements = null);
+
+        /// <summary>
+        /// Creates a unary negation operator declaration.
+        /// </summary>
+        public abstract SyntaxNode UnaryNegationOperatorDeclaration(
+            IEnumerable<SyntaxNode> parameters = null,
+            SyntaxNode returnType = null,
+            Accessibility accessibility = Accessibility.NotApplicable,
+            DeclarationModifiers modifiers = default(DeclarationModifiers),
+            IEnumerable<SyntaxNode> statements = null);
+
+        /// <summary>
+        /// Creates a unary plus operator declaration.
+        /// </summary>
+        public abstract SyntaxNode UnaryPlusOperatorDeclaration(
+            IEnumerable<SyntaxNode> parameters = null,
+            SyntaxNode returnType = null,
+            Accessibility accessibility = Accessibility.NotApplicable,
+            DeclarationModifiers modifiers = default(DeclarationModifiers),
+            IEnumerable<SyntaxNode> statements = null);
 
         /// <summary>
         /// Creates a method declaration matching an existing method symbol.
@@ -178,8 +426,9 @@ namespace Microsoft.CodeAnalysis.Editing
                 throw new ArgumentException("Method is not an operator.");
             }
 
-            var decl = OperatorDeclaration(
-                GetOperatorKind(method),
+            var createOperator = GetCreateOperatorMethod(method.Name);
+
+            var decl = createOperator(
                 parameters: method.Parameters.Select(p => ParameterDeclaration(p)),
                 returnType: method.ReturnType.IsSystemVoid() ? null : TypeExpression(method.ReturnType),
                 accessibility: method.DeclaredAccessibility,
@@ -189,36 +438,43 @@ namespace Microsoft.CodeAnalysis.Editing
             return decl;
         }
 
-        private OperatorKind GetOperatorKind(IMethodSymbol method)
+        private delegate SyntaxNode CreateOperator(
+            IEnumerable<SyntaxNode> parameters = null,
+            SyntaxNode returnType = null,
+            Accessibility accessibility = Accessibility.NotApplicable,
+            DeclarationModifiers modifiers = default(DeclarationModifiers),
+            IEnumerable<SyntaxNode> statements = null);
+
+        private CreateOperator GetCreateOperatorMethod(string name)
         {
-            switch (method.Name)
+            switch (name)
             {
-                case WellKnownMemberNames.ImplicitConversionName: return OperatorKind.ImplicitConversion;
-                case WellKnownMemberNames.ExplicitConversionName: return OperatorKind.ExplicitConversion;
-                case WellKnownMemberNames.AdditionOperatorName: return OperatorKind.Addition;
-                case WellKnownMemberNames.BitwiseAndOperatorName: return OperatorKind.BitwiseAnd;
-                case WellKnownMemberNames.BitwiseOrOperatorName: return OperatorKind.BitwiseOr;
-                case WellKnownMemberNames.DecrementOperatorName: return OperatorKind.Decrement;
-                case WellKnownMemberNames.DivisionOperatorName: return OperatorKind.Division;
-                case WellKnownMemberNames.EqualityOperatorName: return OperatorKind.Equality;
-                case WellKnownMemberNames.ExclusiveOrOperatorName: return OperatorKind.ExclusiveOr;
-                case WellKnownMemberNames.FalseOperatorName: return OperatorKind.False;
-                case WellKnownMemberNames.GreaterThanOperatorName: return OperatorKind.GreaterThan;
-                case WellKnownMemberNames.GreaterThanOrEqualOperatorName: return OperatorKind.GreaterThanOrEqual;
-                case WellKnownMemberNames.IncrementOperatorName: return OperatorKind.Increment;
-                case WellKnownMemberNames.InequalityOperatorName: return OperatorKind.Inequality;
-                case WellKnownMemberNames.LeftShiftOperatorName: return OperatorKind.LeftShift;
-                case WellKnownMemberNames.LessThanOperatorName: return OperatorKind.LessThan;
-                case WellKnownMemberNames.LessThanOrEqualOperatorName: return OperatorKind.LessThanOrEqual;
-                case WellKnownMemberNames.LogicalNotOperatorName: return OperatorKind.LogicalNot;
-                case WellKnownMemberNames.ModulusOperatorName: return OperatorKind.Modulus;
-                case WellKnownMemberNames.MultiplyOperatorName: return OperatorKind.Multiply;
-                case WellKnownMemberNames.OnesComplementOperatorName: return OperatorKind.OnesComplement;
-                case WellKnownMemberNames.RightShiftOperatorName: return OperatorKind.RightShift;
-                case WellKnownMemberNames.SubtractionOperatorName: return OperatorKind.Subtraction;
-                case WellKnownMemberNames.TrueOperatorName: return OperatorKind.True;
-                case WellKnownMemberNames.UnaryNegationOperatorName: return OperatorKind.UnaryNegation;
-                case WellKnownMemberNames.UnaryPlusOperatorName: return OperatorKind.UnaryPlus;
+                case WellKnownMemberNames.ImplicitConversionName: return ImplicitConversionDeclaration;
+                case WellKnownMemberNames.ExplicitConversionName: return ExplicitConversionDeclaration;
+                case WellKnownMemberNames.AdditionOperatorName: return AdditionOperatorDeclaration;
+                case WellKnownMemberNames.BitwiseAndOperatorName: return BitwiseAndOperatorDeclaration;
+                case WellKnownMemberNames.BitwiseOrOperatorName: return BitwiseOrOperatorDeclaration;
+                case WellKnownMemberNames.DecrementOperatorName: return DecrementOperatorDeclaration;
+                case WellKnownMemberNames.DivisionOperatorName: return DivisionOperatorDeclaration;
+                case WellKnownMemberNames.EqualityOperatorName: return EqualityOperatorDeclaration;
+                case WellKnownMemberNames.ExclusiveOrOperatorName: return ExclusiveOrOperatorDeclaration;
+                case WellKnownMemberNames.FalseOperatorName: return FalseOperatorDeclaration;
+                case WellKnownMemberNames.GreaterThanOperatorName: return GreaterThanOperatorDeclaration;
+                case WellKnownMemberNames.GreaterThanOrEqualOperatorName: return GreaterThanOrEqualOperatorDeclaration;
+                case WellKnownMemberNames.IncrementOperatorName: return IncrementOperatorDeclaration;
+                case WellKnownMemberNames.InequalityOperatorName: return InequalityOperatorDeclaration;
+                case WellKnownMemberNames.LeftShiftOperatorName: return LeftShiftOperatorDeclaration;
+                case WellKnownMemberNames.LessThanOperatorName: return LessThanOperatorDeclaration;
+                case WellKnownMemberNames.LessThanOrEqualOperatorName: return LessThanOrEqualOperatorDeclaration;
+                case WellKnownMemberNames.LogicalNotOperatorName: return LogicalNotOperatorDeclaration;
+                case WellKnownMemberNames.ModulusOperatorName: return ModulusOperatorDeclaration;
+                case WellKnownMemberNames.MultiplyOperatorName: return MultiplyOperatorDeclaration;
+                case WellKnownMemberNames.OnesComplementOperatorName: return OnesComplementOperatorDeclaration;
+                case WellKnownMemberNames.RightShiftOperatorName: return RightShiftOperatorDeclaration;
+                case WellKnownMemberNames.SubtractionOperatorName: return SubtractionOperatorDeclaration;
+                case WellKnownMemberNames.TrueOperatorName: return TrueOperatorDeclaration;
+                case WellKnownMemberNames.UnaryNegationOperatorName: return UnaryNegationOperatorDeclaration;
+                case WellKnownMemberNames.UnaryPlusOperatorName: return UnaryPlusOperatorDeclaration;
                 default:
                     throw new ArgumentException("Unknown operator kind.");
             }

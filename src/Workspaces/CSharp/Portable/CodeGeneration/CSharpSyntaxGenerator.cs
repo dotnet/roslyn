@@ -149,7 +149,59 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
                 !hasBody ? SyntaxFactory.Token(SyntaxKind.SemicolonToken) : default(SyntaxToken));
         }
 
-        public override SyntaxNode OperatorDeclaration(OperatorKind kind, IEnumerable<SyntaxNode> parameters = null, SyntaxNode returnType = null, Accessibility accessibility = Accessibility.NotApplicable, DeclarationModifiers modifiers = default(DeclarationModifiers), IEnumerable<SyntaxNode> statements = null)
+        public override SyntaxNode ImplicitConversionDeclaration(IEnumerable<SyntaxNode> parameters = null, SyntaxNode returnType = null, Accessibility accessibility = Accessibility.NotApplicable, DeclarationModifiers modifiers = default(DeclarationModifiers), IEnumerable<SyntaxNode> statements = null)
+        {
+            return CreateConversionDeclaration(parameters, returnType, accessibility, modifiers, statements, isImplicit: true);
+        }
+
+        public override SyntaxNode ExplicitConversionDeclaration(
+            IEnumerable<SyntaxNode> parameters = null, SyntaxNode returnType = null, 
+            Accessibility accessibility = Accessibility.NotApplicable,
+            DeclarationModifiers modifiers = default(DeclarationModifiers), 
+            IEnumerable<SyntaxNode> statements = null)
+        {
+            return CreateConversionDeclaration(parameters, returnType, accessibility, modifiers, statements, isImplicit: false);
+        }
+
+        private SyntaxNode CreateConversionDeclaration(
+            IEnumerable<SyntaxNode> parameters, SyntaxNode returnType, 
+            Accessibility accessibility, DeclarationModifiers modifiers, 
+            IEnumerable<SyntaxNode> statements, bool isImplicit)
+        {
+            return CreateOperator(parameters, returnType, accessibility, modifiers, statements, 
+                (attributes, modifierList, returnTypeNode, parameterList, body, semicolon) =>
+                {
+                    var token = SyntaxFactory.Token(isImplicit ? SyntaxKind.ImplicitKeyword : SyntaxKind.ExplicitKeyword);
+                    return SyntaxFactory.ConversionOperatorDeclaration(
+                       attributes, modifierList, token,
+                       SyntaxFactory.Token(SyntaxKind.OperatorKeyword),
+                       returnTypeNode, parameterList, body, semicolon);
+                });
+        }
+
+        private SyntaxNode CreateOperator(
+            SyntaxKind operatorTokenKind, IEnumerable<SyntaxNode> parameters, SyntaxNode returnType,
+            Accessibility accessibility, DeclarationModifiers modifiers, IEnumerable<SyntaxNode> statements)
+        {
+            return CreateOperator(parameters, returnType, accessibility, modifiers, statements,
+                (attributes, modifierList, returnTypeNode, parameterList, body, semicolon) =>
+                {
+                    return SyntaxFactory.OperatorDeclaration(
+                        attributes, modifierList, returnTypeNode,
+                        SyntaxFactory.Token(SyntaxKind.OperatorKeyword),
+                        SyntaxFactory.Token(operatorTokenKind),
+                        parameterList, body, semicolon);
+                });
+        }
+
+        private delegate SyntaxNode CreateOperatorCallback(
+            SyntaxList<AttributeListSyntax> attributes, SyntaxTokenList modifierList, TypeSyntax returnTypeNode,
+            ParameterListSyntax parameterList, BlockSyntax body, SyntaxToken semicolon);
+
+        private SyntaxNode CreateOperator(
+            IEnumerable<SyntaxNode> parameters, SyntaxNode returnType, Accessibility accessibility,
+            DeclarationModifiers modifiers, IEnumerable<SyntaxNode> statements,
+            CreateOperatorCallback createOperator)
         {
             var hasBody = !modifiers.IsAbstract && (!modifiers.IsPartial || statements != null);
             var returnTypeNode = returnType != null ? (TypeSyntax)returnType : SyntaxFactory.PredefinedType(SyntaxFactory.Token(SyntaxKind.VoidKeyword));
@@ -159,56 +211,127 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
             var modifierList = AsModifierList(accessibility, modifiers, SyntaxKind.OperatorDeclaration);
             var attributes = default(SyntaxList<AttributeListSyntax>);
 
-            if (kind == OperatorKind.ImplicitConversion || kind == OperatorKind.ExplicitConversion)
-            {
-                return SyntaxFactory.ConversionOperatorDeclaration(
-                    attributes, modifierList, SyntaxFactory.Token(GetTokenKind(kind)),
-                    SyntaxFactory.Token(SyntaxKind.OperatorKeyword),
-                    returnTypeNode, parameterList, body, semicolon);
-            }
-            else
-            {
-                return SyntaxFactory.OperatorDeclaration(
-                    attributes, modifierList, returnTypeNode,
-                    SyntaxFactory.Token(SyntaxKind.OperatorKeyword),
-                    SyntaxFactory.Token(GetTokenKind(kind)),
-                    parameterList, body, semicolon);
-            }
+            return createOperator(attributes, modifierList, returnTypeNode, parameterList, body, semicolon);
         }
 
-        private SyntaxKind GetTokenKind(OperatorKind kind)
+        public override SyntaxNode AdditionOperatorDeclaration(IEnumerable<SyntaxNode> parameters = null, SyntaxNode returnType = null, Accessibility accessibility = Accessibility.NotApplicable, DeclarationModifiers modifiers = default(DeclarationModifiers), IEnumerable<SyntaxNode> statements = null)
         {
-            switch (kind)
-            {
-                case OperatorKind.ImplicitConversion: return SyntaxKind.ImplicitKeyword;
-                case OperatorKind.ExplicitConversion: return SyntaxKind.ExplicitKeyword;
-                case OperatorKind.Addition: return SyntaxKind.PlusToken;
-                case OperatorKind.BitwiseAnd: return SyntaxKind.AmpersandToken;
-                case OperatorKind.BitwiseOr: return SyntaxKind.BarToken;
-                case OperatorKind.Decrement: return SyntaxKind.MinusMinusToken;
-                case OperatorKind.Division: return SyntaxKind.SlashToken;
-                case OperatorKind.Equality: return SyntaxKind.EqualsEqualsToken;
-                case OperatorKind.ExclusiveOr: return SyntaxKind.CaretToken;
-                case OperatorKind.False: return SyntaxKind.FalseKeyword;
-                case OperatorKind.GreaterThan: return SyntaxKind.GreaterThanToken;
-                case OperatorKind.GreaterThanOrEqual: return SyntaxKind.GreaterThanEqualsToken;
-                case OperatorKind.Increment: return SyntaxKind.PlusPlusToken;
-                case OperatorKind.Inequality: return SyntaxKind.ExclamationEqualsToken;
-                case OperatorKind.LeftShift: return SyntaxKind.LessThanLessThanToken;
-                case OperatorKind.LessThan: return SyntaxKind.LessThanToken;
-                case OperatorKind.LessThanOrEqual: return SyntaxKind.LessThanEqualsToken;
-                case OperatorKind.LogicalNot: return SyntaxKind.ExclamationToken;
-                case OperatorKind.Modulus: return SyntaxKind.PercentToken;
-                case OperatorKind.Multiply: return SyntaxKind.AsteriskToken;
-                case OperatorKind.OnesComplement: return SyntaxKind.TildeToken;
-                case OperatorKind.RightShift: return SyntaxKind.GreaterThanGreaterThanToken;
-                case OperatorKind.Subtraction: return SyntaxKind.MinusToken;
-                case OperatorKind.True: return SyntaxKind.TrueKeyword;
-                case OperatorKind.UnaryNegation: return SyntaxKind.MinusToken;
-                case OperatorKind.UnaryPlus: return SyntaxKind.PlusToken;
-                default:
-                    throw new ArgumentException("Unknown operator kind.");
-            }
+            return CreateOperator(SyntaxKind.PlusToken, parameters, returnType, accessibility, modifiers, statements);
+        }
+
+        public override SyntaxNode BitwiseAndOperatorDeclaration(IEnumerable<SyntaxNode> parameters = null, SyntaxNode returnType = null, Accessibility accessibility = Accessibility.NotApplicable, DeclarationModifiers modifiers = default(DeclarationModifiers), IEnumerable<SyntaxNode> statements = null)
+        {
+            return CreateOperator(SyntaxKind.AmpersandToken, parameters, returnType, accessibility, modifiers, statements);
+        }
+
+        public override SyntaxNode BitwiseOrOperatorDeclaration(IEnumerable<SyntaxNode> parameters = null, SyntaxNode returnType = null, Accessibility accessibility = Accessibility.NotApplicable, DeclarationModifiers modifiers = default(DeclarationModifiers), IEnumerable<SyntaxNode> statements = null)
+        {
+            return CreateOperator(SyntaxKind.BarToken, parameters, returnType, accessibility, modifiers, statements);
+        }
+
+        public override SyntaxNode DecrementOperatorDeclaration(IEnumerable<SyntaxNode> parameters = null, SyntaxNode returnType = null, Accessibility accessibility = Accessibility.NotApplicable, DeclarationModifiers modifiers = default(DeclarationModifiers), IEnumerable<SyntaxNode> statements = null)
+        {
+            return CreateOperator(SyntaxKind.MinusMinusToken, parameters, returnType, accessibility, modifiers, statements);
+        }
+
+        public override SyntaxNode DivisionOperatorDeclaration(IEnumerable<SyntaxNode> parameters = null, SyntaxNode returnType = null, Accessibility accessibility = Accessibility.NotApplicable, DeclarationModifiers modifiers = default(DeclarationModifiers), IEnumerable<SyntaxNode> statements = null)
+        {
+            return CreateOperator(SyntaxKind.SlashToken, parameters, returnType, accessibility, modifiers, statements);
+        }
+
+        public override SyntaxNode EqualityOperatorDeclaration(IEnumerable<SyntaxNode> parameters = null, SyntaxNode returnType = null, Accessibility accessibility = Accessibility.NotApplicable, DeclarationModifiers modifiers = default(DeclarationModifiers), IEnumerable<SyntaxNode> statements = null)
+        {
+            return CreateOperator(SyntaxKind.EqualsEqualsToken, parameters, returnType, accessibility, modifiers, statements);
+        }
+
+        public override SyntaxNode ExclusiveOrOperatorDeclaration(IEnumerable<SyntaxNode> parameters = null, SyntaxNode returnType = null, Accessibility accessibility = Accessibility.NotApplicable, DeclarationModifiers modifiers = default(DeclarationModifiers), IEnumerable<SyntaxNode> statements = null)
+        {
+            return CreateOperator(SyntaxKind.CaretToken, parameters, returnType, accessibility, modifiers, statements);
+        }
+
+        public override SyntaxNode FalseOperatorDeclaration(IEnumerable<SyntaxNode> parameters = null, SyntaxNode returnType = null, Accessibility accessibility = Accessibility.NotApplicable, DeclarationModifiers modifiers = default(DeclarationModifiers), IEnumerable<SyntaxNode> statements = null)
+        {
+            return CreateOperator(SyntaxKind.FalseKeyword, parameters, returnType, accessibility, modifiers, statements);
+        }
+
+        public override SyntaxNode GreaterThanOperatorDeclaration(IEnumerable<SyntaxNode> parameters = null, SyntaxNode returnType = null, Accessibility accessibility = Accessibility.NotApplicable, DeclarationModifiers modifiers = default(DeclarationModifiers), IEnumerable<SyntaxNode> statements = null)
+        {
+            return CreateOperator(SyntaxKind.GreaterThanToken, parameters, returnType, accessibility, modifiers, statements);
+        }
+
+        public override SyntaxNode GreaterThanOrEqualOperatorDeclaration(IEnumerable<SyntaxNode> parameters = null, SyntaxNode returnType = null, Accessibility accessibility = Accessibility.NotApplicable, DeclarationModifiers modifiers = default(DeclarationModifiers), IEnumerable<SyntaxNode> statements = null)
+        {
+            return CreateOperator(SyntaxKind.GreaterThanEqualsToken, parameters, returnType, accessibility, modifiers, statements);
+        }
+
+        public override SyntaxNode IncrementOperatorDeclaration(IEnumerable<SyntaxNode> parameters = null, SyntaxNode returnType = null, Accessibility accessibility = Accessibility.NotApplicable, DeclarationModifiers modifiers = default(DeclarationModifiers), IEnumerable<SyntaxNode> statements = null)
+        {
+            return CreateOperator(SyntaxKind.PlusPlusToken, parameters, returnType, accessibility, modifiers, statements);
+        }
+
+        public override SyntaxNode InequalityOperatorDeclaration(IEnumerable<SyntaxNode> parameters = null, SyntaxNode returnType = null, Accessibility accessibility = Accessibility.NotApplicable, DeclarationModifiers modifiers = default(DeclarationModifiers), IEnumerable<SyntaxNode> statements = null)
+        {
+            return CreateOperator(SyntaxKind.ExclamationEqualsToken, parameters, returnType, accessibility, modifiers, statements);
+        }
+
+        public override SyntaxNode LeftShiftOperatorDeclaration(IEnumerable<SyntaxNode> parameters = null, SyntaxNode returnType = null, Accessibility accessibility = Accessibility.NotApplicable, DeclarationModifiers modifiers = default(DeclarationModifiers), IEnumerable<SyntaxNode> statements = null)
+        {
+            return CreateOperator(SyntaxKind.LessThanLessThanToken, parameters, returnType, accessibility, modifiers, statements);
+        }
+
+        public override SyntaxNode LessThanOperatorDeclaration(IEnumerable<SyntaxNode> parameters = null, SyntaxNode returnType = null, Accessibility accessibility = Accessibility.NotApplicable, DeclarationModifiers modifiers = default(DeclarationModifiers), IEnumerable<SyntaxNode> statements = null)
+        {
+            return CreateOperator(SyntaxKind.LessThanToken, parameters, returnType, accessibility, modifiers, statements);
+        }
+
+        public override SyntaxNode LessThanOrEqualOperatorDeclaration(IEnumerable<SyntaxNode> parameters = null, SyntaxNode returnType = null, Accessibility accessibility = Accessibility.NotApplicable, DeclarationModifiers modifiers = default(DeclarationModifiers), IEnumerable<SyntaxNode> statements = null)
+        {
+            return CreateOperator(SyntaxKind.LessThanEqualsToken, parameters, returnType, accessibility, modifiers, statements);
+        }
+
+        public override SyntaxNode LogicalNotOperatorDeclaration(IEnumerable<SyntaxNode> parameters = null, SyntaxNode returnType = null, Accessibility accessibility = Accessibility.NotApplicable, DeclarationModifiers modifiers = default(DeclarationModifiers), IEnumerable<SyntaxNode> statements = null)
+        {
+            return CreateOperator(SyntaxKind.ExclamationToken, parameters, returnType, accessibility, modifiers, statements);
+        }
+
+        public override SyntaxNode ModulusOperatorDeclaration(IEnumerable<SyntaxNode> parameters = null, SyntaxNode returnType = null, Accessibility accessibility = Accessibility.NotApplicable, DeclarationModifiers modifiers = default(DeclarationModifiers), IEnumerable<SyntaxNode> statements = null)
+        {
+            return CreateOperator(SyntaxKind.PercentToken, parameters, returnType, accessibility, modifiers, statements);
+        }
+
+        public override SyntaxNode MultiplyOperatorDeclaration(IEnumerable<SyntaxNode> parameters = null, SyntaxNode returnType = null, Accessibility accessibility = Accessibility.NotApplicable, DeclarationModifiers modifiers = default(DeclarationModifiers), IEnumerable<SyntaxNode> statements = null)
+        {
+            return CreateOperator(SyntaxKind.AsteriskToken, parameters, returnType, accessibility, modifiers, statements);
+        }
+
+        public override SyntaxNode OnesComplementOperatorDeclaration(IEnumerable<SyntaxNode> parameters = null, SyntaxNode returnType = null, Accessibility accessibility = Accessibility.NotApplicable, DeclarationModifiers modifiers = default(DeclarationModifiers), IEnumerable<SyntaxNode> statements = null)
+        {
+            return CreateOperator(SyntaxKind.TildeToken, parameters, returnType, accessibility, modifiers, statements);
+        }
+
+        public override SyntaxNode RightShiftOperatorDeclaration(IEnumerable<SyntaxNode> parameters = null, SyntaxNode returnType = null, Accessibility accessibility = Accessibility.NotApplicable, DeclarationModifiers modifiers = default(DeclarationModifiers), IEnumerable<SyntaxNode> statements = null)
+        {
+            return CreateOperator(SyntaxKind.GreaterThanGreaterThanToken, parameters, returnType, accessibility, modifiers, statements);
+        }
+
+        public override SyntaxNode SubtractionOperatorDeclaration(IEnumerable<SyntaxNode> parameters = null, SyntaxNode returnType = null, Accessibility accessibility = Accessibility.NotApplicable, DeclarationModifiers modifiers = default(DeclarationModifiers), IEnumerable<SyntaxNode> statements = null)
+        {
+            return CreateOperator(SyntaxKind.MinusToken, parameters, returnType, accessibility, modifiers, statements);
+        }
+
+        public override SyntaxNode TrueOperatorDeclaration(IEnumerable<SyntaxNode> parameters = null, SyntaxNode returnType = null, Accessibility accessibility = Accessibility.NotApplicable, DeclarationModifiers modifiers = default(DeclarationModifiers), IEnumerable<SyntaxNode> statements = null)
+        {
+            return CreateOperator(SyntaxKind.TrueKeyword, parameters, returnType, accessibility, modifiers, statements);
+        }
+
+        public override SyntaxNode UnaryNegationOperatorDeclaration(IEnumerable<SyntaxNode> parameters = null, SyntaxNode returnType = null, Accessibility accessibility = Accessibility.NotApplicable, DeclarationModifiers modifiers = default(DeclarationModifiers), IEnumerable<SyntaxNode> statements = null)
+        {
+            return CreateOperator(SyntaxKind.MinusToken, parameters, returnType, accessibility, modifiers, statements);
+        }
+
+        public override SyntaxNode UnaryPlusOperatorDeclaration(IEnumerable<SyntaxNode> parameters = null, SyntaxNode returnType = null, Accessibility accessibility = Accessibility.NotApplicable, DeclarationModifiers modifiers = default(DeclarationModifiers), IEnumerable<SyntaxNode> statements = null)
+        {
+            return CreateOperator(SyntaxKind.PlusToken, parameters, returnType, accessibility, modifiers, statements);
         }
 
         private ParameterListSyntax AsParameterList(IEnumerable<SyntaxNode> parameters)
