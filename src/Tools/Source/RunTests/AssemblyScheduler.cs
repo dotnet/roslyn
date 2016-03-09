@@ -347,6 +347,11 @@ namespace RunTests
             }
             
             var namespaceName = reader.GetString(type.Namespace);
+            if (string.IsNullOrEmpty(namespaceName))
+            {
+                return typeName;
+            }
+
             return $"{namespaceName}.{typeName}";
         }
     }
