@@ -100,6 +100,9 @@ namespace Microsoft.CodeAnalysis
 
         Snippet,
 
-        CompletionWarning
+        CompletionWarning,
+
+        AddReference,
+        NuGet
     }
 }

@@ -1,5 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System;
 using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Diagnostics;
@@ -1302,6 +1303,47 @@ class C
             .VerifyAnalyzerDiagnostics(new DiagnosticAnalyzer[] { new NoneOperationTestAnalyzer() }, null, null, false);
         }
 
+        // This test can't reliablely trigger stack overflow on Linux
+        [ClrOnlyFact, WorkItem(9025, "https://github.com/dotnet/roslyn/issues/9025")]
+        public void LongArithmeticExpressionCSharp()
+        {
+            Func<int, string> buildSequenceOfBinaryExpressions =
+                (count) =>
+                {
+                    var builder = new System.Text.StringBuilder();
+                    int i;
+                    for (i = 0; i < count; i++)
+                    {
+                        builder.Append(i + 1);
+                        builder.Append(" * ");
+                        builder.Append("f[");
+                        builder.Append(i);
+                        builder.Append("] + ");
+                    }
+
+                    builder.Append(i + 1);
+
+                    return builder.ToString();
+                };
+            // This code will cause OperationWalker to throw `InsufficientExecutionStackException`
+            var source = @"
+class Test
+{ 
+    public static long Calculate1(long[] f)
+    {
+        long x;
+" + $"        x = { buildSequenceOfBinaryExpressions(8192) };" + @"
+        return x;
+    }
+}";
+
+            CreateCompilationWithMscorlib45(source)
+            .VerifyDiagnostics()
+            .VerifyAnalyzerDiagnostics(new DiagnosticAnalyzer[] { new AssignmentOperationSyntaxTestAnalyzer() }, null, null, true,
+                Diagnostic("AD0002").WithArguments("System.InsufficientExecutionStackException", "Insufficient stack to continue executing the program safely. This can happen from having too many functions on the call stack or function on the stack using too much stack space.").WithLocation(1, 1),
+                Diagnostic(AssignmentOperationSyntaxTestAnalyzer.AssignmentSyntaxDescriptor.Id, $"x = { buildSequenceOfBinaryExpressions(8192) }").WithLocation(7, 9));
+        }
+
         [WorkItem(9020, "https://github.com/dotnet/roslyn/issues/9020")]
         [Fact]
         public void AddressOfExpressionCSharp()
@@ -1539,6 +1581,52 @@ class C
                  );
         }
 
+        [Fact]
+        public void InvalidOperatorsCSharp()
+        {
+            const string source = @"
+public class A
+{
+    readonly int _value;
+
+    public A (int value)
+    {
+        _value = value;
+    }
+
+    public static A operator +(A x, A y)
+    {
+        return new A(x._value + y._value);
+    }
+
+    public static A operator -(A x, A y)
+    {
+        return new A(x._value - y._value);
+    }
+}
+
+class C
+{
+    static void Main()
+    {
+        A x = new A(0);
+        A y = new A(100);
+
+        x = x + 10;
+        x = x + y;
+        x = -x;
+   }
+}
+";
+            CreateCompilationWithMscorlib45(source)
+             .VerifyDiagnostics(Diagnostic(ErrorCode.ERR_BadBinaryOps, "x + 10", new object[] { "+", "A", "int"}).WithLocation(29, 13),
+                                Diagnostic(ErrorCode.ERR_BadUnaryOp, "-x", new object[] { "-", "A"}).WithLocation(31, 13))
+             .VerifyAnalyzerDiagnostics(new DiagnosticAnalyzer[] { new OperatorPropertyPullerTestAnalyzer() }, null, null, false,
+                 Diagnostic(OperatorPropertyPullerTestAnalyzer.BinaryOperatorDescriptor.Id, "x + 10").WithArguments("Invalid").WithLocation(29, 13),
+                 Diagnostic(OperatorPropertyPullerTestAnalyzer.UnaryOperatorDescriptor.Id, "-x").WithArguments("Invalid").WithLocation(31, 13)
+                 );
+        }
+
         [WorkItem(8520, "https://github.com/dotnet/roslyn/issues/8520")]
         [Fact]
         public void NullOperationSyntaxCSharp()
@@ -1567,6 +1655,41 @@ class C
                 Diagnostic(NullOperationSyntaxTestAnalyzer.ParamsArrayOperationDescriptor.Id, "M0()").WithLocation(10, 9),
                 Diagnostic(NullOperationSyntaxTestAnalyzer.ParamsArrayOperationDescriptor.Id, "1").WithLocation(11, 12),
                 Diagnostic(NullOperationSyntaxTestAnalyzer.ParamsArrayOperationDescriptor.Id, "1").WithLocation(12, 12));
+        }
+
+        [WorkItem(9113, "https://github.com/dotnet/roslyn/issues/9113")]
+        [Fact]
+        public void ConversionExpressionCSharp()
+        {
+            const string source = @"
+class X
+{
+    static void Main()
+    {
+        string three = 3.ToString();
+
+        int x = null.Length;
+
+        int y = string.Empty;
+
+        int i = global::MyType();
+    }
+}";
+            CreateCompilationWithMscorlib45(source)
+            .VerifyDiagnostics(
+                // (8,17): error CS0023: Operator '.' cannot be applied to operand of type '<null>'
+                //         int x = null.Length;
+                Diagnostic(ErrorCode.ERR_BadUnaryOp, "null.Length").WithArguments(".", "<null>").WithLocation(8, 17),
+                // (10,17): error CS0029: Cannot implicitly convert type 'string' to 'int'
+                //         int y = string.Empty;
+                Diagnostic(ErrorCode.ERR_NoImplicitConv, "string.Empty").WithArguments("string", "int").WithLocation(10, 17),
+                // (12,25): error CS0400: The type or namespace name 'MyType' could not be found in the global namespace (are you missing an assembly reference?)
+                //         int i = global::MyType();
+                Diagnostic(ErrorCode.ERR_GlobalSingleTypeNameNotFound, "MyType").WithArguments("MyType", "<global namespace>").WithLocation(12, 25))
+            .VerifyAnalyzerDiagnostics(new DiagnosticAnalyzer[] { new ConversionExpressionCSharpTestAnalyzer() }, null, null, false,
+                Diagnostic(ConversionExpressionCSharpTestAnalyzer.InvalidConversionExpressionDescriptor.Id, "null.Length").WithLocation(8, 17),
+                Diagnostic(ConversionExpressionCSharpTestAnalyzer.InvalidConversionExpressionDescriptor.Id, "string.Empty").WithLocation(10, 17),
+                Diagnostic(ConversionExpressionCSharpTestAnalyzer.InvalidConversionExpressionDescriptor.Id, "global::MyType()").WithLocation(12, 17));
         }
 
         [WorkItem(8114, "https://github.com/dotnet/roslyn/issues/8114")]
@@ -1728,6 +1851,49 @@ struct S
                 Diagnostic("Literal", "M()").WithArguments(@"""hello""").WithLocation(18, 9),
                 Diagnostic("Literal", "M()").WithArguments("null").WithLocation(18, 9),
                 Diagnostic("Literal", "M()").WithArguments("null").WithLocation(18, 9));
+        }
+
+        [Fact]
+        public void UnaryTrueFalseOperationCSharp()
+        {
+            const string source = @"
+public struct S
+{
+    private int value;
+    public S(int v)
+    {
+        value = v;
+    }
+    public static S operator &(S x, S y)
+    {
+        return new S(x.value + y.value);    
+    }
+    public static bool operator true(S x)
+    {
+        return x.value > 0;
+    }
+    public static bool operator false(S x)
+    {
+        return x.value <= 0;
+    }
+}
+
+class C
+{
+    public void M()
+    {
+        var x = new S(-1);
+        var y = new S(1);
+        if (x && y) { }
+        else if (x) { }
+    }
+}
+";
+            CreateCompilationWithMscorlib45(source)
+            .VerifyDiagnostics()
+            .VerifyAnalyzerDiagnostics(new DiagnosticAnalyzer[] { new TrueFalseUnaryOperationTestAnalyzer() }, null, null, false,
+                Diagnostic(TrueFalseUnaryOperationTestAnalyzer.UnaryTrueDescriptor.Id, "x && y").WithLocation(29, 13),
+                Diagnostic(TrueFalseUnaryOperationTestAnalyzer.UnaryTrueDescriptor.Id, "x").WithLocation(30, 18));
         }
     }
 }

@@ -120,9 +120,9 @@ namespace Microsoft.CodeAnalysis.UnitTests.PEWriter
         [Fact]
         public void EqualsNamespaceAndAssembly()
         {
-            var assembly1 = CreateEqualsInterface<IAssemblyReference>("assembly");
-            var assembly2 = CreateEqualsInterface<IAssemblyReference>("assembly");
-            var assembly3 = CreateEqualsInterface<IAssemblyReference>("other assembly");
+            var assembly1 = CreateEqualsInterface<IAssembly>("assembly");
+            var assembly2 = CreateEqualsInterface<IAssembly>("assembly");
+            var assembly3 = CreateEqualsInterface<IAssembly>("other assembly");
             var ns1 = CreateEqualsInterface<INamespace>("namespace");
             var ns2 = CreateEqualsInterface<INamespace>("namespace");
             var ns3 = CreateEqualsInterface<INamespace>("other namespace");

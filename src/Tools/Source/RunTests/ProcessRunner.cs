@@ -56,7 +56,8 @@ namespace RunTests
             string workingDirectory = null,
             bool captureOutput = false,
             bool displayWindow = true,
-            Dictionary<string, string> environmentVariables = null)
+            Dictionary<string, string> environmentVariables = null,
+            Action<Process> processMonitor = null)
         {
             cancellationToken.ThrowIfCancellationRequested();
 
@@ -69,6 +70,8 @@ namespace RunTests
             var task = CreateTask(process, taskCompletionSource, cancellationToken);
 
             process.Start();
+
+            processMonitor?.Invoke(process);
 
             if (lowPriority)
             {

@@ -510,6 +510,15 @@ Use the dropdown to view and switch to other projects this file may belong to.</
   <data name="FullSolutionAnalysisOff" xml:space="preserve">
     <value>Low memory detected. Full solution analysis disabled for this solution.</value>
   </data>
+  <data name="Installing_0" xml:space="preserve">
+    <value>Installing '{0}'</value>
+  </data>
+  <data name="Installing_0_completed" xml:space="preserve">
+    <value>Installing '{0}' completed</value>
+  </data>
+  <data name="Package_install_failed_0" xml:space="preserve">
+    <value>Package install failed: {0}</value>
+  </data>
   <data name="Unknown" xml:space="preserve">
     <value>&lt;Unknown&gt;</value>
   </data>
@@ -616,5 +625,30 @@ Use the dropdown to view and switch to other projects this file may belong to.</
   <data name="IdentifierWord_Identifier" xml:space="preserve">
     <value>identifier</value>
     <comment>IdentifierWord_Example and IdentifierWord_Identifier are combined (with prefixes, suffixes, and word separators) into an example identifier name in the NamingStyle UI.</comment>
+  </data>
+  <data name="Install_0" xml:space="preserve">
+    <value>Install '{0}'</value>
+  </data>
+  <data name="Uninstalling_0" xml:space="preserve">
+    <value>Uninstalling '{0}'</value>
+  </data>
+  <data name="Uninstalling_0_completed" xml:space="preserve">
+    <value>Uninstalling '{0}' completed</value>
+  </data>
+  <data name="Uninstall_0" xml:space="preserve">
+    <value>Uninstall '{0}'</value>
+  </data>
+  <data name="Package_uninstall_failed_0" xml:space="preserve">
+    <value>Package uninstall failed: {0}</value>
+  </data>
+  <data name="Installing_0_failed_Additional_information_1" xml:space="preserve">
+    <value>Installing '{0}' failed.
+
+Additional information: {1}</value>
+  </data>
+  <data name="Uninstalling_0_failed_Additional_information_1" xml:space="preserve">
+    <value>Uninstalling '{0}' failed.
+
+Additional information: {1}</value>
   </data>
 </root>

@@ -1,5 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using RunTests.Cache;
 using System;
 using System.IO;
 using System.Threading;
@@ -16,6 +17,7 @@ namespace RunTests
         internal TimeSpan Elapsed { get; }
         internal string StandardOutput { get; }
         internal string ErrorOutput { get; }
+        internal bool IsResultFromCache { get; }
 
         /// <summary>
         /// Path to the results file.  Can be null in the case xunit error'd and did not create one. 
@@ -25,7 +27,7 @@ namespace RunTests
         internal string ResultDir { get; }
         internal bool Succeeded => ExitCode == 0;
 
-        internal TestResult(int exitCode, string assemblyPath, string resultDir, string resultsFilePath, string commandLine, TimeSpan elapsed, string standardOutput, string errorOutput)
+        internal TestResult(int exitCode, string assemblyPath, string resultDir, string resultsFilePath, string commandLine, TimeSpan elapsed, string standardOutput, string errorOutput, bool isResultFromCache)
         {
             ExitCode = exitCode;
             AssemblyName = Path.GetFileName(assemblyPath);
@@ -36,11 +38,14 @@ namespace RunTests
             Elapsed = elapsed;
             StandardOutput = standardOutput;
             ErrorOutput = errorOutput;
+            IsResultFromCache = isResultFromCache;
         }
     }
 
     internal interface ITestExecutor
     {
+        IDataStorage DataStorage { get; }
+
         string GetCommandLine(string assemblyPath);
 
         Task<TestResult> RunTestAsync(string assemblyPath, CancellationToken cancellationToken);

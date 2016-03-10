@@ -34,10 +34,19 @@ namespace Microsoft.CodeAnalysis.CodeStyle
 
         public static SimpleCodeStyleOption FromXElement(XElement element)
         {
-            var isChecked = bool.Parse(element.Attribute(nameof(IsChecked)).Value);
-            var severity = (DiagnosticSeverity)Enum.Parse(typeof(DiagnosticSeverity), element.Attribute(nameof(DiagnosticSeverity)).Value);
-            NotificationOption notificationOption;
+            var isCheckedAttribute = element.Attribute(nameof(IsChecked));
+            var severityAttribute = element.Attribute(nameof(DiagnosticSeverity));
 
+            if (isCheckedAttribute == null || severityAttribute == null)
+            {
+                // data from storage is corrupt, or nothing has been stored yet.
+                return Default;
+            }
+
+            var isChecked = bool.Parse(isCheckedAttribute.Value);
+            var severity = (DiagnosticSeverity)Enum.Parse(typeof(DiagnosticSeverity), severityAttribute.Value);
+
+            NotificationOption notificationOption;
             switch (severity)
             {
                 case DiagnosticSeverity.Hidden:

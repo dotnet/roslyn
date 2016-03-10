@@ -2,6 +2,7 @@
 
 Imports Microsoft.CodeAnalysis.EditAndContinue
 Imports Microsoft.CodeAnalysis.EditAndContinue.UnitTests
+Imports Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.EditAndContinue
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue.UnitTests
@@ -5586,6 +5587,67 @@ Yield 2
             edits.VerifyEdits(
                 "Delete [Yield 3]@66")
         End Sub
+
+        <Fact>
+        Public Sub MissingIteratorStateMachineAttribute()
+            Dim src1 = "
+Imports System.Collections.Generic
+
+Class C
+    Shared Iterator Function F() As IEnumerable(Of Integer)
+        Yield 1
+    End Function
+End Class
+"
+            Dim src2 = "
+Imports System.Collections.Generic
+
+Class C
+    Shared Iterator Function F() As IEnumerable(Of Integer)
+        Yield 2
+    End Function
+End Class
+"
+            Dim edits = GetTopEdits(src1, src2)
+            VisualBasicEditAndContinueTestHelpers.Instance40.VerifySemantics(
+                edits,
+                ActiveStatementsDescription.Empty,
+                Nothing,
+                Nothing,
+                Nothing,
+                {Diagnostic(RudeEditKind.UpdatingStateMachineMethodMissingAttribute, "Shared Iterator Function F()", "System.Runtime.CompilerServices.IteratorStateMachineAttribute")})
+        End Sub
+
+        <Fact>
+        Public Sub MissingIteratorStateMachineAttribute2()
+            Dim src1 = "
+Imports System.Collections.Generic
+
+Class C
+    Shared Function F() As IEnumerable(Of Integer)
+        Return Nothing
+    End Function
+End Class
+"
+            Dim src2 = "
+Imports System.Collections.Generic
+
+Class C
+    Shared Iterator Function F() As IEnumerable(Of Integer)
+        Yield 2
+    End Function
+End Class
+"
+            Dim edits = GetTopEdits(src1, src2)
+            VisualBasicEditAndContinueTestHelpers.Instance40.VerifySemantics(
+                edits,
+                ActiveStatementsDescription.Empty,
+                Nothing,
+                Nothing,
+                Nothing,
+                Nothing)
+        End Sub
+
 #End Region
 
 #Region "Await"
@@ -5638,6 +5700,69 @@ Await F(3)
 
             edits.VerifyEdits(
                 "Delete [Await F(2)]@51")
+        End Sub
+
+        <Fact>
+        Public Sub MissingAsyncStateMachineAttribute1()
+            Dim src1 = "
+Imports System.Threading.Tasks
+
+Class C
+    Shared Async Function F() As Task(Of Integer)
+        Await New Task()
+        Return 1
+    End Function
+End Class
+"
+            Dim src2 = "
+Imports System.Threading.Tasks
+
+Class C
+    Shared Async Function F() As Task(Of Integer)
+        Await New Task()
+        Return 2
+    End Function
+End Class
+"
+            Dim edits = GetTopEdits(src1, src2)
+            VisualBasicEditAndContinueTestHelpers.InstanceMinAsync.VerifySemantics(
+                edits,
+                ActiveStatementsDescription.Empty,
+                Nothing,
+                Nothing,
+                Nothing,
+                {Diagnostic(RudeEditKind.UpdatingStateMachineMethodMissingAttribute, "Shared Async Function F()", "System.Runtime.CompilerServices.AsyncStateMachineAttribute")})
+        End Sub
+
+        <Fact>
+        Public Sub MissingAsyncStateMachineAttribute2()
+            Dim src1 = "
+Imports System.Threading.Tasks
+
+Class C
+    Shared Function F() As Task(Of Integer)
+        Return Nothing
+    End Function
+End Class
+"
+            Dim src2 = "
+Imports System.Threading.Tasks
+
+Class C
+    Shared Async Function F() As Task(Of Integer)
+        Await New Task()
+        Return 2
+    End Function
+End Class
+"
+            Dim edits = GetTopEdits(src1, src2)
+            VisualBasicEditAndContinueTestHelpers.InstanceMinAsync.VerifySemantics(
+                edits,
+                ActiveStatementsDescription.Empty,
+                Nothing,
+                Nothing,
+                Nothing,
+                Nothing)
         End Sub
 #End Region
     End Class

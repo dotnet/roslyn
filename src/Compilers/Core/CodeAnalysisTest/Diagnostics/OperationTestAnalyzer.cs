@@ -3,6 +3,7 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Diagnostics;
 using System.Linq;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Semantics;
@@ -1592,6 +1593,114 @@ namespace Microsoft.CodeAnalysis.UnitTests.Diagnostics
         }
     }
 
+    public class BinaryOperatorVBTestAnalyzer : DiagnosticAnalyzer
+    {
+        public static readonly DiagnosticDescriptor BinaryUserDefinedOperatorDescriptor = new DiagnosticDescriptor(
+            "BinaryUserDefinedOperator",
+            "Binary user defined operator found",
+            "A Binary user defined operator {0} is found",
+            "Testing",
+            DiagnosticSeverity.Warning,
+            isEnabledByDefault: true);
+
+        public sealed override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics 
+            => ImmutableArray.Create(BinaryUserDefinedOperatorDescriptor);
+
+        public sealed override void Initialize(AnalysisContext context)
+        {
+            context.RegisterOperationAction(
+                (operationContext) =>
+                {
+                    var binary = (IBinaryOperatorExpression)operationContext.Operation;
+                    if (binary.GetBinaryOperandsKind() == BinaryOperandsKind.OperatorMethod)
+                    {
+                        operationContext.ReportDiagnostic(
+                            Diagnostic.Create(BinaryUserDefinedOperatorDescriptor, 
+                                binary.Syntax.GetLocation(),
+                                binary.BinaryOperationKind.ToString()));
+                    }
+                },
+                OperationKind.BinaryOperatorExpression);
+        }
+    }
+
+    public class OperatorPropertyPullerTestAnalyzer : DiagnosticAnalyzer
+    {
+        public static readonly DiagnosticDescriptor BinaryOperatorDescriptor = new DiagnosticDescriptor(
+            "BinaryOperator",
+            "Binary operator found",
+            "A Binary operator {0} was found",
+            "Testing",
+            DiagnosticSeverity.Warning,
+            isEnabledByDefault: true);
+
+        public static readonly DiagnosticDescriptor UnaryOperatorDescriptor = new DiagnosticDescriptor(
+           "UnaryOperator",
+           "Unary operator found",
+           "A Unary operator {0} was found",
+           "Testing",
+           DiagnosticSeverity.Warning,
+           isEnabledByDefault: true);
+
+        public sealed override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics
+            => ImmutableArray.Create(BinaryOperatorDescriptor, UnaryOperatorDescriptor);
+
+        public sealed override void Initialize(AnalysisContext context)
+        {
+            context.RegisterOperationAction(
+                (operationContext) =>
+                {
+                    var binary = (IBinaryOperatorExpression)operationContext.Operation;
+                    var left = binary.LeftOperand;
+                    var right = binary.RightOperand;
+                    if (!left.IsInvalid && !right.IsInvalid && !binary.UsesOperatorMethod && binary.OperatorMethod == null)
+                    {
+                        if (left.Kind == OperationKind.LocalReferenceExpression)
+                        {
+                            var leftLocal = ((ILocalReferenceExpression)left).Local;
+                            if (leftLocal.Name == "x")
+                            {
+                                if (right.Kind == OperationKind.LiteralExpression)
+                                {
+                                    var rightValue = right.ConstantValue;
+                                    if (rightValue.HasValue && rightValue.Value is int && (int)rightValue.Value == 10)
+                                    {
+                                        operationContext.ReportDiagnostic(
+                                            Diagnostic.Create(BinaryOperatorDescriptor,
+                                            binary.Syntax.GetLocation(),
+                                            binary.BinaryOperationKind.ToString()));
+                                    }
+                                }
+                            }
+                        }
+                    }
+                },
+                OperationKind.BinaryOperatorExpression);
+
+            context.RegisterOperationAction(
+                (operationContext) =>
+                {
+                    var unary = (IUnaryOperatorExpression)operationContext.Operation;
+                    var operand = unary.Operand;
+                    if (operand.Kind == OperationKind.LocalReferenceExpression)
+                    {
+                        var operandLocal = ((ILocalReferenceExpression)operand).Local;
+                        if (operandLocal.Name == "x")
+                        {
+                            if (!operand.IsInvalid && !unary.UsesOperatorMethod && unary.OperatorMethod == null)
+                            {
+                                operationContext.ReportDiagnostic(
+                                    Diagnostic.Create(UnaryOperatorDescriptor,
+                                        unary.Syntax.GetLocation(),
+                                        unary.UnaryOperationKind.ToString()));
+                            }
+                        }
+                    }
+                },
+                OperationKind.UnaryOperatorExpression);
+        }
+    }
+
     public class NullOperationSyntaxTestAnalyzer : DiagnosticAnalyzer
     {
         private const string ReliabilityCategory = "Reliability";
@@ -1800,7 +1909,40 @@ namespace Microsoft.CodeAnalysis.UnitTests.Diagnostics
                 },
                 OperationKind.PlaceholderExpression);
         }
-    }    
+    }
+
+    public class ConversionExpressionCSharpTestAnalyzer : DiagnosticAnalyzer
+    {
+        private const string ReliabilityCategory = "Reliability";
+
+        public static readonly DiagnosticDescriptor InvalidConversionExpressionDescriptor = new DiagnosticDescriptor(
+            "InvalidConversionExpression",
+            "Invalid conversion expression",
+            "Invalid conversion expression.",
+            ReliabilityCategory,
+            DiagnosticSeverity.Warning,
+            isEnabledByDefault: true);
+
+        public sealed override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics
+        {
+            get { return ImmutableArray.Create(InvalidConversionExpressionDescriptor); }
+        }
+
+        public sealed override void Initialize(AnalysisContext context)
+        {
+            context.RegisterOperationAction(
+                 (operationContext) =>
+                 {
+                     var conversion = (IConversionExpression)operationContext.Operation;
+                     if (conversion.ConversionKind == ConversionKind.Invalid)
+                     {
+                         Debug.Assert(conversion.IsInvalid == true);
+                         operationContext.ReportDiagnostic(Diagnostic.Create(InvalidConversionExpressionDescriptor, conversion.Syntax.GetLocation()));
+                     }
+                 },
+                 OperationKind.ConversionExpression);
+        }
+    }
 
     public class ForLoopConditionCrashVBTestAnalyzer : DiagnosticAnalyzer
     {
@@ -1838,6 +1980,92 @@ namespace Microsoft.CodeAnalysis.UnitTests.Diagnostics
                      }
                  },
                  OperationKind.LoopStatement);
+        }
+    }
+
+    public class TrueFalseUnaryOperationTestAnalyzer : DiagnosticAnalyzer
+    {
+        private const string ReliabilityCategory = "Reliability";
+
+        public static readonly DiagnosticDescriptor UnaryTrueDescriptor = new DiagnosticDescriptor(
+            "UnaryTrue",
+            "An unary True operation is found",
+            "A unary True operation is found",
+            ReliabilityCategory,
+            DiagnosticSeverity.Warning,
+            isEnabledByDefault: true);
+
+        public static readonly DiagnosticDescriptor UnaryFalseDescriptor = new DiagnosticDescriptor(
+            "UnaryFalse",
+            "An unary False operation is found",
+            "A unary False operation is found",
+            ReliabilityCategory,
+            DiagnosticSeverity.Warning,
+            isEnabledByDefault: true);
+
+        public sealed override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics
+            => ImmutableArray.Create(UnaryTrueDescriptor, UnaryFalseDescriptor);
+
+        public sealed override void Initialize(AnalysisContext context)
+        {
+            context.RegisterOperationAction(
+                 (operationContext) =>
+                 {
+                     var unary = (IUnaryOperatorExpression)operationContext.Operation;
+                     if (unary.UnaryOperationKind == UnaryOperationKind.OperatorMethodTrue)
+                     {
+                         operationContext.ReportDiagnostic(Diagnostic.Create(UnaryTrueDescriptor, unary.Syntax.GetLocation()));
+                     }
+                     else if (unary.UnaryOperationKind == UnaryOperationKind.OperatorMethodFalse)
+                     {
+                         operationContext.ReportDiagnostic(Diagnostic.Create(UnaryFalseDescriptor, unary.Syntax.GetLocation()));
+                     }
+                 },
+                 OperationKind.UnaryOperatorExpression);
+        }
+    }
+
+    public class AssignmentOperationSyntaxTestAnalyzer : DiagnosticAnalyzer
+    {
+        private const string ReliabilityCategory = "Reliability";
+
+        public static readonly DiagnosticDescriptor AssignmentOperationDescriptor = new DiagnosticDescriptor(
+            "AssignmentOperation",
+            "An assignment operation is found",
+            "An assignment operation is found",
+            ReliabilityCategory,
+            DiagnosticSeverity.Warning,
+            isEnabledByDefault: true);
+
+        public static readonly DiagnosticDescriptor AssignmentSyntaxDescriptor = new DiagnosticDescriptor(
+            "AssignmentSyntax",
+            "An assignment syntax is found",
+            "An assignment syntax is found",
+            ReliabilityCategory,
+            DiagnosticSeverity.Warning,
+            isEnabledByDefault: true);
+
+        public sealed override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics
+        {
+            get { return ImmutableArray.Create(AssignmentOperationDescriptor, AssignmentSyntaxDescriptor); }
+        }
+
+        public sealed override void Initialize(AnalysisContext context)
+        {
+            context.RegisterOperationAction(
+                 (operationContext) =>
+                 {
+                     operationContext.ReportDiagnostic(Diagnostic.Create(AssignmentOperationDescriptor, operationContext.Operation.Syntax.GetLocation()));
+                 },
+                 OperationKind.AssignmentExpression);
+
+            context.RegisterSyntaxNodeAction(
+                 (syntaxContext) =>
+                 {
+                     
+                     syntaxContext.ReportDiagnostic(Diagnostic.Create(AssignmentSyntaxDescriptor, syntaxContext.Node.GetLocation()));
+                 },
+                 CSharp.SyntaxKind.SimpleAssignmentExpression);
         }
     }
 

@@ -358,8 +358,10 @@ namespace Microsoft.Cci
             }
 
             DefineLocalScopes(localScopes, localSignatureToken);
-
-            EmitSequencePoints(methodBody.GetSequencePoints());
+            ArrayBuilder<Cci.SequencePoint> sequencePoints = ArrayBuilder<Cci.SequencePoint>.GetInstance();
+            methodBody.GetSequencePoints(sequencePoints);
+            EmitSequencePoints(sequencePoints);
+            sequencePoints.Free();
 
             AsyncMethodBodyDebugInfo asyncDebugInfo = methodBody.AsyncDebugInfo;
             if (asyncDebugInfo != null)
@@ -1105,7 +1107,7 @@ namespace Microsoft.Cci
             Array.Resize(ref _sequencePointEndColumns, newCapacity);
         }
 
-        private void EmitSequencePoints(ImmutableArray<SequencePoint> sequencePoints)
+        private void EmitSequencePoints(ArrayBuilder<Cci.SequencePoint> sequencePoints)
         {
             DebugSourceDocument document = null;
             ISymUnmanagedDocumentWriter symDocumentWriter = null;

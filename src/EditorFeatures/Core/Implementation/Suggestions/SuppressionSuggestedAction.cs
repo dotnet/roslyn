@@ -10,6 +10,7 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.Editor.Host;
+using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.VisualStudio.Language.Intellisense;
 using Microsoft.VisualStudio.Text;
 using Roslyn.Utilities;
@@ -33,12 +34,16 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
             IWaitIndicator waitIndicator,
             CodeFix fix,
             object provider,
-            Func<CodeAction, SuggestedActionSet> getFixAllSuggestedActionSet) :
-                base(workspace, subjectBuffer, editHandler, waitIndicator, fix.Action, provider)
+            Func<CodeAction, SuggestedActionSet> getFixAllSuggestedActionSet,
+            IAsynchronousOperationListener operationListener)
+            : base(workspace, subjectBuffer, editHandler, waitIndicator, fix.Action, provider, operationListener)
         {
             _fix = fix;
             _getFixAllSuggestedActionSet = getFixAllSuggestedActionSet;
         }
+
+        // Put suppressions at the end of everything.
+        internal override CodeActionPriority Priority => CodeActionPriority.None;
 
         public override bool HasActionSets
         {
@@ -69,8 +74,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
 
                     var fixAllSuggestedActionSet = _getFixAllSuggestedActionSet(c);
                     nestedSuggestedActions.Add(new CodeFixSuggestedAction(
-                            this.Workspace, this.SubjectBuffer, this.EditHandler, this.WaitIndicator,
-                            new CodeFix(_fix.Project, c, _fix.Diagnostics), c, this.Provider, fixAllSuggestedActionSet));
+                        this.Workspace, this.SubjectBuffer, this.EditHandler, this.WaitIndicator, new CodeFix(_fix.Project, c, _fix.Diagnostics),
+                        c, this.Provider, fixAllSuggestedActionSet, this.OperationListener));
                 }
 
                 _actionSets = ImmutableArray.Create(
@@ -82,7 +87,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
             return SpecializedTasks.Default<IEnumerable<SuggestedActionSet>>();
         }
 
-        public override void Invoke(CancellationToken cancellationToken)
+        protected override Task InvokeAsync(CancellationToken cancellationToken)
         {
             // The top-level action cannot be invoked.
             // However, the nested sub-actions returned above can be.

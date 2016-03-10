@@ -1,12 +1,10 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
-using System.Diagnostics;
-
-using System.Linq;
 using Roslyn.Utilities;
+using System.Diagnostics;
+using System.Linq;
 
 namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
 {
@@ -91,9 +89,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                 return _assembly.Identity;
             }
         }
-
-        // TODO: https://github.com/dotnet/roslyn/issues/9000
-        public override Version AssemblyVersionPattern => null;
 
         public override ImmutableArray<ModuleSymbol> Modules
         {

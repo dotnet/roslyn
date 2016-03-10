@@ -1300,6 +1300,19 @@ Class C
                 Exit Select
         End Select
     End Sub
+     
+    Public Property Fred As Integer  
+        Set(value As Integer)  
+            Exit Property  
+        End Set  
+        Get  
+            Return 12  
+        End Get  
+    End Property  
+  
+    Public Sub Barney  
+        Resume  
+    End Sub
 End Class
 ]]>
                              </file>
@@ -1307,7 +1320,8 @@ End Class
 
             Dim comp = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(source)
             comp.VerifyDiagnostics()
-            comp.VerifyAnalyzerDiagnostics({New NoneOperationTestAnalyzer}, Nothing, Nothing, False)
+            comp.VerifyAnalyzerDiagnostics({New NoneOperationTestAnalyzer}, Nothing, Nothing, False,
+                                           Diagnostic(NoneOperationTestAnalyzer.NoneOperationDescriptor.Id, "Resume").WithLocation(23, 9))
         End Sub
 
         <Fact>
@@ -1523,6 +1537,213 @@ End Class
                 Diagnostic(UnaryAndBinaryOperationsTestAnalyzer.DoubleMultiplyDescriptor.Id, "d * 100").WithLocation(34, 13),
                 Diagnostic(UnaryAndBinaryOperationsTestAnalyzer.OperatorAddMethodDescriptor.Id, "a1 + a2").WithLocation(35, 14),
                 Diagnostic(UnaryAndBinaryOperationsTestAnalyzer.OperatorMinusMethodDescriptor.Id, "-a2").WithLocation(36, 14))
+        End Sub
+
+        <Fact>
+        Public Sub BinaryOperatorsVisualBasic()
+            Dim source = <compilation>
+                             <file name="c.vb">
+                                 <![CDATA[
+Public Class B2
+
+    Public Shared Operator +(x As B2, y As B2) As B2 
+        System.Console.WriteLine("+")
+        Return x
+    End Operator
+
+    Public Shared Operator -(x As B2, y As B2) As B2 
+        System.Console.WriteLine("-")
+        Return x
+    End Operator
+
+    Public Shared Operator *(x As B2, y As B2) As B2 
+        System.Console.WriteLine("*")
+        Return x
+    End Operator
+
+    Public Shared Operator /(x As B2, y As B2) As B2 
+        System.Console.WriteLine("/")
+        Return x
+    End Operator
+
+    Public Shared Operator \(x As B2, y As B2) As B2 
+        System.Console.WriteLine("\")
+        Return x
+    End Operator
+
+    Public Shared Operator Mod(x As B2, y As B2) As B2 
+        System.Console.WriteLine("Mod")
+        Return x
+    End Operator
+
+    Public Shared Operator ^(x As B2, y As B2) As B2 
+        System.Console.WriteLine("^")
+        Return x
+    End Operator
+
+    Public Shared Operator =(x As B2, y As B2) As B2 
+        System.Console.WriteLine("=")
+        Return x
+    End Operator
+
+    Public Shared Operator <>(x As B2, y As B2) As B2
+        System.Console.WriteLine("<>")
+        Return x
+    End Operator
+
+    Public Shared Operator <(x As B2, y As B2) As B2 
+        System.Console.WriteLine("<")
+        Return x
+    End Operator
+
+    Public Shared Operator >(x As B2, y As B2) As B2 
+        System.Console.WriteLine(">")
+        Return x
+    End Operator
+
+    Public Shared Operator <=(x As B2, y As B2) As B2
+        System.Console.WriteLine("<=")
+        Return x
+    End Operator
+
+    Public Shared Operator >=(x As B2, y As B2) As B2
+        System.Console.WriteLine(">=")
+        Return x
+    End Operator
+
+    Public Shared Operator Like(x As B2, y As B2) As B2
+        System.Console.WriteLine("Like")
+        Return x
+    End Operator
+
+    Public Shared Operator &(x As B2, y As B2) As B2 
+        System.Console.WriteLine("&")
+        Return x
+    End Operator
+
+    Public Shared Operator And(x As B2, y As B2) As B2
+        System.Console.WriteLine("And")
+        Return x
+    End Operator
+
+    Public Shared Operator Or(x As B2, y As B2) As B2 
+        System.Console.WriteLine("Or")
+        Return x
+    End Operator
+
+    Public Shared Operator Xor(x As B2, y As B2) As B2
+        System.Console.WriteLine("Xor")
+        Return x
+    End Operator
+
+    Public Shared Operator <<(x As B2, y As Integer) As B2
+        System.Console.WriteLine("<<")
+        Return x
+    End Operator
+
+    Public Shared Operator >>(x As B2, y As Integer) As B2
+        System.Console.WriteLine(">>")
+        Return x
+    End Operator
+End Class
+
+Module Module1
+
+    Sub Main() 
+        Dim x, y As New B2()
+        Dim r As B2
+        r = x + y      
+        r = x - y      
+        r = x * y      
+        r = x / y      
+        r = x \ y      
+        r = x Mod y    
+        r = x ^ y
+        r = x = y      
+        r = x <> y     
+        r = x < y      
+        r = x > y      
+        r = x <= y     
+        r = x >= y     
+        r = x Like y   ' TODO: Bug https://github.com/dotnet/roslyn/issues/9174
+        r = x & y      ' TODO: Bug https://github.com/dotnet/roslyn/issues/9174
+        r = x And y    
+        r = x Or y     
+        r = x Xor y    
+        r = x << 2     
+        r = x >> 3       
+    End Sub
+End Module
+]]>
+                             </file>
+                         </compilation>
+
+            Dim comp = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(source)
+            comp.VerifyDiagnostics()
+            comp.VerifyAnalyzerDiagnostics({New BinaryOperatorVBTestAnalyzer}, Nothing, Nothing, False,
+                Diagnostic(BinaryOperatorVBTestAnalyzer.BinaryUserDefinedOperatorDescriptor.Id, "x + y").WithArguments("OperatorMethodAdd").WithLocation(109, 13),
+                Diagnostic(BinaryOperatorVBTestAnalyzer.BinaryUserDefinedOperatorDescriptor.Id, "x - y").WithArguments("OperatorMethodSubtract").WithLocation(110, 13),
+                Diagnostic(BinaryOperatorVBTestAnalyzer.BinaryUserDefinedOperatorDescriptor.Id, "x * y").WithArguments("OperatorMethodMultiply").WithLocation(111, 13),
+                Diagnostic(BinaryOperatorVBTestAnalyzer.BinaryUserDefinedOperatorDescriptor.Id, "x / y").WithArguments("OperatorMethodDivide").WithLocation(112, 13),
+                Diagnostic(BinaryOperatorVBTestAnalyzer.BinaryUserDefinedOperatorDescriptor.Id, "x \ y").WithArguments("OperatorMethodIntegerDivide").WithLocation(113, 13),
+                Diagnostic(BinaryOperatorVBTestAnalyzer.BinaryUserDefinedOperatorDescriptor.Id, "x Mod y").WithArguments("OperatorMethodRemainder").WithLocation(114, 13),
+                Diagnostic(BinaryOperatorVBTestAnalyzer.BinaryUserDefinedOperatorDescriptor.Id, "x ^ y").WithArguments("OperatorMethodPower").WithLocation(115, 13),
+                Diagnostic(BinaryOperatorVBTestAnalyzer.BinaryUserDefinedOperatorDescriptor.Id, "x = y").WithArguments("OperatorMethodEquals").WithLocation(116, 13),
+                Diagnostic(BinaryOperatorVBTestAnalyzer.BinaryUserDefinedOperatorDescriptor.Id, "x <> y").WithArguments("OperatorMethodNotEquals").WithLocation(117, 13),
+                Diagnostic(BinaryOperatorVBTestAnalyzer.BinaryUserDefinedOperatorDescriptor.Id, "x < y").WithArguments("OperatorMethodLessThan").WithLocation(118, 13),
+                Diagnostic(BinaryOperatorVBTestAnalyzer.BinaryUserDefinedOperatorDescriptor.Id, "x > y").WithArguments("OperatorMethodGreaterThan").WithLocation(119, 13),
+                Diagnostic(BinaryOperatorVBTestAnalyzer.BinaryUserDefinedOperatorDescriptor.Id, "x <= y").WithArguments("OperatorMethodLessThanOrEqual").WithLocation(120, 13),
+                Diagnostic(BinaryOperatorVBTestAnalyzer.BinaryUserDefinedOperatorDescriptor.Id, "x >= y").WithArguments("OperatorMethodGreaterThanOrEqual").WithLocation(121, 13),
+                Diagnostic(BinaryOperatorVBTestAnalyzer.BinaryUserDefinedOperatorDescriptor.Id, "x And y").WithArguments("OperatorMethodAnd").WithLocation(124, 13),
+                Diagnostic(BinaryOperatorVBTestAnalyzer.BinaryUserDefinedOperatorDescriptor.Id, "x Or y").WithArguments("OperatorMethodOr").WithLocation(125, 13),
+                Diagnostic(BinaryOperatorVBTestAnalyzer.BinaryUserDefinedOperatorDescriptor.Id, "x Xor y").WithArguments("OperatorMethodExclusiveOr").WithLocation(126, 13),
+                Diagnostic(BinaryOperatorVBTestAnalyzer.BinaryUserDefinedOperatorDescriptor.Id, "x << 2").WithArguments("OperatorMethodLeftShift").WithLocation(127, 13),
+                Diagnostic(BinaryOperatorVBTestAnalyzer.BinaryUserDefinedOperatorDescriptor.Id, "x >> 3").WithArguments("OperatorMethodRightShift").WithLocation(128, 13))
+        End Sub
+
+        <Fact>
+        Public Sub InvalidOperatorsVisualBasic()
+            Dim source = <compilation>
+                             <file name="c.vb">
+                                 <![CDATA[
+Public Class B2
+
+    Public Shared Operator +(x As B2, y As B2) As B2 
+        System.Console.WriteLine("+")
+        Return x
+    End Operator
+
+    Public Shared Operator -(x As B2) As B2 
+        System.Console.WriteLine("-")
+        Return x
+    End Operator
+
+    Public Shared Operator -(x As B2) As B2 
+        System.Console.WriteLine("-")
+        Return x
+    End Operator
+End Class
+
+Module Module1
+
+    Sub Main() 
+        Dim x, y As New B2()
+        x = x + 10
+        x = x + y
+        x = -x
+    End Sub
+End Module
+]]>
+                             </file>
+                         </compilation>
+
+            Dim comp = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(source)
+            comp.VerifyDiagnostics(Diagnostic(ERRID.ERR_DuplicateProcDef1, "-", New Object() {"Public Shared Operator -(x As B2) As B2"}).WithLocation(8, 28),
+                                   Diagnostic(ERRID.ERR_TypeMismatch2, "10", New Object() {"Integer", "B2"}).WithLocation(23, 17),
+                                   Diagnostic(ERRID.ERR_NoMostSpecificOverload2, "-x", New Object() {"-", vbCrLf & "    'Public Shared Operator -(x As B2) As B2': Not most specific." & vbCrLf & "    'Public Shared Operator -(x As B2) As B2': Not most specific."}).WithLocation(25, 13))
+            comp.VerifyAnalyzerDiagnostics({New OperatorPropertyPullerTestAnalyzer}, Nothing, Nothing, False,
+                                           Diagnostic(OperatorPropertyPullerTestAnalyzer.BinaryOperatorDescriptor.Id, "x + 10").WithArguments("OperatorMethodAdd").WithLocation(23, 13),
+                                           Diagnostic(OperatorPropertyPullerTestAnalyzer.UnaryOperatorDescriptor.Id, "-x").WithArguments("OperatorMethodMinus").WithLocation(25, 13))
         End Sub
 
         <Fact>
@@ -1832,6 +2053,60 @@ End Module
                 Diagnostic(MemberReferenceAnalyzer.InvalidEventDescriptor.Id, "AddHandler receiver?.TestEvent, AddressOf Main").WithLocation(15, 9),
                 Diagnostic(MemberReferenceAnalyzer.HandlerAddedDescriptor.Id, "AddHandler Function(ByVal x) x").WithLocation(6, 9),
                 Diagnostic(MemberReferenceAnalyzer.InvalidEventDescriptor.Id, "AddHandler Function(ByVal x) x").WithLocation(6, 9))
+        End Sub
+
+        <Fact, WorkItem(9127, "https://github.com/dotnet/roslyn/issues/9127")>
+        Public Sub UnaryTrueFalseOperationVisualBasic()
+            ' BoundCaseStatement is OperationKind.None
+            Dim source = <compilation>
+                             <file name="c.vb">
+                                 <![CDATA[
+Module Module1
+    Structure S8
+        Public Shared Narrowing Operator CType(x As S8) As Boolean
+            System.Console.WriteLine("Narrowing Operator CType(x As S8) As Boolean")
+            Return Nothing
+        End Operator
+
+        Public Shared Operator IsTrue(x As S8) As Boolean
+            System.Console.WriteLine("IsTrue(x As S8) As Boolean")
+            Return False
+        End Operator
+
+        Public Shared Operator IsFalse(x As S8) As Boolean
+            System.Console.WriteLine("IsFalse(x As S8) As Boolean")
+            Return False
+        End Operator
+
+        Public Shared Operator And(x As S8, y As S8) As S8
+            Return New S8()
+        End Operator
+    End Structure
+
+    Sub Main()
+        Dim x As New S8
+        Dim y As New S8
+
+        If x Then 'BIND1:"x"
+            System.Console.WriteLine("If")
+        Else
+            System.Console.WriteLine("Else")
+        End If
+
+        If x AndAlso y Then
+
+        End If
+    End Sub
+End Module
+]]>
+                             </file>
+                         </compilation>
+
+            Dim comp = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(source)
+            comp.VerifyDiagnostics()
+            comp.VerifyAnalyzerDiagnostics({New TrueFalseUnaryOperationTestAnalyzer}, Nothing, Nothing, False,
+                Diagnostic(TrueFalseUnaryOperationTestAnalyzer.UnaryTrueDescriptor.Id, "x").WithLocation(27, 12),
+                Diagnostic(TrueFalseUnaryOperationTestAnalyzer.UnaryTrueDescriptor.Id, "x AndAlso y").WithLocation(33, 12))
         End Sub
     End Class
 End Namespace

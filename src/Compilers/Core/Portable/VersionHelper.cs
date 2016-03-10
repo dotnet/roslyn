@@ -25,7 +25,10 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         /// <param name="s">The version string to parse.</param>
         /// <param name="allowWildcard">Indicates whether or not a wildcard is accepted as the terminal component.</param>
-        /// <param name="version">If parsing succeeded, the parsed version. Null otherwise.</param>
+        /// <param name="version">
+        /// If parsing succeeded, the parsed version. Null otherwise.
+        /// If <paramref name="s"/> contains * the version build and/or revision numbers are set to <see cref="ushort.MaxValue"/>.
+        /// </param>
         /// <returns>True when parsing succeeds completely (i.e. every character in the string was consumed), false otherwise.</returns>
         internal static bool TryParseAssemblyVersion(string s, bool allowWildcard, out Version version)
         {
@@ -39,10 +42,15 @@ namespace Microsoft.CodeAnalysis
         /// <param name="s">The version string to parse.</param>
         /// <param name="allowWildcard">Indicates whether or not we're parsing an assembly version string. If so, wildcards are accepted and each component must be less than 65535.</param>
         /// <param name="maxValue">The maximum value that a version component may have.</param>
-        /// <param name="version">If parsing succeeded, the parsed version. Null otherwise.</param>
+        /// <param name="version">
+        /// If parsing succeeded, the parsed version. Null otherwise. 
+        /// If <paramref name="s"/> contains * and wildcard is allowed the version build and/or revision numbers are set to <see cref="ushort.MaxValue"/>.
+        /// </param>
         /// <returns>True when parsing succeeds completely (i.e. every character in the string was consumed), false otherwise.</returns>
         private static bool TryParse(string s, bool allowWildcard, ushort maxValue, out Version version)
         {
+            Debug.Assert(!allowWildcard || maxValue < ushort.MaxValue);
+
             if (s == null)
             {
                 version = null;
@@ -61,7 +69,7 @@ namespace Microsoft.CodeAnalysis
                 return false;
             }
 
-            ushort[] values = new ushort[] { 0, 0, ushort.MaxValue, ushort.MaxValue };
+            ushort[] values = new ushort[4];
             int lastExplicitValue = hasWildcard ? elements.Length - 1 : elements.Length;
             for (int i = 0; i < lastExplicitValue; i++)
             {
@@ -72,6 +80,14 @@ namespace Microsoft.CodeAnalysis
                 }
             }
 
+            if (hasWildcard)
+            {
+                for (int i = lastExplicitValue; i < values.Length; i++)
+                {
+                    values[i] = ushort.MaxValue;
+                }
+            }
+
             version = new Version(values[0], values[1], values[2], values[3]);
             return true;
         }
@@ -79,21 +95,29 @@ namespace Microsoft.CodeAnalysis
         /// <summary>
         /// If build and/or revision numbers are 65535 they are replaced with time-based values.
         /// </summary>
-        public static Version GenerateVersionFromPatternAndCurrentTime(Version pattern)
+        public static Version GenerateVersionFromPatternAndCurrentTime(DateTime time, Version pattern)
         {
             if (pattern == null || pattern.Revision != ushort.MaxValue)
             {
                 return pattern;
             }
 
-            int revision = (int)DateTime.Now.TimeOfDay.TotalSeconds / 2;
+            // MSDN doc on the attribute: 
+            // "The default build number increments daily. The default revision number is the number of seconds since midnight local time 
+            // (without taking into account time zone adjustments for daylight saving time), divided by 2."
+            if (time == default(DateTime))
+            {
+                time = DateTime.Now;
+            }
 
-            // 24 * 60 * 60 / 2 = 43200 < 65534
-            Debug.Assert(revision < 0xffff);
+            int revision = (int)time.TimeOfDay.TotalSeconds / 2;
+
+            // 24 * 60 * 60 / 2 = 43200 < 65535
+            Debug.Assert(revision < ushort.MaxValue);
 
             if (pattern.Build == ushort.MaxValue)
             {
-                TimeSpan days = DateTime.Today - new DateTime(2000, 1, 1);
+                TimeSpan days = time.Date - new DateTime(2000, 1, 1);
                 int build = Math.Min(ushort.MaxValue, (int)days.TotalDays);
 
                 return new Version(pattern.Major, pattern.Minor, (ushort)build, (ushort)revision);

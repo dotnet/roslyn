@@ -28,6 +28,17 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
             End Using
         End Function
 
+        Protected Overridable Function MassageActions(actions As IList(Of CodeAction)) As IList(Of CodeAction)
+            Return actions
+        End Function
+
+        Protected Shared Function FlattenActions(codeActions As IEnumerable(Of CodeAction)) As IList(Of CodeAction)
+            Return codeActions?.SelectMany(
+                Function(a) If(a.HasCodeActions,
+                               a.GetCodeActions().ToArray(),
+                               {a})).ToList()
+        End Function
+
         Protected Async Function TestAsync(definition As XElement,
                             Optional expected As String = Nothing,
                             Optional codeActionIndex As Integer = 0,
@@ -39,7 +50,9 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
                 onAfterWorkspaceCreated?.Invoke(workspace)
 
                 Dim diagnosticAndFix = Await GetDiagnosticAndFixAsync(workspace)
-                Dim codeAction = diagnosticAndFix.Item2.Fixes.ElementAt(codeActionIndex).Action
+                Dim codeActions = diagnosticAndFix.Item2.Fixes.Select(Function(f) f.Action).ToList()
+                codeActions = MassageActions(codeActions)
+                Dim codeAction = codeActions(codeActionIndex)
                 Dim operations = Await codeAction.GetOperationsAsync(CancellationToken.None)
                 Dim edit = operations.OfType(Of ApplyChangesOperation)().First()
 

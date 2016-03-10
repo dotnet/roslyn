@@ -236,6 +236,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End Get
         End Property
 
+        Public Overrides ReadOnly Property ERR_MutuallyExclusiveOptions As Integer
+            Get
+                Return ERRID.ERR_MutuallyExclusiveOptions
+            End Get
+        End Property
+
         ' emit options:
 
         Public Overrides ReadOnly Property ERR_InvalidDebugInformationFormat As Integer
@@ -478,6 +484,18 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Public Overrides ReadOnly Property ERR_TooManyUserStrings As Integer
             Get
                 Return ERRID.ERR_TooManyUserStrings
+            End Get
+        End Property
+
+        Public Overrides ReadOnly Property ERR_PeWritingFailure As Integer
+            Get
+                Return ERRID.ERR_PeWritingFailure
+            End Get
+        End Property
+
+        Public Overrides ReadOnly Property ERR_ModuleEmitFailure As Integer
+            Get
+                Return ERRID.ERR_ModuleEmitFailure
             End Get
         End Property
     End Class

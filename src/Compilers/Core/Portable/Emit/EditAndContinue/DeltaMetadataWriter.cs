@@ -35,7 +35,7 @@ namespace Microsoft.CodeAnalysis.Emit
         private readonly EventOrPropertyMapIndex _propertyMap;
         private readonly MethodImplIndex _methodImpls;
 
-        private readonly HeapOrReferenceIndex<AssemblyIdentity> _assemblyRefIndex;
+        private readonly HeapOrReferenceIndex<IAssemblyReference> _assemblyRefIndex;
         private readonly HeapOrReferenceIndex<string> _moduleRefIndex;
         private readonly InstanceAndStructuralReferenceIndex<ITypeMemberReference> _memberRefIndex;
         private readonly InstanceAndStructuralReferenceIndex<IGenericMethodInstanceReference> _methodSpecIndex;
@@ -77,7 +77,7 @@ namespace Microsoft.CodeAnalysis.Emit
             _propertyMap = new EventOrPropertyMapIndex(this.TryGetExistingPropertyMapIndex, sizes[(int)TableIndex.PropertyMap]);
             _methodImpls = new MethodImplIndex(this, sizes[(int)TableIndex.MethodImpl]);
 
-            _assemblyRefIndex = new HeapOrReferenceIndex<AssemblyIdentity>(this, lastRowId: sizes[(int)TableIndex.AssemblyRef]);
+            _assemblyRefIndex = new HeapOrReferenceIndex<IAssemblyReference>(this, AssemblyReferenceComparer.Instance, lastRowId: sizes[(int)TableIndex.AssemblyRef]);
             _moduleRefIndex = new HeapOrReferenceIndex<string>(this, lastRowId: sizes[(int)TableIndex.ModuleRef]);
             _memberRefIndex = new InstanceAndStructuralReferenceIndex<ITypeMemberReference>(this, new MemberRefComparer(this), lastRowId: sizes[(int)TableIndex.MemberRef]);
             _methodSpecIndex = new InstanceAndStructuralReferenceIndex<IGenericMethodInstanceReference>(this, new MethodSpecComparer(this), lastRowId: sizes[(int)TableIndex.MethodSpec]);
@@ -340,18 +340,10 @@ namespace Microsoft.CodeAnalysis.Emit
 
         protected override int GetOrAddAssemblyRefIndex(IAssemblyReference reference)
         {
-            var identity = reference.Identity;
-            var versionPattern = reference.AssemblyVersionPattern;
-
-            if ((object)versionPattern != null)
-            {
-                identity = _previousGeneration.InitialBaseline.LazyMetadataSymbols.AssemblyReferenceIdentityMap[identity.WithVersion(versionPattern)];
-            }
-
-            return _assemblyRefIndex.GetOrAdd(identity);
+            return _assemblyRefIndex.GetOrAdd(reference);
         }
 
-        protected override IReadOnlyList<AssemblyIdentity> GetAssemblyRefs()
+        protected override IReadOnlyList<IAssemblyReference> GetAssemblyRefs()
         {
             return _assemblyRefIndex.Rows;
         }
