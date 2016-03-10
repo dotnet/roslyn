@@ -121,22 +121,22 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel.Exter
 
                 if (symbol.IsAbstract)
                 {
-                    result = EnvDTE80.vsCMOverrideKind.vsCMOverrideKindAbstract;
+                    result |= EnvDTE80.vsCMOverrideKind.vsCMOverrideKindAbstract;
                 }
 
                 if (symbol.IsVirtual)
                 {
-                    result = EnvDTE80.vsCMOverrideKind.vsCMOverrideKindVirtual;
+                    result |= EnvDTE80.vsCMOverrideKind.vsCMOverrideKindVirtual;
                 }
 
                 if (symbol.IsOverride)
                 {
-                    result = EnvDTE80.vsCMOverrideKind.vsCMOverrideKindOverride;
+                    result |= EnvDTE80.vsCMOverrideKind.vsCMOverrideKindOverride;
                 }
 
                 if (symbol.IsSealed)
                 {
-                    result = EnvDTE80.vsCMOverrideKind.vsCMOverrideKindSealed;
+                    result |= EnvDTE80.vsCMOverrideKind.vsCMOverrideKindSealed;
                 }
 
                 return result;

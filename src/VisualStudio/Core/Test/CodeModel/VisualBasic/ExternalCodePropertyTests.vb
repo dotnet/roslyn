@@ -12,7 +12,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.CodeModel.VisualBasi
 
         <WorkItem(9646, "https://github.com/dotnet/roslyn/issues/9646")>
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
-        Public Async Function TestOverrideKind1() As Task
+        Public Async Function TestOverrideKind_None() As Task
             Dim code =
 <Code>
 Class C
@@ -30,15 +30,81 @@ End Class
 
         <WorkItem(9646, "https://github.com/dotnet/roslyn/issues/9646")>
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
-        Public Async Function TestOverrideKind2() As Task
+        Public Async Function TestOverrideKind_Abstract() As Task
             Dim code =
 <Code>
-Class C
+MustInherit Class C
     Public MustOverride Property $$P As Integer
 End Class
 </Code>
 
             Await TestOverrideKind(code, EnvDTE80.vsCMOverrideKind.vsCMOverrideKindAbstract)
+        End Function
+
+        <WorkItem(9646, "https://github.com/dotnet/roslyn/issues/9646")>
+        <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
+        Public Async Function TestOverrideKind_Virtual() As Task
+            Dim code =
+<Code>
+Class C
+    Public Overridable Property $$P As Integer
+        Get
+        End Get
+        Set(value As Integer)
+        End Set
+    End Property
+End Class
+</Code>
+
+            Await TestOverrideKind(code, EnvDTE80.vsCMOverrideKind.vsCMOverrideKindVirtual)
+        End Function
+
+        <WorkItem(9646, "https://github.com/dotnet/roslyn/issues/9646")>
+        <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
+        Public Async Function TestOverrideKind_Override() As Task
+            Dim code =
+<Code>
+MustInherit Class A
+    Public MustOverride Property P As Integer
+End Class
+
+Class C
+    Inherits A
+
+    Public Overrides Property $$P As Integer
+        Get
+        End Get
+        Set(value As Integer)
+        End Set
+    End Property
+End Class
+</Code>
+
+            Await TestOverrideKind(code, EnvDTE80.vsCMOverrideKind.vsCMOverrideKindOverride)
+        End Function
+
+        <WorkItem(9646, "https://github.com/dotnet/roslyn/issues/9646")>
+        <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
+        Public Async Function TestOverrideKind_Sealed() As Task
+            Dim code =
+<Code>
+MustInherit Class A
+    Public MustOverride Property P As Integer
+End Class
+
+Class C
+    Inherits A
+
+    Public NotOverridable Overrides Property $$P As Integer
+        Get
+        End Get
+        Set(value As Integer)
+        End Set
+    End Property
+End Class
+</Code>
+
+            Await TestOverrideKind(code, EnvDTE80.vsCMOverrideKind.vsCMOverrideKindOverride Or EnvDTE80.vsCMOverrideKind.vsCMOverrideKindSealed)
         End Function
 
 #End Region
@@ -71,7 +137,7 @@ End Class
 
         <WorkItem(9646, "https://github.com/dotnet/roslyn/issues/9646")>
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
-        Public Async Function TestReadWrite1() As Task
+        Public Async Function TestReadWrite_GetSet() As Task
             Dim code =
 <Code>
 Class C
@@ -89,7 +155,7 @@ End Class
 
         <WorkItem(9646, "https://github.com/dotnet/roslyn/issues/9646")>
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
-        Public Async Function TestReadWrite2() As Task
+        Public Async Function TestReadWrite_Get() As Task
             Dim code =
 <Code>
 Class C
@@ -105,7 +171,7 @@ End Class
 
         <WorkItem(9646, "https://github.com/dotnet/roslyn/issues/9646")>
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
-        Public Async Function TestReadWrite3() As Task
+        Public Async Function TestReadWrite_Set() As Task
             Dim code =
 <Code>
 Class C
@@ -113,45 +179,6 @@ Class C
         Set(value As Integer)
         End Set
     End Property
-End Class
-</Code>
-
-            Await TestReadWrite(code, EnvDTE80.vsCMPropertyKind.vsCMPropertyKindWriteOnly)
-        End Function
-
-        <WorkItem(9646, "https://github.com/dotnet/roslyn/issues/9646")>
-        <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
-        Public Async Function TestReadWrite4() As Task
-            Dim code =
-<Code>
-Class C
-    Public Property $$P As Integer
-End Class
-</Code>
-
-            Await TestReadWrite(code, EnvDTE80.vsCMPropertyKind.vsCMPropertyKindReadWrite)
-        End Function
-
-        <WorkItem(9646, "https://github.com/dotnet/roslyn/issues/9646")>
-        <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
-        Public Async Function TestReadWrite5() As Task
-            Dim code =
-<Code>
-Class C
-    Public ReadOnly Property $$P As Integer
-End Class
-</Code>
-
-            Await TestReadWrite(code, EnvDTE80.vsCMPropertyKind.vsCMPropertyKindReadOnly)
-        End Function
-
-        <WorkItem(9646, "https://github.com/dotnet/roslyn/issues/9646")>
-        <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
-        Public Async Function TestReadWrite6() As Task
-            Dim code =
-<Code>
-Class C
-    Public WriteOnly Property $$P As Integer
 End Class
 </Code>
 
