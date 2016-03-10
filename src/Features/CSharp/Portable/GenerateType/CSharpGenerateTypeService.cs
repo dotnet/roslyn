@@ -31,13 +31,7 @@ namespace Microsoft.CodeAnalysis.CSharp.GenerateType
     {
         private static readonly SyntaxAnnotation s_annotation = new SyntaxAnnotation();
 
-        protected override string DefaultFileExtension
-        {
-            get
-            {
-                return ".cs";
-            }
-        }
+        protected override string DefaultFileExtension => ".cs";
 
         protected override ExpressionSyntax GetLeftSideOfDot(SimpleNameSyntax simpleName)
         {
@@ -462,9 +456,13 @@ namespace Microsoft.CodeAnalysis.CSharp.GenerateType
             if (nameOrMemberAccessExpression.Parent is PropertyPatternSyntax)
             {
                 var propertyPattern = nameOrMemberAccessExpression.Parent as PropertyPatternSyntax;
-                foreach (var subPattern in propertyPattern.PatternList.SubPatterns)
+                foreach (var subPattern in propertyPattern.SubPatterns)
                 {
-                    generateTypeServiceStateOptions.PropertiesToGenerate.Add(subPattern);
+                    var patternName = (subPattern as IsPatternExpressionSyntax)?.Expression as IdentifierNameSyntax;
+                    if (patternName != null)
+                    {
+                        generateTypeServiceStateOptions.PropertiesToGenerate.Add(patternName);
+                    }
                 }
             }
 
@@ -874,58 +872,37 @@ namespace Microsoft.CodeAnalysis.CSharp.GenerateType
         }
 
         private ITypeSymbol GetPropertyType(
-            SyntaxNode propertyNode,
+            SimpleNameSyntax propertyName,
             SemanticModel semanticModel,
             ITypeInferenceService typeInference,
             CancellationToken cancellationToken)
         {
-            var parentAssignment = propertyNode.Parent as AssignmentExpressionSyntax;
+            var parentAssignment = propertyName.Parent as AssignmentExpressionSyntax;
             if (parentAssignment != null)
             {
-                return typeInference.InferType(semanticModel, parentAssignment.Left, true, cancellationToken);
+                return typeInference.InferType(
+                    semanticModel, parentAssignment.Left, objectAsDefault: true, cancellationToken: cancellationToken);
             }
 
-            var patternNode = propertyNode as SubPropertyPatternSyntax;
-            if (patternNode != null)
+            var isPatternExpression = propertyName.Parent as IsPatternExpressionSyntax;
+            if (isPatternExpression != null)
             {
-                return GetPatternType(patternNode.Pattern, semanticModel, cancellationToken);
+                return typeInference.InferType(
+                    semanticModel, isPatternExpression.Expression, objectAsDefault: true, cancellationToken: cancellationToken);
             }
 
             return null;
         }
 
-        private ITypeSymbol GetPatternType(
-            PatternSyntax pattern, SemanticModel semanticModel, CancellationToken cancellationToken)
-        {
-            var typeInfo = pattern.TypeSwitch(
-                (DeclarationPatternSyntax declarationPattern) => semanticModel.GetTypeInfo(declarationPattern.Type),
-                (ConstantPatternSyntax constantPattern) => semanticModel.GetTypeInfo(constantPattern.Expression),
-                (RecursivePatternSyntax recursivePattern) => semanticModel.GetTypeInfo(recursivePattern.Type),
-                (PropertyPatternSyntax propertyPattern) => semanticModel.GetTypeInfo(propertyPattern.Type));
-
-            return typeInfo.Type ?? typeInfo.ConvertedType;
-        }
-
         private IPropertySymbol CreatePropertySymbol(
-            SyntaxNode propertyNode, ITypeSymbol propertyType)
+            SimpleNameSyntax propertyName, ITypeSymbol propertyType)
         {
-            var nameToken = propertyNode is SimpleNameSyntax
-                ? ((SimpleNameSyntax)propertyNode).Identifier
-                : propertyNode is SubPropertyPatternSyntax
-                    ? ((SubPropertyPatternSyntax)propertyNode).Left
-                    : (SyntaxToken?)null;
-
-            if (nameToken == null)
-            {
-                return null;
-            }
-
             return CodeGenerationSymbolFactory.CreatePropertySymbol(
                 attributes: SpecializedCollections.EmptyList<AttributeData>(),
                 accessibility: Accessibility.Public,
                 modifiers: new DeclarationModifiers(),
                 explicitInterfaceSymbol: null,
-                name: nameToken.Value.ValueText,
+                name: propertyName.Identifier.ValueText,
                 type: propertyType,
                 parameters: null,
                 getMethod: s_accessor,
@@ -939,21 +916,21 @@ namespace Microsoft.CodeAnalysis.CSharp.GenerateType
                     statements: null);
 
         internal override bool TryGenerateProperty(
-            SyntaxNode propertyNode,
+            SimpleNameSyntax propertyName,
             SemanticModel semanticModel,
             ITypeInferenceService typeInference,
             CancellationToken cancellationToken,
             out IPropertySymbol property)
         {
             property = null;
-            var propertyType = GetPropertyType(propertyNode, semanticModel, typeInference, cancellationToken);
+            var propertyType = GetPropertyType(propertyName, semanticModel, typeInference, cancellationToken);
             if (propertyType == null || propertyType is IErrorTypeSymbol)
             {
-                property = CreatePropertySymbol(propertyNode, semanticModel.Compilation.ObjectType);
+                property = CreatePropertySymbol(propertyName, semanticModel.Compilation.ObjectType);
                 return property != null;
             }
 
-            property = CreatePropertySymbol(propertyNode, propertyType);
+            property = CreatePropertySymbol(propertyName, propertyType);
             return property != null;
         }
 

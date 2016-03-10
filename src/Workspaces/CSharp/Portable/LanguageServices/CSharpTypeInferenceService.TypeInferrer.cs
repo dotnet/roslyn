@@ -143,6 +143,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     (ForStatementSyntax forStatement) => InferTypeInForStatement(forStatement, expression),
                     (IfStatementSyntax ifStatement) => InferTypeInIfStatement(ifStatement),
                     (InitializerExpressionSyntax initializerExpression) => InferTypeInInitializerExpression(initializerExpression, expression),
+                    (IsPatternExpressionSyntax isPatternExpression) => InferTypeInIsPatternExpression(isPatternExpression, expression),
                     (LockStatementSyntax lockStatement) => InferTypeInLockStatement(lockStatement),
                     (MemberAccessExpressionSyntax memberAccessExpression) => InferTypeInMemberAccessExpression(memberAccessExpression),
                     (NameEqualsSyntax nameEquals) => InferTypeInNameEquals(nameEquals),
@@ -1315,6 +1316,27 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
 
                 return SpecializedCollections.EmptyEnumerable<ITypeSymbol>();
+            }
+
+            private IEnumerable<ITypeSymbol> InferTypeInIsPatternExpression(
+                IsPatternExpressionSyntax isPatternExpression,
+                ExpressionSyntax expression)
+            {
+                if (expression == isPatternExpression.Expression)
+                {
+                    return GetPatternTypes(isPatternExpression.Pattern);
+                }
+
+                return null;
+            }
+
+            private IEnumerable<ITypeSymbol> GetPatternTypes(PatternSyntax pattern)
+            {
+                return pattern.TypeSwitch(
+                    (DeclarationPatternSyntax declarationPattern) => GetTypes(declarationPattern.Type),
+                    (ConstantPatternSyntax constantPattern) => GetTypes(constantPattern.Expression),
+                    (RecursivePatternSyntax recursivePattern) => GetTypes(recursivePattern.Type),
+                    (PropertyPatternSyntax propertyPattern) => GetTypes(propertyPattern.Type));
             }
 
             private IEnumerable<ITypeSymbol> InferTypeInLockStatement(LockStatementSyntax lockStatement, SyntaxToken? previousToken = null)
