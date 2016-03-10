@@ -79,6 +79,10 @@
     <DevEnvDir>$([System.IO.Path]::GetFullPath('$(DevEnvDir)'))</DevEnvDir>
   </PropertyGroup>
 
+  <PropertyGroup Condition="'$(VsHubDir)' == ''">
+    <VsHubDir>$([System.Environment]::GetFolderPath(SpecialFolder.ProgramFilesX86))\Common Files\Microsoft Shared\VsHub\1.0.0.0\lib</VsHubDir>
+  </PropertyGroup>
+
   <PropertyGroup>
     <VisualStudioReferenceMajorVersion Condition="'$(VisualStudioReferenceMajorVersion)' == ''">$(VisualStudioVersion.Substring(0, $(VisualStudioVersion.IndexOf('.'))))</VisualStudioReferenceMajorVersion>
     <VisualStudioReferenceAssemblyVersion Condition="'$(VisualStudioReferenceAssemblyVersion)' == ''">$(VisualStudioReferenceMajorVersion).0.0.0</VisualStudioReferenceAssemblyVersion>

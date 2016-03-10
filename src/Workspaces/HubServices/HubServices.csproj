@@ -17,7 +17,30 @@
     <TargetFrameworkVersion>v4.6</TargetFrameworkVersion>
     <CopyNuGetImplementations>false</CopyNuGetImplementations>
   </PropertyGroup>
-  <ItemGroup Label="Project References">
+  <ItemGroup>
+    <Reference Include="System.Net.Http.Formatting.dll">
+      <HintPath>$(VsHubDir)\System.Net.Http.Formatting.dll</HintPath>
+    </Reference>
+    <Reference Include="System.Web.Http.Owin.dll">
+      <HintPath>$(VsHubDir)\System.Web.Http.Owin.dll</HintPath>
+    </Reference>
+    <Reference Include="Microsoft.Owin.dll">
+      <HintPath>$(VsHubDir)\Microsoft.Owin.dll</HintPath>
+    </Reference>
+    <Reference Include="Newtonsoft.Json.dll">
+      <HintPath>$(VsHubDir)\Newtonsoft.Json.dll</HintPath>
+    </Reference>
+    <Reference Include="Owin.dll">
+      <HintPath>$(VsHubDir)\Owin.dll</HintPath>
+    </Reference>
+    <Reference Include="Microsoft.VsHub.Services.Immutable.dll">
+      <HintPath>$(VsHubDir)\Microsoft.VsHub.Services.Immutable.dll</HintPath>
+    </Reference>
+    <Reference Include="Microsoft.Vshub.ServiceModulesCommon.dll">
+      <HintPath>$(VsHubDir)\Microsoft.Vshub.ServiceModulesCommon.dll</HintPath>
+    </Reference>
+  </ItemGroup>
+  <ItemGroup>
     <Folder Include="SymbolSearch\" />
   </ItemGroup>
   <ItemGroup>
