@@ -3,6 +3,10 @@
 ###############################################################################
 * text=auto encoding=UTF-8
 
+# csc/vbc are shell scripts and should always have unix line endings
+src/Compilers/CSharp/CscCore/csc text eol=lf
+src/Compilers/VisualBasic/VbcCore/vbc text eol=lf
+
 ###############################################################################
 # Set default behavior for command prompt diff.
 #
