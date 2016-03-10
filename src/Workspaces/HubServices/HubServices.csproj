@@ -21,6 +21,9 @@
     <Reference Include="System.Net.Http.Formatting.dll">
       <HintPath>$(VsHubDir)\System.Net.Http.Formatting.dll</HintPath>
     </Reference>
+    <Reference Include="System.Web.Http.dll">
+      <HintPath>$(VsHubDir)\System.Web.Http.dll</HintPath>
+    </Reference>
     <Reference Include="System.Web.Http.Owin.dll">
       <HintPath>$(VsHubDir)\System.Web.Http.Owin.dll</HintPath>
     </Reference>
@@ -40,9 +43,7 @@
       <HintPath>$(VsHubDir)\Microsoft.Vshub.ServiceModulesCommon.dll</HintPath>
     </Reference>
   </ItemGroup>
-  <ItemGroup>
-    <Folder Include="SymbolSearch\" />
-  </ItemGroup>
+  <ItemGroup />
   <ItemGroup>
     <Reference Include="PresentationCore" />
     <Reference Include="PresentationFramework" />
@@ -63,7 +64,9 @@
     <PublicAPI Include="PublicAPI.Shipped.txt" />
     <PublicAPI Include="PublicAPI.Unshipped.txt" />
   </ItemGroup>
-  <ItemGroup />
+  <ItemGroup>
+    <Compile Include="SymbolSearch\SymbolSearchStartup.cs" />
+  </ItemGroup>
   <ImportGroup Label="Targets">
     <Import Project="..\..\..\build\Targets\VSL.Imports.targets" />
   </ImportGroup>
