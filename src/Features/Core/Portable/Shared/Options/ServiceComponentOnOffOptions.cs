@@ -12,5 +12,7 @@ namespace Microsoft.CodeAnalysis.Shared.Options
         public const string OptionName = "FeatureManager/Components";
 
         public static readonly Option<bool> DiagnosticProvider = new Option<bool>(OptionName, "Diagnostic Provider", defaultValue: true);
+
+        public static readonly Option<bool> PackageSearch = new Option<bool>(OptionName, nameof(PackageSearch), defaultValue: false);
     }
 }
