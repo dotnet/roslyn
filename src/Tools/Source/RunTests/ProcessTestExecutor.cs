@@ -23,18 +23,19 @@ namespace RunTests
             _options = options;
         }
 
-        public string GetCommandLine(string assemblyPath)
+        public string GetCommandLine(AssemblyInfo assemblyInfo)
         {
-            return $"{_options.XunitPath} {GetCommandLineArguments(assemblyPath)}";
+            return $"{_options.XunitPath} {GetCommandLineArguments(assemblyInfo)}";
         }
 
-        public string GetCommandLineArguments(string assemblyPath)
+        public string GetCommandLineArguments(AssemblyInfo assemblyInfo)
         {
-            var assemblyName = Path.GetFileName(assemblyPath);
-            var resultsFilePath = GetResultsFilePath(assemblyPath);
+            var assemblyName = Path.GetFileName(assemblyInfo.AssemblyPath);
+            var resultsFilePath = GetResultsFilePath(assemblyInfo);
 
             var builder = new StringBuilder();
-            builder.AppendFormat(@"""{0}""", assemblyPath);
+            builder.AppendFormat(@"""{0}""", assemblyInfo.AssemblyPath);
+            builder.AppendFormat(@" {0}", assemblyInfo.ExtraArguments);
             builder.AppendFormat(@" -{0} ""{1}""", _options.UseHtml ? "html" : "xml", resultsFilePath);
             builder.Append(" -noshadow -verbose");
 
@@ -59,19 +60,18 @@ namespace RunTests
             return builder.ToString();
         }
 
-        private string GetResultsFilePath(string assemblyPath)
+        private string GetResultsFilePath(AssemblyInfo assemblyInfo)
         {
-            var assemblyName = Path.GetFileName(assemblyPath);
-            var resultsDir = Path.Combine(Path.GetDirectoryName(assemblyPath), Constants.ResultsDirectoryName);
-            return Path.Combine(resultsDir, $"{assemblyName}.{(_options.UseHtml ? "html" : "xml")}");
+            var resultsDir = Path.Combine(Path.GetDirectoryName(assemblyInfo.AssemblyPath), Constants.ResultsDirectoryName);
+            return Path.Combine(resultsDir, assemblyInfo.ResultsFileName);
         }
 
-        public async Task<TestResult> RunTestAsync(string assemblyPath, CancellationToken cancellationToken)
+        public async Task<TestResult> RunTestAsync(AssemblyInfo assemblyInfo, CancellationToken cancellationToken)
         {
             try
             {
-                var commandLineArguments = GetCommandLineArguments(assemblyPath);
-                var resultsFilePath = GetResultsFilePath(assemblyPath);
+                var commandLineArguments = GetCommandLineArguments(assemblyInfo);
+                var resultsFilePath = GetResultsFilePath(assemblyInfo);
                 var resultsDir = Path.GetDirectoryName(resultsFilePath);
 
                 // NOTE: xUnit doesn't always create the log directory
@@ -81,7 +81,7 @@ namespace RunTests
                 // an empty log just in case, so our runner will still fail.
                 File.Create(resultsFilePath).Close();
 
-                var dumpOutputFilePath = Path.Combine(resultsDir, Path.GetFileNameWithoutExtension(assemblyPath) + ".dmp");
+                var dumpOutputFilePath = Path.Combine(resultsDir, $"{assemblyInfo.DisplayName}.dmp");
 
                 var start = DateTime.UtcNow;
                 var xunitPath = _options.XunitPath;
@@ -119,13 +119,14 @@ namespace RunTests
                     }
                 }
 
-                var commandLine = GetCommandLine(assemblyPath);
+                var commandLine = GetCommandLine(assemblyInfo);
+                Logger.Log($"Command line {assemblyInfo.DisplayName}: {commandLine}");
                 var standardOutput = string.Join(Environment.NewLine, processOutput.OutputLines);
                 var errorOutput = string.Join(Environment.NewLine, processOutput.ErrorLines);
 
                 return new TestResult(
                     exitCode: processOutput.ExitCode,
-                    assemblyPath: assemblyPath,
+                    assemblyInfo: assemblyInfo,
                     resultDir: resultsDir,
                     resultsFilePath: resultsFilePath,
                     commandLine: commandLine,
@@ -136,7 +137,7 @@ namespace RunTests
             }
             catch (Exception ex)
             {
-                throw new Exception($"Unable to run {assemblyPath} with {_options.XunitPath}. {ex}");
+                throw new Exception($"Unable to run {assemblyInfo.AssemblyPath} with {_options.XunitPath}. {ex}");
             }
         }
     }
