@@ -908,3 +908,9 @@ virtual Microsoft.CodeAnalysis.Semantics.OperationVisitor<TArgument, TResult>.Vi
 virtual Microsoft.CodeAnalysis.Semantics.OperationVisitor<TArgument, TResult>.VisitWhileUntilLoopStatement(Microsoft.CodeAnalysis.Semantics.IWhileUntilLoopStatement operation, TArgument argument) -> TResult
 virtual Microsoft.CodeAnalysis.Semantics.OperationVisitor<TArgument, TResult>.VisitWithStatement(Microsoft.CodeAnalysis.Semantics.IWithStatement operation, TArgument argument) -> TResult
 virtual Microsoft.CodeAnalysis.Semantics.OperationVisitor<TArgument, TResult>.VisitYieldBreakStatement(Microsoft.CodeAnalysis.Semantics.IReturnStatement operation, TArgument argument) -> TResult
+Microsoft.CodeAnalysis.ITupleTypeSymbol
+Microsoft.CodeAnalysis.SymbolKind.TupleType = 19 -> Microsoft.CodeAnalysis.SymbolKind
+Microsoft.CodeAnalysis.TypeKind.Tuple = 13 -> Microsoft.CodeAnalysis.TypeKind
+virtual Microsoft.CodeAnalysis.SymbolVisitor.VisitTupleType(Microsoft.CodeAnalysis.ITupleTypeSymbol symbol) -> void
+virtual Microsoft.CodeAnalysis.SymbolVisitor<TResult>.VisitTupleType(Microsoft.CodeAnalysis.ITupleTypeSymbol symbol) -> TResult
+
