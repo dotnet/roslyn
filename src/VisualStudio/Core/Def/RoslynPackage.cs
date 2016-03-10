@@ -24,6 +24,8 @@ using Microsoft.VisualStudio.Shell.Interop;
 using Task = System.Threading.Tasks.Task;
 using Microsoft.VisualStudio.LanguageServices.Implementation.Interactive;
 using static Microsoft.CodeAnalysis.Utilities.ForegroundThreadDataKind;
+using Microsoft.CodeAnalysis.Packaging;
+using Microsoft.VisualStudio.LanguageServices.Packaging;
 
 namespace Microsoft.VisualStudio.LanguageServices.Setup
 {
@@ -39,6 +41,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Setup
         private IComponentModel _componentModel;
         private RuleSetEventHandler _ruleSetEventHandler;
         private IDisposable _solutionEventMonitor;
+
+        private PackageInstallerService _packageInstallerService;
+        private PackageSearchService _packageSearchService;
 
         protected override void Initialize()
         {
@@ -161,6 +166,14 @@ namespace Microsoft.VisualStudio.LanguageServices.Setup
 
             LoadAnalyzerNodeComponents();
 
+            // Ensure the nuget package services are initialized after we've loaded
+            // the solution.
+            _packageInstallerService = _workspace.Services.GetService<IPackageInstallerService>() as PackageInstallerService;
+            _packageSearchService = _workspace.Services.GetService<IPackageSearchService>() as PackageSearchService;
+
+            _packageInstallerService?.Start();
+            _packageSearchService?.Start();
+            
             Task.Run(() => LoadComponentsBackground());
         }
 
@@ -202,6 +215,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Setup
 
         protected override void Dispose(bool disposing)
         {
+            _packageInstallerService?.Stop();
+            _packageSearchService?.Stop();
+
             UnregisterFindResultsLibraryManager();
 
             DisposeVisualStudioDocumentTrackingService();

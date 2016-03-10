@@ -13,6 +13,7 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.ErrorReporting;
+using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Notification;
 using Microsoft.CodeAnalysis.Packaging;
@@ -41,13 +42,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Packaging
     internal partial class PackageInstallerService : ForegroundThreadAffinitizedObject, IPackageInstallerService, IVsSearchProviderCallback
     {
         private readonly object _gate = new object();
+        private readonly VisualStudioWorkspaceImpl _workspace;
         private readonly IVsEditorAdaptersFactoryService _editorAdaptersFactoryService;
 
-        /// <summary>
-        /// The workspace we're connected to.  When we're disconnected this will become 'null'.
-        /// That's our signal to stop working.
-        /// </summary>
-        private VisualStudioWorkspaceImpl _workspace;
         private IVsPackageInstallerServices _packageInstallerServices;
         private IVsPackageInstaller _packageInstaller;
         private IVsPackageUninstaller _packageUninstaller;
@@ -66,8 +63,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Packaging
 
         [ImportingConstructor]
         public PackageInstallerService(
+            VisualStudioWorkspaceImpl workspace,
             IVsEditorAdaptersFactoryService editorAdaptersFactoryService)
         {
+            _workspace = workspace;
             _editorAdaptersFactoryService = editorAdaptersFactoryService;
         }
 
@@ -75,25 +74,17 @@ namespace Microsoft.VisualStudio.LanguageServices.Packaging
 
         public event EventHandler PackageSourcesChanged;
 
-        internal void Connect(VisualStudioWorkspaceImpl workspace)
+        internal void Start()
         {
             this.AssertIsForeground();
 
-            var options = workspace.Options;
+            var options = _workspace.Options;
             if (!options.GetOption(ServiceComponentOnOffOptions.PackageSearch))
             {
                 return;
             }
 
-            ConnectWorker(workspace);
-        }
-
-        // Don't inline this method.  The references to nuget types will cause the nuget packages 
-        // to load.
-        [MethodImpl(MethodImplOptions.NoInlining)]
-        private void ConnectWorker(VisualStudioWorkspaceImpl workspace)
-        {
-            var componentModel = workspace.GetVsService<SComponentModel, IComponentModel>();
+            var componentModel = _workspace.GetVsService<SComponentModel, IComponentModel>();
             _packageInstallerServices = componentModel.GetExtensions<IVsPackageInstallerServices>().FirstOrDefault();
             _packageInstaller = componentModel.GetExtensions<IVsPackageInstaller>().FirstOrDefault();
             _packageUninstaller = componentModel.GetExtensions<IVsPackageUninstaller>().FirstOrDefault();
@@ -105,7 +96,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Packaging
             }
 
             // Start listening to workspace changes.
-            _workspace = workspace;
             _workspace.WorkspaceChanged += OnWorkspaceChanged;
             _packageSourceProvider.SourcesChanged += OnSourceProviderSourcesChanged;
 
@@ -118,7 +108,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Packaging
             _packageUninstaller != null &&
             _packageSourceProvider != null;
 
-        internal void Disconnect(VisualStudioWorkspaceImpl workspace)
+        internal void Stop()
         {
             this.AssertIsForeground();
 
@@ -127,11 +117,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Packaging
                 return;
             }
 
-            Debug.Assert(workspace == _workspace);
             _packageSourceProvider.SourcesChanged -= OnSourceProviderSourcesChanged;
             _workspace.WorkspaceChanged -= OnWorkspaceChanged;
-
-            _workspace = null;
         }
 
         private void OnSourceProviderSourcesChanged(object sender, EventArgs e)

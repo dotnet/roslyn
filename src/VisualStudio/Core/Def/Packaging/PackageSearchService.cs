@@ -3,17 +3,20 @@
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.Composition;
 using System.IO;
 using System.Linq;
 using System.Threading;
-using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Elfie.Model;
 using Microsoft.CodeAnalysis.Elfie.Model.Structures;
 using Microsoft.CodeAnalysis.Elfie.Model.Tree;
 using Microsoft.CodeAnalysis.ErrorReporting;
+using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Packaging;
+using Microsoft.CodeAnalysis.Shared.Options;
 using Microsoft.Internal.VisualStudio.Shell.Interop;
+using Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem;
 using Microsoft.VisualStudio.Settings;
 using Microsoft.VisualStudio.Shell.Interop;
 using Microsoft.VisualStudio.Shell.Settings;
@@ -29,12 +32,19 @@ namespace Microsoft.VisualStudio.LanguageServices.Packaging
     /// This implementation also spawns a task which will attempt to keep that database up to
     /// date by downloading patches on a daily basis.
     /// </summary>
-    internal partial class PackageSearchService : ForegroundThreadAffinitizedObject, IPackageSearchService, IDisposable
+    [ExportWorkspaceService(typeof(IPackageSearchService)), Shared]
+    internal partial class PackageSearchService : ForegroundThreadAffinitizedObject, IPackageSearchService
     {
-        private ConcurrentDictionary<string, AddReferenceDatabase> _sourceToDatabase = new ConcurrentDictionary<string, AddReferenceDatabase>();
+        private readonly VisualStudioWorkspaceImpl _workspace;
+        private readonly ConcurrentDictionary<string, AddReferenceDatabase> _sourceToDatabase = new ConcurrentDictionary<string, AddReferenceDatabase>();
 
-        public PackageSearchService(VSShell.SVsServiceProvider serviceProvider, IPackageInstallerService installerService)
-            : this(installerService, 
+        private bool _started;
+
+        [ImportingConstructor]
+        public PackageSearchService(
+            VisualStudioWorkspaceImpl workspace,
+            VSShell.SVsServiceProvider serviceProvider)
+            : this(workspace.Services.GetService<IPackageInstallerService>(), 
                    CreateRemoteControlService(serviceProvider),
                    new LogService((IVsActivityLog)serviceProvider.GetService(typeof(SVsActivityLog))),
                    new DelayService(),
@@ -46,20 +56,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Packaging
                    FatalError.ReportWithoutCrash,
                    new CancellationTokenSource())
         {
-            installerService.PackageSourcesChanged += OnPackageSourcesChanged;
-            OnPackageSourcesChanged(this, EventArgs.Empty);
-        }
-
-        private static IPackageSearchRemoteControlService CreateRemoteControlService(VSShell.SVsServiceProvider serviceProvider)
-        {
-            var vsService = serviceProvider.GetService(typeof(SVsRemoteControlService));
-            if (vsService == null)
-            {
-                // If we can't access the file update service, then there's nothing we can do.
-                return null;
-            }
-
-            return new RemoteControlService(vsService);
+            _workspace = workspace;
         }
 
         /// <summary>
@@ -94,10 +91,47 @@ namespace Microsoft.VisualStudio.LanguageServices.Packaging
 
             _cacheDirectoryInfo = new DirectoryInfo(Path.Combine(
                 localSettingsDirectory, "PackageCache", string.Format(Invariant($"Format{_dataFormatVersion}"))));
-            // _databaseFileInfo = new FileInfo(Path.Combine(_cacheDirectoryInfo.FullName, "NuGetCache.txt"));
 
             _cancellationTokenSource = cancellationTokenSource;
             _cancellationToken = _cancellationTokenSource.Token;
+        }
+
+        internal void Start()
+        {
+            var options = _workspace.Options;
+            if (!options.GetOption(ServiceComponentOnOffOptions.PackageSearch))
+            {
+                return;
+            }
+
+            // Start the whole process once we're connected
+            _installerService.PackageSourcesChanged += OnPackageSourcesChanged;
+            OnPackageSourcesChanged(this, EventArgs.Empty);
+            _started = true;
+        }
+
+        internal void Stop()
+        {
+            if (!_started)
+            {
+                return;
+            }
+
+            _installerService.PackageSourcesChanged -= OnPackageSourcesChanged;
+            // Cancel any existing work.
+            _cancellationTokenSource.Cancel();
+        }
+
+        private static IPackageSearchRemoteControlService CreateRemoteControlService(VSShell.SVsServiceProvider serviceProvider)
+        {
+            var vsService = serviceProvider.GetService(typeof(SVsRemoteControlService));
+            if (vsService == null)
+            {
+                // If we can't access the file update service, then there's nothing we can do.
+                return null;
+            }
+
+            return new RemoteControlService(vsService);
         }
 
         public IEnumerable<PackageWithTypeResult> FindPackagesWithType(

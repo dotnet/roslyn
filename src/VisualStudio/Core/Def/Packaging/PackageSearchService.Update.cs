@@ -66,12 +66,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Packaging
         private readonly IPackageSearchDatabaseFactoryService _databaseFactoryService;
         private readonly Func<Exception, bool> _reportAndSwallowException;
 
-        public void Dispose()
-        {
-            // Cancel any existing work.
-            _cancellationTokenSource.Cancel();
-        }
-
         private void LogInfo(string text) => _logService.LogInfo(text);
 
         private void LogException(Exception e, string text) => _logService.LogException(e, text);
