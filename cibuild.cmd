@@ -2,8 +2,6 @@
 
 REM Parse Arguments.
 
-set NugetZipUrlRoot=https://dotnetci.blob.core.windows.net/roslyn
-set NugetZipUrl=%NuGetZipUrlRoot%/nuget.64.zip
 set RoslynRoot=%~dp0
 set BuildConfiguration=Debug
 
