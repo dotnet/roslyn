@@ -31,11 +31,35 @@ public class Program
         return;
     }
 }
+
+namespace Microsoft.CodeAnalysis.Runtime
+{
+    public class Instrumentation
+    {
+        public static void AddPayload(System.Reflection.MethodInfo method, bool[] payload)
+        {
+            Console.WriteLine(method.Name);
+            foreach (bool b in payload)
+                Console.WriteLine(b);
+        }
+    }
+}
 ";
-            string expectedOutput = @"foo
+            string expectedOutput = @"AddPayload
+True
+True
+True
+True
+Main
+False
+False
+False
+False
+False
+False
+foo
 bar
 ";
-
             CompileAndVerify(source, emitOptions: EmitOptions.Default.WithEmitDynamicAnalysisData(true), expectedOutput: expectedOutput);
         }
     }

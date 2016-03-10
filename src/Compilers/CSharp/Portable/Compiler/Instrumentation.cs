@@ -50,13 +50,13 @@ namespace Microsoft.CodeAnalysis.CSharp
                 //     Instrumentation.AddPayload(method, payloadField);
                 // }
 
-                ArrayBuilder<BoundExpression> elementsBuilder = ArrayBuilder<BoundExpression>.GetInstance(dynamicAnalysisSpans.Length);
-                for (int i = 0; i < dynamicAnalysisSpans.Length; i++)
-                {
-                    elementsBuilder.Add(factory.Literal(false));
-                }
-                BoundExpression payloadArrayCreation = factory.Array(payloadElementType, elementsBuilder.ToImmutableAndFree());
-
+                //ArrayBuilder<BoundExpression> elementsBuilder = ArrayBuilder<BoundExpression>.GetInstance(dynamicAnalysisSpans.Length);
+                //for (int i = 0; i < dynamicAnalysisSpans.Length; i++)
+                //{
+                //    elementsBuilder.Add(factory.Literal(false));
+                //}
+                //BoundExpression payloadArrayCreation = factory.Array(payloadElementType, elementsBuilder.ToImmutableAndFree());
+                BoundExpression payloadArrayCreation = factory.Array(payloadElementType, dynamicAnalysisSpans.Length);
                 BoundStatement addPayloadCall = null;
                 MethodSymbol addPayload = GetAddPayload(compilation);
                 if (addPayload != null)
@@ -149,9 +149,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                     ImmutableArray<Symbol> addPayloads = instrumentationType.GetMembers("AddPayload");
                     if (addPayloads.Length == 1)
                     {
-                        MethodSymbol addPayload = addPayloads[1] as MethodSymbol;
+                        MethodSymbol addPayload = addPayloads[0] as MethodSymbol;
                         // Add checks for parameter types.
-                        if (addPayload != null && addPayload.IsStatic && addPayload.ParameterCount == 2 && addPayload.Parameters[0].Name == "method" && addPayload.Parameters[2].Name == "newPayload")
+                        if (addPayload != null && addPayload.IsStatic && addPayload.ParameterCount == 2 && addPayload.Parameters[0].Name == "method" && addPayload.Parameters[1].Name == "payload")
                         {
                             _addPayload = addPayload;
                         }

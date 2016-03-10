@@ -96,7 +96,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             {
                 using (var testEnvironment = new HostedRuntimeEnvironment(_dependencies))
                 {
-                    string mainModuleName = Emit(testEnvironment, manifestResources, null);
+                    string mainModuleName = Emit(testEnvironment, manifestResources, emitOptions);
                     _allModuleData = testEnvironment.GetAllModuleData();
 
                     if (peVerify)

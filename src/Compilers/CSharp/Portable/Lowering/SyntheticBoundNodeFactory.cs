@@ -1108,6 +1108,15 @@ namespace Microsoft.CodeAnalysis.CSharp
                 Compilation.CreateArrayTypeSymbol(elementType));
         }
 
+        public BoundExpression Array(TypeSymbol elementType, int elementCount)
+        {
+            return new BoundArrayCreation(
+                Syntax,
+                ImmutableArray.Create<BoundExpression>(Literal(elementCount)),
+                null,
+                Compilation.CreateArrayTypeSymbol(elementType));
+        }
+
         internal BoundExpression Default(TypeSymbol type)
         {
             return new BoundDefaultOperator(Syntax, type) { WasCompilerGenerated = true };
