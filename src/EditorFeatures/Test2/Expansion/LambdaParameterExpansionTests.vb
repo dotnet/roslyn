@@ -40,7 +40,7 @@ class C
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.Expansion)>
-        Public Async Function TestCSharp_ExpandLambdaWithSingleParameters_NoParens() As Task
+        Public Async Function TestCSharp_ExpandLambdaWithSingleParameter_NoParens() As Task
             Dim input =
 <Workspace>
     <Project Language="C#" CommonReferences="true">
@@ -73,7 +73,7 @@ class C
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.Expansion)>
-        Public Async Function TestCSharp_ExpandLambdaWithSingleParameters_WithParens() As Task
+        Public Async Function TestCSharp_ExpandLambdaWithSingleParameter_WithParens() As Task
             Dim input =
 <Workspace>
     <Project Language="C#" CommonReferences="true">
@@ -139,7 +139,7 @@ class C
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.Expansion)>
-        Public Async Function TestCSharp_ExpandLambdaWithThreearameters() As Task
+        Public Async Function TestCSharp_ExpandLambdaWithThreeParameters() As Task
             Dim input =
 <Workspace>
     <Project Language="C#" CommonReferences="true">
