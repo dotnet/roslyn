@@ -86,6 +86,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             return MefV1HostServices.Create(composition.DefaultExportProvider);
         }
 
+        internal bool SolutionLoadComplete => _projectTracker.SolutionLoadComplete;
+
         protected void InitializeStandardVisualStudioWorkspace(SVsServiceProvider serviceProvider, SaveEventsService saveEventsService)
         {
             var projectTracker = new VisualStudioProjectTracker(serviceProvider);

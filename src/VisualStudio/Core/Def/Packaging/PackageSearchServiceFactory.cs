@@ -8,6 +8,7 @@ using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Packaging;
 using Microsoft.CodeAnalysis.Shared.Options;
+using Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem;
 using Roslyn.Utilities;
 using VSShell = Microsoft.VisualStudio.Shell;
 
@@ -27,13 +28,14 @@ namespace Microsoft.VisualStudio.LanguageServices.Packaging
 
         public IWorkspaceService CreateService(HostWorkspaceServices workspaceServices)
         {
-            var options = workspaceServices.Workspace.Options;
-            if (options.GetOption(ServiceComponentOnOffOptions.PackageSearch))
+            // Only support package search in vs workspace.
+            var workspace = workspaceServices.Workspace as VisualStudioWorkspaceImpl;
+            if (workspace != null)
             {
-                // Only support package search in vs workspace.
-                if (workspaceServices.Workspace is VisualStudioWorkspace)
+                var options = workspaceServices.Workspace.Options;
+                if (options.GetOption(ServiceComponentOnOffOptions.PackageSearch))
                 {
-                    return new PackageSearchService(_serviceProvider, workspaceServices.GetService<IPackageInstallerService>());
+                    return new PackageSearchService(workspace, _serviceProvider, workspaceServices.GetService<IPackageInstallerService>());
                 }
             }
 

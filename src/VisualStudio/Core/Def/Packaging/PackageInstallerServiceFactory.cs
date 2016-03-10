@@ -52,6 +52,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Packaging
         private IVsPackageInstaller _packageInstaller;
         private IVsPackageUninstaller _packageUninstaller;
         private IVsPackageSourceProvider _packageSourceProvider;
+        private bool isDisconnected;
 
         private CancellationTokenSource _tokenSource = new CancellationTokenSource();
 
@@ -79,17 +80,31 @@ namespace Microsoft.VisualStudio.LanguageServices.Packaging
         {
             this.AssertIsForeground();
 
+            // If we were disconnected in the interim period, don't do anything.
+            if (isDisconnected)
+            {
+                return;
+            }
+
             var options = workspace.Options;
             if (!options.GetOption(ServiceComponentOnOffOptions.PackageSearch))
             {
                 return;
             }
 
+            // As long as the solution hasn't loaded, then keep backing off.
+            if (!workspace.SolutionLoadComplete)
+            {
+                Task.Delay(TimeSpan.FromSeconds(1)).ContinueWith(_ => Connect(workspace), this.ForegroundTaskScheduler);
+                return;
+            }
+
+            this.AssertIsForeground();
             ConnectWorker(workspace);
         }
 
-        // Don't inline this method.  The references to nuget types will cause the nuget packages 
-        // to load.
+        // Don't allow this method to be inlined.  We don't want to load the nuget types until
+        // the solution is loaded and we actually call into this.
         [MethodImpl(MethodImplOptions.NoInlining)]
         private void ConnectWorker(VisualStudioWorkspaceImpl workspace)
         {
@@ -121,6 +136,13 @@ namespace Microsoft.VisualStudio.LanguageServices.Packaging
         internal void Disconnect(VisualStudioWorkspaceImpl workspace)
         {
             this.AssertIsForeground();
+
+            if (isDisconnected)
+            {
+                return;
+            }
+
+            isDisconnected = true;
 
             if (!this.IsEnabled)
             {
