@@ -37,14 +37,14 @@
       },
       "System.Collections.Immutable/1.1.37": {
         "dependencies": {
-          "System.Collections": "[4.0.0, )",
-          "System.Diagnostics.Debug": "[4.0.0, )",
-          "System.Globalization": "[4.0.0, )",
-          "System.Linq": "[4.0.0, )",
-          "System.Resources.ResourceManager": "[4.0.0, )",
-          "System.Runtime": "[4.0.0, )",
-          "System.Runtime.Extensions": "[4.0.0, )",
-          "System.Threading": "[4.0.0, )"
+          "System.Collections": "4.0.0",
+          "System.Diagnostics.Debug": "4.0.0",
+          "System.Globalization": "4.0.0",
+          "System.Linq": "4.0.0",
+          "System.Resources.ResourceManager": "4.0.0",
+          "System.Runtime": "4.0.0",
+          "System.Runtime.Extensions": "4.0.0",
+          "System.Threading": "4.0.0"
         },
         "compile": {
           "lib/dotnet/System.Collections.Immutable.dll": {}
@@ -77,15 +77,15 @@
           "lib/net45/_._": {}
         }
       },
-      "System.Reflection.Metadata/1.2.0-rc2-23826": {
+      "System.Reflection.Metadata/1.2.0": {
         "dependencies": {
-          "System.Collections.Immutable": "[1.1.37, )"
+          "System.Collections.Immutable": "1.1.37"
         },
         "compile": {
-          "lib/dotnet5.2/System.Reflection.Metadata.dll": {}
+          "lib/portable-net45+win8/System.Reflection.Metadata.dll": {}
         },
         "runtime": {
-          "lib/dotnet5.2/System.Reflection.Metadata.dll": {}
+          "lib/portable-net45+win8/System.Reflection.Metadata.dll": {}
         }
       },
       "System.Resources.ResourceManager/4.0.0": {
@@ -122,8 +122,8 @@
       },
       "xunit/2.1.0": {
         "dependencies": {
-          "xunit.assert": "[2.1.0, 2.1.0]",
-          "xunit.core": "[2.1.0, 2.1.0]"
+          "xunit.assert": "[2.1.0]",
+          "xunit.core": "[2.1.0]"
         }
       },
       "xunit.abstractions/2.0.0": {
@@ -144,13 +144,13 @@
       },
       "xunit.core/2.1.0": {
         "dependencies": {
-          "xunit.extensibility.core": "[2.1.0, 2.1.0]",
-          "xunit.extensibility.execution": "[2.1.0, 2.1.0]"
+          "xunit.extensibility.core": "[2.1.0]",
+          "xunit.extensibility.execution": "[2.1.0]"
         }
       },
       "xunit.extensibility.core/2.1.0": {
         "dependencies": {
-          "xunit.abstractions": "[2.0.0, 2.0.0]"
+          "xunit.abstractions": "[2.0.0]"
         },
         "compile": {
           "lib/dotnet/xunit.core.dll": {}
@@ -161,7 +161,7 @@
       },
       "xunit.extensibility.execution/2.1.0": {
         "dependencies": {
-          "xunit.extensibility.core": "[2.1.0, 2.1.0]"
+          "xunit.extensibility.core": "[2.1.0]"
         },
         "compile": {
           "lib/net45/xunit.execution.desktop.dll": {}
@@ -207,14 +207,14 @@
       },
       "System.Collections.Immutable/1.1.37": {
         "dependencies": {
-          "System.Collections": "[4.0.0, )",
-          "System.Diagnostics.Debug": "[4.0.0, )",
-          "System.Globalization": "[4.0.0, )",
-          "System.Linq": "[4.0.0, )",
-          "System.Resources.ResourceManager": "[4.0.0, )",
-          "System.Runtime": "[4.0.0, )",
-          "System.Runtime.Extensions": "[4.0.0, )",
-          "System.Threading": "[4.0.0, )"
+          "System.Collections": "4.0.0",
+          "System.Diagnostics.Debug": "4.0.0",
+          "System.Globalization": "4.0.0",
+          "System.Linq": "4.0.0",
+          "System.Resources.ResourceManager": "4.0.0",
+          "System.Runtime": "4.0.0",
+          "System.Runtime.Extensions": "4.0.0",
+          "System.Threading": "4.0.0"
         },
         "compile": {
           "lib/dotnet/System.Collections.Immutable.dll": {}
@@ -247,15 +247,15 @@
           "lib/net45/_._": {}
         }
       },
-      "System.Reflection.Metadata/1.2.0-rc2-23826": {
+      "System.Reflection.Metadata/1.2.0": {
         "dependencies": {
-          "System.Collections.Immutable": "[1.1.37, )"
+          "System.Collections.Immutable": "1.1.37"
         },
         "compile": {
-          "lib/dotnet5.2/System.Reflection.Metadata.dll": {}
+          "lib/portable-net45+win8/System.Reflection.Metadata.dll": {}
         },
         "runtime": {
-          "lib/dotnet5.2/System.Reflection.Metadata.dll": {}
+          "lib/portable-net45+win8/System.Reflection.Metadata.dll": {}
         }
       },
       "System.Resources.ResourceManager/4.0.0": {
@@ -292,8 +292,8 @@
       },
       "xunit/2.1.0": {
         "dependencies": {
-          "xunit.assert": "[2.1.0, 2.1.0]",
-          "xunit.core": "[2.1.0, 2.1.0]"
+          "xunit.assert": "[2.1.0]",
+          "xunit.core": "[2.1.0]"
         }
       },
       "xunit.abstractions/2.0.0": {
@@ -314,13 +314,13 @@
       },
       "xunit.core/2.1.0": {
         "dependencies": {
-          "xunit.extensibility.core": "[2.1.0, 2.1.0]",
-          "xunit.extensibility.execution": "[2.1.0, 2.1.0]"
+          "xunit.extensibility.core": "[2.1.0]",
+          "xunit.extensibility.execution": "[2.1.0]"
         }
       },
       "xunit.extensibility.core/2.1.0": {
         "dependencies": {
-          "xunit.abstractions": "[2.0.0, 2.0.0]"
+          "xunit.abstractions": "[2.0.0]"
         },
         "compile": {
           "lib/dotnet/xunit.core.dll": {}
@@ -331,7 +331,7 @@
       },
       "xunit.extensibility.execution/2.1.0": {
         "dependencies": {
-          "xunit.extensibility.core": "[2.1.0, 2.1.0]"
+          "xunit.extensibility.core": "[2.1.0]"
         },
         "compile": {
           "lib/net45/xunit.execution.desktop.dll": {}
@@ -377,14 +377,14 @@
       },
       "System.Collections.Immutable/1.1.37": {
         "dependencies": {
-          "System.Collections": "[4.0.0, )",
-          "System.Diagnostics.Debug": "[4.0.0, )",
-          "System.Globalization": "[4.0.0, )",
-          "System.Linq": "[4.0.0, )",
-          "System.Resources.ResourceManager": "[4.0.0, )",
-          "System.Runtime": "[4.0.0, )",
-          "System.Runtime.Extensions": "[4.0.0, )",
-          "System.Threading": "[4.0.0, )"
+          "System.Collections": "4.0.0",
+          "System.Diagnostics.Debug": "4.0.0",
+          "System.Globalization": "4.0.0",
+          "System.Linq": "4.0.0",
+          "System.Resources.ResourceManager": "4.0.0",
+          "System.Runtime": "4.0.0",
+          "System.Runtime.Extensions": "4.0.0",
+          "System.Threading": "4.0.0"
         },
         "compile": {
           "lib/dotnet/System.Collections.Immutable.dll": {}
@@ -417,15 +417,15 @@
           "lib/net45/_._": {}
         }
       },
-      "System.Reflection.Metadata/1.2.0-rc2-23826": {
+      "System.Reflection.Metadata/1.2.0": {
         "dependencies": {
-          "System.Collections.Immutable": "[1.1.37, )"
+          "System.Collections.Immutable": "1.1.37"
         },
         "compile": {
-          "lib/dotnet5.2/System.Reflection.Metadata.dll": {}
+          "lib/portable-net45+win8/System.Reflection.Metadata.dll": {}
         },
         "runtime": {
-          "lib/dotnet5.2/System.Reflection.Metadata.dll": {}
+          "lib/portable-net45+win8/System.Reflection.Metadata.dll": {}
         }
       },
       "System.Resources.ResourceManager/4.0.0": {
@@ -462,8 +462,8 @@
       },
       "xunit/2.1.0": {
         "dependencies": {
-          "xunit.assert": "[2.1.0, 2.1.0]",
-          "xunit.core": "[2.1.0, 2.1.0]"
+          "xunit.assert": "[2.1.0]",
+          "xunit.core": "[2.1.0]"
         }
       },
       "xunit.abstractions/2.0.0": {
@@ -484,13 +484,13 @@
       },
       "xunit.core/2.1.0": {
         "dependencies": {
-          "xunit.extensibility.core": "[2.1.0, 2.1.0]",
-          "xunit.extensibility.execution": "[2.1.0, 2.1.0]"
+          "xunit.extensibility.core": "[2.1.0]",
+          "xunit.extensibility.execution": "[2.1.0]"
         }
       },
       "xunit.extensibility.core/2.1.0": {
         "dependencies": {
-          "xunit.abstractions": "[2.0.0, 2.0.0]"
+          "xunit.abstractions": "[2.0.0]"
         },
         "compile": {
           "lib/dotnet/xunit.core.dll": {}
@@ -501,7 +501,7 @@
       },
       "xunit.extensibility.execution/2.1.0": {
         "dependencies": {
-          "xunit.extensibility.core": "[2.1.0, 2.1.0]"
+          "xunit.extensibility.core": "[2.1.0]"
         },
         "compile": {
           "lib/net45/xunit.execution.desktop.dll": {}
@@ -518,20 +518,20 @@
       "sha512": "pwu80Ohe7SBzZ6i69LVdzowp6V+LaVRzd5F7A6QlD42vQkX0oT7KXKWWPlM/S00w1gnMQMRnEdbtOV12z6rXdQ==",
       "type": "Package",
       "files": [
-        "[Content_Types].xml",
-        "_rels/.rels",
-        "lib/portable-net45+win8+wp8+wpa81/System.Composition.AttributedModel.dll",
-        "lib/portable-net45+win8+wp8+wpa81/System.Composition.AttributedModel.XML",
-        "lib/portable-net45+win8+wp8+wpa81/System.Composition.Convention.dll",
-        "lib/portable-net45+win8+wp8+wpa81/System.Composition.Convention.xml",
-        "lib/portable-net45+win8+wp8+wpa81/System.Composition.Hosting.dll",
-        "lib/portable-net45+win8+wp8+wpa81/System.Composition.Hosting.XML",
-        "lib/portable-net45+win8+wp8+wpa81/System.Composition.Runtime.dll",
-        "lib/portable-net45+win8+wp8+wpa81/System.Composition.Runtime.XML",
-        "lib/portable-net45+win8+wp8+wpa81/System.Composition.TypedParts.dll",
-        "lib/portable-net45+win8+wp8+wpa81/System.Composition.TypedParts.XML",
         "License-Stable.rtf",
         "Microsoft.Composition.nuspec",
+        "[Content_Types].xml",
+        "_rels/.rels",
+        "lib/portable-net45+win8+wp8+wpa81/System.Composition.AttributedModel.XML",
+        "lib/portable-net45+win8+wp8+wpa81/System.Composition.AttributedModel.dll",
+        "lib/portable-net45+win8+wp8+wpa81/System.Composition.Convention.dll",
+        "lib/portable-net45+win8+wp8+wpa81/System.Composition.Convention.xml",
+        "lib/portable-net45+win8+wp8+wpa81/System.Composition.Hosting.XML",
+        "lib/portable-net45+win8+wp8+wpa81/System.Composition.Hosting.dll",
+        "lib/portable-net45+win8+wp8+wpa81/System.Composition.Runtime.XML",
+        "lib/portable-net45+win8+wp8+wpa81/System.Composition.Runtime.dll",
+        "lib/portable-net45+win8+wp8+wpa81/System.Composition.TypedParts.XML",
+        "lib/portable-net45+win8+wp8+wpa81/System.Composition.TypedParts.dll",
         "package/services/metadata/core-properties/12e2c94035674b25b911285cc26e3260.psmdcp"
       ]
     },
@@ -539,6 +539,7 @@
       "sha512": "/TWoXE2OIjJjSvcxER7HMoZwpgETSGlKbLZiME7sVVoPMoqgLvDyjSISveTyHxNoDXd18cZlM8aHdS9ZOAbjMw==",
       "type": "Package",
       "files": [
+        "Moq.nuspec",
         "[Content_Types].xml",
         "_rels/.rels",
         "lib/net35/Moq.dll",
@@ -547,7 +548,6 @@
         "lib/net40/Moq.xml",
         "lib/sl4/Moq.Silverlight.dll",
         "lib/sl4/Moq.Silverlight.xml",
-        "Moq.nuspec",
         "package/services/metadata/core-properties/98e2d674c8ec4e5fbda07a9e01280647.psmdcp"
       ]
     },
@@ -555,6 +555,8 @@
       "sha512": "i2vsGDIEbWdHcUSNDPKZP/ZWod6o740el7mGTCy0dqbCxQh74W4QoC+klUwPEtGEFuvzJ7bJgvwJqscosVNyZQ==",
       "type": "Package",
       "files": [
+        "License.rtf",
+        "System.Collections.nuspec",
         "[Content_Types].xml",
         "_rels/.rels",
         "lib/MonoAndroid10/_._",
@@ -565,8 +567,11 @@
         "lib/wpa81/_._",
         "lib/xamarinios10/_._",
         "lib/xamarinmac20/_._",
-        "License.rtf",
         "package/services/metadata/core-properties/24c5f986c3534c16ad303a35c4af021d.psmdcp",
+        "ref/MonoAndroid10/_._",
+        "ref/MonoTouch10/_._",
+        "ref/dotnet/System.Collections.dll",
+        "ref/dotnet/System.Collections.xml",
         "ref/dotnet/de/System.Collections.xml",
         "ref/dotnet/es/System.Collections.xml",
         "ref/dotnet/fr/System.Collections.xml",
@@ -574,13 +579,11 @@
         "ref/dotnet/ja/System.Collections.xml",
         "ref/dotnet/ko/System.Collections.xml",
         "ref/dotnet/ru/System.Collections.xml",
-        "ref/dotnet/System.Collections.dll",
-        "ref/dotnet/System.Collections.xml",
         "ref/dotnet/zh-hans/System.Collections.xml",
         "ref/dotnet/zh-hant/System.Collections.xml",
-        "ref/MonoAndroid10/_._",
-        "ref/MonoTouch10/_._",
         "ref/net45/_._",
+        "ref/netcore50/System.Collections.dll",
+        "ref/netcore50/System.Collections.xml",
         "ref/netcore50/de/System.Collections.xml",
         "ref/netcore50/es/System.Collections.xml",
         "ref/netcore50/fr/System.Collections.xml",
@@ -588,36 +591,35 @@
         "ref/netcore50/ja/System.Collections.xml",
         "ref/netcore50/ko/System.Collections.xml",
         "ref/netcore50/ru/System.Collections.xml",
-        "ref/netcore50/System.Collections.dll",
-        "ref/netcore50/System.Collections.xml",
         "ref/netcore50/zh-hans/System.Collections.xml",
         "ref/netcore50/zh-hant/System.Collections.xml",
         "ref/win8/_._",
         "ref/wp80/_._",
         "ref/wpa81/_._",
         "ref/xamarinios10/_._",
-        "ref/xamarinmac20/_._",
-        "System.Collections.nuspec"
+        "ref/xamarinmac20/_._"
       ]
     },
     "System.Collections.Immutable/1.1.37": {
       "sha512": "fTpqwZYBzoklTT+XjTRK8KxvmrGkYHzBiylCcKyQcxiOM8k+QvhNBxRvFHDWzy4OEP5f8/9n+xQ9mEgEXY+muA==",
       "type": "Package",
       "files": [
+        "System.Collections.Immutable.nuspec",
         "[Content_Types].xml",
         "_rels/.rels",
         "lib/dotnet/System.Collections.Immutable.dll",
         "lib/dotnet/System.Collections.Immutable.xml",
         "lib/portable-net45+win8+wp8+wpa81/System.Collections.Immutable.dll",
         "lib/portable-net45+win8+wp8+wpa81/System.Collections.Immutable.xml",
-        "package/services/metadata/core-properties/a02fdeabe1114a24bba55860b8703852.psmdcp",
-        "System.Collections.Immutable.nuspec"
+        "package/services/metadata/core-properties/a02fdeabe1114a24bba55860b8703852.psmdcp"
       ]
     },
     "System.Diagnostics.Debug/4.0.0": {
       "sha512": "AYJsLLGDVTC/nyURjgAo7Lpye0+HuSkcQujUf+NgQVdC/C/ky5NyamQHCforHJzgqspitMMtBe8B4UBdGXy1zQ==",
       "type": "Package",
       "files": [
+        "License.rtf",
+        "System.Diagnostics.Debug.nuspec",
         "[Content_Types].xml",
         "_rels/.rels",
         "lib/MonoAndroid10/_._",
@@ -628,8 +630,11 @@
         "lib/wpa81/_._",
         "lib/xamarinios10/_._",
         "lib/xamarinmac20/_._",
-        "License.rtf",
         "package/services/metadata/core-properties/9589d3ad95ef4d84a1edf67426c7c00a.psmdcp",
+        "ref/MonoAndroid10/_._",
+        "ref/MonoTouch10/_._",
+        "ref/dotnet/System.Diagnostics.Debug.dll",
+        "ref/dotnet/System.Diagnostics.Debug.xml",
         "ref/dotnet/de/System.Diagnostics.Debug.xml",
         "ref/dotnet/es/System.Diagnostics.Debug.xml",
         "ref/dotnet/fr/System.Diagnostics.Debug.xml",
@@ -637,13 +642,11 @@
         "ref/dotnet/ja/System.Diagnostics.Debug.xml",
         "ref/dotnet/ko/System.Diagnostics.Debug.xml",
         "ref/dotnet/ru/System.Diagnostics.Debug.xml",
-        "ref/dotnet/System.Diagnostics.Debug.dll",
-        "ref/dotnet/System.Diagnostics.Debug.xml",
         "ref/dotnet/zh-hans/System.Diagnostics.Debug.xml",
         "ref/dotnet/zh-hant/System.Diagnostics.Debug.xml",
-        "ref/MonoAndroid10/_._",
-        "ref/MonoTouch10/_._",
         "ref/net45/_._",
+        "ref/netcore50/System.Diagnostics.Debug.dll",
+        "ref/netcore50/System.Diagnostics.Debug.xml",
         "ref/netcore50/de/System.Diagnostics.Debug.xml",
         "ref/netcore50/es/System.Diagnostics.Debug.xml",
         "ref/netcore50/fr/System.Diagnostics.Debug.xml",
@@ -651,22 +654,21 @@
         "ref/netcore50/ja/System.Diagnostics.Debug.xml",
         "ref/netcore50/ko/System.Diagnostics.Debug.xml",
         "ref/netcore50/ru/System.Diagnostics.Debug.xml",
-        "ref/netcore50/System.Diagnostics.Debug.dll",
-        "ref/netcore50/System.Diagnostics.Debug.xml",
         "ref/netcore50/zh-hans/System.Diagnostics.Debug.xml",
         "ref/netcore50/zh-hant/System.Diagnostics.Debug.xml",
         "ref/win8/_._",
         "ref/wp80/_._",
         "ref/wpa81/_._",
         "ref/xamarinios10/_._",
-        "ref/xamarinmac20/_._",
-        "System.Diagnostics.Debug.nuspec"
+        "ref/xamarinmac20/_._"
       ]
     },
     "System.Globalization/4.0.0": {
       "sha512": "IBJyTo1y7ZtzzoJUA60T1XPvNTyw/wfFmjFoBFtlYfkekIOtD/AzDDIg0YdUa7eNtFEfliED2R7HdppTdU4t5A==",
       "type": "Package",
       "files": [
+        "License.rtf",
+        "System.Globalization.nuspec",
         "[Content_Types].xml",
         "_rels/.rels",
         "lib/MonoAndroid10/_._",
@@ -677,8 +679,11 @@
         "lib/wpa81/_._",
         "lib/xamarinios10/_._",
         "lib/xamarinmac20/_._",
-        "License.rtf",
         "package/services/metadata/core-properties/7256e6303e10459782eff20c3ec90af5.psmdcp",
+        "ref/MonoAndroid10/_._",
+        "ref/MonoTouch10/_._",
+        "ref/dotnet/System.Globalization.dll",
+        "ref/dotnet/System.Globalization.xml",
         "ref/dotnet/de/System.Globalization.xml",
         "ref/dotnet/es/System.Globalization.xml",
         "ref/dotnet/fr/System.Globalization.xml",
@@ -686,13 +691,11 @@
         "ref/dotnet/ja/System.Globalization.xml",
         "ref/dotnet/ko/System.Globalization.xml",
         "ref/dotnet/ru/System.Globalization.xml",
-        "ref/dotnet/System.Globalization.dll",
-        "ref/dotnet/System.Globalization.xml",
         "ref/dotnet/zh-hans/System.Globalization.xml",
         "ref/dotnet/zh-hant/System.Globalization.xml",
-        "ref/MonoAndroid10/_._",
-        "ref/MonoTouch10/_._",
         "ref/net45/_._",
+        "ref/netcore50/System.Globalization.dll",
+        "ref/netcore50/System.Globalization.xml",
         "ref/netcore50/de/System.Globalization.xml",
         "ref/netcore50/es/System.Globalization.xml",
         "ref/netcore50/fr/System.Globalization.xml",
@@ -700,22 +703,20 @@
         "ref/netcore50/ja/System.Globalization.xml",
         "ref/netcore50/ko/System.Globalization.xml",
         "ref/netcore50/ru/System.Globalization.xml",
-        "ref/netcore50/System.Globalization.dll",
-        "ref/netcore50/System.Globalization.xml",
         "ref/netcore50/zh-hans/System.Globalization.xml",
         "ref/netcore50/zh-hant/System.Globalization.xml",
         "ref/win8/_._",
         "ref/wp80/_._",
         "ref/wpa81/_._",
         "ref/xamarinios10/_._",
-        "ref/xamarinmac20/_._",
-        "System.Globalization.nuspec"
+        "ref/xamarinmac20/_._"
       ]
     },
     "System.Linq/4.0.0": {
       "sha512": "r6Hlc+ytE6m/9UBr+nNRRdoJEWjoeQiT3L3lXYFDHoXk3VYsRBCDNXrawcexw7KPLaH0zamQLiAb6avhZ50cGg==",
       "type": "Package",
       "files": [
+        "System.Linq.nuspec",
         "[Content_Types].xml",
         "_rels/.rels",
         "lib/dotnet/System.Linq.dll",
@@ -725,6 +726,8 @@
         "lib/wp80/_._",
         "lib/wpa81/_._",
         "package/services/metadata/core-properties/6fcde56ce4094f6a8fff4b28267da532.psmdcp",
+        "ref/dotnet/System.Linq.dll",
+        "ref/dotnet/System.Linq.xml",
         "ref/dotnet/de/System.Linq.xml",
         "ref/dotnet/es/System.Linq.xml",
         "ref/dotnet/fr/System.Linq.xml",
@@ -732,8 +735,6 @@
         "ref/dotnet/ja/System.Linq.xml",
         "ref/dotnet/ko/System.Linq.xml",
         "ref/dotnet/ru/System.Linq.xml",
-        "ref/dotnet/System.Linq.dll",
-        "ref/dotnet/System.Linq.xml",
         "ref/dotnet/zh-hans/System.Linq.xml",
         "ref/dotnet/zh-hant/System.Linq.xml",
         "ref/net45/_._",
@@ -741,30 +742,28 @@
         "ref/netcore50/System.Linq.xml",
         "ref/win8/_._",
         "ref/wp80/_._",
-        "ref/wpa81/_._",
-        "System.Linq.nuspec"
+        "ref/wpa81/_._"
       ]
     },
-    "System.Reflection.Metadata/1.2.0-rc2-23826": {
-      "sha512": "iaq5zpluF7mUMd5hFyhmZGyCSzF6glZjvNI2VAhLFQEp8sGA/tROj6NoZL42q6HhoHxi1XyGeoIXPi5hyw0+5w==",
-      "type": "Package",
+    "System.Reflection.Metadata/1.2.0": {
+      "sha512": "ubQKFCNYPwhqPXPLjRKCvTDR2UvL5L5+Tm181D/5kl/df7264AuXDi2j2Bf5DxplBxevq8eUH9LRomcFCXTQKw==",
+      "type": "package",
       "files": [
-        "[Content_Types].xml",
-        "_rels/.rels",
-        "dotnet_library_license.txt",
-        "lib/dotnet5.2/System.Reflection.Metadata.dll",
-        "lib/dotnet5.2/System.Reflection.Metadata.xml",
-        "lib/portable-net45+win8/System.Reflection.Metadata.dll",
-        "lib/portable-net45+win8/System.Reflection.Metadata.xml",
-        "package/services/metadata/core-properties/26ea3eeed81e48b5a161d7b4bfaa534d.psmdcp",
+        "System.Reflection.Metadata.1.2.0.nupkg.sha512",
         "System.Reflection.Metadata.nuspec",
-        "ThirdPartyNotices.txt"
+        "ThirdPartyNotices.txt",
+        "dotnet_library_license.txt",
+        "lib/netstandard1.1/System.Reflection.Metadata.dll",
+        "lib/netstandard1.1/System.Reflection.Metadata.xml",
+        "lib/portable-net45+win8/System.Reflection.Metadata.dll",
+        "lib/portable-net45+win8/System.Reflection.Metadata.xml"
       ]
     },
     "System.Resources.ResourceManager/4.0.0": {
       "sha512": "qmqeZ4BJgjfU+G2JbrZt4Dk1LsMxO4t+f/9HarNY6w8pBgweO6jT+cknUH7c3qIrGvyUqraBhU45Eo6UtA0fAw==",
       "type": "Package",
       "files": [
+        "System.Resources.ResourceManager.nuspec",
         "[Content_Types].xml",
         "_rels/.rels",
         "lib/DNXCore50/System.Resources.ResourceManager.dll",
@@ -774,6 +773,8 @@
         "lib/wp80/_._",
         "lib/wpa81/_._",
         "package/services/metadata/core-properties/657a73ee3f09479c9fedb9538ade8eac.psmdcp",
+        "ref/dotnet/System.Resources.ResourceManager.dll",
+        "ref/dotnet/System.Resources.ResourceManager.xml",
         "ref/dotnet/de/System.Resources.ResourceManager.xml",
         "ref/dotnet/es/System.Resources.ResourceManager.xml",
         "ref/dotnet/fr/System.Resources.ResourceManager.xml",
@@ -781,8 +782,6 @@
         "ref/dotnet/ja/System.Resources.ResourceManager.xml",
         "ref/dotnet/ko/System.Resources.ResourceManager.xml",
         "ref/dotnet/ru/System.Resources.ResourceManager.xml",
-        "ref/dotnet/System.Resources.ResourceManager.dll",
-        "ref/dotnet/System.Resources.ResourceManager.xml",
         "ref/dotnet/zh-hans/System.Resources.ResourceManager.xml",
         "ref/dotnet/zh-hant/System.Resources.ResourceManager.xml",
         "ref/net45/_._",
@@ -791,14 +790,15 @@
         "ref/win8/_._",
         "ref/wp80/_._",
         "ref/wpa81/_._",
-        "runtimes/win8-aot/lib/netcore50/System.Resources.ResourceManager.dll",
-        "System.Resources.ResourceManager.nuspec"
+        "runtimes/win8-aot/lib/netcore50/System.Resources.ResourceManager.dll"
       ]
     },
     "System.Runtime/4.0.0": {
       "sha512": "Uq9epame8hEqJlj4KaWb67dDJvj4IM37jRFGVeFbugRdPz48bR0voyBhrbf3iSa2tAmlkg4lsa6BUOL9iwlMew==",
       "type": "Package",
       "files": [
+        "License.rtf",
+        "System.Runtime.nuspec",
         "[Content_Types].xml",
         "_rels/.rels",
         "lib/MonoAndroid10/_._",
@@ -809,8 +809,11 @@
         "lib/wpa81/_._",
         "lib/xamarinios10/_._",
         "lib/xamarinmac20/_._",
-        "License.rtf",
         "package/services/metadata/core-properties/c5db97a122ad42aeb8e429022c1d1ab8.psmdcp",
+        "ref/MonoAndroid10/_._",
+        "ref/MonoTouch10/_._",
+        "ref/dotnet/System.Runtime.dll",
+        "ref/dotnet/System.Runtime.xml",
         "ref/dotnet/de/System.Runtime.xml",
         "ref/dotnet/es/System.Runtime.xml",
         "ref/dotnet/fr/System.Runtime.xml",
@@ -818,13 +821,11 @@
         "ref/dotnet/ja/System.Runtime.xml",
         "ref/dotnet/ko/System.Runtime.xml",
         "ref/dotnet/ru/System.Runtime.xml",
-        "ref/dotnet/System.Runtime.dll",
-        "ref/dotnet/System.Runtime.xml",
         "ref/dotnet/zh-hans/System.Runtime.xml",
         "ref/dotnet/zh-hant/System.Runtime.xml",
-        "ref/MonoAndroid10/_._",
-        "ref/MonoTouch10/_._",
         "ref/net45/_._",
+        "ref/netcore50/System.Runtime.dll",
+        "ref/netcore50/System.Runtime.xml",
         "ref/netcore50/de/System.Runtime.xml",
         "ref/netcore50/es/System.Runtime.xml",
         "ref/netcore50/fr/System.Runtime.xml",
@@ -832,22 +833,21 @@
         "ref/netcore50/ja/System.Runtime.xml",
         "ref/netcore50/ko/System.Runtime.xml",
         "ref/netcore50/ru/System.Runtime.xml",
-        "ref/netcore50/System.Runtime.dll",
-        "ref/netcore50/System.Runtime.xml",
         "ref/netcore50/zh-hans/System.Runtime.xml",
         "ref/netcore50/zh-hant/System.Runtime.xml",
         "ref/win8/_._",
         "ref/wp80/_._",
         "ref/wpa81/_._",
         "ref/xamarinios10/_._",
-        "ref/xamarinmac20/_._",
-        "System.Runtime.nuspec"
+        "ref/xamarinmac20/_._"
       ]
     },
     "System.Runtime.Extensions/4.0.0": {
       "sha512": "zPzwoJcA7qar/b5Ihhzfcdr3vBOR8FIg7u//Qc5mqyAriasXuMFVraBZ5vOQq5asfun9ryNEL8Z2BOlUK5QRqA==",
       "type": "Package",
       "files": [
+        "License.rtf",
+        "System.Runtime.Extensions.nuspec",
         "[Content_Types].xml",
         "_rels/.rels",
         "lib/MonoAndroid10/_._",
@@ -858,8 +858,11 @@
         "lib/wpa81/_._",
         "lib/xamarinios10/_._",
         "lib/xamarinmac20/_._",
-        "License.rtf",
         "package/services/metadata/core-properties/fb0a27c059094735ba8947d01a5f5660.psmdcp",
+        "ref/MonoAndroid10/_._",
+        "ref/MonoTouch10/_._",
+        "ref/dotnet/System.Runtime.Extensions.dll",
+        "ref/dotnet/System.Runtime.Extensions.xml",
         "ref/dotnet/de/System.Runtime.Extensions.xml",
         "ref/dotnet/es/System.Runtime.Extensions.xml",
         "ref/dotnet/fr/System.Runtime.Extensions.xml",
@@ -867,13 +870,11 @@
         "ref/dotnet/ja/System.Runtime.Extensions.xml",
         "ref/dotnet/ko/System.Runtime.Extensions.xml",
         "ref/dotnet/ru/System.Runtime.Extensions.xml",
-        "ref/dotnet/System.Runtime.Extensions.dll",
-        "ref/dotnet/System.Runtime.Extensions.xml",
         "ref/dotnet/zh-hans/System.Runtime.Extensions.xml",
         "ref/dotnet/zh-hant/System.Runtime.Extensions.xml",
-        "ref/MonoAndroid10/_._",
-        "ref/MonoTouch10/_._",
         "ref/net45/_._",
+        "ref/netcore50/System.Runtime.Extensions.dll",
+        "ref/netcore50/System.Runtime.Extensions.xml",
         "ref/netcore50/de/System.Runtime.Extensions.xml",
         "ref/netcore50/es/System.Runtime.Extensions.xml",
         "ref/netcore50/fr/System.Runtime.Extensions.xml",
@@ -881,22 +882,21 @@
         "ref/netcore50/ja/System.Runtime.Extensions.xml",
         "ref/netcore50/ko/System.Runtime.Extensions.xml",
         "ref/netcore50/ru/System.Runtime.Extensions.xml",
-        "ref/netcore50/System.Runtime.Extensions.dll",
-        "ref/netcore50/System.Runtime.Extensions.xml",
         "ref/netcore50/zh-hans/System.Runtime.Extensions.xml",
         "ref/netcore50/zh-hant/System.Runtime.Extensions.xml",
         "ref/win8/_._",
         "ref/wp80/_._",
         "ref/wpa81/_._",
         "ref/xamarinios10/_._",
-        "ref/xamarinmac20/_._",
-        "System.Runtime.Extensions.nuspec"
+        "ref/xamarinmac20/_._"
       ]
     },
     "System.Threading/4.0.0": {
       "sha512": "H6O/9gUrjPDNYanh/7OFGAZHjVXvEuITD0RcnjfvIV04HOGrOPqUBU0kmz9RIX/7YGgCQn1o1S2DX6Cuv8kVGQ==",
       "type": "Package",
       "files": [
+        "License.rtf",
+        "System.Threading.nuspec",
         "[Content_Types].xml",
         "_rels/.rels",
         "lib/MonoAndroid10/_._",
@@ -907,8 +907,11 @@
         "lib/wpa81/_._",
         "lib/xamarinios10/_._",
         "lib/xamarinmac20/_._",
-        "License.rtf",
         "package/services/metadata/core-properties/bec033e95dbf4d6ba6595d2be7bb7e25.psmdcp",
+        "ref/MonoAndroid10/_._",
+        "ref/MonoTouch10/_._",
+        "ref/dotnet/System.Threading.dll",
+        "ref/dotnet/System.Threading.xml",
         "ref/dotnet/de/System.Threading.xml",
         "ref/dotnet/es/System.Threading.xml",
         "ref/dotnet/fr/System.Threading.xml",
@@ -916,13 +919,11 @@
         "ref/dotnet/ja/System.Threading.xml",
         "ref/dotnet/ko/System.Threading.xml",
         "ref/dotnet/ru/System.Threading.xml",
-        "ref/dotnet/System.Threading.dll",
-        "ref/dotnet/System.Threading.xml",
         "ref/dotnet/zh-hans/System.Threading.xml",
         "ref/dotnet/zh-hant/System.Threading.xml",
-        "ref/MonoAndroid10/_._",
-        "ref/MonoTouch10/_._",
         "ref/net45/_._",
+        "ref/netcore50/System.Threading.dll",
+        "ref/netcore50/System.Threading.xml",
         "ref/netcore50/de/System.Threading.xml",
         "ref/netcore50/es/System.Threading.xml",
         "ref/netcore50/fr/System.Threading.xml",
@@ -930,16 +931,13 @@
         "ref/netcore50/ja/System.Threading.xml",
         "ref/netcore50/ko/System.Threading.xml",
         "ref/netcore50/ru/System.Threading.xml",
-        "ref/netcore50/System.Threading.dll",
-        "ref/netcore50/System.Threading.xml",
         "ref/netcore50/zh-hans/System.Threading.xml",
         "ref/netcore50/zh-hant/System.Threading.xml",
         "ref/win8/_._",
         "ref/wp80/_._",
         "ref/wpa81/_._",
         "ref/xamarinios10/_._",
-        "ref/xamarinmac20/_._",
-        "System.Threading.nuspec"
+        "ref/xamarinmac20/_._"
       ]
     },
     "xunit/2.1.0": {
@@ -1074,6 +1072,7 @@
         "package/services/metadata/core-properties/3ff6ecc00c3b4e6c93baf7de3f0b9697.psmdcp",
         "tools/HTML.xslt",
         "tools/NUnitXml.xslt",
+        "tools/xUnit1.xslt",
         "tools/xunit.abstractions.dll",
         "tools/xunit.console.exe",
         "tools/xunit.console.exe.config",
@@ -1081,7 +1080,6 @@
         "tools/xunit.console.x86.exe.config",
         "tools/xunit.runner.reporters.desktop.dll",
         "tools/xunit.runner.utility.desktop.dll",
-        "tools/xUnit1.xslt",
         "xunit.runner.console.nuspec"
       ]
     }
@@ -1090,7 +1088,7 @@
     "": [
       "Microsoft.Composition >= 1.0.27",
       "System.Collections.Immutable >= 1.1.37",
-      "System.Reflection.Metadata >= 1.2.0-rc2-23826",
+      "System.Reflection.Metadata >= 1.2.0",
       "xunit >= 2.1.0",
       "xunit.runner.console >= 2.1.0"
     ],

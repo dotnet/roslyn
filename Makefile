@@ -1,6 +1,6 @@
 SHELL = /bin/bash
 OS_NAME = $(shell uname -s)
-NUGET_PACKAGE_NAME = nuget.64
+NUGET_PACKAGE_NAME = nuget.65
 BUILD_CONFIGURATION = Debug
 BOOTSTRAP_PATH = $(shell pwd)/Binaries/Bootstrap
 BUILD_LOG_PATH =
