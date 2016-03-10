@@ -141,17 +141,19 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification
                 if (newNode is ReturnStatementSyntax)
                 {
                     var newReturnStatement = (ReturnStatementSyntax)newNode;
-
-                    var parentLambda = node.FirstAncestorOrSelf<LambdaExpressionSyntax>();
-                    if (parentLambda != null)
+                    if (newReturnStatement.Expression != null)
                     {
-                        var returnType = (_semanticModel.GetSymbolInfo(parentLambda).Symbol as IMethodSymbol)?.ReturnType;
-                        if (returnType != null)
+                        var parentLambda = node.FirstAncestorOrSelf<LambdaExpressionSyntax>();
+                        if (parentLambda != null)
                         {
-                            ExpressionSyntax newExpressionWithCast;
-                            if (TryCastTo(returnType, node.Expression, newReturnStatement.Expression, out newExpressionWithCast))
+                            var returnType = (_semanticModel.GetSymbolInfo(parentLambda).Symbol as IMethodSymbol)?.ReturnType;
+                            if (returnType != null)
                             {
-                                newNode = newReturnStatement.WithExpression(newExpressionWithCast);
+                                ExpressionSyntax newExpressionWithCast;
+                                if (TryCastTo(returnType, node.Expression, newReturnStatement.Expression, out newExpressionWithCast))
+                                {
+                                    newNode = newReturnStatement.WithExpression(newExpressionWithCast);
+                                }
                             }
                         }
                     }

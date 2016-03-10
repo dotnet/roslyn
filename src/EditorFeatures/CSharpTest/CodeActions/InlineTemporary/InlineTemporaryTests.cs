@@ -3888,5 +3888,45 @@ class C
 }";
             await TestAsync(initial, expected, compareTokens: false);
         }
+
+        [WorkItem(9576, "https://github.com/dotnet/roslyn/issues/9576")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
+        public async Task InlineIntoLambdaWithReturnStatementWithNoExpression()
+        {
+            const string initial = @"
+using System;
+class C
+{
+    static void M(Action a) { }
+
+    static void N()
+    {
+        var [||]x = 42;
+        M(() =>
+        {
+            Console.WriteLine(x);
+            return;
+        });
+    }
+}";
+
+            const string expected = @"
+using System;
+class C
+{
+    static void M(Action a) { }
+
+    static void N()
+    {
+        M(() =>
+        {
+            Console.WriteLine(42);
+            return;
+        });
+    }
+}";
+
+            await TestAsync(initial, expected, compareTokens: false);
+        }
     }
 }
