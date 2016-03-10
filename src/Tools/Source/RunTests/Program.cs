@@ -37,37 +37,73 @@ namespace RunTests
 
         private static async Task<int> RunCore(Options options, CancellationToken cancellationToken)
         {
+            if (options.MissingAssemblies.Count > 0)
+            {
+                foreach (var assemblyPath in options.MissingAssemblies)
+                {
+                    ConsoleUtil.WriteLine(ConsoleColor.Red, $"The file '{assemblyPath}' does not exist, is an invalid file name, or you do not have sufficient permissions to read the specified file.");
+                }
+
+                return 1;
+            }
+
             var testExecutor = CreateTestExecutor(options);
             var testRunner = new TestRunner(options, testExecutor);
             var start = DateTime.Now;
+            var assemblyInfoList = GetAssemblyList(options);
 
             Console.WriteLine($"Data Storage: {testExecutor.DataStorage.Name}");
-            Console.WriteLine($"Running {options.Assemblies.Count()} test assemblies");
+            Console.WriteLine($"Running {options.Assemblies.Count()} test assemblies in {assemblyInfoList.Count} chunks");
 
-            var orderedList = OrderAssemblyList(options.Assemblies);
-            var result = await testRunner.RunAllAsync(orderedList, cancellationToken).ConfigureAwait(true);
+            var result = await testRunner.RunAllAsync(assemblyInfoList, cancellationToken).ConfigureAwait(true);
             var ellapsed = DateTime.Now - start;
 
-            foreach (var assemblyPath in options.MissingAssemblies)
-            {
-                ConsoleUtil.WriteLine(ConsoleColor.Red, $"The file '{assemblyPath}' does not exist, is an invalid file name, or you do not have sufficient permissions to read the specified file.");
-            }
+            Console.WriteLine($"Test execution time: {ellapsed}");
 
-            Logger.Finish();
+            Logger.Finish(Path.GetDirectoryName(options.Assemblies.FirstOrDefault() ?? ""));
 
             if (CanUseWebStorage())
             {
-                await SendRunStats(options, testExecutor.DataStorage, ellapsed, result, cancellationToken).ConfigureAwait(true);
+                await SendRunStats(options, testExecutor.DataStorage, ellapsed, result, assemblyInfoList.Count, cancellationToken).ConfigureAwait(true);
             }
 
             if (!result.Succeeded)
             {
-                ConsoleUtil.WriteLine(ConsoleColor.Red, $"Test failures encountered: {ellapsed}");
+                ConsoleUtil.WriteLine(ConsoleColor.Red, $"Test failures encountered");
                 return 1;
             }
 
-            Console.WriteLine($"All tests passed: {ellapsed}");
+            Console.WriteLine($"All tests passed");
             return options.MissingAssemblies.Any() ? 1 : 0;
+        }
+
+        private static List<AssemblyInfo> GetAssemblyList(Options options)
+        {
+            var scheduler = new AssemblyScheduler(options);
+            var list = new List<AssemblyInfo>();
+
+            foreach (var assemblyPath in options.Assemblies.OrderByDescending(x => new FileInfo(x).Length))
+            {
+                var name = Path.GetFileName(assemblyPath);
+
+                // As a starting point we will just schedule the items we know to be a performance 
+                // bottleneck.  Can adjust as we get real data.
+                if (name == "Roslyn.Compilers.CSharp.Emit.UnitTests.dll" ||
+                    name == "Roslyn.Services.Editor.UnitTests.dll" ||
+                    name == "Roslyn.Services.Editor.UnitTests2.dll" ||
+                    name == "Roslyn.VisualStudio.Services.UnitTests.dll" ||
+                    name == "Roslyn.Services.Editor.CSharp.UnitTests.dll" ||
+                    name == "Roslyn.Services.Editor.VisualBasic.UnitTests.dll")
+                {
+                    list.AddRange(scheduler.Schedule(assemblyPath));
+                }
+                else
+                {
+                    list.Add(scheduler.CreateAssemblyInfo(assemblyPath));
+                }
+            }
+
+            return list;
         }
 
         private static bool CanUseWebStorage()
@@ -110,7 +146,7 @@ namespace RunTests
             return list.OrderByDescending((assemblyName) => new FileInfo(assemblyName).Length);
         }
 
-        private static async Task SendRunStats(Options options, IDataStorage dataStorage, TimeSpan ellapsed, RunAllResult result, CancellationToken cancellationToken)
+        private static async Task SendRunStats(Options options, IDataStorage dataStorage, TimeSpan ellapsed, RunAllResult result, int chunkCount, CancellationToken cancellationToken)
         {
             var obj = new JObject();
             obj["Cache"] = dataStorage.Name;
@@ -119,6 +155,7 @@ namespace RunTests
             obj["Is32Bit"] = !options.Test64;
             obj["AssemblyCount"] = options.Assemblies.Count;
             obj["CacheCount"] = result.CacheCount;
+            obj["ChunkCount"] = chunkCount;
             obj["Succeeded"] = result.Succeeded;
 
             var request = new RestRequest("api/testrun", Method.POST);
