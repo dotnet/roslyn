@@ -310,7 +310,8 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             IEnumerable<ResourceDescription> manifestResources,
             List<ModuleData> dependencies,
             DiagnosticBag diagnostics,
-            CompilationTestData testData
+            CompilationTestData testData,
+            EmitOptions emitOptions
         )
         {
             // A Compilation can appear multiple times in a depnedency graph as both a Compilation and as a MetadataReference
@@ -321,7 +322,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
 
             foreach (var referencedCompilation in referencedCompilations)
             {
-                var emitData = EmitCompilationCore(referencedCompilation, null, diagnostics, null);
+                var emitData = EmitCompilationCore(referencedCompilation, null, diagnostics, null, emitOptions);
                 if (emitData.HasValue)
                 {
                     var moduleData = new ModuleData(referencedCompilation.Assembly.Identity,
@@ -340,14 +341,15 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
                 EmitReferences(current, fullNameSet, dependencies, diagnostics);
             }
 
-            return EmitCompilationCore(compilation, manifestResources, diagnostics, testData);
+            return EmitCompilationCore(compilation, manifestResources, diagnostics, testData, emitOptions);
         }
 
         private static EmitOutput? EmitCompilationCore(
             Compilation compilation,
             IEnumerable<ResourceDescription> manifestResources,
             DiagnosticBag diagnostics,
-            CompilationTestData testData
+            CompilationTestData testData,
+            EmitOptions emitOptions
         )
         {
             using (var executableStream = new MemoryStream())
@@ -367,7 +369,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
                         xmlDocumentationStream: null,
                         win32Resources: null,
                         manifestResources: manifestResources,
-                        options: EmitOptions.Default,
+                        options: emitOptions ?? EmitOptions.Default,
                         debugEntryPoint: null,
                         testData: testData,
                         getHostDiagnostics: null,
@@ -397,13 +399,14 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
         public void Emit(
             Compilation mainCompilation,
             IEnumerable<ResourceDescription> manifestResources,
+            EmitOptions emitOptions,
             bool usePdbForDebugging = false)
         {
             _testData.Methods.Clear();
 
             var diagnostics = DiagnosticBag.GetInstance();
             var dependencies = new List<ModuleData>();
-            var mainOutput = EmitCompilation(mainCompilation, manifestResources, dependencies, diagnostics, _testData);
+            var mainOutput = EmitCompilation(mainCompilation, manifestResources, dependencies, diagnostics, _testData, emitOptions);
 
             _emitData = new EmitData();
             _emitData.Diagnostics = diagnostics.ToReadOnlyAndFree();

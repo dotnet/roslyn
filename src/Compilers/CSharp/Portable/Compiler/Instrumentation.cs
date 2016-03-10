@@ -30,7 +30,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 // Synthesize the instrumentation and collect the spans of interest.
 
-                ArrayBuilder<SourceSpan> spansBuilder = new ArrayBuilder<SourceSpan>();
+                ArrayBuilder<SourceSpan> spansBuilder = ArrayBuilder<SourceSpan>.GetInstance();
                 BoundTreeRewriter collector = new InstrumentationInjectionWalker(method, spansBuilder, payloadField, compilationState, diagnostics, debugDocumentProvider);
                 BoundBlock newMethodBody = (BoundBlock)collector.Visit(methodBody);
 
@@ -50,7 +50,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 //     Instrumentation.AddPayload(method, payloadField);
                 // }
 
-                ArrayBuilder<BoundExpression> elementsBuilder = new ArrayBuilder<BoundExpression>(dynamicAnalysisSpans.Length);
+                ArrayBuilder<BoundExpression> elementsBuilder = ArrayBuilder<BoundExpression>.GetInstance(dynamicAnalysisSpans.Length);
                 for (int i = 0; i < dynamicAnalysisSpans.Length; i++)
                 {
                     elementsBuilder.Add(factory.Literal(false));

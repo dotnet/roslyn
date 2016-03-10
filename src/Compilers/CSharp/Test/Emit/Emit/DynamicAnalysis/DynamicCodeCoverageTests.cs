@@ -36,7 +36,7 @@ public class Program
 bar
 ";
 
-            CompileAndVerify(source, expectedOutput: expectedOutput);
+            CompileAndVerify(source, emitOptions: EmitOptions.Default.WithEmitDynamicAnalysisData(true), expectedOutput: expectedOutput);
         }
     }
 }
