@@ -180,7 +180,7 @@ namespace Microsoft.Cci
             {
                 peBlob.WriteContentTo(peStream);
             }
-            catch (Exception e)
+            catch (Exception e) when (!(e is OperationCanceledException))
             {
                 throw new PeWritingException(e);
             }
