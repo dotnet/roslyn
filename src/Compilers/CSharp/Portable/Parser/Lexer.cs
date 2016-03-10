@@ -898,12 +898,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 return;
             }
 
-            if (feature.RequiredFeature() != null)
+            var requiredFeature = feature.RequiredFeature();
+            if (requiredFeature != null)
             {
                 if (!options.IsFeatureEnabled(feature))
                 {
-                    this.AddError(ErrorCode.ERR_FeatureIsExperimental, feature.Localize());
+                    this.AddError(ErrorCode.ERR_FeatureIsExperimental, feature.Localize(), requiredFeature);
                 }
+
                 return;
             }
 
