@@ -4,7 +4,7 @@ Imports System.Threading.Tasks
 Imports Microsoft.CodeAnalysis
 Imports Roslyn.Test.Utilities
 
-Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.CodeModel.CSharp.VisualBasic
+Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.CodeModel.VisualBasic
     Public Class ExternalCodeFunctionTests
         Inherits AbstractCodeFunctionTests
 
