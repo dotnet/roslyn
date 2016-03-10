@@ -263,7 +263,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         /// <summary>
-        /// The Imports for all containing namespace declarations (innermost-to-outermost, including global).
+        /// The imports for all containing namespace declarations (innermost-to-outermost, including global),
+        /// or null if there are none.
         /// </summary>
         internal virtual ImportChain ImportChain
         {
