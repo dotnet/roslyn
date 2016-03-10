@@ -139,7 +139,7 @@ public class Vec
 
             // additionally enables let, match, throw, and recursive patterns
             var experimentalParseOptions = regularParseOptions
-                .WithPreprocessorSymbols(new[] { "__DEMO__", "__DEMO_EXPERIMENTAL__" });
+                .WithPreprocessorSymbols(new[] { "__DEMO_EXPERIMENTAL__" });
             CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe, parseOptions: experimentalParseOptions).VerifyDiagnostics(
                 // (8,13): warning CS0219: The variable 'i2' is assigned but its value is never used
                 //         int i2 = 23_554; // digit separators
