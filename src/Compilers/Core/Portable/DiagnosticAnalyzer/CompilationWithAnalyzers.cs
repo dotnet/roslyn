@@ -559,6 +559,9 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                             {
                                 try
                                 {
+                                    // Fetch the cancellation token here to avoid capturing linkedCts in the getComputeTask lambda as the task may run after linkedCts has been disposed due to cancellation.
+                                    var linkedCancellationToken = linkedCts.Token;
+
                                     // Core task to compute analyzer diagnostics.
                                     Func<Tuple<Task, CancellationTokenSource>> getComputeTask = () => Tuple.Create(
                                         Task.Run(async () =>
@@ -571,8 +574,10 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                                                     // Get event queue with pending events to analyze.
                                                     eventQueue = getEventQueue();
 
+                                                    linkedCancellationToken.ThrowIfCancellationRequested();
+
                                                     // Execute analyzer driver on the given analysis scope with the given event queue.
-                                                    await ComputeAnalyzerDiagnosticsCoreAsync(driver, eventQueue, analysisScope, cancellationToken: linkedCts.Token).ConfigureAwait(false);
+                                                    await ComputeAnalyzerDiagnosticsCoreAsync(driver, eventQueue, analysisScope, cancellationToken: linkedCancellationToken).ConfigureAwait(false);
                                                 }
                                                 finally
                                                 {
@@ -584,7 +589,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                                                 throw ExceptionUtilities.Unreachable;
                                             }
                                         },
-                                            linkedCts.Token),
+                                            linkedCancellationToken),
                                         cts);
 
                                     // Wait for higher priority tree document tasks to complete.
