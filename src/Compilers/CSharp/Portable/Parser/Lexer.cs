@@ -898,7 +898,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 return;
             }
 
-            var requiredFeature = feature.RequiredFeature();
+            string requiredFeature = feature.RequiredFeature();
             if (requiredFeature != null)
             {
                 if (!options.IsFeatureEnabled(feature))
