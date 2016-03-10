@@ -10,6 +10,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.CodeModel.CSharp
 
 #Region "OverrideKind tests"
 
+        <WorkItem(9646, "https://github.com/dotnet/roslyn/issues/9646")>
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
         Public Async Function TestOverrideKind1() As Task
             Dim code =
@@ -32,6 +33,7 @@ class C
             Await TestOverrideKind(code, EnvDTE80.vsCMOverrideKind.vsCMOverrideKindNone)
         End Function
 
+        <WorkItem(9646, "https://github.com/dotnet/roslyn/issues/9646")>
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
         Public Async Function TestOverrideKind2() As Task
             Dim code =
@@ -51,8 +53,31 @@ abstract class C
 
 #End Region
 
+#Region "Parameter name tests"
+
+        <WorkItem(9646, "https://github.com/dotnet/roslyn/issues/9646")>
+        <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
+        Public Async Function TestParameterNameWithEscapeCharacters() As Task
+            Dim code =
+<Code>
+class Program
+{
+    public int $$this[int x, int y]
+    {
+        get { return x * y; }
+        set { }
+    }
+}
+</Code>
+
+            Await TestAllParameterNames(code, "x", "y")
+        End Function
+
+#End Region
+
 #Region "ReadWrite tests"
 
+        <WorkItem(9646, "https://github.com/dotnet/roslyn/issues/9646")>
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
         Public Async Function TestReadWrite1() As Task
             Dim code =
@@ -75,6 +100,7 @@ class C
             Await TestReadWrite(code, EnvDTE80.vsCMPropertyKind.vsCMPropertyKindReadWrite)
         End Function
 
+        <WorkItem(9646, "https://github.com/dotnet/roslyn/issues/9646")>
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
         Public Async Function TestReadWrite2() As Task
             Dim code =
@@ -94,6 +120,7 @@ class C
             Await TestReadWrite(code, EnvDTE80.vsCMPropertyKind.vsCMPropertyKindReadOnly)
         End Function
 
+        <WorkItem(9646, "https://github.com/dotnet/roslyn/issues/9646")>
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
         Public Async Function TestReadWrite3() As Task
             Dim code =
@@ -112,6 +139,7 @@ class C
             Await TestReadWrite(code, EnvDTE80.vsCMPropertyKind.vsCMPropertyKindWriteOnly)
         End Function
 
+        <WorkItem(9646, "https://github.com/dotnet/roslyn/issues/9646")>
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
         Public Async Function TestReadWrite4() As Task
             Dim code =

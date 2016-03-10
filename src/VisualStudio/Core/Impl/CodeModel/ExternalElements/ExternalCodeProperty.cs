@@ -33,13 +33,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel.Exter
             return this.Parameters;
         }
 
-        protected override EnvDTE.CodeElements GetParameters()
-        {
-            // TODO: Need to figure out what to do here. This comes from CodeProperty2, but C# apparently never
-            // that interface for external code elements.
-            throw new NotImplementedException();
-        }
-
         public override EnvDTE.vsCMElement Kind
         {
             get { return EnvDTE.vsCMElement.vsCMElementProperty; }
