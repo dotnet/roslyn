@@ -67,7 +67,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics
                     var workspace = project.Solution.Workspace;
                     foreach (var updateArgs in _owner._diagnosticService.GetDiagnosticsUpdatedEventArgs(workspace, project.Id, document.Id, cancellationToken))
                     {
-                        var diagnostics = GetInitialDiagnostics(project.Solution, updateArgs, cancellationToken);
+                        var diagnostics = AdjustInitialDiagnostics(project.Solution, updateArgs, cancellationToken);
                         if (diagnostics.Length == 0)
                         {
                             continue;
@@ -80,7 +80,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics
                 }
             }
 
-            private ImmutableArray<DiagnosticData> GetInitialDiagnostics(Solution solution, UpdatedEventArgs args, CancellationToken cancellationToken)
+            private ImmutableArray<DiagnosticData> AdjustInitialDiagnostics(Solution solution, UpdatedEventArgs args, CancellationToken cancellationToken)
             {
                 // we only reach here if there is the document
                 var document = solution.GetDocument(args.DocumentId);
@@ -94,6 +94,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics
                     return ImmutableArray<DiagnosticData>.Empty;
                 }
 
+                // GetDiagnostics returns whatever cached diagnostics in the service which can be stale ones. for example, build error will be most likely stale
+                // diagnostics. so here we make sure we filter out any diagnostics that is not in the text range.
                 var builder = ImmutableArray.CreateBuilder<DiagnosticData>();
                 var fullSpan = new TextSpan(0, text.Length);
                 foreach (var diagnostic in _owner._diagnosticService.GetDiagnostics(
