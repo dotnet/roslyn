@@ -13,6 +13,6 @@ namespace Microsoft.CodeAnalysis.Shared.Options
 
         public static readonly Option<bool> DiagnosticProvider = new Option<bool>(OptionName, "Diagnostic Provider", defaultValue: true);
 
-        public static readonly Option<bool> PackageSearch = new Option<bool>(OptionName, nameof(PackageSearch), defaultValue: false);
+        public static readonly Option<bool> PackageSearch = new Option<bool>(OptionName, nameof(PackageSearch), defaultValue: true);
     }
 }
