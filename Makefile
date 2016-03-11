@@ -1,6 +1,6 @@
 SHELL = /usr/bin/env bash
 OS_NAME = $(shell uname -s)
-NUGET_PACKAGE_NAME = nuget.future.18
+NUGET_PACKAGE_NAME = nuget.future.19
 BUILD_CONFIGURATION = Debug
 BOOTSTRAP_PATH = $(shell pwd)/Binaries/Bootstrap
 BUILD_LOG_PATH =
