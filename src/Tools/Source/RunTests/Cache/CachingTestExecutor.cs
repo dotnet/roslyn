@@ -16,7 +16,7 @@ namespace RunTests.Cache
 
         public IDataStorage DataStorage => _dataStorage;
 
-        internal CachingTestExecutor(Options options, ITestExecutor testExecutor, IDataStorage dataStorage)
+        internal CachingTestExecutor(TestExecutionOptions options, ITestExecutor testExecutor, IDataStorage dataStorage)
         {
             _testExecutor = testExecutor;
             _dataStorage = dataStorage;

@@ -8,6 +8,24 @@ using System.Threading.Tasks;
 
 namespace RunTests
 {
+    internal struct TestExecutionOptions
+    {
+        internal string XunitPath { get; }
+        internal string Trait { get; }
+        internal string NoTrait { get; }
+        internal bool UseHtml { get; }
+        internal bool Test64 { get; }
+
+        internal TestExecutionOptions(string xunitPath, string trait, string noTrait, bool useHtml, bool test64)
+        {
+            XunitPath = xunitPath;
+            Trait = trait;
+            NoTrait = noTrait;
+            UseHtml = useHtml;
+            Test64 = test64;
+        }
+    }
+
     internal struct TestResult
     {
         internal int ExitCode { get; }

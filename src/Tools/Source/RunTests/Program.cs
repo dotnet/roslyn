@@ -118,7 +118,13 @@ namespace RunTests
 
         private static ITestExecutor CreateTestExecutor(Options options)
         {
-            var processTestExecutor = new ProcessTestExecutor(options);
+            var testExecutionOptions = new TestExecutionOptions(
+                xunitPath: options.XunitPath,
+                trait: options.Trait,
+                noTrait: options.NoTrait,
+                useHtml: options.UseHtml,
+                test64: options.Test64);
+            var processTestExecutor = new ProcessTestExecutor(testExecutionOptions);
             if (!options.UseCachedResults)
             {
                 return processTestExecutor;
@@ -133,7 +139,7 @@ namespace RunTests
                 dataStorage = new WebDataStorage();
             }
 
-            return new CachingTestExecutor(options, processTestExecutor, dataStorage);
+            return new CachingTestExecutor(testExecutionOptions, processTestExecutor, dataStorage);
         }
 
         /// <summary>
