@@ -1949,12 +1949,14 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return;
             }
 
-            if (feature.RequiredFeature() != null)
+            string requiredFeature = feature.RequiredFeature();
+            if (requiredFeature != null)
             {
                 if (!options.IsFeatureEnabled(feature))
                 {
-                    diagnostics.Add(ErrorCode.ERR_FeatureIsExperimental, location, feature.Localize());
+                    diagnostics.Add(ErrorCode.ERR_FeatureIsExperimental, location, feature.Localize(), requiredFeature);
                 }
+
                 return;
             }
 

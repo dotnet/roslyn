@@ -220,8 +220,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         public override void VisitUsingStatement(UsingStatementSyntax node)
         {
             Debug.Assert((object)_method == _enclosing.ContainingMemberOrLambda);
-            var patternBinder = new PatternVariableBinder(node, node.Expression, _enclosing);
-            var usingBinder = new UsingStatementBinder(patternBinder, node);
+            var usingBinder = new UsingStatementBinder(_enclosing, node);
             AddToMap(node, usingBinder);
 
             VisitPossibleEmbeddedStatement(node.Statement, usingBinder);

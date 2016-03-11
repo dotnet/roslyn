@@ -115,13 +115,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         protected override ImmutableArray<LocalSymbol> BuildLocals()
         {
-            var patterns = PatternVariableFinder.FindPatternVariables(_node, _nodes);
             var builder = ArrayBuilder<LocalSymbol>.GetInstance();
-            foreach (var pattern in patterns)
-            {
-                builder.Add(SourceLocalSymbol.MakeLocal(Next.ContainingMember(), this, RefKind.None, pattern.Type, pattern.Identifier, LocalDeclarationKind.PatternVariable));
-            }
-            patterns.Free();
+            BuildAndAddPatternVariables(builder, _node, _nodes);
             return builder.ToImmutableAndFree();
         }
     }

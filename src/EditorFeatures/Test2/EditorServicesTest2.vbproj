@@ -171,6 +171,7 @@
     <Compile Include="Diagnostics\NamingStyles\NamingStyleTests.IdentifierCreation.PrefixSuffix.vb" />
     <Compile Include="Diagnostics\NamingStyles\NamingStyleTests.IdentifierCreation.Casing.vb" />
     <Compile Include="Diagnostics\UseAutoProperty\UseAutoPropertyTests.vb" />
+    <Compile Include="Expansion\LambdaParameterExpansionTests.vb" />
     <Compile Include="GoToImplementation\GoToImplementationTests.vb" />
     <Compile Include="InteractivePaste\InteractivePasteCommandHandlerTests.vb" />
     <Compile Include="IntelliSense\CompletionRulesTests.vb" />
