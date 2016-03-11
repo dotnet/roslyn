@@ -152,6 +152,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Dim reportAnalyzer As Boolean = False
             Dim publicSign As Boolean = False
             Dim interactiveMode As Boolean = False
+            Dim instrument As String = ""
 
             ' Process ruleset files first so that diagnostic severity settings specified on the command line via
             ' /nowarn and /warnaserror can override diagnostic severity settings specified in the ruleset file.
@@ -535,6 +536,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
                             sdkPaths.Clear()
                             sdkPaths.AddRange(ParseSeparatedPaths(value))
+                            Continue For
+
+                        Case "instrument"
+                            If String.IsNullOrEmpty(value) Then
+                                AddDiagnostic(diagnostics, ERRID.ERR_ArgumentRequired, "instrument", ":<types>")
+                            End If
+
+                            instrument = value
                             Continue For
 
                         Case "recurse"
@@ -1278,7 +1287,8 @@ lVbRuntimePlus:
                 baseAddress:=baseAddress,
                 highEntropyVirtualAddressSpace:=highEntropyVA,
                 subsystemVersion:=ssVersion,
-                runtimeMetadataVersion:=Nothing)
+                runtimeMetadataVersion:=Nothing,
+                instrument:=instrument)
 
             ' add option incompatibility errors if any
             diagnostics.AddRange(options.Errors)
