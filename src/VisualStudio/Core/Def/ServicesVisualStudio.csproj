@@ -237,6 +237,9 @@
   </ItemGroup>
   <ItemGroup Label="File References">
     <Reference Include="System.ComponentModel.Composition" />
+    <Reference Include="Microsoft.VisualStudio.Shell.VsHub.Immutable.dll">
+      <HintPath>$(VsHubDir)\Microsoft.VisualStudio.Shell.VsHub.Immutable.dll</HintPath>
+    </Reference>
     <Reference Include="Microsoft.VisualStudio.CallHierarchy.Package.Definitions.dll">
       <HintPath>$(DevEnvDir)\Microsoft.VisualStudio.CallHierarchy.Package.Definitions.dll</HintPath>
     </Reference>

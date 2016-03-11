@@ -10,7 +10,7 @@ using Owin;
 namespace Microsoft.CodeAnalysis.HubServices
 {
     // Our registry guid is:
-    // {F4F0CA6A-5A28-4985-BD41-E71BF2090BDD}
+    // F4F0CA6A-5A28-4985-BD41-E71BF2090BDD
     public class Startup : ServiceStartupBase
     {
         protected override void BuildApplication(IAppBuilder app)
