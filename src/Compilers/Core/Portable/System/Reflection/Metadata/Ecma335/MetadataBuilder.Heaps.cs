@@ -5,6 +5,7 @@ using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Text;
 using System.Reflection.Metadata;
+using Microsoft.CodeAnalysis;
 
 #if SRM
 using System.Reflection.Internal;
@@ -28,6 +29,7 @@ namespace Roslyn.Reflection.Metadata.Ecma335
     sealed partial class MetadataBuilder
     {
         // #US heap
+        private const int UserStringHeapSizeLimit = 0x01000000;
         private readonly Dictionary<string, int> _userStrings = new Dictionary<string, int>();
         private readonly BlobBuilder _userStringWriter = new BlobBuilder(1024);
         private readonly int _userStringHeapStartOffset;
@@ -55,6 +57,12 @@ namespace Roslyn.Reflection.Metadata.Ecma335
             int blobHeapStartOffset = 0,
             int guidHeapStartOffset = 0)
         {
+            // -1 for the 0 we always write at the beginning of the heap:
+            if (userStringHeapStartOffset > UserStringHeapSizeLimit - 1)
+            {
+                ImageFormatLimitationException.ThrowHeapSizeLimitExceeded(HeapIndex.UserString);
+            }
+
             // Add zero-th entry to all heaps, even in EnC delta.
             // We don't want generation-relative handles to ever be IsNil.
             // In both full and delta metadata all nil heap handles should have zero value.
@@ -212,6 +220,7 @@ namespace Roslyn.Reflection.Metadata.Ecma335
             return MetadataTokens.GetHeapOffset(handle);
         }
 
+        /// <exception cref="ImageFormatLimitationException">The remaining space on the heap is too small to fit the string.</exception>
         public UserStringHandle GetUserString(string str)
         {
             int index;
@@ -219,17 +228,18 @@ namespace Roslyn.Reflection.Metadata.Ecma335
             {
                 Debug.Assert(!_streamsAreComplete);
 
-                index = _userStringWriter.Position + _userStringHeapStartOffset;
+                int startPosition = _userStringWriter.Position;
+                int encodedLength = str.Length * 2 + 1;
+                index = startPosition + _userStringHeapStartOffset;
 
-                // User strings are referenced by metadata tokens (8 bits of which are used for the token type) leaving only 24 bits for the offset. 
-                if ((index & 0xFF000000) != 0)
+                // reserve 4 bytes for compressed length of the next string (it will always be smaller than 4):
+                if (index + encodedLength > UserStringHeapSizeLimit - 4)
                 {
-                    throw new OverflowException();
+                    ImageFormatLimitationException.ThrowHeapSizeLimitExceeded(HeapIndex.UserString);
                 }
 
                 _userStrings.Add(str, index);
-                _userStringWriter.WriteCompressedInteger(str.Length * 2 + 1);
-
+                _userStringWriter.WriteCompressedInteger(encodedLength);
                 _userStringWriter.WriteUTF16(str);
 
                 // Write out a trailing byte indicating if the string is really quite simple

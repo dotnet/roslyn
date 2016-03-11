@@ -25,6 +25,7 @@ using EmitContext = Microsoft.CodeAnalysis.Emit.EmitContext;
 namespace Microsoft.Cci
 {
     using Roslyn.Reflection;
+    using Roslyn.Reflection.Metadata;
     using Roslyn.Reflection.Metadata.Ecma335;
     using Roslyn.Reflection.Metadata.Ecma335.Blobs;
     using Roslyn.Reflection.PortableExecutable;
@@ -2995,7 +2996,7 @@ namespace Microsoft.Cci
                     {
                         handle = metadata.GetUserString(str);
                     }
-                    catch (OverflowException)
+                    catch (ImageFormatLimitationException)
                     {
                         this.Context.Diagnostics.Add(this.messageProvider.CreateDiagnostic(this.messageProvider.ERR_TooManyUserStrings, NoLocation.Singleton));
                         _userStringTokenOverflow = true;

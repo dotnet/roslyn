@@ -59,6 +59,7 @@
     <Compile Include="System\Reflection\Metadata\Ecma335\Blobs\ExceptionRegionEncoder.cs" />
     <Compile Include="System\Reflection\Metadata\Ecma335\Blobs\InstructionEncoder.cs" />
     <Compile Include="System\Reflection\Metadata\Ecma335\CodedIndex.cs" />
+    <Compile Include="System\Reflection\Metadata\ImageFormatLimitationException.cs" />
     <Compile Include="System\Reflection\Metadata\Ecma335\MetadataSerializer.cs" />
     <Compile Include="System\Reflection\Metadata\Ecma335\MetadataBuilder.Tables.cs" />
     <Compile Include="System\Reflection\Metadata\Ecma335\Blobs\BlobEncoders.cs" />
