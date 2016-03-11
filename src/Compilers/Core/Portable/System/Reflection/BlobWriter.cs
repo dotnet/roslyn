@@ -6,14 +6,26 @@ using System.Diagnostics;
 using System.IO;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
+
+#if SRM
+using System.Reflection.Internal;
+using BitArithmeticUtilities = System.Reflection.Internal.BitArithmetic;
+#else
 using Microsoft.CodeAnalysis.Collections;
 using Roslyn.Utilities;
+#endif
 
-namespace Microsoft.Cci
+#if SRM
+namespace System.Reflection
+#else
+namespace Roslyn.Reflection
+#endif
 {
     // TODO: argument checking
-
-    internal unsafe struct BlobWriter
+#if SRM
+    public
+#endif
+    unsafe struct BlobWriter
     {
         // writable slice:
         private readonly byte[] _buffer;
@@ -33,7 +45,10 @@ namespace Microsoft.Cci
         {
         }
 
-        internal bool IsDefault => _buffer == null;
+        public BlobWriter(Blob blob)
+            : this(blob.Buffer, blob.Start, blob.Length)
+        {
+        }
 
         public BlobWriter(byte[] buffer, int start, int count)
         {
@@ -48,6 +63,8 @@ namespace Microsoft.Cci
             _position = start;
             _end = start + count;
         }
+
+        internal bool IsDefault => _buffer == null;
 
         /// <summary>
         /// Compares the current content of this writer with another one.
@@ -76,6 +93,7 @@ namespace Microsoft.Cci
 
         public int Length => _end - _start;
         public int RemainingBytes => _end - _position;
+        public Blob Blob => new Blob(_buffer, _start, Length);
 
         public byte[] ToArray()
         {
@@ -101,7 +119,7 @@ namespace Microsoft.Cci
         public ImmutableArray<byte> ToImmutableArray(int start, int byteCount)
         {
             var array = ToArray(start, byteCount);
-            return ImmutableArrayInterop.DangerousToImmutableArray(ref array);
+            return ImmutableByteArrayInterop.DangerousCreateFromUnderlyingArray(ref array);
         }
 
         private int Advance(int value)
@@ -201,7 +219,7 @@ namespace Microsoft.Cci
         /// <exception cref="ArgumentOutOfRangeException">Range specified by <paramref name="start"/> and <paramref name="byteCount"/> falls outside of the bounds of the <paramref name="buffer"/>.</exception>
         public void WriteBytes(ImmutableArray<byte> buffer, int start, int byteCount)
         {
-            WriteBytes(ImmutableArrayInterop.DangerousGetUnderlyingArray(buffer), start, byteCount);
+            WriteBytes(ImmutableByteArrayInterop.DangerousGetUnderlyingArray(buffer), start, byteCount);
         }
 
         /// <exception cref="ArgumentNullException"><paramref name="buffer"/> is null.</exception>
@@ -283,13 +301,23 @@ namespace Microsoft.Cci
             _buffer.WriteUInt16(start, value);
         }
 
-        internal void WriteUInt16BE(ushort value)
+        public void WriteInt16BE(short value)
+        {
+            WriteUInt16BE(unchecked((ushort)value));
+        }
+
+        public void WriteUInt16BE(ushort value)
         {
             int start = Advance(sizeof(ushort));
             _buffer.WriteUInt16BE(start, value);
         }
 
-        internal void WriteUInt32BE(uint value)
+        public void WriteInt32BE(int value)
+        {
+            WriteUInt32BE(unchecked((uint)value));
+        }
+
+        public void WriteUInt32BE(uint value)
         {
             int start = Advance(sizeof(uint));
             _buffer.WriteUInt32BE(start, value);
@@ -427,7 +455,7 @@ namespace Microsoft.Cci
 
                 if (prependSize)
                 {
-                    WriteCompressedInteger((uint)byteCount);
+                    WriteCompressedInteger(byteCount);
                 }
 
                 int startOffset = Advance(byteCount);
@@ -467,7 +495,7 @@ namespace Microsoft.Cci
         /// Otherwise, encode as a 4-byte integer, with bit 31 set, bit 30 set, bit 29 clear (value held in bits 28 through 0).
         /// </remarks>
         /// <exception cref="ArgumentOutOfRangeException"><paramref name="value"/> can't be represented as a compressed signed integer.</exception>
-        public void WriteCompressedInteger(uint value)
+        public void WriteCompressedInteger(int value)
         {
             BlobWriterImpl.WriteCompressedInteger(ref this, value);
         }

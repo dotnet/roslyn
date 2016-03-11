@@ -2559,6 +2559,7 @@ public interface ITestPlatform
             var refCompilation = CreateCompilation(refSource, options: TestOptions.ReleaseModule.WithPlatform(Platform.Itanium), assemblyName: "PlatformMismatch");
 
             refCompilation.VerifyEmitDiagnostics(emitOptions);
+
             var imageRef = refCompilation.EmitToImageReference();
 
             string useSource = @"
@@ -2698,16 +2699,17 @@ class C
             var compilation = CreateCompilationWithMscorlib(source);
 
             var output = new BrokenStream();
+
+            output.BreakHow = BrokenStream.BreakHowType.ThrowOnWrite;
             var result = compilation.Emit(output);
             result.Diagnostics.Verify(
                 // error CS8104: An error occurred while writing the Portable Executable file.
                 Diagnostic(ErrorCode.ERR_PeWritingFailure).WithArguments(output.ThrownException.ToString()).WithLocation(1, 1));
-
+          
+            // Stream.Position is not called:
             output.BreakHow = BrokenStream.BreakHowType.ThrowOnSetPosition;
             result = compilation.Emit(output);
-            result.Diagnostics.Verify(    
-                // error CS8104: An error occurred while writing the Portable Executable file.
-                Diagnostic(ErrorCode.ERR_PeWritingFailure).WithArguments(output.ThrownException.ToString()).WithLocation(1, 1));
+            result.Diagnostics.Verify();
 
             // disposed stream is not writable
             var outReal = new MemoryStream();

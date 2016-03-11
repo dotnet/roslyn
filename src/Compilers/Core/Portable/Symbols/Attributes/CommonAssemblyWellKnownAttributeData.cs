@@ -270,8 +270,8 @@ namespace Microsoft.CodeAnalysis
         #endregion
 
         #region AssemblyFlagsAttributeSetting
-        private AssemblyNameFlags _assemblyFlagsAttributeSetting;
-        public AssemblyNameFlags AssemblyFlagsAttributeSetting
+        private AssemblyFlags _assemblyFlagsAttributeSetting;
+        public AssemblyFlags AssemblyFlagsAttributeSetting
         {
             get
             {

@@ -6,10 +6,14 @@ using System.Diagnostics;
 using System.Linq;
 using System.Reflection;
 using System.Reflection.Metadata;
+using System.Reflection.Metadata.Ecma335;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CodeGen
 {
+    using Roslyn.Reflection;
+    using Roslyn.Reflection.Metadata;
+
     internal partial class ILBuilder
     {
         internal enum BlockType
@@ -249,7 +253,7 @@ namespace Microsoft.CodeAnalysis.CodeGen
             /// <summary>
             /// Instructions that are not branches.
             /// </summary>
-            public Cci.BlobBuilder RegularInstructions => _lazyRegularInstructions;
+            public BlobBuilder RegularInstructions => _lazyRegularInstructions;
 
             /// <summary>
             /// The block contains only the final branch or nothing at all
