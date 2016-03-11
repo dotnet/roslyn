@@ -809,6 +809,38 @@ class AnonymousFunctions
             End Using
         End Function
 
+        <WpfFact, WorkItem(9462, "https://github.com/dotnet/roslyn/issues/9462"), Trait(Traits.Feature, Traits.Features.Diagnostics)>
+        Public Sub TestMultiplePartialDefinitionsInAFile()
+            Dim test = <Workspace>
+                           <Project Language="C#" CommonReferences="true">
+                               <Document FilePath="Test.cs">
+                                   partial class Foo { }
+                                   partial class Foo { }
+                               </Document>
+                           </Project>
+                       </Workspace>
+
+            Using workspace = TestWorkspace.CreateWorkspace(test)
+                Dim project = workspace.CurrentSolution.Projects.Single()
+                Dim analyzer = New NamedTypeAnalyzer
+                Dim analyzerReference = New AnalyzerImageReference(ImmutableArray.Create(Of DiagnosticAnalyzer)(analyzer))
+                project = project.AddAnalyzerReference(analyzerReference)
+                Dim diagnosticService = New TestDiagnosticAnalyzerService()
+
+                Dim incrementalAnalyzer = diagnosticService.CreateIncrementalAnalyzer(workspace)
+                Dim descriptorsMap = diagnosticService.GetDiagnosticDescriptors(project)
+                Assert.Equal(1, descriptorsMap.Count)
+
+                ' Verify no duplicate analysis/diagnostics.
+                Dim document = project.Documents.Single()
+                Dim diagnostics = diagnosticService.GetDiagnosticsAsync(project.Solution, project.Id) _
+                    .WaitAndGetResult(CancellationToken.None) _
+                    .Select(Function(d) d.Id = NamedTypeAnalyzer.DiagDescriptor.Id)
+
+                Assert.Equal(1, diagnostics.Count)
+            End Using
+        End Sub
+
         <WpfFact, WorkItem(1042914, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1042914"), Trait(Traits.Feature, Traits.Features.Diagnostics)>
         Public Sub TestPartialTypeInGeneratedCode()
             Dim test = <Workspace>
@@ -1351,6 +1383,29 @@ public class B
                     index += 1
                 Next
 
+            End Sub
+        End Class
+
+        Private Class NamedTypeAnalyzer
+            Inherits DiagnosticAnalyzer
+
+            Public Shared ReadOnly DiagDescriptor As DiagnosticDescriptor = DescriptorFactory.CreateSimpleDescriptor("DummyDiagnostic")
+            Public Overrides ReadOnly Property SupportedDiagnostics As ImmutableArray(Of DiagnosticDescriptor)
+                Get
+                    Return ImmutableArray.Create(DiagDescriptor)
+                End Get
+            End Property
+
+            Public Overrides Sub Initialize(context As AnalysisContext)
+                context.RegisterCompilationStartAction(Sub(compStartContext As CompilationStartAnalysisContext)
+                                                           Dim symbols = New HashSet(Of ISymbol)
+                                                           compStartContext.RegisterSymbolAction(Sub(sc As SymbolAnalysisContext)
+                                                                                                     If (symbols.Contains(sc.Symbol)) Then
+                                                                                                         Throw New Exception("Duplicate symbol callback")
+                                                                                                     End If
+                                                                                                     sc.ReportDiagnostic(Diagnostic.Create(DiagDescriptor, sc.Symbol.Locations.First()))
+                                                                                                 End Sub, SymbolKind.NamedType)
+                                                       End Sub)
             End Sub
         End Class
 

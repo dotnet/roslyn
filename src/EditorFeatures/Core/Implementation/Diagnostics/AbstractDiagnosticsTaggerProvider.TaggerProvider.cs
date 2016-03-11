@@ -124,8 +124,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics
                 {
                     if (_owner.IncludeDiagnostic(diagnosticData))
                     {
-                        var actualSpan = diagnosticData
-                            .GetExistingOrCalculatedTextSpan(sourceText)
+                        var actualSpan = AdjustSpan(diagnosticData.GetExistingOrCalculatedTextSpan(sourceText), sourceText)
                             .ToSnapshotSpan(editorSnapshot)
                             .TranslateTo(requestedSnapshot, SpanTrackingMode.EdgeExclusive);
 
@@ -140,6 +139,21 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics
                         }
                     }
                 }
+            }
+
+            private TextSpan AdjustSpan(TextSpan span, SourceText text)
+            {
+                var start = Math.Max(0, Math.Min(span.Start, text.Length));
+                var end = Math.Max(0, Math.Min(span.End, text.Length));
+
+                if (start > end)
+                {
+                    var temp = end;
+                    end = start;
+                    start = temp;
+                }
+
+                return TextSpan.FromBounds(start, end);
             }
 
             private bool IsSuppressed(NormalizedSnapshotSpanCollection suppressedSpans, SnapshotSpan span)

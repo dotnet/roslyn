@@ -17,16 +17,19 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.GoToImplementation
     internal abstract class AbstractGoToImplementationService : IGoToImplementationService
     {
         private readonly IEnumerable<Lazy<INavigableItemsPresenter>> _navigableItemPresenters;
+        private readonly IEnumerable<Lazy<INavigableDefinitionProvider>> _externalDefinitionProviders;
 
-        public AbstractGoToImplementationService(IEnumerable<Lazy<INavigableItemsPresenter>> navigableItemPresenters)
+        public AbstractGoToImplementationService(
+            IEnumerable<Lazy<INavigableItemsPresenter>> navigableItemPresenters,
+            IEnumerable<Lazy<INavigableDefinitionProvider>> externalDefinitionProviders)
         {
             _navigableItemPresenters = navigableItemPresenters;
+            _externalDefinitionProviders = externalDefinitionProviders;
         }
 
         public bool TryGoToImplementation(Document document, int position, CancellationToken cancellationToken, out string message)
         {
             var symbol = SymbolFinder.FindSymbolAtPositionAsync(document, position, cancellationToken).WaitAndGetResult(cancellationToken);
-
             if (symbol != null)
             {
                 // Map the symbol if necessary back to the originating workspace if we're invoking from something
@@ -38,6 +41,10 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.GoToImplementation
                 {
                     return TryGoToImplementationOnMappedSymbol(mapping, cancellationToken, out message);
                 }
+            }
+            else
+            {
+                return TryExternalGotoDefinition(document, position, cancellationToken, out message);
             }
 
             message = EditorFeaturesResources.CannotNavigateToTheSymbol;
@@ -93,7 +100,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.GoToImplementation
             else
             {
                 // This is something boring like a regular method or type, so we'll just go there directly
-                if (GoToDefinition.GoToDefinitionHelpers.TryGoToDefinition(mapping.Symbol, mapping.Project, _navigableItemPresenters, cancellationToken))
+                if (GoToDefinition.GoToDefinitionHelpers.TryGoToDefinition(mapping.Symbol, mapping.Project, _externalDefinitionProviders, _navigableItemPresenters, cancellationToken))
                 {
                     message = null;
                     return true;
@@ -119,7 +126,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.GoToImplementation
             }
             else if (implementations.Count == 1)
             {
-                GoToDefinition.GoToDefinitionHelpers.TryGoToDefinition(implementations.Single(), mapping.Project, _navigableItemPresenters, cancellationToken);
+                GoToDefinition.GoToDefinitionHelpers.TryGoToDefinition(implementations.Single(), mapping.Project, _externalDefinitionProviders, _navigableItemPresenters, cancellationToken);
                 message = null;
                 return true;
             }
@@ -144,6 +151,20 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.GoToImplementation
                 solution,
                 implementation,
                 displayString: symbolDisplayService.ToDisplayString(implementation));
+        }
+
+        private bool TryExternalGotoDefinition(Document document, int position, CancellationToken cancellationToken, out string message)
+        {
+            if (GoToDefinition.GoToDefinitionHelpers.TryExternalGoToDefinition(document, position, _externalDefinitionProviders, _navigableItemPresenters, cancellationToken))
+            {
+                message = null;
+                return true;
+            }
+            else
+            {
+                message = EditorFeaturesResources.CannotNavigateToTheSymbol;
+                return false;
+            }
         }
     }
 }
