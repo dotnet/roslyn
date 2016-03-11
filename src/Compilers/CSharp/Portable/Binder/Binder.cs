@@ -778,7 +778,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             CSharpSyntaxNode node = null,
             ImmutableArray<CSharpSyntaxNode> nodes = default(ImmutableArray<CSharpSyntaxNode>))
         {
-            var patterns = PatternVariableFinder.FindPatternVariables(node, nodes);
+            var patterns = ArrayBuilder<DeclarationPatternSyntax>.GetInstance();
+            PatternVariableFinder.FindPatternVariables(patterns, node, nodes);
             foreach (var pattern in patterns)
             {
                 builder.Add(SourceLocalSymbol.MakeLocal(ContainingMemberOrLambda, this, RefKind.None, pattern.Type, pattern.Identifier, LocalDeclarationKind.PatternVariable));
