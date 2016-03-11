@@ -47,9 +47,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
                 {
                     return ExecuteVisualStudio97(ref pguidCmdGroup, commandId, executeInformation, pvaIn, pvaOut, subjectBuffer, contentType);
                 }
-                else if (pguidCmdGroup == VSConstants.VsStd11)
+                else if (pguidCmdGroup == Guids.InteractiveCommandSetId)
                 {
-                    return ExecuteVisualStudio11(ref pguidCmdGroup, commandId, executeInformation, pvaIn, pvaOut, subjectBuffer, contentType);
+                    return ExecuteInteractive(ref pguidCmdGroup, commandId, executeInformation, pvaIn, pvaOut, subjectBuffer, contentType);
                 }
                 else if (pguidCmdGroup == VSConstants.VsStd14)
                 {
@@ -570,7 +570,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
                 lastHandler: executeNextCommandTarget);
         }
 
-        private int ExecuteVisualStudio11(ref Guid pguidCmdGroup, uint commandId, uint executeInformation, IntPtr pvaIn, IntPtr pvaOut, ITextBuffer subjectBuffer, IContentType contentType)
+        /// <remarks>TODO: Revert the change to use standard VS11 command pending https://github.com/dotnet/roslyn/issues/8927 .</remarks>
+        private int ExecuteInteractive(ref Guid pguidCmdGroup, uint commandId, uint executeInformation, IntPtr pvaIn, IntPtr pvaOut, ITextBuffer subjectBuffer, IContentType contentType)
         {
             int result = VSConstants.S_OK;
             var guidCmdGroup = pguidCmdGroup;
@@ -579,9 +580,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
                 result = NextCommandTarget.Exec(ref guidCmdGroup, commandId, executeInformation, pvaIn, pvaOut);
             };
 
-            switch ((VSConstants.VSStd11CmdID)commandId)
+            switch (commandId)
             {
-                case VSConstants.VSStd11CmdID.ExecuteSelectionInInteractive:
+                case ID.InteractiveCommands.ExecuteInInteractiveWindow:
                     ExecuteExecuteInInteractiveWindow(subjectBuffer, contentType, executeNextCommandTarget);
                     break;
 

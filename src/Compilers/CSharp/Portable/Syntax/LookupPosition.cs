@@ -320,7 +320,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
                 case SyntaxKind.ReturnStatement:
                     return ((ReturnStatementSyntax)statement).ReturnKeyword;
                 case SyntaxKind.SwitchStatement:
-                    return ((SwitchStatementSyntax)statement).OpenBraceToken;
+                    return ((SwitchStatementSyntax)statement).Expression.GetFirstToken();
                 case SyntaxKind.ThrowStatement:
                     return ((ThrowStatementSyntax)statement).ThrowKeyword;
                 case SyntaxKind.TryStatement:

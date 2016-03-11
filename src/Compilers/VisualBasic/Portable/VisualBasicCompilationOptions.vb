@@ -114,6 +114,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 specificDiagnosticOptions,
                 concurrentBuild,
                 deterministic:=deterministic,
+                currentLocalTime:=Nothing,
                 suppressEmbeddedDeclarations:=False,
                 extendedCustomDebugInformation:=True,
                 debugPlusMode:=False,
@@ -153,6 +154,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             specificDiagnosticOptions As IEnumerable(Of KeyValuePair(Of String, ReportDiagnostic)),
             concurrentBuild As Boolean,
             deterministic As Boolean,
+            currentLocalTime As Date,
             suppressEmbeddedDeclarations As Boolean,
             extendedCustomDebugInformation As Boolean,
             debugPlusMode As Boolean,
@@ -183,6 +185,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 specificDiagnosticOptions:=specificDiagnosticOptions.ToImmutableDictionaryOrEmpty(CaseInsensitiveComparison.Comparer), ' Diagnostic ids must be processed in case-insensitive fashion.
                 concurrentBuild:=concurrentBuild,
                 deterministic:=deterministic,
+                currentLocalTime:=currentLocalTime,
                 extendedCustomDebugInformation:=extendedCustomDebugInformation,
                 debugPlusMode:=debugPlusMode,
                 xmlReferenceResolver:=xmlReferenceResolver,
@@ -211,7 +214,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             MyClass.New(
                 outputKind:=other.OutputKind,
                 reportSuppressedDiagnostics:=other.ReportSuppressedDiagnostics,
-                ModuleName:=other.ModuleName,
+                moduleName:=other.ModuleName,
                 mainTypeName:=other.MainTypeName,
                 scriptClassName:=other.ScriptClassName,
                 globalImports:=other.GlobalImports,
@@ -234,6 +237,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 specificDiagnosticOptions:=other.SpecificDiagnosticOptions,
                 concurrentBuild:=other.ConcurrentBuild,
                 deterministic:=other.Deterministic,
+                currentLocalTime:=other.CurrentLocalTime,
                 extendedCustomDebugInformation:=other.ExtendedCustomDebugInformation,
                 debugPlusMode:=other.DebugPlusMode,
                 xmlReferenceResolver:=other.XmlReferenceResolver,
@@ -564,6 +568,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return New VisualBasicCompilationOptions(Me) With {.Deterministic = deterministic}
         End Function
 
+        Friend Function WithCurrentLocalTime(value As Date) As VisualBasicCompilationOptions
+            If value.Equals(CurrentLocalTime) Then
+                Return Me
+            End If
+
+            Return New VisualBasicCompilationOptions(Me) With {.CurrentLocalTime_internal_protected_set = value}
+        End Function
+
         ''' <summary>
         ''' Creates a new VisualBasicCompilationOptions instance with a different extended custom debug information specified.
         ''' </summary>
@@ -878,6 +890,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
 
         Friend Overrides Sub ValidateOptions(builder As ArrayBuilder(Of Diagnostic))
+            ValidateOptions(builder, MessageProvider.Instance)
+
             If Me.EmbedVbCoreRuntime AndAlso Me.OutputKind.IsNetModule() Then
                 builder.Add(Diagnostic.Create(MessageProvider.Instance, ERRID.ERR_VBCoreNetModuleConflict))
             End If
@@ -925,20 +939,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             ' TODO: add check for 
             '          (kind == 'arm' || kind == 'appcontainer' || kind == 'winmdobj') &&
             '          (version >= "6.2")
-
-            If Not CryptoPublicKey.IsEmpty Then
-                If CryptoKeyFile IsNot Nothing Then
-                    builder.Add(Diagnostic.Create(MessageProvider.Instance, ERRID.ERR_MutuallyExclusiveOptions, NameOf(CryptoPublicKey), NameOf(CryptoKeyFile)))
-                End If
-
-                If CryptoKeyContainer IsNot Nothing Then
-                    builder.Add(Diagnostic.Create(MessageProvider.Instance, ERRID.ERR_MutuallyExclusiveOptions, NameOf(CryptoPublicKey), NameOf(CryptoKeyContainer)))
-                End If
-            End If
-
-            If PublicSign AndAlso DelaySign = True Then
-                builder.Add(Diagnostic.Create(MessageProvider.Instance, ERRID.ERR_MutuallyExclusiveOptions, NameOf(PublicSign), NameOf(DelaySign)))
-            End If
         End Sub
 
         ''' <summary>
@@ -1182,6 +1182,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 specificDiagnosticOptions:=specificDiagnosticOptions,
                 concurrentBuild:=concurrentBuild,
                 deterministic:=deterministic,
+                currentLocalTime:=Nothing,
                 suppressEmbeddedDeclarations:=False,
                 extendedCustomDebugInformation:=True,
                 debugPlusMode:=False,

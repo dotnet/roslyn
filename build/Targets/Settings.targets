@@ -16,15 +16,12 @@
         is specified on the command line of MSBuild
     -->
     <BaseNuGetRuntimeIdentifier Condition="'$(OS)' == 'Windows_NT'">win7</BaseNuGetRuntimeIdentifier>
-
-    <!-- Turn on hard-linking on Windows to reduce copy time and disk space -->
-    <CreateHardLinksForCopyLocalIfPossible Condition="'$(OS)' == 'Windows_NT'">true</CreateHardLinksForCopyLocalIfPossible>
   </PropertyGroup>
 
   <!-- Import the global NuGet packages -->
   <PropertyGroup>
     <ToolsetCompilerPackageName>Microsoft.Net.Compilers</ToolsetCompilerPackageName>
-    <ToolsetCompilerPropsFilePath>$(NuGetPackageRoot)\Microsoft.Net.Compilers\1.2.0-beta1-20160202-02\build\Microsoft.Net.Compilers.props</ToolsetCompilerPropsFilePath>
+    <ToolsetCompilerPropsFilePath>$(NuGetPackageRoot)\Microsoft.Net.Compilers\1.2.0-rc\build\Microsoft.Net.Compilers.props</ToolsetCompilerPropsFilePath>
     <RoslynDiagnosticsPropsFilePath>$(NuGetPackageRoot)\Microsoft.Net.RoslynDiagnostics\1.1.1-beta1-20150818-01\build\Microsoft.Net.RoslynDiagnostics.props</RoslynDiagnosticsPropsFilePath>
     <RoslynBuildUtilFilePath>$(NuGetPackageRoot)\Roslyn.MSBuild.Util\0.9.1\lib\net45\Roslyn.MSBuild.Util.dll</RoslynBuildUtilFilePath>
     <AdditionalFileItemNames>$(AdditionalFileItemNames);PublicAPI</AdditionalFileItemNames>

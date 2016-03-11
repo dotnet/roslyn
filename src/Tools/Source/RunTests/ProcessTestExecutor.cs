@@ -1,5 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using RunTests.Cache;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -14,6 +15,8 @@ namespace RunTests
     internal sealed class ProcessTestExecutor : ITestExecutor
     {
         private readonly Options _options;
+
+        public IDataStorage DataStorage => EmptyDataStorage.Instance;
 
         internal ProcessTestExecutor(Options options)
         {
@@ -78,6 +81,8 @@ namespace RunTests
                 // an empty log just in case, so our runner will still fail.
                 File.Create(resultsFilePath).Close();
 
+                var dumpOutputFilePath = Path.Combine(resultsDir, Path.GetFileNameWithoutExtension(assemblyPath) + ".dmp");
+
                 var start = DateTime.UtcNow;
                 var xunitPath = _options.XunitPath;
                 var processOutput = await ProcessRunner.RunProcessAsync(
@@ -86,7 +91,8 @@ namespace RunTests
                     lowPriority: false,
                     displayWindow: false,
                     captureOutput: true,
-                    cancellationToken: cancellationToken).ConfigureAwait(false);
+                    cancellationToken: cancellationToken,
+                    processMonitor: p => CrashDumps.TryMonitorProcess(p, dumpOutputFilePath)).ConfigureAwait(false);
                 var span = DateTime.UtcNow - start;
 
                 if (processOutput.ExitCode != 0)
@@ -125,7 +131,8 @@ namespace RunTests
                     commandLine: commandLine,
                     elapsed: span,
                     standardOutput: standardOutput,
-                    errorOutput: errorOutput);
+                    errorOutput: errorOutput,
+                    isResultFromCache: false);
             }
             catch (Exception ex)
             {

@@ -78,12 +78,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
             {
                 AddSuppressWrappingIfOnSingleLineOperation(list, tokens.Item1, tokens.Item2);
             }
-
-            var ifStatementNode = node as IfStatementSyntax;
-            if (ifStatementNode?.Else != null)
-            {
-                AddSuppressWrappingIfOnSingleLineOperation(list, ifStatementNode.Else.ElseKeyword, ifStatementNode.Else.Statement.GetFirstToken(includeZeroWidth: true));
-            }
         }
 
         private void AddStatementExceptBlockSuppressOperations(List<SuppressOperation> list, SyntaxNode node)

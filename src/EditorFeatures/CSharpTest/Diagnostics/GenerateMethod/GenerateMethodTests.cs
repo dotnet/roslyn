@@ -2835,6 +2835,50 @@ public class Test
 }");
         }
 
+        [WorkItem(8230, "https://github.com/dotnet/roslyn/issues/8230")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)]
+        public async Task TestGenerateMethodForOverloadedSignatureWithDelegateType()
+        {
+            await TestAsync(
+@"
+using System;
+
+class PropertyMetadata
+{
+    public PropertyMetadata(object defaultValue) { }
+    public PropertyMetadata(EventHandler changedHandler) { }
+}
+
+class Program
+{
+    static void Main()
+    {
+        new PropertyMetadata([|OnChanged|]);
+    }
+}
+",
+@"using System;
+
+class PropertyMetadata
+{
+    public PropertyMetadata(object defaultValue) { }
+    public PropertyMetadata(EventHandler changedHandler) { }
+}
+
+class Program
+{
+    static void Main()
+    {
+        new PropertyMetadata(OnChanged);
+    }
+
+    private static void OnChanged(object sender, EventArgs e)
+    {
+        throw new NotImplementedException();
+    }
+}");
+        }
+
         public class GenerateConversionTest : AbstractCSharpDiagnosticProviderBasedUserDiagnosticTest
         {
             internal override Tuple<DiagnosticAnalyzer, CodeFixProvider> CreateDiagnosticProviderAndFixer(Workspace workspace)
