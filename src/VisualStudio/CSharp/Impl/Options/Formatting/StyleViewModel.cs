@@ -20,8 +20,6 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options.Formatting
     /// </remarks>
     internal class StyleViewModel : AbstractOptionPreviewViewModel
     {
-        public ObservableCollection<AbstractCodeStyleOptionViewModel> CodeStyleItems { get; set; }
-
         internal override bool ShouldPersistOption(OptionKey key)
         {
             return key.Option.Feature == CSharpCodeStyleOptions.FeatureName || key.Option.Feature == SimplificationOptions.PerLanguageFeatureName;
@@ -168,8 +166,6 @@ class C{
 
         internal StyleViewModel(OptionSet optionSet, IServiceProvider serviceProvider) : base(optionSet, serviceProvider, LanguageNames.CSharp)
         {
-            CodeStyleItems = new ObservableCollection<AbstractCodeStyleOptionViewModel>();
-
             var collectionView = (ListCollectionView)CollectionViewSource.GetDefaultView(CodeStyleItems);
             collectionView.GroupDescriptions.Add(new PropertyGroupDescription(nameof(AbstractCodeStyleOptionViewModel.GroupName)));
 
