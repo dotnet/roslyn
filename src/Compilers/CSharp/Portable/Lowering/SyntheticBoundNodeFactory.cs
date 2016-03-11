@@ -763,6 +763,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             CheckSwitchSections(s);
             return new BoundSwitchStatement(
                 Syntax,
+                null,
                 ex,
                 null,
                 ImmutableArray<LocalSymbol>.Empty,

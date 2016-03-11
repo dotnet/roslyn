@@ -11,10 +11,10 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.GoToImplementation
     Public Class GoToImplementationTests
         Private Function TestAsync(workspaceDefinition As XElement, Optional shouldSucceed As Boolean = True) As Tasks.Task
             Return GoToTestHelpers.TestAsync(workspaceDefinition, shouldSucceed,
-                Function(document As Document, cursorPosition As Integer, presenters As IEnumerable(Of Lazy(Of INavigableItemsPresenter)))
+                Function(document As Document, cursorPosition As Integer, presenters As IEnumerable(Of Lazy(Of INavigableItemsPresenter)), externalDefinitionProviders As IEnumerable(Of Lazy(Of INavigableDefinitionProvider)))
                     Dim service = If(document.Project.Language = LanguageNames.CSharp,
-                        DirectCast(New CSharpGoToImplementationService(presenters), IGoToImplementationService),
-                        New VisualBasicGoToImplementationService(presenters))
+                        DirectCast(New CSharpGoToImplementationService(presenters, externalDefinitionProviders), IGoToImplementationService),
+                        New VisualBasicGoToImplementationService(presenters, externalDefinitionProviders))
 
                     Dim message As String = Nothing
                     Return service.TryGoToImplementation(document, cursorPosition, CancellationToken.None, message)

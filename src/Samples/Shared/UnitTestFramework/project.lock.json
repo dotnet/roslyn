@@ -77,15 +77,15 @@
           "lib/net45/_._": {}
         }
       },
-      "System.Reflection.Metadata/1.2.0-rc2-23826": {
+      "System.Reflection.Metadata/1.2.0": {
         "dependencies": {
           "System.Collections.Immutable": "1.1.37"
         },
         "compile": {
-          "lib/dotnet5.2/System.Reflection.Metadata.dll": {}
+          "lib/portable-net45+win8/System.Reflection.Metadata.dll": {}
         },
         "runtime": {
-          "lib/dotnet5.2/System.Reflection.Metadata.dll": {}
+          "lib/portable-net45+win8/System.Reflection.Metadata.dll": {}
         }
       },
       "System.Resources.ResourceManager/4.0.0": {
@@ -246,15 +246,15 @@
           "lib/net45/_._": {}
         }
       },
-      "System.Reflection.Metadata/1.2.0-rc2-23826": {
+      "System.Reflection.Metadata/1.2.0": {
         "dependencies": {
           "System.Collections.Immutable": "1.1.37"
         },
         "compile": {
-          "lib/dotnet5.2/System.Reflection.Metadata.dll": {}
+          "lib/portable-net45+win8/System.Reflection.Metadata.dll": {}
         },
         "runtime": {
-          "lib/dotnet5.2/System.Reflection.Metadata.dll": {}
+          "lib/portable-net45+win8/System.Reflection.Metadata.dll": {}
         }
       },
       "System.Resources.ResourceManager/4.0.0": {
@@ -415,15 +415,15 @@
           "lib/net45/_._": {}
         }
       },
-      "System.Reflection.Metadata/1.2.0-rc2-23826": {
+      "System.Reflection.Metadata/1.2.0": {
         "dependencies": {
           "System.Collections.Immutable": "1.1.37"
         },
         "compile": {
-          "lib/dotnet5.2/System.Reflection.Metadata.dll": {}
+          "lib/portable-net45+win8/System.Reflection.Metadata.dll": {}
         },
         "runtime": {
-          "lib/dotnet5.2/System.Reflection.Metadata.dll": {}
+          "lib/portable-net45+win8/System.Reflection.Metadata.dll": {}
         }
       },
       "System.Resources.ResourceManager/4.0.0": {
@@ -728,16 +728,16 @@
         "ref/wpa81/_._"
       ]
     },
-    "System.Reflection.Metadata/1.2.0-rc2-23826": {
-      "sha512": "iaq5zpluF7mUMd5hFyhmZGyCSzF6glZjvNI2VAhLFQEp8sGA/tROj6NoZL42q6HhoHxi1XyGeoIXPi5hyw0+5w==",
+    "System.Reflection.Metadata/1.2.0": {
+      "sha512": "ubQKFCNYPwhqPXPLjRKCvTDR2UvL5L5+Tm181D/5kl/df7264AuXDi2j2Bf5DxplBxevq8eUH9LRomcFCXTQKw==",
       "type": "package",
       "files": [
-        "System.Reflection.Metadata.1.2.0-rc2-23826.nupkg.sha512",
+        "System.Reflection.Metadata.1.2.0.nupkg.sha512",
         "System.Reflection.Metadata.nuspec",
         "ThirdPartyNotices.txt",
         "dotnet_library_license.txt",
-        "lib/dotnet5.2/System.Reflection.Metadata.dll",
-        "lib/dotnet5.2/System.Reflection.Metadata.xml",
+        "lib/netstandard1.1/System.Reflection.Metadata.dll",
+        "lib/netstandard1.1/System.Reflection.Metadata.xml",
         "lib/portable-net45+win8/System.Reflection.Metadata.dll",
         "lib/portable-net45+win8/System.Reflection.Metadata.xml"
       ]
