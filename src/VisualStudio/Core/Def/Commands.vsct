@@ -469,12 +469,24 @@
     </CommandPlacement>
   </CommandPlacements>
 
+  <KeyBindings>
+    <KeyBinding guid="guidRoslynGrpId" id="cmdidGoToImplementation" mod1="Control" key1="VK_F12" editor="guidCSharpEditorFactory" />
+    <KeyBinding guid="guidRoslynGrpId" id="cmdidGoToImplementation" mod1="Control" key1="VK_F12" editor="guidCSharpCodePageEditorFactory" />
+    <KeyBinding guid="guidRoslynGrpId" id="cmdidGoToImplementation" mod1="Control" key1="VK_F12" editor="guidVisualBasicEditorFactory" />
+    <KeyBinding guid="guidRoslynGrpId" id="cmdidGoToImplementation" mod1="Control" key1="VK_F12" editor="guidVisualBasicCodePageEditorFactory" />
+  </KeyBindings>
+
   <UsedCommands>
     <UsedCommand guid="guidVSStd2K" id="ECMD_INSERTCOMMENT" />
   </UsedCommands>
 
   <Symbols>
     <GuidSymbol name="guidRoslynPkgId" value="{6cf2e545-6109-4730-8883-cf43d7aec3e1}" />
+
+    <GuidSymbol name="guidCSharpEditorFactory" value="{a6c744a8-0e4a-4fc6-886a-064283054674}" />
+    <GuidSymbol name="guidCSharpCodePageEditorFactory" value="{08467b34-b90f-4d91-bdca-eb8c8cf3033a}" />
+    <GuidSymbol name="guidVisualBasicEditorFactory" value="{2c015c70-c72c-11d0-88c3-00a0c9110049}" />
+    <GuidSymbol name="guidVisualBasicCodePageEditorFactory" value="{6c33e1aa-1401-4536-ab67-0e21e6e569da}" />
 
     <GuidSymbol name ="guidCSharpGrpId" value ="{5d7e7f65-a63f-46ee-84f1-990b2cab23f9}">
       <IDSymbol name="IDM_CSHARP_ORGANIZE" value="0x3900"/>

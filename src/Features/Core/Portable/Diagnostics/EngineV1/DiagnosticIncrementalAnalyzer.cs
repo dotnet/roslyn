@@ -558,7 +558,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV1
 
             return getter.Diagnostics;
         }
-        
+
         public override bool ContainsDiagnostics(Workspace workspace, ProjectId projectId)
         {
             // need to improve perf in v2.

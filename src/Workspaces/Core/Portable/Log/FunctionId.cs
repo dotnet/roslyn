@@ -318,7 +318,6 @@ namespace Microsoft.CodeAnalysis.Internal.Log
         CodefixInfobar_EnableAndIgnoreFutureErrors,
         CodefixInfobar_LeaveDisabled,
         CodefixInfobar_ErrorIgnored,
-        IntellisenseBuild_Failed,
 
         Refactoring_NamingStyle,
 
@@ -326,5 +325,6 @@ namespace Microsoft.CodeAnalysis.Internal.Log
         SymbolTreeInfo_ExceptionInCacheRead,
         SpellChecker_ExceptionInCacheRead,
         BKTree_ExceptionInCacheRead,
+        IntellisenseBuild_Failed,
     }
 }
