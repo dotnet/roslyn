@@ -30,7 +30,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options
             var dataGrid = (DataGrid)sender;
             var codeStyleItem = (AbstractCodeStyleOptionViewModel)dataGrid.SelectedItem;
 
-            if (codeStyleItem != null && codeStyleItem.NotificationsAvailable)
+            if (codeStyleItem != null)
             {
                 ViewModel.UpdatePreview(codeStyleItem.GetPreview());
             }
