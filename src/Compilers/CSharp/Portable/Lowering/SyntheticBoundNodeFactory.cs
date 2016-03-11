@@ -957,6 +957,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return new BoundTypeOfOperator(
                 Syntax,
                 Type(type),
+                // For some reason the rewriting logic asserts that the GetTypeFromHandle property is null.
                 null,
                 WellKnownType(CodeAnalysis.WellKnownType.System_Type))
             { WasCompilerGenerated = true };
@@ -992,7 +993,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return new BoundMethodToken(
                 Syntax,
                 method,
-                WellKnownType(Microsoft.CodeAnalysis.WellKnownType.System_RuntimeMethodHandle))
+                SpecialType(Microsoft.CodeAnalysis.SpecialType.System_Int32))
             { WasCompilerGenerated = true };
         }
 

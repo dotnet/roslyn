@@ -2654,7 +2654,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
 
         private void EmitMethodTokenExpression(BoundMethodToken node)
         {
-            _builder.EmitOpCode(ILOpCode.Ldtoken);
+            _builder.EmitOpCode(ILOpCode.Ldc_i4);
             EmitSymbolToken(node.Method, node.Syntax, null);
         }
 

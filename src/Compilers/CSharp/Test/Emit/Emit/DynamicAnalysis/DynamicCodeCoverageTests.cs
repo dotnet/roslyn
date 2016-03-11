@@ -34,7 +34,24 @@ public class Program
 
     static void Fred()
     {
+        Wilma();
+    }
+
+    static void Wilma()
+    {
+        Betty();
+        Barney();
+        Barney();
+        Betty();
+    }
+
+    static void Barney()
+    {
         return;
+    }
+
+    static void Betty()
+    {
     }
 }
 
@@ -42,12 +59,12 @@ namespace Microsoft.CodeAnalysis.Runtime
 {
     public class Instrumentation
     {
-        public static void CreatePayload(System.Type type, System.RuntimeMethodHandle methodToken, ref bool[] payload, int payloadLength)
+        public static void CreatePayload(System.Type type, int methodToken, ref bool[] payload, int payloadLength)
         {
             if (System.Threading.Interlocked.CompareExchange(ref payload, new bool[payloadLength], null) == null)
             {
                 Console.WriteLine(type.Name);
-                Console.WriteLine(methodToken.Value);
+                Console.WriteLine(methodToken);
                     foreach (bool b in payload)
                         Console.WriteLine(b);
             }
@@ -56,7 +73,8 @@ namespace Microsoft.CodeAnalysis.Runtime
 }
 ";
             string expectedOutput = @"Program
-Main
+5
+False
 False
 False
 False
@@ -65,6 +83,24 @@ False
 False
 foo
 bar
+Program
+12
+False
+False
+Program
+16
+False
+False
+False
+False
+False
+Program
+18
+False
+Program
+19
+False
+False
 ";
             CompileAndVerify(source, emitOptions: EmitOptions.Default.WithEmitDynamicAnalysisData(true), expectedOutput: expectedOutput);
         }
