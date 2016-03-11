@@ -56,11 +56,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 case 2:
                     {
-                        var tupleType = binder.GetWellKnownType(WellKnownType.System_Runtime_CompilerServices_Tuple_T1_T2, diagnostics, syntax);
+                        var tupleType = binder.GetWellKnownType(WellKnownType.System_Runtime_CompilerServices_ValueTuple_T1_T2, diagnostics, syntax);
                         underlyingType = tupleType.Construct(elementTypes);
 
-                        var underlyingField1 = Binder.GetWellKnownTypeMember(binder.Compilation, WellKnownMember.System_Runtime_CompilerServices_Tuple_T1_T2__Item1, diagnostics, syntax: syntax) as FieldSymbol;
-                        var underlyingField2 = Binder.GetWellKnownTypeMember(binder.Compilation, WellKnownMember.System_Runtime_CompilerServices_Tuple_T1_T2__Item2, diagnostics, syntax: syntax) as FieldSymbol;
+                        var underlyingField1 = (FieldSymbol) Binder.GetWellKnownTypeMember(binder.Compilation, WellKnownMember.System_Runtime_CompilerServices_ValueTuple_T1_T2__Item1, diagnostics, syntax: syntax);
+                        var underlyingField2 = (FieldSymbol) Binder.GetWellKnownTypeMember(binder.Compilation, WellKnownMember.System_Runtime_CompilerServices_ValueTuple_T1_T2__Item2, diagnostics, syntax: syntax);
 
                         fields = ImmutableArray.Create(
                                     new TupleFieldSymbol(elementNames.IsEmpty ? "Item1" : elementNames[0],
@@ -79,7 +79,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 default:
                     {
                         // TODO: VS if this eventually still stays reachable, need to make some error type symbol
-                        var tupleType = binder.GetWellKnownType(WellKnownType.System_Runtime_CompilerServices_Tuple_T1_T2, diagnostics, syntax);
+                        var tupleType = binder.GetWellKnownType(WellKnownType.System_Runtime_CompilerServices_ValueTuple_T1_T2, diagnostics, syntax);
                         underlyingType = tupleType.Construct(elementTypes);
                         break;
                     }

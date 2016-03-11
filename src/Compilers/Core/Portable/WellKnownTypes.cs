@@ -245,7 +245,12 @@ namespace Microsoft.CodeAnalysis
 
         System_Runtime_GCLatencyMode,
 
-        System_Runtime_CompilerServices_Tuple_T1_T2,
+        System_Runtime_CompilerServices_ValueTuple_T1_T2,
+        System_Runtime_CompilerServices_ValueTuple_T1_T2_T3,
+        System_Runtime_CompilerServices_ValueTuple_T1_T2_T3_T4,
+        System_Runtime_CompilerServices_ValueTuple_T1_T2_T3_T4_T5,
+        System_Runtime_CompilerServices_ValueTuple_T1_T2_T3_T4_T5_T6,
+        System_Runtime_CompilerServices_ValueTuple_T1_T2_T3_T4_T5_T6_T7,
 
         System_IFormatProvider,
 
@@ -489,7 +494,12 @@ namespace Microsoft.CodeAnalysis
 
             "System.Runtime.GCLatencyMode",
 
-            "System.Runtime.CompilerServices.Tuple`2",
+            "System.Runtime.CompilerServices.ValueTuple`2",
+            "System.Runtime.CompilerServices.ValueTuple`3",
+            "System.Runtime.CompilerServices.ValueTuple`4",
+            "System.Runtime.CompilerServices.ValueTuple`5",
+            "System.Runtime.CompilerServices.ValueTuple`6",
+            "System.Runtime.CompilerServices.ValueTuple`7",
 
             "System.IFormatProvider",
         };
