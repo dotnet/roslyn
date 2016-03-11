@@ -165,6 +165,7 @@
     <Compile Include="CallHierarchy\CallHierarchyTests.vb" />
     <Compile Include="Diagnostics\InMemoryAssemblyLoader.vb" />
     <Compile Include="Diagnostics\UseAutoProperty\UseAutoPropertyTests.vb" />
+    <Compile Include="Expansion\LambdaParameterExpansionTests.vb" />
     <Compile Include="GoToImplementation\GoToImplementationTests.vb" />
     <Compile Include="InteractivePaste\InteractivePasteCommandHandlerTests.vb" />
     <Compile Include="IntelliSense\CompletionRulesTests.vb" />
