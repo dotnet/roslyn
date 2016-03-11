@@ -5843,7 +5843,7 @@ class [|C|]
         <WorkItem(9079, "https://github.com/dotnet/roslyn/issues/9079")>
         <Fact, Trait(Traits.Feature, Traits.Features.Rename)>
         Public Sub RenameFieldInPropertyPattern()
-            Using result = RenameEngineResult.Create(
+            Using result = RenameEngineResult.Create(_outputHelper,
                     <Workspace>
                         <Project Language="C#" AssemblyName="Project1" CommonReferences="true">
                             <Document><![CDATA[
@@ -5884,7 +5884,7 @@ class [|C|]
         <WorkItem(9079, "https://github.com/dotnet/roslyn/issues/9079")>
         <Fact, Trait(Traits.Feature, Traits.Features.Rename)>
         Public Sub RenameTypeInPropertyPattern()
-            Using result = RenameEngineResult.Create(
+            Using result = RenameEngineResult.Create(_outputHelper,
                     <Workspace>
                         <Project Language="C#" AssemblyName="Project1" CommonReferences="true">
                             <Document><![CDATA[
@@ -5925,7 +5925,7 @@ class [|C|]
         <WorkItem(9079, "https://github.com/dotnet/roslyn/issues/9079")>
         <Fact, Trait(Traits.Feature, Traits.Features.Rename)>
         Public Sub RenameTypeInPropertyPattern02()
-            Using result = RenameEngineResult.Create(
+            Using result = RenameEngineResult.Create(_outputHelper,
                     <Workspace>
                         <Project Language="C#" AssemblyName="Project1" CommonReferences="true">
                             <Document><![CDATA[
@@ -5966,7 +5966,7 @@ class [|C|]
         <WorkItem(9080, "https://github.com/dotnet/roslyn/issues/9080")>
         <Fact, Trait(Traits.Feature, Traits.Features.Rename)>
         Public Sub RenameFieldFromPropertyPattern()
-            Using result = RenameEngineResult.Create(
+            Using result = RenameEngineResult.Create(_outputHelper,
                     <Workspace>
                         <Project Language="C#" AssemblyName="Project1" CommonReferences="true">
                             <Document><![CDATA[
