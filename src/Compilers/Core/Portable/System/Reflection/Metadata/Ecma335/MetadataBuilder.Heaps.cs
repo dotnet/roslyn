@@ -84,13 +84,13 @@ namespace Roslyn.Reflection.Metadata.Ecma335
             _guidWriter.WriteBytes(0, guidHeapStartOffset);
         }
 
-        public BlobHandle GetBlob(BlobBuilder builder)
+        public BlobHandle GetOrAddBlob(BlobBuilder builder)
         {
             // TODO: avoid making a copy if the blob exists in the index
-            return GetBlob(builder.ToImmutableArray());
+            return GetOrAddBlob(builder.ToImmutableArray());
         }
 
-        public BlobHandle GetBlob(ImmutableArray<byte> blob)
+        public BlobHandle GetOrAddBlob(ImmutableArray<byte> blob)
         {
             BlobHandle index;
             if (!_blobs.TryGetValue(blob, out index))
@@ -106,22 +106,22 @@ namespace Roslyn.Reflection.Metadata.Ecma335
             return index;
         }
 
-        public BlobHandle GetConstantBlob(object value)
+        public BlobHandle GetOrAddConstantBlob(object value)
         {
             string str = value as string;
             if (str != null)
             {
-                return GetBlob(str);
+                return GetOrAddBlob(str);
             }
 
-            var writer = Microsoft.Cci.PooledBlobBuilder.GetInstance();
-            writer.WriteConstant(value);
-            var result = GetBlob(writer);
-            writer.Free();
+            var builder = Microsoft.Cci.PooledBlobBuilder.GetInstance();
+            builder.WriteConstant(value);
+            var result = GetOrAddBlob(builder);
+            builder.Free();
             return result;
         }
 
-        public BlobHandle GetBlob(string str)
+        public BlobHandle GetOrAddBlob(string str)
         {
             byte[] byteArray = new byte[str.Length * 2];
             int i = 0;
@@ -131,15 +131,15 @@ namespace Roslyn.Reflection.Metadata.Ecma335
                 byteArray[i++] = (byte)(ch >> 8);
             }
 
-            return GetBlob(ImmutableArray.Create(byteArray));
+            return GetOrAddBlob(ImmutableArray.Create(byteArray));
         }
 
-        public BlobHandle GetBlobUtf8(string str)
+        public BlobHandle GetOrAddBlobUtf8(string str)
         {
-            return GetBlob(ImmutableArray.Create(Encoding.UTF8.GetBytes(str)));
+            return GetOrAddBlob(ImmutableArray.Create(Encoding.UTF8.GetBytes(str)));
         }
 
-        public GuidHandle GetGuid(Guid guid)
+        public GuidHandle GetOrAddGuid(Guid guid)
         {
             if (guid == Guid.Empty)
             {
@@ -182,7 +182,7 @@ namespace Roslyn.Reflection.Metadata.Ecma335
             return MetadataTokens.GuidHandle((_guidWriter.Count >> 4) + 1);
         }
 
-        public StringHandle GetString(string str)
+        public StringHandle GetOrAddString(string str)
         {
             StringHandle index;
             if (str.Length == 0)
@@ -221,7 +221,7 @@ namespace Roslyn.Reflection.Metadata.Ecma335
         }
 
         /// <exception cref="ImageFormatLimitationException">The remaining space on the heap is too small to fit the string.</exception>
-        public UserStringHandle GetUserString(string str)
+        public UserStringHandle GetOrAddUserString(string str)
         {
             int index;
             if (!_userStrings.TryGetValue(str, out index))

@@ -169,25 +169,25 @@ namespace Microsoft.CodeAnalysis.UnitTests.PEWriter
             string veryLargeString = new string('x', 0x00fffff0 / 2);
 
             var builder1 = new MetadataBuilder();
-            Assert.Equal(0x70000001, MetadataTokens.GetToken(builder1.GetUserString(veryLargeString)));
-            Assert.Throws<ImageFormatLimitationException>(() => builder1.GetUserString("123"));
-            Assert.Equal(0x70fffff6, MetadataTokens.GetToken(builder1.GetUserString("12")));
-            Assert.Equal(0x70fffff6, MetadataTokens.GetToken(builder1.GetUserString("12")));
+            Assert.Equal(0x70000001, MetadataTokens.GetToken(builder1.GetOrAddUserString(veryLargeString)));
+            Assert.Throws<ImageFormatLimitationException>(() => builder1.GetOrAddUserString("123"));
+            Assert.Equal(0x70fffff6, MetadataTokens.GetToken(builder1.GetOrAddUserString("12")));
+            Assert.Equal(0x70fffff6, MetadataTokens.GetToken(builder1.GetOrAddUserString("12")));
 
             var builder2 = new MetadataBuilder();
-            Assert.Equal(0x70000001, MetadataTokens.GetToken(builder2.GetUserString("123")));
-            Assert.Equal(0x70000009, MetadataTokens.GetToken(builder2.GetUserString(veryLargeString)));
-            Assert.Throws<ImageFormatLimitationException>(() => builder2.GetUserString("4"));
+            Assert.Equal(0x70000001, MetadataTokens.GetToken(builder2.GetOrAddUserString("123")));
+            Assert.Equal(0x70000009, MetadataTokens.GetToken(builder2.GetOrAddUserString(veryLargeString)));
+            Assert.Throws<ImageFormatLimitationException>(() => builder2.GetOrAddUserString("4"));
 
             var builder3 = new MetadataBuilder(userStringHeapStartOffset: 0x00fffffe);
-            Assert.Throws<ImageFormatLimitationException>(() => builder3.GetUserString("1"));
+            Assert.Throws<ImageFormatLimitationException>(() => builder3.GetOrAddUserString("1"));
 
             var builder4 = new MetadataBuilder(userStringHeapStartOffset: 0x00fffff8);
-            Assert.Equal(0x70fffff9, MetadataTokens.GetToken(builder4.GetUserString("1")));
-            Assert.Throws<ImageFormatLimitationException>(() => builder4.GetUserString("2"));
+            Assert.Equal(0x70fffff9, MetadataTokens.GetToken(builder4.GetOrAddUserString("1")));
+            Assert.Throws<ImageFormatLimitationException>(() => builder4.GetOrAddUserString("2"));
 
             var builder5 = new MetadataBuilder(userStringHeapStartOffset: 0x00fffff9);
-            Assert.Throws<ImageFormatLimitationException>(() => builder5.GetUserString("1"));
+            Assert.Throws<ImageFormatLimitationException>(() => builder5.GetOrAddUserString("1"));
         }
 
         // TODO: test overflow of other heaps, tables

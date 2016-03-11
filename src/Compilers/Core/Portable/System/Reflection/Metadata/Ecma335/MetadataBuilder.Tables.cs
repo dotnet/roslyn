@@ -425,7 +425,7 @@ namespace Roslyn.Reflection.Metadata.Ecma335
             {
                 Type = (byte)MetadataWriterUtilities.GetConstantTypeCode(value),
                 Parent = parentCodedIndex,
-                Value = GetConstantBlob(value)
+                Value = GetOrAddConstantBlob(value)
             });
 
             return MetadataTokens.ConstantHandle(_constantTable.Count);

@@ -102,13 +102,13 @@ namespace Microsoft.CodeAnalysis.UnitTests
         {
             metadata.AddModule(
                 0, 
-                metadata.GetString("ConsoleApplication.exe"), 
-                metadata.GetGuid(Guid.NewGuid()),
+                metadata.GetOrAddString("ConsoleApplication.exe"), 
+                metadata.GetOrAddGuid(Guid.NewGuid()),
                 default(GuidHandle), 
                 default(GuidHandle));
 
             metadata.AddAssembly(
-                metadata.GetString("ConsoleApplication"),
+                metadata.GetOrAddString("ConsoleApplication"),
                 version: new Version(0, 0, 0, 0),
                 culture: default(StringHandle),
                 publicKey: default(BlobHandle),
@@ -116,22 +116,22 @@ namespace Microsoft.CodeAnalysis.UnitTests
                 hashAlgorithm: AssemblyHashAlgorithm.Sha1);
 
             var mscorlibAssemblyRef = metadata.AddAssemblyReference(
-                name: metadata.GetString("mscorlib"),
+                name: metadata.GetOrAddString("mscorlib"),
                 version: new Version(4, 0, 0, 0),
                 culture: default(StringHandle),
-                publicKeyOrToken: metadata.GetBlob(ImmutableArray.Create<byte>(0xB7, 0x7A, 0x5C, 0x56, 0x19, 0x34, 0xE0, 0x89)),
+                publicKeyOrToken: metadata.GetOrAddBlob(ImmutableArray.Create<byte>(0xB7, 0x7A, 0x5C, 0x56, 0x19, 0x34, 0xE0, 0x89)),
                 flags: default(AssemblyFlags),
                 hashValue: default(BlobHandle));
 
             var systemObjectTypeRef = metadata.AddTypeReference(
                 mscorlibAssemblyRef,
-                metadata.GetString("System"),
-                metadata.GetString("Object"));
+                metadata.GetOrAddString("System"),
+                metadata.GetOrAddString("Object"));
 
             var systemConsoleTypeRefHandle = metadata.AddTypeReference(
                 mscorlibAssemblyRef,
-                metadata.GetString("System"),
-                metadata.GetString("Console"));
+                metadata.GetOrAddString("System"),
+                metadata.GetOrAddString("Console"));
 
             var consoleWriteLineSignature = new BlobBuilder();
 
@@ -147,8 +147,8 @@ namespace Microsoft.CodeAnalysis.UnitTests
 
             var consoleWriteLineMemberRef = metadata.AddMemberReference(
                 systemConsoleTypeRefHandle,
-                metadata.GetString("WriteLine"),
-                metadata.GetBlob(consoleWriteLineSignature));
+                metadata.GetOrAddString("WriteLine"),
+                metadata.GetOrAddBlob(consoleWriteLineSignature));
 
             var parameterlessCtorSignature = new BlobBuilder();
 
@@ -156,11 +156,11 @@ namespace Microsoft.CodeAnalysis.UnitTests
                 MethodSignature(isInstanceMethod: true).
                 Parameters(0, returnType => returnType.Void(), parameters => parameters.EndParameters());
 
-            var parameterlessCtorBlobIndex = metadata.GetBlob(parameterlessCtorSignature);
+            var parameterlessCtorBlobIndex = metadata.GetOrAddBlob(parameterlessCtorSignature);
 
             var objectCtorMemberRef = metadata.AddMemberReference(
                 systemObjectTypeRef,
-                metadata.GetString(".ctor"),
+                metadata.GetOrAddString(".ctor"),
                 parameterlessCtorBlobIndex);
 
             var mainSignature = new BlobBuilder();
@@ -202,7 +202,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
             int tryOffset = il.Offset;
 
             //   ldstr "hello"
-            il.LoadString(metadata.GetUserString("hello"));
+            il.LoadString(metadata.GetOrAddUserString("hello"));
 
             //   call void [mscorlib]System.Console::WriteLine(string)
             il.Call(consoleWriteLineMemberRef);
@@ -216,7 +216,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
             int handlerOffset = il.Offset;
 
             //   ldstr "world"
-            il.LoadString(metadata.GetUserString("world"));
+            il.LoadString(metadata.GetOrAddUserString("world"));
 
             //   call void [mscorlib]System.Console::WriteLine(string)
             il.Call(consoleWriteLineMemberRef);
@@ -242,15 +242,15 @@ namespace Microsoft.CodeAnalysis.UnitTests
             var mainMethodDef = metadata.AddMethodDefinition(
                 MethodAttributes.Public | MethodAttributes.Static | MethodAttributes.HideBySig,
                 MethodImplAttributes.IL | MethodImplAttributes.Managed,
-                metadata.GetString("Main"),
-                metadata.GetBlob(mainSignature),
+                metadata.GetOrAddString("Main"),
+                metadata.GetOrAddBlob(mainSignature),
                 mainBodyOffset,
                 paramList: default(ParameterHandle));
 
             var ctorDef = metadata.AddMethodDefinition(
                 MethodAttributes.Public | MethodAttributes.HideBySig | MethodAttributes.SpecialName | MethodAttributes.RTSpecialName,
                 MethodImplAttributes.IL | MethodImplAttributes.Managed,
-                metadata.GetString(".ctor"),
+                metadata.GetOrAddString(".ctor"),
                 parameterlessCtorBlobIndex,
                 ctorBodyOffset,
                 paramList: default(ParameterHandle));
@@ -258,15 +258,15 @@ namespace Microsoft.CodeAnalysis.UnitTests
             metadata.AddTypeDefinition(
                 default(TypeAttributes),
                 default(StringHandle),
-                metadata.GetString("<Module>"),
+                metadata.GetOrAddString("<Module>"),
                 baseType: default(EntityHandle),
                 fieldList: MetadataTokens.FieldDefinitionHandle(1),
                 methodList: mainMethodDef);
 
             metadata.AddTypeDefinition(
                 TypeAttributes.Class | TypeAttributes.Public | TypeAttributes.AutoLayout | TypeAttributes.BeforeFieldInit,
-                metadata.GetString("ConsoleApplication"),
-                metadata.GetString("Program"),
+                metadata.GetOrAddString("ConsoleApplication"),
+                metadata.GetOrAddString("Program"),
                 systemObjectTypeRef,
                 fieldList: MetadataTokens.FieldDefinitionHandle(1),
                 methodList: mainMethodDef);
@@ -301,13 +301,13 @@ namespace Microsoft.CodeAnalysis.UnitTests
         {
             metadata.AddModule(
                 0,
-                metadata.GetString("ConsoleApplication.exe"),
-                metadata.GetGuid(Guid.NewGuid()),
+                metadata.GetOrAddString("ConsoleApplication.exe"),
+                metadata.GetOrAddGuid(Guid.NewGuid()),
                 default(GuidHandle),
                 default(GuidHandle));
 
             metadata.AddAssembly(
-                metadata.GetString("ConsoleApplication"),
+                metadata.GetOrAddString("ConsoleApplication"),
                 version: new Version(0, 0, 0, 0),
                 culture: default(StringHandle),
                 publicKey: default(BlobHandle),
@@ -315,45 +315,45 @@ namespace Microsoft.CodeAnalysis.UnitTests
                 hashAlgorithm: AssemblyHashAlgorithm.Sha1);
 
             var mscorlibAssemblyRef = metadata.AddAssemblyReference(
-                name: metadata.GetString("mscorlib"),
+                name: metadata.GetOrAddString("mscorlib"),
                 version: new Version(4, 0, 0, 0),
                 culture: default(StringHandle),
-                publicKeyOrToken: metadata.GetBlob(ImmutableArray.Create<byte>(0xB7, 0x7A, 0x5C, 0x56, 0x19, 0x34, 0xE0, 0x89)),
+                publicKeyOrToken: metadata.GetOrAddBlob(ImmutableArray.Create<byte>(0xB7, 0x7A, 0x5C, 0x56, 0x19, 0x34, 0xE0, 0x89)),
                 flags: default(AssemblyFlags),
                 hashValue: default(BlobHandle));
 
             // TypeRefs:
 
-            var systemObjectTypeRef = metadata.AddTypeReference(mscorlibAssemblyRef, metadata.GetString("System"), metadata.GetString("Object"));
-            var dictionaryTypeRef = metadata.AddTypeReference(mscorlibAssemblyRef, metadata.GetString("System.Collections.Generic"), metadata.GetString("Dictionary`2"));
-            var strignBuilderTypeRef = metadata.AddTypeReference(mscorlibAssemblyRef, metadata.GetString("System.Text"), metadata.GetString("StringBuilder"));
-            var typeTypeRef = metadata.AddTypeReference(mscorlibAssemblyRef, metadata.GetString("System"), metadata.GetString("Type"));
-            var int32TypeRef = metadata.AddTypeReference(mscorlibAssemblyRef, metadata.GetString("System"), metadata.GetString("Int32"));
-            var runtimeTypeHandleRef = metadata.AddTypeReference(mscorlibAssemblyRef, metadata.GetString("System"), metadata.GetString("RuntimeTypeHandle"));
-            var invalidOperationExceptionTypeRef = metadata.AddTypeReference(mscorlibAssemblyRef, metadata.GetString("System"), metadata.GetString("InvalidOperationException"));
+            var systemObjectTypeRef = metadata.AddTypeReference(mscorlibAssemblyRef, metadata.GetOrAddString("System"), metadata.GetOrAddString("Object"));
+            var dictionaryTypeRef = metadata.AddTypeReference(mscorlibAssemblyRef, metadata.GetOrAddString("System.Collections.Generic"), metadata.GetOrAddString("Dictionary`2"));
+            var strignBuilderTypeRef = metadata.AddTypeReference(mscorlibAssemblyRef, metadata.GetOrAddString("System.Text"), metadata.GetOrAddString("StringBuilder"));
+            var typeTypeRef = metadata.AddTypeReference(mscorlibAssemblyRef, metadata.GetOrAddString("System"), metadata.GetOrAddString("Type"));
+            var int32TypeRef = metadata.AddTypeReference(mscorlibAssemblyRef, metadata.GetOrAddString("System"), metadata.GetOrAddString("Int32"));
+            var runtimeTypeHandleRef = metadata.AddTypeReference(mscorlibAssemblyRef, metadata.GetOrAddString("System"), metadata.GetOrAddString("RuntimeTypeHandle"));
+            var invalidOperationExceptionTypeRef = metadata.AddTypeReference(mscorlibAssemblyRef, metadata.GetOrAddString("System"), metadata.GetOrAddString("InvalidOperationException"));
 
             // TypeDefs:
 
             metadata.AddTypeDefinition(
                default(TypeAttributes),
                default(StringHandle),
-               metadata.GetString("<Module>"),
+               metadata.GetOrAddString("<Module>"),
                baseType: default(EntityHandle),
                fieldList: MetadataTokens.FieldDefinitionHandle(1),
                methodList: MetadataTokens.MethodDefinitionHandle(1));
 
             var baseClassTypeDef = metadata.AddTypeDefinition(
                 TypeAttributes.Class | TypeAttributes.Public | TypeAttributes.AutoLayout | TypeAttributes.BeforeFieldInit | TypeAttributes.Abstract,
-                metadata.GetString("Lib"),
-                metadata.GetString("BaseClass"),
+                metadata.GetOrAddString("Lib"),
+                metadata.GetOrAddString("BaseClass"),
                 systemObjectTypeRef,
                 fieldList: MetadataTokens.FieldDefinitionHandle(1),
                 methodList: MetadataTokens.MethodDefinitionHandle(1));
 
             var derivedClassTypeDef = metadata.AddTypeDefinition(
                 TypeAttributes.Class | TypeAttributes.Public | TypeAttributes.AutoLayout | TypeAttributes.BeforeFieldInit,
-                metadata.GetString("Lib"),
-                metadata.GetString("DerivedClass"),
+                metadata.GetOrAddString("Lib"),
+                metadata.GetOrAddString("DerivedClass"),
                 baseClassTypeDef,
                 fieldList: MetadataTokens.FieldDefinitionHandle(4),
                 methodList: MetadataTokens.MethodDefinitionHandle(1));
@@ -363,20 +363,20 @@ namespace Microsoft.CodeAnalysis.UnitTests
             // Field1
             var baseClassNumberFieldDef = metadata.AddFieldDefinition(
                 FieldAttributes.Private,
-                metadata.GetString("_number"),
-                metadata.GetBlob(BuildSignature(e => e.FieldSignature().Int32())));
+                metadata.GetOrAddString("_number"),
+                metadata.GetOrAddBlob(BuildSignature(e => e.FieldSignature().Int32())));
 
             // Field2
             var baseClassNegativeFieldDef = metadata.AddFieldDefinition(
                 FieldAttributes.Assembly,
-                metadata.GetString("negative"),
-                metadata.GetBlob(BuildSignature(e => e.FieldSignature().Boolean())));
+                metadata.GetOrAddString("negative"),
+                metadata.GetOrAddBlob(BuildSignature(e => e.FieldSignature().Boolean())));
 
             // Field3
             var derivedClassSumCacheFieldDef = metadata.AddFieldDefinition(
                 FieldAttributes.Assembly,
-                metadata.GetString("_sumCache"),
-                metadata.GetBlob(BuildSignature(e => 
+                metadata.GetOrAddString("_sumCache"),
+                metadata.GetOrAddBlob(BuildSignature(e => 
                 {
                     var inst = e.FieldSignature().GenericInstantiation(isValueType: false, typeRefDefSpec: dictionaryTypeRef, genericArgumentCount: 2);
                     inst.AddArgument().Int32();
@@ -386,14 +386,14 @@ namespace Microsoft.CodeAnalysis.UnitTests
             // Field4
             var derivedClassCountFieldDef = metadata.AddFieldDefinition(
                 FieldAttributes.Assembly,
-                metadata.GetString("_count"),
-                metadata.GetBlob(BuildSignature(e => e.FieldSignature().SZArray().Int32())));
+                metadata.GetOrAddString("_count"),
+                metadata.GetOrAddBlob(BuildSignature(e => e.FieldSignature().SZArray().Int32())));
 
             // Field5
             var derivedClassBCFieldDef = metadata.AddFieldDefinition(
               FieldAttributes.Assembly,
-              metadata.GetString("_bc"),
-              metadata.GetBlob(BuildSignature(e => e.FieldSignature().TypeDefOrRefOrSpec(isValueType: false, typeRefDefSpec: baseClassTypeDef))));
+              metadata.GetOrAddString("_bc"),
+              metadata.GetOrAddBlob(BuildSignature(e => e.FieldSignature().TypeDefOrRefOrSpec(isValueType: false, typeRefDefSpec: baseClassTypeDef))));
 
             var methodBodies = new MethodBodiesEncoder(ilBuilder);
 
@@ -406,7 +406,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
             int fooBodyOffset;
             il = new InstructionEncoder(buffer);
 
-            il.LoadString(metadata.GetUserString("asdsad"));
+            il.LoadString(metadata.GetOrAddUserString("asdsad"));
             il.OpCode(ILOpCode.Newobj);
             il.Token(invalidOperationExceptionTypeRef);
             il.OpCode(ILOpCode.Throw);
@@ -418,8 +418,8 @@ namespace Microsoft.CodeAnalysis.UnitTests
             var derivedClassFooMethodDef = metadata.AddMethodDefinition(
                 MethodAttributes.PrivateScope | MethodAttributes.Private | MethodAttributes.HideBySig,
                 MethodImplAttributes.IL,
-                metadata.GetString("Foo"),
-                metadata.GetBlob(BuildSignature(e =>
+                metadata.GetOrAddString("Foo"),
+                metadata.GetOrAddBlob(BuildSignature(e =>
                     e.MethodSignature(isInstanceMethod: true).Parameters(0, returnType => returnType.Void(), parameters => parameters.EndParameters()))),
                 fooBodyOffset,
                 default(ParameterHandle));
