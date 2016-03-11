@@ -1846,7 +1846,7 @@
       ]
     },
     "System.Reflection.Metadata/1.2.0": {
-      "sha512": "ubQKFCNYPwhqPXPLjRKCvTDR2UvL5L5+Tm181D/5kl/df7264AuXDi2j2Bf5DxplBxevq8eUH9LRomcFCXTQKw==",
+      "sha512": "3LjvW/Gr3f3+O8adWT04bV1nvbgQ3X1NYZHgRC76L/VdJ78nUCkwIcHguEH85fHIQ1TGldRpMJ3nqlMqaRwReA==",
       "type": "package",
       "files": [
         "System.Reflection.Metadata.1.2.0.nupkg.sha512",
