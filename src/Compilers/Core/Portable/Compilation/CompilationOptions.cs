@@ -65,9 +65,8 @@ namespace Microsoft.CodeAnalysis
         /// but not both. If both are specified <see cref="CryptoKeyContainer"/> is ignored.
         /// </para>
         /// <para>
-        /// This setting is obsolete and only supported on Microsoft Windows platform.
-        /// Use <see cref="CryptoPublicKey"/> to generate assemblies with strong name and 
-        /// a signing tool (Microsoft .NET Framework Strong Name Utility (sn.exe) or equivalent) to sign them.
+        /// If <see cref="PublicSign" /> is also set, <see cref="CryptoKeyFile"/> must be the absolute
+        /// path to key file.
         /// </para>
         /// </remarks>
         public string CryptoKeyFile { get; protected set; }
@@ -107,7 +106,13 @@ namespace Microsoft.CodeAnalysis
         /// Mark the compilation assembly as fully signed, but only sign with the public key.
         /// </summary>
         /// <remarks>
+        /// <para>
         /// If true, the assembly is marked as signed, but is only signed with the public key.
+        /// </para>
+        /// <para>
+        /// The key must be provided through either an absolute path in <see cref="CryptoKeyFile"/>
+        /// or directly via <see cref="CryptoPublicKey" />.
+        /// </para>
         /// </remarks>
         public bool PublicSign { get; protected set; }
 
@@ -147,6 +152,14 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         public bool Deterministic { get; protected set; }
 
+        /// <summary>
+        /// Used for time-based version generation when <see cref="System.Reflection.AssemblyVersionAttribute"/> contains a wildcard.
+        /// If equal to default(<see cref="DateTime"/>) the actual current local time will be used.
+        /// </summary>
+        internal DateTime CurrentLocalTime { get; private set; }
+
+        internal DateTime CurrentLocalTime_internal_protected_set { set { CurrentLocalTime = value; } }
+       
         /// <summary>
         /// Emit extended custom debug information to the PDB file.
         /// </summary>
@@ -264,6 +277,7 @@ namespace Microsoft.CodeAnalysis
             ImmutableDictionary<string, ReportDiagnostic> specificDiagnosticOptions,
             bool concurrentBuild,
             bool deterministic,
+            DateTime currentLocalTime,
             bool extendedCustomDebugInformation,
             bool debugPlusMode,
             XmlReferenceResolver xmlReferenceResolver,
@@ -291,6 +305,7 @@ namespace Microsoft.CodeAnalysis
             this.OptimizationLevel = optimizationLevel;
             this.ConcurrentBuild = concurrentBuild;
             this.Deterministic = deterministic;
+            this.CurrentLocalTime = currentLocalTime;
             this.ExtendedCustomDebugInformation = extendedCustomDebugInformation;
             this.DebugPlusMode = debugPlusMode;
             this.XmlReferenceResolver = xmlReferenceResolver;
@@ -466,6 +481,47 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         internal abstract void ValidateOptions(ArrayBuilder<Diagnostic> builder);
 
+        internal void ValidateOptions(ArrayBuilder<Diagnostic> builder, CommonMessageProvider messageProvider)
+        {
+            if (!CryptoPublicKey.IsEmpty)
+            {
+                if (CryptoKeyFile != null)
+                {
+                    builder.Add(messageProvider.CreateDiagnostic(messageProvider.ERR_MutuallyExclusiveOptions,
+                        Location.None, nameof(CryptoPublicKey), nameof(CryptoKeyFile)));
+                }
+
+                if (CryptoKeyContainer != null)
+                {
+                    builder.Add(messageProvider.CreateDiagnostic(messageProvider.ERR_MutuallyExclusiveOptions,
+                        Location.None, nameof(CryptoPublicKey), nameof(CryptoKeyContainer)));
+                }
+            }
+
+            if (PublicSign)
+            {
+                if (CryptoKeyFile != null && !PathUtilities.IsAbsolute(CryptoKeyFile))
+                {
+                    // TODO(https://github.com/dotnet/roslyn/issues/9153):
+                    // Produce better diagnostic message for passing a key file with a relative path
+                    builder.Add(messageProvider.CreateDiagnostic(messageProvider.ERR_BadCompilationOptionValue,
+                        Location.None, nameof(CryptoKeyFile), CryptoKeyFile));
+                }
+
+                if (CryptoKeyContainer != null)
+                {
+                    builder.Add(messageProvider.CreateDiagnostic(messageProvider.ERR_MutuallyExclusiveOptions,
+                        Location.None, nameof(PublicSign), nameof(CryptoKeyContainer)));
+                }
+
+                if (DelaySign == true)
+                {
+                    builder.Add(messageProvider.CreateDiagnostic(messageProvider.ERR_MutuallyExclusiveOptions,
+                        Location.None, nameof(PublicSign), nameof(DelaySign)));
+                }
+            }
+        }
+
         /// <summary>
         /// Errors collection related to an incompatible set of compilation options
         /// </summary>
@@ -489,6 +545,7 @@ namespace Microsoft.CodeAnalysis
                    this.CheckOverflow == other.CheckOverflow &&
                    this.ConcurrentBuild == other.ConcurrentBuild &&
                    this.Deterministic == other.Deterministic &&
+                   this.CurrentLocalTime == other.CurrentLocalTime &&
                    this.ExtendedCustomDebugInformation == other.ExtendedCustomDebugInformation &&
                    this.DebugPlusMode == other.DebugPlusMode &&
                    string.Equals(this.CryptoKeyContainer, other.CryptoKeyContainer, StringComparison.Ordinal) &&
@@ -524,6 +581,7 @@ namespace Microsoft.CodeAnalysis
             return Hash.Combine(this.CheckOverflow,
                    Hash.Combine(this.ConcurrentBuild,
                    Hash.Combine(this.Deterministic,
+                   Hash.Combine(this.CurrentLocalTime.GetHashCode(),
                    Hash.Combine(this.ExtendedCustomDebugInformation,
                    Hash.Combine(this.DebugPlusMode,
                    Hash.Combine(this.CryptoKeyContainer != null ? StringComparer.Ordinal.GetHashCode(this.CryptoKeyContainer) : 0,
@@ -546,7 +604,7 @@ namespace Microsoft.CodeAnalysis
                    Hash.Combine(this.SourceReferenceResolver,
                    Hash.Combine(this.StrongNameProvider,
                    Hash.Combine(this.AssemblyIdentityComparer,
-                   Hash.Combine(this.PublicSign, 0))))))))))))))))))))))))));
+                   Hash.Combine(this.PublicSign, 0)))))))))))))))))))))))))));
         }
 
         public static bool operator ==(CompilationOptions left, CompilationOptions right)

@@ -31,6 +31,8 @@ namespace RunTests.Cache
 
         private readonly string _storagePath;
 
+        public string Name => "local";
+
         internal LocalDataStorage(string storagePath = null)
         {
             _storagePath = storagePath ?? Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), DirectoryName);
@@ -85,7 +87,7 @@ namespace RunTests.Cache
             return false;
         }
 
-        public Task AddCachedTestResult(ContentFile contentFile, CachedTestResult testResult)
+        public Task AddCachedTestResult(string assemblyName, ContentFile contentFile, CachedTestResult testResult)
         {
             var checksum = contentFile.Checksum;
             var storagePath = Path.Combine(_storagePath, checksum);

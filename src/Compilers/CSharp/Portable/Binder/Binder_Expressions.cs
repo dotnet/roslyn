@@ -339,7 +339,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             ParameterSymbol parameter,
             EqualsValueClauseSyntax defaultValueSyntax)
         {
-            return new LocalScopeBinder(this.WithContainingMemberOrLambda(parameter.ContainingSymbol).WithAdditionalFlags(BinderFlags.ParameterDefaultValue));
+            return new LocalScopeBinder(this.WithContainingMemberOrLambda(parameter.ContainingSymbol).WithAdditionalFlags(BinderFlags.ParameterDefaultValue)).
+                   WithPatternVariablesIfAny(defaultValueSyntax.Value);
         }
 
         internal BoundExpression BindParameterDefaultValue(
@@ -357,7 +358,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             // Always generate the conversion, even if the expression is not convertible to the given type.
             // We want the erroneous conversion in the tree.
-            return GenerateConversionForAssignment(parameterType, valueBeforeConversion, diagnostics, isDefaultParameter: true);
+            return WrapWithVariablesIfAny(GenerateConversionForAssignment(parameterType, valueBeforeConversion, diagnostics, isDefaultParameter: true));
         }
 
         internal BoundExpression BindEnumConstantInitializer(
@@ -2644,12 +2645,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             MethodSymbol constructor,
             DiagnosticBag diagnostics)
         {
-            // Handle scoping for possible pattern variables declared in the initializer
-            PatternVariableBinder patBinder = (initializerArgumentListOpt != null)
-                ? new PatternVariableBinder(initializerArgumentListOpt, initializerArgumentListOpt.Arguments, this)
-                : null;
-            var result = (patBinder ?? this).BindConstructorInitializerCore(initializerArgumentListOpt, constructor, diagnostics);
-            return patBinder?.WrapWithPatternVariables(result) ?? result;
+            var result = BindConstructorInitializerCore(initializerArgumentListOpt, constructor, diagnostics);
+            return WrapWithVariablesIfAny(result);
         }
 
         private BoundExpression BindConstructorInitializerCore(

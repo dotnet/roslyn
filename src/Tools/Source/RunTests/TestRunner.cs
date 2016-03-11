@@ -12,6 +12,18 @@ using System.Threading.Tasks;
 
 namespace RunTests
 {
+    internal struct RunAllResult
+    {
+        internal readonly bool Succeeded;
+        internal readonly int CacheCount;
+
+        internal RunAllResult(bool succeeded, int cacheCount)
+        {
+            Succeeded = succeeded;
+            CacheCount = cacheCount;
+        }
+    }
+
     internal sealed class TestRunner
     {
         private readonly ITestExecutor _testExecutor;
@@ -23,10 +35,11 @@ namespace RunTests
             _options = options;
         }
 
-        internal async Task<bool> RunAllAsync(IEnumerable<string> assemblyList, CancellationToken cancellationToken)
+        internal async Task<RunAllResult> RunAllAsync(IEnumerable<string> assemblyList, CancellationToken cancellationToken)
         {
             var max = (int)Environment.ProcessorCount * 1.5;
             var allPassed = true;
+            var cacheCount = 0;
             var waiting = new Stack<string>(assemblyList);
             var running = new List<Task<TestResult>>();
             var completed = new List<TestResult>();
@@ -47,6 +60,11 @@ namespace RunTests
                             if (!testResult.Succeeded)
                             {
                                 allPassed = false;
+                            }
+
+                            if (testResult.IsResultFromCache)
+                            {
+                                cacheCount++;
                             }
 
                             completed.Add(testResult);
@@ -77,7 +95,7 @@ namespace RunTests
 
             Print(completed);
 
-            return allPassed;
+            return new RunAllResult(allPassed, cacheCount);
         }
 
         private void Print(List<TestResult> testResults)

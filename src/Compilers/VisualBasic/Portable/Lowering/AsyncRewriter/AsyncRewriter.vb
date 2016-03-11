@@ -295,11 +295,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Friend Overrides Function EnsureAllSymbolsAndSignature() As Boolean
             Dim hasErrors As Boolean = MyBase.EnsureAllSymbolsAndSignature
 
-            ' NOTE: in current implementation these attributes must exist
-            ' TODO: change to "don't use if not found"
-            EnsureWellKnownMember(Of MethodSymbol)(WellKnownMember.System_Runtime_CompilerServices_CompilerGeneratedAttribute__ctor, hasErrors)
-            EnsureWellKnownMember(Of MethodSymbol)(WellKnownMember.System_Diagnostics_DebuggerHiddenAttribute__ctor, hasErrors)
-
             EnsureSpecialType(SpecialType.System_Object, hasErrors)
             EnsureSpecialType(SpecialType.System_Void, hasErrors)
             EnsureSpecialType(SpecialType.System_ValueType, hasErrors)

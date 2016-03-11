@@ -2326,5 +2326,73 @@ class Program
 }");
             Assert.True(expectedIL.IndexOf("<>_", StringComparison.Ordinal) < 0);
         }
+
+        [Fact, WorkItem(9167, "https://github.com/dotnet/roslyn/issues/9167")]
+        public void IteratorShouldCompileWithoutOptionalAttributes()
+        {
+            #region IL for corlib without CompilerGeneratedAttribute or DebuggerNonUserCodeAttribute
+            var corlib = @"
+namespace System
+{
+    public class Object { }
+    public struct Int32 { }
+    public struct Boolean { }
+    public class String { }
+    public class Exception { }
+    public class NotSupportedException : Exception { }
+    public class ValueType { }
+    public class Enum { }
+    public struct Void { }
+
+    public interface IDisposable
+    {
+        void Dispose();
+    }
+}
+
+namespace System.Collections
+{
+    public interface IEnumerable
+    {
+        IEnumerator GetEnumerator();
+    }
+
+    public interface IEnumerator
+    {
+        bool MoveNext();
+        object Current { get; }
+        void Reset();
+    }
+
+    namespace Generic
+    {
+        public interface IEnumerable<T> : IEnumerable
+        {
+            new IEnumerator<T> GetEnumerator();
+        }
+
+        public interface IEnumerator<T> : IEnumerator
+        {
+            new T Current { get; }
+        }
+    }
+}";
+            #endregion
+
+            var source = @"
+public class C
+{
+    public System.Collections.IEnumerable SomeNumbers()
+    {
+        yield return 42;
+    }
+}";
+            // The compilation succeeds even though CompilerGeneratedAttribute and DebuggerNonUserCodeAttribute are not available.
+            var compilation = CreateCompilation(new[] { Parse(source), Parse(corlib) });
+            var verifier = CompileAndVerify(compilation, verify: false);
+            verifier.VerifyDiagnostics(
+                // warning CS8021: No value for RuntimeMetadataVersion found. No assembly containing System.Object was found nor was a value for RuntimeMetadataVersion specified through options.
+                Diagnostic(ErrorCode.WRN_NoRuntimeMetadataVersion).WithLocation(1, 1));
+        }
     }
 }
