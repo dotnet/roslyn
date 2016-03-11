@@ -6,6 +6,7 @@
     "System.Runtime": "4.0.20",
     "System.Runtime.Extensions": "4.0.10",
     "System.IO.FileSystem": "4.0.0",
+    "System.Runtime.InteropServices": "4.0.20",
     "xunit": "2.1.0"
   },
   "frameworks": {
