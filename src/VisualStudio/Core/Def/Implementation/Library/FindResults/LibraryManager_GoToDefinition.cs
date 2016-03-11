@@ -15,7 +15,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Library.FindRes
     {
         private IList<AbstractTreeItem> CreateNavigableItemTreeItems(IEnumerable<INavigableItem> items)
         {
-            var itemsList = items.ToList();
+            var itemsList = items.Where(i => i.Document != null).ToList();
             if (itemsList.Count == 0)
             {
                 return new List<AbstractTreeItem>();
