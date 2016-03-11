@@ -20,6 +20,137 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                     .WithFeature("patternsExperimental", "true");
 
         [Fact]
+        public void DemoModes()
+        {
+            var source =
+@"
+public class Vec
+{
+    public static void Main()
+    {
+        object o = ""Pass"";
+        int i1 = 0b001010; // binary literals
+        int i2 = 23_554; // digit separators
+        int f() => 2; // local functions
+        ref int i3 = ref i1; // ref locals
+        string s = o is string k ? k : null; // pattern matching
+        let var i4 = 3; // let
+        int i5 = o match (case * : 7); // match
+        object q = (o is null) ? o : throw null; // throw expressions
+        if (q is Vec(3)) {} // recursive pattern
+    }
+    public int X => 4;
+    public Vec(int x) {}
+}
+";
+            var regularParseOptions = TestOptions.Regular;
+            CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe, parseOptions: regularParseOptions).VerifyDiagnostics(
+                // (7,18): error CS8058: Feature 'binary literals' is experimental and unsupported; use '/features:binaryLiterals' to enable.
+                //         int i1 = 0b001010; // binary literals
+                Diagnostic(ErrorCode.ERR_FeatureIsExperimental, "").WithArguments("binary literals", "binaryLiterals").WithLocation(7, 18),
+                // (8,18): error CS8058: Feature 'digit separators' is experimental and unsupported; use '/features:digitSeparators' to enable.
+                //         int i2 = 23_554; // digit separators
+                Diagnostic(ErrorCode.ERR_FeatureIsExperimental, "").WithArguments("digit separators", "digitSeparators").WithLocation(8, 18),
+                // (9,9): error CS8058: Feature 'local functions' is experimental and unsupported; use '/features:localFunctions' to enable.
+                //         int f() => 2; // local functions
+                Diagnostic(ErrorCode.ERR_FeatureIsExperimental, "int f() => 2;").WithArguments("local functions", "localFunctions").WithLocation(9, 9),
+                // (9,22): error CS1513: } expected
+                //         int f() => 2; // local functions
+                Diagnostic(ErrorCode.ERR_RbraceExpected, "").WithLocation(9, 22),
+                // (10,22): error CS1525: Invalid expression term 'ref'
+                //         ref int i3 = ref i1; // ref locals
+                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "ref").WithArguments("ref").WithLocation(10, 22),
+                // (10,22): error CS1003: Syntax error, ',' expected
+                //         ref int i3 = ref i1; // ref locals
+                Diagnostic(ErrorCode.ERR_SyntaxError, "ref").WithArguments(",", "ref").WithLocation(10, 22),
+                // (10,26): error CS1002: ; expected
+                //         ref int i3 = ref i1; // ref locals
+                Diagnostic(ErrorCode.ERR_SemicolonExpected, "i1").WithLocation(10, 26),
+                // (11,20): error CS8058: Feature 'pattern matching' is experimental and unsupported; use '/features:patterns' to enable.
+                //         string s = o is string k ? k : null; // pattern matching
+                Diagnostic(ErrorCode.ERR_FeatureIsExperimental, "o is string k").WithArguments("pattern matching", "patterns").WithLocation(11, 20),
+                // (12,17): error CS1002: ; expected
+                //         let var i4 = 3; // let
+                Diagnostic(ErrorCode.ERR_SemicolonExpected, "i4").WithLocation(12, 17),
+                // (13,18): error CS8058: Feature 'pattern matching experimental features' is experimental and unsupported; use '/features:patternsExperimental' to enable.
+                //         int i5 = o match (case * : 7); // match
+                Diagnostic(ErrorCode.ERR_FeatureIsExperimental, "o match (case * : 7)").WithArguments("pattern matching experimental features", "patternsExperimental").WithLocation(13, 18),
+                // (14,21): error CS8058: Feature 'pattern matching' is experimental and unsupported; use '/features:patterns' to enable.
+                //         object q = (o is null) ? o : throw null; // throw expressions
+                Diagnostic(ErrorCode.ERR_FeatureIsExperimental, "o is null").WithArguments("pattern matching", "patterns").WithLocation(14, 21),
+                // (14,38): error CS1525: Invalid expression term 'throw'
+                //         object q = (o is null) ? o : throw null; // throw expressions
+                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "throw null").WithArguments("throw").WithLocation(14, 38),
+                // (15,13): error CS8058: Feature 'pattern matching' is experimental and unsupported; use '/features:patterns' to enable.
+                //         if (q is Vec(3)) {} // recursive pattern
+                Diagnostic(ErrorCode.ERR_FeatureIsExperimental, "q is Vec(3)").WithArguments("pattern matching", "patterns").WithLocation(15, 13),
+                // (15,18): error CS8058: Feature 'pattern matching experimental features' is experimental and unsupported; use '/features:patternsExperimental' to enable.
+                //         if (q is Vec(3)) {} // recursive pattern
+                Diagnostic(ErrorCode.ERR_FeatureIsExperimental, "Vec(3)").WithArguments("pattern matching experimental features", "patternsExperimental").WithLocation(15, 18),
+                // (10,26): error CS0201: Only assignment, call, increment, decrement, and new object expressions can be used as a statement
+                //         ref int i3 = ref i1; // ref locals
+                Diagnostic(ErrorCode.ERR_IllegalStatement, "i1").WithLocation(10, 26),
+                // (12,9): error CS0246: The type or namespace name 'let' could not be found (are you missing a using directive or an assembly reference?)
+                //         let var i4 = 3; // let
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "let").WithArguments("let").WithLocation(12, 9),
+                // (12,17): error CS0103: The name 'i4' does not exist in the current context
+                //         let var i4 = 3; // let
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "i4").WithArguments("i4").WithLocation(12, 17),
+                // (12,13): warning CS0168: The variable 'var' is declared but never used
+                //         let var i4 = 3; // let
+                Diagnostic(ErrorCode.WRN_UnreferencedVar, "var").WithArguments("var").WithLocation(12, 13),
+                // (9,13): warning CS0168: The variable 'f' is declared but never used
+                //         int f() => 2; // local functions
+                Diagnostic(ErrorCode.WRN_UnreferencedVar, "f").WithArguments("f").WithLocation(9, 13)
+                );
+
+            // enables binary literals, digit separators, local functions, ref locals, pattern matching
+            var demoParseOptions = regularParseOptions
+                .WithPreprocessorSymbols(new[] { "__DEMO__" });
+            CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe, parseOptions: demoParseOptions).VerifyDiagnostics(
+                // (12,17): error CS1002: ; expected
+                //         let var i4 = 3; // let
+                Diagnostic(ErrorCode.ERR_SemicolonExpected, "i4").WithLocation(12, 17),
+                // (13,18): error CS8058: Feature 'pattern matching experimental features' is experimental and unsupported; use '/features:patternsExperimental' to enable.
+                //         int i5 = o match (case * : 7); // match
+                Diagnostic(ErrorCode.ERR_FeatureIsExperimental, "o match (case * : 7)").WithArguments("pattern matching experimental features", "patternsExperimental").WithLocation(13, 18),
+                // (14,38): error CS1525: Invalid expression term 'throw'
+                //         object q = (o is null) ? o : throw null; // throw expressions
+                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "throw null").WithArguments("throw").WithLocation(14, 38),
+                // (15,18): error CS8058: Feature 'pattern matching experimental features' is experimental and unsupported; use '/features:patternsExperimental' to enable.
+                //         if (q is Vec(3)) {} // recursive pattern
+                Diagnostic(ErrorCode.ERR_FeatureIsExperimental, "Vec(3)").WithArguments("pattern matching experimental features", "patternsExperimental").WithLocation(15, 18),
+                // (12,9): error CS0246: The type or namespace name 'let' could not be found (are you missing a using directive or an assembly reference?)
+                //         let var i4 = 3; // let
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "let").WithArguments("let").WithLocation(12, 9),
+                // (12,17): error CS0103: The name 'i4' does not exist in the current context
+                //         let var i4 = 3; // let
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "i4").WithArguments("i4").WithLocation(12, 17),
+                // (8,13): warning CS0219: The variable 'i2' is assigned but its value is never used
+                //         int i2 = 23_554; // digit separators
+                Diagnostic(ErrorCode.WRN_UnreferencedVarAssg, "i2").WithArguments("i2").WithLocation(8, 13),
+                // (12,13): warning CS0168: The variable 'var' is declared but never used
+                //         let var i4 = 3; // let
+                Diagnostic(ErrorCode.WRN_UnreferencedVar, "var").WithArguments("var").WithLocation(12, 13),
+                // (9,13): warning CS0168: The variable 'f' is declared but never used
+                //         int f() => 2; // local functions
+                Diagnostic(ErrorCode.WRN_UnreferencedVar, "f").WithArguments("f").WithLocation(9, 13)
+                );
+
+            // additionally enables let, match, throw, and recursive patterns
+            var experimentalParseOptions = regularParseOptions
+                .WithPreprocessorSymbols(new[] { "__DEMO_EXPERIMENTAL__" });
+            CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe, parseOptions: experimentalParseOptions).VerifyDiagnostics(
+                // (8,13): warning CS0219: The variable 'i2' is assigned but its value is never used
+                //         int i2 = 23_554; // digit separators
+                Diagnostic(ErrorCode.WRN_UnreferencedVarAssg, "i2").WithArguments("i2").WithLocation(8, 13),
+                // (9,13): warning CS0168: The variable 'f' is declared but never used
+                //         int f() => 2; // local functions
+                Diagnostic(ErrorCode.WRN_UnreferencedVar, "f").WithArguments("f").WithLocation(9, 13)
+                );
+        }
+
+        [Fact]
         public void SimplePatternTest()
         {
             var source =
