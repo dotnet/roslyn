@@ -557,7 +557,12 @@ namespace System
                         continue;
                     case WellKnownType.System_FormattableString:
                     case WellKnownType.System_Runtime_CompilerServices_FormattableStringFactory:
-                    case WellKnownType.System_Runtime_CompilerServices_Tuple_T1_T2:
+                    case WellKnownType.System_Runtime_CompilerServices_ValueTuple_T1_T2:
+                    case WellKnownType.System_Runtime_CompilerServices_ValueTuple_T1_T2_T3:
+                    case WellKnownType.System_Runtime_CompilerServices_ValueTuple_T1_T2_T3_T4:
+                    case WellKnownType.System_Runtime_CompilerServices_ValueTuple_T1_T2_T3_T4_T5:
+                    case WellKnownType.System_Runtime_CompilerServices_ValueTuple_T1_T2_T3_T4_T5_T6:
+                    case WellKnownType.System_Runtime_CompilerServices_ValueTuple_T1_T2_T3_T4_T5_T6_T7:
                         // Not yet in the platform.
                         continue;
                 }
@@ -597,8 +602,38 @@ namespace System
                         // C# can't embed VB core.
                         continue;
                     case WellKnownMember.System_Array__Empty:
-                    case WellKnownMember.System_Runtime_CompilerServices_Tuple_T1_T2__Item1:
-                    case WellKnownMember.System_Runtime_CompilerServices_Tuple_T1_T2__Item2:
+                    case WellKnownMember.System_Runtime_CompilerServices_ValueTuple_T1_T2__Item1:
+                    case WellKnownMember.System_Runtime_CompilerServices_ValueTuple_T1_T2__Item2:
+
+                    case WellKnownMember.System_Runtime_CompilerServices_ValueTuple_T1_T2_T3__Item1:
+                    case WellKnownMember.System_Runtime_CompilerServices_ValueTuple_T1_T2_T3__Item2:
+                    case WellKnownMember.System_Runtime_CompilerServices_ValueTuple_T1_T2_T3__Item3:
+
+                    case WellKnownMember.System_Runtime_CompilerServices_ValueTuple_T1_T2_T3_T4__Item1:
+                    case WellKnownMember.System_Runtime_CompilerServices_ValueTuple_T1_T2_T3_T4__Item2:
+                    case WellKnownMember.System_Runtime_CompilerServices_ValueTuple_T1_T2_T3_T4__Item3:
+                    case WellKnownMember.System_Runtime_CompilerServices_ValueTuple_T1_T2_T3_T4__Item4:
+
+                    case WellKnownMember.System_Runtime_CompilerServices_ValueTuple_T1_T2_T3_T4_T5__Item1:
+                    case WellKnownMember.System_Runtime_CompilerServices_ValueTuple_T1_T2_T3_T4_T5__Item2:
+                    case WellKnownMember.System_Runtime_CompilerServices_ValueTuple_T1_T2_T3_T4_T5__Item3:
+                    case WellKnownMember.System_Runtime_CompilerServices_ValueTuple_T1_T2_T3_T4_T5__Item4:
+                    case WellKnownMember.System_Runtime_CompilerServices_ValueTuple_T1_T2_T3_T4_T5__Item5:
+
+                    case WellKnownMember.System_Runtime_CompilerServices_ValueTuple_T1_T2_T3_T4_T5_T6__Item1:
+                    case WellKnownMember.System_Runtime_CompilerServices_ValueTuple_T1_T2_T3_T4_T5_T6__Item2:
+                    case WellKnownMember.System_Runtime_CompilerServices_ValueTuple_T1_T2_T3_T4_T5_T6__Item3:
+                    case WellKnownMember.System_Runtime_CompilerServices_ValueTuple_T1_T2_T3_T4_T5_T6__Item4:
+                    case WellKnownMember.System_Runtime_CompilerServices_ValueTuple_T1_T2_T3_T4_T5_T6__Item5:
+                    case WellKnownMember.System_Runtime_CompilerServices_ValueTuple_T1_T2_T3_T4_T5_T6__Item6:
+
+                    case WellKnownMember.System_Runtime_CompilerServices_ValueTuple_T1_T2_T3_T4_T5_T6_T7__Item1:
+                    case WellKnownMember.System_Runtime_CompilerServices_ValueTuple_T1_T2_T3_T4_T5_T6_T7__Item2:
+                    case WellKnownMember.System_Runtime_CompilerServices_ValueTuple_T1_T2_T3_T4_T5_T6_T7__Item3:
+                    case WellKnownMember.System_Runtime_CompilerServices_ValueTuple_T1_T2_T3_T4_T5_T6_T7__Item4:
+                    case WellKnownMember.System_Runtime_CompilerServices_ValueTuple_T1_T2_T3_T4_T5_T6_T7__Item5:
+                    case WellKnownMember.System_Runtime_CompilerServices_ValueTuple_T1_T2_T3_T4_T5_T6_T7__Item6:
+                    case WellKnownMember.System_Runtime_CompilerServices_ValueTuple_T1_T2_T3_T4_T5_T6_T7__Item7:
                         // Not available yet, but will be in upcoming release.
                         continue;
                 }
