@@ -7,9 +7,11 @@ using System.Web.Http;
 using Microsoft.VsHub.Server.ServiceModulesCommon;
 using Owin;
 
-namespace Microsoft.CodeAnalysis.HubServices.SymbolSearch
+namespace Microsoft.CodeAnalysis.HubServices
 {
-    internal class SymbolSearchStartup : ServiceStartupBase
+    // Our registry guid is:
+    // {F4F0CA6A-5A28-4985-BD41-E71BF2090BDD}
+    public class Startup : ServiceStartupBase
     {
         protected override void BuildApplication(IAppBuilder app)
         {
@@ -17,8 +19,6 @@ namespace Microsoft.CodeAnalysis.HubServices.SymbolSearch
             var config = new HttpConfiguration();
             config.MapHttpAttributeRoutes();
             app.UseWebApi(config);
-
-            // TODO(cyrusn): Spin up thread to keep databases up to date.
         }
     }
 }

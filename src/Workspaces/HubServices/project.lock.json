@@ -2,11 +2,33 @@
   "locked": false,
   "version": 2,
   "targets": {
-    ".NETFramework,Version=v4.6": {}
+    ".NETFramework,Version=v4.6": {
+      "Microsoft.CodeAnalysis.Elfie/0.10.6-rc2": {
+        "type": "package",
+        "compile": {
+          "lib/net46/Microsoft.CodeAnalysis.Elfie.dll": {}
+        },
+        "runtime": {
+          "lib/net46/Microsoft.CodeAnalysis.Elfie.dll": {}
+        }
+      }
+    }
   },
-  "libraries": {},
+  "libraries": {
+    "Microsoft.CodeAnalysis.Elfie/0.10.6-rc2": {
+      "sha512": "nw8Gelt5AYgv9PLxK3MIB5hPnMoMoC2s73YXwcM3dxxim5yxRdPbzmBy0ddEeUa9zb57qoaDLYpCF8Zajg54Dg==",
+      "type": "package",
+      "files": [
+        "Microsoft.CodeAnalysis.Elfie.0.10.6-rc2.nupkg.sha512",
+        "Microsoft.CodeAnalysis.Elfie.nuspec",
+        "lib/net46/Microsoft.CodeAnalysis.Elfie.dll"
+      ]
+    }
+  },
   "projectFileDependencyGroups": {
-    "": [],
+    "": [
+      "Microsoft.CodeAnalysis.Elfie >= 0.10.6-rc2"
+    ],
     ".NETFramework,Version=v4.6": []
   }
 }

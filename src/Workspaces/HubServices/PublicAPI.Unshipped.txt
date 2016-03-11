@@ -1,0 +1,2 @@
+Microsoft.CodeAnalysis.HubServices.Startup
+override Microsoft.CodeAnalysis.HubServices.Startup.BuildApplication(Owin.IAppBuilder app) -> void

@@ -1,5 +1,7 @@
 {
-    "dependencies": { },
+    "dependencies": {
+        "Microsoft.CodeAnalysis.Elfie": "0.10.6-rc2"
+    },
     "frameworks": {
         "net46": { }
     }
