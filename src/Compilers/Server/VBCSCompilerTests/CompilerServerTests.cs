@@ -224,12 +224,12 @@ End Module")
                 additionalEnvironmentVars: AddForLoggingEnvironmentVars(additionalEnvironmentVars));
         }
 
-        private DisposableFile GetResultFile(TempDirectory directory, string resultFileName)
+        private static DisposableFile GetResultFile(TempDirectory directory, string resultFileName)
         {
             return new DisposableFile(Path.Combine(directory.Path, resultFileName));
         }
 
-        private ProcessResult RunCompilerOutput(TempFile file)
+        private static ProcessResult RunCompilerOutput(TempFile file)
         {
             return ProcessUtilities.Run(file.Path, "", Path.GetDirectoryName(file.Path));
         }
@@ -906,10 +906,8 @@ class Hello
             GC.KeepAlive(rootDirectory);
         }
 
-        private async Task RunCompilationAsync(RequestLanguage language, string pipeName, int i)
+        private async static Task<DisposableFile> RunCompilationAsync(RequestLanguage language, string pipeName, int i, TempDirectory compilationDir)
         {
-            var compilationDir = Temp.CreateDirectory();
-
             TempFile sourceFile;
             string exeFileName;
             string prefix;
@@ -961,9 +959,10 @@ End Module";
             Assert.True(result.RanOnServer);
 
             // Run the EXE and verify it prints the desired output.
-            var exeFile = Temp.AddFile(GetResultFile(compilationDir, exeFileName));
+            var exeFile = GetResultFile(compilationDir, exeFileName);
             var exeResult = RunCompilerOutput(exeFile);
             Assert.Equal($"{prefix} Hello number {i}\r\n", exeResult.Output);
+            return exeFile;
         }
 
         [WorkItem(997372, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/997372")]
@@ -976,17 +975,23 @@ End Module";
             {
                 // Run this many compiles simultaneously in different directories.
                 const int numberOfCompiles = 20;
-                var tasks = new Task[numberOfCompiles];
+                var tasks = new Task<DisposableFile>[numberOfCompiles];
 
                 for (int i = 0; i < numberOfCompiles; ++i)
                 {
                     var language = i % 2 == 0 ? RequestLanguage.CSharpCompile : RequestLanguage.VisualBasicCompile;
-                    tasks[i] = RunCompilationAsync(language, serverData.PipeName, i);
+                    var compilationDir = Temp.CreateDirectory();
+                    tasks[i] = RunCompilationAsync(language, serverData.PipeName, i, compilationDir);
                 }
 
                 await Task.WhenAll(tasks);
 
                 await serverData.Verify(numberOfCompiles, numberOfCompiles);
+
+                foreach (var task in tasks)
+                {
+                    Temp.AddFile(task.Result);
+                }
             }
         }
 

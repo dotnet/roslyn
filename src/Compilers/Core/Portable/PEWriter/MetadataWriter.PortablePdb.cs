@@ -7,6 +7,7 @@ using System.Diagnostics;
 using System.Linq;
 using System.Reflection.Metadata;
 using Microsoft.CodeAnalysis;
+using Roslyn.Utilities;
 
 namespace Microsoft.Cci
 {
@@ -78,7 +79,28 @@ namespace Microsoft.Cci
         private readonly List<CustomDebugInformationRow> _customDebugInformationTable = new List<CustomDebugInformationRow>();
 
         private readonly Dictionary<DebugSourceDocument, int> _documentIndex = new Dictionary<DebugSourceDocument, int>();
-        private readonly Dictionary<IImportScope, int> _scopeIndex = new Dictionary<IImportScope, int>();
+        private readonly Dictionary<IImportScope, int> _scopeIndex = new Dictionary<IImportScope, int>(ImportScopeEqualityComparer.Instance);
+
+        /// <summary>
+        /// Import scopes are associated with binders (in C#) and thus multiple instances might be created for a single set of imports.
+        /// We consider scopes with the same parent and the same imports the same.
+        /// Internal for testing.
+        /// </summary>
+        internal sealed class ImportScopeEqualityComparer : IEqualityComparer<IImportScope>
+        {
+            public static readonly ImportScopeEqualityComparer Instance = new ImportScopeEqualityComparer();
+
+            public bool Equals(IImportScope x, IImportScope y)
+            {
+                return (object)x == y ||
+                       x != null && y != null && Equals(x.Parent, y.Parent) && x.GetUsedNamespaces().SequenceEqual(y.GetUsedNamespaces());
+            }
+
+            public int GetHashCode(IImportScope obj)
+            {
+                return Hash.Combine(Hash.CombineValues(obj.GetUsedNamespaces()), obj.Parent != null ? GetHashCode(obj.Parent) : 0);
+            }
+        }
 
         private void SerializeMethodDebugInfo(IMethodBody bodyOpt, int methodRid, int localSignatureRowId)
         {

@@ -35,12 +35,12 @@ namespace RunTests
             _options = options;
         }
 
-        internal async Task<RunAllResult> RunAllAsync(IEnumerable<string> assemblyList, CancellationToken cancellationToken)
+        internal async Task<RunAllResult> RunAllAsync(IEnumerable<AssemblyInfo> assemblyInfoList, CancellationToken cancellationToken)
         {
-            var max = (int)Environment.ProcessorCount * 1.5;
+            var max = (int)(Environment.ProcessorCount * 1.5);
             var allPassed = true;
             var cacheCount = 0;
-            var waiting = new Stack<string>(assemblyList);
+            var waiting = new Stack<AssemblyInfo>(assemblyInfoList);
             var running = new List<Task<TestResult>>();
             var completed = new List<TestResult>();
 
@@ -111,7 +111,9 @@ namespace RunTests
             foreach (var testResult in testResults)
             {
                 var color = testResult.Succeeded ? Console.ForegroundColor : ConsoleColor.Red;
-                ConsoleUtil.WriteLine(color, "{0,-75} {1} {2}", testResult.AssemblyName, testResult.Succeeded ? "PASSED" : "FAILED", testResult.Elapsed);
+                var message = string.Format("{0,-75} {1} {2}{3}", testResult.DisplayName, testResult.Succeeded ? "PASSED" : "FAILED", testResult.Elapsed, testResult.IsResultFromCache ? "*" : "");
+                ConsoleUtil.WriteLine(color, message);
+                Logger.Log(message);
             }
             Console.WriteLine("================");
         }
@@ -120,14 +122,15 @@ namespace RunTests
         {
             // Save out the error output for easy artifact inspecting
             var resultsDir = testResult.ResultDir;
-            var outputLogPath = Path.Combine(resultsDir, $"{testResult.AssemblyName}.out.log");
+            var outputLogPath = Path.Combine(resultsDir, $"{testResult.DisplayName}.out.log");
             File.WriteAllText(outputLogPath, testResult.StandardOutput);
 
             Console.WriteLine("Errors {0}: ", testResult.AssemblyName);
             Console.WriteLine(testResult.ErrorOutput);
 
+            // TODO: Put this in the log and take it off the console output to keep it simple? 
             Console.WriteLine($"Command: {testResult.CommandLine}");
-            Console.WriteLine($"xUnit output: {outputLogPath}");
+            Console.WriteLine($"xUnit output log: {outputLogPath}");
 
             if (!string.IsNullOrEmpty(testResult.ErrorOutput))
             {

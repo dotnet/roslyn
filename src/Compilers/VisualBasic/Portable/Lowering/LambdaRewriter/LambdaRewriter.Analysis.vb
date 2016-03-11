@@ -130,7 +130,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End Sub
 
             ''' <summary>
-            ''' Analyses method body that belongs to the given method symbol.
+            ''' Analyzes method body that belongs to the given method symbol.
             ''' </summary>
             Public Shared Function AnalyzeMethodBody(node As BoundBlock, method As MethodSymbol, symbolsCapturedWithoutCtor As ISet(Of Symbol), diagnostics As DiagnosticBag) As Analysis
                 Debug.Assert(Not node.HasErrors)

@@ -37,6 +37,11 @@
       <Project>{fa0e905d-ec46-466d-b7b2-3b5557f9428c}</Project>
       <Name>ResultProvider.Portable</Name>
     </ProjectReference>
+    <ProjectReference Include="..\..\..\..\..\Tools\Source\CompilerGeneratorTools\Source\VisualBasicSyntaxGenerator\VisualBasicSyntaxGenerator.vbproj">
+      <Project>{6AA96934-D6B7-4CC8-990D-DB6B9DD56E34}</Project>
+      <Name>VisualBasicSyntaxGenerator</Name>
+      <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
+    </ProjectReference>
   </ItemGroup>
   <ItemGroup Label="Linked Files">
     <Compile Include="..\..\..\..\..\Compilers\VisualBasic\Portable\Scanner\CharacterInfo.vb">

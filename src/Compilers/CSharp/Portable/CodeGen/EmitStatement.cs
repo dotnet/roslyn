@@ -5,12 +5,9 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
-using System.Reflection.Metadata;
 using Microsoft.CodeAnalysis.CodeGen;
-using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
-using Microsoft.CodeAnalysis.Symbols;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
@@ -1029,6 +1026,12 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
 
         private void EmitSwitchStatement(BoundSwitchStatement switchStatement)
         {
+            var preambleOpt = switchStatement.LoweredPreambleOpt;
+            if (preambleOpt != null)
+            {
+                EmitStatement(preambleOpt);
+            }
+
             // Switch expression must have a valid switch governing type
             Debug.Assert((object)switchStatement.Expression.Type != null);
             Debug.Assert(switchStatement.Expression.Type.IsValidSwitchGoverningType());
@@ -1570,11 +1573,12 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
             public override BoundNode VisitSwitchStatement(BoundSwitchStatement node)
             {
                 var breakLabelClone = GetLabelClone(node.BreakLabel);
+                var preambleOpt = (BoundStatement)this.Visit(node.LoweredPreambleOpt);
 
                 // expressions do not contain labels or branches
                 BoundExpression boundExpression = node.Expression;
                 ImmutableArray<BoundSwitchSection> switchSections = (ImmutableArray<BoundSwitchSection>)this.VisitList(node.SwitchSections);
-                return node.Update(boundExpression, node.ConstantTargetOpt, node.InnerLocals, node.InnerLocalFunctions, switchSections, breakLabelClone, node.StringEquality);
+                return node.Update(preambleOpt, boundExpression, node.ConstantTargetOpt, node.InnerLocals, node.InnerLocalFunctions, switchSections, breakLabelClone, node.StringEquality);
             }
 
             public override BoundNode VisitSwitchLabel(BoundSwitchLabel node)
