@@ -120,7 +120,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV1
             }
         }
 
-        private CompilationWithAnalyzers GetCompilationWithAnalyzers(Compilation compilation)
+        private CompilationWithAnalyzers GetCompilationWithAnalyzers(Compilation compilation, IEnumerable<DiagnosticAnalyzer> analyzers)
         {
             Contract.ThrowIfFalse(_project.SupportsCompilation);
 
@@ -128,14 +128,14 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV1
             {
                 Interlocked.CompareExchange(
                     ref _lazyCompilationWithAnalyzers,
-                    _owner.GetCompilationWithAnalyzers(_project, compilation, _concurrentAnalysis, _reportSuppressedDiagnostics),
+                    _owner.GetCompilationWithAnalyzers(_project, analyzers, compilation, _concurrentAnalysis, _reportSuppressedDiagnostics),
                     null);
             }
 
             return _lazyCompilationWithAnalyzers;
         }
 
-        public async Task<ImmutableArray<Diagnostic>> GetSyntaxDiagnosticsAsync(DiagnosticAnalyzer analyzer)
+        public async Task<ImmutableArray<Diagnostic>> GetSyntaxDiagnosticsAsync(IEnumerable<DiagnosticAnalyzer> analyzers, DiagnosticAnalyzer analyzer)
         {
             try
             {
@@ -169,7 +169,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV1
                     return ImmutableArray<Diagnostic>.Empty;
                 }
 
-                var compilationWithAnalyzers = GetCompilationWithAnalyzers(compilation);
+                var compilationWithAnalyzers = GetCompilationWithAnalyzers(compilation, analyzers);
                 var syntaxDiagnostics = await compilationWithAnalyzers.GetAnalyzerSyntaxDiagnosticsAsync(_root.SyntaxTree, ImmutableArray.Create(analyzer), _cancellationToken).ConfigureAwait(false);
                 await UpdateAnalyzerTelemetryDataAsync(analyzer, compilationWithAnalyzers).ConfigureAwait(false);
                 return GetFilteredDocumentDiagnostics(syntaxDiagnostics, compilation, onlyLocationFiltering: true).ToImmutableArray();
@@ -214,7 +214,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV1
             onAnalyzerException(ex, analyzer, exceptionDiagnostic);
         }
 
-        public async Task<ImmutableArray<Diagnostic>> GetSemanticDiagnosticsAsync(DiagnosticAnalyzer analyzer)
+        public async Task<ImmutableArray<Diagnostic>> GetSemanticDiagnosticsAsync(IEnumerable<DiagnosticAnalyzer> analyzers, DiagnosticAnalyzer analyzer)
         {
             try
             {
@@ -250,7 +250,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV1
                     return ImmutableArray<Diagnostic>.Empty;
                 }
 
-                var compilationWithAnalyzers = GetCompilationWithAnalyzers(compilation);
+                var compilationWithAnalyzers = GetCompilationWithAnalyzers(compilation, analyzers);
                 var semanticDiagnostics = await compilationWithAnalyzers.GetAnalyzerSemanticDiagnosticsAsync(model, _span, ImmutableArray.Create(analyzer), _cancellationToken).ConfigureAwait(false);
                 await UpdateAnalyzerTelemetryDataAsync(analyzer, compilationWithAnalyzers).ConfigureAwait(false);
                 return semanticDiagnostics;
@@ -261,7 +261,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV1
             }
         }
 
-        public async Task<ImmutableArray<Diagnostic>> GetProjectDiagnosticsAsync(DiagnosticAnalyzer analyzer)
+        public async Task<ImmutableArray<Diagnostic>> GetProjectDiagnosticsAsync(IEnumerable<DiagnosticAnalyzer> analyzers, DiagnosticAnalyzer analyzer)
         {
             try
             {
@@ -272,7 +272,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV1
                 {
                     if (_project.SupportsCompilation)
                     {
-                        await this.GetCompilationDiagnosticsAsync(analyzer, diagnostics.Object).ConfigureAwait(false);
+                        await this.GetCompilationDiagnosticsAsync(analyzers, analyzer, diagnostics.Object).ConfigureAwait(false);
                     }
 
                     await this.GetProjectDiagnosticsWorkerAsync(analyzer, diagnostics.Object).ConfigureAwait(false);
@@ -312,14 +312,14 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV1
             }
         }
 
-        private async Task GetCompilationDiagnosticsAsync(DiagnosticAnalyzer analyzer, List<Diagnostic> diagnostics)
+        private async Task GetCompilationDiagnosticsAsync(IEnumerable<DiagnosticAnalyzer> analyzers, DiagnosticAnalyzer analyzer, List<Diagnostic> diagnostics)
         {
             try
             {
                 Contract.ThrowIfFalse(_project.SupportsCompilation);
 
                 var compilation = await _project.GetCompilationAsync(_cancellationToken).ConfigureAwait(false);
-                var compilationWithAnalyzers = GetCompilationWithAnalyzers(compilation);
+                var compilationWithAnalyzers = GetCompilationWithAnalyzers(compilation, analyzers);
                 var compilationDiagnostics = await compilationWithAnalyzers.GetAnalyzerCompilationDiagnosticsAsync(ImmutableArray.Create(analyzer), _cancellationToken).ConfigureAwait(false);
                 await UpdateAnalyzerTelemetryDataAsync(analyzer, compilationWithAnalyzers).ConfigureAwait(false);
                 diagnostics.AddRange(compilationDiagnostics);

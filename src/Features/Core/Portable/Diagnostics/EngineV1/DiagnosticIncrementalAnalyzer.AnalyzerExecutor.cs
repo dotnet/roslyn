@@ -1,6 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
+using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Threading;
@@ -28,7 +29,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV1
                 _owner = owner;
             }
 
-            public async Task<AnalysisData> GetSyntaxAnalysisDataAsync(DiagnosticAnalyzerDriver analyzerDriver, StateSet stateSet, VersionArgument versions)
+            public async Task<AnalysisData> GetSyntaxAnalysisDataAsync(DiagnosticAnalyzerDriver analyzerDriver, IEnumerable<DiagnosticAnalyzer> analyzers, StateSet stateSet, VersionArgument versions)
             {
                 try
                 {
@@ -43,7 +44,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV1
                         return existingData;
                     }
 
-                    var diagnosticData = await GetSyntaxDiagnosticsAsync(analyzerDriver, stateSet.Analyzer).ConfigureAwait(false);
+                    var diagnosticData = await GetSyntaxDiagnosticsAsync(analyzerDriver, analyzers, stateSet.Analyzer).ConfigureAwait(false);
                     return new AnalysisData(versions.TextVersion, versions.DataVersion, GetExistingItems(existingData), diagnosticData.AsImmutableOrEmpty());
                 }
                 catch (Exception e) when (FatalError.ReportUnlessCanceled(e))
@@ -52,7 +53,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV1
                 }
             }
 
-            public async Task<AnalysisData> GetDocumentAnalysisDataAsync(DiagnosticAnalyzerDriver analyzerDriver, StateSet stateSet, VersionArgument versions)
+            public async Task<AnalysisData> GetDocumentAnalysisDataAsync(DiagnosticAnalyzerDriver analyzerDriver, IEnumerable<DiagnosticAnalyzer> analyzers, StateSet stateSet, VersionArgument versions)
             {
                 try
                 {
@@ -67,7 +68,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV1
                         return existingData;
                     }
 
-                    var diagnosticData = await GetSemanticDiagnosticsAsync(analyzerDriver, stateSet.Analyzer).ConfigureAwait(false);
+                    var diagnosticData = await GetSemanticDiagnosticsAsync(analyzerDriver, analyzers, stateSet.Analyzer).ConfigureAwait(false);
                     return new AnalysisData(versions.TextVersion, versions.DataVersion, GetExistingItems(existingData), diagnosticData.AsImmutableOrEmpty());
                 }
                 catch (Exception e) when (FatalError.ReportUnlessCanceled(e))
@@ -77,7 +78,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV1
             }
 
             public async Task<AnalysisData> GetDocumentBodyAnalysisDataAsync(
-                StateSet stateSet, VersionArgument versions, DiagnosticAnalyzerDriver analyzerDriver,
+                StateSet stateSet, VersionArgument versions, DiagnosticAnalyzerDriver analyzerDriver, IEnumerable<DiagnosticAnalyzer> analyzers,
                 SyntaxNode root, SyntaxNode member, int memberId, bool supportsSemanticInSpan, MemberRangeMap.MemberRanges ranges)
             {
                 try
@@ -91,7 +92,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV1
                     ImmutableArray<DiagnosticData> diagnosticData;
                     if (supportsSemanticInSpan && CanUseRange(memberId, ranges.Ranges) && CanUseDocumentState(existingData, ranges.TextVersion, versions.DataVersion))
                     {
-                        var memberDxData = await GetSemanticDiagnosticsAsync(analyzerDriver, stateSet.Analyzer).ConfigureAwait(false);
+                        var memberDxData = await GetSemanticDiagnosticsAsync(analyzerDriver, analyzers, stateSet.Analyzer).ConfigureAwait(false);
 
                         diagnosticData = _owner.UpdateDocumentDiagnostics(existingData, ranges.Ranges, memberDxData.AsImmutableOrEmpty(), root.SyntaxTree, member, memberId);
                         ValidateMemberDiagnostics(stateSet.Analyzer, document, root, diagnosticData);
@@ -99,7 +100,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV1
                     else
                     {
                         // if we can't re-use existing document state, only option we have is updating whole document state here.
-                        var dx = await GetSemanticDiagnosticsAsync(analyzerDriver, stateSet.Analyzer).ConfigureAwait(false);
+                        var dx = await GetSemanticDiagnosticsAsync(analyzerDriver, analyzers, stateSet.Analyzer).ConfigureAwait(false);
                         diagnosticData = dx.AsImmutableOrEmpty();
                     }
                     return new AnalysisData(versions.TextVersion, versions.DataVersion, GetExistingItems(existingData), diagnosticData);
@@ -116,7 +117,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV1
                 return memberId >= 0 && memberId < ranges.Length;
             }
 
-            public async Task<AnalysisData> GetProjectAnalysisDataAsync(DiagnosticAnalyzerDriver analyzerDriver, StateSet stateSet, VersionArgument versions)
+            public async Task<AnalysisData> GetProjectAnalysisDataAsync(DiagnosticAnalyzerDriver analyzerDriver, IEnumerable<DiagnosticAnalyzer> analyzers, StateSet stateSet, VersionArgument versions)
             {
                 try
                 {
@@ -131,7 +132,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV1
                         return existingData;
                     }
 
-                    var diagnosticData = await GetProjectDiagnosticsAsync(analyzerDriver, stateSet.Analyzer).ConfigureAwait(false);
+                    var diagnosticData = await GetProjectDiagnosticsAsync(analyzerDriver, analyzers, stateSet.Analyzer).ConfigureAwait(false);
                     return new AnalysisData(versions.TextVersion, versions.DataVersion, GetExistingItems(existingData), diagnosticData.AsImmutableOrEmpty());
                 }
                 catch (Exception e) when (FatalError.ReportUnlessCanceled(e))

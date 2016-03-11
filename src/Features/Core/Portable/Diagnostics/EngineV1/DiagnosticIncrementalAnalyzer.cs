@@ -156,7 +156,12 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV1
             return false;
         }
 
-        internal CompilationWithAnalyzers GetCompilationWithAnalyzers(Project project, Compilation compilation, bool concurrentAnalysis, bool reportSuppressedDiagnostics)
+        internal CompilationWithAnalyzers GetCompilationWithAnalyzers(
+            Project project,
+            IEnumerable<DiagnosticAnalyzer> analyzers,
+            Compilation compilation,
+            bool concurrentAnalysis,
+            bool reportSuppressedDiagnostics)
         {
             Contract.ThrowIfFalse(project.SupportsCompilation);
             Contract.ThrowIfNull(compilation);
@@ -180,7 +185,6 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV1
                 logAnalyzerExecutionTime: true,
                 reportSuppressedDiagnostics: reportSuppressedDiagnostics);
 
-            var analyzers = _stateManager.GetAnalyzers(project);
             var filteredAnalyzers = analyzers
                 .Where(a => !CompilationWithAnalyzers.IsDiagnosticAnalyzerSuppressed(a, compilation.Options, analysisOptions.OnAnalyzerException))
                 .Distinct()
@@ -217,7 +221,10 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV1
                 var userDiagnosticDriver = new DiagnosticAnalyzerDriver(document, fullSpan, root, this, ConcurrentAnalysis, ReportSuppressedDiagnostics, cancellationToken);
                 var openedDocument = document.IsOpen();
 
-                foreach (var stateSet in _stateManager.GetOrUpdateStateSets(document.Project))
+                var stateSets = _stateManager.GetOrUpdateStateSets(document.Project);
+                var analyzers = stateSets.Select(s => s.Analyzer);
+
+                foreach (var stateSet in stateSets)
                 {
                     if (await SkipRunningAnalyzerAsync(document.Project, stateSet.Analyzer, openedDocument, skipClosedFileCheck: false, cancellationToken: cancellationToken).ConfigureAwait(false))
                     {
@@ -227,7 +234,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV1
 
                     if (ShouldRunAnalyzerForStateType(stateSet.Analyzer, StateType.Syntax, diagnosticIds))
                     {
-                        var data = await _executor.GetSyntaxAnalysisDataAsync(userDiagnosticDriver, stateSet, versions).ConfigureAwait(false);
+                        var data = await _executor.GetSyntaxAnalysisDataAsync(userDiagnosticDriver, analyzers, stateSet, versions).ConfigureAwait(false);
                         if (data.FromCache)
                         {
                             RaiseDiagnosticsCreatedFromCacheIfNeeded(StateType.Syntax, document, stateSet, data.Items);
@@ -294,7 +301,10 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV1
                 var spanBasedDriver = new DiagnosticAnalyzerDriver(document, member.FullSpan, root, this, ConcurrentAnalysis, ReportSuppressedDiagnostics, cancellationToken);
                 var documentBasedDriver = new DiagnosticAnalyzerDriver(document, root.FullSpan, root, this, ConcurrentAnalysis, ReportSuppressedDiagnostics, cancellationToken);
 
-                foreach (var stateSet in _stateManager.GetOrUpdateStateSets(document.Project))
+                var stateSets = _stateManager.GetOrUpdateStateSets(document.Project);
+                var analyzers = stateSets.Select(s => s.Analyzer);
+
+                foreach (var stateSet in stateSets)
                 {
                     if (Owner.IsAnalyzerSuppressed(stateSet.Analyzer, document.Project))
                     {
@@ -309,7 +319,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV1
 
                         var ranges = _memberRangeMap.GetSavedMemberRange(stateSet.Analyzer, document);
                         var data = await _executor.GetDocumentBodyAnalysisDataAsync(
-                            stateSet, versions, userDiagnosticDriver, root, member, memberId, supportsSemanticInSpan, ranges).ConfigureAwait(false);
+                            stateSet, versions, userDiagnosticDriver, analyzers, root, member, memberId, supportsSemanticInSpan, ranges).ConfigureAwait(false);
 
                         _memberRangeMap.UpdateMemberRange(stateSet.Analyzer, document, versions.TextVersion, memberId, member.FullSpan, ranges);
 
@@ -342,7 +352,10 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV1
                 var userDiagnosticDriver = new DiagnosticAnalyzerDriver(document, fullSpan, root, this, ConcurrentAnalysis, ReportSuppressedDiagnostics, cancellationToken);
                 bool openedDocument = document.IsOpen();
 
-                foreach (var stateSet in _stateManager.GetOrUpdateStateSets(document.Project))
+                var stateSets = _stateManager.GetOrUpdateStateSets(document.Project);
+                var analyzers = stateSets.Select(s => s.Analyzer);
+
+                foreach (var stateSet in stateSets)
                 {
                     if (await SkipRunningAnalyzerAsync(document.Project, stateSet.Analyzer, openedDocument, skipClosedFileCheck: false, cancellationToken: cancellationToken).ConfigureAwait(false))
                     {
@@ -352,7 +365,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV1
 
                     if (ShouldRunAnalyzerForStateType(stateSet.Analyzer, StateType.Document, diagnosticIds))
                     {
-                        var data = await _executor.GetDocumentAnalysisDataAsync(userDiagnosticDriver, stateSet, versions).ConfigureAwait(false);
+                        var data = await _executor.GetDocumentAnalysisDataAsync(userDiagnosticDriver, analyzers, stateSet, versions).ConfigureAwait(false);
                         if (data.FromCache)
                         {
                             RaiseDiagnosticsCreatedFromCacheIfNeeded(StateType.Document, document, stateSet, data.Items);
@@ -397,7 +410,11 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV1
                 var analyzerDriver = new DiagnosticAnalyzerDriver(project, this, ConcurrentAnalysis, ReportSuppressedDiagnostics, cancellationToken);
 
                 var versions = new VersionArgument(projectTextVersion, semanticVersion, projectVersion);
-                foreach (var stateSet in _stateManager.GetOrUpdateStateSets(project))
+
+                var stateSets = _stateManager.GetOrUpdateStateSets(project);
+                var analyzers = stateSets.Select(s => s.Analyzer);
+
+                foreach (var stateSet in stateSets)
                 {
                     // Compilation actions can report diagnostics on open files, so we skipClosedFileChecks.
                     if (await SkipRunningAnalyzerAsync(project, stateSet.Analyzer, openedDocument: false, skipClosedFileCheck: true, cancellationToken: cancellationToken).ConfigureAwait(false))
@@ -408,7 +425,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV1
 
                     if (ShouldRunAnalyzerForStateType(stateSet.Analyzer, StateType.Project, diagnosticIds: null))
                     {
-                        var data = await _executor.GetProjectAnalysisDataAsync(analyzerDriver, stateSet, versions).ConfigureAwait(false);
+                        var data = await _executor.GetProjectAnalysisDataAsync(analyzerDriver, analyzers, stateSet, versions).ConfigureAwait(false);
                         if (data.FromCache)
                         {
                             RaiseProjectDiagnosticsUpdatedIfNeeded(project, stateSet, ImmutableArray<DiagnosticData>.Empty, data.Items);
@@ -558,7 +575,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV1
 
             return getter.Diagnostics;
         }
-        
+
         public override bool ContainsDiagnostics(Workspace workspace, ProjectId projectId)
         {
             // need to improve perf in v2.
@@ -1003,7 +1020,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV1
             }
         }
 
-        private static async Task<IEnumerable<DiagnosticData>> GetSyntaxDiagnosticsAsync(DiagnosticAnalyzerDriver userDiagnosticDriver, DiagnosticAnalyzer analyzer)
+        private static async Task<IEnumerable<DiagnosticData>> GetSyntaxDiagnosticsAsync(DiagnosticAnalyzerDriver userDiagnosticDriver, IEnumerable<DiagnosticAnalyzer> analyzers, DiagnosticAnalyzer analyzer)
         {
             using (Logger.LogBlock(FunctionId.Diagnostics_SyntaxDiagnostic, GetSyntaxLogMessage, userDiagnosticDriver.Document, userDiagnosticDriver.Span, analyzer, userDiagnosticDriver.CancellationToken))
             {
@@ -1012,7 +1029,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV1
                     Contract.ThrowIfNull(analyzer);
 
                     var tree = await userDiagnosticDriver.Document.GetSyntaxTreeAsync(userDiagnosticDriver.CancellationToken).ConfigureAwait(false);
-                    var diagnostics = await userDiagnosticDriver.GetSyntaxDiagnosticsAsync(analyzer).ConfigureAwait(false);
+                    var diagnostics = await userDiagnosticDriver.GetSyntaxDiagnosticsAsync(analyzers, analyzer).ConfigureAwait(false);
                     return GetDiagnosticData(userDiagnosticDriver.Document, tree, userDiagnosticDriver.Span, diagnostics);
                 }
                 catch (Exception e) when (FatalError.ReportUnlessCanceled(e))
@@ -1022,7 +1039,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV1
             }
         }
 
-        private static async Task<IEnumerable<DiagnosticData>> GetSemanticDiagnosticsAsync(DiagnosticAnalyzerDriver userDiagnosticDriver, DiagnosticAnalyzer analyzer)
+        private static async Task<IEnumerable<DiagnosticData>> GetSemanticDiagnosticsAsync(DiagnosticAnalyzerDriver userDiagnosticDriver, IEnumerable<DiagnosticAnalyzer> analyzers, DiagnosticAnalyzer analyzer)
         {
             using (Logger.LogBlock(FunctionId.Diagnostics_SemanticDiagnostic, GetSemanticLogMessage, userDiagnosticDriver.Document, userDiagnosticDriver.Span, analyzer, userDiagnosticDriver.CancellationToken))
             {
@@ -1031,7 +1048,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV1
                     Contract.ThrowIfNull(analyzer);
 
                     var tree = await userDiagnosticDriver.Document.GetSyntaxTreeAsync(userDiagnosticDriver.CancellationToken).ConfigureAwait(false);
-                    var diagnostics = await userDiagnosticDriver.GetSemanticDiagnosticsAsync(analyzer).ConfigureAwait(false);
+                    var diagnostics = await userDiagnosticDriver.GetSemanticDiagnosticsAsync(analyzers, analyzer).ConfigureAwait(false);
                     return GetDiagnosticData(userDiagnosticDriver.Document, tree, userDiagnosticDriver.Span, diagnostics);
                 }
                 catch (Exception e) when (FatalError.ReportUnlessCanceled(e))
@@ -1041,7 +1058,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV1
             }
         }
 
-        private static async Task<IEnumerable<DiagnosticData>> GetProjectDiagnosticsAsync(DiagnosticAnalyzerDriver userDiagnosticDriver, DiagnosticAnalyzer analyzer)
+        private static async Task<IEnumerable<DiagnosticData>> GetProjectDiagnosticsAsync(DiagnosticAnalyzerDriver userDiagnosticDriver, IEnumerable<DiagnosticAnalyzer> analyzers, DiagnosticAnalyzer analyzer)
         {
             using (Logger.LogBlock(FunctionId.Diagnostics_ProjectDiagnostic, GetProjectLogMessage, userDiagnosticDriver.Project, analyzer, userDiagnosticDriver.CancellationToken))
             {
@@ -1049,7 +1066,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV1
                 {
                     Contract.ThrowIfNull(analyzer);
 
-                    var diagnostics = await userDiagnosticDriver.GetProjectDiagnosticsAsync(analyzer).ConfigureAwait(false);
+                    var diagnostics = await userDiagnosticDriver.GetProjectDiagnosticsAsync(analyzers, analyzer).ConfigureAwait(false);
                     return GetDiagnosticData(userDiagnosticDriver.Project, diagnostics);
                 }
                 catch (Exception e) when (FatalError.ReportUnlessCanceled(e))
