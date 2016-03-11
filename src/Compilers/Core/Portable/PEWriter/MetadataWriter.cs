@@ -4572,6 +4572,13 @@ namespace Microsoft.Cci
                     case OperandType.InlineMethod:
                     case OperandType.InlineTok:
                     case OperandType.InlineType:
+                        // Replace all occurrences of the LoadMethodTokenAsInteger_i4 pseudo-opcode with Ldc_i4.
+                        // This is a trick to enable loading metadata token values as integers.
+                        if (methodBodyIL[offset-1] == (byte)ILOpCode.LoadMethodTokenAsInteger_i4)
+                        {
+                            writer.Offset = offset - 1;
+                            writer.WriteByte((byte)ILOpCode.Ldc_i4);
+                        }
                         writer.Offset = offset;
                         writer.WriteInt32(ResolveSymbolTokenFromPseudoSymbolToken(ReadInt32(methodBodyIL, offset)));
                         offset += 4;

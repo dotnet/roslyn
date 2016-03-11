@@ -262,7 +262,7 @@ namespace Microsoft.Cci
             0,
             0,
             0,
-            0,
+            (byte)OperandType.InlineTok,            // LoadMethodTokenAsInteger_i4
             0,
             0,
             0,

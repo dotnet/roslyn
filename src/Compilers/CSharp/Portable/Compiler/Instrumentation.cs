@@ -41,12 +41,13 @@ namespace Microsoft.CodeAnalysis.CSharp
                     // Synthesize the initialization of the instrumentation payload array. It should be done either statically or with concurrency-safe code:
                     //
                     // if (payloadField == null)
-                    //     Instrumentation.CreatePayload(type, method, ref payloadField, payloadLength);
+                    //     Instrumentation.CreatePayload(mvid, method, ref payloadField, payloadLength);
 
-                    // The method information is probably better expressed as a method token rather than as a MethodImfo -- figure out how to emit such a thing.
-                    BoundExpression typeInformation = factory.TypeofBeforeRewriting(method.ContainingType);
-                    BoundExpression methodInformation = factory.MethodToken(method);
-                    BoundStatement createPayloadCall = factory.ExpressionStatement(factory.Call(null, createPayload, typeInformation, methodInformation, factory.Field(null, payloadField), factory.Literal(dynamicAnalysisSpans.Length)));
+                    // ToDo: The containing module's mvid should be computed statically and stored in a static field rather than being
+                    // recomputed in each method prologue.
+                    BoundExpression mvid = factory.Property(factory.Property(factory.TypeofBeforeRewriting(method.ContainingType), "Module"), "ModuleVersionId");
+                    BoundExpression methodToken = factory.MethodToken(method);
+                    BoundStatement createPayloadCall = factory.ExpressionStatement(factory.Call(null, createPayload, mvid, methodToken, factory.Field(null, payloadField), factory.Literal(dynamicAnalysisSpans.Length)));
 
                     BoundExpression payloadNullTest = factory.Binary(BinaryOperatorKind.ObjectEqual, boolType, factory.Field(null, payloadField), factory.Null(payloadType));
                     BoundStatement payloadIf = factory.If(payloadNullTest, createPayloadCall);
@@ -100,7 +101,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     {
                         MethodSymbol createPayload = createPayloads[0] as MethodSymbol;
                         // Add checks for parameter types.
-                        if (createPayload != null && createPayload.IsStatic && createPayload.ParameterCount == 4 && createPayload.Parameters[0].Name == "type" && createPayload.Parameters[1].Name == "methodToken" && createPayload.Parameters[2].Name == "payload" && createPayload.Parameters[3].Name == "payloadLength")
+                        if (createPayload != null && createPayload.IsStatic && createPayload.ParameterCount == 4 && createPayload.Parameters[0].Name == "mvid" && createPayload.Parameters[1].Name == "methodToken" && createPayload.Parameters[2].Name == "payload" && createPayload.Parameters[3].Name == "payloadLength")
                         {
                             _createPayload = createPayload;
                         }

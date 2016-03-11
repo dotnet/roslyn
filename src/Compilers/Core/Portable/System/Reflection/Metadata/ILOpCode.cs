@@ -204,6 +204,9 @@ namespace Microsoft.CodeAnalysis.CodeGen
         Leave_s = 0xde,
         Stind_i = 0xdf,
         Conv_u = 0xe0,
+        // LoadMethodTokenAsInteger_i4 is a pseudo-opcode used to trick the metadata writer into putting a method token value into a ldc_i4.
+        // Its value must fit in one byte (because it will be overwritten with Ldc_i4) and must not collide with a real opcode.
+        LoadMethodTokenAsInteger_i4 = 0xef,
         Arglist = 0xfe00,
         Ceq = 0xfe01,
         Cgt = 0xfe02,

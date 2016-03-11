@@ -359,6 +359,7 @@ namespace Microsoft.CodeAnalysis.CodeGen
                 case ILOpCode.Ldc_i8:
                 case ILOpCode.Ldc_r4:
                 case ILOpCode.Ldc_r8:
+                case ILOpCode.LoadMethodTokenAsInteger_i4:
                     return 0;
                 case ILOpCode.Dup:
                 case ILOpCode.Pop:
@@ -643,6 +644,7 @@ namespace Microsoft.CodeAnalysis.CodeGen
                 case ILOpCode.Ldc_i8:
                 case ILOpCode.Ldc_r4:
                 case ILOpCode.Ldc_r8:
+                case ILOpCode.LoadMethodTokenAsInteger_i4:
                     return 1;
                 case ILOpCode.Dup:
                     return 2;

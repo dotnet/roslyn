@@ -59,12 +59,11 @@ namespace Microsoft.CodeAnalysis.Runtime
 {
     public class Instrumentation
     {
-        public static void CreatePayload(System.Type type, int methodToken, ref bool[] payload, int payloadLength)
+        public static void CreatePayload(System.Guid mvid, int methodToken, ref bool[] payload, int payloadLength)
         {
             if (System.Threading.Interlocked.CompareExchange(ref payload, new bool[payloadLength], null) == null)
             {
-                Console.WriteLine(type.Name);
-                Console.WriteLine(methodToken);
+                Console.WriteLine(methodToken & 0xffffff);
                     foreach (bool b in payload)
                         Console.WriteLine(b);
             }
@@ -72,8 +71,7 @@ namespace Microsoft.CodeAnalysis.Runtime
     }
 }
 ";
-            string expectedOutput = @"Program
-5
+            string expectedOutput = @"1
 False
 False
 False
@@ -83,22 +81,18 @@ False
 False
 foo
 bar
-Program
-12
+2
 False
 False
-Program
-16
+3
 False
 False
 False
 False
 False
-Program
-18
+5
 False
-Program
-19
+4
 False
 False
 ";
