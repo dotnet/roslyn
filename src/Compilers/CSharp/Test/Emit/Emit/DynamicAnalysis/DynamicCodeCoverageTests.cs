@@ -28,6 +28,12 @@ public class Program
         goto bar;
         Console.Write(""you won't see me"");
         bar: Console.WriteLine(""bar"");
+        Fred();
+        return;
+    }
+
+    static void Fred()
+    {
         return;
     }
 }
@@ -36,20 +42,20 @@ namespace Microsoft.CodeAnalysis.Runtime
 {
     public class Instrumentation
     {
-        public static void AddPayload(System.Reflection.MethodInfo method, bool[] payload)
+        public static void CreatePayload(System.Type type, System.RuntimeMethodHandle methodToken, ref bool[] payload, int payloadLength)
         {
-            Console.WriteLine(method.Name);
-            foreach (bool b in payload)
-                Console.WriteLine(b);
+            if (System.Threading.Interlocked.CompareExchange(ref payload, new bool[payloadLength], null) == null)
+            {
+                Console.WriteLine(type.Name);
+                Console.WriteLine(methodToken.Value);
+                    foreach (bool b in payload)
+                        Console.WriteLine(b);
+            }
         }
     }
 }
 ";
-            string expectedOutput = @"AddPayload
-True
-True
-True
-True
+            string expectedOutput = @"Program
 Main
 False
 False

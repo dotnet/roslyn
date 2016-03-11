@@ -952,6 +952,15 @@ namespace Microsoft.CodeAnalysis.CSharp
             { WasCompilerGenerated = true };
         }
 
+        public BoundExpression TypeofBeforeRewriting(TypeSymbol type)
+        {
+            return new BoundTypeOfOperator(
+                Syntax,
+                Type(type),
+                null,
+                WellKnownType(CodeAnalysis.WellKnownType.System_Type))
+            { WasCompilerGenerated = true };
+        }
 
         public ImmutableArray<BoundExpression> TypeOfs(ImmutableArray<TypeSymbol> typeArguments)
         {
@@ -975,6 +984,15 @@ namespace Microsoft.CodeAnalysis.CSharp
                 ctor,
                 GetMethodFromHandleMethod(ctor.ContainingType),
                 WellKnownType(Microsoft.CodeAnalysis.WellKnownType.System_Reflection_ConstructorInfo))
+            { WasCompilerGenerated = true };
+        }
+
+        public BoundExpression MethodToken(MethodSymbol method)
+        {
+            return new BoundMethodToken(
+                Syntax,
+                method,
+                WellKnownType(Microsoft.CodeAnalysis.WellKnownType.System_RuntimeMethodHandle))
             { WasCompilerGenerated = true };
         }
 

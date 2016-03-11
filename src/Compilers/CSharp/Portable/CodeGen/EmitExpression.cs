@@ -210,6 +210,13 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
                     }
                     break;
 
+                case BoundKind.MethodToken:
+                    if (used)
+                    {
+                        EmitMethodTokenExpression((BoundMethodToken)expression);
+                    }
+                    break;
+
                 case BoundKind.MethodInfo:
                     if (used)
                     {
@@ -2643,6 +2650,12 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
             TypeSymbol type = boundSizeOfOperator.SourceType.Type;
             _builder.EmitOpCode(ILOpCode.Sizeof);
             EmitSymbolToken(type, boundSizeOfOperator.SourceType.Syntax);
+        }
+
+        private void EmitMethodTokenExpression(BoundMethodToken node)
+        {
+            _builder.EmitOpCode(ILOpCode.Ldtoken);
+            EmitSymbolToken(node.Method, node.Syntax, null);
         }
 
         private void EmitMethodInfoExpression(BoundMethodInfo node)
