@@ -279,7 +279,6 @@ namespace Microsoft.CodeAnalysis.CompilerServer
 
                 var connectionData = current.Result;
                 ChangeKeepAlive(connectionData.KeepAlive);
-                Console.WriteLine($"Completion Reason: {connectionData.CompletionReason}");
 
                 switch (connectionData.CompletionReason)
                 {
@@ -344,7 +343,6 @@ namespace Microsoft.CodeAnalysis.CompilerServer
                 // Unable to establish a connection with the client.  The client is responsible for
                 // handling this case.  Nothing else for us to do here.
                 CompilerServerLogger.LogException(ex, "Error creating client named pipe");
-                Console.WriteLine($"Error getting connection: {ex}");
                 return new ConnectionData(CompletionReason.CompilationNotStarted);
             }
 
@@ -355,7 +353,6 @@ namespace Microsoft.CodeAnalysis.CompilerServer
             catch (Exception ex)
             {
                 CompilerServerLogger.LogException(ex, "Error handling connection");
-                Console.WriteLine($"Error handling connection: {ex}");
                 return new ConnectionData(CompletionReason.ClientException);
             }
         }

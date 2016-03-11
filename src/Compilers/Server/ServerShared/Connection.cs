@@ -101,7 +101,6 @@ namespace Microsoft.CodeAnalysis.CompilerServer
                 }
                 catch (Exception e)
                 {
-                    Console.WriteLine($"Error getting connection: {e}");
                     LogException(e, "Error reading build request.");
                     return new ConnectionData(CompletionReason.CompilationNotStarted);
                 }
@@ -119,11 +118,6 @@ namespace Microsoft.CodeAnalysis.CompilerServer
                     return await HandleCompilationRequest(request, cancellationToken).ConfigureAwait(false);
                 }
             }
-            catch (Exception ex)
-            {
-                Console.WriteLine($"Error: {ex}");
-                throw;
-            }
             finally
             {
                 Close();
@@ -134,13 +128,11 @@ namespace Microsoft.CodeAnalysis.CompilerServer
         {
             var keepAlive = CheckForNewKeepAlive(request);
 
-            Console.WriteLine("Starting build");
             // Kick off both the compilation and a task to monitor the pipe for closing.
             var buildCts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
             var compilationTask = ServeBuildRequest(request, buildCts.Token);
             var monitorTask = CreateMonitorDisconnectTask(buildCts.Token);
             await Task.WhenAny(compilationTask, monitorTask).ConfigureAwait(false);
-            Console.WriteLine("Build complete");
 
             // Do an 'await' on the completed task, preference being compilation, to force
             // any exceptions to be realized in this method for logging.
@@ -168,7 +160,6 @@ namespace Microsoft.CodeAnalysis.CompilerServer
             }
 
             // Begin the tear down of the Task which didn't complete.
-            Console.WriteLine($"Done {reason}");
             buildCts.Cancel();
             return new ConnectionData(reason, keepAlive);
         }

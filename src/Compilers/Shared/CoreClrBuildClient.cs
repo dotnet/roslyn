@@ -48,29 +48,14 @@ namespace Microsoft.CodeAnalysis.CommandLine
 
         protected override async Task<BuildResponse> RunServerCompilation(List<string> arguments, BuildPaths buildPaths, string pipeName, string keepAlive, string libDirectory, CancellationToken cancellationToken)
         {
-            const string name = "/Users/jaredpar/code/build.txt";
+            var client = new TcpClient();
+            var port = int.Parse(pipeName);
+            await client.ConnectAsync("127.0.0.1", port: port).ConfigureAwait(true);
 
-            try
-            {
-                var client = new TcpClient();
-                var port = int.Parse(pipeName);
-                File.AppendAllText(name, $"Connecting\n");
-                await client.ConnectAsync("127.0.0.1", port: port).ConfigureAwait(true);
-                File.AppendAllText(name, $"Connected\n");
-
-                var request = BuildRequest.Create(_language, buildPaths.WorkingDirectory, arguments, keepAlive, libDirectory);
-                File.AppendAllText(name, $"Sending request\n");
-                await request.WriteAsync(client.GetStream(), cancellationToken).ConfigureAwait(true);
-                File.AppendAllText(name, $"Sent request\n");
-                var ret = await BuildResponse.ReadAsync(client.GetStream(), cancellationToken).ConfigureAwait(true);
-                File.AppendAllText(name, $"Got response\n");
-                return ret;
-            }
-            catch  (Exception ex)
-            {
-                File.AppendAllText(name, $"Client error: {ex}\n");
-                throw;
-            }
+            var request = BuildRequest.Create(_language, buildPaths.WorkingDirectory, arguments, keepAlive, libDirectory);
+            await request.WriteAsync(client.GetStream(), cancellationToken).ConfigureAwait(true);
+            var ret = await BuildResponse.ReadAsync(client.GetStream(), cancellationToken).ConfigureAwait(true);
+            return ret;
         }
     }
 }
