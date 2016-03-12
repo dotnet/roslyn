@@ -557,13 +557,19 @@ namespace System
                         continue;
                     case WellKnownType.System_FormattableString:
                     case WellKnownType.System_Runtime_CompilerServices_FormattableStringFactory:
+                    case WellKnownType.System_Runtime_CompilerServices_ValueTuple_T1:
                     case WellKnownType.System_Runtime_CompilerServices_ValueTuple_T1_T2:
                     case WellKnownType.System_Runtime_CompilerServices_ValueTuple_T1_T2_T3:
                     case WellKnownType.System_Runtime_CompilerServices_ValueTuple_T1_T2_T3_T4:
                     case WellKnownType.System_Runtime_CompilerServices_ValueTuple_T1_T2_T3_T4_T5:
                     case WellKnownType.System_Runtime_CompilerServices_ValueTuple_T1_T2_T3_T4_T5_T6:
                     case WellKnownType.System_Runtime_CompilerServices_ValueTuple_T1_T2_T3_T4_T5_T6_T7:
+                    case WellKnownType.System_Runtime_CompilerServices_ValueTuple_T1_T2_T3_T4_T5_T6_T7_TRest:
+                        // PROTOTYPE tuples
                         // Not yet in the platform.
+                        continue;
+                    case WellKnownType.ExtSentinel:
+                        // Not a real type
                         continue;
                 }
 
@@ -602,6 +608,9 @@ namespace System
                         // C# can't embed VB core.
                         continue;
                     case WellKnownMember.System_Array__Empty:
+
+                    case WellKnownMember.System_Runtime_CompilerServices_ValueTuple_T1__Item1:
+
                     case WellKnownMember.System_Runtime_CompilerServices_ValueTuple_T1_T2__Item1:
                     case WellKnownMember.System_Runtime_CompilerServices_ValueTuple_T1_T2__Item2:
 
@@ -634,7 +643,17 @@ namespace System
                     case WellKnownMember.System_Runtime_CompilerServices_ValueTuple_T1_T2_T3_T4_T5_T6_T7__Item5:
                     case WellKnownMember.System_Runtime_CompilerServices_ValueTuple_T1_T2_T3_T4_T5_T6_T7__Item6:
                     case WellKnownMember.System_Runtime_CompilerServices_ValueTuple_T1_T2_T3_T4_T5_T6_T7__Item7:
-                        // Not available yet, but will be in upcoming release.
+
+                    case WellKnownMember.System_Runtime_CompilerServices_ValueTuple_T1_T2_T3_T4_T5_T6_T7_TRest__Item1:
+                    case WellKnownMember.System_Runtime_CompilerServices_ValueTuple_T1_T2_T3_T4_T5_T6_T7_TRest__Item2:
+                    case WellKnownMember.System_Runtime_CompilerServices_ValueTuple_T1_T2_T3_T4_T5_T6_T7_TRest__Item3:
+                    case WellKnownMember.System_Runtime_CompilerServices_ValueTuple_T1_T2_T3_T4_T5_T6_T7_TRest__Item4:
+                    case WellKnownMember.System_Runtime_CompilerServices_ValueTuple_T1_T2_T3_T4_T5_T6_T7_TRest__Item5:
+                    case WellKnownMember.System_Runtime_CompilerServices_ValueTuple_T1_T2_T3_T4_T5_T6_T7_TRest__Item6:
+                    case WellKnownMember.System_Runtime_CompilerServices_ValueTuple_T1_T2_T3_T4_T5_T6_T7_TRest__Item7:
+                    case WellKnownMember.System_Runtime_CompilerServices_ValueTuple_T1_T2_T3_T4_T5_T6_T7_TRest__Rest:
+                        // PROTOTYPE tuples
+                        // Not yet in the platform.
                         continue;
                 }
                 if (wkm == WellKnownMember.Count) continue; // Not a real value.
