@@ -354,6 +354,8 @@ namespace Microsoft.CodeAnalysis
 
         System_Runtime_GCLatencyMode__SustainedLowLatency,
 
+        System_Runtime_CompilerServices_ValueTuple_T1__Item1,
+
         System_Runtime_CompilerServices_ValueTuple_T1_T2__Item1,
         System_Runtime_CompilerServices_ValueTuple_T1_T2__Item2,
 
@@ -386,6 +388,15 @@ namespace Microsoft.CodeAnalysis
         System_Runtime_CompilerServices_ValueTuple_T1_T2_T3_T4_T5_T6_T7__Item5,
         System_Runtime_CompilerServices_ValueTuple_T1_T2_T3_T4_T5_T6_T7__Item6,
         System_Runtime_CompilerServices_ValueTuple_T1_T2_T3_T4_T5_T6_T7__Item7,
+
+        System_Runtime_CompilerServices_ValueTuple_T1_T2_T3_T4_T5_T6_T7_TRest__Item1,
+        System_Runtime_CompilerServices_ValueTuple_T1_T2_T3_T4_T5_T6_T7_TRest__Item2,
+        System_Runtime_CompilerServices_ValueTuple_T1_T2_T3_T4_T5_T6_T7_TRest__Item3,
+        System_Runtime_CompilerServices_ValueTuple_T1_T2_T3_T4_T5_T6_T7_TRest__Item4,
+        System_Runtime_CompilerServices_ValueTuple_T1_T2_T3_T4_T5_T6_T7_TRest__Item5,
+        System_Runtime_CompilerServices_ValueTuple_T1_T2_T3_T4_T5_T6_T7_TRest__Item6,
+        System_Runtime_CompilerServices_ValueTuple_T1_T2_T3_T4_T5_T6_T7_TRest__Item7,
+        System_Runtime_CompilerServices_ValueTuple_T1_T2_T3_T4_T5_T6_T7_TRest__Rest,
 
         System_String__Format_IFormatProvider,
         Count
