@@ -1,47 +1,52 @@
 SHELL = /usr/bin/env bash
 OS_NAME = $(shell uname -s)
-NUGET_PACKAGE_NAME = nuget.67
+NUGET_PACKAGE_NAME = nuget.68
 BUILD_CONFIGURATION = Debug
-BOOTSTRAP_PATH = $(shell pwd)/Binaries/Bootstrap
+BINARIES_PATH = $(shell pwd)/Binaries
+TOOLSET_TMP_PATH = $(BINARIES_PATH)/toolset
+BOOTSTRAP_PATH = $(BINARIES_PATH)/Bootstrap
 BUILD_LOG_PATH =
 XUNIT_VERSION = 2.1.0
+HOME_DIR = $(shell cd ~ && pwd)
 
-MSBUILD_ADDITIONALARGS := /v:m /fl /fileloggerparameters:Verbosity=normal /p:DebugSymbols=false /p:Configuration=$(BUILD_CONFIGURATION)
+MSBUILD_ADDITIONALARGS := /v:m /fl /fileloggerparameters:Verbosity=normal /p:Configuration=$(BUILD_CONFIGURATION)
 
 ifeq ($(OS_NAME),Linux)
 	MSBUILD_ADDITIONALARGS := $(MSBUILD_ADDITIONALARGS) /p:BaseNuGetRuntimeIdentifier=ubuntu.14.04
-	MONO_TOOLSET_NAME = mono.linux.4
-	ROSLYN_TOOLSET_NAME = roslyn.linux.3
+	ROSLYN_TOOLSET_NAME = roslyn.linux.5
 else ifeq ($(OS_NAME),Darwin)
 	MSBUILD_ADDITIONALARGS := $(MSBUILD_ADDITIONALARGS) /p:BaseNuGetRuntimeIdentifier=osx.10.10
-	MONO_TOOLSET_NAME = mono.mac.5
-	ROSLYN_TOOLSET_NAME = roslyn.mac.3
+	ROSLYN_TOOLSET_NAME = roslyn.mac.4
 endif
 
 ifneq ($(BUILD_LOG_PATH),)
 	MSBUILD_ADDITIONALARGS := $(MSBUILD_ADDITIONALARGS) /fileloggerparameters:LogFile=$(BUILD_LOG_PATH)
 endif
 
+ROSLYN_TOOLSET_PATH = $(TOOLSET_TMP_PATH)/$(ROSLYN_TOOLSET_NAME)
+
 ifeq ($(BOOTSTRAP),true)
-	ROSLYN_TOOLSET_PATH = $(BOOTSTRAP_PATH)
+	MSBUILD_ARGS = $(MSBUILD_ADDITIONALARGS) /p:CscToolPath=$(BOOTSTRAP_PATH) /p:CscToolExe=csc /p:VbcToolPath=$(BOOTSTRAP_PATH) /p:VbcToolExe=vbc
 else
-	ROSLYN_TOOLSET_PATH = /tmp/$(ROSLYN_TOOLSET_NAME)
+	MSBUILD_ARGS = $(MSBUILD_ADDITIONALARGS) /p:CscToolExe=csc /p:VbcToolExe=vbc
 endif
 
-MONO_PATH = /tmp/$(MONO_TOOLSET_NAME)/bin/mono
-MSBUILD_ADDITIONALARGS := $(MSBUILD_ADDITIONALARGS) /p:MonoToolsetPath=$(MONO_PATH)
-TOOLSET_ARGS = $(MSBUILD_ADDITIONALARGS) /p:CscToolPath=$(ROSLYN_TOOLSET_PATH) /p:CscToolExe=csc /p:VbcToolPath=$(ROSLYN_TOOLSET_PATH) /p:VbcToolExe=vbc
+MSBUILD_CMD = $(ROSLYN_TOOLSET_PATH)/corerun $(ROSLYN_TOOLSET_PATH)/MSBuild.exe $(MSBUILD_ARGS)
 
 all: toolset
-	$(MONO_PATH) ~/.nuget/packages/Microsoft.Build.Mono.Debug/14.1.0/lib/MSBuild.exe $(TOOLSET_ARGS) CrossPlatform.sln
+	export ReferenceAssemblyRoot=$(ROSLYN_TOOLSET_PATH)/reference-assemblies/Framework ; \
+	export HOME=$(HOME_DIR) ; \
+	$(MSBUILD_CMD) CrossPlatform.sln
 
 bootstrap: toolset
-	$(MONO_PATH) ~/.nuget/packages/Microsoft.Build.Mono.Debug/14.1.0/lib/MSBuild.exe $(TOOLSET_ARGS) src/Compilers/CSharp/CscCore/CscCore.csproj ; \
-	$(MONO_PATH) ~/.nuget/packages/Microsoft.Build.Mono.Debug/14.1.0/lib/MSBuild.exe $(TOOLSET_ARGS) src/Compilers/VisualBasic/VbcCore/VbcCore.csproj ; \
-	mkdir -p $(BOOTSTRAP_PATH) ; \
-	cp Binaries/$(BUILD_CONFIGURATION)/csccore/* $(BOOTSTRAP_PATH) ; \
-	cp Binaries/$(BUILD_CONFIGURATION)/vbccore/* $(BOOTSTRAP_PATH) ; \
-	build/scripts/crossgen.sh $(BOOTSTRAP_PATH) ;
+	export ReferenceAssemblyRoot=$(ROSLYN_TOOLSET_PATH)/reference-assemblies/Framework ; \
+	export HOME=$(HOME_DIR) ; \
+	$(MSBUILD_CMD) src/Compilers/CSharp/CscCore/CscCore.csproj && \
+	$(MSBUILD_CMD) src/Compilers/VisualBasic/VbcCore/VbcCore.csproj && \
+	mkdir -p $(BOOTSTRAP_PATH) && \
+	cp -f Binaries/$(BUILD_CONFIGURATION)/csccore/* $(BOOTSTRAP_PATH) && \
+	cp -f Binaries/$(BUILD_CONFIGURATION)/vbccore/* $(BOOTSTRAP_PATH) && \
+	build/scripts/crossgen.sh $(BOOTSTRAP_PATH) && \
 	rm -rf Binaries/$(BUILD_CONFIGURATION)
 
 test:
@@ -50,25 +55,22 @@ test:
 clean:
 	@rm -rf Binaries
 
-toolset: /tmp/$(ROSLYN_TOOLSET_NAME).tar.bz2  /tmp/$(MONO_TOOLSET_NAME).tar.bz2 /tmp/$(NUGET_PACKAGE_NAME).zip
-
 clean_toolset:
-	rm /tmp/$(ROSLYN_TOOLSET_NAME).tar.bz2 ; \
-	rm /tmp/$(MONO_TOOLSET_NAME).tar.bz2 ; \
-	rm /tmp/$(NUGET_PACKAGE_NAME).zip
+	@rm -rf $(TOOLSET_TMP_PATH)
 
-/tmp/$(ROSLYN_TOOLSET_NAME).tar.bz2:
-	@pushd /tmp/ ; \
-	curl -O https://dotnetci.blob.core.windows.net/roslyn/$(ROSLYN_TOOLSET_NAME).tar.bz2 ; \
-	tar -jxf $(ROSLYN_TOOLSET_NAME).tar.bz2
+toolset: $(TOOLSET_TMP_PATH)/$(ROSLYN_TOOLSET_NAME) $(TOOLSET_TMP_PATH)/$(NUGET_PACKAGE_NAME).zip
 
-/tmp/$(MONO_TOOLSET_NAME).tar.bz2:
-	@pushd /tmp/ ; \
-	curl -O https://dotnetci.blob.core.windows.net/roslyn/$(MONO_TOOLSET_NAME).tar.bz2 ; \
-	tar -jxf $(MONO_TOOLSET_NAME).tar.bz2
+$(TOOLSET_TMP_PATH)/$(ROSLYN_TOOLSET_NAME): | $(TOOLSET_TMP_PATH)
+	@pushd $(TOOLSET_TMP_PATH) ; \
+	curl -O https://dotnetci.blob.core.windows.net/roslyn/$(ROSLYN_TOOLSET_NAME).tar.bz2 && \
+	tar -jxf $(ROSLYN_TOOLSET_NAME).tar.bz2 && \
+	chmod +x $(ROSLYN_TOOLSET_NAME)/corerun
 
-/tmp/$(NUGET_PACKAGE_NAME).zip:
-	@pushd /tmp/ ; \
-	curl -O https://dotnetci.blob.core.windows.net/roslyn/$(NUGET_PACKAGE_NAME).zip ; \
-	unzip -uoq $(NUGET_PACKAGE_NAME).zip -d ~/ ; \
-	chmod +x ~/.nuget/packages/Microsoft.Build.Mono.Debug/14.1.0/lib/MSBuild.exe
+$(TOOLSET_TMP_PATH)/$(NUGET_PACKAGE_NAME).zip: | $(TOOLSET_TMP_PATH)
+	@pushd $(TOOLSET_TMP_PATH) && \
+	curl -O https://dotnetci.blob.core.windows.net/roslyn/$(NUGET_PACKAGE_NAME).zip && \
+	unzip -uoq $(NUGET_PACKAGE_NAME).zip -d ~/
+
+$(TOOLSET_TMP_PATH):
+	mkdir -p $(TOOLSET_TMP_PATH)
+
