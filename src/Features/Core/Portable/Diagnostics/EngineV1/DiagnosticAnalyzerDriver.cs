@@ -95,6 +95,15 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV1
             _reportSuppressedDiagnostics = reportSuppressedDiagnostics;
             _cancellationToken = cancellationToken;
             _lazyCompilationWithAnalyzers = cachedCompilationWithAnalyzersOpt;
+
+#if DEBUG
+            // this is a bit wierd, but if both analyzers and compilationWithAnalyzers are given,
+            // make sure both are same.
+            if (_lazyCompilationWithAnalyzers != null)
+            {
+                Contract.ThrowIfFalse(_lazyCompilationWithAnalyzers.Analyzers.SetEquals(_analyzers));
+            }
+#endif
         }
 
         public Document Document

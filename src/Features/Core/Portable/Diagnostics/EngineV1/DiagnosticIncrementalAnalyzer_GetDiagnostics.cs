@@ -395,8 +395,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV1
         {
             protected readonly ImmutableHashSet<string> DiagnosticIds;
 
-            private IEnumerable<DiagnosticAnalyzer> _analyzers;
-            private CompilationWithAnalyzers _compilationWithAnalyzers;
+            private readonly ConcurrentDictionary<ProjectId, CompilationWithAnalyzers> _compilationWithAnalyzersMap;
 
             public LatestDiagnosticsGetter(
                 DiagnosticIncrementalAnalyzer owner,
@@ -406,7 +405,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV1
             {
                 this.DiagnosticIds = diagnosticIds;
 
-                _compilationWithAnalyzers = null;
+                var numberOfEntries = projectId != null ? 1 : solution.ProjectIds.Count;
+                _compilationWithAnalyzersMap = new ConcurrentDictionary<ProjectId, CompilationWithAnalyzers>(concurrencyLevel: numberOfEntries, capacity: numberOfEntries);
             }
 
             protected abstract Task<AnalysisData> GetDiagnosticAnalysisDataAsync(DiagnosticAnalyzerDriver analyzerDriver, StateSet stateSet, StateType stateType, VersionArgument versions);
@@ -435,7 +435,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV1
                 if (document != null)
                 {
                     Contract.Requires(stateType != StateType.Project);
-                    var compilationWithAnalyzersOpt = await GetCompilationWithAnalyzersAsync(document.Project, concurrentAnalysis, reportSuppressedDiagnostics, cancellationToken).ConfigureAwait(false);
+                    var compilationWithAnalyzersOpt = await GetCompilationWithAnalyzersAsync(document.Project, analyzers, concurrentAnalysis, reportSuppressedDiagnostics, cancellationToken).ConfigureAwait(false);
                     var root = document.SupportsSyntaxTree ? await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false) : null;
                     return new DiagnosticAnalyzerDriver(document, root?.FullSpan, root, Owner, analyzers, concurrentAnalysis, reportSuppressedDiagnostics, compilationWithAnalyzersOpt, cancellationToken);
                 }
@@ -444,34 +444,38 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV1
                 if (project != null)
                 {
                     Contract.Requires(stateType == StateType.Project);
-                    var compilationWithAnalyzersOpt = await GetCompilationWithAnalyzersAsync(project, concurrentAnalysis, reportSuppressedDiagnostics, cancellationToken).ConfigureAwait(false);
+                    var compilationWithAnalyzersOpt = await GetCompilationWithAnalyzersAsync(project, analyzers, concurrentAnalysis, reportSuppressedDiagnostics, cancellationToken).ConfigureAwait(false);
                     return new DiagnosticAnalyzerDriver(project, Owner, analyzers, concurrentAnalysis, reportSuppressedDiagnostics, compilationWithAnalyzersOpt, cancellationToken);
                 }
 
                 return Contract.FailWithReturn<DiagnosticAnalyzerDriver>("Can't reach here");
             }
 
-            private async Task<CompilationWithAnalyzers> GetCompilationWithAnalyzersAsync(Project project, bool concurrentAnalysis, bool reportSuppressedDiagnostics, CancellationToken cancellationToken)
+            private async Task<CompilationWithAnalyzers> GetCompilationWithAnalyzersAsync(Project project, IEnumerable<DiagnosticAnalyzer> analyzers, bool concurrentAnalysis, bool reportSuppressedDiagnostics, CancellationToken cancellationToken)
             {
-                if (_compilationWithAnalyzers == null && project.SupportsCompilation)
+                if (!project.SupportsCompilation)
                 {
-                    var compilation = await project.GetCompilationAsync(cancellationToken).ConfigureAwait(false);
-                    var analyzers = GetAnalyzers(project);
-
-                    _compilationWithAnalyzers = Owner.GetCompilationWithAnalyzers(project, analyzers, compilation, concurrentAnalysis, reportSuppressedDiagnostics);
+                    // REVIEW: when this can happen?
+                    return null;
                 }
 
-                return _compilationWithAnalyzers;
-            }
-
-            protected IEnumerable<DiagnosticAnalyzer> GetAnalyzers(Project project)
-            {
-                if (_analyzers == null)
+                CompilationWithAnalyzers compilationWithAnalyzers;
+                if (_compilationWithAnalyzersMap.TryGetValue(project.Id, out compilationWithAnalyzers))
                 {
-                    _analyzers = Owner._stateManager.GetOrCreateAnalyzers(project);
+                    // this should be most of time
+                    return compilationWithAnalyzers;
                 }
 
-                return _analyzers;
+                var compilation = await project.GetCompilationAsync(cancellationToken).ConfigureAwait(false);
+                compilationWithAnalyzers = Owner.GetCompilationWithAnalyzers(project, analyzers, compilation, concurrentAnalysis, reportSuppressedDiagnostics);
+
+                if (_compilationWithAnalyzersMap.TryAdd(project.Id, compilationWithAnalyzers))
+                {
+                    return compilationWithAnalyzers;
+                }
+
+                // somebody has beat me. this should exist.
+                return _compilationWithAnalyzersMap[project.Id];
             }
 
             protected async Task<VersionArgument> GetVersionsAsync(object documentOrProject, StateType stateType, CancellationToken cancellationToken)
@@ -612,7 +616,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV1
                     return ImmutableArray<DiagnosticData>.Empty;
                 }
 
-                var analyzers = GetAnalyzers(project);
+                var analyzers = Owner._stateManager.GetOrCreateAnalyzers(project);
                 var driver = await GetDiagnosticAnalyzerDriverAsync(documentOrProject, analyzers, key.StateType, cancellationToken).ConfigureAwait(false);
 
                 var analysisData = await GetDiagnosticAnalysisDataAsync(driver, stateSet, key.StateType, versions).ConfigureAwait(false);
