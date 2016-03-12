@@ -12,6 +12,17 @@
           "lib/net46/Microsoft.CodeAnalysis.Elfie.dll": {}
         }
       }
+    },
+    ".NETFramework,Version=v4.6/win7-x86": {
+      "Microsoft.CodeAnalysis.Elfie/0.10.6-rc2": {
+        "type": "package",
+        "compile": {
+          "lib/net46/Microsoft.CodeAnalysis.Elfie.dll": {}
+        },
+        "runtime": {
+          "lib/net46/Microsoft.CodeAnalysis.Elfie.dll": {}
+        }
+      }
     }
   },
   "libraries": {

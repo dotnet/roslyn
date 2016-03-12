@@ -16,7 +16,14 @@
     <RootNamespace>Microsoft.CodeAnalysis.HubServices</RootNamespace>
     <AssemblyName>Microsoft.CodeAnalysis.HubServices</AssemblyName>
     <TargetFrameworkVersion>v4.6</TargetFrameworkVersion>
-    <CopyNuGetImplementations>false</CopyNuGetImplementations>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)' == 'Debug'">
+    <PlatformTarget>x86</PlatformTarget>
+    <OutDir>..\..\..\Binaries\Debug\bin\</OutDir>
+  </PropertyGroup>
+  <PropertyGroup>
+    <PostBuildEvent>copy /y "$(OutDir)HubServices.servicemodule" "$(OutDir).."
+copy /y "$(OutDir)web.config" "$(OutDir).."</PostBuildEvent>
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="System.Net.Http.Formatting.dll">

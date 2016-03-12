@@ -10,17 +10,22 @@ using Newtonsoft.Json.Linq;
 
 namespace Microsoft.CodeAnalysis.HubServices.SymbolSearch
 {
-    internal class SymbolSearchController : ApiController
+    public class DataModel
+    {
+        public string Value { get; set; }
+    }
+
+    public class SymbolSearchController : ApiController
     {
         private static ConcurrentDictionary<string, AddReferenceDatabase> _sourceToDatabase = 
             new ConcurrentDictionary<string, AddReferenceDatabase>();
 
         [HttpPost]
-        [Route("SymbolSearch/OnPackageSourcesChanged/{packageSourcesJson}")]
-        public string OnPackageSourcesChanged(string packageSourcesJson)
+        [Route("SymbolSearch/" + nameof(OnPackageSourcesChanged))]
+        public string OnPackageSourcesChanged(DataModel value)
         {
-            var packageSources = JArray.Parse(packageSourcesJson);
-            return "received: " + packageSourcesJson;
+            // var packageSources = JArray.Parse(packageSourcesJson);
+            return "received: " + JArray.Parse(value.Value);
         }
 
         [HttpGet]

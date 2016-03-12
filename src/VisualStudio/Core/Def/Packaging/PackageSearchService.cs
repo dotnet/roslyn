@@ -15,10 +15,11 @@ using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Packaging;
 using Microsoft.Internal.VisualStudio.Shell.Interop;
 using Microsoft.VisualStudio.Settings;
-using Microsoft.VisualStudio.Shell.Interop;
+using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Settings;
 using static System.FormattableString;
 using VSShell = Microsoft.VisualStudio.Shell;
+using VSShellInterop = Microsoft.VisualStudio.Shell.Interop;
 
 namespace Microsoft.VisualStudio.LanguageServices.Packaging
 {
@@ -32,11 +33,14 @@ namespace Microsoft.VisualStudio.LanguageServices.Packaging
     internal partial class PackageSearchService : ForegroundThreadAffinitizedObject, IPackageSearchService, IDisposable
     {
         private ConcurrentDictionary<string, AddReferenceDatabase> _sourceToDatabase = new ConcurrentDictionary<string, AddReferenceDatabase>();
+        private readonly IAsyncServiceProvider _asyncServiceProvider;
 
-        public PackageSearchService(VSShell.SVsServiceProvider serviceProvider, IPackageInstallerService installerService)
+        public PackageSearchService(
+            VSShell.SVsServiceProvider serviceProvider, 
+            IPackageInstallerService installerService)
             : this(installerService, 
                    CreateRemoteControlService(serviceProvider),
-                   new LogService((IVsActivityLog)serviceProvider.GetService(typeof(SVsActivityLog))),
+                   new LogService((VSShellInterop.IVsActivityLog)serviceProvider.GetService(typeof(VSShellInterop.SVsActivityLog))),
                    new DelayService(),
                    new IOService(),
                    new PatchService(),
@@ -46,6 +50,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Packaging
                    FatalError.ReportWithoutCrash,
                    new CancellationTokenSource())
         {
+            _asyncServiceProvider = (IAsyncServiceProvider)serviceProvider.GetService(typeof(VSShellInterop.SAsyncServiceProvider));
             installerService.PackageSourcesChanged += OnPackageSourcesChanged;
             OnPackageSourcesChanged(this, EventArgs.Empty);
         }

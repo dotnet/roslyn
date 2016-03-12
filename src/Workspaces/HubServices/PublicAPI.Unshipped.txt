@@ -1,2 +1,9 @@
 Microsoft.CodeAnalysis.HubServices.Startup
+Microsoft.CodeAnalysis.HubServices.SymbolSearch.DataModel
+Microsoft.CodeAnalysis.HubServices.SymbolSearch.DataModel.Value.get -> string
+Microsoft.CodeAnalysis.HubServices.SymbolSearch.DataModel.Value.set -> void
+Microsoft.CodeAnalysis.HubServices.SymbolSearch.SymbolSearchController
+Microsoft.CodeAnalysis.HubServices.SymbolSearch.SymbolSearchController.FindPackagesWithType(string queryJson) -> string
+Microsoft.CodeAnalysis.HubServices.SymbolSearch.SymbolSearchController.FindReferenceAssembliesWithType(string queryJson) -> string
+Microsoft.CodeAnalysis.HubServices.SymbolSearch.SymbolSearchController.OnPackageSourcesChanged(Microsoft.CodeAnalysis.HubServices.SymbolSearch.DataModel value) -> string
 override Microsoft.CodeAnalysis.HubServices.Startup.BuildApplication(Owin.IAppBuilder app) -> void

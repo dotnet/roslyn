@@ -5,6 +5,9 @@ using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.IO;
 using System.IO.Compression;
+using System.Linq;
+using System.Net.Http;
+using System.Net.Http.Headers;
 using System.Security.Cryptography;
 using System.Text;
 using System.Threading;
@@ -15,6 +18,9 @@ using Microsoft.CodeAnalysis.Elfie.Model;
 using Microsoft.CodeAnalysis.Packaging;
 using Microsoft.CodeAnalysis.Shared.Utilities;
 using Microsoft.Internal.VisualStudio.Shell.Interop;
+using Microsoft.VisualStudio.Shell.Interop;
+using Microsoft.VisualStudio.Shell.VsHub;
+using Newtonsoft.Json.Linq;
 using Roslyn.Utilities;
 using static System.FormattableString;
 
@@ -89,8 +95,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Packaging
         }
 
         // internal for testing purposes.
-        internal Task UpdateSourceInBackgroundAsync(string source)
+        internal async Task UpdateSourceInBackgroundAsync(string source)
         {
+            await DoClientStuffAsync().ConfigureAwait(false);
+
             // Only the first thread to try to update this source should succeed
             // and cause us to actually being the update loop. 
             var ourSentinel = new object();
@@ -99,13 +107,42 @@ namespace Microsoft.VisualStudio.LanguageServices.Packaging
             if (ourSentinel != currentSentinel)
             {
                 // We already have an update loop for this source.  Nothing for us to do.
-                return SpecializedTasks.EmptyTask;
+                return;
             }
 
             // We were the first ones to try to update this source.  Spawn off a task to do
             // the updating.
-            return new Updater(this, source).UpdateInBackgroundAsync();
+            await new Updater(this, source).UpdateInBackgroundAsync().ConfigureAwait(false);
         }
+
+        private async Task DoClientStuffAsync()
+        {
+            var serviceObject = await _asyncServiceProvider.GetServiceAsync(typeof(SVsHubService)).ConfigureAwait(false);
+            var hubService = (IVsHubService)serviceObject;
+
+            var factory = hubService.GetService<IVsHubServiceHttpClientFactory>();
+            var client = factory.CreateHttpClient("Microsoft.CodeAnalysis.HubServices", "SymbolSearch", new Version(1, 0), useDefaultCredentials: true);
+            await client.StartHeartbeatAsync().ConfigureAwait(false);
+
+            var json = new JArray(_installerService.PackageSources.Select(ps => new JObject(new JProperty(ps.Name, ps.Source))));
+            var response = await client.PostAsync("OnPackageSourcesChanged", CreateHttpContent(json)).ConfigureAwait(false);
+
+            var stream = await response.Content.ReadAsStringAsync().ConfigureAwait(false);
+        }
+
+        private HttpContent CreateHttpContent(JToken data)
+        {
+            var json = new JObject(new JProperty("Value", data.ToString()));
+            var httpContent = new StringContent(json.ToString(), Encoding.UTF8);
+               
+            httpContent.Headers.ContentType = new MediaTypeHeaderValue("application/json")
+            {
+                CharSet = Encoding.UTF8.WebName
+            };
+
+            return httpContent;
+        }
+
 
         private class Updater
         {

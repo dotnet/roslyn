@@ -4,10 +4,5 @@
         "SymbolSearch": "SymbolSearch"
     },
     "OwinStartupAssemblyName":"Microsoft.CodeAnalysis.HubServices",
-    "OwinStartupClassName":"Microsoft.CodeAnalysis.HubServices.Startup",
-    "Host":
-    {
-        "HostType":"Owin32Bit",
-        "Exclusive":"false"
-    }
+    "OwinStartupClassName":"Microsoft.CodeAnalysis.HubServices.Startup"
 }
