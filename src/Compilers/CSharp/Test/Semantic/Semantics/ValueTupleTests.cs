@@ -14,6 +14,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Semantic.UnitTests.Semantics
             var source = @"
 namespace System.Runtime.CompilerServices
 {
+    struct ValueTuple<T1>
+    {
+        public T1 Item1;
+    }
     struct ValueTuple<T1, T2>
     {
         public T1 Item1;
@@ -59,8 +63,22 @@ namespace System.Runtime.CompilerServices
         public T6 Item6;
         public T7 Item7;
     }
+    struct ValueTuple<T1, T2, T3, T4, T5, T6, T7, TRest>
+    {
+        public T1 Item1;
+        public T2 Item2;
+        public T3 Item3;
+        public T4 Item4;
+        public T5 Item5;
+        public T6 Item6;
+        public T7 Item7;
+        public TRest Rest;
+    }
 }";
             var comp = CreateCompilationWithMscorlib(source);
+            Assert.Equal("T1 System.Runtime.CompilerServices.ValueTuple<T1>.Item1",
+                comp.GetWellKnownTypeMember(WellKnownMember.System_Runtime_CompilerServices_ValueTuple_T1__Item1).ToTestDisplayString());
+
             Assert.Equal("T1 System.Runtime.CompilerServices.ValueTuple<T1, T2>.Item1", 
                 comp.GetWellKnownTypeMember(WellKnownMember.System_Runtime_CompilerServices_ValueTuple_T1_T2__Item1).ToTestDisplayString());
             Assert.Equal("T2 System.Runtime.CompilerServices.ValueTuple<T1, T2>.Item2",
@@ -120,12 +138,32 @@ namespace System.Runtime.CompilerServices
                 comp.GetWellKnownTypeMember(WellKnownMember.System_Runtime_CompilerServices_ValueTuple_T1_T2_T3_T4_T5_T6_T7__Item6).ToTestDisplayString());
             Assert.Equal("T7 System.Runtime.CompilerServices.ValueTuple<T1, T2, T3, T4, T5, T6, T7>.Item7",
                 comp.GetWellKnownTypeMember(WellKnownMember.System_Runtime_CompilerServices_ValueTuple_T1_T2_T3_T4_T5_T6_T7__Item7).ToTestDisplayString());
+
+            Assert.Equal("T1 System.Runtime.CompilerServices.ValueTuple<T1, T2, T3, T4, T5, T6, T7, TRest>.Item1",
+                comp.GetWellKnownTypeMember(WellKnownMember.System_Runtime_CompilerServices_ValueTuple_T1_T2_T3_T4_T5_T6_T7_TRest__Item1).ToTestDisplayString());
+            Assert.Equal("T2 System.Runtime.CompilerServices.ValueTuple<T1, T2, T3, T4, T5, T6, T7, TRest>.Item2",
+                comp.GetWellKnownTypeMember(WellKnownMember.System_Runtime_CompilerServices_ValueTuple_T1_T2_T3_T4_T5_T6_T7_TRest__Item2).ToTestDisplayString());
+            Assert.Equal("T3 System.Runtime.CompilerServices.ValueTuple<T1, T2, T3, T4, T5, T6, T7, TRest>.Item3",
+                comp.GetWellKnownTypeMember(WellKnownMember.System_Runtime_CompilerServices_ValueTuple_T1_T2_T3_T4_T5_T6_T7_TRest__Item3).ToTestDisplayString());
+            Assert.Equal("T4 System.Runtime.CompilerServices.ValueTuple<T1, T2, T3, T4, T5, T6, T7, TRest>.Item4",
+                comp.GetWellKnownTypeMember(WellKnownMember.System_Runtime_CompilerServices_ValueTuple_T1_T2_T3_T4_T5_T6_T7_TRest__Item4).ToTestDisplayString());
+            Assert.Equal("T5 System.Runtime.CompilerServices.ValueTuple<T1, T2, T3, T4, T5, T6, T7, TRest>.Item5",
+                comp.GetWellKnownTypeMember(WellKnownMember.System_Runtime_CompilerServices_ValueTuple_T1_T2_T3_T4_T5_T6_T7_TRest__Item5).ToTestDisplayString());
+            Assert.Equal("T6 System.Runtime.CompilerServices.ValueTuple<T1, T2, T3, T4, T5, T6, T7, TRest>.Item6",
+                comp.GetWellKnownTypeMember(WellKnownMember.System_Runtime_CompilerServices_ValueTuple_T1_T2_T3_T4_T5_T6_T7_TRest__Item6).ToTestDisplayString());
+            Assert.Equal("T7 System.Runtime.CompilerServices.ValueTuple<T1, T2, T3, T4, T5, T6, T7, TRest>.Item7",
+                comp.GetWellKnownTypeMember(WellKnownMember.System_Runtime_CompilerServices_ValueTuple_T1_T2_T3_T4_T5_T6_T7_TRest__Item7).ToTestDisplayString());
+            Assert.Equal("TRest System.Runtime.CompilerServices.ValueTuple<T1, T2, T3, T4, T5, T6, T7, TRest>.Rest",
+                comp.GetWellKnownTypeMember(WellKnownMember.System_Runtime_CompilerServices_ValueTuple_T1_T2_T3_T4_T5_T6_T7_TRest__Item7).ToTestDisplayString());
         }
 
         [Fact]
         public void TestMissingWellKnownMembersForValueTuple()
         {
             var comp = CreateCompilationWithMscorlib("");
+            Assert.True(comp.GetWellKnownType(WellKnownType.System_Runtime_CompilerServices_ValueTuple_T1).IsErrorType());
+            Assert.Null(comp.GetWellKnownTypeMember(WellKnownMember.System_Runtime_CompilerServices_ValueTuple_T1__Item1));
+
             Assert.True(comp.GetWellKnownType(WellKnownType.System_Runtime_CompilerServices_ValueTuple_T1_T2).IsErrorType());
             Assert.Null(comp.GetWellKnownTypeMember(WellKnownMember.System_Runtime_CompilerServices_ValueTuple_T1_T2__Item1));
             Assert.Null(comp.GetWellKnownTypeMember(WellKnownMember.System_Runtime_CompilerServices_ValueTuple_T1_T2__Item2));
@@ -162,6 +200,15 @@ namespace System.Runtime.CompilerServices
             Assert.Null(comp.GetWellKnownTypeMember(WellKnownMember.System_Runtime_CompilerServices_ValueTuple_T1_T2_T3_T4_T5_T6_T7__Item4));
             Assert.Null(comp.GetWellKnownTypeMember(WellKnownMember.System_Runtime_CompilerServices_ValueTuple_T1_T2_T3_T4_T5_T6_T7__Item6));
             Assert.Null(comp.GetWellKnownTypeMember(WellKnownMember.System_Runtime_CompilerServices_ValueTuple_T1_T2_T3_T4_T5_T6_T7__Item7));
+
+            Assert.True(comp.GetWellKnownType(WellKnownType.System_Runtime_CompilerServices_ValueTuple_T1_T2_T3_T4_T5_T6_T7_TRest).IsErrorType());
+            Assert.Null(comp.GetWellKnownTypeMember(WellKnownMember.System_Runtime_CompilerServices_ValueTuple_T1_T2_T3_T4_T5_T6_T7_TRest__Item1));
+            Assert.Null(comp.GetWellKnownTypeMember(WellKnownMember.System_Runtime_CompilerServices_ValueTuple_T1_T2_T3_T4_T5_T6_T7_TRest__Item2));
+            Assert.Null(comp.GetWellKnownTypeMember(WellKnownMember.System_Runtime_CompilerServices_ValueTuple_T1_T2_T3_T4_T5_T6_T7_TRest__Item3));
+            Assert.Null(comp.GetWellKnownTypeMember(WellKnownMember.System_Runtime_CompilerServices_ValueTuple_T1_T2_T3_T4_T5_T6_T7_TRest__Item4));
+            Assert.Null(comp.GetWellKnownTypeMember(WellKnownMember.System_Runtime_CompilerServices_ValueTuple_T1_T2_T3_T4_T5_T6_T7_TRest__Item6));
+            Assert.Null(comp.GetWellKnownTypeMember(WellKnownMember.System_Runtime_CompilerServices_ValueTuple_T1_T2_T3_T4_T5_T6_T7_TRest__Item7));
+            Assert.Null(comp.GetWellKnownTypeMember(WellKnownMember.System_Runtime_CompilerServices_ValueTuple_T1_T2_T3_T4_T5_T6_T7_TRest__Rest));
         }
     }
 }
