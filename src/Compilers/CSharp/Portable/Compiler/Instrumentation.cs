@@ -15,13 +15,15 @@ namespace Microsoft.CodeAnalysis.CSharp
     internal sealed class Instrumentation
     {
         private static MethodSymbol _createPayload = null;
+        private static MethodSymbol _flushPayload = null;
 
         internal static BoundBlock InjectInstrumentation(MethodSymbol method, BoundBlock methodBody, int methodOrdinal, TypeCompilationState compilationState, CSharpCompilation compilation, DiagnosticBag diagnostics, DebugDocumentProvider debugDocumentProvider, out ImmutableArray<SourceSpan> dynamicAnalysisSpans)
         {
-            if (methodBody != null && method.Name != "CreatePayload")
+            if (methodBody != null && method.Name != "CreatePayload" && method.Name != "FlushPayload")
             {
                 MethodSymbol createPayload = GetCreatePayload(compilation);
-                if (createPayload != null)
+                MethodSymbol flushPayload = GetFlushPayload(compilation);
+                if (createPayload != null && flushPayload != null)
                 {
                     // Create the symbol for the instrumentation payload.
                     SyntheticBoundNodeFactory factory = new SyntheticBoundNodeFactory(method, methodBody.Syntax, compilationState, diagnostics);
@@ -54,6 +56,26 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                     ImmutableArray<BoundStatement> newStatements = newMethodBody.Statements.Insert(0, payloadIf);
                     newMethodBody = newMethodBody.Update(newMethodBody.Locals, newMethodBody.LocalFunctions, newStatements);
+
+                    if (IsTestMethod(method))
+                    {
+                        // If the method is a test method, wrap the body in:
+                        //
+                        // Instrumentation.FlushPayload();
+                        // try
+                        // {
+                        //     ... body ...
+                        // }
+                        // finally
+                        // {
+                        //     Instrumentation.FlushPayload();
+                        // }
+
+                        BoundStatement firstFlush = factory.ExpressionStatement(factory.Call(null, flushPayload));
+                        BoundStatement secondFlush = factory.ExpressionStatement(factory.Call(null, flushPayload));
+                        BoundStatement tryFinally = factory.Try(newMethodBody, ImmutableArray<BoundCatchBlock>.Empty, factory.Block(ImmutableArray.Create(secondFlush)));
+                        newMethodBody = factory.Block(ImmutableArray.Create(firstFlush, tryFinally));
+                    }
 
                     return newMethodBody;
                 }
@@ -110,6 +132,33 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             return _createPayload;
+        }
+
+        private static MethodSymbol GetFlushPayload(CSharpCompilation compilation)
+        {
+            if (_flushPayload == null)
+            {
+                NamedTypeSymbol instrumentationType = compilation.GetTypeByMetadataName("Microsoft.CodeAnalysis.Runtime.Instrumentation");
+                if (instrumentationType != null)
+                {
+                    ImmutableArray<Symbol> flushPayloads = instrumentationType.GetMembers("FlushPayload");
+                    if (flushPayloads.Length == 1)
+                    {
+                        MethodSymbol flushPayload = flushPayloads[0] as MethodSymbol;
+                        if (flushPayload != null && flushPayload.IsStatic && flushPayload.ParameterCount == 0)
+                        {
+                            _flushPayload = flushPayload;
+                        }
+                    }
+                }
+            }
+
+            return _flushPayload;
+        }
+
+        private static bool IsTestMethod(MethodSymbol method)
+        {
+            return method.Name.StartsWith("Test");
         }
     }
 
