@@ -60,9 +60,11 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV1
                 const bool concurrentAnalysis = false;
                 const bool reportSuppressedDiagnostics = true;
 
-                _spanBasedDriver = new DiagnosticAnalyzerDriver(_document, _range, root, _owner, concurrentAnalysis, reportSuppressedDiagnostics, _cancellationToken);
-                _documentBasedDriver = new DiagnosticAnalyzerDriver(_document, fullSpan, root, _owner, concurrentAnalysis, reportSuppressedDiagnostics, _cancellationToken);
-                _projectDriver = new DiagnosticAnalyzerDriver(_document.Project, _owner, concurrentAnalysis, reportSuppressedDiagnostics, _cancellationToken);
+                var analyzers = _owner._stateManager.GetOrCreateAnalyzers(_document.Project);
+
+                _spanBasedDriver = new DiagnosticAnalyzerDriver(_document, _range, root, _owner, analyzers, concurrentAnalysis, reportSuppressedDiagnostics, _cancellationToken);
+                _documentBasedDriver = new DiagnosticAnalyzerDriver(_document, fullSpan, root, _owner, analyzers, concurrentAnalysis, reportSuppressedDiagnostics, _cancellationToken);
+                _projectDriver = new DiagnosticAnalyzerDriver(_document.Project, _owner, analyzers, concurrentAnalysis, reportSuppressedDiagnostics, _cancellationToken);
             }
 
             public List<DiagnosticData> Diagnostics { get; }
@@ -139,7 +141,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV1
                 var containsFullResult = await TryGetDocumentDiagnosticsAsync(
                                             stateSet, StateType.Syntax, true,
                                             (t, d) => t.Equals(textVersion) && d.Equals(syntaxVersion),
-                                            async (_1, _2, _3) =>
+                                            async (_1, _2) =>
                                             {
                                                 var root = await _document.GetSyntaxRootAsync(_cancellationToken).ConfigureAwait(false);
                                                 var diagnostics = root.GetDiagnostics();
@@ -151,7 +153,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV1
                 containsFullResult &= await TryGetDocumentDiagnosticsAsync(
                     stateSet, StateType.Document, true,
                     (t, d) => t.Equals(textVersion) && d.Equals(semanticVersion),
-                    async (_1, _2, _3) =>
+                    async (_1, _2) =>
                     {
                         var model = await _document.GetSemanticModelAsync(_cancellationToken).ConfigureAwait(false);
                         VerifyDiagnostics(model);
@@ -241,7 +243,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV1
 
             private async Task<bool> TryGetDocumentDiagnosticsAsync(
                 StateSet stateSet, StateType stateType, Func<VersionStamp, VersionStamp, bool> versionCheck,
-                Func<DiagnosticAnalyzerDriver, IEnumerable<DiagnosticAnalyzer>, DiagnosticAnalyzer, Task<IEnumerable<DiagnosticData>>> getDiagnostics)
+                Func<DiagnosticAnalyzerDriver, DiagnosticAnalyzer, Task<IEnumerable<DiagnosticData>>> getDiagnostics)
             {
                 if (_owner.Owner.IsAnalyzerSuppressed(stateSet.Analyzer, _document.Project) ||
                     !ShouldRunAnalyzerForStateType(stateSet, stateType))
@@ -258,7 +260,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV1
             private async Task<bool> TryGetDocumentDiagnosticsAsync(
                 StateSet stateSet, StateType stateType, bool supportsSemanticInSpan,
                 Func<VersionStamp, VersionStamp, bool> versionCheck,
-                Func<DiagnosticAnalyzerDriver, IEnumerable<DiagnosticAnalyzer>, DiagnosticAnalyzer, Task<IEnumerable<DiagnosticData>>> getDiagnostics,
+                Func<DiagnosticAnalyzerDriver, DiagnosticAnalyzer, Task<IEnumerable<DiagnosticData>>> getDiagnostics,
                 DiagnosticAnalyzerDriver analyzerDriverOpt = null)
             {
                 Func<DiagnosticData, bool> shouldInclude = d =>
@@ -289,8 +291,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV1
                     return false;
                 }
 
-                var analyzers = _owner._stateManager.GetOrCreateAnalyzers(_document.Project);
-                var dx = await getDiagnostics(analyzerDriverOpt, analyzers, stateSet.Analyzer).ConfigureAwait(false);
+                var dx = await getDiagnostics(analyzerDriverOpt, stateSet.Analyzer).ConfigureAwait(false);
                 if (dx != null)
                 {
                     // no state yet

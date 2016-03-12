@@ -15,6 +15,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV1
 {
     internal class DiagnosticAnalyzerDriver
     {
+        private readonly Project _project;
         private readonly Document _document;
 
         // The root of the document.  May be null for documents without a root.
@@ -23,8 +24,10 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV1
         // The span of the documents we want diagnostics for.  If null, then we want diagnostics 
         // for the entire file.
         private readonly TextSpan? _span;
-        private readonly Project _project;
+
         private readonly DiagnosticIncrementalAnalyzer _owner;
+        private readonly IEnumerable<DiagnosticAnalyzer> _analyzers;
+
         private readonly bool _concurrentAnalysis;
         private readonly bool _reportSuppressedDiagnostics;
         private readonly CancellationToken _cancellationToken;
@@ -36,10 +39,12 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV1
             TextSpan? span,
             SyntaxNode root,
             DiagnosticIncrementalAnalyzer owner,
+            IEnumerable<DiagnosticAnalyzer> analyzers,
             bool concurrentAnalysis,
             bool reportSuppressedDiagnostics,
             CancellationToken cancellationToken)
-            : this(document, span, root, owner, concurrentAnalysis, reportSuppressedDiagnostics, cachedCompilationWithAnalyzersOpt: null, cancellationToken: cancellationToken)
+            : this(document, span, root, owner, analyzers, concurrentAnalysis, reportSuppressedDiagnostics,
+                   cachedCompilationWithAnalyzersOpt: null, cancellationToken: cancellationToken)
         {
         }
 
@@ -48,11 +53,13 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV1
             TextSpan? span,
             SyntaxNode root,
             DiagnosticIncrementalAnalyzer owner,
+            IEnumerable<DiagnosticAnalyzer> analyzers,
             bool concurrentAnalysis,
             bool reportSuppressedDiagnostics,
             CompilationWithAnalyzers cachedCompilationWithAnalyzersOpt,
             CancellationToken cancellationToken)
-            : this(document.Project, owner, concurrentAnalysis, reportSuppressedDiagnostics, cachedCompilationWithAnalyzersOpt, cancellationToken)
+            : this(document.Project, owner, analyzers, concurrentAnalysis, reportSuppressedDiagnostics,
+                   cachedCompilationWithAnalyzersOpt, cancellationToken)
         {
             _document = document;
             _span = span;
@@ -62,16 +69,19 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV1
         public DiagnosticAnalyzerDriver(
             Project project,
             DiagnosticIncrementalAnalyzer owner,
+            IEnumerable<DiagnosticAnalyzer> analyzers,
             bool concurrentAnalysis,
             bool reportSuppressedDiagnostics,
             CancellationToken cancellationToken)
-            : this(project, owner, concurrentAnalysis, reportSuppressedDiagnostics, cachedCompilationWithAnalyzersOpt: null, cancellationToken: cancellationToken)
+            : this(project, owner, analyzers, concurrentAnalysis, reportSuppressedDiagnostics,
+                   cachedCompilationWithAnalyzersOpt: null, cancellationToken: cancellationToken)
         {
         }
 
         public DiagnosticAnalyzerDriver(
             Project project,
             DiagnosticIncrementalAnalyzer owner,
+            IEnumerable<DiagnosticAnalyzer> analyzers,
             bool concurrentAnalysis,
             bool reportSuppressedDiagnostics,
             CompilationWithAnalyzers cachedCompilationWithAnalyzersOpt,
@@ -79,6 +89,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV1
         {
             _project = project;
             _owner = owner;
+            _analyzers = analyzers;
+
             _concurrentAnalysis = concurrentAnalysis;
             _reportSuppressedDiagnostics = reportSuppressedDiagnostics;
             _cancellationToken = cancellationToken;
@@ -120,7 +132,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV1
             }
         }
 
-        private CompilationWithAnalyzers GetCompilationWithAnalyzers(Compilation compilation, IEnumerable<DiagnosticAnalyzer> analyzers)
+        private CompilationWithAnalyzers GetCompilationWithAnalyzers(Compilation compilation)
         {
             Contract.ThrowIfFalse(_project.SupportsCompilation);
 
@@ -128,14 +140,14 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV1
             {
                 Interlocked.CompareExchange(
                     ref _lazyCompilationWithAnalyzers,
-                    _owner.GetCompilationWithAnalyzers(_project, analyzers, compilation, _concurrentAnalysis, _reportSuppressedDiagnostics),
+                    _owner.GetCompilationWithAnalyzers(_project, _analyzers, compilation, _concurrentAnalysis, _reportSuppressedDiagnostics),
                     null);
             }
 
             return _lazyCompilationWithAnalyzers;
         }
 
-        public async Task<ImmutableArray<Diagnostic>> GetSyntaxDiagnosticsAsync(IEnumerable<DiagnosticAnalyzer> analyzers, DiagnosticAnalyzer analyzer)
+        public async Task<ImmutableArray<Diagnostic>> GetSyntaxDiagnosticsAsync(DiagnosticAnalyzer analyzer)
         {
             try
             {
@@ -169,7 +181,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV1
                     return ImmutableArray<Diagnostic>.Empty;
                 }
 
-                var compilationWithAnalyzers = GetCompilationWithAnalyzers(compilation, analyzers);
+                var compilationWithAnalyzers = GetCompilationWithAnalyzers(compilation);
                 var syntaxDiagnostics = await compilationWithAnalyzers.GetAnalyzerSyntaxDiagnosticsAsync(_root.SyntaxTree, ImmutableArray.Create(analyzer), _cancellationToken).ConfigureAwait(false);
                 await UpdateAnalyzerTelemetryDataAsync(analyzer, compilationWithAnalyzers).ConfigureAwait(false);
                 return GetFilteredDocumentDiagnostics(syntaxDiagnostics, compilation, onlyLocationFiltering: true).ToImmutableArray();
@@ -214,7 +226,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV1
             onAnalyzerException(ex, analyzer, exceptionDiagnostic);
         }
 
-        public async Task<ImmutableArray<Diagnostic>> GetSemanticDiagnosticsAsync(IEnumerable<DiagnosticAnalyzer> analyzers, DiagnosticAnalyzer analyzer)
+        public async Task<ImmutableArray<Diagnostic>> GetSemanticDiagnosticsAsync(DiagnosticAnalyzer analyzer)
         {
             try
             {
@@ -250,7 +262,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV1
                     return ImmutableArray<Diagnostic>.Empty;
                 }
 
-                var compilationWithAnalyzers = GetCompilationWithAnalyzers(compilation, analyzers);
+                var compilationWithAnalyzers = GetCompilationWithAnalyzers(compilation);
                 var semanticDiagnostics = await compilationWithAnalyzers.GetAnalyzerSemanticDiagnosticsAsync(model, _span, ImmutableArray.Create(analyzer), _cancellationToken).ConfigureAwait(false);
                 await UpdateAnalyzerTelemetryDataAsync(analyzer, compilationWithAnalyzers).ConfigureAwait(false);
                 return semanticDiagnostics;
@@ -261,7 +273,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV1
             }
         }
 
-        public async Task<ImmutableArray<Diagnostic>> GetProjectDiagnosticsAsync(IEnumerable<DiagnosticAnalyzer> analyzers, DiagnosticAnalyzer analyzer)
+        public async Task<ImmutableArray<Diagnostic>> GetProjectDiagnosticsAsync(DiagnosticAnalyzer analyzer)
         {
             try
             {
@@ -272,7 +284,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV1
                 {
                     if (_project.SupportsCompilation)
                     {
-                        await this.GetCompilationDiagnosticsAsync(analyzers, analyzer, diagnostics.Object).ConfigureAwait(false);
+                        await this.GetCompilationDiagnosticsAsync(analyzer, diagnostics.Object).ConfigureAwait(false);
                     }
 
                     await this.GetProjectDiagnosticsWorkerAsync(analyzer, diagnostics.Object).ConfigureAwait(false);
@@ -312,14 +324,14 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV1
             }
         }
 
-        private async Task GetCompilationDiagnosticsAsync(IEnumerable<DiagnosticAnalyzer> analyzers, DiagnosticAnalyzer analyzer, List<Diagnostic> diagnostics)
+        private async Task GetCompilationDiagnosticsAsync(DiagnosticAnalyzer analyzer, List<Diagnostic> diagnostics)
         {
             try
             {
                 Contract.ThrowIfFalse(_project.SupportsCompilation);
 
                 var compilation = await _project.GetCompilationAsync(_cancellationToken).ConfigureAwait(false);
-                var compilationWithAnalyzers = GetCompilationWithAnalyzers(compilation, analyzers);
+                var compilationWithAnalyzers = GetCompilationWithAnalyzers(compilation);
                 var compilationDiagnostics = await compilationWithAnalyzers.GetAnalyzerCompilationDiagnosticsAsync(ImmutableArray.Create(analyzer), _cancellationToken).ConfigureAwait(false);
                 await UpdateAnalyzerTelemetryDataAsync(analyzer, compilationWithAnalyzers).ConfigureAwait(false);
                 diagnostics.AddRange(compilationDiagnostics);
