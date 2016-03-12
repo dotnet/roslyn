@@ -796,9 +796,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             // Step out of the PatternVariableBinder for locals declared in variable declaration statement
             if (this is PatternVariableBinder)
             {
-                CSharpSyntaxNode parent;
-                if ((parent = declarator.Parent)?.Kind() == SyntaxKind.VariableDeclaration &&
-                     parent.Parent?.Kind() == SyntaxKind.LocalDeclarationStatement)
+                CSharpSyntaxNode parent = declarator.Parent;
+                if (parent?.Kind() == SyntaxKind.VariableDeclaration &&
+                    parent.Parent?.Kind() == SyntaxKind.LocalDeclarationStatement)
                 {
                     nameConflictChecker = this.Next;
                 }
