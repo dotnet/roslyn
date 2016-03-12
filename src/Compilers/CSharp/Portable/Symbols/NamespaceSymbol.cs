@@ -311,6 +311,24 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return null;
         }
 
+        // lazily initialized
+        private ImmutableArray<NamedTypeSymbol> typesWithExtensionMethods;
+        private ImmutableArray<NamedTypeSymbol> TypesWithExtensionMethods
+        {
+            get
+            {
+                var typesWithExtensionMethods = this.typesWithExtensionMethods;
+                if (typesWithExtensionMethods.IsDefault)
+                {
+                    this.typesWithExtensionMethods = this.GetTypeMembersUnordered().WhereAsArray(t => t.MightContainExtensionMethods);
+                    typesWithExtensionMethods = this.typesWithExtensionMethods;
+                }
+
+                return typesWithExtensionMethods;
+            }
+        }
+
+
         /// <summary>
         /// Add all extension methods in this namespace to the given list. If name or arity
         /// or both are provided, only those extension methods that match are included.
@@ -332,10 +350,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 return;
             }
 
-            var types = this.GetTypeMembersUnordered();
-            foreach (var type in types)
+            var typesWithExtensionMethods = this.TypesWithExtensionMethods;
+
+            foreach (var type in typesWithExtensionMethods)
             {
-                type.GetExtensionMethods(methods, nameOpt, arity, options);
+                type.DoGetExtensionMethods(methods, nameOpt, arity, options);
             }
         }
 

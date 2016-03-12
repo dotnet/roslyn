@@ -244,7 +244,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                                 endName = this.WithXmlParseError(endName, XmlParseErrorCode.XML_InvalidWhitespace);
                             }
 
-                            if (!endName.IsMissing && name.ToString() != endName.ToString())
+                            if (!endName.IsMissing && !MatchingXmlNames(name, endName))
                             {
                                 endName = this.WithXmlParseError(endName, XmlParseErrorCode.XML_ElementTypeMatch, endName.ToString(), name.ToString());
                             }
@@ -288,6 +288,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 _pool.Free(attrs);
             }
         }
+
+        private static bool MatchingXmlNames(XmlNameSyntax name, XmlNameSyntax endName)
+        {
+            // NOTE we do not compare colon tokens.
+            //      as long as name and prefix are matching we will consider names equivalent
+            //      it would be a different error if colon are missing
+            return name.LocalName.ValueText == endName.LocalName.ValueText &&
+                name.Prefix?.Prefix.ValueText == endName.Prefix?.Prefix.ValueText;
+        }
+
         // assuming this is not used concurrently
         private readonly HashSet<string> _attributesSeen = new HashSet<string>();
 

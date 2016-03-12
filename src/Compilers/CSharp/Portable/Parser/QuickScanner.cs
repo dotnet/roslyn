@@ -209,7 +209,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 var flags = uc < charPropLength ? (CharFlags)s_charProperties[uc] : CharFlags.Complex;
 
                 state = (QuickScanState)s_stateTransitions[(int)state, (int)flags];
-                if (state == QuickScanState.Done || state == QuickScanState.Bad)
+                if (state >= QuickScanState.Done)
                 {
                     goto exitWhile;
                 }
