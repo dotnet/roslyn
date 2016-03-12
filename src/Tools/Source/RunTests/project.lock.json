@@ -375,11 +375,10 @@
   "libraries": {
     "Newtonsoft.Json/8.0.2": {
       "sha512": "e5yWmEfu68rmtG431zl9N/7PlNKQDIuiDW5MHlEFAZcecakcxrIGnKqrPAtWNILzK2oNanRB5cD150MYhECK3g==",
-      "type": "Package",
+      "type": "package",
       "files": [
+        "Newtonsoft.Json.8.0.2.nupkg.sha512",
         "Newtonsoft.Json.nuspec",
-        "[Content_Types].xml",
-        "_rels/.rels",
         "lib/net20/Newtonsoft.Json.dll",
         "lib/net20/Newtonsoft.Json.xml",
         "lib/net35/Newtonsoft.Json.dll",
@@ -392,17 +391,15 @@
         "lib/portable-net40+sl5+wp80+win8+wpa81/Newtonsoft.Json.xml",
         "lib/portable-net45+wp80+win8+wpa81+dnxcore50/Newtonsoft.Json.dll",
         "lib/portable-net45+wp80+win8+wpa81+dnxcore50/Newtonsoft.Json.xml",
-        "package/services/metadata/core-properties/cc8c591d554640789c6a6ef6456f7772.psmdcp",
         "tools/install.ps1"
       ]
     },
     "RestSharp/105.2.3": {
       "sha512": "50LkciOclb7Lza9QXqR9reKeUoPlDQiFD4iBdOmd6twOBmTtqEFIOXQgdDdsTHQg4HcGh6EvrM6gN1X72vkJLA==",
-      "type": "Package",
+      "type": "package",
       "files": [
+        "RestSharp.105.2.3.nupkg.sha512",
         "RestSharp.nuspec",
-        "[Content_Types].xml",
-        "_rels/.rels",
         "lib/MonoAndroid10/RestSharp.dll",
         "lib/MonoAndroid10/RestSharp.xml",
         "lib/MonoTouch10/RestSharp.dll",
@@ -429,7 +426,6 @@
         "lib/windowsphone8/RestSharp.xml",
         "lib/windowsphone81/RestSharp.dll",
         "lib/windowsphone81/RestSharp.xml",
-        "package/services/metadata/core-properties/fe62c7f38ace4dbeaf729ff7b329d22a.psmdcp",
         "readme.txt"
       ]
     },

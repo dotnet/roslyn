@@ -4,7 +4,7 @@
     "Microsoft.DiaSymReader": "1.0.7",
     "Microsoft.DiaSymReader.Native": "1.3.3",
     "System.Collections.Immutable": "1.1.37",
-    "System.Reflection.Metadata": "1.2.0-rc2-23826"
+    "System.Reflection.Metadata": "1.2.0"
   },
   "frameworks": {
     ".NETPortable,Version=v4.5,Profile=Profile7": {}
