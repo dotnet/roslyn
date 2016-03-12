@@ -456,5 +456,47 @@ namespace Microsoft.CodeAnalysis
 
             return count;
         }
+
+        internal static Dictionary<K, ImmutableArray<T>> ToDictionary<K, T>(this ImmutableArray<T> items, Func<T, K> keySelector, IEqualityComparer<K> comparer = null)
+        {
+            if (items.Length == 1)
+            {
+                var dictionary = new Dictionary<K, ImmutableArray<T>>(1, comparer);
+                T value = items[0];
+                dictionary.Add(keySelector(value), ImmutableArray.Create(value));
+                return dictionary;
+            }
+            else
+            {
+                // bucketize
+                // prevent reallocation. it may not have 'count' entries, but it won't have more. 
+                var accumulator = new Dictionary<K, ArrayBuilder<T>>(items.Length, comparer);
+                for (int i = 0; i < items.Length; i++)
+                {
+                    var item = items[i];
+                    var key = keySelector(item);
+
+                    ArrayBuilder<T> bucket;
+                    if (!accumulator.TryGetValue(key, out bucket))
+                    {
+                        bucket = ArrayBuilder<T>.GetInstance();
+                        accumulator.Add(key, bucket);
+                    }
+
+                    bucket.Add(item);
+                }
+
+                var dictionary = new Dictionary<K, ImmutableArray<T>>(accumulator.Count, comparer);
+
+                // freeze
+                foreach (var pair in accumulator)
+                {
+                    dictionary.Add(pair.Key, pair.Value.ToImmutableAndFree());
+                }
+
+                return dictionary;
+            }
+        }
+
     }
 }

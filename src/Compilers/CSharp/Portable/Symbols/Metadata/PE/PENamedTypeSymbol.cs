@@ -22,7 +22,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
     /// </summary>
     internal abstract class PENamedTypeSymbol : NamedTypeSymbol
     {
-        private static readonly Dictionary<string, ImmutableArray<PENamedTypeSymbol>> s_emptyNestedTypes = new Dictionary<string, ImmutableArray<PENamedTypeSymbol>>();
+        private static readonly Dictionary<string, ImmutableArray<PENamedTypeSymbol>> s_emptyNestedTypes = new Dictionary<string, ImmutableArray<PENamedTypeSymbol>>(EmptyComparer.Instance);
 
         private readonly NamespaceOrTypeSymbol _container;
         private readonly TypeDefinitionHandle _handle;
@@ -1877,7 +1877,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
 
         private static Dictionary<string, ImmutableArray<Symbol>> GroupByName(ArrayBuilder<Symbol> symbols)
         {
-            return symbols.ToDictionary(s => s.Name);
+            return symbols.ToDictionary(s => s.Name, StringOrdinalComparer.Instance);
         }
 
         private static Dictionary<string, ImmutableArray<PENamedTypeSymbol>> GroupByName(ArrayBuilder<PENamedTypeSymbol> symbols)
@@ -1887,7 +1887,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                 return s_emptyNestedTypes;
             }
 
-            return symbols.ToDictionary(s => s.Name);
+            return symbols.ToDictionary(s => s.Name, StringOrdinalComparer.Instance);
         }
 
 

@@ -1,5 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using Roslyn.Utilities;
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -201,7 +202,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                 var children = from child in childNamespaces
                                select new PENestedNamespaceSymbol(child.Key, this, child.Value);
 
-                var namespaces = new Dictionary<string, PENestedNamespaceSymbol>();
+                var namespaces = new Dictionary<string, PENestedNamespaceSymbol>(StringOrdinalComparer.Instance);
 
                 foreach (var c in children)
                 {
@@ -241,7 +242,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
 
                                 if (noPiaLocalTypes == null)
                                 {
-                                    noPiaLocalTypes = new Dictionary<string, TypeDefinitionHandle>();
+                                    noPiaLocalTypes = new Dictionary<string, TypeDefinitionHandle>(StringOrdinalComparer.Instance);
                                 }
 
                                 noPiaLocalTypes[typeDefName] = t;
@@ -252,7 +253,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                     }
                 }
 
-                var typesDict = children.ToDictionary(c => c.Name);
+                var typesDict = children.ToDictionary(c => c.Name, StringOrdinalComparer.Instance);
                 children.Free();
 
                 if (noPiaLocalTypes != null)
