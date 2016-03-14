@@ -17,10 +17,16 @@ namespace ProcessWatchdog
         public string Timeout { get; set; }
 
         [Option(
-            'c',
-            "command-line",
-            HelpText = "Command line for the executable to be run.",
+            'e',
+            "executable",
+            HelpText = "The executable to run.",
             Required = true)]
-        public string CommandLine { get; set; }
+        public string Executable { get; set; }
+
+        [Option(
+            'a',
+            "arguments",
+            HelpText = "Command line arguments to pass to the executable, enclosed in quotes if necessary.")]
+        public string Arguments { get; set; }
     }
 }

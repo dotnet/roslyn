@@ -2,9 +2,11 @@
 
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Globalization;
 using System.Linq;
 using System.Reflection;
+using System.Threading;
 using CommandLine;
 
 
@@ -14,6 +16,8 @@ namespace ProcessWatchdog
     {
         private Options _options;
         private TimeSpan _timeout;
+        private bool _exited;
+        private DateTime _startTime;
 
         public Program(Options options)
         {
@@ -32,9 +36,25 @@ namespace ProcessWatchdog
                 return 1;
             }
 
-            Console.WriteLine("Options:");
-            Console.WriteLine("Timeout: {0:c}", _timeout);
-            Console.WriteLine("Command: {0}", _options.CommandLine);
+            var processStartInfo = new ProcessStartInfo();
+            processStartInfo.FileName = _options.Executable;
+            processStartInfo.Arguments = _options.Arguments;
+
+            using (Process process = Process.Start(processStartInfo))
+            {
+                while (!process.HasExited)
+                {
+                    if (DateTime.Now - process.StartTime > _timeout)
+                    {
+                        ConsoleUtils.ReportError(Resources.ErrorProcessTimedOut, _options.Executable, _options.Timeout);
+                        return 1;
+                    }
+
+                    Thread.Sleep(1000);
+                }
+
+                Console.WriteLine(Resources.ProcessExited, _options.Executable, process.ExitTime - process.StartTime);
+            }
 
             return 0;
         }

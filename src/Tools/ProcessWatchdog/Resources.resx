@@ -129,4 +129,10 @@
   <data name="ErrorInvalidTimeoutInterval" xml:space="preserve">
     <value>The string "{0}" is not a valid TimeSpan. {1} Please specify the timeout interval with a string of the form hh:mm[:ss].</value>
   </data>
+  <data name="ErrorProcessTimedOut" xml:space="preserve">
+    <value>The process {0} timed out after {1}.</value>
+  </data>
+  <data name="ProcessExited" xml:space="preserve">
+    <value>The process {0} exited successfully after {1}.</value>
+  </data>
 </root>

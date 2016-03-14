@@ -95,5 +95,23 @@ namespace ProcessWatchdog {
                 return ResourceManager.GetString("ErrorInvalidTimeoutInterval", resourceCulture);
             }
         }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The process {0} timed out after {1}..
+        /// </summary>
+        internal static string ErrorProcessTimedOut {
+            get {
+                return ResourceManager.GetString("ErrorProcessTimedOut", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The process {0} exited successfully after {1}..
+        /// </summary>
+        internal static string ProcessExited {
+            get {
+                return ResourceManager.GetString("ProcessExited", resourceCulture);
+            }
+        }
     }
 }
