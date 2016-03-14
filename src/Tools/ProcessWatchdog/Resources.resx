@@ -139,13 +139,16 @@
     <value>The string "{0}" is not a valid TimeSpan. {1} Please specify the timeout interval with a string of the form hh:mm[:ss].</value>
   </data>
   <data name="ErrorProcessTimedOut" xml:space="preserve">
-    <value>The process {0} timed out after {1}.</value>
+    <value>The process {0} ({1}) exceeded the time limit of {2} and will be terminated.</value>
   </data>
-  <data name="InfoCreatedScreenshotfolder" xml:space="preserve">
-    <value>Created screenshot folder {0}.</value>
+  <data name="InfoCreatedOutputFolder" xml:space="preserve">
+    <value>Created output folder {0}.</value>
   </data>
   <data name="InfoSavedScreenshot" xml:space="preserve">
     <value>Saved screenshot to file {0}.</value>
+  </data>
+  <data name="InfoTerminatingProcess" xml:space="preserve">
+    <value>Terminating process {0} ({1}).</value>
   </data>
   <data name="ProcessExited" xml:space="preserve">
     <value>The process {0} exited successfully after {1}.</value>

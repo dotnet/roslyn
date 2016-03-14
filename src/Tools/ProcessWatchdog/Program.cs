@@ -3,7 +3,6 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
-using System.Globalization;
 using System.Linq;
 using System.Reflection;
 using System.Threading;
@@ -50,8 +49,21 @@ namespace ProcessWatchdog
                 {
                     if (DateTime.Now - process.StartTime > _timeout)
                     {
-                        ConsoleUtils.LogError(Resources.ErrorProcessTimedOut, _options.Executable, _options.Timeout);
+                        ConsoleUtils.LogError(
+                            Resources.ErrorProcessTimedOut,
+                            _options.Executable,
+                            process.Id,
+                            _options.Timeout);
+
                         ScreenshotSaver.SaveScreen(_options.Executable, _options.OutputDirectory);
+
+                        ConsoleUtils.LogMessage(
+                            Resources.InfoTerminatingProcess,
+                            _options.Executable,
+                            process.Id);
+
+                        process.Kill();
+
                         return 1;
                     }
 

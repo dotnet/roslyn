@@ -124,7 +124,7 @@ namespace ProcessWatchdog {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to The process {0} timed out after {1}..
+        ///   Looks up a localized string similar to The process {0} ({1}) exceeded the time limit of {2} and will be terminated..
         /// </summary>
         internal static string ErrorProcessTimedOut {
             get {
@@ -133,11 +133,11 @@ namespace ProcessWatchdog {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Created screenshot folder {0}..
+        ///   Looks up a localized string similar to Created output folder {0}..
         /// </summary>
-        internal static string InfoCreatedScreenshotfolder {
+        internal static string InfoCreatedOutputFolder {
             get {
-                return ResourceManager.GetString("InfoCreatedScreenshotfolder", resourceCulture);
+                return ResourceManager.GetString("InfoCreatedOutputFolder", resourceCulture);
             }
         }
         
@@ -147,6 +147,15 @@ namespace ProcessWatchdog {
         internal static string InfoSavedScreenshot {
             get {
                 return ResourceManager.GetString("InfoSavedScreenshot", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Terminating process {0} ({1})..
+        /// </summary>
+        internal static string InfoTerminatingProcess {
+            get {
+                return ResourceManager.GetString("InfoTerminatingProcess", resourceCulture);
             }
         }
         

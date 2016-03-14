@@ -12,11 +12,11 @@ namespace ProcessWatchdog
 {
     public static class ScreenshotSaver
     {
-        public static void SaveScreen(string description, string outputDirectory)
+        public static void SaveScreen(string description, string outputFolder)
         {
             try
             {
-                var fileName = GenerateScreenshotFileName(description, outputDirectory);
+                var fileName = GenerateScreenshotFileName(description, outputFolder);
                 SaveScreenToFile(fileName);
                 ConsoleUtils.LogMessage(Resources.InfoSavedScreenshot, fileName);
             }
@@ -52,17 +52,17 @@ namespace ProcessWatchdog
             }
         }
 
-        private static string GenerateScreenshotFileName(string description, string outputDirectory)
+        private static string GenerateScreenshotFileName(string description, string outputFolder)
         {
-            var screenshotsFolder = new DirectoryInfo(outputDirectory);
-            if (!screenshotsFolder.Exists)
+            var outputFolderInfo = new DirectoryInfo(outputFolder);
+            if (!outputFolderInfo.Exists)
             {
-                screenshotsFolder.Create();
-                ConsoleUtils.LogMessage(Resources.InfoCreatedScreenshotfolder, screenshotsFolder.FullName);
+                outputFolderInfo.Create();
+                ConsoleUtils.LogMessage(Resources.InfoCreatedOutputFolder, outputFolderInfo.FullName);
             }
 
             var fileName = DateTime.Now.ToString("yyyy-MM-dd_HH-mm-ss_ff") + " - " + description + ".png";
-            fileName = Path.Combine(screenshotsFolder.FullName, fileName);
+            fileName = Path.Combine(outputFolderInfo.FullName, fileName);
             return fileName;
         }
     }

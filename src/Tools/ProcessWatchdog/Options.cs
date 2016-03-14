@@ -31,8 +31,8 @@ namespace ProcessWatchdog
 
         [Option(
             'o',
-            "output-directory",
-            HelpText = "Directory to which process dumps and screen shots will be written.",
+            "output-folder",
+            HelpText = "Folder to which process dumps and screen shots will be written.",
             Default = ".")]
         public string OutputDirectory { get; set; }
 
