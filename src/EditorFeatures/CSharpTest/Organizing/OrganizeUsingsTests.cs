@@ -245,11 +245,6 @@ using static System.BitConverter;";
             await CheckAsync(initial, final, false);
         }
 
-        
-
-       
-       
-
         [Fact, Trait(Traits.Feature, Traits.Features.Organizing)]
         public async Task IndentationAfterSorting()
         {
