@@ -11,6 +11,7 @@ using System.Threading.Tasks;
 using RunTests.Cache;
 using Newtonsoft.Json.Linq;
 using RestSharp;
+using System.Collections.Immutable;
 
 namespace RunTests
 {
@@ -62,6 +63,11 @@ namespace RunTests
 
             Logger.Finish(Path.GetDirectoryName(options.Assemblies.FirstOrDefault() ?? ""));
 
+            if (options.Display)
+            {
+                DisplayResults(result.TestResults);
+            }
+
             if (CanUseWebStorage())
             {
                 await SendRunStats(options, testExecutor.DataStorage, ellapsed, result, assemblyInfoList.Count, cancellationToken).ConfigureAwait(true);
@@ -104,6 +110,14 @@ namespace RunTests
             }
 
             return list;
+        }
+
+        private static void DisplayResults(ImmutableArray<TestResult> testResults)
+        {
+            foreach (var cur in testResults)
+            {
+                ProcessRunner.OpenFile(cur.ResultsFilePath);
+            }
         }
 
         private static bool CanUseWebStorage()
