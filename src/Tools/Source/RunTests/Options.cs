@@ -44,8 +44,6 @@ namespace RunTests
         /// </summary>
         public List<string> Assemblies { get; set; }
 
-        public List<string> MissingAssemblies { get; set; }
-
         public string XunitPath { get; set; }
 
         internal static Options Parse(string[] args)
@@ -116,26 +114,7 @@ namespace RunTests
                 return null;
             }
 
-            opt.Assemblies = new List<string>();
-            opt.MissingAssemblies = new List<string>();
-            var assemblyArgs = args.Skip(index).ToArray();
-
-            if (!assemblyArgs.Any())
-            {
-                Console.WriteLine("No test assemblies specified.");
-                return null;
-            }
-
-            foreach (var assemblyPath in assemblyArgs)
-            {
-                if (File.Exists(assemblyPath))
-                {
-                    opt.Assemblies.Add(assemblyPath);
-                    continue;
-                }
-                opt.MissingAssemblies.Add(assemblyPath);
-            }
-
+            opt.Assemblies = args.Skip(index).ToList();
             return opt;
         }
 

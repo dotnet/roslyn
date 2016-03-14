@@ -17,13 +17,16 @@ namespace RunTests
 {
     internal sealed class Program
     {
+        internal const int ExitSuccess = 0;
+        internal const int ExitFailure = 1;
+
         internal static int Main(string[] args)
         {
             var options = Options.Parse(args);
             if (options == null)
             {
                 Options.PrintUsage();
-                return 1;
+                return ExitFailure;
             }
 
             // Setup cancellation for ctrl-c key presses
@@ -38,14 +41,9 @@ namespace RunTests
 
         private static async Task<int> RunCore(Options options, CancellationToken cancellationToken)
         {
-            if (options.MissingAssemblies.Count > 0)
-            {
-                foreach (var assemblyPath in options.MissingAssemblies)
-                {
-                    ConsoleUtil.WriteLine(ConsoleColor.Red, $"The file '{assemblyPath}' does not exist, is an invalid file name, or you do not have sufficient permissions to read the specified file.");
-                }
-
-                return 1;
+            if (CheckAssemblyList(options))
+            { 
+                return ExitFailure;
             }
 
             var testExecutor = CreateTestExecutor(options);
@@ -76,11 +74,41 @@ namespace RunTests
             if (!result.Succeeded)
             {
                 ConsoleUtil.WriteLine(ConsoleColor.Red, $"Test failures encountered");
-                return 1;
+                return ExitFailure;
             }
 
             Console.WriteLine($"All tests passed");
-            return options.MissingAssemblies.Any() ? 1 : 0;
+            return ExitSuccess;
+        }
+
+        /// <summary>
+        /// Quick sanity check to look over the set of assemblies to make sure they are valid and something was 
+        /// specified.
+        /// </summary>
+        private static bool CheckAssemblyList(Options options)
+        {
+            var anyMissing = false;
+            foreach (var assemblyPath in options.Assemblies)
+            {
+                if (!File.Exists(assemblyPath))
+                {
+                    ConsoleUtil.WriteLine(ConsoleColor.Red, $"The file '{assemblyPath}' does not exist, is an invalid file name, or you do not have sufficient permissions to read the specified file.");
+                    anyMissing = true;
+                }
+            }
+
+            if (anyMissing)
+            {
+                return false;
+            }
+
+            if (options.Assemblies.Count == 0)
+            {
+                Console.WriteLine("No test assemblies specified.");
+                return false;
+            }
+
+            return true;
         }
 
         private static List<AssemblyInfo> GetAssemblyList(Options options)
