@@ -1,7 +1,7 @@
 // Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-#load "..\util\assemblies.csx"
-#load "..\util\ngen.csx"
+#load ".\assemblies.csx"
+#load ".\ngen.csx"
 
 using System;
 using System.Diagnostics;
