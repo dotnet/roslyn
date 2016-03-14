@@ -171,14 +171,15 @@ namespace Microsoft.CodeAnalysis.UnitTests
 
             var methodBodies = new MethodBodiesEncoder(ilBuilder);
 
-            var buffer = new BlobBuilder();
+            var codeBuilder = new BlobBuilder();
+            var branchBuilder = new BranchBuilder();
             InstructionEncoder il;
 
             //
             // Program::.ctor
             //
             int ctorBodyOffset;
-            il = new InstructionEncoder(buffer);
+            il = new InstructionEncoder(codeBuilder);
 
             // ldarg.0
             il.LoadArgument(0);
@@ -189,14 +190,15 @@ namespace Microsoft.CodeAnalysis.UnitTests
             // ret
             il.OpCode(ILOpCode.Ret);
 
-            methodBodies.AddMethodBody().WriteInstructions(buffer, out ctorBodyOffset);
-            buffer.Clear();
+            methodBodies.AddMethodBody().WriteInstructions(codeBuilder, out ctorBodyOffset);
+            codeBuilder.Clear();
 
             //
             // Program::Main
             //
             int mainBodyOffset;
-            il = new InstructionEncoder(buffer);
+            il = new InstructionEncoder(codeBuilder, branchBuilder);
+            var endLabel = il.DefineLabel();
 
             // .try
             int tryOffset = il.Offset;
@@ -208,10 +210,8 @@ namespace Microsoft.CodeAnalysis.UnitTests
             il.Call(consoleWriteLineMemberRef);
 
             //   leave.s END
-            il.OpCode(ILOpCode.Leave_s);
-            Blob end = il.Builder.ReserveBytes(1);
-            int leaveOffset = il.Offset;
-
+            il.Branch(ILOpCode.Leave, endLabel);
+            
             // .finally
             int handlerOffset = il.Offset;
 
@@ -223,22 +223,23 @@ namespace Microsoft.CodeAnalysis.UnitTests
 
             // .endfinally
             il.OpCode(ILOpCode.Endfinally);
+            int handlerEnd = il.Offset;
 
             // END: 
-            int handlerEnd = il.Offset;
-            new BlobWriter(end).WriteByte((byte)(handlerEnd - leaveOffset));
+            il.MarkLabel(endLabel);
 
             // ret
             il.OpCode(ILOpCode.Ret);
 
             var body = methodBodies.AddMethodBody(exceptionRegionCount: 1);
-            var eh = body.WriteInstructions(buffer, out mainBodyOffset);
+            var eh = body.WriteInstructions(codeBuilder, branchBuilder, out mainBodyOffset);
             eh.StartRegions();
             eh.AddFinally(tryOffset, handlerOffset - tryOffset, handlerOffset, handlerEnd - handlerOffset);
             eh.EndRegions();
 
-            buffer.Clear();
-            
+            codeBuilder.Clear();
+            branchBuilder.Clear();
+
             var mainMethodDef = metadata.AddMethodDefinition(
                 MethodAttributes.Public | MethodAttributes.Static | MethodAttributes.HideBySig,
                 MethodImplAttributes.IL | MethodImplAttributes.Managed,
