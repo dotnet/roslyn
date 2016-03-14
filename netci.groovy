@@ -1,6 +1,9 @@
 // Groovy Script: http://www.groovy-lang.org/syntax.html
 // Jenkins DSL: https://github.com/jenkinsci/job-dsl-plugin/wiki
 
+import jobs.generation.Utilities;
+def project = GithubProject
+
 static void addLogRotator(def myJob) {
   myJob.with {
     logRotator {
@@ -218,7 +221,6 @@ def branchNames = []
             switch (opsys) {
               case 'win':
                 myJob.with {
-                  label('windows-roslyn')
                   steps {
                     batchFile("""set TEMP=%WORKSPACE%\\Binaries\\Temp
 mkdir %TEMP%
@@ -226,6 +228,7 @@ set TMP=%TEMP%
 .\\cibuild.cmd ${(configuration == 'dbg') ? '/debug' : '/release'} ${(buildTarget == 'unit32') ? '/test32' : '/test64'}""")
                   }
                 }
+                Utilities.setMachineAffinity(myJob, 'Windows_NT', 'latest-or-auto')
                 // Generic throttling for Windows, no category
                 addConcurrentBuild(myJob, null)
                 break;
@@ -273,6 +276,7 @@ set TMP=%TEMP%
     }
   }
 
+  Utilities.setMachineAffinity(determinismJob, 'Windows_NT', 'latest-or-auto')
   addConcurrentBuild(determinismJob, null)
   addStandardJob(determinismJob, determinismJobName, branchName,  "(?i).*test\\W+determinism.*", true);
 }
