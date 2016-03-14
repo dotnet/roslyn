@@ -41,7 +41,7 @@ namespace RunTests
 
         private static async Task<int> RunCore(Options options, CancellationToken cancellationToken)
         {
-            if (CheckAssemblyList(options))
+            if (!CheckAssemblyList(options))
             { 
                 return ExitFailure;
             }
