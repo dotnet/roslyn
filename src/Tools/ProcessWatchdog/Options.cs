@@ -11,10 +11,10 @@ namespace ProcessWatchdog
     {
         [Option(
             't',
-            "timeout",
-            HelpText = "Timeout value in the form hh:mm[:ss].",
+            "time-limit",
+            HelpText = "Time limit in the form hh:mm[:ss].",
             Required = true)]
-        public string Timeout { get; set; }
+        public string TimeLimit { get; set; }
 
         [Option(
             'e',
@@ -42,5 +42,12 @@ namespace ProcessWatchdog
             HelpText = "Polling interval in milliseconds",
             Default = 1000)]
         public int PollingInterval { get; set; }
+
+        [Option(
+            'd',
+            "procdump-path",
+            HelpText = "Path to the executable procdump.exe.",
+            Required = true)]
+        public string ProcdumpPath { get; set; }
     }
 }

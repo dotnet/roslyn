@@ -14,7 +14,7 @@ namespace ProcessWatchdog
     internal sealed class Program
     {
         private Options _options;
-        private TimeSpan _timeout;
+        private TimeSpan _timeLimit;
 
         public Program(Options options)
         {
@@ -25,11 +25,11 @@ namespace ProcessWatchdog
         {
             try
             {
-                _timeout = TimeSpan.Parse(_options.Timeout);
+                _timeLimit = TimeSpan.Parse(_options.TimeLimit);
             }
             catch (Exception ex)
             {
-                ConsoleUtils.LogError(Resources.ErrorInvalidTimeoutInterval, _options.Timeout, ex.Message);
+                ConsoleUtils.LogError(Resources.ErrorInvalidTimeoutInterval, _options.TimeLimit, ex.Message);
                 return 1;
             }
 
@@ -47,13 +47,13 @@ namespace ProcessWatchdog
             {
                 while (!process.HasExited)
                 {
-                    if (DateTime.Now - process.StartTime > _timeout)
+                    if (DateTime.Now - process.StartTime > _timeLimit)
                     {
                         ConsoleUtils.LogError(
                             Resources.ErrorProcessTimedOut,
                             _options.Executable,
                             process.Id,
-                            _options.Timeout);
+                            _options.TimeLimit);
 
                         ScreenshotSaver.SaveScreen(_options.Executable, _options.OutputDirectory);
 
