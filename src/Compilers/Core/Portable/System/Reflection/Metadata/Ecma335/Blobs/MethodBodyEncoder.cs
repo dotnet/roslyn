@@ -2,6 +2,7 @@
 
 using System;
 using System.Collections.Immutable;
+using System.Diagnostics;
 using System.Reflection.Metadata;
 using System.Reflection.Metadata.Ecma335;
 
@@ -95,7 +96,18 @@ namespace Roslyn.Reflection.Metadata.Ecma335.Blobs
             _exceptionRegionCount = exceptionRegionCount;
         }
 
+        internal bool IsTiny(int codeSize)
+        {
+            return codeSize < 64 && _maxStack <= 8 && _localVariablesSignature.IsNil && _exceptionRegionCount == 0;
+        }
+
         private int WriteHeader(int codeSize)
+        {
+            Blob blob;
+            return WriteHeader(codeSize, false, out blob);
+        }
+
+        private int WriteHeader(int codeSize, bool codeSizeFixup, out Blob codeSizeBlob)
         {
             const int TinyFormat = 2;
             const int FatFormat = 3;
@@ -104,11 +116,13 @@ namespace Roslyn.Reflection.Metadata.Ecma335.Blobs
 
             int offset;
 
-            bool isTiny = codeSize < 64 && _maxStack <= 8 && _localVariablesSignature.IsNil && _exceptionRegionCount == 0;
-            if (isTiny)
+            if (IsTiny(codeSize))
             {
                 offset = Builder.Count;
                 Builder.WriteByte((byte)((codeSize << 2) | TinyFormat));
+
+                Debug.Assert(!codeSizeFixup);
+                codeSizeBlob = default(Blob);
             }
             else
             {
@@ -129,7 +143,16 @@ namespace Roslyn.Reflection.Metadata.Ecma335.Blobs
 
                 Builder.WriteUInt16((ushort)(_attributes | flags));
                 Builder.WriteUInt16(_maxStack);
-                Builder.WriteInt32(codeSize);
+                if (codeSizeFixup)
+                {
+                    codeSizeBlob = Builder.ReserveBytes(sizeof(int));
+                }
+                else
+                {
+                    codeSizeBlob = default(Blob);
+                    Builder.WriteInt32(codeSize);
+                }
+
                 Builder.WriteInt32(_localVariablesSignature.IsNil ? 0 : MetadataTokens.GetToken(_localVariablesSignature));
             }
 
@@ -144,25 +167,62 @@ namespace Roslyn.Reflection.Metadata.Ecma335.Blobs
                 hasLargeRegions: (_attributes & (int)MethodBodyAttributes.LargeExceptionRegions) != 0);
         }
 
-        public ExceptionRegionEncoder WriteInstructions(ImmutableArray<byte> buffer, out int offset)
+        public ExceptionRegionEncoder WriteInstructions(ImmutableArray<byte> instructions, out int bodyOffset)
         {
-            offset = WriteHeader(buffer.Length);
-            Builder.WriteBytes(buffer);
+            bodyOffset = WriteHeader(instructions.Length);
+            Builder.WriteBytes(instructions);
             return CreateExceptionEncoder();
         }
 
-        public ExceptionRegionEncoder WriteInstructions(ImmutableArray<byte> buffer, out int offset, out Blob instructionBlob)
+        public ExceptionRegionEncoder WriteInstructions(ImmutableArray<byte> instructions, out int bodyOffset, out Blob instructionBlob)
         {
-            offset = WriteHeader(buffer.Length);
-            instructionBlob = Builder.ReserveBytes(buffer.Length);
-            new BlobWriter(instructionBlob).WriteBytes(buffer);
+            bodyOffset = WriteHeader(instructions.Length);
+            instructionBlob = Builder.ReserveBytes(instructions.Length);
+            new BlobWriter(instructionBlob).WriteBytes(instructions);
             return CreateExceptionEncoder();
         }
 
-        public ExceptionRegionEncoder WriteInstructions(BlobBuilder buffer, out int offset)
+        public ExceptionRegionEncoder WriteInstructions(BlobBuilder codeBuilder, out int bodyOffset)
         {
-            offset = WriteHeader(buffer.Count);
-            buffer.WriteContentTo(Builder);
+            bodyOffset = WriteHeader(codeBuilder.Count);
+            codeBuilder.WriteContentTo(Builder);
+            return CreateExceptionEncoder();
+        }
+
+        public ExceptionRegionEncoder WriteInstructions(BlobBuilder codeBuilder, BranchBuilder branchBuilder, out int bodyOffset)
+        {
+            if (branchBuilder == null || branchBuilder.BranchCount == 0)
+            {
+                return WriteInstructions(codeBuilder, out bodyOffset);
+            }
+            
+            // When emitting branches we emitted short branches.
+            int initialCodeSize = codeBuilder.Count;
+            Blob codeSizeFixup;
+            if (IsTiny(initialCodeSize))
+            {
+                // If the method is tiny so far then all branches have to be short 
+                // (the max distance between any label and a branch instruction is < 64).
+                bodyOffset = WriteHeader(initialCodeSize);
+                codeSizeFixup = default(Blob);
+            }
+            else
+            {
+                // Otherwise, it's fat format and we can fixup the size later on:
+                bodyOffset = WriteHeader(initialCodeSize, true, out codeSizeFixup);
+            }
+
+            int codeStartOffset = Builder.Count;
+            branchBuilder.FixupBranches(codeBuilder, Builder);
+            if (!codeSizeFixup.IsDefault)
+            {
+                new BlobWriter(codeSizeFixup).WriteInt32(Builder.Count - codeStartOffset);
+            }
+            else
+            {
+                Debug.Assert(initialCodeSize == Builder.Count - codeStartOffset);
+            }
+
             return CreateExceptionEncoder();
         }
     }

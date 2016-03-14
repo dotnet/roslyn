@@ -56,9 +56,12 @@
     <Compile Include="System\Reflection\BlobWriterImpl.cs" />
     <Compile Include="System\Reflection\BlobBuilder.cs" />
     <Compile Include="System\Reflection\BlobBuilder.Enumerators.cs" />
+    <Compile Include="System\Reflection\Metadata\Ecma335\Blobs\BranchBuilder.cs" />
     <Compile Include="System\Reflection\Metadata\Ecma335\Blobs\ExceptionRegionEncoder.cs" />
     <Compile Include="System\Reflection\Metadata\Ecma335\Blobs\InstructionEncoder.cs" />
+    <Compile Include="System\Reflection\Metadata\Ecma335\Blobs\LabelHandle.cs" />
     <Compile Include="System\Reflection\Metadata\Ecma335\CodedIndex.cs" />
+    <Compile Include="System\Reflection\Metadata\ILOpCodeExtensions.cs" />
     <Compile Include="System\Reflection\Metadata\ImageFormatLimitationException.cs" />
     <Compile Include="System\Reflection\Metadata\Ecma335\MetadataSerializer.cs" />
     <Compile Include="System\Reflection\Metadata\Ecma335\MetadataBuilder.Tables.cs" />
