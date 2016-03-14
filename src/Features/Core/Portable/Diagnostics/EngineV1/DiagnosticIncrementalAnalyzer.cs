@@ -156,7 +156,12 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV1
             return false;
         }
 
-        internal CompilationWithAnalyzers GetCompilationWithAnalyzers(Project project, Compilation compilation, bool concurrentAnalysis, bool reportSuppressedDiagnostics)
+        internal CompilationWithAnalyzers GetCompilationWithAnalyzers(
+            Project project,
+            IEnumerable<DiagnosticAnalyzer> analyzers,
+            Compilation compilation,
+            bool concurrentAnalysis,
+            bool reportSuppressedDiagnostics)
         {
             Contract.ThrowIfFalse(project.SupportsCompilation);
             Contract.ThrowIfNull(compilation);
@@ -180,7 +185,6 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV1
                 logAnalyzerExecutionTime: true,
                 reportSuppressedDiagnostics: reportSuppressedDiagnostics);
 
-            var analyzers = _stateManager.GetAnalyzers(project);
             var filteredAnalyzers = analyzers
                 .Where(a => !CompilationWithAnalyzers.IsDiagnosticAnalyzerSuppressed(a, compilation.Options, analysisOptions.OnAnalyzerException))
                 .Distinct()
@@ -214,10 +218,15 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV1
                 var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
                 var fullSpan = root == null ? null : (TextSpan?)root.FullSpan;
 
-                var userDiagnosticDriver = new DiagnosticAnalyzerDriver(document, fullSpan, root, this, ConcurrentAnalysis, ReportSuppressedDiagnostics, cancellationToken);
                 var openedDocument = document.IsOpen();
 
-                foreach (var stateSet in _stateManager.GetOrUpdateStateSets(document.Project))
+                var stateSets = _stateManager.GetOrUpdateStateSets(document.Project);
+                var analyzers = stateSets.Select(s => s.Analyzer);
+
+                var userDiagnosticDriver = new DiagnosticAnalyzerDriver(
+                    document, fullSpan, root, this, analyzers, ConcurrentAnalysis, ReportSuppressedDiagnostics, cancellationToken);
+
+                foreach (var stateSet in stateSets)
                 {
                     if (await SkipRunningAnalyzerAsync(document.Project, stateSet.Analyzer, openedDocument, skipClosedFileCheck: false, cancellationToken: cancellationToken).ConfigureAwait(false))
                     {
@@ -291,10 +300,16 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV1
                 var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
                 var memberId = syntaxFacts.GetMethodLevelMemberId(root, member);
 
-                var spanBasedDriver = new DiagnosticAnalyzerDriver(document, member.FullSpan, root, this, ConcurrentAnalysis, ReportSuppressedDiagnostics, cancellationToken);
-                var documentBasedDriver = new DiagnosticAnalyzerDriver(document, root.FullSpan, root, this, ConcurrentAnalysis, ReportSuppressedDiagnostics, cancellationToken);
+                var stateSets = _stateManager.GetOrUpdateStateSets(document.Project);
+                var analyzers = stateSets.Select(s => s.Analyzer);
 
-                foreach (var stateSet in _stateManager.GetOrUpdateStateSets(document.Project))
+                var spanBasedDriver = new DiagnosticAnalyzerDriver(
+                    document, member.FullSpan, root, this, analyzers, ConcurrentAnalysis, ReportSuppressedDiagnostics, cancellationToken);
+
+                var documentBasedDriver = new DiagnosticAnalyzerDriver(
+                    document, root.FullSpan, root, this, analyzers, ConcurrentAnalysis, ReportSuppressedDiagnostics, cancellationToken);
+
+                foreach (var stateSet in stateSets)
                 {
                     if (Owner.IsAnalyzerSuppressed(stateSet.Analyzer, document.Project))
                     {
@@ -339,10 +354,15 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV1
                 var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
                 var fullSpan = root == null ? null : (TextSpan?)root.FullSpan;
 
-                var userDiagnosticDriver = new DiagnosticAnalyzerDriver(document, fullSpan, root, this, ConcurrentAnalysis, ReportSuppressedDiagnostics, cancellationToken);
                 bool openedDocument = document.IsOpen();
 
-                foreach (var stateSet in _stateManager.GetOrUpdateStateSets(document.Project))
+                var stateSets = _stateManager.GetOrUpdateStateSets(document.Project);
+                var analyzers = stateSets.Select(s => s.Analyzer);
+
+                var userDiagnosticDriver = new DiagnosticAnalyzerDriver(
+                    document, fullSpan, root, this, analyzers, ConcurrentAnalysis, ReportSuppressedDiagnostics, cancellationToken);
+
+                foreach (var stateSet in stateSets)
                 {
                     if (await SkipRunningAnalyzerAsync(document.Project, stateSet.Analyzer, openedDocument, skipClosedFileCheck: false, cancellationToken: cancellationToken).ConfigureAwait(false))
                     {
@@ -394,10 +414,14 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV1
                 var projectTextVersion = await project.GetLatestDocumentVersionAsync(cancellationToken).ConfigureAwait(false);
                 var semanticVersion = await project.GetDependentSemanticVersionAsync(cancellationToken).ConfigureAwait(false);
                 var projectVersion = await project.GetDependentVersionAsync(cancellationToken).ConfigureAwait(false);
-                var analyzerDriver = new DiagnosticAnalyzerDriver(project, this, ConcurrentAnalysis, ReportSuppressedDiagnostics, cancellationToken);
 
                 var versions = new VersionArgument(projectTextVersion, semanticVersion, projectVersion);
-                foreach (var stateSet in _stateManager.GetOrUpdateStateSets(project))
+
+                var stateSets = _stateManager.GetOrUpdateStateSets(project);
+                var analyzers = stateSets.Select(s => s.Analyzer);
+                var analyzerDriver = new DiagnosticAnalyzerDriver(project, this, analyzers, ConcurrentAnalysis, ReportSuppressedDiagnostics, cancellationToken);
+
+                foreach (var stateSet in stateSets)
                 {
                     // Compilation actions can report diagnostics on open files, so we skipClosedFileChecks.
                     if (await SkipRunningAnalyzerAsync(project, stateSet.Analyzer, openedDocument: false, skipClosedFileCheck: true, cancellationToken: cancellationToken).ConfigureAwait(false))

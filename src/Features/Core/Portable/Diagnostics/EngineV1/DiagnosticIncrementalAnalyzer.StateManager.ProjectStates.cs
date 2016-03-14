@@ -33,9 +33,9 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV1
                     return map.Values;
                 }
 
-                public IEnumerable<DiagnosticAnalyzer> GetAnalyzers(Project project)
+                public IEnumerable<DiagnosticAnalyzer> GetOrCreateAnalyzers(Project project)
                 {
-                    var map = GetOrUpdateAnalyzerMap(project);
+                    var map = GetOrCreateAnalyzerMap(project);
                     return map.Keys;
                 }
 
