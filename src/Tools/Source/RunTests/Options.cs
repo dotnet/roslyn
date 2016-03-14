@@ -9,19 +9,40 @@ namespace RunTests
 {
     internal class Options
     {
+        /// <summary>
+        /// Use HTML output files.
+        /// </summary>
         public bool UseHtml { get; set; }
 
+        /// <summary>
+        /// Use the 64 bit test runner.
+        /// </summary>
         public bool Test64 { get; set; }
 
+        /// <summary>
+        /// Allow the caching of test results.
+        /// </summary>
         public bool UseCachedResults { get; set; }
 
+        /// <summary>
+        /// Display the results files.
+        /// </summary>
+        public bool Display { get; set; }
+
+        /// <summary>
+        /// Trait string to pass to xunit.
+        /// </summary>
         public string Trait { get; set; }
 
+        /// <summary>
+        /// The no-trait string to pass to xunit.
+        /// </summary>
         public string NoTrait { get; set; }
 
+        /// <summary>
+        /// Set of assemblies to test.
+        /// </summary>
         public List<string> Assemblies { get; set; }
-
-        public List<string> MissingAssemblies { get; set; }
 
         public string XunitPath { get; set; }
 
@@ -52,6 +73,11 @@ namespace RunTests
                 else if (comp.Equals(current, "-nocache"))
                 {
                     opt.UseCachedResults = false;
+                    index++;
+                }
+                else if (comp.Equals(current, "-display"))
+                {
+                    opt.Display = true;
                     index++;
                 }
                 else if (current.Length > 7 && current.StartsWith("-trait:", StringComparison.OrdinalIgnoreCase))
@@ -88,26 +114,7 @@ namespace RunTests
                 return null;
             }
 
-            opt.Assemblies = new List<string>();
-            opt.MissingAssemblies = new List<string>();
-            var assemblyArgs = args.Skip(index).ToArray();
-
-            if (!assemblyArgs.Any())
-            {
-                Console.WriteLine("No test assemblies specified.");
-                return null;
-            }
-
-            foreach (var assemblyPath in assemblyArgs)
-            {
-                if (File.Exists(assemblyPath))
-                {
-                    opt.Assemblies.Add(assemblyPath);
-                    continue;
-                }
-                opt.MissingAssemblies.Add(assemblyPath);
-            }
-
+            opt.Assemblies = args.Skip(index).ToList();
             return opt;
         }
 

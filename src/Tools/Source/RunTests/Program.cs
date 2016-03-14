@@ -11,18 +11,22 @@ using System.Threading.Tasks;
 using RunTests.Cache;
 using Newtonsoft.Json.Linq;
 using RestSharp;
+using System.Collections.Immutable;
 
 namespace RunTests
 {
     internal sealed class Program
     {
+        internal const int ExitSuccess = 0;
+        internal const int ExitFailure = 1;
+
         internal static int Main(string[] args)
         {
             var options = Options.Parse(args);
             if (options == null)
             {
                 Options.PrintUsage();
-                return 1;
+                return ExitFailure;
             }
 
             // Setup cancellation for ctrl-c key presses
@@ -37,14 +41,9 @@ namespace RunTests
 
         private static async Task<int> RunCore(Options options, CancellationToken cancellationToken)
         {
-            if (options.MissingAssemblies.Count > 0)
-            {
-                foreach (var assemblyPath in options.MissingAssemblies)
-                {
-                    ConsoleUtil.WriteLine(ConsoleColor.Red, $"The file '{assemblyPath}' does not exist, is an invalid file name, or you do not have sufficient permissions to read the specified file.");
-                }
-
-                return 1;
+            if (!CheckAssemblyList(options))
+            { 
+                return ExitFailure;
             }
 
             var testExecutor = CreateTestExecutor(options);
@@ -56,25 +55,60 @@ namespace RunTests
             Console.WriteLine($"Running {options.Assemblies.Count()} test assemblies in {assemblyInfoList.Count} chunks");
 
             var result = await testRunner.RunAllAsync(assemblyInfoList, cancellationToken).ConfigureAwait(true);
-            var ellapsed = DateTime.Now - start;
+            var elapsed = DateTime.Now - start;
 
-            Console.WriteLine($"Test execution time: {ellapsed}");
+            Console.WriteLine($"Test execution time: {elapsed}");
 
             Logger.Finish(Path.GetDirectoryName(options.Assemblies.FirstOrDefault() ?? ""));
 
+            if (options.Display)
+            {
+                DisplayResults(result.TestResults);
+            }
+
             if (CanUseWebStorage())
             {
-                await SendRunStats(options, testExecutor.DataStorage, ellapsed, result, assemblyInfoList.Count, cancellationToken).ConfigureAwait(true);
+                await SendRunStats(options, testExecutor.DataStorage, elapsed, result, assemblyInfoList.Count, cancellationToken).ConfigureAwait(true);
             }
 
             if (!result.Succeeded)
             {
                 ConsoleUtil.WriteLine(ConsoleColor.Red, $"Test failures encountered");
-                return 1;
+                return ExitFailure;
             }
 
             Console.WriteLine($"All tests passed");
-            return options.MissingAssemblies.Any() ? 1 : 0;
+            return ExitSuccess;
+        }
+
+        /// <summary>
+        /// Quick sanity check to look over the set of assemblies to make sure they are valid and something was 
+        /// specified.
+        /// </summary>
+        private static bool CheckAssemblyList(Options options)
+        {
+            var anyMissing = false;
+            foreach (var assemblyPath in options.Assemblies)
+            {
+                if (!File.Exists(assemblyPath))
+                {
+                    ConsoleUtil.WriteLine(ConsoleColor.Red, $"The file '{assemblyPath}' does not exist, is an invalid file name, or you do not have sufficient permissions to read the specified file.");
+                    anyMissing = true;
+                }
+            }
+
+            if (anyMissing)
+            {
+                return false;
+            }
+
+            if (options.Assemblies.Count == 0)
+            {
+                Console.WriteLine("No test assemblies specified.");
+                return false;
+            }
+
+            return true;
         }
 
         private static List<AssemblyInfo> GetAssemblyList(Options options)
@@ -106,6 +140,14 @@ namespace RunTests
             return list;
         }
 
+        private static void DisplayResults(ImmutableArray<TestResult> testResults)
+        {
+            foreach (var cur in testResults)
+            {
+                ProcessRunner.OpenFile(cur.ResultsFilePath);
+            }
+        }
+
         private static bool CanUseWebStorage()
         {
             // The web caching layer is still being worked on.  For now want to limit it to Roslyn developers
@@ -118,7 +160,13 @@ namespace RunTests
 
         private static ITestExecutor CreateTestExecutor(Options options)
         {
-            var processTestExecutor = new ProcessTestExecutor(options);
+            var testExecutionOptions = new TestExecutionOptions(
+                xunitPath: options.XunitPath,
+                trait: options.Trait,
+                noTrait: options.NoTrait,
+                useHtml: options.UseHtml,
+                test64: options.Test64);
+            var processTestExecutor = new ProcessTestExecutor(testExecutionOptions);
             if (!options.UseCachedResults)
             {
                 return processTestExecutor;
@@ -133,7 +181,7 @@ namespace RunTests
                 dataStorage = new WebDataStorage();
             }
 
-            return new CachingTestExecutor(options, processTestExecutor, dataStorage);
+            return new CachingTestExecutor(testExecutionOptions, processTestExecutor, dataStorage);
         }
 
         /// <summary>
@@ -146,17 +194,21 @@ namespace RunTests
             return list.OrderByDescending((assemblyName) => new FileInfo(assemblyName).Length);
         }
 
-        private static async Task SendRunStats(Options options, IDataStorage dataStorage, TimeSpan ellapsed, RunAllResult result, int chunkCount, CancellationToken cancellationToken)
+        private static async Task SendRunStats(Options options, IDataStorage dataStorage, TimeSpan elapsed, RunAllResult result, int chunkCount, CancellationToken cancellationToken)
         {
             var obj = new JObject();
             obj["Cache"] = dataStorage.Name;
-            obj["EllapsedSeconds"] = (int)ellapsed.TotalSeconds;
+            obj["ElapsedSeconds"] = (int)elapsed.TotalSeconds;
             obj["IsJenkins"] = Constants.IsJenkinsRun;
             obj["Is32Bit"] = !options.Test64;
             obj["AssemblyCount"] = options.Assemblies.Count;
             obj["CacheCount"] = result.CacheCount;
             obj["ChunkCount"] = chunkCount;
             obj["Succeeded"] = result.Succeeded;
+
+            // During the transition from ellapsed to elapsed the client needs to provide both 
+            // spellings for the server.
+            obj["EllapsedSeconds"] = (int)elapsed.TotalSeconds;
 
             var request = new RestRequest("api/testrun", Method.POST);
             request.RequestFormat = DataFormat.Json;
