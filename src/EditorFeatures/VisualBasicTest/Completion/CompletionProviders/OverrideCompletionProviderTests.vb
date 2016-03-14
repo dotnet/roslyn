@@ -518,24 +518,6 @@ End Class</a>
             Await VerifyItemIsAbsentAsync(markup.Value, "Foo(t As T, s As S)")
         End Function
 
-        <WorkItem(529714, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529714")>
-        <WpfFact(Skip:="529714"), Trait(Traits.Feature, Traits.Features.Completion)>
-        Public Async Function TestGenericMethodTypeParametersRenamed() As Task
-            Dim text = <a>Class CFoo
-    Overridable Function Something(Of X)(arg As X) As X
-    End Function
-End Class
-
-Class Derived(Of X)
-    Inherits CFoo
-
-    Overrides $$
-End Class</a>
-
-            Await VerifyItemExistsAsync(text.Value, "Something(Of X1)(arg As X1)")
-            Await VerifyItemIsAbsentAsync(text.Value, "Something(Of X)(arg As X)")
-        End Function
-
         <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Async Function TestParameterTypeSimplified() As Task
             Dim text = <a>Imports System
@@ -1369,36 +1351,6 @@ Class CDerived
 End Class</a>
 
             Await VerifyCustomCommitProviderAsync(markupBeforeCommit.Value.Replace(vbLf, vbCrLf), "foo(ByRef x As Integer, y As String)", expectedCode.Value.Replace(vbLf, vbCrLf))
-        End Function
-
-        <WorkItem(529714, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529714")>
-        <WpfFact(Skip:="529714"), Trait(Traits.Feature, Traits.Features.Completion)>
-        Public Async Function TestCommitGenericMethodTypeParametersRenamed() As Task
-            Dim markupBeforeCommit = <a>Class CFoo
-    Overridable Function Something(Of X)(arg As X) As X
-    End Function
-End Class
-
-Class Derived(Of X)
-    Inherits CFoo
-
-    Overrides $$
-End Class</a>
-
-            Dim expectedCode = <a>Class CFoo
-    Overridable Function Something(Of X)(arg As X) As X
-    End Function
-End Class
-
-Class Derived(Of X)
-    Inherits CFoo
-
-    Public Overrides Function Something(Of X1)(arg As X1) As X1
-        Return MyBase.Something(Of X1)(arg)$$
-    End Function
-End Class</a>
-
-            Await VerifyCustomCommitProviderAsync(markupBeforeCommit.Value.Replace(vbLf, vbCrLf), "Something(Of X1)(arg As X1)", expectedCode.Value.Replace(vbLf, vbCrLf))
         End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
