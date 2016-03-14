@@ -1,13 +1,14 @@
-{
-  "dependencies": { 
+﻿{
+  "dependencies": {
+    "CommandLineParser": "2.0.273-beta",
     "System.Collections.Immutable": "1.1.37",
     "System.Reflection.Metadata": "1.2.0-rc2-23826"
   },
   "frameworks": {
-    "net45": { }
+    "net45": {}
   },
   "runtimes": {
-    "win7": { },
-    "win7-anycpu": { }
+    "win7": {},
+    "win7-anycpu": {}
   }
 }
