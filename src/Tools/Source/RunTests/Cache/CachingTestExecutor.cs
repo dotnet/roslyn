@@ -93,7 +93,7 @@ namespace RunTests.Cache
                     standardOutput: testResult.StandardOutput,
                     errorOutput: testResult.ErrorOutput,
                     resultsFileContent: resultFileContent,
-                    ellapsed: testResult.Elapsed);
+                    elapsed: testResult.Elapsed);
                 await _dataStorage.AddCachedTestResult(testResult.AssemblyInfo, contentFile, cachedTestResult).ConfigureAwait(true);
             }
             catch (Exception ex)

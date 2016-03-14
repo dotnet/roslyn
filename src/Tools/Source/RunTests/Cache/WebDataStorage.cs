@@ -19,7 +19,7 @@ namespace RunTests.Cache
         private const string NameOutputError = "OutputError";
         private const string NameResultsFileName = "ResultsFileName";
         private const string NameResultsFileContent = "ResultsFileContent";
-        private const string NameEllapsedSeconds = "EllapsedSeconds";
+        private const string NameElapsedSeconds = "EllapsedSeconds";
 
         private readonly RestClient _restClient = new RestClient(Constants.DashboardUriString);
 
@@ -66,7 +66,7 @@ namespace RunTests.Cache
                     standardOutput: obj.Value<string>(NameOutputStandard),
                     errorOutput: obj.Value<string>(NameOutputError),
                     resultsFileContent: obj.Value<string>(NameResultsFileContent),
-                    ellapsed: TimeSpan.FromSeconds(obj.Value<int>(NameEllapsedSeconds)));
+                    elapsed: TimeSpan.FromSeconds(obj.Value<int>(NameElapsedSeconds)));
                 return result;
             }
             catch (Exception ex)
@@ -84,7 +84,7 @@ namespace RunTests.Cache
             obj[NameOutputStandard] = testResult.ErrorOutput;
             obj[NameResultsFileName] = resultsFileName;
             obj[NameResultsFileContent] = testResult.ResultsFileContent;
-            obj[NameEllapsedSeconds] = (int)testResult.Ellapsed.TotalSeconds;
+            obj[NameElapsedSeconds] = (int)testResult.Elapsed.TotalSeconds;
             return obj;
         }
 

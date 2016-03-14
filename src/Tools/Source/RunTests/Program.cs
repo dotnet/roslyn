@@ -57,9 +57,9 @@ namespace RunTests
             Console.WriteLine($"Running {options.Assemblies.Count()} test assemblies in {assemblyInfoList.Count} chunks");
 
             var result = await testRunner.RunAllAsync(assemblyInfoList, cancellationToken).ConfigureAwait(true);
-            var ellapsed = DateTime.Now - start;
+            var elapsed = DateTime.Now - start;
 
-            Console.WriteLine($"Test execution time: {ellapsed}");
+            Console.WriteLine($"Test execution time: {elapsed}");
 
             Logger.Finish(Path.GetDirectoryName(options.Assemblies.FirstOrDefault() ?? ""));
 
@@ -70,7 +70,7 @@ namespace RunTests
 
             if (CanUseWebStorage())
             {
-                await SendRunStats(options, testExecutor.DataStorage, ellapsed, result, assemblyInfoList.Count, cancellationToken).ConfigureAwait(true);
+                await SendRunStats(options, testExecutor.DataStorage, elapsed, result, assemblyInfoList.Count, cancellationToken).ConfigureAwait(true);
             }
 
             if (!result.Succeeded)
@@ -166,11 +166,11 @@ namespace RunTests
             return list.OrderByDescending((assemblyName) => new FileInfo(assemblyName).Length);
         }
 
-        private static async Task SendRunStats(Options options, IDataStorage dataStorage, TimeSpan ellapsed, RunAllResult result, int chunkCount, CancellationToken cancellationToken)
+        private static async Task SendRunStats(Options options, IDataStorage dataStorage, TimeSpan elapsed, RunAllResult result, int chunkCount, CancellationToken cancellationToken)
         {
             var obj = new JObject();
             obj["Cache"] = dataStorage.Name;
-            obj["EllapsedSeconds"] = (int)ellapsed.TotalSeconds;
+            obj["EllapsedSeconds"] = (int)elapsed.TotalSeconds;
             obj["IsJenkins"] = Constants.IsJenkinsRun;
             obj["Is32Bit"] = !options.Test64;
             obj["AssemblyCount"] = options.Assemblies.Count;
