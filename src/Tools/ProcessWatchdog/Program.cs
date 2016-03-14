@@ -13,6 +13,7 @@ namespace ProcessWatchdog
     internal sealed class Program
     {
         private Options _options;
+        private TimeSpan _timeout;
 
         public Program(Options options)
         {
@@ -21,6 +22,20 @@ namespace ProcessWatchdog
 
         private int Run()
         {
+            try
+            {
+                _timeout = TimeSpan.Parse(_options.Timeout);
+            }
+            catch (Exception ex)
+            {
+                ConsoleUtils.ReportError(Resources.ErrorInvalidTimeoutInterval, _options.Timeout, ex.Message);
+                return 1;
+            }
+
+            Console.WriteLine("Options:");
+            Console.WriteLine("Timeout: {0:c}", _timeout);
+            Console.WriteLine("Command: {0}", _options.CommandLine);
+
             return 0;
         }
 

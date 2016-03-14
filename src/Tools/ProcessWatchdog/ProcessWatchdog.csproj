@@ -26,6 +26,7 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="ConsoleUtils.cs" />
     <Compile Include="Options.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Resources.Designer.cs">

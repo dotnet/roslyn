@@ -123,4 +123,10 @@
   <data name="Banner" xml:space="preserve">
     <value>{0} version {1}</value>
   </data>
+  <data name="ErrorFormat" xml:space="preserve">
+    <value>Error: {0}</value>
+  </data>
+  <data name="ErrorInvalidTimeoutInterval" xml:space="preserve">
+    <value>The string "{0}" is not a valid TimeSpan. {1} Please specify the timeout interval with a string of the form hh:mm[:ss].</value>
+  </data>
 </root>

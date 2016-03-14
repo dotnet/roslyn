@@ -77,5 +77,23 @@ namespace ProcessWatchdog {
                 return ResourceManager.GetString("Banner", resourceCulture);
             }
         }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Error: {0}.
+        /// </summary>
+        internal static string ErrorFormat {
+            get {
+                return ResourceManager.GetString("ErrorFormat", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The string &quot;{0}&quot; is not a valid TimeSpan. {1} Please specify the timeout interval with a string of the form hh:mm[:ss]..
+        /// </summary>
+        internal static string ErrorInvalidTimeoutInterval {
+            get {
+                return ResourceManager.GetString("ErrorInvalidTimeoutInterval", resourceCulture);
+            }
+        }
     }
 }
