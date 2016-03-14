@@ -19,7 +19,8 @@ namespace RunTests.Cache
         private const string NameOutputError = "OutputError";
         private const string NameResultsFileName = "ResultsFileName";
         private const string NameResultsFileContent = "ResultsFileContent";
-        private const string NameElapsedSeconds = "EllapsedSeconds";
+        private const string NameElapsedSeconds = "ElapsedSeconds";
+        private const string NameElapsedSecondsMisspelled = "EllapsedSeconds";
 
         private readonly RestClient _restClient = new RestClient(Constants.DashboardUriString);
 
@@ -61,12 +62,17 @@ namespace RunTests.Cache
                 }
 
                 var obj = JObject.Parse(response.Content);
+
+                // During the transition from ellapsed to elapsed the client needs to accept either
+                // value from the json object.
+                var elapsedProperty = obj.Property(NameElapsedSeconds) ?? obj.Property(NameElapsedSecondsMisspelled);
+
                 var result = new CachedTestResult(
                     exitCode: obj.Value<int>(NameExitCode),
                     standardOutput: obj.Value<string>(NameOutputStandard),
                     errorOutput: obj.Value<string>(NameOutputError),
                     resultsFileContent: obj.Value<string>(NameResultsFileContent),
-                    elapsed: TimeSpan.FromSeconds(obj.Value<int>(NameElapsedSeconds)));
+                    elapsed: TimeSpan.FromSeconds(elapsedProperty.Value.Value<int>()));
                 return result;
             }
             catch (Exception ex)
@@ -85,6 +91,7 @@ namespace RunTests.Cache
             obj[NameResultsFileName] = resultsFileName;
             obj[NameResultsFileContent] = testResult.ResultsFileContent;
             obj[NameElapsedSeconds] = (int)testResult.Elapsed.TotalSeconds;
+            obj[NameElapsedSecondsMisspelled] = (int)testResult.Elapsed.TotalSeconds;
             return obj;
         }
 

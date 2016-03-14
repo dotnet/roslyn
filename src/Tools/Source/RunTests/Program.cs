@@ -170,13 +170,17 @@ namespace RunTests
         {
             var obj = new JObject();
             obj["Cache"] = dataStorage.Name;
-            obj["EllapsedSeconds"] = (int)elapsed.TotalSeconds;
+            obj["ElapsedSeconds"] = (int)elapsed.TotalSeconds;
             obj["IsJenkins"] = Constants.IsJenkinsRun;
             obj["Is32Bit"] = !options.Test64;
             obj["AssemblyCount"] = options.Assemblies.Count;
             obj["CacheCount"] = result.CacheCount;
             obj["ChunkCount"] = chunkCount;
             obj["Succeeded"] = result.Succeeded;
+
+            // During the transition from ellapsed to elapsed the client needs to provide both 
+            // spellings for the server.
+            obj["EllapsedSeconds"] = (int)elapsed.TotalSeconds;
 
             var request = new RestRequest("api/testrun", Method.POST);
             request.RequestFormat = DataFormat.Json;
