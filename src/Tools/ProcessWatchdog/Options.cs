@@ -28,5 +28,12 @@ namespace ProcessWatchdog
             "arguments",
             HelpText = "Command line arguments to pass to the executable, enclosed in quotes if necessary.")]
         public string Arguments { get; set; }
+
+        [Option(
+            'o',
+            "output-directory",
+            HelpText = "Directory to which process dumps and screen shots will be written.",
+            Default = ".")]
+        public string OutputDirectory { get; set; }
     }
 }

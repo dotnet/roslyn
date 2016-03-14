@@ -7,12 +7,18 @@ namespace ProcessWatchdog
 {
     internal static class ConsoleUtils
     {
-        internal static void ReportError(string messageFormat, params string[] args)
+        internal static void LogMessage(string format, params object[] args)
+        {
+            Console.WriteLine(
+                string.Format(CultureInfo.CurrentCulture, format, args));
+        }
+
+        internal static void LogError(string messageFormat, params object[] args)
         {
             string fullMessage = string.Format(
-                CultureInfo.InvariantCulture,
+                CultureInfo.CurrentCulture,
                 Resources.ErrorFormat,
-                string.Format(CultureInfo.InvariantCulture, messageFormat, args));
+                string.Format(CultureInfo.CurrentCulture, messageFormat, args));
 
             Console.Error.WriteLine(fullMessage);
         }

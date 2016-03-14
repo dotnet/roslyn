@@ -79,6 +79,24 @@ namespace ProcessWatchdog {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Could not take screenshot for process {0}, because this process does not have a UI..
+        /// </summary>
+        internal static string ErrorCannotTakeScreenshotNoConsoleSession {
+            get {
+                return ResourceManager.GetString("ErrorCannotTakeScreenshotNoConsoleSession", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Could not take screenshot for process {0}..
+        /// </summary>
+        internal static string ErrorCannotTakeScreenshotUnexpectedError {
+            get {
+                return ResourceManager.GetString("ErrorCannotTakeScreenshotUnexpectedError", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Error: {0}.
         /// </summary>
         internal static string ErrorFormat {
@@ -102,6 +120,24 @@ namespace ProcessWatchdog {
         internal static string ErrorProcessTimedOut {
             get {
                 return ResourceManager.GetString("ErrorProcessTimedOut", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Created screenshot folder {0}..
+        /// </summary>
+        internal static string InfoCreatedScreenshotfolder {
+            get {
+                return ResourceManager.GetString("InfoCreatedScreenshotfolder", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Saved screenshot to file {0}..
+        /// </summary>
+        internal static string InfoSavedScreenshot {
+            get {
+                return ResourceManager.GetString("InfoSavedScreenshot", resourceCulture);
             }
         }
         

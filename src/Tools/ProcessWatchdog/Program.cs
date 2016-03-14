@@ -16,8 +16,6 @@ namespace ProcessWatchdog
     {
         private Options _options;
         private TimeSpan _timeout;
-        private bool _exited;
-        private DateTime _startTime;
 
         public Program(Options options)
         {
@@ -32,7 +30,7 @@ namespace ProcessWatchdog
             }
             catch (Exception ex)
             {
-                ConsoleUtils.ReportError(Resources.ErrorInvalidTimeoutInterval, _options.Timeout, ex.Message);
+                ConsoleUtils.LogError(Resources.ErrorInvalidTimeoutInterval, _options.Timeout, ex.Message);
                 return 1;
             }
 
@@ -46,14 +44,15 @@ namespace ProcessWatchdog
                 {
                     if (DateTime.Now - process.StartTime > _timeout)
                     {
-                        ConsoleUtils.ReportError(Resources.ErrorProcessTimedOut, _options.Executable, _options.Timeout);
+                        ConsoleUtils.LogError(Resources.ErrorProcessTimedOut, _options.Executable, _options.Timeout);
+                        ScreenshotSaver.SaveScreen(_options.Executable, _options.OutputDirectory);
                         return 1;
                     }
 
                     Thread.Sleep(1000);
                 }
 
-                Console.WriteLine(Resources.ProcessExited, _options.Executable, process.ExitTime - process.StartTime);
+                ConsoleUtils.LogMessage(Resources.ProcessExited, _options.Executable, process.ExitTime - process.StartTime);
             }
 
             return 0;
@@ -81,13 +80,13 @@ namespace ProcessWatchdog
             IEnumerable<Attribute> attributes = entryAssembly.GetCustomAttributes();
 
             string version = entryAssembly.GetName().Version.ToString();
-            Console.WriteLine(string.Format(CultureInfo.CurrentCulture, Resources.Banner, Resources.ApplicationName, version));
+            ConsoleUtils.LogMessage(Resources.Banner, Resources.ApplicationName, version);
 
             var copyrightAttribute = attributes.Single(a => a is AssemblyCopyrightAttribute) as AssemblyCopyrightAttribute;
             string copyright = copyrightAttribute.Copyright;
 
-            Console.WriteLine(copyright);
-            Console.WriteLine();
+            ConsoleUtils.LogMessage(copyright);
+            ConsoleUtils.LogMessage(string.Empty);
         }
     }
 }
