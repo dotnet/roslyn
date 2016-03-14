@@ -34,6 +34,12 @@ namespace ProcessWatchdog
                 return 1;
             }
 
+            if (_options.PollingInterval <= 0)
+            {
+                ConsoleUtils.LogError(Resources.ErrorInvalidPollingInterval, _options.PollingInterval);
+                return 1;
+            }
+
             var processStartInfo = new ProcessStartInfo();
             processStartInfo.FileName = _options.Executable;
             processStartInfo.Arguments = _options.Arguments;
@@ -49,7 +55,7 @@ namespace ProcessWatchdog
                         return 1;
                     }
 
-                    Thread.Sleep(1000);
+                    Thread.Sleep(_options.PollingInterval);
                 }
 
                 ConsoleUtils.LogMessage(Resources.ProcessExited, _options.Executable, process.ExitTime - process.StartTime);

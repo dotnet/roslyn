@@ -35,5 +35,12 @@ namespace ProcessWatchdog
             HelpText = "Directory to which process dumps and screen shots will be written.",
             Default = ".")]
         public string OutputDirectory { get; set; }
+
+        [Option(
+            'p',
+            "polling-interval",
+            HelpText = "Polling interval in milliseconds",
+            Default = 1000)]
+        public int PollingInterval { get; set; }
     }
 }

@@ -132,6 +132,9 @@
   <data name="ErrorFormat" xml:space="preserve">
     <value>Error: {0}</value>
   </data>
+  <data name="ErrorInvalidPollingInterval" xml:space="preserve">
+    <value>The polling interval "{0}" is invalid. Please specify a polling interval in milliseconds with a value greater than 0.</value>
+  </data>
   <data name="ErrorInvalidTimeoutInterval" xml:space="preserve">
     <value>The string "{0}" is not a valid TimeSpan. {1} Please specify the timeout interval with a string of the form hh:mm[:ss].</value>
   </data>
