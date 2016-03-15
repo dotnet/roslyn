@@ -61,7 +61,7 @@ namespace ProcessWatchdog
                 ConsoleUtils.LogMessage(Resources.InfoCreatedOutputFolder, outputFolderInfo.FullName);
             }
 
-            var fileName = DateTime.Now.ToString("yyyy-MM-dd_HH-mm-ss_ff") + " - " + description + ".png";
+            var fileName = DateTime.Now.ToString("yyyy-MM-dd_HH-mm-ss_ff") + "-" + description + ".png";
             fileName = Path.Combine(outputFolderInfo.FullName, fileName);
             return fileName;
         }

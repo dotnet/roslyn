@@ -43,52 +43,37 @@ namespace ProcessWatchdog
                 Arguments = _options.Arguments
             };
 
+            Process parentProcess = Process.Start(processStartInfo);
             ProcDump procDump = new ProcDump(_options.ProcDumpPath, _options.OutputFolder);
 
-            using (Process process = Process.Start(processStartInfo))
+            using (ProcessTracker processTracker = new ProcessTracker(parentProcess, procDump))
             {
-                using (Process procDumpProcess = procDump.MonitorProcess(process.Id, _options.Executable))
+                while (!processTracker.AllFinished)
                 {
-                    while (!process.HasExited)
+                    if (DateTime.Now - parentProcess.StartTime > _timeLimit)
                     {
-                        if (DateTime.Now - process.StartTime > _timeLimit)
+                        ConsoleUtils.LogError(
+                            Resources.ErrorProcessTimedOut,
+                            _options.Executable,
+                            parentProcess.Id,
+                            _options.TimeLimit);
+
+                        if (_options.Screenshot)
                         {
-                            ConsoleUtils.LogError(
-                                Resources.ErrorProcessTimedOut,
-                                _options.Executable,
-                                process.Id,
-                                _options.TimeLimit);
-
-                            if (_options.Screenshot)
-                            {
-                                ScreenshotSaver.SaveScreen(_options.Executable, _options.OutputFolder);
-                            }
-
-                            // Launch another procdump process. This one will take an
-                            // immediate dump.
-                            Process immediateDumpProcess = procDump.DumpProcessNow(process.Id, _options.Executable);
-                            while (!immediateDumpProcess.HasExited)
-                                ;
-
-                            // Kill the other procdump process, the one that was monitoring
-                            // the target process. Since this procdump is acting as a
-                            // debugger, killing it will kill the target process as well.
-                            if (!procDumpProcess.HasExited)
-                            {
-                                procDumpProcess.Kill();
-                            }
-
-                            return 1;
+                            ScreenshotSaver.SaveScreen(_options.Executable, _options.OutputFolder);
                         }
 
-                        Thread.Sleep(_options.PollingInterval);
+                        processTracker.TerminateAll();
+                        return 1;
                     }
 
-                    // If the target process exited normally, then the "monitoring" procdump
-                    // process has also exited, so there's no need to kill it here.
-
-                    ConsoleUtils.LogMessage(Resources.ProcessExited, _options.Executable, process.ExitTime - process.StartTime);
+                    Thread.Sleep(_options.PollingInterval);
                 }
+
+                ConsoleUtils.LogMessage(
+                    Resources.ProcessExited,
+                    _options.Executable,
+                    parentProcess.ExitTime - parentProcess.StartTime);
             }
 
             return 0;

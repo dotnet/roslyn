@@ -124,7 +124,7 @@ namespace ProcessWatchdog {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to The process {0} ({1}) exceeded the time limit of {2} seconds and will be terminated..
+        ///   Looks up a localized string similar to The process {0} ({1}) or one of its descendants exceeded the time limit of {2} seconds. This process and all its descendants will be terminated..
         /// </summary>
         internal static string ErrorProcessTimedOut {
             get {
@@ -151,7 +151,7 @@ namespace ProcessWatchdog {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Terminating process {0} ({1}) and saving crash dump to file {2}....
+        ///   Looks up a localized string similar to Terminating process {0} and saving crash dump to file {1}....
         /// </summary>
         internal static string InfoTerminatingProcess {
             get {

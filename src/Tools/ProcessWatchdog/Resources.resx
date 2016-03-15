@@ -139,7 +139,7 @@
     <value>The value {0} is not a valid time limit. Please specify the time limit as a positive number of seconds.</value>
   </data>
   <data name="ErrorProcessTimedOut" xml:space="preserve">
-    <value>The process {0} ({1}) exceeded the time limit of {2} seconds and will be terminated.</value>
+    <value>The process {0} ({1}) or one of its descendants exceeded the time limit of {2} seconds. This process and all its descendants will be terminated.</value>
   </data>
   <data name="InfoCreatedOutputFolder" xml:space="preserve">
     <value>Created output folder {0}.</value>
@@ -148,7 +148,7 @@
     <value>Saving screenshot to file {0}...</value>
   </data>
   <data name="InfoTerminatingProcess" xml:space="preserve">
-    <value>Terminating process {0} ({1}) and saving crash dump to file {2}...</value>
+    <value>Terminating process {0} and saving crash dump to file {1}...</value>
   </data>
   <data name="ProcessExited" xml:space="preserve">
     <value>The process {0} exited successfully after {1}.</value>

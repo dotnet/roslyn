@@ -44,7 +44,6 @@ namespace ProcessWatchdog
             ConsoleUtils.LogMessage(
                 Resources.InfoTerminatingProcess,
                 description,
-                processId,
                 dumpFileName);
 
             var processStartInfo = new ProcessStartInfo
@@ -67,7 +66,7 @@ namespace ProcessWatchdog
                 ConsoleUtils.LogMessage(Resources.InfoCreatedOutputFolder, outputFolderInfo.FullName);
             }
 
-            var fileName = DateTime.Now.ToString("yyyy-MM-dd_HH-mm-ss_ff") + " - " + description + ".dmp";
+            var fileName = DateTime.Now.ToString("yyyy-MM-dd_HH-mm-ss_ff") + "-" + description + ".dmp";
             fileName = Path.Combine(outputFolderInfo.FullName, fileName);
             return fileName;
         }
