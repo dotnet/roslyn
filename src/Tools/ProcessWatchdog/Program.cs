@@ -47,7 +47,7 @@ namespace ProcessWatchdog
 
             using (Process process = Process.Start(processStartInfo))
             {
-                using (Process procDumpProcess = CrashDumpMonitor.MonitorProcess(
+                using (Process procDumpProcess = CrashDump.MonitorProcess(
                     process.Id,
                     _options.Executable,
                     _options.OutputFolder,

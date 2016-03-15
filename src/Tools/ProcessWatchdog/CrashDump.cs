@@ -6,7 +6,7 @@ using System.IO;
 
 namespace ProcessWatchdog
 {
-    internal static class CrashDumpMonitor
+    internal static class CrashDump
     {
         public static Process MonitorProcess(int processId, string description, string outputFolder, string procDumpPath)
         {
@@ -46,6 +46,7 @@ namespace ProcessWatchdog
             // -g:  Run as a native debugger in a managed process (no interop).
             // -e:  Dump when an unhandled exception happens.
             // -b:  Dump when a breakpoint (__int 3 / Debugger.Break()) is encountered.
+            // -h:  Dump when a window hang is encountered.
             // -t:  Dump when process terminates.
             // -ma: Create a full memory dump.
             //
@@ -53,7 +54,7 @@ namespace ProcessWatchdog
             // the CLR will always handle unhandled exceptions. From procdump's point of
             // view, there is no such thing as an unhandled exception for a managed app.
 
-            return $"-accepteula -g -e -b -t -ma {pid} \"{dumpFileName}\"";
+            return $"-accepteula -g -e -b -h -ma {pid} \"{dumpFileName}\"";
         }
     }
 }
