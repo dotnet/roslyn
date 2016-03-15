@@ -45,13 +45,11 @@ namespace ProcessWatchdog
                 Arguments = _options.Arguments
             };
 
+            ProcDump procDump = new ProcDump(_options.ProcDumpPath, _options.OutputFolder);
+
             using (Process process = Process.Start(processStartInfo))
             {
-                using (Process procDumpProcess = ProcDump.MonitorProcess(
-                    process.Id,
-                    _options.Executable,
-                    _options.OutputFolder,
-                    _options.ProcDumpPath))
+                using (Process procDumpProcess = procDump.MonitorProcess(process.Id, _options.Executable))
                 {
                     while (!process.HasExited)
                     {
@@ -70,7 +68,7 @@ namespace ProcessWatchdog
 
                             // Launch another procdump process. This one will take an
                             // immediate dump.
-                            Process immediateDumpProcess = ProcDump.DumpProcessNow(process.Id, _options.Executable, _options.OutputFolder, _options.ProcDumpPath);
+                            Process immediateDumpProcess = procDump.DumpProcessNow(process.Id, _options.Executable);
                             while (!immediateDumpProcess.HasExited)
                                 ;
 

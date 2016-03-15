@@ -6,29 +6,40 @@ using System.IO;
 
 namespace ProcessWatchdog
 {
-    internal static class ProcDump
+    /// <summary>
+    /// Wrapper class for invoking procdump.exe.
+    /// </summary>
+    internal class ProcDump
     {
-        public static Process MonitorProcess(int processId, string description, string outputFolder, string procDumpPath)
+        private readonly string _procDumpPath;
+        private readonly string _outputFolder;
+
+        internal ProcDump(string procDumpPath, string outputFolder)
         {
+            _procDumpPath = procDumpPath;
+
             // Make sure everything is fully qualified as we are passing this to other processes
-            outputFolder = Path.GetFullPath(outputFolder);
-            string dumpFileName = GenerateCrashDumpFileName(description, outputFolder);
+            _outputFolder = Path.GetFullPath(outputFolder);
+        }
+
+        public Process MonitorProcess(int processId, string description)
+        {
+            string dumpFileName = GenerateCrashDumpFileName(description);
 
             var processStartInfo = new ProcessStartInfo
             {
                 Arguments = GetProcDumpArgumentsForMonitoring(processId, dumpFileName),
                 CreateNoWindow = true,
-                FileName = procDumpPath,
+                FileName = _procDumpPath,
                 UseShellExecute = false
             };
 
             return Process.Start(processStartInfo);
         }
 
-        public static Process DumpProcessNow(int processId, string description, string outputFolder, string procDumpPath)
+        public Process DumpProcessNow(int processId, string description)
         {
-            outputFolder = Path.GetFullPath(outputFolder);
-            string dumpFileName = GenerateCrashDumpFileName(description, outputFolder);
+            string dumpFileName = GenerateCrashDumpFileName(description);
 
             ConsoleUtils.LogMessage(
                 Resources.InfoTerminatingProcess,
@@ -40,16 +51,16 @@ namespace ProcessWatchdog
             {
                 Arguments = GetProcDumpArgumentsForImmediateDump(processId, dumpFileName),
                 CreateNoWindow = true,
-                FileName = procDumpPath,
+                FileName = _procDumpPath,
                 UseShellExecute = false
             };
 
             return Process.Start(processStartInfo);
         }
 
-        private static string GenerateCrashDumpFileName(string description, string outputFolder)
+        private string GenerateCrashDumpFileName(string description)
         {
-            var outputFolderInfo = new DirectoryInfo(outputFolder);
+            var outputFolderInfo = new DirectoryInfo(_outputFolder);
             if (!outputFolderInfo.Exists)
             {
                 outputFolderInfo.Create();
