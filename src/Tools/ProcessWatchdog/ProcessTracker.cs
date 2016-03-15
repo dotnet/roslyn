@@ -12,6 +12,7 @@ namespace ProcessWatchdog
     /// </summary>
     internal class ProcessTracker : IDisposable
     {
+        private readonly Process _parentProcess;
         private List<TrackedProcess> _trackedProcesses;
         private readonly ProcDump _procDump;
 
@@ -28,6 +29,7 @@ namespace ProcessWatchdog
         /// </param>
         internal ProcessTracker(Process parentProcess, ProcDump procDump)
         {
+            _parentProcess = parentProcess;
             _trackedProcesses = new List<TrackedProcess>();
             _procDump = procDump;
 
@@ -38,12 +40,30 @@ namespace ProcessWatchdog
 
         internal void Update()
         {
-            // Make a copy of the list of tracked processes, because
-            // we can't remove items from the list while iterating over it.
-            TrackedProcess[] copy = _trackedProcesses.ToArray();
+            // Clear out any processes which have ended.
+            _trackedProcesses = _trackedProcesses.Where(tp => !tp.HasExited).ToList();
 
-            _trackedProcesses.Clear();
-            _trackedProcesses.AddRange(copy.Where(p => !p.ProcDumpProcess.HasExited));
+            if (_trackedProcesses.Any())
+            {
+                // Add any new descendants of the remaining processes (that is, any
+                // descendants that we're not already tracking).
+                int[] existingProcessIds = _trackedProcesses.Select(tp => tp.Process.Id).ToArray();
+
+                foreach (Process descendant in GetDescendants(_parentProcess))
+                {
+                    if (!existingProcessIds.Contains(descendant.Id))
+                    {
+                        TrackProcess(descendant);
+                    }
+                }
+            }
+        }
+
+        private IList<Process> GetDescendants(Process parentProcess)
+        {
+            var descendants = new List<Process>();
+
+            return descendants;
         }
 
         internal void TerminateAll()
@@ -162,6 +182,11 @@ namespace ProcessWatchdog
                 ProcDumpProcess = procDumpProcess;
                 Description = description;
             }
+
+            /// <summary>
+            /// Gets a value indicating whether the tracked process has exited.
+            /// </summary>
+            internal bool HasExited => Process.HasExited;
 
             /// <summary>
             /// Gets the process being tracked.
