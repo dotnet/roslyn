@@ -7,6 +7,14 @@ using System.Linq;
 
 namespace RunTests
 {
+    internal enum Display
+    {
+        None,
+        All,
+        Succeeded,
+        Failed,
+    }
+
     internal class Options
     {
         /// <summary>
@@ -27,7 +35,7 @@ namespace RunTests
         /// <summary>
         /// Display the results files.
         /// </summary>
-        public bool Display { get; set; }
+        public Display Display { get; set; }
 
         /// <summary>
         /// Trait string to pass to xunit.
@@ -54,11 +62,15 @@ namespace RunTests
             }
 
             var opt = new Options { XunitPath = args[0], UseHtml = true, UseCachedResults = true };
-            int index = 1;
-
+            var index = 1;
+            var allGood = true;
             var comp = StringComparer.OrdinalIgnoreCase;
             while (index < args.Length)
             {
+                const string optionTrait = "-trait:";
+                const string optionNoTrait = "-notrait:";
+                const string optionDisplay = "-display:";
+
                 var current = args[index];
                 if (comp.Equals(current, "-test64"))
                 {
@@ -75,19 +87,30 @@ namespace RunTests
                     opt.UseCachedResults = false;
                     index++;
                 }
-                else if (comp.Equals(current, "-display"))
+                else if (current.StartsWith(optionDisplay, StringComparison.OrdinalIgnoreCase))
                 {
-                    opt.Display = true;
+                    Display display;
+                    var arg = current.Substring(optionDisplay.Length);
+                    if (Enum.TryParse(arg, ignoreCase: true, result: out display))
+                    {
+                        opt.Display = display;
+                    }
+                    else
+                    {
+                        Console.WriteLine($"{arg} is not a valid option for display");
+                        allGood = false;
+                    }
+
                     index++;
                 }
-                else if (current.Length > 7 && current.StartsWith("-trait:", StringComparison.OrdinalIgnoreCase))
+                else if (current.StartsWith(optionTrait, StringComparison.OrdinalIgnoreCase))
                 {
-                    opt.Trait = current.Substring(7);
+                    opt.Trait = current.Substring(optionTrait.Length);
                     index++;
                 }
-                else if (current.Length > 9 && current.StartsWith("-notrait:", StringComparison.OrdinalIgnoreCase))
+                else if (current.StartsWith(optionNoTrait, StringComparison.OrdinalIgnoreCase))
                 {
-                    opt.NoTrait = current.Substring(9);
+                    opt.NoTrait = current.Substring(optionNoTrait.Length);
                     index++;
                 }
                 else
@@ -115,7 +138,7 @@ namespace RunTests
             }
 
             opt.Assemblies = args.Skip(index).ToList();
-            return opt;
+            return allGood ? opt : null;
         }
 
         public static void PrintUsage()

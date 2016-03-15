@@ -61,10 +61,7 @@ namespace RunTests
 
             Logger.Finish(Path.GetDirectoryName(options.Assemblies.FirstOrDefault() ?? ""));
 
-            if (options.Display)
-            {
-                DisplayResults(result.TestResults);
-            }
+            DisplayResults(options.Display, result.TestResults);
 
             if (CanUseWebStorage())
             {
@@ -140,11 +137,31 @@ namespace RunTests
             return list;
         }
 
-        private static void DisplayResults(ImmutableArray<TestResult> testResults)
+        private static void DisplayResults(Display display, ImmutableArray<TestResult> testResults)
         {
             foreach (var cur in testResults)
             {
-                ProcessRunner.OpenFile(cur.ResultsFilePath);
+                var open = false;
+                switch (display)
+                {
+                    case Display.All:
+                        open = true;
+                        break;
+                    case Display.None:
+                        open = false;
+                        break;
+                    case Display.Succeeded:
+                        open = cur.Succeeded;
+                        break;
+                    case Display.Failed:
+                        open = !cur.Succeeded;
+                        break;
+                }
+
+                if (open)
+                {
+                    ProcessRunner.OpenFile(cur.ResultsFilePath);
+                }
             }
         }
 
