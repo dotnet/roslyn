@@ -221,40 +221,4 @@ namespace Microsoft.CodeAnalysis
         /// <summary>Indicates an <see cref="IRangeCaseClause"/>.</summary>
         RangeCaseClause = 0x40c,
     }
-
-    public static class OperationExtensions
-    {
-        public static bool IsStatement(this IOperation operation)
-        {
-            switch (operation.Kind)
-            {
-                case OperationKind.InvalidStatement:
-                case OperationKind.BlockStatement:
-                case OperationKind.VariableDeclarationStatement:
-                case OperationKind.SwitchStatement:
-                case OperationKind.IfStatement:
-                case OperationKind.LoopStatement:
-                case OperationKind.LabelStatement:
-                case OperationKind.BranchStatement:
-                case OperationKind.EmptyStatement:
-                case OperationKind.ThrowStatement:
-                case OperationKind.ReturnStatement:
-                case OperationKind.YieldBreakStatement:
-                case OperationKind.LockStatement:
-                case OperationKind.TryStatement:
-                case OperationKind.UsingStatement:
-                case OperationKind.YieldReturnStatement:
-                case OperationKind.ExpressionStatement:
-                case OperationKind.FixedStatement:
-                case OperationKind.LocalFunctionStatement:
-                case OperationKind.StopStatement:
-                case OperationKind.EndStatement:
-                case OperationKind.WithStatement:
-
-                    return true;
-            }
-
-            return false;
-        }
-    }
 }

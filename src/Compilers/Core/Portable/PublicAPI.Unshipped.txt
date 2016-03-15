@@ -70,7 +70,6 @@ Microsoft.CodeAnalysis.ISkippedTokensTriviaSyntax.Tokens.get -> Microsoft.CodeAn
 Microsoft.CodeAnalysis.Metadata.Id.get -> Microsoft.CodeAnalysis.MetadataId
 Microsoft.CodeAnalysis.MetadataId
 Microsoft.CodeAnalysis.MethodKind.LocalFunction = 17 -> Microsoft.CodeAnalysis.MethodKind
-Microsoft.CodeAnalysis.OperationExtensions
 Microsoft.CodeAnalysis.OperationKind
 Microsoft.CodeAnalysis.OperationKind.AddressOfExpression = 515 -> Microsoft.CodeAnalysis.OperationKind
 Microsoft.CodeAnalysis.OperationKind.Argument = 1031 -> Microsoft.CodeAnalysis.OperationKind
@@ -757,7 +756,6 @@ override Microsoft.CodeAnalysis.Semantics.OperationWalker.VisitVariableDeclarati
 override Microsoft.CodeAnalysis.Semantics.OperationWalker.VisitWhileUntilLoopStatement(Microsoft.CodeAnalysis.Semantics.IWhileUntilLoopStatement operation) -> void
 override Microsoft.CodeAnalysis.Semantics.OperationWalker.VisitWithStatement(Microsoft.CodeAnalysis.Semantics.IWithStatement operation) -> void
 override Microsoft.CodeAnalysis.Semantics.OperationWalker.VisitYieldBreakStatement(Microsoft.CodeAnalysis.Semantics.IReturnStatement operation) -> void
-static Microsoft.CodeAnalysis.OperationExtensions.IsStatement(this Microsoft.CodeAnalysis.IOperation operation) -> bool
 static Microsoft.CodeAnalysis.Semantics.OperationExtensions.Descendants(this Microsoft.CodeAnalysis.IOperation operation) -> System.Collections.Generic.IEnumerable<Microsoft.CodeAnalysis.IOperation>
 static Microsoft.CodeAnalysis.Semantics.OperationExtensions.DescendantsAndSelf(this Microsoft.CodeAnalysis.IOperation operation) -> System.Collections.Generic.IEnumerable<Microsoft.CodeAnalysis.IOperation>
 static Microsoft.CodeAnalysis.Semantics.OperationExtensions.GetRootOperation(this Microsoft.CodeAnalysis.ISymbol symbol, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> Microsoft.CodeAnalysis.IOperation
