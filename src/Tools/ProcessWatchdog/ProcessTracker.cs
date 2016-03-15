@@ -53,10 +53,7 @@ namespace ProcessWatchdog
                 // Terminate the procdump process that has been monitoring the target process
                 // Since this procdump is acting as a debugger, terminating it will
                 // terminate the target process as well.
-                if (!trackedProcess.ProcDumpProcess.HasExited)
-                {
-                    trackedProcess.ProcDumpProcess.Kill();
-                }
+                SafeKillProcess(trackedProcess.ProcDumpProcess);
             }
         }
 
@@ -72,6 +69,30 @@ namespace ProcessWatchdog
             return $"{process.ProcessName}-{process.Id}";
         }
 
+        /// <summary>
+        /// Terminate a process safely, avoiding the potential race condition
+        /// that is unavoidable when using Process.HasExited.
+        /// </summary>
+        /// <param name="process">
+        /// The process to be terminated.
+        /// </param>
+        private void SafeKillProcess(Process process)
+        {
+            if (!process.HasExited)
+            {
+                try
+                {
+                    process.Kill();
+                }
+                catch (InvalidOperationException)
+                {
+                    // This will happen if the process ended between the call to
+                    // Process.HasExited and the call to Process.Kill. It doesn't
+                    // indicate an error, so ignore it.
+                }
+            }
+        }
+
         #region IDisposable Support
 
         private bool _isDisposed = false;
@@ -84,12 +105,9 @@ namespace ProcessWatchdog
                 {
                     foreach (TrackedProcess trackedProcess in _trackedProcesses)
                     {
-                        if (!trackedProcess.ProcDumpProcess.HasExited)
-                        {
-                            // Killing the procdump process will also kill the tracked
-                            // process to which it had attached itself as a debugger.
-                            trackedProcess.ProcDumpProcess.Kill();
-                        }
+                        // Killing the procdump process will also kill the tracked
+                        // process to which it had attached itself as a debugger.
+                        SafeKillProcess(trackedProcess.ProcDumpProcess);
 
                         trackedProcess.Process.Dispose();
                         trackedProcess.ProcDumpProcess.Dispose();
