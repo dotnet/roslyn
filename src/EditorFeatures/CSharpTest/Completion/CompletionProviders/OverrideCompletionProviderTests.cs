@@ -794,6 +794,26 @@ class Derived<X> : CFoo
         #endregion
 
         #region "Commit tests"
+
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task CommitInEmptyClass()
+        {
+            var markupBeforeCommit = @"class c
+{
+        override $$
+}";
+
+            var expectedCodeAfterCommit = @"class c
+{
+    public override bool Equals(object obj)
+    {
+        return base.Equals(obj);$$
+    }
+}";
+
+            await VerifyCustomCommitProviderAsync(markupBeforeCommit, "Equals(object obj)", expectedCodeAfterCommit);
+        }
+
         [WorkItem(529714, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529714")]
         [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task CommitGenericMethodTypeParametersRenamed()
@@ -825,25 +845,6 @@ class Derived<X> : CFoo
     }
 }";
             await VerifyCustomCommitProviderAsync(markupBeforeCommit, "Something<X>(X arg)", expectedCodeAfterCommit);
-        }
-
-    [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
-        public async Task CommitInEmptyClass()
-        {
-            var markupBeforeCommit = @"class c
-{
-        override $$
-}";
-
-            var expectedCodeAfterCommit = @"class c
-{
-    public override bool Equals(object obj)
-    {
-        return base.Equals(obj);$$
-    }
-}";
-
-            await VerifyCustomCommitProviderAsync(markupBeforeCommit, "Equals(object obj)", expectedCodeAfterCommit);
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
