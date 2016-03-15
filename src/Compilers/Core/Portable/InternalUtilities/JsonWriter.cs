@@ -19,7 +19,7 @@ namespace Roslyn.Utilities
     /// </summary>
     internal sealed class JsonWriter : IDisposable
     {
-        private readonly StreamWriter _outptut;
+        private readonly StreamWriter _output;
         private int _indent;
         private string _pending;
 
@@ -30,7 +30,7 @@ namespace Roslyn.Utilities
 
         public JsonWriter(StreamWriter output)
         {
-            _outptut = output;
+            _output = output;
             _pending = "";
         }
 
@@ -69,7 +69,7 @@ namespace Roslyn.Utilities
         public void WriteKey(string key)
         {
             Write(key);
-            _outptut.Write(": ");
+            _output.Write(": ");
             _pending = "";
         }
 
@@ -94,23 +94,23 @@ namespace Roslyn.Utilities
         public void Write(string value)
         {
             WritePending();
-            _outptut.Write('"');
-            _outptut.Write(EscapeString(value));
-            _outptut.Write('"');
+            _output.Write('"');
+            _output.Write(EscapeString(value));
+            _output.Write('"');
             _pending = s_commaNewLine;
         }
 
         public void Write(int value)
         {
             WritePending();
-            _outptut.Write(value);
+            _output.Write(value);
             _pending = s_commaNewLine;
         }
 
         public void Write(bool value)
         {
             WritePending();
-            _outptut.Write(value ? "true" : "false");
+            _output.Write(value ? "true" : "false");
             _pending = s_commaNewLine;
         }
 
@@ -118,11 +118,11 @@ namespace Roslyn.Utilities
         {
             if (_pending.Length > 0)
             {
-                _outptut.Write(_pending);
+                _output.Write(_pending);
 
                 for (int i = 0; i < _indent; i++)
                 {
-                    _outptut.Write(Indentation);
+                    _output.Write(Indentation);
                 }
             }
         }
@@ -130,7 +130,7 @@ namespace Roslyn.Utilities
         private void WriteStart(char c)
         {
             WritePending();
-            _outptut.Write(c);
+            _output.Write(c);
             _pending = s_newLine;
             _indent++;
         }
@@ -140,13 +140,13 @@ namespace Roslyn.Utilities
             _pending = s_newLine;
             _indent--;
             WritePending();
-            _outptut.Write(c);
+            _output.Write(c);
             _pending = s_commaNewLine;
         }
 
         public void Dispose()
         {
-            _outptut.Dispose();
+            _output.Dispose();
         }
 
         // String escaping implementation forked from System.Runtime.Serialization.Json to 
