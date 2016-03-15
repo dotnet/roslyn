@@ -17,8 +17,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// </summary>
         private readonly ConstantValue _switchCaseLabelConstant;
 
-        // Lazily initialized. Often we do not need this.
-        private string _name;
+        // PERF: Often we do not need this, so we make this lazy
+        private string _lazyName;
 
         public SourceLabelSymbol(
             MethodSymbol containingMethod,
@@ -34,8 +34,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             get
             {
-                return _name ??
-                    (_name = MakeLabelName());
+                return _lazyName ??
+                    (_lazyName = MakeLabelName());
             }
         }
 

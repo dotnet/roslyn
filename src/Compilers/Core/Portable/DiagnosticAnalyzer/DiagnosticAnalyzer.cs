@@ -23,7 +23,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
         public sealed override bool Equals(object obj)
         {
-            return ReferenceEquals(this, obj);
+            return (object)this == obj;
         }
 
         public sealed override int GetHashCode()

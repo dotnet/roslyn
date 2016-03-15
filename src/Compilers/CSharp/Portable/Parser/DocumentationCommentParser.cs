@@ -294,7 +294,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             // NOTE we do not compare colon tokens.
             //      as long as name and prefix are matching we will consider names equivalent
             //      it would be a different error if colon are missing
-            return name.LocalName.ValueText == endName.LocalName.ValueText &&
+            return name.FullWidth == endName.FullWidth &&
+                name.LocalName.ValueText == endName.LocalName.ValueText &&
                 name.Prefix?.Prefix.ValueText == endName.Prefix?.Prefix.ValueText;
         }
 

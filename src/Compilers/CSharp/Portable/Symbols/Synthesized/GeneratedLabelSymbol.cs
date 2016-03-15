@@ -13,14 +13,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         public GeneratedLabelSymbol(string name)
         {
-            this._name = LabelName(name);
+            _name = LabelName(name);
         }
 
         public override string Name
         {
             get
             {
-                return base.Name;
+                return _name;
             }
         }
 

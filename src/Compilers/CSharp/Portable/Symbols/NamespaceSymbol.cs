@@ -311,17 +311,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return null;
         }
 
-        // lazily initialized
-        private ImmutableArray<NamedTypeSymbol> typesWithExtensionMethods;
-        private ImmutableArray<NamedTypeSymbol> TypesWithExtensionMethods
+        private ImmutableArray<NamedTypeSymbol> _lazyTypesMightContainExtensionMethods;
+        private ImmutableArray<NamedTypeSymbol> TypesMightContainExtensionMethods
         {
             get
             {
-                var typesWithExtensionMethods = this.typesWithExtensionMethods;
+                var typesWithExtensionMethods = this._lazyTypesMightContainExtensionMethods;
                 if (typesWithExtensionMethods.IsDefault)
                 {
-                    this.typesWithExtensionMethods = this.GetTypeMembersUnordered().WhereAsArray(t => t.MightContainExtensionMethods);
-                    typesWithExtensionMethods = this.typesWithExtensionMethods;
+                    this._lazyTypesMightContainExtensionMethods = this.GetTypeMembersUnordered().WhereAsArray(t => t.MightContainExtensionMethods);
+                    typesWithExtensionMethods = this._lazyTypesMightContainExtensionMethods;
                 }
 
                 return typesWithExtensionMethods;
@@ -350,7 +349,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 return;
             }
 
-            var typesWithExtensionMethods = this.TypesWithExtensionMethods;
+            var typesWithExtensionMethods = this.TypesMightContainExtensionMethods;
 
             foreach (var type in typesWithExtensionMethods)
             {
@@ -396,15 +395,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        // lazily initialized 
-        // PERF: initialization will allocate
-        private string _qualifiedName;
+        // PERF: initialization will allocate, so we make this lazy
+        private string _lazyQualifiedName;
         internal string QualifiedName
         {
             get
             {
-                return _qualifiedName ??
-                    (_qualifiedName = this.ToDisplayString(SymbolDisplayFormat.QualifiedNameOnlyFormat));
+                return _lazyQualifiedName ??
+                    (_lazyQualifiedName = this.ToDisplayString(SymbolDisplayFormat.QualifiedNameOnlyFormat));
             }
         }
 

@@ -196,7 +196,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             int length = this.Name.Length;
 
             var parent = ContainingNamespace;
-            while (parent?.IsGlobalNamespace != true)
+            while (parent?.IsGlobalNamespace == false)
             {
                 // add name of the parent + "."
                 length += parent.Name.Length + 1;

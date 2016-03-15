@@ -10,7 +10,7 @@ namespace Roslyn.Utilities
     /// Very cheap trivial comparer that never matches the keys,
     /// should only be used in empty dictionaries.
     /// </summary>
-    internal class EmptyComparer : IEqualityComparer<object>
+    internal sealed class EmptyComparer : IEqualityComparer<object>
     {
         public static readonly EmptyComparer Instance = new EmptyComparer();
 

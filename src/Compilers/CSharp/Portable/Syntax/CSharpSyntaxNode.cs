@@ -92,12 +92,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 if (parent == null)
                 {
                     // set the tree on the root node atomically
-                    tree = CSharpSyntaxTree.CreateWithoutClone(node);
-                    var orig = Interlocked.CompareExchange(ref node._syntaxTree, tree, null);
-                    if (orig != null)
-                    {
-                        tree = orig;
-                    }
+                    Interlocked.CompareExchange(ref node._syntaxTree, CSharpSyntaxTree.CreateWithoutClone(node), null);
+                    tree = node._syntaxTree;
                     break;
                 }
 
