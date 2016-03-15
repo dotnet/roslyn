@@ -791,20 +791,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             associatedSyntaxNode = associatedSyntaxNode ?? declarator;
 
             // Check for variable declaration errors.
-            Binder nameConflictChecker = this;
-
-            // Step out of the PatternVariableBinder for locals declared in variable declaration statement
-            if (this is PatternVariableBinder)
-            {
-                CSharpSyntaxNode parent = declarator.Parent;
-                if (parent?.Kind() == SyntaxKind.VariableDeclaration &&
-                    parent.Parent?.Kind() == SyntaxKind.LocalDeclarationStatement)
-                {
-                    nameConflictChecker = this.Next;
-                }
-            }
-
-            bool hasErrors = nameConflictChecker.ValidateDeclarationNameConflictsInScope(localSymbol, diagnostics);
+            // Use the binder that owns the scope for the local because this (the current) binder
+            // might own nested scope.
+            bool hasErrors = localSymbol.Binder.ValidateDeclarationNameConflictsInScope(localSymbol, diagnostics);
 
             var containingMethod = this.ContainingMemberOrLambda as MethodSymbol;
             if (containingMethod != null && containingMethod.IsAsync && localSymbol.RefKind != RefKind.None)
