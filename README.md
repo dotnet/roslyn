@@ -53,6 +53,7 @@ To get the latest "preview" drop, published about once per month, add the `-pre`
 * [Documentation](https://github.com/dotnet/roslyn/tree/master/docs)
 * [Analyzer documentation](https://github.com/dotnet/roslyn/tree/master/docs/analyzers)
 * [Syntax Visualizer Tool](https://github.com/dotnet/roslyn/wiki/Syntax%20Visualizer)
+* [Syntax Quoter Tool](http://roslynquoter.azurewebsites.net)
 * [Roadmap](https://github.com/dotnet/roslyn/wiki/Roadmap) 
 * [Language Feature Status](https://github.com/dotnet/roslyn/wiki/Languages-features-in-C%23-6-and-VB-14)
 * [Language Design Notes](https://github.com/dotnet/roslyn/issues?q=label%3A%22Design+Notes%22+)

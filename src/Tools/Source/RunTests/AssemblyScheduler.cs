@@ -314,6 +314,7 @@ namespace RunTests
                 {
                     case '<':
                     case '>':
+                    case '$':
                         return false;
                 }
             }

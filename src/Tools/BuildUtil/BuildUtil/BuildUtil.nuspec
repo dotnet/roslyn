@@ -1,14 +1,28 @@
-<?xml version="1.0"?>
-<package >
+﻿<?xml version="1.0" encoding="utf-8"?>
+<package>
   <metadata>
-    <id>Roslyn.MSBuild.Util</id>
-    <version>0.9.1</version>
-    <title>Roslyn.MSBuild.Util</title>
-    <authors>JaredPar</authors>
-    <owners>JaredPar</owners>
+    <id>Roslyn.Build.Util</id>
+    <version>0.9.2-portable</version>
+    <title>Roslyn.Build.Util</title>
+    <authors>RoslynTeam</authors>
+    <owners>RoslynTeam</owners>
     <licenseUrl>http://www.apache.org/licenses/LICENSE-2.0</licenseUrl>
     <projectUrl>https://github.com/dotnet/roslyn</projectUrl>
     <requireLicenseAcceptance>false</requireLicenseAcceptance>
     <description>Provides WriteCodeFragmentEx.  This is an implementation of the standard WriteCodeFragment Task that is deterministic.</description>
+    <dependencies>
+      <group targetFramework="dotnet">
+        <dependency id="Microsoft.Build.Framework" version="0.1.0-preview-00005" />
+        <dependency id="Microsoft.Build.Utilities.Core" version="0.1.0-preview-00005" />
+        <dependency id="System.Collections" version="4.0.10" />
+        <dependency id="System.Diagnostics.Debug" version="4.0.10" />
+        <dependency id="System.IO.FileSystem" version="4.0.0" />
+        <dependency id="System.Linq" version="4.0.0" />
+        <dependency id="System.Runtime" version="4.0.20" />
+      </group>
+    </dependencies>
   </metadata>
+  <files>
+    <file src="Roslyn.MSBuild.Util.dll" target="lib/dotnet" />
+  </files>
 </package>
