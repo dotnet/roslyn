@@ -43,6 +43,14 @@ namespace ProcessWatchdog
             // Clear out any processes which have ended.
             _trackedProcesses = _trackedProcesses.Where(tp => !tp.HasExited).ToList();
 
+            // CAUTION: This code is subject to a race condition where between one
+            // call to update and the next, all the processes in the list ended, but new
+            // processes (which we are not yet tracking) were created. In that case,
+            // _trackedProcesses would now be empty, and the ProcessWatchdog would exit,
+            // even though there are still processes we care about.
+            //
+            // This should not happen for the scenarios we care about, since the parent
+            // process should outlive all its descendants.
             if (_trackedProcesses.Any())
             {
                 // Add any new descendants of the remaining processes (that is, any
@@ -51,6 +59,11 @@ namespace ProcessWatchdog
 
                 foreach (Process descendant in GetDescendants(_parentProcess))
                 {
+                    // BUG: This code is subject to a race condition where, between the time we
+                    // captured the existing process ids and the time we enumerated the descendants,
+                    // one of those existing processes had terminated and a new descendant process
+                    // was created with the same id. This can happen, since process ids can be
+                    // recycled.
                     if (!existingProcessIds.Contains(descendant.Id))
                     {
                         TrackProcess(descendant);
