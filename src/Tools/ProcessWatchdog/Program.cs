@@ -23,15 +23,13 @@ namespace ProcessWatchdog
 
         private int Run()
         {
-            try
+            if (_options.TimeLimit <= 0)
             {
-                _timeLimit = TimeSpan.Parse(_options.TimeLimit);
-            }
-            catch (Exception ex)
-            {
-                ConsoleUtils.LogError(Resources.ErrorInvalidTimeoutInterval, _options.TimeLimit, ex.Message);
+                ConsoleUtils.LogError(Resources.ErrorInvalidTimeLimit, _options.TimeLimit);
                 return 1;
             }
+
+            _timeLimit = TimeSpan.FromSeconds(_options.TimeLimit);
 
             if (_options.PollingInterval <= 0)
             {

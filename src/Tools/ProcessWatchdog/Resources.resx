@@ -133,13 +133,13 @@
     <value>Error: {0}</value>
   </data>
   <data name="ErrorInvalidPollingInterval" xml:space="preserve">
-    <value>The polling interval "{0}" is invalid. Please specify a polling interval in milliseconds with a value greater than 0.</value>
+    <value>The value {0} is not a valid polling interval. Please specify the polling interval as a positive number of milliseconds.</value>
   </data>
-  <data name="ErrorInvalidTimeoutInterval" xml:space="preserve">
-    <value>The string "{0}" is not a valid TimeSpan. {1} Please specify the timeout interval with a string of the form hh:mm[:ss].</value>
+  <data name="ErrorInvalidTimeLimit" xml:space="preserve">
+    <value>The value {0} is not a valid time limit. Please specify the time limit as a positive number of seconds.</value>
   </data>
   <data name="ErrorProcessTimedOut" xml:space="preserve">
-    <value>The process {0} ({1}) exceeded the time limit of {2} and will be terminated.</value>
+    <value>The process {0} ({1}) exceeded the time limit of {2} seconds and will be terminated.</value>
   </data>
   <data name="InfoCreatedOutputFolder" xml:space="preserve">
     <value>Created output folder {0}.</value>

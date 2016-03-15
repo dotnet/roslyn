@@ -106,7 +106,7 @@ namespace ProcessWatchdog {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to The polling interval &quot;{0}&quot; is invalid. Please specify a polling interval in milliseconds with a value greater than 0..
+        ///   Looks up a localized string similar to The value {0} is not a valid polling interval. Please specify the polling interval as a positive number of milliseconds..
         /// </summary>
         internal static string ErrorInvalidPollingInterval {
             get {
@@ -115,16 +115,16 @@ namespace ProcessWatchdog {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to The string &quot;{0}&quot; is not a valid TimeSpan. {1} Please specify the timeout interval with a string of the form hh:mm[:ss]..
+        ///   Looks up a localized string similar to The value {0} is not a valid time limit. Please specify the time limit as a positive number of seconds..
         /// </summary>
-        internal static string ErrorInvalidTimeoutInterval {
+        internal static string ErrorInvalidTimeLimit {
             get {
-                return ResourceManager.GetString("ErrorInvalidTimeoutInterval", resourceCulture);
+                return ResourceManager.GetString("ErrorInvalidTimeLimit", resourceCulture);
             }
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to The process {0} ({1}) exceeded the time limit of {2} and will be terminated..
+        ///   Looks up a localized string similar to The process {0} ({1}) exceeded the time limit of {2} seconds and will be terminated..
         /// </summary>
         internal static string ErrorProcessTimedOut {
             get {

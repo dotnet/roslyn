@@ -12,9 +12,9 @@ namespace ProcessWatchdog
         [Option(
             't',
             "time-limit",
-            HelpText = "Time limit in the form hh:mm[:ss].",
+            HelpText = "Time limit in seconds.",
             Required = true)]
-        public string TimeLimit { get; set; }
+        public int TimeLimit { get; set; }
 
         [Option(
             'e',
