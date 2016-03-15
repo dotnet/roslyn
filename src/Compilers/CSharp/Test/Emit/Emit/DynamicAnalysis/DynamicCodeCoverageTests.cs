@@ -162,19 +162,8 @@ True
 True
 True
 ";
-            string expectedTestMainIL = @"{
-  // Code size       16 (0x10)
-  .maxstack  1
-  .locals init (int? V_0)
-  IL_0000:  call       ""int? Program.N()""
-  IL_0005:  pop
-  IL_0006:  ldloca.s   V_0
-  IL_0008:  initobj    ""int?""
-  IL_000e:  ldloc.0
-  IL_000f:  ret
-}";
+  
             CompilationVerifier verifier = CompileAndVerify(source, emitOptions: EmitOptions.Default.WithEmitDynamicAnalysisData(true), expectedOutput: expectedOutput);
-            verifier.VerifyIL("Program.TestMain", expectedTestMainIL);
         }
 
         [Fact]

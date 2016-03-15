@@ -19,7 +19,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         internal static BoundBlock InjectInstrumentation(MethodSymbol method, BoundBlock methodBody, int methodOrdinal, TypeCompilationState compilationState, CSharpCompilation compilation, DiagnosticBag diagnostics, DebugDocumentProvider debugDocumentProvider, out ImmutableArray<SourceSpan> dynamicAnalysisSpans)
         {
-            if (methodBody != null && method.Name != "CreatePayload" && method.Name != "FlushPayload")
+            if (methodBody != null && (object)method != GetCreatePayload(compilation) && (object)method != GetFlushPayload(compilation))
             {
                 MethodSymbol createPayload = GetCreatePayload(compilation);
                 MethodSymbol flushPayload = GetFlushPayload(compilation);
@@ -37,7 +37,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                     ArrayBuilder<SourceSpan> spansBuilder = ArrayBuilder<SourceSpan>.GetInstance();
                     BoundTreeRewriter collector = new InstrumentationInjectionWalker(method, spansBuilder, payloadField, compilationState, diagnostics, debugDocumentProvider);
                     BoundBlock newMethodBody = (BoundBlock)collector.Visit(methodBody);
-
                     dynamicAnalysisSpans = spansBuilder.ToImmutableAndFree();
 
                     // Synthesize the initialization of the instrumentation payload array. It should be done either statically or with concurrency-safe code:
@@ -87,27 +86,13 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private static FieldSymbol GetPayloadField(MethodSymbol method, int methodOrdinal, TypeSymbol payloadType, SyntheticBoundNodeFactory factory, CSharpCompilation compilation)
         {
-            // If the type containing the method is generic, synthesize a helper type and put the payload field there.
+            // ToDo: If the type containing the method is generic, synthesize a helper type and put the payload field there.
             // If the payload field is part of a generic type, there will be a new instance of the field per instantiation of the generic,
             // and so the payload field must be a member of another type.
             NamedTypeSymbol containingType = method.ContainingType;
 
             SynthesizedFieldSymbol payloadField = new SynthesizedFieldSymbol(containingType, payloadType, method.Name + "*instrumentation*" + methodOrdinal.ToString(), isStatic: true);
             factory.AddField(containingType, payloadField);
-#if false
-            SynthesizedFieldSymbol typeField = null;
-            string typeFieldName = containingType.Name + "*type";
-            ImmutableArray<Symbol> typeFields = containingType.GetMembers(typeFieldName);
-            if (typeFields.Length == 0)
-            {
-                typeField = new SynthesizedFieldSymbol(containingType, compilation.GetWellKnownType(WellKnownType.System_Type), typeFieldName);
-                factory.AddField(containingType, typeField);
-            }
-            else if (typeFields.Length == 1)
-            {
-                typeField = typeFields[0] as SynthesizedFieldSymbol;
-            }
-#endif   
             return payloadField;
         }
         
@@ -122,7 +107,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     if (createPayloads.Length == 1)
                     {
                         MethodSymbol createPayload = createPayloads[0] as MethodSymbol;
-                        // Add checks for parameter types.
+                        // ToDo: Add checks for parameter types.
                         if (createPayload != null && createPayload.IsStatic && createPayload.ParameterCount == 4 && createPayload.Parameters[0].Name == "mvid" && createPayload.Parameters[1].Name == "methodToken" && createPayload.Parameters[2].Name == "payload" && createPayload.Parameters[3].Name == "payloadLength")
                         {
                             _createPayload = createPayload;
@@ -158,6 +143,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private static bool IsTestMethod(MethodSymbol method)
         {
+            // ToDo: Make this real.
             return method.Name.StartsWith("Test");
         }
     }
@@ -238,7 +224,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public override BoundNode VisitLabeledStatement(BoundLabeledStatement node)
         {
-            // This construct can be ignored in favor of the underlying statement.
+            // This construct can be ignored with respect to instrumentation in favor of the underlying statement.
             return base.VisitLabeledStatement(node);
         }
 
