@@ -44,7 +44,7 @@ powershell -noprofile -executionPolicy RemoteSigned -file "%RoslynRoot%\build\sc
 
 if not exist "%bindir%\Bootstrap" mkdir "%bindir%\Bootstrap" || goto :BuildFailed
 move "Binaries\%BuildConfiguration%\*" "%bindir%\Bootstrap" || goto :BuildFailed
-copy "build\scripts\*" "%bindir%\Bootstrap" || goto :BuildFailed
+copy "build\bootstrap\*" "%bindir%\Bootstrap" || goto :BuildFailed
 
 REM Clean the previous build
 msbuild %MSBuildAdditionalCommandLineArgs% /t:Clean build/Toolset.sln /p:Configuration=%BuildConfiguration%  /fileloggerparameters:LogFile="%bindir%\BootstrapClean.log" || goto :BuildFailed
