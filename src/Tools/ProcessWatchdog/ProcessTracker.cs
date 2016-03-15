@@ -60,6 +60,13 @@ namespace ProcessWatchdog
                 {
                     foreach (TrackedProcess trackedProcess in _trackedProcesses)
                     {
+                        if (!trackedProcess.ProcDumpProcess.HasExited)
+                        {
+                            // Killing the procdump process will also kill the tracked
+                            // process to which it had attached itself as a debugger.
+                            trackedProcess.ProcDumpProcess.Kill();
+                        }
+
                         trackedProcess.Process.Dispose();
                         trackedProcess.ProcDumpProcess.Dispose();
                     }
