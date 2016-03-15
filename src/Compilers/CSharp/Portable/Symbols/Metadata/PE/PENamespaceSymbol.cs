@@ -181,7 +181,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
 
             MetadataHelpers.GetInfoForImmediateNamespaceMembers(
                 isGlobalNamespace,
-                isGlobalNamespace ? 0 : this.ToDisplayString(SymbolDisplayFormat.QualifiedNameOnlyFormat).Length,
+                isGlobalNamespace ? 0 : GetQualifiedNameLength(),
                 typesByNS,
                 StringComparer.Ordinal,
                 out nestedTypes, out nestedNamespaces);
@@ -189,6 +189,21 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             LazyInitializeNamespaces(nestedNamespaces);
 
             LazyInitializeTypes(nestedTypes);
+        }
+
+        private int GetQualifiedNameLength()
+        {
+            int length = this.Name.Length;
+
+            var parent = ContainingNamespace;
+            while (parent?.IsGlobalNamespace != true)
+            {
+                // add name of the parent + "."
+                length += parent.Name.Length + 1;
+                parent = parent.ContainingNamespace;
+            }
+
+            return length;
         }
 
         /// <summary>

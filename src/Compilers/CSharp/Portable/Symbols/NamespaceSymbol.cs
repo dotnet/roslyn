@@ -396,6 +396,18 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
+        // lazily initialized 
+        // PERF: initialization will allocate
+        private string _qualifiedName;
+        internal string QualifiedName
+        {
+            get
+            {
+                return _qualifiedName ??
+                    (_qualifiedName = this.ToDisplayString(SymbolDisplayFormat.QualifiedNameOnlyFormat));
+            }
+        }
+
         #endregion
 
         #region ISymbol Members
