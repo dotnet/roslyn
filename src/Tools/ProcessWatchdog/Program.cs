@@ -68,6 +68,8 @@ namespace ProcessWatchdog
                     }
 
                     Thread.Sleep(_options.PollingInterval);
+
+                    processTracker.Update();
                 }
 
                 ConsoleUtils.LogMessage(

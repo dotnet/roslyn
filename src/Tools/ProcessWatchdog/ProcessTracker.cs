@@ -36,6 +36,16 @@ namespace ProcessWatchdog
 
         internal bool AllFinished => !_trackedProcesses.Any();
 
+        internal void Update()
+        {
+            // Make a copy of the list of tracked processes, because
+            // we can't remove items from the list while iterating over it.
+            TrackedProcess[] copy = _trackedProcesses.ToArray();
+
+            _trackedProcesses.Clear();
+            _trackedProcesses.AddRange(copy.Where(p => !p.ProcDumpProcess.HasExited));
+        }
+
         internal void TerminateAll()
         {
             foreach (TrackedProcess trackedProcess in _trackedProcesses)
