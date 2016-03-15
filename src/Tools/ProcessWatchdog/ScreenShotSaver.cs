@@ -17,8 +17,8 @@ namespace ProcessWatchdog
             try
             {
                 var fileName = GenerateScreenshotFileName(description, outputFolder);
-                SaveScreenToFile(fileName);
                 ConsoleUtils.LogMessage(Resources.InfoSavedScreenshot, fileName);
+                SaveScreenToFile(fileName);
             }
             catch (Win32Exception ex)
             {

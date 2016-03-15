@@ -47,7 +47,7 @@ namespace ProcessWatchdog
 
             using (Process process = Process.Start(processStartInfo))
             {
-                using (Process procDumpProcess = CrashDump.MonitorProcess(
+                using (Process procDumpProcess = ProcDump.MonitorProcess(
                     process.Id,
                     _options.Executable,
                     _options.OutputFolder,
@@ -65,12 +65,19 @@ namespace ProcessWatchdog
 
                             ScreenshotSaver.SaveScreen(_options.Executable, _options.OutputFolder);
 
-                            ConsoleUtils.LogMessage(
-                                Resources.InfoTerminatingProcess,
-                                _options.Executable,
-                                process.Id);
+                            // Launch another procdump process. This one will take an
+                            // immediate dump.
+                            Process immediateDumpProcess = ProcDump.DumpProcessNow(process.Id, _options.Executable, _options.OutputFolder, _options.ProcDumpPath);
+                            while (!immediateDumpProcess.HasExited)
+                                ;
 
-                            process.Kill();
+                            // Kill the other procdump process, the one that was monitoring
+                            // the target process. Since this procdump is acting as a
+                            // debugger, killing it will kill the target process as well.
+                            if (!procDumpProcess.HasExited)
+                            {
+                                procDumpProcess.Kill();
+                            }
 
                             return 1;
                         }

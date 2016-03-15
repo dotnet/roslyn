@@ -142,7 +142,7 @@ namespace ProcessWatchdog {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Saved screenshot to file {0}..
+        ///   Looks up a localized string similar to Saving screenshot to file {0}....
         /// </summary>
         internal static string InfoSavedScreenshot {
             get {
@@ -151,7 +151,7 @@ namespace ProcessWatchdog {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Terminating process {0} ({1}) and saving crash dump....
+        ///   Looks up a localized string similar to Terminating process {0} ({1}) and saving crash dump to file {2}....
         /// </summary>
         internal static string InfoTerminatingProcess {
             get {
