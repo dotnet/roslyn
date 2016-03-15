@@ -151,7 +151,7 @@ namespace ProcessWatchdog {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Terminating process {0} ({1})..
+        ///   Looks up a localized string similar to Terminating process {0} ({1}) and saving crash dump....
         /// </summary>
         internal static string InfoTerminatingProcess {
             get {

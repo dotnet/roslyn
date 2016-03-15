@@ -39,38 +39,49 @@ namespace ProcessWatchdog
                 return 1;
             }
 
-            var processStartInfo = new ProcessStartInfo();
-            processStartInfo.FileName = _options.Executable;
-            processStartInfo.Arguments = _options.Arguments;
+            var processStartInfo = new ProcessStartInfo
+            {
+                FileName = _options.Executable,
+                Arguments = _options.Arguments
+            };
 
             using (Process process = Process.Start(processStartInfo))
             {
-                while (!process.HasExited)
+                using (Process procDumpProcess = CrashDumpMonitor.MonitorProcess(
+                    process.Id,
+                    _options.Executable,
+                    _options.OutputFolder,
+                    _options.ProcDumpPath))
                 {
-                    if (DateTime.Now - process.StartTime > _timeLimit)
+                    while (!process.HasExited)
                     {
-                        ConsoleUtils.LogError(
-                            Resources.ErrorProcessTimedOut,
-                            _options.Executable,
-                            process.Id,
-                            _options.TimeLimit);
+                        if (DateTime.Now - process.StartTime > _timeLimit)
+                        {
+                            ConsoleUtils.LogError(
+                                Resources.ErrorProcessTimedOut,
+                                _options.Executable,
+                                process.Id,
+                                _options.TimeLimit);
 
-                        ScreenshotSaver.SaveScreen(_options.Executable, _options.OutputDirectory);
+                            ScreenshotSaver.SaveScreen(_options.Executable, _options.OutputFolder);
 
-                        ConsoleUtils.LogMessage(
-                            Resources.InfoTerminatingProcess,
-                            _options.Executable,
-                            process.Id);
+                            ConsoleUtils.LogMessage(
+                                Resources.InfoTerminatingProcess,
+                                _options.Executable,
+                                process.Id);
 
-                        process.Kill();
+                            process.Kill();
 
-                        return 1;
+                            return 1;
+                        }
+
+                        Thread.Sleep(_options.PollingInterval);
                     }
 
-                    Thread.Sleep(_options.PollingInterval);
-                }
+                    procDumpProcess.Kill();
 
-                ConsoleUtils.LogMessage(Resources.ProcessExited, _options.Executable, process.ExitTime - process.StartTime);
+                    ConsoleUtils.LogMessage(Resources.ProcessExited, _options.Executable, process.ExitTime - process.StartTime);
+                }
             }
 
             return 0;

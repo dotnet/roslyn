@@ -34,7 +34,7 @@ namespace ProcessWatchdog
             "output-folder",
             HelpText = "Folder to which process dumps and screen shots will be written.",
             Default = ".")]
-        public string OutputDirectory { get; set; }
+        public string OutputFolder { get; set; }
 
         [Option(
             'p',
@@ -48,6 +48,6 @@ namespace ProcessWatchdog
             "procdump-path",
             HelpText = "Path to the executable procdump.exe.",
             Required = true)]
-        public string ProcdumpPath { get; set; }
+        public string ProcDumpPath { get; set; }
     }
 }

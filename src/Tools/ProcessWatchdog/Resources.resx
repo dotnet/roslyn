@@ -148,7 +148,7 @@
     <value>Saved screenshot to file {0}.</value>
   </data>
   <data name="InfoTerminatingProcess" xml:space="preserve">
-    <value>Terminating process {0} ({1}).</value>
+    <value>Terminating process {0} ({1}) and saving crash dump...</value>
   </data>
   <data name="ProcessExited" xml:space="preserve">
     <value>The process {0} exited successfully after {1}.</value>
