@@ -773,12 +773,61 @@ public class SomeClass : Base
 
             await VerifyItemExistsAsync(markup, "foo(int x, out string y)", "void Base.foo(int x, out string y)");
         }
-        
+
+        [WorkItem(529714, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529714")]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task GenericMethodTypeParametersRenamed()
+        {
+            var markup = @"abstract class CFoo    
+{    
+   public virtual X Something<X>(X arg)    
+   {    
+       return default(X);    
+    }    
+}    
+class Derived<X> : CFoo    
+{    
+    override $$    
+}";
+            await VerifyItemExistsAsync(markup, "Something<X>(X arg)");
+        }
         #endregion
 
         #region "Commit tests"
-
+        [WorkItem(529714, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529714")]
         [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task CommitGenericMethodTypeParametersRenamed()
+        {
+            var markupBeforeCommit = @"abstract class CFoo    
+{    
+    public virtual X Something<X>(X arg)    
+    {    
+        return default(X);    
+    }    
+}    
+class Derived<X> : CFoo    
+{    
+    override $$    
+}";
+
+            var expectedCodeAfterCommit = @"abstract class CFoo    
+{    
+    public virtual X Something<X>(X arg)    
+    {    
+        return default(X);    
+    }    
+}    
+class Derived<X> : CFoo    
+{
+    public override X Something<X>(X arg)
+    {
+        return base.Something<X>(arg);$$
+    }
+}";
+            await VerifyCustomCommitProviderAsync(markupBeforeCommit, "Something<X>(X arg)", expectedCodeAfterCommit);
+        }
+
+    [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task CommitInEmptyClass()
         {
             var markupBeforeCommit = @"class c
