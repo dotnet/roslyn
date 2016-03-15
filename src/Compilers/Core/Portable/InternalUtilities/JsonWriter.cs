@@ -1,6 +1,8 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using Microsoft.CodeAnalysis.Collections;
 using System;
+using System.Diagnostics;
 using System.Globalization;
 using System.IO;
 using System.Text;
@@ -163,6 +165,7 @@ namespace Roslyn.Utilities
         //
         private static string EscapeString(string value)
         {
+            PooledStringBuilder pooledBuilder = null;
             StringBuilder b = null;
 
             if (string.IsNullOrEmpty(value))
@@ -180,7 +183,9 @@ namespace Roslyn.Utilities
                 {
                     if (b == null)
                     {
-                        b = new StringBuilder(value.Length + 5);
+                        Debug.Assert(pooledBuilder == null);
+                        pooledBuilder = PooledStringBuilder.GetInstance();
+                        b = pooledBuilder.Builder;
                     }
 
                     if (count > 0)
@@ -229,7 +234,7 @@ namespace Roslyn.Utilities
                 b.Append(value, startIndex, count);
             }
 
-            return b.ToString();
+            return pooledBuilder.ToStringAndFree();
         }
 
         private static void AppendCharAsUnicode(StringBuilder builder, char c)
