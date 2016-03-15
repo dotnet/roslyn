@@ -49,5 +49,12 @@ namespace ProcessWatchdog
             HelpText = "Path to the executable procdump.exe.",
             Required = true)]
         public string ProcDumpPath { get; set; }
+
+        [Option(
+            's',
+            "screenshot",
+            HelpText = "Take a screenshot of the terminated process.",
+            Default = false)]
+        public bool Screenshot { get; set; }
     }
 }

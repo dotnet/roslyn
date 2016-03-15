@@ -63,7 +63,10 @@ namespace ProcessWatchdog
                                 process.Id,
                                 _options.TimeLimit);
 
-                            ScreenshotSaver.SaveScreen(_options.Executable, _options.OutputFolder);
+                            if (_options.Screenshot)
+                            {
+                                ScreenshotSaver.SaveScreen(_options.Executable, _options.OutputFolder);
+                            }
 
                             // Launch another procdump process. This one will take an
                             // immediate dump.
@@ -85,7 +88,8 @@ namespace ProcessWatchdog
                         Thread.Sleep(_options.PollingInterval);
                     }
 
-                    procDumpProcess.Kill();
+                    // If the target process exited normally, then the "monitoring" procdump
+                    // process has also exited, so there's no need to kill it here.
 
                     ConsoleUtils.LogMessage(Resources.ProcessExited, _options.Executable, process.ExitTime - process.StartTime);
                 }
