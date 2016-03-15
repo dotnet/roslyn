@@ -34,6 +34,32 @@ namespace ProcessWatchdog
             TrackProcess(parentProcess);
         }
 
+        internal bool AllFinished => !_trackedProcesses.Any();
+
+        internal void TerminateAll()
+        {
+            foreach (TrackedProcess trackedProcess in _trackedProcesses)
+            {
+                // Launch another procdump process, distinct from the one that has been
+                // monitoring the tracked process. This procdump process will take an
+                // immediate dump of the tracked process.
+                Process immediateDumpProcess = _procDump.DumpProcessNow(
+                    trackedProcess.Process.Id,
+                    trackedProcess.Description);
+
+                while (!immediateDumpProcess.HasExited)
+                    ;
+
+                // Terminate the procdump process that has been monitoring the target process
+                // Since this procdump is acting as a debugger, terminating it will
+                // terminate the target process as well.
+                if (!trackedProcess.ProcDumpProcess.HasExited)
+                {
+                    trackedProcess.ProcDumpProcess.Kill();
+                }
+            }
+        }
+
         private void TrackProcess(Process process)
         {
             string description = MakeProcessDescription(process);
@@ -45,8 +71,6 @@ namespace ProcessWatchdog
         {
             return $"{process.ProcessName}-{process.Id}";
         }
-
-        internal bool AllFinished => !_trackedProcesses.Any();
 
         #region IDisposable Support
 
@@ -75,30 +99,6 @@ namespace ProcessWatchdog
                 }
 
                 _isDisposed = true;
-            }
-        }
-
-        internal void TerminateAll()
-        {
-            foreach (TrackedProcess trackedProcess in _trackedProcesses)
-            {
-                // Launch another procdump process, distinct from the one that has been
-                // monitoring the tracked process. This procdump process will take an
-                // immediate dump of the tracked process.
-                Process immediateDumpProcess = _procDump.DumpProcessNow(
-                    trackedProcess.Process.Id,
-                    trackedProcess.Description);
-
-                while (!immediateDumpProcess.HasExited)
-                    ;
-
-                // Terminate the procdump process that has been monitoring the target process
-                // Since this procdump is acting as a debugger, terminating it will
-                // terminate the target process as well.
-                if (!trackedProcess.ProcDumpProcess.HasExited)
-                {
-                    trackedProcess.ProcDumpProcess.Kill();
-                }
             }
         }
 
