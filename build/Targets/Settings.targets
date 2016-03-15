@@ -199,6 +199,10 @@
     <VSLOutDir>$(OutDir)</VSLOutDir>
   </PropertyGroup>
 
+  <PropertyGroup>
+      <CompilerGeneratorToolsDir>$(OutDir)CompilerGeneratorTools\</CompilerGeneratorToolsDir>
+  </PropertyGroup>
+
   <PropertyGroup Condition="'$(DeployToSamplesSubfolder)' == 'true'">
     <OutDir>$(OutDir)\Samples\$(MSBuildProjectName)</OutDir>
   </PropertyGroup>
