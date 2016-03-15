@@ -3,7 +3,9 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Globalization;
 using System.Linq;
+using System.Management;
 
 namespace ProcessWatchdog
 {
@@ -57,7 +59,7 @@ namespace ProcessWatchdog
                 // descendants that we're not already tracking).
                 int[] existingProcessIds = _trackedProcesses.Select(tp => tp.Process.Id).ToArray();
 
-                foreach (Process descendant in GetDescendants(_parentProcess))
+                foreach (Process descendant in GetDescendants(_parentProcess.Id))
                 {
                     // BUG: This code is subject to a race condition where, between the time we
                     // captured the existing process ids and the time we enumerated the descendants,
@@ -70,13 +72,6 @@ namespace ProcessWatchdog
                     }
                 }
             }
-        }
-
-        private IList<Process> GetDescendants(Process parentProcess)
-        {
-            var descendants = new List<Process>();
-
-            return descendants;
         }
 
         internal void TerminateAll()
@@ -104,12 +99,47 @@ namespace ProcessWatchdog
         {
             string description = MakeProcessDescription(process);
             Process procDumpProcess = _procDump.MonitorProcess(process.Id, description);
+
             _trackedProcesses.Add(new TrackedProcess(process, procDumpProcess, description));
         }
 
         private static string MakeProcessDescription(Process process)
         {
             return $"{process.ProcessName}-{process.Id}";
+        }
+
+        private IList<Process> GetDescendants(int processId)
+        {
+            var descendants = new List<Process>();
+
+            string query = string.Format(
+                CultureInfo.InvariantCulture,
+                "SELECT * FROM Win32_Process WHERE ParentProcessId={0}",
+                processId);
+            var searcher = new ManagementObjectSearcher(query);
+
+            foreach (ManagementObject process in searcher.Get())
+            {
+                object descendantIdProperty = process["ProcessId"];
+                int descendantId = Convert.ToInt32(descendantIdProperty);
+
+                try
+                {
+                    Process descendant = Process.GetProcessById(descendantId);
+                    descendants.Add(descendant);
+
+                    // Recurse to find descendants of descendants.
+                    descendants.AddRange(GetDescendants(descendantId));
+                }
+                catch (ArgumentException)
+                {
+                    // Don't worry if the process stopped running between the time we got
+                    // its id and the time we tried to get a Process object from the id.
+                    // Just don't add it to the list.
+                }
+            }
+
+            return descendants;
         }
 
         /// <summary>
