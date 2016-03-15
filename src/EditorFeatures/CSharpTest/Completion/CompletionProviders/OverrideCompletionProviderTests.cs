@@ -776,7 +776,7 @@ public class SomeClass : Base
 
         [WorkItem(529714, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529714")]
         [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
-        public async Task GenericMethodTypeParametersRenamed()
+        public async Task GenericMethodTypeParametersNotRenamed()
         {
             var markup = @"abstract class CFoo    
 {    
@@ -816,7 +816,7 @@ class Derived<X> : CFoo
 
         [WorkItem(529714, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529714")]
         [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
-        public async Task CommitGenericMethodTypeParametersRenamed()
+        public async Task CommitGenericMethodTypeParametersNotRenamed()
         {
             var markupBeforeCommit = @"abstract class CFoo    
 {    

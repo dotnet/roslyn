@@ -520,7 +520,7 @@ End Class</a>
 
         <WorkItem(529714, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529714")>
         <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
-        Public Async Function TestGenericMethodTypeParametersRenamed() As Task
+        Public Async Function TestGenericMethodTypeParametersNotRenamed() As Task
             Dim text = <a>Class CFoo    
     Overridable Function Something(Of X)(arg As X) As X    
     End Function    
@@ -1371,7 +1371,7 @@ End Class</a>
 
         <WorkItem(529714, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529714")>
         <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
-        Public Async Function TestCommitGenericMethodTypeParametersRenamed() As Task
+        Public Async Function TestCommitGenericMethodTypeParametersNotRenamed() As Task
             Dim markupBeforeCommit = <a>Class CFoo    
     Overridable Function Something(Of X)(arg As X) As X    
     End Function    
