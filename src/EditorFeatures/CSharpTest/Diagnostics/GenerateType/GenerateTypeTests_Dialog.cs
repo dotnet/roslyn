@@ -2502,37 +2502,7 @@ typeKind: TypeKind.Delegate,
 isNewFile: false,
 assertGenerateTypeDialogOptions: new GenerateTypeDialogOptions(false, TypeKindOptions.Class | TypeKindOptions.Structure | TypeKindOptions.Delegate));
         }
-
-        [WorkItem(872935, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/872935")]
-        [Fact(Skip = "872935"), Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
-        public async Task GenerateDelegateType_ObjectCreationExpression_SimpleLambdaEmpty()
-        {
-            await TestWithMockedGenerateTypeDialog(
-initial: @"class Program
-{
-    static void Main(string[] args)
-    {
-        var s7 = new [|$$MyD3|](() => { });
-    }
-}",
-languageName: LanguageNames.CSharp,
-typeName: "MyD",
-expected: @"class Program
-{
-    static void Main(string[] args)
-    {
-        var s7 = new MyD3(() => { });
-    }
-}
-
-public delegate void MyD();
-",
-accessibility: Accessibility.Public,
-typeKind: TypeKind.Delegate,
-isNewFile: false,
-assertGenerateTypeDialogOptions: new GenerateTypeDialogOptions(false, TypeKindOptions.AllOptions));
-        }
-
+        
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
         public async Task GenerateDelegateType_VarDecl_MethodGroup()
         {
