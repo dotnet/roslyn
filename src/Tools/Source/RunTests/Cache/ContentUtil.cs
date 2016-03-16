@@ -13,11 +13,11 @@ namespace RunTests.Cache
 {
     internal sealed class ContentUtil
     {
-        private readonly Options _options;
+        private readonly TestExecutionOptions _options;
         private readonly MD5 _hash = MD5.Create();
         private readonly Dictionary<string, string> _fileToChecksumMap = new Dictionary<string, string>();
 
-        internal ContentUtil(Options options)
+        internal ContentUtil(TestExecutionOptions options)
         {
             _options = options;
         }
