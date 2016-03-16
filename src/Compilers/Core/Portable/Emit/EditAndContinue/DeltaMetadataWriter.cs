@@ -426,9 +426,8 @@ namespace Microsoft.CodeAnalysis.Emit
             return _changes.GetTopLevelTypes(this.Context);
         }
 
-        protected override void CreateIndicesForModule()
+        protected override void OnIndicesCreated()
         {
-            base.CreateIndicesForModule();
             var module = (IPEDeltaAssemblyBuilder)this.module;
             module.OnCreatedIndices(this.Context.Diagnostics);
         }
