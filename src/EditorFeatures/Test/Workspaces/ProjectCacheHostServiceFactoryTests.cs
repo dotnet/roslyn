@@ -107,7 +107,8 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
         [Fact]
         public void TestImplicitCacheKeepsObjectAlive1()
         {
-            var cacheService = new ProjectCacheService(null, int.MaxValue);
+            var workspace = new AdhocWorkspace(MockHostServices.Instance, workspaceKind: WorkspaceKind.Host);
+            var cacheService = new ProjectCacheService(workspace, int.MaxValue);
             var instance = new object();
             var weak = new WeakReference(instance);
             cacheService.CacheObjectIfCachingEnabledForKey(ProjectId.CreateNewId(), (object)null, instance);
@@ -201,7 +202,8 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
             var weakFirst = new WeakReference(compilations[0]);
             var weakLast = new WeakReference(compilations[compilations.Count - 1]);
 
-            var cache = new ProjectCacheService(null, int.MaxValue);
+            var workspace = new AdhocWorkspace(MockHostServices.Instance, workspaceKind: WorkspaceKind.Host);
+            var cache = new ProjectCacheService(workspace, int.MaxValue);
             for (int i = 0; i < ProjectCacheService.ImplicitCacheSize + 1; i++)
             {
                 cache.CacheObjectIfCachingEnabledForKey(ProjectId.CreateNewId(), (object)null, compilations[i]);
@@ -225,7 +227,8 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
             var weak3 = new WeakReference(comp3);
             var weak1 = new WeakReference(comp1);
 
-            var cache = new ProjectCacheService(null, int.MaxValue);
+            var workspace = new AdhocWorkspace(MockHostServices.Instance, workspaceKind: WorkspaceKind.Host);
+            var cache = new ProjectCacheService(workspace, int.MaxValue);
             var key = ProjectId.CreateNewId();
             var owner = new object();
             cache.CacheObjectIfCachingEnabledForKey(key, owner, comp1);

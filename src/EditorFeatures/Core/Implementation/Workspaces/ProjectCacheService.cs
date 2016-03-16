@@ -39,7 +39,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Workspaces
             {
                 lock (_gate)
                 {
-                    return _implicitCache.Empty;
+                    return _implicitCache?.IsEmpty ?? false;
                 }
             }
         }
@@ -48,7 +48,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Workspaces
         {
             lock (_gate)
             {
-                _implicitCache.Clear();
+                _implicitCache?.Clear();
             }
         }
 
@@ -56,7 +56,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Workspaces
         {
             lock (_gate)
             {
-                _implicitCache.ClearExpiredItems(expirationTime);
+                _implicitCache?.ClearExpiredItems(expirationTime);
             }
         }
 
