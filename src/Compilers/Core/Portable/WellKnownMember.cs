@@ -355,6 +355,10 @@ namespace Microsoft.CodeAnalysis
         System_Runtime_GCLatencyMode__SustainedLowLatency,
 
         System_String__Format_IFormatProvider,
+
+        Microsoft_CodeAnalysis_Runtime_Instrumentation__CreatePayload,
+        Microsoft_CodeAnalysis_Runtime_Instrumentation__FlushPayload,
+
         Count
     }
 }

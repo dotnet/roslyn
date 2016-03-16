@@ -393,6 +393,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return null;
         }
 
+        internal static string MakeSynthesizedInstrumentationPayloadFieldName(MethodSymbol method, int methodOrdinal)
+        {
+            return "<" + method.Name + ">" + methodOrdinal.ToString() + "ipayload__Field";
+        }
+
         internal static string MakeLambdaDisplayLocalName(int uniqueId)
         {
             Debug.Assert((char)GeneratedNameKind.DisplayClassLocalOrField == '8');

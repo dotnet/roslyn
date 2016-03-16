@@ -525,7 +525,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             for (int a = 0; a < rewrittenArguments.Length; ++a)
             {
                 BoundExpression argument = rewrittenArguments[a];
-                int p = (!argsToParamsOpt.IsDefaultOrEmpty) ? argsToParamsOpt[a] : a;
+                int p = (!argsToParamsOpt.IsDefault) ? argsToParamsOpt[a] : a;
                 RefKind refKind = argumentRefKinds.RefKinds(a);
                 Debug.Assert(arguments[p] == null);
 
