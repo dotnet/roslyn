@@ -1,13 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System;
-using System.Collections.Immutable;
-using System.Linq;
-using System.Reflection.PortableExecutable;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Emit;
-using Microsoft.CodeAnalysis.Test.Utilities;
-using Roslyn.Test.Utilities;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.CSharp.DynamicAnalysis.UnitTests
@@ -16,7 +10,7 @@ namespace Microsoft.CodeAnalysis.CSharp.DynamicAnalysis.UnitTests
     {
         const string InstrumentationHelperSource = @"namespace Microsoft.CodeAnalysis.Runtime
 {
-    public class Instrumentation
+    public static class Instrumentation
     {
         private static bool[][] _payloads;
         private static System.Guid _mvid;

@@ -1,12 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System;
-using System.Collections.Generic;
 using System.Collections.Immutable;
-using System.Linq;
-using System.Threading;
-using System.Threading.Tasks;
-using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CodeGen;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 
@@ -41,7 +35,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                     // if (payloadField == null)
                     //     Instrumentation.CreatePayload(mvid, method, ref payloadField, payloadLength);
 
-                    // ToDo: The containing module's mvid should be computed statically and stored in a static field rather than being
+                    // ToDo PROTOTYPE (https://github.com/dotnet/roslyn/issues/9812):
+                    // The containing module's mvid should be computed statically and stored in a static field rather than being
                     // recomputed in each method prologue.
                     BoundExpression mvid = factory.Property(factory.Property(factory.TypeofBeforeRewriting(method.ContainingType), "Module"), "ModuleVersionId");
                     BoundExpression methodToken = factory.MethodToken(method);
@@ -83,7 +78,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private static FieldSymbol GetPayloadField(MethodSymbol method, int methodOrdinal, TypeSymbol payloadType, SyntheticBoundNodeFactory factory, CSharpCompilation compilation)
         {
-            // ToDo: If the type containing the method is generic, synthesize a helper type and put the payload field there.
+            // ToDo PROTOTYPE (https://github.com/dotnet/roslyn/issues/9810):
+            // If the type containing the method is generic, synthesize a helper type and put the payload field there.
             // If the payload field is part of a generic type, there will be a new instance of the field per instantiation of the generic,
             // and so the payload field must be a member of another type.
             NamedTypeSymbol containingType = method.ContainingType;
@@ -118,7 +114,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private static bool IsTestMethod(MethodSymbol method)
         {
-            // ToDo: Make this real.
+            // ToDo PROTOTYPE (https://github.com/dotnet/roslyn/issues/9811): Make this real. 
             return method.Name.StartsWith("Test");
         }
     }
