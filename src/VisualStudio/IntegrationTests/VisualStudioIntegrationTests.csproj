@@ -16,6 +16,7 @@
     <None Include="project.json" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="CSharp\CSharpInteractiveDemo.cs" />
     <Compile Include="SharedIntegrationHost.cs" />
   </ItemGroup>
   <ItemGroup>
