@@ -775,26 +775,22 @@ public class SomeClass : Base
         }
 
         [WorkItem(529714, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529714")]
-        [WpfFact(Skip = "529714"), Trait(Traits.Feature, Traits.Features.Completion)]
-        public async Task GenericMethodTypeParametersRenamed()
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task GenericMethodTypeParametersNotRenamed()
         {
-            var markup = @"abstract class CFoo
-{
-    public virtual X Something<X>(X arg)
-    {
-        return default(X);
-    }
-}
-
-class Derived<X> : CFoo
-{
-    override $$
+            var markup = @"abstract class CFoo    
+{    
+   public virtual X Something<X>(X arg)    
+   {    
+       return default(X);    
+    }    
+}    
+class Derived<X> : CFoo    
+{    
+    override $$    
 }";
-
-            await VerifyItemExistsAsync(markup, "Something<X1>(X1 arg)");
-            await VerifyItemIsAbsentAsync(markup, "Something<X>(X arg)");
+            await VerifyItemExistsAsync(markup, "Something<X>(X arg)");
         }
-
         #endregion
 
         #region "Commit tests"
@@ -816,6 +812,39 @@ class Derived<X> : CFoo
 }";
 
             await VerifyCustomCommitProviderAsync(markupBeforeCommit, "Equals(object obj)", expectedCodeAfterCommit);
+        }
+
+        [WorkItem(529714, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529714")]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task CommitGenericMethodTypeParametersNotRenamed()
+        {
+            var markupBeforeCommit = @"abstract class CFoo    
+{    
+    public virtual X Something<X>(X arg)    
+    {    
+        return default(X);    
+    }    
+}    
+class Derived<X> : CFoo    
+{    
+    override $$    
+}";
+
+            var expectedCodeAfterCommit = @"abstract class CFoo    
+{    
+    public virtual X Something<X>(X arg)    
+    {    
+        return default(X);    
+    }    
+}    
+class Derived<X> : CFoo    
+{
+    public override X Something<X>(X arg)
+    {
+        return base.Something<X>(arg);$$
+    }
+}";
+            await VerifyCustomCommitProviderAsync(markupBeforeCommit, "Something<X>(X arg)", expectedCodeAfterCommit);
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
@@ -1857,42 +1886,6 @@ public class SomeClass : Base
 }";
 
             await VerifyCustomCommitProviderAsync(markupBeforeCommit, "foo(int x, out string y)", expectedCodeAfterCommit);
-        }
-
-        [WorkItem(529714, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529714")]
-        [WpfFact(Skip = "529714"), Trait(Traits.Feature, Traits.Features.Completion)]
-        public async Task CommitGenericMethodTypeParametersRenamed()
-        {
-            var markupBeforeCommit = @"abstract class CFoo
-{
-    public virtual X Something<X>(X arg)
-    {
-        return default(X);
-    }
-}
-
-class Derived<X> : CFoo
-{
-    override $$
-}";
-
-            var expectedCodeAfterCommit = @"abstract class CFoo
-{
-    public virtual X Something<X>(X arg)
-    {
-        return default(X);
-    }
-}
-
-class Derived<X> : CFoo
-{
-    public override X1 Something<X1>(X1 arg)
-    {
-        return base.Something<X1>(arg);
-    }
-}";
-
-            await VerifyCustomCommitProviderAsync(markupBeforeCommit, "Something<X1>(X1 arg)", expectedCodeAfterCommit);
         }
 
         [WorkItem(544560, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544560")]
