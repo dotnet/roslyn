@@ -19,14 +19,15 @@ $script:dataMap = @{}
 
 # Location that deterministic error information should be written to. 
 [string]$script:errorDir = ""
+[string]$script:errorDirLeft = ""
+[string]$script:errorDirRight = ""
 
 function Run-Build()
 {
     param ( [string]$rootDir = $(throw "Need a root directory to build"),
             [string]$pathMapBuildOption = "")
 
-    # DO NOT MERGE
-    $sln = join-path $rootDir "build\Toolset.sln"
+    $sln = join-path $rootDir "Roslyn.sln"
     $debugDir = join-path $rootDir "Binaries\Debug"
     $objDir = join-path $rootDir "Binaries\Obj"
 
@@ -104,12 +105,10 @@ function Run-Analysis()
                 $errorList += $dllName
 
                 # Save out the original and baseline so Jenkins will archive them for investigation
-                pushd $script:errorDir
-                [IO.File]::WriteAllBytes((join-path $script:errorDir ($dllName + ".original")), $data.Content)
-                [IO.File]::WriteAllBytes((join-path $script:errorDir ($keyName + ".original")), $data.Key)
-                cp $dllFullName ($dllName + ".baseline")
-                cp $keyFullName ($keyName + ".baseline")
-                popd
+                [IO.File]::WriteAllBytes((join-path $script:errorDirLeft $dllName), $data.Content)
+                [IO.File]::WriteAllBytes((join-path $script:errorDirLeft $keyName), $data.Key)
+                cp $dllFullName (join-path $script:errorDirRight $dllName)
+                cp $keyFullName (join-path $script:errorDirRight $keyName)
             }
         }
     }
@@ -138,7 +137,7 @@ function Run-Analysis()
         write-host "Archiving failure information"
         $zipFile = join-path $rootDir "Binaries\determinism.zip"
         Add-Type -Assembly "System.IO.Compression.FileSystem";
-        [System.IO.Compression.ZipFile]::CreateFromDirectory($errorDir, $zipFile, "Fastest", $true);
+        [System.IO.Compression.ZipFile]::CreateFromDirectory($script:errorDir, $zipFile, "Fastest", $true);
 
         write-host "Please send $zipFile to compiler team for analysis"
         exit 1
@@ -151,7 +150,11 @@ function Run-Test()
 
     # Ensure the error directory is written for all analysis to use.
     $script:errorDir = join-path $origRootDir "Binaries\Determinism"
-    mkdir $errorDir -errorAction SilentlyContinue | out-null
+    $script:errorDirLeft = join-path $script:errorDir "Left"
+    $script:errorDirRight = join-path $script:errorDir "Right"
+    mkdir $script:errorDir -errorAction SilentlyContinue | out-null
+    mkdir $script:errorDirLeft -errorAction SilentlyContinue | out-null
+    mkdir $script:errorDirRight -errorAction SilentlyContinue | out-null
 
     # Run initial build to populate all of the expected data.
     Run-Analysis -rootDir $origRootDir -buildMap $true
