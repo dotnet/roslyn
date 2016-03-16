@@ -91,7 +91,7 @@ namespace ProcessWatchdog
                 // Terminate the procdump process that has been monitoring the target process
                 // Since this procdump is acting as a debugger, terminating it will
                 // terminate the target process as well.
-                SafeKillProcess(trackedProcess.ProcDumpProcess);
+                trackedProcess.ProcDumpProcess.Kill();
             }
         }
 
@@ -100,7 +100,11 @@ namespace ProcessWatchdog
             string description = MakeProcessDescription(process);
             Process procDumpProcess = _procDump.MonitorProcess(process.Id, description);
 
-            _trackedProcesses.Add(new TrackedProcess(process, procDumpProcess, description));
+            TrackedProcess trackedProcess;
+            if (TrackedProcess.TryCreate(process, procDumpProcess, description, out trackedProcess))
+            {
+                _trackedProcesses.Add(trackedProcess);
+            }
         }
 
         private static string MakeProcessDescription(Process process)
@@ -142,30 +146,6 @@ namespace ProcessWatchdog
             return descendants;
         }
 
-        /// <summary>
-        /// Terminate a process safely, avoiding the potential race condition
-        /// that is unavoidable when using Process.HasExited.
-        /// </summary>
-        /// <param name="process">
-        /// The process to be terminated.
-        /// </param>
-        private void SafeKillProcess(Process process)
-        {
-            if (!process.HasExited)
-            {
-                try
-                {
-                    process.Kill();
-                }
-                catch (InvalidOperationException)
-                {
-                    // This will happen if the process ended between the call to
-                    // Process.HasExited and the call to Process.Kill. It doesn't
-                    // indicate an error, so ignore it.
-                }
-            }
-        }
-
         #region IDisposable Support
 
         private bool _isDisposed = false;
@@ -180,10 +160,14 @@ namespace ProcessWatchdog
                     {
                         // Killing the procdump process will also kill the tracked
                         // process to which it had attached itself as a debugger.
-                        SafeKillProcess(trackedProcess.ProcDumpProcess);
+                        trackedProcess.ProcDumpProcess.Kill();
 
-                        trackedProcess.Process.Dispose();
-                        trackedProcess.ProcDumpProcess.Dispose();
+                        // TODO: Make TrackedProcess itself disposable (and UniqueProcess as well)
+                        // to avoid this nonsense. Just want to say "trackedProcess.Dispose()".
+                        // We'll also have to dispose them when we remove them from the list in
+                        // Update().
+                        trackedProcess.Process.Process.Dispose();
+                        trackedProcess.ProcDumpProcess.Process.Dispose();
                     }
 
                     _trackedProcesses = null;
@@ -205,6 +189,28 @@ namespace ProcessWatchdog
         /// </summary>
         private class TrackedProcess
         {
+            internal static bool TryCreate(
+                Process process,
+                Process procDumpProcess,
+                string description,
+                out TrackedProcess trackedProcess)
+            {
+                bool result = false;
+                trackedProcess = null;
+
+                UniqueProcess uniqueProcess;
+                UniqueProcess uniqueProcDumpProcess;
+
+                if (UniqueProcess.TryCreate(process, out uniqueProcess)
+                    && UniqueProcess.TryCreate(procDumpProcess, out uniqueProcDumpProcess))
+                {
+                    trackedProcess = new TrackedProcess(uniqueProcess, uniqueProcDumpProcess, description);
+                    result = true;
+                }
+
+                return result;
+            }
+
             /// <summary>
             /// Initializes a new instance of the <see cref="TrackedProcess"/> class from
             /// the specified process information.
@@ -219,7 +225,7 @@ namespace ProcessWatchdog
             /// <param name="description">
             /// A string that describes the process, of the form "processName-processId".
             /// </param>
-            internal TrackedProcess(Process process, Process procDumpProcess, string description)
+            private TrackedProcess(UniqueProcess process, UniqueProcess procDumpProcess, string description)
             {
                 Process = process;
                 ProcDumpProcess = procDumpProcess;
@@ -234,13 +240,13 @@ namespace ProcessWatchdog
             /// <summary>
             /// Gets the process being tracked.
             /// </summary>
-            internal Process Process { get; }
+            internal UniqueProcess Process { get; }
 
             /// <summary>
             /// Gets the procdump process attached to <see cref="Process"/>, and responsible
             /// for producing a memory dump if that process should fail..
             /// </summary>
-            internal Process ProcDumpProcess { get; }
+            internal UniqueProcess ProcDumpProcess { get; }
 
             /// <summary>
             /// Gets a string that describes the process, of the form "processName-processId".

@@ -8,7 +8,6 @@ using System.IO;
 using System.Windows.Forms;
 
 namespace ProcessWatchdog
-
 {
     public static class ScreenshotSaver
     {
