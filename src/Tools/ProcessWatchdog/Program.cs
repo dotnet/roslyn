@@ -3,6 +3,7 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.IO;
 using System.Linq;
 using System.Reflection;
 using System.Threading;
@@ -34,6 +35,12 @@ namespace ProcessWatchdog
             if (_options.PollingInterval <= 0)
             {
                 ConsoleUtils.LogError(Resources.ErrorInvalidPollingInterval, _options.PollingInterval);
+                return 1;
+            }
+
+            if (!File.Exists(_options.ProcDumpPath))
+            {
+                ConsoleUtils.LogError(Resources.ErrorProcDumpNotFound, _options.ProcDumpPath);
                 return 1;
             }
 

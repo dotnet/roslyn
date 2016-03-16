@@ -124,6 +124,15 @@ namespace ProcessWatchdog {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to The procdump executable {0} was not found..
+        /// </summary>
+        internal static string ErrorProcDumpNotFound {
+            get {
+                return ResourceManager.GetString("ErrorProcDumpNotFound", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to The process {0} ({1}) or one of its descendants exceeded the time limit of {2} seconds. This process and all its descendants will be terminated..
         /// </summary>
         internal static string ErrorProcessTimedOut {
