@@ -14,11 +14,6 @@ namespace Microsoft.CodeAnalysis.CSharp
 {
     internal static class Instrumentation
     {
-        private static MethodSymbol _createPayload = null;
-        private static bool _triedCreatePayload = false;
-        private static MethodSymbol _flushPayload = null;
-        private static bool _triedFlushPayload = false;
-
         internal static BoundBlock InjectInstrumentation(MethodSymbol method, BoundBlock methodBody, int methodOrdinal, TypeCompilationState compilationState, CSharpCompilation compilation, DiagnosticBag diagnostics, DebugDocumentProvider debugDocumentProvider, out ImmutableArray<SourceSpan> dynamicAnalysisSpans)
         {
             if (methodBody != null)
@@ -113,24 +108,12 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private static MethodSymbol GetCreatePayload(CSharpCompilation compilation, DiagnosticBag diagnostics)
         {
-            if (!_triedCreatePayload)
-            {
-                _createPayload = GetInstrumentationHelper(compilation, WellKnownMember.Microsoft_CodeAnalysis_Runtime_Instrumentation__CreatePayload, diagnostics);
-                _triedCreatePayload = true;
-            }
-
-            return _createPayload;
+            return GetInstrumentationHelper(compilation, WellKnownMember.Microsoft_CodeAnalysis_Runtime_Instrumentation__CreatePayload, diagnostics);
         }
 
         private static MethodSymbol GetFlushPayload(CSharpCompilation compilation, DiagnosticBag diagnostics)
         {
-            if (!_triedFlushPayload)
-            {
-                _flushPayload = GetInstrumentationHelper(compilation, WellKnownMember.Microsoft_CodeAnalysis_Runtime_Instrumentation__FlushPayload, diagnostics);
-                _triedFlushPayload = true;
-            }
-
-            return _flushPayload;
+            return GetInstrumentationHelper(compilation, WellKnownMember.Microsoft_CodeAnalysis_Runtime_Instrumentation__FlushPayload, diagnostics);
         }
 
         private static bool IsTestMethod(MethodSymbol method)
