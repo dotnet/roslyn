@@ -7,6 +7,7 @@ using System.Reflection;
 using System.Runtime.Remoting.Channels;
 using System.Runtime.Remoting.Channels.Ipc;
 using System.Threading.Tasks;
+using System.Windows.Automation;
 using EnvDTE;
 using Microsoft.Win32;
 
@@ -86,6 +87,20 @@ namespace Roslyn.VisualStudio.Test.Utilities
             }
         }
 
+        public void ClickAutomationElement(string elementName, bool recursive = false)
+            => ClickAutomationElementAsync(elementName, recursive).ConfigureAwait(continueOnCapturedContext: false).GetAwaiter().GetResult();
+
+        public async Task ClickAutomationElementAsync(string elementName, bool recursive = false)
+        {
+            var automationElement = await LocateAutomationElementAsync(elementName, recursive).ConfigureAwait(continueOnCapturedContext: false);
+
+            object invokePattern = null;
+            if (automationElement.TryGetCurrentPattern(InvokePattern.Pattern, out invokePattern))
+            {
+                ((InvokePattern)(invokePattern)).Invoke();
+            }
+        }
+
         public void Dispose()
         {
             Dispose(true);
@@ -125,6 +140,20 @@ namespace Roslyn.VisualStudio.Test.Utilities
             }
 
             return (T)(Activator.GetObject(typeof(T), $"{_serviceUri}/{objectUri}"));
+        }
+
+        internal async Task<AutomationElement> LocateAutomationElementAsync(string elementName, bool recursive = false)
+        {
+            AutomationElement automationElement = null;
+            var scope = (recursive ? TreeScope.Descendants : TreeScope.Children);
+            var condition = new PropertyCondition(AutomationElement.NameProperty, elementName);
+
+            await IntegrationHelper.WaitForResultAsync(() => {
+                automationElement = AutomationElement.RootElement.FindFirst(scope, condition);
+                return (automationElement != null);
+            }, expectedResult: true).ConfigureAwait(continueOnCapturedContext: false);
+
+            return automationElement;
         }
 
         internal Window LocateDteWindow(string windowTitle)
