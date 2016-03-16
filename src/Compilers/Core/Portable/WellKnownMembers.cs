@@ -2519,6 +2519,12 @@ namespace Microsoft.CodeAnalysis
                 0,                                                                                                          // Arity
                     (byte)SignatureTypeCode.TypeHandle, (byte)WellKnownType.System_Runtime_GCLatencyMode,                   // Field Signature
 
+                // System_Runtime_CompilerServices_ValueTuple_T1__Item1
+                (byte)MemberFlags.Field,                                                                                    // Flags
+                (byte)WellKnownType.System_Runtime_CompilerServices_ValueTuple_T1,                                          // DeclaringTypeId
+                0,                                                                                                          // Arity
+                    (byte)SignatureTypeCode.GenericTypeParameter, 0,                                                        // Field Signature
+
                 // System_Runtime_CompilerServices_ValueTuple_T1_T2__Item1
                 (byte)MemberFlags.Field,                                                                                    // Flags
                 (byte)WellKnownType.System_Runtime_CompilerServices_ValueTuple_T1_T2,                                       // DeclaringTypeId
@@ -2681,13 +2687,61 @@ namespace Microsoft.CodeAnalysis
                 0,                                                                                                          // Arity
                     (byte)SignatureTypeCode.GenericTypeParameter, 6,                                                        // Field Signature
 
+                // System_Runtime_CompilerServices_ValueTuple_T1_T2_T3_T4_T5_T6_T7_TRest__Item1
+                (byte)MemberFlags.Field,                                                                                    // Flags
+                (byte)WellKnownType.ExtSentinel, (byte)(WellKnownType.System_Runtime_CompilerServices_ValueTuple_T1_T2_T3_T4_T5_T6_T7_TRest - WellKnownType.ExtSentinel), // DeclaringTypeId
+                0,                                                                                                          // Arity
+                    (byte)SignatureTypeCode.GenericTypeParameter, 0,                                                        // Field Signature
+
+                // System_Runtime_CompilerServices_ValueTuple_T1_T2_T3_T4_T5_T6_T7_TRest__Item2
+                (byte)MemberFlags.Field,                                                                                    // Flags
+                (byte)WellKnownType.ExtSentinel, (byte)(WellKnownType.System_Runtime_CompilerServices_ValueTuple_T1_T2_T3_T4_T5_T6_T7_TRest - WellKnownType.ExtSentinel), // DeclaringTypeId
+                0,                                                                                                          // Arity
+                    (byte)SignatureTypeCode.GenericTypeParameter, 1,                                                        // Field Signature
+
+                // System_Runtime_CompilerServices_ValueTuple_T1_T2_T3_T4_T5_T6_T7_TRest__Item3
+                (byte)MemberFlags.Field,                                                                                    // Flags
+                (byte)WellKnownType.ExtSentinel, (byte)(WellKnownType.System_Runtime_CompilerServices_ValueTuple_T1_T2_T3_T4_T5_T6_T7_TRest - WellKnownType.ExtSentinel), // DeclaringTypeId
+                0,                                                                                                          // Arity
+                    (byte)SignatureTypeCode.GenericTypeParameter, 2,                                                        // Field Signature
+
+                // System_Runtime_CompilerServices_ValueTuple_T1_T2_T3_T4_T5_T6_T7_TRest__Item4
+                (byte)MemberFlags.Field,                                                                                    // Flags
+                (byte)WellKnownType.ExtSentinel, (byte)(WellKnownType.System_Runtime_CompilerServices_ValueTuple_T1_T2_T3_T4_T5_T6_T7_TRest - WellKnownType.ExtSentinel), // DeclaringTypeId
+                0,                                                                                                          // Arity
+                    (byte)SignatureTypeCode.GenericTypeParameter, 3,                                                        // Field Signature
+
+                // System_Runtime_CompilerServices_ValueTuple_T1_T2_T3_T4_T5_T6_T7_TRest__Item5
+                (byte)MemberFlags.Field,                                                                                    // Flags
+                (byte)WellKnownType.ExtSentinel, (byte)(WellKnownType.System_Runtime_CompilerServices_ValueTuple_T1_T2_T3_T4_T5_T6_T7_TRest - WellKnownType.ExtSentinel), // DeclaringTypeId
+                0,                                                                                                          // Arity
+                    (byte)SignatureTypeCode.GenericTypeParameter, 4,                                                        // Field Signature
+
+                // System_Runtime_CompilerServices_ValueTuple_T1_T2_T3_T4_T5_T6_T7_TRest__Item6
+                (byte)MemberFlags.Field,                                                                                    // Flags
+                (byte)WellKnownType.ExtSentinel, (byte)(WellKnownType.System_Runtime_CompilerServices_ValueTuple_T1_T2_T3_T4_T5_T6_T7_TRest - WellKnownType.ExtSentinel), // DeclaringTypeId
+                0,                                                                                                          // Arity
+                    (byte)SignatureTypeCode.GenericTypeParameter, 5,                                                        // Field Signature
+
+                // System_Runtime_CompilerServices_ValueTuple_T1_T2_T3_T4_T5_T6_T7_TRest__Item7
+                (byte)MemberFlags.Field,                                                                                    // Flags
+                (byte)WellKnownType.ExtSentinel, (byte)(WellKnownType.System_Runtime_CompilerServices_ValueTuple_T1_T2_T3_T4_T5_T6_T7_TRest - WellKnownType.ExtSentinel), // DeclaringTypeId
+                0,                                                                                                          // Arity
+                    (byte)SignatureTypeCode.GenericTypeParameter, 6,                                                        // Field Signature
+
+                // System_Runtime_CompilerServices_ValueTuple_T1_T2_T3_T4_T5_T6_T7_TRest__Rest
+                (byte)MemberFlags.Field,                                                                                    // Flags
+                (byte)WellKnownType.ExtSentinel, (byte)(WellKnownType.System_Runtime_CompilerServices_ValueTuple_T1_T2_T3_T4_T5_T6_T7_TRest - WellKnownType.ExtSentinel), // DeclaringTypeId
+                0,                                                                                                          // Arity
+                    (byte)SignatureTypeCode.GenericTypeParameter, 7,                                                        // Field Signature
+
                 // System_String__Format_IFormatProvider
                 (byte)(MemberFlags.Method | MemberFlags.Static),                                                            // Flags
                 (byte)SpecialType.System_String,                                                                            // DeclaringTypeId
                 0,                                                                                                          // Arity
                     3,                                                                                                      // Method Signature
                     (byte)SignatureTypeCode.TypeHandle, (byte)SpecialType.System_String,
-                    (byte)SignatureTypeCode.TypeHandle, (byte)WellKnownType.System_IFormatProvider,
+                    (byte)SignatureTypeCode.TypeHandle, (byte)WellKnownType.ExtSentinel, (byte)(WellKnownType.System_IFormatProvider - WellKnownType.ExtSentinel),
                     (byte)SignatureTypeCode.TypeHandle, (byte)SpecialType.System_String,
                     (byte)SignatureTypeCode.SZArray, (byte)SignatureTypeCode.TypeHandle, (byte)SpecialType.System_Object,
             };
@@ -2988,6 +3042,8 @@ namespace Microsoft.CodeAnalysis
                 ".ctor",                                    // System_ComponentModel_EditorBrowsableAttribute__ctor
                 "SustainedLowLatency",                      // System_Runtime_GCLatencyMode__SustainedLowLatency
 
+                "Item1",                                    // System_Runtime_CompilerServices_ValueTuple_T1__Item1
+
                 "Item1",                                    // System_Runtime_CompilerServices_ValueTuple_T1_T2__Item1
                 "Item2",                                    // System_Runtime_CompilerServices_ValueTuple_T1_T2__Item2
 
@@ -3020,6 +3076,15 @@ namespace Microsoft.CodeAnalysis
                 "Item5",                                    // System_Runtime_CompilerServices_ValueTuple_T1_T2_T3_T4_T5_T6_T7__Item5
                 "Item6",                                    // System_Runtime_CompilerServices_ValueTuple_T1_T2_T3_T4_T5_T6_T7__Item6
                 "Item7",                                    // System_Runtime_CompilerServices_ValueTuple_T1_T2_T3_T4_T5_T6_T7__Item7
+
+                "Item1",                                    // System_Runtime_CompilerServices_ValueTuple_T1_T2_T3_T4_T5_T6_T7_TRest__Item1
+                "Item2",                                    // System_Runtime_CompilerServices_ValueTuple_T1_T2_T3_T4_T5_T6_T7_TRest__Item2
+                "Item3",                                    // System_Runtime_CompilerServices_ValueTuple_T1_T2_T3_T4_T5_T6_T7_TRest__Item3
+                "Item4",                                    // System_Runtime_CompilerServices_ValueTuple_T1_T2_T3_T4_T5_T6_T7_TRest__Item4
+                "Item5",                                    // System_Runtime_CompilerServices_ValueTuple_T1_T2_T3_T4_T5_T6_T7_TRest__Item5
+                "Item6",                                    // System_Runtime_CompilerServices_ValueTuple_T1_T2_T3_T4_T5_T6_T7_TRest__Item6
+                "Item7",                                    // System_Runtime_CompilerServices_ValueTuple_T1_T2_T3_T4_T5_T6_T7_TRest__Item7
+                "Rest",                                     // System_Runtime_CompilerServices_ValueTuple_T1_T2_T3_T4_T5_T6_T7_TRest__Rest
 
                 "Format",                                   // System_String__Format_IFormatProvider
             };
