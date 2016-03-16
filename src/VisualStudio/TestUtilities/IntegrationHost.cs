@@ -36,6 +36,7 @@ namespace Roslyn.VisualStudio.Test.Utilities
 
         private InteractiveWindow _csharpInteractiveWindow;
         private DTE _dte;
+        private EditorWindow _editorWindow;
         private Process _hostProcess;
         private IntegrationService _service;
         private IpcClientChannel _serviceChannel;
@@ -69,6 +70,19 @@ namespace Roslyn.VisualStudio.Test.Utilities
                 }
 
                 return _csharpInteractiveWindow;
+            }
+        }
+
+        public EditorWindow EditorWindow
+        {
+            get
+            {
+                if (_editorWindow == null)
+                {
+                    _editorWindow = new EditorWindow(this);
+                }
+
+                return _editorWindow;
             }
         }
 
