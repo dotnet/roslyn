@@ -115,7 +115,7 @@ string ReleaseVbcPath()
 // Process spawning and error handling.
 //
 
-class ProcessResult
+public class ProcessResult
 {
     public string ExecutablePath {get; set;}
     public string Args {get; set;}

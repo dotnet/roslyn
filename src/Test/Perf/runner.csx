@@ -2,6 +2,7 @@
 
 #load ".\util\runner_util.csx"
 #load ".\util\test_util.csx"
+#load ".\util\TraceManager_util.csx"
 
 using System.Collections.Generic;
 using System.IO;
@@ -19,6 +20,10 @@ var skip = new HashSet<string> {
 
 var allResults = new List<Tuple<string, List<Tuple<int, string, object>>>>();
 var failed = false;
+
+// Sample Message
+var traceManager = new TraceManager();
+traceManager.PrintTest();
 
 // Print message at startup
 Log("Starting Performance Test Run");
