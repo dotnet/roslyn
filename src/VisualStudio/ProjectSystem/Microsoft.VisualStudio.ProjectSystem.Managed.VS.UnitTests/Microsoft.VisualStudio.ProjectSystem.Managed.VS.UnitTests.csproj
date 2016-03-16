@@ -20,9 +20,7 @@
     <InternalsVisibleToTest Include="Microsoft.VisualStudio.ProjectSystem.VisualBasic.VS.UnitTests" />
     <InternalsVisibleToMoq Include="DynamicProxyGenAssembly2" />
   </ItemGroup>
-  <ItemGroup>
-    <Folder Include="Properties\" />
-  </ItemGroup>
+  <ItemGroup />
   <ItemGroup>
     <Reference Include="System" />
     <Reference Include="System.Core" />
@@ -72,11 +70,9 @@
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>
-    <Content Include="..\Microsoft.VisualStudio.ProjectSystem.Managed.UnitTests\App.config">
-      <Link>App.config</Link>
-    </Content>
-  </ItemGroup>
-  <ItemGroup>
+    <Compile Include="..\Microsoft.VisualStudio.ProjectSystem.Managed.UnitTests\Properties\AssemblyAttributes.cs">
+      <Link>Properties\AssemblyAttributes.cs</Link>
+    </Compile>
     <Compile Include="Mocks\IUnconfiguredProjectVsServicesFactory.cs" />
     <Compile Include="Mocks\IVsWindowFrameFactory.cs" />
     <Compile Include="Mocks\IVsHierarchyFactory.cs" />
@@ -92,7 +88,11 @@
     <Service Include="{82A7F48D-3B50-4B1E-B82E-3ADA8210C358}" />
   </ItemGroup>
   <ItemGroup>
+    <None Include="..\Microsoft.VisualStudio.ProjectSystem.Managed.UnitTests\App.config">
+      <Link>App.config</Link>
+    </None>
     <None Include="project.json" />
   </ItemGroup>
   <Import Project="..\..\..\..\build\Targets\VSL.Imports.targets" />
+  <Import Project="..\..\..\..\build\Targets\Roslyn.Toolsets.Xunit.targets" />
 </Project>
