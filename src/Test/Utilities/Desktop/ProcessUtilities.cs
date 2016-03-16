@@ -66,6 +66,7 @@ namespace Roslyn.Test.Utilities
                 if (stdInput != null)
                 {
                     process.StandardInput.Write(stdInput);
+                    process.StandardInput.Close();
                 }
 
                 process.WaitForExit();
