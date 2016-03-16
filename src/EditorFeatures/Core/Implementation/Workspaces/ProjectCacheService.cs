@@ -8,6 +8,14 @@ using Microsoft.CodeAnalysis.Host;
 
 namespace Microsoft.CodeAnalysis.Editor.Implementation.Workspaces
 {
+    /// <summary>
+    /// This service will implicitly cache previous Compilations used by each supported Workspace implementation.
+    /// The number of Compilations cached is determined by <see cref="ImplicitCacheSize"/>.  For now, we'll only
+    /// support implicit caching for VS Workspaces (<see cref="WorkspaceKind.Host"/>), as caching is known to
+    /// reduce latency in designer scenarios using the VS workspace.  For other Workspace kinds, the cost of the
+    /// cache is likely to outweigh the benefit (for example, in Misc File Workspace cases, we can end up holding
+    /// onto a lot of memory even after a file is closed).  We can opt in other kinds of Workspaces as needed.
+    /// </summary>
     internal partial class ProjectCacheService : IProjectCacheHostService
     {
         internal const int ImplicitCacheSize = 3;
@@ -19,7 +27,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Workspaces
 
         private readonly SimpleMRUCache _implicitCache;
         private readonly ImplicitCacheMonitor _implicitCacheMonitor;
-
+        
         public ProjectCacheService(Workspace workspace, int implicitCacheTimeout)
         {
             _workspace = workspace;
