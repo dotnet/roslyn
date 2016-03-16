@@ -33,11 +33,12 @@ namespace Roslyn.VisualStudio.Test.Utilities
         internal static readonly string VsStartServiceCommand = "Tools.StartIntegrationTestService";
         internal static readonly string VsStopServiceCommand = "Tools.StopIntegrationTestService";
 
-        private string _serviceUri;
+        private InteractiveWindow _csharpInteractiveWindow;
         private DTE _dte;
         private Process _hostProcess;
         private IntegrationService _service;
         private IpcClientChannel _serviceChannel;
+        private string _serviceUri;
         private bool _requireNewInstance;
 
         static IntegrationHost()
@@ -55,6 +56,19 @@ namespace Roslyn.VisualStudio.Test.Utilities
 
         public DTE Dte
             => _dte;
+
+        public InteractiveWindow CSharpInteractiveWindow
+        {
+            get
+            {
+                if (_csharpInteractiveWindow == null)
+                {
+                    _csharpInteractiveWindow = InteractiveWindow.CreateCSharpInteractiveWindow(this);
+                }
+
+                return _csharpInteractiveWindow;
+            }
+        }
 
         public bool RequireNewInstance
             => (_hostProcess == null) || _hostProcess.HasExited || _requireNewInstance;
@@ -112,6 +126,21 @@ namespace Roslyn.VisualStudio.Test.Utilities
 
             return (T)(Activator.GetObject(typeof(T), $"{_serviceUri}/{objectUri}"));
         }
+
+        internal Window LocateDteWindow(string windowTitle)
+            => LocateDteWindowAsync(windowTitle).ConfigureAwait(continueOnCapturedContext: false).GetAwaiter().GetResult();
+
+        internal Task<Window> LocateDteWindowAsync(string windowTitle)
+            => IntegrationHelper.WaitForNotNullAsync(() => {
+                foreach (Window window in _dte.Windows)
+                {
+                    if (window.Caption.Equals(windowTitle, StringComparison.OrdinalIgnoreCase))
+                    {
+                        return window;
+                    }
+                }
+                return null;
+            });
 
         internal async Task WaitForDteCommandAvailabilityAsync(string command)
             => await IntegrationHelper.WaitForResultAsync(() => Dte.Commands.Item(command).IsAvailable, expectedResult: true).ConfigureAwait(continueOnCapturedContext: false);

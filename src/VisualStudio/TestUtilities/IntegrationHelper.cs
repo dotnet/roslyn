@@ -224,5 +224,18 @@ namespace Roslyn.VisualStudio.Test.Utilities
                 await Task.Yield();
             }
         }
+
+        public static async Task<T> WaitForNotNullAsync<T>(Func<T> action) where T : class
+        {
+            var result = action();
+
+            while (result.Equals(null))
+            {
+                await Task.Yield();
+                result = action();
+            }
+
+            return result;
+        }
     }
 }
