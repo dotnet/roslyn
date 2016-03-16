@@ -39,6 +39,7 @@ namespace Roslyn.VisualStudio.Test.Utilities
         private Process _hostProcess;
         private IntegrationService _service;
         private IpcClientChannel _serviceChannel;
+        private SolutionExplorer _solutionExplorer;
         private string _serviceUri;
         private bool _requireNewInstance;
 
@@ -73,6 +74,19 @@ namespace Roslyn.VisualStudio.Test.Utilities
 
         public bool RequireNewInstance
             => (_hostProcess == null) || _hostProcess.HasExited || _requireNewInstance;
+
+        public SolutionExplorer SolutionExplorer
+        {
+            get
+            {
+                if (_solutionExplorer == null)
+                {
+                    _solutionExplorer = new SolutionExplorer(this);
+                }
+
+                return _solutionExplorer;
+            }
+        }
 
         public void Cleanup()
         {
