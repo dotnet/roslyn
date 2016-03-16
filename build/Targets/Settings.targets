@@ -69,7 +69,7 @@
        to all unix compilations. This shouldn't present a problem as it's impossible to
        fully sign on unix at the moment anyway. Tracked by #7756. -->
   <PropertyGroup Condition="'$(OS)' != 'Windows_NT'">
-      <CompilerResponseFile>$(MSBuildThisFileDirectory)..\scripts\extra_unix_args.rsp</CompilerResponseFile>
+      <CompilerResponseFile>$(MSBuildThisFileDirectory)..\unix\extra_unix_args.rsp</CompilerResponseFile>
   </PropertyGroup>
 
   <PropertyGroup>
