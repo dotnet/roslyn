@@ -65,7 +65,7 @@
     <InternalsVisibleToTest Include="RoslynETAHost" />
     <InternalsVisibleToTest Include="RoslynTaoActions" />
     <InternalsVisibleToTest Include="Roslyn.VisualStudio.CSharp.UnitTests" />
-    <InternalsVisibleToTest Include="Roslyn.VisualStudio.Integration.Test.Utilities" />
+    <InternalsVisibleToTest Include="Roslyn.VisualStudio.Test.Utilities" />
     <InternalsVisibleToTypeScript Include="Microsoft.CodeAnalysis.TypeScript.EditorFeatures" />
     <InternalsVisibleToTypeScript Include="Microsoft.VisualStudio.LanguageServices.TypeScript" />
     <InternalsVisibleToTypeScript Include="Roslyn.Services.Editor.TypeScript.UnitTests" />

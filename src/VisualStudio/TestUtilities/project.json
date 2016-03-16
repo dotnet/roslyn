@@ -1,0 +1,18 @@
+﻿{
+  "dependencies": {
+    "Microsoft.VisualStudio.OLE.Interop": "7.10.6070",
+    "Microsoft.VisualStudio.Shell.14.0": "14.1.24720",
+    "Microsoft.VisualStudio.Shell.Interop": "7.10.6071",
+    "Microsoft.VisualStudio.Shell.Interop.10.0": "10.0.30319",
+    "Microsoft.VisualStudio.Text.Data": "14.1.24720",
+    "Microsoft.VisualStudio.Text.UI": "14.1.24720",
+    "Microsoft.VisualStudio.Text.UI.Wpf": "14.1.24720"
+  },
+  "frameworks": {
+    "net46": {}
+  },
+  "runtimes": {
+    "win7": {},
+    "win7-anycpu": {}
+  }
+}

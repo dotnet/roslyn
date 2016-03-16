@@ -1,0 +1,17 @@
+﻿{
+  "dependencies": {
+    "xunit": "2.1.0",
+    "xunit.abstractions": "2.0.0",
+    "xunit.assert": "2.1.0",
+    "xunit.core": "2.1.0",
+    "xunit.extensibility.core": "2.1.0",
+    "xunit.extensibility.execution": "2.1.0",
+    "xunit.runner.visualstudio": "2.1.0"
+  },
+  "frameworks": {
+    "net46": {}
+  },
+  "runtimes": {
+    "win7-x86": {}
+  }
+}
