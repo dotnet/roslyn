@@ -2957,15 +2957,6 @@ class Program
     @"class Digit { public Digit ( double d ) { val = d ; } public double val ; } class Program { static void Main ( string [ ] args ) { Digit dig = new Digit ( 7 ) ; double num = [|( double ) dig|] ; } } ",
     @"using System ; class Digit { public Digit ( double d ) { val = d ; } public double val ; public static explicit operator double ( Digit v ) { throw new NotImplementedException ( ) ; } } class Program { static void Main ( string [ ] args ) { Digit dig = new Digit ( 7 ) ; double num = ( double ) dig ; } } ");
             }
-
-            [WorkItem(774321, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/774321")]
-            [WpfFact(Skip = "xunit2"), Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)]
-            public async Task TestEquivalenceKey()
-            {
-                await TestEquivalenceKeyAsync(
-    @"class C { void M() { this.[|M1|](System.Exception.M2()); } } ",
-    string.Format(FeaturesResources.GenerateMethodIn, "C", "M1"));
-            }
         }
     }
 }
