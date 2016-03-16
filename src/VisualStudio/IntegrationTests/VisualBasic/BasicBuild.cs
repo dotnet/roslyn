@@ -5,15 +5,14 @@ using Xunit;
 
 namespace Roslyn.VisualStudio.Integration.UnitTests
 {
-    [Collection(nameof(SharedIntegrationHost))]
+    [Collection(nameof(SharedIntegrationHostFixture))]
     public class BasicBuild
     {
-        private IntegrationHost _host;
+        private readonly IntegrationHost _host;
 
-        public BasicBuild(IntegrationHost host)
+        public BasicBuild(SharedIntegrationHost sharedHost)
         {
-            _host = host;
-            _host.Initialize();
+            _host = sharedHost.GetHost();
 
             var solution = _host.SolutionExplorer.CreateSolution(nameof(BasicBuild));
             var project = solution.AddProject("TestProj", ProjectTemplate.ConsoleApplication, ProjectLanguage.VisualBasic);
@@ -31,7 +30,6 @@ namespace Roslyn.VisualStudio.Integration.UnitTests
 End Module";
 
             _host.EditorWindow.Text = editorText;
-            Assert.Equal(editorText, _host.EditorWindow.Text);
 
             // TODO: Validate build works as expected
         }

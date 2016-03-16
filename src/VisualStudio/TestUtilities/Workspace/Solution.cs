@@ -23,8 +23,8 @@ namespace Roslyn.VisualStudio.Test.Utilities
             [ProjectLanguage.VisualBasic] = "VisualBasic"
         };
 
-        private DteSolution _dteSolution;
-        private string _fileName;
+        private readonly DteSolution _dteSolution;
+        private readonly string _fileName;
 
         internal Solution(DteSolution dteSolution, string fileName)
         {

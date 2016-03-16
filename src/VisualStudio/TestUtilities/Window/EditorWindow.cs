@@ -6,7 +6,7 @@ namespace Roslyn.VisualStudio.Test.Utilities
 {
     public class EditorWindow
     {
-        private IntegrationHost _host;
+        private readonly IntegrationHost _host;
 
         internal EditorWindow(IntegrationHost host)
         {

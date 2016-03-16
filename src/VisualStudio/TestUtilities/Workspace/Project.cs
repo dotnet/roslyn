@@ -6,9 +6,9 @@ namespace Roslyn.VisualStudio.Test.Utilities
 {
     public class Project
     {
-        private DteProject _dteProject;
-        private Solution _solution;
-        private ProjectLanguage _language;
+        private readonly DteProject _dteProject;
+        private readonly Solution _solution;
+        private readonly ProjectLanguage _language;
 
         internal Project(DteProject dteProject, Solution solution, ProjectLanguage language)
         {

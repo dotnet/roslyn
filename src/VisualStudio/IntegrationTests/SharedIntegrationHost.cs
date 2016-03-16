@@ -1,15 +1,23 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System.Collections.Concurrent;
 using Roslyn.VisualStudio.Test.Utilities;
-using Xunit;
 
 namespace Roslyn.VisualStudio.Integration.UnitTests
 {
-    [CollectionDefinition(nameof(SharedIntegrationHost))]
-    public class SharedIntegrationHost : ICollectionFixture<IntegrationHost>
+    public sealed class SharedIntegrationHost
     {
-        // This class has no code, and is never created. Its purpose is simply
-        // to be the place to apply [CollectionDefinition] and all the
-        // ICollectionFixture<> interfaces.
+        private IntegrationHost _host;
+
+        public IntegrationHost GetHost()
+        {
+            if (_host == null)
+            {
+                _host = new IntegrationHost();
+            }
+
+            _host.Initialize();
+            return _host;
+        }
     }
 }

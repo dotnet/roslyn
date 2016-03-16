@@ -19,7 +19,8 @@
     <Compile Include="CSharp\CSharpBuild.cs" />
     <Compile Include="CSharp\CSharpInteractiveDemo.cs" />
     <Compile Include="SharedIntegrationHost.cs" />
-	<Compile Include="VisualBasic\BasicBuild.cs" />
+    <Compile Include="SharedIntegrationHostFixture.cs" />
+    <Compile Include="VisualBasic\BasicBuild.cs" />
   </ItemGroup>
   <ItemGroup>
     <Reference Include="System" />

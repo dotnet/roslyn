@@ -7,7 +7,7 @@ namespace Roslyn.VisualStudio.Test.Utilities
 {
     public class SolutionExplorer
     {
-        private IntegrationHost _host;
+        private readonly IntegrationHost _host;
         private Solution _solution;
         // TODO: Integrate with the SolutionExplorer service
 

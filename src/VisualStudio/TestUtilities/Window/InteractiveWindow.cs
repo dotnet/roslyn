@@ -17,8 +17,8 @@ namespace Roslyn.VisualStudio.Test.Utilities
         private const string ReplSubmissionText = ". ";
 
         private readonly string _dteViewCommand;
-        private IntegrationHost _host;
-        private InteractiveWindowWrapper _interactiveWindowWrapper;
+        private readonly IntegrationHost _host;
+        private readonly InteractiveWindowWrapper _interactiveWindowWrapper;
 
         internal static InteractiveWindow CreateCSharpInteractiveWindow(IntegrationHost host)
             => new InteractiveWindow(host, DteCSharpViewCommand, DteCSharpWindowTitle);
@@ -29,9 +29,9 @@ namespace Roslyn.VisualStudio.Test.Utilities
             _dteViewCommand = dteViewCommand;
 
             // We have to show the window at least once to ensure the interactive service is loaded.
-            Show(waitForPrompt: false);
+            ShowAsync(waitForPrompt: false).GetAwaiter().GetResult();
 
-            var dteWindow = _host.LocateDteWindow(dteWindowTitle);
+            var dteWindow = _host.LocateDteWindowAsync(dteWindowTitle).GetAwaiter().GetResult();
             dteWindow.Close();
 
             _interactiveWindowWrapper = _host.ExecuteOnHostProcess<InteractiveWindowWrapper>(typeof(RemotingHelper), nameof(RemotingHelper.CreateCSharpInteractiveWindowWrapper), (BindingFlags.Public | BindingFlags.Static));
@@ -90,18 +90,6 @@ namespace Roslyn.VisualStudio.Test.Utilities
             }
         }
 
-        public bool CheckLastReplOutputEndsWith(string expectedText)
-            => LastReplOutput.EndsWith(expectedText);
-
-        public bool CheckLastReplOutputEquals(string expectedText)
-            => LastReplOutput.Equals(expectedText);
-
-        public bool CheckLastReplOutputContains(string expectedText)
-            => LastReplOutput.Contains(expectedText);
-
-        public void Reset(bool waitForPrompt = true)
-            => ResetAsync(waitForPrompt).ConfigureAwait(continueOnCapturedContext: false).GetAwaiter().GetResult();
-
         public async Task ResetAsync(bool waitForPrompt = true)
         {
             await _host.ExecuteDteCommandAsync(DteReplResetCommand).ConfigureAwait(continueOnCapturedContext: false);
@@ -111,9 +99,6 @@ namespace Roslyn.VisualStudio.Test.Utilities
                 await WaitForReplPromptAsync().ConfigureAwait(continueOnCapturedContext: false);
             }
         }
-
-        public void Show(bool waitForPrompt = true)
-            => ShowAsync(waitForPrompt).ConfigureAwait(continueOnCapturedContext: false).GetAwaiter().GetResult();
 
         public async Task ShowAsync(bool waitForPrompt = true)
         {
@@ -125,9 +110,6 @@ namespace Roslyn.VisualStudio.Test.Utilities
             }
         }
 
-        public void SubmitTextToRepl(string text, bool waitForPrompt = true)
-            => SubmitTextToReplAsync(text, waitForPrompt).ConfigureAwait(continueOnCapturedContext: false).GetAwaiter().GetResult();
-
         public async Task SubmitTextToReplAsync(string text, bool waitForPrompt = true)
         {
             _interactiveWindowWrapper.Submit(text);
@@ -137,9 +119,6 @@ namespace Roslyn.VisualStudio.Test.Utilities
                 await WaitForReplPromptAsync().ConfigureAwait(continueOnCapturedContext: false);
             }
         }
-
-        public void WaitForReplPrompt()
-            => WaitForReplPromptAsync().ConfigureAwait(continueOnCapturedContext: false).GetAwaiter().GetResult();
 
         public Task WaitForReplPromptAsync()
             => IntegrationHelper.WaitForResultAsync(() => ReplText.EndsWith(ReplPromptText), expectedResult: true);

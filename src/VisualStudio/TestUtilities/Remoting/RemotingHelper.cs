@@ -51,6 +51,8 @@ namespace Roslyn.VisualStudio.Test.Utilities.Remoting
 
         private static IWpfTextViewHost GetActiveTextViewHost()
         {
+            // The active text view might not have finished composing yet, waiting for the application to 'idle'
+            // means that it is done pumping messages (including WM_PAINT) and the window should have finished composing
             WaitForApplicationIdle();
 
             var vsTextManager = (IVsTextManager)(ServiceProvider.GlobalProvider.GetService(typeof(SVsTextManager)));

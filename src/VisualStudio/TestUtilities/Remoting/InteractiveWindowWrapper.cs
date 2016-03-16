@@ -21,6 +21,6 @@ namespace Roslyn.VisualStudio.Test.Utilities.Remoting
             => _interactiveWindow.IsInitializing;
 
         public void Submit(string text)
-            => _interactiveWindow.SubmitAsync(new[] { text }).ConfigureAwait(continueOnCapturedContext: false).GetAwaiter().GetResult();
+            => _interactiveWindow.SubmitAsync(new[] { text }).GetAwaiter().GetResult();
     }
 }

@@ -5,15 +5,14 @@ using Xunit;
 
 namespace Roslyn.VisualStudio.Integration.UnitTests
 {
-    [Collection(nameof(SharedIntegrationHost))]
+    [Collection(nameof(SharedIntegrationHostFixture))]
     public class CSharpBuild
     {
-        private IntegrationHost _host;
+        private readonly IntegrationHost _host;
 
-        public CSharpBuild(IntegrationHost host)
+        public CSharpBuild(SharedIntegrationHost sharedHost)
         {
-            _host = host;
-            _host.Initialize();
+            _host = sharedHost.GetHost();
 
             var solution = _host.SolutionExplorer.CreateSolution(nameof(CSharpBuild));
             var project = solution.AddProject("TestProj", ProjectTemplate.ConsoleApplication, ProjectLanguage.CSharp);
@@ -33,7 +32,6 @@ class Program
 }";
 
             _host.EditorWindow.Text = editorText;
-            Assert.Equal(editorText, _host.EditorWindow.Text);
 
             // TODO: Validate build works as expected
         }

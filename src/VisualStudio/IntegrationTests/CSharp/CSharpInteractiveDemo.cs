@@ -1,106 +1,106 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
+using System.Threading.Tasks;
 using Roslyn.VisualStudio.Test.Utilities;
 using Xunit;
 
 namespace Roslyn.VisualStudio.Integration.UnitTests
 {
-    [Collection(nameof(SharedIntegrationHost))]
+    [Collection(nameof(SharedIntegrationHostFixture))]
     public class CSharpInteractiveDemo
     {
-        private IntegrationHost _host;
-        private InteractiveWindow _interactiveWindow;
+        private readonly IntegrationHost _host;
+        private readonly InteractiveWindow _interactiveWindow;
 
-        public CSharpInteractiveDemo(IntegrationHost host)
+        public CSharpInteractiveDemo(SharedIntegrationHost sharedHost)
         {
-            _host = host;
-            _host.Initialize();
+            _host = sharedHost.GetHost();
 
             _interactiveWindow = _host.CSharpInteractiveWindow;
 
-            _interactiveWindow.Show();
-            _interactiveWindow.Reset();
+            _interactiveWindow.ShowAsync().GetAwaiter().GetResult();
+            _interactiveWindow.ResetAsync().GetAwaiter().GetResult();
         }
 
         [Fact]
-        public void BclMathCall()
+        public async Task BclMathCall()
         {
-            _interactiveWindow.SubmitTextToRepl("Math.Sin(1)");
-            Assert.True(_interactiveWindow.CheckLastReplOutputEquals("0.8414709848078965"));
+            await _interactiveWindow.SubmitTextToReplAsync("Math.Sin(1)").ConfigureAwait(continueOnCapturedContext: false);
+            Assert.Equal("0.8414709848078965", _interactiveWindow.LastReplOutput);
         }
 
         [Fact]
-        public void BclConsoleCall()
+        public async Task BclConsoleCall()
         {
-            _interactiveWindow.SubmitTextToRepl(@"Console.WriteLine(""Hello World"");");
-            Assert.True(_interactiveWindow.CheckLastReplOutputEquals("Hello World"));
+            await _interactiveWindow.SubmitTextToReplAsync(@"Console.WriteLine(""Hello, World!"");").ConfigureAwait(continueOnCapturedContext: false);
+            Assert.Equal("Hello, World!", _interactiveWindow.LastReplOutput);
         }
 
         [Fact]
-        public void ForStatement()
+        public async Task ForStatement()
         {
-            _interactiveWindow.SubmitTextToRepl("for (int i = 0; i < 10; i++) Console.WriteLine(i * i);");
-            Assert.True(_interactiveWindow.CheckLastReplOutputEndsWith("81"));
+            await _interactiveWindow.SubmitTextToReplAsync("for (int i = 0; i < 10; i++) Console.WriteLine(i * i);").ConfigureAwait(continueOnCapturedContext: false);
+            Assert.EndsWith($"{81}", _interactiveWindow.LastReplOutput);
         }
 
         [Fact]
-        public void ForEachStatement()
+        public async Task ForEachStatement()
         {
-            _interactiveWindow.SubmitTextToRepl(@"foreach (var f in System.IO.Directory.GetFiles(@""c:\windows"")) Console.WriteLine($""{f}"".ToLower());");
-            Assert.True(_interactiveWindow.CheckLastReplOutputContains(@"c:\windows\win.ini"));
+            await _interactiveWindow.SubmitTextToReplAsync(@"foreach (var f in System.IO.Directory.GetFiles(@""c:\windows"")) Console.WriteLine($""{f}"".ToLower());").ConfigureAwait(continueOnCapturedContext: false);
+            Assert.Contains(@"c:\windows\win.ini", _interactiveWindow.LastReplOutput);
         }
 
         [Fact]
-        public void TopLevelMethod()
+        public async Task TopLevelMethod()
         {
-            _interactiveWindow.SubmitTextToRepl(@"int Fac(int x)
+            await _interactiveWindow.SubmitTextToReplAsync(@"int Fac(int x)
 {
     return x < 1 ? 1 : x * Fac(x - 1);
 }
-Fac(4)");
-            Assert.True(_interactiveWindow.CheckLastReplOutputEquals("24"));
+Fac(4)").ConfigureAwait(continueOnCapturedContext: false);
+            Assert.Equal($"{24}", _interactiveWindow.LastReplOutput);
         }
 
         [Fact]
-        public void WpfInteraction()
+        public async Task WpfInteraction()
         {
-            _interactiveWindow.SubmitTextToRepl(@"#r ""WindowsBase""
+            await _interactiveWindow.SubmitTextToReplAsync(@"#r ""WindowsBase""
 #r ""PresentationCore""
 #r ""PresentationFramework""
-#r ""System.Xaml""");
+#r ""System.Xaml""").ConfigureAwait(continueOnCapturedContext: false);
 
-            _interactiveWindow.SubmitTextToRepl(@"using System.Windows;
+            await _interactiveWindow.SubmitTextToReplAsync(@"using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Media;
-using System.Windows.Media.Imaging;");
+using System.Windows.Media.Imaging;").ConfigureAwait(continueOnCapturedContext: false);
 
-            _interactiveWindow.SubmitTextToRepl(@"var w = new Window();
+            await _interactiveWindow.SubmitTextToReplAsync(@"var w = new Window();
 w.Title = ""Hello World"";
 w.FontFamily = new FontFamily(""Calibri"");
 w.FontSize = 24;
 w.Height = 300;
 w.Width = 300;
 w.Topmost = true;
-w.Visibility = Visibility.Visible;");
+w.Visibility = Visibility.Visible;").ConfigureAwait(continueOnCapturedContext: false);
 
             var testValue = Guid.NewGuid();
 
-            _interactiveWindow.SubmitTextToRepl($@"var b = new Button();
+            await _interactiveWindow.SubmitTextToReplAsync($@"var b = new Button();
 b.Content = ""{testValue}"";
 b.Margin = new Thickness(40);
-b.Click += (sender, e) => Console.WriteLine(""Hello World!"");
+b.Click += (sender, e) => Console.WriteLine(""Hello, World!"");
 
 var g = new Grid();
 g.Children.Add(b);
-w.Content = g;");
+w.Content = g;").ConfigureAwait(continueOnCapturedContext: false);
 
-            _host.ClickAutomationElement(testValue.ToString(), recursive: true);
-            _interactiveWindow.WaitForReplPrompt();
+            await _host.ClickAutomationElementAsync(testValue.ToString(), recursive: true).ConfigureAwait(continueOnCapturedContext: false);
+            await _interactiveWindow.WaitForReplPromptAsync().ConfigureAwait(continueOnCapturedContext: false);
 
-            Assert.True(_interactiveWindow.CheckLastReplOutputEquals("Hello World!"));
+            Assert.Equal("Hello, World!", _interactiveWindow.LastReplOutput);
 
-            _interactiveWindow.SubmitTextToRepl("b = null; w.Close(); w = null;");
+            await _interactiveWindow.SubmitTextToReplAsync("b = null; w.Close(); w = null;").ConfigureAwait(continueOnCapturedContext: false);
         }
     }
 }

@@ -8,12 +8,12 @@ namespace Roslyn.VisualStudio.Test.Utilities
     {
         public override void Write(string message)
         {
-            IntegrationLog.Current.Write(message);
+            Debug.Write(message);
         }
 
         public override void WriteLine(string message)
         {
-            IntegrationLog.Current.WriteLine(message);
+            Debug.WriteLine(message);
         }
     }
 }

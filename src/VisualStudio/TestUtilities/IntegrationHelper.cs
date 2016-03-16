@@ -2,13 +2,16 @@
 
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Net;
+using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading.Tasks;
 using EnvDTE;
 using Microsoft.CodeAnalysis.Test.Utilities;
+using Microsoft.VisualStudio;
 using Microsoft.VisualStudio.OLE.Interop;
 using Microsoft.Win32;
 using Roslyn.VisualStudio.Test.Utilities.Interop;
@@ -122,20 +125,21 @@ namespace Roslyn.VisualStudio.Test.Utilities
                 monikers[0] = null;
 
                 var monikersFetched = 0u;
-                var result = enumMoniker.Next(1, monikers, out monikersFetched);
+                var hresult = enumMoniker.Next(1, monikers, out monikersFetched);
 
-                if (result != 0)
+                if (hresult < VSConstants.S_OK)
                 {
-                    return null;
+                    throw Marshal.GetExceptionForHR(hresult);
                 }
 
                 var moniker = monikers[0];
-                var fullDisplayName = null as string;
+                string fullDisplayName = null;
 
                 moniker.GetDisplayName(bindContext, null, out fullDisplayName);
 
                 var displayNameProcessId = 0;
 
+                // FullDisplayName will look something like: <ProgID>:<ProccessId>
                 if (!int.TryParse(fullDisplayName.Split(':').Last(), out displayNameProcessId))
                 {
                     continue;
@@ -155,41 +159,7 @@ namespace Roslyn.VisualStudio.Test.Utilities
             return (DTE)(dte);
         }
 
-        public static async Task<string> LocateFile(string fileName, string downloadUrl = "")
-        {
-            if (File.Exists(fileName))
-            {
-                return Path.GetFullPath(fileName);
-            }
-
-            var filePath = Path.Combine(Environment.CurrentDirectory, fileName);
-
-            if (File.Exists(filePath))
-            {
-                return filePath;
-            }
-
-            filePath = Path.Combine(typeof(IntegrationHelper).Assembly.Location, fileName);
-
-            if (File.Exists(filePath))
-            {
-                return filePath;
-            }
-
-            if (!string.IsNullOrWhiteSpace(downloadUrl))
-            {
-                await DownloadFileAsync(downloadUrl, fileName).ConfigureAwait(continueOnCapturedContext: false);
-            }
-
-            if (!File.Exists(filePath))
-            {
-                throw new FileNotFoundException($"Unable to locate the specified file. (FileName: '{fileName}')", fileName);
-            }
-            
-            return filePath;
-        }
-
-        public static RegistryKey OpenRegistryKey(RegistryKey baseKey, string subKeyName)
+        public static object GetRegistryKeyValue(RegistryKey baseKey, string subKeyName, string valueName)
         {
             using (var registryKey = baseKey.OpenSubKey(subKeyName))
             {
@@ -198,7 +168,7 @@ namespace Roslyn.VisualStudio.Test.Utilities
                     throw new Exception($"The specified registry key could not be found. Registry Key: '{registryKey}'");
                 }
 
-                return registryKey;
+                return registryKey.GetValue(valueName);
             }
         }
 
@@ -211,8 +181,8 @@ namespace Roslyn.VisualStudio.Test.Utilities
             }
             catch (Exception e)
             {
-                IntegrationLog.Current.Warning($"Failed to recursively delete the specified directory. (Name: '{path}')");
-                IntegrationLog.Current.WriteLine($"\t{e}");
+                Debug.WriteLine($"Warning: Failed to recursively delete the specified directory. (Name: '{path}')");
+                Debug.WriteLine($"\t{e}");
                 return false;
             }
         }
@@ -229,7 +199,7 @@ namespace Roslyn.VisualStudio.Test.Utilities
         {
             var result = action();
 
-            while (result.Equals(null))
+            while (result == null)
             {
                 await Task.Yield();
                 result = action();

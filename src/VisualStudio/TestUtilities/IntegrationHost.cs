@@ -2,6 +2,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using System.Reflection;
 using System.Runtime.Remoting.Channels;
@@ -21,12 +22,13 @@ namespace Roslyn.VisualStudio.Test.Utilities
         internal static readonly string VsProductVersion = Settings.Default.VsProductVersion;
         internal static readonly string VsProgId = $"VisualStudio.DTE.{VsProductVersion}";
 
-        internal static readonly string VsRegistryRoot = Path.Combine("Software", "Microsoft", "VisualStudio", VsProductVersion);
+        internal static readonly string Wow6432Registry = Environment.Is64BitProcess ? "WOW6432Node" : string.Empty;
+        internal static readonly string VsRegistryRoot = Path.Combine("SOFTWARE", Wow6432Registry, "Microsoft", "VisualStudio", VsProductVersion);
         internal static readonly string VsConfigRootSubKey = $"{VsRegistryRoot}_Config";
         internal static readonly string VsInitConfigSubKey = Path.Combine(VsConfigRootSubKey, "Initialization");
 
-        internal static readonly string VsCommon7Folder = Path.GetFullPath(IntegrationHelper.OpenRegistryKey(Registry.LocalMachine, VsRegistryRoot).GetValue("InstallDir").ToString());
-        internal static readonly string VsUserFilesFolder = Path.GetFullPath(IntegrationHelper.OpenRegistryKey(Registry.CurrentUser, VsInitConfigSubKey).GetValue("UserFilesFolder").ToString());
+        internal static readonly string VsCommon7Folder = Path.GetFullPath(IntegrationHelper.GetRegistryKeyValue(Registry.LocalMachine, VsRegistryRoot, "InstallDir").ToString());
+        internal static readonly string VsUserFilesFolder = Path.GetFullPath(IntegrationHelper.GetRegistryKeyValue(Registry.CurrentUser, VsInitConfigSubKey, "UserFilesFolder").ToString());
 
         internal static readonly string VsExeFile = Path.Combine(VsCommon7Folder, "devenv.exe");
         internal static readonly string VsLaunchArgs = $"{(string.IsNullOrWhiteSpace(Settings.Default.VsRootSuffix) ? "/log" : $"/rootsuffix {Settings.Default.VsRootSuffix}")} /log";
@@ -47,18 +49,16 @@ namespace Roslyn.VisualStudio.Test.Utilities
         static IntegrationHost()
         {
             // Enable TraceListenerLogging here since we can have multiple instances of IntegrationHost created per process, but this is a one-time setup
-            IntegrationLog.Current.EnableTraceListenerLogging();
+            Trace.Listeners.Clear();
+            Trace.Listeners.Add(new IntegrationTraceListener());
         }
-
-        public IntegrationHost() { }
 
         ~IntegrationHost()
         {
             Dispose(false);
         }
 
-        public DTE Dte
-            => _dte;
+        public DTE Dte => _dte;
 
         public InteractiveWindow CSharpInteractiveWindow
         {
@@ -86,7 +86,7 @@ namespace Roslyn.VisualStudio.Test.Utilities
             }
         }
 
-        public bool RequireNewInstance
+        internal bool RequireNewInstance
             => (_hostProcess == null) || _hostProcess.HasExited || _requireNewInstance;
 
         public SolutionExplorer SolutionExplorer
@@ -101,22 +101,6 @@ namespace Roslyn.VisualStudio.Test.Utilities
                 return _solutionExplorer;
             }
         }
-
-        public void Cleanup()
-        {
-            CleanupDte();
-
-            if (RequireNewInstance)
-            {
-                IntegrationLog.Current.WriteLine("Closing existing Visual Studio instance.");
-
-                CleanupRemotingService();
-                CleanupHostProcess();
-            }
-        }
-
-        public void ClickAutomationElement(string elementName, bool recursive = false)
-            => ClickAutomationElementAsync(elementName, recursive).ConfigureAwait(continueOnCapturedContext: false).GetAwaiter().GetResult();
 
         public async Task ClickAutomationElementAsync(string elementName, bool recursive = false)
         {
@@ -141,7 +125,7 @@ namespace Roslyn.VisualStudio.Test.Utilities
 
             if (RequireNewInstance)
             {
-                IntegrationLog.Current.WriteLine("Starting a new instance of Visual Studio.");
+                Debug.WriteLine("Starting a new instance of Visual Studio.");
 
                 InitializeHostProcess();
                 InitializeDte();
@@ -184,9 +168,6 @@ namespace Roslyn.VisualStudio.Test.Utilities
             return automationElement;
         }
 
-        internal Window LocateDteWindow(string windowTitle)
-            => LocateDteWindowAsync(windowTitle).ConfigureAwait(continueOnCapturedContext: false).GetAwaiter().GetResult();
-
         internal Task<Window> LocateDteWindowAsync(string windowTitle)
             => IntegrationHelper.WaitForNotNullAsync(() => {
                 foreach (Window window in _dte.Windows)
@@ -199,13 +180,26 @@ namespace Roslyn.VisualStudio.Test.Utilities
                 return null;
             });
 
-        internal async Task WaitForDteCommandAvailabilityAsync(string command)
-            => await IntegrationHelper.WaitForResultAsync(() => Dte.Commands.Item(command).IsAvailable, expectedResult: true).ConfigureAwait(continueOnCapturedContext: false);
+        internal Task WaitForDteCommandAvailabilityAsync(string command)
+            => IntegrationHelper.WaitForResultAsync(() => Dte.Commands.Item(command).IsAvailable, expectedResult: true);
 
         protected virtual void Dispose(bool disposing)
         {
             _requireNewInstance |= (!disposing);
             Cleanup();
+        }
+
+        private void Cleanup()
+        {
+            CleanupDte();
+
+            if (RequireNewInstance)
+            {
+                Debug.WriteLine("Closing existing Visual Studio instance.");
+
+                CleanupRemotingService();
+                CleanupHostProcess();
+            }
         }
 
         private void CleanupDte()
@@ -250,8 +244,8 @@ namespace Roslyn.VisualStudio.Test.Utilities
             }
             catch (Exception e)
             {
-                IntegrationLog.Current.Warning($"Failed to cleanup the DTE.");
-                IntegrationLog.Current.WriteLine($"\t{e}");
+                Debug.WriteLine($"Warning: Failed to cleanup the DTE.");
+                Debug.WriteLine($"\t{e}");
                 _requireNewInstance |= true;
             }
         }
@@ -272,9 +266,9 @@ namespace Roslyn.VisualStudio.Test.Utilities
         {
             try
             {
-                if ((_dte != null) && (!_dte.Commands.Item(VsStartServiceCommand).IsAvailable))
+                if ((_dte?.Commands.Item(VsStopServiceCommand).IsAvailable).GetValueOrDefault())
                 {
-                    ExecuteDteCommandAsync(VsStopServiceCommand).ConfigureAwait(continueOnCapturedContext: false).GetAwaiter().GetResult();
+                    ExecuteDteCommandAsync(VsStopServiceCommand).GetAwaiter().GetResult();
                 }
             }
             finally
@@ -294,7 +288,7 @@ namespace Roslyn.VisualStudio.Test.Utilities
             => IntegrationHelper.WaitForResultAsync(() => {
                 _dte = IntegrationHelper.LocateDteForProcess(_hostProcess);
                 return (_dte != null);
-            }, expectedResult: true).ConfigureAwait(continueOnCapturedContext: false).GetAwaiter().GetResult();
+            }, expectedResult: true).GetAwaiter().GetResult();
 
         private void InitializeHostProcess()
         {
@@ -306,12 +300,12 @@ namespace Roslyn.VisualStudio.Test.Utilities
             IntegrationHelper.KillProcess("dexplore");
 
             _hostProcess = Process.Start(VsExeFile, VsLaunchArgs);
-            IntegrationLog.Current.WriteLine($"Launched a new instance of Visual Studio. (ID: {_hostProcess.Id})");
+            Debug.WriteLine($"Launched a new instance of Visual Studio. (ID: {_hostProcess.Id})");
         }
 
         private void InitializeRemotingService()
         {
-            ExecuteDteCommandAsync("Tools.StartIntegrationTestService").ConfigureAwait(continueOnCapturedContext: false).GetAwaiter().GetResult();
+            ExecuteDteCommandAsync("Tools.StartIntegrationTestService").GetAwaiter().GetResult();
 
             _serviceChannel = new IpcClientChannel();
             ChannelServices.RegisterChannel(_serviceChannel, ensureSecurity: true);
