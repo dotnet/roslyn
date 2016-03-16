@@ -2,8 +2,6 @@
 
 using System;
 using System.Collections.Generic;
-using System.Diagnostics;
-using System.Reflection;
 
 internal static class Hash
 {
@@ -53,7 +51,7 @@ namespace System
     {
         private static readonly EqualityComparer<T1> s_comparer1 = EqualityComparer<T1>.Default;
 
-        public readonly T1 Item1;
+        public T1 Item1;
 
         public ValueTuple(T1 item1)
         {
@@ -98,8 +96,8 @@ namespace System
         private static readonly EqualityComparer<T1> s_comparer1 = EqualityComparer<T1>.Default;
         private static readonly EqualityComparer<T2> s_comparer2 = EqualityComparer<T2>.Default;
 
-        public readonly T1 Item1;
-        public readonly T2 Item2;
+        public T1 Item1;
+        public T2 Item2;
 
         public ValueTuple(T1 item1, T2 item2)
         {
@@ -147,9 +145,9 @@ namespace System
         private static readonly EqualityComparer<T2> s_comparer2 = EqualityComparer<T2>.Default;
         private static readonly EqualityComparer<T3> s_comparer3 = EqualityComparer<T3>.Default;
 
-        public readonly T1 Item1;
-        public readonly T2 Item2;
-        public readonly T3 Item3;
+        public T1 Item1;
+        public T2 Item2;
+        public T3 Item3;
 
         public ValueTuple(T1 item1, T2 item2, T3 item3)
         {
@@ -202,10 +200,10 @@ namespace System
         private static readonly EqualityComparer<T3> s_comparer3 = EqualityComparer<T3>.Default;
         private static readonly EqualityComparer<T4> s_comparer4 = EqualityComparer<T4>.Default;
 
-        public readonly T1 Item1;
-        public readonly T2 Item2;
-        public readonly T3 Item3;
-        public readonly T4 Item4;
+        public T1 Item1;
+        public T2 Item2;
+        public T3 Item3;
+        public T4 Item4;
 
         public ValueTuple(T1 item1, T2 item2, T3 item3, T4 item4)
         {
@@ -261,11 +259,11 @@ namespace System
         private static readonly EqualityComparer<T4> s_comparer4 = EqualityComparer<T4>.Default;
         private static readonly EqualityComparer<T5> s_comparer5 = EqualityComparer<T5>.Default;
 
-        public readonly T1 Item1;
-        public readonly T2 Item2;
-        public readonly T3 Item3;
-        public readonly T4 Item4;
-        public readonly T5 Item5;
+        public T1 Item1;
+        public T2 Item2;
+        public T3 Item3;
+        public T4 Item4;
+        public T5 Item5;
 
         public ValueTuple(T1 item1, T2 item2, T3 item3, T4 item4, T5 item5)
         {
@@ -326,12 +324,12 @@ namespace System
         private static readonly EqualityComparer<T5> s_comparer5 = EqualityComparer<T5>.Default;
         private static readonly EqualityComparer<T6> s_comparer6 = EqualityComparer<T6>.Default;
 
-        public readonly T1 Item1;
-        public readonly T2 Item2;
-        public readonly T3 Item3;
-        public readonly T4 Item4;
-        public readonly T5 Item5;
-        public readonly T6 Item6;
+        public T1 Item1;
+        public T2 Item2;
+        public T3 Item3;
+        public T4 Item4;
+        public T5 Item5;
+        public T6 Item6;
 
         public ValueTuple(T1 item1, T2 item2, T3 item3, T4 item4, T5 item5, T6 item6)
         {
@@ -395,13 +393,13 @@ namespace System
         private static readonly EqualityComparer<T6> s_comparer6 = EqualityComparer<T6>.Default;
         private static readonly EqualityComparer<T7> s_comparer7 = EqualityComparer<T7>.Default;
 
-        public readonly T1 Item1;
-        public readonly T2 Item2;
-        public readonly T3 Item3;
-        public readonly T4 Item4;
-        public readonly T5 Item5;
-        public readonly T6 Item6;
-        public readonly T7 Item7;
+        public T1 Item1;
+        public T2 Item2;
+        public T3 Item3;
+        public T4 Item4;
+        public T5 Item5;
+        public T6 Item6;
+        public T7 Item7;
 
         public ValueTuple(T1 item1, T2 item2, T3 item3, T4 item4, T5 item5, T6 item6, T7 item7)
         {
@@ -470,14 +468,14 @@ namespace System
         private static readonly EqualityComparer<T6> s_comparer6 = EqualityComparer<T6>.Default;
         private static readonly EqualityComparer<T7> s_comparer7 = EqualityComparer<T7>.Default;
 
-        public readonly T1 Item1;
-        public readonly T2 Item2;
-        public readonly T3 Item3;
-        public readonly T4 Item4;
-        public readonly T5 Item5;
-        public readonly T6 Item6;
-        public readonly T7 Item7;
-        public readonly TRest Rest;
+        public T1 Item1;
+        public T2 Item2;
+        public T3 Item3;
+        public T4 Item4;
+        public T5 Item5;
+        public T6 Item6;
+        public T7 Item7;
+        public TRest Rest;
 
         public ValueTuple(T1 item1, T2 item2, T3 item3, T4 item4, T5 item5, T6 item6, T7 item7, TRest rest)
         {
