@@ -57,18 +57,17 @@ namespace ProcessWatchdog
             {
                 // Add any new descendants of the remaining processes (that is, any
                 // descendants that we're not already tracking).
-                int[] existingProcessIds = _trackedProcesses.Select(tp => tp.Process.Id).ToArray();
+                UniqueProcess[] existingProcesses = _trackedProcesses.Select(tp => tp.Process).ToArray();
 
                 foreach (Process descendant in GetDescendants(_parentProcess.Id))
                 {
-                    // BUG: This code is subject to a race condition where, between the time we
-                    // captured the existing process ids and the time we enumerated the descendants,
-                    // one of those existing processes had terminated and a new descendant process
-                    // was created with the same id. This can happen, since process ids can be
-                    // recycled.
-                    if (!existingProcessIds.Contains(descendant.Id))
+                    UniqueProcess uniqueDescendant;
+                    if (UniqueProcess.TryCreate(descendant, out uniqueDescendant))
                     {
-                        TrackProcess(descendant);
+                        if (!existingProcesses.Contains(uniqueDescendant))
+                        {
+                            TrackProcess(descendant);
+                        }
                     }
                 }
             }
@@ -162,10 +161,6 @@ namespace ProcessWatchdog
                         // process to which it had attached itself as a debugger.
                         trackedProcess.ProcDumpProcess.Kill();
 
-                        // TODO: Make TrackedProcess itself disposable (and UniqueProcess as well)
-                        // to avoid this nonsense. Just want to say "trackedProcess.Dispose()".
-                        // We'll also have to dispose them when we remove them from the list in
-                        // Update().
                         trackedProcess.Process.Process.Dispose();
                         trackedProcess.ProcDumpProcess.Process.Dispose();
                     }
