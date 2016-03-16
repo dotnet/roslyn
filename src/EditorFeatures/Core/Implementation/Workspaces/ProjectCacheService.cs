@@ -17,17 +17,18 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Workspaces
         private readonly Workspace _workspace;
         private readonly Dictionary<ProjectId, Cache> _activeCaches = new Dictionary<ProjectId, Cache>();
 
-        private readonly SimpleMRUCache _implicitCache = new SimpleMRUCache();
+        private readonly SimpleMRUCache _implicitCache;
         private readonly ImplicitCacheMonitor _implicitCacheMonitor;
 
-        public ProjectCacheService(Workspace workspace, int implicitCacheTimeout, bool forceCleanup = false)
+        public ProjectCacheService(Workspace workspace, int implicitCacheTimeout)
         {
             _workspace = workspace;
 
-            // forceCleanup is for testing
-            if (workspace?.Kind == WorkspaceKind.Host || forceCleanup)
+            // Only create implicit cache for Visual Studio Workspace (the cost of the
+            // cache likely outweighs the benefit for the other types of Workspaces).
+            if (workspace?.Kind == WorkspaceKind.Host)
             {
-                // monitor implicit cache for host
+                _implicitCache = new SimpleMRUCache();
                 _implicitCacheMonitor = new ImplicitCacheMonitor(this, implicitCacheTimeout);
             }
         }
@@ -84,10 +85,10 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Workspaces
                 {
                     cache.CreateStrongReference(owner, instance);
                 }
-                else if (!PartOfP2PReferences(key))
+                else if ((_implicitCache != null) && !PartOfP2PReferences(key))
                 {
                     _implicitCache.Touch(instance);
-                    _implicitCacheMonitor?.Touch();
+                    _implicitCacheMonitor.Touch();
                 }
 
                 return instance;

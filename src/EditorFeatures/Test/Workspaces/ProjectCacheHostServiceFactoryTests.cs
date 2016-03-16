@@ -2,6 +2,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Threading;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.Editor.Implementation.Workspaces;
@@ -119,7 +120,8 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
         [Fact]
         public void TestImplicitCacheMonitoring()
         {
-            var cacheService = new ProjectCacheService(null, 10, forceCleanup: true);
+            var workspace = new AdhocWorkspace(MockHostServices.Instance, workspaceKind: WorkspaceKind.Host);
+            var cacheService = new ProjectCacheService(workspace, 10);
             var weak = PutObjectInImplicitCache(cacheService);
 
             var timeout = TimeSpan.FromSeconds(10);
@@ -255,6 +257,50 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
                 GC.Collect();
                 GC.WaitForPendingFinalizers();
                 GC.Collect();
+            }
+        }
+
+        private class MockHostServices : HostServices
+        {
+            public static readonly MockHostServices Instance = new MockHostServices();
+
+            private MockHostServices() { }
+
+            protected internal override HostWorkspaceServices CreateWorkspaceServices(Workspace workspace)
+            {
+                return new MockHostWorkspaceServices(this, workspace);
+            }
+        }
+
+        private class MockHostWorkspaceServices : HostWorkspaceServices
+        {
+            private readonly HostServices _hostServices;
+            private readonly Workspace _workspace;
+            private static readonly IWorkspaceTaskSchedulerFactory s_taskSchedulerFactory = new WorkspaceTaskSchedulerFactory();
+
+            public MockHostWorkspaceServices(HostServices hostServices, Workspace workspace)
+            {
+                _hostServices = hostServices;
+                _workspace = workspace;
+            }
+
+            public override HostServices HostServices => _hostServices;
+
+            public override Workspace Workspace => _workspace;
+            
+            public override IEnumerable<TLanguageService> FindLanguageServices<TLanguageService>(MetadataFilter filter)
+            {
+                return ImmutableArray<TLanguageService>.Empty;
+            }
+
+            public override TWorkspaceService GetService<TWorkspaceService>()
+            {
+                if (s_taskSchedulerFactory is TWorkspaceService)
+                {
+                    return (TWorkspaceService)s_taskSchedulerFactory;
+                }
+
+                return default(TWorkspaceService);
             }
         }
     }
