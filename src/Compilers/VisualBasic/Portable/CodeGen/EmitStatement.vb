@@ -1444,7 +1444,7 @@ OtherExpressions:
                         slot:=field.SlotIndex,
                         synthesizedKind:=SynthesizedLocalKind.EmitterTemp,
                         id:=Nothing,
-                        pdbAttributes:=Cci.PdbWriter.DefaultLocalAttributesValue,
+                        pdbAttributes:=LocalVariableAttributes.None,
                         constraints:=LocalSlotConstraints.None,
                         isDynamic:=False,
                         dynamicTransformFlags:=Nothing)
