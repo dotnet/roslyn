@@ -108,36 +108,36 @@ public class TraceManager
     public static ProcessResult RunProcess(string _cpcFullPath, string args)
     {
         var startInfo = new ProcessStartInfo(_cpcFullPath, args);
-        startInfo.RedirectStandardOutput = true;
-        startInfo.RedirectStandardError = true;
-        startInfo.UseShellExecute = false;
+        //startInfo.RedirectStandardOutput = true;
+        //startInfo.RedirectStandardError = true;
+        startInfo.UseShellExecute = true;
         var process = new Process
         {
             StartInfo = startInfo,
-            EnableRaisingEvents = true,
+            //EnableRaisingEvents = true,
         };
 
         process.Start();
 
-        var output = new StringWriter();
-        var error = new StringWriter();
+        //var output = new StringWriter();
+        //var error = new StringWriter();
 
-        process.OutputDataReceived += (s, e) => {
-            if (!String.IsNullOrEmpty(e.Data))
-            {
-                output.WriteLine(e.Data);
-            }
-        };
+        //process.OutputDataReceived += (s, e) => {
+        //    if (!String.IsNullOrEmpty(e.Data))
+        //    {
+        //        output.WriteLine(e.Data);
+        //    }
+        //};
 
-        process.ErrorDataReceived += (s, e) => {
-            if (!String.IsNullOrEmpty(e.Data))
-            {
-                error.WriteLine(e.Data);
-            }
-        };
+        //process.ErrorDataReceived += (s, e) => {
+        //    if (!String.IsNullOrEmpty(e.Data))
+        //    {
+        //        error.WriteLine(e.Data);
+        //    }
+        //};
 
-        process.BeginOutputReadLine();
-        process.BeginErrorReadLine();
+        //process.BeginOutputReadLine();
+        //process.BeginErrorReadLine();
         process.WaitForExit();
 
         return new ProcessResult
@@ -145,8 +145,8 @@ public class TraceManager
             ExecutablePath = _cpcFullPath,
             Args = args,
             Code = process.ExitCode,
-            StdOut = output.ToString(),
-            StdErr = error.ToString(),
+            StdOut = "",//output.ToString(),
+            StdErr = "",//error.ToString(),
         };
     }
 }
