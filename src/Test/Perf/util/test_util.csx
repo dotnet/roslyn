@@ -111,6 +111,16 @@ string ReleaseVbcPath()
     return Path.Combine(BinReleaseDirectory(), "vbc.exe");
 }
 
+string GetCPCDirectoryPath()
+{
+    return Environment.ExpandEnvironmentVariables(@"%SYSTEMDRIVE%\CPC");
+}
+
+string GetCPCSourceBinaryLocation()
+{
+    return $@"\\mlangfs1\public\basoundr\CpcBinaries";
+}
+
 //
 // Process spawning and error handling.
 //
@@ -170,6 +180,7 @@ ProcessResult ShellOut(
     if (IsVerbose()) {
         Log($"running \"{file}\" with arguments \"{args}\" from directory {workingDirectory}");
     }
+    
     process.Start();
 
     var output = new StringWriter();
@@ -197,6 +208,41 @@ ProcessResult ShellOut(
         Code = process.ExitCode,
         StdOut = output.ToString(),
         StdErr = error.ToString(),
+    };
+}
+
+ProcessResult ShellOutUsingShellExecute(
+        string file,
+        string args,
+        string workingDirectory = null,
+        CancellationToken? cancelationToken = null)
+{
+    var tcs = new TaskCompletionSource<ProcessResult>();
+    var startInfo = new ProcessStartInfo(file, args);
+    startInfo.UseShellExecute = true;
+    var process = new Process
+    {
+        StartInfo = startInfo
+    };
+
+    if (cancelationToken != null) {
+        cancelationToken.Value.Register(() => process.Kill());
+    }
+    
+    if (IsVerbose()) {
+        Log($"running \"{file}\" with arguments \"{args}\" from directory {workingDirectory}");
+    }
+    
+    process.Start();
+
+    process.WaitForExit();
+
+    return new ProcessResult {
+        ExecutablePath = file,
+        Args = args,
+        Code = 0,
+        StdOut = "",
+        StdErr = "",
     };
 }
 
