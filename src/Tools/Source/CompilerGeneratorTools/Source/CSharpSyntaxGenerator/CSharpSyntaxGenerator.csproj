@@ -9,7 +9,7 @@
     <Platform Condition="'$(Platform)' == ''">AnyCPU</Platform>
     <ProjectGuid>{288089C5-8721-458E-BE3E-78990DAB5E2D}</ProjectGuid>
     <OutputType>Exe</OutputType>
-    <OutDir>$(OutDir)CompilerGeneratorTools\</OutDir>
+    <OutDir>$(CompilerGeneratorToolsDir)</OutDir>
     <RootNamespace>Roslyn.Compilers.CSharp.Internal.CSharpSyntaxGenerator</RootNamespace>
     <AssemblyName>CSharpSyntaxGenerator</AssemblyName>
     <Nonshipping>true</Nonshipping>

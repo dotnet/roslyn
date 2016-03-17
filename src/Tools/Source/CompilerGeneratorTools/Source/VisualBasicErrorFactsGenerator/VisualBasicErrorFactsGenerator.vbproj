@@ -11,7 +11,7 @@
     <PlatformTarget>AnyCPU</PlatformTarget>
     <ProjectGuid>{909B656F-6095-4AC2-A5AB-C3F032315C45}</ProjectGuid>
     <OutputType>Exe</OutputType>
-    <OutDir>$(OutDir)CompilerGeneratorTools\</OutDir>
+    <OutDir>$(CompilerGeneratorToolsDir)</OutDir>
     <StartupObject>
     </StartupObject>
     <RootNamespace>Microsoft.CodeAnalysis.VisualBasic.Internal.VBErrorFactsGenerator</RootNamespace>

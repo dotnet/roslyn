@@ -11,7 +11,7 @@
     <PlatformTarget>AnyCPU</PlatformTarget>
     <ProjectGuid>{02459936-CD2C-4F61-B671-5C518F2A3DDC}</ProjectGuid>
     <OutputType>Exe</OutputType>
-    <OutDir>$(OutDir)CompilerGeneratorTools\</OutDir>
+    <OutDir>$(CompilerGeneratorToolsDir)</OutDir>
     <RootNamespace>Roslyn.Compilers.Internal.BoundTreeGenerator</RootNamespace>
     <AssemblyName>BoundTreeGenerator</AssemblyName>
     <SolutionDir Condition="$(SolutionDir) == '' Or $(SolutionDir) == '*Undefined*'">..\..\..\..\..\..\</SolutionDir>

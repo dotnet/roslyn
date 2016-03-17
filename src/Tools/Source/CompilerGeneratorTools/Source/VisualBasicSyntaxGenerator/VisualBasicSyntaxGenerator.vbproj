@@ -11,7 +11,7 @@
     <PlatformTarget>AnyCPU</PlatformTarget>
     <ProjectGuid>{6AA96934-D6B7-4CC8-990D-DB6B9DD56E34}</ProjectGuid>
     <OutputType>Exe</OutputType>
-    <OutDir>$(OutDir)CompilerGeneratorTools\</OutDir>
+    <OutDir>$(CompilerGeneratorToolsDir)</OutDir>
     <StartupObject>Microsoft.CodeAnalysis.VisualBasic.Internal.VBSyntaxGenerator.Program</StartupObject>
     <RootNamespace>Microsoft.CodeAnalysis.VisualBasic.Internal.VBSyntaxGenerator</RootNamespace>
     <AssemblyName>VBSyntaxGenerator</AssemblyName>
