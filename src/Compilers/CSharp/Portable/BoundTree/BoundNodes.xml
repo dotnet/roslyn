@@ -435,6 +435,13 @@
     <Field Name="GetTypeFromHandle" Type="MethodSymbol" Null="allow"/>
   </Node>
 
+   <!-- Represents the raw metadata token value for a method. Dynamic instrumentation depends on tracking method tokens. -->
+  <Node Name="BoundMethodToken" Base="BoundExpression">
+    <!-- Non-null type is required for this node kind -->
+    <Field Name="Type" Type="TypeSymbol" Override="true" Null="disallow"/>
+    <Field Name="Method" Type="MethodSymbol"/>
+  </Node>
+    
   <Node Name="BoundMethodInfo" Base="BoundExpression">
     <!-- Non-null type is required for this node kind -->
     <Field Name="Type" Type="TypeSymbol" Override="true" Null="disallow"/>

@@ -244,6 +244,9 @@ namespace Microsoft.CodeAnalysis
         System_Environment,
 
         System_Runtime_GCLatencyMode,
+
+        Microsoft_CodeAnalysis_Runtime_Instrumentation,
+
         System_IFormatProvider,
 
         Available,
@@ -485,6 +488,9 @@ namespace Microsoft.CodeAnalysis
             "System.Environment",
 
             "System.Runtime.GCLatencyMode",
+
+            "Microsoft.CodeAnalysis.Runtime.Instrumentation",
+
             "System.IFormatProvider"
         };
 

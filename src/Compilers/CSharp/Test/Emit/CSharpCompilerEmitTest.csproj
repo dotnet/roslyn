@@ -133,6 +133,7 @@
     <Compile Include="Emit\DynamicAnalysis\DynamicAnalysisResourceTests.cs" />
     <Compile Include="Emit\CompilationEmitTests.cs" />
     <Compile Include="Emit\DeterministicTests.cs" />
+    <Compile Include="Emit\DynamicAnalysis\DynamicInstrumentationTests.cs" />
     <Compile Include="Emit\EditAndContinue\AssemblyReferencesTests.cs" />
     <Compile Include="Emit\EditAndContinue\EditAndContinueClosureTests.cs" />
     <Compile Include="Emit\EditAndContinue\EditAndContinueTestBase.cs" />

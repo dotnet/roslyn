@@ -27,6 +27,20 @@ public class C
         Console.WriteLine(123);
     }
 }
+
+namespace Microsoft.CodeAnalysis.Runtime
+{
+    public static class Instrumentation
+    {
+        public static void CreatePayload(System.Guid mvid, int methodToken, ref bool[] payload, int payloadLength)
+        {
+        }
+
+        public static void FlushPayload()
+        {
+        }
+    }
+}
 ";
 
             var c = CreateCompilationWithMscorlib(Parse(source, @"C:\myproject\doc1.cs"));
@@ -36,16 +50,15 @@ public class C
             var reader = DynamicAnalysisDataReader.TryCreateFromPE(peReader);
 
             VerifyDocuments(reader, reader.Documents,
-                @"'C:\myproject\doc1.cs' E3-98-27-87-80-74-AF-0C-B5-05-F6-6B-48-A7-5C-04-6D-6C-E3-1B (SHA1)",
-                @"'C:\myproject\doc2.cs'");
+                @"'C:\myproject\doc1.cs' 21-AE-49-AE-F1-D9-19-19-73-C7-4C-0F-07-71-91-A7-1F-00-5F-31 (SHA1)");
+
+            Assert.Equal(4, reader.Methods.Length);
 
             VerifySpans(reader, reader.Methods[0],
-                "(10,1)-(10,20)",
-                "(20,1)-(30,20)",
-                "(10,1)-(10,20)");
+                "(7,8)-(7,31)",
+                "(6,4)-(8,5)");
 
-            VerifySpans(reader, reader.Methods[1],
-                "(1,1)-(3,10)");
+            VerifySpans(reader, reader.Methods[1]);
         }
 
         private static void VerifySpans(DynamicAnalysisDataReader reader, DynamicAnalysisMethod methodData, params string[] expected)

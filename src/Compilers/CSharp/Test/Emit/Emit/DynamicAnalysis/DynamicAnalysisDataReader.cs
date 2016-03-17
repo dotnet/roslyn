@@ -174,6 +174,11 @@ namespace Microsoft.CodeAnalysis
 
         public ImmutableArray<LinePositionSpan> GetSpans(BlobHandle handle)
         {
+            if (handle.IsNil)
+            {
+                return ImmutableArray<LinePositionSpan>.Empty;
+            }
+
             var builder = ArrayBuilder<LinePositionSpan>.GetInstance();
 
             var reader = GetBlobReader(handle);

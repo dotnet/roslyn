@@ -558,6 +558,8 @@ namespace System
                     case WellKnownType.System_FormattableString:
                     case WellKnownType.System_Runtime_CompilerServices_FormattableStringFactory:
                         // Not yet in the platform.
+                    case WellKnownType.Microsoft_CodeAnalysis_Runtime_Instrumentation:
+                        // Not always available.
                         continue;
                 }
 
@@ -597,6 +599,10 @@ namespace System
                         continue;
                     case WellKnownMember.System_Array__Empty:
                         // Not available yet, but will be in upcoming release.
+                        continue;
+                    case WellKnownMember.Microsoft_CodeAnalysis_Runtime_Instrumentation__CreatePayload:
+                    case WellKnownMember.Microsoft_CodeAnalysis_Runtime_Instrumentation__FlushPayload:
+                        // Not always available.
                         continue;
                 }
                 if (wkm == WellKnownMember.Count) continue; // Not a real value.

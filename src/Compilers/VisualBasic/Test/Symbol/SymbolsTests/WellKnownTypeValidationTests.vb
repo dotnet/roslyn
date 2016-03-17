@@ -501,6 +501,9 @@ End Namespace
                     Case WellKnownType.System_FormattableString, WellKnownType.System_Runtime_CompilerServices_FormattableStringFactory
                         ' Not available on all platforms.
                         Continue For
+                    Case WellKnownType.Microsoft_CodeAnalysis_Runtime_Instrumentation
+                        ' Not always available.
+                        Continue For
                 End Select
 
                 Dim symbol = comp.GetWellKnownType(wkt)
@@ -528,6 +531,9 @@ End Namespace
                         Continue For
                     Case WellKnownType.System_FormattableString, WellKnownType.System_Runtime_CompilerServices_FormattableStringFactory
                         ' Not available on all platforms.
+                        Continue For
+                    Case WellKnownType.Microsoft_CodeAnalysis_Runtime_Instrumentation
+                        ' Not always available.
                         Continue For
                 End Select
 
@@ -562,6 +568,9 @@ End Namespace
                         Continue For
                     Case WellKnownMember.System_Array__Empty
                         ' Not available yet, but will be in upcoming release.
+                        Continue For
+                    Case WellKnownMember.Microsoft_CodeAnalysis_Runtime_Instrumentation__CreatePayload, WellKnownMember.Microsoft_CodeAnalysis_Runtime_Instrumentation__FlushPayload
+                        ' Not always available.
                         Continue For
                 End Select
 
@@ -639,6 +648,9 @@ End Namespace
                         Continue For
                     Case WellKnownMember.System_Array__Empty
                         ' Not available yet, but will be in upcoming release.
+                        Continue For
+                    Case WellKnownMember.Microsoft_CodeAnalysis_Runtime_Instrumentation__CreatePayload, WellKnownMember.Microsoft_CodeAnalysis_Runtime_Instrumentation__FlushPayload
+                        ' Not always available.
                         Continue For
                 End Select
 

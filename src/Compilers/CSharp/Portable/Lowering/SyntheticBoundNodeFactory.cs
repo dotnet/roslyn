@@ -608,7 +608,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return new BoundCall(
                 Syntax, receiver, method, args,
                 ImmutableArray<String>.Empty, ImmutableArray<RefKind>.Empty, false, false, false,
-                ImmutableArray<int>.Empty, LookupResultKind.Viable, method.ReturnType)
+                default(ImmutableArray<int>), LookupResultKind.Viable, method.ReturnType)
             { WasCompilerGenerated = true };
         }
 
@@ -943,6 +943,16 @@ namespace Microsoft.CodeAnalysis.CSharp
             { WasCompilerGenerated = true };
         }
 
+        public BoundExpression TypeofBeforeRewriting(TypeSymbol type)
+        {
+            return new BoundTypeOfOperator(
+                Syntax,
+                Type(type),
+                // For some reason the rewriting logic asserts that the GetTypeFromHandle property is null.
+                null,
+                WellKnownType(CodeAnalysis.WellKnownType.System_Type))
+            { WasCompilerGenerated = true };
+        }
 
         public ImmutableArray<BoundExpression> TypeOfs(ImmutableArray<TypeSymbol> typeArguments)
         {
@@ -966,6 +976,15 @@ namespace Microsoft.CodeAnalysis.CSharp
                 ctor,
                 GetMethodFromHandleMethod(ctor.ContainingType),
                 WellKnownType(Microsoft.CodeAnalysis.WellKnownType.System_Reflection_ConstructorInfo))
+            { WasCompilerGenerated = true };
+        }
+
+        public BoundExpression MethodToken(MethodSymbol method)
+        {
+            return new BoundMethodToken(
+                Syntax,
+                method,
+                SpecialType(Microsoft.CodeAnalysis.SpecialType.System_Int32))
             { WasCompilerGenerated = true };
         }
 
@@ -1098,7 +1117,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 new BoundArrayInitialization(Syntax, elements) { WasCompilerGenerated = true },
                 Compilation.CreateArrayTypeSymbol(elementType));
         }
-
+        
         internal BoundExpression Default(TypeSymbol type)
         {
             return new BoundDefaultOperator(Syntax, type) { WasCompilerGenerated = true };

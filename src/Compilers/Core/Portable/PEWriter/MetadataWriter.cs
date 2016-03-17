@@ -4469,6 +4469,11 @@ namespace Microsoft.Cci
             return 0x11000000 | signatureIndex;
         }
 
+        private static byte ReadByte(ImmutableArray<byte> buffer, int pos)
+        {
+            return buffer[pos];
+        }
+
         private static int ReadInt32(ImmutableArray<byte> buffer, int pos)
         {
             return buffer[pos] | buffer[pos + 1] << 8 | buffer[pos + 2] << 16 | buffer[pos + 3] << 24;
@@ -4578,11 +4583,26 @@ namespace Microsoft.Cci
                     case OperandType.InlineMethod:
                     case OperandType.InlineTok:
                     case OperandType.InlineType:
-                        writer.Offset = offset;
-                        writer.WriteInt32(ResolveSymbolTokenFromPseudoSymbolToken(ReadInt32(methodBodyIL, offset)));
-                        offset += 4;
-                        break;
-
+                        {
+                            int pseudoToken = ReadInt32(methodBodyIL, offset);
+                            // If the high-order bit of the pseudotoken is 1, replace the opcode with Ldc_i4
+                            // and clear the high-order bit in the pseudotoken.
+                            // This is a trick to enable loading raw metadata token values as integers.
+                            if (operandType == OperandType.InlineTok)
+                            {
+                                if ((pseudoToken & 0x80000000) != 0 && (uint)pseudoToken != 0xffffffff)
+                                {
+                                    Debug.Assert(ReadByte(methodBodyIL, offset - 1) == (byte)ILOpCode.Ldtoken);
+                                    writer.Offset = offset - 1;
+                                    writer.WriteByte((byte)ILOpCode.Ldc_i4);
+                                    pseudoToken &= 0x7fffffff;
+                                }
+                            }
+                            writer.Offset = offset;
+                            writer.WriteInt32(ResolveSymbolTokenFromPseudoSymbolToken(pseudoToken));
+                            offset += 4;
+                            break;
+                        }
                     case OperandType.InlineString:
                         writer.Offset = offset;
                         writer.WriteInt32(ResolveStringTokenFromPseudoStringToken(ReadInt32(methodBodyIL, offset)));
