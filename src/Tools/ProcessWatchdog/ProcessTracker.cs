@@ -84,8 +84,7 @@ namespace ProcessWatchdog
                     trackedProcess.Process.Id,
                     trackedProcess.Description);
 
-                while (!immediateDumpProcess.HasExited)
-                    ;
+                immediateDumpProcess.WaitForExit();
 
                 // Terminate the procdump process that has been monitoring the target process
                 // Since this procdump is acting as a debugger, terminating it will
