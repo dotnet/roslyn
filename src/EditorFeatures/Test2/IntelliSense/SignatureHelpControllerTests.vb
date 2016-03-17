@@ -153,7 +153,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
                                  Sub() GetMocks(controller).Buffer.Insert(0, " ")))
 
                              Dim handled = dispatcher.InvokeAsync(Function() controller.TryHandleUpKey()) ' Send the controller an up key, which should block on the computation
-                             checkpoint.Release() ' Allow slowprovider to finish
+                             checkpoint.TryRelease() ' Allow slowprovider to finish
                              Await handled.Task.ConfigureAwait(False)
 
                              ' We expect 2 calls to the presenter (because we had an existing presentation session when we started the second computation).

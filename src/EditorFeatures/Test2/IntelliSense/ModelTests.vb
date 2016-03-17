@@ -92,17 +92,17 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
             Dim checkpoint2 = New Checkpoint
             Dim checkpoint3 = New Checkpoint
 
-            token.Setup(Sub(t) t.Dispose()).Callback(Sub() checkpoint3.Release())
+            token.Setup(Sub(t) t.Dispose()).Callback(Sub() checkpoint3.TryRelease())
 
             modelComputation.ChainTaskAndNotifyControllerWhenFinished(Function(m, c)
-                                                                          checkpoint1.Release()
+                                                                          checkpoint1.TryRelease()
                                                                           checkpoint2.Task.Wait()
                                                                           c.ThrowIfCancellationRequested()
                                                                           Return Task.FromResult(model)
                                                                       End Function)
             Await checkpoint1.Task
             modelComputation.Stop()
-            checkpoint2.Release()
+            checkpoint2.TryRelease()
             Await checkpoint3.Task
 
             controller.Verify(Sub(c) c.OnModelUpdated(model), Times.Never)

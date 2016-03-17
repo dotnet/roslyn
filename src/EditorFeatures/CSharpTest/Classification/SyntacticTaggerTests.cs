@@ -35,21 +35,35 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Classification
                     null,
                     new SyntacticClassificationTaggerProvider(null, null, null));
 
-                SnapshotSpan span = default(SnapshotSpan);
+                var expectedLength = subjectBuffer.CurrentSnapshot.Length;
+                var actualVersionNumber = int.MaxValue;
+                var actualLength = int.MaxValue;
+                var didRelease = false;
                 tagComputer.TagsChanged += (s, e) =>
                 {
-                    span = e.Span;
-                    checkpoint.Release();
+                    actualVersionNumber = e.Span.Snapshot.Version.VersionNumber;
+                    actualLength = e.Span.Length;
+                    didRelease = checkpoint.TryRelease();
                 };
 
                 await checkpoint.Task;
+                Assert.Equal(1, actualVersionNumber);
+                Assert.Equal(expectedLength, actualLength);
+                Assert.True(didRelease);
+
                 checkpoint = new Checkpoint();
 
                 // Now apply an edit that require us to reclassify more that just the current line
-                subjectBuffer.Insert(document.CursorPosition.Value, "\"");
+                var snapshot = subjectBuffer.Insert(document.CursorPosition.Value, "\"");
+                expectedLength = snapshot.Length;
 
+                // NOTE: TagsChanged is raised on the UI thread, so there is no race between
+                // assigning expected here and verifying in the event handler, because the
+                // event handler can't run until we await.
                 await checkpoint.Task;
-                Assert.Equal(subjectBuffer.CurrentSnapshot.Length, span.Length);
+                Assert.Equal(2, actualVersionNumber);
+                Assert.Equal(expectedLength, actualLength);
+                Assert.True(didRelease);
             }
         }
     }
