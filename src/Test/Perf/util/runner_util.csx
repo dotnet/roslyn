@@ -38,3 +38,21 @@ async Task<ScriptState<object>> RunFile(string fileName)
     return await state.ContinueWithAsync<object>(text, scriptOptions);
 }
 
+/// Gets all csx file recursively in a given directory
+IEnumerable<string> GetAllCsxRecursive(string directoryName)
+{
+    foreach (var fileName in Directory.EnumerateFiles(directoryName, "*.csx"))
+    {
+        yield return fileName;
+    }
+
+
+    foreach (var childDir in Directory.EnumerateDirectories(directoryName))
+    {
+        foreach (var fileName in GetAllCsxRecursive(childDir))
+        {
+            yield return fileName;
+        }
+    }
+}
+

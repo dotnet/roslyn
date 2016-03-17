@@ -10,13 +10,7 @@ using System;
 
 InitUtilities();
 
-var myDir = MyWorkingDirectory();
-var skip = new HashSet<string> {
-    Path.Combine(myDir, "runner.csx"),
-    Path.Combine(myDir, "bootstrap.csx"),
-    Path.Combine(myDir, "util"),
-    Path.Combine(myDir, "infra"),
-};
+var testDirectory = PerfTestDirectory();
 
 var allResults = new List<Tuple<string, List<Tuple<int, string, object>>>>();
 var failed = false;
@@ -31,7 +25,7 @@ Log("hash: " + StdoutFrom("git", "show --format=\"%h\" HEAD --").Split(new[] {"\
 Log("time: " + DateTime.Now.ToString());
 
 // Run all the scripts that we've found and populate allResults.
-foreach (var script in AllCsiRecursive(myDir, skip)) {
+foreach (var script in GetAllCsxRecursive(testDirectory)) {
     var scriptName = Path.GetFileNameWithoutExtension(script);
     Log("\nRunning " + scriptName);
     try

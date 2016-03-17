@@ -3,8 +3,6 @@
 using System;
 using System.IO;
 
-InitUtilities();
-
 public void DownloadCPC()
 {
     var cpcDestinationPath = GetCPCDirectoryPath();

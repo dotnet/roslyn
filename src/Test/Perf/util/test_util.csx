@@ -81,6 +81,11 @@ string BinDirectory()
     return Path.Combine(RoslynDirectory(), "Binaries");
 }
 
+string PerfTestDirectory()
+{
+    return Path.Combine(RoslynDirectory(), "src", "Test", "Perf", "Tests");
+}
+
 string BinDebugDirectory()
 {
     return Path.Combine(BinDirectory(), "Debug");
