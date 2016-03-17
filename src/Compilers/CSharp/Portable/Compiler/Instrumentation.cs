@@ -6,29 +6,34 @@ using Microsoft.CodeAnalysis.CSharp.Symbols;
 
 namespace Microsoft.CodeAnalysis.CSharp
 {
+    /// <summary>
+    /// Provides means for instrumenting compiled methods for dynamic analysis.
+    /// </summary>
     internal static class Instrumentation
     {
-        internal static BoundBlock InjectInstrumentation(MethodSymbol method, BoundBlock methodBody, int methodOrdinal, TypeCompilationState compilationState, CSharpCompilation compilation, DiagnosticBag diagnostics, DebugDocumentProvider debugDocumentProvider, out ImmutableArray<SourceSpan> dynamicAnalysisSpans)
+        internal static BoundBlock InjectInstrumentation(MethodSymbol method, BoundBlock methodBody, int methodOrdinal, TypeCompilationState compilationState, DiagnosticBag diagnostics, DebugDocumentProvider debugDocumentProvider, out ImmutableArray<SourceSpan> dynamicAnalysisSpans)
         {
             if (methodBody != null)
             {
-                MethodSymbol createPayload = GetCreatePayload(compilation, diagnostics);
-                MethodSymbol flushPayload = GetFlushPayload(compilation, diagnostics);
+                CSharpCompilation compilation = compilationState.Compilation;
+
+                MethodSymbol createPayload = GetCreatePayload(compilation, methodBody.Syntax, diagnostics);
+                MethodSymbol flushPayload = GetFlushPayload(compilation, methodBody.Syntax, diagnostics);
 
                 // Do not instrument the instrumentation helpers if they are part of the current compilation (which occurs only during testing). GetCreatePayload will fail with an infinite recursion if it is instrumented.
-                if ((object)createPayload != null && (object)flushPayload != null && (object)method != createPayload && (object)method != flushPayload)
+                if ((object)createPayload != null && (object)flushPayload != null && !method.Equals(createPayload) && !method.Equals(flushPayload))
                 {
                     // Create the symbol for the instrumentation payload.
                     SyntheticBoundNodeFactory factory = new SyntheticBoundNodeFactory(method, methodBody.Syntax, compilationState, diagnostics);
-                    TypeSymbol boolType = compilation.GetSpecialType(SpecialType.System_Boolean);
+                    TypeSymbol boolType = factory.SpecialType(SpecialType.System_Boolean);  compilation.GetSpecialType(SpecialType.System_Boolean);
                     TypeSymbol payloadElementType = boolType;
                     ArrayTypeSymbol payloadType = ArrayTypeSymbol.CreateCSharpArray(compilation.Assembly, payloadElementType);
-                    FieldSymbol payloadField = GetPayloadField(method, methodOrdinal, payloadType, factory, compilation);
+                    FieldSymbol payloadField = GetPayloadField(method, methodOrdinal, payloadType, factory);
 
                     // Synthesize the instrumentation and collect the spans of interest.
 
-                    BoundBlock newMethodBody;
-                    InstrumentationInjectionRewriter.InstrumentMethod(method, methodBody, payloadField, compilationState, diagnostics, debugDocumentProvider, out dynamicAnalysisSpans, out newMethodBody);
+                    // ToDo (https://github.com/dotnet/roslyn/issues/9819): Try to integrate instrumentation with lowering, to avoid an extra pass over the bound tree.
+                    BoundBlock newMethodBody = InstrumentationInjectionRewriter.InstrumentMethod(method, methodBody, payloadField, compilationState, diagnostics, debugDocumentProvider, out dynamicAnalysisSpans);
 
                     // Synthesize the initialization of the instrumentation payload array. It should be done either statically or with concurrency-safe code:
                     //
@@ -76,7 +81,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return methodBody;
         }
 
-        private static FieldSymbol GetPayloadField(MethodSymbol method, int methodOrdinal, TypeSymbol payloadType, SyntheticBoundNodeFactory factory, CSharpCompilation compilation)
+        private static FieldSymbol GetPayloadField(MethodSymbol method, int methodOrdinal, TypeSymbol payloadType, SyntheticBoundNodeFactory factory)
         {
             // ToDo PROTOTYPE (https://github.com/dotnet/roslyn/issues/9810):
             // If the type containing the method is generic, synthesize a helper type and put the payload field there.
@@ -89,27 +94,14 @@ namespace Microsoft.CodeAnalysis.CSharp
             return payloadField;
         }
         
-        private static MethodSymbol GetInstrumentationHelper(CSharpCompilation compilation, WellKnownMember member, DiagnosticBag diagnostics)
+        private static MethodSymbol GetCreatePayload(CSharpCompilation compilation, CSharpSyntaxNode syntax, DiagnosticBag diagnostics)
         {
-            MethodSymbol helper = compilation.GetWellKnownTypeMember(member) as MethodSymbol;
-
-            if ((object)helper == null)
-            {
-                RuntimeMembers.MemberDescriptor memberDescriptor = WellKnownMembers.GetDescriptor(member);
-                diagnostics.Add(Diagnostic.Create(new CSDiagnosticInfo(ErrorCode.ERR_MissingPredefinedMember, memberDescriptor.DeclaringTypeMetadataName, memberDescriptor.Name)));
-            }
-
-            return helper;
+            return (MethodSymbol)Binder.GetWellKnownTypeMember(compilation, WellKnownMember.Microsoft_CodeAnalysis_Runtime_Instrumentation__CreatePayload, diagnostics, syntax: syntax);
         }
 
-        private static MethodSymbol GetCreatePayload(CSharpCompilation compilation, DiagnosticBag diagnostics)
+        private static MethodSymbol GetFlushPayload(CSharpCompilation compilation, CSharpSyntaxNode syntax, DiagnosticBag diagnostics)
         {
-            return GetInstrumentationHelper(compilation, WellKnownMember.Microsoft_CodeAnalysis_Runtime_Instrumentation__CreatePayload, diagnostics);
-        }
-
-        private static MethodSymbol GetFlushPayload(CSharpCompilation compilation, DiagnosticBag diagnostics)
-        {
-            return GetInstrumentationHelper(compilation, WellKnownMember.Microsoft_CodeAnalysis_Runtime_Instrumentation__FlushPayload, diagnostics);
+            return (MethodSymbol)Binder.GetWellKnownTypeMember(compilation, WellKnownMember.Microsoft_CodeAnalysis_Runtime_Instrumentation__FlushPayload, diagnostics, syntax: syntax);
         }
 
         private static bool IsTestMethod(MethodSymbol method)
@@ -128,12 +120,13 @@ namespace Microsoft.CodeAnalysis.CSharp
         private readonly DiagnosticBag _diagnostics;
         private readonly DebugDocumentProvider _debugDocumentProvider;
 
-        public static void InstrumentMethod(MethodSymbol method, BoundBlock methodBody, FieldSymbol payloadField, TypeCompilationState compilationState, DiagnosticBag diagnostics, DebugDocumentProvider debugDocumentProvider, out ImmutableArray<SourceSpan> dynamicAnalysisSpans, out BoundBlock newMethodBody)
+        public static BoundBlock InstrumentMethod(MethodSymbol method, BoundBlock methodBody, FieldSymbol payloadField, TypeCompilationState compilationState, DiagnosticBag diagnostics, DebugDocumentProvider debugDocumentProvider, out ImmutableArray<SourceSpan> dynamicAnalysisSpans)
         {
             ArrayBuilder<SourceSpan> spansBuilder = ArrayBuilder<SourceSpan>.GetInstance();
             BoundTreeRewriter collector = new InstrumentationInjectionRewriter(method, spansBuilder, payloadField, compilationState, diagnostics, debugDocumentProvider);
-            newMethodBody = (BoundBlock)collector.Visit(methodBody);
+            BoundBlock newMethodBody = (BoundBlock)collector.Visit(methodBody);
             dynamicAnalysisSpans = spansBuilder.ToImmutableAndFree();
+            return newMethodBody;
         }
 
         private InstrumentationInjectionRewriter(MethodSymbol method, ArrayBuilder<SourceSpan> spansBuilder, FieldSymbol payload, TypeCompilationState compilationState, DiagnosticBag diagnostics, DebugDocumentProvider debugDocumentProvider)
@@ -188,6 +181,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 return statement;
             }
+
+            // Add an entry in the spans array.
 
             Location statementLocation = statement.Syntax.GetLocation();
             FileLinePositionSpan lineSpan = statementLocation.GetMappedLineSpan();

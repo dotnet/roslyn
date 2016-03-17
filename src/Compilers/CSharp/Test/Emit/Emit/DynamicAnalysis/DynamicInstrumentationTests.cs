@@ -450,7 +450,7 @@ public class Program
 
     async static Task<string> First(string s)
     {
-        string result = await Second(s) + ""XXX"";
+        string result = await Second(s) + ""Glue"";
         if (result.Length > 2)
             return result;
         else
@@ -472,7 +472,7 @@ public class Program
 1
 True
 True
-GooGooXXXGooGoo
+GooGooGlueGooGoo
 Flushing
 1
 False

@@ -4463,6 +4463,11 @@ namespace Microsoft.Cci
             return 0x11000000 | signatureIndex;
         }
 
+        private static byte ReadByte(ImmutableArray<byte> buffer, int pos)
+        {
+            return buffer[pos];
+        }
+
         private static int ReadInt32(ImmutableArray<byte> buffer, int pos)
         {
             return buffer[pos] | buffer[pos + 1] << 8 | buffer[pos + 2] << 16 | buffer[pos + 3] << 24;
@@ -4581,6 +4586,7 @@ namespace Microsoft.Cci
                             {
                                 if ((pseudoToken & 0x80000000) != 0 && (uint)pseudoToken != 0xffffffff)
                                 {
+                                    Debug.Assert(ReadByte(methodBodyIL, offset - 1) == (byte)ILOpCode.Ldtoken);
                                     writer.Offset = offset - 1;
                                     writer.WriteByte((byte)ILOpCode.Ldc_i4);
                                     pseudoToken &= 0x7fffffff;

@@ -612,16 +612,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             { WasCompilerGenerated = true };
         }
 
-        public BoundCall Call(BoundExpression receiver, MethodSymbol method, ImmutableArray<RefKind> argumentRefKinds, ImmutableArray<BoundExpression> args)
-        {
-            Debug.Assert(method.ParameterCount == args.Length);
-            return new BoundCall(
-                Syntax, receiver, method, args,
-                ImmutableArray<String>.Empty, argumentRefKinds, false, false, false,
-                default(ImmutableArray<int>), LookupResultKind.Viable, method.ReturnType)
-            { WasCompilerGenerated = true };
-        }
-
         public BoundExpression Conditional(BoundExpression condition, BoundExpression consequence, BoundExpression alternative, TypeSymbol type)
         {
             return new BoundConditionalOperator(Syntax, condition, consequence, alternative, default(ConstantValue), type) { WasCompilerGenerated = true };
@@ -1126,16 +1116,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 new BoundArrayInitialization(Syntax, elements) { WasCompilerGenerated = true },
                 Compilation.CreateArrayTypeSymbol(elementType));
         }
-
-        public BoundExpression Array(TypeSymbol elementType, int elementCount)
-        {
-            return new BoundArrayCreation(
-                Syntax,
-                ImmutableArray.Create<BoundExpression>(Literal(elementCount)),
-                null,
-                Compilation.CreateArrayTypeSymbol(elementType));
-        }
-
+        
         internal BoundExpression Default(TypeSymbol type)
         {
             return new BoundDefaultOperator(Syntax, type) { WasCompilerGenerated = true };
