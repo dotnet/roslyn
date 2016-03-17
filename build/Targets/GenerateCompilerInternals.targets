@@ -35,7 +35,7 @@
   </PropertyGroup>
 
   <PropertyGroup>
-	<MonoPrefix Condition="'$(OS)' != 'Windows_NT'">$(MonoToolsetPath) </MonoPrefix>
+      <MonoPrefix Condition="'$(OS)' != 'Windows_NT'">mono</MonoPrefix>
   </PropertyGroup>
   
   <Target

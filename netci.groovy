@@ -58,13 +58,23 @@ static void addWrappers(def myJob) {
 static void addArtifactArchiving(def myJob, String patternString, String excludeString) {
   myJob.with {
     publishers {
-      archiveArtifacts {
-        allowEmpty(true)
-        defaultExcludes(false)
-        exclude(excludeString)
-        fingerprint(false)
-        onlyIfSuccessful(false)
-        pattern(patternString)
+      flexiblePublish {
+        conditionalAction {
+          condition {
+            status('ABORTED', 'FAILURE')
+          }
+
+          publishers {
+            archiveArtifacts {
+              allowEmpty(true)
+              defaultExcludes(false)
+              exclude(excludeString)
+              fingerprint(false)
+              onlyIfSuccessful(false)
+              pattern(patternString)
+            }
+          }
+        }
       }
     }
   }
@@ -153,8 +163,8 @@ static void addStandardJob(def myJob, String jobName, String branchName, String 
   addLogRotator(myJob)
   addWrappers(myJob)
 
-  def includePattern = "Binaries/**/*.pdb,Binaries/**/*.xml,Binaries/**/*.log,Binaries/**/*.dmp,Binaries/**/*.zip"
-  def excludePattern = "Binaries/Obj/**,Binaries/Bootstrap/**"
+  def includePattern = "Binaries/**/*.pdb,Binaries/**/*.xml,Binaries/**/*.log,Binaries/**/*.dmp,Binaries/**/*.zip,Binaries/**/*.png,Binaries/**/*.xml"
+  def excludePattern = "Binaries/Obj/**,Binaries/Bootstrap/**,Binaries/**/nuget*.zip"
   addArtifactArchiving(myJob, includePattern, excludePattern)
 
   if (branchName == 'prtest') {
@@ -174,16 +184,21 @@ static void addStandardJob(def myJob, String jobName, String branchName, String 
   }
 }
 
+def branchNames = []
 ['master', 'future', 'stabilization', 'future-stabilization', 'hotfixes', 'prtest'].each { branchName ->
-  // folder("${branchName.substring(0, 6)}")
+  def shortBranchName = branchName.substring(0, 6)
+  def jobBranchName = shortBranchName in branchNames ? branchName : shortBranchName
+  branchNames << jobBranchName
+
+  // folder("${jobBranchName}")
   ['win', 'linux', 'mac'].each { opsys ->
-    // folder("${branchName.substring(0, 6)}/${opsys.substring(0, 3)}")
+    // folder("${jobBranchName}/${opsys.substring(0, 3)}")
     ['dbg', 'rel'].each { configuration ->
       if ((configuration == 'dbg') || ((branchName != 'prtest') && (opsys == 'win'))) {
-        // folder("${branchName.substring(0, 6)}/${opsys.substring(0, 3)}/${configuration}")
+        // folder("${jobBranchName}/${opsys.substring(0, 3)}/${configuration}")
         ['unit32', 'unit64'].each { buildTarget ->
           if ((opsys == 'win') || (buildTarget == 'unit32')) {
-            def jobName = "roslyn_${branchName.substring(0, 6)}_${opsys.substring(0, 3)}_${configuration}_${buildTarget}"
+            def jobName = "roslyn_${jobBranchName}_${opsys.substring(0, 3)}_${configuration}_${buildTarget}"
             def myJob = job(jobName) {
               description('')
             }
@@ -231,7 +246,7 @@ set TMP=%TEMP%
   }
 
   if (branchName != 'prtest') {
-    def determinismJobName = "roslyn_${branchName.substring(0, 6)}_determinism"
+    def determinismJobName = "roslyn_${jobBranchName}_determinism"
     def determinismJob = job(determinismJobName) {
       description('')
     }

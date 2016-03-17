@@ -409,8 +409,7 @@ namespace Microsoft.Cci
 
         ImmutableArray<byte> IL { get; }
         bool HasAnySequencePoints { get; }
-        ImmutableArray<SequencePoint> GetSequencePoints();
-        ImmutableArray<SequencePoint> GetLocations();
+        void GetSequencePoints(ArrayBuilder<SequencePoint> builder);
 
         /// <summary>
         /// Returns true if there is at least one dynamic local within the MethodBody

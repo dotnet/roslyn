@@ -76,6 +76,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
 
             TestProperty(Function(old, value) old.WithConcurrentBuild(value), Function(opt) opt.ConcurrentBuild, False)
             TestProperty(Function(old, value) old.WithExtendedCustomDebugInformation(value), Function(opt) opt.ExtendedCustomDebugInformation, False)
+            TestProperty(Function(old, value) old.WithCurrentLocalTime(value), Function(opt) opt.CurrentLocalTime, #2015/1/1#)
             TestProperty(Function(old, value) old.WithDebugPlusMode(value), Function(opt) opt.DebugPlusMode, True)
 
             TestProperty(Function(old, value) old.WithXmlReferenceResolver(value), Function(opt) opt.XmlReferenceResolver, New XmlFileResolver(Nothing))

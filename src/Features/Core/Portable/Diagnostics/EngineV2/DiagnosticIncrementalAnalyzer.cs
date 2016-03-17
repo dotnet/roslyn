@@ -61,13 +61,13 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
 
         public override void RemoveDocument(DocumentId documentId)
         {
-            Owner.RaiseDiagnosticsUpdated(this, DiagnosticsUpdatedArgs.DiagnosticsRemoved(
+            Owner.RaiseDiagnosticsUpdated(DiagnosticsUpdatedArgs.DiagnosticsRemoved(
                 ValueTuple.Create(this, documentId), Workspace, null, null, null));
         }
 
         public override void RemoveProject(ProjectId projectId)
         {
-            Owner.RaiseDiagnosticsUpdated(this, DiagnosticsUpdatedArgs.DiagnosticsRemoved(
+            Owner.RaiseDiagnosticsUpdated(DiagnosticsUpdatedArgs.DiagnosticsRemoved(
                 ValueTuple.Create(this, projectId), Workspace, null, null, null));
         }
         #endregion
@@ -213,14 +213,12 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
             {
                 if (kv.Key == null)
                 {
-                    Owner.RaiseDiagnosticsUpdated(
-                        this, DiagnosticsUpdatedArgs.DiagnosticsCreated(
+                    Owner.RaiseDiagnosticsUpdated(DiagnosticsUpdatedArgs.DiagnosticsCreated(
                             ValueTuple.Create(this, project.Id), workspace, solution, project.Id, null, kv.ToImmutableArrayOrEmpty()));
                     continue;
                 }
 
-                Owner.RaiseDiagnosticsUpdated(
-                    this, DiagnosticsUpdatedArgs.DiagnosticsCreated(
+                Owner.RaiseDiagnosticsUpdated(DiagnosticsUpdatedArgs.DiagnosticsCreated(
                         ValueTuple.Create(this, kv.Key), workspace, solution, project.Id, kv.Key, kv.ToImmutableArrayOrEmpty()));
             }
         }

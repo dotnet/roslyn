@@ -697,17 +697,21 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                 Return Nothing
             End If
 
-            typeBinder.ReportUseSiteError(diagBag, singleHandleClause.EventMember, eventContainingType)
-
-            ' Bind event symbol
             Dim eventName As String = singleHandleClause.EventMember.Identifier.ValueText
-            Dim eventSymbol As EventSymbol = FindEvent(eventContainingType,
-                                                       typeBinder,
-                                                       eventName,
-                                                       handlesKind = HandledEventKind.MyBase,
-                                                       useSiteDiagnostics,
-                                                       candidateEventSymbols,
-                                                       resultKind)
+            Dim eventSymbol As EventSymbol = Nothing
+
+            If eventContainingType IsNot Nothing Then
+                typeBinder.ReportUseSiteError(diagBag, singleHandleClause.EventMember, eventContainingType)
+
+                ' Bind event symbol
+                eventSymbol = FindEvent(eventContainingType,
+                                        typeBinder,
+                                        eventName,
+                                        handlesKind = HandledEventKind.MyBase,
+                                        useSiteDiagnostics,
+                                        candidateEventSymbols,
+                                        resultKind)
+            End If
 
             diagBag.Add(singleHandleClause.EventMember, useSiteDiagnostics)
 
@@ -715,7 +719,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                 'Event '{0}' cannot be found.
                 Binder.ReportDiagnostic(diagBag, singleHandleClause.EventMember, ERRID.ERR_EventNotFound1, eventName)
                 Return Nothing
-
             End If
 
             typeBinder.ReportDiagnosticsIfObsolete(diagBag, eventSymbol, singleHandleClause.EventMember)

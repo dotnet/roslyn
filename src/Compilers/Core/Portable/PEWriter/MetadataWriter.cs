@@ -550,6 +550,8 @@ namespace Microsoft.Cci
             this.module.Dispatch(_referenceVisitor);
 
             this.CreateMethodBodyReferenceIndex();
+
+            this.OnIndicesCreated();
         }
 
         private void CreateUserStringIndices()
@@ -564,7 +566,7 @@ namespace Microsoft.Cci
             _pseudoStringTokenToTokenMap = new int[_pseudoStringTokenToStringMap.Count];
         }
 
-        protected virtual void CreateIndicesForModule()
+        private void CreateIndicesForModule()
         {
             var nestedTypes = new Queue<ITypeDefinition>();
 
@@ -577,6 +579,10 @@ namespace Microsoft.Cci
             {
                 this.CreateIndicesFor(nestedTypes.Dequeue(), nestedTypes);
             }
+        }
+
+        protected virtual void OnIndicesCreated()
+        {
         }
 
         private void CreateIndicesFor(ITypeDefinition typeDef, Queue<ITypeDefinition> nestedTypes)

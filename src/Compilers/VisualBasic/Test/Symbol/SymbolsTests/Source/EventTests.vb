@@ -2209,5 +2209,26 @@ End Enum
             Assert.Equal(0, symbolInfo.CandidateSymbols.Length)
         End Sub
 
+        <WorkItem(9400, "https://github.com/dotnet/roslyn/issues/9400")>
+        <Fact()>
+        Public Sub HandlesNoMyBase()
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(
+<compilation>
+    <file name="a.vb"><![CDATA[
+Interface I
+    Sub F() Handles MyBase.E
+End Interface
+]]></file>
+</compilation>)
+            compilation.AssertTheseDiagnostics(<expected>
+BC30270: 'Handles' is not valid on an interface method declaration.
+    Sub F() Handles MyBase.E
+            ~~~~~~~~~~~~~~~~
+BC30590: Event 'E' cannot be found.
+    Sub F() Handles MyBase.E
+                           ~
+                           </expected>)
+        End Sub
+
     End Class
 End Namespace

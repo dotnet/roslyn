@@ -18,7 +18,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             // copy the original switch expression into a temp
             BoundAssignmentOperator initialStore;
-            var switchExpressionTemp = _factory.StoreToTemp(node.Expression, out initialStore, syntaxOpt: node.Expression.Syntax);
+            var switchExpressionTemp = _factory.StoreToTemp(VisitExpression(node.Expression), out initialStore, syntaxOpt: node.Expression.Syntax);
             statements.Add(_factory.ExpressionStatement(initialStore));
 
             // save the default label, if and when we find it.

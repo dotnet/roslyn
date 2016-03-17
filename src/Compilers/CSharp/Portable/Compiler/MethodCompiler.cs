@@ -958,7 +958,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     });
 
                     MethodSymbol symbolToProduce = methodSymbol.PartialDefinitionPart ?? methodSymbol;
-                    _compilation.EventQueue.Enqueue(new SymbolDeclaredCompilationEvent(_compilation, symbolToProduce, lazySemanticModel));
+                    _compilation.EventQueue.TryEnqueue(new SymbolDeclaredCompilationEvent(_compilation, symbolToProduce, lazySemanticModel));
                 }
 
                 // Don't lower if we're not emitting or if there were errors. 
@@ -1754,7 +1754,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             // wrap in ConstructorInitializerBinder for appropriate errors
-            Binder initializerBinder = outerBinder.WithAdditionalFlagsAndContainingMemberOrLambda(BinderFlags.ConstructorInitializer, constructor);
+            // Handle scoping for possible pattern variables declared in the initializer
+            Binder initializerBinder = outerBinder.WithAdditionalFlagsAndContainingMemberOrLambda(BinderFlags.ConstructorInitializer, constructor).
+                                       WithPatternVariablesIfAny(initializerArgumentListOpt);
 
             return initializerBinder.BindConstructorInitializer(initializerArgumentListOpt, constructor, diagnostics);
         }

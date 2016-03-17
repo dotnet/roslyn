@@ -13,50 +13,25 @@ namespace Microsoft.CodeAnalysis.CSharp
     class PatternVariableFinder : CSharpSyntaxWalker
     {
         ArrayBuilder<DeclarationPatternSyntax> declarationPatterns;
-        ArrayBuilder<ExpressionSyntax> expressionsToVisit = ArrayBuilder<ExpressionSyntax>.GetInstance();
         internal static ArrayBuilder<DeclarationPatternSyntax> FindPatternVariables(
-            ExpressionSyntax expression = null,
-            ImmutableArray<ExpressionSyntax> expressions = default(ImmutableArray<ExpressionSyntax>),
-            ImmutableArray<PatternSyntax> patterns = default(ImmutableArray<PatternSyntax>))
+            CSharpSyntaxNode node = null,
+            ImmutableArray<CSharpSyntaxNode> nodes = default(ImmutableArray<CSharpSyntaxNode>))
         {
             var finder = s_poolInstance.Allocate();
             finder.declarationPatterns = ArrayBuilder<DeclarationPatternSyntax>.GetInstance();
-
-            // push expressions to be visited onto a stack
-            var expressionsToVisit = finder.expressionsToVisit;
-            if (expression != null) expressionsToVisit.Add(expression);
-            if (!expressions.IsDefaultOrEmpty)
+            finder.Visit(node);
+            if (!nodes.IsDefaultOrEmpty)
             {
-                foreach (var subExpression in expressions)
+                foreach (var n in nodes)
                 {
-                    if (subExpression != null) expressionsToVisit.Add(subExpression);
-                }
-            }
-            finder.VisitExpressions();
-
-            if (!patterns.IsDefaultOrEmpty)
-            {
-                foreach (var pattern in patterns)
-                {
-                    finder.Visit(pattern);
+                    finder.Visit(n);
                 }
             }
 
             var result = finder.declarationPatterns;
             finder.declarationPatterns = null;
-            Debug.Assert(finder.expressionsToVisit.Count == 0);
             s_poolInstance.Free(finder);
             return result;
-        }
-
-        private void VisitExpressions()
-        {
-            while (expressionsToVisit.Count != 0)
-            {
-                var e = expressionsToVisit[expressionsToVisit.Count - 1];
-                expressionsToVisit.RemoveLast();
-                Visit(e);
-            }
         }
 
         public override void VisitDeclarationPattern(DeclarationPatternSyntax node)
@@ -85,17 +60,30 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public override void VisitBinaryExpression(BinaryExpressionSyntax node)
         {
-            expressionsToVisit.Add(node.Right);
-            expressionsToVisit.Add(node.Left);
+            // The binary operators (except ??) are left-associative, and expressions of the form
+            // a + b + c + d .... are relatively common in machine-generated code. The parser can handle
+            // creating a deep-on-the-left syntax tree no problem, and then we promptly blow the stack during
+            // semantic analysis. Here we build an explicit stack to handle left recursion.
+
+            var operands = ArrayBuilder<ExpressionSyntax>.GetInstance();
+            ExpressionSyntax current = node;
+            do
+            {
+                var binOp = (BinaryExpressionSyntax)current;
+                operands.Push(binOp.Right);
+                current = binOp.Left;
+            }
+            while (current is BinaryExpressionSyntax);
+
+            Visit(current);
+            while (operands.Count > 0)
+            {
+                Visit(operands.Pop());
+            }
+
+            operands.Free();
         }
-        public override void VisitPostfixUnaryExpression(PostfixUnaryExpressionSyntax node)
-        {
-            expressionsToVisit.Add(node.Operand);
-        }
-        public override void VisitPrefixUnaryExpression(PrefixUnaryExpressionSyntax node)
-        {
-            expressionsToVisit.Add(node.Operand);
-        }
+
         public override void VisitMatchExpression(MatchExpressionSyntax node)
         {
             Visit(node.Left);

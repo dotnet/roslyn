@@ -2,3 +2,4 @@
 
 using Xunit;
 
+[assembly: TestFramework("Microsoft.VisualStudio.ResolveDependenciesLocallyTestFramework", "Microsoft.VisualStudio.ProjectSystem.Managed.UnitTests")]

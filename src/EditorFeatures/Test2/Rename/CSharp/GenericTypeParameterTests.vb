@@ -2,10 +2,16 @@
 
 Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Rename.CSharp
     Public Class GenericTypeParameterTests
+        Private ReadOnly _outputHelper As Abstractions.ITestOutputHelper
+
+        Public Sub New(outputHelper As Abstractions.ITestOutputHelper)
+            _outputHelper = outputHelper
+        End Sub
+
         <WorkItem(403671, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/403671")>
         <Fact, Trait(Traits.Feature, Traits.Features.Rename)>
         Public Sub CustomerReported_ErrorTolerance()
-            Using result = RenameEngineResult.Create(
+            Using result = RenameEngineResult.Create(_outputHelper,
                 <Workspace>
                     <Project Language="C#" CommonReferences="true">
                         <Document>

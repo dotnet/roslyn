@@ -1482,23 +1482,26 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             foreach (LocalSymbol local in localsOpt)
             {
-                if (local.DeclarationKind == LocalDeclarationKind.RegularVariable)
+                switch (local.DeclarationKind)
                 {
-                    DeclareVariable(local);
-                }
-                else
-                {
-                    Debug.Assert(local.DeclarationKind == LocalDeclarationKind.UsingVariable);
-                    int slot = GetOrCreateSlot(local);
-                    if (slot >= 0)
-                    {
-                        SetSlotAssigned(slot);
-                        NoteWrite(local, value: null, read: true);
-                    }
-                    else
-                    {
-                        Debug.Assert(_emptyStructTypeCache.IsEmptyStructType(local.Type));
-                    }
+                    case LocalDeclarationKind.RegularVariable:
+                    case LocalDeclarationKind.PatternVariable:
+                        DeclareVariable(local);
+                        break;
+
+                    default:
+                        Debug.Assert(local.DeclarationKind == LocalDeclarationKind.UsingVariable);
+                        int slot = GetOrCreateSlot(local);
+                        if (slot >= 0)
+                        {
+                            SetSlotAssigned(slot);
+                            NoteWrite(local, value: null, read: true);
+                        }
+                        else
+                        {
+                            Debug.Assert(_emptyStructTypeCache.IsEmptyStructType(local.Type));
+                        }
+                        break;
                 }
             }
 

@@ -58,7 +58,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.ProjectSystemShim
 
         Public Function AddEmbeddedMetaDataReference(wszFileName As String) As Integer Implements IVbCompilerProject.AddEmbeddedMetaDataReference
             Try
-                Return AddMetadataReferenceAndTryConvertingToProjectReferenceIfPossible(wszFileName, New MetadataReferenceProperties(embedInteropTypes:=True), VSConstants.S_FALSE)
+                Return AddMetadataReferenceAndTryConvertingToProjectReferenceIfPossible(wszFileName, New MetadataReferenceProperties(embedInteropTypes:=True))
             Catch e As Exception When FilterException(e)
                 Throw ExceptionUtilities.Unreachable
             End Try
@@ -72,7 +72,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.ProjectSystemShim
                     Return VSConstants.S_OK
                 End If
 
-                Return AddMetadataReferenceAndTryConvertingToProjectReferenceIfPossible(wszFileName, New MetadataReferenceProperties(), VSConstants.S_FALSE)
+                Return AddMetadataReferenceAndTryConvertingToProjectReferenceIfPossible(wszFileName, New MetadataReferenceProperties())
             Catch e As Exception When FilterException(e)
                 Throw ExceptionUtilities.Unreachable
             End Try
@@ -414,7 +414,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.ProjectSystemShim
                     If HasMetadataReference(newRuntimeLibrary) Then
                         _explicitlyAddedDefaultReferences.Add(newRuntimeLibrary)
                     Else
-                        MyBase.AddMetadataReferenceAndTryConvertingToProjectReferenceIfPossible(newRuntimeLibrary, MetadataReferenceProperties.Assembly, hResultForMissingFile:=0)
+                        MyBase.AddMetadataReferenceAndTryConvertingToProjectReferenceIfPossible(newRuntimeLibrary, MetadataReferenceProperties.Assembly)
                     End If
                 Next
             End If

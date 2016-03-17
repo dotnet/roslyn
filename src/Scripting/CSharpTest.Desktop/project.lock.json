@@ -252,15 +252,15 @@
           "lib/net45/_._": {}
         }
       },
-      "System.Reflection.Metadata/1.2.0-rc3-23811": {
+      "System.Reflection.Metadata/1.2.0": {
         "dependencies": {
           "System.Collections.Immutable": "1.1.37"
         },
         "compile": {
-          "lib/dotnet5.2/System.Reflection.Metadata.dll": {}
+          "lib/portable-net45+win8/System.Reflection.Metadata.dll": {}
         },
         "runtime": {
-          "lib/dotnet5.2/System.Reflection.Metadata.dll": {}
+          "lib/portable-net45+win8/System.Reflection.Metadata.dll": {}
         }
       },
       "System.Reflection.TypeExtensions/4.0.0": {
@@ -745,15 +745,15 @@
           "lib/net45/_._": {}
         }
       },
-      "System.Reflection.Metadata/1.2.0-rc3-23811": {
+      "System.Reflection.Metadata/1.2.0": {
         "dependencies": {
           "System.Collections.Immutable": "1.1.37"
         },
         "compile": {
-          "lib/dotnet5.2/System.Reflection.Metadata.dll": {}
+          "lib/portable-net45+win8/System.Reflection.Metadata.dll": {}
         },
         "runtime": {
-          "lib/dotnet5.2/System.Reflection.Metadata.dll": {}
+          "lib/portable-net45+win8/System.Reflection.Metadata.dll": {}
         }
       },
       "System.Reflection.TypeExtensions/4.0.0": {
@@ -1770,16 +1770,16 @@
         "runtimes/win8-aot/lib/netcore50/System.Reflection.Extensions.dll"
       ]
     },
-    "System.Reflection.Metadata/1.2.0-rc3-23811": {
-      "sha512": "gAOQV1dsGyQfQUuzsCYFLMlI6BhfK1/2aA7JGf6gJphaLgjU4dV4hzjbE0iZXgo61VUuda2LtCBrWWZBw5897Q==",
+    "System.Reflection.Metadata/1.2.0": {
+      "sha512": "ubQKFCNYPwhqPXPLjRKCvTDR2UvL5L5+Tm181D/5kl/df7264AuXDi2j2Bf5DxplBxevq8eUH9LRomcFCXTQKw==",
       "type": "package",
       "files": [
-        "System.Reflection.Metadata.1.2.0-rc3-23811.nupkg.sha512",
+        "System.Reflection.Metadata.1.2.0.nupkg.sha512",
         "System.Reflection.Metadata.nuspec",
         "ThirdPartyNotices.txt",
         "dotnet_library_license.txt",
-        "lib/dotnet5.2/System.Reflection.Metadata.dll",
-        "lib/dotnet5.2/System.Reflection.Metadata.xml",
+        "lib/netstandard1.1/System.Reflection.Metadata.dll",
+        "lib/netstandard1.1/System.Reflection.Metadata.xml",
         "lib/portable-net45+win8/System.Reflection.Metadata.dll",
         "lib/portable-net45+win8/System.Reflection.Metadata.xml"
       ]

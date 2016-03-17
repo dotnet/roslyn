@@ -791,7 +791,20 @@ namespace Microsoft.CodeAnalysis.CSharp
             associatedSyntaxNode = associatedSyntaxNode ?? declarator;
 
             // Check for variable declaration errors.
-            bool hasErrors = this.ValidateDeclarationNameConflictsInScope(localSymbol, diagnostics);
+            Binder nameConflictChecker = this;
+
+            // Step out of the PatternVariableBinder for locals declared in variable declaration statement
+            if (this is PatternVariableBinder)
+            {
+                CSharpSyntaxNode parent;
+                if ((parent = declarator.Parent)?.Kind() == SyntaxKind.VariableDeclaration &&
+                     parent.Parent?.Kind() == SyntaxKind.LocalDeclarationStatement)
+                {
+                    nameConflictChecker = this.Next;
+                }
+            }
+
+            bool hasErrors = nameConflictChecker.ValidateDeclarationNameConflictsInScope(localSymbol, diagnostics);
 
             var containingMethod = this.ContainingMemberOrLambda as MethodSymbol;
             if (containingMethod != null && containingMethod.IsAsync && localSymbol.RefKind != RefKind.None)
@@ -3450,7 +3463,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 Error(diagnostics, ErrorCode.WRN_FilterIsConstant, filter.FilterExpression);
             }
 
-            boundFilter = patternBinder.WrapWithPatternVariables(boundFilter);
+            boundFilter = patternBinder.WrapWithVariablesIfAny(boundFilter);
             boundFilter = new BoundSequencePointExpression(filter, boundFilter, boundFilter.Type);
             return boundFilter;
         }

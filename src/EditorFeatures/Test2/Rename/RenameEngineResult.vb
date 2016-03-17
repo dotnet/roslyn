@@ -10,6 +10,7 @@ Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.VisualStudio.Text
 Imports Xunit.Sdk
 Imports Microsoft.CodeAnalysis.Options
+Imports Xunit.Abstractions
 
 Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Rename
     ''' <summary>
@@ -54,8 +55,9 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Rename
             _renameTo = renameTo
         End Sub
 
-        Public Shared Function Create(workspaceXml As XElement, renameTo As String, Optional changedOptionSet As Dictionary(Of OptionKey, Object) = Nothing) As RenameEngineResult
+        Public Shared Function Create(helper As ITestOutputHelper, workspaceXml As XElement, renameTo As String, Optional changedOptionSet As Dictionary(Of OptionKey, Object) = Nothing) As RenameEngineResult
             Dim workspace = TestWorkspace.CreateWorkspace(workspaceXml)
+            workspace.SetTestLogger(AddressOf helper.WriteLine)
 
             Dim engineResult As RenameEngineResult = Nothing
             Try
@@ -82,15 +84,10 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Rename
                     Next
                 End If
 
-                AssertIsComplete(workspace.CurrentSolution)
-
                 Dim locations = RenameLocations.FindAsync(symbol, workspace.CurrentSolution, optionSet, CancellationToken.None).Result
                 Dim originalName = symbol.Name.Split("."c).Last()
 
                 Dim result = ConflictResolver.ResolveConflictsAsync(locations, originalName, renameTo, optionSet, hasConflict:=Nothing, cancellationToken:=CancellationToken.None).Result
-
-                AssertIsComplete(result.OldSolution)
-                AssertIsComplete(result.NewSolution)
 
                 engineResult = New RenameEngineResult(workspace, result, renameTo)
                 engineResult.AssertUnlabeledSpansRenamedAndHaveNoConflicts()
@@ -111,7 +108,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Rename
             ' Ensure we don't have a partial solution. This is to detect for possible root causes of
             ' https://github.com/dotnet/roslyn/issues/9298
 
-            If currentSolution.Projects.Any(Function(p) Not p.HasCompleteReferencesAsync().Result) Then
+            If currentSolution.Projects.Any(Function(p) Not p.HasSuccessfullyLoadedAsync().Result) Then
                 AssertEx.Fail("We have an incomplete project floating around which we should not.")
             End If
         End Sub

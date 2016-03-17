@@ -11,6 +11,14 @@
           "lib/net40/Esent.Interop.dll": {}
         }
       },
+      "Microsoft.CodeAnalysis.Elfie/0.10.6-rc2": {
+        "compile": {
+          "lib/net46/Microsoft.CodeAnalysis.Elfie.dll": {}
+        },
+        "runtime": {
+          "lib/net46/Microsoft.CodeAnalysis.Elfie.dll": {}
+        }
+      },
       "Microsoft.Composition/1.0.27": {
         "compile": {
           "lib/portable-net45+win8+wp8+wpa81/System.Composition.AttributedModel.dll": {},
@@ -38,7 +46,7 @@
           "lib/net45/_._": {}
         }
       },
-      "Microsoft.DiaSymReader/1.0.7-beta1-51221": {
+      "Microsoft.DiaSymReader/1.0.7": {
         "compile": {
           "lib/net20/Microsoft.DiaSymReader.dll": {}
         },
@@ -111,24 +119,6 @@
         },
         "runtime": {
           "lib/net46/_._": {}
-        }
-      },
-      "System.Diagnostics.Process/4.1.0-beta-23504": {
-        "dependencies": {
-          "System.IO": "4.0.0",
-          "System.Runtime": "4.0.0",
-          "System.Runtime.Handles": "4.0.0",
-          "System.Text.Encoding": "4.0.0"
-        },
-        "frameworkAssemblies": [
-          "System",
-          "mscorlib"
-        ],
-        "compile": {
-          "ref/net46/System.Diagnostics.Process.dll": {}
-        },
-        "runtime": {
-          "lib/net46/System.Diagnostics.Process.dll": {}
         }
       },
       "System.Diagnostics.StackTrace/4.0.0": {
@@ -243,15 +233,15 @@
           "lib/net45/_._": {}
         }
       },
-      "System.Reflection.Metadata/1.2.0-rc3-23811": {
+      "System.Reflection.Metadata/1.2.0": {
         "dependencies": {
           "System.Collections.Immutable": "1.1.37"
         },
         "compile": {
-          "lib/dotnet5.2/System.Reflection.Metadata.dll": {}
+          "lib/portable-net45+win8/System.Reflection.Metadata.dll": {}
         },
         "runtime": {
-          "lib/dotnet5.2/System.Reflection.Metadata.dll": {}
+          "lib/portable-net45+win8/System.Reflection.Metadata.dll": {}
         }
       },
       "System.Resources.ResourceManager/4.0.0": {
@@ -328,6 +318,14 @@
           "lib/net40/Esent.Interop.dll": {}
         }
       },
+      "Microsoft.CodeAnalysis.Elfie/0.10.6-rc2": {
+        "compile": {
+          "lib/net46/Microsoft.CodeAnalysis.Elfie.dll": {}
+        },
+        "runtime": {
+          "lib/net46/Microsoft.CodeAnalysis.Elfie.dll": {}
+        }
+      },
       "Microsoft.Composition/1.0.27": {
         "compile": {
           "lib/portable-net45+win8+wp8+wpa81/System.Composition.AttributedModel.dll": {},
@@ -355,7 +353,7 @@
           "lib/net45/_._": {}
         }
       },
-      "Microsoft.DiaSymReader/1.0.7-beta1-51221": {
+      "Microsoft.DiaSymReader/1.0.7": {
         "compile": {
           "lib/net20/Microsoft.DiaSymReader.dll": {}
         },
@@ -380,14 +378,6 @@
         },
         "runtime": {
           "lib/net45/_._": {}
-        }
-      },
-      "runtime.win7.System.Diagnostics.Process/4.1.0-beta-23504": {
-        "compile": {
-          "ref/dotnet/_._": {}
-        },
-        "runtime": {
-          "runtimes/win7/lib/net/_._": {}
         }
       },
       "System.AppContext/4.0.0": {
@@ -436,25 +426,6 @@
         },
         "runtime": {
           "lib/net46/_._": {}
-        }
-      },
-      "System.Diagnostics.Process/4.1.0-beta-23504": {
-        "dependencies": {
-          "System.IO": "4.0.0",
-          "System.Runtime": "4.0.0",
-          "System.Runtime.Handles": "4.0.0",
-          "System.Text.Encoding": "4.0.0",
-          "runtime.win7.System.Diagnostics.Process": "4.1.0-beta-23504"
-        },
-        "frameworkAssemblies": [
-          "System",
-          "mscorlib"
-        ],
-        "compile": {
-          "ref/net46/System.Diagnostics.Process.dll": {}
-        },
-        "runtime": {
-          "lib/net46/System.Diagnostics.Process.dll": {}
         }
       },
       "System.Diagnostics.StackTrace/4.0.0": {
@@ -569,15 +540,15 @@
           "lib/net45/_._": {}
         }
       },
-      "System.Reflection.Metadata/1.2.0-rc3-23811": {
+      "System.Reflection.Metadata/1.2.0": {
         "dependencies": {
           "System.Collections.Immutable": "1.1.37"
         },
         "compile": {
-          "lib/dotnet5.2/System.Reflection.Metadata.dll": {}
+          "lib/portable-net45+win8/System.Reflection.Metadata.dll": {}
         },
         "runtime": {
-          "lib/dotnet5.2/System.Reflection.Metadata.dll": {}
+          "lib/portable-net45+win8/System.Reflection.Metadata.dll": {}
         }
       },
       "System.Resources.ResourceManager/4.0.0": {
@@ -654,6 +625,14 @@
           "lib/net40/Esent.Interop.dll": {}
         }
       },
+      "Microsoft.CodeAnalysis.Elfie/0.10.6-rc2": {
+        "compile": {
+          "lib/net46/Microsoft.CodeAnalysis.Elfie.dll": {}
+        },
+        "runtime": {
+          "lib/net46/Microsoft.CodeAnalysis.Elfie.dll": {}
+        }
+      },
       "Microsoft.Composition/1.0.27": {
         "compile": {
           "lib/portable-net45+win8+wp8+wpa81/System.Composition.AttributedModel.dll": {},
@@ -681,7 +660,7 @@
           "lib/net45/_._": {}
         }
       },
-      "Microsoft.DiaSymReader/1.0.7-beta1-51221": {
+      "Microsoft.DiaSymReader/1.0.7": {
         "compile": {
           "lib/net20/Microsoft.DiaSymReader.dll": {}
         },
@@ -754,24 +733,6 @@
         },
         "runtime": {
           "lib/net46/_._": {}
-        }
-      },
-      "System.Diagnostics.Process/4.1.0-beta-23504": {
-        "dependencies": {
-          "System.IO": "4.0.0",
-          "System.Runtime": "4.0.0",
-          "System.Runtime.Handles": "4.0.0",
-          "System.Text.Encoding": "4.0.0"
-        },
-        "frameworkAssemblies": [
-          "System",
-          "mscorlib"
-        ],
-        "compile": {
-          "ref/net46/System.Diagnostics.Process.dll": {}
-        },
-        "runtime": {
-          "lib/net46/System.Diagnostics.Process.dll": {}
         }
       },
       "System.Diagnostics.StackTrace/4.0.0": {
@@ -886,15 +847,15 @@
           "lib/net45/_._": {}
         }
       },
-      "System.Reflection.Metadata/1.2.0-rc3-23811": {
+      "System.Reflection.Metadata/1.2.0": {
         "dependencies": {
           "System.Collections.Immutable": "1.1.37"
         },
         "compile": {
-          "lib/dotnet5.2/System.Reflection.Metadata.dll": {}
+          "lib/portable-net45+win8/System.Reflection.Metadata.dll": {}
         },
         "runtime": {
-          "lib/dotnet5.2/System.Reflection.Metadata.dll": {}
+          "lib/portable-net45+win8/System.Reflection.Metadata.dll": {}
         }
       },
       "System.Resources.ResourceManager/4.0.0": {
@@ -977,6 +938,15 @@
         "lib/netcore45/Esent.Interop.Wsa.pdb"
       ]
     },
+    "Microsoft.CodeAnalysis.Elfie/0.10.6-rc2": {
+      "sha512": "nw8Gelt5AYgv9PLxK3MIB5hPnMoMoC2s73YXwcM3dxxim5yxRdPbzmBy0ddEeUa9zb57qoaDLYpCF8Zajg54Dg==",
+      "type": "package",
+      "files": [
+        "Microsoft.CodeAnalysis.Elfie.0.10.6-rc2.nupkg.sha512",
+        "Microsoft.CodeAnalysis.Elfie.nuspec",
+        "lib/net46/Microsoft.CodeAnalysis.Elfie.dll"
+      ]
+    },
     "Microsoft.Composition/1.0.27": {
       "sha512": "pwu80Ohe7SBzZ6i69LVdzowp6V+LaVRzd5F7A6QlD42vQkX0oT7KXKWWPlM/S00w1gnMQMRnEdbtOV12z6rXdQ==",
       "type": "package",
@@ -1035,11 +1005,11 @@
         "ref/xamarinmac20/_._"
       ]
     },
-    "Microsoft.DiaSymReader/1.0.7-beta1-51221": {
-      "sha512": "sQ/I7+gi4Si8K7fqyJgMswip9RNvKjUD9CmmWwzcCxnX2sMLDA5X54thgX+cQn7nF0+C35a1nAYgafDsqiPOkg==",
+    "Microsoft.DiaSymReader/1.0.7": {
+      "sha512": "4tPrkKu02w87HEvoubBGm7Hqjps69DucsBWQvGezwvDV5RJt+eZqdmdC/jNH1qn6hIem9JpJnLBK0abBzhErOg==",
       "type": "package",
       "files": [
-        "Microsoft.DiaSymReader.1.0.7-beta1-51221.nupkg.sha512",
+        "Microsoft.DiaSymReader.1.0.7.nupkg.sha512",
         "Microsoft.DiaSymReader.nuspec",
         "lib/net20/Microsoft.DiaSymReader.dll",
         "lib/net20/Microsoft.DiaSymReader.xml",
@@ -1155,21 +1125,6 @@
         "ref/wpa81/_._"
       ]
     },
-    "runtime.win7.System.Diagnostics.Process/4.1.0-beta-23504": {
-      "sha512": "t96Q9MyIMoFQtblYAVQshxWL8AZEKSble9wb0Wp330R02N7fsgfPlhqd3h+VvrhTKMT0WWbkHyH9vEU+SSLpTg==",
-      "type": "package",
-      "files": [
-        "ref/dotnet/_._",
-        "runtime.win7.System.Diagnostics.Process.4.1.0-beta-23504.nupkg.sha512",
-        "runtime.win7.System.Diagnostics.Process.nuspec",
-        "runtimes/win7/lib/dotnet5.5/System.Diagnostics.Process.dll",
-        "runtimes/win7/lib/net/_._",
-        "runtimes/win7/lib/netcore50/_._",
-        "runtimes/win7/lib/win8/_._",
-        "runtimes/win7/lib/wp8/_._",
-        "runtimes/win7/lib/wpa81/_._"
-      ]
-    },
     "System.AppContext/4.0.0": {
       "sha512": "gUoYgAWDC3+xhKeU5KSLbYDhTdBYk9GssrMSCcWUADzOglW+s0AmwVhOUGt2tL5xUl7ZXoYTPdA88zCgKrlG0A==",
       "type": "package",
@@ -1275,49 +1230,6 @@
         "ref/xamarinios10/_._",
         "ref/xamarinmac20/_._",
         "runtimes/win8-aot/lib/netcore50/System.Diagnostics.Debug.dll"
-      ]
-    },
-    "System.Diagnostics.Process/4.1.0-beta-23504": {
-      "sha512": "x2J3Sww13e9um3rXRf+iBh06z3elsh2ihbKaJyn3rT97PMY/AJUpySARe9eqvs5SnzuI9FT+4++iSdWV5Ftmgg==",
-      "type": "package",
-      "files": [
-        "System.Diagnostics.Process.4.1.0-beta-23504.nupkg.sha512",
-        "System.Diagnostics.Process.nuspec",
-        "lib/MonoAndroid10/_._",
-        "lib/MonoTouch10/_._",
-        "lib/net46/System.Diagnostics.Process.dll",
-        "lib/net461/System.Diagnostics.Process.dll",
-        "lib/xamarinios10/_._",
-        "lib/xamarinmac20/_._",
-        "ref/MonoAndroid10/_._",
-        "ref/MonoTouch10/_._",
-        "ref/dotnet5.4/System.Diagnostics.Process.dll",
-        "ref/dotnet5.4/System.Diagnostics.Process.xml",
-        "ref/dotnet5.4/de/System.Diagnostics.Process.xml",
-        "ref/dotnet5.4/es/System.Diagnostics.Process.xml",
-        "ref/dotnet5.4/fr/System.Diagnostics.Process.xml",
-        "ref/dotnet5.4/it/System.Diagnostics.Process.xml",
-        "ref/dotnet5.4/ja/System.Diagnostics.Process.xml",
-        "ref/dotnet5.4/ko/System.Diagnostics.Process.xml",
-        "ref/dotnet5.4/ru/System.Diagnostics.Process.xml",
-        "ref/dotnet5.4/zh-hans/System.Diagnostics.Process.xml",
-        "ref/dotnet5.4/zh-hant/System.Diagnostics.Process.xml",
-        "ref/dotnet5.5/System.Diagnostics.Process.dll",
-        "ref/dotnet5.5/System.Diagnostics.Process.xml",
-        "ref/dotnet5.5/de/System.Diagnostics.Process.xml",
-        "ref/dotnet5.5/es/System.Diagnostics.Process.xml",
-        "ref/dotnet5.5/fr/System.Diagnostics.Process.xml",
-        "ref/dotnet5.5/it/System.Diagnostics.Process.xml",
-        "ref/dotnet5.5/ja/System.Diagnostics.Process.xml",
-        "ref/dotnet5.5/ko/System.Diagnostics.Process.xml",
-        "ref/dotnet5.5/ru/System.Diagnostics.Process.xml",
-        "ref/dotnet5.5/zh-hans/System.Diagnostics.Process.xml",
-        "ref/dotnet5.5/zh-hant/System.Diagnostics.Process.xml",
-        "ref/net46/System.Diagnostics.Process.dll",
-        "ref/net461/System.Diagnostics.Process.dll",
-        "ref/xamarinios10/_._",
-        "ref/xamarinmac20/_._",
-        "runtime.json"
       ]
     },
     "System.Diagnostics.StackTrace/4.0.0": {
@@ -1670,16 +1582,16 @@
         "runtimes/win8-aot/lib/netcore50/System.Reflection.Extensions.dll"
       ]
     },
-    "System.Reflection.Metadata/1.2.0-rc3-23811": {
-      "sha512": "gAOQV1dsGyQfQUuzsCYFLMlI6BhfK1/2aA7JGf6gJphaLgjU4dV4hzjbE0iZXgo61VUuda2LtCBrWWZBw5897Q==",
+    "System.Reflection.Metadata/1.2.0": {
+      "sha512": "ubQKFCNYPwhqPXPLjRKCvTDR2UvL5L5+Tm181D/5kl/df7264AuXDi2j2Bf5DxplBxevq8eUH9LRomcFCXTQKw==",
       "type": "package",
       "files": [
-        "System.Reflection.Metadata.1.2.0-rc3-23811.nupkg.sha512",
+        "System.Reflection.Metadata.1.2.0.nupkg.sha512",
         "System.Reflection.Metadata.nuspec",
         "ThirdPartyNotices.txt",
         "dotnet_library_license.txt",
-        "lib/dotnet5.2/System.Reflection.Metadata.dll",
-        "lib/dotnet5.2/System.Reflection.Metadata.xml",
+        "lib/netstandard1.1/System.Reflection.Metadata.dll",
+        "lib/netstandard1.1/System.Reflection.Metadata.xml",
         "lib/portable-net45+win8/System.Reflection.Metadata.dll",
         "lib/portable-net45+win8/System.Reflection.Metadata.xml"
       ]

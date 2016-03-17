@@ -27,7 +27,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGen
         End Enum
 
         ''' <summary>
-        ''' Analyses the tree trying to figure which locals may live on stack. It is 
+        ''' Analyzes the tree trying to figure which locals may live on stack. It is 
         ''' a fairly delicate process and must be very familiar with how CodeGen works. 
         ''' It is essentially a part of CodeGen.
         ''' 
