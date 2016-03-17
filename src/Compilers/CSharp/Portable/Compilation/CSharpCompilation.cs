@@ -1698,33 +1698,22 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private void CompleteTree(SyntaxTree tree)
         {
-            bool completedCompilationUnit = false;
-            bool completedCompilation = false;
-
             if (_lazyCompilationUnitCompletedTrees == null) Interlocked.CompareExchange(ref _lazyCompilationUnitCompletedTrees, new HashSet<SyntaxTree>(), null);
             lock (_lazyCompilationUnitCompletedTrees)
             {
                 if (_lazyCompilationUnitCompletedTrees.Add(tree))
                 {
-                    completedCompilationUnit = true;
+                    // signal the end of the compilation unit
+                    EventQueue.TryEnqueue(new CompilationUnitCompletedEvent(this, tree));
+
                     if (_lazyCompilationUnitCompletedTrees.Count == this.SyntaxTrees.Length)
                     {
-                        completedCompilation = true;
+                        // if that was the last tree, signal the end of compilation
+                        EventQueue.TryEnqueue(new CompilationCompletedEvent(this));
+                        EventQueue.PromiseNotToEnqueue();
+                        EventQueue.TryComplete();
                     }
                 }
-            }
-
-            if (completedCompilationUnit)
-            {
-                EventQueue.TryEnqueue(new CompilationUnitCompletedEvent(this, tree));
-            }
-
-            if (completedCompilation)
-            {
-                // signal the end of compilation events
-                EventQueue.TryEnqueue(new CompilationCompletedEvent(this));
-                EventQueue.PromiseNotToEnqueue();
-                EventQueue.TryComplete();
             }
         }
 
