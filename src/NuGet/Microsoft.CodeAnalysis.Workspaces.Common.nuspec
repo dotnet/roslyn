@@ -1,0 +1,37 @@
+<?xml version="1.0"?>
+<package xmlns="http://schemas.microsoft.com/packaging/2011/08/nuspec.xsd">
+  <metadata>
+    <id>Microsoft.CodeAnalysis.Workspaces.Common</id>
+    <summary>
+      A shared package used by the .NET Compiler Platform ("Roslyn") including support for analyzing projects and solutions.
+    </summary>
+    <description>
+      A shared package used by the .NET Compiler Platform ("Roslyn") including support for analyzing projects and solutions. Do not install this package manually, it will be added as a prerequisite by other packages that require it.
+
+Supported Platforms:
+- .NET Framework 4.5
+    </description>
+    <dependencies>
+      <dependency id="Microsoft.CodeAnalysis.Common" version="[$currentVersion$]" />
+      <dependency id="Microsoft.Composition" version="1.0.27" />
+    </dependencies>
+
+    <language>en-US</language>
+    <requireLicenseAcceptance>true</requireLicenseAcceptance>
+    <version>$currentVersion$</version>
+    <authors>$authors$</authors>
+    <licenseUrl>$licenseUrl$</licenseUrl>
+    <projectUrl>$projectUrl$</projectUrl>
+    <releaseNotes>$releaseNotes$</releaseNotes>
+    <tags>$tags$</tags>
+  </metadata>
+  <files>
+    <file src="Microsoft.CodeAnalysis.Workspaces.dll" target="lib\portable-net45+win8" />
+    <file src="Microsoft.CodeAnalysis.Workspaces.xml" target="lib\portable-net45+win8" />
+    <file src="Microsoft.CodeAnalysis.Workspaces.dll" target="lib\net45" />
+    <file src="Microsoft.CodeAnalysis.Workspaces.xml" target="lib\net45" />
+    <file src="Microsoft.CodeAnalysis.Workspaces.Desktop.dll" target="lib\net45" />
+    <file src="Microsoft.CodeAnalysis.Workspaces.Desktop.xml" target="lib\net45" />
+    <file src="ThirdPartyNotices.rtf" target="" />
+  </files>
+</package>

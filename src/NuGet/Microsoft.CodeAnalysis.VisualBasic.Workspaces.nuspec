@@ -1,0 +1,32 @@
+<?xml version="1.0"?>
+<package xmlns="http://schemas.microsoft.com/packaging/2011/08/nuspec.xsd">
+  <metadata>
+    <id>Microsoft.CodeAnalysis.VisualBasic.Workspaces</id>
+    <description>
+      .NET Compiler Platform ("Roslyn") support for analyzing Visual Basic projects and solutions.
+      
+Supported Platforms:
+- .NET Framework 4.5
+    </description>
+    <dependencies>
+      <dependency id="Microsoft.CodeAnalysis.VisualBasic" version="[$currentVersion$]" />
+      <dependency id="Microsoft.CodeAnalysis.Workspaces.Common" version="[$currentVersion$]" />
+    </dependencies>
+
+    <language>en-US</language>
+    <requireLicenseAcceptance>true</requireLicenseAcceptance>
+    <version>$currentVersion$</version>
+    <authors>$authors$</authors>
+    <licenseUrl>$licenseUrl$</licenseUrl>
+    <projectUrl>$projectUrl$</projectUrl>
+    <releaseNotes>$releaseNotes$</releaseNotes>
+    <tags>$tags$</tags>
+  </metadata>
+  <files>
+    <file src="Microsoft.CodeAnalysis.VisualBasic.Workspaces.dll" target="lib\portable-net45+win8" />
+    <file src="Microsoft.CodeAnalysis.VisualBasic.Workspaces.xml" target="lib\portable-net45+win8" />
+    <file src="Microsoft.CodeAnalysis.VisualBasic.Workspaces.dll" target="lib\net45" />
+    <file src="Microsoft.CodeAnalysis.VisualBasic.Workspaces.xml" target="lib\net45" />
+    <file src="ThirdPartyNotices.rtf" target="" />
+  </files>
+</package>

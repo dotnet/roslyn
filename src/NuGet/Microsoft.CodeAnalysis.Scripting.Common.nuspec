@@ -1,0 +1,47 @@
+<?xml version="1.0"?>
+<package xmlns="http://schemas.microsoft.com/packaging/2011/08/nuspec.xsd">
+  <metadata>
+    <id>Microsoft.CodeAnalysis.Scripting.Common</id>
+    <summary>Microsoft .NET Compiler Platform ("Roslyn") shared scripting package.</summary>
+    <description>
+      Microsoft .NET Compiler Platform ("Roslyn") shared scripting package. Do not install this package manually, it will be added as a prerequisite by other packages that require it.
+    </description>
+
+    <language>en-US</language>
+    <requireLicenseAcceptance>true</requireLicenseAcceptance>
+    <version>$currentVersion$</version>
+    <authors>$authors$</authors>
+    <licenseUrl>$licenseUrl$</licenseUrl>
+    <projectUrl>$projectUrl$</projectUrl>
+    <releaseNotes>$releaseNotes$</releaseNotes>
+    <tags>$tags$</tags>
+    
+    <dependencies>
+      <dependency id="Microsoft.CodeAnalysis.Common" version="[$currentVersion$]" />
+      <dependency id="System.Collections" version="4.0.10" />
+      <dependency id="System.Collections.Immutable" version="1.1.37" />
+      <dependency id="System.Diagnostics.Debug" version="4.0.10" />
+      <dependency id="System.Diagnostics.Tools" version="4.0.0" />
+      <dependency id="System.Globalization" version="4.0.10" />
+      <dependency id="System.IO" version="4.0.10" />
+      <dependency id="System.IO.FileSystem" version="4.0.0" />
+      <dependency id="System.Linq" version="4.0.0" />
+      <dependency id="System.Linq.Expressions" version="4.0.10" />
+      <dependency id="System.Reflection" version="4.0.10" />
+      <dependency id="System.Reflection.Extensions" version="4.0.0" />
+      <dependency id="System.Resources.ResourceManager" version="4.0.0" />
+      <dependency id="System.Runtime" version="4.0.20" />
+      <dependency id="System.Runtime.Extensions" version="4.0.10" />
+      <dependency id="System.Runtime.InteropServices" version="4.0.20" />
+      <dependency id="System.Threading" version="4.0.10" />
+      <dependency id="System.Threading.Tasks" version="4.0.10" />
+      <dependency id="System.Diagnostics.StackTrace" version="4.0.0" />
+      <dependency id="System.AppContext" version="4.0.0"  />   
+    </dependencies>
+  </metadata>
+  <files>
+    <file src="Microsoft.CodeAnalysis.Scripting.dll" target="lib\dotnet" />
+    <file src="Microsoft.CodeAnalysis.Scripting.xml" target="lib\dotnet" />
+    <file src="ThirdPartyNotices.rtf" target="" />
+  </files>
+</package>

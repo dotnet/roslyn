@@ -1,0 +1,36 @@
+<?xml version="1.0"?>
+<package xmlns="http://schemas.microsoft.com/packaging/2011/08/nuspec.xsd">
+  <metadata>
+    <id>Microsoft.CodeAnalysis</id>
+    <summary>.NET Compiler Platform ("Roslyn").</summary>
+    <description>
+      .NET Compiler Platform ("Roslyn").
+
+      This is the all-in-one package (a superset of all assemblies). You can install any of these sub-packages if you only want part of the functionality:      
+        - "Microsoft.CodeAnalysis.CSharp.Workspaces" (C# compiler + services)      
+        - "Microsoft.CodeAnalysis.VisualBasic.Workspaces" (VB compiler + services)      
+        - "Microsoft.CodeAnalysis.Compilers" (both compilers)       
+        - "Microsoft.CodeAnalysis.CSharp" (only the C# compiler)      
+        - "Microsoft.CodeAnalysis.VisualBasic (only the VB compiler)
+
+Supported Platforms:
+- .NET Framework 4.5
+    </description>
+    <dependencies>
+      <dependency id="Microsoft.CodeAnalysis.CSharp.Workspaces" version="[$currentVersion$]" />
+      <dependency id="Microsoft.CodeAnalysis.VisualBasic.Workspaces" version="[$currentVersion$]" />
+    </dependencies>
+
+    <language>en-US</language>
+    <requireLicenseAcceptance>true</requireLicenseAcceptance>
+    <version>$currentVersion$</version>
+    <authors>$authors$</authors>
+    <licenseUrl>$licenseUrl$</licenseUrl>
+    <projectUrl>$projectUrl$</projectUrl>
+    <releaseNotes>$releaseNotes$</releaseNotes>
+    <tags>$tags$</tags>
+  </metadata>
+  <files>
+    <file src="ThirdPartyNotices.rtf" target="" />
+  </files>
+</package>

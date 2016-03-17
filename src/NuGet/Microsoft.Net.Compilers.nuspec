@@ -1,0 +1,52 @@
+<?xml version="1.0"?>
+<package xmlns="http://schemas.microsoft.com/packaging/2011/08/nuspec.xsd">
+  <metadata>
+    <id>Microsoft.Net.Compilers</id>
+    <description>
+    .Net Compilers package. Referencing this package will cause the project to be built using the specific version of the C# and Visual Basic compilers contained in the package, as opposed to any system installed version.
+
+Supported Platforms:
+- .NET Framework 4.5
+    </description>
+    <language>en-US</language>
+    <requireLicenseAcceptance>true</requireLicenseAcceptance>
+    <version>$currentVersion$</version>
+    <authors>$authors$</authors>
+    <licenseUrl>$licenseUrl$</licenseUrl>
+    <projectUrl>$projectUrl$</projectUrl>
+    <releaseNotes>$releaseNotes$</releaseNotes>
+    <tags>$tags$</tags>
+    <developmentDependency>true</developmentDependency>
+  </metadata>
+  <files>
+    <file src="Microsoft.Net.Compilers.props" target="build\Microsoft.Net.Compilers.props" />
+    <file src="ThirdPartyNotices.rtf" target="" />
+    
+    <file src="Microsoft.CodeAnalysis.dll" target="tools" />
+    <file src="Microsoft.DiaSymReader.Native.amd64.dll" target="tools" />
+    <file src="Microsoft.DiaSymReader.Native.x86.dll" target="tools" />
+    <file src="Microsoft.CodeAnalysis.CSharp.dll" target="tools" />
+    <file src="Microsoft.CodeAnalysis.Scripting.dll" target="tools" />
+    <file src="Microsoft.CodeAnalysis.CSharp.Scripting.dll" target="tools" />
+    <file src="Microsoft.CodeAnalysis.VisualBasic.dll" target="tools" />
+    <file src="System.AppContext.dll" target="tools" />
+    <file src="System.Collections.Immutable.dll" target="tools" />
+    <file src="System.Diagnostics.StackTrace.dll" target="tools" />
+    <file src="System.IO.FileSystem.dll" target="tools" />
+    <file src="System.IO.FileSystem.Primitives.dll" target="tools" />
+    <file src="System.Reflection.Metadata.dll" target="tools" />
+    <file src="csc.exe"  target="tools" />
+    <file src="csc.exe.config"  target="tools" />
+    <file src="csc.rsp"  target="tools" />
+    <file src="csi.exe"  target="tools" />
+    <file src="csi.rsp"  target="tools" />
+    <file src="vbc.exe"  target="tools" />
+    <file src="vbc.exe.config"  target="tools" />
+    <file src="vbc.rsp"  target="tools" />
+    <file src="VBCSCompiler.exe" target="tools" />
+    <file src="VBCSCompiler.exe.config" target="tools" />
+    <file src="Microsoft.Build.Tasks.CodeAnalysis.dll" target="tools" />
+    <file src="Microsoft.CSharp.Core.targets" target="tools" />
+    <file src="Microsoft.VisualBasic.Core.targets" target="tools" />
+  </files>
+</package>
