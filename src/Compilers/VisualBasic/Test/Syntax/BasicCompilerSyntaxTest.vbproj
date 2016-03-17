@@ -18,11 +18,6 @@
     <SyntaxTestDefinition Include="..\..\Portable\Syntax\Syntax.xml" />
   </ItemGroup>
   <ItemGroup Label="Project References">
-    <ProjectReference Include="..\..\..\..\Tools\Source\CompilerGeneratorTools\Source\VisualBasicSyntaxGenerator\VisualBasicSyntaxGenerator.vbproj">
-      <Project>{6AA96934-D6B7-4CC8-990D-DB6B9DD56E34}</Project>
-      <Name>VisualBasicSyntaxGenerator</Name>
-      <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
-    </ProjectReference>
     <ProjectReference Include="..\..\..\..\Test\Utilities\Desktop\TestUtilities.Desktop.csproj">
       <Project>{76C6F005-C89D-4348-BB4A-391898DBEB52}</Project>
       <Name>TestUtilities.Desktop</Name>

@@ -51,4 +51,3 @@ echo "==============================================="
 echo ""
 
 & $AzCopyLoc /Source:$ScriptDir /Dest:https://dotnetci.blob.core.windows.net/roslyn /DestKey:$AzureKey /Pattern:$NugetZipName
-
