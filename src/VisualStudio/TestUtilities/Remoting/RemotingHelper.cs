@@ -14,6 +14,8 @@ using Microsoft.VisualStudio.TextManager.Interop;
 
 namespace Roslyn.VisualStudio.Test.Utilities.Remoting
 {
+    /// <summary>Provides a set of helper functions for accessing services in the Visual Studio host process.</summary>
+    /// <remarks>This methods should be executed Visual Studio host via the <see cref="IntegrationHost.ExecuteOnHostProcess"/> method.</remarks>
     internal static class RemotingHelper
     {
         private static Guid IWpfTextViewId = new Guid("8C40265E-9FDB-4F54-A0FD-EBB72B7D0476");

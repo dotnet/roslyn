@@ -5,6 +5,7 @@ using Roslyn.VisualStudio.Test.Utilities;
 
 namespace Roslyn.VisualStudio.Integration.UnitTests
 {
+    // TODO: This should probably be moved to the VisualStudioTestUtilities project and converted to a IntegrationHost factory
     public sealed class SharedIntegrationHost
     {
         private IntegrationHost _host;

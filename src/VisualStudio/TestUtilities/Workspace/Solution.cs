@@ -7,6 +7,7 @@ using DteSolution = EnvDTE80.Solution2;
 
 namespace Roslyn.VisualStudio.Test.Utilities
 {
+    /// <summary>Provides a means of interacting with the current solution loaded by the host process.</summary>
     public class Solution
     {
         private static readonly IDictionary<ProjectTemplate, string> ProjectTemplateName = new Dictionary<ProjectTemplate, string> {
@@ -24,7 +25,7 @@ namespace Roslyn.VisualStudio.Test.Utilities
         };
 
         private readonly DteSolution _dteSolution;
-        private readonly string _fileName;
+        private readonly string _fileName;              // Cache the filename as `_dteSolution` won't expose it unless the solution has been saved
 
         internal Solution(DteSolution dteSolution, string fileName)
         {

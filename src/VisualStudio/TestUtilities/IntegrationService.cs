@@ -7,8 +7,11 @@ using System.Runtime.Remoting;
 
 namespace Roslyn.VisualStudio.Test.Utilities
 {
+    /// <summary>Provides a means of executing code in the Visual Studio host process.</summary>
+    /// <remarks>This object exists in the Visual Studio host and is marhsalled across the process boundary.</remarks>
     internal class IntegrationService : MarshalByRefObject
     {
+        // Make the channel name well known by using a static base and appending the process ID of the host
         public static readonly string PortNameFormatString = $"{nameof(IntegrationService)}_{{0}}";
 
         private ConcurrentDictionary<string, ObjRef> _marshalledObjects = new ConcurrentDictionary<string, ObjRef>();
@@ -25,6 +28,7 @@ namespace Roslyn.VisualStudio.Test.Utilities
                 return null;
             }
 
+            // Create a unique URL for each object returned, so that we can communicate with each object individually
             var resultType = result.GetType();
             var marshallableResult = (MarshalByRefObject)(result);
             var objectUri = $"{resultType.FullName}_{Guid.NewGuid()}";

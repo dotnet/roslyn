@@ -4,6 +4,7 @@ using DteProject = EnvDTE.Project;
 
 namespace Roslyn.VisualStudio.Test.Utilities
 {
+    /// <summary>Provides a means of interacting with a Project that exists in the current solution.</summary>
     public class Project
     {
         private readonly DteProject _dteProject;

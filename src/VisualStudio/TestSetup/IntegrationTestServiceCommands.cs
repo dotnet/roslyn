@@ -78,6 +78,7 @@ namespace Roslyn.VisualStudio.Test.Setup
             StopServiceCallback(this, EventArgs.Empty);
         }
 
+        /// <summary>Starts the IPC server for the Integration Test service.</summary>
         private void StartServiceCallback(object sender, EventArgs e)
         {
             if (_startServiceMenuCmd.Enabled)
@@ -94,6 +95,7 @@ namespace Roslyn.VisualStudio.Test.Setup
             }
         }
 
+        /// <summary>Stops the IPC server for the Integration Test service.</summary>
         private void StopServiceCallback(object sender, EventArgs e)
         {
             if (_stopServiceMenuCmd.Enabled)

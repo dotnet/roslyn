@@ -36,6 +36,7 @@ namespace Roslyn.VisualStudio.Test.Utilities
         internal static readonly string VsStartServiceCommand = "Tools.StartIntegrationTestService";
         internal static readonly string VsStopServiceCommand = "Tools.StopIntegrationTestService";
 
+        // TODO: We could probably expose all the windows/services/features of the host process in a better manner
         private InteractiveWindow _csharpInteractiveWindow;
         private DTE _dte;
         private EditorWindow _editorWindow;
@@ -86,6 +87,7 @@ namespace Roslyn.VisualStudio.Test.Utilities
             }
         }
 
+        /// <summary>Gets a value that determines whether a new host process should be created.</summary>
         internal bool RequireNewInstance
             => (_hostProcess == null) || _hostProcess.HasExited || _requireNewInstance;
 
@@ -119,7 +121,7 @@ namespace Roslyn.VisualStudio.Test.Utilities
             // Explicitly don't call GC.SuppressFinalize() so that the finalizer is still called and the _hostProcess is killed
         }
 
-        public void Initialize()
+        public void Initialize()        // TODO: We could probably improve this by moving to a factory based model, this would likely involve changes to 'RequireNewInstance' and 'Cleanup' as well
         {
             Cleanup();
 
@@ -131,10 +133,15 @@ namespace Roslyn.VisualStudio.Test.Utilities
                 InitializeDte();
                 InitializeRemotingService();
             }
+
+            // TODO: We probably want to reset the environment to some stable/known state
         }
 
         internal async Task ExecuteDteCommandAsync(string command, string args = "")
         {
+            // args is "" by default because thats what Dte.ExecuteCommand does by default and changing our default
+            // to something more logical, like null, would change the expected behavior of Dte.ExecuteCommand
+
             await WaitForDteCommandAvailabilityAsync(command).ConfigureAwait(continueOnCapturedContext: false);
             _dte.ExecuteCommand(command, args);
         }
@@ -204,7 +211,7 @@ namespace Roslyn.VisualStudio.Test.Utilities
 
         private void CleanupDte()
         {
-            // DTE can still cause a failure or crash during cleanup
+            // DTE can still cause a failure or crash during cleanup, such as if cleaning up the open projects/solutions fails
             try
             {
                 if (_dte == null)
@@ -285,16 +292,16 @@ namespace Roslyn.VisualStudio.Test.Utilities
         }
 
         private void InitializeDte()
-            => IntegrationHelper.WaitForResultAsync(() => {
-                _dte = IntegrationHelper.LocateDteForProcess(_hostProcess);
-                return (_dte != null);
-            }, expectedResult: true).GetAwaiter().GetResult();
+            => IntegrationHelper.WaitForNotNullAsync(() => IntegrationHelper.LocateDteForProcess(_hostProcess)).GetAwaiter().GetResult();
 
         private void InitializeHostProcess()
         {
+            // TODO: This might not be needed anymore as I don't believe we do things which risk corrupting the MEF cache. However,
+            // it is still useful to do in case some other action corruped the MEF cache as we don't have to restart the host
             Process.Start(VsExeFile, $"/clearcache {VsLaunchArgs}").WaitForExit();
             Process.Start(VsExeFile, $"/updateconfiguration {VsLaunchArgs}").WaitForExit();
 
+            // Make sure we kill any leftover processes spawned by the host
             IntegrationHelper.KillProcess("DbgCLR");
             IntegrationHelper.KillProcess("VsJITDebugger");
             IntegrationHelper.KillProcess("dexplore");
@@ -310,6 +317,7 @@ namespace Roslyn.VisualStudio.Test.Utilities
             _serviceChannel = new IpcClientChannel();
             ChannelServices.RegisterChannel(_serviceChannel, ensureSecurity: true);
 
+            // Connect to a 'well defined, shouldn't conflict' IPC channel
             _serviceUri = string.Format($"ipc://{IntegrationService.PortNameFormatString}", _hostProcess.Id);
             _service = (IntegrationService)(Activator.GetObject(typeof(IntegrationService), $"{_serviceUri}/{typeof(IntegrationService).FullName}"));
         }

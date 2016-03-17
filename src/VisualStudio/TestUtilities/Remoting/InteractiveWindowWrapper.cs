@@ -5,6 +5,8 @@ using Microsoft.VisualStudio.InteractiveWindow;
 
 namespace Roslyn.VisualStudio.Test.Utilities.Remoting
 {
+    /// <summary>Provides a means of accessing the <see cref="IInteractiveWindow"/> service in the Visual Studio host.</summary>
+    /// <remarks>This object exists in the Visual Studio host and is marhsalled across the process boundary.</remarks>
     internal class InteractiveWindowWrapper : MarshalByRefObject
     {
         private IInteractiveWindow _interactiveWindow;

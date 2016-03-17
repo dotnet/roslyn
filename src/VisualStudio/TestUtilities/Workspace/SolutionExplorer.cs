@@ -5,6 +5,7 @@ using EnvDTE80;
 
 namespace Roslyn.VisualStudio.Test.Utilities
 {
+    /// <summary>Provides a means of interacting with the Solution Explorer in the Visual Studio host.</summary>
     public class SolutionExplorer
     {
         private readonly IntegrationHost _host;
@@ -16,9 +17,11 @@ namespace Roslyn.VisualStudio.Test.Utilities
             _host = host;
         }
 
+        /// <summary>Gets the solution currently loaded in the host process or <c>null</c> if no solution is currently loaded.</summary>
         public Solution Solution
             => _solution;
 
+        /// <summary>Creates and loads a new solution in the host process, closing the existing solution without saving if one exists.</summary>
         public Solution CreateSolution(string solutionName)
         {
             var dteSolution = _host.Dte.Solution;

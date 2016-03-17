@@ -4,6 +4,7 @@ using Roslyn.VisualStudio.Test.Utilities.Remoting;
 
 namespace Roslyn.VisualStudio.Test.Utilities
 {
+    /// <summary>Provides a means of interacting with the active editor window in the Visual Studio host.</summary>
     public class EditorWindow
     {
         private readonly IntegrationHost _host;

@@ -5,8 +5,8 @@
     <ProjectGuid>{E5A55C16-A5B9-4874-9043-A5266DC02F58}</ProjectGuid>
     <OutputType>Library</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
-    <RootNamespace>Roslyn.VisualStudio.Integration.UnitTests</RootNamespace>
-    <AssemblyName>Roslyn.VisualStudio.Integration.UnitTests</AssemblyName>
+    <RootNamespace>Roslyn.VisualStudio.IntegrationTests</RootNamespace>
+    <AssemblyName>Roslyn.VisualStudio.IntegrationTests</AssemblyName>
     <PlatformTarget>x86</PlatformTarget>
     <TargetFrameworkVersion>v4.6</TargetFrameworkVersion>
     <Nonshipping>true</Nonshipping>

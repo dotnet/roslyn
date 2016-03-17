@@ -20,6 +20,7 @@ using Process = System.Diagnostics.Process;
 
 namespace Roslyn.VisualStudio.Test.Utilities
 {
+    /// <summary>Provides some helper functions used by the other classes in the project.</summary>
     internal static class IntegrationHelper
     {
         public static void CreateDirectory(string path, bool deleteExisting = false)
@@ -48,10 +49,12 @@ namespace Roslyn.VisualStudio.Test.Utilities
             }
         }
 
+        /// <summary>Gets the Modal Window that is currently blocking interaction with the specified window or <see cref="IntPtr.Zero"/> if none exists.</summary>
         public static IntPtr GetModalWindowFromParentWindow(IntPtr parentWindow)
         {
             foreach (var topLevelWindow in GetTopLevelWindows())
             {
+                // Windows has several concepts of 'Parent Window', make sure we cover all ones for 'Modal Dialogs'
                 if ((User32.GetParent(topLevelWindow) == parentWindow) ||
                     (User32.GetWindow(topLevelWindow, User32.GW_OWNER) == parentWindow) ||
                     (User32.GetAncestor(topLevelWindow, User32.GA_PARENT) == parentWindow))
@@ -63,6 +66,8 @@ namespace Roslyn.VisualStudio.Test.Utilities
             return IntPtr.Zero;
         }
 
+        /// <summary>Gets the title text for the specified window.</summary>
+        /// <remarks>GetWindowText() does not work across the process boundary.</remarks>
         public static string GetTitleForWindow(IntPtr window)
         {
             var titleLength = User32.SendMessage(window, User32.WM_GETTEXTLENGTH, IntPtr.Zero, IntPtr.Zero);
@@ -91,6 +96,7 @@ namespace Roslyn.VisualStudio.Test.Utilities
             return topLevelWindows;
         }
 
+        /// <summary>Kills the specified process if it is not <c>null</c> and has not already exited.</summary>
         public static void KillProcess(Process process)
         {
             if ((process != null) && (!process.HasExited))
@@ -99,6 +105,7 @@ namespace Roslyn.VisualStudio.Test.Utilities
             }
         }
 
+        /// <summary>Kills all processes matching the specified name.</summary>
         public static void KillProcess(string processName)
         {
             foreach (var process in Process.GetProcessesByName(processName))
@@ -107,6 +114,7 @@ namespace Roslyn.VisualStudio.Test.Utilities
             }
         }
 
+        /// <summary>Locates the DTE object for the specified process.</summary>
         public static DTE LocateDteForProcess(Process process)
         {
             object dte = null;

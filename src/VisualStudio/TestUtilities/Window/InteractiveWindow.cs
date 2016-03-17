@@ -7,6 +7,7 @@ using Roslyn.VisualStudio.Test.Utilities.Remoting;
 
 namespace Roslyn.VisualStudio.Test.Utilities
 {
+    /// <summary>Provides a means of interacting with the interactive window in the Visual Studio host.</summary>
     public class InteractiveWindow
     {
         private const string DteCSharpViewCommand = "View.C#Interactive";
@@ -20,6 +21,7 @@ namespace Roslyn.VisualStudio.Test.Utilities
         private readonly IntegrationHost _host;
         private readonly InteractiveWindowWrapper _interactiveWindowWrapper;
 
+        /// <summary>Creates a <see cref="InteractiveWindow"/> instance that can interact with the C# interactive window in the Visual Studio host.</summary>
         internal static InteractiveWindow CreateCSharpInteractiveWindow(IntegrationHost host)
             => new InteractiveWindow(host, DteCSharpViewCommand, DteCSharpWindowTitle);
 
@@ -34,13 +36,17 @@ namespace Roslyn.VisualStudio.Test.Utilities
             var dteWindow = _host.LocateDteWindowAsync(dteWindowTitle).GetAwaiter().GetResult();
             dteWindow.Close();
 
+            // Return a wrapper to the actual interactive window service that exists in the host process
             _interactiveWindowWrapper = _host.ExecuteOnHostProcess<InteractiveWindowWrapper>(typeof(RemotingHelper), nameof(RemotingHelper.CreateCSharpInteractiveWindowWrapper), (BindingFlags.Public | BindingFlags.Static));
         }
 
+        /// <summary>Gets the last output from the REPL.</summary>
         public string LastReplOutput
         {
             get
             {
+                // TODO: This may be flaky if the last submission contains ReplPromptText
+
                 var replText = ReplTextWithoutPrompt;
                 int lastPromptIndex = replText.LastIndexOf(ReplPromptText);
 
@@ -68,9 +74,11 @@ namespace Roslyn.VisualStudio.Test.Utilities
             }
         }
 
+        /// <summary>Gets the contents of the REPL window.</summary>
         public string ReplText
             => _interactiveWindowWrapper.CurrentSnapshotText;
 
+        /// <summary>Gets the contents of the REPL window without the prompt text.</summary>
         public string ReplTextWithoutPrompt
         {
             get

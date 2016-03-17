@@ -4,6 +4,8 @@ using System.Diagnostics;
 
 namespace Roslyn.VisualStudio.Test.Utilities
 {
+    /// <summary>Redirects traces and asserts to the debug output stream.</summary>
+    /// <remarks>This works around the assert dialog issue caused by calling <see cref="Debug.Assert"/> in a <c>DEBUG</c> build.</remarks>
     public class IntegrationTraceListener : TraceListener
     {
         public override void Write(string message)
