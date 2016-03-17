@@ -10,7 +10,7 @@
     <PlatformTarget>AnyCPU</PlatformTarget>
     <ProjectGuid>{288089C5-8721-458E-BE3E-78990DAB5E2E}</ProjectGuid>
     <OutputType>Exe</OutputType>
-    <OutDir>$(OutDir)CompilerGeneratorTools\</OutDir>
+    <OutDir>$(CompilerGeneratorToolsDir)</OutDir>
     <RootNamespace>Roslyn.Compilers.CSharp.Internal.CSharpErrorFactsGenerator</RootNamespace>
     <AssemblyName>CSharpErrorFactsGenerator</AssemblyName>
     <Nonshipping>true</Nonshipping>
