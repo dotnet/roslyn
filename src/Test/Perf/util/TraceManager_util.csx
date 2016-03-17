@@ -29,37 +29,37 @@ public class TraceManager
 
     public void Setup()
     {
-        var processResult = RunProcess(_cpcFullPath, "/Setup");
+         var processResult = RunProcess(_cpcFullPath, "/Setup /DisableArchive");
         if (processResult.Failed)
         {
-            throw new SystemException($@"The process ""CPC.exe /Setup"" failed. {processResult.StdErr}");
+            throw new SystemException($@"The process ""CPC.exe /Setup /DisableArchive"" failed. {processResult.StdErr}");
         }
     }
 
     public void Start()
     {
-        var processResult = RunProcess(_cpcFullPath, "/Start");
+        var processResult = RunProcess(_cpcFullPath, "/Start /DisableArchive");
         if (processResult.Failed)
         {
-            throw new SystemException($@"The process ""CPC.exe /Start"" failed. {processResult.StdErr}");
+            throw new SystemException($@"The process ""CPC.exe /Start /DisableArchive"" failed. {processResult.StdErr}");
         }
     }
 
     public void Stop()
     {
-        var processResult = RunProcess(_cpcFullPath, "/Stop");
+        var processResult = RunProcess(_cpcFullPath, "/Stop /DisableArchive");
         if (processResult.Failed)
         {
-            throw new SystemException($@"The process ""CPC.exe /Stop"" failed. {processResult.StdErr}");
+            throw new SystemException($@"The process ""CPC.exe /Stop /DisableArchive"" failed. {processResult.StdErr}");
         }
     }
 
     public void Cleanup()
     {
-        var processResult = RunProcess(_cpcFullPath, "/Cleanup");
+        var processResult = RunProcess(_cpcFullPath, "/Cleanup /DisableArchive");
         if (processResult.Failed)
         {
-            throw new SystemException($@"The process ""CPC.exe /Cleanup"" failed. {processResult.StdErr}");
+            throw new SystemException($@"The process ""CPC.exe /Cleanup /DisableArchive"" failed. {processResult.StdErr}");
         }
     }
 
@@ -71,13 +71,13 @@ public class TraceManager
     public void StartEvent()
     {
         _scenarioGenerator.AddStartEvent(PerformanceEventSource.Log.Guid.ToString(), 1);
-        // PerformanceEventSource.Log.EventStart();
+        PerformanceEventSource.Log.EventStart();
     }
 
     public void EndEvent()
     {
         _scenarioGenerator.AddEndEvent(PerformanceEventSource.Log.Guid.ToString(), 2);
-        // PerformanceEventSource.Log.EventEnd();
+        PerformanceEventSource.Log.EventEnd();
     }
 
     public void EndScenario()

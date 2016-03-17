@@ -24,23 +24,49 @@ Log("Starting Performance Test Run");
 Log("hash: " + StdoutFrom("git", "show --format=\"%h\" HEAD --").Split(new[] {"\r\n", "\r", "\n"}, StringSplitOptions.None)[0]);
 Log("time: " + DateTime.Now.ToString());
 
-// Run all the scripts that we've found and populate allResults.
-foreach (var script in GetAllCsxRecursive(testDirectory)) {
-    var scriptName = Path.GetFileNameWithoutExtension(script);
-    Log("\nRunning " + scriptName);
-    try
+// This is an assumption. We can modify it later
+var noOfIterations = 3;
+traceManager.Setup();
+
+for(int i = 0; i < noOfIterations; ++ i)
+{
+    traceManager.Start();
+    
+    // Run all the scripts that we've found and populate allResults.
+    foreach (var script in GetAllCsxRecursive(testDirectory)) 
     {
-        var state = await RunFile(script);
-        var metrics = (List<Tuple<int, string, object>>) state.GetVariable("Metrics").Value;
-        allResults.Add(Tuple.Create(scriptName, metrics));
+        var scriptName = Path.GetFileNameWithoutExtension(script);
+        Log("\nRunning " + scriptName);
+        try
+        {
+            traceManager.StartScenario(scriptName, "csc");
+            traceManager.StartEvent();
+            
+            var state = await RunFile(script);
+            
+            traceManager.EndEvent();
+            traceManager.EndScenario();
+            
+            var metrics = (List<Tuple<int, string, object>>) state.GetVariable("Metrics").Value;
+            allResults.Add(Tuple.Create(scriptName, metrics));
+        }
+        catch (Exception e)
+        {
+            Log("Test Failed: " + scriptName);
+            Log(e.ToString());
+            return 1;
+        }
     }
-    catch (Exception e)
-    {
-        Log("Test Failed: " + scriptName);
-        Log(e.ToString());
-        return 1;
-    }
+    
+    traceManager.EndScenarios();
+    traceManager.WriteScenariosFileToDisk();
+
+    traceManager.Stop();
+    
+    traceManager.ResetScenarioGenerator();
 }
+
+traceManager.Cleanup();
 
 Log("\nALL RESULTS");
 

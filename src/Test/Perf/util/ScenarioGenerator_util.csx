@@ -51,13 +51,13 @@ public class ScenarioGenerator
     public void AddStartEvent(string providerGuid, int eventId)
     {
         //Log($@"<from providerGuid=""{providerGuid}"" eventId=""{eventId}"" eventName = ""PerformanceEventSource/Event/Start""/>");
-        Log($@"<from providerGuid=""{providerGuid}"" eventId=""{eventId}"" process=""TestAllocator"" eventName = ""PerformanceEventSource/Event/Start""/>");
+        Log($@"<from providerGuid=""{providerGuid}"" eventId=""{eventId}"" process=""csi"" eventName = ""PerformanceEventSource/Event/Start""/>");
     }
 
     public void AddEndEvent(string providerGuid, int eventId)
     {
         //Log($@"<to providerGuid=""{providerGuid}"" eventId=""{eventId}"" eventName = ""PerformanceEventSource/Eventend""/>");
-        Log($@"<to providerGuid=""{providerGuid}"" eventId=""{eventId}"" process=""TestAllocator"" eventName=""PerformanceEventSource/Eventend""/>");
+        Log($@"<to providerGuid=""{providerGuid}"" eventId=""{eventId}"" process=""csi"" eventName=""PerformanceEventSource/Eventend""/>");
     }
 
     public void AddComment(string comment)
