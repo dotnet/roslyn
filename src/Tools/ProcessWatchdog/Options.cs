@@ -14,7 +14,7 @@ namespace ProcessWatchdog
             "time-limit",
             HelpText = "Time limit in seconds.",
             Required = true)]
-        public int TimeLimit { get; set; }
+        public double TimeLimit { get; set; }
 
         [Option(
             'e',

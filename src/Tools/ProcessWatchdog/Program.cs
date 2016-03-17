@@ -90,8 +90,6 @@ namespace ProcessWatchdog
 
         private static void Main(string[] args)
         {
-            Banner();
-
             Parser.Default.ParseArguments<Options>(args)
                 .MapResult(
                     options => Run(options),
@@ -100,6 +98,8 @@ namespace ProcessWatchdog
 
         private  static int Run(Options options)
         {
+            Banner();
+
             var program = new Program(options);
             return program.Run();
         }
