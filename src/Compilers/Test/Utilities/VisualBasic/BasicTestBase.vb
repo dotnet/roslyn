@@ -716,7 +716,7 @@ Public MustInherit Class BasicTestBaseBase
         Implements IComparer(Of NamedTypeSymbol)
 
         Private Function Compare(x As NamedTypeSymbol, y As NamedTypeSymbol) As Integer Implements IComparer(Of NamedTypeSymbol).Compare
-            Dim result As Integer = IdentifierComparison.Comparer.Compare(x.Name, y.Name)
+            Dim result As Integer = StringComparer.OrdinalIgnoreCase.Compare(x.Name, y.Name)
 
             If result <> 0 Then
                 Return result
