@@ -25,14 +25,14 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     // Create the symbol for the instrumentation payload.
                     SyntheticBoundNodeFactory factory = new SyntheticBoundNodeFactory(method, methodBody.Syntax, compilationState, diagnostics);
-                    TypeSymbol boolType = factory.SpecialType(SpecialType.System_Boolean);  compilation.GetSpecialType(SpecialType.System_Boolean);
+                    TypeSymbol boolType = factory.SpecialType(SpecialType.System_Boolean);
                     TypeSymbol payloadElementType = boolType;
                     ArrayTypeSymbol payloadType = ArrayTypeSymbol.CreateCSharpArray(compilation.Assembly, payloadElementType);
                     FieldSymbol payloadField = GetPayloadField(method, methodOrdinal, payloadType, factory);
 
                     // Synthesize the instrumentation and collect the spans of interest.
 
-                    // ToDo (https://github.com/dotnet/roslyn/issues/9819): Try to integrate instrumentation with lowering, to avoid an extra pass over the bound tree.
+                    // PROTOTYPE (https://github.com/dotnet/roslyn/issues/9819): Try to integrate instrumentation with lowering, to avoid an extra pass over the bound tree.
                     BoundBlock newMethodBody = InstrumentationInjectionRewriter.InstrumentMethod(method, methodBody, payloadField, compilationState, diagnostics, debugDocumentProvider, out dynamicAnalysisSpans);
 
                     // Synthesize the initialization of the instrumentation payload array. It should be done either statically or with concurrency-safe code:
@@ -40,7 +40,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     // if (payloadField == null)
                     //     Instrumentation.CreatePayload(mvid, method, ref payloadField, payloadLength);
 
-                    // ToDo PROTOTYPE (https://github.com/dotnet/roslyn/issues/9812):
+                    // PROTOTYPE (https://github.com/dotnet/roslyn/issues/9812):
                     // The containing module's mvid should be computed statically and stored in a static field rather than being
                     // recomputed in each method prologue.
                     BoundExpression mvid = factory.Property(factory.Property(factory.TypeofBeforeRewriting(method.ContainingType), "Module"), "ModuleVersionId");
@@ -83,7 +83,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private static FieldSymbol GetPayloadField(MethodSymbol method, int methodOrdinal, TypeSymbol payloadType, SyntheticBoundNodeFactory factory)
         {
-            // ToDo PROTOTYPE (https://github.com/dotnet/roslyn/issues/9810):
+            // PROTOTYPE (https://github.com/dotnet/roslyn/issues/9810):
             // If the type containing the method is generic, synthesize a helper type and put the payload field there.
             // If the payload field is part of a generic type, there will be a new instance of the field per instantiation of the generic,
             // and so the payload field must be a member of another type.
@@ -106,7 +106,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private static bool IsTestMethod(MethodSymbol method)
         {
-            // ToDo PROTOTYPE (https://github.com/dotnet/roslyn/issues/9811): Make this real. 
+            // PROTOTYPE (https://github.com/dotnet/roslyn/issues/9811): Make this real. 
             return method.Name.StartsWith("Test");
         }
     }
