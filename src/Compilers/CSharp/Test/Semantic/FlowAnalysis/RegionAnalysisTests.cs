@@ -4892,41 +4892,6 @@ class C
             Assert.Equal(null, GetSymbolNamesJoined(analysis.WrittenOutside));
         }
 
-        [WorkItem(529320, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529320")]
-        [Fact(Skip = "529320")]
-        public void GenericStructureCycleFromMetadata()
-        {
-            var ilSource =
-@".class public sealed S<T> extends System.ValueType
-{
-  .field public valuetype S<valuetype S<!T>> F
-}";
-            var source =
-@"class C
-{
-    static void M()
-    {
-        S<object> o;
-    }
-}";
-            var compilation = CreateCompilationWithCustomILSource(source, ilSource);
-            var tree = compilation.SyntaxTrees[0];
-            var model = compilation.GetSemanticModel(tree);
-            var root = tree.GetCompilationUnitRoot();
-            var statement = GetFirstNode<StatementSyntax>(tree, root.ToFullString().IndexOf("S<object> o", StringComparison.Ordinal));
-            var analysis = model.AnalyzeDataFlow(statement);
-            Assert.True(analysis.Succeeded);
-            Assert.Equal("o", GetSymbolNamesJoined(analysis.VariablesDeclared));
-            Assert.Equal(null, GetSymbolNamesJoined(analysis.AlwaysAssigned));
-            Assert.Equal(null, GetSymbolNamesJoined(analysis.Captured));
-            Assert.Equal(null, GetSymbolNamesJoined(analysis.DataFlowsIn));
-            Assert.Equal(null, GetSymbolNamesJoined(analysis.DataFlowsOut));
-            Assert.Equal(null, GetSymbolNamesJoined(analysis.ReadInside));
-            Assert.Equal(null, GetSymbolNamesJoined(analysis.ReadOutside));
-            Assert.Equal(null, GetSymbolNamesJoined(analysis.WrittenInside));
-            Assert.Equal(null, GetSymbolNamesJoined(analysis.WrittenOutside));
-        }
-
         [WorkItem(545372, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545372")]
         [Fact]
         public void AnalysisInSyntaxError01()

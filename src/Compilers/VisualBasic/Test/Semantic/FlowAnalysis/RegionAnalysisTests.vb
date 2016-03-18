@@ -7915,42 +7915,6 @@ End Module
             Assert.Equal(Nothing, GetSymbolNamesJoined(dataFlowAnalysis.WrittenOutside))
         End Sub
 
-        <WorkItem(529322, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529322")>
-        <Fact(Skip:="529322")>
-        Public Sub GenericStructureCycleFromMetadata()
-            Dim ilSource = <![CDATA[
-.class public sealed S<T> extends System.ValueType
-{
-  .field public valuetype S<valuetype S<!T>> F
-}
-]]>.Value
-            Dim source =
-                <compilation>
-                    <file name="c.vb"><![CDATA[
-Module M
-    Sub M()
-        Dim o As S(Of Object)
-    End Sub
-End Module
-    ]]></file>
-                </compilation>
-            Dim compilation = CreateCompilationWithCustomILSource(source, ilSource)
-            Dim tree = compilation.SyntaxTrees.First()
-            Dim model = compilation.GetSemanticModel(tree)
-            Dim root = tree.GetCompilationUnitRoot()
-            Dim node = DirectCast(root.FindToken(root.ToFullString().IndexOf("Dim", StringComparison.Ordinal)).Parent, StatementSyntax)
-            Dim dataFlowAnalysis = model.AnalyzeDataFlow(node, node)
-            Assert.True(dataFlowAnalysis.Succeeded)
-            Assert.Equal("o", GetSymbolNamesJoined(dataFlowAnalysis.VariablesDeclared))
-            Assert.Equal(Nothing, GetSymbolNamesJoined(dataFlowAnalysis.AlwaysAssigned))
-            Assert.Equal(Nothing, GetSymbolNamesJoined(dataFlowAnalysis.DataFlowsIn))
-            Assert.Equal(Nothing, GetSymbolNamesJoined(dataFlowAnalysis.DataFlowsOut))
-            Assert.Equal(Nothing, GetSymbolNamesJoined(dataFlowAnalysis.ReadInside))
-            Assert.Equal(Nothing, GetSymbolNamesJoined(dataFlowAnalysis.WrittenInside))
-            Assert.Equal(Nothing, GetSymbolNamesJoined(dataFlowAnalysis.ReadOutside))
-            Assert.Equal(Nothing, GetSymbolNamesJoined(dataFlowAnalysis.WrittenOutside))
-        End Sub
-
 #End Region
 
 #Region "With Statement"

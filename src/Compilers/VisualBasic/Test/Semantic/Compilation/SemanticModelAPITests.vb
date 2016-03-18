@@ -463,7 +463,9 @@ End Class    </file>
             Assert.Equal("Sub C.DAttribute..ctor()", symbolInfo.Symbol.ToTestDisplayString())
         End Sub
 
-        <Fact(Skip:="755801"), WorkItem(755801, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/755801")>
+        <Fact>
+        <WorkItem(92898, "https://devdiv.visualstudio.com/defaultcollection/DevDiv/_workitems?_a=edit&id=92898")>
+        <WorkItem(755801, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/755801")>
         Public Sub GetSpeculativeSymbolInfoForQualifiedNameInCref()
             Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(
 <compilation name="GetSemanticInfo">
@@ -491,19 +493,28 @@ End Class]]>
             Dim semanticModel = compilation.GetSemanticModel(tree)
 
             Dim symbolInfo = semanticModel.GetSymbolInfo(crefSyntax.Name)
+            Assert.Equal(SyntaxKind.QualifiedName, crefSyntax.Name.Kind())
+            Assert.Equal("Global.C.Bar(Of T)", crefSyntax.Name.ToString())
             Assert.NotNull(symbolInfo.Symbol)
             Assert.Equal(SymbolKind.Method, symbolInfo.Symbol.Kind)
             Assert.Equal("Sub C.Bar(Of T)(x As T)", symbolInfo.Symbol.ToTestDisplayString())
 
             Dim speculatedName = DirectCast(SyntaxFactory.ParseName("C.Bar(Of T)"), QualifiedNameSyntax)
             Dim speculativeSymbolInfo = semanticModel.GetSpeculativeSymbolInfo(crefSyntax.Name.Position, speculatedName, SpeculativeBindingOption.BindAsExpression)
-            Assert.NotNull(speculativeSymbolInfo.Symbol)
-            Assert.Equal(SymbolKind.Method, speculativeSymbolInfo.Symbol.Kind)
-            Assert.Equal("Sub C.Bar(Of T)(x As T)", speculativeSymbolInfo.Symbol.ToTestDisplayString())
+            Const bug92898IsFixed = False
+
+            If bug92898IsFixed Then
+                Assert.NotNull(speculativeSymbolInfo.Symbol)
+                Assert.Equal(SymbolKind.Method, speculativeSymbolInfo.Symbol.Kind)
+                Assert.Equal("Sub C.Bar(Of T)(x As T)", speculativeSymbolInfo.Symbol.ToTestDisplayString())
+            Else
+                Assert.Null(speculativeSymbolInfo.Symbol)
+            End If
         End Sub
 
+        <Fact>
+        <WorkItem(96477, "https://devdiv.visualstudio.com/defaultcollection/DevDiv/_workitems#_a=edit&id=96477")>
         <WorkItem(1015560, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1015560")>
-        <Fact(Skip:="1015560")>
         Public Sub GetSpeculativeSymbolInfoForGenericNameInCref()
             Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(
 <compilation name="GetSemanticInfo">
@@ -521,11 +532,14 @@ End Module]]>
             Dim crefSyntax = root.DescendantNodes(descendIntoTrivia:=True).OfType(Of CrefReferenceSyntax).Single()
             Dim semanticModel = compilation.GetSemanticModel(tree)
 
-            Dim symbolInfo = semanticModel.GetSymbolInfo(crefSyntax.FindNode(New TextSpan(71, 37)))
+            Dim node = DirectCast(DirectCast(crefSyntax.Name, QualifiedNameSyntax).Left, QualifiedNameSyntax)
+            Assert.Equal("System.Collections.Generic.List(Of T)", node.ToString())
+            Dim symbolInfo = semanticModel.GetSymbolInfo(node)
             Dim oldSymbol = symbolInfo.Symbol
             Assert.NotNull(oldSymbol)
             Assert.Equal(SymbolKind.NamedType, oldSymbol.Kind)
             Assert.Equal("System.Collections.Generic.List(Of T)", oldSymbol.ToTestDisplayString())
+            Assert.False(DirectCast(oldSymbol, NamedTypeSymbol).TypeArguments.Single.IsErrorType)
 
             Dim speculatedName = DirectCast(SyntaxFactory.ParseName("List(Of T)"), GenericNameSyntax)
             Dim speculativeSymbolInfo = semanticModel.GetSpeculativeSymbolInfo(crefSyntax.SpanStart, speculatedName, SpeculativeBindingOption.BindAsTypeOrNamespace)
@@ -534,8 +548,14 @@ End Module]]>
             Assert.Equal(SymbolKind.NamedType, newSymbol.Kind)
             Assert.Equal("System.Collections.Generic.List(Of T)", newSymbol.ToTestDisplayString())
 
-            Assert.False(DirectCast(newSymbol, NamedTypeSymbol).TypeArguments.Single.IsErrorType)
-            Assert.True(newSymbol.Equals(oldSymbol))
+            Const bug96477IsFixed = False
+
+            If bug96477IsFixed Then
+                Assert.False(DirectCast(newSymbol, NamedTypeSymbol).TypeArguments.Single.IsErrorType)
+                Assert.True(newSymbol.Equals(oldSymbol))
+            Else
+                Assert.True(DirectCast(newSymbol, NamedTypeSymbol).TypeArguments.Single.IsErrorType)
+            End If
         End Sub
 #End Region
 
@@ -823,7 +843,9 @@ End Class
             Assert.Equal("System.String", DirectCast(local, LocalSymbol).Type.ToTestDisplayString())
         End Sub
 
-        <Fact(Skip:="1019361"), WorkItem(1019361, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1019361")>
+        <Fact>
+        <WorkItem(97599, "https://devdiv.visualstudio.com/defaultcollection/DevDiv/_workitems#_a=edit&id=97599")>
+        <WorkItem(1019361, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1019361")>
         Public Sub TestGetSpeculativeSemanticModelForStatement_DeclaredLocal_2()
             Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(
 <compilation name="BindAsExpressionVsBindAsType">
@@ -844,13 +866,22 @@ End Class
     </file>
 </compilation>)
 
+            compilation.AssertTheseDiagnostics()
+
             Dim tree As SyntaxTree = (From t In compilation.SyntaxTrees Where t.FilePath = "a.vb").Single()
             Dim root = tree.GetCompilationUnitRoot()
             Dim typeBlock = root.Members.OfType(Of TypeBlockSyntax).First
             Dim methodBlock = DirectCast(typeBlock.Members(0), MethodBlockSyntax)
-            Dim originalStatement = DirectCast(methodBlock.Statements(0), ExecutableStatementSyntax)
+            Dim originalStatement = DirectCast(methodBlock.Statements(0), LocalDeclarationStatementSyntax)
+
+            Assert.Equal("Dim x = N.A.X", originalStatement.ToString())
 
             Dim semanticModel = compilation.GetSemanticModel(tree)
+            Dim originalX = semanticModel.GetDeclaredSymbol(originalStatement.Declarators(0).Names(0))
+
+            Assert.Equal("x As System.Int32", originalX.ToTestDisplayString())
+            Assert.Equal(False, DirectCast(originalX, LocalSymbol).Type.IsErrorType)
+
             Dim position1 = originalStatement.SpanStart
 
             ' different initializer for local, whose type should be error type as "A" bounds to the local "a" instead of "N.A"
@@ -864,12 +895,15 @@ End Class
             Dim declStatement = DirectCast(speculatedStatement, LocalDeclarationStatementSyntax)
             Dim varDecl = declStatement.Declarators(0).Names(0)
             Dim local = speculativeModel.GetDeclaredSymbol(varDecl)
+
             Assert.NotNull(local)
             Assert.Equal("x", local.Name)
             Assert.Equal(SymbolKind.Local, local.Kind)
 
-            ' Type should be error type as "A" bounds to the local "a" instead of type "N.A"
-            Assert.Equal(True, DirectCast(local, LocalSymbol).Type.IsErrorType)
+            Assert.Equal("x As System.Int32", local.ToTestDisplayString())
+            Assert.NotEqual(originalX, local)
+
+            Assert.Equal(False, DirectCast(local, LocalSymbol).Type.IsErrorType)
         End Sub
 
         <Fact()>
@@ -1816,8 +1850,9 @@ End Class
                 speculatedTypeExpression, SpeculativeBindingOption.BindAsExpression, SymbolKind.NamedType, "System.ArgumentException")
         End Sub
 
+        <Fact>
+        <WorkItem(120491, "https://devdiv.visualstudio.com/defaultcollection/DevDiv/_workitems#_a=edit&id=120491")>
         <WorkItem(745766, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/745766")>
-        <Fact(Skip:="745766")>
         Public Sub TestGetSpeculativeSemanticModelForTypeSyntax_InImplementsClauseForMember()
             Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(
 <compilation name="BindAsExpressionVsBindAsType">
@@ -1842,14 +1877,31 @@ End Interface
             Dim tree As SyntaxTree = (From t In compilation.SyntaxTrees Where t.FilePath = "a.vb").Single()
             Dim root = tree.GetCompilationUnitRoot()
             Dim typeBlock = DirectCast(root.Members(0), TypeBlockSyntax)
-            Dim methodBlock = DirectCast(typeBlock.Members(1), MethodBlockBaseSyntax)
+            Dim methodBlock = DirectCast(typeBlock.Members(0), MethodBlockBaseSyntax)
             Dim methodDecl = DirectCast(methodBlock.BlockStatement, MethodStatementSyntax)
             Dim model = compilation.GetSemanticModel(tree)
 
-            Dim speculatedMemberName = SyntaxFactory.ParseName("I.Method2")
             Dim implementsClause = methodDecl.ImplementsClause
-            TestGetSpeculativeSemanticModelForTypeSyntax_Common(model, implementsClause.InterfaceMembers(0).Position,
+            Dim implementsName = implementsClause.InterfaceMembers(0)
+
+            Dim symbol = model.GetSymbolInfo(implementsName).Symbol
+            Assert.Equal("I.Method", implementsName.ToString())
+            Assert.NotNull(symbol)
+            Assert.Equal("Function Method(param As System.Exception) As System.Exception", symbol.ToDisplayString())
+
+            Dim speculatedMemberName = SyntaxFactory.ParseName("I.Method2")
+            Const bug120491IsFixed = False
+
+            If bug120491IsFixed Then
+                TestGetSpeculativeSemanticModelForTypeSyntax_Common(model, implementsName.Position,
                 speculatedMemberName, SpeculativeBindingOption.BindAsExpression, SymbolKind.Method, "I.Method2")
+            Else
+                Dim speculativeModel As SemanticModel = Nothing
+                Dim success = model.TryGetSpeculativeSemanticModel(implementsName.Position, speculatedMemberName, speculativeModel, SpeculativeBindingOption.BindAsExpression)
+                Assert.True(success)
+                symbol = speculativeModel.GetSymbolInfo(speculatedMemberName).Symbol
+                Assert.Null(symbol)
+            End If
         End Sub
 
         <Fact>
