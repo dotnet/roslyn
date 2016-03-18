@@ -27,9 +27,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Packaging
     /// This implementation also spawns a task which will attempt to keep that database up to
     /// date by downloading patches on a daily basis.
     /// </summary>
-    internal partial class TypeSearchService :
-        ForegroundThreadAffinitizedObject,
-        ITypeSearchService
+    internal partial class TypeSearchService : ITypeSearchService
     {
         private readonly IHubClient _hubClient;
         private readonly DirectoryInfo _cacheDirectoryInfo;

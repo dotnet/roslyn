@@ -155,8 +155,8 @@
     <Compile Include="IRoslynTelemetrySetup.cs" />
     <Compile Include="Packaging\PackageInstallerServiceFactory.cs" />
     <Compile Include="Packaging\PackageInstallerServiceFactory_UndoRedo.cs" />
-    <Compile Include="Packaging\PackageSearchService.cs" />
-    <Compile Include="Packaging\PackageSearchServiceFactory.cs" />
+    <Compile Include="Packaging\TypeSearchService.cs" />
+    <Compile Include="Packaging\TypeSearchServiceFactory.cs" />
     <Compile Include="RoslynPackage.cs" />
     <Compile Include="ServicesVSResources.Designer.cs">
       <AutoGen>True</AutoGen>

@@ -1,6 +1,5 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System;
 using System.Collections.Generic;
 using System.Composition;
 using System.Threading;
@@ -13,7 +12,6 @@ using Microsoft.CodeAnalysis.Shared.Options;
 using Microsoft.VisualStudio.LanguageServices.HubServices;
 using Roslyn.Utilities;
 using VSShell = Microsoft.VisualStudio.Shell;
-using VSShellInterop = Microsoft.VisualStudio.Shell.Interop;
 
 namespace Microsoft.VisualStudio.LanguageServices.Packaging
 {
