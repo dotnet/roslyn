@@ -9,10 +9,17 @@ InitUtilities();
 // Gather performance metrics and produce csv files
 await RunFile(Path.Combine(MyWorkingDirectory(), "..", "runner.csx"));
 
-// Transform those csvs into a .json file
-var state =  await RunFile(Path.Combine(MyWorkingDirectory(), "transform_csv.csx"));
-var outJsonPath = (string) state.GetVariable("outJson").Value;
-string jsonFileName = Path.GetFileName(outJsonPath);
+// Convert the produced consumptionTempResults.xml file to consumptionTempResults.csv file
+var elapsedTimeCsvFilePath = Path.Combine(GetCPCDirectoryPath(), "consumptionTempResults_ElapsedTime.csv");
+var result = ConvertConsumptionToCsv(Path.Combine(MyWorkingDirectory(), "..", "consumptionTempResults.xml"), elapsedTimeCsvFilePath, "Duration_TotalElapsedTime");
+
+if (!result)
+{
+    return;
+}
+
+var elapsedTimeViBenchJsonFilePath = GetViBenchJsonFromCsv(elapsedTimeCsvFilePath, null, null);
+string jsonFileName = Path.GetFileName(elapsedTimeViBenchJsonFilePath);
 
 // Move the json file to a file-share
-File.Copy(outJsonPath, $@"\\vcbench-srv4\benchview\uploads\vibench\{jsonFileName}");
+// File.Copy(elapsedTimeViBenchJsonFilePath, $@"\\vcbench-srv4\benchview\uploads\vibench\{jsonFileName}");

@@ -10,6 +10,9 @@ public class TraceManager
     private readonly ScenarioGenerator _scenarioGenerator;
 
     private string _cpcFullPath = "CPC.exe";
+    private int _startEventAbsoluteInstance = 1;
+    private int _stopEventAbsoluteInstance = 1;
+    
     public TraceManager(
         string cpcFolderPath = @"%SYSTEMDRIVE%\CPC",
         string scenarioPath = @"%SYSTEMDRIVE%\CPC")
@@ -70,13 +73,15 @@ public class TraceManager
 
     public void StartEvent()
     {
-        _scenarioGenerator.AddStartEvent(PerformanceEventSource.Log.Guid.ToString(), 1);
+        _scenarioGenerator.AddStartEvent(PerformanceEventSource.Log.Guid.ToString(), 1, _startEventAbsoluteInstance);
+        _startEventAbsoluteInstance++;
         PerformanceEventSource.Log.EventStart();
     }
 
     public void EndEvent()
     {
-        _scenarioGenerator.AddEndEvent(PerformanceEventSource.Log.Guid.ToString(), 2);
+        _scenarioGenerator.AddEndEvent(PerformanceEventSource.Log.Guid.ToString(), 2, _stopEventAbsoluteInstance);
+        _stopEventAbsoluteInstance++;
         PerformanceEventSource.Log.EventEnd();
     }
 
@@ -98,6 +103,8 @@ public class TraceManager
     public void ResetScenarioGenerator()
     {
         _scenarioGenerator.Initialize();
+        _startEventAbsoluteInstance = 1;
+        _stopEventAbsoluteInstance = 1;
     }
     
     public void PrintTest()
