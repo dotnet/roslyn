@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Net.Http;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 using System.Web.Http;
 using Microsoft.CodeAnalysis.Elfie.Model;
@@ -15,21 +16,25 @@ namespace Microsoft.CodeAnalysis.HubServices.SymbolSearch
     {
         private static ConcurrentDictionary<string, AddReferenceDatabase> _sourceToDatabase = 
             new ConcurrentDictionary<string, AddReferenceDatabase>();
+        private static int responseId = 0;
 
         [HttpPost]
-        [Route("SymbolSearch/" + nameof(HubProtocolConstants.CancelOperationName))]
+        [Route(WellKnownHubServiceNames.SymbolSearch + "/" + nameof(HubProtocolConstants.CancelOperationName))]
         public new void CancelOperation(HubDataModel value)
         {
             base.CancelOperation(value);
         }
 
         [HttpPost]
-        [Route("SymbolSearch/" + nameof(OnPackageSourcesChanged))]
+        [Route(WellKnownHubServiceNames.SymbolSearch + "/" + nameof(OnPackageSourcesChanged))]
         public HttpResponseMessage OnPackageSourcesChanged(HubDataModel model)
         {
             return base.ProcessRequest(model, (arg, c) =>
             {
-                return new JObject(new JProperty("received", arg.ToString()));
+                Interlocked.Increment(ref responseId);
+                return new JObject(
+                    new JProperty("reponseId", responseId),
+                    new JProperty("received", arg.ToString()));
             });
         }
 
