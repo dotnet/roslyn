@@ -5,7 +5,7 @@ using System.Collections.Generic;
 // { [ file name ], [ ngen ? true | false ] }
 var IDEFiles = new Dictionary<string, bool>()
 {
-    { "CSharpInteractive.rsp", true },
+    { "CSharpInteractive.rsp", false },
     { "Esent.Interop.dll", true },
     { "InteractiveHost.exe", true },
     { "Microsoft.CodeAnalysis.CSharp.dll", true },
