@@ -223,29 +223,22 @@ namespace Roslyn.VisualStudio.Test.Utilities
 
                 if (_dte.Solution != null)
                 {
-                    // Save the full path to each project in the solution. This is so we can cleanup any folders after the solution is closed.
-                    var projectFiles = new List<string>();
+                    var directoriesToDelete = new List<string>();
 
-                    foreach (DteProject project in _dte.Solution.Projects)
+                    // Save the full path to each project in the solution. This is so we can cleanup any folders after the solution is closed.
+                    foreach (EnvDTE.Project project in _dte.Solution.Projects)
                     {
-                        projectFiles.Add(project.FullName);
+                        directoriesToDelete.Add(Path.GetDirectoryName(project.FullName));
                     }
 
                     // Save the full path to the solution. This is so we can cleanup any folders after the solution is closed.
-                    var solutionFile = _dte.Solution.FullName;
+                    directoriesToDelete.Add(Path.GetDirectoryName(_dte.Solution.FullName));
 
                     _dte.Solution.Close(SaveFirst: false);
 
-                    foreach (var projectFile in projectFiles)
+                    foreach (var directoryToDelete in directoriesToDelete)
                     {
-                        var projectFolder = Path.GetDirectoryName(projectFile);
-                        _requireNewInstance |= IntegrationHelper.TryDeleteDirectoryRecursively(projectFolder);
-                    }
-
-                    if (!string.IsNullOrWhiteSpace(solutionFile))
-                    {
-                        var solutionFolder = Path.GetDirectoryName(solutionFile);
-                        _requireNewInstance |= IntegrationHelper.TryDeleteDirectoryRecursively(solutionFolder);
+                        IntegrationHelper.TryDeleteDirectoryRecursively(directoryToDelete);
                     }
                 }
             }
