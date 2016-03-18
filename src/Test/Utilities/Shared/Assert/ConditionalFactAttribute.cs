@@ -44,7 +44,8 @@ namespace Roslyn.Test.Utilities
 
     public class IsEnglishLocal : ExecutionCondition
     {
-        public override bool ShouldSkip => System.Globalization.CultureInfo.CurrentCulture.ToString() != "en-US";
+        public override bool ShouldSkip =>
+            !System.Globalization.CultureInfo.CurrentUICulture.Name.StartsWith("en", StringComparison.OrdinalIgnoreCase);
 
         public override string SkipReason => "Current culture is not en-US";
     }
