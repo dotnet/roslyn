@@ -623,8 +623,8 @@
   <Node Name="BoundMultipleLocalDeclarations" Base="BoundStatement">
     <Field Name="LocalDeclarations" Type="ImmutableArray&lt;BoundLocalDeclaration&gt;"/>
   </Node>
-
-  <!--
+ 
+  <!-- 
   Bound node that represents a local function declaration:
     void Foo() { }
   -->
@@ -682,6 +682,7 @@
   </Node>
 
   <Node Name="BoundSwitchStatement" Base="BoundStatement">
+    <Field Name="LoweredPreambleOpt" Type="BoundStatement" Null="allow"/>
     <Field Name="Expression" Type="BoundExpression"/>
     <Field Name="ConstantTargetOpt" Type="LabelSymbol" Null= "allow"/>
     
@@ -1400,7 +1401,7 @@
     <Field Name="Alignment" Type="BoundExpression" Null="allow"/>
     <Field Name="Format" Type="BoundExpression" Null="allow"/>
   </Node>
-
+  
   <Node Name="BoundIsPatternExpression" Base="BoundExpression">
     <Field Name="Expression" Type="BoundExpression" Null="disallow"/>
     <Field Name="Pattern" Type="BoundPattern" Null="disallow"/>

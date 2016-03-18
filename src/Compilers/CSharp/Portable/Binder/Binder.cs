@@ -773,6 +773,20 @@ namespace Microsoft.CodeAnalysis.CSharp
             return new PatternVariableBinder(initializerArgumentListOpt, initializerArgumentListOpt.Arguments, this);
         }
 
+        internal void BuildAndAddPatternVariables(
+            ArrayBuilder<LocalSymbol> builder,
+            CSharpSyntaxNode node = null,
+            ImmutableArray<CSharpSyntaxNode> nodes = default(ImmutableArray<CSharpSyntaxNode>))
+        {
+            var patterns = ArrayBuilder<DeclarationPatternSyntax>.GetInstance();
+            PatternVariableFinder.FindPatternVariables(patterns, node, nodes);
+            foreach (var pattern in patterns)
+            {
+                builder.Add(SourceLocalSymbol.MakeLocal(ContainingMemberOrLambda, this, RefKind.None, pattern.Type, pattern.Identifier, LocalDeclarationKind.PatternVariable));
+            }
+            patterns.Free();
+        }
+
         internal BoundExpression WrapWithVariablesIfAny(BoundExpression expression)
         {
             return (Locals.Length == 0)

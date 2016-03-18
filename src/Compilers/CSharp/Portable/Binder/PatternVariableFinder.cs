@@ -13,12 +13,14 @@ namespace Microsoft.CodeAnalysis.CSharp
     class PatternVariableFinder : CSharpSyntaxWalker
     {
         ArrayBuilder<DeclarationPatternSyntax> declarationPatterns;
-        internal static ArrayBuilder<DeclarationPatternSyntax> FindPatternVariables(
+
+        internal static void FindPatternVariables(
+            ArrayBuilder<DeclarationPatternSyntax> builder,
             CSharpSyntaxNode node = null,
             ImmutableArray<CSharpSyntaxNode> nodes = default(ImmutableArray<CSharpSyntaxNode>))
         {
             var finder = s_poolInstance.Allocate();
-            finder.declarationPatterns = ArrayBuilder<DeclarationPatternSyntax>.GetInstance();
+            finder.declarationPatterns = builder;
             finder.Visit(node);
             if (!nodes.IsDefaultOrEmpty)
             {
@@ -28,10 +30,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
             }
 
-            var result = finder.declarationPatterns;
             finder.declarationPatterns = null;
             s_poolInstance.Free(finder);
-            return result;
         }
 
         public override void VisitDeclarationPattern(DeclarationPatternSyntax node)

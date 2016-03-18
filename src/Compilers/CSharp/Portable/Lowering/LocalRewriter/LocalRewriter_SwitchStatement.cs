@@ -84,11 +84,12 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             return rewrittenExpression.Type.IsNullableType() ?
                 MakeSwitchStatementWithNullableExpression(syntax, rewrittenExpression, rewrittenSections, constantTargetOpt, locals, localFunctions, breakLabel, oldNode) :
-                MakeSwitchStatementWithNonNullableExpression(syntax, rewrittenExpression, rewrittenSections, constantTargetOpt, locals, localFunctions, breakLabel, oldNode);
+                MakeSwitchStatementWithNonNullableExpression(syntax, null, rewrittenExpression, rewrittenSections, constantTargetOpt, locals, localFunctions, breakLabel, oldNode);
         }
 
         private BoundStatement MakeSwitchStatementWithNonNullableExpression(
             CSharpSyntaxNode syntax,
+            BoundStatement preambleOpt,
             BoundExpression rewrittenExpression,
             ImmutableArray<BoundSwitchSection> rewrittenSections,
             LabelSymbol constantTargetOpt,
@@ -112,6 +113,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             return oldNode.Update(
+                loweredPreambleOpt: preambleOpt,
                 expression: rewrittenExpression,
                 constantTargetOpt: constantTargetOpt,
                 innerLocals: locals,
@@ -161,7 +163,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 condition: MakeNullCheck(exprSyntax, rewrittenExpression, BinaryOperatorKind.NullableNullEqual),
                 jumpIfTrue: true,
                 label: GetNullValueTargetSwitchLabel(rewrittenSections, breakLabel));
-            statementBuilder.Add(condGotoNullValueTargetLabel);
 
             // Rewrite the switch statement using nullable expression's underlying value as the switch expression.
 
@@ -171,8 +172,16 @@ namespace Microsoft.CodeAnalysis.CSharp
             rewrittenExpression = callGetValueOrDefault;
 
             // rewrite switch statement
-            BoundStatement rewrittenSwitchStatement = MakeSwitchStatementWithNonNullableExpression(syntax,
-                rewrittenExpression, rewrittenSections, constantTargetOpt, locals, localFunctions, breakLabel, oldNode);
+            BoundStatement rewrittenSwitchStatement = MakeSwitchStatementWithNonNullableExpression(
+                syntax,
+                condGotoNullValueTargetLabel,
+                rewrittenExpression, 
+                rewrittenSections, 
+                constantTargetOpt, 
+                locals, 
+                localFunctions, 
+                breakLabel, 
+                oldNode);
 
             statementBuilder.Add(rewrittenSwitchStatement);
 
