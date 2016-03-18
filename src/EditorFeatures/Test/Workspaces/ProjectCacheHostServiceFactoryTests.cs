@@ -136,7 +136,13 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
             }
             while (weak.IsAlive);
 
-            Assert.False(weak.IsAlive);
+            // FailFast (and thereby capture a dump) to investigate what's
+            // rooting the object.
+            if (weak.IsAlive)
+            {
+                CodeAnalysis.Test.Utilities.ExceptionUtilities.FailFast(new Exception("Please investigate why the object wasn't collected!"));
+            }
+
             GC.KeepAlive(cacheService);
         }
 

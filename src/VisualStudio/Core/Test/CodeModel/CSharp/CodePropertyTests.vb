@@ -1003,7 +1003,7 @@ class C
 #Region "OverrideKind tests"
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
-        Public Async Function TestOverrideKind1() As Task
+        Public Async Function TestOverrideKind_None() As Task
             Dim code =
 <Code>
 class C
@@ -1025,7 +1025,7 @@ class C
         End Function
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
-        Public Async Function TestOverrideKind2() As Task
+        Public Async Function TestOverrideKind_Abstract() As Task
             Dim code =
 <Code>
 abstract class C
@@ -1041,12 +1041,114 @@ abstract class C
             Await TestOverrideKind(code, EnvDTE80.vsCMOverrideKind.vsCMOverrideKindAbstract)
         End Function
 
+        <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
+        Public Async Function TestOverrideKind_Virtual() As Task
+            Dim code =
+<Code>
+class C
+{
+    public virtual int $$P
+    {
+        get
+        {
+            return default(int);
+        }
+        set
+        {
+        }
+    }
+}
+</Code>
+
+            Await TestOverrideKind(code, EnvDTE80.vsCMOverrideKind.vsCMOverrideKindVirtual)
+        End Function
+
+        <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
+        Public Async Function TestOverrideKind_Override() As Task
+            Dim code =
+<Code>
+abstract class B
+{
+    public abstract int P { get; set; }
+}
+
+class C : B
+{
+    public override int $$P
+    {
+        get { return default(int); }
+        set { }
+    }
+}
+</Code>
+
+            Await TestOverrideKind(code, EnvDTE80.vsCMOverrideKind.vsCMOverrideKindOverride)
+        End Function
+
+        <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
+        Public Async Function TestOverrideKind_Sealed() As Task
+            Dim code =
+<Code>
+abstract class B
+{
+    public abstract int P { get; set; }
+}
+
+class C : B
+{
+    public override sealed int $$P
+    {
+        get { return default(int); }
+        set { }
+    }
+}
+</Code>
+
+            Await TestOverrideKind(code, EnvDTE80.vsCMOverrideKind.vsCMOverrideKindOverride Or EnvDTE80.vsCMOverrideKind.vsCMOverrideKindSealed)
+        End Function
+
+        <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
+        Public Async Function TestOverrideKind_New() As Task
+            Dim code =
+<Code>
+abstract class B
+{
+    public int P { get; set; }
+}
+
+class C : B
+{
+    public new int $$P { get; set; }
+}
+</Code>
+
+            Await TestOverrideKind(code, EnvDTE80.vsCMOverrideKind.vsCMOverrideKindNew)
+        End Function
+
+        <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
+        Public Async Function TestOverrideKind_Override_ExpressionBody() As Task
+            Dim code =
+<Code>
+abstract class A
+{
+    public abstract int P { get; }
+}
+
+class C : A
+{
+    public override int $$P => 42;
+}
+</Code>
+
+            Await TestOverrideKind(code, EnvDTE80.vsCMOverrideKind.vsCMOverrideKindOverride)
+        End Function
+
 #End Region
 
 #Region "ReadWrite tests"
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
-        Public Async Function TestReadWrite1() As Task
+        Public Async Function TestReadWrite_GetSet() As Task
             Dim code =
 <Code>
 class C
@@ -1068,7 +1170,7 @@ class C
         End Function
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
-        Public Async Function TestReadWrite2() As Task
+        Public Async Function TestReadWrite_Get() As Task
             Dim code =
 <Code>
 class C
@@ -1087,7 +1189,7 @@ class C
         End Function
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
-        Public Async Function TestReadWrite3() As Task
+        Public Async Function TestReadWrite_Set() As Task
             Dim code =
 <Code>
 class C
@@ -1105,7 +1207,7 @@ class C
         End Function
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
-        Public Async Function TestReadWrite4() As Task
+        Public Async Function TestReadWrite_GetSet_AutoProperty() As Task
             Dim code =
 <Code>
 class C
@@ -1117,12 +1219,38 @@ class C
             Await TestReadWrite(code, EnvDTE80.vsCMPropertyKind.vsCMPropertyKindReadWrite)
         End Function
 
+        <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
+        Public Async Function TestReadWrite_Get_AutoProperty() As Task
+            Dim code =
+<Code>
+class C
+{
+    public int $$P { get; }
+}
+</Code>
+
+            Await TestReadWrite(code, EnvDTE80.vsCMPropertyKind.vsCMPropertyKindReadOnly)
+        End Function
+
+        <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
+        Public Async Function TestReadWrite_Get_ExpressionBody() As Task
+            Dim code =
+<Code>
+class C
+{
+    public int $$P => 42;
+}
+</Code>
+
+            Await TestReadWrite(code, EnvDTE80.vsCMPropertyKind.vsCMPropertyKindReadOnly)
+        End Function
+
 #End Region
 
 #Region "Set OverrideKind tests"
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
-        Public Async Function TestSetOverrideKind1() As Task
+        Public Async Function TestSetOverrideKind_NoneToAbstract() As Task
             Dim code =
 <Code>
 abstract class C
@@ -1155,7 +1283,7 @@ abstract class C
         End Function
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
-        Public Async Function TestSetOverrideKind2() As Task
+        Public Async Function TestSetOverrideKind_AbstractToNone() As Task
             Dim code =
 <Code>
 abstract class C
@@ -1184,6 +1312,26 @@ abstract class C
 </Code>
 
             Await TestSetOverrideKind(code, expected, EnvDTE80.vsCMOverrideKind.vsCMOverrideKindNone)
+        End Function
+
+        <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
+        Public Async Function TestSetOverrideKind_NoneToOverride_ExpressionBody() As Task
+            Dim code =
+<Code>
+class C
+{
+    public int $$P => 42;
+}
+</Code>
+            Dim expected =
+<Code>
+class C
+{
+    public override int P => 42;
+}
+</Code>
+
+            Await TestSetOverrideKind(code, expected, EnvDTE80.vsCMOverrideKind.vsCMOverrideKindOverride)
         End Function
 
 #End Region

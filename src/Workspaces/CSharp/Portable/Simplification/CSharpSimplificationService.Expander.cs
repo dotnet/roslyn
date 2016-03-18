@@ -197,7 +197,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification
                                 {
                                     var typeSyntax = parameterSymbols[i].Type.GenerateTypeSyntax().WithTrailingTrivia(s_oneWhitespaceSeparator);
                                     var newParameter = parameters[i].WithType(typeSyntax).WithAdditionalAnnotations(Simplifier.Annotation);
-                                    newParameters = newParameters.Replace(parameters[i], newParameter);
+
+                                    var currentParameter = newParameters[i];
+                                    newParameters = newParameters.Replace(currentParameter, newParameter);
                                 }
 
                                 var newParameterList = parameterList.WithParameters(newParameters);

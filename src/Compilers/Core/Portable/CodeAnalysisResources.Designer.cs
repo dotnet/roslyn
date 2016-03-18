@@ -1073,7 +1073,7 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to The span does not include the end of a line..
+        ///   Looks up a localized string similar to Then span does not include the end of a line..
         /// </summary>
         internal static string SpanDoesNotIncludeEndOfLine {
             get {
