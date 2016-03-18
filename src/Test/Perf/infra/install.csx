@@ -26,17 +26,24 @@ foreach (var processName in new[] { "devenv", "msbuild", "VBCSCompiler"})
     }
 }
 
-Log($"{message} Roslyn binaries to VS folder.");
+Log($"\n{message} Roslyn binaries to VS folder.");
 var devenvFolder = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ProgramFilesX86), @"Microsoft Visual Studio 14.0\Common7\IDE");
 var destinationFolder = Path.Combine(devenvFolder, "PrivateAssemblies");
+var filesToNGen = new List<string>();
 foreach (var file in IDEFiles)
 {
     var destinationFile = CopyFile(Path.Combine(sourceFolder, file.Key), destinationFolder, uninstall);
 
     if (file.Value)
     {
-        NGen(destinationFile, x86Only: true);
+        filesToNGen.Add(destinationFile);
     }
+}
+
+// We'll do ngen as a second pass to ensure that all assembly's dependencies have been copied.
+foreach (var file in filesToNGen)
+{
+    NGen(file, x86Only: true);
 }
 
 var devenv = Path.Combine(devenvFolder, "devenv.exe");
@@ -44,28 +51,36 @@ ShellOutVital(devenv, "/clearcache");
 ShellOutVital(devenv, "/updateconfiguration");
 ShellOutVital(devenv, $"/resetsettingsfull {Path.Combine(sourceFolder, "Default.vssettings")} /command \"File.Exit\"");
 
-Log($"{message} compilers in MSBuild folders.");
+Log($"\n{message} compilers in MSBuild folders.");
 destinationFolder = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ProgramFilesX86), @"MSBuild\14.0\Bin");
 var destinationFolder64 = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ProgramFilesX86), @"MSBuild\14.0\Bin\amd64");
+filesToNGen = new List<string>();
 foreach (var file in MSBuildFiles)
 {
-    var destinationFile = CopyFile(Path.Combine(sourceFolder, file.Key), destinationFolder, uninstall);
+    var sourceFile = Path.Combine(sourceFolder, file.Key);
+
+    var destinationFile = CopyFile(sourceFile, destinationFolder, uninstall);
 
     if (file.Value)
     {
-        // It may be surprising that the binary under the 32-bit folder is also ngen'ed
-        // for x64, but that's what the Build Tools setup does, so we will mimic it.
-        NGen(destinationFile);
+        filesToNGen.Add(destinationFile);
     }
 
-    destinationFile = CopyFile(file.Key, destinationFolder64, uninstall);
+    destinationFile = CopyFile(sourceFile, destinationFolder64, uninstall);
 
     if (file.Value)
     {
-        // It may be surprising that the binary under the amd64 folder is also ngen'ed
-        // for x86, but that's what the Build Tools setup does, so we will mimic it.
-        NGen(destinationFile);
+        filesToNGen.Add(destinationFile);
     }
+}
+
+// We'll do ngen as a second pass to ensure that all assembly's dependencies have been copied.
+foreach (var file in filesToNGen)
+{
+    // It may be surprising that the binary under the 32-bit folder is also ngen'ed
+    // for x64, and that the binary under the amd64 folder is also ngen'ed for x86,
+    // but that's what the Build Tools setup does, so we will mimic it.
+    NGen(file);
 }
 
 string CopyFile(string sourceFile, string destinationFolder, bool uninstall)
@@ -75,14 +90,14 @@ string CopyFile(string sourceFile, string destinationFolder, bool uninstall)
     var backupFolder = Path.Combine(destinationFolder, "backup");
     var backupFile = Path.Combine(backupFolder, fileName);
 
-    // Elfie won't exist on machines without VS 2015 Update 2 RC (or later).
-    // It's okay to skip backing it up if it doesn't exist.
-    var shouldBackup = !(File.Exists(destinationFile) || (fileName == "Microsoft.CodeAnalysis.Elfie.dll"));
+    // It's okay to skip backing it up a file if it has already been
+    // backed up, or if it doesn't exist in the existing installation.
+    var shouldBackup = !File.Exists(backupFile) && File.Exists(destinationFile);
     if (uninstall)
     {
         if (shouldBackup)
         {
-            File.Copy(backupFile, destinationFile, overwrite: true);
+            File.Move(backupFile, destinationFile);
         }
     }
     else
@@ -94,7 +109,7 @@ string CopyFile(string sourceFile, string destinationFolder, bool uninstall)
 
         if (shouldBackup)
         {
-            File.Copy(destinationFile, backupFile, overwrite: true);
+            File.Copy(destinationFile, backupFile);
         }
 
         File.Copy(sourceFile, destinationFile, overwrite: true);

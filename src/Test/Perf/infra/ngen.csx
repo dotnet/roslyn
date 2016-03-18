@@ -9,10 +9,14 @@ var ngen64 = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.Wi
 
 void NGen(string file, bool x86Only = false)
 {
-    ShellOutVital(ngen, $"install {file} /nodependencies");
+    Log($"> NGen {file}");
+    var output = StdoutFrom(ngen, $"install \"{file}\" /nologo /nodependencies");
+    Log(output);
     
     if (!x86Only)
     {
-        ShellOutVital(ngen64, $"install {file} /nodependencies");
+        Log($"> NGen (64 bit) {file}");
+        output = StdoutFrom(ngen64, $"install \"{file}\" /nologo /nodependencies");
+        Log(output);
     }
 }
