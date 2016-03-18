@@ -101,7 +101,7 @@
       <RunTestsExe>Binaries\$(Configuration)\RunTests\RunTests.exe</RunTestsExe>
       <RunTestsArgs>$(NuGetPackageRoot)\xunit.runner.console\$(XunitVersion)\tools $(RunTestArgs) @(TestAssemblies, ' ')</RunTestsArgs>
     </PropertyGroup>
-    
+
     <Exec Condition="'$(RunProcessWatchdog)' == ''" Command="$(CoreRunExe) $(CoreRunArgs)" />
     <Exec Condition="'$(RunProcessWatchdog)' == ''" Command="$(RunTestsExe) $(RunTestsArgs)" />
 
@@ -125,24 +125,25 @@
       <ProcDumpPath Condition="'$(ProcDumpPath)' == ''">C:\Sysinternals\Procdump.exe</ProcDumpPath>
       <ProcessWatchdogArgs>--output-folder $(ProcessWatchdogOutputDirectory) --screenshot --procdump-path "$(ProcDumpPath)"</ProcessWatchdogArgs>
       <BufferSeconds>300</BufferSeconds>
-
       <!--
       We'd have liked to extract these constants from DateTime, for example,
           $([System.DateTime]::TicksPerSecond)
-      but MSBuild won't let you do that.
+      but MSBuild won't let you do that, because MSBuild lets you invoke methods and
+      properties, but TicksPerSecond is not a property, it's a constant.
       -->
       <TicksPerSecond>10000000</TicksPerSecond>
       <TicksPerMinute>$([MSBuild]::Multiply($(TicksPerSecond), 60))</TicksPerMinute>
+
+      <BufferTicks>$([MSBuild]::Multiply($(BufferSeconds), $(TicksPerSecond)))</BufferTicks>
 
       <StartTicks>$([System.DateTime]::Parse($(BuildStartTime)).Ticks)</StartTicks>
       <NowTicks>$([System.DateTime]::Now.Ticks)</NowTicks>
       <TimeSinceStartTicks>$([MSBuild]::Subtract($(NowTicks), $(StartTicks)))</TimeSinceStartTicks>
       <BuildTimeLimitTicks>$([MSBuild]::Multiply($(BuildTimeLimit), $(TicksPerMinute)))</BuildTimeLimitTicks>
-      <BufferTicks>$([MSBuild]::Multiply($(BufferSeconds), $(TicksPerSecond)))</BufferTicks>
       <RemainingTimeTicks>$([MSBuild]::Subtract($([MSBuild]::Subtract($(BuildTimeLimitTicks), $(TimeSinceStartTicks))), $(BufferTicks)))</RemainingTimeTicks>
       <RemainingTimeSeconds>$([MSBuild]::Divide($(RemainingTimeTicks), $(TicksPerSecond)))</RemainingTimeSeconds>
     </PropertyGroup>
-    
+
     <Error Condition="'$(RunProcessWatchdog)' != '' And $(RemainingTimeSeconds) &lt;= 0" Text="There is no time remaining to run the tests." />
     <Message Condition="'$(RunProcessWatchdog)' != ''" Importance="high" Text="Time remaining to run tests = $(RemainingTimeSeconds) seconds." />
 
@@ -153,7 +154,6 @@
       <NowTicks>$([System.DateTime]::Now.Ticks)</NowTicks>
       <TimeSinceStartTicks>$([MSBuild]::Subtract($(NowTicks), $(StartTicks)))</TimeSinceStartTicks>
       <BuildTimeLimitTicks>$([MSBuild]::Multiply($(BuildTimeLimit), $(TicksPerMinute)))</BuildTimeLimitTicks>
-      <BufferTicks>$([MSBuild]::Multiply($(BufferSeconds), $(TicksPerSecond)))</BufferTicks>
       <RemainingTimeTicks>$([MSBuild]::Subtract($([MSBuild]::Subtract($(BuildTimeLimitTicks), $(TimeSinceStartTicks))), $(BufferTicks)))</RemainingTimeTicks>
       <RemainingTimeSeconds>$([MSBuild]::Divide($(RemainingTimeTicks), $(TicksPerSecond)))</RemainingTimeSeconds>
     </PropertyGroup>
