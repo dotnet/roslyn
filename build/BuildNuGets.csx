@@ -31,36 +31,52 @@ var authors = @"Microsoft";
 var projectURL = @"http://msdn.com/roslyn";
 var tags = @"Roslyn CodeAnalysis Compiler CSharp VB VisualBasic Parser Scanner Lexer Emit CodeGeneration Metadata IL Compilation Scripting Syntax Semantics";
 
-var files = Directory.GetFiles(nuspecDirPath, "*.nuspec");
+// Create an empty directory to be used in NuGet pack
+// This can't be checked into git so it must be created every time
+var emptyDir = Path.Combine(Path.GetTempPath(), Path.GetRandomFileName());
+var dirInfo = Directory.CreateDirectory(emptyDir);
 
 int exit = 0;
 
-foreach (var file in files)
+try
 {
-    var nugetArgs = $@"pack {file} " +
-        $@"-BasePath ""{binDir}"" " +
-        $@"-OutputDirectory ""{outDir}"" " +
-        "-ExcludeEmptyDirectories " +
-        $@"-prop licenseUrl=""{licenseUrl}"" " +
-        $@"-prop version=""{buildVersion}"" " +
-        $"-prop authors={authors} " +
-        $@"-prop projectURL=""{projectURL}"" " +
-        $@"-prop tags=""{tags}""";
-    var nugetExePath = Path.GetFullPath(Path.Combine(slnRoot, "nuget.exe"));
-    var p = new Process();
-    p.StartInfo.FileName = nugetExePath;
-    p.StartInfo.Arguments = nugetArgs;
-    p.StartInfo.UseShellExecute = false;
+    var files = Directory.GetFiles(nuspecDirPath, "*.nuspec");
 
-    Console.WriteLine($"Running: nuget.exe {nugetArgs}");
-    p.Start();
-    p.WaitForExit();
-    exit = p.ExitCode;
-
-    if (exit != 0)
+    foreach (var file in files)
     {
-        break;
+        var nugetArgs = $@"pack {file} " +
+            $@"-BasePath ""{binDir}"" " +
+            $@"-OutputDirectory ""{outDir}"" " +
+            $@"-prop licenseUrl=""{licenseUrl}"" " +
+            $@"-prop version=""{buildVersion}"" " +
+            $"-prop authors={authors} " +
+            $@"-prop projectURL=""{projectURL}"" " +
+            $@"-prop tags=""{tags}"" " +
+            $@"-prop emptyDirPath=""{emptyDir}""";
+        var nugetExePath = Path.GetFullPath(Path.Combine(slnRoot, "nuget.exe"));
+        var p = new Process();
+        p.StartInfo.FileName = nugetExePath;
+        p.StartInfo.Arguments = nugetArgs;
+        p.StartInfo.UseShellExecute = false;
+
+        Console.WriteLine($"Running: nuget.exe {nugetArgs}");
+        p.Start();
+        p.WaitForExit();
+        exit = p.ExitCode;
+
+        if (exit != 0)
+        {
+            break;
+        }
     }
+}
+finally
+{
+    try
+    {
+        dirInfo.Delete();
+    }
+    catch {}
 }
 
 Environment.Exit(exit);
