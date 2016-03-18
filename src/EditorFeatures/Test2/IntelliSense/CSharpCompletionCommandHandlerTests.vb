@@ -1466,7 +1466,7 @@ class C
                 ' before the model computation has finished. Then, allow the 
                 ' computation to complete. There should still be no session.
                 state.SendBackspace()
-                slowProvider.checkpoint.TryRelease()
+                slowProvider.checkpoint.Release()
                 Await state.AssertNoCompletionSession()
             End Using
         End Function

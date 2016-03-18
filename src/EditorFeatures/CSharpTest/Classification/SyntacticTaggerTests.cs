@@ -38,18 +38,16 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Classification
                 var expectedLength = subjectBuffer.CurrentSnapshot.Length;
                 var actualVersionNumber = int.MaxValue;
                 var actualLength = int.MaxValue;
-                var didRelease = false;
                 tagComputer.TagsChanged += (s, e) =>
                 {
                     actualVersionNumber = e.Span.Snapshot.Version.VersionNumber;
                     actualLength = e.Span.Length;
-                    didRelease = checkpoint.TryRelease();
+                    checkpoint.Release();
                 };
 
                 await checkpoint.Task;
                 Assert.Equal(1, actualVersionNumber);
                 Assert.Equal(expectedLength, actualLength);
-                Assert.True(didRelease);
 
                 checkpoint = new Checkpoint();
 
@@ -63,7 +61,6 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Classification
                 await checkpoint.Task;
                 Assert.Equal(2, actualVersionNumber);
                 Assert.Equal(expectedLength, actualLength);
-                Assert.True(didRelease);
             }
         }
     }

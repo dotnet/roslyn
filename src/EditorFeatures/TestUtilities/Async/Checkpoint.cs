@@ -14,6 +14,6 @@ namespace Roslyn.Test.Utilities
 
         public Task Task => _tcs.Task;
 
-        public bool TryRelease() => _tcs.TrySetResult(null);
+        public void Release() => _tcs.SetResult(null);
     }
 }
