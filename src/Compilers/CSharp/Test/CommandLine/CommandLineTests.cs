@@ -2692,7 +2692,7 @@ C:\*.cs(100,7): error CS0103: The name 'Foo' does not exist in the current conte
 
             parsedArgs = DefaultParse(new[] { "/instrument:", "Test.Flag.Name", "a.cs" }, _baseDirectory);
             parsedArgs.Errors.Verify(
-                // error CS2006: Command-line syntax error: Missing '<attribute>' for 'instrument' option
+                // error CS2006: Command-line syntax error: Missing '<text>' for 'instrument' option
                 Diagnostic(ErrorCode.ERR_SwitchNeedsString).WithArguments("<text>", "instrument"));
 
             parsedArgs = DefaultParse(new[] { "/instrument:Test.Flag.Name", "a.cs" }, _baseDirectory);

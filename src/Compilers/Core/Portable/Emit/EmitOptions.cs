@@ -12,9 +12,6 @@ namespace Microsoft.CodeAnalysis.Emit
     {
         internal static readonly EmitOptions Default = new EmitOptions();
 
-        // TODO:
-        internal bool EmitDynamicAnalysisData { get; private set; }
-
         /// <summary>
         /// True to emit an assembly excluding executable code such as method bodies.
         /// </summary>
@@ -94,7 +91,7 @@ namespace Microsoft.CodeAnalysis.Emit
         /// </summary>
         public string RuntimeMetadataVersion { get; private set; }
 
-        // 1.0 BACKCOMPAT OVERLOAD -- DO NOT TOUCH
+        // 1.2 BACKCOMPAT OVERLOAD -- DO NOT TOUCH
         public EmitOptions(
             bool metadataOnly,
             DebugInformationFormat debugInformationFormat,
@@ -247,6 +244,8 @@ namespace Microsoft.CodeAnalysis.Emit
             }
         }
 
+        internal bool EmitDynamicAnalysisData => !string.IsNullOrEmpty(Instrument);
+
         internal static bool IsValidFileAlignment(int value)
         {
             switch (value)
@@ -261,16 +260,6 @@ namespace Microsoft.CodeAnalysis.Emit
                 default:
                     return false;
             }
-        }
-
-        internal EmitOptions WithEmitDynamicAnalysisData(bool value)
-        {
-            if (this.EmitDynamicAnalysisData == value)
-            {
-                return this;
-            }
-
-            return new EmitOptions(this) { EmitDynamicAnalysisData = value };
         }
 
         public EmitOptions WithEmitMetadataOnly(bool value)

@@ -44,7 +44,7 @@ namespace Microsoft.CodeAnalysis.Runtime
 ";
 
             var c = CreateCompilationWithMscorlib(Parse(source, @"C:\myproject\doc1.cs"));
-            var peImage = c.EmitToArray(EmitOptions.Default.WithEmitDynamicAnalysisData(true));
+            var peImage = c.EmitToArray(EmitOptions.Default.WithInstrument("Test.Flag"));
 
             var peReader = new PEReader(peImage);
             var reader = DynamicAnalysisDataReader.TryCreateFromPE(peReader);

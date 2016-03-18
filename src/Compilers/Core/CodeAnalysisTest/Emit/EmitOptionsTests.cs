@@ -66,7 +66,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
         {
             ReflectionAssert.AssertPublicAndInternalFieldsAndProperties(
                 typeof(EmitOptions),
-                nameof(EmitOptions.EmitDynamicAnalysisData)
+                nameof(EmitOptions.EmitDynamicAnalysisData),
                 nameof(EmitOptions.EmitMetadataOnly),
                 nameof(EmitOptions.SubsystemVersion),
                 nameof(EmitOptions.FileAlignment),
