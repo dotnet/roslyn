@@ -7,9 +7,11 @@ Imports System.Threading
 Imports System.Threading.Tasks
 Imports Microsoft.CodeAnalysis
 Imports Microsoft.CodeAnalysis.Elfie.Model
+Imports Microsoft.CodeAnalysis.HubServices.SymbolSearch
 Imports Microsoft.CodeAnalysis.Packaging
 Imports Microsoft.Internal.VisualStudio.Shell.Interop
 Imports Microsoft.VisualStudio.LanguageServices.Packaging
+Imports Microsoft.VisualStudio.RemoteControl
 Imports Moq
 Imports Roslyn.Test.Utilities
 
@@ -34,19 +36,17 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Packaging
 
             Dim remoteControlService = New Mock(Of IPackageSearchRemoteControlService)
 
-            Dim service = New TypeSearchService(
-                installerService:=TestInstallerService.Instance,
+            Dim service = New SymbolSearchController(
                 remoteControlService:=remoteControlService.Object,
                 logService:=TestLogService.Instance,
                 delayService:=TestDelayService.Instance,
                 ioService:=ioMock.Object,
                 patchService:=Nothing,
                 databaseFactoryService:=Nothing,
-                localSettingsDirectory:="TestDirectory",
                 reportAndSwallowException:=s_allButMoqExceptions,
                 cancellationTokenSource:=cancellationTokenSource)
 
-            Await service.UpdateSourceInBackgroundAsync(TypeSearchService.NugetOrgSource)
+            Await service.UpdateSourceInBackgroundAsync("TestDirectory", SymbolSearchController.NugetOrgSource)
             ioMock.Verify()
             remoteControlService.Verify()
         End Function
@@ -64,19 +64,17 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Packaging
 
             Dim remoteControlService = New Mock(Of IPackageSearchRemoteControlService)
 
-            Dim service = New TypeSearchService(
-                installerService:=TestInstallerService.Instance,
+            Dim service = New SymbolSearchController(
                 remoteControlService:=remoteControlService.Object,
                 logService:=TestLogService.Instance,
                 delayService:=TestDelayService.Instance,
                 ioService:=ioMock.Object,
                 patchService:=Nothing,
                 databaseFactoryService:=Nothing,
-                localSettingsDirectory:="TestDirectory",
                 reportAndSwallowException:=s_allButMoqExceptions,
                 cancellationTokenSource:=cancellationTokenSource)
 
-            Await service.UpdateSourceInBackgroundAsync(TypeSearchService.NugetOrgSource)
+            Await service.UpdateSourceInBackgroundAsync("TestDirectory", SymbolSearchController.NugetOrgSource)
             ioMock.Verify()
             remoteControlService.Verify()
         End Function
@@ -101,19 +99,17 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Packaging
                 Returns(clientMock.Object).
                 Callback(AddressOf cancellationTokenSource.Cancel)
 
-            Dim searchService = New TypeSearchService(
-                installerService:=TestInstallerService.Instance,
+            Dim searchService = New SymbolSearchController(
                 remoteControlService:=serviceMock.Object,
                 logService:=TestLogService.Instance,
                 delayService:=TestDelayService.Instance,
                 ioService:=ioMock.Object,
                 patchService:=Nothing,
                 databaseFactoryService:=Nothing,
-                localSettingsDirectory:="TestDirectory",
                 reportAndSwallowException:=s_allButMoqExceptions,
                 cancellationTokenSource:=cancellationTokenSource)
 
-            Await searchService.UpdateSourceInBackgroundAsync(TypeSearchService.NugetOrgSource)
+            Await searchService.UpdateSourceInBackgroundAsync("TestDirectory", SymbolSearchController.NugetOrgSource)
             ioMock.Verify()
             serviceMock.Verify()
             clientMock.Verify()
@@ -129,8 +125,8 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Packaging
             ioMock.Setup(Function(s) s.Exists(It.IsAny(Of FileSystemInfo))).Returns(False)
 
             Dim clientMock = CreateClientMock(CreateStream(New XElement("Database",
-                New XAttribute(TypeSearchService.ContentAttributeName, ""),
-                New XAttribute(TypeSearchService.ChecksumAttributeName, Convert.ToBase64String(New Byte() {0, 1, 2})))))
+                New XAttribute(SymbolSearchController.ContentAttributeName, ""),
+                New XAttribute(SymbolSearchController.ChecksumAttributeName, Convert.ToBase64String(New Byte() {0, 1, 2})))))
 
             Dim serviceMock = New Mock(Of IPackageSearchRemoteControlService)(MockBehavior.Strict)
 
@@ -144,19 +140,17 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Packaging
             delayMock.SetupGet(Function(s) s.CatastrophicFailureDelay).Returns(TimeSpan.Zero).Callback(
                 AddressOf cancellationTokenSource.Cancel)
 
-            Dim searchService = New TypeSearchService(
-                installerService:=TestInstallerService.Instance,
+            Dim searchService = New SymbolSearchController(
                 remoteControlService:=serviceMock.Object,
                 logService:=TestLogService.Instance,
                 delayService:=delayMock.Object,
                 ioService:=ioMock.Object,
                 patchService:=Nothing,
                 databaseFactoryService:=Nothing,
-                localSettingsDirectory:="TestDirectory",
                 reportAndSwallowException:=s_allButMoqExceptions,
                 cancellationTokenSource:=cancellationTokenSource)
 
-            Await searchService.UpdateSourceInBackgroundAsync(TypeSearchService.NugetOrgSource)
+            Await searchService.UpdateSourceInBackgroundAsync("TestDirectory", SymbolSearchController.NugetOrgSource)
             ioMock.Verify()
             serviceMock.Verify()
             clientMock.Verify()
@@ -179,19 +173,17 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Packaging
                 Returns(clientMock.Object).
                 Callback(AddressOf cancellationTokenSource.Cancel)
 
-            Dim searchService = New TypeSearchService(
-                installerService:=TestInstallerService.Instance,
+            Dim searchService = New SymbolSearchController(
                 remoteControlService:=serviceMock.Object,
                 logService:=TestLogService.Instance,
                 delayService:=TestDelayService.Instance,
                 ioService:=ioMock.Object,
                 patchService:=Nothing,
                 databaseFactoryService:=Nothing,
-                localSettingsDirectory:="TestDirectory",
                 reportAndSwallowException:=s_allButMoqExceptions,
                 cancellationTokenSource:=cancellationTokenSource)
 
-            Await searchService.UpdateSourceInBackgroundAsync(TypeSearchService.NugetOrgSource)
+            Await searchService.UpdateSourceInBackgroundAsync("TestDirectory", SymbolSearchController.NugetOrgSource)
             ioMock.Verify()
             serviceMock.Verify()
             clientMock.Verify()
@@ -209,7 +201,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Packaging
             Dim clientMock = New Mock(Of IPackageSearchRemoteControlClient)(MockBehavior.Strict)
 
             ' We should get a call to try to read the file. Simulate a crash in the client.
-            clientMock.Setup(Sub(c) c.ReadFileAsync(It.IsAny(Of __VsRemoteControlBehaviorOnStale))).
+            clientMock.Setup(Sub(c) c.ReadFileAsync(It.IsAny(Of BehaviorOnStale))).
                 Throws(New NotImplementedException())
 
             ' Client should be disposed.
@@ -227,19 +219,17 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Packaging
             delayMock.SetupGet(Function(s) s.ExpectedFailureDelay).Returns(TimeSpan.Zero).Callback(
                 AddressOf cancellationTokenSource.Cancel)
 
-            Dim searchService = New TypeSearchService(
-                installerService:=TestInstallerService.Instance,
+            Dim searchService = New SymbolSearchController(
                 remoteControlService:=remoteControlMock.Object,
                 logService:=TestLogService.Instance,
                 delayService:=delayMock.Object,
                 ioService:=ioMock.Object,
                 patchService:=Nothing,
                 databaseFactoryService:=Nothing,
-                localSettingsDirectory:="TestDirectory",
                 reportAndSwallowException:=s_allButMoqExceptions,
                 cancellationTokenSource:=cancellationTokenSource)
 
-            Await searchService.UpdateSourceInBackgroundAsync(TypeSearchService.NugetOrgSource)
+            Await searchService.UpdateSourceInBackgroundAsync("TestDirectory", SymbolSearchController.NugetOrgSource)
             ioMock.Verify()
             remoteControlMock.Verify()
             clientMock.Verify()
@@ -270,19 +260,17 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Packaging
             delayMock.SetupGet(Function(s) s.CatastrophicFailureDelay).Returns(TimeSpan.Zero).Callback(
                 AddressOf cancellationTokenSource.Cancel)
 
-            Dim searchService = New TypeSearchService(
-                installerService:=TestInstallerService.Instance,
+            Dim searchService = New SymbolSearchController(
                 remoteControlService:=remoteControlMock.Object,
                 logService:=TestLogService.Instance,
                 delayService:=delayMock.Object,
                 ioService:=ioMock.Object,
                 patchService:=Nothing,
                 databaseFactoryService:=factoryMock.Object,
-                localSettingsDirectory:="TestDirectory",
                 reportAndSwallowException:=s_allButMoqExceptions,
                 cancellationTokenSource:=cancellationTokenSource)
 
-            Await searchService.UpdateSourceInBackgroundAsync(TypeSearchService.NugetOrgSource)
+            Await searchService.UpdateSourceInBackgroundAsync("TestDirectory", SymbolSearchController.NugetOrgSource)
             ioMock.Verify()
             remoteControlMock.Verify()
             clientMock.Verify()
@@ -317,19 +305,17 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Packaging
             delayMock.SetupGet(Function(s) s.UpdateSucceededDelay).Returns(TimeSpan.Zero).
                 Callback(AddressOf cancellationTokenSource.Cancel)
 
-            Dim searchService = New TypeSearchService(
-                installerService:=TestInstallerService.Instance,
+            Dim searchService = New SymbolSearchController(
                 remoteControlService:=remoteControlMock.Object,
                 logService:=TestLogService.Instance,
                 delayService:=delayMock.Object,
                 ioService:=ioMock.Object,
                 patchService:=Nothing,
                 databaseFactoryService:=factoryMock.Object,
-                localSettingsDirectory:="TestDirectory",
                 reportAndSwallowException:=s_allButMoqExceptions,
                 cancellationTokenSource:=cancellationTokenSource)
 
-            Await searchService.UpdateSourceInBackgroundAsync(TypeSearchService.NugetOrgSource)
+            Await searchService.UpdateSourceInBackgroundAsync("TestDirectory", SymbolSearchController.NugetOrgSource)
             ioMock.Verify()
             remoteControlMock.Verify()
             clientMock.Verify()
@@ -375,19 +361,17 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Packaging
             delayMock.SetupGet(Function(s) s.UpdateSucceededDelay).Returns(TimeSpan.Zero).
                 Callback(AddressOf cancellationTokenSource.Cancel)
 
-            Dim searchService = New TypeSearchService(
-                installerService:=TestInstallerService.Instance,
+            Dim searchService = New SymbolSearchController(
                 remoteControlService:=remoteControlMock.Object,
                 logService:=TestLogService.Instance,
                 delayService:=delayMock.Object,
                 ioService:=ioMock.Object,
                 patchService:=Nothing,
                 databaseFactoryService:=factoryMock.Object,
-                localSettingsDirectory:="TestDirectory",
                 reportAndSwallowException:=s_allButMoqExceptions,
                 cancellationTokenSource:=cancellationTokenSource)
 
-            Await searchService.UpdateSourceInBackgroundAsync(TypeSearchService.NugetOrgSource)
+            Await searchService.UpdateSourceInBackgroundAsync("TestDirectory", SymbolSearchController.NugetOrgSource)
             ioMock.Verify()
             remoteControlMock.Verify()
             clientMock.Verify()
@@ -420,19 +404,17 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Packaging
             delayMock.SetupGet(Function(s) s.UpdateSucceededDelay).Returns(TimeSpan.Zero).
                 Callback(AddressOf cancellationTokenSource.Cancel)
 
-            Dim searchService = New TypeSearchService(
-                installerService:=TestInstallerService.Instance,
+            Dim searchService = New SymbolSearchController(
                 remoteControlService:=remoteControlMock.Object,
                 logService:=TestLogService.Instance,
                 delayService:=delayMock.Object,
                 ioService:=ioMock.Object,
                 patchService:=Nothing,
                 databaseFactoryService:=databaseFactoryMock.Object,
-                localSettingsDirectory:="TestDirectory",
                 reportAndSwallowException:=s_allButMoqExceptions,
                 cancellationTokenSource:=cancellationTokenSource)
 
-            Await searchService.UpdateSourceInBackgroundAsync(TypeSearchService.NugetOrgSource)
+            Await searchService.UpdateSourceInBackgroundAsync("TestDirectory", SymbolSearchController.NugetOrgSource)
             ioMock.Verify()
             remoteControlMock.Verify()
             clientMock.Verify()
@@ -473,19 +455,17 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Packaging
             delayMock.SetupGet(Function(s) s.UpdateSucceededDelay).Returns(TimeSpan.Zero).
                 Callback(AddressOf cancellationTokenSource.Cancel)
 
-            Dim searchService = New TypeSearchService(
-                installerService:=TestInstallerService.Instance,
+            Dim searchService = New SymbolSearchController(
                 remoteControlService:=remoteControlMock.Object,
                 logService:=TestLogService.Instance,
                 delayService:=delayMock.Object,
                 ioService:=ioMock.Object,
                 patchService:=Nothing,
                 databaseFactoryService:=databaseFactoryMock.Object,
-                localSettingsDirectory:="TestDirectory",
                 reportAndSwallowException:=s_allButMoqExceptions,
                 cancellationTokenSource:=cancellationTokenSource)
 
-            Await searchService.UpdateSourceInBackgroundAsync(TypeSearchService.NugetOrgSource)
+            Await searchService.UpdateSourceInBackgroundAsync("TestDirectory", SymbolSearchController.NugetOrgSource)
             ioMock.Verify()
             remoteControlMock.Verify()
             clientMock.Verify()
@@ -532,19 +512,17 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Packaging
             delayMock.SetupGet(Function(s) s.UpdateSucceededDelay).Returns(TimeSpan.Zero).
                 Callback(AddressOf cancellationTokenSource.Cancel)
 
-            Dim searchService = New TypeSearchService(
-                installerService:=TestInstallerService.Instance,
+            Dim searchService = New SymbolSearchController(
                 remoteControlService:=remoteControlMock.Object,
                 logService:=TestLogService.Instance,
                 delayService:=delayMock.Object,
                 ioService:=ioMock.Object,
                 patchService:=Nothing,
                 databaseFactoryService:=databaseFactoryMock.Object,
-                localSettingsDirectory:="TestDirectory",
                 reportAndSwallowException:=s_allButMoqExceptions,
                 cancellationTokenSource:=cancellationTokenSource)
 
-            Await searchService.UpdateSourceInBackgroundAsync(TypeSearchService.NugetOrgSource)
+            Await searchService.UpdateSourceInBackgroundAsync("TestDirectory", SymbolSearchController.NugetOrgSource)
             ioMock.Verify()
             remoteControlMock.Verify()
             clientMock.Verify()
@@ -587,19 +565,17 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Packaging
             delayMock.SetupGet(Function(s) s.UpdateSucceededDelay).Returns(TimeSpan.Zero).
                 Callback(AddressOf cancellationTokenSource.Cancel)
 
-            Dim searchService = New TypeSearchService(
-                installerService:=TestInstallerService.Instance,
+            Dim searchService = New SymbolSearchController(
                 remoteControlService:=remoteControlMock.Object,
                 logService:=TestLogService.Instance,
                 delayService:=delayMock.Object,
                 ioService:=ioMock.Object,
                 patchService:=patchMock.Object,
                 databaseFactoryService:=databaseFactoryMock.Object,
-                localSettingsDirectory:="TestDirectory",
                 reportAndSwallowException:=s_allButMoqExceptions,
                 cancellationTokenSource:=cancellationTokenSource)
 
-            Await searchService.UpdateSourceInBackgroundAsync(TypeSearchService.NugetOrgSource)
+            Await searchService.UpdateSourceInBackgroundAsync("TestDirectory", SymbolSearchController.NugetOrgSource)
             ioMock.Verify()
             remoteControlMock.Verify()
             clientMock.Verify()
@@ -649,7 +625,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Packaging
             Dim clientMock = New Mock(Of IPackageSearchRemoteControlClient)(MockBehavior.Strict)
 
             ' Return a full database element when the service asks for it.
-            clientMock.Setup(Function(c) c.ReadFileAsync(It.IsAny(Of __VsRemoteControlBehaviorOnStale))).
+            clientMock.Setup(Function(c) c.ReadFileAsync(It.IsAny(Of BehaviorOnStale))).
                 Returns(Task.FromResult(stream))
             ' Always dispose the client when we get a response.
             clientMock.Setup(Sub(c) c.Dispose())
@@ -666,9 +642,9 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Packaging
                                                   Optional isTooOld As Boolean = False,
                                                   Optional contents As String = Nothing) As Stream
             Dim element = New XElement("Patch",
-                If(isUpToDate, New XAttribute(TypeSearchService.UpToDateAttributeName, True), Nothing),
-                If(isTooOld, New XAttribute(TypeSearchService.TooOldAttributeName, True), Nothing),
-                If(contents IsNot Nothing, New XAttribute(TypeSearchService.ContentAttributeName, contents), Nothing))
+                If(isUpToDate, New XAttribute(SymbolSearchController.UpToDateAttributeName, True), Nothing),
+                If(isTooOld, New XAttribute(SymbolSearchController.TooOldAttributeName, True), Nothing),
+                If(contents IsNot Nothing, New XAttribute(SymbolSearchController.ContentAttributeName, contents), Nothing))
 
             Return CreateStream(element)
         End Function
@@ -681,7 +657,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Packaging
             Dim contents = Convert.ToBase64String(saveStream.ToArray())
 
             Return CreateStream(New XElement("Database",
-                New XAttribute(TypeSearchService.ContentAttributeName, contents)))
+                New XAttribute(SymbolSearchController.ContentAttributeName, contents)))
         End Function
 
         Private Function CreateStream(element As XElement) As Stream
@@ -728,45 +704,6 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Packaging
                     Return TimeSpan.Zero
                 End Get
             End Property
-        End Class
-
-        Private Class TestInstallerService
-            Implements IPackageInstallerService
-
-            Public Shared ReadOnly Instance As IPackageInstallerService = New TestInstallerService()
-
-            Public ReadOnly Property IsEnabled As Boolean Implements IPackageInstallerService.IsEnabled
-                Get
-                    Return True
-                End Get
-            End Property
-
-            Public ReadOnly Property PackageSources As ImmutableArray(Of PackageSource) Implements IPackageInstallerService.PackageSources
-                Get
-                    Throw New NotImplementedException()
-                End Get
-            End Property
-
-            Public Event PackageSourcesChanged As EventHandler Implements IPackageInstallerService.PackageSourcesChanged
-
-            Public Sub ShowManagePackagesDialog(packageName As String) Implements IPackageInstallerService.ShowManagePackagesDialog
-                Throw New NotImplementedException()
-            End Sub
-
-            Public Iterator Function GetInstalledVersions(packageName As String) As IEnumerable(Of String) Implements IPackageInstallerService.GetInstalledVersions
-            End Function
-
-            Public Function GetProjectsWithInstalledPackage(solution As Solution, packageName As String, version As String) As IEnumerable(Of Project) Implements IPackageInstallerService.GetProjectsWithInstalledPackage
-                Throw New NotImplementedException()
-            End Function
-
-            Public Function IsInstalled(workspace As Workspace, projectId As ProjectId, packageName As String) As Boolean Implements IPackageInstallerService.IsInstalled
-                Throw New NotImplementedException()
-            End Function
-
-            Public Function TryInstallPackage(workspace As Workspace, documentId As DocumentId, source As String, packageName As String, versionOpt As String, cancellationToken As CancellationToken) As Boolean Implements IPackageInstallerService.TryInstallPackage
-                Throw New NotImplementedException()
-            End Function
         End Class
 
         Private Class TestLogService
