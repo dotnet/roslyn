@@ -18,13 +18,13 @@ using VSShellInterop = Microsoft.VisualStudio.Shell.Interop;
 namespace Microsoft.VisualStudio.LanguageServices.Packaging
 {
     [ExportWorkspaceServiceFactory(typeof(ITypeSearchService), WorkspaceKind.Host), Shared]
-    internal class PackageSearchServiceFactory : IWorkspaceServiceFactory
+    internal class TypeSearchServiceFactory : IWorkspaceServiceFactory
     {
         private readonly IHubClient _hubClient;
         private readonly VSShell.SVsServiceProvider _serviceProvider;
 
         [ImportingConstructor]
-        public PackageSearchServiceFactory(
+        public TypeSearchServiceFactory(
             IHubClient hubClient,
             VSShell.SVsServiceProvider serviceProvider)
         {
@@ -44,10 +44,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Packaging
                 }
             }
 
-            return new NullPackageSearchService();
+            return new NullTypeSearchService();
         }
 
-        private class NullPackageSearchService : ITypeSearchService
+        private class NullTypeSearchService : ITypeSearchService
         {
             public Task<IEnumerable<PackageWithTypeResult>> FindPackagesWithTypeAsync(
                 string source, string name, int arity, CancellationToken cancellationToken)
