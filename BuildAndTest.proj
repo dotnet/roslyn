@@ -102,10 +102,10 @@
       <RunTestsArgs>$(NuGetPackageRoot)\xunit.runner.console\$(XunitVersion)\tools $(RunTestArgs) @(TestAssemblies, ' ')</RunTestsArgs>
     </PropertyGroup>
 
-    <Exec Condition="'$(RunProcessWatchdog)' == ''" Command="$(CoreRunExe) $(CoreRunArgs)" />
-    <Exec Condition="'$(RunProcessWatchdog)' == ''" Command="$(RunTestsExe) $(RunTestsArgs)" />
+    <Exec Condition="'$(RunProcessWatchdog)' != 'true'" Command="$(CoreRunExe) $(CoreRunArgs)" />
+    <Exec Condition="'$(RunProcessWatchdog)' != 'true'" Command="$(RunTestsExe) $(RunTestsArgs)" />
 
-    <PropertyGroup Condition="'$(RunProcessWatchdog)' != ''">
+    <PropertyGroup Condition="'$(RunProcessWatchdog)' == 'true'">
       <!--
       We use the ProcessWatchdog to ensure that the tests complete in the remaining
       time available to the Jenkins job. If they don't complete in that time, the
@@ -144,13 +144,13 @@
       <RemainingTimeSeconds>$([MSBuild]::Divide($(RemainingTimeTicks), $(TicksPerSecond)))</RemainingTimeSeconds>
     </PropertyGroup>
 
-    <Error Condition="'$(RunProcessWatchdog)' != '' And $(RemainingTimeSeconds) &lt;= 0" Text="There is no time remaining to run the tests." />
-    <Message Condition="'$(RunProcessWatchdog)' != ''" Importance="high" Text="Time remaining to run tests = $(RemainingTimeSeconds) seconds." />
+    <Error Condition="'$(RunProcessWatchdog)' == 'true' And $(RemainingTimeSeconds) &lt;= 0" Text="There is no time remaining to run the tests." />
+    <Message Condition="'$(RunProcessWatchdog)' == 'true'" Importance="high" Text="Time remaining to run tests = $(RemainingTimeSeconds) seconds." />
 
-    <Exec Condition="'$(RunProcessWatchdog)' != ''" Command='$(ProcessWatchdogExe) --executable $(CoreRunExe) --arguments "$(CoreRunArgs)" --time-limit $(RemainingTimeSeconds) $(ProcessWatchdogArgs)' />
+    <Exec Condition="'$(RunProcessWatchdog)' == 'true'" Command='$(ProcessWatchdogExe) --executable $(CoreRunExe) --arguments "$(CoreRunArgs)" --time-limit $(RemainingTimeSeconds) $(ProcessWatchdogArgs)' />
 
     <!-- Recalculate the remaining time after the first set of tests. -->
-    <PropertyGroup Condition="'$(RunProcessWatchdog)' != ''">
+    <PropertyGroup Condition="'$(RunProcessWatchdog)' == 'true'">
       <NowTicks>$([System.DateTime]::Now.Ticks)</NowTicks>
       <TimeSinceStartTicks>$([MSBuild]::Subtract($(NowTicks), $(StartTicks)))</TimeSinceStartTicks>
       <BuildTimeLimitTicks>$([MSBuild]::Multiply($(BuildTimeLimit), $(TicksPerMinute)))</BuildTimeLimitTicks>
@@ -158,10 +158,10 @@
       <RemainingTimeSeconds>$([MSBuild]::Divide($(RemainingTimeTicks), $(TicksPerSecond)))</RemainingTimeSeconds>
     </PropertyGroup>
     
-    <Error Condition="'$(RunProcessWatchdog)' != '' And $(RemainingTimeSeconds) &lt;= 0" Text="There is no time remaining to run the tests." />
-    <Message Condition="'$(RunProcessWatchdog)' != ''" Importance="high" Text="Time remaining to run tests = $(RemainingTimeSeconds) seconds." />
+    <Error Condition="'$(RunProcessWatchdog)' == 'true' And $(RemainingTimeSeconds) &lt;= 0" Text="There is no time remaining to run the tests." />
+    <Message Condition="'$(RunProcessWatchdog)' == 'true'" Importance="high" Text="Time remaining to run tests = $(RemainingTimeSeconds) seconds." />
    
-    <Exec Condition="'$(RunProcessWatchdog)' != ''" Command='$(ProcessWatchdogExe) --executable $(RunTestsExe) --arguments "$(RunTestsArgs)" --time-limit $(RemainingTimeSeconds) $(ProcessWatchdogArgs)' />
+    <Exec Condition="'$(RunProcessWatchdog)' == 'true'" Command='$(ProcessWatchdogExe) --executable $(RunTestsExe) --arguments "$(RunTestsArgs)" --time-limit $(RemainingTimeSeconds) $(ProcessWatchdogArgs)' />
 
   </Target>
 
