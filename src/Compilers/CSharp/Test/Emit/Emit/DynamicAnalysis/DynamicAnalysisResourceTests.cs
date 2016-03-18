@@ -14,10 +14,7 @@ namespace Microsoft.CodeAnalysis.CSharp.DynamicAnalysis.UnitTests
 {
     public class DynamicAnalysisResourceTests : CSharpTestBase
     {
-        [Fact]
-        public void Resource1()
-        {
-            string source = @"
+        private static string ExampleSource = @"
 using System;
 
 public class C
@@ -43,8 +40,11 @@ namespace Microsoft.CodeAnalysis.Runtime
 }
 ";
 
-            var c = CreateCompilationWithMscorlib(Parse(source, @"C:\myproject\doc1.cs"));
-            var peImage = c.EmitToArray(EmitOptions.Default.WithEmitDynamicAnalysisData(true));
+        [Fact]
+        public void TestSpansPresentInResource()
+        {
+            var c = CreateCompilationWithMscorlib(Parse(ExampleSource, @"C:\myproject\doc1.cs"));
+            var peImage = c.EmitToArray(EmitOptions.Default.WithInstrument("Test.Flag"));
 
             var peReader = new PEReader(peImage);
             var reader = DynamicAnalysisDataReader.TryCreateFromPE(peReader);
@@ -59,6 +59,18 @@ namespace Microsoft.CodeAnalysis.Runtime
                 "(6,4)-(8,5)");
 
             VerifySpans(reader, reader.Methods[1]);
+        }
+
+        [Fact]
+        public void TestDynamicAnalysisResourceMissingWhenInstrumentationFlagIsDisabled()
+        {
+            var c = CreateCompilationWithMscorlib(Parse(ExampleSource, @"C:\myproject\doc1.cs"));
+            var peImage = c.EmitToArray(EmitOptions.Default);
+
+            var peReader = new PEReader(peImage);
+            var reader = DynamicAnalysisDataReader.TryCreateFromPE(peReader);
+
+            Assert.Null(reader);
         }
 
         private static void VerifySpans(DynamicAnalysisDataReader reader, DynamicAnalysisMethod methodData, params string[] expected)

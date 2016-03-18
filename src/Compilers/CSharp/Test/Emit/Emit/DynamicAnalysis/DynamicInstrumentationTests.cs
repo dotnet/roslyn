@@ -202,7 +202,7 @@ True
   IL_0069:  ret
 }
 ";
-            CompilationVerifier verifier = CompileAndVerify(source + InstrumentationHelperSource, emitOptions: EmitOptions.Default.WithEmitDynamicAnalysisData(true), expectedOutput: expectedOutput);
+            CompilationVerifier verifier = CompileAndVerify(source + InstrumentationHelperSource, emitOptions: EmitOptions.Default.WithInstrument("Test.Flag"), expectedOutput: expectedOutput);
             verifier.VerifyIL("Program.Barney", expectedBarneyIL);
         }
 
@@ -357,7 +357,7 @@ True
 True
 ";
 
-            CompileAndVerify(source + InstrumentationHelperSource, emitOptions: EmitOptions.Default.WithEmitDynamicAnalysisData(true), expectedOutput: expectedOutput);
+            CompileAndVerify(source + InstrumentationHelperSource, emitOptions: EmitOptions.Default.WithInstrument("Test.Flag"), expectedOutput: expectedOutput);
         }
 
         [Fact]
@@ -418,7 +418,7 @@ True
 True
 ";
 
-            CompileAndVerify(source + InstrumentationHelperSource, emitOptions: EmitOptions.Default.WithEmitDynamicAnalysisData(true), expectedOutput: expectedOutput);
+            CompileAndVerify(source + InstrumentationHelperSource, emitOptions: EmitOptions.Default.WithInstrument("Test.Flag"), expectedOutput: expectedOutput);
         }
 
         [Fact]
@@ -500,7 +500,7 @@ True
 True
 ";
 
-            CompileAndVerify(source + InstrumentationHelperSource, emitOptions: EmitOptions.Default.WithEmitDynamicAnalysisData(true), expectedOutput: expectedOutput);
+            CompileAndVerify(source + InstrumentationHelperSource, emitOptions: EmitOptions.Default.WithInstrument("Test.Flag"), expectedOutput: expectedOutput);
         }
 
         private CompilationVerifier CompileAndVerify(string source, EmitOptions emitOptions, string expectedOutput = null)

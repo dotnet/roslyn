@@ -66,18 +66,19 @@ namespace Microsoft.CodeAnalysis.UnitTests
         {
             ReflectionAssert.AssertPublicAndInternalFieldsAndProperties(
                 typeof(EmitOptions),
-                "EmitDynamicAnalysisData",
-                "EmitMetadataOnly",
-                "SubsystemVersion",
-                "FileAlignment",
-                "HighEntropyVirtualAddressSpace",
-                "BaseAddress",
-                "DebugInformationFormat",
-                "OutputNameOverride",
-                "PdbFilePath",
-                "RuntimeMetadataVersion",
-                "TolerateErrors",
-                "IncludePrivateMembers");
+                nameof(EmitOptions.EmitDynamicAnalysisData),
+                nameof(EmitOptions.EmitMetadataOnly),
+                nameof(EmitOptions.SubsystemVersion),
+                nameof(EmitOptions.FileAlignment),
+                nameof(EmitOptions.HighEntropyVirtualAddressSpace),
+                nameof(EmitOptions.BaseAddress),
+                nameof(EmitOptions.DebugInformationFormat),
+                nameof(EmitOptions.OutputNameOverride),
+                nameof(EmitOptions.PdbFilePath),
+                nameof(EmitOptions.RuntimeMetadataVersion),
+                nameof(EmitOptions.TolerateErrors),
+                nameof(EmitOptions.IncludePrivateMembers),
+                nameof(EmitOptions.Instrument));
         }
     }
 }
