@@ -203,9 +203,7 @@ End Class", fixProviderData:=New ProviderData(installerServiceMock.Object, packa
 
             Private Function CreateSearchResult(packageName As String, typeName As String, nameParts As IReadOnlyList(Of String)) As IEnumerable(Of PackageWithTypeResult)
                 Return CreateSearchResult(New PackageWithTypeResult(
-                    isDesktopFramework:=False,
                     packageName:=packageName,
-                    assemblyName:=packageName,
                     typeName:=typeName,
                     version:=Nothing,
                     containingNamespaceNames:=nameParts))
