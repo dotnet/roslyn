@@ -294,11 +294,15 @@
        ==================================================================================== -->
 
   <UsingTask TaskName="SignFiles" AssemblyFile="$(TF_BUILD_BUILDDIRECTORY)\MicroBuild\MicroBuild.Signing.dll" Condition="'$(RunningInMicroBuild)' == 'true'" />
-
+  
   <PropertyGroup>
-    <CreateVsixContainerDependsOn>$(CreateVsixContainerDependsOn);SignVsixInputs</CreateVsixContainerDependsOn>
-    <PrepareForRunDependsOn>$(PrepareForRunDependsOn);SignVsix</PrepareForRunDependsOn>
-    <ProducingSignedVsix Condition="'$(ShouldSignBuild)' == 'true' AND '$(NonShipping)' != 'true' AND '$(CreateVsixContainer)' == 'true'">true</ProducingSignedVsix>
+    <AssemblySigningFlagSuffix>.asff</AssemblySigningFlagSuffix>
+    <AssemblySigningFlagsPath>$(OutputPath)SigningFlags\AssemblySigningFlags\</AssemblySigningFlagsPath>
+    <AssemblySigningFlagFile>$(AssemblySigningFlagsPath)$(AssemblyName)$(TargetExt)$(AssemblySigningFlagSuffix)</AssemblySigningFlagFile>
+
+    <VsixSigningFlagSuffix>.vsff</VsixSigningFlagSuffix>
+    <VsixSigningFlagsPath>$(OutputPath)SigningFlags\VsixSigningFlags\</VsixSigningFlagsPath>
+    <VsixSigningFlagFile>$(VsixSigningFlagsPath)$(TargetVsixContainerName)$(VsixSigningFlagSuffix)</VsixSigningFlagFile>
   </PropertyGroup>
 
   <!-- GetTargetPath returns the path under $(OutDir) for each project.
@@ -308,14 +312,33 @@
       <TargetPathWithAuthenticodeCertificateName Include="$(TargetPath)">
         <AuthenticodeCertificateName>$(AuthenticodeCertificateName)</AuthenticodeCertificateName>
       </TargetPathWithAuthenticodeCertificateName>
-    </ItemGroup>
+    </ItemGroup>  
+  </Target> 
+  
+  <Target Name="DeleteAssemblySigningFlag"> 
+    <Delete Condition="Exists('$(AssemblySigningFlagFile)')" Files="$(AssemblySigningFlagFile)" />
   </Target>
 
-  <Target Name="SignVsixInputs" Condition="'$(ProducingSignedVsix)' == 'true'" DependsOnTargets="GetVsixSourceItems" BeforeTargets="AfterCompile">
-    <!-- Ensure the build tasks project is already built -->
-    <MSBuild Projects="$(MSBuildThisFileDirectory)..\..\..\Closed\Setup\BuildTasks\BuildTasks.vbproj" Condition="!Exists('$(OutDir)\Roslyn.Setup.BuildTasks.dll') AND '$(RunningInMicroBuild)' != 'true'" />
+  <Target Name="DeleteVisxSigningFlag">
+    <Delete Condition="Exists('$(VsixSigningFlagFile)')" Files="$(VsixSigningFlagFile)" />
+  </Target>
+  
+  <!-- Generate an assembly signing flag file (.asff) for each shipping assembly.
+	   All such assemlies will be signed after build (before signing vsix's). -->
+  <Target Name="GenerateAssemblySigningFlag" Condition="'$(NonShipping)' != 'true'" DependsOnTargets="DeleteAssemblySigningFlag" BeforeTargets="GenerateVsixSigningFlag"> 	
+    <Message Text="Generate signing-flag file for $(AssemblyName)" />
+    <MakeDir Condition="!Exists('$(AssemblySigningFlagsPath)')" Directories="$(AssemblySigningFlagsPath)" />
+    <CallTarget Targets="GetTargetPathWithAuthenticodeCertificateName">
+      <Output TaskParameter="TargetOutputs" ItemName="AssemblyToSign" />
+    </CallTarget> 
+	
+    <!-- Generate the flag file with assembly full path and AuthenticodeCertificateName (separated by a space) as content -->
+    <WriteLinesToFile File="$(AssemblySigningFlagFile)" Lines="%(AssemblyToSign.FullPath) %(AssemblyToSign.AuthenticodeCertificateName)" Overwrite="true" Encoding="Unicode"/>
+  </Target>   
 
-    <!-- Collect the paths of all dependent projects. GetTargetPath returns the path under $(OutDir) for each project. -->
+  <Target Name="GenerateVsixSigningFlag" Condition="'$(NonShipping)' != 'true' AND '$(CreateVsixContainer)' == 'true'" DependsOnTargets="DeleteVisxSigningFlag;GetVsixSourceItems" BeforeTargets="AfterCompile">        
+    <Message Text="Verify signing-flag of vsix inputs for $(TargetVsixContainerName)" />    
+    <!-- Collect the paths of all dependent projects. -->
     <MSBuild Projects="@(ProjectReferenceWithConfiguration)"
              Targets="GetTargetPathWithAuthenticodeCertificateName"
              BuildInParallel="$(BuildInParallel)"
@@ -323,43 +346,31 @@
 
       <Output TaskParameter="TargetOutputs" ItemName="VsixInputAssembliesToSign" />
     </MSBuild>
-
     <!-- Include the assembly we just built if we're also including it in the VSIX-->
     <ItemGroup>
-      <VsixInputAssembliesToSign Include="@(IntermediateAssembly)" Condition="'$(IncludeAssemblyInVSIXContainer)' == 'true'">
+      <VsixInputAssembliesToSign Include="$(TargetPath)" Condition="'$(IncludeAssemblyInVSIXContainer)' == 'true'">
         <AuthenticodeCertificateName>$(AuthenticodeCertificateName)</AuthenticodeCertificateName>
       </VsixInputAssembliesToSign>
     </ItemGroup>
+	
+    <Message Text="Verifying the existence of signing-flags for vsix input assemblies: @(VsixInputAssembliesToSign)"/>
+    <Warning Condition="!Exists('$(AssemblySigningFlagsPath)%(VsixInputAssembliesToSign.Filename)%(VsixInputAssembliesToSign.Extension)$(AssemblySigningFlagSuffix)')" 
+             Text="Sign file flag ($(AssemblySigningFlagsPath)%(VsixInputAssembliesToSign.Filename)%(VsixInputAssembliesToSign.Extension)$(AssemblySigningFlagSuffix)) doesn't exist for %(VsixInputAssembliesToSign.Filename)%(VsixInputAssembliesToSign.Extension)" 
+    />
 
-    <Message Text="Signing VSIX inputs: using authenticode certificate '%(VsixInputAssembliesToSign.AuthenticodeCertificateName)' for @(VsixInputAssembliesToSign)"/>
-
-    <ItemGroup Condition="'$(RunningInMicroBuild)' == 'true'">
-        <VsixInputAssembliesToSign>
-            <Authenticode>%(VsixInputAssembliesToSign.AuthenticodeCertificateName)</Authenticode>
-            <StrongName>72</StrongName>
-        </VsixInputAssembliesToSign>
+    <Message Text="Generate signing-flag file for $(TargetVsixContainerName)" />
+    <ItemGroup>
+      <VsixSigningFlagFile Include="$(VsixSigningFlagFile)" />
     </ItemGroup>
-
-    <SignFiles Condition="'$(RunningInMicroBuild)' == 'true'"
-               Files="@(VsixInputAssembliesToSign)"
-               BinariesDirectory="$(OutDir)"
-               IntermediatesDirectory="$(IntermediateOutputPath)"
-               Type="$(SignType)" />
-  </Target>
-
-  <Target Name="SignVsix"  Condition="'$(ProducingSignedVsix)' == 'true'" DependsOnTargets="CreateVsixContainer">
-    <Message Text="Signing VSIX: $(TargetVsixContainer)"/>
-
-    <ItemGroup Condition="'$(RunningInMicroBuild)' == 'true'">
-        <VsixToSign Include="$(TargetVsixContainer)">
-            <Authenticode>VsixSHA2</Authenticode>
-        </VsixToSign>
-    </ItemGroup>
-
-    <SignFiles Condition="'$(RunningInMicroBuild)' == 'true'"
-               Files="@(VsixToSign)"
-               BinariesDirectory="$(OutDir)"
-               IntermediatesDirectory="$(IntermediateOutputPath)"
-               Type="$(SignType)" />
+    <!-- Redefine VsixSigningFlagFile value so all vsix flag files are put into same directory (the assumption is no two vsix share the same name) -->
+    <PropertyGroup>
+      <VsixSigningFlagFile>$(VsixSigningFlagsPath)%(VsixSigningFlagFile.Filename)%(VsixSigningFlagFile.Extension)</VsixSigningFlagFile>
+    </PropertyGroup>
+    <MakeDir Condition="!Exists('$(VsixSigningFlagsPath)')" Directories="$(VsixSigningFlagsPath)" />
+    <!-- Generate vsix signing flag file:
+         - First line as full path to generated vsix file 
+         - Followed by a list of full path to input assemblies -->
+    <WriteLinesToFile File="$(VsixSigningFlagFile)" Lines="$(TargetVsixContainer)" Overwrite="true" Encoding="Unicode"/>
+    <WriteLinesToFile File="$(VsixSigningFlagFile)" Lines="@(VsixInputAssembliesToSign)" Overwrite="false" Encoding="Unicode"/>
   </Target>
  </Project>
