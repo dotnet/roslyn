@@ -17,5 +17,8 @@ namespace Microsoft.CodeAnalysis.HubServices
         public const string RanToCompletionTypePropertyValue = "RanToCompletion";
         public const string FaultedTypePropertyValue = "Faulted";
         public const string CanceledTypePropertyValue = "Canceled";
+
+        public const string PackageSourcesName = "PackageSources";
+        public const string CacheDirectoryName = "CacheDirectory";
     }
 }

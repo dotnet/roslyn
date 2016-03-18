@@ -5,6 +5,8 @@ using System.Diagnostics;
 
 #if COMPILERCORE
 namespace Microsoft.CodeAnalysis
+#elif HUBSERVICES
+namespace Microsoft.CodeAnalysis.HubServices
 #else
 namespace Microsoft.CodeAnalysis.ErrorReporting
 #endif

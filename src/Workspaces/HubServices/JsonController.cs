@@ -18,7 +18,8 @@ namespace Microsoft.CodeAnalysis.HubServices
         private static readonly ConcurrentDictionary<string, CancellationTokenSource> s_idToTokenSouce =
             new ConcurrentDictionary<string, CancellationTokenSource>();
 
-        internal HttpResponseMessage ProcessRequest(HubDataModel model, Func<JToken, CancellationToken, JToken> operation)
+        internal HttpResponseMessage ProcessRequest<TJson>(
+            HubDataModel model, Func<TJson, CancellationToken, JToken> operation) where TJson : JToken
         {
             // Create a cancellation token to go along with this operation.  We'll cancel it
             // if we get a request to do so from the client we're connected to.
@@ -28,7 +29,7 @@ namespace Microsoft.CodeAnalysis.HubServices
 
             try
             {
-                var arg = JToken.Parse(model.Data);
+                var arg = (TJson)JToken.Parse(model.Data);
                 var json = ProcessRequestWorker(operation, arg, cancellationTokenSource.Token);
                 var httpContent = new StringContent(json.ToString(), Encoding.UTF8);
 
@@ -49,8 +50,9 @@ namespace Microsoft.CodeAnalysis.HubServices
             }
         }
 
-        private JToken ProcessRequestWorker(
-            Func<JToken, CancellationToken, JToken> operation, JToken arg, CancellationToken cancellationToken)
+        private JToken ProcessRequestWorker<TJson>(
+            Func<TJson, CancellationToken, JToken> operation,
+            TJson arg, CancellationToken cancellationToken) where TJson : JToken
         {
             try
             {
@@ -68,7 +70,7 @@ namespace Microsoft.CodeAnalysis.HubServices
             {
                 return new JObject(
                     new JProperty(HubProtocolConstants.TypePropertyName, HubProtocolConstants.FaultedTypePropertyValue),
-                    new JProperty(HubProtocolConstants.DataPropertyName, e));
+                    new JProperty(HubProtocolConstants.DataPropertyName, e.ToString()));
             }
         }
 

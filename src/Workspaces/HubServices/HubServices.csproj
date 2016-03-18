@@ -20,6 +20,8 @@
   <PropertyGroup Condition="'$(Configuration)' == 'Debug'">
     <PlatformTarget>x86</PlatformTarget>
     <OutDir>..\..\..\Binaries\Debug\bin\</OutDir>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+    <DefineConstants>TRACE;DEBUG;HUBSERVICES</DefineConstants>
   </PropertyGroup>
   <PropertyGroup>
     <PostBuildEvent>copy /y "$(OutDir)HubServices.servicemodule" "$(OutDir).."
@@ -83,8 +85,28 @@ copy /y "$(OutDir)web.config" "$(OutDir).."</PostBuildEvent>
     <PublicAPI Include="PublicAPI.Unshipped.txt" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="..\..\Compilers\Core\Portable\InternalUtilities\FatalError.cs">
+      <Link>Utilities\FatalError.cs</Link>
+    </Compile>
+    <Compile Include="..\..\Features\Core\Portable\Shared\Utilities\IOUtilities.cs">
+      <Link>Utilities\IOUtilities.cs</Link>
+    </Compile>
     <Compile Include="JsonController.cs" />
     <Compile Include="HubProtocolConstants.cs" />
+    <Compile Include="SymbolSearch\IPackageSearchDatabaseFactoryService.cs" />
+    <Compile Include="SymbolSearch\IPackageSearchDelayService.cs" />
+    <Compile Include="SymbolSearch\IPackageSearchIOService.cs" />
+    <Compile Include="SymbolSearch\IPackageSearchLogService.cs" />
+    <Compile Include="SymbolSearch\IPackageSearchPatchService.cs" />
+    <Compile Include="SymbolSearch\IPackageSearchRemoteControlService.cs" />
+    <Compile Include="SymbolSearch\SymbolSearchController.RemoteControlService.cs" />
+    <Compile Include="SymbolSearch\Patching\Delta.cs" />
+    <Compile Include="SymbolSearch\SymbolSearchController.DatabaseFactoryService.cs" />
+    <Compile Include="SymbolSearch\SymbolSearchController.DelayService.cs" />
+    <Compile Include="SymbolSearch\SymbolSearchController.IOService.cs" />
+    <Compile Include="SymbolSearch\SymbolSearchController.LogService.cs" />
+    <Compile Include="SymbolSearch\SymbolSearchController.PatchService.cs" />
+    <Compile Include="SymbolSearch\SymbolSearchController.Update.cs" />
     <Compile Include="SymbolSearch\SymbolSearchController.cs" />
     <Compile Include="Startup.cs" />
     <Compile Include="WellKnownServiceNames.cs" />
