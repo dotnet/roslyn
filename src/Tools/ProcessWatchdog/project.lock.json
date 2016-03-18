@@ -12,25 +12,6 @@
           "lib/net45/CommandLine.dll": {}
         }
       },
-      "Microsoft.VisualStudio.RemoteControl/14.0.226-master8564C9A0": {
-        "dependencies": {
-          "Microsoft.VisualStudio.Utilities.Internal": "14.0.26-master31C5B586"
-        },
-        "compile": {
-          "lib/net45/Microsoft.VisualStudio.RemoteControl.dll": {}
-        },
-        "runtime": {
-          "lib/net45/Microsoft.VisualStudio.RemoteControl.dll": {}
-        }
-      },
-      "Microsoft.VisualStudio.Utilities.Internal/14.0.26-master31C5B586": {
-        "compile": {
-          "lib/net45/Microsoft.VisualStudio.Utilities.Internal.dll": {}
-        },
-        "runtime": {
-          "lib/net45/Microsoft.VisualStudio.Utilities.Internal.dll": {}
-        }
-      },
       "System.Collections/4.0.0": {
         "type": "package",
         "compile": {
@@ -145,25 +126,6 @@
           "lib/net45/CommandLine.dll": {}
         }
       },
-      "Microsoft.VisualStudio.RemoteControl/14.0.226-master8564C9A0": {
-        "dependencies": {
-          "Microsoft.VisualStudio.Utilities.Internal": "14.0.26-master31C5B586"
-        },
-        "compile": {
-          "lib/net45/Microsoft.VisualStudio.RemoteControl.dll": {}
-        },
-        "runtime": {
-          "lib/net45/Microsoft.VisualStudio.RemoteControl.dll": {}
-        }
-      },
-      "Microsoft.VisualStudio.Utilities.Internal/14.0.26-master31C5B586": {
-        "compile": {
-          "lib/net45/Microsoft.VisualStudio.Utilities.Internal.dll": {}
-        },
-        "runtime": {
-          "lib/net45/Microsoft.VisualStudio.Utilities.Internal.dll": {}
-        }
-      },
       "System.Collections/4.0.0": {
         "type": "package",
         "compile": {
@@ -276,25 +238,6 @@
         },
         "runtime": {
           "lib/net45/CommandLine.dll": {}
-        }
-      },
-      "Microsoft.VisualStudio.RemoteControl/14.0.226-master8564C9A0": {
-        "dependencies": {
-          "Microsoft.VisualStudio.Utilities.Internal": "14.0.26-master31C5B586"
-        },
-        "compile": {
-          "lib/net45/Microsoft.VisualStudio.RemoteControl.dll": {}
-        },
-        "runtime": {
-          "lib/net45/Microsoft.VisualStudio.RemoteControl.dll": {}
-        }
-      },
-      "Microsoft.VisualStudio.Utilities.Internal/14.0.26-master31C5B586": {
-        "compile": {
-          "lib/net45/Microsoft.VisualStudio.Utilities.Internal.dll": {}
-        },
-        "runtime": {
-          "lib/net45/Microsoft.VisualStudio.Utilities.Internal.dll": {}
         }
       },
       "System.Collections/4.0.0": {
@@ -415,26 +358,6 @@
         "lib/net45/CommandLine.XML",
         "lib/net45/CommandLine.dll",
         "package/services/metadata/core-properties/d01dfbbc96674ad28b3296654dac82a3.psmdcp"
-      ]
-    },
-    "Microsoft.VisualStudio.RemoteControl/14.0.226-master8564C9A0": {
-      "sha512": "WC1Jf9Z2mUtmoP2WK00Zi2luV8e+KSLVxXQhYc6HGJ32t6y6j++OLWAKG4VkU4Mq3nRzy64UKs+nKyEyns8bfw==",
-      "type": "package",
-      "files": [
-        "Microsoft.VisualStudio.RemoteControl.14.0.226-master8564C9A0.nupkg.sha512",
-        "Microsoft.VisualStudio.RemoteControl.nuspec",
-        "lib/net45/Microsoft.VisualStudio.RemoteControl.XML",
-        "lib/net45/Microsoft.VisualStudio.RemoteControl.dll"
-      ]
-    },
-    "Microsoft.VisualStudio.Utilities.Internal/14.0.26-master31C5B586": {
-      "sha512": "Abe/NV2FzQJrLz8SIx9/0B/ZgllQO5O1X++KtbcACkB9EKSQHSoDpp1yFo95G/0WJWT3N7miogsQV/z85+4bbw==",
-      "type": "package",
-      "files": [
-        "Microsoft.VisualStudio.Utilities.Internal.14.0.26-master31C5B586.nupkg.sha512",
-        "Microsoft.VisualStudio.Utilities.Internal.nuspec",
-        "lib/net45/Microsoft.VisualStudio.Utilities.Internal.XML",
-        "lib/net45/Microsoft.VisualStudio.Utilities.Internal.dll"
       ]
     },
     "System.Collections/4.0.0": {

@@ -232,33 +232,31 @@ namespace Microsoft.CodeAnalysis.CodeFixes.AddImport
             {
                 var workspaceServices = _document.Project.Solution.Workspace.Services;
 
-                var packageSearchService = _owner._packageSearchService ?? workspaceServices.GetService<IPackageSearchService>();
-                var referenceAssemblySearchService = _owner._referenceAssemblySearchService ?? workspaceServices.GetService<IReferenceAssemblySearchService>();
+                var searchService = _owner._typeSearchService ?? workspaceServices.GetService<ITypeSearchService>();
                 var installerService = _owner._packageInstallerService ?? workspaceServices.GetService<IPackageInstallerService>();
 
-                if (referenceAssemblySearchService != null)
+                if (searchService != null)
                 {
                     cancellationToken.ThrowIfCancellationRequested();
                     await FindReferenceAssemblyTypeReferencesAsync(
-                        referenceAssemblySearchService, allReferences, nameNode, name, arity, isAttributeSearch, cancellationToken).ConfigureAwait(false);
+                        searchService, allReferences, nameNode, name, arity, isAttributeSearch, cancellationToken).ConfigureAwait(false);
                 }
 
-                if (packageSearchService != null && 
-                    referenceAssemblySearchService != null &&
+                if (searchService != null && 
                     installerService.IsEnabled)
                 {
                     foreach (var packageSource in installerService.PackageSources)
                     {
                         cancellationToken.ThrowIfCancellationRequested();
                         await FindNugetTypeReferencesAsync(
-                            packageSource, packageSearchService, installerService, allReferences,
+                            packageSource, searchService, installerService, allReferences,
                             nameNode, name, arity, isAttributeSearch, cancellationToken).ConfigureAwait(false);
                     }
                 }
             }
 
             private async Task FindReferenceAssemblyTypeReferencesAsync(
-                IReferenceAssemblySearchService searchService,
+                ITypeSearchService searchService,
                 List<Reference> allReferences,
                 TSimpleNameSyntax nameNode,
                 string name,
@@ -267,7 +265,8 @@ namespace Microsoft.CodeAnalysis.CodeFixes.AddImport
                 CancellationToken cancellationToken)
             {
                 cancellationToken.ThrowIfCancellationRequested();
-                var results = searchService.FindReferenceAssembliesWithType(name, arity, cancellationToken);
+                var results = await searchService.FindReferenceAssembliesWithTypeAsync(
+                    name, arity, cancellationToken).ConfigureAwait(false);
 
                 var project = _document.Project;
                 var projectId = project.Id;
@@ -284,7 +283,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes.AddImport
 
             private async Task FindNugetTypeReferencesAsync(
                 PackageSource source,
-                IPackageSearchService searchService,
+                ITypeSearchService searchService,
                 IPackageInstallerService installerService,
                 List<Reference> allReferences,
                 TSimpleNameSyntax nameNode,
@@ -294,7 +293,8 @@ namespace Microsoft.CodeAnalysis.CodeFixes.AddImport
                 CancellationToken cancellationToken)
             {
                 cancellationToken.ThrowIfCancellationRequested();
-                var results = searchService.FindPackagesWithType(source.Name, name, arity, cancellationToken);
+                var results = await searchService.FindPackagesWithTypeAsync(
+                    source.Name, name, arity, cancellationToken).ConfigureAwait(false);
 
                 var project = _document.Project;
                 var projectId = project.Id;

@@ -1,7 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
-using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -9,18 +8,15 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Elfie.Model;
-using Microsoft.CodeAnalysis.Elfie.Model.Structures;
-using Microsoft.CodeAnalysis.Elfie.Model.Tree;
-using Microsoft.CodeAnalysis.ErrorReporting;
+using Microsoft.CodeAnalysis.HubServices;
+using Microsoft.CodeAnalysis.HubServices.SymbolSearch;
 using Microsoft.CodeAnalysis.Packaging;
-using Microsoft.Internal.VisualStudio.Shell.Interop;
 using Microsoft.VisualStudio.LanguageServices.HubServices;
 using Microsoft.VisualStudio.Settings;
-using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Settings;
+using Newtonsoft.Json.Linq;
 using static System.FormattableString;
 using VSShell = Microsoft.VisualStudio.Shell;
-using VSShellInterop = Microsoft.VisualStudio.Shell.Interop;
 
 namespace Microsoft.VisualStudio.LanguageServices.Packaging
 {
@@ -31,278 +27,152 @@ namespace Microsoft.VisualStudio.LanguageServices.Packaging
     /// This implementation also spawns a task which will attempt to keep that database up to
     /// date by downloading patches on a daily basis.
     /// </summary>
-    internal partial class PackageSearchService :
+    internal partial class TypeSearchService :
         ForegroundThreadAffinitizedObject,
-        IPackageSearchService,
-        IReferenceAssemblySearchService,
-        IDisposable
+        ITypeSearchService
     {
-        private ConcurrentDictionary<string, AddReferenceDatabase> _sourceToDatabase = new ConcurrentDictionary<string, AddReferenceDatabase>();
-
         private readonly IHubClient _hubClient;
+        private readonly DirectoryInfo _cacheDirectoryInfo;
+        private readonly IPackageInstallerService _installerService;
 
-        public PackageSearchService(
+        public TypeSearchService(
+            VSShell.SVsServiceProvider serviceProvider,
             IHubClient hubClient,
-            VSShell.SVsServiceProvider serviceProvider, 
             IPackageInstallerService installerService)
-            : this(installerService, 
-                   CreateRemoteControlService(serviceProvider),
-                   new LogService((VSShellInterop.IVsActivityLog)serviceProvider.GetService(typeof(VSShellInterop.SVsActivityLog))),
-                   new DelayService(),
-                   new IOService(),
-                   new PatchService(),
-                   new DatabaseFactoryService(),
-                   new ShellSettingsManager(serviceProvider).GetApplicationDataFolder(ApplicationDataFolder.LocalSettings),
-                   // Report all exceptions we encounter, but don't crash on them.
-                   FatalError.ReportWithoutCrash,
-                   new CancellationTokenSource())
         {
             _hubClient = hubClient;
+            _installerService = installerService;
+
+            var localSettingsDirectory = new ShellSettingsManager(serviceProvider).GetApplicationDataFolder(ApplicationDataFolder.LocalSettings);
+
+            var _dataFormatVersion = AddReferenceDatabase.TextFileFormatVersion;
+            _cacheDirectoryInfo = new DirectoryInfo(Path.Combine(
+                localSettingsDirectory, "PackageCache", string.Format(Invariant($"Format{_dataFormatVersion}"))));
+
             installerService.PackageSourcesChanged += OnPackageSourcesChanged;
             OnPackageSourcesChanged(this, EventArgs.Empty);
         }
 
-        private static IPackageSearchRemoteControlService CreateRemoteControlService(VSShell.SVsServiceProvider serviceProvider)
+        private void OnPackageSourcesChanged(object sender, EventArgs e)
         {
-            var vsService = serviceProvider.GetService(typeof(SVsRemoteControlService));
-            if (vsService == null)
+            // Kick off a database update.  Wait a few seconds before starting so we don't
+            // interfere too much with solution loading.
+            var sources = _installerService.PackageSources;
+            var json = new JObject(
+                new JProperty(HubProtocolConstants.CacheDirectory, _cacheDirectoryInfo.FullName),
+                new JProperty(HubProtocolConstants.PackageSources, 
+                    new JArray(sources.Select(ps => new JObject(new JProperty(ps.Name, ps.Source))))));
+
+            var unused = _hubClient.SendRequestAsync(
+                WellKnownHubServiceNames.SymbolSearch,
+                nameof(SymbolSearchController.OnConfigurationChanged),
+                json,
+                CancellationToken.None);
+        }
+
+        public async Task<IEnumerable<PackageWithTypeResult>> FindPackagesWithTypeAsync(
+            string source, string name, int arity, CancellationToken cancellationToken)
+        {
+            var json = new JObject(
+                new JProperty(HubProtocolConstants.Source, source),
+                new JProperty(HubProtocolConstants.Name, name),
+                new JProperty(HubProtocolConstants.Arity, arity));
+
+            var result = await _hubClient.SendRequestAsync(
+                WellKnownHubServiceNames.SymbolSearch,
+                nameof(SymbolSearchController.FindPackagesWithType),
+                json,
+                cancellationToken).ConfigureAwait(false);
+
+            if (result == null)
             {
-                // If we can't access the file update service, then there's nothing we can do.
                 return null;
             }
 
-            return new RemoteControlService(vsService);
+            var array = (JArray)result;
+            var results = array.OfType<JObject>().Select(j => new PackageWithTypeResult(
+                 (string)j.Property(HubProtocolConstants.PackageName),
+                 (string)j.Property(HubProtocolConstants.TypeName),
+                 (string)j.Property(HubProtocolConstants.Version),
+                 GetContainingNamespaceNames(j),
+                 (int)j.Property(HubProtocolConstants.Rank))).ToArray();
+
+            return FilterPackageResults(results).ToArray();
         }
 
-        /// <summary>
-        /// For testing purposes only.
-        /// </summary>
-        internal PackageSearchService(
-            IPackageInstallerService installerService,
-            IPackageSearchRemoteControlService remoteControlService,
-            IPackageSearchLogService logService,
-            IPackageSearchDelayService delayService,
-            IPackageSearchIOService ioService,
-            IPackageSearchPatchService patchService,
-            IPackageSearchDatabaseFactoryService databaseFactoryService,
-            string localSettingsDirectory,
-            Func<Exception, bool> reportAndSwallowException,
-            CancellationTokenSource cancellationTokenSource)
+        private static string[] GetContainingNamespaceNames(JObject j)
         {
-            if (remoteControlService == null)
-            {
-                // If we can't access the file update service, then there's nothing we can do.
-                return;
-            }
-
-            _installerService = installerService;
-            _delayService = delayService;
-            _ioService = ioService;
-            _logService = logService;
-            _remoteControlService = remoteControlService;
-            _patchService = patchService;
-            _databaseFactoryService = databaseFactoryService;
-            _reportAndSwallowException = reportAndSwallowException;
-
-            _cacheDirectoryInfo = new DirectoryInfo(Path.Combine(
-                localSettingsDirectory, "PackageCache", string.Format(Invariant($"Format{_dataFormatVersion}"))));
-            // _databaseFileInfo = new FileInfo(Path.Combine(_cacheDirectoryInfo.FullName, "NuGetCache.txt"));
-
-            _cancellationTokenSource = cancellationTokenSource;
-            _cancellationToken = _cancellationTokenSource.Token;
+            return j.Property(HubProtocolConstants.ContainingNamespaceNames).Value.Select(t => (string)t).ToArray();
         }
 
-        public IEnumerable<PackageWithTypeResult> FindPackagesWithType(
-            string source, string name, int arity, CancellationToken cancellationToken)
+        private IEnumerable<PackageWithTypeResult> FilterPackageResults(IEnumerable<PackageWithTypeResult> results)
         {
-            AddReferenceDatabase database;
-            if (!_sourceToDatabase.TryGetValue(source, out database))
+            var typesFromPackagesUsedInOtherProjects = new List<PackageWithTypeResult>();
+            var typesFromPackagesNotUsedInOtherProjects = new List<PackageWithTypeResult>();
+
+            foreach (var result in results)
             {
-                // Don't have a database to search.  
-                yield break;
+                var packageName = result.PackageName;
+                if (_installerService.GetInstalledVersions(packageName).Any())
+                {
+                    typesFromPackagesUsedInOtherProjects.Add(result);
+                }
+                else
+                {
+                    typesFromPackagesNotUsedInOtherProjects.Add(result);
+                }
             }
 
-            if (name == "var")
+            // We always returm types from packages that we've use elsewhere in the project.
+            int? bestRank = null;
+            foreach (var result in typesFromPackagesUsedInOtherProjects)
             {
-                // never find anything named 'var'.
-                yield break;
+                yield return result;
             }
 
-            var query = new MemberQuery(name, isFullSuffix: true, isFullNamespace: false);
-            var symbols = new PartialArray<Symbol>(100);
-
-            if (query.TryFindMembers(database, ref symbols))
+            // For all other hits include as long as the popularity is high enough.  
+            // Popularity ranks are in powers of two.  So if two packages differ by 
+            // one rank, then one is at least twice as popular as the next.  Two 
+            // ranks would be four times as popular.  Three ranks = 8 times,  etc. 
+            // etc.  We keep packages that within 1 rank of the best package we find.
+            foreach (var result in typesFromPackagesNotUsedInOtherProjects)
             {
-                var types = FilterToViableTypes(symbols);
+                var rank = result.Rank;
+                bestRank = bestRank == null ? rank : Math.Max(bestRank.Value, rank);
 
-                var typesFromPackagesUsedInOtherProjects = new List<Symbol>();
-                var typesFromPackagesNotUsedInOtherProjects = new List<Symbol>();
-
-                foreach (var type in types)
+                if (Math.Abs(bestRank.Value - rank) > 1)
                 {
-                    // Ignore any reference assembly results.
-                    if (type.PackageName.ToString() != MicrosoftAssemblyReferencesName)
-                    {
-                        var packageName = type.PackageName.ToString();
-                        if (_installerService.GetInstalledVersions(packageName).Any())
-                        {
-                            typesFromPackagesUsedInOtherProjects.Add(type);
-                        }
-                        else
-                        {
-                            typesFromPackagesNotUsedInOtherProjects.Add(type);
-                        }
-                    }
+                    yield break;
                 }
 
-                var result = new List<Symbol>();
-
-                // We always returm types from packages that we've use elsewhere in the project.
-                int? bestRank = null;
-                foreach (var type in typesFromPackagesUsedInOtherProjects)
-                {
-                    yield return CreateResult(database, type);
-                }
-
-                // For all other hits include as long as the popularity is high enough.  
-                // Popularity ranks are in powers of two.  So if two packages differ by 
-                // one rank, then one is at least twice as popular as the next.  Two 
-                // ranks would be four times as popular.  Three ranks = 8 times,  etc. 
-                // etc.  We keep packages that within 1 rank of the best package we find.
-                foreach (var type in typesFromPackagesNotUsedInOtherProjects)
-                {
-                    var rank = GetRank(type);
-                    bestRank = bestRank == null ? rank : Math.Max(bestRank.Value, rank);
-
-                    if (Math.Abs(bestRank.Value - rank) > 1)
-                    {
-                        yield break;
-                    }
-
-                    yield return CreateResult(database, type);
-                }
+                yield return result;
             }
         }
 
-        public IEnumerable<ReferenceAssemblyWithTypeResult> FindReferenceAssembliesWithType(
+        public async Task<IEnumerable<ReferenceAssemblyWithTypeResult>> FindReferenceAssembliesWithTypeAsync(
             string name, int arity, CancellationToken cancellationToken)
         {
-            // Our reference assembly data is stored in the nuget.org DB.
-            AddReferenceDatabase database;
-            if (!_sourceToDatabase.TryGetValue(NugetOrgSource, out database))
+            var json = new JObject(
+                new JProperty(HubProtocolConstants.Name, name),
+                new JProperty(HubProtocolConstants.Arity, arity));
+
+            var result = await _hubClient.SendRequestAsync(
+                WellKnownHubServiceNames.SymbolSearch,
+                nameof(SymbolSearchController.FindReferenceAssembliesWithType),
+                json,
+                cancellationToken).ConfigureAwait(false);
+
+            if (result == null)
             {
-                // Don't have a database to search.  
-                yield break;
+                return null;
             }
 
-            if (name == "var")
-            {
-                // never find anything named 'var'.
-                yield break;
-            }
-
-            var query = new MemberQuery(name, isFullSuffix: true, isFullNamespace: false);
-            var symbols = new PartialArray<Symbol>(100);
-
-            if (query.TryFindMembers(database, ref symbols))
-            {
-                var types = FilterToViableTypes(symbols);
-
-                foreach (var type in types)
-                {
-                    // Only look at reference assembly results.
-                    if (type.PackageName.ToString() == MicrosoftAssemblyReferencesName)
-                    {
-                        var nameParts = new List<string>();
-                        GetFullName(nameParts, type.FullName.Parent);
-                        yield return new ReferenceAssemblyWithTypeResult(
-                            type.AssemblyName.ToString(), type.Name.ToString(), containingNamespaceNames: nameParts);
-                    }
-                }
-            }
-        }
-
-        private List<Symbol> FilterToViableTypes(PartialArray<Symbol> symbols)
-        {
-            // Don't return nested types.  Currently their value does not seem worth
-            // it given all the extra stuff we'd have to plumb through.  Namely 
-            // going down the "using static" code path and whatnot.
-            return new List<Symbol>(
-                from symbol in symbols
-                where this.IsType(symbol) && !this.IsType(symbol.Parent())
-                select symbol);
-        }
-
-        private PackageWithTypeResult CreateResult(AddReferenceDatabase database, Symbol type)
-        {
-            var nameParts = new List<string>();
-            GetFullName(nameParts, type.FullName.Parent);
-
-            var packageName = type.PackageName.ToString();
-
-            var version = database.GetPackageVersion(type.Index).ToString();
-
-            return new PackageWithTypeResult(
-                packageName: packageName, 
-                typeName: type.Name.ToString(), 
-                version: version,
-                containingNamespaceNames: nameParts);
-        }
-
-        private int GetRank(Symbol symbol)
-        {
-            Symbol rankingSymbol;
-            int rank;
-            if (!TryGetRankingSymbol(symbol, out rankingSymbol) ||
-                !int.TryParse(rankingSymbol.Name.ToString(), out rank))
-            {
-                return 0;
-            }
-
-            return rank;
-        }
-
-        private bool TryGetRankingSymbol(Symbol symbol, out Symbol rankingSymbol)
-        {
-            for (var current = symbol; current.IsValid; current = current.Parent())
-            {
-                if (current.Type == SymbolType.Package || current.Type == SymbolType.Version)
-                {
-                    return TryGetRankingSymbolForPackage(current, out rankingSymbol);
-                }
-            }
-
-            rankingSymbol = default(Symbol);
-            return false;
-        }
-
-        private bool TryGetRankingSymbolForPackage(Symbol package, out Symbol rankingSymbol)
-        {
-            for (var child = package.FirstChild(); child.IsValid; child = child.NextSibling())
-            {
-                if (child.Type == SymbolType.PopularityRank)
-                {
-                    rankingSymbol = child;
-                    return true;
-                }
-            }
-
-            rankingSymbol = default(Symbol);
-            return false;
-        }
-
-        private bool IsType(Symbol symbol)
-        {
-            return symbol.Type.IsType();
-        }
-
-        private void GetFullName(List<string> nameParts, Path8 path)
-        {
-            if (!path.IsEmpty)
-            {
-                GetFullName(nameParts, path.Parent);
-                nameParts.Add(path.Name.ToString());
-            }
+            var array = (JArray)result;
+            var q = array.OfType<JObject>().Select(j => new ReferenceAssemblyWithTypeResult(
+                 (string)j.Property(HubProtocolConstants.AssemblyName),
+                 (string)j.Property(HubProtocolConstants.TypeName),
+                 GetContainingNamespaceNames(j)));
+            return q.ToArray();
         }
     }
 }

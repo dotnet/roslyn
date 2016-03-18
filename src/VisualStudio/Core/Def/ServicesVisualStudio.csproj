@@ -153,24 +153,10 @@
     <Compile Include="Implementation\Workspace\VisualStudioNavigationOptionsProvider.cs" />
     <Compile Include="Implementation\Workspace\VisualStudioProjectCacheHostServiceFactory.cs" />
     <Compile Include="IRoslynTelemetrySetup.cs" />
-    <Compile Include="Packaging\Interop\SVsRemoteControlService.cs" />
-    <Compile Include="Packaging\IPackageSearchDatabaseFactoryService.cs" />
-    <Compile Include="Packaging\IPackageSearchDelayService.cs" />
-    <Compile Include="Packaging\IPackageSearchIOService.cs" />
-    <Compile Include="Packaging\IPackageSearchLogService.cs" />
-    <Compile Include="Packaging\IPackageSearchPatchService.cs" />
-    <Compile Include="Packaging\IPackageSearchRemoteControlService.cs" />
     <Compile Include="Packaging\PackageInstallerServiceFactory.cs" />
     <Compile Include="Packaging\PackageInstallerServiceFactory_UndoRedo.cs" />
-    <Compile Include="Packaging\PackageSearchService.Update.cs" />
     <Compile Include="Packaging\PackageSearchService.cs" />
-    <Compile Include="Packaging\PackageSearchService.DatabaseFactoryService.cs" />
-    <Compile Include="Packaging\PackageSearchService.DelayService.cs" />
-    <Compile Include="Packaging\PackageSearchService.IOService.cs" />
-    <Compile Include="Packaging\PackageSearchService.LogService.cs" />
-    <Compile Include="Packaging\PackageSearchService.RemoteControlService.cs" />
     <Compile Include="Packaging\PackageSearchServiceFactory.cs" />
-    <Compile Include="Packaging\Patching\Delta.cs" />
     <Compile Include="RoslynPackage.cs" />
     <Compile Include="ServicesVSResources.Designer.cs">
       <AutoGen>True</AutoGen>
@@ -831,7 +817,6 @@
     <Compile Include="Implementation\ProjectSystem\MetadataReferences\VisualStudioMetadataReferenceManager.Factory.cs" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Packaging\PackageSearchService.PatchService.cs" />
     <None Include="project.json" />
     <PublicAPI Include="PublicAPI.Shipped.txt" />
     <PublicAPI Include="PublicAPI.Unshipped.txt" />

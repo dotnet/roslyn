@@ -2,11 +2,12 @@
 
 using System.Collections.Generic;
 using System.Threading;
+using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Host;
 
 namespace Microsoft.CodeAnalysis.Packaging
 {
-    internal interface IPackageSearchService : IWorkspaceService
+    internal interface ITypeSearchService : IWorkspaceService
     {
         /// <summary>
         /// Searches for packages that contain a type with the provided name and arity.
@@ -17,27 +18,19 @@ namespace Microsoft.CodeAnalysis.Packaging
         /// Implementations should return results in order from best to worst (from their
         /// perspective).
         /// </summary>
-        IEnumerable<PackageWithTypeResult> FindPackagesWithType(
+        Task<IEnumerable<PackageWithTypeResult>> FindPackagesWithTypeAsync(
             string source, string name, int arity, CancellationToken cancellationToken);
-    }
 
-    internal class PackageWithTypeResult
-    {
-        public readonly IReadOnlyList<string> ContainingNamespaceNames;
-        public readonly string PackageName;
-        public readonly string TypeName;
-        public readonly string Version;
-
-        public PackageWithTypeResult(
-            string packageName,
-            string typeName, 
-            string version,
-            IReadOnlyList<string> containingNamespaceNames)
-        {
-            PackageName = packageName;
-            TypeName = typeName;
-            Version = string.IsNullOrWhiteSpace(version) ? null : version;
-            ContainingNamespaceNames = containingNamespaceNames;
-        }
+        /// <summary>
+        /// Searches for reference assemblies that contain a type with the provided name and arity.
+        /// Note: Implementations are free to return the results they feel best for the
+        /// given data.  Specifically, they can do exact or fuzzy matching on the name.
+        /// They can use or ignore the arity depending on their capabilities. 
+        /// 
+        /// Implementations should return results in order from best to worst (from their
+        /// perspective).
+        /// </summary>
+        Task<IEnumerable<ReferenceAssemblyWithTypeResult>> FindReferenceAssembliesWithTypeAsync(
+            string name, int arity, CancellationToken cancellationToken);
     }
 }

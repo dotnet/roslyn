@@ -76,18 +76,18 @@ namespace Microsoft.VisualStudio.LanguageServices.HubServices
 
         private static JToken ProcessResponse(JObject responseObject, CancellationToken cancellationToken)
         {
-            var typeValue = responseObject.Value<string>(HubProtocolConstants.TypePropertyName);
+            var typeValue = responseObject.Value<string>(HubProtocolConstants.ResponseType);
             switch (typeValue)
             {
-                case HubProtocolConstants.CanceledTypePropertyValue:
+                case HubProtocolConstants.Canceled:
                     // Operation was canceled on the server.  That means we canceled locally.
                     cancellationToken.ThrowIfCancellationRequested();
                     throw ExceptionUtilities.Unreachable;
 
-                case HubProtocolConstants.RanToCompletionTypePropertyValue:
+                case HubProtocolConstants.RanToCompletion:
                     return responseObject[HubProtocolConstants.DataPropertyName];
 
-                case HubProtocolConstants.FaultedTypePropertyValue:
+                case HubProtocolConstants.Faulted:
                 default:
                     return null;
             }
@@ -106,7 +106,7 @@ namespace Microsoft.VisualStudio.LanguageServices.HubServices
                     // registerCancellationCallback so we don't keep attacking cancellation
                     // callbacks.  Note that we also do this in a fire and forget fashion.
                     // Remote cancellation is performed in a 'best effort' fashion.
-                    var unused = SendRequestAsync(client, id, serviceName, HubProtocolConstants.CancelOperationName, new JObject(),
+                    var unused = SendRequestAsync(client, id, serviceName, HubProtocolConstants.CancelOperation, new JObject(),
                             registerCancellationCallback: false, cancellationToken: cancellationToken);
                 });
 

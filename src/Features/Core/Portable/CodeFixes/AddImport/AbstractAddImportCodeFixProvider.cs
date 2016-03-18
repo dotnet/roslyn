@@ -25,18 +25,15 @@ namespace Microsoft.CodeAnalysis.CodeFixes.AddImport
         private const int MaxResults = 3;
 
         private readonly IPackageInstallerService _packageInstallerService;
-        private readonly IPackageSearchService _packageSearchService;
-        private readonly IReferenceAssemblySearchService _referenceAssemblySearchService;
+        private readonly ITypeSearchService _typeSearchService;
 
         /// <summary>Values for these parameters can be provided (during testing) for mocking purposes.</summary> 
         protected AbstractAddImportCodeFixProvider(
             IPackageInstallerService packageInstallerService = null,
-            IPackageSearchService packageSearchService = null,
-            IReferenceAssemblySearchService referenceAssemblySearchService = null)
+            ITypeSearchService typeSearchService = null)
         {
             _packageInstallerService = packageInstallerService;
-            _packageSearchService = packageSearchService;
-            _referenceAssemblySearchService = referenceAssemblySearchService;
+            _typeSearchService = typeSearchService;
         }
 
         protected abstract bool CanAddImport(SyntaxNode node, CancellationToken cancellationToken);

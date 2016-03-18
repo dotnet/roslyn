@@ -1,22 +1,23 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System;
 using System.Collections.Generic;
 using System.Composition;
 using System.Threading;
+using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Packaging;
 using Microsoft.CodeAnalysis.Shared.Options;
 using Microsoft.VisualStudio.LanguageServices.HubServices;
-using Microsoft.VisualStudio.Shell;
 using Roslyn.Utilities;
 using VSShell = Microsoft.VisualStudio.Shell;
 using VSShellInterop = Microsoft.VisualStudio.Shell.Interop;
 
 namespace Microsoft.VisualStudio.LanguageServices.Packaging
 {
-    [ExportWorkspaceServiceFactory(typeof(IPackageSearchService), WorkspaceKind.Host), Shared]
+    [ExportWorkspaceServiceFactory(typeof(ITypeSearchService), WorkspaceKind.Host), Shared]
     internal class PackageSearchServiceFactory : IWorkspaceServiceFactory
     {
         private readonly IHubClient _hubClient;
@@ -39,19 +40,24 @@ namespace Microsoft.VisualStudio.LanguageServices.Packaging
                 // Only support package search in vs workspace.
                 if (workspaceServices.Workspace is VisualStudioWorkspace)
                 {
-                    return new PackageSearchService(_hubClient, _serviceProvider, workspaceServices.GetService<IPackageInstallerService>());
+                    return new TypeSearchService(_serviceProvider, _hubClient, workspaceServices.GetService<IPackageInstallerService>());
                 }
             }
 
             return new NullPackageSearchService();
         }
 
-        private class NullPackageSearchService : IPackageSearchService
+        private class NullPackageSearchService : ITypeSearchService
         {
-            public IEnumerable<PackageWithTypeResult> FindPackagesWithType(
+            public Task<IEnumerable<PackageWithTypeResult>> FindPackagesWithTypeAsync(
                 string source, string name, int arity, CancellationToken cancellationToken)
             {
-                return SpecializedCollections.EmptyEnumerable<PackageWithTypeResult>();
+                return Task.FromResult(SpecializedCollections.EmptyEnumerable<PackageWithTypeResult>());
+            }
+
+            public Task<IEnumerable<ReferenceAssemblyWithTypeResult>> FindReferenceAssembliesWithTypeAsync(string name, int arity, CancellationToken cancellationToken)
+            {
+                return Task.FromResult(SpecializedCollections.EmptyEnumerable<ReferenceAssemblyWithTypeResult>());
             }
         }
     }

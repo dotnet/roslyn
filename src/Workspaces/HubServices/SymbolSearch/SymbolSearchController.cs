@@ -1,11 +1,15 @@
 ﻿using System;
 using System.Collections.Concurrent;
+using System.Collections.Generic;
 using System.Linq;
 using System.Net.Http;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Web.Http;
 using Microsoft.CodeAnalysis.Elfie.Model;
+using Microsoft.CodeAnalysis.Elfie.Model.Structures;
+using Microsoft.CodeAnalysis.Elfie.Model.Tree;
+using Microsoft.CodeAnalysis.HubServices.SymbolSearch.Data;
 using Microsoft.VsHub.ServiceModulesCommon;
 using Microsoft.VsHub.Services;
 using Newtonsoft.Json.Linq;
@@ -74,7 +78,7 @@ namespace Microsoft.CodeAnalysis.HubServices.SymbolSearch
         private void LogException(Exception e, string text) => _logService.LogException(e, text);
 
         [HttpPost]
-        [Route(WellKnownHubServiceNames.SymbolSearch + "/" + nameof(HubProtocolConstants.CancelOperationName))]
+        [Route(WellKnownHubServiceNames.SymbolSearch + "/" + nameof(HubProtocolConstants.CancelOperation))]
         public new void CancelOperation(HubDataModel value)
         {
             base.CancelOperation(value);
@@ -86,37 +90,214 @@ namespace Microsoft.CodeAnalysis.HubServices.SymbolSearch
         {
             return base.ProcessRequest<JObject>(model, (obj, c) =>
             {
-                var cacheDirectory = (string)obj.Property(HubProtocolConstants.CacheDirectoryName);
-                var sourceNames = obj.Property(HubProtocolConstants.PackageSourcesName).Value
+                var cacheDirectory = (string)obj.Property(HubProtocolConstants.CacheDirectory);
+                var sourceNames = obj.Property(HubProtocolConstants.PackageSources).Value
                                      .OfType<JObject>()
                                      .Select(o => o.Properties().First().Name);
 
                 foreach (var sourceName in sourceNames)
                 {
-                    Task.Delay(TimeSpan.FromSeconds(30)).ContinueWith(_ =>
-                        UpdateSourceInBackgroundAsync(cacheDirectory, sourceName), TaskScheduler.Default);
+                    // Kick off tasks (in a fire and forget manner) to update each source.
+                    var unused = UpdateSourceInBackgroundAsync(cacheDirectory, sourceName);
                 }
 
                 return new JObject();
             });
         }
 
-#if false
-        [HttpGet]
-        [Route("SymbolSearch/FindPackagesWithType/{queryJson}")]
-        public string FindPackagesWithType(string queryJson)
+        [HttpPost]
+        [Route(WellKnownHubServiceNames.SymbolSearch + "/" + nameof(FindPackagesWithType))]
+        public HttpResponseMessage FindPackagesWithType(HubDataModel model)
         {
-            var query = JObject.Parse(queryJson);
-            return new JObject().ToString();
+            return ProcessRequest<JObject>(model, (obj, c) =>
+            {
+                var results = FindPackagesWithType(
+                    (string)obj.Property(HubProtocolConstants.Source),
+                    (string)obj.Property(HubProtocolConstants.Name),
+                    (int)obj.Property(HubProtocolConstants.Arity),
+                    c);
+
+            return new JArray(results.Select(r => new JObject(
+                new JProperty(HubProtocolConstants.Version, r.Version),
+                new JProperty(HubProtocolConstants.TypeName, r.TypeName),
+                new JProperty(HubProtocolConstants.PackageName, r.PackageName),
+                new JProperty(HubProtocolConstants.Rank, r.Rank),
+                new JProperty(HubProtocolConstants.ContainingNamespaceNames, new JArray(r.ContainingNamespaceNames.ToArray())))));
+            });
         }
 
-        [HttpGet]
-        [Route("SymbolSearch/FindReferenceAssembliesWithType/{queryJson}")]
-        public string FindReferenceAssembliesWithType(string queryJson)
+        private IEnumerable<PackageWithTypeResult> FindPackagesWithType(
+            string source, string name, int arity, CancellationToken cancellationToken)
         {
-            var query = JObject.Parse(queryJson);
-            return new JObject().ToString();
+            AddReferenceDatabase database;
+            if (!_sourceToDatabase.TryGetValue(source, out database))
+            {
+                // Don't have a database to search.  
+                yield break;
+            }
+
+            if (name == "var")
+            {
+                // never find anything named 'var'.
+                yield break;
+            }
+
+            var query = new MemberQuery(name, isFullSuffix: true, isFullNamespace: false);
+            var symbols = new PartialArray<Symbol>(100);
+
+            if (query.TryFindMembers(database, ref symbols))
+            {
+                var types = FilterToViableTypes(symbols);
+
+                foreach (var type in types)
+                {
+                    // Ignore any reference assembly results.
+                    if (type.PackageName.ToString() != MicrosoftAssemblyReferencesName)
+                    {
+                        yield return CreateResult(database, type);
+                    }
+                }
+            }
         }
-#endif
+
+        [HttpPost]
+        [Route(WellKnownHubServiceNames.SymbolSearch + "/" + nameof(FindReferenceAssembliesWithType))]
+        public HttpResponseMessage FindReferenceAssembliesWithType(HubDataModel model)
+        {
+            return ProcessRequest<JObject>(model, (obj, c) =>
+            {
+                var results = FindReferenceAssembliesWithType(
+                    (string)obj.Property(HubProtocolConstants.Name),
+                    (int)obj.Property(HubProtocolConstants.Arity),
+                    c);
+
+                return new JArray(results.Select(r => new JObject(
+                    new JProperty(HubProtocolConstants.TypeName, r.TypeName),
+                    new JProperty(HubProtocolConstants.AssemblyName, r.AssemblyName),
+                    new JProperty(HubProtocolConstants.ContainingNamespaceNames, new JArray(r.ContainingNamespaceNames.ToArray())))));
+            });
+        }
+
+        private IEnumerable<ReferenceAssemblyWithTypeResult> FindReferenceAssembliesWithType(
+            string name, int arity, CancellationToken cancellationToken)
+        {
+            // Our reference assembly data is stored in the nuget.org DB.
+            AddReferenceDatabase database;
+            if (!_sourceToDatabase.TryGetValue(NugetOrgSource, out database))
+            {
+                // Don't have a database to search.  
+                yield break;
+            }
+
+            if (name == "var")
+            {
+                // never find anything named 'var'.
+                yield break;
+            }
+
+            var query = new MemberQuery(name, isFullSuffix: true, isFullNamespace: false);
+            var symbols = new PartialArray<Symbol>(100);
+
+            if (query.TryFindMembers(database, ref symbols))
+            {
+                var types = FilterToViableTypes(symbols);
+
+                foreach (var type in types)
+                {
+                    // Only look at reference assembly results.
+                    if (type.PackageName.ToString() == MicrosoftAssemblyReferencesName)
+                    {
+                        var nameParts = new List<string>();
+                        GetFullName(nameParts, type.FullName.Parent);
+                        yield return new ReferenceAssemblyWithTypeResult(
+                            type.AssemblyName.ToString(), type.Name.ToString(), containingNamespaceNames: nameParts);
+                    }
+                }
+            }
+        }
+
+        private List<Symbol> FilterToViableTypes(PartialArray<Symbol> symbols)
+        {
+            // Don't return nested types.  Currently their value does not seem worth
+            // it given all the extra stuff we'd have to plumb through.  Namely 
+            // going down the "using static" code path and whatnot.
+            return new List<Symbol>(
+                from symbol in symbols
+                where this.IsType(symbol) && !this.IsType(symbol.Parent())
+                select symbol);
+        }
+
+        private PackageWithTypeResult CreateResult(AddReferenceDatabase database, Symbol type)
+        {
+            var nameParts = new List<string>();
+            GetFullName(nameParts, type.FullName.Parent);
+
+            var packageName = type.PackageName.ToString();
+
+            var version = database.GetPackageVersion(type.Index).ToString();
+
+            return new PackageWithTypeResult(
+                packageName: packageName,
+                typeName: type.Name.ToString(),
+                version: version,
+                containingNamespaceNames: nameParts,
+                rank: GetRank(type));
+        }
+
+        private int GetRank(Symbol symbol)
+        {
+            Symbol rankingSymbol;
+            int rank;
+            if (!TryGetRankingSymbol(symbol, out rankingSymbol) ||
+                !int.TryParse(rankingSymbol.Name.ToString(), out rank))
+            {
+                return 0;
+            }
+
+            return rank;
+        }
+
+        private bool TryGetRankingSymbol(Symbol symbol, out Symbol rankingSymbol)
+        {
+            for (var current = symbol; current.IsValid; current = current.Parent())
+            {
+                if (current.Type == SymbolType.Package || current.Type == SymbolType.Version)
+                {
+                    return TryGetRankingSymbolForPackage(current, out rankingSymbol);
+                }
+            }
+
+            rankingSymbol = default(Symbol);
+            return false;
+        }
+
+        private bool TryGetRankingSymbolForPackage(Symbol package, out Symbol rankingSymbol)
+        {
+            for (var child = package.FirstChild(); child.IsValid; child = child.NextSibling())
+            {
+                if (child.Type == SymbolType.PopularityRank)
+                {
+                    rankingSymbol = child;
+                    return true;
+                }
+            }
+
+            rankingSymbol = default(Symbol);
+            return false;
+        }
+
+        private bool IsType(Symbol symbol)
+        {
+            return symbol.Type.IsType();
+        }
+
+        private void GetFullName(List<string> nameParts, Path8 path)
+        {
+            if (!path.IsEmpty)
+            {
+                GetFullName(nameParts, path.Parent);
+                nameParts.Add(path.Name.ToString());
+            }
+        }
     }
 }

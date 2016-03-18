@@ -91,6 +91,12 @@ copy /y "$(OutDir)web.config" "$(OutDir).."</PostBuildEvent>
     <Compile Include="..\..\Features\Core\Portable\Shared\Utilities\IOUtilities.cs">
       <Link>Utilities\IOUtilities.cs</Link>
     </Compile>
+    <Compile Include="..\Core\Portable\Packaging\PackageWithTypeResult.cs">
+      <Link>SymbolSearch\PackageWithTypeResult.cs</Link>
+    </Compile>
+    <Compile Include="..\Core\Portable\Packaging\ReferenceAssemblyWithTypeResult.cs">
+      <Link>SymbolSearch\ReferenceAssemblyWithTypeResult.cs</Link>
+    </Compile>
     <Compile Include="JsonController.cs" />
     <Compile Include="HubProtocolConstants.cs" />
     <Compile Include="SymbolSearch\IPackageSearchDatabaseFactoryService.cs" />

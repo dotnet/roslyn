@@ -58,18 +58,18 @@ namespace Microsoft.CodeAnalysis.HubServices
             {
                 var data = operation(arg, cancellationToken);
                 return new JObject(
-                    new JProperty(HubProtocolConstants.TypePropertyName, HubProtocolConstants.RanToCompletionTypePropertyValue),
+                    new JProperty(HubProtocolConstants.ResponseType, HubProtocolConstants.RanToCompletion),
                     new JProperty(HubProtocolConstants.DataPropertyName, data));
             }
             catch(OperationCanceledException)
             {
                 return new JObject(
-                    new JProperty(HubProtocolConstants.TypePropertyName, HubProtocolConstants.CanceledTypePropertyValue));
+                    new JProperty(HubProtocolConstants.ResponseType, HubProtocolConstants.Canceled));
             }
             catch (Exception e)
             {
                 return new JObject(
-                    new JProperty(HubProtocolConstants.TypePropertyName, HubProtocolConstants.FaultedTypePropertyValue),
+                    new JProperty(HubProtocolConstants.ResponseType, HubProtocolConstants.Faulted),
                     new JProperty(HubProtocolConstants.DataPropertyName, e.ToString()));
             }
         }
