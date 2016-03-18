@@ -90,7 +90,7 @@ namespace System
     }
 
     [Serializable]
-    public struct ValueTuple<T1> : IStructuralEquatable, IStructuralComparable, IComparable, ITupleInternal, ITuple
+    public struct ValueTuple<T1> : IEquatable<ValueTuple<T1>>, IStructuralEquatable, IStructuralComparable, IComparable, ITupleInternal, ITuple
     {
         public T1 Item1;
 
@@ -102,6 +102,11 @@ namespace System
         public override Boolean Equals(Object obj)
         {
             return ((IStructuralEquatable)this).Equals(obj, EqualityComparer<Object>.Default);
+        }
+
+        public Boolean Equals(ValueTuple<T1> other)
+        {
+            return Item1.Equals(other.Item1);
         }
 
         Boolean IStructuralEquatable.Equals(Object other, IEqualityComparer comparer)
@@ -185,7 +190,7 @@ namespace System
     }
 
     [Serializable]
-    public struct ValueTuple<T1, T2> : IStructuralEquatable, IStructuralComparable, IComparable, ITupleInternal, ITuple
+    public struct ValueTuple<T1, T2> : IEquatable<ValueTuple<T1, T2>>, IStructuralEquatable, IStructuralComparable, IComparable, ITupleInternal, ITuple
     {
         public T1 Item1;
         public T2 Item2;
@@ -199,6 +204,11 @@ namespace System
         public override Boolean Equals(Object obj)
         {
             return ((IStructuralEquatable)this).Equals(obj, EqualityComparer<Object>.Default); ;
+        }
+
+        public Boolean Equals(ValueTuple<T1, T2> other)
+        {
+            return Item1.Equals(other.Item1) && Item2.Equals(other.Item2);
         }
 
         Boolean IStructuralEquatable.Equals(Object other, IEqualityComparer comparer)
@@ -292,7 +302,7 @@ namespace System
     }
 
     [Serializable]
-    public struct ValueTuple<T1, T2, T3> : IStructuralEquatable, IStructuralComparable, IComparable, ITupleInternal, ITuple
+    public struct ValueTuple<T1, T2, T3> : IEquatable<ValueTuple<T1, T2, T3>>, IStructuralEquatable, IStructuralComparable, IComparable, ITupleInternal, ITuple
     {
         public T1 Item1;
         public T2 Item2;
@@ -308,6 +318,11 @@ namespace System
         public override Boolean Equals(Object obj)
         {
             return ((IStructuralEquatable)this).Equals(obj, EqualityComparer<Object>.Default); ;
+        }
+
+        public Boolean Equals(ValueTuple<T1, T2, T3> other)
+        {
+            return Item1.Equals(other.Item1) && Item2.Equals(other.Item2) && Item3.Equals(other.Item3);
         }
 
         Boolean IStructuralEquatable.Equals(Object other, IEqualityComparer comparer)
@@ -409,7 +424,7 @@ namespace System
     }
 
     [Serializable]
-    public struct ValueTuple<T1, T2, T3, T4> : IStructuralEquatable, IStructuralComparable, IComparable, ITupleInternal, ITuple
+    public struct ValueTuple<T1, T2, T3, T4> : IEquatable<ValueTuple<T1, T2, T3, T4>>, IStructuralEquatable, IStructuralComparable, IComparable, ITupleInternal, ITuple
     {
         public T1 Item1;
         public T2 Item2;
@@ -427,6 +442,12 @@ namespace System
         public override Boolean Equals(Object obj)
         {
             return ((IStructuralEquatable)this).Equals(obj, EqualityComparer<Object>.Default); ;
+        }
+
+        public Boolean Equals(ValueTuple<T1, T2, T3, T4> other)
+        {
+            return Item1.Equals(other.Item1) && Item2.Equals(other.Item2) && Item3.Equals(other.Item3) &&
+                Item4.Equals(other.Item4);
         }
 
         Boolean IStructuralEquatable.Equals(Object other, IEqualityComparer comparer)
@@ -541,7 +562,7 @@ namespace System
     }
 
     [Serializable]
-    public struct ValueTuple<T1, T2, T3, T4, T5> : IStructuralEquatable, IStructuralComparable, IComparable, ITupleInternal, ITuple
+    public struct ValueTuple<T1, T2, T3, T4, T5> : IEquatable<ValueTuple<T1, T2, T3, T4, T5>>, IStructuralEquatable, IStructuralComparable, IComparable, ITupleInternal, ITuple
     {
         public T1 Item1;
         public T2 Item2;
@@ -561,6 +582,12 @@ namespace System
         public override Boolean Equals(Object obj)
         {
             return ((IStructuralEquatable)this).Equals(obj, EqualityComparer<Object>.Default); ;
+        }
+
+        public Boolean Equals(ValueTuple<T1, T2, T3, T4, T5> other)
+        {
+            return Item1.Equals(other.Item1) && Item2.Equals(other.Item2) && Item3.Equals(other.Item3) &&
+                Item4.Equals(other.Item4) && Item5.Equals(other.Item5);
         }
 
         Boolean IStructuralEquatable.Equals(Object other, IEqualityComparer comparer)
@@ -680,7 +707,7 @@ namespace System
     }
 
     [Serializable]
-    public struct ValueTuple<T1, T2, T3, T4, T5, T6> : IStructuralEquatable, IStructuralComparable, IComparable, ITupleInternal, ITuple
+    public struct ValueTuple<T1, T2, T3, T4, T5, T6> : IEquatable<ValueTuple<T1, T2, T3, T4, T5, T6>>, IStructuralEquatable, IStructuralComparable, IComparable, ITupleInternal, ITuple
     {
         public T1 Item1;
         public T2 Item2;
@@ -702,6 +729,12 @@ namespace System
         public override Boolean Equals(Object obj)
         {
             return ((IStructuralEquatable)this).Equals(obj, EqualityComparer<Object>.Default); ;
+        }
+
+        public Boolean Equals(ValueTuple<T1, T2, T3, T4, T5, T6> other)
+        {
+            return Item1.Equals(other.Item1) && Item2.Equals(other.Item2) && Item3.Equals(other.Item3) &&
+                Item4.Equals(other.Item4) && Item5.Equals(other.Item5) && Item6.Equals(other.Item6);
         }
 
         Boolean IStructuralEquatable.Equals(Object other, IEqualityComparer comparer)
@@ -829,7 +862,7 @@ namespace System
     }
 
     [Serializable]
-    public struct ValueTuple<T1, T2, T3, T4, T5, T6, T7> : IStructuralEquatable, IStructuralComparable, IComparable, ITupleInternal, ITuple
+    public struct ValueTuple<T1, T2, T3, T4, T5, T6, T7> : IEquatable<ValueTuple<T1, T2, T3, T4, T5, T6, T7>>, IStructuralEquatable, IStructuralComparable, IComparable, ITupleInternal, ITuple
     {
         public T1 Item1;
         public T2 Item2;
@@ -853,6 +886,13 @@ namespace System
         public override Boolean Equals(Object obj)
         {
             return ((IStructuralEquatable)this).Equals(obj, EqualityComparer<Object>.Default); ;
+        }
+
+        public Boolean Equals(ValueTuple<T1, T2, T3, T4, T5, T6, T7> other)
+        {
+            return Item1.Equals(other.Item1) && Item2.Equals(other.Item2) && Item3.Equals(other.Item3) &&
+                Item4.Equals(other.Item4) && Item5.Equals(other.Item5) && Item6.Equals(other.Item6) &&
+                Item7.Equals(other.Item7);
         }
 
         Boolean IStructuralEquatable.Equals(Object other, IEqualityComparer comparer)
@@ -990,7 +1030,7 @@ namespace System
     }
 
     [Serializable]
-    public struct ValueTuple<T1, T2, T3, T4, T5, T6, T7, TRest> : IStructuralEquatable, IStructuralComparable, IComparable, ITupleInternal, ITuple
+    public struct ValueTuple<T1, T2, T3, T4, T5, T6, T7, TRest> : IEquatable<ValueTuple<T1, T2, T3, T4, T5, T6, T7, TRest>>, IStructuralEquatable, IStructuralComparable, IComparable, ITupleInternal, ITuple
         where TRest : ITuple
     {
         public T1 Item1;
@@ -1022,6 +1062,13 @@ namespace System
         public override Boolean Equals(Object obj)
         {
             return ((IStructuralEquatable)this).Equals(obj, EqualityComparer<Object>.Default); ;
+        }
+
+        public Boolean Equals(ValueTuple<T1, T2, T3, T4, T5, T6, T7, TRest> other)
+        {
+            return Item1.Equals(other.Item1) && Item2.Equals(other.Item2) && Item3.Equals(other.Item3) &&
+                Item4.Equals(other.Item4) && Item5.Equals(other.Item5) && Item6.Equals(other.Item6) &&
+                Item7.Equals(other.Item7) && Rest.Equals(other.Rest);
         }
 
         Boolean IStructuralEquatable.Equals(Object other, IEqualityComparer comparer)
