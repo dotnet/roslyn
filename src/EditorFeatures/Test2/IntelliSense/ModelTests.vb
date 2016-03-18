@@ -39,7 +39,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
             End Sub
         End Class
 
-        <WpfFact(Skip:="xunit wait")>
+        <WpfFact(Skip:="https://github.com/dotnet/roslyn/issues/9873")>
         Public Sub ChainingTaskStartsAsyncOperation()
             Dim controller = New Mock(Of IController(Of Model))
             Dim modelComputation = TestModelComputation.Create(controller:=controller.Object)
@@ -81,7 +81,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
             controller.Verify(Sub(c) c.OnModelUpdated(model), Times.Once)
         End Sub
 
-        <WpfFact(Skip:="true")>
+        <WpfFact(Skip:="https://github.com/dotnet/roslyn/issues/9873")>
         Public Async Function ControllerIsNotUpdatedIfComputationIsCancelled() As Task
             Dim controller = New Mock(Of IController(Of Model))
             Dim token = New Mock(Of IAsyncToken)

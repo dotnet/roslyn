@@ -3576,7 +3576,7 @@ class C
         }
 
         // Add corresponding test to VB
-        [WpfFact(Skip = "TODO")]
+        [WpfFact(Skip = "https://github.com/dotnet/roslyn/issues/9873")]
         public void Lambdas_Update_Signature_CustomModifiers1()
         {
             var delegateSource = @"
