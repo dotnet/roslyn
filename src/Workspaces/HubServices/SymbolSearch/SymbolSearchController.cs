@@ -2,6 +2,7 @@
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
+using System.Net.Http;
 using System.Text;
 using System.Threading.Tasks;
 using System.Web.Http;
@@ -10,24 +11,29 @@ using Newtonsoft.Json.Linq;
 
 namespace Microsoft.CodeAnalysis.HubServices.SymbolSearch
 {
-    public class DataModel
-    {
-        public string Value { get; set; }
-    }
-
-    public class SymbolSearchController : ApiController
+    public class SymbolSearchController : JsonController
     {
         private static ConcurrentDictionary<string, AddReferenceDatabase> _sourceToDatabase = 
             new ConcurrentDictionary<string, AddReferenceDatabase>();
 
         [HttpPost]
-        [Route("SymbolSearch/" + nameof(OnPackageSourcesChanged))]
-        public string OnPackageSourcesChanged(DataModel value)
+        [Route("SymbolSearch/" + nameof(HubProtocolConstants.CancelOperationName))]
+        public new void CancelOperation(HubDataModel value)
         {
-            // var packageSources = JArray.Parse(packageSourcesJson);
-            return "received: " + JArray.Parse(value.Value);
+            base.CancelOperation(value);
         }
 
+        [HttpPost]
+        [Route("SymbolSearch/" + nameof(OnPackageSourcesChanged))]
+        public HttpResponseMessage OnPackageSourcesChanged(HubDataModel model)
+        {
+            return base.ProcessRequest(model, (arg, c) =>
+            {
+                return new JObject(new JProperty("received", arg.ToString()));
+            });
+        }
+
+#if false
         [HttpGet]
         [Route("SymbolSearch/FindPackagesWithType/{queryJson}")]
         public string FindPackagesWithType(string queryJson)
@@ -43,5 +49,6 @@ namespace Microsoft.CodeAnalysis.HubServices.SymbolSearch
             var query = JObject.Parse(queryJson);
             return new JObject().ToString();
         }
+#endif
     }
 }

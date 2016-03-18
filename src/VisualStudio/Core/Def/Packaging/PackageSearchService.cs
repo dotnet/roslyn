@@ -14,6 +14,7 @@ using Microsoft.CodeAnalysis.Elfie.Model.Tree;
 using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Packaging;
 using Microsoft.Internal.VisualStudio.Shell.Interop;
+using Microsoft.VisualStudio.LanguageServices.HubServices;
 using Microsoft.VisualStudio.Settings;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Settings;
@@ -33,9 +34,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Packaging
     internal partial class PackageSearchService : ForegroundThreadAffinitizedObject, IPackageSearchService, IDisposable
     {
         private ConcurrentDictionary<string, AddReferenceDatabase> _sourceToDatabase = new ConcurrentDictionary<string, AddReferenceDatabase>();
-        private readonly IAsyncServiceProvider _asyncServiceProvider;
+
+        private readonly IHubClient _hubClient;
 
         public PackageSearchService(
+            IHubClient hubClient,
             VSShell.SVsServiceProvider serviceProvider, 
             IPackageInstallerService installerService)
             : this(installerService, 
@@ -50,7 +53,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Packaging
                    FatalError.ReportWithoutCrash,
                    new CancellationTokenSource())
         {
-            _asyncServiceProvider = (IAsyncServiceProvider)serviceProvider.GetService(typeof(VSShellInterop.SAsyncServiceProvider));
+            _hubClient = hubClient;
             installerService.PackageSourcesChanged += OnPackageSourcesChanged;
             OnPackageSourcesChanged(this, EventArgs.Empty);
         }

@@ -15,6 +15,8 @@ using System.Threading.Tasks;
 using System.Xml;
 using System.Xml.Linq;
 using Microsoft.CodeAnalysis.Elfie.Model;
+using Microsoft.CodeAnalysis.HubServices;
+using Microsoft.CodeAnalysis.HubServices.SymbolSearch;
 using Microsoft.CodeAnalysis.Packaging;
 using Microsoft.CodeAnalysis.Shared.Utilities;
 using Microsoft.Internal.VisualStudio.Shell.Interop;
@@ -117,32 +119,15 @@ namespace Microsoft.VisualStudio.LanguageServices.Packaging
 
         private async Task DoClientStuffAsync()
         {
-            var serviceObject = await _asyncServiceProvider.GetServiceAsync(typeof(SVsHubService)).ConfigureAwait(false);
-            var hubService = (IVsHubService)serviceObject;
-
-            var factory = hubService.GetService<IVsHubServiceHttpClientFactory>();
-            var client = factory.CreateHttpClient("Microsoft.CodeAnalysis.HubServices", "SymbolSearch", new Version(1, 0), useDefaultCredentials: true);
-            await client.StartHeartbeatAsync().ConfigureAwait(false);
-
             var json = new JArray(_installerService.PackageSources.Select(ps => new JObject(new JProperty(ps.Name, ps.Source))));
-            var response = await client.PostAsync("OnPackageSourcesChanged", CreateHttpContent(json)).ConfigureAwait(false);
 
-            var stream = await response.Content.ReadAsStringAsync().ConfigureAwait(false);
+            var result = await _hubClient.SendRequestAsync(
+                WellKnownHubServiceNames.SymbolSearch,
+                nameof(SymbolSearchController.OnPackageSourcesChanged),
+                json,
+                CancellationToken.None).ConfigureAwait(false);
+
         }
-
-        private HttpContent CreateHttpContent(JToken data)
-        {
-            var json = new JObject(new JProperty("Value", data.ToString()));
-            var httpContent = new StringContent(json.ToString(), Encoding.UTF8);
-               
-            httpContent.Headers.ContentType = new MediaTypeHeaderValue("application/json")
-            {
-                CharSet = Encoding.UTF8.WebName
-            };
-
-            return httpContent;
-        }
-
 
         private class Updater
         {

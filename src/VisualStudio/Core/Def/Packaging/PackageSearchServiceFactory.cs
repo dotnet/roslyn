@@ -8,6 +8,7 @@ using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Packaging;
 using Microsoft.CodeAnalysis.Shared.Options;
+using Microsoft.VisualStudio.LanguageServices.HubServices;
 using Microsoft.VisualStudio.Shell;
 using Roslyn.Utilities;
 using VSShell = Microsoft.VisualStudio.Shell;
@@ -18,12 +19,15 @@ namespace Microsoft.VisualStudio.LanguageServices.Packaging
     [ExportWorkspaceServiceFactory(typeof(IPackageSearchService), WorkspaceKind.Host), Shared]
     internal class PackageSearchServiceFactory : IWorkspaceServiceFactory
     {
+        private readonly IHubClient _hubClient;
         private readonly VSShell.SVsServiceProvider _serviceProvider;
 
         [ImportingConstructor]
         public PackageSearchServiceFactory(
+            IHubClient hubClient,
             VSShell.SVsServiceProvider serviceProvider)
         {
+            _hubClient = hubClient;
             _serviceProvider = serviceProvider;
         }
 
@@ -35,7 +39,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Packaging
                 // Only support package search in vs workspace.
                 if (workspaceServices.Workspace is VisualStudioWorkspace)
                 {
-                    return new PackageSearchService(_serviceProvider, workspaceServices.GetService<IPackageInstallerService>());
+                    return new PackageSearchService(_hubClient, _serviceProvider, workspaceServices.GetService<IPackageInstallerService>());
                 }
             }
 

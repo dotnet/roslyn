@@ -26,6 +26,10 @@
 copy /y "$(OutDir)web.config" "$(OutDir).."</PostBuildEvent>
   </PropertyGroup>
   <ItemGroup>
+    <InternalsVisibleTo Include="Microsoft.VisualStudio.LanguageServices" />
+  </ItemGroup>
+  <ItemGroup>
+    <Reference Include="System.Net.Http" />
     <Reference Include="System.Net.Http.Formatting.dll">
       <HintPath>$(VsHubDir)\System.Net.Http.Formatting.dll</HintPath>
     </Reference>
@@ -79,8 +83,11 @@ copy /y "$(OutDir)web.config" "$(OutDir).."</PostBuildEvent>
     <PublicAPI Include="PublicAPI.Unshipped.txt" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="JsonController.cs" />
+    <Compile Include="HubProtocolConstants.cs" />
     <Compile Include="SymbolSearch\SymbolSearchController.cs" />
     <Compile Include="Startup.cs" />
+    <Compile Include="WellKnownServiceNames.cs" />
   </ItemGroup>
   <ImportGroup Label="Targets">
     <Import Project="..\..\..\build\Targets\VSL.Imports.targets" />

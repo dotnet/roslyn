@@ -1,9 +1,12 @@
-{
-    "dependencies": {
-        "Microsoft.CodeAnalysis.Elfie": "0.10.6-rc2"
-    },
-    "frameworks": {
-        "net46": { }
-    },
-    "runtimes": { "win7-x86": { } }
+﻿{
+  "dependencies": {
+    "Microsoft.CodeAnalysis.Elfie": "0.10.6-rc2",
+    "Microsoft.VisualStudio.RemoteControl": "14.0.226-master8564C9A0"
+  },
+  "frameworks": {
+    "net46": {}
+  },
+  "runtimes": {
+    "win7-x86": {}
+  }
 }

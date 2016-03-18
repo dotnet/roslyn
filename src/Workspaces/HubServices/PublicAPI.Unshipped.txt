@@ -1,9 +1,11 @@
+Microsoft.CodeAnalysis.HubServices.HubDataModel
+Microsoft.CodeAnalysis.HubServices.HubDataModel.Data.get -> string
+Microsoft.CodeAnalysis.HubServices.HubDataModel.Data.set -> void
+Microsoft.CodeAnalysis.HubServices.HubDataModel.Id.get -> string
+Microsoft.CodeAnalysis.HubServices.HubDataModel.Id.set -> void
+Microsoft.CodeAnalysis.HubServices.JsonController
 Microsoft.CodeAnalysis.HubServices.Startup
-Microsoft.CodeAnalysis.HubServices.SymbolSearch.DataModel
-Microsoft.CodeAnalysis.HubServices.SymbolSearch.DataModel.Value.get -> string
-Microsoft.CodeAnalysis.HubServices.SymbolSearch.DataModel.Value.set -> void
 Microsoft.CodeAnalysis.HubServices.SymbolSearch.SymbolSearchController
-Microsoft.CodeAnalysis.HubServices.SymbolSearch.SymbolSearchController.FindPackagesWithType(string queryJson) -> string
-Microsoft.CodeAnalysis.HubServices.SymbolSearch.SymbolSearchController.FindReferenceAssembliesWithType(string queryJson) -> string
-Microsoft.CodeAnalysis.HubServices.SymbolSearch.SymbolSearchController.OnPackageSourcesChanged(Microsoft.CodeAnalysis.HubServices.SymbolSearch.DataModel value) -> string
+Microsoft.CodeAnalysis.HubServices.SymbolSearch.SymbolSearchController.CancelOperation(Microsoft.CodeAnalysis.HubServices.HubDataModel value) -> void
+Microsoft.CodeAnalysis.HubServices.SymbolSearch.SymbolSearchController.OnPackageSourcesChanged(Microsoft.CodeAnalysis.HubServices.HubDataModel model) -> System.Net.Http.HttpResponseMessage
 override Microsoft.CodeAnalysis.HubServices.Startup.BuildApplication(Owin.IAppBuilder app) -> void
