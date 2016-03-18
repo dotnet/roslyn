@@ -1,6 +1,6 @@
 SHELL = /usr/bin/env bash
 OS_NAME = $(shell uname -s)
-NUGET_PACKAGE_NAME = nuget.71
+NUGET_PACKAGE_NAME = nuget.future.70
 BUILD_CONFIGURATION = Debug
 BINARIES_PATH = $(shell pwd)/Binaries
 TOOLSET_TMP_PATH = $(BINARIES_PATH)/toolset
