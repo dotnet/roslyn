@@ -47,7 +47,7 @@ public class TraceManager
 
     public void Stop()
     {
-        var processResult = RunProcess(_cpcFullPath, "/Stop /DisableArchive");
+        var processResult = RunProcess(_cpcFullPath, @"/Stop /DisableArchive /ScenarioPath=""%SYSTEMDRIVE%/CPC/scenarios.xml""");
         if (processResult.Failed)
         {
             throw new SystemException($@"The process ""CPC.exe /Stop /DisableArchive"" failed. {processResult.StdErr}");
