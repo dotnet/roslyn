@@ -18,7 +18,7 @@ var IDEFiles = new Dictionary<string, bool>()
     { "Microsoft.CodeAnalysis.dll", true },
     { "Microsoft.CodeAnalysis.EditorFeatures.dll", true },
     { "Microsoft.CodeAnalysis.EditorFeatures.Text.dll", true },
-    { "Microsoft.CodeAnalysis.Elfie.dll", false },
+    { "Microsoft.CodeAnalysis.Elfie.dll", true },
     { "Microsoft.CodeAnalysis.ExpressionEvaluator.ExpressionCompiler.dll", true },
     { "Microsoft.CodeAnalysis.ExpressionEvaluator.ResultProvider.dll", true },
     { "Microsoft.CodeAnalysis.Features.dll", true },
