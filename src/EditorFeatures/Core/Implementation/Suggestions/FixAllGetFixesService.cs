@@ -134,10 +134,10 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
             {
                 var previewService = workspace.Services.GetService<IPreviewDialogService>();
                 var glyph = languageOpt == null
-                     ? Glyph.Assembly
-                     : languageOpt == LanguageNames.CSharp
-                         ? Glyph.CSharpProject
-                         : Glyph.BasicProject;
+                    ? Glyph.Assembly
+                    : languageOpt == LanguageNames.CSharp
+                        ? Glyph.CSharpProject
+                        : Glyph.BasicProject;
 
                 var changedSolution = previewService.PreviewChanges(
                     string.Format(EditorFeaturesResources.PreviewChangesOf, fixAllPreviewChangesTitle),

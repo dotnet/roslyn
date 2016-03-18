@@ -8,7 +8,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Rename
         Public Class VisualBasicConflicts
             Private ReadOnly _outputHelper As Abstractions.ITestOutputHelper
 
-            Sub New(outputHelper As Abstractions.ITestOutputHelper)
+            Public Sub New(outputHelper As Abstractions.ITestOutputHelper)
                 _outputHelper = outputHelper
             End Sub
 

@@ -1,5 +1,7 @@
 // Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System;
+using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Composition;
 using System.Threading;
@@ -7,6 +9,7 @@ using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.Editor.Host;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
+using Microsoft.CodeAnalysis.Shared.TestHooks;
 
 namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
 {
@@ -17,15 +20,18 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
     internal class FixMultipleOccurrencesService : IFixMultipleOccurrencesService, IWorkspaceServiceFactory
     {
         private readonly ICodeActionEditHandlerService _editHandler;
+        private readonly IAsynchronousOperationListener _listener;
         private readonly IWaitIndicator _waitIndicator;
 
         [ImportingConstructor]
         public FixMultipleOccurrencesService(
             ICodeActionEditHandlerService editHandler,
-            IWaitIndicator waitIndicator)
+            IWaitIndicator waitIndicator,
+            [ImportMany] IEnumerable<Lazy<IAsynchronousOperationListener, FeatureMetadata>> asyncListeners)
         {
             _editHandler = editHandler;
             _waitIndicator = waitIndicator;
+            _listener = new AggregateAsynchronousOperationListener(asyncListeners, FeatureAttribute.LightBulb);
         }
 
         public IWorkspaceService CreateService(HostWorkspaceServices workspaceServices)
@@ -73,7 +79,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
             CancellationToken cancellationToken)
         {
             var fixMultipleCodeAction = new FixMultipleCodeAction(fixMultipleContext, fixAllProvider, title, waitDialogMessage, showPreviewChangesDialog);
-            return new FixMultipleSuggestedAction(workspace, _editHandler, _waitIndicator, fixMultipleCodeAction, fixAllProvider);
+            return new FixMultipleSuggestedAction(_listener, workspace, _editHandler, _waitIndicator, fixMultipleCodeAction, fixAllProvider);
         }
     }
 }

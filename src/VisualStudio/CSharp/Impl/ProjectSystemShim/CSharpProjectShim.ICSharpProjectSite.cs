@@ -122,11 +122,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.ProjectSystemShim
             bool embedInteropTypes = optionID == CompilerOptions.OPTID_IMPORTSUSINGNOPIA;
             var properties = new MetadataReferenceProperties(embedInteropTypes: embedInteropTypes);
 
-            // The file may not exist, so let's return an error code. In Dev10, we were
-            // never called us for these at all, and the project system would immediately
-            // return an S_FALSE. Sadly, returning S_FALSE will convert back to S_OK, which
-            // would prevent this file from ever being added again. Roslyn bug 7315 for more.
-            return AddMetadataReferenceAndTryConvertingToProjectReferenceIfPossible(filename, properties, hResultForMissingFile: VSConstants.E_FAIL);
+            return AddMetadataReferenceAndTryConvertingToProjectReferenceIfPossible(filename, properties);
         }
 
         public void OnImportRemoved(string filename, string project)

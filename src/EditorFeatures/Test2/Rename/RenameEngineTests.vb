@@ -15,7 +15,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Rename
     Partial Public Class RenameEngineTests
         Private ReadOnly _outputHelper As Abstractions.ITestOutputHelper
 
-        Sub New(outputHelper As Abstractions.ITestOutputHelper)
+        Public Sub New(outputHelper As Abstractions.ITestOutputHelper)
             _outputHelper = outputHelper
         End Sub
 
@@ -3159,8 +3159,48 @@ namespace X
                         </Document>
                     </Project>
                 </Workspace>, renameTo:="IFooEx")
+            End Using
+        End Sub
 
+        <WorkItem(8139, "https://github.com/dotnet/roslyn/issues/8139")>
+        <Fact, Trait(Traits.Feature, Traits.Features.Rename)>
+        Public Sub RenameExplicitInterfaceImplementationFromDifferentProject()
+            Using result = RenameEngineResult.Create(_outputHelper,
+                <Workspace>
 
+                    <Project Language="C#" AssemblyName="Project1" CommonReferences="true">
+                        <ProjectReference>Project2</ProjectReference>
+                        <Document>
+class Program
+{
+    static void Main(string[] args)
+    {
+        Test(new Class1());
+    }
+
+    static void Test(IInterface i)
+    {
+        i.[|M|]();
+    }
+}
+                        </Document>
+                    </Project>
+
+                    <Project Language="C#" AssemblyName="Project2" CommonReferences="true">
+                        <Document>
+public class Class1 : IInterface
+{
+    void IInterface.[|$$M|]() { }  // Rename 'M' from here
+}
+
+public interface IInterface
+{
+    void [|M|]();
+}
+                        </Document>
+                    </Project>
+
+                </Workspace>, renameTo:="Foo")
             End Using
         End Sub
 

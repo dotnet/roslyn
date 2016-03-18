@@ -6512,6 +6512,13 @@ class C
             await VerifyNoItemsExistAsync(markup);
         }
 
+        [WorkItem(7648, "http://github.com/dotnet/roslyn/issues/7648")]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task NothingAfterBaseDotInScriptContext()
+        {
+            await VerifyItemIsAbsentAsync(@"base.$$", @"ToString", sourceCodeKind: SourceCodeKind.Script);
+        }
+
         [WorkItem(858086, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/858086")]
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task NoNestedTypeWhenDisplayingInstance()

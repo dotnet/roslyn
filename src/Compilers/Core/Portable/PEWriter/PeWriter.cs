@@ -93,10 +93,9 @@ namespace Microsoft.Cci
             {
                 var peWriter = new PeWriter(context.Module.Properties, context.Module.Win32Resources, context.Module.Win32ResourceSection, pdbPathOpt, deterministic);
                 var mdWriter = FullMetadataWriter.Create(context, messageProvider, allowMissingMethodBodies, deterministic, getPortablePdbStreamOpt != null, cancellationToken);
-
                 return peWriter.WritePeToStream(mdWriter, getPeStream, getPortablePdbStreamOpt, nativePdbWriterOpt);
             }
-            catch (Exception ex) when (!(ex is PdbWritingException || ex is ResourceException || ex is PermissionSetFileReadException))
+            catch (Exception ex) when (!(ex is PdbWritingException || ex is ResourceException || ex is PermissionSetFileReadException || ex is OperationCanceledException))
             {
                 throw new PeWritingException(ex);
             }

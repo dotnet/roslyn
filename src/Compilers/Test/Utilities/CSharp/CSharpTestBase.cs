@@ -13,14 +13,14 @@ using System.Threading;
 using Microsoft.CodeAnalysis.CodeGen;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE;
+using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.UnitTests;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
-using Xunit;
 using Roslyn.Test.Utilities;
 using Roslyn.Test.MetadataUtilities;
-using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Xunit;
 
 namespace Microsoft.CodeAnalysis.CSharp.Test.Utilities
 {
