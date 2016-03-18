@@ -14,11 +14,11 @@ namespace RunTests
 {
     internal sealed class ProcessTestExecutor : ITestExecutor
     {
-        private readonly Options _options;
+        private readonly TestExecutionOptions _options;
 
         public IDataStorage DataStorage => EmptyDataStorage.Instance;
 
-        internal ProcessTestExecutor(Options options)
+        internal ProcessTestExecutor(TestExecutionOptions options)
         {
             _options = options;
         }

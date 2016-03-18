@@ -990,7 +990,12 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         internal NamedTypeSymbol GetSpecialType(SpecialType typeId, DiagnosticBag diagnostics, CSharpSyntaxNode node)
         {
-            NamedTypeSymbol typeSymbol = this.Compilation.GetSpecialType(typeId);
+            return GetSpecialType(this.Compilation, typeId, node, diagnostics);
+        }
+
+        internal static NamedTypeSymbol GetSpecialType(CSharpCompilation compilation, SpecialType typeId, CSharpSyntaxNode node, DiagnosticBag diagnostics)
+        {
+            NamedTypeSymbol typeSymbol = compilation.GetSpecialType(typeId);
             Debug.Assert((object)typeSymbol != null, "Expect an error type if special type isn't found");
             ReportUseSiteDiagnostics(typeSymbol, diagnostics, node);
             return typeSymbol;
