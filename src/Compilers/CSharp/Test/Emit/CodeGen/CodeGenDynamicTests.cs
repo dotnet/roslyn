@@ -55,6 +55,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.CodeGen
 
         #endregion
 
+
         #region C# Runtime and System.Core sources
 
         private const string CSharpBinderTemplate = @"
@@ -545,7 +546,9 @@ public class C
 
                 var displayClass = c.GetMember<NamedTypeSymbol>("<>c__DisplayClass0_0");
                 var d = displayClass.GetMember<FieldSymbol>("d");
-                Assert.Equal(0, d.GetAttributes().Length);
+                var attributes = d.GetAttributes();
+                Assert.Equal(1, attributes.Length);
+                Assert.Equal("System.Runtime.CompilerServices.DynamicAttribute", attributes[0].AttributeClass.ToDisplayString());
             });
         }
 
@@ -950,7 +953,7 @@ class C
   IL_0069:  ldarg.0
   IL_006a:  ldfld      ""T C.<>c__DisplayClass0_0<T>.a""
   IL_006f:  ldarg.0
-  IL_0070:  ldfld      ""object C.<>c__DisplayClass0_0<T>.b""
+  IL_0070:  ldfld      """"
   IL_0075:  callvirt   ""void System.Action<System.Runtime.CompilerServices.CallSite, System.Type, T, object>.Invoke(System.Runtime.CompilerServices.CallSite, System.Type, T, object)""
   IL_007a:  ret
 }
@@ -1033,7 +1036,7 @@ class C
   IL_0005:  stloc.0
   IL_0006:  ldloc.0
   IL_0007:  newobj     ""C..ctor()""
-  IL_000c:  stfld      ""object C.<>c__DisplayClass11_0.dyn""
+  IL_000c:  stfld      ""dynamic C.<>c__DisplayClass11_0.dyn""
   IL_0011:  ldsfld     ""System.Runtime.CompilerServices.CallSite<System.Func<System.Runtime.CompilerServices.CallSite, object, bool>> C.<>o__11.<>p__2""
   IL_0016:  brtrue.s   IL_0044
   IL_0018:  ldc.i4.0
@@ -1101,7 +1104,7 @@ class C
   IL_00da:  ldfld      ""System.Func<System.Runtime.CompilerServices.CallSite, object, object> System.Runtime.CompilerServices.CallSite<System.Func<System.Runtime.CompilerServices.CallSite, object, object>>.Target""
   IL_00df:  ldsfld     ""System.Runtime.CompilerServices.CallSite<System.Func<System.Runtime.CompilerServices.CallSite, object, object>> C.<>o__11.<>p__0""
   IL_00e4:  ldloc.0
-  IL_00e5:  ldfld      ""object C.<>c__DisplayClass11_0.dyn""
+  IL_00e5:  ldfld      ""dynamic C.<>c__DisplayClass11_0.dyn""
   IL_00ea:  callvirt   ""object System.Func<System.Runtime.CompilerServices.CallSite, object, object>.Invoke(System.Runtime.CompilerServices.CallSite, object)""
   IL_00ef:  ldc.i4.s   123
   IL_00f1:  callvirt   ""object System.Func<System.Runtime.CompilerServices.CallSite, object, int, object>.Invoke(System.Runtime.CompilerServices.CallSite, object, int)""
@@ -1137,7 +1140,7 @@ class C
   IL_014d:  ldfld      ""System.Func<System.Runtime.CompilerServices.CallSite, object, object, object> System.Runtime.CompilerServices.CallSite<System.Func<System.Runtime.CompilerServices.CallSite, object, object, object>>.Target""
   IL_0152:  ldsfld     ""System.Runtime.CompilerServices.CallSite<System.Func<System.Runtime.CompilerServices.CallSite, object, object, object>> C.<>o__11.<>p__4""
   IL_0157:  ldloc.0
-  IL_0158:  ldfld      ""object C.<>c__DisplayClass11_0.dyn""
+  IL_0158:  ldfld      ""dynamic C.<>c__DisplayClass11_0.dyn""
   IL_015d:  ldsfld     ""System.Runtime.CompilerServices.CallSite<System.Func<System.Runtime.CompilerServices.CallSite, object, object, object>> C.<>o__11.<>p__3""
   IL_0162:  brtrue.s   IL_019e
   IL_0164:  ldc.i4.0
@@ -1166,7 +1169,7 @@ class C
   IL_01a3:  ldfld      ""System.Func<System.Runtime.CompilerServices.CallSite, object, object, object> System.Runtime.CompilerServices.CallSite<System.Func<System.Runtime.CompilerServices.CallSite, object, object, object>>.Target""
   IL_01a8:  ldsfld     ""System.Runtime.CompilerServices.CallSite<System.Func<System.Runtime.CompilerServices.CallSite, object, object, object>> C.<>o__11.<>p__3""
   IL_01ad:  ldloc.0
-  IL_01ae:  ldfld      ""object C.<>c__DisplayClass11_0.dyn""
+  IL_01ae:  ldfld      ""dynamic C.<>c__DisplayClass11_0.dyn""
   IL_01b3:  ldloc.1
   IL_01b4:  callvirt   ""object System.Func<System.Runtime.CompilerServices.CallSite, object, object, object>.Invoke(System.Runtime.CompilerServices.CallSite, object, object)""
   IL_01b9:  callvirt   ""object System.Func<System.Runtime.CompilerServices.CallSite, object, object, object>.Invoke(System.Runtime.CompilerServices.CallSite, object, object)""
@@ -1198,7 +1201,7 @@ class C
   IL_0204:  ldfld      ""System.Func<System.Runtime.CompilerServices.CallSite, object, object, object> System.Runtime.CompilerServices.CallSite<System.Func<System.Runtime.CompilerServices.CallSite, object, object, object>>.Target""
   IL_0209:  ldsfld     ""System.Runtime.CompilerServices.CallSite<System.Func<System.Runtime.CompilerServices.CallSite, object, object, object>> C.<>o__11.<>p__7""
   IL_020e:  ldloc.0
-  IL_020f:  ldfld      ""object C.<>c__DisplayClass11_0.dyn""
+  IL_020f:  ldfld      ""dynamic C.<>c__DisplayClass11_0.dyn""
   IL_0214:  ldsfld     ""System.Runtime.CompilerServices.CallSite<System.Func<System.Runtime.CompilerServices.CallSite, object, object>> C.<>o__11.<>p__6""
   IL_0219:  brtrue.s   IL_024b
   IL_021b:  ldc.i4.0
@@ -1241,7 +1244,7 @@ class C
   IL_0295:  ldfld      ""System.Func<System.Runtime.CompilerServices.CallSite, object, object> System.Runtime.CompilerServices.CallSite<System.Func<System.Runtime.CompilerServices.CallSite, object, object>>.Target""
   IL_029a:  ldsfld     ""System.Runtime.CompilerServices.CallSite<System.Func<System.Runtime.CompilerServices.CallSite, object, object>> C.<>o__11.<>p__5""
   IL_029f:  ldloc.0
-  IL_02a0:  ldfld      ""object C.<>c__DisplayClass11_0.dyn""
+  IL_02a0:  ldfld      ""dynamic C.<>c__DisplayClass11_0.dyn""
   IL_02a5:  callvirt   ""object System.Func<System.Runtime.CompilerServices.CallSite, object, object>.Invoke(System.Runtime.CompilerServices.CallSite, object)""
   IL_02aa:  callvirt   ""object System.Func<System.Runtime.CompilerServices.CallSite, object, object>.Invoke(System.Runtime.CompilerServices.CallSite, object)""
   IL_02af:  callvirt   ""object System.Func<System.Runtime.CompilerServices.CallSite, object, object, object>.Invoke(System.Runtime.CompilerServices.CallSite, object, object)""
@@ -1251,7 +1254,7 @@ class C
   IL_02bc:  newobj     ""System.Action..ctor(object, System.IntPtr)""
   IL_02c1:  stloc.2
   IL_02c2:  ldloc.0
-  IL_02c3:  ldfld      ""object C.<>c__DisplayClass11_0.dyn""
+  IL_02c3:  ldfld      ""dynamic C.<>c__DisplayClass11_0.dyn""
   IL_02c8:  stloc.3
   IL_02c9:  ldsfld     ""System.Runtime.CompilerServices.CallSite<System.Func<System.Runtime.CompilerServices.CallSite, object, bool>> C.<>o__11.<>p__14""
   IL_02ce:  brtrue.s   IL_02ef
@@ -8763,11 +8766,10 @@ class C
   IL_0055:  ldtoken    ""C""
   IL_005a:  call       ""System.Type System.Type.GetTypeFromHandle(System.RuntimeTypeHandle)""
   IL_005f:  ldarg.0
-  IL_0060:  ldfld      ""object C.<>c__DisplayClass0_0.x""
+  IL_0060:  ldfld      ""dynamic C.<>c__DisplayClass0_0.x""
   IL_0065:  callvirt   ""void System.Action<System.Runtime.CompilerServices.CallSite, System.Type, object>.Invoke(System.Runtime.CompilerServices.CallSite, System.Type, object)""
   IL_006a:  ret
-}
-");
+}");
         }
 
         [Fact]
@@ -14483,7 +14485,7 @@ class C
     IL_008e:  ldsfld     ""System.Runtime.CompilerServices.CallSite<System.Func<System.Runtime.CompilerServices.CallSite, object, object>> C.<>o__0.<>p__0""
     IL_0093:  ldarg.0
     IL_0094:  ldfld      ""C.<>c__DisplayClass0_0 C.<>c__DisplayClass0_0.<<Main>b__0>d.<>4__this""
-    IL_0099:  ldfld      ""object C.<>c__DisplayClass0_0.d""
+    IL_0099:  ldfld      ""dynamic C.<>c__DisplayClass0_0.d""
     IL_009e:  callvirt   ""object System.Func<System.Runtime.CompilerServices.CallSite, object, object>.Invoke(System.Runtime.CompilerServices.CallSite, object)""
     IL_00a3:  callvirt   ""object System.Func<System.Runtime.CompilerServices.CallSite, object, object>.Invoke(System.Runtime.CompilerServices.CallSite, object)""
     IL_00a8:  stloc.2
