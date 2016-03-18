@@ -456,7 +456,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' type isn't found.
         ''' </summary>
         Friend Function GetWellKnownType(type As WellKnownType, syntax As VisualBasicSyntaxNode, diagBag As DiagnosticBag) As NamedTypeSymbol
-            Dim typeSymbol As NamedTypeSymbol = Me.Compilation.GetWellKnownType(type)
+            Return GetWellKnownType(Me.Compilation, type, syntax, diagBag)
+        End Function
+
+        Friend Shared Function GetWellKnownType(compilation As VisualBasicCompilation, type As WellKnownType, syntax As VisualBasicSyntaxNode, diagBag As DiagnosticBag) As NamedTypeSymbol
+            Dim typeSymbol As NamedTypeSymbol = compilation.GetWellKnownType(type)
             Debug.Assert(typeSymbol IsNot Nothing)
 
             Dim useSiteError = GetUseSiteErrorForWellKnownType(typeSymbol)
@@ -567,8 +571,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' member isn't found.
         ''' </summary>
         Friend Function GetWellKnownTypeMember(member As WellKnownMember, syntax As VisualBasicSyntaxNode, diagBag As DiagnosticBag) As Symbol
+            Return GetWellKnownTypeMember(Me.Compilation, member, syntax, diagBag)
+        End Function
+
+        Friend Shared Function GetWellKnownTypeMember(compilation As VisualBasicCompilation, member As WellKnownMember, syntax As VisualBasicSyntaxNode, diagBag As DiagnosticBag) As Symbol
             Dim useSiteError As DiagnosticInfo = Nothing
-            Dim memberSymbol As Symbol = GetWellKnownTypeMember(Me.Compilation, member, useSiteError)
+            Dim memberSymbol As Symbol = GetWellKnownTypeMember(compilation, member, useSiteError)
 
             If useSiteError IsNot Nothing Then
                 ReportDiagnostic(diagBag, syntax, useSiteError)
