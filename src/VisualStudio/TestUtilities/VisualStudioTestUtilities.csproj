@@ -19,6 +19,7 @@
   </PropertyGroup>
   <ItemGroup>
     <Compile Include="IntegrationHelper.cs" />
+    <Compile Include="VisualStudioCommandNames.cs" />
     <Compile Include="IntegrationHost.cs" />
     <Compile Include="IntegrationService.cs" />
     <Compile Include="IntegrationTraceListener.cs" />
@@ -31,6 +32,7 @@
       <DesignTimeSharedInput>True</DesignTimeSharedInput>
       <DependentUpon>Settings.settings</DependentUpon>
     </Compile>
+    <Compile Include="VisualStudioInstanceFactory.cs" />
     <Compile Include="Window\EditorWindow.cs" />
     <Compile Include="Window\InteractiveWindow.cs" />
     <Compile Include="Workspace\Project.cs" />

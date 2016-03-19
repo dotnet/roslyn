@@ -122,7 +122,7 @@ namespace Roslyn.VisualStudio.Test.Utilities
             IEnumMoniker enumMoniker = null;
             IBindCtx bindContext = null;
             var monikers = new IMoniker[1];
-            var vsProgId = IntegrationHost.VsProgId;
+            var vsProgId = VisualStudioInstanceFactory.VsProgId;
 
             Ole32.GetRunningObjectTable(0, out runningObjectTable);
             runningObjectTable.EnumRunning(out enumMoniker);

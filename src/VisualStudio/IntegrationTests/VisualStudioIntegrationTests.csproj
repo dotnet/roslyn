@@ -18,7 +18,6 @@
   <ItemGroup>
     <Compile Include="CSharp\CSharpBuild.cs" />
     <Compile Include="CSharp\CSharpInteractiveDemo.cs" />
-    <Compile Include="SharedIntegrationHost.cs" />
     <Compile Include="SharedIntegrationHostFixture.cs" />
     <Compile Include="VisualBasic\BasicBuild.cs" />
   </ItemGroup>

@@ -10,56 +10,48 @@ using System.Runtime.Remoting.Channels.Ipc;
 using System.Threading.Tasks;
 using System.Windows.Automation;
 using EnvDTE;
-using Microsoft.Win32;
 
-using DteProject = EnvDTE.Project;
 using Process = System.Diagnostics.Process;
 
 namespace Roslyn.VisualStudio.Test.Utilities
 {
-    public class IntegrationHost : IDisposable
+    public class IntegrationHost
     {
-        internal static readonly string VsProductVersion = Settings.Default.VsProductVersion;
-        internal static readonly string VsProgId = $"VisualStudio.DTE.{VsProductVersion}";
-
-        internal static readonly string Wow6432Registry = Environment.Is64BitProcess ? "WOW6432Node" : string.Empty;
-        internal static readonly string VsRegistryRoot = Path.Combine("SOFTWARE", Wow6432Registry, "Microsoft", "VisualStudio", VsProductVersion);
-        internal static readonly string VsConfigRootSubKey = $"{VsRegistryRoot}_Config";
-        internal static readonly string VsInitConfigSubKey = Path.Combine(VsConfigRootSubKey, "Initialization");
-
-        internal static readonly string VsCommon7Folder = Path.GetFullPath(IntegrationHelper.GetRegistryKeyValue(Registry.LocalMachine, VsRegistryRoot, "InstallDir").ToString());
-        internal static readonly string VsUserFilesFolder = Path.GetFullPath(IntegrationHelper.GetRegistryKeyValue(Registry.CurrentUser, VsInitConfigSubKey, "UserFilesFolder").ToString());
-
-        internal static readonly string VsExeFile = Path.Combine(VsCommon7Folder, "devenv.exe");
-        internal static readonly string VsLaunchArgs = $"{(string.IsNullOrWhiteSpace(Settings.Default.VsRootSuffix) ? "/log" : $"/rootsuffix {Settings.Default.VsRootSuffix}")} /log";
-
-        internal static readonly string VsStartServiceCommand = "Tools.StartIntegrationTestService";
-        internal static readonly string VsStopServiceCommand = "Tools.StopIntegrationTestService";
-
         // TODO: We could probably expose all the windows/services/features of the host process in a better manner
+        private readonly Process _hostProcess;
+        private readonly DTE _dte;
+        private readonly IntegrationService _service;
+        private readonly string _serviceUri;
+        private readonly IpcClientChannel _serviceChannel;
+
         private InteractiveWindow _csharpInteractiveWindow;
-        private DTE _dte;
         private EditorWindow _editorWindow;
-        private Process _hostProcess;
-        private IntegrationService _service;
-        private IpcClientChannel _serviceChannel;
         private SolutionExplorer _solutionExplorer;
-        private string _serviceUri;
-        private bool _requireNewInstance;
 
-        static IntegrationHost()
+        public IntegrationHost(Process process)
         {
-            // Enable TraceListenerLogging here since we can have multiple instances of IntegrationHost created per process, but this is a one-time setup
-            Trace.Listeners.Clear();
-            Trace.Listeners.Add(new IntegrationTraceListener());
-        }
+            _hostProcess = process;
 
-        ~IntegrationHost()
-        {
-            Dispose(false);
+            _dte = IntegrationHelper.LocateDteForProcess(_hostProcess);
+
+            if (_dte == null)
+            {
+                throw new Exception("Unable to locate DTE for the target process.");
+            }
+
+            ExecuteDteCommandAsync("Tools.StartIntegrationTestService").GetAwaiter().GetResult();
+
+            _serviceChannel = new IpcClientChannel();
+            ChannelServices.RegisterChannel(_serviceChannel, ensureSecurity: true);
+
+            // Connect to a 'well defined, shouldn't conflict' IPC channel
+            _serviceUri = string.Format($"ipc://{IntegrationService.PortNameFormatString}", _hostProcess.Id);
+            _service = (IntegrationService)(Activator.GetObject(typeof(IntegrationService), $"{_serviceUri}/{typeof(IntegrationService).FullName}"));
         }
 
         public DTE Dte => _dte;
+
+        public bool IsRunning => !_hostProcess.HasExited;
 
         public InteractiveWindow CSharpInteractiveWindow
         {
@@ -87,10 +79,6 @@ namespace Roslyn.VisualStudio.Test.Utilities
             }
         }
 
-        /// <summary>Gets a value that determines whether a new host process should be created.</summary>
-        internal bool RequireNewInstance
-            => (_hostProcess == null) || _hostProcess.HasExited || _requireNewInstance;
-
         public SolutionExplorer SolutionExplorer
         {
             get
@@ -113,28 +101,6 @@ namespace Roslyn.VisualStudio.Test.Utilities
             {
                 ((InvokePattern)(invokePattern)).Invoke();
             }
-        }
-
-        public void Dispose()
-        {
-            Dispose(true);
-            // Explicitly don't call GC.SuppressFinalize() so that the finalizer is still called and the _hostProcess is killed
-        }
-
-        public void Initialize()        // TODO: We could probably improve this by moving to a factory based model, this would likely involve changes to 'RequireNewInstance' and 'Cleanup' as well
-        {
-            Cleanup();
-
-            if (RequireNewInstance)
-            {
-                Debug.WriteLine("Starting a new instance of Visual Studio.");
-
-                InitializeHostProcess();
-                InitializeDte();
-                InitializeRemotingService();
-            }
-
-            // TODO: We probably want to reset the environment to some stable/known state
         }
 
         internal async Task ExecuteDteCommandAsync(string command, string args = "")
@@ -190,36 +156,24 @@ namespace Roslyn.VisualStudio.Test.Utilities
         internal Task WaitForDteCommandAvailabilityAsync(string command)
             => IntegrationHelper.WaitForResultAsync(() => Dte.Commands.Item(command).IsAvailable, expectedResult: true);
 
-        protected virtual void Dispose(bool disposing)
+        public void Close()
         {
-            _requireNewInstance |= (!disposing);
-            Cleanup();
-        }
-
-        private void Cleanup()
-        {
-            CleanupDte();
-
-            if (RequireNewInstance)
+            if (!IsRunning)
             {
-                Debug.WriteLine("Closing existing Visual Studio instance.");
-
-                CleanupRemotingService();
-                CleanupHostProcess();
+                return;
             }
+
+            CloseAndDeleteOpenSolution();
+            CleanupRemotingService();
+            CleanupHostProcess();
         }
 
-        private void CleanupDte()
+        public void CloseAndDeleteOpenSolution()
         {
             // DTE can still cause a failure or crash during cleanup, such as if cleaning up the open projects/solutions fails
             try
             {
-                if (_dte == null)
-                {
-                    return;
-                }
-
-                _dte.Documents.CloseAll(vsSaveChanges.vsSaveChangesNo);
+                _dte.Documents.CloseAll(EnvDTE.vsSaveChanges.vsSaveChangesNo);
 
                 if (_dte.Solution != null)
                 {
@@ -246,73 +200,32 @@ namespace Roslyn.VisualStudio.Test.Utilities
             {
                 Debug.WriteLine($"Warning: Failed to cleanup the DTE.");
                 Debug.WriteLine($"\t{e}");
-                _requireNewInstance |= true;
             }
         }
 
         private void CleanupHostProcess()
         {
-            if (_dte != null)
-            {
-                _dte.Quit();
-                _dte = null;
-            }
+            _dte.Quit();
 
             IntegrationHelper.KillProcess(_hostProcess);
-            _hostProcess = null;
         }
 
         private void CleanupRemotingService()
         {
             try
             {
-                if ((_dte?.Commands.Item(VsStopServiceCommand).IsAvailable).GetValueOrDefault())
+                if ((_dte?.Commands.Item(VisualStudioCommandNames.VsStopServiceCommand).IsAvailable).GetValueOrDefault())
                 {
-                    ExecuteDteCommandAsync(VsStopServiceCommand).GetAwaiter().GetResult();
+                    ExecuteDteCommandAsync(VisualStudioCommandNames.VsStopServiceCommand).GetAwaiter().GetResult();
                 }
             }
             finally
             {
-                _service = null;
-                _serviceUri = null;
-
                 if (_serviceChannel != null)
                 {
                     ChannelServices.UnregisterChannel(_serviceChannel);
-                    _serviceChannel = null;
                 }
             }
-        }
-
-        private void InitializeDte()
-            => IntegrationHelper.WaitForNotNullAsync(() => IntegrationHelper.LocateDteForProcess(_hostProcess)).GetAwaiter().GetResult();
-
-        private void InitializeHostProcess()
-        {
-            // TODO: This might not be needed anymore as I don't believe we do things which risk corrupting the MEF cache. However,
-            // it is still useful to do in case some other action corruped the MEF cache as we don't have to restart the host
-            Process.Start(VsExeFile, $"/clearcache {VsLaunchArgs}").WaitForExit();
-            Process.Start(VsExeFile, $"/updateconfiguration {VsLaunchArgs}").WaitForExit();
-
-            // Make sure we kill any leftover processes spawned by the host
-            IntegrationHelper.KillProcess("DbgCLR");
-            IntegrationHelper.KillProcess("VsJITDebugger");
-            IntegrationHelper.KillProcess("dexplore");
-
-            _hostProcess = Process.Start(VsExeFile, VsLaunchArgs);
-            Debug.WriteLine($"Launched a new instance of Visual Studio. (ID: {_hostProcess.Id})");
-        }
-
-        private void InitializeRemotingService()
-        {
-            ExecuteDteCommandAsync("Tools.StartIntegrationTestService").GetAwaiter().GetResult();
-
-            _serviceChannel = new IpcClientChannel();
-            ChannelServices.RegisterChannel(_serviceChannel, ensureSecurity: true);
-
-            // Connect to a 'well defined, shouldn't conflict' IPC channel
-            _serviceUri = string.Format($"ipc://{IntegrationService.PortNameFormatString}", _hostProcess.Id);
-            _service = (IntegrationService)(Activator.GetObject(typeof(IntegrationService), $"{_serviceUri}/{typeof(IntegrationService).FullName}"));
         }
     }
 }

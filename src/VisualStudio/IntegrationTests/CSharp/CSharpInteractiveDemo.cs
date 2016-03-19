@@ -13,9 +13,9 @@ namespace Roslyn.VisualStudio.Integration.UnitTests
         private readonly IntegrationHost _host;
         private readonly InteractiveWindow _interactiveWindow;
 
-        public CSharpInteractiveDemo(SharedIntegrationHost sharedHost)
+        public CSharpInteractiveDemo(VisualStudioInstanceFactory instanceFactory)
         {
-            _host = sharedHost.GetHost();
+            _host = instanceFactory.GetNewOrUsedInstance();
 
             _interactiveWindow = _host.CSharpInteractiveWindow;
 

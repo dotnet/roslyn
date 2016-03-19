@@ -10,9 +10,9 @@ namespace Roslyn.VisualStudio.Integration.UnitTests
     {
         private readonly IntegrationHost _host;
 
-        public BasicBuild(SharedIntegrationHost sharedHost)
+        public BasicBuild(VisualStudioInstanceFactory instanceFactory)
         {
-            _host = sharedHost.GetHost();
+            _host = instanceFactory.GetNewOrUsedInstance();
 
             var solution = _host.SolutionExplorer.CreateSolution(nameof(BasicBuild));
             var project = solution.AddProject("TestProj", ProjectTemplate.ConsoleApplication, ProjectLanguage.VisualBasic);

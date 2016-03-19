@@ -10,9 +10,9 @@ namespace Roslyn.VisualStudio.Integration.UnitTests
     {
         private readonly IntegrationHost _host;
 
-        public CSharpBuild(SharedIntegrationHost sharedHost)
+        public CSharpBuild(VisualStudioInstanceFactory instanceFactory)
         {
-            _host = sharedHost.GetHost();
+            _host = instanceFactory.GetNewOrUsedInstance();
 
             var solution = _host.SolutionExplorer.CreateSolution(nameof(CSharpBuild));
             var project = solution.AddProject("TestProj", ProjectTemplate.ConsoleApplication, ProjectLanguage.CSharp);
