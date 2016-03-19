@@ -18,6 +18,19 @@ if /I "%1" == "/release" set BuildConfiguration=Release&&shift&& goto :ParseArgu
 if /I "%1" == "/test32" set Test64=false&&shift&& goto :ParseArguments
 if /I "%1" == "/test64" set Test64=true&&shift&& goto :ParseArguments
 if /I "%1" == "/testDeterminism" set TestDeterminism=true&&shift&& goto :ParseArguments
+
+REM /buildTimeLimit is the time limit, measured in minutes, for the Jenkins job that runs
+REM the build. The Jenkins script netci.groovy passes the time limit to this script.
+
+REM netci.groovy does not yet pass the time limit to cibuild.cmd. We are making this
+REM change to cibuild.cmd in all branches *before* modifying netci.groovy. If we didn't
+REM do things in this order, we'd have to modify cibuild.cmd in *all* branches *at the
+REM same time* we made the change to netci.groovy. This way, we'll be able to first
+REM modify netci.groovy to pass the new parameter without causing any harm. Then we'll
+REM be able go to each branch in turn, modifying cibuild.cmd and BuildAndTest.cmd to
+REM actually make use of the new parameter.
+if /I "%1" == "/buildTimeLimit" set BuildTimeLimit=%2&&shift&&shift&& goto:ParseArguments
+
 call :Usage && exit /b 1
 :DoneParsing
 
