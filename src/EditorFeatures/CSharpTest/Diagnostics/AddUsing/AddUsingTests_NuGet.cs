@@ -236,8 +236,8 @@ class C
                 string packageName, string typeName, IReadOnlyList<string> containingNamespaceNames)
             {
                 return CreateSearchResult(new PackageWithTypeResult(
-                    isDesktopFramework: false, packageName: packageName, assemblyName: packageName, 
-                    typeName: typeName, version: null, containingNamespaceNames: containingNamespaceNames));
+                    packageName: packageName, typeName: typeName,
+                    version: null, containingNamespaceNames: containingNamespaceNames));
             }
 
             private IEnumerable<PackageWithTypeResult> CreateSearchResult(params PackageWithTypeResult[] results) => results;
