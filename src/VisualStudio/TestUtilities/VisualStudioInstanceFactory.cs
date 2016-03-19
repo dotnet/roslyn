@@ -50,7 +50,12 @@ namespace Roslyn.VisualStudio.Test.Utilities
 
             oldInstance?.Close();
 
-            _currentlyRunningInstance = new VisualStudioInstance(StartNewVisualStudioProcess());
+            var process = StartNewVisualStudioProcess();
+
+            // We wait until the DTE instance is up before we're good
+            var dte = IntegrationHelper.WaitForNotNullAsync(() => IntegrationHelper.TryLocateDteForProcess(process)).Result;
+
+            _currentlyRunningInstance = new VisualStudioInstance(process, dte);
 
             return _currentlyRunningInstance;
         }

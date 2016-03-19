@@ -28,16 +28,10 @@ namespace Roslyn.VisualStudio.Test.Utilities
         private EditorWindow _editorWindow;
         private SolutionExplorer _solutionExplorer;
 
-        public VisualStudioInstance(Process process)
+        public VisualStudioInstance(Process process, DTE dte)
         {
             _hostProcess = process;
-
-            _dte = IntegrationHelper.LocateDteForProcess(_hostProcess);
-
-            if (_dte == null)
-            {
-                throw new Exception("Unable to locate DTE for the target process.");
-            }
+            _dte = dte;
 
             ExecuteDteCommandAsync("Tools.StartIntegrationTestService").GetAwaiter().GetResult();
 

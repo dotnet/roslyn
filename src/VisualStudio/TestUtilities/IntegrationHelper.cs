@@ -115,7 +115,7 @@ namespace Roslyn.VisualStudio.Test.Utilities
         }
 
         /// <summary>Locates the DTE object for the specified process.</summary>
-        public static DTE LocateDteForProcess(Process process)
+        public static DTE TryLocateDteForProcess(Process process)
         {
             object dte = null;
             IRunningObjectTable runningObjectTable = null;
@@ -135,9 +135,14 @@ namespace Roslyn.VisualStudio.Test.Utilities
                 var monikersFetched = 0u;
                 var hresult = enumMoniker.Next(1, monikers, out monikersFetched);
 
-                if (hresult < VSConstants.S_OK)
+                if (hresult == VSConstants.S_FALSE)
                 {
-                    throw Marshal.GetExceptionForHR(hresult);
+                    // There's nothing further to enumerate, so fail
+                    return null;
+                }
+                else
+                {
+                    Marshal.ThrowExceptionForHR(hresult);
                 }
 
                 var moniker = monikers[0];
