@@ -18,6 +18,7 @@ Open design issues (needing LDM decisions)
   - [ ] static bool for active patterns
   - [ ] instance bool for captured data (regex)
   - [ ] Do we want to support "breakpoints inside" patterns (#9095)
+- [ ] What is the correct precedence of *throw-expression*? Should *assignment* be allowed as its subexpression?
 
 Progress checklist:
 - [ ] Add a decision tree to enable
