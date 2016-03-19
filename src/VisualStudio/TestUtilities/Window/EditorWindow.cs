@@ -18,12 +18,12 @@ namespace Roslyn.VisualStudio.Test.Utilities
         {
             get
             {
-                return RemotingHelper.GetActiveTextViewContents();
+                return _visualStudio.ExecuteOnHostProcess<string>(typeof(RemotingHelper), nameof(RemotingHelper.GetActiveTextViewContents), System.Reflection.BindingFlags.Public | System.Reflection.BindingFlags.Static);
             }
 
             set
             {
-                RemotingHelper.SetActiveTextViewContents(value);
+                _visualStudio.ExecuteOnHostProcess<string>(typeof(RemotingHelper), nameof(RemotingHelper.SetActiveTextViewContents), System.Reflection.BindingFlags.Public | System.Reflection.BindingFlags.Static, value);
             }
         }
     }
