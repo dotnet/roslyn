@@ -32,7 +32,8 @@ namespace Microsoft.CodeAnalysis.Emit
         public bool IncludePrivateMembers { get; private set; }
 
         /// <summary>
-        /// 
+        /// If not empty then compiler should enable instrumentation.
+        /// The string specifies the classes for which the compiler should generate instrumentation information.
         /// </summary>
         public string Instrument { get; private set; }
 
@@ -378,6 +379,11 @@ namespace Microsoft.CodeAnalysis.Emit
 
         public EmitOptions WithInstrument(string instrument)
         {
+            if (Instrument == instrument)
+            {
+                return this;
+            }
+
             return new EmitOptions(this) { Instrument = instrument };
         }
     }

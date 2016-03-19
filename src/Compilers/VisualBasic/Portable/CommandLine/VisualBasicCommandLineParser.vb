@@ -540,10 +540,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
                         Case "instrument"
                             If String.IsNullOrEmpty(value) Then
-                                AddDiagnostic(diagnostics, ERRID.ERR_ArgumentRequired, "instrument", ":<types>")
+                                AddDiagnostic(diagnostics, ERRID.ERR_ArgumentRequired, "instrument", ":<string>")
+                                Continue For
                             End If
 
-                            instrument = value
+                            instrument = RemoveQuotesAndSlashes(value)
                             Continue For
 
                         Case "recurse"

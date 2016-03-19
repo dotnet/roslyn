@@ -422,15 +422,25 @@ a.vb
             args = DefaultParse({}, _baseDirectory)
             Assert.Equal("", args.EmitOptions.Instrument)
 
+            args = DefaultParse({"/instrument", "a.vb"}, _baseDirectory)
+            args.Errors.Verify({Diagnostic(ERRID.ERR_ArgumentRequired).WithArguments("instrument", ":<string>").WithLocation(1, 1)})
+            Assert.Equal("", args.EmitOptions.Instrument)
+
             args = DefaultParse({"/instrument:", "a.vb"}, _baseDirectory)
-            args.Errors.Verify({Diagnostic(ERRID.ERR_ArgumentRequired).WithArguments("instrument", ":<types>").WithLocation(1, 1)})
+            args.Errors.Verify({Diagnostic(ERRID.ERR_ArgumentRequired).WithArguments("instrument", ":<string>").WithLocation(1, 1)})
+            Assert.Equal("", args.EmitOptions.Instrument)
 
             args = DefaultParse({"/instrument:", "Test.Flag.Name", "a.vb"}, _baseDirectory)
-            args.Errors.Verify({Diagnostic(ERRID.ERR_ArgumentRequired).WithArguments("instrument", ":<types>").WithLocation(1, 1)})
+            args.Errors.Verify({Diagnostic(ERRID.ERR_ArgumentRequired).WithArguments("instrument", ":<string>").WithLocation(1, 1)})
+            Assert.Equal("", args.EmitOptions.Instrument)
 
             args = DefaultParse({"/instrument:Test.Flag.Name", "a.vb"}, _baseDirectory)
             args.Errors.Verify()
             Assert.Equal("Test.Flag.Name", args.EmitOptions.Instrument)
+
+            args = DefaultParse({"/instrument:""Test Flag.Name""", "a.vb"}, _baseDirectory)
+            args.Errors.Verify()
+            Assert.Equal("Test Flag.Name", args.EmitOptions.Instrument)
         End Sub
 
         <Fact>

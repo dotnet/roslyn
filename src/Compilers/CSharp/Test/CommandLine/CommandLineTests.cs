@@ -2685,19 +2685,31 @@ C:\*.cs(100,7): error CS0103: The name 'Foo' does not exist in the current conte
             var parsedArgs = DefaultParse(SpecializedCollections.EmptyEnumerable<string>(), _baseDirectory);
             Assert.Equal("", parsedArgs.EmitOptions.Instrument);
 
+            parsedArgs = DefaultParse(new[] { @"/instrument", "a.cs" }, _baseDirectory);
+            parsedArgs.Errors.Verify(
+                // error CS2006: Command-line syntax error: Missing '<text>' for 'instrument' option
+                Diagnostic(ErrorCode.ERR_SwitchNeedsString).WithArguments("<text>", "instrument"));
+            Assert.Equal("", parsedArgs.EmitOptions.Instrument);
+
             parsedArgs = DefaultParse(new[] { @"/instrument:", "a.cs" }, _baseDirectory);
             parsedArgs.Errors.Verify(
                 // error CS2006: Command-line syntax error: Missing '<text>' for 'instrument' option
                 Diagnostic(ErrorCode.ERR_SwitchNeedsString).WithArguments("<text>", "instrument"));
+            Assert.Equal("", parsedArgs.EmitOptions.Instrument);
 
             parsedArgs = DefaultParse(new[] { "/instrument:", "Test.Flag.Name", "a.cs" }, _baseDirectory);
             parsedArgs.Errors.Verify(
                 // error CS2006: Command-line syntax error: Missing '<text>' for 'instrument' option
                 Diagnostic(ErrorCode.ERR_SwitchNeedsString).WithArguments("<text>", "instrument"));
+            Assert.Equal("", parsedArgs.EmitOptions.Instrument);
 
             parsedArgs = DefaultParse(new[] { "/instrument:Test.Flag.Name", "a.cs" }, _baseDirectory);
             parsedArgs.Errors.Verify();
             Assert.Equal("Test.Flag.Name", parsedArgs.EmitOptions.Instrument);
+
+            parsedArgs = DefaultParse(new[] { @"/instrument:""Test Flag.Name""", "a.cs" }, _baseDirectory);
+            parsedArgs.Errors.Verify();
+            Assert.Equal(@"Test Flag.Name", parsedArgs.EmitOptions.Instrument);
         }
 
         [ConditionalFact(typeof(WindowsOnly))]

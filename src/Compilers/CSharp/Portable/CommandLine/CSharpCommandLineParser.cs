@@ -308,7 +308,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                             }
                             else
                             {
-                                instrument = value;
+                                instrument = RemoveQuotesAndSlashes(value);
                             }
 
                             continue;
