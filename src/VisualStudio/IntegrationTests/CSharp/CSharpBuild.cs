@@ -8,13 +8,13 @@ namespace Roslyn.VisualStudio.Integration.UnitTests
     [Collection(nameof(SharedIntegrationHostFixture))]
     public class CSharpBuild
     {
-        private readonly IntegrationHost _host;
+        private readonly VisualStudioInstance _visualStudio;
 
         public CSharpBuild(VisualStudioInstanceFactory instanceFactory)
         {
-            _host = instanceFactory.GetNewOrUsedInstance();
+            _visualStudio = instanceFactory.GetNewOrUsedInstance();
 
-            var solution = _host.SolutionExplorer.CreateSolution(nameof(CSharpBuild));
+            var solution = _visualStudio.SolutionExplorer.CreateSolution(nameof(CSharpBuild));
             var project = solution.AddProject("TestProj", ProjectTemplate.ConsoleApplication, ProjectLanguage.CSharp);
         }
 
@@ -31,7 +31,7 @@ class Program
     }
 }";
 
-            _host.EditorWindow.Text = editorText;
+            _visualStudio.EditorWindow.Text = editorText;
 
             // TODO: Validate build works as expected
         }

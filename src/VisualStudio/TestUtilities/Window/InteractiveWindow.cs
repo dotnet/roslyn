@@ -18,14 +18,14 @@ namespace Roslyn.VisualStudio.Test.Utilities
         private const string ReplSubmissionText = ". ";
 
         private readonly string _dteViewCommand;
-        private readonly IntegrationHost _host;
+        private readonly VisualStudioInstance _host;
         private readonly InteractiveWindowWrapper _interactiveWindowWrapper;
 
         /// <summary>Creates a <see cref="InteractiveWindow"/> instance that can interact with the C# interactive window in the Visual Studio host.</summary>
-        internal static InteractiveWindow CreateCSharpInteractiveWindow(IntegrationHost host)
+        internal static InteractiveWindow CreateCSharpInteractiveWindow(VisualStudioInstance host)
             => new InteractiveWindow(host, DteCSharpViewCommand, DteCSharpWindowTitle);
 
-        internal InteractiveWindow(IntegrationHost host, string dteViewCommand, string dteWindowTitle)
+        internal InteractiveWindow(VisualStudioInstance host, string dteViewCommand, string dteWindowTitle)
         {
             _host = host;
             _dteViewCommand = dteViewCommand;

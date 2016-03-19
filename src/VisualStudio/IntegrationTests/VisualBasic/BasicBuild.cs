@@ -8,13 +8,13 @@ namespace Roslyn.VisualStudio.Integration.UnitTests
     [Collection(nameof(SharedIntegrationHostFixture))]
     public class BasicBuild
     {
-        private readonly IntegrationHost _host;
+        private readonly VisualStudioInstance _visualStudio;
 
         public BasicBuild(VisualStudioInstanceFactory instanceFactory)
         {
-            _host = instanceFactory.GetNewOrUsedInstance();
+            _visualStudio = instanceFactory.GetNewOrUsedInstance();
 
-            var solution = _host.SolutionExplorer.CreateSolution(nameof(BasicBuild));
+            var solution = _visualStudio.SolutionExplorer.CreateSolution(nameof(BasicBuild));
             var project = solution.AddProject("TestProj", ProjectTemplate.ConsoleApplication, ProjectLanguage.VisualBasic);
         }
 
@@ -29,7 +29,7 @@ namespace Roslyn.VisualStudio.Integration.UnitTests
 
 End Module";
 
-            _host.EditorWindow.Text = editorText;
+            _visualStudio.EditorWindow.Text = editorText;
 
             // TODO: Validate build works as expected
         }

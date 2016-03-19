@@ -15,20 +15,20 @@ using Process = System.Diagnostics.Process;
 
 namespace Roslyn.VisualStudio.Test.Utilities
 {
-    public class IntegrationHost
+    public class VisualStudioInstance
     {
-        // TODO: We could probably expose all the windows/services/features of the host process in a better manner
         private readonly Process _hostProcess;
         private readonly DTE _dte;
         private readonly IntegrationService _service;
         private readonly string _serviceUri;
         private readonly IpcClientChannel _serviceChannel;
 
+        // TODO: We could probably expose all the windows/services/features of the host process in a better manner
         private InteractiveWindow _csharpInteractiveWindow;
         private EditorWindow _editorWindow;
         private SolutionExplorer _solutionExplorer;
 
-        public IntegrationHost(Process process)
+        public VisualStudioInstance(Process process)
         {
             _hostProcess = process;
 

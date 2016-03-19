@@ -7,11 +7,11 @@ namespace Roslyn.VisualStudio.Test.Utilities
     /// <summary>Provides a means of interacting with the active editor window in the Visual Studio host.</summary>
     public class EditorWindow
     {
-        private readonly IntegrationHost _host;
+        private readonly VisualStudioInstance _visualStudio;
 
-        internal EditorWindow(IntegrationHost host)
+        internal EditorWindow(VisualStudioInstance visualStudio)
         {
-            _host = host;
+            _visualStudio = visualStudio;
         }
 
         public string Text

@@ -23,7 +23,7 @@ namespace Roslyn.VisualStudio.Test.Utilities
         /// <summary>
         /// The instance that has already been launched by this factory and can be reused.
         /// </summary>
-        private IntegrationHost _currentlyRunningInstance;
+        private VisualStudioInstance _currentlyRunningInstance;
 
         static VisualStudioInstanceFactory()
         {
@@ -33,9 +33,9 @@ namespace Roslyn.VisualStudio.Test.Utilities
         }
 
         /// <summary>
-        /// Returns the running <see cref="IntegrationHost"/>, starting one if necessary.
+        /// Returns the running <see cref="VisualStudioInstance"/>, starting one if necessary.
         /// </summary>
-        public IntegrationHost GetNewOrUsedInstance()
+        public VisualStudioInstance GetNewOrUsedInstance()
         {
             if (_currentlyRunningInstance != null && _currentlyRunningInstance.IsRunning)
             {
@@ -47,9 +47,9 @@ namespace Roslyn.VisualStudio.Test.Utilities
         }
 
         /// <summary>
-        /// Starts up a new <see cref="IntegrationHost"/>, shutting down any instances that are already running.
+        /// Starts up a new <see cref="VisualStudioInstance"/>, shutting down any instances that are already running.
         /// </summary>
-        public IntegrationHost GetNewInstance()
+        public VisualStudioInstance GetNewInstance()
         {
             // In case the cleanup process fails, preemtively null out _currentlyRunningInstance so we don't reuse this
             var oldInstance = _currentlyRunningInstance;
@@ -57,7 +57,7 @@ namespace Roslyn.VisualStudio.Test.Utilities
 
             oldInstance?.Close();
 
-            _currentlyRunningInstance = new IntegrationHost(StartNewVisualStudioProcess());
+            _currentlyRunningInstance = new VisualStudioInstance(StartNewVisualStudioProcess());
 
             return _currentlyRunningInstance;
         }

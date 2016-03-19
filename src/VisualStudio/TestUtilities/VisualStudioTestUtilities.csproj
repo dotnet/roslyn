@@ -20,7 +20,7 @@
   <ItemGroup>
     <Compile Include="IntegrationHelper.cs" />
     <Compile Include="VisualStudioCommandNames.cs" />
-    <Compile Include="IntegrationHost.cs" />
+    <Compile Include="VisualStudioInstance.cs" />
     <Compile Include="IntegrationService.cs" />
     <Compile Include="IntegrationTraceListener.cs" />
     <Compile Include="Interop\Ole32.cs" />

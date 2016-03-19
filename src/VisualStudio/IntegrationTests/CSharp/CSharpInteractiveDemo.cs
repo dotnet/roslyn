@@ -10,14 +10,14 @@ namespace Roslyn.VisualStudio.Integration.UnitTests
     [Collection(nameof(SharedIntegrationHostFixture))]
     public class CSharpInteractiveDemo
     {
-        private readonly IntegrationHost _host;
+        private readonly VisualStudioInstance _visualStudio;
         private readonly InteractiveWindow _interactiveWindow;
 
         public CSharpInteractiveDemo(VisualStudioInstanceFactory instanceFactory)
         {
-            _host = instanceFactory.GetNewOrUsedInstance();
+            _visualStudio = instanceFactory.GetNewOrUsedInstance();
 
-            _interactiveWindow = _host.CSharpInteractiveWindow;
+            _interactiveWindow = _visualStudio.CSharpInteractiveWindow;
 
             _interactiveWindow.ShowAsync().GetAwaiter().GetResult();
             _interactiveWindow.ResetAsync().GetAwaiter().GetResult();
@@ -95,7 +95,7 @@ var g = new Grid();
 g.Children.Add(b);
 w.Content = g;");
 
-            await _host.ClickAutomationElementAsync(testValue.ToString(), recursive: true);
+            await _visualStudio.ClickAutomationElementAsync(testValue.ToString(), recursive: true);
             await _interactiveWindow.WaitForReplPromptAsync();
 
             Assert.Equal("Hello, World!", _interactiveWindow.LastReplOutput);
