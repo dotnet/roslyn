@@ -22,7 +22,6 @@
     <Compile Include="VisualStudioCommandNames.cs" />
     <Compile Include="VisualStudioInstance.cs" />
     <Compile Include="IntegrationService.cs" />
-    <Compile Include="IntegrationTraceListener.cs" />
     <Compile Include="Interop\Ole32.cs" />
     <Compile Include="Interop\User32.cs" />
     <Compile Include="Remoting\InteractiveWindowWrapper.cs" />

@@ -25,13 +25,6 @@ namespace Roslyn.VisualStudio.Test.Utilities
         /// </summary>
         private VisualStudioInstance _currentlyRunningInstance;
 
-        static VisualStudioInstanceFactory()
-        {
-            // Enable TraceListenerLogging here since we can have multiple instances of IntegrationHost created per process, but this is a one-time setup
-            Trace.Listeners.Clear();
-            Trace.Listeners.Add(new IntegrationTraceListener());
-        }
-
         /// <summary>
         /// Returns the running <see cref="VisualStudioInstance"/>, starting one if necessary.
         /// </summary>

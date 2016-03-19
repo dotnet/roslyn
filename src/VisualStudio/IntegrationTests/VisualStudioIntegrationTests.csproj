@@ -12,7 +12,6 @@
     <Nonshipping>true</Nonshipping>
   </PropertyGroup>
   <ItemGroup>
-    <None Include="App.config" />
     <None Include="project.json" />
   </ItemGroup>
   <ItemGroup>
@@ -37,4 +36,5 @@
     <Folder Include="Properties\" />
   </ItemGroup>
   <Import Project="..\..\..\build\Targets\VSL.Imports.targets" />
+  <Import Project="..\..\..\build\Targets\Roslyn.Toolsets.Xunit.targets" />
 </Project>
