@@ -14,7 +14,7 @@ We modify the language specification as follows (additions in bold). Section num
 - Protected, which is selected by including a protected modifier in the member declaration. The intuitive meaning of protected is “access limited to the containing class or types derived from the containing class”.
 - Internal, which is selected by including an internal modifier in the member declaration. The intuitive meaning of internal is “access limited to this assembly”.
 - Protected internal, which is selected by including both a protected and an internal modifier in the member declaration. The intuitive meaning of protected internal is “accessible within this assembly as well as types derived from the containing class”.
-- **Private protected, which is selected by including both a private and an internal modifier in the member declaration. The intuitive meaning of private protected is “accessible within this assembly by types derived from the containing class”.**
+- **Private protected, which is selected by including both a private and an protected modifier in the member declaration. The intuitive meaning of private protected is “accessible within this assembly by types derived from the containing class”.**
 
 -----
 
@@ -44,7 +44,7 @@ We modify the language specification as follows (additions in bold). Section num
 
 > The permitted access modifiers and the default access for a type declaration depend on the context in which the declaration takes place (§9.5.2):
 - Types declared in compilation units or namespaces can have public or internal access. The default is internal access.
-- Types declared in classes can have public, protected internal, **private protected, **protected, internal, or private access. The default is private access.
+- Types declared in classes can have public, protected internal, **private protected**, protected, internal, or private access. The default is private access.
 - Types declared in structs can have public, internal, or private access. The default is private access.
 
 -----
@@ -59,17 +59,17 @@ We modify the language specification as follows (additions in bold). Section num
 
 -----
 
-> A class-member-declaration can have any one of the ~~five~~**six** possible kinds of declared accessibility (§9.5.2): public, **private protected, **protected internal, protected, internal, or private. Except for the protected internal **and private protected** combination**s**, it is a compile-time error to specify more than one access modifier. When a class-member-declaration does not include any access modifiers, private is assumed.
+> A class-member-declaration can have any one of the ~~five~~**six** possible kinds of declared accessibility (§9.5.2): public, **private protected**, protected internal, protected, internal, or private. Except for the protected internal **and private protected** combination**s**, it is a compile-time error to specify more than one access modifier. When a class-member-declaration does not include any access modifiers, private is assumed.
 
 -----
 
 > Non-nested types can have public or internal declared accessibility and have internal declared accessibility by default. Nested types can have these forms of declared accessibility too, plus one or more additional forms of declared accessibility, depending on whether the containing type is a class or struct:
-- A nested type that is declared in a class can have any of ~~five~~**six** forms of declared accessibility (public, **private protected, **protected internal, protected, internal, or private) and, like other class members, defaults to private declared accessibility.
+- A nested type that is declared in a class can have any of ~~five~~**six** forms of declared accessibility (public, **private protected**, protected internal, protected, internal, or private) and, like other class members, defaults to private declared accessibility.
 - A nested type that is declared in a struct can have any of three forms of declared accessibility (public, internal, or private) and, like other struct members, defaults to private declared accessibility.
 
 -----
 
-> The method overridden by an override declaration is known as the overridden base method For an override method M declared in a class C, the overridden base method is determined by examining each base class type of C, starting with the direct base class type of C and continuing with each successive direct base class type, until in a given base class type at least one accessible method is located which has the same signature as M after substitution of type arguments. For the purposes of locating the overridden base method, a method is considered accessible if it is public, if it is protected, if it is protected internal, or if it is **either** internal **or protected internal **and declared in the same program as C.
+> The method overridden by an override declaration is known as the overridden base method For an override method M declared in a class C, the overridden base method is determined by examining each base class type of C, starting with the direct base class type of C and continuing with each successive direct base class type, until in a given base class type at least one accessible method is located which has the same signature as M after substitution of type arguments. For the purposes of locating the overridden base method, a method is considered accessible if it is public, if it is protected, if it is protected internal, or if it is **either** internal **or protected internal** and declared in the same program as C.
 
 -----
 
@@ -78,15 +78,15 @@ We modify the language specification as follows (additions in bold). Section num
 - For a property or indexer that has no override modifer, an accessor-modifier is permitted only if the property or indexer has both a get and set accessor, and then is permitted only on one of those accessors.
 - For a property or indexer that includes an override modifer, an accessor shall match the accessor-modifier, if any, of the accessor being overridden.
 - The accessor-modifier shall declare an accessibility that is strictly more restrictive than the declared accessibility of the property or indexer itself. To be precise:
-  - If the property or indexer has a declared accessibility of public, the accessor-modifier may be either **private protected, **, protected internal, internal, protected, or private.
-  - If the property or indexer has a declared accessibility of protected internal, the accessor-modifier may be either **private protected, **internal, protected, or private.
-  - If the property or indexer has a declared accessibility of internal or protected, the accessor-modifier shall be **either private protected or **private.
+  - If the property or indexer has a declared accessibility of public, the accessor-modifier may be either **private protected**, , protected internal, internal, protected, or private.
+  - If the property or indexer has a declared accessibility of protected internal, the accessor-modifier may be either **private protected**, internal, protected, or private.
+  - If the property or indexer has a declared accessibility of internal or protected, the accessor-modifier shall be **either private protected or** private.
   - **If the property or indexer has a declared accessibility of private protected, the accessor-modifier shall be private.**
   - If the property or indexer has a declared accessibility of private, no accessor-modifier may be used.
 
 -----
 
-> Since inheritance isn’t supported for structs, the declared accessibility of a struct member cannot be protected**, private protected, **or protected internal.
+> Since inheritance isn’t supported for structs, the declared accessibility of a struct member cannot be protected, **private protected**, or protected internal.
 
 -----
 
