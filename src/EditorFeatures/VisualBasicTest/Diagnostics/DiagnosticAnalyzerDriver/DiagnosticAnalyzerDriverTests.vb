@@ -12,7 +12,7 @@ Imports Microsoft.CodeAnalysis.UnitTests.Diagnostics
 Public Class DiagnosticAnalyzerDriverTests
     <Fact>
     Public Async Function DiagnosticAnalyzerDriverAllInOne() As Task
-        Dim source = TestResource.AllInOneVisualBasicCode
+        Dim source = TestResource.AllInOneVisualBasicCode_vb
         Dim analyzer = New BasicTrackingDiagnosticAnalyzer()
         Using workspace = Await TestWorkspace.CreateVisualBasicAsync(source)
             Dim document = workspace.CurrentSolution.Projects.Single().Documents.Single()
@@ -62,7 +62,7 @@ End Class
     <Fact>
     <WorkItem(759, "https://github.com/dotnet/roslyn/issues/759")>
     Public Async Function DiagnosticAnalyzerDriverIsSafeAgainstAnalyzerExceptions() As Task
-        Dim source = TestResource.AllInOneVisualBasicCode
+        Dim source = TestResource.AllInOneVisualBasicCode_vb
         Using Workspace = Await TestWorkspace.CreateVisualBasicAsync(source)
             Dim document = Workspace.CurrentSolution.Projects.Single().Documents.Single()
             Await ThrowingDiagnosticAnalyzer(Of SyntaxKind).VerifyAnalyzerEngineIsSafeAgainstExceptionsAsync(
@@ -85,7 +85,7 @@ End Class
 
     <Fact>
     Public Async Function AnalyzerOptionsArePassedToAllAnalyzers() As Task
-        Using workspace = Await TestWorkspace.CreateVisualBasicAsync(TestResource.AllInOneVisualBasicCode)
+        Using workspace = Await TestWorkspace.CreateVisualBasicAsync(TestResource.AllInOneVisualBasicCode_vb)
             Dim currentProject = workspace.CurrentSolution.Projects.Single()
             Dim additionalDocId = DocumentId.CreateNewId(currentProject.Id)
             Dim newSln = workspace.CurrentSolution.AddAdditionalDocument(additionalDocId, "add.config", SourceText.From("random text"))

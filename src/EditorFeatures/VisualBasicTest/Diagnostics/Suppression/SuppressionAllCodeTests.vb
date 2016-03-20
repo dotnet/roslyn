@@ -21,7 +21,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Diagnostics.Suppre
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSuppression)>
         Public Async Function TestPragmaWarningOnEveryNodes() As Threading.Tasks.Task
-            Await TestPragmaAsync(TestResource.AllInOneVisualBasicCode, VisualBasicParseOptions.Default, verifier:=Function(t) t.IndexOf("#Disable Warning", StringComparison.Ordinal) >= 0)
+            Await TestPragmaAsync(TestResource.AllInOneVisualBasicCode_vb, VisualBasicParseOptions.Default, verifier:=Function(t) t.IndexOf("#Disable Warning", StringComparison.Ordinal) >= 0)
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSuppression)>
@@ -29,7 +29,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Diagnostics.Suppre
             Dim facts = New VisualBasicSyntaxFactsService()
 
             Await TestSuppressionWithAttributeAsync(
-                TestResource.AllInOneVisualBasicCode,
+                TestResource.AllInOneVisualBasicCode_vb,
                 VisualBasicParseOptions.Default,
                 digInto:=Function(n)
                              Dim member = facts.GetContainingMemberDeclaration(n, n.Span.Start)

@@ -970,7 +970,7 @@ End Class</text>
             <WorkItem(544602, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544602")>
             <Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)>
             Public Async Function TestDontCrash() As Task
-                Await IterateAllAsync(TestResource.AllInOneVisualBasicCode)
+                Await IterateAllAsync(TestResource.AllInOneVisualBasicCode_vb)
             End Function
 
             <WorkItem(541091, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541091")>

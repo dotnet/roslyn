@@ -1,0 +1,13 @@
+Imports System
+Imports System.Collections.Generic
+Imports System.Linq
+
+''' <summary>
+''' Sample Documentation
+''' </summary>
+Module Program
+    Sub Main(args As String())
+        ' User Comments
+        Console.WriteLine(5)
+    End Sub
+End Module

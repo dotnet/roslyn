@@ -15,7 +15,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.Semantics
         <WorkItem(897137, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/897137")>
         <Fact>
         Public Sub DiagnosticAnalyzerAllInOne()
-            Dim source = TestResource.AllInOneVisualBasicBaseline
+            Dim source = TestResource.AllInOneVisualBasicBaseline_vb
             Dim analyzer = New BasicTrackingDiagnosticAnalyzer()
             CreateCompilationWithMscorlib({source}).VerifyAnalyzerDiagnostics({analyzer})
             analyzer.VerifyAllAnalyzerMembersWereCalled()
@@ -41,7 +41,7 @@ End Enum
         <Fact>
         <WorkItem(759, "https://github.com/dotnet/roslyn/issues/759")>
         Public Sub AnalyzerDriverIsSafeAgainstAnalyzerExceptions()
-            Dim compilation = CreateCompilationWithMscorlib({TestResource.AllInOneVisualBasicCode})
+            Dim compilation = CreateCompilationWithMscorlib({TestResource.AllInOneVisualBasicCode_vb})
             ThrowingDiagnosticAnalyzer(Of SyntaxKind).VerifyAnalyzerEngineIsSafeAgainstExceptions(
                 Function(analyzer) compilation.GetAnalyzerDiagnostics({analyzer}, logAnalyzerExceptionAsDiagnostics:=True))
         End Sub
@@ -52,7 +52,7 @@ End Enum
             Dim additionalTexts As AdditionalText() = {New TestAdditionalText("myfilepath", sourceText)}
             Dim options = New AnalyzerOptions(additionalTexts.ToImmutableArray())
 
-            Dim compilation = CreateCompilationWithMscorlib({TestResource.AllInOneVisualBasicCode})
+            Dim compilation = CreateCompilationWithMscorlib({TestResource.AllInOneVisualBasicCode_vb})
             Dim analyzer = New OptionsDiagnosticAnalyzer(Of SyntaxKind)(options)
             compilation.GetAnalyzerDiagnostics({analyzer}, options)
             analyzer.VerifyAnalyzerOptions()

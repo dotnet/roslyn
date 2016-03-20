@@ -31,14 +31,14 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.Suppression
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSuppression)]
         public async Task TestPragmaWarningOnEveryNodes()
         {
-            await TestPragmaAsync(TestResource.AllInOneCSharpCode, CSharpParseOptions.Default, verifier: t => t.IndexOf("#pragma warning disable", StringComparison.Ordinal) >= 0);
+            await TestPragmaAsync(TestResource.AllInOneCSharpCode_cs, CSharpParseOptions.Default, verifier: t => t.IndexOf("#pragma warning disable", StringComparison.Ordinal) >= 0);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSuppression)]
         public async Task TestSuppressionWithAttributeOnEveryNodes()
         {
             await TestSuppressionWithAttributeAsync(
-                TestResource.AllInOneCSharpCode,
+                TestResource.AllInOneCSharpCode_cs,
                 CSharpParseOptions.Default,
                 digInto: n => !(n is StatementSyntax) || n is BlockSyntax,
                 verifier: t => t.IndexOf("SuppressMessage", StringComparison.Ordinal) >= 0);

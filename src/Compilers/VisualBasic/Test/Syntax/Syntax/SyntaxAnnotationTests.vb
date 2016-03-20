@@ -780,7 +780,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
             End Function
         End Class
 
-        Private ReadOnly _allInOneVisualBasicCode As String = TestResource.AllInOneVisualBasicCode
-        Private ReadOnly _helloWorldCode As String = TestResource.HelloWorldVisualBasicCode
+        Private ReadOnly _allInOneVisualBasicCode As String = TestResource.AllInOneVisualBasicCode_vb
+        Private ReadOnly _helloWorldCode As String = TestResource.HelloWorldVisualBasicCode_vb
     End Class
 End Namespace

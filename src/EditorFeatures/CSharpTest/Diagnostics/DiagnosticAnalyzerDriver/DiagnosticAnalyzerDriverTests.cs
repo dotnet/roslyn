@@ -22,7 +22,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.UserDiagnos
         [Fact]
         public async Task DiagnosticAnalyzerDriverAllInOne()
         {
-            var source = TestResource.AllInOneCSharpCode;
+            var source = TestResource.AllInOneCSharpCode_cs;
 
             // AllInOneCSharpCode has no properties with initializers or named types with primary constructors.
             var symbolKindsWithNoCodeBlocks = new HashSet<SymbolKind>();
@@ -88,7 +88,7 @@ class C
         [WorkItem(759, "https://github.com/dotnet/roslyn/issues/759")]
         public async Task DiagnosticAnalyzerDriverIsSafeAgainstAnalyzerExceptions()
         {
-            var source = TestResource.AllInOneCSharpCode;
+            var source = TestResource.AllInOneCSharpCode_cs;
             using (var workspace = await TestWorkspace.CreateCSharpAsync(source, TestOptions.Regular))
             {
                 var document = workspace.CurrentSolution.Projects.Single().Documents.Single();
@@ -128,7 +128,7 @@ class C
         [Fact]
         public async Task AnalyzerOptionsArePassedToAllAnalyzers()
         {
-            using (var workspace = await TestWorkspace.CreateCSharpAsync(TestResource.AllInOneCSharpCode, TestOptions.Regular))
+            using (var workspace = await TestWorkspace.CreateCSharpAsync(TestResource.AllInOneCSharpCode_cs, TestOptions.Regular))
             {
                 var currentProject = workspace.CurrentSolution.Projects.Single();
 

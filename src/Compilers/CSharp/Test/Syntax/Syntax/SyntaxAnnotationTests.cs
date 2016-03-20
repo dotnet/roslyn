@@ -867,6 +867,6 @@ class Program
     }
 }";
 
-        private readonly string _allInOneCSharpCode = TestResource.AllInOneCSharpCode;
+        private readonly string _allInOneCSharpCode = TestResource.AllInOneCSharpCode_cs;
     }
 }

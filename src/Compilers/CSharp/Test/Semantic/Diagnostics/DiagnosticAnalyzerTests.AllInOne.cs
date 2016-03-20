@@ -18,7 +18,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         [Fact]
         public void DiagnosticAnalyzerAllInOne()
         {
-            var source = TestResource.AllInOneCSharpCode;
+            var source = TestResource.AllInOneCSharpCode_cs;
 
             // AllInOneCSharpCode has no properties with initializers or named types with primary constructors.
             var symbolKindsWithNoCodeBlocks = new HashSet<SymbolKind>();
@@ -84,7 +84,7 @@ public class C
         [WorkItem(759, "https://github.com/dotnet/roslyn/issues/759")]
         public void AnalyzerDriverIsSafeAgainstAnalyzerExceptions()
         {
-            var compilation = CreateCompilationWithMscorlib45(TestResource.AllInOneCSharpCode, parseOptions: TestOptions.Regular);
+            var compilation = CreateCompilationWithMscorlib45(TestResource.AllInOneCSharpCode_cs, parseOptions: TestOptions.Regular);
             ThrowingDiagnosticAnalyzer<SyntaxKind>.VerifyAnalyzerEngineIsSafeAgainstExceptions(analyzer =>
                 compilation.GetAnalyzerDiagnostics(new[] { analyzer }, null, logAnalyzerExceptionAsDiagnostics: true));
         }
@@ -98,7 +98,7 @@ public class C
                 new[] { new TestAdditionalText("myfilepath", text) }.ToImmutableArray<AdditionalText>()
             );
 
-            var compilation = CreateCompilationWithMscorlib45(TestResource.AllInOneCSharpCode, parseOptions: TestOptions.Regular);
+            var compilation = CreateCompilationWithMscorlib45( TestResource.AllInOneCSharpCode_cs, parseOptions: TestOptions.Regular);
             var analyzer = new OptionsDiagnosticAnalyzer<SyntaxKind>(options);
             compilation.GetAnalyzerDiagnostics(new[] { analyzer }, options);
             analyzer.VerifyAnalyzerOptions();
