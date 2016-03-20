@@ -2041,7 +2041,7 @@ namespace Microsoft.Cci
             {
                 // reference has token, not full public key
                 metadata.AddAssemblyReference(
-                    name: GetStringIndexForPathAndCheckLength(identity.Name, assemblyRef),
+                    name: GetStringIndexForPathAndCheckLength(identity.Name),
                     version: identity.Version,
                     culture: metadata.GetStringIndex(identity.CultureName),
                     publicKeyOrToken: metadata.GetBlobIndex(identity.PublicKeyToken),
