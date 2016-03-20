@@ -164,36 +164,31 @@ namespace Roslyn.VisualStudio.Test.Utilities
 
         public void CloseAndDeleteOpenSolution()
         {
-            // DTE can still cause a failure or crash during cleanup, such as if cleaning up the open projects/solutions fails
-            try
-            {
-                _dte.Documents.CloseAll(EnvDTE.vsSaveChanges.vsSaveChangesNo);
+            _dte.Documents.CloseAll(EnvDTE.vsSaveChanges.vsSaveChangesNo);
 
-                if (_dte.Solution != null)
+            if (_dte.Solution != null)
+            {
+                var directoriesToDelete = new List<string>();
+
+                // Save the full path to each project in the solution. This is so we can cleanup any folders after the solution is closed.
+                foreach (EnvDTE.Project project in _dte.Solution.Projects)
                 {
-                    var directoriesToDelete = new List<string>();
-
-                    // Save the full path to each project in the solution. This is so we can cleanup any folders after the solution is closed.
-                    foreach (EnvDTE.Project project in _dte.Solution.Projects)
-                    {
-                        directoriesToDelete.Add(Path.GetDirectoryName(project.FullName));
-                    }
-
-                    // Save the full path to the solution. This is so we can cleanup any folders after the solution is closed.
-                    directoriesToDelete.Add(Path.GetDirectoryName(_dte.Solution.FullName));
-
-                    _dte.Solution.Close(SaveFirst: false);
-
-                    foreach (var directoryToDelete in directoriesToDelete)
-                    {
-                        IntegrationHelper.TryDeleteDirectoryRecursively(directoryToDelete);
-                    }
+                    directoriesToDelete.Add(Path.GetDirectoryName(project.FullName));
                 }
-            }
-            catch (Exception e)
-            {
-                Debug.WriteLine($"Warning: Failed to cleanup the DTE.");
-                Debug.WriteLine($"\t{e}");
+
+                // Save the full path to the solution. This is so we can cleanup any folders after the solution is closed.
+                // The solution might be zero-impact and thus has no name, so deal with that
+                if (!string.IsNullOrEmpty(_dte.Solution.FullName))
+                {
+                    directoriesToDelete.Add(Path.GetDirectoryName(_dte.Solution.FullName));
+                }
+
+                _dte.Solution.Close(SaveFirst: false);
+
+                foreach (var directoryToDelete in directoriesToDelete)
+                {
+                    IntegrationHelper.TryDeleteDirectoryRecursively(directoryToDelete);
+                }
             }
         }
 
