@@ -11,34 +11,30 @@ using Microsoft.VisualStudio.Debugger.Clr;
 using Microsoft.VisualStudio.Debugger.Evaluation;
 using Microsoft.VisualStudio.Debugger.Evaluation.ClrCompilation;
 using Xunit;
-using Roslyn.Test.Utilities;
-using System.Collections;
 
 namespace Microsoft.CodeAnalysis.ExpressionEvaluator
 {
     public abstract class ResultProviderTestBase
     {
-        protected static readonly string DynamicDebugViewEmptyMessage;
-
-        static ResultProviderTestBase()
+        internal static string GetDynamicDebugViewEmptyMessage()
         {
+            // Value should not be cached since it depends on the current CultureInfo.
             var exceptionType = typeof(Microsoft.CSharp.RuntimeBinder.RuntimeBinderException).Assembly.GetType(
                 "Microsoft.CSharp.RuntimeBinder.DynamicMetaObjectProviderDebugView+DynamicDebugViewEmptyException");
             var emptyProperty = exceptionType.GetProperty("Empty");
-            DynamicDebugViewEmptyMessage = (string)emptyProperty.GetValue(exceptionType.Instantiate());
-
-            // We never want to swallow Exceptions (generate a non-fatal Watson) when running tests.
-            ExpressionEvaluatorFatalError.IsFailFastEnabled = true;
+            return (string)emptyProperty.GetValue(exceptionType.Instantiate());
         }
 
         private readonly DkmInspectionSession _inspectionSession;
-
         internal readonly DkmInspectionContext DefaultInspectionContext;
 
         internal ResultProviderTestBase(DkmInspectionSession inspectionSession, DkmInspectionContext defaultInspectionContext)
         {
             _inspectionSession = inspectionSession;
             DefaultInspectionContext = defaultInspectionContext;
+
+            // We never want to swallow Exceptions (generate a non-fatal Watson) when running tests.
+            ExpressionEvaluatorFatalError.IsFailFastEnabled = true;
         }
 
         internal DkmClrValue CreateDkmClrValue(
