@@ -123,7 +123,7 @@
 #pragma warning disable 414, 3021
 #pragma warning restore 3021
 #pragma checksum "file.txt" "{00000000-0000-0000-0000-000000000000}" "2453"
-#define foo
+#define foo // Comment in directive
 #if foo
 #else
 #endif
@@ -148,11 +148,15 @@ using System.Diagnostics;
 
 #region Region
 
-#region more
+    #region more
 using ConsoleApplication2.Test;
-#endregion
+    #endregion
 using X = int1;
 using Y = ABC.X&lt;int&gt;;
+
+using static System.Math;
+using static System.DayOfWeek;
+using static System.Linq.Enumerable;
 
 #endregion
 
@@ -242,24 +246,32 @@ namespace My
             
             dynamic dynamic = local5;
             var add = 0;
+            var alias = 0;
+            var arglist = 0;
             var ascending = 0;
+            var async = 0;
+            var await = 0;
+            var by = 0;
             var descending = 0;
+            var dynamic = 0;
+            var equals = 0;
             var from = 0;
             var get = 0;
-            var global = 0;
             var group = 0;
             var into = 0;
             var join = 0;
             var let = 0;
+            var nameof = 0;
+            var on = 0;
             var orderby = 0;
             var partial = 0;
             var remove = 0;
             var select = 0;
             var set = 0;
-            var value = 0;
-            var var = 0;
+            var when = 0;
             var where = 0;
             var yield = 0;
+            var __ = 0;
             where = yield = 0;
 
             if (i &gt; 0)
@@ -487,7 +499,7 @@ namespace My
         {
         }
         private int f1;
-        [Obsolete]
+        [Obsolete("Use Script instead", error: false)]
         private volatile int f2;
         public abstract int m&lt;T&gt;(T t)
           where T : struct
@@ -530,6 +542,7 @@ namespace My
             get;
             set;
         }
+        unsafe void UpdateSignatureByHashingContent([In]byte* buffer, int size);
     }
     [type: Flags]
     public enum E
@@ -537,12 +550,15 @@ namespace My
         A,
         B = A,
         C = 2 + A,
-
 #if DEBUG
-    D,
+        D,
+        }
+#else
+        E,
+        }
 #endif
 
-    }
+    
     public delegate void Delegate(object P);
     namespace Test
     {
@@ -572,6 +588,13 @@ namespace My
             async void Wait()
             {
                 await System.Threading.Tasks.Task.Delay(0);
+            }
+            void AsyncAnonymous() // C # 5 feature
+            {
+                var task = Task.Factory.StartNew(async () =&gt;
+                {
+                    return await new WebClient().DownloadStringTaskAsync("http://example.com");
+                });
             }
         }
     }
@@ -630,7 +653,7 @@ namespace ConsoleApplication1
         {
             return new ConsoleApplication1.Test();
         }
-        public static explicit operator Test(string s)
+        public static explicit operator Test(string s = "")
         {
             return new Test();
         }
@@ -651,9 +674,9 @@ namespace ConsoleApplication1
 
             Expression&lt;Func&lt;int&gt;&gt; e = () =&gt; i;
             Expression&lt;Func&lt;bool, Action&gt;&gt; e2 = b =&gt; () =&gt; { return; };
-            Func&lt;bool, bool&gt; f = delegate (bool a)
+            Func&lt;bool, bool&gt; f = async delegate (bool a)
             {
-                return !a;
+                return await !a;
             };
             Func&lt;int, int, int&gt; f2 = (a, b) =&gt; 0;
             f2 = (int a, int b) =&gt; 1;
@@ -788,6 +811,7 @@ namespace Comments.XmlComments.UndocumentedKeywords
             i &lt;&lt;= i;/*&lt;&lt;=*/
             i &gt;&gt;= i;/*&gt;&gt;=*/
             object s = x =&gt; x + 1;/*=&gt;*/
+            double d = .3;
             Point point;
             unsafe
             {
@@ -795,12 +819,92 @@ namespace Comments.XmlComments.UndocumentedKeywords
                 p-&gt;x = 10;/*-&gt;*/
             }
             IO::BinaryReader br = null;
+            x[i: 1] = 3;
+            x[i: 1, j: 5] = "str";
         }
 
         struct Point { public int X; public int Y; public void ThisAccess() { this = this; } }
     }
+    
+    // From here:https://github.com/dotnet/roslyn/wiki/New-Language-Features-in-C%23-6
+    class CSharp6Features
+    {
+        // Initializers for auto-properties
+        public string First { get; set; } = "Jane";
+        public string Last { get; set; } = "Doe";
+    
+        // Getter-only auto-properties
+        public string Third { get; } = "Jane";
+        public string Fourth { get; } = "Doe";
+        
+        // Expression bodies on method-like members
+        public Point Move(int dx, int dy) =&gt; new Point(x + dx, y + dy); 
+        public static Complex operator +(Complex a, Complex b) =&gt; a.Add(b);
+        public static implicit operator string(Person p) =&gt; p.First + " " + p.Last;
+        public void Print() =&gt; Console.WriteLine(First + " " + Last);
+        
+        // Expression bodies on property-like function members
+        public string Name =&gt; First + " " + Last;
+        public int this[long id] =&gt; id;
+        
+        async void Test()
+        {
+            // Using static
+            WriteLine(Sqrt(3*3 + 4*4));
+            WriteLine(Friday - Monday);            
+            var range = Range(5, 17);                // Ok: not extension
+            var even = range.Where(i =&gt; i % 2 == 0); // Ok
+            
+            // Null-conditional operators
+            int? length = customers?.Length; // null if customers is null
+            Customer first = customers?[0];  // null if customers is null            
+            int length = customers?.Length ?? 0; // 0 if customers is null
+            int? first = customers?[0]?.Orders?.Count();
+            PropertyChanged?.Invoke(this, args);
+            
+            // String interpolation
+            string s = $"{p.Name, 20} is {p.Age:D3} year{{s}} old #";
+            s = $"{p.Name} is \"{p.Age} year{(p.Age == 1 ? "" : "s")} old";
+            s = $"{(p.Age == 2 ? $"{new Person { } }" : "")}";
+            s = $@"\{p.Name}
+                                   ""\";
+            s = $"Color [ R={func(b: 3):#0.##}, G={G:#0.##}, B={B:#0.##}, A={A:#0.##} ]";
+            
+            // nameof expressions
+            if (x == null)
+                throw new ArgumentNullException(nameof(x));
+            WriteLine(nameof(person.Address.ZipCode)); // prints "ZipCode"
+            
+            // Index initializers
+            var numbers = new Dictionary&lt;int, string&gt; {
+                [7] = "seven",
+                [9] = "nine",
+                [13] = "thirteen"
+            };
+            
+            // Exception filters
+            try {}
+            catch (MyException e) when (myfilter(e))
+            { }
+            
+            // Await in catch and finally blocks
+            Resource res = null;
+            try
+            {
+                res = await Resource.OpenAsync();       // You could do this.
+            } 
+            catch(ResourceException e)
+            {
+                await Resource.LogAsync(res, e);         // Now you can do this …
+            }
+            finally
+            {
+                if (res != null)
+                    await res.CloseAsync(); // … and this.
+            }
+        }
+    }
 }
-
 #line 6
 #line 2 "test.cs"
 #line default
