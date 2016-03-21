@@ -15,9 +15,7 @@ var testDirectory = PerfTestDirectory();
 var allResults = new List<Tuple<string, List<Tuple<int, string, object>>>>();
 var failed = false;
 
-// Sample Message
 var traceManager = new TraceManager();
-traceManager.PrintTest();
 
 // Print message at startup
 Log("Starting Performance Test Run");

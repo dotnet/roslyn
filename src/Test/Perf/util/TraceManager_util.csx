@@ -1,5 +1,4 @@
 #load "ScenarioGenerator_util.csx"
-#load "PerformanceEventSource_util.csx"
 
 using System;
 using System.Diagnostics;
@@ -73,16 +72,14 @@ public class TraceManager
 
     public void StartEvent()
     {
-        _scenarioGenerator.AddStartEvent(PerformanceEventSource.Log.Guid.ToString(), 1, _startEventAbsoluteInstance);
+        _scenarioGenerator.AddStartEvent(_startEventAbsoluteInstance);
         _startEventAbsoluteInstance++;
-        PerformanceEventSource.Log.EventStart();
     }
 
     public void EndEvent()
     {
-        _scenarioGenerator.AddEndEvent(PerformanceEventSource.Log.Guid.ToString(), 2, _stopEventAbsoluteInstance);
+        _scenarioGenerator.AddEndEvent();
         _stopEventAbsoluteInstance++;
-        PerformanceEventSource.Log.EventEnd();
     }
 
     public void EndScenario()
@@ -115,36 +112,14 @@ public class TraceManager
     public static ProcessResult RunProcess(string _cpcFullPath, string args)
     {
         var startInfo = new ProcessStartInfo(_cpcFullPath, args);
-        //startInfo.RedirectStandardOutput = true;
-        //startInfo.RedirectStandardError = true;
         startInfo.UseShellExecute = true;
         var process = new Process
         {
             StartInfo = startInfo,
-            //EnableRaisingEvents = true,
         };
 
         process.Start();
 
-        //var output = new StringWriter();
-        //var error = new StringWriter();
-
-        //process.OutputDataReceived += (s, e) => {
-        //    if (!String.IsNullOrEmpty(e.Data))
-        //    {
-        //        output.WriteLine(e.Data);
-        //    }
-        //};
-
-        //process.ErrorDataReceived += (s, e) => {
-        //    if (!String.IsNullOrEmpty(e.Data))
-        //    {
-        //        error.WriteLine(e.Data);
-        //    }
-        //};
-
-        //process.BeginOutputReadLine();
-        //process.BeginErrorReadLine();
         process.WaitForExit();
 
         return new ProcessResult
@@ -152,8 +127,8 @@ public class TraceManager
             ExecutablePath = _cpcFullPath,
             Args = args,
             Code = process.ExitCode,
-            StdOut = "",//output.ToString(),
-            StdErr = "",//error.ToString(),
+            StdOut = "",
+            StdErr = "",
         };
     }
 }

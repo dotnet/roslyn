@@ -50,15 +50,13 @@ public class ScenarioGenerator
         Log(@"</scenario>");
     }
 
-    public void AddStartEvent(string providerGuid, int eventId, int absoluteInstance)
+    public void AddStartEvent(int absoluteInstance)
     {
-        //Log($@"<from providerGuid=""{providerGuid}"" eventId=""{eventId}"" eventName = ""PerformanceEventSource/Event/Start""/>");
         Log($@"<from providerGuid=""{KernelProviderGuid}"" absoluteInstance=""{absoluteInstance}"" process=""csc"" eventName = ""Process/Start""/>");
     }
 
-    public void AddEndEvent(string providerGuid, int eventId, int absoluteInstance)
+    public void AddEndEvent()
     {
-        //Log($@"<to providerGuid=""{providerGuid}"" eventId=""{eventId}"" eventName = ""PerformanceEventSource/Eventend""/>");
         Log($@"<to providerGuid=""{KernelProviderGuid}"" absoluteInstance=""1"" process=""csc"" eventName=""Process/Stop""/>");
     }
 
