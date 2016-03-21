@@ -15,6 +15,8 @@ var testDirectory = PerfTestDirectory();
 var allResults = new List<Tuple<string, List<Tuple<int, string, object>>>>();
 var failed = false;
 
+// Run DownloadCPC before using the TraceManager because TraceManager uses the CPC downloaded binaries 
+DownloadCPC();
 var traceManager = new TraceManager();
 
 // Print message at startup
