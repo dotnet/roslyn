@@ -560,10 +560,26 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// </summary>
         public TupleFieldSymbol(string name, TupleTypeSymbol containingTuple, TypeSymbol type, FieldSymbol underlyingFieldOpt)
         {
-            this._name = name;
-            this._containingTuple = containingTuple;
-            this._type = type;
-            this._underlyingFieldOpt = underlyingFieldOpt;
+            _name = name;
+            _containingTuple = containingTuple;
+            _type = type;
+            _underlyingFieldOpt = underlyingFieldOpt;
+        }
+
+        public FieldSymbol UnderlyingTypleFieldSymbol
+        {
+            get
+            {
+                return _underlyingFieldOpt;
+            }
+        }
+
+        public override string Name
+        {
+            get
+            {
+                return _name;
+            }
         }
 
         public override Symbol AssociatedSymbol
