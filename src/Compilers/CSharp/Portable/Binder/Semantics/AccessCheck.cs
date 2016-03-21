@@ -99,6 +99,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case SymbolKind.NamedType:
                     return IsNamedTypeAccessible((NamedTypeSymbol)symbol, within, ref useSiteDiagnostics, basesBeingResolved);
 
+                case SymbolKind.TupleType:
+                    return IsNamedTypeAccessible(((TupleTypeSymbol)symbol).UnderlyingTupleType, within, ref useSiteDiagnostics, basesBeingResolved);
+
                 case SymbolKind.ErrorType:
                     // Always assume that error types are accessible.
                     return true;
