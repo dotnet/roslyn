@@ -1142,6 +1142,12 @@
     <Field Name="InitializerExpressionOpt" Type="BoundExpression" Null="allow"/>
   </Node>
   
+    <Node Name="BoundTupleCreationExpression" Base="BoundExpression">
+    <!-- Non-null type is required for this node kind -->
+    <Field Name="Type" Type="TypeSymbol" Override="true" Null="disallow"/>
+    <Field Name="Constructor" Type="MethodSymbol" Null="disallow"/>
+    <Field Name="Arguments" Type="ImmutableArray&lt;BoundExpression&gt;"/>
+  </Node>
   
   <Node Name="BoundDynamicObjectCreationExpression" Base="BoundExpression">
     <!-- Non-null type is required for this node kind -->
