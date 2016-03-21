@@ -120,24 +120,27 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator.UnitTests
             }
         }
 
-        [ConditionalFact(typeof(IsEnglishLocal))]
+        [Fact]
         [WorkItem(5666, "https://github.com/dotnet/roslyn/issues/5666")]
         public void NoMembers()
         {
-            var expression = "o";
-            dynamic o = new ExpandoObject();
+            using (new EnsureEnglishUICulture())
+            {
+                var expression = "o";
+                dynamic o = new ExpandoObject();
 
-            var type = new DkmClrType((TypeImpl)o.GetType());
-            var value = CreateDkmClrValue((object)o, type);
+                var type = new DkmClrType((TypeImpl)o.GetType());
+                var value = CreateDkmClrValue((object)o, type);
 
-            var result = FormatResult(expression, value);
-            Verify(result,
-                EvalResult(expression, "{System.Dynamic.ExpandoObject}", "System.Dynamic.ExpandoObject", expression, DkmEvaluationResultFlags.Expandable));
-            var dynamicView = GetChildren(result).Last();
-            Verify(dynamicView,
-                EvalResult(Resources.DynamicView, Resources.DynamicViewValueWarning, "", "o, dynamic", DkmEvaluationResultFlags.Expandable | DkmEvaluationResultFlags.ReadOnly));
-            Verify(GetChildren(dynamicView),
-                EvalFailedResult(Resources.ErrorName, DynamicDebugViewEmptyMessage));
+                var result = FormatResult(expression, value);
+                Verify(result,
+                    EvalResult(expression, "{System.Dynamic.ExpandoObject}", "System.Dynamic.ExpandoObject", expression, DkmEvaluationResultFlags.Expandable));
+                var dynamicView = GetChildren(result).Last();
+                Verify(dynamicView,
+                    EvalResult(Resources.DynamicView, Resources.DynamicViewValueWarning, "", "o, dynamic", DkmEvaluationResultFlags.Expandable | DkmEvaluationResultFlags.ReadOnly));
+                Verify(GetChildren(dynamicView),
+                    EvalFailedResult(Resources.ErrorName, GetDynamicDebugViewEmptyMessage()));
+            }
         }
 
         [Fact]

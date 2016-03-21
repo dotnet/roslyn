@@ -4,6 +4,7 @@ using System;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
+using System.Reflection;
 using System.Text;
 using System.Xml;
 using System.Xml.Serialization;
@@ -60,7 +61,7 @@ namespace CSharpSyntaxGenerator
                 }
             }
 
-            var reader = new XmlTextReader(inputFile) { DtdProcessing = DtdProcessing.Prohibit, XmlResolver = null };
+            var reader = XmlReader.Create(inputFile, new XmlReaderSettings { DtdProcessing = DtdProcessing.Prohibit });
             var serializer = new XmlSerializer(typeof(Tree));
             Tree tree = (Tree)serializer.Deserialize(reader);
 
@@ -84,7 +85,7 @@ namespace CSharpSyntaxGenerator
         private static void WriteUsage()
         {
             Console.WriteLine("Invalid usage");
-            Console.WriteLine(typeof(Program).Assembly.ManifestModule.Name + " input-file output-file [/write-test]");
+            Console.WriteLine(typeof(Program).GetTypeInfo().Assembly.ManifestModule.Name + " input-file output-file [/write-test]");
         }
 
         private static void WriteToFile(Tree tree, Action<TextWriter, Tree> writeAction, string outputFile)

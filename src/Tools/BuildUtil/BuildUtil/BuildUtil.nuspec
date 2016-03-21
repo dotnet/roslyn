@@ -2,7 +2,7 @@
 <package>
   <metadata>
     <id>Roslyn.Build.Util</id>
-    <version>0.9.2-portable</version>
+    <version>0.9.3-portable</version>
     <title>Roslyn.Build.Util</title>
     <authors>RoslynTeam</authors>
     <owners>RoslynTeam</owners>
