@@ -30,19 +30,10 @@ namespace Roslyn.VisualStudio.Test.Utilities
         /// </summary>
         public VisualStudioInstance GetNewOrUsedInstance()
         {
-            // If something fails reusing a previous instance, we'll just make a new one
-            try
+            if (_currentlyRunningInstance != null && _currentlyRunningInstance.IsRunning)
             {
-                if (_currentlyRunningInstance != null && _currentlyRunningInstance.IsRunning)
-                {
-                    _currentlyRunningInstance.CloseAndDeleteOpenSolution();
-                    return _currentlyRunningInstance;
-                }
-            }
-            catch (Exception e)
-            {
-                Debug.WriteLine($"Warning: Failed to cleanup.");
-                Debug.WriteLine($"\t{e}");
+                _currentlyRunningInstance.CloseAndDeleteOpenSolution();
+                return _currentlyRunningInstance;
             }
 
             return GetNewInstance();
