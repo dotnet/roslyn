@@ -224,6 +224,11 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             failedThroughTypeCheck = false;
 
+            // for tuples consider the underlying type as a true container for visibility puroposes.
+            containingType = 
+                (containingType as TupleTypeSymbol)?.UnderlyingTupleType ?? 
+                containingType;
+
             // easy case - members of containing type are accessible.
             if ((object)containingType == (object)within)
             {
