@@ -36,8 +36,8 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Classification
                     new SyntacticClassificationTaggerProvider(null, null, null));
 
                 var expectedLength = subjectBuffer.CurrentSnapshot.Length;
-                var actualVersionNumber = int.MaxValue;
-                var actualLength = int.MaxValue;
+                int? actualVersionNumber = null;
+                int? actualLength = null;
                 tagComputer.TagsChanged += (s, e) =>
                 {
                     actualVersionNumber = e.Span.Snapshot.Version.VersionNumber;
