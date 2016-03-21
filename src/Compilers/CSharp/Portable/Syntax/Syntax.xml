@@ -1716,33 +1716,30 @@
   <Node Name="PropertyPatternSyntax" Base="PatternSyntax">
     <Kind Name="PropertyPattern"/>
     <Field Name="Type" Type="TypeSyntax" />
-    <Field Name="PatternList" Type="SubPropertyPatternListSyntax" />
-  </Node>
-  <Node Name="SubPropertyPatternListSyntax" Base="CSharpSyntaxNode">
-    <Kind Name="SubPropertyPatternList"/>
     <Field Name="OpenBraceToken" Type="SyntaxToken">
       <Kind Name="OpenBraceToken"/>
       <PropertyComment>
-        <summary>SyntaxToken representing open brace.</summary>
+        <summary>SyntaxToken representing the open brace.</summary>
       </PropertyComment>
     </Field>
-    <Field Name="SubPatterns" Type="SeparatedSyntaxList&lt;SubPropertyPatternSyntax&gt;" />
+    <Field Name="SubPatterns" Type="SeparatedSyntaxList&lt;ExpressionSyntax&gt;">
+      <PropertyComment>
+        <summary>
+          The list of "ID is Pattern" expressions in the property pattern represented as IsPatternExpressionSyntax nodes.</summary>
+      </PropertyComment>
+    </Field>
     <Field Name="CloseBraceToken" Type="SyntaxToken">
       <Kind Name="CloseBraceToken"/>
       <PropertyComment>
-        <summary>SyntaxToken representing close brace.</summary>
+        <summary>SyntaxToken representing the close brace.</summary>
       </PropertyComment>
     </Field>
-  </Node>
-  <Node Name="SubPropertyPatternSyntax" Base="CSharpSyntaxNode">
-    <Kind Name="SubPropertyPattern"/>
-    <Field Name="Left" Type="SyntaxToken">
-      <Kind Name="IdentifierToken"/>
-    </Field>
-    <Field Name="IsKeyword" Type="SyntaxToken">
-      <Kind Name="IsKeyword"/>
-    </Field>
-    <Field Name="Pattern" Type="PatternSyntax" />
+    <TypeComment>
+      <summary>Class which represents the syntax node for a property pattern.</summary>
+    </TypeComment>
+    <FactoryComment>
+      <summary>Creates a PropertyPatternSyntax node.</summary>
+    </FactoryComment>
   </Node>
   <AbstractNode Name="InterpolatedStringContentSyntax" Base="CSharpSyntaxNode" />
   <Node Name="InterpolatedStringTextSyntax" Base="InterpolatedStringContentSyntax">

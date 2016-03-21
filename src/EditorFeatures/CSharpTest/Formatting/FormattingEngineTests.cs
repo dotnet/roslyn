@@ -906,6 +906,90 @@ class Program
             await AssertFormatAfterTypeCharAsync(code, expected);
         }
 
+        [WorkItem(9097, "https://github.com/dotnet/roslyn/issues/9097")]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Formatting)]
+        public async Task ColonInPatternSwitchCase01()
+        {
+            var code = @"class Program
+{
+    static void Main()
+    {
+        switch(f)
+        {
+                          case  int  i            :$$    break;
+        }
+    }
+}";
+
+            var expected = @"class Program
+{
+    static void Main()
+    {
+        switch(f)
+        {
+            case int i:    break;
+        }
+    }
+}";
+            await AssertFormatAfterTypeCharAsync(code, expected);
+        }
+
+        [WorkItem(9097, "https://github.com/dotnet/roslyn/issues/9097")]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Formatting)]
+        public async Task ColonInPatternSwitchCase02()
+        {
+            var code = @"class Program
+{
+    static void Main()
+    {
+        switch(f)
+        {
+                        case  Point         (  int  i  ,  int  j  )           :$$    break;
+        }
+    }
+}";
+
+            var expected = @"class Program
+{
+    static void Main()
+    {
+        switch(f)
+        {
+            case Point(int i, int j):    break;
+        }
+    }
+}";
+            await AssertFormatAfterTypeCharAsync(code, expected);
+        }
+
+        [WorkItem(9097, "https://github.com/dotnet/roslyn/issues/9097")]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Formatting)]
+        public async Task ColonInPatternSwitchCase03()
+        {
+            var code = @"class Program
+{
+    static void Main()
+    {
+        switch(f)
+        {
+                       case Point {X is  1,Y is  2}        :$$    break;
+        }
+    }
+}";
+
+            var expected = @"class Program
+{
+    static void Main()
+    {
+        switch(f)
+        {
+            case Point { X is 1, Y is 2 }:    break;
+        }
+    }
+}";
+            await AssertFormatAfterTypeCharAsync(code, expected);
+        }
+
         [WorkItem(464, "https://github.com/dotnet/roslyn/issues/464")]
         [WorkItem(908729, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/908729")]
         [WpfFact, Trait(Traits.Feature, Traits.Features.Formatting)]

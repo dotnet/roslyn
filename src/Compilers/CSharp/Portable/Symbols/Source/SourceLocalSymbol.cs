@@ -55,6 +55,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             Debug.Assert(identifierToken.Kind() != SyntaxKind.None);
             Debug.Assert(declarationKind != LocalDeclarationKind.None);
+            Debug.Assert(binder != null);
 
             this.binder = binder;
             this._containingSymbol = containingSymbol;
@@ -65,6 +66,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             // create this eagerly as it will always be needed for the EnsureSingleDefinition
             _locations = ImmutableArray.Create<Location>(identifierToken.GetLocation());
+        }
+
+        internal Binder Binder
+        {
+            get { return binder; }
         }
 
         public static SourceLocalSymbol MakeForeachLocal(

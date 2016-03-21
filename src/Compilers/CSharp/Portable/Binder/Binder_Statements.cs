@@ -714,10 +714,10 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         protected bool IsInitializerRefKindValid(
-            EqualsValueClauseSyntax initializer, 
-            CSharpSyntaxNode node, 
-            RefKind variableRefKind, 
-            DiagnosticBag diagnostics, 
+            EqualsValueClauseSyntax initializer,
+            CSharpSyntaxNode node,
+            RefKind variableRefKind,
+            DiagnosticBag diagnostics,
             out BindValueKind valueKind)
         {
             if (variableRefKind == RefKind.None)
@@ -791,20 +791,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             associatedSyntaxNode = associatedSyntaxNode ?? declarator;
 
             // Check for variable declaration errors.
-            Binder nameConflictChecker = this;
-
-            // Step out of the PatternVariableBinder for locals declared in variable declaration statement
-            if (this is PatternVariableBinder)
-            {
-                CSharpSyntaxNode parent;
-                if ((parent = declarator.Parent)?.Kind() == SyntaxKind.VariableDeclaration &&
-                     parent.Parent?.Kind() == SyntaxKind.LocalDeclarationStatement)
-                {
-                    nameConflictChecker = this.Next;
-                }
-            }
-
-            bool hasErrors = nameConflictChecker.ValidateDeclarationNameConflictsInScope(localSymbol, diagnostics);
+            // Use the binder that owns the scope for the local because this (the current) binder
+            // might own nested scope.
+            bool hasErrors = localSymbol.Binder.ValidateDeclarationNameConflictsInScope(localSymbol, diagnostics);
 
             var containingMethod = this.ContainingMemberOrLambda as MethodSymbol;
             if (containingMethod != null && containingMethod.IsAsync && localSymbol.RefKind != RefKind.None)
@@ -1232,7 +1221,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 ErrorCode.ERR_RefReadonlyLocalCause,
                 // impossible since readonly locals are never byref, but would be a reasonable error otherwise
-                ErrorCode.ERR_RefReadonlyLocalCause, 
+                ErrorCode.ERR_RefReadonlyLocalCause,
                 ErrorCode.ERR_AssgReadonlyLocalCause,
 
                 ErrorCode.ERR_RefReadonlyLocal2Cause,
@@ -1249,7 +1238,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         private bool CheckIsCallVariable(BoundCall call, CSharpSyntaxNode node, BindValueKind kind, bool checkingReceiver, DiagnosticBag diagnostics)
-            {
+        {
             // A call can only be a variable if it returns by reference. If this is the case,
             // whether or not it is a valid variable depends on whether or not the call is the
             // RHS of a return or an assign by reference:
@@ -1274,7 +1263,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                                 var parameterName = methodSymbol.Parameters[parameterIndex].Name;
                                 Error(diagnostics, errorCode, call.Syntax, methodSymbol, parameterName);
                                 return false;
-            }
+                            }
                         }
                     }
                 }
@@ -1663,7 +1652,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return false;
                 }
 
-                if (fieldSymbol.ContainingType.IsValueType && 
+                if (fieldSymbol.ContainingType.IsValueType &&
                     !fieldIsStatic &&
                     !CheckIsValidReceiverForVariable(node, fieldAccess.ReceiverOpt, kind, diagnostics))
                 {
@@ -2059,8 +2048,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                             }
                             else if (!CheckIsValidReceiverForVariable(eventSyntax, receiver, BindValueKind.Assignment, diagnostics))
                             {
-                            return false;
-                        }
+                                return false;
+                            }
                         }
                         else if (RequiresSettingValue(valueKind))
                         {
@@ -2168,11 +2157,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                     ReportDiagnosticsIfObsolete(diagnostics, setMethod, node, receiver?.Kind == BoundKind.BaseReference);
 
                     if (RequiresVariableReceiver(receiver, setMethod) && !CheckIsValidReceiverForVariable(node, receiver, BindValueKind.Assignment, diagnostics))
-                        {
-                            return false;
-                        }
+                    {
+                        return false;
                     }
                 }
+            }
 
             var isIndirectSet = RequiresSettingValue(valueKind) && propertySymbol.RefKind != RefKind.None;
             if (RequiresGettingValue(valueKind) || isIndirectSet)
@@ -2407,7 +2396,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (refKind != RefKind.None)
             {
                 if (conversion.Kind != ConversionKind.Identity)
-                {   
+                {
                     Error(diagnostics, ErrorCode.ERR_RefAssignmentMustHaveIdentityConversion, expression.Syntax, targetType);
                 }
             }
@@ -3119,7 +3108,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             var symbol = this.ContainingMemberOrLambda as MethodSymbol;
             if ((object)symbol != null)
-        {
+            {
                 refKind = symbol.RefKind;
                 return symbol.ReturnType;
             }
@@ -3291,30 +3280,30 @@ namespace Microsoft.CodeAnalysis.CSharp
                 if (returnRefKind != RefKind.None)
                 {
                     if (conversion.Kind != ConversionKind.Identity)
-                    {   
+                    {
                         Error(diagnostics, ErrorCode.ERR_RefReturnMustHaveIdentityConversion, argument.Syntax, returnType);
                     }
                 }
                 else if (!conversion.IsImplicit || !conversion.IsValid)
-            {
-                if (!badAsyncReturnAlreadyReported)
                 {
+                    if (!badAsyncReturnAlreadyReported)
+                    {
                         RefKind unusedRefKind;
                         if (IsGenericTaskReturningAsyncMethod() && argument.Type == this.GetCurrentReturnType(out unusedRefKind))
-                    {
-                        // Since this is an async method, the return expression must be of type '{0}' rather than 'Task<{0}>'
-                        Error(diagnostics, ErrorCode.ERR_BadAsyncReturnExpression, argument.Syntax, returnType);
-                    }
-                    else
-                    {
-                        GenerateImplicitConversionError(diagnostics, argument.Syntax, conversion, argument, returnType);
-                        if (this.ContainingMemberOrLambda is LambdaSymbol)
                         {
-                            ReportCantConvertLambdaReturn(argument.Syntax, diagnostics);
+                            // Since this is an async method, the return expression must be of type '{0}' rather than 'Task<{0}>'
+                            Error(diagnostics, ErrorCode.ERR_BadAsyncReturnExpression, argument.Syntax, returnType);
+                        }
+                        else
+                        {
+                            GenerateImplicitConversionError(diagnostics, argument.Syntax, conversion, argument, returnType);
+                            if (this.ContainingMemberOrLambda is LambdaSymbol)
+                            {
+                                ReportCantConvertLambdaReturn(argument.Syntax, diagnostics);
+                            }
                         }
                     }
                 }
-            }
             }
 
             return CreateConversion(argument.Syntax, argument, conversion, false, returnType, diagnostics);
@@ -3535,7 +3524,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             else if ((object)returnType != null)
             {
                 if ((refKind != RefKind.None) != (returnRefKind != RefKind.None))
-            {
+                {
                     var errorCode = refKind != RefKind.None
                         ? ErrorCode.ERR_MustNotHaveRefReturn
                         : ErrorCode.ERR_MustHaveRefReturn;

@@ -866,10 +866,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
                 return ValueTuple.Create(initializeExpressionNode.OpenBraceToken, initializeExpressionNode.CloseBraceToken);
             }
 
-            var propertyList = node as SubPropertyPatternListSyntax;
-            if (propertyList != null)
+            var propertyPattern = node as PropertyPatternSyntax;
+            if (propertyPattern != null)
             {
-                return ValueTuple.Create(propertyList.OpenBraceToken, propertyList.CloseBraceToken);
+                return ValueTuple.Create(propertyPattern.OpenBraceToken, propertyPattern.CloseBraceToken);
             }
 
             return new ValueTuple<SyntaxToken, SyntaxToken>();

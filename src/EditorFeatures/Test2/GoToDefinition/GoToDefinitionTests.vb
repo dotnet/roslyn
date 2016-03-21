@@ -632,6 +632,79 @@ class C
             Await TestAsync(workspace)
         End Function
 
+        <WpfFact, Trait(Traits.Feature, Traits.Features.GoToDefinition), WorkItem(9072, "https://github.com/dotnet/roslyn/issues/9072")>
+        Public Async Function TestCSharpGoToDefinitionFromPatternType01() As Task
+            Dim workspace =
+<Workspace>
+    <Project Language="C#" CommonReferences="true">
+        <Document><![CDATA[
+    public class Expression { }
+    public class Constant : Expression
+    {
+        public readonly int Value;
+        public Constant(int Value)
+        {
+            this.Value = Value;
+        }
+    }
+    public class Plus : Expression
+    {
+        public readonly Expression [|Left|], Right;
+        public Plus(Expression Left, Expression Right)
+        {
+            this.Left = Left;
+            this.Right = Right;
+        }
+    }
+    public class X
+    {
+        public static void Main()
+        {
+            Expression expr = null;
+            if (expr is Plus { $$Left is Plus })
+            ]]>
+        </Document>
+    </Project>
+</Workspace>
+            Await TestAsync(workspace)
+        End Function
+
+        <WpfFact, Trait(Traits.Feature, Traits.Features.GoToDefinition), WorkItem(9072, "https://github.com/dotnet/roslyn/issues/9072")>
+        Public Async Function TestCSharpGoToDefinitionFromPatternType02() As Task
+            Dim workspace =
+<Workspace>
+    <Project Language="C#" CommonReferences="true">
+        <Document><![CDATA[
+    public class Expression { }
+    public class Constant : Expression
+    {
+        public readonly int Value;
+        public Constant(int Value)
+        {
+            this.Value = Value;
+        }
+    }
+    public class Plus : Expression
+    {
+        public Expression [|Left|] => null;
+        public Plus(Expression Left)
+        {
+            this.Left = Left;
+        }
+    }
+    public class X
+    {
+        public static void Main()
+        {
+            Expression expr = null;
+            if (expr is Plus { $$Left is Plus })
+            ]]>
+        </Document>
+    </Project>
+</Workspace>
+            Await TestAsync(workspace)
+        End Function
+
 #End Region
 
 #Region "CSharp Venus Tests"
