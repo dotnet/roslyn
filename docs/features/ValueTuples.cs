@@ -1,6 +1,4 @@
-// Licensed to the .NET Foundation under one or more agreements.
-// The .NET Foundation licenses this file to you under the MIT license.
-// See the LICENSE file in the project root for more information.
+// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 using System;
 using System.Text;
 using System.Collections;
@@ -106,7 +104,7 @@ namespace System
 
         public Boolean Equals(ValueTuple<T1> other)
         {
-            return Item1.Equals(other.Item1);
+            return Equals(Item1, other.Item1);
         }
 
         Boolean IStructuralEquatable.Equals(Object other, IEqualityComparer comparer)
@@ -208,7 +206,7 @@ namespace System
 
         public Boolean Equals(ValueTuple<T1, T2> other)
         {
-            return Item1.Equals(other.Item1) && Item2.Equals(other.Item2);
+            return Equals(Item1, other.Item1) && Equals(Item2, other.Item2);
         }
 
         Boolean IStructuralEquatable.Equals(Object other, IEqualityComparer comparer)
@@ -322,7 +320,7 @@ namespace System
 
         public Boolean Equals(ValueTuple<T1, T2, T3> other)
         {
-            return Item1.Equals(other.Item1) && Item2.Equals(other.Item2) && Item3.Equals(other.Item3);
+            return Equals(Item1, other.Item1) && Equals(Item2, other.Item2) && Equals(Item3, other.Item3);
         }
 
         Boolean IStructuralEquatable.Equals(Object other, IEqualityComparer comparer)
@@ -446,8 +444,8 @@ namespace System
 
         public Boolean Equals(ValueTuple<T1, T2, T3, T4> other)
         {
-            return Item1.Equals(other.Item1) && Item2.Equals(other.Item2) && Item3.Equals(other.Item3) &&
-                Item4.Equals(other.Item4);
+            return Equals(Item1, other.Item1) && Equals(Item2, other.Item2) && Equals(Item3, other.Item3) &&
+                Equals(Item4, other.Item4);
         }
 
         Boolean IStructuralEquatable.Equals(Object other, IEqualityComparer comparer)
@@ -586,8 +584,8 @@ namespace System
 
         public Boolean Equals(ValueTuple<T1, T2, T3, T4, T5> other)
         {
-            return Item1.Equals(other.Item1) && Item2.Equals(other.Item2) && Item3.Equals(other.Item3) &&
-                Item4.Equals(other.Item4) && Item5.Equals(other.Item5);
+            return Equals(Item1, other.Item1) && Equals(Item2, other.Item2) && Equals(Item3, other.Item3) &&
+                Equals(Item4, other.Item4) && Equals(Item5, other.Item5);
         }
 
         Boolean IStructuralEquatable.Equals(Object other, IEqualityComparer comparer)
@@ -733,8 +731,8 @@ namespace System
 
         public Boolean Equals(ValueTuple<T1, T2, T3, T4, T5, T6> other)
         {
-            return Item1.Equals(other.Item1) && Item2.Equals(other.Item2) && Item3.Equals(other.Item3) &&
-                Item4.Equals(other.Item4) && Item5.Equals(other.Item5) && Item6.Equals(other.Item6);
+            return Equals(Item1, other.Item1) && Equals(Item2, other.Item2) && Equals(Item3, other.Item3) &&
+                Equals(Item4, other.Item4) && Equals(Item5, other.Item5) && Equals(Item6, other.Item6);
         }
 
         Boolean IStructuralEquatable.Equals(Object other, IEqualityComparer comparer)
@@ -890,9 +888,9 @@ namespace System
 
         public Boolean Equals(ValueTuple<T1, T2, T3, T4, T5, T6, T7> other)
         {
-            return Item1.Equals(other.Item1) && Item2.Equals(other.Item2) && Item3.Equals(other.Item3) &&
-                Item4.Equals(other.Item4) && Item5.Equals(other.Item5) && Item6.Equals(other.Item6) &&
-                Item7.Equals(other.Item7);
+            return Equals(Item1, other.Item1) && Equals(Item2, other.Item2) && Equals(Item3, other.Item3) &&
+                Equals(Item4, other.Item4) && Equals(Item5, other.Item5) && Equals(Item6, other.Item6) &&
+                Equals(Item7, other.Item7);
         }
 
         Boolean IStructuralEquatable.Equals(Object other, IEqualityComparer comparer)
@@ -1066,9 +1064,9 @@ namespace System
 
         public Boolean Equals(ValueTuple<T1, T2, T3, T4, T5, T6, T7, TRest> other)
         {
-            return Item1.Equals(other.Item1) && Item2.Equals(other.Item2) && Item3.Equals(other.Item3) &&
-                Item4.Equals(other.Item4) && Item5.Equals(other.Item5) && Item6.Equals(other.Item6) &&
-                Item7.Equals(other.Item7) && Rest.Equals(other.Rest);
+            return Equals(Item1, other.Item1) && Equals(Item2, other.Item2) && Equals(Item3, other.Item3) &&
+                Equals(Item4, other.Item4) && Equals(Item5, other.Item5) && Equals(Item6, other.Item6) &&
+                Equals(Item7, other.Item7) && Equals(Rest, other.Rest);
         }
 
         Boolean IStructuralEquatable.Equals(Object other, IEqualityComparer comparer)
