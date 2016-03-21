@@ -755,32 +755,33 @@ class Program : Program0
                     Diagnostic(ErrorCode.ERR_ExpressionTreeContainsBaseAccess, "base")
                 );
         }
-        [Fact(Skip = "BadTestCode")]
 
+        [Fact]
         public void AsyncLambda()
         {
             var source =
-@"using System;
+@"
+using System;
+using System.Threading.Tasks;
 
 class Program : TestBase
 {
     public static void Main(string[] args)
     {
         Check<Task<int>, Task<int>>(
-            async x => (await x), "");
+            async x => (await x), """");
         Console.Write('k');
     }
 }";
-            var compilation = CompileAndVerify(
-                new[] { source, ExpressionTestLibrary },
-                new[] { ExpressionAssemblyRef }).VerifyDiagnostics(
-                // error CS1989: Async lambda expressions cannot be converted to expression trees
-                Diagnostic((ErrorCode)1989)
+            CreateCompilationWithMscorlib46(new[] { Parse(source), Parse(ExpressionTestLibrary) }, new[] { ExpressionAssemblyRef }).VerifyDiagnostics(
+                // (10,13): error CS1989: Async lambda expressions cannot be converted to expression trees
+                //             async x => (await x), "");
+                Diagnostic(ErrorCode.ERR_BadAsyncExpressionTree, "async x => (await x)").WithLocation(10, 13)
                 );
         }
+
         [WorkItem(544035, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544035")]
         [Fact]
-
         public void Multiply()
         {
             var source =
