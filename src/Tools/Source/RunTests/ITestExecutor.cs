@@ -8,11 +8,31 @@ using System.Threading.Tasks;
 
 namespace RunTests
 {
+    internal struct TestExecutionOptions
+    {
+        internal string XunitPath { get; }
+        internal string Trait { get; }
+        internal string NoTrait { get; }
+        internal bool UseHtml { get; }
+        internal bool Test64 { get; }
+
+        internal TestExecutionOptions(string xunitPath, string trait, string noTrait, bool useHtml, bool test64)
+        {
+            XunitPath = xunitPath;
+            Trait = trait;
+            NoTrait = noTrait;
+            UseHtml = useHtml;
+            Test64 = test64;
+        }
+    }
+
     internal struct TestResult
     {
         internal int ExitCode { get; }
-        internal string AssemblyPath { get; }
-        internal string AssemblyName { get; }
+        internal AssemblyInfo AssemblyInfo { get; }
+        internal string AssemblyPath => AssemblyInfo.AssemblyPath;
+        internal string AssemblyName => Path.GetFileName(AssemblyPath);
+        internal string DisplayName => AssemblyInfo.DisplayName;
         internal string CommandLine { get; }
         internal TimeSpan Elapsed { get; }
         internal string StandardOutput { get; }
@@ -27,11 +47,10 @@ namespace RunTests
         internal string ResultDir { get; }
         internal bool Succeeded => ExitCode == 0;
 
-        internal TestResult(int exitCode, string assemblyPath, string resultDir, string resultsFilePath, string commandLine, TimeSpan elapsed, string standardOutput, string errorOutput, bool isResultFromCache)
+        internal TestResult(int exitCode, AssemblyInfo assemblyInfo, string resultDir, string resultsFilePath, string commandLine, TimeSpan elapsed, string standardOutput, string errorOutput, bool isResultFromCache)
         {
             ExitCode = exitCode;
-            AssemblyName = Path.GetFileName(assemblyPath);
-            AssemblyPath = assemblyPath;
+            AssemblyInfo = assemblyInfo;
             CommandLine = commandLine;
             ResultDir = resultDir;
             ResultsFilePath = resultsFilePath;
@@ -46,8 +65,8 @@ namespace RunTests
     {
         IDataStorage DataStorage { get; }
 
-        string GetCommandLine(string assemblyPath);
+        string GetCommandLine(AssemblyInfo assemblyInfo);
 
-        Task<TestResult> RunTestAsync(string assemblyPath, CancellationToken cancellationToken);
+        Task<TestResult> RunTestAsync(AssemblyInfo assemblyInfo, CancellationToken cancellationToken);
     }
 }

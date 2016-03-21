@@ -4,20 +4,17 @@ Imports System.IO
 Imports System.Text
 
 Friend Module Program
-    Public Sub Main()
-        Dim args = Environment.GetCommandLineArgs()
-
-        If args.Length <> 3 Then
+    Public Function Main(args As String()) As Integer
+        If args.Length <> 2 Then
             Console.WriteLine(
-"Usage: {0} input output
+"Usage: VBErrorFactsGenerator.exe input output
   input     The path to Errors.vb
-  output    The path to ErrorFacts.Generated.vb",
-                Path.GetFileNameWithoutExtension(args(0)))
-            Environment.Exit(-1)
+  output    The path to ErrorFacts.Generated.vb")
+            Return -1
         End If
 
-        Dim inputPath = args(1)
-        Dim outputPath = args(2)
+        Dim inputPath = args(0)
+        Dim outputPath = args(1)
 
         Dim outputText = New StringBuilder
         outputText.AppendLine("Namespace Microsoft.CodeAnalysis.VisualBasic")
@@ -47,7 +44,9 @@ Friend Module Program
         outputText.AppendLine("    End Module")
         outputText.AppendLine("End Namespace")
         File.WriteAllText(outputPath, outputText.ToString())
-    End Sub
+
+        Return 0
+    End Function
 
     Private Sub GenerateErrorFactsFunction(functionName As String, codeNames As List(Of String), outputText As StringBuilder)
         outputText.AppendLine(String.Format("        Public Function {0}(code as ERRID) As Boolean", functionName))

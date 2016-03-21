@@ -421,7 +421,7 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         public bool Contains(SyntaxNode node)
         {
-            if (node == null || !node.FullSpan.IntersectsWith(node.FullSpan))
+            if (node == null || !this.FullSpan.Contains(node.FullSpan))
             {
                 return false;
             }

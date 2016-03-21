@@ -285,6 +285,7 @@
     <Compile Include="CodeModel\CSharp\ExternalCodeClassTests.vb" />
     <Compile Include="CodeModel\CSharp\ExternalCodeFunctionTests.vb" />
     <Compile Include="CodeModel\CSharp\ExternalCodeParameterTests.vb" />
+    <Compile Include="CodeModel\CSharp\ExternalCodePropertyTests.vb" />
     <Compile Include="CodeModel\CSharp\FileCodeModelTests.vb" />
     <Compile Include="CodeModel\CSharp\RootCodeModelTests.vb" />
     <Compile Include="CodeModel\CSharp\SyntaxNodeKeyTests.vb" />
@@ -321,6 +322,7 @@
     <Compile Include="CodeModel\VisualBasic\ExternalCodeClassTests.vb" />
     <Compile Include="CodeModel\VisualBasic\ExternalCodeFunctionTests.vb" />
     <Compile Include="CodeModel\VisualBasic\ExternalCodeParameterTests.vb" />
+    <Compile Include="CodeModel\VisualBasic\ExternalCodePropertyTests.vb" />
     <Compile Include="CodeModel\VisualBasic\FileCodeModelTests.vb" />
     <Compile Include="CodeModel\VisualBasic\ImplementsStatementTests.vb" />
     <Compile Include="CodeModel\VisualBasic\InheritsStatementTests.vb" />

@@ -1698,33 +1698,22 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private void CompleteTree(SyntaxTree tree)
         {
-            bool completedCompilationUnit = false;
-            bool completedCompilation = false;
-
             if (_lazyCompilationUnitCompletedTrees == null) Interlocked.CompareExchange(ref _lazyCompilationUnitCompletedTrees, new HashSet<SyntaxTree>(), null);
             lock (_lazyCompilationUnitCompletedTrees)
             {
                 if (_lazyCompilationUnitCompletedTrees.Add(tree))
                 {
-                    completedCompilationUnit = true;
+                    // signal the end of the compilation unit
+                    EventQueue.TryEnqueue(new CompilationUnitCompletedEvent(this, tree));
+
                     if (_lazyCompilationUnitCompletedTrees.Count == this.SyntaxTrees.Length)
                     {
-                        completedCompilation = true;
+                        // if that was the last tree, signal the end of compilation
+                        EventQueue.TryEnqueue(new CompilationCompletedEvent(this));
+                        EventQueue.PromiseNotToEnqueue();
+                        EventQueue.TryComplete();
                     }
                 }
-            }
-
-            if (completedCompilationUnit)
-            {
-                EventQueue.TryEnqueue(new CompilationUnitCompletedEvent(this, tree));
-            }
-
-            if (completedCompilation)
-            {
-                // signal the end of compilation events
-                EventQueue.TryEnqueue(new CompilationCompletedEvent(this));
-                EventQueue.PromiseNotToEnqueue();
-                EventQueue.TryComplete();
             }
         }
 
@@ -2877,6 +2866,17 @@ namespace Microsoft.CodeAnalysis.CSharp
             return
                 (object)GetWellKnownTypeMember(WellKnownMember.System_Runtime_CompilerServices_DynamicAttribute__ctor) != null &&
                 (object)GetWellKnownTypeMember(WellKnownMember.System_Runtime_CompilerServices_DynamicAttribute__ctorTransformFlags) != null;
+        }
+
+        /// <summary>
+        /// Returns whether the compilation has the Boolean type and if it's good.
+        /// </summary>
+        /// <returns>Returns true if Boolean is present and healthy.</returns>
+        internal bool CanEmitBoolean()
+        {
+            var boolType = GetSpecialType(SpecialType.System_Boolean);
+            var diagnostic = boolType.GetUseSiteDiagnostic();
+            return (diagnostic == null) || (diagnostic.Severity != DiagnosticSeverity.Error);
         }
 
         internal override AnalyzerDriver AnalyzerForLanguage(ImmutableArray<DiagnosticAnalyzer> analyzers, AnalyzerManager analyzerManager)
