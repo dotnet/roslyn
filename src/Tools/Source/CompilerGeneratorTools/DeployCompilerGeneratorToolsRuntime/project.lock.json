@@ -93,9 +93,77 @@
           "Microsoft.NETCore.Targets": "1.0.1-beta-23504"
         }
       },
+      "Microsoft.NETCore.Portable.Compatibility/1.0.1-beta-23504": {
+        "dependencies": {
+          "Microsoft.NETCore.Runtime": "1.0.1-beta-23504"
+        },
+        "compile": {
+          "ref/dotnet/System.ComponentModel.DataAnnotations.dll": {},
+          "ref/dotnet/System.Core.dll": {},
+          "ref/dotnet/System.Net.dll": {},
+          "ref/dotnet/System.Numerics.dll": {},
+          "ref/dotnet/System.Runtime.Serialization.dll": {},
+          "ref/dotnet/System.ServiceModel.Web.dll": {},
+          "ref/dotnet/System.ServiceModel.dll": {},
+          "ref/dotnet/System.Windows.dll": {},
+          "ref/dotnet/System.Xml.Linq.dll": {},
+          "ref/dotnet/System.Xml.Serialization.dll": {},
+          "ref/dotnet/System.Xml.dll": {},
+          "ref/dotnet/System.dll": {},
+          "ref/dotnet/mscorlib.dll": {}
+        },
+        "runtime": {
+          "lib/dnxcore50/System.ComponentModel.DataAnnotations.dll": {},
+          "lib/dnxcore50/System.Core.dll": {},
+          "lib/dnxcore50/System.Net.dll": {},
+          "lib/dnxcore50/System.Numerics.dll": {},
+          "lib/dnxcore50/System.Runtime.Serialization.dll": {},
+          "lib/dnxcore50/System.ServiceModel.Web.dll": {},
+          "lib/dnxcore50/System.ServiceModel.dll": {},
+          "lib/dnxcore50/System.Windows.dll": {},
+          "lib/dnxcore50/System.Xml.Linq.dll": {},
+          "lib/dnxcore50/System.Xml.Serialization.dll": {},
+          "lib/dnxcore50/System.Xml.dll": {},
+          "lib/dnxcore50/System.dll": {}
+        }
+      },
+      "Microsoft.NETCore.Runtime/1.0.1-beta-23504": {
+        "dependencies": {
+          "Microsoft.NETCore.Runtime.CoreCLR": "1.0.1-beta-23504",
+          "Microsoft.NETCore.Runtime.Native": "1.0.1-beta-23504"
+        }
+      },
       "Microsoft.NETCore.Runtime.CoreCLR/1.0.1-beta-23504": {
         "dependencies": {
           "Microsoft.NETCore.Windows.ApiSets": "1.0.1-beta-23504",
+          "System.Collections": "[4.0.11-beta-23504]",
+          "System.Diagnostics.Contracts": "[4.0.1-beta-23504]",
+          "System.Diagnostics.Debug": "[4.0.11-beta-23504]",
+          "System.Diagnostics.StackTrace": "[4.0.1-beta-23504]",
+          "System.Diagnostics.Tools": "[4.0.1-beta-23504]",
+          "System.Diagnostics.Tracing": "[4.0.21-beta-23504]",
+          "System.Globalization": "[4.0.11-beta-23504]",
+          "System.Globalization.Calendars": "[4.0.1-beta-23504]",
+          "System.IO": "[4.0.11-beta-23504]",
+          "System.ObjectModel": "[4.0.11-beta-23504]",
+          "System.Private.Uri": "[4.0.1-beta-23504]",
+          "System.Reflection": "[4.1.0-beta-23504]",
+          "System.Reflection.Extensions": "[4.0.1-beta-23504]",
+          "System.Reflection.Primitives": "[4.0.1-beta-23504]",
+          "System.Resources.ResourceManager": "[4.0.1-beta-23504]",
+          "System.Runtime": "[4.0.21-beta-23504]",
+          "System.Runtime.Extensions": "[4.0.11-beta-23504]",
+          "System.Runtime.Handles": "[4.0.1-beta-23504]",
+          "System.Runtime.InteropServices": "[4.0.21-beta-23504]",
+          "System.Text.Encoding": "[4.0.11-beta-23504]",
+          "System.Text.Encoding.Extensions": "[4.0.11-beta-23504]",
+          "System.Threading": "[4.0.11-beta-23504]",
+          "System.Threading.Tasks": "[4.0.11-beta-23504]",
+          "System.Threading.Timer": "[4.0.1-beta-23504]"
+        }
+      },
+      "Microsoft.NETCore.Runtime.Native/1.0.1-beta-23504": {
+        "dependencies": {
           "System.Collections": "[4.0.11-beta-23504]",
           "System.Diagnostics.Contracts": "[4.0.1-beta-23504]",
           "System.Diagnostics.Debug": "[4.0.11-beta-23504]",
@@ -1089,6 +1157,46 @@
           "Microsoft.NETCore.Targets": "1.0.1-beta-23504"
         }
       },
+      "Microsoft.NETCore.Portable.Compatibility/1.0.1-beta-23504": {
+        "dependencies": {
+          "Microsoft.NETCore.Runtime": "1.0.1-beta-23504"
+        },
+        "compile": {
+          "ref/dotnet/System.ComponentModel.DataAnnotations.dll": {},
+          "ref/dotnet/System.Core.dll": {},
+          "ref/dotnet/System.Net.dll": {},
+          "ref/dotnet/System.Numerics.dll": {},
+          "ref/dotnet/System.Runtime.Serialization.dll": {},
+          "ref/dotnet/System.ServiceModel.Web.dll": {},
+          "ref/dotnet/System.ServiceModel.dll": {},
+          "ref/dotnet/System.Windows.dll": {},
+          "ref/dotnet/System.Xml.Linq.dll": {},
+          "ref/dotnet/System.Xml.Serialization.dll": {},
+          "ref/dotnet/System.Xml.dll": {},
+          "ref/dotnet/System.dll": {},
+          "ref/dotnet/mscorlib.dll": {}
+        },
+        "runtime": {
+          "lib/dnxcore50/System.ComponentModel.DataAnnotations.dll": {},
+          "lib/dnxcore50/System.Core.dll": {},
+          "lib/dnxcore50/System.Net.dll": {},
+          "lib/dnxcore50/System.Numerics.dll": {},
+          "lib/dnxcore50/System.Runtime.Serialization.dll": {},
+          "lib/dnxcore50/System.ServiceModel.Web.dll": {},
+          "lib/dnxcore50/System.ServiceModel.dll": {},
+          "lib/dnxcore50/System.Windows.dll": {},
+          "lib/dnxcore50/System.Xml.Linq.dll": {},
+          "lib/dnxcore50/System.Xml.Serialization.dll": {},
+          "lib/dnxcore50/System.Xml.dll": {},
+          "lib/dnxcore50/System.dll": {}
+        }
+      },
+      "Microsoft.NETCore.Runtime/1.0.1-beta-23504": {
+        "dependencies": {
+          "Microsoft.NETCore.Runtime.CoreCLR": "1.0.1-beta-23504",
+          "Microsoft.NETCore.Runtime.Native": "1.0.1-beta-23504"
+        }
+      },
       "Microsoft.NETCore.Runtime.CoreCLR/1.0.1-beta-23504": {
         "dependencies": {
           "Microsoft.NETCore.Windows.ApiSets": "1.0.1-beta-23504",
@@ -1117,6 +1225,34 @@
           "System.Threading.Tasks": "[4.0.11-beta-23504]",
           "System.Threading.Timer": "[4.0.1-beta-23504]",
           "runtime.osx.10.10-x64.Microsoft.NETCore.Runtime.CoreCLR": "1.0.1-beta-23504"
+        }
+      },
+      "Microsoft.NETCore.Runtime.Native/1.0.1-beta-23504": {
+        "dependencies": {
+          "System.Collections": "[4.0.11-beta-23504]",
+          "System.Diagnostics.Contracts": "[4.0.1-beta-23504]",
+          "System.Diagnostics.Debug": "[4.0.11-beta-23504]",
+          "System.Diagnostics.StackTrace": "[4.0.1-beta-23504]",
+          "System.Diagnostics.Tools": "[4.0.1-beta-23504]",
+          "System.Diagnostics.Tracing": "[4.0.21-beta-23504]",
+          "System.Globalization": "[4.0.11-beta-23504]",
+          "System.Globalization.Calendars": "[4.0.1-beta-23504]",
+          "System.IO": "[4.0.11-beta-23504]",
+          "System.ObjectModel": "[4.0.11-beta-23504]",
+          "System.Private.Uri": "[4.0.1-beta-23504]",
+          "System.Reflection": "[4.1.0-beta-23504]",
+          "System.Reflection.Extensions": "[4.0.1-beta-23504]",
+          "System.Reflection.Primitives": "[4.0.1-beta-23504]",
+          "System.Resources.ResourceManager": "[4.0.1-beta-23504]",
+          "System.Runtime": "[4.0.21-beta-23504]",
+          "System.Runtime.Extensions": "[4.0.11-beta-23504]",
+          "System.Runtime.Handles": "[4.0.1-beta-23504]",
+          "System.Runtime.InteropServices": "[4.0.21-beta-23504]",
+          "System.Text.Encoding": "[4.0.11-beta-23504]",
+          "System.Text.Encoding.Extensions": "[4.0.11-beta-23504]",
+          "System.Threading": "[4.0.11-beta-23504]",
+          "System.Threading.Tasks": "[4.0.11-beta-23504]",
+          "System.Threading.Timer": "[4.0.1-beta-23504]"
         }
       },
       "Microsoft.NETCore.Targets/1.0.1-beta-23504": {
@@ -2588,6 +2724,46 @@
           "Microsoft.NETCore.Targets": "1.0.1-beta-23504"
         }
       },
+      "Microsoft.NETCore.Portable.Compatibility/1.0.1-beta-23504": {
+        "dependencies": {
+          "Microsoft.NETCore.Runtime": "1.0.1-beta-23504"
+        },
+        "compile": {
+          "ref/dotnet/System.ComponentModel.DataAnnotations.dll": {},
+          "ref/dotnet/System.Core.dll": {},
+          "ref/dotnet/System.Net.dll": {},
+          "ref/dotnet/System.Numerics.dll": {},
+          "ref/dotnet/System.Runtime.Serialization.dll": {},
+          "ref/dotnet/System.ServiceModel.Web.dll": {},
+          "ref/dotnet/System.ServiceModel.dll": {},
+          "ref/dotnet/System.Windows.dll": {},
+          "ref/dotnet/System.Xml.Linq.dll": {},
+          "ref/dotnet/System.Xml.Serialization.dll": {},
+          "ref/dotnet/System.Xml.dll": {},
+          "ref/dotnet/System.dll": {},
+          "ref/dotnet/mscorlib.dll": {}
+        },
+        "runtime": {
+          "lib/dnxcore50/System.ComponentModel.DataAnnotations.dll": {},
+          "lib/dnxcore50/System.Core.dll": {},
+          "lib/dnxcore50/System.Net.dll": {},
+          "lib/dnxcore50/System.Numerics.dll": {},
+          "lib/dnxcore50/System.Runtime.Serialization.dll": {},
+          "lib/dnxcore50/System.ServiceModel.Web.dll": {},
+          "lib/dnxcore50/System.ServiceModel.dll": {},
+          "lib/dnxcore50/System.Windows.dll": {},
+          "lib/dnxcore50/System.Xml.Linq.dll": {},
+          "lib/dnxcore50/System.Xml.Serialization.dll": {},
+          "lib/dnxcore50/System.Xml.dll": {},
+          "lib/dnxcore50/System.dll": {}
+        }
+      },
+      "Microsoft.NETCore.Runtime/1.0.1-beta-23504": {
+        "dependencies": {
+          "Microsoft.NETCore.Runtime.CoreCLR": "1.0.1-beta-23504",
+          "Microsoft.NETCore.Runtime.Native": "1.0.1-beta-23504"
+        }
+      },
       "Microsoft.NETCore.Runtime.CoreCLR/1.0.1-beta-23504": {
         "dependencies": {
           "Microsoft.NETCore.Windows.ApiSets": "1.0.1-beta-23504",
@@ -2616,6 +2792,34 @@
           "System.Threading.Tasks": "[4.0.11-beta-23504]",
           "System.Threading.Timer": "[4.0.1-beta-23504]",
           "runtime.ubuntu.14.04-x64.Microsoft.NETCore.Runtime.CoreCLR": "1.0.1-beta-23504"
+        }
+      },
+      "Microsoft.NETCore.Runtime.Native/1.0.1-beta-23504": {
+        "dependencies": {
+          "System.Collections": "[4.0.11-beta-23504]",
+          "System.Diagnostics.Contracts": "[4.0.1-beta-23504]",
+          "System.Diagnostics.Debug": "[4.0.11-beta-23504]",
+          "System.Diagnostics.StackTrace": "[4.0.1-beta-23504]",
+          "System.Diagnostics.Tools": "[4.0.1-beta-23504]",
+          "System.Diagnostics.Tracing": "[4.0.21-beta-23504]",
+          "System.Globalization": "[4.0.11-beta-23504]",
+          "System.Globalization.Calendars": "[4.0.1-beta-23504]",
+          "System.IO": "[4.0.11-beta-23504]",
+          "System.ObjectModel": "[4.0.11-beta-23504]",
+          "System.Private.Uri": "[4.0.1-beta-23504]",
+          "System.Reflection": "[4.1.0-beta-23504]",
+          "System.Reflection.Extensions": "[4.0.1-beta-23504]",
+          "System.Reflection.Primitives": "[4.0.1-beta-23504]",
+          "System.Resources.ResourceManager": "[4.0.1-beta-23504]",
+          "System.Runtime": "[4.0.21-beta-23504]",
+          "System.Runtime.Extensions": "[4.0.11-beta-23504]",
+          "System.Runtime.Handles": "[4.0.1-beta-23504]",
+          "System.Runtime.InteropServices": "[4.0.21-beta-23504]",
+          "System.Text.Encoding": "[4.0.11-beta-23504]",
+          "System.Text.Encoding.Extensions": "[4.0.11-beta-23504]",
+          "System.Threading": "[4.0.11-beta-23504]",
+          "System.Threading.Tasks": "[4.0.11-beta-23504]",
+          "System.Threading.Timer": "[4.0.1-beta-23504]"
         }
       },
       "Microsoft.NETCore.Targets/1.0.1-beta-23504": {
@@ -4081,6 +4285,46 @@
           "Microsoft.NETCore.Targets": "1.0.1-beta-23504"
         }
       },
+      "Microsoft.NETCore.Portable.Compatibility/1.0.1-beta-23504": {
+        "dependencies": {
+          "Microsoft.NETCore.Runtime": "1.0.1-beta-23504"
+        },
+        "compile": {
+          "ref/dotnet/System.ComponentModel.DataAnnotations.dll": {},
+          "ref/dotnet/System.Core.dll": {},
+          "ref/dotnet/System.Net.dll": {},
+          "ref/dotnet/System.Numerics.dll": {},
+          "ref/dotnet/System.Runtime.Serialization.dll": {},
+          "ref/dotnet/System.ServiceModel.Web.dll": {},
+          "ref/dotnet/System.ServiceModel.dll": {},
+          "ref/dotnet/System.Windows.dll": {},
+          "ref/dotnet/System.Xml.Linq.dll": {},
+          "ref/dotnet/System.Xml.Serialization.dll": {},
+          "ref/dotnet/System.Xml.dll": {},
+          "ref/dotnet/System.dll": {},
+          "ref/dotnet/mscorlib.dll": {}
+        },
+        "runtime": {
+          "lib/dnxcore50/System.ComponentModel.DataAnnotations.dll": {},
+          "lib/dnxcore50/System.Core.dll": {},
+          "lib/dnxcore50/System.Net.dll": {},
+          "lib/dnxcore50/System.Numerics.dll": {},
+          "lib/dnxcore50/System.Runtime.Serialization.dll": {},
+          "lib/dnxcore50/System.ServiceModel.Web.dll": {},
+          "lib/dnxcore50/System.ServiceModel.dll": {},
+          "lib/dnxcore50/System.Windows.dll": {},
+          "lib/dnxcore50/System.Xml.Linq.dll": {},
+          "lib/dnxcore50/System.Xml.Serialization.dll": {},
+          "lib/dnxcore50/System.Xml.dll": {},
+          "lib/dnxcore50/System.dll": {}
+        }
+      },
+      "Microsoft.NETCore.Runtime/1.0.1-beta-23504": {
+        "dependencies": {
+          "Microsoft.NETCore.Runtime.CoreCLR": "1.0.1-beta-23504",
+          "Microsoft.NETCore.Runtime.Native": "1.0.1-beta-23504"
+        }
+      },
       "Microsoft.NETCore.Runtime.CoreCLR/1.0.1-beta-23504": {
         "dependencies": {
           "Microsoft.NETCore.Windows.ApiSets": "1.0.1-beta-23504",
@@ -4109,6 +4353,34 @@
           "System.Threading.Tasks": "[4.0.11-beta-23504]",
           "System.Threading.Timer": "[4.0.1-beta-23504]",
           "runtime.win7-x64.Microsoft.NETCore.Runtime.CoreCLR": "1.0.1-beta-23504"
+        }
+      },
+      "Microsoft.NETCore.Runtime.Native/1.0.1-beta-23504": {
+        "dependencies": {
+          "System.Collections": "[4.0.11-beta-23504]",
+          "System.Diagnostics.Contracts": "[4.0.1-beta-23504]",
+          "System.Diagnostics.Debug": "[4.0.11-beta-23504]",
+          "System.Diagnostics.StackTrace": "[4.0.1-beta-23504]",
+          "System.Diagnostics.Tools": "[4.0.1-beta-23504]",
+          "System.Diagnostics.Tracing": "[4.0.21-beta-23504]",
+          "System.Globalization": "[4.0.11-beta-23504]",
+          "System.Globalization.Calendars": "[4.0.1-beta-23504]",
+          "System.IO": "[4.0.11-beta-23504]",
+          "System.ObjectModel": "[4.0.11-beta-23504]",
+          "System.Private.Uri": "[4.0.1-beta-23504]",
+          "System.Reflection": "[4.1.0-beta-23504]",
+          "System.Reflection.Extensions": "[4.0.1-beta-23504]",
+          "System.Reflection.Primitives": "[4.0.1-beta-23504]",
+          "System.Resources.ResourceManager": "[4.0.1-beta-23504]",
+          "System.Runtime": "[4.0.21-beta-23504]",
+          "System.Runtime.Extensions": "[4.0.11-beta-23504]",
+          "System.Runtime.Handles": "[4.0.1-beta-23504]",
+          "System.Runtime.InteropServices": "[4.0.21-beta-23504]",
+          "System.Text.Encoding": "[4.0.11-beta-23504]",
+          "System.Text.Encoding.Extensions": "[4.0.11-beta-23504]",
+          "System.Threading": "[4.0.11-beta-23504]",
+          "System.Threading.Tasks": "[4.0.11-beta-23504]",
+          "System.Threading.Timer": "[4.0.1-beta-23504]"
         }
       },
       "Microsoft.NETCore.Targets/1.0.1-beta-23504": {
@@ -5741,6 +6013,94 @@
         "runtime.json"
       ]
     },
+    "Microsoft.NETCore.Portable.Compatibility/1.0.1-beta-23504": {
+      "sha512": "/12zABXWCTHNRBN6bNHxoqvmnJ1UKVaDSOR1BsAM+sv2aXjGMEM7bcDecvT/1zMKilWDmJpiPJJNCxjdZPQRTA==",
+      "type": "package",
+      "files": [
+        "Microsoft.NETCore.Portable.Compatibility.1.0.1-beta-23504.nupkg.sha512",
+        "Microsoft.NETCore.Portable.Compatibility.nuspec",
+        "lib/dnxcore50/System.ComponentModel.DataAnnotations.dll",
+        "lib/dnxcore50/System.Core.dll",
+        "lib/dnxcore50/System.Net.dll",
+        "lib/dnxcore50/System.Numerics.dll",
+        "lib/dnxcore50/System.Runtime.Serialization.dll",
+        "lib/dnxcore50/System.ServiceModel.Web.dll",
+        "lib/dnxcore50/System.ServiceModel.dll",
+        "lib/dnxcore50/System.Windows.dll",
+        "lib/dnxcore50/System.Xml.Linq.dll",
+        "lib/dnxcore50/System.Xml.Serialization.dll",
+        "lib/dnxcore50/System.Xml.dll",
+        "lib/dnxcore50/System.dll",
+        "lib/net45/_._",
+        "lib/netcore50/System.ComponentModel.DataAnnotations.dll",
+        "lib/netcore50/System.Core.dll",
+        "lib/netcore50/System.Net.dll",
+        "lib/netcore50/System.Numerics.dll",
+        "lib/netcore50/System.Runtime.Serialization.dll",
+        "lib/netcore50/System.ServiceModel.Web.dll",
+        "lib/netcore50/System.ServiceModel.dll",
+        "lib/netcore50/System.Windows.dll",
+        "lib/netcore50/System.Xml.Linq.dll",
+        "lib/netcore50/System.Xml.Serialization.dll",
+        "lib/netcore50/System.Xml.dll",
+        "lib/netcore50/System.dll",
+        "lib/win8/_._",
+        "lib/wp80/_._",
+        "lib/wpa81/_._",
+        "ref/dotnet/System.ComponentModel.DataAnnotations.dll",
+        "ref/dotnet/System.Core.dll",
+        "ref/dotnet/System.Net.dll",
+        "ref/dotnet/System.Numerics.dll",
+        "ref/dotnet/System.Runtime.Serialization.dll",
+        "ref/dotnet/System.ServiceModel.Web.dll",
+        "ref/dotnet/System.ServiceModel.dll",
+        "ref/dotnet/System.Windows.dll",
+        "ref/dotnet/System.Xml.Linq.dll",
+        "ref/dotnet/System.Xml.Serialization.dll",
+        "ref/dotnet/System.Xml.dll",
+        "ref/dotnet/System.dll",
+        "ref/dotnet/mscorlib.dll",
+        "ref/net45/_._",
+        "ref/netcore50/System.ComponentModel.DataAnnotations.dll",
+        "ref/netcore50/System.Core.dll",
+        "ref/netcore50/System.Net.dll",
+        "ref/netcore50/System.Numerics.dll",
+        "ref/netcore50/System.Runtime.Serialization.dll",
+        "ref/netcore50/System.ServiceModel.Web.dll",
+        "ref/netcore50/System.ServiceModel.dll",
+        "ref/netcore50/System.Windows.dll",
+        "ref/netcore50/System.Xml.Linq.dll",
+        "ref/netcore50/System.Xml.Serialization.dll",
+        "ref/netcore50/System.Xml.dll",
+        "ref/netcore50/System.dll",
+        "ref/netcore50/mscorlib.dll",
+        "ref/win8/_._",
+        "ref/wp80/_._",
+        "ref/wpa81/_._",
+        "runtimes/aot/lib/netcore50/System.ComponentModel.DataAnnotations.dll",
+        "runtimes/aot/lib/netcore50/System.Core.dll",
+        "runtimes/aot/lib/netcore50/System.Net.dll",
+        "runtimes/aot/lib/netcore50/System.Numerics.dll",
+        "runtimes/aot/lib/netcore50/System.Runtime.Serialization.dll",
+        "runtimes/aot/lib/netcore50/System.ServiceModel.Web.dll",
+        "runtimes/aot/lib/netcore50/System.ServiceModel.dll",
+        "runtimes/aot/lib/netcore50/System.Windows.dll",
+        "runtimes/aot/lib/netcore50/System.Xml.Linq.dll",
+        "runtimes/aot/lib/netcore50/System.Xml.Serialization.dll",
+        "runtimes/aot/lib/netcore50/System.Xml.dll",
+        "runtimes/aot/lib/netcore50/System.dll",
+        "runtimes/aot/lib/netcore50/mscorlib.dll"
+      ]
+    },
+    "Microsoft.NETCore.Runtime/1.0.1-beta-23504": {
+      "sha512": "hEVWLbn4oo3Gf3DLBkUpStzZyjXhengfWwKEva0jRYg4DjpHpVSCgNtdX2/g1IcKssWn00a1uaabQ+j1J2kwAg==",
+      "type": "package",
+      "files": [
+        "Microsoft.NETCore.Runtime.1.0.1-beta-23504.nupkg.sha512",
+        "Microsoft.NETCore.Runtime.nuspec",
+        "_._"
+      ]
+    },
     "Microsoft.NETCore.Runtime.CoreCLR/1.0.1-beta-23504": {
       "sha512": "HI1OiS+2COrFMt3a1QXIP1xf9ECmpE8G1lG27GPeww5NeHvKsKpajdiauGBnmiEFZ02ITHS4XlZz7qRbUGzFRA==",
       "type": "package",
@@ -5748,6 +6108,15 @@
         "Microsoft.NETCore.Runtime.CoreCLR.1.0.1-beta-23504.nupkg.sha512",
         "Microsoft.NETCore.Runtime.CoreCLR.nuspec",
         "runtime.json"
+      ]
+    },
+    "Microsoft.NETCore.Runtime.Native/1.0.1-beta-23504": {
+      "sha512": "Se+I+Zd0ZH8IK7DTNBnS5VRDJNJ1wrtEPV4WiY7IYipoLnGQnyrXoxtSSHvZLjz46dSUecVQ7z+O6VGGBwvQUg==",
+      "type": "package",
+      "files": [
+        "Microsoft.NETCore.Runtime.Native.1.0.1-beta-23504.nupkg.sha512",
+        "Microsoft.NETCore.Runtime.Native.nuspec",
+        "_._"
       ]
     },
     "Microsoft.NETCore.Targets/1.0.1-beta-23504": {
@@ -9669,6 +10038,7 @@
   "projectFileDependencyGroups": {
     "": [
       "Microsoft.NETCore.Platforms >= 1.0.1-beta-23504",
+      "Microsoft.NETCore.Portable.Compatibility >= 1.0.1-beta-23504",
       "Microsoft.NETCore.Runtime.CoreCLR >= 1.0.1-beta-23504",
       "Microsoft.NETCore.TestHost >= 1.0.0-beta-23504"
     ],

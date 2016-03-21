@@ -38,6 +38,7 @@ namespace RunTests.Cache
                 request.Method = Method.PUT;
                 request.RequestFormat = DataFormat.Json;
                 request.AddParameter("text/json", obj.ToString(), ParameterType.RequestBody);
+
                 var response = await _restClient.ExecuteTaskAsync(request);
                 if (response.StatusCode != HttpStatusCode.NoContent)
                 {
@@ -55,6 +56,16 @@ namespace RunTests.Cache
             try
             {
                 var request = new RestRequest($"api/testcache/{checksum}");
+
+                // Add query parameters the web service uses for additional tracking
+                request.AddParameter("machineName", Environment.MachineName, ParameterType.QueryString);
+                request.AddParameter("enlistmentRoot", Constants.EnlistmentRoot, ParameterType.QueryString);
+
+                if (Constants.IsJenkinsRun)
+                {
+                    request.AddParameter("source", "jenkins", ParameterType.QueryString);
+                }
+
                 var response = await _restClient.ExecuteGetTaskAsync(request);
                 if (response.StatusCode != HttpStatusCode.OK)
                 {

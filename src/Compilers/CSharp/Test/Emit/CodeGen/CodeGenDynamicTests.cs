@@ -303,7 +303,7 @@ class C
             Assert.Equal(1, ((CSharpCompilation)c.Compilation).GlobalNamespace.GetMember<NamespaceSymbol>("System").GetMember<NamedTypeSymbol>("Func`13").Arity);
         }
 
-        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/6190"), WorkItem(530436, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530436")]
+        [Fact, WorkItem(530436, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530436")]
         public void InvalidFunc_Constraints()
         {
             var systemCoreRef = CreateCompilationWithMscorlib(SystemCoreSource, assemblyName: GetUniqueName()).EmitToImageReference();
@@ -326,7 +326,104 @@ class C
 ";
             // Desired: the delegate is generated, no error is reported.
             // Actual: use the malformed Func`13 time and failed to PEVerify.  Not presently worthwhile to fix.
-            Assert.Throws<PeVerifyException>(() => CompileAndVerify(source, new[] { systemCoreRef, csrtRef }));
+            CompileAndVerify(source, new[] { systemCoreRef, csrtRef }, verify: false).VerifyIL("C.F", @"
+{
+  // Code size      189 (0xbd)
+  .maxstack  13
+  IL_0000:  ldsfld     ""System.Runtime.CompilerServices.CallSite<System.Func<System.Runtime.CompilerServices.CallSite, dynamic, int, int, int, int, int, int, int, int, int, int, dynamic>> C.<>o__0.<>p__0""
+  IL_0005:  brtrue     IL_009b
+  IL_000a:  ldc.i4.0
+  IL_000b:  ldtoken    ""C""
+  IL_0010:  call       ""System.Type System.Type.GetTypeFromHandle(System.RuntimeTypeHandle)""
+  IL_0015:  ldc.i4.s   11
+  IL_0017:  newarr     ""Microsoft.CSharp.RuntimeBinder.CSharpArgumentInfo""
+  IL_001c:  dup
+  IL_001d:  ldc.i4.0
+  IL_001e:  ldc.i4.0
+  IL_001f:  ldnull
+  IL_0020:  call       ""Microsoft.CSharp.RuntimeBinder.CSharpArgumentInfo Microsoft.CSharp.RuntimeBinder.CSharpArgumentInfo.Create(Microsoft.CSharp.RuntimeBinder.CSharpArgumentInfoFlags, string)""
+  IL_0025:  stelem.ref
+  IL_0026:  dup
+  IL_0027:  ldc.i4.1
+  IL_0028:  ldc.i4.3
+  IL_0029:  ldnull
+  IL_002a:  call       ""Microsoft.CSharp.RuntimeBinder.CSharpArgumentInfo Microsoft.CSharp.RuntimeBinder.CSharpArgumentInfo.Create(Microsoft.CSharp.RuntimeBinder.CSharpArgumentInfoFlags, string)""
+  IL_002f:  stelem.ref
+  IL_0030:  dup
+  IL_0031:  ldc.i4.2
+  IL_0032:  ldc.i4.3
+  IL_0033:  ldnull
+  IL_0034:  call       ""Microsoft.CSharp.RuntimeBinder.CSharpArgumentInfo Microsoft.CSharp.RuntimeBinder.CSharpArgumentInfo.Create(Microsoft.CSharp.RuntimeBinder.CSharpArgumentInfoFlags, string)""
+  IL_0039:  stelem.ref
+  IL_003a:  dup
+  IL_003b:  ldc.i4.3
+  IL_003c:  ldc.i4.3
+  IL_003d:  ldnull
+  IL_003e:  call       ""Microsoft.CSharp.RuntimeBinder.CSharpArgumentInfo Microsoft.CSharp.RuntimeBinder.CSharpArgumentInfo.Create(Microsoft.CSharp.RuntimeBinder.CSharpArgumentInfoFlags, string)""
+  IL_0043:  stelem.ref
+  IL_0044:  dup
+  IL_0045:  ldc.i4.4
+  IL_0046:  ldc.i4.3
+  IL_0047:  ldnull
+  IL_0048:  call       ""Microsoft.CSharp.RuntimeBinder.CSharpArgumentInfo Microsoft.CSharp.RuntimeBinder.CSharpArgumentInfo.Create(Microsoft.CSharp.RuntimeBinder.CSharpArgumentInfoFlags, string)""
+  IL_004d:  stelem.ref
+  IL_004e:  dup
+  IL_004f:  ldc.i4.5
+  IL_0050:  ldc.i4.3
+  IL_0051:  ldnull
+  IL_0052:  call       ""Microsoft.CSharp.RuntimeBinder.CSharpArgumentInfo Microsoft.CSharp.RuntimeBinder.CSharpArgumentInfo.Create(Microsoft.CSharp.RuntimeBinder.CSharpArgumentInfoFlags, string)""
+  IL_0057:  stelem.ref
+  IL_0058:  dup
+  IL_0059:  ldc.i4.6
+  IL_005a:  ldc.i4.3
+  IL_005b:  ldnull
+  IL_005c:  call       ""Microsoft.CSharp.RuntimeBinder.CSharpArgumentInfo Microsoft.CSharp.RuntimeBinder.CSharpArgumentInfo.Create(Microsoft.CSharp.RuntimeBinder.CSharpArgumentInfoFlags, string)""
+  IL_0061:  stelem.ref
+  IL_0062:  dup
+  IL_0063:  ldc.i4.7
+  IL_0064:  ldc.i4.3
+  IL_0065:  ldnull
+  IL_0066:  call       ""Microsoft.CSharp.RuntimeBinder.CSharpArgumentInfo Microsoft.CSharp.RuntimeBinder.CSharpArgumentInfo.Create(Microsoft.CSharp.RuntimeBinder.CSharpArgumentInfoFlags, string)""
+  IL_006b:  stelem.ref
+  IL_006c:  dup
+  IL_006d:  ldc.i4.8
+  IL_006e:  ldc.i4.3
+  IL_006f:  ldnull
+  IL_0070:  call       ""Microsoft.CSharp.RuntimeBinder.CSharpArgumentInfo Microsoft.CSharp.RuntimeBinder.CSharpArgumentInfo.Create(Microsoft.CSharp.RuntimeBinder.CSharpArgumentInfoFlags, string)""
+  IL_0075:  stelem.ref
+  IL_0076:  dup
+  IL_0077:  ldc.i4.s   9
+  IL_0079:  ldc.i4.3
+  IL_007a:  ldnull
+  IL_007b:  call       ""Microsoft.CSharp.RuntimeBinder.CSharpArgumentInfo Microsoft.CSharp.RuntimeBinder.CSharpArgumentInfo.Create(Microsoft.CSharp.RuntimeBinder.CSharpArgumentInfoFlags, string)""
+  IL_0080:  stelem.ref
+  IL_0081:  dup
+  IL_0082:  ldc.i4.s   10
+  IL_0084:  ldc.i4.3
+  IL_0085:  ldnull
+  IL_0086:  call       ""Microsoft.CSharp.RuntimeBinder.CSharpArgumentInfo Microsoft.CSharp.RuntimeBinder.CSharpArgumentInfo.Create(Microsoft.CSharp.RuntimeBinder.CSharpArgumentInfoFlags, string)""
+  IL_008b:  stelem.ref
+  IL_008c:  call       ""System.Runtime.CompilerServices.CallSiteBinder Microsoft.CSharp.RuntimeBinder.Binder.Invoke(Microsoft.CSharp.RuntimeBinder.CSharpBinderFlags, System.Type, System.Collections.Generic.IEnumerable<Microsoft.CSharp.RuntimeBinder.CSharpArgumentInfo>)""
+  IL_0091:  call       ""System.Runtime.CompilerServices.CallSite<System.Func<System.Runtime.CompilerServices.CallSite, dynamic, int, int, int, int, int, int, int, int, int, int, dynamic>> System.Runtime.CompilerServices.CallSite<System.Func<System.Runtime.CompilerServices.CallSite, dynamic, int, int, int, int, int, int, int, int, int, int, dynamic>>.Create(System.Runtime.CompilerServices.CallSiteBinder)""
+  IL_0096:  stsfld     ""System.Runtime.CompilerServices.CallSite<System.Func<System.Runtime.CompilerServices.CallSite, dynamic, int, int, int, int, int, int, int, int, int, int, dynamic>> C.<>o__0.<>p__0""
+  IL_009b:  ldsfld     ""System.Runtime.CompilerServices.CallSite<System.Func<System.Runtime.CompilerServices.CallSite, dynamic, int, int, int, int, int, int, int, int, int, int, dynamic>> C.<>o__0.<>p__0""
+  IL_00a0:  ldfld      ""System.Func<System.Runtime.CompilerServices.CallSite, dynamic, int, int, int, int, int, int, int, int, int, int, dynamic> System.Runtime.CompilerServices.CallSite<System.Func<System.Runtime.CompilerServices.CallSite, dynamic, int, int, int, int, int, int, int, int, int, int, dynamic>>.Target""
+  IL_00a5:  ldsfld     ""System.Runtime.CompilerServices.CallSite<System.Func<System.Runtime.CompilerServices.CallSite, dynamic, int, int, int, int, int, int, int, int, int, int, dynamic>> C.<>o__0.<>p__0""
+  IL_00aa:  ldarg.1
+  IL_00ab:  ldc.i4.1
+  IL_00ac:  ldc.i4.2
+  IL_00ad:  ldc.i4.3
+  IL_00ae:  ldc.i4.4
+  IL_00af:  ldc.i4.5
+  IL_00b0:  ldc.i4.6
+  IL_00b1:  ldc.i4.7
+  IL_00b2:  ldc.i4.8
+  IL_00b3:  ldc.i4.s   9
+  IL_00b5:  ldc.i4.s   10
+  IL_00b7:  callvirt   ""dynamic System.Func<System.Runtime.CompilerServices.CallSite, dynamic, int, int, int, int, int, int, int, int, int, int, dynamic>.Invoke(System.Runtime.CompilerServices.CallSite, dynamic, int, int, int, int, int, int, int, int, int, int)""
+  IL_00bc:  ret
+}
+");
         }
 
         [Fact]
