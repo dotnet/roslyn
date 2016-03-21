@@ -5107,6 +5107,8 @@
                                   source files.
 /delaysign[+|-]                   Delay-sign the assembly using only the public
                                   portion of the strong name key.
+/publicsign[+|-]                  Public-sign the assembly using only the public
+                                  portion of the strong name key.
 /errorreport:&lt;string&gt;             Specifies how to handle internal compiler
                                   errors; must be prompt, send, none, or queue
                                   (default).
@@ -5348,6 +5350,6 @@
     <value>Combined length of user strings used by the program exceeds allowed limit. Try to decrease use of string or XML literals.</value>
   </data>
   <data name="ERR_PeWritingFailure" xml:space="preserve">
-    <value>An error occurred while writing the output file.</value>
+    <value>An error occurred while writing the output file: {0}</value>
   </data>
 </root>

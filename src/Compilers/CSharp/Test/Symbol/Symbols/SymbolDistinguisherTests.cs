@@ -738,5 +738,51 @@ class C { }";
                 //         A.M(e);
                 Diagnostic(ErrorCode.ERR_BadArgType, "e").WithArguments("1", "System.Collections.Generic.IEnumerable<E>", "System.Collections.Generic.IEnumerable<E>").WithLocation(5, 13));
         }
+
+        [WorkItem(8470, "https://github.com/dotnet/roslyn/issues/8470")]
+        [Fact]
+        public void DescriptionNoCompilation()
+        {
+            var source =
+@"class A { }
+class B { }";
+            var compilation = CreateCompilationWithMscorlib(source);
+            var typeA = compilation.GetMember<NamedTypeSymbol>("A");
+            var typeB = compilation.GetMember<NamedTypeSymbol>("B");
+            var distinguisher1 = new SymbolDistinguisher(compilation, typeA, typeB);
+            var distinguisher2 = new SymbolDistinguisher(null, typeA, typeB);
+            var arg1A = distinguisher1.First;
+            var arg2A = distinguisher2.First;
+            Assert.False(arg1A.Equals(arg2A));
+            Assert.False(arg2A.Equals(arg1A));
+            int hashCode1A = arg1A.GetHashCode();
+            int hashCode2A = arg2A.GetHashCode();
+        }
+
+        [WorkItem(8470, "https://github.com/dotnet/roslyn/issues/8470")]
+        [Fact]
+        public void CompareDiagnosticsNoCompilation()
+        {
+            var source1 =
+@"public class A { }
+public class B<T> where T : A { }";
+            var compilation1 = CreateCompilationWithMscorlib(source1);
+            compilation1.VerifyDiagnostics();
+            var ref1 = compilation1.EmitToImageReference();
+            var source2 =
+@"class C : B<object> { }";
+            var compilation2 = CreateCompilationWithMscorlib(source2, references: new[] { ref1 });
+            var diagnostics = compilation2.GetDiagnostics();
+            diagnostics.Verify(
+                // (1,7): error CS0311: The type 'object' cannot be used as type parameter 'T' in the generic type or method 'B<T>'. There is no implicit reference conversion from 'object' to 'A'.
+                // class C : B<object> { }
+                Diagnostic(ErrorCode.ERR_GenericConstraintNotSatisfiedRefType, "C").WithArguments("B<T>", "A", "T", "object").WithLocation(1, 7));
+            // Command-line compiler calls SymbolDistinguisher.Description.GetHashCode()
+            // when adding diagnostics to a set.
+            foreach (var diagnostic in diagnostics)
+            {
+                diagnostic.GetHashCode();
+            }
+        }
     }
 }

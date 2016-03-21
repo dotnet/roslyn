@@ -11,6 +11,7 @@ using Xunit;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Microsoft.CodeAnalysis.Emit;
+using System.Diagnostics;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Emit
 {
@@ -37,7 +38,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Emit
         {
             var options = (optimize ? TestOptions.ReleaseExe : TestOptions.DebugExe).WithPlatform(platform).WithDeterministic(true);
 
-            var compilation = CreateCompilation(source, assemblyName: "DeterminismTest", references: new[] { MscorlibRef }, options: options);
+            var compilation = CreateCompilation(source, assemblyName: "DeterminismTest", references: new[] { MscorlibRef, SystemCoreRef, CSharpRef }, options: options);
 
             // The resolution of the PE header time date stamp is seconds, and we want to make sure that has an opportunity to change
             // between calls to Emit.
@@ -101,6 +102,34 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Emit
             Assert.NotEqual(mvid3, mvid7);
         }
 
+        const string CompareAllBytesEmitted_Source = @"
+using System;
+using System.Linq;
+using System.Collections.Generic;
+
+namespace N
+{
+    using I4 = System.Int32;
+    
+    class Program
+    {
+        public static IEnumerable<int> F() 
+        {
+            I4 x = 1; 
+            yield return 1;
+            yield return x;
+        }
+
+        public static void Main(string[] args) 
+        {
+            dynamic x = 1;
+            const int a = 1;
+            F().ToArray();
+            Console.WriteLine(x + a);
+        }
+    }
+}";
+
         [Fact]
         public void CompareAllBytesEmitted_Release()
         {
@@ -111,17 +140,12 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Emit
                 DebugInformationFormat.Embedded
             })
             {
-                var source =
-    @"class Program
-{
-    public static void Main(string[] args) {}
-}";
-                var result1 = EmitDeterministic(source, Platform.AnyCpu32BitPreferred, pdbFormat, optimize: true);
-                var result2 = EmitDeterministic(source, Platform.AnyCpu32BitPreferred, pdbFormat, optimize: true);
+                var result1 = EmitDeterministic(CompareAllBytesEmitted_Source, Platform.AnyCpu32BitPreferred, pdbFormat, optimize: true);
+                var result2 = EmitDeterministic(CompareAllBytesEmitted_Source, Platform.AnyCpu32BitPreferred, pdbFormat, optimize: true);
                 AssertEx.Equal(result1, result2);
 
-                var result3 = EmitDeterministic(source, Platform.X64, pdbFormat, optimize: true);
-                var result4 = EmitDeterministic(source, Platform.X64, pdbFormat, optimize: true);
+                var result3 = EmitDeterministic(CompareAllBytesEmitted_Source, Platform.X64, pdbFormat, optimize: true);
+                var result4 = EmitDeterministic(CompareAllBytesEmitted_Source, Platform.X64, pdbFormat, optimize: true);
                 AssertEx.Equal(result3, result4);
             }
         }
@@ -136,17 +160,12 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Emit
                 DebugInformationFormat.Embedded
             })
             {
-                var source =
-@"class Program
-{
-    public static void Main(string[] args) {}
-}";
-                var result1 = EmitDeterministic(source, Platform.AnyCpu32BitPreferred, pdbFormat, optimize: false);
-                var result2 = EmitDeterministic(source, Platform.AnyCpu32BitPreferred, pdbFormat, optimize: false);
+                var result1 = EmitDeterministic(CompareAllBytesEmitted_Source, Platform.AnyCpu32BitPreferred, pdbFormat, optimize: false);
+                var result2 = EmitDeterministic(CompareAllBytesEmitted_Source, Platform.AnyCpu32BitPreferred, pdbFormat, optimize: false);
                 AssertEx.Equal(result1, result2);
 
-                var result3 = EmitDeterministic(source, Platform.X64, pdbFormat, optimize: false);
-                var result4 = EmitDeterministic(source, Platform.X64, pdbFormat, optimize: false);
+                var result3 = EmitDeterministic(CompareAllBytesEmitted_Source, Platform.X64, pdbFormat, optimize: false);
+                var result4 = EmitDeterministic(CompareAllBytesEmitted_Source, Platform.X64, pdbFormat, optimize: false);
                 AssertEx.Equal(result3, result4);
             }
         }

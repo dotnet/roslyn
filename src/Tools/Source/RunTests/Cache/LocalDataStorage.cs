@@ -11,7 +11,6 @@ namespace RunTests.Cache
 {
     /// <summary>
     /// Data storage that works under %LOCALAPPDATA%
-    /// TODO: need to do garbage collection on the files
     /// </summary>
     internal sealed class LocalDataStorage : IDataStorage
     {
@@ -22,7 +21,7 @@ namespace RunTests.Cache
             ErrorOutput,
             ResultsFileContent,
             ResultsFileName,
-            EllapsedSeconds,
+            ElapsedSeconds,
             Content
         }
 
@@ -36,6 +35,7 @@ namespace RunTests.Cache
         internal LocalDataStorage(string storagePath = null)
         {
             _storagePath = storagePath ?? Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), DirectoryName);
+            CleanupStorage();
         }
 
         public Task<CachedTestResult?> TryGetCachedTestResult(string checksum)
@@ -67,15 +67,14 @@ namespace RunTests.Cache
                 var errorOutput = Read(checksum, StorageKind.ErrorOutput);
                 var resultsFileName = Read(checksum, StorageKind.ResultsFileName);
                 var resultsFileContent = Read(checksum, StorageKind.ResultsFileContent);
-                var ellapsed = Read(checksum, StorageKind.EllapsedSeconds);
+                var elapsed = Read(checksum, StorageKind.ElapsedSeconds);
 
                 testResult = new CachedTestResult(
                     exitCode: int.Parse(exitCode),
                     standardOutput: standardOutput,
                     errorOutput: errorOutput,
-                    resultsFileName: resultsFileName,
                     resultsFileContent: resultsFileContent,
-                    ellapsed: TimeSpan.FromSeconds(int.Parse(ellapsed)));
+                    elapsed: TimeSpan.FromSeconds(int.Parse(elapsed)));
                 return true;
             }
             catch (Exception e)
@@ -87,7 +86,7 @@ namespace RunTests.Cache
             return false;
         }
 
-        public Task AddCachedTestResult(string assemblyName, ContentFile contentFile, CachedTestResult testResult)
+        public Task AddCachedTestResult(AssemblyInfo assemblyInfo, ContentFile contentFile, CachedTestResult testResult)
         {
             var checksum = contentFile.Checksum;
             var storagePath = Path.Combine(_storagePath, checksum);
@@ -101,9 +100,8 @@ namespace RunTests.Cache
                 Write(checksum, StorageKind.ExitCode, testResult.ExitCode.ToString());
                 Write(checksum, StorageKind.StandardOutput, testResult.StandardOutput);
                 Write(checksum, StorageKind.ErrorOutput, testResult.ErrorOutput);
-                Write(checksum, StorageKind.ResultsFileName, testResult.ResultsFileName);
                 Write(checksum, StorageKind.ResultsFileContent, testResult.ResultsFileContent);
-                Write(checksum, StorageKind.EllapsedSeconds, testResult.Ellapsed.TotalSeconds.ToString());
+                Write(checksum, StorageKind.ElapsedSeconds, testResult.Elapsed.TotalSeconds.ToString());
                 Write(checksum, StorageKind.Content, contentFile.Content);
             }
             catch (Exception e)
@@ -161,7 +159,7 @@ namespace RunTests.Cache
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"Unable to cleanup storage {ex.Message}");
+                Logger.Log($"Unable to cleanup storage {ex.Message}");
             }
         }
     }

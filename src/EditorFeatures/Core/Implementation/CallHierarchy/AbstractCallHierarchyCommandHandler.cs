@@ -46,7 +46,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.CallHierarchy
                     var semanticModel = document.GetSemanticModelAsync(waitcontext.CancellationToken).WaitAndGetResult(cancellationToken);
 
                     var caretPosition = args.TextView.Caret.Position.BufferPosition.Position;
-                    var symbolUnderCaret = SymbolFinder.FindSymbolAtPosition(semanticModel, caretPosition, workspace, cancellationToken);
+                    var symbolUnderCaret = SymbolFinder.FindSymbolAtPositionAsync(semanticModel, caretPosition, workspace, cancellationToken)
+                        .WaitAndGetResult(cancellationToken);
 
                     if (symbolUnderCaret != null)
                     {

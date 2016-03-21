@@ -75,7 +75,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
 
             if (analyzerMap != null || updateSource == null)
             {
-                AnalyzerService = CreateDiagnosticAnalyzerService(analyzerMap, new AggregateAsynchronousOperationListener(_listeners, FeatureAttribute.DiagnosticService));
+                AnalyzerService = CreateDiagnosticAnalyzerService(analyzerMap, _asyncListener);
             }
 
             if (updateSource == null)
@@ -153,7 +153,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
 
     public class DiagnosticsSquiggleTaggerProviderTests
     {
-        [WpfFact(Skip = "xunit"), Trait(Traits.Feature, Traits.Features.Diagnostics)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Diagnostics)]
         public async Task Test_TagSourceDiffer()
         {
             var analyzer = new Analyzer();
@@ -191,7 +191,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
             }
         }
 
-        [WpfFact(Skip = "xunit"), Trait(Traits.Feature, Traits.Features.Diagnostics)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Diagnostics)]
         public async Task MultipleTaggersAndDispose()
         {
             using (var workspace = await TestWorkspace.CreateCSharpAsync(new string[] { "class A {" }, CSharpParseOptions.Default))

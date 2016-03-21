@@ -14,6 +14,10 @@ namespace RunTests
 
         internal static bool IsJenkinsRun => !string.IsNullOrEmpty(Environment.GetEnvironmentVariable("JENKINS_URL"));
 
+        internal static string EnlistmentRoot = IsJenkinsRun
+            ? Environment.GetEnvironmentVariable("WORKSPACE")
+            : AppDomain.CurrentDomain.BaseDirectory;
+
         internal static string DashboardUriString => "http://jdash.azurewebsites.net";
     }
 }

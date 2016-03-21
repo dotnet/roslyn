@@ -27,12 +27,14 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="AssemblyScheduler.cs" />
     <Compile Include="Cache\ContentUtil.cs" />
     <Compile Include="Cache\CachingTestExecutor.cs" />
-    <Compile Include="Cache\ConentFile.cs" />
+    <Compile Include="Cache\ContentFile.cs" />
     <Compile Include="Cache\EmptyDataStorage.cs" />
     <Compile Include="Cache\WebDataStorage.cs" />
     <Compile Include="Constants.cs" />
+    <Compile Include="CrashDumps.cs" />
     <Compile Include="FileUtil.cs" />
     <Compile Include="Cache\IDataStorage.cs" />
     <Compile Include="ITestExecutor.cs" />

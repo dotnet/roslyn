@@ -42,11 +42,11 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV1
             public event EventHandler<ProjectAnalyzerReferenceChangedEventArgs> ProjectAnalyzerReferenceChanged;
 
             /// <summary>
-            /// Return <see cref="DiagnosticAnalyzer"/>s for the given <see cref="Project"/>.
+            /// Return existing or new <see cref="DiagnosticAnalyzer"/>s for the given <see cref="Project"/>.
             /// </summary>
-            public IEnumerable<DiagnosticAnalyzer> GetAnalyzers(Project project)
+            public IEnumerable<DiagnosticAnalyzer> GetOrCreateAnalyzers(Project project)
             {
-                return _hostStates.GetAnalyzers(project.Language).Concat(_projectStates.GetAnalyzers(project));
+                return _hostStates.GetAnalyzers(project.Language).Concat(_projectStates.GetOrCreateAnalyzers(project));
             }
 
             /// <summary>

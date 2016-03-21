@@ -21,6 +21,9 @@ x64/
 # NuGet restore semaphore
 build/ToolsetPackages/toolsetpackages.semaphore
 
+# Toolset project lock json
+build/MSBuildToolset/project.lock.json
+
 # NuGet package
 src/Tools/UploadNugetZip/*.zip
 

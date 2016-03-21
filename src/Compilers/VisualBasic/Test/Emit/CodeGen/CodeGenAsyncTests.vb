@@ -3681,7 +3681,9 @@ End Module
 </compilation>, useLatestFramework:=True, expectedOutput:="1")
         End Sub
 
-        <Fact(Skip:="785170"), WorkItem(785170, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/785170")>
+        <Fact,
+         WorkItem(94940, "https://devdiv.visualstudio.com/defaultcollection/DevDiv/_workitems#_a=edit&id=94940"),
+         WorkItem(785170, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/785170")>
         Public Sub Imported_AsyncWithEH()
             CompileAndVerify(
 <compilation>

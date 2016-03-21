@@ -12,8 +12,6 @@ using Microsoft.VisualStudio.Debugger.ComponentInterfaces;
 using Microsoft.VisualStudio.Debugger.Evaluation;
 using Microsoft.VisualStudio.Debugger.Evaluation.ClrCompilation;
 using Xunit;
-using Roslyn.Test.Utilities;
-using System.Collections;
 
 namespace Microsoft.CodeAnalysis.ExpressionEvaluator
 {
@@ -24,14 +22,13 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
 
         internal readonly DkmInspectionContext DefaultInspectionContext;
 
-        protected static readonly string DynamicDebugViewEmptyMessage;
-
-        static ResultProviderTestBase()
+        internal static string GetDynamicDebugViewEmptyMessage()
         {
+            // Value should not be cached since it depends on the current CultureInfo.
             var exceptionType = typeof(Microsoft.CSharp.RuntimeBinder.RuntimeBinderException).Assembly.GetType(
                 "Microsoft.CSharp.RuntimeBinder.DynamicMetaObjectProviderDebugView+DynamicDebugViewEmptyException");
             var emptyProperty = exceptionType.GetProperty("Empty");
-            DynamicDebugViewEmptyMessage = (string)emptyProperty.GetValue(exceptionType.Instantiate());
+            return (string)emptyProperty.GetValue(exceptionType.Instantiate());
         }
 
         protected ResultProviderTestBase(ResultProvider resultProvider, DkmInspectionContext defaultInspectionContext)

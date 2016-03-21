@@ -92,8 +92,7 @@ End Class"
                 EvalResult("F", "1", "Object {Integer}", "(New C()).s1.F"))
         End Sub
 
-        <WorkItem(321, "https://github.com/dotnet/roslyn/issues/321")>
-        <Fact(Skip:="https://github.com/dotnet/roslyn/issues/321")>
+        <Fact>
         Public Sub Pointers()
             Dim source =
 ".class private auto ansi beforefieldinit C

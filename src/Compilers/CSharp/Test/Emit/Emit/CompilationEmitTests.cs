@@ -2701,13 +2701,13 @@ class C
             var result = compilation.Emit(output);
             result.Diagnostics.Verify(
                 // error CS8104: An error occurred while writing the Portable Executable file.
-                Diagnostic(ErrorCode.ERR_PeWritingFailure).WithArguments("I/O error occurred.").WithLocation(1, 1));
+                Diagnostic(ErrorCode.ERR_PeWritingFailure).WithArguments(output.ThrownException.ToString()).WithLocation(1, 1));
 
-            output.BreakHow = 1;
+            output.BreakHow = BrokenStream.BreakHowType.ThrowOnSetPosition;
             result = compilation.Emit(output);
             result.Diagnostics.Verify(    
                 // error CS8104: An error occurred while writing the Portable Executable file.
-                Diagnostic(ErrorCode.ERR_PeWritingFailure).WithArguments("Specified method is not supported.").WithLocation(1, 1));
+                Diagnostic(ErrorCode.ERR_PeWritingFailure).WithArguments(output.ThrownException.ToString()).WithLocation(1, 1));
 
             // disposed stream is not writable
             var outReal = new MemoryStream();
@@ -2723,7 +2723,7 @@ class C
 
             var output = new MemoryStream();
             var pdb = new BrokenStream();
-            pdb.BreakHow = 2;
+            pdb.BreakHow = BrokenStream.BreakHowType.ThrowOnSetLength;
             var result = compilation.Emit(output, pdb);
 
             // error CS0041: Unexpected error writing debug information -- 'Exception from HRESULT: 0x806D0004'
@@ -2969,12 +2969,31 @@ public class X
 }";
             var compilation = CreateCompilationWithMscorlib(source);
             var broken = new BrokenStream();
-            broken.BreakHow = 0;
+            broken.BreakHow = BrokenStream.BreakHowType.ThrowOnWrite;
             var result = compilation.Emit(broken);
             Assert.False(result.Success);
             result.Diagnostics.Verify(
                 // error CS8104: An error occurred while writing the Portable Executable file.
-                Diagnostic(ErrorCode.ERR_PeWritingFailure).WithArguments("I/O error occurred.").WithLocation(1, 1));
+                Diagnostic(ErrorCode.ERR_PeWritingFailure).WithArguments(broken.ThrownException.ToString()).WithLocation(1, 1));
+        }
+
+        [Fact]
+        [WorkItem(9308, "https://github.com/dotnet/roslyn/issues/9308")]
+        public void FailingEmitterAllowsCancelationExceptionsThrough()
+        {
+            string source = @"
+public class X
+{
+    public static void Main()
+    {
+  
+    }
+}";
+            var compilation = CreateCompilationWithMscorlib(source);
+            var broken = new BrokenStream();
+            broken.BreakHow = BrokenStream.BreakHowType.CancelOnWrite;
+
+            Assert.Throws<OperationCanceledException>(() => compilation.Emit(broken));
         }
     }
 }

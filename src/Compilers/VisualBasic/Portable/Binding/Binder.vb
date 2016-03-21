@@ -414,11 +414,20 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' <param name="node">Where to report the error, if any.</param>
         Public Function GetSpecialType(typeId As SpecialType, node As SyntaxNodeOrToken, diagBag As DiagnosticBag) As NamedTypeSymbol
             Dim reportedAnError As Boolean = False
-            Return GetSpecialType(typeId, node, diagBag, reportedAnError, suppressUseSiteError:=False)
+            Return GetSpecialType(SourceModule.ContainingAssembly, typeId, node, diagBag, reportedAnError, suppressUseSiteError:=False)
+        End Function
+
+        Public Shared Function GetSpecialType(assembly As AssemblySymbol, typeId As SpecialType, node As SyntaxNodeOrToken, diagBag As DiagnosticBag) As NamedTypeSymbol
+            Dim reportedAnError As Boolean = False
+            Return GetSpecialType(assembly, typeId, node, diagBag, reportedAnError, suppressUseSiteError:=False)
         End Function
 
         Public Function GetSpecialType(typeId As SpecialType, node As SyntaxNodeOrToken, diagBag As DiagnosticBag, ByRef reportedAnError As Boolean, suppressUseSiteError As Boolean) As NamedTypeSymbol
-            Dim symbol As NamedTypeSymbol = SourceModule.ContainingAssembly.GetSpecialType(typeId)
+            Return GetSpecialType(SourceModule.ContainingAssembly, typeId, node, diagBag, reportedAnError, suppressUseSiteError)
+        End Function
+
+        Public Shared Function GetSpecialType(assembly As AssemblySymbol, typeId As SpecialType, node As SyntaxNodeOrToken, diagBag As DiagnosticBag, ByRef reportedAnError As Boolean, suppressUseSiteError As Boolean) As NamedTypeSymbol
+            Dim symbol As NamedTypeSymbol = assembly.GetSpecialType(typeId)
 
             If diagBag IsNot Nothing Then
                 Dim info = GetUseSiteErrorForSpecialType(symbol, suppressUseSiteError)
@@ -526,8 +535,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' member isn't found.
         ''' </summary>
         Friend Function GetSpecialTypeMember(member As SpecialMember, syntax As VisualBasicSyntaxNode, diagnostics As DiagnosticBag) As Symbol
+            Return GetSpecialTypeMember(Me.ContainingMember.ContainingAssembly, member, syntax, diagnostics)
+        End Function
+
+        Friend Shared Function GetSpecialTypeMember(assembly As AssemblySymbol, member As SpecialMember, syntax As VisualBasicSyntaxNode, diagnostics As DiagnosticBag) As Symbol
             Dim useSiteError As DiagnosticInfo = Nothing
-            Dim specialMemberSymbol As Symbol = GetSpecialTypeMember(Me.ContainingMember.ContainingAssembly, member, useSiteError)
+            Dim specialMemberSymbol As Symbol = GetSpecialTypeMember(assembly, member, useSiteError)
 
             If useSiteError IsNot Nothing Then
                 ReportDiagnostic(diagnostics, syntax, useSiteError)

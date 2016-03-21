@@ -25,7 +25,10 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         /// <param name="s">The version string to parse.</param>
         /// <param name="allowWildcard">Indicates whether or not a wildcard is accepted as the terminal component.</param>
-        /// <param name="version">If parsing succeeded, the parsed version. Null otherwise.</param>
+        /// <param name="version">
+        /// If parsing succeeded, the parsed version. Null otherwise.
+        /// If <paramref name="s"/> contains * the version build and/or revision numbers are set to <see cref="ushort.MaxValue"/>.
+        /// </param>
         /// <returns>True when parsing succeeds completely (i.e. every character in the string was consumed), false otherwise.</returns>
         internal static bool TryParseAssemblyVersion(string s, bool allowWildcard, out Version version)
         {
@@ -39,10 +42,15 @@ namespace Microsoft.CodeAnalysis
         /// <param name="s">The version string to parse.</param>
         /// <param name="allowWildcard">Indicates whether or not we're parsing an assembly version string. If so, wildcards are accepted and each component must be less than 65535.</param>
         /// <param name="maxValue">The maximum value that a version component may have.</param>
-        /// <param name="version">If parsing succeeded, the parsed version. Null otherwise.</param>
+        /// <param name="version">
+        /// If parsing succeeded, the parsed version. Null otherwise. 
+        /// If <paramref name="s"/> contains * and wildcard is allowed the version build and/or revision numbers are set to <see cref="ushort.MaxValue"/>.
+        /// </param>
         /// <returns>True when parsing succeeds completely (i.e. every character in the string was consumed), false otherwise.</returns>
         private static bool TryParse(string s, bool allowWildcard, ushort maxValue, out Version version)
         {
+            Debug.Assert(!allowWildcard || maxValue < ushort.MaxValue);
+
             if (s == null)
             {
                 version = null;
@@ -74,35 +82,50 @@ namespace Microsoft.CodeAnalysis
 
             if (hasWildcard)
             {
-                int seconds = ((int)(DateTime.Now.TimeOfDay.TotalSeconds)) / 2;
-                if (seconds > (int)maxValue)
+                for (int i = lastExplicitValue; i < values.Length; i++)
                 {
-                    version = null;
-                    return false;
-                }
-                values[3] = (ushort)seconds;
-
-                if (elements.Length == 3)
-                {
-                    TimeSpan days = DateTime.Today - new DateTime(2000, 1, 1);
-                    int build = (int)days.TotalDays;
-
-                    if (build < 0 || build > (int)maxValue)
-                    {
-                        //alink would generate an error here saying "Cannot auto-generate build and 
-                        //revision version numbers for dates previous to January 1, 2000." Without
-                        //some refactoring here to relay the date problem, Roslyn
-                        //will generate an inaccurate error about the version string being of the wrong format.
-
-                        version = null;
-                        return false;
-                    }
-                    values[2] = (ushort)build;
+                    values[i] = ushort.MaxValue;
                 }
             }
 
             version = new Version(values[0], values[1], values[2], values[3]);
             return true;
+        }
+
+        /// <summary>
+        /// If build and/or revision numbers are 65535 they are replaced with time-based values.
+        /// </summary>
+        public static Version GenerateVersionFromPatternAndCurrentTime(DateTime time, Version pattern)
+        {
+            if (pattern == null || pattern.Revision != ushort.MaxValue)
+            {
+                return pattern;
+            }
+
+            // MSDN doc on the attribute: 
+            // "The default build number increments daily. The default revision number is the number of seconds since midnight local time 
+            // (without taking into account time zone adjustments for daylight saving time), divided by 2."
+            if (time == default(DateTime))
+            {
+                time = DateTime.Now;
+            }
+
+            int revision = (int)time.TimeOfDay.TotalSeconds / 2;
+
+            // 24 * 60 * 60 / 2 = 43200 < 65535
+            Debug.Assert(revision < ushort.MaxValue);
+
+            if (pattern.Build == ushort.MaxValue)
+            {
+                TimeSpan days = time.Date - new DateTime(2000, 1, 1);
+                int build = Math.Min(ushort.MaxValue, (int)days.TotalDays);
+
+                return new Version(pattern.Major, pattern.Minor, (ushort)build, (ushort)revision);
+            }
+            else
+            {
+                return new Version(pattern.Major, pattern.Minor, pattern.Build, (ushort)revision);
+            }
         }
     }
 }

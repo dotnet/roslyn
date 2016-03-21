@@ -13,6 +13,12 @@ namespace Microsoft.CodeAnalysis.Host
         /// <summary>
         /// Returns null if the assembly name could not be resolved.
         /// </summary>
-        string ResolveAssemblyPath(ProjectId project, string assemblyName);
+        /// <param name="fullyQualifiedName">An optional type name for a type that must
+        /// exist in the assembly.</param>
+        /// <param name="projectId">The project context to search within.</param>
+        /// <param name="assemblyName">The name of the assembly to try to resolve.</param>
+        string ResolveAssemblyPath(ProjectId projectId, string assemblyName, string fullyQualifiedName = null);
+
+        // bool CanResolveType(ProjectId projectId, string assemblyName, string fullyQualifiedTypeName);
     }
 }

@@ -352,6 +352,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
+        /// <summary>
+        /// Raw assembly version as specified in the AssemblyVersionAttribute, or null if none specified.
+        /// If the string passed to AssemblyVersionAttribute contains * the version build and/or revision numbers are set to <see cref="ushort.MaxValue"/>.
+        /// </summary>
         private Version AssemblyVersionAttributeSetting
         {
             get
@@ -378,6 +382,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
+        public override Version AssemblyVersionPattern
+        {
+            get
+            {
+                var attributeValue = AssemblyVersionAttributeSetting;
+                return (object)attributeValue == null || (attributeValue.Build != ushort.MaxValue && attributeValue.Revision != ushort.MaxValue) ? null : attributeValue;
+            }
+        }
+         
         internal AssemblyHashAlgorithm AssemblyHashAlgorithm
         {
             get
@@ -1896,7 +1909,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             return new AssemblyIdentity(
                 _assemblySimpleName,
-                this.AssemblyVersionAttributeSetting,
+                VersionHelper.GenerateVersionFromPatternAndCurrentTime(_compilation.Options.CurrentLocalTime, AssemblyVersionAttributeSetting),
                 this.AssemblyCultureAttributeSetting,
                 StrongNameKeys.PublicKey,
                 hasPublicKey: !StrongNameKeys.PublicKey.IsDefault);
@@ -2124,7 +2137,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 Version dummy;
                 string verString = (string)attribute.CommonConstructorArguments[0].Value;
-                if (!VersionHelper.TryParseAssemblyVersion(verString, allowWildcard: false, version: out dummy))
+                if (!VersionHelper.TryParse(verString, version: out dummy))
                 {
                     Location attributeArgumentSyntaxLocation = attribute.GetAttributeArgumentSyntaxLocation(0, arguments.AttributeSyntaxOpt);
                     arguments.Diagnostics.Add(ErrorCode.WRN_InvalidVersionFormat, attributeArgumentSyntaxLocation);

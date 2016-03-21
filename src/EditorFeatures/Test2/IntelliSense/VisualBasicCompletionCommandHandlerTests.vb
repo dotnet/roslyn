@@ -371,7 +371,7 @@ End Class
             End Using
         End Function
 
-        <WpfFact(Skip:="xunit"), Trait(Traits.Feature, Traits.Features.Completion)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Async Function TestBackspaceBeforeCompletedComputation() As Task
             ' Simulate a very slow completion provider.
             Dim e = New ManualResetEvent(False)
@@ -408,7 +408,7 @@ End Class
             End Using
         End Function
 
-        <WpfFact(Skip:="xunit wait"), Trait(Traits.Feature, Traits.Features.Completion)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Async Function TestNavigationBeforeCompletedComputation() As Task
             ' Simulate a very slow completion provider.
             Dim e = New ManualResetEvent(False)
