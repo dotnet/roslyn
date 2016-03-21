@@ -131,8 +131,13 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 return OperatorFacts.UnaryOperatorNameFromSyntaxKind(declaration.OperatorToken.Kind);
             }
+            else if (declaration.OperatorToken.Kind == SyntaxKind.IsKeyword)
+            {
+                return WellKnownMemberNames.IsOperatorName;
+            }
             else
             {
+                // fallback for error recovery
                 return WellKnownMemberNames.UnaryPlusOperatorName;
             }
         }

@@ -7,6 +7,7 @@ Open design issues (needing LDM decisions)
 - [ ] Under what condition do we give diagnostics for pattern-matching based on subsumption or completion? See http://www.cs.tufts.edu/~nr/cs257/archive/norman-ramsey/match.pdf for a discussion of implementation approaches.
 - [ ] Should we combine the property pattern with the type pattern so as to allow giving the object a name? If so, what syntax?
 - [ ] What do we think about the let statement?
+  - [ ] Is there a compatibility issue? (e.g. if the user has a type named `let`) 
 - [ ] There are some scoping questions for pattern variables. #9452
   - [ ] Need to get LDM approval for design change around scope of pattern variables declared within a constructor initializer #9452 
   - [ ] Also questions about multiple field initializers, local initializers, ctor-initializers (how far does the scope extend?)
@@ -18,7 +19,9 @@ Open design issues (needing LDM decisions)
   - [ ] static bool for active patterns
   - [ ] instance bool for captured data (regex)
   - [ ] Do we want to support "breakpoints inside" patterns (#9095)
+- [ ] Do we want to support keyword "arguments" in recursive patterns? e.g. `if (p is Point(X: 3, Y: 4)) ...`
 - [ ] What is the correct precedence of *throw-expression*? Should *assignment* be allowed as its subexpression?
+- [ ] There would be an ambiguity with a hypothetical "type pattern" and the constant pattern. This is the reason we do not allow the latter in an is-pattern expression, and don't allow the former in a subproperty pattern. But that is irregular. Can we come up with name lookup rules that support both?
 
 Progress checklist:
 - [ ] Add a decision tree to enable

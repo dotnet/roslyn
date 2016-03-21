@@ -249,6 +249,11 @@ namespace Microsoft.CodeAnalysis
         public const string LikeOperatorName = "op_Like";
 
         /// <summary>
+        /// The name assigned to the C# <c>is</c> operator (perhaps "Matches" in VB).
+        /// </summary>
+        public const string IsOperatorName = "op_Match";
+
+        /// <summary>
         /// The required name for the <c>GetEnumerator</c> method used in a ForEach statement.
         /// </summary>
         public const string GetEnumeratorMethodName = "GetEnumerator";
