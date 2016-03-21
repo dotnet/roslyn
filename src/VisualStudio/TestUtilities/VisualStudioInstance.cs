@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Reflection;
+using System.Runtime.InteropServices;
 using System.Runtime.Remoting.Channels;
 using System.Runtime.Remoting.Channels.Ipc;
 using System.Threading.Tasks;
@@ -103,7 +104,7 @@ namespace Roslyn.VisualStudio.Test.Utilities
             // to something more logical, like null, would change the expected behavior of Dte.ExecuteCommand
 
             await WaitForDteCommandAvailabilityAsync(command).ConfigureAwait(continueOnCapturedContext: false);
-            _dte.ExecuteCommand(command, args);
+            IntegrationHelper.RetryDteCall(() => _dte.ExecuteCommand(command, args));
         }
 
         internal T ExecuteOnHostProcess<T>(Type type, string methodName, BindingFlags bindingFlags, params object[] parameters)
@@ -127,7 +128,8 @@ namespace Roslyn.VisualStudio.Test.Utilities
             var scope = (recursive ? TreeScope.Descendants : TreeScope.Children);
             var condition = new PropertyCondition(AutomationElement.NameProperty, elementName);
 
-            await IntegrationHelper.WaitForResultAsync(() => {
+            await IntegrationHelper.WaitForResultAsync(() =>
+            {
                 automationElement = AutomationElement.RootElement.FindFirst(scope, condition);
                 return (automationElement != null);
             }, expectedResult: true).ConfigureAwait(continueOnCapturedContext: false);
@@ -136,7 +138,8 @@ namespace Roslyn.VisualStudio.Test.Utilities
         }
 
         internal Task<Window> LocateDteWindowAsync(string windowTitle)
-            => IntegrationHelper.WaitForNotNullAsync(() => {
+            => IntegrationHelper.WaitForNotNullAsync(() => IntegrationHelper.RetryDteCall(() =>
+            {
                 foreach (Window window in _dte.Windows)
                 {
                     if (window.Caption.Equals(windowTitle, StringComparison.OrdinalIgnoreCase))
@@ -145,10 +148,10 @@ namespace Roslyn.VisualStudio.Test.Utilities
                     }
                 }
                 return null;
-            });
+            }));
 
         internal Task WaitForDteCommandAvailabilityAsync(string command)
-            => IntegrationHelper.WaitForResultAsync(() => Dte.Commands.Item(command).IsAvailable, expectedResult: true);
+            => IntegrationHelper.WaitForResultAsync(() => IntegrationHelper.RetryDteCall(() => Dte.Commands.Item(command).IsAvailable), expectedResult: true);
 
         public void Close()
         {
@@ -164,26 +167,32 @@ namespace Roslyn.VisualStudio.Test.Utilities
 
         public void CloseAndDeleteOpenSolution()
         {
-            _dte.Documents.CloseAll(EnvDTE.vsSaveChanges.vsSaveChangesNo);
+            IntegrationHelper.RetryDteCall(() => _dte.Documents.CloseAll(EnvDTE.vsSaveChanges.vsSaveChangesNo));
 
-            if (_dte.Solution != null)
+            if (IntegrationHelper.RetryDteCall(() => _dte.Solution) != null)
             {
-                var directoriesToDelete = new List<string>();
-
-                // Save the full path to each project in the solution. This is so we can cleanup any folders after the solution is closed.
-                foreach (EnvDTE.Project project in _dte.Solution.Projects)
+                var directoriesToDelete = IntegrationHelper.RetryDteCall(() =>
                 {
-                    directoriesToDelete.Add(Path.GetDirectoryName(project.FullName));
-                }
+                    var directoryList = new List<string>();
 
-                // Save the full path to the solution. This is so we can cleanup any folders after the solution is closed.
-                // The solution might be zero-impact and thus has no name, so deal with that
-                if (!string.IsNullOrEmpty(_dte.Solution.FullName))
-                {
-                    directoriesToDelete.Add(Path.GetDirectoryName(_dte.Solution.FullName));
-                }
+                    // Save the full path to each project in the solution. This is so we can cleanup any folders after the solution is closed.
+                    foreach (EnvDTE.Project project in _dte.Solution.Projects)
+                    {
+                        directoryList.Add(Path.GetDirectoryName(project.FullName));
+                    }
 
-                _dte.Solution.Close(SaveFirst: false);
+                    // Save the full path to the solution. This is so we can cleanup any folders after the solution is closed.
+                    // The solution might be zero-impact and thus has no name, so deal with that
+                    if (!string.IsNullOrEmpty(_dte.Solution.FullName))
+                    {
+                        directoryList.Add(Path.GetDirectoryName(_dte.Solution.FullName));
+
+                    }
+
+                    return directoryList;
+                });
+
+                IntegrationHelper.RetryDteCall(() => _dte.Solution.Close(SaveFirst: false));
 
                 foreach (var directoryToDelete in directoriesToDelete)
                 {
@@ -194,7 +203,7 @@ namespace Roslyn.VisualStudio.Test.Utilities
 
         private void CleanupHostProcess()
         {
-            _dte.Quit();
+            IntegrationHelper.RetryDteCall(() => _dte.Quit());
 
             IntegrationHelper.KillProcess(_hostProcess);
         }
@@ -203,7 +212,7 @@ namespace Roslyn.VisualStudio.Test.Utilities
         {
             try
             {
-                if ((_dte?.Commands.Item(VisualStudioCommandNames.VsStopServiceCommand).IsAvailable).GetValueOrDefault())
+                if ((IntegrationHelper.RetryDteCall(() => _dte?.Commands.Item(VisualStudioCommandNames.VsStopServiceCommand).IsAvailable).GetValueOrDefault()))
                 {
                     ExecuteDteCommandAsync(VisualStudioCommandNames.VsStopServiceCommand).GetAwaiter().GetResult();
                 }

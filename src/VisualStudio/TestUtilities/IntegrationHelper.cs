@@ -208,6 +208,29 @@ namespace Roslyn.VisualStudio.Test.Utilities
             }
         }
 
+        public static void RetryDteCall(Action action)
+        {
+            while (true)
+            {
+                try
+                {
+                    action();
+                    return;
+                }
+                catch (COMException exception) when (exception.HResult == VSConstants.RPC_E_CALL_REJECTED)
+                {
+                    // We'll just try again in this case
+                }
+            }
+        }
+
+        public static T RetryDteCall<T>(Func<T> action)
+        {
+            T returnValue = default(T);
+            RetryDteCall(() => { returnValue = action(); });
+            return returnValue;
+        }
+
         public static async Task<T> WaitForNotNullAsync<T>(Func<T> action) where T : class
         {
             var result = action();
