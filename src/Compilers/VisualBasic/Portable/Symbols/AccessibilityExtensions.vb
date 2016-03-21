@@ -24,6 +24,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                     Return "Protected"
                 Case Accessibility.ProtectedOrFriend
                     Return "Protected Friend"
+                Case Accessibility.ProtectedAndFriend
+                    Return "Private Protected"
                 Case Else
                     Throw ExceptionUtilities.UnexpectedValue(a)
             End Select

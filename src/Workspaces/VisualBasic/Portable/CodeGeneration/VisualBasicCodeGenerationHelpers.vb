@@ -35,8 +35,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
                 Case Accessibility.Private
                     tokens.Add(SyntaxFactory.Token(SyntaxKind.PrivateKeyword))
 
-                Case Accessibility.ProtectedAndInternal, Accessibility.Internal
+                Case Accessibility.Internal
                     tokens.Add(SyntaxFactory.Token(SyntaxKind.FriendKeyword))
+
+                Case Accessibility.ProtectedAndInternal
+                    tokens.Add(SyntaxFactory.Token(SyntaxKind.PrivateKeyword))
+                    tokens.Add(SyntaxFactory.Token(SyntaxKind.ProtectedKeyword))
 
                 Case Accessibility.ProtectedOrInternal
                     tokens.Add(SyntaxFactory.Token(SyntaxKind.ProtectedKeyword))
