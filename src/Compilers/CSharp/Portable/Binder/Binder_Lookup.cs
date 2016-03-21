@@ -184,6 +184,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case TypeKind.Delegate:
                 case TypeKind.Array:
                 case TypeKind.Dynamic:
+                case TypeKind.Tuple:
                     this.LookupMembersInClass(result, type, name, arity, basesBeingResolved, options, originalBinder, diagnose, ref useSiteDiagnostics);
                     break;
 

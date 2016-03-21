@@ -910,6 +910,13 @@ namespace Microsoft.CodeAnalysis.CSharp
             return null;
         }
 
+        public override BoundNode VisitTupleCreationExpression(BoundTupleCreationExpression node)
+        {
+            VisitArguments(node.Arguments, default(ImmutableArray<RefKind>), null);
+            if (_trackExceptions) NotePossibleException(node);
+            return null;
+        }
+
         public override BoundNode VisitDynamicObjectCreationExpression(BoundDynamicObjectCreationExpression node)
         {
             VisitArguments(node.Arguments, node.ArgumentRefKindsOpt, null);
