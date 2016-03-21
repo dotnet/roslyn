@@ -91,14 +91,12 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
             {
                 if (kv.Key == null)
                 {
-                    Owner.RaiseDiagnosticsUpdated(
-                        this, DiagnosticsUpdatedArgs.DiagnosticsCreated(
+                    Owner.RaiseDiagnosticsUpdated(DiagnosticsUpdatedArgs.DiagnosticsCreated(
                             ValueTuple.Create(this, project.Id), workspace, solution, project.Id, null, kv.ToImmutableArrayOrEmpty()));
                     continue;
                 }
 
-                Owner.RaiseDiagnosticsUpdated(
-                    this, DiagnosticsUpdatedArgs.DiagnosticsCreated(
+                Owner.RaiseDiagnosticsUpdated(DiagnosticsUpdatedArgs.DiagnosticsCreated(
                         ValueTuple.Create(this, kv.Key), workspace, solution, project.Id, kv.Key, kv.ToImmutableArrayOrEmpty()));
             }
         }

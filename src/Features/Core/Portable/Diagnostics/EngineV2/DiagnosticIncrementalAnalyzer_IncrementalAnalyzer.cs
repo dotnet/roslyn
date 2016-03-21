@@ -45,8 +45,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                 var diagnosticData = GetDiagnosticData(document.Project, diagnostics).Where(d => d.DocumentId == document.Id);
 
                 // TODO: update using right arguments
-                Owner.RaiseDiagnosticsUpdated(
-                    this, DiagnosticsUpdatedArgs.DiagnosticsCreated(
+                Owner.RaiseDiagnosticsUpdated(DiagnosticsUpdatedArgs.DiagnosticsCreated(
                         ValueTuple.Create(this, "Syntax", document.Id), document.Project.Solution.Workspace, document.Project.Solution, document.Project.Id, document.Id, diagnosticData.ToImmutableArrayOrEmpty()));
             }
         }
@@ -82,8 +81,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                 var diagnosticData = GetDiagnosticData(document.Project, diagnostics).Where(d => d.DocumentId == document.Id);
 
                 // TODO: update using right arguments
-                Owner.RaiseDiagnosticsUpdated(
-                    this, DiagnosticsUpdatedArgs.DiagnosticsCreated(
+                Owner.RaiseDiagnosticsUpdated(DiagnosticsUpdatedArgs.DiagnosticsCreated(
                         ValueTuple.Create(this, "Semantic", document.Id), document.Project.Solution.Workspace, document.Project.Solution, document.Project.Id, document.Id, diagnosticData.ToImmutableArrayOrEmpty()));
             }
         }
@@ -104,13 +102,13 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
         public override void RemoveDocument(DocumentId documentId)
         {
             // TODO: do proper eventing
-            Owner.RaiseDiagnosticsUpdated(this, DiagnosticsUpdatedArgs.DiagnosticsRemoved(
+            Owner.RaiseDiagnosticsUpdated(DiagnosticsUpdatedArgs.DiagnosticsRemoved(
                 ValueTuple.Create(this, "Syntax", documentId), Workspace, null, null, null));
 
-            Owner.RaiseDiagnosticsUpdated(this, DiagnosticsUpdatedArgs.DiagnosticsRemoved(
+            Owner.RaiseDiagnosticsUpdated(DiagnosticsUpdatedArgs.DiagnosticsRemoved(
                 ValueTuple.Create(this, "Semantic", documentId), Workspace, null, null, null));
 
-            Owner.RaiseDiagnosticsUpdated(this, DiagnosticsUpdatedArgs.DiagnosticsRemoved(
+            Owner.RaiseDiagnosticsUpdated(DiagnosticsUpdatedArgs.DiagnosticsRemoved(
                 ValueTuple.Create(this, documentId), Workspace, null, null, null));
         }
 
@@ -133,7 +131,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
         public override void RemoveProject(ProjectId projectId)
         {
             // TODO: do proper event
-            Owner.RaiseDiagnosticsUpdated(this, DiagnosticsUpdatedArgs.DiagnosticsRemoved(
+            Owner.RaiseDiagnosticsUpdated(DiagnosticsUpdatedArgs.DiagnosticsRemoved(
                 ValueTuple.Create(this, projectId), Workspace, null, null, null));
         }
 
