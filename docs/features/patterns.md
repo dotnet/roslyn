@@ -1,7 +1,7 @@
 Pattern Matching for C#
 =======================
 
-Pattern matching extensions for C# enable many of the benefits of algebraic data types and pattern matching from functional languages, but in a way that smoothly integrates with the feel of the underlying language. The basic features are: [record types](records.md), which are types whose semantic meaning is described by the shape of the data; and pattern matching, which is a new expression form that enables extremely concise multilevel decomposition of these data types. Elements of this approach are inspired by related features in the programming languages [F#](http://www.msr-waypoint.net/pubs/79947/p29-syme.pdf "Extensible Pattern Matching Via a Lightweight Language") and [Scala](http://lampwww.epfl.ch/~emir/written/MatchingObjectsWithPatterns-TR.pdf "Matching Objects With Patterns").
+Pattern matching extensions for C# enable many of the benefits of algebraic data types and pattern matching from functional languages, but in a way that smoothly integrates with the feel of the underlying language. The basic features are: [record types](records.md), which are types whose semantic meaning is described by the shape of the data; and pattern matching, which is a new expression form that enables extremely concise multilevel decomposition of these data types. Elements of bese.pdf "Extensible Pattern Matching Via a Lightweight Language") and [Scala](http://lampwww.epfl.ch/~emir/written/MatchingObjectsWithPatterns-TR.pdf "Matching Objects With Patterns").
 
 ## Is Expression
 
@@ -286,7 +286,7 @@ case-guard
 
 The *match-expression* is not allowed as an *expression-statement*.
 
-The type of the *match-expression* is the *least common type* of the expressions appearing to the right of the `:` tokens of the *match section*s.
+The type of the *match-expression* is the *best common type* of the expressions appearing to the right of the `:` tokens of the *match section*s.
 
 It is an error if the compiler can prove (using a set of techniques that has not yet been specified) that some *match-section*'s pattern cannot affect the result because some previous pattern will always match.
 
