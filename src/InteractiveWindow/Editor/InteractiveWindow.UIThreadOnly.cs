@@ -844,8 +844,12 @@ namespace Microsoft.VisualStudio.InteractiveWindow
                     _history.UncommittedInput = null;
 
                     var snapshotSpan = CurrentLanguageBuffer.CurrentSnapshot.GetExtent();
+                    var trimmedSpan = snapshotSpan.TrimEnd();
+                    if (trimmedSpan.Length > 0)
+                    {
+                        _history.Add(historySpan);
+                    }
 
-                    _history.Add(historySpan);
                     State = State.ExecutingInput;
 
                     StartCursorTimer();
