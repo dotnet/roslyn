@@ -7785,5 +7785,26 @@ public class X
 1
 2");
         }
+
+        [Fact]
+        public void ThrowName()
+        {
+            var source =
+@"
+class Program
+{
+    static void Main(string[] args)
+    {
+        var y = null ?? throw null;
+    }
+}
+";
+            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe, parseOptions: patternParseOptions);
+            compilation.VerifyDiagnostics(
+                // (6,17): error CS0019: Operator '??' cannot be applied to operands of type '<null>' and '<throw>'
+                //         var y = null ?? throw null;
+                Diagnostic(ErrorCode.ERR_BadBinaryOps, "null ?? throw null").WithArguments("??", "<null>", "<throw>").WithLocation(6, 17)
+                );
+        }
     }
 }

@@ -10044,6 +10044,15 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to &lt;throw&gt;.
+        /// </summary>
+        internal static string IDS_ThrowExpression {
+            get {
+                return ResourceManager.GetString("IDS_ThrowExpression", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Microsoft (R) Visual C# Compiler.
         /// </summary>
         internal static string IDS_ToolName {

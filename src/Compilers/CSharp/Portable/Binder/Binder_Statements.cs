@@ -692,22 +692,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             // their own and therefore cannot be the initializer of an implicitly typed local.
             if (!expression.HasAnyErrors && !expression.HasExpressionType())
             {
-                MessageID id = MessageID.IDS_NULL;
-                if (expression.Kind == BoundKind.UnboundLambda)
-                {
-                    id = ((UnboundLambda)expression).MessageID;
-                }
-                else if (expression.Kind == BoundKind.MethodGroup)
-                {
-                    id = MessageID.IDS_MethodGroup;
-                }
-                else
-                {
-                    Debug.Assert(expression.IsLiteralNull(), "How did we successfully bind an expression without a type?");
-                }
-
                 // Cannot assign {0} to an implicitly-typed local variable
-                Error(diagnostics, ErrorCode.ERR_ImplicitlyTypedVariableAssignedBadValue, errorSyntax, id.Localize());
+                Error(diagnostics, ErrorCode.ERR_ImplicitlyTypedVariableAssignedBadValue, errorSyntax, expression.Display);
             }
 
             return expression;
