@@ -10,13 +10,15 @@ using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
+using Microsoft.Cci;
+using System.Runtime.InteropServices;
 
 namespace Microsoft.CodeAnalysis.CSharp.Symbols
 {
     /// <summary>
     /// A TupleTypeSymbol represents a tuple type, such as (int, byte) or (int a, long b).
     /// </summary>
-    internal sealed class TupleTypeSymbol : TypeSymbol, ITupleTypeSymbol
+    internal sealed class TupleTypeSymbol : NamedTypeSymbol, ITupleTypeSymbol
     {
         private readonly NamedTypeSymbol _underlyingType;
         private readonly ImmutableArray<TupleFieldSymbol> _fields;
@@ -89,16 +91,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return underlyingType;
         }
 
-        // TODO: VS does it make sense to this this two-stage?
-        // get underlying type (above),
-        // then if all ok
-        // get underlying fields here.
-        // NOTE: underlying fields do not need the underlying type and in case of an erro still can be created.
-        private ImmutableArray<TupleFieldSymbol> GetTupleFields(
-            ImmutableArray<string> elementNames, 
-            NamedTypeSymbol _underlyingType)
+        internal NamedTypeSymbol UnderlyingTupleType
         {
-            throw new NotImplementedException();
+            get
+            {
+                return _underlyingType;
+            }
         }
 
         internal override NamedTypeSymbol BaseTypeNoUseSiteDiagnostics
@@ -126,7 +124,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             get
             {
-                return _underlyingType.IsReferenceType;
+                return _underlyingType.IsValueType;
             }
         }
 
@@ -145,14 +143,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         public override ImmutableArray<Symbol> GetMembers()
         {
-            // TODO: members
-            return ImmutableArray<Symbol>.Empty;
+            return ImmutableArray<Symbol>.CastUp(_fields);
         }
 
         public override ImmutableArray<Symbol> GetMembers(string name)
         {
-            // TODO: members
-            return ImmutableArray<Symbol>.Empty;
+            //TODO: PERF do we need to have a dictionary here?
+            //      tuples will be typically small 2 or 3 elements only
+            return ImmutableArray<Symbol>.CastUp(_fields).WhereAsArray(field => field.Name == name);
         }
 
         public override ImmutableArray<NamedTypeSymbol> GetTypeMembers()
@@ -227,6 +225,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         internal override bool Equals(TypeSymbol t2, bool ignoreCustomModifiers, bool ignoreDynamic)
         {
+            if (ignoreDynamic)
+            {
+                //PROTOTYPE: rename ignoreDynamic or introduce another "ignoreTuple" flag
+                // if ignoring dynamic, compare underlying tuple types
+                return _underlyingType.Equals(t2, ignoreCustomModifiers, ignoreDynamic);
+            }
+
             return this.Equals(t2 as TupleTypeSymbol, ignoreCustomModifiers, ignoreDynamic);
         }
 
@@ -303,6 +308,158 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
+        public override int Arity
+        {
+            get
+            {
+                return _underlyingType.Arity;
+            }
+        }
+
+        public override ImmutableArray<TypeParameterSymbol> TypeParameters
+        {
+            get
+            {
+                return _underlyingType.TypeParameters;
+            }
+        }
+
+        internal override ImmutableArray<ImmutableArray<CustomModifier>> TypeArgumentsCustomModifiers
+        {
+            get
+            {
+                return _underlyingType.TypeArgumentsCustomModifiers;
+            }
+        }
+
+        internal override bool HasTypeArgumentsCustomModifiers
+        {
+            get
+            {
+                return _underlyingType.HasTypeArgumentsCustomModifiers;
+            }
+        }
+
+        internal override ImmutableArray<TypeSymbol> TypeArgumentsNoUseSiteDiagnostics
+        {
+            get
+            {
+                return _underlyingType.TypeArgumentsNoUseSiteDiagnostics;
+            }
+        }
+
+        public override NamedTypeSymbol ConstructedFrom
+        {
+            get
+            {
+                return _underlyingType.ConstructedFrom;
+            }
+        }
+
+        public override bool MightContainExtensionMethods
+        {
+            get
+            {
+                return false;
+            }
+        }
+
+        public override string Name
+        {
+            get
+            {
+                return string.Empty;
+            }
+        }
+
+        internal override bool MangleName
+        {
+            get
+            {
+                return _underlyingType.MangleName;
+            }
+        }
+
+        public override IEnumerable<string> MemberNames
+        {
+            get
+            {
+                return _fields.Select(f => f.Name);
+            }
+        }
+
+        internal override bool HasSpecialName
+        {
+            get
+            {
+                return _underlyingType.HasSpecialName;
+            }
+        }
+
+        internal override bool IsComImport
+        {
+            get
+            {
+                return _underlyingType.IsComImport;
+            }
+        }
+
+        internal override bool IsWindowsRuntimeImport
+        {
+            get
+            {
+                return _underlyingType.IsWindowsRuntimeImport;
+            }
+        }
+
+        internal override bool ShouldAddWinRTMembers
+        {
+            get
+            {
+                return _underlyingType.ShouldAddWinRTMembers;
+            }
+        }
+
+        internal override bool IsSerializable
+        {
+            get
+            {
+                return _underlyingType.IsSerializable;
+            }
+        }
+
+        internal override TypeLayout Layout
+        {
+            get
+            {
+                return _underlyingType.Layout;
+            }
+        }
+
+        internal override CharSet MarshallingCharSet
+        {
+            get
+            {
+                return _underlyingType.MarshallingCharSet;
+            }
+        }
+
+        internal override bool HasDeclarativeSecurity
+        {
+            get
+            {
+                return _underlyingType.HasDeclarativeSecurity;
+            }
+        }
+
+        internal override bool IsInterface
+        {
+            get
+            {
+                return _underlyingType.IsInterface;
+            }
+        }
+
         #region Use-Site Diagnostics
 
         internal override DiagnosticInfo GetUseSiteDiagnostic()
@@ -339,6 +496,51 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         public override TResult Accept<TResult>(SymbolVisitor<TResult> visitor)
         {
             return visitor.VisitTupleType(this);
+        }
+
+        internal override AttributeUsageInfo GetAttributeUsageInfo()
+        {
+            throw new NotImplementedException();
+        }
+
+        internal override ImmutableArray<Symbol> GetEarlyAttributeDecodingMembers()
+        {
+            throw new NotImplementedException();
+        }
+
+        internal override ImmutableArray<Symbol> GetEarlyAttributeDecodingMembers(string name)
+        {
+            throw new NotImplementedException();
+        }
+
+        internal override NamedTypeSymbol GetDeclaredBaseType(ConsList<Symbol> basesBeingResolved)
+        {
+            throw new NotImplementedException();
+        }
+
+        internal override ImmutableArray<NamedTypeSymbol> GetDeclaredInterfaces(ConsList<Symbol> basesBeingResolved)
+        {
+            throw new NotImplementedException();
+        }
+
+        internal override IEnumerable<SecurityAttribute> GetSecurityInformation()
+        {
+            throw new NotImplementedException();
+        }
+
+        internal override ImmutableArray<string> GetAppliedConditionalSymbols()
+        {
+            throw new NotImplementedException();
+        }
+
+        internal override IEnumerable<FieldSymbol> GetFieldsToEmit()
+        {
+            throw new NotImplementedException();
+        }
+
+        internal override ImmutableArray<NamedTypeSymbol> GetInterfacesToEmit()
+        {
+            throw new NotImplementedException();
         }
 
         #endregion

@@ -914,6 +914,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
 
                 case SymbolKind.TypeParameter:
                     return Translate((TypeParameterSymbol)typeSymbol);
+
+                case SymbolKind.TupleType:
+                    return Translate(((TupleTypeSymbol)typeSymbol).UnderlyingTupleType, syntaxNodeOpt, diagnostics);
             }
 
             throw ExceptionUtilities.UnexpectedValue(typeSymbol.Kind);
