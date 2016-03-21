@@ -1,27 +1,40 @@
 This is a checklist (moved from #9375) of implementation of pattern matching as specified in [patterns.md](./patterns.md). For reference a previous prototype was at https://github.com/semihokur/pattern-matching-csharp
 
 Open design issues (needing LDM decisions)
-- [ ] Do we want pattern-matching in the switch statement? If so, what does “goto case” mean? Or do we want a separate statement-based construct instead? (#8821)
-- [ ] What syntax do we want for the match expression? (#8818)
-- [ ] Do they have to be complete? If not, what happens? Warning and exception?
-- [ ] Under what condition do we give diagnostics for pattern-matching based on subsumption or completion? See http://www.cs.tufts.edu/~nr/cs257/archive/norman-ramsey/match.pdf for a discussion of implementation approaches.
+- [ ] Do we want pattern-matching in the `switch` statement? Or do we want a separate statement-based construct instead? (#8821)
+    - [ ] What does `goto case` mean?
+      - [ ] Do we limit `goto case` to constants?
+      - [ ] Or do we allow a non-constant expression in a `goto case` statement?
+      - [ ] If limited to constants, must its value match an existing constant label?
+      - [ ] Can a constant `case` label with a `when` clause be the target of `goto case`?
+    - [ ] How do we write the rules for the switch-expression (conversion) and matching labels (i.e. constant patterns) so that it approximates the current behavior?
+    - [ ] Do we allow multiple cases in the same `switch` block if one of them defines a pattern variable?
+- [ ] What syntax do we want for the `match` expression? (#8818)
+  - [ ] Does a `match` expression have to be complete? If not, what happens? Warning? Exception? Both?
+  - [ ] What about the `case` expression?
+- [ ] Under what condition do we give diagnostics for pattern-matching based on subsumption or completion? See http://www.cs.tufts.edu/~nr/cs257/archive/norman-ramsey/match.pdf for a discussion of implementation approaches. We probably need to select (and specify?) an approach.
 - [ ] Should we combine the property pattern with the type pattern so as to allow giving the object a name? If so, what syntax?
 - [ ] What do we think about the let statement?
+  - [ ] Do we require the match be irrefutable? If not, do we give a warning? Or let definite-assignment issues alert the user to any problems?
+  - [ ] Do we support an else?
 - [ ] There are some scoping questions for pattern variables. #9452
   - [ ] Need to get LDM approval for design change around scope of pattern variables declared within a constructor initializer #9452 
   - [ ] Also questions about multiple field initializers, local initializers, ctor-initializers (how far does the scope extend?)
 - [ ] Need detailed spec for name lookup of property in a property pattern #9255
   - [ ] [Pattern Matching] Should a property-pattern be capable of referencing an event? #9515
-- [ ] Two small clarifications need to be integrated into the spec (#7703)
-- [ ] We need to specify and implement the user-defined pattern forms: user-defined `operator is`
+- [X] Two small clarifications need to be integrated into the spec (#7703)
+- [ ] We need to specify and implement the user-defined pattern forms: user-defined `operator is`?
   - [ ] static void with self-receiver
   - [ ] static bool for active patterns
   - [ ] instance bool for captured data (regex)
   - [ ] Do we want to support "breakpoints inside" patterns (#9095)
 - [ ] What is the correct precedence of *throw-expression*? Should *assignment* be allowed as its subexpression?
+- [ ] @jaredpar suggested that, by analogy with the integral types, we should match floating-point literal patterns across floating-point types.
 
-Progress checklist:
-- [ ] Add a decision tree to enable
+Implementation progress checklist:
+- [ ] **Match constant patterns with appropriate integral conversions** (#8819)
+- [ ] **Allow declaration of `operator is`** and use it for recursive patterns.
+- [ ] **Add a decision tree** to enable
   - [ ] completeness checking: a mutli-armed pattern-matching expression is required to be complete
   - [ ] subsumption checking: a branch of a switch statement or match expression may not be subsumed by the totality of previous branches (#8823)
   - [ ] Generate efficient code like `switch` does in corresponding situations. (#8820)
@@ -32,35 +45,25 @@ Progress checklist:
   - [x] Add tests for the parser, including precedence tests for the edge cases.
   - [ ] Augment `TestResource.AllInOneCSharpCode` to handle all pattern forms.
 - [x] Check for feature availability in the parser (error if feature not supported).
+  - [ ] Do not generate any new syntax nodes in C# 6 mode. 
 - [X] Error pattern matching to a nullable value type
 - [x] Implement pattern matching to a type that is an unconstrained type variable (requires a double type test)
-- [ ] Implement and test scoping in remaining "odd" contexts (where the scope is not the enclosing statement)
-  - [x] pattern matching in ctor-initializers
-  - [x] pattern matching in catch filters
-  - [x] pattern matching in field initializers
-  - [x] pattern matching in expression-bodied methods and properties
-  - [x] pattern matching in an expression-bodied lambda
-  - [x] pattern matching in an expression-bodied local function
-  - [x] pattern matching in attributes and parameter defaults (lookup and error recovery)
-  - [x] test these "odd" contexts in `SemanticModel`.
 - [ ] Semantics and code-gen for all pattern forms
   - [X] Type ID
   - [x] *
   - [x] 3
     - [X] matching with exact type for integral constants (as a short-term hack)
-    - [ ] matching with appropriate integral conversions (#8819)
   - [x] `var` ID
   - [x] Type { ID is Pattern ... }
   - ~~Type ( Pattern ... )~~ This will be done when Records are integrated.
 - [ ] Extend the switch statement to handle patterns
   - [x] Parser
-  - [ ] Syntax Tests
+  - [x] Syntax Tests
   - [x] Binding
   - [ ] Binding (failure cases) tests
   - [x] Flow analysis
   - [x] Lowering
   - [x] Code-gen tests
-- [ ] Allow declaration of `operator is`
 - [x] An expression form for mutli-armed pattern-matching (`match`?)
 - [ ] Extend the scope of a pattern variable declared in a catch filter to the catch block. (#8814)
 - [ ] Implement and test pattern variable scoping for all statements (#8817)
@@ -81,7 +84,8 @@ Progress checklist:
     - [ ] Is a method
     - [ ] Is an indexed property
     - [ ] Is a nested type
-    - [X] In inaccessible
+    - [X] Is inaccessible
+    - [ ] Is ambiguous
     - [ ] Does not exist
 - [ ] `IOperation` support for pattern-matching (#8699)
 - [ ] Some unit tests that were disabled during development need to be re-enabled (#8778)

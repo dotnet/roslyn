@@ -1,7 +1,7 @@
 Pattern Matching for C#
 =======================
 
-Pattern matching extensions for C# enable many of the benefits of algebraic data types and pattern matching from functional languages, but in a way that smoothly integrates with the feel of the underlying language. The basic features are: [record types](records.md), which are types whose semantic meaning is described by the shape of the data; and pattern matching, which is a new expression form that enables extremely concise multilevel decomposition of these data types. Elements of this approach are inspired by related features in the programming languages [F#](http://www.msr-waypoint.net/pubs/79947/p29-syme.pdf "Extensible Pattern Matching Via a Lightweight Language") and [Scala](http://lampwww.epfl.ch/~emir/written/MatchingObjectsWithPatterns-TR.pdf "Matching Objects With Patterns").
+Pattern matching extensions for C# enable many of the benefits of algebraic data types and pattern matching from functional languages, but in a way that smoothly integrates with the feel of the underlying language. The basic features are: [record types](records.md), which are types whose semantic meaning is described by the shape of the data; and pattern matching, which is a new expression form that enables extremely concise multilevel decomposition of these data types. Elements of bese.pdf "Extensible Pattern Matching Via a Lightweight Language") and [Scala](http://lampwww.epfl.ch/~emir/written/MatchingObjectsWithPatterns-TR.pdf "Matching Objects With Patterns").
 
 ## Is Expression
 
@@ -233,6 +233,7 @@ The `switch` statement is extended to select for execution the first block havin
 ```antlr
 switch-label
     : 'case' complex-pattern case-guard? ':'
+    | 'case' constant-expression case-guard? ':'
     | 'default' ':'
     ;
 
@@ -242,6 +243,7 @@ case-guard
 ```
 
 [TODO: we need to explain the interaction with definite assignment here.]
+[TODO: we need to describe the scope of pattern variables appearing in the switch-label.]
 
 The order in which patterns are matched is not defined. A compiler is permitted to match patterns out of order, and to reuse the results of already matched patterns to compute the result of matching of other patterns.
 
@@ -259,11 +261,7 @@ The C# language syntax is augmented with the following syntactic productions:
 relational-expression
     : match-expression
     ;
-```
 
-We add the *match-expression* as a new kind of *relational-expression*.
-
-```antlr
 match-expression
     : relational-expression 'switch' match-block
     ;
@@ -276,11 +274,7 @@ match-sections
 	: match-section
 	| match-sections ',' match-section
 	;
-```
 
-At least one *match-section* is required.
-
-```antlr
 match-section
     : 'case' pattern case-guard? ':' expression
     ;
@@ -292,7 +286,7 @@ case-guard
 
 The *match-expression* is not allowed as an *expression-statement*.
 
-The type of the *match-expression* is the *least common type* of the expressions appearing to the right of the `:` tokens of the *match section*s.
+The type of the *match-expression* is the *best common type* of the expressions appearing to the right of the `:` tokens of the *match section*s.
 
 It is an error if the compiler can prove (using a set of techniques that has not yet been specified) that some *match-section*'s pattern cannot affect the result because some previous pattern will always match.
 
@@ -373,8 +367,8 @@ is shorthand for
 (i.e. a *var-pattern*) and is a convenient way for declaring a read-only local variable.
 
 Semantically, it is an error unless precisely one of the following is true
-1. the compiler can prove that the expression always matches the pattern; or
-2. an `else` clause is present.
+- the compiler can prove that the expression always matches the pattern; or
+- an `else` clause is present.
 
 Any pattern variables in the *pattern* are in scope throughout the enclosing block. They are not definitely assigned before the `else` clause. They are definitely assigned after the *let-statement* if there is no `else` clause or they are definitely assigned at the end of the `else` clause (which could only occur because the end point of the `else` clause is unreachable). It is an error to use these variables before their point of definition.
 
@@ -382,7 +376,7 @@ A *let-statement* is a *block-statement* and not an *embedded-statement* because
 
 If a `when` clause is present, the expression following it must be of type `bool`.
 
-Ar runtime the expression to the right of `=` is evaluated and matched against the *pattern*. If the match fails control transfers to the `else` clause. If the match succeeds and there is a `when` clause, the expression following `when` is evaluated, and if its value is `false` control transfers to the `else` clause.
+At runtime the expression to the right of `=` is evaluated and matched against the *pattern*. If the match fails control transfers to the `else` clause. If the match succeeds and there is a `when` clause, the expression following `when` is evaluated, and if its value is `false` control transfers to the `else` clause.
 
 ## Some Possible Optimizations
 
@@ -537,5 +531,4 @@ Much of the Roslyn compiler code base, and client code written to use Roslyn for
 *	Pattern matching with List<T>, Dictionary<K, V>
 *	How should the type `dynamic` interact with pattern matching?
 *	In what situations should the compiler be required by specification to warn about a match that must fail. E.g. switch on a `byte` but case label is out of range?
-*	Should it be possible to combine a recursive pattern and a property pattern into a single pattern, like `Point(int x, int y) { Length is 5 }` ?
-*	Should it be possible to name the whole matched thing in a property and/or recursive pattern, like `case Point(2, int x) p:` ?
+*	Should it be possible to name the whole matched thing in a property and/or recursive pattern, like `case Point p (2, int x):` ?

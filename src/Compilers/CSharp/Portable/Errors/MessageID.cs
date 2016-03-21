@@ -119,6 +119,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         IDS_FeatureLocalFunctions = MessageBase + 12708,
 
         IDS_FeatureRefLocalsReturns = MessageBase + 12710,
+
+        IDS_ThrowExpression = MessageBase + 12711,
     }
 
     // Message IDs may refer to strings that need to be localized.

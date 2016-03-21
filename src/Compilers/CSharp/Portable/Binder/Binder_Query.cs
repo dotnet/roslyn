@@ -568,21 +568,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 SourceLocation errorLocation = new SourceLocation(let.SyntaxTree, new TextSpan(let.Identifier.SpanStart, let.Expression.Span.End - let.Identifier.SpanStart));
                 if (!yExpression.HasAnyErrors && !yExpression.HasExpressionType())
                 {
-                    MessageID id = MessageID.IDS_NULL;
-                    if (yExpression.Kind == BoundKind.UnboundLambda)
-                    {
-                        id = ((UnboundLambda)yExpression).MessageID;
-                    }
-                    else if (yExpression.Kind == BoundKind.MethodGroup)
-                    {
-                        id = MessageID.IDS_MethodGroup;
-                    }
-                    else
-                    {
-                        Debug.Assert(yExpression.IsLiteralNull(), "How did we successfully bind an expression without a type?");
-                    }
-
-                    Error(d, ErrorCode.ERR_QueryRangeVariableAssignedBadValue, errorLocation, id.Localize());
+                    Error(d, ErrorCode.ERR_QueryRangeVariableAssignedBadValue, errorLocation, yExpression.Display);
                     yExpression = new BoundBadExpression(yExpression.Syntax, LookupResultKind.Empty, ImmutableArray<Symbol>.Empty, ImmutableArray.Create<BoundNode>(yExpression), CreateErrorType());
                 }
                 else if (!yExpression.HasAnyErrors && yExpression.Type.SpecialType == SpecialType.System_Void)

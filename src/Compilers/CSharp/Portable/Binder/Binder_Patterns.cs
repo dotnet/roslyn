@@ -50,6 +50,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return new BoundWildcardPattern(node);
 
                 default:
+                    // PROTOTYPE: Can this occur due to parser error recovery? If so, how to handle?
                     throw ExceptionUtilities.UnexpectedValue(node.Kind());
             }
         }
@@ -64,11 +65,10 @@ namespace Microsoft.CodeAnalysis.CSharp
             var type = (NamedTypeSymbol)this.BindType(node.Type, diagnostics);
             hasErrors = hasErrors || CheckValidPatternType(node.Type, operand, operandType, type, false, diagnostics);
 
-            // We intend that (positional) recursive pattern-matching should be defined in terms of
-            // a pattern of user-defined methods or operators. Tentatively, perhaps a method called
-            // GetValues that has an out parameter for each position of the recursive pattern. But
-            // for now we try to *infer* a positional pattern-matching operation from the presence of
-            // an accessible constructor.
+            // PROTOTYPE: We intend that (positional) recursive pattern-matching should be defined in terms of
+            // PROTOTYPE: a pattern of user-defined methods or operators. As currently specified it is `operator is`.
+            // PROTOTYPE: But for now we try to *infer* a positional pattern-matching operation from the presence of
+            // PROTOTYPE: an accessible constructor.
             var correspondingMembers = default(ImmutableArray<Symbol>);
             HashSet<DiagnosticInfo> useSiteDiagnostics = null;
             var memberNames = type.MemberNames;
@@ -112,6 +112,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     if (!correspondingMembersForCtor.SequenceEqual(correspondingMembers, (s1, s2) => s1 == s2))
                     {
                         correspondingMembersForCtor.Free();
+                        // PROTOTYPE: If we decide to support this, we need a properly i18n'd diagnostic.
                         Error(diagnostics, ErrorCode.ERR_FeatureIsUnimplemented, node,
                             "cannot infer a positional pattern from conflicting constructors");
                         diagnostics.Add(node, useSiteDiagnostics);
@@ -124,6 +125,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (correspondingMembers == null)
             {
+                // PROTOTYPE: If we decide to support this, we need a properly i18n'd diagnostic.
                 Error(diagnostics, ErrorCode.ERR_FeatureIsUnimplemented, node,
                     "cannot infer a positional pattern from any accessible constructor");
                 diagnostics.Add(node, useSiteDiagnostics);
@@ -260,6 +262,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             bool hasErrors = boundMember.HasAnyErrors || implicitReceiver.HasAnyErrors;
 
+            // PROTOTYPE: the following may be needed if we end up supporting an indexed property.
             //ImmutableArray<BoundExpression> arguments = ImmutableArray<BoundExpression>.Empty;
             //ImmutableArray<string> argumentNamesOpt = default(ImmutableArray<string>);
             //ImmutableArray<int> argsToParamsOpt = default(ImmutableArray<int>);
@@ -273,8 +276,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                     break;
 
                 case BoundKind.IndexerAccess:
-                // TODO: Should a property pattern be capable of referencing an indexed property?
-                // https://github.com/dotnet/roslyn/issues/9375
+                // PROTOTYPE: Should a property pattern be capable of referencing an indexed property?
+                // PROTOTYPE: This is an open issue in the language specification
+                // PROTOTYPE: See https://github.com/dotnet/roslyn/issues/9375
                 //{
                 //    var indexer = (BoundIndexerAccess)boundMember;
                 //    arguments = indexer.Arguments;
@@ -286,8 +290,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                 //}
 
                 case BoundKind.DynamicIndexerAccess:
-                // TODO: Should a property pattern be capable of referencing a dynamic indexer?
-                // https://github.com/dotnet/roslyn/issues/9375
+                // PROTOTYPE: Should a property pattern be capable of referencing a dynamic indexer?
+                // PROTOTYPE: This is an open issue in the language specification
+                // PROTOTYPE: See https://github.com/dotnet/roslyn/issues/9375
                 //{
                 //    var indexer = (BoundDynamicIndexerAccess)boundMember;
                 //    arguments = indexer.Arguments;
@@ -297,8 +302,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                 //}
 
                 case BoundKind.EventAccess:
-                // TODO: Should a property pattern be capable of referencing an event?
-                // https://github.com/dotnet/roslyn/issues/9515
+                // PROTOTYPE: Should a property pattern be capable of referencing an event?
+                // PROTOTYPE: This is an open issue in the language specification
+                // PROTOTYPE: See https://github.com/dotnet/roslyn/issues/9515
 
                 default:
                     return BadSubpatternMemberAccess(boundMember, implicitReceiver, memberName, diagnostics, hasErrors);
@@ -345,14 +351,14 @@ namespace Microsoft.CodeAnalysis.CSharp
                         break;
 
                     default:
-                        // TODO: review and test this code path.
+                        // PROTOTYPE: We need to review and test this code path.
                         // https://github.com/dotnet/roslyn/issues/9542
                         Error(diagnostics, ErrorCode.ERR_PropertyLacksGet, memberName, member);
                         break;
                 }
             }
 
-            // TODO: review and test this code path. Is LookupResultKind.Inaccessible appropriate?
+            // PROTOTYPE: review and test this code path. Is LookupResultKind.Inaccessible appropriate?
             // https://github.com/dotnet/roslyn/issues/9542
             return ToBadExpression(boundMember, LookupResultKind.Inaccessible);
         }
@@ -371,7 +377,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 hasErrors = true;
             }
 
-            // TODO: check that the constant is valid for the given operand or operandType.
+            // PROTOTYPE: we still need to check that the constant is valid for the given operand or operandType.
             return new BoundConstantPattern(node, expression, hasErrors);
         }
 
@@ -411,7 +417,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     case ConversionKind.Boxing:
                     case ConversionKind.ExplicitNullable:
-                    case ConversionKind.ExplicitNumeric: // TODO: we should constrain this to integral?
+                    case ConversionKind.ExplicitNumeric: // PROTOTYPE: we should constrain this to integral? Need LDM decision
                     case ConversionKind.ExplicitReference:
                     case ConversionKind.Identity:
                     case ConversionKind.ImplicitReference:
@@ -548,7 +554,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             DiagnosticBag diagnostics)
         {
             var expression = BindValue(node.Left, diagnostics, BindValueKind.RValue);
-            // TODO: any constraints on a switch expression must be enforced here. For example,
+            // PROTOTYPE: any constraints on a switch expression must be enforced here. For example,
             // it must have a type (not be target-typed, lambda, null, etc)
 
             var sectionBuilder = ArrayBuilder<BoundMatchCase>.GetInstance();
@@ -572,30 +578,40 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 switch (node.Parent.Kind())
                 {
-                    case SyntaxKind.ConditionalExpression:
+                    case SyntaxKind.ConditionalExpression: // ?:
                         {
                             var papa = (ConditionalExpressionSyntax)node.Parent;
                             if (node == papa.WhenTrue || node == papa.WhenFalse) goto syntaxOk;
                             break;
                         }
-                    case SyntaxKind.CoalesceExpression:
+                    case SyntaxKind.CoalesceExpression: // ??
                         {
                             var papa = (BinaryExpressionSyntax)node.Parent;
                             if (node == papa.Right) goto syntaxOk;
                             break;
                         }
-                    case SyntaxKind.MatchSection:
+                    case SyntaxKind.MatchSection: // match
                         {
                             var papa = (MatchSectionSyntax)node.Parent;
                             if (node == papa.Expression) goto syntaxOk;
                             break;
                         }
-                    case SyntaxKind.ArrowExpressionClause:
+                    case SyntaxKind.ArrowExpressionClause: // =>
                         {
                             var papa = (ArrowExpressionClauseSyntax)node.Parent;
                             if (node == papa.Expression) goto syntaxOk;
                             break;
                         }
+                    // PROTOTYPE: It has been suggested that we allow throw on the right of && and ||, but
+                    // PROTOTYPE: due to the relative precedence the parser already rejects that.
+                    //case SyntaxKind.LogicalAndExpression: // &&
+                    //case SyntaxKind.LogicalOrExpression: // ||
+                    //    {
+                    //        // PROTOTYPE: it isn't clear what the semantics should be
+                    //        var papa = (BinaryExpressionSyntax)node.Parent;
+                    //        if (node == papa.Right) goto syntaxOk;
+                    //        break;
+                    //    }
                     default:
                         break;
                 }

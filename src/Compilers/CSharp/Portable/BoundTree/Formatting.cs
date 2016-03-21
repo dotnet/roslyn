@@ -4,6 +4,7 @@ using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
+using System.Diagnostics;
 
 namespace Microsoft.CodeAnalysis.CSharp
 {
@@ -14,7 +15,11 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// </summary>
         public virtual object Display
         {
-            get { return this.Type; }
+            get
+            {
+                Debug.Assert((object)this.Type != null, $"Unexpected null type in {this.GetType().Name}");
+                return this.Type;
+            }
         }
     }
 
@@ -63,6 +68,14 @@ namespace Microsoft.CodeAnalysis.CSharp
         public override object Display
         {
             get { throw ExceptionUtilities.Unreachable; }
+        }
+    }
+
+    internal sealed partial class BoundThrowExpression
+    {
+        public override object Display
+        {
+            get { return MessageID.IDS_ThrowExpression.Localize(); }
         }
     }
 }
