@@ -109,6 +109,8 @@ namespace Microsoft.CodeAnalysis.HubServices.SymbolSearch
         [Route(WellKnownHubServiceNames.SymbolSearch + "/" + nameof(FindPackagesWithType))]
         public HttpResponseMessage FindPackagesWithType(HubDataModel model)
         {
+            OnConfigurationChanged(model);
+
             return ProcessRequest<JObject>(model, (obj, c) =>
             {
                 var results = FindPackagesWithType(
@@ -164,6 +166,8 @@ namespace Microsoft.CodeAnalysis.HubServices.SymbolSearch
         [Route(WellKnownHubServiceNames.SymbolSearch + "/" + nameof(FindReferenceAssembliesWithType))]
         public HttpResponseMessage FindReferenceAssembliesWithType(HubDataModel model)
         {
+            OnConfigurationChanged(model);
+
             return ProcessRequest<JObject>(model, (obj, c) =>
             {
                 var results = FindReferenceAssembliesWithType(

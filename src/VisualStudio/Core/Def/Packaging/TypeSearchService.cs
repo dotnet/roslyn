@@ -55,11 +55,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Packaging
         {
             // Kick off a database update.  Wait a few seconds before starting so we don't
             // interfere too much with solution loading.
-            var sources = _installerService.PackageSources;
-            var json = new JObject(
-                new JProperty(HubProtocolConstants.CacheDirectory, _cacheDirectoryInfo.FullName),
-                new JProperty(HubProtocolConstants.PackageSources, 
-                    new JArray(sources.Select(ps => new JObject(new JProperty(ps.Name, ps.Source))))));
+            var json = CreateBaseSearchRequest();
 
             var unused = _hubClient.SendRequestAsync(
                 WellKnownHubServiceNames.SymbolSearch,
@@ -68,13 +64,26 @@ namespace Microsoft.VisualStudio.LanguageServices.Packaging
                 CancellationToken.None);
         }
 
+        private JObject CreateBaseSearchRequest()
+        {
+            var sources = _installerService.PackageSources;
+            var json = new JObject(
+                new JProperty(HubProtocolConstants.CacheDirectory, _cacheDirectoryInfo.FullName),
+                new JProperty(HubProtocolConstants.PackageSources,
+                    new JArray(sources.Select(ps => new JObject(new JProperty(ps.Name, ps.Source))))));
+            return json;
+        }
+
         public async Task<IEnumerable<PackageWithTypeResult>> FindPackagesWithTypeAsync(
             string source, string name, int arity, CancellationToken cancellationToken)
         {
-            var json = new JObject(
+            var json = CreateBaseSearchRequest();
+            json.Add(new[]
+            {
                 new JProperty(HubProtocolConstants.Source, source),
                 new JProperty(HubProtocolConstants.Name, name),
-                new JProperty(HubProtocolConstants.Arity, arity));
+                new JProperty(HubProtocolConstants.Arity, arity)
+            });
 
             var result = await _hubClient.SendRequestAsync(
                 WellKnownHubServiceNames.SymbolSearch,
@@ -150,9 +159,12 @@ namespace Microsoft.VisualStudio.LanguageServices.Packaging
         public async Task<IEnumerable<ReferenceAssemblyWithTypeResult>> FindReferenceAssembliesWithTypeAsync(
             string name, int arity, CancellationToken cancellationToken)
         {
-            var json = new JObject(
+            var json = CreateBaseSearchRequest();
+            json.Add(new[]
+            {
                 new JProperty(HubProtocolConstants.Name, name),
-                new JProperty(HubProtocolConstants.Arity, arity));
+                new JProperty(HubProtocolConstants.Arity, arity)
+            });
 
             var result = await _hubClient.SendRequestAsync(
                 WellKnownHubServiceNames.SymbolSearch,
