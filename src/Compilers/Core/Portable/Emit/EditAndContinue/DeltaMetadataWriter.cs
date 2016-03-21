@@ -7,12 +7,12 @@ using System.Diagnostics;
 using System.Linq;
 using System.Reflection.Metadata;
 using System.Reflection.Metadata.Ecma335;
+using System.Reflection.Metadata.Ecma335.Blobs;
 using System.Threading;
 using Microsoft.Cci;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CodeGen;
 using Roslyn.Utilities;
-using MetadataSizes = Microsoft.Cci.MetadataSizes;
 
 namespace Microsoft.CodeAnalysis.Emit
 {
@@ -52,7 +52,7 @@ namespace Microsoft.CodeAnalysis.Emit
             DefinitionMap definitionMap,
             SymbolChanges changes,
             CancellationToken cancellationToken)
-            : base(MakeHeapsBuilder(previousGeneration), null, context, messageProvider, false, false, cancellationToken)
+            : base(MakeTablesBuilder(previousGeneration), null, context, messageProvider, false, false, cancellationToken)
         {
             Debug.Assert(previousGeneration != null);
             Debug.Assert(encId != default(Guid));
@@ -88,9 +88,9 @@ namespace Microsoft.CodeAnalysis.Emit
             _addedOrChangedMethods = new Dictionary<IMethodDefinition, AddedOrChangedMethodInfo>();
         }
 
-        private static MetadataHeapsBuilder MakeHeapsBuilder(EmitBaseline previousGeneration)
+        private static MetadataBuilder MakeTablesBuilder(EmitBaseline previousGeneration)
         {
-            return new MetadataHeapsBuilder(
+            return new MetadataBuilder(
                 previousGeneration.UserStringStreamLength,
                 previousGeneration.StringStreamLength,
                 previousGeneration.BlobStreamLength,
@@ -618,8 +618,7 @@ namespace Microsoft.CodeAnalysis.Emit
             if (localVariables.Length > 0)
             {
                 var writer = PooledBlobBuilder.GetInstance();
-                writer.WriteByte(0x07);
-                writer.WriteCompressedInteger((uint)localVariables.Length);
+                var encoder = new BlobEncoder(writer).LocalVariableSignature(localVariables.Length);
 
                 foreach (ILocalDefinition local in localVariables)
                 {
@@ -627,18 +626,22 @@ namespace Microsoft.CodeAnalysis.Emit
                     if (signature == null)
                     {
                         int start = writer.Position;
-                        this.SerializeLocalVariableSignature(writer, local);
+                        encoder = SerializeLocalVariableSignature(encoder.AddVariable(), local);
                         signature = writer.ToArray(start, writer.Position - start);
                     }
                     else
                     {
+                        encoder = encoder.SkipVariable();
                         writer.WriteBytes(signature);
                     }
 
                     encInfos.Add(CreateEncLocalInfo(local, signature));
                 }
-
-                BlobIdx blobIndex = heaps.GetBlobIndex(writer);
+                
+                encoder.EndVariables();
+                
+                BlobIdx blobIndex = metadata.GetBlobIndex(writer);
+                
                 localSignatureRowId = GetOrAddStandAloneSignatureIndex(blobIndex);
                 writer.Free();
             }
@@ -684,7 +687,7 @@ namespace Microsoft.CodeAnalysis.Emit
             return new EncLocalInfo(localDef.SlotInfo, translatedType, localDef.Constraints, signature);
         }
 
-        protected override void PopulateEncLogTableRows(List<EncLogRow> table, ImmutableArray<int> rowCounts)
+        protected override void PopulateEncLogTableRows(ImmutableArray<int> rowCounts)
         {
             // The EncLog table is a log of all the operations needed
             // to update the previous metadata. That means all
@@ -692,45 +695,44 @@ namespace Microsoft.CodeAnalysis.Emit
             var previousSizes = _previousGeneration.TableSizes;
             var deltaSizes = this.GetDeltaTableSizes(rowCounts);
 
-            PopulateEncLogTableRows(table, TableIndex.AssemblyRef, previousSizes, deltaSizes);
-            PopulateEncLogTableRows(table, TableIndex.ModuleRef, previousSizes, deltaSizes);
-            PopulateEncLogTableRows(table, TableIndex.MemberRef, previousSizes, deltaSizes);
-            PopulateEncLogTableRows(table, TableIndex.MethodSpec, previousSizes, deltaSizes);
-            PopulateEncLogTableRows(table, TableIndex.TypeRef, previousSizes, deltaSizes);
-            PopulateEncLogTableRows(table, TableIndex.TypeSpec, previousSizes, deltaSizes);
-            PopulateEncLogTableRows(table, TableIndex.StandAloneSig, previousSizes, deltaSizes);
+            PopulateEncLogTableRows(TableIndex.AssemblyRef, previousSizes, deltaSizes);
+            PopulateEncLogTableRows(TableIndex.ModuleRef, previousSizes, deltaSizes);
+            PopulateEncLogTableRows(TableIndex.MemberRef, previousSizes, deltaSizes);
+            PopulateEncLogTableRows(TableIndex.MethodSpec, previousSizes, deltaSizes);
+            PopulateEncLogTableRows(TableIndex.TypeRef, previousSizes, deltaSizes);
+            PopulateEncLogTableRows(TableIndex.TypeSpec, previousSizes, deltaSizes);
+            PopulateEncLogTableRows(TableIndex.StandAloneSig, previousSizes, deltaSizes);
 
-            PopulateEncLogTableRows(table, _typeDefs, TokenTypeIds.TypeDef);
-            PopulateEncLogTableRows(table, TableIndex.EventMap, previousSizes, deltaSizes);
-            PopulateEncLogTableRows(table, TableIndex.PropertyMap, previousSizes, deltaSizes);
+            PopulateEncLogTableRows(_typeDefs, TokenTypeIds.TypeDef);
+            PopulateEncLogTableRows(TableIndex.EventMap, previousSizes, deltaSizes);
+            PopulateEncLogTableRows(TableIndex.PropertyMap, previousSizes, deltaSizes);
 
-            PopulateEncLogTableEventsOrProperties(table, _eventDefs, TokenTypeIds.Event, EncFuncCode.AddEvent, _eventMap, TokenTypeIds.EventMap);
-            PopulateEncLogTableFieldsOrMethods(table, _fieldDefs, TokenTypeIds.FieldDef, EncFuncCode.AddField);
-            PopulateEncLogTableFieldsOrMethods(table, _methodDefs, TokenTypeIds.MethodDef, EncFuncCode.AddMethod);
-            PopulateEncLogTableEventsOrProperties(table, _propertyDefs, TokenTypeIds.Property, EncFuncCode.AddProperty, _propertyMap, TokenTypeIds.PropertyMap);
+            PopulateEncLogTableEventsOrProperties(_eventDefs, TokenTypeIds.Event, EditAndContinueOperation.AddEvent, _eventMap, TokenTypeIds.EventMap);
+            PopulateEncLogTableFieldsOrMethods(_fieldDefs, TokenTypeIds.FieldDef, EditAndContinueOperation.AddField);
+            PopulateEncLogTableFieldsOrMethods(_methodDefs, TokenTypeIds.MethodDef, EditAndContinueOperation.AddMethod);
+            PopulateEncLogTableEventsOrProperties(_propertyDefs, TokenTypeIds.Property, EditAndContinueOperation.AddProperty, _propertyMap, TokenTypeIds.PropertyMap);
 
-            PopulateEncLogTableParameters(table);
+            PopulateEncLogTableParameters();
 
-            PopulateEncLogTableRows(table, TableIndex.Constant, previousSizes, deltaSizes);
-            PopulateEncLogTableRows(table, TableIndex.CustomAttribute, previousSizes, deltaSizes);
-            PopulateEncLogTableRows(table, TableIndex.DeclSecurity, previousSizes, deltaSizes);
-            PopulateEncLogTableRows(table, TableIndex.ClassLayout, previousSizes, deltaSizes);
-            PopulateEncLogTableRows(table, TableIndex.FieldLayout, previousSizes, deltaSizes);
-            PopulateEncLogTableRows(table, TableIndex.MethodSemantics, previousSizes, deltaSizes);
-            PopulateEncLogTableRows(table, TableIndex.MethodImpl, previousSizes, deltaSizes);
-            PopulateEncLogTableRows(table, TableIndex.ImplMap, previousSizes, deltaSizes);
-            PopulateEncLogTableRows(table, TableIndex.FieldRva, previousSizes, deltaSizes);
-            PopulateEncLogTableRows(table, TableIndex.NestedClass, previousSizes, deltaSizes);
-            PopulateEncLogTableRows(table, TableIndex.GenericParam, previousSizes, deltaSizes);
-            PopulateEncLogTableRows(table, TableIndex.InterfaceImpl, previousSizes, deltaSizes);
-            PopulateEncLogTableRows(table, TableIndex.GenericParamConstraint, previousSizes, deltaSizes);
+            PopulateEncLogTableRows(TableIndex.Constant, previousSizes, deltaSizes);
+            PopulateEncLogTableRows(TableIndex.CustomAttribute, previousSizes, deltaSizes);
+            PopulateEncLogTableRows(TableIndex.DeclSecurity, previousSizes, deltaSizes);
+            PopulateEncLogTableRows(TableIndex.ClassLayout, previousSizes, deltaSizes);
+            PopulateEncLogTableRows(TableIndex.FieldLayout, previousSizes, deltaSizes);
+            PopulateEncLogTableRows(TableIndex.MethodSemantics, previousSizes, deltaSizes);
+            PopulateEncLogTableRows(TableIndex.MethodImpl, previousSizes, deltaSizes);
+            PopulateEncLogTableRows(TableIndex.ImplMap, previousSizes, deltaSizes);
+            PopulateEncLogTableRows(TableIndex.FieldRva, previousSizes, deltaSizes);
+            PopulateEncLogTableRows(TableIndex.NestedClass, previousSizes, deltaSizes);
+            PopulateEncLogTableRows(TableIndex.GenericParam, previousSizes, deltaSizes);
+            PopulateEncLogTableRows(TableIndex.InterfaceImpl, previousSizes, deltaSizes);
+            PopulateEncLogTableRows(TableIndex.GenericParamConstraint, previousSizes, deltaSizes);
         }
 
         private void PopulateEncLogTableEventsOrProperties<T>(
-            List<EncLogRow> table,
             DefinitionIndex<T> index,
             int tokenType,
-            EncFuncCode addCode,
+            EditAndContinueOperation addCode,
             EventOrPropertyMapIndex map,
             int mapTokenType)
             where T : ITypeDefinitionMember
@@ -746,78 +748,82 @@ namespace Microsoft.CodeAnalysis.Emit
                     var ok = map.TryGetValue(typeIndex, out mapIndex);
                     Debug.Assert(ok);
 
-                    int mapToken = mapTokenType | mapIndex;
-                    table.Add(new EncLogRow() { Token = (uint)mapToken, FuncCode = addCode });
+                    metadata.AddEncLogEntry(
+                        token: mapTokenType | mapIndex,
+                        code: addCode);
                 }
 
-                int token = tokenType | index[member];
-                table.Add(new EncLogRow() { Token = (uint)token, FuncCode = EncFuncCode.Default });
+                metadata.AddEncLogEntry(
+                    token: tokenType | index[member],
+                    code: EditAndContinueOperation.Default);
             }
         }
 
         private void PopulateEncLogTableFieldsOrMethods<T>(
-            List<EncLogRow> table,
             DefinitionIndex<T> index,
             int tokenType,
-            EncFuncCode addCode)
+            EditAndContinueOperation addCode)
             where T : ITypeDefinitionMember
         {
             foreach (var member in index.GetRows())
             {
                 if (index.IsAddedNotChanged(member))
                 {
-                    int typeToken = TokenTypeIds.TypeDef | _typeDefs[(INamedTypeDefinition)member.ContainingTypeDefinition];
-                    table.Add(new EncLogRow() { Token = (uint)typeToken, FuncCode = addCode });
+                    metadata.AddEncLogEntry(
+                        token: TokenTypeIds.TypeDef | _typeDefs[(INamedTypeDefinition)member.ContainingTypeDefinition],
+                        code: addCode);
                 }
 
-                int token = tokenType | index[member];
-                table.Add(new EncLogRow() { Token = (uint)token, FuncCode = EncFuncCode.Default });
+                metadata.AddEncLogEntry(
+                    token: tokenType | index[member],
+                    code: EditAndContinueOperation.Default);
             }
         }
 
-        private void PopulateEncLogTableParameters(List<EncLogRow> table)
+        private void PopulateEncLogTableParameters()
         {
             var parameterFirstId = _parameterDefs.FirstRowId;
             for (int i = 0; i < _parameterDefList.Count; i++)
             {
                 var methodDef = _parameterDefList[i].Key;
-                int methodToken = TokenTypeIds.MethodDef | _methodDefs[methodDef];
-                table.Add(new EncLogRow() { Token = (uint)methodToken, FuncCode = EncFuncCode.AddParameter });
 
-                int paramRowId = parameterFirstId + i;
-                int token = TokenTypeIds.ParamDef | paramRowId;
-                table.Add(new EncLogRow() { Token = (uint)token, FuncCode = EncFuncCode.Default });
+                metadata.AddEncLogEntry(
+                    token: TokenTypeIds.MethodDef | _methodDefs[methodDef],
+                    code: EditAndContinueOperation.AddParameter);
+
+                metadata.AddEncLogEntry(
+                    token: TokenTypeIds.ParamDef | (parameterFirstId + i),
+                    code: EditAndContinueOperation.Default);
             }
         }
 
-        private static void PopulateEncLogTableRows<T>(List<EncLogRow> table, DefinitionIndex<T> index, int tokenType)
+        private void PopulateEncLogTableRows<T>(DefinitionIndex<T> index, int tokenType)
             where T : IDefinition
         {
             foreach (var member in index.GetRows())
             {
-                int token = tokenType | index[member];
-                table.Add(new EncLogRow() { Token = (uint)token, FuncCode = EncFuncCode.Default });
+                metadata.AddEncLogEntry(
+                    token: tokenType | index[member],
+                    code: EditAndContinueOperation.Default);
             }
         }
 
-        private static void PopulateEncLogTableRows(
-            List<EncLogRow> table,
-            TableIndex tableIndex,
-            ImmutableArray<int> previousSizes,
-            ImmutableArray<int> deltaSizes)
+        private void PopulateEncLogTableRows(TableIndex tableIndex, ImmutableArray<int> previousSizes, ImmutableArray<int> deltaSizes)
         {
-            PopulateEncLogTableRows(table, ((uint)tableIndex) << 24, (uint)previousSizes[(int)tableIndex] + 1, deltaSizes[(int)tableIndex]);
+            PopulateEncLogTableRows((int)tableIndex << 24, previousSizes[(int)tableIndex] + 1, deltaSizes[(int)tableIndex]);
         }
 
-        private static void PopulateEncLogTableRows(List<EncLogRow> table, uint tokenType, uint firstRowId, int nTokens)
+        private void PopulateEncLogTableRows(int tokenType, int firstRowId, int nTokens)
         {
             for (int i = 0; i < nTokens; i++)
             {
-                table.Add(new EncLogRow() { Token = tokenType | (firstRowId + (uint)i), FuncCode = EncFuncCode.Default });
+                metadata.AddEncLogEntry(
+                    token: tokenType | (firstRowId + i),
+                    code: EditAndContinueOperation.Default);
             }
         }
 
-        protected override void PopulateEncMapTableRows(List<EncMapRow> table, ImmutableArray<int> rowCounts)
+        protected override void PopulateEncMapTableRows(ImmutableArray<int> rowCounts)
         {
             // The EncMap table maps from offset in each table in the delta
             // metadata to token. As such, the EncMap is a concatenated
@@ -865,7 +871,7 @@ namespace Microsoft.CodeAnalysis.Emit
 
             foreach (var token in tokens)
             {
-                table.Add(new EncMapRow() { Token = (uint)token });
+                metadata.AddEncMapEntry(token);
             }
 
             tokens.Free();
@@ -951,25 +957,23 @@ namespace Microsoft.CodeAnalysis.Emit
             }
         }
 
-        protected override void PopulateEventMapTableRows(List<EventMapRow> table)
+        protected override void PopulateEventMapTableRows()
         {
             foreach (var typeId in _eventMap.GetRows())
             {
-                var r = new EventMapRow();
-                r.Parent = (uint)typeId;
-                r.EventList = (uint)_eventMap[typeId];
-                table.Add(r);
+                metadata.AddEventMap(
+                    typeDefinitionRowId: typeId,
+                    eventList: _eventMap[typeId]);
             }
         }
 
-        protected override void PopulatePropertyMapTableRows(List<PropertyMapRow> table)
+        protected override void PopulatePropertyMapTableRows()
         {
             foreach (var typeId in _propertyMap.GetRows())
             {
-                var r = new PropertyMapRow();
-                r.Parent = (uint)typeId;
-                r.PropertyList = (uint)_propertyMap[typeId];
-                table.Add(r);
+                metadata.AddPropertyMap(
+                    typeDefinitionRowId: typeId,
+                    propertyList: _propertyMap[typeId]);
             }
         }
 

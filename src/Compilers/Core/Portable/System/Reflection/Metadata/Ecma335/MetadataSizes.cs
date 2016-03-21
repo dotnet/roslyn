@@ -5,7 +5,7 @@ using System.Diagnostics;
 using System.Reflection.Metadata.Ecma335;
 using Roslyn.Utilities;
 
-namespace Microsoft.Cci
+namespace System.Reflection.Metadata.Ecma335
 {
     internal sealed class MetadataSizes
     {
@@ -68,6 +68,11 @@ namespace Microsoft.Cci
         public readonly ImmutableArray<int> RowCounts;
 
         /// <summary>
+        /// External table row counts. 
+        /// </summary>
+        public readonly ImmutableArray<int> ExternalRowCounts;
+
+        /// <summary>
         /// Non-empty tables that are emitted into the metadata table stream.
         /// </summary>
         public readonly ulong PresentTablesMask;
@@ -99,77 +104,34 @@ namespace Microsoft.Cci
         /// </summary>
         public readonly int StandalonePdbStreamSize;
 
-        /// <summary>
-        /// The size of IL stream.
-        /// </summary>
-        public readonly int ILStreamSize;
-
-        /// <summary>
-        /// The size of mapped field data stream.
-        /// Aligned to <see cref="MetadataWriter.MappedFieldDataAlignment"/>.
-        /// </summary>
-        public readonly int MappedFieldDataSize;
-
-        /// <summary>
-        /// The size of managed resource data stream.
-        /// Aligned to <see cref="MetadataWriter.ManagedResourcesDataAlignment"/>.
-        /// </summary>
-        public readonly int ResourceDataSize;
-
-        /// <summary>
-        /// Size of strong name hash.
-        /// </summary>
-        public readonly int StrongNameSignatureSize;
-
         public MetadataSizes(
             ImmutableArray<int> rowCounts,
+            ImmutableArray<int> externalRowCounts,
             ImmutableArray<int> heapSizes,
-            int ilStreamSize,
-            int mappedFieldDataSize,
-            int resourceDataSize,
-            int strongNameSignatureSize,
             bool isMinimalDelta,
-            bool emitStandaloneDebugMetadata,
             bool isStandaloneDebugMetadata)
         {
             Debug.Assert(rowCounts.Length == MetadataTokens.TableCount);
+            Debug.Assert(externalRowCounts.Length == MetadataTokens.TableCount);
             Debug.Assert(heapSizes.Length == MetadataTokens.HeapCount);
-            Debug.Assert(!isStandaloneDebugMetadata || emitStandaloneDebugMetadata);
 
             const byte large = 4;
             const byte small = 2;
 
             this.RowCounts = rowCounts;
+            this.ExternalRowCounts = externalRowCounts;
             this.HeapSizes = heapSizes;
-            this.ResourceDataSize = resourceDataSize;
-            this.ILStreamSize = ilStreamSize;
-            this.MappedFieldDataSize = mappedFieldDataSize;
-            this.StrongNameSignatureSize = strongNameSignatureSize;
             this.IsMinimalDelta = isMinimalDelta;
 
             this.BlobIndexSize = (isMinimalDelta || heapSizes[(int)HeapIndex.Blob] > ushort.MaxValue) ? large : small;
             this.StringIndexSize = (isMinimalDelta || heapSizes[(int)HeapIndex.String] > ushort.MaxValue) ? large : small;
             this.GuidIndexSize = (isMinimalDelta || heapSizes[(int)HeapIndex.Guid] > ushort.MaxValue) ? large : small;
 
-            ulong allTables = ComputeNonEmptyTableMask(rowCounts);
-            if (!emitStandaloneDebugMetadata)
-            {
-                // all tables
-                PresentTablesMask = allTables;
-                ExternalTablesMask = 0;
-            }
-            else if (isStandaloneDebugMetadata)
-            {
-                // debug tables:
-                PresentTablesMask = allTables & DebugMetadataTablesMask;
-                ExternalTablesMask = allTables & ~DebugMetadataTablesMask;
-            }
-            else
-            {
-                // type-system tables only:
-                PresentTablesMask = allTables & ~DebugMetadataTablesMask;
-                ExternalTablesMask = 0;
-            }
+            this.PresentTablesMask = ComputeNonEmptyTableMask(rowCounts);
+            this.ExternalTablesMask = ComputeNonEmptyTableMask(externalRowCounts);
+
+            // table can either be present or external, it can't be both:
+            Debug.Assert((PresentTablesMask & ExternalTablesMask) == 0);
 
             this.CustomAttributeTypeCodedIndexSize = this.GetReferenceByteSize(3, TableIndex.MethodDef, TableIndex.MemberRef);
             this.DeclSecurityCodedIndexSize = this.GetReferenceByteSize(2, TableIndex.MethodDef, TableIndex.TypeDef);
@@ -414,18 +376,11 @@ namespace Microsoft.Cci
 
         internal int CalculateStandalonePdbStreamSize()
         {
-            int result = PdbIdSize +          // PDB ID
-                         sizeof(int) +        // EntryPoint
-                         sizeof(long);        // ReferencedTypeSystemTables
-
-            // external table row counts
-            for (int i = 0; i < RowCounts.Length; i++)
-            {
-                if (((1UL << i) & ExternalTablesMask) != 0)
-                {
-                    result += sizeof(int);
-                }
-            }
+            int result = 
+                PdbIdSize +                                                         // PDB ID
+                sizeof(int) +                                                       // EntryPoint
+                sizeof(long) +                                                      // ReferencedTypeSystemTables
+                BitArithmeticUtilities.CountBits(ExternalTablesMask) * sizeof(int); // External row counts
 
             Debug.Assert(result % StreamAlignment == 0);
             return result;
@@ -447,7 +402,7 @@ namespace Microsoft.Cci
 
         private int GetTableSize(TableIndex index, int rowSize)
         {
-            return (PresentTablesMask & (1UL << (int)index)) != 0 ? RowCounts[(int)index] * rowSize : 0;
+            return RowCounts[(int)index] * rowSize;
         }
 
         private byte GetReferenceByteSize(int tagBitSize, params TableIndex[] tables)
@@ -464,7 +419,10 @@ namespace Microsoft.Cci
             int maxIndex = (1 << bitCount) - 1;
             foreach (TableIndex table in tables)
             {
-                if (RowCounts[(int)table] > maxIndex)
+                // table can be either local or external, but not both:
+                Debug.Assert(RowCounts[(int)table] == 0 || ExternalRowCounts[(int)table] == 0);
+
+                if (RowCounts[(int)table] + ExternalRowCounts[(int)table] > maxIndex)
                 {
                     return false;
                 }

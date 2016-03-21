@@ -144,12 +144,11 @@ namespace Microsoft.CodeAnalysis.Emit.NoPia
                 }
             }
 
-            uint Cci.IFieldDefinition.Offset
+            int Cci.IFieldDefinition.Offset
             {
                 get
                 {
-                    var offset = TypeLayoutOffset;
-                    return (uint)(offset ?? 0);
+                    return TypeLayoutOffset ?? 0;
                 }
             }
 

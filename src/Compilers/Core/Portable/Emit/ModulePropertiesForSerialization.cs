@@ -40,30 +40,9 @@ namespace Microsoft.Cci
         public readonly bool Prefers32Bit;
 
         /// <summary>
-        /// The first part of a two part version number indicating the version of the format used to persist this module. For example, the 1 in 1.0.
-        /// </summary>
-        public readonly byte MetadataFormatMajorVersion = 2;
-
-        /// <summary>
-        /// The second part of a two part version number indicating the version of the format used to persist this module. For example, the 0 in 1.0.
-        /// </summary>
-        public readonly byte MetadataFormatMinorVersion;
-
-        /// <summary>
         /// A globally unique persistent identifier for this module.
         /// </summary>
         public readonly Guid PersistentIdentifier;
-
-        /// <summary>
-        /// True if the module contains only IL and is processor independent.
-        /// </summary>
-        public readonly bool ILOnly = true;
-
-        /// <summary>
-        /// True if the instructions in this module must be compiled in such a way that the debugging experience is not compromised.
-        /// To set the value of this property, add an instance of System.Diagnostics.DebuggableAttribute to the MetadataAttributes list.
-        /// </summary>
-        public readonly bool TrackDebugData;
 
         /// <summary>
         /// The preferred memory address at which the module is to be loaded at runtime.
@@ -142,7 +121,6 @@ namespace Microsoft.Cci
             string targetRuntimeVersion,
             Machine machine,
             bool prefer32Bit,
-            bool trackDebugData,
             ulong baseAddress,
             ulong sizeOfHeapReserve,
             ulong sizeOfHeapCommit,
@@ -164,7 +142,6 @@ namespace Microsoft.Cci
             this.TargetRuntimeVersion = targetRuntimeVersion;
             this.Machine = machine;
             this.Prefers32Bit = prefer32Bit;
-            this.TrackDebugData = trackDebugData;
             this.BaseAddress = baseAddress;
             this.SizeOfHeapReserve = sizeOfHeapReserve;
             this.SizeOfHeapCommit = sizeOfHeapCommit;
@@ -201,37 +178,11 @@ namespace Microsoft.Cci
             return result;
         }
 
-        /// <summary>
-        /// If set, the module must include a machine code stub that transfers control to the virtual execution system.
-        /// </summary>
-        internal bool RequiresStartupStub => Machine == Machine.I386 || Machine == 0;
-
-        /// <summary>
-        /// If set, the module contains instructions or assumptions that are specific to the AMD 64 bit instruction set. 
-        /// </summary>
-        internal bool RequiresAmdInstructionSet => Machine == Machine.Amd64;
-
-        /// <summary>
-        /// If set, the module contains instructions that assume a 32 bit instruction set. For example it may depend on an address being 32 bits.
-        /// This may be true even if the module contains only IL instructions because of PlatformInvoke and COM interop.
-        /// </summary>
-        internal bool Requires32bits => Machine == Machine.I386;
-
-        /// <summary>
-        /// If set, the module contains instructions that assume a 64 bit instruction set. For example it may depend on an address being 64 bits.
-        /// This may be true even if the module contains only IL instructions because of PlatformInvoke and COM interop.
-        /// </summary>
-        internal bool Requires64bits => Machine == Machine.Amd64 || Machine == Machine.IA64;
-
         internal CorFlags GetCorHeaderFlags()
         {
-            CorFlags result = 0;
-            if (ILOnly)
-            {
-                result |= CorFlags.ILOnly;
-            }
+            CorFlags result = CorFlags.ILOnly;
 
-            if (Requires32bits)
+            if (Machine == Machine.I386)
             {
                 result |= CorFlags.Requires32Bit;
             }
@@ -239,11 +190,6 @@ namespace Microsoft.Cci
             if (StrongNameSigned)
             {
                 result |= CorFlags.StrongNameSigned;
-            }
-
-            if (TrackDebugData)
-            {
-                result |= CorFlags.TrackDebugData;
             }
 
             if (Prefers32Bit)

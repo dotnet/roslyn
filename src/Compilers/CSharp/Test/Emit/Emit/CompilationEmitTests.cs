@@ -2559,6 +2559,7 @@ public interface ITestPlatform
             var refCompilation = CreateCompilation(refSource, options: TestOptions.ReleaseModule.WithPlatform(Platform.Itanium), assemblyName: "PlatformMismatch");
 
             refCompilation.VerifyEmitDiagnostics(emitOptions);
+
             var imageRef = refCompilation.EmitToImageReference();
 
             string useSource = @"

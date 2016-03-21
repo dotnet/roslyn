@@ -1,0 +1,1036 @@
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+
+#pragma warning disable RS0008 // Implement IEquatable<T> when overriding Object.Equals
+
+using System.Collections.Immutable;
+using System.ComponentModel;
+using Microsoft.Cci;
+
+namespace System.Reflection.Metadata.Ecma335.Blobs
+{
+    // TODO: arg validation
+    // TODO: can we hide useless inherited methods?
+    // TODO: MethodBody
+    // TODO: debug metadata blobs
+    // TODO: MethodBodyTokenRewriter
+    // TODO: Skip- for each Add- method of all enumerators that count elements (see local vars)
+
+    //[EditorBrowsable(EditorBrowsableState.Never)]
+    //public override bool Equals(object obj) => base.Equals(obj);
+    //[EditorBrowsable(EditorBrowsableState.Never)]
+    //public override int GetHashCode() => base.GetHashCode();
+    //[EditorBrowsable(EditorBrowsableState.Never)]
+    //public override string ToString() => base.ToString();
+
+    internal interface IBlobEncoder
+    {
+        BlobBuilder Builder { get; }
+    }
+
+    internal struct BlobEncoder : IBlobEncoder
+    {
+        public BlobBuilder Builder { get; }
+
+        public BlobEncoder(BlobBuilder builder)
+        {
+            Builder = builder;
+        }
+
+        public CustomModifiersEncoder<SignatureTypeEncoder<BlobEncoder>> FieldSignature()
+        {
+            Builder.WriteByte((byte)SignatureKind.Field);
+            return new CustomModifiersEncoder<SignatureTypeEncoder<BlobEncoder>>(
+                new SignatureTypeEncoder<BlobEncoder>(this));
+        }
+
+        public GenericTypeArgumentsEncoder<BlobEncoder> MethodSpecificationSignature(int genericArgumentCount)
+        {
+            // TODO: arg validation
+
+            Builder.WriteByte((byte)SignatureKind.MethodSpecification);
+            Builder.WriteCompressedInteger((uint)genericArgumentCount);
+
+            return new GenericTypeArgumentsEncoder<BlobEncoder>(this, genericArgumentCount);
+        }
+
+        public MethodSignatureEncoder<BlobEncoder> MethodSignature(SignatureCallingConvention convention, int genericParameterCount, bool isInstanceMethod)
+        {
+            // TODO: arg validation
+
+            var attributes = 
+                (genericParameterCount != 0 ? SignatureAttributes.Generic : 0) | 
+                (isInstanceMethod ? SignatureAttributes.Instance : 0);
+
+            Builder.WriteByte(SignatureHeader(SignatureKind.Method, convention, attributes).RawValue);
+
+            if (genericParameterCount != 0)
+            {
+                Builder.WriteCompressedInteger((uint)genericParameterCount);
+            }
+
+            return new MethodSignatureEncoder<BlobEncoder>(this, isVarArg: convention == SignatureCallingConvention.VarArgs);
+        }
+
+        public MethodSignatureEncoder<BlobEncoder> PropertySignature(bool isInstanceProperty)
+        {
+            Builder.WriteByte(SignatureHeader(SignatureKind.Property, SignatureCallingConvention.Default, (isInstanceProperty ? SignatureAttributes.Instance : 0)).RawValue);
+            return new MethodSignatureEncoder<BlobEncoder>(this, isVarArg: false);
+        }
+
+        public FixedArgumentsEncoder<NamedArgumentsEncoder<BlobEncoder>> CustomAttributeSignature(int namedArgumentCount)
+        {
+            if (unchecked((ushort)namedArgumentCount) > ushort.MaxValue)
+            {
+                throw new ArgumentOutOfRangeException(nameof(namedArgumentCount));
+            }
+
+            Builder.WriteUInt16(0x0001);
+
+            return new FixedArgumentsEncoder<NamedArgumentsEncoder<BlobEncoder>>(
+                new NamedArgumentsEncoder<BlobEncoder>(this, (ushort)namedArgumentCount, writeCount: true));
+        }
+
+        public LocalVariablesEncoder<BlobEncoder> LocalVariableSignature(int count)
+        {
+            Builder.WriteByte((byte)SignatureKind.LocalVariables);
+            Builder.WriteCompressedInteger((uint)count);
+            return new LocalVariablesEncoder<BlobEncoder>(this, count);
+        }
+
+        // TODO: TypeSpec is limited to structured types (doesn't have primitive types, TypeDefRefSpec)
+        public SignatureTypeEncoder<BlobEncoder> TypeSpecificationSignature()
+        {
+            return new SignatureTypeEncoder<BlobEncoder>(this);
+        }
+
+        public PermissionSetEncoder<BlobEncoder> PermissionSetBlob(int attributeCount)
+        {
+            Builder.WriteByte((byte)'.');
+            Builder.WriteCompressedInteger((uint)attributeCount);
+
+            return new PermissionSetEncoder<BlobEncoder>(this, attributeCount);
+        }
+
+        public NamedArgumentsEncoder<BlobEncoder> PermissionSetArguments(int argumentCount)
+        {
+            if (unchecked((ushort)argumentCount) > ushort.MaxValue)
+            {
+                throw new ArgumentOutOfRangeException(nameof(argumentCount));
+            }
+
+            Builder.WriteCompressedInteger((uint)argumentCount);
+            return new NamedArgumentsEncoder<BlobEncoder>(this, (ushort)argumentCount, writeCount: false);
+        }
+
+        // TOOD: add ctor to SignatureHeader
+        internal static SignatureHeader SignatureHeader(SignatureKind kind, SignatureCallingConvention convention, SignatureAttributes attributes)
+        {
+            return new SignatureHeader((byte)((int)kind | (int)convention | (int)attributes));
+        }
+    }
+
+    internal struct MethodSignatureEncoder<T> : IBlobEncoder
+        where T : IBlobEncoder
+    {
+        public BlobBuilder Builder => _continuation.Builder;
+        private readonly T _continuation;
+        private readonly bool _isVarArg;
+
+        internal MethodSignatureEncoder(T continuation, bool isVarArg)
+        {
+            _continuation = continuation;
+            _isVarArg = isVarArg;
+        }
+
+        public CustomModifiersEncoder<ReturnTypeEncoder<ParametersEncoder<T>>> Parameters(int parameterCount)
+        {
+            Builder.WriteCompressedInteger((uint)parameterCount);
+
+            return new CustomModifiersEncoder<ReturnTypeEncoder<ParametersEncoder<T>>>(
+                new ReturnTypeEncoder<ParametersEncoder<T>>(
+                    new ParametersEncoder<T>(_continuation, parameterCount, allowOptional: _isVarArg)));
+        }
+    }
+
+    internal struct LocalVariablesEncoder<T> : IBlobEncoder
+        where T : IBlobEncoder
+    {
+        public BlobBuilder Builder => _continuation.Builder;
+        private readonly T _continuation;
+        private readonly int _count;
+
+        public LocalVariablesEncoder(T continuation, int count)
+        {
+            if (count < 0)
+            {
+                throw new InvalidOperationException();
+            }
+
+            _count = count;
+            _continuation = continuation;
+        }
+
+        public LocalVariableEncoder<LocalVariablesEncoder<T>> AddVariable()
+        {
+            return new LocalVariableEncoder<LocalVariablesEncoder<T>>(
+                new LocalVariablesEncoder<T>(_continuation, _count - 1));
+        }
+
+        /// <summary>
+        /// The variable blob is written directly to the underlying <see cref="Builder"/>.
+        /// </summary>
+        public LocalVariablesEncoder<T> SkipVariable()
+        {
+            return new LocalVariablesEncoder<T>(_continuation, _count - 1);
+        }
+
+        public T EndVariables()
+        {
+            if (_count > 0)
+            {
+                throw new InvalidOperationException();
+            }
+
+            return _continuation;
+        }
+    }
+
+    internal struct LocalVariableEncoder<T> : IBlobEncoder
+        where T : IBlobEncoder
+    {
+        public BlobBuilder Builder => _continuation.Builder;
+        private readonly T _continuation;
+
+        public LocalVariableEncoder(T continuation)
+        {
+            _continuation = continuation;
+        }
+
+        public CustomModifiersEncoder<LocalVariableTypeEncoder<T>> ModifiedType()
+        {
+            return new CustomModifiersEncoder<LocalVariableTypeEncoder<T>>(
+                new LocalVariableTypeEncoder<T>(_continuation));
+        }
+    }
+
+    internal struct LocalVariableTypeEncoder<T> : IBlobEncoder
+        where T : IBlobEncoder
+    {
+        public BlobBuilder Builder => _continuation.Builder;
+        private readonly T _continuation;
+
+        public LocalVariableTypeEncoder(T continuation)
+        {
+            _continuation = continuation;
+        }
+
+        public SignatureTypeEncoder<T> Type(bool isPinned, bool isByRef)
+        {
+            if (isPinned)
+            {
+                Builder.WriteByte((byte)SignatureTypeCode.Pinned);
+            }
+
+            if (isByRef)
+            {
+                Builder.WriteByte((byte)SignatureTypeCode.ByReference);
+            }
+
+            return new SignatureTypeEncoder<T>(_continuation);
+        }
+
+        public T TypedReference()
+        {
+            Builder.WriteByte((byte)SignatureTypeCode.TypedReference);
+            return _continuation;
+        }
+    }
+
+    internal struct ParameterTypeEncoder<T> : IBlobEncoder
+        where T : IBlobEncoder
+    {
+        public BlobBuilder Builder => _continuation.Builder;
+        private readonly T _continuation;
+
+        public ParameterTypeEncoder(T continuation)
+        {
+            _continuation = continuation;
+        }
+
+        public SignatureTypeEncoder<T> Type(bool isByRef)
+        {
+            if (isByRef)
+            {
+                Builder.WriteByte((byte)SignatureTypeCode.ByReference);
+            }
+
+            return new SignatureTypeEncoder<T>(_continuation);
+        }
+
+        /// <summary>
+        /// ECMA-335 specification only allows custom modifiers preceding BYREF marker, 
+        /// however the C++ compiler emits signatures with modifiers following BYREF as well.
+        /// Use this method only when such signatures need to be supported.
+        /// </summary>
+        [Obsolete("Not compliant with ECMA-335 specification", error: false)]
+        [EditorBrowsable(EditorBrowsableState.Never)]
+        public CustomModifiersEncoder<SignatureTypeEncoder<T>> ModifiedType(bool isByRef)
+        {
+            if (isByRef)
+            {
+                Builder.WriteByte((byte)SignatureTypeCode.ByReference);
+            }
+
+            return new CustomModifiersEncoder<SignatureTypeEncoder<T>>(new SignatureTypeEncoder<T>(_continuation));
+        }
+
+        public T TypedReference()
+        {
+            Builder.WriteByte((byte)SignatureTypeCode.TypedReference);
+            return _continuation;
+        }
+    }
+
+    internal struct PermissionSetEncoder<T>
+        where T : IBlobEncoder
+    {
+        public BlobBuilder Builder => _continuation.Builder;
+        private readonly T _continuation;
+        private readonly int _count;
+
+        public PermissionSetEncoder(T continuation, int count)
+        {
+            if (count < 0)
+            {
+                throw new InvalidOperationException();
+            }
+
+            _count = count;
+            _continuation = continuation;
+        }
+
+        public PermissionSetEncoder<T> AddPermission(string typeName, BlobBuilder arguments)
+        {
+            Builder.WriteSerializedString(typeName);
+            //return new NamedArgumentsBuilder<T>(_continuation, propertyCount, CountFormat.Compressed);
+            Builder.WriteCompressedInteger((uint)arguments.Count);
+            arguments.WriteContentTo(Builder);
+            return new PermissionSetEncoder<T>(_continuation, _count - 1);
+        }
+
+        public T End()
+        {
+            if (_count > 0)
+            {
+                throw new InvalidOperationException();
+            }
+
+            return _continuation;
+        }
+    }
+
+    internal struct GenericTypeArgumentsEncoder<T> : IBlobEncoder
+        where T : IBlobEncoder
+    {
+        public BlobBuilder Builder => _continuation.Builder;
+        private readonly T _continuation;
+        private readonly int _count;
+
+        internal GenericTypeArgumentsEncoder(T continuation, int count)
+        {
+            if (count < 0)
+            {
+                throw new InvalidOperationException();
+            }
+
+            _continuation = continuation;
+            _count = count;
+        }
+
+        public CustomModifiersEncoder<SignatureTypeEncoder<GenericTypeArgumentsEncoder<T>>> AddArgument()
+        {
+            return new CustomModifiersEncoder<SignatureTypeEncoder<GenericTypeArgumentsEncoder<T>>>(
+                new SignatureTypeEncoder<GenericTypeArgumentsEncoder<T>>(
+                    new GenericTypeArgumentsEncoder<T>(_continuation, _count - 1)));
+        }
+
+        public T EndArguments()
+        {
+            if (_count > 0)
+            {
+                throw new InvalidOperationException();
+            }
+
+            return _continuation;
+        }
+    }
+
+    internal struct FixedArgumentsEncoder<T> : IBlobEncoder
+        where T : IBlobEncoder
+    {
+        public BlobBuilder Builder => _continuation.Builder;
+        private readonly T _continuation;
+
+        internal FixedArgumentsEncoder(T continuation)
+        {
+            _continuation = continuation;
+        }
+
+        public LiteralEncoder<FixedArgumentsEncoder<T>> AddArgument()
+        {
+            return new LiteralEncoder<FixedArgumentsEncoder<T>>(this);
+        }
+
+        public T EndArguments()
+        {
+            return _continuation;
+        }
+    }
+
+    internal struct LiteralEncoder<T> : IBlobEncoder
+        where T : IBlobEncoder
+    {
+        public BlobBuilder Builder => _continuation.Builder;
+        private readonly T _continuation;
+
+        internal LiteralEncoder(T continuation)
+        {
+            _continuation = continuation;
+        }
+
+        public VectorEncoder<T> Vector()
+        {
+            return new VectorEncoder<T>(_continuation);
+        }
+
+        public CustomAttributeArrayTypeEncoder<VectorEncoder<T>> TaggedVector()
+        {
+            return new CustomAttributeArrayTypeEncoder<VectorEncoder<T>>(
+                new VectorEncoder<T>(_continuation));
+        }
+
+        public ScalarEncoder<T> Scalar()
+        {
+            return new ScalarEncoder<T>(_continuation);
+        }
+
+        public CustomAttributeElementTypeEncoder<ScalarEncoder<T>> TaggedScalar()
+        {
+            return new CustomAttributeElementTypeEncoder<ScalarEncoder<T>>(
+                new ScalarEncoder<T>(_continuation));
+        }
+    }
+
+    internal struct ScalarEncoder<T> : IBlobEncoder
+        where T : IBlobEncoder
+    {
+        public BlobBuilder Builder => _continuation.Builder;
+        private readonly T _continuation;
+
+        internal ScalarEncoder(T continuation)
+        {
+            _continuation = continuation;
+        }
+
+        public T NullArray()
+        {
+            Builder.WriteInt32(-1);
+            return _continuation;
+        }
+
+        public T Constant(object value)
+        {
+            string str = value as string;
+            if (str != null || value == null)
+            {
+                String(str);
+            }
+            else
+            {
+                Builder.WriteConstant(value);
+            }
+
+            return _continuation;
+        }
+
+        public T SystemType(string serializedTypeName)
+        {
+            String(serializedTypeName);
+            return _continuation;
+        }
+
+        private T String(string value)
+        {
+            Builder.WriteSerializedString(value);
+            return _continuation;
+        }
+    }
+
+    internal struct LiteralsEncoder<T> : IBlobEncoder
+        where T : IBlobEncoder
+    {
+        public BlobBuilder Builder => _continuation.Builder;
+        private readonly T _continuation;
+        private readonly int _count;
+
+        internal LiteralsEncoder(T continuation, int count)
+        {
+            if (count < 0)
+            {
+                throw new InvalidOperationException();
+            }
+
+            _continuation = continuation;
+            _count = count;
+        }
+
+        public LiteralEncoder<LiteralsEncoder<T>> AddLiteral()
+        {
+            return new LiteralEncoder<LiteralsEncoder<T>>(new LiteralsEncoder<T>(_continuation, _count - 1));
+        }
+
+        public T EndLiterals()
+        {
+            if (_count > 0)
+            {
+                throw new InvalidOperationException();
+            }
+
+            return _continuation;
+        }
+    }
+
+    internal struct VectorEncoder<T> : IBlobEncoder
+        where T : IBlobEncoder
+    {
+        public BlobBuilder Builder => _continuation.Builder;
+
+        private readonly T _continuation;
+
+        internal VectorEncoder(T continuation)
+        {
+            _continuation = continuation;
+        }
+
+        public LiteralsEncoder<T> Count(int count)
+        {
+            Builder.WriteUInt32((uint)count);
+            return new LiteralsEncoder<T>(_continuation, count);
+        }
+    }
+   
+    internal struct NameEncoder<T> : IBlobEncoder
+        where T : IBlobEncoder
+    {
+        public BlobBuilder Builder => _continuation.Builder;
+        private readonly T _continuation;
+
+        public NameEncoder(T continuation)
+        {
+            _continuation = continuation;
+        }
+
+        public T Name(string name)
+        {
+            Builder.WriteSerializedString(name);
+            return _continuation;
+        }
+    }
+
+    internal struct NamedArgumentsEncoder<T> : IBlobEncoder
+        where T : IBlobEncoder
+    {
+        public BlobBuilder Builder => _continuation.Builder;
+
+        private readonly T _continuation;
+        private readonly ushort _count;
+        private readonly bool _writeCount;
+
+        internal NamedArgumentsEncoder(T continuation, ushort count, bool writeCount)
+        {
+            _continuation = continuation;
+            _count = count;
+            _writeCount = writeCount;
+        }
+
+        public NamedArgumentTypeEncoder<NameEncoder<LiteralEncoder<NamedArgumentsEncoder<T>>>> AddArgument(bool isField)
+        {
+            if (_count == 0)
+            {
+                throw new InvalidOperationException();
+            }
+
+            if (_writeCount)
+            {
+                Builder.WriteUInt16(_count);
+            }
+
+            Builder.WriteByte(isField ? (byte)0x53 : (byte)0x54);
+            
+            return new NamedArgumentTypeEncoder<NameEncoder<LiteralEncoder<NamedArgumentsEncoder<T>>>>(
+                new NameEncoder<LiteralEncoder<NamedArgumentsEncoder<T>>>(
+                    new LiteralEncoder<NamedArgumentsEncoder<T>>(
+                        new NamedArgumentsEncoder<T>(_continuation, (ushort)(_count - 1), writeCount: false))));
+        }
+
+        public T EndArguments()
+        {
+            if (_count > 0)
+            {
+                throw new InvalidOperationException();
+            }
+
+            if (_writeCount)
+            {
+                Builder.WriteUInt16(0);
+            }
+
+            return _continuation;
+        }
+    }
+
+    internal struct NamedArgumentTypeEncoder<T> : IBlobEncoder
+        where T : IBlobEncoder
+    {
+        public BlobBuilder Builder => _continuation.Builder;
+        private readonly T _continuation;
+
+        internal NamedArgumentTypeEncoder(T continuation)
+        {
+            _continuation = continuation;
+        }
+
+        public CustomAttributeElementTypeEncoder<T> ScalarType()
+        {
+            return new CustomAttributeElementTypeEncoder<T>(_continuation);
+        }
+
+        public T Object()
+        {
+            Builder.WriteByte(0x51); // OBJECT
+            return _continuation;
+        }
+
+        public CustomAttributeArrayTypeEncoder<T> SZArray()
+        {
+            return new CustomAttributeArrayTypeEncoder<T>(_continuation);
+        }
+    }
+
+    internal struct CustomAttributeArrayTypeEncoder<T> : IBlobEncoder
+        where T : IBlobEncoder
+    {
+        public BlobBuilder Builder => _continuation.Builder;
+
+        private readonly T _continuation;
+
+        internal CustomAttributeArrayTypeEncoder(T continuation)
+        {
+            _continuation = continuation;
+        }
+
+        public T ObjectArray()
+        {
+            Builder.WriteByte((byte)SignatureTypeCode.SZArray);
+            Builder.WriteByte(0x51); // OBJECT
+            return _continuation;
+        }
+
+        public CustomAttributeElementTypeEncoder<T> ElementType()
+        {
+            Builder.WriteByte((byte)SignatureTypeCode.SZArray);
+            return new CustomAttributeElementTypeEncoder<T>(_continuation);
+        }
+    }
+
+    internal struct CustomAttributeElementTypeEncoder<T> : IBlobEncoder
+        where T : IBlobEncoder
+    {
+        public BlobBuilder Builder => _continuation.Builder;
+
+        private readonly T _continuation;
+
+        internal CustomAttributeElementTypeEncoder(T continuation)
+        {
+            _continuation = continuation;
+        }
+
+        private T WriteTypeCode(SignatureTypeCode value)
+        {
+            Builder.WriteByte((byte)value);
+            return _continuation;
+        }
+
+        public T Boolean() => WriteTypeCode(SignatureTypeCode.Boolean);
+        public T Char() => WriteTypeCode(SignatureTypeCode.Char);
+        public T Int8() => WriteTypeCode(SignatureTypeCode.SByte);
+        public T UInt8() => WriteTypeCode(SignatureTypeCode.Byte);
+        public T Int16() => WriteTypeCode(SignatureTypeCode.Int16);
+        public T UInt16() => WriteTypeCode(SignatureTypeCode.UInt16);
+        public T Int32() => WriteTypeCode(SignatureTypeCode.Int32);
+        public T UInt32() => WriteTypeCode(SignatureTypeCode.UInt32);
+        public T Int64() => WriteTypeCode(SignatureTypeCode.Int64);
+        public T UInt64() => WriteTypeCode(SignatureTypeCode.UInt64);
+        public T Float32() => WriteTypeCode(SignatureTypeCode.Single);
+        public T Float64() => WriteTypeCode(SignatureTypeCode.Double);
+        public T String() => WriteTypeCode(SignatureTypeCode.String);
+        public T IntPtr() => WriteTypeCode(SignatureTypeCode.IntPtr);
+        public T UIntPtr() => WriteTypeCode(SignatureTypeCode.UIntPtr);
+
+        public T PrimitiveType(PrimitiveTypeCode type)
+        {
+            switch (type)
+            {
+                case PrimitiveTypeCode.Boolean: return Boolean();
+                case PrimitiveTypeCode.Char: return Char();
+                case PrimitiveTypeCode.Int8: return Int8();
+                case PrimitiveTypeCode.UInt8: return UInt8();
+                case PrimitiveTypeCode.Int16: return Int16();
+                case PrimitiveTypeCode.UInt16: return UInt16();
+                case PrimitiveTypeCode.Int32: return Int32();
+                case PrimitiveTypeCode.UInt32: return UInt32();
+                case PrimitiveTypeCode.Int64: return Int64();
+                case PrimitiveTypeCode.UInt64: return UInt64();
+                case PrimitiveTypeCode.Float32: return Float32();
+                case PrimitiveTypeCode.Float64: return Float64();
+                case PrimitiveTypeCode.String: return String();
+                case PrimitiveTypeCode.IntPtr: return IntPtr();
+                case PrimitiveTypeCode.UIntPtr: return UIntPtr();
+
+                default:
+                    throw new InvalidOperationException();
+            }
+        }
+
+        public T SystemType()
+        {
+            Builder.WriteByte(0x50); // TYPE
+            return _continuation;
+        }
+
+        public T Enum(string enumTypeName)
+        {
+            Builder.WriteByte(0x55); // ENUM
+            Builder.WriteSerializedString(enumTypeName);
+            return _continuation;
+        }
+    }
+
+    internal enum FunctionPointerAttributes
+    {
+        None = SignatureAttributes.None,
+        HasThis = SignatureAttributes.Instance,
+        HasExplicitThis = SignatureAttributes.Instance | SignatureAttributes.ExplicitThis
+    }
+
+    internal struct SignatureTypeEncoder<T> : IBlobEncoder
+        where T : IBlobEncoder
+    {
+        public BlobBuilder Builder => _continuation.Builder;
+        private readonly T _continuation;
+
+        public SignatureTypeEncoder(T continuation)
+        {
+            _continuation = continuation;
+        }
+
+        private T WriteTypeCode(SignatureTypeCode value)
+        {
+            Builder.WriteByte((byte)value);
+            return _continuation;
+        }
+
+        private void ClassOrValue(bool isValueType)
+        {
+            Builder.WriteByte(isValueType ? (byte)0x11 : (byte)0x12); // CLASS|VALUETYPE
+        }
+
+        public T Void() => WriteTypeCode(SignatureTypeCode.Void);
+        public T Boolean() => WriteTypeCode(SignatureTypeCode.Boolean);
+        public T Char() => WriteTypeCode(SignatureTypeCode.Char);
+        public T Int8() => WriteTypeCode(SignatureTypeCode.SByte);
+        public T UInt8() => WriteTypeCode(SignatureTypeCode.Byte);
+        public T Int16() => WriteTypeCode(SignatureTypeCode.Int16);
+        public T UInt16() => WriteTypeCode(SignatureTypeCode.UInt16);
+        public T Int32() => WriteTypeCode(SignatureTypeCode.Int32);
+        public T UInt32() => WriteTypeCode(SignatureTypeCode.UInt32);
+        public T Int64() => WriteTypeCode(SignatureTypeCode.Int64);
+        public T UInt64() => WriteTypeCode(SignatureTypeCode.UInt64);
+        public T Float32() => WriteTypeCode(SignatureTypeCode.Single);
+        public T Float64() => WriteTypeCode(SignatureTypeCode.Double);
+        public T String() => WriteTypeCode(SignatureTypeCode.String);
+        public T IntPtr() => WriteTypeCode(SignatureTypeCode.IntPtr);
+        public T UIntPtr() => WriteTypeCode(SignatureTypeCode.UIntPtr);
+
+        public T PrimitiveType(PrimitiveTypeCode type)
+        {
+            switch (type)
+            {
+                case PrimitiveTypeCode.Void: return Void();
+                case PrimitiveTypeCode.Boolean: return Boolean();
+                case PrimitiveTypeCode.Char: return Char();
+                case PrimitiveTypeCode.Int8: return Int8();
+                case PrimitiveTypeCode.UInt8: return UInt8();
+                case PrimitiveTypeCode.Int16: return Int16();
+                case PrimitiveTypeCode.UInt16: return UInt16();
+                case PrimitiveTypeCode.Int32: return Int32();
+                case PrimitiveTypeCode.UInt32: return UInt32();
+                case PrimitiveTypeCode.Int64: return Int64();
+                case PrimitiveTypeCode.UInt64: return UInt64();
+                case PrimitiveTypeCode.Float32: return Float32();
+                case PrimitiveTypeCode.Float64: return Float64();
+                case PrimitiveTypeCode.String: return String();
+                case PrimitiveTypeCode.IntPtr: return IntPtr();
+                case PrimitiveTypeCode.UIntPtr: return UIntPtr();
+                default:
+                    throw new InvalidOperationException();
+            }
+        }
+
+        public T Object() => WriteTypeCode(SignatureTypeCode.Object);
+
+        public CustomModifiersEncoder<SignatureTypeEncoder<ArrayShapeEncoder<T>>> Array()
+        {
+            Builder.WriteByte((byte)SignatureTypeCode.Array);
+
+            return new CustomModifiersEncoder<SignatureTypeEncoder<ArrayShapeEncoder<T>>>(
+                new SignatureTypeEncoder<ArrayShapeEncoder<T>>(
+                    new ArrayShapeEncoder<T>(_continuation)));
+        }
+
+        public T TypeDefOrRefOrSpec(bool isValueType, uint typeRefDefSpecCodedIndex)
+        {
+            ClassOrValue(isValueType);
+            Builder.WriteCompressedInteger(typeRefDefSpecCodedIndex);
+            return _continuation;
+        }
+
+        public MethodSignatureEncoder<T> FunctionPointer(SignatureCallingConvention convention, FunctionPointerAttributes attributes, int genericParameterCount)
+        {
+            // Spec:
+            // The EXPLICITTHIS (0x40) bit can be set only in signatures for function pointers.
+            // If EXPLICITTHIS (0x40) in the signature is set, then HASTHIS (0x20) shall also be set.
+
+            if (attributes != FunctionPointerAttributes.None &&
+                attributes != FunctionPointerAttributes.HasThis &&
+                attributes != FunctionPointerAttributes.HasExplicitThis)
+            {
+                throw new ArgumentException(nameof(attributes));
+            }
+
+            Builder.WriteByte((byte)SignatureTypeCode.FunctionPointer);
+            Builder.WriteByte(BlobEncoder.SignatureHeader(SignatureKind.Method, convention, (SignatureAttributes)attributes).RawValue);
+
+            if (genericParameterCount != 0)
+            {
+                Builder.WriteCompressedInteger((uint)genericParameterCount);
+            }
+
+            return new MethodSignatureEncoder<T>(_continuation, isVarArg: convention == SignatureCallingConvention.VarArgs);
+        }
+
+        public GenericTypeArgumentsEncoder<T> GenericInstantiation(bool isValueType, uint typeRefDefSpecCodedIndex, int genericArgumentCount)
+        {
+            Builder.WriteByte((byte)SignatureTypeCode.GenericTypeInstance);
+            ClassOrValue(isValueType);
+            Builder.WriteCompressedInteger(typeRefDefSpecCodedIndex);
+            Builder.WriteCompressedInteger((uint)genericArgumentCount);
+            return new GenericTypeArgumentsEncoder<T>(_continuation, genericArgumentCount);
+        }
+
+        public T GenericMethodTypeParameter(int parameterIndex)
+        {
+            Builder.WriteByte((byte)SignatureTypeCode.GenericMethodParameter);
+            Builder.WriteCompressedInteger((uint)parameterIndex);
+            return _continuation;
+        }
+
+        public T GenericTypeParameter(uint parameterIndex)
+        {
+            Builder.WriteByte((byte)SignatureTypeCode.GenericTypeParameter);
+            Builder.WriteCompressedInteger(parameterIndex);
+            return _continuation;
+        }
+
+        public CustomModifiersEncoder<SignatureTypeEncoder<T>> Pointer()
+        {
+            Builder.WriteByte((byte)SignatureTypeCode.Pointer);
+            return new CustomModifiersEncoder<SignatureTypeEncoder<T>>(this);
+        }
+
+        public CustomModifiersEncoder<SignatureTypeEncoder<T>> SZArray()
+        {
+            Builder.WriteByte((byte)SignatureTypeCode.SZArray);
+            return new CustomModifiersEncoder<SignatureTypeEncoder<T>>(this);
+        }
+    }
+
+    internal struct CustomModifiersEncoder<T> : IBlobEncoder
+        where T : IBlobEncoder
+    {
+        public BlobBuilder Builder => _continuation.Builder;
+        private readonly T _continuation;
+
+        public CustomModifiersEncoder(T continuation)
+        {
+            _continuation = continuation;
+        }
+
+        public CustomModifiersEncoder<T> AddModifier(bool isOptional, uint typeDefRefSpecCodedIndex)
+        {
+            if (isOptional)
+            {
+                Builder.WriteByte((byte)SignatureTypeCode.OptionalModifier);
+            }
+            else
+            {
+                Builder.WriteByte((byte)SignatureTypeCode.RequiredModifier);
+            }
+
+            Builder.WriteCompressedInteger(typeDefRefSpecCodedIndex);
+            return this;
+        }
+
+        public T EndModifiers() => _continuation;
+    }
+
+    internal struct ArrayShapeEncoder<T> : IBlobEncoder
+        where T : IBlobEncoder
+    {
+        public BlobBuilder Builder => _continuation.Builder;
+        private readonly T _continuation;
+
+        public ArrayShapeEncoder(T continuation)
+        {
+            _continuation = continuation;
+        }
+
+        public T Shape(int rank, ImmutableArray<int> sizes, ImmutableArray<int> lowerBounds)
+        {
+            Builder.WriteCompressedInteger((uint)rank);
+            Builder.WriteCompressedInteger((uint)sizes.Length);
+            foreach (int size in sizes)
+            {
+                Builder.WriteCompressedInteger((uint)size);
+            }
+
+            if (lowerBounds.IsDefault)
+            {
+                Builder.WriteCompressedInteger((uint)rank);
+                for (int i = 0; i < rank; i++)
+                {
+                    Builder.WriteCompressedSignedInteger(0);
+                }
+            }
+            else
+            {
+                Builder.WriteCompressedInteger((uint)lowerBounds.Length);
+                foreach (int lowerBound in lowerBounds)
+                {
+                    Builder.WriteCompressedSignedInteger(lowerBound);
+                }
+            }
+
+            return _continuation;
+        }
+    }
+
+    internal struct ReturnTypeEncoder<T> : IBlobEncoder
+        where T : IBlobEncoder
+    {
+        public BlobBuilder Builder => _continuation.Builder;
+        private readonly T _continuation;
+
+        public ReturnTypeEncoder(T continuation)
+        {
+            _continuation = continuation;
+        }
+
+        public SignatureTypeEncoder<T> Type(bool isByRef)
+        {
+            if (isByRef)
+            {
+                Builder.WriteByte((byte)SignatureTypeCode.ByReference);
+            }
+
+            return new SignatureTypeEncoder<T>(_continuation);
+        }
+
+        public T TypedReference()
+        {
+            Builder.WriteByte((byte)SignatureTypeCode.TypedReference);
+            return _continuation;
+        }
+
+        public T Void()
+        {
+            Builder.WriteByte((byte)SignatureTypeCode.Void);
+            return _continuation;
+        }
+    }
+
+    internal struct ParameterEncoder<T> : IBlobEncoder
+        where T : IBlobEncoder
+    {
+        public BlobBuilder Builder => _continuation.Builder;
+        private readonly T _continuation;
+
+        public ParameterEncoder(T continuation)
+        {
+            _continuation = continuation;
+        }
+
+        public CustomModifiersEncoder<ParameterTypeEncoder<T>> ModifiedType()
+        {
+            return new CustomModifiersEncoder<ParameterTypeEncoder<T>>(new ParameterTypeEncoder<T>(_continuation));
+        }
+    }
+
+    internal struct ParametersEncoder<T> : IBlobEncoder
+        where T : IBlobEncoder
+    {
+        public BlobBuilder Builder => _continuation.Builder;
+        private readonly T _continuation;
+        private readonly int _count;
+        private readonly bool _allowOptional;
+
+        internal ParametersEncoder(T continuation, int count, bool allowOptional)
+        {
+            if (count < 0)
+            {
+                throw new InvalidOperationException();
+            }
+
+            _continuation = continuation;
+            _count = count;
+            _allowOptional = allowOptional;
+        }
+
+        public ParameterEncoder<ParametersEncoder<T>> AddParameter()
+        {
+            return new ParameterEncoder<ParametersEncoder<T>>(
+                new ParametersEncoder<T>(_continuation, _count - 1, _allowOptional));
+        }
+
+        public ParametersEncoder<T> StartVarArgs()
+        {
+            if (!_allowOptional)
+            {
+                throw new InvalidOperationException();
+            }
+
+            Builder.WriteByte((byte)SignatureTypeCode.Sentinel);
+            return new ParametersEncoder<T>(_continuation, _count, allowOptional: false);
+        }
+
+        public T EndParameters()
+        {
+            if (_count > 0)
+            {
+                throw new InvalidOperationException();
+            }
+
+            return _continuation;
+        }
+    }
+}

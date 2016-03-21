@@ -10,6 +10,7 @@ using System.IO;
 using System.Linq;
 using System.Reflection;
 using System.Reflection.Metadata;
+using System.Reflection.Metadata.Ecma335;
 using System.Reflection.PortableExecutable;
 using System.Text;
 using System.Threading;
@@ -1202,7 +1203,6 @@ namespace Microsoft.CodeAnalysis
                 targetRuntimeVersion: targetRuntimeVersion,
                 machine: machine,
                 prefer32Bit: platform == Platform.AnyCpu32BitPreferred,
-                trackDebugData: false,
                 baseAddress: baseAddress,
                 sizeOfHeapReserve: sizeOfHeapReserve,
                 sizeOfHeapCommit: sizeOfHeapCommit,
@@ -2000,7 +2000,7 @@ namespace Microsoft.CodeAnalysis
                         changes,
                         cancellationToken);
 
-                    Cci.MetadataSizes metadataSizes;
+                    MetadataSizes metadataSizes;
                     writer.WriteMetadataAndIL(pdbWriter, metadataStream, ilStream, out metadataSizes);
                     writer.GetMethodTokens(updatedMethods);
 

@@ -6,9 +6,10 @@ using System.Collections.Immutable;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
-using System.Runtime.CompilerServices;
+using System.Reflection;
+using System.Reflection.Metadata;
+using System.Reflection.Metadata.Ecma335;
 using System.Runtime.InteropServices;
-using System.Runtime.InteropServices.ComTypes;
 using System.Text;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Collections;
@@ -17,7 +18,7 @@ using Roslyn.Utilities;
 
 namespace Microsoft.Cci
 {
-    using OP = Microsoft.Cci.PdbLogger.PdbWriterOperation;
+    using OP = PdbLogger.PdbWriterOperation;
 
     /// <summary>
     /// Exception to enable callers to catch all of the exceptions originating
@@ -230,8 +231,6 @@ namespace Microsoft.Cci
 
     internal sealed class PdbWriter : IDisposable
     {
-        internal const uint HiddenLocalAttributesValue = 1u;
-        internal const uint DefaultLocalAttributesValue = 0u;
         internal const uint Age = 1;
 
         private static Type s_lazyCorSymWriterSxSType;
@@ -1298,16 +1297,16 @@ namespace Microsoft.Cci
             }
         }
 
-        private void DefineLocalVariable(uint index, string name, uint attributes, uint localVariablesSignatureToken)
+        private void DefineLocalVariable(uint index, string name, LocalVariableAttributes attributes, uint localVariablesSignatureToken)
         {
             const uint ADDR_IL_OFFSET = 1;
             try
             {
-                _symWriter.DefineLocalVariable2(name, attributes, localVariablesSignatureToken, ADDR_IL_OFFSET, index, 0, 0, 0, 0);
+                _symWriter.DefineLocalVariable2(name, (uint)attributes, localVariablesSignatureToken, ADDR_IL_OFFSET, index, 0, 0, 0, 0);
                 if (_callLogger.LogOperation(OP.DefineLocalVariable2))
                 {
                     _callLogger.LogArgument(name);
-                    _callLogger.LogArgument(attributes);
+                    _callLogger.LogArgument((uint)attributes);
                     _callLogger.LogArgument(localVariablesSignatureToken);
                     _callLogger.LogArgument(ADDR_IL_OFFSET);
                     _callLogger.LogArgument(index);

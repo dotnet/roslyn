@@ -1,45 +1,12 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System;
 using System.Diagnostics;
-using System.Reflection;
 using System.Runtime.CompilerServices;
 
-namespace Microsoft.Cci
+namespace System.Reflection
 {
     internal static class BlobWriterImpl
     {
-        // Performance considerations:
-        // Ideally we wouldn't need to have duplicate implementations of the bellow methods and use 
-        // the following pattern. However, the JIT currently doesn't inline the interface calls.
-        // 
-        //   interface IPrimitiveWriter
-        //   {
-        //       void WriteByte(byte value);
-        //       void WriteUInt16BE(ushort value);
-        //       void WriteUInt32BE(uint value);
-        //       ...
-        //   }
-        // 
-        //   static class BlobWriterImpl<T> where T : struct, IPrimitiveWriter
-        //   {
-        //       public static void WriteCompressedInteger(ref T writer, uint value)
-        //       {
-        //           if (...)
-        //           {
-        //               writer.WriteByte((byte)value);
-        //           }
-        //           else if (...)
-        //           {
-        //               writer.WriteUInt16BE((ushort)value);
-        //           } 
-        //           else if (...)
-        //           {
-        //               writer.WriteUInt32BE(value);
-        //           } 
-        //       }
-        //   }
-
         internal const int SingleByteCompressedIntegerMaxValue = 0x7f;
         internal const int TwoByteCompressedIntegerMaxValue = 0x3fff;
         internal const int MaxCompressedIntegerValue = 0x1fffffff;

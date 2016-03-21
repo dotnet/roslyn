@@ -19,12 +19,7 @@ namespace Microsoft.CodeAnalysis.CSharp
     [DebuggerDisplay("{GetDebuggerDisplay(),nq}")]
     internal sealed class Imports
     {
-        internal static readonly Imports Empty = new Imports(
-            null,
-            ImmutableDictionary<string, AliasAndUsingDirective>.Empty,
-            ImmutableArray<NamespaceOrTypeAndUsingDirective>.Empty,
-            ImmutableArray<AliasAndExternAliasDirective>.Empty,
-            null);
+        internal static readonly Imports Empty = new Imports();
 
         private readonly CSharpCompilation _compilation;
         private readonly DiagnosticBag _diagnostics;
@@ -36,6 +31,17 @@ namespace Microsoft.CodeAnalysis.CSharp
         public readonly ImmutableArray<NamespaceOrTypeAndUsingDirective> Usings;
         public readonly ImmutableArray<AliasAndExternAliasDirective> ExternAliases;
 
+        public bool IsEmpty => this == Empty;
+
+        // empty:
+        private Imports()
+        {
+            UsingAliases = ImmutableDictionary<string, AliasAndUsingDirective>.Empty;
+            Usings = ImmutableArray<NamespaceOrTypeAndUsingDirective>.Empty;
+            ExternAliases = ImmutableArray<AliasAndExternAliasDirective>.Empty;
+        }
+
+        // non-empty:
         private Imports(
             CSharpCompilation compilation,
             ImmutableDictionary<string, AliasAndUsingDirective> usingAliases,
@@ -43,15 +49,19 @@ namespace Microsoft.CodeAnalysis.CSharp
             ImmutableArray<AliasAndExternAliasDirective> externs,
             DiagnosticBag diagnostics)
         {
+            Debug.Assert(compilation != null);
             Debug.Assert(usingAliases != null);
             Debug.Assert(!usings.IsDefault);
             Debug.Assert(!externs.IsDefault);
 
+            // we shouldn't be creating a new instance if there are no imports:
+            Debug.Assert(this == Empty || !usingAliases.IsEmpty || !usings.IsEmpty || !externs.IsEmpty);
+
+            UsingAliases = usingAliases;
+            Usings = usings;
+            ExternAliases = externs;
             _compilation = compilation;
-            this.UsingAliases = usingAliases;
-            this.Usings = usings;
             _diagnostics = diagnostics;
-            this.ExternAliases = externs;
         }
 
         internal string GetDebuggerDisplay()
