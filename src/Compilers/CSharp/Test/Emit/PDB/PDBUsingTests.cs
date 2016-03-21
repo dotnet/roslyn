@@ -2388,7 +2388,7 @@ class C
 </symbols>");
         }
 
-        [Fact]
+        [Fact(Skip = "Ignore")]
         public void ImportScopeEquality()
         {
             var sources = new[] { @"

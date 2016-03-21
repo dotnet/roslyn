@@ -6,14 +6,26 @@ using System.Diagnostics;
 using System.IO;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
+
+#if SRM
+using System.Reflection.Internal;
+using BitArithmeticUtilities = System.Reflection.Internal.BitArithmetic;
+#else
 using Microsoft.CodeAnalysis.Collections;
 using Roslyn.Utilities;
+#endif
 
-namespace Microsoft.Cci
+#if SRM
+namespace System.Reflection
+#else
+namespace Roslyn.Reflection
+#endif
 {
     // TODO: argument checking
-
-    internal unsafe struct BlobWriter
+#if SRM
+    public
+#endif
+    unsafe struct BlobWriter
     {
         // writable slice:
         private readonly byte[] _buffer;
@@ -33,7 +45,10 @@ namespace Microsoft.Cci
         {
         }
 
-        internal bool IsDefault => _buffer == null;
+        public BlobWriter(Blob blob)
+            : this(blob.Buffer, blob.Start, blob.Length)
+        {
+        }
 
         public BlobWriter(byte[] buffer, int start, int count)
         {
@@ -48,6 +63,8 @@ namespace Microsoft.Cci
             _position = start;
             _end = start + count;
         }
+
+        internal bool IsDefault => _buffer == null;
 
         /// <summary>
         /// Compares the current content of this writer with another one.
@@ -76,6 +93,7 @@ namespace Microsoft.Cci
 
         public int Length => _end - _start;
         public int RemainingBytes => _end - _position;
+        public Blob Blob => new Blob(_buffer, _start, Length);
 
         public byte[] ToArray()
         {
@@ -101,7 +119,7 @@ namespace Microsoft.Cci
         public ImmutableArray<byte> ToImmutableArray(int start, int byteCount)
         {
             var array = ToArray(start, byteCount);
-            return ImmutableArrayInterop.DangerousToImmutableArray(ref array);
+            return ImmutableByteArrayInterop.DangerousCreateFromUnderlyingArray(ref array);
         }
 
         private int Advance(int value)
@@ -201,7 +219,7 @@ namespace Microsoft.Cci
         /// <exception cref="ArgumentOutOfRangeException">Range specified by <paramref name="start"/> and <paramref name="byteCount"/> falls outside of the bounds of the <paramref name="buffer"/>.</exception>
         public void WriteBytes(ImmutableArray<byte> buffer, int start, int byteCount)
         {
-            WriteBytes(ImmutableArrayInterop.DangerousGetUnderlyingArray(buffer), start, byteCount);
+            WriteBytes(ImmutableByteArrayInterop.DangerousGetUnderlyingArray(buffer), start, byteCount);
         }
 
         /// <exception cref="ArgumentNullException"><paramref name="buffer"/> is null.</exception>

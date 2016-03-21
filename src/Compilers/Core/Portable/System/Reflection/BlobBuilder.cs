@@ -1,22 +1,32 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
-using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
-using System.Text;
-using Microsoft.CodeAnalysis;
+
+#if SRM
+using System.Reflection.Internal;
+using BitArithmeticUtilities = System.Reflection.Internal.BitArithmetic;
+#else
 using Microsoft.CodeAnalysis.Collections;
 using Roslyn.Utilities;
+#endif
 
-namespace Microsoft.Cci
+#if SRM
+namespace System.Reflection
+#else
+namespace Roslyn.Reflection
+#endif
 {
     [DebuggerDisplay("{GetDebuggerDisplay(),nq}")]
-    internal unsafe partial class BlobBuilder
+#if SRM
+    public
+#endif
+    unsafe partial class BlobBuilder
     {
         // The implementation is akin to StringBuilder. 
         // The differences:
@@ -316,7 +326,7 @@ namespace Microsoft.Cci
         public ImmutableArray<byte> ToImmutableArray(int start, int byteCount)
         {
             var array = ToArray(start, byteCount);
-            return ImmutableArrayInterop.DangerousToImmutableArray(ref array);
+            return ImmutableByteArrayInterop.DangerousCreateFromUnderlyingArray(ref array);
         }
 
         /// <exception cref="ArgumentNullException"><paramref name="destination"/> is null.</exception>
@@ -557,7 +567,7 @@ namespace Microsoft.Cci
         /// </summary>
         /// <exception cref="ArgumentOutOfRangeException"><paramref name="byteCount"/> is negative.</exception>
         /// <exception cref="InvalidOperationException">Builder is not writable, it has been linked with another one.</exception>
-        public BlobWriter ReserveBytes(int byteCount)
+        public Blob ReserveBytes(int byteCount)
         {
             if (byteCount < 0)
             {
@@ -565,7 +575,7 @@ namespace Microsoft.Cci
             }
 
             int start = ReserveBytesImpl(byteCount);
-            return new BlobWriter(_buffer, start, byteCount);
+            return new Blob(_buffer, start, byteCount);
         }
 
         private int ReserveBytesImpl(int byteCount)
@@ -721,7 +731,7 @@ namespace Microsoft.Cci
         /// <exception cref="InvalidOperationException">Builder is not writable, it has been linked with another one.</exception>
         public void WriteBytes(ImmutableArray<byte> buffer, int start, int byteCount)
         {
-            WriteBytes(ImmutableArrayInterop.DangerousGetUnderlyingArray(buffer), start, byteCount);
+            WriteBytes(ImmutableByteArrayInterop.DangerousGetUnderlyingArray(buffer), start, byteCount);
         }
 
         /// <exception cref="ArgumentNullException"><paramref name="buffer"/> is null.</exception>

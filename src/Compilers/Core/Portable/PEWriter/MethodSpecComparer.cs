@@ -29,7 +29,7 @@ namespace Microsoft.Cci
         public int GetHashCode(IGenericMethodInstanceReference methodInstanceReference)
         {
             return Hash.Combine(
-                (int)_metadataWriter.GetMethodDefOrRefCodedIndex(methodInstanceReference.GetGenericMethod(_metadataWriter.Context)),
+                _metadataWriter.GetMethodDefOrRefCodedIndex(methodInstanceReference.GetGenericMethod(_metadataWriter.Context)).GetHashCode(),
                 _metadataWriter.GetMethodInstanceSignatureIndex(methodInstanceReference).GetHashCode());
         }
     }

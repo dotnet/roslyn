@@ -6,9 +6,12 @@ using System;
 using System.Collections.Immutable;
 using System.IO;
 using System.Linq;
+using System.Reflection;
+using System.Reflection.Metadata.Ecma335;
 using Microsoft.CodeAnalysis.CodeGen;
 using Microsoft.CodeAnalysis.Emit;
 using PDB::Microsoft.CodeAnalysis;
+using Roslyn.Reflection;
 using Roslyn.Test.Utilities;
 using Xunit;
 
@@ -196,7 +199,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Emit
             var closures = ImmutableArray<ClosureDebugInfo>.Empty;
             var lambdas = ImmutableArray<LambdaDebugInfo>.Empty;
 
-            var cmw = new Cci.BlobBuilder();
+            var cmw = new BlobBuilder();
 
             new EditAndContinueMethodDebugInformation(123, slots, closures, lambdas).SerializeLocalSlots(cmw);
 
@@ -223,7 +226,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Emit
                 new LambdaDebugInfo(-50, new DebugId(1, 0), 0),
                 new LambdaDebugInfo(-180, new DebugId(2, 0), LambdaDebugInfo.StaticClosureOrdinal));
 
-            var cmw = new Cci.BlobBuilder();
+            var cmw = new BlobBuilder();
 
             new EditAndContinueMethodDebugInformation(0x7b, slots, closures, lambdas).SerializeLambdaMap(cmw);
 
@@ -245,7 +248,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Emit
             var closures = ImmutableArray<ClosureDebugInfo>.Empty;
             var lambdas = ImmutableArray.Create(new LambdaDebugInfo(20, new DebugId(0, 0), LambdaDebugInfo.StaticClosureOrdinal));
 
-            var cmw = new Cci.BlobBuilder();
+            var cmw = new BlobBuilder();
 
             new EditAndContinueMethodDebugInformation(-1, slots, closures, lambdas).SerializeLambdaMap(cmw);
 
@@ -268,7 +271,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Emit
             var closures = ImmutableArray<ClosureDebugInfo>.Empty;
             var lambdas = ImmutableArray<LambdaDebugInfo>.Empty;
 
-            var cmw = new Cci.BlobBuilder();
+            var cmw = new BlobBuilder();
 
             new EditAndContinueMethodDebugInformation(10, slots, closures, lambdas).SerializeLambdaMap(cmw);
 

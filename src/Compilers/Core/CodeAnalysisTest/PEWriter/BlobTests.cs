@@ -5,9 +5,12 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.IO;
 using System.Linq;
+using System.Reflection;
+using System.Reflection.Metadata.Ecma335;
 using System.Text;
 using Microsoft.Cci;
 using Microsoft.CodeAnalysis.Collections;
+using Roslyn.Reflection;
 using Roslyn.Test.Utilities;
 using Xunit;
 
@@ -136,11 +139,11 @@ namespace Microsoft.CodeAnalysis.UnitTests.PEWriter
             blobs = builder.GetBlobs().ToArray();
             Assert.Equal(3, blobs.Length);
             Assert.Equal(16, blobs[0].Length);
-            Assert.Equal(16, blobs[0].GetUnderlyingBuffer().Array.Length);
+            Assert.Equal(16, blobs[0].GetBytes().Array.Length);
             Assert.Equal(100 - 16, blobs[1].Length);
-            Assert.Equal(100 - 16, blobs[1].GetUnderlyingBuffer().Array.Length);
+            Assert.Equal(100 - 16, blobs[1].GetBytes().Array.Length);
             Assert.Equal(1, blobs[2].Length);
-            Assert.Equal(100 - 16, blobs[2].GetUnderlyingBuffer().Array.Length);
+            Assert.Equal(100 - 16, blobs[2].GetBytes().Array.Length);
 
             builder.Clear();
 
@@ -149,7 +152,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.PEWriter
             Assert.Equal(0, blobs[0].Length);
 
             // Clear uses the first buffer:
-            Assert.Equal(16, blobs[0].GetUnderlyingBuffer().Array.Length);
+            Assert.Equal(16, blobs[0].GetBytes().Array.Length);
         }
 
         [Fact]
@@ -485,9 +488,9 @@ namespace Microsoft.CodeAnalysis.UnitTests.PEWriter
         public void ReserveBytes1()
         {
             var builder = new BlobBuilder(16);
-            var writer0 = builder.ReserveBytes(0);
-            var writer1 = builder.ReserveBytes(1);
-            var writer2 = builder.ReserveBytes(2);
+            var writer0 = new BlobWriter(builder.ReserveBytes(0));
+            var writer1 = new BlobWriter(builder.ReserveBytes(1));
+            var writer2 = new BlobWriter(builder.ReserveBytes(2));
             Assert.Equal(3, builder.Count);
             AssertEx.Equal(new byte[] { 0, 0, 0 }, builder.ToArray());
 
@@ -507,7 +510,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.PEWriter
         public void ReserveBytes2()
         {
             var builder = new BlobBuilder(16);
-            var writer = builder.ReserveBytes(17);
+            var writer = new BlobWriter(builder.ReserveBytes(17));
             writer.WriteBytes(1, 17);
 
             var blobs = builder.GetBlobs().ToArray();
@@ -517,7 +520,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.PEWriter
                 0x01, 0x01, 0x01, 0x01, 0x01, 0x01, 0x01, 0x01,
                 0x01, 0x01, 0x01, 0x01, 0x01, 0x01, 0x01, 0x01,
                 0x01
-            }, blobs[0].GetUnderlyingBuffer().ToArray());
+            }, blobs[0].GetBytes().ToArray());
         }
 
         // TODO: 

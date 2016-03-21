@@ -6,6 +6,7 @@ using System.IO;
 using System.Linq;
 using System.Reflection;
 using Microsoft.CodeAnalysis.Text;
+using Roslyn.Reflection;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis
@@ -158,6 +159,14 @@ namespace Microsoft.CodeAnalysis
         }
 
         internal static ImmutableArray<byte> ComputeSha1(byte[] bytes)
+        {
+            using (var hashProvider = new SHA1CryptoServiceProvider())
+            {
+                return ImmutableArray.Create(hashProvider.ComputeHash(bytes));
+            }
+        }
+
+        internal static ImmutableArray<byte> ComputeSha1(BlobBuilder bytes)
         {
             using (var hashProvider = new SHA1CryptoServiceProvider())
             {
