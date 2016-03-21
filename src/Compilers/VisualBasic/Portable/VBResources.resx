@@ -5055,6 +5055,9 @@
 /debug:pdbonly                    Emit PDB file only.
 /deterministic                    Produce a deterministic assembly
                                   (including module version GUID and timestamp)
+/instrument:options
+                               Sets instrumentation options.
+                               If empty instrumentation is disabled.
 
                                   - ERRORS AND WARNINGS -
 /nowarn                           Disable all warnings.

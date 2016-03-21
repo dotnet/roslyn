@@ -33,7 +33,7 @@ namespace Microsoft.CodeAnalysis.Emit
 
         /// <summary>
         /// If not empty then compiler should enable instrumentation.
-        /// The string specifies the classes for which the compiler should generate instrumentation information.
+        /// The string specifies instrumentation settings.
         /// </summary>
         public string Instrument { get; private set; }
 

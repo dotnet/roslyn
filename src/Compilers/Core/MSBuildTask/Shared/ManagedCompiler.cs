@@ -61,7 +61,7 @@ namespace Microsoft.CodeAnalysis.BuildTasks
         // which will cause a hang.
 
         /// <summary>
-        /// An instrument flag that specifies classes for which the compiler should generate instrumentation information.
+        /// An instrument flag that specifies instrumentation settings.
         /// </summary>
         public string Instrument
         {

@@ -2691,6 +2691,12 @@ C:\*.cs(100,7): error CS0103: The name 'Foo' does not exist in the current conte
                 Diagnostic(ErrorCode.ERR_SwitchNeedsString).WithArguments("<text>", "instrument"));
             Assert.Equal("", parsedArgs.EmitOptions.Instrument);
 
+            parsedArgs = DefaultParse(new[] { @"/instrument:""""", "a.cs" }, _baseDirectory);
+            parsedArgs.Errors.Verify(
+                // error CS2006: Command-line syntax error: Missing '<text>' for 'instrument' option
+                Diagnostic(ErrorCode.ERR_SwitchNeedsString).WithArguments("<text>", "instrument"));
+            Assert.Equal("", parsedArgs.EmitOptions.Instrument);
+
             parsedArgs = DefaultParse(new[] { @"/instrument:", "a.cs" }, _baseDirectory);
             parsedArgs.Errors.Verify(
                 // error CS2006: Command-line syntax error: Missing '<text>' for 'instrument' option
