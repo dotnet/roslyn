@@ -7,7 +7,7 @@ namespace Microsoft.CodeAnalysis.HubServices.SymbolSearch
 {
     public partial class SymbolSearchController
     {
-        private class DatabaseFactoryService : IPackageSearchDatabaseFactoryService
+        private class DatabaseFactoryService : ISymbolSearchDatabaseFactoryService
         {
             public AddReferenceDatabase CreateDatabaseFromBytes(byte[] bytes)
             {

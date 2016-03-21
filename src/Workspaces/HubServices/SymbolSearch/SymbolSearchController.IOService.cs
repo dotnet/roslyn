@@ -7,7 +7,7 @@ namespace Microsoft.CodeAnalysis.HubServices.SymbolSearch
 {
     public partial class SymbolSearchController
     {
-        private class IOService : IPackageSearchIOService
+        private class IOService : ISymbolSearchIOService
         {
             public void Create(DirectoryInfo directory) => directory.Create();
 

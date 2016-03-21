@@ -6,7 +6,7 @@ namespace Microsoft.CodeAnalysis.HubServices.SymbolSearch
 {
     public partial class SymbolSearchController
     {
-        private class DelayService : IPackageSearchDelayService
+        private class DelayService : ISymbolSearchDelayService
         {
             public TimeSpan CachePollDelay { get; } = TimeSpan.FromMinutes(1);
             public TimeSpan FileWriteDelay { get; } = TimeSpan.FromSeconds(10);

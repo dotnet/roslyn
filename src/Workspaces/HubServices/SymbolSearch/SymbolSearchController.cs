@@ -21,12 +21,12 @@ namespace Microsoft.CodeAnalysis.HubServices.SymbolSearch
         private static ConcurrentDictionary<string, AddReferenceDatabase> _sourceToDatabase = 
             new ConcurrentDictionary<string, AddReferenceDatabase>();
 
-        private readonly IPackageSearchDelayService _delayService;
-        private readonly IPackageSearchIOService _ioService;
-        private readonly IPackageSearchLogService _logService;
-        private readonly IPackageSearchRemoteControlService _remoteControlService;
-        private readonly IPackageSearchPatchService _patchService;
-        private readonly IPackageSearchDatabaseFactoryService _databaseFactoryService;
+        private readonly ISymbolSearchDelayService _delayService;
+        private readonly ISymbolSearchIOService _ioService;
+        private readonly ISymbolSearchLogService _logService;
+        private readonly ISymbolSearchRemoteControlService _remoteControlService;
+        private readonly ISymbolSearchPatchService _patchService;
+        private readonly ISymbolSearchDatabaseFactoryService _databaseFactoryService;
         private readonly Func<Exception, bool> _reportAndSwallowException;
 
         public SymbolSearchController()
@@ -45,12 +45,12 @@ namespace Microsoft.CodeAnalysis.HubServices.SymbolSearch
 
         // For testing purposes.
         internal SymbolSearchController(
-            IPackageSearchRemoteControlService remoteControlService,
-            IPackageSearchLogService logService,
-            IPackageSearchDelayService delayService,
-            IPackageSearchIOService ioService,
-            IPackageSearchPatchService patchService,
-            IPackageSearchDatabaseFactoryService databaseFactoryService,
+            ISymbolSearchRemoteControlService remoteControlService,
+            ISymbolSearchLogService logService,
+            ISymbolSearchDelayService delayService,
+            ISymbolSearchIOService ioService,
+            ISymbolSearchPatchService patchService,
+            ISymbolSearchDatabaseFactoryService databaseFactoryService,
             Func<Exception, bool> reportAndSwallowException,
             CancellationTokenSource cancellationTokenSource)
         {

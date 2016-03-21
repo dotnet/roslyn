@@ -12,7 +12,7 @@ namespace Microsoft.CodeAnalysis.HubServices.SymbolSearch
     /// <summary>
     /// Used so we can mock out how the search service does IO for testing purposes.
     /// </summary>
-    internal interface IPackageSearchIOService
+    internal interface ISymbolSearchIOService
     {
         void Create(DirectoryInfo directory);
         void Delete(FileInfo file);

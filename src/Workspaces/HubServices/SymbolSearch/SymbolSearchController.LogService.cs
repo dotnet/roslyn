@@ -7,7 +7,7 @@ namespace Microsoft.CodeAnalysis.HubServices.SymbolSearch
 {
     public partial class SymbolSearchController
     {
-        private class LogService : IPackageSearchLogService
+        private class LogService : ISymbolSearchLogService
         {
             private readonly ILogger _activityLog;
 

@@ -4,7 +4,7 @@ namespace Microsoft.CodeAnalysis.HubServices.SymbolSearch
 {
     public partial class SymbolSearchController
     {
-        private class PatchService : IPackageSearchPatchService
+        private class PatchService : ISymbolSearchPatchService
         {
             public byte[] ApplyPatch(byte[] databaseBytes, byte[] patchBytes)
             {

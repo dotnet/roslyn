@@ -110,12 +110,12 @@ copy /y "$(OutDir)web.config" "$(OutDir).."</PostBuildEvent>
     </Compile>
     <Compile Include="JsonController.cs" />
     <Compile Include="HubProtocolConstants.cs" />
-    <Compile Include="SymbolSearch\IPackageSearchDatabaseFactoryService.cs" />
-    <Compile Include="SymbolSearch\IPackageSearchDelayService.cs" />
-    <Compile Include="SymbolSearch\IPackageSearchIOService.cs" />
-    <Compile Include="SymbolSearch\IPackageSearchLogService.cs" />
-    <Compile Include="SymbolSearch\IPackageSearchPatchService.cs" />
-    <Compile Include="SymbolSearch\IPackageSearchRemoteControlService.cs" />
+    <Compile Include="SymbolSearch\ISymbolSearchDatabaseFactoryService.cs" />
+    <Compile Include="SymbolSearch\ISymbolSearchDelayService.cs" />
+    <Compile Include="SymbolSearch\ISymbolSearchIOService.cs" />
+    <Compile Include="SymbolSearch\ISymbolSearchLogService.cs" />
+    <Compile Include="SymbolSearch\ISymbolSearchPatchService.cs" />
+    <Compile Include="SymbolSearch\ISymbolSearchRemoteControlService.cs" />
     <Compile Include="SymbolSearch\SymbolSearchController.RemoteControlService.cs" />
     <Compile Include="SymbolSearch\Patching\Delta.cs" />
     <Compile Include="SymbolSearch\SymbolSearchController.DatabaseFactoryService.cs" />

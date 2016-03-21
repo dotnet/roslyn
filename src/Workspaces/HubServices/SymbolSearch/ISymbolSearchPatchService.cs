@@ -9,11 +9,10 @@ using System.Threading.Tasks;
 namespace Microsoft.CodeAnalysis.HubServices.SymbolSearch
 {
     /// <summary>
-    /// Used so we can mock out logging in unit tests.
+    /// Used so we can mock out patching in unit tests.
     /// </summary>
-    internal interface IPackageSearchLogService
+    internal interface ISymbolSearchPatchService
     {
-        void LogException(Exception e, string text);
-        void LogInfo(string text);
+        byte[] ApplyPatch(byte[] databaseBytes, byte[] patchBytes);
     }
 }

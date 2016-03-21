@@ -4,7 +4,7 @@ using Microsoft.CodeAnalysis.Elfie.Model;
 
 namespace Microsoft.CodeAnalysis.HubServices.SymbolSearch
 {
-    internal interface IPackageSearchDatabaseFactoryService
+    internal interface ISymbolSearchDatabaseFactoryService
     {
         AddReferenceDatabase CreateDatabaseFromBytes(byte[] bytes);
     }

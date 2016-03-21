@@ -11,7 +11,7 @@ namespace Microsoft.CodeAnalysis.HubServices.SymbolSearch
 {
     public partial class SymbolSearchController
     {
-        private class RemoteControlService : IPackageSearchRemoteControlService
+        private class RemoteControlService : ISymbolSearchRemoteControlService
         {
             private const string BaseUrl = "https://az700632.vo.msecnd.net/pub";
 
@@ -19,7 +19,7 @@ namespace Microsoft.CodeAnalysis.HubServices.SymbolSearch
             {
             }
 
-            public IPackageSearchRemoteControlClient CreateClient(string hostId, string serverPath, int pollingMinutes)
+            public ISymbolSearchRemoteControlClient CreateClient(string hostId, string serverPath, int pollingMinutes)
             {
                 return new RemoteControlClient(
                     new VSRemoteControlClient(
@@ -27,7 +27,7 @@ namespace Microsoft.CodeAnalysis.HubServices.SymbolSearch
             }
         }
 
-        private class RemoteControlClient : IPackageSearchRemoteControlClient
+        private class RemoteControlClient : ISymbolSearchRemoteControlClient
         {
             private readonly VSRemoteControlClient _client;
 

@@ -497,7 +497,7 @@ namespace Microsoft.CodeAnalysis.HubServices.SymbolSearch
             }
 
             /// <summary>Returns 'null' if download is not available and caller should keep polling.</summary>
-            private async Task<XElement> TryDownloadFileAsync(IPackageSearchRemoteControlClient client)
+            private async Task<XElement> TryDownloadFileAsync(ISymbolSearchRemoteControlClient client)
             {
                 _service.LogInfo("Read file from client");
 
