@@ -162,6 +162,152 @@ class C
 ");
         }
 
+        [Fact]
+        public void TupleUnderlyingItemAccess01()
+        {
+            var source = @"
+class C
+{
+    static void Main()
+    {
+        var x = (a: 1, b: 2);
+        System.Console.WriteLine(x.Item2.ToString());
+        x.Item1 = 40;
+        System.Console.WriteLine(x.Item1 + x.Item2);
+    }
+}
+" + trivial2uple;
+
+            var comp = CompileAndVerify(source, expectedOutput: @"2
+42");
+            comp.VerifyDiagnostics();
+            comp.VerifyIL("C.Main", @"
+{
+  // Code size       54 (0x36)
+  .maxstack  3
+  .locals init (System.Runtime.CompilerServices.ValueTuple<int, int> V_0) //x
+  IL_0000:  ldloca.s   V_0
+  IL_0002:  ldc.i4.1
+  IL_0003:  ldc.i4.2
+  IL_0004:  call       ""System.Runtime.CompilerServices.ValueTuple<int, int>..ctor(int, int)""
+  IL_0009:  ldloca.s   V_0
+  IL_000b:  ldflda     ""int System.Runtime.CompilerServices.ValueTuple<int, int>.Item2""
+  IL_0010:  call       ""string int.ToString()""
+  IL_0015:  call       ""void System.Console.WriteLine(string)""
+  IL_001a:  ldloca.s   V_0
+  IL_001c:  ldc.i4.s   40
+  IL_001e:  stfld      ""int System.Runtime.CompilerServices.ValueTuple<int, int>.Item1""
+  IL_0023:  ldloc.0
+  IL_0024:  ldfld      ""int System.Runtime.CompilerServices.ValueTuple<int, int>.Item1""
+  IL_0029:  ldloc.0
+  IL_002a:  ldfld      ""int System.Runtime.CompilerServices.ValueTuple<int, int>.Item2""
+  IL_002f:  add
+  IL_0030:  call       ""void System.Console.WriteLine(int)""
+  IL_0035:  ret
+}
+");
+        }
+
+        [Fact]
+        public void TupleItemAccess()
+        {
+            var source = @"
+class C
+{
+    static void Main()
+    {
+        var x = (a: 1, b: 2);
+        System.Console.WriteLine(x.b.ToString());
+        x.a = 40;
+        System.Console.WriteLine(x.a + x.b);
+    }
+}
+" + trivial2uple;
+
+            var comp = CompileAndVerify(source, expectedOutput: @"2
+42");
+            comp.VerifyDiagnostics();
+            comp.VerifyIL("C.Main", @"
+{
+  // Code size       54 (0x36)
+  .maxstack  3
+  .locals init (System.Runtime.CompilerServices.ValueTuple<int, int> V_0) //x
+  IL_0000:  ldloca.s   V_0
+  IL_0002:  ldc.i4.1
+  IL_0003:  ldc.i4.2
+  IL_0004:  call       ""System.Runtime.CompilerServices.ValueTuple<int, int>..ctor(int, int)""
+  IL_0009:  ldloca.s   V_0
+  IL_000b:  ldflda     ""int System.Runtime.CompilerServices.ValueTuple<int, int>.Item2""
+  IL_0010:  call       ""string int.ToString()""
+  IL_0015:  call       ""void System.Console.WriteLine(string)""
+  IL_001a:  ldloca.s   V_0
+  IL_001c:  ldc.i4.s   40
+  IL_001e:  stfld      ""int System.Runtime.CompilerServices.ValueTuple<int, int>.Item1""
+  IL_0023:  ldloc.0
+  IL_0024:  ldfld      ""int System.Runtime.CompilerServices.ValueTuple<int, int>.Item1""
+  IL_0029:  ldloc.0
+  IL_002a:  ldfld      ""int System.Runtime.CompilerServices.ValueTuple<int, int>.Item2""
+  IL_002f:  add
+  IL_0030:  call       ""void System.Console.WriteLine(int)""
+  IL_0035:  ret
+}
+");
+        }
+
+        [Fact]
+        public void TupleItemAccess01()
+        {
+            var source = @"
+class C
+{
+    static void Main()
+    {
+        var x = (a: 1, b: (c: 2, d: 3));
+        System.Console.WriteLine(x.b.c.ToString());
+        x.b.d = 39;
+        System.Console.WriteLine(x.a + x.b.c + x.b.d);
+    }
+}
+" + trivial2uple;
+
+            var comp = CompileAndVerify(source, expectedOutput: @"2
+42");
+            comp.VerifyDiagnostics();
+            comp.VerifyIL("C.Main", @"
+{
+  // Code size       87 (0x57)
+  .maxstack  4
+  .locals init (System.Runtime.CompilerServices.ValueTuple<int, > V_0) //x
+  IL_0000:  ldloca.s   V_0
+  IL_0002:  ldc.i4.1
+  IL_0003:  ldc.i4.2
+  IL_0004:  ldc.i4.3
+  IL_0005:  newobj     ""System.Runtime.CompilerServices.ValueTuple<int, int>..ctor(int, int)""
+  IL_000a:  call       ""System.Runtime.CompilerServices.ValueTuple<int, >..ctor(int, )""
+  IL_000f:  ldloca.s   V_0
+  IL_0011:  ldflda     "" System.Runtime.CompilerServices.ValueTuple<int, >.Item2""
+  IL_0016:  ldflda     ""int System.Runtime.CompilerServices.ValueTuple<int, int>.Item1""
+  IL_001b:  call       ""string int.ToString()""
+  IL_0020:  call       ""void System.Console.WriteLine(string)""
+  IL_0025:  ldloca.s   V_0
+  IL_0027:  ldflda     "" System.Runtime.CompilerServices.ValueTuple<int, >.Item2""
+  IL_002c:  ldc.i4.s   39
+  IL_002e:  stfld      ""int System.Runtime.CompilerServices.ValueTuple<int, int>.Item2""
+  IL_0033:  ldloc.0
+  IL_0034:  ldfld      ""int System.Runtime.CompilerServices.ValueTuple<int, >.Item1""
+  IL_0039:  ldloc.0
+  IL_003a:  ldfld      "" System.Runtime.CompilerServices.ValueTuple<int, >.Item2""
+  IL_003f:  ldfld      ""int System.Runtime.CompilerServices.ValueTuple<int, int>.Item1""
+  IL_0044:  add
+  IL_0045:  ldloc.0
+  IL_0046:  ldfld      "" System.Runtime.CompilerServices.ValueTuple<int, >.Item2""
+  IL_004b:  ldfld      ""int System.Runtime.CompilerServices.ValueTuple<int, int>.Item2""
+  IL_0050:  add
+  IL_0051:  call       ""void System.Console.WriteLine(int)""
+  IL_0056:  ret
+}
+");
+        }
 
     }
 }
