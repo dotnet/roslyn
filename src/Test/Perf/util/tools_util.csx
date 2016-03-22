@@ -113,7 +113,7 @@ string GetViBenchJsonFromCsv(string compilerTimeCsvFilePath, string execTimeCsvF
 
     arguments = arguments.Replace("\r\n", " ").Replace("\n", "");
 
-    ShellOutVital(GetViBenchToJsonExeFilePath(), arguments);
+    ShellOutVital(Path.Combine(GetCPCDirectoryPath(), "ViBenchToJson.exe"), arguments);
     
     return outJson;
 }

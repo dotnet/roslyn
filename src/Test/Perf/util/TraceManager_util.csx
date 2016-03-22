@@ -11,7 +11,7 @@ public class TraceManager
     private string _cpcFullPath = "CPC.exe";
     private int _startEventAbsoluteInstance = 1;
     private int _stopEventAbsoluteInstance = 1;
-    private readonly int _iterations
+    private readonly int _iterations;
     
     public TraceManager(
         int iterations = 3,

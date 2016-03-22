@@ -116,11 +116,6 @@ string GetCPCDirectoryPath()
     return Environment.ExpandEnvironmentVariables(@"%SYSTEMDRIVE%\CPC");
 }
 
-string GetCPCSourceBinaryLocation()
-{
-    return $@"\\mlangfs1\public\basoundr\CpcBinaries";
-}
-
 string GetViBenchToJsonExeFilePath()
 {
     return Path.Combine(GetCPCDirectoryPath(), "ViBenchToJson.exe");

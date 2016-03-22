@@ -13,7 +13,7 @@ void DownloadTools()
 void DownloadCPC()
 {
     var cpcDestinationPath = GetCPCDirectoryPath();
-    var cpcSourceBinaryLocation = GetCPCSourceBinaryLocation();
+    var cpcSourceBinaryLocation = @"\\mlangfs1\public\basoundr\CpcBinaries";
     
     
     // Delete the existing CPC folder
@@ -28,8 +28,8 @@ void DownloadCPC()
 
 void DownloadViBenchToJson()
 {
-    var destinationFilePath = GetViBenchToJsonExeFilePath();
-    var sourceFile = @"\\mlangfs1\public\basoundr\vibenchcsv2json\ViBenchToJson.exe";
+    var destinationFolderPath = GetCPCDirectoryPath();
+    var sourceFile = @"\\mlangfs1\public\basoundr\vibenchcsv2json";
     
-    File.Copy(sourceFile, destinationFilePath, true);
+    CopyDirectory(sourceFile, destinationFolderPath, @"/s");
 }
