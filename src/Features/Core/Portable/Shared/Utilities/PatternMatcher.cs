@@ -277,8 +277,7 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
             {
                 var segment = _dotSeparatedSegments[i];
                 var containerName = containerParts[j];
-                var containerMatch = MatchSegment(
-                    containerName, includeMatchSpans: false, segment: segment);
+                var containerMatch = MatchSegment(containerName, includeMatchSpans, segment);
                 if (containerMatch == null)
                 {
                     // This container didn't match the pattern piece.  So there's no match at all.
