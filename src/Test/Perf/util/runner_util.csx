@@ -60,8 +60,9 @@ IEnumerable<string> GetAllCsxRecursive(string directoryName)
 
 /// Takes a consumptionTempResults file and converts to csv file
 /// Each info contains the <ScenarioName, Metric Key, Metric value>
-public static bool ConvertConsumptionToCsv(string source, string destination, string requiredMetricKey)
+bool ConvertConsumptionToCsv(string source, string destination, string requiredMetricKey)
 {
+    Log("Entering ConvertConsumptionToCsv");
     if (!File.Exists(source))
     {
         return false;
@@ -119,6 +120,7 @@ public static bool ConvertConsumptionToCsv(string source, string destination, st
 /// Gets a csv file with metrics and converts them to ViBench supported JSON file
 string GetViBenchJsonFromCsv(string compilerTimeCsvFilePath, string execTimeCsvFilePath, string fileSizeCsvFilePath)
 {
+    Log("Convert the csv to JSON using ViBench tool");
     string branch = StdoutFrom("git", "rev-parse --abbrev-ref HEAD");
     string date = FirstLine(StdoutFrom("git", $"show --format=\"%aI\" {branch} --"));
     string hash = FirstLine(StdoutFrom("git", $"show --format=\"%h\" {branch} --"));
@@ -173,6 +175,7 @@ string FirstLine(string input) {
 
 void UploadTraces(string sourceFolderPath, string destinationFolderPath)
 {
+    Log("Uploading traces");
     if (Directory.Exists(sourceFolderPath))
     {
         // Get the latest written databackup
@@ -182,7 +185,7 @@ void UploadTraces(string sourceFolderPath, string destinationFolderPath)
             Log($"There are no trace directory starting with DataBackup in {sourceFolderPath}");
             return;
         }
-        
+
         var destination = Path.Combine(destinationFolderPath, directoryToUpload.Name);
         CopyDirectory(directoryToUpload.FullName, destination);
     }

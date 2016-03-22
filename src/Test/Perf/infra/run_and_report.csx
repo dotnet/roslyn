@@ -11,18 +11,17 @@ await RunFile(Path.Combine(MyWorkingDirectory(), "..", "runner.csx"));
 
 // Convert the produced consumptionTempResults.xml file to consumptionTempResults.csv file
 var elapsedTimeCsvFilePath = Path.Combine(GetCPCDirectoryPath(), "consumptionTempResults_ElapsedTime.csv");
-var result = ConvertConsumptionToCsv(Path.Combine(MyWorkingDirectory(), "..", "consumptionTempResults.xml"), elapsedTimeCsvFilePath, "Duration_TotalElapsedTime");
+var result = ConvertConsumptionToCsv(Path.Combine(GetCPCDirectoryPath(), "consumptionTempResults.xml"), elapsedTimeCsvFilePath, "Duration_TotalElapsedTime");
 
-if (!result)
+if (result)
 {
-    return;
+    var elapsedTimeViBenchJsonFilePath = GetViBenchJsonFromCsv(elapsedTimeCsvFilePath, null, null);
+    string jsonFileName = Path.GetFileName(elapsedTimeViBenchJsonFilePath);
+
+    Log("Copy the json file to the ViBench share");
+    // Move the json file to a file-share
+    File.Copy(elapsedTimeViBenchJsonFilePath, $@"\\vcbench-srv4\benchview\uploads\vibench\{jsonFileName}");
 }
-
-var elapsedTimeViBenchJsonFilePath = GetViBenchJsonFromCsv(elapsedTimeCsvFilePath, null, null);
-string jsonFileName = Path.GetFileName(elapsedTimeViBenchJsonFilePath);
-
-// Move the json file to a file-share
-File.Copy(elapsedTimeViBenchJsonFilePath, $@"\\vcbench-srv4\benchview\uploads\vibench\{jsonFileName}");
 
 // Move the traces to mlangfs1 share
 UploadTraces(GetCPCDirectoryPath(), @"\\mlangfs1\public\basoundr\PerfTraces");
