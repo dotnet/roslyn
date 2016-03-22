@@ -509,7 +509,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     case TypeKind.Interface:
                     case TypeKind.Enum:
                     case TypeKind.Delegate:
-                    case TypeKind.Tuple:
                         foreach (var typeArg in ((NamedTypeSymbol)current).TypeArgumentsNoUseSiteDiagnostics)
                         {
                             var result = typeArg.VisitType(predicate, arg);

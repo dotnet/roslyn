@@ -23,11 +23,6 @@ namespace Microsoft.CodeAnalysis
             DefaultVisit(symbol);
         }
 
-        public virtual void VisitTupleType(ITupleTypeSymbol symbol)
-        {
-            DefaultVisit(symbol);
-        }
-
         public virtual void VisitAssembly(IAssemblySymbol symbol)
         {
             DefaultVisit(symbol);

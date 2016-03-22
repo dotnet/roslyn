@@ -187,10 +187,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                     this.LookupMembersInClass(result, type, name, arity, basesBeingResolved, options, originalBinder, diagnose, ref useSiteDiagnostics);
                     break;
 
-                case TypeKind.Tuple:
-                    useSiteDiagnostics = LookupMembersInTuple(result, type, name, arity, basesBeingResolved, options, originalBinder, diagnose, useSiteDiagnostics);
-                    break;
-
                 case TypeKind.Submission:
                     this.LookupMembersInSubmissions(result, type, name, arity, basesBeingResolved, options, originalBinder, diagnose, ref useSiteDiagnostics);
                     break;
@@ -210,12 +206,6 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             // TODO: Diagnose ambiguity problems here, and conflicts between non-method and method? Or is that
             // done in the caller?
-        }
-
-        private HashSet<DiagnosticInfo> LookupMembersInTuple(LookupResult result, TypeSymbol type, string name, int arity, ConsList<Symbol> basesBeingResolved, LookupOptions options, Binder originalBinder, bool diagnose, HashSet<DiagnosticInfo> useSiteDiagnostics)
-        {
-            this.LookupMembersInClass(result, type, name, arity, basesBeingResolved, options, originalBinder, diagnose, ref useSiteDiagnostics);
-            return useSiteDiagnostics;
         }
 
         private void LookupMembersInErrorType(LookupResult result, ErrorTypeSymbol errorType, string name, int arity, ConsList<Symbol> basesBeingResolved, LookupOptions options, Binder originalBinder, bool diagnose, ref HashSet<DiagnosticInfo> useSiteDiagnostics)
@@ -728,7 +718,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // PROTOTYPE consider taking this out of the loop. tuples are always at the end of hierarchy
                 // PROTOTYPE match this in other lookups
                 var tuple = currentType as TupleTypeSymbol;
-                if (tuple != null)
+                if ((object)tuple != null)
                 {
                     currentType = tuple.UnderlyingTupleType;
                     continue;
@@ -1541,6 +1531,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case TypeKind.Dynamic:
                     this.AddMemberLookupSymbolsInfoInClass(result, type, options, originalBinder, type);
                     break;
+
+                    //PROTOTYPE: add special handling for tuple types - we need to collect both tuple members and from the underlying.
 
                 case TypeKind.Submission:
                     this.AddMemberLookupSymbolsInfoInSubmissions(result, type, options, originalBinder);
