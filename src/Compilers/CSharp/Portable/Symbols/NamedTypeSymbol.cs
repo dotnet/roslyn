@@ -639,7 +639,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// </summary>
         internal override bool Equals(TypeSymbol t2, bool ignoreCustomModifiersAndArraySizesAndLowerBounds = false, bool ignoreDynamic = false)
         {
-            if ((object)t2 ==  this) return true;
+            if ((object)t2 == this) return true;
             if ((object)t2 == null) return false;
 
             if (ignoreDynamic)
@@ -655,18 +655,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
                 //PROTOTYPE: rename ignoreDynamic or introduce another "ignoreTuple" flag
                 // if ignoring dynamic, compare underlying tuple types
-                var tupleType = t2 as TupleTypeSymbol;
-                if (tupleType != null)
+                if (t2.IsTupleType)
                 {
-                    t2 = tupleType.UnderlyingTupleType;
+                    t2 = ((TupleTypeSymbol)t2).UnderlyingTupleType;
                     if ((object)t2 == this) return true;
                 }
 
-                tupleType = this as TupleTypeSymbol;
-                if (tupleType != null)
-                {
-                    return tupleType.UnderlyingTupleType.Equals(t2, ignoreCustomModifiersAndArraySizesAndLowerBounds, ignoreDynamic);
-                }
+                Debug.Assert(!this.IsTupleType);
             }
 
             NamedTypeSymbol other = t2 as NamedTypeSymbol;

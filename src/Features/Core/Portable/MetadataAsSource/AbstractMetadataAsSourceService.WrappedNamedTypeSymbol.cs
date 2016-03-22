@@ -243,6 +243,14 @@ namespace Microsoft.CodeAnalysis.MetadataAsSource
                 }
             }
 
+            public bool IsTupleType
+            {
+                get
+                {
+                    return _symbol.IsTupleType;
+                }
+            }
+
             ITypeSymbol ITypeSymbol.OriginalDefinition
             {
                 get

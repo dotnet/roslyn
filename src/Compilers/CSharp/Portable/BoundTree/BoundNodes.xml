@@ -1145,6 +1145,7 @@
     <Node Name="BoundTupleCreationExpression" Base="BoundExpression">
     <!-- Non-null type is required for this node kind -->
     <Field Name="Type" Type="TypeSymbol" Override="true" Null="disallow"/>
+    <!-- The constructor of the underlying tuple type -->
     <Field Name="Constructor" Type="MethodSymbol" Null="disallow"/>
     <Field Name="Arguments" Type="ImmutableArray&lt;BoundExpression&gt;"/>
   </Node>

@@ -768,6 +768,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
             {
                 namedTypeSymbol = AnonymousTypeManager.TranslateAnonymousTypeSymbol(namedTypeSymbol);
             }
+            else if (namedTypeSymbol.IsTupleType)
+            {
+                namedTypeSymbol = ((TupleTypeSymbol)namedTypeSymbol).UnderlyingTupleType;
+            }
 
             // Substitute error types with a special singleton object.
             // Unreported bad types can come through NoPia embedding, for example.
@@ -914,9 +918,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
 
                 case SymbolKind.TypeParameter:
                     return Translate((TypeParameterSymbol)typeSymbol);
-
-                case SymbolKind.TupleType:
-                    return Translate(((TupleTypeSymbol)typeSymbol).UnderlyingTupleType, syntaxNodeOpt, diagnostics);
             }
 
             throw ExceptionUtilities.UnexpectedValue(typeSymbol.Kind);
@@ -1089,6 +1090,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
             if (container.IsAnonymousType)
             {
                 methodSymbol = AnonymousTypeManager.TranslateAnonymousTypeMethodSymbol(methodSymbol);
+            }
+            else if (container.IsTupleType)
+            {
+                container = ((TupleTypeSymbol)container).UnderlyingTupleType;
             }
 
             if (!methodSymbol.IsDefinition)

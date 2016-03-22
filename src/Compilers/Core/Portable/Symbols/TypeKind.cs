@@ -79,10 +79,5 @@ namespace Microsoft.CodeAnalysis
         /// Type is an interactive submission.
         /// </summary>
         Submission = 12,
-
-        /// <summary>
-        /// Type is a tuple.
-        /// </summary>
-        Tuple = 13,
     }
 }

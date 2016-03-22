@@ -648,8 +648,17 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (arguments.Count < 2)
             {
                 // this should be a parse error already.
-                return BadExpression(node);
+                var args = arguments.Count == 1 ?
+                    new BoundExpression[] { BindValue(arguments[0].Expression, diagnostics, BindValueKind.RValue) } :
+                    new BoundExpression[0];
+                    
+                return BadExpression(node, args);
             }
+
+            bool hasErrors = false;
+
+            // set of names already used
+            HashSet<string> uniqueFieldNames = new HashSet<string>();
 
             var boundArguments = ArrayBuilder<BoundExpression>.GetInstance(arguments.Count);
             var elementTypes = ArrayBuilder<TypeSymbol>.GetInstance(arguments.Count);
@@ -658,8 +667,22 @@ namespace Microsoft.CodeAnalysis.CSharp
             for (int i = 0, l = arguments.Count; i < l; i++)
             {
                 var argumentSyntax = arguments[i];
-                var name = argumentSyntax.NameColon?.Name.Identifier.ValueText;
+                var name = argumentSyntax.NameColon?.Name?.Identifier.ValueText;
 
+                // validate name if we have one
+                if (name != null)
+                {
+                    // PROTOTYPE: check for a case "ItemX" where X is not i
+
+                    if (!uniqueFieldNames.Add(name))
+                    {
+                        hasErrors = true;
+                        // PROTOTYPE: need specific duplicate name error for tuples
+                        Error(diagnostics, ErrorCode.ERR_AnonymousTypeDuplicatePropertyName, argumentSyntax.NameColon.Name);
+                    }
+                }
+                
+                // add the name to the list
                 // names would typically all be there or none at all
                 // but in case we need to handle this in error cases
                 if (elementNames != null)
@@ -679,15 +702,18 @@ namespace Microsoft.CodeAnalysis.CSharp
                     }
                 }
 
-                var boundArgument = BindExpression(argumentSyntax.Expression, diagnostics);
+                var boundArgument = BindValue(argumentSyntax.Expression, diagnostics, BindValueKind.RValue);
                 boundArguments.Add(boundArgument);
-                elementTypes.Add(boundArgument.Type);
+
+                // PROTOTYPE: need to report distinc errors for tuples
+                var elementType = GetAnonymousTypeFieldType(boundArgument, argumentSyntax, diagnostics, ref hasErrors);
+                elementTypes.Add(elementType);
             }
 
             var type = new TupleTypeSymbol(
                 elementTypes.ToImmutableAndFree(),
                 elementNames == null ?
-                                ImmutableArray<string>.Empty :
+                                default(ImmutableArray<string>) :
                                 elementNames.ToImmutableAndFree(),
                 node,
                 this,
@@ -696,7 +722,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             //PROTOTYPE: should be a wellknown member?
             var ctor = type.UnderlyingTupleType?.InstanceConstructors.FirstOrDefault();
 
-            return new BoundTupleCreationExpression(node, ctor, boundArguments.ToImmutableAndFree(), type);
+            return new BoundTupleCreationExpression(node, ctor, boundArguments.ToImmutableAndFree(), type, hasErrors);
         }
 
         private BoundExpression BindRefValue(RefValueExpressionSyntax node, DiagnosticBag diagnostics)
