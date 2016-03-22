@@ -104,6 +104,7 @@
     <ProjectReference Include="..\..\Workspaces\HubServices\HubServices.csproj">
       <Project>{1ddfa0b3-e8c0-49f1-832d-6a7e1eb4b77b}</Project>
       <Name>HubServices</Name>
+      <VSIXSubPath>bin</VSIXSubPath>
     </ProjectReference>
     <ProjectReference Include="..\..\Workspaces\VisualBasic\Portable\BasicWorkspace.vbproj">
       <Project>{57CA988D-F010-4BF2-9A2E-07D6DCD2FF2C}</Project>
