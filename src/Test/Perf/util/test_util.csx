@@ -81,11 +81,6 @@ string BinDirectory()
     return Path.Combine(RoslynDirectory(), "Binaries");
 }
 
-string PerfTestDirectory()
-{
-    return Path.Combine(RoslynDirectory(), "src", "Test", "Perf", "Tests");
-}
-
 string BinDebugDirectory()
 {
     return Path.Combine(BinDirectory(), "Debug");
@@ -126,11 +121,16 @@ string GetCPCSourceBinaryLocation()
     return $@"\\mlangfs1\public\basoundr\CpcBinaries";
 }
 
+string GetViBenchToJsonExeFilePath()
+{
+    return Path.Combine(GetCPCDirectoryPath(), "ViBenchToJson.exe");
+}
+
 //
 // Process spawning and error handling.
 //
 
-public class ProcessResult
+class ProcessResult
 {
     public string ExecutablePath {get; set;}
     public string Args {get; set;}
@@ -214,50 +214,6 @@ ProcessResult ShellOut(
         StdOut = output.ToString(),
         StdErr = error.ToString(),
     };
-}
-
-ProcessResult ShellOutUsingShellExecute(
-        string file,
-        string args,
-        string workingDirectory = null,
-        CancellationToken? cancelationToken = null)
-{
-    var tcs = new TaskCompletionSource<ProcessResult>();
-    var startInfo = new ProcessStartInfo(file, args);
-    startInfo.UseShellExecute = true;
-    var process = new Process
-    {
-        StartInfo = startInfo
-    };
-
-    if (cancelationToken != null) {
-        cancelationToken.Value.Register(() => process.Kill());
-    }
-    
-    if (IsVerbose()) {
-        Log($"running \"{file}\" with arguments \"{args}\" from directory {workingDirectory}");
-    }
-    
-    process.Start();
-
-    process.WaitForExit();
-
-    return new ProcessResult {
-        ExecutablePath = file,
-        Args = args,
-        Code = 0,
-        StdOut = "",
-        StdErr = "",
-    };
-}
-
-void CopyDirectory(string source, string destination)
-{
-    var result = ShellOutUsingShellExecute("Robocopy", $"/mir {source} {destination}");
-    if (!result.Succeeded)
-    {
-        throw new IOException($"Failed to copy \"{source}\" to \"{destination}\".");
-    }
 }
 
 string StdoutFrom(string program, string args = "") {

@@ -1,5 +1,7 @@
 #load "test_util.csx"
 
+using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Xml;
@@ -11,6 +13,7 @@ bool ConvertConsumptionToCsv(string source, string destination, string requiredM
     Log("Entering ConvertConsumptionToCsv");
     if (!File.Exists(source))
     {
+        Log($"File {source} does not exist");
         return false;
     }
 
@@ -110,7 +113,7 @@ string GetViBenchJsonFromCsv(string compilerTimeCsvFilePath, string execTimeCsvF
 
     arguments = arguments.Replace("\r\n", " ").Replace("\n", "");
 
-    ShellOutVital(@"\\mlangfs1\public\basoundr\vibenchcsv2json\ViBenchToJson.exe", arguments);
+    ShellOutVital(GetViBenchToJsonExeFilePath(), arguments);
     
     return outJson;
 }
@@ -138,5 +141,16 @@ void UploadTraces(string sourceFolderPath, string destinationFolderPath)
     else
     {
         Log($"sourceFolderPath: {sourceFolderPath} does not exist");
+    }
+}
+
+void CopyDirectory(string source, string destination, string argument = @"/mir")
+{
+    var result = ShellOut("Robocopy", $"{argument} {source} {destination}");
+    
+    // Robocopy has a success exit code from 0 - 7
+    if (result.Code > 7)
+    {
+        throw new IOException($"Failed to copy \"{source}\" to \"{destination}\".");
     }
 }

@@ -11,13 +11,24 @@ public class TraceManager
     private string _cpcFullPath = "CPC.exe";
     private int _startEventAbsoluteInstance = 1;
     private int _stopEventAbsoluteInstance = 1;
+    private readonly int _iterations
     
     public TraceManager(
+        int iterations = 3,
         string cpcFolderPath = @"%SYSTEMDRIVE%\CPC",
         string scenarioPath = @"%SYSTEMDRIVE%\CPC")
     {
+        _iterations = iterations;
         _cpcFullPath = Path.Combine(Environment.ExpandEnvironmentVariables(cpcFolderPath), "CPC.exe");
         _scenarioGenerator = new ScenarioGenerator(Environment.ExpandEnvironmentVariables(scenarioPath));
+    }
+    
+    public int Iterations 
+    {
+        get
+        {
+            return _iterations;
+        }    
     }
     
     public void Setup()
@@ -95,7 +106,7 @@ public class TraceManager
         _stopEventAbsoluteInstance = 1;
     }
 
-    public static ProcessResult RunProcess(string _cpcFullPath, string args)
+    private ProcessResult RunProcess(string _cpcFullPath, string args)
     {
         var startInfo = new ProcessStartInfo(_cpcFullPath, args);
         startInfo.UseShellExecute = true;

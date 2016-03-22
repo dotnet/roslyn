@@ -3,7 +3,6 @@
 #load ".\util\runner_util.csx"
 #load ".\util\test_util.csx"
 #load ".\util\TraceManager_util.csx"
-#load ".\util\DownloadCPC_util.csx"
 
 using System.Collections.Generic;
 using System.IO;
@@ -11,13 +10,11 @@ using System;
 
 InitUtilities();
 
-var testDirectory = PerfTestDirectory();
+var testDirectory = Path.Combine(MyWorkingDirectory(), "Tests");
 
 var allResults = new List<Tuple<string, List<Tuple<int, string, object>>>>();
 var failed = false;
 
-// Run DownloadCPC before using the TraceManager because TraceManager uses the CPC downloaded binaries 
-DownloadCPC();
 var traceManager = new TraceManager();
 
 // Print message at startup
@@ -25,11 +22,9 @@ Log("Starting Performance Test Run");
 Log("hash: " + StdoutFrom("git", "show --format=\"%h\" HEAD --").Split(new[] {"\r\n", "\r", "\n"}, StringSplitOptions.None)[0]);
 Log("time: " + DateTime.Now.ToString());
 
-// This is an assumption. We can modify it later
-var noOfIterations = 3;
 traceManager.Setup();
 
-for(int i = 0; i < noOfIterations; ++ i)
+for(int i = 0; i < traceManager.Iterations; ++ i)
 {
     traceManager.Start();
     
