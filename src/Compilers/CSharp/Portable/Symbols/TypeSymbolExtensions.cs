@@ -731,16 +731,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                                     break;
 
                                 case Accessibility.ProtectedAndInternal:
-                                    // If s2 is in the same assembly as s1, then s2's private protected is more restrictive
-                                    // than s1's internal protected.
-                                    if (s2.ContainingAssembly.HasInternalAccessTo(s1.ContainingAssembly))
-                                    {
-                                        return true;
-                                    }
-
                                     // if s2 is private protected, and it's parent is a subclass (or the same as) s1's parent
-                                    // then this is at least as restrictive as s1's internal protected
-                                    if (parent1.IsAccessibleViaInheritance(s2.ContainingType, ref useSiteDiagnostics))
+                                    // or its in the same assembly as s1, then this is at least as restrictive as s1's protected
+                                    if (s2.ContainingAssembly.HasInternalAccessTo(s1.ContainingAssembly) ||
+                                        parent1.IsAccessibleViaInheritance(s2.ContainingType, ref useSiteDiagnostics))
                                     {
                                         return true;
                                     }

@@ -14,7 +14,7 @@ We modify the language specification as follows (additions in bold). Section num
 - Protected, which is selected by including a protected modifier in the member declaration. The intuitive meaning of protected is “access limited to the containing class or types derived from the containing class”.
 - Internal, which is selected by including an internal modifier in the member declaration. The intuitive meaning of internal is “access limited to this assembly”.
 - Protected internal, which is selected by including both a protected and an internal modifier in the member declaration. The intuitive meaning of protected internal is “accessible within this assembly as well as types derived from the containing class”.
-- **Private protected, which is selected by including both a private and an protected modifier in the member declaration. The intuitive meaning of private protected is “accessible within this assembly by types derived from the containing class”.**
+- **Private protected, which is selected by including both a private and a protected modifier in the member declaration. The intuitive meaning of private protected is “accessible within this assembly by types derived from the containing class”.**
 
 -----
 
@@ -69,14 +69,14 @@ We modify the language specification as follows (additions in bold). Section num
 
 -----
 
-> The method overridden by an override declaration is known as the overridden base method For an override method M declared in a class C, the overridden base method is determined by examining each base class type of C, starting with the direct base class type of C and continuing with each successive direct base class type, until in a given base class type at least one accessible method is located which has the same signature as M after substitution of type arguments. For the purposes of locating the overridden base method, a method is considered accessible if it is public, if it is protected, if it is protected internal, or if it is **either** internal **or protected internal** and declared in the same program as C.
+> The method overridden by an override declaration is known as the overridden base method For an override method M declared in a class C, the overridden base method is determined by examining each base class type of C, starting with the direct base class type of C and continuing with each successive direct base class type, until in a given base class type at least one accessible method is located which has the same signature as M after substitution of type arguments. For the purposes of locating the overridden base method, a method is considered accessible if it is public, if it is protected, if it is protected internal, or if it is **either** internal **or private protected** and declared in the same program as C.
 
 -----
 
 > The use of accessor-modifiers is governed by the following restrictions:
 - An accessor-modifier shall not be used in an interface or in an explicit interface member implementation.
-- For a property or indexer that has no override modifer, an accessor-modifier is permitted only if the property or indexer has both a get and set accessor, and then is permitted only on one of those accessors.
-- For a property or indexer that includes an override modifer, an accessor shall match the accessor-modifier, if any, of the accessor being overridden.
+- For a property or indexer that has no override modifier, an accessor-modifier is permitted only if the property or indexer has both a get and set accessor, and then is permitted only on one of those accessors.
+- For a property or indexer that includes an override modifier, an accessor shall match the accessor-modifier, if any, of the accessor being overridden.
 - The accessor-modifier shall declare an accessibility that is strictly more restrictive than the declared accessibility of the property or indexer itself. To be precise:
   - If the property or indexer has a declared accessibility of public, the accessor-modifier may be either **private protected**, , protected internal, internal, protected, or private.
   - If the property or indexer has a declared accessibility of protected internal, the accessor-modifier may be either **private protected**, internal, protected, or private.
