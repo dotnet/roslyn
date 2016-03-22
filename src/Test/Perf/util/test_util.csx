@@ -251,6 +251,15 @@ ProcessResult ShellOutUsingShellExecute(
     };
 }
 
+void CopyDirectory(string source, string destination)
+{
+    var result = ShellOutUsingShellExecute("Robocopy", $"/mir {source} {destination}");
+    if (!result.Succeeded)
+    {
+        throw new IOException($"Failed to copy \"{source}\" to \"{destination}\".");
+    }
+}
+
 string StdoutFrom(string program, string args = "") {
     var result = ShellOut(program, args);
     if (result.Failed) {

@@ -18,12 +18,3 @@ public void DownloadCPC()
     // Copy CPC from the share to cpcDestinationPath
     CopyDirectory(cpcSourceBinaryLocation, cpcDestinationPath);
 }
-
-void CopyDirectory(string source, string destination)
-{
-    var result = ShellOutUsingShellExecute("Robocopy", $"/mir {source} {destination}");
-    if (!result.Succeeded)
-    {
-        throw new IOException($"Failed to copy \"{source}\" to \"{destination}\".");
-    }
-}

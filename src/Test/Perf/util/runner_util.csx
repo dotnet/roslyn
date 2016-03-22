@@ -171,3 +171,24 @@ string FirstLine(string input) {
     return input.Split(new[] {"\r\n", "\r", "\n"}, System.StringSplitOptions.None)[0];
 }
 
+void UploadTraces(string sourceFolderPath, string destinationFolderPath)
+{
+    if (Directory.Exists(sourceFolderPath))
+    {
+        // Get the latest written databackup
+        var directoryToUpload = new DirectoryInfo(sourceFolderPath).GetDirectories("DataBackup*").OrderByDescending(d=>d.LastWriteTimeUtc).FirstOrDefault();
+        if (directoryToUpload == null)
+        {
+            Log($"There are no trace directory starting with DataBackup in {sourceFolderPath}");
+            return;
+        }
+        
+        var destination = Path.Combine(destinationFolderPath, directoryToUpload.Name);
+        CopyDirectory(directoryToUpload.FullName, destination);
+    }
+    else
+    {
+        Log($"sourceFolderPath: {sourceFolderPath} does not exist");
+    }
+}
+

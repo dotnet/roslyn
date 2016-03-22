@@ -23,3 +23,6 @@ string jsonFileName = Path.GetFileName(elapsedTimeViBenchJsonFilePath);
 
 // Move the json file to a file-share
 File.Copy(elapsedTimeViBenchJsonFilePath, $@"\\vcbench-srv4\benchview\uploads\vibench\{jsonFileName}");
+
+// Move the traces to mlangfs1 share
+UploadTraces(GetCPCDirectoryPath(), @"\\mlangfs1\public\basoundr\PerfTraces");
