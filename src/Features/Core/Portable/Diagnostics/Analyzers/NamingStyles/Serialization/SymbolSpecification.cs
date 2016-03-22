@@ -14,10 +14,10 @@ namespace Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles
     {
         public Guid ID { get; private set; }
         public string Name { get; private set; }
-        public List<SymbolKindOrTypeKind> ApplicableSymbolKindList { get; private set; }
-        public List<AccessibilityKind> ApplicableAccessibilityList { get; private set; }
-        public List<ModifierKind> RequiredModifierList { get; private set; }
-        public List<string> RequiredCustomTagList { get; private set; }
+        public IList<SymbolKindOrTypeKind> ApplicableSymbolKindList { get; private set; }
+        public IList<AccessibilityKind> ApplicableAccessibilityList { get; private set; }
+        public IList<ModifierKind> RequiredModifierList { get; private set; }
+        public IList<string> RequiredCustomTagList { get; private set; }
 
         internal SymbolSpecification()
         {
@@ -55,7 +55,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles
             RequiredCustomTagList = new List<string>();
         }
 
-        public SymbolSpecification(Guid id, string symbolSpecName, List<SymbolKindOrTypeKind> symbolKindList, List<AccessibilityKind> accessibilityKindList, List<ModifierKind> modifierList, List<string> customTagList)
+        public SymbolSpecification(Guid id, string symbolSpecName, IList<SymbolKindOrTypeKind> symbolKindList, IList<AccessibilityKind> accessibilityKindList, IList<ModifierKind> modifierList, IList<string> customTagList)
         {
             ID = id;
             Name = symbolSpecName;

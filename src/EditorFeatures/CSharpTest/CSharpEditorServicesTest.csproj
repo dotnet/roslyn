@@ -183,6 +183,7 @@
     <Compile Include="CodeActions\Preview\PreviewTests.cs" />
     <Compile Include="CodeActions\ReplaceMethodWithProperty\ReplaceMethodWithPropertyTests.cs" />
     <Compile Include="Diagnostics\InvokeDelegateWithConditionalAccess\InvokeDelegateWithConditionalAccessTests.cs" />
+    <Compile Include="Diagnostics\NamingStyles\NamingStylesTests_OptionSets.cs" />
     <Compile Include="Diagnostics\QualifyMemberAccess\QualifyMemberAccessTests.cs" />
     <Compile Include="Diagnostics\Suppression\RemoveSuppressionTests.cs" />
     <Compile Include="Diagnostics\Suppression\SuppressionTest_FixMultipleTests.cs" />
@@ -211,8 +212,9 @@
     <Compile Include="Completion\ReferenceDirectiveCompletionProviderTests.cs" />
     <Compile Include="Diagnostics\UseImplicitOrExplicitType\UseExplicitTypeTests.cs" />
     <Compile Include="Diagnostics\UseImplicitOrExplicitType\UseExplicitTypeTests_FixAllTests.cs" />
-    <Compile Include="Diagnostics\UseImplicitOrExplicitType\UseImplicitTypeTests_FixAllTests.cs" />
     <Compile Include="Diagnostics\UseImplicitOrExplicitType\UseImplicitTypeTests.cs" />
+    <Compile Include="Diagnostics\UseImplicitOrExplicitType\UseImplicitTypeTests_FixAllTests.cs" />
+    <Compile Include="Diagnostics\NamingStyles\NamingStylesTests.cs" />
     <Compile Include="GoToAdjacentMember\CSharpGoToAdjacentMemberTests.cs" />
     <Compile Include="Diagnostics\AbstractCSharpDiagnosticProviderBasedUserDiagnosticTest.cs" />
     <Compile Include="Diagnostics\AddUsing\AddUsingTests.cs" />
