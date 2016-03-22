@@ -139,7 +139,7 @@ static void addPushTrigger(def myJob) {
 
 // Generates the standard trigger phrases.  This is the regex which ends up matching lines like:
 //  test win32 please
-static String generateTriggerPhrase(String jobName, string opsysName, Stringc triggerKeyword = 'this') {
+static String generateTriggerPhrase(String jobName, String opsysName, String triggerKeyword = 'this') {
     return "(?i).*test\\W+(${jobName.replace('_', '/').substring(7)}|${opsysName}|${triggerKeyword}|${opsysName}\\W+${triggerKeyword}|${triggerKeyword}\\W+${opsysName})\\W+please.*";
 }
 
