@@ -9,7 +9,7 @@
 
     <language>en-US</language>
     <requireLicenseAcceptance>true</requireLicenseAcceptance>
-    <version>$currentVersion$</version>
+    <version>$version$</version>
     <authors>$authors$</authors>
     <licenseUrl>$licenseUrl$</licenseUrl>
     <projectUrl>$projectUrl$</projectUrl>
@@ -17,7 +17,7 @@
     <tags>$tags$</tags>
     
     <dependencies>
-      <dependency id="Microsoft.CodeAnalysis.Common" version="[$currentVersion$]" />
+      <dependency id="Microsoft.CodeAnalysis.Common" version="[$version$]" />
       <dependency id="System.Collections" version="4.0.10" />
       <dependency id="System.Collections.Immutable" version="1.1.37" />
       <dependency id="System.Diagnostics.Debug" version="4.0.10" />
@@ -42,6 +42,6 @@
   <files>
     <file src="Microsoft.CodeAnalysis.Scripting.dll" target="lib\dotnet" />
     <file src="Microsoft.CodeAnalysis.Scripting.xml" target="lib\dotnet" />
-    <file src="ThirdPartyNotices.rtf" target="" />
+    <file src="$thirdPartyNoticesPath$" target="" />
   </files>
 </package>

@@ -9,7 +9,7 @@
 
     <language>en-US</language>
     <requireLicenseAcceptance>true</requireLicenseAcceptance>
-    <version>$currentVersion$</version>
+    <version>$version$</version>
     <authors>$authors$</authors>
     <licenseUrl>$licenseUrl$</licenseUrl>
     <projectUrl>$projectUrl$</projectUrl>
@@ -17,14 +17,14 @@
     <tags>$tags$</tags>
     
     <dependencies>
-      <dependency id="Microsoft.CodeAnalysis.Scripting.Common" version="[$currentVersion$]" />
-      <dependency id="Microsoft.CodeAnalysis.VisualBasic" version="[$currentVersion$]" />
+      <dependency id="Microsoft.CodeAnalysis.Scripting.Common" version="[$version$]" />
+      <dependency id="Microsoft.CodeAnalysis.VisualBasic" version="[$version$]" />
       <dependency id="Microsoft.VisualBasic" version="10.0.0" />
     </dependencies>
   </metadata>
   <files>
     <file src="Microsoft.CodeAnalysis.VisualBasic.Scripting.dll" target="lib\dotnet" />
     <file src="Microsoft.CodeAnalysis.VisualBasic.Scripting.xml" target="lib\dotnet" />
-    <file src="ThirdPartyNotices.rtf" target="" />
+    <file src="$thirdPartyNoticesPath$" target="" />
   </files>
 </package>

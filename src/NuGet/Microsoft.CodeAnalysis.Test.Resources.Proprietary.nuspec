@@ -11,7 +11,7 @@ Supported Platforms:
     <summary></summary>
     <language>en-US</language>
     <requireLicenseAcceptance>true</requireLicenseAcceptance>
-    <version>$currentVersion$</version>
+    <version>$version$</version>
     <authors>$authors$</authors>
     <licenseUrl>$licenseUrl$</licenseUrl>
     <projectUrl>$projectUrl$</projectUrl>

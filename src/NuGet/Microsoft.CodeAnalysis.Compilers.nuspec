@@ -12,13 +12,13 @@ Supported Platforms:
 - Portable Class Libraries    
     </description>
     <dependencies>
-      <dependency id="Microsoft.CodeAnalysis.CSharp" version="[$currentVersion$]" />
-      <dependency id="Microsoft.CodeAnalysis.VisualBasic" version="[$currentVersion$]" />
+      <dependency id="Microsoft.CodeAnalysis.CSharp" version="[$version$]" />
+      <dependency id="Microsoft.CodeAnalysis.VisualBasic" version="[$version$]" />
     </dependencies>
 
     <language>en-US</language>
     <requireLicenseAcceptance>true</requireLicenseAcceptance>
-    <version>$currentVersion$</version>
+    <version>$version$</version>
     <authors>$authors$</authors>
     <licenseUrl>$licenseUrl$</licenseUrl>
     <projectUrl>$projectUrl$</projectUrl>
@@ -26,6 +26,6 @@ Supported Platforms:
     <tags>$tags$</tags>
   </metadata>
   <files>
-    <file src="ThirdPartyNotices.rtf" target="" />
+    <file src="$thirdPartyNoticesPath$" target="" />
   </files>
 </package>

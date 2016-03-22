@@ -7,13 +7,13 @@
       Microsoft .NET Compiler Platform ("Roslyn") CSharp and VB scripting package.
     </description>
     <dependencies>
-      <dependency id="Microsoft.CodeAnalysis.CSharp.Scripting" version="[$currentVersion$]" />
-      <dependency id="Microsoft.CodeAnalysis.Scripting.Common" version="[$currentVersion$]" />
+      <dependency id="Microsoft.CodeAnalysis.CSharp.Scripting" version="[$version$]" />
+      <dependency id="Microsoft.CodeAnalysis.Scripting.Common" version="[$version$]" />
     </dependencies>
 
     <language>en-US</language>
     <requireLicenseAcceptance>true</requireLicenseAcceptance>
-    <version>$currentVersion$</version>
+    <version>$version$</version>
     <authors>$authors$</authors>
     <licenseUrl>$licenseUrl$</licenseUrl>
     <projectUrl>$projectUrl$</projectUrl>
@@ -21,6 +21,6 @@
     <tags>$tags$</tags>
   </metadata>
   <files>
-    <file src="ThirdPartyNotices.rtf" target="" />
+    <file src="$thirdPartyNoticesPath$" target="" />
   </files>
 </package>

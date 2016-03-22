@@ -11,13 +11,13 @@ Supported Platforms:
 - Portable Class Libraries
     </description>
     <dependencies>
-      <dependency id="Microsoft.CodeAnalysis.Features" version="$currentVersion$" />
-      <dependency id="Microsoft.CodeAnalysis.VisualBasic.Workspaces" version="$currentVersion$" />
+      <dependency id="Microsoft.CodeAnalysis.Features" version="$version$" />
+      <dependency id="Microsoft.CodeAnalysis.VisualBasic.Workspaces" version="$version$" />
     </dependencies>
 
     <language>en-US</language>
     <requireLicenseAcceptance>true</requireLicenseAcceptance>
-    <version>$currentVersion$</version>
+    <version>$version$</version>
     <authors>$authors$</authors>
     <licenseUrl>$licenseUrl$</licenseUrl>
     <projectUrl>$projectUrl$</projectUrl>
@@ -29,6 +29,6 @@ Supported Platforms:
     <file src="Microsoft.CodeAnalysis.VisualBasic.Features.xml" target="lib\portable-net45+win8" />
     <file src="Microsoft.CodeAnalysis.VisualBasic.Features.dll" target="lib\net45" />
     <file src="Microsoft.CodeAnalysis.VisualBasic.Features.xml" target="lib\net45" />
-    <file src="ThirdPartyNotices.rtf" target="" />
+    <file src="$thirdPartyNoticesPath$" target="" />
   </files>
 </package>

@@ -10,7 +10,7 @@ Supported Platforms:
     </description>
     <language>en-US</language>
     <requireLicenseAcceptance>true</requireLicenseAcceptance>
-    <version>$currentVersion$</version>
+    <version>$version$</version>
     <authors>$authors$</authors>
     <licenseUrl>$licenseUrl$</licenseUrl>
     <projectUrl>$projectUrl$</projectUrl>
@@ -19,8 +19,8 @@ Supported Platforms:
     <developmentDependency>true</developmentDependency>
   </metadata>
   <files>
-    <file src="Microsoft.Net.Compilers.props" target="build\Microsoft.Net.Compilers.props" />
-    <file src="ThirdPartyNotices.rtf" target="" />
+    <file src="$netCompilersPropsPath$" target="build\Microsoft.Net.Compilers.props" />
+    <file src="$thirdPartyNoticesPath$" target="" />
     
     <file src="Microsoft.CodeAnalysis.dll" target="tools" />
     <file src="Microsoft.DiaSymReader.Native.amd64.dll" target="tools" />

@@ -11,12 +11,12 @@ Supported Platforms:
 - Portable Class Libraries
     </description>
     <dependencies>
-      <dependency id="Microsoft.CodeAnalysis.Common" version="$currentVersion$" />
+      <dependency id="Microsoft.CodeAnalysis.Common" version="$version$" />
     </dependencies>
 
     <language>en-US</language>
     <requireLicenseAcceptance>true</requireLicenseAcceptance>
-    <version>$currentVersion$</version>
+    <version>$version$</version>
     <authors>$authors$</authors>
     <licenseUrl>$licenseUrl$</licenseUrl>
     <projectUrl>$projectUrl$</projectUrl>
@@ -30,6 +30,6 @@ Supported Platforms:
     <file src="Microsoft.CodeAnalysis.VisualBasic.xml" target="lib\net45" />
     <file src="Microsoft.CodeAnalysis.VisualBasic.dll" target="lib\netstandard1.3" />
     <file src="Microsoft.CodeAnalysis.VisualBasic.xml" target="lib\netstandard1.3" />
-    <file src="ThirdPartyNotices.rtf" target="" />
+    <file src="$thirdPartyNoticesPath$" target="" />
   </files>
 </package>

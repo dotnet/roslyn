@@ -9,13 +9,13 @@ Supported Platforms:
 - .NET Framework 4.5
     </description>
     <dependencies>
-      <dependency id="Microsoft.CodeAnalysis.VisualBasic" version="[$currentVersion$]" />
-      <dependency id="Microsoft.CodeAnalysis.Workspaces.Common" version="[$currentVersion$]" />
+      <dependency id="Microsoft.CodeAnalysis.VisualBasic" version="[$version$]" />
+      <dependency id="Microsoft.CodeAnalysis.Workspaces.Common" version="[$version$]" />
     </dependencies>
 
     <language>en-US</language>
     <requireLicenseAcceptance>true</requireLicenseAcceptance>
-    <version>$currentVersion$</version>
+    <version>$version$</version>
     <authors>$authors$</authors>
     <licenseUrl>$licenseUrl$</licenseUrl>
     <projectUrl>$projectUrl$</projectUrl>
@@ -27,6 +27,6 @@ Supported Platforms:
     <file src="Microsoft.CodeAnalysis.VisualBasic.Workspaces.xml" target="lib\portable-net45+win8" />
     <file src="Microsoft.CodeAnalysis.VisualBasic.Workspaces.dll" target="lib\net45" />
     <file src="Microsoft.CodeAnalysis.VisualBasic.Workspaces.xml" target="lib\net45" />
-    <file src="ThirdPartyNotices.rtf" target="" />
+    <file src="$thirdPartyNoticesPath$" target="" />
   </files>
 </package>

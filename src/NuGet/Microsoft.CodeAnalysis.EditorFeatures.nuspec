@@ -9,12 +9,12 @@ Supported Platforms:
 - .NET Framework 4.6
     </description>
     <dependencies>
-      <dependency id="Microsoft.CodeAnalysis.Features" version="[$currentVersion$]" />
+      <dependency id="Microsoft.CodeAnalysis.Features" version="[$version$]" />
     </dependencies>
 
     <language>en-US</language>
     <requireLicenseAcceptance>true</requireLicenseAcceptance>
-    <version>$currentVersion$</version>
+    <version>$version$</version>
     <authors>$authors$</authors>
     <licenseUrl>$licenseUrl$</licenseUrl>
     <projectUrl>$projectUrl$</projectUrl>

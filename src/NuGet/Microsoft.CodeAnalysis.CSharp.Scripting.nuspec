@@ -9,7 +9,7 @@
 
     <language>en-US</language>
     <requireLicenseAcceptance>true</requireLicenseAcceptance>
-    <version>$currentVersion$</version>
+    <version>$version$</version>
     <authors>$authors$</authors>
     <licenseUrl>$licenseUrl$</licenseUrl>
     <projectUrl>$projectUrl$</projectUrl>
@@ -17,13 +17,13 @@
     <tags>$tags$</tags>
     
     <dependencies>
-      <dependency id="Microsoft.CodeAnalysis.Scripting.Common" version="[$currentVersion$]" />
-      <dependency id="Microsoft.CodeAnalysis.CSharp" version="[$currentVersion$]" />
+      <dependency id="Microsoft.CodeAnalysis.Scripting.Common" version="[$version$]" />
+      <dependency id="Microsoft.CodeAnalysis.CSharp" version="[$version$]" />
     </dependencies>
   </metadata>
   <files>
     <file src="Microsoft.CodeAnalysis.CSharp.Scripting.dll" target="lib\dotnet" />
     <file src="Microsoft.CodeAnalysis.CSharp.Scripting.xml" target="lib\dotnet" />
-    <file src="ThirdPartyNotices.rtf" target="" />
+    <file src="$thirdPartyNoticesPath$" target="" />
   </files>
 </package>
