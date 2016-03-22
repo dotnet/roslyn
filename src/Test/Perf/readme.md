@@ -28,10 +28,9 @@ requires to run.
 The big push on this perf-system is to make it easy for contributors to test
 their changes locally.
 
-**Before you do anything else**, make sure that you run the `bootstrap.csx` file
-in the Perf directory.  This will build Roslyn in release mode, and store the
-results in Binaries/PerfBootstrap so that they can be used by the performance
-runner.
+**Before you do anything else**, make sure that you run the `bootstrap.bat` file
+in the Perf directory.  This will build csi.exe in release mode, and store the
+results in "infra/bin" so that they can be used by the performance runner.
 
 ### Running a Single Test
 
