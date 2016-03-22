@@ -175,11 +175,6 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Utilities
             Assert.Equal(true, match.Value.IsCaseSensitive);
         }
 
-        private IEnumerable<TextSpan> GetSpans(params TextSpan[] textSpans)
-        {
-            return textSpans;
-        }
-
         [Fact]
         public void TryMatchSingleWordPattern_SingleWordPreferCaseSensitiveExactInsensitive()
         {
