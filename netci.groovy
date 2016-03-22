@@ -274,6 +274,6 @@ set TMP=%TEMP%
   }
 
   addConcurrentBuild(determinismJob, null)
-  addStandardJob(determinismJob, determinismJobName, branchName, 'determinism', true);
+  addStandardJob(determinismJob, determinismJobName, branchName,  "(?i).*test\\W+determinism.*", true);
 }
 
