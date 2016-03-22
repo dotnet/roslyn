@@ -297,16 +297,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
                     }
                     return GetFirstIncludedToken(forEachSyntax.Statement, inRecursiveCall: true);
                 case SyntaxKind.ForStatement:
-                    // Section 8.8.3 of the spec says that the scope of the loop variable starts at 
-                    // its declaration.  If it's not there, then the scope we are interested in is
-                    // the loop body.
-                    ForStatementSyntax forSyntax = (ForStatementSyntax)statement;
-                    if (inRecursiveCall)
-                    {
-                        return forSyntax.ForKeyword;
-                    }
-                    VariableDeclarationSyntax declOpt = forSyntax.Declaration;
-                    return declOpt == null ? GetFirstIncludedToken(forSyntax.Statement, inRecursiveCall: true) : declOpt.GetFirstToken();
+                    return ((ForStatementSyntax)statement).OpenParenToken.GetNextToken();
                 case SyntaxKind.GotoDefaultStatement:
                 case SyntaxKind.GotoCaseStatement:
                 case SyntaxKind.GotoStatement:
