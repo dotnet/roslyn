@@ -3,6 +3,7 @@
 #load ".\util\runner_util.csx"
 #load ".\util\test_util.csx"
 #load ".\util\TraceManager_util.csx"
+#load ".\util\DownloadCPC_util.csx"
 
 using System.Collections.Generic;
 using System.IO;
