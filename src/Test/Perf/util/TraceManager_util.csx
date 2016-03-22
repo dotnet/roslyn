@@ -19,16 +19,7 @@ public class TraceManager
         _cpcFullPath = Path.Combine(Environment.ExpandEnvironmentVariables(cpcFolderPath), "CPC.exe");
         _scenarioGenerator = new ScenarioGenerator(Environment.ExpandEnvironmentVariables(scenarioPath));
     }
-
-    public static void Run(string testExecutable, string argument)
-    {
-        var processResult = RunProcess(testExecutable, argument);
-        if (processResult.Failed)
-        {
-            throw new SystemException($@"The process {testExecutable} failed. {processResult.StdErr}");
-        }
-    }
-
+    
     public void Setup()
     {
          var processResult = RunProcess(_cpcFullPath, "/Setup /DisableArchive");
@@ -102,11 +93,6 @@ public class TraceManager
         _scenarioGenerator.Initialize();
         _startEventAbsoluteInstance = 1;
         _stopEventAbsoluteInstance = 1;
-    }
-    
-    public void PrintTest()
-    {
-        Console.WriteLine("Test Printing by TraceManager");
     }
 
     public static ProcessResult RunProcess(string _cpcFullPath, string args)

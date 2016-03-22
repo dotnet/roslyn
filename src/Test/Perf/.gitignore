@@ -2,7 +2,5 @@ artifacts/
 infra/bin/
 results/
 temp/
-DataBackup*/
-consumptionTempResults.xml
 *.json
 *.csv
