@@ -15,7 +15,7 @@ using VSCompletion = Microsoft.VisualStudio.Language.Intellisense.Completion;
 
 namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion.Presentation
 {
-    internal sealed class CompletionSet2 : CompletionSet
+    internal sealed class CompletionSet3 : CompletionSet2
     {
         private readonly ForegroundThreadAffinitizedObject foregroundObject = new ForegroundThreadAffinitizedObject();
         private readonly ITextView _textView;
@@ -26,7 +26,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion.P
 
         private CompletionRules _completionRules;
 
-        public CompletionSet2(
+        public CompletionSet3(
             CompletionPresenterSession completionPresenterSession,
             ITextView textView,
             ITextBuffer subjectBuffer)
