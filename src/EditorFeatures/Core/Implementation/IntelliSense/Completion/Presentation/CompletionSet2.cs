@@ -51,6 +51,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion.P
 
             // Initialize the completion map to a reasonable default initial size (+1 for the builder)
             _completionItemToVSCompletion = _completionItemToVSCompletion ?? new Dictionary<CompletionItem, VSCompletion>(completionItems.Count + 1);
+            _vsCompletionToCompletionItem = _vsCompletionToCompletionItem ?? new Dictionary<VSCompletion, CompletionItem>(completionItems.Count + 1);
 
             try
             {
