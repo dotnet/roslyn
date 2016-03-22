@@ -2056,7 +2056,8 @@ End Class
         End Sub
 
         <WorkItem(755236, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/755236")>
-        <Fact(Skip:="802431")>
+        <WorkItem(9896, "https://github.com/dotnet/roslyn/issues/9896")>
+        <Fact>
         Public Sub TestFindNode()
             Dim code = <code><![CDATA[
 ''' <see cref="Foo"/>
@@ -2079,7 +2080,8 @@ End Class]]>
             Dim position = identifier.Span.Start + 1
 
             Assert.Equal(classStatement, root.FindNode(identifier.Span, findInsideTrivia:=False))
-            Assert.Equal(identifier, root.FindNode(identifier.Span, findInsideTrivia:=True))
+            Assert.Equal(identifier.Parent, root.FindNode(identifier.Span, findInsideTrivia:=True))
+            Assert.Equal(identifier.Parent.Span, identifier.Span)
 
             ' Token span.
             Assert.Equal(classStatement, root.FindNode(classStatement.Identifier.Span, findInsideTrivia:=False))
@@ -2938,7 +2940,9 @@ End Module
             compilation.VerifyDiagnostics()
         End Sub
 
-        <Fact(Skip:="658398")>
+        <Fact>
+        <WorkItem(111538, "https://devdiv.visualstudio.com/defaultcollection/DevDiv/_workitems?_a=edit&id=111538")>
+        <WorkItem(658398, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems?_a=edit&id=658398")>
         Public Sub Test_UnaryOperatorsInvalid()
             'Added for Code Coverage 
             Dim compilationDef =
@@ -2983,8 +2987,42 @@ End Module
 </compilation>
 
             Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(compilationDef)
-            compilation.VerifyDiagnostics()
-            'TODO add the appropriate errors once bug is fixed
+            compilation.AssertTheseDiagnostics(
+<expected>
+BC30487: Operator '-' is not defined for type 'Char'.
+#If -"1"c Then
+~~~~~~~~~~~~~~
+BC30487: Operator '+' is not defined for type 'String'.
+#If +"1" Then
+~~~~~~~~~~~~~
+BC30487: Operator '+' is not defined for type 'Char'.
+#If +" "c Then
+~~~~~~~~~~~~~~
+BC30037: Character is not valid.
+#If +"test"$ Then
+           ~
+BC30205: End of statement expected.
+#If +"test"$ Then
+           ~
+BC30487: Operator 'Not' is not defined for type 'Char'.
+#If Not " "c Then
+~~~~~~~~~~~~~~~~~
+BC30037: Character is not valid.
+#If NOT "test"$ Then
+              ~
+BC30205: End of statement expected.
+#If NOT "test"$ Then
+              ~
+BC31427: Syntax error in conditional compilation expression.
+#If - Then
+      ~~~~
+BC31427: Syntax error in conditional compilation expression.
+#If + Then
+      ~~~~
+BC31427: Syntax error in conditional compilation expression.
+#If NOT Then
+        ~~~~
+</expected>)
         End Sub
 
         <Fact>
