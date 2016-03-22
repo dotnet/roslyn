@@ -1,7 +1,7 @@
 // Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-#r "..\..\..\..\Binaries\PerfBootstrap\Microsoft.CodeAnalysis.Scripting.dll"
-#r "..\..\..\..\Binaries\PerfBootstrap\Microsoft.CodeAnalysis.CSharp.Scripting.dll"
+#r "..\infra\bin\Microsoft.CodeAnalysis.Scripting.dll"
+#r "..\infra\bin\Microsoft.CodeAnalysis.CSharp.Scripting.dll"
 
 using Microsoft.CodeAnalysis.Scripting;
 using Microsoft.CodeAnalysis.CSharp.Scripting;
