@@ -52,6 +52,11 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             foreach (var linkedDocumentId in linkedDocumentIds)
             {
                 var linkedDocument = document.Project.Solution.GetDocument(linkedDocumentId);
+                if (!linkedDocument.SupportsSyntaxTree)
+                {
+                    continue;
+                }
+
                 var items = await getItemsWorker(linkedDocument, cancellationToken).ConfigureAwait(false);
                 if (items != null)
                 {
@@ -76,6 +81,11 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             foreach (var linkedDocumentId in document.GetLinkedDocumentIds())
             {
                 var linkedDocument = solution.GetDocument(linkedDocumentId);
+                if (!linkedDocument.SupportsSyntaxTree)
+                {
+                    return false;
+                }
+
                 if (await contextChecker(linkedDocument, cancellationToken).ConfigureAwait(false))
                 {
                     return true;
@@ -91,7 +101,13 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
 
             foreach (var linkedDocumentId in document.GetLinkedDocumentIds())
             {
-                yield return solution.GetDocument(linkedDocumentId);
+                var linkedDocument = solution.GetDocument(linkedDocumentId);
+                if (!linkedDocument.SupportsSyntaxTree)
+                {
+                    continue;
+                }
+
+                yield return linkedDocument;
             }
         }
     }

@@ -280,6 +280,11 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             foreach (var relatedDocumentId in relatedDocuments)
             {
                 var relatedDocument = document.Project.Solution.GetDocument(relatedDocumentId);
+                if (!relatedDocument.SupportsSyntaxTree)
+                {
+                    continue;
+                }
+
                 var context = await GetOrCreateContext(relatedDocument, position, cancellationToken).ConfigureAwait(false);
 
                 if (IsCandidateProject(context, cancellationToken))
