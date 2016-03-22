@@ -143,13 +143,13 @@ static String generateTriggerPhrase(String jobName, String opsysName, String tri
     return "(?i).*test\\W+(${jobName.replace('_', '/').substring(7)}|${opsysName}|${triggerKeyword}|${opsysName}\\W+${triggerKeyword}|${triggerKeyword}\\W+${opsysName})\\W+please.*";
 }
 
-static void addPullRequestTrigger(def myJob, String jobName, String triggerPhrase, Boolean triggerPhraseOnly = false) {
+static void addPullRequestTrigger(def myJob, String jobName, String triggerPhraseText, Boolean triggerPhraseOnly = false) {
   myJob.with {
     triggers {
       pullRequest {
         admin('Microsoft')
         useGitHubHooks(true)
-        triggerPhrase(triggerPhrase)
+        triggerPhrase(triggerPhraseText)
         onlyTriggerPhrase(triggerPhraseOnly)
         autoCloseFailedPullRequests(false)
         orgWhitelist('Microsoft')
