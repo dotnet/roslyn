@@ -165,7 +165,7 @@ static void addPullRequestTrigger(def myJob, String jobName, String triggerPhras
   }
 }
 
-static void addStandardJob(def myJob, String jobName, String branchName, String triggerPhrase) {
+static void addStandardJob(def myJob, String jobName, String branchName, String triggerPhrase, Boolean triggerPhraseOnly = false) {
   addLogRotator(myJob)
   addWrappers(myJob)
 
@@ -174,7 +174,7 @@ static void addStandardJob(def myJob, String jobName, String branchName, String 
   addArtifactArchiving(myJob, includePattern, excludePattern)
 
   if (branchName == 'prtest') {
-    addPullRequestTrigger(myJob, jobName, triggerPhrase);
+    addPullRequestTrigger(myJob, jobName, triggerPhrase, triggerPhraseOnly);
     addScm(myJob, '${sha1}', '+refs/pull/*:refs/remotes/origin/pr/*')
   } else {
     addPushTrigger(myJob)
