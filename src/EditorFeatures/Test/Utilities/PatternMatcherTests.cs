@@ -175,6 +175,11 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Utilities
             Assert.Equal(true, match.Value.IsCaseSensitive);
         }
 
+        private IEnumerable<TextSpan> GetSpans(params TextSpan[] textSpans)
+        {
+            return textSpans;
+        }
+
         [Fact]
         public void TryMatchSingleWordPattern_SingleWordPreferCaseSensitiveExactInsensitive()
         {
@@ -182,6 +187,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Utilities
 
             Assert.Equal(PatternMatchKind.Exact, match.Value.Kind);
             Assert.Equal(false, match.Value.IsCaseSensitive);
+            Assert.Equal(match.Value.MatchedSpans, GetSpans(new TextSpan(0, 3)));
         }
 
         [Fact]
@@ -191,6 +197,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Utilities
 
             Assert.Equal(PatternMatchKind.Prefix, match.Value.Kind);
             Assert.Equal(true, match.Value.IsCaseSensitive);
+            Assert.Equal(match.Value.MatchedSpans, GetSpans(new TextSpan(0, 2)));
         }
 
         [Fact]
@@ -200,6 +207,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Utilities
 
             Assert.Equal(PatternMatchKind.Prefix, match.Value.Kind);
             Assert.Equal(false, match.Value.IsCaseSensitive);
+            Assert.Equal(match.Value.MatchedSpans, GetSpans(new TextSpan(0, 2)));
         }
 
         [Fact]
@@ -210,6 +218,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Utilities
             Assert.Equal(PatternMatchKind.CamelCase, match.Value.Kind);
             Assert.Equal(true, match.Value.IsCaseSensitive);
             Assert.InRange((int)match.Value.CamelCaseWeight, 1, int.MaxValue);
+            Assert.Equal(match.Value.MatchedSpans, GetSpans(new TextSpan(0, 1), new TextSpan(3, 1)));
         }
 
         [Fact]
@@ -219,6 +228,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Utilities
 
             Assert.Equal(PatternMatchKind.CamelCase, match.Value.Kind);
             Assert.Equal(true, match.Value.IsCaseSensitive);
+            Assert.Equal(match.Value.MatchedSpans, GetSpans(new TextSpan(0, 2), new TextSpan(3, 1)));
         }
 
         [Fact]
@@ -261,6 +271,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Utilities
 
             Assert.Equal(PatternMatchKind.CamelCase, match.Value.Kind);
             Assert.True(match.Value.IsCaseSensitive);
+            Assert.Equal(match.Value.MatchedSpans, GetSpans(new TextSpan(0, 2), new TextSpan(6, 2)));
         }
 
         [Fact]
@@ -270,6 +281,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Utilities
 
             Assert.Equal(PatternMatchKind.Substring, match.Value.Kind);
             Assert.False(match.Value.IsCaseSensitive);
+            Assert.Equal(match.Value.MatchedSpans, GetSpans(new TextSpan(3, 1)));
         }
 
         [Fact]
@@ -279,6 +291,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Utilities
 
             Assert.Equal(PatternMatchKind.CamelCase, match.Value.Kind);
             Assert.Equal(false, match.Value.IsCaseSensitive);
+            Assert.Equal(match.Value.MatchedSpans, GetSpans(new TextSpan(0, 1), new TextSpan(3, 1)));
         }
 
         [Fact]
@@ -288,6 +301,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Utilities
 
             Assert.Equal(PatternMatchKind.CamelCase, match.Value.Kind);
             Assert.Equal(true, match.Value.IsCaseSensitive);
+            Assert.Equal(match.Value.MatchedSpans, GetSpans(new TextSpan(0, 2), new TextSpan(4, 1)));
         }
 
         public void TryMatchSingleWordPattern_PreferCaseSensitiveTryUnderscoredName2()
@@ -296,6 +310,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Utilities
 
             Assert.Equal(PatternMatchKind.CamelCase, match.Value.Kind);
             Assert.Equal(true, match.Value.IsCaseSensitive);
+            Assert.Equal(match.Value.MatchedSpans, GetSpans(new TextSpan(1, 1), new TextSpan(3, 1)));
         }
 
         [Fact]
@@ -305,6 +320,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Utilities
 
             Assert.Equal(PatternMatchKind.CamelCase, match.Value.Kind);
             Assert.Equal(false, match.Value.IsCaseSensitive);
+            Assert.Equal(match.Value.MatchedSpans, GetSpans(new TextSpan(0, 2), new TextSpan(4, 1)));
         }
 
         [Fact]
@@ -314,6 +330,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Utilities
 
             Assert.Equal(PatternMatchKind.CamelCase, match.Value.Kind);
             Assert.Equal(true, match.Value.IsCaseSensitive);
+            Assert.Equal(match.Value.MatchedSpans, GetSpans(new TextSpan(0, 1), new TextSpan(4, 1)));
         }
 
         [Fact]
@@ -323,6 +340,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Utilities
 
             Assert.Equal(PatternMatchKind.CamelCase, match.Value.Kind);
             Assert.Equal(true, match.Value.IsCaseSensitive);
+            Assert.Equal(match.Value.MatchedSpans, GetSpans(new TextSpan(0, 1), new TextSpan(3, 2)));
         }
 
         [Fact]
@@ -340,6 +358,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Utilities
 
             Assert.Equal(PatternMatchKind.CamelCase, match.Value.Kind);
             Assert.Equal(false, match.Value.IsCaseSensitive);
+            Assert.Equal(match.Value.MatchedSpans, GetSpans(new TextSpan(0, 1), new TextSpan(3, 2)));
         }
 
         [Fact]
@@ -349,6 +368,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Utilities
 
             Assert.Equal(PatternMatchKind.CamelCase, match.Value.Kind);
             Assert.Equal(false, match.Value.IsCaseSensitive);
+            Assert.Equal(match.Value.MatchedSpans, GetSpans(new TextSpan(0, 1), new TextSpan(3, 2)));
         }
 
         [Fact]
@@ -356,6 +376,9 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Utilities
         {
             var match1 = TryMatchSingleWordPattern("FogBarBaz", "FB");
             var match2 = TryMatchSingleWordPattern("FooFlobBaz", "FB");
+
+            Assert.Equal(match1.Value.MatchedSpans, GetSpans(new TextSpan(0, 1), new TextSpan(3, 1)));
+            Assert.Equal(match2.Value.MatchedSpans, GetSpans(new TextSpan(0, 1), new TextSpan(7, 1)));
 
             // We should prefer something that starts at the beginning if possible
             Assert.InRange((int)match1.Value.CamelCaseWeight, (int)match2.Value.CamelCaseWeight + 1, int.MaxValue);
@@ -367,6 +390,9 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Utilities
             var match1 = TryMatchSingleWordPattern("BazBarFooFooFoo", "FFF");
             var match2 = TryMatchSingleWordPattern("BazFogBarFooFoo", "FFF");
 
+            Assert.Equal(match1.Value.MatchedSpans, GetSpans(new TextSpan(6, 1), new TextSpan(9, 1), new TextSpan(12, 1)));
+            Assert.Equal(match2.Value.MatchedSpans, GetSpans(new TextSpan(3, 1), new TextSpan(9, 1), new TextSpan(12, 1)));
+
             // Contiguous things should also be preferred
             Assert.InRange((int)match1.Value.CamelCaseWeight, (int)match2.Value.CamelCaseWeight + 1, int.MaxValue);
         }
@@ -376,6 +402,9 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Utilities
         {
             var match1 = TryMatchSingleWordPattern("FogBarFooFoo", "FFF");
             var match2 = TryMatchSingleWordPattern("BarFooFooFoo", "FFF");
+
+            Assert.Equal(match1.Value.MatchedSpans, GetSpans(new TextSpan(0, 1), new TextSpan(6, 1), new TextSpan(9, 1)));
+            Assert.Equal(match2.Value.MatchedSpans, GetSpans(new TextSpan(3, 1), new TextSpan(6, 1), new TextSpan(9, 1)));
 
             // The weight of being first should be greater than the weight of being contiguous
             Assert.InRange((int)match1.Value.CamelCaseWeight, (int)match2.Value.CamelCaseWeight + 1, int.MaxValue);
@@ -388,6 +417,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Utilities
 
             Assert.Equal(PatternMatchKind.Exact, match.Value.Kind);
             Assert.Equal(false, match.Value.IsCaseSensitive);
+            Assert.Equal(match.Value.MatchedSpans, GetSpans(new TextSpan(0, 3)));
         }
 
         [Fact]
@@ -398,6 +428,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Utilities
             // Since it's actually case sensitive, we'll report it as such even though we didn't prefer it
             Assert.Equal(PatternMatchKind.Exact, match.Value.Kind);
             Assert.Equal(true, match.Value.IsCaseSensitive);
+            Assert.Equal(match.Value.MatchedSpans, GetSpans(new TextSpan(0, 3)));
         }
 
         [Fact]
@@ -407,6 +438,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Utilities
 
             Assert.Equal(PatternMatchKind.Prefix, match.Value.Kind);
             Assert.Equal(false, match.Value.IsCaseSensitive);
+            Assert.Equal(match.Value.MatchedSpans, GetSpans(new TextSpan(0, 3)));
         }
 
         [Fact]
@@ -416,6 +448,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Utilities
 
             Assert.Equal(PatternMatchKind.Prefix, match.Value.Kind);
             Assert.Equal(true, match.Value.IsCaseSensitive);
+            Assert.Equal(match.Value.MatchedSpans, GetSpans(new TextSpan(0, 3)));
         }
 
         [Fact]
@@ -425,6 +458,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Utilities
 
             Assert.Equal(PatternMatchKind.CamelCase, match.Value.Kind);
             Assert.Equal(true, match.Value.IsCaseSensitive);
+            Assert.Equal(match.Value.MatchedSpans, GetSpans(new TextSpan(0, 1), new TextSpan(3, 1)));
         }
 
         [Fact]
@@ -434,6 +468,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Utilities
 
             Assert.Equal(PatternMatchKind.CamelCase, match.Value.Kind);
             Assert.Equal(false, match.Value.IsCaseSensitive);
+            Assert.Equal(match.Value.MatchedSpans, GetSpans(new TextSpan(0, 1), new TextSpan(3, 1)));
         }
 
         [Fact]
@@ -443,6 +478,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Utilities
 
             Assert.Equal(PatternMatchKind.CamelCase, match.Value.Kind);
             Assert.Equal(true, match.Value.IsCaseSensitive);
+            Assert.Equal(match.Value.MatchedSpans, GetSpans(new TextSpan(0, 1), new TextSpan(3, 1)));
         }
 
         [Fact]
@@ -452,6 +488,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Utilities
 
             Assert.Equal(PatternMatchKind.Prefix, match.Value.Kind);
             Assert.False(match.Value.IsCaseSensitive);
+            Assert.Equal(match.Value.MatchedSpans, GetSpans(new TextSpan(0, 3)));
         }
 
         [Fact]
@@ -461,6 +498,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Utilities
 
             Assert.Equal(PatternMatchKind.Prefix, match.Value.Kind);
             Assert.Equal(false, match.Value.IsCaseSensitive);
+            Assert.Equal(match.Value.MatchedSpans, GetSpans(new TextSpan(0, 3)));
         }
 
         private void AssertContainsType(PatternMatchKind type, IEnumerable<PatternMatch> results)
@@ -474,6 +512,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Utilities
             var match = TryMatchMultiWordPattern("AddMetadataReference", "addmetadatareference");
 
             AssertContainsType(PatternMatchKind.Exact, match);
+            Assert.Equal(match.First().MatchedSpans, GetSpans(new TextSpan(0, 20)));
         }
 
         [Fact]
@@ -482,6 +521,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Utilities
             var match = TryMatchMultiWordPattern("AddMetadataReference", "add");
 
             AssertContainsType(PatternMatchKind.Prefix, match);
+            Assert.Equal(match.First().MatchedSpans, GetSpans(new TextSpan(0, 3)));
         }
 
         [Fact]
@@ -490,6 +530,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Utilities
             var match = TryMatchMultiWordPattern("AddMetadataReference", "metadata");
 
             AssertContainsType(PatternMatchKind.Substring, match);
+            Assert.Equal(match.First().MatchedSpans, GetSpans(new TextSpan(3, 8)));
         }
 
         [Fact]
@@ -498,6 +539,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Utilities
             var match = TryMatchMultiWordPattern("AddMetadataReference", "Add");
 
             AssertContainsType(PatternMatchKind.Prefix, match);
+            Assert.Equal(match.First().MatchedSpans, GetSpans(new TextSpan(0, 3)));
         }
 
         [Fact]
@@ -506,6 +548,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Utilities
             var match = TryMatchMultiWordPattern("AddMetadataReference", "Metadata");
 
             AssertContainsType(PatternMatchKind.Substring, match);
+            Assert.Equal(match.First().MatchedSpans, GetSpans(new TextSpan(3, 8)));
         }
 
         [Fact]
@@ -514,6 +557,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Utilities
             var match = TryMatchMultiWordPattern("AddMetadataReference", "A");
 
             AssertContainsType(PatternMatchKind.Prefix, match);
+            Assert.Equal(match.First().MatchedSpans, GetSpans(new TextSpan(0, 1)));
         }
 
         [Fact]
@@ -522,6 +566,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Utilities
             var match = TryMatchMultiWordPattern("AddMetadataReference", "M");
 
             AssertContainsType(PatternMatchKind.Substring, match);
+            Assert.Equal(match.First().MatchedSpans, GetSpans(new TextSpan(3, 1)));
         }
 
         [Fact]
@@ -531,6 +576,8 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Utilities
 
             AssertContainsType(PatternMatchKind.Prefix, match);
             AssertContainsType(PatternMatchKind.Substring, match);
+            Assert.Equal(match.First().MatchedSpans, GetSpans(new TextSpan(0, 3)));
+            Assert.Equal(match.Last().MatchedSpans, GetSpans(new TextSpan(3, 8)));
         }
 
         [Fact]
@@ -540,6 +587,8 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Utilities
 
             AssertContainsType(PatternMatchKind.Prefix, match);
             AssertContainsType(PatternMatchKind.Substring, match);
+            Assert.Equal(match.First().MatchedSpans, GetSpans(new TextSpan(0, 1)));
+            Assert.Equal(match.Last().MatchedSpans, GetSpans(new TextSpan(3, 1)));
         }
 
         [Fact]
@@ -548,6 +597,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Utilities
             var match = TryMatchMultiWordPattern("AddMetadataReference", "AM");
 
             AssertContainsType(PatternMatchKind.CamelCase, match);
+            Assert.Equal(match.First().MatchedSpans, GetSpans(new TextSpan(0, 1), new TextSpan(3, 1)));
         }
 
         [Fact]
@@ -556,6 +606,8 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Utilities
             var match = TryMatchMultiWordPattern("AddMetadataReference", "ref Metadata");
 
             Assert.True(match.Select(m => m.Kind).SequenceEqual(new[] { PatternMatchKind.Substring, PatternMatchKind.Substring }));
+            Assert.Equal(match.First().MatchedSpans, GetSpans(new TextSpan(11, 3)));
+            Assert.Equal(match.Last().MatchedSpans, GetSpans(new TextSpan(3, 8)));
         }
 
         [Fact]
@@ -564,6 +616,8 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Utilities
             var match = TryMatchMultiWordPattern("AddMetadataReference", "ref M");
 
             Assert.True(match.Select(m => m.Kind).SequenceEqual(new[] { PatternMatchKind.Substring, PatternMatchKind.Substring }));
+            Assert.Equal(match.First().MatchedSpans, GetSpans(new TextSpan(11, 3)));
+            Assert.Equal(match.Last().MatchedSpans, GetSpans(new TextSpan(3, 1)));
         }
 
         [Fact]
@@ -572,6 +626,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Utilities
             var match = TryMatchMultiWordPattern("AddMetadataReference", "AMRe");
 
             AssertContainsType(PatternMatchKind.CamelCase, match);
+            Assert.Equal(match.First().MatchedSpans, GetSpans(new TextSpan(0, 1), new TextSpan(3, 1), new TextSpan(11, 2)));
         }
 
         [Fact]
@@ -593,6 +648,8 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Utilities
 
             AssertContainsType(PatternMatchKind.Prefix, match);
             AssertContainsType(PatternMatchKind.Substring, match);
+            Assert.Equal(match.First().MatchedSpans, GetSpans(new TextSpan(0, 3)));
+            Assert.Equal(match.Last().MatchedSpans, GetSpans(new TextSpan(3, 4)));
         }
 
         [Fact]
@@ -602,6 +659,8 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Utilities
 
             AssertContainsType(PatternMatchKind.Prefix, match);
             AssertContainsType(PatternMatchKind.Substring, match);
+            Assert.Equal(match.First().MatchedSpans, GetSpans(new TextSpan(0, 3)));
+            Assert.Equal(match.Last().MatchedSpans, GetSpans(new TextSpan(3, 4)));
         }
 
         [Fact]
@@ -611,6 +670,8 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Utilities
 
             AssertContainsType(PatternMatchKind.Prefix, match);
             AssertContainsType(PatternMatchKind.Substring, match);
+            Assert.Equal(match.First().MatchedSpans, GetSpans(new TextSpan(0, 3)));
+            Assert.Equal(match.Last().MatchedSpans, GetSpans(new TextSpan(3, 4)));
         }
 
         [Fact]
@@ -631,6 +692,8 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Utilities
             var match = TryMatchMultiWordPattern("GetKeyWord", "K*W");
 
             Assert.True(match.Select(m => m.Kind).SequenceEqual(new[] { PatternMatchKind.Substring, PatternMatchKind.Substring }));
+            Assert.Equal(match.First().MatchedSpans, GetSpans(new TextSpan(3, 1)));
+            Assert.Equal(match.Last().MatchedSpans, GetSpans(new TextSpan(6, 1)));
         }
 
         [WorkItem(544628, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544628")]
@@ -647,6 +710,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Utilities
             var match = TryMatchMultiWordPattern("FooAttribute", "a");
             AssertContainsType(PatternMatchKind.Substring, match);
             Assert.False(match.First().IsCaseSensitive);
+            Assert.Equal(match.First().MatchedSpans, GetSpans(new TextSpan(3, 1)));
         }
 
         [Fact]
@@ -662,6 +726,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Utilities
 
                 Assert.Equal(PatternMatchKind.Exact, match.Value.Kind);
                 Assert.False(match.Value.IsCaseSensitive);
+                Assert.Equal(match.Value.MatchedSpans, GetSpans(new TextSpan(0, 3)));
             }
             finally
             {
@@ -722,7 +787,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Utilities
 
         private static IEnumerable<PatternMatch> TryMatchMultiWordPattern(string candidate, string pattern)
         {
-            return new PatternMatcher(pattern).GetMatches(candidate);
+            return new PatternMatcher(pattern).GetMatches(candidate, includeMatchSpans: true);
         }
     }
 }

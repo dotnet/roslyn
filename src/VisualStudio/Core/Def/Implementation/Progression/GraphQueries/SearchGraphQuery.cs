@@ -134,8 +134,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Progression
                 // isn't a dotted pattern.  Getting the container could cause lots of string 
                 // allocations that we don't if we're never going to check it.
                 var matches = !patternMatcher.IsDottedPattern
-                    ? patternMatcher.GetMatches(GetSearchName(symbol))
-                    : patternMatcher.GetMatches(GetSearchName(symbol), GetContainer(symbol));
+                    ? patternMatcher.GetMatches(GetSearchName(symbol), includeMatchSpans: false)
+                    : patternMatcher.GetMatches(GetSearchName(symbol), GetContainer(symbol), includeMatchSpans: false);
 
                 if (matches == null)
                 {
