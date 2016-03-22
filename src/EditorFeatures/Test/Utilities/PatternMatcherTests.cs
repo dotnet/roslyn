@@ -478,6 +478,15 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Utilities
             Assert.Null(TryMatchSingleWordPattern("FooActBarCatAlp", "FooAlpBarCat"));
         }
 
+        [Fact]
+        public void TryMatchSingleWordPattern_CamelCase3()
+        {
+            var match = TryMatchSingleWordPattern("[|AbCd|]xxx[|Ef|]Cd[|Gh|]", "AbCdEfGh");
+
+            Assert.Equal(PatternMatchKind.CamelCase, match.Value.Kind);
+            Assert.Equal(true, match.Value.IsCaseSensitive);
+        }
+
         private void AssertContainsType(PatternMatchKind type, IEnumerable<PatternMatch> results)
         {
             Assert.True(results.Any(r => r.Kind == type));
