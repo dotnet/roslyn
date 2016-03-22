@@ -83,7 +83,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
                 var linkedDocument = solution.GetDocument(linkedDocumentId);
                 if (!linkedDocument.SupportsSyntaxTree)
                 {
-                    return false;
+                    continue;
                 }
 
                 if (await contextChecker(linkedDocument, cancellationToken).ConfigureAwait(false))
