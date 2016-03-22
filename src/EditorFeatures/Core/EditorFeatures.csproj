@@ -230,6 +230,7 @@
     <Compile Include="Extensibility\Commands\ICommandHandler.cs" />
     <Compile Include="Extensibility\Commands\PredefinedCommandHandlerNames.cs" />
     <Compile Include="Extensibility\Completion\CompletionItemEventArgs.cs" />
+    <Compile Include="Extensibility\Completion\CompletionItemFilterStateChangedEventArgs.cs" />
     <Compile Include="Extensibility\Completion\ExportCompletionProviderAttribute.cs" />
     <Compile Include="Extensibility\Completion\IAsyncCompletionService.cs" />
     <Compile Include="Extensibility\Completion\ICompletionPresenterSession.cs" />
@@ -291,6 +292,11 @@
     <Compile Include="Implementation\GoToImplementation\AbstractGoToImplementationService.cs" />
     <Compile Include="Implementation\GoToImplementation\IGoToImplementationService.cs" />
     <Compile Include="Implementation\Intellisense\Completion\OptionSetExtensions.cs" />
+    <Compile Include="Implementation\Intellisense\Completion\Presentation\IntellisenseFilter2.cs" />
+    <Compile Include="Implementation\Intellisense\Completion\Temporary\Completion2.cs" />
+    <Compile Include="Implementation\Intellisense\Completion\Temporary\ICompletionSession2.cs" />
+    <Compile Include="Implementation\Intellisense\Completion\Temporary\IIntellisenseFilter.cs" />
+    <Compile Include="Implementation\Intellisense\Completion\Temporary\IntellisenseFilter.cs" />
     <Compile Include="Implementation\Interactive\IAbstractResetInteractiveCommand.cs" />
     <Compile Include="Implementation\Outlining\AbstractSyntaxOutliner.cs" />
     <Compile Include="Implementation\Outlining\InvalidOutliningRegionException.cs" />
@@ -504,7 +510,7 @@
     <Compile Include="Implementation\Intellisense\Completion\Model.cs" />
     <Compile Include="Implementation\Intellisense\Completion\Presentation\CompletionPresenter.cs" />
     <Compile Include="Implementation\Intellisense\Completion\Presentation\CompletionPresenterSession.cs" />
-    <Compile Include="Implementation\Intellisense\Completion\Presentation\CompletionSet2.cs" />
+    <Compile Include="Implementation\Intellisense\Completion\Presentation\CompletionSet3.cs" />
     <Compile Include="Implementation\Intellisense\Completion\Presentation\CompletionSource.cs" />
     <Compile Include="Implementation\Intellisense\Completion\Presentation\CustomCommitCompletion.cs" />
     <Compile Include="Implementation\Intellisense\Completion\Presentation\ToolTipProvider.cs" />
