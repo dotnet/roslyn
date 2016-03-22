@@ -2952,7 +2952,8 @@ class C
         /// Unique ids should not conflict with ids
         /// from previous generation.
         /// </summary>
-        [Fact(Skip = "TODO")]
+        [WorkItem(9847, "https://github.com/dotnet/roslyn/issues/9847")]
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/9847")]
         public void UniqueIds()
         {
             var source0 =
@@ -5334,7 +5335,8 @@ class C
         /// Should not re-use locals if the method metadata
         /// signature is unsupported.
         /// </summary>
-        [Fact(Skip = "TODO")]
+        [WorkItem(9849, "https://github.com/dotnet/roslyn/issues/9849")]
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/9849")]
         public void LocalType_UnsupportedSignatureContent()
         {
             // Equivalent to C#, but with extra local and required modifier on
@@ -5418,7 +5420,8 @@ class C
         /// <summary>
         /// Should not re-use locals with custom modifiers.
         /// </summary>
-        [Fact(Skip = "TODO")]
+        [WorkItem(9848, "https://github.com/dotnet/roslyn/issues/9848")]
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/9848")]
         public void LocalType_CustomModifiers()
         {
             // Equivalent method signature to C#, but

@@ -3419,7 +3419,7 @@ class C
         End Sub
 
         <WorkItem(655621, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/655621"), WorkItem(762094, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/762094")>
-        <WpfFact(Skip:="762094"), Trait(Traits.Feature, Traits.Features.Rename)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Rename)>
         Public Sub RenamingCompilerGeneratedDelegateTypeForEventCascadesBackToEvent_5()
             Using result = RenameEngineResult.Create(_outputHelper,
                 <Workspace>

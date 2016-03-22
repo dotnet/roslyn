@@ -4390,7 +4390,8 @@ End Class
         ''' <summary>
         ''' Should not re-use locals with custom modifiers.
         ''' </summary>
-        <Fact(Skip:="TODO")>
+        <Fact(Skip:="9854")>
+        <WorkItem(9854, "https://github.com/dotnet/roslyn/issues/9854")>
         Public Sub LocalType_CustomModifiers()
             ' Equivalent method signature to VB, but
             ' with optional modifiers on locals.
