@@ -2,9 +2,10 @@
 
 Imports System
 Imports System.Collections.Generic
+Imports System.Collections.Immutable
 Imports Microsoft.CodeAnalysis.Completion
 Imports Microsoft.CodeAnalysis.Editor
-Imports Microsoft.CodeAnalysis.Editor.Implementation.Intellisense.Completion
+Imports Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
 Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.VisualStudio.Language.Intellisense
 Imports Microsoft.VisualStudio.Text
@@ -25,12 +26,19 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
         Public Event Dismissed As EventHandler(Of EventArgs) Implements ICompletionPresenterSession.Dismissed
         Public Event ItemSelected As EventHandler(Of CompletionItemEventArgs) Implements ICompletionPresenterSession.ItemSelected
         Public Event ItemCommitted As EventHandler(Of CompletionItemEventArgs) Implements ICompletionPresenterSession.ItemCommitted
+        Public Event CompletionFiltersChanged As EventHandler(Of CompletionItemFilterStateChangedEventArgs) Implements ICompletionPresenterSession.FilterStateChanged
 
         Public Sub New(testState As IIntelliSenseTestState)
             Me._testState = testState
         End Sub
 
-        Public Sub PresentItems(triggerSpan As ITrackingSpan, completionItems As IList(Of CompletionItem), selectedItem As CompletionItem, presetBuilder As CompletionItem, suggestionMode As Boolean, isSoftSelected As Boolean) Implements ICompletionPresenterSession.PresentItems
+        Public Sub PresentItems(triggerSpan As ITrackingSpan,
+                                completionItems As IList(Of CompletionItem),
+                                selectedItem As CompletionItem,
+                                presetBuilder As CompletionItem,
+                                suggestionMode As Boolean,
+                                isSoftSelected As Boolean,
+                                completionItemFilters As ImmutableArray(Of CompletionItemFilter)) Implements ICompletionPresenterSession.PresentItems
             _testState.CurrentCompletionPresenterSession = Me
             Me.TriggerSpan = triggerSpan
             Me.CompletionItems = completionItems
