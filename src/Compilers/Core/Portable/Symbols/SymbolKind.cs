@@ -101,10 +101,5 @@ namespace Microsoft.CodeAnalysis
         /// Symbol is a preprocessing/conditional compilation constant.
         /// </summary>
         Preprocessing = 18,
-
-        /// <summary>
-        /// Symbol is a tuple type.
-        /// </summary>
-        TupleType = 19,
     }
 }

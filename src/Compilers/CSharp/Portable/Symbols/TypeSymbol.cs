@@ -554,6 +554,17 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         }
 
         /// <summary>
+        /// Is this a symbol for a Tuple
+        /// </summary>
+        public virtual bool IsTupleType
+        {
+            get
+            {
+                return false;
+            }
+        }
+
+        /// <summary>
         /// Is this type a managed type (false for everything but enum, pointer, and
         /// some struct types).
         /// </summary>

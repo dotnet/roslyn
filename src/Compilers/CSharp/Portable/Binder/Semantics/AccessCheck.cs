@@ -99,9 +99,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case SymbolKind.NamedType:
                     return IsNamedTypeAccessible((NamedTypeSymbol)symbol, within, ref useSiteDiagnostics, basesBeingResolved);
 
-                case SymbolKind.TupleType:
-                    return IsNamedTypeAccessible(((TupleTypeSymbol)symbol).UnderlyingTupleType, within, ref useSiteDiagnostics, basesBeingResolved);
-
                 case SymbolKind.ErrorType:
                     // Always assume that error types are accessible.
                     return true;
@@ -223,11 +220,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             Debug.Assert((object)containingType != null);
 
             failedThroughTypeCheck = false;
-
-            // for tuples consider the underlying type as a true container for visibility puroposes.
-            containingType = 
-                (containingType as TupleTypeSymbol)?.UnderlyingTupleType ?? 
-                containingType;
 
             // easy case - members of containing type are accessible.
             if ((object)containingType == (object)within)

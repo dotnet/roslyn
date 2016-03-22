@@ -12,8 +12,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.CodeGen
 {
     public class CodeGenTupleTests : CSharpTestBase
     {
-
-
         private static readonly string trivial2uple =
                     @"
 
@@ -95,17 +93,17 @@ class C
   // Code size       54 (0x36)
   .maxstack  5
   .locals init (System.Runtime.CompilerServices.ValueTuple<int, string> V_0, //x
-                System.Runtime.CompilerServices.ValueTuple<int, > V_1)
+                System.Runtime.CompilerServices.ValueTuple<int, <tuple: int Item1, int Item2>> V_1)
   IL_0000:  ldloca.s   V_0
   IL_0002:  ldc.i4.1
   IL_0003:  ldc.i4.2
   IL_0004:  ldc.i4.3
   IL_0005:  ldc.i4.4
   IL_0006:  newobj     ""System.Runtime.CompilerServices.ValueTuple<int, int>..ctor(int, int)""
-  IL_000b:  newobj     ""System.Runtime.CompilerServices.ValueTuple<int, >..ctor(int, )""
+  IL_000b:  newobj     ""System.Runtime.CompilerServices.ValueTuple<int, <tuple: int Item1, int Item2>>..ctor(int, <tuple: int Item1, int Item2>)""
   IL_0010:  stloc.1
   IL_0011:  ldloca.s   V_1
-  IL_0013:  constrained. ""System.Runtime.CompilerServices.ValueTuple<int, >""
+  IL_0013:  constrained. ""System.Runtime.CompilerServices.ValueTuple<int, <tuple: int Item1, int Item2>>""
   IL_0019:  callvirt   ""string object.ToString()""
   IL_001e:  call       ""System.Runtime.CompilerServices.ValueTuple<int, string>..ctor(int, string)""
   IL_0023:  ldloca.s   V_0
@@ -277,30 +275,30 @@ class C
 {
   // Code size       87 (0x57)
   .maxstack  4
-  .locals init (System.Runtime.CompilerServices.ValueTuple<int, > V_0) //x
+  .locals init (System.Runtime.CompilerServices.ValueTuple<int, <tuple: int c, int d>> V_0) //x
   IL_0000:  ldloca.s   V_0
   IL_0002:  ldc.i4.1
   IL_0003:  ldc.i4.2
   IL_0004:  ldc.i4.3
   IL_0005:  newobj     ""System.Runtime.CompilerServices.ValueTuple<int, int>..ctor(int, int)""
-  IL_000a:  call       ""System.Runtime.CompilerServices.ValueTuple<int, >..ctor(int, )""
+  IL_000a:  call       ""System.Runtime.CompilerServices.ValueTuple<int, <tuple: int c, int d>>..ctor(int, <tuple: int c, int d>)""
   IL_000f:  ldloca.s   V_0
-  IL_0011:  ldflda     "" System.Runtime.CompilerServices.ValueTuple<int, >.Item2""
+  IL_0011:  ldflda     ""<tuple: int c, int d> System.Runtime.CompilerServices.ValueTuple<int, <tuple: int c, int d>>.Item2""
   IL_0016:  ldflda     ""int System.Runtime.CompilerServices.ValueTuple<int, int>.Item1""
   IL_001b:  call       ""string int.ToString()""
   IL_0020:  call       ""void System.Console.WriteLine(string)""
   IL_0025:  ldloca.s   V_0
-  IL_0027:  ldflda     "" System.Runtime.CompilerServices.ValueTuple<int, >.Item2""
+  IL_0027:  ldflda     ""<tuple: int c, int d> System.Runtime.CompilerServices.ValueTuple<int, <tuple: int c, int d>>.Item2""
   IL_002c:  ldc.i4.s   39
   IL_002e:  stfld      ""int System.Runtime.CompilerServices.ValueTuple<int, int>.Item2""
   IL_0033:  ldloc.0
-  IL_0034:  ldfld      ""int System.Runtime.CompilerServices.ValueTuple<int, >.Item1""
+  IL_0034:  ldfld      ""int System.Runtime.CompilerServices.ValueTuple<int, <tuple: int c, int d>>.Item1""
   IL_0039:  ldloc.0
-  IL_003a:  ldfld      "" System.Runtime.CompilerServices.ValueTuple<int, >.Item2""
+  IL_003a:  ldfld      ""<tuple: int c, int d> System.Runtime.CompilerServices.ValueTuple<int, <tuple: int c, int d>>.Item2""
   IL_003f:  ldfld      ""int System.Runtime.CompilerServices.ValueTuple<int, int>.Item1""
   IL_0044:  add
   IL_0045:  ldloc.0
-  IL_0046:  ldfld      "" System.Runtime.CompilerServices.ValueTuple<int, >.Item2""
+  IL_0046:  ldfld      ""<tuple: int c, int d> System.Runtime.CompilerServices.ValueTuple<int, <tuple: int c, int d>>.Item2""
   IL_004b:  ldfld      ""int System.Runtime.CompilerServices.ValueTuple<int, int>.Item2""
   IL_0050:  add
   IL_0051:  call       ""void System.Console.WriteLine(int)""

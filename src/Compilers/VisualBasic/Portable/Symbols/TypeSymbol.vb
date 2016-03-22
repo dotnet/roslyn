@@ -452,6 +452,13 @@ Done:
             End Get
         End Property
 
+        Private ReadOnly Property ITypeSymbol_IsTupleSymbol As Boolean Implements ITypeSymbol.IsTupleType
+            Get
+                ' PROTOTYPE: VB does not yet support tuples.
+                Return False
+            End Get
+        End Property
+
         Private ReadOnly Property ITypeSymbol_TypeKind As TypeKind Implements ITypeSymbol.TypeKind
             Get
                 Return Me.TypeKind.ToCommon()
