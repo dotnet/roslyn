@@ -143,14 +143,14 @@ static String generateTriggerPhrase(String jobName, string opsysName, Stringc tr
     return "(?i).*test\\W+(${jobName.replace('_', '/').substring(7)}|${opsysName}|${triggerKeyword}|${opsysName}\\W+${triggerKeyword}|${triggerKeyword}\\W+${opsysName})\\W+please.*";
 }
 
-static void addPullRequestTrigger(def myJob, String jobName, String triggerPhrase, Boolean triggerOnly = false) {
+static void addPullRequestTrigger(def myJob, String jobName, String triggerPhrase, Boolean triggerPhraseOnly = false) {
   myJob.with {
     triggers {
       pullRequest {
         admin('Microsoft')
         useGitHubHooks(true)
         triggerPhrase(triggerPhrase)
-        onlyTriggerPhrase(triggerOnly)
+        onlyTriggerPhrase(triggerPhraseOnly)
         autoCloseFailedPullRequests(false)
         orgWhitelist('Microsoft')
         allowMembersOfWhitelistedOrgsAsAdmin(true)
@@ -213,6 +213,7 @@ def branchNames = []
                 break;
             }
             String triggerPhrase = generateTriggerPhrase(jobName, opsys, triggerKeyword);
+            Boolean triggerPhraseOnly = false;
 
             switch (opsys) {
               case 'win':
@@ -245,35 +246,34 @@ set TMP=%TEMP%
                   }
                 }
                 addConcurrentBuild(myJob, 'roslyn/mac/unit')
+                triggerPhraseOnly = true;
                 break;
             }
 
             addUnitPublisher(myJob)
-            addStandardJob(myJob, jobName, branchName, triggerPhrase);
+            addStandardJob(myJob, jobName, branchName, triggerPhrase, triggerPhraseOnly);
           }
         }
       }
     }
   }
 
-  if (branchName != 'prtest') {
-    def determinismJobName = "roslyn_${jobBranchName}_determinism"
-    def determinismJob = job(determinismJobName) {
-      description('')
-    }
+  def determinismJobName = "roslyn_${jobBranchName}_determinism"
+  def determinismJob = job(determinismJobName) {
+    description('')
+  }
 
-    determinismJob.with {
-      label('windows-roslyn')
-      steps {
-        batchFile("""set TEMP=%WORKSPACE%\\Binaries\\Temp
+  determinismJob.with {
+    label('windows-roslyn')
+    steps {
+      batchFile("""set TEMP=%WORKSPACE%\\Binaries\\Temp
 mkdir %TEMP%
 set TMP=%TEMP%
 .\\cibuild.cmd /testDeterminism""")
-      }
     }
-
-    addConcurrentBuild(determinismJob, null)
-    addStandardJob(determinismJob, determinismJobName, branchName, '');
   }
+
+  addConcurrentBuild(determinismJob, null)
+  addStandardJob(determinismJob, determinismJobName, branchName, 'determinism', true);
 }
 
