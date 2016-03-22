@@ -26,7 +26,10 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion.P
 
         private CompletionRules _completionRules;
 
-        public CompletionSet2(CompletionPresenterSession completionPresenterSession, ITextView textView, ITextBuffer subjectBuffer)
+        public CompletionSet2(
+            CompletionPresenterSession completionPresenterSession,
+            ITextView textView,
+            ITextBuffer subjectBuffer)
         {
             _completionPresenterSession = completionPresenterSession;
             _textView = textView;
