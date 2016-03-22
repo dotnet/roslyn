@@ -36,7 +36,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
                    preselect: completionItem.Preselect,
                    isBuilder: completionItem.IsBuilder,
                    showsWarningIcon: completionItem.ShowsWarningIcon,
-                   shouldFormatOnCommit: completionItem.ShouldFormatOnCommit)
+                   shouldFormatOnCommit: completionItem.ShouldFormatOnCommit,
+                   filters: completionItem.Filters)
         {
             this.CompletionItem = completionItem;
             _completionService = completionService;
