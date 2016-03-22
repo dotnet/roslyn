@@ -25,7 +25,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion.P
         public event EventHandler<CompletionItemEventArgs> ItemCommitted;
         public event EventHandler<CompletionItemEventArgs> ItemSelected;
 
-        private readonly CompletionSet2 _completionSet;
+        private readonly CompletionSet3 _completionSet;
 
         private ICompletionSession _editorSessionOpt;
         private bool _ignoreSelectionStatusChangedEvent;
@@ -46,7 +46,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion.P
             _textView = textView;
             _subjectBuffer = subjectBuffer;
 
-            _completionSet = new CompletionSet2(this, textView, subjectBuffer);
+            _completionSet = new CompletionSet3(this, textView, subjectBuffer);
             _completionSet.SelectionStatusChanged += OnCompletionSetSelectionStatusChanged;
         }
 
