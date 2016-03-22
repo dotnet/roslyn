@@ -1317,7 +1317,7 @@ class Program
             }
         }
 
-        [Fact(Skip = "DevDiv 1095079"), WorkItem(1095079, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1095079")]
+        [Fact, WorkItem(1095079, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1095079")]
         public async Task ServerRespectsAppConfig()
         {
             var exeConfigPath = Path.Combine(CompilerDirectory, CompilerServerExeName + ".config");

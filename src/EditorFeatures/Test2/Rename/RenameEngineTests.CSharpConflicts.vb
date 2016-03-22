@@ -11,7 +11,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Rename
                 _outputHelper = outputHelper
             End Sub
 
-            <WpfFact(Skip:="799977")>
+            <WpfFact>
             <WorkItem(773543, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/773543")>
             <Trait(Traits.Feature, Traits.Features.Rename)>
             Public Sub BreakingRenameWithRollBacksInsideLambdas_2()
@@ -1232,7 +1232,7 @@ static class E
                 End Using
             End Sub
 
-            <WpfFact(Skip:="535068")>
+            <WpfFact>
             <Trait(Traits.Feature, Traits.Features.Rename)>
             <WorkItem(535068, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/535068")>
             <WorkItem(542821, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542821")>
@@ -1264,7 +1264,7 @@ static class E
                 End Using
             End Sub
 
-            <WpfFact(Skip:="535068")>
+            <WpfFact>
             <Trait(Traits.Feature, Traits.Features.Rename)>
             <WorkItem(535068, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/535068")>
             <WorkItem(542103, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542103")>
