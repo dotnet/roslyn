@@ -22,6 +22,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion.P
         private readonly ITextBuffer _subjectBuffer;
         private readonly CompletionPresenterSession _completionPresenterSession;
         private Dictionary<CompletionItem, VSCompletion> _completionItemToVSCompletion;
+        private Dictionary<VSCompletion, CompletionItem> _vsCompletionToCompletionItem;
 
         private CompletionRules _completionRules;
 
@@ -115,7 +116,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion.P
                     item,
                     displayTextOpt ?? item.DisplayText);
                 _completionItemToVSCompletion.Add(item, value);
-                value.Properties.AddProperty(typeof(CompletionItem), item);
+                _vsCompletionToCompletionItem.Add(value, item);
             }
 
             return value;
@@ -123,7 +124,13 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion.P
 
         internal CompletionItem GetCompletionItem(VSCompletion completion)
         {
-            return completion.Properties.GetProperty(typeof(CompletionItem)) as CompletionItem;
+            CompletionItem completionItem;
+            if (_vsCompletionToCompletionItem.TryGetValue(completion, out completionItem))
+            {
+                return completionItem;
+            }
+
+            return null;
         }
 
         public override void SelectBestMatch()
