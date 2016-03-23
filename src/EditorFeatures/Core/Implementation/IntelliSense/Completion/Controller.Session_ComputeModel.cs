@@ -112,6 +112,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
                             trackingSpan,
                             completionList.Items,
                             selectedItem: completionList.Items.First(),
+                            allCompletionItemFilters: _completionService.CompletionItemFilters,
                             isHardSelection: false,
                             isUnique: false,
                             useSuggestionCompletionMode: _includeBuilder,
