@@ -1091,10 +1091,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
             {
                 methodSymbol = AnonymousTypeManager.TranslateAnonymousTypeMethodSymbol(methodSymbol);
             }
-            else if (container.IsTupleType)
-            {
-                container = ((TupleTypeSymbol)container).UnderlyingTupleType;
-            }
 
             if (!methodSymbol.IsDefinition)
             {
