@@ -197,6 +197,11 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
             return _invalidPattern || string.IsNullOrWhiteSpace(candidate);
         }
 
+        public IEnumerable<PatternMatch> GetMatches(string candidate)
+        {
+            return GetMatches(candidate, includeMatchSpans: false);
+        }
+
         /// <summary>
         /// Determines if a given candidate string matches under a multiple word query text, as you
         /// would find in features like Navigate To.
@@ -224,6 +229,12 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
 
             return MatchSegment(candidate, includeMatchSpans: false, segment: _dotSeparatedSegments.Last());
         }
+
+        public IEnumerable<PatternMatch> GetMatches(string candidate, string dottedContainer)
+        {
+            return GetMatches(candidate, dottedContainer, includeMatchSpans: false);
+        }
+
 
         /// <summary>
         /// Matches a pattern against a candidate, and an optional dotted container for the 

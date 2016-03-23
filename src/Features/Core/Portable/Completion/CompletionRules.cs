@@ -87,6 +87,11 @@ namespace Microsoft.CodeAnalysis.Completion
             return GetMatch(item, filterText, includeMatchSpans: false) != null;
         }
 
+        protected PatternMatch? GetMatch(CompletionItem item, string filterText)
+        {
+            return GetMatch(item, filterText, includeMatchSpans: false);
+        }
+
         protected PatternMatch? GetMatch(CompletionItem item, string filterText, bool includeMatchSpans)
         {
             var patternMatcher = this.GetPatternMatcher(_completionService.GetCultureSpecificQuirks(filterText), CultureInfo.CurrentCulture);
