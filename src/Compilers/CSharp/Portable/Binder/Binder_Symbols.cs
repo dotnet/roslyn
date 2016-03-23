@@ -386,22 +386,40 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 case SyntaxKind.TupleType:
                     {
-                        var tupleType = (TupleTypeSyntax)syntax;
-                        if (tupleType.Elements.Count == 0)
-                        {
-                            // we should already have a parse error for this.
-                            return new ExtendedErrorTypeSymbol(this.Compilation, syntax.ToString(), 0, new CSDiagnosticInfo(ErrorCode.ERR_SingleTypeNameNotFound), unreported: false);
-                        }
-
-                        // UNDONE: bind the type of the first element for now.
-                        //         just to not crash in tests.
-                        //         Actual binding implementation is coming.
-                        return BindType(((TupleTypeSyntax)syntax).Elements[0].Type, diagnostics, basesBeingResolved);
+                        return BindTupleType((TupleTypeSyntax)syntax, diagnostics);
                     }
 
                 default:
                     throw ExceptionUtilities.UnexpectedValue(syntax.Kind());
             }
+        }
+
+        private TypeSymbol BindTupleType(TupleTypeSyntax syntax, DiagnosticBag diagnostics)
+        {
+            var count = syntax.Elements.Count;
+            var types = ArrayBuilder<TypeSymbol>.GetInstance(count);
+            var names = ArrayBuilder<string>.GetInstance(count);
+            for (int i = 0; i < count; i++)
+            {
+                var argumentSyntax = syntax.Elements[i];
+
+                var argumentType = BindType(argumentSyntax.Type, diagnostics);
+                types.Add(argumentType);
+
+                // PROTOTYPE the error handling on missing, reserved or non-unique names should be fixed
+                var nameSyntax = argumentSyntax.Name;
+                var name = (object)nameSyntax != null ? nameSyntax.Identifier.ValueText : TupleTypeSymbol.UnderlyingMemberName(i);
+                names.Add(name);
+            }
+
+            var typesArray = types.ToImmutableAndFree();
+            if (typesArray.Length < 2 || typesArray.Length > 7)
+            {
+                return new ExtendedErrorTypeSymbol(this.Compilation.Assembly.GlobalNamespace, LookupResultKind.NotCreatable, diagnostics.Add(ErrorCode.ERR_PrototypeNotYetImplemented, syntax.Location));
+            }
+
+            var tuple = new TupleTypeSymbol(typesArray, names.ToImmutableAndFree(), syntax, this, diagnostics);
+            return tuple;
         }
 
         private Symbol BindPredefinedTypeSymbol(PredefinedTypeSyntax node, DiagnosticBag diagnostics)

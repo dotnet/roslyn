@@ -25,6 +25,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         /// <summary>
         /// Create a new TupleTypeSymbol from its declaration in source.
+        /// Parameter elementsNames may be uninitialized, or has to be fully populated.
         /// </summary>
         internal TupleTypeSymbol(
             ImmutableArray<TypeSymbol> elementTypes,
@@ -34,7 +35,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             DiagnosticBag diagnostics)
         {
             this._underlyingType = GetTupleUnderlyingTypeAndFields(
-                elementTypes, 
+                elementTypes,
                 elementNames,
                 syntax,
                 binder,
@@ -68,45 +69,137 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             out ImmutableArray<TupleFieldSymbol> fields
             )
         {
-            NamedTypeSymbol underlyingType;
-            fields = ImmutableArray<TupleFieldSymbol>.Empty;
+            Debug.Assert(elementNames.IsDefault || elementTypes.Length == elementNames.Length);
 
-            switch (elementTypes.Length)
+            var numElements = elementTypes.Length;
+
+            // PROTOTYPE handling for greater than 8
+            if (numElements <= 1 || numElements > 7)
             {
-                case 2:
-                    {
-                        var tupleType = binder.GetWellKnownType(WellKnownType.System_Runtime_CompilerServices_ValueTuple_T1_T2, diagnostics, syntax);
-                        underlyingType = tupleType.Construct(elementTypes);
-
-                        var underlyingField1 = (FieldSymbol) Binder.GetWellKnownTypeMember(binder.Compilation, WellKnownMember.System_Runtime_CompilerServices_ValueTuple_T1_T2__Item1, diagnostics, syntax: syntax);
-                        var underlyingField2 = (FieldSymbol) Binder.GetWellKnownTypeMember(binder.Compilation, WellKnownMember.System_Runtime_CompilerServices_ValueTuple_T1_T2__Item2, diagnostics, syntax: syntax);
-
-                        fields = ImmutableArray.Create(
-                                    new TupleFieldSymbol(elementNames.IsDefault ? "Item1" : elementNames[0],
-                                        this,
-                                        elementTypes[0],
-                                        underlyingField1?.AsMember(underlyingType)),
-                                    new TupleFieldSymbol(elementNames.IsDefault ? "Item2" : elementNames[1],
-                                        this,
-                                        elementTypes[1],
-                                        underlyingField2?.AsMember(underlyingType))
-                                );
-
-                        return underlyingType;
-                    }
-
-                default:
-                    {
-                        // TODO: VS if this eventually still stays reachable, need to make some error type symbol
-                        var tupleType = binder.GetWellKnownType(WellKnownType.System_Runtime_CompilerServices_ValueTuple_T1_T2, diagnostics, syntax);
-                        underlyingType = tupleType.Construct(elementTypes);
-                        break;
-                    }
-
+                throw ExceptionUtilities.Unreachable;
             }
+
+            var tupleType = binder.GetWellKnownType(GetTupleType(numElements), diagnostics, syntax);
+            NamedTypeSymbol underlyingType = tupleType.Construct(elementTypes);
+
+            var fieldSymbols = ArrayBuilder<TupleFieldSymbol>.GetInstance(numElements);
+
+            for (int i = 0; i < numElements; i++)
+            {
+                var wellKnownTypeMember = GetTupleTypeMember(numElements, i);
+                var underlyingField = (FieldSymbol)Binder.GetWellKnownTypeMember(binder.Compilation, wellKnownTypeMember, diagnostics, syntax: syntax);
+                var field = new TupleFieldSymbol(elementNames.IsDefault ? UnderlyingMemberName(i) : elementNames[i],
+                                           this,
+                                           elementTypes[i],
+                                           underlyingField?.AsMember(underlyingType));
+                fieldSymbols.Add(field);
+            }
+
+            fields = fieldSymbols.ToImmutableAndFree();
 
             return underlyingType;
         }
+
+        /// <summary>
+        /// Find the well-known ValueTuple type of a given arity.
+        /// For example, for arity=2:
+        /// returns WellKnownType.System_Runtime_CompilerServices_ValueTuple_T1_T2
+        /// </summary>
+        private static WellKnownType GetTupleType(int arity)
+        {
+            if (arity > 7)
+            {
+                // PROTOTYPE
+                arity = 1;
+            }
+            return tupleTypes[arity - 1];
+        }
+
+        private static readonly WellKnownType[] tupleTypes = {
+                                                            WellKnownType.System_Runtime_CompilerServices_ValueTuple_T1,
+                                                            WellKnownType.System_Runtime_CompilerServices_ValueTuple_T1_T2,
+                                                            WellKnownType.System_Runtime_CompilerServices_ValueTuple_T1_T2_T3,
+                                                            WellKnownType.System_Runtime_CompilerServices_ValueTuple_T1_T2_T3_T4,
+                                                            WellKnownType.System_Runtime_CompilerServices_ValueTuple_T1_T2_T3_T4_T5,
+                                                            WellKnownType.System_Runtime_CompilerServices_ValueTuple_T1_T2_T3_T4_T5_T6,
+                                                            WellKnownType.System_Runtime_CompilerServices_ValueTuple_T1_T2_T3_T4_T5_T6_T7 };
+
+        /// <summary>
+        /// Find the well-known members to the ValueTuple type of a given arity and index/position.
+        /// For example, for arity=3 and position=0:
+        /// returns WellKnownMember.System_Runtime_CompilerServices_ValueTuple_T1_T2_T3__Item1
+        /// </summary>
+        private static WellKnownMember GetTupleTypeMember(int arity, int position)
+        {
+            return tupleMembers[arity - 1][position];
+        }
+
+        private static readonly WellKnownMember[][] tupleMembers = new[]{
+                                                        new[]{
+                                                            WellKnownMember.System_Runtime_CompilerServices_ValueTuple_T1__Item1 },
+
+                                                        new[]{
+                                                            WellKnownMember.System_Runtime_CompilerServices_ValueTuple_T1_T2__Item1,
+                                                            WellKnownMember.System_Runtime_CompilerServices_ValueTuple_T1_T2__Item2 },
+
+                                                        new[]{
+                                                            WellKnownMember.System_Runtime_CompilerServices_ValueTuple_T1_T2_T3__Item1,
+                                                            WellKnownMember.System_Runtime_CompilerServices_ValueTuple_T1_T2_T3__Item2,
+                                                            WellKnownMember.System_Runtime_CompilerServices_ValueTuple_T1_T2_T3__Item3 },
+
+                                                        new[]{
+                                                            WellKnownMember.System_Runtime_CompilerServices_ValueTuple_T1_T2_T3_T4__Item1,
+                                                            WellKnownMember.System_Runtime_CompilerServices_ValueTuple_T1_T2_T3_T4__Item2,
+                                                            WellKnownMember.System_Runtime_CompilerServices_ValueTuple_T1_T2_T3_T4__Item3,
+                                                            WellKnownMember.System_Runtime_CompilerServices_ValueTuple_T1_T2_T3_T4__Item4 },
+
+                                                        new[]{
+                                                            WellKnownMember.System_Runtime_CompilerServices_ValueTuple_T1_T2_T3_T4_T5__Item1,
+                                                            WellKnownMember.System_Runtime_CompilerServices_ValueTuple_T1_T2_T3_T4_T5__Item2,
+                                                            WellKnownMember.System_Runtime_CompilerServices_ValueTuple_T1_T2_T3_T4_T5__Item3,
+                                                            WellKnownMember.System_Runtime_CompilerServices_ValueTuple_T1_T2_T3_T4_T5__Item4,
+                                                            WellKnownMember.System_Runtime_CompilerServices_ValueTuple_T1_T2_T3_T4_T5__Item5 },
+
+                                                        new[]{
+                                                            WellKnownMember.System_Runtime_CompilerServices_ValueTuple_T1_T2_T3_T4_T5_T6__Item1,
+                                                            WellKnownMember.System_Runtime_CompilerServices_ValueTuple_T1_T2_T3_T4_T5_T6__Item2,
+                                                            WellKnownMember.System_Runtime_CompilerServices_ValueTuple_T1_T2_T3_T4_T5_T6__Item3,
+                                                            WellKnownMember.System_Runtime_CompilerServices_ValueTuple_T1_T2_T3_T4_T5_T6__Item4,
+                                                            WellKnownMember.System_Runtime_CompilerServices_ValueTuple_T1_T2_T3_T4_T5_T6__Item5,
+                                                            WellKnownMember.System_Runtime_CompilerServices_ValueTuple_T1_T2_T3_T4_T5_T6__Item6 },
+
+                                                        new[]{
+                                                            WellKnownMember.System_Runtime_CompilerServices_ValueTuple_T1_T2_T3_T4_T5_T6_T7__Item1,
+                                                            WellKnownMember.System_Runtime_CompilerServices_ValueTuple_T1_T2_T3_T4_T5_T6_T7__Item2,
+                                                            WellKnownMember.System_Runtime_CompilerServices_ValueTuple_T1_T2_T3_T4_T5_T6_T7__Item3,
+                                                            WellKnownMember.System_Runtime_CompilerServices_ValueTuple_T1_T2_T3_T4_T5_T6_T7__Item4,
+                                                            WellKnownMember.System_Runtime_CompilerServices_ValueTuple_T1_T2_T3_T4_T5_T6_T7__Item5,
+                                                            WellKnownMember.System_Runtime_CompilerServices_ValueTuple_T1_T2_T3_T4_T5_T6_T7__Item6,
+                                                            WellKnownMember.System_Runtime_CompilerServices_ValueTuple_T1_T2_T3_T4_T5_T6_T7__Item7 }
+        };
+
+        /// <summary>
+        /// Returns "Item1" for position=0
+        /// </summary>
+        internal static string UnderlyingMemberName(int position)
+        {
+            if (position > 6)
+            {
+                // PROTOTYPE
+                position = 0;
+            }
+            return memberNames[position];
+        }
+
+        /// <summary>
+        /// Returns true for "Item1, "Item2", ..., "Rest"
+        /// </summary>
+        internal static bool IsMemberNameReserved(string name)
+        {
+            // PROTOTYPE handle "Rest" and others like "ToString"?
+            return memberNames.Contains(name, StringComparer.Ordinal);
+        }
+        private static readonly string[] memberNames = { "Item1", "Item2", "Item3", "Item4", "Item5", "Item6", "Item7" };
 
         internal NamedTypeSymbol UnderlyingTupleType
         {
@@ -312,7 +405,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             get
             {
-                return _underlyingType.DeclaredAccessibility;
+                if (_underlyingType.IsErrorType())
+                {
+                    return Accessibility.Public;
+                }
+                else
+                {
+                    return _underlyingType.DeclaredAccessibility;
+                }
             }
         }
 

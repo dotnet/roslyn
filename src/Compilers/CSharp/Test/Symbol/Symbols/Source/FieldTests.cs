@@ -267,7 +267,7 @@ class C
             var source = @"
 class A
 {
-    const delegate void D(); 
+    const delegate void D();
     protected virtual void Finalize const () { }
 }
 ";
@@ -275,21 +275,21 @@ class A
             // CONSIDER: Roslyn's cascading errors are much uglier than Dev10's.
             CreateCompilationWithMscorlib(source).VerifyDiagnostics(
     // (4,11): error CS1031: Type expected
-    //     const delegate void D(); 
+    //     const delegate void D();
     Diagnostic(ErrorCode.ERR_TypeExpected, "delegate").WithLocation(4, 11),
     // (4,11): error CS1001: Identifier expected
-    //     const delegate void D(); 
+    //     const delegate void D();
     Diagnostic(ErrorCode.ERR_IdentifierExpected, "delegate").WithLocation(4, 11),
     // (4,11): error CS0145: A const field requires a value to be provided
-    //     const delegate void D(); 
+    //     const delegate void D();
     Diagnostic(ErrorCode.ERR_ConstValueRequired, "delegate").WithLocation(4, 11),
     // (4,11): error CS1002: ; expected
-    //     const delegate void D(); 
+    //     const delegate void D();
     Diagnostic(ErrorCode.ERR_SemicolonExpected, "delegate").WithLocation(4, 11),
     // (5,37): error CS1002: ; expected
     //     protected virtual void Finalize const () { }
     Diagnostic(ErrorCode.ERR_SemicolonExpected, "const").WithLocation(5, 37),
-    // (5,43): error CS8096: Tuple must contain at least two elements.
+    // (5,43): error CS8200: Tuple must contain at least two elements.
     //     protected virtual void Finalize const () { }
     Diagnostic(ErrorCode.ERR_TupleTooFewElements, "()").WithLocation(5, 43),
     // (5,46): error CS1001: Identifier expected
@@ -313,6 +313,9 @@ class A
     // (5,46): error CS0102: The type 'A' already contains a definition for ''
     //     protected virtual void Finalize const () { }
     Diagnostic(ErrorCode.ERR_DuplicateNameInClass, "").WithArguments("A", "").WithLocation(5, 46),
+    // (5,43): error CS8204: PROTOTYPE This is not supported yet.
+    //     protected virtual void Finalize const () { }
+    Diagnostic(ErrorCode.ERR_PrototypeNotYetImplemented, "()").WithLocation(5, 43),
     // (5,23): error CS0670: Field cannot have void type
     //     protected virtual void Finalize const () { }
     Diagnostic(ErrorCode.ERR_FieldCantHaveVoidType, "void").WithLocation(5, 23),
