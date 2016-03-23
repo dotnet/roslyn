@@ -651,7 +651,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 var args = arguments.Count == 1 ?
                     new BoundExpression[] { BindValue(arguments[0].Expression, diagnostics, BindValueKind.RValue) } :
                     SpecializedCollections.EmptyArray<BoundExpression>();
-                    
+
                 return BadExpression(node, args);
             }
 
@@ -663,6 +663,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             var boundArguments = ArrayBuilder<BoundExpression>.GetInstance(arguments.Count);
             var elementTypes = ArrayBuilder<TypeSymbol>.GetInstance(arguments.Count);
             ArrayBuilder<string> elementNames = null;
+            var countOfExplicitNames = 0;
 
             for (int i = 0, l = arguments.Count; i < l; i++)
             {
@@ -672,22 +673,26 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // validate name if we have one
                 if (name != null)
                 {
-                    // PROTOTYPE: check for a case "ItemX" where X is not i
+                    countOfExplicitNames++;
 
-                    if (!uniqueFieldNames.Add(name))
+                    if (TupleTypeSymbol.IsMemberNameReserved(name) && name != TupleTypeSymbol.UnderlyingMemberName(i))
                     {
                         hasErrors = true;
-                        // PROTOTYPE: need specific duplicate name error for tuples
-                        Error(diagnostics, ErrorCode.ERR_AnonymousTypeDuplicatePropertyName, argumentSyntax.NameColon.Name);
+                        Error(diagnostics, ErrorCode.ERR_TupleReservedMemberName, argumentSyntax.NameColon.Name, name, i + 1);
+                    }
+                    else if (!uniqueFieldNames.Add(name))
+                    {
+                        hasErrors = true;
+                        Error(diagnostics, ErrorCode.ERR_TupleDuplicateMemberName, argumentSyntax.NameColon.Name);
                     }
                 }
-                
+
                 // add the name to the list
                 // names would typically all be there or none at all
                 // but in case we need to handle this in error cases
                 if (elementNames != null)
                 {
-                    elementNames.Add(name ?? "Item" + i);
+                    elementNames.Add(name ?? TupleTypeSymbol.UnderlyingMemberName(i));
                 }
                 else
                 {
@@ -696,7 +701,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         elementNames = ArrayBuilder<string>.GetInstance(arguments.Count);
                         for (int j = 0; j < i; j++)
                         {
-                            elementNames.Add(name ?? "Item" + j);
+                            elementNames.Add(TupleTypeSymbol.UnderlyingMemberName(j));
                         }
                         elementNames.Add(name);
                     }
@@ -710,8 +715,21 @@ namespace Microsoft.CodeAnalysis.CSharp
                 elementTypes.Add(elementType);
             }
 
+            if (countOfExplicitNames != 0 && countOfExplicitNames != elementTypes.Count)
+            {
+                hasErrors = true;
+                Error(diagnostics, ErrorCode.ERR_TupleExplicitNamesOnAllMembersOrNone, node);
+            }
+            var elements = elementTypes.ToImmutableAndFree();
+            if (elements.Length < 2 || elements.Length > 7)
+            {
+                // PROTOTYPE
+                diagnostics.Add(ErrorCode.ERR_PrototypeNotYetImplemented, node.Location);
+                return BadExpression(node);
+            }
+
             var type = new TupleTypeSymbol(
-                elementTypes.ToImmutableAndFree(),
+                elements,
                 elementNames == null ?
                                 default(ImmutableArray<string>) :
                                 elementNames.ToImmutableAndFree(),
@@ -721,7 +739,12 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             //PROTOTYPE: should be a wellknown member?
             var ctor = type.UnderlyingTupleType?.InstanceConstructors.FirstOrDefault();
-
+            if ((object)ctor == null)
+            {
+                // PROTOTYPE
+                diagnostics.Add(ErrorCode.ERR_PrototypeNotYetImplemented, node.Location);
+                return BadExpression(node);
+            }
             return new BoundTupleCreationExpression(node, ctor, boundArguments.ToImmutableAndFree(), type, hasErrors);
         }
 
@@ -1190,7 +1213,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                     // Captured in a lambda.
                     return containingMethod.MethodKind == MethodKind.AnonymousFunction || containingMethod.MethodKind == MethodKind.LocalFunction; // false in EE evaluation method
-            }
+                }
             }
             return false;
         }
@@ -1344,9 +1367,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                     {
                         var parameter = (ParameterSymbol)symbol;
                         if (IsBadLocalOrParameterCapture(parameter, parameter.RefKind))
-                                {
-                                    Error(diagnostics, ErrorCode.ERR_AnonDelegateCantUse, node, parameter.Name);
-                                }
+                        {
+                            Error(diagnostics, ErrorCode.ERR_AnonDelegateCantUse, node, parameter.Name);
+                        }
                         return new BoundParameter(node, parameter, hasErrors: isError);
                     }
 

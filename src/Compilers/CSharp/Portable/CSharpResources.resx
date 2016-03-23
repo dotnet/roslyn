@@ -4845,4 +4845,16 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   <data name="ERR_PeWritingFailure" xml:space="preserve">
     <value>An error occurred while writing the output file: {0}.</value>
   </data>
+  <data name="ERR_TupleDuplicateMemberName" xml:space="preserve">
+    <value>Tuple member names must be unique.</value>
+  </data>
+  <data name="ERR_TupleExplicitNamesOnAllMembersOrNone" xml:space="preserve">
+    <value>Tuple member names must all be provided, if any one is provided.</value>
+  </data>
+  <data name="ERR_TupleReservedMemberName" xml:space="preserve">
+    <value>Tuple member name '{0}' is disallowed at position {1}.</value>
+  </data>
+  <data name="ERR_PrototypeNotYetImplemented" xml:space="preserve">
+    <value>PROTOTYPE This is not supported yet.</value>
+  </data>
 </root>

@@ -7189,6 +7189,18 @@ class A
     // (7,10): error CS0246: The type or namespace name 'a' could not be found (are you missing a using directive or an assembly reference?)
     //         (a, b) =>
     Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "a").WithArguments("a").WithLocation(7, 10),
+    // (7,13): error CS0246: The type or namespace name 'b' could not be found (are you missing a using directive or an assembly reference?)
+    //         (a, b) =>
+    Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "b").WithArguments("b").WithLocation(7, 13),
+    // (7,9): error CS0518: Predefined type 'System.Runtime.CompilerServices.ValueTuple`2' is not defined or imported
+    //         (a, b) =>
+    Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "(a, b)").WithArguments("System.Runtime.CompilerServices.ValueTuple`2").WithLocation(7, 9),
+    // (7,9): error CS0656: Missing compiler required member 'System.Runtime.CompilerServices.ValueTuple`2.Item1'
+    //         (a, b) =>
+    Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "(a, b)").WithArguments("System.Runtime.CompilerServices.ValueTuple`2", "Item1").WithLocation(7, 9),
+    // (7,9): error CS0656: Missing compiler required member 'System.Runtime.CompilerServices.ValueTuple`2.Item2'
+    //         (a, b) =>
+    Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "(a, b)").WithArguments("System.Runtime.CompilerServices.ValueTuple`2", "Item2").WithLocation(7, 9),
     // (11,9): error CS0201: Only assignment, call, increment, decrement, and new object expressions can be used as a statement
     //         x + y; x == 1;
     Diagnostic(ErrorCode.ERR_IllegalStatement, "x + y").WithLocation(11, 9),

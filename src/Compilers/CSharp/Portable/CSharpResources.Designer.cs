@@ -7370,6 +7370,15 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to PROTOTYPE This is not supported yet..
+        /// </summary>
+        internal static string ERR_PrototypeNotYetImplemented {
+            get {
+                return ResourceManager.GetString("ERR_PrototypeNotYetImplemented", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to The * or -&gt; operator must be applied to a pointer.
         /// </summary>
         internal static string ERR_PtrExpected {
@@ -8572,6 +8581,33 @@ namespace Microsoft.CodeAnalysis.CSharp {
         internal static string ERR_TrailingWhitespaceInFormatSpecifier {
             get {
                 return ResourceManager.GetString("ERR_TrailingWhitespaceInFormatSpecifier", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Tuple member names must be unique..
+        /// </summary>
+        internal static string ERR_TupleDuplicateMemberName {
+            get {
+                return ResourceManager.GetString("ERR_TupleDuplicateMemberName", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Tuple member names must all be provided, if any one is provided..
+        /// </summary>
+        internal static string ERR_TupleExplicitNamesOnAllMembersOrNone {
+            get {
+                return ResourceManager.GetString("ERR_TupleExplicitNamesOnAllMembersOrNone", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Tuple member name &apos;{0}&apos; is disallowed at position {1}..
+        /// </summary>
+        internal static string ERR_TupleReservedMemberName {
+            get {
+                return ResourceManager.GetString("ERR_TupleReservedMemberName", resourceCulture);
             }
         }
         
