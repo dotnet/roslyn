@@ -114,12 +114,7 @@ namespace Microsoft.CodeAnalysis.Completion
         internal IReadOnlyList<TextSpan> GetHighlightedSpans(CompletionItem completionItem, string filterText)
         {
             var match = GetMatch(completionItem, filterText, includeMatchSpans: true);
-            if (match != null)
-            {
-                return match.Value.MatchedSpans;
-            }
-
-            return null;
+            return match?.MatchedSpans;
         }
 
         private static bool IsAllDigits(string filterText)
