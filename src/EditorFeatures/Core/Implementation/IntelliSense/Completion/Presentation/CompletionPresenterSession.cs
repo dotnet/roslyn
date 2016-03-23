@@ -26,7 +26,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion.P
         public event EventHandler<EventArgs> Dismissed;
         public event EventHandler<CompletionItemEventArgs> ItemCommitted;
         public event EventHandler<CompletionItemEventArgs> ItemSelected;
-        public event EventHandler<CompletionItemFiltersChangedEventArgs> CompletionItemFiltersChanged;
+        public event EventHandler<CompletionItemFilterStateChangedEventArgs> FilterStateChanged;
 
         private readonly CompletionSet3 _completionSet;
 
@@ -150,8 +150,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion.P
 
         internal void OnIntelliSenseFiltersChanged(IReadOnlyList<IntellisenseFilter2> filters)
         {
-            this.CompletionItemFiltersChanged?.Invoke(this,
-                new CompletionItemFiltersChangedEventArgs(
+            this.FilterStateChanged?.Invoke(this,
+                new CompletionItemFilterStateChangedEventArgs(
                     filters.ToImmutableDictionary(f => f.CompletionItemFilter, f => f.IsChecked)));
         }
 

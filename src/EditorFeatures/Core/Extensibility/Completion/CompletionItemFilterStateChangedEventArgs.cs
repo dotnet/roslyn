@@ -5,11 +5,11 @@ using Microsoft.CodeAnalysis.Completion;
 
 namespace Microsoft.CodeAnalysis.Editor
 {
-    internal class CompletionItemFiltersChangedEventArgs : EventArgs
+    internal class CompletionItemFilterStateChangedEventArgs : EventArgs
     {
         public ImmutableDictionary<CompletionItemFilter, bool> FilterState { get; }
 
-        public CompletionItemFiltersChangedEventArgs(
+        public CompletionItemFilterStateChangedEventArgs(
             ImmutableDictionary<CompletionItemFilter, bool> filterState)
         {
             this.FilterState = filterState;
