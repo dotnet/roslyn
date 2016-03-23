@@ -74,22 +74,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 ;
         }
 
-        internal PatternVariableBinder(ForStatementSyntax syntax, Binder next) : base(next)
-        {
-            this.Syntax = syntax;
-            var expressions = ArrayBuilder<CSharpSyntaxNode>.GetInstance();
-            if (syntax.Declaration != null) foreach(var decl in syntax.Declaration.Variables)
-            {
-                var value = decl.Initializer?.Value;
-                if (value != null) expressions.Add(value);
-            }
-
-            if (syntax.Initializers != null) expressions.AddRange(syntax.Initializers);
-            if (syntax.Condition != null) expressions.Add(syntax.Condition);
-            if (syntax.Incrementors != null) expressions.AddRange(syntax.Incrementors);
-            this._nodes = expressions.ToImmutableAndFree();
-        }
-
         internal PatternVariableBinder(SyntaxNode syntax, ExpressionSyntax expression, Binder next) : base(next)
         {
             this._node = expression;
