@@ -634,7 +634,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // this should be a parse error already.
                 var args = arguments.Count == 1 ?
                     new BoundExpression[] { BindValue(arguments[0].Expression, diagnostics, BindValueKind.RValue) } :
-                    new BoundExpression[0];
+                    SpecializedCollections.EmptyArray<BoundExpression>();
                     
                 return BadExpression(node, args);
             }
