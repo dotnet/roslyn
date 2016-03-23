@@ -1,4 +1,5 @@
-﻿// Copyright (c) Microsoft Corporation
+﻿#if false
+// Copyright (c) Microsoft Corporation
 // All rights reserved
 // REMOVE ONCE WE ACTUALLY REFERENCE THE REAL EDITOR DLLS.
 
@@ -15,3 +16,4 @@ namespace Microsoft.VisualStudio.Language.Intellisense
         event EventHandler Matched;
     }
 }
+#endif
