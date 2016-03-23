@@ -1,12 +1,15 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
 using Microsoft.CodeAnalysis.Completion;
 using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.Text;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
 {
@@ -14,7 +17,11 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
     {
         internal partial class Session
         {
-            public void FilterModel(CompletionFilterReason filterReason, bool recheckCaretPosition = false, bool dismissIfEmptyAllowed = true)
+            public void FilterModel(
+                CompletionFilterReason filterReason,
+                bool recheckCaretPosition = false,
+                bool dismissIfEmptyAllowed = true,
+                ImmutableDictionary<CompletionItemFilter, bool> filterState = null)
             {
                 AssertIsForeground();
 
@@ -24,7 +31,19 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
                 // change.
                 Interlocked.Increment(ref _filterId);
                 var localId = _filterId;
-                Computation.ChainTaskAndNotifyControllerWhenFinished(model => FilterModelInBackground(model, localId, caretPosition, recheckCaretPosition, dismissIfEmptyAllowed, filterReason));
+                Computation.ChainTaskAndNotifyControllerWhenFinished(
+                    model =>
+                    {
+                        if (filterState != null)
+                        {
+                            // If the UI specified an updated filter state, then incorporate that 
+                            // into our model.
+                            model = model.WithFilterState(filterState);
+                        }
+
+                        return FilterModelInBackground(
+                            model, localId, caretPosition, recheckCaretPosition, dismissIfEmptyAllowed, filterReason);
+                    });
             }
 
             public void IdentifyBestMatchAndFilterToAllItems(CompletionFilterReason filterReason, bool recheckCaretPosition = false, bool dismissIfEmptyAllowed = true)
@@ -56,7 +75,9 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
             {
                 using (Logger.LogBlock(FunctionId.Completion_ModelComputation_FilterModelInBackground, CancellationToken.None))
                 {
-                    return FilterModelInBackgroundWorker(model, id, caretPosition, recheckCaretPosition, dismissIfEmptyAllowed, filterReason);
+                    return FilterModelInBackgroundWorker(
+                        model, id, caretPosition, recheckCaretPosition,
+                        dismissIfEmptyAllowed, filterReason);
                 }
             }
 
@@ -78,6 +99,20 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
                 bool dismissIfEmptyAllowed,
                 CompletionFilterReason filterReason)
             {
+                var filterState = model.FilterState;
+
+                // If all the filters are on, then we don't actually need to filter.
+                if (filterState.Values.All(Functions.IsTrue))
+                {
+                    filterState = null;
+                }
+
+                // If all the filters are off, then we don't actually need to filter.
+                if (filterState.Values.All(Functions.IsFalse))
+                {
+                    filterState = null;
+                }
+
                 if (model == null)
                 {
                     return null;
@@ -106,14 +141,22 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
 
                 foreach (var currentItem in model.TotalItems)
                 {
+                    // Check if something new has happened and there's a later on filter operation
+                    // in the chain.  If so, there's no need for us to do any more work (as it will
+                    // just be superceded by the later work).
+                    if (id != _filterId)
+                    {
+                        return model;
+                    }
+
                     // We may have wrapped some items in the list in DescriptionModifying items,
                     // but we should use the actual underlying items when filtering. That way
                     // our rules can access the underlying item's provider.
                     var item = GetCompletionItem(currentItem);
 
-                    if (id != _filterId)
+                    if (ItemIsFilteredOut(item, filterState))
                     {
-                        return model;
+                        continue;
                     }
 
                     var filterText = model.GetCurrentTextInSnapshot(item.FilterSpan, textSnapshot, textSpanToText);
@@ -190,7 +233,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
                     // model, but switch over to soft selection.  Also, nothing is unique at that
                     // point.
                     return model.WithHardSelection(false)
-                            .WithIsUnique(false);
+                                .WithIsUnique(false);
                 }
 
                 // If we have a best item, then select it.  Otherwise just use the first item
@@ -202,11 +245,35 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
                 var hardSelection = IsHardSelection(model, bestFilterMatch, textSnapshot, completionRules, model.TriggerInfo, filterReason);
 
                 var result = model.WithFilteredItems(allFilteredItems)
-                            .WithSelectedItem(selectedItem)
-                            .WithHardSelection(hardSelection)
-                            .WithIsUnique(isUnique.HasValue && isUnique.Value);
+                                  .WithSelectedItem(selectedItem)
+                                  .WithHardSelection(hardSelection)
+                                  .WithIsUnique(isUnique.HasValue && isUnique.Value);
 
                 return result;
+            }
+
+            private bool ItemIsFilteredOut(
+                CompletionItem item,
+                ImmutableDictionary<CompletionItemFilter, bool> filterState)
+            {
+                if (filterState == null)
+                {
+                    // No filtering.  The item is not filtered out.
+                    return false;
+                }
+
+                foreach (var filter in item.Filters)
+                {
+                    // The item matches the current filters.  The item is not filtered out.
+                    bool enabled;
+                    if (filterState.TryGetValue(filter, out enabled) && enabled)
+                    {
+                        return false;
+                    }
+                }
+
+                // The item was filtered out.
+                return true;
             }
 
             private bool IsHardSelection(

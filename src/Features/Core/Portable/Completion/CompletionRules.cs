@@ -1,5 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System;
 using System.Collections.Generic;
 using System.Globalization;
 using Microsoft.CodeAnalysis.Options;
@@ -83,13 +84,13 @@ namespace Microsoft.CodeAnalysis.Completion
                 return false;
             }
 
-            return GetMatch(item, filterText) != null;
+            return GetMatch(item, filterText, includeMatchSpans: false) != null;
         }
 
-        protected PatternMatch? GetMatch(CompletionItem item, string filterText)
+        protected PatternMatch? GetMatch(CompletionItem item, string filterText, bool includeMatchSpans)
         {
             var patternMatcher = this.GetPatternMatcher(_completionService.GetCultureSpecificQuirks(filterText), CultureInfo.CurrentCulture);
-            var match = patternMatcher.GetFirstMatch(_completionService.GetCultureSpecificQuirks(item.FilterText));
+            var match = patternMatcher.GetFirstMatch(_completionService.GetCultureSpecificQuirks(item.FilterText), includeMatchSpans);
 
             if (match != null)
             {
@@ -100,11 +101,22 @@ namespace Microsoft.CodeAnalysis.Completion
             if (!CultureInfo.CurrentCulture.Equals(EnUSCultureInfo))
             {
                 patternMatcher = this.GetFallbackPatternMatcher(_completionService.GetCultureSpecificQuirks(filterText));
-                match = patternMatcher.GetFirstMatch(_completionService.GetCultureSpecificQuirks(item.FilterText));
+                match = patternMatcher.GetFirstMatch(_completionService.GetCultureSpecificQuirks(item.FilterText), includeMatchSpans);
                 if (match != null)
                 {
                     return match;
                 }
+            }
+
+            return null;
+        }
+
+        internal IReadOnlyList<TextSpan> GetHighlightedSpans(CompletionItem completionItem, string filterText)
+        {
+            var match = GetMatch(completionItem, filterText, includeMatchSpans: true);
+            if (match != null)
+            {
+                return match.Value.MatchedSpans;
             }
 
             return null;
@@ -129,8 +141,8 @@ namespace Microsoft.CodeAnalysis.Completion
         /// </summary>
         public virtual bool IsBetterFilterMatch(CompletionItem item1, CompletionItem item2, string filterText, CompletionTriggerInfo triggerInfo, CompletionFilterReason filterReason)
         {
-            var match1 = GetMatch(item1, _completionService.GetCultureSpecificQuirks(filterText));
-            var match2 = GetMatch(item2, _completionService.GetCultureSpecificQuirks(filterText));
+            var match1 = GetMatch(item1, _completionService.GetCultureSpecificQuirks(filterText), includeMatchSpans: false);
+            var match2 = GetMatch(item2, _completionService.GetCultureSpecificQuirks(filterText), includeMatchSpans: false);
 
             if (match1 != null && match2 != null)
             {

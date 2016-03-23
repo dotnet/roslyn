@@ -29,7 +29,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.NavigateTo
                     cancellationToken.ThrowIfCancellationRequested();
                     var patternMatches = patternMatcher.GetMatches(
                         GetSearchName(declaredSymbolInfo),
-                        declaredSymbolInfo.FullyQualifiedContainerName);
+                        declaredSymbolInfo.FullyQualifiedContainerName,
+                        includeMatchSpans: false);
 
                     if (patternMatches != null)
                     {
