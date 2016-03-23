@@ -70,7 +70,5 @@ namespace Microsoft.CodeAnalysis.Completion
         /// True if the list should be dismissed when the user deletes the last character in the filter span.
         /// </summary>
         bool DismissIfLastFilterCharacterDeleted { get; }
-
-        ImmutableArray<CompletionItemFilter> CompletionItemFilters { get; }
     }
 }

@@ -85,7 +85,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
             DisconnectedBufferGraph disconnectedBufferGraph,
             TextSpan defaultTrackingSpanInSubjectBuffer,
             ImmutableArray<CompletionItem> totalItems,
-            ImmutableArray<CompletionItemFilter> allCompletionItemFilters,
             CompletionItem selectedItem,
             bool isHardSelection,
             bool isUnique,
@@ -114,8 +113,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
             // The set of filters we'll want to show the user are the filters that are actually
             // used by our completion items.  i.e. there's no reason to show the "field" filter
             // if none of completion items is actually a field.
-            var actualItemFilters = allCompletionItemFilters.Where(actualFiltersSeen.Contains)
-                                                            .ToImmutableArray();
+            var actualItemFilters = CompletionItemFilter.AllFilters.Where(actualFiltersSeen.Contains)
+                                                                   .ToImmutableArray();
 
             // By default we do not filter anything out.
             ImmutableDictionary<CompletionItemFilter,bool> filterState = null;
