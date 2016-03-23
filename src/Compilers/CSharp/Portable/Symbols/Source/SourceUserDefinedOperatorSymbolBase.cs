@@ -177,6 +177,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         private void CheckValueParameters(DiagnosticBag diagnostics)
         {
+            if (_name == WellKnownMemberNames.IsOperatorName)
+            {
+                return;
+            }
+
             // SPEC: The parameters of an operator must be value parameters.
             foreach (var p in this.Parameters)
             {
@@ -225,6 +230,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 case WellKnownMemberNames.LeftShiftOperatorName:
                 case WellKnownMemberNames.RightShiftOperatorName:
                     CheckShiftSignature(diagnostics);
+                    break;
+
+                case WellKnownMemberNames.IsOperatorName:
+                    CheckIsSignature(diagnostics);
                     break;
 
                 default:
@@ -545,6 +554,34 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 // The parser does not detect this error.
                 // CS0590: User-defined operators cannot return void
+                diagnostics.Add(ErrorCode.ERR_OperatorCantReturnVoid, this.Locations[0]);
+            }
+        }
+
+        private void CheckIsSignature(DiagnosticBag diagnostics)
+        {
+            if (ParameterCount == 1)
+            {
+                // PROTOTYPE: need an error message for this.
+                // PROTOTYPE: ensure we have coverage for negative scenarios.
+                diagnostics.Add(ErrorCode.ERR_BadBinaryOperatorSignature, this.Locations[0]);
+            }
+
+            foreach (var p in this.Parameters)
+            {
+                if (p.RefKind != (p.Ordinal == 0 ? RefKind.None : RefKind.Out))
+                {
+                    // PROTOTYPE: probably need a better diagnostic for this situation.
+                    // PROTOTYPE: need to ensure the specification describes this scenario.
+                    // PROTOTYPE: ensure we have coverage for positive and negative cases.
+                    diagnostics.Add(ErrorCode.ERR_IllegalRefParam, this.Locations[0]);
+                    break;
+                }
+            }
+
+            if (!this.ReturnsVoid && ReturnType.SpecialType != SpecialType.System_Void)
+            {
+                // PROTOTYPE: need an error message for this.
                 diagnostics.Add(ErrorCode.ERR_OperatorCantReturnVoid, this.Locations[0]);
             }
         }

@@ -7806,5 +7806,128 @@ class Program
                 Diagnostic(ErrorCode.ERR_BadBinaryOps, "null ?? throw null").WithArguments("??", "<null>", "<throw>").WithLocation(6, 17)
                 );
         }
+
+
+        [Fact]
+        public void MatchStatementAndExpression_Patterns_WithoutRecords()
+        {
+            var source = @"
+using System;
+class Program
+{
+    static void Main(string[] args)
+    {
+        object o = (int)2;
+        Expr exp = new Add(new Add(new Const(3), new Const(4)), new Const(5));
+        Verify(3.5);
+        Verify(""2"");
+        Verify(new Const(31));
+        Verify(new Const(100));
+        Verify(new Add(new Const(2), new Const(2)));
+        Verify(new Add(new Add(new Const(2), new Const(0)), new Const(3)));
+        Verify(new Add(new Add(new Const(1), new Const(2)),
+                       new Add(new Const(0), new Const(1231))));
+        Verify(new Add(new Add(new Const(1), new Const(2)),
+                       new Add(new Const(123), new Const(3))));
+        Verify(new Add(new Add(new Const(31), new Const(322)),
+                       new Add(new Const(123), new Const(322))));
+    }
+    static void Verify(object o)
+    {
+        bool r = MatchExpressions(o) == MatchStatements(o);
+        Console.WriteLine(r + "" "" + MatchStatements(o));
+    }
+    static string MatchStatements(object o)
+    {
+        switch (o)
+        { // from specific to more general:
+            case Add(Add(Const(1), Const(2)), Add(Const(0), Const(int z))) :
+                return ""(1 + 2) + (0 + "" + z + "")"";
+            case Add(Add(Const(1), Const(2)), Add(Const(*), Const(int u))) :
+                return ""(1 + 2) + (x + "" + u + "")"";
+            case Add(var x, Const(2)) :
+                return x + "" + 2"";
+            case Add(var x, Const(*)) :
+                return x + "" + const"";
+            case Const(100) :
+                return ""const 100"";
+            case Const(int e) :
+                return ""const "" + e;
+            case Const(*) :
+                return ""const x"";
+            case Add a :
+                return a.Left + "" + "" + a.Right;
+            case double d :
+                return ""double "" + d;
+            default:
+                return ""None"";
+        }
+    }
+    static string MatchExpressions(object o)
+    {
+        if (o is Add(Add(Const(1), Const(2)), Add(Const(0), Const(int z))))
+            return ""(1 + 2) + (0 + "" + z + "")"";
+        else if (o is Add(Add(Const(1), Const(2)), Add(Const(*), Const(int u))))
+            return ""(1 + 2) + (x + "" + u + "")"";
+        else if (o is Add(var x, Const(2)))
+            return x + "" + 2"";
+        else if (o is Add(var x, Const(*)))
+            return x + "" + const"";
+        else if (o is Const(100))
+            return ""const 100"";
+        else if (o is Const(int e))
+            return ""const "" + e;
+        else if (o is Const(*))
+            return ""const x"";
+        else if (o is Add a)
+            return a.Left + "" + "" + a.Right;
+        else if (o is double d)
+            return ""double "" + d;
+        else
+            return ""None"";
+    }
+}
+public abstract class Expr { }
+public class Const : Expr
+{
+    public Const(int x)
+    {
+        this.X = x;
+    }
+    public int X { get; }
+    public static void operator is(Const a, out int x)
+    {
+        x = a.X;
+    }
+}
+public class Add : Expr
+{
+    public Add(Expr left, Expr right)
+    {
+        this.Left = left;
+        this.Right = right;
+    }
+    public Expr Left { get; }
+    public Expr Right { get; }
+    public static void operator is(Add a, out Expr left, out Expr right)
+    {
+        left = a.Left;
+        right = a.Right;
+    }
+}
+";
+            var compilation = CreateCompilationWithMscorlib(source, options: TestOptions.ReleaseExe, parseOptions: patternParseOptions);
+            compilation.VerifyDiagnostics();
+            var verifier = CompileAndVerify(compilation, expectedOutput: @"
+True double 3.5
+True None
+True const 31
+True const 100
+True Const + 2
+True Add + const
+True (1 + 2) + (0 + 1231)
+True (1 + 2) + (x + 3)
+True Add + Add");
+        }
     }
 }

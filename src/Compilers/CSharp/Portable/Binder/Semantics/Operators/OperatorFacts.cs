@@ -116,24 +116,26 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public static string OperatorNameFromDeclaration(Syntax.InternalSyntax.OperatorDeclarationSyntax declaration)
         {
-            if (SyntaxFacts.IsBinaryExpressionOperatorToken(declaration.OperatorToken.Kind))
-            {
-                // Some tokens may be either unary or binary operators (e.g. +, -).
-                if (SyntaxFacts.IsPrefixUnaryExpressionOperatorToken(declaration.OperatorToken.Kind) &&
-                    declaration.ParameterList.Parameters.Count == 1)
-                {
-                    return OperatorFacts.UnaryOperatorNameFromSyntaxKind(declaration.OperatorToken.Kind);
-                }
+            var opToken = declaration.OperatorToken.Kind;
 
-                return OperatorFacts.BinaryOperatorNameFromSyntaxKind(declaration.OperatorToken.Kind);
-            }
-            else if (SyntaxFacts.IsUnaryOperatorDeclarationToken(declaration.OperatorToken.Kind))
-            {
-                return OperatorFacts.UnaryOperatorNameFromSyntaxKind(declaration.OperatorToken.Kind);
-            }
-            else if (declaration.OperatorToken.Kind == SyntaxKind.IsKeyword)
+            if (opToken == SyntaxKind.IsKeyword)
             {
                 return WellKnownMemberNames.IsOperatorName;
+            }
+            else if (SyntaxFacts.IsBinaryExpressionOperatorToken(opToken))
+            {
+                // Some tokens may be either unary or binary operators (e.g. +, -).
+                if (SyntaxFacts.IsPrefixUnaryExpressionOperatorToken(opToken) &&
+                    declaration.ParameterList.Parameters.Count == 1)
+                {
+                    return OperatorFacts.UnaryOperatorNameFromSyntaxKind(opToken);
+                }
+
+                return OperatorFacts.BinaryOperatorNameFromSyntaxKind(opToken);
+            }
+            else if (SyntaxFacts.IsUnaryOperatorDeclarationToken(opToken))
+            {
+                return OperatorFacts.UnaryOperatorNameFromSyntaxKind(opToken);
             }
             else
             {
