@@ -12,7 +12,11 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             BoundExpression rewrittenReceiver = VisitExpression(node.ReceiverOpt);
 
-            return MakeFieldAccess(node.Syntax, rewrittenReceiver, node.FieldSymbol, node.ConstantValue, node.ResultKind, node.Type, node);
+            // field access of a tuple actually accesses the underlying field.
+            FieldSymbol field = (node.FieldSymbol as TupleFieldSymbol)?.UnderlyingTypleFieldSymbol ??
+                                node.FieldSymbol;
+
+            return MakeFieldAccess(node.Syntax, rewrittenReceiver, field, node.ConstantValue, node.ResultKind, node.Type, node);
         }
 
         private static BoundExpression MakeFieldAccess(

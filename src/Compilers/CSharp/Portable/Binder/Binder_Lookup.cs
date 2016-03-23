@@ -701,7 +701,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // If the type is from a winmd and implements any of the special WinRT collection
                 // projections then we may need to add underlying interface members. 
                 NamedTypeSymbol namedType = currentType as NamedTypeSymbol;
-                if ((object)namedType != null && namedType.ShouldAddWinRTMembers)
+                if (namedType?.ShouldAddWinRTMembers == true)
                 {
                     AddWinRTMembers(result, namedType, name, arity, options, originalBinder, diagnose, ref useSiteDiagnostics);
                 }
@@ -713,6 +713,15 @@ namespace Microsoft.CodeAnalysis.CSharp
                 if (result.IsMultiViable && (tmpHidesMethodOrIndexers || !IsMethodOrIndexer(result.Symbols[0])))
                 {
                     break;
+                }
+
+                // PROTOTYPE consider taking this out of the loop. tuples are always at the end of hierarchy
+                // PROTOTYPE match this in other lookups
+                var tuple = currentType as TupleTypeSymbol;
+                if ((object)tuple != null)
+                {
+                    currentType = tuple.UnderlyingTupleType;
+                    continue;
                 }
 
                 if (basesBeingResolved != null && basesBeingResolved.ContainsReference(type.OriginalDefinition))
@@ -1522,6 +1531,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case TypeKind.Dynamic:
                     this.AddMemberLookupSymbolsInfoInClass(result, type, options, originalBinder, type);
                     break;
+
+                    //PROTOTYPE: add special handling for tuple types - we need to collect both tuple members and from the underlying.
 
                 case TypeKind.Submission:
                     this.AddMemberLookupSymbolsInfoInSubmissions(result, type, options, originalBinder);

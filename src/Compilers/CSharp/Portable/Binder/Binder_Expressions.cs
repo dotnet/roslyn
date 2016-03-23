@@ -615,20 +615,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return BindThrowExpression((ThrowExpressionSyntax)node, diagnostics);
 
                 case SyntaxKind.TupleExpression:
-                    {
-                        var tuple = (TupleExpressionSyntax)node;
-
-                        if (tuple.Arguments.Count == 0)
-                        {
-                            // this should be a parse error already.
-                            return BadExpression(node);
-                        }
-
-                        // UNDONE: bind the value of the first element for now.
-                        //         just to not crash in tests.
-                        //         Actual binding implementation is coming.
-                        return BindExpression(((TupleExpressionSyntax)node).Arguments[0].Expression, diagnostics);
-                    }
+                    return BindTupleExpression((TupleExpressionSyntax)node, diagnostics);
 
                 default:
                     // NOTE: We could probably throw an exception here, but it's conceivable
@@ -637,6 +624,89 @@ namespace Microsoft.CodeAnalysis.CSharp
                     Debug.Assert(false, "Unexpected SyntaxKind " + node.Kind());
                     return BadExpression(node);
             }
+        }
+
+        private BoundExpression BindTupleExpression(TupleExpressionSyntax node, DiagnosticBag diagnostics)
+        {
+            var arguments = node.Arguments;
+            if (arguments.Count < 2)
+            {
+                // this should be a parse error already.
+                var args = arguments.Count == 1 ?
+                    new BoundExpression[] { BindValue(arguments[0].Expression, diagnostics, BindValueKind.RValue) } :
+                    new BoundExpression[0];
+                    
+                return BadExpression(node, args);
+            }
+
+            bool hasErrors = false;
+
+            // set of names already used
+            HashSet<string> uniqueFieldNames = new HashSet<string>();
+
+            var boundArguments = ArrayBuilder<BoundExpression>.GetInstance(arguments.Count);
+            var elementTypes = ArrayBuilder<TypeSymbol>.GetInstance(arguments.Count);
+            ArrayBuilder<string> elementNames = null;
+
+            for (int i = 0, l = arguments.Count; i < l; i++)
+            {
+                var argumentSyntax = arguments[i];
+                var name = argumentSyntax.NameColon?.Name?.Identifier.ValueText;
+
+                // validate name if we have one
+                if (name != null)
+                {
+                    // PROTOTYPE: check for a case "ItemX" where X is not i
+
+                    if (!uniqueFieldNames.Add(name))
+                    {
+                        hasErrors = true;
+                        // PROTOTYPE: need specific duplicate name error for tuples
+                        Error(diagnostics, ErrorCode.ERR_AnonymousTypeDuplicatePropertyName, argumentSyntax.NameColon.Name);
+                    }
+                }
+                
+                // add the name to the list
+                // names would typically all be there or none at all
+                // but in case we need to handle this in error cases
+                if (elementNames != null)
+                {
+                    elementNames.Add(name ?? "Item" + i);
+                }
+                else
+                {
+                    if (name != null)
+                    {
+                        elementNames = ArrayBuilder<string>.GetInstance(arguments.Count);
+                        for (int j = 0; j < i; j++)
+                        {
+                            elementNames.Add(name ?? "Item" + j);
+                        }
+                        elementNames.Add(name);
+                    }
+                }
+
+                var boundArgument = BindValue(argumentSyntax.Expression, diagnostics, BindValueKind.RValue);
+                boundArguments.Add(boundArgument);
+
+                // PROTOTYPE: need to report distinc errors for tuples
+                var elementType = GetAnonymousTypeFieldType(boundArgument, argumentSyntax, diagnostics, ref hasErrors);
+                elementTypes.Add(elementType);
+            }
+
+            var type = new TupleTypeSymbol(
+                elementTypes.ToImmutableAndFree(),
+                elementNames == null ?
+                                default(ImmutableArray<string>) :
+                                elementNames.ToImmutableAndFree(),
+                node,
+                this,
+                diagnostics);
+
+            //PROTOTYPE: should be a wellknown member?
+            var ctor = type.UnderlyingTupleType?.InstanceConstructors.FirstOrDefault();
+
+            return new BoundTupleCreationExpression(node, ctor, boundArguments.ToImmutableAndFree(), type, hasErrors);
         }
 
         private BoundExpression BindRefValue(RefValueExpressionSyntax node, DiagnosticBag diagnostics)

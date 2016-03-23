@@ -74,6 +74,14 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
             }
         }
 
+        public bool IsTupleType
+        {
+            get
+            {
+                return false;
+            }
+        }
+
         public new ITypeSymbol OriginalDefinition
         {
             get
