@@ -4,23 +4,123 @@ using System;
 using System.Diagnostics;
 using System.IO;
 
-public class TraceManager
+interface ITraceManager
+{
+    int Iterations { get; }
+
+    void Cleanup();
+    void EndEvent();
+    void EndScenario();
+    void EndScenarios();
+    void ResetScenarioGenerator();
+    void Setup();
+    void Start();
+    void StartEvent();
+    void StartScenario(string scenarioName, string processName);
+    void Stop();
+    void WriteScenariosFileToDisk();
+}
+
+class TraceManagerFactory
+{
+    public static ITraceManager GetTraceManager(
+        int iterations = 3,
+        string cpcFolderPath = @"%SYSTEMDRIVE%\CPC",
+        string scenarioPath = @"%SYSTEMDRIVE%\CPC")
+    {
+        var cpcFullPath = Path.Combine(Environment.ExpandEnvironmentVariables(cpcFolderPath), "CPC.exe");
+        if (File.Exists(cpcFullPath))
+        {
+            var expandedScenarioPath = Environment.ExpandEnvironmentVariables(scenarioPath);
+            return new TraceManager(iterations, cpcFullPath, expandedScenarioPath);
+        }
+        else
+        {
+            return new NoOpTraceManager(iterations);
+        }
+    }
+}
+
+/// This is the Trace Manager that will be used when there is no CPC found in the machine
+/// All operations are NoOp
+class NoOpTraceManager : ITraceManager
+{
+    private readonly int _iterations;
+    public NoOpTraceManager(int iterations)
+    {
+        _iterations = iterations;
+    }
+
+    public int Iterations
+    {
+        get
+        {
+            return _iterations;
+        }
+    }
+
+    public void Cleanup()
+    {
+    }
+
+    public void EndEvent()
+    {
+    }
+
+    public void EndScenario()
+    {
+    }
+
+    public void EndScenarios()
+    {
+    }
+
+    public void ResetScenarioGenerator()
+    {
+    }
+
+    public void Setup()
+    {
+    }
+
+    public void Start()
+    {
+    }
+
+    public void StartEvent()
+    {
+    }
+
+    public void StartScenario(string scenarioName, string processName)
+    {
+    }
+
+    public void Stop()
+    {
+    }
+
+    public void WriteScenariosFileToDisk()
+    {
+    }
+}
+
+class TraceManager : ITraceManager
 {
     private readonly ScenarioGenerator _scenarioGenerator;
 
-    private string _cpcFullPath = "CPC.exe";
+    private string _cpcPath = "CPC.exe";
     private int _startEventAbsoluteInstance = 1;
     private int _stopEventAbsoluteInstance = 1;
     private readonly int _iterations;
     
     public TraceManager(
-        int iterations = 3,
-        string cpcFolderPath = @"%SYSTEMDRIVE%\CPC",
-        string scenarioPath = @"%SYSTEMDRIVE%\CPC")
+        int iterations,
+        string cpcPath,
+        string scenarioPath)
     {
         _iterations = iterations;
-        _cpcFullPath = Path.Combine(Environment.ExpandEnvironmentVariables(cpcFolderPath), "CPC.exe");
-        _scenarioGenerator = new ScenarioGenerator(Environment.ExpandEnvironmentVariables(scenarioPath));
+        _cpcPath = cpcPath;
+        _scenarioGenerator = new ScenarioGenerator(scenarioPath);
     }
     
     public int Iterations 
@@ -33,7 +133,7 @@ public class TraceManager
     
     public void Setup()
     {
-         var processResult = RunProcess(_cpcFullPath, "/Setup /DisableArchive");
+         var processResult = RunProcess(_cpcPath, "/Setup /DisableArchive");
         if (processResult.Failed)
         {
             throw new SystemException($@"The process ""CPC.exe /Setup /DisableArchive"" failed. {processResult.StdErr}");
@@ -42,7 +142,7 @@ public class TraceManager
 
     public void Start()
     {
-        var processResult = RunProcess(_cpcFullPath, "/Start /DisableArchive");
+        var processResult = RunProcess(_cpcPath, "/Start /DisableArchive");
         if (processResult.Failed)
         {
             throw new SystemException($@"The process ""CPC.exe /Start /DisableArchive"" failed. {processResult.StdErr}");
@@ -51,7 +151,7 @@ public class TraceManager
 
     public void Stop()
     {
-        var processResult = RunProcess(_cpcFullPath, @"/Stop /DisableArchive /ScenarioPath=""%SYSTEMDRIVE%/CPC/scenarios.xml"" /ConsumptionTempResultsPath=""%SYSTEMDRIVE%/CPC/consumptionTempResults.xml""");
+        var processResult = RunProcess(_cpcPath, @"/Stop /DisableArchive /ScenarioPath=""%SYSTEMDRIVE%/CPC/scenarios.xml"" /ConsumptionTempResultsPath=""%SYSTEMDRIVE%/CPC/consumptionTempResults.xml""");
         if (processResult.Failed)
         {
             throw new SystemException($@"The process ""CPC.exe /Stop /DisableArchive"" failed. {processResult.StdErr}");
@@ -60,7 +160,7 @@ public class TraceManager
 
     public void Cleanup()
     {
-        var processResult = RunProcess(_cpcFullPath, "/Cleanup /DisableArchive");
+        var processResult = RunProcess(_cpcPath, "/Cleanup /DisableArchive");
         if (processResult.Failed)
         {
             throw new SystemException($@"The process ""CPC.exe /Cleanup /DisableArchive"" failed. {processResult.StdErr}");
@@ -106,9 +206,9 @@ public class TraceManager
         _stopEventAbsoluteInstance = 1;
     }
 
-    private ProcessResult RunProcess(string _cpcFullPath, string args)
+    private ProcessResult RunProcess(string executablePath, string args)
     {
-        var startInfo = new ProcessStartInfo(_cpcFullPath, args);
+        var startInfo = new ProcessStartInfo(executablePath, args);
         startInfo.UseShellExecute = true;
         var process = new Process
         {
@@ -121,7 +221,7 @@ public class TraceManager
 
         return new ProcessResult
         {
-            ExecutablePath = _cpcFullPath,
+            ExecutablePath = executablePath,
             Args = args,
             Code = process.ExitCode,
             StdOut = "",

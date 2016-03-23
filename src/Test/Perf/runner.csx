@@ -15,7 +15,7 @@ var testDirectory = Path.Combine(MyWorkingDirectory(), "Tests");
 var allResults = new List<Tuple<string, List<Tuple<int, string, object>>>>();
 var failed = false;
 
-var traceManager = new TraceManager();
+var traceManager = TraceManagerFactory.GetTraceManager();
 
 // Print message at startup
 Log("Starting Performance Test Run");

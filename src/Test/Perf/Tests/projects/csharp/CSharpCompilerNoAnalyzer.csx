@@ -7,7 +7,6 @@ InitUtilities();
 
 DownloadProject("csharp", version: 1);
 
-//foreach (var rspFile in new string[] {"CSharpCompiler.rsp", "CSharpCompilerNoAnalyzer.rsp", "CSharpCompilerNoAnalyzerNoDeterminism.rsp"}){
 var rspFile = "CSharpCompilerNoAnalyzer.rsp";
 string responseFile = "@" + Path.Combine(MyTempDirectory(), "csharp", rspFile);
 string keyfileLocation = Path.Combine(MyTempDirectory(), "csharp", "keyfile", "35MSSharedLib1024.snk");

@@ -15,4 +15,4 @@ string args = $"{responseFile} /keyfile:{keyfileLocation}";
 string executeInDirectory = Path.Combine(MyTempDirectory(), "csharp");
 
 var msToCompile = WalltimeMs(() => ShellOutVital(ReleaseCscPath(), args, executeInDirectory));
-Report(ReportKind.CompileTime, $"{rspFile} compile duration (ms)", msToCompile);  
+Report(ReportKind.CompileTime, $"{rspFile} compile duration (ms)", msToCompile);
