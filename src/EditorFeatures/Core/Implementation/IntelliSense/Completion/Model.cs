@@ -117,7 +117,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
                                                                    .ToImmutableArray();
 
             // By default we do not filter anything out.
-            ImmutableDictionary<CompletionItemFilter,bool> filterState = null;
+            ImmutableDictionary<CompletionItemFilter, bool> filterState = null;
 
             if (completionService != null &&
                 workspace != null &&
