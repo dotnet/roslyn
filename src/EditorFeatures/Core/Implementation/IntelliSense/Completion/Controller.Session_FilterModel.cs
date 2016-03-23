@@ -101,16 +101,15 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
             {
                 var filterState = model.FilterState;
 
-                // If all the filters are on, then we don't actually need to filter.
-                if (filterState.Values.All(Functions.IsTrue))
+                // If all the filters are on, or all the filters are off then we don't actually 
+                // need to filter.
+                if (filterState != null)
                 {
-                    filterState = null;
-                }
-
-                // If all the filters are off, then we don't actually need to filter.
-                if (filterState.Values.All(Functions.IsFalse))
-                {
-                    filterState = null;
+                    if (filterState.Values.All(Functions.IsTrue) ||
+                        filterState.Values.All(Functions.IsFalse))
+                    {
+                        filterState = null;
+                    }
                 }
 
                 if (model == null)
