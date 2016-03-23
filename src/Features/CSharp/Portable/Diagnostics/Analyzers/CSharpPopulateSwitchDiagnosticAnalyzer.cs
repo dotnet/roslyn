@@ -50,8 +50,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.Analyzers
             }
 
             var caseLabels = new List<ExpressionSyntax>();
-
             var hasDefaultCase = false;
+
             foreach (var section in switchBlock.Sections)
             {
                 foreach (var label in section.Labels)

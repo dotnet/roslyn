@@ -124,9 +124,10 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.PopulateSwitch
                 }
             }
 
+            System.Diagnostics.Debug.WriteLine(containsDefaultLabel);
             if (!containsDefaultLabel)
             {
-                newSections.Add(SyntaxFactory.SwitchSection(SyntaxFactory.List(
+            newSections = newSections.Add(SyntaxFactory.SwitchSection(SyntaxFactory.List(
                     new List<SwitchLabelSyntax> { SyntaxFactory.DefaultSwitchLabel() }), statements));
             }
 
