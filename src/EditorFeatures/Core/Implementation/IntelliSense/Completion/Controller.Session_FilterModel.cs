@@ -105,8 +105,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
                 // need to filter.
                 if (filterState != null)
                 {
-                    if (filterState.Values.All(Functions.IsTrue) ||
-                        filterState.Values.All(Functions.IsFalse))
+                    if (filterState.Values.All(b => b) ||
+                        filterState.Values.All(b => !b))
                     {
                         filterState = null;
                     }
