@@ -285,6 +285,15 @@ namespace Microsoft.CodeAnalysis.CSharp
                         Debug.Assert(binder is PatternVariableBinder);
                     }
                     break;
+
+                case SyntaxKind.ForEachStatement:
+                    var foreachStmt = (ForEachStatementSyntax)stmt;
+                    if (LookupPosition.IsBetweenTokens(position, foreachStmt.OpenParenToken, foreachStmt.Statement.GetFirstToken()))
+                    {
+                        binder = binder.Next;
+                        Debug.Assert(binder is PatternVariableBinder);
+                    }
+                    break;
             }
 
             return binder;

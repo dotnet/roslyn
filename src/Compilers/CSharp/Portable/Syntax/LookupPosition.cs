@@ -265,7 +265,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
             return IsBetweenTokens(position, filterClause.OpenParenToken, filterClause.CloseParenToken);
         }
 
-        private static SyntaxToken GetFirstIncludedToken(StatementSyntax statement, bool inRecursiveCall = false)
+        private static SyntaxToken GetFirstIncludedToken(StatementSyntax statement)
         {
             Debug.Assert(statement != null);
             switch (statement.Kind())
@@ -289,13 +289,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
                 case SyntaxKind.FixedStatement:
                     return ((FixedStatementSyntax)statement).FixedKeyword;
                 case SyntaxKind.ForEachStatement:
-                    // NB: iteration variable is only in scope in body.
-                    ForEachStatementSyntax forEachSyntax = (ForEachStatementSyntax)statement;
-                    if (inRecursiveCall)
-                    {
-                        return forEachSyntax.ForEachKeyword;
-                    }
-                    return GetFirstIncludedToken(forEachSyntax.Statement, inRecursiveCall: true);
+                    return ((ForEachStatementSyntax)statement).OpenParenToken.GetNextToken();
                 case SyntaxKind.ForStatement:
                     return ((ForStatementSyntax)statement).OpenParenToken.GetNextToken();
                 case SyntaxKind.GotoDefaultStatement:
