@@ -137,6 +137,11 @@ void UploadTraces(string sourceFolderPath, string destinationFolderPath)
 
         var destination = Path.Combine(destinationFolderPath, directoryToUpload.Name);
         CopyDirectory(directoryToUpload.FullName, destination);
+        
+        foreach(var file in new DirectoryInfo(sourceFolderPath).GetFiles().Where(f => f.Name.StartsWith("ConsumptionTemp", StringComparison.OrdinalIgnoreCase) || f.Name.StartsWith("Roslyn-", StringComparison.OrdinalIgnoreCase)))
+        {
+            File.Copy(file.FullName, Path.Combine(destination, file.Name));
+        }
     }
     else
     {
