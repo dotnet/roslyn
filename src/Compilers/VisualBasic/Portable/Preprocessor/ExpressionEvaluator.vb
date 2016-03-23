@@ -851,16 +851,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
                 Return ReportSemanticError(ERRID.ERR_BadCCExpression, expr)
             End If
 
-            If specialType = SpecialType.System_String Then
-                Return ReportSemanticError(ERRID.ERR_CannotConvertValue2, expr)
-            End If
-
-            If specialType = SpecialType.System_Object AndAlso Not IsNothing(val) Then
-                Return ReportSemanticError(ERRID.ERR_CannotConvertValue2, expr)
-            End If
-
-            If specialType = SpecialType.System_Char OrElse specialType = SpecialType.System_DateTime Then
-                Return ReportSemanticError(ERRID.ERR_CannotConvertValue2, expr)
+            If specialType = SpecialType.System_String OrElse
+               (specialType = SpecialType.System_Object AndAlso Not IsNothing(val)) OrElse
+               specialType = SpecialType.System_Char OrElse specialType = SpecialType.System_DateTime Then
+                Return ReportSemanticError(ERRID.ERR_UnaryOperand2, expr, expr.OperatorToken.ValueText, specialType.GetDisplayName())
             End If
 
             Try

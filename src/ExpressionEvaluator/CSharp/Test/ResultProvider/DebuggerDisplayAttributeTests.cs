@@ -334,8 +334,7 @@ class Wrapper
                 EvalResult("NoDisplayPointer", PointerToString(IntPtr.Zero), "NoDisplay*", "wrapper.display.NoDisplayPointer"));
         }
 
-        [WorkItem(321, "https://github.com/dotnet/roslyn/issues/321")]
-        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/321")]
+        [Fact]
         public void PointerDereferenceExpansion_NonNull()
         {
             var source = @"
@@ -396,7 +395,7 @@ unsafe class C
                 Verify(DepthFirstSearch(FormatResult("c", testValue), maxDepth: 3),
                     EvalResult("c", "{C}", "C", "c", DkmEvaluationResultFlags.Expandable),
                     EvalResult("DisplayPointer", displayPtrString, "Display*", "c.DisplayPointer", DkmEvaluationResultFlags.Expandable),
-                    EvalResult("Name", "Value", "Type", "*c.DisplayPointer", DkmEvaluationResultFlags.Expandable),
+                    EvalResult("*c.DisplayPointer", "Value", "Type", "*c.DisplayPointer", DkmEvaluationResultFlags.Expandable),
                     EvalResult("DisplayPointer", displayPtrString, "Display*", "(*c.DisplayPointer).DisplayPointer", DkmEvaluationResultFlags.Expandable),
                     EvalResult("NoDisplayPointer", noDisplayPtrString, "NoDisplay*", "(*c.DisplayPointer).NoDisplayPointer", DkmEvaluationResultFlags.Expandable),
                     EvalResult("NoDisplayPointer", noDisplayPtrString, "NoDisplay*", "c.NoDisplayPointer", DkmEvaluationResultFlags.Expandable),

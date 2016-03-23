@@ -9,6 +9,7 @@ using System.Linq;
 using System.Net;
 using System.Text;
 using System.Threading.Tasks;
+using System.Xml.Linq;
 
 namespace RunTests.Cache
 {
@@ -21,6 +22,9 @@ namespace RunTests.Cache
         private const string NameResultsFileContent = "ResultsFileContent";
         private const string NameElapsedSeconds = "ElapsedSeconds";
         private const string NameElapsedSecondsMisspelled = "EllapsedSeconds";
+        private const string NameTestPassed = "TestPassed";
+        private const string NameTestFailed = "TestFailed";
+        private const string NameTestSkipped = "TestSkipped";
 
         private readonly RestClient _restClient = new RestClient(Constants.DashboardUriString);
 
@@ -38,6 +42,7 @@ namespace RunTests.Cache
                 request.Method = Method.PUT;
                 request.RequestFormat = DataFormat.Json;
                 request.AddParameter("text/json", obj.ToString(), ParameterType.RequestBody);
+
                 var response = await _restClient.ExecuteTaskAsync(request);
                 if (response.StatusCode != HttpStatusCode.NoContent)
                 {
@@ -55,6 +60,16 @@ namespace RunTests.Cache
             try
             {
                 var request = new RestRequest($"api/testcache/{checksum}");
+
+                // Add query parameters the web service uses for additional tracking
+                request.AddParameter("machineName", Environment.MachineName, ParameterType.QueryString);
+                request.AddParameter("enlistmentRoot", Constants.EnlistmentRoot, ParameterType.QueryString);
+
+                if (Constants.IsJenkinsRun)
+                {
+                    request.AddParameter("source", "jenkins", ParameterType.QueryString);
+                }
+
                 var response = await _restClient.ExecuteGetTaskAsync(request);
                 if (response.StatusCode != HttpStatusCode.OK)
                 {
@@ -84,6 +99,7 @@ namespace RunTests.Cache
 
         private static JObject CreateTestResultData(string resultsFileName, CachedTestResult testResult)
         {
+            var numbers = GetTestNumbers(resultsFileName, testResult) ?? Tuple.Create(-1, -1, -1);
             var obj = new JObject();
             obj[NameExitCode] = testResult.ExitCode;
             obj[NameOutputStandard] = testResult.StandardOutput;
@@ -92,6 +108,10 @@ namespace RunTests.Cache
             obj[NameResultsFileContent] = testResult.ResultsFileContent;
             obj[NameElapsedSeconds] = (int)testResult.Elapsed.TotalSeconds;
             obj[NameElapsedSecondsMisspelled] = (int)testResult.Elapsed.TotalSeconds;
+            obj[NameTestPassed] = numbers.Item1;
+            obj[NameTestFailed] = numbers.Item2;
+            obj[NameTestSkipped] = numbers.Item3;
+
             return obj;
         }
 
@@ -103,6 +123,32 @@ namespace RunTests.Cache
             obj["AssemblyName"] = assemblyInfo.DisplayName;
             obj["IsJenkins"] = Constants.IsJenkinsRun;
             return obj;
+        }
+
+        private static Tuple<int, int, int> GetTestNumbers(string resultsFileName, CachedTestResult testResult)
+        {
+            if (!resultsFileName.EndsWith("xml", StringComparison.OrdinalIgnoreCase))
+            {
+                return null;
+            }
+
+            try
+            {
+                using (var reader = new StringReader(testResult.ResultsFileContent))
+                { 
+                    var document = XDocument.Load(reader);
+                    var assembly = document.Element("assemblies").Element("assembly");
+                    var passed = int.Parse(assembly.Attribute("passed").Value);
+                    var failed = int.Parse(assembly.Attribute("failed").Value);
+                    var skipped = int.Parse(assembly.Attribute("skipped").Value);
+                    return Tuple.Create(passed, failed, skipped);
+                }
+            }
+            catch (Exception ex)
+            {
+                Logger.Log($"Exception reading test numbers: {ex}");
+                return null;
+            }
         }
     }
 }

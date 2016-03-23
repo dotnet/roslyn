@@ -2358,7 +2358,7 @@ Derived.set_Property",
         }
 
         [WorkItem(528172, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/528172")]
-        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/6190")]
+        [Fact]
         public void TestHideWithInaccessibleVirtualMember()
         {
             // Tests:
@@ -2450,7 +2450,39 @@ public class Test
             // from assembly 'Dev10, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'
             // is overriding a method that is not visible from that assembly.
 
-            Assert.Throws(typeof(PeVerifyException), () => CompileAndVerify(outerCompilation));
+            CompileAndVerify(outerCompilation, verify: false).VerifyIL("Test.Main", @"
+{
+  // Code size       65 (0x41)
+  .maxstack  4
+  .locals init (Base2<int> V_0, //b2
+                System.Collections.Generic.List<int> V_1) //x
+  IL_0000:  newobj     ""Derived..ctor()""
+  IL_0005:  newobj     ""Derived..ctor()""
+  IL_000a:  stloc.0
+  IL_000b:  dup
+  IL_000c:  ldc.i4.1
+  IL_000d:  callvirt   ""void Base<int>.Method<long>(int)""
+  IL_0012:  dup
+  IL_0013:  newobj     ""System.Collections.Generic.List<int>..ctor()""
+  IL_0018:  ldc.i4.1
+  IL_0019:  callvirt   ""void Base<int>.Method(System.Collections.Generic.List<int>, int)""
+  IL_001e:  ldnull
+  IL_001f:  stloc.1
+  IL_0020:  ldloc.1
+  IL_0021:  callvirt   ""void Base<int>.Property.set""
+  IL_0026:  ldloc.0
+  IL_0027:  ldc.i4.1
+  IL_0028:  callvirt   ""void Base<int>.Method<long>(int)""
+  IL_002d:  ldloc.0
+  IL_002e:  newobj     ""System.Collections.Generic.List<int>..ctor()""
+  IL_0033:  ldc.i4.1
+  IL_0034:  callvirt   ""void Base<int>.Method(System.Collections.Generic.List<int>, int)""
+  IL_0039:  ldloc.0
+  IL_003a:  ldloc.1
+  IL_003b:  callvirt   ""void Base<int>.Property.set""
+  IL_0040:  ret
+}
+");
         }
 
         [Fact]
