@@ -56,7 +56,7 @@ var ThirdPartyNoticesPath = Path.Combine(NuGetAdditionalFilesPath, "ThirdPartyNo
 var NetCompilersPropsPath = Path.Combine(NuGetAdditionalFilesPath, "Microsoft.Net.Compilers.props");
 
 string[] redistFiles = {
-    "Microsoft.CodeAnalysis.BuildTask.Portable.nuspec", 
+    "Microsoft.CodeAnalysis.BuildTask.Portable.nuspec",
     "Microsoft.CodeAnalysis.EditorFeatures.Text.nuspec",
     "Microsoft.CodeAnalysis.VisualBasic.Scripting.nuspec",
     "Microsoft.CodeAnalysis.Common.nuspec",
@@ -86,7 +86,7 @@ string[] nonRedistFiles = {
 string[] testFiles = {
     "Microsoft.CodeAnalysis.Test.Resources.Proprietary.nuspec",
 };
-    
+
 int PackFiles(string[] files, string licenseUrl)
 {
     int exit = 0;
