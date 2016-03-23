@@ -87,52 +87,54 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
 
         private static ImmutableArray<CompletionItemFilter> GetFilters(List<ISymbol> symbols)
         {
+            if (symbols.Count == 1)
+            {
+                // Don't allocate in the common case of just one symbol.
+                return GetFilters(symbols[0]);
+            }
+
             var result = ImmutableArray<CompletionItemFilter>.Empty;
             foreach (var symbol in symbols)
             {
-                var filter = GetFilter(symbol);
-                if (filter != null)
-                {
-                    result = result.Add(filter);
-                }
+                result.AddRange(GetFilters(symbol));
             }
             return result;
         }
 
-        private static CompletionItemFilter GetFilter(ISymbol symbol)
+        private static ImmutableArray<CompletionItemFilter> GetFilters(ISymbol symbol)
         {
             switch (symbol.Kind)
             {
-                case SymbolKind.Alias: return GetFilter(((IAliasSymbol)symbol).Target);
-                case SymbolKind.Event: return CompletionItemFilter.EventFilter;
-                case SymbolKind.Namespace: return CompletionItemFilter.NamespaceFilter;
-                case SymbolKind.Parameter: return CompletionItemFilter.ParameterFilter;
-                case SymbolKind.Property: return CompletionItemFilter.PropertyFilter;
+                case SymbolKind.Alias: return GetFilters(((IAliasSymbol)symbol).Target);
+                case SymbolKind.Event: return CompletionItemFilter.EventFilters;
+                case SymbolKind.Namespace: return CompletionItemFilter.NamespaceFilters;
+                case SymbolKind.Parameter: return CompletionItemFilter.ParameterFilters;
+                case SymbolKind.Property: return CompletionItemFilter.PropertyFilters;
                 case SymbolKind.RangeVariable: // fall through
-                case SymbolKind.Local: return CompletionItemFilter.LocalFilter;
+                case SymbolKind.Local: return CompletionItemFilter.LocalFilters;
                 case SymbolKind.Field:
                     return ((IFieldSymbol)symbol).IsConst
-                        ? CompletionItemFilter.ConstantFilter
-                        : CompletionItemFilter.FieldFilter;
+                        ? CompletionItemFilter.ConstantFilters
+                        : CompletionItemFilter.FieldFilters;
                 case SymbolKind.Method:
                     return ((IMethodSymbol)symbol).IsExtensionMethod
-                        ? CompletionItemFilter.ExtensionMethodFilter
-                        : CompletionItemFilter.MethodFilter;
+                        ? CompletionItemFilter.ExtensionMethodFilters
+                        : CompletionItemFilter.MethodFilters;
                 case SymbolKind.NamedType:
                     var namedType = (INamedTypeSymbol)symbol;
                     switch (namedType.TypeKind)
                     {
-                        case TypeKind.Class: return CompletionItemFilter.ClassFilter;
-                        case TypeKind.Delegate: return CompletionItemFilter.DelegateFilter;
-                        case TypeKind.Enum: return CompletionItemFilter.EnumFilter;
-                        case TypeKind.Interface: return CompletionItemFilter.InterfaceFilter;
-                        case TypeKind.Module: return CompletionItemFilter.ModuleFilter;
-                        case TypeKind.Structure: return CompletionItemFilter.StructureFilter;
+                        case TypeKind.Class: return CompletionItemFilter.ClassFilters;
+                        case TypeKind.Delegate: return CompletionItemFilter.DelegateFilters;
+                        case TypeKind.Enum: return CompletionItemFilter.EnumFilters;
+                        case TypeKind.Interface: return CompletionItemFilter.InterfaceFilters;
+                        case TypeKind.Module: return CompletionItemFilter.ModuleFilters;
+                        case TypeKind.Structure: return CompletionItemFilter.StructureFilters;
                     }
                     break;
             }
 
-            return null;
+            return ImmutableArray<CompletionItemFilter>.Empty;
         }
 
         public override async Task<ImmutableArray<SymbolDisplayPart>> GetDescriptionAsync(CancellationToken cancellationToken = default(CancellationToken))
