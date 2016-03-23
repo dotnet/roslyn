@@ -102,7 +102,10 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
                 AssertIsForeground();
                 Contract.ThrowIfFalse(ReferenceEquals(this.PresenterSession, sender));
 
-                this.FilterModel(CompletionFilterReason.ItemFiltersChanged, filterState: e.FilterState);
+                // Update the filter state for the model.  Note: if we end up filtering everything
+                // out we do *not* want to dismiss the completion list. 
+                this.FilterModel(CompletionFilterReason.ItemFiltersChanged,
+                    dismissIfEmptyAllowed: false, filterState: e.FilterState);
             }
         }
     }
