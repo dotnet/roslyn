@@ -539,8 +539,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                             Continue For
 
                         Case "instrument"
+                            value = RemoveQuotesAndSlashes(value)
                             If String.IsNullOrEmpty(value) Then
-                                AddDiagnostic(diagnostics, ERRID.ERR_ArgumentRequired, "instrument", ":<types>")
+                                AddDiagnostic(diagnostics, ERRID.ERR_ArgumentRequired, "instrument", ":<string>")
+                                Continue For
                             End If
 
                             instrument = value

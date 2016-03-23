@@ -60,6 +60,9 @@ namespace Microsoft.CodeAnalysis.BuildTasks
         // We do not support BugReport because it always requires user interaction,
         // which will cause a hang.
 
+        /// <summary>
+        /// An instrument flag that specifies instrumentation settings.
+        /// </summary>
         public string Instrument
         {
             set { _store[nameof(Instrument)] = value; }

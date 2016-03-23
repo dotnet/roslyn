@@ -302,6 +302,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                             continue;
 
                         case "instrument":
+                            value = RemoveQuotesAndSlashes(value);
                             if (string.IsNullOrEmpty(value))
                             {
                                 AddDiagnostic(diagnostics, ErrorCode.ERR_SwitchNeedsString, "<text>", name);
