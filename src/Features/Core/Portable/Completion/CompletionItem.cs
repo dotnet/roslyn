@@ -91,6 +91,8 @@ namespace Microsoft.CodeAnalysis.Completion
 
         public CompletionItemRules Rules { get; }
 
+        public ImmutableArray<CompletionItemFilter> Filters { get; }
+
         public CompletionItem(
             CompletionListProvider completionProvider,
             string displayText,

@@ -1,6 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Host;
@@ -69,5 +70,7 @@ namespace Microsoft.CodeAnalysis.Completion
         /// True if the list should be dismissed when the user deletes the last character in the filter span.
         /// </summary>
         bool DismissIfLastFilterCharacterDeleted { get; }
+
+        ImmutableArray<CompletionItemFilter> CompletionItemFilters { get; }
     }
 }

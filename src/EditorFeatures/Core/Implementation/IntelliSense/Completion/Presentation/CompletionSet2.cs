@@ -1,6 +1,8 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Linq;
 using Microsoft.CodeAnalysis.Completion;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
@@ -17,7 +19,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion.P
 {
     internal sealed class CompletionSet3 : CompletionSet2
     {
-        private readonly ForegroundThreadAffinitizedObject foregroundObject = new ForegroundThreadAffinitizedObject();
+        private readonly ForegroundThreadAffinitizedObject _foregroundObject = new ForegroundThreadAffinitizedObject();
         private readonly ITextView _textView;
         private readonly ITextBuffer _subjectBuffer;
         private readonly CompletionPresenterSession _completionPresenterSession;
@@ -25,6 +27,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion.P
         private Dictionary<VSCompletion, CompletionItem> _vsCompletionToCompletionItem;
 
         private CompletionRules _completionRules;
+        private IReadOnlyList<IntellisenseFilter2> _filters;
 
         public CompletionSet3(
             CompletionPresenterSession completionPresenterSession,
@@ -38,6 +41,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion.P
             this.DisplayName = "All";
         }
 
+        public override IReadOnlyList<IIntellisenseFilter> Filters => _filters;
+
         internal void SetTrackingSpan(ITrackingSpan trackingSpan)
         {
             this.ApplicableTo = trackingSpan;
@@ -48,8 +53,11 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion.P
             CompletionItem selectedItem,
             CompletionItem presetBuilder,
             bool suggestionMode,
-            bool isSoftSelected)
+            bool isSoftSelected,
+            ImmutableArray<CompletionItemFilter> completionItemFilters)
         {
+            this._foregroundObject.AssertIsForeground();
+
             VSCompletion selectedCompletionItem = null;
 
             // Initialize the completion map to a reasonable default initial size (+1 for the builder)
@@ -60,6 +68,13 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion.P
             {
                 this.WritableCompletionBuilders.BeginBulkOperation();
                 this.WritableCompletionBuilders.Clear();
+
+                // If more than one filter was provided, then present it to the user.
+                if (_filters == null && completionItemFilters.Length > 1)
+                {
+                    _filters = completionItemFilters.Select(f => new IntellisenseFilter2(this, f))
+                                                    .ToArray();
+                }
 
                 var applicableToText = this.ApplicableTo.GetText(this.ApplicableTo.TextBuffer.CurrentSnapshot);
                 var filteredBuilder = new CompletionItem(null, applicableToText,
@@ -156,7 +171,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion.P
 
         private CompletionRules GetCompletionRules()
         {
-            foregroundObject.AssertIsForeground();
+            _foregroundObject.AssertIsForeground();
             if (_completionRules == null)
             {
                 var document = _subjectBuffer.CurrentSnapshot.GetOpenDocumentInCurrentContextWithChanges();
@@ -201,6 +216,40 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion.P
             }
 
             return null;
+        }
+
+        internal void OnIntelliSenseFiltersChanged()
+        {
+            this._completionPresenterSession.OnIntelliSenseFiltersChanged(_filters);
+        }
+    }
+
+    internal class IntellisenseFilter2 : IntellisenseFilter
+    {
+        private readonly CompletionSet3 _completionSet;
+        public readonly CompletionItemFilter CompletionItemFilter;
+
+        public IntellisenseFilter2(
+            CompletionSet3 completionSet, CompletionItemFilter filter)
+            : base(filter.Glyph.GetImageMoniker(), filter.Glyph.ToString(),
+                   filter.AccessKey.ToString(), automationText: filter.Glyph.ToString())
+        {
+            _completionSet = completionSet;
+            CompletionItemFilter = filter;
+        }
+
+        public override bool IsChecked
+        {
+            get
+            {
+                return base.IsChecked;
+            }
+
+            set
+            {
+                base.IsChecked = value;
+                _completionSet.OnIntelliSenseFiltersChanged();
+            }
         }
     }
 }

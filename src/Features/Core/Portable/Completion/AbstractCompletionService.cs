@@ -352,5 +352,23 @@ namespace Microsoft.CodeAnalysis.Completion
         {
             get { return false; }
         }
+
+        public ImmutableArray<CompletionItemFilter> CompletionItemFilters { get; } =
+            ImmutableArray.Create(
+                new CompletionItemFilter(Glyph.ClassPublic, 'c'),
+                new CompletionItemFilter(Glyph.ConstantPublic, 'o'),
+                new CompletionItemFilter(Glyph.DelegatePublic, 'd'),
+                new CompletionItemFilter(Glyph.EnumPublic, 'e'),
+                new CompletionItemFilter(Glyph.EventPublic, 'e'),
+                new CompletionItemFilter(Glyph.ExtensionMethodPublic, 'x'),
+                new CompletionItemFilter(Glyph.FieldPublic, 'f'),
+                new CompletionItemFilter(Glyph.InterfacePublic, 'i'),
+                new CompletionItemFilter(Glyph.Local, 'l'),
+                new CompletionItemFilter(Glyph.Namespace, 'n'),
+                new CompletionItemFilter(Glyph.MethodPublic, 'm'),
+                new CompletionItemFilter(Glyph.ModulePublic, 'm'),
+                new CompletionItemFilter(Glyph.Parameter, 'p'),
+                new CompletionItemFilter(Glyph.PropertyPublic, 'r'),
+                new CompletionItemFilter(Glyph.StructurePublic, 's'));
     }
 }

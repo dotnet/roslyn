@@ -242,6 +242,17 @@ namespace Roslyn.Utilities
             return source.Where((Func<T, bool>)s_notNullTest);
         }
 
+        public static IEnumerable<T> WhereNotNull<T>(this IEnumerable<T?> source)
+            where T : struct
+        {
+            if (source == null)
+            {
+                return SpecializedCollections.EmptyEnumerable<T>();
+            }
+
+            return source.Where(StructNotNull<T>.Instance).Select(t => t.Value);
+        }
+
         public static bool All(this IEnumerable<bool> source)
         {
             if (source == null)
@@ -310,6 +321,11 @@ namespace Roslyn.Utilities
         private static class Functions<T>
         {
             public static readonly Func<T, T> Identity = t => t;
+        }
+
+        private static class StructNotNull<T> where T : struct
+        {
+            public static readonly Func<T?, bool> Instance = t => t != null;
         }
 
         public static bool IsSorted<T>(this IEnumerable<T> enumerable, IComparer<T> comparer)

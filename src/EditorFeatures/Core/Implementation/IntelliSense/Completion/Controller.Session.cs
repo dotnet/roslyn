@@ -28,6 +28,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
 
                 this.PresenterSession.ItemCommitted += OnPresenterSessionItemCommitted;
                 this.PresenterSession.ItemSelected += OnPresenterSessionItemSelected;
+                this.PresenterSession.CompletionItemFiltersChanged += OnPresenterSessionCompletionItemFiltersChanged;
             }
 
             private ITextBuffer SubjectBuffer
@@ -69,6 +70,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
                 AssertIsForeground();
                 this.PresenterSession.ItemSelected -= OnPresenterSessionItemSelected;
                 this.PresenterSession.ItemCommitted -= OnPresenterSessionItemCommitted;
+                this.PresenterSession.CompletionItemFiltersChanged -= OnPresenterSessionCompletionItemFiltersChanged;
                 base.Stop();
             }
 
@@ -92,6 +94,15 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
                 Contract.ThrowIfFalse(ReferenceEquals(this.PresenterSession, sender));
 
                 SetModelSelectedItem(m => e.CompletionItem.IsBuilder ? m.DefaultBuilder : e.CompletionItem);
+            }
+
+            private void OnPresenterSessionCompletionItemFiltersChanged(
+                object sender, CompletionItemFiltersChangedEventArgs e)
+            {
+                AssertIsForeground();
+                Contract.ThrowIfFalse(ReferenceEquals(this.PresenterSession, sender));
+
+                this.FilterModel(CompletionFilterReason.ItemFiltersChanged, filterState: e.FilterState);
             }
         }
     }
