@@ -12,21 +12,6 @@ using System.IO;
 using System.Linq;
 using System.Xml;
 
-/// Finds all csi files in a directory recursively, ignoring those that
-/// are in the "skip" set.
-IEnumerable<string> AllCsiRecursive(string start, HashSet<string> skip)
-{
-    IEnumerable<string> childFiles =
-        from fileName in Directory.EnumerateFiles(start.ToString(), "*.csx")
-        select fileName;
-    IEnumerable<string> grandChildren =
-        from childDir in Directory.EnumerateDirectories(start)
-        where !skip.Contains(childDir)
-        from fileName in AllCsiRecursive(childDir, skip)
-        select fileName;
-    return childFiles.Concat(grandChildren).Where((s) => !skip.Contains(s));
-}
-
 /// Runs the script at fileName and returns a task containing the
 /// state of the script.
 async Task<ScriptState<object>> RunFile(string fileName)
