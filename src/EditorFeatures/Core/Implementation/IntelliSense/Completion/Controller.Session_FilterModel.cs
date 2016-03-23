@@ -9,6 +9,7 @@ using Microsoft.CodeAnalysis.Completion;
 using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.Text;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
 {
@@ -101,13 +102,13 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
                 var filterState = model.FilterState;
 
                 // If all the filters are on, then we don't actually need to filter.
-                if (filterState.Values.All(b => b))
+                if (filterState.Values.All(Functions.IsTrue))
                 {
                     filterState = null;
                 }
 
                 // If all the filters are off, then we don't actually need to filter.
-                if (filterState.Values.All(b => !b))
+                if (filterState.Values.All(Functions.IsFalse))
                 {
                     filterState = null;
                 }
@@ -140,15 +141,18 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
 
                 foreach (var currentItem in model.TotalItems)
                 {
-                    // We may have wrapped some items in the list in DescriptionModifying items,
-                    // but we should use the actual underlying items when filtering. That way
-                    // our rules can access the underlying item's provider.
-                    var item = GetCompletionItem(currentItem);
-
+                    // Check if something new has happened and there's a later on filter operation
+                    // in the chain.  If so, there's no need for us to do any more work (as it will
+                    // just be superceded by the later work).
                     if (id != _filterId)
                     {
                         return model;
                     }
+
+                    // We may have wrapped some items in the list in DescriptionModifying items,
+                    // but we should use the actual underlying items when filtering. That way
+                    // our rules can access the underlying item's provider.
+                    var item = GetCompletionItem(currentItem);
 
                     if (ItemIsFilteredOut(item, filterState))
                     {

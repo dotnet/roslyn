@@ -9,6 +9,24 @@ using System.Linq;
 
 namespace Roslyn.Utilities
 {
+    internal static class Functions<T>
+    {
+        public static readonly Func<T, T> Identity = t => t;
+        public static readonly Func<T, bool> NotNull = x => x != null;
+    }
+
+    internal static class Functions
+    {
+        public static readonly Func<bool, bool> IsTrue = t => t;
+        public static readonly Func<bool, bool> IsFalse = t => !t;
+    }
+
+    internal static class StructFunctions<T> where T : struct
+    {
+        public static readonly Func<T?, bool> HasValue = t => t.HasValue;
+        public static readonly Func<T?, T> GetValue = t => t.Value;
+    }
+
     internal static partial class EnumerableExtensions
     {
         public static IEnumerable<T> Do<T>(this IEnumerable<T> source, Action<T> action)
@@ -229,8 +247,6 @@ namespace Roslyn.Utilities
             return source.Count == 0;
         }
 
-        private static readonly Func<object, bool> s_notNullTest = x => x != null;
-
         public static IEnumerable<T> WhereNotNull<T>(this IEnumerable<T> source)
             where T : class
         {
@@ -239,7 +255,7 @@ namespace Roslyn.Utilities
                 return SpecializedCollections.EmptyEnumerable<T>();
             }
 
-            return source.Where((Func<T, bool>)s_notNullTest);
+            return source.Where(Functions<T>.NotNull);
         }
 
         public static IEnumerable<T> WhereNotNull<T>(this IEnumerable<T?> source)
@@ -250,7 +266,7 @@ namespace Roslyn.Utilities
                 return SpecializedCollections.EmptyEnumerable<T>();
             }
 
-            return source.Where(StructNotNull<T>.Instance).Select(t => t.Value);
+            return source.Where(StructFunctions<T>.HasValue).Select(StructFunctions<T>.GetValue);
         }
 
         public static bool All(this IEnumerable<bool> source)
@@ -316,16 +332,6 @@ namespace Roslyn.Utilities
             public static readonly Comparison<T> CompareTo = (t1, t2) => t1.CompareTo(t2);
 
             public static readonly IComparer<T> Comparer = new ComparisonComparer<T>(CompareTo);
-        }
-
-        private static class Functions<T>
-        {
-            public static readonly Func<T, T> Identity = t => t;
-        }
-
-        private static class StructNotNull<T> where T : struct
-        {
-            public static readonly Func<T?, bool> Instance = t => t != null;
         }
 
         public static bool IsSorted<T>(this IEnumerable<T> enumerable, IComparer<T> comparer)
