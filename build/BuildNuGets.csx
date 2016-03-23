@@ -55,7 +55,7 @@ var NuGetAdditionalFilesPath = Path.Combine(SolutionRoot, "build/NuGetAdditional
 var ThirdPartyNoticesPath = Path.Combine(NuGetAdditionalFilesPath, "ThirdPartyNotices.rtf");
 var NetCompilersPropsPath = Path.Combine(NuGetAdditionalFilesPath, "Microsoft.Net.Compilers.props");
 
-string[] redistFiles = {
+string[] RedistFiles = {
     "Microsoft.CodeAnalysis.BuildTask.Portable.nuspec",
     "Microsoft.CodeAnalysis.EditorFeatures.Text.nuspec",
     "Microsoft.CodeAnalysis.VisualBasic.Scripting.nuspec",
@@ -77,13 +77,13 @@ string[] redistFiles = {
     "Microsoft.CodeAnalysis.VisualBasic.nuspec",
 };
 
-string[] nonRedistFiles = {
+string[] NonRedistFiles = {
     "Microsoft.Net.Compilers.nuspec",
     "Microsoft.Net.Compilers.netcore.nuspec",
     "Microsoft.Net.CSharp.Interactive.netcore.nuspec",
 };
 
-string[] testFiles = {
+string[] TestFiles = {
     "Microsoft.CodeAnalysis.Test.Resources.Proprietary.nuspec",
 };
 
@@ -127,8 +127,8 @@ int PackFiles(string[] files, string licenseUrl)
     return exit;
 }
 
-int exit = PackFiles(redistFiles, LicenseUrlRedist);
-if (exit == 0) PackFiles(nonRedistFiles, LicenseUrlNonRedist);
-if (exit == 0) PackFiles(testFiles, LicenseUrlTest);
+int exit = PackFiles(RedistFiles, LicenseUrlRedist);
+if (exit == 0) PackFiles(NonRedistFiles, LicenseUrlNonRedist);
+if (exit == 0) PackFiles(TestFiles, LicenseUrlTest);
 
 Environment.Exit(exit);
