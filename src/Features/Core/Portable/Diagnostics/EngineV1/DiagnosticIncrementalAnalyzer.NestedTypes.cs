@@ -102,32 +102,13 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV1
             }
         }
 
-        public class ArgumentKey : AnalyzerUpdateArgsId
+        public class ArgumentKey : LiveDiagnosticUpdateArgsId
         {
-            public readonly StateType StateType;
-            public readonly object Key;
-
-            public ArgumentKey(DiagnosticAnalyzer analyzer, StateType stateType, object key) : base(analyzer)
+            public ArgumentKey(DiagnosticAnalyzer analyzer, StateType stateType, object key) : base(analyzer, key, (int)stateType)
             {
-                StateType = stateType;
-                Key = key;
             }
 
-            public override bool Equals(object obj)
-            {
-                var other = obj as ArgumentKey;
-                if (other == null)
-                {
-                    return false;
-                }
-
-                return StateType == other.StateType && Equals(Key, other.Key) && base.Equals(obj);
-            }
-
-            public override int GetHashCode()
-            {
-                return Hash.Combine(Key, Hash.Combine((int)StateType, base.GetHashCode()));
-            }
+            public StateType StateType => (StateType)Kind;
         }
     }
 }
