@@ -34,7 +34,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
                 Computation.ChainTaskAndNotifyControllerWhenFinished(
                     model =>
                     {
-                        if (filterState != null)
+                        if (model != null && filterState != null)
                         {
                             // If the UI specified an updated filter state, then incorporate that 
                             // into our model.
@@ -99,6 +99,11 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
                 bool dismissIfEmptyAllowed,
                 CompletionFilterReason filterReason)
             {
+                if (model == null)
+                {
+                    return null;
+                }
+
                 var filterState = model.FilterState;
 
                 // If all the filters are on, or all the filters are off then we don't actually 
@@ -110,11 +115,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
                     {
                         filterState = null;
                     }
-                }
-
-                if (model == null)
-                {
-                    return null;
                 }
 
                 // We want to dismiss the session if the caret ever moved outside our bounds.

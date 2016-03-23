@@ -188,7 +188,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion.P
             return _completionRules;
         }
 
-#if false
+#if true
         public override IReadOnlyList<Span> GetHighlightedSpansInDisplayText(string displayText)
 #else
         public IReadOnlyList<Span> GetHighlightedSpansInDisplayText(string displayText)
