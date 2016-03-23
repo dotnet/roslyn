@@ -42,6 +42,23 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 out this._fields);
         }
 
+        private TupleTypeSymbol(TupleTypeSymbol originalTuple,
+                                NamedTypeSymbol newUnderlyingType)
+        {
+            _underlyingType = newUnderlyingType;
+            _fields = originalTuple._fields.SelectAsArray(field =>
+                                                          {
+                                                              var newUnderlyingField = field.UnderlyingTypleFieldSymbol.OriginalDefinition.AsMember(_underlyingType);
+                                                              return new TupleFieldSymbol(field.Name, this, newUnderlyingField.Type, newUnderlyingField);
+                                                          });
+        }
+
+        internal static TupleTypeSymbol ConstructTupleTypeSymbol(TupleTypeSymbol originalTupleType, NamedTypeSymbol newUnderlyingType)
+        {
+            Debug.Assert((object)newUnderlyingType.OriginalDefinition == (object)originalTupleType.UnderlyingTupleType.OriginalDefinition);
+            return new TupleTypeSymbol(originalTupleType, newUnderlyingType);
+        }
+
         private NamedTypeSymbol GetTupleUnderlyingTypeAndFields(
             ImmutableArray<TypeSymbol> elementTypes,
             ImmutableArray<string> elementNames,
@@ -476,15 +493,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         internal override DiagnosticInfo GetUseSiteDiagnostic()
         {
-            DiagnosticInfo result = null;
-
-            // check element type
-            if (DeriveUseSiteDiagnosticFromType(ref result, this._underlyingType))
-            {
-                return result;
-            }
-
-            return result;
+            return _underlyingType.GetUseSiteDiagnostic();
         }
 
         internal override bool GetUnificationUseSiteDiagnosticRecursive(ref DiagnosticInfo result, Symbol owner, ref HashSet<TypeSymbol> checkedTypes)
@@ -557,7 +566,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         /// <summary>
         /// Missing underlying field is handled for error recovery
-        /// A tuple without backing fields is usable for binding purposes, since we know its name and tyoe,
+        /// A tuple without backing fields is usable for binding purposes, since we know its name and type,
         /// but caller is supposed to report some kind of error at declaration.
         /// </summary>
         public TupleFieldSymbol(string name, TupleTypeSymbol containingTuple, TypeSymbol type, FieldSymbol underlyingFieldOpt)
