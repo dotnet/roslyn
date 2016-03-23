@@ -111,6 +111,16 @@ string ReleaseVbcPath()
     return Path.Combine(BinReleaseDirectory(), "vbc.exe");
 }
 
+string GetCPCDirectoryPath()
+{
+    return Environment.ExpandEnvironmentVariables(@"%SYSTEMDRIVE%\CPC");
+}
+
+string GetViBenchToJsonExeFilePath()
+{
+    return Path.Combine(GetCPCDirectoryPath(), "ViBenchToJson.exe");
+}
+
 //
 // Process spawning and error handling.
 //
@@ -170,6 +180,7 @@ ProcessResult ShellOut(
     if (IsVerbose()) {
         Log($"running \"{file}\" with arguments \"{args}\" from directory {workingDirectory}");
     }
+    
     process.Start();
 
     var output = new StringWriter();
