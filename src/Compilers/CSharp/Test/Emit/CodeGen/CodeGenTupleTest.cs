@@ -307,5 +307,223 @@ class C
 ");
         }
 
+        [Fact]
+        public void TupleDictionary01()
+        {
+            var source = @"
+using System.Collections.Generic;
+
+class C
+{
+    static void Main()
+    {
+        var k = (1, 2);
+        var v = (a: 1, b: (c: 2, d: (e: 3, f: 4)));
+
+        var d = Test(k, v);
+
+        System.Console.WriteLine(d[(1, 2)].b.d.Item2);
+    }
+
+    static Dictionary<K, V> Test<K, V>(K key, V value)
+    {
+        var d = new Dictionary<K, V>();
+
+        d[key] = value;
+
+        return d;
+    }
+}
+" + trivial2uple;
+
+            var comp = CompileAndVerify(source, expectedOutput: @"4");
+            comp.VerifyDiagnostics();
+            comp.VerifyIL("C.Main", @"
+{
+  // Code size       67 (0x43)
+  .maxstack  6
+  .locals init (System.Runtime.CompilerServices.ValueTuple<int, <tuple: int c, <tuple: int e, int f> d>> V_0) //v
+  IL_0000:  ldc.i4.1
+  IL_0001:  ldc.i4.2
+  IL_0002:  newobj     ""System.Runtime.CompilerServices.ValueTuple<int, int>..ctor(int, int)""
+  IL_0007:  ldloca.s   V_0
+  IL_0009:  ldc.i4.1
+  IL_000a:  ldc.i4.2
+  IL_000b:  ldc.i4.3
+  IL_000c:  ldc.i4.4
+  IL_000d:  newobj     ""System.Runtime.CompilerServices.ValueTuple<int, int>..ctor(int, int)""
+  IL_0012:  newobj     ""System.Runtime.CompilerServices.ValueTuple<int, <tuple: int e, int f>>..ctor(int, <tuple: int e, int f>)""
+  IL_0017:  call       ""System.Runtime.CompilerServices.ValueTuple<int, <tuple: int c, <tuple: int e, int f> d>>..ctor(int, <tuple: int c, <tuple: int e, int f> d>)""
+  IL_001c:  ldloc.0
+  IL_001d:  call       ""System.Collections.Generic.Dictionary<<tuple: int Item1, int Item2>, <tuple: int a, <tuple: int c, <tuple: int e, int f> d> b>> C.Test<<tuple: int Item1, int Item2>, <tuple: int a, <tuple: int c, <tuple: int e, int f> d> b>>(<tuple: int Item1, int Item2>, <tuple: int a, <tuple: int c, <tuple: int e, int f> d> b>)""
+  IL_0022:  ldc.i4.1
+  IL_0023:  ldc.i4.2
+  IL_0024:  newobj     ""System.Runtime.CompilerServices.ValueTuple<int, int>..ctor(int, int)""
+  IL_0029:  callvirt   ""<tuple: int a, <tuple: int c, <tuple: int e, int f> d> b> System.Collections.Generic.Dictionary<<tuple: int Item1, int Item2>, <tuple: int a, <tuple: int c, <tuple: int e, int f> d> b>>.this[<tuple: int Item1, int Item2>].get""
+  IL_002e:  ldfld      ""<tuple: int c, <tuple: int e, int f> d> System.Runtime.CompilerServices.ValueTuple<int, <tuple: int c, <tuple: int e, int f> d>>.Item2""
+  IL_0033:  ldfld      ""<tuple: int e, int f> System.Runtime.CompilerServices.ValueTuple<int, <tuple: int e, int f>>.Item2""
+  IL_0038:  ldfld      ""int System.Runtime.CompilerServices.ValueTuple<int, int>.Item2""
+  IL_003d:  call       ""void System.Console.WriteLine(int)""
+  IL_0042:  ret
+}
+");
+        }
+
+        [Fact]
+        public void TupleLambdaCapture01()
+        {
+            var source = @"
+using System;
+
+class C
+{
+    static void Main()
+    {
+        Console.WriteLine(Test(42));
+    }
+
+    public static T Test<T>(T a)
+    {
+        var x = (f1: a, f2: a);
+
+        Func<T> f = () => x.f2;
+
+        return f();
+    }
+}
+" + trivial2uple;
+
+            var comp = CompileAndVerify(source, expectedOutput: @"42");
+            comp.VerifyDiagnostics();
+            comp.VerifyIL("C.<>c__DisplayClass1_0<T>.<Test>b__0()", @"
+{
+  // Code size       12 (0xc)
+  .maxstack  1
+  IL_0000:  ldarg.0
+  IL_0001:  ldflda     ""<tuple: T f1, T f2> C.<>c__DisplayClass1_0<T>.x""
+  IL_0006:  ldfld      ""T System.Runtime.CompilerServices.ValueTuple<T, T>.Item2""
+  IL_000b:  ret
+}
+");
+        }
+
+        [Fact]
+        public void TupleAsyncCapture01()
+        {
+            var source = @"
+using System;
+using System.Threading.Tasks;
+
+class C
+{
+    static void Main()
+    {
+        Console.WriteLine(Test(42).Result);
+    }
+
+    public static async Task<T> Test<T>(T a)
+    {
+        var x = (f1: a, f2: a);
+
+        await Task.Yield();
+
+        return x.f1;
+    }
+}
+" + trivial2uple;
+
+            var comp = CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseExe);
+            var verifier = CompileAndVerify(comp, expectedOutput: @"42");
+            verifier.VerifyDiagnostics();
+            verifier.VerifyIL("C.<Test>d__1<T>.System.Runtime.CompilerServices.IAsyncStateMachine.MoveNext()", @"
+{
+  // Code size      191 (0xbf)
+  .maxstack  3
+  .locals init (int V_0,
+                T V_1,
+                System.Runtime.CompilerServices.YieldAwaitable.YieldAwaiter V_2,
+                System.Runtime.CompilerServices.YieldAwaitable V_3,
+                System.Exception V_4)
+  IL_0000:  ldarg.0
+  IL_0001:  ldfld      ""int C.<Test>d__1<T>.<>1__state""
+  IL_0006:  stloc.0
+  .try
+  {
+    IL_0007:  ldloc.0
+    IL_0008:  brfalse.s  IL_0058
+    IL_000a:  ldarg.0
+    IL_000b:  ldarg.0
+    IL_000c:  ldfld      ""T C.<Test>d__1<T>.a""
+    IL_0011:  ldarg.0
+    IL_0012:  ldfld      ""T C.<Test>d__1<T>.a""
+    IL_0017:  newobj     ""System.Runtime.CompilerServices.ValueTuple<T, T>..ctor(T, T)""
+    IL_001c:  stfld      ""<tuple: T f1, T f2> C.<Test>d__1<T>.<x>5__1""
+    IL_0021:  call       ""System.Runtime.CompilerServices.YieldAwaitable System.Threading.Tasks.Task.Yield()""
+    IL_0026:  stloc.3
+    IL_0027:  ldloca.s   V_3
+    IL_0029:  call       ""System.Runtime.CompilerServices.YieldAwaitable.YieldAwaiter System.Runtime.CompilerServices.YieldAwaitable.GetAwaiter()""
+    IL_002e:  stloc.2
+    IL_002f:  ldloca.s   V_2
+    IL_0031:  call       ""bool System.Runtime.CompilerServices.YieldAwaitable.YieldAwaiter.IsCompleted.get""
+    IL_0036:  brtrue.s   IL_0074
+    IL_0038:  ldarg.0
+    IL_0039:  ldc.i4.0
+    IL_003a:  dup
+    IL_003b:  stloc.0
+    IL_003c:  stfld      ""int C.<Test>d__1<T>.<>1__state""
+    IL_0041:  ldarg.0
+    IL_0042:  ldloc.2
+    IL_0043:  stfld      ""System.Runtime.CompilerServices.YieldAwaitable.YieldAwaiter C.<Test>d__1<T>.<>u__1""
+    IL_0048:  ldarg.0
+    IL_0049:  ldflda     ""System.Runtime.CompilerServices.AsyncTaskMethodBuilder<T> C.<Test>d__1<T>.<>t__builder""
+    IL_004e:  ldloca.s   V_2
+    IL_0050:  ldarg.0
+    IL_0051:  call       ""void System.Runtime.CompilerServices.AsyncTaskMethodBuilder<T>.AwaitUnsafeOnCompleted<System.Runtime.CompilerServices.YieldAwaitable.YieldAwaiter, C.<Test>d__1<T>>(ref System.Runtime.CompilerServices.YieldAwaitable.YieldAwaiter, ref C.<Test>d__1<T>)""
+    IL_0056:  leave.s    IL_00be
+    IL_0058:  ldarg.0
+    IL_0059:  ldfld      ""System.Runtime.CompilerServices.YieldAwaitable.YieldAwaiter C.<Test>d__1<T>.<>u__1""
+    IL_005e:  stloc.2
+    IL_005f:  ldarg.0
+    IL_0060:  ldflda     ""System.Runtime.CompilerServices.YieldAwaitable.YieldAwaiter C.<Test>d__1<T>.<>u__1""
+    IL_0065:  initobj    ""System.Runtime.CompilerServices.YieldAwaitable.YieldAwaiter""
+    IL_006b:  ldarg.0
+    IL_006c:  ldc.i4.m1
+    IL_006d:  dup
+    IL_006e:  stloc.0
+    IL_006f:  stfld      ""int C.<Test>d__1<T>.<>1__state""
+    IL_0074:  ldloca.s   V_2
+    IL_0076:  call       ""void System.Runtime.CompilerServices.YieldAwaitable.YieldAwaiter.GetResult()""
+    IL_007b:  ldloca.s   V_2
+    IL_007d:  initobj    ""System.Runtime.CompilerServices.YieldAwaitable.YieldAwaiter""
+    IL_0083:  ldarg.0
+    IL_0084:  ldflda     ""<tuple: T f1, T f2> C.<Test>d__1<T>.<x>5__1""
+    IL_0089:  ldfld      ""T System.Runtime.CompilerServices.ValueTuple<T, T>.Item1""
+    IL_008e:  stloc.1
+    IL_008f:  leave.s    IL_00aa
+  }
+  catch System.Exception
+  {
+    IL_0091:  stloc.s    V_4
+    IL_0093:  ldarg.0
+    IL_0094:  ldc.i4.s   -2
+    IL_0096:  stfld      ""int C.<Test>d__1<T>.<>1__state""
+    IL_009b:  ldarg.0
+    IL_009c:  ldflda     ""System.Runtime.CompilerServices.AsyncTaskMethodBuilder<T> C.<Test>d__1<T>.<>t__builder""
+    IL_00a1:  ldloc.s    V_4
+    IL_00a3:  call       ""void System.Runtime.CompilerServices.AsyncTaskMethodBuilder<T>.SetException(System.Exception)""
+    IL_00a8:  leave.s    IL_00be
+  }
+  IL_00aa:  ldarg.0
+  IL_00ab:  ldc.i4.s   -2
+  IL_00ad:  stfld      ""int C.<Test>d__1<T>.<>1__state""
+  IL_00b2:  ldarg.0
+  IL_00b3:  ldflda     ""System.Runtime.CompilerServices.AsyncTaskMethodBuilder<T> C.<Test>d__1<T>.<>t__builder""
+  IL_00b8:  ldloc.1
+  IL_00b9:  call       ""void System.Runtime.CompilerServices.AsyncTaskMethodBuilder<T>.SetResult(T)""
+  IL_00be:  ret
+}
+");
+        }
+
     }
 }
