@@ -85,7 +85,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             _supportedPlatforms = supportedPlatforms;
         }
 
-        private static ImmutableArray<CompletionItemFilter>? GetFilters(List<ISymbol> symbols)
+        private static ImmutableArray<CompletionItemFilter> GetFilters(List<ISymbol> symbols)
         {
             var result = ImmutableArray<CompletionItemFilter>.Empty;
             foreach (var symbol in symbols)
