@@ -36,7 +36,7 @@ namespace Roslyn.VisualStudio.Test.Utilities
 
             ExecuteDteCommandAsync("Tools.StartIntegrationTestService").GetAwaiter().GetResult();
 
-            _serviceChannel = new IpcClientChannel();
+            _serviceChannel = new IpcClientChannel($"ipc channel client for {_hostProcess.Id}", sinkProvider: null);
             ChannelServices.RegisterChannel(_serviceChannel, ensureSecurity: true);
 
             // Connect to a 'well defined, shouldn't conflict' IPC channel
