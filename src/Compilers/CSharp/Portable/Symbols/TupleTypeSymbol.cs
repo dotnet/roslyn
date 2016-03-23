@@ -197,7 +197,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             get
             {
-                return _underlyingType.Kind;
+                return SymbolKind.NamedType;
             }
         }
 
@@ -205,7 +205,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             get
             {
-                return _underlyingType.TypeKind;
+                // only classes and structs can have instance fields as tuple requires.
+                // we need to have some support for classes, but most common case will be struct
+                // in broken scenarios (ErrorType, Enum, Delegate, whatever..) we will just default to struct.
+                return _underlyingType.TypeKind == TypeKind.Class ? TypeKind.Class : TypeKind.Struct;
             }
         }
 

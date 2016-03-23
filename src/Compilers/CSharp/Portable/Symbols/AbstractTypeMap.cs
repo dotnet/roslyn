@@ -51,7 +51,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 TupleTypeSymbol previousTuple = (TupleTypeSymbol)previous;
                 NamedTypeSymbol oldUnderlyingType = previousTuple.UnderlyingTupleType;
-                NamedTypeSymbol newUnderlyingType = (NamedTypeSymbol)SubstituteType(previousTuple.UnderlyingTupleType).Type;
+                NamedTypeSymbol newUnderlyingType = (NamedTypeSymbol)SubstituteType(oldUnderlyingType).Type;
 
                 return ((object)newUnderlyingType == (object)oldUnderlyingType) ? previous : TupleTypeSymbol.ConstructTupleTypeSymbol(previousTuple, newUnderlyingType);
             }
