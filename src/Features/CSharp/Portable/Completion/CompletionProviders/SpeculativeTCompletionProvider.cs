@@ -47,6 +47,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
 
         private async Task<bool> ShouldShowSpeculativeTCompletionItemAsync(Document document, int position, CancellationToken cancellationToken)
         {
+            if (!document.SupportsSyntaxTree)
+            {
+                return false;
+            }
+
             var syntaxTree = await document.GetSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
             if (syntaxTree.IsInNonUserCode(position, cancellationToken) ||
                 syntaxTree.IsPreProcessorDirectiveContext(position, cancellationToken))

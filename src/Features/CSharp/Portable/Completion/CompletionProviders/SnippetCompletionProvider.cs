@@ -73,6 +73,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
 
         private async Task<IEnumerable<CompletionItem>> GetSnippetsForDocumentAsync(Document document, int position, Workspace workspace, CancellationToken cancellationToken)
         {
+            if (!document.SupportsSyntaxTree)
+            {
+                return SpecializedCollections.EmptyEnumerable<CompletionItem>();
+            }
+
             var syntaxTree = await document.GetSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
             var syntaxFacts = document.GetLanguageService<ISyntaxFactsService>();
             var semanticFacts = document.GetLanguageService<ISemanticFactsService>();
