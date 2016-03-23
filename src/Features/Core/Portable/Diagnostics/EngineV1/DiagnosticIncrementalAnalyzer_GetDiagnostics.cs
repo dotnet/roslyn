@@ -295,7 +295,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV1
                     return ImmutableArray<DiagnosticData>.Empty;
                 }
 
-                var key = Id as ArgumentKey;
+                var key = Id as LiveDiagnosticUpdateArgsId;
                 if (key == null)
                 {
                     return ImmutableArray<DiagnosticData>.Empty;
@@ -316,7 +316,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV1
                     return ImmutableArray<DiagnosticData>.Empty;
                 }
 
-                var state = stateSet.GetState(key.StateType);
+                var state = stateSet.GetState((StateType)key.Kind);
                 if (state == null)
                 {
                     return ImmutableArray<DiagnosticData>.Empty;
@@ -584,7 +584,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV1
                     return ImmutableArray<DiagnosticData>.Empty;
                 }
 
-                var key = Id as ArgumentKey;
+                var key = Id as LiveDiagnosticUpdateArgsId;
                 if (key == null)
                 {
                     return ImmutableArray<DiagnosticData>.Empty;
@@ -597,7 +597,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV1
                     return ImmutableArray<DiagnosticData>.Empty;
                 }
 
-                if (key.StateType != StateType.Project)
+                if (key.Kind != (int)StateType.Project)
                 {
                     return await GetSpecificDiagnosticsAsync(documentOrProject, key, cancellationToken).ConfigureAwait(false);
                 }
@@ -605,9 +605,9 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV1
                 return await GetSpecificDiagnosticsAsync(GetProject(documentOrProject), key, cancellationToken).ConfigureAwait(false);
             }
 
-            private async Task<ImmutableArray<DiagnosticData>> GetSpecificDiagnosticsAsync(object documentOrProject, ArgumentKey key, CancellationToken cancellationToken)
+            private async Task<ImmutableArray<DiagnosticData>> GetSpecificDiagnosticsAsync(object documentOrProject, LiveDiagnosticUpdateArgsId key, CancellationToken cancellationToken)
             {
-                var versions = await GetVersionsAsync(documentOrProject, key.StateType, cancellationToken).ConfigureAwait(false);
+                var versions = await GetVersionsAsync(documentOrProject, (StateType)key.Kind, cancellationToken).ConfigureAwait(false);
 
                 var project = GetProject(documentOrProject);
                 var stateSet = this.StateManager.GetOrCreateStateSet(project, key.Analyzer);
@@ -617,10 +617,10 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV1
                 }
 
                 var analyzers = Owner._stateManager.GetOrCreateAnalyzers(project);
-                var driver = await GetDiagnosticAnalyzerDriverAsync(documentOrProject, analyzers, key.StateType, cancellationToken).ConfigureAwait(false);
+                var driver = await GetDiagnosticAnalyzerDriverAsync(documentOrProject, analyzers, (StateType)key.Kind, cancellationToken).ConfigureAwait(false);
 
-                var analysisData = await GetDiagnosticAnalysisDataAsync(driver, stateSet, key.StateType, versions).ConfigureAwait(false);
-                if (key.StateType != StateType.Project)
+                var analysisData = await GetDiagnosticAnalysisDataAsync(driver, stateSet, (StateType)key.Kind, versions).ConfigureAwait(false);
+                if (key.Kind != (int)StateType.Project)
                 {
                     return analysisData.Items;
                 }

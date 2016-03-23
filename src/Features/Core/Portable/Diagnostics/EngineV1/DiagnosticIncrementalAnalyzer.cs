@@ -823,7 +823,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV1
             StateType type, object key, StateSet stateSet, SolutionArgument solution, ImmutableArray<DiagnosticData> diagnostics, Action<DiagnosticsUpdatedArgs> raiseEvents)
         {
             // get right arg id for the given analyzer
-            var id = CreateArgumentKey(type, key, stateSet);
+            var id = new LiveDiagnosticUpdateArgsId(stateSet.Analyzer, key, (int)type, stateSet.ErrorSourceName);
             raiseEvents(DiagnosticsUpdatedArgs.DiagnosticsCreated(id, Workspace, solution.Solution, solution.ProjectId, solution.DocumentId, diagnostics));
         }
 
@@ -837,7 +837,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV1
             StateType type, object key, StateSet stateSet, SolutionArgument solution, Action<DiagnosticsUpdatedArgs> raiseEvents)
         {
             // get right arg id for the given analyzer
-            var id = CreateArgumentKey(type, key, stateSet);
+            var id = new LiveDiagnosticUpdateArgsId(stateSet.Analyzer, key, (int)type, stateSet.ErrorSourceName);
             raiseEvents(DiagnosticsUpdatedArgs.DiagnosticsRemoved(id, Workspace, solution.Solution, solution.ProjectId, solution.DocumentId));
         }
 
@@ -865,13 +865,6 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV1
             {
                 RaiseDiagnosticsRemoved(StateType.Project, project.Id, stateSet, new SolutionArgument(project), raiseEvents);
             }
-        }
-
-        private static ArgumentKey CreateArgumentKey(StateType type, object key, StateSet stateSet)
-        {
-            return stateSet.ErrorSourceName != null
-                ? new HostAnalyzerKey(stateSet.Analyzer, type, key, stateSet.ErrorSourceName)
-                : new ArgumentKey(stateSet.Analyzer, type, key);
         }
 
         private ImmutableArray<DiagnosticData> UpdateDocumentDiagnostics(
