@@ -5,13 +5,15 @@ using System.IO;
 
 InitUtilities();
 
-DownloadProject("csharp", 1);
+DownloadProject("csharp", version: 1);
 
-string responseFile = "@" + Path.Combine(MyTempDirectory(), "csharp", "CSharpCompiler.rsp");
-string keyfileLocation = Path.Combine(MyTempDirectory(), "csharp", "keyfile", "35MSSharedLib1024.snk");
-string args = $"{responseFile} /keyfile:{keyfileLocation}";
+foreach (var rspFile in new string[] {"CSharpCompiler.rsp", "CSharpCompilerNoAnalyzer.rsp", "CSharpCompilerNoAnalyzerNoDeterminism.rsp"}){
+    string responseFile = "@" + Path.Combine(MyTempDirectory(), "csharp", rspFile);
+    string keyfileLocation = Path.Combine(MyTempDirectory(), "csharp", "keyfile", "35MSSharedLib1024.snk");
+    string args = $"{responseFile} /keyfile:{keyfileLocation}";
 
-string executeInDirectory = Path.Combine(MyTempDirectory(), "csharp");
+    string executeInDirectory = Path.Combine(MyTempDirectory(), "csharp");
 
-var msToCompile = WalltimeMs(() => ShellOutVital(ReleaseCscPath(), args, executeInDirectory));
-Report(ReportKind.CompileTime, "compile duration (ms)", msToCompile);
+    var msToCompile = WalltimeMs(() => ShellOutVital(ReleaseCscPath(), args, executeInDirectory));
+    Report(ReportKind.CompileTime, $"{rspFile} compile duration (ms)", msToCompile);  
+}
