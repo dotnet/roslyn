@@ -15,12 +15,12 @@ namespace Microsoft.CodeAnalysis.CSharp
         public override BoundNode VisitIsPatternExpression(BoundIsPatternExpression node)
         {
             var expression = VisitExpression(node.Expression);
-            var result = TranslatePattern(expression, node.Pattern);
+            var result = LowerPattern(node.Pattern, expression);
             return result;
         }
 
         // Input must be used no more than once in the result. If it is needed repeatedly store its value in a temp and use the temp.
-        BoundExpression TranslatePattern(BoundExpression input, BoundPattern pattern)
+        BoundExpression LowerPattern(BoundPattern pattern, BoundExpression input)
         {
             var syntax = _factory.Syntax = pattern.Syntax;
             switch (pattern.Kind)
@@ -28,54 +28,13 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case BoundKind.DeclarationPattern:
                     {
                         var declPattern = (BoundDeclarationPattern)pattern;
-                        Debug.Assert(declPattern.IsVar || declPattern.LocalSymbol.Type == declPattern.DeclaredType.Type);
-                        if (declPattern.IsVar)
-                        {
-                            Debug.Assert(input.Type == declPattern.LocalSymbol.Type);
-                            var assignment = _factory.AssignmentExpression(_factory.Local(declPattern.LocalSymbol), input);
-                            var result = _factory.Literal(true);
-                            return _factory.Sequence(assignment, result);
-                        }
-
-                        return DeclPattern(syntax, input, declPattern.LocalSymbol);
+                        return LowerDeclarationPattern(declPattern, input);
                     }
 
                 case BoundKind.PropertyPattern:
                     {
-                        var pat = (BoundPropertyPattern)pattern;
-                        var temp = _factory.SynthesizedLocal(pat.Type);
-                        var matched = DeclPattern(syntax, input, temp);
-                        input = _factory.Local(temp);
-                        foreach (var subpattern in pat.Subpatterns)
-                        {
-                            // TODO: review and test this code path.
-                            // https://github.com/dotnet/roslyn/issues/9542
-                            // e.g. Can the `as` below result in `null`?
-                            var subProperty = (subpattern.Member as BoundPropertyPatternMember)?.MemberSymbol;
-                            var subPattern = subpattern.Pattern;
-                            BoundExpression subExpression;
-                            switch (subProperty?.Kind)
-                            {
-                                case SymbolKind.Field:
-                                    subExpression = _factory.Field(input, (FieldSymbol)subProperty);
-                                    break;
-                                case SymbolKind.Property:
-                                    // TODO: review and test this code path.
-                                    // https://github.com/dotnet/roslyn/issues/9542
-                                    // e.g. https://github.com/dotnet/roslyn/pull/9505#discussion_r55320220
-                                    subExpression = _factory.Call(input, ((PropertySymbol)subProperty).GetMethod);
-                                    break;
-                                case SymbolKind.Event:
-                                    // TODO: should a property pattern be capable of referencing an event?
-                                    // https://github.com/dotnet/roslyn/issues/9515
-                                default:
-                                    throw ExceptionUtilities.Unreachable;
-                            }
-
-                            var partialMatch = this.TranslatePattern(subExpression, subPattern);
-                            matched = _factory.LogicalAnd(matched, partialMatch);
-                        }
-                        return _factory.Sequence(temp, matched);
+                        var propertyPattern = (BoundPropertyPattern)pattern;
+                        return LowerPropertyPattern(propertyPattern, ref input);
                     }
 
                 case BoundKind.WildcardPattern:
@@ -84,19 +43,151 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case BoundKind.ConstantPattern:
                     {
                         var constantPattern = (BoundConstantPattern)pattern;
-                        return CompareWithConstant(input, constantPattern.Value);
+                        return LowerConstantPattern(constantPattern, input);
                     }
 
                 case BoundKind.RecursivePattern:
+                    {
+                        var recursivePattern = (BoundRecursivePattern)pattern;
+                        return LowerRecursivePattern(recursivePattern, input);
+                    }
+
                 default:
                     throw ExceptionUtilities.UnexpectedValue(pattern.Kind);
+            }
+        }
+
+        private BoundExpression LowerConstantPattern(BoundConstantPattern pattern, BoundExpression input)
+        {
+            return CompareWithConstant(input, pattern.Value);
+        }
+
+        private BoundExpression LowerPropertyPattern(BoundPropertyPattern pattern, ref BoundExpression input)
+        {
+            var syntax = pattern.Syntax;
+            var temp = _factory.SynthesizedLocal(pattern.Type);
+            var matched = MakeDeclarationPattern(syntax, input, temp);
+            input = _factory.Local(temp);
+            foreach (var subpattern in pattern.Subpatterns)
+            {
+                // PROTOTYPE(patterns): review and test this code path.
+                // https://github.com/dotnet/roslyn/issues/9542
+                // e.g. Can the `as` below result in `null`?
+                var subProperty = (subpattern.Member as BoundPropertyPatternMember)?.MemberSymbol;
+                var subPattern = subpattern.Pattern;
+                BoundExpression subExpression;
+                switch (subProperty?.Kind)
+                {
+                    case SymbolKind.Field:
+                        subExpression = _factory.Field(input, (FieldSymbol)subProperty);
+                        break;
+                    case SymbolKind.Property:
+                        // PROTOTYPE(patterns): review and test this code path.
+                        // https://github.com/dotnet/roslyn/issues/9542
+                        // e.g. https://github.com/dotnet/roslyn/pull/9505#discussion_r55320220
+                        subExpression = _factory.Call(input, ((PropertySymbol)subProperty).GetMethod);
+                        break;
+                    case SymbolKind.Event:
+                    // PROTOTYPE(patterns): should a property pattern be capable of referencing an event?
+                    // https://github.com/dotnet/roslyn/issues/9515
+                    default:
+                        throw ExceptionUtilities.Unreachable;
+                }
+
+                var partialMatch = this.LowerPattern(subPattern, subExpression);
+                matched = _factory.LogicalAnd(matched, partialMatch);
+            }
+            return _factory.Sequence(temp, matched);
+        }
+
+        private BoundExpression LowerDeclarationPattern(BoundDeclarationPattern pattern, BoundExpression input)
+        {
+            Debug.Assert(pattern.IsVar || pattern.LocalSymbol.Type == pattern.DeclaredType.Type);
+            if (pattern.IsVar)
+            {
+                Debug.Assert(input.Type == pattern.LocalSymbol.Type);
+                var assignment = _factory.AssignmentExpression(_factory.Local(pattern.LocalSymbol), input);
+                var result = _factory.Literal(true);
+                return _factory.Sequence(assignment, result);
+            }
+
+            return MakeDeclarationPattern(pattern.Syntax, input, pattern.LocalSymbol);
+        }
+
+        private BoundExpression LowerRecursivePattern(BoundRecursivePattern recursivePattern, BoundExpression input)
+        {
+            // cast the input to the argument type of 'operator is'.
+            var temp = _factory.SynthesizedLocal(recursivePattern.IsOperator.Parameters[0].Type, recursivePattern.Syntax);
+            var test = MakeDeclarationPattern(recursivePattern.Syntax, input, temp);
+
+            // prepare arguments to call 'operator is'
+            var arguments = ArrayBuilder<BoundExpression>.GetInstance();
+            var argumentTemps = ArrayBuilder<LocalSymbol>.GetInstance();
+            var argumentRefKinds = ArrayBuilder<RefKind>.GetInstance();
+            arguments.Add(_factory.Local(temp));
+            argumentRefKinds.Add(RefKind.None);
+            foreach (var p in recursivePattern.IsOperator.Parameters)
+            {
+                if (p.Ordinal == 0) continue;
+                var argumentTemp = _factory.SynthesizedLocal(p.Type, recursivePattern.Patterns[p.Ordinal - 1].Syntax);
+                argumentTemps.Add(argumentTemp);
+                argumentRefKinds.Add(RefKind.Out);
+                arguments.Add(_factory.Local(argumentTemp));
+            }
+
+            // invoke 'operator is' and use its result
+            BoundExpression invoke = _factory.Call(null, recursivePattern.IsOperator, argumentRefKinds.ToImmutableAndFree(), arguments.ToImmutableAndFree());
+            if (recursivePattern.IsOperator.ReturnsVoid)
+            {
+                // if the user-defined operator is irrefutable, we treat it as returning true
+                invoke = _factory.Sequence(invoke, _factory.Literal(true));
+            }
+
+            test = _factory.Sequence(temp, LogicalAnd(test, invoke));
+
+            // handle each of the nested patterns.
+            for (int i = 0; i < recursivePattern.Patterns.Length; i++)
+            {
+                var recursiveTest = LowerPattern(recursivePattern.Patterns[i], _factory.Local(argumentTemps[i]));
+                test = LogicalAnd(test, recursiveTest);
+            }
+
+            return _factory.Sequence(argumentTemps.ToImmutableAndFree(), test);
+        }
+
+        /// <summary>
+        /// Produce a 'logical and' operator that is clearly irrefutable when it can be.
+        /// </summary>
+        BoundExpression LogicalAnd(BoundExpression left, BoundExpression right)
+        {
+            // PROTOTYPE(patterns): can the generated code be improved further?
+            return IsIrrefutable(left) ? _factory.Sequence(left, right) : _factory.LogicalAnd(left, right);
+        }
+
+        private bool IsIrrefutable(BoundExpression test)
+        {
+            while (true)
+            {
+                switch (test.Kind)
+                {
+                    case BoundKind.Literal:
+                        {
+                            var value = ((BoundLiteral)test).ConstantValue;
+                            return value.IsBoolean && value.BooleanValue;
+                        }
+                    case BoundKind.Sequence:
+                        test = ((BoundSequence)test).Value;
+                        continue;
+                    default:
+                        return false;
+                }
             }
         }
 
         private BoundExpression CompareWithConstant(BoundExpression input, BoundExpression boundConstant)
         {
             // We currently use "exact" type semantics.
-            // TODO: We need to change this to be sensitive to conversions
+            // PROTOTYPE(patterns): We need to change this to be sensitive to conversions
             // among integral types, so that the same value of different integral types are considered matching.
             return _factory.StaticCall(
                 _factory.SpecialType(SpecialType.System_Object),
@@ -106,7 +197,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 );
         }
 
-        BoundExpression DeclPattern(CSharpSyntaxNode syntax, BoundExpression input, LocalSymbol target)
+        BoundExpression MakeDeclarationPattern(CSharpSyntaxNode syntax, BoundExpression input, LocalSymbol target)
         {
             var type = target.Type;
             // a pattern match of the form "expression is Type identifier" is equivalent to
@@ -136,7 +227,16 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
             else if (type.IsValueType)
             {
-                // TODO: only assign t when returning true (avoid returning a new default value)
+                // It is possible that the input value is already of the correct type, in which case the pattern
+                // is irrefutable, and we can just do the assignment and return true.
+                if (input.Type == type)
+                {
+                    return _factory.Sequence(
+                        _factory.AssignmentExpression(_factory.Local(target), input),
+                        _factory.Literal(true));
+                }
+
+                // PROTOTYPE(patterns): only assign t when returning true (avoid returning a new default value)
                 // bool Is<T>(object e, out T t) where T : struct // non-Nullable value type
                 // {
                 //     T? tmp = e as T?;
@@ -153,8 +253,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                 var result = MakeNullableHasValue(syntax, _factory.Local(tmp));
                 return _factory.Sequence(tmp, asg1, asg2, result);
             }
-            else
+            else // type parameter
             {
+                Debug.Assert(type.IsTypeParameter());
                 // bool Is<T>(this object i, out T o)
                 // {
                 //     // inefficient because it performs the type test twice.
@@ -174,7 +275,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public override BoundNode VisitMatchExpression(BoundMatchExpression node)
         {
-            // TODO: find a better way to preserve the scope of pattern variables in a match.
+            // PROTOTYPE(patterns): find a better way to preserve the scope of pattern variables in a match.
 
             // we translate a match expression into a sequence of conditionals.
             // However, because we have no way to express the proper scope of the pattern
@@ -190,7 +291,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 var c = node.Cases[i];
                 locals.AddRange(c.Locals);
-                var condition = TranslatePattern(temp, c.Pattern);
+                var condition = LowerPattern(c.Pattern, temp);
                 if (c.Guard != null) condition = _factory.LogicalAnd(condition, VisitExpression(c.Guard));
                 var consequence = VisitExpression(c.Expression);
                 _factory.Syntax = c.Syntax;
@@ -206,7 +307,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             _factory.Syntax = node.Expression.Syntax;
             var temp = _factory.StoreToTemp(VisitExpression(node.Expression), out initialStore);
             _factory.Syntax = node.Pattern.Syntax;
-            var pattern = TranslatePattern(temp, node.Pattern);
+            var pattern = LowerPattern(node.Pattern, temp);
             _factory.Syntax = node.Expression.Syntax;
             var condition = _factory.Sequence(ImmutableArray.Create(temp.LocalSymbol), initialStore, pattern);
             if (node.Guard != null)

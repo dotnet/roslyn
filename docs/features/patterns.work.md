@@ -1,6 +1,7 @@
 This is a checklist (moved from #9375) of implementation of pattern matching as specified in [patterns.md](./patterns.md). For reference a previous prototype was at https://github.com/semihokur/pattern-matching-csharp
 
 Open design issues (needing LDM decisions)
+- [ ] There would be an ambiguity with a hypothetical "type pattern" and the constant pattern. This is the reason we do not allow the latter in an is-pattern expression, and don't allow the former in a sub-property pattern. But that is irregular. Can we come up with name lookup rules that support both?
 - [ ] Do we want pattern-matching in the `switch` statement? Or do we want a separate statement-based construct instead? (#8821)
     - [ ] What does `goto case` mean?
       - [ ] Do we limit `goto case` to constants?
@@ -28,15 +29,15 @@ Open design issues (needing LDM decisions)
   - [ ] static void with self-receiver
   - [ ] static bool for active patterns
   - [ ] instance bool for captured data (regex)
-  - [ ] Do we want to support "breakpoints inside" patterns (#9095)
-- [ ] Do we want to support keyword "arguments" in recursive patterns? e.g. `if (p is Point(X: 3, Y: 4)) ...`
-- [ ] What is the correct precedence of *throw-expression*? Should *assignment* be allowed as its subexpression?
+- [ ] Do we want to support "breakpoints inside" patterns (#9095)?
+- [ ] Do we want to support named "arguments" in recursive patterns? e.g. `if (p is Point(X: 3, Y: 4)) ...`
+- [ ] What is the correct precedence of *throw-expression*? Should *assignment* be allowed as its sub-expression?
 - [ ] @jaredpar suggested that, by analogy with the integral types, we should match floating-point literal patterns across floating-point types.
-- [ ] There would be an ambiguity with a hypothetical "type pattern" and the constant pattern. This is the reason we do not allow the latter in an is-pattern expression, and don't allow the former in a subproperty pattern. But that is irregular. Can we come up with name lookup rules that support both?
+- [ ] Should we allow throw expression on right of && and || ? #9453
 
 Implementation progress checklist:
+- [x] Allow declaration of `operator is` and use it for recursive patterns.
 - [ ] **Match constant patterns with appropriate integral conversions** (#8819)
-- [ ] **Allow declaration of `operator is`** and use it for recursive patterns.
 - [ ] **Add a decision tree** to enable
   - [ ] completeness checking: a mutli-armed pattern-matching expression is required to be complete
   - [ ] subsumption checking: a branch of a switch statement or match expression may not be subsumed by the totality of previous branches (#8823)
@@ -58,7 +59,7 @@ Implementation progress checklist:
     - [x] matching with exact type for integral constants (as a short-term hack)
   - [x] `var` ID
   - [x] Type { ID is Pattern ... }
-  - ~~Type ( Pattern ... )~~ This will be done when Records are integrated.
+  - [x] Type ( Pattern ... )
 - [ ] Extend the switch statement to handle patterns
   - [x] Parser
   - [x] Syntax Tests
@@ -99,9 +100,8 @@ Implementation progress checklist:
 - [ ] Internationalize diagnostics for pattern-matching #9283
 - [ ] SymbolInfo for bad property in a property pattern should contain candidate symbols #9284
 - [ ] Compiler crash with match expressions in lambda analysis. #9430
-- [ ] Allow throw expression on right of && and || #9453
-- [ ] PatternVariableFinder is lacking explicit visibility modifier #9530
-- [ ] PatternVariableFinder doesn't follow style conventions for field names #9531
+- [x] PatternVariableFinder is lacking explicit visibility modifier #9530
+- [x] PatternVariableFinder doesn't follow style conventions for field names #9531
 - [ ] Test code coverage of pattern-matching implementation. #9542
 
 IDE Features

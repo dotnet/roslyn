@@ -96,6 +96,9 @@ public class Vec
                 // (12,17): error CS0103: The name 'i4' does not exist in the current context
                 //         let var i4 = 3; // let
                 Diagnostic(ErrorCode.ERR_NameNotInContext, "i4").WithArguments("i4").WithLocation(12, 17),
+                // (15,18): error CS8157: No 'operator is' declaration in 'Vec' was found with 1 out parameters
+                //         if (q is Vec(3)) {} // recursive pattern
+                Diagnostic(ErrorCode.ERR_OperatorIsParameterCount, "Vec(3)").WithArguments("Vec", "1").WithLocation(15, 18),
                 // (12,13): warning CS0168: The variable 'var' is declared but never used
                 //         let var i4 = 3; // let
                 Diagnostic(ErrorCode.WRN_UnreferencedVar, "var").WithArguments("var").WithLocation(12, 13),
@@ -126,6 +129,9 @@ public class Vec
                 // (12,17): error CS0103: The name 'i4' does not exist in the current context
                 //         let var i4 = 3; // let
                 Diagnostic(ErrorCode.ERR_NameNotInContext, "i4").WithArguments("i4").WithLocation(12, 17),
+                // (15,18): error CS8157: No 'operator is' declaration in 'Vec' was found with 1 out parameters
+                //         if (q is Vec(3)) {} // recursive pattern
+                Diagnostic(ErrorCode.ERR_OperatorIsParameterCount, "Vec(3)").WithArguments("Vec", "1").WithLocation(15, 18),
                 // (8,13): warning CS0219: The variable 'i2' is assigned but its value is never used
                 //         int i2 = 23_554; // digit separators
                 Diagnostic(ErrorCode.WRN_UnreferencedVarAssg, "i2").WithArguments("i2").WithLocation(8, 13),

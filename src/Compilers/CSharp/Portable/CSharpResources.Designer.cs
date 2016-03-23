@@ -413,6 +413,15 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Ambiguous &apos;operator is&apos; declarations found in type &apos;{0}&apos;..
+        /// </summary>
+        internal static string ERR_AmbiguousOperatorIs {
+            get {
+                return ResourceManager.GetString("ERR_AmbiguousOperatorIs", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Cannot use ref or out parameter &apos;{0}&apos; inside an anonymous method, lambda expression, or query expression.
         /// </summary>
         internal static string ERR_AnonDelegateCantUse {
@@ -6830,6 +6839,24 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to No &apos;operator is&apos; declaration in &apos;{0}&apos; was found with {1} out parameters.
+        /// </summary>
+        internal static string ERR_OperatorIsParameterCount {
+            get {
+                return ResourceManager.GetString("ERR_OperatorIsParameterCount", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Non-initial parameters of user-defined &apos;operator is&apos; require the &apos;out&apos; modifier..
+        /// </summary>
+        internal static string ERR_OperatorIsRequiresOut {
+            get {
+                return ResourceManager.GetString("ERR_OperatorIsRequiresOut", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to The operator &apos;{0}&apos; requires a matching operator &apos;{1}&apos; to also be defined.
         /// </summary>
         internal static string ERR_OperatorNeedsMatch {
@@ -7262,7 +7289,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to An error occurred while writing the output file: {0}.
+        ///   Looks up a localized string similar to An error occurred while writing the output file: {0}..
         /// </summary>
         internal static string ERR_PeWritingFailure {
             get {
