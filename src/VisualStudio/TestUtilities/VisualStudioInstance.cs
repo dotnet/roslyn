@@ -25,9 +25,9 @@ namespace Roslyn.VisualStudio.Test.Utilities
         private readonly IpcClientChannel _serviceChannel;
 
         // TODO: We could probably expose all the windows/services/features of the host process in a better manner
-        private InteractiveWindow _csharpInteractiveWindow;
-        private EditorWindow _editorWindow;
-        private SolutionExplorer _solutionExplorer;
+        private readonly Lazy<InteractiveWindow> _csharpInteractiveWindow;
+        private readonly Lazy<EditorWindow> _editorWindow;
+        private readonly Lazy<SolutionExplorer> _solutionExplorer;
 
         public VisualStudioInstance(Process process, DTE dte)
         {
@@ -42,50 +42,19 @@ namespace Roslyn.VisualStudio.Test.Utilities
             // Connect to a 'well defined, shouldn't conflict' IPC channel
             _serviceUri = string.Format($"ipc://{IntegrationService.PortNameFormatString}", _hostProcess.Id);
             _service = (IntegrationService)(Activator.GetObject(typeof(IntegrationService), $"{_serviceUri}/{typeof(IntegrationService).FullName}"));
+
+            _csharpInteractiveWindow = new Lazy<InteractiveWindow>(() => InteractiveWindow.CreateCSharpInteractiveWindow(this));
+            _editorWindow = new Lazy<EditorWindow>(() => new EditorWindow(this));
+            _solutionExplorer = new Lazy<SolutionExplorer>(() => new SolutionExplorer(this));
         }
 
         public DTE Dte => _dte;
 
         public bool IsRunning => !_hostProcess.HasExited;
 
-        public InteractiveWindow CSharpInteractiveWindow
-        {
-            get
-            {
-                if (_csharpInteractiveWindow == null)
-                {
-                    _csharpInteractiveWindow = InteractiveWindow.CreateCSharpInteractiveWindow(this);
-                }
-
-                return _csharpInteractiveWindow;
-            }
-        }
-
-        public EditorWindow EditorWindow
-        {
-            get
-            {
-                if (_editorWindow == null)
-                {
-                    _editorWindow = new EditorWindow(this);
-                }
-
-                return _editorWindow;
-            }
-        }
-
-        public SolutionExplorer SolutionExplorer
-        {
-            get
-            {
-                if (_solutionExplorer == null)
-                {
-                    _solutionExplorer = new SolutionExplorer(this);
-                }
-
-                return _solutionExplorer;
-            }
-        }
+        public InteractiveWindow CSharpInteractiveWindow => _csharpInteractiveWindow.Value;
+        public EditorWindow EditorWindow => _editorWindow.Value;
+        public SolutionExplorer SolutionExplorer => _solutionExplorer.Value;
 
         public async Task ClickAutomationElementAsync(string elementName, bool recursive = false)
         {
