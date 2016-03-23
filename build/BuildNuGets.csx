@@ -30,7 +30,10 @@ var BuildVersion = Args[1].Trim();
 var NuspecDirPath = Path.Combine(SolutionRoot, "src/NuGet");
 var OutDir = Path.GetFullPath(Args[2]).TrimEnd('\\');
 
-var LicenseUrl = @"http://go.microsoft.com/fwlink/?LinkId=529443";
+var LicenseUrlRedist = @"http://go.microsoft.com/fwlink/?LinkId=529443";
+var LicenseUrlNonRedist = @"http://go.microsoft.com/fwlink/?LinkId=529444";
+var LicenseUrlTest = @"http://go.microsoft.com/fwlink/?LinkId=529445";
+
 var Authors = @"Microsoft";
 var ProjectURL = @"http://msdn.com/roslyn";
 var Tags = @"Roslyn CodeAnalysis Compiler CSharp VB VisualBasic Parser Scanner Lexer Emit CodeGeneration Metadata IL Compilation Scripting Syntax Semantics";
@@ -52,42 +55,80 @@ var NuGetAdditionalFilesPath = Path.Combine(SolutionRoot, "build/NuGetAdditional
 var ThirdPartyNoticesPath = Path.Combine(NuGetAdditionalFilesPath, "ThirdPartyNotices.rtf");
 var NetCompilersPropsPath = Path.Combine(NuGetAdditionalFilesPath, "Microsoft.Net.Compilers.props");
 
-var files = Directory.GetFiles(NuspecDirPath, "*.nuspec");
+string[] redistFiles = {
+    "Microsoft.CodeAnalysis.BuildTask.Portable.nuspec", 
+    "Microsoft.CodeAnalysis.EditorFeatures.Text.nuspec",
+    "Microsoft.CodeAnalysis.VisualBasic.Scripting.nuspec",
+    "Microsoft.CodeAnalysis.Common.nuspec",
+    "Microsoft.CodeAnalysis.Features.nuspec",
+    "Microsoft.CodeAnalysis.VisualBasic.Workspaces.nuspec",
+    "Microsoft.CodeAnalysis.Compilers.nuspec",
+    "Microsoft.CodeAnalysis.nuspec",
+    "Microsoft.CodeAnalysis.Workspaces.Common.nuspec",
+    "Microsoft.CodeAnalysis.CSharp.Features.nuspec",
+    "Microsoft.CodeAnalysis.Scripting.Common.nuspec",
+    "Microsoft.CodeAnalysis.CSharp.nuspec",
+    "Microsoft.CodeAnalysis.Scripting.nuspec",
+    "Microsoft.CodeAnalysis.CSharp.Scripting.nuspec",
+    "Microsoft.CodeAnalysis.CSharp.Workspaces.nuspec",
+    "Microsoft.CodeAnalysis.VisualBasic.Features.nuspec",
+    "Microsoft.VisualStudio.LanguageServices.nuspec",
+    "Microsoft.CodeAnalysis.EditorFeatures.nuspec",
+    "Microsoft.CodeAnalysis.VisualBasic.nuspec",
+};
 
-int exit = 0;
+string[] nonRedistFiles = {
+    "Microsoft.Net.Compilers.nuspec",
+    "Microsoft.Net.Compilers.netcore.nuspec",
+    "Microsoft.Net.CSharp.Interactive.netcore.nuspec",
+};
 
-foreach (var file in files)
+string[] testFiles = {
+    "Microsoft.CodeAnalysis.Test.Resources.Proprietary.nuspec",
+};
+    
+int PackFiles(string[] files, string licenseUrl)
 {
-    var nugetArgs = $@"pack {file} " +
-        $"-BasePath \"{BinDir}\" " +
-        $"-OutputDirectory \"{OutDir}\" " +
-        "-ExcludeEmptyDirectories " +
-        $"-prop licenseUrl=\"{LicenseUrl}\" " +
-        $"-prop version=\"{BuildVersion}\" " +
-        $"-prop authors={Authors} " +
-        $"-prop projectURL=\"{ProjectURL}\" " +
-        $"-prop tags=\"{Tags}\" " +
-        $"-prop systemCollectionsImmutableVersion=\"{SystemCollectionsImmutableVersion}\" " +
-        $"-prop systemReflectionMetadataVersion=\"{SystemReflectionMetadataVersion}\" " +
-        $"-prop codeAnalysisAnalyzersVersion=\"{CodeAnalysisAnalyzersVersion}\" " +
-        $"-prop thirdPartyNoticesPath=\"{ThirdPartyNoticesPath}\" " +
-        $"-prop netCompilersPropsPath=\"{NetCompilersPropsPath}\"";
+    int exit = 0;
 
-    var nugetExePath = Path.GetFullPath(Path.Combine(SolutionRoot, "nuget.exe"));
-    var p = new Process();
-    p.StartInfo.FileName = nugetExePath;
-    p.StartInfo.Arguments = nugetArgs;
-    p.StartInfo.UseShellExecute = false;
-
-    Console.WriteLine($"Running: nuget.exe {nugetArgs}");
-    p.Start();
-    p.WaitForExit();
-    exit = p.ExitCode;
-
-    if (exit != 0)
+    foreach (var file in files.Select(f => Path.Combine(NuspecDirPath, f)))
     {
-        break;
+        var nugetArgs = $@"pack {file} " +
+            $"-BasePath \"{BinDir}\" " +
+            $"-OutputDirectory \"{OutDir}\" " +
+            "-ExcludeEmptyDirectories " +
+            $"-prop licenseUrl=\"{licenseUrl}\" " +
+            $"-prop version=\"{BuildVersion}\" " +
+            $"-prop authors={Authors} " +
+            $"-prop projectURL=\"{ProjectURL}\" " +
+            $"-prop tags=\"{Tags}\" " +
+            $"-prop systemCollectionsImmutableVersion=\"{SystemCollectionsImmutableVersion}\" " +
+            $"-prop systemReflectionMetadataVersion=\"{SystemReflectionMetadataVersion}\" " +
+            $"-prop codeAnalysisAnalyzersVersion=\"{CodeAnalysisAnalyzersVersion}\" " +
+            $"-prop thirdPartyNoticesPath=\"{ThirdPartyNoticesPath}\" " +
+            $"-prop netCompilersPropsPath=\"{NetCompilersPropsPath}\"";
+
+        var nugetExePath = Path.GetFullPath(Path.Combine(SolutionRoot, "nuget.exe"));
+        var p = new Process();
+        p.StartInfo.FileName = nugetExePath;
+        p.StartInfo.Arguments = nugetArgs;
+        p.StartInfo.UseShellExecute = false;
+
+        Console.WriteLine($"Running: nuget.exe {nugetArgs}");
+        p.Start();
+        p.WaitForExit();
+
+        if ((exit = p.ExitCode) != 0)
+        {
+            break;
+        }
     }
+
+    return exit;
 }
+
+int exit = PackFiles(redistFiles, LicenseUrlRedist);
+if (exit == 0) PackFiles(nonRedistFiles, LicenseUrlNonRedist);
+if (exit == 0) PackFiles(testFiles, LicenseUrlTest);
 
 Environment.Exit(exit);
