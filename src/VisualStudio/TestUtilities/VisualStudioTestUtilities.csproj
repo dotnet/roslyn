@@ -31,6 +31,7 @@
       <DesignTimeSharedInput>True</DesignTimeSharedInput>
       <DependentUpon>Settings.settings</DependentUpon>
     </Compile>
+    <Compile Include="VisualStudioInstanceContext.cs" />
     <Compile Include="VisualStudioInstanceFactory.cs" />
     <Compile Include="Window\EditorWindow.cs" />
     <Compile Include="Window\InteractiveWindow.cs" />

@@ -10,6 +10,8 @@ namespace Roslyn.VisualStudio.Test.Utilities
     public sealed class VisualStudioInstanceFactory : IDisposable
     {
         internal static readonly string VsProductVersion = Settings.Default.VsProductVersion;
+
+
         internal static readonly string VsProgId = $"VisualStudio.DTE.{VsProductVersion}";
 
         internal static readonly string Wow6432Registry = Environment.Is64BitProcess ? "WOW6432Node" : string.Empty;
@@ -24,43 +26,57 @@ namespace Roslyn.VisualStudio.Test.Utilities
         /// The instance that has already been launched by this factory and can be reused.
         /// </summary>
         private VisualStudioInstance _currentlyRunningInstance;
+        private bool _hasCurrentlyActiveContext;
 
         /// <summary>
-        /// Returns the running <see cref="VisualStudioInstance"/>, starting one if necessary.
+        /// Returns a <see cref="VisualStudioInstanceContext"/>, starting a new instance of Visual Studio if necessary.
         /// </summary>
-        public VisualStudioInstance GetNewOrUsedInstance()
+        public VisualStudioInstanceContext GetNewOrUsedInstance()
         {
-            if (_currentlyRunningInstance != null && _currentlyRunningInstance.IsRunning)
+            ThrowExceptionIfAlreadyHasActiveContext();
+
+            if (_currentlyRunningInstance == null || !_currentlyRunningInstance.IsRunning)
             {
-                _currentlyRunningInstance.CloseAndDeleteOpenSolution();
-                return _currentlyRunningInstance;
+                StartNewInstance();
             }
 
-            return GetNewInstance();
+            return new VisualStudioInstanceContext(_currentlyRunningInstance, this);
+        }
+
+        internal void NotifyCurrentInstanceContextDisposed(bool canReuse)
+        {
+            ThrowExceptionIfAlreadyHasActiveContext();
+
+            _hasCurrentlyActiveContext = false;
+
+            if (!canReuse)
+            {
+                _currentlyRunningInstance = null;
+            }
+        }
+
+        private void ThrowExceptionIfAlreadyHasActiveContext()
+        {
+            if (_hasCurrentlyActiveContext)
+            {
+                throw new Exception($"The previous integration test failed to call {nameof(VisualStudioInstanceContext)}.{nameof(Dispose)}. Ensure that test does that to ensure the Visual Studio instance is correctly cleaned up.");
+            }
         }
 
         /// <summary>
         /// Starts up a new <see cref="VisualStudioInstance"/>, shutting down any instances that are already running.
         /// </summary>
-        public VisualStudioInstance GetNewInstance()
+        private void StartNewInstance()
         {
-            // In case the cleanup process fails, preemtively null out _currentlyRunningInstance so we don't reuse this
-            var oldInstance = _currentlyRunningInstance;
-            _currentlyRunningInstance = null;
-
-            oldInstance?.Close();
-
             var process = StartNewVisualStudioProcess();
 
             // We wait until the DTE instance is up before we're good
             var dte = IntegrationHelper.WaitForNotNullAsync(() => IntegrationHelper.TryLocateDteForProcess(process)).Result;
 
             _currentlyRunningInstance = new VisualStudioInstance(process, dte);
-
-            return _currentlyRunningInstance;
         }
 
-        private Process StartNewVisualStudioProcess()
+        private static Process StartNewVisualStudioProcess()
         {
             // TODO: This might not be needed anymore as I don't believe we do things which risk corrupting the MEF cache. However,
             // it is still useful to do in case some other action corruped the MEF cache as we don't have to restart the host
@@ -82,6 +98,9 @@ namespace Roslyn.VisualStudio.Test.Utilities
         public void Dispose()
         {
             _currentlyRunningInstance?.Close();
+
+            // We want to make sure everybody cleaned up their contexts by the end of everything
+            ThrowExceptionIfAlreadyHasActiveContext();
         }
     }
 }

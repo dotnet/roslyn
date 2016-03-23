@@ -8,19 +8,24 @@ using Xunit;
 namespace Roslyn.VisualStudio.Integration.UnitTests
 {
     [Collection(nameof(SharedIntegrationHostFixture))]
-    public class CSharpInteractiveDemo
+    public class CSharpInteractiveDemo : IDisposable
     {
-        private readonly VisualStudioInstance _visualStudio;
+        private readonly VisualStudioInstanceContext _visualStudio;
         private readonly InteractiveWindow _interactiveWindow;
 
         public CSharpInteractiveDemo(VisualStudioInstanceFactory instanceFactory)
         {
             _visualStudio = instanceFactory.GetNewOrUsedInstance();
 
-            _interactiveWindow = _visualStudio.CSharpInteractiveWindow;
+            _interactiveWindow = _visualStudio.Instance.CSharpInteractiveWindow;
 
             _interactiveWindow.ShowAsync().GetAwaiter().GetResult();
             _interactiveWindow.ResetAsync().GetAwaiter().GetResult();
+        }
+
+        public void Dispose()
+        {
+            _visualStudio.Dispose();
         }
 
         [Fact]
@@ -95,7 +100,7 @@ var g = new Grid();
 g.Children.Add(b);
 w.Content = g;");
 
-            await _visualStudio.ClickAutomationElementAsync(testValue.ToString(), recursive: true);
+            await _visualStudio.Instance.ClickAutomationElementAsync(testValue.ToString(), recursive: true);
             await _interactiveWindow.WaitForReplPromptAsync();
 
             Assert.Equal("Hello, World!", _interactiveWindow.LastReplOutput);
