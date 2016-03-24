@@ -58,8 +58,9 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.PopulateSwitch
         private static async Task<Document> AddMissingSwitchLabelsAsync(SemanticModel model, Document document, SyntaxNode root, SwitchStatementSyntax switchBlock)
         {
             var enumType = (INamedTypeSymbol)model.GetTypeInfo(switchBlock.Expression).Type;
-            var caseLabels = new List<ExpressionSyntax>();
+            var fullyQualifiedEnumType = enumType.ToDisplayString();
 
+            var caseLabels = new List<ExpressionSyntax>();
             foreach (var section in switchBlock.Sections)
             {
                 foreach (var label in section.Labels)
@@ -74,17 +75,6 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.PopulateSwitch
 
             var missingLabels = GetMissingLabels(caseLabels, enumType);
 
-            // use simplified form if there are any in simplified form or if there are not any labels at all
-            var hasLabelAsIdentifierName = false;
-            foreach (var label in caseLabels)
-            {
-                if (label.IsKind(SyntaxKind.IdentifierName))
-                {
-                    hasLabelAsIdentifierName = true;
-                    break;
-                }
-            }
-
             var breakStatement = SyntaxFactory.BreakStatement();
             var statements = SyntaxFactory.List(new List<StatementSyntax> { breakStatement });
 
@@ -95,7 +85,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.PopulateSwitch
                 // If an existing simplified label exists, it means we can assume that works already and do it ourselves as well (ergo: there is a static using)
                 var caseLabel =
                     SyntaxFactory.CaseSwitchLabel(
-                        SyntaxFactory.ParseExpression(hasLabelAsIdentifierName ? $"{label}" : $"{enumType.Name}.{label}")
+                        SyntaxFactory.ParseExpression($"{fullyQualifiedEnumType}.{label}")
                                      .WithTrailingTrivia(SyntaxFactory.ParseTrailingTrivia(Environment.NewLine)));
 
                 var section =
