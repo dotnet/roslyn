@@ -23,6 +23,11 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.PopulateSwitch
             get { return ImmutableArray.Create(IDEDiagnosticIds.PopulateSwitchDiagnosticId); }
         }
 
+        public sealed override FixAllProvider GetFixAllProvider()
+        {
+            return PopulateSwitchFixAllProvider.Instance;
+        }
+
         private static SwitchStatementSyntax GetSwitchStatementNode(SyntaxNode root, TextSpan span)
         {
             var token = root.FindToken(span.Start);
@@ -79,7 +84,6 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.PopulateSwitch
             var statements = SyntaxFactory.List(new List<StatementSyntax> { breakStatement });
 
             var newSections = SyntaxFactory.List(switchBlock.Sections);
-
             foreach (var label in missingLabels)
             {
                 // If an existing simplified label exists, it means we can assume that works already and do it ourselves as well (ergo: there is a static using)
@@ -96,29 +100,13 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.PopulateSwitch
                 newSections = newSections.Add(section);
             }
 
-            var containsDefaultLabel = false;
-            foreach (var section in newSections)
-            {
-                foreach (var label in section.Labels)
-                {
-                    if (label.IsKind(SyntaxKind.DefaultSwitchLabel))
-                    {
-                        containsDefaultLabel = true;
-                        break;
-                    }
-                }
-
-                if (containsDefaultLabel)
-                {
-                    break;
-                }
-            }
+            var containsDefaultLabel = SwitchContainsDefaultLabel(newSections);
 
             System.Diagnostics.Debug.WriteLine(containsDefaultLabel);
             if (!containsDefaultLabel)
             {
-            newSections = newSections.Add(SyntaxFactory.SwitchSection(SyntaxFactory.List(
-                    new List<SwitchLabelSyntax> { SyntaxFactory.DefaultSwitchLabel() }), statements));
+                newSections = newSections.Add(SyntaxFactory.SwitchSection(SyntaxFactory.List(
+                        new List<SwitchLabelSyntax> { SyntaxFactory.DefaultSwitchLabel() }), statements));
             }
 
             var newNode = switchBlock.WithSections(newSections).WithAdditionalAnnotations(Formatter.Annotation, Simplifier.Annotation);
@@ -174,6 +162,22 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.PopulateSwitch
             }
 
             return missingLabels;
+        }
+
+        private static bool SwitchContainsDefaultLabel(SyntaxList<SwitchSectionSyntax> sections)
+        {
+            foreach (var section in sections)
+            {
+                foreach (var label in section.Labels)
+                {
+                    if (label.IsKind(SyntaxKind.DefaultSwitchLabel))
+                    {
+                        return true;
+                    }
+                }
+            }
+
+            return false;
         }
 
         private class MyCodeAction : CodeAction.DocumentChangeAction

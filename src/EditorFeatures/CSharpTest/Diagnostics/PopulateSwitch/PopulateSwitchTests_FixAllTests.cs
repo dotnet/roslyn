@@ -28,10 +28,17 @@ namespace ConsoleApplication1
             var e = MyEnum.Fizz;
             switch (e)
             {
-                [|case MyEnum.Fizz:
+                {|FixAllInDocument:case MyEnum.Fizz:
                 case MyEnum.Buzz:
                 case MyEnum.FizzBuzz:
-                    break;|]
+                    break;|}
+            }
+            switch (e)
+            {
+                case MyEnum.Fizz:
+                case MyEnum.Buzz:
+                case MyEnum.FizzBuzz:
+                    break;
             }
         }
     }
@@ -47,10 +54,10 @@ namespace ConsoleApplication1
             var e = MyEnum.Fizz;
             switch (e)
             {
-                [|case MyEnum.Fizz:
+                case MyEnum.Fizz:
                 case MyEnum.Buzz:
                 case MyEnum.FizzBuzz:
-                    break;|]
+                    break;
             }
         }
     }
@@ -68,10 +75,10 @@ namespace ConsoleApplication1
             var e = MyEnum.Fizz;
             switch (e)
             {
-                [|case MyEnum.Fizz:
+                case MyEnum.Fizz:
                 case MyEnum.Buzz:
                 case MyEnum.FizzBuzz:
-                    break;|]
+                    break;
             }
         }
     }
@@ -95,6 +102,15 @@ namespace ConsoleApplication1
         void Method()
         {
             var e = MyEnum.Fizz;
+            switch (e)
+            {
+                case MyEnum.Fizz:
+                case MyEnum.Buzz:
+                case MyEnum.FizzBuzz:
+                    break;
+                default:
+                    break;
+            }
             switch (e)
             {
                 case MyEnum.Fizz:
@@ -151,7 +167,7 @@ namespace ConsoleApplication1
     </Project>
 </Workspace>";
 
-            await TestAsync(input, expected, compareTokens: false, fixAllActionEquivalenceKey: null);
+            await TestAsync(input, expected, compareTokens: false);
         }
 
         [Fact]
@@ -176,10 +192,10 @@ namespace ConsoleApplication1
             var e = MyEnum.Fizz;
             switch (e)
             {
-                [|case MyEnum.Fizz:
+                {|FixAllInProject:case MyEnum.Fizz:
                 case MyEnum.Buzz:
                 case MyEnum.FizzBuzz:
-                    break;|]
+                    break;|}
             }
         }
     }
@@ -195,10 +211,10 @@ namespace ConsoleApplication1
             var e = MyEnum.Fizz;
             switch (e)
             {
-                [|case MyEnum.Fizz:
+                case MyEnum.Fizz:
                 case MyEnum.Buzz:
                 case MyEnum.FizzBuzz:
-                    break;|]
+                    break;
             }
         }
     }
@@ -216,10 +232,10 @@ namespace ConsoleApplication1
             var e = MyEnum.Fizz;
             switch (e)
             {
-                [|case MyEnum.Fizz:
+                case MyEnum.Fizz:
                 case MyEnum.Buzz:
                 case MyEnum.FizzBuzz:
-                    break;|]
+                    break;
             }
         }
     }
@@ -301,7 +317,7 @@ namespace ConsoleApplication1
     </Project>
 </Workspace>";
 
-            await TestAsync(input, expected, compareTokens: false, fixAllActionEquivalenceKey: null);
+            await TestAsync(input, expected, compareTokens: false);
         }
 
         [Fact]
@@ -315,7 +331,7 @@ namespace ConsoleApplication1
         <Document>
 namespace ConsoleApplication1
 {
-    enum MyEnum
+    enum MyEnum1
     {
         Fizz, Buzz, FizzBuzz
     }
@@ -323,13 +339,13 @@ namespace ConsoleApplication1
     {
         void Method()
         {
-            var e = MyEnum.Fizz;
+            var e = MyEnum1.Fizz;
             switch (e)
             {
-                [|case MyEnum.Fizz:
-                case MyEnum.Buzz:
-                case MyEnum.FizzBuzz:
-                    break;|]
+                {|FixAllInSolution:case MyEnum1.Fizz:
+                case MyEnum1.Buzz:
+                case MyEnum1.FizzBuzz:
+                    break;|}
             }
         }
     }
@@ -338,17 +354,21 @@ namespace ConsoleApplication1
         <Document>
 namespace ConsoleApplication1
 {
+    enum MyEnum2
+    {
+        Fizz, Buzz, FizzBuzz
+    }
     class MyClass2
     {
         void Method()
         {
-            var e = MyEnum.Fizz;
+            var e = MyEnum2.Fizz;
             switch (e)
             {
-                [|case MyEnum.Fizz:
-                case MyEnum.Buzz:
-                case MyEnum.FizzBuzz:
-                    break;|]
+                case MyEnum2.Fizz:
+                case MyEnum2.Buzz:
+                case MyEnum2.FizzBuzz:
+                    break;
             }
         }
     }
@@ -357,19 +377,23 @@ namespace ConsoleApplication1
     </Project>
     <Project Language=""C#"" AssemblyName=""Assembly2"" CommonReferences=""true"">
         <Document>
-namespace ConsoleApplication1
+namespace ConsoleApplication2
 {
+    enum MyEnum3
+    {
+        Fizz, Buzz, FizzBuzz
+    }
     class MyClass3
     {
         void Method()
         {
-            var e = MyEnum.Fizz;
+            var e = MyEnum3.Fizz;
             switch (e)
             {
-                [|case MyEnum.Fizz:
-                case MyEnum.Buzz:
-                case MyEnum.FizzBuzz:
-                    break;|]
+                case MyEnum3.Fizz:
+                case MyEnum3.Buzz:
+                case MyEnum3.FizzBuzz:
+                    break;
             }
         }
     }
@@ -384,7 +408,7 @@ namespace ConsoleApplication1
         <Document>
 namespace ConsoleApplication1
 {
-    enum MyEnum
+    enum MyEnum1
     {
         Fizz, Buzz, FizzBuzz
     }
@@ -392,12 +416,12 @@ namespace ConsoleApplication1
     {
         void Method()
         {
-            var e = MyEnum.Fizz;
+            var e = MyEnum1.Fizz;
             switch (e)
             {
-                case MyEnum.Fizz:
-                case MyEnum.Buzz:
-                case MyEnum.FizzBuzz:
+                case MyEnum1.Fizz:
+                case MyEnum1.Buzz:
+                case MyEnum1.FizzBuzz:
                     break;
                 default:
                     break;
@@ -409,16 +433,20 @@ namespace ConsoleApplication1
         <Document>
 namespace ConsoleApplication1
 {
+    enum MyEnum2
+    {
+        Fizz, Buzz, FizzBuzz
+    }
     class MyClass2
     {
         void Method()
         {
-            var e = MyEnum.Fizz;
+            var e = MyEnum2.Fizz;
             switch (e)
             {
-                case MyEnum.Fizz:
-                case MyEnum.Buzz:
-                case MyEnum.FizzBuzz:
+                case MyEnum2.Fizz:
+                case MyEnum2.Buzz:
+                case MyEnum2.FizzBuzz:
                     break;
                 default:
                     break;
@@ -430,18 +458,22 @@ namespace ConsoleApplication1
     </Project>
     <Project Language=""C#"" AssemblyName=""Assembly2"" CommonReferences=""true"">
         <Document>
-namespace ConsoleApplication1
+namespace ConsoleApplication2
 {
+    enum MyEnum3
+    {
+        Fizz, Buzz, FizzBuzz
+    }
     class MyClass3
     {
         void Method()
         {
-            var e = MyEnum.Fizz;
+            var e = MyEnum3.Fizz;
             switch (e)
             {
-                case MyEnum.Fizz:
-                case MyEnum.Buzz:
-                case MyEnum.FizzBuzz:
+                case MyEnum3.Fizz:
+                case MyEnum3.Buzz:
+                case MyEnum3.FizzBuzz:
                     break;
                 default:
                     break;
@@ -453,7 +485,7 @@ namespace ConsoleApplication1
     </Project>
 </Workspace>";
 
-            await TestAsync(input, expected, compareTokens: false, fixAllActionEquivalenceKey: null);
+            await TestAsync(input, expected, compareTokens: false);
         }
     }
 }
