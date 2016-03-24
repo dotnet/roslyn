@@ -249,8 +249,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         public override void VisitForStatement(ForStatementSyntax node)
         {
             Debug.Assert((object)_method == _enclosing.ContainingMemberOrLambda);
-            var patternBinder = new PatternVariableBinder(node, _enclosing);
-            var binder = new ForLoopBinder(patternBinder, node);
+            var binder = new ForLoopBinder(_enclosing, node);
             AddToMap(node, binder);
 
             VisitPossibleEmbeddedStatement(node.Statement, binder);

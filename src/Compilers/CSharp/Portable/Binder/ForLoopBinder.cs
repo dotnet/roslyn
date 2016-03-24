@@ -22,23 +22,38 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         override protected ImmutableArray<LocalSymbol> BuildLocals()
         {
-            var declaration = _syntax.Declaration;
-            if (declaration == null)
-            {
-                return ImmutableArray<LocalSymbol>.Empty;
-            }
-
-            var refKind = _syntax.RefKeyword.Kind().GetRefKind();
-
             var locals = ArrayBuilder<LocalSymbol>.GetInstance();
-            foreach (var variable in declaration.Variables)
+
+            var declaration = _syntax.Declaration;
+            if (declaration != null)
             {
-                var localSymbol = MakeLocal(refKind,
-                                            declaration,
-                                            variable,
-                                            LocalDeclarationKind.ForInitializerVariable);
-                locals.Add(localSymbol);
+                var refKind = _syntax.RefKeyword.Kind().GetRefKind();
+
+                foreach (var variable in declaration.Variables)
+                {
+                    var localSymbol = MakeLocal(refKind,
+                                                declaration,
+                                                variable,
+                                                LocalDeclarationKind.ForInitializerVariable);
+                    locals.Add(localSymbol);
+
+                    if (variable.Initializer != null)
+                    {
+                        BuildAndAddPatternVariables(locals, variable.Initializer.Value);
+                    }
+                }
             }
+            else
+            {
+                BuildAndAddPatternVariables(locals, nodes:_syntax.Initializers.ToImmutableArray<CSharpSyntaxNode>());
+            }
+
+            if (_syntax.Condition != null)
+            {
+                BuildAndAddPatternVariables(locals, node: _syntax.Condition);
+            }
+
+            BuildAndAddPatternVariables(locals, nodes: _syntax.Incrementors.ToImmutableArray<CSharpSyntaxNode>());
 
             return locals.ToImmutableAndFree();
         }
