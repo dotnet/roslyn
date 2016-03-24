@@ -60,7 +60,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion.P
             CompletionItem presetBuilder,
             bool suggestionMode,
             bool isSoftSelected,
-            ImmutableArray<CompletionItemFilter> completionItemFilters)
+            ImmutableArray<CompletionItemFilter> completionItemFilters,
+            IReadOnlyDictionary<CompletionItem, string> completionItemToFilterText)
         {
             AssertIsForeground();
 
@@ -77,7 +78,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion.P
             {
                 _completionSet.SetCompletionItems(
                     completionItems, selectedItem, presetBuilder, suggestionMode, 
-                    isSoftSelected, completionItemFilters);
+                    isSoftSelected, completionItemFilters, completionItemToFilterText);
             }
             finally
             {
