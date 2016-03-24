@@ -2693,14 +2693,16 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
 
         private void EmitMVIDLoad(BoundMVID node)
         {
+            Debug.Assert(node.Type.TypeKind == TypeKind.Struct);
             _builder.EmitOpCode(ILOpCode.Ldsfld);
-            _builder.EmitToken(_module.PrivateImplClass.GetMVID(), node.Syntax, _diagnostics);
+            _builder.EmitToken(_module.PrivateImplClass.GetMVID((NamedTypeSymbol)node.Type), node.Syntax, _diagnostics);
         }
 
         private void EmitMVIDStore(BoundMVID node)
         {
+            Debug.Assert(node.Type.TypeKind == TypeKind.Struct);
             _builder.EmitOpCode(ILOpCode.Stsfld);
-            _builder.EmitToken(_module.PrivateImplClass.GetMVID(), node.Syntax, _diagnostics);
+            _builder.EmitToken(_module.PrivateImplClass.GetMVID((NamedTypeSymbol)node.Type), node.Syntax, _diagnostics);
         }
 
         private void EmitMethodInfoExpression(BoundMethodInfo node)

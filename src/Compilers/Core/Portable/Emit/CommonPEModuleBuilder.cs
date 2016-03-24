@@ -131,7 +131,6 @@ namespace Microsoft.CodeAnalysis.Emit
         internal abstract Cci.ICustomAttribute SynthesizeAttribute(WellKnownMember attributeConstructor);
 
         internal abstract Cci.INamedTypeReference GetSystemType(TSyntaxNode syntaxOpt, DiagnosticBag diagnostics);
-        internal abstract Cci.INamedTypeReference GetGuidType(TSyntaxNode syntaxOpt, DiagnosticBag diagnostics);
         internal abstract Cci.INamedTypeReference GetSpecialType(SpecialType specialType, TSyntaxNode syntaxNodeOpt, DiagnosticBag diagnostics);
 
         internal sealed override Cci.ITypeReference EncTranslateType(ITypeSymbol type, DiagnosticBag diagnostics)
@@ -599,7 +598,6 @@ namespace Microsoft.CodeAnalysis.Emit
                         this.GetSpecialType(SpecialType.System_Int16, syntaxNodeOpt, diagnostics),
                         this.GetSpecialType(SpecialType.System_Int32, syntaxNodeOpt, diagnostics),
                         this.GetSpecialType(SpecialType.System_Int64, syntaxNodeOpt, diagnostics),
-                        this.GetGuidType(null, diagnostics),
                         SynthesizeAttribute(WellKnownMember.System_Runtime_CompilerServices_CompilerGeneratedAttribute__ctor));
 
                 if (Interlocked.CompareExchange(ref _privateImplementationDetails, result, null) != null)

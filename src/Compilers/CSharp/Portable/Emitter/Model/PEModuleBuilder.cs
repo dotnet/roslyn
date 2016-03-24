@@ -622,10 +622,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
                              syntaxNodeOpt: syntaxNodeOpt,
                              needDeclaration: true);
         }
-
-        private Cci.INamedTypeReference GetWellKnownType(WellKnownType wellKnownType, CSharpSyntaxNode syntaxOpt, DiagnosticBag diagnostics)
+        
+        internal sealed override Cci.INamedTypeReference GetSystemType(CSharpSyntaxNode syntaxOpt, DiagnosticBag diagnostics)
         {
-            NamedTypeSymbol typeSymbol = Compilation.GetWellKnownType(wellKnownType);
+             NamedTypeSymbol typeSymbol = Compilation.GetWellKnownType(WellKnownType.System_Type);
 
             DiagnosticInfo info = typeSymbol.GetUseSiteDiagnostic();
             if (info != null)
@@ -636,16 +636,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
             }
 
             return Translate(typeSymbol, syntaxOpt, diagnostics, needDeclaration: true);
-        }
-
-        internal sealed override Cci.INamedTypeReference GetSystemType(CSharpSyntaxNode syntaxOpt, DiagnosticBag diagnostics)
-        {
-            return GetWellKnownType(WellKnownType.System_Type, syntaxOpt, diagnostics);
-        }
-
-        internal sealed override Cci.INamedTypeReference GetGuidType(CSharpSyntaxNode syntaxOpt, DiagnosticBag diagnostics)
-        {
-            return GetWellKnownType(WellKnownType.System_Guid, syntaxOpt, diagnostics);
         }
 
         public sealed override Cci.IMethodReference GetInitArrayHelper()

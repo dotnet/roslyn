@@ -557,8 +557,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
             Next
         End Function
 
-        Private Function GetWellKnownType(wellKnownType As WellKnownType, syntaxOpt As VisualBasicSyntaxNode, diagnostics As DiagnosticBag) As Cci.INamedTypeReference
-            Dim typeSymbol As NamedTypeSymbol = SourceModule.DeclaringCompilation.GetWellKnownType(wellKnownType)
+        Friend NotOverridable Overrides Function GetSystemType(syntaxOpt As VisualBasicSyntaxNode, diagnostics As DiagnosticBag) As Cci.INamedTypeReference
+            Dim typeSymbol As NamedTypeSymbol = SourceModule.DeclaringCompilation.GetWellKnownType(WellKnownType.System_Type)
 
             Dim useSiteError = Binder.GetUseSiteErrorForWellKnownType(typeSymbol)
             If useSiteError IsNot Nothing Then
@@ -568,14 +568,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
             End If
 
             Return Translate(typeSymbol, syntaxOpt, diagnostics, needDeclaration:=True)
-        End Function
-
-        Friend NotOverridable Overrides Function GetSystemType(syntaxOpt As VisualBasicSyntaxNode, diagnostics As DiagnosticBag) As Cci.INamedTypeReference
-            Return GetWellKnownType(WellKnownType.System_Type, syntaxOpt, diagnostics)
-        End Function
-
-        Friend NotOverridable Overrides Function GetGuidType(syntaxOpt As VisualBasicSyntaxNode, diagnostics As DiagnosticBag) As Cci.INamedTypeReference
-            Return GetWellKnownType(WellKnownType.System_Guid, syntaxOpt, diagnostics)
         End Function
 
         Friend NotOverridable Overrides Function GetSpecialType(specialType As SpecialType, syntaxNodeOpt As VisualBasicSyntaxNode, diagnostics As DiagnosticBag) As Cci.INamedTypeReference

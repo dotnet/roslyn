@@ -34,8 +34,6 @@ namespace Microsoft.CodeAnalysis.CodeGen
         private readonly Cci.ITypeReference _systemInt32Type;        //for metadata init of int arrays
         private readonly Cci.ITypeReference _systemInt64Type;        //for metadata init of long arrays
 
-        private readonly Cci.ITypeReference _systemGuidType;
-
         private readonly Cci.ICustomAttribute _compilerGeneratedAttribute;
 
         private readonly string _name;
@@ -70,7 +68,6 @@ namespace Microsoft.CodeAnalysis.CodeGen
             Cci.ITypeReference systemInt16Type,
             Cci.ITypeReference systemInt32Type,
             Cci.ITypeReference systemInt64Type,
-            Cci.ITypeReference systemGuidType,
             Cci.ICustomAttribute compilerGeneratedAttribute)
         {
             Debug.Assert(systemObject != null);
@@ -84,8 +81,6 @@ namespace Microsoft.CodeAnalysis.CodeGen
             _systemInt16Type = systemInt16Type;
             _systemInt32Type = systemInt32Type;
             _systemInt64Type = systemInt64Type;
-
-            _systemGuidType = systemGuidType;
 
             _compilerGeneratedAttribute = compilerGeneratedAttribute;
 
@@ -168,11 +163,11 @@ namespace Microsoft.CodeAnalysis.CodeGen
             return new ExplicitSizeStruct(size, this, _systemValueType);
         }
 
-        internal Cci.IFieldReference GetMVID()
+        internal Cci.IFieldReference GetMVID(Cci.ITypeReference mvidType)
         {
             if (_mvidField == null)
             {
-                Interlocked.CompareExchange(ref _mvidField, new MvidField("MVID", this, _systemGuidType), null);
+                Interlocked.CompareExchange(ref _mvidField, new MvidField("MVID", this, mvidType), null);
             }
 
             return _mvidField;
@@ -194,11 +189,6 @@ namespace Microsoft.CodeAnalysis.CodeGen
         public override IEnumerable<Cci.IFieldDefinition> GetFields(EmitContext context)
         {
             Debug.Assert(IsFrozen);
-            if (_mvidField != null)
-            {
-                
-            }
-
             return _orderedMappedFields;
         }
 
