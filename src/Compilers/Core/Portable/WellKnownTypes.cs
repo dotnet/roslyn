@@ -245,17 +245,17 @@ namespace Microsoft.CodeAnalysis
 
         System_Runtime_GCLatencyMode,
 
-        System_Runtime_CompilerServices_ValueTuple_T1,
-        System_Runtime_CompilerServices_ValueTuple_T1_T2,
-        System_Runtime_CompilerServices_ValueTuple_T1_T2_T3,
-        System_Runtime_CompilerServices_ValueTuple_T1_T2_T3_T4,
-        System_Runtime_CompilerServices_ValueTuple_T1_T2_T3_T4_T5,
-        System_Runtime_CompilerServices_ValueTuple_T1_T2_T3_T4_T5_T6,
-        System_Runtime_CompilerServices_ValueTuple_T1_T2_T3_T4_T5_T6_T7,
+        System_ValueTuple_T1,
+        System_ValueTuple_T1_T2,
+        System_ValueTuple_T1_T2_T3,
+        System_ValueTuple_T1_T2_T3_T4,
+        System_ValueTuple_T1_T2_T3_T4_T5,
+        System_ValueTuple_T1_T2_T3_T4_T5_T6,
+        System_ValueTuple_T1_T2_T3_T4_T5_T6_T7,
 
         ExtSentinel, // Not a real type, just a marker for types above 255 and strictly below 512
 
-        System_Runtime_CompilerServices_ValueTuple_T1_T2_T3_T4_T5_T6_T7_TRest,
+        System_ValueTuple_T1_T2_T3_T4_T5_T6_T7_TRest,
 
         System_IFormatProvider,
 
@@ -499,17 +499,17 @@ namespace Microsoft.CodeAnalysis
 
             "System.Runtime.GCLatencyMode",
 
-            "System.Runtime.CompilerServices.ValueTuple`1",
-            "System.Runtime.CompilerServices.ValueTuple`2",
-            "System.Runtime.CompilerServices.ValueTuple`3",
-            "System.Runtime.CompilerServices.ValueTuple`4",
-            "System.Runtime.CompilerServices.ValueTuple`5",
-            "System.Runtime.CompilerServices.ValueTuple`6",
-            "System.Runtime.CompilerServices.ValueTuple`7",
+            "System.ValueTuple`1",
+            "System.ValueTuple`2",
+            "System.ValueTuple`3",
+            "System.ValueTuple`4",
+            "System.ValueTuple`5",
+            "System.ValueTuple`6",
+            "System.ValueTuple`7",
 
             "", // extension marker
 
-            "System.Runtime.CompilerServices.ValueTuple`8",
+            "System.ValueTuple`8",
 
             "System.IFormatProvider",
         };

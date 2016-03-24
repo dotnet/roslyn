@@ -17,7 +17,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.CodeGen
                     @"
 
 // PROTOTYPE: put in correct namespace
-namespace System.Runtime.CompilerServices
+namespace System
 {
     // struct with two values
     public struct ValueTuple<T1, T2>
@@ -44,7 +44,7 @@ namespace System.Runtime.CompilerServices
                 @"
 
     // PROTOTYPE: put in correct namespace
-    namespace System.Runtime.CompilerServices
+    namespace System
     {
         // struct with two values
         public struct ValueTuple<T1, T2, T3>
@@ -88,13 +88,13 @@ class C
 {
   // Code size       28 (0x1c)
   .maxstack  3
-  .locals init (System.Runtime.CompilerServices.ValueTuple<int, int> V_0) //x
+  .locals init (System.ValueTuple<int, int> V_0) //x
   IL_0000:  ldloca.s   V_0
   IL_0002:  ldc.i4.1
   IL_0003:  ldc.i4.2
-  IL_0004:  call       ""System.Runtime.CompilerServices.ValueTuple<int, int>..ctor(int, int)""
+  IL_0004:  call       ""System.ValueTuple<int, int>..ctor(int, int)""
   IL_0009:  ldloca.s   V_0
-  IL_000b:  constrained. ""System.Runtime.CompilerServices.ValueTuple<int, int>""
+  IL_000b:  constrained. ""System.ValueTuple<int, int>""
   IL_0011:  callvirt   ""string object.ToString()""
   IL_0016:  call       ""void System.Console.WriteLine(string)""
   IL_001b:  ret
@@ -121,22 +121,22 @@ class C
 {
   // Code size       54 (0x36)
   .maxstack  5
-  .locals init (System.Runtime.CompilerServices.ValueTuple<int, string> V_0, //x
-                System.Runtime.CompilerServices.ValueTuple<int, <tuple: int Item1, int Item2>> V_1)
+  .locals init (System.ValueTuple<int, string> V_0, //x
+                System.ValueTuple<int, <tuple: int Item1, int Item2>> V_1)
   IL_0000:  ldloca.s   V_0
   IL_0002:  ldc.i4.1
   IL_0003:  ldc.i4.2
   IL_0004:  ldc.i4.3
   IL_0005:  ldc.i4.4
-  IL_0006:  newobj     ""System.Runtime.CompilerServices.ValueTuple<int, int>..ctor(int, int)""
-  IL_000b:  newobj     ""System.Runtime.CompilerServices.ValueTuple<int, <tuple: int Item1, int Item2>>..ctor(int, <tuple: int Item1, int Item2>)""
+  IL_0006:  newobj     ""System.ValueTuple<int, int>..ctor(int, int)""
+  IL_000b:  newobj     ""System.ValueTuple<int, <tuple: int Item1, int Item2>>..ctor(int, <tuple: int Item1, int Item2>)""
   IL_0010:  stloc.1
   IL_0011:  ldloca.s   V_1
-  IL_0013:  constrained. ""System.Runtime.CompilerServices.ValueTuple<int, <tuple: int Item1, int Item2>>""
+  IL_0013:  constrained. ""System.ValueTuple<int, <tuple: int Item1, int Item2>>""
   IL_0019:  callvirt   ""string object.ToString()""
-  IL_001e:  call       ""System.Runtime.CompilerServices.ValueTuple<int, string>..ctor(int, string)""
+  IL_001e:  call       ""System.ValueTuple<int, string>..ctor(int, string)""
   IL_0023:  ldloca.s   V_0
-  IL_0025:  constrained. ""System.Runtime.CompilerServices.ValueTuple<int, string>""
+  IL_0025:  constrained. ""System.ValueTuple<int, string>""
   IL_002b:  callvirt   ""string object.ToString()""
   IL_0030:  call       ""void System.Console.WriteLine(string)""
   IL_0035:  ret
@@ -166,22 +166,22 @@ class C
 {
   // Code size       54 (0x36)
   .maxstack  3
-  .locals init (System.Runtime.CompilerServices.ValueTuple<int, int> V_0) //x
+  .locals init (System.ValueTuple<int, int> V_0) //x
   IL_0000:  ldloca.s   V_0
   IL_0002:  ldc.i4.1
   IL_0003:  ldc.i4.2
-  IL_0004:  call       ""System.Runtime.CompilerServices.ValueTuple<int, int>..ctor(int, int)""
+  IL_0004:  call       ""System.ValueTuple<int, int>..ctor(int, int)""
   IL_0009:  ldloca.s   V_0
-  IL_000b:  ldflda     ""int System.Runtime.CompilerServices.ValueTuple<int, int>.Item2""
+  IL_000b:  ldflda     ""int System.ValueTuple<int, int>.Item2""
   IL_0010:  call       ""string int.ToString()""
   IL_0015:  call       ""void System.Console.WriteLine(string)""
   IL_001a:  ldloca.s   V_0
   IL_001c:  ldc.i4.s   40
-  IL_001e:  stfld      ""int System.Runtime.CompilerServices.ValueTuple<int, int>.Item1""
+  IL_001e:  stfld      ""int System.ValueTuple<int, int>.Item1""
   IL_0023:  ldloc.0
-  IL_0024:  ldfld      ""int System.Runtime.CompilerServices.ValueTuple<int, int>.Item1""
+  IL_0024:  ldfld      ""int System.ValueTuple<int, int>.Item1""
   IL_0029:  ldloc.0
-  IL_002a:  ldfld      ""int System.Runtime.CompilerServices.ValueTuple<int, int>.Item2""
+  IL_002a:  ldfld      ""int System.ValueTuple<int, int>.Item2""
   IL_002f:  add
   IL_0030:  call       ""void System.Console.WriteLine(int)""
   IL_0035:  ret
@@ -212,22 +212,22 @@ class C
 {
   // Code size       54 (0x36)
   .maxstack  3
-  .locals init (System.Runtime.CompilerServices.ValueTuple<int, int> V_0) //x
+  .locals init (System.ValueTuple<int, int> V_0) //x
   IL_0000:  ldloca.s   V_0
   IL_0002:  ldc.i4.1
   IL_0003:  ldc.i4.2
-  IL_0004:  call       ""System.Runtime.CompilerServices.ValueTuple<int, int>..ctor(int, int)""
+  IL_0004:  call       ""System.ValueTuple<int, int>..ctor(int, int)""
   IL_0009:  ldloca.s   V_0
-  IL_000b:  ldflda     ""int System.Runtime.CompilerServices.ValueTuple<int, int>.Item2""
+  IL_000b:  ldflda     ""int System.ValueTuple<int, int>.Item2""
   IL_0010:  call       ""string int.ToString()""
   IL_0015:  call       ""void System.Console.WriteLine(string)""
   IL_001a:  ldloca.s   V_0
   IL_001c:  ldc.i4.s   40
-  IL_001e:  stfld      ""int System.Runtime.CompilerServices.ValueTuple<int, int>.Item1""
+  IL_001e:  stfld      ""int System.ValueTuple<int, int>.Item1""
   IL_0023:  ldloc.0
-  IL_0024:  ldfld      ""int System.Runtime.CompilerServices.ValueTuple<int, int>.Item1""
+  IL_0024:  ldfld      ""int System.ValueTuple<int, int>.Item1""
   IL_0029:  ldloc.0
-  IL_002a:  ldfld      ""int System.Runtime.CompilerServices.ValueTuple<int, int>.Item2""
+  IL_002a:  ldfld      ""int System.ValueTuple<int, int>.Item2""
   IL_002f:  add
   IL_0030:  call       ""void System.Console.WriteLine(int)""
   IL_0035:  ret
@@ -258,22 +258,22 @@ class C
 {
   // Code size       54 (0x36)
   .maxstack  3
-  .locals init (System.Runtime.CompilerServices.ValueTuple<int, int> V_0) //x
+  .locals init (System.ValueTuple<int, int> V_0) //x
   IL_0000:  ldloca.s   V_0
   IL_0002:  ldc.i4.1
   IL_0003:  ldc.i4.2
-  IL_0004:  call       ""System.Runtime.CompilerServices.ValueTuple<int, int>..ctor(int, int)""
+  IL_0004:  call       ""System.ValueTuple<int, int>..ctor(int, int)""
   IL_0009:  ldloca.s   V_0
-  IL_000b:  ldflda     ""int System.Runtime.CompilerServices.ValueTuple<int, int>.Item2""
+  IL_000b:  ldflda     ""int System.ValueTuple<int, int>.Item2""
   IL_0010:  call       ""string int.ToString()""
   IL_0015:  call       ""void System.Console.WriteLine(string)""
   IL_001a:  ldloca.s   V_0
   IL_001c:  ldc.i4.s   40
-  IL_001e:  stfld      ""int System.Runtime.CompilerServices.ValueTuple<int, int>.Item1""
+  IL_001e:  stfld      ""int System.ValueTuple<int, int>.Item1""
   IL_0023:  ldloc.0
-  IL_0024:  ldfld      ""int System.Runtime.CompilerServices.ValueTuple<int, int>.Item1""
+  IL_0024:  ldfld      ""int System.ValueTuple<int, int>.Item1""
   IL_0029:  ldloc.0
-  IL_002a:  ldfld      ""int System.Runtime.CompilerServices.ValueTuple<int, int>.Item2""
+  IL_002a:  ldfld      ""int System.ValueTuple<int, int>.Item2""
   IL_002f:  add
   IL_0030:  call       ""void System.Console.WriteLine(int)""
   IL_0035:  ret
@@ -304,31 +304,31 @@ class C
 {
   // Code size       87 (0x57)
   .maxstack  4
-  .locals init (System.Runtime.CompilerServices.ValueTuple<int, <tuple: int c, int d>> V_0) //x
+  .locals init (System.ValueTuple<int, <tuple: int c, int d>> V_0) //x
   IL_0000:  ldloca.s   V_0
   IL_0002:  ldc.i4.1
   IL_0003:  ldc.i4.2
   IL_0004:  ldc.i4.3
-  IL_0005:  newobj     ""System.Runtime.CompilerServices.ValueTuple<int, int>..ctor(int, int)""
-  IL_000a:  call       ""System.Runtime.CompilerServices.ValueTuple<int, <tuple: int c, int d>>..ctor(int, <tuple: int c, int d>)""
+  IL_0005:  newobj     ""System.ValueTuple<int, int>..ctor(int, int)""
+  IL_000a:  call       ""System.ValueTuple<int, <tuple: int c, int d>>..ctor(int, <tuple: int c, int d>)""
   IL_000f:  ldloca.s   V_0
-  IL_0011:  ldflda     ""<tuple: int c, int d> System.Runtime.CompilerServices.ValueTuple<int, <tuple: int c, int d>>.Item2""
-  IL_0016:  ldflda     ""int System.Runtime.CompilerServices.ValueTuple<int, int>.Item1""
+  IL_0011:  ldflda     ""<tuple: int c, int d> System.ValueTuple<int, <tuple: int c, int d>>.Item2""
+  IL_0016:  ldflda     ""int System.ValueTuple<int, int>.Item1""
   IL_001b:  call       ""string int.ToString()""
   IL_0020:  call       ""void System.Console.WriteLine(string)""
   IL_0025:  ldloca.s   V_0
-  IL_0027:  ldflda     ""<tuple: int c, int d> System.Runtime.CompilerServices.ValueTuple<int, <tuple: int c, int d>>.Item2""
+  IL_0027:  ldflda     ""<tuple: int c, int d> System.ValueTuple<int, <tuple: int c, int d>>.Item2""
   IL_002c:  ldc.i4.s   39
-  IL_002e:  stfld      ""int System.Runtime.CompilerServices.ValueTuple<int, int>.Item2""
+  IL_002e:  stfld      ""int System.ValueTuple<int, int>.Item2""
   IL_0033:  ldloc.0
-  IL_0034:  ldfld      ""int System.Runtime.CompilerServices.ValueTuple<int, <tuple: int c, int d>>.Item1""
+  IL_0034:  ldfld      ""int System.ValueTuple<int, <tuple: int c, int d>>.Item1""
   IL_0039:  ldloc.0
-  IL_003a:  ldfld      ""<tuple: int c, int d> System.Runtime.CompilerServices.ValueTuple<int, <tuple: int c, int d>>.Item2""
-  IL_003f:  ldfld      ""int System.Runtime.CompilerServices.ValueTuple<int, int>.Item1""
+  IL_003a:  ldfld      ""<tuple: int c, int d> System.ValueTuple<int, <tuple: int c, int d>>.Item2""
+  IL_003f:  ldfld      ""int System.ValueTuple<int, int>.Item1""
   IL_0044:  add
   IL_0045:  ldloc.0
-  IL_0046:  ldfld      ""<tuple: int c, int d> System.Runtime.CompilerServices.ValueTuple<int, <tuple: int c, int d>>.Item2""
-  IL_004b:  ldfld      ""int System.Runtime.CompilerServices.ValueTuple<int, int>.Item2""
+  IL_0046:  ldfld      ""<tuple: int c, int d> System.ValueTuple<int, <tuple: int c, int d>>.Item2""
+  IL_004b:  ldfld      ""int System.ValueTuple<int, int>.Item2""
   IL_0050:  add
   IL_0051:  call       ""void System.Console.WriteLine(int)""
   IL_0056:  ret
@@ -481,27 +481,27 @@ class C
 {
   // Code size       67 (0x43)
   .maxstack  6
-  .locals init (System.Runtime.CompilerServices.ValueTuple<int, <tuple: int c, <tuple: int e, int f> d>> V_0) //v
+  .locals init (System.ValueTuple<int, <tuple: int c, <tuple: int e, int f> d>> V_0) //v
   IL_0000:  ldc.i4.1
   IL_0001:  ldc.i4.2
-  IL_0002:  newobj     ""System.Runtime.CompilerServices.ValueTuple<int, int>..ctor(int, int)""
+  IL_0002:  newobj     ""System.ValueTuple<int, int>..ctor(int, int)""
   IL_0007:  ldloca.s   V_0
   IL_0009:  ldc.i4.1
   IL_000a:  ldc.i4.2
   IL_000b:  ldc.i4.3
   IL_000c:  ldc.i4.4
-  IL_000d:  newobj     ""System.Runtime.CompilerServices.ValueTuple<int, int>..ctor(int, int)""
-  IL_0012:  newobj     ""System.Runtime.CompilerServices.ValueTuple<int, <tuple: int e, int f>>..ctor(int, <tuple: int e, int f>)""
-  IL_0017:  call       ""System.Runtime.CompilerServices.ValueTuple<int, <tuple: int c, <tuple: int e, int f> d>>..ctor(int, <tuple: int c, <tuple: int e, int f> d>)""
+  IL_000d:  newobj     ""System.ValueTuple<int, int>..ctor(int, int)""
+  IL_0012:  newobj     ""System.ValueTuple<int, <tuple: int e, int f>>..ctor(int, <tuple: int e, int f>)""
+  IL_0017:  call       ""System.ValueTuple<int, <tuple: int c, <tuple: int e, int f> d>>..ctor(int, <tuple: int c, <tuple: int e, int f> d>)""
   IL_001c:  ldloc.0
   IL_001d:  call       ""System.Collections.Generic.Dictionary<<tuple: int Item1, int Item2>, <tuple: int a, <tuple: int c, <tuple: int e, int f> d> b>> C.Test<<tuple: int Item1, int Item2>, <tuple: int a, <tuple: int c, <tuple: int e, int f> d> b>>(<tuple: int Item1, int Item2>, <tuple: int a, <tuple: int c, <tuple: int e, int f> d> b>)""
   IL_0022:  ldc.i4.1
   IL_0023:  ldc.i4.2
-  IL_0024:  newobj     ""System.Runtime.CompilerServices.ValueTuple<int, int>..ctor(int, int)""
+  IL_0024:  newobj     ""System.ValueTuple<int, int>..ctor(int, int)""
   IL_0029:  callvirt   ""<tuple: int a, <tuple: int c, <tuple: int e, int f> d> b> System.Collections.Generic.Dictionary<<tuple: int Item1, int Item2>, <tuple: int a, <tuple: int c, <tuple: int e, int f> d> b>>.this[<tuple: int Item1, int Item2>].get""
-  IL_002e:  ldfld      ""<tuple: int c, <tuple: int e, int f> d> System.Runtime.CompilerServices.ValueTuple<int, <tuple: int c, <tuple: int e, int f> d>>.Item2""
-  IL_0033:  ldfld      ""<tuple: int e, int f> System.Runtime.CompilerServices.ValueTuple<int, <tuple: int e, int f>>.Item2""
-  IL_0038:  ldfld      ""int System.Runtime.CompilerServices.ValueTuple<int, int>.Item2""
+  IL_002e:  ldfld      ""<tuple: int c, <tuple: int e, int f> d> System.ValueTuple<int, <tuple: int c, <tuple: int e, int f> d>>.Item2""
+  IL_0033:  ldfld      ""<tuple: int e, int f> System.ValueTuple<int, <tuple: int e, int f>>.Item2""
+  IL_0038:  ldfld      ""int System.ValueTuple<int, int>.Item2""
   IL_003d:  call       ""void System.Console.WriteLine(int)""
   IL_0042:  ret
 }
@@ -540,7 +540,7 @@ class C
   .maxstack  1
   IL_0000:  ldarg.0
   IL_0001:  ldflda     ""<tuple: T f1, T f2> C.<>c__DisplayClass1_0<T>.x""
-  IL_0006:  ldfld      ""T System.Runtime.CompilerServices.ValueTuple<T, T>.Item2""
+  IL_0006:  ldfld      ""T System.ValueTuple<T, T>.Item2""
   IL_000b:  ret
 }
 ");
@@ -595,7 +595,7 @@ class C
     IL_000c:  ldfld      ""T C.<Test>d__1<T>.a""
     IL_0011:  ldarg.0
     IL_0012:  ldfld      ""T C.<Test>d__1<T>.a""
-    IL_0017:  newobj     ""System.Runtime.CompilerServices.ValueTuple<T, T>..ctor(T, T)""
+    IL_0017:  newobj     ""System.ValueTuple<T, T>..ctor(T, T)""
     IL_001c:  stfld      ""<tuple: T f1, T f2> C.<Test>d__1<T>.<x>5__1""
     IL_0021:  call       ""System.Runtime.CompilerServices.YieldAwaitable System.Threading.Tasks.Task.Yield()""
     IL_0026:  stloc.3
@@ -636,7 +636,7 @@ class C
     IL_007d:  initobj    ""System.Runtime.CompilerServices.YieldAwaitable.YieldAwaiter""
     IL_0083:  ldarg.0
     IL_0084:  ldflda     ""<tuple: T f1, T f2> C.<Test>d__1<T>.<x>5__1""
-    IL_0089:  ldfld      ""T System.Runtime.CompilerServices.ValueTuple<T, T>.Item1""
+    IL_0089:  ldfld      ""T System.ValueTuple<T, T>.Item1""
     IL_008e:  stloc.1
     IL_008f:  leave.s    IL_00aa
   }
@@ -679,30 +679,30 @@ class C
             // PROTOTYPE those are not the final diagnostics
             var comp = CreateCompilationWithMscorlib(source);
             comp.VerifyDiagnostics(
-                // (6,9): error CS0518: Predefined type 'System.Runtime.CompilerServices.ValueTuple`2' is not defined or imported
+                // (6,9): error CS0518: Predefined type 'System.ValueTuple`2' is not defined or imported
                 //         (int, string a) x = (b: 1, "hello", 2);
-                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "(int, string a)").WithArguments("System.Runtime.CompilerServices.ValueTuple`2").WithLocation(6, 9),
-                // (6,9): error CS0656: Missing compiler required member 'System.Runtime.CompilerServices.ValueTuple`2.Item1'
+                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "(int, string a)").WithArguments("System.ValueTuple`2").WithLocation(6, 9),
+                // (6,9): error CS0656: Missing compiler required member 'System.ValueTuple`2.Item1'
                 //         (int, string a) x = (b: 1, "hello", 2);
-                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "(int, string a)").WithArguments("System.Runtime.CompilerServices.ValueTuple`2", "Item1").WithLocation(6, 9),
-                // (6,9): error CS0656: Missing compiler required member 'System.Runtime.CompilerServices.ValueTuple`2.Item2'
+                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "(int, string a)").WithArguments("System.ValueTuple`2", "Item1").WithLocation(6, 9),
+                // (6,9): error CS0656: Missing compiler required member 'System.ValueTuple`2.Item2'
                 //         (int, string a) x = (b: 1, "hello", 2);
-                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "(int, string a)").WithArguments("System.Runtime.CompilerServices.ValueTuple`2", "Item2").WithLocation(6, 9),
+                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "(int, string a)").WithArguments("System.ValueTuple`2", "Item2").WithLocation(6, 9),
                 // (6,29): error CS8203: Tuple member names must all be provided, if any one is provided.
                 //         (int, string a) x = (b: 1, "hello", 2);
                 Diagnostic(ErrorCode.ERR_TupleExplicitNamesOnAllMembersOrNone, @"(b: 1, ""hello"", 2)").WithLocation(6, 29),
-                // (6,29): error CS0518: Predefined type 'System.Runtime.CompilerServices.ValueTuple`3' is not defined or imported
+                // (6,29): error CS0518: Predefined type 'System.ValueTuple`3' is not defined or imported
                 //         (int, string a) x = (b: 1, "hello", 2);
-                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, @"(b: 1, ""hello"", 2)").WithArguments("System.Runtime.CompilerServices.ValueTuple`3").WithLocation(6, 29),
-                // (6,29): error CS0656: Missing compiler required member 'System.Runtime.CompilerServices.ValueTuple`3.Item1'
+                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, @"(b: 1, ""hello"", 2)").WithArguments("System.ValueTuple`3").WithLocation(6, 29),
+                // (6,29): error CS0656: Missing compiler required member 'System.ValueTuple`3.Item1'
                 //         (int, string a) x = (b: 1, "hello", 2);
-                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, @"(b: 1, ""hello"", 2)").WithArguments("System.Runtime.CompilerServices.ValueTuple`3", "Item1").WithLocation(6, 29),
-                // (6,29): error CS0656: Missing compiler required member 'System.Runtime.CompilerServices.ValueTuple`3.Item2'
+                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, @"(b: 1, ""hello"", 2)").WithArguments("System.ValueTuple`3", "Item1").WithLocation(6, 29),
+                // (6,29): error CS0656: Missing compiler required member 'System.ValueTuple`3.Item2'
                 //         (int, string a) x = (b: 1, "hello", 2);
-                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, @"(b: 1, ""hello"", 2)").WithArguments("System.Runtime.CompilerServices.ValueTuple`3", "Item2").WithLocation(6, 29),
-                // (6,29): error CS0656: Missing compiler required member 'System.Runtime.CompilerServices.ValueTuple`3.Item3'
+                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, @"(b: 1, ""hello"", 2)").WithArguments("System.ValueTuple`3", "Item2").WithLocation(6, 29),
+                // (6,29): error CS0656: Missing compiler required member 'System.ValueTuple`3.Item3'
                 //         (int, string a) x = (b: 1, "hello", 2);
-                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, @"(b: 1, ""hello"", 2)").WithArguments("System.Runtime.CompilerServices.ValueTuple`3", "Item3").WithLocation(6, 29),
+                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, @"(b: 1, ""hello"", 2)").WithArguments("System.ValueTuple`3", "Item3").WithLocation(6, 29),
                 // (6,29): error CS8204: PROTOTYPE This is not supported yet.
                 //         (int, string a) x = (b: 1, "hello", 2);
                 Diagnostic(ErrorCode.ERR_PrototypeNotYetImplemented, @"(b: 1, ""hello"", 2)").WithLocation(6, 29));
@@ -892,7 +892,7 @@ class C
         {
 
             var source = trivial2uple + trivial3uple + @"
-namespace System.Runtime.CompilerServices
+namespace System
 {
     public struct ValueTuple<T1, T2, T3, T4>
     {
