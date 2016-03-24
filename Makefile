@@ -3,7 +3,8 @@ OS_NAME = $(shell uname -s)
 NUGET_PACKAGE_NAME = nuget.71
 BUILD_CONFIGURATION = Debug
 BINARIES_PATH = $(shell pwd)/Binaries
-TOOLSET_TMP_PATH = $(BINARIES_PATH)/toolset
+TOOLSET_PATH = $(BINARIES_PATH)/toolset
+RESTORE_SEMAPHORE_PATH = $(TOOLSET_PATH)/restore.semaphore
 BOOTSTRAP_PATH = $(BINARIES_PATH)/Bootstrap
 BUILD_LOG_PATH =
 XUNIT_VERSION = 2.1.0
@@ -23,7 +24,7 @@ ifneq ($(BUILD_LOG_PATH),)
 	MSBUILD_ADDITIONALARGS := $(MSBUILD_ADDITIONALARGS) /fileloggerparameters:LogFile=$(BUILD_LOG_PATH)
 endif
 
-ROSLYN_TOOLSET_PATH = $(TOOLSET_TMP_PATH)/$(ROSLYN_TOOLSET_NAME)
+ROSLYN_TOOLSET_PATH = $(TOOLSET_PATH)/$(ROSLYN_TOOLSET_NAME)
 
 ifeq ($(BOOTSTRAP),true)
 	MSBUILD_ARGS = $(MSBUILD_ADDITIONALARGS) /p:CscToolPath=$(BOOTSTRAP_PATH) /p:CscToolExe=csc /p:VbcToolPath=$(BOOTSTRAP_PATH) /p:VbcToolExe=vbc
@@ -33,12 +34,14 @@ endif
 
 MSBUILD_CMD = $(ROSLYN_TOOLSET_PATH)/corerun $(ROSLYN_TOOLSET_PATH)/MSBuild.exe $(MSBUILD_ARGS)
 
-all: toolset
+.PHONY: all bootstrap test restore toolset
+
+all: $(ROSLYN_TOOLSET_PATH) $(RESTORE_SEMAPHORE_PATH)
 	export ReferenceAssemblyRoot=$(ROSLYN_TOOLSET_PATH)/reference-assemblies/Framework ; \
 	export HOME=$(HOME_DIR) ; \
 	$(MSBUILD_CMD) CrossPlatform.sln
 
-bootstrap: toolset
+bootstrap: $(ROSLYN_TOOLSET_PATH) $(RESTORE_SEMAPHORE_PATH)
 	export ReferenceAssemblyRoot=$(ROSLYN_TOOLSET_PATH)/reference-assemblies/Framework ; \
 	export HOME=$(HOME_DIR) ; \
 	$(MSBUILD_CMD) src/Compilers/CSharp/CscCore/CscCore.csproj && \
@@ -52,25 +55,26 @@ bootstrap: toolset
 test:
 	build/scripts/tests.sh $(BUILD_CONFIGURATION)
 
+restore: $(RESTORE_SEMAPHORE_PATH)
+
+$(RESTORE_SEMAPHORE_PATH): $(ROSLYN_TOOLSET_PATH)
+	@build/scripts/restore.sh $(ROSLYN_TOOLSET_PATH) && \
+	touch $(RESTORE_SEMAPHORE_PATH)
+
 clean:
 	@rm -rf Binaries
 
 clean_toolset:
-	@rm -rf $(TOOLSET_TMP_PATH)
+	@rm -rf $(TOOLSET_PATH)
 
-toolset: $(TOOLSET_TMP_PATH)/$(ROSLYN_TOOLSET_NAME) $(TOOLSET_TMP_PATH)/$(NUGET_PACKAGE_NAME).zip
+toolset: $(ROSLYN_TOOLSET_PATH)
 
-$(TOOLSET_TMP_PATH)/$(ROSLYN_TOOLSET_NAME): | $(TOOLSET_TMP_PATH)
-	@pushd $(TOOLSET_TMP_PATH) ; \
+$(ROSLYN_TOOLSET_PATH): | $(TOOLSET_PATH)
+	@pushd $(TOOLSET_PATH) ; \
 	curl -O https://dotnetci.blob.core.windows.net/roslyn/$(ROSLYN_TOOLSET_NAME).tar.bz2 && \
 	tar -jxf $(ROSLYN_TOOLSET_NAME).tar.bz2 && \
 	chmod +x $(ROSLYN_TOOLSET_NAME)/corerun
 
-$(TOOLSET_TMP_PATH)/$(NUGET_PACKAGE_NAME).zip: | $(TOOLSET_TMP_PATH)
-	@pushd $(TOOLSET_TMP_PATH) && \
-	curl -O https://dotnetci.blob.core.windows.net/roslyn/$(NUGET_PACKAGE_NAME).zip && \
-	unzip -uoq $(NUGET_PACKAGE_NAME).zip -d ~/
-
-$(TOOLSET_TMP_PATH):
-	mkdir -p $(TOOLSET_TMP_PATH)
+$(TOOLSET_PATH):
+	mkdir -p $(TOOLSET_PATH)
 
