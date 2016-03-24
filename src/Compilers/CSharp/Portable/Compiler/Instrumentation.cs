@@ -28,10 +28,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                     // Create the symbol for the instrumentation payload.
                     SyntheticBoundNodeFactory factory = new SyntheticBoundNodeFactory(method, methodBody.Syntax, compilationState, diagnostics);
 
-                    // PROTOTYPE This associates the synthesized code for the instrumentation class with the first instrumented method to be compiled,
-                    // which is dubious (and nondeterministic) at best.
-                    // instrumentationClass.SynthesizeInitialization(factory);
-
                     TypeSymbol boolType = factory.SpecialType(SpecialType.System_Boolean);
                     TypeSymbol payloadElementType = boolType;
                     ArrayTypeSymbol payloadType = ArrayTypeSymbol.CreateCSharpArray(compilation.Assembly, payloadElementType);
@@ -42,22 +38,19 @@ namespace Microsoft.CodeAnalysis.CSharp
                     // PROTOTYPE (https://github.com/dotnet/roslyn/issues/9819): Try to integrate instrumentation with lowering, to avoid an extra pass over the bound tree.
                     BoundBlock newMethodBody = InstrumentationInjectionRewriter.InstrumentMethod(method, methodBody, payloadField, compilationState, diagnostics, debugDocumentProvider, out dynamicAnalysisSpans);
 
-                    // Synthesize the initialization of the instrumentation payload array. It should be done either statically or with concurrency-safe code:
+                    // Synthesize the initialization of the instrumentation payload array, using concurrency-safe code:
                     //
                     // if (payloadField == null)
                     //     Instrumentation.CreatePayload(mvid, method, ref payloadField, payloadLength);
 
+                    // Guarantee that PrivateImplementationDetails will initialize its MVID field.
                     PrivateImplementationDetails privateImplementationClass = compilationState.ModuleBuilderOpt.GetPrivateImplClass(null, diagnostics);
                     if (privateImplementationClass.StaticConstructor == null)
                     {
+                        // This is concurrency safe because the StaticConstructor setter ignores all but the first assignment.
                         privateImplementationClass.StaticConstructor = new SynthesizedPrivateImplementationStaticConstructor(compilationState.ModuleBuilderOpt.SourceModule, privateImplementationClass);
                     }
-
-                    // var mumble = new SynthesizedFieldSymbol(privateImplementationClass, factory.WellKnownType(WellKnownType.System_Guid), "MVID", isPublic: true, isReadOnly: true, isStatic: true);
-
-                    // PROTOTYPE (https://github.com/dotnet/roslyn/issues/9812):
-                    // The containing module's mvid should be computed statically and stored in a static field rather than being
-                    // recomputed in each method prologue. NOW IT IS.
+                    
                     BoundExpression mvid = mvid = factory.MVID();
 
                     BoundExpression methodToken = factory.MethodToken(method);
@@ -73,7 +66,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                     {
                         // If the method is a test method, wrap the body in:
                         //
-                        // Instrumentation.FlushPayload();
                         // try
                         // {
                         //     ... body ...
@@ -83,10 +75,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                         //     Instrumentation.FlushPayload();
                         // }
 
-                        BoundStatement firstFlush = factory.ExpressionStatement(factory.Call(null, flushPayload));
-                        BoundStatement secondFlush = factory.ExpressionStatement(factory.Call(null, flushPayload));
-                        BoundStatement tryFinally = factory.Try(newMethodBody, ImmutableArray<BoundCatchBlock>.Empty, factory.Block(ImmutableArray.Create(secondFlush)));
-                        newMethodBody = factory.Block(ImmutableArray.Create(firstFlush, tryFinally));
+                        BoundStatement flush = factory.ExpressionStatement(factory.Call(null, flushPayload));
+                        BoundStatement tryFinally = factory.Try(newMethodBody, ImmutableArray<BoundCatchBlock>.Empty, factory.Block(ImmutableArray.Create(flush)));
+                        newMethodBody = factory.Block(ImmutableArray.Create(tryFinally));
                     }
 
                     return newMethodBody;
@@ -103,6 +94,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             // If the type containing the method is generic, synthesize a helper type and put the payload field there.
             // If the payload field is part of a generic type, there will be a new instance of the field per instantiation of the generic,
             // and so the payload field must be a member of another type.
+            // Or, preferably, add a single static field to PrivateImplementationDetails that is the root of payloads,
+            // an array of arrays of bools, and thereby avoid creating a large number of symbols.
             NamedTypeSymbol containingType = method.ContainingType;
 
             SynthesizedFieldSymbol payloadField = new SynthesizedFieldSymbol(containingType, payloadType, GeneratedNames.MakeSynthesizedInstrumentationPayloadFieldName(method, methodOrdinal), isStatic: true);
@@ -195,6 +188,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                     case BoundKind.SequencePoint:
                     case BoundKind.SequencePointWithSpan:
                     case BoundKind.LabeledStatement:
+                    case BoundKind.Block:
+                    case BoundKind.TryStatement:
+                    // A for statement implicitly gets coverage for the initial statements and the increment statement.
+                    case BoundKind.ForStatement:
                         break;
                     default:
                         return CollectDynamicAnalysis(base.Visit(node));
@@ -224,16 +221,17 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             // Add an entry in the spans array.
 
-            Location statementLocation = statement.Syntax.GetLocation();
-            FileLinePositionSpan lineSpan = statementLocation.GetMappedLineSpan();
-            string path = lineSpan.Path;
+            CSharpSyntaxNode syntaxForSpan = SyntaxForSpan(statement);
+            Location location = syntaxForSpan.GetLocation();
+            FileLinePositionSpan spanPosition = location.GetMappedLineSpan();
+            string path = spanPosition.Path;
             if (path.Length == 0)
             {
-                path = statement.Syntax.SyntaxTree.FilePath;
+                path = syntaxForSpan.SyntaxTree.FilePath;
             }
 
             int spansIndex = _spansBuilder.Count;
-            _spansBuilder.Add(new SourceSpan(_debugDocumentProvider.Invoke(path, ""), lineSpan.StartLinePosition.Line, lineSpan.StartLinePosition.Character, lineSpan.EndLinePosition.Line, lineSpan.EndLinePosition.Character));
+            _spansBuilder.Add(new SourceSpan(_debugDocumentProvider.Invoke(path, ""), spanPosition.StartLinePosition.Line, spanPosition.StartLinePosition.Character, spanPosition.EndLinePosition.Line, spanPosition.EndLinePosition.Character));
 
             // Generate "_payload[pointIndex] = true".
 
@@ -242,6 +240,45 @@ namespace Microsoft.CodeAnalysis.CSharp
             BoundExpressionStatement cellAssignment = statementFactory.Assignment(payloadCell, statementFactory.Literal(true));
             
             return statementFactory.Block(ImmutableArray.Create(cellAssignment, statement));
+        }
+
+        private static CSharpSyntaxNode SyntaxForSpan(BoundStatement statement)
+        {
+            CSharpSyntaxNode syntaxForSpan;
+
+            switch (statement.Kind)
+            {
+                case BoundKind.IfStatement:
+                    syntaxForSpan = ((BoundIfStatement)statement).Condition.Syntax;
+                    break;
+                case BoundKind.WhileStatement:
+                    syntaxForSpan = ((BoundWhileStatement)statement).Condition.Syntax;
+                    break;
+                case BoundKind.ForEachStatement:
+                    syntaxForSpan = ((BoundForEachStatement)statement).Expression.Syntax;
+                    break;
+                case BoundKind.DoStatement:
+                    syntaxForSpan = ((BoundDoStatement)statement).Condition.Syntax;
+                    break;
+                case BoundKind.UsingStatement:
+                    {
+                        BoundUsingStatement usingStatement = (BoundUsingStatement)statement;
+                        BoundNode operand = (BoundNode)usingStatement.ExpressionOpt ?? usingStatement.DeclarationsOpt;
+                        syntaxForSpan = operand != null ? operand.Syntax : usingStatement.Syntax;
+                        break;
+                    }
+                case BoundKind.LockStatement:
+                    syntaxForSpan = ((BoundLockStatement)statement).Argument.Syntax;
+                    break;
+                case BoundKind.SwitchStatement:
+                    syntaxForSpan = ((BoundSwitchStatement)statement).Expression.Syntax;
+                    break;
+                default:
+                    syntaxForSpan = statement.Syntax;
+                    break;
+            }
+
+            return syntaxForSpan;
         }
     }
 }

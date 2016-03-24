@@ -992,6 +992,10 @@ namespace Microsoft.CodeAnalysis.CSharp
             { WasCompilerGenerated = true };
         }
 
+        /// <summary>
+        /// Synthesizes an expression that evaluates to the current module's MVID.
+        /// </summary>
+        /// <returns></returns>
         public BoundExpression MVID()
         {
             return new BoundMVID(Syntax, WellKnownType(Microsoft.CodeAnalysis.WellKnownType.System_Guid)) { WasCompilerGenerated = true };

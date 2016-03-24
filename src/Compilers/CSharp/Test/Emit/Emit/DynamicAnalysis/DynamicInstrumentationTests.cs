@@ -110,16 +110,11 @@ public class Program
     }
 }
 ";
-            string expectedOutput = @"Flushing
-1
-True
-True
-foo
+            string expectedOutput = @"foo
 bar
 Flushing
 1
-False
-False
+True
 2
 True
 True
@@ -127,9 +122,7 @@ False
 True
 True
 True
-True
 3
-True
 True
 True
 True
@@ -140,63 +133,56 @@ True
 False
 True
 True
-True
 5
 True
 True
 False
 False
 False
-True
 6
-True
 True
 ";
 
             string expectedBarneyIL = @"{
-  // Code size       91 (0x5b)
+  // Code size       83 (0x53)
   .maxstack  4
   IL_0000:  ldsfld     ""bool[] Program.<Barney>3ipayload__Field""
   IL_0005:  brtrue.s   IL_001c
   IL_0007:  ldsfld     ""System.Guid <PrivateImplementationDetails>.MVID""
   IL_000c:  ldtoken    ""int Program.Barney(bool)""
   IL_0011:  ldsflda    ""bool[] Program.<Barney>3ipayload__Field""
-  IL_0016:  ldc.i4.6
+  IL_0016:  ldc.i4.5
   IL_0017:  call       ""void Microsoft.CodeAnalysis.Runtime.Instrumentation.CreatePayload(System.Guid, int, ref bool[], int)""
   IL_001c:  ldsfld     ""bool[] Program.<Barney>3ipayload__Field""
-  IL_0021:  ldc.i4.5
+  IL_0021:  ldc.i4.1
   IL_0022:  ldc.i4.1
   IL_0023:  stelem.i1
-  IL_0024:  ldsfld     ""bool[] Program.<Barney>3ipayload__Field""
-  IL_0029:  ldc.i4.1
-  IL_002a:  ldc.i4.1
-  IL_002b:  stelem.i1
-  IL_002c:  ldarg.0
-  IL_002d:  brfalse.s  IL_003a
-  IL_002f:  ldsfld     ""bool[] Program.<Barney>3ipayload__Field""
-  IL_0034:  ldc.i4.0
-  IL_0035:  ldc.i4.1
-  IL_0036:  stelem.i1
-  IL_0037:  ldc.i4.s   10
-  IL_0039:  ret
-  IL_003a:  ldsfld     ""bool[] Program.<Barney>3ipayload__Field""
-  IL_003f:  ldc.i4.3
-  IL_0040:  ldc.i4.1
-  IL_0041:  stelem.i1
-  IL_0042:  ldarg.0
-  IL_0043:  brfalse.s  IL_0050
-  IL_0045:  ldsfld     ""bool[] Program.<Barney>3ipayload__Field""
-  IL_004a:  ldc.i4.2
-  IL_004b:  ldc.i4.1
-  IL_004c:  stelem.i1
-  IL_004d:  ldc.i4.s   100
-  IL_004f:  ret
-  IL_0050:  ldsfld     ""bool[] Program.<Barney>3ipayload__Field""
-  IL_0055:  ldc.i4.4
-  IL_0056:  ldc.i4.1
-  IL_0057:  stelem.i1
-  IL_0058:  ldc.i4.s   20
-  IL_005a:  ret
+  IL_0024:  ldarg.0
+  IL_0025:  brfalse.s  IL_0032
+  IL_0027:  ldsfld     ""bool[] Program.<Barney>3ipayload__Field""
+  IL_002c:  ldc.i4.0
+  IL_002d:  ldc.i4.1
+  IL_002e:  stelem.i1
+  IL_002f:  ldc.i4.s   10
+  IL_0031:  ret
+  IL_0032:  ldsfld     ""bool[] Program.<Barney>3ipayload__Field""
+  IL_0037:  ldc.i4.3
+  IL_0038:  ldc.i4.1
+  IL_0039:  stelem.i1
+  IL_003a:  ldarg.0
+  IL_003b:  brfalse.s  IL_0048
+  IL_003d:  ldsfld     ""bool[] Program.<Barney>3ipayload__Field""
+  IL_0042:  ldc.i4.2
+  IL_0043:  ldc.i4.1
+  IL_0044:  stelem.i1
+  IL_0045:  ldc.i4.s   100
+  IL_0047:  ret
+  IL_0048:  ldsfld     ""bool[] Program.<Barney>3ipayload__Field""
+  IL_004d:  ldc.i4.4
+  IL_004e:  ldc.i4.1
+  IL_004f:  stelem.i1
+  IL_0050:  ldc.i4.s   20
+  IL_0052:  ret
 }
 ";
             CompilationVerifier verifier = CompileAndVerify(source + InstrumentationHelperSource, emitOptions: EmitOptions.Default.WithEmitDynamicAnalysisData(true), expectedOutput: expectedOutput);
@@ -291,21 +277,27 @@ public class Program
         }
 
         Console.WriteLine(x);
+
+        try
+        {
+            using ((System.IDisposable)new object())
+            {
+                ;
+            }
+        }
+        catch (System.Exception e)
+        {
+        }
+
         return;
     }
 }
 ";
-            string expectedOutput = @"Flushing
-1
-True
-True
-103
+            string expectedOutput = @"103
 Flushing
 1
-False
-False
-2
 True
+2
 True
 3
 True
@@ -315,15 +307,7 @@ False
 False
 True
 True
-True
 False
-False
-True
-True
-True
-True
-True
-True
 True
 True
 True
@@ -345,11 +329,7 @@ True
 True
 True
 True
-True
-True
-True
-True
-True
+False
 True
 True
 ";
@@ -391,27 +371,19 @@ public class Program
     }
 }
 ";
-            string expectedOutput = @"Flushing
-1
-True
-True
-OK
+            string expectedOutput = @"OK
 Flushing
 1
-False
-False
+True
 2
 True
 True
 True
-True
 False
 True
 True
 True
-True
 False
-True
 True
 ";
 
@@ -465,20 +437,13 @@ public class Program
     }
 }
 ";
-            string expectedOutput = @"Flushing
-1
-True
-True
-GooGooGlueGooGoo
+            string expectedOutput = @"GooGooGlueGooGoo
 Flushing
 1
-False
-False
+True
 2
 True
-True
 3
-True
 True
 True
 True
@@ -487,12 +452,10 @@ True
 True
 False
 True
-True
 5
 True
 True
 False
-True
 True
 True
 ";
