@@ -1,13 +1,13 @@
 // Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-#load "../../../util/test_util.csx"
+#load "../../util/test_util.csx"
 using System.IO;
 
 InitUtilities();
 
 DownloadProject("csharp", version: 1);
 
-var rspFile = "CSharpCompilerNoAnalyzer.rsp";
+var rspFile = "CSharpCompilerNoAnalyzerNoDeterminism.rsp";
 string responseFile = "@" + Path.Combine(MyTempDirectory(), "csharp", rspFile);
 string keyfileLocation = Path.Combine(MyTempDirectory(), "csharp", "keyfile", "35MSSharedLib1024.snk");
 string args = $"{responseFile} /keyfile:{keyfileLocation}";
