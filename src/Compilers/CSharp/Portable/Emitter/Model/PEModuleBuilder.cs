@@ -622,12 +622,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
                              syntaxNodeOpt: syntaxNodeOpt,
                              needDeclaration: true);
         }
-        
+
         internal sealed override Cci.INamedTypeReference GetSystemType(CSharpSyntaxNode syntaxOpt, DiagnosticBag diagnostics)
         {
-             NamedTypeSymbol typeSymbol = Compilation.GetWellKnownType(WellKnownType.System_Type);
+             NamedTypeSymbol systemTypeSymbol = Compilation.GetWellKnownType(WellKnownType.System_Type);
 
-            DiagnosticInfo info = typeSymbol.GetUseSiteDiagnostic();
+            DiagnosticInfo info = systemTypeSymbol.GetUseSiteDiagnostic();
             if (info != null)
             {
                 Symbol.ReportUseSiteDiagnostic(info,
@@ -635,7 +635,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
                                                syntaxOpt != null ? syntaxOpt.Location : NoLocation.Singleton);
             }
 
-            return Translate(typeSymbol, syntaxOpt, diagnostics, needDeclaration: true);
+            return Translate(systemTypeSymbol, syntaxOpt, diagnostics, needDeclaration: true);
         }
 
         public sealed override Cci.IMethodReference GetInitArrayHelper()

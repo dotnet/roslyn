@@ -42,7 +42,7 @@ namespace Microsoft.CodeAnalysis.CodeGen
         private int _frozen;
 
         // fields mapped to metadata blocks
-        private ImmutableArray<Cci.IFieldDefinition> _orderedMappedFields;
+        private ImmutableArray<SynthesizedStaticField> _orderedMappedFields;
         private readonly ConcurrentDictionary<ImmutableArray<byte>, MappedField> _mappedFields =
             new ConcurrentDictionary<ImmutableArray<byte>, MappedField>(ByteSequenceComparer.Instance);
 
@@ -113,7 +113,7 @@ namespace Microsoft.CodeAnalysis.CodeGen
             }
 
             // Sort data fields
-            ArrayBuilder<Cci.IFieldDefinition> fieldsBuilder = ArrayBuilder<Cci.IFieldDefinition>.GetInstance(_mappedFields.Count);
+            ArrayBuilder<SynthesizedStaticField> fieldsBuilder = ArrayBuilder<SynthesizedStaticField>.GetInstance(_mappedFields.Count);
             fieldsBuilder.AddRange(_mappedFields.Values.OrderBy((x, y) => x.Name.CompareTo(y.Name)));
             if (_mvidField != null)
             {
