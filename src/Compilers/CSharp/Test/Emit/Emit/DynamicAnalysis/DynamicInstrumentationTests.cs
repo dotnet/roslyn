@@ -154,52 +154,49 @@ True
 ";
 
             string expectedBarneyIL = @"{
-  // Code size      106 (0x6a)
+  // Code size       91 (0x5b)
   .maxstack  4
   IL_0000:  ldsfld     ""bool[] Program.<Barney>3ipayload__Field""
-  IL_0005:  brtrue.s   IL_002b
-  IL_0007:  ldtoken    ""Program""
-  IL_000c:  call       ""System.Type System.Type.GetTypeFromHandle(System.RuntimeTypeHandle)""
-  IL_0011:  callvirt   ""System.Reflection.Module System.Type.Module.get""
-  IL_0016:  callvirt   ""System.Guid System.Reflection.Module.ModuleVersionId.get""
-  IL_001b:  ldtoken    ""int Program.Barney(bool)""
-  IL_0020:  ldsflda    ""bool[] Program.<Barney>3ipayload__Field""
-  IL_0025:  ldc.i4.6
-  IL_0026:  call       ""void Microsoft.CodeAnalysis.Runtime.Instrumentation.CreatePayload(System.Guid, int, ref bool[], int)""
-  IL_002b:  ldsfld     ""bool[] Program.<Barney>3ipayload__Field""
-  IL_0030:  ldc.i4.5
-  IL_0031:  ldc.i4.1
-  IL_0032:  stelem.i1
-  IL_0033:  ldsfld     ""bool[] Program.<Barney>3ipayload__Field""
-  IL_0038:  ldc.i4.1
-  IL_0039:  ldc.i4.1
-  IL_003a:  stelem.i1
-  IL_003b:  ldarg.0
-  IL_003c:  brfalse.s  IL_0049
-  IL_003e:  ldsfld     ""bool[] Program.<Barney>3ipayload__Field""
-  IL_0043:  ldc.i4.0
-  IL_0044:  ldc.i4.1
-  IL_0045:  stelem.i1
-  IL_0046:  ldc.i4.s   10
-  IL_0048:  ret
-  IL_0049:  ldsfld     ""bool[] Program.<Barney>3ipayload__Field""
-  IL_004e:  ldc.i4.3
-  IL_004f:  ldc.i4.1
-  IL_0050:  stelem.i1
-  IL_0051:  ldarg.0
-  IL_0052:  brfalse.s  IL_005f
-  IL_0054:  ldsfld     ""bool[] Program.<Barney>3ipayload__Field""
-  IL_0059:  ldc.i4.2
-  IL_005a:  ldc.i4.1
-  IL_005b:  stelem.i1
-  IL_005c:  ldc.i4.s   100
-  IL_005e:  ret
-  IL_005f:  ldsfld     ""bool[] Program.<Barney>3ipayload__Field""
-  IL_0064:  ldc.i4.4
-  IL_0065:  ldc.i4.1
-  IL_0066:  stelem.i1
-  IL_0067:  ldc.i4.s   20
-  IL_0069:  ret
+  IL_0005:  brtrue.s   IL_001c
+  IL_0007:  ldsfld     ""System.Guid <PrivateImplementationDetails>.MVID""
+  IL_000c:  ldtoken    ""int Program.Barney(bool)""
+  IL_0011:  ldsflda    ""bool[] Program.<Barney>3ipayload__Field""
+  IL_0016:  ldc.i4.6
+  IL_0017:  call       ""void Microsoft.CodeAnalysis.Runtime.Instrumentation.CreatePayload(System.Guid, int, ref bool[], int)""
+  IL_001c:  ldsfld     ""bool[] Program.<Barney>3ipayload__Field""
+  IL_0021:  ldc.i4.5
+  IL_0022:  ldc.i4.1
+  IL_0023:  stelem.i1
+  IL_0024:  ldsfld     ""bool[] Program.<Barney>3ipayload__Field""
+  IL_0029:  ldc.i4.1
+  IL_002a:  ldc.i4.1
+  IL_002b:  stelem.i1
+  IL_002c:  ldarg.0
+  IL_002d:  brfalse.s  IL_003a
+  IL_002f:  ldsfld     ""bool[] Program.<Barney>3ipayload__Field""
+  IL_0034:  ldc.i4.0
+  IL_0035:  ldc.i4.1
+  IL_0036:  stelem.i1
+  IL_0037:  ldc.i4.s   10
+  IL_0039:  ret
+  IL_003a:  ldsfld     ""bool[] Program.<Barney>3ipayload__Field""
+  IL_003f:  ldc.i4.3
+  IL_0040:  ldc.i4.1
+  IL_0041:  stelem.i1
+  IL_0042:  ldarg.0
+  IL_0043:  brfalse.s  IL_0050
+  IL_0045:  ldsfld     ""bool[] Program.<Barney>3ipayload__Field""
+  IL_004a:  ldc.i4.2
+  IL_004b:  ldc.i4.1
+  IL_004c:  stelem.i1
+  IL_004d:  ldc.i4.s   100
+  IL_004f:  ret
+  IL_0050:  ldsfld     ""bool[] Program.<Barney>3ipayload__Field""
+  IL_0055:  ldc.i4.4
+  IL_0056:  ldc.i4.1
+  IL_0057:  stelem.i1
+  IL_0058:  ldc.i4.s   20
+  IL_005a:  ret
 }
 ";
             CompilationVerifier verifier = CompileAndVerify(source + InstrumentationHelperSource, emitOptions: EmitOptions.Default.WithEmitDynamicAnalysisData(true), expectedOutput: expectedOutput);

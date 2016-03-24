@@ -1,5 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System;
 using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.CodeGen;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
@@ -23,8 +24,14 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // Do not instrument the instrumentation helpers if they are part of the current compilation (which occurs only during testing). GetCreatePayload will fail with an infinite recursion if it is instrumented.
                 if ((object)createPayload != null && (object)flushPayload != null && !method.Equals(createPayload) && !method.Equals(flushPayload))
                 {
+                    
                     // Create the symbol for the instrumentation payload.
                     SyntheticBoundNodeFactory factory = new SyntheticBoundNodeFactory(method, methodBody.Syntax, compilationState, diagnostics);
+
+                    // PROTOTYPE This associates the synthesized code for the instrumentation class with the first instrumented method to be compiled,
+                    // which is dubious (and nondeterministic) at best.
+                    // instrumentationClass.SynthesizeInitialization(factory);
+
                     TypeSymbol boolType = factory.SpecialType(SpecialType.System_Boolean);
                     TypeSymbol payloadElementType = boolType;
                     ArrayTypeSymbol payloadType = ArrayTypeSymbol.CreateCSharpArray(compilation.Assembly, payloadElementType);
@@ -40,10 +47,19 @@ namespace Microsoft.CodeAnalysis.CSharp
                     // if (payloadField == null)
                     //     Instrumentation.CreatePayload(mvid, method, ref payloadField, payloadLength);
 
+                    PrivateImplementationDetails privateImplementationClass = compilationState.ModuleBuilderOpt.GetPrivateImplClass(null, diagnostics);
+                    if (privateImplementationClass.StaticConstructor == null)
+                    {
+                        privateImplementationClass.StaticConstructor = new SynthesizedPrivateImplementationStaticConstructor(compilationState.ModuleBuilderOpt.SourceModule, privateImplementationClass);
+                    }
+
+                    // var mumble = new SynthesizedFieldSymbol(privateImplementationClass, factory.WellKnownType(WellKnownType.System_Guid), "MVID", isPublic: true, isReadOnly: true, isStatic: true);
+
                     // PROTOTYPE (https://github.com/dotnet/roslyn/issues/9812):
                     // The containing module's mvid should be computed statically and stored in a static field rather than being
-                    // recomputed in each method prologue.
-                    BoundExpression mvid = factory.Property(factory.Property(factory.TypeofBeforeRewriting(method.ContainingType), "Module"), "ModuleVersionId");
+                    // recomputed in each method prologue. NOW IT IS.
+                    BoundExpression mvid = mvid = factory.MVID();
+
                     BoundExpression methodToken = factory.MethodToken(method);
                     BoundStatement createPayloadCall = factory.ExpressionStatement(factory.Call(null, createPayload, mvid, methodToken, factory.Field(null, payloadField), factory.Literal(dynamicAnalysisSpans.Length)));
 
@@ -108,6 +124,30 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             // PROTOTYPE (https://github.com/dotnet/roslyn/issues/9811): Make this real. 
             return method.Name.StartsWith("Test");
+        }
+
+        internal sealed partial class SynthesizedPrivateImplementationStaticConstructor : SynthesizedGlobalMethodSymbol
+        {
+            internal SynthesizedPrivateImplementationStaticConstructor(SourceModuleSymbol containingModule, PrivateImplementationDetails privateImplementationType)
+                : base(containingModule, privateImplementationType, containingModule.ContainingAssembly.GetSpecialType(SpecialType.System_Void), WellKnownMemberNames.StaticConstructorName)
+            {
+                this.SetParameters(ImmutableArray<ParameterSymbol>.Empty);
+            }
+
+            public override MethodKind MethodKind => MethodKind.StaticConstructor;
+
+            internal override bool HasSpecialName => true;
+
+            internal override void GenerateMethodBody(TypeCompilationState compilationState, DiagnosticBag diagnostics)
+            {
+                SyntheticBoundNodeFactory factory = new SyntheticBoundNodeFactory(this, this.GetNonNullSyntaxNode(), compilationState, diagnostics);
+                factory.CurrentMethod = this;
+
+                BoundStatement mvidInitialization = factory.Assignment(factory.MVID(), factory.Property(factory.Property(factory.Typeof(ContainingPrivateImplementationDetailsType), "Module"), "ModuleVersionId"));
+                BoundStatement returnStatement = factory.Return();
+
+                factory.CloseMethod(factory.Block(ImmutableArray.Create(mvidInitialization, returnStatement)));
+            }
         }
     }
 

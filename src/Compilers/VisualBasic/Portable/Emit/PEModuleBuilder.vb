@@ -557,17 +557,25 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
             Next
         End Function
 
-        Friend NotOverridable Overrides Function GetSystemType(syntaxOpt As VisualBasicSyntaxNode, diagnostics As DiagnosticBag) As Cci.INamedTypeReference
-            Dim systemTypeSymbol As NamedTypeSymbol = SourceModule.DeclaringCompilation.GetWellKnownType(WellKnownType.System_Type)
+        Private Function GetWellKnownType(wellKnownType As WellKnownType, syntaxOpt As VisualBasicSyntaxNode, diagnostics As DiagnosticBag) As Cci.INamedTypeReference
+            Dim typeSymbol As NamedTypeSymbol = SourceModule.DeclaringCompilation.GetWellKnownType(wellKnownType)
 
-            Dim useSiteError = Binder.GetUseSiteErrorForWellKnownType(systemTypeSymbol)
+            Dim useSiteError = Binder.GetUseSiteErrorForWellKnownType(typeSymbol)
             If useSiteError IsNot Nothing Then
                 Binder.ReportDiagnostic(diagnostics,
                                         If(syntaxOpt IsNot Nothing, syntaxOpt.GetLocation(), NoLocation.Singleton),
                                         useSiteError)
             End If
 
-            Return Translate(systemTypeSymbol, syntaxOpt, diagnostics, needDeclaration:=True)
+            Return Translate(typeSymbol, syntaxOpt, diagnostics, needDeclaration:=True)
+        End Function
+
+        Friend NotOverridable Overrides Function GetSystemType(syntaxOpt As VisualBasicSyntaxNode, diagnostics As DiagnosticBag) As Cci.INamedTypeReference
+            Return GetWellKnownType(WellKnownType.System_Type, syntaxOpt, diagnostics)
+        End Function
+
+        Friend NotOverridable Overrides Function GetGuidType(syntaxOpt As VisualBasicSyntaxNode, diagnostics As DiagnosticBag) As Cci.INamedTypeReference
+            Return GetWellKnownType(WellKnownType.System_Guid, syntaxOpt, diagnostics)
         End Function
 
         Friend NotOverridable Overrides Function GetSpecialType(specialType As SpecialType, syntaxNodeOpt As VisualBasicSyntaxNode, diagnostics As DiagnosticBag) As Cci.INamedTypeReference

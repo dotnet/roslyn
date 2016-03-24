@@ -15,6 +15,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             _containingType = containingType;
         }
 
+        internal SynthesizedStaticConstructor(NamedTypeSymbol containingType, BoundBlock body)
+        {
+            _containingType = containingType;
+        }
+
         public override Symbol ContainingSymbol
         {
             get

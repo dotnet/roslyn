@@ -196,6 +196,13 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
                     EmitDefaultExpression((BoundDefaultOperator)expression, used);
                     break;
 
+                case BoundKind.ImplementationTypeOfOperator:
+                    if (used) // unused typeof has no side-effects
+                    {
+                        EmitTypeOfExpression((BoundImplementationTypeOfOperator)expression);
+                    }
+                    break;
+
                 case BoundKind.TypeOfOperator:
                     if (used) // unused typeof has no side-effects
                     {
@@ -207,6 +214,13 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
                     if (used) // unused sizeof has no side-effects
                     {
                         EmitSizeOfExpression((BoundSizeOfOperator)expression);
+                    }
+                    break;
+
+                case BoundKind.MVID:
+                    if (used)
+                    {
+                        EmitMVIDLoad((BoundMVID)expression);
                     }
                     break;
 
@@ -2311,6 +2325,10 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
                     EmitIndirectStore(expression.Type, expression.Syntax);
                     break;
 
+                case BoundKind.MVID:
+                    EmitMVIDStore((BoundMVID)expression);
+                    break;
+
                 case BoundKind.PreviousSubmissionReference:
                 // Script references are lowered to a this reference and a field access.
                 default:
@@ -2634,15 +2652,28 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
             }
         }
 
+        private void EmitRestOfTypeOfExpression(BoundTypeOf boundTypeOf)
+        {
+            _builder.EmitOpCode(ILOpCode.Call, stackAdjustment: 0); //argument off, return value on
+            var getTypeMethod = boundTypeOf.GetTypeFromHandle;
+            Debug.Assert((object)getTypeMethod != null); // Should have been checked during binding
+            EmitSymbolToken(getTypeMethod, boundTypeOf.Syntax, null);
+        }
+
+        private void EmitTypeOfExpression(BoundImplementationTypeOfOperator boundTypeOfOperator)
+        {
+            Cci.ITypeReference type = boundTypeOfOperator.SourceType.SourceType;
+            _builder.EmitOpCode(ILOpCode.Ldtoken);
+            EmitImplementationSymbolToken(type, boundTypeOfOperator.SourceType.Syntax);
+            EmitRestOfTypeOfExpression(boundTypeOfOperator);
+        }
+
         private void EmitTypeOfExpression(BoundTypeOfOperator boundTypeOfOperator)
         {
             TypeSymbol type = boundTypeOfOperator.SourceType.Type;
             _builder.EmitOpCode(ILOpCode.Ldtoken);
             EmitSymbolToken(type, boundTypeOfOperator.SourceType.Syntax);
-            _builder.EmitOpCode(ILOpCode.Call, stackAdjustment: 0); //argument off, return value on
-            var getTypeMethod = boundTypeOfOperator.GetTypeFromHandle;
-            Debug.Assert((object)getTypeMethod != null); // Should have been checked during binding
-            EmitSymbolToken(getTypeMethod, boundTypeOfOperator.Syntax, null);
+            EmitRestOfTypeOfExpression(boundTypeOfOperator);
         }
 
         private void EmitSizeOfExpression(BoundSizeOfOperator boundSizeOfOperator)
@@ -2658,6 +2689,18 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
             Debug.Assert(node.Type.SpecialType == SpecialType.System_Int32);
             _builder.EmitOpCode(ILOpCode.Ldtoken);
             EmitSymbolToken(node.Method, node.Syntax, null, encodeAsRawToken: true);
+        }
+
+        private void EmitMVIDLoad(BoundMVID node)
+        {
+            _builder.EmitOpCode(ILOpCode.Ldsfld);
+            _builder.EmitToken(_module.PrivateImplClass.GetMVID(), node.Syntax, _diagnostics);
+        }
+
+        private void EmitMVIDStore(BoundMVID node)
+        {
+            _builder.EmitOpCode(ILOpCode.Stsfld);
+            _builder.EmitToken(_module.PrivateImplClass.GetMVID(), node.Syntax, _diagnostics);
         }
 
         private void EmitMethodInfoExpression(BoundMethodInfo node)

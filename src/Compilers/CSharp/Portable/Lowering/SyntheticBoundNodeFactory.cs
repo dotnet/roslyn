@@ -928,6 +928,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             return new BoundTypeExpression(Syntax, null, type) { WasCompilerGenerated = true };
         }
 
+        public BoundImplementationTypeExpression Type(Cci.INamespaceTypeReference type)
+        {
+            return new BoundImplementationTypeExpression(Syntax, type, null) { WasCompilerGenerated = true };
+        }
+
         public BoundExpression Typeof(WellKnownType type)
         {
             return Typeof(WellKnownType(type));
@@ -943,17 +948,16 @@ namespace Microsoft.CodeAnalysis.CSharp
             { WasCompilerGenerated = true };
         }
 
-        public BoundExpression TypeofBeforeRewriting(TypeSymbol type)
+        public BoundExpression Typeof(PrivateImplementationDetails type)
         {
-            return new BoundTypeOfOperator(
+            return new BoundImplementationTypeOfOperator(
                 Syntax,
                 Type(type),
-                // For some reason the rewriting logic asserts that the GetTypeFromHandle property is null.
-                null,
+                WellKnownMethod(CodeAnalysis.WellKnownMember.System_Type__GetTypeFromHandle),
                 WellKnownType(CodeAnalysis.WellKnownType.System_Type))
             { WasCompilerGenerated = true };
         }
-
+        
         public ImmutableArray<BoundExpression> TypeOfs(ImmutableArray<TypeSymbol> typeArguments)
         {
             return typeArguments.SelectAsArray(Typeof);
@@ -986,6 +990,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                 method,
                 SpecialType(Microsoft.CodeAnalysis.SpecialType.System_Int32))
             { WasCompilerGenerated = true };
+        }
+
+        public BoundExpression MVID()
+        {
+            return new BoundMVID(Syntax, WellKnownType(Microsoft.CodeAnalysis.WellKnownType.System_Guid)) { WasCompilerGenerated = true };
         }
 
         public BoundExpression MethodInfo(MethodSymbol method)
