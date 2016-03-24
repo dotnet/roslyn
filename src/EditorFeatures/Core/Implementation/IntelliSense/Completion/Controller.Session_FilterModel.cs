@@ -138,6 +138,9 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
                 CompletionItem bestFilterMatch = null;
                 bool filterTextIsPotentialIdentifier = false;
 
+                var itemToFilterText = new Dictionary<CompletionItem, string>();
+                model = model.WithCompletionItemToFilterText(itemToFilterText);
+
                 foreach (var currentItem in model.TotalItems)
                 {
                     // Check if something new has happened and there's a later on filter operation
@@ -160,6 +163,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
 
                     var filterText = model.GetCurrentTextInSnapshot(item.FilterSpan, textSnapshot, textSpanToText);
                     var matchesFilterText = completionRules.MatchesFilterText(item, filterText, model.TriggerInfo, filterReason);
+                    itemToFilterText[item] = filterText;
+                    itemToFilterText[currentItem] = filterText;
 
                     if (matchesFilterText)
                     {

@@ -27,6 +27,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion.P
 
         private CompletionRules _completionRules;
         private IReadOnlyList<IntellisenseFilter2> _filters;
+        private IReadOnlyDictionary<CompletionItem, string> _completionItemToFilterText;
 
         public CompletionSet3(
             CompletionPresenterSession completionPresenterSession,
@@ -53,7 +54,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion.P
             CompletionItem presetBuilder,
             bool suggestionMode,
             bool isSoftSelected,
-            ImmutableArray<CompletionItemFilter> completionItemFilters)
+            ImmutableArray<CompletionItemFilter> completionItemFilters,
+            IReadOnlyDictionary<CompletionItem, string> completionItemToFilterText)
         {
             this._foregroundObject.AssertIsForeground();
 
@@ -61,6 +63,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion.P
 
             // Initialize the completion map to a reasonable default initial size (+1 for the builder)
             _completionItemToVSCompletion = _completionItemToVSCompletion ?? new Dictionary<CompletionItem, VSCompletion>(completionItems.Count + 1);
+            _completionItemToFilterText = completionItemToFilterText;
 
             try
             {
@@ -195,19 +198,24 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion.P
         public IReadOnlyList<Span> GetHighlightedSpansInDisplayText(string displayText)
 #endif
         {
-            var rules = this.GetCompletionRules();
-            if (rules != null)
+            if (_completionItemToFilterText != null)
             {
-                var completionItem = this._completionItemToVSCompletion.Keys.FirstOrDefault(k => k.DisplayText == displayText);
-
-                if (completionItem != null)
+                var rules = this.GetCompletionRules();
+                if (rules != null)
                 {
-                    var textSnapshot = _subjectBuffer.CurrentSnapshot;
-                    var filterText = textSnapshot.GetText(completionItem.FilterSpan.ToSpan());
-                    var highlightedSpans = rules.GetHighlightedSpans(completionItem, filterText);
-                    if (highlightedSpans != null)
+                    var completionItem = this._completionItemToVSCompletion.Keys.FirstOrDefault(k => k.DisplayText == displayText);
+
+                    if (completionItem != null)
                     {
-                        return highlightedSpans.Select(s => s.ToSpan()).ToArray();
+                        string filterText;
+                        if (_completionItemToFilterText.TryGetValue(completionItem, out filterText))
+                        {
+                            var highlightedSpans = rules.GetHighlightedSpans(completionItem, filterText);
+                            if (highlightedSpans != null)
+                            {
+                                return highlightedSpans.Select(s => s.ToSpan()).ToArray();
+                            }
+                        }
                     }
                 }
             }
