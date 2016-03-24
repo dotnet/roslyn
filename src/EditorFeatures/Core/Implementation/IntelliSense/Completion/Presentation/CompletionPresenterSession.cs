@@ -111,6 +111,9 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion.P
                 _editorSessionOpt.Properties.AddProperty(Key, this);
                 _editorSessionOpt.Start();
             }
+
+            // Call so that the editor will refresh the completion text to embolden.
+            _editorSessionOpt?.Match();
         }
 
         private void OnEditorSessionDismissed()
