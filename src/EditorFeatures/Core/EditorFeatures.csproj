@@ -69,7 +69,6 @@
     <Reference Include="Microsoft.VisualStudio.Language.StandardClassification, Version=$(VisualStudioReferenceAssemblyVersion), Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a">
       <Private>false</Private>
     </Reference>
-    <Reference Include="Microsoft.VisualStudio.Platform.VSEditor, Version=$(VisualStudioReferenceAssemblyVersion), Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a" />
     <Reference Include="Microsoft.VisualStudio.Text.Data, Version=$(VisualStudioReferenceAssemblyVersion), Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a">
       <Private>false</Private>
     </Reference>
@@ -292,6 +291,7 @@
     <Compile Include="Implementation\CodeFixes\ICodeFixService.cs" />
     <Compile Include="Implementation\GoToImplementation\AbstractGoToImplementationService.cs" />
     <Compile Include="Implementation\GoToImplementation\IGoToImplementationService.cs" />
+    <Compile Include="Implementation\Intellisense\Completion\BraceCompletionMetadata.cs" />
     <Compile Include="Implementation\Intellisense\Completion\OptionSetExtensions.cs" />
     <Compile Include="Implementation\Interactive\IAbstractResetInteractiveCommand.cs" />
     <Compile Include="Implementation\Outlining\AbstractSyntaxOutliner.cs" />
