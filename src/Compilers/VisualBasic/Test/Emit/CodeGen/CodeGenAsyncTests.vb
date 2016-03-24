@@ -8418,7 +8418,7 @@ End Class
             Dim comp = CreateCompilationWithReferences(source, {MscorlibRef}, TestOptions.ReleaseDll) ' NOTE: 4.0, Not 4.5, so it's missing the async helpers.
 
             Using stream As New MemoryStream()
-                AssertTheseDiagnostics(comp.Emit(stream).Diagnostics, <errors><![CDATA[
+                AssertTheseDiagnostics(comp.Emit(stream).Diagnostics, <errors>
 BC31091: Import of type 'AsyncVoidMethodBuilder' from assembly or module 'Async.dll' failed.
     Async Sub M()
     ~~~~~~~~~~~~~~
@@ -8431,10 +8431,13 @@ BC31091: Import of type 'IAsyncStateMachine' from assembly or module 'Async.dll'
 BC35000: Requested operation is not available because the runtime library function 'System.Runtime.CompilerServices.IAsyncStateMachine.MoveNext' is not defined.
     Async Sub M()
     ~~~~~~~~~~~~~~
+BC35000: Requested operation is not available because the runtime library function 'System.Runtime.CompilerServices.IAsyncStateMachine.SetStateMachine' is not defined.
+    Async Sub M()
+    ~~~~~~~~~~~~~~
 BC42356: This async method lacks 'Await' operators and so will run synchronously. Consider using the 'Await' operator to await non-blocking API calls, or 'Await Task.Run(...)' to do CPU-bound work on a background thread.
     Async Sub M()
               ~
-]]></errors>)
+                    </errors>)
             End Using
         End Sub
 
@@ -8775,6 +8778,103 @@ result]]>
             Dim compilation = CompilationUtils.CreateCompilationWithReferences(source, references:=LatestVbReferences, options:=TestOptions.DebugExe)
             CompileAndVerify(compilation, expectedOutput:=expectedOutput)
             CompileAndVerify(compilation.WithOptions(TestOptions.ReleaseExe), expectedOutput:=expectedOutput)
+        End Sub
+
+        <Fact, WorkItem(9463, "https://github.com/dotnet/roslyn/issues/9463")>
+        Public Sub AsyncIteratorReportsDiagnosticsWhenCoreTypesAreMissing()
+
+            Dim source = "
+Imports System.Threading.Tasks
+Namespace System
+    Public Class [Object]
+    End Class
+    Public Class [Int32]
+    End Class
+    Public Class [Boolean]
+    End Class
+    Public Class [String]
+    End Class
+    Public Class Exception
+    End Class
+    Public Class ValueType
+    End Class
+    Public Class [Enum]
+    End Class
+    Public Class Void
+    End Class
+End Namespace
+
+Namespace System.Threading.Tasks
+    Public Class Task
+        Public Function GetAwaiter() As TaskAwaiter
+            Return Nothing
+        End Function
+    End Class
+
+    Public Class TaskAwaiter
+        Implements System.Runtime.CompilerServices.INotifyCompletion
+
+        Public ReadOnly Property IsCompleted As Boolean
+            Get
+                Return True
+            End Get
+        End Property
+
+        Public Sub GetResult()
+        End Sub
+    End Class
+End Namespace
+
+Namespace System.Runtime.CompilerServices
+    Public Interface INotifyCompletion
+    End Interface
+
+    Public Interface ICriticalNotifyCompletion
+    End Interface
+
+    Public Interface IAsyncStateMachine
+        Sub MoveNext()
+        Sub SetStateMachine(stateMachine As IAsyncStateMachine)
+    End Interface
+
+    Public Class AsyncVoidMethodBuilder
+    End Class
+End Namespace
+
+Class C
+    Public Async Sub GetNumber(task As Task)
+        Await task
+    End Sub
+End Class
+"
+            Dim compilation = CreateCompilation({Parse(source)})
+
+            compilation.AssertTheseEmitDiagnostics(<expected>
+BC30456: 'Create' is not a member of 'AsyncVoidMethodBuilder'.
+    Public Async Sub GetNumber(task As Task)
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+BC30456: 'SetException' is not a member of 'AsyncVoidMethodBuilder'.
+    Public Async Sub GetNumber(task As Task)
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+BC30456: 'SetResult' is not a member of 'AsyncVoidMethodBuilder'.
+    Public Async Sub GetNumber(task As Task)
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+BC30456: 'SetStateMachine' is not a member of 'AsyncVoidMethodBuilder'.
+    Public Async Sub GetNumber(task As Task)
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+BC30456: 'Start' is not a member of 'AsyncVoidMethodBuilder'.
+    Public Async Sub GetNumber(task As Task)
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+BC35000: Requested operation is not available because the runtime library function 'Microsoft.VisualBasic.CompilerServices.ProjectData.ClearProjectError' is not defined.
+    Public Async Sub GetNumber(task As Task)
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+BC35000: Requested operation is not available because the runtime library function 'Microsoft.VisualBasic.CompilerServices.ProjectData.SetProjectError' is not defined.
+    Public Async Sub GetNumber(task As Task)
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+BC30456: 'AwaitOnCompleted' is not a member of 'AsyncVoidMethodBuilder'.
+        Await task
+        ~~~~~~~~~~
+                </expected>)
         End Sub
 
     End Class

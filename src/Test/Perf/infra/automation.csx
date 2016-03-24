@@ -2,6 +2,7 @@
 
 #load "..\util\test_util.csx"
 #load "..\util\runner_util.csx"
+#load "..\util\Download_util.csx"
 
 InitUtilities();
 
@@ -12,6 +13,9 @@ ShellOutVital(Path.Combine(RoslynDirectory(), "Restore.cmd"), "", workingDirecto
 
 // Build Roslyn in Release Mode
 ShellOutVital("msbuild", "./Roslyn.sln /p:Configuration=Release", workingDirectory: RoslynDirectory());
+
+// Run DownloadTools before using the TraceManager because TraceManager uses the downloaded CPC binaries 
+DownloadTools();
 
 // Run run_and_report.csx
 await RunFile(Path.Combine(MyWorkingDirectory(), "run_and_report.csx"));
