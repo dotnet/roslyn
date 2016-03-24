@@ -1,8 +1,8 @@
 // Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-#load ".\util\runner_util.csx"
-#load ".\util\test_util.csx"
-#load ".\util\trace_manager_util.csx"
+#load "./util/runner_util.csx"
+#load "./util/test_util.csx"
+#load "./util/trace_manager_util.csx"
 
 using System.Collections.Generic;
 using System.IO;
