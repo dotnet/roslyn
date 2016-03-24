@@ -928,7 +928,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return new BoundTypeExpression(Syntax, null, type) { WasCompilerGenerated = true };
         }
 
-        public BoundImplementationTypeExpression Type(Cci.INamespaceTypeReference type)
+        public BoundImplementationTypeExpression ImplementationType(Cci.INamespaceTypeReference type)
         {
             return new BoundImplementationTypeExpression(Syntax, type, null) { WasCompilerGenerated = true };
         }
@@ -952,7 +952,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             return new BoundImplementationTypeOfOperator(
                 Syntax,
-                Type(type),
+                ImplementationType(type),
                 WellKnownMethod(CodeAnalysis.WellKnownMember.System_Type__GetTypeFromHandle),
                 WellKnownType(CodeAnalysis.WellKnownType.System_Type))
             { WasCompilerGenerated = true };

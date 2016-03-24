@@ -199,7 +199,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
                 case BoundKind.ImplementationTypeOfOperator:
                     if (used) // unused typeof has no side-effects
                     {
-                        EmitTypeOfExpression((BoundImplementationTypeOfOperator)expression);
+                        EmitImplementationTypeOfExpression((BoundImplementationTypeOfOperator)expression);
                     }
                     break;
 
@@ -2660,7 +2660,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
             EmitSymbolToken(getTypeMethod, boundTypeOf.Syntax, null);
         }
 
-        private void EmitTypeOfExpression(BoundImplementationTypeOfOperator boundTypeOfOperator)
+        private void EmitImplementationTypeOfExpression(BoundImplementationTypeOfOperator boundTypeOfOperator)
         {
             Cci.ITypeReference type = boundTypeOfOperator.SourceType.SourceType;
             _builder.EmitOpCode(ILOpCode.Ldtoken);
