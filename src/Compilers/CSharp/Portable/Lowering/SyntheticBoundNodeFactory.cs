@@ -957,7 +957,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 WellKnownType(CodeAnalysis.WellKnownType.System_Type))
             { WasCompilerGenerated = true };
         }
-        
+
         public ImmutableArray<BoundExpression> TypeOfs(ImmutableArray<TypeSymbol> typeArguments)
         {
             return typeArguments.SelectAsArray(Typeof);
