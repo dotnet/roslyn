@@ -1053,7 +1053,7 @@ class C
     // (5,15): error CS1003: Syntax error, ',' expected
     //     int F<int>() { }  // CS0081
     Diagnostic(ErrorCode.ERR_SyntaxError, "(").WithArguments(",", "(").WithLocation(5, 15),
-    // (5,15): error CS8096: Tuple must contain at least two elements.
+    // (5,15): error CS8200: Tuple must contain at least two elements.
     //     int F<int>() { }  // CS0081
     Diagnostic(ErrorCode.ERR_TupleTooFewElements, "()").WithLocation(5, 15),
     // (5,18): error CS1001: Identifier expected
@@ -1062,9 +1062,12 @@ class C
     // (5,18): error CS1026: ) expected
     //     int F<int>() { }  // CS0081
     Diagnostic(ErrorCode.ERR_CloseParenExpected, "{").WithLocation(5, 18),
-    // (5,9): error CS0161: 'C.F<>(int, ())': not all code paths return a value
+    // (5,15): error CS8204: PROTOTYPE This is not supported yet.
     //     int F<int>() { }  // CS0081
-    Diagnostic(ErrorCode.ERR_ReturnExpected, "F").WithArguments("NS.C.F<>(int, ())").WithLocation(5, 9)
+    Diagnostic(ErrorCode.ERR_PrototypeNotYetImplemented, "()").WithLocation(5, 15),
+    // (5,9): error CS0161: 'C.F<>(int, ?)': not all code paths return a value
+    //     int F<int>() { }  // CS0081
+    Diagnostic(ErrorCode.ERR_ReturnExpected, "F").WithArguments("NS.C.F<>(int, ?)").WithLocation(5, 9)
     );
         }
 
