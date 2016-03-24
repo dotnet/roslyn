@@ -2,6 +2,8 @@
 
 [//]: # (Begin current test results)
 
+TEST
+
 ### Windows - Unit Tests
 ||Debug x86|Debug x64|Release x86|Release x64|Determinism|
 |:--:|:--:|:--:|:--:|:--:|:--:|
