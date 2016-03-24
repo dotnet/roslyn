@@ -625,7 +625,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
 
         internal sealed override Cci.INamedTypeReference GetSystemType(CSharpSyntaxNode syntaxOpt, DiagnosticBag diagnostics)
         {
-             NamedTypeSymbol systemTypeSymbol = Compilation.GetWellKnownType(WellKnownType.System_Type);
+            NamedTypeSymbol systemTypeSymbol = Compilation.GetWellKnownType(WellKnownType.System_Type);
 
             DiagnosticInfo info = systemTypeSymbol.GetUseSiteDiagnostic();
             if (info != null)
