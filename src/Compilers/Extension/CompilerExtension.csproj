@@ -89,6 +89,7 @@
     <Reference Include="Microsoft.VisualStudio.Shell.Immutable.12.0">
       <Private>false</Private>
     </Reference>
+    <Reference Include="Microsoft.VisualStudio.Utilities, Version=$(VisualStudioReferenceAssemblyVersion), Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a" />
     <Reference Include="System" />
     <Reference Include="System.Core" />
     <Reference Include="System.Data" />
