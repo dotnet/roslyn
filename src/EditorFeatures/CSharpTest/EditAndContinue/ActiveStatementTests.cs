@@ -7856,6 +7856,76 @@ class C
             edits.VerifyRudeDiagnostics(active);
         }
 
+        [Fact]
+        public void AsyncMethodEdit_Semantics()
+        {
+            string src1 = @"
+using System;
+using System.Threading.Tasks;
+
+class C
+{
+    static async Task<int> F()
+    {
+        Console.WriteLine(1);
+        return await Task.FromResult(1);
+    }
+}
+";
+            string src2 = @"
+using System;
+using System.Threading.Tasks;
+
+class C
+{
+    static async Task<int> F()
+    {
+        Console.WriteLine(2);
+        return await Task.FromResult(1);
+    }
+}
+";
+            var edits = GetTopEdits(src1, src2);
+            var active = GetActiveStatements(src1, src2);
+
+            edits.VerifySemanticDiagnostics();
+        }
+
+        [Fact]
+        public void IteratorMethodEdit_Semantics()
+        {
+            string src1 = @"
+using System;
+using System.Collections.Generic;
+
+class C
+{
+    static IEnumerable<int> F()
+    {
+        Console.WriteLine(1);
+        yield return 1;
+    }
+}
+";
+            string src2 = @"
+using System;
+using System.Collections.Generic;
+
+class C
+{
+    static IEnumerable<int> F()
+    {
+        Console.WriteLine(2);
+        yield return 2;
+    }
+}
+";
+            var edits = GetTopEdits(src1, src2);
+            var active = GetActiveStatements(src1, src2);
+
+            edits.VerifySemanticDiagnostics();
+        }
+
         #endregion
 
         #region Misplaced AS 
