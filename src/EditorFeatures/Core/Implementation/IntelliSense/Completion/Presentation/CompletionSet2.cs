@@ -24,7 +24,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion.P
         private readonly ITextBuffer _subjectBuffer;
         private readonly CompletionPresenterSession _completionPresenterSession;
         private Dictionary<CompletionItem, VSCompletion> _completionItemToVSCompletion;
-        private Dictionary<VSCompletion, CompletionItem> _vsCompletionToCompletionItem;
 
         private CompletionRules _completionRules;
         private IReadOnlyList<IntellisenseFilter2> _filters;
@@ -62,7 +61,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion.P
 
             // Initialize the completion map to a reasonable default initial size (+1 for the builder)
             _completionItemToVSCompletion = _completionItemToVSCompletion ?? new Dictionary<CompletionItem, VSCompletion>(completionItems.Count + 1);
-            _vsCompletionToCompletionItem = _vsCompletionToCompletionItem ?? new Dictionary<VSCompletion, CompletionItem>(completionItems.Count + 1);
 
             try
             {
@@ -135,7 +133,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion.P
                     item,
                     displayTextOpt ?? item.DisplayText);
                 _completionItemToVSCompletion.Add(item, value);
-                _vsCompletionToCompletionItem.Add(value, item);
             }
 
             return value;
@@ -143,10 +140,14 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion.P
 
         internal CompletionItem GetCompletionItem(VSCompletion completion)
         {
-            CompletionItem completionItem;
-            if (_vsCompletionToCompletionItem.TryGetValue(completion, out completionItem))
+            // Linear search is ok since this is only called by the user manually selecting 
+            // an item.  Creating a reverse mapping uses too much memory and affects GCs.
+            foreach (var kvp in _completionItemToVSCompletion)
             {
-                return completionItem;
+                if (kvp.Value == completion)
+                {
+                    return kvp.Key;
+                }
             }
 
             return null;
@@ -197,20 +198,16 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion.P
             var rules = this.GetCompletionRules();
             if (rules != null)
             {
-                var status = this.SelectionStatus;
-                var vsCompletion = status.Completion;
-                if (vsCompletion != null)
+                var completionItem = this._completionItemToVSCompletion.Keys.FirstOrDefault(k => k.DisplayText == displayText);
+
+                if (completionItem != null)
                 {
-                    var completionItem = GetCompletionItem(vsCompletion);
-                    if (completionItem != null)
+                    var textSnapshot = _subjectBuffer.CurrentSnapshot;
+                    var filterText = textSnapshot.GetText(completionItem.FilterSpan.ToSpan());
+                    var highlightedSpans = rules.GetHighlightedSpans(completionItem, filterText);
+                    if (highlightedSpans != null)
                     {
-                        var textSnapshot = _subjectBuffer.CurrentSnapshot;
-                        var filterText = textSnapshot.GetText(completionItem.FilterSpan.ToSpan());
-                        var highlightedSpans = rules.GetHighlightedSpans(completionItem, filterText);
-                        if (highlightedSpans != null)
-                        {
-                            return highlightedSpans.Select(s => s.ToSpan()).ToArray();
-                        }
+                        return highlightedSpans.Select(s => s.ToSpan()).ToArray();
                     }
                 }
             }
@@ -248,7 +245,11 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion.P
             set
             {
                 base.IsChecked = value;
-                _completionSet.OnIntelliSenseFiltersChanged();
+
+                if (_completionSet != null)
+                {
+                    _completionSet.OnIntelliSenseFiltersChanged();
+                }
             }
         }
     }
