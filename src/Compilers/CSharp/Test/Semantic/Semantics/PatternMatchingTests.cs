@@ -7813,6 +7813,47 @@ class Program
                 );
         }
 
+        [Fact]
+        public void BadIsOperator01()
+        {
+            var source = @"
+class Program
+{
+    static void Main(string[] args) { }
+    internal int operator is(ref Program self, int i) => 3;
+}
+";
+            var compilation = CreateCompilationWithMscorlib(source, parseOptions: patternParseOptions);
+            compilation.VerifyDiagnostics(
+                // (5,27): error CS0558: User-defined operator 'Program.operator @is(ref Program, int)' must be declared static and public
+                //     internal int operator is(ref Program self, int i) => 3;
+                Diagnostic(ErrorCode.ERR_OperatorsMustBeStatic, "is").WithArguments("Program.operator @is(ref Program, int)").WithLocation(5, 27),
+                // (5,42): error CS0631: ref and out are not valid in this context
+                //     internal int operator is(ref Program self, int i) => 3;
+                Diagnostic(ErrorCode.ERR_IllegalRefParam, "self").WithLocation(5, 42),
+                // (5,27): error CS8160: The return type of 'operator is' must be 'bool' or 'void'.
+                //     internal int operator is(ref Program self, int i) => 3;
+                Diagnostic(ErrorCode.ERR_OperatorIsMustReturnBoolOrVoid, "is").WithLocation(5, 27)
+                );
+        }
+
+        [Fact]
+        public void BadIsOperator02()
+        {
+            var source = @"
+class Program
+{
+    static void Main(string[] args) { }
+    public static void operator is(Program self, int i) { }
+}
+";
+            var compilation = CreateCompilationWithMscorlib(source, parseOptions: patternParseOptions);
+            compilation.VerifyDiagnostics(
+                // (5,54): error CS8159: All but the first parameter of user-defined 'operator is' require the 'out' modifier.
+                //     public static void operator is(Program self, int i) { }
+                Diagnostic(ErrorCode.ERR_OperatorIsRequiresOut, "i").WithLocation(5, 54)
+                );
+        }
 
         [Fact]
         public void MatchStatementAndExpression_Patterns_WithoutRecords()

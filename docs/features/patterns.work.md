@@ -2,6 +2,7 @@ This is a checklist (moved from #9375) of implementation of pattern matching as 
 
 Open design issues (needing LDM decisions)
 - [ ] There would be an ambiguity with a hypothetical "type pattern" and the constant pattern. This is the reason we do not allow the latter in an is-pattern expression, and don't allow the former in a sub-property pattern. But that is irregular. Can we come up with name lookup rules that support both?
+  - [ ] If we support `3 is 3`, is that a constant expression? Can a `match` expression be constant?
 - [ ] Do we want pattern-matching in the `switch` statement? Or do we want a separate statement-based construct instead? (#8821)
     - [ ] What does `goto case` mean?
       - [ ] Do we limit `goto case` to constants?
@@ -34,6 +35,7 @@ Open design issues (needing LDM decisions)
 - [ ] What is the correct precedence of *throw-expression*? Should *assignment* be allowed as its sub-expression?
 - [ ] @jaredpar suggested that, by analogy with the integral types, we should match floating-point literal patterns across floating-point types.
 - [ ] Should we allow throw expression on right of && and || ? #9453
+- [ ] Should `operator is` be allowed to take a ref first parameter, for example for value types? Is the answer the same as for all other operators?
 
 Implementation progress checklist:
 - [x] Allow declaration of `operator is` and use it for recursive patterns.

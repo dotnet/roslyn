@@ -116,26 +116,26 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public static string OperatorNameFromDeclaration(Syntax.InternalSyntax.OperatorDeclarationSyntax declaration)
         {
-            var opToken = declaration.OperatorToken.Kind;
+            var opTokenKind = declaration.OperatorToken.Kind;
 
-            if (opToken == SyntaxKind.IsKeyword)
+            if (opTokenKind == SyntaxKind.IsKeyword)
             {
                 return WellKnownMemberNames.IsOperatorName;
             }
-            else if (SyntaxFacts.IsBinaryExpressionOperatorToken(opToken))
+            else if (SyntaxFacts.IsBinaryExpressionOperatorToken(opTokenKind))
             {
                 // Some tokens may be either unary or binary operators (e.g. +, -).
-                if (SyntaxFacts.IsPrefixUnaryExpressionOperatorToken(opToken) &&
+                if (SyntaxFacts.IsPrefixUnaryExpressionOperatorToken(opTokenKind) &&
                     declaration.ParameterList.Parameters.Count == 1)
                 {
-                    return OperatorFacts.UnaryOperatorNameFromSyntaxKind(opToken);
+                    return OperatorFacts.UnaryOperatorNameFromSyntaxKind(opTokenKind);
                 }
 
-                return OperatorFacts.BinaryOperatorNameFromSyntaxKind(opToken);
+                return OperatorFacts.BinaryOperatorNameFromSyntaxKind(opTokenKind);
             }
-            else if (SyntaxFacts.IsUnaryOperatorDeclarationToken(opToken))
+            else if (SyntaxFacts.IsUnaryOperatorDeclarationToken(opTokenKind))
             {
-                return OperatorFacts.UnaryOperatorNameFromSyntaxKind(opToken);
+                return OperatorFacts.UnaryOperatorNameFromSyntaxKind(opTokenKind);
             }
             else
             {

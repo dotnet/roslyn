@@ -4864,6 +4864,9 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
     <value>No 'operator is' declaration in '{0}' was found with {1} out parameters</value>
   </data>
   <data name="ERR_OperatorIsRequiresOut" xml:space="preserve">
-    <value>Non-initial parameters of user-defined 'operator is' require the 'out' modifier.</value>
+    <value>All but the first parameter of user-defined 'operator is' require the 'out' modifier.</value>
+  </data>
+  <data name="ERR_OperatorIsMustReturnBoolOrVoid" xml:space="preserve">
+    <value>The return type of 'operator is' must be 'bool' or 'void'.</value>
   </data>
 </root>

@@ -3,7 +3,6 @@
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Roslyn.Utilities;
-using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
@@ -94,7 +93,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 // check that the operator is well-formed. If not, skip it.
                 var candidate = op as MethodSymbol;
-                if (candidate == (object)null || !WellFormedOperatorIs(candidate)) continue;
+                if (candidate == (object)null || !WellFormedOperatorIs(candidate, node.Type, diagnostics)) continue;
 
                 // check that its number of out parameters is the same as the arity of this pattern-matching operation.
                 // PROTOTYPE(patterns): consider how we would support `params` for a variable number of pattern positions, for
@@ -128,7 +127,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // Note: we bind the pattern (conversion) to the first argument of `operator is`, not the type containing `operator is`.
             // That is how we support the specification of pattern-matching external to a type (e.g. active patterns)
             hasErrors = hasErrors || CheckValidPatternType(node.Type, operand, operandType, isOperator.Parameters[0].Type, false, diagnostics);
-            var patterns = ArrayBuilder<BoundPattern>.GetInstance();
+            var patterns = ArrayBuilder<BoundPattern>.GetInstance(subPatternsCount);
             for (int i = 0; i < subPatternsCount; i++)
             {
                 if (subPatterns[i].NameColon != null)
@@ -147,16 +146,22 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <summary>
         /// Is a user-defined `operator is` well-formed? At the use site, we ignore those that are not.
         /// </summary>
-        private bool WellFormedOperatorIs(MethodSymbol candidate)
+        private bool WellFormedOperatorIs(MethodSymbol candidate, CSharpSyntaxNode node, DiagnosticBag diagnostics)
         {
             // requires at least one parameter
-            if (candidate.ParameterCount == 0) return false;
+            if (candidate.ParameterCount == 0)
+            {
+                return false;
+            }
 
             // must be static.
             // PROTOTYPE(patterns): we don't support value-capturing matchers (e.g. regular expressions) yet.
-            if (!candidate.IsStatic) return false;
+            if (!candidate.IsStatic)
+            {
+                return false;
+            }
 
-            // the first parameter must be a value parameters. The remaining parameters must be out parameters.
+            // the first parameter must be a value. The remaining parameters must be out.
             foreach (var parameter in candidate.Parameters)
             {
                 if (parameter.RefKind != ((parameter.Ordinal == 0) ? RefKind.None : RefKind.Out))
@@ -173,6 +178,21 @@ namespace Microsoft.CodeAnalysis.CSharp
                     break;
                 default:
                     return false;
+            }
+
+            // must not be generic
+            if (candidate.Arity != 0)
+            {
+                return false;
+            }
+
+            // it should be accessible
+            HashSet<DiagnosticInfo> useSiteDiagnostics = null;
+            bool isAccessible = this.IsAccessible(candidate, ref useSiteDiagnostics);
+            diagnostics.Add(node, useSiteDiagnostics);
+            if (!isAccessible)
+            {
+                return false;
             }
 
             // all constraints are satisfied
@@ -196,7 +216,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             var correspondingMembers = default(ImmutableArray<Symbol>);
             HashSet<DiagnosticInfo> useSiteDiagnostics = null;
             var memberNames = type.MemberNames;
-            var correspondingMembersForCtor = ArrayBuilder<Symbol>.GetInstance();
+            var correspondingMembersForCtor = ArrayBuilder<Symbol>.GetInstance(node.PatternList.SubPatterns.Count);
             foreach (var m in type.GetMembers(WellKnownMemberNames.InstanceConstructorName))
             {
                 var ctor = m as MethodSymbol;
@@ -292,7 +312,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             NamedTypeSymbol type,
             DiagnosticBag diagnostics)
         {
-            var boundPatternsBuilder = ArrayBuilder<BoundPattern>.GetInstance();
+            var boundPatternsBuilder = ArrayBuilder<BoundPattern>.GetInstance(properties.Length);
             for (int i = 0; i < properties.Length; i++)
             {
                 var syntax = node.PatternList.SubPatterns[i];
@@ -346,7 +366,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             TypeSymbol type,
             DiagnosticBag diagnostics)
         {
-            var result = ArrayBuilder<BoundSubPropertyPattern>.GetInstance();
+            var result = ArrayBuilder<BoundSubPropertyPattern>.GetInstance(node.SubPatterns.Count);
             foreach (var e in node.SubPatterns)
             {
                 var syntax = e as IsPatternExpressionSyntax;
@@ -626,9 +646,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             ArrayBuilder<BoundMatchCase> cases,
             DiagnosticBag diagnostics)
         {
-            var types = ArrayBuilder<TypeSymbol>.GetInstance();
-
             int n = cases.Count;
+            var types = ArrayBuilder<TypeSymbol>.GetInstance(n);
             for (int i = 0; i < n; i++)
             {
                 var e = cases[i].Expression;
@@ -684,7 +703,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // PROTOTYPE(patterns): any constraints on a switch expression must be enforced here. For example,
             // it must have a type (not be target-typed, lambda, null, etc)
 
-            var sectionBuilder = ArrayBuilder<BoundMatchCase>.GetInstance();
+            var sectionBuilder = ArrayBuilder<BoundMatchCase>.GetInstance(node.Sections.Count);
             foreach (var section in node.Sections)
             {
                 var sectionBinder = new PatternVariableBinder(section, this); // each section has its own locals.

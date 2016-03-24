@@ -602,10 +602,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 }
             }
 
-            if (!this.ReturnsVoid && ReturnType.SpecialType != SpecialType.System_Void)
+            if (!this.ReturnsVoid && ReturnType.SpecialType != SpecialType.System_Boolean)
             {
-                // PROTOTYPE(patterns): need an error message for this.
-                diagnostics.Add(ErrorCode.ERR_OperatorCantReturnVoid, this.Locations[0]);
+                diagnostics.Add(ErrorCode.ERR_OperatorIsMustReturnBoolOrVoid, this.Locations[0]);
             }
         }
 

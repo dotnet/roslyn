@@ -6839,6 +6839,15 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to The return type of &apos;operator is&apos; must be &apos;bool&apos; or &apos;void&apos;..
+        /// </summary>
+        internal static string ERR_OperatorIsMustReturnBoolOrVoid {
+            get {
+                return ResourceManager.GetString("ERR_OperatorIsMustReturnBoolOrVoid", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to No &apos;operator is&apos; declaration in &apos;{0}&apos; was found with {1} out parameters.
         /// </summary>
         internal static string ERR_OperatorIsParameterCount {
@@ -6848,7 +6857,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Non-initial parameters of user-defined &apos;operator is&apos; require the &apos;out&apos; modifier..
+        ///   Looks up a localized string similar to All but the first parameter of user-defined &apos;operator is&apos; require the &apos;out&apos; modifier..
         /// </summary>
         internal static string ERR_OperatorIsRequiresOut {
             get {
