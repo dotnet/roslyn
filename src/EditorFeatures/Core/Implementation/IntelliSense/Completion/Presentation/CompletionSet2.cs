@@ -236,7 +236,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion.P
 
         public IntellisenseFilter2(
             CompletionSet3 completionSet, CompletionItemFilter filter)
-            : base(filter.Glyph.GetImageMoniker(), filter.Glyph.ToString(),
+            : base(filter.Glyph.GetImageMoniker(), filter.DisplayText,
                    filter.AccessKey.ToString(), automationText: filter.Glyph.ToString())
         {
             _completionSet = completionSet;

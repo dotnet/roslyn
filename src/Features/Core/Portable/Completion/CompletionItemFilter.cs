@@ -11,28 +11,30 @@ namespace Microsoft.CodeAnalysis.Completion
     {
         public readonly Glyph Glyph;
         public readonly char AccessKey;
+        public readonly string DisplayText;
 
-        public CompletionItemFilter(Glyph glyph, char accessKey)
+        public CompletionItemFilter(string displayText, Glyph glyph, char accessKey)
         {
-            this.Glyph = glyph;
-            this.AccessKey = accessKey;
+            DisplayText = displayText;
+            Glyph = glyph;
+            AccessKey = accessKey;
         }
 
-        public static readonly CompletionItemFilter NamespaceFilter = new CompletionItemFilter(Glyph.Namespace, 'n');
-        public static readonly CompletionItemFilter ClassFilter = new CompletionItemFilter(Glyph.ClassPublic, 'c');
-        public static readonly CompletionItemFilter ModuleFilter = new CompletionItemFilter(Glyph.ModulePublic, 'm');
-        public static readonly CompletionItemFilter StructureFilter = new CompletionItemFilter(Glyph.StructurePublic, 's');
-        public static readonly CompletionItemFilter InterfaceFilter = new CompletionItemFilter(Glyph.InterfacePublic, 'i');
-        public static readonly CompletionItemFilter EnumFilter = new CompletionItemFilter(Glyph.EnumPublic, 'e');
-        public static readonly CompletionItemFilter DelegateFilter = new CompletionItemFilter(Glyph.DelegatePublic, 'd');
-        public static readonly CompletionItemFilter ConstantFilter = new CompletionItemFilter(Glyph.ConstantPublic, 'o');
-        public static readonly CompletionItemFilter FieldFilter = new CompletionItemFilter(Glyph.FieldPublic, 'f');
-        public static readonly CompletionItemFilter EventFilter = new CompletionItemFilter(Glyph.EventPublic, 'e');
-        public static readonly CompletionItemFilter PropertyFilter = new CompletionItemFilter(Glyph.PropertyPublic, 'r');
-        public static readonly CompletionItemFilter MethodFilter = new CompletionItemFilter(Glyph.MethodPublic, 'm');
-        public static readonly CompletionItemFilter ExtensionMethodFilter = new CompletionItemFilter(Glyph.ExtensionMethodPublic, 'x');
-        public static readonly CompletionItemFilter ParameterFilter = new CompletionItemFilter(Glyph.Parameter, 'p');
-        public static readonly CompletionItemFilter LocalFilter = new CompletionItemFilter(Glyph.Local, 'l');
+        public static readonly CompletionItemFilter NamespaceFilter = new CompletionItemFilter(FeaturesResources.Namespaces, Glyph.Namespace, 'n');
+        public static readonly CompletionItemFilter ClassFilter = new CompletionItemFilter(FeaturesResources.Classes, Glyph.ClassPublic, 'c');
+        public static readonly CompletionItemFilter ModuleFilter = new CompletionItemFilter(FeaturesResources.Modules, Glyph.ModulePublic, 'm');
+        public static readonly CompletionItemFilter StructureFilter = new CompletionItemFilter(FeaturesResources.Structures, Glyph.StructurePublic, 's');
+        public static readonly CompletionItemFilter InterfaceFilter = new CompletionItemFilter(FeaturesResources.Interfaces, Glyph.InterfacePublic, 'i');
+        public static readonly CompletionItemFilter EnumFilter = new CompletionItemFilter(FeaturesResources.Enums, Glyph.EnumPublic, 'e');
+        public static readonly CompletionItemFilter DelegateFilter = new CompletionItemFilter(FeaturesResources.Delegates, Glyph.DelegatePublic, 'd');
+        public static readonly CompletionItemFilter ConstantFilter = new CompletionItemFilter(FeaturesResources.Constants, Glyph.ConstantPublic, 'o');
+        public static readonly CompletionItemFilter FieldFilter = new CompletionItemFilter(FeaturesResources.Fields, Glyph.FieldPublic, 'f');
+        public static readonly CompletionItemFilter EventFilter = new CompletionItemFilter(FeaturesResources.Events, Glyph.EventPublic, 'e');
+        public static readonly CompletionItemFilter PropertyFilter = new CompletionItemFilter(FeaturesResources.Properties, Glyph.PropertyPublic, 'r');
+        public static readonly CompletionItemFilter MethodFilter = new CompletionItemFilter(FeaturesResources.Methods, Glyph.MethodPublic, 'm');
+        public static readonly CompletionItemFilter ExtensionMethodFilter = new CompletionItemFilter(FeaturesResources.Extension_methods, Glyph.ExtensionMethodPublic, 'x');
+        public static readonly CompletionItemFilter ParameterFilter = new CompletionItemFilter(FeaturesResources.Parameters, Glyph.Parameter, 'p');
+        public static readonly CompletionItemFilter LocalFilter = new CompletionItemFilter(FeaturesResources.Locals, Glyph.Local, 'l');
 
         public static readonly ImmutableArray<CompletionItemFilter> NamespaceFilters = ImmutableArray.Create(NamespaceFilter);
         public static readonly ImmutableArray<CompletionItemFilter> ClassFilters = ImmutableArray.Create(ClassFilter);
