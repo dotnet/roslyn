@@ -93,7 +93,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 // check that the operator is well-formed. If not, skip it.
                 var candidate = op as MethodSymbol;
-                if (candidate == (object)null || !WellFormedOperatorIs(candidate, node.Type, diagnostics)) continue;
+                if (candidate == (object)null || !ApplicableOperatorIs(candidate, node.Type, diagnostics)) continue;
 
                 // check that its number of out parameters is the same as the arity of this pattern-matching operation.
                 // PROTOTYPE(patterns): consider how we would support `params` for a variable number of pattern positions, for
@@ -144,9 +144,10 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         /// <summary>
-        /// Is a user-defined `operator is` well-formed? At the use site, we ignore those that are not.
+        /// Is a user-defined `operator is` applicable? At the use site, we ignore those that are not.
+        /// PROTOTYPE(patterns): In the future this may be context-dependent (i.e. static versus instance context).
         /// </summary>
-        private bool WellFormedOperatorIs(MethodSymbol candidate, CSharpSyntaxNode node, DiagnosticBag diagnostics)
+        private bool ApplicableOperatorIs(MethodSymbol candidate, CSharpSyntaxNode node, DiagnosticBag diagnostics)
         {
             // must be a user-defined operator, and requires at least one parameter
             if (candidate.MethodKind != MethodKind.UserDefinedOperator || candidate.ParameterCount == 0)
@@ -195,7 +196,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return false;
             }
 
-            // all constraints are satisfied
+            // all requirements are satisfied
             return true;
         }
 
