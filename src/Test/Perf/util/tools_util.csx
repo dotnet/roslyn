@@ -83,13 +83,16 @@ string GetViBenchJsonFromCsv(string compilerTimeCsvFilePath, string execTimeCsvF
 
     // ViBenchToJson does not like empty csv files.
     string files = "";
-    if (compilerTimeCsvFilePath != null && new FileInfo(compilerTimeCsvFilePath).Length != 0) {
+    if (compilerTimeCsvFilePath != null && new FileInfo(compilerTimeCsvFilePath).Length != 0) 
+    {
         files += $@"compilertime:""{compilerTimeCsvFilePath}""";
     }
-    if (execTimeCsvFilePath != null && new FileInfo(execTimeCsvFilePath).Length != 0) {
+    if (execTimeCsvFilePath != null && new FileInfo(execTimeCsvFilePath).Length != 0) 
+    {
         files += $@"exectime:""{execTimeCsvFilePath}""";
     }
-    if (fileSizeCsvFilePath != null && new FileInfo(fileSizeCsvFilePath).Length != 0) {
+    if (fileSizeCsvFilePath != null && new FileInfo(fileSizeCsvFilePath).Length != 0) 
+    {
         files += $@"filesize:""{fileSizeCsvFilePath}""";
     }
     string arguments = $@"
@@ -118,7 +121,8 @@ string GetViBenchJsonFromCsv(string compilerTimeCsvFilePath, string execTimeCsvF
     return outJson;
 }
 
-string FirstLine(string input) {
+string FirstLine(string input) 
+{
     return input.Split(new[] {"\r\n", "\r", "\n"}, System.StringSplitOptions.None)[0];
 }
 

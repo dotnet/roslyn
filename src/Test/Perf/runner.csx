@@ -82,7 +82,8 @@ foreach (var testResult in allResults)
         var caseValue = testCase.Item3;
         System.Text.StringBuilder builder = null;
 
-        switch((ReportKind) reportKind) {
+        switch((ReportKind) reportKind) 
+        {
             case ReportKind.CompileTime:
                 builder = compileTimeBuilder;
                 break;
@@ -96,7 +97,8 @@ foreach (var testResult in allResults)
                 throw new Exception("test specified an invalid report kind");
         }
 
-        if (builder.Length != 0) {
+        if (builder.Length != 0) 
+        {
             builder.AppendLine();
         }
         builder.Append($"{test}, {caseDescription}, {caseValue}");

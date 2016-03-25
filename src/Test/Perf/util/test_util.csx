@@ -24,13 +24,15 @@ StaticArgs = Args;
 
 /// Returns the path to log file if one exists.
 /// Returns null otherwise.
-static string LogFile() {
+static string LogFile()
+{
     var key = "--log=";
     return (from arg in StaticArgs where arg.StartsWith(key) select arg.Substring(key.Length)).FirstOrDefault();
 }
 
 /// Returns true if --verbosity is passed on the command line
-static bool IsVerbose() {
+static bool IsVerbose() 
+{
     return StaticArgs.Contains("--verbose");
 }
 
@@ -79,7 +81,8 @@ static string RoslynDirectory()
     return workingDir.Substring(0, workingDir.IndexOf(srcTestPerf));
 }
 
-static string PerfDirectory() {
+static string PerfDirectory()
+{
     return Path.Combine(RoslynDirectory(), "src", "Test", "Perf");
 }
 
@@ -152,9 +155,11 @@ static void ShellOutVital(
         string file,
         string args,
         string workingDirectory = null,
-        CancellationToken? cancelationToken = null) {
+        CancellationToken? cancelationToken = null) 
+{
     var result = ShellOut(file, args, workingDirectory, cancelationToken);
-    if (result.Failed) {
+    if (result.Failed) 
+    {
         LogProcessResult(result);
         throw new System.Exception("ShellOutVital Failed");
     }
@@ -166,7 +171,8 @@ static ProcessResult ShellOut(
         string workingDirectory = null,
         CancellationToken? cancelationToken = null)
 {
-    if (workingDirectory == null) {
+    if (workingDirectory == null) 
+    {
         workingDirectory = MyWorkingDirectory();
     }
 
@@ -182,11 +188,13 @@ static ProcessResult ShellOut(
         EnableRaisingEvents = true,
     };
 
-    if (cancelationToken != null) {
+    if (cancelationToken != null) 
+    {
         cancelationToken.Value.Register(() => process.Kill());
     }
 
-    if (IsVerbose()) {
+    if (IsVerbose()) 
+    {
         Log($"running \"{file}\" with arguments \"{args}\" from directory {workingDirectory}");
     }
     
@@ -196,13 +204,15 @@ static ProcessResult ShellOut(
     var error = new StringWriter();
 
     process.OutputDataReceived += (s, e) => {
-        if (!String.IsNullOrEmpty(e.Data)) {
+        if (!String.IsNullOrEmpty(e.Data)) 
+        {
             output.WriteLine(e.Data);
         }
     };
 
     process.ErrorDataReceived += (s, e) => {
-        if (!String.IsNullOrEmpty(e.Data)) {
+        if (!String.IsNullOrEmpty(e.Data)) 
+        {
             error.WriteLine(e.Data);
         }
     };
@@ -220,9 +230,11 @@ static ProcessResult ShellOut(
     };
 }
 
-string StdoutFrom(string program, string args = "") {
+string StdoutFrom(string program, string args = "") 
+{
     var result = ShellOut(program, args);
-    if (result.Failed) {
+    if (result.Failed) 
+    {
         LogProcessResult(result);
         throw new Exception("Shelling out failed");
     }
@@ -270,13 +282,15 @@ static void Log(string info)
 {
     System.Console.WriteLine(info);
     var log = LogFile();
-    if (log != null) {
+    if (log != null) 
+    {
         File.AppendAllText(log, info + System.Environment.NewLine);
     }
 }
 
 /// Logs the result of a finished process
-static void LogProcessResult(ProcessResult result) {
+static void LogProcessResult(ProcessResult result) 
+{
     Log(String.Format("The process \"{0}\" {1} with code {2}",
         $"{result.ExecutablePath} {result.Args}",
         result.Failed ? "failed" : "succeeded",
@@ -297,7 +311,8 @@ static void Report(ReportKind reportKind, string description, object value)
 ///
 /// If this current version has already been downloaded
 /// and extracted, do nothing.
-static void DownloadProject(string name, int version) {
+static void DownloadProject(string name, int version) 
+{
     var zipFileName = $"{name}.{version}.zip";
     var zipPath = Path.Combine(MyTempDirectory(), zipFileName);
     // If we've already downloaded the zip, assume that it
@@ -309,7 +324,8 @@ static void DownloadProject(string name, int version) {
     }
 
     // Remove all .zip files that were downloaded before.
-    foreach (var path in Directory.EnumerateFiles(MyTempDirectory(), $"{name}.*.zip")) {
+    foreach (var path in Directory.EnumerateFiles(MyTempDirectory(), $"{name}.*.zip")) 
+    {
         Log($"Removing old zip {path}");
         File.Delete(path);
     }
