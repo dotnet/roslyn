@@ -1521,7 +1521,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
             }
 
-            // PROTOTYPE: Should the filter for pattern variables stay?
+            // PROTOTYPE(patterns): Should the filter for pattern variables stay?
             Debug.Assert(localsOpt.Where(l => l.DeclarationKind != LocalDeclarationKind.PatternVariable).All(_usedVariables.Contains));
 
             return result;
