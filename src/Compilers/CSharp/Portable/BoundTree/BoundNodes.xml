@@ -115,7 +115,7 @@
     <Field Name="ChildBoundNodes" Type="ImmutableArray&lt;BoundNode&gt;"/>
   </Node>
   
-  <Node Name="BoundImplementationTypeExpression" Base="BoundExpression">
+  <Node Name="BoundTypeReferenceExpression" Base="BoundExpression">
     <Field Name="SourceType" Type="Cci.ITypeReference" Null="disallow"/>
   </Node>
     
@@ -442,8 +442,8 @@
     <Field Name="SourceType" Type="BoundTypeExpression"/>
   </Node>
     
-  <Node Name="BoundImplementationTypeOfOperator" Base="BoundTypeOf">
-    <Field Name="SourceType" Type="BoundImplementationTypeExpression"/>
+  <Node Name="BoundTypeReferenceTypeOfOperator" Base="BoundTypeOf">
+    <Field Name="SourceType" Type="BoundTypeReferenceExpression"/>
   </Node>
 
    <!-- Represents the raw metadata token value for a method. Dynamic instrumentation depends on tracking method tokens. -->
@@ -454,7 +454,7 @@
   </Node>
 
   <!-- Represents the GUID that is the current module's MVID. -->
-  <Node Name="BoundMVID" Base="BoundExpression">
+  <Node Name="BoundModuleVersionId" Base="BoundExpression">
     <!-- Non-null type is required for this node kind -->
     <Field Name="Type" Type="TypeSymbol" Override="true" Null="disallow"/>
   </Node>

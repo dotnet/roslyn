@@ -196,10 +196,10 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
                     EmitDefaultExpression((BoundDefaultOperator)expression, used);
                     break;
 
-                case BoundKind.ImplementationTypeOfOperator:
+                case BoundKind.TypeReferenceTypeOfOperator:
                     if (used) // unused typeof has no side-effects
                     {
-                        EmitImplementationTypeOfExpression((BoundImplementationTypeOfOperator)expression);
+                        EmitTypeReferenceTypeOfExpression((BoundTypeReferenceTypeOfOperator)expression);
                     }
                     break;
 
@@ -217,10 +217,10 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
                     }
                     break;
 
-                case BoundKind.MVID:
+                case BoundKind.ModuleVersionId:
                     if (used)
                     {
-                        EmitMVIDLoad((BoundMVID)expression);
+                        EmitMVIDLoad((BoundModuleVersionId)expression);
                     }
                     break;
 
@@ -2325,8 +2325,8 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
                     EmitIndirectStore(expression.Type, expression.Syntax);
                     break;
 
-                case BoundKind.MVID:
-                    EmitMVIDStore((BoundMVID)expression);
+                case BoundKind.ModuleVersionId:
+                    EmitMVIDStore((BoundModuleVersionId)expression);
                     break;
 
                 case BoundKind.PreviousSubmissionReference:
@@ -2652,7 +2652,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
             }
         }
 
-        private void EmitRestOfTypeOfExpression(BoundTypeOf boundTypeOf)
+        private void EmitGetTypeFromHandle(BoundTypeOf boundTypeOf)
         {
             _builder.EmitOpCode(ILOpCode.Call, stackAdjustment: 0); //argument off, return value on
             var getTypeMethod = boundTypeOf.GetTypeFromHandle;
@@ -2660,12 +2660,12 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
             EmitSymbolToken(getTypeMethod, boundTypeOf.Syntax, null);
         }
 
-        private void EmitImplementationTypeOfExpression(BoundImplementationTypeOfOperator boundTypeOfOperator)
+        private void EmitTypeReferenceTypeOfExpression(BoundTypeReferenceTypeOfOperator boundTypeOfOperator)
         {
             Cci.ITypeReference type = boundTypeOfOperator.SourceType.SourceType;
             _builder.EmitOpCode(ILOpCode.Ldtoken);
-            EmitImplementationSymbolToken(type, boundTypeOfOperator.SourceType.Syntax);
-            EmitRestOfTypeOfExpression(boundTypeOfOperator);
+            EmitTypeReferenceToken(type, boundTypeOfOperator.SourceType.Syntax);
+            EmitGetTypeFromHandle(boundTypeOfOperator);
         }
 
         private void EmitTypeOfExpression(BoundTypeOfOperator boundTypeOfOperator)
@@ -2673,7 +2673,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
             TypeSymbol type = boundTypeOfOperator.SourceType.Type;
             _builder.EmitOpCode(ILOpCode.Ldtoken);
             EmitSymbolToken(type, boundTypeOfOperator.SourceType.Syntax);
-            EmitRestOfTypeOfExpression(boundTypeOfOperator);
+            EmitGetTypeFromHandle(boundTypeOfOperator);
         }
 
         private void EmitSizeOfExpression(BoundSizeOfOperator boundSizeOfOperator)
@@ -2691,14 +2691,14 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
             EmitSymbolToken(node.Method, node.Syntax, null, encodeAsRawToken: true);
         }
 
-        private void EmitMVIDLoad(BoundMVID node)
+        private void EmitMVIDLoad(BoundModuleVersionId node)
         {
             Debug.Assert(node.Type.TypeKind == TypeKind.Struct);
             _builder.EmitOpCode(ILOpCode.Ldsfld);
             _builder.EmitToken(_module.PrivateImplClass.GetMVID((NamedTypeSymbol)node.Type), node.Syntax, _diagnostics);
         }
 
-        private void EmitMVIDStore(BoundMVID node)
+        private void EmitMVIDStore(BoundModuleVersionId node)
         {
             Debug.Assert(node.Type.TypeKind == TypeKind.Struct);
             _builder.EmitOpCode(ILOpCode.Stsfld);

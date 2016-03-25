@@ -1298,18 +1298,18 @@ namespace Microsoft.CodeAnalysis.CSharp
             return null;
         }
 
-        public override BoundNode VisitMVID(BoundMVID node)
+        public override BoundNode VisitModuleVersionId(BoundModuleVersionId node)
         {
             return null;
         }
 
-        public override BoundNode VisitImplementationTypeOfOperator(BoundImplementationTypeOfOperator node)
+        public override BoundNode VisitTypeReferenceTypeOfOperator(BoundTypeReferenceTypeOfOperator node)
         {
-            VisitImplementationTypeExpression(node.SourceType);
+            VisitTypeReferenceExpression(node.SourceType);
             return null;
         }
 
-        public override BoundNode VisitImplementationTypeExpression(BoundImplementationTypeExpression node)
+        public override BoundNode VisitTypeReferenceExpression(BoundTypeReferenceExpression node)
         {
             return null;
         }

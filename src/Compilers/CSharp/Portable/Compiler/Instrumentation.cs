@@ -45,10 +45,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                     if (privateImplementationClass.StaticConstructor == null)
                     {
                         // This is concurrency safe because the StaticConstructor setter ignores all but the first assignment.
-                        privateImplementationClass.StaticConstructor = new SynthesizedPrivateImplementationStaticConstructor(compilationState.ModuleBuilderOpt.SourceModule, privateImplementationClass);
+                        privateImplementationClass.StaticConstructor = new SynthesizedPrivateImplementationStaticConstructor(compilationState.ModuleBuilderOpt.SourceModule, privateImplementationClass, factory);
                     }
                     
-                    BoundExpression mvid = mvid = factory.MVID();
+                    BoundExpression mvid = factory.ModuleVersionId();
 
                     BoundExpression methodToken = factory.MethodToken(method);
                     BoundStatement createPayloadCall = factory.ExpressionStatement(factory.Call(null, createPayload, mvid, methodToken, factory.Field(null, payloadField), factory.Literal(dynamicAnalysisSpans.Length)));
@@ -118,8 +118,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         internal sealed partial class SynthesizedPrivateImplementationStaticConstructor : SynthesizedGlobalMethodSymbol
         {
-            internal SynthesizedPrivateImplementationStaticConstructor(SourceModuleSymbol containingModule, PrivateImplementationDetails privateImplementationType)
-                : base(containingModule, privateImplementationType, containingModule.ContainingAssembly.GetSpecialType(SpecialType.System_Void), WellKnownMemberNames.StaticConstructorName)
+            internal SynthesizedPrivateImplementationStaticConstructor(SourceModuleSymbol containingModule, PrivateImplementationDetails privateImplementationType, SyntheticBoundNodeFactory factory)
+                : base(containingModule, privateImplementationType, factory.SpecialType(SpecialType.System_Void), WellKnownMemberNames.StaticConstructorName)
             {
                 this.SetParameters(ImmutableArray<ParameterSymbol>.Empty);
             }
@@ -133,7 +133,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 SyntheticBoundNodeFactory factory = new SyntheticBoundNodeFactory(this, this.GetNonNullSyntaxNode(), compilationState, diagnostics);
                 factory.CurrentMethod = this;
 
-                BoundStatement mvidInitialization = factory.Assignment(factory.MVID(), factory.Property(factory.Property(factory.Typeof(ContainingPrivateImplementationDetailsType), "Module"), "ModuleVersionId"));
+                BoundStatement mvidInitialization = factory.Assignment(factory.ModuleVersionId(), factory.Property(factory.Property(factory.Typeof(ContainingPrivateImplementationDetailsType), "Module"), "ModuleVersionId"));
                 BoundStatement returnStatement = factory.Return();
 
                 factory.CloseMethod(factory.Block(ImmutableArray.Create(mvidInitialization, returnStatement)));
@@ -260,8 +260,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case BoundKind.UsingStatement:
                     {
                         BoundUsingStatement usingStatement = (BoundUsingStatement)statement;
-                        BoundNode operand = (BoundNode)usingStatement.ExpressionOpt ?? usingStatement.DeclarationsOpt;
-                        syntaxForSpan = operand != null ? operand.Syntax : usingStatement.Syntax;
+                        syntaxForSpan = ((BoundNode)usingStatement.ExpressionOpt ?? usingStatement.DeclarationsOpt).Syntax;
                         break;
                     }
                 case BoundKind.LockStatement:

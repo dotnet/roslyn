@@ -1824,7 +1824,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
     }
 
-    internal partial class BoundMVID
+    internal partial class BoundModuleVersionId
     {
         protected override OperationKind ExpressionKind => OperationKind.None;
 
@@ -1839,7 +1839,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
     }
 
-    internal partial class BoundImplementationTypeExpression
+    internal partial class BoundTypeReferenceExpression
     {
         protected override OperationKind ExpressionKind => OperationKind.None;
 
@@ -1854,7 +1854,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
     }
 
-    internal partial class BoundImplementationTypeOfOperator
+    internal partial class BoundTypeReferenceTypeOfOperator
     {
         protected override OperationKind ExpressionKind => OperationKind.None;
 

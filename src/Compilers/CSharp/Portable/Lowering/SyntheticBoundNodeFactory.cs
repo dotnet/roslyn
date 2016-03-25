@@ -928,9 +928,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             return new BoundTypeExpression(Syntax, null, type) { WasCompilerGenerated = true };
         }
 
-        public BoundImplementationTypeExpression ImplementationType(Cci.INamespaceTypeReference type)
+        public BoundTypeReferenceExpression TypeReference(Cci.INamespaceTypeReference type)
         {
-            return new BoundImplementationTypeExpression(Syntax, type, null) { WasCompilerGenerated = true };
+            return new BoundTypeReferenceExpression(Syntax, type, null) { WasCompilerGenerated = true };
         }
 
         public BoundExpression Typeof(WellKnownType type)
@@ -950,9 +950,9 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public BoundExpression Typeof(PrivateImplementationDetails type)
         {
-            return new BoundImplementationTypeOfOperator(
+            return new BoundTypeReferenceTypeOfOperator(
                 Syntax,
-                ImplementationType(type),
+                TypeReference(type),
                 WellKnownMethod(CodeAnalysis.WellKnownMember.System_Type__GetTypeFromHandle),
                 WellKnownType(CodeAnalysis.WellKnownType.System_Type))
             { WasCompilerGenerated = true };
@@ -996,9 +996,9 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// Synthesizes an expression that evaluates to the current module's MVID.
         /// </summary>
         /// <returns></returns>
-        public BoundExpression MVID()
+        public BoundExpression ModuleVersionId()
         {
-            return new BoundMVID(Syntax, WellKnownType(Microsoft.CodeAnalysis.WellKnownType.System_Guid)) { WasCompilerGenerated = true };
+            return new BoundModuleVersionId(Syntax, WellKnownType(Microsoft.CodeAnalysis.WellKnownType.System_Guid)) { WasCompilerGenerated = true };
         }
 
         public BoundExpression MethodInfo(MethodSymbol method)

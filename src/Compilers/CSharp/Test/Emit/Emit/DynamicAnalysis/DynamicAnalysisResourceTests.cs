@@ -25,6 +25,7 @@ public class C
     public static void Main()
     {
         Console.WriteLine(123);
+        Console.WriteLine(123);
     }
 }
 
@@ -50,13 +51,13 @@ namespace Microsoft.CodeAnalysis.Runtime
             var reader = DynamicAnalysisDataReader.TryCreateFromPE(peReader);
 
             VerifyDocuments(reader, reader.Documents,
-                @"'C:\myproject\doc1.cs' 21-AE-49-AE-F1-D9-19-19-73-C7-4C-0F-07-71-91-A7-1F-00-5F-31 (SHA1)");
+                @"'C:\myproject\doc1.cs' AE-D9-10-9C-B0-76-3E-8D-4B-C8-EC-29-65-B5-CE-AD-D3-04-5C-6B (SHA1)");
 
-            Assert.Equal(4, reader.Methods.Length);
+            Assert.Equal(5, reader.Methods.Length);
 
             VerifySpans(reader, reader.Methods[0],
                 "(7,8)-(7,31)",
-                "(6,4)-(8,5)");
+                "(8,8)-(8,31)");
 
             VerifySpans(reader, reader.Methods[1]);
         }
