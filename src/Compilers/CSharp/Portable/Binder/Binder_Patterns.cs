@@ -126,7 +126,9 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             // Note: we bind the pattern (conversion) to the first argument of `operator is`, not the type containing `operator is`.
             // That is how we support the specification of pattern-matching external to a type (e.g. active patterns)
-            hasErrors = hasErrors || CheckValidPatternType(node.Type, operand, operandType, isOperator.Parameters[0].Type, false, diagnostics);
+            hasErrors = hasErrors ||
+                CheckValidPatternType(node.Type, operand, operandType, isOperator.Parameters[0].Type, isVar: false,
+                                      patternTypeWasInSource: false, diagnostics: diagnostics);
             var patterns = ArrayBuilder<BoundPattern>.GetInstance(subPatternsCount);
             for (int i = 0; i < subPatternsCount; i++)
             {
@@ -208,7 +210,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             bool hasErrors,
             DiagnosticBag diagnostics)
         {
-            hasErrors = hasErrors || CheckValidPatternType(node.Type, operand, operandType, type, false, diagnostics);
+            hasErrors = hasErrors ||
+                CheckValidPatternType(node.Type, operand, operandType, type,
+                                      isVar: false, patternTypeWasInSource:false, diagnostics: diagnostics);
 
             // PROTOTYPE(patterns): We intend that (positional) recursive pattern-matching should be defined in terms of
             // PROTOTYPE(patterns): a pattern of user-defined methods or operators. As currently specified it is `operator is`.
@@ -357,7 +361,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             DiagnosticBag diagnostics)
         {
             var type = (NamedTypeSymbol)this.BindType(node.Type, diagnostics);
-            hasErrors = hasErrors || CheckValidPatternType(node.Type, operand, operandType, type, false, diagnostics);
+            hasErrors = hasErrors ||
+                CheckValidPatternType(node.Type, operand, operandType, type,
+                                      isVar: false, patternTypeWasInSource: false, diagnostics: diagnostics);
             var boundPatterns = BindSubPropertyPatterns(node, type, diagnostics);
             return new BoundPropertyPattern(node, type, boundPatterns, hasErrors: hasErrors);
         }
@@ -534,6 +540,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             BoundExpression operand,
             TypeSymbol operandType,
             TypeSymbol patternType,
+            bool patternTypeWasInSource,
             bool isVar,
             DiagnosticBag diagnostics)
         {
@@ -541,7 +548,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 return false;
             }
-            else if (patternType.IsNullableType() && !isVar)
+            else if (patternType.IsNullableType() && !isVar && patternTypeWasInSource)
             {
                 // It is an error to use pattern-matching with a nullable type, because you'll never get null. Use the underlying type.
                 Error(diagnostics, ErrorCode.ERR_PatternNullableType, typeSyntax, patternType, patternType.GetNullableUnderlyingType());
@@ -573,6 +580,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     case ConversionKind.NullLiteral:
                     case ConversionKind.ImplicitConstant:
                     case ConversionKind.ImplicitNumeric:
+                    case ConversionKind.ImplicitNullable:
                         // these are the conversions allowed by a pattern match
                         break;
                     default:
@@ -606,7 +614,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
             else
             {
-                hasErrors = CheckValidPatternType(typeSyntax, operand, operandType, declType, isVar, diagnostics);
+                hasErrors = CheckValidPatternType(typeSyntax, operand, operandType, declType,
+                                                  isVar: isVar, patternTypeWasInSource: true, diagnostics: diagnostics);
             }
 
             SourceLocalSymbol localSymbol = this.LookupLocal(identifier);

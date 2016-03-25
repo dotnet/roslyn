@@ -11523,5 +11523,45 @@ True
 False
 False");
         }
+
+        [Fact]
+
+        public void NullableFromGenericOperatorIs()
+        {
+            var source = @"
+using System;
+class Program
+{
+    static void Main(string[] args)
+    {
+        Console.WriteLine(((byte)1) is Odd<byte>());
+        Console.WriteLine(((byte)1) is Odd<byte?>());
+        Console.WriteLine(((byte)2) is Odd<byte>());
+        Console.WriteLine(((byte)2) is Odd<byte?>());
+        Console.WriteLine(string.Empty is Odd<string>());
+    }
+}
+public class Odd<T>
+{
+    public static bool operator is(T o)
+    {
+        switch ((object)o)
+        {
+            case byte i:    return (i % 2) != 0;
+            case sbyte i:   return (i % 2) != 0;
+            default:        return false;
+        }
+    }
+}
+";
+            var compilation = CreateCompilationWithMscorlib(source, options: TestOptions.ReleaseExe, parseOptions: patternParseOptions);
+            compilation.VerifyDiagnostics();
+            var verifier = CompileAndVerify(compilation, expectedOutput: @"
+True
+True
+False
+False
+False");
+        }
     }
 }
