@@ -103,11 +103,11 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense
             AssertIsForeground();
             if (IsSessionActive)
             {
-                this.StopModelComputation();
+                this.StopComputationAndDismissPresentation();
             }
         }
 
-        public void StopModelComputation()
+        public void StopComputationAndDismissPresentation()
         {
             AssertIsForeground();
             VerifySessionIsActive();
@@ -116,7 +116,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense
             // dismiss this again.
             var localSession = sessionOpt;
             sessionOpt = null;
-            localSession.Stop();
+            localSession.StopComputation();
+            localSession.DismissEditorSession();
         }
 
         public bool TryHandleEscapeKey()
@@ -136,7 +137,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense
             var handledCommand = sessionOpt.InitialUnfilteredModel != null;
 
             // In the presence of an escape, we always stop what we're doing.
-            this.StopModelComputation();
+            this.StopComputationAndDismissPresentation();
 
             return handledCommand;
         }

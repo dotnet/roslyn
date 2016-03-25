@@ -30,11 +30,11 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
 
             presenter.Raise(Sub(p) AddHandler p.Dismissed, Nothing, New EventArgs())
 
-            controller.Verify(Sub(c) c.StopModelComputation())
+            controller.Verify(Sub(c) c.StopComputationAndDismissPresentation())
         End Sub
 
         <WpfFact>
-        Public Sub PresenterIsDismissedWhenSessionIsStopped()
+        Public Sub PresenterIsNotDismissedWhenSessionIsStopped()
             Dim presenter = New Mock(Of IIntelliSensePresenterSession)
             Dim controller = New Mock(Of IController(Of Model))
             Dim session = New Session(Of IController(Of Model), Model, IIntelliSensePresenterSession)(
@@ -42,9 +42,9 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
                 New ModelComputation(Of Model)(controller.Object, TaskScheduler.Default),
                 presenter.Object)
 
-            session.Stop()
+            session.StopComputation()
 
-            presenter.Verify(Sub(p) p.Dismiss())
+            presenter.Verify(Sub(p) p.Dismiss(), Times.Never)
         End Sub
     End Class
 End Namespace

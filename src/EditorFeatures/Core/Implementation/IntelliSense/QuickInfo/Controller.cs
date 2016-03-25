@@ -73,7 +73,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.QuickInfo
             AssertIsForeground();
             if (modelOpt == null || modelOpt.TextVersion != this.SubjectBuffer.CurrentSnapshot.Version)
             {
-                this.StopModelComputation();
+                this.StopComputationAndDismissPresentation();
             }
             else
             {

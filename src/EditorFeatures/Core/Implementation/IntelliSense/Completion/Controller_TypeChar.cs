@@ -106,7 +106,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
 
                         // If we were computing anything, we stop.  We only want to process a typechar
                         // if it was a normal character.
-                        this.StopModelComputation();
+                        this.StopComputationAndDismissPresentation();
                     }
                 }
 
@@ -224,7 +224,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
                         Trace.WriteLine("dismissing the session...");
 
                         // Now dismiss the session.
-                        this.StopModelComputation();
+                        this.StopComputationAndDismissPresentation();
                     }
 
                     // The character may commit/dismiss and then trigger completion again. So check

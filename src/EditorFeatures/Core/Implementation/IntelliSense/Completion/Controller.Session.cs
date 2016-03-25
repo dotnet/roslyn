@@ -21,6 +21,9 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
 
             #endregion
 
+            private bool alreadyCommitted;
+            private bool alreadyDismissed;
+
             public Session(Controller controller, ModelComputation<Model> computation, CompletionRules completionRules, ICompletionPresenterSession presenterSession)
                 : base(controller, computation, presenterSession)
             {
@@ -64,12 +67,43 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
                 });
             }
 
-            public override void Stop()
+            /// <summary>
+            /// Dismisses the editor completion list.
+            /// 
+            /// NOTE: If calling this, do not call <see cref="CommitEditorSession"/>.
+            /// </summary>
+            public override void DismissEditorSession()
             {
                 AssertIsForeground();
+                Contract.ThrowIfTrue(alreadyDismissed, "This session has already been dismissed");
+                Contract.ThrowIfTrue(alreadyCommitted, "This session has already been committed");
+                alreadyDismissed = true;
+
+                this.DisconnectFromPresenter();
+                base.DismissEditorSession();
+            }
+
+            /// <summary>
+            /// Commits and dismisses the underlying editor completion list.
+            /// 
+            /// NOTE: If calling this, do not call <see cref="DismissEditorSession"/>.
+            /// Committing the editor list will implicitly dismiss it.
+            /// </summary>
+            public void CommitEditorSession()
+            {
+                AssertIsForeground();
+                Contract.ThrowIfTrue(alreadyDismissed, "This session has already been dismissed");
+                Contract.ThrowIfTrue(alreadyCommitted, "This session has already been committed");
+                alreadyCommitted = true;
+
+                this.DisconnectFromPresenter();
+                this.PresenterSession.Commit();
+            }
+
+            private void DisconnectFromPresenter()
+            {
                 this.PresenterSession.ItemSelected -= OnPresenterSessionItemSelected;
                 this.PresenterSession.ItemCommitted -= OnPresenterSessionItemCommitted;
-                base.Stop();
             }
 
             private SnapshotPoint GetCaretPointInViewBuffer()

@@ -6,7 +6,9 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense
     {
         TModel InitialUnfilteredModel { get; }
 
-        void Stop();
+        void StopComputation();
+
+        void DismissEditorSession();
 
         TModel WaitForController();
     }

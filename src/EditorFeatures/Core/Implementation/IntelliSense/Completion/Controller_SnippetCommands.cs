@@ -43,7 +43,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
         {
             if (sessionOpt != null)
             {
-                StopModelComputation();
+                StopComputationAndDismissPresentation();
             }
 
             nextHandler();

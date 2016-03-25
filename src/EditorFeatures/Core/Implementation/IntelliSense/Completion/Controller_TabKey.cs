@@ -52,7 +52,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
             // Also, send the tab through to the editor.
             if (!committed)
             {
-                this.StopModelComputation();
+                this.StopComputationAndDismissPresentation();
                 nextHandler();
             }
         }
@@ -139,7 +139,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
             if (selectedItem.IsBuilder)
             {
                 committed = true;
-                this.StopModelComputation();
+                this.StopComputationAndDismissPresentation();
                 return;
             }
 

@@ -31,7 +31,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
             // We did not commit based on enter.  So our computation will still be running.  Stop it now.
             if (!committed)
             {
-                this.StopModelComputation();
+                this.StopComputationAndDismissPresentation();
             }
 
             // Enter has different behavior amongst languages, so we need to actually defer to

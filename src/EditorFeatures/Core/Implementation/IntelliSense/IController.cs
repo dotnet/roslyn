@@ -9,6 +9,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense
     {
         void OnModelUpdated(TModel result);
         IAsyncToken BeginAsyncOperation(string name = "", object tag = null, [CallerFilePath] string filePath = "", [CallerLineNumber]int lineNumber = 0);
-        void StopModelComputation();
+        void StopComputationAndDismissPresentation();
     }
 }
