@@ -1,8 +1,8 @@
 // Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-#load "..\util\test_util.csx"
-#load "..\util\runner_util.csx"
-#load "..\util\Download_util.csx"
+#load "../util/test_util.csx"
+#load "../util/runner_util.csx"
+#load "../util/Download_util.csx"
 
 InitUtilities();
 
@@ -14,7 +14,7 @@ ShellOutVital(Path.Combine(RoslynDirectory(), "Restore.cmd"), "", workingDirecto
 // Build Roslyn in Release Mode
 ShellOutVital("msbuild", "./Roslyn.sln /p:Configuration=Release", workingDirectory: RoslynDirectory());
 
-// Run DownloadTools before using the TraceManager because TraceManager uses the downloaded CPC binaries 
+// Run DownloadTools before using the TraceManager because TraceManager uses the downloaded CPC binaries
 DownloadTools();
 
 // Run run_and_report.csx
