@@ -111,6 +111,8 @@ namespace RunTests
         private static List<AssemblyInfo> GetAssemblyList(Options options)
         {
             var scheduler = new AssemblyScheduler(options);
+            return options.Assemblies.Select(scheduler.CreateAssemblyInfo).ToList();
+            /*
             var list = new List<AssemblyInfo>();
 
             foreach (var assemblyPath in options.Assemblies.OrderByDescending(x => new FileInfo(x).Length))
@@ -135,6 +137,7 @@ namespace RunTests
             }
 
             return list;
+            */
         }
 
         private static void DisplayResults(Display display, ImmutableArray<TestResult> testResults)
@@ -189,6 +192,9 @@ namespace RunTests
                 return processTestExecutor;
             }
 
+            return processTestExecutor;
+
+            /*
             // The web caching layer is still being worked on.  For now want to limit it to Roslyn developers
             // and Jenkins runs by default until we work on this a bit more.  Anyone reading this who wants
             // to try it out should feel free to opt into this. 
@@ -199,6 +205,7 @@ namespace RunTests
             }
 
             return new CachingTestExecutor(testExecutionOptions, processTestExecutor, dataStorage);
+            */
         }
 
         /// <summary>
