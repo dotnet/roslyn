@@ -284,7 +284,6 @@ namespace Microsoft.CodeAnalysis.CSharp
         public override void VisitFixedStatement(FixedStatementSyntax node)
         {
             Debug.Assert((object)_method == _enclosing.ContainingMemberOrLambda);
-            var patternBinder = new PatternVariableBinder(node, node.Declaration.Variables, _enclosing);
             var binder = new FixedStatementBinder(_enclosing, node);
             AddToMap(node, binder);
 

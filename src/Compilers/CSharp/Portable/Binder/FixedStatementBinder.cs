@@ -29,6 +29,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                 foreach (VariableDeclaratorSyntax declarator in _syntax.Declaration.Variables)
                 {
                     locals.Add(MakeLocal(RefKind.None, _syntax.Declaration, declarator, LocalDeclarationKind.FixedVariable));
+
+                    if (declarator.Initializer != null)
+                    {
+                        BuildAndAddPatternVariables(locals, declarator.Initializer.Value);
+                    }
                 }
 
                 return locals.ToImmutable();

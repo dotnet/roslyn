@@ -1509,16 +1509,20 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             foreach (LocalSymbol local in localsOpt)
             {
-                if (local.DeclarationKind == LocalDeclarationKind.RegularVariable)
+                switch (local.DeclarationKind)
                 {
-                    ReportIfUnused(local, assigned: true);
-                }
-                else
-                {
-                    NoteRead(local); // At the end of the statement, there's an implied read when the local is disposed
+                    case LocalDeclarationKind.RegularVariable:
+                        ReportIfUnused(local, assigned: true);
+                        break;
+
+                    case LocalDeclarationKind.UsingVariable:
+                        NoteRead(local); // At the end of the statement, there's an implied read when the local is disposed
+                        break;
                 }
             }
-            Debug.Assert(localsOpt.All(_usedVariables.Contains));
+
+            // PROTOTYPE(patterns): Should the filter for pattern variables stay?
+            Debug.Assert(localsOpt.Where(l => l.DeclarationKind != LocalDeclarationKind.PatternVariable).All(_usedVariables.Contains));
 
             return result;
         }
@@ -1527,14 +1531,16 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             foreach (LocalSymbol local in node.Locals)
             {
-                if (local.DeclarationKind == LocalDeclarationKind.RegularVariable)
+                switch(local.DeclarationKind)
                 {
-                    DeclareVariable(local);
-                }
-                else
-                {
-                    Debug.Assert(local.DeclarationKind == LocalDeclarationKind.FixedVariable);
-                    // TODO: should something be done about this local?
+                    case LocalDeclarationKind.RegularVariable:
+                    case LocalDeclarationKind.PatternVariable:
+                        DeclareVariable(local);
+                        break;
+
+                    default:
+                        Debug.Assert(local.DeclarationKind == LocalDeclarationKind.FixedVariable);
+                        break;
                 }
             }
 
