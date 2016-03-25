@@ -877,12 +877,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                             return IsValidUserDefinedOperatorSignature(1) ? MethodKind.Conversion : MethodKind.Ordinary;
                         case WellKnownMemberNames.IsOperatorName:
                             return IsValidUserDefinedOperatorIs() ? MethodKind.UserDefinedOperator : MethodKind.Ordinary;
-                        case WellKnownMemberNames.ConcatenateOperatorName:
-                        case WellKnownMemberNames.ExponentOperatorName:
-                        case WellKnownMemberNames.IntegerDivisionOperatorName:
-                        case WellKnownMemberNames.LikeOperatorName:
-                            // Non-C#-supported overloaded operator
-                            return MethodKind.Ordinary;
+
+                        //case WellKnownMemberNames.ConcatenateOperatorName:
+                        //case WellKnownMemberNames.ExponentOperatorName:
+                        //case WellKnownMemberNames.IntegerDivisionOperatorName:
+                        //case WellKnownMemberNames.LikeOperatorName:
+                            //// Non-C#-supported overloaded operator
+                            //return MethodKind.Ordinary;
                     }
 
                     return MethodKind.Ordinary;
