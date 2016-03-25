@@ -14,7 +14,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         public override BoundNode VisitTupleCreationExpression(BoundTupleCreationExpression node)
         {
             var rewrittenArguments = VisitList(node.Arguments);
-            return new BoundObjectCreationExpression(node.Syntax, node.Constructor, rewrittenArguments);
+            return new BoundObjectCreationExpression(node.Syntax, node.ConstructorOpt, rewrittenArguments);
         }
     }
 }
