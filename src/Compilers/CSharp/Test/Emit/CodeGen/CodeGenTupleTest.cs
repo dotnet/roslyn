@@ -703,9 +703,9 @@ class C
                 // (6,29): error CS0656: Missing compiler required member 'System.ValueTuple`3.Item3'
                 //         (int, string a) x = (b: 1, "hello", 2);
                 Diagnostic(ErrorCode.ERR_MissingPredefinedMember, @"(b: 1, ""hello"", 2)").WithArguments("System.ValueTuple`3", "Item3").WithLocation(6, 29),
-                // (6,29): error CS8204: PROTOTYPE This is not supported yet.
+                // (6,29): error CS0656: Missing compiler required member 'System.ValueTuple`3..ctor'
                 //         (int, string a) x = (b: 1, "hello", 2);
-                Diagnostic(ErrorCode.ERR_PrototypeNotYetImplemented, @"(b: 1, ""hello"", 2)").WithLocation(6, 29));
+                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, @"(b: 1, ""hello"", 2)").WithArguments("System.ValueTuple`3", ".ctor").WithLocation(6, 29));
         }
 
         [Fact]

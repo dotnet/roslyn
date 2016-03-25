@@ -125,6 +125,31 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                                                             WellKnownType.System_ValueTuple_T1_T2_T3_T4_T5_T6_T7 };
 
         /// <summary>
+        /// Find the constructor for a well-known ValueTuple type of a given arity.
+        /// For example, for arity=2:
+        /// returns WellKnownMember.System_ValueTuple_T1_T2__ctor
+        /// </summary>
+        internal static WellKnownMember GetTupleCtor(int arity)
+        {
+            if (arity > 7)
+            {
+                // PROTOTYPE
+                arity = 1;
+            }
+            return tupleCtors[arity - 1];
+        }
+
+        private static readonly WellKnownMember[] tupleCtors = {
+                                                            WellKnownMember.System_ValueTuple_T1__ctor,
+                                                            WellKnownMember.System_ValueTuple_T1_T2__ctor,
+                                                            WellKnownMember.System_ValueTuple_T1_T2_T3__ctor,
+                                                            WellKnownMember.System_ValueTuple_T1_T2_T3_T4__ctor,
+                                                            WellKnownMember.System_ValueTuple_T1_T2_T3_T4_T5__ctor,
+                                                            WellKnownMember.System_ValueTuple_T1_T2_T3_T4_T5_T6__ctor,
+                                                            WellKnownMember.System_ValueTuple_T1_T2_T3_T4_T5_T6_T7__ctor };
+
+
+        /// <summary>
         /// Find the well-known members to the ValueTuple type of a given arity and index/position.
         /// For example, for arity=3 and position=0:
         /// returns WellKnownMember.System_ValueTuple_T1_T2_T3__Item1
@@ -256,7 +281,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         internal sealed override ObsoleteAttributeData ObsoleteAttributeData
         {
-            get { return _underlyingType.ObsoleteAttributeData; }
+            get
+            {
+                // PROTOTYPE: need to figure what is the right behavior when underlying is obsolete
+                return null;
+            }
         }
 
         public override ImmutableArray<Symbol> GetMembers()
@@ -812,7 +841,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             get
             {
-                return _underlyingFieldOpt?.ObsoleteAttributeData;
+                // PROTOTYPE: need to figure what is the right behavior when underlying is obsolete
+                return null;
             }
         }
 

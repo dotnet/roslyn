@@ -2735,6 +2735,83 @@ namespace Microsoft.CodeAnalysis
                 0,                                                                                                          // Arity
                     (byte)SignatureTypeCode.GenericTypeParameter, 7,                                                        // Field Signature
 
+                // System_ValueTuple_T1__ctor
+                (byte)MemberFlags.Constructor,                                                                              // Flags
+                (byte)WellKnownType.System_ValueTuple_T1,                                                                   // DeclaringTypeId
+                0,                                                                                                          // Arity
+                    1,                                                                                                      // Method Signature
+                    (byte)SignatureTypeCode.TypeHandle, (byte)SpecialType.System_Void,
+                    (byte)SignatureTypeCode.GenericTypeParameter, 0,
+
+                // System_ValueTuple_T1_T2__ctor
+                (byte)MemberFlags.Constructor,                                                                              // Flags
+                (byte)WellKnownType.System_ValueTuple_T1_T2,                                                                // DeclaringTypeId
+                0,                                                                                                          // Arity
+                    2,                                                                                                      // Method Signature
+                    (byte)SignatureTypeCode.TypeHandle, (byte)SpecialType.System_Void,
+                    (byte)SignatureTypeCode.GenericTypeParameter, 0,
+                    (byte)SignatureTypeCode.GenericTypeParameter, 1,
+
+                // System_ValueTuple_T1_T2_T3__ctor
+                (byte)MemberFlags.Constructor,                                                                              // Flags
+                (byte)WellKnownType.System_ValueTuple_T1_T2_T3,                                                             // DeclaringTypeId
+                0,                                                                                                          // Arity
+                    3,                                                                                                      // Method Signature
+                    (byte)SignatureTypeCode.TypeHandle, (byte)SpecialType.System_Void,
+                    (byte)SignatureTypeCode.GenericTypeParameter, 0,
+                    (byte)SignatureTypeCode.GenericTypeParameter, 1,
+                    (byte)SignatureTypeCode.GenericTypeParameter, 2,
+
+                 // System_ValueTuple_T1_T2_T3_T4__ctor
+                (byte)MemberFlags.Constructor,                                                                              // Flags
+                (byte)WellKnownType.System_ValueTuple_T1_T2_T3_T4,                                                          // DeclaringTypeId
+                0,                                                                                                          // Arity
+                    4,                                                                                                      // Method Signature
+                    (byte)SignatureTypeCode.TypeHandle, (byte)SpecialType.System_Void,
+                    (byte)SignatureTypeCode.GenericTypeParameter, 0,
+                    (byte)SignatureTypeCode.GenericTypeParameter, 1,
+                    (byte)SignatureTypeCode.GenericTypeParameter, 2,
+                    (byte)SignatureTypeCode.GenericTypeParameter, 3,
+
+                // System_ValueTuple_T_T2_T3_T4_T5__ctor
+                (byte)MemberFlags.Constructor,                                                                              // Flags
+                (byte)WellKnownType.System_ValueTuple_T1_T2_T3_T4_T5,                                                       // DeclaringTypeId
+                0,                                                                                                          // Arity
+                    5,                                                                                                      // Method Signature
+                    (byte)SignatureTypeCode.TypeHandle, (byte)SpecialType.System_Void,
+                    (byte)SignatureTypeCode.GenericTypeParameter, 0,
+                    (byte)SignatureTypeCode.GenericTypeParameter, 1,
+                    (byte)SignatureTypeCode.GenericTypeParameter, 2,
+                    (byte)SignatureTypeCode.GenericTypeParameter, 3,
+                    (byte)SignatureTypeCode.GenericTypeParameter, 4,
+
+                // System_ValueTuple_T1_T2_T3_T4_T5_T6__ctor
+                (byte)MemberFlags.Constructor,                                                                              // Flags
+                (byte)WellKnownType.System_ValueTuple_T1_T2_T3_T4_T5_T6,                                                    // DeclaringTypeId
+                0,                                                                                                          // Arity
+                    6,                                                                                                      // Method Signature
+                    (byte)SignatureTypeCode.TypeHandle, (byte)SpecialType.System_Void,
+                    (byte)SignatureTypeCode.GenericTypeParameter, 0,
+                    (byte)SignatureTypeCode.GenericTypeParameter, 1,
+                    (byte)SignatureTypeCode.GenericTypeParameter, 2,
+                    (byte)SignatureTypeCode.GenericTypeParameter, 3,
+                    (byte)SignatureTypeCode.GenericTypeParameter, 4,
+                    (byte)SignatureTypeCode.GenericTypeParameter, 5,
+
+                 // System_ValueTuple_T1_T2_T3_T4_T5_T6_T7__ctor
+                (byte)MemberFlags.Constructor,                                                                              // Flags
+                (byte)WellKnownType.System_ValueTuple_T1_T2_T3_T4_T5_T6_T7,                                                 // DeclaringTypeId
+                0,                                                                                                          // Arity
+                    7,                                                                                                      // Method Signature
+                    (byte)SignatureTypeCode.TypeHandle, (byte)SpecialType.System_Void,
+                    (byte)SignatureTypeCode.GenericTypeParameter, 0,
+                    (byte)SignatureTypeCode.GenericTypeParameter, 1,
+                    (byte)SignatureTypeCode.GenericTypeParameter, 2,
+                    (byte)SignatureTypeCode.GenericTypeParameter, 3,
+                    (byte)SignatureTypeCode.GenericTypeParameter, 4,
+                    (byte)SignatureTypeCode.GenericTypeParameter, 5,
+                    (byte)SignatureTypeCode.GenericTypeParameter, 6,
+
                 // System_String__Format_IFormatProvider
                 (byte)(MemberFlags.Method | MemberFlags.Static),                                                            // Flags
                 (byte)SpecialType.System_String,                                                                            // DeclaringTypeId
@@ -3085,6 +3162,14 @@ namespace Microsoft.CodeAnalysis
                 "Item6",                                    // System_ValueTuple_T1_T2_T3_T4_T5_T6_T7_TRest__Item6
                 "Item7",                                    // System_ValueTuple_T1_T2_T3_T4_T5_T6_T7_TRest__Item7
                 "Rest",                                     // System_ValueTuple_T1_T2_T3_T4_T5_T6_T7_TRest__Rest
+
+                ".ctor",                                    // System_ValueTuple_T1__ctor
+                ".ctor",                                    // System_ValueTuple_T1_T2__ctor
+                ".ctor",                                    // System_ValueTuple_T1_T2_T3__ctor
+                ".ctor",                                    // System_ValueTuple_T1_T2_T3_T4__ctor
+                ".ctor",                                    // System_ValueTuple_T1_T2_T3_T4_T5__ctor
+                ".ctor",                                    // System_ValueTuple_T1_T2_T3_T4_T5_T6__ctor
+                ".ctor",                                    // System_ValueTuple_T1_T2_T3_T4_T5_T6_T7__ctor
 
                 "Format",                                   // System_String__Format_IFormatProvider
             };

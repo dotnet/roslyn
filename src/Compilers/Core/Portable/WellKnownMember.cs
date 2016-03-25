@@ -398,6 +398,14 @@ namespace Microsoft.CodeAnalysis
         System_ValueTuple_T1_T2_T3_T4_T5_T6_T7_TRest__Item7,
         System_ValueTuple_T1_T2_T3_T4_T5_T6_T7_TRest__Rest,
 
+        System_ValueTuple_T1__ctor,
+        System_ValueTuple_T1_T2__ctor,
+        System_ValueTuple_T1_T2_T3__ctor,
+        System_ValueTuple_T1_T2_T3_T4__ctor,
+        System_ValueTuple_T1_T2_T3_T4_T5__ctor,
+        System_ValueTuple_T1_T2_T3_T4_T5_T6__ctor,
+        System_ValueTuple_T1_T2_T3_T4_T5_T6_T7__ctor,
+
         System_String__Format_IFormatProvider,
         Count
     }
