@@ -14,6 +14,7 @@ using System.Threading;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CodeGen;
 using Microsoft.CodeAnalysis.Emit;
+using Roslyn.Test.Utilities;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Test.Utilities
@@ -455,7 +456,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
 
                     if (dumpDirectory == null)
                     {
-                        var assemblyLocation = typeof(HostedRuntimeEnvironment).Assembly.Location;
+                        var assemblyLocation = typeof(IRuntimeUtility).Assembly.Location;
                         dumpDirectory = Path.Combine(
                             Path.GetDirectoryName(assemblyLocation),
                             "Dumps");
