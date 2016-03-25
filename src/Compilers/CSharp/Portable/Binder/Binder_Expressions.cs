@@ -710,7 +710,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 var boundArgument = BindValue(argumentSyntax.Expression, diagnostics, BindValueKind.RValue);
                 boundArguments.Add(boundArgument);
 
-                // PROTOTYPE: need to report distinc errors for tuples
+                // PROTOTYPE(tuples): need to report distinc errors for tuples
                 var elementType = GetAnonymousTypeFieldType(boundArgument, argumentSyntax, diagnostics, ref hasErrors);
                 elementTypes.Add(elementType);
             }
@@ -723,7 +723,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             var elements = elementTypes.ToImmutableAndFree();
             if (elements.Length < 2 || elements.Length > 7)
             {
-                // PROTOTYPE
+                // PROTOTYPE(tuples)
                 diagnostics.Add(ErrorCode.ERR_PrototypeNotYetImplemented, node.Location);
                 return BadExpression(node);
             }

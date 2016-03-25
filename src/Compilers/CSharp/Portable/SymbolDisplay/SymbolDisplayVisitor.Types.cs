@@ -165,7 +165,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
             }
 
-            // PROTOTYPE : we need to settle on final tuple symbol visualization.
+            // PROTOTYPE(tuples) : we need to settle on final tuple symbol visualization.
             //             it feels like tuples would not need any qualification 
             if (this.IsMinimizing || symbol.IsTupleType)
             {

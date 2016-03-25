@@ -406,7 +406,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 var argumentType = BindType(argumentSyntax.Type, diagnostics);
                 types.Add(argumentType);
 
-                // PROTOTYPE the error handling on missing, reserved or non-unique names should be fixed
+                // PROTOTYPE(tuples) the error handling on missing, reserved or non-unique names should be fixed
                 var nameSyntax = argumentSyntax.Name;
                 var name = (object)nameSyntax != null ? nameSyntax.Identifier.ValueText : TupleTypeSymbol.UnderlyingMemberName(i);
                 names.Add(name);
