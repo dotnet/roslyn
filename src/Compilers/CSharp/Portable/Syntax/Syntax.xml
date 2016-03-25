@@ -3247,6 +3247,7 @@
       <Kind Name="GreaterThanEqualsToken"/>
       <Kind Name="FalseKeyword"/>
       <Kind Name="TrueKeyword"/>
+      <Kind Name="IsKeyword"/>
     </Field>
     <Field Name="ParameterList" Type="ParameterListSyntax" Override="true"/>
     <Field Name="Body" Type="BlockSyntax" Optional="true" Override="true"/>

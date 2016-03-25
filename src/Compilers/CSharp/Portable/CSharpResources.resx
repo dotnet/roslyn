@@ -4855,6 +4855,18 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
     <value>An 'else' clause is required when a 'when' clause is present.</value>
   </data>
   <data name="ERR_PeWritingFailure" xml:space="preserve">
-    <value>An error occurred while writing the output file: {0}</value>
+    <value>An error occurred while writing the output file: {0}.</value>
+  </data>
+  <data name="ERR_AmbiguousOperatorIs" xml:space="preserve">
+    <value>Ambiguous 'operator is' declarations found in type '{0}'.</value>
+  </data>
+  <data name="ERR_OperatorIsParameterCount" xml:space="preserve">
+    <value>No 'operator is' declaration in '{0}' was found with {1} out parameters</value>
+  </data>
+  <data name="ERR_OperatorIsRequiresOut" xml:space="preserve">
+    <value>All but the first parameter of user-defined 'operator is' require the 'out' modifier.</value>
+  </data>
+  <data name="ERR_OperatorIsMustReturnBoolOrVoid" xml:space="preserve">
+    <value>The return type of 'operator is' must be 'bool' or 'void'.</value>
   </data>
 </root>

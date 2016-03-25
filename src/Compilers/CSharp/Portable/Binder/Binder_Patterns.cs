@@ -3,7 +3,6 @@
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Roslyn.Utilities;
-using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
@@ -15,7 +14,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         private BoundExpression BindIsPatternExpression(IsPatternExpressionSyntax node, DiagnosticBag diagnostics)
         {
             var expression = BindExpression(node.Expression, diagnostics);
-            var hasErrors = IsOperandErrors(node, expression, diagnostics);
+            var hasErrors = node.HasErrors || IsOperandErrors(node, expression, diagnostics);
             var pattern = BindPattern(node.Pattern, expression, expression.Type, hasErrors, diagnostics);
             return new BoundIsPatternExpression(
                 node, expression, pattern, GetSpecialType(SpecialType.System_Boolean, diagnostics, node), hasErrors);
@@ -50,7 +49,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return new BoundWildcardPattern(node);
 
                 default:
-                    // PROTOTYPE: Can this occur due to parser error recovery? If so, how to handle?
+                    // PROTOTYPE(patterns): Can this occur due to parser error recovery? If so, how to handle?
                     throw ExceptionUtilities.UnexpectedValue(node.Kind());
             }
         }
@@ -63,16 +62,162 @@ namespace Microsoft.CodeAnalysis.CSharp
             DiagnosticBag diagnostics)
         {
             var type = (NamedTypeSymbol)this.BindType(node.Type, diagnostics);
+
+            var operators = type.GetMembers(WellKnownMemberNames.IsOperatorName);
+            if (operators.IsDefaultOrEmpty && ((CSharpParseOptions)node.SyntaxTree.Options).IsFeatureEnabled(MessageID.IDS_FeaturePatternMatching2))
+            {
+                // PROTOTYPE(patterns): As a temporary hack we recognize constructors and try to infer
+                // PROTOTYPE(patterns): a pattern-matching against properties based on constructor parameter names.
+                return BindInferredRecursivePattern(node, type, operand, operandType, hasErrors, diagnostics);
+            }
+            else
+            {
+                return BindUserDefinedRecursivePattern(node, type, operators, operand, operandType, hasErrors, diagnostics);
+            }
+        }
+
+        private BoundPattern BindUserDefinedRecursivePattern(
+            RecursivePatternSyntax node,
+            NamedTypeSymbol type,
+            ImmutableArray<Symbol> operators,
+            BoundExpression operand,
+            TypeSymbol operandType,
+            bool hasErrors,
+            DiagnosticBag diagnostics)
+        {
+            // find the unique operator to use
+            MethodSymbol isOperator = null;
+            var subPatterns = node.PatternList.SubPatterns;
+            var subPatternsCount = subPatterns.Count;
+            foreach (var op in operators)
+            {
+                // check that the operator is well-formed. If not, skip it.
+                var candidate = op as MethodSymbol;
+                if (candidate == (object)null || !ApplicableOperatorIs(candidate, node.Type, diagnostics)) continue;
+
+                // check that its number of out parameters is the same as the arity of this pattern-matching operation.
+                // PROTOTYPE(patterns): consider how we would support `params` for a variable number of pattern positions, for
+                // PROTOTYPE(patterns): example in a regular expression the library does not know statically how many capture
+                // PROTOTYPE(patterns): groups there are.
+                if (candidate.ParameterCount != subPatternsCount + 1) continue; // not the droid you're looking for
+
+                // ok, we've found a candidate. If we already have a candidate, error.
+                // PROTOTYPE(patterns): it has been suggested that we use something like overload resolution on the shape
+                // PROTOTYPE(patterns): of the patterns to further narrow down which operators we consider. We don't do that.
+                if (isOperator != (object)null)
+                {
+                    // Error: Ambiguous `operator is` declarations found in type {type}
+                    diagnostics.Add(ErrorCode.ERR_AmbiguousOperatorIs, node.Location, type);
+                    hasErrors = true;
+                    break;
+                }
+
+                isOperator = candidate;
+            }
+
+            if (isOperator == (object)null)
+            {
+                // Error: No 'operator is' declaration in {type} was found with {node.PatternList.SubPatterns.Count} out parameters.
+                diagnostics.Add(ErrorCode.ERR_OperatorIsParameterCount, node.Location, type, subPatternsCount);
+                // PROTOTYPE(patterns): should we bind the subpatterns for the semantic model to use,
+                // PROTOTYPE(patterns): even though we don't have an expression to match them against?
+                return new BoundWildcardPattern(node, hasErrors: true);
+            }
+
+            // Note: we bind the pattern (conversion) to the first argument of `operator is`, not the type containing `operator is`.
+            // That is how we support the specification of pattern-matching external to a type (e.g. active patterns)
+            hasErrors = hasErrors || CheckValidPatternType(node.Type, operand, operandType, isOperator.Parameters[0].Type, false, diagnostics);
+            var patterns = ArrayBuilder<BoundPattern>.GetInstance(subPatternsCount);
+            for (int i = 0; i < subPatternsCount; i++)
+            {
+                if (subPatterns[i].NameColon != null)
+                {
+                    // PROTOTYPE(patterns): keyword syntax not supported in recursive patterns.
+                    diagnostics.Add(ErrorCode.ERR_FeatureIsUnimplemented, subPatterns[i].NameColon.Location, "keyword syntax in recursive patterns");
+                    hasErrors = true;
+                }
+
+                patterns.Add(BindPattern(subPatterns[i].Pattern, null, isOperator.Parameters[i + 1].Type, hasErrors, diagnostics));
+            }
+
+            return new BoundRecursivePattern(node, type, isOperator, patterns.ToImmutableAndFree(), hasErrors);
+        }
+
+        /// <summary>
+        /// Is a user-defined `operator is` applicable? At the use site, we ignore those that are not.
+        /// PROTOTYPE(patterns): In the future this may be context-dependent (i.e. static versus instance context).
+        /// </summary>
+        private bool ApplicableOperatorIs(MethodSymbol candidate, CSharpSyntaxNode node, DiagnosticBag diagnostics)
+        {
+            // must be a user-defined operator, and requires at least one parameter
+            if (candidate.MethodKind != MethodKind.UserDefinedOperator || candidate.ParameterCount == 0)
+            {
+                return false;
+            }
+
+            // must be static.
+            // PROTOTYPE(patterns): we don't support value-capturing matchers (e.g. regular expressions) yet.
+            if (!candidate.IsStatic)
+            {
+                return false;
+            }
+
+            // the first parameter must be a value. The remaining parameters must be out.
+            foreach (var parameter in candidate.Parameters)
+            {
+                if (parameter.RefKind != ((parameter.Ordinal == 0) ? RefKind.None : RefKind.Out))
+                {
+                    return false;
+                }
+            }
+
+            // must return void or bool
+            switch (candidate.ReturnType.SpecialType)
+            {
+                case SpecialType.System_Void:
+                case SpecialType.System_Boolean:
+                    break;
+                default:
+                    return false;
+            }
+
+            // must not be generic
+            if (candidate.Arity != 0)
+            {
+                return false;
+            }
+
+            // it should be accessible
+            HashSet<DiagnosticInfo> useSiteDiagnostics = null;
+            bool isAccessible = this.IsAccessible(candidate, ref useSiteDiagnostics);
+            diagnostics.Add(node, useSiteDiagnostics);
+            if (!isAccessible)
+            {
+                return false;
+            }
+
+            // all requirements are satisfied
+            return true;
+        }
+
+        private BoundPattern BindInferredRecursivePattern(
+            RecursivePatternSyntax node,
+            NamedTypeSymbol type,
+            BoundExpression operand,
+            TypeSymbol operandType,
+            bool hasErrors,
+            DiagnosticBag diagnostics)
+        {
             hasErrors = hasErrors || CheckValidPatternType(node.Type, operand, operandType, type, false, diagnostics);
 
-            // PROTOTYPE: We intend that (positional) recursive pattern-matching should be defined in terms of
-            // PROTOTYPE: a pattern of user-defined methods or operators. As currently specified it is `operator is`.
-            // PROTOTYPE: But for now we try to *infer* a positional pattern-matching operation from the presence of
-            // PROTOTYPE: an accessible constructor.
+            // PROTOTYPE(patterns): We intend that (positional) recursive pattern-matching should be defined in terms of
+            // PROTOTYPE(patterns): a pattern of user-defined methods or operators. As currently specified it is `operator is`.
+            // PROTOTYPE(patterns): As a temporary hack we try to *infer* a positional pattern-matching operation from the presence of
+            // PROTOTYPE(patterns): an accessible constructor.
             var correspondingMembers = default(ImmutableArray<Symbol>);
             HashSet<DiagnosticInfo> useSiteDiagnostics = null;
             var memberNames = type.MemberNames;
-            var correspondingMembersForCtor = ArrayBuilder<Symbol>.GetInstance();
+            var correspondingMembersForCtor = ArrayBuilder<Symbol>.GetInstance(node.PatternList.SubPatterns.Count);
             foreach (var m in type.GetMembers(WellKnownMemberNames.InstanceConstructorName))
             {
                 var ctor = m as MethodSymbol;
@@ -112,11 +257,13 @@ namespace Microsoft.CodeAnalysis.CSharp
                     if (!correspondingMembersForCtor.SequenceEqual(correspondingMembers, (s1, s2) => s1 == s2))
                     {
                         correspondingMembersForCtor.Free();
-                        // PROTOTYPE: If we decide to support this, we need a properly i18n'd diagnostic.
+                        // PROTOTYPE(patterns): If we decide to support this, we need a properly i18n'd diagnostic.
                         Error(diagnostics, ErrorCode.ERR_FeatureIsUnimplemented, node,
                             "cannot infer a positional pattern from conflicting constructors");
                         diagnostics.Add(node, useSiteDiagnostics);
                         hasErrors = true;
+                        // PROTOTYPE(patterns): should we bind the subpatterns for the semantic model to use,
+                        // PROTOTYPE(patterns): even though we don't have an expression to match them against?
                         return new BoundWildcardPattern(node, hasErrors);
                     }
                 }
@@ -125,18 +272,19 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (correspondingMembers == null)
             {
-                // PROTOTYPE: If we decide to support this, we need a properly i18n'd diagnostic.
+                // PROTOTYPE(patterns): If we decide to support this, we need a properly i18n'd diagnostic.
                 Error(diagnostics, ErrorCode.ERR_FeatureIsUnimplemented, node,
                     "cannot infer a positional pattern from any accessible constructor");
                 diagnostics.Add(node, useSiteDiagnostics);
                 correspondingMembersForCtor.Free();
                 hasErrors = true;
+                // PROTOTYPE(patterns): should we bind the subpatterns for the semantic model to use,
+                // PROTOTYPE(patterns): even though we don't have an expression to match them against?
                 return new BoundWildcardPattern(node, hasErrors);
             }
 
-            // Given that we infer a set of properties to match, we record the result as a BoundPropertyPattern.
-            // Once we translate recursive (positional) patterns into an invocation of GetValues, or "operator is", we'll
-            // use a dedicated bound node for that form.
+            // PROTOTYPE(patterns): Given that we infer a set of properties to match as a temporary hack,
+            // PROTOTYPE(patterns): we record the result as a BoundPropertyPattern.
             var properties = correspondingMembers;
             var boundPatterns = BindRecursiveSubPropertyPatterns(node, properties, type, diagnostics);
             var builder = ArrayBuilder<BoundSubPropertyPattern>.GetInstance(properties.Length);
@@ -165,7 +313,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             NamedTypeSymbol type,
             DiagnosticBag diagnostics)
         {
-            var boundPatternsBuilder = ArrayBuilder<BoundPattern>.GetInstance();
+            var boundPatternsBuilder = ArrayBuilder<BoundPattern>.GetInstance(properties.Length);
             for (int i = 0; i < properties.Length; i++)
             {
                 var syntax = node.PatternList.SubPatterns[i];
@@ -219,7 +367,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             TypeSymbol type,
             DiagnosticBag diagnostics)
         {
-            var result = ArrayBuilder<BoundSubPropertyPattern>.GetInstance();
+            var result = ArrayBuilder<BoundSubPropertyPattern>.GetInstance(node.SubPatterns.Count);
             foreach (var e in node.SubPatterns)
             {
                 var syntax = e as IsPatternExpressionSyntax;
@@ -262,7 +410,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             bool hasErrors = boundMember.HasAnyErrors || implicitReceiver.HasAnyErrors;
 
-            // PROTOTYPE: the following may be needed if we end up supporting an indexed property.
+            // PROTOTYPE(patterns): the following may be needed if we end up supporting an indexed property.
             //ImmutableArray<BoundExpression> arguments = ImmutableArray<BoundExpression>.Empty;
             //ImmutableArray<string> argumentNamesOpt = default(ImmutableArray<string>);
             //ImmutableArray<int> argsToParamsOpt = default(ImmutableArray<int>);
@@ -276,9 +424,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                     break;
 
                 case BoundKind.IndexerAccess:
-                // PROTOTYPE: Should a property pattern be capable of referencing an indexed property?
-                // PROTOTYPE: This is an open issue in the language specification
-                // PROTOTYPE: See https://github.com/dotnet/roslyn/issues/9375
+                // PROTOTYPE(patterns): Should a property pattern be capable of referencing an indexed property?
+                // PROTOTYPE(patterns): This is an open issue in the language specification
+                // PROTOTYPE(patterns): See https://github.com/dotnet/roslyn/issues/9375
                 //{
                 //    var indexer = (BoundIndexerAccess)boundMember;
                 //    arguments = indexer.Arguments;
@@ -290,9 +438,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                 //}
 
                 case BoundKind.DynamicIndexerAccess:
-                // PROTOTYPE: Should a property pattern be capable of referencing a dynamic indexer?
-                // PROTOTYPE: This is an open issue in the language specification
-                // PROTOTYPE: See https://github.com/dotnet/roslyn/issues/9375
+                // PROTOTYPE(patterns): Should a property pattern be capable of referencing a dynamic indexer?
+                // PROTOTYPE(patterns): This is an open issue in the language specification
+                // PROTOTYPE(patterns): See https://github.com/dotnet/roslyn/issues/9375
                 //{
                 //    var indexer = (BoundDynamicIndexerAccess)boundMember;
                 //    arguments = indexer.Arguments;
@@ -302,9 +450,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                 //}
 
                 case BoundKind.EventAccess:
-                // PROTOTYPE: Should a property pattern be capable of referencing an event?
-                // PROTOTYPE: This is an open issue in the language specification
-                // PROTOTYPE: See https://github.com/dotnet/roslyn/issues/9515
+                // PROTOTYPE(patterns): Should a property pattern be capable of referencing an event?
+                // PROTOTYPE(patterns): This is an open issue in the language specification
+                // PROTOTYPE(patterns): See https://github.com/dotnet/roslyn/issues/9515
 
                 default:
                     return BadSubpatternMemberAccess(boundMember, implicitReceiver, memberName, diagnostics, hasErrors);
@@ -351,14 +499,14 @@ namespace Microsoft.CodeAnalysis.CSharp
                         break;
 
                     default:
-                        // PROTOTYPE: We need to review and test this code path.
+                        // PROTOTYPE(patterns): We need to review and test this code path.
                         // https://github.com/dotnet/roslyn/issues/9542
                         Error(diagnostics, ErrorCode.ERR_PropertyLacksGet, memberName, member);
                         break;
                 }
             }
 
-            // PROTOTYPE: review and test this code path. Is LookupResultKind.Inaccessible appropriate?
+            // PROTOTYPE(patterns): review and test this code path. Is LookupResultKind.Inaccessible appropriate?
             // https://github.com/dotnet/roslyn/issues/9542
             return ToBadExpression(boundMember, LookupResultKind.Inaccessible);
         }
@@ -377,7 +525,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 hasErrors = true;
             }
 
-            // PROTOTYPE: we still need to check that the constant is valid for the given operand or operandType.
+            // PROTOTYPE(patterns): we still need to check that the constant is valid for the given operand or operandType.
             return new BoundConstantPattern(node, expression, hasErrors);
         }
 
@@ -417,7 +565,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     case ConversionKind.Boxing:
                     case ConversionKind.ExplicitNullable:
-                    case ConversionKind.ExplicitNumeric: // PROTOTYPE: we should constrain this to integral? Need LDM decision
+                    case ConversionKind.ExplicitNumeric: // PROTOTYPE(patterns): we should constrain this to integral? Need LDM decision
                     case ConversionKind.ExplicitReference:
                     case ConversionKind.Identity:
                     case ConversionKind.ImplicitReference:
@@ -499,9 +647,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             ArrayBuilder<BoundMatchCase> cases,
             DiagnosticBag diagnostics)
         {
-            var types = ArrayBuilder<TypeSymbol>.GetInstance();
-
             int n = cases.Count;
+            var types = ArrayBuilder<TypeSymbol>.GetInstance(n);
             for (int i = 0; i < n; i++)
             {
                 var e = cases[i].Expression;
@@ -554,10 +701,10 @@ namespace Microsoft.CodeAnalysis.CSharp
             DiagnosticBag diagnostics)
         {
             var expression = BindValue(node.Left, diagnostics, BindValueKind.RValue);
-            // PROTOTYPE: any constraints on a switch expression must be enforced here. For example,
+            // PROTOTYPE(patterns): any constraints on a switch expression must be enforced here. For example,
             // it must have a type (not be target-typed, lambda, null, etc)
 
-            var sectionBuilder = ArrayBuilder<BoundMatchCase>.GetInstance();
+            var sectionBuilder = ArrayBuilder<BoundMatchCase>.GetInstance(node.Sections.Count);
             foreach (var section in node.Sections)
             {
                 var sectionBinder = new PatternVariableBinder(section, this); // each section has its own locals.
@@ -602,12 +749,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                             if (node == papa.Expression) goto syntaxOk;
                             break;
                         }
-                    // PROTOTYPE: It has been suggested that we allow throw on the right of && and ||, but
-                    // PROTOTYPE: due to the relative precedence the parser already rejects that.
+                    // PROTOTYPE(patterns): It has been suggested that we allow throw on the right of && and ||, but
+                    // PROTOTYPE(patterns): due to the relative precedence the parser already rejects that.
                     //case SyntaxKind.LogicalAndExpression: // &&
                     //case SyntaxKind.LogicalOrExpression: // ||
                     //    {
-                    //        // PROTOTYPE: it isn't clear what the semantics should be
+                    //        // PROTOTYPE(patterns): it isn't clear what the semantics should be
                     //        var papa = (BinaryExpressionSyntax)node.Parent;
                     //        if (node == papa.Right) goto syntaxOk;
                     //        break;

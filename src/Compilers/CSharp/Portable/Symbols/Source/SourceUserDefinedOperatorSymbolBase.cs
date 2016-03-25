@@ -177,6 +177,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         private void CheckValueParameters(DiagnosticBag diagnostics)
         {
+            if (_name == WellKnownMemberNames.IsOperatorName)
+            {
+                return;
+            }
+
             // SPEC: The parameters of an operator must be value parameters.
             foreach (var p in this.Parameters)
             {
@@ -225,6 +230,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 case WellKnownMemberNames.LeftShiftOperatorName:
                 case WellKnownMemberNames.RightShiftOperatorName:
                     CheckShiftSignature(diagnostics);
+                    break;
+
+                case WellKnownMemberNames.IsOperatorName:
+                    CheckIsSignature(diagnostics);
                     break;
 
                 default:
@@ -546,6 +555,56 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 // The parser does not detect this error.
                 // CS0590: User-defined operators cannot return void
                 diagnostics.Add(ErrorCode.ERR_OperatorCantReturnVoid, this.Locations[0]);
+            }
+        }
+
+        private void CheckIsSignature(DiagnosticBag diagnostics)
+        {
+            if (ParameterCount == 0)
+            {
+                // PROTOTYPE(patterns): need an error message for this.
+                // PROTOTYPE(patterns): ensure we have coverage for negative scenarios.
+                diagnostics.Add(ErrorCode.ERR_BadBinaryOperatorSignature, this.Locations[0]);
+            }
+            else
+            {
+                foreach (var p in this.Parameters)
+                {
+                    if (p.Ordinal == 0)
+                    {
+                        // Because a value "is" a nullable type T? exactly when it also "is" a type T,
+                        // (both reject null) we disallow "operator is" from confusingly taking the former.
+                        if (p.Type.IsNullableType())
+                        {
+                            // PROTOTYPE(patterns): need to ensure the specification describes this scenario.
+                            // PROTOTYPE(patterns): ensure we have coverage for positive and negative cases.
+                            // Error: User-defined 'operator is' may not accept a Nullable type as its first argument.
+                            diagnostics.Add(ErrorCode.ERR_OperatorIsNullable, p.Locations[0]);
+                        }
+
+                        if (p.RefKind != RefKind.None)
+                        {
+                            // PROTOTYPE(patterns): ensure we have coverage for positive and negative cases.
+                            diagnostics.Add(ErrorCode.ERR_IllegalRefParam, p.Locations[0]);
+                            break;
+                        }
+                    }
+                    else
+                    {
+                        if (p.RefKind != RefKind.Out)
+                        {
+                            // PROTOTYPE(patterns): ensure we have coverage for positive and negative cases.
+                            // Error: Non-initial parameters of user-defined 'operator is' require the 'out' modifier.
+                            diagnostics.Add(ErrorCode.ERR_OperatorIsRequiresOut, p.Locations[0]);
+                            break;
+                        }
+                    }
+                }
+            }
+
+            if (!this.ReturnsVoid && ReturnType.SpecialType != SpecialType.System_Boolean)
+            {
+                diagnostics.Add(ErrorCode.ERR_OperatorIsMustReturnBoolOrVoid, this.Locations[0]);
             }
         }
 

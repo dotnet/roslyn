@@ -1473,7 +1473,7 @@
     <Field Name="Type" Type="TypeSymbol" Null="disallow"/>
     <Field Name="IsOperator" Type="MethodSymbol" Null="allow"/>
     <Field Name="Patterns" Type="ImmutableArray&lt;BoundPattern&gt;" Null="disallow"/>
-    <Field Name="PatternsToParams" Type="ImmutableArray&lt;int&gt;" Null="disallow"/>
+    <!--<Field Name="PatternsToParams" Type="ImmutableArray&lt;int&gt;" Null="disallow"/>-->
   </Node>
 
 </Tree>

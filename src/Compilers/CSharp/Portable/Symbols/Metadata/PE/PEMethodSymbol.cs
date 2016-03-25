@@ -788,6 +788,24 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                 this.ParameterRefKinds.IsDefault && // No 'ref' or 'out'
                 !this.IsParams();
 
+        private bool IsValidUserDefinedOperatorIs()
+        {
+            foreach (var parameter in this.Parameters)
+            {
+                if (parameter.RefKind != ((parameter.Ordinal == 0) ? RefKind.None : RefKind.Out))
+                {
+                    return false;
+                }
+            }
+
+            return
+                (this.ReturnsVoid || this.ReturnType.SpecialType != SpecialType.System_Boolean) &&
+                !this.IsGenericMethod &&
+                !this.IsVararg &&
+                this.ParameterCount > 0 &&
+                !this.IsParams();
+        }
+
         private MethodKind ComputeMethodKind()
         {
             if (this.HasSpecialName)
@@ -857,10 +875,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                         case WellKnownMemberNames.ImplicitConversionName:
                         case WellKnownMemberNames.ExplicitConversionName:
                             return IsValidUserDefinedOperatorSignature(1) ? MethodKind.Conversion : MethodKind.Ordinary;
-                            // UNDONE: Non-C#-supported overloaded operator case WellKnownMemberNames.ConcatenateOperatorName:
-                            // UNDONE: Non-C#-supported overloaded operator case WellKnownMemberNames.ExponentOperatorName:
-                            // UNDONE: Non-C#-supported overloaded operator case WellKnownMemberNames.IntegerDivisionOperatorName:
-                            // UNDONE: Non-C#-supported overloaded operator case WellKnownMemberNames.LikeOperatorName:
+                        case WellKnownMemberNames.IsOperatorName:
+                            return IsValidUserDefinedOperatorIs() ? MethodKind.UserDefinedOperator : MethodKind.Ordinary;
+
+                        //case WellKnownMemberNames.ConcatenateOperatorName:
+                        //case WellKnownMemberNames.ExponentOperatorName:
+                        //case WellKnownMemberNames.IntegerDivisionOperatorName:
+                        //case WellKnownMemberNames.LikeOperatorName:
+                            //// Non-C#-supported overloaded operator
+                            //return MethodKind.Ordinary;
                     }
 
                     return MethodKind.Ordinary;

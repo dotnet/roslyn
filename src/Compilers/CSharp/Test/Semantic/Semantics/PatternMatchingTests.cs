@@ -96,6 +96,9 @@ public class Vec
                 // (12,17): error CS0103: The name 'i4' does not exist in the current context
                 //         let var i4 = 3; // let
                 Diagnostic(ErrorCode.ERR_NameNotInContext, "i4").WithArguments("i4").WithLocation(12, 17),
+                // (15,18): error CS8157: No 'operator is' declaration in 'Vec' was found with 1 out parameters
+                //         if (q is Vec(3)) {} // recursive pattern
+                Diagnostic(ErrorCode.ERR_OperatorIsParameterCount, "Vec(3)").WithArguments("Vec", "1").WithLocation(15, 18),
                 // (12,13): warning CS0168: The variable 'var' is declared but never used
                 //         let var i4 = 3; // let
                 Diagnostic(ErrorCode.WRN_UnreferencedVar, "var").WithArguments("var").WithLocation(12, 13),
@@ -126,6 +129,9 @@ public class Vec
                 // (12,17): error CS0103: The name 'i4' does not exist in the current context
                 //         let var i4 = 3; // let
                 Diagnostic(ErrorCode.ERR_NameNotInContext, "i4").WithArguments("i4").WithLocation(12, 17),
+                // (15,18): error CS8157: No 'operator is' declaration in 'Vec' was found with 1 out parameters
+                //         if (q is Vec(3)) {} // recursive pattern
+                Diagnostic(ErrorCode.ERR_OperatorIsParameterCount, "Vec(3)").WithArguments("Vec", "1").WithLocation(15, 18),
                 // (8,13): warning CS0219: The variable 'i2' is assigned but its value is never used
                 //         int i2 = 23_554; // digit separators
                 Diagnostic(ErrorCode.WRN_UnreferencedVarAssg, "i2").WithArguments("i2").WithLocation(8, 13),
@@ -11282,6 +11288,240 @@ public class X
 ";
             var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe, parseOptions: patternParseOptions);
             CompileAndVerify(compilation, expectedOutput: @"throw");
+        }
+
+        [Fact]
+        public void BadIsOperator01()
+        {
+            var source = @"
+class Program
+{
+    static void Main(string[] args) { }
+    internal int operator is(ref Program self, int i) => 3;
+}
+";
+            var compilation = CreateCompilationWithMscorlib(source, parseOptions: patternParseOptions);
+            compilation.VerifyDiagnostics(
+                // (5,27): error CS0558: User-defined operator 'Program.operator @is(ref Program, int)' must be declared static and public
+                //     internal int operator is(ref Program self, int i) => 3;
+                Diagnostic(ErrorCode.ERR_OperatorsMustBeStatic, "is").WithArguments("Program.operator @is(ref Program, int)").WithLocation(5, 27),
+                // (5,42): error CS0631: ref and out are not valid in this context
+                //     internal int operator is(ref Program self, int i) => 3;
+                Diagnostic(ErrorCode.ERR_IllegalRefParam, "self").WithLocation(5, 42),
+                // (5,27): error CS8160: The return type of 'operator is' must be 'bool' or 'void'.
+                //     internal int operator is(ref Program self, int i) => 3;
+                Diagnostic(ErrorCode.ERR_OperatorIsMustReturnBoolOrVoid, "is").WithLocation(5, 27)
+                );
+        }
+
+        [Fact]
+        public void BadIsOperator02()
+        {
+            var source = @"
+class Program
+{
+    static void Main(string[] args) { }
+    public static void operator is(Program self, int i) { }
+}
+";
+            var compilation = CreateCompilationWithMscorlib(source, parseOptions: patternParseOptions);
+            compilation.VerifyDiagnostics(
+                // (5,54): error CS8159: All but the first parameter of user-defined 'operator is' require the 'out' modifier.
+                //     public static void operator is(Program self, int i) { }
+                Diagnostic(ErrorCode.ERR_OperatorIsRequiresOut, "i").WithLocation(5, 54)
+                );
+        }
+
+        [Fact]
+        public void MatchStatementAndExpression_Patterns_WithoutRecords()
+        {
+            var source = @"
+using System;
+class Program
+{
+    static void Main(string[] args)
+    {
+        object o = (int)2;
+        Expr exp = new Add(new Add(new Const(3), new Const(4)), new Const(5));
+        Verify(3.5);
+        Verify(""2"");
+        Verify(new Const(31));
+        Verify(new Const(100));
+        Verify(new Add(new Const(2), new Const(2)));
+        Verify(new Add(new Add(new Const(2), new Const(0)), new Const(3)));
+        Verify(new Add(new Add(new Const(1), new Const(2)),
+                       new Add(new Const(0), new Const(1231))));
+        Verify(new Add(new Add(new Const(1), new Const(2)),
+                       new Add(new Const(123), new Const(3))));
+        Verify(new Add(new Add(new Const(31), new Const(322)),
+                       new Add(new Const(123), new Const(322))));
+    }
+    static void Verify(object o)
+    {
+        bool r = MatchExpressions(o) == MatchStatements(o);
+        Console.WriteLine(r + "" "" + MatchStatements(o));
+    }
+    static string MatchStatements(object o)
+    {
+        switch (o)
+        { // from specific to more general:
+            case Add(Add(Const(1), Const(2)), Add(Const(0), Const(int z))) :
+                return ""(1 + 2) + (0 + "" + z + "")"";
+            case Add(Add(Const(1), Const(2)), Add(Const(*), Const(int u))) :
+                return ""(1 + 2) + (x + "" + u + "")"";
+            case Add(var x, Const(2)) :
+                return x + "" + 2"";
+            case Add(var x, Const(*)) :
+                return x + "" + const"";
+            case Const(100) :
+                return ""const 100"";
+            case Const(int e) :
+                return ""const "" + e;
+            case Const(*) :
+                return ""const x"";
+            case Add a :
+                return a.Left + "" + "" + a.Right;
+            case double d :
+                return ""double "" + d;
+            default:
+                return ""None"";
+        }
+    }
+    static string MatchExpressions(object o)
+    {
+        if (o is Add(Add(Const(1), Const(2)), Add(Const(0), Const(int z))))
+            return ""(1 + 2) + (0 + "" + z + "")"";
+        else if (o is Add(Add(Const(1), Const(2)), Add(Const(*), Const(int u))))
+            return ""(1 + 2) + (x + "" + u + "")"";
+        else if (o is Add(var x, Const(2)))
+            return x + "" + 2"";
+        else if (o is Add(var x, Const(*)))
+            return x + "" + const"";
+        else if (o is Const(100))
+            return ""const 100"";
+        else if (o is Const(int e))
+            return ""const "" + e;
+        else if (o is Const(*))
+            return ""const x"";
+        else if (o is Add a)
+            return a.Left + "" + "" + a.Right;
+        else if (o is double d)
+            return ""double "" + d;
+        else
+            return ""None"";
+    }
+}
+public abstract class Expr { }
+public class Const : Expr
+{
+    public Const(int x)
+    {
+        this.X = x;
+    }
+    public int X { get; }
+    public static void operator is(Const a, out int x)
+    {
+        x = a.X;
+    }
+}
+public class Add : Expr
+{
+    public Add(Expr left, Expr right)
+    {
+        this.Left = left;
+        this.Right = right;
+    }
+    public Expr Left { get; }
+    public Expr Right { get; }
+    public static void operator is(Add a, out Expr left, out Expr right)
+    {
+        left = a.Left;
+        right = a.Right;
+    }
+}
+";
+            var compilation = CreateCompilationWithMscorlib(source, options: TestOptions.ReleaseExe, parseOptions: patternParseOptions);
+            compilation.VerifyDiagnostics();
+            var verifier = CompileAndVerify(compilation, expectedOutput: @"
+True double 3.5
+True None
+True const 31
+True const 100
+True Const + 2
+True Add + const
+True (1 + 2) + (0 + 1231)
+True (1 + 2) + (x + 3)
+True Add + Add");
+        }
+
+        [Fact]
+
+        public void BoolOperatorIs()
+        {
+            var source = @"
+using System;
+class Program
+{
+    static void Main(string[] args)
+    {
+        Console.WriteLine(((byte)1) is Odd());
+        Console.WriteLine(((byte)2) is Odd());
+        Console.WriteLine(((sbyte)1) is Odd());
+        Console.WriteLine(((sbyte)2) is Odd());
+        Console.WriteLine(((short)1) is Odd());
+        Console.WriteLine(((short)2) is Odd());
+        Console.WriteLine(((ushort)1) is Odd());
+        Console.WriteLine(((ushort)2) is Odd());
+        Console.WriteLine(((int)1) is Odd());
+        Console.WriteLine(((int)2) is Odd());
+        Console.WriteLine(((uint)1) is Odd());
+        Console.WriteLine(((uint)2) is Odd());
+        Console.WriteLine(((long)1) is Odd());
+        Console.WriteLine(((long)2) is Odd());
+        Console.WriteLine(((ulong)1) is Odd());
+        Console.WriteLine(((ulong)2) is Odd());
+        Console.WriteLine(string.Empty is Odd());
+    }
+}
+public class Odd
+{
+    public static bool operator is(object o)
+    {
+        switch (o)
+        {
+            case byte i:    return (i % 2) != 0;
+            case sbyte i:   return (i % 2) != 0;
+            case short i:   return (i % 2) != 0;
+            case ushort i:  return (i % 2) != 0;
+            case int i:     return (i % 2) != 0;
+            case uint i:    return (i % 2) != 0;
+            case long i:    return (i % 2) != 0;
+            case ulong i:   return (i % 2) != 0;
+            default:        return false;
+        }
+    }
+}
+";
+            var compilation = CreateCompilationWithMscorlib(source, options: TestOptions.ReleaseExe, parseOptions: patternParseOptions);
+            compilation.VerifyDiagnostics();
+            var verifier = CompileAndVerify(compilation, expectedOutput: @"
+True
+False
+True
+False
+True
+False
+True
+False
+True
+False
+True
+False
+True
+False
+True
+False
+False");
         }
     }
 }

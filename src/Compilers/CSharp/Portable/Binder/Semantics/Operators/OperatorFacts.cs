@@ -116,23 +116,30 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public static string OperatorNameFromDeclaration(Syntax.InternalSyntax.OperatorDeclarationSyntax declaration)
         {
-            if (SyntaxFacts.IsBinaryExpressionOperatorToken(declaration.OperatorToken.Kind))
+            var opTokenKind = declaration.OperatorToken.Kind;
+
+            if (opTokenKind == SyntaxKind.IsKeyword)
+            {
+                return WellKnownMemberNames.IsOperatorName;
+            }
+            else if (SyntaxFacts.IsBinaryExpressionOperatorToken(opTokenKind))
             {
                 // Some tokens may be either unary or binary operators (e.g. +, -).
-                if (SyntaxFacts.IsPrefixUnaryExpressionOperatorToken(declaration.OperatorToken.Kind) &&
+                if (SyntaxFacts.IsPrefixUnaryExpressionOperatorToken(opTokenKind) &&
                     declaration.ParameterList.Parameters.Count == 1)
                 {
-                    return OperatorFacts.UnaryOperatorNameFromSyntaxKind(declaration.OperatorToken.Kind);
+                    return OperatorFacts.UnaryOperatorNameFromSyntaxKind(opTokenKind);
                 }
 
-                return OperatorFacts.BinaryOperatorNameFromSyntaxKind(declaration.OperatorToken.Kind);
+                return OperatorFacts.BinaryOperatorNameFromSyntaxKind(opTokenKind);
             }
-            else if (SyntaxFacts.IsUnaryOperatorDeclarationToken(declaration.OperatorToken.Kind))
+            else if (SyntaxFacts.IsUnaryOperatorDeclarationToken(opTokenKind))
             {
-                return OperatorFacts.UnaryOperatorNameFromSyntaxKind(declaration.OperatorToken.Kind);
+                return OperatorFacts.UnaryOperatorNameFromSyntaxKind(opTokenKind);
             }
             else
             {
+                // fallback for error recovery
                 return WellKnownMemberNames.UnaryPlusOperatorName;
             }
         }

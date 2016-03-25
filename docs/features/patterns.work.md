@@ -1,6 +1,8 @@
 This is a checklist (moved from #9375) of implementation of pattern matching as specified in [patterns.md](./patterns.md). For reference a previous prototype was at https://github.com/semihokur/pattern-matching-csharp
 
 Open design issues (needing LDM decisions)
+- [ ] There would be an ambiguity with a hypothetical "type pattern" and the constant pattern. This is the reason we do not allow the latter in an is-pattern expression, and don't allow the former in a sub-property pattern. But that is irregular. Can we come up with name lookup rules that support both?
+  - [ ] If we support `3 is 3`, is that a constant expression? Can a `match` expression be constant?
 - [ ] Do we want pattern-matching in the `switch` statement? Or do we want a separate statement-based construct instead? (#8821)
     - [ ] What does `goto case` mean?
       - [ ] Do we limit `goto case` to constants?
@@ -17,45 +19,52 @@ Open design issues (needing LDM decisions)
 - [ ] What do we think about the let statement?
   - [ ] Do we require the match be irrefutable? If not, do we give a warning? Or let definite-assignment issues alert the user to any problems?
   - [ ] Do we support an else?
+  - [ ] Is there a compatibility issue? (e.g. if the user has a type named `let`) 
 - [ ] There are some scoping questions for pattern variables. #9452
   - [ ] Need to get LDM approval for design change around scope of pattern variables declared within a constructor initializer #9452 
   - [ ] Also questions about multiple field initializers, local initializers, ctor-initializers (how far does the scope extend?)
 - [ ] Need detailed spec for name lookup of property in a property pattern #9255
   - [ ] [Pattern Matching] Should a property-pattern be capable of referencing an event? #9515
-- [X] Two small clarifications need to be integrated into the spec (#7703)
+- [x] Two small clarifications need to be integrated into the spec (#7703)
 - [ ] We need to specify and implement the user-defined pattern forms: user-defined `operator is`?
   - [ ] static void with self-receiver
   - [ ] static bool for active patterns
   - [ ] instance bool for captured data (regex)
-  - [ ] Do we want to support "breakpoints inside" patterns (#9095)
-- [ ] What is the correct precedence of *throw-expression*? Should *assignment* be allowed as its subexpression?
+- [ ] Do we want to support "breakpoints inside" patterns (#9095)?
+- [ ] Do we want to support named "arguments" in recursive patterns? e.g. `if (p is Point(X: 3, Y: 4)) ...`
+- [ ] What is the correct precedence of *throw-expression*? Should *assignment* be allowed as its sub-expression?
 - [ ] @jaredpar suggested that, by analogy with the integral types, we should match floating-point literal patterns across floating-point types.
+- [ ] Should we allow throw expression on right of && and || ? #9453
+- [ ] Should `operator is` be allowed to take a ref first parameter, for example for value types? Is the answer the same as for all other operators?
+- [ ] We need to specify the meaning of the things we need the decision tree for: subsumption, completeness, irrefutable.
 
 Implementation progress checklist:
+- [x] Allow declaration of `operator is` and use it for recursive patterns.
 - [ ] **Match constant patterns with appropriate integral conversions** (#8819)
-- [ ] **Allow declaration of `operator is`** and use it for recursive patterns.
 - [ ] **Add a decision tree** to enable
   - [ ] completeness checking: a mutli-armed pattern-matching expression is required to be complete
   - [ ] subsumption checking: a branch of a switch statement or match expression may not be subsumed by the totality of previous branches (#8823)
+  - [ ] irrefutable: a pattern that *always* matches given its context.
   - [ ] Generate efficient code like `switch` does in corresponding situations. (#8820)
-- [X] Scoping for variables introduced in patterns (binders)
+- [ ] Test `operator is` across assembly boundaries.
+- [x] Scoping for variables introduced in patterns (binders)
 - [x] `SemanticModel.GetDeclaredSymbol` for pattern variable declarations.
-- [X] Simple pattern matching expressions `expression is Type Identifier` in most statements.
+- [x] Simple pattern matching expressions `expression is Type Identifier` in most statements.
 - [x] Extend the parser to handle all of the other specified pattern-matching operations.
   - [x] Add tests for the parser, including precedence tests for the edge cases.
   - [ ] Augment `TestResource.AllInOneCSharpCode` to handle all pattern forms.
 - [x] Check for feature availability in the parser (error if feature not supported).
   - [ ] Do not generate any new syntax nodes in C# 6 mode. 
-- [X] Error pattern matching to a nullable value type
+- [x] Error pattern matching to a nullable value type
 - [x] Implement pattern matching to a type that is an unconstrained type variable (requires a double type test)
 - [ ] Semantics and code-gen for all pattern forms
-  - [X] Type ID
+  - [x] Type ID
   - [x] *
   - [x] 3
-    - [X] matching with exact type for integral constants (as a short-term hack)
+    - [x] matching with exact type for integral constants (as a short-term hack)
   - [x] `var` ID
   - [x] Type { ID is Pattern ... }
-  - ~~Type ( Pattern ... )~~ This will be done when Records are integrated.
+  - [x] Type ( Pattern ... )
 - [ ] Extend the switch statement to handle patterns
   - [x] Parser
   - [x] Syntax Tests
@@ -78,13 +87,13 @@ Implementation progress checklist:
 - [ ] Control-flow analysis should be modified to handle patterns that either always match or never match.
 - [ ] Lots more Tests and code coverage; #9542
   - [ ] Tests for error cases in a property pattern, such as when the named member
-    - [X] Does not exist
-    - [X] Is static
+    - [x] Does not exist
+    - [x] Is static
     - [ ] Is an event
     - [ ] Is a method
     - [ ] Is an indexed property
     - [ ] Is a nested type
-    - [X] Is inaccessible
+    - [x] Is inaccessible
     - [ ] Is ambiguous
     - [ ] Does not exist
 - [ ] `IOperation` support for pattern-matching (#8699)
@@ -96,9 +105,8 @@ Implementation progress checklist:
 - [ ] Internationalize diagnostics for pattern-matching #9283
 - [ ] SymbolInfo for bad property in a property pattern should contain candidate symbols #9284
 - [ ] Compiler crash with match expressions in lambda analysis. #9430
-- [ ] Allow throw expression on right of && and || #9453
-- [ ] PatternVariableFinder is lacking explicit visibility modifier #9530
-- [ ] PatternVariableFinder doesn't follow style conventions for field names #9531
+- [x] PatternVariableFinder is lacking explicit visibility modifier #9530
+- [x] PatternVariableFinder doesn't follow style conventions for field names #9531
 - [ ] Test code coverage of pattern-matching implementation. #9542
 
 IDE Features

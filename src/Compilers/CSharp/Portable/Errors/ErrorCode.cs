@@ -1325,16 +1325,26 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_ReturnTypesDontMatch = 8105,
         ERR_DynamicLocalFunctionParameter = 8106,
         ERR_CantInferVoid = 8107,
-        ERR_PatternNullableType = 8108,
-        ERR_BadIsPatternExpression = 8109,
-        ERR_AmbigMatch0 = 8110,
-        ERR_AmbigMatch1 = 8111,
-        ERR_ThrowMisplaced = 8112,
-        ERR_ElseClauseRequiredWithWhenClause = 8113,
-        ERR_ExpressionTreeContainsLocalFunction = 8114,
+        ERR_ExpressionTreeContainsLocalFunction = 8108,
+
+        // gap here
+
+        // diagnostics for pattern-matching
+        ERR_PatternNullableType = 8150,
+        ERR_BadIsPatternExpression = 8151,
+        ERR_AmbigMatch0 = 8152,
+        ERR_AmbigMatch1 = 8153,
+        ERR_ThrowMisplaced = 8154,
+        ERR_ElseClauseRequiredWithWhenClause = 8155,
+        ERR_AmbiguousOperatorIs = 8156,
+        ERR_OperatorIsParameterCount = 8157,
+        ERR_OperatorIsNullable = 8158,
+        ERR_OperatorIsRequiresOut = 8159,
+        ERR_OperatorIsMustReturnBoolOrVoid = 8160,
 
         // huge gap here???
 
+        // diagnostics for ref locals and ref returns
         ERR_AutoPropertyCannotBeRefReturning = 8890,
         ERR_RefPropertyMustHaveGetAccessor = 8891,
         ERR_RefPropertyCannotHaveSetAccessor = 8892,
@@ -1348,6 +1358,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_BadRefReturnExpressionTree = 8900,
         ERR_RefReturningCallInExpressionTree = 8901,
 
+        // more diagnostics for ref locals and ref returns
         ERR_RefReturnLvalueExpected = 8910,
         ERR_RefReturnNonreturnableLocal = 8911,
         ERR_RefReturnNonreturnableLocal2 = 8912,
@@ -1365,6 +1376,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_RefReturnLocal2 = 8925,
         ERR_RefReturnStructThis = 8926,
 
+        // more diagnostics for ref locals and ref returns
         ERR_MustBeRefAssignable = 8930,
         ERR_MustBeRefAssignableLocal = 8931,
         ERR_InitializeByValueVariableWithReference = 8932,
@@ -1372,6 +1384,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_RefAssignmentMustHaveIdentityConversion = 8934,
         ERR_ByReferenceVariableMustBeInitialized = 8935,
 
+        // more diagnostics for ref locals and ref returns
         ERR_AnonDelegateCantUseLocal = 8940,
         ERR_BadIteratorLocalType = 8941,
         ERR_BadAsyncLocalType = 8942,

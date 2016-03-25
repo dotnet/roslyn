@@ -10,9 +10,9 @@ using System.Diagnostics;
 
 namespace Microsoft.CodeAnalysis.CSharp
 {
-    class PatternVariableFinder : CSharpSyntaxWalker
+    internal class PatternVariableFinder : CSharpSyntaxWalker
     {
-        ArrayBuilder<DeclarationPatternSyntax> declarationPatterns;
+        private ArrayBuilder<DeclarationPatternSyntax> _declarationPatterns;
 
         internal static void FindPatternVariables(
             ArrayBuilder<DeclarationPatternSyntax> builder,
@@ -20,7 +20,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             ImmutableArray<CSharpSyntaxNode> nodes = default(ImmutableArray<CSharpSyntaxNode>))
         {
             var finder = s_poolInstance.Allocate();
-            finder.declarationPatterns = builder;
+            finder._declarationPatterns = builder;
             finder.Visit(node);
             if (!nodes.IsDefaultOrEmpty)
             {
@@ -30,13 +30,13 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
             }
 
-            finder.declarationPatterns = null;
+            finder._declarationPatterns = null;
             s_poolInstance.Free(finder);
         }
 
         public override void VisitDeclarationPattern(DeclarationPatternSyntax node)
         {
-            declarationPatterns.Add(node);
+            _declarationPatterns.Add(node);
             base.VisitDeclarationPattern(node);
         }
         public override void VisitParenthesizedLambdaExpression(ParenthesizedLambdaExpressionSyntax node) { }

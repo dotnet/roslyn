@@ -612,6 +612,16 @@ namespace Microsoft.CodeAnalysis.CSharp
             { WasCompilerGenerated = true };
         }
 
+        public BoundCall Call(BoundExpression receiver, MethodSymbol method, ImmutableArray<RefKind> refKinds, ImmutableArray<BoundExpression> args)
+        {
+            Debug.Assert(method.ParameterCount == args.Length);
+            return new BoundCall(
+                Syntax, receiver, method, args,
+                ImmutableArray<String>.Empty, refKinds, false, false, false,
+                ImmutableArray<int>.Empty, LookupResultKind.Viable, method.ReturnType)
+            { WasCompilerGenerated = true };
+        }
+
         public BoundExpression Conditional(BoundExpression condition, BoundExpression consequence, BoundExpression alternative, TypeSymbol type)
         {
             return new BoundConditionalOperator(Syntax, condition, consequence, alternative, default(ConstantValue), type) { WasCompilerGenerated = true };

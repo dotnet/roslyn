@@ -3153,45 +3153,48 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
 
             var paramList = this.ParseParenthesizedParameterList(allowThisKeyword: false, allowDefaults: true, allowAttributes: true);
 
-            // ReportExtensionMethods(parameters, retval);
-            switch (paramList.Parameters.Count)
+            bool isKeywordOverloaded = opKind == SyntaxKind.IsKeyword && IsFeatureEnabled(MessageID.IDS_FeaturePatternMatching2);
+            if (!isKeywordOverloaded)
             {
-                case 1:
-                    if (opToken.IsMissing || !SyntaxFacts.IsOverloadableUnaryOperator(opKind))
-                    {
-                        SyntaxDiagnosticInfo diagInfo = MakeError(opTokenErrorOffset, opTokenErrorWidth, ErrorCode.ERR_OvlUnaryOperatorExpected);
-                        opToken = WithAdditionalDiagnostics(opToken, diagInfo);
-                    }
+                switch (paramList.Parameters.Count)
+                {
+                    case 1:
+                        if (opToken.IsMissing || !SyntaxFacts.IsOverloadableUnaryOperator(opKind))
+                        {
+                            SyntaxDiagnosticInfo diagInfo = MakeError(opTokenErrorOffset, opTokenErrorWidth, ErrorCode.ERR_OvlUnaryOperatorExpected);
+                            opToken = WithAdditionalDiagnostics(opToken, diagInfo);
+                        }
 
-                    break;
-                case 2:
-                    if (opToken.IsMissing || !SyntaxFacts.IsOverloadableBinaryOperator(opKind))
-                    {
-                        SyntaxDiagnosticInfo diagInfo = MakeError(opTokenErrorOffset, opTokenErrorWidth, ErrorCode.ERR_OvlBinaryOperatorExpected);
-                        opToken = WithAdditionalDiagnostics(opToken, diagInfo);
-                    }
+                        break;
+                    case 2:
+                        if (opToken.IsMissing || !SyntaxFacts.IsOverloadableBinaryOperator(opKind))
+                        {
+                            SyntaxDiagnosticInfo diagInfo = MakeError(opTokenErrorOffset, opTokenErrorWidth, ErrorCode.ERR_OvlBinaryOperatorExpected);
+                            opToken = WithAdditionalDiagnostics(opToken, diagInfo);
+                        }
 
-                    break;
-                default:
-                    if (opToken.IsMissing)
-                    {
-                        SyntaxDiagnosticInfo diagInfo = MakeError(opTokenErrorOffset, opTokenErrorWidth, ErrorCode.ERR_OvlOperatorExpected);
-                        opToken = WithAdditionalDiagnostics(opToken, diagInfo);
-                    }
-                    else if (SyntaxFacts.IsOverloadableBinaryOperator(opKind))
-                    {
-                        opToken = this.AddError(opToken, ErrorCode.ERR_BadBinOpArgs, SyntaxFacts.GetText(opKind));
-                    }
-                    else if (SyntaxFacts.IsOverloadableUnaryOperator(opKind))
-                    {
-                        opToken = this.AddError(opToken, ErrorCode.ERR_BadUnOpArgs, SyntaxFacts.GetText(opKind));
-                    }
-                    else
-                    {
-                        opToken = this.AddError(opToken, ErrorCode.ERR_OvlOperatorExpected);
-                    }
+                        break;
+                    default:
+                        if (opToken.IsMissing)
+                        {
+                            SyntaxDiagnosticInfo diagInfo = MakeError(opTokenErrorOffset, opTokenErrorWidth, ErrorCode.ERR_OvlOperatorExpected);
+                            opToken = WithAdditionalDiagnostics(opToken, diagInfo);
+                        }
+                        else if (SyntaxFacts.IsOverloadableBinaryOperator(opKind))
+                        {
+                            opToken = this.AddError(opToken, ErrorCode.ERR_BadBinOpArgs, SyntaxFacts.GetText(opKind));
+                        }
+                        else if (SyntaxFacts.IsOverloadableUnaryOperator(opKind))
+                        {
+                            opToken = this.AddError(opToken, ErrorCode.ERR_BadUnOpArgs, SyntaxFacts.GetText(opKind));
+                        }
+                        else
+                        {
+                            opToken = this.AddError(opToken, ErrorCode.ERR_OvlOperatorExpected);
+                        }
 
-                    break;
+                        break;
+                }
             }
 
             BlockSyntax blockBody;
@@ -3199,9 +3202,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             SyntaxToken semicolon;
             this.ParseBlockAndExpressionBodiesWithSemicolon(out blockBody, out expressionBody, out semicolon);
 
-            //if the operator is invalid, then switch it to plus (which will work either way) so that
-            //we can finish building the tree
-            if (!(SyntaxFacts.IsOverloadableUnaryOperator(opKind) || SyntaxFacts.IsOverloadableBinaryOperator(opKind)))
+            // if the operator is invalid, then switch it to plus (which will work either way) so that
+            // we can finish building the tree
+            if (!(opKind == SyntaxKind.IsKeyword ||
+                  SyntaxFacts.IsOverloadableUnaryOperator(opKind) ||
+                  SyntaxFacts.IsOverloadableBinaryOperator(opKind)))
             {
                 opToken = ConvertToMissingWithTrailingTrivia(opToken, SyntaxKind.PlusToken);
             }
@@ -6701,7 +6706,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             if (tk == SyntaxKind.LetKeyword && IsFeatureEnabled(MessageID.IDS_FeaturePatternMatching2))
             {
                 // accept a let statement if it begins with the contextual keyword 'let'.
-                // TODO: Note that we do not make any accomodation for the possible use of 'let' as the name
+                // PROTOTYPE(patterns): Note that we do not make any accomodation for the possible use of 'let' as the name
                 // of a type. For the strictest possible backward compatibility, we should.
                 return true;
             }
