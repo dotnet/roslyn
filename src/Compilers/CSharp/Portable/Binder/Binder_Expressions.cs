@@ -737,14 +737,16 @@ namespace Microsoft.CodeAnalysis.CSharp
                 this,
                 diagnostics);
 
-            //PROTOTYPE: should be a wellknown member?
-            var ctor = type.UnderlyingTupleType?.InstanceConstructors.FirstOrDefault();
-            if ((object)ctor == null)
+            var ctor = (MethodSymbol)GetWellKnownTypeMember(this.Compilation, TupleTypeSymbol.GetTupleCtor(elements.Length), diagnostics, syntax: node);
+            if ((object)ctor != null)
             {
-                // PROTOTYPE
-                diagnostics.Add(ErrorCode.ERR_PrototypeNotYetImplemented, node.Location);
-                return BadExpression(node);
+                ctor = ctor.AsMember(type.UnderlyingTupleType);
             }
+            else
+            {
+                hasErrors = true;
+            }
+
             return new BoundTupleCreationExpression(node, ctor, boundArguments.ToImmutableAndFree(), type, hasErrors);
         }
 

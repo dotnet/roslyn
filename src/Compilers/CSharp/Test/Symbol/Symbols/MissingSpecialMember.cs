@@ -652,6 +652,15 @@ namespace System
                     case WellKnownMember.System_ValueTuple_T1_T2_T3_T4_T5_T6_T7_TRest__Item6:
                     case WellKnownMember.System_ValueTuple_T1_T2_T3_T4_T5_T6_T7_TRest__Item7:
                     case WellKnownMember.System_ValueTuple_T1_T2_T3_T4_T5_T6_T7_TRest__Rest:
+
+                    case WellKnownMember.System_ValueTuple_T1__ctor:
+                    case WellKnownMember.System_ValueTuple_T1_T2__ctor:
+                    case WellKnownMember.System_ValueTuple_T1_T2_T3__ctor:
+                    case WellKnownMember.System_ValueTuple_T1_T2_T3_T4__ctor:
+                    case WellKnownMember.System_ValueTuple_T1_T2_T3_T4_T5__ctor:
+                    case WellKnownMember.System_ValueTuple_T1_T2_T3_T4_T5_T6__ctor:
+                    case WellKnownMember.System_ValueTuple_T1_T2_T3_T4_T5_T6_T7__ctor:
+
                         // PROTOTYPE tuples
                         // Not yet in the platform.
                         continue;

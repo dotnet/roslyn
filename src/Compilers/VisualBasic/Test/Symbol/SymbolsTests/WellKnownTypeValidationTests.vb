@@ -620,7 +620,15 @@ End Namespace
                          WellKnownMember.System_ValueTuple_T1_T2_T3_T4_T5_T6_T7_TRest__Item5,
                          WellKnownMember.System_ValueTuple_T1_T2_T3_T4_T5_T6_T7_TRest__Item6,
                          WellKnownMember.System_ValueTuple_T1_T2_T3_T4_T5_T6_T7_TRest__Item7,
-                         WellKnownMember.System_ValueTuple_T1_T2_T3_T4_T5_T6_T7_TRest__Rest
+                         WellKnownMember.System_ValueTuple_T1_T2_T3_T4_T5_T6_T7_TRest__Rest,
+                         WellKnownMember.System_ValueTuple_T1__ctor,
+                         WellKnownMember.System_ValueTuple_T1_T2__ctor,
+                         WellKnownMember.System_ValueTuple_T1_T2_T3__ctor,
+                         WellKnownMember.System_ValueTuple_T1_T2_T3_T4__ctor,
+                         WellKnownMember.System_ValueTuple_T1_T2_T3_T4_T5__ctor,
+                         WellKnownMember.System_ValueTuple_T1_T2_T3_T4_T5_T6__ctor,
+                         WellKnownMember.System_ValueTuple_T1_T2_T3_T4_T5_T6_T7__ctor
+
                         ' PROTOTYPE tuples
                         ' Not available yet, but will be in upcoming release.
                         Continue For
@@ -734,7 +742,15 @@ End Namespace
                          WellKnownMember.System_ValueTuple_T1_T2_T3_T4_T5_T6_T7_TRest__Item5,
                          WellKnownMember.System_ValueTuple_T1_T2_T3_T4_T5_T6_T7_TRest__Item6,
                          WellKnownMember.System_ValueTuple_T1_T2_T3_T4_T5_T6_T7_TRest__Item7,
-                         WellKnownMember.System_ValueTuple_T1_T2_T3_T4_T5_T6_T7_TRest__Rest
+                         WellKnownMember.System_ValueTuple_T1_T2_T3_T4_T5_T6_T7_TRest__Rest,
+                         WellKnownMember.System_ValueTuple_T1__ctor,
+                         WellKnownMember.System_ValueTuple_T1_T2__ctor,
+                         WellKnownMember.System_ValueTuple_T1_T2_T3__ctor,
+                         WellKnownMember.System_ValueTuple_T1_T2_T3_T4__ctor,
+                         WellKnownMember.System_ValueTuple_T1_T2_T3_T4_T5__ctor,
+                         WellKnownMember.System_ValueTuple_T1_T2_T3_T4_T5_T6__ctor,
+                         WellKnownMember.System_ValueTuple_T1_T2_T3_T4_T5_T6_T7__ctor
+
                         ' PROTOTYPE tuples
                         ' Not available yet, but will be in upcoming release.
                         Continue For
