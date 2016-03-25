@@ -1,12 +1,13 @@
 // Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-#load "..\util\test_util.csx"
+#load "../util/test_util.csx"
 using System.IO;
 using System;
 
 InitUtilities();
 
-string FirstLine(string input) {
+string FirstLine(string input)
+{
     return input.Split(new[] {"\r\n", "\r", "\n"}, StringSplitOptions.None)[0];
 }
 
@@ -27,13 +28,16 @@ string outJson = Path.Combine(workingDir, $"Roslyn-{longHash}.json");
 
 // ViBenchToJson does not like empty csv files.
 string files = "";
-if (new FileInfo(inCompilerTime).Length != 0) {
+if (new FileInfo(inCompilerTime).Length != 0)
+{
     files += $@"compilertime:""{inCompilerTime}""";
 }
-if (new FileInfo(inRunTime).Length != 0) {
+if (new FileInfo(inRunTime).Length != 0)
+{
     files += $@"exectime:""{inRunTime}""";
 }
-if (new FileInfo(inFileSize).Length != 0) {
+if (new FileInfo(inFileSize).Length != 0)
+{
     files += $@"filesize:""{inFileSize}""";
 }
 

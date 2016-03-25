@@ -1,7 +1,8 @@
 // Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-#load ".\util\runner_util.csx"
-#load ".\util\test_util.csx"
+#load "./util/runner_util.csx"
+#load "./util/test_util.csx"
+#load "./util/trace_manager_util.csx"
 
 using System.Collections.Generic;
 using System.IO;
@@ -9,39 +10,59 @@ using System;
 
 InitUtilities();
 
-var myDir = MyWorkingDirectory();
-var skip = new HashSet<string> {
-    Path.Combine(myDir, "runner.csx"),
-    Path.Combine(myDir, "bootstrap.csx"),
-    Path.Combine(myDir, "util"),
-    Path.Combine(myDir, "infra"),
-};
+var testDirectory = Path.Combine(MyWorkingDirectory(), "Tests");
 
 var allResults = new List<Tuple<string, List<Tuple<int, string, object>>>>();
 var failed = false;
+
+var traceManager = TraceManagerFactory.GetTraceManager();
 
 // Print message at startup
 Log("Starting Performance Test Run");
 Log("hash: " + StdoutFrom("git", "show --format=\"%h\" HEAD --").Split(new[] {"\r\n", "\r", "\n"}, StringSplitOptions.None)[0]);
 Log("time: " + DateTime.Now.ToString());
 
-// Run all the scripts that we've found and populate allResults.
-foreach (var script in AllCsiRecursive(myDir, skip)) {
-    var scriptName = Path.GetFileNameWithoutExtension(script);
-    Log("\nRunning " + scriptName);
-    try
+traceManager.Setup();
+
+for(int i = 0; i < traceManager.Iterations; ++ i)
+{
+    traceManager.Start();
+
+    // Run all the scripts that we've found and populate allResults.
+    foreach (var script in GetAllCsxRecursive(testDirectory))
     {
-        var state = await RunFile(script);
-        var metrics = (List<Tuple<int, string, object>>) state.GetVariable("Metrics").Value;
-        allResults.Add(Tuple.Create(scriptName, metrics));
+        var scriptName = Path.GetFileNameWithoutExtension(script);
+        Log("\nRunning " + scriptName);
+        try
+        {
+            traceManager.StartScenario(scriptName, "csc");
+            traceManager.StartEvent();
+
+            var state = await RunFile(script);
+
+            traceManager.EndEvent();
+            traceManager.EndScenario();
+
+            var metrics = (List<Tuple<int, string, object>>) state.GetVariable("Metrics").Value;
+            allResults.Add(Tuple.Create(scriptName, metrics));
+        }
+        catch (Exception e)
+        {
+            Log("Test Failed: " + scriptName);
+            Log(e.ToString());
+            return 1;
+        }
     }
-    catch (Exception e)
-    {
-        Log("Test Failed: " + scriptName);
-        Log(e.ToString());
-        return 1;
-    }
+
+    traceManager.EndScenarios();
+    traceManager.WriteScenariosFileToDisk();
+
+    traceManager.Stop();
+
+    traceManager.ResetScenarioGenerator();
 }
+
+traceManager.Cleanup();
 
 Log("\nALL RESULTS");
 
@@ -61,7 +82,8 @@ foreach (var testResult in allResults)
         var caseValue = testCase.Item3;
         System.Text.StringBuilder builder = null;
 
-        switch((ReportKind) reportKind) {
+        switch((ReportKind) reportKind)
+        {
             case ReportKind.CompileTime:
                 builder = compileTimeBuilder;
                 break;
@@ -75,7 +97,8 @@ foreach (var testResult in allResults)
                 throw new Exception("test specified an invalid report kind");
         }
 
-        if (builder.Length != 0) {
+        if (builder.Length != 0)
+        {
             builder.AppendLine();
         }
         builder.Append($"{test}, {caseDescription}, {caseValue}");
