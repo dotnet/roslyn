@@ -143,28 +143,32 @@ namespace Microsoft.CodeAnalysis.CSharp
                 invoke = _factory.Sequence(invoke, _factory.Literal(true));
             }
 
-            test = _factory.Sequence(temp, LogicalAnd(test, invoke));
+            test = _factory.Sequence(temp, LogicalAndForPatterns(test, invoke));
 
             // handle each of the nested patterns.
             for (int i = 0; i < recursivePattern.Patterns.Length; i++)
             {
                 var recursiveTest = LowerPattern(recursivePattern.Patterns[i], _factory.Local(argumentTemps[i]));
-                test = LogicalAnd(test, recursiveTest);
+                test = LogicalAndForPatterns(test, recursiveTest);
             }
 
             return _factory.Sequence(argumentTemps.ToImmutableAndFree(), test);
         }
 
         /// <summary>
-        /// Produce a 'logical and' operator that is clearly irrefutable when it can be.
+        /// Produce a 'logical and' operation that is clearly irrefutable (<see cref="IsIrrefutablePatternTest(BoundExpression)"/>) when it can be.
         /// </summary>
-        BoundExpression LogicalAnd(BoundExpression left, BoundExpression right)
+        BoundExpression LogicalAndForPatterns(BoundExpression left, BoundExpression right)
         {
             // PROTOTYPE(patterns): can the generated code be improved further?
-            return IsIrrefutable(left) ? _factory.Sequence(left, right) : _factory.LogicalAnd(left, right);
+            return IsIrrefutablePatternTest(left) ? _factory.Sequence(left, right) : _factory.LogicalAnd(left, right);
         }
 
-        private bool IsIrrefutable(BoundExpression test)
+        /// <summary>
+        /// Is the test, produced as a result of a pattern-matching operation, always true?
+        /// Knowing that enables us to construct slightly more efficient code.
+        /// </summary>
+        private bool IsIrrefutablePatternTest(BoundExpression test)
         {
             while (true)
             {

@@ -148,8 +148,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// </summary>
         private bool WellFormedOperatorIs(MethodSymbol candidate, CSharpSyntaxNode node, DiagnosticBag diagnostics)
         {
-            // requires at least one parameter
-            if (candidate.ParameterCount == 0)
+            // must be a user-defined operator, and requires at least one parameter
+            if (candidate.MethodKind != MethodKind.UserDefinedOperator || candidate.ParameterCount == 0)
             {
                 return false;
             }

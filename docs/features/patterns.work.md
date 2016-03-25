@@ -36,6 +36,7 @@ Open design issues (needing LDM decisions)
 - [ ] @jaredpar suggested that, by analogy with the integral types, we should match floating-point literal patterns across floating-point types.
 - [ ] Should we allow throw expression on right of && and || ? #9453
 - [ ] Should `operator is` be allowed to take a ref first parameter, for example for value types? Is the answer the same as for all other operators?
+- [ ] We need to specify the meaning of the things we need the decision tree for: subsumption, completeness, irrefutable.
 
 Implementation progress checklist:
 - [x] Allow declaration of `operator is` and use it for recursive patterns.
@@ -43,7 +44,9 @@ Implementation progress checklist:
 - [ ] **Add a decision tree** to enable
   - [ ] completeness checking: a mutli-armed pattern-matching expression is required to be complete
   - [ ] subsumption checking: a branch of a switch statement or match expression may not be subsumed by the totality of previous branches (#8823)
+  - [ ] irrefutable: a pattern that *always* matches given its context.
   - [ ] Generate efficient code like `switch` does in corresponding situations. (#8820)
+- [ ] Test `operator is` across assembly boundaries.
 - [x] Scoping for variables introduced in patterns (binders)
 - [x] `SemanticModel.GetDeclaredSymbol` for pattern variable declarations.
 - [x] Simple pattern matching expressions `expression is Type Identifier` in most statements.

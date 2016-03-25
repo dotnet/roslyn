@@ -10183,5 +10183,75 @@ True (1 + 2) + (0 + 1231)
 True (1 + 2) + (x + 3)
 True Add + Add");
         }
+
+        [Fact]
+
+        public void BoolOperatorIs()
+        {
+            var source = @"
+using System;
+class Program
+{
+    static void Main(string[] args)
+    {
+        Console.WriteLine(((byte)1) is Odd());
+        Console.WriteLine(((byte)2) is Odd());
+        Console.WriteLine(((sbyte)1) is Odd());
+        Console.WriteLine(((sbyte)2) is Odd());
+        Console.WriteLine(((short)1) is Odd());
+        Console.WriteLine(((short)2) is Odd());
+        Console.WriteLine(((ushort)1) is Odd());
+        Console.WriteLine(((ushort)2) is Odd());
+        Console.WriteLine(((int)1) is Odd());
+        Console.WriteLine(((int)2) is Odd());
+        Console.WriteLine(((uint)1) is Odd());
+        Console.WriteLine(((uint)2) is Odd());
+        Console.WriteLine(((long)1) is Odd());
+        Console.WriteLine(((long)2) is Odd());
+        Console.WriteLine(((ulong)1) is Odd());
+        Console.WriteLine(((ulong)2) is Odd());
+        Console.WriteLine(string.Empty is Odd());
+    }
+}
+public class Odd
+{
+    public static bool operator is(object o)
+    {
+        switch (o)
+        {
+            case byte i:    return (i % 2) != 0;
+            case sbyte i:   return (i % 2) != 0;
+            case short i:   return (i % 2) != 0;
+            case ushort i:  return (i % 2) != 0;
+            case int i:     return (i % 2) != 0;
+            case uint i:    return (i % 2) != 0;
+            case long i:    return (i % 2) != 0;
+            case ulong i:   return (i % 2) != 0;
+            default:        return false;
+        }
+    }
+}
+";
+            var compilation = CreateCompilationWithMscorlib(source, options: TestOptions.ReleaseExe, parseOptions: patternParseOptions);
+            compilation.VerifyDiagnostics();
+            var verifier = CompileAndVerify(compilation, expectedOutput: @"
+True
+False
+True
+False
+True
+False
+True
+False
+True
+False
+True
+False
+True
+False
+True
+False
+False");
+        }
     }
 }
