@@ -65,6 +65,8 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.PopulateSwitch
             var enumType = (INamedTypeSymbol)model.GetTypeInfo(switchBlock.Expression).Type;
             var fullyQualifiedEnumType = enumType.ToDisplayString();
 
+            var containsDefaultLabel = false;
+
             var caseLabels = new List<ExpressionSyntax>();
             foreach (var section in switchBlock.Sections)
             {
@@ -74,6 +76,11 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.PopulateSwitch
                     if (caseLabel != null)
                     {
                         caseLabels.Add(caseLabel.Value);
+                    }
+
+                    if (label.IsKind(SyntaxKind.DefaultSwitchLabel))
+                    {
+                        containsDefaultLabel = true;
                     }
                 }
             }
@@ -99,8 +106,6 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.PopulateSwitch
                 // ensure that the new cases are above the default case
                 newSections = newSections.Add(section);
             }
-
-            var containsDefaultLabel = SwitchContainsDefaultLabel(newSections);
 
             System.Diagnostics.Debug.WriteLine(containsDefaultLabel);
             if (!containsDefaultLabel)
@@ -162,22 +167,6 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.PopulateSwitch
             }
 
             return missingLabels;
-        }
-
-        private static bool SwitchContainsDefaultLabel(SyntaxList<SwitchSectionSyntax> sections)
-        {
-            foreach (var section in sections)
-            {
-                foreach (var label in section.Labels)
-                {
-                    if (label.IsKind(SyntaxKind.DefaultSwitchLabel))
-                    {
-                        return true;
-                    }
-                }
-            }
-
-            return false;
         }
 
         private class MyCodeAction : CodeAction.DocumentChangeAction

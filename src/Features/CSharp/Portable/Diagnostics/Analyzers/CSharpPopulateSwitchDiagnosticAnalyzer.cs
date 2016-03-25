@@ -6,7 +6,7 @@ using Microsoft.CodeAnalysis.Text;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using System.Collections.Generic;
 
-namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.Analyzers
+namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.PopulateSwitch
 {
     [DiagnosticAnalyzer(LanguageNames.CSharp)]
     internal sealed class CSharpPopulateSwitchDiagnosticAnalyzer : PopulateSwitchDiagnosticAnalyzerBase<SyntaxKind>
@@ -29,8 +29,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.Analyzers
 
         protected override bool SwitchIsFullyPopulated(SemanticModel model, SyntaxNode node, CancellationToken cancellationToken)
         {
-            System.Diagnostics.Debug.WriteLine("SwitchAnalyzerHit:");
-
             var switchBlock = (SwitchStatementSyntax)node;
 
             var enumType = model.GetTypeInfo(switchBlock.Expression).Type as INamedTypeSymbol;
