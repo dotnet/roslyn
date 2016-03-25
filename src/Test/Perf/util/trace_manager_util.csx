@@ -110,7 +110,7 @@ class TraceManager : ITraceManager
     private int _startEventAbsoluteInstance = 1;
     private int _stopEventAbsoluteInstance = 1;
     private readonly int _iterations;
-    
+
     public TraceManager(
         int iterations,
         string cpcPath,
@@ -120,15 +120,15 @@ class TraceManager : ITraceManager
         _cpcPath = cpcPath;
         _scenarioGenerator = new ScenarioGenerator(scenarioPath);
     }
-    
-    public int Iterations 
+
+    public int Iterations
     {
         get
         {
             return _iterations;
-        }    
+        }
     }
-    
+
     public void Setup()
     {
         ShellOutVital(_cpcPath, "/Setup /DisableArchive");
@@ -136,7 +136,7 @@ class TraceManager : ITraceManager
 
     public void Start()
     {
-        ShellOutVital(_cpcPath, "/Start /DisableArchive");      
+        ShellOutVital(_cpcPath, "/Start /DisableArchive");
     }
 
     public void Stop()

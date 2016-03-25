@@ -83,15 +83,15 @@ string GetViBenchJsonFromCsv(string compilerTimeCsvFilePath, string execTimeCsvF
 
     // ViBenchToJson does not like empty csv files.
     string files = "";
-    if (compilerTimeCsvFilePath != null && new FileInfo(compilerTimeCsvFilePath).Length != 0) 
+    if (compilerTimeCsvFilePath != null && new FileInfo(compilerTimeCsvFilePath).Length != 0)
     {
         files += $@"compilertime:""{compilerTimeCsvFilePath}""";
     }
-    if (execTimeCsvFilePath != null && new FileInfo(execTimeCsvFilePath).Length != 0) 
+    if (execTimeCsvFilePath != null && new FileInfo(execTimeCsvFilePath).Length != 0)
     {
         files += $@"exectime:""{execTimeCsvFilePath}""";
     }
-    if (fileSizeCsvFilePath != null && new FileInfo(fileSizeCsvFilePath).Length != 0) 
+    if (fileSizeCsvFilePath != null && new FileInfo(fileSizeCsvFilePath).Length != 0)
     {
         files += $@"filesize:""{fileSizeCsvFilePath}""";
     }
@@ -117,11 +117,11 @@ string GetViBenchJsonFromCsv(string compilerTimeCsvFilePath, string execTimeCsvF
     arguments = arguments.Replace("\r\n", " ").Replace("\n", "");
 
     ShellOutVital(Path.Combine(GetCPCDirectoryPath(), "ViBenchToJson.exe"), arguments);
-    
+
     return outJson;
 }
 
-string FirstLine(string input) 
+string FirstLine(string input)
 {
     return input.Split(new[] {"\r\n", "\r", "\n"}, System.StringSplitOptions.None)[0];
 }
@@ -141,7 +141,7 @@ void UploadTraces(string sourceFolderPath, string destinationFolderPath)
 
         var destination = Path.Combine(destinationFolderPath, directoryToUpload.Name);
         CopyDirectory(directoryToUpload.FullName, destination);
-        
+
         foreach(var file in new DirectoryInfo(sourceFolderPath).GetFiles().Where(f => f.Name.StartsWith("ConsumptionTemp", StringComparison.OrdinalIgnoreCase) || f.Name.StartsWith("Roslyn-", StringComparison.OrdinalIgnoreCase)))
         {
             File.Copy(file.FullName, Path.Combine(destination, file.Name));
@@ -156,7 +156,7 @@ void UploadTraces(string sourceFolderPath, string destinationFolderPath)
 void CopyDirectory(string source, string destination, string argument = @"/mir")
 {
     var result = ShellOut("Robocopy", $"{argument} {source} {destination}");
-    
+
     // Robocopy has a success exit code from 0 - 7
     if (result.Code > 7)
     {
