@@ -507,7 +507,7 @@ End Namespace
                          WellKnownType.System_ValueTuple_T1_T2_T3_T4_T5,
                          WellKnownType.System_ValueTuple_T1_T2_T3_T4_T5_T6,
                          WellKnownType.System_ValueTuple_T1_T2_T3_T4_T5_T6_T7,
-                         WellKnownType.System_ValueTuple_T1_T2_T3_T4_T5_T6_T7_TRest ' PROTOTYPE tuples
+                         WellKnownType.System_ValueTuple_T1_T2_T3_T4_T5_T6_T7_TRest ' PROTOTYPE(tuples)
                         ' Not available on all platforms.
                         Continue For
                     Case WellKnownType.ExtSentinel
@@ -547,7 +547,7 @@ End Namespace
                          WellKnownType.System_ValueTuple_T1_T2_T3_T4_T5,
                          WellKnownType.System_ValueTuple_T1_T2_T3_T4_T5_T6,
                          WellKnownType.System_ValueTuple_T1_T2_T3_T4_T5_T6_T7,
-                         WellKnownType.System_ValueTuple_T1_T2_T3_T4_T5_T6_T7_TRest ' PROTOTYPE tuples
+                         WellKnownType.System_ValueTuple_T1_T2_T3_T4_T5_T6_T7_TRest ' PROTOTYPE(tuples)
                         ' Not available on all platforms.
                         Continue For
                     Case WellKnownType.ExtSentinel
@@ -629,7 +629,7 @@ End Namespace
                          WellKnownMember.System_ValueTuple_T1_T2_T3_T4_T5_T6__ctor,
                          WellKnownMember.System_ValueTuple_T1_T2_T3_T4_T5_T6_T7__ctor
 
-                        ' PROTOTYPE tuples
+                        ' PROTOTYPE(tuples)
                         ' Not available yet, but will be in upcoming release.
                         Continue For
                 End Select
@@ -751,7 +751,7 @@ End Namespace
                          WellKnownMember.System_ValueTuple_T1_T2_T3_T4_T5_T6__ctor,
                          WellKnownMember.System_ValueTuple_T1_T2_T3_T4_T5_T6_T7__ctor
 
-                        ' PROTOTYPE tuples
+                        ' PROTOTYPE(tuples)
                         ' Not available yet, but will be in upcoming release.
                         Continue For
                 End Select

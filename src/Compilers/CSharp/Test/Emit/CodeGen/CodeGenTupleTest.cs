@@ -8,6 +8,7 @@ using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
 using System.Linq;
+using System.Text;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests.CodeGen
 {
@@ -16,7 +17,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.CodeGen
         private static readonly string trivial2uple =
                     @"
 
-// PROTOTYPE: put in correct namespace
 namespace System
 {
     // struct with two values
@@ -43,7 +43,6 @@ namespace System
         private static readonly string trivial3uple =
                 @"
 
-    // PROTOTYPE: put in correct namespace
     namespace System
     {
         // struct with two values
@@ -335,6 +334,7 @@ class C
 }
 ");
         }
+
         [Fact]
         public void TupleTypeDeclaration()
         {
@@ -366,7 +366,7 @@ class C
 }
 " + trivial2uple + trivial3uple;
 
-            // PROTOTYPE there should be no mention of Item1, Item2 or Item3 in there error for this test
+            // PROTOTYPE(tuples) there should be no mention of Item1, Item2 or Item3 in there error for this test
             // (int a, string b) should print as < tuple: int a, string b> and(int, string) should print out as < tuple: int, string> (not < tuple:int Item1, string Item2>).
             // Only user-provided names should appear in the TupleTypeSymbol. The underlying type(ValueTuple) is the one that provides Item1, etc.
             // At the moment, because our error checking is incomplete, and also for purpose of error recovery, we assign "Item1" and such into the tuple symbol when the user missed some names.But I think this is a prototype bug.
@@ -439,7 +439,7 @@ class C
 }
 " + trivial2uple + trivial3uple;
 
-            // PROTOTYPE we also expect an error on the tuple type declaration
+            // PROTOTYPE(tuples) we also expect an error on the tuple type declaration
             CreateCompilationWithMscorlib(source).VerifyDiagnostics(
                 // (6,29): error CS8203: Tuple member names must all be provided, if any one is provided.
                 //         (int, string a) x = (b: 1, "hello", 2);
@@ -676,7 +676,7 @@ class C
     }
 }
 ";
-            // PROTOTYPE those are not the final diagnostics
+            // PROTOTYPE(tuples) those are not the final diagnostics
             var comp = CreateCompilationWithMscorlib(source);
             comp.VerifyDiagnostics(
                 // (6,9): error CS0518: Predefined type 'System.ValueTuple`2' is not defined or imported
@@ -721,7 +721,7 @@ class C
 }
 " + trivial2uple + trivial3uple;
 
-            // PROTOTYPE we expect similar errors on "a"
+            // PROTOTYPE(tuples) we expect similar errors on "a"
             var comp = CreateCompilationWithMscorlib(source);
             comp.VerifyDiagnostics(
                 // (6,38): error CS8202: Tuple member names must be unique.
@@ -746,7 +746,7 @@ class C
 }
 " + trivial2uple;
 
-            // PROTOTYPE we expect similar errors on the type declarations
+            // PROTOTYPE(tuples) we expect similar errors on the type declarations
             var comp = CreateCompilationWithMscorlib(source);
             comp.VerifyDiagnostics(
                 // (6,50): error CS8201: Tuple member name 'Item1' is disallowed at position 2.
@@ -790,7 +790,7 @@ class C
 }
 " + trivial2uple + trivial3uple;
 
-            // PROTOTYPE we also expect duplicate member name error on the tuple type declaration
+            // PROTOTYPE(tuples) we also expect duplicate member name error on the tuple type declaration
             var comp = CreateCompilationWithMscorlib(source);
             comp.VerifyDiagnostics(
                 // (6,50): error CS8202: Tuple member names must be unique.
@@ -811,7 +811,7 @@ class C
 }
 " + trivial2uple + trivial3uple;
 
-            // PROTOTYPE we also expect reserved member name error on the tuple type declaration
+            // PROTOTYPE(tuples) we also expect reserved member name error on the tuple type declaration
             var comp = CreateCompilationWithMscorlib(source);
             comp.VerifyDiagnostics(
                 // (6,40): error CS8201: Tuple member name 'Item2' is disallowed at position 1.
@@ -822,7 +822,7 @@ class C
                 Diagnostic(ErrorCode.ERR_TupleReservedMemberName, "Item4").WithArguments("Item4", "2").WithLocation(6, 50));
         }
 
-        // PROTOTYPE this test can be removed once tuple-8 and above are implemented
+        // PROTOTYPE(tuples) this test can be removed once tuple-8 and above are implemented
         [Fact]
         public void LongTupleDeclarationDoesntCrash()
         {
@@ -846,7 +846,7 @@ class C
         }
 
 
-        // PROTOTYPE this test can be removed once tuple-8 and above are implemented
+        // PROTOTYPE(tuples) this test can be removed once tuple-8 and above are implemented
         [Fact]
         public void LongTupleCreationDoesntCrash()
         {
@@ -864,6 +864,95 @@ class C
                 // (6,17): error CS8204: PROTOTYPE This is not supported yet.
                 //         var x = (1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1);
                 Diagnostic(ErrorCode.ERR_PrototypeNotYetImplemented, "(1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1)").WithLocation(6, 17));
+        }
+
+        [Fact]
+        public void HugeTupleCreationParses()
+        {
+            StringBuilder b = new StringBuilder();
+            b.Append("(");
+            for (int i = 0; i < 3000; i++)
+            {
+                b.Append("1, ");
+            }
+            b.Append("1)");
+
+            var source = @"
+class C
+{
+    static void Main()
+    {
+        var x = " + b.ToString() + @";
+    }
+}
+";
+            CreateCompilationWithMscorlib(source);
+        }
+
+        [Fact]
+        public void HugeTupleDeclarationParses()
+        {
+            StringBuilder b = new StringBuilder();
+            b.Append("(");
+            for (int i = 0; i < 3000; i++)
+            {
+                b.Append("int, ");
+            }
+            b.Append("int)");
+
+            var source = @"
+class C
+{
+    static void Main()
+    {
+        " + b.ToString() + @" x;
+    }
+}
+";
+            CreateCompilationWithMscorlib(source);
+        }
+
+        [Fact]
+        public void GenericTupleWithoutTupleLibrary()
+        {
+            var source = @"
+class C
+{
+    static void Main()
+    {
+        var x = M<int, bool>();
+        System.Console.WriteLine($""{x.first} {x.second}"");
+    }
+
+    (T1 first, T2 second) M<T1, T2>()
+    {
+        return (default(T1), default(T2));
+    }
+}
+";
+            // PROTOTYPE(tuples) this should not throw
+            Assert.Throws<NullReferenceException>(() => CompileAndVerify(source));
+        }
+
+        [Fact]
+        public void GenericTuple()
+        {
+            var source = @"
+class C
+{
+    static void Main()
+    {
+        var x = M<int, bool>();
+        System.Console.WriteLine($""{x.first} {x.second}"");
+    }
+
+    static (T1 first, T2 second) M<T1, T2>()
+    {
+        return (default(T1), default(T2));
+    }
+}
+" + trivial2uple;
+            var comp = CompileAndVerify(source, expectedOutput: @"0 False");
         }
 
         [Fact]
@@ -885,6 +974,117 @@ class C
 " + trivial2uple;
 
             var comp = CompileAndVerify(source, expectedOutput: @"{1, hello}");
+        }
+
+        [Fact]
+        public void TupleInLambda()
+        {
+            var source = @"
+class C
+{
+    static void Main()
+    {
+        System.Action<(int, string)> f = ((int, string) x) => System.Console.WriteLine($""{x.Item1} {x.Item2}"");
+        f((42, ""Alice""));
+    }
+}
+" + trivial2uple;
+
+            var comp = CompileAndVerify(source, expectedOutput: @"42 Alice");
+        }
+
+        [Fact]
+        public void TupleWithNamesInLambda()
+        {
+            var source = @"
+class C
+{
+    static void Main()
+    {
+        int a, b = 0;
+        System.Action<(int, string)> f = ((int a, string b) x) => System.Console.WriteLine($""{x.a} {x.b}"");
+        f((c: 42, d: ""Alice""));
+    }
+}
+" + trivial2uple;
+
+            var comp = CompileAndVerify(source, expectedOutput: @"42 Alice");
+        }
+
+        [Fact]
+        public void TupleInProperty()
+        {
+            var source = @"
+class C
+{
+    static (int a, string b) P { get; set; }
+
+    static void Main()
+    {
+        P = (42, ""Alice"");
+        System.Console.WriteLine($""{P.a} {P.b}"");
+    }
+}
+" + trivial2uple;
+
+            var comp = CompileAndVerify(source, expectedOutput: @"42 Alice");
+        }
+
+        [Fact]
+        public void ExtensionMethodOnTuple()
+        {
+            var source = @"
+static class C
+{
+    static void Extension(this (int a, string b) x)
+    {
+        System.Console.WriteLine($""{x.a} {x.b}"");
+    }
+    static void Main()
+    {
+        (42, ""Alice"").Extension();
+    }
+}
+" + trivial2uple;
+
+            // PROTOTYPE(tuples) this should probably fail with diagnostics. No extension methods on tuple types (but you can on ValueTuple)
+            CompileAndVerify(source, additionalRefs: new[] { SystemCoreRef }, expectedOutput: @"42 Alice");
+        }
+
+        [Fact]
+        public void TupleInOptionalParam()
+        {
+            var source = @"
+class C
+{
+    void M(int x, (int a, string b) y = (42, ""Alice"")) { }
+}
+" + trivial2uple;
+
+            CreateCompilationWithMscorlib(source).VerifyDiagnostics(
+                // (4,41): error CS1736: Default parameter value for 'y' must be a compile-time constant
+                //     void M(int x, (int a, string b) y = (42, "Alice"))
+                Diagnostic(ErrorCode.ERR_DefaultValueMustBeConstant, @"(42, ""Alice"")").WithArguments("y").WithLocation(4, 41));
+        }
+
+        [Fact]
+        public void TupleAsNamedParam()
+        {
+            var source = @"
+class C
+{
+    static void Main()
+    {
+        M(y : (42, ""Alice""), x : 1);
+    }
+    static void M(int x, (int a, string b) y)
+    {
+        System.Console.WriteLine($""{y.a} {y.Item2}"");
+    }
+}
+" + trivial2uple;
+
+            var comp = CompileAndVerify(source, expectedOutput: @"42 Alice");
         }
 
         [Fact]

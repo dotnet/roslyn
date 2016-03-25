@@ -565,7 +565,7 @@ namespace System
                     case WellKnownType.System_ValueTuple_T1_T2_T3_T4_T5_T6:
                     case WellKnownType.System_ValueTuple_T1_T2_T3_T4_T5_T6_T7:
                     case WellKnownType.System_ValueTuple_T1_T2_T3_T4_T5_T6_T7_TRest:
-                        // PROTOTYPE tuples
+                        // PROTOTYPE(tuples)
                         // Not yet in the platform.
                         continue;
                     case WellKnownType.ExtSentinel:
@@ -661,7 +661,7 @@ namespace System
                     case WellKnownMember.System_ValueTuple_T1_T2_T3_T4_T5_T6__ctor:
                     case WellKnownMember.System_ValueTuple_T1_T2_T3_T4_T5_T6_T7__ctor:
 
-                        // PROTOTYPE tuples
+                        // PROTOTYPE(tuples) tuples
                         // Not yet in the platform.
                         continue;
                 }
