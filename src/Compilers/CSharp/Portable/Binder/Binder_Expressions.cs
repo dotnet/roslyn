@@ -1,15 +1,16 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using Microsoft.CodeAnalysis.Collections;
+using Microsoft.CodeAnalysis.CSharp.Symbols;
+using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.CodeAnalysis.Text;
+using Roslyn.Utilities;
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
 using System.Reflection;
-using Microsoft.CodeAnalysis.CSharp.Symbols;
-using Microsoft.CodeAnalysis.CSharp.Syntax;
-using Microsoft.CodeAnalysis.Text;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp
 {
@@ -644,11 +645,13 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private BoundExpression BindTupleExpression(TupleExpressionSyntax node, DiagnosticBag diagnostics)
         {
-            var arguments = node.Arguments;
-            if (arguments.Count < 2)
+            SeparatedSyntaxList<ArgumentSyntax> arguments = node.Arguments;
+            int numElements = arguments.Count;
+
+            if (numElements < 2)
             {
                 // this should be a parse error already.
-                var args = arguments.Count == 1 ?
+                var args = numElements == 1 ?
                     new BoundExpression[] { BindValue(arguments[0].Expression, diagnostics, BindValueKind.RValue) } :
                     SpecializedCollections.EmptyArray<BoundExpression>();
 
@@ -657,97 +660,59 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             bool hasErrors = false;
 
-            // set of names already used
-            HashSet<string> uniqueFieldNames = new HashSet<string>();
-
             var boundArguments = ArrayBuilder<BoundExpression>.GetInstance(arguments.Count);
             var elementTypes = ArrayBuilder<TypeSymbol>.GetInstance(arguments.Count);
-            ArrayBuilder<string> elementNames = null;
-            var countOfExplicitNames = 0;
 
-            for (int i = 0, l = arguments.Count; i < l; i++)
+            // set of names already used
+            var uniqueFieldNames = PooledHashSet<string>.GetInstance();
+
+            ArrayBuilder<string> elementNames = null;
+            int countOfExplicitNames = 0;
+
+            // prepare and check element names and types
+            for (int i = 0, l = numElements; i < l; i++)
             {
-                var argumentSyntax = arguments[i];
-                var name = argumentSyntax.NameColon?.Name?.Identifier.ValueText;
+                ArgumentSyntax argumentSyntax = arguments[i];
+                string name = argumentSyntax.NameColon?.Name?.Identifier.ValueText;
 
                 // validate name if we have one
                 if (name != null)
                 {
                     countOfExplicitNames++;
-
-                    if (TupleTypeSymbol.IsMemberNameReserved(name) && name != TupleTypeSymbol.UnderlyingMemberName(i))
+                    if (!CheckTupleMemberName(name, i, argumentSyntax.NameColon.Name, diagnostics, uniqueFieldNames))
                     {
                         hasErrors = true;
-                        Error(diagnostics, ErrorCode.ERR_TupleReservedMemberName, argumentSyntax.NameColon.Name, name, i + 1);
-                    }
-                    else if (!uniqueFieldNames.Add(name))
-                    {
-                        hasErrors = true;
-                        Error(diagnostics, ErrorCode.ERR_TupleDuplicateMemberName, argumentSyntax.NameColon.Name);
                     }
                 }
+                CollectTupleFieldMemberNames(name, i + 1, numElements, ref elementNames);
 
-                // add the name to the list
-                // names would typically all be there or none at all
-                // but in case we need to handle this in error cases
-                if (elementNames != null)
-                {
-                    elementNames.Add(name ?? TupleTypeSymbol.UnderlyingMemberName(i));
-                }
-                else
-                {
-                    if (name != null)
-                    {
-                        elementNames = ArrayBuilder<string>.GetInstance(arguments.Count);
-                        for (int j = 0; j < i; j++)
-                        {
-                            elementNames.Add(TupleTypeSymbol.UnderlyingMemberName(j));
-                        }
-                        elementNames.Add(name);
-                    }
-                }
-
-                var boundArgument = BindValue(argumentSyntax.Expression, diagnostics, BindValueKind.RValue);
+                BoundExpression boundArgument = BindValue(argumentSyntax.Expression, diagnostics, BindValueKind.RValue);
                 boundArguments.Add(boundArgument);
 
                 // PROTOTYPE(tuples): need to report distinc errors for tuples
-                var elementType = GetAnonymousTypeFieldType(boundArgument, argumentSyntax, diagnostics, ref hasErrors);
+                TypeSymbol elementType = GetAnonymousTypeFieldType(boundArgument, argumentSyntax, diagnostics, ref hasErrors);
                 elementTypes.Add(elementType);
             }
+            uniqueFieldNames.Free();
 
             if (countOfExplicitNames != 0 && countOfExplicitNames != elementTypes.Count)
             {
                 hasErrors = true;
                 Error(diagnostics, ErrorCode.ERR_TupleExplicitNamesOnAllMembersOrNone, node);
             }
-            var elements = elementTypes.ToImmutableAndFree();
-            if (elements.Length < 2 || elements.Length > 7)
-            {
-                // PROTOTYPE(tuples)
-                diagnostics.Add(ErrorCode.ERR_PrototypeNotYetImplemented, node.Location);
-                return BadExpression(node);
-            }
+
+            ImmutableArray<TypeSymbol> elements = elementTypes.ToImmutableAndFree();
 
             var type = new TupleTypeSymbol(
                 elements,
                 elementNames == null ?
-                                default(ImmutableArray<string>) :
-                                elementNames.ToImmutableAndFree(),
+                    default(ImmutableArray<string>) :
+                    elementNames.ToImmutableAndFree(),
                 node,
                 this,
                 diagnostics);
 
-            var ctor = (MethodSymbol)GetWellKnownTypeMember(this.Compilation, TupleTypeSymbol.GetTupleCtor(elements.Length), diagnostics, syntax: node);
-            if ((object)ctor != null)
-            {
-                ctor = ctor.AsMember(type.UnderlyingTupleType);
-            }
-            else
-            {
-                hasErrors = true;
-            }
-
-            return new BoundTupleCreationExpression(node, ctor, boundArguments.ToImmutableAndFree(), type, hasErrors);
+            return new BoundTupleCreationExpression(node, boundArguments.ToImmutableAndFree(), type, hasErrors);
         }
 
         private BoundExpression BindRefValue(RefValueExpressionSyntax node, DiagnosticBag diagnostics)

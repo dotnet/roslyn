@@ -1,14 +1,12 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
-using Microsoft.CodeAnalysis.Test.Utilities;
-using Roslyn.Test.Utilities;
-using Xunit;
+using System;
 using System.Linq;
 using System.Text;
+using Xunit;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests.CodeGen
 {
@@ -67,6 +65,125 @@ namespace System
     }
         ";
 
+        private static readonly string trivalRemainingTuples = @"
+namespace System
+{
+    public struct ValueTuple<T1>
+    {
+        public T1 Item1;
+
+        public ValueTuple(T1 item1)
+        {
+            this.Item1 = item1;
+        }
+
+        public override string ToString()
+        {
+            return '{' + Item1?.ToString() + '}';
+        }
+    }
+
+    public struct ValueTuple<T1, T2, T3, T4>
+    {
+        public T1 Item1;
+        public T2 Item2;
+        public T3 Item3;
+        public T4 Item4;
+
+        public ValueTuple(T1 item1, T2 item2, T3 item3, T4 item4)
+        {
+            Item1 = item1;
+            Item2 = item2;
+            Item3 = item3;
+            Item4 = item4;
+        }
+    }
+
+    public struct ValueTuple<T1, T2, T3, T4, T5>
+    {
+        public T1 Item1;
+        public T2 Item2;
+        public T3 Item3;
+        public T4 Item4;
+        public T5 Item5;
+
+        public ValueTuple(T1 item1, T2 item2, T3 item3, T4 item4, T5 item5)
+        {
+            Item1 = item1;
+            Item2 = item2;
+            Item3 = item3;
+            Item4 = item4;
+            Item5 = item5;
+        }
+    }
+
+    public struct ValueTuple<T1, T2, T3, T4, T5, T6>
+    {
+        public T1 Item1;
+        public T2 Item2;
+        public T3 Item3;
+        public T4 Item4;
+        public T5 Item5;
+        public T6 Item6;
+
+        public ValueTuple(T1 item1, T2 item2, T3 item3, T4 item4, T5 item5, T6 item6)
+        {
+            Item1 = item1;
+            Item2 = item2;
+            Item3 = item3;
+            Item4 = item4;
+            Item5 = item5;
+            Item6 = item6;
+        }
+    }
+
+    public struct ValueTuple<T1, T2, T3, T4, T5, T6, T7>
+    {
+        public T1 Item1;
+        public T2 Item2;
+        public T3 Item3;
+        public T4 Item4;
+        public T5 Item5;
+        public T6 Item6;
+        public T7 Item7;
+
+        public ValueTuple(T1 item1, T2 item2, T3 item3, T4 item4, T5 item5, T6 item6, T7 item7)
+        {
+            Item1 = item1;
+            Item2 = item2;
+            Item3 = item3;
+            Item4 = item4;
+            Item5 = item5;
+            Item6 = item6;
+            Item7 = item7;
+        }
+    }
+
+    public struct ValueTuple<T1, T2, T3, T4, T5, T6, T7, TRest>
+    {
+        public T1 Item1;
+        public T2 Item2;
+        public T3 Item3;
+        public T4 Item4;
+        public T5 Item5;
+        public T6 Item6;
+        public T7 Item7;
+        public TRest Rest;
+
+        public ValueTuple(T1 item1, T2 item2, T3 item3, T4 item4, T5 item5, T6 item6, T7 item7, TRest rest)
+        {
+            Item1 = item1;
+            Item2 = item2;
+            Item3 = item3;
+            Item4 = item4;
+            Item5 = item5;
+            Item6 = item6;
+            Item7 = item7;
+            Rest = rest;
+        }
+    }
+}
+";
         [Fact]
         public void SimpleTuple()
         {
@@ -378,6 +495,30 @@ class C
         }
 
         [Fact]
+        public void LongTupleTypeMismatch()
+        {
+            var source = @"
+class C
+{
+    static void Main()
+    {
+        (int, int, int, int, int, int, int, int) x = (""Alice"", 2, 3, 4, 5, 6, 7, 8);
+        (int, int, int, int, int, int, int, int) y = (1, 2, 3, 4, 5, 6, 7, 8, 9);
+    }
+}
+" + trivial2uple + trivial3uple + trivalRemainingTuples;
+
+            CreateCompilationWithMscorlib(source).VerifyDiagnostics(
+                // (6,54): error CS0029: Cannot implicitly convert type '<tuple: string Item1, int Item2, int Item3, int Item4, int Item5, int Item6, int Item7, int Item8>' to '<tuple: int Item1, int Item2, int Item3, int Item4, int Item5, int Item6, int Item7, int Item8>'
+                //         (int, int, int, int, int, int, int, int) x = ("Alice", 2, 3, 4, 5, 6, 7, 8);
+                Diagnostic(ErrorCode.ERR_NoImplicitConv, @"(""Alice"", 2, 3, 4, 5, 6, 7, 8)").WithArguments("<tuple: string Item1, int Item2, int Item3, int Item4, int Item5, int Item6, int Item7, int Item8>", "<tuple: int Item1, int Item2, int Item3, int Item4, int Item5, int Item6, int Item7, int Item8>").WithLocation(6, 54),
+                // (7,54): error CS0029: Cannot implicitly convert type '<tuple: int Item1, int Item2, int Item3, int Item4, int Item5, int Item6, int Item7, int Item8, int Item9>' to '<tuple: int Item1, int Item2, int Item3, int Item4, int Item5, int Item6, int Item7, int Item8>'
+                //         (int, int, int, int, int, int, int, int) y = (1, 2, 3, 4, 5, 6, 7, 8, 9);
+                Diagnostic(ErrorCode.ERR_NoImplicitConv, "(1, 2, 3, 4, 5, 6, 7, 8, 9)").WithArguments("<tuple: int Item1, int Item2, int Item3, int Item4, int Item5, int Item6, int Item7, int Item8, int Item9>", "<tuple: int Item1, int Item2, int Item3, int Item4, int Item5, int Item6, int Item7, int Item8>").WithLocation(7, 54)
+                );
+        }
+
+        [Fact]
         public void TupleTypeWithLateDiscoveredName()
         {
             var source = @"
@@ -393,9 +534,13 @@ class C
             var tree = Parse(source);
             var comp = CreateCompilationWithMscorlib(tree);
             comp.VerifyDiagnostics(
-                // (6,29): error CS8203: Tuple member names must all be provided, if any one is provided.
+                // (6,9): error CS8204: Tuple member names must all be provided, if any one is provided.
                 //         (int, string a) x = (1, "hello", c: 2);
-                Diagnostic(ErrorCode.ERR_TupleExplicitNamesOnAllMembersOrNone, @"(1, ""hello"", c: 2)").WithLocation(6, 29));
+                Diagnostic(ErrorCode.ERR_TupleExplicitNamesOnAllMembersOrNone, "(int, string a)").WithLocation(6, 9),
+                // (6,29): error CS8204: Tuple member names must all be provided, if any one is provided.
+                //         (int, string a) x = (1, "hello", c: 2);
+                Diagnostic(ErrorCode.ERR_TupleExplicitNamesOnAllMembersOrNone, @"(1, ""hello"", c: 2)").WithLocation(6, 29)
+                );
 
             var model = comp.GetSemanticModel(tree, ignoreAccessibility: false);
             var nodes = tree.GetCompilationUnitRoot().DescendantNodes();
@@ -439,11 +584,14 @@ class C
 }
 " + trivial2uple + trivial3uple;
 
-            // PROTOTYPE(tuples) we also expect an error on the tuple type declaration
             CreateCompilationWithMscorlib(source).VerifyDiagnostics(
-                // (6,29): error CS8203: Tuple member names must all be provided, if any one is provided.
+                // (6,9): error CS8204: Tuple member names must all be provided, if any one is provided.
                 //         (int, string a) x = (b: 1, "hello", 2);
-                Diagnostic(ErrorCode.ERR_TupleExplicitNamesOnAllMembersOrNone, @"(b: 1, ""hello"", 2)").WithLocation(6, 29));
+                Diagnostic(ErrorCode.ERR_TupleExplicitNamesOnAllMembersOrNone, "(int, string a)").WithLocation(6, 9),
+                // (6,29): error CS8204: Tuple member names must all be provided, if any one is provided.
+                //         (int, string a) x = (b: 1, "hello", 2);
+                Diagnostic(ErrorCode.ERR_TupleExplicitNamesOnAllMembersOrNone, @"(b: 1, ""hello"", 2)").WithLocation(6, 29)
+                );
         }
 
         [Fact]
@@ -665,6 +813,35 @@ class C
         }
 
         [Fact]
+        public void LongTupleWithSubstitution()
+        {
+            var source = @"
+using System;
+using System.Threading.Tasks;
+
+class C
+{
+    static void Main()
+    {
+        Console.WriteLine(Test(42).Result);
+    }
+
+    public static async Task<T> Test<T>(T a)
+    {
+        var x = (f1: 1, f2: 2, f3: 3, f4: 4, f5: 5, f6: 6, f7: 7, f8: a);
+
+        await Task.Yield();
+
+        return x.f8;
+    }
+}
+" + trivial2uple + trivial3uple + trivalRemainingTuples;
+
+            var comp = CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseExe);
+            CompileAndVerify(comp, expectedOutput: @"42");
+        }
+
+        [Fact]
         public void TupleUsageWithoutTupleLibrary()
         {
             var source = @"
@@ -679,6 +856,9 @@ class C
             // PROTOTYPE(tuples) those are not the final diagnostics
             var comp = CreateCompilationWithMscorlib(source);
             comp.VerifyDiagnostics(
+                // (6,9): error CS8204: Tuple member names must all be provided, if any one is provided.
+                //         (int, string a) x = (b: 1, "hello", 2);
+                Diagnostic(ErrorCode.ERR_TupleExplicitNamesOnAllMembersOrNone, "(int, string a)").WithLocation(6, 9),
                 // (6,9): error CS0518: Predefined type 'System.ValueTuple`2' is not defined or imported
                 //         (int, string a) x = (b: 1, "hello", 2);
                 Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "(int, string a)").WithArguments("System.ValueTuple`2").WithLocation(6, 9),
@@ -688,7 +868,7 @@ class C
                 // (6,9): error CS0656: Missing compiler required member 'System.ValueTuple`2.Item2'
                 //         (int, string a) x = (b: 1, "hello", 2);
                 Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "(int, string a)").WithArguments("System.ValueTuple`2", "Item2").WithLocation(6, 9),
-                // (6,29): error CS8203: Tuple member names must all be provided, if any one is provided.
+                // (6,29): error CS8204: Tuple member names must all be provided, if any one is provided.
                 //         (int, string a) x = (b: 1, "hello", 2);
                 Diagnostic(ErrorCode.ERR_TupleExplicitNamesOnAllMembersOrNone, @"(b: 1, ""hello"", 2)").WithLocation(6, 29),
                 // (6,29): error CS0518: Predefined type 'System.ValueTuple`3' is not defined or imported
@@ -702,10 +882,8 @@ class C
                 Diagnostic(ErrorCode.ERR_MissingPredefinedMember, @"(b: 1, ""hello"", 2)").WithArguments("System.ValueTuple`3", "Item2").WithLocation(6, 29),
                 // (6,29): error CS0656: Missing compiler required member 'System.ValueTuple`3.Item3'
                 //         (int, string a) x = (b: 1, "hello", 2);
-                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, @"(b: 1, ""hello"", 2)").WithArguments("System.ValueTuple`3", "Item3").WithLocation(6, 29),
-                // (6,29): error CS0656: Missing compiler required member 'System.ValueTuple`3..ctor'
-                //         (int, string a) x = (b: 1, "hello", 2);
-                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, @"(b: 1, ""hello"", 2)").WithArguments("System.ValueTuple`3", ".ctor").WithLocation(6, 29));
+                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, @"(b: 1, ""hello"", 2)").WithArguments("System.ValueTuple`3", "Item3").WithLocation(6, 29)
+                );
         }
 
         [Fact]
@@ -721,15 +899,18 @@ class C
 }
 " + trivial2uple + trivial3uple;
 
-            // PROTOTYPE(tuples) we expect similar errors on "a"
             var comp = CreateCompilationWithMscorlib(source);
             comp.VerifyDiagnostics(
-                // (6,38): error CS8202: Tuple member names must be unique.
+                // (6,24): error CS8203: Tuple member names must be unique.
+                //         (int a, string a) x = (b: 1, b: "hello", b: 2);
+                Diagnostic(ErrorCode.ERR_TupleDuplicateMemberName, "a").WithLocation(6, 24),
+                // (6,38): error CS8203: Tuple member names must be unique.
                 //         (int a, string a) x = (b: 1, b: "hello", b: 2);
                 Diagnostic(ErrorCode.ERR_TupleDuplicateMemberName, "b").WithLocation(6, 38),
-                // (6,50): error CS8202: Tuple member names must be unique.
+                // (6,50): error CS8203: Tuple member names must be unique.
                 //         (int a, string a) x = (b: 1, b: "hello", b: 2);
-                Diagnostic(ErrorCode.ERR_TupleDuplicateMemberName, "b").WithLocation(6, 50));
+                Diagnostic(ErrorCode.ERR_TupleDuplicateMemberName, "b").WithLocation(6, 50)
+               );
         }
 
         [Fact]
@@ -746,15 +927,48 @@ class C
 }
 " + trivial2uple;
 
-            // PROTOTYPE(tuples) we expect similar errors on the type declarations
             var comp = CreateCompilationWithMscorlib(source);
             comp.VerifyDiagnostics(
-                // (6,50): error CS8201: Tuple member name 'Item1' is disallowed at position 2.
+                // (6,28): error CS8201: Tuple member name 'Item1' is only allowed at position 1.
                 //         (int Item1, string Item1) x = (Item1: 1, Item1: "hello");
-                Diagnostic(ErrorCode.ERR_TupleReservedMemberName, "Item1").WithArguments("Item1", "2").WithLocation(6, 50),
-                // (7,40): error CS8201: Tuple member name 'Item2' is disallowed at position 1.
+                Diagnostic(ErrorCode.ERR_TupleReservedMemberName, "Item1").WithArguments("Item1", "1").WithLocation(6, 28),
+                // (6,50): error CS8201: Tuple member name 'Item1' is only allowed at position 1.
+                //         (int Item1, string Item1) x = (Item1: 1, Item1: "hello");
+                Diagnostic(ErrorCode.ERR_TupleReservedMemberName, "Item1").WithArguments("Item1", "1").WithLocation(6, 50),
+                // (7,14): error CS8201: Tuple member name 'Item2' is only allowed at position 2.
                 //         (int Item2, string Item2) y = (Item2: 1, Item2: "hello");
-                Diagnostic(ErrorCode.ERR_TupleReservedMemberName, "Item2").WithArguments("Item2", "1").WithLocation(7, 40));
+                Diagnostic(ErrorCode.ERR_TupleReservedMemberName, "Item2").WithArguments("Item2", "2").WithLocation(7, 14),
+                // (7,40): error CS8201: Tuple member name 'Item2' is only allowed at position 2.
+                //         (int Item2, string Item2) y = (Item2: 1, Item2: "hello");
+                Diagnostic(ErrorCode.ERR_TupleReservedMemberName, "Item2").WithArguments("Item2", "2").WithLocation(7, 40)
+                );
+        }
+
+        [Fact]
+        public void TupleWithNonReservedNames()
+        {
+            var source = @"
+class C
+{
+    static void Main()
+    {
+        (int Item1, int Item01, int Item10) x = (Item01: 1, Item1: 2, Item10: 3);
+    }
+}
+" + trivial2uple + trivial3uple + trivalRemainingTuples;
+
+            var comp = CreateCompilationWithMscorlib(source);
+            comp.VerifyDiagnostics(
+                // (6,37): error CS8201: Tuple member name 'Item10' is only allowed at position 10.
+                //         (int Item1, int Item01, int Item10) x = (Item01: 1, Item1: 2, Item10: 3);
+                Diagnostic(ErrorCode.ERR_TupleReservedMemberName, "Item10").WithArguments("Item10", "10").WithLocation(6, 37),
+                // (6,61): error CS8201: Tuple member name 'Item1' is only allowed at position 1.
+                //         (int Item1, int Item01, int Item10) x = (Item01: 1, Item1: 2, Item10: 3);
+                Diagnostic(ErrorCode.ERR_TupleReservedMemberName, "Item1").WithArguments("Item1", "1").WithLocation(6, 61),
+                // (6,71): error CS8201: Tuple member name 'Item10' is only allowed at position 10.
+                //         (int Item1, int Item01, int Item10) x = (Item01: 1, Item1: 2, Item10: 3);
+                Diagnostic(ErrorCode.ERR_TupleReservedMemberName, "Item10").WithArguments("Item10", "10").WithLocation(6, 71)
+                );
         }
 
         [Fact]
@@ -790,12 +1004,15 @@ class C
 }
 " + trivial2uple + trivial3uple;
 
-            // PROTOTYPE(tuples) we also expect duplicate member name error on the tuple type declaration
             var comp = CreateCompilationWithMscorlib(source);
             comp.VerifyDiagnostics(
-                // (6,50): error CS8202: Tuple member names must be unique.
+                // (6,24): error CS8203: Tuple member names must be unique.
                 //         (int a, string a) x = (b: 1, c: "hello", b: 2);
-                Diagnostic(ErrorCode.ERR_TupleDuplicateMemberName, "b").WithLocation(6, 50));
+                Diagnostic(ErrorCode.ERR_TupleDuplicateMemberName, "a").WithLocation(6, 24),
+                // (6,50): error CS8203: Tuple member names must be unique.
+                //         (int a, string a) x = (b: 1, c: "hello", b: 2);
+                Diagnostic(ErrorCode.ERR_TupleDuplicateMemberName, "b").WithLocation(6, 50)
+                );
         }
 
         [Fact]
@@ -806,64 +1023,98 @@ class C
 {
     static void Main()
     {
-        (int Item1, string Item3) x = (Item2: 1, Item4: ""hello"", Item3: 2);
+        (int Item1, string Item3, string Item2, int Item4, int Item5, int Item6, int Item7, string Rest) x = (Item2: ""bad"", Item4: ""bad"", Item3: 3, Item4: 4, Item5: 5, Item6: 6, Item7: 7, Rest: ""bad"");
     }
 }
-" + trivial2uple + trivial3uple;
+" + trivial2uple + trivial3uple + trivalRemainingTuples;
 
-            // PROTOTYPE(tuples) we also expect reserved member name error on the tuple type declaration
             var comp = CreateCompilationWithMscorlib(source);
             comp.VerifyDiagnostics(
-                // (6,40): error CS8201: Tuple member name 'Item2' is disallowed at position 1.
-                //         (int Item1, string Item3) x = (Item2: 1, Item4: "hello", Item3: 2);
-                Diagnostic(ErrorCode.ERR_TupleReservedMemberName, "Item2").WithArguments("Item2", "1").WithLocation(6, 40),
-                // (6,50): error CS8201: Tuple member name 'Item4' is disallowed at position 2.
-                //         (int Item1, string Item3) x = (Item2: 1, Item4: "hello", Item3: 2);
-                Diagnostic(ErrorCode.ERR_TupleReservedMemberName, "Item4").WithArguments("Item4", "2").WithLocation(6, 50));
+                // (6,28): error CS8201: Tuple member name 'Item3' is only allowed at position 3.
+                //         (int Item1, string Item3, string Item2, int Item4, int Item5, int Item6, int Item7, string Rest) x = (Item2: "bad", Item4: "bad", Item3: 3, Item4: 4, Item5: 5, Item6: 6, Item7: 7, Rest: "bad");
+                Diagnostic(ErrorCode.ERR_TupleReservedMemberName, "Item3").WithArguments("Item3", "3").WithLocation(6, 28),
+                // (6,42): error CS8201: Tuple member name 'Item2' is only allowed at position 2.
+                //         (int Item1, string Item3, string Item2, int Item4, int Item5, int Item6, int Item7, string Rest) x = (Item2: "bad", Item4: "bad", Item3: 3, Item4: 4, Item5: 5, Item6: 6, Item7: 7, Rest: "bad");
+                Diagnostic(ErrorCode.ERR_TupleReservedMemberName, "Item2").WithArguments("Item2", "2").WithLocation(6, 42),
+                // (6,100): error CS8202: Tuple membername 'Rest' is disallowed at any position.
+                //         (int Item1, string Item3, string Item2, int Item4, int Item5, int Item6, int Item7, string Rest) x = (Item2: "bad", Item4: "bad", Item3: 3, Item4: 4, Item5: 5, Item6: 6, Item7: 7, Rest: "bad");
+                Diagnostic(ErrorCode.ERR_TupleReservedMemberNameAnyPosition, "Rest").WithArguments("Rest").WithLocation(6, 100),
+                // (6,111): error CS8201: Tuple member name 'Item2' is only allowed at position 2.
+                //         (int Item1, string Item3, string Item2, int Item4, int Item5, int Item6, int Item7, string Rest) x = (Item2: "bad", Item4: "bad", Item3: 3, Item4: 4, Item5: 5, Item6: 6, Item7: 7, Rest: "bad");
+                Diagnostic(ErrorCode.ERR_TupleReservedMemberName, "Item2").WithArguments("Item2", "2").WithLocation(6, 111),
+                // (6,125): error CS8201: Tuple member name 'Item4' is only allowed at position 4.
+                //         (int Item1, string Item3, string Item2, int Item4, int Item5, int Item6, int Item7, string Rest) x = (Item2: "bad", Item4: "bad", Item3: 3, Item4: 4, Item5: 5, Item6: 6, Item7: 7, Rest: "bad");
+                Diagnostic(ErrorCode.ERR_TupleReservedMemberName, "Item4").WithArguments("Item4", "4").WithLocation(6, 125),
+                // (6,189): error CS8202: Tuple membername 'Rest' is disallowed at any position.
+                //         (int Item1, string Item3, string Item2, int Item4, int Item5, int Item6, int Item7, string Rest) x = (Item2: "bad", Item4: "bad", Item3: 3, Item4: 4, Item5: 5, Item6: 6, Item7: 7, Rest: "bad");
+                Diagnostic(ErrorCode.ERR_TupleReservedMemberNameAnyPosition, "Rest").WithArguments("Rest").WithLocation(6, 189)
+               );
         }
 
-        // PROTOTYPE(tuples) this test can be removed once tuple-8 and above are implemented
         [Fact]
-        public void LongTupleDeclarationDoesntCrash()
+        public void LongTupleDeclaration()
         {
             var source = @"
 class C
 {
     static void Main()
     {
-        (int, int, int, int, int, int, int, int, int, int, int, int) x;
+        (int, int, int, int, int, int, int, string, int, int, int, int) x = (1, 2, 3, 4, 5, 6, 7, ""Alice"", 2, 3, 4, 5);
+        System.Console.WriteLine($""{x.Item1} {x.Item2} {x.Item3} {x.Item4} {x.Item5} {x.Item6} {x.Item7} {x.Item8} {x.Item9} {x.Item10} {x.Item11} {x.Item12}"");
     }
 }
-" + trivial2uple;
+" + trivial2uple + trivial3uple + trivalRemainingTuples;
 
-            CreateCompilationWithMscorlib(source).VerifyDiagnostics(
-                // (6,9): error CS8204: PROTOTYPE This is not supported yet.
-                //         (int, int, int, int, int, int, int, int, int, int, int, int) x;
-                Diagnostic(ErrorCode.ERR_PrototypeNotYetImplemented, "(int, int, int, int, int, int, int, int, int, int, int, int)").WithLocation(6, 9),
-                // (6,70): warning CS0168: The variable 'x' is declared but never used
-                //         (int, int, int, int, int, int, int, int, int, int, int, int) x;
-                Diagnostic(ErrorCode.WRN_UnreferencedVar, "x").WithArguments("x").WithLocation(6, 70));
+            Action<ModuleSymbol> validator = module =>
+            {
+                var sourceModule = (SourceModuleSymbol)module;
+                var compilation = sourceModule.DeclaringCompilation;
+                var tree = compilation.SyntaxTrees.First();
+                var model = compilation.GetSemanticModel(tree);
+                var nodes = tree.GetCompilationUnitRoot().DescendantNodes();
+
+                var x = nodes.OfType<VariableDeclaratorSyntax>().First();
+
+                Assert.Equal("<tuple: System.Int32 Item1, System.Int32 Item2, System.Int32 Item3, System.Int32 Item4, System.Int32 Item5, System.Int32 Item6, System.Int32 Item7, "
+                    + "System.String Item8, System.Int32 Item9, System.Int32 Item10, System.Int32 Item11, System.Int32 Item12> x",
+                    model.GetDeclaredSymbol(x).ToTestDisplayString());
+            };
+
+            var verifier = CompileAndVerify(source, expectedOutput: @"1 2 3 4 5 6 7 Alice 2 3 4 5", additionalRefs: new[] { MscorlibRef }, sourceSymbolValidator: validator);
+            verifier.VerifyDiagnostics();
         }
 
-
-        // PROTOTYPE(tuples) this test can be removed once tuple-8 and above are implemented
         [Fact]
-        public void LongTupleCreationDoesntCrash()
+        public void LongTupleDeclarationWithNames()
         {
             var source = @"
 class C
 {
     static void Main()
     {
-        var x = (1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1);
+        (int a, int b, int c, int d, int e, int f, int g, string h, int i, int j, int k, int l) x = (1, 2, 3, 4, 5, 6, 7, ""Alice"", 2, 3, 4, 5);
+        System.Console.WriteLine($""{x.a} {x.b} {x.c} {x.d} {x.e} {x.f} {x.g} {x.h} {x.i} {x.j} {x.k} {x.l}"");
     }
 }
-" + trivial2uple;
+" + trivial2uple + trivial3uple + trivalRemainingTuples;
 
-            CreateCompilationWithMscorlib(source).VerifyDiagnostics(
-                // (6,17): error CS8204: PROTOTYPE This is not supported yet.
-                //         var x = (1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1);
-                Diagnostic(ErrorCode.ERR_PrototypeNotYetImplemented, "(1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1)").WithLocation(6, 17));
+            Action<ModuleSymbol> validator = module =>
+            {
+                var sourceModule = (SourceModuleSymbol)module;
+                var compilation = sourceModule.DeclaringCompilation;
+                var tree = compilation.SyntaxTrees.First();
+                var model = compilation.GetSemanticModel(tree);
+                var nodes = tree.GetCompilationUnitRoot().DescendantNodes();
+
+                var x = nodes.OfType<VariableDeclaratorSyntax>().First();
+
+                Assert.Equal("<tuple: System.Int32 a, System.Int32 b, System.Int32 c, System.Int32 d, System.Int32 e, System.Int32 f, System.Int32 g, "
+                    + "System.String h, System.Int32 i, System.Int32 j, System.Int32 k, System.Int32 l> x",
+                    model.GetDeclaredSymbol(x).ToTestDisplayString());
+            };
+
+            var verifier = CompileAndVerify(source, expectedOutput: @"1 2 3 4 5 6 7 Alice 2 3 4 5", additionalRefs: new[] { MscorlibRef }, sourceSymbolValidator: validator);
+            verifier.VerifyDiagnostics();
         }
 
         [Fact]
@@ -924,14 +1175,33 @@ class C
         System.Console.WriteLine($""{x.first} {x.second}"");
     }
 
-    (T1 first, T2 second) M<T1, T2>()
+    static (T1 first, T2 second) M<T1, T2>()
     {
         return (default(T1), default(T2));
     }
 }
 ";
-            // PROTOTYPE(tuples) this should not throw
-            Assert.Throws<NullReferenceException>(() => CompileAndVerify(source));
+            var comp = CreateCompilationWithMscorlib(source);
+            comp.VerifyDiagnostics(
+                // (10,12): error CS0518: Predefined type 'System.ValueTuple`2' is not defined or imported
+                //     static (T1 first, T2 second) M<T1, T2>()
+                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "(T1 first, T2 second)").WithArguments("System.ValueTuple`2").WithLocation(10, 12),
+                // (10,12): error CS0656: Missing compiler required member 'System.ValueTuple`2.Item1'
+                //     static (T1 first, T2 second) M<T1, T2>()
+                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "(T1 first, T2 second)").WithArguments("System.ValueTuple`2", "Item1").WithLocation(10, 12),
+                // (10,12): error CS0656: Missing compiler required member 'System.ValueTuple`2.Item2'
+                //     static (T1 first, T2 second) M<T1, T2>()
+                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "(T1 first, T2 second)").WithArguments("System.ValueTuple`2", "Item2").WithLocation(10, 12),
+                // (12,16): error CS0518: Predefined type 'System.ValueTuple`2' is not defined or imported
+                //         return (default(T1), default(T2));
+                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "(default(T1), default(T2))").WithArguments("System.ValueTuple`2").WithLocation(12, 16),
+                // (12,16): error CS0656: Missing compiler required member 'System.ValueTuple`2.Item1'
+                //         return (default(T1), default(T2));
+                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "(default(T1), default(T2))").WithArguments("System.ValueTuple`2", "Item1").WithLocation(12, 16),
+                // (12,16): error CS0656: Missing compiler required member 'System.ValueTuple`2.Item2'
+                //         return (default(T1), default(T2));
+                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "(default(T1), default(T2))").WithArguments("System.ValueTuple`2", "Item2").WithLocation(12, 16)
+                );
         }
 
         [Fact]
@@ -956,24 +1226,37 @@ class C
         }
 
         [Fact]
-        public void MethodReturnsValueTuple()
+        public void LongTupleCreation()
         {
-            var source = @"
+            var source = trivial2uple + trivial3uple + trivalRemainingTuples + @"
 class C
 {
     static void Main()
     {
-        System.Console.WriteLine(M().ToString());
-    }
-
-    static (int, string) M()
-    {
-        return (1, ""hello"");
+        var x = (1, 2, 3, 4, 5, 6, 7, ""Alice"", 2, 3, 4, 5, 6, 7, ""Bob"", 2, 3);
+        System.Console.WriteLine($""{x.Item1} {x.Item2} {x.Item3} {x.Item4} {x.Item5} {x.Item6} {x.Item7} {x.Item8} {x.Item9} {x.Item10} {x.Item11} {x.Item12} {x.Item13} {x.Item14} {x.Item15} {x.Item16} {x.Item17}"");
     }
 }
-" + trivial2uple;
+";
 
-            var comp = CompileAndVerify(source, expectedOutput: @"{1, hello}");
+            Action<ModuleSymbol> validator = module =>
+            {
+                var sourceModule = (SourceModuleSymbol)module;
+                var compilation = sourceModule.DeclaringCompilation;
+                var tree = compilation.SyntaxTrees.First();
+                var model = compilation.GetSemanticModel(tree);
+                var nodes = tree.GetCompilationUnitRoot().DescendantNodes();
+
+                var node = nodes.OfType<TupleExpressionSyntax>().Single();
+
+                Assert.Equal("<tuple: System.Int32 Item1, System.Int32 Item2, System.Int32 Item3, System.Int32 Item4, System.Int32 Item5, System.Int32 Item6, System.Int32 Item7, "
+                     + "System.String Item8, System.Int32 Item9, System.Int32 Item10, System.Int32 Item11, System.Int32 Item12, System.Int32 Item13, System.Int32 Item14, "
+                     + "System.String Item15, System.Int32 Item16, System.Int32 Item17>",
+                     model.GetTypeInfo(node).Type.ToTestDisplayString());
+            };
+
+            var verifier = CompileAndVerify(source, expectedOutput: @"1 2 3 4 5 6 7 Alice 2 3 4 5 6 7 Bob 2 3", additionalRefs: new[] { MscorlibRef }, sourceSymbolValidator: validator);
+            verifier.VerifyDiagnostics();
         }
 
         [Fact]
@@ -1088,89 +1371,117 @@ class C
         }
 
         [Fact]
-        public void Tuple2To7Members()
+        public void LongTupleCreationWithNames()
         {
-
-            var source = trivial2uple + trivial3uple + @"
-namespace System
+            var source = @"
+class C
 {
-    public struct ValueTuple<T1, T2, T3, T4>
+    static void Main()
     {
-        public T1 Item1;
-        public T2 Item2;
-        public T3 Item3;
-        public T4 Item4;
-
-        public ValueTuple(T1 item1, T2 item2, T3 item3, T4 item4)
-        {
-            Item1 = item1;
-            Item2 = item2;
-            Item3 = item3;
-            Item4 = item4;
-        }
-    }
-
-    public struct ValueTuple<T1, T2, T3, T4, T5>
-    {
-        public T1 Item1;
-        public T2 Item2;
-        public T3 Item3;
-        public T4 Item4;
-        public T5 Item5;
-
-        public ValueTuple(T1 item1, T2 item2, T3 item3, T4 item4, T5 item5)
-        {
-            Item1 = item1;
-            Item2 = item2;
-            Item3 = item3;
-            Item4 = item4;
-            Item5 = item5;
-        }
-    }
-
-    public struct ValueTuple<T1, T2, T3, T4, T5, T6>
-    {
-        public T1 Item1;
-        public T2 Item2;
-        public T3 Item3;
-        public T4 Item4;
-        public T5 Item5;
-        public T6 Item6;
-
-        public ValueTuple(T1 item1, T2 item2, T3 item3, T4 item4, T5 item5, T6 item6)
-        {
-            Item1 = item1;
-            Item2 = item2;
-            Item3 = item3;
-            Item4 = item4;
-            Item5 = item5;
-            Item6 = item6;
-        }
-    }
-
-    public struct ValueTuple<T1, T2, T3, T4, T5, T6, T7>
-    {
-        public T1 Item1;
-        public T2 Item2;
-        public T3 Item3;
-        public T4 Item4;
-        public T5 Item5;
-        public T6 Item6;
-        public T7 Item7;
-
-        public ValueTuple(T1 item1, T2 item2, T3 item3, T4 item4, T5 item5, T6 item6, T7 item7)
-        {
-            Item1 = item1;
-            Item2 = item2;
-            Item3 = item3;
-            Item4 = item4;
-            Item5 = item5;
-            Item6 = item6;
-            Item7 = item7;
-        }
+        var x = (a: 1, b: 2, c: 3, d: 4, e: 5, f: 6, g: 7, h: ""Alice"", i: 2, j: 3, k: 4, l: 5, m: 6, n: 7, o: ""Bob"", p: 2, q: 3);
+        System.Console.WriteLine($""{x.a} {x.b} {x.c} {x.d} {x.e} {x.f} {x.g} {x.h} {x.i} {x.j} {x.k} {x.l} {x.m} {x.n} {x.o} {x.p} {x.q}"");
     }
 }
+" + trivial2uple + trivial3uple + trivalRemainingTuples;
 
+            Action<ModuleSymbol> validator = module =>
+            {
+                var sourceModule = (SourceModuleSymbol)module;
+                var compilation = sourceModule.DeclaringCompilation;
+                var tree = compilation.SyntaxTrees.First();
+                var model = compilation.GetSemanticModel(tree);
+                var nodes = tree.GetCompilationUnitRoot().DescendantNodes();
+
+                var node = nodes.OfType<TupleExpressionSyntax>().Single();
+
+                Assert.Equal("<tuple: System.Int32 a, System.Int32 b, System.Int32 c, System.Int32 d, System.Int32 e, System.Int32 f, System.Int32 g, "
+                     + "System.String h, System.Int32 i, System.Int32 j, System.Int32 k, System.Int32 l, System.Int32 m, System.Int32 n, "
+                     + "System.String o, System.Int32 p, System.Int32 q>",
+                     model.GetTypeInfo(node).Type.ToTestDisplayString());
+            };
+
+            var verifier = CompileAndVerify(source, expectedOutput: @"1 2 3 4 5 6 7 Alice 2 3 4 5 6 7 Bob 2 3", additionalRefs: new[] { MscorlibRef }, sourceSymbolValidator: validator);
+            verifier.VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void LongTupleWithArgumentEvaluation()
+        {
+            var source = @"
+class C
+{
+    static void Main()
+    {
+        var x = (a: PrintAndReturn(1), b: 2, c: 3, d: PrintAndReturn(4), e: 5, f: 6, g: PrintAndReturn(7), h: PrintAndReturn(""Alice""), i: 2, j: 3, k: 4, l: 5, m: 6, n: PrintAndReturn(7), o: PrintAndReturn(""Bob""), p: 2, q: PrintAndReturn(3));
+    }
+
+    static T PrintAndReturn<T>(T i)
+    {
+        System.Console.Write(i + "" "");
+        return i;
+    }
+}
+" + trivial2uple + trivial3uple + trivalRemainingTuples;
+
+            var verifier = CompileAndVerify(source, expectedOutput: @"1 4 7 Alice 7 Bob 3", additionalRefs: new[] { MscorlibRef });
+            verifier.VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void LongTupleGettingRest()
+        {
+            var source = @"
+class C
+{
+    static void Main()
+    {
+        var x = (a: 1, b: 2, c: 3, d: 4, e: 5, f: 6, g: 7, h: ""Alice"", i: 1);
+        System.Console.WriteLine($""{x.Rest.Item1} {x.Rest.Item2}"");
+    }
+}
+" + trivial2uple + trivial3uple + trivalRemainingTuples;
+
+            Action<ModuleSymbol> validator = module =>
+            {
+                var sourceModule = (SourceModuleSymbol)module;
+                var compilation = sourceModule.DeclaringCompilation;
+                var tree = compilation.SyntaxTrees.First();
+                var model = compilation.GetSemanticModel(tree);
+                var nodes = tree.GetCompilationUnitRoot().DescendantNodes();
+
+                var node = nodes.OfType<MemberAccessExpressionSyntax>().Where(n => n.ToString() == "x.Rest").First();
+                Assert.Equal("System.ValueTuple<System.String, System.Int32>", model.GetTypeInfo(node).Type.ToTestDisplayString());
+            };
+
+            var verifier = CompileAndVerify(source, expectedOutput: @"Alice 1", additionalRefs: new[] { MscorlibRef }, sourceSymbolValidator: validator);
+            verifier.VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void MethodReturnsValueTuple()
+        {
+            var source = @"
+class C
+{
+    static void Main()
+    {
+        System.Console.WriteLine(M().ToString());
+    }
+
+    static (int, string) M()
+    {
+        return (1, ""hello"");
+    }
+}
+" + trivial2uple;
+
+            var comp = CompileAndVerify(source, expectedOutput: @"{1, hello}");
+        }
+
+        [Fact]
+        public void Tuple2To8Members()
+        {
+            var source = trivial2uple + trivial3uple + trivalRemainingTuples + @"
 class C
 {
     static void Main()
@@ -1202,11 +1513,19 @@ class C
         System.Console.Write((1, 2, 3, 4, 5, 6, 7).Item5);
         System.Console.Write((1, 2, 3, 4, 5, 6, 7).Item6);
         System.Console.Write((1, 2, 3, 4, 5, 6, 7).Item7);
+        System.Console.Write((8, 9, 0, 1, 2, 3, 4, 5).Item1);
+        System.Console.Write((8, 9, 0, 1, 2, 3, 4, 5).Item2);
+        System.Console.Write((8, 9, 0, 1, 2, 3, 4, 5).Item3);
+        System.Console.Write((8, 9, 0, 1, 2, 3, 4, 5).Item4);
+        System.Console.Write((8, 9, 0, 1, 2, 3, 4, 5).Item5);
+        System.Console.Write((8, 9, 0, 1, 2, 3, 4, 5).Item6);
+        System.Console.Write((8, 9, 0, 1, 2, 3, 4, 5).Item7);
+        System.Console.Write((8, 9, 0, 1, 2, 3, 4, 5).Item8);
     }
 }
 ";
 
-            var comp = CompileAndVerify(source, expectedOutput: "123456789012345678901234567");
+            var comp = CompileAndVerify(source, expectedOutput: "12345678901234567890123456789012345");
         }
     }
 }

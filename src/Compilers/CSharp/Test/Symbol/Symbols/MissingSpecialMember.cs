@@ -660,6 +660,7 @@ namespace System
                     case WellKnownMember.System_ValueTuple_T1_T2_T3_T4_T5__ctor:
                     case WellKnownMember.System_ValueTuple_T1_T2_T3_T4_T5_T6__ctor:
                     case WellKnownMember.System_ValueTuple_T1_T2_T3_T4_T5_T6_T7__ctor:
+                    case WellKnownMember.System_ValueTuple_T1_T2_T3_T4_T5_T6_T7_TRest__ctor:
 
                         // PROTOTYPE(tuples) tuples
                         // Not yet in the platform.

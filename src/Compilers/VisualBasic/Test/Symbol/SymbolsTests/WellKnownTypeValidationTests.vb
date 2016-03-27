@@ -627,7 +627,8 @@ End Namespace
                          WellKnownMember.System_ValueTuple_T1_T2_T3_T4__ctor,
                          WellKnownMember.System_ValueTuple_T1_T2_T3_T4_T5__ctor,
                          WellKnownMember.System_ValueTuple_T1_T2_T3_T4_T5_T6__ctor,
-                         WellKnownMember.System_ValueTuple_T1_T2_T3_T4_T5_T6_T7__ctor
+                         WellKnownMember.System_ValueTuple_T1_T2_T3_T4_T5_T6_T7__ctor,
+                         WellKnownMember.System_ValueTuple_T1_T2_T3_T4_T5_T6_T7_TRest__ctor
 
                         ' PROTOTYPE(tuples)
                         ' Not available yet, but will be in upcoming release.
@@ -749,7 +750,8 @@ End Namespace
                          WellKnownMember.System_ValueTuple_T1_T2_T3_T4__ctor,
                          WellKnownMember.System_ValueTuple_T1_T2_T3_T4_T5__ctor,
                          WellKnownMember.System_ValueTuple_T1_T2_T3_T4_T5_T6__ctor,
-                         WellKnownMember.System_ValueTuple_T1_T2_T3_T4_T5_T6_T7__ctor
+                         WellKnownMember.System_ValueTuple_T1_T2_T3_T4_T5_T6_T7__ctor,
+                         WellKnownMember.System_ValueTuple_T1_T2_T3_T4_T5_T6_T7_TRest__ctor
 
                         ' PROTOTYPE(tuples)
                         ' Not available yet, but will be in upcoming release.
