@@ -4,6 +4,7 @@
     <Import Project="..\..\..\..\build\Targets\VSL.Settings.targets" />
   </ImportGroup>
   <PropertyGroup>
+    <UseCommonOutputDirectory>True</UseCommonOutputDirectory>
     <DeployToSamplesSubfolder>false</DeployToSamplesSubfolder>
     <TargetFrameworkVersion>v4.5.2</TargetFrameworkVersion>
     <FileUpgradeFlags>
@@ -67,5 +68,6 @@
   </ItemGroup>
   <ImportGroup Label="Targets">
     <Import Project="..\..\..\..\build\Targets\VSL.Imports.targets" />
+    <Import Project="..\..\..\..\build\Targets\Roslyn.Toolsets.Xunit.targets" />
   </ImportGroup>
 </Project>

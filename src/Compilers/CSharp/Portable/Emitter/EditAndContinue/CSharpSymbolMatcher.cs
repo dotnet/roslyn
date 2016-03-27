@@ -313,41 +313,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
             public override Symbol DefaultVisit(Symbol symbol)
             {
                 // Symbol should have been handled elsewhere.
-                throw new NotImplementedException();
+                throw ExceptionUtilities.Unreachable;
             }
 
             public override Symbol Visit(Symbol symbol)
             {
                 Debug.Assert((object)symbol.ContainingAssembly != (object)_otherAssembly);
 
-                // If the symbol is not defined in any of the previous source assemblies and not a constructed symbol
-                // no matching is necessary, just return the symbol.
-                if (!(symbol.ContainingAssembly is SourceAssemblySymbol))
-                {
-                    switch (symbol.Kind)
-                    {
-                        case SymbolKind.ArrayType:
-                        case SymbolKind.PointerType:
-                        case SymbolKind.DynamicType:
-                            break;
-
-                        case SymbolKind.NamedType:
-                            if (symbol.IsDefinition)
-                            {
-                                return symbol;
-                            }
-                            break;
-
-                        default:
-                            Debug.Assert(symbol.IsDefinition);
-                            return symbol;
-                    }
-                }
-
                 // Add an entry for the match, even if there is no match, to avoid
                 // matching the same symbol unsuccessfully multiple times.
-                var otherSymbol = _matches.GetOrAdd(symbol, base.Visit);
-                return otherSymbol;
+                return _matches.GetOrAdd(symbol, base.Visit);
             }
 
             public override Symbol VisitArrayType(ArrayTypeSymbol symbol)
@@ -387,16 +362,56 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
 
             public override Symbol VisitModule(ModuleSymbol module)
             {
-                // Only map symbols from source assembly and its previous generations to the other assembly. 
-                // All other symbols should map to themselves.
-                if (module.ContainingAssembly.Identity.Equals(_sourceAssembly.Identity))
+                var otherAssembly = (AssemblySymbol)Visit(module.ContainingAssembly);
+                if ((object)otherAssembly == null)
                 {
-                    return _otherAssembly.Modules[module.Ordinal];
+                    return null;
                 }
-                else
+
+                // manifest module:
+                if (module.Ordinal == 0)
                 {
-                    return module;
+                    return otherAssembly.Modules[0];
                 }
+
+                // match non-manifest module by name:
+                for (int i = 1; i < otherAssembly.Modules.Length; i++)
+                {
+                    var otherModule = otherAssembly.Modules[i];
+
+                    // use case sensitive comparison -- modules whose names differ in casing are considered distinct:
+                    if (StringComparer.Ordinal.Equals(otherModule.Name, module.Name))
+                    {
+                        return otherModule;
+                    }
+                }
+
+                return null;
+            }
+
+            public override Symbol VisitAssembly(AssemblySymbol symbol)
+            {
+                if (symbol.IsLinked)
+                {
+                    return symbol;
+                }
+
+                // the current source assembly:
+                if (symbol.Identity.Equals(_sourceAssembly.Identity))
+                {
+                    return _otherAssembly;
+                }
+
+                // find a referenced assembly with the exactly same identity:
+                foreach (var otherReferencedAssembly in _otherAssembly.Modules[0].ReferencedAssemblySymbols)
+                {
+                    if (symbol.Identity.Equals(otherReferencedAssembly.Identity))
+                    {
+                        return otherReferencedAssembly;
+                    }
+                }
+
+                return null;
             }
 
             public override Symbol VisitNamespace(NamespaceSymbol @namespace)
@@ -505,7 +520,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
             public override Symbol VisitParameter(ParameterSymbol parameter)
             {
                 // Should never reach here. Should be matched as a result of matching the container.
-                throw new InvalidOperationException();
+                throw ExceptionUtilities.Unreachable;
             }
 
             public override Symbol VisitPointerType(PointerTypeSymbol symbol)
@@ -527,6 +542,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
 
             public override Symbol VisitTypeParameter(TypeParameterSymbol symbol)
             {
+                var indexed = symbol as IndexedTypeParameterSymbol;
+                if ((object)indexed != null)
+                {
+                    return indexed;
+                }
+
                 ImmutableArray<TypeParameterSymbol> otherTypeParameters;
                 var otherContainer = this.Visit(symbol.ContainingSymbol);
                 Debug.Assert((object)otherContainer != null);
@@ -816,7 +837,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
             public override Symbol DefaultVisit(Symbol symbol)
             {
                 // Symbol should have been handled elsewhere.
-                throw new NotImplementedException();
+                throw ExceptionUtilities.Unreachable;
             }
 
             public override Symbol Visit(Symbol symbol)

@@ -1736,12 +1736,12 @@ a.vb
             outWriter = New StringWriter()
             exitCode = New MockVisualBasicCompiler(Nothing, folder.Path, {"/nologo", "/preferreduilang:en", "/t:library", "/recurse:   . ", "/out:abc.dll"}).Run(outWriter, Nothing)
             Assert.Equal(1, exitCode)
-            Assert.Equal("vbc : error BC2014: the value '   .' is invalid for option 'recurse'", outWriter.ToString().Trim().Replace(vbCrLf, "|"))
+            Assert.Equal("vbc : error BC2014: the value '   .' is invalid for option 'recurse'|vbc : error BC2008: no input sources specified", outWriter.ToString().Trim().Replace(vbCrLf, "|"))
 
             outWriter = New StringWriter()
             exitCode = New MockVisualBasicCompiler(Nothing, folder.Path, {"/nologo", "/preferreduilang:en", "/t:library", "/recurse:./.", "/out:abc.dll"}).Run(outWriter, Nothing)
             Assert.Equal(1, exitCode)
-            Assert.Equal("vbc : error BC2014: the value './.' is invalid for option 'recurse'", outWriter.ToString().Trim().Replace(vbCrLf, "|"))
+            Assert.Equal("vbc : error BC2014: the value './.' is invalid for option 'recurse'|vbc : error BC2008: no input sources specified", outWriter.ToString().Trim().Replace(vbCrLf, "|"))
 
             Dim args As VisualBasicCommandLineArguments
             Dim resolvedSourceFiles As String()
@@ -2187,6 +2187,62 @@ a.vb
 
             parsedArgs = DefaultParse({"/TARGET-:", "a.vb"}, _baseDirectory)
             parsedArgs.Errors.Verify(Diagnostic(ERRID.WRN_BadSwitch).WithArguments("/TARGET-:")) ' TODO: Dev11 reports ERR_ArgumentRequired
+        End Sub
+
+        <Fact>
+        Public Sub Target_SimpleTestsNoSourceFile()
+            Dim parsedArgs = DefaultParse({"/target:exe"}, _baseDirectory)
+            parsedArgs.Errors.Verify(Diagnostic(ERRID.ERR_NoSources).WithLocation(1, 1))
+            Assert.Equal(OutputKind.ConsoleApplication, parsedArgs.CompilationOptions.OutputKind)
+
+            parsedArgs = DefaultParse({"/t:module"}, _baseDirectory)
+            parsedArgs.Errors.Verify(Diagnostic(ERRID.ERR_NoSources).WithLocation(1, 1))
+            Assert.Equal(OutputKind.NetModule, parsedArgs.CompilationOptions.OutputKind)
+
+            parsedArgs = DefaultParse({"/target:library"}, _baseDirectory)
+            parsedArgs.Errors.Verify(Diagnostic(ERRID.ERR_NoSources).WithLocation(1, 1))
+            Assert.Equal(OutputKind.DynamicallyLinkedLibrary, parsedArgs.CompilationOptions.OutputKind)
+
+            parsedArgs = DefaultParse({"/TARGET:winexe"}, _baseDirectory)
+            parsedArgs.Errors.Verify(Diagnostic(ERRID.ERR_NoSources).WithLocation(1, 1))
+            Assert.Equal(OutputKind.WindowsApplication, parsedArgs.CompilationOptions.OutputKind)
+
+            parsedArgs = DefaultParse({"/target:winmdobj"}, _baseDirectory)
+            parsedArgs.Errors.Verify(Diagnostic(ERRID.ERR_NoSources).WithLocation(1, 1))
+            Assert.Equal(OutputKind.WindowsRuntimeMetadata, parsedArgs.CompilationOptions.OutputKind)
+
+            parsedArgs = DefaultParse({"/target:appcontainerexe"}, _baseDirectory)
+            parsedArgs.Errors.Verify(Diagnostic(ERRID.ERR_NoSources).WithLocation(1, 1))
+            Assert.Equal(OutputKind.WindowsRuntimeApplication, parsedArgs.CompilationOptions.OutputKind)
+
+            parsedArgs = DefaultParse({"/target:winexe", "/T:exe", "/target:module"}, _baseDirectory)
+            parsedArgs.Errors.Verify(Diagnostic(ERRID.ERR_NoSources).WithLocation(1, 1))
+            Assert.Equal(OutputKind.NetModule, parsedArgs.CompilationOptions.OutputKind)
+
+            parsedArgs = DefaultParse({"/t"}, _baseDirectory)
+            parsedArgs.Errors.Verify(
+                Diagnostic(ERRID.ERR_ArgumentRequired).WithArguments("t", ":exe|winexe|library|module|appcontainerexe|winmdobj"),
+                Diagnostic(ERRID.ERR_NoSources).WithLocation(1, 1))
+
+            parsedArgs = DefaultParse({"/target:"}, _baseDirectory)
+            parsedArgs.Errors.Verify(
+                Diagnostic(ERRID.ERR_ArgumentRequired).WithArguments("target", ":exe|winexe|library|module|appcontainerexe|winmdobj"),
+                Diagnostic(ERRID.ERR_NoSources).WithLocation(1, 1))
+
+            parsedArgs = DefaultParse({"/target:xyz"}, _baseDirectory)
+            parsedArgs.Errors.Verify(
+                Diagnostic(ERRID.ERR_InvalidSwitchValue).WithArguments("target", "xyz"),
+                Diagnostic(ERRID.ERR_NoSources).WithLocation(1, 1))
+
+            parsedArgs = DefaultParse({"/T+"}, _baseDirectory)
+            parsedArgs.Errors.Verify(
+                Diagnostic(ERRID.WRN_BadSwitch).WithArguments("/T+"),
+                Diagnostic(ERRID.ERR_NoSources).WithLocation(1, 1)) ' TODO: Dev11 reports ERR_ArgumentRequired
+
+            parsedArgs = DefaultParse({"/TARGET-:"}, _baseDirectory)
+            parsedArgs.Errors.Verify(
+                Diagnostic(ERRID.WRN_BadSwitch).WithArguments("/TARGET-:"),
+                Diagnostic(ERRID.ERR_NoSources).WithLocation(1, 1)) ' TODO: Dev11 reports ERR_ArgumentRequired
         End Sub
 
         <Fact>
@@ -3833,7 +3889,7 @@ Class C
 
             Dim parsedArgs = DefaultParse({"/libpath:c:\lib2,", "@" & file.ToString(), "a.vb"}, _baseDirectory)
             parsedArgs.Errors.Verify()
-            AssertReferencePathsEqual(parsedArgs.ReferencePaths, Nothing, Path.GetDirectoryName(file.ToString()) + "\", "c:\lib2")
+            AssertReferencePathsEqual(parsedArgs.ReferencePaths, Nothing, Path.GetDirectoryName(file.ToString()), "c:\lib2")
 
             CleanupAllGeneratedFiles(file.Path)
         End Sub
@@ -5612,7 +5668,7 @@ Imports System
             Return Temp.CreateFile().WriteAllBytes(CommandLineTestResources.vbc_rsp).Path
         End Function
 
-        <Fact(Skip:="972948")>
+        <Fact>
         Public Sub DefaultResponseFile()
             Dim defaultResponseFile = GetDefaultResponseFilePath()
             Assert.True(File.Exists(defaultResponseFile))
@@ -5678,7 +5734,7 @@ Imports System
             Assert.True(vbc.Arguments.CompilationOptions.OptionInfer)
         End Sub
 
-        <Fact(Skip:="972948")>
+        <Fact>
         Public Sub DefaultResponseFileNoConfig()
             Dim defaultResponseFile = GetDefaultResponseFilePath()
             Assert.True(File.Exists(defaultResponseFile))
@@ -5853,7 +5909,7 @@ End Module
         End Sub
 
         <WorkItem(1119609, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1119609")>
-        <Fact(Skip:="1119609")>
+        <Fact>
         Public Sub PreferredUILang()
             Dim outWriter As New StringWriter(CultureInfo.InvariantCulture)
             Dim exitCode = New MockVisualBasicCompiler(Nothing, _baseDirectory, {"/preferreduilang"}).Run(outWriter, Nothing)
@@ -5953,7 +6009,7 @@ End Module
             CleanupAllGeneratedFiles(source)
         End Sub
 
-        <Fact(Skip:="574361"), WorkItem(574361, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/574361")>
+        <Fact, WorkItem(574361, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/574361")>
         Public Sub LangVersionForOldBC36716()
 
             Dim dir = Temp.CreateDirectory()
@@ -5981,33 +6037,36 @@ End Module
 ]]>
     </text>.Value.Replace(vbLf, vbCrLf))
 
-            Dim output = ProcessUtilities.RunAndGetOutput(s_basicCompilerExecutable, "/nologo /t:library /langversion:9 " & src.ToString(), expectedRetCode:=1, startFolder:=dir.Path)
+            Dim output = ProcessUtilities.RunAndGetOutput(s_basicCompilerExecutable, "/nologo /t:library /langversion:9 /preferreduilang:en " & src.ToString(), expectedRetCode:=1, startFolder:=dir.Path)
             AssertOutput(
     <text><![CDATA[
-error BC36716: Visual Basic 9.0 does not support auto-implemented properties.
-
-        Public Property Prop() As Integer
-                        ~~~~
-error BC36716: Visual Basic 9.0 does not support implicit line continuation.
-
+src.vb(8) : error BC36716: Visual Basic 9.0 does not support auto-implemented properties.
+            Public Property Prop() As Integer
+            ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+src.vb(12) : error BC36716: Visual Basic 9.0 does not support auto-implemented properties.
         <CompilerGenerated()>
-                            ~
-error BC36716: Visual Basic 9.0 does not support auto-implemented properties.
-
+        ~~~~~~~~~~~~~~~~~~~~~
         Public Property Scen1() As <CompilerGenerated()> Func(Of String)
-                        ~~~~~
-error BC36716: Visual Basic 9.0 does not support implicit line continuation.
-
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+src.vb(12) : error BC36716: Visual Basic 9.0 does not support implicit line continuation.
+        <CompilerGenerated()>
+        ~~~~~~~~~~~~~~~~~~~~~
+        Public Property Scen1() As <CompilerGenerated()> Func(Of String)
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+src.vb(14) : error BC36716: Visual Basic 9.0 does not support auto-implemented properties.
         <CLSCompliant(False), Obsolete("obsolete message!")>
-                                                           ~
-error BC36716: Visual Basic 9.0 does not support implicit line continuation.
-
-        <AttrInThisAsmAttribute()>
-                                 ~
-error BC36716: Visual Basic 9.0 does not support auto-implemented properties.
-
+        ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+                <AttrInThisAsmAttribute()>
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
         Public Property Scen2() As String
-                        ~~~~~
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+src.vb(14) : error BC36716: Visual Basic 9.0 does not support implicit line continuation.
+        <CLSCompliant(False), Obsolete("obsolete message!")>
+        ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+                <AttrInThisAsmAttribute()>
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+        Public Property Scen2() As String
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 ]]>
     </text>, output)
 
@@ -7454,6 +7513,15 @@ End Class
 
             args = parse("a.exe")
             Assert.False(args.CompilationOptions.PublicSign)
+        End Sub
+
+
+        <WorkItem(8360, "https://github.com/dotnet/roslyn/issues/8360")>
+        <Fact>
+        Public Sub PublicSign_KeyFileRelativePath()
+            Dim parsedArgs = FullParse("/publicsign /keyfile:test.snk a.cs", _baseDirectory)
+            Assert.Equal(Path.Combine(_baseDirectory, "test.snk"), parsedArgs.CompilationOptions.CryptoKeyFile)
+            parsedArgs.Errors.Verify()
         End Sub
 
         <ConditionalFact(GetType(WindowsOnly))>

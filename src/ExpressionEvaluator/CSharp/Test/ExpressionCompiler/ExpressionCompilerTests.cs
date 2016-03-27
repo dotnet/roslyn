@@ -2283,6 +2283,7 @@ class C
         /// Flow analysis should catch definite assignment errors
         /// for variables declared within the expression.
         /// </summary>
+        [WorkItem(549, "https://github.com/dotnet/roslyn/issues/549")]
         [Fact(Skip = "https://github.com/dotnet/roslyn/issues/549")]
         public void FlowAnalysis()
         {

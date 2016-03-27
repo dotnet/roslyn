@@ -1,5 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
@@ -11,11 +12,14 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp
 {
-    internal class SwitchBinder : LocalScopeBinder
+    internal partial class SwitchBinder : LocalScopeBinder
     {
         private readonly SwitchStatementSyntax _switchSyntax;
         private TypeSymbol _switchGoverningType;
         private readonly GeneratedLabelSymbol _breakLabel;
+
+        private bool PatternsEnabled =>
+            (_switchSyntax?.SyntaxTree?.Options as CSharpParseOptions)?.IsFeatureEnabled(MessageID.IDS_FeaturePatternMatching) == true;
 
         internal SwitchBinder(Binder next, SwitchStatementSyntax switchSyntax)
             : base(next)
@@ -125,6 +129,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             ArrayBuilder<LabelSymbol> labels = null;
 
+            if (!IsPatternSwitch(_switchSyntax))
+            {
             foreach (var section in _switchSyntax.Sections)
             {
                 // add switch case/default labels
@@ -132,6 +138,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 // add regular labels from the statements in the switch section
                 base.BuildLabels(section.Statements, ref labels);
+            }
             }
 
             return (labels != null) ? labels.ToImmutableAndFree() : ImmutableArray<LabelSymbol>.Empty;
@@ -145,8 +152,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             foreach (var labelSyntax in labelsSyntax)
             {
                 ConstantValue boundLabelConstantOpt = null;
-                if (labelSyntax.Kind() == SyntaxKind.CaseSwitchLabel)
+                switch (labelSyntax.Kind())
                 {
+                    case SyntaxKind.CaseSwitchLabel:
                     // Bind the switch expression and the switch case label expression, but do not report any diagnostics here.
                     // Diagnostics will be reported during binding.                        
                     var caseLabel = (CaseSwitchLabelSyntax)labelSyntax;
@@ -163,6 +171,14 @@ namespace Microsoft.CodeAnalysis.CSharp
                     boundLabelExpression = ConvertCaseExpression(switchGoverningType, labelSyntax, boundLabelExpression, ref boundLabelConstantOpt, tempDiagnosticBag);
 
                     tempDiagnosticBag.Free();
+                        break;
+
+                    case SyntaxKind.DefaultSwitchLabel:
+                        break;
+                    case SyntaxKind.CasePatternSwitchLabel:
+                        throw new NotImplementedException();
+                    default:
+                        throw ExceptionUtilities.UnexpectedValue(labelSyntax.Kind());
                 }
 
                 if (labels == null)
@@ -283,12 +299,34 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         # region "Switch statement binding methods"
 
-        internal override BoundSwitchStatement BindSwitchExpressionAndSections(SwitchStatementSyntax node, Binder originalBinder, DiagnosticBag diagnostics)
+        /// <summary>
+        /// Set to true if it is a pattern-matching switch statement, or false if a traditional switch statement.
+        /// </summary>
+        bool? _isPatternSwitch = null;
+
+        internal override BoundStatement BindSwitchExpressionAndSections(SwitchStatementSyntax node, Binder originalBinder, DiagnosticBag diagnostics)
         {
             Debug.Assert(_switchSyntax.Equals(node));
 
-            // Bind switch expression and set the switch governing type
-            var boundSwitchExpression = BindSwitchExpressionAndGoverningType(node.Expression, diagnostics);
+            if (IsPatternSwitch(node))
+            {
+                _isPatternSwitch = true;
+                return PatternsEnabled
+                    ? (BoundStatement)BindPatternSwitch(node, diagnostics)
+                    : new BoundBlock(node, ImmutableArray<LocalSymbol>.Empty, ImmutableArray<LocalFunctionSymbol>.Empty, ImmutableArray<BoundStatement>.Empty, true);
+            }
+
+            // Bind switch expression and set the switch governing type. If it isn't valid as a traditional
+            // switch statement's controlling expression, try to bind it as a pattern-matching switch statement
+            var localDiagnostics = DiagnosticBag.GetInstance();
+            var boundSwitchExpression = BindSwitchExpressionAndGoverningType(node.Expression, localDiagnostics);
+            if (localDiagnostics.HasAnyResolvedErrors() && PatternsEnabled)
+            {
+                _isPatternSwitch = true;
+                return BindPatternSwitch(node, diagnostics);
+            }
+            _isPatternSwitch = false;
+            diagnostics.AddRangeAndFree(localDiagnostics);
 
             // Switch expression might be a constant expression.
             // For this scenario we can determine the target label of the switch statement
@@ -308,7 +346,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // Bind switch section
             ImmutableArray<BoundSwitchSection> boundSwitchSections = BindSwitchSections(node.Sections, originalBinder, diagnostics);
 
-            return new BoundSwitchStatement(node, boundSwitchExpression, constantTargetOpt, Locals, LocalFunctions, boundSwitchSections, this.BreakLabel, null);
+            return new BoundSwitchStatement(node, null, boundSwitchExpression, constantTargetOpt, Locals, LocalFunctions, boundSwitchSections, this.BreakLabel, null);
         }
 
         // Bind the switch expression and set the switch governing type
@@ -446,6 +484,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private BoundSwitchSection BindSwitchSection(SwitchSectionSyntax node, Binder originalBinder, DiagnosticBag diagnostics)
         {
+            var sectionBinder = GetBinder(node);
+
             // Bind switch section labels
             var boundLabelsBuilder = ArrayBuilder<BoundSwitchLabel>.GetInstance();
             foreach (var labelSyntax in node.Labels)
@@ -458,7 +498,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             var boundStatementsBuilder = ArrayBuilder<BoundStatement>.GetInstance();
             foreach (var statement in node.Statements)
             {
-                boundStatementsBuilder.Add(originalBinder.BindStatement(statement, diagnostics));
+                boundStatementsBuilder.Add(sectionBinder.BindStatement(statement, diagnostics));
             }
 
             return new BoundSwitchSection(node, boundLabelsBuilder.ToImmutableAndFree(), boundStatementsBuilder.ToImmutableAndFree());
@@ -476,8 +516,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             // Prevent cascading diagnostics
             bool hasErrors = node.HasErrors;
 
-            if (node.Kind() == SyntaxKind.CaseSwitchLabel)
+            switch (node.Kind())
             {
+                case SyntaxKind.CaseSwitchLabel:
                 var caseLabelSyntax = (CaseSwitchLabelSyntax)node;
                 // Bind the label case expression
                 boundLabelExpressionOpt = BindValue(caseLabelSyntax.Value, diagnostics, BindValueKind.RValue);
@@ -501,17 +542,27 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // LabelSymbols for all the switch case labels are created by BuildLabels().
                 // Fetch the matching switch case label symbols
                 matchedLabelSymbols = FindMatchingSwitchCaseLabels(labelExpressionConstant, caseLabelSyntax);
+                    break;
+                case SyntaxKind.CasePatternSwitchLabel:
+                    // pattern matching in case is not yet implemented.
+                    if (!node.HasErrors)
+                    {
+                        Error(diagnostics, ErrorCode.ERR_FeatureIsUnimplemented, node, MessageID.IDS_FeaturePatternMatching.Localize());
+                        hasErrors = true;
             }
-            else
-            {
-                Debug.Assert(node.Kind() == SyntaxKind.DefaultSwitchLabel);
+                    matchedLabelSymbols = new List<SourceLabelSymbol>();
+                    break;
+                case SyntaxKind.DefaultSwitchLabel:
                 matchedLabelSymbols = GetDefaultLabels();
+                    break;
+                default:
+                    throw ExceptionUtilities.Unreachable;
             }
 
             // Get the corresponding matching label symbol created during BuildLabels()
             // and also check for duplicate case labels.
 
-            Debug.Assert(!matchedLabelSymbols.IsEmpty());
+            Debug.Assert(hasErrors || !matchedLabelSymbols.IsEmpty());
             bool first = true;
             bool hasDuplicateErrors = false;
             foreach (SourceLabelSymbol label in matchedLabelSymbols)
@@ -553,6 +604,15 @@ namespace Microsoft.CodeAnalysis.CSharp
         internal BoundStatement BindGotoCaseOrDefault(GotoStatementSyntax node, DiagnosticBag diagnostics)
         {
             Debug.Assert(node.Kind() == SyntaxKind.GotoCaseStatement || node.Kind() == SyntaxKind.GotoDefaultStatement);
+            if (this._isPatternSwitch == true)
+            {
+                // we do not yet support "goto case" in pattern-matching switch statements.
+                diagnostics.Add(ErrorCode.ERR_InvalidGotoCase, node.Location);
+                return new BoundBadStatement(
+                    syntax: node,
+                    childBoundNodes: ImmutableArray<BoundNode>.Empty,
+                    hasErrors: true);
+            }
 
             BoundExpression gotoCaseExpressionOpt = null;
 
@@ -609,7 +669,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         var labelName = SyntaxFacts.GetText(node.CaseOrDefaultKeyword.Kind());
                         if (node.Kind() == SyntaxKind.GotoCaseStatement)
                         {
-                            labelName += " " + node.Expression.ToString();
+                            labelName += " " + gotoCaseExpressionConstant.Value?.ToString();
                         }
                         labelName += ":";
 

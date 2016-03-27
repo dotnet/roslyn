@@ -1,5 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System;
 using System.IO;
 using System.Text;
 using System.Threading;
@@ -13,16 +14,24 @@ namespace RunTests.Cache
         private readonly ContentUtil _contentUtil;
         private readonly IDataStorage _dataStorage;
 
-        internal CachingTestExecutor(Options options, ITestExecutor testExecutor, IDataStorage dataStorage)
+        public IDataStorage DataStorage => _dataStorage;
+
+        internal CachingTestExecutor(TestExecutionOptions options, ITestExecutor testExecutor, IDataStorage dataStorage)
         {
             _testExecutor = testExecutor;
             _dataStorage = dataStorage;
             _contentUtil = new ContentUtil(options);
         }
 
-        public async Task<TestResult> RunTestAsync(string assemblyPath, CancellationToken cancellationToken)
+        public string GetCommandLine(AssemblyInfo assemblyInfo)
         {
-            var contentFile = _contentUtil.GetTestResultContentFile(assemblyPath);
+            return _testExecutor.GetCommandLine(assemblyInfo);
+        }
+
+        public async Task<TestResult> RunTestAsync(AssemblyInfo assemblyInfo, CancellationToken cancellationToken)
+        {
+            var contentFile = _contentUtil.GetTestResultContentFile(assemblyInfo);
+            var assemblyPath = assemblyInfo.AssemblyPath;
             var builder = new StringBuilder();
             builder.AppendLine($"{Path.GetFileName(assemblyPath)} - {contentFile.Checksum}");
             builder.AppendLine("===");
@@ -30,50 +39,67 @@ namespace RunTests.Cache
             builder.AppendLine("===");
             Logger.Log(builder.ToString());
 
-            TestResult testResult;
-            if (!_dataStorage.TryGetTestResult(contentFile.Checksum, out testResult))
+            try
             {
-                Logger.Log($"{Path.GetFileName(assemblyPath)} - running");
-                testResult = await _testExecutor.RunTestAsync(assemblyPath, cancellationToken);
-                Logger.Log($"{Path.GetFileName(assemblyPath)} - caching");
-                _dataStorage.AddTestResult(contentFile, testResult);
+                var cachedTestResult = await _dataStorage.TryGetCachedTestResult(contentFile.Checksum);
+                if (cachedTestResult.HasValue)
+                {
+                    Logger.Log($"{Path.GetFileName(assemblyPath)} - cache hit");
+                    return Migrate(assemblyInfo, cachedTestResult.Value);
+                }
             }
-            else
+            catch (Exception ex)
             {
-                testResult = Migrate(testResult);
-                Logger.Log($"{Path.GetFileName(assemblyPath)} - cache hit");
+                Logger.Log($"Error reading cache {ex}");
             }
 
+            Logger.Log($"{Path.GetFileName(assemblyPath)} - running");
+            var testResult = await _testExecutor.RunTestAsync(assemblyInfo, cancellationToken);
+            await CacheTestResult(contentFile, testResult).ConfigureAwait(true);
             return testResult;
         }
 
         /// <summary>
-        /// The results file is specified in terms of the cache storage.  Need to make it local
-        /// to the current output folder
+        /// Recreate the on disk artifacts for the cached data and return the correct <see cref="TestResult"/>
+        /// value.
         /// </summary>
-        /// <param name="testResult"></param>
-        /// <returns></returns>
-        private static TestResult Migrate(TestResult testResult)
+        private TestResult Migrate(AssemblyInfo assemblyInfo, CachedTestResult cachedTestResult)
         {
-            if (string.IsNullOrEmpty(testResult.ResultsFilePath))
-            {
-                return testResult;
-            }
-
-            var resultsDir = Path.Combine(Path.GetDirectoryName(testResult.AssemblyPath), Constants.ResultsDirectoryName);
+            var resultsDir = Path.Combine(Path.GetDirectoryName(assemblyInfo.AssemblyPath), Constants.ResultsDirectoryName);
             FileUtil.EnsureDirectory(resultsDir);
-            var resultsFilePath = Path.Combine(resultsDir, Path.GetFileName(testResult.ResultsFilePath));
-            File.Copy(testResult.ResultsFilePath, resultsFilePath, overwrite: true);
+            var resultsFilePath = Path.Combine(resultsDir, assemblyInfo.ResultsFileName);
+            File.WriteAllText(resultsFilePath, cachedTestResult.ResultsFileContent);
+            var commandLine = _testExecutor.GetCommandLine(assemblyInfo);
 
             return new TestResult(
-                exitCode: testResult.ExitCode,
-                assemblyPath: testResult.AssemblyName,
+                exitCode: cachedTestResult.ExitCode,
+                assemblyInfo: assemblyInfo,
                 resultDir: resultsDir,
                 resultsFilePath: resultsFilePath,
-                commandLine: testResult.CommandLine,
-                elapsed: testResult.Elapsed,
-                standardOutput: testResult.StandardOutput,
-                errorOutput: testResult.ErrorOutput);
+                commandLine: commandLine,
+                elapsed: TimeSpan.FromMilliseconds(0),
+                standardOutput: cachedTestResult.StandardOutput,
+                errorOutput: cachedTestResult.ErrorOutput,
+                isResultFromCache: true);
+        }
+
+        private async Task CacheTestResult(ContentFile contentFile, TestResult testResult)
+        {
+            try
+            {
+                var resultFileContent = File.ReadAllText(testResult.ResultsFilePath);
+                var cachedTestResult = new CachedTestResult(
+                    exitCode: testResult.ExitCode,
+                    standardOutput: testResult.StandardOutput,
+                    errorOutput: testResult.ErrorOutput,
+                    resultsFileContent: resultFileContent,
+                    elapsed: testResult.Elapsed);
+                await _dataStorage.AddCachedTestResult(testResult.AssemblyInfo, contentFile, cachedTestResult).ConfigureAwait(true);
+            }
+            catch (Exception ex)
+            {
+                Logger.Log($"Failed to create cached {ex}");
+            }
         }
     }
 }

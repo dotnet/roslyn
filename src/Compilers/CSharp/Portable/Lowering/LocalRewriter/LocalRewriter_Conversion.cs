@@ -224,6 +224,13 @@ namespace Microsoft.CodeAnalysis.CSharp
                     }
                     break;
 
+                case ConversionKind.ImplicitThrow:
+                    {
+                        // the operand must be a bound throw expression
+                        var operand = (BoundThrowExpression)rewrittenOperand;
+                        return _factory.ThrowExpression(operand.Expression, rewrittenType);
+                    }
+
                 case ConversionKind.ImplicitEnumeration:
                     // A conversion from constant zero to nullable is actually classified as an 
                     // implicit enumeration conversion, not an implicit nullable conversion. 

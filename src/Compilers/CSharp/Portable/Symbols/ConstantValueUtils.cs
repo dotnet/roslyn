@@ -52,15 +52,21 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             DiagnosticBag diagnostics)
         {
             var enumConstant = fieldSymbol as SourceEnumConstantSymbol;
-            var collisionDetector = new LocalScopeBinder(binder);
+            Binder collisionDetector = new LocalScopeBinder(binder);
+            collisionDetector = collisionDetector.WithPatternVariablesIfAny(initializer.Value);
+            BoundExpression result;
+
             if ((object)enumConstant != null)
             {
-                return collisionDetector.BindEnumConstantInitializer(enumConstant, initializer.Value, diagnostics);
+                result = collisionDetector.BindEnumConstantInitializer(enumConstant, initializer.Value, diagnostics);
             }
             else
             {
-                return collisionDetector.BindVariableOrAutoPropInitializer(initializer, fieldSymbol.Type.TypeSymbol, diagnostics);
+                result = collisionDetector.BindVariableOrAutoPropInitializer(initializer, RefKind.None, fieldSymbol.Type.TypeSymbol, diagnostics);
             }
+
+            result = collisionDetector.WrapWithVariablesIfAny(result);
+            return result;
         }
 
         internal static ConstantValue GetAndValidateConstantValue(

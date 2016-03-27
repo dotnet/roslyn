@@ -4,6 +4,7 @@
     <Import Project="..\..\..\..\..\build\Targets\VSL.Settings.targets" />
   </ImportGroup>
   <PropertyGroup>
+    <UseCommonOutputDirectory>True</UseCommonOutputDirectory>
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
     <ProjectGuid>{D4D09B9B-8421-40B9-B4A9-594DAD5AF8DD}</ProjectGuid>
@@ -78,7 +79,6 @@
     <Compile Include="RemoveByValTests.vb" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="app.config" />
     <None Include="project.json" />
   </ItemGroup>
   <ImportGroup Label="Targets">

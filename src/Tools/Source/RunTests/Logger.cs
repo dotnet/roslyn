@@ -21,9 +21,9 @@ namespace RunTests
             }
         }
 
-        internal static void Finish()
+        internal static void Finish(string logDir)
         {
-            var logFilePath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.UserProfile), "runtests.text");
+            var logFilePath = Path.Combine(logDir, "runtests.log");
             lock (s_lines)
             {
                 File.WriteAllLines(logFilePath, s_lines.ToArray());

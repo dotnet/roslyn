@@ -10,6 +10,7 @@ Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.VisualStudio.Text
 Imports Xunit.Sdk
 Imports Microsoft.CodeAnalysis.Options
+Imports Xunit.Abstractions
 
 Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Rename
     ''' <summary>
@@ -54,8 +55,9 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Rename
             _renameTo = renameTo
         End Sub
 
-        Public Shared Function Create(workspaceXml As XElement, renameTo As String, Optional changedOptionSet As Dictionary(Of OptionKey, Object) = Nothing) As RenameEngineResult
+        Public Shared Function Create(helper As ITestOutputHelper, workspaceXml As XElement, renameTo As String, Optional changedOptionSet As Dictionary(Of OptionKey, Object) = Nothing) As RenameEngineResult
             Dim workspace = TestWorkspace.CreateWorkspace(workspaceXml)
+            workspace.SetTestLogger(AddressOf helper.WriteLine)
 
             Dim engineResult As RenameEngineResult = Nothing
             Try
@@ -101,6 +103,15 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Rename
 
             Return engineResult
         End Function
+
+        Private Shared Sub AssertIsComplete(currentSolution As Solution)
+            ' Ensure we don't have a partial solution. This is to detect for possible root causes of
+            ' https://github.com/dotnet/roslyn/issues/9298
+
+            If currentSolution.Projects.Any(Function(p) Not p.HasSuccessfullyLoadedAsync().Result) Then
+                AssertEx.Fail("We have an incomplete project floating around which we should not.")
+            End If
+        End Sub
 
         Friend ReadOnly Property ConflictResolution As ConflictResolution
             Get

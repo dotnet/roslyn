@@ -182,6 +182,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
+        internal override RefKind RefKind
+        {
+            get { return RefKind.None; }
+        }
+
         public override TypeSymbolWithAnnotations ReturnType
         {
             get { return TypeSymbolWithAnnotations.Create(_returnType); }

@@ -76,10 +76,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             base.AddSynthesizedAttributes(compilationState, ref attributes);
 
-            TypeSymbolWithAnnotations returnType = this.ReturnType;
-            if (returnType.TypeSymbol.ContainsDynamic())
-            {
                 var compilation = this.DeclaringCompilation;
+            TypeSymbolWithAnnotations returnType = this.ReturnType;
+            if (returnType.ContainsDynamic() && compilation.HasDynamicEmitAttributes() && compilation.CanEmitBoolean())
+            {
                 AddSynthesizedAttribute(ref attributes, compilation.SynthesizeDynamicAttribute(returnType.TypeSymbol, returnType.CustomModifiers.Length));
             }
         }
@@ -97,6 +97,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         public sealed override ImmutableArray<TypeSymbolWithAnnotations> TypeArguments
         {
             get { return _typeParameters.SelectAsArray(TypeMap.AsTypeSymbolWithAnnotations); }
+        }
+
+        internal override RefKind RefKind
+        {
+            get { return _interfaceMethod.RefKind; }
         }
 
         public sealed override TypeSymbolWithAnnotations ReturnType

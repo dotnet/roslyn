@@ -118,6 +118,11 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
             get { return true; }
         }
 
+        internal override RefKind RefKind
+        {
+            get { return RefKind.None; }
+        }
+
         public override TypeSymbolWithAnnotations ReturnType
         {
             get { throw ExceptionUtilities.Unreachable; }

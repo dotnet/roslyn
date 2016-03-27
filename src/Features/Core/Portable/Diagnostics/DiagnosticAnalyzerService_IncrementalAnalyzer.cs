@@ -15,7 +15,7 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Diagnostics
 {
-    [ExportIncrementalAnalyzerProvider(highPriorityForActiveFile: true, workspaceKinds: new string[] { WorkspaceKind.Host, WorkspaceKind.Interactive })]
+    [ExportIncrementalAnalyzerProvider(highPriorityForActiveFile: true, workspaceKinds: new string[] { WorkspaceKind.Host, WorkspaceKind.Interactive, WorkspaceKind.AnyCodeRoslynWorkspace })]
     internal partial class DiagnosticAnalyzerService : IIncrementalAnalyzerProvider
     {
         private readonly ConditionalWeakTable<Workspace, BaseDiagnosticIncrementalAnalyzer> _map;
@@ -172,17 +172,22 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             {
                 return Analyzer.GetDiagnosticsForSpanAsync(document, range, includeSuppressedDiagnostics, cancellationToken);
             }
+
+            public override bool ContainsDiagnostics(Workspace workspace, ProjectId projectId)
+            {
+                return Analyzer.ContainsDiagnostics(workspace, projectId);
+            }
             #endregion
 
             #region build synchronization
-            public override Task SynchronizeWithBuildAsync(Project project, ImmutableArray<DiagnosticData> diagnostics)
+            public override Task SynchronizeWithBuildAsync(DiagnosticAnalyzerService.BatchUpdateToken token, Project project, ImmutableArray<DiagnosticData> diagnostics)
             {
-                return Analyzer.SynchronizeWithBuildAsync(project, diagnostics);
+                return Analyzer.SynchronizeWithBuildAsync(token, project, diagnostics);
             }
 
-            public override Task SynchronizeWithBuildAsync(Document document, ImmutableArray<DiagnosticData> diagnostics)
+            public override Task SynchronizeWithBuildAsync(DiagnosticAnalyzerService.BatchUpdateToken token, Document document, ImmutableArray<DiagnosticData> diagnostics)
             {
-                return Analyzer.SynchronizeWithBuildAsync(document, diagnostics);
+                return Analyzer.SynchronizeWithBuildAsync(token, document, diagnostics);
             }
             #endregion
 

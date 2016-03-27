@@ -123,6 +123,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
+        internal override RefKind RefKind
+        {
+            get { return RefKind.None; }
+        }
+
         public override TypeSymbolWithAnnotations ReturnType
         {
             get { return _returnType; }
@@ -399,6 +404,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                         // return;
                         new BoundReturnStatement(
                             syntax,
+                            RefKind.None,
                             null)
                         { WasCompilerGenerated = true }))
                 { WasCompilerGenerated = true };
@@ -480,6 +486,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 Debug.Assert(initializeResult.Type == _returnType.TypeSymbol);
                 var returnStatement = new BoundReturnStatement(
                     syntax,
+                    RefKind.None,
                     initializeResult)
                 { WasCompilerGenerated = true };
 

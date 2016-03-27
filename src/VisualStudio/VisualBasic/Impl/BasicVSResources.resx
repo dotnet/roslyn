@@ -126,9 +126,6 @@
   <data name="Intellisense" xml:space="preserve">
     <value>IntelliSense</value>
   </data>
-  <data name="QualifyMemberAccessWithMe" xml:space="preserve">
-    <value>Qualify member access with 'Me'</value>
-  </data>
   <data name="PreferIntrinsicPredefinedTypeKeywordInDeclaration" xml:space="preserve">
     <value>Prefer intrinsic predefined type keyword when declaring locals, parameters and members</value>
   </data>
@@ -203,5 +200,17 @@
   </data>
   <data name="Option_GoToDefinition" xml:space="preserve">
     <value>Go to Definition</value>
+  </data>
+  <data name="QualifyEventAccessWithMe" xml:space="preserve">
+    <value>Qualify event access with 'Me'</value>
+  </data>
+  <data name="QualifyFieldAccessWithMe" xml:space="preserve">
+    <value>Qualify field access with 'Me'</value>
+  </data>
+  <data name="QualifyMethodAccessWithMe" xml:space="preserve">
+    <value>Qualify method access with 'Me'</value>
+  </data>
+  <data name="QualifyPropertyAccessWithMe" xml:space="preserve">
+    <value>Qualify property access with 'Me'</value>
   </data>
 </root>

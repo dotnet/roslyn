@@ -86,17 +86,21 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                 }
             }
 
+            TypeSymbol originalEventType = _eventType?.TypeSymbol;
             if ((object)_eventType == null)
             {
                 var metadataDecoder = new MetadataDecoder(moduleSymbol, containingType);
-                _eventType = TypeSymbolWithAnnotations.Create(metadataDecoder.GetTypeOfToken(eventType));
+                originalEventType = metadataDecoder.GetTypeOfToken(eventType);
+
+                const int targetSymbolCustomModifierCount = 0;
+                _eventType = TypeSymbolWithAnnotations.Create(DynamicTypeDecoder.TransformType(originalEventType, targetSymbolCustomModifierCount, handle, moduleSymbol));
             }
 
             // IsWindowsRuntimeEvent checks the signatures, so we just have to check the accessors.
             bool isWindowsRuntimeEvent = IsWindowsRuntimeEvent;
             bool callMethodsDirectly = isWindowsRuntimeEvent
                 ? !DoModifiersMatch(_addMethod, _removeMethod)
-                : !DoSignaturesMatch(moduleSymbol, _eventType.TypeSymbol, _addMethod, _removeMethod);
+                : !DoSignaturesMatch(moduleSymbol, originalEventType, _addMethod, _removeMethod);
 
             if (callMethodsDirectly)
             {
@@ -418,7 +422,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             var metadataDecoder = new MetadataDecoder(moduleSymbol, method);
             SignatureHeader signatureHeader;
             BadImageFormatException mrEx;
-            var methodParams = metadataDecoder.GetSignatureForMethod(method.Handle, out signatureHeader, out mrEx, setParamHandles: false);
+            var methodParams = metadataDecoder.GetSignatureForMethod(method.Handle, out signatureHeader, out mrEx, allowByRefReturn: false, setParamHandles: false);
 
             if (mrEx != null)
             {

@@ -24,6 +24,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
         private readonly PENamedTypeSymbol _containingType;
         private readonly PropertyDefinitionHandle _handle;
         private readonly ImmutableArray<ParameterSymbol> _parameters;
+        private readonly RefKind _refKind;
         private readonly TypeSymbolWithAnnotations _propertyType;
         private readonly PEMethodSymbol _getMethod;
         private readonly PEMethodSymbol _setMethod;
@@ -87,17 +88,17 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             var metadataDecoder = new MetadataDecoder(moduleSymbol, containingType);
             SignatureHeader callingConvention;
             BadImageFormatException propEx;
-            var propertyParams = metadataDecoder.GetSignatureForProperty(handle, out callingConvention, out propEx);
+            var propertyParams = metadataDecoder.GetSignatureForProperty(handle, out callingConvention, out propEx, allowByRefReturn: true);
             Debug.Assert(propertyParams.Length > 0);
 
             SignatureHeader unusedCallingConvention;
             BadImageFormatException getEx = null;
-            var getMethodParams = (object)getMethod == null ? null : metadataDecoder.GetSignatureForMethod(getMethod.Handle, out unusedCallingConvention, out getEx);
+            var getMethodParams = (object)getMethod == null ? null : metadataDecoder.GetSignatureForMethod(getMethod.Handle, out unusedCallingConvention, out getEx, allowByRefReturn: true);
             BadImageFormatException setEx = null;
-            var setMethodParams = (object)setMethod == null ? null : metadataDecoder.GetSignatureForMethod(setMethod.Handle, out unusedCallingConvention, out setEx);
+            var setMethodParams = (object)setMethod == null ? null : metadataDecoder.GetSignatureForMethod(setMethod.Handle, out unusedCallingConvention, out setEx, allowByRefReturn: false);
 
             // NOTE: property parameter names are not recorded in metadata, so we have to
-            // use the parameter names from one of the indexers.
+            // use the parameter names from one of the indexers
             // NB: prefer setter names to getter names if both are present.
             bool isBad;
             _parameters = GetParameters(moduleSymbol, this, propertyParams, setMethodParams ?? getMethodParams, out isBad);
@@ -108,6 +109,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             }
 
             var typeCustomModifiers = CSharpCustomModifier.Convert(propertyParams[0].CustomModifiers);
+
+            _refKind = propertyParams[0].IsByRef ? RefKind.Ref : RefKind.None;
 
             // CONSIDER: Can we make parameter type computation lazy?
             TypeSymbol originalPropertyType = propertyParams[0].Type;
@@ -153,11 +156,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
 
         private bool MustCallMethodsDirectlyCore()
         {
-            if (this.ParameterCount == 0)
+            if (this.RefKind != RefKind.None && _setMethod != null)
+            {
+                return true;
+            }
+            else if (this.ParameterCount == 0)
             {
                 return false;
             }
-            if (this.IsIndexedProperty)
+            else if (this.IsIndexedProperty)
             {
                 return this.IsStatic;
             }
@@ -415,6 +422,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                 // avoid supporting property groups.
                 return (this.ParameterCount > 0) && _containingType.IsComImport;
             }
+        }
+
+        internal override RefKind RefKind
+        {
+            get { return _refKind; }
         }
 
         public override TypeSymbolWithAnnotations Type

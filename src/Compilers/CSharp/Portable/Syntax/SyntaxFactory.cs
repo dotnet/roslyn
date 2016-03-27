@@ -723,15 +723,15 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         /// <summary>
-        /// Creates a threadsafty element within an xml documentation comment.
+        /// Creates a threadsafety element within an xml documentation comment.
         /// </summary>
-        /// <param name="static">Indicates whether static member of this class are safe for multi-threaded operations.</param>
-        /// <param name="instance">Indicates whether members of instances of this type are safe for multi-threaded operations.</param>
-        public static XmlEmptyElementSyntax XmlThreadSafetyElement(bool @static, bool instance)
+        /// <param name="isStatic">Indicates whether static member of this type are safe for multi-threaded operations.</param>
+        /// <param name="isInstance">Indicates whether instance members of this type are safe for multi-threaded operations.</param>
+        public static XmlEmptyElementSyntax XmlThreadSafetyElement(bool isStatic, bool isInstance)
         {
             return XmlEmptyElement(DocumentationCommentXmlNames.ThreadSafetyElementName).AddAttributes(
-                XmlTextAttribute(DocumentationCommentXmlNames.StaticAttributeName, @static.ToString().ToLowerInvariant()),
-                XmlTextAttribute(DocumentationCommentXmlNames.InstanceAttributeName, instance.ToString().ToLowerInvariant()));
+                XmlTextAttribute(DocumentationCommentXmlNames.StaticAttributeName, isStatic.ToString().ToLowerInvariant()),
+                XmlTextAttribute(DocumentationCommentXmlNames.InstanceAttributeName, isInstance.ToString().ToLowerInvariant()));
         }
 
         /// <summary>
@@ -2459,32 +2459,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 default(EqualsValueClauseSyntax));
         }
 
-        public static MethodDeclarationSyntax MethodDeclaration(
-            SyntaxList<AttributeListSyntax> attributeLists,
-            SyntaxTokenList modifiers,
-            TypeSyntax returnType,
-            ExplicitInterfaceSpecifierSyntax explicitInterfaceSpecifier,
-            SyntaxToken identifier,
-            TypeParameterListSyntax typeParameterList,
-            ParameterListSyntax parameterList,
-            SyntaxList<TypeParameterConstraintClauseSyntax> constraintClauses,
-            BlockSyntax body,
-            SyntaxToken semicolonToken)
-        {
-            return SyntaxFactory.MethodDeclaration(
-                attributeLists,
-                modifiers,
-                returnType,
-                explicitInterfaceSpecifier,
-                identifier,
-                typeParameterList,
-                parameterList,
-                constraintClauses,
-                body,
-                default(ArrowExpressionClauseSyntax),
-                semicolonToken);
-        }
-
         public static ConversionOperatorDeclarationSyntax ConversionOperatorDeclaration(
             SyntaxList<AttributeListSyntax> attributeLists,
             SyntaxTokenList modifiers,
@@ -2527,24 +2501,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 body: body,
                 expressionBody: default(ArrowExpressionClauseSyntax),
                 semicolonToken: semicolonToken);
-        }
-
-        public static IndexerDeclarationSyntax IndexerDeclaration(
-            SyntaxList<AttributeListSyntax> attributeLists,
-            SyntaxTokenList modifiers,
-            TypeSyntax type,
-            ExplicitInterfaceSpecifierSyntax explicitInterfaceSpecifier,
-            BracketedParameterListSyntax parameterList,
-            AccessorListSyntax accessorList)
-        {
-            return SyntaxFactory.IndexerDeclaration(
-                attributeLists: attributeLists,
-                modifiers: modifiers,
-                type: type,
-                explicitInterfaceSpecifier: explicitInterfaceSpecifier,
-                parameterList: parameterList,
-                accessorList: accessorList,
-                expressionBody: default(ArrowExpressionClauseSyntax));
         }
 
         /// <summary>Creates a new UsingDirectiveSyntax instance.</summary>

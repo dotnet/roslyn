@@ -4,6 +4,7 @@
     <Import Project="..\..\..\..\..\build\Targets\VSL.Settings.targets" />
   </ImportGroup>
   <PropertyGroup>
+    <UseCommonOutputDirectory>True</UseCommonOutputDirectory>
     <Nonshipping>true</Nonshipping>
     <Configuration Condition="'$(Configuration)' == ''">Debug</Configuration>
     <Platform Condition="'$(Platform)' == ''">AnyCPU</Platform>
@@ -63,7 +64,6 @@
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="app.config" />
     <None Include="project.json" />
   </ItemGroup>
   <ItemGroup />

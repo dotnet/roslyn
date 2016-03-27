@@ -8,6 +8,7 @@ using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Roslyn.Utilities;
 using System.Diagnostics;
 using System.Threading;
+using System;
 
 namespace Microsoft.CodeAnalysis.CSharp.Symbols
 {
@@ -20,6 +21,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         private readonly ImmutableArray<TypeParameterSymbol> _typeParameters;
         private ImmutableArray<ParameterSymbol> _parameters;
         private ImmutableArray<TypeParameterConstraintClause> _lazyTypeParameterConstraints;
+        private readonly RefKind _refKind;
         private TypeSymbolWithAnnotations _returnType;
         private bool _isVararg;
         private TypeSymbol _iteratorElementType;
@@ -38,6 +40,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             _syntax = syntax;
             _containingSymbol = containingSymbol;
+            _refKind = syntax.RefKeyword.Kind().GetRefKind();
 
             _declarationModifiers =
                 DeclarationModifiers.Private |
@@ -137,6 +140,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
+        internal override RefKind RefKind
+        {
+            get
+            {
+                return _refKind;
+            }
+        }
+
         internal TypeSymbolWithAnnotations ComputeReturnType()
         {
             if ((object)_returnType != null)
@@ -157,6 +168,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 // The return type of an async method must be void, Task or Task<T>
                 diagnostics.Add(ErrorCode.ERR_BadAsyncReturn, this.Locations[0]);
             }
+
+            if (this.RefKind != RefKind.None && returnType.SpecialType == SpecialType.System_Void)
+            {
+                diagnostics.Add(ErrorCode.ERR_VoidReturningMethodCannotReturnByRef, this.Locations[0]);
+            }
+
             // TODO: note there is a race condition here that will ultimately need to be fixed.
             // Specifically, the Interlocked.CompareExchange above succeeds, and will be seen by
             // other threads, before the diagnostics have been recorded in this symbol, below.

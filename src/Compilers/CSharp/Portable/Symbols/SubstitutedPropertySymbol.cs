@@ -23,6 +23,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             _originalDefinition = originalDefinition;
         }
 
+        internal override RefKind RefKind
+        {
+            get
+            {
+                return _originalDefinition.RefKind;
+            }
+        }
+
         public override TypeSymbolWithAnnotations Type
         {
             get

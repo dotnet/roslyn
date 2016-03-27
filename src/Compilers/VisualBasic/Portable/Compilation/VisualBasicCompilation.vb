@@ -321,7 +321,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' <summary> 
         ''' Creates a new compilation that can be used in scripting. 
         ''' </summary>
-        Public Shared Function CreateScriptCompilation(
+        Friend Shared Function CreateScriptCompilation(
             assemblyName As String,
             Optional syntaxTree As SyntaxTree = Nothing,
             Optional references As IEnumerable(Of MetadataReference) = Nothing,
@@ -335,7 +335,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
             Return Create(
                 assemblyName,
-                If(options, New VisualBasicCompilationOptions(OutputKind.DynamicallyLinkedLibrary)),
+                If(options, New VisualBasicCompilationOptions(OutputKind.DynamicallyLinkedLibrary)).WithReferencesSupersedeLowerVersions(True),
                 If((syntaxTree IsNot Nothing), {syntaxTree}, SpecializedCollections.EmptyEnumerable(Of SyntaxTree)()),
                 references,
                 previousScriptCompilation,
@@ -354,6 +354,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             hostObjectType As Type,
             isSubmission As Boolean
         ) As VisualBasicCompilation
+            Debug.Assert(Not isSubmission OrElse options.ReferencesSupersedeLowerVersions)
+
             If options Is Nothing Then
                 options = New VisualBasicCompilationOptions(OutputKind.ConsoleApplication)
             End If
@@ -446,7 +448,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
             Debug.Assert(_lazyAssemblySymbol Is Nothing)
             If Me.EventQueue IsNot Nothing Then
-                Me.EventQueue.Enqueue(New CompilationStartedEvent(Me))
+                Me.EventQueue.TryEnqueue(New CompilationStartedEvent(Me))
             End If
         End Sub
 
@@ -1630,8 +1632,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End If
 
             Debug.Assert(AllSyntaxTrees.Contains(tree))
-            Dim completedCompilationUnit As Boolean = False
-            Dim completedCompilation As Boolean = False
 
             If _lazyCompilationUnitCompletedTrees Is Nothing Then
                 Interlocked.CompareExchange(_lazyCompilationUnitCompletedTrees, New HashSet(Of SyntaxTree)(), Nothing)
@@ -1639,21 +1639,17 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
             SyncLock _lazyCompilationUnitCompletedTrees
                 If _lazyCompilationUnitCompletedTrees.Add(tree) Then
-                    completedCompilationUnit = True
+                    ' signal the end of the compilation unit
+                    EventQueue.TryEnqueue(New CompilationUnitCompletedEvent(Me, tree))
+
                     If _lazyCompilationUnitCompletedTrees.Count = SyntaxTrees.Length Then
-                        completedCompilation = True
+                        ' if that was the last tree, signal the end of compilation
+                        EventQueue.TryEnqueue(New CompilationCompletedEvent(Me))
+                        EventQueue.PromiseNotToEnqueue()
+                        EventQueue.TryComplete()
                     End If
                 End If
             End SyncLock
-
-            If completedCompilationUnit Then
-                EventQueue.Enqueue(New CompilationUnitCompletedEvent(Me, tree))
-            End If
-
-            If completedCompilation Then
-                EventQueue.Enqueue(New CompilationCompletedEvent(Me))
-                EventQueue.Complete() ' signal the End Of compilation events
-            End If
         End Sub
 
         Friend Function ShouldAddEvent(symbol As Symbol) As Boolean
@@ -1673,7 +1669,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         Friend Sub SymbolDeclaredEvent(symbol As Symbol)
             If ShouldAddEvent(symbol) Then
-                EventQueue.Enqueue(New SymbolDeclaredCompilationEvent(Me, symbol))
+                EventQueue.TryEnqueue(New SymbolDeclaredCompilationEvent(Me, symbol))
             End If
         End Sub
 

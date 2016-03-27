@@ -3,7 +3,9 @@
 using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeFixes;
+using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.CodeFixes.GenerateVariable;
 using Microsoft.CodeAnalysis.CSharp.CodeStyle;
 using Microsoft.CodeAnalysis.Diagnostics;
@@ -19,6 +21,26 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.GenerateVar
         {
             return new Tuple<DiagnosticAnalyzer, CodeFixProvider>(
                 null, new GenerateVariableCodeFixProvider());
+        }
+
+        private readonly SimpleCodeStyleOption onWithInfo = new SimpleCodeStyleOption(true, NotificationOption.Info);
+
+        // specify all options explicitly to override defaults.
+        private IDictionary<OptionKey, object> ImplicitTypingEverywhere() =>
+            OptionSet(CSharpCodeStyleOptions.UseImplicitTypeWherePossible, onWithInfo)
+            .With(CSharpCodeStyleOptions.UseImplicitTypeWhereApparent, onWithInfo)
+            .With(CSharpCodeStyleOptions.UseImplicitTypeForIntrinsicTypes, onWithInfo);
+
+        internal IDictionary<OptionKey, object> OptionSet(OptionKey option, object value)
+        {
+            var options = new Dictionary<OptionKey, object>();
+            options.Add(option, value);
+            return options;
+        }
+
+        protected override IList<CodeAction> MassageActions(IList<CodeAction> actions)
+        {
+            return FlattenActions(actions);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
@@ -1771,7 +1793,7 @@ index: 3);
             await TestAsync(
 @"class Program { void Main ( ) { [|undefined|] = 1 ; } } ",
 @"class Program { void Main ( ) { var undefined = 1 ; } } ",
-index: 2);
+index: 2, options: ImplicitTypingEverywhere());
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
@@ -1853,7 +1875,7 @@ class C
 #line default
 #line hidden
 }
-");
+", options: ImplicitTypingEverywhere());
         }
 
         [WorkItem(546027, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546027")]
@@ -2849,6 +2871,74 @@ index: 2);
 @"using System ; public class Test { public static int Property1 { get { return [|_field|] ; } } } ",
 @"using System ; public class Test { public static int Property1 { get { int _field = 0 ; return _field ; } } } ",
 index: 3);
+        }
+
+        [WorkItem(8358, "https://github.com/dotnet/roslyn/issues/8358")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
+        public async Task TestSameNameAsInstanceVariableInContainingType()
+        {
+            await TestAsync(
+@"
+class Outer
+{
+    int _field;
+
+    class Inner
+    {
+        public Inner(int field)
+        {
+            [|_field|] = field;
+        }
+    }
+}",
+@"
+class Outer
+{
+    int _field;
+
+    class Inner
+    {
+        private int _field;
+
+        public Inner(int field)
+        {
+            _field = field;
+        }
+    }
+}
+");
+        }
+
+        [WorkItem(8358, "https://github.com/dotnet/roslyn/issues/8358")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
+        public async Task TestNotOnStaticWithExistingInstance1()
+        {
+            await TestMissingAsync(
+@"
+class C
+{
+    int _field;
+    void M()
+    {
+        C.[|_field|] = 42;
+    }
+}");
+        }
+
+        [WorkItem(8358, "https://github.com/dotnet/roslyn/issues/8358")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
+        public async Task TestNotOnStaticWithExistingInstance2()
+        {
+            await TestMissingAsync(
+@"
+class C
+{
+    int _field;
+    static C()
+    {
+        [|_field|] = 42;
+    }
+}");
         }
     }
 }

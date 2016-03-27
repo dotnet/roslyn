@@ -2,11 +2,8 @@
 
 REM Parse Arguments.
 
-set NugetZipUrlRoot=https://dotnetci.blob.core.windows.net/roslyn
-set NugetZipUrl=%NuGetZipUrlRoot%/nuget.future.12.zip
 set RoslynRoot=%~dp0
 set BuildConfiguration=Debug
-set BuildRestore=false
 
 REM Because override the C#/VB toolset to build against our LKG package, it is important
 REM that we do not reuse MSBuild nodes from other jobs/builds on the machine. Otherwise, 
@@ -21,7 +18,19 @@ if /I "%1" == "/release" set BuildConfiguration=Release&&shift&& goto :ParseArgu
 if /I "%1" == "/test32" set Test64=false&&shift&& goto :ParseArguments
 if /I "%1" == "/test64" set Test64=true&&shift&& goto :ParseArguments
 if /I "%1" == "/testDeterminism" set TestDeterminism=true&&shift&& goto :ParseArguments
-if /I "%1" == "/restore" set BuildRestore=true&&shift&& goto :ParseArguments
+
+REM /buildTimeLimit is the time limit, measured in minutes, for the Jenkins job that runs
+REM the build. The Jenkins script netci.groovy passes the time limit to this script.
+
+REM netci.groovy does not yet pass the time limit to cibuild.cmd. We are making this
+REM change to cibuild.cmd in all branches *before* modifying netci.groovy. If we didn't
+REM do things in this order, we'd have to modify cibuild.cmd in *all* branches *at the
+REM same time* we made the change to netci.groovy. This way, we'll be able to first
+REM modify netci.groovy to pass the new parameter without causing any harm. Then we'll
+REM be able go to each branch in turn, modifying cibuild.cmd and BuildAndTest.cmd to
+REM actually make use of the new parameter.
+if /I "%1" == "/buildTimeLimit" set BuildTimeLimit=%2&&shift&&shift&& goto:ParseArguments
+
 call :Usage && exit /b 1
 :DoneParsing
 
@@ -29,12 +38,12 @@ call "C:\Program Files (x86)\Microsoft Visual Studio 14.0\Common7\Tools\VsDevCmd
 
 powershell -noprofile -executionPolicy RemoteSigned -file "%RoslynRoot%\build\scripts\check-branch.ps1" || goto :BuildFailed
 
+REM Output the commit that we're building, for reference in Jenkins logs
+echo Building this commit:
+git show --no-patch --pretty=raw HEAD
+
 REM Restore the NuGet packages 
-if "%BuildRestore%" == "true" (
-    call "%RoslynRoot%\Restore.cmd" || goto :BuildFailed
-) else (
-    powershell -noprofile -executionPolicy RemoteSigned -file "%RoslynRoot%\build\scripts\restore.ps1" "%NugetZipUrl%" || goto :BuildFailed
-)
+call "%RoslynRoot%\Restore.cmd" || goto :BuildFailed
 
 REM Ensure the binaries directory exists because msbuild can fail when part of the path to LogFile isn't present.
 set bindir=%RoslynRoot%Binaries
@@ -44,10 +53,11 @@ REM Set the build version only so the assembly version is set to the semantic ve
 REM which allows analyzers to load because the compiler has binding redirects to the
 REM semantic version
 msbuild %MSBuildAdditionalCommandLineArgs% /p:BuildVersion=0.0.0.0 "%RoslynRoot%build\Toolset.sln" /p:NuGetRestorePackages=false /p:Configuration=%BuildConfiguration% /fileloggerparameters:LogFile="%bindir%\Bootstrap.log" || goto :BuildFailed
+powershell -noprofile -executionPolicy RemoteSigned -file "%RoslynRoot%\build\scripts\check-msbuild.ps1" "%bindir%\Bootstrap.log" || goto :BuildFailed
 
 if not exist "%bindir%\Bootstrap" mkdir "%bindir%\Bootstrap" || goto :BuildFailed
 move "Binaries\%BuildConfiguration%\*" "%bindir%\Bootstrap" || goto :BuildFailed
-copy "build\scripts\*" "%bindir%\Bootstrap" || goto :BuildFailed
+copy "build\bootstrap\*" "%bindir%\Bootstrap" || goto :BuildFailed
 
 REM Clean the previous build
 msbuild %MSBuildAdditionalCommandLineArgs% /t:Clean build/Toolset.sln /p:Configuration=%BuildConfiguration%  /fileloggerparameters:LogFile="%bindir%\BootstrapClean.log" || goto :BuildFailed
@@ -60,7 +70,8 @@ if defined TestDeterminism (
     exit /b 0
 )
 
-msbuild %MSBuildAdditionalCommandLineArgs% /p:BootstrapBuildPath="%bindir%\Bootstrap" BuildAndTest.proj /p:Configuration=%BuildConfiguration% /p:Test64=%Test64% /fileloggerparameters:LogFile="%bindir%\Build.log";verbosity=diagnostic || goto :BuildFailed
+msbuild %MSBuildAdditionalCommandLineArgs% /p:BootstrapBuildPath="%bindir%\Bootstrap" BuildAndTest.proj /p:Configuration=%BuildConfiguration% /p:Test64=%Test64% /p:PathMap="%RoslynRoot%=q:\roslyn" /p:Feature=pdb-path-determinism /fileloggerparameters:LogFile="%bindir%\Build.log";verbosity=diagnostic || goto :BuildFailed
+powershell -noprofile -executionPolicy RemoteSigned -file "%RoslynRoot%\build\scripts\check-msbuild.ps1" "%bindir%\Build.log" || goto :BuildFailed
 
 call :TerminateBuildProcesses
 
@@ -84,7 +95,6 @@ exit /b 0
 @echo   /release Perform release build.
 @echo   /test32  Run unit tests in the 32-bit runner.  This is the default.
 @echo   /test64  Run units tests in the 64-bit runner.
-@echo   /restore Perform actual nuget restore instead of using zip drops.
 @echo.
 @goto :eof
 

@@ -132,6 +132,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return Conversion.ImplicitEnumeration;
             }
 
+            if (HasImplicitThrowConversion(sourceExpression, destination))
+            {
+                return Conversion.ImplicitThrow;
+            }
+
             var kind = ClassifyImplicitConstantExpressionConversion(sourceExpression, destination);
             if (kind != ConversionKind.NoConversion)
             {
@@ -173,6 +178,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             return Conversion.NoConversion;
+        }
+
+        private bool HasImplicitThrowConversion(BoundExpression sourceExpression, TypeSymbol destination)
+        {
+            return sourceExpression.Kind == BoundKind.ThrowExpression;
         }
 
         public Conversion ClassifyImplicitConversionFromExpression(BoundExpression sourceExpression, TypeSymbol destination, ref HashSet<DiagnosticInfo> useSiteDiagnostics)

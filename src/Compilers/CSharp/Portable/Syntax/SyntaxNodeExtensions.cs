@@ -60,10 +60,13 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// </summary>
         internal static bool CanHaveAssociatedLocalBinder(this CSharpSyntaxNode syntax)
         {
+            SyntaxKind kind;
             return syntax.IsAnonymousFunction() ||
-                syntax.Kind() == SyntaxKind.CatchClause ||
-                syntax.Kind() == SyntaxKind.CatchFilterClause ||
-                syntax is StatementSyntax;
+                syntax is StatementSyntax ||
+                (kind = syntax.Kind()) == SyntaxKind.CatchClause ||
+                kind == SyntaxKind.CatchFilterClause ||
+                kind == SyntaxKind.SwitchSection ||
+                kind == SyntaxKind.ArrowExpressionClause;
         }
 
         /// <summary>

@@ -25,6 +25,11 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.TodoComments
                 }
             }
 
+            protected override int GetCount(Data data)
+            {
+                return data.Items.Length;
+            }
+
             protected override Data TryGetExistingData(Stream stream, Document value, CancellationToken cancellationToken)
             {
                 var list = SharedPools.Default<List<TodoItem>>().AllocateAndClear();
@@ -91,10 +96,10 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.TodoComments
 
             public ImmutableArray<TodoItem> GetItems_TestingOnly(DocumentId documentId)
             {
-                Data data;
-                if (this.DataCache.TryGetValue(documentId, out data) && data != null)
+                CacheEntry entry;
+                if (this.DataCache.TryGetValue(documentId, out entry) && entry.HasCachedData)
                 {
-                    return data.Items;
+                    return entry.Data.Items;
                 }
 
                 return ImmutableArray<TodoItem>.Empty;

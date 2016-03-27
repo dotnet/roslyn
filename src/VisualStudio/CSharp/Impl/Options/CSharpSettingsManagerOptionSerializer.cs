@@ -3,12 +3,12 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
-using System.ComponentModel;
 using System.Composition;
 using System.Diagnostics;
-using System.Linq;
 using System.Reflection;
+using System.Xml.Linq;
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.Completion;
 using Microsoft.CodeAnalysis.CSharp.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.Completion;
@@ -17,16 +17,10 @@ using Microsoft.CodeAnalysis.Editor.Shared.Options;
 using Microsoft.CodeAnalysis.ExtractMethod;
 using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Options;
-using Microsoft.CodeAnalysis.Options.Providers;
 using Microsoft.CodeAnalysis.Shared.Options;
 using Microsoft.CodeAnalysis.Simplification;
-using Microsoft.Internal.VisualStudio.Shell.Interop;
 using Microsoft.VisualStudio.LanguageServices.Implementation.Options;
-using Microsoft.VisualStudio.Settings;
 using Microsoft.VisualStudio.Shell;
-using Microsoft.Win32;
-
-using Task = System.Threading.Tasks.Task;
 
 namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options
 {
@@ -57,6 +51,9 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options
         private const string SpaceAroundBinaryOperator = nameof(AutomationObject.Space_AroundBinaryOperator);
         private const string UnindentLabels = nameof(AutomationObject.Indent_UnindentLabels);
         private const string FlushLabelsLeft = nameof(AutomationObject.Indent_FlushLabelsLeft);
+        private const string Style_UseVarForIntrinsicTypes = nameof(AutomationObject.Style_UseVarForIntrinsicTypes);
+        private const string Style_UseVarWhenTypeIsApparent = nameof(AutomationObject.Style_UseVarWhenTypeIsApparent);
+        private const string Style_UseVarWherePossible = nameof(AutomationObject.Style_UseVarWherePossible);
 
         private KeyValuePair<string, IOption> GetOptionInfoForOnOffOptions(FieldInfo fieldInfo)
         {
@@ -206,8 +203,26 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options
                 return true;
             }
 
+            // code style: use var options.
+            if (optionKey.Option == CSharpCodeStyleOptions.UseImplicitTypeForIntrinsicTypes)
+            {
+                var useVarValue = this.Manager.GetValueOrDefault<string>(Style_UseVarForIntrinsicTypes);
+                return FetchUseVarOption(useVarValue, out value);
+            }
+            else if (optionKey.Option == CSharpCodeStyleOptions.UseImplicitTypeWhereApparent)
+            {
+                var useVarValue = this.Manager.GetValueOrDefault<string>(Style_UseVarWhenTypeIsApparent);
+                return FetchUseVarOption(useVarValue, out value);
+            }
+            else if (optionKey.Option == CSharpCodeStyleOptions.UseImplicitTypeWherePossible)
+            {
+                var useVarValue = this.Manager.GetValueOrDefault<string>(Style_UseVarWherePossible);
+                return FetchUseVarOption(useVarValue, out value);
+            }
+
             return base.TryFetch(optionKey, out value);
         }
+
 
         public override bool TryPersist(OptionKey optionKey, object value)
         {
@@ -274,7 +289,42 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options
                 }
             }
 
+            // code style: use var options.
+            if (optionKey.Option == CSharpCodeStyleOptions.UseImplicitTypeForIntrinsicTypes)
+            {
+                return PersistUseVarOption(Style_UseVarForIntrinsicTypes, value);
+            }
+            else if (optionKey.Option == CSharpCodeStyleOptions.UseImplicitTypeWhereApparent)
+            {
+                return PersistUseVarOption(Style_UseVarWhenTypeIsApparent, value);
+            }
+            else if (optionKey.Option == CSharpCodeStyleOptions.UseImplicitTypeWherePossible)
+            {
+                return PersistUseVarOption(Style_UseVarWherePossible, value);
+            }
+
             return base.TryPersist(optionKey, value);
+        }
+
+        private bool PersistUseVarOption(string option, object value)
+        {
+            var serializedValue = ((SimpleCodeStyleOption)value).ToXElement().ToString();
+            this.Manager.SetValueAsync(option, value: serializedValue, isMachineLocal: false);
+            return true;
+        }
+
+        private static bool FetchUseVarOption(string useVarOptionValue, out object value)
+        {
+            if (string.IsNullOrEmpty(useVarOptionValue))
+            {
+                value = SimpleCodeStyleOption.Default;
+            }
+            else
+            {
+                value = SimpleCodeStyleOption.FromXElement(XElement.Parse(useVarOptionValue));
+            }
+
+            return true;
         }
     }
 }

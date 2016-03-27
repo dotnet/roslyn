@@ -308,7 +308,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
                                 var aliasMethod = this.CreateMethod(container, methodName, syntax, (method, diags) =>
                                 {
                                     var expression = new BoundLocal(syntax, local, constantValueOpt: null, type: local.Type.TypeSymbol);
-                                    return new BoundReturnStatement(syntax, expression) { WasCompilerGenerated = true };
+                                    return new BoundReturnStatement(syntax, RefKind.None, expression) { WasCompilerGenerated = true };
                                 });
                                 var flags = local.IsWritable ? DkmClrCompilationResultFlags.None : DkmClrCompilationResultFlags.ReadOnlyResult;
                                 localBuilder.Add(MakeLocalAndMethod(local, aliasMethod, flags));
@@ -497,7 +497,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
             {
                 var local = method.LocalsForBinding[localIndex];
                 var expression = new BoundLocal(syntax, local, constantValueOpt: local.GetConstantValue(null, null, diagnostics), type: local.Type.TypeSymbol);
-                return new BoundReturnStatement(syntax, expression) { WasCompilerGenerated = true };
+                return new BoundReturnStatement(syntax, RefKind.None, expression) { WasCompilerGenerated = true };
             });
         }
 
@@ -508,7 +508,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
             {
                 var parameter = method.Parameters[parameterIndex];
                 var expression = new BoundParameter(syntax, parameter);
-                return new BoundReturnStatement(syntax, expression) { WasCompilerGenerated = true };
+                return new BoundReturnStatement(syntax, RefKind.None, expression) { WasCompilerGenerated = true };
             });
         }
 
@@ -518,7 +518,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
             return this.CreateMethod(container, methodName, syntax, (method, diagnostics) =>
             {
                 var expression = new BoundThisReference(syntax, GetNonDisplayClassContainer(container.SubstitutedSourceType));
-                return new BoundReturnStatement(syntax, expression) { WasCompilerGenerated = true };
+                return new BoundReturnStatement(syntax, RefKind.None, expression) { WasCompilerGenerated = true };
             });
         }
 
@@ -529,7 +529,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
             {
                 var type = method.TypeMap.SubstituteNamedType(typeVariablesType);
                 var expression = new BoundObjectCreationExpression(syntax, type.InstanceConstructors[0]);
-                var statement = new BoundReturnStatement(syntax, expression) { WasCompilerGenerated = true };
+                var statement = new BoundReturnStatement(syntax, RefKind.None, expression) { WasCompilerGenerated = true };
                 return statement;
             });
         }
@@ -570,6 +570,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
                     syntax,
                     diagnostics,
                     expression,
+                    RefKind.None,
                     binder.Compilation.GetSpecialType(SpecialType.System_Object));
                 if (diagnostics.HasAnyErrors())
                 {
@@ -595,7 +596,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
             }
 
             resultProperties = expression.ExpressionSymbol.GetResultProperties(flags, expression.ConstantValue != null);
-            return new BoundReturnStatement(syntax, expression) { WasCompilerGenerated = true };
+            return new BoundReturnStatement(syntax, RefKind.None, expression) { WasCompilerGenerated = true };
         }
 
         private static BoundStatement BindStatement(Binder binder, StatementSyntax syntax, DiagnosticBag diagnostics, out ResultProperties properties)

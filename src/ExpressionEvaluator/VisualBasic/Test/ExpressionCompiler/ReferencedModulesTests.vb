@@ -98,6 +98,11 @@ End Class"
                         typeBlocks,
                         moduleVersionId,
                         typeToken)
+
+                    ' If VB supported extern aliases, the following would be true:
+                    ' Assert.Equal(identityAS2, context.Compilation.GlobalNamespace.GetMembers("A").OfType(Of INamedTypeSymbol)().Single().ContainingAssembly.Identity)
+                    ' Assert.Equal(identityBS2, context.Compilation.GlobalNamespace.GetMembers("B").OfType(Of INamedTypeSymbol)().Single().ContainingAssembly.Identity)
+
                     Dim errorMessage As String = Nothing
                     ' A is ambiguous since there were no explicit references to AS1 or AS2.
                     context.CompileExpression("New A()", errorMessage)

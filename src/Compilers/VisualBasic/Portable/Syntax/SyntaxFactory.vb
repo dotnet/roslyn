@@ -524,12 +524,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' <summary>
         ''' Creates a threadsafty element within an xml documentation comment.
         ''' </summary>
-        ''' <param name="static" static="sfd">Indicates whether static member of this class are safe for multi-threaded operations.</param>
-        ''' <param name="instance">Indicates whether members of instances of this type are safe for multi-threaded operations.</param>
+        ''' <param name="isStatic" static="sfd">Indicates whether static member of this type are safe for multi-threaded operations.</param>
+        ''' <param name="isInstance">Indicates whether instance members of this type are safe for multi-threaded operations.</param>
         ''' <threadsafety static="true" instance=""/>
-        Public Shared Function XmlThreadSafetyElement([static] As Boolean, instance As Boolean) As XmlEmptyElementSyntax
-            Dim staticValueString = [static].ToString().ToLowerInvariant()
-            Dim instanceValueString = instance.ToString().ToLowerInvariant()
+        Public Shared Function XmlThreadSafetyElement(isStatic As Boolean, isInstance As Boolean) As XmlEmptyElementSyntax
+            Dim staticValueString = isStatic.ToString().ToLowerInvariant()
+            Dim instanceValueString = isInstance.ToString().ToLowerInvariant()
 
             Return XmlEmptyElement(XmlName(Nothing, XmlNameToken(DocumentationCommentXmlNames.ThreadSafetyElementName, SyntaxKind.XmlNameToken)).WithTrailingTrivia(ElasticSpace)).AddAttributes(
                 XmlAttribute(
@@ -1058,7 +1058,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' Throws <see cref="ArgumentException"/> in case the tree is not a submission.
         ''' </summary>
         ''' <param name="tree">Syntax tree.</param>
-        Public Shared Function IsCompleteSubmission(tree As SyntaxTree) As Boolean
+        Friend Shared Function IsCompleteSubmission(tree As SyntaxTree) As Boolean
             If tree Is Nothing Then
                 Throw New ArgumentNullException(NameOf(tree))
             End If

@@ -46,6 +46,8 @@ namespace Microsoft.CodeAnalysis
 
         internal bool TestHookPartialSolutionsDisabled { get; set; }
 
+        private Action<string> _testMessageLogger;
+
         /// <summary>
         /// Constructs a new workspace instance.
         /// </summary>
@@ -64,6 +66,20 @@ namespace Microsoft.CodeAnalysis
 
             // initialize with empty solution
             _latestSolution = CreateSolution(SolutionId.CreateNewId());
+        }
+
+        internal void LogTestMessage(string message)
+        {
+            _testMessageLogger?.Invoke(message);
+        }
+
+        /// <summary>
+        /// Sets an internal logger that will receive some messages.
+        /// </summary>
+        /// <param name="writeLineMessageLogger">An action called to write a single line to the log.</param>
+        internal void SetTestLogger(Action<string> writeLineMessageLogger)
+        {
+            _testMessageLogger = writeLineMessageLogger;
         }
 
         /// <summary>
@@ -704,6 +720,25 @@ namespace Microsoft.CodeAnalysis
         }
 
         /// <summary>
+        /// Call this method when status of project has changed to incomplete.
+        /// See <see cref="ProjectInfo.HasAllInformation"/> for more information.
+        /// </summary>
+        // TODO: make it public
+        internal void OnHasAllInformationChanged(ProjectId projectId, bool hasAllInformation)
+        {
+            using (_serializationLock.DisposableWait())
+            {
+                CheckProjectIsInCurrentSolution(projectId);
+
+                // if state is different than what we have
+                var oldSolution = this.CurrentSolution;
+                var newSolution = this.SetCurrentSolution(oldSolution.WithHasAllInformation(projectId, hasAllInformation));
+
+                this.RaiseWorkspaceChangedEventAsync(WorkspaceChangeKind.ProjectChanged, oldSolution, newSolution, projectId);
+            }
+        }
+
+        /// <summary>
         /// Call this method when the text of a document is updated in the host environment.
         /// </summary>
         protected internal void OnDocumentTextChanged(DocumentId documentId, SourceText newText, PreservationMode mode)
@@ -874,6 +909,15 @@ namespace Microsoft.CodeAnalysis
         /// Determines if the specific kind of change is supported by the <see cref="TryApplyChanges"/> method.
         /// </summary>
         public virtual bool CanApplyChange(ApplyChangesKind feature)
+        {
+            return false;
+        }
+
+        /// <summary>
+        /// Returns <code>true</code> if a reference to referencedProject can be added to 
+        /// referencingProject.  <code>false</code> otherwise.
+        /// </summary>
+        internal virtual bool CanAddProjectReference(ProjectId referencingProject, ProjectId referencedProject)
         {
             return false;
         }

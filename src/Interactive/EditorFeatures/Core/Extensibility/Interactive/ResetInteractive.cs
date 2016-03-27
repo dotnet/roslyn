@@ -11,6 +11,7 @@ using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.Editor;
 using Microsoft.VisualStudio.Text.Editor;
 using Microsoft.VisualStudio.Text.Editor.OptionsExtensionMethods;
+using System.Collections.Generic;
 
 namespace Microsoft.VisualStudio.LanguageServices.Interactive
 {
@@ -37,10 +38,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Interactive
 
         internal Task Execute(IInteractiveWindow interactiveWindow, string title)
         {
-            ImmutableArray<string> references, referenceSearchPaths, sourceSearchPaths, namespacesToImport;
+            ImmutableArray<string> references, referenceSearchPaths, sourceSearchPaths, projectNamespaces;
             string projectDirectory;
 
-            if (GetProjectProperties(out references, out referenceSearchPaths, out sourceSearchPaths, out namespacesToImport, out projectDirectory))
+            if (GetProjectProperties(out references, out referenceSearchPaths, out sourceSearchPaths, out projectNamespaces, out projectDirectory))
             {
                 // Now, we're going to do a bunch of async operations.  So create a wait
                 // indicator so the user knows something is happening, and also so they cancel.
@@ -52,7 +53,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Interactive
                     references,
                     referenceSearchPaths,
                     sourceSearchPaths,
-                    namespacesToImport,
+                    projectNamespaces,
                     projectDirectory,
                     waitContext);
 
@@ -74,7 +75,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Interactive
             ImmutableArray<string> referencePaths,
             ImmutableArray<string> referenceSearchPaths,
             ImmutableArray<string> sourceSearchPaths,
-            ImmutableArray<string> namespacesToImport,
+            ImmutableArray<string> projectNamespaces,
             string projectDirectory,
             IWaitContext waitContext)
         {
@@ -83,15 +84,16 @@ namespace Microsoft.VisualStudio.LanguageServices.Interactive
 
             // If the user hits the cancel button on the wait indicator, then we want to stop the
             // build.
-            waitContext.CancellationToken.Register(() =>
-                CancelBuildProject(), useSynchronizationContext: true);
-
-            // First, start a build.
-            // If the build fails do not reset the REPL.
-            var builtSuccessfully = await BuildProject().ConfigureAwait(true);
-            if (!builtSuccessfully)
+            using (waitContext.CancellationToken.Register(() =>
+                CancelBuildProject(), useSynchronizationContext: true))
             {
-                return;
+                // First, start a build.
+                // If the build fails do not reset the REPL.
+                var builtSuccessfully = await BuildProject().ConfigureAwait(true);
+                if (!builtSuccessfully)
+                {
+                    return;
+                }
             }
 
             // Then reset the REPL
@@ -111,12 +113,20 @@ namespace Microsoft.VisualStudio.LanguageServices.Interactive
 
             var editorOptions = _editorOptionsFactoryService.GetOptions(interactiveWindow.CurrentLanguageBuffer);
             var importReferencesCommand = referencePaths.Select(_createReference);
+            await interactiveWindow.SubmitAsync(importReferencesCommand).ConfigureAwait(true);
+
+            // Project's default namespace might be different from namespace used within project.
+            // Filter out namespace imports that do not exist in interactive compilation.
+            IEnumerable<string> namespacesToImport = await GetNamespacesToImportAsync(projectNamespaces, interactiveWindow).ConfigureAwait(true);
             var importNamespacesCommand = namespacesToImport.Select(_createImport).Join(editorOptions.GetNewLineCharacter());
-            await interactiveWindow.SubmitAsync(importReferencesCommand.Concat(new[]
+
+            if (!string.IsNullOrWhiteSpace(importNamespacesCommand))
             {
-                importNamespacesCommand
-            })).ConfigureAwait(true);
+                await interactiveWindow.SubmitAsync(new[] { importNamespacesCommand }).ConfigureAwait(true);
+            }
         }
+
+        protected abstract Task<IEnumerable<string>> GetNamespacesToImportAsync(IEnumerable<string> namespacesToImport, IInteractiveWindow interactiveWindow);
 
         /// <summary>
         /// Gets the properties of the currently selected projects necessary for reset.
@@ -125,7 +135,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Interactive
             out ImmutableArray<string> references,
             out ImmutableArray<string> referenceSearchPaths,
             out ImmutableArray<string> sourceSearchPaths,
-            out ImmutableArray<string> namespacesToImport,
+            out ImmutableArray<string> projectNamespaces,
             out string projectDirectory);
 
         /// <summary>

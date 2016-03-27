@@ -1,19 +1,22 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Globalization;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Diagnostics.EngineV1
 {
     internal partial class DiagnosticIncrementalAnalyzer
     {
-        public override async Task SynchronizeWithBuildAsync(Project project, ImmutableArray<DiagnosticData> diagnostics)
+        private readonly static Func<object, object> s_cacheCreator = _ => new ConcurrentDictionary<Project, ImmutableArray<StateSet>>(concurrencyLevel: 2, capacity: 10);
+
+        public override async Task SynchronizeWithBuildAsync(DiagnosticAnalyzerService.BatchUpdateToken token, Project project, ImmutableArray<DiagnosticData> diagnostics)
         {
             if (!PreferBuildErrors(project.Solution.Workspace))
             {
@@ -25,7 +28,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV1
             {
                 var lookup = CreateDiagnosticIdLookup(diagnostics);
 
-                foreach (var stateSet in _stateManager.GetStateSets(project))
+                foreach (var stateSet in _stateManager.GetBuildOnlyStateSets(token.GetCache(_stateManager, s_cacheCreator), project))
                 {
                     var descriptors = HostAnalyzerManager.GetDiagnosticDescriptors(stateSet.Analyzer);
                     var liveDiagnostics = ConvertToLiveDiagnostics(lookup, descriptors, poolObject.Object);
@@ -44,7 +47,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV1
             }
         }
 
-        public override async Task SynchronizeWithBuildAsync(Document document, ImmutableArray<DiagnosticData> diagnostics)
+        public override async Task SynchronizeWithBuildAsync(DiagnosticAnalyzerService.BatchUpdateToken token, Document document, ImmutableArray<DiagnosticData> diagnostics)
         {
             var workspace = document.Project.Solution.Workspace;
             if (!PreferBuildErrors(workspace))
@@ -65,7 +68,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV1
             {
                 var lookup = CreateDiagnosticIdLookup(diagnostics);
 
-                foreach (var stateSet in _stateManager.GetStateSets(document.Project))
+                foreach (var stateSet in _stateManager.GetBuildOnlyStateSets(token.GetCache(_stateManager, s_cacheCreator), document.Project))
                 {
                     // we are using Default so that things like LB can't use cached information
                     var textVersion = VersionStamp.Default;
@@ -130,6 +133,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV1
 
             if (existingDiagnostics.Length > 0)
             {
+                // retain hidden live diagnostics since it won't be comes from build.
                 builder = builder ?? ImmutableArray.CreateBuilder<DiagnosticData>();
                 builder.AddRange(existingDiagnostics.Where(d => d.Severity == DiagnosticSeverity.Hidden));
             }

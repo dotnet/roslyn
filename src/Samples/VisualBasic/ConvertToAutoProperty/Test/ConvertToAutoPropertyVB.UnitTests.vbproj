@@ -4,6 +4,7 @@
     <Import Project="..\..\..\..\..\build\Targets\VSL.Settings.targets" />
   </ImportGroup>
   <PropertyGroup>
+    <UseCommonOutputDirectory>True</UseCommonOutputDirectory>
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
     <ProjectGuid>{A8D29846-9D4B-4B9F-91FF-7AE83965347C}</ProjectGuid>
@@ -70,10 +71,10 @@
     <Compile Include="My Project\AssemblyInfo.vb" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="app.config" />
     <None Include="project.json" />
   </ItemGroup>
   <ImportGroup Label="Targets">
     <Import Project="..\..\..\..\..\build\Targets\VSL.Imports.targets" />
+    <Import Project="..\..\..\..\..\build\Targets\Roslyn.Toolsets.Xunit.targets" />
   </ImportGroup>
 </Project>

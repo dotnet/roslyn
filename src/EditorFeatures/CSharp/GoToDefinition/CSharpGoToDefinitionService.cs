@@ -19,7 +19,8 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.GoToDefinition
     {
         [ImportingConstructor]
         public CSharpGoToDefinitionService(
-            [ImportMany]IEnumerable<Lazy<INavigableItemsPresenter>> presenters) : base(presenters)
+            [ImportMany]IEnumerable<Lazy<INavigableItemsPresenter>> presenters,
+            [ImportMany]IEnumerable<Lazy<INavigableDefinitionProvider>> externalDefinitionProviders) : base(presenters, externalDefinitionProviders)
         {
         }
 

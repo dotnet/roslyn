@@ -529,7 +529,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 var x1Expression = new BoundParameter(node, lambdaSymbol.Parameters[0]) { WasCompilerGenerated = true };
                 var x2Expression = new BoundParameter(node, lambdaSymbol.Parameters[1]) { WasCompilerGenerated = true };
                 var construction = MakePair(node, x1.Name, x1Expression, x2.Name, x2Expression, state, d);
-                return lambdaBodyBinder.CreateBlockFromExpression(node, ImmutableArray<LocalSymbol>.Empty, null, construction, d);
+                return lambdaBodyBinder.CreateBlockFromExpression(node, ImmutableArray<LocalSymbol>.Empty, RefKind.None, construction, null, d);
             };
 
             var result = MakeQueryUnboundLambda(state.RangeVariableMap(), ImmutableArray.Create(x1, x2), node, bodyFactory);
@@ -562,6 +562,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 var xExpression = new BoundParameter(let, lambdaSymbol.Parameters[0]) { WasCompilerGenerated = true };
 
+                lambdaBodyBinder = lambdaBodyBinder.WithPatternVariablesIfAny(let.Expression);
+
                 var yExpression = lambdaBodyBinder.BindValue(let.Expression, d, BindValueKind.RValue);
                 SourceLocation errorLocation = new SourceLocation(let.SyntaxTree, new TextSpan(let.Identifier.SpanStart, let.Expression.Span.End - let.Identifier.SpanStart));
                 if (!yExpression.HasAnyErrors && !yExpression.HasExpressionType())
@@ -593,7 +595,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 // The bound block represents a closure scope for transparent identifiers captured in the let clause.
                 // Such closures shall be associated with the lambda body expression.
-                return lambdaBodyBinder.CreateBlockFromExpression(let.Expression, lambdaBodyBinder.Locals, null, construction, d);
+                return lambdaBodyBinder.CreateBlockFromExpression(let.Expression, lambdaBodyBinder.Locals, RefKind.None, construction, null, d);
             };
 
             var lambda = MakeQueryUnboundLambda(state.RangeVariableMap(), ImmutableArray.Create(x), let.Expression, bodyFactory);
@@ -659,7 +661,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             return MakeQueryUnboundLambda(expression, new QueryUnboundLambdaState(this, qvm, parameters, (LambdaSymbol lambdaSymbol, ref Binder lambdaBodyBinder, DiagnosticBag diagnostics) =>
             {
-                return lambdaBodyBinder.BindLambdaExpressionAsBlock(expression, diagnostics);
+                lambdaBodyBinder = lambdaBodyBinder.WithPatternVariablesIfAny(expression);
+                return lambdaBodyBinder.BindLambdaExpressionAsBlock(RefKind.None, expression, diagnostics);
             }));
         }
 
@@ -672,7 +675,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // We transform the expression from "expr" to "expr.Cast<castTypeOpt>()".
                 boundExpression = lambdaBodyBinder.MakeQueryInvocation(expression, boundExpression, "Cast", castTypeSyntax, castType, diagnostics);
 
-                return lambdaBodyBinder.CreateBlockFromExpression(expression, lambdaBodyBinder.Locals, expression, boundExpression, diagnostics);
+                return lambdaBodyBinder.CreateBlockFromExpression(expression, lambdaBodyBinder.Locals, RefKind.None, boundExpression, expression, diagnostics);
             }));
         }
 

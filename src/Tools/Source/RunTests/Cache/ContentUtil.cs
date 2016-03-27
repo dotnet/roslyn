@@ -13,20 +13,20 @@ namespace RunTests.Cache
 {
     internal sealed class ContentUtil
     {
-        private readonly Options _options;
+        private readonly TestExecutionOptions _options;
         private readonly MD5 _hash = MD5.Create();
         private readonly Dictionary<string, string> _fileToChecksumMap = new Dictionary<string, string>();
 
-        internal ContentUtil(Options options)
+        internal ContentUtil(TestExecutionOptions options)
         {
             _options = options;
         }
 
-        internal ContentFile GetTestResultContentFile(string assemblyPath)
+        internal ContentFile GetTestResultContentFile(AssemblyInfo assemblyInfo)
         {
             try
             {
-                var content = BuildTestResultContent(assemblyPath);
+                var content = BuildTestResultContent(assemblyInfo);
                 var checksum = GetChecksum(content);
                 return new ContentFile(checksum: checksum, content: content);
             }
@@ -37,10 +37,13 @@ namespace RunTests.Cache
             }
         }
 
-        private string BuildTestResultContent(string assemblyPath)
+        private string BuildTestResultContent(AssemblyInfo assemblyInfo)
         {
             var builder = new StringBuilder();
+            var assemblyPath = assemblyInfo.AssemblyPath;
             builder.AppendLine($"Assembly: {Path.GetFileName(assemblyPath)} {GetFileChecksum(assemblyPath)}");
+            builder.AppendLine($"Display Name: {assemblyInfo.DisplayName}");
+            builder.AppendLine($"Results File Name; {assemblyInfo.ResultsFileName}");
 
             var configFilePath = $"{assemblyPath}.config";
             var configFileChecksum = File.Exists(configFilePath)
@@ -55,9 +58,8 @@ namespace RunTests.Cache
             builder.AppendLine($"\t{nameof(_options.UseHtml)} - {_options.UseHtml}");
             builder.AppendLine($"\t{nameof(_options.Trait)} - {_options.Trait}");
             builder.AppendLine($"\t{nameof(_options.NoTrait)} - {_options.NoTrait}");
+            builder.AppendLine($"Extra Options: {assemblyInfo.ExtraArguments}");
 
-            // TODO: Need to include dependency information here, option data, etc ...
-            // Test file alone isn't enough.  Makes it easy to test though.
             return builder.ToString();
         }
 
@@ -81,7 +83,7 @@ namespace RunTests.Cache
 
                 try
                 {
-                    var currentPath = Path.Combine(binariesPath, Path.ChangeExtension(current.Name, "dll"));
+                    var currentPath = Path.Combine(binariesPath, $"{current.Name}.dll");
                     var currentAssembly = File.Exists(currentPath)
                         ? Assembly.ReflectionOnlyLoadFrom(currentPath)
                         : Assembly.ReflectionOnlyLoad(current.FullName);

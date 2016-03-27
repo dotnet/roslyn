@@ -13,9 +13,13 @@
     <AssemblyName>RunTests</AssemblyName>
     <SolutionDir Condition="$(SolutionDir) == '' Or $(SolutionDir) == '*Undefined*'">..\..\</SolutionDir>
     <TargetFrameworkVersion>v4.5</TargetFrameworkVersion>
+    <SignAssembly>false</SignAssembly>
+    <OutDir>$(OutDir)RunTests\</OutDir>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' " />
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' " />
+  <PropertyGroup>
+  </PropertyGroup>
   <ItemGroup>
     <Reference Include="System" />
     <Reference Include="System.Core" />
@@ -23,10 +27,14 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="AssemblyScheduler.cs" />
     <Compile Include="Cache\ContentUtil.cs" />
     <Compile Include="Cache\CachingTestExecutor.cs" />
-    <Compile Include="Cache\ConentFile.cs" />
+    <Compile Include="Cache\ContentFile.cs" />
+    <Compile Include="Cache\EmptyDataStorage.cs" />
+    <Compile Include="Cache\WebDataStorage.cs" />
     <Compile Include="Constants.cs" />
+    <Compile Include="CrashDumps.cs" />
     <Compile Include="FileUtil.cs" />
     <Compile Include="Cache\IDataStorage.cs" />
     <Compile Include="ITestExecutor.cs" />
@@ -38,6 +46,9 @@
     <Compile Include="Program.cs" />
     <Compile Include="TestRunner.cs" />
     <Compile Include="ConsoleUtil.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="project.json" />
   </ItemGroup>
   <ImportGroup Label="Targets">
     <Import Project="..\..\..\..\build\Targets\VSL.Imports.targets" />

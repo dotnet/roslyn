@@ -368,8 +368,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols.Metadata.PE
             Assert.False(csharpModifiers3_M4.IsOverride);
 
             var byrefReturnMethod = byrefReturn.GlobalNamespace.GetTypeMembers("ByRefReturn").Single().GetMembers("M").OfType<MethodSymbol>().Single();
-            Assert.Equal(TypeKind.Error, byrefReturnMethod.ReturnType.TypeKind);
-            Assert.IsType<ByRefReturnErrorTypeSymbol>(byrefReturnMethod.ReturnType.TypeSymbol);
+            Assert.Equal(RefKind.Ref, byrefReturnMethod.RefKind);
+            Assert.Equal(TypeKind.Struct, byrefReturnMethod.ReturnType.TypeKind);
         }
 
         [Fact]

@@ -104,6 +104,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 switch (node.Kind)
                 {
+                    case BoundKind.DeclarationPattern:
+                        {
+                            return ((BoundDeclarationPattern)node).LocalSymbol;
+                        }
+
                     case BoundKind.FieldAccess:
                         {
                             var fieldAccess = (BoundFieldAccess)node;

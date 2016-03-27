@@ -1776,6 +1776,18 @@ namespace Microsoft.CodeAnalysis
             bool emitPortablePdb = moduleBeingBuilt.EmitOptions.DebugInformationFormat == DebugInformationFormat.PortablePdb;
             string pdbPath = (pdbStreamProvider != null) ? (moduleBeingBuilt.EmitOptions.PdbFilePath ?? FileNameUtilities.ChangeExtension(SourceModule.Name, "pdb")) : null;
 
+            // The PDB path is emitted in it's entirety into the PE.  This makes it impossible to have deterministic
+            // builds that occur in different source directories.  To enable this we shave all path information from
+            // the PDB when specified by the user.  
+            //
+            // This is a temporary work around to allow us to make progress with determinism.  The following issue 
+            // tracks getting an official solution here.
+            //
+            // https://github.com/dotnet/roslyn/issues/9813
+            string pePdbPath = Feature("pdb-path-determinism") != null && !string.IsNullOrEmpty(pdbPath)
+                ? Path.GetFileName(pdbPath)
+                : pdbPath;
+
             try
             {
                 metadataDiagnostics = DiagnosticBag.GetInstance();
@@ -1844,17 +1856,8 @@ namespace Microsoft.CodeAnalysis
                     {
                         Debug.Assert(Options.StrongNameProvider != null);
 
-                        // Targeted try-catch for errors during CreateInputStream as found in TFS 1140649
-                        // TODO: Put this wrapping in PeWriter to catch all potential PE writing exceptions
-                        try
-                        {
-                            signingInputStream = Options.StrongNameProvider.CreateInputStream();
-                            retStream = signingInputStream;
-                        }
-                        catch (Exception e)
-                        {
-                            throw new Cci.PeWritingException(e);
-                        }
+                        signingInputStream = Options.StrongNameProvider.CreateInputStream();
+                        retStream = signingInputStream;
                     }
                     else
                     {
@@ -1881,7 +1884,7 @@ namespace Microsoft.CodeAnalysis
                         getPeStream,
                         getPortablePdbStream,
                         nativePdbWriter,
-                        pdbPath,
+                        pePdbPath,
                         metadataOnly,
                         deterministic,
                         cancellationToken))
@@ -1917,9 +1920,8 @@ namespace Microsoft.CodeAnalysis
                 }
                 catch (Cci.PeWritingException e)
                 {
-                    // Targeted fix for TFS 1140649
-                    // TODO: Add resource and better error message for a variety of PE exceptions
-                    diagnostics.Add(StrongNameKeys.GetError(StrongNameKeys.KeyFilePath, StrongNameKeys.KeyContainer, e.Message, MessageProvider));
+                    diagnostics.Add(MessageProvider.CreateDiagnostic(MessageProvider.ERR_PeWritingFailure, Location.None, e.InnerException.ToString()));
+                    return false;
                 }
                 catch (ResourceException e)
                 {

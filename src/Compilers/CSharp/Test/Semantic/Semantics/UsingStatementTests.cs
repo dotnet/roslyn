@@ -192,12 +192,16 @@ class C
 
             var compilation = CreateCompilationWithMscorlib(source);
             compilation.VerifyDiagnostics(
-                // (10,13): error CS1656: Cannot assign to 'i' because it is a 'using variable'
-                Diagnostic(ErrorCode.ERR_AssgReadonlyLocalCause, "i").WithArguments("i", "using variable"),
-                // (11,21): error CS1657: Cannot pass 'i' as a ref or out argument because it is a 'using variable'
-                Diagnostic(ErrorCode.ERR_RefReadonlyLocalCause, "i").WithArguments("i", "using variable"),
-                // (12,21): error CS1657: Cannot pass 'i' as a ref or out argument because it is a 'using variable'
-                Diagnostic(ErrorCode.ERR_RefReadonlyLocalCause, "i").WithArguments("i", "using variable"));
+    // (10,13): error CS1656: Cannot assign to 'i' because it is a 'using variable'
+    //             i = null;
+    Diagnostic(ErrorCode.ERR_AssgReadonlyLocalCause, "i").WithArguments("i", "using variable").WithLocation(10, 13),
+    // (11,21): error CS1657: Cannot use 'i' as a ref or out value because it is a 'using variable'
+    //             Ref(ref i);
+    Diagnostic(ErrorCode.ERR_RefReadonlyLocalCause, "i").WithArguments("i", "using variable").WithLocation(11, 21),
+    // (12,21): error CS1657: Cannot use 'i' as a ref or out value because it is a 'using variable'
+    //             Out(out i);
+    Diagnostic(ErrorCode.ERR_RefReadonlyLocalCause, "i").WithArguments("i", "using variable").WithLocation(12, 21)
+    );
         }
 
         [Fact]

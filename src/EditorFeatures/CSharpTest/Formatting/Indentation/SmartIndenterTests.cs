@@ -2570,6 +2570,119 @@ class C
                 expectedIndentation: 8);
         }
 
+        [Fact, Trait(Traits.Feature, Traits.Features.SmartIndent)]
+        public async Task DontCreateIndentOperationForBrokenBracketedArgumentList()
+        {
+            var code = @"
+class Program
+{
+    static void M()
+    {
+        string (userInput == ""Y"")
+
+    }
+}
+";
+
+            await AssertSmartIndentAsync(
+                code,
+                indentationLine: 6,
+                expectedIndentation: 12);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.SmartIndent)]
+        public async Task PatternPropertyIndentFirst()
+        {
+            var code = @"
+class C
+{
+    void M(object o)
+    {
+        var y = o is Point
+        {
+
+        }
+    }
+}";
+
+            await AssertSmartIndentAsync(
+                code,
+                indentationLine: 7,
+                expectedIndentation: 12);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.SmartIndent)]
+        public async Task PatternPropertyIndentSecond()
+        {
+            var code = @"
+class C
+{
+    void M(object o)
+    {
+        var y = o is Point
+        {
+            X is 4,
+
+        }
+    }
+}";
+
+            await AssertSmartIndentAsync(
+                code,
+                indentationLine: 8,
+                expectedIndentation: 12);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.SmartIndent)]
+        public async Task PatternPropertyIndentNestedFirst()
+        {
+            var code = @"
+class C
+{
+    void M(object o)
+    {
+        var y = o is Point
+        {
+            X is Widget 
+            {
+
+            },
+
+        }
+    }
+}";
+
+            await AssertSmartIndentAsync(
+                code,
+                indentationLine: 9,
+                expectedIndentation: 16);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.SmartIndent)]
+        public async Task PatternPropertyIndentNestedSecond()
+        {
+            var code = @"
+class C
+{
+    void M(object o)
+    {
+        var y = o is Point
+        {
+            X is Widget 
+            {
+                Y is 42,
+
+            },
+        }
+    }
+}";
+
+            await AssertSmartIndentAsync(
+                code,
+                indentationLine: 10,
+                expectedIndentation: 16);
+        }
+
         private static async Task AssertSmartIndentInProjectionAsync(string markup, int expectedIndentation, CSharpParseOptions options = null)
         {
             var optionsSet = options != null

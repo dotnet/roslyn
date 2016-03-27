@@ -316,7 +316,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             var substituterOpt = (substituteTemps && _tempSubstitution.Count > 0) ? new LocalSubstituter(_tempSubstitution, RecursionDepth) : null;
-            var result = _F.Block(builder.GetLocals(), ImmutableArray<LocalFunctionSymbol>.Empty, builder.GetStatements(substituterOpt));
+            var result = _F.Block(builder.GetLocals(), builder.GetStatements(substituterOpt));
 
             builder.Free();
             return result;
@@ -399,6 +399,16 @@ namespace Microsoft.CodeAnalysis.CSharp
                             // save the receiver; can get the field later.
                             var receiver = Spill(builder, field.ReceiverOpt, (refKind != RefKind.None && field.FieldSymbol.Type.IsReferenceType) ? refKind : RefKind.None, sideEffectsOnly);
                             return field.Update(receiver, field.FieldSymbol, field.ConstantValueOpt, field.ResultKind, field.Type);
+                        }
+                        goto default;
+
+                    case BoundKind.Call:
+                        var call = (BoundCall)expression;
+                        if (refKind != RefKind.None)
+                        {
+                            Debug.Assert(call.Method.RefKind != RefKind.None);
+                            _F.Diagnostics.Add(ErrorCode.ERR_RefReturningCallAndAwait, _F.Syntax.Location, call.Method);
+                            refKind = RefKind.None; // Switch the RefKind to avoid asserting later in the pipeline
                         }
                         goto default;
 
@@ -508,9 +518,10 @@ namespace Microsoft.CodeAnalysis.CSharp
             EnterStatement(node);
 
             BoundSpillSequenceBuilder builder = null;
-            var boundExpression = VisitExpression(ref builder, node.BoundExpression);
+            var preambleOpt = (BoundStatement)this.Visit(node.LoweredPreambleOpt);
+            var boundExpression = VisitExpression(ref builder, node.Expression);
             var switchSections = this.VisitList(node.SwitchSections);
-            return UpdateStatement(builder, node.Update(boundExpression, node.ConstantTargetOpt, node.InnerLocals, node.InnerLocalFunctions, switchSections, node.BreakLabel, node.StringEquality), substituteTemps: true);
+            return UpdateStatement(builder, node.Update(preambleOpt, boundExpression, node.ConstantTargetOpt, node.InnerLocals, node.InnerLocalFunctions, switchSections, node.BreakLabel, node.StringEquality), substituteTemps: true);
         }
 
         public override BoundNode VisitThrowStatement(BoundThrowStatement node)
@@ -561,7 +572,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             BoundSpillSequenceBuilder builder = null;
             var expression = VisitExpression(ref builder, node.ExpressionOpt);
-            return UpdateStatement(builder, node.Update(expression), substituteTemps: true);
+            return UpdateStatement(builder, node.Update(node.RefKind, expression), substituteTemps: true);
         }
 
 #if DEBUG
@@ -782,6 +793,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                     case BoundKind.RefValueOperator:
                     case BoundKind.FieldAccess:
                         return RefKind.Ref;
+
+                    case BoundKind.Call:
+                        return ((BoundCall)receiver).Method.RefKind;
                 }
             }
 

@@ -1,6 +1,6 @@
 {
   "locked": false,
-  "version": 1,
+  "version": 2,
   "targets": {
     ".NETFramework,Version=v4.6": {}
   },

@@ -245,25 +245,45 @@ namespace Microsoft.CodeAnalysis.CSharp
             Debug.Assert((object)underlying != null);
             Debug.Assert(underlying.SpecialType != SpecialType.None);
 
-            var nullable = Compilation.GetSpecialType(SpecialType.System_Nullable_T);
-            var nullableEnum = nullable.Construct(enumType);
-            var nullableUnderlying = nullable.Construct(underlying);
+            NamedTypeSymbol nullableEnum = null;
+            NamedTypeSymbol nullableUnderlying = null;
+
+            // PERF: avoid instantiating nullable types in common simple cases.
+            var leftType = left.Type;
+            var rightType = right.Type;
+            var simpleCase = leftType?.IsValueType == true &&
+                             rightType?.IsValueType == true &&
+                             leftType.IsNullableType() == false &&
+                             rightType.IsNullableType() == false;
+
+            if (!simpleCase)
+            {
+                var nullable = Compilation.GetSpecialType(SpecialType.System_Nullable_T);
+                nullableEnum = nullable.Construct(enumType);
+                nullableUnderlying = nullable.Construct(underlying);
+            }
 
             switch (kind)
             {
                 case BinaryOperatorKind.Addition:
                     operators.Add(new BinaryOperatorSignature(BinaryOperatorKind.EnumAndUnderlyingAddition, enumType, underlying, enumType));
                     operators.Add(new BinaryOperatorSignature(BinaryOperatorKind.UnderlyingAndEnumAddition, underlying, enumType, enumType));
-                    operators.Add(new BinaryOperatorSignature(BinaryOperatorKind.LiftedEnumAndUnderlyingAddition, nullableEnum, nullableUnderlying, nullableEnum));
-                    operators.Add(new BinaryOperatorSignature(BinaryOperatorKind.LiftedUnderlyingAndEnumAddition, nullableUnderlying, nullableEnum, nullableEnum));
+                    if (!simpleCase)
+                    {
+                        operators.Add(new BinaryOperatorSignature(BinaryOperatorKind.LiftedEnumAndUnderlyingAddition, nullableEnum, nullableUnderlying, nullableEnum));
+                        operators.Add(new BinaryOperatorSignature(BinaryOperatorKind.LiftedUnderlyingAndEnumAddition, nullableUnderlying, nullableEnum, nullableEnum));
+                    }
                     break;
                 case BinaryOperatorKind.Subtraction:
                     if (Strict)
                     {
                         operators.Add(new BinaryOperatorSignature(BinaryOperatorKind.EnumSubtraction, enumType, enumType, underlying));
                         operators.Add(new BinaryOperatorSignature(BinaryOperatorKind.EnumAndUnderlyingSubtraction, enumType, underlying, enumType));
-                        operators.Add(new BinaryOperatorSignature(BinaryOperatorKind.LiftedEnumSubtraction, nullableEnum, nullableEnum, nullableUnderlying));
-                        operators.Add(new BinaryOperatorSignature(BinaryOperatorKind.LiftedEnumAndUnderlyingSubtraction, nullableEnum, nullableUnderlying, nullableEnum));
+                        if (!simpleCase)
+                        {
+                            operators.Add(new BinaryOperatorSignature(BinaryOperatorKind.LiftedEnumSubtraction, nullableEnum, nullableEnum, nullableUnderlying));
+                            operators.Add(new BinaryOperatorSignature(BinaryOperatorKind.LiftedEnumAndUnderlyingSubtraction, nullableEnum, nullableUnderlying, nullableEnum));
+                        }
                     }
                     else
                     {
@@ -277,16 +297,22 @@ namespace Microsoft.CodeAnalysis.CSharp
                         { Priority = 2 });
                         operators.Add(new BinaryOperatorSignature(BinaryOperatorKind.EnumAndUnderlyingSubtraction, enumType, underlying, enumType)
                         { Priority = isExactSubtraction ? 1 : 3 });
-                        operators.Add(new BinaryOperatorSignature(BinaryOperatorKind.LiftedEnumSubtraction, nullableEnum, nullableEnum, nullableUnderlying)
-                        { Priority = 12 });
-                        operators.Add(new BinaryOperatorSignature(BinaryOperatorKind.LiftedEnumAndUnderlyingSubtraction, nullableEnum, nullableUnderlying, nullableEnum)
-                        { Priority = isExactSubtraction ? 11 : 13 });
+                        if (!simpleCase)
+                        {
+                            operators.Add(new BinaryOperatorSignature(BinaryOperatorKind.LiftedEnumSubtraction, nullableEnum, nullableEnum, nullableUnderlying)
+                            { Priority = 12 });
+                            operators.Add(new BinaryOperatorSignature(BinaryOperatorKind.LiftedEnumAndUnderlyingSubtraction, nullableEnum, nullableUnderlying, nullableEnum)
+                            { Priority = isExactSubtraction ? 11 : 13 });
+                        }
 
                         // Due to a bug, the native compiler allows "underlying - enum", so Roslyn does as well.
                         operators.Add(new BinaryOperatorSignature(BinaryOperatorKind.UnderlyingAndEnumSubtraction, underlying, enumType, enumType)
                         { Priority = 4 });
-                        operators.Add(new BinaryOperatorSignature(BinaryOperatorKind.LiftedUnderlyingAndEnumSubtraction, nullableUnderlying, nullableEnum, nullableEnum)
-                        { Priority = 14 });
+                        if (!simpleCase)
+                        {
+                            operators.Add(new BinaryOperatorSignature(BinaryOperatorKind.LiftedUnderlyingAndEnumSubtraction, nullableUnderlying, nullableEnum, nullableEnum)
+                            { Priority = 14 });
+                        }
                     }
                     break;
                 case BinaryOperatorKind.Equal:
@@ -297,13 +323,19 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case BinaryOperatorKind.LessThanOrEqual:
                     var boolean = Compilation.GetSpecialType(SpecialType.System_Boolean);
                     operators.Add(new BinaryOperatorSignature(kind | BinaryOperatorKind.Enum, enumType, enumType, boolean));
-                    operators.Add(new BinaryOperatorSignature(kind | BinaryOperatorKind.Lifted | BinaryOperatorKind.Enum, nullableEnum, nullableEnum, boolean));
+                    if (!simpleCase)
+                    {
+                        operators.Add(new BinaryOperatorSignature(kind | BinaryOperatorKind.Lifted | BinaryOperatorKind.Enum, nullableEnum, nullableEnum, boolean));
+                    }
                     break;
                 case BinaryOperatorKind.And:
                 case BinaryOperatorKind.Or:
                 case BinaryOperatorKind.Xor:
                     operators.Add(new BinaryOperatorSignature(kind | BinaryOperatorKind.Enum, enumType, enumType, enumType));
-                    operators.Add(new BinaryOperatorSignature(kind | BinaryOperatorKind.Lifted | BinaryOperatorKind.Enum, nullableEnum, nullableEnum, nullableEnum));
+                    if (!simpleCase)
+                    {
+                        operators.Add(new BinaryOperatorSignature(kind | BinaryOperatorKind.Lifted | BinaryOperatorKind.Enum, nullableEnum, nullableEnum, nullableEnum));
+                    }
                     break;
             }
         }

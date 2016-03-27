@@ -152,16 +152,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             // this is a no-op.  Emitting an error here, or when the original parameter was bound, would
             // adversely effect the compilation or potentially change overload resolution.  
             var compilation = this.DeclaringCompilation;
-            if (Type.TypeSymbol.ContainsDynamic() && compilation.HasDynamicEmitAttributes())
-            {
-                var boolType = compilation.GetSpecialType(SpecialType.System_Boolean);
-                var diagnostic = boolType.GetUseSiteDiagnostic();
-                if ((diagnostic == null) || (diagnostic.Severity != DiagnosticSeverity.Error))
+            if (Type.TypeSymbol.ContainsDynamic() && compilation.HasDynamicEmitAttributes() && compilation.CanEmitBoolean())
             {
                 AddSynthesizedAttribute(ref attributes, compilation.SynthesizeDynamicAttribute(this.Type.TypeSymbol, this.Type.CustomModifiers.Length, this.RefKind));
+                }
             }
-        }
-        }
 
         /// <summary>
         /// For each parameter of a source method, construct a corresponding synthesized parameter

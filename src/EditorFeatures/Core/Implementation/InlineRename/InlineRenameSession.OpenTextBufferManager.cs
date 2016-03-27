@@ -198,7 +198,11 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
 
                     _activeSpan = _activeSpan.HasValue && spans.Contains(_activeSpan.Value)
                         ? _activeSpan
-                        : spans.FirstOrNullable();
+                        : spans.Where(s =>
+                                // in tests `ActiveTextview` can be null so don't depend on it
+                                ActiveTextview == null ||
+                                ActiveTextview.GetSpanInView(_subjectBuffer.CurrentSnapshot.GetSpan(s.ToSpan())).Count != 0) // spans were successfully projected
+                            .FirstOrNullable(); // filter to spans that have a projection
 
                     UpdateReadOnlyRegions();
                     this.ApplyReplacementText(updateSelection: false);
@@ -245,9 +249,30 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
                 }
             }
 
+            /// <summary>
+            /// This is a work around for a bug in Razor where the projection spans can get out-of-sync with the
+            /// identifiers.  When that bug is fixed this helper can be deleted.
+            /// </summary>
+            private bool AreAllReferenceSpansMappable()
+            {
+                // in tests `ActiveTextview` could be null so don't depend on it
+                return ActiveTextview == null ||
+                    _referenceSpanToLinkedRenameSpanMap.Keys
+                    .Select(s => s.ToSpan())
+                    .All(s =>
+                        s.End <= _subjectBuffer.CurrentSnapshot.Length && // span is valid for the snapshot
+                        ActiveTextview.GetSpanInView(_subjectBuffer.CurrentSnapshot.GetSpan(s)).Count != 0); // spans were successfully projected
+            }
+
             internal void ApplyReplacementText(bool updateSelection = true)
             {
                 AssertIsForeground();
+
+                if (!AreAllReferenceSpansMappable())
+                {
+                    // don't dynamically update the reference spans for documents with unmappable projections
+                    return;
+                }
 
                 _session.UndoManager.ApplyCurrentState(
                     _subjectBuffer,
@@ -286,6 +311,12 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
             internal void ApplyConflictResolutionEdits(IInlineRenameReplacementInfo conflictResolution, IEnumerable<Document> documents, CancellationToken cancellationToken)
             {
                 AssertIsForeground();
+
+                if (!AreAllReferenceSpansMappable())
+                {
+                    // don't dynamically update the reference spans for documents with unmappable projections
+                    return;
+                }
 
                 using (new SelectionTracking(this))
                 {
@@ -553,8 +584,10 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
 
                     var containingSpans = openTextBufferManager._referenceSpanToLinkedRenameSpanMap.Select(kvp =>
                     {
-                        var ss = textView.GetSpanInView(kvp.Value.TrackingSpan.GetSpan(snapshot)).Single();
-                        if (ss.IntersectsWith(selection.ActivePoint.Position) || ss.IntersectsWith(selection.AnchorPoint.Position))
+                        // GetSpanInView() can return an empty collection if the tracking span isn't mapped to anything
+                        // in the current view, specifically a `@model SomeModelClass` directive in a Razor file.
+                        var ss = textView.GetSpanInView(kvp.Value.TrackingSpan.GetSpan(snapshot)).FirstOrDefault();
+                        if (ss != null && (ss.IntersectsWith(selection.ActivePoint.Position) || ss.IntersectsWith(selection.AnchorPoint.Position)))
                         {
                             return Tuple.Create(kvp.Key, ss);
                         }

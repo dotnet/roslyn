@@ -158,6 +158,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         internal override TypeSymbol GetIteratorElementType(YieldStatementSyntax node, DiagnosticBag diagnostics)
         {
+            RefKind refKind = _methodSymbol.RefKind;
             TypeSymbol returnType = _methodSymbol.ReturnType.TypeSymbol;
 
             if (!this.IsDirectlyInIterator)
@@ -168,7 +169,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // and deduce an iterator element type from the return type.  If we didn't do this, the 
                 // TypeInfo.ConvertedType of the yield statement would always be an error type.  However, we will 
                 // not mutate any state (i.e. we won't store the result).
-                return GetIteratorElementTypeFromReturnType(returnType, node, diagnostics) ?? CreateErrorType();
+                return GetIteratorElementTypeFromReturnType(refKind, returnType, node, diagnostics) ?? CreateErrorType();
             }
 
             if (_iteratorInfo == IteratorInfo.Empty)
@@ -176,11 +177,18 @@ namespace Microsoft.CodeAnalysis.CSharp
                 TypeSymbol elementType = null;
                 DiagnosticBag elementTypeDiagnostics = DiagnosticBag.GetInstance();
 
-                elementType = GetIteratorElementTypeFromReturnType(returnType, node, elementTypeDiagnostics);
+                elementType = GetIteratorElementTypeFromReturnType(refKind, returnType, node, elementTypeDiagnostics);
 
                 if ((object)elementType == null)
                 {
+                    if (refKind != RefKind.None)
+                    {
+                        Error(elementTypeDiagnostics, ErrorCode.ERR_BadIteratorReturnRef, _methodSymbol.Locations[0], _methodSymbol);
+                    }
+                    else
+                    {
                     Error(elementTypeDiagnostics, ErrorCode.ERR_BadIteratorReturn, _methodSymbol.Locations[0], _methodSymbol, returnType);
+                    }
                     elementType = CreateErrorType();
                 }
 
@@ -199,9 +207,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             return _iteratorInfo.ElementType;
         }
 
-        private TypeSymbol GetIteratorElementTypeFromReturnType(TypeSymbol returnType, CSharpSyntaxNode errorLocationNode, DiagnosticBag diagnostics)
+        private TypeSymbol GetIteratorElementTypeFromReturnType(RefKind refKind, TypeSymbol returnType, CSharpSyntaxNode errorLocationNode, DiagnosticBag diagnostics)
         {
-            if (returnType.Kind == SymbolKind.NamedType)
+            if (refKind == RefKind.None && returnType.Kind == SymbolKind.NamedType)
             {
                 switch (returnType.OriginalDefinition.SpecialType)
                 {
@@ -251,7 +259,12 @@ namespace Microsoft.CodeAnalysis.CSharp
         internal static bool ReportConflictWithParameter(Symbol parameter, Symbol newSymbol, string name, Location newLocation, DiagnosticBag diagnostics)
         {
             var oldLocation = parameter.Locations[0];
-            Debug.Assert(oldLocation != newLocation || oldLocation == Location.None, "same nonempty location refers to different symbols?");
+#if PATTERNS_FIXED
+            Debug.Assert(oldLocation != newLocation || oldLocation == Location.None || newLocation.SourceTree?.GetRoot().ContainsDiagnostics == true,
+                "same nonempty location refers to different symbols?");
+#else
+            if (oldLocation == newLocation) return false;
+#endif
             SymbolKind parameterKind = parameter.Kind;
 
             // Quirk of the way we represent lambda parameters.                

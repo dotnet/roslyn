@@ -28,7 +28,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         public static AttributeSemanticModel Create(CSharpCompilation compilation, AttributeSyntax syntax, NamedTypeSymbol attributeType, AliasSymbol aliasOpt, Binder rootBinder)
         {
             var executableBinder = new ExecutableCodeBinder(syntax, attributeType, rootBinder);
-            return new AttributeSemanticModel(compilation, syntax, attributeType, aliasOpt, new LocalScopeBinder(executableBinder));
+            return new AttributeSemanticModel(compilation, syntax, attributeType, aliasOpt, new PatternVariableBinder(syntax, executableBinder));
         }
 
         /// <summary>

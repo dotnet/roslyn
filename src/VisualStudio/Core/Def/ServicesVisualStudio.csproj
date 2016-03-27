@@ -19,7 +19,25 @@
     <DeployExtension>false</DeployExtension>
     <UseCodebase>true</UseCodebase>
     <CopyNuGetImplementations>false</CopyNuGetImplementations>
+    <ResolveAssemblyWarnOrErrorOnTargetArchitectureMismatch>None</ResolveAssemblyWarnOrErrorOnTargetArchitectureMismatch>
   </PropertyGroup>
+  <!-- We need to mark our NuGet.VisualStudio package reference as EmbedInteropTypes.  However,
+       as this package comes from project.json there is no way to do that in the json file.
+       To deal with that, we write this target which finds that added package, removes it from
+       the references list, then adds it back in again with the 'EmbedInteropTypes' flag properly
+       set. -->
+  <Target Name="MarkNuGetVisualStudioPackageWithEmbedInteropType" AfterTargets="ResolveNuGetPackageAssets">
+    <ItemGroup>
+      <_NuGetVisualStudioPackageReference Include="@(Reference)" Condition="'%(Reference.NuGetPackageId)' == 'NuGet.VisualStudio'" />
+    </ItemGroup>
+    <Error Condition="'@(_NuGetVisualStudioPackageReference)' == ''" Text="Could not find NuGet.VisualStudio package to add EmbedInteropTypes to." />
+    <ItemGroup>
+      <Reference Remove="@(_NuGetVisualStudioPackageReference)" />
+      <Reference Include="@(_NuGetVisualStudioPackageReference)">
+        <EmbedInteropTypes>True</EmbedInteropTypes>
+      </Reference>
+    </ItemGroup>
+  </Target>
   <ItemGroup Label="Build Items">
     <Compile Include="..\..\..\Compilers\Core\Portable\InternalUtilities\ConcurrentLruCache.cs">
       <Link>Shared\ConcurrentLruCache.cs</Link>
@@ -43,6 +61,10 @@
     <Compile Include="Implementation\AnalyzerDependency\IIgnorableAssemblyList.cs" />
     <Compile Include="Implementation\AnalyzerDependency\IBindingRedirectionService.cs" />
     <Compile Include="Implementation\Extensions\ServiceProviderExtensions.cs" />
+    <Compile Include="ID.InteractiveCommands.cs" />
+    <Compile Include="Implementation\Interactive\CSharpResetInteractiveMenuCommand.cs" />
+    <Compile Include="Implementation\Interactive\AbstractResetInteractiveMenuCommand.cs" />
+    <Compile Include="Implementation\Interactive\VisualBasicResetInteractiveMenuCommand.cs" />
     <Compile Include="Implementation\Interop\CleanableWeakComHandleTable.cs" />
     <Compile Include="Implementation\LanguageService\AbstractLanguageService`2.IVsLanguageBlock.cs" />
     <Compile Include="Implementation\Library\AbstractLibraryService.cs" />
@@ -63,10 +85,14 @@
     <Compile Include="Implementation\Preview\ReferenceChange.AnalyzerReferenceChange.cs" />
     <Compile Include="Implementation\Preview\ReferenceChange.ProjectReferenceChange.cs" />
     <Compile Include="Implementation\Preview\ReferenceChange.cs" />
+    <Compile Include="Implementation\ProjectSystem\AbstractProject_IIntellisenseBuildTarget.cs" />
     <Compile Include="Implementation\ProjectSystem\AbstractRoslynProject.cs" />
+    <Compile Include="Implementation\ProjectSystem\Interop\IIntellisenseBuildTarget.cs" />
     <Compile Include="Implementation\ProjectSystem\Interop\ICompilerOptionsHostObject.cs" />
     <Compile Include="Implementation\ProjectSystem\IVisualStudioWorkingFolder.cs" />
+    <Compile Include="Implementation\ProjectSystem\IVisualStudioWorkspaceHost2.cs" />
     <Compile Include="Implementation\ProjectSystem\MetadataReferences\VisualStudioAnalyzerAssemblyLoaderService.cs" />
+    <Compile Include="Implementation\ProjectSystem\MetadataReferences\VisualStudioFrameworkAssemblyPathResolverFactory.cs" />
     <Compile Include="Implementation\ProjectSystem\RuleSets\RuleSetEventHandler.cs" />
     <Compile Include="Implementation\ProjectSystem\VisualStudioProjectTracker_IVsSolutionWorkingFoldersEvents.cs" />
     <Compile Include="Implementation\Diagnostics\MiscellaneousDiagnosticAnalyzerService.cs" />
@@ -79,6 +105,7 @@
     <Compile Include="Implementation\SolutionSize\SolutionSizeTracker.cs" />
     <Compile Include="Implementation\TableDataSource\DiagnosticTableControlEventProcessorProvider.AggregateDiagnosticTableControlEventProcessor.cs" />
     <Compile Include="Implementation\TableDataSource\Suppression\IVisualStudioDiagnosticListSuppressionStateService.cs" />
+    <Compile Include="Implementation\TableDataSource\Suppression\SuppressionStateColumnFilterDefinition.cs" />
     <Compile Include="Implementation\TableDataSource\Suppression\VisualStudioDiagnosticListTableCommandHandler.cs" />
     <Compile Include="Implementation\TableDataSource\Suppression\VisualStudioDiagnosticListSuppressionStateService.cs" />
     <Compile Include="Implementation\TableDataSource\Suppression\DiagnosticTableControlEventProcessorProvider.SuppressionStateProcessor.cs" />
@@ -124,12 +151,32 @@
     <Compile Include="Implementation\Workspace\VisualStudioNavigationOptionsProvider.cs" />
     <Compile Include="Implementation\Workspace\VisualStudioProjectCacheHostServiceFactory.cs" />
     <Compile Include="IRoslynTelemetrySetup.cs" />
+    <Compile Include="Packaging\Interop\SVsRemoteControlService.cs" />
+    <Compile Include="Packaging\IPackageSearchDatabaseFactoryService.cs" />
+    <Compile Include="Packaging\IPackageSearchDelayService.cs" />
+    <Compile Include="Packaging\IPackageSearchIOService.cs" />
+    <Compile Include="Packaging\IPackageSearchLogService.cs" />
+    <Compile Include="Packaging\IPackageSearchPatchService.cs" />
+    <Compile Include="Packaging\IPackageSearchRemoteControlService.cs" />
+    <Compile Include="Packaging\PackageInstallerServiceFactory.cs" />
+    <Compile Include="Packaging\PackageInstallerServiceFactory_UndoRedo.cs" />
+    <Compile Include="Packaging\PackageSearchService.Update.cs" />
+    <Compile Include="Packaging\PackageSearchService.cs" />
+    <Compile Include="Packaging\PackageSearchService.DatabaseFactoryService.cs" />
+    <Compile Include="Packaging\PackageSearchService.DelayService.cs" />
+    <Compile Include="Packaging\PackageSearchService.IOService.cs" />
+    <Compile Include="Packaging\PackageSearchService.LogService.cs" />
+    <Compile Include="Packaging\PackageSearchService.RemoteControlService.cs" />
+    <Compile Include="Packaging\PackageSearchServiceFactory.cs" />
+    <Compile Include="Packaging\Patching\Delta.cs" />
     <Compile Include="RoslynPackage.cs" />
     <Compile Include="ServicesVSResources.Designer.cs">
       <AutoGen>True</AutoGen>
       <DesignTime>True</DesignTime>
       <DependentUpon>ServicesVSResources.resx</DependentUpon>
     </Compile>
+    <Compile Include="Shared\LogicalStringComparer.cs" />
+    <Compile Include="Shared\VisualStudioImageMonikerService.cs" />
     <Compile Include="SolutionEventMonitor.cs" />
     <Compile Include="Utilities\VSCodeAnalysisColors.cs" />
     <Compile Include="Implementation\WorkspaceCacheService.cs" />
@@ -193,6 +240,9 @@
     <Reference Include="Microsoft.VisualStudio.CallHierarchy.Package.Definitions.dll">
       <HintPath>$(DevEnvDir)\Microsoft.VisualStudio.CallHierarchy.Package.Definitions.dll</HintPath>
     </Reference>
+    <Reference Include="Microsoft.VisualStudio.Shell.Design.dll">
+      <HintPath>$(DevEnvDir)\Microsoft.VisualStudio.Shell.Design.dll</HintPath>
+    </Reference>
     <Reference Include="Microsoft.VisualStudio.TextManager.Interop.11.0, Version=11.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a">
       <EmbedInteropTypes>True</EmbedInteropTypes>
     </Reference>
@@ -211,12 +261,16 @@
     <Reference Include="Microsoft.VisualStudio.Shell.Interop.14.0.DesignTime, Version=14.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
       <EmbedInteropTypes>True</EmbedInteropTypes>
     </Reference>
+    <Reference Include="Microsoft.VisualStudio.Shell.Design.dll">
+      <HintPath>$(DevEnvDir)\Microsoft.VisualStudio.Shell.Design.dll</HintPath>
+    </Reference>
   </ItemGroup>
   <ItemGroup>
     <InternalsVisibleTo Include="Microsoft.VisualStudio.LanguageServices.CSharp" />
     <InternalsVisibleTo Include="Microsoft.VisualStudio.LanguageServices.Implementation" />
     <InternalsVisibleTo Include="Microsoft.VisualStudio.LanguageServices.SolutionExplorer" />
     <InternalsVisibleTo Include="Microsoft.VisualStudio.LanguageServices.Telemetry" />
+    <InternalsVisibleTo Include="Microsoft.VisualStudio.LanguageServices.ExternalDependencyServices" />
     <InternalsVisibleTo Include="Microsoft.VisualStudio.LanguageServices.VisualBasic" />
     <InternalsVisibleTo Include="Microsoft.VisualStudio.CSharp.Repl" />
     <InternalsVisibleTo Include="Microsoft.VisualStudio.InteractiveServices" />
@@ -228,6 +282,7 @@
     <InternalsVisibleToTest Include="RoslynETAHost" />
     <InternalsVisibleToTest Include="RoslynTaoActions" />
     <InternalsVisibleToTest Include="Microsoft.VisualStudio.ErrorList.UnitTests" />
+    <InternalsVisibleToMoq Include="DynamicProxyGenAssembly2" />
     <InternalsVisibleToTypeScript Include="Microsoft.VisualStudio.Alm.Shared.CodeAnalysisClient" />
     <InternalsVisibleToTypeScript Include="Microsoft.VisualStudio.LanguageServices.TypeScript" />
     <InternalsVisibleToTypeScript Include="ManagedSourceCodeAnalysis" />
@@ -342,6 +397,7 @@
     <Reference Include="System.Core" />
     <Reference Include="System.Design" />
     <Reference Include="System.Drawing" />
+    <Reference Include="System.Runtime.Serialization" />
     <Reference Include="System.Windows.Forms" />
     <Reference Include="System.Xaml" />
     <Reference Include="System.Xml" />
@@ -764,6 +820,7 @@
     <Compile Include="Implementation\ProjectSystem\MetadataReferences\VisualStudioMetadataReferenceManager.Factory.cs" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Packaging\PackageSearchService.PatchService.cs" />
     <None Include="project.json" />
     <PublicAPI Include="PublicAPI.Shipped.txt" />
     <PublicAPI Include="PublicAPI.Unshipped.txt" />
@@ -773,6 +830,9 @@
       <ResourceName>Menus.ctmenu</ResourceName>
       <SubType>Designer</SubType>
     </VSCTCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <Folder Include="Implementation\Options\Style\" />
   </ItemGroup>
   <ImportGroup Label="Targets">
     <Import Project="..\..\..\..\build\Targets\VSL.Imports.targets" />

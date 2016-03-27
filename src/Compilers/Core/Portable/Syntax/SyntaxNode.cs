@@ -421,7 +421,7 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         public bool Contains(SyntaxNode node)
         {
-            if (node == null || !node.FullSpan.IntersectsWith(node.FullSpan))
+            if (node == null || !this.FullSpan.Contains(node.FullSpan))
             {
                 return false;
             }
@@ -923,6 +923,7 @@ namespace Microsoft.CodeAnalysis
 
         internal static SyntaxTrivia FindTriviaByOffset(SyntaxNode node, int textOffset, Func<SyntaxTrivia, bool> stepInto = null)
         {
+recurse:
             if (textOffset >= 0)
             {
                 foreach (var element in node.ChildNodesAndTokens())
@@ -932,7 +933,8 @@ namespace Microsoft.CodeAnalysis
                     {
                         if (element.IsNode)
                         {
-                            return FindTriviaByOffset(element.AsNode(), textOffset, stepInto);
+                            node = element.AsNode();
+                            goto recurse;
                         }
                         else if (element.IsToken)
                         {
@@ -946,7 +948,8 @@ namespace Microsoft.CodeAnalysis
                                     {
                                         if (trivia.HasStructure && stepInto != null && stepInto(trivia))
                                         {
-                                            return FindTriviaByOffset(trivia.GetStructure(), textOffset, stepInto);
+                                            node = trivia.GetStructure();
+                                            goto recurse;
                                         }
 
                                         return trivia;
@@ -964,7 +967,8 @@ namespace Microsoft.CodeAnalysis
                                     {
                                         if (trivia.HasStructure && stepInto != null && stepInto(trivia))
                                         {
-                                            return FindTriviaByOffset(trivia.GetStructure(), textOffset, stepInto);
+                                            node = trivia.GetStructure();
+                                            goto recurse;
                                         }
 
                                         return trivia;

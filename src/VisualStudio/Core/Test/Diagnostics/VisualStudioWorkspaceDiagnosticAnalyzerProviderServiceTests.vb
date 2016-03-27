@@ -13,7 +13,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Diagnostics
         <Fact>
         Public Sub GetHostAnalyzerPackagesWithNameTest()
             Dim extensionManager = New MockExtensionManager("Microsoft.VisualStudio.Analyzer", "$RootFolder$\test\test.dll", "$ShellFolder$\test\test.dll", "test\test.dll")
-            Dim packages = VisualStudioWorkspaceDiagnosticAnalyzerProviderService.GetHostAnalyzerPackagesWithName(extensionManager, "ResolvedRootFolder", "ResolvedShellFolder")
+            Dim packages = VisualStudioWorkspaceDiagnosticAnalyzerProviderService.GetHostAnalyzerPackagesWithName(extensionManager, GetType(MockExtensionManager.MockContent))
 
             Assert.Equal(packages.Count(), 3)
 

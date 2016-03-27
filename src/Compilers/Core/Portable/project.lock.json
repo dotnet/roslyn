@@ -1,9 +1,10 @@
 {
   "locked": false,
-  "version": 1,
+  "version": 2,
   "targets": {
     ".NETPortable,Version=v4.5,Profile=Profile7": {
       "System.Collections.Immutable/1.1.37": {
+        "type": "package",
         "compile": {
           "lib/portable-net45+win8+wp8+wpa81/System.Collections.Immutable.dll": {}
         },
@@ -11,9 +12,10 @@
           "lib/portable-net45+win8+wp8+wpa81/System.Collections.Immutable.dll": {}
         }
       },
-      "System.Reflection.Metadata/1.2.0-rc3-23811": {
+      "System.Reflection.Metadata/1.2.0": {
+        "type": "package",
         "dependencies": {
-          "System.Collections.Immutable": "[1.1.37, )"
+          "System.Collections.Immutable": "1.1.37"
         },
         "compile": {
           "lib/portable-net45+win8/System.Reflection.Metadata.dll": {}
@@ -27,39 +29,35 @@
   "libraries": {
     "System.Collections.Immutable/1.1.37": {
       "sha512": "fTpqwZYBzoklTT+XjTRK8KxvmrGkYHzBiylCcKyQcxiOM8k+QvhNBxRvFHDWzy4OEP5f8/9n+xQ9mEgEXY+muA==",
-      "type": "Package",
+      "type": "package",
       "files": [
-        "[Content_Types].xml",
-        "_rels/.rels",
+        "System.Collections.Immutable.1.1.37.nupkg.sha512",
+        "System.Collections.Immutable.nuspec",
         "lib/dotnet/System.Collections.Immutable.dll",
         "lib/dotnet/System.Collections.Immutable.xml",
         "lib/portable-net45+win8+wp8+wpa81/System.Collections.Immutable.dll",
-        "lib/portable-net45+win8+wp8+wpa81/System.Collections.Immutable.xml",
-        "package/services/metadata/core-properties/a02fdeabe1114a24bba55860b8703852.psmdcp",
-        "System.Collections.Immutable.nuspec"
+        "lib/portable-net45+win8+wp8+wpa81/System.Collections.Immutable.xml"
       ]
     },
-    "System.Reflection.Metadata/1.2.0-rc3-23811": {
-      "sha512": "gAOQV1dsGyQfQUuzsCYFLMlI6BhfK1/2aA7JGf6gJphaLgjU4dV4hzjbE0iZXgo61VUuda2LtCBrWWZBw5897Q==",
-      "type": "Package",
+    "System.Reflection.Metadata/1.2.0": {
+      "sha512": "ubQKFCNYPwhqPXPLjRKCvTDR2UvL5L5+Tm181D/5kl/df7264AuXDi2j2Bf5DxplBxevq8eUH9LRomcFCXTQKw==",
+      "type": "package",
       "files": [
-        "[Content_Types].xml",
-        "_rels/.rels",
-        "dotnet_library_license.txt",
-        "lib/dotnet5.2/System.Reflection.Metadata.dll",
-        "lib/dotnet5.2/System.Reflection.Metadata.xml",
-        "lib/portable-net45+win8/System.Reflection.Metadata.dll",
-        "lib/portable-net45+win8/System.Reflection.Metadata.xml",
-        "package/services/metadata/core-properties/9aa921f066b94690988804574c5d2231.psmdcp",
+        "System.Reflection.Metadata.1.2.0.nupkg.sha512",
         "System.Reflection.Metadata.nuspec",
-        "ThirdPartyNotices.txt"
+        "ThirdPartyNotices.txt",
+        "dotnet_library_license.txt",
+        "lib/netstandard1.1/System.Reflection.Metadata.dll",
+        "lib/netstandard1.1/System.Reflection.Metadata.xml",
+        "lib/portable-net45+win8/System.Reflection.Metadata.dll",
+        "lib/portable-net45+win8/System.Reflection.Metadata.xml"
       ]
     }
   },
   "projectFileDependencyGroups": {
     "": [
       "System.Collections.Immutable >= 1.1.37",
-      "System.Reflection.Metadata >= 1.2.0-rc3-23811"
+      "System.Reflection.Metadata >= 1.2.0"
     ],
     ".NETPortable,Version=v4.5,Profile=Profile7": []
   }

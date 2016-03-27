@@ -454,6 +454,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
+        internal sealed override RefKind RefKind
+        {
+            get
+            {
+                return originalDefinition.RefKind;
+            }
+        }
+
         public sealed override TypeSymbolWithAnnotations ReturnType
         {
             get
