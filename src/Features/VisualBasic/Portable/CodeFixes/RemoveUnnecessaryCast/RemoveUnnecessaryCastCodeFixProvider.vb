@@ -14,7 +14,7 @@ Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 Namespace Microsoft.CodeAnalysis.VisualBasic.CodeFixes.RemoveUnnecessaryCast
 
     <ExportCodeFixProviderAttribute(LanguageNames.VisualBasic, Name:=PredefinedCodeFixProviderNames.RemoveUnnecessaryCast), [Shared]>
-    <ExtensionOrder(After:=PredefinedCodeFixProviderNames.GenerateEndConstruct)>
+    <ExtensionOrder(After:=PredefinedCodeFixProviderNames.AddLabelsToSwitch)>
     Partial Friend Class RemoveUnnecessaryCastCodeFixProvider
         Inherits CodeFixProvider
 

@@ -80,7 +80,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.PopulateSwitch
             foreach (var member in enumType.GetMembers())
             {
                 // skip `.ctor`
-                if (member.Name.StartsWith("."))
+                if (member.IsImplicitlyDeclared)
                 {
                     continue;
                 }
@@ -91,6 +91,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.PopulateSwitch
                     if (symbol == member)
                     {
                         switchHasSymbol = true;
+                        break;
                     }
                 }
 

@@ -200,9 +200,173 @@ namespace ConsoleApplication1
                 case MyEnum.Fizz:
                 case MyEnum.Buzz:
                     break;
+                case MyEnum.FizzBuzz:
+                    break;
+                default:
+                    break;
+            }
+        }
+    }
+}
+");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsPopulateSwitch)]
+        public async Task NotAllMembersExist_NotDefault_EnumHasExplicitType()
+        {
+            await TestAsync(
+            @"
+namespace ConsoleApplication1
+{
+    enum MyEnum : long
+    {
+        Fizz, Buzz, FizzBuzz
+    }
+    class MyClass
+    {
+        void Method()
+        {
+            var e = MyEnum.Fizz;
+            switch (e)
+            {
+                [|case MyEnum.Fizz:
+                case MyEnum.Buzz:
+                    break;|]
+            }
+        }
+    }
+}
+",
+                        @"
+namespace ConsoleApplication1
+{
+    enum MyEnum : long
+    {
+        Fizz, Buzz, FizzBuzz
+    }
+    class MyClass
+    {
+        void Method()
+        {
+            var e = MyEnum.Fizz;
+            switch (e)
+            {
+                case MyEnum.Fizz:
+                case MyEnum.Buzz:
+                    break;
+                case MyEnum.FizzBuzz:
+                    break;
+                default:
+                    break;
+            }
+        }
+    }
+}
+");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsPopulateSwitch)]
+        public async Task NotAllMembersExist_WithMembersAndDefaultInSection_NewValuesAboveDefaultSection()
+        {
+            await TestAsync(
+            @"
+namespace ConsoleApplication1
+{
+    enum MyEnum
+    {
+        Fizz, Buzz, FizzBuzz
+    }
+    class MyClass
+    {
+        void Method()
+        {
+            var e = MyEnum.Fizz;
+            switch (e)
+            {
+                [|case MyEnum.Fizz:
+                case MyEnum.Buzz:
+                default:
+                    break;|]
+            }
+        }
+    }
+}
+",
+                        @"
+namespace ConsoleApplication1
+{
+    enum MyEnum
+    {
+        Fizz, Buzz, FizzBuzz
+    }
+    class MyClass
+    {
+        void Method()
+        {
+            var e = MyEnum.Fizz;
+            switch (e)
+            {
+                case MyEnum.FizzBuzz:
+                    break;
+                case MyEnum.Fizz:
+                case MyEnum.Buzz:
+                default:
+                    break;
+            }
+        }
+    }
+}
+");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsPopulateSwitch)]
+        public async Task NotAllMembersExist_WithMembersAndDefaultInSection_AssumesDefaultIsInLastSection()
+        {
+            await TestAsync(
+            @"
+namespace ConsoleApplication1
+{
+    enum MyEnum
+    {
+        Fizz, Buzz, FizzBuzz
+    }
+    class MyClass
+    {
+        void Method()
+        {
+            var e = MyEnum.Fizz;
+            switch (e)
+            {
+                [|default:
+                    break;
+                case MyEnum.Fizz:
+                case MyEnum.Buzz:
+                    break;|]
+            }
+        }
+    }
+}
+",
+                        @"
+namespace ConsoleApplication1
+{
+    enum MyEnum
+    {
+        Fizz, Buzz, FizzBuzz
+    }
+    class MyClass
+    {
+        void Method()
+        {
+            var e = MyEnum.Fizz;
+            switch (e)
+            {
                 default:
                     break;
                 case MyEnum.FizzBuzz:
+                    break;
+                case MyEnum.Fizz:
+                case MyEnum.Buzz:
                     break;
             }
         }
@@ -385,11 +549,11 @@ namespace ConsoleApplication1
                     break;
                 case OpenOrCreate:
                     break;
-                default:
+                case Append:
                     break;
                 case Truncate:
                     break;
-                case Append:
+                default:
                     break;
             }
         }
@@ -451,7 +615,7 @@ namespace ConsoleApplication1
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsPopulateSwitch)]
-        public async Task NotAllMembersExist_SwitchIsFlags()
+        public async Task NotAllMembersExist_EnumIsFlags()
         {
             await TestMissingAsync(
             @"
@@ -482,7 +646,7 @@ namespace ConsoleApplication1
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsPopulateSwitch)]
-        public async Task NotAllMembersExist_SwitchIsFlagsAttribute()
+        public async Task NotAllMembersExist_EnumIsFlagsAttribute()
         {
             await TestMissingAsync(
             @"
@@ -513,7 +677,7 @@ namespace ConsoleApplication1
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsPopulateSwitch)]
-        public async Task NotAllMembersExist_SwitchIsFullyQualifiedSystemFlags()
+        public async Task NotAllMembersExist_EnumIsFullyQualifiedSystemFlags()
         {
             await TestMissingAsync(
             @"
@@ -543,7 +707,7 @@ namespace ConsoleApplication1
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsPopulateSwitch)]
-        public async Task NotAllMembersExist_SwitchIsFullyQualifiedSystemFlagsAttribute()
+        public async Task NotAllMembersExist_EnumIsFullyQualifiedSystemFlagsAttribute()
         {
             await TestMissingAsync(
             @"
@@ -573,7 +737,7 @@ namespace ConsoleApplication1
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsPopulateSwitch)]
-        public async Task NotAllMembersExist_NotDefault_SwitchHasNonFlagsAttribute()
+        public async Task NotAllMembersExist_NotDefault_EnumHasNonFlagsAttribute()
         {
             await TestAsync(
             @"
@@ -629,7 +793,7 @@ namespace ConsoleApplication1
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsPopulateSwitch)]
-        public async Task NotAllMembersExist_NotDefault_SwitchIsNested()
+        public async Task NotAllMembersExist_NotDefault_EnumIsNested()
         {
             await TestAsync(
             @"

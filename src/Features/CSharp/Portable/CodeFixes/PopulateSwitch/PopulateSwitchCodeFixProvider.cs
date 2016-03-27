@@ -76,6 +76,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.PopulateSwitch
                     if (caseLabel != null)
                     {
                         caseLabels.Add(caseLabel.Value);
+                        continue;
                     }
 
                     if (label.IsKind(SyntaxKind.DefaultSwitchLabel))
@@ -103,11 +104,18 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.PopulateSwitch
                     SyntaxFactory.SwitchSection(SyntaxFactory.List(new List<SwitchLabelSyntax> { caseLabel }), statements)
                                  .WithAdditionalAnnotations(Formatter.Annotation);
 
-                // ensure that the new cases are above the default case
-                newSections = newSections.Add(section);
+                // ensure that the new cases are above the last section if a default case exists, but below all other sections
+                if (containsDefaultLabel)
+                {
+                    // this will not give an index-out-of-bounds error because we know there is at least one case block
+                    newSections = newSections.Insert(switchBlock.Sections.Count - 1, section);
+                }
+                else
+                {
+                    newSections = newSections.Add(section);
+                }
             }
-
-            System.Diagnostics.Debug.WriteLine(containsDefaultLabel);
+            
             if (!containsDefaultLabel)
             {
                 newSections = newSections.Add(SyntaxFactory.SwitchSection(SyntaxFactory.List(
@@ -142,27 +150,27 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.PopulateSwitch
             }
 
             var missingLabels = new List<string>();
-            foreach (var memberName in enumType.MemberNames)
+            foreach (var member in enumType.GetMembers())
             {
                 // don't create members like ".ctor"
-                if (memberName.StartsWith("."))
+                if (member.IsImplicitlyDeclared)
                 {
                     continue;
                 }
 
-                var memberNameExists = false;
+                var memberExists = false;
                 foreach (var label in labels)
                 {
-                    if (label == memberName)
+                    if (label == member.Name)
                     {
-                        memberNameExists = true;
+                        memberExists = true;
                         break;
                     }
                 }
 
-                if (!memberNameExists)
+                if (!memberExists)
                 {
-                    missingLabels.Add(memberName);
+                    missingLabels.Add(member.Name);
                 }
             }
 
