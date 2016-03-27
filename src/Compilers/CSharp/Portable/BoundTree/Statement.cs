@@ -1,10 +1,10 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System;
-using System.Collections.Immutable;
-using System.Runtime.CompilerServices;
+using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.Semantics;
-using Roslyn.Utilities;
+using System.Collections.Immutable;
+using System.Linq;
+using System.Runtime.CompilerServices;
 
 namespace Microsoft.CodeAnalysis.CSharp
 {
@@ -445,7 +445,14 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         IOperation ICatchClause.Filter => this.ExceptionFilterOpt;
 
-        ILocalSymbol ICatchClause.ExceptionLocal => this.LocalOpt;
+        ILocalSymbol ICatchClause.ExceptionLocal
+        {
+            get
+            {
+                var local = this.Locals.FirstOrDefault();
+                return local?.DeclarationKind == LocalDeclarationKind.CatchVariable ? local : null;
+            }
+        }
 
         OperationKind IOperation.Kind => OperationKind.CatchClause;
 
