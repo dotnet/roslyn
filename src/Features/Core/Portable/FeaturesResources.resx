@@ -913,4 +913,7 @@ This version used in: {2}</value>
   <data name="Install_version_0" xml:space="preserve">
     <value>Install version '{0}'</value>
   </data>
+  <data name="AddMissingStatements" xml:space="preserve">
+    <value>Add missing statements to switch</value>
+  </data>
 </root>
