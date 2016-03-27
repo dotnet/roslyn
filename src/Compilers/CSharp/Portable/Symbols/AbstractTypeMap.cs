@@ -53,7 +53,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 NamedTypeSymbol oldUnderlyingType = previousTuple.UnderlyingTupleType;
                 NamedTypeSymbol newUnderlyingType = (NamedTypeSymbol)SubstituteType(oldUnderlyingType).Type;
 
-                return ((object)newUnderlyingType == (object)oldUnderlyingType) ? previous : TupleTypeSymbol.ConstructTupleTypeSymbol(previousTuple, newUnderlyingType);
+                return ((object)newUnderlyingType == (object)oldUnderlyingType) ? previous : previousTuple.WithUnderlyingType(newUnderlyingType);
             }
 
             // TODO: we could construct the result's ConstructedFrom lazily by using a "deep"
