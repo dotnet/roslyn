@@ -293,8 +293,6 @@
     <Compile Include="Implementation\GoToImplementation\IGoToImplementationService.cs" />
     <Compile Include="Implementation\Intellisense\Completion\OptionSetExtensions.cs" />
     <Compile Include="Implementation\Intellisense\Completion\Presentation\IntellisenseFilter2.cs" />
-    <Compile Include="Implementation\Intellisense\Completion\Temporary\Completion2.cs" />
-    <Compile Include="Implementation\Intellisense\Completion\Temporary\ICompletionSession2.cs" />
     <Compile Include="Implementation\Intellisense\Completion\Temporary\IIntellisenseFilter.cs" />
     <Compile Include="Implementation\Intellisense\Completion\Temporary\IntellisenseFilter.cs" />
     <Compile Include="Implementation\Interactive\IAbstractResetInteractiveCommand.cs" />
