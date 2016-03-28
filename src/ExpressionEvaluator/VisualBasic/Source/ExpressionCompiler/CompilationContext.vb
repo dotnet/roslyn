@@ -152,8 +152,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
 
             Me.Compilation.Compile(
                 moduleBuilder,
-                win32Resources:=Nothing,
-                xmlDocStream:=Nothing,
                 emittingPdb:=False,
                 diagnostics:=diagnostics,
                 filterOpt:=Nothing,
@@ -330,8 +328,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
 
             Me.Compilation.Compile(
                 moduleBuilder,
-                win32Resources:=Nothing,
-                xmlDocStream:=Nothing,
                 emittingPdb:=False,
                 diagnostics:=diagnostics,
                 filterOpt:=Nothing,

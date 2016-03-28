@@ -4227,9 +4227,6 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   <data name="ElementIsExpected" xml:space="preserve">
     <value>element is expected</value>
   </data>
-  <data name="MustCallSetMethodTestData" xml:space="preserve">
-    <value>Must call SetMethodTestData(ConcurrentDictionary) before calling SetMethodTestData(MethodSymbol, ILBuilder)</value>
-  </data>
   <data name="GenericParameterDefinition" xml:space="preserve">
     <value>Generic parameter is definition when expected to be reference {0}</value>
   </data>
@@ -4803,6 +4800,15 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   </data>
   <data name="ERR_RefReturningCallAndAwait" xml:space="preserve">
     <value>'await' cannot be used in an expression containing a call to '{0}' because it returns by reference</value>
+  </data>
+  <data name="ERR_NoOriginalMember" xml:space="preserve">
+    <value>No original member for '{0}'</value>
+  </data>
+  <data name="ERR_DuplicateReplace" xml:space="preserve">
+    <value>Type already contains a replacement for '{0}'</value>
+  </data>
+  <data name="ERR_PartialReplace" xml:space="preserve">
+    <value>Replacement methods cannot be partial</value>
   </data>
   <data name="ERR_ExpressionTreeContainsLocalFunction" xml:space="preserve">
     <value>An expression tree may not contain a reference to a local function</value>

@@ -16,6 +16,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         private sealed class BinderFactoryVisitor : CSharpSyntaxVisitor<Binder>
         {
             private int _position;
+            private CSharpSyntaxNode _memberDeclarationOpt;
+            private Symbol _memberOpt;
             private readonly BinderFactory _factory;
 
             internal BinderFactoryVisitor(BinderFactory factory)
@@ -23,12 +25,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                 _factory = factory;
             }
 
-            internal int Position
+            internal void Initialize(int position, CSharpSyntaxNode memberDeclarationOpt, Symbol memberOpt)
             {
-                set
-                {
-                    _position = value;
-                }
+                _position = position;
+                _memberDeclarationOpt = memberDeclarationOpt;
+                _memberOpt = memberOpt;
             }
 
             private CSharpCompilation compilation
@@ -449,6 +450,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             // Get the correct methods symbol within container that corresponds to the given method syntax.
             private SourceMethodSymbol GetMethodSymbol(BaseMethodDeclarationSyntax baseMethodDeclarationSyntax, Binder outerBinder)
             {
+                if (baseMethodDeclarationSyntax == _memberDeclarationOpt)
+                {
+                    return (SourceMethodSymbol)_memberOpt;
+                }
+
                 NamedTypeSymbol container = GetContainerType(outerBinder, baseMethodDeclarationSyntax);
                 if ((object)container == null)
                 {
@@ -463,6 +469,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 Debug.Assert(basePropertyDeclarationSyntax.Kind() == SyntaxKind.PropertyDeclaration || basePropertyDeclarationSyntax.Kind() == SyntaxKind.IndexerDeclaration);
 
+                if (basePropertyDeclarationSyntax == _memberDeclarationOpt)
+                {
+                    return (SourcePropertySymbol)_memberOpt;
+                }
+
                 NamedTypeSymbol container = GetContainerType(outerBinder, basePropertyDeclarationSyntax);
                 if ((object)container == null)
                 {
@@ -475,6 +486,11 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             private SourceEventSymbol GetEventSymbol(EventDeclarationSyntax eventDeclarationSyntax, Binder outerBinder)
             {
+                if (eventDeclarationSyntax == _memberDeclarationOpt)
+                {
+                    return (SourceEventSymbol)_memberOpt;
+                }
+
                 NamedTypeSymbol container = GetContainerType(outerBinder, eventDeclarationSyntax);
                 if ((object)container == null)
                 {
@@ -514,14 +530,17 @@ namespace Microsoft.CodeAnalysis.CSharp
                             }
                         }
                     }
-                    else
+                    else if (InSpan(sym.Locations, this.syntaxTree, memberSpan))
                     {
-                        foreach (Location loc in sym.Locations)
+                        return sym;
+                    }
+
+                    // Replaced members are not included in GetMembers().
+                    foreach (var replaced in sym.GetReplacedMembers())
+                    {
+                        if (InSpan(replaced.Locations, this.syntaxTree, memberSpan))
                         {
-                            if (InSpan(loc, this.syntaxTree, memberSpan))
-                            {
-                                return sym;
-                            }
+                            return replaced;
                         }
                     }
                 }
@@ -536,6 +555,22 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 Debug.Assert(syntaxTree != null);
                 return (location.SourceTree == syntaxTree) && span.Contains(location.SourceSpan);
+            }
+
+            /// <summary>
+            /// Returns true if one of the locations is within the syntax tree and span.
+            /// </summary>
+            private static bool InSpan(ImmutableArray<Location> locations, SyntaxTree syntaxTree, TextSpan span)
+            {
+                Debug.Assert(syntaxTree != null);
+                foreach (var loc in locations)
+                {
+                    if (InSpan(loc, syntaxTree, span))
+                    {
+                        return true;
+                    }
+                }
+                return false;
             }
 
             public override Binder VisitDelegateDeclaration(DelegateDeclarationSyntax parent)

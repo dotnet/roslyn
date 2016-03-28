@@ -89,31 +89,31 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <summary>
         /// Note, there is no guarantee that the factory always gives back the same binder instance for the same <param name="node"/>.
         /// </summary>
-        internal Binder GetBinder(CSharpSyntaxNode node)
+        /// <param name="memberDeclarationOpt"/>
+        /// <param name="memberOpt"/>
+        internal Binder GetBinder(CSharpSyntaxNode node, CSharpSyntaxNode memberDeclarationOpt = null, Symbol memberOpt = null)
         {
             int position = node.SpanStart;
 
-            // Special case: In interactive code, we may be trying to retrieve a binder for global statements
-            // at the *very* top-level (i.e. in a completely empty file). In this case, we use the compilation unit
-            // directly since it's parent would be null.
-            if (InScript && node.Kind() == SyntaxKind.CompilationUnit)
+            // Unless this is interactive retrieving a binder for global statements
+            // at the very top-level (i.e. in a completely empty file) use
+            // node.Parent to maintain existing behavior.
+            if (!InScript || node.Kind() != SyntaxKind.CompilationUnit)
             {
-                return GetBinder(node, position);
+                node = node.Parent;
             }
 
-            // ACASEY: Using node.Parent here to maintain existing behavior,
-            // but I have no idea why.
-            return GetBinder(node.Parent, position);
+            return GetBinder(node, position, memberDeclarationOpt, memberOpt);
         }
 
-        internal Binder GetBinder(CSharpSyntaxNode node, int position)
+        internal Binder GetBinder(CSharpSyntaxNode node, int position, CSharpSyntaxNode memberDeclarationOpt = null, Symbol memberOpt = null)
         {
             Debug.Assert(node != null);
 
             Binder result = null;
 
             BinderFactoryVisitor visitor = _binderFactoryVisitorPool.Allocate();
-            visitor.Position = position;
+            visitor.Initialize(position, memberDeclarationOpt, memberOpt);
             result = node.Accept(visitor);
             _binderFactoryVisitorPool.Free(visitor);
 
@@ -135,7 +135,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case SyntaxKind.NamespaceDeclaration:
                     {
                         BinderFactoryVisitor visitor = _binderFactoryVisitorPool.Allocate();
-                        visitor.Position = 0;
+                        visitor.Initialize(0, null, null);
                         var result = visitor.VisitNamespaceDeclaration((NamespaceDeclarationSyntax)unit, unit.SpanStart, inBody: true, inUsing: inUsing);
                         _binderFactoryVisitorPool.Free(visitor);
                         return result;
@@ -145,7 +145,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     // imports are bound by the Script class binder:
                     {
                         BinderFactoryVisitor visitor = _binderFactoryVisitorPool.Allocate();
-                        visitor.Position = 0;
+                        visitor.Initialize(0, null, null);
                         var result = visitor.VisitCompilationUnit((CompilationUnitSyntax)unit, inUsing: inUsing, inScript: InScript);
                         _binderFactoryVisitorPool.Free(visitor);
                         return result;

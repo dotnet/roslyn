@@ -1366,5 +1366,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_BadIteratorLocalType = 8941,
         ERR_BadAsyncLocalType = 8942,
         ERR_RefReturningCallAndAwait = 8943,
+        ERR_NoOriginalMember = 8944,
+        ERR_DuplicateReplace = 8945,
+        ERR_PartialReplace = 8946,
     }
 }

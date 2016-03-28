@@ -1,17 +1,12 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
+using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
-using System.Diagnostics.CodeAnalysis;
 using System.Linq;
-using System.Text;
-using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
-using Microsoft.CodeAnalysis.CSharp.Syntax;
-using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
-using System.Collections.Generic;
 
 namespace Microsoft.CodeAnalysis.CSharp.Symbols
 {
@@ -327,6 +322,47 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
 
             return csSymbol;
+        }
+
+        internal struct ReplacedMemberEnumerable
+        {
+            private readonly Symbol _symbol;
+
+            internal ReplacedMemberEnumerable(Symbol symbol)
+            {
+                _symbol = symbol;
+            }
+
+            public ReplacedMemberEnumerator GetEnumerator()
+            {
+                return new ReplacedMemberEnumerator(_symbol);
+            }
+        }
+
+        internal struct ReplacedMemberEnumerator
+        {
+            private Symbol _symbol;
+
+            internal ReplacedMemberEnumerator(Symbol symbol)
+            {
+                _symbol = symbol;
+            }
+
+            public bool MoveNext()
+            {
+                _symbol = _symbol.Replaced;
+                return (object)_symbol != null;
+            }
+
+            public Symbol Current
+            {
+                get { return _symbol; }
+            }
+        }
+
+        internal static ReplacedMemberEnumerable GetReplacedMembers(this Symbol symbol)
+        {
+            return new ReplacedMemberEnumerable(symbol);
         }
     }
 }

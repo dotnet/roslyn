@@ -73,6 +73,7 @@
     <Compile Include="LinkedFileDiffMerging\LinkedFileDiffMergingTests.TextMerging.cs" />
     <Compile Include="LinkedFileDiffMerging\LinkedFileDiffMergingTests.Features.cs" />
     <Compile Include="LinkedFileDiffMerging\LinkedFileDiffMergingTests.cs" />
+    <Compile Include="SolutionTests\SourceGeneratorTests.cs" />
     <Compile Include="UtilityTest\AsyncLazyTests.cs" />
     <Compile Include="CodeCleanup\AddMissingTokensTests.cs" />
     <Compile Include="CodeCleanup\CodeCleanupTests.cs" />

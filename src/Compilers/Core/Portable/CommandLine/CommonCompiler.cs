@@ -221,7 +221,6 @@ namespace Microsoft.CodeAnalysis
                     hasErrors = true;
                 }
 
-                Debug.Assert(IsReportedError(diag));
                 _reportedDiagnostics.Add(diag);
             }
 
@@ -366,9 +365,6 @@ namespace Microsoft.CodeAnalysis
                 return Failed;
             }
 
-            bool includeGenerators = !sourceGenerators.IsEmpty;
-
-retry:
             bool reportAnalyzer = false;
             CancellationTokenSource analyzerCts = null;
             AnalyzerManager analyzerManager = null;
@@ -376,7 +372,30 @@ retry:
 
             try
             {
-                Func<DiagnosticBag, bool, bool> getAnalyzerDiagnostics = null;
+                // Print the diagnostics produced during the parsing stage and exit if there were any errors.
+                if (ReportErrors(compilation.GetParseDiagnostics(), consoleOutput, errorLogger))
+                {
+                    return Failed;
+                }
+
+                if (!sourceGenerators.IsEmpty)
+                {
+                    // PROTOTYPE(generators): Generated source path should include a "GeneratedFiles" subdirectory
+                    // so that "build clean" can be modified to delete the entire directory.
+                    var trees = compilation.GenerateSource(sourceGenerators, this.Arguments.OutputDirectory, writeToDisk: true, cancellationToken: cancellationToken);
+                    if (!trees.IsEmpty)
+                    {
+                        compilation = compilation.AddSyntaxTrees(trees);
+                        // PROTOTYPE(generators): If there are parse warnings, we'll report warnings
+                        // from the previous GetParseDiagnostics() call again here.
+                        if (ReportErrors(compilation.GetParseDiagnostics(), consoleOutput, errorLogger))
+                        {
+                            return Failed;
+                        }
+                    }
+                }
+
+                // PROTOTYPE(generators): Are we missing parse events?
                 ConcurrentSet<Diagnostic> analyzerExceptionDiagnostics = null;
 
                 if (!analyzers.IsEmpty)
@@ -391,144 +410,137 @@ retry:
                     reportAnalyzer = Arguments.ReportAnalyzer && !analyzers.IsEmpty;
                 }
 
-                Compilation newCompilation = null;
-                if ((analyzerDriver != null) || includeGenerators)
-                {
-                    getAnalyzerDiagnostics = (diags, result) =>
-                    {
-                        if (result && (analyzerDriver != null))
-                        {
-                            var hostDiagnostics = analyzerDriver.GetDiagnosticsAsync(compilation).Result;
-                            diags.AddRange(hostDiagnostics);
-                            if (hostDiagnostics.Any(x => x.Severity == DiagnosticSeverity.Error))
-                            {
-                                result = false;
-                            }
-                        }
-                        if (includeGenerators)
-                        {
-                            newCompilation = AddGeneratedSource(compilation, sourceGenerators, cancellationToken);
-                            includeGenerators = false;
-                            if (newCompilation != compilation)
-                            {
-                                result = false;
-                            }
-                        }
-                        return result;
-                    };
-                }
-
-                // Print the diagnostics produced during the parsing stage and exit if there were any errors.
-                if (ReportErrors(compilation.GetParseDiagnostics(), consoleOutput, errorLogger))
+                if (ReportErrors(compilation.GetDeclarationDiagnostics(), consoleOutput, errorLogger))
                 {
                     return Failed;
                 }
 
-                var declarationDiagnostics = compilation.GetDeclarationDiagnostics();
-                if (includeGenerators && declarationDiagnostics.Any(IsReportedError))
-                {
-                    // Run generators even if there are declaration errors since
-                    // the errors may be the resolved by the generated code.
-                    newCompilation = AddGeneratedSource(compilation, sourceGenerators, cancellationToken);
-                    includeGenerators = false;
-                    if (newCompilation != compilation)
-                    {
-                        compilation = newCompilation;
-                        goto retry;
-                    }
-                }
-
-                if (ReportErrors(declarationDiagnostics, consoleOutput, errorLogger))
-                {
-                    return Failed;
-                }
-
-                EmitResult emitResult;
-
-                // NOTE: as native compiler does, we generate the documentation file
-                // NOTE: 'in place', replacing the contents of the file if it exists
-
-                string finalPeFilePath;
-                string finalPdbFilePath;
-                string finalXmlFilePath;
-
-                Stream xmlStreamOpt = null;
-
                 cancellationToken.ThrowIfCancellationRequested();
 
-                finalXmlFilePath = Arguments.DocumentationPath;
-                if (finalXmlFilePath != null)
+                string outputName = GetOutputFileName(compilation, cancellationToken);
+                var finalPeFilePath = Path.Combine(Arguments.OutputDirectory, outputName);
+                var finalPdbFilePath = Arguments.PdbPath ?? Path.ChangeExtension(finalPeFilePath, ".pdb");
+                var finalXmlFilePath = Arguments.DocumentationPath;
+
+                var diagnosticBag = DiagnosticBag.GetInstance();
+
+                try
                 {
-                    xmlStreamOpt = OpenFile(finalXmlFilePath, consoleOutput, PortableShim.FileMode.OpenOrCreate, PortableShim.FileAccess.Write, PortableShim.FileShare.ReadWriteBitwiseOrDelete);
-                    if (xmlStreamOpt == null)
-                    {
-                        return Failed;
-                    }
-
-                    xmlStreamOpt.SetLength(0);
-                }
-
-                cancellationToken.ThrowIfCancellationRequested();
-
-                IEnumerable<DiagnosticInfo> errors;
-                using (var win32ResourceStreamOpt = GetWin32Resources(Arguments, compilation, out errors))
-                using (xmlStreamOpt)
-                {
-                    if (ReportErrors(errors, consoleOutput, errorLogger))
-                    {
-                        return Failed;
-                    }
-
-                    cancellationToken.ThrowIfCancellationRequested();
-
-                    string outputName = GetOutputFileName(compilation, cancellationToken);
-
-                    finalPeFilePath = Path.Combine(Arguments.OutputDirectory, outputName);
-                    finalPdbFilePath = Arguments.PdbPath ?? Path.ChangeExtension(finalPeFilePath, ".pdb");
-
                     // NOTE: Unlike the PDB path, the XML doc path is not embedded in the assembly, so we don't need to pass it to emit.
                     var emitOptions = Arguments.EmitOptions.
                         WithOutputNameOverride(outputName).
                         WithPdbFilePath(finalPdbFilePath);
 
-                    using (var peStreamProvider = new CompilerEmitStreamProvider(this, finalPeFilePath))
-                    using (var pdbStreamProviderOpt = Arguments.EmitPdb ? new CompilerEmitStreamProvider(this, finalPdbFilePath) : null)
+                    var moduleBeingBuilt = compilation.CheckOptionsAndCreateModuleBuilder(
+                        diagnosticBag,
+                        Arguments.ManifestResources,
+                        emitOptions,
+                        debugEntryPoint: null,
+                        testData: null,
+                        cancellationToken: cancellationToken);
+
+                    if (moduleBeingBuilt != null)
                     {
-                        emitResult = compilation.Emit(
-                            peStreamProvider,
-                            pdbStreamProviderOpt,
-                            (xmlStreamOpt != null) ? new Compilation.SimpleEmitStreamProvider(xmlStreamOpt) : null,
-                            (win32ResourceStreamOpt != null) ? new Compilation.SimpleEmitStreamProvider(win32ResourceStreamOpt) : null,
-                            Arguments.ManifestResources,
-                            emitOptions,
-                            debugEntryPoint: null,
-                            testData: null,
-                            getHostDiagnostics: getAnalyzerDiagnostics,
-                            cancellationToken: cancellationToken);
+                        bool success;
 
-                        if (!emitResult.Success && (newCompilation != null) && (newCompilation != compilation))
+                        try
                         {
-                            compilation = newCompilation;
-                            goto retry;
-                        }
+                            success = compilation.CompileMethods(
+                                moduleBeingBuilt,
+                                Arguments.EmitPdb,
+                                diagnosticBag,
+                                filterOpt: null,
+                                cancellationToken: cancellationToken);
 
-                        if (emitResult.Success && touchedFilesLogger != null)
-                        {
-                            if (pdbStreamProviderOpt != null)
+                            if (analyzerDriver != null)
                             {
-                                touchedFilesLogger.AddWritten(finalPdbFilePath);
+                                var hostDiagnostics = analyzerDriver.GetDiagnosticsAsync(compilation).Result;
+                                diagnosticBag.AddRange(hostDiagnostics);
+                                if (hostDiagnostics.Any(IsReportedError))
+                                {
+                                    success = false;
+                                }
                             }
 
-                            touchedFilesLogger.AddWritten(finalPeFilePath);
+                            if (success)
+                            {
+                                // NOTE: as native compiler does, we generate the documentation file
+                                // NOTE: 'in place', replacing the contents of the file if it exists
+                                Stream xmlStreamOpt = null;
+
+                                if (finalXmlFilePath != null)
+                                {
+                                    xmlStreamOpt = OpenFile(finalXmlFilePath, consoleOutput, PortableShim.FileMode.OpenOrCreate, PortableShim.FileAccess.Write, PortableShim.FileShare.ReadWriteBitwiseOrDelete);
+                                    if (xmlStreamOpt == null)
+                                    {
+                                        return Failed;
+                                    }
+
+                                    xmlStreamOpt.SetLength(0);
+                                }
+
+                                using (xmlStreamOpt)
+                                {
+                                    IEnumerable<DiagnosticInfo> errors;
+                                    using (var win32ResourceStreamOpt = GetWin32Resources(Arguments, compilation, out errors))
+                                    {
+                                        if (ReportErrors(errors, consoleOutput, errorLogger))
+                                        {
+                                            return Failed;
+                                        }
+
+                                        success = compilation.GenerateResourcesAndDocumentationComments(
+                                            moduleBeingBuilt,
+                                            xmlStreamOpt,
+                                            win32ResourceStreamOpt,
+                                            diagnosticBag,
+                                            cancellationToken);
+                                    }
+                                }
+                            }
+                        }
+                        finally
+                        {
+                            moduleBeingBuilt.CompilationFinished();
+                        }
+
+                        if (success)
+                        {
+                            using (var peStreamProvider = new CompilerEmitStreamProvider(this, finalPeFilePath))
+                            using (var pdbStreamProviderOpt = Arguments.EmitPdb ? new CompilerEmitStreamProvider(this, finalPdbFilePath) : null)
+                            {
+                                success = compilation.SerializeToPeStream(
+                                    moduleBeingBuilt,
+                                    peStreamProvider,
+                                    pdbStreamProviderOpt,
+                                    testSymWriterFactory: null,
+                                    diagnostics: diagnosticBag,
+                                    metadataOnly: emitOptions.EmitMetadataOnly,
+                                    cancellationToken: cancellationToken);
+
+                                if (success && touchedFilesLogger != null)
+                                {
+                                    if (pdbStreamProviderOpt != null)
+                                    {
+                                        touchedFilesLogger.AddWritten(finalPdbFilePath);
+                                    }
+                                    touchedFilesLogger.AddWritten(finalPeFilePath);
+                                }
+                            }
                         }
                     }
+
+                    var compileAndEmitDiagnostics = diagnosticBag.ToReadOnly();
+                    GenerateSqmData(Arguments.CompilationOptions, compileAndEmitDiagnostics);
+
+                    if (ReportErrors(compileAndEmitDiagnostics, consoleOutput, errorLogger))
+                    {
+                        return Failed;
+                    }
                 }
-
-                GenerateSqmData(Arguments.CompilationOptions, emitResult.Diagnostics);
-
-                if (ReportErrors(emitResult.Diagnostics, consoleOutput, errorLogger))
+                finally
                 {
-                    return Failed;
+                    diagnosticBag.Free();
                 }
 
                 cancellationToken.ThrowIfCancellationRequested();
@@ -610,17 +622,6 @@ retry:
             }
 
             return Succeeded;
-        }
-
-        private Compilation AddGeneratedSource(
-            Compilation compilation,
-            ImmutableArray<SourceGenerator> sourceGenerators,
-            CancellationToken cancellationToken)
-        {
-            // TODO: Generated source path should include a "GeneratedFiles" subdirectory
-            // so that "build clean" can be modified to delete the entire directory.
-            var trees = compilation.GenerateSource(sourceGenerators, this.Arguments.OutputDirectory, writeToDisk: true, cancellationToken: cancellationToken);
-            return compilation.AddSyntaxTrees(trees);
         }
 
         protected virtual ImmutableArray<AdditionalTextFile> ResolveAdditionalFilesFromArguments(List<DiagnosticInfo> diagnostics, CommonMessageProvider messageProvider, TouchedFileLogger touchedFilesLogger)

@@ -194,6 +194,9 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             Debug.Assert(!this.Succeeded, "Don't ask for diagnostic info on a successful overload resolution result.");
 
+            // Each argument must have non-null Display in case it is used in a diagnostic.
+            Debug.Assert(arguments.Arguments.All(a => a.Display != null));
+
             // This kind is only used for default(MemberResolutionResult<T>), so we should never see it in
             // the candidate list.
             AssertNone(MemberResolutionKind.None);

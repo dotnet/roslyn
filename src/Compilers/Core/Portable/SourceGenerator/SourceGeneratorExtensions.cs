@@ -2,6 +2,7 @@
 
 using System;
 using System.Collections.Immutable;
+using System.Text;
 using System.Threading;
 using Microsoft.CodeAnalysis.Collections;
 using Roslyn.Utilities;
@@ -17,6 +18,16 @@ namespace Microsoft.CodeAnalysis
             bool writeToDisk,
             CancellationToken cancellationToken)
         {
+            if (generators.IsDefault)
+            {
+                throw new ArgumentException(nameof(generators));
+            }
+
+            if (path == null)
+            {
+                throw new ArgumentNullException(nameof(path));
+            }
+
             var builder = ArrayBuilder<SyntaxTree>.GetInstance();
             var context = new Context(builder, compilation, path, writeToDisk);
             foreach (var generator in generators)
@@ -60,13 +71,13 @@ namespace Microsoft.CodeAnalysis
             {
                 var ext = (compilation.Language == LanguageNames.VisualBasic) ? ".vb" : ".cs";
                 var fileName = $"{FixUpName(name)}{ext}";
-                path = PathUtilities.CombineAbsoluteAndRelativePaths(path, fileName);
+                path = PathUtilities.CombinePossiblyRelativeAndRelativePaths(path, fileName);
 
                 if (writeToDisk)
                 {
                     var sourceText = tree.GetText();
-                    var bytes = sourceText.Encoding.GetBytes(sourceText.ToString());
-                    PortableShim.File.WriteAllBytes(path, bytes);
+                    var encoding = sourceText.Encoding ?? Encoding.UTF8;
+                    PortableShim.File.WriteAllText(path, sourceText.ToString(), encoding);
                 }
 
                 return tree.WithFilePath(path);
@@ -81,7 +92,7 @@ namespace Microsoft.CodeAnalysis
                 var builder = pooledBuilder.Builder;
                 foreach (var c in name)
                 {
-                    if (char.IsLetterOrDigit(c))
+                    if (char.IsLetterOrDigit(c) || c == '_')
                     {
                         builder.Append(c);
                     }

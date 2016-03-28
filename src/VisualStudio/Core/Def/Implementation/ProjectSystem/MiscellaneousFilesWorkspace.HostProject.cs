@@ -2,6 +2,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Diagnostics;
 using EnvDTE;
 using Microsoft.CodeAnalysis;
@@ -110,14 +111,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                 return SpecializedCollections.EmptyReadOnlyList<string>();
             }
 
-            public IVisualStudioHostDocument AddGeneratedDocument(DocumentId id, string filePath)
+            public void UpdateGeneratedDocuments(ImmutableArray<DocumentInfo> documentsRemoved, ImmutableArray<DocumentInfo> documentsAdded)
             {
-                throw new InvalidOperationException();
-            }
-
-            public void RemoveGeneratedDocument(DocumentId id)
-            {
-                throw new InvalidOperationException();
+                throw new NotImplementedException();
             }
         }
     }

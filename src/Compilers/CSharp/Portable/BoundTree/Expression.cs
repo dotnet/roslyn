@@ -1,11 +1,8 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
-using System.Collections.Generic;
 using System.Collections.Immutable;
-using System.Linq;
 using System.Runtime.CompilerServices;
-using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Semantics;
 using Roslyn.Utilities;
 
@@ -42,7 +39,10 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         IOperation IInvocationExpression.Instance => this.Method.IsStatic ? null : this.ReceiverOpt;
 
-        bool IInvocationExpression.IsVirtual => (this.Method.IsVirtual || this.Method.IsAbstract || this.Method.IsOverride) && !this.ReceiverOpt.SuppressVirtualCalls;
+        bool IInvocationExpression.IsVirtual =>
+            (this.Method.IsVirtual || this.Method.IsAbstract || this.Method.IsOverride) &&
+            (object)this.Method.ReplacedBy == null &&
+            !this.ReceiverOpt.SuppressVirtualCalls;
 
         ImmutableArray<IArgument> IInvocationExpression.ArgumentsInSourceOrder
         {
@@ -436,7 +436,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        bool IMethodBindingExpression.IsVirtual => this.MethodOpt != null && (this.MethodOpt.IsVirtual || this.MethodOpt.IsAbstract || this.MethodOpt.IsOverride) && !this.SuppressVirtualCalls;
+        bool IMethodBindingExpression.IsVirtual =>
+            (object)this.MethodOpt != null &&
+            (this.MethodOpt.IsVirtual || this.MethodOpt.IsAbstract || this.MethodOpt.IsOverride) &&
+            (object)this.MethodOpt.ReplacedBy == null &&
+            !this.SuppressVirtualCalls;
 
         ISymbol IMemberReferenceExpression.Member => this.MethodOpt;
 
@@ -716,14 +720,17 @@ namespace Microsoft.CodeAnalysis.CSharp
         // Consider introducing a different bound node type for method group conversions. These aren't truly conversions, but represent selection of a particular method.
         protected override OperationKind ExpressionKind => this.ConversionKind == ConversionKind.MethodGroup ? OperationKind.MethodBindingExpression : OperationKind.ConversionExpression;
 
-        IMethodSymbol IMethodBindingExpression.Method => this.ConversionKind == ConversionKind.MethodGroup ? this.SymbolOpt as IMethodSymbol : null;
+        IMethodSymbol IMethodBindingExpression.Method => this.ConversionKind == ConversionKind.MethodGroup ? this.SymbolOpt : null;
 
         bool IMethodBindingExpression.IsVirtual
         {
             get
             {
-                IMethodSymbol method = ((IMethodBindingExpression)this).Method;
-                return method != null && (method.IsAbstract || method.IsOverride || method.IsVirtual) && !this.SuppressVirtualCalls;
+                var method = this.SymbolOpt;
+                return (object)method != null &&
+                    (method.IsAbstract || method.IsOverride || method.IsVirtual) &&
+                    (object)method.ReplacedBy == null &&
+                    !this.SuppressVirtualCalls;
             }
         }
 

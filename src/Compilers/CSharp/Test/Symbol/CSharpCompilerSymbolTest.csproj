@@ -144,6 +144,7 @@
     <Compile Include="Symbols\MockSymbolTests.cs" />
     <Compile Include="Symbols\NamespaceExtentTests.cs" />
     <Compile Include="Symbols\OverriddenOrHiddenMembersTests.cs" />
+    <Compile Include="Symbols\ReplaceOriginalTests.cs" />
     <Compile Include="Symbols\Retargeting\NoPia.cs" />
     <Compile Include="Symbols\Retargeting\RetargetCustomAttributes.cs" />
     <Compile Include="Symbols\Retargeting\RetargetCustomModifiers.cs" />

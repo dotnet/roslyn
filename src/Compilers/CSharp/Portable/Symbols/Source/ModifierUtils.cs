@@ -60,6 +60,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 diagnostics.Add(ErrorCode.ERR_PartialMethodInvalidModifier, errorLocation);
             }
+            if ((result & (DeclarationModifiers.Partial | DeclarationModifiers.Replace)) == (DeclarationModifiers.Partial | DeclarationModifiers.Replace))
+            {
+                diagnostics.Add(ErrorCode.ERR_PartialReplace, errorLocation);
+            }
             return result;
         }
 
@@ -103,6 +107,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     return SyntaxFacts.GetText(SyntaxKind.VirtualKeyword);
                 case DeclarationModifiers.Override:
                     return SyntaxFacts.GetText(SyntaxKind.OverrideKeyword);
+                case DeclarationModifiers.Replace:
+                    return SyntaxFacts.GetText(SyntaxKind.ReplaceKeyword);
                 case DeclarationModifiers.Async:
                     return SyntaxFacts.GetText(SyntaxKind.AsyncKeyword);
                 default:

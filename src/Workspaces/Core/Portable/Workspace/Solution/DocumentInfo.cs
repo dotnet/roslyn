@@ -59,7 +59,7 @@ namespace Microsoft.CodeAnalysis
             string filePath,
             bool isGenerated)
         {
-            Debug.Assert(isGenerated == IsGeneratedFile(filePath));
+            Debug.Assert(isGenerated == ((filePath != null) && IsGeneratedFile(filePath)));
 
             if (id == null)
             {

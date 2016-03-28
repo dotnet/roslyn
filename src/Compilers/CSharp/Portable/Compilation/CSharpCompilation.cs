@@ -2315,10 +2315,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             return moduleBeingBuilt;
         }
 
-        internal override bool CompileImpl(
+        internal override bool CompileMethods(
             CommonPEModuleBuilder moduleBuilder,
-            Stream win32Resources,
-            Stream xmlDocStream,
             bool emittingPdb,
             DiagnosticBag diagnostics,
             Predicate<ISymbol> filterOpt,
@@ -2371,20 +2369,42 @@ namespace Microsoft.CodeAnalysis.CSharp
                     filterOpt: filterOpt,
                     cancellationToken: cancellationToken);
 
-                SetupWin32Resources(moduleBeingBuilt, win32Resources, methodBodyDiagnosticBag);
-
-                ReportManifestResourceDuplicates(
-                    moduleBeingBuilt.ManifestResources,
-                    SourceAssembly.Modules.Skip(1).Select((m) => m.Name),   //all modules except the first one
-                    AddedModulesResourceNames(methodBodyDiagnosticBag),
-                    methodBodyDiagnosticBag);
-
                 bool hasMethodBodyErrorOrWarningAsError = !FilterAndAppendAndFreeDiagnostics(diagnostics, ref methodBodyDiagnosticBag);
 
                 if (hasDeclarationErrors || hasMethodBodyErrorOrWarningAsError)
                 {
                     return false;
                 }
+            }
+
+            return true;
+        }
+
+        internal override bool GenerateResourcesAndDocumentationComments(
+            CommonPEModuleBuilder moduleBuilder,
+            Stream xmlDocStream,
+            Stream win32Resources,
+            DiagnosticBag diagnostics,
+            CancellationToken cancellationToken)
+        {
+            Debug.Assert(!moduleBuilder.EmitOptions.EmitMetadataOnly);
+
+            // Use a temporary bag so we don't have to refilter pre-existing diagnostics.
+            DiagnosticBag methodBodyDiagnosticBag = DiagnosticBag.GetInstance();
+
+            var moduleBeingBuilt = (PEModuleBuilder)moduleBuilder;
+
+            SetupWin32Resources(moduleBeingBuilt, win32Resources, methodBodyDiagnosticBag);
+
+            ReportManifestResourceDuplicates(
+                moduleBeingBuilt.ManifestResources,
+                SourceAssembly.Modules.Skip(1).Select((m) => m.Name),   //all modules except the first one
+                AddedModulesResourceNames(methodBodyDiagnosticBag),
+                methodBodyDiagnosticBag);
+
+            if (!FilterAndAppendAndFreeDiagnostics(diagnostics, ref methodBodyDiagnosticBag))
+            {
+                return false;
             }
 
             cancellationToken.ThrowIfCancellationRequested();

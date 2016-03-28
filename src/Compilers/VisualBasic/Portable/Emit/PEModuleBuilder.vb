@@ -4,7 +4,6 @@ Imports System.Collections.Concurrent
 Imports System.Collections.Immutable
 Imports System.Reflection.PortableExecutable
 Imports System.Runtime.InteropServices
-Imports System.Threading
 Imports Microsoft.CodeAnalysis.CodeGen
 Imports Microsoft.CodeAnalysis.Emit
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
@@ -24,11 +23,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
         Private _lazyExportedTypes As ImmutableArray(Of NamedTypeSymbol)
         Private _lazyTranslatedImports As ImmutableArray(Of Cci.UsedNamespaceOrType)
         Private _lazyDefaultNamespace As String
-
-        ' These fields will only be set when running tests.  They allow realized IL for a given method to be looked up by method display name.
-        Private _testData As ConcurrentDictionary(Of String, CompilationTestData.MethodData)
-        Private _testDataKeyFormat As SymbolDisplayFormat
-        Private _testDataOperatorKeyFormat As SymbolDisplayFormat
 
         Friend Sub New(sourceModule As SourceModuleSymbol,
                        emitOptions As EmitOptions,
@@ -628,68 +622,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
             Debug.Assert(methodSymbol.ContainingModule Is Me.SourceModule AndAlso methodSymbol Is methodSymbol.OriginalDefinition)
             Return _disableJITOptimization.ContainsKey(methodSymbol)
         End Function
-
-#Region "Test Hooks"
-
-        Friend ReadOnly Property SaveTestData() As Boolean
-            Get
-                Return _testData IsNot Nothing
-            End Get
-        End Property
-
-        Friend Sub SetMethodTestData(methodSymbol As MethodSymbol, builder As ILBuilder)
-            If _testData Is Nothing Then
-                Throw New InvalidOperationException("Must call SetILBuilderMap before calling SetILBuilder")
-            End If
-
-            ' If this ever throws "ArgumentException: An item with the same key has already been added.", then
-            ' the ilBuilderMapKeyFormat will need to be updated to provide a unique key (see SetILBuilderMap).
-            _testData.Add(
-                methodSymbol.ToDisplayString(If(methodSymbol.IsUserDefinedOperator(), _testDataOperatorKeyFormat, _testDataKeyFormat)),
-                New CompilationTestData.MethodData(builder, methodSymbol))
-        End Sub
-
-        Friend Sub SetMethodTestData(methods As ConcurrentDictionary(Of String, CompilationTestData.MethodData))
-            Me._testData = methods
-            Me._testDataKeyFormat = New SymbolDisplayFormat(
-                compilerInternalOptions:=SymbolDisplayCompilerInternalOptions.UseMetadataMethodNames Or SymbolDisplayCompilerInternalOptions.IncludeCustomModifiers,
-                globalNamespaceStyle:=SymbolDisplayGlobalNamespaceStyle.OmittedAsContaining,
-                typeQualificationStyle:=SymbolDisplayTypeQualificationStyle.NameAndContainingTypesAndNamespaces,
-                genericsOptions:=SymbolDisplayGenericsOptions.IncludeTypeParameters Or SymbolDisplayGenericsOptions.IncludeVariance,
-                memberOptions:=
-                    SymbolDisplayMemberOptions.IncludeParameters Or
-                    SymbolDisplayMemberOptions.IncludeContainingType Or
-                    SymbolDisplayMemberOptions.IncludeExplicitInterface,
-                parameterOptions:=
-                    SymbolDisplayParameterOptions.IncludeParamsRefOut Or
-                    SymbolDisplayParameterOptions.IncludeExtensionThis Or
-                    SymbolDisplayParameterOptions.IncludeType,
-                miscellaneousOptions:=
-                    SymbolDisplayMiscellaneousOptions.EscapeKeywordIdentifiers Or
-                    SymbolDisplayMiscellaneousOptions.UseSpecialTypes Or
-                    SymbolDisplayMiscellaneousOptions.UseAsterisksInMultiDimensionalArrays Or
-                    SymbolDisplayMiscellaneousOptions.UseErrorTypeSymbolName)
-            ' most methods don't need return type to disambiguate signatures, however,
-            ' it is necessary to disambiguate user defined operators:
-            '   Operator op_Implicit(Type) As Integer
-            '   Operator op_Implicit(Type) As Single
-            '   ... etc ...
-            Me._testDataOperatorKeyFormat = New SymbolDisplayFormat(
-                _testDataKeyFormat.CompilerInternalOptions,
-                _testDataKeyFormat.GlobalNamespaceStyle,
-                _testDataKeyFormat.TypeQualificationStyle,
-                _testDataKeyFormat.GenericsOptions,
-                _testDataKeyFormat.MemberOptions Or SymbolDisplayMemberOptions.IncludeType,
-                _testDataKeyFormat.ParameterOptions,
-                _testDataKeyFormat.DelegateStyle,
-                _testDataKeyFormat.ExtensionMethodStyle,
-                _testDataKeyFormat.PropertyStyle,
-                _testDataKeyFormat.LocalOptions,
-                _testDataKeyFormat.KindOptions,
-                _testDataKeyFormat.MiscellaneousOptions)
-        End Sub
-
-#End Region
 
     End Class
 End Namespace

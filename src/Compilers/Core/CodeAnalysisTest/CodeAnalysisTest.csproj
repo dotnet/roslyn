@@ -48,6 +48,7 @@
     <Compile Include="RealParserTests.cs" />
     <Compile Include="SimpleAnalyzerAssemblyLoaderTests.cs" />
     <Compile Include="SourceFileResolverTest.cs" />
+    <Compile Include="SourceGeneratorTests.cs" />
     <Compile Include="Text\LargeTextTests.cs" />
     <Compile Include="Text\SourceTextStreamTests.cs" />
     <Compile Include="XmlDocumentationCommentTextReaderTests.cs" />

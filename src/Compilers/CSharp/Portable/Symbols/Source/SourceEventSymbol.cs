@@ -31,6 +31,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         private OverriddenOrHiddenMembersResult _lazyOverriddenOrHiddenMembers;
         private ThreeState _lazyIsWindowsRuntimeEvent = ThreeState.Unknown;
 
+        private SourceEventSymbol _replacedBy;
+        private SourceEventSymbol _replaced;
+
         // TODO: CLSCompliantAttribute
 
         internal SourceEventSymbol(
@@ -326,6 +329,31 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             get { return (_modifiers & DeclarationModifiers.Virtual) != 0; }
         }
 
+        internal sealed override bool IsReplace
+        {
+            get { return (_modifiers & DeclarationModifiers.Replace) != 0; }
+        }
+
+        internal sealed override Symbol Replaced
+        {
+            get { return _replaced; }
+        }
+
+        internal sealed override Symbol ReplacedBy
+        {
+            get { return _replacedBy; }
+        }
+
+        internal sealed override void SetReplaced(Symbol replaced)
+        {
+            this._replaced = (SourceEventSymbol)replaced;
+        }
+
+        internal sealed override void SetReplacedBy(Symbol replacedBy)
+        {
+            this._replacedBy = (SourceEventSymbol)replacedBy;
+        }
+
         public sealed override Accessibility DeclaredAccessibility
         {
             get { return ModifierUtils.EffectiveAccessibility(_modifiers); }
@@ -395,7 +423,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             if (!isInterface)
             {
-                allowedModifiers |= DeclarationModifiers.Extern;
+                allowedModifiers |= DeclarationModifiers.Extern |
+                    DeclarationModifiers.Replace;
             }
 
             var mods = ModifierUtils.MakeAndCheckNontypeMemberModifiers(modifiers, defaultAccess, allowedModifiers, location, diagnostics, out modifierErrors);

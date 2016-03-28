@@ -646,8 +646,9 @@ End Module
             Assert.NotNull(assembly)
             Assert.NotEqual(0, assembly.Count)
             Dim localAndMethod = locals.Single(Function(l) l.LocalName = "Me")
+            Dim methods = testData.GetMethodsByName()
             If expectedIL IsNot Nothing Then
-                VerifyMethodData(testData.Methods.Single(Function(m) m.Key.Contains(localAndMethod.MethodName)).Value, expectedType, expectedIL)
+                VerifyMethodData(methods.Single(Function(m) m.Key.Contains(localAndMethod.MethodName)).Value, expectedType, expectedIL)
             End If
             locals.Free()
 
@@ -656,7 +657,7 @@ End Module
             context.CompileExpression("Me", errorMessage, testData)
             Assert.Null(errorMessage)
             If expectedIL IsNot Nothing Then
-                VerifyMethodData(testData.Methods.Single(Function(m) m.Key.Contains("<>m0")).Value, expectedType, expectedIL)
+                VerifyMethodData(methods.Single(Function(m) m.Key.Contains("<>m0")).Value, expectedType, expectedIL)
             End If
         End Sub
 
