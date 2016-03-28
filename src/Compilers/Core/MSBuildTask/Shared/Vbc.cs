@@ -257,7 +257,7 @@ namespace Microsoft.CodeAnalysis.BuildTasks
         {
             get
             {
-                return "vbc.exe";
+                return MonoHelpers.IsRunningOnMono() ? "vbnc.exe" : "vbc.exe";
             }
         }
 

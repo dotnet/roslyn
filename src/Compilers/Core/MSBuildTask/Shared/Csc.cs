@@ -178,7 +178,7 @@ namespace Microsoft.CodeAnalysis.BuildTasks
         {
             get
             {
-                return "csc.exe";
+                return MonoHelpers.IsRunningOnMono() ? "mcs.exe" : "csc.exe";
             }
         }
 
