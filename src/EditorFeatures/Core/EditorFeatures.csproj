@@ -292,6 +292,7 @@
     <Compile Include="Implementation\GoToImplementation\AbstractGoToImplementationService.cs" />
     <Compile Include="Implementation\GoToImplementation\IGoToImplementationService.cs" />
     <Compile Include="Implementation\Intellisense\Completion\OptionSetExtensions.cs" />
+    <Compile Include="Implementation\Intellisense\Completion\Presentation\IntellisenseFilter2.cs" />
     <Compile Include="Implementation\Intellisense\Completion\Temporary\Completion2.cs" />
     <Compile Include="Implementation\Intellisense\Completion\Temporary\ICompletionSession2.cs" />
     <Compile Include="Implementation\Intellisense\Completion\Temporary\IIntellisenseFilter.cs" />
@@ -509,7 +510,7 @@
     <Compile Include="Implementation\Intellisense\Completion\Model.cs" />
     <Compile Include="Implementation\Intellisense\Completion\Presentation\CompletionPresenter.cs" />
     <Compile Include="Implementation\Intellisense\Completion\Presentation\CompletionPresenterSession.cs" />
-    <Compile Include="Implementation\Intellisense\Completion\Presentation\CompletionSet2.cs" />
+    <Compile Include="Implementation\Intellisense\Completion\Presentation\CompletionSet3.cs" />
     <Compile Include="Implementation\Intellisense\Completion\Presentation\CompletionSource.cs" />
     <Compile Include="Implementation\Intellisense\Completion\Presentation\CustomCommitCompletion.cs" />
     <Compile Include="Implementation\Intellisense\Completion\Presentation\ToolTipProvider.cs" />

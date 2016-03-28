@@ -1,4 +1,4 @@
-﻿#if false
+﻿#if !NEWCOMPLETION
 // Copyright (c) Microsoft Corporation
 // All rights reserved
 // REMOVE ONCE WE ACTUALLY REFERENCE THE REAL EDITOR DLLS.
@@ -53,7 +53,7 @@ namespace Microsoft.VisualStudio.Language.Intellisense
         /// </summary>
         /// <remarks>
         /// <para>Disabled filters are shown but are grayed out.</para>
-        /// <para>Intellisense will never call the setter but the <see cref="CompletionSet2"/> owner may and the Intellisense popup will respect the changes.</para>
+        /// <para>Intellisense will never call the setter but the <see cref="CompletionSet"/> owner may and the Intellisense popup will respect the changes.</para>
         /// </remarks>
         public bool IsEnabled { get; set; }
     }

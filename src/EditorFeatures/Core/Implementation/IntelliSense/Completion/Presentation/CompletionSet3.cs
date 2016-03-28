@@ -17,7 +17,11 @@ using VSCompletion = Microsoft.VisualStudio.Language.Intellisense.Completion;
 
 namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion.Presentation
 {
+#if NEWCOMPLETION
     internal sealed class CompletionSet3 : CompletionSet2
+#else
+    internal sealed class CompletionSet3 : CompletionSet
+#endif
     {
         private readonly ForegroundThreadAffinitizedObject _foregroundObject = new ForegroundThreadAffinitizedObject();
         private readonly ITextView _textView;
@@ -41,7 +45,9 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion.P
             this.DisplayName = "All";
         }
 
+#if NEWCOMPLETION
         public override IReadOnlyList<IIntellisenseFilter> Filters => _filters;
+#endif
 
         internal void SetTrackingSpan(ITrackingSpan trackingSpan)
         {
@@ -191,7 +197,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion.P
             return _completionRules;
         }
 
-#if true
+#if NEWCOMPLETION
         public override IReadOnlyList<Span> GetHighlightedSpansInDisplayText(string displayText)
 #else
         public IReadOnlyList<Span> GetHighlightedSpansInDisplayText(string displayText)
@@ -225,44 +231,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion.P
         internal void OnIntelliSenseFiltersChanged()
         {
             this._completionPresenterSession.OnIntelliSenseFiltersChanged(_filters);
-        }
-    }
-
-    internal class IntellisenseFilter2 : IntellisenseFilter
-    {
-        private readonly CompletionSet3 _completionSet;
-        public readonly CompletionItemFilter CompletionItemFilter;
-
-        public IntellisenseFilter2(
-            CompletionSet3 completionSet, CompletionItemFilter filter)
-            : base(filter.Glyph.GetImageMoniker(), GetToolTip(filter),
-                   filter.AccessKey.ToString(), automationText: filter.Glyph.ToString())
-        {
-            _completionSet = completionSet;
-            CompletionItemFilter = filter;
-        }
-
-        private static string GetToolTip(CompletionItemFilter filter)
-        {
-            return filter.DisplayText + " (Alt+" + char.ToUpper(filter.AccessKey) + ")";
-        }
-
-        public override bool IsChecked
-        {
-            get
-            {
-                return base.IsChecked;
-            }
-
-            set
-            {
-                base.IsChecked = value;
-
-                if (_completionSet != null)
-                {
-                    _completionSet.OnIntelliSenseFiltersChanged();
-                }
-            }
         }
     }
 }
