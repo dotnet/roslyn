@@ -71,6 +71,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.VBFeaturesResources
         End Property
         
         '''<summary>
+        '''  Looks up a localized string similar to Add Missing Labels.
+        '''</summary>
+        Friend ReadOnly Property AddMissingLabels() As String
+            Get
+                Return ResourceManager.GetString("AddMissingLabels", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
         '''  Looks up a localized string similar to Add Overloads.
         '''</summary>
         Friend ReadOnly Property AddOverloadsKeyword() As String

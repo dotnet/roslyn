@@ -465,4 +465,7 @@
   <data name="Warning" xml:space="preserve">
     <value>Warning</value>
   </data>
+  <data name="PopulateSwitch" xml:space="preserve">
+    <value>Populate switch.</value>
+  </data>
 </root>
