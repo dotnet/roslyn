@@ -12,9 +12,6 @@ namespace Microsoft.CodeAnalysis.Emit
     {
         internal static readonly EmitOptions Default = new EmitOptions();
 
-        // TODO:
-        internal bool EmitDynamicAnalysisData { get; private set; }
-
         /// <summary>
         /// True to emit an assembly excluding executable code such as method bodies.
         /// </summary>
@@ -33,6 +30,12 @@ namespace Microsoft.CodeAnalysis.Emit
         /// Has no effect when <see cref="EmitMetadataOnly"/> is false.
         /// </remarks>
         public bool IncludePrivateMembers { get; private set; }
+
+        /// <summary>
+        /// If not empty then compiler should enable instrumentation.
+        /// The string specifies instrumentation settings.
+        /// </summary>
+        public string Instrument { get; private set; }
 
         /// <summary>
         /// Subsystem version
@@ -89,6 +92,35 @@ namespace Microsoft.CodeAnalysis.Emit
         /// </summary>
         public string RuntimeMetadataVersion { get; private set; }
 
+        // 1.2 BACKCOMPAT OVERLOAD -- DO NOT TOUCH
+        public EmitOptions(
+            bool metadataOnly,
+            DebugInformationFormat debugInformationFormat,
+            string pdbFilePath,
+            string outputNameOverride,
+            int fileAlignment,
+            ulong baseAddress,
+            bool highEntropyVirtualAddressSpace,
+            SubsystemVersion subsystemVersion,
+            string runtimeMetadataVersion,
+            bool tolerateErrors,
+            bool includePrivateMembers)
+            : this(
+                  metadataOnly,
+                  debugInformationFormat,
+                  pdbFilePath,
+                  outputNameOverride,
+                  fileAlignment,
+                  baseAddress,
+                  highEntropyVirtualAddressSpace,
+                  subsystemVersion,
+                  runtimeMetadataVersion,
+                  tolerateErrors,
+                  includePrivateMembers,
+                  instrument: "")
+        {
+        }
+
         public EmitOptions(
             bool metadataOnly = false,
             DebugInformationFormat debugInformationFormat = 0,
@@ -100,7 +132,8 @@ namespace Microsoft.CodeAnalysis.Emit
             SubsystemVersion subsystemVersion = default(SubsystemVersion),
             string runtimeMetadataVersion = null,
             bool tolerateErrors = false,
-            bool includePrivateMembers = false)
+            bool includePrivateMembers = false,
+            string instrument = "")
         {
             this.EmitMetadataOnly = metadataOnly;
             this.DebugInformationFormat = (debugInformationFormat == 0) ? DebugInformationFormat.Pdb : debugInformationFormat;
@@ -113,6 +146,7 @@ namespace Microsoft.CodeAnalysis.Emit
             this.RuntimeMetadataVersion = runtimeMetadataVersion;
             this.TolerateErrors = tolerateErrors;
             this.IncludePrivateMembers = includePrivateMembers;
+            this.Instrument = instrument;
         }
 
         private EmitOptions(EmitOptions other) : this(
@@ -126,7 +160,8 @@ namespace Microsoft.CodeAnalysis.Emit
             other.SubsystemVersion,
             other.RuntimeMetadataVersion,
             other.TolerateErrors,
-            other.IncludePrivateMembers)
+            other.IncludePrivateMembers,
+            other.Instrument)
         {
         }
 
@@ -153,7 +188,8 @@ namespace Microsoft.CodeAnalysis.Emit
                 this.OutputNameOverride == other.OutputNameOverride &&
                 this.RuntimeMetadataVersion == other.RuntimeMetadataVersion &&
                 this.TolerateErrors == other.TolerateErrors &&
-                this.IncludePrivateMembers == other.IncludePrivateMembers;
+                this.IncludePrivateMembers == other.IncludePrivateMembers &&
+                this.Instrument == other.Instrument;
         }
 
         public override int GetHashCode()
@@ -168,7 +204,8 @@ namespace Microsoft.CodeAnalysis.Emit
                    Hash.Combine(this.OutputNameOverride,
                    Hash.Combine(this.RuntimeMetadataVersion,
                    Hash.Combine(this.TolerateErrors,
-                   Hash.Combine(this.IncludePrivateMembers, 0)))))))))));
+                   Hash.Combine(this.IncludePrivateMembers,
+                   Hash.Combine(this.Instrument, 0))))))))))));
         }
 
         public static bool operator ==(EmitOptions left, EmitOptions right)
@@ -208,6 +245,8 @@ namespace Microsoft.CodeAnalysis.Emit
             }
         }
 
+        internal bool EmitDynamicAnalysisData => !string.IsNullOrEmpty(Instrument);
+
         internal static bool IsValidFileAlignment(int value)
         {
             switch (value)
@@ -222,16 +261,6 @@ namespace Microsoft.CodeAnalysis.Emit
                 default:
                     return false;
             }
-        }
-
-        internal EmitOptions WithEmitDynamicAnalysisData(bool value)
-        {
-            if (this.EmitDynamicAnalysisData == value)
-            {
-                return this;
-            }
-
-            return new EmitOptions(this) { EmitDynamicAnalysisData = value };
         }
 
         public EmitOptions WithEmitMetadataOnly(bool value)
@@ -346,6 +375,16 @@ namespace Microsoft.CodeAnalysis.Emit
             }
 
             return new EmitOptions(this) { IncludePrivateMembers = value };
+        }
+
+        public EmitOptions WithInstrument(string instrument)
+        {
+            if (Instrument == instrument)
+            {
+                return this;
+            }
+
+            return new EmitOptions(this) { Instrument = instrument };
         }
     }
 }

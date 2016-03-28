@@ -60,6 +60,15 @@ namespace Microsoft.CodeAnalysis.BuildTasks
         // We do not support BugReport because it always requires user interaction,
         // which will cause a hang.
 
+        /// <summary>
+        /// An instrument flag that specifies instrumentation settings.
+        /// </summary>
+        public string Instrument
+        {
+            set { _store[nameof(Instrument)] = value; }
+            get { return (string)_store[nameof(Instrument)]; }
+        }
+
         public string CodeAnalysisRuleSet
         {
             set { _store[nameof(CodeAnalysisRuleSet)] = value; }
@@ -691,6 +700,7 @@ namespace Microsoft.CodeAnalysis.BuildTasks
         {
             commandLine.AppendPlusOrMinusSwitch("/deterministic", _store, nameof(Deterministic));
             commandLine.AppendPlusOrMinusSwitch("/publicsign", _store, nameof(PublicSign));
+            commandLine.AppendSwitchIfNotNull("/instrument:", Instrument);
 
             AddFeatures(commandLine, Features);
         }

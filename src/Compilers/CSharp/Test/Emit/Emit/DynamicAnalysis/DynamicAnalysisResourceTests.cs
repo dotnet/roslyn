@@ -30,10 +30,7 @@ namespace Microsoft.CodeAnalysis.Runtime
 }
 ";
 
-        [Fact]
-        public void Resource1()
-        {
-            string source = @"
+        const string ExampleSource = @"
 using System;
 
 public class C
@@ -46,9 +43,12 @@ public class C
 }
 ";
 
-            var c = CreateCompilationWithMscorlib(Parse(source + InstrumentationHelperSource, @"C:\myproject\doc1.cs"));
-            var peImage = c.EmitToArray(EmitOptions.Default.WithEmitDynamicAnalysisData(true));
-
+        [Fact]
+        public void TestSpansPresentInResource()
+        {
+            var c = CreateCompilationWithMscorlib(Parse(ExampleSource + InstrumentationHelperSource, @"C:\myproject\doc1.cs"));
+            var peImage = c.EmitToArray(EmitOptions.Default.WithInstrument("Test.Flag"));
+       
             var peReader = new PEReader(peImage);
             var reader = DynamicAnalysisDataReader.TryCreateFromPE(peReader);
 
@@ -161,7 +161,7 @@ public class C
 ";
 
             var c = CreateCompilationWithMscorlib(Parse(source + InstrumentationHelperSource, @"C:\myproject\doc1.cs"));
-            var peImage = c.EmitToArray(EmitOptions.Default.WithEmitDynamicAnalysisData(true));
+            var peImage = c.EmitToArray(EmitOptions.Default.WithInstrument("Test.Flag"));
 
             var peReader = new PEReader(peImage);
             var reader = DynamicAnalysisDataReader.TryCreateFromPE(peReader);
@@ -207,6 +207,18 @@ public class C
                 "(88,8)-(88,15)");
 
             VerifySpans(reader, reader.Methods[1]);
+        }
+
+        [Fact]
+        public void TestDynamicAnalysisResourceMissingWhenInstrumentationFlagIsDisabled()
+        {
+            var c = CreateCompilationWithMscorlib(Parse(ExampleSource + InstrumentationHelperSource, @"C:\myproject\doc1.cs"));
+            var peImage = c.EmitToArray(EmitOptions.Default);
+
+            var peReader = new PEReader(peImage);
+            var reader = DynamicAnalysisDataReader.TryCreateFromPE(peReader);
+
+            Assert.Null(reader);
         }
 
         private static void VerifySpans(DynamicAnalysisDataReader reader, DynamicAnalysisMethod methodData, params string[] expected)

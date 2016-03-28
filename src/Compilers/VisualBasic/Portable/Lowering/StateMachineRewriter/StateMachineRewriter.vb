@@ -368,10 +368,39 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return False
         End Function
 
+        Friend Function EnsureSpecialType(type As SpecialType, bag As DiagnosticBag) As Symbol
+            Return Binder.GetSpecialType(F.Compilation.Assembly, type, Me.Body.Syntax, bag)
+        End Function
+
         Friend Sub EnsureSpecialType(type As SpecialType, <[In], Out> ByRef hasErrors As Boolean)
             Dim sType = Me.F.SpecialType(type)
             If sType.GetUseSiteErrorInfo IsNot Nothing Then
                 hasErrors = True
+            End If
+        End Sub
+
+        Friend Function EnsureSpecialMember(member As SpecialMember, bag As DiagnosticBag) As Symbol
+            Return Binder.GetSpecialTypeMember(F.Compilation.Assembly, member, Me.Body.Syntax, bag)
+        End Function
+
+        ''' <summary>
+        ''' Check that the property and its getter exist and collect any use-site errors.
+        ''' </summary>
+        Friend Sub EnsureSpecialPropertyGetter(member As SpecialMember, bag As DiagnosticBag)
+            Dim symbol = DirectCast(EnsureSpecialMember(member, bag), PropertySymbol)
+
+            If symbol IsNot Nothing Then
+                Dim getter = symbol.GetMethod
+
+                If getter Is Nothing Then
+                    Binder.ReportDiagnostic(bag, Body.Syntax, ERRID.ERR_NoGetProperty1, CustomSymbolDisplayFormatter.QualifiedName(symbol))
+                    Return
+                End If
+
+                Dim useSiteError = getter.GetUseSiteErrorInfo()
+                If useSiteError IsNot Nothing Then
+                    Binder.ReportDiagnostic(bag, Body.Syntax, useSiteError)
+                End If
             End If
         End Sub
 
