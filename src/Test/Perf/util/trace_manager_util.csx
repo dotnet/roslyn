@@ -105,11 +105,11 @@ class NoOpTraceManager : ITraceManager
 class TraceManager : ITraceManager
 {
     private readonly ScenarioGenerator _scenarioGenerator;
+    private readonly int _iterations;
+    private readonly string _cpcPath;
 
-    private string _cpcPath;
     private int _startEventAbsoluteInstance = 1;
     private int _stopEventAbsoluteInstance = 1;
-    private readonly int _iterations;
 
     public TraceManager(
         int iterations,
