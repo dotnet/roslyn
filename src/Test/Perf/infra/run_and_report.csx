@@ -19,8 +19,8 @@ if (result)
     var elapsedTimeViBenchJsonFilePath = GetViBenchJsonFromCsv(elapsedTimeCsvFilePath, null, null);
     string jsonFileName = Path.GetFileName(elapsedTimeViBenchJsonFilePath);
 
-    Log("Copy the json file to the ViBench share");
     // Move the json file to a file-share
+    Log("Copy the json file to the share");
     File.Copy(elapsedTimeViBenchJsonFilePath, $@"\\vcbench-srv4\benchview\uploads\vibench\{jsonFileName}");
 }
 else
