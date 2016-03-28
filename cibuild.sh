@@ -1,4 +1,5 @@
 #!/usr/bin/env bash
+set -e
 
 usage()
 {
@@ -15,10 +16,15 @@ usage()
 BUILD_CONFIGURATION=Debug
 USE_CACHE=true
 
+MAKE="make"
+if [[ $OSTYPE == *[Bb][Ss][Dd]* ]]; then
+    MAKE="gmake"
+fi
+MAKE_ARGS="BUILD_CONFIGURATION=$BUILD_CONFIGURATION"
+
 # LTTNG is the logging infrastructure used by coreclr.  Need this variable set 
 # so it doesn't output warnings to the console.
 export LTTNG_HOME=$HOME
-export MONO_THREADS_PER_CPU=50
 
 # There are some stability issues that are causing Jenkins builds to fail at an 
 # unacceptable rate.  To temporarily work around that we are going to retry the 
@@ -52,32 +58,6 @@ do
     esac
 done
 
-run_make()
-{
-    local is_good=false
- 
-    MAKE="make"
-    if [[ $OSTYPE == *bsd* ]]; then
-        MAKE="gmake"
-    fi
-
-    for i in `seq 1 $RETRY_COUNT`
-    do
-        $MAKE "$@" BUILD_CONFIGURATION=$BUILD_CONFIGURATION
-        if [ $? -eq 0 ]; then
-            is_good=true
-            break
-        fi
-
-        echo Build retry $i
-    done
-
-    if [ "$is_good" != "true" ]; then
-        echo Build failed
-        exit 1
-    fi
-}
-
 if [ "$CLEAN_RUN" == "true" ]; then
     echo Clean out the enlistment
     git clean -dxf . 
@@ -85,14 +65,17 @@ fi
 
 if [ "$USE_CACHE" == "false" ]; then
     echo Clean out the toolsets
-    make clean_toolset
+    $MAKE clean_toolset
 fi
 
+echo Building this commit:
+git show --no-patch --pretty=raw HEAD
+
 echo Building Bootstrap
-run_make bootstrap
+$MAKE bootstrap $MAKE_ARGS 
 
 echo Building CrossPlatform.sln
-run_make all BOOTSTRAP=true BUILD_LOG_PATH=Binaries/Build.log
+$MAKE all $MAKE_ARGs BOOTSTRAP=true BUILD_LOG_PATH=Binaries/Build.log
 
-make test
+$MAKE test
 

@@ -1012,7 +1012,12 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         internal NamedTypeSymbol GetSpecialType(SpecialType typeId, DiagnosticBag diagnostics, CSharpSyntaxNode node)
         {
-            NamedTypeSymbol typeSymbol = this.Compilation.GetSpecialType(typeId);
+            return GetSpecialType(this.Compilation, typeId, node, diagnostics);
+        }
+
+        internal static NamedTypeSymbol GetSpecialType(CSharpCompilation compilation, SpecialType typeId, CSharpSyntaxNode node, DiagnosticBag diagnostics)
+        {
+            NamedTypeSymbol typeSymbol = compilation.GetSpecialType(typeId);
             Debug.Assert((object)typeSymbol != null, "Expect an error type if special type isn't found");
             ReportUseSiteDiagnostics(typeSymbol, diagnostics, node);
             return typeSymbol;
@@ -1944,14 +1949,22 @@ namespace Microsoft.CodeAnalysis.CSharp
         internal static void CheckFeatureAvailability(Location location, MessageID feature, DiagnosticBag diagnostics)
         {
             var options = (CSharpParseOptions)location.SourceTree.Options;
-            if (feature.RequiredFeature() != null)
+            if (options.IsFeatureEnabled(feature))
+            {
+                return;
+            }
+
+            string requiredFeature = feature.RequiredFeature();
+            if (requiredFeature != null)
             {
                 if (!options.IsFeatureEnabled(feature))
                 {
-                    diagnostics.Add(ErrorCode.ERR_FeatureIsExperimental, location, feature.Localize());
+                    diagnostics.Add(ErrorCode.ERR_FeatureIsExperimental, location, feature.Localize(), requiredFeature);
                 }
+
                 return;
             }
+
             LanguageVersion availableVersion = options.LanguageVersion;
             LanguageVersion requiredVersion = feature.RequiredVersion();
             if (requiredVersion > availableVersion)

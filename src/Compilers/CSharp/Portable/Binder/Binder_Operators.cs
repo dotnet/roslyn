@@ -2545,22 +2545,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             return false;
         }
 
-        private BoundExpression BindIsOperator(BinaryExpressionSyntax node, DiagnosticBag diagnostics)
+        private bool IsOperandErrors(CSharpSyntaxNode node, BoundExpression operand, DiagnosticBag diagnostics)
         {
-            var operand = BindValue(node.Left, diagnostics, BindValueKind.RValue);
-            AliasSymbol alias;
-            TypeSymbol targetType = BindType(node.Right, diagnostics, out alias);
-            var typeExpression = new BoundTypeExpression(node.Right, alias, targetType);
-            var targetTypeKind = targetType.TypeKind;
-            var resultType = (TypeSymbol)GetSpecialType(SpecialType.System_Boolean, diagnostics, node);
-
-            // Is and As operator should have null ConstantValue as they are not constant expressions.
-            // However we perform analysis of is/as expressions at bind time to detect if the expression 
-            // will always evaluate to a constant to generate warnings (always true/false/null).
-            // We also need this analysis result during rewrite to optimize away redundant isinst instructions.
-            // We store the conversion from expression's operand type to target type to enable these
-            // optimizations during is/as operator rewrite.
-
             switch (operand.Kind)
             {
                 case BoundKind.UnboundLambda:
@@ -2568,14 +2554,16 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case BoundKind.MethodGroup:  // New in Roslyn - see DevDiv #864740.
                     // operand for an is or as expression cannot be a lambda expression or method group
                     Error(diagnostics, ErrorCode.ERR_LambdaInIsAs, node);
-                    return new BoundIsOperator(node, operand, typeExpression, Conversion.NoConversion, resultType, hasErrors: true);
+                    return true;
             }
 
-            if (operand.HasAnyErrors || targetTypeKind == TypeKind.Error)
-            {
-                // If either operand is bad or target type has errors, bail out preventing more cascading errors.
-                return new BoundIsOperator(node, operand, typeExpression, Conversion.NoConversion, resultType, hasErrors: true);
-            }
+            return operand.HasAnyErrors;
+        }
+
+        private bool IsOperatorErrors(CSharpSyntaxNode node, TypeSymbol operandType, BoundTypeExpression typeExpression, DiagnosticBag diagnostics)
+        {
+            var targetType = typeExpression.Type;
+            var targetTypeKind = targetType.TypeKind;
 
             // The native compiler allows "x is C" where C is a static class. This
             // is strictly illegal according to the specification (see the section
@@ -2585,22 +2573,44 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (targetType.IsStatic && Compilation.FeatureStrictEnabled)
             {
                 Error(diagnostics, ErrorCode.ERR_StaticInAsOrIs, node, targetType);
-                return new BoundIsOperator(node, operand, typeExpression, Conversion.NoConversion, resultType, hasErrors: true);
+                return true;
             }
 
-            var operandType = operand.Type;
             if ((object)operandType != null && operandType.TypeKind == TypeKind.Pointer || targetTypeKind == TypeKind.Pointer)
             {
                 // operand for an is or as expression cannot be of pointer type
                 Error(diagnostics, ErrorCode.ERR_PointerInAsOrIs, node);
+                return true;
+            }
+
+            return targetTypeKind == TypeKind.Error;
+        }
+
+        private BoundExpression BindIsOperator(BinaryExpressionSyntax node, DiagnosticBag diagnostics)
+        {
+            var operand = BindValue(node.Left, diagnostics, BindValueKind.RValue);
+            AliasSymbol alias;
+            TypeSymbol targetType = BindType(node.Right, diagnostics, out alias);
+            var typeExpression = new BoundTypeExpression(node.Right, alias, targetType);
+            var targetTypeKind = targetType.TypeKind;
+            var resultType = (TypeSymbol)GetSpecialType(SpecialType.System_Boolean, diagnostics, node);
+            if (IsOperandErrors(node, operand, diagnostics) || IsOperatorErrors(node, operand.Type, typeExpression, diagnostics))
+            {
                 return new BoundIsOperator(node, operand, typeExpression, Conversion.NoConversion, resultType, hasErrors: true);
             }
+
+            // Is and As operator should have null ConstantValue as they are not constant expressions.
+            // However we perform analysis of is/as expressions at bind time to detect if the expression 
+            // will always evaluate to a constant to generate warnings (always true/false/null).
+            // We also need this analysis result during rewrite to optimize away redundant isinst instructions.
+            // We store the conversion from expression's operand type to target type to enable these
+            // optimizations during is/as operator rewrite.
 
             HashSet<DiagnosticInfo> useSiteDiagnostics = null;
 
             if (operand.ConstantValue == ConstantValue.Null ||
                 operand.Kind == BoundKind.MethodGroup ||
-                operandType.SpecialType == SpecialType.System_Void)
+                operand.Type.SpecialType == SpecialType.System_Void)
             {
                 // warning for cases where the result is always false:
                 // (a) "null is TYPE" OR operand evaluates to null 
@@ -2616,12 +2626,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // NOTE:    See Test SyntaxBinderTests.TestIsOperatorWithTypeParameter
 
                 Error(diagnostics, ErrorCode.WRN_IsAlwaysFalse, node, targetType);
-
                 Conversion conv = Conversions.ClassifyConversionFromExpression(operand, targetType, ref useSiteDiagnostics);
                 diagnostics.Add(node, useSiteDiagnostics);
                 return new BoundIsOperator(node, operand, typeExpression, conv, resultType);
             }
-
 
             if (targetTypeKind == TypeKind.Dynamic)
             {
@@ -2632,6 +2640,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     );
             }
 
+            var operandType = operand.Type;
             Debug.Assert((object)operandType != null);
             if (operandType.TypeKind == TypeKind.Dynamic)
             {
@@ -2642,7 +2651,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             Conversion conversion = Conversions.ClassifyConversion(operandType, targetType, ref useSiteDiagnostics);
             diagnostics.Add(node, useSiteDiagnostics);
             ReportIsOperatorConstantWarnings(node, diagnostics, operandType, targetType, conversion.Kind, operand.ConstantValue);
-
             return new BoundIsOperator(node, operand, typeExpression, conversion, resultType);
         }
 

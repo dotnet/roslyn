@@ -973,7 +973,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                         return semanticModel;
                     });
 
-                    _compilation.EventQueue.Enqueue(new SymbolDeclaredCompilationEvent(_compilation, methodSymbol, lazySemanticModel));
+                    MethodSymbol symbolToProduce = methodSymbol.PartialDefinitionPart ?? methodSymbol;
+                    _compilation.EventQueue.TryEnqueue(new SymbolDeclaredCompilationEvent(_compilation, symbolToProduce, lazySemanticModel));
                 }
 
                 // Don't lower if we're not emitting or if there were errors. 
@@ -1522,8 +1523,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     var inMethodBinder = factory.GetBinder(blockSyntax);
 
                     var binder = new ExecutableCodeBinder(blockSyntax, sourceMethod, inMethodBinder);
-                    body = binder.BindBlock(blockSyntax, diagnostics);
-
+                    body = (BoundBlock)binder.BindEmbeddedBlock(blockSyntax, diagnostics);
                     importChain = binder.ImportChain;
 
                     if (method.MethodKind == MethodKind.Destructor)
@@ -1566,7 +1566,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     binder = new ExecutableCodeBinder(arrowExpression, sourceMethod, binder);
                     importChain = binder.ImportChain;
                     // Add locals
-                    return binder.BindExpressionBodyAsBlock(arrowExpression, diagnostics);
+                    return binder.WithPatternVariablesIfAny(arrowExpression.Expression).BindExpressionBodyAsBlock(arrowExpression, diagnostics);
                 }
                 else
                 {
@@ -1592,8 +1592,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 if (body != null)
                 {
-                    return body;
-                }
+                        return body;
+                    }
                 statements = ImmutableArray<BoundStatement>.Empty;
             }
             else if (body == null)
@@ -1741,8 +1741,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                 outerBinder = compilation.GetBinderFactory(sourceConstructor.SyntaxTree).GetBinder(initializerArgumentListOpt);
             }
 
-            //wrap in ConstructorInitializerBinder for appropriate errors
-            Binder initializerBinder = outerBinder.WithAdditionalFlagsAndContainingMemberOrLambda(BinderFlags.ConstructorInitializer, constructor);
+            // wrap in ConstructorInitializerBinder for appropriate errors
+            // Handle scoping for possible pattern variables declared in the initializer
+            Binder initializerBinder = outerBinder.WithAdditionalFlagsAndContainingMemberOrLambda(BinderFlags.ConstructorInitializer, constructor).
+                                       WithPatternVariablesIfAny(initializerArgumentListOpt);
 
             return initializerBinder.BindConstructorInitializer(initializerArgumentListOpt, constructor, diagnostics);
         }

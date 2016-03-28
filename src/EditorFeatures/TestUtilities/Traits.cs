@@ -65,6 +65,7 @@ namespace Roslyn.Test.Utilities
             public const string CodeActionsMakeMethodSynchronous = "CodeActions.MakeMethodSynchronous";
             public const string CodeActionsMoveDeclarationNearReference = "CodeActions.MoveDeclarationNearReference";
             public const string CodeActionsMoveToTopOfFile = "CodeActions.MoveToTopOfFile";
+            public const string CodeActionsQualifyMemberAccess = "CodeActions.QualifyMemberAccess";
             public const string CodeActionsReplaceMethodWithProperty = "CodeActions.ReplaceMethodWithProperty";
             public const string CodeActionsRemoveByVal = "CodeActions.RemoveByVal";
             public const string CodeActionsRemoveUnnecessaryCast = "CodeActions.RemoveUnnecessaryCast";
@@ -111,12 +112,14 @@ namespace Roslyn.Test.Utilities
             public const string LineCommit = nameof(LineCommit);
             public const string LineSeparators = nameof(LineSeparators);
             public const string MetadataAsSource = nameof(MetadataAsSource);
+            public const string NamingStyle = nameof(NamingStyle);
             public const string NavigateTo = nameof(NavigateTo);
             public const string NavigationBar = nameof(NavigationBar);
             public const string ObjectBrowser = nameof(ObjectBrowser);
             public const string Options = nameof(Options);
             public const string Organizing = nameof(Organizing);
             public const string Outlining = nameof(Outlining);
+            public const string Packaging = nameof(Packaging);
             public const string Peek = nameof(Peek);
             public const string Progression = nameof(Progression);
             public const string ProjectSystemShims = nameof(ProjectSystemShims);

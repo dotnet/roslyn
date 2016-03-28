@@ -1,0 +1,16 @@
+﻿{
+  "dependencies": {
+    "xunit": "2.1.0",
+    "xunit.runner.console": "2.1.0",
+    "xunit.runner.visualstudio": "2.1.0",
+    "Moq": "4.2.1402.2112",
+    "System.Collections.Immutable": "1.1.37"
+  },
+  "frameworks": {
+    "net46": { }
+  },
+  "runtimes": {
+    "win7": { },
+    "win7-anycpu": { }
+  }
+}

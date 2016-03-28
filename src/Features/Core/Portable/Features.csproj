@@ -32,6 +32,8 @@
   <ItemGroup>
     <InternalsVisibleTo Include="InteractiveHost" />
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.CSharp.EditorFeatures" />
+    <InternalsVisibleTo Include="Roslyn.SyntaxVisualizer.Extension" />
+    <InternalsVisibleTo Include="Roslyn.SyntaxVisualizer.Control" />
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.CSharp.Features" />
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.EditorFeatures" />
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.EditorFeatures.Text" />
@@ -41,6 +43,7 @@
     <InternalsVisibleTo Include="Microsoft.VisualStudio.LanguageServices.CSharp" />
     <InternalsVisibleTo Include="Microsoft.VisualStudio.LanguageServices.Implementation" />
     <InternalsVisibleTo Include="Microsoft.VisualStudio.LanguageServices.SolutionExplorer" />
+    <InternalsVisibleTo Include="Microsoft.VisualStudio.LanguageServices.ExternalDependencyServices" />
     <InternalsVisibleTo Include="Microsoft.VisualStudio.LanguageServices.Telemetry" />
     <InternalsVisibleTo Include="Microsoft.VisualStudio.LanguageServices.VisualBasic" />
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.CSharp.InteractiveEditorFeatures" />
@@ -90,9 +93,15 @@
     <Compile Include="ChangeSignature\IUnifiedArgumentSyntax.cs" />
     <Compile Include="ChangeSignature\ParameterConfiguration.cs" />
     <Compile Include="ChangeSignature\SignatureChange.cs" />
+    <Compile Include="CodeFixes\AddImport\AbstractAddImportCodeFixProvider.MetadataSymbolReference.cs" />
+    <Compile Include="CodeFixes\AddImport\AbstractAddImportCodeFixProvider.AssemblyReference.cs" />
+    <Compile Include="CodeFixes\AddImport\AbstractAddImportCodeFixProvider.PackageReference.cs" />
+    <Compile Include="CodeFixes\AddImport\AbstractAddImportCodeFixProvider.ProjectSymbolReference.cs" />
+    <Compile Include="CodeFixes\AddImport\AbstractAddImportCodeFixProvider.Reference.cs" />
     <Compile Include="CodeFixes\AddImport\AbstractAddImportCodeFixProvider.SearchScope.cs" />
     <Compile Include="CodeFixes\AddImport\AbstractAddImportCodeFixProvider.SymbolReference.cs" />
     <Compile Include="CodeFixes\AddImport\AbstractAddImportCodeFixProvider.SymbolReferenceFinder.cs" />
+    <Compile Include="CodeFixes\AddImport\AbstractAddImportCodeFixProvider.SymbolResult.cs" />
     <Compile Include="CodeFixes\CodeFixContextExtensions.cs" />
     <Compile Include="CodeFixes\FixAllOccurrences\FixMultipleCodeAction.cs" />
     <Compile Include="CodeFixes\FixAllOccurrences\FixAllCodeAction.cs" />
@@ -107,12 +116,14 @@
     <Compile Include="CodeFixes\FixAllOccurrences\FixAllCodeActionContext.cs" />
     <Compile Include="CodeFixes\FirstDiagnosticResult.cs" />
     <Compile Include="CodeFixes\FixAllOccurrences\IFixMultipleOccurrencesService.cs" />
-    <Compile Include="CodeFixes\FullyQualify\AbstractFullyQualifyCodeFixProvider.cs" />
+    <Compile Include="CodeFixes\Qualify\AbstractFullyQualifyCodeFixProvider.cs" />
     <Compile Include="CodeFixes\GenerateMember\AbstractGenerateMemberCodeFixProvider.cs" />
     <Compile Include="CodeFixes\ICodeFixProviderFactory.cs" />
     <Compile Include="CodeFixes\FixAllOccurrences\IFixAllGetFixesService.cs" />
     <Compile Include="CodeFixes\Iterator\AbstractIteratorCodeFixProvider.cs" />
+    <Compile Include="CodeFixes\NamingStyle\AbstractNamingStyleCodeFixProvider.cs" />
     <Compile Include="CodeFixes\PredefinedCodeFixProviderNames.cs" />
+    <Compile Include="CodeFixes\Qualify\AbstractQualifyMemberAccessCodeFixprovider.cs" />
     <Compile Include="CodeFixes\RoslynAssemblyHelper.cs" />
     <Compile Include="CodeFixes\Suppression\AbstractSuppressionCodeFixProvider.IPragmaBasedCodeAction.cs" />
     <Compile Include="CodeFixes\Suppression\AbstractSuppressionCodeFixProvider.PragmaBatchFixHelpers.cs" />
@@ -177,6 +188,17 @@
     <Compile Include="Completion\SuggestionMode\SuggestionModeCompletionProvider.cs" />
     <Compile Include="Diagnostics\AnalyzerHelper.cs" />
     <Compile Include="Diagnostics\AbstractHostDiagnosticUpdateSource.cs" />
+    <Compile Include="Diagnostics\Analyzers\QualifyMemberAccessDiagnosticAnalyzerBase.cs" />
+    <Compile Include="Diagnostics\Analyzers\NamingStyles\Capitalization.cs" />
+    <Compile Include="SymbolCategorization\ISymbolCategorizer.cs" />
+    <Compile Include="Diagnostics\Analyzers\NamingStyles\NamingRule.cs" />
+    <Compile Include="Diagnostics\Analyzers\NamingStyles\NamingStylePreferencesInfo.cs" />
+    <Compile Include="Diagnostics\Analyzers\NamingStyles\Serialization\INamingStyle.cs" />
+    <Compile Include="Diagnostics\Analyzers\NamingStyles\Serialization\NamingStyle.cs" />
+    <Compile Include="Diagnostics\Analyzers\NamingStyles\Serialization\SerializableNamingRule.cs" />
+    <Compile Include="Diagnostics\Analyzers\NamingStyles\Serialization\SerializableNamingStylePreferencesInfo.cs" />
+    <Compile Include="Diagnostics\Analyzers\NamingStyles\NamingStyleDiagnosticAnalyzerBase.cs" />
+    <Compile Include="Diagnostics\Analyzers\NamingStyles\Serialization\SymbolSpecification.cs" />
     <Compile Include="Diagnostics\AnalyzerUpdateArgsId.cs" />
     <Compile Include="Diagnostics\DiagnosticEventTaskScheduler.cs" />
     <Compile Include="Diagnostics\DiagnosticService_UpdateSourceRegistrationService.cs" />
@@ -546,6 +568,10 @@
     <Compile Include="SolutionCrawler\WorkCoordinator.WorkItem.cs" />
     <Compile Include="SolutionCrawler\SolutionCrawlerRegistrationService.cs" />
     <Compile Include="SpellCheck\AbstractSpellCheckCodeFixProvider.cs" />
+    <Compile Include="SymbolCategorization\ExportSymbolCategorizerAttribute.cs" />
+    <Compile Include="SymbolCategorization\ISymbolCategorizationService.cs" />
+    <Compile Include="SymbolCategorization\SymbolCategorizationService.cs" />
+    <Compile Include="SymbolCategorization\ThreadLocalSymbolCategorizer.cs" />
     <Compile Include="UseAutoProperty\AbstractUseAutoPropertyCodeFixProvider.cs" />
     <Compile Include="UseAutoProperty\AbstractUseAutoPropertyAnalyzer.cs" />
     <Compile Include="Workspace\BackgroundCompiler.cs" />
@@ -566,7 +592,6 @@
     <PublicAPI Include="PublicAPI.Shipped.txt" />
     <PublicAPI Include="PublicAPI.Unshipped.txt" />
   </ItemGroup>
-  <ItemGroup />
   <Import Project="..\..\..\Compilers\Core\AnalyzerDriver\AnalyzerDriver.projitems" Label="Shared" />
   <ImportGroup Label="Targets">
     <Import Project="..\..\..\..\build\Targets\VSL.Imports.targets" />

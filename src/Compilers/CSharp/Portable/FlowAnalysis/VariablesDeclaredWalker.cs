@@ -53,6 +53,16 @@ namespace Microsoft.CodeAnalysis.CSharp
             _variablesDeclared = null;
         }
 
+        public override BoundNode VisitDeclarationPattern(BoundDeclarationPattern node)
+        {
+            if (IsInside)
+            {
+                _variablesDeclared.Add(node.LocalSymbol);
+            }
+
+            return base.VisitDeclarationPattern(node);
+        }
+
         public override BoundNode VisitLocalDeclaration(BoundLocalDeclaration node)
         {
             if (IsInside)

@@ -274,6 +274,14 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
                 selectionInfo = selectionInfo.WithStatus(s => s.With(s.Flag, CSharpFeaturesResources.TheSelectedCodeIsInsideAnUnsafeContext));
             }
 
+            // For now patterns are being blanket disabled for extract method.  This issue covers designing extractions for them
+            // and re-enabling this. 
+            // https://github.com/dotnet/roslyn/issues/9244
+            if (commonNode.Kind() == SyntaxKind.IsPatternExpression)
+            {
+                selectionInfo = selectionInfo.WithStatus(s => s.With(OperationStatusFlag.None, CSharpFeaturesResources.SelectionCanNotContainPattern));
+            }
+
             var selectionChanged = selectionInfo.FirstTokenInOriginalSpan != selectionInfo.FirstTokenInFinalSpan || selectionInfo.LastTokenInOriginalSpan != selectionInfo.LastTokenInFinalSpan;
             if (selectionChanged)
             {

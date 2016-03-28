@@ -237,6 +237,17 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             return _hostAnalyzerManager.IsCompilerDiagnosticAnalyzer(language, analyzer);
         }
 
+        public bool ContainsDiagnostics(Workspace workspace, ProjectId projectId)
+        {
+            BaseDiagnosticIncrementalAnalyzer analyzer;
+            if (_map.TryGetValue(workspace, out analyzer))
+            {
+                return analyzer.ContainsDiagnostics(workspace, projectId);
+            }
+
+            return false;
+        }
+
         // virtual for testing purposes.
         internal virtual Action<Exception, DiagnosticAnalyzer, Diagnostic> GetOnAnalyzerException(ProjectId projectId, DiagnosticLogAggregator diagnosticLogAggregator)
         {

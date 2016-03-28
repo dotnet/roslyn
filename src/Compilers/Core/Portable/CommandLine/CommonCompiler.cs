@@ -431,6 +431,19 @@ namespace Microsoft.CodeAnalysis
                         WithOutputNameOverride(outputName).
                         WithPdbFilePath(finalPdbFilePath);
 
+                    // The PDB path is emitted in it's entirety into the PE.  This makes it impossible to have deterministic
+                    // builds that occur in different source directories.  To enable this we shave all path information from
+                    // the PDB when specified by the user.  
+                    //
+                    // This is a temporary work around to allow us to make progress with determinism.  The following issue 
+                    // tracks getting an official solution here.
+                    //
+                    // https://github.com/dotnet/roslyn/issues/9813
+                    if (Arguments.ParseOptions.Features.ContainsKey("pdb-path-determinism") && !string.IsNullOrEmpty(emitOptions.PdbFilePath))
+                    {
+                        emitOptions = emitOptions.WithPdbFilePath(Path.GetFileName(emitOptions.PdbFilePath));
+                    }
+
                     var moduleBeingBuilt = compilation.CheckOptionsAndCreateModuleBuilder(
                         diagnosticBag,
                         Arguments.ManifestResources,

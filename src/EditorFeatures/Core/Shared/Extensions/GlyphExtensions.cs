@@ -383,6 +383,9 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Extensions
                 case Glyph.CompletionWarning:
                     return KnownMonikers.IntellisenseWarning;
 
+                case Glyph.NuGet:
+                    return KnownMonikers.NuGet;
+
                 default:
                     throw new ArgumentException("glyph");
             }

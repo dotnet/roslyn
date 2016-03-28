@@ -169,7 +169,7 @@ var x = from a in new[] { 1, 2 ,3 } select a + 1;
             AssertEx.Equal(new[] { 2, 3, 4 }, state.ReturnValue);
         }
 
-        [Fact(Skip = "xunit2")]
+        [Fact]
         public async Task References1()
         {
             var options0 = ScriptOptions.Default.AddReferences(

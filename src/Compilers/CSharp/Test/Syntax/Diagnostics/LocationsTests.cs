@@ -129,7 +129,7 @@ int f;
 #line 17 ""d:\twing.cs""
 #endif
 int a;
-}";
+}".NormalizeLineEndings();
             var resolver = new TestSourceResolver();
 
             SyntaxTree syntaxTree = SyntaxFactory.ParseSyntaxTree(sampleProgram, path: "foo.cs");
@@ -410,7 +410,7 @@ class MainClass
         char c;   // CS0168 on line 9
     }
 }
-";
+".NormalizeLineEndings();
 
             SyntaxTree syntaxTree = SyntaxFactory.ParseSyntaxTree(sampleProgram);
 

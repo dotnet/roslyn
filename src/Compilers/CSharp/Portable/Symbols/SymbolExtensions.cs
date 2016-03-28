@@ -8,6 +8,8 @@ using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Roslyn.Utilities;
 
+using static System.Linq.ImmutableArrayExtensions;
+
 namespace Microsoft.CodeAnalysis.CSharp.Symbols
 {
     internal static partial class SymbolExtensions
@@ -363,6 +365,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         internal static ReplacedMemberEnumerable GetReplacedMembers(this Symbol symbol)
         {
             return new ReplacedMemberEnumerable(symbol);
+        }
+
+        internal static ImmutableArray<TypeSymbol> ToTypes(this ImmutableArray<TypeWithModifiers> typesWithModifiers, out bool hasModifiers)
+        {
+            hasModifiers = typesWithModifiers.Any(a => !a.CustomModifiers.IsDefaultOrEmpty);
+            return typesWithModifiers.SelectAsArray(a => a.Type);
         }
     }
 }

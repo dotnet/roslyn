@@ -341,6 +341,24 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Type of match expression cannot be determined because no branch has a type..
+        /// </summary>
+        internal static string ERR_AmbigMatch0 {
+            get {
+                return ResourceManager.GetString("ERR_AmbigMatch0", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Type of match expression cannot be determined because no branch has a most specific type..
+        /// </summary>
+        internal static string ERR_AmbigMatch1 {
+            get {
+                return ResourceManager.GetString("ERR_AmbigMatch1", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Ambiguity between &apos;{0}&apos; and &apos;{1}&apos;.
         /// </summary>
         internal static string ERR_AmbigMember {
@@ -1570,6 +1588,15 @@ namespace Microsoft.CodeAnalysis.CSharp {
         internal static string ERR_BadInstanceArgType {
             get {
                 return ResourceManager.GetString("ERR_BadInstanceArgType", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Invalid operand for pattern match..
+        /// </summary>
+        internal static string ERR_BadIsPatternExpression {
+            get {
+                return ResourceManager.GetString("ERR_BadIsPatternExpression", resourceCulture);
             }
         }
         
@@ -3563,6 +3590,15 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to An &apos;else&apos; clause is required when a &apos;when&apos; clause is present..
+        /// </summary>
+        internal static string ERR_ElseClauseRequiredWithWhenClause {
+            get {
+                return ResourceManager.GetString("ERR_ElseClauseRequiredWithWhenClause", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Empty character literal.
         /// </summary>
         internal static string ERR_EmptyCharConst {
@@ -4139,11 +4175,20 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Feature &apos;{0}&apos; is only available in &apos;experimental&apos; language version..
+        ///   Looks up a localized string similar to Feature &apos;{0}&apos; is experimental and unsupported; use &apos;/features:{1}&apos; to enable..
         /// </summary>
         internal static string ERR_FeatureIsExperimental {
             get {
                 return ResourceManager.GetString("ERR_FeatureIsExperimental", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Feature &apos;{0}&apos; is not implemented in this compiler..
+        /// </summary>
+        internal static string ERR_FeatureIsUnimplemented {
+            get {
+                return ResourceManager.GetString("ERR_FeatureIsUnimplemented", resourceCulture);
             }
         }
         
@@ -7217,6 +7262,15 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to It is not legal to use nullable type &apos;{0}&apos; in a pattern; use the underlying type &apos;{1}&apos; instead..
+        /// </summary>
+        internal static string ERR_PatternNullableType {
+            get {
+                return ResourceManager.GetString("ERR_PatternNullableType", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Error reading file &apos;{0}&apos; specified for the named argument &apos;{1}&apos; for PermissionSet attribute: &apos;{2}&apos;.
         /// </summary>
         internal static string ERR_PermissionSetAttributeFileReadError {
@@ -7231,6 +7285,15 @@ namespace Microsoft.CodeAnalysis.CSharp {
         internal static string ERR_PermissionSetAttributeInvalidFile {
             get {
                 return ResourceManager.GetString("ERR_PermissionSetAttributeInvalidFile", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to An error occurred while writing the output file: {0}.
+        /// </summary>
+        internal static string ERR_PeWritingFailure {
+            get {
+                return ResourceManager.GetString("ERR_PeWritingFailure", resourceCulture);
             }
         }
         
@@ -8522,6 +8585,15 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to A throw expression is not allowed here..
+        /// </summary>
+        internal static string ERR_ThrowMisplaced {
+            get {
+                return ResourceManager.GetString("ERR_ThrowMisplaced", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Catch clauses cannot follow the general catch clause of a try statement.
         /// </summary>
         internal static string ERR_TooManyCatches {
@@ -9626,6 +9698,24 @@ namespace Microsoft.CodeAnalysis.CSharp {
         internal static string IDS_FeaturePartialTypes {
             get {
                 return ResourceManager.GetString("IDS_FeaturePartialTypes", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to pattern matching.
+        /// </summary>
+        internal static string IDS_FeaturePatternMatching {
+            get {
+                return ResourceManager.GetString("IDS_FeaturePatternMatching", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to pattern matching experimental features.
+        /// </summary>
+        internal static string IDS_FeaturePatternMatching2 {
+            get {
+                return ResourceManager.GetString("IDS_FeaturePatternMatching2", resourceCulture);
             }
         }
         

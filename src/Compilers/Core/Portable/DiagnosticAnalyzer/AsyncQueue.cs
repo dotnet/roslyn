@@ -21,6 +21,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         private readonly Queue<TElement> _data = new Queue<TElement>();
         private Queue<TaskCompletionSource<TElement>> _waiters;
         private bool _completed;
+        private bool _disallowEnqueue;
 
         private object SyncObject
         {
@@ -67,6 +68,11 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
         private bool EnqueueCore(TElement value)
         {
+            if (_disallowEnqueue)
+            {
+                throw new InvalidOperationException($"Cannot enqueue data after PromiseNotToEnqueue.");
+            }
+
             TaskCompletionSource<TElement> waiter;
             lock (SyncObject)
             {
@@ -135,6 +141,11 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             {
                 throw new InvalidOperationException($"Cannot call {nameof(Complete)} when the queue is already completed.");
             }
+        }
+
+        public void PromiseNotToEnqueue()
+        {
+            _disallowEnqueue = true;
         }
 
         /// <summary>

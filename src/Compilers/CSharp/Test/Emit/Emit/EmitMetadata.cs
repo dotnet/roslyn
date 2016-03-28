@@ -2149,7 +2149,8 @@ class Program
                 Assert.Null(member);
         }
 
-        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/6190"), WorkItem(90, "https://github.com/dotnet/roslyn/issues/90")]
+        [WorkItem(90, "https://github.com/dotnet/roslyn/issues/90")]
+        [Fact]
         public void EmitWithNoResourcesAllPlatforms()
         {
             var comp = CreateCompilationWithMscorlib("class Test { static void Main() { } }");
@@ -2162,18 +2163,10 @@ class Program
             VerifyEmitWithNoResources(comp, Platform.X86);
         }
 
-        private static void VerifyEmitWithNoResources(CSharpCompilation comp, Platform platform)
+        private void VerifyEmitWithNoResources(CSharpCompilation comp, Platform platform)
         {
             var options = TestOptions.ReleaseExe.WithPlatform(platform);
-
-            using (var outputStream = new MemoryStream())
-            {
-                var success = comp.WithOptions(options).Emit(outputStream).Success;
-                Assert.True(success);
-
-                var peVerifyOutput = CLRHelpers.PeVerify(outputStream.ToImmutable()).Join(Environment.NewLine);
-                Assert.Equal(string.Empty, peVerifyOutput);
-            }
+            CompileAndVerify(comp.WithAssemblyName("EmitWithNoResourcesAllPlatforms_" + platform.ToString()).WithOptions(options));
         }
 
         [Fact]

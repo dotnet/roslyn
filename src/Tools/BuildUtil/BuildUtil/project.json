@@ -1,0 +1,18 @@
+﻿{
+  "supports": {
+    "net46.app": {},
+    "dnxcore50.app": {}
+  },
+  "dependencies": {
+    "Microsoft.Build.Framework": "0.1.0-preview-00005",
+    "Microsoft.Build.Tasks.Core": "0.1.0-preview-00005",
+    "Microsoft.Build.Utilities.Core": "0.1.0-preview-00005",
+    "Microsoft.NETCore": "5.0.0",
+    "Microsoft.NETCore.Portable.Compatibility": "1.0.0",
+    "NuSpec.ReferenceGenerator": "1.4.2",
+    "System.Collections.Immutable": "1.1.37"
+  },
+  "frameworks": {
+    "dotnet": {}
+  }
+}

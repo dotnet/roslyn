@@ -170,8 +170,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TaskList
                     // result of the race will be us dropping some diagnostics from the build to the floor.
                     var solution = _workspace.CurrentSolution;
 
-                    await CleanupAllLiveErrorsIfNeededAsync(solution, inprogressState).ConfigureAwait(false);
-
                     var supportedIdMap = GetSupportedLiveDiagnosticId(solution, inprogressState);
                     Func<DiagnosticData, bool> liveDiagnosticChecker = d =>
                     {
@@ -202,41 +200,60 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TaskList
                         return false;
                     };
 
-                    await SyncBuildErrorsAndReportAsync(solution, liveDiagnosticChecker, inprogressState.GetDocumentAndErrors(solution)).ConfigureAwait(false);
-                    await SyncBuildErrorsAndReportAsync(solution, liveDiagnosticChecker, inprogressState.GetProjectAndErrors(solution)).ConfigureAwait(false);
+                    var diagnosticService = _diagnosticService as DiagnosticAnalyzerService;
+                    if (diagnosticService != null)
+                    {
+                        using (var batchUpdateToken = diagnosticService.BeginBatchBuildDiagnosticsUpdate(solution))
+                        {
+                            await CleanupAllLiveErrorsIfNeededAsync(diagnosticService, batchUpdateToken, solution, inprogressState).ConfigureAwait(false);
+
+                            await SyncBuildErrorsAndReportAsync(diagnosticService, batchUpdateToken, solution, liveDiagnosticChecker, inprogressState.GetDocumentAndErrors(solution)).ConfigureAwait(false);
+                            await SyncBuildErrorsAndReportAsync(diagnosticService, batchUpdateToken, solution, liveDiagnosticChecker, inprogressState.GetProjectAndErrors(solution)).ConfigureAwait(false);
+                        }
+                    }
 
                     inprogressState.Done();
                 }
             }).CompletesAsyncOperation(asyncToken);
         }
 
-        private async System.Threading.Tasks.Task CleanupAllLiveErrorsIfNeededAsync(Solution solution, InprogressState state)
+        private async System.Threading.Tasks.Task CleanupAllLiveErrorsIfNeededAsync(
+            DiagnosticAnalyzerService diagnosticService, IDisposable batchUpdateToken,
+            Solution solution, InprogressState state)
         {
-            var buildErrorIsTheGod = _workspace.Options.GetOption(InternalDiagnosticsOptions.BuildErrorIsTheGod);
-            var clearProjectErrors = _workspace.Options.GetOption(InternalDiagnosticsOptions.ClearLiveErrorsForProjectBuilt);
-
-            if (!buildErrorIsTheGod && !clearProjectErrors)
+            if (_workspace.Options.GetOption(InternalDiagnosticsOptions.BuildErrorIsTheGod))
             {
+                await CleanupAllLiveErrors(diagnosticService, batchUpdateToken, solution, state, solution.Projects).ConfigureAwait(false);
                 return;
             }
 
-            var projects = buildErrorIsTheGod ? solution.Projects :
-                            (clearProjectErrors ? state.GetProjectsBuilt(solution) : SpecializedCollections.EmptyEnumerable<Project>());
+            if (_workspace.Options.GetOption(InternalDiagnosticsOptions.ClearLiveErrorsForProjectBuilt))
+            {
+                await CleanupAllLiveErrors(diagnosticService, batchUpdateToken, solution, state, state.GetProjectsBuilt(solution)).ConfigureAwait(false);
+                return;
+            }
 
-            // clear all live errors
+            await CleanupAllLiveErrors(diagnosticService, batchUpdateToken, solution, state, state.GetProjectsWithoutErrors(solution)).ConfigureAwait(false);
+            return;
+        }
+
+        private static async System.Threading.Tasks.Task CleanupAllLiveErrors(
+            DiagnosticAnalyzerService diagnosticService, IDisposable batchUpdateToken,
+            Solution solution, InprogressState state, IEnumerable<Project> projects)
+        {
             foreach (var project in projects)
             {
                 foreach (var document in project.Documents)
                 {
-                    await SynchronizeWithBuildAsync(document, ImmutableArray<DiagnosticData>.Empty).ConfigureAwait(false);
+                    await SynchronizeWithBuildAsync(diagnosticService, batchUpdateToken, document, ImmutableArray<DiagnosticData>.Empty).ConfigureAwait(false);
                 }
 
-                await SynchronizeWithBuildAsync(project, ImmutableArray<DiagnosticData>.Empty).ConfigureAwait(false);
+                await SynchronizeWithBuildAsync(diagnosticService, batchUpdateToken, project, ImmutableArray<DiagnosticData>.Empty).ConfigureAwait(false);
             }
         }
 
         private async System.Threading.Tasks.Task SyncBuildErrorsAndReportAsync<T>(
-            Solution solution,
+            DiagnosticAnalyzerService diagnosticService, IDisposable batchUpdateToken, Solution solution,
             Func<DiagnosticData, bool> liveDiagnosticChecker, IEnumerable<KeyValuePair<T, HashSet<DiagnosticData>>> items)
         {
             foreach (var kv in items)
@@ -245,7 +262,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TaskList
                 var liveErrors = kv.Value.Where(liveDiagnosticChecker).ToImmutableArray();
 
                 // make those errors live errors
-                await SynchronizeWithBuildAsync(kv.Key, liveErrors).ConfigureAwait(false);
+                await SynchronizeWithBuildAsync(diagnosticService, batchUpdateToken, kv.Key, liveErrors).ConfigureAwait(false);
 
                 // raise events for ones left-out
                 if (liveErrors.Length != kv.Value.Count)
@@ -256,25 +273,20 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TaskList
             }
         }
 
-        private async System.Threading.Tasks.Task SynchronizeWithBuildAsync<T>(T item, ImmutableArray<DiagnosticData> liveErrors)
+        private static async System.Threading.Tasks.Task SynchronizeWithBuildAsync<T>(
+            DiagnosticAnalyzerService diagnosticService, IDisposable batchUpdateToken,
+            T item, ImmutableArray<DiagnosticData> liveErrors)
         {
-            var diagnosticService = _diagnosticService as DiagnosticAnalyzerService;
-            if (diagnosticService == null)
-            {
-                // we don't synchronize if implementation is not DiagnosticAnalyzerService
-                return;
-            }
-
             var project = item as Project;
             if (project != null)
             {
-                await diagnosticService.SynchronizeWithBuildAsync(project, liveErrors).ConfigureAwait(false);
+                await diagnosticService.SynchronizeWithBuildAsync(batchUpdateToken, project, liveErrors).ConfigureAwait(false);
                 return;
             }
 
             // must be not null
             var document = item as Document;
-            await diagnosticService.SynchronizeWithBuildAsync(document, liveErrors).ConfigureAwait(false);
+            await diagnosticService.SynchronizeWithBuildAsync(batchUpdateToken, document, liveErrors).ConfigureAwait(false);
         }
 
         private void ReportBuildErrors<T>(T item, ImmutableArray<DiagnosticData> buildErrors)
@@ -447,6 +459,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TaskList
 
                     yield return project;
                 }
+            }
+
+            public IEnumerable<Project> GetProjectsWithoutErrors(Solution solution)
+            {
+                return GetProjectsBuilt(solution).Except(GetProjectsWithErrors(solution));
             }
 
             public IEnumerable<KeyValuePair<Document, HashSet<DiagnosticData>>> GetDocumentAndErrors(Solution solution)

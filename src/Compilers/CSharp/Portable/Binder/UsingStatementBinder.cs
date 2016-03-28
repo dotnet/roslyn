@@ -22,18 +22,32 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         override protected ImmutableArray<LocalSymbol> BuildLocals()
         {
-            if (_syntax.Declaration != null)
+            ExpressionSyntax expressionSyntax = TargetExpressionSyntax;
+            VariableDeclarationSyntax declarationSyntax = _syntax.Declaration;
+
+            Debug.Assert((expressionSyntax == null) ^ (declarationSyntax == null)); // Can't have both or neither.
+
+            if (expressionSyntax != null)
             {
-                var locals = new ArrayBuilder<LocalSymbol>(_syntax.Declaration.Variables.Count);
-                foreach (VariableDeclaratorSyntax declarator in _syntax.Declaration.Variables)
+                var locals = ArrayBuilder<LocalSymbol>.GetInstance();
+                BuildAndAddPatternVariables(locals, expressionSyntax);
+                return locals.ToImmutableAndFree();
+            }
+            else
+            {
+                var locals = ArrayBuilder<LocalSymbol>.GetInstance(declarationSyntax.Variables.Count);
+                foreach (VariableDeclaratorSyntax declarator in declarationSyntax.Variables)
                 {
-                    locals.Add(MakeLocal(RefKind.None, _syntax.Declaration, declarator, LocalDeclarationKind.UsingVariable));
+                    locals.Add(MakeLocal(RefKind.None, declarationSyntax, declarator, LocalDeclarationKind.UsingVariable));
+
+                    if (declarator.Initializer != null)
+                    {
+                        BuildAndAddPatternVariables(locals, declarator.Initializer.Value);
+                    }
                 }
 
-                return locals.ToImmutable();
+                return locals.ToImmutableAndFree();
             }
-
-            return ImmutableArray<LocalSymbol>.Empty;
         }
 
         protected override ExpressionSyntax TargetExpressionSyntax

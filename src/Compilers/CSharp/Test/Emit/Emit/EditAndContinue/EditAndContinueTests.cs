@@ -2952,7 +2952,8 @@ class C
         /// Unique ids should not conflict with ids
         /// from previous generation.
         /// </summary>
-        [Fact(Skip = "TODO")]
+        [WorkItem(9847, "https://github.com/dotnet/roslyn/issues/9847")]
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/9847")]
         public void UniqueIds()
         {
             var source0 =
@@ -5334,7 +5335,8 @@ class C
         /// Should not re-use locals if the method metadata
         /// signature is unsupported.
         /// </summary>
-        [Fact(Skip = "TODO")]
+        [WorkItem(9849, "https://github.com/dotnet/roslyn/issues/9849")]
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/9849")]
         public void LocalType_UnsupportedSignatureContent()
         {
             // Equivalent to C#, but with extra local and required modifier on
@@ -5418,7 +5420,8 @@ class C
         /// <summary>
         /// Should not re-use locals with custom modifiers.
         /// </summary>
-        [Fact(Skip = "TODO")]
+        [WorkItem(9848, "https://github.com/dotnet/roslyn/issues/9848")]
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/9848")]
         public void LocalType_CustomModifiers()
         {
             // Equivalent method signature to C#, but
@@ -6204,12 +6207,11 @@ class C
 ");
         }
 
-        [WorkItem(844472, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/844472")]
         [Fact]
         public void MethodSignatureWithNoPIAType()
         {
-            var sourcePIA =
-    @"using System;
+            var sourcePIA = @"
+using System;
 using System.Runtime.InteropServices;
 [assembly: ImportedFromTypeLib(""_.dll"")]
 [assembly: Guid(""35DB1A6B-D635-4320-A062-28D42920E2A3"")]
@@ -6218,55 +6220,96 @@ using System.Runtime.InteropServices;
 public interface I
 {
 }";
-            var source0 =
-@"class C
+            var source0 = MarkedSource(@"
+class C
 {
     static void M(I x)
     {
-        I y = null;
-        M(null);
+        System.Console.WriteLine(1);
     }
-}";
-            var source1 =
-@"class C
+}");
+            var source1 = MarkedSource(@"
+class C
 {
     static void M(I x)
     {
-        I y = null;
-        M(x);
+        System.Console.WriteLine(2);
     }
-}";
+}");
             var compilationPIA = CreateCompilationWithMscorlib(sourcePIA, options: TestOptions.DebugDll);
             var referencePIA = compilationPIA.EmitToImageReference(embedInteropTypes: true);
-            var compilation0 = CreateCompilationWithMscorlib(source0, options: TestOptions.DebugDll, references: new MetadataReference[] { referencePIA });
-            var compilation1 = compilation0.WithSource(source1);
+            var compilation0 = CreateCompilationWithMscorlib(source0.Tree, options: ComSafeDebugDll, references: new MetadataReference[] { referencePIA });
+            var compilation1 = compilation0.WithSource(source1.Tree);
 
-            var testData0 = new CompilationTestData();
-            var bytes0 = compilation0.EmitToArray(testData: testData0);
-            var methodData0 = testData0.GetMethodData("C.M");
-            using (var md0 = ModuleMetadata.CreateFromImage(bytes0))
-            {
-                var generation0 = EmitBaseline.CreateInitialBaseline(md0, methodData0.EncDebugInfoProvider());
-                var method0 = compilation0.GetMember<MethodSymbol>("C.M");
-                var method1 = compilation1.GetMember<MethodSymbol>("C.M");
-                var diff1 = compilation1.EmitDifference(
-                    generation0,
-                    ImmutableArray.Create(new SemanticEdit(SemanticEditKind.Update, method0, method1, GetEquivalentNodesMap(method1, method0), preserveLocalVariables: true)));
-                diff1.VerifyIL("C.M",
-@"{
-  // Code size       11 (0xb)
-  .maxstack  1
-  .locals init ([unchanged] V_0,
-  I V_1) //y
-  IL_0000:  nop
-  IL_0001:  ldnull
-  IL_0002:  stloc.1
-  IL_0003:  ldarg.0
-  IL_0004:  call       ""void C.M(I)""
-  IL_0009:  nop
-  IL_000a:  ret
+            var method0 = compilation0.GetMember<MethodSymbol>("C.M");
+            var method1 = compilation1.GetMember<MethodSymbol>("C.M");
+
+            var v0 = CompileAndVerify(compilation0);
+            var md0 = ModuleMetadata.CreateFromImage(v0.EmittedAssemblyData);
+            var generation0 = EmitBaseline.CreateInitialBaseline(md0, v0.CreateSymReader().GetEncMethodDebugInfo);
+
+            var diff1 = compilation1.EmitDifference(
+                generation0,
+                ImmutableArray.Create(new SemanticEdit(SemanticEditKind.Update, method0, method1, GetSyntaxMapFromMarkers(source0, source1), preserveLocalVariables: true)));
+
+            diff1.EmitResult.Diagnostics.Verify(
+                // error CS7096: Cannot continue since the edit includes a reference to an embedded type: 'I'.
+                Diagnostic(ErrorCode.ERR_EncNoPIAReference).WithArguments("I"));
+        }
+
+        [WorkItem(844472, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/844472")]
+        [Fact]
+        public void LocalSignatureWithNoPIAType()
+        {
+            var sourcePIA = @"
+using System;
+using System.Runtime.InteropServices;
+[assembly: ImportedFromTypeLib(""_.dll"")]
+[assembly: Guid(""35DB1A6B-D635-4320-A062-28D42920E2A3"")]
+[ComImport()]
+[Guid(""35DB1A6B-D635-4320-A062-28D42920E2A4"")]
+public interface I
+{
+}";
+            var source0 = MarkedSource(@"
+class C
+{
+    static void M(I x)
+    {
+        I <N:0>y = null</N:0>;
+        M(null);
+    }
 }");
-            }
+            var source1 = MarkedSource(@"
+class C
+{
+    static void M(I x)
+    {
+        I <N:0>y = null</N:0>;
+        M(x);
+    }
+}");
+            var compilationPIA = CreateCompilationWithMscorlib(sourcePIA, options: TestOptions.DebugDll);
+            var referencePIA = compilationPIA.EmitToImageReference(embedInteropTypes: true);
+            var compilation0 = CreateCompilationWithMscorlib(source0.Tree, options: ComSafeDebugDll, references: new MetadataReference[] { referencePIA });
+            var compilation1 = compilation0.WithSource(source1.Tree);
+
+            var method0 = compilation0.GetMember<MethodSymbol>("C.M");
+            var method1 = compilation1.GetMember<MethodSymbol>("C.M");
+
+            var v0 = CompileAndVerify(compilation0);
+            var md0 = ModuleMetadata.CreateFromImage(v0.EmittedAssemblyData);
+            var generation0 = EmitBaseline.CreateInitialBaseline(md0, v0.CreateSymReader().GetEncMethodDebugInfo);
+
+            var diff1 = compilation1.EmitDifference(
+                generation0,
+                ImmutableArray.Create(new SemanticEdit(SemanticEditKind.Update, method0, method1, GetSyntaxMapFromMarkers(source0, source1), preserveLocalVariables: true)));
+
+            diff1.EmitResult.Diagnostics.Verify(
+                // (6,16): warning CS0219: The variable 'y' is assigned but its value is never used
+                Diagnostic(ErrorCode.WRN_UnreferencedVarAssg, "y").WithArguments("y"),
+                // error CS7096: Cannot continue since the edit includes a reference to an embedded type: 'I'.
+                Diagnostic(ErrorCode.ERR_EncNoPIAReference).WithArguments("I"));
         }
 
         /// <summary>

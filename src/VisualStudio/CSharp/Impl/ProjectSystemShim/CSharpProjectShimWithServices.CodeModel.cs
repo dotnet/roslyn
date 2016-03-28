@@ -15,7 +15,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.ProjectSystemShim
             {
                 if (_projectCodeModel == null)
                 {
-                    _projectCodeModel = new CSharpProjectCodeModel(this, this.VisualStudioWorkspace, ServiceProvider);
+                    _projectCodeModel = new CSharpProjectCodeModel(this, (VisualStudioWorkspace)this.Workspace, ServiceProvider);
                 }
 
                 return _projectCodeModel;

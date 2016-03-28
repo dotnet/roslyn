@@ -178,7 +178,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.EventHookup
                 return null;
             }
 
-            var simplifiedDocument = Simplifier.ReduceAsync(documentWithNameAndAnnotationsAdded.WithSyntaxRoot(updatedRoot), Simplifier.Annotation, null, cancellationToken).WaitAndGetResult(cancellationToken);
+            var simplifiedDocument = Simplifier.ReduceAsync(documentWithNameAndAnnotationsAdded.WithSyntaxRoot(updatedRoot), Simplifier.Annotation, cancellationToken: cancellationToken).WaitAndGetResult(cancellationToken);
             var formattedDocument = Formatter.FormatAsync(simplifiedDocument, Formatter.Annotation, cancellationToken: cancellationToken).WaitAndGetResult(cancellationToken);
 
             plusEqualTokenEndPosition = formattedDocument
@@ -196,19 +196,32 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.EventHookup
             SyntaxAnnotation plusEqualsTokenAnnotation,
             CancellationToken cancellationToken)
         {
-            // Perform a textual insertion of the event handler method name
-
-            var textChange = new TextChange(new TextSpan(position, 0), eventHandlerMethodName + ";");
-            var newText = document.GetTextAsync(cancellationToken).WaitAndGetResult(cancellationToken).WithChanges(textChange);
-            var documentWithNameAdded = document.WithText(newText);
-
-            var syntaxTree = documentWithNameAdded.GetSyntaxTreeAsync(cancellationToken).WaitAndGetResult(cancellationToken);
+            // First find the event hookup to determine if we are in a static context.
+            var syntaxTree = document.GetSyntaxTreeAsync(cancellationToken).WaitAndGetResult(cancellationToken);
             var plusEqualsToken = syntaxTree.FindTokenOnLeftOfPosition(position, cancellationToken);
             var eventHookupExpression = plusEqualsToken.GetAncestor<AssignmentExpressionSyntax>();
 
+            var textToInsert = eventHandlerMethodName + ";";
+            if (!eventHookupExpression.IsInStaticContext())
+            {
+                // This will be simplified later if it's not needed.
+                textToInsert = "this." + textToInsert;
+            }
+
+            // Next, perform a textual insertion of the event handler method name.
+            var textChange = new TextChange(new TextSpan(position, 0), textToInsert);
+            var newText = document.GetTextAsync(cancellationToken).WaitAndGetResult(cancellationToken).WithChanges(textChange);
+            var documentWithNameAdded = document.WithText(newText);
+
+            // Now find the event hookup again to add the appropriate annotations.
+            syntaxTree = documentWithNameAdded.GetSyntaxTreeAsync(cancellationToken).WaitAndGetResult(cancellationToken);
+            plusEqualsToken = syntaxTree.FindTokenOnLeftOfPosition(position, cancellationToken);
+            eventHookupExpression = plusEqualsToken.GetAncestor<AssignmentExpressionSyntax>();
+
             var updatedEventHookupExpression = eventHookupExpression
                 .ReplaceToken(plusEqualsToken, plusEqualsToken.WithAdditionalAnnotations(plusEqualsTokenAnnotation))
-                .WithAdditionalAnnotations(Formatter.Annotation, Simplifier.Annotation);
+                .WithRight(eventHookupExpression.Right.WithAdditionalAnnotations(Simplifier.Annotation))
+                .WithAdditionalAnnotations(Formatter.Annotation);
 
             var rootWithUpdatedEventHookupExpression = syntaxTree.GetRoot(cancellationToken).ReplaceNode(eventHookupExpression, updatedEventHookupExpression);
             return documentWithNameAdded.WithSyntaxRoot(rootWithUpdatedEventHookupExpression);
@@ -288,10 +301,16 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.EventHookup
                     // In the middle of a user action, cannot cancel.
                     var syntaxTree = document.GetSyntaxTreeAsync(cancellationToken).WaitAndGetResult(cancellationToken);
                     var token = syntaxTree.FindTokenOnRightOfPosition(plusEqualTokenEndPosition, cancellationToken);
+                    var editSpan = token.Span;
+                    var memberAccessExpression = token.GetAncestor<MemberAccessExpressionSyntax>();
+                    if (memberAccessExpression != null)
+                    {
+                        // the event hookup might look like `MyEvent += this.GeneratedHandlerName;`
+                        editSpan = memberAccessExpression.Name.Span;
+                    }
 
-                    _inlineRenameService.StartInlineSession(document, token.Span, cancellationToken);
-
-                    textView.SetSelection(token.Span.ToSnapshotSpan(textView.TextSnapshot));
+                    _inlineRenameService.StartInlineSession(document, editSpan, cancellationToken);
+                    textView.SetSelection(editSpan.ToSnapshotSpan(textView.TextSnapshot));
                 }
             }
         }

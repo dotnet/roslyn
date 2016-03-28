@@ -129,8 +129,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             DocumentId id = null;
             _documentIdHints.TryGetValue(filePath, out id);
 
-            Debug.Assert(isGenerated == DocumentInfo.IsGeneratedFile(filePath));
-
             document = new StandardTextDocument(
                 this,
                 hostProject,

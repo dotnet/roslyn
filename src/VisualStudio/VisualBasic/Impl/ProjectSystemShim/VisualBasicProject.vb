@@ -39,10 +39,9 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.ProjectSystemShim
                        hierarchy As IVsHierarchy,
                        serviceProvider As IServiceProvider,
                        reportExternalErrorCreatorOpt As Func(Of ProjectId, IVsReportExternalErrors),
-                       miscellaneousFilesWorkspaceOpt As MiscellaneousFilesWorkspace,
                        visualStudioWorkspaceOpt As VisualStudioWorkspaceImpl,
                        hostDiagnosticUpdateSourceOpt As HostDiagnosticUpdateSource)
-            MyBase.New(projectTracker, reportExternalErrorCreatorOpt, ProjectSystemName, hierarchy, LanguageNames.VisualBasic, serviceProvider, miscellaneousFilesWorkspaceOpt, visualStudioWorkspaceOpt, hostDiagnosticUpdateSourceOpt)
+            MyBase.New(projectTracker, reportExternalErrorCreatorOpt, ProjectSystemName, hierarchy, LanguageNames.VisualBasic, serviceProvider, visualStudioWorkspaceOpt, hostDiagnosticUpdateSourceOpt)
 
             _compilerHost = compilerHost
 
@@ -59,7 +58,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.ProjectSystemShim
 
         Public Function AddEmbeddedMetaDataReference(wszFileName As String) As Integer Implements IVbCompilerProject.AddEmbeddedMetaDataReference
             Try
-                Return AddMetadataReferenceAndTryConvertingToProjectReferenceIfPossible(wszFileName, New MetadataReferenceProperties(embedInteropTypes:=True), VSConstants.S_FALSE)
+                Return AddMetadataReferenceAndTryConvertingToProjectReferenceIfPossible(wszFileName, New MetadataReferenceProperties(embedInteropTypes:=True))
             Catch e As Exception When FilterException(e)
                 Throw ExceptionUtilities.Unreachable
             End Try
@@ -73,7 +72,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.ProjectSystemShim
                     Return VSConstants.S_OK
                 End If
 
-                Return AddMetadataReferenceAndTryConvertingToProjectReferenceIfPossible(wszFileName, New MetadataReferenceProperties(), VSConstants.S_FALSE)
+                Return AddMetadataReferenceAndTryConvertingToProjectReferenceIfPossible(wszFileName, New MetadataReferenceProperties())
             Catch e As Exception When FilterException(e)
                 Throw ExceptionUtilities.Unreachable
             End Try
@@ -234,7 +233,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.ProjectSystemShim
 
         Public Sub GetEntryPointsList(cItems As Integer, strList() As String, ByVal pcActualItems As IntPtr) Implements IVbCompilerProject.GetEntryPointsList
             Try
-                Dim project = VisualStudioWorkspace.CurrentSolution.GetProject(Id)
+                Dim project = Workspace.CurrentSolution.GetProject(Id)
                 Dim compilation = project.GetCompilationAsync(CancellationToken.None).WaitAndGetResult(CancellationToken.None)
 
                 GetEntryPointsWorker(cItems, strList, pcActualItems, findFormsOnly:=False)
@@ -247,7 +246,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.ProjectSystemShim
                                                strList() As String,
                                                ByVal pcActualItems As IntPtr,
                                                findFormsOnly As Boolean)
-            Dim project = VisualStudioWorkspace.CurrentSolution.GetProject(Id)
+            Dim project = Workspace.CurrentSolution.GetProject(Id)
             Dim compilation = project.GetCompilationAsync(CancellationToken.None).WaitAndGetResult(CancellationToken.None)
 
             ' If called with cItems = 0 and pcActualItems != NULL, GetEntryPointsList returns in pcActualItems the number of items available.
@@ -415,7 +414,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.ProjectSystemShim
                     If HasMetadataReference(newRuntimeLibrary) Then
                         _explicitlyAddedDefaultReferences.Add(newRuntimeLibrary)
                     Else
-                        MyBase.AddMetadataReferenceAndTryConvertingToProjectReferenceIfPossible(newRuntimeLibrary, MetadataReferenceProperties.Assembly, hResultForMissingFile:=0)
+                        MyBase.AddMetadataReferenceAndTryConvertingToProjectReferenceIfPossible(newRuntimeLibrary, MetadataReferenceProperties.Assembly)
                     End If
                 Next
             End If

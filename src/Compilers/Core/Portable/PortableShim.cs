@@ -45,6 +45,7 @@ namespace Roslyn.Utilities
             Touch(Directory.Type);
             Touch(Encoding.Type);
             Touch(Environment.Type);
+            Touch(FileAttributes.Type);
             Touch(File.Type);
             Touch(FileAccess.Type);
             Touch(FileMode.Type);
@@ -141,6 +142,17 @@ namespace Roslyn.Utilities
                 .CreateDelegate(typeof(Func<string>));
         }
 
+        internal static class FileAttributes
+        {
+            private const string TypeName = "System.IO.FileAttributes";
+
+            internal static readonly Type Type = ReflectionUtilities.GetTypeFromEither(
+               contractName: $"{TypeName}, {CoreNames.System_IO_FileSystem_Primitives}",
+               desktopName: TypeName);
+
+            public static object Hidden = Enum.ToObject(Type, 2);
+        }
+
         internal static class File
         {
             internal const string TypeName = "System.IO.File";
@@ -174,6 +186,11 @@ namespace Roslyn.Utilities
                 .GetDeclaredMethod(nameof(Delete), new[] { typeof(string) })
                 .CreateDelegate<Action<string>>();
 
+            internal static readonly Action<string, string> Move = Type
+                .GetTypeInfo()
+                .GetDeclaredMethod(nameof(Move), new[] { typeof(string), typeof(string) })
+                .CreateDelegate<Action<string, string>>();
+
             internal static readonly Func<string, byte[]> ReadAllBytes = Type
                 .GetTypeInfo()
                 .GetDeclaredMethod(nameof(ReadAllBytes), paramTypes: new[] { typeof(string) })
@@ -188,6 +205,15 @@ namespace Roslyn.Utilities
                 .GetTypeInfo()
                 .GetDeclaredMethod(nameof(WriteAllText), paramTypes: new[] { typeof(string), typeof(string), typeof(System.Text.Encoding) })
                 .CreateDelegate<Action<string, string, System.Text.Encoding>>();
+
+            private static readonly MethodInfo SetAttributesMethod = Type
+                .GetTypeInfo()
+                .GetDeclaredMethod(nameof(SetAttributes), paramTypes: new[] { typeof(string), FileAttributes.Type });
+
+            public static void SetAttributes(string path, object attributes)
+            {
+                SetAttributesMethod.Invoke(null, new[] { path, attributes });
+            }
         }
 
         internal static class Directory

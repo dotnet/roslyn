@@ -839,6 +839,32 @@ namespace Microsoft.CodeAnalysis
             }
         }
 
+        /// <summary>
+        /// Create a new solution instance with the project specified updated to have
+        /// the specified hasAllInformation.
+        /// </summary>
+        // TODO: make it public
+        internal Solution WithHasAllInformation(ProjectId projectId, bool hasAllInformation)
+        {
+            if (projectId == null)
+            {
+                throw new ArgumentNullException(nameof(projectId));
+            }
+
+            Contract.Requires(this.ContainsProject(projectId));
+
+            var oldProject = this.GetProjectState(projectId);
+            var newProject = oldProject.UpdateHasAllInformation(hasAllInformation);
+
+            if (oldProject == newProject)
+            {
+                return this;
+            }
+
+            // fork without any change on compilation.
+            return this.ForkProject(newProject);
+        }
+
         private static async Task<Compilation> ReplaceSyntaxTreesWithTreesFromNewProjectStateAsync(Compilation compilation, ProjectState projectState, CancellationToken cancellationToken)
         {
             var syntaxTrees = new List<SyntaxTree>(capacity: projectState.DocumentIds.Count);
@@ -2093,11 +2119,16 @@ namespace Microsoft.CodeAnalysis
                 : SpecializedTasks.Default<Compilation>();
         }
 
-        internal Task<bool> HasCompleteReferencesAsync(Project project, CancellationToken cancellationToken)
+        /// <summary>
+        /// Return reference completeness for the given project and all projects this references.
+        /// </summary>
+        internal Task<bool> HasSuccessfullyLoadedAsync(Project project, CancellationToken cancellationToken)
         {
+            // return HasAllInformation when compilation is not supported. 
+            // regardless whether project support compilation or not, if projectInfo is not complete, we can't gurantee its reference completeness
             return project.SupportsCompilation
-                ? this.GetCompilationTracker(project.Id).HasCompleteReferencesAsync(this, cancellationToken)
-                : SpecializedTasks.False;
+                ? this.GetCompilationTracker(project.Id).HasSuccessfullyLoadedAsync(this, cancellationToken)
+                : project.Solution.GetProjectState(project.Id).HasAllInformation ? SpecializedTasks.True : SpecializedTasks.False;
         }
 
         private static readonly ConditionalWeakTable<MetadataReference, ProjectId> s_metadataReferenceToProjectMap =

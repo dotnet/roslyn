@@ -1033,7 +1033,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public static IEnumerable<SyntaxKind> GetContextualKeywordKinds()
         {
-            for (int i = (int)SyntaxKind.YieldKeyword; i <= (int)SyntaxKind.WhenKeyword; i++)
+            for (int i = (int)SyntaxKind.YieldKeyword; i <= (int)SyntaxKind.MatchKeyword; i++)
             {
                 yield return (SyntaxKind)i;
             }
@@ -1076,6 +1076,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case SyntaxKind.AsyncKeyword:
                 case SyntaxKind.AwaitKeyword:
                 case SyntaxKind.WhenKeyword:
+                case SyntaxKind.MatchKeyword:
                 case SyntaxKind.ReplaceKeyword:
                 case SyntaxKind.OriginalKeyword:
                     return true;
@@ -1169,14 +1170,16 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return SyntaxKind.TypeVarKeyword;
                 case "global":
                     return SyntaxKind.GlobalKeyword;
-                case "nameof":
-                    return SyntaxKind.NameOfKeyword;
                 case "async":
                     return SyntaxKind.AsyncKeyword;
                 case "await":
                     return SyntaxKind.AwaitKeyword;
                 case "when":
                     return SyntaxKind.WhenKeyword;
+                case "nameof":
+                    return SyntaxKind.NameOfKeyword;
+                case "match":
+                    return SyntaxKind.MatchKeyword;
                 case "replace":
                     return SyntaxKind.ReplaceKeyword;
                 case "original":
@@ -1588,6 +1591,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return "$\"";
                 case SyntaxKind.InterpolatedStringEndToken:
                     return "\"";
+                case SyntaxKind.MatchKeyword:
+                    return "match";
                 default:
                     return string.Empty;
             }

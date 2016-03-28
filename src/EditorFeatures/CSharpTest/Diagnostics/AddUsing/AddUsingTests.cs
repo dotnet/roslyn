@@ -29,9 +29,10 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.AddUsing
              string initialMarkup,
              string expected,
              bool systemSpecialCase,
-             int index = 0)
+             int index = 0,
+             object fixProviderData = null)
         {
-            await TestAsync(initialMarkup, expected, index, options: new Dictionary<OptionKey, object>
+            await TestAsync(initialMarkup, expected, index, fixProviderData: fixProviderData, options: new Dictionary<OptionKey, object>
             {
                 { new OptionKey(OrganizerOptions.PlaceSystemNamespaceFirst, LanguageNames.CSharp), systemSpecialCase }
             });

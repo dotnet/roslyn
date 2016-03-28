@@ -270,9 +270,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             Debug.Assert(((Cci.ITypeReference)this).AsTypeDefinition(context) != null);
             NamedTypeSymbol baseType = this.BaseTypeNoUseSiteDiagnostics;
 
-            if (this.TypeKind == TypeKind.Submission)
+            if (this.IsScriptClass)
             {
-                // although submission semantically doesn't have a base we need to emit one into metadata:
+                // although submission and scripts semantically doesn't have a base we need to emit one into metadata:
                 Debug.Assert((object)baseType == null);
                 baseType = this.ContainingAssembly.GetSpecialType(Microsoft.CodeAnalysis.SpecialType.System_Object);
             }

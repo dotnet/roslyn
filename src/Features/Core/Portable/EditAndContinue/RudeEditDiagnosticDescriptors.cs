@@ -80,6 +80,8 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             { GetDescriptorPair(RudeEditKind.PartiallyExecutedActiveStatementDelete,    FeaturesResources.AnActiveStatementHasBeenRemoved) },
             { GetDescriptorPair(RudeEditKind.InsertFile,                                FeaturesResources.AddingANewFile) },
             { GetDescriptorPair(RudeEditKind.UpdatingStateMachineMethodAroundActiveStatement, FeaturesResources.UpdatingStateMachineMethodAroundActive) },
+            // TODO: move message to resources https://github.com/dotnet/roslyn/issues/9196
+            { GetDescriptorPair(RudeEditKind.UpdatingStateMachineMethodMissingAttribute, "Attribute '{0}' is missing. Updating an async method or an iterator will prevent the debug session from continuing.") },
 
             { GetDescriptorPair(RudeEditKind.RUDE_EDIT_COMPLEX_QUERY_EXPRESSION,        FeaturesResources.ModifyingAWhichContainsComplexQuery) },
 

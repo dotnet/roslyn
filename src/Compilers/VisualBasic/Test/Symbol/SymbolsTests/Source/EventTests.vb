@@ -782,7 +782,7 @@ BC30456: 'E1' is not a member of 'Class1'.
 </expected>)
         End Sub
 
-        <Fact(Skip:="behaves as in Dev10 - unverifiable code. Should we do something more useful?")>
+        <Fact>
         Public Sub EventProtectedAccessor()
             Dim ilSource = <![CDATA[
 .class public auto ansi beforefieldinit ClassLibrary1.Class1
@@ -905,11 +905,14 @@ End Class
     </file>
 </compilation>
 
-            CompileWithCustomILSource(vbSource, ilSource.Value, TestOptions.ReleaseDll).
-    VerifyIL("C.M",
-            <![CDATA[
+            Dim compilation = CreateCompilationWithCustomILSource(vbSource, ilSource.Value, TestOptions.ReleaseDll)
 
-]]>)
+            compilation.AssertTheseDiagnostics(
+<expected>
+BC30390: 'Class1.Protected Overloads RemoveHandler Event E1(value As Action)' is not accessible in this context because it is 'Protected'.
+        RemoveHandler x.E1, h
+                      ~~~~
+</expected>)
         End Sub
 
         ' Check that both errors are reported
@@ -1642,8 +1645,9 @@ End Class
         ''' Avoid redundant errors from handlers when
         ''' a custom event type has errors.
         ''' </summary>
+        <Fact>
+        <WorkItem(101185, "https://devdiv.visualstudio.com/defaultcollection/DevDiv/_workitems?_a=edit&id=101185")>
         <WorkItem(530406, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530406")>
-        <Fact(Skip:="530406")>
         Public Sub CustomEventTypeDuplicateErrors()
             Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(
 <compilation>
@@ -1665,6 +1669,12 @@ End Class
 BC30508: 'E' cannot expose type 'C.D' in namespace '<Default>' through class 'C'.
     Public Custom Event E As D
                         ~
+BC30508: 'value' cannot expose type 'C.D' in namespace '<Default>' through class 'C'.
+        AddHandler(value As D)
+                            ~
+BC30508: 'value' cannot expose type 'C.D' in namespace '<Default>' through class 'C'.
+        RemoveHandler(value As D)
+                               ~
      ]]></errors>)
         End Sub
 
@@ -2207,6 +2217,27 @@ End Enum
             Dim symbolInfo = semanticModel.GetSymbolInfo(node)
             Assert.Null(symbolInfo.Symbol)
             Assert.Equal(0, symbolInfo.CandidateSymbols.Length)
+        End Sub
+
+        <WorkItem(9400, "https://github.com/dotnet/roslyn/issues/9400")>
+        <Fact()>
+        Public Sub HandlesNoMyBase()
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(
+<compilation>
+    <file name="a.vb"><![CDATA[
+Interface I
+    Sub F() Handles MyBase.E
+End Interface
+]]></file>
+</compilation>)
+            compilation.AssertTheseDiagnostics(<expected>
+BC30270: 'Handles' is not valid on an interface method declaration.
+    Sub F() Handles MyBase.E
+            ~~~~~~~~~~~~~~~~
+BC30590: Event 'E' cannot be found.
+    Sub F() Handles MyBase.E
+                           ~
+                           </expected>)
         End Sub
 
     End Class

@@ -372,20 +372,44 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case SyntaxKind.ConstructorDeclaration:
                     return true;
 
+                // With the introduction of pattern-matching, many nodes now contain top-level
+                // expressions that may introduce pattern variables.
+                case SyntaxKind.EqualsValueClause:
+                case SyntaxKind.CatchFilterClause:
+                    return true;
+
+                // Due to pattern-matching, any statement that contains an expression may introduce a scope.
+                case SyntaxKind.CheckedStatement:
+                case SyntaxKind.DoStatement:
+                case SyntaxKind.ExpressionStatement:
+                case SyntaxKind.FixedStatement:
+                case SyntaxKind.GotoCaseStatement:
+                case SyntaxKind.IfStatement:
+                case SyntaxKind.LockStatement:
+                case SyntaxKind.ReturnStatement:
+                case SyntaxKind.ThisConstructorInitializer:
+                case SyntaxKind.BaseConstructorInitializer:
+                case SyntaxKind.ThrowStatement:
+                case SyntaxKind.WhileStatement:
+                case SyntaxKind.YieldReturnStatement:
+                    return true;
+
                 default:
-                    if (IsLambdaBody(node))
-                    {
-                        return true;
-                    }
-
-                    // TODO: EE expression
-                    if (node is ExpressionSyntax && node.Parent != null && node.Parent.Parent == null)
-                    {
-                        return true;
-                    }
-
-                    return false;
+                    break;
             }
+
+            if (IsLambdaBody(node))
+            {
+                return true;
+            }
+
+            // TODO: EE expression
+            if (node is ExpressionSyntax && node.Parent != null && node.Parent.Parent == null)
+            {
+                return true;
+            }
+
+            return false;
         }
     }
 }
