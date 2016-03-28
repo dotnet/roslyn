@@ -2,9 +2,9 @@
 
 using System;
 using System.Collections.Immutable;
+using System.Diagnostics;
 using System.Runtime.CompilerServices;
 using Microsoft.CodeAnalysis.Semantics;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp
 {
@@ -37,9 +37,11 @@ namespace Microsoft.CodeAnalysis.CSharp
     {
         IMethodSymbol IInvocationExpression.TargetMethod => this.Method;
 
-        IOperation IInvocationExpression.Instance => this.Method.IsStatic ? null : this.ReceiverOpt;
+        IOperation IInvocationExpression.Instance => ((object)this.Method == null || this.Method.IsStatic) ? null : this.ReceiverOpt;
 
         bool IInvocationExpression.IsVirtual =>
+            (object)this.Method != null &&
+            this.ReceiverOpt != null &&
             (this.Method.IsVirtual || this.Method.IsAbstract || this.Method.IsOverride) &&
             (object)this.Method.ReplacedBy == null &&
             !this.ReceiverOpt.SuppressVirtualCalls;
@@ -142,7 +144,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
 
                 // There is no supplied argument and there is no params parameter. Any action is suspect at this point.
-                return new SimpleArgument(null, null);
+                return new SimpleArgument(null, new InvalidExpression(invocationSyntax));
             }
 
             return s_argumentMappings.GetValue(
@@ -152,7 +154,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     string name = !argumentNames.IsDefaultOrEmpty ? argumentNames[argumentIndex] : null;
                     Symbols.ParameterSymbol parameter = (uint)parameterIndex < (uint)parameters.Length ? parameters[parameterIndex] : null;
 
-                    if (name == null)
+                    if ((object)name == null)
                     {
                         RefKind refMode = argumentRefKinds.IsDefaultOrEmpty ? RefKind.None : argumentRefKinds[argumentIndex];
 
@@ -198,7 +200,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return new ArrayCreation(arrayType, paramArrayArguments, paramArrayArguments.Length > 0 ? paramArrayArguments[0].Syntax : invocationSyntax);
             }
 
-            return null;
+            return new InvalidExpression(invocationSyntax);
         }
 
         internal static IArgument ArgumentMatchingParameter(ImmutableArray<BoundExpression> arguments, ImmutableArray<int> argumentsToParameters, ImmutableArray<string> argumentNames, ImmutableArray<RefKind> argumentRefKinds, ISymbol targetMethod, ImmutableArray<Symbols.ParameterSymbol> parameters, IParameterSymbol parameter, SyntaxNode invocationSyntax)
@@ -233,6 +235,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             public ArgumentBase(IParameterSymbol parameter, IOperation value)
             {
+                Debug.Assert(value != null);
+
                 this.Value = value;
                 this.Parameter = parameter;
             }
@@ -245,7 +249,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             IOperation IArgument.OutConversion => null;
 
-            bool IOperation.IsInvalid => this.Parameter == null || this.Value.IsInvalid;
+            bool IOperation.IsInvalid => (object)this.Parameter == null || this.Value.IsInvalid;
 
             OperationKind IOperation.Kind => OperationKind.Argument;
 
@@ -526,7 +530,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                                 var assignment = memberAssignment as BoundAssignmentOperator;
                                 var leftSymbol = (assignment?.Left as BoundObjectInitializerMember)?.MemberSymbol;
 
-                                if (leftSymbol == null)
+                                if ((object)leftSymbol == null)
                                 {
                                     continue;
                                 }
@@ -579,7 +583,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             public SyntaxNode Syntax { get; }
 
-            bool IOperation.IsInvalid => this.Value.IsInvalid || this.InitializedField == null;
+            bool IOperation.IsInvalid => this.Value.IsInvalid || (object)this.InitializedField == null;
 
             public ITypeSymbol Type => null;
 
@@ -613,7 +617,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             public SyntaxNode Syntax { get; }
 
-            bool IOperation.IsInvalid => this.Value.IsInvalid || this.InitializedProperty == null;
+            bool IOperation.IsInvalid => this.Value.IsInvalid || (object)this.InitializedProperty == null;
 
             public ITypeSymbol Type => null;
 
@@ -691,6 +695,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     case CSharp.ConversionKind.ImplicitDynamic:
                     case CSharp.ConversionKind.ExplicitEnumeration:
                     case CSharp.ConversionKind.ImplicitEnumeration:
+                    case CSharp.ConversionKind.ImplicitThrow:
                     case CSharp.ConversionKind.ExplicitNullable:
                     case CSharp.ConversionKind.ImplicitNullable:
                     case CSharp.ConversionKind.ExplicitNumeric:
@@ -706,7 +711,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         return Semantics.ConversionKind.CSharp;
 
                     default:
-                        throw ExceptionUtilities.UnexpectedValue(this.ConversionKind);
+                        return Semantics.ConversionKind.Invalid;
                 }
             }
         }
@@ -858,7 +863,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             get
             {
                 IArrayTypeSymbol arrayType = this.Type as IArrayTypeSymbol;
-                if (arrayType != null)
+                if ((object)arrayType != null)
                 {
                     return arrayType.ElementType;
                 }
@@ -967,7 +972,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
     internal partial class BoundAssignmentOperator : IAssignmentExpression
     {
-        IReferenceExpression IAssignmentExpression.Target => this.Left as IReferenceExpression;
+        IOperation IAssignmentExpression.Target => this.Left;
 
         IOperation IAssignmentExpression.Value => this.Right;
 
@@ -988,7 +993,7 @@ namespace Microsoft.CodeAnalysis.CSharp
     {
         BinaryOperationKind ICompoundAssignmentExpression.BinaryOperationKind => Expression.DeriveBinaryOperationKind(this.Operator.Kind);
 
-        IReferenceExpression IAssignmentExpression.Target => this.Left as IReferenceExpression;
+        IOperation IAssignmentExpression.Target => this.Left;
 
         IOperation IAssignmentExpression.Value => this.Right;
 
@@ -1015,7 +1020,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         BinaryOperationKind ICompoundAssignmentExpression.BinaryOperationKind => Expression.DeriveBinaryOperationKind(((IIncrementExpression)this).IncrementOperationKind);
 
-        IReferenceExpression IAssignmentExpression.Target => this.Operand as IReferenceExpression;
+        IOperation IAssignmentExpression.Target => this.Operand;
 
         private static readonly ConditionalWeakTable<BoundIncrementOperator, IOperation> s_incrementValueMappings = new ConditionalWeakTable<BoundIncrementOperator, IOperation>();
 
@@ -1128,7 +1133,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         return OperationKind.BinaryOperatorExpression;
 
                     default:
-                        throw ExceptionUtilities.UnexpectedValue(this.OperatorKind & BinaryOperatorKind.OpMask);
+                        return OperationKind.InvalidExpression;
                 }
             }
         }
@@ -1239,7 +1244,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
     internal partial class BoundAddressOfOperator : IAddressOfExpression
     {
-        IReferenceExpression IAddressOfExpression.Reference => (IReferenceExpression)this.Operand;
+        IOperation IAddressOfExpression.Reference => this.Operand;
 
         protected override OperationKind ExpressionKind => OperationKind.AddressOfExpression;
 
@@ -2758,6 +2763,78 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             return BinaryOperationKind.Invalid;
+        }
+    }
+
+    partial class BoundIsPatternExpression
+    {
+        public override void Accept(OperationVisitor visitor)
+        {
+            // TODO: implement IOperation for pattern-matching constructs (https://github.com/dotnet/roslyn/issues/8699)
+            throw new NotImplementedException();
+        }
+
+        public override TResult Accept<TArgument, TResult>(OperationVisitor<TArgument, TResult> visitor, TArgument argument)
+        {
+            // TODO: implement IOperation for pattern-matching constructs (https://github.com/dotnet/roslyn/issues/8699)
+            throw new NotImplementedException();
+        }
+
+        protected override OperationKind ExpressionKind
+        {
+            get
+            {
+                // TODO: implement IOperation for pattern-matching constructs (https://github.com/dotnet/roslyn/issues/8699)
+                throw new NotImplementedException();
+            }
+        }
+    }
+
+    partial class BoundMatchExpression
+    {
+        public override void Accept(OperationVisitor visitor)
+        {
+            // TODO: implement IOperation for pattern-matching constructs (https://github.com/dotnet/roslyn/issues/8699)
+            throw new NotImplementedException();
+        }
+
+        public override TResult Accept<TArgument, TResult>(OperationVisitor<TArgument, TResult> visitor, TArgument argument)
+        {
+            // TODO: implement IOperation for pattern-matching constructs (https://github.com/dotnet/roslyn/issues/8699)
+            throw new NotImplementedException();
+        }
+
+        protected override OperationKind ExpressionKind
+        {
+            get
+            {
+                // TODO: implement IOperation for pattern-matching constructs (https://github.com/dotnet/roslyn/issues/8699)
+                throw new NotImplementedException();
+            }
+        }
+    }
+
+    partial class BoundThrowExpression
+    {
+        public override void Accept(OperationVisitor visitor)
+        {
+            // TODO: implement IOperation for pattern-matching constructs (https://github.com/dotnet/roslyn/issues/8699)
+            throw new NotImplementedException();
+        }
+
+        public override TResult Accept<TArgument, TResult>(OperationVisitor<TArgument, TResult> visitor, TArgument argument)
+        {
+            // TODO: implement IOperation for pattern-matching constructs (https://github.com/dotnet/roslyn/issues/8699)
+            throw new NotImplementedException();
+        }
+
+        protected override OperationKind ExpressionKind
+        {
+            get
+            {
+                // TODO: implement IOperation for pattern-matching constructs (https://github.com/dotnet/roslyn/issues/8699)
+                throw new NotImplementedException();
+            }
         }
     }
 }

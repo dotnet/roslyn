@@ -34,6 +34,5 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
         void OnAdditionalDocumentOpened(DocumentId documentId, ITextBuffer textBuffer, bool isCurrentContext);
         void OnAdditionalDocumentClosed(DocumentId documentId, ITextBuffer textBuffer, TextLoader loader);
         void OnAdditionalDocumentTextUpdatedOnDisk(DocumentId id);
-        void UpdateGeneratedDocumentsIfNecessary(ProjectId projectInfo);
     }
 }

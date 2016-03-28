@@ -11,6 +11,14 @@
           "lib/net40/Esent.Interop.dll": {}
         }
       },
+      "Microsoft.CodeAnalysis.Elfie/0.10.6-rc2": {
+        "compile": {
+          "lib/net46/Microsoft.CodeAnalysis.Elfie.dll": {}
+        },
+        "runtime": {
+          "lib/net46/Microsoft.CodeAnalysis.Elfie.dll": {}
+        }
+      },
       "Microsoft.Composition/1.0.27": {
         "compile": {
           "lib/portable-net45+win8+wp8+wpa81/System.Composition.AttributedModel.dll": {},
@@ -33,6 +41,14 @@
         },
         "runtime": {
           "lib/net20/Microsoft.DiaSymReader.dll": {}
+        }
+      },
+      "NuGet.VisualStudio/3.3.0": {
+        "compile": {
+          "lib/net45/NuGet.VisualStudio.dll": {}
+        },
+        "runtime": {
+          "lib/net45/NuGet.VisualStudio.dll": {}
         }
       },
       "System.Collections/4.0.10": {
@@ -85,15 +101,15 @@
           "lib/net45/_._": {}
         }
       },
-      "System.Reflection.Metadata/1.2.0-rc3-23811": {
+      "System.Reflection.Metadata/1.2.0": {
         "dependencies": {
           "System.Collections.Immutable": "1.1.37"
         },
         "compile": {
-          "lib/dotnet5.2/System.Reflection.Metadata.dll": {}
+          "lib/portable-net45+win8/System.Reflection.Metadata.dll": {}
         },
         "runtime": {
-          "lib/dotnet5.2/System.Reflection.Metadata.dll": {}
+          "lib/portable-net45+win8/System.Reflection.Metadata.dll": {}
         }
       },
       "System.Resources.ResourceManager/4.0.0": {
@@ -133,27 +149,33 @@
   "libraries": {
     "ManagedEsent/1.9.2": {
       "sha512": "SgF21lefi66R2nVFtWw8OSRCrMakuwLXQohI1lTRhNSiZ0VJBqv0zLdgi9ShNhrz9pGxKijWJvUI21djYg2Tqw==",
-      "type": "Package",
+      "type": "package",
       "files": [
+        "ManagedEsent.1.9.2.nupkg.sha512",
         "ManagedEsent.nuspec",
-        "[Content_Types].xml",
-        "_rels/.rels",
         "lib/net40/Esent.Interop.dll",
         "lib/net40/Esent.Interop.pdb",
         "lib/net40/Esent.Interop.xml",
         "lib/netcore45/Esent.Interop.Wsa.dll",
-        "lib/netcore45/Esent.Interop.Wsa.pdb",
-        "package/services/metadata/core-properties/3134d22c105a484d9c266dc3ead61c55.psmdcp"
+        "lib/netcore45/Esent.Interop.Wsa.pdb"
+      ]
+    },
+    "Microsoft.CodeAnalysis.Elfie/0.10.6-rc2": {
+      "sha512": "nw8Gelt5AYgv9PLxK3MIB5hPnMoMoC2s73YXwcM3dxxim5yxRdPbzmBy0ddEeUa9zb57qoaDLYpCF8Zajg54Dg==",
+      "type": "package",
+      "files": [
+        "Microsoft.CodeAnalysis.Elfie.0.10.6-rc2.nupkg.sha512",
+        "Microsoft.CodeAnalysis.Elfie.nuspec",
+        "lib/net46/Microsoft.CodeAnalysis.Elfie.dll"
       ]
     },
     "Microsoft.Composition/1.0.27": {
       "sha512": "pwu80Ohe7SBzZ6i69LVdzowp6V+LaVRzd5F7A6QlD42vQkX0oT7KXKWWPlM/S00w1gnMQMRnEdbtOV12z6rXdQ==",
-      "type": "Package",
+      "type": "package",
       "files": [
         "License-Stable.rtf",
+        "Microsoft.Composition.1.0.27.nupkg.sha512",
         "Microsoft.Composition.nuspec",
-        "[Content_Types].xml",
-        "_rels/.rels",
         "lib/portable-net45+win8+wp8+wpa81/System.Composition.AttributedModel.XML",
         "lib/portable-net45+win8+wp8+wpa81/System.Composition.AttributedModel.dll",
         "lib/portable-net45+win8+wp8+wpa81/System.Composition.Convention.dll",
@@ -163,31 +185,38 @@
         "lib/portable-net45+win8+wp8+wpa81/System.Composition.Runtime.XML",
         "lib/portable-net45+win8+wp8+wpa81/System.Composition.Runtime.dll",
         "lib/portable-net45+win8+wp8+wpa81/System.Composition.TypedParts.XML",
-        "lib/portable-net45+win8+wp8+wpa81/System.Composition.TypedParts.dll",
-        "package/services/metadata/core-properties/12e2c94035674b25b911285cc26e3260.psmdcp"
+        "lib/portable-net45+win8+wp8+wpa81/System.Composition.TypedParts.dll"
       ]
     },
     "Microsoft.DiaSymReader/1.0.7": {
       "sha512": "4tPrkKu02w87HEvoubBGm7Hqjps69DucsBWQvGezwvDV5RJt+eZqdmdC/jNH1qn6hIem9JpJnLBK0abBzhErOg==",
-      "type": "Package",
+      "type": "package",
       "files": [
+        "Microsoft.DiaSymReader.1.0.7.nupkg.sha512",
         "Microsoft.DiaSymReader.nuspec",
-        "[Content_Types].xml",
-        "_rels/.rels",
         "lib/net20/Microsoft.DiaSymReader.dll",
         "lib/net20/Microsoft.DiaSymReader.xml",
         "lib/portable-net45+win8/Microsoft.DiaSymReader.dll",
-        "lib/portable-net45+win8/Microsoft.DiaSymReader.xml",
-        "package/services/metadata/core-properties/8754926735b64532b55b0acd21f93808.psmdcp"
+        "lib/portable-net45+win8/Microsoft.DiaSymReader.xml"
+      ]
+    },
+    "NuGet.VisualStudio/3.3.0": {
+      "sha512": "ZVBJ43/IxaAl5iX+OuuDLQ9tSNJaRlP85SUMAdiGoqEbyK/ZPfQmPfqSMZMFpucRlf8HgsEK/hR73DwpCmqcLA==",
+      "type": "package",
+      "files": [
+        "NuGet.VisualStudio.3.3.0.nupkg.sha512",
+        "NuGet.VisualStudio.nuspec",
+        "lib/net45/NuGet.VisualStudio.XML",
+        "lib/net45/NuGet.VisualStudio.dll",
+        "tools/install.ps1"
       ]
     },
     "System.Collections/4.0.10": {
       "sha512": "ux6ilcZZjV/Gp7JEZpe+2V1eTueq6NuoGRM3eZCFuPM25hLVVgCRuea6STW8hvqreIOE59irJk5/ovpA5xQipw==",
-      "type": "Package",
+      "type": "package",
       "files": [
+        "System.Collections.4.0.10.nupkg.sha512",
         "System.Collections.nuspec",
-        "[Content_Types].xml",
-        "_rels/.rels",
         "lib/DNXCore50/System.Collections.dll",
         "lib/MonoAndroid10/_._",
         "lib/MonoTouch10/_._",
@@ -195,7 +224,6 @@
         "lib/netcore50/System.Collections.dll",
         "lib/xamarinios10/_._",
         "lib/xamarinmac20/_._",
-        "package/services/metadata/core-properties/b4f8061406e54dbda8f11b23186be11a.psmdcp",
         "ref/MonoAndroid10/_._",
         "ref/MonoTouch10/_._",
         "ref/dotnet/System.Collections.dll",
@@ -217,25 +245,22 @@
     },
     "System.Collections.Immutable/1.1.37": {
       "sha512": "fTpqwZYBzoklTT+XjTRK8KxvmrGkYHzBiylCcKyQcxiOM8k+QvhNBxRvFHDWzy4OEP5f8/9n+xQ9mEgEXY+muA==",
-      "type": "Package",
+      "type": "package",
       "files": [
+        "System.Collections.Immutable.1.1.37.nupkg.sha512",
         "System.Collections.Immutable.nuspec",
-        "[Content_Types].xml",
-        "_rels/.rels",
         "lib/dotnet/System.Collections.Immutable.dll",
         "lib/dotnet/System.Collections.Immutable.xml",
         "lib/portable-net45+win8+wp8+wpa81/System.Collections.Immutable.dll",
-        "lib/portable-net45+win8+wp8+wpa81/System.Collections.Immutable.xml",
-        "package/services/metadata/core-properties/a02fdeabe1114a24bba55860b8703852.psmdcp"
+        "lib/portable-net45+win8+wp8+wpa81/System.Collections.Immutable.xml"
       ]
     },
     "System.Diagnostics.Debug/4.0.10": {
       "sha512": "pi2KthuvI2LWV2c2V+fwReDsDiKpNl040h6DcwFOb59SafsPT/V1fCy0z66OKwysurJkBMmp5j5CBe3Um+ub0g==",
-      "type": "Package",
+      "type": "package",
       "files": [
+        "System.Diagnostics.Debug.4.0.10.nupkg.sha512",
         "System.Diagnostics.Debug.nuspec",
-        "[Content_Types].xml",
-        "_rels/.rels",
         "lib/DNXCore50/System.Diagnostics.Debug.dll",
         "lib/MonoAndroid10/_._",
         "lib/MonoTouch10/_._",
@@ -243,7 +268,6 @@
         "lib/netcore50/System.Diagnostics.Debug.dll",
         "lib/xamarinios10/_._",
         "lib/xamarinmac20/_._",
-        "package/services/metadata/core-properties/bfb05c26051f4a5f9015321db9cb045c.psmdcp",
         "ref/MonoAndroid10/_._",
         "ref/MonoTouch10/_._",
         "ref/dotnet/System.Diagnostics.Debug.dll",
@@ -265,11 +289,10 @@
     },
     "System.Globalization/4.0.10": {
       "sha512": "kzRtbbCNAxdafFBDogcM36ehA3th8c1PGiz8QRkZn8O5yMBorDHSK8/TGJPYOaCS5zdsGk0u9qXHnW91nqy7fw==",
-      "type": "Package",
+      "type": "package",
       "files": [
+        "System.Globalization.4.0.10.nupkg.sha512",
         "System.Globalization.nuspec",
-        "[Content_Types].xml",
-        "_rels/.rels",
         "lib/DNXCore50/System.Globalization.dll",
         "lib/MonoAndroid10/_._",
         "lib/MonoTouch10/_._",
@@ -277,7 +300,6 @@
         "lib/netcore50/System.Globalization.dll",
         "lib/xamarinios10/_._",
         "lib/xamarinmac20/_._",
-        "package/services/metadata/core-properties/93bcad242a4e4ad7afd0b53244748763.psmdcp",
         "ref/MonoAndroid10/_._",
         "ref/MonoTouch10/_._",
         "ref/dotnet/System.Globalization.dll",
@@ -299,18 +321,16 @@
     },
     "System.Linq/4.0.0": {
       "sha512": "r6Hlc+ytE6m/9UBr+nNRRdoJEWjoeQiT3L3lXYFDHoXk3VYsRBCDNXrawcexw7KPLaH0zamQLiAb6avhZ50cGg==",
-      "type": "Package",
+      "type": "package",
       "files": [
+        "System.Linq.4.0.0.nupkg.sha512",
         "System.Linq.nuspec",
-        "[Content_Types].xml",
-        "_rels/.rels",
         "lib/dotnet/System.Linq.dll",
         "lib/net45/_._",
         "lib/netcore50/System.Linq.dll",
         "lib/win8/_._",
         "lib/wp80/_._",
         "lib/wpa81/_._",
-        "package/services/metadata/core-properties/6fcde56ce4094f6a8fff4b28267da532.psmdcp",
         "ref/dotnet/System.Linq.dll",
         "ref/dotnet/System.Linq.xml",
         "ref/dotnet/de/System.Linq.xml",
@@ -330,36 +350,32 @@
         "ref/wpa81/_._"
       ]
     },
-    "System.Reflection.Metadata/1.2.0-rc3-23811": {
-      "sha512": "gAOQV1dsGyQfQUuzsCYFLMlI6BhfK1/2aA7JGf6gJphaLgjU4dV4hzjbE0iZXgo61VUuda2LtCBrWWZBw5897Q==",
-      "type": "Package",
+    "System.Reflection.Metadata/1.2.0": {
+      "sha512": "3LjvW/Gr3f3+O8adWT04bV1nvbgQ3X1NYZHgRC76L/VdJ78nUCkwIcHguEH85fHIQ1TGldRpMJ3nqlMqaRwReA==",
+      "type": "package",
       "files": [
+        "System.Reflection.Metadata.1.2.0.nupkg.sha512",
         "System.Reflection.Metadata.nuspec",
         "ThirdPartyNotices.txt",
-        "[Content_Types].xml",
-        "_rels/.rels",
         "dotnet_library_license.txt",
-        "lib/dotnet5.2/System.Reflection.Metadata.dll",
-        "lib/dotnet5.2/System.Reflection.Metadata.xml",
+        "lib/netstandard1.1/System.Reflection.Metadata.dll",
+        "lib/netstandard1.1/System.Reflection.Metadata.xml",
         "lib/portable-net45+win8/System.Reflection.Metadata.dll",
-        "lib/portable-net45+win8/System.Reflection.Metadata.xml",
-        "package/services/metadata/core-properties/9aa921f066b94690988804574c5d2231.psmdcp"
+        "lib/portable-net45+win8/System.Reflection.Metadata.xml"
       ]
     },
     "System.Resources.ResourceManager/4.0.0": {
       "sha512": "qmqeZ4BJgjfU+G2JbrZt4Dk1LsMxO4t+f/9HarNY6w8pBgweO6jT+cknUH7c3qIrGvyUqraBhU45Eo6UtA0fAw==",
-      "type": "Package",
+      "type": "package",
       "files": [
+        "System.Resources.ResourceManager.4.0.0.nupkg.sha512",
         "System.Resources.ResourceManager.nuspec",
-        "[Content_Types].xml",
-        "_rels/.rels",
         "lib/DNXCore50/System.Resources.ResourceManager.dll",
         "lib/net45/_._",
         "lib/netcore50/System.Resources.ResourceManager.dll",
         "lib/win8/_._",
         "lib/wp80/_._",
         "lib/wpa81/_._",
-        "package/services/metadata/core-properties/657a73ee3f09479c9fedb9538ade8eac.psmdcp",
         "ref/dotnet/System.Resources.ResourceManager.dll",
         "ref/dotnet/System.Resources.ResourceManager.xml",
         "ref/dotnet/de/System.Resources.ResourceManager.xml",
@@ -382,11 +398,10 @@
     },
     "System.Runtime/4.0.20": {
       "sha512": "X7N/9Bz7jVPorqdVFO86ns1sX6MlQM+WTxELtx+Z4VG45x9+LKmWH0GRqjgKprUnVuwmfB9EJ9DQng14Z7/zwg==",
-      "type": "Package",
+      "type": "package",
       "files": [
+        "System.Runtime.4.0.20.nupkg.sha512",
         "System.Runtime.nuspec",
-        "[Content_Types].xml",
-        "_rels/.rels",
         "lib/DNXCore50/System.Runtime.dll",
         "lib/MonoAndroid10/_._",
         "lib/MonoTouch10/_._",
@@ -394,7 +409,6 @@
         "lib/netcore50/System.Runtime.dll",
         "lib/xamarinios10/_._",
         "lib/xamarinmac20/_._",
-        "package/services/metadata/core-properties/d1ded52f75da4446b1c962f9292aa3ef.psmdcp",
         "ref/MonoAndroid10/_._",
         "ref/MonoTouch10/_._",
         "ref/dotnet/System.Runtime.dll",
@@ -416,11 +430,10 @@
     },
     "System.Runtime.Extensions/4.0.10": {
       "sha512": "5dsEwf3Iml7d5OZeT20iyOjT+r+okWpN7xI2v+R4cgd3WSj4DeRPTvPFjDpacbVW4skCAZ8B9hxXJYgkCFKJ1A==",
-      "type": "Package",
+      "type": "package",
       "files": [
+        "System.Runtime.Extensions.4.0.10.nupkg.sha512",
         "System.Runtime.Extensions.nuspec",
-        "[Content_Types].xml",
-        "_rels/.rels",
         "lib/DNXCore50/System.Runtime.Extensions.dll",
         "lib/MonoAndroid10/_._",
         "lib/MonoTouch10/_._",
@@ -428,7 +441,6 @@
         "lib/netcore50/System.Runtime.Extensions.dll",
         "lib/xamarinios10/_._",
         "lib/xamarinmac20/_._",
-        "package/services/metadata/core-properties/c7fee76a13d04c7ea49fb1a24c184f37.psmdcp",
         "ref/MonoAndroid10/_._",
         "ref/MonoTouch10/_._",
         "ref/dotnet/System.Runtime.Extensions.dll",
@@ -450,11 +462,10 @@
     },
     "System.Threading/4.0.10": {
       "sha512": "0w6pRxIEE7wuiOJeKabkDgeIKmqf4ER1VNrs6qFwHnooEE78yHwi/bKkg5Jo8/pzGLm0xQJw0nEmPXt1QBAIUA==",
-      "type": "Package",
+      "type": "package",
       "files": [
+        "System.Threading.4.0.10.nupkg.sha512",
         "System.Threading.nuspec",
-        "[Content_Types].xml",
-        "_rels/.rels",
         "lib/DNXCore50/System.Threading.dll",
         "lib/MonoAndroid10/_._",
         "lib/MonoTouch10/_._",
@@ -462,7 +473,6 @@
         "lib/netcore50/System.Threading.dll",
         "lib/xamarinios10/_._",
         "lib/xamarinmac20/_._",
-        "package/services/metadata/core-properties/c17c3791d8fa4efbb8aded2ca8c71fbe.psmdcp",
         "ref/MonoAndroid10/_._",
         "ref/MonoTouch10/_._",
         "ref/dotnet/System.Threading.dll",
@@ -486,8 +496,10 @@
   "projectFileDependencyGroups": {
     "": [
       "ManagedEsent >= 1.9.2",
+      "Microsoft.CodeAnalysis.Elfie >= 0.10.6-rc2",
       "Microsoft.Composition >= 1.0.27",
       "Microsoft.DiaSymReader >= 1.0.7",
+      "NuGet.VisualStudio >= 3.3.0",
       "System.Collections >= 4.0.10",
       "System.Diagnostics.Debug >= 4.0.10",
       "System.Globalization >= 4.0.10",

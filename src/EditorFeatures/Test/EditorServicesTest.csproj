@@ -19,14 +19,6 @@
     <CopyNuGetImplementations>true</CopyNuGetImplementations>
   </PropertyGroup>
   <ItemGroup Label="File References">
-    <Reference Include="Microsoft.VisualStudio.Composition, Version=14.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
-      <HintPath>$(DevEnvDir)\PrivateAssemblies\Microsoft.VisualStudio.Composition.dll</HintPath>
-      <CopyLocal>True</CopyLocal>
-    </Reference>
-    <Reference Include="Microsoft.VisualStudio.Composition.Configuration, Version=14.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
-      <HintPath>$(DevEnvDir)\PrivateAssemblies\Microsoft.VisualStudio.Composition.Configuration.dll</HintPath>
-      <CopyLocal>True</CopyLocal>
-    </Reference>
     <Reference Include="Microsoft.VisualStudio.Platform.VSEditor.Interop.dll">
       <HintPath>$(DevEnvDir)\PrivateAssemblies\Microsoft.VisualStudio.Platform.VSEditor.Interop.dll</HintPath>
     </Reference>
@@ -237,6 +229,7 @@
     <Compile Include="Diagnostics\AbstractSuppressionDiagnosticTest.cs" />
     <Compile Include="Diagnostics\AbstractDiagnosticProviderBasedUserDiagnosticTest.cs" />
     <Compile Include="Diagnostics\AbstractUserDiagnosticTest.cs" />
+    <Compile Include="Diagnostics\DiagnosticAnalyzerServiceTests.cs" />
     <Compile Include="Diagnostics\MockDiagnosticUpdateSourceRegistrationService.cs" />
     <Compile Include="Diagnostics\TestAnalyzerReferenceByLanguage.cs" />
     <Compile Include="Diagnostics\TestDiagnosticAnalyzerDriver.cs" />
@@ -253,6 +246,7 @@
     <Compile Include="CodeFixes\ExtensionOrderingTests.cs" />
     <Compile Include="Diagnostics\TestHostDiagnosticUpdateSource.cs" />
     <Compile Include="Extensions\SourceTextContainerExtensionsTests.cs" />
+    <Compile Include="Extensions\WorkspaceExtensions.cs" />
     <Compile Include="GoToAdjacentMember\AbstractGoToAdjacentMemberTests.cs" />
     <Compile Include="Outlining\AbstractSyntaxNodeOutlinerTests.cs" />
     <Compile Include="Outlining\AbstractSyntaxOutlinerTests.cs" />

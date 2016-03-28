@@ -174,14 +174,14 @@
   <data name="SimplifyMemberAccess" xml:space="preserve">
     <value>Simplify member access '{0}'</value>
   </data>
-  <data name="SimplifyThisQualification" xml:space="preserve">
+  <data name="RemoveThisQualification" xml:space="preserve">
     <value>Remove 'this' qualification</value>
   </data>
   <data name="NameCanBeSimplified" xml:space="preserve">
     <value>Name can be simplified</value>
   </data>
   <data name="CantDetermineValidRangeOfStatements" xml:space="preserve">
-    <value>can't determine valid range of statements to extract out</value>
+    <value>Can't determine valid range of statements to extract</value>
   </data>
   <data name="NotAllCodePathReturns" xml:space="preserve">
     <value>Not all code paths return</value>
@@ -205,7 +205,7 @@
     <value>Contains invalid selection.</value>
   </data>
   <data name="TheSelectionContainsSyntacticErrors" xml:space="preserve">
-    <value>the selection contains syntactic errors</value>
+    <value>The selection contains syntactic errors</value>
   </data>
   <data name="SelectionCanNotCrossOverPreprocessorDirectives" xml:space="preserve">
     <value>Selection can not cross over preprocessor directives.</value>
@@ -219,11 +219,14 @@
   <data name="SelectionCanNotBePartOfConstInitializerExpr" xml:space="preserve">
     <value>Selection can not be part of constant initializer expression.</value>
   </data>
+  <data name="SelectionCanNotContainPattern" xml:space="preserve">
+    <value>Selection can not contain a pattern expression.</value>
+  </data>
   <data name="TheSelectedCodeIsInsideAnUnsafeContext" xml:space="preserve">
     <value>The selected code is inside an unsafe context.</value>
   </data>
   <data name="NoValidStatementRangeToExtractOut" xml:space="preserve">
-    <value>no valid statement range to extract out</value>
+    <value>No valid statement range to extract</value>
   </data>
   <data name="Deprecated" xml:space="preserve">
     <value>deprecated</value>

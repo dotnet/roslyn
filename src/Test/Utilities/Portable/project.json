@@ -1,14 +1,23 @@
 ﻿{
   "dependencies": {
-      "xunit": "2.1.0",
-      "Microsoft.NETCore": "5.0.0",
-      "Microsoft.NETCore.Portable.Compatibility": "1.0.0",
-      "System.Xml.XmlDocument": "4.0.0",
-      "System.Console": "4.0.0-beta-23123",
-      "System.Threading.Thread": "4.0.0-beta-23123"
+    "Microsoft.CSharp": "4.0.0",
+    "Microsoft.NETCore.Platforms": "1.0.0",
+    "Microsoft.NETCore.Portable.Compatibility": "1.0.1-beta-23504",
+    "System.Collections.Concurrent": "4.0.10",
+    "System.Collections.Immutable": "[1.1.37]",
+    "System.Console": "4.0.0-beta-23504",
+    "System.Diagnostics.Debug": "4.0.10",
+    "System.Diagnostics.Tools": "4.0.0",
+    "System.IO.FileSystem": "4.0.0",
+    "System.Reflection.TypeExtensions": "4.0.0",
+    "System.Threading.Thread": "4.0.0-beta-23504",
+    "System.Xml.XDocument": "4.0.10",
+    "System.Xml.XmlDocument": "4.0.0",
+    "xunit": "2.1.0",
+    "xunit.extensibility.execution": "2.1.0"
   },
   "frameworks": {
-    "dotnet": {
+    "dotnet5.4": {
       "imports": "portable-net452"
     }
   }

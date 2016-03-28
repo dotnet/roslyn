@@ -1,0 +1,13 @@
+﻿{
+  "dependencies": {
+    "Microsoft.NETCore.Portable.Compatibility": "1.0.1-beta-23504",
+    "System.Runtime": "4.0.21-beta-23504"
+  },
+  "frameworks": {
+    "net46": { }
+  },
+  "runtimes": {
+    "win7": { },
+    "win7-anycpu": { }
+  }
+}

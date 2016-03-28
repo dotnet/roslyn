@@ -397,7 +397,7 @@ End Class
         Assert.True(other.Assembly.Identity.PublicKey.IsEmpty)
     End Sub
 
-    <ConditionalFact(GetType(IsEnglishLocal))>
+    <Fact>
     Public Sub PubKeyContainerBogusOptions()
         Dim other As VisualBasicCompilation = CreateCompilationWithMscorlib(
 <compilation>
@@ -419,7 +419,7 @@ End Class
         Assert.Equal(ERRID.ERR_PublicKeyContainerFailure, err.Code)
         Assert.Equal(2, err.Arguments.Count)
         Assert.Equal("foo", DirectCast(err.Arguments(0), String))
-        Assert.True(DirectCast(err.Arguments(1), String).EndsWith(" HRESULT: 0x80090016)", StringComparison.Ordinal))
+        Assert.True(DirectCast(err.Arguments(1), String).Contains("HRESULT: 0x80090016"))
 
         Assert.True(other.Assembly.Identity.PublicKey.IsEmpty)
     End Sub
@@ -540,7 +540,7 @@ End Class
         c2.VerifyDiagnostics()
     End Sub
 
-    <ConditionalFact(GetType(IsEnglishLocal))>
+    <Fact>
     Public Sub SignModuleKeyContainerBogus()
         Dim c1 As VisualBasicCompilation = CreateCompilationWithMscorlib(
 <compilation name="WantsIVTAccess">
@@ -564,13 +564,15 @@ End Class
      </file>
  </compilation>), {reference}, TestOptions.ReleaseDll.WithStrongNameProvider(s_defaultProvider))
 
+        'BC36981: Error extracting public key from container 'bogus': Keyset does not exist (Exception from HRESULT: 0x80090016)
         'c2.VerifyDiagnostics(Diagnostic(ERRID.ERR_PublicKeyContainerFailure).WithArguments("bogus", "Keyset does not exist (Exception from HRESULT: 0x80090016)"))
+
         Dim err = c2.GetDiagnostics(CompilationStage.Emit).Single()
 
         Assert.Equal(ERRID.ERR_PublicKeyContainerFailure, err.Code)
         Assert.Equal(2, err.Arguments.Count)
         Assert.Equal("bogus", DirectCast(err.Arguments(0), String))
-        Assert.True(DirectCast(err.Arguments(1), String).EndsWith(" HRESULT: 0x80090016)", StringComparison.Ordinal))
+        Assert.True(DirectCast(err.Arguments(1), String).Contains("HRESULT: 0x80090016"))
     End Sub
 
     <Fact>
@@ -1673,6 +1675,45 @@ BC37254: Public sign was specified and requires a public key, but no public key 
         Assert.True(comp.Assembly.PublicKey.IsDefaultOrEmpty)
     End Sub
 
+
+    <Fact>
+    Public Sub KeyFileFromAttributes_PublicSign()
+        Dim source = <compilation>
+                         <file name="a.vb"><![CDATA[
+<assembly: System.Reflection.AssemblyKeyFile("test.snk")>
+Public Class C
+End Class
+]]>
+                         </file>
+                     </compilation>
+        Dim c = CreateCompilationWithMscorlib(source, options:=TestOptions.ReleaseDll.WithPublicSign(True))
+        AssertTheseDiagnostics(c,
+                               <errors>
+BC37254: Public sign was specified and requires a public key, but no public key was specified
+                               </errors>)
+
+        Assert.True(c.Options.PublicSign)
+    End Sub
+
+    <Fact>
+    Public Sub KeyContainerFromAttributes_PublicSign()
+        Dim source = <compilation>
+                         <file name="a.vb"><![CDATA[
+<assembly: System.Reflection.AssemblyKeyName("roslynTestContainer")>
+Public Class C
+End Class
+]]>
+                         </file>
+                     </compilation>
+        Dim c = CreateCompilationWithMscorlib(source, options:=TestOptions.ReleaseDll.WithPublicSign(True))
+        AssertTheseDiagnostics(c,
+                               <errors>
+BC37254: Public sign was specified and requires a public key, but no public key was specified
+                               </errors>)
+
+        Assert.True(c.Options.PublicSign)
+    End Sub
+
     <Fact>
     Public Sub PublicSign_FromKeyFileNoStrongNameProvider()
         Dim snk = Temp.CreateFile().WriteAllBytes(TestResources.General.snKey)
@@ -1699,6 +1740,24 @@ BC37254: Public sign was specified and requires a public key, but no public key 
         Dim snk = Temp.CreateFile().WriteAllBytes(TestResources.General.snPublicKey2)
         Dim options = TestOptions.ReleaseDll.WithCryptoKeyFile(snk.Path).WithPublicSign(True)
         PublicSignCore(options)
+    End Sub
+
+    <Fact>
+    Public Sub PublicSign_KeyContainerOnly()
+        Dim source =
+            <compilation>
+                <file name="a.vb"><![CDATA[
+Public Class C
+End Class
+]]>
+                </file>
+            </compilation>
+        Dim options = TestOptions.ReleaseDll.WithCryptoKeyContainer("testContainer").WithPublicSign(True)
+        Dim compilation = CreateCompilationWithMscorlib(source, options:=options)
+        AssertTheseDiagnostics(compilation, <errors>
+BC2046: Compilation options 'PublicSign' and 'CryptoKeyContainer' can't both be specified at the same time.
+BC37254: Public sign was specified and requires a public key, but no public key was specified
+                                            </errors>)
     End Sub
 
     <Fact>

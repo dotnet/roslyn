@@ -192,8 +192,9 @@ namespace Microsoft.CodeAnalysis.CSharp
         AsyncKeyword = 8435,
         AwaitKeyword = 8436,
         WhenKeyword = 8437,
-        ReplaceKeyword = 8438,
-        OriginalKeyword = 8439,
+        MatchKeyword = 8438, // added after C# 6 for possible use in pattern matching
+        ReplaceKeyword = 8439,
+        OriginalKeyword = 8440,
 
         // additional preprocessor keywords
         ElifKeyword = 8467,
@@ -330,6 +331,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         OmittedArraySizeExpression = 8654,
         InterpolatedStringExpression = 8655,
         ImplicitElementAccess = 8656,
+        IsPatternExpression = 8657,
 
         // binary expressions
         AddExpression = 8668,
@@ -538,5 +540,23 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         ShebangDirectiveTrivia = 8922,
         LoadDirectiveTrivia = 8923,
+
+        // Changes after C# 6
+        // patterns (for pattern-matching)
+        DeclarationPattern = 9000,
+        WildcardPattern = 9001,
+        ConstantPattern = 9002,
+        RecursivePattern = 9003,
+        SubRecursivePattern = 9004,
+        SubRecursivePatternList = 9005,
+        PropertyPattern = 9006,
+        SubPropertyPattern = 9007,
+        SubPropertyPatternList = 9008,
+        CasePatternSwitchLabel = 9009,
+        MatchSection = 9010,
+        MatchExpression = 9011,
+        ThrowExpression = 9012,
+        WhenClause = 9013,
+        LetStatement = 9014,
     }
 }

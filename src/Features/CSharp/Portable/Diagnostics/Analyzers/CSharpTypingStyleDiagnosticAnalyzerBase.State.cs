@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using Microsoft.CodeAnalysis.CSharp.CodeStyle;
+using Microsoft.CodeAnalysis.CSharp.CodeStyle.TypeStyle;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Options;
@@ -64,167 +65,63 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.TypingStyles
                         IsInVariableDeclarationContext
                      && IsTypeApparentInDeclaration((VariableDeclarationSyntax)declaration, semanticModel, TypeStyle, cancellationToken);
 
-                IsInIntrinsicTypeContext = IsIntrinsicType(declaration);
+                IsInIntrinsicTypeContext =
+                        IsPredefinedTypeInDeclaration(declaration)
+                     || IsInferredPredefinedType(declaration, semanticModel, cancellationToken);
             }
 
             /// <summary>
             /// Returns true if type information could be gleaned by simply looking at the given statement.
-            /// This typically means that the type name occurs in either left hand or right hand side of an assignment.
+            /// This typically means that the type name occurs in right hand side of an assignment.
             /// </summary>
             private bool IsTypeApparentInDeclaration(VariableDeclarationSyntax variableDeclaration, SemanticModel semanticModel, TypeStyle stylePreferences, CancellationToken cancellationToken)
             {
                 var initializer = variableDeclaration.Variables.Single().Initializer;
                 var initializerExpression = GetInitializerExpression(initializer);
-
-                // default(type)
-                if (initializerExpression.IsKind(SyntaxKind.DefaultExpression))
-                {
-                    return true;
-                }
-
-                // literals, use var if options allow usage here.
-                if (initializerExpression.IsAnyLiteralExpression())
-                {
-                    return stylePreferences.HasFlag(TypeStyle.ImplicitTypeForIntrinsicTypes);
-                }
-
-                // constructor invocations cases:
-                //      = new type();
-                if (initializerExpression.IsKind(SyntaxKind.ObjectCreationExpression) &&
-                    !initializerExpression.IsKind(SyntaxKind.AnonymousObjectCreationExpression))
-                {
-                    return true;
-                }
-
-                // explicit conversion cases: 
-                //      (type)expr, expr is type, expr as type
-                if (initializerExpression.IsKind(SyntaxKind.CastExpression) ||
-                    initializerExpression.IsKind(SyntaxKind.IsExpression) ||
-                    initializerExpression.IsKind(SyntaxKind.AsExpression))
-                {
-                    return true;
-                }
-
-                // other Conversion cases:
-                //      a. conversion with helpers like: int.Parse methods
-                //      b. types that implement IConvertible and then invoking .ToType()
-                //      c. System.Convert.Totype()
                 var declaredTypeSymbol = semanticModel.GetTypeInfo(variableDeclaration.Type, cancellationToken).Type;
-
-                var memberName = GetRightmostInvocationExpression(initializerExpression).GetRightmostName();
-                if (memberName == null)
-                {
-                    return false;
-                }
-
-                var methodSymbol = semanticModel.GetSymbolInfo(memberName, cancellationToken).Symbol as IMethodSymbol;
-                if (methodSymbol == null)
-                {
-                    return false;
-                }
-
-                if (memberName.IsRightSideOfDot())
-                {
-                    var typeName = memberName.GetLeftSideOfDot();
-                    return IsPossibleCreationOrConversionMethod(methodSymbol, declaredTypeSymbol, semanticModel, typeName, cancellationToken);
-                }
-
-                return false;
-            }
-
-            private ExpressionSyntax GetRightmostInvocationExpression(ExpressionSyntax node)
-            {
-                var awaitExpression = node as AwaitExpressionSyntax;
-                if (awaitExpression != null && awaitExpression.Expression != null)
-                {
-                    return GetRightmostInvocationExpression(awaitExpression.Expression);
-                }
-
-                var invocationExpression = node as InvocationExpressionSyntax;
-                if (invocationExpression != null && invocationExpression.Expression != null)
-                {
-                    return GetRightmostInvocationExpression(invocationExpression.Expression);
-                }
-
-                var conditional = node as ConditionalAccessExpressionSyntax;
-                if (conditional != null)
-                {
-                    return GetRightmostInvocationExpression(conditional.WhenNotNull);
-                }
-
-                return node;
-            }
-
-            private bool IsIntrinsicType(SyntaxNode declarationStatement) =>
-                (declarationStatement as VariableDeclarationSyntax)?.Variables.Single().Initializer.Value.IsAnyLiteralExpression() == true;
-
-            private bool IsPossibleCreationOrConversionMethod(IMethodSymbol methodSymbol, ITypeSymbol declaredType, SemanticModel semanticModel, ExpressionSyntax typeName, CancellationToken cancellationToken)
-            {
-                if (methodSymbol.ReturnsVoid)
-                {
-                    return false;
-                }
-
-                var typeInInvocation = semanticModel.GetTypeInfo(typeName, cancellationToken).Type;
-
-                return IsPossibleCreationMethod(methodSymbol, declaredType, typeInInvocation)
-                    || IsPossibleConversionMethod(methodSymbol, declaredType, typeInInvocation, semanticModel, cancellationToken);
+                return TypeStyleHelper.IsTypeApparentInAssignmentExpression(stylePreferences, initializerExpression, semanticModel,cancellationToken, declaredTypeSymbol);
             }
 
             /// <summary>
-            /// Looks for types that have static methods that return the same type as the container.
-            /// e.g: int.Parse, XElement.Load, Tuple.Create etc.
+            /// checks if the type represented by the given symbol is one of the
+            /// simple types defined in the compiler.
             /// </summary>
-            private bool IsPossibleCreationMethod(IMethodSymbol methodSymbol, ITypeSymbol declaredType, ITypeSymbol typeInInvocation)
-            {
-                if (!methodSymbol.IsStatic)
-                {
-                    return false;
-                }
-
-                return IsDeclaredTypeEqualToReturnType(methodSymbol, declaredType, typeInInvocation);
-            }
-
-            /// <summary>
-            /// If we have a method ToXXX and its return type is also XXX, then type name is apparent
-            /// e.g: Convert.ToString.
-            /// </summary>
-            private bool IsPossibleConversionMethod(IMethodSymbol methodSymbol, ITypeSymbol declaredType, ITypeSymbol typeInInvocation, SemanticModel semanticModel, CancellationToken cancellationToken)
-            {
-                // take `char` from `char? c = `
-                var declaredTypeName = declaredType.IsNullable()
-                        ? declaredType.GetTypeArguments().First().Name
-                        : declaredType.Name;
-
-                var returnType = methodSymbol.ReturnType;
-
-                if (methodSymbol.Name.Equals("To" + declaredTypeName, StringComparison.Ordinal))
-                {
-                    return IsDeclaredTypeEqualToReturnType(methodSymbol, declaredType, typeInInvocation);
-                }
-
-                return false;
-            }
-
             /// <remarks>
-            /// If there are type arguments on either side of assignment, we match type names instead of type equality 
-            /// to account for inferred generic type arguments.
-            /// e.g: Tuple.Create(0, true) returns Tuple&lt;X,y&gt; which isn't the same as type Tuple.
-            /// otherwise, we match for type equivalence
+            /// From the IDE perspective, we also include object and string to be simplified
+            /// to var. <see cref="SyntaxFacts.IsPredefinedType(SyntaxKind)"/> considers string
+            /// and object but the compiler's implementation of IsIntrinsicType does not.
             /// </remarks>
-            private static bool IsDeclaredTypeEqualToReturnType(IMethodSymbol methodSymbol, ITypeSymbol declaredType, ITypeSymbol typeInInvocation)
+            private bool IsPredefinedTypeInDeclaration(SyntaxNode declarationStatement)
             {
-                var returnType = methodSymbol.ReturnType;
+                var predefinedType = GetTypeSyntaxFromDeclaration(declarationStatement) as PredefinedTypeSyntax;
 
-                if (declaredType.GetTypeArguments().Length > 0 ||
-                    typeInInvocation.GetTypeArguments().Length > 0)
+                return predefinedType != null
+                    ? SyntaxFacts.IsPredefinedType(predefinedType.Keyword.Kind())
+                    : false;
+            }
+
+            private bool IsInferredPredefinedType(SyntaxNode declarationStatement, SemanticModel semanticModel, CancellationToken cancellationToken)
+            {
+                TypeSyntax typeSyntax = GetTypeSyntaxFromDeclaration(declarationStatement);
+
+                return typeSyntax != null
+                     ? typeSyntax.IsTypeInferred(semanticModel) &&
+                        semanticModel.GetTypeInfo(typeSyntax).Type?.IsSpecialType() == true
+                     : false;
+            }
+
+            private TypeSyntax GetTypeSyntaxFromDeclaration(SyntaxNode declarationStatement)
+            {
+                if (declarationStatement is VariableDeclarationSyntax)
                 {
-                    return declaredType.Name.Equals(returnType.Name);
+                    return ((VariableDeclarationSyntax)declarationStatement).Type;
                 }
-                else
+                else if (declarationStatement is ForEachStatementSyntax)
                 {
-                    return declaredType.Equals(returnType);
+                    return ((ForEachStatementSyntax)declarationStatement).Type;
                 }
+
+                return null;
             }
 
             private TypeStyle GetCurrentTypingStylePreferences(OptionSet optionSet)

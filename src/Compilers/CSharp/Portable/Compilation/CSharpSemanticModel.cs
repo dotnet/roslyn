@@ -496,6 +496,11 @@ namespace Microsoft.CodeAnalysis.CSharp
         public abstract SymbolInfo GetSymbolInfo(SelectOrGroupClauseSyntax node, CancellationToken cancellationToken = default(CancellationToken));
 
         /// <summary>
+        /// Gets the symbol information for the property of a sub-property pattern.
+        /// </summary>
+        public abstract SymbolInfo GetSymbolInfo(SubPropertyPatternSyntax node, CancellationToken cancellationToken = default(CancellationToken));
+
+        /// <summary>
         /// Returns what symbol(s), if any, the given expression syntax bound to in the program.
         /// 
         /// An AliasSymbol will never be returned by this method. What the alias refers to will be
@@ -1378,7 +1383,14 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 Debug.Assert((object)container == null);
                 TypeSymbol containingType = binder.ContainingType;
-                TypeSymbol baseType;
+                TypeSymbol baseType = null;
+
+                // For a script class or a submission class base should have no members.
+                if ((object)containingType != null && containingType.Kind == SymbolKind.NamedType && ((NamedTypeSymbol)containingType).IsScriptClass)
+                {
+                    return ImmutableArray<Symbol>.Empty;
+                }
+
                 if ((object)containingType == null || (object)(baseType = containingType.BaseTypeNoUseSiteDiagnostics) == null)
                 {
                     throw new ArgumentException(
@@ -2622,6 +2634,22 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <param name="cancellationToken">The cancellation token.</param>
         /// <returns>The symbol that was declared.</returns>
         public abstract ISymbol GetDeclaredSymbol(VariableDeclaratorSyntax declarationSyntax, CancellationToken cancellationToken = default(CancellationToken));
+
+        /// <summary>
+        /// Given a declaration pattern syntax, get the corresponding symbol.
+        /// </summary>
+        /// <param name="declarationSyntax">The syntax node that declares a variable.</param>
+        /// <param name="cancellationToken">The cancellation token.</param>
+        /// <returns>The symbol that was declared.</returns>
+        public abstract ISymbol GetDeclaredSymbol(DeclarationPatternSyntax declarationSyntax, CancellationToken cancellationToken = default(CancellationToken));
+
+        /// <summary>
+        /// Given a let statement syntax, get the corresponding symbol if the statement uses [let &lt;identifier&gt; = ...] form.
+        /// </summary>
+        /// <param name="declarationSyntax">The syntax node that declares a variable.</param>
+        /// <param name="cancellationToken">The cancellation token.</param>
+        /// <returns>The symbol that was declared.</returns>
+        public abstract ISymbol GetDeclaredSymbol(LetStatementSyntax declarationSyntax, CancellationToken cancellationToken = default(CancellationToken));
 
         /// <summary>
         /// Given a labeled statement syntax, get the corresponding label symbol.
@@ -4330,6 +4358,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return this.GetSymbolInfo(orderingSyntax, cancellationToken);
             }
 
+            var subPropertyPattern = node as SubPropertyPatternSyntax;
+            if (subPropertyPattern != null)
+            {
+                return this.GetSymbolInfo(subPropertyPattern, cancellationToken);
+            }
+
             return SymbolInfo.None;
         }
 
@@ -4510,6 +4544,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return this.GetDeclaredSymbol((AnonymousObjectMemberDeclaratorSyntax)node, cancellationToken);
                 case SyntaxKind.VariableDeclarator:
                     return this.GetDeclaredSymbol((VariableDeclaratorSyntax)node, cancellationToken);
+                case SyntaxKind.DeclarationPattern:
+                    return this.GetDeclaredSymbol((DeclarationPatternSyntax)node, cancellationToken);
+                case SyntaxKind.LetStatement:
+                    return this.GetDeclaredSymbol((LetStatementSyntax)node, cancellationToken);
                 case SyntaxKind.NamespaceDeclaration:
                     return this.GetDeclaredSymbol((NamespaceDeclarationSyntax)node, cancellationToken);
                 case SyntaxKind.Parameter:

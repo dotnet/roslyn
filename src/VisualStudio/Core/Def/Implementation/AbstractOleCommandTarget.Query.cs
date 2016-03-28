@@ -37,9 +37,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
             {
                 return QueryVisualStudio97Status(ref pguidCmdGroup, commandCount, prgCmds, commandText);
             }
-            else if (pguidCmdGroup == VSConstants.VsStd11)
+            else if (pguidCmdGroup == Guids.InteractiveCommandSetId)
             {
-                return QueryVisualStudio11Status(ref pguidCmdGroup, commandCount, prgCmds, commandText);
+                return QueryInteractiveStatus(ref pguidCmdGroup, commandCount, prgCmds, commandText);
             }
             else if (pguidCmdGroup == VSConstants.VsStd14)
             {
@@ -224,11 +224,12 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
             }
         }
 
-        private int QueryVisualStudio11Status(ref Guid pguidCmdGroup, uint commandCount, OLECMD[] prgCmds, IntPtr commandText)
+        /// <remarks>TODO: Revert the change to use standard VS11 command pending https://github.com/dotnet/roslyn/issues/8927 .</remarks>
+        private int QueryInteractiveStatus(ref Guid pguidCmdGroup, uint commandCount, OLECMD[] prgCmds, IntPtr commandText)
         {
-            switch ((VSConstants.VSStd11CmdID)prgCmds[0].cmdID)
+            switch (prgCmds[0].cmdID)
             {
-                case VSConstants.VSStd11CmdID.ExecuteSelectionInInteractive:
+                case ID.InteractiveCommands.ExecuteInInteractiveWindow:
                     return QueryExecuteInInteractiveWindowStatus(ref pguidCmdGroup, commandCount, prgCmds, commandText); ;
 
                 default:

@@ -152,8 +152,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                     innerStatement = ((LabeledStatementSyntax)innerStatement).Statement;
                 }
 
-                if (innerStatement.Kind() == SyntaxKind.LocalDeclarationStatement)
+                switch (innerStatement.Kind())
                 {
+                    case SyntaxKind.LocalDeclarationStatement:
+                        {
                     var decl = (LocalDeclarationStatementSyntax)innerStatement;
                     if (locals == null)
                     {
@@ -168,6 +170,32 @@ namespace Microsoft.CodeAnalysis.CSharp
                         var localSymbol = MakeLocal(refKind, decl.Declaration, vdecl, kind);
                         locals.Add(localSymbol);
                     }
+                        }
+                        break;
+                    case SyntaxKind.LetStatement:
+                        {
+                            var decl = (LetStatementSyntax)innerStatement;
+                            if (locals == null)
+                            {
+                                locals = ArrayBuilder<LocalSymbol>.GetInstance();
+                            }
+
+                            if (decl.Pattern != null)
+                            {
+                                // Patterns from the let statement introduce bindings into the enclosing scope.
+                                BuildAndAddPatternVariables(locals, decl.Pattern);
+                            }
+                            else
+                            {
+                                TypeSyntax type = null; // in the syntax "var x = 1", there is no syntax for the variable's type.
+                                var localSymbol = SourceLocalSymbol.MakeLocal(this.ContainingMemberOrLambda, this, RefKind.None, type, decl.Identifier, LocalDeclarationKind.PatternVariable);
+                                locals.Add(localSymbol);
+                            }
+                        }
+                        break;
+                    default:
+                        // no other statement introduces local variables into the enclosing scope
+                        break;
                 }
             }
 
@@ -445,14 +473,14 @@ namespace Microsoft.CodeAnalysis.CSharp
             return false;
         }
 
-        internal override ImmutableArray<LocalSymbol> GetDeclaredLocalsForScope()
+        internal override ImmutableArray<LocalSymbol> GetDeclaredLocalsForScope(CSharpSyntaxNode node)
         {
-            throw ExceptionUtilities.Unreachable;
+            return ImmutableArray<LocalSymbol>.Empty;
         }
 
-        internal override ImmutableArray<LocalFunctionSymbol> GetDeclaredLocalFunctionsForScope()
+        internal override ImmutableArray<LocalFunctionSymbol> GetDeclaredLocalFunctionsForScope(CSharpSyntaxNode node)
         {
-            throw ExceptionUtilities.Unreachable;
+            return ImmutableArray<LocalFunctionSymbol>.Empty;
         }
     }
 }

@@ -2923,5 +2923,30 @@ End Class
             End Using
         End Sub
 
+        <Fact>
+        Public Sub FailingEmitter()
+            ' Check that Compilation.Emit actually produces compilation errors.
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(
+    <compilation>
+        <file name="a.vb">
+Module M1
+    Sub Main()
+    End Sub
+End Module
+    </file>
+    </compilation>)
+
+            Dim emitResult As EmitResult
+
+            Using output = New BrokenStream()
+                output.BreakHow = BrokenStream.BreakHowType.ThrowOnWrite
+                emitResult = compilation.Emit(output, Nothing, Nothing, Nothing)
+
+                CompilationUtils.AssertTheseDiagnostics(emitResult.Diagnostics,
+<expected>
+BC37256: An error occurred while writing the output file: <%= output.ThrownException.ToString() %>
+</expected>)
+            End Using
+        End Sub
     End Class
 End Namespace

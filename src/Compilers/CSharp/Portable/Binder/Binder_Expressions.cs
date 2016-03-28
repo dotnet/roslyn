@@ -339,7 +339,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             ParameterSymbol parameter,
             EqualsValueClauseSyntax defaultValueSyntax)
         {
-            return new LocalScopeBinder(this.WithContainingMemberOrLambda(parameter.ContainingSymbol).WithAdditionalFlags(BinderFlags.ParameterDefaultValue));
+            return new LocalScopeBinder(this.WithContainingMemberOrLambda(parameter.ContainingSymbol).WithAdditionalFlags(BinderFlags.ParameterDefaultValue)).
+                   WithPatternVariablesIfAny(defaultValueSyntax.Value);
         }
 
         internal BoundExpression BindParameterDefaultValue(
@@ -357,7 +358,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             // Always generate the conversion, even if the expression is not convertible to the given type.
             // We want the erroneous conversion in the tree.
-            return GenerateConversionForAssignment(parameterType, valueBeforeConversion, diagnostics, isDefaultParameter: true);
+            return WrapWithVariablesIfAny(GenerateConversionForAssignment(parameterType, valueBeforeConversion, diagnostics, isDefaultParameter: true));
         }
 
         internal BoundExpression BindEnumConstantInitializer(
@@ -605,6 +606,15 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 case SyntaxKind.InterpolatedStringExpression:
                     return BindInterpolatedString((InterpolatedStringExpressionSyntax)node, diagnostics);
+
+                case SyntaxKind.IsPatternExpression:
+                    return BindIsPatternExpression((IsPatternExpressionSyntax)node, diagnostics);
+
+                case SyntaxKind.MatchExpression:
+                    return BindMatchExpression((MatchExpressionSyntax)node, diagnostics);
+
+                case SyntaxKind.ThrowExpression:
+                    return BindThrowExpression((ThrowExpressionSyntax)node, diagnostics);
 
                 default:
                     // NOTE: We could probably throw an exception here, but it's conceivable
@@ -2704,6 +2714,15 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// This method should be kept consistent with Compiler.BindConstructorInitializer (e.g. same error codes).
         /// </remarks>
         internal BoundExpression BindConstructorInitializer(
+            ArgumentListSyntax initializerArgumentListOpt,
+            MethodSymbol constructor,
+            DiagnosticBag diagnostics)
+        {
+            var result = BindConstructorInitializerCore(initializerArgumentListOpt, constructor, diagnostics);
+            return WrapWithVariablesIfAny(result);
+        }
+
+        private BoundExpression BindConstructorInitializerCore(
             ArgumentListSyntax initializerArgumentListOpt,
             MethodSymbol constructor,
             DiagnosticBag diagnostics)

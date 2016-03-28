@@ -154,17 +154,17 @@ namespace Microsoft.CodeAnalysis.CSharp
             return null;
         }
 
-        internal override ImmutableArray<LocalSymbol> GetDeclaredLocalsForScope()
+        internal override ImmutableArray<LocalSymbol> GetDeclaredLocalsForScope(CSharpSyntaxNode node)
         {
             throw ExceptionUtilities.Unreachable;
         }
 
-        internal override ImmutableArray<LocalFunctionSymbol> GetDeclaredLocalFunctionsForScope()
+        internal override ImmutableArray<LocalFunctionSymbol> GetDeclaredLocalFunctionsForScope(CSharpSyntaxNode node)
         {
             throw ExceptionUtilities.Unreachable;
         }
 
-        internal override BoundSwitchStatement BindSwitchExpressionAndSections(SwitchStatementSyntax node, Binder originalBinder, DiagnosticBag diagnostics)
+        internal override BoundStatement BindSwitchExpressionAndSections(SwitchStatementSyntax node, Binder originalBinder, DiagnosticBag diagnostics)
         {
             // There's supposed to be a SwitchBinder (or other overrider of this method) in the chain.
             throw ExceptionUtilities.Unreachable;
@@ -210,8 +210,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             get
             {
-                // There's supposed to be a LocalScopeBinder (or other overrider of this method) in the chain.
-                throw ExceptionUtilities.Unreachable;
+                return ImmutableArray<LocalSymbol>.Empty;
             }
         }
 

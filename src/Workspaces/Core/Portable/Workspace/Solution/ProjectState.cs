@@ -25,7 +25,9 @@ namespace Microsoft.CodeAnalysis
         private readonly IReadOnlyList<DocumentId> _additionalDocumentIds;
         private readonly AsyncLazy<VersionStamp> _lazyLatestDocumentVersion;
         private readonly AsyncLazy<VersionStamp> _lazyLatestDocumentTopLevelChangeVersion;
-        private AnalyzerOptions _analyzerOptions;
+
+        // this will be initialized lazily.
+        private AnalyzerOptions _analyzerOptionsDoNotAccessDirectly;
 
         private ProjectState(
             ProjectInfo projectInfo,
@@ -61,12 +63,12 @@ namespace Microsoft.CodeAnalysis
             _projectInfo = FixProjectInfo(projectInfo);
 
             _documentIds = _projectInfo.Documents.Select(d => d.Id).ToImmutableArray();
-            _additionalDocumentIds = this.ProjectInfo.AdditionalDocuments.Select(d => d.Id).ToImmutableArray();
+            _additionalDocumentIds = _projectInfo.AdditionalDocuments.Select(d => d.Id).ToImmutableArray();
 
             var docStates = ImmutableDictionary.CreateRange<DocumentId, DocumentState>(
                 _projectInfo.Documents.Select(d =>
                     new KeyValuePair<DocumentId, DocumentState>(d.Id,
-                        CreateDocument(this.ProjectInfo, d, languageServices, solutionServices))));
+                        CreateDocument(_projectInfo, d, languageServices, solutionServices))));
 
             _documentStates = docStates;
 
@@ -231,12 +233,12 @@ namespace Microsoft.CodeAnalysis
         {
             get
             {
-                if (_analyzerOptions == null)
+                if (_analyzerOptionsDoNotAccessDirectly == null)
                 {
-                    _analyzerOptions = new AnalyzerOptions(_additionalDocumentStates.Values.Select(d => new AdditionalTextDocument(d)).ToImmutableArray<AdditionalText>());
+                    _analyzerOptionsDoNotAccessDirectly = new AnalyzerOptions(_additionalDocumentStates.Values.Select(d => new AdditionalTextDocument(d)).ToImmutableArray<AdditionalText>());
                 }
 
-                return _analyzerOptions;
+                return _analyzerOptionsDoNotAccessDirectly;
             }
         }
 
@@ -301,6 +303,12 @@ namespace Microsoft.CodeAnalysis
         public IReadOnlyList<ProjectReference> ProjectReferences
         {
             get { return this.ProjectInfo.ProjectReferences; }
+        }
+
+        [DebuggerBrowsable(DebuggerBrowsableState.Collapsed)]
+        public bool HasAllInformation
+        {
+            get { return this.ProjectInfo.HasAllInformation; }
         }
 
         [DebuggerBrowsable(DebuggerBrowsableState.Collapsed)]
@@ -454,6 +462,16 @@ namespace Microsoft.CodeAnalysis
             return this.With(
                 projectInfo: this.ProjectInfo.WithParseOptions(options).WithVersion(this.Version.GetNewerVersion()),
                 documentStates: docMap);
+        }
+
+        public ProjectState UpdateHasAllInformation(bool hasAllInformation)
+        {
+            if (hasAllInformation == this.HasAllInformation)
+            {
+                return this;
+            }
+
+            return this.With(projectInfo: this.ProjectInfo.WithHasAllInformation(hasAllInformation).WithVersion(this.Version.GetNewerVersion()));
         }
 
         public static bool IsSameLanguage(ProjectState project1, ProjectState project2)

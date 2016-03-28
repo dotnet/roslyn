@@ -66,6 +66,7 @@
     <CodeAnalysisRuleSet>..\..\..\build\TestProjectRules.ruleset</CodeAnalysisRuleSet>
   </PropertyGroup>
   <ItemGroup>
+    <Compile Include="DependentTypeFinderTests.cs" />
     <Compile Include="Editting\SyntaxEditorTests.cs" />
     <Compile Include="ExtensionOrdererTests.cs" />
     <Compile Include="Host\WorkspaceServices\TestProjectCacheService.cs" />
@@ -73,6 +74,7 @@
     <Compile Include="LinkedFileDiffMerging\LinkedFileDiffMergingTests.TextMerging.cs" />
     <Compile Include="LinkedFileDiffMerging\LinkedFileDiffMergingTests.Features.cs" />
     <Compile Include="LinkedFileDiffMerging\LinkedFileDiffMergingTests.cs" />
+    <Compile Include="ServicesTestBase.cs" />
     <Compile Include="SolutionTests\SourceGeneratorTests.cs" />
     <Compile Include="UtilityTest\AsyncLazyTests.cs" />
     <Compile Include="CodeCleanup\AddMissingTokensTests.cs" />

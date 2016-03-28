@@ -5,12 +5,9 @@ using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
-using System.Reflection;
+using System.Runtime.CompilerServices;
 using Microsoft.CodeAnalysis.Diagnostics.Log;
 using Roslyn.Utilities;
-using System.Runtime.CompilerServices;
-using System.Reflection.Metadata;
-using System.Reflection.PortableExecutable;
 
 namespace Microsoft.CodeAnalysis.Diagnostics
 {

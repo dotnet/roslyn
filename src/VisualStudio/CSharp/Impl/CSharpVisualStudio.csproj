@@ -205,9 +205,9 @@
     <Compile Include="ObjectBrowser\CSharpLibraryService.cs" />
     <Compile Include="ObjectBrowser\CSharpSyncClassViewCommandHandler.cs" />
     <Compile Include="ObjectBrowser\ListItemFactory.cs" />
+    <Compile Include="Options\NamingStylesOptionPage.cs" />
     <Compile Include="Options\AdvancedOptionPageStrings.cs" />
     <Compile Include="Options\IntelliSenseOptionPageStrings.cs" />
-    <Compile Include="Options\SerializationHelpers.cs" />
     <Compile Include="Venus\CSharpAdditionalFormattingRuleLanguageService.cs" />
     <Compile Include="CSharpPackage.cs" />
     <Compile Include="CSharpVSResources.Designer.cs">
@@ -244,7 +244,7 @@
     <Compile Include="Options\Formatting\FormattingSpacingPage.cs" />
     <Compile Include="Options\Formatting\StyleViewModel.cs" />
     <Compile Include="Options\Formatting\WrappingViewModel.cs" />
-    <Compile Include="Options\Formatting\FormattingStylePage.cs" />
+    <Compile Include="Options\Formatting\CodeStylePage.cs" />
     <Compile Include="Options\Formatting\FormattingWrappingPage.cs" />
     <Compile Include="Options\IntelliSenseOptionPage.cs" />
     <Compile Include="Options\IntelliSenseOptionPageControl.xaml.cs">

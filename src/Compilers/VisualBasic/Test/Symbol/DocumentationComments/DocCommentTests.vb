@@ -6734,7 +6734,8 @@ End Class
 
         End Sub
 
-        <Fact(Skip:="1104815")>
+        <Fact>
+        <WorkItem(4719, "https://github.com/dotnet/roslyn/issues/4719")>
         Public Sub CrefLookup()
             Dim source =
                 <compilation name="AssemblyName">
@@ -6763,7 +6764,14 @@ End Class
             Dim inner = outer.GetMember(Of NamedTypeSymbol)("Inner")
 
             Dim position = syntaxTree.ToString().IndexOf("(Of U)", StringComparison.Ordinal)
-            Assert.Equal(inner, model.LookupSymbols(position, outer, inner.Name).Single())
+
+            Const bug4719IsFixed = False
+
+            If bug4719IsFixed Then
+                Assert.Equal(inner, model.LookupSymbols(position, outer, inner.Name).Single())
+            Else
+                Assert.False(model.LookupSymbols(position, outer, inner.Name).Any())
+            End If
         End Sub
 
         <Fact()>
@@ -7646,7 +7654,7 @@ AssemblyName
                 stringMapper:=Function(o) StringReplace(o, AsXmlCommentText(xmlFile), "**FILE**"), ensureEnglishUICulture:=True)
         End Sub
 
-        <Fact(Skip:="https://github.com/dotnet/roslyn/issues/8807")>
+        <Fact>
         Public Sub Include_Cycle_WRN_XMLDocInvalidXMLFragment()
             Dim xmlText =
 <root>
@@ -8221,7 +8229,7 @@ AssemblyName
 </members>
 </doc>
 ]]>
-    </xml>, stringMapper:=Function(o) StringReplace(o, xmlFile.ToString(), "**FILE**"), ensureEnglishUICulture:=True)
+    </xml>, ensureEnglishUICulture:=True)
         End Sub
 
         <Fact>
@@ -8389,7 +8397,7 @@ AssemblyName
 </members>
 </doc>
 ]]>
-    </xml>, stringMapper:=Function(o) StringReplace(o, xmlFile.ToString(), "**FILE**"), ensureEnglishUICulture:=True)
+    </xml>, ensureEnglishUICulture:=True)
         End Sub
 
         <Fact>
@@ -8542,7 +8550,7 @@ AssemblyName
 </members>
 </doc>
 ]]>
-    </xml>, stringMapper:=Function(o) StringReplace(o, xmlFile.ToString(), "**FILE**"), ensureEnglishUICulture:=True)
+    </xml>, ensureEnglishUICulture:=True)
         End Sub
 
         <Fact>
@@ -8648,7 +8656,7 @@ AssemblyName
 </members>
 </doc>
 ]]>
-    </xml>, stringMapper:=Function(o) StringReplace(o, xmlFile.ToString(), "**FILE**"), ensureEnglishUICulture:=True)
+    </xml>, ensureEnglishUICulture:=True)
         End Sub
 
         <Fact>
@@ -8839,7 +8847,7 @@ AssemblyName
 </members>
 </doc>
 ]]>
-    </xml>, stringMapper:=Function(o) StringReplace(o, xmlFile.ToString(), "**FILE**"), ensureEnglishUICulture:=True)
+    </xml>, ensureEnglishUICulture:=True)
         End Sub
 
         <Fact>
@@ -9014,7 +9022,7 @@ AssemblyName
 </members>
 </doc>
 ]]>
-    </xml>, stringMapper:=Function(o) StringReplace(o, xmlFile.ToString(), "**FILE**"))
+    </xml>)
         End Sub
 
         <Fact>
@@ -11896,18 +11904,18 @@ xmlDoc)
             Return xml
         End Function
 
-        Friend Function FilterOfSymbolKindOnly(symbols As ImmutableArray(Of ISymbol), ParamArray kinds() As SymbolKind) As ImmutableArray(Of ISymbol)
+        Private Shared Function FilterOfSymbolKindOnly(symbols As ImmutableArray(Of ISymbol), ParamArray kinds() As SymbolKind) As ImmutableArray(Of ISymbol)
             Dim filter As New HashSet(Of SymbolKind)(kinds)
             Return (From s In symbols
                     Where filter.Contains(s.Kind)
                     Select s).AsImmutable()
         End Function
 
-        Friend Sub AssertLookupResult(actual As ImmutableArray(Of ISymbol), ParamArray expected() As String)
+        Private Shared Sub AssertLookupResult(actual As ImmutableArray(Of ISymbol), ParamArray expected() As String)
             AssertStringArraysEqual(expected, (From s In actual Select s.ToTestDisplayString()).ToArray)
         End Sub
 
-        Friend Function CheckSymbolInfoOnly(model As SemanticModel, syntax As ExpressionSyntax, ParamArray expected() As String) As ImmutableArray(Of ISymbol)
+        Private Function CheckSymbolInfoOnly(model As SemanticModel, syntax As ExpressionSyntax, ParamArray expected() As String) As ImmutableArray(Of ISymbol)
             EnsureSymbolInfoOnCrefReference(model, syntax)
 
             Dim actual = model.GetSymbolInfo(syntax)
@@ -11962,7 +11970,7 @@ xmlDoc)
 
         End Sub
 
-        Friend Function CheckTypeParameterCrefSymbolInfoAndTypeInfo(model As SemanticModel, syntax As ExpressionSyntax, Optional expected As String = Nothing) As ImmutableArray(Of Symbol)
+        Private Function CheckTypeParameterCrefSymbolInfoAndTypeInfo(model As SemanticModel, syntax As ExpressionSyntax, Optional expected As String = Nothing) As ImmutableArray(Of Symbol)
             EnsureSymbolInfoOnCrefReference(model, syntax)
 
             Dim actual = model.GetSymbolInfo(syntax)
@@ -11985,7 +11993,7 @@ xmlDoc)
             End If
         End Function
 
-        Friend Function CheckSymbolInfoAndTypeInfo(model As SemanticModel, syntax As ExpressionSyntax, ParamArray expected() As String) As ImmutableArray(Of Symbol)
+        Private Function CheckSymbolInfoAndTypeInfo(model As SemanticModel, syntax As ExpressionSyntax, ParamArray expected() As String) As ImmutableArray(Of Symbol)
             EnsureSymbolInfoOnCrefReference(model, syntax)
 
             Dim actual = model.GetSymbolInfo(syntax)
@@ -12011,13 +12019,13 @@ xmlDoc)
             End If
         End Function
 
-        Friend Sub AssertStringArraysEqual(a() As String, b() As String)
+        Private Shared Sub AssertStringArraysEqual(a() As String, b() As String)
             Assert.NotNull(a)
             Assert.NotNull(b)
             Assert.Equal(StringArraysToSortedString(a), StringArraysToSortedString(b))
         End Sub
 
-        Friend Function StringArraysToSortedString(a() As String) As String
+        Private Shared Function StringArraysToSortedString(a() As String) As String
             Dim builder As New StringBuilder
             Array.Sort(a)
             For Each s In a
@@ -12026,7 +12034,7 @@ xmlDoc)
             Return builder.ToString()
         End Function
 
-        Friend Sub TestSymbolAndTypeInfoForType(model As SemanticModel, syntax As TypeSyntax, expected As ISymbol)
+        Private Sub TestSymbolAndTypeInfoForType(model As SemanticModel, syntax As TypeSyntax, expected As ISymbol)
             EnsureSymbolInfoOnCrefReference(model, syntax)
 
             Dim expSymInfo = model.GetSymbolInfo(syntax)
@@ -12038,7 +12046,7 @@ xmlDoc)
             Assert.Equal(ConversionKind.Identity, conversion.Kind)
         End Sub
 
-        Friend Shared Function FindNodesOfTypeFromText(Of TNode As VisualBasicSyntaxNode)(tree As SyntaxTree, textToFind As String) As TNode()
+        Private Shared Function FindNodesOfTypeFromText(Of TNode As VisualBasicSyntaxNode)(tree As SyntaxTree, textToFind As String) As TNode()
             Dim text As String = tree.GetText().ToString()
             Dim list As New List(Of TNode)
 
@@ -12057,7 +12065,7 @@ xmlDoc)
             Return list.ToArray()
         End Function
 
-        Friend Shared Function CompileCheckDiagnosticsAndXmlDocument(
+        Private Shared Function CompileCheckDiagnosticsAndXmlDocument(
             sources As XElement,
             errors As XElement,
             Optional expectedDocXml As XElement = Nothing,
@@ -12099,14 +12107,6 @@ xmlDoc)
                         Threading.Thread.CurrentThread.CurrentUICulture = saveUICulture
                     End If
                 End Try
-
-                If stringMapper IsNot Nothing Then
-                    For i = 0 To diagnostics.Count - 1
-                        Dim info = DirectCast(diagnostics(i), DiagnosticWithInfo).Info
-                        info = If(info.Arguments Is Nothing, ErrorFactory.ErrorInfo(CType(info.Code, ERRID)), ErrorFactory.ErrorInfo(CType(info.Code, ERRID), (From a In info.Arguments Select stringMapper(a)).ToArray()))
-                        diagnostics(i) = New VBDiagnostic(info, NoLocation.Singleton)
-                    Next
-                End If
 
                 CompilationUtils.AssertTheseDiagnostics(diagnostics.AsImmutable(), errors)
             End If

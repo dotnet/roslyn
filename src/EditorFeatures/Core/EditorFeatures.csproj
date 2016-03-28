@@ -103,6 +103,8 @@
     <InternalsVisibleTo Include="Microsoft.VisualStudio.LanguageServices.CSharp" />
     <InternalsVisibleTo Include="Microsoft.VisualStudio.LanguageServices.Implementation" />
     <InternalsVisibleTo Include="Microsoft.VisualStudio.LanguageServices.SolutionExplorer" />
+    <InternalsVisibleTo Include="Microsoft.VisualStudio.LanguageServices.ExternalDependencyServices" />
+    <InternalsVisibleTo Include="Microsoft.VisualStudio.LanguageServices.Telemetry" />
     <InternalsVisibleTo Include="Microsoft.VisualStudio.LanguageServices.VisualBasic" />
     <InternalsVisibleTo Include="csi" />
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.CSharp.InteractiveEditorFeatures" />
@@ -287,10 +289,14 @@
     <Compile Include="Implementation\CodeFixes\CodeFixService.cs" />
     <Compile Include="Implementation\CodeFixes\CodeFixService.ProjectCodeFixProvider.cs" />
     <Compile Include="Implementation\CodeFixes\ICodeFixService.cs" />
+    <Compile Include="Implementation\FindReferences\IFindReferencesNavigableItemResultProvider.cs" />
+    <Compile Include="Implementation\GoToDefinition\INavigableDefinitionProvider.cs" />
     <Compile Include="Implementation\GoToImplementation\AbstractGoToImplementationService.cs" />
     <Compile Include="Implementation\GoToImplementation\IGoToImplementationService.cs" />
     <Compile Include="Implementation\Intellisense\Completion\OptionSetExtensions.cs" />
     <Compile Include="Implementation\Interactive\IAbstractResetInteractiveCommand.cs" />
+    <Compile Include="Implementation\NavigateTo\NavigateToSearchResultProvider.cs" />
+    <Compile Include="Implementation\NavigateTo\INavigateToSearchResultProvider.cs" />
     <Compile Include="Implementation\Outlining\AbstractSyntaxOutliner.cs" />
     <Compile Include="Implementation\Outlining\InvalidOutliningRegionException.cs" />
     <Compile Include="Implementation\Suggestions\FixMultipleOccurrencesService.cs" />
@@ -671,6 +677,8 @@
     <Compile Include="Implementation\Workspaces\TextUndoHistoryWorkspaceServiceFactoryService.cs" />
     <Compile Include="Implementation\Workspaces\WorkspaceTaskSchedulerFactoryFactory.cs" />
     <Compile Include="IRefactorNotifyService.cs" />
+    <Compile Include="Shared\IImageMonikerService.cs" />
+    <Compile Include="Shared\DefaultImageMonikerService.cs" />
     <Compile Include="Shared\Tagging\EventSources\TaggerEventSources.ViewSpanChangedEventSource.cs" />
     <Compile Include="Shared\Utilities\SynchronizationContextTaskScheduler.cs" />
     <Compile Include="Tagging\AbstractAsynchronousTaggerProvider.Tagger.cs" />
@@ -733,7 +741,7 @@
     <Compile Include="Shared\Preview\PreviewSolutionCrawlerRegistrationService.cs" />
     <Compile Include="Shared\Preview\PredefinedPreviewTaggerKeys.cs" />
     <Compile Include="Shared\Preview\PreviewWorkspace.cs" />
-    <Compile Include="Shared\IDocumentSupportsSuggestionService.cs" />
+    <Compile Include="Shared\IDocumentSupportsFeatureService.cs" />
     <Compile Include="Shared\Tagging\EventSources\AbstractTaggerEventSource.cs" />
     <Compile Include="Shared\Tagging\EventSources\AbstractWorkspaceTrackingTaggerEventSource.cs" />
     <Compile Include="Shared\Tagging\EventSources\TaggerEventSources.WorkspaceRegistrationChangedEventSource.cs" />

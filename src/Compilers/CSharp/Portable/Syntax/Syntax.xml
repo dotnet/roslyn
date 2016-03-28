@@ -1602,6 +1602,163 @@
       </PropertyComment>
     </Field>
   </Node>
+  <Node Name="IsPatternExpressionSyntax" Base="ExpressionSyntax">
+    <Kind Name="IsPatternExpression"/>
+    <Field Name="Expression" Type="ExpressionSyntax">
+    <PropertyComment>
+      <summary>ExpressionSyntax node representing the expression on the left of the "is" operator.</summary>
+    </PropertyComment>
+    </Field>
+    <Field Name="IsKeyword" Type="SyntaxToken">
+      <Kind Name="IsKeyword"/>
+    </Field>
+    <Field Name="Pattern" Type="PatternSyntax">
+      <PropertyComment>
+        <summary>PatternSyntax node representing the pattern on the right of the "is" operator.</summary>
+      </PropertyComment>
+    </Field>
+    <TypeComment>
+      <summary>Class which represents a simple pattern-maching expresion using the "is" keyword.</summary>
+    </TypeComment>
+    <FactoryComment>
+      <summary>Creates an IsPatternExpressionSyntax node.</summary>
+    </FactoryComment>
+  </Node>
+  <Node Name="MatchExpressionSyntax" Base="ExpressionSyntax">
+    <Kind Name="MatchExpression"/>
+    <Field Name="Left" Type="ExpressionSyntax" />
+    <Field Name="MatchToken" Type="SyntaxToken">
+      <Kind Name="MatchKeyword"/>
+    </Field>>
+    <Field Name="OpenParenToken" Type="SyntaxToken">
+      <Kind Name="OpenParenToken"/>
+    </Field>
+    <Field Name="Sections" Type="SyntaxList&lt;MatchSectionSyntax&gt;" />
+    <Field Name="CloseParenToken" Type="SyntaxToken">
+      <Kind Name="CloseParenToken"/>
+    </Field>
+  </Node>
+  <Node Name="MatchSectionSyntax" Base="CSharpSyntaxNode">
+    <Kind Name="MatchSection" />
+    <Field Name="CaseKeyword" Type="SyntaxToken">
+      <Kind Name="CaseKeyword"/>
+    </Field>
+    <Field Name="Pattern" Type="PatternSyntax" />
+    <Field Name="WhenClause" Type="WhenClauseSyntax" Optional="true"/>
+    <Field Name="ColonToken" Type="SyntaxToken">
+      <Kind Name="ColonToken"/>
+    </Field>
+    <Field Name="Expression" Type="ExpressionSyntax" />
+  </Node>
+  <Node Name="WhenClauseSyntax" Base="CSharpSyntaxNode">
+    <Kind Name="WhenClause" />
+    <Field Name="WhenKeyword" Type="SyntaxToken" Optional="true">
+      <Kind Name="WhenKeyword"/>
+    </Field>
+    <Field Name="Condition" Type="ExpressionSyntax" Optional="true" />
+  </Node>
+  <Node Name="ThrowExpressionSyntax" Base="ExpressionSyntax">
+    <Kind Name="ThrowExpression" />
+    <Field Name="ThrowKeyword" Type="SyntaxToken" Optional="false">
+      <Kind Name="ThrowKeyword"/>
+    </Field>
+    <Field Name="Expression" Type="ExpressionSyntax" Optional="false"/>
+  </Node>
+  <AbstractNode Name="PatternSyntax" Base="CSharpSyntaxNode" />
+  <Node Name="DeclarationPatternSyntax" Base="PatternSyntax">
+    <Kind Name="DeclarationPattern" />
+    <Field Name="Type" Type="TypeSyntax" />
+    <Field Name="Identifier" Type="SyntaxToken">
+      <Kind Name="IdentifierToken"/>
+    </Field>
+  </Node>
+  <Node Name="WildcardPatternSyntax" Base="PatternSyntax">
+    <Kind Name="WildcardPattern"/>
+    <Field Name="AsteriskToken" Type="SyntaxToken">
+      <Kind Name="AsteriskToken"/>
+    </Field>
+  </Node>
+  <Node Name="ConstantPatternSyntax" Base="PatternSyntax">
+    <Kind Name="ConstantPattern"/>
+    <Field Name="Expression" Type="ExpressionSyntax">
+      <PropertyComment>
+        <summary>ExpressionSyntax node representing the constant expression.</summary>
+      </PropertyComment>
+    </Field>
+  </Node>
+  <Node Name="RecursivePatternSyntax" Base="PatternSyntax">
+    <Kind Name="RecursivePattern"/>
+    <Field Name="Type" Type="TypeSyntax" />
+    <Field Name="PatternList" Type="SubRecursivePatternListSyntax">
+      <PropertyComment>
+        <summary>SubPatternListSyntax node representing the list of patterns in a recursive pattern.</summary>
+      </PropertyComment>
+    </Field>
+  </Node>
+  <Node Name="SubRecursivePatternListSyntax" Base="CSharpSyntaxNode">
+    <Kind Name="SubRecursivePatternList"/>
+    <Field Name="OpenParenToken" Type="SyntaxToken">
+      <Kind Name="OpenParenToken"/>
+      <PropertyComment>
+        <summary>SyntaxToken representing open parenthesis.</summary>
+      </PropertyComment>
+    </Field>
+    <Field Name="SubPatterns" Type="SeparatedSyntaxList&lt;SubRecursivePatternSyntax&gt;">
+      <PropertyComment>
+        <summary>SeparatedSyntaxList of SubPatternsSyntax representing the list of subpatterns.</summary>
+      </PropertyComment>
+    </Field>
+    <Field Name="CloseParenToken" Type="SyntaxToken">
+      <Kind Name="CloseParenToken"/>
+      <PropertyComment>
+        <summary>SyntaxToken representing close parenthesis.</summary>
+      </PropertyComment>
+    </Field>
+  </Node>
+  <Node Name="SubRecursivePatternSyntax" Base="CSharpSyntaxNode">
+    <Kind Name="SubRecursivePattern"/>
+    <Field Name="NameColon" Type="NameColonSyntax" Optional="true">
+      <PropertyComment>
+        <summary>NameColonSyntax node representing the optional name arguments.</summary>
+      </PropertyComment>
+    </Field>
+    <Field Name="Pattern" Type="PatternSyntax">
+      <PropertyComment>
+        <summary>PatternSyntax node representing the pattern.</summary>
+      </PropertyComment>
+    </Field>
+  </Node>
+  <Node Name="PropertyPatternSyntax" Base="PatternSyntax">
+    <Kind Name="PropertyPattern"/>
+    <Field Name="Type" Type="TypeSyntax" />
+    <Field Name="PatternList" Type="SubPropertyPatternListSyntax" />
+  </Node>
+  <Node Name="SubPropertyPatternListSyntax" Base="CSharpSyntaxNode">
+    <Kind Name="SubPropertyPatternList"/>
+    <Field Name="OpenBraceToken" Type="SyntaxToken">
+      <Kind Name="OpenBraceToken"/>
+      <PropertyComment>
+        <summary>SyntaxToken representing open brace.</summary>
+      </PropertyComment>
+    </Field>
+    <Field Name="SubPatterns" Type="SeparatedSyntaxList&lt;SubPropertyPatternSyntax&gt;" />
+    <Field Name="CloseBraceToken" Type="SyntaxToken">
+      <Kind Name="CloseBraceToken"/>
+      <PropertyComment>
+        <summary>SyntaxToken representing close brace.</summary>
+      </PropertyComment>
+    </Field>
+  </Node>
+  <Node Name="SubPropertyPatternSyntax" Base="CSharpSyntaxNode">
+    <Kind Name="SubPropertyPattern"/>
+    <Field Name="Left" Type="SyntaxToken">
+      <Kind Name="IdentifierToken"/>
+    </Field>
+    <Field Name="IsKeyword" Type="SyntaxToken">
+      <Kind Name="IsKeyword"/>
+    </Field>
+    <Field Name="Pattern" Type="PatternSyntax" />
+  </Node>
   <AbstractNode Name="InterpolatedStringContentSyntax" Base="CSharpSyntaxNode" />
   <Node Name="InterpolatedStringTextSyntax" Base="InterpolatedStringContentSyntax">
     <Kind Name="InterpolatedStringText"/>
@@ -2186,6 +2343,30 @@
       <summary>Represents a switch label within a switch statement.</summary>
     </TypeComment>
   </AbstractNode>
+  <Node Name="CasePatternSwitchLabelSyntax" Base="SwitchLabelSyntax">
+    <Kind Name="CasePatternSwitchLabel"/>
+    <Field Name="Keyword" Type="SyntaxToken" Override="true">
+      <Kind Name="CaseKeyword"/>
+      <PropertyComment>
+        <summary>Gets the case keyword token.</summary>
+      </PropertyComment>
+    </Field>
+    <Field Name="Pattern" Type="PatternSyntax">
+      <PropertyComment>
+        <summary>
+          Gets a PatternSyntax that represents the pattern that gets matched for the case label.
+        </summary>
+      </PropertyComment>
+    </Field>
+    <Field Name="WhenClause" Type="WhenClauseSyntax" Optional="true"/>
+    <Field Name="ColonToken" Type="SyntaxToken" Override="true"/>
+    <TypeComment>
+      <summary>Represents a case label within a switch statement.</summary>
+    </TypeComment>
+    <FactoryComment>
+      <summary>Creates a CaseMatchLabelSyntax node.</summary>
+    </FactoryComment>
+  </Node>
   <Node Name="CaseSwitchLabelSyntax" Base="SwitchLabelSyntax">
     <Kind Name="CaseSwitchLabel"/>
     <Field Name="Keyword" Type="SyntaxToken" Override="true">
@@ -2224,6 +2405,29 @@
     <FactoryComment>
       <summary>Creates a DefaultSwitchLabelSyntax node.</summary>
     </FactoryComment>
+  </Node>
+  <Node Name="LetStatementSyntax" Base="StatementSyntax">
+    <Kind Name="LetStatement"/>
+    <Field Name="LetKeyword" Type="SyntaxToken">
+      <Kind Name="LetKeyword"/>
+    </Field>
+    <Field Name="Pattern" Type="PatternSyntax" Optional="true"/>
+    <Field Name="Identifier" Type="SyntaxToken" Optional="true"/>
+    <Field Name="EqualsToken" Type="SyntaxToken">
+      <Kind Name="EqualsToken"/>
+    </Field>
+    <Field Name="Expression" Type="ExpressionSyntax"/>
+    <Field Name="WhenClause" Type="WhenClauseSyntax" Optional="true"/>
+    <Field Name="ElseClause" Type="ElseClauseSyntax" Optional="true"/>
+    <Field Name="SemicolonToken" Type="SyntaxToken"  Optional="true">
+      <Kind Name="SemicolonToken"/>
+    </Field>
+    <TypeComment>
+      <summary>
+        Pattern and Identifier are mutually exclusive; precisely one of them must be present.
+        ElseClause and SemicolonToken are mutually exclusive; precisely one of them must be present.
+      </summary>
+    </TypeComment>
   </Node>
   <Node Name="TryStatementSyntax" Base="StatementSyntax">
     <Kind Name="TryStatement"/>

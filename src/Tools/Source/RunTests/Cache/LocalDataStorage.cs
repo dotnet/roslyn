@@ -11,7 +11,6 @@ namespace RunTests.Cache
 {
     /// <summary>
     /// Data storage that works under %LOCALAPPDATA%
-    /// TODO: need to do garbage collection on the files
     /// </summary>
     internal sealed class LocalDataStorage : IDataStorage
     {
@@ -22,6 +21,7 @@ namespace RunTests.Cache
             ErrorOutput,
             ResultsFileContent,
             ResultsFileName,
+            ElapsedSeconds,
             Content
         }
 
@@ -30,13 +30,28 @@ namespace RunTests.Cache
 
         private readonly string _storagePath;
 
+        public string Name => "local";
+
         internal LocalDataStorage(string storagePath = null)
         {
             _storagePath = storagePath ?? Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), DirectoryName);
+            CleanupStorage();
+        }
+
+        public Task<CachedTestResult?> TryGetCachedTestResult(string checksum)
+        {
+            CachedTestResult testResult;
+            CachedTestResult? value = null;
+            if (TryGetCachedTestResult(checksum, out testResult))
+            {
+                value = testResult;
+            }
+
+            return Task.FromResult(value);
         }
 
         public bool TryGetCachedTestResult(string checksum, out CachedTestResult testResult)
-        {
+        { 
             testResult = default(CachedTestResult);
 
             var storageFolder = GetStorageFolder(checksum);
@@ -52,13 +67,14 @@ namespace RunTests.Cache
                 var errorOutput = Read(checksum, StorageKind.ErrorOutput);
                 var resultsFileName = Read(checksum, StorageKind.ResultsFileName);
                 var resultsFileContent = Read(checksum, StorageKind.ResultsFileContent);
+                var elapsed = Read(checksum, StorageKind.ElapsedSeconds);
 
                 testResult = new CachedTestResult(
                     exitCode: int.Parse(exitCode),
                     standardOutput: standardOutput,
                     errorOutput: errorOutput,
-                    resultsFileName: resultsFileName,
-                    resultsFileContent: resultsFileContent);
+                    resultsFileContent: resultsFileContent,
+                    elapsed: TimeSpan.FromSeconds(int.Parse(elapsed)));
                 return true;
             }
             catch (Exception e)
@@ -70,7 +86,7 @@ namespace RunTests.Cache
             return false;
         }
 
-        public void AddCachedTestResult(ContentFile contentFile, CachedTestResult testResult)
+        public Task AddCachedTestResult(AssemblyInfo assemblyInfo, ContentFile contentFile, CachedTestResult testResult)
         {
             var checksum = contentFile.Checksum;
             var storagePath = Path.Combine(_storagePath, checksum);
@@ -78,14 +94,14 @@ namespace RunTests.Cache
             {
                 if (!FileUtil.EnsureDirectory(storagePath))
                 {
-                    return;
+                    return Task.FromResult(true);
                 }
 
                 Write(checksum, StorageKind.ExitCode, testResult.ExitCode.ToString());
                 Write(checksum, StorageKind.StandardOutput, testResult.StandardOutput);
                 Write(checksum, StorageKind.ErrorOutput, testResult.ErrorOutput);
-                Write(checksum, StorageKind.ResultsFileName, testResult.ResultsFileName);
                 Write(checksum, StorageKind.ResultsFileContent, testResult.ResultsFileContent);
+                Write(checksum, StorageKind.ElapsedSeconds, testResult.Elapsed.TotalSeconds.ToString());
                 Write(checksum, StorageKind.Content, contentFile.Content);
             }
             catch (Exception e)
@@ -94,6 +110,8 @@ namespace RunTests.Cache
                 Logger.Log($"Failed to log {checksum} {e.Message}");
                 FileUtil.DeleteDirectory(storagePath);
             }
+
+            return Task.FromResult(true);
         }
 
         private string GetStorageFolder(string checksum)
@@ -141,7 +159,7 @@ namespace RunTests.Cache
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"Unable to cleanup storage {ex.Message}");
+                Logger.Log($"Unable to cleanup storage {ex.Message}");
             }
         }
     }

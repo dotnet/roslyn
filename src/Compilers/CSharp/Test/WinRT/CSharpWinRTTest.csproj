@@ -41,9 +41,9 @@
       <Project>{f7712928-1175-47b3-8819-ee086753dee2}</Project>
       <Name>TestUtilities.FX45</Name>
     </ProjectReference>
-    <ProjectReference Include="..\..\..\Test\Utilities\CSharp\CSharpCompilerTestUtilities.csproj">
-      <Project>{4371944a-d3ba-4b5b-8285-82e5ffc6d1f9}</Project>
-      <Name>CSharpCompilerTestUtilities</Name>
+    <ProjectReference Include="..\..\..\Test\Utilities\CSharp.Desktop\CSharpCompilerTestUtilities.Desktop.csproj">
+      <Project>{7a4b2176-7bfd-4b75-a61a-e25a1fdd0a1e}</Project>
+      <Name>CSharpCompilerTestUtilities.Desktop</Name>
     </ProjectReference>
     <ProjectReference Include="..\..\Portable\CSharpCodeAnalysis.csproj">
       <Project>{b501a547-c911-4a05-ac6e-274a50dff30e}</Project>
@@ -54,7 +54,6 @@
     <Reference Include="System.Xml.Linq" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="app.config" />
     <None Include="project.json" />
   </ItemGroup>
   <ItemGroup>

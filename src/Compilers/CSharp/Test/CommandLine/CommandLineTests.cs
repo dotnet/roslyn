@@ -26,13 +26,16 @@ using Xunit;
 
 using static Roslyn.Test.Utilities.SharedResourceHelpers;
 using static Microsoft.CodeAnalysis.CommonDiagnosticAnalyzers;
+using System.IO.MemoryMappedFiles;
+using System.Reflection.Metadata;
 
 namespace Microsoft.CodeAnalysis.CSharp.CommandLine.UnitTests
 {
     public class CommandLineTests : CSharpTestBase
     {
-        private static readonly string s_CSharpCompilerExecutable = typeof(Microsoft.CodeAnalysis.CSharp.CommandLine.Csc).Assembly.Location;
+        private static readonly string s_CSharpCompilerExecutable = typeof(Csc).GetTypeInfo().Assembly.Location;
         private static readonly string s_defaultSdkDirectory = RuntimeEnvironment.GetRuntimeDirectory();
+        private static readonly string s_compilerVersion = typeof(Csc).GetTypeInfo().Assembly.GetCustomAttribute<AssemblyFileVersionAttribute>().Version;
 
         private readonly string _baseDirectory = TempRoot.Root;
 
@@ -3727,6 +3730,15 @@ C:\*.cs(100,7): error CS0103: The name 'Foo' does not exist in the current conte
             Assert.False(parsedArgs.CompilationOptions.PublicSign);
         }
 
+        [WorkItem(8360, "https://github.com/dotnet/roslyn/issues/8360")]
+        [Fact]
+        public void PublicSign_KeyFileRelativePath()
+        {
+            var parsedArgs = DefaultParse(new[] { "/publicsign", "/keyfile:test.snk", "a.cs" }, _baseDirectory);
+            parsedArgs.Errors.Verify();
+            Assert.Equal(Path.Combine(_baseDirectory, "test.snk"), parsedArgs.CompilationOptions.CryptoKeyFile);
+        }
+
         [WorkItem(546301, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546301")]
         [Fact]
         public void SubsystemVersionTests()
@@ -6469,6 +6481,169 @@ class Program3
                         Assert.True(false);
                     }
                 }
+            }
+        }
+
+        /// <summary>
+        /// When the output file is open with <see cref="FileShare.Read"/> | <see cref="FileShare.Delete"/>
+        /// the compiler should delete the file to unblock build while allowing the reader to continue 
+        /// reading the previous snapshot of the file content.
+        /// 
+        /// On Windows we can read the original data directly from the stream withotu creating a memory map. 
+        /// </summary>
+        [ConditionalFact(typeof(WindowsOnly))]
+        public void FileShareDeleteCompatibility_Windows()
+        {
+            var dir = Temp.CreateDirectory();
+            var libSrc = dir.CreateFile("Lib.cs").WriteAllText("class C { }");
+            var libDll = dir.CreateFile("Lib.dll").WriteAllText("DLL");
+            var libPdb = dir.CreateFile("Lib.pdb").WriteAllText("PDB");
+
+            var fsDll = new FileStream(libDll.Path, FileMode.Open, FileAccess.Read, FileShare.Read | FileShare.Delete);
+            var fsPdb = new FileStream(libPdb.Path, FileMode.Open, FileAccess.Read, FileShare.Read | FileShare.Delete);
+
+            var outWriter = new StringWriter(CultureInfo.InvariantCulture);
+            int exitCode = new MockCSharpCompiler(null, dir.Path, new[] { "/target:library", "/debug:full", libSrc.Path }).Run(outWriter);
+            if (exitCode != 0)
+            {
+                AssertEx.AssertEqualToleratingWhitespaceDifferences("", outWriter.ToString());
+            }
+
+            Assert.Equal(0, exitCode);
+
+            AssertEx.Equal(new byte[] { 0x4D, 0x5A }, ReadBytes(libDll.Path, 2));
+            AssertEx.Equal(new[] { (byte)'D', (byte)'L', (byte)'L' }, ReadBytes(fsDll, 3));
+
+            AssertEx.Equal(new byte[] { 0x4D, 0x69 }, ReadBytes(libPdb.Path, 2));
+            AssertEx.Equal(new[] { (byte)'P', (byte)'D', (byte)'B' }, ReadBytes(fsPdb, 3));
+
+            fsDll.Dispose();
+            fsPdb.Dispose();
+
+            AssertEx.Equal(new[] { "Lib.cs", "Lib.dll", "Lib.pdb" }, Directory.GetFiles(dir.Path).Select(p => Path.GetFileName(p)).Order());
+        }
+
+        /// <summary>
+        /// On Linux/Mac <see cref="FileShare.Delete"/> on its own doesn't do anything. 
+        /// We need to create the actual memory map. This works on Windows as well.
+        /// </summary>
+        [ConditionalFact(typeof(WindowsOnly)), WorkItem(8896, "https://github.com/dotnet/roslyn/issues/8896")]
+        public void FileShareDeleteCompatibility_Xplat()
+        {
+            var bytes = TestResources.MetadataTests.InterfaceAndClass.CSClasses01;
+            var mvid = ReadMvid(new MemoryStream(bytes));
+
+            var dir = Temp.CreateDirectory();
+            var libSrc = dir.CreateFile("Lib.cs").WriteAllText("class C { }");
+            var libDll = dir.CreateFile("Lib.dll").WriteAllBytes(bytes);
+            var libPdb = dir.CreateFile("Lib.pdb").WriteAllBytes(bytes);
+
+            var fsDll = new FileStream(libDll.Path, FileMode.Open, FileAccess.Read, FileShare.Read | FileShare.Delete);
+            var fsPdb = new FileStream(libPdb.Path, FileMode.Open, FileAccess.Read, FileShare.Read | FileShare.Delete);
+
+            var peDll = new PEReader(fsDll);
+            var pePdb = new PEReader(fsPdb);
+
+            // creates memory map view:
+            var imageDll = peDll.GetEntireImage();
+            var imagePdb = pePdb.GetEntireImage();
+
+            var output = ProcessUtilities.RunAndGetOutput(s_CSharpCompilerExecutable, $"/target:library /debug:portable {libSrc.Path}", startFolder: dir.ToString());
+            AssertEx.AssertEqualToleratingWhitespaceDifferences($@"
+Microsoft (R) Visual C# Compiler version {s_compilerVersion}
+Copyright (C) Microsoft Corporation. All rights reserved.", output);
+
+            // reading original content from the memory map: 
+            Assert.Equal(mvid, ReadMvid(new MemoryStream(imageDll.GetContent().ToArray())));
+            Assert.Equal(mvid, ReadMvid(new MemoryStream(imagePdb.GetContent().ToArray())));
+            
+            // reading original content directly from the streams: 
+            fsDll.Position = 0;
+            fsPdb.Position = 0;
+            Assert.Equal(mvid, ReadMvid(fsDll));
+            Assert.Equal(mvid, ReadMvid(fsPdb));
+
+            // reading new content from the file:
+            using (var fsNewDll = File.OpenRead(libDll.Path))
+            {
+                Assert.NotEqual(mvid, ReadMvid(fsNewDll));
+            }
+
+            // Portable PDB metadata signature:
+            AssertEx.Equal(new[] { (byte)'B', (byte)'S', (byte)'J', (byte)'B' }, ReadBytes(libPdb.Path, 4));
+
+            // dispose PEReaders (they dispose the underlying file streams)
+            peDll.Dispose();
+            pePdb.Dispose();
+
+            AssertEx.Equal(new[] { "Lib.cs", "Lib.dll", "Lib.pdb" }, Directory.GetFiles(dir.Path).Select(p => Path.GetFileName(p)).Order());
+
+            // files can be deleted now:
+            File.Delete(libSrc.Path);
+            File.Delete(libDll.Path);
+            File.Delete(libPdb.Path);
+
+            // directory can be deleted (should be empty):
+            Directory.Delete(dir.Path, recursive: false);
+        }
+
+        private static Guid ReadMvid(Stream stream)
+        {
+            using (var peReader = new PEReader(stream, PEStreamOptions.LeaveOpen))
+            {
+                var mdReader = peReader.GetMetadataReader();
+                return mdReader.GetGuid(mdReader.GetModuleDefinition().Mvid);
+            }
+        }
+
+        // Seems like File.SetAttributes(libDll.Path, FileAttributes.ReadOnly) doesn't restrict access to the file on Mac (Linux passes).
+        [ConditionalFact(typeof(WindowsOnly)), WorkItem(8939, "https://github.com/dotnet/roslyn/issues/8939")]
+        public void FileShareDeleteCompatibility_ReadOnlyFiles()
+        {
+            var dir = Temp.CreateDirectory();
+            var libSrc = dir.CreateFile("Lib.cs").WriteAllText("class C { }");
+            var libDll = dir.CreateFile("Lib.dll").WriteAllText("DLL");
+
+            File.SetAttributes(libDll.Path, FileAttributes.ReadOnly);
+
+            var fsDll = new FileStream(libDll.Path, FileMode.Open, FileAccess.Read, FileShare.Read | FileShare.Delete);
+
+            var outWriter = new StringWriter(CultureInfo.InvariantCulture);
+            int exitCode = new MockCSharpCompiler(null, dir.Path, new[] { "/target:library", libSrc.Path }).Run(outWriter);
+            Assert.Contains($"error CS2012: Cannot open '{libDll.Path}' for writing", outWriter.ToString());
+
+            AssertEx.Equal(new[] { (byte)'D', (byte)'L', (byte)'L' }, ReadBytes(libDll.Path, 3));
+            AssertEx.Equal(new[] { (byte)'D', (byte)'L', (byte)'L' }, ReadBytes(fsDll, 3));
+
+            fsDll.Dispose();
+
+            AssertEx.Equal(new[] { "Lib.cs", "Lib.dll" }, Directory.GetFiles(dir.Path).Select(p => Path.GetFileName(p)).Order());
+        }
+
+        [Fact]
+        public void FileShareDeleteCompatibility_ExistingDirectory()
+        {
+            var dir = Temp.CreateDirectory();
+            var libSrc = dir.CreateFile("Lib.cs").WriteAllText("class C { }");
+            var libDll = dir.CreateDirectory("Lib.dll");
+
+            var outWriter = new StringWriter(CultureInfo.InvariantCulture);
+            int exitCode = new MockCSharpCompiler(null, dir.Path, new[] { "/target:library", libSrc.Path }).Run(outWriter);
+            Assert.Contains($"error CS2012: Cannot open '{libDll.Path}' for writing", outWriter.ToString());
+        }
+
+        private byte[] ReadBytes(Stream stream, int count)
+        {
+            var buffer = new byte[count];
+            stream.Read(buffer, 0, count);
+            return buffer;
+        }
+
+        private byte[] ReadBytes(string path, int count)
+        {
+            using (var stream = File.OpenRead(path))
+            {
+                return ReadBytes(stream, count);
             }
         }
 

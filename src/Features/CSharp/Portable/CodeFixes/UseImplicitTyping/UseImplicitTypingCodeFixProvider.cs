@@ -20,6 +20,8 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.UseImplicitTyping
         public override ImmutableArray<string> FixableDiagnosticIds =>
             ImmutableArray.Create(IDEDiagnosticIds.UseImplicitTypingDiagnosticId);
 
+        public override FixAllProvider GetFixAllProvider() => BatchFixAllProvider.Instance;
+
         public override async Task RegisterCodeFixesAsync(CodeFixContext context)
         {
             var document = context.Document;

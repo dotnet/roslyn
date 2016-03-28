@@ -2697,6 +2697,15 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.CodeModel
             var hasGetter = property.AccessorList != null && property.AccessorList.Accessors.Any(SyntaxKind.GetAccessorDeclaration);
             var hasSetter = property.AccessorList != null && property.AccessorList.Accessors.Any(SyntaxKind.SetAccessorDeclaration);
 
+            if (!hasGetter && !hasSetter)
+            {
+                var expressionBody = property.GetExpressionBody();
+                if (expressionBody != null)
+                {
+                    hasGetter = true;
+                }
+            }
+
             if (hasGetter && hasSetter)
             {
                 return EnvDTE80.vsCMPropertyKind.vsCMPropertyKindReadWrite;

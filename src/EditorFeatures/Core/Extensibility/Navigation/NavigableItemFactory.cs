@@ -58,6 +58,16 @@ namespace Microsoft.CodeAnalysis.Editor.Navigation
                 : locations.Where(loc => loc.IsInSource);
         }
 
+        public static IEnumerable<INavigableItem> GetPreferredNavigableItems(Solution solution, IEnumerable<INavigableItem> navigableItems)
+        {
+            var generatedCodeRecognitionService = solution.Workspace.Services.GetService<IGeneratedCodeRecognitionService>();
+            navigableItems = navigableItems.Where(n => n.Document != null);
+            var hasNonGeneratedCodeItem = navigableItems.Any(n => !generatedCodeRecognitionService.IsGeneratedCode(n.Document));
+            return hasNonGeneratedCodeItem
+                ? navigableItems.Where(n => !generatedCodeRecognitionService.IsGeneratedCode(n.Document))
+                : navigableItems.Where(n => generatedCodeRecognitionService.IsGeneratedCode(n.Document));
+        }
+
         public static string GetSymbolDisplayString(Project project, ISymbol symbol)
         {
             var symbolDisplayService = project.LanguageServices.GetRequiredService<ISymbolDisplayService>();
