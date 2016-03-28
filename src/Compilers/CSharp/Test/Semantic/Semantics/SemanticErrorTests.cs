@@ -3115,7 +3115,7 @@ class Error
             Assert.Equal("A.ProtectedClass", typeArgSymbol.ToTestDisplayString());
             Assert.False(model.IsAccessible(callPosition, typeArgSymbol), "Protected inner class is inaccessible");
 
-            var paramTypeSymbol = constructedMethodSymbol.Parameters.Single().Type;
+            var paramTypeSymbol = constructedMethodSymbol.Parameters.Single().Type.TypeSymbol;
             Assert.Equal("I<A.ProtectedClass>", paramTypeSymbol.ToTestDisplayString());
             Assert.False(model.IsAccessible(callPosition, typeArgSymbol), "Type should be inaccessible since type argument is inaccessible");
 

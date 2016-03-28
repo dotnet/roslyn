@@ -46,7 +46,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private BoundPattern BindRecursivePattern(RecursivePatternSyntax node, BoundExpression operand, TypeSymbol operandType, bool hasErrors, DiagnosticBag diagnostics)
         {
-            var type = (NamedTypeSymbol)this.BindType(node.Type, diagnostics);
+            var type = (NamedTypeSymbol)this.BindType(node.Type, diagnostics).TypeSymbol;
             hasErrors = hasErrors || CheckValidPatternType(node.Type, operand, operandType, type, false, diagnostics);
 
             // We intend that (positional) recursive pattern-matching should be defined in terms of
@@ -123,7 +123,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             var builder = ArrayBuilder<BoundSubPropertyPattern>.GetInstance(properties.Length);
             for (int i = 0; i < properties.Length; i++)
             {
-                builder.Add(new BoundSubPropertyPattern(node.PatternList.SubPatterns[i], properties[i].GetTypeOrReturnType(), properties[i], LookupResultKind.Empty, boundPatterns[i], hasErrors));
+                builder.Add(new BoundSubPropertyPattern(node.PatternList.SubPatterns[i], properties[i].GetTypeOrReturnType().TypeSymbol, properties[i], LookupResultKind.Empty, boundPatterns[i], hasErrors));
             }
 
             return new BoundPropertyPattern(node, type, builder.ToImmutableAndFree(), hasErrors: hasErrors);
@@ -139,7 +139,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 var pattern = syntax.Pattern;
                 bool hasErrors = false;
                 Debug.Assert(!property.IsStatic);
-                var boundPattern = this.BindPattern(pattern, null, property.GetTypeOrReturnType(), hasErrors, diagnostics);
+                var boundPattern = this.BindPattern(pattern, null, property.GetTypeOrReturnType().TypeSymbol, hasErrors, diagnostics);
                 boundPatternsBuilder.Add(boundPattern);
             }
 
@@ -166,7 +166,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private BoundPattern BindPropertyPattern(PropertyPatternSyntax node, BoundExpression operand, TypeSymbol operandType, bool hasErrors, DiagnosticBag diagnostics)
         {
-            var type = (NamedTypeSymbol)this.BindType(node.Type, diagnostics);
+            var type = (NamedTypeSymbol)this.BindType(node.Type, diagnostics).TypeSymbol;
             hasErrors = hasErrors || CheckValidPatternType(node.Type, operand, operandType, type, false, diagnostics);
             var boundPatterns = BindSubPropertyPatterns(node, type, diagnostics);
             return new BoundPropertyPattern(node, type, boundPatterns, hasErrors: hasErrors);
@@ -195,7 +195,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         diagnostics.Add(node, useSiteDiagnostics);
                     }
 
-                    var propertyType = property.GetTypeOrReturnType();
+                    var propertyType = property.GetTypeOrReturnType().TypeSymbol;
                     pattern = this.BindPattern(syntax.Pattern, null, propertyType, hasErrors, diagnostics);
                     result.Add(new BoundSubPropertyPattern(syntax, propertyType, property, resultKind, pattern, hasErrors));
                 }
@@ -313,16 +313,16 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             bool isVar;
             AliasSymbol aliasOpt;
-            TypeSymbol declType = BindType(typeSyntax, diagnostics, out isVar, out aliasOpt);
-            if (isVar && operandType != null) declType = operandType;
-            var boundDeclType = new BoundTypeExpression(typeSyntax, aliasOpt, inferredType: isVar, type: declType);
+            TypeSymbolWithAnnotations declType = BindType(typeSyntax, diagnostics, out isVar, out aliasOpt);
+            if (isVar && operandType != null) declType = TypeSymbolWithAnnotations.Create(operandType);
+            var boundDeclType = new BoundTypeExpression(typeSyntax, aliasOpt, inferredType: isVar, type: declType.TypeSymbol);
             if (IsOperatorErrors(node, operandType, boundDeclType, diagnostics))
             {
                 hasErrors = true;
             }
             else
             {
-                hasErrors = CheckValidPatternType(typeSyntax, operand, operandType, declType, isVar, diagnostics);
+                hasErrors = CheckValidPatternType(typeSyntax, operand, operandType, declType.TypeSymbol, isVar, diagnostics);
             }
 
             SourceLocalSymbol localSymbol = this.LookupLocal(identifier);
@@ -340,7 +340,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     LocalDeclarationKind.PatternVariable);
             }
 
-            if (isVar) localSymbol.SetTypeSymbol(operandType);
+            if (isVar) localSymbol.SetTypeSymbol(TypeSymbolWithAnnotations.Create(operandType));
 
             // Check for variable declaration errors.
             hasErrors |= this.ValidateDeclarationNameConflictsInScope(localSymbol, diagnostics);
@@ -509,7 +509,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         null);
                 }
 
-                localSymbol.SetTypeSymbol(expression.Type);
+                localSymbol.SetTypeSymbol(TypeSymbolWithAnnotations.Create(expression.Type));
 
                 pattern = new BoundDeclarationPattern(node, localSymbol, null, true, 
                                                       expression.HasErrors | 

@@ -178,7 +178,7 @@ class A {
             var sym = a.GetMembers("F").Single() as FieldSymbol;
             Assert.Equal("System.Int32? A.F", sym.ToTestDisplayString());
             Assert.Equal(TypeKind.Struct, sym.Type.TypeKind);
-            Assert.Equal("System.Int32?", sym.Type.ToTestDisplayString());
+            Assert.Equal("System.Int32?", sym.Type.TypeSymbol.ToTestDisplayString());
         }
 
         [Fact]
@@ -207,17 +207,17 @@ class A {
             var sym = type2.GetMembers("field1").Single() as FieldSymbol;
             Assert.Equal("System.Collections.Generic.List<T> C<T>.S<V>.field1", sym.ToTestDisplayString());
             Assert.Equal(TypeKind.Class, sym.Type.TypeKind);
-            Assert.Equal("System.Collections.Generic.List<T>", sym.Type.ToTestDisplayString());
+            Assert.Equal("System.Collections.Generic.List<T>", sym.Type.TypeSymbol.ToTestDisplayString());
 
             sym = type2.GetMembers("field2").Single() as FieldSymbol;
             Assert.Equal("System.Collections.Generic.IList<V> C<T>.S<V>.field2", sym.ToTestDisplayString());
             Assert.Equal(TypeKind.Interface, sym.Type.TypeKind);
-            Assert.Equal("System.Collections.Generic.IList<V>", sym.Type.ToTestDisplayString());
+            Assert.Equal("System.Collections.Generic.IList<V>", sym.Type.TypeSymbol.ToTestDisplayString());
 
             sym = type2.GetMembers("field3").Single() as FieldSymbol;
             Assert.Equal("C<T>.S<System.String> C<T>.S<V>.field3", sym.ToTestDisplayString());
             Assert.Equal(TypeKind.Struct, sym.Type.TypeKind);
-            Assert.Equal("C<T>.S<System.String>", sym.Type.ToTestDisplayString());
+            Assert.Equal("C<T>.S<System.String>", sym.Type.TypeSymbol.ToTestDisplayString());
         }
 
         [WorkItem(537401, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/537401")]

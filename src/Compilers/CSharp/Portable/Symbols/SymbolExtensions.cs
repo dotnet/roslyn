@@ -347,11 +347,5 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             return csSymbol;
         }
-
-        internal static ImmutableArray<TypeSymbol> ToTypes(this ImmutableArray<TypeWithModifiers> typesWithModifiers, out bool hasModifiers)
-        {
-            hasModifiers = typesWithModifiers.Any(a => !a.CustomModifiers.IsDefaultOrEmpty);
-            return typesWithModifiers.SelectAsArray(a => a.Type);
-        }
     }
 }

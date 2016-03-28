@@ -89,7 +89,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols.Retargeting
 
             ArrayTypeSymbol p5Type = (ArrayTypeSymbol)p5.Type.TypeSymbol;
 
-            Assert.Equal("System.Int32", p5Type.ElementType.ToTestDisplayString());
+            Assert.Equal("System.Int32", p5Type.ElementType.TypeSymbol.ToTestDisplayString());
 
             Assert.Equal(1, p5Type.ElementType.CustomModifiers.Length);
             var p5TypeMod = p5Type.ElementType.CustomModifiers[0];
@@ -102,7 +102,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols.Retargeting
 
             PointerTypeSymbol p6Type = (PointerTypeSymbol)p6.Type.TypeSymbol;
 
-            Assert.Equal("System.Int32", p6Type.PointedAtType.ToTestDisplayString());
+            Assert.Equal("System.Int32", p6Type.PointedAtType.TypeSymbol.ToTestDisplayString());
 
             Assert.Equal(1, p6Type.PointedAtType.CustomModifiers.Length);
             var p6TypeMod = p6Type.PointedAtType.CustomModifiers[0];

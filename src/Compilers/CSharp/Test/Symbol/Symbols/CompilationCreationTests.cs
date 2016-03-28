@@ -2303,14 +2303,14 @@ public class C5 :
             Assert.Same(args3[0].TypeSymbol, type4);
 
             var foo1 = type3.GetMembers("Foo1").OfType<MethodSymbol>().Single();
-            var retval4 = foo1.ReturnType;
+            var retval4 = foo1.ReturnType.TypeSymbol;
 
             Assert.Equal("C8<C7>", retval4.ToTestDisplayString());
 
             Assert.Same(retval4,
                           asm3.GlobalNamespace.GetTypeMembers("C3").
                           Single().
-                          GetMembers("Foo1").OfType<MethodSymbol>().Single().ReturnType);
+                          GetMembers("Foo1").OfType<MethodSymbol>().Single().ReturnType.TypeSymbol);
 
             var foo1Params = foo1.Parameters;
             Assert.Equal(0, foo1Params.Length);
@@ -2502,7 +2502,7 @@ public class C5 :
             Assert.Same(asm5[1], module3.ContainingAssembly);
             Assert.Null(module3.ContainingType);
 
-            var retval5 = type3.GetMembers("Foo4").OfType<MethodSymbol>().Single().ReturnType;
+            var retval5 = type3.GetMembers("Foo4").OfType<MethodSymbol>().Single().ReturnType.TypeSymbol;
 
             Assert.Equal("C8<C4>", retval5.ToTestDisplayString());
 

@@ -994,7 +994,7 @@ class C
             methodData.VerifyIL(expectedIL);
             var method = (MethodSymbol)methodData.Method;
             VerifyTypeParameters(method);
-            Assert.Equal(expectedType, method.ReturnType.ToTestDisplayString());
+            Assert.Equal(expectedType, method.ReturnType.TypeSymbol.ToTestDisplayString());
         }
 
         private void VerifyNoThis(string source, string methodName)

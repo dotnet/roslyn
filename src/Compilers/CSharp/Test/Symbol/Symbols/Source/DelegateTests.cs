@@ -155,16 +155,16 @@ namespace System
             var beginInvoke = myDel.GetMembers("BeginInvoke").Single() as MethodSymbol;
             Assert.Equal(invoke.Parameters.Length + 2, beginInvoke.Parameters.Length);
             Assert.Equal(TypeKind.Interface, beginInvoke.ReturnType.TypeKind);
-            Assert.Equal("System.IAsyncResult", beginInvoke.ReturnType.ToTestDisplayString());
+            Assert.Equal("System.IAsyncResult", beginInvoke.ReturnType.TypeSymbol.ToTestDisplayString());
             for (int i = 0; i < invoke.Parameters.Length; i++)
             {
                 Assert.Equal(invoke.Parameters[i].Type, beginInvoke.Parameters[i].Type);
                 Assert.Equal(invoke.Parameters[i].RefKind, beginInvoke.Parameters[i].RefKind);
             }
-            var lastParameterType = beginInvoke.Parameters[invoke.Parameters.Length].Type;
+            var lastParameterType = beginInvoke.Parameters[invoke.Parameters.Length].Type.TypeSymbol;
             Assert.Equal("System.AsyncCallback", lastParameterType.ToTestDisplayString());
             Assert.Equal(SpecialType.System_AsyncCallback, lastParameterType.SpecialType);
-            Assert.Equal("System.Object", beginInvoke.Parameters[invoke.Parameters.Length + 1].Type.ToTestDisplayString());
+            Assert.Equal("System.Object", beginInvoke.Parameters[invoke.Parameters.Length + 1].Type.TypeSymbol.ToTestDisplayString());
 
             var endInvoke = myDel.GetMembers("EndInvoke").Single() as MethodSymbol;
             Assert.Equal(invoke.ReturnType, endInvoke.ReturnType);
@@ -177,7 +177,7 @@ namespace System
                     Assert.Equal(invoke.Parameters[i].RefKind, endInvoke.Parameters[k++].RefKind);
                 }
             }
-            lastParameterType = endInvoke.Parameters[k++].Type;
+            lastParameterType = endInvoke.Parameters[k++].Type.TypeSymbol;
             Assert.Equal("System.IAsyncResult", lastParameterType.ToTestDisplayString());
             Assert.Equal(SpecialType.System_IAsyncResult, lastParameterType.SpecialType);
             Assert.Equal(k, endInvoke.Parameters.Length);

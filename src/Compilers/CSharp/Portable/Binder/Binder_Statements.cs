@@ -3119,10 +3119,19 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             var symbol = this.ContainingMemberOrLambda as MethodSymbol;
             if ((object)symbol != null)
-        {
+            {
                 refKind = symbol.RefKind;
-                return symbol.ReturnType.TypeSymbol;
+
+                TypeSymbolWithAnnotations returnType = symbol.ReturnType;
+
+                if ((object)returnType == null || (object)returnType == LambdaSymbol.ReturnTypeIsBeingInferred)
+                {
+                    return null;
+                }
+
+                return returnType.TypeSymbol;
             }
+
             refKind = RefKind.None;
             return null;
         }

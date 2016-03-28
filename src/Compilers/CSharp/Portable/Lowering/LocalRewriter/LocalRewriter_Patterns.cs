@@ -28,10 +28,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case BoundKind.DeclarationPattern:
                     {
                         var declPattern = (BoundDeclarationPattern)pattern;
-                        Debug.Assert(declPattern.IsVar || declPattern.LocalSymbol.Type == declPattern.DeclaredType.Type);
+                        Debug.Assert(declPattern.IsVar || declPattern.LocalSymbol.Type.TypeSymbol == declPattern.DeclaredType.Type);
                         if (declPattern.IsVar)
                         {
-                            Debug.Assert(input.Type == declPattern.LocalSymbol.Type);
+                            Debug.Assert(input.Type == declPattern.LocalSymbol.Type.TypeSymbol);
                             var assignment = _factory.AssignmentExpression(_factory.Local(declPattern.LocalSymbol), input);
                             var result = _factory.Literal(true);
                             return _factory.Sequence(assignment, result);
@@ -90,7 +90,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         BoundExpression DeclPattern(CSharpSyntaxNode syntax, BoundExpression input, LocalSymbol target)
         {
-            var type = target.Type;
+            var type = target.Type.TypeSymbol;
             // a pattern match of the form "expression is Type identifier" is equivalent to
             // an invocation of one of these helpers:
             if (type.IsReferenceType)

@@ -1517,7 +1517,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
 
             if (useKind == UseKind.UsedAsValue && method.RefKind != RefKind.None)
             {
-                EmitLoadIndirect(method.ReturnType, call.Syntax);
+                EmitLoadIndirect(method.ReturnType.TypeSymbol, call.Syntax);
             }
             else if (useKind == UseKind.UsedAsAddress)
             {

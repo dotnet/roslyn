@@ -923,7 +923,7 @@ namespace N1.N2
             var memDecl = (MethodDeclarationSyntax)typeDecl.Members[0];
             var mSymbol = model.GetDeclaredSymbol(memDecl) as MethodSymbol;
             Assert.Equal("ReturnEnum", mSymbol.Name);
-            Assert.Equal("N1.N2.St<System.Object>.Em", mSymbol.ReturnType.ToTestDisplayString());
+            Assert.Equal("N1.N2.St<System.Object>.Em", mSymbol.ReturnType.TypeSymbol.ToTestDisplayString());
             Assert.Equal<ISymbol>(enumSymbol, mSymbol.ReturnType.TypeSymbol.OriginalDefinition);
 
             typeDecl = (TypeDeclarationSyntax)nsDecl.Members[1];

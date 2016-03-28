@@ -419,14 +419,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 if (_considerReturnType)
                 {
                     RefKind refKind;
-                    TypeSymbol returnType;
-                    ImmutableArray<CustomModifier> returnTypeCustomModifiers;
-                    member.GetTypeOrReturnType(out refKind, out returnType, out returnTypeCustomModifiers);
+                    TypeSymbol returnType = member.GetTypeOrReturnType(out refKind).TypeSymbol;
 
                     hash = Hash.Combine((int)refKind, hash);
 
                     if (member.GetMemberArity() == 0 && !_considerCustomModifiers) // If it is generic, then type argument might be in return type.
-                {
+                    {
                         hash = Hash.Combine(returnType, hash);
                     }
                 }

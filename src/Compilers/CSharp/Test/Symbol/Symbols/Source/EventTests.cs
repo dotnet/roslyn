@@ -344,9 +344,9 @@ class A
                 var e2 = type.GetMember<EventSymbol>("E2");
                 var p = type.GetMember<PropertySymbol>("P");
 
-                Assert.Equal("System.Action<dynamic>", e1.Type.ToTestDisplayString());
-                Assert.Equal("System.Action<dynamic>", e2.Type.ToTestDisplayString());
-                Assert.Equal("System.Action<dynamic>", p.Type.ToTestDisplayString());
+                Assert.Equal("System.Action<dynamic>", e1.Type.TypeSymbol.ToTestDisplayString());
+                Assert.Equal("System.Action<dynamic>", e2.Type.TypeSymbol.ToTestDisplayString());
+                Assert.Equal("System.Action<dynamic>", p.Type.TypeSymbol.ToTestDisplayString());
 
                 Assert.Equal(1, e1.AddMethod.ParameterTypes.Length);
                 Assert.Equal("System.Action<dynamic>", e1.AddMethod.ParameterTypes[0].ToTestDisplayString());
@@ -598,8 +598,8 @@ public class CL2 : CL1
                 var e1 = type.GetMember<EventSymbol>("E1");
                 var e2 = type.GetMember<EventSymbol>("E2");
 
-                Assert.Equal("System.Action<System.Object>", e1.Type.ToTestDisplayString());
-                Assert.Equal("System.Action<System.Object>", e2.Type.ToTestDisplayString());
+                Assert.Equal("System.Action<System.Object>", e1.Type.TypeSymbol.ToTestDisplayString());
+                Assert.Equal("System.Action<System.Object>", e2.Type.TypeSymbol.ToTestDisplayString());
             };
 
             CompileAndVerify(source: source, additionalRefs: new[] { libAssemblyRef }, symbolValidator: validator);
@@ -630,8 +630,8 @@ public class CL2 : CL1
                 var e1 = type.GetMember<EventSymbol>("E1");
                 var e2 = type.GetMember<EventSymbol>("E2");
 
-                Assert.Equal("System.Action<System.Object>", e1.Type.ToTestDisplayString());
-                Assert.Equal("System.Action<System.Object>", e2.Type.ToTestDisplayString());
+                Assert.Equal("System.Action<System.Object>", e1.Type.TypeSymbol.ToTestDisplayString());
+                Assert.Equal("System.Action<System.Object>", e2.Type.TypeSymbol.ToTestDisplayString());
             };
 
             CompileAndVerify(source: source, additionalRefs: new[] { libAssemblyRef }, symbolValidator: validator);
@@ -804,7 +804,7 @@ class D
             var comp = compVerifier.Compilation;
             var classSymbol = (PENamedTypeSymbol)comp.GetTypeByMetadataName("C");
             var eventSymbol = (PEEventSymbol)classSymbol.GetMember("E");
-            Assert.Equal("System.Action<System.Object>", eventSymbol.Type.ToTestDisplayString());
+            Assert.Equal("System.Action<System.Object>", eventSymbol.Type.TypeSymbol.ToTestDisplayString());
         }
         #endregion
 

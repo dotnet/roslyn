@@ -2590,7 +2590,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             var operand = BindValue(node.Left, diagnostics, BindValueKind.RValue);
             AliasSymbol alias;
-            TypeSymbol targetType = BindType(node.Right, diagnostics, out alias);
+            TypeSymbol targetType = BindType(node.Right, diagnostics, out alias).TypeSymbol;
             var typeExpression = new BoundTypeExpression(node.Right, alias, targetType);
             var targetTypeKind = targetType.TypeKind;
             var resultType = (TypeSymbol)GetSpecialType(SpecialType.System_Boolean, diagnostics, node);

@@ -280,7 +280,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                                 {
                                     case SymbolKind.Property:
                                         var propSymbol = (PropertySymbol)prop;
-                                        subExpr = new BoundPropertyAccess(pat.Syntax, null, propSymbol, LookupResultKind.Viable, propSymbol.Type);
+                                        subExpr = new BoundPropertyAccess(pat.Syntax, null, propSymbol, LookupResultKind.Viable, propSymbol.Type.TypeSymbol);
                                         break;
                                     case SymbolKind.Field:
                                         var fieldSymbol = (FieldSymbol)prop;

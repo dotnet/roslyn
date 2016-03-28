@@ -2019,14 +2019,14 @@ class C
                 var beginInvoke = myDel.GetMembers("BeginInvoke").Single() as MethodSymbol;
                 Assert.Equal(invoke.Parameters.Length + 2, beginInvoke.Parameters.Length);
                 Assert.Equal(TypeKind.Interface, beginInvoke.ReturnType.TypeKind);
-                Assert.Equal("System.IAsyncResult", beginInvoke.ReturnType.ToTestDisplayString());
+                Assert.Equal("System.IAsyncResult", beginInvoke.ReturnType.TypeSymbol.ToTestDisplayString());
                 for (int i = 0; i < invoke.Parameters.Length; i++)
                 {
                     Assert.Equal(invoke.Parameters[i].Type.TypeSymbol, beginInvoke.Parameters[i].Type.TypeSymbol);
                     Assert.Equal(invoke.Parameters[i].RefKind, beginInvoke.Parameters[i].RefKind);
                 }
-                Assert.Equal("System.AsyncCallback", beginInvoke.Parameters[invoke.Parameters.Length].Type.ToTestDisplayString());
-                Assert.Equal("System.Object", beginInvoke.Parameters[invoke.Parameters.Length + 1].Type.ToTestDisplayString());
+                Assert.Equal("System.AsyncCallback", beginInvoke.Parameters[invoke.Parameters.Length].Type.TypeSymbol.ToTestDisplayString());
+                Assert.Equal("System.Object", beginInvoke.Parameters[invoke.Parameters.Length + 1].Type.TypeSymbol.ToTestDisplayString());
 
                 var invokeReturn = invoke.ReturnType.TypeSymbol;
                 var endInvoke = myDel.GetMembers("EndInvoke").Single() as MethodSymbol;
@@ -2041,7 +2041,7 @@ class C
                         Assert.Equal(invoke.Parameters[i].RefKind, endInvoke.Parameters[k++].RefKind);
                     }
                 }
-                Assert.Equal("System.IAsyncResult", endInvoke.Parameters[k++].Type.ToTestDisplayString());
+                Assert.Equal("System.IAsyncResult", endInvoke.Parameters[k++].Type.TypeSymbol.ToTestDisplayString());
                 Assert.Equal(k, endInvoke.Parameters.Length);
             });
         }

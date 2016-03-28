@@ -248,7 +248,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             // TODO: this method must be overridden for pattern variables to bind the
             // expression or statement that is the nearest enclosing to the pattern variable's
             // declaration. That will cause the type of the pattern variable to be set as a side-effect.
-            return _type;
+            return _type?.TypeSymbol;
         }
 
         internal void SetTypeSymbol(TypeSymbolWithAnnotations newType)

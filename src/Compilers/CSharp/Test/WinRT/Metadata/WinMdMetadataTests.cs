@@ -90,7 +90,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             var iref = wns1.GetMember<PENamedTypeSymbol>("IUriRuntimeClass");
             var func = iref.GetMember<PEMethodSymbol>("CombineUri");
             var ret = func.ReturnType;
-            Assert.Equal(func.ReturnType.ToTestDisplayString(), "System.Uri");
+            Assert.Equal(func.ReturnType.TypeSymbol.ToTestDisplayString(), "System.Uri");
         }
 
         /// <summary>
