@@ -48,21 +48,21 @@ A new expression form is proposed:
 
 ```antlr
 primary_expression
-	: with_expression
-	;
+    : with_expression
+    ;
 
 with_expression
-	: primary_expression 'with' '{' with_initializer_list '}'
-	;
+    : primary_expression 'with' '{' with_initializer_list '}'
+    ;
 
 with_initializer_list
-	: with_initializer
-	| with_initiaizer ',' with_initializer_list
-	;
+    : with_initializer
+    | with_initiaizer ',' with_initializer_list
+    ;
 
 with_initializer
-	: identifier '=' expression
-	;
+    : identifier '=' expression
+    ;
 ```
 
 The token `with` is a new context-sensitive keyword.
@@ -106,57 +106,58 @@ The syntax for a `class` or `struct` declaration is extended to support value pa
 
 ```antlr
 class_declaration
-	: attributes? class_modifiers? 'partial'? 'class' identifier type_parameter_list?
+    : attributes? class_modifiers? 'partial'? 'class' identifier type_parameter_list?
       record_parameters? record_class_base? type_parameter_constraints_clauses? class_body
-	;
+    ;
 
 struct_declaration
-	: attributes? struct_modifiers? 'partial'? 'struct' identifier type_parameter_list?
+    : attributes? struct_modifiers? 'partial'? 'struct' identifier type_parameter_list?
       record_parameters? struct_interfaces? type_parameter_constraints_clauses? struct_body
-	;
+    ;
 
 record_class_base
-	: class_type record_base_arguments?
-	| interface_type_list
-	| class_type record_base_arguments? ',' interface_type_list
-	;
+    : class_type record_base_arguments?
+    | interface_type_list
+    | class_type record_base_arguments? ',' interface_type_list
+    ;
 
 record_base_arguments
-	: '(' argument_list? ')'
-	;
+    : '(' argument_list? ')'
+    ;
 
 record_parameters
-	: '(' record_parameter_list? ')'
-	;
+    : '(' record_parameter_list? ')'
+    ;
 
 record_parameter_list
-	: record_parameter
-	| record_parameter record_parameter_list
-	;
+    : record_parameter
+    | record_parameter record_parameter_list
+    ;
 
 record_parameter
-	: attributes? type identifier record_property_name? default_argument?
-	;
+    : attributes? type identifier record_property_name? default_argument?
+    ;
 
 record_property_name
-	: ':' identifier
-	;
+    : ':' identifier
+    ;
 
 class_body
-	: '{' class_member_declarations? '}'
-	| ';'
-	;
+    : '{' class_member_declarations? '}'
+    | ';'
+    ;
 
 struct_body
-	: '{' struct_members_declarations? '}'
-	| ';'
-	;
+    : '{' struct_members_declarations? '}'
+    | ';'
+    ;
 ```
 
 > **Design Notes**: Because record types are often useful without the need for any members explicitly declared in a class-body, we modify the syntax of the declaration to allow a body to be simply a semicolon.
 
 A class (struct) declared with the *record-parameters* is called a *record class* (*record struct*), either of which is a *record type*.
 
+- [ ] **Open issue**: We need to include *primary_constructor_body* in the grammar so that it can appear inside a record type declaration.
 - [ ] **Open issue**: What are the name conflict rules for the parameter names? Presumably one is not allowed to conflict with a type parameter or another *record-parameter*.
 - [ ] **Open issue**: We need to specify the scope of the record-parameters. Where can they be used? Presumably within instance field initializers and *primary_constructor_body* at least.
 - [ ] **Open issue**: Can a record type declaration be partial? If so, must the parameters be repeated on each part?
@@ -167,17 +168,15 @@ In addition to the members declared in the *class-body*, a record type has the f
 
 #### Primary Constructor
 
-A *record struct* and a `sealed` *record class* has a `public` constructor whose signature corresponds to the value parameters of the type declaration. This is called the *primary constructor* for the type, and causes the *default constructor* to be suppressed. An `abstract` *record class* has only the explicitly declared constructors or, if none are declared, the default constructor.
-
-The programmer may provide an explicit constructor with the same signature as the primary constructor, which must be declared `public`, whose body provides additional code to execute during construction. It may not contain a *constructor-initializer*.
+A record type has a `public` constructor whose signature corresponds to the value parameters of the type declaration. This is called the *primary constructor* for the type, and causes the implicitly declared *default constructor* to be suppressed.
 
 At runtime the primary constructor
 
 * initializes compiler-generated backing fields for the properties corresponding to the value parameters (if these properties are compiler-provided; [see 1.1.2](#1.1.2)); then
 * executes the instance field initializers appearing in the *class-body*; and then
 * invokes a base class constructor:
-	* If there are arguments in the *record_base_arguments*, a base constructor selected by overload resolution with these arguments is invoked;
-	* Otherwise a base constructor is invoked with no arguments.
+    * If there are arguments in the *record_base_arguments*, a base constructor selected by overload resolution with these arguments is invoked;
+    * Otherwise a base constructor is invoked with no arguments.
 * executes the body of each *primary_constructor_body*, if any, in source order.
 
 - [ ] **Open issue**: We need to specify that order, particularly across compilation units for partials.
@@ -189,8 +188,8 @@ At runtime the primary constructor
 
 ```antlr
 primary_constructor_body
-	: attributes? constructor_modifiers? identifier block
-	;
+    : attributes? constructor_modifiers? identifier block
+    ;
 ```
 
 A *primary_constructor_body* may only be used within a record type declaration. The *identifier* of a *primary_constructor_body* shall name the record type in which it is declared.
@@ -209,6 +208,8 @@ For each record parameter of a record type declaration there is a corresponding 
  * A `private` `readonly` field is produced as a backing field for a `readonly` property. Its value is initialized during construction with the value of the corresponding primary constructor parameter.
  * The property's `get` accessor is implemented to return the value of the backing field.
  * Each "matching" inherited virtual property's `get` accessor is overridden.
+
+> **Design notes**: In other words, if you extend a base class or implement an interface that declares a public abstract property with the same name and type as a record parameter, that property is overridden or implemented.
 
 - [ ] **Open issue**: Should it be possible to change the access modifier on a property when it is explicitly declared?
 - [ ] **Open issue**: Should it be possible to substitute a field for a property?
@@ -287,7 +288,7 @@ public struct Pair : IEquatable<Pair>
     }
     public override bool Equals(object other)
     {
-		return this.Equals(other as Pair);
+        return (other as Pair)?.Equals(this) == true;
     }
     public override GetHashCode()
     {
@@ -342,7 +343,7 @@ public sealed class Student : IEquatable<Student>
     }
     public override bool Equals(object other)
     {
-		return this.Equals(other as Student);
+        return this.Equals(other as Student);
     }
     public override int GetHashCode()
     {
@@ -371,22 +372,22 @@ is translated into this code
 public abstract class Person : IEquatable<Person>
 {
     public string Name { get; }
-	public Person(string Name)
-	{
-		this.Name = Name;
-	}
+    public Person(string Name)
+    {
+        this.Name = Name;
+    }
     public bool Equals(Person other)
     {
-		return other != null && Equals(Name, other.Name);
-	}
-	public override Equals(object other)
-	{
-		return Equals(other as Person);
-	}
- 	public override int GetHashCode()
-	{
-		return (Name?.GetHashCode()).GetValueOrDefault();
-	}
+        return other != null && Equals(Name, other.Name);
+    }
+    public override Equals(object other)
+    {
+        return Equals(other as Person);
+    }
+    public override int GetHashCode()
+    {
+        return (Name?.GetHashCode()).GetValueOrDefault();
+    }
     public abstract Person With(string Name = this.Name);
     public static void operator is(Person self, out string Name)
     {
