@@ -57,11 +57,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        private BoundExpression LowerConstantPattern(BoundConstantPattern pattern, BoundExpression input)
-        {
-            return CompareWithConstant(input, pattern.Value);
-        }
-
         private BoundExpression LowerPropertyPattern(BoundPropertyPattern pattern, ref BoundExpression input)
         {
             var syntax = pattern.Syntax;
@@ -186,19 +181,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                         return false;
                 }
             }
-        }
-
-        private BoundExpression CompareWithConstant(BoundExpression input, BoundExpression boundConstant)
-        {
-            // We currently use "exact" type semantics.
-            // PROTOTYPE(patterns): We need to change this to be sensitive to conversions
-            // among integral types, so that the same value of different integral types are considered matching.
-            return _factory.StaticCall(
-                _factory.SpecialType(SpecialType.System_Object),
-                "Equals",
-                _factory.Convert(_factory.SpecialType(SpecialType.System_Object), input),
-                _factory.Convert(_factory.SpecialType(SpecialType.System_Object), boundConstant)
-                );
         }
 
         BoundExpression MakeDeclarationPattern(CSharpSyntaxNode syntax, BoundExpression input, LocalSymbol target)

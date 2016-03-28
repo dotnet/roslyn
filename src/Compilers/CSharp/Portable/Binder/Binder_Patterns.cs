@@ -532,6 +532,10 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             // PROTOTYPE(patterns): we still need to check that the constant is valid for the given operand or operandType.
+            // PROTOTYPE(patterns): We should compute whether or not the result is known statically, and give an error if that result is "false".
+            // PROTOTYPE(patterns): That occurs when the input is a type that has no values in the range of the
+            // PROTOTYPE(patterns): constant (i.e., the pattern can never be satisfied). A "true" result occurs when the operand
+            // PROTOTYPE(patterns): is a constant that is equal to the expression. In either case, can we can set the result's constant value?
             return new BoundConstantPattern(node, expression, hasErrors);
         }
 

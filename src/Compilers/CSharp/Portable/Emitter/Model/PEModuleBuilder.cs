@@ -1083,7 +1083,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
             Debug.Assert(methodSymbol.IsDefinitionOrDistinct());
 
             // Method of anonymous type being translated
-            if (container.IsAnonymousType)
+            if (container?.IsAnonymousType == true)
             {
                 methodSymbol = AnonymousTypeManager.TranslateAnonymousTypeMethodSymbol(methodSymbol);
             }
