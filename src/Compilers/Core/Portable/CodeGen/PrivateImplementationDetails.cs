@@ -42,11 +42,11 @@ namespace Microsoft.CodeAnalysis.CodeGen
         private int _frozen;
 
         // fields mapped to metadata blocks
-        private ImmutableArray<SynthesizedStaticField> _orderedMappedFields;
+        private ImmutableArray<SynthesizedStaticField> _orderedSynthesizedFields;
         private readonly ConcurrentDictionary<ImmutableArray<byte>, MappedField> _mappedFields =
             new ConcurrentDictionary<ImmutableArray<byte>, MappedField>(ByteSequenceComparer.Instance);
 
-        private MvidField _mvidField;
+        private ModuleVersionIdField _mvidField;
         private Cci.IMethodDefinition _staticConstructor;
 
         // synthesized methods
@@ -112,23 +112,20 @@ namespace Microsoft.CodeAnalysis.CodeGen
                 throw new InvalidOperationException();
             }
 
-            // Sort data fields
-            ArrayBuilder<SynthesizedStaticField> fieldsBuilder = ArrayBuilder<SynthesizedStaticField>.GetInstance(_mappedFields.Count);
-            fieldsBuilder.AddRange(_mappedFields.Values.OrderBy((x, y) => x.Name.CompareTo(y.Name)));
+            // Sort fields.
+            ArrayBuilder<SynthesizedStaticField> fieldsBuilder = ArrayBuilder<SynthesizedStaticField>.GetInstance(_mappedFields.Count + (_mvidField != null ? 1 : 0));
+            fieldsBuilder.AddRange(_mappedFields.Values);
             if (_mvidField != null)
             {
                 fieldsBuilder.Add(_mvidField);
             }
-            _orderedMappedFields = fieldsBuilder.ToImmutableAndFree();
+            fieldsBuilder.Sort(FieldComparer.Instance);
+            _orderedSynthesizedFields = fieldsBuilder.ToImmutableAndFree();
 
-            ArrayBuilder<Cci.IMethodDefinition> methodsBuilder = ArrayBuilder<Cci.IMethodDefinition>.GetInstance(_synthesizedMethods.Count);
-            methodsBuilder.AddRange(_synthesizedMethods.OrderBy(kvp => kvp.Key).Select(kvp => kvp.Value));
-            if (_staticConstructor != null)
-            {
-                methodsBuilder.Add(_staticConstructor);
-            }
-            _orderedSynthesizedMethods = methodsBuilder.ToImmutableAndFree();
-
+            // Sort methods.
+            _orderedSynthesizedMethods = _synthesizedMethods.OrderBy(kvp => kvp.Key).Select(kvp => kvp.Value).AsImmutable();
+           
+            // Sort proxy types.
             _orderedProxyTypes = _proxyTypes.OrderBy(kvp => kvp.Key).Select(kvp => kvp.Value).AsImmutable();
         }
 
@@ -163,22 +160,30 @@ namespace Microsoft.CodeAnalysis.CodeGen
             return new ExplicitSizeStruct(size, this, _systemValueType);
         }
 
-        internal Cci.IFieldReference GetMVID(Cci.ITypeReference mvidType)
+        internal bool HasStaticConstructor => _staticConstructor != null;
+
+        internal Cci.IFieldReference GetModuleVersionId(Cci.ITypeReference mvidType, Func<Cci.IMethodDefinition> staticConstructorCreator)
         {
             if (_mvidField == null)
             {
-                Interlocked.CompareExchange(ref _mvidField, new MvidField("MVID", this, mvidType), null);
+                Interlocked.CompareExchange(ref _mvidField, new ModuleVersionIdField("MVID", this, mvidType), null);
+                EnsureStaticConstructorExists(staticConstructorCreator);
             }
 
             return _mvidField;
         }
 
-        internal Cci.IMethodDefinition StaticConstructor
+        private void EnsureStaticConstructorExists(Func<Cci.IMethodDefinition> creator)
         {
-            get { return _staticConstructor; }
-            set { Interlocked.CompareExchange(ref _staticConstructor, value, null); }
+            if (_staticConstructor == null)
+            {
+                if (Interlocked.CompareExchange(ref _staticConstructor, creator(), null) == null)
+                {
+                    _synthesizedMethods.TryAdd(_staticConstructor.Name, _staticConstructor);
+                }
+            }
         }
-
+        
         // Add a new synthesized method indexed by its name if the method isn't already present.
         internal bool TryAddSynthesizedMethod(Cci.IMethodDefinition method)
         {
@@ -189,7 +194,7 @@ namespace Microsoft.CodeAnalysis.CodeGen
         public override IEnumerable<Cci.IFieldDefinition> GetFields(EmitContext context)
         {
             Debug.Assert(IsFrozen);
-            return _orderedMappedFields;
+            return _orderedSynthesizedFields;
         }
 
         public override IEnumerable<Cci.IMethodDefinition> GetMethods(EmitContext context)
@@ -263,6 +268,13 @@ namespace Microsoft.CodeAnalysis.CodeGen
 
         private static char Hexchar(int x)
             => (char)((x <= 9) ? (x + '0') : (x + ('A' - 10)));
+
+        private sealed class FieldComparer : IComparer<SynthesizedStaticField>
+        {
+            public static readonly FieldComparer Instance = new FieldComparer();
+
+            public int Compare(SynthesizedStaticField x, SynthesizedStaticField y) => x.Name.CompareTo(y.Name);
+        }
     }
 
     /// <summary>
@@ -393,9 +405,9 @@ namespace Microsoft.CodeAnalysis.CodeGen
         }
     }
 
-    internal sealed class MvidField : SynthesizedStaticField
+    internal sealed class ModuleVersionIdField : SynthesizedStaticField
     {
-        internal MvidField(string name, Cci.INamedTypeDefinition containingType, Cci.ITypeReference type)
+        internal ModuleVersionIdField(string name, Cci.INamedTypeDefinition containingType, Cci.ITypeReference type)
             : base(name, containingType, type)
         {
         }
@@ -413,9 +425,6 @@ namespace Microsoft.CodeAnalysis.CodeGen
         internal MappedField(string name, Cci.INamedTypeDefinition containingType, Cci.ITypeReference type, ImmutableArray<byte> block)
             : base(name, containingType, type)
         {
-            Debug.Assert(name != null);
-            Debug.Assert(containingType != null);
-            Debug.Assert(type != null);
             Debug.Assert(!block.IsDefault);
             
             _block = block;

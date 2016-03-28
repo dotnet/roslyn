@@ -978,7 +978,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // and will not be reported to callers Compilation.GetDiagnostics()
 
                 ImmutableArray<SourceSpan> dynamicAnalysisSpans = ImmutableArray<SourceSpan>.Empty;
-                if (_moduleBeingBuiltOpt.EmitOptions.EmitDynamicAnalysisData)
+                if (_moduleBeingBuiltOpt?.EmitOptions.EmitDynamicAnalysisData == true)
                 {
                     flowAnalyzedBody = Instrumentation.InjectInstrumentation(methodSymbol, flowAnalyzedBody, methodOrdinal, compilationState, _diagnostics, _debugDocumentProvider, out dynamicAnalysisSpans);
                 }

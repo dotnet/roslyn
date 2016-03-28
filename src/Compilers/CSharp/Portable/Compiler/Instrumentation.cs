@@ -29,7 +29,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     TypeSymbol payloadElementType = boolType;
                     ArrayTypeSymbol payloadType = ArrayTypeSymbol.CreateCSharpArray(compilation.Assembly, payloadElementType);
                     FieldSymbol payloadField = GetPayloadField(method, methodOrdinal, payloadType, factory);
-
+                    
                     // Synthesize the instrumentation and collect the spans of interest.
 
                     // PROTOTYPE (https://github.com/dotnet/roslyn/issues/9819): Try to integrate instrumentation with lowering, to avoid an extra pass over the bound tree.
@@ -39,14 +39,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                     //
                     // if (payloadField == null)
                     //     Instrumentation.CreatePayload(mvid, method, ref payloadField, payloadLength);
-
-                    // Guarantee that PrivateImplementationDetails will initialize its MVID field.
-                    PrivateImplementationDetails privateImplementationClass = compilationState.ModuleBuilderOpt.GetPrivateImplClass(null, diagnostics);
-                    if (privateImplementationClass.StaticConstructor == null)
-                    {
-                        // This is concurrency safe because the StaticConstructor setter ignores all but the first assignment.
-                        privateImplementationClass.StaticConstructor = new SynthesizedPrivateImplementationStaticConstructor(compilationState.ModuleBuilderOpt.SourceModule, privateImplementationClass, factory);
-                    }
                     
                     BoundExpression mvid = factory.ModuleVersionId();
 
@@ -114,30 +106,6 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             // PROTOTYPE (https://github.com/dotnet/roslyn/issues/9811): Make this real. 
             return method.Name.StartsWith("Test");
-        }
-
-        internal sealed partial class SynthesizedPrivateImplementationStaticConstructor : SynthesizedGlobalMethodSymbol
-        {
-            internal SynthesizedPrivateImplementationStaticConstructor(SourceModuleSymbol containingModule, PrivateImplementationDetails privateImplementationType, SyntheticBoundNodeFactory factory)
-                : base(containingModule, privateImplementationType, factory.SpecialType(SpecialType.System_Void), WellKnownMemberNames.StaticConstructorName)
-            {
-                this.SetParameters(ImmutableArray<ParameterSymbol>.Empty);
-            }
-
-            public override MethodKind MethodKind => MethodKind.StaticConstructor;
-
-            internal override bool HasSpecialName => true;
-
-            internal override void GenerateMethodBody(TypeCompilationState compilationState, DiagnosticBag diagnostics)
-            {
-                SyntheticBoundNodeFactory factory = new SyntheticBoundNodeFactory(this, this.GetNonNullSyntaxNode(), compilationState, diagnostics);
-                factory.CurrentMethod = this;
-
-                BoundStatement mvidInitialization = factory.Assignment(factory.ModuleVersionId(), factory.Property(factory.Property(factory.Typeof(ContainingPrivateImplementationDetailsType), "Module"), "ModuleVersionId"));
-                BoundStatement returnStatement = factory.Return();
-
-                factory.CloseMethod(factory.Block(ImmutableArray.Create(mvidInitialization, returnStatement)));
-            }
         }
     }
 
@@ -252,6 +220,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     syntaxForSpan = ((BoundWhileStatement)statement).Condition.Syntax;
                     break;
                 case BoundKind.ForEachStatement:
+                    // PROTOTYPE (https://github.com/dotnet/roslyn/issues/10141): Also include the declaration of the loop variable in the span.
                     syntaxForSpan = ((BoundForEachStatement)statement).Expression.Syntax;
                     break;
                 case BoundKind.DoStatement:

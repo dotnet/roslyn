@@ -1303,13 +1303,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return null;
         }
 
-        public override BoundNode VisitTypeReferenceTypeOfOperator(BoundTypeReferenceTypeOfOperator node)
-        {
-            VisitTypeReferenceExpression(node.SourceType);
-            return null;
-        }
-
-        public override BoundNode VisitTypeReferenceExpression(BoundTypeReferenceExpression node)
+        public override BoundNode VisitTypeOfPrivateImplementationDetails(BoundTypeOfPrivateImplementationDetails node)
         {
             return null;
         }

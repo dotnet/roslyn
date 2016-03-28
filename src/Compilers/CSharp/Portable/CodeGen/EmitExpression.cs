@@ -196,10 +196,10 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
                     EmitDefaultExpression((BoundDefaultOperator)expression, used);
                     break;
 
-                case BoundKind.TypeReferenceTypeOfOperator:
+                case BoundKind.TypeOfPrivateImplementationDetails:
                     if (used) // unused typeof has no side-effects
                     {
-                        EmitTypeReferenceTypeOfExpression((BoundTypeReferenceTypeOfOperator)expression);
+                        EmitTypeOfPrivateImplementationDetailsExpression((BoundTypeOfPrivateImplementationDetails)expression);
                     }
                     break;
 
@@ -220,7 +220,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
                 case BoundKind.ModuleVersionId:
                     if (used)
                     {
-                        EmitMVIDLoad((BoundModuleVersionId)expression);
+                        EmitModuleVersionIdLoad((BoundModuleVersionId)expression);
                     }
                     break;
 
@@ -2326,7 +2326,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
                     break;
 
                 case BoundKind.ModuleVersionId:
-                    EmitMVIDStore((BoundModuleVersionId)expression);
+                    EmitModuleVersionIdStore((BoundModuleVersionId)expression);
                     break;
 
                 case BoundKind.PreviousSubmissionReference:
@@ -2660,11 +2660,10 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
             EmitSymbolToken(getTypeMethod, boundTypeOf.Syntax, null);
         }
 
-        private void EmitTypeReferenceTypeOfExpression(BoundTypeReferenceTypeOfOperator boundTypeOfOperator)
+        private void EmitTypeOfPrivateImplementationDetailsExpression(BoundTypeOfPrivateImplementationDetails boundTypeOfOperator)
         {
-            Cci.ITypeReference type = boundTypeOfOperator.SourceType.SourceType;
             _builder.EmitOpCode(ILOpCode.Ldtoken);
-            EmitTypeReferenceToken(type, boundTypeOfOperator.SourceType.Syntax);
+            EmitTypeReferenceToken(_module.PrivateImplClass, boundTypeOfOperator.Syntax);
             EmitGetTypeFromHandle(boundTypeOfOperator);
         }
 
@@ -2691,18 +2690,16 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
             EmitSymbolToken(node.Method, node.Syntax, null, encodeAsRawToken: true);
         }
 
-        private void EmitMVIDLoad(BoundModuleVersionId node)
+        private void EmitModuleVersionIdLoad(BoundModuleVersionId node)
         {
-            Debug.Assert(node.Type.TypeKind == TypeKind.Struct);
             _builder.EmitOpCode(ILOpCode.Ldsfld);
-            _builder.EmitToken(_module.PrivateImplClass.GetMVID((NamedTypeSymbol)node.Type), node.Syntax, _diagnostics);
+            _builder.EmitToken(_module.GetModuleVersionId(_module.Translate(node.Type, node.Syntax, _diagnostics), node.Syntax, _diagnostics), node.Syntax, _diagnostics);
         }
 
-        private void EmitMVIDStore(BoundModuleVersionId node)
+        private void EmitModuleVersionIdStore(BoundModuleVersionId node)
         {
-            Debug.Assert(node.Type.TypeKind == TypeKind.Struct);
             _builder.EmitOpCode(ILOpCode.Stsfld);
-            _builder.EmitToken(_module.PrivateImplClass.GetMVID((NamedTypeSymbol)node.Type), node.Syntax, _diagnostics);
+            _builder.EmitToken(_module.GetModuleVersionId(_module.Translate(node.Type, node.Syntax, _diagnostics), node.Syntax, _diagnostics), node.Syntax, _diagnostics);
         }
 
         private void EmitMethodInfoExpression(BoundMethodInfo node)

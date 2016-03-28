@@ -25,6 +25,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
         private readonly ConcurrentSet<ErrorTypeSymbol> _reportedErrorTypesMap = new ConcurrentSet<ErrorTypeSymbol>();
 
         private readonly NoPia.EmbeddedTypesManager _embeddedTypesManagerOpt;
+
         public override NoPia.EmbeddedTypesManager EmbeddedTypesManagerOpt
         {
             get { return _embeddedTypesManagerOpt; }
@@ -603,7 +604,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
             }
         }
 
-        internal sealed override Cci.INamedTypeReference GetSpecialType(SpecialType specialType, CSharpSyntaxNode syntaxNodeOpt, DiagnosticBag diagnostics)
+        private NamedTypeSymbol GetUntranslatedSpecialType(SpecialType specialType, CSharpSyntaxNode syntaxNodeOpt, DiagnosticBag diagnostics)
         {
             Debug.Assert(diagnostics != null);
 
@@ -617,7 +618,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
                                                syntaxNodeOpt != null ? syntaxNodeOpt.Location : NoLocation.Singleton);
             }
 
-            return Translate(typeSymbol,
+            return typeSymbol;
+        }
+
+        internal sealed override Cci.INamedTypeReference GetSpecialType(SpecialType specialType, CSharpSyntaxNode syntaxNodeOpt, DiagnosticBag diagnostics)
+        {
+            return Translate(GetUntranslatedSpecialType(specialType, syntaxNodeOpt, diagnostics),
                              diagnostics: diagnostics,
                              syntaxNodeOpt: syntaxNodeOpt,
                              needDeclaration: true);
@@ -1307,6 +1313,20 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
             Debug.Assert(found);
             return result;
         }
+
+        internal Cci.IFieldReference GetModuleVersionId(Cci.ITypeReference mvidType, CSharpSyntaxNode syntaxOpt, DiagnosticBag diagnostics)
+        {
+            PrivateImplementationDetails details = GetPrivateImplClass(syntaxOpt, diagnostics);
+            // Avoid creating a closure for the static constructor creator unless it is likely to be executed.
+            return details.HasStaticConstructor ?
+                details.GetModuleVersionId(mvidType, null) :
+                GetModuleVersionIdWithStaticConstructorCreation(mvidType, syntaxOpt, diagnostics);
+        }
+
+        private Cci.IFieldReference GetModuleVersionIdWithStaticConstructorCreation(Cci.ITypeReference mvidType, CSharpSyntaxNode syntaxOpt, DiagnosticBag diagnostics) =>
+            PrivateImplClass.GetModuleVersionId(
+                mvidType,
+                () => new SynthesizedPrivateImplementationDetailsStaticConstructor(SourceModule, PrivateImplClass, GetUntranslatedSpecialType(SpecialType.System_Void, syntaxOpt, diagnostics)));
 
         #region Test Hooks
 

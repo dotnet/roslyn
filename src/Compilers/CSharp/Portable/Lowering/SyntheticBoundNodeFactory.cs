@@ -927,12 +927,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             return new BoundTypeExpression(Syntax, null, type) { WasCompilerGenerated = true };
         }
-
-        public BoundTypeReferenceExpression TypeReference(Cci.INamespaceTypeReference type)
-        {
-            return new BoundTypeReferenceExpression(Syntax, type, null) { WasCompilerGenerated = true };
-        }
-
+        
         public BoundExpression Typeof(WellKnownType type)
         {
             return Typeof(WellKnownType(type));
@@ -948,11 +943,10 @@ namespace Microsoft.CodeAnalysis.CSharp
             { WasCompilerGenerated = true };
         }
 
-        public BoundExpression Typeof(PrivateImplementationDetails type)
+        public BoundExpression TypeOfPrivateImplementationDetails()
         {
-            return new BoundTypeReferenceTypeOfOperator(
+            return new BoundTypeOfPrivateImplementationDetails(
                 Syntax,
-                TypeReference(type),
                 WellKnownMethod(CodeAnalysis.WellKnownMember.System_Type__GetTypeFromHandle),
                 WellKnownType(CodeAnalysis.WellKnownType.System_Type))
             { WasCompilerGenerated = true };

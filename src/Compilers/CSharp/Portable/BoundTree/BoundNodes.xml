@@ -115,10 +115,6 @@
     <Field Name="ChildBoundNodes" Type="ImmutableArray&lt;BoundNode&gt;"/>
   </Node>
   
-  <Node Name="BoundTypeReferenceExpression" Base="BoundExpression">
-    <Field Name="SourceType" Type="Cci.ITypeReference" Null="disallow"/>
-  </Node>
-    
   <Node Name="BoundTypeExpression" Base="BoundExpression">
     <!-- Non-null type is required for this node kind -->
     <Field Name="Type" Type="TypeSymbol" Override="true" Null="disallow"/>
@@ -442,8 +438,7 @@
     <Field Name="SourceType" Type="BoundTypeExpression"/>
   </Node>
     
-  <Node Name="BoundTypeReferenceTypeOfOperator" Base="BoundTypeOf">
-    <Field Name="SourceType" Type="BoundTypeReferenceExpression"/>
+  <Node Name="BoundTypeOfPrivateImplementationDetails" Base="BoundTypeOf">
   </Node>
 
    <!-- Represents the raw metadata token value for a method. Dynamic instrumentation depends on tracking method tokens. -->

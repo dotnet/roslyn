@@ -332,6 +332,7 @@
     <Compile Include="Emitter\Model\SpecializedMethodReference.cs" />
     <Compile Include="Emitter\Model\SpecializedNestedTypeReference.cs" />
     <Compile Include="Emitter\Model\SymbolAdapter.cs" />
+    <Compile Include="Emitter\Model\SynthesizedPrivateImplementationDetailsStaticConstructor.cs" />
     <Compile Include="Emitter\Model\TypeMemberReference.cs" />
     <Compile Include="Emitter\Model\TypeParameterSymbolAdapter.cs" />
     <Compile Include="Emitter\NoPia\EmbeddedEvent.cs" />
