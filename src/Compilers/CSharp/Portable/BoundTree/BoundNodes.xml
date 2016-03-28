@@ -114,7 +114,7 @@
     <!-- Any child bound nodes that we need to preserve are put here. -->
     <Field Name="ChildBoundNodes" Type="ImmutableArray&lt;BoundNode&gt;"/>
   </Node>
-  
+
   <Node Name="BoundTypeExpression" Base="BoundExpression">
     <!-- Non-null type is required for this node kind -->
     <Field Name="Type" Type="TypeSymbol" Override="true" Null="disallow"/>

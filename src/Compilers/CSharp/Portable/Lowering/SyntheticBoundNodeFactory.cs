@@ -927,7 +927,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             return new BoundTypeExpression(Syntax, null, type) { WasCompilerGenerated = true };
         }
-        
+
         public BoundExpression Typeof(WellKnownType type)
         {
             return Typeof(WellKnownType(type));

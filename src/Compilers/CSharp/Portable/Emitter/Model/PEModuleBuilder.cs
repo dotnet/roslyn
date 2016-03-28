@@ -25,7 +25,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
         private readonly ConcurrentSet<ErrorTypeSymbol> _reportedErrorTypesMap = new ConcurrentSet<ErrorTypeSymbol>();
 
         private readonly NoPia.EmbeddedTypesManager _embeddedTypesManagerOpt;
-
         public override NoPia.EmbeddedTypesManager EmbeddedTypesManagerOpt
         {
             get { return _embeddedTypesManagerOpt; }
@@ -1319,12 +1318,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
             PrivateImplementationDetails details = GetPrivateImplClass(syntaxOpt, diagnostics);
             // Avoid creating a closure for the static constructor creator unless it is likely to be executed.
             return details.HasStaticConstructor ?
-                details.GetModuleVersionId(mvidType, null) :
+                details.GetOrAddModuleVersionId(mvidType, null) :
                 GetModuleVersionIdWithStaticConstructorCreation(mvidType, syntaxOpt, diagnostics);
         }
 
         private Cci.IFieldReference GetModuleVersionIdWithStaticConstructorCreation(Cci.ITypeReference mvidType, CSharpSyntaxNode syntaxOpt, DiagnosticBag diagnostics) =>
-            PrivateImplClass.GetModuleVersionId(
+            PrivateImplClass.GetOrAddModuleVersionId(
                 mvidType,
                 () => new SynthesizedPrivateImplementationDetailsStaticConstructor(SourceModule, PrivateImplClass, GetUntranslatedSpecialType(SpecialType.System_Void, syntaxOpt, diagnostics)));
 

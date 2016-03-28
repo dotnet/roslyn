@@ -162,7 +162,7 @@ namespace Microsoft.CodeAnalysis.CodeGen
 
         internal bool HasStaticConstructor => _staticConstructor != null;
 
-        internal Cci.IFieldReference GetModuleVersionId(Cci.ITypeReference mvidType, Func<Cci.IMethodDefinition> staticConstructorCreator)
+        internal Cci.IFieldReference GetOrAddModuleVersionId(Cci.ITypeReference mvidType, Func<Cci.IMethodDefinition> staticConstructorCreator)
         {
             if (_mvidField == null)
             {

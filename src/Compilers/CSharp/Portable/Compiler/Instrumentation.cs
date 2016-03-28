@@ -29,7 +29,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     TypeSymbol payloadElementType = boolType;
                     ArrayTypeSymbol payloadType = ArrayTypeSymbol.CreateCSharpArray(compilation.Assembly, payloadElementType);
                     FieldSymbol payloadField = GetPayloadField(method, methodOrdinal, payloadType, factory);
-                    
+
                     // Synthesize the instrumentation and collect the spans of interest.
 
                     // PROTOTYPE (https://github.com/dotnet/roslyn/issues/9819): Try to integrate instrumentation with lowering, to avoid an extra pass over the bound tree.
