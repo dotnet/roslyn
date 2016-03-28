@@ -66,26 +66,32 @@
     <XamlPropertyRule Include="ProjectSystem\Rules\CSharp.xaml">
       <Generator>MSBuild:GenerateRuleSourceFromXaml</Generator>
       <SubType>Designer</SubType>
+      <CreateFallbackRule>false</CreateFallbackRule>
     </XamlPropertyRule>
     <XamlPropertyRule Include="ProjectSystem\Rules\General.xaml">
       <Generator>MSBuild:GenerateRuleSourceFromXaml</Generator>
       <SubType>Designer</SubType>
+      <CreateFallbackRule>false</CreateFallbackRule>
     </XamlPropertyRule>
     <XamlPropertyRule Include="ProjectSystem\Rules\ProjectReference.xaml">
       <Generator>MSBuild:GenerateRuleSourceFromXaml</Generator>
       <SubType>Designer</SubType>
+      <CreateFallbackRule>false</CreateFallbackRule>
     </XamlPropertyRule>
     <XamlPropertyRule Include="ProjectSystem\Rules\ResolvedAssemblyReference.xaml">
       <Generator>MSBuild:GenerateRuleSourceFromXaml</Generator>
       <SubType>Designer</SubType>
+      <CreateFallbackRule>false</CreateFallbackRule>
     </XamlPropertyRule>
     <XamlPropertyRule Include="ProjectSystem\Rules\ResolvedCOMReference.xaml">
       <Generator>MSBuild:GenerateRuleSourceFromXaml</Generator>
       <SubType>Designer</SubType>
+      <CreateFallbackRule>false</CreateFallbackRule>
     </XamlPropertyRule>
     <XamlPropertyRule Include="ProjectSystem\Rules\ResolvedProjectReference.xaml">
       <Generator>MSBuild:GenerateRuleSourceFromXaml</Generator>
       <SubType>Designer</SubType>
+      <CreateFallbackRule>false</CreateFallbackRule>
     </XamlPropertyRule>
   </ItemGroup>
   <ItemGroup>
