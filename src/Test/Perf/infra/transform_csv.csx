@@ -4,7 +4,7 @@
 using System.IO;
 using System;
 
-InitUtilities();
+var directoryUtil = new RelativeDirectory();
 
 string FirstLine(string input)
 {
@@ -20,7 +20,7 @@ string machineName = StdoutFrom("hostname");
 string architecture = System.Environment.Is64BitOperatingSystem ? "x86-64" : "x86";
 
 // File locations
-string workingDir = Path.Combine(MyWorkingDirectory(), "..", "temp");
+string workingDir = Path.Combine(directoryUtil.MyWorkingDirectory, "..", "temp");
 string inCompilerTime = Path.Combine(workingDir, "compiler_time.csv");
 string inRunTime = Path.Combine(workingDir, "run_time.csv");
 string inFileSize = Path.Combine(workingDir, "file_size.csv");

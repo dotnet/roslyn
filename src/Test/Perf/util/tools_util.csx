@@ -69,6 +69,7 @@ bool ConvertConsumptionToCsv(string source, string destination, string requiredM
 /// Gets a csv file with metrics and converts them to ViBench supported JSON file
 string GetViBenchJsonFromCsv(string compilerTimeCsvFilePath, string execTimeCsvFilePath, string fileSizeCsvFilePath)
 {
+    var directoryUtil = new RelativeDirectory();
     Log("Convert the csv to JSON using ViBench tool");
     string branch = StdoutFrom("git", "rev-parse --abbrev-ref HEAD");
     string date = FirstLine(StdoutFrom("git", $"show --format=\"%aI\" {branch} --"));
@@ -79,7 +80,7 @@ string GetViBenchJsonFromCsv(string compilerTimeCsvFilePath, string execTimeCsvF
     string architecture = System.Environment.Is64BitOperatingSystem ? "x86-64" : "x86";
 
     // File locations
-    string outJson = Path.Combine(GetCPCDirectoryPath(), $"Roslyn-{longHash}.json");
+    string outJson = Path.Combine(directoryUtil.CPCDirectoryPath, $"Roslyn-{longHash}.json");
 
     // ViBenchToJson does not like empty csv files.
     string files = "";
@@ -116,7 +117,7 @@ string GetViBenchJsonFromCsv(string compilerTimeCsvFilePath, string execTimeCsvF
 
     arguments = arguments.Replace("\r\n", " ").Replace("\n", "");
 
-    ShellOutVital(Path.Combine(GetCPCDirectoryPath(), "ViBenchToJson.exe"), arguments);
+    ShellOutVital(Path.Combine(directoryUtil.CPCDirectoryPath, "ViBenchToJson.exe"), arguments);
 
     return outJson;
 }
@@ -155,7 +156,7 @@ void UploadTraces(string sourceFolderPath, string destinationFolderPath)
 
 void CopyDirectory(string source, string destination, string argument = @"/mir")
 {
-    var result = ShellOut("Robocopy", $"{argument} {source} {destination}");
+    var result = ShellOut("Robocopy", $"{argument} {source} {destination}", "");
 
     // Robocopy has a success exit code from 0 - 7
     if (result.Code > 7)
