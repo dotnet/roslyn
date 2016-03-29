@@ -1,13 +1,14 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Editor.Implementation.Classification;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
-using Microsoft.VisualStudio.Text;
 using Roslyn.Test.Utilities;
 using Xunit;
+using static Roslyn.Utilities.PortableShim;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Classification
 {
@@ -38,10 +39,12 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Classification
                 var expectedLength = subjectBuffer.CurrentSnapshot.Length;
                 int? actualVersionNumber = null;
                 int? actualLength = null;
+                List<string> callstacks = new List<string>();
                 tagComputer.TagsChanged += (s, e) =>
                 {
                     actualVersionNumber = e.Span.Snapshot.Version.VersionNumber;
                     actualLength = e.Span.Length;
+                    callstacks.Add(StackTrace.GetString());
                     checkpoint.Release();
                 };
 
