@@ -45,9 +45,9 @@
   </ItemGroup>
   <ItemGroup Label="File References">
     <Reference Include="Microsoft.Build.Framework">
-      <HintPath>$(MSBuildProgramFiles32)\Reference Assemblies\Microsoft\MSBuild\v14.0\Microsoft.Build.Framework.dll</HintPath>
+      <HintPath>$(MSBuildProgramFiles32)\Reference Assemblies\Microsoft\MSBuild\v15.0\Microsoft.Build.Framework.dll</HintPath>
     </Reference>
-    <Reference Include="Microsoft.Build.Utilities.Core, Version=14.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
+    <Reference Include="Microsoft.Build.Utilities.Core, Version=15.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
       <HintPath>$(MSBuildProgramFiles32)\Reference Assemblies\Microsoft\MSBuild\v14.0\Microsoft.Build.Utilities.Core.dll</HintPath>
     </Reference>
