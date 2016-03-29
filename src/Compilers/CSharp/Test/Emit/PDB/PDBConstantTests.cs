@@ -120,7 +120,7 @@ class C
 </symbols>");
         }
 
-        [WorkItem(543342, "DevDiv")]
+        [WorkItem(543342, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543342")]
         [Fact]
         public void TestIteratorLocalConstants()
         {
@@ -292,7 +292,7 @@ this is a string constant that is too long to fit into the PDB"";
 }
 ";
             var c = CompileAndVerify(text, options: TestOptions.DebugDll);
-            
+
             c.VerifyPdb("C.M", @"
 <symbols>
   <methods>

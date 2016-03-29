@@ -4,6 +4,7 @@ using System;
 using System.Collections.Immutable;
 using System.Threading;
 using Microsoft.CodeAnalysis.Semantics;
+using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.Diagnostics
 {
@@ -133,14 +134,20 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         /// but cannot itself report any <see cref="Diagnostic"/>s.
         /// </summary>
         /// <param name="action">Action to be executed at the start of semantic analysis of an operation block.</param>
-        public abstract void RegisterOperationBlockStartAction(Action<OperationBlockStartAnalysisContext> action);
+        public virtual void RegisterOperationBlockStartAction(Action<OperationBlockStartAnalysisContext> action)
+        {
+            throw new NotImplementedException();
+        }
 
         /// <summary> 
         /// Register an action to be executed after semantic analysis of a method body or an expression appearing outside a method body. 
         /// An operation block action reports <see cref="Diagnostic"/>s about operation blocks. 
         /// </summary> 
         /// <param name="action">Action to be executed for an operation block.</param> 
-        public abstract void RegisterOperationBlockAction(Action<OperationBlockAnalysisContext> action);
+        public virtual void RegisterOperationBlockAction(Action<OperationBlockAnalysisContext> action)
+        {
+            throw new NotImplementedException();
+        }
 
         /// <summary>
         /// Register an action to be executed at completion of semantic analysis of an <see cref="IOperation"/> with an appropriate Kind.
@@ -161,7 +168,83 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         /// </summary>
         /// <param name="action">Action to be executed at completion of semantic analysis of an <see cref="IOperation"/>.</param>
         /// <param name="operationKinds">Action will be executed only if an <see cref="IOperation"/>'s Kind matches one of the operation kind values.</param>
-        public abstract void RegisterOperationAction(Action<OperationAnalysisContext> action, ImmutableArray<OperationKind> operationKinds);
+        public virtual void RegisterOperationAction(Action<OperationAnalysisContext> action, ImmutableArray<OperationKind> operationKinds)
+        {
+            throw new NotImplementedException();
+        }
+
+        /// <summary>
+        /// Enable concurrent execution of analyzer actions registered by this analyzer.
+        /// An analyzer that registers for concurrent execution can have better performance than a non-concurrent analyzer.
+        /// However, such an analyzer must ensure that its actions can execute correctly in parallel.
+        /// </summary>
+        /// <remarks>
+        /// Even when an analyzer registers for concurrent execution, certain related actions are *never* executed concurrently.
+        /// For example, end actions registered on any analysis unit (compilation, code block, operation block, etc.) are by definition semantically dependent on analysis from non-end actions registered on the same analysis unit.
+        /// Hence, end actions are never executed concurrently with non-end actions operating on the same analysis unit.
+        /// </remarks>
+        public virtual void EnableConcurrentExecution()
+        {
+            throw new NotImplementedException();
+        }
+
+        /// <summary>
+        /// Configure analysis mode of generated code for this analyzer.
+        /// Non-configured analyzers will default to an appropriate default mode for generated code.
+        /// It is recommended for the analyzer to invoke this API with the required <see cref="GeneratedCodeAnalysisFlags"/> setting.
+        /// </summary>
+        public virtual void ConfigureGeneratedCodeAnalysis(GeneratedCodeAnalysisFlags analysisMode)
+        {
+            throw new NotImplementedException();
+        }
+
+        /// <summary>
+        /// Attempts to compute or get the cached value provided by the given <paramref name="valueProvider"/> for the given <paramref name="text"/>.
+        /// Note that the pair {<paramref name="valueProvider"/>, <paramref name="text"/>} acts as the key.
+        /// Reusing the same <paramref name="valueProvider"/> instance across analyzer actions and/or analyzer instances can improve the overall analyzer performance by avoiding recomputation of the values.
+        /// </summary>
+        /// <typeparam name="TValue">The type of the value associated with the key.</typeparam>
+        /// <param name="text"><see cref="SourceText"/> for which the value is queried.</param>
+        /// <param name="valueProvider">Provider that computes the underlying value.</param>
+        /// <param name="value">Value associated with the key.</param>
+        /// <returns>Returns true on success, false otherwise.</returns>
+        public bool TryGetValue<TValue>(SourceText text, SourceTextValueProvider<TValue> valueProvider, out TValue value)
+        {
+            return TryGetValue(text, valueProvider.CoreValueProvider, out value);
+        }
+
+        private bool TryGetValue<TKey, TValue>(TKey key, AnalysisValueProvider<TKey, TValue> valueProvider, out TValue value)
+            where TKey : class
+        {
+            DiagnosticAnalysisContextHelpers.VerifyArguments(key, valueProvider);
+            return valueProvider.TryGetValue(key, out value);
+        }
+    }
+
+    /// <summary>
+    /// Flags to configure mode of generated code analysis.
+    /// </summary>
+    [Flags]
+    public enum GeneratedCodeAnalysisFlags
+    {
+        /// <summary>
+        /// Disable analyzer action callbacks and diagnostic reporting for generated code.
+        /// Analyzer driver will not make callbacks into the analyzer for entities (source files, symbols, etc.) that it classifies as generated code.
+        /// Additionally, any diagnostic reported by the analyzer with location in generated code will not be reported.
+        /// </summary>
+        None = 0x00,
+
+        /// <summary>
+        /// Enable analyzer action callbacks for generated code.
+        /// Analyzer driver will make callbacks into the analyzer for all entities (source files, symbols, etc.) in the compilation, including generated code.
+        /// </summary>
+        Analyze = 0x01,
+
+        /// <summary>
+        /// Enable reporting diagnostics on generated code.
+        /// Analyzer driver will not suppress any analyzer diagnostic based on whether or not it's location is in generated code.
+        /// </summary>
+        ReportDiagnostics = 0x02,
     }
 
     /// <summary>
@@ -275,14 +358,20 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         /// but cannot itself report any <see cref="Diagnostic"/>s.
         /// </summary>
         /// <param name="action">Action to be executed at the start of semantic analysis of an operation block.</param>
-        public abstract void RegisterOperationBlockStartAction(Action<OperationBlockStartAnalysisContext> action);
+        public virtual void RegisterOperationBlockStartAction(Action<OperationBlockStartAnalysisContext> action)
+        {
+            throw new NotImplementedException();
+        }
 
         /// <summary> 
         /// Register an action to be executed after semantic analysis of a method body or an expression appearing outside a method body. 
         /// An operation block action reports <see cref="Diagnostic"/>s about operation blocks. 
         /// </summary> 
         /// <param name="action">Action to be executed for an operation block.</param> 
-        public abstract void RegisterOperationBlockAction(Action<OperationBlockAnalysisContext> action);
+        public virtual void RegisterOperationBlockAction(Action<OperationBlockAnalysisContext> action)
+        {
+            throw new NotImplementedException();
+        }
 
         /// <summary>
         /// Register an action to be executed at completion of parsing of a code document.
@@ -333,7 +422,53 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         /// </summary>
         /// <param name="action">Action to be executed at completion of semantic analysis of an <see cref="IOperation"/>.</param>
         /// <param name="operationKinds">Action will be executed only if an <see cref="IOperation"/>'s Kind matches one of the operation kind values.</param>
-        public abstract void RegisterOperationAction(Action<OperationAnalysisContext> action, ImmutableArray<OperationKind> operationKinds);
+        public virtual void RegisterOperationAction(Action<OperationAnalysisContext> action, ImmutableArray<OperationKind> operationKinds)
+        {
+            throw new NotImplementedException();
+        }
+
+        /// <summary>
+        /// Attempts to compute or get the cached value provided by the given <paramref name="valueProvider"/> for the given <paramref name="text"/>.
+        /// Note that the pair {<paramref name="valueProvider"/>, <paramref name="text"/>} acts as the key.
+        /// Reusing the same <paramref name="valueProvider"/> instance across analyzer actions and/or analyzer instances can improve the overall analyzer performance by avoiding recomputation of the values.
+        /// </summary>
+        /// <typeparam name="TValue">The type of the value associated with the key.</typeparam>
+        /// <param name="text"><see cref="SourceText"/> for which the value is queried.</param>
+        /// <param name="valueProvider">Provider that computes the underlying value.</param>
+        /// <param name="value">Value associated with the key.</param>
+        /// <returns>Returns true on success, false otherwise.</returns>
+        public bool TryGetValue<TValue>(SourceText text, SourceTextValueProvider<TValue> valueProvider, out TValue value)
+        {
+            return TryGetValue(text, valueProvider.CoreValueProvider, out value);
+        }
+
+        /// <summary>
+        /// Attempts to compute or get the cached value provided by the given <paramref name="valueProvider"/> for the given <paramref name="tree"/>.
+        /// Note that the pair {<paramref name="valueProvider"/>, <paramref name="tree"/>} acts as the key.
+        /// Reusing the same <paramref name="valueProvider"/> instance across analyzer actions and/or analyzer instances can improve the overall analyzer performance by avoiding recomputation of the values.
+        /// </summary>
+        /// <typeparam name="TValue">The type of the value associated with the key.</typeparam>
+        /// <param name="tree"><see cref="SyntaxTree"/> instance for which the value is queried.</param>
+        /// <param name="valueProvider">Provider that computes the underlying value.</param>
+        /// <param name="value">Value associated with the key.</param>
+        /// <returns>Returns true on success, false otherwise.</returns>
+        public bool TryGetValue<TValue>(SyntaxTree tree, SyntaxTreeValueProvider<TValue> valueProvider, out TValue value)
+        {
+            return TryGetValue(tree, valueProvider.CoreValueProvider, out value);
+        }
+
+        private bool TryGetValue<TKey, TValue>(TKey key, AnalysisValueProvider<TKey, TValue> valueProvider, out TValue value)
+            where TKey : class
+        {
+            DiagnosticAnalysisContextHelpers.VerifyArguments(key, valueProvider);
+            return TryGetValueCore(key, valueProvider, out value);
+        }
+
+        internal virtual bool TryGetValueCore<TKey, TValue>(TKey key, AnalysisValueProvider<TKey, TValue> valueProvider, out TValue value)
+            where TKey : class
+        {
+            throw new NotImplementedException();
+        }
     }
 
     /// <summary>
@@ -346,6 +481,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         private readonly AnalyzerOptions _options;
         private readonly Action<Diagnostic> _reportDiagnostic;
         private readonly Func<Diagnostic, bool> _isSupportedDiagnostic;
+        private readonly CompilationAnalysisValueProviderFactory _compilationAnalysisValueProviderFactoryOpt;
         private readonly CancellationToken _cancellationToken;
 
         /// <summary>
@@ -364,11 +500,23 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         public CancellationToken CancellationToken { get { return _cancellationToken; } }
 
         public CompilationAnalysisContext(Compilation compilation, AnalyzerOptions options, Action<Diagnostic> reportDiagnostic, Func<Diagnostic, bool> isSupportedDiagnostic, CancellationToken cancellationToken)
+            : this(compilation, options, reportDiagnostic, isSupportedDiagnostic, null, cancellationToken)
+        {
+        }
+
+        internal CompilationAnalysisContext(
+            Compilation compilation,
+            AnalyzerOptions options,
+            Action<Diagnostic> reportDiagnostic,
+            Func<Diagnostic, bool> isSupportedDiagnostic,
+            CompilationAnalysisValueProviderFactory compilationAnalysisValueProviderFactoryOpt,
+            CancellationToken cancellationToken)
         {
             _compilation = compilation;
             _options = options;
             _reportDiagnostic = reportDiagnostic;
             _isSupportedDiagnostic = isSupportedDiagnostic;
+            _compilationAnalysisValueProviderFactoryOpt = compilationAnalysisValueProviderFactoryOpt;
             _cancellationToken = cancellationToken;
         }
 
@@ -378,11 +526,55 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         /// <param name="diagnostic"><see cref="Diagnostic"/> to be reported.</param>
         public void ReportDiagnostic(Diagnostic diagnostic)
         {
-            DiagnosticAnalysisContextHelpers.VerifyArguments(diagnostic, _isSupportedDiagnostic);
+            DiagnosticAnalysisContextHelpers.VerifyArguments(diagnostic, _compilation, _isSupportedDiagnostic);
             lock (_reportDiagnostic)
             {
                 _reportDiagnostic(diagnostic);
             }
+        }
+
+        /// <summary>
+        /// Attempts to compute or get the cached value provided by the given <paramref name="valueProvider"/> for the given <paramref name="text"/>.
+        /// Note that the pair {<paramref name="valueProvider"/>, <paramref name="text"/>} acts as the key.
+        /// Reusing the same <paramref name="valueProvider"/> instance across analyzer actions and/or analyzer instances can improve the overall analyzer performance by avoiding recomputation of the values.
+        /// </summary>
+        /// <typeparam name="TValue">The type of the value associated with the key.</typeparam>
+        /// <param name="text"><see cref="SourceText"/> for which the value is queried.</param>
+        /// <param name="valueProvider">Provider that computes the underlying value.</param>
+        /// <param name="value">Value associated with the key.</param>
+        /// <returns>Returns true on success, false otherwise.</returns>
+        public bool TryGetValue<TValue>(SourceText text, SourceTextValueProvider<TValue> valueProvider, out TValue value)
+        {
+            return TryGetValue(text, valueProvider.CoreValueProvider, out value);
+        }
+
+        /// <summary>
+        /// Attempts to compute or get the cached value provided by the given <paramref name="valueProvider"/> for the given <paramref name="tree"/>.
+        /// Note that the pair {<paramref name="valueProvider"/>, <paramref name="tree"/>} acts as the key.
+        /// Reusing the same <paramref name="valueProvider"/> instance across analyzer actions and/or analyzer instances can improve the overall analyzer performance by avoiding recomputation of the values.
+        /// </summary>
+        /// <typeparam name="TValue">The type of the value associated with the key.</typeparam>
+        /// <param name="tree"><see cref="SyntaxTree"/> for which the value is queried.</param>
+        /// <param name="valueProvider">Provider that computes the underlying value.</param>
+        /// <param name="value">Value associated with the key.</param>
+        /// <returns>Returns true on success, false otherwise.</returns>
+        public bool TryGetValue<TValue>(SyntaxTree tree, SyntaxTreeValueProvider<TValue> valueProvider, out TValue value)
+        {
+            return TryGetValue(tree, valueProvider.CoreValueProvider, out value);
+        }
+
+        private bool TryGetValue<TKey, TValue>(TKey key, AnalysisValueProvider<TKey, TValue> valueProvider, out TValue value)
+            where TKey : class
+        {
+            DiagnosticAnalysisContextHelpers.VerifyArguments(key, valueProvider);
+
+            if (_compilationAnalysisValueProviderFactoryOpt != null)
+            {
+                var compilationAnalysisValueProvider = _compilationAnalysisValueProviderFactoryOpt.GetValueProvider(valueProvider);
+                return compilationAnalysisValueProvider.TryGetValue(key, out value);
+            }
+
+            return valueProvider.TryGetValue(key, out value);
         }
     }
 
@@ -428,7 +620,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         /// <param name="diagnostic"><see cref="Diagnostic"/> to be reported.</param>
         public void ReportDiagnostic(Diagnostic diagnostic)
         {
-            DiagnosticAnalysisContextHelpers.VerifyArguments(diagnostic, _isSupportedDiagnostic);
+            DiagnosticAnalysisContextHelpers.VerifyArguments(diagnostic, _semanticModel.Compilation, _isSupportedDiagnostic);
             lock (_reportDiagnostic)
             {
                 _reportDiagnostic(diagnostic);
@@ -485,7 +677,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         /// <param name="diagnostic"><see cref="Diagnostic"/> to be reported.</param>
         public void ReportDiagnostic(Diagnostic diagnostic)
         {
-            DiagnosticAnalysisContextHelpers.VerifyArguments(diagnostic, _isSupportedDiagnostic);
+            DiagnosticAnalysisContextHelpers.VerifyArguments(diagnostic, _compilation, _isSupportedDiagnostic);
             lock (_reportDiagnostic)
             {
                 _reportDiagnostic(diagnostic);
@@ -633,7 +825,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         /// <param name="diagnostic"><see cref="Diagnostic"/> to be reported.</param>
         public void ReportDiagnostic(Diagnostic diagnostic)
         {
-            DiagnosticAnalysisContextHelpers.VerifyArguments(diagnostic, _isSupportedDiagnostic);
+            DiagnosticAnalysisContextHelpers.VerifyArguments(diagnostic, _semanticModel.Compilation, _isSupportedDiagnostic);
             lock (_reportDiagnostic)
             {
                 _reportDiagnostic(diagnostic);
@@ -658,6 +850,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
     {
         private readonly ImmutableArray<IOperation> _operationBlocks;
         private readonly ISymbol _owningSymbol;
+        private readonly Compilation _compilation;
         private readonly AnalyzerOptions _options;
         private readonly CancellationToken _cancellationToken;
 
@@ -672,6 +865,11 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         public ISymbol OwningSymbol => _owningSymbol;
 
         /// <summary>
+        /// <see cref="CodeAnalysis.Compilation"/> containing the operation block.
+        /// </summary>
+        public Compilation Compilation => _compilation;
+
+        /// <summary>
         /// Options specified for the analysis.
         /// </summary>
         public AnalyzerOptions Options => _options;
@@ -681,10 +879,11 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         /// </summary>
         public CancellationToken CancellationToken => _cancellationToken;
 
-        protected OperationBlockStartAnalysisContext(ImmutableArray<IOperation> operationBlocks, ISymbol owningSymbol, AnalyzerOptions options, CancellationToken cancellationToken)
+        protected OperationBlockStartAnalysisContext(ImmutableArray<IOperation> operationBlocks, ISymbol owningSymbol, Compilation compilation, AnalyzerOptions options, CancellationToken cancellationToken)
         {
             _operationBlocks = operationBlocks;
             _owningSymbol = owningSymbol;
+            _compilation = compilation;
             _options = options;
             _cancellationToken = cancellationToken;
         }
@@ -726,6 +925,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
     {
         private readonly ImmutableArray<IOperation> _operationBlocks;
         private readonly ISymbol _owningSymbol;
+        private readonly Compilation _compilation;
         private readonly AnalyzerOptions _options;
         private readonly Action<Diagnostic> _reportDiagnostic;
         private readonly Func<Diagnostic, bool> _isSupportedDiagnostic;
@@ -740,7 +940,12 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         /// <see cref="ISymbol"/> for which the code block provides a definition or value.
         /// </summary>
         public ISymbol OwningSymbol => _owningSymbol;
-        
+
+        /// <summary>
+        /// <see cref="CodeAnalysis.Compilation"/> containing the operation block.
+        /// </summary>
+        public Compilation Compilation => _compilation;
+
         /// <summary>
         /// Options specified for the analysis.
         /// </summary>
@@ -750,11 +955,12 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         /// Token to check for requested cancellation of the analysis.
         /// </summary>
         public CancellationToken CancellationToken => _cancellationToken;
-
-        public OperationBlockAnalysisContext(ImmutableArray<IOperation> operationBlocks, ISymbol owningSymbol, AnalyzerOptions options, Action<Diagnostic> reportDiagnostic, Func<Diagnostic, bool> isSupportedDiagnostic, CancellationToken cancellationToken)
+        
+        public OperationBlockAnalysisContext(ImmutableArray<IOperation> operationBlocks, ISymbol owningSymbol, Compilation compilation, AnalyzerOptions options, Action<Diagnostic> reportDiagnostic, Func<Diagnostic, bool> isSupportedDiagnostic, CancellationToken cancellationToken)
         {
             _operationBlocks = operationBlocks;
             _owningSymbol = owningSymbol;
+            _compilation = compilation;
             _options = options;
             _reportDiagnostic = reportDiagnostic;
             _isSupportedDiagnostic = isSupportedDiagnostic;
@@ -767,7 +973,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         /// <param name="diagnostic"><see cref="Diagnostic"/> to be reported.</param>
         public void ReportDiagnostic(Diagnostic diagnostic)
         {
-            DiagnosticAnalysisContextHelpers.VerifyArguments(diagnostic, _isSupportedDiagnostic);
+            DiagnosticAnalysisContextHelpers.VerifyArguments(diagnostic, Compilation, _isSupportedDiagnostic);
             lock (_reportDiagnostic)
             {
                 _reportDiagnostic(diagnostic);
@@ -782,6 +988,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
     public struct SyntaxTreeAnalysisContext
     {
         private readonly SyntaxTree _tree;
+        private readonly Compilation _compilationOpt;
         private readonly AnalyzerOptions _options;
         private readonly Action<Diagnostic> _reportDiagnostic;
         private readonly Func<Diagnostic, bool> _isSupportedDiagnostic;
@@ -790,17 +997,19 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         /// <summary>
         /// <see cref="SyntaxTree"/> that is the subject of the analysis.
         /// </summary>
-        public SyntaxTree Tree { get { return _tree; } }
+        public SyntaxTree Tree => _tree;
 
         /// <summary>
         /// Options specified for the analysis.
         /// </summary>
-        public AnalyzerOptions Options { get { return _options; } }
+        public AnalyzerOptions Options => _options;
 
         /// <summary>
         /// Token to check for requested cancellation of the analysis.
         /// </summary>
-        public CancellationToken CancellationToken { get { return _cancellationToken; } }
+        public CancellationToken CancellationToken => _cancellationToken;
+
+        internal Compilation Compilation => _compilationOpt;
 
         public SyntaxTreeAnalysisContext(SyntaxTree tree, AnalyzerOptions options, Action<Diagnostic> reportDiagnostic, Func<Diagnostic, bool> isSupportedDiagnostic, CancellationToken cancellationToken)
         {
@@ -808,6 +1017,17 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             _options = options;
             _reportDiagnostic = reportDiagnostic;
             _isSupportedDiagnostic = isSupportedDiagnostic;
+            _compilationOpt = null;
+            _cancellationToken = cancellationToken;
+        }
+
+        internal SyntaxTreeAnalysisContext(SyntaxTree tree, AnalyzerOptions options, Action<Diagnostic> reportDiagnostic, Func<Diagnostic, bool> isSupportedDiagnostic, Compilation compilation, CancellationToken cancellationToken)
+        {
+            _tree = tree;
+            _options = options;
+            _reportDiagnostic = reportDiagnostic;
+            _isSupportedDiagnostic = isSupportedDiagnostic;
+            _compilationOpt = compilation;
             _cancellationToken = cancellationToken;
         }
 
@@ -817,7 +1037,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         /// <param name="diagnostic"><see cref="Diagnostic"/> to be reported.</param>
         public void ReportDiagnostic(Diagnostic diagnostic)
         {
-            DiagnosticAnalysisContextHelpers.VerifyArguments(diagnostic, _isSupportedDiagnostic);
+            DiagnosticAnalysisContextHelpers.VerifyArguments(diagnostic, _compilationOpt, _isSupportedDiagnostic);
             lock (_reportDiagnostic)
             {
                 _reportDiagnostic(diagnostic);
@@ -832,6 +1052,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
     public struct SyntaxNodeAnalysisContext
     {
         private readonly SyntaxNode _node;
+        private readonly ISymbol _containingSymbol;
         private readonly SemanticModel _semanticModel;
         private readonly AnalyzerOptions _options;
         private readonly Action<Diagnostic> _reportDiagnostic;
@@ -841,31 +1062,47 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         /// <summary>
         /// <see cref="SyntaxNode"/> that is the subject of the analysis.
         /// </summary>
-        public SyntaxNode Node { get { return _node; } }
+        public SyntaxNode Node => _node;
+
+        /// <summary>
+        /// <see cref="ISymbol"/> for the declaration containing the syntax node.
+        /// </summary>
+        public ISymbol ContainingSymbol => _containingSymbol;
 
         /// <summary>
         /// <see cref="CodeAnalysis.SemanticModel"/> that can provide semantic information about the <see cref="SyntaxNode"/>.
         /// </summary>
-        public SemanticModel SemanticModel { get { return _semanticModel; } }
+        public SemanticModel SemanticModel => _semanticModel;
+
+        /// <summary>
+        /// <see cref="CodeAnalysis.Compilation"/> containing the <see cref="SyntaxNode"/>.
+        /// </summary>
+        public Compilation Compilation => _semanticModel?.Compilation;
 
         /// <summary>
         /// Options specified for the analysis.
         /// </summary>
-        public AnalyzerOptions Options { get { return _options; } }
+        public AnalyzerOptions Options => _options;
 
         /// <summary>
         /// Token to check for requested cancellation of the analysis.
         /// </summary>
-        public CancellationToken CancellationToken { get { return _cancellationToken; } }
+        public CancellationToken CancellationToken => _cancellationToken;
 
-        public SyntaxNodeAnalysisContext(SyntaxNode node, SemanticModel semanticModel, AnalyzerOptions options, Action<Diagnostic> reportDiagnostic, Func<Diagnostic, bool> isSupportedDiagnostic, CancellationToken cancellationToken)
+        public SyntaxNodeAnalysisContext(SyntaxNode node, ISymbol containingSymbol, SemanticModel semanticModel, AnalyzerOptions options, Action<Diagnostic> reportDiagnostic, Func<Diagnostic, bool> isSupportedDiagnostic, CancellationToken cancellationToken)
         {
             _node = node;
+            _containingSymbol = containingSymbol;
             _semanticModel = semanticModel;
             _options = options;
             _reportDiagnostic = reportDiagnostic;
             _isSupportedDiagnostic = isSupportedDiagnostic;
             _cancellationToken = cancellationToken;
+        }
+
+        public SyntaxNodeAnalysisContext(SyntaxNode node, SemanticModel semanticModel, AnalyzerOptions options, Action<Diagnostic> reportDiagnostic, Func<Diagnostic, bool> isSupportedDiagnostic, CancellationToken cancellationToken)
+           : this(node, null, semanticModel, options, reportDiagnostic, isSupportedDiagnostic, cancellationToken)
+        {
         }
 
         /// <summary>
@@ -874,7 +1111,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         /// <param name="diagnostic"><see cref="Diagnostic"/> to be reported.</param>
         public void ReportDiagnostic(Diagnostic diagnostic)
         {
-            DiagnosticAnalysisContextHelpers.VerifyArguments(diagnostic, _isSupportedDiagnostic);
+            DiagnosticAnalysisContextHelpers.VerifyArguments(diagnostic, _semanticModel.Compilation, _isSupportedDiagnostic);
             lock (_reportDiagnostic)
             {
                 _reportDiagnostic(diagnostic);
@@ -889,6 +1126,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics
     public struct OperationAnalysisContext
     {
         private readonly IOperation _operation;
+        private readonly ISymbol _containingSymbol;
+        private readonly Compilation _compilation;
         private readonly AnalyzerOptions _options;
         private readonly Action<Diagnostic> _reportDiagnostic;
         private readonly Func<Diagnostic, bool> _isSupportedDiagnostic;
@@ -897,21 +1136,33 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         /// <summary>
         /// <see cref="IOperation"/> that is the subject of the analysis.
         /// </summary>
-        public IOperation Operation { get { return _operation; } }
-        
+        public IOperation Operation => _operation;
+
+        /// <summary>
+        /// <see cref="ISymbol"/> for the declaration containing the operation.
+        /// </summary>
+        public ISymbol ContainingSymbol => _containingSymbol;
+
+        /// <summary>
+        /// <see cref="CodeAnalysis.Compilation"/> containing the <see cref="IOperation"/>.
+        /// </summary>
+        public Compilation Compilation => _compilation;
+
         /// <summary>
         /// Options specified for the analysis.
         /// </summary>
-        public AnalyzerOptions Options { get { return _options; } }
+        public AnalyzerOptions Options => _options;
 
         /// <summary>
         /// Token to check for requested cancellation of the analysis.
         /// </summary>
-        public CancellationToken CancellationToken { get { return _cancellationToken; } }
+        public CancellationToken CancellationToken => _cancellationToken;
 
-        public OperationAnalysisContext(IOperation operation, AnalyzerOptions options, Action<Diagnostic> reportDiagnostic, Func<Diagnostic, bool> isSupportedDiagnostic, CancellationToken cancellationToken)
+        public OperationAnalysisContext(IOperation operation, ISymbol containingSymbol, Compilation compilation, AnalyzerOptions options, Action<Diagnostic> reportDiagnostic, Func<Diagnostic, bool> isSupportedDiagnostic, CancellationToken cancellationToken)
         {
             _operation = operation;
+            _containingSymbol = containingSymbol;
+            _compilation = compilation;
             _options = options;
             _reportDiagnostic = reportDiagnostic;
             _isSupportedDiagnostic = isSupportedDiagnostic;
@@ -924,7 +1175,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         /// <param name="diagnostic"><see cref="Diagnostic"/> to be reported.</param>
         public void ReportDiagnostic(Diagnostic diagnostic)
         {
-            DiagnosticAnalysisContextHelpers.VerifyArguments(diagnostic, _isSupportedDiagnostic);
+            DiagnosticAnalysisContextHelpers.VerifyArguments(diagnostic, _compilation, _isSupportedDiagnostic);
             lock (_reportDiagnostic)
             {
                 _reportDiagnostic(diagnostic);

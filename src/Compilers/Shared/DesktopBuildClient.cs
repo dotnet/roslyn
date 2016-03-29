@@ -31,7 +31,12 @@ namespace Microsoft.CodeAnalysis.CommandLine
         private readonly CompileFunc _compileFunc;
         private readonly IAnalyzerAssemblyLoader _analyzerAssemblyLoader;
 
-        protected DesktopBuildClient(RequestLanguage language, CompileFunc compileFunc, IAnalyzerAssemblyLoader analyzerAssemblyLoader)
+        /// <summary>
+        /// When set it overrides all timeout values in milliseconds when communicating with the server.
+        /// </summary>
+        internal int? TimeoutOverride { get; set; }
+
+        internal DesktopBuildClient(RequestLanguage language, CompileFunc compileFunc, IAnalyzerAssemblyLoader analyzerAssemblyLoader)
         {
             _language = language;
             _compileFunc = compileFunc;
@@ -46,23 +51,23 @@ namespace Microsoft.CodeAnalysis.CommandLine
             var workingDir = Directory.GetCurrentDirectory();
             var buildPaths = new BuildPaths(clientDir: clientDir, workingDir: workingDir, sdkDir: sdkDir);
             var originalArguments = BuildClient.GetCommandLineArgs(arguments).Concat(extraArguments).ToArray();
-            return client.RunCompilation(originalArguments, buildPaths);
+            return client.RunCompilation(originalArguments, buildPaths).ExitCode;
         }
 
-        protected override int RunLocalCompilation(List<string> arguments, string clientDir, string sdkDir)
+        protected override int RunLocalCompilation(string[] arguments, BuildPaths buildPaths, TextWriter textWriter)
         {
-            return _compileFunc(clientDir, sdkDir, arguments.ToArray(), _analyzerAssemblyLoader);
+            return _compileFunc(arguments, buildPaths, textWriter, _analyzerAssemblyLoader);
         }
 
         protected override Task<BuildResponse> RunServerCompilation(
-            List<string> arguments, 
-            BuildPaths buildPaths, 
-            string keepAlive, 
-            string libDirectory, 
+            List<string> arguments,
+            BuildPaths buildPaths,
+            string sessionKey,
+            string keepAlive,
+            string libDirectory,
             CancellationToken cancellationToken)
         {
-            var pipeName = GetPipeName(buildPaths.ClientDirectory);
-            return RunServerCompilationCore(_language, arguments, buildPaths, pipeName, keepAlive, libDirectory, TryCreateServer, cancellationToken);
+            return RunServerCompilationCore(_language, arguments, buildPaths, sessionKey, keepAlive, libDirectory, TimeoutOverride, TryCreateServer, cancellationToken);
         }
 
         public static Task<BuildResponse> RunServerCompilation(
@@ -77,11 +82,12 @@ namespace Microsoft.CodeAnalysis.CommandLine
                 language,
                 arguments,
                 buildPaths,
-                GetPipeNameFromFileInfo(buildPaths.ClientDirectory),
+                GetPipeNameForPath(buildPaths.ClientDirectory),
                 keepAlive,
                 libEnvVariable,
-                TryCreateServerCore,
-                cancellationToken);
+                timeoutOverride: null,
+                tryCreateServerFunc: TryCreateServerCore,
+                cancellationToken: cancellationToken);
         }
 
         private static Task<BuildResponse> RunServerCompilationCore(
@@ -91,13 +97,14 @@ namespace Microsoft.CodeAnalysis.CommandLine
             string pipeName,
             string keepAlive,
             string libEnvVariable,
+            int? timeoutOverride,
             Func<string, string, bool> tryCreateServerFunc,
             CancellationToken cancellationToken)
         {
-
             var clientDir = buildPaths.ClientDirectory;
-
-            var clientMutexName = $"{pipeName}.client";
+            var timeoutNewProcess = timeoutOverride ?? TimeOutMsNewProcess;
+            var timeoutExistingProcess = timeoutOverride ?? TimeOutMsExistingProcess;
+            var clientMutexName = BuildProtocolConstants.GetClientMutexName(pipeName);
             bool holdsMutex;
             using (var clientMutex = new Mutex(initiallyOwned: true,
                                                name: clientMutexName,
@@ -109,11 +116,11 @@ namespace Microsoft.CodeAnalysis.CommandLine
                     {
                         try
                         {
-                            holdsMutex = clientMutex.WaitOne(TimeOutMsNewProcess);
+                            holdsMutex = clientMutex.WaitOne(timeoutNewProcess);
 
                             if (!holdsMutex)
                             {
-                                return Task.FromResult<BuildResponse>(null);
+                                return Task.FromResult<BuildResponse>(new RejectedBuildResponse());
                             }
                         }
                         catch (AbandonedMutexException)
@@ -123,18 +130,17 @@ namespace Microsoft.CodeAnalysis.CommandLine
                     }
 
                     // Check for an already running server
-                    var serverMutexName = $"{pipeName}.server";
-                    Mutex mutexIgnore;
-                    bool wasServerRunning = Mutex.TryOpenExisting(serverMutexName, out mutexIgnore);
-                    var timeout = wasServerRunning ? TimeOutMsExistingProcess : TimeOutMsNewProcess;
+                    var serverMutexName = BuildProtocolConstants.GetServerMutexName(pipeName);
+                    bool wasServerRunning = WasServerMutexOpen(serverMutexName);
+                    var timeout = wasServerRunning ? timeoutExistingProcess : timeoutNewProcess;
 
                     NamedPipeClientStream pipe = null;
 
                     if (wasServerRunning || tryCreateServerFunc(clientDir, pipeName))
                     {
                         pipe = TryConnectToServer(pipeName,
-                                                   timeout,
-                                                   cancellationToken);
+                                                  timeout,
+                                                  cancellationToken);
                     }
 
                     if (pipe != null)
@@ -157,12 +163,25 @@ namespace Microsoft.CodeAnalysis.CommandLine
                 }
             }
 
-            return null;
+            return Task.FromResult<BuildResponse>(new RejectedBuildResponse());
+        }
+
+        internal static bool WasServerMutexOpen(string mutexName)
+        {
+            Mutex mutex;
+            var open = Mutex.TryOpenExisting(mutexName, out mutex);
+            if (open)
+            {
+                mutex.Close();
+                return true;
+            }
+
+            return false;
         }
 
         /// <summary>
-        /// Try to compile using the server. Returns null if a response from the
-        /// server cannot be retrieved.
+        /// Try to compile using the server. Returns a null-containing Task if a response
+        /// from the server cannot be retrieved.
         /// </summary>
         private static async Task<BuildResponse> TryCompile(NamedPipeClientStream pipeStream,
                                                             BuildRequest request,
@@ -181,7 +200,7 @@ namespace Microsoft.CodeAnalysis.CommandLine
                 catch (Exception e)
                 {
                     LogException(e, "Error writing build request.");
-                    return null;
+                    return new RejectedBuildResponse();
                 }
 
                 // Wait for the compilation and a monitor to detect if the server disconnects
@@ -205,17 +224,18 @@ namespace Microsoft.CodeAnalysis.CommandLine
                     catch (Exception e)
                     {
                         LogException(e, "Error reading response");
-                        response = null;
+                        response = new RejectedBuildResponse();
                     }
                 }
                 else
                 {
                     Log("Server disconnect");
-                    response = null;
+                    response = new RejectedBuildResponse();
                 }
 
                 // Cancel whatever task is still around
                 serverCts.Cancel();
+                Debug.Assert(response != null);
                 return response;
             }
         }
@@ -316,7 +336,7 @@ namespace Microsoft.CodeAnalysis.CommandLine
         }
 
         internal static bool TryCreateServerCore(string clientDir, string pipeName)
-        { 
+        {
             // The server should be in the same directory as the client
             string expectedPath = Path.Combine(clientDir, ServerName);
 
@@ -398,13 +418,30 @@ namespace Microsoft.CodeAnalysis.CommandLine
         /// retrieves the name of the pipe for client/server communication on
         /// that instance of the compiler.
         /// </summary>
-        protected virtual string GetPipeName(string compilerExeDirectory)
+        protected override string GetSessionKey(BuildPaths buildPaths)
         {
-            return GetPipeNameFromFileInfo(compilerExeDirectory);
+            return GetPipeNameForPath(buildPaths.ClientDirectory);
         }
 
-        internal static string GetPipeNameFromFileInfo(string compilerExeDirectory)
+        internal static string GetPipeNameForPath(string compilerExeDirectory)
         { 
+            var basePipeName = GetBasePipeName(compilerExeDirectory);
+
+            // Prefix with username and elevation
+            var identity = WindowsIdentity.GetCurrent();
+            var principal = new WindowsPrincipal(identity);
+            var isAdmin = principal.IsInRole(WindowsBuiltInRole.Administrator);
+            var userName = Environment.UserName;
+            return $"{userName}.{isAdmin}.{basePipeName}";
+        }
+
+        internal static string GetBasePipeName(string compilerExeDirectory)
+        {
+            // Normalize away trailing slashes.  File APIs include / exclude this with no 
+            // discernable pattern.  Easiest to normalize it here vs. auditing every caller
+            // of this method.
+            compilerExeDirectory = compilerExeDirectory.TrimEnd(Path.DirectorySeparatorChar);
+
             string basePipeName;
             using (var sha = SHA256.Create())
             {
@@ -414,12 +451,7 @@ namespace Microsoft.CodeAnalysis.CommandLine
                     .Replace("=", string.Empty);
             }
 
-            // Prefix with username and elevation
-            var identity = WindowsIdentity.GetCurrent();
-            var principal = new WindowsPrincipal(identity);
-            var isAdmin = principal.IsInRole(WindowsBuiltInRole.Administrator);
-            var userName = Environment.UserName;
-            return $"{userName}.{isAdmin}.{basePipeName}";
+            return basePipeName;
         }
     }
 }

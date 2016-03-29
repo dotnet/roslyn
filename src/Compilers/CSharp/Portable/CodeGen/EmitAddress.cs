@@ -3,6 +3,7 @@
 using System;
 using System.Collections.Immutable;
 using System.Diagnostics;
+using System.Reflection.Metadata;
 using Microsoft.CodeAnalysis.CodeGen;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Roslyn.Utilities;
@@ -90,6 +91,26 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
 
                 case BoundKind.PseudoVariable:
                     EmitPseudoVariableAddress((BoundPseudoVariable)expression);
+                    break;
+
+                case BoundKind.Call:
+                    var call = (BoundCall)expression;
+                    if (call.Method.RefKind == RefKind.None)
+                    {
+                        goto default;
+                    }
+
+                    EmitCallExpression(call, UseKind.UsedAsAddress);
+                    break;
+
+                case BoundKind.AssignmentOperator:
+                    var assignment = (BoundAssignmentOperator)expression;
+                    if (assignment.RefKind == RefKind.None)
+                    {
+                        goto default;
+                    }
+
+                    EmitAssignmentExpression(assignment, UseKind.UsedAsAddress);
                     break;
 
                 default:
@@ -276,6 +297,10 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
                     var local = ((BoundLocal)expression).LocalSymbol;
                     return !IsStackLocal(local) || local.RefKind != RefKind.None;
 
+                case BoundKind.Call:
+                    var method = ((BoundCall)expression).Method;
+                    return method.RefKind != RefKind.None;
+
                 case BoundKind.Dup:
                     return ((BoundDup)expression).RefKind != RefKind.None;
 
@@ -284,6 +309,9 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
 
                 case BoundKind.Sequence:
                     return HasHome(((BoundSequence)expression).Value);
+
+                case BoundKind.AssignmentOperator:
+                    return ((BoundAssignmentOperator)expression).RefKind != RefKind.None;
 
                 case BoundKind.ComplexConditionalReceiver:
                     Debug.Assert(HasHome(((BoundComplexConditionalReceiver)expression).ValueTypeReceiver));

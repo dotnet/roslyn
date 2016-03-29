@@ -892,12 +892,20 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
 
         private void CheckFeatureAvailability(MessageID feature)
         {
-            if (feature.RequiredFeature() != null)
+            var options = this.Options;
+            if (options.IsFeatureEnabled(feature))
             {
-                if (!this.Options.IsFeatureEnabled(feature))
+                return;
+            }
+
+            string requiredFeature = feature.RequiredFeature();
+            if (requiredFeature != null)
+            {
+                if (!options.IsFeatureEnabled(feature))
                 {
-                    this.AddError(ErrorCode.ERR_FeatureIsExperimental, feature.Localize());
+                    this.AddError(ErrorCode.ERR_FeatureIsExperimental, feature.Localize(), requiredFeature);
                 }
+
                 return;
             }
 
@@ -1068,7 +1076,17 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                         TextWindow.AdvanceChar();
                     }
 
-                    ScanNumericLiteralSingleInteger(_builder, ref underscoreInWrongPlace, ref usedUnderscore, isHex: false, isBinary: false);
+                    if (!(((ch = TextWindow.PeekChar()) >= '0' && ch <= '9') || ch == '_'))
+                    {
+                        // use this for now (CS0595), cant use CS0594 as we dont know 'type'
+                        this.AddError(MakeError(ErrorCode.ERR_InvalidReal));
+                        // add dummy exponent, so parser does not blow up
+                        _builder.Append('0');
+                    }
+                    else
+                    {
+                        ScanNumericLiteralSingleInteger(_builder, ref underscoreInWrongPlace, ref usedUnderscore, isHex: false, isBinary: false);
+                    }
                 }
 
                 if (hasExponent || hasDecimal)
@@ -1609,7 +1627,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 char surrogateCharacter = SlidingTextWindow.InvalidCharacter;
                 bool isEscaped = false;
                 char ch = TextWindow.PeekChar();
-            top:
+                top:
                 switch (ch)
                 {
                     case '\\':
@@ -1808,7 +1826,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 }
             }
 
-        LoopExit:
+            LoopExit:
             var width = TextWindow.Width; // exact size of input characters
             if (_identLen > 0)
             {
@@ -1842,7 +1860,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 return true;
             }
 
-        Fail:
+            Fail:
             info.Text = null;
             info.StringValue = null;
             TextWindow.Reset(start);
@@ -1914,7 +1932,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 // pairs aren't separately valid).
 
                 bool isEscaped = false;
-            top:
+                top:
                 switch (consumedChar)
                 {
                     case '\\':
@@ -2075,7 +2093,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 }
             }
 
-        LoopExit:
+            LoopExit:
             if (_identLen > 0)
             {
                 // NOTE: If we don't intern the string value, then we won't get a hit
@@ -2384,7 +2402,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             int hashCode = Hash.FnvOffsetBias;  // FNV base
             bool onlySpaces = true;
 
-        top:
+            top:
             char ch = TextWindow.PeekChar();
 
             switch (ch)

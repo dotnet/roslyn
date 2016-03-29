@@ -1,13 +1,10 @@
-{
-  "supports": {
-    "net46.app": {},
-    "dnxcore50.app": {}
-  },
+﻿{
   "dependencies": {
-    "Microsoft.VisualBasic": "10.0.0"
+    "Microsoft.VisualBasic": "10.0.0",
+    "System.AppContext": "4.0.0"
   },
   "frameworks": {
-    "dotnet": {
+    "dotnet5.4": {
       "imports": "portable-net452"
     }
   }

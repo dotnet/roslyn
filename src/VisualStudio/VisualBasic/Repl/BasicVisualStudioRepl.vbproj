@@ -23,6 +23,10 @@
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
   </PropertyGroup>
   <ItemGroup Label="Project References">
+    <ProjectReference Include="..\..\..\Compilers\Core\Portable\CodeAnalysis.csproj">
+      <Project>{1ee8cad3-55f9-4d91-96b2-084641da9a6c}</Project>
+      <Name>CodeAnalysis</Name>
+    </ProjectReference>
     <ProjectReference Include="..\..\..\InteractiveWindow\Editor\InteractiveWindow.csproj">
       <Project>{01e9bd68-0339-4a13-b42f-a3ca84d164f3}</Project>
       <Name>InteractiveWindow</Name>
@@ -141,6 +145,7 @@
     <Compile Include="VisualBasicVsInteractiveWindowProvider.vb" />
     <Compile Include="VisualBasicVsInteractiveWindowPackage.vb" />
     <Compile Include="VisualBasicVsInteractiveWindowCommandProvider.vb" />
+    <Compile Include="VisualBasicVsResetInteractiveCommand.vb" />
     <Content Include="Resources\ScriptFile.ico" />
     <Content Include="VisualBasicInteractive.rsp" />
   </ItemGroup>

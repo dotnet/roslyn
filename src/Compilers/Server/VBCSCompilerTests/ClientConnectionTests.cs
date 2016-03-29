@@ -14,7 +14,7 @@ using System.Runtime.InteropServices;
 
 namespace Microsoft.CodeAnalysis.CompilerServer.UnitTests
 {
-    public class ClientConnectionTests 
+    public class ClientConnectionTests
     {
         private sealed class TestableClientConnection : ClientConnection
         {
@@ -24,7 +24,7 @@ namespace Microsoft.CodeAnalysis.CompilerServer.UnitTests
             internal Action<BuildRequest> ValidateBuildRequestFunc;
 
             internal TestableClientConnection(ICompilerServerHost compilerServerHost, Stream stream)
-                :base(compilerServerHost, "identifier", stream)
+                : base(compilerServerHost, "identifier", stream)
             {
                 Stream = stream;
                 CreateMonitorDisconnectTaskFunc = ct => Task.Delay(-1, ct);
@@ -32,7 +32,6 @@ namespace Microsoft.CodeAnalysis.CompilerServer.UnitTests
 
             public override void Close()
             {
-
             }
 
             protected override void ValidateBuildRequest(BuildRequest request)
@@ -73,7 +72,6 @@ namespace Microsoft.CodeAnalysis.CompilerServer.UnitTests
 
             public override void Flush()
             {
-
             }
 
             public override int Read(byte[] buffer, int offset, int count)
@@ -115,8 +113,7 @@ namespace Microsoft.CodeAnalysis.CompilerServer.UnitTests
         private static readonly BuildResponse s_emptyBuildResponse = new CompletedBuildResponse(
             returnCode: 0,
             utf8output: false,
-            output: string.Empty,
-            errorOutput: string.Empty);
+            output: string.Empty);
 
         private static TestableClientConnection CreateConnection(Stream stream, ICompilerServerHost compilerServerHost = null)
         {
@@ -129,7 +126,7 @@ namespace Microsoft.CodeAnalysis.CompilerServer.UnitTests
         {
             var stream = new Mock<Stream>(MockBehavior.Strict);
             var connection = CreateConnection(stream.Object);
-            var result = await connection.HandleConnection(CancellationToken.None).ConfigureAwait(true);
+            var result = await connection.HandleConnection().ConfigureAwait(true);
             Assert.Equal(CompletionReason.CompilationNotStarted, result.CompletionReason);
         }
 
@@ -151,7 +148,7 @@ namespace Microsoft.CodeAnalysis.CompilerServer.UnitTests
 
             var connection = CreateConnection(stream.Object);
             connection.ServeBuildRequestFunc = delegate { return Task.FromResult(s_emptyBuildResponse); };
-            var connectionData = await connection.HandleConnection(CancellationToken.None).ConfigureAwait(true);
+            var connectionData = await connection.HandleConnection().ConfigureAwait(true);
             Assert.Equal(CompletionReason.ClientDisconnect, connectionData.CompletionReason);
             Assert.Null(connectionData.KeepAlive);
         }
@@ -185,7 +182,7 @@ namespace Microsoft.CodeAnalysis.CompilerServer.UnitTests
                 return monitorTaskSource.Task;
             };
 
-            var handleTask = clientConnection.HandleConnection(CancellationToken.None);
+            var handleTask = clientConnection.HandleConnection();
 
             // Wait until the monitor task is actually created and running. 
             await readyTaskSource.Task.ConfigureAwait(false);
@@ -210,9 +207,41 @@ namespace Microsoft.CodeAnalysis.CompilerServer.UnitTests
             var connection = CreateConnection(stream);
             connection.ServeBuildRequestFunc = (req, token) => Task.FromResult(s_emptyBuildResponse);
             connection.ValidateBuildRequestFunc = _ => { validated = true; };
-            await connection.HandleConnection(CancellationToken.None).ConfigureAwait(true);
+            await connection.HandleConnection().ConfigureAwait(true);
 
             Assert.True(validated);
+        }
+
+        [Fact]
+        public async Task NoCompilationsRejectBuildRequest()
+        {
+            var stream = new TestableStream();
+            await s_emptyCSharpBuildRequest.WriteAsync(stream.ReadStream, CancellationToken.None).ConfigureAwait(true);
+            stream.ReadStream.Position = 0;
+
+            var connection = CreateConnection(stream);
+            var connectionData = await connection.HandleConnection(allowCompilationRequests: false).ConfigureAwait(false);
+            Assert.Equal(CompletionReason.CompilationNotStarted, connectionData.CompletionReason);
+
+            stream.WriteStream.Position = 0;
+            var response = await BuildResponse.ReadAsync(stream.WriteStream).ConfigureAwait(false);
+            Assert.Equal(BuildResponse.ResponseType.Rejected, response.Type);
+        }
+
+        [Fact]
+        public async Task NoCompilationsProcessShutdown()
+        {
+            var stream = new TestableStream();
+            await BuildRequest.CreateShutdown().WriteAsync(stream.ReadStream, CancellationToken.None).ConfigureAwait(true);
+            stream.ReadStream.Position = 0;
+
+            var connection = CreateConnection(stream);
+            var connectionData = await connection.HandleConnection(allowCompilationRequests: false).ConfigureAwait(false);
+            Assert.Equal(CompletionReason.ClientShutdownRequest, connectionData.CompletionReason);
+
+            stream.WriteStream.Position = 0;
+            var response = await BuildResponse.ReadAsync(stream.WriteStream).ConfigureAwait(false);
+            Assert.Equal(BuildResponse.ResponseType.Shutdown, response.Type);
         }
     }
 }

@@ -100,6 +100,10 @@
       <Private>false</Private>
     </Reference>
     <Reference Include="Microsoft.VisualStudio.GraphModel, Version=$(VisualStudioReferenceAssemblyVersion), Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a" />
+    <Reference Include="Microsoft.VisualStudio.ImageCatalog, Version=14.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL" />
+    <Reference Include="Microsoft.VisualStudio.Imaging.Interop.14.0.DesignTime, Version=14.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
+      <EmbedInteropTypes>True</EmbedInteropTypes>
+    </Reference>
     <Reference Include="Microsoft.VisualStudio.Language.Intellisense, Version=$(VisualStudioReferenceAssemblyVersion), Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a">
       <Private>false</Private>
     </Reference>
@@ -154,6 +158,7 @@
     <Reference Include="System" />
     <Reference Include="System.ComponentModel.Composition" />
     <Reference Include="System.Core" />
+    <Reference Include="System.Runtime.Serialization" />
     <Reference Include="System.Windows.Forms" />
     <Reference Include="System.Xaml" />
     <Reference Include="System.Xml" />
@@ -198,7 +203,9 @@
     <Compile Include="Debugging\LocationInfoGetter.cs" />
     <Compile Include="LanguageService\HACK_CSharpCreateServicesOnUIThread.cs" />
     <Compile Include="ObjectBrowser\CSharpLibraryService.cs" />
+    <Compile Include="ObjectBrowser\CSharpSyncClassViewCommandHandler.cs" />
     <Compile Include="ObjectBrowser\ListItemFactory.cs" />
+    <Compile Include="Options\NamingStylesOptionPage.cs" />
     <Compile Include="Options\AdvancedOptionPageStrings.cs" />
     <Compile Include="Options\IntelliSenseOptionPageStrings.cs" />
     <Compile Include="Venus\CSharpAdditionalFormattingRuleLanguageService.cs" />
@@ -237,7 +244,7 @@
     <Compile Include="Options\Formatting\FormattingSpacingPage.cs" />
     <Compile Include="Options\Formatting\StyleViewModel.cs" />
     <Compile Include="Options\Formatting\WrappingViewModel.cs" />
-    <Compile Include="Options\Formatting\FormattingStylePage.cs" />
+    <Compile Include="Options\Formatting\CodeStylePage.cs" />
     <Compile Include="Options\Formatting\FormattingWrappingPage.cs" />
     <Compile Include="Options\IntelliSenseOptionPage.cs" />
     <Compile Include="Options\IntelliSenseOptionPageControl.xaml.cs">
@@ -245,7 +252,6 @@
     </Compile>
     <Compile Include="Progression\CSharpGraphProvider.cs" />
     <Compile Include="Progression\CSharpProgressionLanguageService.cs" />
-    <Compile Include="ProjectSystemShim\CSharpProject.cs" />
     <Compile Include="ProjectSystemShim\CSharpProjectShim.cs" />
     <Compile Include="ProjectSystemShim\CSharpProjectShim.ICSCompiler.cs" />
     <Compile Include="ProjectSystemShim\CSharpProjectShim.ICSCompilerConfig.cs" />

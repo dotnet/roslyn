@@ -1,6 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 #pragma warning disable CS0618
+
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -231,7 +232,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 if (analyzerAssembly == null)
                 {
                     // This can be null if NoOpAnalyzerAssemblyLoader is used.
-                    return; 
+                    return;
                 }
             }
             catch (Exception e)
@@ -357,13 +358,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                                          where attributeSupportedLanguages != null
                                          select attributeSupportedLanguages;
 
-            IEnumerable<string> supportedLanguages = SpecializedCollections.EmptyEnumerable<string>();
-            foreach (IEnumerable<string> languages in attributeLanguagesList)
-            {
-                supportedLanguages = supportedLanguages.Concat(languages);
-            }
-
-            return supportedLanguages;
+            return attributeLanguagesList.SelectMany(x => x);
         }
 
         private static IEnumerable<string> GetSupportedLanguages(PEModule peModule, CustomAttributeHandle customAttrHandle)

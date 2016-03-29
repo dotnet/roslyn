@@ -38,7 +38,12 @@ namespace Microsoft.CodeAnalysis
                 throw new ArgumentNullException(nameof(textContainer));
             }
 
-            GetWorkspaceRegistration(textContainer).SetWorkspaceAndRaiseEvents(this);
+            var registration = GetWorkspaceRegistration(textContainer);
+            registration.SetWorkspace(this);
+            this.ScheduleTask(() =>
+            {
+                registration.RaiseEvents();
+            }, "Workspace.RegisterText");
         }
 
         /// <summary>
@@ -51,7 +56,12 @@ namespace Microsoft.CodeAnalysis
                 throw new ArgumentNullException(nameof(textContainer));
             }
 
-            GetWorkspaceRegistration(textContainer).SetWorkspaceAndRaiseEvents(null);
+            var registration = GetWorkspaceRegistration(textContainer);
+
+            if (registration.Workspace == this)
+            {
+                registration.SetWorkspaceAndRaiseEvents(null);
+            }
         }
 
         private static WorkspaceRegistration CreateRegistration(SourceTextContainer container)

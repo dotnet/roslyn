@@ -420,7 +420,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
             else
             {
-                result = BindInvocationExpressionContinued(node, expression, methodName, overloadResolutionResult, analyzedArguments, methodGroup, delegateType, diagnostics, queryClause);
+                result = BindInvocationExpressionContinued(node, expression, methodName, overloadResolutionResult, analyzedArguments, methodGroup, delegateType, diagnostics, false, queryClause);
             }
 
             overloadResolutionResult.Free();
@@ -488,7 +488,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                     typeArguments,
                     analyzedArguments,
                     invokedAsExtensionMethod: resolution.IsExtensionMethodGroup,
-                    isDelegate: false);
+                    isDelegate: false,
+                    extensionMethodsOfSameViabilityAreAvailable: resolution.ExtensionMethodsOfSameViabilityAreAvailable);
             }
             else if (!resolution.IsEmpty)
             {
@@ -503,7 +504,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                     {
                         // we want to force any unbound lambda arguments to cache an appropriate conversion if possible; see 9448.
                         DiagnosticBag discarded = DiagnosticBag.GetInstance();
-                        result = BindInvocationExpressionContinued(syntax, expression, methodName, resolution.OverloadResolutionResult, resolution.AnalyzedArguments, resolution.MethodGroup, null, discarded, queryClause);
+                        result = BindInvocationExpressionContinued(syntax, expression, methodName, resolution.OverloadResolutionResult, resolution.AnalyzedArguments, resolution.MethodGroup, null, discarded,
+                                                                   resolution.ExtensionMethodsOfSameViabilityAreAvailable, queryClause);
                         discarded.Free();
                     }
 
@@ -558,7 +560,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     {
                         result = BindInvocationExpressionContinued(
                             syntax, expression, methodName, resolution.OverloadResolutionResult, resolution.AnalyzedArguments,
-                            resolution.MethodGroup, null, diagnostics, queryClause);
+                            resolution.MethodGroup, null, diagnostics, resolution.ExtensionMethodsOfSameViabilityAreAvailable, queryClause);
                     }
                 }
             }
@@ -681,6 +683,10 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <param name="methodGroup">Method group if the invocation represents a potentially overloaded member.</param>
         /// <param name="delegateTypeOpt">Delegate type if method group represents a delegate.</param>
         /// <param name="diagnostics">Diagnostics.</param>
+        /// <param name="extensionMethodsOfSameViabilityAreAvailable">
+        /// Indicates that there are additional extension method candidates of the same lookup viability in cases when 
+        /// none of the instance methods are applicable to the argument list.
+        /// </param>
         /// <param name="queryClause">The syntax for the query clause generating this invocation expression, if any.</param>
         /// <returns>BoundCall or error expression representing the invocation.</returns>
         private BoundCall BindInvocationExpressionContinued(
@@ -692,6 +698,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             MethodGroup methodGroup,
             NamedTypeSymbol delegateTypeOpt,
             DiagnosticBag diagnostics,
+            bool extensionMethodsOfSameViabilityAreAvailable,
             CSharpSyntaxNode queryClause = null)
         {
             Debug.Assert(node != null);
@@ -718,11 +725,23 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (!result.Succeeded)
             {
-                // If the arguments had an error reported about them then suppress further error
-                // reporting for overload resolution. 
-
-                if (!analyzedArguments.HasErrors)
+                if (analyzedArguments.HasErrors)
                 {
+                    // Errors for arguments have already been reported, except for unbound lambdas.
+                    // We report those now.
+                    foreach (var argument in analyzedArguments.Arguments)
+                    {
+                        var unboundLambda = argument as UnboundLambda;
+                        if (unboundLambda != null)
+                        {
+                            var boundWithErrors = unboundLambda.BindForErrorRecovery();
+                            diagnostics.AddRange(boundWithErrors.Diagnostics);
+                        }
+                    }
+                }
+                else
+                {
+                    // Since there were no argument errors to report, we report an error on the invocation itself.
                     string name = (object)delegateTypeOpt == null ? methodName : null;
                     result.ReportDiagnostics(this, GetLocationForOverloadResolutionDiagnostic(node, expression), diagnostics, name,
                         methodGroup.Receiver, analyzedArguments, methodGroup.Methods.ToImmutable(),
@@ -731,7 +750,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
 
                 return CreateBadCall(node, methodGroup.Name, invokedAsExtensionMethod && analyzedArguments.Arguments.Count > 0 && (object)methodGroup.Receiver == (object)analyzedArguments.Arguments[0] ? null : methodGroup.Receiver,
-                    GetOriginalMethods(result), methodGroup.ResultKind, methodGroup.TypeArguments.ToImmutable(), analyzedArguments, invokedAsExtensionMethod: invokedAsExtensionMethod, isDelegate: ((object)delegateTypeOpt != null));
+                    GetOriginalMethods(result), methodGroup.ResultKind, methodGroup.TypeArguments.ToImmutable(), analyzedArguments, invokedAsExtensionMethod: invokedAsExtensionMethod, isDelegate: ((object)delegateTypeOpt != null),
+                    extensionMethodsOfSameViabilityAreAvailable: extensionMethodsOfSameViabilityAreAvailable);
             }
 
             // Otherwise, there were no dynamic arguments and overload resolution found a unique best candidate. 
@@ -955,7 +975,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             ImmutableArray<TypeSymbol> typeArguments,
             AnalyzedArguments analyzedArguments,
             bool invokedAsExtensionMethod,
-            bool isDelegate)
+            bool isDelegate,
+            bool extensionMethodsOfSameViabilityAreAvailable)
         {
             MethodSymbol method;
             ImmutableArray<BoundExpression> args;
@@ -970,10 +991,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                 methods = constructedMethods.ToImmutableAndFree();
             }
 
-            if (methods.Length == 1)
+            if (methods.Length == 1 && !extensionMethodsOfSameViabilityAreAvailable)
             {
-                // If there is only one method in the group, we should attempt to bind to it.  That includes
-                // binding any lambdas in the argument list against the method's parameter types.
+                // If there is only one method in the group and no additional extension methods with the same lookup viability,
+                // we should attempt to bind to it.  That includes binding any lambdas in the argument list against
+                // the method's parameter types.
                 method = methods[0];
                 args = BuildArgumentsForErrorRecovery(analyzedArguments, method.Parameters);
             }

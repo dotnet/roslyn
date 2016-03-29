@@ -2,11 +2,8 @@
 
 REM Parse Arguments.
 
-set NugetZipUrlRoot=https://dotnetci.blob.core.windows.net/roslyn
-set NugetZipUrl=%NuGetZipUrlRoot%/nuget.33.zip
 set RoslynRoot=%~dp0
 set BuildConfiguration=Debug
-set BuildRestore=false
 
 REM Because override the C#/VB toolset to build against our LKG package, it is important
 REM that we do not reuse MSBuild nodes from other jobs/builds on the machine. Otherwise, 
@@ -20,54 +17,63 @@ if /I "%1" == "/debug" set BuildConfiguration=Debug&&shift&& goto :ParseArgument
 if /I "%1" == "/release" set BuildConfiguration=Release&&shift&& goto :ParseArguments
 if /I "%1" == "/test32" set Test64=false&&shift&& goto :ParseArguments
 if /I "%1" == "/test64" set Test64=true&&shift&& goto :ParseArguments
-if /I "%1" == "/perf" set Perf=true&&shift&& goto :ParseArguments
-if /I "%1" == "/restore" set BuildRestore=true&&shift&& goto :ParseArguments
+if /I "%1" == "/testDeterminism" set TestDeterminism=true&&shift&& goto :ParseArguments
+
+REM /buildTimeLimit is the time limit, measured in minutes, for the Jenkins job that runs
+REM the build. The Jenkins script netci.groovy passes the time limit to this script.
+
+REM netci.groovy does not yet pass the time limit to cibuild.cmd. We are making this
+REM change to cibuild.cmd in all branches *before* modifying netci.groovy. If we didn't
+REM do things in this order, we'd have to modify cibuild.cmd in *all* branches *at the
+REM same time* we made the change to netci.groovy. This way, we'll be able to first
+REM modify netci.groovy to pass the new parameter without causing any harm. Then we'll
+REM be able go to each branch in turn, modifying cibuild.cmd and BuildAndTest.cmd to
+REM actually make use of the new parameter.
+if /I "%1" == "/buildTimeLimit" set BuildTimeLimit=%2&&shift&&shift&& goto:ParseArguments
+
 call :Usage && exit /b 1
 :DoneParsing
 
-if defined Perf (
-  if defined Test64 (
-    echo ERROR: Cannot combine /perf with either /test32 or /test64
-    call :Usage && exit /b 1
-  )
-
-  if "%BuildConfiguration%" == "Debug" (
-    echo Warning: Running perf tests on a Debug build is not recommended. Use /release for a Release build.
-  )
-)
-
 call "C:\Program Files (x86)\Microsoft Visual Studio 14.0\Common7\Tools\VsDevCmd.bat" || goto :BuildFailed
 
+powershell -noprofile -executionPolicy RemoteSigned -file "%RoslynRoot%\build\scripts\check-branch.ps1" || goto :BuildFailed
+
+REM Output the commit that we're building, for reference in Jenkins logs
+echo Building this commit:
+git show --no-patch --pretty=raw HEAD
+
 REM Restore the NuGet packages 
-if "%BuildRestore%" == "true" (
-    call "%RoslynRoot%\Restore.cmd" || goto :BuildFailed
-) else (
-    powershell -noprofile -executionPolicy RemoteSigned -command "%RoslynRoot%\build\scripts\restore.ps1 %NugetZipUrl%" || goto :BuildFailed
-)
+call "%RoslynRoot%\Restore.cmd" || goto :BuildFailed
+
+REM Ensure the binaries directory exists because msbuild can fail when part of the path to LogFile isn't present.
+set bindir=%RoslynRoot%Binaries
+if not exist "%bindir%" mkdir "%bindir%" || goto :BuildFailed
 
 REM Set the build version only so the assembly version is set to the semantic version,
-REM which allows analyzers to laod because the compiler has binding redirects to the
+REM which allows analyzers to load because the compiler has binding redirects to the
 REM semantic version
-msbuild %MSBuildAdditionalCommandLineArgs% /p:BuildVersion=0.0.0.0 %RoslynRoot%build/Toolset.sln /p:NuGetRestorePackages=false /p:Configuration=%BuildConfiguration% /fileloggerparameters:LogFile=%RoslynRoot%Binaries\Bootstrap.log || goto :BuildFailed
+msbuild %MSBuildAdditionalCommandLineArgs% /p:BuildVersion=0.0.0.0 "%RoslynRoot%build\Toolset.sln" /p:NuGetRestorePackages=false /p:Configuration=%BuildConfiguration% /fileloggerparameters:LogFile="%bindir%\Bootstrap.log" || goto :BuildFailed
+powershell -noprofile -executionPolicy RemoteSigned -file "%RoslynRoot%\build\scripts\check-msbuild.ps1" "%bindir%\Bootstrap.log" || goto :BuildFailed
 
-if not exist "%RoslynRoot%Binaries\Bootstrap" mkdir "%RoslynRoot%Binaries\Bootstrap" || goto :BuildFailed
-move "Binaries\%BuildConfiguration%\*" "%RoslynRoot%Binaries\Bootstrap" || goto :BuildFailed
-copy "build\scripts\*" "%RoslynRoot%Binaries\Bootstrap" || goto :BuildFailed
+if not exist "%bindir%\Bootstrap" mkdir "%bindir%\Bootstrap" || goto :BuildFailed
+move "Binaries\%BuildConfiguration%\*" "%bindir%\Bootstrap" || goto :BuildFailed
+copy "build\bootstrap\*" "%bindir%\Bootstrap" || goto :BuildFailed
 
 REM Clean the previous build
-msbuild %MSBuildAdditionalCommandLineArgs% /t:Clean build/Toolset.sln /p:Configuration=%BuildConfiguration%  /fileloggerparameters:LogFile=%RoslynRoot%Binaries\BootstrapClean.log || goto :BuildFailed
+msbuild %MSBuildAdditionalCommandLineArgs% /t:Clean build/Toolset.sln /p:Configuration=%BuildConfiguration%  /fileloggerparameters:LogFile="%bindir%\BootstrapClean.log" || goto :BuildFailed
 
-call :TerminateCompilerServer
+call :TerminateBuildProcesses
 
-if defined Perf (
-  set Target=Build
-) else (
-  set Target=BuildAndTest
+if defined TestDeterminism (
+    powershell -noprofile -executionPolicy RemoteSigned -file "%RoslynRoot%\build\scripts\test-determinism.ps1" "%bindir%\Bootstrap" || goto :BuildFailed
+    call :TerminateBuildProcesses
+    exit /b 0
 )
 
-msbuild %MSBuildAdditionalCommandLineArgs% /p:BootstrapBuildPath=%RoslynRoot%Binaries\Bootstrap BuildAndTest.proj /t:%Target% /p:Configuration=%BuildConfiguration% /p:Test64=%Test64% /fileloggerparameters:LogFile=%RoslynRoot%Binaries\Build.log || goto :BuildFailed
+msbuild %MSBuildAdditionalCommandLineArgs% /p:BootstrapBuildPath="%bindir%\Bootstrap" BuildAndTest.proj /p:Configuration=%BuildConfiguration% /p:Test64=%Test64% /p:PathMap="%RoslynRoot%=q:\roslyn" /p:Feature=pdb-path-determinism /fileloggerparameters:LogFile="%bindir%\Build.log";verbosity=diagnostic || goto :BuildFailed
+powershell -noprofile -executionPolicy RemoteSigned -file "%RoslynRoot%\build\scripts\check-msbuild.ps1" "%bindir%\Build.log" || goto :BuildFailed
 
-call :TerminateCompilerServer
+call :TerminateBuildProcesses
 
 REM Verify that our project.lock.json files didn't change as a result of 
 REM restore.  If they do then the commit changed the dependencies without 
@@ -79,35 +85,29 @@ REM    git diff --exit-code
 REM    exit /b 1
 REM )
 
-if defined Perf (
-  if DEFINED JenkinsCIPerfCredentials (
-    powershell .\ciperf.ps1 -BinariesDirectory %RoslynRoot%Binaries\%BuildConfiguration% %JenkinsCIPerfCredentials% || goto :BuildFailed
-  ) else (
-    powershell .\ciperf.ps1 -BinariesDirectory %RoslynRoot%Binaries\%BuildConfiguration% -StorageAccountName roslynscratch -StorageContainer drops -SCRAMScope 'Roslyn\Azure' || goto :BuildFailed
-  )
-)
 
 REM Ensure caller sees successful exit.
 exit /b 0
 
 :Usage
-@echo Usage: cibuild.cmd [/debug^|/release] [/test32^|/test64^|/perf]
+@echo Usage: cibuild.cmd [/debug^|/release] [/test32^|/test64] [/restore]
 @echo   /debug   Perform debug build.  This is the default.
 @echo   /release Perform release build.
 @echo   /test32  Run unit tests in the 32-bit runner.  This is the default.
 @echo   /test64  Run units tests in the 64-bit runner.
-@echo   /perf    Submit a job to the performance test system. Usually combined
-@echo            with /release. May not be combined with /test32 or /test64.
 @echo.
 @goto :eof
 
 :BuildFailed
 echo Build failed with ERRORLEVEL %ERRORLEVEL%
-call :TerminateCompilerServer
+call :TerminateBuildProcesses
 exit /b 1
 
-:TerminateCompilerServer
+:TerminateBuildProcesses
 @REM Kill any instances VBCSCompiler.exe to release locked files, ignoring stderr if process is not open
-@REM This prevents future CI runs from failing hile trying to delete those files.
+@REM This prevents future CI runs from failing while trying to delete those files.
+@REM Kill any instances of msbuild.exe to ensure that we never reuse nodes (e.g. if a non-roslyn CI run
+@REM left some floating around).
 
 taskkill /F /IM vbcscompiler.exe 2> nul
+taskkill /F /IM msbuild.exe 2> nul

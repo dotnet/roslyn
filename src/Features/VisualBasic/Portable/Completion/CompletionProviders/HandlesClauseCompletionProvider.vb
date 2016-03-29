@@ -91,18 +91,16 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
             Dim previousToken = token.GetPreviousToken()
             Select Case previousToken.Kind
                 Case SyntaxKind.MeKeyword, SyntaxKind.MyClassKeyword
-                    result = context.SemanticModel.LookupSymbols(context.Position, TryCast(containingType, INamespaceOrTypeSymbol)) _
-                        .OfType(Of IEventSymbol)()
+                    result = context.SemanticModel.LookupSymbols(context.Position, containingType).OfType(Of IEventSymbol)()
                 Case SyntaxKind.MyBaseKeyword
-                    result = context.SemanticModel.LookupSymbols(context.Position, TryCast(containingType.BaseType, INamespaceOrTypeSymbol)) _
-                        .OfType(Of IEventSymbol)()
+                    result = context.SemanticModel.LookupSymbols(context.Position, containingType.BaseType).OfType(Of IEventSymbol)()
                 Case SyntaxKind.IdentifierToken
                     ' We must be looking at a WithEvents property.
                     Dim symbolInfo = context.SemanticModel.GetSymbolInfo(previousToken, cancellationToken)
                     If symbolInfo.Symbol IsNot Nothing Then
-                        Dim type = TryCast(symbolInfo.Symbol, IPropertySymbol).Type
+                        Dim type = TryCast(symbolInfo.Symbol, IPropertySymbol)?.Type
                         If type IsNot Nothing Then
-                            result = context.SemanticModel.LookupSymbols(token.SpanStart, TryCast(type, INamespaceOrTypeSymbol)).OfType(Of IEventSymbol)()
+                            result = context.SemanticModel.LookupSymbols(token.SpanStart, type).OfType(Of IEventSymbol)()
                         End If
                     End If
             End Select
@@ -116,7 +114,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
                                               context As VisualBasicSyntaxContext) As CompletionItem
 
             Dim displayAndInsertionText = CompletionUtilities.GetDisplayAndInsertionText(
-                symbol, isAttributeNameContext:=False, isAfterDot:=context.IsRightOfNameSeparator, isWithinAsyncMethod:=DirectCast(context, VisualBasicSyntaxContext).WithinAsyncMethod, syntaxFacts:=context.GetLanguageService(Of ISyntaxFactsService)())
+                symbol, isAttributeNameContext:=False, isAfterDot:=context.IsRightOfNameSeparator, isWithinAsyncMethod:=context.WithinAsyncMethod, syntaxFacts:=context.GetLanguageService(Of ISyntaxFactsService)())
 
             Return New SymbolCompletionItem(Me,
                                             displayAndInsertionText.Item1,
@@ -144,7 +142,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
 
         Protected Overrides Async Function CreateContext(document As Document, position As Integer, cancellationToken As CancellationToken) As Task(Of AbstractSyntaxContext)
             Dim semanticModel = Await document.GetSemanticModelForSpanAsync(New TextSpan(position, 0), cancellationToken).ConfigureAwait(False)
-            Return VisualBasicSyntaxContext.CreateContext(document.Project.Solution.Workspace, semanticModel, position, cancellationToken)
+            Return Await VisualBasicSyntaxContext.CreateContextAsync(document.Project.Solution.Workspace, semanticModel, position, cancellationToken).ConfigureAwait(False)
         End Function
 
         Protected Overrides Function GetTextChangeSpan(text As SourceText, position As Integer) As TextSpan

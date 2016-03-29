@@ -140,7 +140,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Debugging
             else
             {
                 // They have a namespace or nested type qualified name.  Walk up to the root namespace trying to match.
-                var containers = _solution.GetGlobalNamespacesAsync(cancellationToken).WaitAndGetResult(cancellationToken);
+                var containers = await _solution.GetGlobalNamespacesAsync(cancellationToken).ConfigureAwait(false);
                 return FindMembers(containers, nameParts.ToArray());
             }
         }

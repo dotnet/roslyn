@@ -131,7 +131,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
             !mr.Properties.Aliases.IsDefault && mr.Properties.Aliases.Contains(aliasName));
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Workspace), WorkItem(546171, "DevDiv")]
+        [Fact, Trait(Traits.Feature, Traits.Features.Workspace), WorkItem(546171, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546171")]
         public void Test_SharedMetadataReferencesWithAliases()
         {
             var projPath1 = @"CSharpProject\CSharpProject_ExternAlias.csproj";
@@ -180,9 +180,9 @@ namespace Microsoft.CodeAnalysis.UnitTests
                 Assert.NotNull(mdp2Sys3);
 
                 // all references to System.dll share the same metadata bytes
-                Assert.Same(mdp1Sys1, mdp1Sys2);
-                Assert.Same(mdp1Sys1, mdp2Sys1);
-                Assert.Same(mdp1Sys1, mdp2Sys3);
+                Assert.Same(mdp1Sys1.Id, mdp1Sys2.Id);
+                Assert.Same(mdp1Sys1.Id, mdp2Sys1.Id);
+                Assert.Same(mdp1Sys1.Id, mdp2Sys3.Id);
             }
         }
 
@@ -192,7 +192,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
             return fnGetMetadata?.Invoke(mref, null) as Metadata;
         }
 
-        [WorkItem(552981, "DevDiv")]
+        [WorkItem(552981, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/552981")]
         [Fact, Trait(Traits.Feature, Traits.Features.Workspace)]
         public void TestOpenSolution_DuplicateProjectGuids()
         {
@@ -202,7 +202,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Workspace)]
-        [WorkItem(831379, "DevDiv")]
+        [WorkItem(831379, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/831379")]
         public void GetCompilationWithCircularProjectReferences()
         {
             CreateFiles(GetSolutionWithCircularProjectReferences());
@@ -371,7 +371,7 @@ class C1
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Workspace)]
-        [WorkItem(739043, "DevDiv")]
+        [WorkItem(739043, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/739043")]
         public void TestOpenProject_CSharp_WithoutPrefer32BitAndConsoleApplication()
         {
             CreateFiles(GetSimpleCSharpSolutionFiles()
@@ -383,7 +383,7 @@ class C1
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Workspace)]
-        [WorkItem(739043, "DevDiv")]
+        [WorkItem(739043, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/739043")]
         public void TestOpenProject_CSharp_WithoutPrefer32BitAndLibrary()
         {
             CreateFiles(GetSimpleCSharpSolutionFiles()
@@ -396,7 +396,7 @@ class C1
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Workspace)]
-        [WorkItem(739043, "DevDiv")]
+        [WorkItem(739043, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/739043")]
         public void TestOpenProject_CSharp_WithPrefer32BitAndConsoleApplication()
         {
             CreateFiles(GetSimpleCSharpSolutionFiles()
@@ -408,7 +408,7 @@ class C1
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Workspace)]
-        [WorkItem(739043, "DevDiv")]
+        [WorkItem(739043, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/739043")]
         public void TestOpenProject_CSharp_WithPrefer32BitAndLibrary()
         {
             CreateFiles(GetSimpleCSharpSolutionFiles()
@@ -421,7 +421,7 @@ class C1
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Workspace)]
-        [WorkItem(739043, "DevDiv")]
+        [WorkItem(739043, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/739043")]
         public void TestOpenProject_CSharp_WithPrefer32BitAndWinMDObj()
         {
             CreateFiles(GetSimpleCSharpSolutionFiles()
@@ -497,7 +497,7 @@ class C1
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Workspace)]
-        [WorkItem(739043, "DevDiv")]
+        [WorkItem(739043, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/739043")]
         public void TestOpenProject_VisualBasic_WithoutPrefer32BitAndConsoleApplication()
         {
             CreateFiles(GetMultiProjectSolutionFiles()
@@ -509,7 +509,7 @@ class C1
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Workspace)]
-        [WorkItem(739043, "DevDiv")]
+        [WorkItem(739043, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/739043")]
         public void TestOpenProject_VisualBasic_WithoutPrefer32BitAndLibrary()
         {
             CreateFiles(GetMultiProjectSolutionFiles()
@@ -522,7 +522,7 @@ class C1
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Workspace)]
-        [WorkItem(739043, "DevDiv")]
+        [WorkItem(739043, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/739043")]
         public void TestOpenProject_VisualBasic_WithPrefer32BitAndConsoleApplication()
         {
             CreateFiles(GetMultiProjectSolutionFiles()
@@ -534,7 +534,7 @@ class C1
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Workspace)]
-        [WorkItem(739043, "DevDiv")]
+        [WorkItem(739043, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/739043")]
         public void TestOpenProject_VisualBasic_WithPrefer32BitAndLibrary()
         {
             CreateFiles(GetMultiProjectSolutionFiles()
@@ -547,7 +547,7 @@ class C1
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Workspace)]
-        [WorkItem(739043, "DevDiv")]
+        [WorkItem(739043, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/739043")]
         public void TestOpenProject_VisualBasic_WithPrefer32BitAndWinMDObj()
         {
             CreateFiles(GetMultiProjectSolutionFiles()
@@ -638,7 +638,7 @@ class C1
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Workspace)]
-        [WorkItem(531631, "DevDiv")]
+        [WorkItem(531631, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/531631")]
         public void TestOpenProject_AssemblyNameIsPath()
         {
             // prove that even if assembly name is specified as a path instead of just a name, workspace still succeeds at opening project.
@@ -654,7 +654,7 @@ class C1
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Workspace)]
-        [WorkItem(531631, "DevDiv")]
+        [WorkItem(531631, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/531631")]
         public void TestOpenProject_AssemblyNameIsPath2()
         {
             CreateFiles(GetSimpleCSharpSolutionFiles()
@@ -885,7 +885,7 @@ class C1
             Assert.Equal(1, diagnostics.Count);
         }
 
-        [WorkItem(985906)]
+        [WorkItem(985906, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/985906")]
         [Fact, Trait(Traits.Feature, Traits.Features.Workspace)]
         public void HandleSolutionProjectTypeSolutionFolder()
         {
@@ -1034,7 +1034,7 @@ class C1
             });
         }
 
-        private HostServices hostServicesWithoutCSharp = MefHostServices.Create(MefHostServices.DefaultAssemblies.Where(a => !a.FullName.Contains("CSharp")));
+        private HostServices _hostServicesWithoutCSharp = MefHostServices.Create(MefHostServices.DefaultAssemblies.Where(a => !a.FullName.Contains("CSharp")));
 
         [Fact, Trait(Traits.Feature, Traits.Features.Workspace)]
         [WorkItem(3931, "https://github.com/dotnet/roslyn/issues/3931")]
@@ -1045,7 +1045,7 @@ class C1
 
             AssertThrows<InvalidOperationException>(() =>
             {
-                var ws = MSBuildWorkspace.Create(hostServicesWithoutCSharp);
+                var ws = MSBuildWorkspace.Create(_hostServicesWithoutCSharp);
                 ws.SkipUnrecognizedProjects = false;
                 var solution = ws.OpenSolutionAsync(GetSolutionFileName(@"TestSolution.sln")).Result;
             },
@@ -1062,7 +1062,7 @@ class C1
             // proves that if the language libraries are missing then the appropriate error occurs
             CreateFiles(GetSimpleCSharpSolutionFiles());
 
-            var ws = MSBuildWorkspace.Create(hostServicesWithoutCSharp);
+            var ws = MSBuildWorkspace.Create(_hostServicesWithoutCSharp);
             ws.SkipUnrecognizedProjects = true;
 
             var dx = new List<WorkspaceDiagnostic>();
@@ -1086,7 +1086,7 @@ class C1
 
             AssertThrows<InvalidOperationException>(() =>
             {
-                var ws = MSBuildWorkspace.Create(hostServicesWithoutCSharp);
+                var ws = MSBuildWorkspace.Create(_hostServicesWithoutCSharp);
                 var project = ws.OpenProjectAsync(GetSolutionFileName(@"CSharpProject\CSharpProject.csproj")).Result;
             },
             e =>
@@ -1363,7 +1363,7 @@ class C1
 
         [ConditionalFact(typeof(Framework35Installed))]
         [Trait(Traits.Feature, Traits.Features.Workspace)]
-        [WorkItem(528984, "DevDiv")]
+        [WorkItem(528984, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/528984")]
         public void TestOpenProject_AddVBDefaultReferences()
         {
             string projectFile = "VisualBasicProject_VisualBasicProject_3_5.vbproj";
@@ -2186,7 +2186,7 @@ class C1
             var vbdoc8 = AssertSemanticVersionChanged(vbdoc7, vbdoc7.GetTextAsync().Result.Replace(literal7.Span, "100"));
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Workspace), WorkItem(529276, "DevDiv"), WorkItem(12086, "DevDiv_Projects/Roslyn")]
+        [Fact, Trait(Traits.Feature, Traits.Features.Workspace), WorkItem(529276, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529276"), WorkItem(12086, "DevDiv_Projects/Roslyn")]
         public void TestOpenProject_LoadMetadataForReferenceProjects_NoMetadata()
         {
             var projPath = @"CSharpProject\CSharpProject_ProjectReference.csproj";
@@ -2210,7 +2210,7 @@ class C1
             }
         }
 
-        [WorkItem(918072, "DevDiv")]
+        [WorkItem(918072, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/918072")]
         [Fact, Trait(Traits.Feature, Traits.Features.Workspace)]
         public void TestAnalyzerReferenceLoadStandalone()
         {
@@ -2239,7 +2239,7 @@ class C1
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Workspace)]
-        public void TestAdditionalFilesStandalone()
+        public async Task TestAdditionalFilesStandalone()
         {
 #if !MSBUILD12
             var projPaths = new[] { @"AnalyzerSolution\CSharpProject_AnalyzerReference.csproj", @"AnalyzerSolution\VisualBasicProject_AnalyzerReference.vbproj" };
@@ -2256,13 +2256,13 @@ class C1
                     Assert.Equal(1, proj.AdditionalDocuments.Count());
                     var doc = proj.AdditionalDocuments.First();
                     Assert.Equal("XamlFile.xaml", doc.Name);
-                    Assert.Contains("Window", doc.GetTextAsync().WaitAndGetResult(CancellationToken.None).ToString(), StringComparison.Ordinal);
+                    Assert.Contains("Window", (await doc.GetTextAsync()).ToString(), StringComparison.Ordinal);
                 }
             }
 #endif
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Workspace), WorkItem(546171, "DevDiv")]
+        [Fact, Trait(Traits.Feature, Traits.Features.Workspace), WorkItem(546171, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546171")]
         public void TestCSharpExternAlias()
         {
             var projPath = @"CSharpProject\CSharpProject_ExternAlias.csproj";
@@ -2283,7 +2283,7 @@ class C1
             }
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Workspace), WorkItem(530337, "DevDiv")]
+        [Fact, Trait(Traits.Feature, Traits.Features.Workspace), WorkItem(530337, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530337")]
         public void TestProjectReferenceWithExternAlias()
         {
             var files = GetProjectReferenceSolutionFiles();
@@ -2372,7 +2372,8 @@ class C1
             }
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Workspace)]
+        [ConditionalFact(typeof(IsEnglishLocal)), Trait(Traits.Feature, Traits.Features.Workspace)]
+        [WorkItem(5668, "https://github.com/dotnet/roslyn/issues/5668")]
         public void TestOpenProject_MetadataReferenceHasDocComments()
         {
             CreateFiles(GetSimpleCSharpSolutionFiles());
@@ -2518,7 +2519,7 @@ class C1
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Workspace)]
-        [WorkItem(531543, "DevDiv")]
+        [WorkItem(531543, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/531543")]
         public void TestOpenSolution_SolutionFileHasEmptyLineBetweenProjectBlock()
         {
             var files = new FileSet(new Dictionary<string, object>
@@ -2550,7 +2551,7 @@ class C1
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Workspace)]
-        [WorkItem(792912, "DevDiv")]
+        [WorkItem(792912, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/792912")]
         public void TestOpenSolution_WithDuplicatedGuidsBecomeSelfReferential()
         {
             var files = new FileSet(new Dictionary<string, object>
@@ -2575,7 +2576,7 @@ class C1
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Workspace)]
-        [WorkItem(792912, "DevDiv")]
+        [WorkItem(792912, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/792912")]
         public void TestOpenSolution_WithDuplicatedGuidsBecomeCircularReferential()
         {
             var files = new FileSet(new Dictionary<string, object>
@@ -2605,13 +2606,13 @@ class C1
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Workspace)]
-        [WorkItem(991528)]
+        [WorkItem(991528, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/991528")]
         public void MSBuildProjectShouldHandleCodePageProperty()
         {
             var files = new FileSet(new Dictionary<string, object>
             {
                 { "Encoding.csproj", GetResourceText("Encoding.csproj").Replace("<CodePage>ReplaceMe</CodePage>", "<CodePage>1254</CodePage>") },
-                { "class1.cs", "//“" }
+                { "class1.cs", "//\u201C" }
             });
 
             CreateFiles(files);
@@ -2625,18 +2626,18 @@ class C1
             // The smart quote (“) in class1.cs shows up as "â€œ" in codepage 1254. Do a sanity
             // check here to make sure this file hasn't been corrupted in a way that would
             // impact subsequent asserts.
-            Assert.Equal("//â€œ".Length, 5);
-            Assert.Equal("//â€œ".Length, text.Length);
+            Assert.Equal("//\u00E2\u20AC\u0153".Length, 5);
+            Assert.Equal("//\u00E2\u20AC\u0153".Length, text.Length);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Workspace)]
-        [WorkItem(991528)]
+        [WorkItem(991528, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/991528")]
         public void MSBuildProjectShouldHandleInvalidCodePageProperty()
         {
             var files = new FileSet(new Dictionary<string, object>
             {
                 { "Encoding.csproj", GetResourceText("Encoding.csproj").Replace("<CodePage>ReplaceMe</CodePage>", "<CodePage>-1</CodePage>") },
-                { "class1.cs", "//“" }
+                { "class1.cs", "//\u201C" }
             });
 
             CreateFiles(files);
@@ -2649,13 +2650,13 @@ class C1
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Workspace)]
-        [WorkItem(991528)]
+        [WorkItem(991528, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/991528")]
         public void MSBuildProjectShouldHandleInvalidCodePageProperty2()
         {
             var files = new FileSet(new Dictionary<string, object>
             {
                 { "Encoding.csproj", GetResourceText("Encoding.csproj").Replace("<CodePage>ReplaceMe</CodePage>", "<CodePage>Broken</CodePage>") },
-                { "class1.cs", "//“" }
+                { "class1.cs", "//\u201C" }
             });
 
             CreateFiles(files);
@@ -2668,13 +2669,13 @@ class C1
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Workspace)]
-        [WorkItem(991528)]
+        [WorkItem(991528, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/991528")]
         public void MSBuildProjectShouldHandleDefaultCodePageProperty()
         {
             var files = new FileSet(new Dictionary<string, object>
             {
                 { "Encoding.csproj", GetResourceText("Encoding.csproj").Replace("<CodePage>ReplaceMe</CodePage>", string.Empty) },
-                { "class1.cs", "//“" }
+                { "class1.cs", "//\u201C" }
             });
 
             CreateFiles(files);
@@ -2684,10 +2685,10 @@ class C1
 
             var text = project.Documents.First(d => d.Name == "class1.cs").GetTextAsync().Result;
             Assert.Equal(new UTF8Encoding(encoderShouldEmitUTF8Identifier: false, throwOnInvalidBytes: true), text.Encoding);
-            Assert.Equal("//“", text.ToString());
+            Assert.Equal("//\u201C", text.ToString());
         }
 
-        [WorkItem(981208)]
+        [WorkItem(981208, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/981208")]
         [Fact, Trait(Traits.Feature, Traits.Features.Workspace)]
         public void DisposeMSBuildWorkspaceAndServicesCollected()
         {
@@ -2699,7 +2700,7 @@ class C1
             var document = project.Documents.First();
             var tree = document.GetSyntaxTreeAsync().Result;
             var type = tree.GetRoot().DescendantTokens().First(t => t.ToString() == "class").Parent;
-            var compilation = document.GetSemanticModelAsync().WaitAndGetResult(CancellationToken.None);
+            var compilation = document.GetSemanticModelAsync().WaitAndGetResult_CanCallOnBackground(CancellationToken.None);
             Assert.NotNull(type);
             Assert.Equal(true, type.ToString().StartsWith("public class CSharpClass", StringComparison.Ordinal));
             Assert.NotNull(compilation);
@@ -2725,7 +2726,7 @@ class C1
             Assert.False(weakCompilation.IsAlive);
         }
 
-        [Fact, WorkItem(1088127)]
+        [Fact, WorkItem(1088127, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1088127")]
         public void MSBuildWorkspacePreservesEncoding()
         {
             var encoding = Encoding.BigEndianUnicode;
@@ -2905,7 +2906,7 @@ class C { }";
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Workspace)]
-        [WorkItem(1101040)]
+        [WorkItem(1101040, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1101040")]
         public void TestOpenProject_BadLink()
         {
             CreateFiles(GetSimpleCSharpSolutionFiles()

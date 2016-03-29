@@ -31,7 +31,7 @@ namespace Microsoft.CodeAnalysis
         private readonly BranchId _primaryBranchId;
 
         // forces serialization of mutation calls from host (OnXXX methods). Must take this lock before taking stateLock.
-        private readonly NonReentrantLock _serializationLock = new NonReentrantLock(useThisInstanceForSynchronization: true);
+        private readonly SemaphoreSlim _serializationLock = new SemaphoreSlim(initialCount: 1);
 
         // this lock guards all the mutable fields (do not share lock with derived classes)
         private readonly NonReentrantLock _stateLock = new NonReentrantLock(useThisInstanceForSynchronization: true);
@@ -46,6 +46,8 @@ namespace Microsoft.CodeAnalysis
 
         internal bool TestHookPartialSolutionsDisabled { get; set; }
 
+        private Action<string> _testMessageLogger;
+
         /// <summary>
         /// Constructs a new workspace instance.
         /// </summary>
@@ -59,11 +61,25 @@ namespace Microsoft.CodeAnalysis
             _services = host.CreateWorkspaceServices(this);
 
             // queue used for sending events
-            var workspaceTaskSchedulerFactory = _services.GetService<IWorkspaceTaskSchedulerFactory>();
+            var workspaceTaskSchedulerFactory = _services.GetRequiredService<IWorkspaceTaskSchedulerFactory>();
             _taskQueue = workspaceTaskSchedulerFactory.CreateTaskQueue();
 
             // initialize with empty solution
             _latestSolution = CreateSolution(SolutionId.CreateNewId());
+        }
+
+        internal void LogTestMessage(string message)
+        {
+            _testMessageLogger?.Invoke(message);
+        }
+
+        /// <summary>
+        /// Sets an internal logger that will receive some messages.
+        /// </summary>
+        /// <param name="writeLineMessageLogger">An action called to write a single line to the log.</param>
+        internal void SetTestLogger(Action<string> writeLineMessageLogger)
+        {
+            _testMessageLogger = writeLineMessageLogger;
         }
 
         /// <summary>
@@ -704,6 +720,25 @@ namespace Microsoft.CodeAnalysis
         }
 
         /// <summary>
+        /// Call this method when status of project has changed to incomplete.
+        /// See <see cref="ProjectInfo.HasAllInformation"/> for more information.
+        /// </summary>
+        // TODO: make it public
+        internal void OnHasAllInformationChanged(ProjectId projectId, bool hasAllInformation)
+        {
+            using (_serializationLock.DisposableWait())
+            {
+                CheckProjectIsInCurrentSolution(projectId);
+
+                // if state is different than what we have
+                var oldSolution = this.CurrentSolution;
+                var newSolution = this.SetCurrentSolution(oldSolution.WithHasAllInformation(projectId, hasAllInformation));
+
+                this.RaiseWorkspaceChangedEventAsync(WorkspaceChangeKind.ProjectChanged, oldSolution, newSolution, projectId);
+            }
+        }
+
+        /// <summary>
         /// Call this method when the text of a document is updated in the host environment.
         /// </summary>
         protected internal void OnDocumentTextChanged(DocumentId documentId, SourceText newText, PreservationMode mode)
@@ -874,6 +909,15 @@ namespace Microsoft.CodeAnalysis
         /// Determines if the specific kind of change is supported by the <see cref="TryApplyChanges"/> method.
         /// </summary>
         public virtual bool CanApplyChange(ApplyChangesKind feature)
+        {
+            return false;
+        }
+
+        /// <summary>
+        /// Returns <code>true</code> if a reference to referencedProject can be added to 
+        /// referencingProject.  <code>false</code> otherwise.
+        /// </summary>
+        internal virtual bool CanAddProjectReference(ProjectId referencingProject, ProjectId referencedProject)
         {
             return false;
         }
@@ -1098,7 +1142,7 @@ namespace Microsoft.CodeAnalysis
                 this.ApplyDocumentRemoved(documentId);
             }
 
-            // removed documents
+            // removed additional documents
             foreach (var documentId in projectChanges.GetRemovedAdditionalDocuments())
             {
                 this.ApplyAdditionalDocumentRemoved(documentId);
@@ -1133,7 +1177,7 @@ namespace Microsoft.CodeAnalysis
                 if (!oldDoc.TryGetText(out oldText))
                 {
                     // we can't get old text, there is not much we can do except replacing whole text.
-                    var currentText = newDoc.GetTextAsync(CancellationToken.None).WaitAndGetResult(CancellationToken.None); // needs wait
+                    var currentText = newDoc.GetTextAsync(CancellationToken.None).WaitAndGetResult_CanCallOnBackground(CancellationToken.None); // needs wait
                     this.ApplyDocumentTextChanged(documentId, currentText);
                     continue;
                 }
@@ -1143,7 +1187,7 @@ namespace Microsoft.CodeAnalysis
                 if (!newDoc.TryGetText(out newText))
                 {
                     // okay, we have old text, but no new text. let document determine text changes
-                    var textChanges = newDoc.GetTextChangesAsync(oldDoc, CancellationToken.None).WaitAndGetResult(CancellationToken.None); // needs wait
+                    var textChanges = newDoc.GetTextChangesAsync(oldDoc, CancellationToken.None).WaitAndGetResult_CanCallOnBackground(CancellationToken.None); // needs wait
                     this.ApplyDocumentTextChanged(documentId, oldText.WithChanges(textChanges));
                     continue;
                 }
@@ -1159,7 +1203,7 @@ namespace Microsoft.CodeAnalysis
                 var newDoc = projectChanges.NewProject.GetAdditionalDocument(documentId);
 
                 // We don't understand the text of additional documents and so we just replace the entire text.
-                var currentText = newDoc.GetTextAsync(CancellationToken.None).WaitAndGetResult(CancellationToken.None); // needs wait
+                var currentText = newDoc.GetTextAsync(CancellationToken.None).WaitAndGetResult_CanCallOnBackground(CancellationToken.None); // needs wait
                 this.ApplyAdditionalDocumentTextChanged(documentId, currentText);
             }
         }
@@ -1194,7 +1238,7 @@ namespace Microsoft.CodeAnalysis
 
         private SourceText GetTextForced(TextDocument doc)
         {
-            return doc.GetTextAsync(CancellationToken.None).WaitAndGetResult(CancellationToken.None); // needs wait (called during TryApplyChanges)
+            return doc.GetTextAsync(CancellationToken.None).WaitAndGetResult_CanCallOnBackground(CancellationToken.None); // needs wait (called during TryApplyChanges)
         }
 
         private DocumentInfo CreateDocumentInfoWithText(TextDocument doc)

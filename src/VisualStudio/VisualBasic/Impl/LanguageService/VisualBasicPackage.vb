@@ -24,6 +24,17 @@ Imports Microsoft.VisualStudio.Shell.Interop
 Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic
     ' TODO(DustinCa): Put all of this in VisualBasicPackageRegistration.pkgdef rather than using attributes
     ' (See setupauthoring\vb\components\vblanguageservice.pkgdef for an example).
+
+    ' VB option pages tree
+    '   Basic
+    '     General (from editor)
+    '     Scroll Bars (from editor)
+    '     Tabs (from editor)
+    '     Advanced
+    '     Code Style (category)
+    '       General
+    '       Naming
+
     <Guid(Guids.VisualBasicPackageIdString)>
     <PackageRegistration(UseManagedResourcesOnly:=True)>
     <ProvideLanguageExtension(GetType(VisualBasicLanguageService), ".bas")>
@@ -35,7 +46,9 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic
     <ProvideLanguageExtension(GetType(VisualBasicLanguageService), ".pag")>
     <ProvideLanguageExtension(GetType(VisualBasicLanguageService), ".vb")>
     <ProvideLanguageEditorOptionPage(GetType(AdvancedOptionPage), "Basic", Nothing, "Advanced", "#102", 10160)>
-    <ProvideLanguageEditorOptionPage(GetType(StyleOptionPage), "Basic", Nothing, "Code Style", "#109", 10161)>
+    <ProvideLanguageEditorToolsOptionCategory("Basic", "Code Style", "#109")>
+    <ProvideLanguageEditorOptionPage(GetType(StyleOptionPage), "Basic", "Code Style", "General", "#111", 10161)>
+    <ProvideLanguageEditorOptionPage(GetType(NamingStylesOptionPage), "Basic", "Code Style", "Naming", "#110", 10162)>
     <ProvideAutomationProperties("TextEditor", "Basic", Guids.TextManagerPackageString, 103, 105, Guids.VisualBasicPackageIdString)>
     <ProvideAutomationProperties("TextEditor", "Basic-Specific", Guids.VisualBasicPackageIdString, 104, 106)>
     <ProvideService(GetType(VisualBasicLanguageService), ServiceName:="Visual Basic Language Service")>

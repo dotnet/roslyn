@@ -698,8 +698,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                             TypeSymbol overridingMemberType = overridingProperty.Type;
                             TypeSymbol overriddenMemberType = overriddenProperty.Type;
 
-                            // Ignore custom modifiers because this diagnostic is based on the C# semantics.
-                            if (!overridingMemberType.Equals(overriddenMemberType, ignoreCustomModifiersAndArraySizesAndLowerBounds: true, ignoreDynamic: true))
+                            // Check for mismatched byref returns and return type. Ignore custom modifiers, because this diagnostic is based on the C# semantics.
+                            if ((overridingProperty.RefKind != RefKind.None) != (overriddenProperty.RefKind != RefKind.None))
+                            {
+                                diagnostics.Add(ErrorCode.ERR_CantChangeRefReturnOnOverride, overridingMemberLocation, overridingMember, overriddenMember, overridingProperty.RefKind != RefKind.None ? "not " : "");
+                                suppressAccessors = true; //we get really unhelpful errors from the accessor if the ref kind is mismatched
+                            }
+                            else if (!overridingMemberType.Equals(overriddenMemberType, ignoreCustomModifiersAndArraySizesAndLowerBounds: true, ignoreDynamic: true))
                             {
                                 diagnostics.Add(ErrorCode.ERR_CantChangeTypeOnOverride, overridingMemberLocation, overridingMember, overriddenMember, overriddenMemberType);
                                 suppressAccessors = true; //we get really unhelpful errors from the accessor if the type is mismatched
@@ -749,8 +754,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                             var overridingMethod = (MethodSymbol)overridingMember;
                             var overriddenMethod = (MethodSymbol)overriddenMember;
 
-                            // Ignore custom modifiers, because this diagnostic is based on the C# semantics.
-                            if (!MemberSignatureComparer.HaveSameReturnTypes(overridingMethod, overriddenMethod, considerCustomModifiers: false))
+                            // Check for mismatched byref returns and return type. Ignore custom modifiers, because this diagnostic is based on the C# semantics.
+                            if ((overridingMethod.RefKind != RefKind.None) != (overriddenMethod.RefKind != RefKind.None))
+                            {
+                                diagnostics.Add(ErrorCode.ERR_CantChangeRefReturnOnOverride, overridingMemberLocation, overridingMember, overriddenMember, overridingMethod.RefKind != RefKind.None ? "not " : "");
+                            }
+                            else if (!MemberSignatureComparer.HaveSameReturnTypes(overridingMethod, overriddenMethod, considerCustomModifiers: false))
                             {
                                 // Suppose we have a virtual base class method M<T>() that returns C<T>, and the overriding
                                 // method M<V> returns void. The error should be "return type must be C<V>", not 
@@ -991,7 +1000,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                             interface1 = interface2;
                             interface2 = temp;
                         }
-            
+
                         diagnostics.Add(ErrorCode.ERR_UnifyingInterfaceInstantiations, this.Locations[0], this, interface1, interface2);
                     }
                 }

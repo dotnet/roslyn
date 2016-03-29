@@ -3,6 +3,7 @@
 using System;
 using System.Threading;
 using System.Threading.Tasks;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Editor
 {
@@ -11,6 +12,7 @@ namespace Microsoft.CodeAnalysis.Editor
         public readonly ProjectId ProjectId;
         public readonly DocumentId DocumentId;
         public readonly Func<CancellationToken, Task<object>> LazyPreview;
+        public readonly string Text;
 
         /// <summary>
         /// Construct an instance of <see cref="SolutionPreviewItem"/>
@@ -26,6 +28,12 @@ namespace Microsoft.CodeAnalysis.Editor
             ProjectId = projectId;
             DocumentId = documentId;
             LazyPreview = lazyPreview;
+        }
+
+        public SolutionPreviewItem(ProjectId projectId, DocumentId documentId, string text)
+            : this(projectId, documentId, c => Task.FromResult<object>(text))
+        {
+            Text = text;
         }
     }
 }

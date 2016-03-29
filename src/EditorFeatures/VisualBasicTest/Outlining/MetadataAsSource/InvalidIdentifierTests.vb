@@ -1,8 +1,9 @@
 ﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports System.Threading
+Imports System.Threading.Tasks
 Imports Microsoft.CodeAnalysis.Editor.Implementation.Outlining
-Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
+Imports Microsoft.CodeAnalysis.Editor.UnitTests.Outlining
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Outlining.MetadataAsSource
     ''' <summary>
@@ -10,52 +11,60 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Outlining.Metadata
     ''' IL identifiers, we have to account for the possibility that an item's metadata name could lead to unparseable code.
     ''' </summary>
     Public Class InvalidIdentifierTests
-        Inherits AbstractOutlinerTests
+        Inherits AbstractSyntaxOutlinerTests
 
-        Private Sub Test(fileContents As String, ParamArray ByVal expectedSpans As OutliningSpan())
-            Dim workspace = TestWorkspaceFactory.CreateWorkspaceFromFiles(WorkspaceKind.MetadataAsSource, LanguageNames.VisualBasic, Nothing, Nothing, fileContents)
-            Dim outliningService = workspace.Services.GetLanguageServices(LanguageNames.VisualBasic).GetService(Of IOutliningService)()
-            Dim document = workspace.CurrentSolution.Projects.Single().Documents.Single()
-            Dim actualOutliningSpans = outliningService.GetOutliningSpansAsync(document, CancellationToken.None).Result.Where(Function(s) s IsNot Nothing).ToArray()
+        Protected Overrides ReadOnly Property LanguageName As String
+            Get
+                Return LanguageNames.VisualBasic
+            End Get
+        End Property
 
-            Assert.Equal(expectedSpans.Length, actualOutliningSpans.Length)
-            For i As Integer = 0 To expectedSpans.Length - 1
-                AssertRegion(expectedSpans(i), actualOutliningSpans(i))
-            Next
-        End Sub
+        Protected Overrides ReadOnly Property WorkspaceKind As String
+            Get
+                Return CodeAnalysis.WorkspaceKind.MetadataAsSource
+            End Get
+        End Property
 
-        <WorkItem(1174405)>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.MetadataAsSource)>
-        Public Sub PrependDollarSign()
-            Dim source = "
-Class C
+        Friend Overrides Async Function GetRegionsAsync(document As Document, position As Integer) As Task(Of OutliningSpan())
+            Dim outliningService = document.Project.LanguageServices.GetService(Of IOutliningService)()
+
+            Return (Await outliningService.GetOutliningSpansAsync(document, CancellationToken.None)) _
+                .WhereNotNull() _
+                .ToArray()
+        End Function
+
+        <WorkItem(1174405, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1174405")>
+        <Fact, Trait(Traits.Feature, Traits.Features.MetadataAsSource)>
+        Public Async Function PrependDollarSign() As Task
+            Const code = "
+$$Class C
     Public Sub $Invoke()
 End Class
 "
-            Test(source)
-        End Sub
+            Await VerifyNoRegionsAsync(code)
+        End Function
 
-        <WorkItem(1174405)>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.MetadataAsSource)>
-        Public Sub SymbolsAndPunctuation()
-            Dim source = "
-Class C
+        <WorkItem(1174405, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1174405")>
+        <Fact, Trait(Traits.Feature, Traits.Features.MetadataAsSource)>
+        Public Async Function SymbolsAndPunctuation() As Task
+            Const code = "
+$$Class C
     Public Sub !#$%^&*(()_-+=|\}]{[""':;?/>.<,~`()
 End Class
 "
-            Test(source)
-        End Sub
+            Await VerifyNoRegionsAsync(code)
+        End Function
 
-        <WorkItem(1174405)>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.MetadataAsSource)>
-        Public Sub IdentifierThatLooksLikeCode()
-            Dim source = "
-Class C
+        <WorkItem(1174405, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1174405")>
+        <Fact, Trait(Traits.Feature, Traits.Features.MetadataAsSource)>
+        Public Async Function IdentifierThatLooksLikeCode() As Task
+            Const code = "
+$$Class C
     Public Sub : End Sub : End Class "" now the document is a string until the next quote ()
 End Class
 "
-            Test(source)
-        End Sub
+            Await VerifyNoRegionsAsync(code)
+        End Function
 
     End Class
 End Namespace

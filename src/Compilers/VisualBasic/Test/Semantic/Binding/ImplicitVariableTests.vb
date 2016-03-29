@@ -52,8 +52,8 @@ Hello, world
             compilation.VerifyDiagnostics()
         End Sub
 
-        <WorkItem(547017, "DevDiv")>
-        <WorkItem(547018, "DevDiv")>
+        <WorkItem(547017, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/547017")>
+        <WorkItem(547018, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/547018")>
         <Fact>
         Public Sub SimpleImplicitDeclaration2()
             Dim compilation = CompileAndVerify(
@@ -724,7 +724,7 @@ BC42104: Variable 'r' is used before it has been assigned a value. A null refere
 ]]></expected>)
         End Sub
 
-        <WorkItem(542455, "DevDiv")>
+        <WorkItem(542455, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542455")>
         <Fact>
         Public Sub VariableAcrossIfParts()
             CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(
@@ -751,7 +751,7 @@ End Module]]>
             Diagnostic(ERRID.WRN_DefAsgUseNullRef, "x").WithArguments("x"))
         End Sub
 
-        <WorkItem(542455, "DevDiv")>
+        <WorkItem(542455, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542455")>
         <Fact>
         Public Sub VariableAcrossIfParts2()
             CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(
@@ -779,7 +779,7 @@ End Module]]>
             Diagnostic(ERRID.WRN_DefAsgUseNullRef, "z").WithArguments("z"))
         End Sub
 
-        <WorkItem(542530, "DevDiv")>
+        <WorkItem(542530, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542530")>
         <Fact>
         Public Sub LambdaBindingOrder()
             Dim compilation = CompileAndVerify(
@@ -881,7 +881,7 @@ done
 
 #Region "BindExpression Tests"
 
-        <Fact(), WorkItem(546396, "DevDiv")>
+        <Fact(), WorkItem(546396, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546396")>
         Public Sub SpeculativeBindImplicitVariableAsLeftHandSideOfOfAssignment()
             VerifyImplicitDeclarationBindExpression(<![CDATA[
                 'BIND
@@ -891,7 +891,7 @@ done
             symbolKind:=SymbolKind.Local)
         End Sub
 
-        <Fact(), WorkItem(546396, "DevDiv")>
+        <Fact(), WorkItem(546396, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546396")>
         Public Sub SpeculativeBindImplicitVariableAsMethodArgument()
             VerifyImplicitDeclarationBindExpression(<![CDATA[
                 'BIND
@@ -991,7 +991,7 @@ done
             expected:={"x"})
         End Sub
 
-        <WorkItem(1036381, "DevDiv")>
+        <WorkItem(1036381, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1036381")>
         <Fact>
         Public Sub Bug1036381_01()
             Dim source =
@@ -1033,7 +1033,7 @@ End Module
             Assert.NotEqual(l1, l2)
         End Sub
 
-        <WorkItem(1036381, "DevDiv")>
+        <WorkItem(1036381, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1036381")>
         <Fact>
         Public Sub Bug1036381_02()
             Dim source =

@@ -15,22 +15,35 @@ namespace Microsoft.CodeAnalysis.FindSymbols
     public static partial class SymbolFinder
     {
         /// <summary>
-        /// Finds the symbol that is associated with a position in the text of a document.
+        /// Obsolete.  Use <see cref="FindSymbolAtPositionAsync(SemanticModel, int, Workspace, CancellationToken)"/>.
         /// </summary>
-        /// <param name="semanticModel">The semantic model associated with the document.</param>
-        /// <param name="position">The character position within the document.</param>
-        /// <param name="workspace">A workspace to provide context.</param>
-        /// <param name="cancellationToken">A CancellationToken.</param>
+        [Obsolete("Use FindSymbolAtPositionAsync instead.")]
         public static ISymbol FindSymbolAtPosition(
             SemanticModel semanticModel,
             int position,
             Workspace workspace,
             CancellationToken cancellationToken = default(CancellationToken))
         {
-            return FindSymbolAtPosition(semanticModel, position, workspace, bindLiteralsToUnderlyingType: false, cancellationToken: cancellationToken);
+            return FindSymbolAtPositionAsync(semanticModel, position, workspace, cancellationToken).WaitAndGetResult(cancellationToken);
         }
 
-        internal static ISymbol FindSymbolAtPosition(
+        /// <summary>
+        /// Finds the symbol that is associated with a position in the text of a document.
+        /// </summary>
+        /// <param name="semanticModel">The semantic model associated with the document.</param>
+        /// <param name="position">The character position within the document.</param>
+        /// <param name="workspace">A workspace to provide context.</param>
+        /// <param name="cancellationToken">A CancellationToken.</param>
+        public static Task<ISymbol> FindSymbolAtPositionAsync(
+            SemanticModel semanticModel,
+            int position,
+            Workspace workspace,
+            CancellationToken cancellationToken = default(CancellationToken))
+        {
+            return FindSymbolAtPositionAsync(semanticModel, position, workspace, bindLiteralsToUnderlyingType: false, cancellationToken: cancellationToken);
+        }
+
+        internal static async Task<ISymbol> FindSymbolAtPositionAsync(
             SemanticModel semanticModel,
             int position,
             Workspace workspace,
@@ -39,7 +52,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         {
             var syntaxTree = semanticModel.SyntaxTree;
             var syntaxFacts = workspace.Services.GetLanguageServices(semanticModel.Language).GetService<ISyntaxFactsService>();
-            var token = syntaxTree.GetTouchingToken(position, syntaxFacts.IsBindableToken, cancellationToken, findInsideTrivia: true);
+            var token = await syntaxTree.GetTouchingTokenAsync(position, syntaxFacts.IsBindableToken, cancellationToken, findInsideTrivia: true).ConfigureAwait(false);
 
             if (token != default(SyntaxToken))
             {
@@ -58,7 +71,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             CancellationToken cancellationToken = default(CancellationToken))
         {
             var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
-            return FindSymbolAtPosition(semanticModel, position, document.Project.Solution.Workspace, cancellationToken);
+            return await FindSymbolAtPositionAsync(semanticModel, position, document.Project.Solution.Workspace, cancellationToken).ConfigureAwait(false);
         }
 
         /// <summary>
@@ -94,15 +107,39 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             Solution solution,
             CancellationToken cancellationToken)
         {
-            // If it's already in source, then just return it.
+            // If it's already in source, then we might already be done
             if (InSource(symbol))
             {
-                return symbol;
-            }
+                // If our symbol doesn't have a containing assembly, there's nothing better we can do to map this
+                // symbol somewhere else. The common case for this is a merged INamespaceSymbol that spans assemblies.
+                if (symbol.ContainingAssembly == null)
+                {
+                    return symbol;
+                }
 
-            // If it's not in metadata, then we can't map it back to source.
-            if (!symbol.Locations.Any(loc => loc.IsInMetadata))
+                // Just because it's a source symbol doesn't mean we have the final symbol we actually want. In retargeting cases,
+                // the retargeted symbol is from "source" but isn't equal to the actual source definition in the other project. Thus,
+                // we only want to return symbols from source here if it actually came from a project's compilation's assembly. If it isn't
+                // then we have a retargeting scenario and want to take our usual path below as if it was a metadata reference
+                foreach (var sourceProject in solution.Projects)
+                {
+                    Compilation compilation;
+
+                    // If our symbol is actually a "regular" source symbol, then we know the compilation is holding the symbol alive
+                    // and thus TryGetCompilation is sufficient. For another example of this pattern, see Solution.GetProject(IAssemblySymbol)
+                    // which we happen to call below.
+                    if (sourceProject.TryGetCompilation(out compilation))
+                    {
+                        if (symbol.ContainingAssembly.Equals(compilation.Assembly))
+                        {
+                            return symbol;
+                        }
+                    }
+                }
+            }
+            else if (!symbol.Locations.Any(loc => loc.IsInMetadata))
             {
+                // We have a symbol that's neither in source nor metadata
                 return null;
             }
 

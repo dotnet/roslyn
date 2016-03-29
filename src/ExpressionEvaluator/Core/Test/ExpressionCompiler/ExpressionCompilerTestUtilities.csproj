@@ -65,7 +65,8 @@
     </Compile>
     <Compile Include="CustomDiagnosticFormatter.cs" />
     <Compile Include="ExpressionCompilerTestHelpers.cs" />
-    <Compile Include="MethodDebugInfo.cs" />
+    <Compile Include="MethodDebugInfoBytes.cs" />
+    <Compile Include="MethodDebugInfoValidation.cs" />
     <Compile Include="NotImplementedSymUnmanaged.cs" />
     <Compile Include="ModuleInstance.cs" />
     <Compile Include="MockSymUnmanaged.cs" />
@@ -74,9 +75,9 @@
       <DesignTime>True</DesignTime>
       <DependentUpon>Resources.resx</DependentUpon>
     </Compile>
+    <Compile Include="RuntimeInstance.cs" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="App.config" />
     <None Include="project.json" />
     <None Include="Resources\Empty.dll" />
     <None Include="Resources\LibraryA.winmd" />

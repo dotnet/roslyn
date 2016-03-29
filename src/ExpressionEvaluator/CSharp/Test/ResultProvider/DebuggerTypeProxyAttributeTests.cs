@@ -8,7 +8,7 @@ using System.Linq;
 using Roslyn.Test.Utilities;
 using Xunit;
 
-namespace Microsoft.CodeAnalysis.CSharp.UnitTests
+namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator.UnitTests
 {
     public class DebuggerTypeProxyAttributeTests : CSharpResultProviderTestBase
     {
@@ -333,7 +333,7 @@ class C
                 EvalResult("Raw View", null, "", "new PB<A<string>>((new C()).b).PG, raw", DkmEvaluationResultFlags.Expandable | DkmEvaluationResultFlags.ReadOnly, DkmEvaluationResultCategory.Data));
             moreChildren = GetChildren(moreChildren[1]);
             Verify(moreChildren,
-                EvalResult("F", "\"A\"", "string", "new PB<A<string>>((new C()).b).PG.F", DkmEvaluationResultFlags.RawString | DkmEvaluationResultFlags.ReadOnly));
+                EvalResult("F", "\"A\"", "string", "(new PB<A<string>>((new C()).b).PG).F", DkmEvaluationResultFlags.RawString | DkmEvaluationResultFlags.ReadOnly));
         }
 
         [Fact]
@@ -541,7 +541,7 @@ class C
                 EvalResult("Raw View", null, "", "(new C())._4, raw", DkmEvaluationResultFlags.Expandable | DkmEvaluationResultFlags.ReadOnly, DkmEvaluationResultCategory.Data));
         }
 
-        [Fact, WorkItem(1024016)]
+        [Fact, WorkItem(1024016, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1024016")]
         public void NonGenericProxyOnGenericBase()
         {
             var source =

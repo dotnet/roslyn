@@ -21,19 +21,22 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         internal readonly BinderFlags Flags;
 
+        /// <summary>
+        /// Used to create a root binder.
+        /// </summary>
+        internal Binder(CSharpCompilation compilation)
+        {
+            Debug.Assert(compilation != null);
+            this.Flags = compilation.Options.TopLevelBinderFlags;
+            this.Compilation = compilation;
+        }
+
         internal Binder(Binder next)
         {
             Debug.Assert(next != null);
             _next = next;
             this.Flags = next.Flags;
             this.Compilation = next.Compilation;
-        }
-
-        internal Binder(CSharpCompilation compilation)
-        {
-            Debug.Assert(compilation != null);
-            this.Flags = BinderFlags.None;
-            this.Compilation = compilation;
         }
 
         protected Binder(Binder next, BinderFlags flags)
@@ -152,17 +155,17 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <summary>
         /// Get locals declared immediately in scope represented by the node.
         /// </summary>
-        internal virtual ImmutableArray<LocalSymbol> GetDeclaredLocalsForScope()
+        internal virtual ImmutableArray<LocalSymbol> GetDeclaredLocalsForScope(CSharpSyntaxNode node)
         {
-            return this.Next.GetDeclaredLocalsForScope();
+            return this.Next.GetDeclaredLocalsForScope(node);
         }
 
         /// <summary>
         /// Get local functions declared immediately in scope represented by the node.
         /// </summary>
-        internal virtual ImmutableArray<LocalFunctionSymbol> GetDeclaredLocalFunctionsForScope()
+        internal virtual ImmutableArray<LocalFunctionSymbol> GetDeclaredLocalFunctionsForScope(CSharpSyntaxNode node)
         {
-            return this.Next.GetDeclaredLocalFunctionsForScope();
+            return this.Next.GetDeclaredLocalFunctionsForScope(node);
         }
 
         /// <summary>
@@ -268,7 +271,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         /// <summary>
-        /// The Imports for all containing namespace declarations (innermost-to-outermost, including global).
+        /// The imports for all containing namespace declarations (innermost-to-outermost, including global),
+        /// or null if there are none.
         /// </summary>
         internal virtual ImportChain ImportChain
         {
@@ -695,9 +699,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             CompoundAssignment,
 
             /// <summary>
-            /// Expression is an out parameter.
+            /// Expression is passed as a ref or out parameter or assigned to a byref variable.
             /// </summary>
-            OutParameter,
+            RefOrOut,
 
             /// <summary>
             /// Expression is the operand of an address-of operation (&amp;).
@@ -708,6 +712,16 @@ namespace Microsoft.CodeAnalysis.CSharp
             /// Expression is the receiver of a fixed buffer field access
             /// </summary>
             FixedReceiver,
+
+            /// <summary>
+            /// Expression is assigned by reference.
+            /// </summary>
+            RefAssign,
+            
+            /// <summary>
+            /// Expression is returned by reference.
+            /// </summary>
+            RefReturn,
         }
 
         /// <summary>
@@ -741,6 +755,43 @@ namespace Microsoft.CodeAnalysis.CSharp
             return binders.ToArrayAndFree();
         }
 #endif
+        
+        internal Binder WithPatternVariablesIfAny(ExpressionSyntax scopeOpt)
+        {
+            Debug.Assert(Locals.Length == 0);
+            return new PatternVariableBinder(scopeOpt, scopeOpt, this);
+        }
 
+        internal Binder WithPatternVariablesIfAny(ArgumentListSyntax initializerArgumentListOpt)
+        {
+            Debug.Assert(Locals.Length == 0);
+
+            if (initializerArgumentListOpt == null || initializerArgumentListOpt.Arguments.Count == 0)
+            {
+                return this;
+            }
+
+            return new PatternVariableBinder(initializerArgumentListOpt, initializerArgumentListOpt.Arguments, this);
+        }
+
+        internal void BuildAndAddPatternVariables(
+            ArrayBuilder<LocalSymbol> builder,
+            CSharpSyntaxNode node = null,
+            ImmutableArray<CSharpSyntaxNode> nodes = default(ImmutableArray<CSharpSyntaxNode>))
+        {
+            var patterns = PatternVariableFinder.FindPatternVariables(node, nodes);
+            foreach (var pattern in patterns)
+            {
+                builder.Add(SourceLocalSymbol.MakeLocal(ContainingMemberOrLambda, this, RefKind.None, pattern.Type, pattern.Identifier, LocalDeclarationKind.PatternVariable));
+            }
+            patterns.Free();
+        }
+
+        internal BoundExpression WrapWithVariablesIfAny(BoundExpression expression)
+        {
+            return (Locals.Length == 0)
+                ? expression
+                : new BoundSequence(expression.Syntax, Locals, ImmutableArray<BoundExpression>.Empty, expression, expression.Type) { WasCompilerGenerated = true };
+        }
     }
 }

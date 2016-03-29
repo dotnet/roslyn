@@ -1,0 +1,5 @@
+# The project.json in this directory exists simply to download packages; since
+# nothing will ever read the project.lock.json here, we should not check them
+# in
+
+project.lock.json

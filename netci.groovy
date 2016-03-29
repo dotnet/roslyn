@@ -15,11 +15,13 @@ static void addLogRotator(def myJob) {
 static void addConcurrentBuild(def myJob, String category) {
   myJob.with {
     concurrentBuild(true)
-    throttleConcurrentBuilds {
-      throttleDisabled(false)
-      maxTotal(0)
-      maxPerNode(1)
-      categories([category])
+    if (category != null)  {
+      throttleConcurrentBuilds {
+        throttleDisabled(false)
+        maxTotal(0)
+        maxPerNode(1)
+        categories([category])
+      }
     }
   }
 }
@@ -56,14 +58,23 @@ static void addWrappers(def myJob) {
 static void addArtifactArchiving(def myJob, String patternString, String excludeString) {
   myJob.with {
     publishers {
-      archiveArtifacts {
-        allowEmpty(false)
-        defaultExcludes(false)
-        exclude(excludeString)
-        fingerprint(false)
-        latestOnly(false)
-        onlyIfSuccessful(false)
-        pattern(patternString)
+      flexiblePublish {
+        conditionalAction {
+          condition {
+            status('ABORTED', 'FAILURE')
+          }
+
+          publishers {
+            archiveArtifacts {
+              allowEmpty(true)
+              defaultExcludes(false)
+              exclude(excludeString)
+              fingerprint(false)
+              onlyIfSuccessful(false)
+              pattern(patternString)
+            }
+          }
+        }
       }
     }
   }
@@ -126,21 +137,27 @@ static void addPushTrigger(def myJob) {
   }
 }
 
-static void addPullRequestTrigger(def myJob, String contextName, String opsysName, String triggerKeyword = 'this', Boolean triggerOnly = false) {
+// Generates the standard trigger phrases.  This is the regex which ends up matching lines like:
+//  test win32 please
+static String generateTriggerPhrase(String jobName, String opsysName, String triggerKeyword = 'this') {
+    return "(?i).*test\\W+(${jobName.replace('_', '/').substring(7)}|${opsysName}|${triggerKeyword}|${opsysName}\\W+${triggerKeyword}|${triggerKeyword}\\W+${opsysName})\\W+please.*";
+}
+
+static void addPullRequestTrigger(def myJob, String jobName, String triggerPhraseText, Boolean triggerPhraseOnly = false) {
   myJob.with {
     triggers {
       pullRequest {
         admin('Microsoft')
         useGitHubHooks(true)
-        regexTriggerPhrase("(?i).*test\\W+(${contextName.replace('_', '/').substring(7)}|${opsysName}|${triggerKeyword}|${opsysName}\\W+${triggerKeyword}|${triggerKeyword}\\W+${opsysName})\\W+please.*")
-        onlyTriggerPhrase(triggerOnly)
+        triggerPhrase(triggerPhraseText)
+        onlyTriggerPhrase(triggerPhraseOnly)
         autoCloseFailedPullRequests(false)
         orgWhitelist('Microsoft')
         allowMembersOfWhitelistedOrgsAsAdmin(true)
         permitAll(true)
         extensions {
           commitStatus {
-            context(contextName.replace('_', '/').substring(7))
+            context(jobName.replace('_', '/').substring(7))
           }
         }
       }
@@ -148,19 +165,56 @@ static void addPullRequestTrigger(def myJob, String contextName, String opsysNam
   }
 }
 
-['master', 'future', 'stabilization', 'prtest'].each { branchName ->
-  // folder("${branchName.substring(0, 6)}")
+static void addStandardJob(def myJob, String jobName, String branchName, String triggerPhrase, Boolean triggerPhraseOnly = false) {
+  addLogRotator(myJob)
+  addWrappers(myJob)
+
+  def includePattern = "Binaries/**/*.pdb,Binaries/**/*.xml,Binaries/**/*.log,Binaries/**/*.dmp,Binaries/**/*.zip,Binaries/**/*.png,Binaries/**/*.xml"
+  def excludePattern = "Binaries/Obj/**,Binaries/Bootstrap/**,Binaries/**/nuget*.zip"
+  // Disable archiving temporarily.  Far too much data is being archived (~140GB per build)
+  // addArtifactArchiving(myJob, includePattern, excludePattern)
+
+  if (branchName == 'prtest') {
+    addPullRequestTrigger(myJob, jobName, triggerPhrase, triggerPhraseOnly);
+    addScm(myJob, '${sha1}', '+refs/pull/*:refs/remotes/origin/pr/*')
+  } else {
+    addPushTrigger(myJob)
+    addScm(myJob, "*/${branchName}")
+    addEmailPublisher(myJob)
+  }
+}
+
+def branchNames = []
+['master', 'future', 'stabilization', 'future-stabilization', 'hotfixes', 'prtest'].each { branchName ->
+  def shortBranchName = branchName.substring(0, 6)
+  def jobBranchName = shortBranchName in branchNames ? branchName : shortBranchName
+  branchNames << jobBranchName
+
+  // folder("${jobBranchName}")
   ['win', 'linux', 'mac'].each { opsys ->
-    // folder("${branchName.substring(0, 6)}/${opsys.substring(0, 3)}")
+    // folder("${jobBranchName}/${opsys.substring(0, 3)}")
     ['dbg', 'rel'].each { configuration ->
       if ((configuration == 'dbg') || ((branchName != 'prtest') && (opsys == 'win'))) {
-        // folder("${branchName.substring(0, 6)}/${opsys.substring(0, 3)}/${configuration}")
+        // folder("${jobBranchName}/${opsys.substring(0, 3)}/${configuration}")
         ['unit32', 'unit64'].each { buildTarget ->
           if ((opsys == 'win') || (buildTarget == 'unit32')) {
-            def jobName = "roslyn_${branchName.substring(0, 6)}_${opsys.substring(0, 3)}_${configuration}_${buildTarget}"
+            def jobName = "roslyn_${jobBranchName}_${opsys.substring(0, 3)}_${configuration}_${buildTarget}"
             def myJob = job(jobName) {
               description('')
             }
+
+            // Generate the PR trigger phrase for this job.
+            String triggerKeyword = '';
+            switch (buildTarget) {
+              case 'unit32':
+                triggerKeyword =  '(unit|unit32|unit\\W+32)';
+                break;
+              case 'unit64':
+                triggerKeyword = '(unit|unit64|unit\\W+64)';
+                break;
+            }
+            String triggerPhrase = generateTriggerPhrase(jobName, opsys, triggerKeyword);
+            Boolean triggerPhraseOnly = false;
 
             switch (opsys) {
               case 'win':
@@ -173,7 +227,8 @@ set TMP=%TEMP%
 .\\cibuild.cmd ${(configuration == 'dbg') ? '/debug' : '/release'} ${(buildTarget == 'unit32') ? '/test32' : '/test64'}""")
                   }
                 }
-                addConcurrentBuild(myJob, 'roslyn/win/unit')
+                // Generic throttling for Windows, no category
+                addConcurrentBuild(myJob, null)
                 break;
               case 'linux':
                 myJob.with {
@@ -192,33 +247,34 @@ set TMP=%TEMP%
                   }
                 }
                 addConcurrentBuild(myJob, 'roslyn/mac/unit')
+                triggerPhraseOnly = true;
                 break;
             }
 
-            addLogRotator(myJob)
-            addWrappers(myJob)
-
             addUnitPublisher(myJob)
-            addArtifactArchiving(myJob, "**/Binaries/**", "**/Binaries/Obj/**")
-
-            if (branchName == 'prtest') {
-              switch (buildTarget) {
-                case 'unit32':
-                  addPullRequestTrigger(myJob, jobName, opsys, "(unit|unit32|unit\\W+32)")
-                  break;
-                case 'unit64':
-                  addPullRequestTrigger(myJob, jobName, opsys, '(unit|unit64|unit\\W+64)')
-                  break;
-              }
-              addScm(myJob, '${sha1}', '+refs/pull/*:refs/remotes/origin/pr/*')
-            } else {
-              addPushTrigger(myJob)
-              addScm(myJob, "*/${branchName}")
-              addEmailPublisher(myJob)
-            }
+            addStandardJob(myJob, jobName, branchName, triggerPhrase, triggerPhraseOnly);
           }
         }
       }
     }
   }
+
+  def determinismJobName = "roslyn_${jobBranchName}_determinism"
+  def determinismJob = job(determinismJobName) {
+    description('')
+  }
+
+  determinismJob.with {
+    label('windows-roslyn')
+    steps {
+      batchFile("""set TEMP=%WORKSPACE%\\Binaries\\Temp
+mkdir %TEMP%
+set TMP=%TEMP%
+.\\cibuild.cmd /testDeterminism""")
+    }
+  }
+
+  addConcurrentBuild(determinismJob, null)
+  addStandardJob(determinismJob, determinismJobName, branchName,  "(?i).*test\\W+determinism.*", true);
 }
+

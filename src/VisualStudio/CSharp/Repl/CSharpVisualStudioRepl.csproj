@@ -145,6 +145,7 @@
     <Compile Include="CSharpVsInteractiveWindowProvider.cs" />
     <Compile Include="CSharpVsInteractiveWindowPackage.cs" />
     <Compile Include="CSharpVsInteractiveWindowCommandProvider.cs" />
+    <Compile Include="CSharpVsResetInteractiveCommand.cs" />
     <Content Include="CSharpInteractive.rsp" />
     <Content Include="Resources\ScriptFile.ico" />
   </ItemGroup>
@@ -164,6 +165,7 @@
     <InternalsVisibleToTest Include="Roslyn.VisualStudio.Services.UnitTests" />
     <InternalsVisibleToTest Include="RoslynETAHost" />
     <InternalsVisibleToTest Include="RoslynTaoActions" />
+    <InternalsVisibleToTest Include="Roslyn.VisualStudio.Integration.Test.Utilities" />
   </ItemGroup>
   <ItemGroup>
     <None Include="project.json" />

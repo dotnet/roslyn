@@ -7,7 +7,7 @@ using Microsoft.VisualStudio.Debugger.Evaluation;
 using Roslyn.Test.Utilities;
 using Xunit;
 
-namespace Microsoft.CodeAnalysis.CSharp.UnitTests
+namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator.UnitTests
 {
     internal class DebuggerBrowsableAttributeTests : CSharpResultProviderTestBase
     {
@@ -248,11 +248,11 @@ class C
         }
 
         /// <summary>
-        /// Value should not be expandable if all members are marked
+        /// Instance of type where all members are marked
         /// [DebuggerBrowsable(DebuggerBrowsableState.RootHidden)].
         /// </summary>
-        [WorkItem(934800)]
-        [Fact(Skip = "934800")]
+        [WorkItem(934800, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/934800")]
+        [Fact]
         public void RootHidden_Empty()
         {
             var source =
@@ -282,7 +282,9 @@ class C
                 evalFlags: DkmEvaluationResultFlags.None);
             var evalResult = FormatResult("o", value);
             Verify(evalResult,
-                EvalResult("o", "{C}", "C", "o"));
+                EvalResult("o", "{C}", "C", "o", DkmEvaluationResultFlags.Expandable)); // Ideally, not expandable.
+            var children = GetChildren(evalResult);
+            Verify(children); // No children.
         }
 
         [Fact]

@@ -221,6 +221,11 @@ namespace My
             int minInt32Value = -2147483648;
             int minInt64Value = -9223372036854775808L;
 
+            ref string stringRef;
+            stringRef = ref System.String.Empty;
+
+            ref string stringRef1 = ref System.String.Empty;
+
             bool @bool;
             byte @byte;
             char @char = 'c', \u0066 = '\u0066', hexchar = '\x0130', hexchar2 = (char)0xBAD;

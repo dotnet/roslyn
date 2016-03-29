@@ -9,9 +9,9 @@ namespace Roslyn.VisualStudio.CSharp.UnitTests.ProjectSystemShim
 {
     public class SourceFileHandlingTests
     {
-        [WpfFact]
+        [Fact]
         [Trait(Traits.Feature, Traits.Features.ProjectSystemShims)]
-        [WorkItem(1100114)]
+        [WorkItem(1100114, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1100114")]
         public void IgnoreAdditionsOfXomlFiles()
         {
             using (var environment = new TestEnvironment())

@@ -8,106 +8,107 @@ Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
 Imports Microsoft.CodeAnalysis.Editor.VisualBasic.AutomaticCompletion
 Imports Microsoft.CodeAnalysis.Editor.Implementation.AutomaticCompletion
+Imports System.Threading.Tasks
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.AutomaticCompletion
     Public Class AutomaticBracketCompletionTests
         Inherits AbstractAutomaticBraceCompletionTests
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)>
-        Public Sub Creation()
-            Using session = CreateSession("$$")
+        Public Async Function TestCreation() As Task
+            Using session = Await CreateSessionAsync("$$")
                 Assert.NotNull(session)
             End Using
-        End Sub
+        End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)>
-        Public Sub Bracket()
-            Using session = CreateSession("$$")
-                Assert.NotNull(session)
-                CheckStart(session.Session)
-            End Using
-        End Sub
-
-        <WpfFact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)>
-        Public Sub Bracket2()
-            Using session = CreateSession("Imports System$$")
+        Public Async Function TestBracket() As Task
+            Using session = Await CreateSessionAsync("$$")
                 Assert.NotNull(session)
                 CheckStart(session.Session)
             End Using
-        End Sub
+        End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)>
-        Public Sub InvalidLocation_Bracket()
+        Public Async Function TestBracket2() As Task
+            Using session = Await CreateSessionAsync("Imports System$$")
+                Assert.NotNull(session)
+                CheckStart(session.Session)
+            End Using
+        End Function
+
+        <WpfFact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)>
+        Public Async Function TestInvalidLocation_Bracket() As Task
             Dim code = <code>Class C
     Dim s As String = "$$
 End Class</code>
 
-            Using session = CreateSession(code)
+            Using session = Await CreateSessionAsync(code)
                 Assert.Null(session)
             End Using
-        End Sub
+        End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)>
-        Public Sub InvalidLocation_Comment()
+        Public Async Function TestInvalidLocation_Comment() As Task
             Dim code = <code>Class C
     ' $$
 End Class</code>
 
-            Using session = CreateSession(code)
+            Using session = Await CreateSessionAsync(code)
                 Assert.Null(session)
             End Using
-        End Sub
+        End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)>
-        Public Sub InvalidLocation_DocComment()
+        Public Async Function TestInvalidLocation_DocComment() As Task
             Dim code = <code>Class C
     ''' $$
 End Class</code>
 
-            Using session = CreateSession(code)
+            Using session = Await CreateSessionAsync(code)
                 Assert.Null(session)
             End Using
-        End Sub
+        End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)>
-        Public Sub InvalidLocation_Comment_CloseBracket()
+        Public Async Function TestInvalidLocation_Comment_CloseBracket() As Task
             Dim code = <code>Class C
     Sub Method()
         Dim $$
     End Sub
 End Class</code>
 
-            Using session = CreateSession(code)
+            Using session = Await CreateSessionAsync(code)
                 Assert.NotNull(session)
                 CheckStart(session.Session)
                 Type(session.Session, "'")
                 CheckOverType(session.Session, allowOverType:=False)
             End Using
-        End Sub
+        End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)>
-        Public Sub InvalidLocation_Comment_Tab()
+        Public Async Function TestInvalidLocation_Comment_Tab() As Task
             Dim code = <code>Class C
     Sub Method()
         Dim $$
     End Sub
 End Class</code>
 
-            Using session = CreateSession(code)
+            Using session = Await CreateSessionAsync(code)
                 Assert.NotNull(session)
                 CheckStart(session.Session)
                 Type(session.Session, "'")
                 CheckTab(session.Session)
             End Using
-        End Sub
-
-        Friend Overloads Function CreateSession(code As XElement) As Holder
-            Return CreateSession(code.NormalizedValue())
         End Function
 
-        Friend Overloads Function CreateSession(code As String) As Holder
+        Friend Overloads Function CreateSessionAsync(code As XElement) As Threading.Tasks.Task(Of Holder)
+            Return CreateSessionAsync(code.NormalizedValue())
+        End Function
+
+        Friend Overloads Async Function CreateSessionAsync(code As String) As Threading.Tasks.Task(Of Holder)
             Return CreateSession(
-                VisualBasicWorkspaceFactory.CreateWorkspaceFromFile(code),
+                Await TestWorkspace.CreateVisualBasicAsync(code),
                 BraceCompletionSessionProvider.Bracket.OpenCharacter, BraceCompletionSessionProvider.Bracket.CloseCharacter)
         End Function
     End Class

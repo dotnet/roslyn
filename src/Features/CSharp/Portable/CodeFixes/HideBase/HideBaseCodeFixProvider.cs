@@ -13,7 +13,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.HideBase
     [ExportCodeFixProvider(LanguageNames.CSharp, Name = PredefinedCodeFixProviderNames.AddNew), Shared]
     internal partial class HideBaseCodeFixProvider : CodeFixProvider
     {
-        internal const string CS0108 = "CS0108"; // 'SomeClass.SomeMember' hides inherited member 'SomeClass.SomeMember'. Use the new keyword if hiding was intended.
+        internal const string CS0108 = nameof(CS0108); // 'SomeClass.SomeMember' hides inherited member 'SomeClass.SomeMember'. Use the new keyword if hiding was intended.
 
         public override ImmutableArray<string> FixableDiagnosticIds => ImmutableArray.Create(CS0108);
 
@@ -44,7 +44,5 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.HideBase
 
             context.RegisterCodeFix(new AddNewKeywordAction(context.Document, originalNode), context.Diagnostics);
         }
-
-
     }
 }

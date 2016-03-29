@@ -547,7 +547,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                                     AddDiagnostic(diagnostics, ErrorCode.ERR_SwitchNeedsString, MessageID.IDS_Text.Localize(), name);
                                     continue;
                                 }
-                                switch (value.ToLower()) {
+                                switch (value.ToLower())
+                                {
                                     case "full":
                                     case "pdbonly":
                                         debugInformationFormat = DebugInformationFormat.Pdb;
@@ -1115,6 +1116,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (baseDirectory != outputDirectory)
             {
                 keyFileSearchPaths.Add(outputDirectory);
+            }
+
+            // Public sign doesn't use the legacy search path settings
+            if (publicSign && !string.IsNullOrWhiteSpace(keyFileSetting))
+            {
+                keyFileSetting = ParseGenericPathToFile(keyFileSetting, diagnostics, baseDirectory);
             }
 
             var parsedFeatures = CompilerOptionParseUtilities.ParseFeatures(features);

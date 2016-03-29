@@ -61,8 +61,8 @@ End Module
 expectedOutput:="123")
         End Sub
 
-        <WorkItem(679765, "DevDiv")>
-        <Fact(Skip:="679765")>
+        <WorkItem(679765, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/679765")>
+        <Fact>
         Public Sub Bug679765()
             CompileAndVerify(
 <compilation>
@@ -72,7 +72,7 @@ expectedOutput:="123")
 </compilation>, additionalRefs:={MsvbRef})
         End Sub
 
-        <WorkItem(707924, "DevDiv")>
+        <WorkItem(707924, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/707924")>
         <Fact()>
         Public Sub Bug707924a()
             Dim source = My.Resources.Resource.T_1247520
@@ -379,7 +379,7 @@ BC30451: 'foo' is not declared. It may be inaccessible due to its protection lev
 </expected>)
         End Sub
 
-        <WorkItem(538871, "DevDiv")>
+        <WorkItem(538871, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538871")>
         <Fact>
         Public Sub QualifiedNameBeforeDotNotFound()
             Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(
@@ -672,7 +672,7 @@ BC42025: Access of shared member, constant member, enum member or nested type th
 </expected>)
         End Sub
 
-        <Fact(), WorkItem(531587, "DevDiv")>
+        <Fact(), WorkItem(531587, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/531587")>
         Public Sub CircularSharedMemberAccessThroughInstance()
             Dim source =
 <compilation name="FieldsConst">
@@ -906,7 +906,7 @@ BC42105: Function 'Foo' doesn't return a value on all code paths. A null referen
 
         End Sub
 
-        <WorkItem(538802, "DevDiv")>
+        <WorkItem(538802, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538802")>
         <Fact>
         Public Sub MethodAccessibilityChecking()
             CompileAndVerify(
@@ -1066,7 +1066,7 @@ BC30108: 'S' is a type and cannot be used as an expression.
 </expected>)
         End Sub
 
-        <WorkItem(538438, "DevDiv")>
+        <WorkItem(538438, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538438")>
         <Fact>
         Public Sub TestRangeExpressionAllowableLowerBounds()
 
@@ -1091,7 +1091,7 @@ BC30108: 'S' is a type and cannot be used as an expression.
             AssertNoErrors(compilation)
         End Sub
 
-        <WorkItem(537219, "DevDiv")>
+        <WorkItem(537219, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/537219")>
         <Fact>
         Public Sub BC32059ERR_OnlyNullLowerBound()
             Dim compilationDef =
@@ -2080,7 +2080,7 @@ BC30182: Type expected.
 </errors>)
         End Sub
 
-        <WorkItem(542383, "DevDiv")>
+        <WorkItem(542383, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542383")>
         <Fact>
         Public Sub GetTypeOnModuleName()
             Dim text =
@@ -2574,7 +2574,7 @@ BC30438: Constants must have a value.
 </expected>)
         End Sub
 
-        <WorkItem(546469, "DevDiv")>
+        <WorkItem(546469, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546469")>
         <Fact>
         Public Sub GetTypeAllowsArrayOfModules()
             Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(
@@ -2636,8 +2636,8 @@ BC31422: 'System.Void' can only be used in a GetType expression.
                                            </expected>)
         End Sub
 
-        <WorkItem(530438, "DevDiv")>
-        <WorkItem(546469, "DevDiv")>
+        <WorkItem(530438, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530438")>
+        <WorkItem(546469, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546469")>
         <Fact()>
         Public Sub GetTypeAllowsModuleAlias()
             Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(
@@ -2696,7 +2696,7 @@ End Class
             CompileAndVerify(compilation, expectedOutput:="42")
         End Sub
 
-        <WorkItem(1108036, "DevDiv")>
+        <WorkItem(1108036, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1108036")>
         <Fact()>
         Public Sub Bug1108036()
             Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(
@@ -2737,7 +2737,7 @@ BC30521: Overload resolution failed because no accessible 'Color' is most specif
 </expected>)
         End Sub
 
-        <WorkItem(1108036, "DevDiv")>
+        <WorkItem(1108036, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1108036")>
         <Fact()>
         Public Sub Bug1108036_2()
             Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(
@@ -2778,7 +2778,7 @@ BC30521: Overload resolution failed because no accessible 'Color' is most specif
 </expected>)
         End Sub
 
-        <WorkItem(969006, "DevDiv")>
+        <WorkItem(969006, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/969006")>
         <Fact()>
         Public Sub Bug969006_1()
             Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(
@@ -2824,7 +2824,7 @@ End Class
             AssertTheseDiagnostics(compilation)
         End Sub
 
-        <WorkItem(969006, "DevDiv")>
+        <WorkItem(969006, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/969006")>
         <Fact()>
         Public Sub Bug969006_2()
             Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(
@@ -2870,7 +2870,7 @@ End Class
             AssertTheseDiagnostics(compilation)
         End Sub
 
-        <WorkItem(969006, "DevDiv")>
+        <WorkItem(969006, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/969006")>
         <Fact()>
         Public Sub Bug969006_3()
             Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(
@@ -2921,7 +2921,7 @@ BC42104: Variable 'e' is used before it has been assigned a value. A null refere
                                                 </expected>)
         End Sub
 
-        <WorkItem(969006, "DevDiv")>
+        <WorkItem(969006, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/969006")>
         <Fact()>
         Public Sub Bug969006_4()
             Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(
@@ -2972,7 +2972,7 @@ BC42104: Variable 'e' is used before it has been assigned a value. A null refere
                                                 </expected>)
         End Sub
 
-        <WorkItem(1108007, "DevDiv")>
+        <WorkItem(1108007, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1108007")>
         <Fact()>
         Public Sub Bug1108007_1()
             Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(
@@ -3012,7 +3012,7 @@ End Class
             CompileAndVerify(compilation, expectedOutput:="42")
         End Sub
 
-        <WorkItem(1108007, "DevDiv")>
+        <WorkItem(1108007, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1108007")>
         <Fact>
         Public Sub Bug1108007_2()
             Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(
@@ -3058,7 +3058,7 @@ End Class
             CompileAndVerify(compilation, expectedOutput:=<![CDATA[System.NullReferenceException]]>)
         End Sub
 
-        <WorkItem(1108007, "DevDiv")>
+        <WorkItem(1108007, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1108007")>
         <Fact()>
         Public Sub Bug1108007_3()
             Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(
@@ -3102,7 +3102,7 @@ End Class
             AssertTheseDiagnostics(compilation, <expected></expected>)
         End Sub
 
-        <WorkItem(1108007, "DevDiv")>
+        <WorkItem(1108007, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1108007")>
         <Fact()>
         Public Sub Bug1108007_4()
             Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(
@@ -3153,7 +3153,7 @@ End Class
             CompileAndVerify(compilation, expectedOutput:=<![CDATA[System.NullReferenceException]]>)
         End Sub
 
-        <WorkItem(1108007, "DevDiv")>
+        <WorkItem(1108007, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1108007")>
         <Fact()>
         Public Sub Bug1108007_5()
             Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(
@@ -3207,7 +3207,7 @@ End Class
             CompileAndVerify(compilation, expectedOutput:="42")
         End Sub
 
-        <WorkItem(1108007, "DevDiv")>
+        <WorkItem(1108007, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1108007")>
         <Fact()>
         Public Sub Bug1108007_6()
             Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(
@@ -3255,7 +3255,7 @@ End Class
             CompileAndVerify(compilation, expectedOutput:=<![CDATA[System.NullReferenceException]]>)
         End Sub
 
-        <WorkItem(1108007, "DevDiv")>
+        <WorkItem(1108007, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1108007")>
         <Fact()>
         Public Sub Bug1108007_7()
             Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(
@@ -3299,7 +3299,7 @@ End Class
             CompileAndVerify(compilation, expectedOutput:="42")
         End Sub
 
-        <WorkItem(1108007, "DevDiv")>
+        <WorkItem(1108007, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1108007")>
         <Fact>
         Public Sub Bug1108007_8()
             Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(
@@ -3352,7 +3352,7 @@ End Class
             CompileAndVerify(compilation, expectedOutput:=<![CDATA[System.NullReferenceException]]>)
         End Sub
 
-        <WorkItem(1108007, "DevDiv")>
+        <WorkItem(1108007, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1108007")>
         <Fact()>
         Public Sub Bug1108007_9()
             Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(
@@ -3398,7 +3398,7 @@ End Class    </file>
             CompileAndVerify(compilation, expectedOutput:="42")
         End Sub
 
-        <WorkItem(1114969, "DevDiv")>
+        <WorkItem(1114969, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1114969")>
         <Fact()>
         Public Sub Bug1114969()
             Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(

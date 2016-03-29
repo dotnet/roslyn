@@ -4,6 +4,7 @@ using System;
 using System.Collections.ObjectModel;
 using System.Diagnostics;
 using Microsoft.VisualStudio.Debugger;
+using Microsoft.VisualStudio.Debugger.Clr;
 using Microsoft.VisualStudio.Debugger.Evaluation;
 using Microsoft.VisualStudio.Debugger.Evaluation.ClrCompilation;
 using Roslyn.Utilities;
@@ -23,7 +24,7 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
     // This class provides implementation for the "displaying values as strings" aspect of the default (C#) Formatter component.
     internal abstract partial class Formatter
     {
-        internal string GetValueString(DkmClrValue value, DkmInspectionContext inspectionContext, ObjectDisplayOptions options, GetValueFlags flags)
+        private string GetValueString(DkmClrValue value, DkmInspectionContext inspectionContext, ObjectDisplayOptions options, GetValueFlags flags)
         {
             if (value.IsError())
             {
@@ -61,7 +62,7 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
                 {
                     return IncludeObjectId(
                         value,
-                        FormatPrimitive(value, options & ~ObjectDisplayOptions.UseQuotes, inspectionContext),
+                        FormatPrimitive(value, options & ~(ObjectDisplayOptions.UseQuotes | ObjectDisplayOptions.EscapeNonPrintableCharacters), inspectionContext),
                         flags);
                 }
             }
@@ -80,7 +81,7 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
             {
                 return IncludeObjectId(
                     value,
-                    GetArrayDisplayString(lmrType, value.ArrayDimensions, value.ArrayLowerBounds, options),
+                    GetArrayDisplayString(value.Type.AppDomain, lmrType, value.ArrayDimensions, value.ArrayLowerBounds, options),
                     flags);
             }
             else if (lmrType.IsPointer)
@@ -111,7 +112,7 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
         /// <summary>
         /// Gets the string representation of a character literal without including the numeric code point.
         /// </summary>
-        internal string GetValueStringForCharacter(DkmClrValue value, DkmInspectionContext inspectionContext, ObjectDisplayOptions options)
+        private string GetValueStringForCharacter(DkmClrValue value, DkmInspectionContext inspectionContext, ObjectDisplayOptions options)
         {
             Debug.Assert(value.Type.GetLmrType().IsCharacter());
             if (UsesHexadecimalNumbers(inspectionContext))
@@ -123,12 +124,12 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
             return charTemp;
         }
 
-        internal bool HasUnderlyingString(DkmClrValue value, DkmInspectionContext inspectionContext)
+        private bool HasUnderlyingString(DkmClrValue value, DkmInspectionContext inspectionContext)
         {
             return GetUnderlyingString(value, inspectionContext) != null;
         }
 
-        internal string GetUnderlyingString(DkmClrValue value, DkmInspectionContext inspectionContext)
+        private string GetUnderlyingString(DkmClrValue value, DkmInspectionContext inspectionContext)
         {
             RawStringDataItem dataItem = value.GetDataItem<RawStringDataItem>();
             if (dataItem != null)
@@ -236,7 +237,7 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
             fields.Sort(EnumField.Comparer);
         }
 
-        internal static void FillUsedEnumFields(ArrayBuilder<EnumField> usedFields, ArrayBuilder<EnumField> fields, ulong underlyingValue)
+        protected static void FillUsedEnumFields(ArrayBuilder<EnumField> usedFields, ArrayBuilder<EnumField> fields, ulong underlyingValue)
         {
             var remaining = underlyingValue;
             foreach (var field in fields)
@@ -319,7 +320,7 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
             }
         }
 
-        internal string GetEditableValue(DkmClrValue value, DkmInspectionContext inspectionContext)
+        private string GetEditableValue(DkmClrValue value, DkmInspectionContext inspectionContext, DkmClrCustomTypeInfo customTypeInfo)
         {
             if (value.IsError())
             {
@@ -348,18 +349,18 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
             {
                 if (!value.IsNull)
                 {
-                    return this.GetValueString(value, inspectionContext, ObjectDisplayOptions.UseQuotes, GetValueFlags.None);
+                    return this.GetValueString(value, inspectionContext, ObjectDisplayOptions.UseQuotes | ObjectDisplayOptions.EscapeNonPrintableCharacters, GetValueFlags.None);
                 }
             }
             else if (type.IsCharacter())
             {
-                return this.GetValueStringForCharacter(value, inspectionContext, ObjectDisplayOptions.UseQuotes);
+                return this.GetValueStringForCharacter(value, inspectionContext, ObjectDisplayOptions.UseQuotes | ObjectDisplayOptions.EscapeNonPrintableCharacters);
             }
 
             return null;
         }
 
-        internal string FormatPrimitive(DkmClrValue value, ObjectDisplayOptions options, DkmInspectionContext inspectionContext)
+        private string FormatPrimitive(DkmClrValue value, ObjectDisplayOptions options, DkmInspectionContext inspectionContext)
         {
             Debug.Assert(value != null);
 
@@ -390,11 +391,11 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
 
         #region Language-specific value formatting behavior
 
-        internal abstract string GetArrayDisplayString(Type lmrType, ReadOnlyCollection<int> sizes, ReadOnlyCollection<int> lowerBounds, ObjectDisplayOptions options);
+        internal abstract string GetArrayDisplayString(DkmClrAppDomain appDomain, Type lmrType, ReadOnlyCollection<int> sizes, ReadOnlyCollection<int> lowerBounds, ObjectDisplayOptions options);
 
         internal abstract string GetArrayIndexExpression(int[] indices);
 
-        internal abstract string GetCastExpression(string argument, string type, bool parenthesizeArgument = false /* ignored in Visual Basic */, bool parenthesizeEntireExpression = false /* ignored in Visual Basic */);
+        internal abstract string GetCastExpression(string argument, string type, bool parenthesizeArgument, bool parenthesizeEntireExpression);
 
         internal abstract string GetNamesForFlagsEnumValue(ArrayBuilder<EnumField> fields, object value, ulong underlyingValue, ObjectDisplayOptions options, Type typeToDisplayOpt);
 

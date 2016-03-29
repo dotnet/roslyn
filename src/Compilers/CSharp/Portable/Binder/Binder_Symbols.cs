@@ -702,8 +702,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                         UnboundArgumentErrorTypeSymbol.CreateTypeArguments(
                             unconstructedType.TypeParameters,
                             node.Arity,
-                            errorInfo: null), 
-                        unbound:false);
+                            errorInfo: null),
+                        unbound: false);
                 }
                 else
                 {
@@ -1012,7 +1012,12 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         internal NamedTypeSymbol GetSpecialType(SpecialType typeId, DiagnosticBag diagnostics, CSharpSyntaxNode node)
         {
-            NamedTypeSymbol typeSymbol = this.Compilation.GetSpecialType(typeId);
+            return GetSpecialType(this.Compilation, typeId, node, diagnostics);
+        }
+
+        internal static NamedTypeSymbol GetSpecialType(CSharpCompilation compilation, SpecialType typeId, CSharpSyntaxNode node, DiagnosticBag diagnostics)
+        {
+            NamedTypeSymbol typeSymbol = compilation.GetSpecialType(typeId);
             Debug.Assert((object)typeSymbol != null, "Expect an error type if special type isn't found");
             ReportUseSiteDiagnostics(typeSymbol, diagnostics, node);
             return typeSymbol;
@@ -1304,7 +1309,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                                 // '{0}' is an ambiguous reference between '{1}' and '{2}'
                                 info = new CSDiagnosticInfo(ErrorCode.ERR_AmbigContext, originalSymbols,
                                     new object[] {
-                                        where,
+                                        (where as NameSyntax)?.ErrorDisplayName() ?? simpleName,
                                         new FormattedSymbol(first, SymbolDisplayFormat.CSharpErrorMessageFormat),
                                         new FormattedSymbol(second, SymbolDisplayFormat.CSharpErrorMessageFormat) });
                             }
@@ -1443,14 +1448,14 @@ namespace Microsoft.CodeAnalysis.CSharp
                                 //  SPEC:   is present, and a compile-time error results.
 
                                 info = new CSDiagnosticInfo(ErrorCode.ERR_AmbiguousAttribute, originalSymbols,
-                                    new object[] { where, first, second });
+                                    new object[] { (where as NameSyntax)?.ErrorDisplayName() ?? simpleName, first, second });
                             }
                             else
                             {
                                 // '{0}' is an ambiguous reference between '{1}' and '{2}'
                                 info = new CSDiagnosticInfo(ErrorCode.ERR_AmbigContext, originalSymbols,
                                     new object[] {
-                                        where,
+                                        (where as NameSyntax)?.ErrorDisplayName() ?? simpleName,
                                         new FormattedSymbol(first, SymbolDisplayFormat.CSharpErrorMessageFormat),
                                         new FormattedSymbol(second, SymbolDisplayFormat.CSharpErrorMessageFormat) });
                             }
@@ -1546,7 +1551,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     node = node.Parent;
                 }
 
-                CSDiagnosticInfo info = NotFound(where, simpleName, arity, where.ToString(), diagnostics, aliasOpt, qualifierOpt, options);
+                CSDiagnosticInfo info = NotFound(where, simpleName, arity, (where as NameSyntax)?.ErrorDisplayName() ?? simpleName, diagnostics, aliasOpt, qualifierOpt, options);
                 return new ExtendedErrorTypeSymbol(qualifierOpt ?? Compilation.Assembly.GlobalNamespace, simpleName, arity, info);
             }
 
@@ -1772,6 +1777,13 @@ namespace Microsoft.CodeAnalysis.CSharp
             bool encounteredForwardingCycle;
             string fullName;
 
+            // for attributes, suggest both, but not for verbatim name
+            if (options.IsAttributeTypeLookup() && !options.IsVerbatimNameAttributeTypeLookup())
+            {
+                // just recurse one level, so cheat and OR verbatim name option :)
+                NotFound(where, simpleName, arity, whereText + "Attribute", diagnostics, aliasOpt, qualifierOpt, options | LookupOptions.VerbatimNameAttributeTypeOnly);
+            }
+
             if ((object)qualifierOpt != null)
             {
                 if (qualifierOpt.IsType)
@@ -1834,7 +1846,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return diagnostics.Add(ErrorCode.ERR_AliasNotFound, location, whereText);
             }
 
-            if (whereText == "var" && !options.IsAttributeTypeLookup())
+            if ((where as IdentifierNameSyntax)?.Identifier.Text == "var" && !options.IsAttributeTypeLookup())
             {
                 var code = (where.Parent is QueryClauseSyntax) ? ErrorCode.ERR_TypeVarNotFoundRangeVariable : ErrorCode.ERR_TypeVarNotFound;
                 return diagnostics.Add(code, location);
@@ -1937,14 +1949,22 @@ namespace Microsoft.CodeAnalysis.CSharp
         internal static void CheckFeatureAvailability(Location location, MessageID feature, DiagnosticBag diagnostics)
         {
             var options = (CSharpParseOptions)location.SourceTree.Options;
-            if (feature.RequiredFeature() != null)
+            if (options.IsFeatureEnabled(feature))
+            {
+                return;
+            }
+
+            string requiredFeature = feature.RequiredFeature();
+            if (requiredFeature != null)
             {
                 if (!options.IsFeatureEnabled(feature))
                 {
-                    diagnostics.Add(ErrorCode.ERR_FeatureIsExperimental, location, feature.Localize());
+                    diagnostics.Add(ErrorCode.ERR_FeatureIsExperimental, location, feature.Localize(), requiredFeature);
                 }
+
                 return;
             }
+
             LanguageVersion availableVersion = options.LanguageVersion;
             LanguageVersion requiredVersion = feature.RequiredVersion();
             if (requiredVersion > availableVersion)

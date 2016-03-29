@@ -247,9 +247,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case BindValueKind.IncrementDecrement:
                     return true;
 
-                case BindValueKind.OutParameter:
+                case BindValueKind.RefOrOut:
                 case BindValueKind.AddressOf:
                 case BindValueKind.Assignment:
+                case BindValueKind.RefReturn:
                     return false;
 
                 default:
@@ -267,9 +268,31 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 case BindValueKind.CompoundAssignment:
                 case BindValueKind.IncrementDecrement:
-                case BindValueKind.OutParameter:
+                case BindValueKind.RefOrOut:
                 case BindValueKind.AddressOf:
                 case BindValueKind.Assignment:
+                case BindValueKind.RefReturn:
+                    return true;
+
+                default:
+                    throw ExceptionUtilities.UnexpectedValue(kind);
+            }
+        }
+
+        private static bool RequiresAddressableValue(BindValueKind kind)
+        {
+            switch (kind)
+            {
+                case BindValueKind.RValue:
+                case BindValueKind.RValueOrMethodGroup:
+                case BindValueKind.CompoundAssignment:
+                case BindValueKind.IncrementDecrement:
+                case BindValueKind.Assignment:
+                    return false;
+
+                case BindValueKind.RefOrOut:
+                case BindValueKind.AddressOf:
+                case BindValueKind.RefReturn:
                     return true;
 
                 default:
@@ -297,6 +320,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         internal BoundExpression BindVariableOrAutoPropInitializer(
             EqualsValueClauseSyntax initializerOpt,
+            RefKind refKind,
             TypeSymbol varType,
             DiagnosticBag diagnostics)
         {
@@ -305,7 +329,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return null;
             }
 
-            var initializer = BindPossibleArrayInitializer(initializerOpt.Value, varType, diagnostics);
+            BindValueKind valueKind;
+            IsInitializerRefKindValid(initializerOpt, initializerOpt, refKind, diagnostics, out valueKind);
+            var initializer = BindPossibleArrayInitializer(initializerOpt.Value, varType, valueKind, diagnostics);
             return GenerateConversionForAssignment(varType, initializer, diagnostics);
         }
 
@@ -313,7 +339,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             ParameterSymbol parameter,
             EqualsValueClauseSyntax defaultValueSyntax)
         {
-            return new LocalScopeBinder(this.WithContainingMemberOrLambda(parameter.ContainingSymbol).WithAdditionalFlags(BinderFlags.ParameterDefaultValue));
+            return new LocalScopeBinder(this.WithContainingMemberOrLambda(parameter.ContainingSymbol).WithAdditionalFlags(BinderFlags.ParameterDefaultValue)).
+                   WithPatternVariablesIfAny(defaultValueSyntax.Value);
         }
 
         internal BoundExpression BindParameterDefaultValue(
@@ -331,7 +358,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             // Always generate the conversion, even if the expression is not convertible to the given type.
             // We want the erroneous conversion in the tree.
-            return GenerateConversionForAssignment(parameterType, valueBeforeConversion, diagnostics, isDefaultParameter: true);
+            return WrapWithVariablesIfAny(GenerateConversionForAssignment(parameterType, valueBeforeConversion, diagnostics, isDefaultParameter: true));
         }
 
         internal BoundExpression BindEnumConstantInitializer(
@@ -578,6 +605,15 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case SyntaxKind.InterpolatedStringExpression:
                     return BindInterpolatedString((InterpolatedStringExpressionSyntax)node, diagnostics);
 
+                case SyntaxKind.IsPatternExpression:
+                    return BindIsPatternExpression((IsPatternExpressionSyntax)node, diagnostics);
+
+                case SyntaxKind.MatchExpression:
+                    return BindMatchExpression((MatchExpressionSyntax)node, diagnostics);
+
+                case SyntaxKind.ThrowExpression:
+                    return BindThrowExpression((ThrowExpressionSyntax)node, diagnostics);
+
                 default:
                     // NOTE: We could probably throw an exception here, but it's conceivable
                     // that a non-parser syntax tree could reach this point with an unexpected
@@ -615,7 +651,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         private BoundExpression BindMakeRef(MakeRefExpressionSyntax node, DiagnosticBag diagnostics)
         {
             // __makeref(x) requires that x be a variable, and not be of a restricted type.
-            BoundExpression argument = this.BindValue(node.Expression, diagnostics, BindValueKind.OutParameter);
+            BoundExpression argument = this.BindValue(node.Expression, diagnostics, BindValueKind.RefOrOut);
 
             bool hasErrors = argument.HasAnyErrors;
 
@@ -1040,6 +1076,23 @@ namespace Microsoft.CodeAnalysis.CSharp
             return false;
         }
 
+        private bool IsBadLocalOrParameterCapture(Symbol symbol, RefKind refKind)
+        {
+            if (refKind != RefKind.None)
+            {
+                var containingMethod = this.ContainingMemberOrLambda as MethodSymbol;
+                if ((object)containingMethod != null && (object)symbol.ContainingSymbol != (object)containingMethod)
+                {
+                    // Not expecting symbol from constructed method.
+                    Debug.Assert(!symbol.ContainingSymbol.Equals(containingMethod));
+
+                    // Captured in a lambda.
+                    return containingMethod.MethodKind == MethodKind.AnonymousFunction || containingMethod.MethodKind == MethodKind.LocalFunction; // false in EE evaluation method
+            }
+            }
+            return false;
+        }
+
         private BoundExpression BindNonMethod(SimpleNameSyntax node, Symbol symbol, DiagnosticBag diagnostics, LookupResultKind resultKind, bool isError)
         {
             // Events are handled later as we don't know yet if we are binding to the event or it's backing field.
@@ -1174,6 +1227,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                         }
                         else
                         {
+                            if (IsBadLocalOrParameterCapture(localSymbol, localSymbol.RefKind))
+                            {
+                                Error(diagnostics, ErrorCode.ERR_AnonDelegateCantUseLocal, node, localSymbol);
+                            }
+
                             type = localSymbol.Type;
                         }
 
@@ -1183,23 +1241,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case SymbolKind.Parameter:
                     {
                         var parameter = (ParameterSymbol)symbol;
-                        if (parameter.RefKind != RefKind.None)
-                        {
-                            var containingMethod = this.ContainingMemberOrLambda as MethodSymbol;
-                            if (((object)containingMethod != null) &&
-                                ((object)parameter.ContainingSymbol != (object)containingMethod))
-                            {
-                                // Not expecting parameter from constructed method.
-                                Debug.Assert(!parameter.ContainingSymbol.Equals(containingMethod));
-
-                                // Captured in a lambda.
-                                if (containingMethod.MethodKind == MethodKind.AnonymousFunction || containingMethod.MethodKind == MethodKind.LocalFunction) // false in EE evaluation method
+                        if (IsBadLocalOrParameterCapture(parameter, parameter.RefKind))
                                 {
                                     Error(diagnostics, ErrorCode.ERR_AnonDelegateCantUse, node, parameter.Name);
                                 }
-                            }
-                        }
-
                         return new BoundParameter(node, parameter, hasErrors: isError);
                     }
 
@@ -1758,6 +1803,32 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
+        private bool RefMustBeObeyed(bool isDelegateCreation, ArgumentSyntax argumentSyntax)
+        {
+            if (Compilation.FeatureStrictEnabled || !isDelegateCreation)
+            {
+                return true;
+            }
+
+            switch (argumentSyntax.Expression.Kind())
+            {
+                // The next 3 cases should never be allowed as they cannot be ref/out. Assuming a bug in legacy compiler.
+                case SyntaxKind.ParenthesizedLambdaExpression:
+                case SyntaxKind.SimpleLambdaExpression:
+                case SyntaxKind.AnonymousMethodExpression:
+                case SyntaxKind.InvocationExpression:
+                case SyntaxKind.ObjectCreationExpression:
+                case SyntaxKind.ParenthesizedExpression: // this is never allowed in legacy compiler
+                    // A property/indexer is also invalid as it cannot be ref/out, but cannot be checked here. Assuming a bug in legacy compiler.
+                    return true;
+                default:
+                    // The only ones that concern us here for compat is: locals, params, fields
+                    // BindArgumentAndName correctly rejects all other cases, except for properties and indexers.
+                    // They are handled after BindArgumentAndName returns and the binding can be checked.
+                    return false;
+            }
+        }
+
         private bool BindArgumentAndName(
             AnalyzedArguments result,
             DiagnosticBag diagnostics,
@@ -1766,11 +1837,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             bool allowArglist,
             bool isDelegateCreation = false)
         {
+            RefKind origRefKind = argumentSyntax.RefOrOutKeyword.Kind().GetRefKind();
             // The old native compiler ignores ref/out in a delegate creation expression.
             // For compatibility we implement the same bug except in strict mode.
-            RefKind refKind = (!isDelegateCreation || Compilation.FeatureStrictEnabled)
-                ? argumentSyntax.RefOrOutKeyword.Kind().GetRefKind()
-                : RefKind.None;
+            // Note: Some others should still be rejected when ref/out present. See RefMustBeObeyed.
+            RefKind refKind = origRefKind == RefKind.None || RefMustBeObeyed(isDelegateCreation, argumentSyntax) ? origRefKind : RefKind.None;
 
             hadError |= BindArgumentAndName(
                 result,
@@ -1781,6 +1852,18 @@ namespace Microsoft.CodeAnalysis.CSharp
                 argumentSyntax.NameColon,
                 refKind,
                 allowArglist);
+
+            // check for ref/out property/indexer, only needed for 1 parameter version
+            if (!hadError && isDelegateCreation && origRefKind != RefKind.None && result.Arguments.Count == 1)
+            {
+                var arg = result.Argument(0);
+                switch (arg.Kind)
+                {
+                    case BoundKind.PropertyAccess:
+                    case BoundKind.IndexerAccess:
+                        return CheckIsVariable(argumentSyntax, arg, BindValueKind.RefOrOut, false, diagnostics);
+                }
+            }
 
             return hadError;
         }
@@ -1801,7 +1884,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             Debug.Assert(argumentSyntax is ArgumentSyntax || argumentSyntax is AttributeArgumentSyntax);
 
-            BindValueKind valueKind = refKind == RefKind.None ? BindValueKind.RValue : BindValueKind.OutParameter;
+            BindValueKind valueKind = refKind == RefKind.None ? BindValueKind.RValue : BindValueKind.RefOrOut;
 
             // Bind argument and verify argument matches rvalue or out param requirements.
             BoundExpression argument;
@@ -2562,6 +2645,15 @@ namespace Microsoft.CodeAnalysis.CSharp
             MethodSymbol constructor,
             DiagnosticBag diagnostics)
         {
+            var result = BindConstructorInitializerCore(initializerArgumentListOpt, constructor, diagnostics);
+            return WrapWithVariablesIfAny(result);
+        }
+
+        private BoundExpression BindConstructorInitializerCore(
+            ArgumentListSyntax initializerArgumentListOpt,
+            MethodSymbol constructor,
+            DiagnosticBag diagnostics)
+        {
             Debug.Assert((object)constructor != null);
             Debug.Assert(constructor.MethodKind == MethodKind.Constructor ||
                 constructor.MethodKind == MethodKind.StaticConstructor); // error scenario: constructor initializer on static constructor
@@ -2733,7 +2825,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                         typeArguments: ImmutableArray<TypeSymbol>.Empty,
                         analyzedArguments: analyzedArguments,
                         invokedAsExtensionMethod: false,
-                        isDelegate: false);
+                        isDelegate: false,
+                        extensionMethodsOfSameViabilityAreAvailable: false);
                     result.WasCompilerGenerated = initializerArgumentListOpt == null;
                     return result;
                 }
@@ -5135,7 +5228,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 OverloadResolution.MethodInvocationOverloadResolution(methodGroup.Methods, methodGroup.TypeArguments, actualArguments, overloadResolutionResult, ref useSiteDiagnostics, isMethodGroupConversion, allowRefOmittedArguments);
                 diagnostics.Add(expression, useSiteDiagnostics);
                 var sealedDiagnostics = diagnostics.ToReadOnlyAndFree();
-                var result = new MethodGroupResolution(methodGroup, null, overloadResolutionResult, actualArguments, methodGroup.ResultKind, sealedDiagnostics);
+                var result = new MethodGroupResolution(methodGroup, null, overloadResolutionResult, actualArguments, methodGroup.ResultKind, sealedDiagnostics,
+                                                       extensionMethodsOfSameViabilityAreAvailable: false);
 
                 // If the search in the current scope resulted in any applicable method (regardless of whether a best 
                 // applicable method could be determined) then our search is complete. Otherwise, store aside the
@@ -6129,7 +6223,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 var diagnostics = DiagnosticBag.GetInstance();
                 diagnostics.AddRange(methodResolution.Diagnostics); // Could still have use site warnings.
                 BindMemberAccessReportError(node, diagnostics);
-                return new MethodGroupResolution(methodResolution.MethodGroup, methodResolution.OtherSymbol, methodResolution.OverloadResolutionResult, methodResolution.AnalyzedArguments, methodResolution.ResultKind, diagnostics.ToReadOnlyAndFree());
+                return new MethodGroupResolution(methodResolution.MethodGroup, methodResolution.OtherSymbol, methodResolution.OverloadResolutionResult, methodResolution.AnalyzedArguments, methodResolution.ResultKind, diagnostics.ToReadOnlyAndFree(),
+                                                 methodResolution.ExtensionMethodsOfSameViabilityAreAvailable);
             }
             return methodResolution;
         }
@@ -6158,6 +6253,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             var extensionMethodResolution = BindExtensionMethod(expression, methodName, analyzedArguments, methodGroup.ReceiverOpt, methodGroup.TypeArgumentsOpt, isMethodGroupConversion);
 
             bool preferExtensionMethodResolution = false;
+            bool extensionMethodsOfSameViabilityAreAvailable = false;
+
             if (extensionMethodResolution.HasAnyApplicableMethod)
             {
                 preferExtensionMethodResolution = true;
@@ -6182,8 +6279,12 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 LookupResultKind methodResultKind = methodResolution.ResultKind;
                 LookupResultKind extensionMethodResultKind = extensionMethodResolution.ResultKind;
-                if (methodResultKind != extensionMethodResultKind &&
-                    methodResultKind == extensionMethodResultKind.WorseResultKind(methodResultKind))
+                if (methodResultKind == extensionMethodResultKind)
+                {
+                    // This information allows us to preserve more useful information for SemanticModel.
+                    extensionMethodsOfSameViabilityAreAvailable = true;
+                }
+                else if (methodResultKind == extensionMethodResultKind.WorseResultKind(methodResultKind))
                 {
                     preferExtensionMethodResolution = true;
                 }
@@ -6197,6 +6298,18 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             extensionMethodResolution.Free();
+
+            if (extensionMethodsOfSameViabilityAreAvailable)
+            {
+                return new MethodGroupResolution(methodResolution.MethodGroup,
+                                                 methodResolution.OtherSymbol,
+                                                 methodResolution.OverloadResolutionResult,
+                                                 methodResolution.AnalyzedArguments,
+                                                 methodResolution.ResultKind,
+                                                 methodResolution.Diagnostics,
+                                                 extensionMethodsOfSameViabilityAreAvailable: true);
+            }
+
             return methodResolution;
         }
 
@@ -6255,7 +6368,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                     methodGroup.Methods, methodGroup.TypeArguments, analyzedArguments,
                     result, ref useSiteDiagnostics, isMethodGroupConversion, allowRefOmittedArguments,
                     inferWithDynamic: inferWithDynamic, allowUnexpandedForm: allowUnexpandedForm);
-                return new MethodGroupResolution(methodGroup, null, result, analyzedArguments, methodGroup.ResultKind, sealedDiagnostics);
+                return new MethodGroupResolution(methodGroup, null, result, analyzedArguments, methodGroup.ResultKind, sealedDiagnostics,
+                                                 extensionMethodsOfSameViabilityAreAvailable: false);
             }
         }
 

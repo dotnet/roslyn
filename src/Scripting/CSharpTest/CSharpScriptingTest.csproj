@@ -63,6 +63,7 @@
     <Compile Include="CommandLineRunnerTests.cs" />
     <Compile Include="InteractiveSessionFixtures.cs" />
     <Compile Include="InteractiveSessionTests.cs" />
+    <Compile Include="PrintOptionsTests.cs" />
     <Compile Include="ObjectFormatterTests.cs" />
     <Compile Include="ScriptTests.cs" />
   </ItemGroup>
@@ -70,8 +71,11 @@
     <InternalsVisibleToTest Include="Microsoft.CodeAnalysis.CSharp.Scripting.Desktop.UnitTests" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="App.config" />
+    <None Include="app.config" />
     <None Include="project.json" />
+  </ItemGroup>
+  <ItemGroup>
+    <Service Include="{82A7F48D-3B50-4B1E-B82E-3ADA8210C358}" />
   </ItemGroup>
   <ImportGroup Label="Targets">
     <Import Project="..\..\..\build\Targets\VSL.Imports.targets" />

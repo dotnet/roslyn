@@ -66,8 +66,8 @@ public class C<S>
         {
             int y1 = 1;
             {
-                const string c2 = "c2";
-                const string d2 = "d2";
+                const string c2 = nameof(c2);
+                const string d2 = nameof(d2);
                 int y2 = 2;
             }
         }

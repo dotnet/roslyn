@@ -213,7 +213,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     Error(ErrorCode.ERR_ExpressionTreeContainsOptionalArgument, node);
                 }
-                else if (!argumentNamesOpt.IsDefault)
+                else if (!argumentNamesOpt.IsDefaultOrEmpty)
                 {
                     Error(ErrorCode.ERR_ExpressionTreeContainsNamedArgument, node);
                 }
@@ -224,6 +224,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                 else if (method.MethodKind == MethodKind.LocalFunction)
                 {
                     Error(ErrorCode.ERR_ExpressionTreeContainsLocalFunction, node);
+                }
+                else if (method.RefKind != RefKind.None)
+                {
+                    Error(ErrorCode.ERR_RefReturningCallInExpressionTree, node);
                 }
             }
         }
@@ -324,6 +328,18 @@ namespace Microsoft.CodeAnalysis.CSharp
             return base.VisitIndexerAccess(node);
         }
 
+        public override BoundNode VisitPropertyAccess(BoundPropertyAccess node)
+        {
+            var property = node.PropertySymbol;
+            var method = property.GetMethod; // This is only checking for ref returns, so we don't fall back to the set method.
+            if ((object)method != null && _inExpressionLambda && method.RefKind != RefKind.None)
+            {
+                Error(ErrorCode.ERR_RefReturningCallInExpressionTree, node);
+            }
+            CheckReceiverIfField(node.ReceiverOpt);
+            return base.VisitPropertyAccess(node);
+        }
+
         public override BoundNode VisitLambda(BoundLambda node)
         {
             if (_inExpressionLambda)
@@ -340,6 +356,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                             else if (lambdaSyntax.Body.Kind() == SyntaxKind.Block)
                             {
                                 Error(ErrorCode.ERR_StatementLambdaToExpressionTree, node);
+                            }
+                            else if (lambdaSyntax.RefKeyword.Kind() == SyntaxKind.RefKeyword)
+                            {
+                                Error(ErrorCode.ERR_BadRefReturnExpressionTree, node);
                             }
 
                             var lambda = node.ExpressionSymbol as MethodSymbol;
@@ -366,6 +386,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                             else if (lambdaSyntax.Body.Kind() == SyntaxKind.Block)
                             {
                                 Error(ErrorCode.ERR_StatementLambdaToExpressionTree, node);
+                            }
+                            else if (lambdaSyntax.RefKeyword.Kind() == SyntaxKind.RefKeyword)
+                            {
+                                Error(ErrorCode.ERR_BadRefReturnExpressionTree, node);
                             }
                         }
                         break;

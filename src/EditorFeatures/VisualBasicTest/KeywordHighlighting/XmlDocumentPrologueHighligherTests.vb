@@ -1,5 +1,6 @@
 ' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+Imports System.Threading.Tasks
 Imports Microsoft.CodeAnalysis.Editor.VisualBasic.KeywordHighlighting
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.KeywordHighlighting
@@ -10,9 +11,9 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.KeywordHighlightin
             Return New XmlDeclarationHighlighter()
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)>
-        Public Sub TestXmlLiteralSample1_1()
-            Test(<Text><![CDATA[
+        <Fact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)>
+        Public Async Function TestXmlLiteralSample1_1() As Task
+            Await TestAsync(<Text><![CDATA[
 Class C
 Sub M()
 Dim q = {|Cursor:[|<?|]|}xml version="1.0"[|?>|]
@@ -25,11 +26,11 @@ Dim q = {|Cursor:[|<?|]|}xml version="1.0"[|?>|]
 </contact>
 End Sub
 End Class]]></Text>)
-        End Sub
+        End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)>
-        Public Sub TestXmlLiteralSample1_2()
-            Test(<Text><![CDATA[
+        <Fact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)>
+        Public Async Function TestXmlLiteralSample1_2() As Task
+            Await TestAsync(<Text><![CDATA[
 Class C
 Sub M()
 Dim q = [|<?|]xml version="1.0"{|Cursor:[|?>|]|}
@@ -42,6 +43,6 @@ Dim q = [|<?|]xml version="1.0"{|Cursor:[|?>|]|}
 </contact>
 End Sub
 End Class]]></Text>)
-        End Sub
+        End Function
     End Class
 End Namespace

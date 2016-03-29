@@ -27,7 +27,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGen
         End Enum
 
         ''' <summary>
-        ''' Analyses the tree trying to figure which locals may live on stack. It is 
+        ''' Analyzes the tree trying to figure which locals may live on stack. It is 
         ''' a fairly delicate process and must be very familiar with how CodeGen works. 
         ''' It is essentially a part of CodeGen.
         ''' 
@@ -144,6 +144,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGen
             End Function
 
             Private Sub PushEvalStack(result As BoundExpression, context As ExprContext)
+                Debug.Assert(result IsNot Nothing OrElse context = ExprContext.None)
                 _evalStack.Add(ValueTuple.Create(result, context))
             End Sub
 
@@ -586,7 +587,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGen
 
                 If mayPushReceiver Then
                     'push unknown value just to prevent access to stack locals.
-                    PushEvalStack(Nothing, ExprContext.Address)
+                    PushEvalStack(Nothing, ExprContext.None)
                 End If
 
                 right = VisitExpression(node.Right, rhsContext)

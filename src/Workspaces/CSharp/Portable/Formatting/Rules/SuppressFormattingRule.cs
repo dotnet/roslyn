@@ -42,6 +42,18 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
                 return;
             }
 
+            var constructorInitializerNode = node as ConstructorInitializerSyntax;
+            if (constructorInitializerNode != null)
+            {
+                var constructorDeclarationNode = constructorInitializerNode.Parent as ConstructorDeclarationSyntax;
+                if (constructorDeclarationNode?.Body != null)
+                {
+                    AddSuppressWrappingIfOnSingleLineOperation(list, constructorInitializerNode.ColonToken, constructorDeclarationNode.Body.CloseBraceToken);
+                }
+
+                return;
+            }
+
             var whileStatementNode = node as DoStatementSyntax;
             if (whileStatementNode != null)
             {
@@ -59,6 +71,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
                 {
                     AddSuppressWrappingIfOnSingleLineOperation(list, tokens.Item1, propertyDeclNode.AccessorList.GetLastToken());
                 }
+
                 return;
             }
 
@@ -142,6 +155,24 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
                 if (!finallyClause.FinallyKeyword.IsMissing && finallyClause.Block != null && !finallyClause.Block.CloseBraceToken.IsMissing)
                 {
                     AddSuppressWrappingIfOnSingleLineOperation(list, finallyClause.FinallyKeyword, finallyClause.Block.CloseBraceToken);
+                }
+            }
+
+            var propertyPattern = node as PropertyPatternSyntax;
+            if (propertyPattern?.PatternList != null)
+            {
+                AddSuppressWrappingIfOnSingleLineOperation(list, propertyPattern.Type.GetFirstToken(), propertyPattern.PatternList.CloseBraceToken);
+            }
+
+            var casePatternLabel = node as CasePatternSwitchLabelSyntax;
+            if (casePatternLabel != null)
+            {
+                // Need to suppress the addition of a newline between }: in the pattern property case.
+                // case Point { X is 42 }:
+                propertyPattern = casePatternLabel.Pattern as PropertyPatternSyntax;
+                if (propertyPattern != null)
+                {
+                    AddSuppressOperation(list, propertyPattern.PatternList.CloseBraceToken, casePatternLabel.ColonToken, SuppressOption.NoWrapping);
                 }
             }
         }

@@ -2,6 +2,7 @@
 
 Imports System.IO
 Imports Microsoft.CodeAnalysis.Scripting.Hosting
+Imports Roslyn.Utilities
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.Scripting.Hosting
 
@@ -15,6 +16,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Scripting.Hosting
                 Dim compiler = New VisualBasicInteractiveCompiler(
                     responseFile,
                     AppContext.BaseDirectory,
+                    CorLightup.Desktop.TryGetRuntimeDirectory(),
                     args,
                     New NotImplementedAnalyzerLoader())
 

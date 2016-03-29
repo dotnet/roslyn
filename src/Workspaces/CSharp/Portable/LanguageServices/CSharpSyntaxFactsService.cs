@@ -556,7 +556,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         public SyntaxNode GetExpressionOfMemberAccessExpression(SyntaxNode node)
         {
             return node.IsKind(SyntaxKind.MemberBindingExpression)
-                ? GetExpressionOfConditionalMemberAccessExpression(node.GetParentConditionalAccessExpression()) 
+                ? GetExpressionOfConditionalMemberAccessExpression(node.GetParentConditionalAccessExpression())
                 : (node as MemberAccessExpressionSyntax)?.Expression;
         }
 
@@ -1428,6 +1428,16 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             return default(TextSpan);
+        }
+
+        public string GetNameForArgument(SyntaxNode argument)
+        {
+            if ((argument as ArgumentSyntax)?.NameColon != null)
+            {
+                return (argument as ArgumentSyntax).NameColon.Name.Identifier.ValueText;
+            }
+
+            return string.Empty;
         }
     }
 }

@@ -8,7 +8,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
     Public Class CodeGenClosureLambdaTests
         Inherits BasicTestBase
 
-        <WorkItem(546416, "DevDiv")>
+        <WorkItem(546416, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546416")>
         <Fact>
         Public Sub TestAnonymousTypeInsideGroupBy_Enumerable()
             CompileAndVerify(
@@ -43,8 +43,8 @@ End Class
 </compilation>, expectedOutput:="")
         End Sub
 
-        <WorkItem(546538, "DevDiv")>
-        <WorkItem(546416, "DevDiv")>
+        <WorkItem(546538, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546538")>
+        <WorkItem(546416, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546416")>
         <Fact()>
         Public Sub TestAnonymousTypeInsideGroupBy_Queryable_1()
             Dim compilation =
@@ -89,7 +89,7 @@ BC36675: Statement lambdas cannot be converted to expression trees.
 </errors>)
         End Sub
 
-        <WorkItem(546538, "DevDiv")>
+        <WorkItem(546538, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546538")>
         <Fact()>
         Public Sub TestAnonymousTypeInsideGroupBy_Queryable_2()
             CompileAndVerify(
@@ -2852,7 +2852,7 @@ End Class
 ]]>)
         End Sub
 
-        <WorkItem(542070, "DevDiv")>
+        <WorkItem(542070, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542070")>
         <Fact>
         Public Sub DeeplyNestedLambda()
             CompileAndVerify(
@@ -2953,7 +2953,7 @@ End Class
 "Level5" & vbCrLf)
         End Sub
 
-        <WorkItem(542121, "DevDiv")>
+        <WorkItem(542121, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542121")>
         <Fact>
         Public Sub TestLambdaNoClosureClass()
 
@@ -2995,7 +2995,7 @@ End Class
 ]]>)
         End Sub
 
-        <WorkItem(545390, "DevDiv")>
+        <WorkItem(545390, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545390")>
         <Fact>
         Public Sub Regress13769()
             CompileAndVerify(
@@ -3028,7 +3028,7 @@ End Module
 </compilation>, expectedOutput:="======== Generic-26 ===========")
         End Sub
 
-        <WorkItem(545391, "DevDiv")>
+        <WorkItem(545391, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545391")>
         <Fact>
         Public Sub Regress13770()
             CompileAndVerify(
@@ -3081,7 +3081,7 @@ End Module
 </compilation>, expectedOutput:="======== Generic-12 ===========")
         End Sub
 
-        <WorkItem(545392, "DevDiv")>
+        <WorkItem(545392, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545392")>
         <Fact>
         Public Sub Regress13771()
             CompileAndVerify(
@@ -3134,7 +3134,7 @@ End Module
 </compilation>, expectedOutput:="======== Generic-14 ===========")
         End Sub
 
-        <WorkItem(545393, "DevDiv")>
+        <WorkItem(545393, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545393")>
         <Fact>
         Public Sub Regress13772()
             CompileAndVerify(
@@ -3186,7 +3186,7 @@ End Module
 </compilation>, expectedOutput:="======== Generic-4 ===========")
         End Sub
 
-        <WorkItem(545394, "DevDiv")>
+        <WorkItem(545394, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545394")>
         <Fact>
         Public Sub Regress13773()
             CompileAndVerify(
@@ -3247,7 +3247,7 @@ End Module
 </compilation>, expectedOutput:="======== Generic-5 ===========")
         End Sub
 
-        <WorkItem(545395, "DevDiv")>
+        <WorkItem(545395, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545395")>
         <Fact>
         Public Sub Regress13774()
             CompileAndVerify(
@@ -3302,7 +3302,7 @@ End Module
 </compilation>, expectedOutput:="======== Generic-5 ===========")
         End Sub
 
-        <WorkItem(545389, "DevDiv")>
+        <WorkItem(545389, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545389")>
         <Fact>
         Public Sub Regress13768()
             CompileAndVerify(
@@ -3338,7 +3338,7 @@ End Module
 </compilation>, expectedOutput:="correct")
         End Sub
 
-        <WorkItem(531533, "DevDiv")>
+        <WorkItem(531533, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/531533")>
         <Fact>
         Public Sub Regress531533()
 
@@ -3437,7 +3437,7 @@ End Module
 </compilation>, expectedOutput:="True")
         End Sub
 
-        <WorkItem(836488, "DevDiv")>
+        <WorkItem(836488, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/836488")>
         <Fact>
         Public Sub RelaxedInitializer()
             CompileAndVerify(
@@ -3886,6 +3886,73 @@ End Class
     </file>
 </compilation>
             CompileAndVerify(source)
+        End Sub
+
+        <Fact>
+        Public Sub ClosureInSwitchStatementWithNullableExpression()
+            Dim verifier = CompileAndVerify(
+<compilation>
+    <file name="a.vb">
+Imports System
+Class C
+    Shared Sub Main()
+        Dim i As Integer? = Nothing
+        Select Case i
+        Case 0
+        Case Else
+            Dim o As Object = Nothing
+            Dim f = Function() o
+            Console.Write("{0}", f() Is Nothing)
+        End Select
+    End Sub
+End Class
+    </file>
+</compilation>, expectedOutput:="True")
+            verifier.VerifyIL("C.Main",
+            <![CDATA[
+{
+  // Code size      104 (0x68)
+  .maxstack  3
+  .locals init (Integer? V_0,
+                Boolean? V_1,
+                VB$AnonymousDelegate_0(Of Object) V_2) //f
+  IL_0000:  ldloca.s   V_0
+  IL_0002:  initobj    "Integer?"
+  IL_0008:  ldloc.0
+  IL_0009:  stloc.0
+  IL_000a:  ldloca.s   V_0
+  IL_000c:  call       "Function Integer?.get_HasValue() As Boolean"
+  IL_0011:  brtrue.s   IL_001e
+  IL_0013:  ldloca.s   V_1
+  IL_0015:  initobj    "Boolean?"
+  IL_001b:  ldloc.1
+  IL_001c:  br.s       IL_002d
+  IL_001e:  ldloca.s   V_0
+  IL_0020:  call       "Function Integer?.GetValueOrDefault() As Integer"
+  IL_0025:  ldc.i4.0
+  IL_0026:  ceq
+  IL_0028:  newobj     "Sub Boolean?..ctor(Boolean)"
+  IL_002d:  stloc.1
+  IL_002e:  ldloca.s   V_1
+  IL_0030:  call       "Function Boolean?.GetValueOrDefault() As Boolean"
+  IL_0035:  brtrue.s   IL_0067
+  IL_0037:  newobj     "Sub C._Closure$__1-0..ctor()"
+  IL_003c:  dup
+  IL_003d:  ldnull
+  IL_003e:  stfld      "C._Closure$__1-0.$VB$Local_o As Object"
+  IL_0043:  ldftn      "Function C._Closure$__1-0._Lambda$__0() As Object"
+  IL_0049:  newobj     "Sub VB$AnonymousDelegate_0(Of Object)..ctor(Object, System.IntPtr)"
+  IL_004e:  stloc.2
+  IL_004f:  ldstr      "{0}"
+  IL_0054:  ldloc.2
+  IL_0055:  callvirt   "Function VB$AnonymousDelegate_0(Of Object).Invoke() As Object"
+  IL_005a:  ldnull
+  IL_005b:  ceq
+  IL_005d:  box        "Boolean"
+  IL_0062:  call       "Sub System.Console.Write(String, Object)"
+  IL_0067:  ret
+}
+]]>)
         End Sub
     End Class
 End Namespace

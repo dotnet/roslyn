@@ -81,9 +81,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         '//in other contexts, please make sure to appropriately modify Bindable::ResolveOverloadingShouldSkipBadMember
         ERR_UnreferencedAssemblyEvent3 = 30005
         ERR_UnreferencedModuleEvent3 = 30006
-        ERR_UnreferencedAssemblyBase3 = 30007
+        ' ERR_UnreferencedAssemblyBase3 = 30007
         ERR_UnreferencedModuleBase3 = 30008
-        ERR_UnreferencedAssemblyImplements3 = 30009
+        ' ERR_UnreferencedAssemblyImplements3 = 30009
         ERR_UnreferencedModuleImplements3 = 30010
 
         'ERR_CodegenError = 30011
@@ -1680,6 +1680,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ERR_InterpolatedStringFactoryError = 37251
         ERR_DebugEntryPointNotSourceMethodDefinition = 37252
         ERR_InvalidPathMap = 37253
+        ERR_PublicSignNoKey = 37254
+        ERR_TooManyUserStrings = 37255
+        ERR_PeWritingFailure = 37256
 
         ERR_LastPlusOne
 
@@ -1880,7 +1883,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         'WRN_PDBConstantStringValueTooLong = 42363  we gave up on this warning. See comments in commonCompilation.Emit()
         WRN_ReturnTypeAttributeOnWriteOnlyProperty = 42364
 
-        WRN_UnreachableCode = 42365
+        ' // AVAILABLE 42365
+
         WRN_InvalidVersionFormat = 42366
         WRN_MainIgnored = 42367
         WRN_EmptyPrefixAndXmlnsLocalName = 42368

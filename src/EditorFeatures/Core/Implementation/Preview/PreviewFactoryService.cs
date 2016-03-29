@@ -88,113 +88,136 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Preview
                     foreach (var documentId in projectChanges.GetChangedDocuments())
                     {
                         cancellationToken.ThrowIfCancellationRequested();
-                        previewItems.Add(new SolutionPreviewItem(documentId.ProjectId, documentId, (c) =>
+                        previewItems.Add(new SolutionPreviewItem(documentId.ProjectId, documentId, c =>
                             CreateChangedDocumentPreviewViewAsync(oldSolution.GetDocument(documentId), newSolution.GetDocument(documentId), zoomLevel, c)));
                     }
 
                     foreach (var documentId in projectChanges.GetAddedDocuments())
                     {
                         cancellationToken.ThrowIfCancellationRequested();
-                        previewItems.Add(new SolutionPreviewItem(documentId.ProjectId, documentId, (c) =>
+                        previewItems.Add(new SolutionPreviewItem(documentId.ProjectId, documentId, c =>
                             CreateAddedDocumentPreviewViewAsync(newSolution.GetDocument(documentId), zoomLevel, c)));
                     }
 
                     foreach (var documentId in projectChanges.GetRemovedDocuments())
                     {
                         cancellationToken.ThrowIfCancellationRequested();
-                        previewItems.Add(new SolutionPreviewItem(oldProject.Id, documentId, (c) =>
+                        previewItems.Add(new SolutionPreviewItem(oldProject.Id, documentId, c =>
                             CreateRemovedDocumentPreviewViewAsync(oldSolution.GetDocument(documentId), zoomLevel, c)));
                     }
 
                     foreach (var documentId in projectChanges.GetChangedAdditionalDocuments())
                     {
                         cancellationToken.ThrowIfCancellationRequested();
-                        previewItems.Add(new SolutionPreviewItem(documentId.ProjectId, documentId, (c) =>
+                        previewItems.Add(new SolutionPreviewItem(documentId.ProjectId, documentId, c =>
                             CreateChangedAdditionalDocumentPreviewViewAsync(oldSolution.GetAdditionalDocument(documentId), newSolution.GetAdditionalDocument(documentId), zoomLevel, c)));
                     }
 
                     foreach (var documentId in projectChanges.GetAddedAdditionalDocuments())
                     {
                         cancellationToken.ThrowIfCancellationRequested();
-                        previewItems.Add(new SolutionPreviewItem(documentId.ProjectId, documentId, (c) =>
+                        previewItems.Add(new SolutionPreviewItem(documentId.ProjectId, documentId, c =>
                             CreateAddedAdditionalDocumentPreviewViewAsync(newSolution.GetAdditionalDocument(documentId), zoomLevel, c)));
                     }
 
                     foreach (var documentId in projectChanges.GetRemovedAdditionalDocuments())
                     {
                         cancellationToken.ThrowIfCancellationRequested();
-                        previewItems.Add(new SolutionPreviewItem(oldProject.Id, documentId, (c) =>
+                        previewItems.Add(new SolutionPreviewItem(oldProject.Id, documentId, c =>
                             CreateRemovedAdditionalDocumentPreviewViewAsync(oldSolution.GetAdditionalDocument(documentId), zoomLevel, c)));
                     }
 
                     foreach (var metadataReference in projectChanges.GetAddedMetadataReferences())
                     {
                         cancellationToken.ThrowIfCancellationRequested();
-                        previewItems.Add(new SolutionPreviewItem(oldProject.Id, null, (c) =>
-                            Task.FromResult<object>(string.Format(EditorFeaturesResources.AddingReferenceTo, metadataReference.Display, oldProject.Name))));
+                        previewItems.Add(new SolutionPreviewItem(oldProject.Id, null,
+                            string.Format(EditorFeaturesResources.AddingReferenceTo, metadataReference.Display, oldProject.Name)));
                     }
 
                     foreach (var metadataReference in projectChanges.GetRemovedMetadataReferences())
                     {
                         cancellationToken.ThrowIfCancellationRequested();
-                        previewItems.Add(new SolutionPreviewItem(oldProject.Id, null, (c) =>
-                            Task.FromResult<object>(string.Format(EditorFeaturesResources.RemovingReferenceFrom, metadataReference.Display, oldProject.Name))));
+                        previewItems.Add(new SolutionPreviewItem(oldProject.Id, null,
+                            string.Format(EditorFeaturesResources.RemovingReferenceFrom, metadataReference.Display, oldProject.Name)));
                     }
 
                     foreach (var projectReference in projectChanges.GetAddedProjectReferences())
                     {
                         cancellationToken.ThrowIfCancellationRequested();
-                        previewItems.Add(new SolutionPreviewItem(oldProject.Id, null, (c) =>
-                            Task.FromResult<object>(string.Format(EditorFeaturesResources.AddingReferenceTo, newSolution.GetProject(projectReference.ProjectId).Name, oldProject.Name))));
+                        previewItems.Add(new SolutionPreviewItem(oldProject.Id, null,
+                            string.Format(EditorFeaturesResources.AddingReferenceTo, newSolution.GetProject(projectReference.ProjectId).Name, oldProject.Name)));
                     }
 
                     foreach (var projectReference in projectChanges.GetRemovedProjectReferences())
                     {
                         cancellationToken.ThrowIfCancellationRequested();
-                        previewItems.Add(new SolutionPreviewItem(oldProject.Id, null, (c) =>
-                            Task.FromResult<object>(string.Format(EditorFeaturesResources.RemovingReferenceFrom, oldSolution.GetProject(projectReference.ProjectId).Name, oldProject.Name))));
+                        previewItems.Add(new SolutionPreviewItem(oldProject.Id, null,
+                            string.Format(EditorFeaturesResources.RemovingReferenceFrom, oldSolution.GetProject(projectReference.ProjectId).Name, oldProject.Name)));
                     }
 
                     foreach (var analyzer in projectChanges.GetAddedAnalyzerReferences())
                     {
                         cancellationToken.ThrowIfCancellationRequested();
-                        previewItems.Add(new SolutionPreviewItem(oldProject.Id, null, (c) =>
-                            Task.FromResult<object>(string.Format(EditorFeaturesResources.AddingAnalyzerReferenceTo, analyzer.Display, oldProject.Name))));
+                        previewItems.Add(new SolutionPreviewItem(oldProject.Id, null,
+                            string.Format(EditorFeaturesResources.AddingAnalyzerReferenceTo, analyzer.Display, oldProject.Name)));
                     }
 
                     foreach (var analyzer in projectChanges.GetRemovedAnalyzerReferences())
                     {
                         cancellationToken.ThrowIfCancellationRequested();
-                        previewItems.Add(new SolutionPreviewItem(oldProject.Id, null, (c) =>
-                            Task.FromResult<object>(string.Format(EditorFeaturesResources.RemovingAnalyzerReferenceFrom, analyzer.Display, oldProject.Name))));
+                        previewItems.Add(new SolutionPreviewItem(oldProject.Id, null,
+                            string.Format(EditorFeaturesResources.RemovingAnalyzerReferenceFrom, analyzer.Display, oldProject.Name)));
                     }
                 }
 
                 foreach (var project in solutionChanges.GetAddedProjects())
                 {
                     cancellationToken.ThrowIfCancellationRequested();
-                    previewItems.Add(new SolutionPreviewItem(project.Id, null, (c) =>
-                        Task.FromResult<object>(string.Format(EditorFeaturesResources.AddingProject, project.Name))));
+                    previewItems.Add(new SolutionPreviewItem(project.Id, null,
+                        string.Format(EditorFeaturesResources.AddingProject, project.Name)));
                 }
 
                 foreach (var project in solutionChanges.GetRemovedProjects())
                 {
                     cancellationToken.ThrowIfCancellationRequested();
-                    previewItems.Add(new SolutionPreviewItem(project.Id, null, (c) =>
-                        Task.FromResult<object>(string.Format(EditorFeaturesResources.RemovingProject, project.Name))));
+                    previewItems.Add(new SolutionPreviewItem(project.Id, null,
+                        string.Format(EditorFeaturesResources.RemovingProject, project.Name)));
                 }
 
-                foreach (var projectChanges in solutionChanges.GetProjectChanges().Where(pc => pc.OldProject.AllProjectReferences != pc.NewProject.AllProjectReferences))
+                foreach (var projectChanges in solutionChanges.GetProjectChanges().Where(ProjectReferencesChanged))
                 {
                     cancellationToken.ThrowIfCancellationRequested();
-                    previewItems.Add(new SolutionPreviewItem(projectChanges.OldProject.Id, null, (c) =>
-                        Task.FromResult<object>(string.Format(EditorFeaturesResources.ChangingProjectReferencesFor, projectChanges.OldProject.Name))));
+                    previewItems.Add(new SolutionPreviewItem(projectChanges.OldProject.Id, null,
+                        string.Format(EditorFeaturesResources.ChangingProjectReferencesFor, projectChanges.OldProject.Name)));
                 }
 
                 changeSummary = new SolutionChangeSummary(oldSolution, newSolution, solutionChanges);
             }
 
             return new SolutionPreviewResult(previewItems, changeSummary);
+        }
+
+        private bool ProjectReferencesChanged(ProjectChanges projectChanges)
+        {
+            var oldProjectReferences = projectChanges.OldProject.ProjectReferences.ToDictionary(r => r.ProjectId);
+            var newProjectReferences = projectChanges.NewProject.ProjectReferences.ToDictionary(r => r.ProjectId);
+
+            // These are the set of project reference that remained in the project. We don't care 
+            // about project references that were added or removed.  Those will already be reported.
+            var preservedProjectIds = oldProjectReferences.Keys.Intersect(newProjectReferences.Keys);
+
+            foreach (var projectId in preservedProjectIds)
+            {
+                var oldProjectReference = oldProjectReferences[projectId];
+                var newProjectReference = newProjectReferences[projectId];
+
+                if (!oldProjectReference.Equals(newProjectReference))
+                {
+                    return true;
+                }
+            }
+
+            return false;
         }
 
         public Task<object> CreateAddedDocumentPreviewViewAsync(Document document, CancellationToken cancellationToken)
@@ -375,7 +398,9 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Preview
                                                         .Select(a => WarningAnnotation.GetDescription(a))
                                                         .Distinct();
 
-                AttachConflictAndWarningAnnotationToBuffer(newBuffer, conflictSpans, warningSpans);
+                var suppressDiagnosticsNodes = newRoot.GetAnnotatedNodesAndTokens(SuppressDiagnosticsAnnotation.Kind);
+                var suppressDiagnosticsSpans = suppressDiagnosticsNodes.Select(n => n.Span.ToSpan()).ToList();
+                AttachAnnotationsToBuffer(newBuffer, conflictSpans, warningSpans, suppressDiagnosticsSpans);
 
                 description = conflictSpans.Count == 0 && warningSpans.Count == 0
                     ? null
@@ -405,7 +430,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Preview
             leftWorkspace.OpenDocument(leftDocument.Id);
 
             var rightWorkspace = new PreviewWorkspace(
-                oldDocument.WithText(newBuffer.AsTextContainer().CurrentText).Project.Solution);
+                newDocument.WithText(newBuffer.AsTextContainer().CurrentText).Project.Solution);
             rightWorkspace.OpenDocument(newDocument.Id);
 
             return CreateChangedDocumentViewAsync(
@@ -497,11 +522,13 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Preview
             return CreateNewDifferenceViewerAsync(leftWorkspace, rightWorkspace, originalBuffer, changedBuffer, zoomLevel, cancellationToken);
         }
 
-        private static void AttachConflictAndWarningAnnotationToBuffer(ITextBuffer newBuffer, IEnumerable<Span> conflictSpans, IEnumerable<Span> warningSpans)
+        private static void AttachAnnotationsToBuffer(
+            ITextBuffer newBuffer, IEnumerable<Span> conflictSpans, IEnumerable<Span> warningSpans, IEnumerable<Span> suppressDiagnosticsSpans)
         {
             // Attach the spans to the buffer.
             newBuffer.Properties.AddProperty(PredefinedPreviewTaggerKeys.ConflictSpansKey, new NormalizedSnapshotSpanCollection(newBuffer.CurrentSnapshot, conflictSpans));
             newBuffer.Properties.AddProperty(PredefinedPreviewTaggerKeys.WarningSpansKey, new NormalizedSnapshotSpanCollection(newBuffer.CurrentSnapshot, warningSpans));
+            newBuffer.Properties.AddProperty(PredefinedPreviewTaggerKeys.SuppressDiagnosticsSpansKey, new NormalizedSnapshotSpanCollection(newBuffer.CurrentSnapshot, suppressDiagnosticsSpans));
         }
 
         private ITextBuffer CreateNewBuffer(Document document, CancellationToken cancellationToken)

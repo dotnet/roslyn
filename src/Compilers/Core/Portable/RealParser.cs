@@ -26,24 +26,15 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         /// <param name="s">The decimal floating-point constant's string</param>
         /// <param name="d">The nearest double value, if conversion succeeds</param>
-        /// <returns>True of the input was converted; false if there was an overflow</returns>
+        /// <returns>True if the input was converted; false if there was an overflow</returns>
         public static bool TryParseDouble(string s, out double d)
         {
-            try
-            {
-                var str = DecimalFloatingPointString.FromSource(s);
-                var dbl = DoubleFloatingPointType.Instance;
-                ulong result;
-                var status = RealParser.ConvertDecimalToFloatingPointBits(str, dbl, out result);
-                d = BitConverter.Int64BitsToDouble((long)result);
-                return status != Status.Overflow;
-            }
-            catch (System.FormatException)
-            {
-                // this can occur when the exponent is empty (e.g. "0.0e") or too large to fit in an integer
-                d = 0.0;
-                return false;
-            }
+            var str = DecimalFloatingPointString.FromSource(s);
+            var dbl = DoubleFloatingPointType.Instance;
+            ulong result;
+            var status = RealParser.ConvertDecimalToFloatingPointBits(str, dbl, out result);
+            d = BitConverter.Int64BitsToDouble((long)result);
+            return status != Status.Overflow;
         }
 
         /// <summary>
@@ -53,29 +44,21 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         /// <param name="s">The float floating-point constant's string</param>
         /// <param name="f">The nearest float value, if conversion succeeds</param>
-        /// <returns>True of the input was converted; false if there was an overflow</returns>
+        /// <returns>True if the input was converted; false if there was an overflow</returns>
         public static bool TryParseFloat(string s, out float f)
         {
-            try
-            {
-                var str = DecimalFloatingPointString.FromSource(s);
-                var dbl = FloatFloatingPointType.Instance;
-                ulong result;
-                var status = RealParser.ConvertDecimalToFloatingPointBits(str, dbl, out result);
-                f = Int32BitsToFloat((uint)result);
-                return status != Status.Overflow;
-            }
-            catch (System.FormatException)
-            {
-                f = 0.0f;
-                return false;
-            }
+            var str = DecimalFloatingPointString.FromSource(s);
+            var dbl = FloatFloatingPointType.Instance;
+            ulong result;
+            var status = RealParser.ConvertDecimalToFloatingPointBits(str, dbl, out result);
+            f = Int32BitsToFloat((uint)result);
+            return status != Status.Overflow;
         }
 
-        private readonly static BigInteger BigZero = BigInteger.Zero;
-        private readonly static BigInteger BigOne = BigInteger.One;
-        private readonly static BigInteger BigTwo = new BigInteger(2);
-        private readonly static BigInteger BigTen = new BigInteger(10);
+        private readonly static BigInteger s_bigZero = BigInteger.Zero;
+        private readonly static BigInteger s_bigOne = BigInteger.One;
+        private readonly static BigInteger s_bigTwo = new BigInteger(2);
+        private readonly static BigInteger s_bigTen = new BigInteger(10);
 
         /// <summary>
         /// Properties of an IEEE floating-point representation.
@@ -348,6 +331,7 @@ namespace Microsoft.CodeAnalysis
                 result.Mantissa = mantissaBuilder.ToString();
                 if (i < source.Length && (source[i] == 'e' || source[i] == 'E'))
                 {
+                    const int MAX_EXP = (1 << 30); // even playing ground
                     char exponentSign = '\0';
                     i++;
                     if (i < source.Length && (source[i] == '-' || source[i] == '+'))
@@ -358,14 +342,24 @@ namespace Microsoft.CodeAnalysis
                     int firstExponent = i;
                     int lastExponent = i;
                     while (i < source.Length && source[i] >= '0' && source[i] <= '9') lastExponent = ++i;
-                    int exponentMagnitude = int.Parse(source.Substring(firstExponent, lastExponent - firstExponent));
-                    if (exponentSign == '-')
+
+                    int exponentMagnitude = 0;
+
+                    if (int.TryParse(source.Substring(firstExponent, lastExponent - firstExponent), out exponentMagnitude) &&
+                        exponentMagnitude <= MAX_EXP)
                     {
-                        exponent -= exponentMagnitude;
+                        if (exponentSign == '-')
+                        {
+                            exponent -= exponentMagnitude;
+                        }
+                        else
+                        {
+                            exponent += exponentMagnitude;
+                        }
                     }
                     else
                     {
-                        exponent += exponentMagnitude;
+                        exponent = exponentSign == '-' ? -MAX_EXP : MAX_EXP;
                     }
                 }
                 result.Exponent = exponent;
@@ -469,7 +463,7 @@ namespace Microsoft.CodeAnalysis
             BigInteger fractionalNumerator = AccumulateDecimalDigitsIntoBigInteger(data, fractionalFirstIndex, fractionalLastIndex);
             Debug.Assert(!fractionalNumerator.IsZero);
 
-            BigInteger fractionalDenominator = BigOne;
+            BigInteger fractionalDenominator = s_bigOne;
             MultiplyByPowerOfTen(ref fractionalDenominator, fractionalDenominatorExponent);
 
             // Because we are using only the fractional part of the mantissa here, the  
@@ -624,7 +618,7 @@ namespace Microsoft.CodeAnalysis
         /// <returns>The BigInteger result</returns>
         private static BigInteger AccumulateDecimalDigitsIntoBigInteger(DecimalFloatingPointString data, uint integer_first_index, uint integer_last_index)
         {
-            if (integer_first_index == integer_last_index) return BigZero;
+            if (integer_first_index == integer_last_index) return s_bigZero;
             var valueString = data.Mantissa.Substring((int)integer_first_index, (int)(integer_last_index - integer_first_index));
             return BigInteger.Parse(valueString);
         }
@@ -753,7 +747,7 @@ namespace Microsoft.CodeAnalysis
         /// <param name="shift">The power of two to multiply it by</param>
         private static void ShiftLeft(ref BigInteger number, uint shift)
         {
-            var powerOfTwo = BigInteger.Pow(BigTwo, (int)shift);
+            var powerOfTwo = BigInteger.Pow(s_bigTwo, (int)shift);
             number = number * powerOfTwo;
         }
 
@@ -764,7 +758,7 @@ namespace Microsoft.CodeAnalysis
         /// <param name="power">The power of ten to multiply it by</param>
         private static void MultiplyByPowerOfTen(ref BigInteger number, uint power)
         {
-            var powerOfTen = BigInteger.Pow(BigTen, (int)power);
+            var powerOfTen = BigInteger.Pow(s_bigTen, (int)power);
             number = number * powerOfTen;
         }
 

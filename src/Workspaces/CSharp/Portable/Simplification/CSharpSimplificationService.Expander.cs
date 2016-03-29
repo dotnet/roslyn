@@ -95,7 +95,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification
 
             private SpeculationAnalyzer GetSpeculationAnalyzer(ExpressionSyntax expression, ExpressionSyntax newExpression)
             {
-                return new SpeculationAnalyzer(expression, newExpression, this._semanticModel, this._cancellationToken);
+                return new SpeculationAnalyzer(expression, newExpression, _semanticModel, _cancellationToken);
             }
 
             private bool TryCastTo(ITypeSymbol targetType, ExpressionSyntax expression, ExpressionSyntax newExpression, out ExpressionSyntax newExpressionWithCast)
@@ -141,17 +141,19 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification
                 if (newNode is ReturnStatementSyntax)
                 {
                     var newReturnStatement = (ReturnStatementSyntax)newNode;
-
-                    var parentLambda = node.FirstAncestorOrSelf<LambdaExpressionSyntax>();
-                    if (parentLambda != null)
+                    if (newReturnStatement.Expression != null)
                     {
-                        var returnType = (_semanticModel.GetSymbolInfo(parentLambda).Symbol as IMethodSymbol)?.ReturnType;
-                        if (returnType != null)
+                        var parentLambda = node.FirstAncestorOrSelf<LambdaExpressionSyntax>();
+                        if (parentLambda != null)
                         {
-                            ExpressionSyntax newExpressionWithCast;
-                            if (TryCastTo(returnType, node.Expression, newReturnStatement.Expression, out newExpressionWithCast))
+                            var returnType = (_semanticModel.GetSymbolInfo(parentLambda).Symbol as IMethodSymbol)?.ReturnType;
+                            if (returnType != null)
                             {
-                                newNode = newReturnStatement.WithExpression(newExpressionWithCast);
+                                ExpressionSyntax newExpressionWithCast;
+                                if (TryCastTo(returnType, node.Expression, newReturnStatement.Expression, out newExpressionWithCast))
+                                {
+                                    newNode = newReturnStatement.WithExpression(newExpressionWithCast);
+                                }
                             }
                         }
                     }
@@ -195,7 +197,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification
                                 {
                                     var typeSyntax = parameterSymbols[i].Type.GenerateTypeSyntax().WithTrailingTrivia(s_oneWhitespaceSeparator);
                                     var newParameter = parameters[i].WithType(typeSyntax).WithAdditionalAnnotations(Simplifier.Annotation);
-                                    newParameters = newParameters.Replace(parameters[i], newParameter);
+
+                                    var currentParameter = newParameters[i];
+                                    newParameters = newParameters.Replace(currentParameter, newParameter);
                                 }
 
                                 var newParameterList = parameterList.WithParameters(newParameters);
@@ -242,6 +246,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification
                                     .WithTrailingTrivia(simpleLambda.Parameter.GetTrailingTrivia())
                                     .WithLeadingTrivia(simpleLambda.Parameter.GetLeadingTrivia()),
                                 simpleLambda.ArrowToken,
+                                simpleLambda.RefKeyword,
                                 simpleLambda.Body).WithAdditionalAnnotations(Simplifier.Annotation);
 
                             return SimplificationHelpers.CopyAnnotations(from: simpleLambda, to: parenthesizedLambda);

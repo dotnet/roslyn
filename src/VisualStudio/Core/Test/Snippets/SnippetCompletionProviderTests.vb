@@ -20,9 +20,9 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Snippets
 
                 Assert.Equal(testState.GetDocumentText(), "a")
 
-                Await testState.WaitForAsynchronousOperationsAsync().ConfigureAwait(True)
+                Await testState.WaitForAsynchronousOperationsAsync()
                 Assert.Equal(testState.CurrentCompletionPresenterSession.SelectedItem.DisplayText, "Shortcut")
-                Assert.Equal(testState.CurrentCompletionPresenterSession.SelectedItem.GetDescriptionAsync().Result.ToDisplayString(), "Description")
+                Assert.Equal((Await testState.CurrentCompletionPresenterSession.SelectedItem.GetDescriptionAsync()).ToDisplayString(), "Description")
 
                 testState.SendTabToCompletion()
 
@@ -36,16 +36,16 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Snippets
             Dim testState = SnippetTestState.CreateTestState(markup, LanguageNames.VisualBasic, extraParts:={GetType(MockSnippetInfoService)})
             Using testState
                 testState.SendTabToCompletion()
-                Await testState.WaitForAsynchronousOperationsAsync().ConfigureAwait(True)
+                Await testState.WaitForAsynchronousOperationsAsync()
                 Assert.Equal(testState.CurrentCompletionPresenterSession.SelectedItem.DisplayText, "Shortcut")
 
                 testState.SendBackspace()
-                Await testState.WaitForAsynchronousOperationsAsync().ConfigureAwait(True)
+                Await testState.WaitForAsynchronousOperationsAsync()
                 Assert.Equal(testState.CurrentCompletionPresenterSession.SelectedItem.DisplayText, "Shortcut")
 
                 testState.SendTabToCompletion()
 
-                Await testState.WaitForAsynchronousOperationsAsync().ConfigureAwait(True)
+                Await testState.WaitForAsynchronousOperationsAsync()
                 Assert.True(testState.SnippetExpansionClient.TryInsertExpansionCalled)
                 Assert.Equal(testState.GetDocumentText(), "Shortcut")
             End Using
@@ -61,7 +61,7 @@ End Class</File>.Value
             Dim testState = SnippetTestState.CreateTestState(markup, LanguageNames.VisualBasic, extraParts:={GetType(MockSnippetInfoService)})
             Using testState
                 testState.SendTabToCompletion()
-                Await testState.WaitForAsynchronousOperationsAsync().ConfigureAwait(True)
+                Await testState.WaitForAsynchronousOperationsAsync()
                 Assert.Null(testState.CurrentCompletionPresenterSession)
             End Using
         End Function

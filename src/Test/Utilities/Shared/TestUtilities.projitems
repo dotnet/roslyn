@@ -23,8 +23,11 @@
     <Compile Include="$(MSBuildThisFileDirectory)Assert\EqualityUtil`1.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Compilation\CompilationDifference.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Compilation\CompilationExtensions.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Compilation\CompilationOutputFiles.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Compilation\CompilationTestDataExtensions.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Compilation\SpeculativeSemanticModelTestsBase.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Compilation\TestOperationWalker.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Compilation\VersionTestHelpers.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Diagnostics\DescriptorFactory.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Diagnostics\DiagnosticDescription.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Diagnostics\DiagnosticExtensions.cs" />
@@ -34,6 +37,7 @@
     <Compile Include="$(MSBuildThisFileDirectory)Diagnostics\ThrowingDiagnosticAnalyzer.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Diagnostics\TrackingDiagnosticAnalyzer.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)FX\ConsoleOutput.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)FX\CultureHelpers.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)FX\DirectoryHelper.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)FX\EncodingUtilities.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)FX\EnsureEnglishUICulture.cs" />
@@ -41,6 +45,7 @@
     <Compile Include="$(MSBuildThisFileDirectory)FX\ImmutableArrayTestExtensions.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)FX\MonoHelpers.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)FX\ObjectReference.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)FX\PinnedBlob.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)FX\PinnedMetadata.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)FX\RegexExtensions.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)FX\StringExtensions.cs" />
@@ -58,6 +63,8 @@
     <Compile Include="$(MSBuildThisFileDirectory)Pdb\MockSymWriter.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Pdb\PdbTestUtilities.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Pdb\PdbValidation.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Pe\BrokenStream.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Syntax\SourceUtilities.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)TempFiles\DisposableDirectory.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)TempFiles\DisposableFile.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)TempFiles\TempDirectory.cs" />

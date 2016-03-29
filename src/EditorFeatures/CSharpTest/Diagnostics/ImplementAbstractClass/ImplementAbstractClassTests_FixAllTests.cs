@@ -1,5 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CSharp.CodeFixes.ImplementAbstractClass;
 using Roslyn.Test.Utilities;
 using Xunit;
@@ -10,10 +11,10 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.ImplementAb
     {
         #region "Fix all occurrences tests"
 
-        [WpfFact]
+        [Fact]
         [Trait(Traits.Feature, Traits.Features.CodeActionsImplementAbstractClass)]
         [Trait(Traits.Feature, Traits.Features.CodeActionsFixAllOccurrences)]
-        public void TestFixAllInDocument()
+        public async Task TestFixAllInDocument()
         {
             var fixAllActionId = ImplementAbstractClassCodeFixProvider.GetCodeActionId("Assembly1", "global::A1");
 
@@ -112,13 +113,13 @@ class B3 : A1
     </Project>
 </Workspace>";
 
-            Test(input, expected, compareTokens: false, fixAllActionEquivalenceKey: fixAllActionId);
+            await TestAsync(input, expected, compareTokens: false, fixAllActionEquivalenceKey: fixAllActionId);
         }
 
-        [WpfFact]
+        [Fact]
         [Trait(Traits.Feature, Traits.Features.CodeActionsImplementAbstractClass)]
         [Trait(Traits.Feature, Traits.Features.CodeActionsFixAllOccurrences)]
-        public void TestFixAllInProject()
+        public async Task TestFixAllInProject()
         {
             var fixAllActionId = ImplementAbstractClassCodeFixProvider.GetCodeActionId("Assembly1", "global::A1");
 
@@ -228,13 +229,13 @@ class B3 : A1
     </Project>
 </Workspace>";
 
-            Test(input, expected, compareTokens: false, fixAllActionEquivalenceKey: fixAllActionId);
+            await TestAsync(input, expected, compareTokens: false, fixAllActionEquivalenceKey: fixAllActionId);
         }
 
-        [WpfFact]
+        [Fact]
         [Trait(Traits.Feature, Traits.Features.CodeActionsImplementAbstractClass)]
         [Trait(Traits.Feature, Traits.Features.CodeActionsFixAllOccurrences)]
-        public void TestFixAllInSolution()
+        public async Task TestFixAllInSolution()
         {
             var fixAllActionId = ImplementAbstractClassCodeFixProvider.GetCodeActionId("Assembly1", "global::A1");
 
@@ -357,13 +358,13 @@ class B3 : A1
     </Project>
 </Workspace>";
 
-            Test(input, expected, compareTokens: false, fixAllActionEquivalenceKey: fixAllActionId);
+            await TestAsync(input, expected, compareTokens: false, fixAllActionEquivalenceKey: fixAllActionId);
         }
 
-        [WpfFact]
+        [Fact]
         [Trait(Traits.Feature, Traits.Features.CodeActionsImplementAbstractClass)]
         [Trait(Traits.Feature, Traits.Features.CodeActionsFixAllOccurrences)]
-        public void TestFixAllInSolution_DifferentAssemblyWithSameTypeName()
+        public async Task TestFixAllInSolution_DifferentAssemblyWithSameTypeName()
         {
             var fixAllActionId = ImplementAbstractClassCodeFixProvider.GetCodeActionId("Assembly1", "global::A1");
 
@@ -483,7 +484,7 @@ class B3 : A1
     </Project>
 </Workspace>";
 
-            Test(input, expected, compareTokens: false, fixAllActionEquivalenceKey: fixAllActionId);
+            await TestAsync(input, expected, compareTokens: false, fixAllActionEquivalenceKey: fixAllActionId);
         }
 
         #endregion

@@ -15,19 +15,19 @@ Namespace Microsoft.CodeAnalysis.CodeCleanup.Providers
 
         Public MustOverride ReadOnly Property Name As String Implements ICodeCleanupProvider.Name
 
-        Protected MustOverride Function GetRewriter(
-            document As Document, root As SyntaxNode, spans As IEnumerable(Of TextSpan), workspace As Workspace, cancellationToken As CancellationToken) As Rewriter
+        Protected MustOverride Function GetRewriterAsync(
+            document As Document, root As SyntaxNode, spans As IEnumerable(Of TextSpan), workspace As Workspace, cancellationToken As CancellationToken) As Task(Of Rewriter)
 
         Public Async Function CleanupAsync(document As Document, spans As IEnumerable(Of TextSpan), Optional cancellationToken As CancellationToken = Nothing) As Task(Of Document) Implements ICodeCleanupProvider.CleanupAsync
             Dim root = Await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(False)
-            Dim rewriter As Rewriter = GetRewriter(document, root, spans, document.Project.Solution.Workspace, cancellationToken)
+            Dim rewriter As Rewriter = Await GetRewriterAsync(document, root, spans, document.Project.Solution.Workspace, cancellationToken).ConfigureAwait(False)
             Dim newRoot = rewriter.Visit(root)
 
             Return If(root Is newRoot, document, document.WithSyntaxRoot(newRoot))
         End Function
 
-        Public Function Cleanup(root As SyntaxNode, spans As IEnumerable(Of TextSpan), workspace As Workspace, Optional cancellationToken As CancellationToken = Nothing) As SyntaxNode Implements ICodeCleanupProvider.Cleanup
-            Dim rewriter As Rewriter = GetRewriter(Nothing, root, spans, workspace, cancellationToken)
+        Public Async Function CleanupAsync(root As SyntaxNode, spans As IEnumerable(Of TextSpan), workspace As Workspace, Optional cancellationToken As CancellationToken = Nothing) As Task(Of SyntaxNode) Implements ICodeCleanupProvider.CleanupAsync
+            Dim rewriter As Rewriter = Await GetRewriterAsync(Nothing, root, spans, workspace, cancellationToken).ConfigureAwait(False)
             Return rewriter.Visit(root)
         End Function
 

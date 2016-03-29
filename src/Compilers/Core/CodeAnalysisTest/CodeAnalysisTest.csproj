@@ -28,6 +28,7 @@
     <Compile Include="Collections\BoxesTest.cs" />
     <Compile Include="Collections\ByteSequenceComparerTests.cs" />
     <Compile Include="CryptoBlobParserTests.cs" />
+    <Compile Include="Diagnostics\AnalysisContextInfoTests.cs" />
     <Compile Include="Diagnostics\BoxingOperationAnalyzer.cs" />
     <Compile Include="Diagnostics\CouldHaveMoreSpecificTypeAnalyzer.cs" />
     <Compile Include="Diagnostics\DiagnosticLocalizationTests.cs" />
@@ -37,15 +38,17 @@
     <Compile Include="Diagnostics\FieldCouldBeReadOnlyAnalyzer.cs" />
     <Compile Include="Emit\EmitOptionsTests.cs" />
     <Compile Include="Emit\CustomDebugInfoTests.cs" />
+    <Compile Include="FileSystem\PathUtilitiesTests.cs" />
     <Compile Include="InternalUtilities\StreamExtensionsTests.cs" />
     <Compile Include="InternalUtilities\StringExtensionsTests.cs" />
     <Compile Include="MetadataReferences\AssemblyIdentityExtensions.cs" />
     <Compile Include="PEWriter\BlobUtilitiesTests.cs" />
     <Compile Include="PEWriter\BlobTests.cs" />
+    <Compile Include="PEWriter\UsedNamespaceOrTypeTests.cs" />
     <Compile Include="RealParserTests.cs" />
     <Compile Include="SimpleAnalyzerAssemblyLoaderTests.cs" />
     <Compile Include="SourceFileResolverTest.cs" />
-    <Compile Include="Text\LargeEncodedTextTests.cs" />
+    <Compile Include="Text\LargeTextTests.cs" />
     <Compile Include="Text\SourceTextStreamTests.cs" />
     <Compile Include="XmlDocumentationCommentTextReaderTests.cs" />
   </ItemGroup>
@@ -149,7 +152,7 @@
     </Compile>
     <Compile Include="StringTableTests.cs" />
     <Compile Include="StrongNameProviderTests.cs" />
-    <Compile Include="Text\EncodedStringTextTests.cs" />
+    <Compile Include="Text\StringTextDecodingTests.cs" />
     <Compile Include="Text\SourceTextTests.cs" />
     <Compile Include="Text\StringText_LineTest.cs" />
     <Compile Include="Text\StringTextTest.cs" />
@@ -174,7 +177,6 @@
     </EmbeddedResource>
   </ItemGroup>
   <ItemGroup>
-    <None Include="app.config" />
     <None Include="project.json" />
     <None Include="Resources/default.win32manifest" />
     <None Include="Resources/nativeWithStringIDsAndTypesAndIntTypes.res" />

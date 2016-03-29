@@ -55,6 +55,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.CodeGen
 
         #endregion
 
+
         #region C# Runtime and System.Core sources
 
         private const string CSharpBinderTemplate = @"
@@ -303,7 +304,7 @@ class C
             Assert.Equal(1, ((CSharpCompilation)c.Compilation).GlobalNamespace.GetMember<NamespaceSymbol>("System").GetMember<NamedTypeSymbol>("Func`13").Arity);
         }
 
-        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/6190"), WorkItem(530436, "DevDiv")]
+        [Fact, WorkItem(530436, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530436")]
         public void InvalidFunc_Constraints()
         {
             var systemCoreRef = CreateCompilationWithMscorlib(SystemCoreSource, assemblyName: GetUniqueName()).EmitToImageReference();
@@ -326,7 +327,104 @@ class C
 ";
             // Desired: the delegate is generated, no error is reported.
             // Actual: use the malformed Func`13 time and failed to PEVerify.  Not presently worthwhile to fix.
-            Assert.Throws<PeVerifyException>(() => CompileAndVerify(source, new[] { systemCoreRef, csrtRef }));
+            CompileAndVerify(source, new[] { systemCoreRef, csrtRef }, verify: false).VerifyIL("C.F", @"
+{
+  // Code size      189 (0xbd)
+  .maxstack  13
+  IL_0000:  ldsfld     ""System.Runtime.CompilerServices.CallSite<System.Func<System.Runtime.CompilerServices.CallSite, dynamic, int, int, int, int, int, int, int, int, int, int, dynamic>> C.<>o__0.<>p__0""
+  IL_0005:  brtrue     IL_009b
+  IL_000a:  ldc.i4.0
+  IL_000b:  ldtoken    ""C""
+  IL_0010:  call       ""System.Type System.Type.GetTypeFromHandle(System.RuntimeTypeHandle)""
+  IL_0015:  ldc.i4.s   11
+  IL_0017:  newarr     ""Microsoft.CSharp.RuntimeBinder.CSharpArgumentInfo""
+  IL_001c:  dup
+  IL_001d:  ldc.i4.0
+  IL_001e:  ldc.i4.0
+  IL_001f:  ldnull
+  IL_0020:  call       ""Microsoft.CSharp.RuntimeBinder.CSharpArgumentInfo Microsoft.CSharp.RuntimeBinder.CSharpArgumentInfo.Create(Microsoft.CSharp.RuntimeBinder.CSharpArgumentInfoFlags, string)""
+  IL_0025:  stelem.ref
+  IL_0026:  dup
+  IL_0027:  ldc.i4.1
+  IL_0028:  ldc.i4.3
+  IL_0029:  ldnull
+  IL_002a:  call       ""Microsoft.CSharp.RuntimeBinder.CSharpArgumentInfo Microsoft.CSharp.RuntimeBinder.CSharpArgumentInfo.Create(Microsoft.CSharp.RuntimeBinder.CSharpArgumentInfoFlags, string)""
+  IL_002f:  stelem.ref
+  IL_0030:  dup
+  IL_0031:  ldc.i4.2
+  IL_0032:  ldc.i4.3
+  IL_0033:  ldnull
+  IL_0034:  call       ""Microsoft.CSharp.RuntimeBinder.CSharpArgumentInfo Microsoft.CSharp.RuntimeBinder.CSharpArgumentInfo.Create(Microsoft.CSharp.RuntimeBinder.CSharpArgumentInfoFlags, string)""
+  IL_0039:  stelem.ref
+  IL_003a:  dup
+  IL_003b:  ldc.i4.3
+  IL_003c:  ldc.i4.3
+  IL_003d:  ldnull
+  IL_003e:  call       ""Microsoft.CSharp.RuntimeBinder.CSharpArgumentInfo Microsoft.CSharp.RuntimeBinder.CSharpArgumentInfo.Create(Microsoft.CSharp.RuntimeBinder.CSharpArgumentInfoFlags, string)""
+  IL_0043:  stelem.ref
+  IL_0044:  dup
+  IL_0045:  ldc.i4.4
+  IL_0046:  ldc.i4.3
+  IL_0047:  ldnull
+  IL_0048:  call       ""Microsoft.CSharp.RuntimeBinder.CSharpArgumentInfo Microsoft.CSharp.RuntimeBinder.CSharpArgumentInfo.Create(Microsoft.CSharp.RuntimeBinder.CSharpArgumentInfoFlags, string)""
+  IL_004d:  stelem.ref
+  IL_004e:  dup
+  IL_004f:  ldc.i4.5
+  IL_0050:  ldc.i4.3
+  IL_0051:  ldnull
+  IL_0052:  call       ""Microsoft.CSharp.RuntimeBinder.CSharpArgumentInfo Microsoft.CSharp.RuntimeBinder.CSharpArgumentInfo.Create(Microsoft.CSharp.RuntimeBinder.CSharpArgumentInfoFlags, string)""
+  IL_0057:  stelem.ref
+  IL_0058:  dup
+  IL_0059:  ldc.i4.6
+  IL_005a:  ldc.i4.3
+  IL_005b:  ldnull
+  IL_005c:  call       ""Microsoft.CSharp.RuntimeBinder.CSharpArgumentInfo Microsoft.CSharp.RuntimeBinder.CSharpArgumentInfo.Create(Microsoft.CSharp.RuntimeBinder.CSharpArgumentInfoFlags, string)""
+  IL_0061:  stelem.ref
+  IL_0062:  dup
+  IL_0063:  ldc.i4.7
+  IL_0064:  ldc.i4.3
+  IL_0065:  ldnull
+  IL_0066:  call       ""Microsoft.CSharp.RuntimeBinder.CSharpArgumentInfo Microsoft.CSharp.RuntimeBinder.CSharpArgumentInfo.Create(Microsoft.CSharp.RuntimeBinder.CSharpArgumentInfoFlags, string)""
+  IL_006b:  stelem.ref
+  IL_006c:  dup
+  IL_006d:  ldc.i4.8
+  IL_006e:  ldc.i4.3
+  IL_006f:  ldnull
+  IL_0070:  call       ""Microsoft.CSharp.RuntimeBinder.CSharpArgumentInfo Microsoft.CSharp.RuntimeBinder.CSharpArgumentInfo.Create(Microsoft.CSharp.RuntimeBinder.CSharpArgumentInfoFlags, string)""
+  IL_0075:  stelem.ref
+  IL_0076:  dup
+  IL_0077:  ldc.i4.s   9
+  IL_0079:  ldc.i4.3
+  IL_007a:  ldnull
+  IL_007b:  call       ""Microsoft.CSharp.RuntimeBinder.CSharpArgumentInfo Microsoft.CSharp.RuntimeBinder.CSharpArgumentInfo.Create(Microsoft.CSharp.RuntimeBinder.CSharpArgumentInfoFlags, string)""
+  IL_0080:  stelem.ref
+  IL_0081:  dup
+  IL_0082:  ldc.i4.s   10
+  IL_0084:  ldc.i4.3
+  IL_0085:  ldnull
+  IL_0086:  call       ""Microsoft.CSharp.RuntimeBinder.CSharpArgumentInfo Microsoft.CSharp.RuntimeBinder.CSharpArgumentInfo.Create(Microsoft.CSharp.RuntimeBinder.CSharpArgumentInfoFlags, string)""
+  IL_008b:  stelem.ref
+  IL_008c:  call       ""System.Runtime.CompilerServices.CallSiteBinder Microsoft.CSharp.RuntimeBinder.Binder.Invoke(Microsoft.CSharp.RuntimeBinder.CSharpBinderFlags, System.Type, System.Collections.Generic.IEnumerable<Microsoft.CSharp.RuntimeBinder.CSharpArgumentInfo>)""
+  IL_0091:  call       ""System.Runtime.CompilerServices.CallSite<System.Func<System.Runtime.CompilerServices.CallSite, dynamic, int, int, int, int, int, int, int, int, int, int, dynamic>> System.Runtime.CompilerServices.CallSite<System.Func<System.Runtime.CompilerServices.CallSite, dynamic, int, int, int, int, int, int, int, int, int, int, dynamic>>.Create(System.Runtime.CompilerServices.CallSiteBinder)""
+  IL_0096:  stsfld     ""System.Runtime.CompilerServices.CallSite<System.Func<System.Runtime.CompilerServices.CallSite, dynamic, int, int, int, int, int, int, int, int, int, int, dynamic>> C.<>o__0.<>p__0""
+  IL_009b:  ldsfld     ""System.Runtime.CompilerServices.CallSite<System.Func<System.Runtime.CompilerServices.CallSite, dynamic, int, int, int, int, int, int, int, int, int, int, dynamic>> C.<>o__0.<>p__0""
+  IL_00a0:  ldfld      ""System.Func<System.Runtime.CompilerServices.CallSite, dynamic, int, int, int, int, int, int, int, int, int, int, dynamic> System.Runtime.CompilerServices.CallSite<System.Func<System.Runtime.CompilerServices.CallSite, dynamic, int, int, int, int, int, int, int, int, int, int, dynamic>>.Target""
+  IL_00a5:  ldsfld     ""System.Runtime.CompilerServices.CallSite<System.Func<System.Runtime.CompilerServices.CallSite, dynamic, int, int, int, int, int, int, int, int, int, int, dynamic>> C.<>o__0.<>p__0""
+  IL_00aa:  ldarg.1
+  IL_00ab:  ldc.i4.1
+  IL_00ac:  ldc.i4.2
+  IL_00ad:  ldc.i4.3
+  IL_00ae:  ldc.i4.4
+  IL_00af:  ldc.i4.5
+  IL_00b0:  ldc.i4.6
+  IL_00b1:  ldc.i4.7
+  IL_00b2:  ldc.i4.8
+  IL_00b3:  ldc.i4.s   9
+  IL_00b5:  ldc.i4.s   10
+  IL_00b7:  callvirt   ""dynamic System.Func<System.Runtime.CompilerServices.CallSite, dynamic, int, int, int, int, int, int, int, int, int, int, dynamic>.Invoke(System.Runtime.CompilerServices.CallSite, dynamic, int, int, int, int, int, int, int, int, int, int)""
+  IL_00bc:  ret
+}
+");
         }
 
         [Fact]
@@ -545,7 +643,9 @@ public class C
 
                 var displayClass = c.GetMember<NamedTypeSymbol>("<>c__DisplayClass0_0");
                 var d = displayClass.GetMember<FieldSymbol>("d");
-                Assert.Equal(0, d.GetAttributes().Length);
+                var attributes = d.GetAttributes();
+                Assert.Equal(1, attributes.Length);
+                Assert.Equal("System.Runtime.CompilerServices.DynamicAttribute", attributes[0].AttributeClass.ToDisplayString());
             });
         }
 
@@ -599,7 +699,7 @@ public class C
         }
 
         [Fact]
-        [WorkItem(625282, "DevDiv")]
+        [WorkItem(625282, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/625282")]
         public void GenericIterator()
         {
             string source = @"
@@ -896,7 +996,7 @@ class C
         }
 
         [Fact]
-        [WorkItem(627091, "DevDiv")]
+        [WorkItem(627091, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/627091")]
         public void GenericContainer_Lambda()
         {
             string source = @"
@@ -950,7 +1050,7 @@ class C
   IL_0069:  ldarg.0
   IL_006a:  ldfld      ""T C.<>c__DisplayClass0_0<T>.a""
   IL_006f:  ldarg.0
-  IL_0070:  ldfld      ""object C.<>c__DisplayClass0_0<T>.b""
+  IL_0070:  ldfld      """"
   IL_0075:  callvirt   ""void System.Action<System.Runtime.CompilerServices.CallSite, System.Type, T, object>.Invoke(System.Runtime.CompilerServices.CallSite, System.Type, T, object)""
   IL_007a:  ret
 }
@@ -974,7 +1074,7 @@ public class C
             CompileAndVerify(source, new[] { SystemCoreRef });
         }
 
-        [Fact, WorkItem(16)]
+        [Fact, WorkItem(16, "http://roslyn.codeplex.com/workitem/16")]
         public void RemoveAtOfKeywordAsDynamicMemberName()
         {
             string source = @"
@@ -1033,7 +1133,7 @@ class C
   IL_0005:  stloc.0
   IL_0006:  ldloc.0
   IL_0007:  newobj     ""C..ctor()""
-  IL_000c:  stfld      ""object C.<>c__DisplayClass11_0.dyn""
+  IL_000c:  stfld      ""dynamic C.<>c__DisplayClass11_0.dyn""
   IL_0011:  ldsfld     ""System.Runtime.CompilerServices.CallSite<System.Func<System.Runtime.CompilerServices.CallSite, object, bool>> C.<>o__11.<>p__2""
   IL_0016:  brtrue.s   IL_0044
   IL_0018:  ldc.i4.0
@@ -1101,7 +1201,7 @@ class C
   IL_00da:  ldfld      ""System.Func<System.Runtime.CompilerServices.CallSite, object, object> System.Runtime.CompilerServices.CallSite<System.Func<System.Runtime.CompilerServices.CallSite, object, object>>.Target""
   IL_00df:  ldsfld     ""System.Runtime.CompilerServices.CallSite<System.Func<System.Runtime.CompilerServices.CallSite, object, object>> C.<>o__11.<>p__0""
   IL_00e4:  ldloc.0
-  IL_00e5:  ldfld      ""object C.<>c__DisplayClass11_0.dyn""
+  IL_00e5:  ldfld      ""dynamic C.<>c__DisplayClass11_0.dyn""
   IL_00ea:  callvirt   ""object System.Func<System.Runtime.CompilerServices.CallSite, object, object>.Invoke(System.Runtime.CompilerServices.CallSite, object)""
   IL_00ef:  ldc.i4.s   123
   IL_00f1:  callvirt   ""object System.Func<System.Runtime.CompilerServices.CallSite, object, int, object>.Invoke(System.Runtime.CompilerServices.CallSite, object, int)""
@@ -1137,7 +1237,7 @@ class C
   IL_014d:  ldfld      ""System.Func<System.Runtime.CompilerServices.CallSite, object, object, object> System.Runtime.CompilerServices.CallSite<System.Func<System.Runtime.CompilerServices.CallSite, object, object, object>>.Target""
   IL_0152:  ldsfld     ""System.Runtime.CompilerServices.CallSite<System.Func<System.Runtime.CompilerServices.CallSite, object, object, object>> C.<>o__11.<>p__4""
   IL_0157:  ldloc.0
-  IL_0158:  ldfld      ""object C.<>c__DisplayClass11_0.dyn""
+  IL_0158:  ldfld      ""dynamic C.<>c__DisplayClass11_0.dyn""
   IL_015d:  ldsfld     ""System.Runtime.CompilerServices.CallSite<System.Func<System.Runtime.CompilerServices.CallSite, object, object, object>> C.<>o__11.<>p__3""
   IL_0162:  brtrue.s   IL_019e
   IL_0164:  ldc.i4.0
@@ -1166,7 +1266,7 @@ class C
   IL_01a3:  ldfld      ""System.Func<System.Runtime.CompilerServices.CallSite, object, object, object> System.Runtime.CompilerServices.CallSite<System.Func<System.Runtime.CompilerServices.CallSite, object, object, object>>.Target""
   IL_01a8:  ldsfld     ""System.Runtime.CompilerServices.CallSite<System.Func<System.Runtime.CompilerServices.CallSite, object, object, object>> C.<>o__11.<>p__3""
   IL_01ad:  ldloc.0
-  IL_01ae:  ldfld      ""object C.<>c__DisplayClass11_0.dyn""
+  IL_01ae:  ldfld      ""dynamic C.<>c__DisplayClass11_0.dyn""
   IL_01b3:  ldloc.1
   IL_01b4:  callvirt   ""object System.Func<System.Runtime.CompilerServices.CallSite, object, object, object>.Invoke(System.Runtime.CompilerServices.CallSite, object, object)""
   IL_01b9:  callvirt   ""object System.Func<System.Runtime.CompilerServices.CallSite, object, object, object>.Invoke(System.Runtime.CompilerServices.CallSite, object, object)""
@@ -1198,7 +1298,7 @@ class C
   IL_0204:  ldfld      ""System.Func<System.Runtime.CompilerServices.CallSite, object, object, object> System.Runtime.CompilerServices.CallSite<System.Func<System.Runtime.CompilerServices.CallSite, object, object, object>>.Target""
   IL_0209:  ldsfld     ""System.Runtime.CompilerServices.CallSite<System.Func<System.Runtime.CompilerServices.CallSite, object, object, object>> C.<>o__11.<>p__7""
   IL_020e:  ldloc.0
-  IL_020f:  ldfld      ""object C.<>c__DisplayClass11_0.dyn""
+  IL_020f:  ldfld      ""dynamic C.<>c__DisplayClass11_0.dyn""
   IL_0214:  ldsfld     ""System.Runtime.CompilerServices.CallSite<System.Func<System.Runtime.CompilerServices.CallSite, object, object>> C.<>o__11.<>p__6""
   IL_0219:  brtrue.s   IL_024b
   IL_021b:  ldc.i4.0
@@ -1241,7 +1341,7 @@ class C
   IL_0295:  ldfld      ""System.Func<System.Runtime.CompilerServices.CallSite, object, object> System.Runtime.CompilerServices.CallSite<System.Func<System.Runtime.CompilerServices.CallSite, object, object>>.Target""
   IL_029a:  ldsfld     ""System.Runtime.CompilerServices.CallSite<System.Func<System.Runtime.CompilerServices.CallSite, object, object>> C.<>o__11.<>p__5""
   IL_029f:  ldloc.0
-  IL_02a0:  ldfld      ""object C.<>c__DisplayClass11_0.dyn""
+  IL_02a0:  ldfld      ""dynamic C.<>c__DisplayClass11_0.dyn""
   IL_02a5:  callvirt   ""object System.Func<System.Runtime.CompilerServices.CallSite, object, object>.Invoke(System.Runtime.CompilerServices.CallSite, object)""
   IL_02aa:  callvirt   ""object System.Func<System.Runtime.CompilerServices.CallSite, object, object>.Invoke(System.Runtime.CompilerServices.CallSite, object)""
   IL_02af:  callvirt   ""object System.Func<System.Runtime.CompilerServices.CallSite, object, object, object>.Invoke(System.Runtime.CompilerServices.CallSite, object, object)""
@@ -1251,7 +1351,7 @@ class C
   IL_02bc:  newobj     ""System.Action..ctor(object, System.IntPtr)""
   IL_02c1:  stloc.2
   IL_02c2:  ldloc.0
-  IL_02c3:  ldfld      ""object C.<>c__DisplayClass11_0.dyn""
+  IL_02c3:  ldfld      ""dynamic C.<>c__DisplayClass11_0.dyn""
   IL_02c8:  stloc.3
   IL_02c9:  ldsfld     ""System.Runtime.CompilerServices.CallSite<System.Func<System.Runtime.CompilerServices.CallSite, object, bool>> C.<>o__11.<>p__14""
   IL_02ce:  brtrue.s   IL_02ef
@@ -3411,7 +3511,7 @@ public class C
 }");
         }
 
-        [WorkItem(547676, "DevDiv")]
+        [WorkItem(547676, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/547676")]
         [Fact]
         public void BooleanOperation_Bug547676()
         {
@@ -6197,7 +6297,7 @@ public class C
         }
 
         [Fact]
-        [WorkItem(622532, "DevDiv")]
+        [WorkItem(622532, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/622532")]
         public void InvokeMember_Static_Outer()
         {
             string source = @"
@@ -6261,7 +6361,7 @@ public class A
         }
 
         [Fact]
-        [WorkItem(622532, "DevDiv")]
+        [WorkItem(622532, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/622532")]
         public void InvokeMember_Static_Outer_AmbiguousAtRuntime()
         {
             string source = @"
@@ -6347,7 +6447,7 @@ public class A
                 expectedOutput: "The call is ambiguous between the following methods or properties: 'A.M(A)' and 'A.M(string)'");
         }
 
-        [Fact, WorkItem(649805, "DevDiv")]
+        [Fact, WorkItem(649805, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/649805")]
         public void InvokeMember_ColorColor_StaticContext_StaticProperty()
         {
             string source = @"
@@ -6475,7 +6575,7 @@ public class C
 ");
         }
 
-        [Fact, WorkItem(649805, "DevDiv")]
+        [Fact, WorkItem(649805, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/649805")]
         public void InvokeMember_ColorColor_StaticContext_InstanceProperty()
         {
             string source = @"
@@ -6606,7 +6706,7 @@ public class C
 ");
         }
 
-        [Fact, WorkItem(649805, "DevDiv")]
+        [Fact, WorkItem(649805, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/649805")]
         public void InvokeMember_ColorColor_StaticContext_Parameter()
         {
             string source = @"
@@ -6732,7 +6832,7 @@ public class C
 ");
         }
 
-        [Fact, WorkItem(649805, "DevDiv")]
+        [Fact, WorkItem(649805, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/649805")]
         public void InvokeMember_ColorColor_InstanceContext_StaticProperty()
         {
             string source = @"
@@ -6860,7 +6960,7 @@ public class C
 ");
         }
 
-        [Fact, WorkItem(649805, "DevDiv")]
+        [Fact, WorkItem(649805, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/649805")]
         public void InvokeMember_ColorColor_InstanceContext_Parameter()
         {
             string source = @"
@@ -6986,7 +7086,7 @@ public class C
 ");
         }
 
-        [Fact, WorkItem(649805, "DevDiv")]
+        [Fact, WorkItem(649805, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/649805")]
         public void InvokeMember_ColorColor_InstanceContext_InstanceProperty()
         {
             string source = @"
@@ -7116,7 +7216,7 @@ public class C
 }");
         }
 
-        [Fact, WorkItem(649805, "DevDiv")]
+        [Fact, WorkItem(649805, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/649805")]
         public void InvokeMember_ColorColor_InFieldInitializer()
         {
             string source = @"
@@ -7176,7 +7276,7 @@ public class C
 ");
         }
 
-        [Fact, WorkItem(649805, "DevDiv")]
+        [Fact, WorkItem(649805, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/649805")]
         public void InvokeMember_ColorColor_InScriptVariableInitializer()
         {
             var sourceLib = @"
@@ -7267,7 +7367,7 @@ dynamic x = Color.F((dynamic)1);
 }", realIL: true);
         }
 
-        [Fact, WorkItem(649805, "DevDiv")]
+        [Fact, WorkItem(649805, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/649805")]
         public void InvokeMember_ColorColor_InScriptMethod()
         {
             var sourceLib = @"
@@ -7794,7 +7894,7 @@ public class C
         }
 
         [Fact]
-        [WorkItem(598043, "DevDiv")]
+        [WorkItem(598043, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/598043")]
         public void InvokeMember_NamedArguments_PartialMethods()
         {
             string source = @"
@@ -8717,7 +8817,7 @@ public class C
         }
 
         [Fact]
-        [WorkItem(627091, "DevDiv")]
+        [WorkItem(627091, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/627091")]
         public void InvokeStaticMember_InLambda()
         {
             string source = @"
@@ -8763,11 +8863,10 @@ class C
   IL_0055:  ldtoken    ""C""
   IL_005a:  call       ""System.Type System.Type.GetTypeFromHandle(System.RuntimeTypeHandle)""
   IL_005f:  ldarg.0
-  IL_0060:  ldfld      ""object C.<>c__DisplayClass0_0.x""
+  IL_0060:  ldfld      ""dynamic C.<>c__DisplayClass0_0.x""
   IL_0065:  callvirt   ""void System.Action<System.Runtime.CompilerServices.CallSite, System.Type, object>.Invoke(System.Runtime.CompilerServices.CallSite, System.Type, object)""
   IL_006a:  ret
-}
-");
+}");
         }
 
         [Fact]
@@ -14483,7 +14582,7 @@ class C
     IL_008e:  ldsfld     ""System.Runtime.CompilerServices.CallSite<System.Func<System.Runtime.CompilerServices.CallSite, object, object>> C.<>o__0.<>p__0""
     IL_0093:  ldarg.0
     IL_0094:  ldfld      ""C.<>c__DisplayClass0_0 C.<>c__DisplayClass0_0.<<Main>b__0>d.<>4__this""
-    IL_0099:  ldfld      ""object C.<>c__DisplayClass0_0.d""
+    IL_0099:  ldfld      ""dynamic C.<>c__DisplayClass0_0.d""
     IL_009e:  callvirt   ""object System.Func<System.Runtime.CompilerServices.CallSite, object, object>.Invoke(System.Runtime.CompilerServices.CallSite, object)""
     IL_00a3:  callvirt   ""object System.Func<System.Runtime.CompilerServices.CallSite, object, object>.Invoke(System.Runtime.CompilerServices.CallSite, object)""
     IL_00a8:  stloc.2
@@ -14699,13 +14798,12 @@ class Program
     }
 }";
             var comp = CreateCompilationWithMscorlib45(source, references: new[] { SystemCoreRef, CSharpRef }, options: TestOptions.ReleaseExe);
-            
+
             CompileAndVerify(comp, expectedOutput: @"System.Threading.Tasks.Task`1[System.Int32]");
 
             comp = CreateCompilationWithMscorlib45(source, references: new[] { SystemCoreRef, CSharpRef }, options: TestOptions.DebugExe);
 
             CompileAndVerify(comp, expectedOutput: @"System.Threading.Tasks.Task`1[System.Int32]");
-
         }
 
         #endregion

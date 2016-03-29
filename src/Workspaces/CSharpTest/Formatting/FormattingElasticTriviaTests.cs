@@ -1,6 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Linq;
+using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.Formatting;
@@ -14,7 +15,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Formatting
     {
         [Fact(Skip = "530167")]
         [Trait(Traits.Feature, Traits.Features.Formatting)]
-        public void FormatElasticTrivia()
+        public async Task FormatElasticTrivia()
         {
             var expected = @"extern alias A1;
 
@@ -84,14 +85,14 @@ class B
 
             Assert.NotNull(compilation);
 
-            var newCompilation = Formatter.Format(compilation, new AdhocWorkspace());
+            var newCompilation = await Formatter.FormatAsync(compilation, new AdhocWorkspace());
             Assert.Equal(expected, newCompilation.ToFullString());
         }
 
         [WorkItem(1947, "https://github.com/dotnet/roslyn/issues/1947")]
         [Fact]
         [Trait(Traits.Feature, Traits.Features.Formatting)]
-        public void ElasticLineBreaksBetweenMembers()
+        public async Task ElasticLineBreaksBetweenMembers()
         {
             var text = @"
 public class C
@@ -125,20 +126,20 @@ public class C
 public class SomeAttribute : System.Attribute { }
 ";
 
-            var formatted = Formatter.Format(newRoot, ws).ToFullString();
+            var formatted = (await Formatter.FormatAsync(newRoot, ws)).ToFullString();
             Assert.Equal(expected, formatted);
 
-            var elasticOnlyFormatted = Formatter.Format(newRoot, SyntaxAnnotation.ElasticAnnotation, ws).ToFullString();
+            var elasticOnlyFormatted = (await Formatter.FormatAsync(newRoot, SyntaxAnnotation.ElasticAnnotation, ws)).ToFullString();
             Assert.Equal(expected, elasticOnlyFormatted);
 
-            var annotationFormatted = Formatter.Format(newRoot, Formatter.Annotation, ws).ToFullString();
+            var annotationFormatted = (await Formatter.FormatAsync(newRoot, Formatter.Annotation, ws)).ToFullString();
             Assert.Equal(expected, annotationFormatted);
         }
 
         [WorkItem(408, "https://roslyn.codeplex.com/workitem/408")]
         [Fact]
         [Trait(Traits.Feature, Traits.Features.Formatting)]
-        public void FormatElasticTriviaBetweenPropertiesWithoutAccessors()
+        public async Task FormatElasticTriviaBetweenPropertiesWithoutAccessors()
         {
             var expected = @"class PropertyTest
 {
@@ -149,6 +150,7 @@ public class SomeAttribute : System.Attribute { }
             var property = SyntaxFactory.PropertyDeclaration(
                 attributeLists: default(SyntaxList<AttributeListSyntax>),
                 modifiers: SyntaxFactory.TokenList(),
+                refKeyword: default(SyntaxToken),
                 type: SyntaxFactory.PredefinedType(
                     SyntaxFactory.Token(
                         SyntaxKind.StringKeyword)),
@@ -187,7 +189,7 @@ public class SomeAttribute : System.Attribute { }
 
             Assert.NotNull(compilation);
 
-            var newCompilation = Formatter.Format(compilation, new AdhocWorkspace());
+            var newCompilation = await Formatter.FormatAsync(compilation, new AdhocWorkspace());
             Assert.Equal(expected, newCompilation.ToFullString());
         }
     }

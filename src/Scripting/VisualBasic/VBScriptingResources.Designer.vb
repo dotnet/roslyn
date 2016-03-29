@@ -62,7 +62,16 @@ Friend Class VBScriptingResources
             resourceCulture = value
         End Set
     End Property
-    
+
+    '''<summary>
+    '''  Looks up a localized string similar to Cannot escape non-printable characters in Visual Basic notation unless quotes are used..
+    '''</summary>
+    Friend Shared ReadOnly Property ExceptionEscapeWithoutQuote() As String
+        Get
+            Return ResourceManager.GetString("ExceptionEscapeWithoutQuote", resourceCulture)
+        End Get
+    End Property
+
     '''<summary>
     '''  Looks up a localized string similar to Usage: vbi [options] [script-file.vbx] [-- script-arguments]
     '''

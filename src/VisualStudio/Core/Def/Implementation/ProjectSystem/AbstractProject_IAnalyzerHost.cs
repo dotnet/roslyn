@@ -48,8 +48,15 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                 GetAnalyzerDependencyCheckingService().CheckForConflictsAsync();
             }
 
-            GetAnalyzerFileWatcherService().AddPath(analyzerAssemblyFullPath);
-            GetAnalyzerFileWatcherService().ErrorIfAnalyzerAlreadyLoaded(_id, analyzerAssemblyFullPath);
+            if (File.Exists(analyzerAssemblyFullPath))
+            {
+                GetAnalyzerFileWatcherService().AddPath(analyzerAssemblyFullPath);
+                GetAnalyzerFileWatcherService().ErrorIfAnalyzerAlreadyLoaded(_id, analyzerAssemblyFullPath);
+            }
+            else
+            {
+                analyzer.UpdatedOnDisk += OnAnalyzerChanged;
+            }
         }
 
         public void RemoveAnalyzerAssembly(string analyzerAssemblyFullPath)
@@ -126,7 +133,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
         {
             ClearAnalyzerRuleSet();
             SetAnalyzerRuleSet(ruleSetFileFullPath);
-            UpdateAnalyzerRules();
+            UpdateOptions();
         }
 
         private void SetAnalyzerRuleSet(string ruleSetFileFullPath)

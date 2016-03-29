@@ -1257,6 +1257,13 @@ lReportErrorOnTwoTokens:
             End Get
         End Property
 
+        Public NotOverridable Overrides ReadOnly Property ReturnsByRef As Boolean
+            Get
+                ' It is not possible to define ref-returning methods in source.
+                Return False
+            End Get
+        End Property
+
         Public Overrides ReadOnly Property IsSub As Boolean
             Get
                 Debug.Assert(Me.MethodKind <> MethodKind.EventAdd,
@@ -2080,9 +2087,10 @@ lReportErrorOnTwoTokens:
                                                                             Me.CallingConvention,
                                                                             fakeTypeParameters,
                                                                             fakeParamsBuilder.ToImmutableAndFree(),
-                                                                            retType.InternalSubstituteTypeParameters(replaceMethodTypeParametersWithFakeTypeParameters).AsTypeSymbolOnly(),
-                                                                            ImmutableArray(Of CustomModifier).Empty,
-                                                                            ImmutableArray(Of MethodSymbol).Empty,
+                                                                            returnsByRef:=False,
+                                                                            returnType:=retType.InternalSubstituteTypeParameters(replaceMethodTypeParametersWithFakeTypeParameters).AsTypeSymbolOnly(),
+                                                                            returnTypeCustomModifiers:=ImmutableArray(Of CustomModifier).Empty,
+                                                                            explicitInterfaceImplementations:=ImmutableArray(Of MethodSymbol).Empty,
                                                                             isOverrides:=True))
                 End If
 

@@ -22,6 +22,14 @@
     <Reference Include="Microsoft.CSharp" />
   </ItemGroup>
   <ItemGroup Label="Project References">
+    <ProjectReference Include="..\..\..\..\Test\Utilities\Desktop\TestUtilities.Desktop.csproj">
+      <Project>{76c6f005-c89d-4348-bb4a-391898dbeb52}</Project>
+      <Name>TestUtilities.Desktop</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\..\..\..\Test\Utilities\Portable.FX45\TestUtilities.FX45.csproj">
+      <Project>{f7712928-1175-47b3-8819-ee086753dee2}</Project>
+      <Name>TestUtilities.FX45</Name>
+    </ProjectReference>
     <ProjectReference Include="..\..\..\Core\Source\Concord\Concord.csproj">
       <Project>{5002636a-fe8d-40bf-8818-ab513a2194fa}</Project>
       <Name>Concord</Name>
@@ -113,6 +121,7 @@
     <Compile Include="Debugger\Engine\DkmFailedEvaluationResult.cs" />
     <Compile Include="Debugger\Engine\DkmInspectionContext.cs" />
     <Compile Include="Debugger\Engine\DkmDataItem.cs" />
+    <Compile Include="Debugger\Engine\DkmInspectionSession.cs" />
     <Compile Include="Debugger\Engine\DkmIntermediateEvaluationResult.cs" />
     <Compile Include="Debugger\Engine\DkmLanguage.cs" />
     <Compile Include="Debugger\Engine\DkmLanguageId.cs" />
@@ -156,7 +165,6 @@
     </EmbeddedResource>
   </ItemGroup>
   <ItemGroup>
-    <None Include="App.config" />
     <None Include="project.json" />
   </ItemGroup>
   <Import Project="..\..\Source\ResultProvider\ResultProvider.projitems" Label="Shared" />

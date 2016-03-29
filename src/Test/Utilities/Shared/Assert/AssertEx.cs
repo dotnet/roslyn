@@ -319,67 +319,9 @@ namespace Roslyn.Test.Utilities
             Assert.False(true, string.Format(format, args));
         }
 
-        public static void Null<T>(T @object, string message = null)
-        {
-            Assert.True(AssertEqualityComparer<T>.IsNull(@object), message);
-        }
-
         public static void NotNull<T>(T @object, string message = null)
         {
             Assert.False(AssertEqualityComparer<T>.IsNull(@object), message);
-        }
-
-        public static void ThrowsArgumentNull(string parameterName, Action del)
-        {
-            try
-            {
-                del();
-            }
-            catch (ArgumentNullException e)
-            {
-                Assert.Equal(parameterName, e.ParamName);
-            }
-        }
-
-        public static void ThrowsArgumentException(string parameterName, Action del)
-        {
-            try
-            {
-                del();
-            }
-            catch (ArgumentException e)
-            {
-                Assert.Equal(parameterName, e.ParamName);
-            }
-        }
-
-        public static T Throws<T>(Action del, bool allowDerived = false) where T : Exception
-        {
-            try
-            {
-                del();
-            }
-            catch (Exception ex)
-            {
-                var type = ex.GetType();
-                if (type.Equals(typeof(T)))
-                {
-                    // We got exactly the type we wanted
-                    return (T)ex;
-                }
-
-                if (allowDerived && typeof(T).GetTypeInfo().IsAssignableFrom(type.GetTypeInfo()))
-                {
-                    // We got a derived type
-                    return (T)ex;
-                }
-
-                // We got some other type. We know that type != typeof(T), and so we'll use Assert.Equal since Xunit
-                // will give a nice Expected/Actual output for this
-                Assert.Equal(typeof(T), type);
-            }
-
-            throw new Exception("No exception was thrown.");
         }
 
         // compares against a baseline
@@ -499,10 +441,13 @@ namespace Roslyn.Test.Utilities
                 }
             }
 
+            var expectedString = string.Join(itemSeparator, expected.Select(itemInspector));
             var actualString = string.Join(itemSeparator, actual.Select(itemInspector));
 
             var message = new StringBuilder();
             message.AppendLine();
+            message.AppendLine("Expected:");
+            message.AppendLine(expectedString);
             message.AppendLine("Actual:");
             message.AppendLine(actualString);
             message.AppendLine("Differences:");
@@ -546,6 +491,16 @@ namespace Roslyn.Test.Utilities
             File.WriteAllText(compareCmd, string.Format("\"{0}\" \"{1}\" \"{2}\"", s_diffToolPath, actualFilePath, expectedFilePath));
 
             return "file://" + compareCmd;
+        }
+
+        public static void Empty<T>(IEnumerable<T> items, string message = "")
+        {
+            // realize the list in case it can't be traversed twice via .Count()/.Any() and .Select()
+            var list = items.ToList();
+            if (list.Count != 0)
+            {
+                Fail($"Expected 0 items but found {list.Count}: {message}\r\nItems:\r\n    {string.Join("\r\n    ", list)}");
+            }
         }
     }
 }

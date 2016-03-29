@@ -18,7 +18,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
         Protected Overrides Async Function CreateContextAsync(document As Document, position As Integer, cancellationToken As CancellationToken) As Task(Of VisualBasicSyntaxContext)
             Dim span = New TextSpan(position, length:=0)
             Dim semanticModel = Await document.GetSemanticModelForSpanAsync(span, cancellationToken).ConfigureAwait(False)
-            Return VisualBasicSyntaxContext.CreateContext(document.Project.Solution.Workspace, semanticModel, position, cancellationToken)
+            Return Await VisualBasicSyntaxContext.CreateContextAsync(document.Project.Solution.Workspace, semanticModel, position, cancellationToken).ConfigureAwait(False)
         End Function
 
         Protected Overrides Function GetTextChangeSpan(text As SourceText, position As Integer) As TextSpan
@@ -117,6 +117,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
                 New KeywordRecommenders.PreprocessorDirectives.EndIfDirectiveKeywordRecommender(),
                 New KeywordRecommenders.PreprocessorDirectives.EndRegionDirectiveKeywordRecommender(),
                 New KeywordRecommenders.PreprocessorDirectives.IfDirectiveKeywordRecommender(),
+                New KeywordRecommenders.PreprocessorDirectives.ReferenceDirectiveKeywordRecommender(),
                 New KeywordRecommenders.PreprocessorDirectives.RegionDirectiveKeywordRecommender(),
                 New KeywordRecommenders.PreprocessorDirectives.WarningDirectiveKeywordRecommender(),
                 New KeywordRecommenders.Queries.AggregateKeywordRecommender(),

@@ -247,7 +247,8 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
 
             // -1 because the last part was checked against the name, and only the rest
             // of the parts are checked against the container.
-            if (_dotSeparatedSegments.Length - 1 > containerParts.Length)
+            var relevantDotSeparatedSegmentLength = _dotSeparatedSegments.Length - 1;
+            if (relevantDotSeparatedSegmentLength > containerParts.Length)
             {
                 // There weren't enough container parts to match against the pattern parts.
                 // So this definitely doesn't match.
@@ -256,11 +257,12 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
 
             // So far so good.  Now break up the container for the candidate and check if all
             // the dotted parts match up correctly.
-            var totalMatch = candidateMatch.ToList();
+            var totalMatch = new List<PatternMatch>();
 
-            for (int i = _dotSeparatedSegments.Length - 2, j = containerParts.Length - 1;
-                    i >= 0;
-                    i--, j--)
+            // Don't need to check the last segment.  We did that as the very first bail out step.
+            for (int i = 0, j = containerParts.Length - relevantDotSeparatedSegmentLength;
+                 i < relevantDotSeparatedSegmentLength;
+                 i++, j++)
             {
                 var segment = _dotSeparatedSegments[i];
                 var containerName = containerParts[j];
@@ -273,6 +275,8 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
 
                 totalMatch.AddRange(containerMatch);
             }
+
+            totalMatch.AddRange(candidateMatch);
 
             // Success, this symbol's full name matched against the dotted name the user was asking
             // about.

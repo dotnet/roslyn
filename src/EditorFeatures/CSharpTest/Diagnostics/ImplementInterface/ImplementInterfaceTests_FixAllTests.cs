@@ -1,5 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System.Threading.Tasks;
 using Roslyn.Test.Utilities;
 using Xunit;
 using ImplementInterfaceCodeAction = Microsoft.CodeAnalysis.ImplementInterface.AbstractImplementInterfaceService.ImplementInterfaceCodeAction;
@@ -10,10 +11,10 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.ImplementIn
     {
         #region "Fix all occurrences tests"
 
-        [WpfFact]
+        [Fact]
         [Trait(Traits.Feature, Traits.Features.CodeActionsImplementAbstractClass)]
         [Trait(Traits.Feature, Traits.Features.CodeActionsFixAllOccurrences)]
-        public void TestFixAllInDocument()
+        public async Task TestFixAllInDocument()
         {
             var fixAllActionEquivalenceKey = ImplementInterfaceCodeAction.GetCodeActionEquivalenceKey("Assembly1", "global::I1", explicitly: false, abstractly: false, throughMember: null, codeActionTypeName: typeof(ImplementInterfaceCodeAction).FullName);
 
@@ -114,13 +115,13 @@ class B3 : I1, I2
     </Project>
 </Workspace>";
 
-            Test(input, expected, compareTokens: false, fixAllActionEquivalenceKey: fixAllActionEquivalenceKey);
+            await TestAsync(input, expected, compareTokens: false, fixAllActionEquivalenceKey: fixAllActionEquivalenceKey);
         }
 
-        [WpfFact]
+        [Fact]
         [Trait(Traits.Feature, Traits.Features.CodeActionsImplementAbstractClass)]
         [Trait(Traits.Feature, Traits.Features.CodeActionsFixAllOccurrences)]
-        public void TestFixAllInProject()
+        public async Task TestFixAllInProject()
         {
             var fixAllActionEquivalenceKey = ImplementInterfaceCodeAction.GetCodeActionEquivalenceKey("Assembly1", "global::I1", explicitly: false, abstractly: false, throughMember: null, codeActionTypeName: typeof(ImplementInterfaceCodeAction).FullName);
 
@@ -232,13 +233,13 @@ class B3 : I1, I2
     </Project>
 </Workspace>";
 
-            Test(input, expected, compareTokens: false, fixAllActionEquivalenceKey: fixAllActionEquivalenceKey);
+            await TestAsync(input, expected, compareTokens: false, fixAllActionEquivalenceKey: fixAllActionEquivalenceKey);
         }
 
-        [WpfFact]
+        [Fact]
         [Trait(Traits.Feature, Traits.Features.CodeActionsImplementAbstractClass)]
         [Trait(Traits.Feature, Traits.Features.CodeActionsFixAllOccurrences)]
-        public void TestFixAllInSolution()
+        public async Task TestFixAllInSolution()
         {
             var fixAllActionEquivalenceKey = ImplementInterfaceCodeAction.GetCodeActionEquivalenceKey("Assembly1", "global::I2", explicitly: true, abstractly: false, throughMember: null, codeActionTypeName: typeof(ImplementInterfaceCodeAction).FullName);
 
@@ -361,13 +362,13 @@ class B3 : I1, I2
     </Project>
 </Workspace>";
 
-            Test(input, expected, compareTokens: false, fixAllActionEquivalenceKey: fixAllActionEquivalenceKey);
+            await TestAsync(input, expected, compareTokens: false, fixAllActionEquivalenceKey: fixAllActionEquivalenceKey);
         }
 
-        [WpfFact]
+        [Fact]
         [Trait(Traits.Feature, Traits.Features.CodeActionsImplementAbstractClass)]
         [Trait(Traits.Feature, Traits.Features.CodeActionsFixAllOccurrences)]
-        public void TestFixAllInSolution_DifferentAssemblyWithSameTypeName()
+        public async Task TestFixAllInSolution_DifferentAssemblyWithSameTypeName()
         {
             var fixAllActionEquivalenceKey = ImplementInterfaceCodeAction.GetCodeActionEquivalenceKey("Assembly1", "global::I2", explicitly: true, abstractly: false, throughMember: null, codeActionTypeName: typeof(ImplementInterfaceCodeAction).FullName);
 
@@ -497,7 +498,7 @@ class B3 : I1, I2
     </Project>
 </Workspace>";
 
-            Test(input, expected, compareTokens: false, fixAllActionEquivalenceKey: fixAllActionEquivalenceKey);
+            await TestAsync(input, expected, compareTokens: false, fixAllActionEquivalenceKey: fixAllActionEquivalenceKey);
         }
 
         #endregion

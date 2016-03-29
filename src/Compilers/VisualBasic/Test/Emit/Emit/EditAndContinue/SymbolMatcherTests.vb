@@ -8,12 +8,193 @@ Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 Imports Microsoft.CodeAnalysis.VisualBasic.Emit
 Imports Roslyn.Test.Utilities
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
+Imports System.Threading.Tasks
+Imports System.Threading
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
     Public Class SymbolMatcherTests
         Inherits EditAndContinueTestBase
 
-        <WorkItem(1533)>
+        <Fact>
+        Public Sub ConcurrentAccess()
+            Dim source = "
+Class A
+    Dim F As B
+    Property P As D
+    Sub M(a As A, b As B, s As S, i As I) : End Sub
+    Delegate Sub D(s As S)
+    Class B : End Class
+    Structure S : End Structure
+    Interface I : End Interface
+End Class
+
+Class B
+    Function M(Of T, U)() As A 
+        Return Nothing
+    End Function
+
+    Event E As D
+    Delegate Sub D(s As S)
+    Structure S : End Structure
+    Interface I : End Interface
+End Class"
+            Dim compilation0 = CreateCompilationWithMscorlib({source}, options:=TestOptions.DebugDll)
+            Dim compilation1 = compilation0.Clone()
+
+            compilation0.VerifyDiagnostics()
+
+            Dim builder = New List(Of Symbol)()
+
+            Dim type = compilation1.GetMember(Of NamedTypeSymbol)("A")
+            builder.Add(type)
+            builder.AddRange(type.GetMembers())
+
+            type = compilation1.GetMember(Of NamedTypeSymbol)("B")
+            builder.Add(type)
+            builder.AddRange(type.GetMembers())
+
+            Dim members = builder.ToImmutableArray()
+            Assert.True(members.Length > 10)
+
+            For i = 0 To 10 - 1
+                Dim matcher = New VisualBasicSymbolMatcher(Nothing, compilation1.SourceAssembly, Nothing, compilation0.SourceAssembly, Nothing, Nothing)
+
+                Dim tasks(10) As Task
+
+                For j = 0 To tasks.Length - 1
+                    Dim startAt As Integer = i + j + 1
+                    tasks(j) = Task.Run(Sub()
+                                            MatchAll(matcher, members, startAt)
+                                            Thread.Sleep(10)
+                                        End Sub)
+                Next
+
+                Task.WaitAll(tasks)
+            Next
+        End Sub
+
+        Private Shared Sub MatchAll(matcher As VisualBasicSymbolMatcher, members As ImmutableArray(Of Symbol), startAt As Integer)
+            Dim n As Integer = members.Length
+            For i = 0 To n - 1
+                Dim member = members((i + startAt) Mod n)
+                Dim other = matcher.MapDefinition(DirectCast(member, Cci.IDefinition))
+                Assert.NotNull(other)
+            Next
+        End Sub
+
+        <Fact>
+        Public Sub TypeArguments()
+            Dim source = "
+Class A(Of T)
+    Class B(Of U)
+        Shared Function M(Of V)(x As A(Of U).B(Of T), y As A(Of Object).S) As A(Of V)
+            Return Nothing
+        End Function
+
+        Shared Function M(Of V)(x As A(Of U).B(Of T), y As A(Of V).S) As A(Of V) 
+            Return Nothing
+        End Function
+    End Class
+
+    Structure S
+    End Structure
+End Class
+"
+            Dim compilation0 = CreateCompilationWithMscorlib({source}, options:=TestOptions.DebugDll)
+            Dim compilation1 = compilation0.Clone()
+
+            compilation0.VerifyDiagnostics()
+
+            Dim matcher = New VisualBasicSymbolMatcher(Nothing, compilation1.SourceAssembly, Nothing, compilation0.SourceAssembly, Nothing, Nothing)
+            Dim members = compilation1.GetMember(Of NamedTypeSymbol)("A.B").GetMembers("M")
+
+            Assert.Equal(members.Length, 2)
+            For Each member In members
+                Dim other = matcher.MapDefinition(DirectCast(member, Cci.IMethodDefinition))
+                Assert.NotNull(other)
+            Next
+        End Sub
+
+        <Fact>
+        Public Sub Constraints()
+            Dim source = "
+Interface I(Of T AS I(Of T))
+End Interface
+
+Class C
+    Shared Sub M(Of T As I(Of T))(o As I(Of T))
+    End Sub
+End Class
+"
+            Dim compilation0 = CreateCompilationWithMscorlib({source}, options:=TestOptions.DebugDll)
+            Dim compilation1 = compilation0.WithSource(source)
+            Dim matcher = New VisualBasicSymbolMatcher(Nothing, compilation1.SourceAssembly, Nothing, compilation0.SourceAssembly, Nothing, Nothing)
+            Dim member = compilation1.GetMember(Of MethodSymbol)("C.M")
+            Dim other = matcher.MapDefinition(member)
+            Assert.NotNull(other)
+        End Sub
+
+        <Fact>
+        Public Sub CustomModifiers()
+            Dim ilSource = "
+.class public abstract A
+{
+  .method public hidebysig specialname rtspecialname instance void .ctor() { ret }
+  .method public abstract virtual instance object modopt(A) [] F(int32 modopt(object) p) { }
+}
+"
+            Dim metadataRef = CompileIL(ilSource)
+            Dim source = "
+Class B 
+    Inherits A
+
+    Public Overrides Function F(p As Integer) As Object()
+        Return Nothing
+    End Function
+End Class
+"
+            Dim compilation0 = CreateCompilationWithMscorlib({source}, options:=TestOptions.DebugDll, references:={metadataRef})
+            Dim compilation1 = compilation0.Clone()
+
+            compilation0.VerifyDiagnostics()
+
+            Dim member1 = compilation1.GetMember(Of MethodSymbol)("B.F")
+            Assert.Equal(DirectCast(member1.ReturnType, ArrayTypeSymbol).CustomModifiers.Length, 1)
+
+            Dim matcher = New VisualBasicSymbolMatcher(Nothing, compilation1.SourceAssembly, Nothing, compilation0.SourceAssembly, Nothing, Nothing)
+            Dim other = DirectCast(matcher.MapDefinition(member1), MethodSymbol)
+            Assert.NotNull(other)
+            Assert.Equal(DirectCast(other.ReturnType, ArrayTypeSymbol).CustomModifiers.Length, 1)
+        End Sub
+
+        <Fact>
+        Public Sub VaryingCompilationReferences()
+            Dim libSource = "
+Public Class D
+End Class
+"
+            Dim source = "
+Public Class C
+    Public Sub F(a As D)
+    End Sub
+End Class
+"
+            Dim lib0 = CreateCompilationWithMscorlib({libSource}, options:=TestOptions.DebugDll, assemblyName:="Lib")
+            Dim lib1 = CreateCompilationWithMscorlib({libSource}, options:=TestOptions.DebugDll, assemblyName:="Lib")
+
+            Dim compilation0 = CreateCompilationWithMscorlib({source}, {lib0.ToMetadataReference()}, options:=TestOptions.DebugDll)
+            Dim compilation1 = compilation0.WithSource(source).WithReferences(MscorlibRef, lib1.ToMetadataReference())
+
+            Dim matcher = New VisualBasicSymbolMatcher(Nothing, compilation1.SourceAssembly, Nothing, compilation0.SourceAssembly, Nothing, Nothing)
+
+            Dim f0 = compilation0.GetMember(Of MethodSymbol)("C.F")
+            Dim f1 = compilation1.GetMember(Of MethodSymbol)("C.F")
+
+            Dim mf1 = matcher.MapDefinition(f1)
+            Assert.Equal(f0, mf1)
+        End Sub
+
+        <WorkItem(1533, "https://github.com/dotnet/roslyn/issues/1533")>
         <Fact>
         Public Sub PreviousType_ArrayType()
             Dim sources0 = <compilation>
@@ -52,7 +233,7 @@ End Class
             Assert.NotNull(other)
         End Sub
 
-        <WorkItem(1533)>
+        <WorkItem(1533, "https://github.com/dotnet/roslyn/issues/1533")>
         <Fact>
         Public Sub NoPreviousType_ArrayType()
             Dim sources0 = <compilation>
@@ -91,7 +272,7 @@ End Class
             Assert.Null(other)
         End Sub
 
-        <WorkItem(1533)>
+        <WorkItem(1533, "https://github.com/dotnet/roslyn/issues/1533")>
         <Fact>
         Public Sub NoPreviousType_GenericType()
             Dim sources0 = <compilation>

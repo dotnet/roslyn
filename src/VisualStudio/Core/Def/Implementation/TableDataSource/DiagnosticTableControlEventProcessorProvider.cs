@@ -17,7 +17,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
     {
         internal const string Name = "C#/VB Diagnostic Table Event Processor";
         private readonly VisualStudioDiagnosticListSuppressionStateService _suppressionStateService;
-        
+
         [ImportingConstructor]
         public DiagnosticTableControlEventProcessorProvider(
             IVisualStudioDiagnosticListSuppressionStateService suppressionStateService)

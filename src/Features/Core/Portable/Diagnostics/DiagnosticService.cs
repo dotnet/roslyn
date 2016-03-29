@@ -6,7 +6,6 @@ using System.Collections.Immutable;
 using System.Composition;
 using System.Diagnostics;
 using System.Threading;
-using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Common;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Roslyn.Utilities;
@@ -17,6 +16,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics
     internal partial class DiagnosticService : IDiagnosticService
     {
         private const string DiagnosticsUpdatedEventName = "DiagnosticsUpdated";
+
+        private static readonly DiagnosticEventTaskScheduler s_eventScheduler = new DiagnosticEventTaskScheduler(blockingUpperBound: 100);
 
         private readonly IAsynchronousOperationListener _listener;
         private readonly EventMap _eventMap;
@@ -30,7 +31,10 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         {
             // queue to serialize events.
             _eventMap = new EventMap();
-            _eventQueue = new SimpleTaskQueue(TaskScheduler.Default);
+
+            // use diagnostic event task scheduler so that we never flood async events queue with million of events.
+            // queue itself can handle huge number of events but we are seeing OOM due to captured data in pending events.
+            _eventQueue = new SimpleTaskQueue(s_eventScheduler);
 
             _listener = new AggregateAsynchronousOperationListener(asyncListeners, FeatureAttribute.DiagnosticService);
 
@@ -53,49 +57,76 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
         private void RaiseDiagnosticsUpdated(object sender, DiagnosticsUpdatedArgs args)
         {
-            var ev = _eventMap.GetEventHandlers<EventHandler<DiagnosticsUpdatedArgs>>(DiagnosticsUpdatedEventName);
-            if (ev.HasHandlers)
-            {
-                var eventToken = _listener.BeginAsyncOperation(DiagnosticsUpdatedEventName);
-                _eventQueue.ScheduleTask(() =>
-                {
-                    UpdateDataMap(sender, args);
-                    ev.RaiseEvent(handler => handler(sender, args));
-                }).CompletesAsyncOperation(eventToken);
-            }
-        }
+            Contract.ThrowIfNull(sender);
+            var source = (IDiagnosticUpdateSource)sender;
 
-        private void UpdateDataMap(object sender, DiagnosticsUpdatedArgs args)
-        {
-            var updateSource = sender as IDiagnosticUpdateSource;
-            if (updateSource == null)
+            var ev = _eventMap.GetEventHandlers<EventHandler<DiagnosticsUpdatedArgs>>(DiagnosticsUpdatedEventName);
+            if (!RequireRunningEventTasks(source, ev))
             {
                 return;
             }
 
-            Contract.Requires(_updateSources.Contains(updateSource));
+            var eventToken = _listener.BeginAsyncOperation(DiagnosticsUpdatedEventName);
+            _eventQueue.ScheduleTask(() =>
+            {
+                if (!UpdateDataMap(source, args))
+                {
+                    // there is no change, nothing to raise events for.
+                    return;
+                }
 
-            // we expect someone who uses this ability to small.
+                ev.RaiseEvent(handler => handler(sender, args));
+            }).CompletesAsyncOperation(eventToken);
+        }
+
+        private bool RequireRunningEventTasks(
+            IDiagnosticUpdateSource source, EventMap.EventHandlerSet<EventHandler<DiagnosticsUpdatedArgs>> ev)
+        {
+            // basically there are 2 cases when there is no event handler registered. 
+            // first case is when diagnostic update source itself provide GetDiagnostics functionality. 
+            // in that case, DiagnosticService doesn't need to track diagnostics reported. so, it bail out right away.
+            // second case is when diagnostic source doesn't provide GetDiagnostics functionality. 
+            // in that case, DiagnosticService needs to track diagnostics reported. so it need to enqueue background 
+            // work to process given data regardless whether there is event handler registered or not.
+            // this could be separated in 2 tasks, but we already saw cases where there are too many tasks enqueued, 
+            // so I merged it to one. 
+
+            // if it doesn't SupportGetDiagnostics, we need to process reported data, so enqueue task.
+            if (!source.SupportGetDiagnostics)
+            {
+                return true;
+            }
+
+            return ev.HasHandlers;
+        }
+
+        private bool UpdateDataMap(IDiagnosticUpdateSource source, DiagnosticsUpdatedArgs args)
+        {
+            // we expect source who uses this ability to have small number of diagnostics.
             lock (_gate)
             {
+                Contract.Requires(_updateSources.Contains(source));
+
                 // check cheap early bail out
-                if (args.Diagnostics.Length == 0 && !_map.ContainsKey(updateSource))
+                if (args.Diagnostics.Length == 0 && !_map.ContainsKey(source))
                 {
                     // no new diagnostic, and we don't have update source for it.
-                    return;
+                    return false;
                 }
 
-                var list = _map.GetOrAdd(updateSource, _ => new Dictionary<object, Data>());
-                var data = updateSource.SupportGetDiagnostics ? new Data(args) : new Data(args, args.Diagnostics);
+                var diagnosticDataMap = _map.GetOrAdd(source, _ => new Dictionary<object, Data>());
 
-                list.Remove(data.Id);
-                if (list.Count == 0 && args.Diagnostics.Length == 0)
+                diagnosticDataMap.Remove(args.Id);
+                if (diagnosticDataMap.Count == 0 && args.Diagnostics.Length == 0)
                 {
-                    _map.Remove(updateSource);
-                    return;
+                    _map.Remove(source);
+                    return true;
                 }
 
-                list.Add(args.Id, data);
+                var data = source.SupportGetDiagnostics ? new Data(args) : new Data(args, args.Diagnostics);
+                diagnosticDataMap.Add(args.Id, data);
+
+                return true;
             }
         }
 

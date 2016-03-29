@@ -1,7 +1,38 @@
 <Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <PropertyGroup>
-    <RoslynSemanticVersion>1.0.0</RoslynSemanticVersion>
-    <NuGetVersion>$(RoslynSemanticVersion)-alpha</NuGetVersion>
-    <NuGetVersionType>PreRelease</NuGetVersionType>
+    <AssemblyVersion>1.0.0</AssemblyVersion>
+    <IsReleaseVersion>true</IsReleaseVersion>
   </PropertyGroup>
+
+  <Choose>
+    <When Condition="$(BuildNumber) == ''">
+      <PropertyGroup>
+        <NuGetVersionSuffix>rc</NuGetVersionSuffix>
+        <BuildVersion>$(AssemblyVersion).0</BuildVersion>
+      </PropertyGroup>
+    </When>
+
+    <Otherwise>
+      <PropertyGroup>
+        <NuGetVersionSuffix>rc-$(BuildNumber.Split('.')[0])</NuGetVersionSuffix>
+        <BuildVersion>$(AssemblyVersion).$(BuildNumber.Split('.')[0])</BuildVersion>
+      </PropertyGroup>
+    </Otherwise>
+  </Choose>
+  
+  <Choose>
+    <When Condition="$(IsReleaseVersion)" >
+      <PropertyGroup>
+        <NuGetVersion>$(AssemblyVersion)</NuGetVersion>
+        <NuGetVersionType>Release</NuGetVersionType>
+      </PropertyGroup>
+    </When>
+    
+    <Otherwise>
+      <PropertyGroup>
+        <NuGetVersion>$(AssemblyVersion)-$(NuGetVersionSuffix)</NuGetVersion>
+        <NuGetVersionType>PerBuildPreRelease</NuGetVersionType>
+      </PropertyGroup>
+    </Otherwise>
+  </Choose>
 </Project>

@@ -10,35 +10,29 @@ namespace Microsoft.CodeAnalysis.Text
 {
     internal sealed class ChangedText : SourceText
     {
-        private readonly SourceText _oldText;
         private readonly SourceText _newText;
+
+        // store old text weakly so we don't form unwanted chains of old texts (especially chains of ChangedTexts)
+        // It is only used to identify the old text in GetChangeRanges which only returns the changes if old text matches identity.
+        private readonly WeakReference<SourceText> _weakOldText;
         private readonly ImmutableArray<TextChangeRange> _changes;
 
-        public ChangedText(SourceText oldText, ImmutableArray<TextChangeRange> changeRanges, ImmutableArray<SourceText> segments)
+        public ChangedText(SourceText oldText, SourceText newText, ImmutableArray<TextChangeRange> changeRanges)
             : base(checksumAlgorithm: oldText.ChecksumAlgorithm)
         {
+            Debug.Assert(newText != null);
             Debug.Assert(oldText != null);
+            Debug.Assert(oldText != newText);
             Debug.Assert(!changeRanges.IsDefault);
-            Debug.Assert(!segments.IsDefault);
 
-            _oldText = oldText;
-            _newText = segments.IsEmpty ? new StringText("", oldText.Encoding, checksumAlgorithm: oldText.ChecksumAlgorithm) : (SourceText)new CompositeText(segments);
+            _newText = newText;
+            _weakOldText = new WeakReference<SourceText>(oldText);
             _changes = changeRanges;
         }
 
         public override Encoding Encoding
         {
-            get { return _oldText.Encoding; }
-        }
-
-        public SourceText OldText
-        {
-            get { return _oldText; }
-        }
-
-        public SourceText NewText
-        {
-            get { return _newText; }
+            get { return _newText.Encoding; }
         }
 
         public IEnumerable<TextChangeRange> Changes
@@ -49,6 +43,21 @@ namespace Microsoft.CodeAnalysis.Text
         public override int Length
         {
             get { return _newText.Length; }
+        }
+
+        internal override int StorageSize
+        {
+            get { return _newText.StorageSize; }
+        }
+
+        internal override ImmutableArray<SourceText> Segments
+        {
+            get { return _newText.Segments; }
+        }
+
+        internal override SourceText StorageKey
+        {
+            get { return _newText.StorageKey; }
         }
 
         public override char this[int position]
@@ -71,6 +80,13 @@ namespace Microsoft.CodeAnalysis.Text
             _newText.CopyTo(sourceIndex, destination, destinationIndex, count);
         }
 
+        public override SourceText WithChanges(IEnumerable<TextChange> changes)
+        {
+            // compute changes against newText to avoid capturing strong references to this ChangedText instance.
+            var changed = (ChangedText)_newText.WithChanges(changes);
+            return new ChangedText(this, changed._newText, changed._changes);
+        }
+
         public override IReadOnlyList<TextChangeRange> GetChangeRanges(SourceText oldText)
         {
             if (oldText == null)
@@ -78,96 +94,104 @@ namespace Microsoft.CodeAnalysis.Text
                 throw new ArgumentNullException(nameof(oldText));
             }
 
-            if (ReferenceEquals(_oldText, oldText))
-            {
-                // check whether the bases are same one
-                return _changes;
-            }
-
-            if (_oldText.GetChangeRanges(oldText).Count == 0)
-            {
-                // okay, the bases are different, but the contents might be same.
-                return _changes;
-            }
-
             if (this == oldText)
             {
                 return TextChangeRange.NoChanges;
             }
 
+            SourceText actualOldText;
+            if (_weakOldText.TryGetTarget(out actualOldText))
+            {
+                if (actualOldText == oldText)
+                {
+                    // same identity, so the changes must be the ones we have.
+                    return _changes;
+                }
+
+                if (actualOldText.GetChangeRanges(oldText).Count == 0)
+                {
+                    // the bases are different instances, but the contents are considered to be the same.
+                    return _changes;
+                }
+            }
+
             return ImmutableArray.Create(new TextChangeRange(new TextSpan(0, oldText.Length), _newText.Length));
         }
 
+        /// <summary>
+        /// Computes line starts faster given already computed line starts from text before the change.
+        /// </summary>
         protected override TextLineCollection GetLinesCore()
         {
-            var oldLineInfo = _oldText.Lines;
-            var lineStarts = ArrayBuilder<int>.GetInstance();
+            SourceText oldText;
+            TextLineCollection oldLineInfo;
 
+            if (!_weakOldText.TryGetTarget(out oldText) || !oldText.TryGetLines(out oldLineInfo))
+            {
+                // no old line starts? do it the hard way.
+                return base.GetLinesCore();
+            }
+
+            // compute line starts given changes and line starts already computed from previous text
+            var lineStarts = ArrayBuilder<int>.GetInstance();
             lineStarts.Add(0);
 
             // position in the original document
             var position = 0;
+
             // delta generated by already processed changes (position in the new document = position + delta)
             var delta = 0;
+
             // true if last segment ends with CR and we need to check for CR+LF code below assumes that both CR and LF are also line breaks alone
             var endsWithCR = false;
+
             foreach (var change in _changes)
             {
-                // change.Span.Start < position already ruled out by SourceText.WithChanges
-                // if we've skipped a range, add
+                // include existing line starts that occur before this change
                 if (change.Span.Start > position)
                 {
                     if (endsWithCR && _newText[position + delta] == '\n')
                     {
+                        // remove last added line start (it was due to previous CR)
+                        // a new line start including the LF will be added next
                         lineStarts.RemoveLast();
                     }
+
                     var lps = oldLineInfo.GetLinePositionSpan(TextSpan.FromBounds(position, change.Span.Start));
                     for (int i = lps.Start.Line + 1; i <= lps.End.Line; i++)
                     {
                         lineStarts.Add(oldLineInfo[i].Start + delta);
                     }
-                    endsWithCR = _oldText[change.Span.Start - 1] == '\r';
-                    // in case change is inserted between CR+LF we treat CR as line break alone, but this line break might be retracted and replaced with new one in case LF is inserted
-                    if (endsWithCR && change.Span.Start < _oldText.Length && _oldText[change.Span.Start] == '\n')
+
+                    endsWithCR = oldText[change.Span.Start - 1] == '\r';
+
+                    // in case change is inserted between CR+LF we treat CR as line break alone, 
+                    // but this line break might be retracted and replaced with new one in case LF is inserted  
+                    if (endsWithCR && change.Span.Start < oldText.Length && oldText[change.Span.Start] == '\n')
                     {
                         lineStarts.Add(change.Span.Start + delta);
                     }
                 }
 
+                // include line starts that occur within newly inserted text
                 if (change.NewLength > 0)
                 {
-                    var text = GetSubText(new TextSpan(change.Span.Start + delta, change.NewLength));
+                    var changeStart = change.Span.Start + delta;
+                    var text = GetSubText(new TextSpan(changeStart, change.NewLength));
 
-                    // optimizations copied from SourceText.LineInfo.ParseLineStarts
-                    var index = 0;
-                    while (index < text.Length)
+                    if (endsWithCR && text[0] == '\n')
                     {
-                        char c = text[index++];
-
-                        // Common case - ASCII & not a line break
-                        // if (c > '\r' && c <= 127)
-                        // if (c >= ('\r'+1) && c <= 127)
-                        const uint bias = '\r' + 1;
-                        if (unchecked(c - bias) <= (127 - bias))
-                        {
-                            continue;
-                        }
-
-                        if (endsWithCR && c == '\n')
-                        {
-                            lineStarts.RemoveLast();
-                        }
-                        else if (c == '\r' && index < text.Length && text[index] == '\n')
-                        {
-                            index++;
-                        }
-                        else if (!TextUtilities.IsAnyLineBreakCharacter(c))
-                        {
-                            continue;
-                        }
-
-                        lineStarts.Add(change.Span.Start + delta + index);
+                        // remove last added line start (it was due to previous CR)
+                        // a new line start including the LF will be added next
+                        lineStarts.RemoveLast();
                     }
+
+                    // Skip first line (it is always at offset 0 and corresponds to the previous line)
+                    for (int i = 1; i < text.Lines.Count; i++)
+                    {
+                        lineStarts.Add(changeStart + text.Lines[i].Start);
+                    }
+
                     endsWithCR = text[change.NewLength - 1] == '\r';
                 }
 
@@ -175,13 +199,17 @@ namespace Microsoft.CodeAnalysis.Text
                 delta += (change.NewLength - change.Span.Length);
             }
 
-            if (position < _oldText.Length)
+            // include existing line starts that occur after all changes
+            if (position < oldText.Length)
             {
                 if (endsWithCR && _newText[position + delta] == '\n')
                 {
+                    // remove last added line start (it was due to previous CR)
+                    // a new line start including the LF will be added next
                     lineStarts.RemoveLast();
                 }
-                var lps = oldLineInfo.GetLinePositionSpan(TextSpan.FromBounds(position, _oldText.Length));
+
+                var lps = oldLineInfo.GetLinePositionSpan(TextSpan.FromBounds(position, oldText.Length));
                 for (int i = lps.Start.Line + 1; i <= lps.End.Line; i++)
                 {
                     lineStarts.Add(oldLineInfo[i].Start + delta);

@@ -12,6 +12,7 @@ using System.Threading;
 using Microsoft.CodeAnalysis;
 using Roslyn.Utilities;
 using EmitContext = Microsoft.CodeAnalysis.Emit.EmitContext;
+using Microsoft.CodeAnalysis.CodeGen;
 
 namespace Microsoft.Cci
 {
@@ -48,12 +49,12 @@ namespace Microsoft.Cci
         private readonly ResourceSection _nativeResourceSectionOpt;
 
         private readonly BlobBuilder _win32ResourceWriter = new BlobBuilder(1024);
-        
+
         private PeWriter(
             ModulePropertiesForSerialization properties,
             IEnumerable<IWin32Resource> nativeResourcesOpt,
             ResourceSection nativeResourceSectionOpt,
-            string pdbPathOpt, 
+            string pdbPathOpt,
             bool deterministic)
         {
             _properties = properties;
@@ -88,10 +89,16 @@ namespace Microsoft.Cci
             // If PDB writer is given, we have to have PDB path.
             Debug.Assert(nativePdbWriterOpt == null || pdbPathOpt != null);
 
-            var peWriter = new PeWriter(context.Module.Properties, context.Module.Win32Resources, context.Module.Win32ResourceSection, pdbPathOpt, deterministic);
-            var mdWriter = FullMetadataWriter.Create(context, messageProvider, allowMissingMethodBodies, deterministic, getPortablePdbStreamOpt != null, cancellationToken);
-
-            return peWriter.WritePeToStream(mdWriter, getPeStream, getPortablePdbStreamOpt, nativePdbWriterOpt);
+            try
+            {
+                var peWriter = new PeWriter(context.Module.Properties, context.Module.Win32Resources, context.Module.Win32ResourceSection, pdbPathOpt, deterministic);
+                var mdWriter = FullMetadataWriter.Create(context, messageProvider, allowMissingMethodBodies, deterministic, getPortablePdbStreamOpt != null, cancellationToken);
+                return peWriter.WritePeToStream(mdWriter, getPeStream, getPortablePdbStreamOpt, nativePdbWriterOpt);
+            }
+            catch (Exception ex) when (!(ex is PdbWritingException || ex is ResourceException || ex is PermissionSetFileReadException || ex is OperationCanceledException))
+            {
+                throw new PeWritingException(ex);
+            }
         }
 
         private bool WritePeToStream(MetadataWriter mdWriter, Func<Stream> getPeStream, Func<Stream> getPortablePdbStreamOpt, PdbWriter nativePdbWriterOpt)
@@ -166,7 +173,7 @@ namespace Microsoft.Cci
             {
                 nativePdbContentId = default(ContentId);
             }
-            
+
             // write to Portable PDB stream:
             ContentId portablePdbContentId;
             Stream portablePdbStream = getPortablePdbStreamOpt?.Invoke();
@@ -349,7 +356,7 @@ namespace Microsoft.Cci
             20 +           // ?
             (_is32bit ? 3 * sizeof(uint) : 2 * sizeof(ulong)) + // import lookup table
             sizeof(ushort) + // hint
-            CorEntryPointName.Length + 
+            CorEntryPointName.Length +
             1;    // NUL
 
         private static int SizeOfNameTable =>
@@ -454,7 +461,7 @@ namespace Microsoft.Cci
             sizeof(long) +   // export address table jumps directory
             sizeof(long);   // managed-native header directory
 
-        private int OffsetToILStream => SizeOfImportAddressTable + CorHeaderSize; 
+        private int OffsetToILStream => SizeOfImportAddressTable + CorHeaderSize;
 
         private int ComputeOffsetToMetadata(int ilStreamLength)
         {
@@ -540,7 +547,7 @@ namespace Microsoft.Cci
         }
 
         private void FillInNtHeader(
-            List<SectionHeader> sectionHeaders, 
+            List<SectionHeader> sectionHeaders,
             int entryPointAddress,
             DirectoryEntry corHeader,
             DirectoryEntry importTable,
@@ -580,7 +587,7 @@ namespace Microsoft.Cci
 
             ntHeader.SizeOfStackReserve = _properties.SizeOfStackReserve;
             ntHeader.SizeOfStackCommit = _properties.SizeOfStackCommit;
-            ntHeader.SizeOfHeapReserve = _properties.SizeOfHeapReserve; 
+            ntHeader.SizeOfHeapReserve = _properties.SizeOfHeapReserve;
             ntHeader.SizeOfHeapCommit = _properties.SizeOfHeapCommit;
 
             ntHeader.SizeOfCode = codeSection?.SizeOfRawData ?? 0;
@@ -1331,8 +1338,8 @@ namespace Microsoft.Cci
             var writer = new BlobBuilder(CorHeaderSize);
             writer.WriteUInt32(CorHeaderSize);
             writer.WriteUInt16(corHeader.MajorRuntimeVersion);
-            writer.WriteUInt16(corHeader.MinorRuntimeVersion); 
-            writer.WriteUInt32((uint)corHeader.MetadataDirectory.RelativeVirtualAddress); 
+            writer.WriteUInt16(corHeader.MinorRuntimeVersion);
+            writer.WriteUInt32((uint)corHeader.MetadataDirectory.RelativeVirtualAddress);
             writer.WriteUInt32((uint)corHeader.MetadataDirectory.Size);
             writer.WriteUInt32((uint)corHeader.Flags);
             writer.WriteUInt32((uint)corHeader.EntryPointTokenOrRelativeVirtualAddress);
@@ -1340,10 +1347,10 @@ namespace Microsoft.Cci
             writer.WriteUInt32((uint)corHeader.ResourcesDirectory.Size);
             writer.WriteUInt32((uint)(corHeader.StrongNameSignatureDirectory.Size == 0 ? 0 : corHeader.StrongNameSignatureDirectory.RelativeVirtualAddress)); // 36
             writer.WriteUInt32((uint)corHeader.StrongNameSignatureDirectory.Size);
-            writer.WriteUInt32((uint)corHeader.CodeManagerTableDirectory.RelativeVirtualAddress); 
-            writer.WriteUInt32((uint)corHeader.CodeManagerTableDirectory.Size); 
-            writer.WriteUInt32((uint)corHeader.VtableFixupsDirectory.RelativeVirtualAddress); 
-            writer.WriteUInt32((uint)corHeader.VtableFixupsDirectory.Size); 
+            writer.WriteUInt32((uint)corHeader.CodeManagerTableDirectory.RelativeVirtualAddress);
+            writer.WriteUInt32((uint)corHeader.CodeManagerTableDirectory.Size);
+            writer.WriteUInt32((uint)corHeader.VtableFixupsDirectory.RelativeVirtualAddress);
+            writer.WriteUInt32((uint)corHeader.VtableFixupsDirectory.Size);
             writer.WriteUInt32((uint)corHeader.ExportAddressTableJumpsDirectory.RelativeVirtualAddress);
             writer.WriteUInt32((uint)corHeader.ExportAddressTableJumpsDirectory.Size);
             writer.WriteUInt64(0);
@@ -1387,7 +1394,7 @@ namespace Microsoft.Cci
             writer.WriteUInt32(pointerToRawData);
         }
 
-        private readonly static byte[] zeroStamp = new byte[4]; // four bytes of zero
+        private readonly static byte[] s_zeroStamp = new byte[4]; // four bytes of zero
 
         /// <summary>
         /// Write the entire "Debug Directory (Image Only)" along with data that it points to.
@@ -1415,11 +1422,11 @@ namespace Microsoft.Cci
                     pointerToRawData: (uint)textSection.PointerToRawData + dataOffset); // position of the data in the PE stream
             }
 
-            if (this._deterministic)
+            if (_deterministic)
             {
                 const int IMAGE_DEBUG_TYPE_NO_TIMESTAMP = 16; // from PE spec
                 WriteDebugTableEntry(writer,
-                    stamp: zeroStamp,
+                    stamp: s_zeroStamp,
                     version: 0,
                     debugType: IMAGE_DEBUG_TYPE_NO_TIMESTAMP,
                     sizeOfData: 0,

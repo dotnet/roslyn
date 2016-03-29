@@ -891,7 +891,7 @@ End Namespace
             CompilationUtils.AssertNoDeclarationDiagnostics(compilation)
         End Sub
 
-        <WorkItem(537444, "DevDiv")>
+        <WorkItem(537444, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/537444")>
         <Fact>
         Public Sub DeclareFunction01()
             Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(
@@ -993,7 +993,7 @@ End Structure
             Assert.Equal(TypeKind.Structure, mem4.Type.TypeKind)
         End Sub
 
-        <WorkItem(537466, "DevDiv")>
+        <WorkItem(537466, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/537466")>
         <Fact>
         Public Sub DefaultAccessibility01()
             Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(
@@ -1680,7 +1680,7 @@ BC36552: Extension methods must declare at least one parameter. The first parame
                                                </expected>)
         End Sub
 
-        <WorkItem(779441, "DevDiv")>
+        <WorkItem(779441, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/779441")>
         <Fact>
         Public Sub UserDefinedOperatorLocation()
             Dim source = <![CDATA[
@@ -1701,7 +1701,7 @@ End Class
             Assert.Equal(parenPos, span.End)
         End Sub
 
-        <WorkItem(901815, "DevDiv")>
+        <WorkItem(901815, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/901815")>
         <Fact>
         Public Sub UserDefinedConversionLocation()
             Dim source = <![CDATA[

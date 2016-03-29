@@ -449,6 +449,26 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             // when both attributes and command-line options specified, cmd line wins.
             string keyFile = _compilation.Options.CryptoKeyFile;
 
+            // Public sign requires a keyfile
+            if (DeclaringCompilation.Options.PublicSign)
+            {
+                // TODO(https://github.com/dotnet/roslyn/issues/9150):
+                // Provide better error message if keys are provided by
+                // the attributes. Right now we'll just fall through to the
+                // "no key available" error.
+
+                if (!string.IsNullOrEmpty(keyFile) && !PathUtilities.IsAbsolute(keyFile))
+                {
+                    // If keyFile has a relative path then there should be a diagnostic
+                    // about it
+                    Debug.Assert(!DeclaringCompilation.Options.Errors.IsEmpty);
+                    return StrongNameKeys.None;
+                }
+
+                // If we're public signing, we don't need a strong name provider
+                return StrongNameKeys.Create(keyFile, MessageProvider.Instance);
+            }
+
             if (string.IsNullOrEmpty(keyFile))
             {
                 keyFile = this.AssemblyKeyFileAttributeSetting;
@@ -471,17 +491,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 }
             }
 
-            // If we're public signing, we don't need a strong name provider, just 
-            // the file containing the public key
-            if (DeclaringCompilation.Options.PublicSign && keyFile != null)
-            {
-                return StrongNameKeys.Create(keyFile, MessageProvider.Instance);
-            }
-            else
-            {
                 return StrongNameKeys.Create(DeclaringCompilation.Options.StrongNameProvider, keyFile, keyContainer, MessageProvider.Instance);
             }
-        }
 
         // A collection of assemblies to which we were granted internals access by only checking matches for assembly name
         // and ignoring public key. This just acts as a set. The bool is ignored.
@@ -810,6 +821,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 if (_compilation.Options.DelaySign.HasValue)
                 {
                     return _compilation.Options.DelaySign.Value;
+                }
+
+                // The public sign argument should also override the attribute
+                if (_compilation.Options.PublicSign)
+                {
+                    return false;
                 }
 
                 return (this.AssemblyDelaySignAttributeSetting == ThreeState.True);
@@ -1879,7 +1896,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             return new AssemblyIdentity(
                 _assemblySimpleName,
-                this.AssemblyVersionAttributeSetting,
+                VersionHelper.GenerateVersionFromPatternAndCurrentTime(_compilation.Options.CurrentLocalTime, AssemblyVersionAttributeSetting),
                 this.AssemblyCultureAttributeSetting,
                 StrongNameKeys.PublicKey,
                 hasPublicKey: !StrongNameKeys.PublicKey.IsDefault);
@@ -2107,7 +2124,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 Version dummy;
                 string verString = (string)attribute.CommonConstructorArguments[0].Value;
-                if (!VersionHelper.TryParseAssemblyVersion(verString, allowWildcard: false, version: out dummy))
+                if (!VersionHelper.TryParse(verString, version: out dummy))
                 {
                     Location attributeArgumentSyntaxLocation = attribute.GetAttributeArgumentSyntaxLocation(0, arguments.AttributeSyntaxOpt);
                     arguments.Diagnostics.Add(ErrorCode.WRN_InvalidVersionFormat, attributeArgumentSyntaxLocation);
@@ -2551,5 +2568,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             return null;
         }
+
+        public override AssemblyMetadata GetMetadata() => null;
     }
 }

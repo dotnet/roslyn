@@ -6,6 +6,10 @@ namespace Microsoft.VisualStudio.LanguageServices
 {
     internal static class Guids
     {
+        // Deprecated, and can be removed once https://github.com/dotnet/roslyn/pull/9186 is merged
+        // and the closed solution no longer depends on this.
+        public const string CSharpOptionPageFormattingIdString = "13c3bbb4-f18f-4111-9f54-a0fb010d9194";
+
         public const string CSharpPackageIdString = "13c3bbb4-f18f-4111-9f54-a0fb010d9194";
         public const string CSharpProjectIdString = "fae04ec0-301f-11d3-bf4b-00c04f79efbc";
         public const string CSharpLanguageServiceIdString = "694dd9b6-b865-4c5b-ad85-86356e9c88dc";
@@ -39,8 +43,10 @@ namespace Microsoft.VisualStudio.LanguageServices
 
         // option page guids from csharp\rad\pkg\guids.h
         public const string CSharpOptionPageAdvancedIdString = "8FD0B177-B244-4A97-8E37-6FB7B27DE3AF";
+        public const string CSharpOptionPageNamingStyleIdString = "294FBC9C-EF70-4AA0-BD4F-EB0C6A5908D7";
         public const string CSharpOptionPageIntelliSenseIdString = "EDE66829-7A36-4c5d-8E20-9290195DCF80";
-        public const string CSharpOptionPageFormattingIdString = "3EB2CC0B-033E-4D75-B26A-B2362C25227E";
+        public const string CSharpOptionPageCodeStyleIdString = "EAE577A7-ACB9-40F5-A7B1-D2878C3C7D6F";
+        public const string CSharpOptionPageFormattingGeneralIdString = "DA0446DD-55BA-401F-A364-7D3238412AE4";
         public const string CSharpOptionPageFormattingIndentationIdString = "5E21D017-6D2A-4114-A1F1-C923F001CBBB";
         public const string CSharpOptionPageFormattingNewLinesIdString = "607D8062-68D1-41E4-9A35-B5E7F14D0481";
         public const string CSharpOptionPageFormattingSpacingIdString = "234FB566-73DD-4612-8DE4-29031FF27052";
@@ -60,6 +66,7 @@ namespace Microsoft.VisualStudio.LanguageServices
         public const string VisualBasicCodePageEditorFactoryIdString = "6c33e1aa-1401-4536-ab67-0e21e6e569da";
         public const string VisualBasicDebuggerLanguageIdString = "3a12d0b8-c26c-11d0-b442-00a0244a1dd2";
         public const string VisualBasicLibraryIdString = "414AC972-9829-4b6a-A8D7-A08152FEB8AA";
+        public const string VisualBasicOptionPageCodeStyleIdString = "10C168E1-3470-448A-A1AC-73D6BC070750";
 
         public static readonly Guid VisualBasicPackageId = new Guid(VisualBasicPackageIdString);
         public static readonly Guid VisualBasicCompilerServiceId = new Guid(VisualBasicCompilerServiceIdString);
@@ -75,6 +82,7 @@ namespace Microsoft.VisualStudio.LanguageServices
 
         // option page guid from setupauthoring\vb\components\vblanguageservice.pkgdef
         public const string VisualBasicOptionPageVBSpecificIdString = "F1E1021E-A781-4862-9F4B-88746A288A67";
+        public const string VisualBasicOptionPageNamingStyleIdString = "BCA454E0-95E4-4877-B4CB-B1D642B7BAFA";
 
         // from vscommon\inc\textmgruuids.h
         public const string TextManagerPackageString = "F5E7E720-1401-11D1-883B-0000F87579D2";
@@ -96,5 +104,10 @@ namespace Microsoft.VisualStudio.LanguageServices
         public static readonly Guid RoslynCommandSetId = new Guid(RoslynCommandSetIdString);
         public static readonly Guid RoslynGroupId = new Guid(RoslynGroupIdString);
         public static readonly Guid RoslynLibraryId = new Guid(RoslynLibraryIdString);
+
+        // TODO: Remove pending https://github.com/dotnet/roslyn/issues/8927 .
+        // Interactive guids
+        public const string InteractiveCommandSetIdString = "00B8868B-F9F5-4970-A048-410B05508506";
+        public static readonly Guid InteractiveCommandSetId = new Guid(InteractiveCommandSetIdString);
     }
 }

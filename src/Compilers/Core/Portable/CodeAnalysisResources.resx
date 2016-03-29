@@ -292,7 +292,7 @@
     <value>The span does not include the start of a line.</value>
   </data>
   <data name="SpanDoesNotIncludeEndOfLine" xml:space="preserve">
-    <value>Then span does not include the end of a line.</value>
+    <value>The span does not include the end of a line.</value>
   </data>
   <data name="StartMustNotBeNegative" xml:space="preserve">
     <value>'start' must not be negative</value>
@@ -419,6 +419,9 @@
   <data name="InvalidDiagnosticIdReported" xml:space="preserve">
     <value>Reported diagnostic has an ID '{0}', which is not a valid identifier.</value>
   </data>
+  <data name="InvalidDiagnosticLocationReported" xml:space="preserve">
+    <value>Reported diagnostic '{0}' has a source location in file '{1}', which is not part of the compilation being analyzed.</value>
+  </data>
   <data name="NoBinderException" xml:space="preserve">
     <value>Cannot deserialize type '{0}', no binder supplied.</value>
   </data>
@@ -499,5 +502,12 @@
   </data>
   <data name="ResourceStreamEndedUnexpectedly" xml:space="preserve">
     <value>Resource stream ended at {0} bytes, expected {1} bytes.</value>
+  </data>
+  <data name="SharedArgumentMissing" xml:space="preserve">
+    <value>Value for argument '/shared:' must not be empty</value>
+  </data>
+  <data name="ExceptionContext" xml:space="preserve">
+    <value>Exception occurred with following context:
+{0}</value>
   </data>
 </root>

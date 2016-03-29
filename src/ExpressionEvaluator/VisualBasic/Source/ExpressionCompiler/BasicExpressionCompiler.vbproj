@@ -45,12 +45,10 @@
     <DebugSymbols>true</DebugSymbols>
     <DefineDebug>true</DefineDebug>
     <DefineTrace>true</DefineTrace>
-    <DebugType>full</DebugType>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
     <DefineTrace>true</DefineTrace>
     <Optimize>true</Optimize>
-    <DebugType>pdbonly</DebugType>
   </PropertyGroup>
   <ItemGroup>
     <VsdConfigXml Include="BasicExpressionCompiler.vsdconfigxml">
@@ -67,9 +65,9 @@
     <Compile Include="Binders\SuppressDiagnosticsBinder.vb" />
     <Compile Include="CompilationContext.vb" />
     <Compile Include="CompilationExtensions.vb" />
+    <Compile Include="VisualBasicEESymbolProvider.vb" />
     <Compile Include="VisualBasicInScopeHoistedLocalsByName.vb" />
     <Compile Include="EETypeNameDecoder.vb" />
-    <Compile Include="SymUnmanagedReaderExtensions.vb" />
     <Compile Include="EEAssemblyBuilder.vb" />
     <Compile Include="EvaluationContext.vb" />
     <Compile Include="Resources.Designer.vb">

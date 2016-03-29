@@ -16,3 +16,5 @@ using Roslyn.VisualStudio.Setup;
 [assembly: ProvideRoslynBindingRedirection("Microsoft.VisualStudio.InteractiveServices.dll")]
 
 [assembly: ProvideRoslynBindingRedirection("InteractiveHost.exe")]
+
+[assembly: ProvideCodeBase(CodeBase = "$PackageFolder$\\System.IO.FileSystem.dll")]

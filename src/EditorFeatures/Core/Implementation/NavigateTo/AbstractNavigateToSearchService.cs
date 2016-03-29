@@ -1,96 +1,58 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Collections.Generic;
-using System.Linq;
+using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.Editor.Navigation;
-using Microsoft.CodeAnalysis.FindSymbols;
-using Microsoft.CodeAnalysis.Shared.Utilities;
-using Microsoft.VisualStudio.Language.NavigateTo.Interfaces;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Editor.Implementation.NavigateTo
 {
     internal abstract partial class AbstractNavigateToSearchService : INavigateToSearchService
     {
+        private readonly ImmutableArray<INavigateToSearchResultProvider> _resultProviders;
+
+        protected AbstractNavigateToSearchService(IEnumerable<INavigateToSearchResultProvider> resultProviders)
+        {
+            _resultProviders = resultProviders.ToImmutableArray();
+        }
+
         public async Task<IEnumerable<INavigateToSearchResult>> SearchProjectAsync(Project project, string searchPattern, CancellationToken cancellationToken)
         {
-            var results = await NavigateToSymbolFinder.FindNavigableDeclaredSymbolInfos(project, searchPattern, cancellationToken).ConfigureAwait(false);
-            return results.Select(r => ConvertResult(r));
-        }
-
-        private INavigateToSearchResult ConvertResult(ValueTuple<DeclaredSymbolInfo, Document, IEnumerable<PatternMatch>> result)
-        {
-            var declaredSymbolInfo = result.Item1;
-            var document = result.Item2;
-            var matches = result.Item3;
-            var matchKind = GetNavigateToMatchKind(matches);
-
-            // A match is considered to be case sensitive if all its constituent pattern matches are
-            // case sensitive. 
-            var isCaseSensitive = matches.All(m => m.IsCaseSensitive);
-            var kind = GetItemKind(declaredSymbolInfo);
-            var navigableItem = NavigableItemFactory.GetItemFromDeclaredSymbolInfo(declaredSymbolInfo, document);
-
-            return new SearchResult(document, declaredSymbolInfo, kind, matchKind, isCaseSensitive, navigableItem);
-        }
-
-        private static string GetItemKind(DeclaredSymbolInfo declaredSymbolInfo)
-        {
-            switch (declaredSymbolInfo.Kind)
+            if (_resultProviders.Length == 0)
             {
-                case DeclaredSymbolInfoKind.Class:
-                    return NavigateToItemKind.Class;
-                case DeclaredSymbolInfoKind.Constant:
-                    return NavigateToItemKind.Constant;
-                case DeclaredSymbolInfoKind.Delegate:
-                    return NavigateToItemKind.Delegate;
-                case DeclaredSymbolInfoKind.Enum:
-                    return NavigateToItemKind.Enum;
-                case DeclaredSymbolInfoKind.EnumMember:
-                    return NavigateToItemKind.EnumItem;
-                case DeclaredSymbolInfoKind.Event:
-                    return NavigateToItemKind.Event;
-                case DeclaredSymbolInfoKind.Field:
-                    return NavigateToItemKind.Field;
-                case DeclaredSymbolInfoKind.Interface:
-                    return NavigateToItemKind.Interface;
-                case DeclaredSymbolInfoKind.Constructor:
-                case DeclaredSymbolInfoKind.Method:
-                    return NavigateToItemKind.Method;
-                case DeclaredSymbolInfoKind.Module:
-                    return NavigateToItemKind.Module;
-                case DeclaredSymbolInfoKind.Indexer:
-                case DeclaredSymbolInfoKind.Property:
-                    return NavigateToItemKind.Property;
-                case DeclaredSymbolInfoKind.Struct:
-                    return NavigateToItemKind.Structure;
-                default:
-                    return Contract.FailWithReturn<string>("Unknown declaration kind " + declaredSymbolInfo.Kind);
+                return SpecializedCollections.EmptyEnumerable<INavigateToSearchResult>();
             }
-        }
-
-        private static MatchKind GetNavigateToMatchKind(IEnumerable<PatternMatch> matchResult)
-        {
-            // We may have matched the target string in multiple ways, but we'll answer with the
-            // "most optimistic" answer
-            if (matchResult.Any(r => r.Kind == PatternMatchKind.Exact))
+            else if (_resultProviders.Length == 1)
             {
-                return MatchKind.Exact;
+                return await _resultProviders[0].SearchProjectAsync(project, searchPattern, cancellationToken).ConfigureAwait(false);
             }
-
-            if (matchResult.Any(r => r.Kind == PatternMatchKind.Prefix))
+            else
             {
-                return MatchKind.Prefix;
-            }
+                var tasks = new Task<IEnumerable<INavigateToSearchResult>>[_resultProviders.Length];
+                for (int i = 0; i < _resultProviders.Length; i++)
+                {
+                    cancellationToken.ThrowIfCancellationRequested();
 
-            if (matchResult.Any(r => r.Kind == PatternMatchKind.Substring))
-            {
-                return MatchKind.Substring;
-            }
+                    var resultProvider = _resultProviders[i];
+                    tasks[i] = Task.Run(() => resultProvider.SearchProjectAsync(project, searchPattern, cancellationToken), cancellationToken);
+                }
 
-            return MatchKind.Regular;
+                await Task.WhenAll(tasks).ConfigureAwait(false);
+
+                cancellationToken.ThrowIfCancellationRequested();
+
+                var results = ArrayBuilder<INavigateToSearchResult>.GetInstance();
+                foreach (var task in tasks)
+                {
+                    if (task.Status == TaskStatus.RanToCompletion)
+                    {
+                        results.AddRange(task.Result);
+                    }
+                }
+
+                return results.ToImmutableAndFree();
+            }
         }
     }
 }

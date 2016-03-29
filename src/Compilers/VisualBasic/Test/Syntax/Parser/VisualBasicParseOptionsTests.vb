@@ -51,7 +51,7 @@ Public Class VisualBasicParseOptionsTests
         Assert.Throws(Of ArgumentOutOfRangeException)(Function() New VisualBasicParseOptions(languageVersion:=DirectCast(1000, LanguageVersion)))
     End Sub
 
-    <Fact, WorkItem(546206, "DevDiv")>
+    <Fact, WorkItem(546206, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546206")>
     Public Sub InvalidDefineSymbols()
 
         ' Command line: error BC31030: Project-level conditional compilation constant 'xxx' is not valid: Identifier expected
@@ -114,15 +114,15 @@ Public Class VisualBasicParseOptionsTests
         Assert.Equal(highest, CInt(PredefinedPreprocessorSymbols.CurrentVersionNumber))
     End Sub
 
-    <Fact(Skip:="Win8 targets")>
+    <Fact>
     Public Sub PredefinedPreprocessorSymbols_Win8()
         Dim options = VisualBasicParseOptions.Default
 
-        ' TODO: Dim symbols = AddPredefinedPreprocessorSymbols(OutputKind.WinMD)
-        ' AssertEx.SetEqual({New KeyValuePair(Of String, Object)("VBC_VER", 11.0), New KeyValuePair(Of String, Object)("TARGET", "appcontainerexe")}, symbols.AsEnumerable)
+        Dim symbols = AddPredefinedPreprocessorSymbols(OutputKind.WindowsRuntimeApplication)
+        AssertEx.SetEqual({New KeyValuePair(Of String, Object)("VBC_VER", PredefinedPreprocessorSymbols.CurrentVersionNumber), New KeyValuePair(Of String, Object)("TARGET", "appcontainerexe")}, symbols.AsEnumerable)
 
-        'TODO: symbols = AddPredefinedPreprocessorSymbols(OutputKind.AppContainer)
-        ' AssertEx.SetEqual({New KeyValuePair(Of String, Object)("VBC_VER", 11.0), New KeyValuePair(Of String, Object)("TARGET", "winmdobj")}, symbols.AsEnumerable)
+        symbols = AddPredefinedPreprocessorSymbols(OutputKind.WindowsRuntimeMetadata)
+        AssertEx.SetEqual({New KeyValuePair(Of String, Object)("VBC_VER", PredefinedPreprocessorSymbols.CurrentVersionNumber), New KeyValuePair(Of String, Object)("TARGET", "winmdobj")}, symbols.AsEnumerable)
     End Sub
 
     <Fact>
@@ -182,7 +182,7 @@ Public Class VisualBasicParseOptionsTests
             </errors>)
     End Sub
 
-    <Fact, WorkItem(536060, "DevDiv")>
+    <Fact, WorkItem(536060, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/536060")>
     Public Sub BC30620ERR_InvalidOptionStrict_FollowedByAssemblyAttribute()
         ParseAndVerify(<![CDATA[
             Option Strict False
@@ -193,7 +193,7 @@ Public Class VisualBasicParseOptionsTests
         </errors>)
     End Sub
 
-    <Fact, WorkItem(536067, "DevDiv")>
+    <Fact, WorkItem(536067, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/536067")>
     Public Sub BC30627ERR_OptionStmtWrongOrder()
         ParseAndVerify(<![CDATA[
             Imports System
@@ -204,7 +204,7 @@ Public Class VisualBasicParseOptionsTests
         </errors>)
     End Sub
 
-    <Fact, WorkItem(536362, "DevDiv")>
+    <Fact, WorkItem(536362, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/536362")>
     Public Sub BC30206ERR_ExpectedForOptionStmt_NullReferenceException()
         ParseAndVerify(<![CDATA[
             Option
@@ -221,7 +221,7 @@ Public Class VisualBasicParseOptionsTests
     </errors>)
     End Sub
 
-    <Fact, WorkItem(536432, "DevDiv")>
+    <Fact, WorkItem(536432, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/536432")>
     Public Sub BC30205ERR_ExpectedEOS_ParseOption_ExtraSyntaxAtEOL()
         ParseAndVerify(<![CDATA[
             Option Infer On O

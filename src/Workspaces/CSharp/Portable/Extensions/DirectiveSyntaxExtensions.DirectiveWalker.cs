@@ -160,12 +160,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
                 _directiveMap.Add(previousDirective, directive);
             }
 
-            internal void Finish() {
-                while (_regionStack.Count > 0) {
+            internal void Finish()
+            {
+                while (_regionStack.Count > 0)
+                {
                     _directiveMap.Add(_regionStack.Pop(), null);
                 }
 
-                while (_ifStack.Count > 0) {
+                while (_ifStack.Count > 0)
+                {
                     FinishIf(directiveOpt: null);
                 }
             }

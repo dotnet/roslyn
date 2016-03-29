@@ -1,35 +1,30 @@
 ' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-Imports Microsoft.CodeAnalysis.Text
-Imports Microsoft.CodeAnalysis.VisualBasic
-Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
-Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
-Imports Roslyn.Test.Utilities
-Imports Xunit
+Imports System.Threading.Tasks
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Recommendations.Declarations
     Public Class InterfaceKeywordRecommenderTests
-        <WpfFact>
+        <Fact>
         <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Sub InterfaceInClassDeclaration()
-            VerifyRecommendationsContain(<ClassDeclaration>|</ClassDeclaration>, "Interface")
-        End Sub
+        Public Async Function InterfaceInClassDeclarationTest() As Task
+            Await VerifyRecommendationsContainAsync(<ClassDeclaration>|</ClassDeclaration>, "Interface")
+        End Function
 
-        <WpfFact>
+        <Fact>
         <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Sub InterfaceNotInMethodDeclaration()
-            VerifyRecommendationsMissing(<MethodBody>|</MethodBody>, "Interface")
-        End Sub
+        Public Async Function InterfaceNotInMethodDeclarationTest() As Task
+            Await VerifyRecommendationsMissingAsync(<MethodBody>|</MethodBody>, "Interface")
+        End Function
 
-        <WpfFact>
+        <Fact>
         <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Sub InterfaceInNamespace()
-            VerifyRecommendationsContain(<NamespaceDeclaration>|</NamespaceDeclaration>, "Interface")
-        End Sub
+        Public Async Function InterfaceInNamespaceTest() As Task
+            Await VerifyRecommendationsContainAsync(<NamespaceDeclaration>|</NamespaceDeclaration>, "Interface")
+        End Function
 
-        <WpfFact, WorkItem(530727)>
+        <Fact, WorkItem(530727, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530727")>
         <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Sub InterfaceInNamespaceFollowsTypeDeclaration()
+        Public Async Function InterfaceInNamespaceFollowsTypeDeclarationTest() As Task
             Dim code =
 <File>
 Namespace N1
@@ -39,30 +34,30 @@ Namespace N1
     |
 End Namespace
 </File>
-            VerifyRecommendationsContain(code, "Interface")
-        End Sub
+            Await VerifyRecommendationsContainAsync(code, "Interface")
+        End Function
 
-        <WpfFact>
+        <Fact>
         <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Sub InterfaceInInterface()
-            VerifyRecommendationsContain(<InterfaceDeclaration>|</InterfaceDeclaration>, "Interface")
-        End Sub
+        Public Async Function InterfaceInInterfaceTest() As Task
+            Await VerifyRecommendationsContainAsync(<InterfaceDeclaration>|</InterfaceDeclaration>, "Interface")
+        End Function
 
-        <WpfFact, WorkItem(530727)>
+        <Fact, WorkItem(530727, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530727")>
         <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Sub InterfaceFollowsInterface()
+        Public Async Function InterfaceFollowsInterfaceTest() As Task
             Dim code =
 <File>
 Interface I1
 End Interface
 |
 </File>
-            VerifyRecommendationsContain(code, "Interface")
-        End Sub
+            Await VerifyRecommendationsContainAsync(code, "Interface")
+        End Function
 
-        <WpfFact, WorkItem(530727)>
+        <Fact, WorkItem(530727, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530727")>
         <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Sub InterfaceFollowsMismatchedEnd()
+        Public Async Function InterfaceFollowsMismatchedEndTest() As Task
             Dim code =
 <File>
 Interface I1
@@ -70,208 +65,208 @@ End Class
 |
 End Interface
 </File>
-            VerifyRecommendationsContain(code, "Interface")
-        End Sub
+            Await VerifyRecommendationsContainAsync(code, "Interface")
+        End Function
 
-        <WpfFact>
+        <Fact>
         <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Sub InterfaceNotInEnum()
-            VerifyRecommendationsMissing(<EnumDeclaration>|</EnumDeclaration>, "Interface")
-        End Sub
+        Public Async Function InterfaceNotInEnumTest() As Task
+            Await VerifyRecommendationsMissingAsync(<EnumDeclaration>|</EnumDeclaration>, "Interface")
+        End Function
 
-        <WpfFact>
+        <Fact>
         <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Sub InterfaceInStructure()
-            VerifyRecommendationsContain(<StructureDeclaration>|</StructureDeclaration>, "Interface")
-        End Sub
+        Public Async Function InterfaceInStructureTest() As Task
+            Await VerifyRecommendationsContainAsync(<StructureDeclaration>|</StructureDeclaration>, "Interface")
+        End Function
 
-        <WpfFact>
+        <Fact>
         <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Sub InterfaceInModule()
-            VerifyRecommendationsContain(<ModuleDeclaration>|</ModuleDeclaration>, "Interface")
-        End Sub
+        Public Async Function InterfaceInModuleTest() As Task
+            Await VerifyRecommendationsContainAsync(<ModuleDeclaration>|</ModuleDeclaration>, "Interface")
+        End Function
 
-        <WpfFact>
+        <Fact>
         <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Sub InterfaceAfterPartial()
-            VerifyRecommendationsContain(<File>Partial |</File>, "Interface")
-        End Sub
+        Public Async Function InterfaceAfterPartialTest() As Task
+            Await VerifyRecommendationsContainAsync(<File>Partial |</File>, "Interface")
+        End Function
 
-        <WpfFact>
+        <Fact>
         <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Sub InterfaceAfterPublicInFile()
-            VerifyRecommendationsContain(<File>Public |</File>, "Interface")
-        End Sub
+        Public Async Function InterfaceAfterPublicInFileTest() As Task
+            Await VerifyRecommendationsContainAsync(<File>Public |</File>, "Interface")
+        End Function
 
-        <WpfFact>
+        <Fact>
         <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Sub InterfaceAfterPublicInClassDeclaration()
-            VerifyRecommendationsContain(<ClassDeclaration>Public |</ClassDeclaration>, "Interface")
-        End Sub
+        Public Async Function InterfaceAfterPublicInClassDeclarationTest() As Task
+            Await VerifyRecommendationsContainAsync(<ClassDeclaration>Public |</ClassDeclaration>, "Interface")
+        End Function
 
-        <WpfFact>
+        <Fact>
         <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Sub InterfaceMissingAfterProtectedInFile()
-            VerifyRecommendationsMissing(<File>Protected |</File>, "Interface")
-        End Sub
+        Public Async Function InterfaceMissingAfterProtectedInFileTest() As Task
+            Await VerifyRecommendationsMissingAsync(<File>Protected |</File>, "Interface")
+        End Function
 
-        <WpfFact>
+        <Fact>
         <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Sub InterfaceExistsAfterProtectedInClassDeclaration()
-            VerifyRecommendationsContain(<ClassDeclaration>Protected |</ClassDeclaration>, "Interface")
-        End Sub
+        Public Async Function InterfaceExistsAfterProtectedInClassDeclarationTest() As Task
+            Await VerifyRecommendationsContainAsync(<ClassDeclaration>Protected |</ClassDeclaration>, "Interface")
+        End Function
 
-        <WpfFact>
+        <Fact>
         <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Sub InterfaceAfterFriendInFile()
-            VerifyRecommendationsContain(<File>Friend |</File>, "Interface")
-        End Sub
+        Public Async Function InterfaceAfterFriendInFileTest() As Task
+            Await VerifyRecommendationsContainAsync(<File>Friend |</File>, "Interface")
+        End Function
 
-        <WpfFact>
+        <Fact>
         <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Sub InterfaceAfterFriendInClassDeclaration()
-            VerifyRecommendationsContain(<ClassDeclaration>Friend |</ClassDeclaration>, "Interface")
-        End Sub
+        Public Async Function InterfaceAfterFriendInClassDeclarationTest() As Task
+            Await VerifyRecommendationsContainAsync(<ClassDeclaration>Friend |</ClassDeclaration>, "Interface")
+        End Function
 
-        <WpfFact>
+        <Fact>
         <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Sub InterfaceNotAfterPrivateInFile()
-            VerifyRecommendationsMissing(<File>Private |</File>, "Interface")
-        End Sub
+        Public Async Function InterfaceNotAfterPrivateInFileTest() As Task
+            Await VerifyRecommendationsMissingAsync(<File>Private |</File>, "Interface")
+        End Function
 
-        <WpfFact>
+        <Fact>
         <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Sub InterfaceAfterPrivateInNestedClass()
-            VerifyRecommendationsContain(<ClassDeclaration>Private |</ClassDeclaration>, "Interface")
-        End Sub
+        Public Async Function InterfaceAfterPrivateInNestedClassTest() As Task
+            Await VerifyRecommendationsContainAsync(<ClassDeclaration>Private |</ClassDeclaration>, "Interface")
+        End Function
 
-        <WpfFact>
+        <Fact>
         <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Sub InterfaceNotAfterPrivateInNamespace()
-            VerifyRecommendationsMissing(<File>
+        Public Async Function InterfaceNotAfterPrivateInNamespaceTest() As Task
+            Await VerifyRecommendationsMissingAsync(<File>
 Namespace Foo
     Private |
 End Namespace</File>, "Interface")
-        End Sub
+        End Function
 
-        <WpfFact>
+        <Fact>
         <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Sub InterfaceNotAfterProtectedFriendInFile()
-            VerifyRecommendationsMissing(<File>Protected Friend |</File>, "Interface")
-        End Sub
+        Public Async Function InterfaceNotAfterProtectedFriendInFileTest() As Task
+            Await VerifyRecommendationsMissingAsync(<File>Protected Friend |</File>, "Interface")
+        End Function
 
-        <WpfFact>
+        <Fact>
         <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Sub InterfaceAfterProtectedFriendInClass()
-            VerifyRecommendationsContain(<ClassDeclaration>Protected Friend |</ClassDeclaration>, "Interface")
-        End Sub
+        Public Async Function InterfaceAfterProtectedFriendInClassTest() As Task
+            Await VerifyRecommendationsContainAsync(<ClassDeclaration>Protected Friend |</ClassDeclaration>, "Interface")
+        End Function
 
-        <WpfFact>
+        <Fact>
         <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Sub InterfaceNotAfterOverloads()
-            VerifyRecommendationsMissing(<ClassDeclaration>Overloads |</ClassDeclaration>, "Interface")
-        End Sub
+        Public Async Function InterfaceNotAfterOverloadsTest() As Task
+            Await VerifyRecommendationsMissingAsync(<ClassDeclaration>Overloads |</ClassDeclaration>, "Interface")
+        End Function
 
-        <WpfFact>
+        <Fact>
         <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Sub InterfaceNotAfterOverrides()
-            VerifyRecommendationsMissing(<ClassDeclaration>Overrides |</ClassDeclaration>, "Interface")
-        End Sub
+        Public Async Function InterfaceNotAfterOverridesTest() As Task
+            Await VerifyRecommendationsMissingAsync(<ClassDeclaration>Overrides |</ClassDeclaration>, "Interface")
+        End Function
 
-        <WpfFact>
+        <Fact>
         <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Sub InterfaceNotAfterOverridable()
-            VerifyRecommendationsMissing(<ClassDeclaration>Overridable |</ClassDeclaration>, "Interface")
-        End Sub
+        Public Async Function InterfaceNotAfterOverridableTest() As Task
+            Await VerifyRecommendationsMissingAsync(<ClassDeclaration>Overridable |</ClassDeclaration>, "Interface")
+        End Function
 
-        <WpfFact>
+        <Fact>
         <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Sub InterfaceNotAfterNotOverridable()
-            VerifyRecommendationsMissing(<ClassDeclaration>NotOverridable |</ClassDeclaration>, "Interface")
-        End Sub
+        Public Async Function InterfaceNotAfterNotOverridableTest() As Task
+            Await VerifyRecommendationsMissingAsync(<ClassDeclaration>NotOverridable |</ClassDeclaration>, "Interface")
+        End Function
 
-        <WpfFact>
+        <Fact>
         <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Sub InterfaceNotAfterMustOverride()
-            VerifyRecommendationsMissing(<ClassDeclaration>MustOverride |</ClassDeclaration>, "Interface")
-        End Sub
+        Public Async Function InterfaceNotAfterMustOverrideTest() As Task
+            Await VerifyRecommendationsMissingAsync(<ClassDeclaration>MustOverride |</ClassDeclaration>, "Interface")
+        End Function
 
-        <WpfFact>
+        <Fact>
         <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Sub InterfaceNotAfterMustOverrideOverrides()
-            VerifyRecommendationsMissing(<ClassDeclaration>MustOverride Overrides |</ClassDeclaration>, "Interface")
-        End Sub
+        Public Async Function InterfaceNotAfterMustOverrideOverridesTest() As Task
+            Await VerifyRecommendationsMissingAsync(<ClassDeclaration>MustOverride Overrides |</ClassDeclaration>, "Interface")
+        End Function
 
-        <WpfFact>
+        <Fact>
         <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Sub InterfaceNotAfterNotOverridableOverrides()
-            VerifyRecommendationsMissing(<ClassDeclaration>NotOverridable Overrides |</ClassDeclaration>, "Interface")
-        End Sub
+        Public Async Function InterfaceNotAfterNotOverridableOverridesTest() As Task
+            Await VerifyRecommendationsMissingAsync(<ClassDeclaration>NotOverridable Overrides |</ClassDeclaration>, "Interface")
+        End Function
 
-        <WpfFact>
+        <Fact>
         <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Sub InterfaceNotAfterConst()
-            VerifyRecommendationsMissing(<ClassDeclaration>Const |</ClassDeclaration>, "Interface")
-        End Sub
+        Public Async Function InterfaceNotAfterConstTest() As Task
+            Await VerifyRecommendationsMissingAsync(<ClassDeclaration>Const |</ClassDeclaration>, "Interface")
+        End Function
 
-        <WpfFact>
+        <Fact>
         <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Sub InterfaceNotAfterDefault()
-            VerifyRecommendationsMissing(<ClassDeclaration>Default |</ClassDeclaration>, "Interface")
-        End Sub
+        Public Async Function InterfaceNotAfterDefaultTest() As Task
+            Await VerifyRecommendationsMissingAsync(<ClassDeclaration>Default |</ClassDeclaration>, "Interface")
+        End Function
 
-        <WpfFact>
+        <Fact>
         <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Sub InterfaceNotAfterMustInherit()
-            VerifyRecommendationsMissing(<ClassDeclaration>MustInherit |</ClassDeclaration>, "Interface")
-        End Sub
+        Public Async Function InterfaceNotAfterMustInheritTest() As Task
+            Await VerifyRecommendationsMissingAsync(<ClassDeclaration>MustInherit |</ClassDeclaration>, "Interface")
+        End Function
 
-        <WpfFact>
+        <Fact>
         <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Sub InterfaceAfterNotInheritable()
-            VerifyRecommendationsMissing(<ClassDeclaration>NotInheritable |</ClassDeclaration>, "Interface")
-        End Sub
+        Public Async Function InterfaceAfterNotInheritableTest() As Task
+            Await VerifyRecommendationsMissingAsync(<ClassDeclaration>NotInheritable |</ClassDeclaration>, "Interface")
+        End Function
 
-        <WpfFact>
+        <Fact>
         <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Sub InterfaceNotAfterNarrowing()
-            VerifyRecommendationsMissing(<ClassDeclaration>Narrowing |</ClassDeclaration>, "Interface")
-        End Sub
+        Public Async Function InterfaceNotAfterNarrowingTest() As Task
+            Await VerifyRecommendationsMissingAsync(<ClassDeclaration>Narrowing |</ClassDeclaration>, "Interface")
+        End Function
 
-        <WpfFact>
+        <Fact>
         <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Sub InterfaceNotAfterWidening()
-            VerifyRecommendationsMissing(<ClassDeclaration>Widening |</ClassDeclaration>, "Interface")
-        End Sub
+        Public Async Function InterfaceNotAfterWideningTest() As Task
+            Await VerifyRecommendationsMissingAsync(<ClassDeclaration>Widening |</ClassDeclaration>, "Interface")
+        End Function
 
-        <WpfFact>
+        <Fact>
         <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Sub InterfaceNotAfterReadOnly()
-            VerifyRecommendationsMissing(<ClassDeclaration>ReadOnly |</ClassDeclaration>, "Interface")
-        End Sub
+        Public Async Function InterfaceNotAfterReadOnlyTest() As Task
+            Await VerifyRecommendationsMissingAsync(<ClassDeclaration>ReadOnly |</ClassDeclaration>, "Interface")
+        End Function
 
-        <WpfFact>
+        <Fact>
         <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Sub InterfaceNotAfterWriteOnly()
-            VerifyRecommendationsMissing(<ClassDeclaration>WriteOnly |</ClassDeclaration>, "Interface")
-        End Sub
+        Public Async Function InterfaceNotAfterWriteOnlyTest() As Task
+            Await VerifyRecommendationsMissingAsync(<ClassDeclaration>WriteOnly |</ClassDeclaration>, "Interface")
+        End Function
 
-        <WpfFact>
+        <Fact>
         <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Sub InterfaceNotAfterCustom()
-            VerifyRecommendationsMissing(<ClassDeclaration>Custom |</ClassDeclaration>, "Interface")
-        End Sub
+        Public Async Function InterfaceNotAfterCustomTest() As Task
+            Await VerifyRecommendationsMissingAsync(<ClassDeclaration>Custom |</ClassDeclaration>, "Interface")
+        End Function
 
-        <WpfFact>
+        <Fact>
         <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Sub InterfaceNotAfterShared()
-            VerifyRecommendationsMissing(<ClassDeclaration>Shared |</ClassDeclaration>, "Interface")
-        End Sub
+        Public Async Function InterfaceNotAfterSharedTest() As Task
+            Await VerifyRecommendationsMissingAsync(<ClassDeclaration>Shared |</ClassDeclaration>, "Interface")
+        End Function
 
-        <WorkItem(547254)>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Sub NotAfterAsync()
-            VerifyRecommendationsMissing(<ClassDeclaration>Async |</ClassDeclaration>, "Interface")
-        End Sub
+        <WorkItem(547254, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/547254")>
+        <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
+        Public Async Function NotAfterAsyncTest() As Task
+            Await VerifyRecommendationsMissingAsync(<ClassDeclaration>Async |</ClassDeclaration>, "Interface")
+        End Function
     End Class
 End Namespace

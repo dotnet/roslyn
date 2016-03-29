@@ -12,6 +12,7 @@ using Microsoft.Cci;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CodeGen;
 using Roslyn.Utilities;
+using MetadataSizes = Microsoft.Cci.MetadataSizes;
 
 namespace Microsoft.CodeAnalysis.Emit
 {
@@ -417,9 +418,8 @@ namespace Microsoft.CodeAnalysis.Emit
             return _changes.GetTopLevelTypes(this.Context);
         }
 
-        protected override void CreateIndicesForModule()
+        protected override void OnIndicesCreated()
         {
-            base.CreateIndicesForModule();
             var module = (IPEDeltaAssemblyBuilder)this.module;
             module.OnCreatedIndices(this.Context.Diagnostics);
         }
@@ -1277,7 +1277,7 @@ namespace Microsoft.CodeAnalysis.Emit
 
         private sealed class ParameterDefinitionIndex : DefinitionIndexBase<IParameterDefinition>
         {
-            public ParameterDefinitionIndex(int lastRowId) 
+            public ParameterDefinitionIndex(int lastRowId)
                 : base(lastRowId)
             {
             }
@@ -1299,7 +1299,7 @@ namespace Microsoft.CodeAnalysis.Emit
 
         private sealed class GenericParameterIndex : DefinitionIndexBase<IGenericParameter>
         {
-            public GenericParameterIndex(int lastRowId) 
+            public GenericParameterIndex(int lastRowId)
                 : base(lastRowId)
             {
             }
@@ -1361,7 +1361,7 @@ namespace Microsoft.CodeAnalysis.Emit
         {
             private readonly DeltaMetadataWriter _writer;
 
-            public MethodImplIndex(DeltaMetadataWriter writer, int lastRowId) 
+            public MethodImplIndex(DeltaMetadataWriter writer, int lastRowId)
                 : base(lastRowId)
             {
                 _writer = writer;

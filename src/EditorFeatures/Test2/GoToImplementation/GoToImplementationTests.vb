@@ -1,4 +1,7 @@
-﻿Imports System.Threading
+﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+
+Imports System.Threading
+Imports System.Threading.Tasks
 Imports Microsoft.CodeAnalysis.Editor.CSharp.GoToImplementation
 Imports Microsoft.CodeAnalysis.Editor.Host
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Utilities.GoToHelpers
@@ -6,20 +9,20 @@ Imports Microsoft.CodeAnalysis.Editor.VisualBasic.GoToImplementation
 
 Namespace Microsoft.CodeAnalysis.Editor.UnitTests.GoToImplementation
     Public Class GoToImplementationTests
-        Private Sub Test(workspaceDefinition As XElement, Optional shouldSucceed As Boolean = True)
-            GoToTestHelpers.Test(workspaceDefinition, shouldSucceed,
-                Function(document As Document, cursorPosition As Integer, presenters As IEnumerable(Of Lazy(Of INavigableItemsPresenter)))
+        Private Function TestAsync(workspaceDefinition As XElement, Optional shouldSucceed As Boolean = True) As Tasks.Task
+            Return GoToTestHelpers.TestAsync(workspaceDefinition, shouldSucceed,
+                Function(document As Document, cursorPosition As Integer, presenters As IEnumerable(Of Lazy(Of INavigableItemsPresenter)), externalDefinitionProviders As IEnumerable(Of Lazy(Of INavigableDefinitionProvider)))
                     Dim service = If(document.Project.Language = LanguageNames.CSharp,
-                        DirectCast(New CSharpGoToImplementationService(presenters), IGoToImplementationService),
-                        New VisualBasicGoToImplementationService(presenters))
+                        DirectCast(New CSharpGoToImplementationService(presenters, externalDefinitionProviders), IGoToImplementationService),
+                        New VisualBasicGoToImplementationService(presenters, externalDefinitionProviders))
 
                     Dim message As String = Nothing
                     Return service.TryGoToImplementation(document, cursorPosition, CancellationToken.None, message)
                 End Function)
-        End Sub
+        End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.GoToImplementation)>
-        Public Sub TestEmptyFile()
+        Public Async Function TestEmptyFile() As Task
             Dim workspace =
 <Workspace>
     <Project Language="C#" CommonReferences="true">
@@ -29,11 +32,11 @@ $$
     </Project>
 </Workspace>
 
-            Test(workspace, shouldSucceed:=False)
-        End Sub
+            Await TestAsync(workspace, shouldSucceed:=False)
+        End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.GoToImplementation)>
-        Public Sub TestWithSingleClass()
+        Public Async Function TestWithSingleClass() As Task
             Dim workspace =
 <Workspace>
     <Project Language="C#" CommonReferences="true">
@@ -43,11 +46,102 @@ class [|$$C|] { }
     </Project>
 </Workspace>
 
-            Test(workspace)
-        End Sub
+            Await TestAsync(workspace)
+        End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.GoToImplementation)>
-        Public Sub TestWithSingleClassImplementation()
+        Public Async Function TestWithAbstractClass() As Task
+            ' Since the class is abstract, it cannot be an implementation of itself. Compare to TestWithSingleClass
+            ' above (where we count a class as an implementation of itself) or TestWithAbstractMethodImplementation
+            ' where we apply the same logic to abstract methods.
+            Dim workspace =
+<Workspace>
+    <Project Language="C#" CommonReferences="true">
+        <Document>
+abstract class $$C
+{
+}
+
+class [|D|] : C
+{
+}
+        </Document>
+    </Project>
+</Workspace>
+
+            Await TestAsync(workspace)
+        End Function
+
+        <WpfFact, Trait(Traits.Feature, Traits.Features.GoToImplementation)>
+        Public Async Function TestWithSealedClass() As Task
+            Dim workspace =
+<Workspace>
+    <Project Language="C#" CommonReferences="true">
+        <Document>
+sealed class [|$$C|]
+{
+}
+        </Document>
+    </Project>
+</Workspace>
+
+            Await TestAsync(workspace)
+        End Function
+
+        <WpfFact, Trait(Traits.Feature, Traits.Features.GoToImplementation)>
+        Public Async Function TestWithStruct() As Task
+            Dim workspace =
+<Workspace>
+    <Project Language="C#" CommonReferences="true">
+        <Document>
+struct [|$$C|]
+{
+}
+        </Document>
+    </Project>
+</Workspace>
+
+            Await TestAsync(workspace)
+        End Function
+
+        <WpfFact, Trait(Traits.Feature, Traits.Features.GoToImplementation)>
+        Public Async Function TestWithEnum() As Task
+            Dim workspace =
+<Workspace>
+    <Project Language="C#" CommonReferences="true">
+        <Document>
+enum [|$$C|]
+{
+}
+        </Document>
+    </Project>
+</Workspace>
+
+            Await TestAsync(workspace)
+        End Function
+
+        <WpfFact, Trait(Traits.Feature, Traits.Features.GoToImplementation)>
+        Public Async Function TestWithNonAbstractClass() As Task
+            Dim workspace =
+<Workspace>
+    <Project Language="C#" CommonReferences="true">
+        <Document>
+class [|$$C|]
+{
+}
+
+class [|D|] : C
+{
+}
+        </Document>
+    </Project>
+</Workspace>
+
+            Await TestAsync(workspace)
+        End Function
+
+        <WpfFact, Trait(Traits.Feature, Traits.Features.GoToImplementation)>
+        Public Async Function TestWithSingleClassImplementation() As Task
             Dim workspace =
 <Workspace>
     <Project Language="C#" CommonReferences="true">
@@ -58,11 +152,11 @@ interface $$I { }
     </Project>
 </Workspace>
 
-            Test(workspace)
-        End Sub
+            Await TestAsync(workspace)
+        End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.GoToImplementation)>
-        Public Sub TestWithTwoClassImplementations()
+        Public Async Function TestWithTwoClassImplementations() As Task
             Dim workspace =
 <Workspace>
     <Project Language="C#" CommonReferences="true">
@@ -74,11 +168,11 @@ interface $$I { }
     </Project>
 </Workspace>
 
-            Test(workspace)
-        End Sub
+            Await TestAsync(workspace)
+        End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.GoToImplementation)>
-        Public Sub TestWithOneMethodImplementation()
+        Public Async Function TestWithOneMethodImplementation() As Task
             Dim workspace =
 <Workspace>
     <Project Language="C#" CommonReferences="true">
@@ -89,11 +183,28 @@ interface I { void $$M(); }
     </Project>
 </Workspace>
 
-            Test(workspace)
-        End Sub
+            Await TestAsync(workspace)
+        End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.GoToImplementation)>
-        Public Sub TestWithTwoMethodImplementations()
+        Public Async Function TestWithOneEventImplementation() As Task
+            Dim workspace =
+<Workspace>
+    <Project Language="C#" CommonReferences="true">
+        <Document>
+using System;
+
+class C : I { public event EventHandler [|E|]; }
+interface I { event EventHandler $$E; }
+        </Document>
+    </Project>
+</Workspace>
+
+            Await TestAsync(workspace)
+        End Function
+
+        <WpfFact, Trait(Traits.Feature, Traits.Features.GoToImplementation)>
+        Public Async Function TestWithTwoMethodImplementations() As Task
             Dim workspace =
 <Workspace>
     <Project Language="C#" CommonReferences="true">
@@ -105,27 +216,95 @@ interface I { void $$M(); }
     </Project>
 </Workspace>
 
-            Test(workspace)
-        End Sub
+            Await TestAsync(workspace)
+        End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.GoToImplementation)>
-        Public Sub TestWithNonInheritedImplementation()
+        Public Async Function TestWithNonInheritedImplementation() As Task
             Dim workspace =
 <Workspace>
     <Project Language="C#" CommonReferences="true">
         <Document>
-class C : I { public void [|M|]() { } }
+class C { public void [|M|]() { } }
 class D : C, I { }
 interface I { void $$M(); }
         </Document>
     </Project>
 </Workspace>
 
-            Test(workspace)
-        End Sub
+            Await TestAsync(workspace)
+        End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.GoToImplementation)>
-        Public Sub TestWithInterfaceMemberFromMetdataAtUseSite()
+        <WorkItem(6752, "https://github.com/dotnet/roslyn/issues/6752")>
+        Public Async Function TestWithVirtualMethodImplementationWithInterfaceOnBaseClass() As Task
+            Dim workspace =
+<Workspace>
+    <Project Language="C#" CommonReferences="true">
+        <Document>
+class C : I { public virtual void [|M|]() { } }
+class D : C { public override void [|M|]() { } }
+interface I { void $$M(); }
+        </Document>
+    </Project>
+</Workspace>
+
+            Await TestAsync(workspace)
+        End Function
+
+        <WpfFact, Trait(Traits.Feature, Traits.Features.GoToImplementation)>
+        <WorkItem(6752, "https://github.com/dotnet/roslyn/issues/6752")>
+        Public Async Function TestWithVirtualMethodImplementationWithInterfaceOnDerivedClass() As Task
+            Dim workspace =
+<Workspace>
+    <Project Language="C#" CommonReferences="true">
+        <Document>
+class C { public virtual void M() { } }
+class D : C, I { public override void [|M|]() { } }
+interface I { void $$M(); }
+        </Document>
+    </Project>
+</Workspace>
+
+            Await TestAsync(workspace)
+        End Function
+
+        <WpfFact, Trait(Traits.Feature, Traits.Features.GoToImplementation)>
+        <WorkItem(6752, "https://github.com/dotnet/roslyn/issues/6752")>
+        Public Async Function TestWithVirtualMethodImplementationAndInterfaceImplementedOnDerivedType() As Task
+            Dim workspace =
+<Workspace>
+    <Project Language="C#" CommonReferences="true">
+        <Document>
+class C : I { public virtual void [|M|]() { } }
+class D : C, I { public override void [|M|]() { } }
+interface I { void $$M(); }
+        </Document>
+    </Project>
+</Workspace>
+
+            Await TestAsync(workspace)
+        End Function
+
+        <WpfFact, Trait(Traits.Feature, Traits.Features.GoToImplementation)>
+        <WorkItem(6752, "https://github.com/dotnet/roslyn/issues/6752")>
+        Public Async Function TestWithAbstractMethodImplementation() As Task
+            Dim workspace =
+<Workspace>
+    <Project Language="C#" CommonReferences="true">
+        <Document>
+class C : I { public abstract void M() { } }
+class D : C { public override void [|M|]() { } }}
+interface I { void $$M(); }
+        </Document>
+    </Project>
+</Workspace>
+
+            Await TestAsync(workspace)
+        End Function
+
+        <WpfFact, Trait(Traits.Feature, Traits.Features.GoToImplementation)>
+        Public Async Function TestWithInterfaceMemberFromMetdataAtUseSite() As Task
             Dim workspace =
 <Workspace>
     <Project Language="C#" CommonReferences="true">
@@ -144,11 +323,11 @@ class C : IDisposable
     </Project>
 </Workspace>
 
-            Test(workspace)
-        End Sub
+            Await TestAsync(workspace)
+        End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.GoToImplementation)>
-        Public Sub TestWithSimpleMethod()
+        Public Async Function TestWithSimpleMethod() As Task
             Dim workspace =
 <Workspace>
     <Project Language="C#" CommonReferences="true">
@@ -161,11 +340,11 @@ class C
     </Project>
 </Workspace>
 
-            Test(workspace)
-        End Sub
+            Await TestAsync(workspace)
+        End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.GoToImplementation)>
-        Public Sub TestWithOverridableMethodOnBase()
+        Public Async Function TestWithOverridableMethodOnBase() As Task
             Dim workspace =
 <Workspace>
     <Project Language="C#" CommonReferences="true">
@@ -183,11 +362,11 @@ class D : C
     </Project>
 </Workspace>
 
-            Test(workspace)
-        End Sub
+            Await TestAsync(workspace)
+        End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.GoToImplementation)>
-        Public Sub TestWithOverridableMethodOnImplementation()
+        Public Async Function TestWithOverridableMethodOnImplementation() As Task
             ' Our philosophy is to only show derived in this case, since we know the implementation of 
             ' D could never call C.M here
             Dim workspace =
@@ -207,7 +386,7 @@ class D : C
     </Project>
 </Workspace>
 
-            Test(workspace)
-        End Sub
+            Await TestAsync(workspace)
+        End Function
     End Class
 End Namespace

@@ -55,7 +55,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel.Inter
             return CodeModelService.LookupNode(_nodeKey, GetSyntaxTree());
         }
 
-        internal bool TryLookupNode(out SyntaxNode node)
+        internal override bool TryLookupNode(out SyntaxNode node)
         {
             return CodeModelService.TryLookupNode(_nodeKey, GetSyntaxTree(), out node);
         }
@@ -93,6 +93,15 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel.Inter
 
                 ReacquireNodeKey(nodePath, CancellationToken.None);
             });
+        }
+
+        protected override Document DeleteCore(Document document)
+        {
+            var result = base.DeleteCore(document);
+
+            FileCodeModel.OnCodeElementDeleted(_nodeKey);
+
+            return result;
         }
 
         protected override string GetName()

@@ -25,24 +25,25 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
     {
         protected abstract object CreateCodeRefactoringProvider(Workspace workspace);
 
-        protected override IList<CodeAction> GetCodeActionsWorker(TestWorkspace workspace, string fixAllActionEquivalenceKey)
+        protected override async Task<IList<CodeAction>> GetCodeActionsWorkerAsync(
+            TestWorkspace workspace, string fixAllActionEquivalenceKey, object fixProviderData)
         {
-            return GetCodeRefactoring(workspace)?.Actions?.ToList();
+            return (await GetCodeRefactoringAsync(workspace))?.Actions?.ToList();
         }
 
-        internal ICodeRefactoring GetCodeRefactoring(TestWorkspace workspace)
+        internal async Task<ICodeRefactoring> GetCodeRefactoringAsync(TestWorkspace workspace)
         {
-            return GetCodeRefactorings(workspace).FirstOrDefault();
+            return (await GetCodeRefactoringsAsync(workspace)).FirstOrDefault();
         }
 
-        private IEnumerable<ICodeRefactoring> GetCodeRefactorings(TestWorkspace workspace)
+        private async Task<IEnumerable<ICodeRefactoring>> GetCodeRefactoringsAsync(TestWorkspace workspace)
         {
             var provider = CreateCodeRefactoringProvider(workspace);
             return SpecializedCollections.SingletonEnumerable(
-                GetCodeRefactoring((CodeRefactoringProvider)provider, workspace));
+                await GetCodeRefactoringAsync((CodeRefactoringProvider)provider, workspace));
         }
 
-        private CodeRefactoring GetCodeRefactoring(
+        private async Task<CodeRefactoring> GetCodeRefactoringAsync(
             CodeRefactoringProvider provider,
             TestWorkspace workspace)
         {
@@ -50,7 +51,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
             var span = workspace.Documents.Single(d => !d.IsLinkFile && d.SelectedSpans.Count == 1).SelectedSpans.Single();
             var actions = new List<CodeAction>();
             var context = new CodeRefactoringContext(document, span, (a) => actions.Add(a), CancellationToken.None);
-            provider.ComputeRefactoringsAsync(context).Wait();
+            await provider.ComputeRefactoringsAsync(context);
             return actions.Count > 0 ? new CodeRefactoring(provider, actions) : null;
         }
 
@@ -62,16 +63,16 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
             string expectedPreviewContents = null,
             bool compareTokens = true)
         {
-            var operations = VerifyInputsAndGetOperations(index, actions);
+            var operations = await VerifyInputsAndGetOperationsAsync(index, actions);
 
-            await VerifyPreviewContents(workspace, expectedPreviewContents, operations).ConfigureAwait(true);
+            await VerifyPreviewContents(workspace, expectedPreviewContents, operations);
 
             var applyChangesOperation = operations.OfType<ApplyChangesOperation>().First();
             applyChangesOperation.Apply(workspace, CancellationToken.None);
 
             foreach (var document in workspace.Documents)
             {
-                var fixedRoot = workspace.CurrentSolution.GetDocument(document.Id).GetSyntaxRootAsync().Result;
+                var fixedRoot = await workspace.CurrentSolution.GetDocument(document.Id).GetSyntaxRootAsync();
                 var actualText = compareTokens ? fixedRoot.ToString() : fixedRoot.ToFullString();
 
                 if (compareTokens)
@@ -90,7 +91,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
             if (expectedPreviewContents != null)
             {
                 var editHandler = workspace.ExportProvider.GetExportedValue<ICodeActionEditHandlerService>();
-                var content = await editHandler.GetPreviews(workspace, operations, CancellationToken.None).TakeNextPreviewAsync().ConfigureAwait(true);
+                var content = (await editHandler.GetPreviews(workspace, operations, CancellationToken.None).GetPreviewsAsync())[0];
                 var diffView = content as IWpfDifferenceViewer;
                 Assert.NotNull(diffView);
                 var previewContents = diffView.RightView.TextBuffer.AsTextContainer().CurrentText.ToString();

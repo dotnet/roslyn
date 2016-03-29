@@ -593,7 +593,7 @@ class C
             CompileAndVerify(source, expectedOutput: @"Contains");
         }
 
-        [Fact, WorkItem(1013334, "DevDiv")]
+        [Fact, WorkItem(1013334, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1013334")]
         public void TestCompatStatementExpressionInvocation()
         {
             var source = @"
@@ -617,7 +617,7 @@ class Program
             CompileAndVerify(compilation, expectedOutput: @"12");
         }
 
-        [Fact, WorkItem(1013334, "DevDiv")]
+        [Fact, WorkItem(1013334, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1013334")]
         public void TestCompatStatementExpressionInvocation02()
         {
             var source = @"
@@ -641,7 +641,7 @@ class Program
             CompileAndVerify(compilation, expectedOutput: @"12");
         }
 
-        [Fact, WorkItem(1013334, "DevDiv")]
+        [Fact, WorkItem(1013334, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1013334")]
         public void TestCompatStatementExpressionInvocation03()
         {
             var source = @"
@@ -663,7 +663,7 @@ class Program
                 );
         }
 
-        [Fact, WorkItem(1013334, "DevDiv")]
+        [Fact, WorkItem(1013334, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1013334")]
         public void TestCompatStatementExpressionInvocation04()
         {
             var source = @"
@@ -689,7 +689,7 @@ class Program
         }
 
         [Fact]
-        [WorkItem(1023539, "DevDiv")]
+        [WorkItem(1023539, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1023539")]
         public void SymbolInfoForMethodGroup01()
         {
             var source =
@@ -711,7 +711,7 @@ class Program
         }
 
         [Fact]
-        [WorkItem(1023539, "DevDiv")]
+        [WorkItem(1023539, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1023539")]
         public void SymbolInfoForMethodGroup02()
         {
             var source =
@@ -737,7 +737,7 @@ class Program
         }
 
         [Fact]
-        [WorkItem(1077150, "DevDiv")]
+        [WorkItem(1077150, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1077150")]
         public void SymbolInfoForMethodGroup03()
         {
             var source =
@@ -773,7 +773,7 @@ public class Program
         }
 
         [Fact]
-        [WorkItem(1077150, "DevDiv")]
+        [WorkItem(1077150, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1077150")]
         public void SymbolInfoForMethodGroup04()
         {
             var source =
@@ -820,7 +820,7 @@ namespace N1
         }
 
         [Fact]
-        [WorkItem(1077150, "DevDiv")]
+        [WorkItem(1077150, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1077150")]
         public void SymbolInfoForEmptyMethodGroup()
         {
             var source =
@@ -857,7 +857,7 @@ public class Program
         }
 
         [Fact]
-        [WorkItem(1077150, "DevDiv")]
+        [WorkItem(1077150, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1077150")]
         public void SymbolInfoForTypeFromInstance()
         {
             var source =
@@ -893,7 +893,7 @@ public class Program
         }
 
         [Fact]
-        [WorkItem(1077150, "DevDiv")]
+        [WorkItem(1077150, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1077150")]
         public void SymbolInfoForMethodGroup05()
         {
             var source =
@@ -939,7 +939,7 @@ namespace N1
         }
 
         [Fact]
-        [WorkItem(1077150, "DevDiv")]
+        [WorkItem(1077150, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1077150")]
         public void SymbolInfoForNothingFound()
         {
             var source =
@@ -1109,7 +1109,7 @@ public class Program
         }
 
         [Fact]
-        [WorkItem(1077150, "DevDiv")]
+        [WorkItem(1077150, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1077150")]
         public void SymbolInfoForMethodGroup06()
         {
             var source =
@@ -1152,8 +1152,8 @@ public class Program
         System.Console.WriteLine(N1 + N2);
     }
 }";
-            var compilation = CreateCompilationWithMscorlib45(source);
-            var comp = CompileAndVerify(source, expectedOutput: @"N1N2");
+            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe);
+            var comp = CompileAndVerify(compilation, expectedOutput: @"N1N2");
         }
 
         [Fact, WorkItem(42, "github.com/dotnet/roslyn")]

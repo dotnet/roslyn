@@ -177,7 +177,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         #region Constructors and Factories
 
         private static readonly CSharpCompilationOptions s_defaultOptions = new CSharpCompilationOptions(OutputKind.ConsoleApplication);
-        private static readonly CSharpCompilationOptions s_defaultSubmissionOptions = new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary);
+        private static readonly CSharpCompilationOptions s_defaultSubmissionOptions = new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary).WithReferencesSupersedeLowerVersions(true);
 
         /// <summary>
         /// Creates a new compilation from scratch. Methods such as AddSyntaxTrees or AddReferences
@@ -222,11 +222,11 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             return Create(
                 assemblyName,
-                options ?? s_defaultSubmissionOptions,
+                options?.WithReferencesSupersedeLowerVersions(true) ?? s_defaultSubmissionOptions,
                 (syntaxTree != null) ? new[] { syntaxTree } : SpecializedCollections.EmptyEnumerable<SyntaxTree>(),
                 references,
-                previousScriptCompilation, 
-                returnType, 
+                previousScriptCompilation,
+                returnType,
                 globalsType,
                 isSubmission: true);
         }
@@ -242,6 +242,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             bool isSubmission)
         {
             Debug.Assert(options != null);
+            Debug.Assert(!isSubmission || options.ReferencesSupersedeLowerVersions);
             CheckAssemblyName(assemblyName);
 
             var validatedReferences = ValidateReferences<CSharpCompilationReference>(references);
@@ -324,7 +325,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             _syntaxAndDeclarations = syntaxAndDeclarations;
 
             Debug.Assert((object)_lazyAssemblySymbol == null);
-            if (EventQueue != null) EventQueue.Enqueue(new CompilationStartedEvent(this));
+            if (EventQueue != null) EventQueue.TryEnqueue(new CompilationStartedEvent(this));
         }
 
         internal override void ValidateDebugEntryPoint(IMethodSymbol debugEntryPoint, DiagnosticBag diagnostics)
@@ -495,7 +496,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 return this;
             }
-            
+
             // Reference binding doesn't depend on previous submission so we can reuse it.
 
             return new CSharpCompilation(
@@ -1697,31 +1698,22 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private void CompleteTree(SyntaxTree tree)
         {
-            bool completedCompilationUnit = false;
-            bool completedCompilation = false;
-
             if (_lazyCompilationUnitCompletedTrees == null) Interlocked.CompareExchange(ref _lazyCompilationUnitCompletedTrees, new HashSet<SyntaxTree>(), null);
             lock (_lazyCompilationUnitCompletedTrees)
             {
                 if (_lazyCompilationUnitCompletedTrees.Add(tree))
                 {
-                    completedCompilationUnit = true;
+                    // signal the end of the compilation unit
+                    EventQueue.TryEnqueue(new CompilationUnitCompletedEvent(this, tree));
+
                     if (_lazyCompilationUnitCompletedTrees.Count == this.SyntaxTrees.Length)
                     {
-                        completedCompilation = true;
+                        // if that was the last tree, signal the end of compilation
+                        EventQueue.TryEnqueue(new CompilationCompletedEvent(this));
+                        EventQueue.PromiseNotToEnqueue();
+                        EventQueue.TryComplete();
                     }
                 }
-            }
-
-            if (completedCompilationUnit)
-            {
-                EventQueue.Enqueue(new CompilationUnitCompletedEvent(this, tree));
-            }
-
-            if (completedCompilation)
-            {
-                EventQueue.Enqueue(new CompilationCompletedEvent(this));
-                EventQueue.Complete(); // signal the end of compilation events
             }
         }
 
@@ -2876,14 +2868,27 @@ namespace Microsoft.CodeAnalysis.CSharp
                 (object)GetWellKnownTypeMember(WellKnownMember.System_Runtime_CompilerServices_DynamicAttribute__ctorTransformFlags) != null;
         }
 
+        /// <summary>
+        /// Returns whether the compilation has the Boolean type and if it's good.
+        /// </summary>
+        /// <returns>Returns true if Boolean is present and healthy.</returns>
+        internal bool CanEmitBoolean()
+        {
+            var boolType = GetSpecialType(SpecialType.System_Boolean);
+            var diagnostic = boolType.GetUseSiteDiagnostic();
+            return (diagnostic == null) || (diagnostic.Severity != DiagnosticSeverity.Error);
+        }
+
         internal override AnalyzerDriver AnalyzerForLanguage(ImmutableArray<DiagnosticAnalyzer> analyzers, AnalyzerManager analyzerManager)
         {
-            return new AnalyzerDriver<SyntaxKind>(analyzers, n => n.Kind(), analyzerManager);
+            Func<SyntaxNode, SyntaxKind> getKind = node => node.Kind();
+            Func<SyntaxTrivia, bool> isComment = trivia => trivia.Kind() == SyntaxKind.SingleLineCommentTrivia || trivia.Kind() == SyntaxKind.MultiLineCommentTrivia;
+            return new AnalyzerDriver<SyntaxKind>(analyzers, getKind, analyzerManager, isComment);
         }
 
         internal void SymbolDeclaredEvent(Symbol symbol)
         {
-            if (EventQueue != null) EventQueue.Enqueue(new SymbolDeclaredCompilationEvent(this, symbol));
+            EventQueue?.TryEnqueue(new SymbolDeclaredCompilationEvent(this, symbol));
         }
 
         /// <summary>
@@ -2938,7 +2943,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                     if (includeNamespace && predicate(current.Name))
                     {
                         var container = GetSpineSymbol(spine);
-                        set.Add(GetSymbol(container, current));
+                        var symbol = GetSymbol(container, current);
+                        if (symbol != null)
+                        {
+                            set.Add(symbol);
+                        }
                     }
                 }
                 else
@@ -2946,7 +2955,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                     if (includeType && predicate(current.Name))
                     {
                         var container = GetSpineSymbol(spine);
-                        set.Add(GetSymbol(container, current));
+                        var symbol = GetSymbol(container, current);
+                        if (symbol != null)
+                        {
+                            set.Add(symbol);
+                        }
                     }
 
                     if (includeMember)
@@ -2982,13 +2995,16 @@ namespace Microsoft.CodeAnalysis.CSharp
                 spine.Add(current);
 
                 var container = GetSpineSymbol(spine);
-                foreach (var member in container.GetMembers())
+                if (container != null)
                 {
-                    if (!member.IsTypeOrTypeAlias() &&
-                        (member.CanBeReferencedByName || member.IsExplicitInterfaceImplementation() || member.IsIndexer()) &&
-                        predicate(member.Name))
+                    foreach (var member in container.GetMembers())
                     {
-                        set.Add(member);
+                        if (!member.IsTypeOrTypeAlias() &&
+                            (member.CanBeReferencedByName || member.IsExplicitInterfaceImplementation() || member.IsIndexer()) &&
+                            predicate(member.Name))
+                        {
+                            set.Add(member);
+                        }
                     }
                 }
 

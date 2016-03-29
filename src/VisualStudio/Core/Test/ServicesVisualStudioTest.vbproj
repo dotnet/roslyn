@@ -15,12 +15,9 @@
     <TargetFrameworkProfile />
   </PropertyGroup>
   <ItemGroup Label="File References">
-    <Reference Include="Microsoft.VisualStudio.Composition, Version=14.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
-      <HintPath>$(DevEnvDir)\PrivateAssemblies\Microsoft.VisualStudio.Composition.dll</HintPath>
-    </Reference>
-    <Reference Include="Microsoft.VisualStudio.Composition.Configuration, Version=14.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
-      <HintPath>$(DevEnvDir)\PrivateAssemblies\Microsoft.VisualStudio.Composition.Configuration.dll</HintPath>
-      <Private>False</Private>
+    <Reference Include="Microsoft.VisualStudio.Imaging, Version=14.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL" />
+    <Reference Include="Microsoft.VisualStudio.Imaging.Interop.14.0.DesignTime, Version=14.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
+      <EmbedInteropTypes>True</EmbedInteropTypes>
     </Reference>
     <Reference Include="Microsoft.VisualStudio.Shell.Interop.14.0.DesignTime, Version=14.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
       <EmbedInteropTypes>True</EmbedInteropTypes>
@@ -116,12 +113,10 @@
     <DebugSymbols>true</DebugSymbols>
     <DefineDebug>true</DefineDebug>
     <DefineTrace>true</DefineTrace>
-    <DebugType>full</DebugType>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Release|AnyCPU'">
     <DefineTrace>true</DefineTrace>
     <Optimize>true</Optimize>
-    <DebugType>pdbonly</DebugType>
   </PropertyGroup>
   <ItemGroup>
     <InternalsVisibleToTest Include="Roslyn.VisualStudio.CSharp.UnitTests" />
@@ -231,6 +226,10 @@
     <Compile Include="AnalyzerSupport\AnalyzerDependencyCheckerTests.vb" />
     <Compile Include="ChangeSignature\ChangeSignatureViewModelTests.vb" />
     <Compile Include="ChangeSignature\ChangeSignatureViewModelTestState.vb" />
+    <Compile Include="ClassView\MockNavigationTool.vb" />
+    <Compile Include="ClassView\MockVsServiceProvider.vb" />
+    <Compile Include="ClassView\MockSyncClassViewCommandHandler.vb" />
+    <Compile Include="ClassView\SyncClassViewTests.vb" />
     <Compile Include="CodeModel\AbstractCodeAttributeTests.vb" />
     <Compile Include="CodeModel\AbstractCodeClassTests.vb" />
     <Compile Include="CodeModel\AbstractCodeDelegateTests.vb" />
@@ -284,6 +283,9 @@
     <Compile Include="CodeModel\CSharp\CodeVariableTests.vb" />
     <Compile Include="CodeModel\CSharp\EventCollectorTests.vb" />
     <Compile Include="CodeModel\CSharp\ExternalCodeClassTests.vb" />
+    <Compile Include="CodeModel\CSharp\ExternalCodeFunctionTests.vb" />
+    <Compile Include="CodeModel\CSharp\ExternalCodeParameterTests.vb" />
+    <Compile Include="CodeModel\CSharp\ExternalCodePropertyTests.vb" />
     <Compile Include="CodeModel\CSharp\FileCodeModelTests.vb" />
     <Compile Include="CodeModel\CSharp\RootCodeModelTests.vb" />
     <Compile Include="CodeModel\CSharp\SyntaxNodeKeyTests.vb" />
@@ -318,6 +320,9 @@
     <Compile Include="CodeModel\VisualBasic\CodeVariableTests.vb" />
     <Compile Include="CodeModel\VisualBasic\EventCollectorTests.vb" />
     <Compile Include="CodeModel\VisualBasic\ExternalCodeClassTests.vb" />
+    <Compile Include="CodeModel\VisualBasic\ExternalCodeFunctionTests.vb" />
+    <Compile Include="CodeModel\VisualBasic\ExternalCodeParameterTests.vb" />
+    <Compile Include="CodeModel\VisualBasic\ExternalCodePropertyTests.vb" />
     <Compile Include="CodeModel\VisualBasic\FileCodeModelTests.vb" />
     <Compile Include="CodeModel\VisualBasic\ImplementsStatementTests.vb" />
     <Compile Include="CodeModel\VisualBasic\InheritsStatementTests.vb" />
@@ -363,6 +368,9 @@
     <Compile Include="Help\HelpTests.vb" />
     <Compile Include="LanguageBlockTests.vb" />
     <Compile Include="MockComponentModel.vb" />
+    <Compile Include="Options\Style\NamingPreferences\NamingRuleDialogViewModelTests.vb" />
+    <Compile Include="Packaging\PackageSearchServiceTests.vb" />
+    <Compile Include="Utilities\VsNavInfoHelpers.vb" />
     <Compile Include="VsNavInfo\VsNavInfoTests.vb" />
     <Compile Include="ObjectBrowser\AbstractObjectBrowserTests.vb" />
     <Compile Include="ObjectBrowser\CSharp\ObjectBrowerTests.vb" />
@@ -430,7 +438,6 @@
     <Compile Include="SolutionExplorer\AnalyzersFolderProviderTests.vb" />
     <Compile Include="SolutionExplorer\DiagnosticDescriptorComparerTests.vb" />
     <Compile Include="SolutionExplorer\DiagnosticItemTests.vb" />
-    <Compile Include="Venus\AbstractContainedDocumentTests.vb" />
     <Compile Include="Venus\AbstractContainedLanguageCodeSupportTests.vb" />
     <Compile Include="Venus\ContainedDocumentTests_AdjustIndentation.vb" />
     <Compile Include="Venus\ContainedDocumentTests_UpdateText.vb" />

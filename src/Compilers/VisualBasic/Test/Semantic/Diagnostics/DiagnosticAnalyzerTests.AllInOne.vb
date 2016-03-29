@@ -12,7 +12,7 @@ Imports Roslyn.Test.Utilities
 Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.Semantics
 
     Partial Public Class DiagnosticAnalyzerTests
-        <WorkItem(897137, "DevDiv")>
+        <WorkItem(897137, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/897137")>
         <Fact>
         Public Sub DiagnosticAnalyzerAllInOne()
             Dim source = TestResource.AllInOneVisualBasicBaseline
@@ -20,11 +20,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.Semantics
             CreateCompilationWithMscorlib({source}).VerifyAnalyzerDiagnostics({analyzer})
             analyzer.VerifyAllAnalyzerMembersWereCalled()
             analyzer.VerifyAnalyzeSymbolCalledForAllSymbolKinds()
-            analyzer.VerifyAnalyzeNodeCalledForAllSyntaxKinds()
+            analyzer.VerifyAnalyzeNodeCalledForAllSyntaxKinds(New HashSet(Of SyntaxKind)())
             analyzer.VerifyOnCodeBlockCalledForAllSymbolAndMethodKinds()
         End Sub
 
-        <WorkItem(896273, "DevDiv")>
+        <WorkItem(896273, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/896273")>
         <Fact>
         Public Sub DiagnosticAnalyzerEnumBlock()
             Dim source =
@@ -39,7 +39,7 @@ End Enum
         End Sub
 
         <Fact>
-        <WorkItem(759)>
+        <WorkItem(759, "https://github.com/dotnet/roslyn/issues/759")>
         Public Sub AnalyzerDriverIsSafeAgainstAnalyzerExceptions()
             Dim compilation = CreateCompilationWithMscorlib({TestResource.AllInOneVisualBasicCode})
             ThrowingDiagnosticAnalyzer(Of SyntaxKind).VerifyAnalyzerEngineIsSafeAgainstExceptions(

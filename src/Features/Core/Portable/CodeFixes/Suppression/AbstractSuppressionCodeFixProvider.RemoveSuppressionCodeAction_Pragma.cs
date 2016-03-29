@@ -81,13 +81,13 @@ namespace Microsoft.CodeAnalysis.CodeFixes.Suppression
                         add = true;
                     }
 
-                    Func<SyntaxToken, TextSpan, SyntaxToken> getNewStartToken = (startToken, currentDiagnosticSpan) => includeStartTokenChange ?
-                        GetNewTokenWithModifiedPragma(startToken, currentDiagnosticSpan, add, toggle, indexOfLeadingPragmaDisableToRemove, isStartToken: true) :
-                        startToken;
+                    Func<SyntaxToken, TextSpan, Task<SyntaxToken>> getNewStartToken = (startToken, currentDiagnosticSpan) => includeStartTokenChange
+                        ? GetNewTokenWithModifiedPragmaAsync(startToken, currentDiagnosticSpan, add, toggle, indexOfLeadingPragmaDisableToRemove, isStartToken: true)
+                        : Task.FromResult(startToken);
 
-                    Func<SyntaxToken, TextSpan, SyntaxToken> getNewEndToken = (endToken, currentDiagnosticSpan) => includeEndTokenChange ?
-                        GetNewTokenWithModifiedPragma(endToken, currentDiagnosticSpan, add, toggle, indexOfTrailingPragmaEnableToRemove, isStartToken: false) :
-                        endToken;
+                    Func<SyntaxToken, TextSpan, Task<SyntaxToken>> getNewEndToken = (endToken, currentDiagnosticSpan) => includeEndTokenChange
+                        ? GetNewTokenWithModifiedPragmaAsync(endToken, currentDiagnosticSpan, add, toggle, indexOfTrailingPragmaEnableToRemove, isStartToken: false)
+                        : Task.FromResult(endToken);
 
                     return await PragmaHelpers.GetChangeDocumentWithPragmaAdjustedAsync(
                         _document,
@@ -107,9 +107,9 @@ namespace Microsoft.CodeAnalysis.CodeFixes.Suppression
 
                 private static SyntaxToken UpdateTriviaList(SyntaxToken token, bool isStartToken, SyntaxTriviaList triviaList, AbstractSuppressionCodeFixProvider fixer)
                 {
-                    return isStartToken || fixer.IsEndOfFileToken(token) ?
-                        token.WithLeadingTrivia(triviaList) :
-                        token.WithTrailingTrivia(triviaList);
+                    return isStartToken || fixer.IsEndOfFileToken(token)
+                        ? token.WithLeadingTrivia(triviaList)
+                        : token.WithTrailingTrivia(triviaList);
                 }
 
                 private static bool CanRemovePragmaTrivia(SyntaxToken token, Diagnostic diagnostic, AbstractSuppressionCodeFixProvider fixer, bool isStartToken, out int indexOfTriviaToRemove)
@@ -153,35 +153,32 @@ namespace Microsoft.CodeAnalysis.CodeFixes.Suppression
                     return false;
                 }
 
-                private SyntaxToken GetNewTokenWithModifiedPragma(SyntaxToken token, TextSpan currentDiagnosticSpan, bool add, bool toggle, int indexOfTriviaToRemoveOrToggle, bool isStartToken)
+                private Task<SyntaxToken> GetNewTokenWithModifiedPragmaAsync(SyntaxToken token, TextSpan currentDiagnosticSpan, bool add, bool toggle, int indexOfTriviaToRemoveOrToggle, bool isStartToken)
                 {
-                    return add ?
-                        GetNewTokenWithAddedPragma(token, currentDiagnosticSpan, isStartToken) :
-                        GetNewTokenWithRemovedOrToggledPragma(token, indexOfTriviaToRemoveOrToggle, isStartToken, toggle);
+                    return add
+                        ? GetNewTokenWithAddedPragmaAsync(token, currentDiagnosticSpan, isStartToken)
+                        : GetNewTokenWithRemovedOrToggledPragmaAsync(token, indexOfTriviaToRemoveOrToggle, isStartToken, toggle);
                 }
 
-                private SyntaxToken GetNewTokenWithAddedPragma(SyntaxToken token, TextSpan currentDiagnosticSpan, bool isStartToken)
+                private Task<SyntaxToken> GetNewTokenWithAddedPragmaAsync(SyntaxToken token, TextSpan currentDiagnosticSpan, bool isStartToken)
                 {
                     if (isStartToken)
                     {
-                        return PragmaHelpers.GetNewStartTokenWithAddedPragma(token, currentDiagnosticSpan, _diagnostic, Fixer, FormatNode, isRemoveSuppression: true);
+                        return PragmaHelpers.GetNewStartTokenWithAddedPragmaAsync(token, currentDiagnosticSpan, _diagnostic, Fixer, FormatNode, isRemoveSuppression: true);
                     }
                     else
                     {
-                        return PragmaHelpers.GetNewEndTokenWithAddedPragma(token, currentDiagnosticSpan, _diagnostic, Fixer, FormatNode, isRemoveSuppression: true);
+                        return PragmaHelpers.GetNewEndTokenWithAddedPragmaAsync(token, currentDiagnosticSpan, _diagnostic, Fixer, FormatNode, isRemoveSuppression: true);
                     }
                 }
 
-                private SyntaxToken GetNewTokenWithRemovedOrToggledPragma(SyntaxToken token, int indexOfTriviaToRemoveOrToggle, bool isStartToken, bool toggle)
+                private Task<SyntaxToken> GetNewTokenWithRemovedOrToggledPragmaAsync(SyntaxToken token, int indexOfTriviaToRemoveOrToggle, bool isStartToken, bool toggle)
                 {
-                    if (isStartToken)
-                    {
-                        return GetNewTokenWithPragmaUnsuppress(token, indexOfTriviaToRemoveOrToggle, _diagnostic, Fixer, isStartToken, toggle);
-                    }
-                    else
-                    {
-                        return GetNewTokenWithPragmaUnsuppress(token, indexOfTriviaToRemoveOrToggle, _diagnostic, Fixer, isStartToken, toggle);
-                    }
+                    var result = isStartToken
+                        ? GetNewTokenWithPragmaUnsuppress(token, indexOfTriviaToRemoveOrToggle, _diagnostic, Fixer, isStartToken, toggle)
+                        : GetNewTokenWithPragmaUnsuppress(token, indexOfTriviaToRemoveOrToggle, _diagnostic, Fixer, isStartToken, toggle);
+
+                    return Task.FromResult(result);
                 }
 
                 private static SyntaxToken GetNewTokenWithPragmaUnsuppress(SyntaxToken token, int indexOfTriviaToRemoveOrToggle, Diagnostic diagnostic, AbstractSuppressionCodeFixProvider fixer, bool isStartToken, bool toggle)
@@ -224,9 +221,9 @@ namespace Microsoft.CodeAnalysis.CodeFixes.Suppression
                 public SyntaxToken StartToken_TestOnly => _suppressionTargetInfo.StartToken;
                 public SyntaxToken EndToken_TestOnly => _suppressionTargetInfo.EndToken;
 
-                private SyntaxNode FormatNode(SyntaxNode node)
+                private Task<SyntaxNode> FormatNode(SyntaxNode node)
                 {
-                    return Formatter.Format(node, _document.Project.Solution.Workspace);
+                    return Formatter.FormatAsync(node, _document.Project.Solution.Workspace);
                 }
             }
         }

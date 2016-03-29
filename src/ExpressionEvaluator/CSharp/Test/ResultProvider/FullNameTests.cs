@@ -10,7 +10,7 @@ using Microsoft.VisualStudio.Debugger.Evaluation;
 using Roslyn.Test.Utilities;
 using Xunit;
 
-namespace Microsoft.CodeAnalysis.CSharp.UnitTests
+namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator.UnitTests
 {
     public class FullNameTests : CSharpResultProviderTestBase
     {
@@ -72,7 +72,7 @@ class C
 
             root = FormatResult("M(a, b), raw", value); // non-specifier comma
             Assert.Equal("M(a, b), raw", root.FullName);
-            Assert.Equal("(M(a, b)).F", GetChildren(root).Single().FullName); // parens not required
+            Assert.Equal("M(a, b).F", GetChildren(root).Single().FullName);
 
             root = FormatResult("a, raw1", value); // alpha-numeric
             Assert.Equal("a, raw1", root.FullName);
@@ -129,7 +129,7 @@ class C
             Assert.Equal("(a + b).F", GetChildren(root).Single().FullName);
 
             root = FormatResult(" M( ) ; ;", value);
-            Assert.Equal("(M( )).F", GetChildren(root).Single().FullName);
+            Assert.Equal("M( ).F", GetChildren(root).Single().FullName);
         }
 
         [Fact]
@@ -174,7 +174,7 @@ class C
             Assert.Equal("a  +  b, ac, raw", root.FullName);
         }
 
-        [Fact, WorkItem(1022165)]
+        [Fact, WorkItem(1022165, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1022165")]
         public void Keywords_Root()
         {
             var source = @"
@@ -429,7 +429,7 @@ namespace @namespace
         public void MangledNames_ExplicitInterfaceImplementation()
         {
             var il = @"
-.class interface public abstract auto ansi 'I<>Mangled'
+.class interface public abstract auto ansi 'abstract.I<>Mangled'
 {
   .method public hidebysig newslot specialname abstract virtual 
           instance int32  get_P() cil managed
@@ -438,18 +438,18 @@ namespace @namespace
 
   .property instance int32 P()
   {
-    .get instance int32 'I<>Mangled'::get_P()
+    .get instance int32 'abstract.I<>Mangled'::get_P()
   }
-} // end of class 'I<>Mangled'
+} // end of class 'abstract.I<>Mangled'
 
 .class public auto ansi beforefieldinit C
        extends [mscorlib]System.Object
-       implements 'I<>Mangled'
+       implements 'abstract.I<>Mangled'
 {
   .method private hidebysig newslot specialname virtual final 
-          instance int32  'I<>Mangled.get_P'() cil managed
+          instance int32  'abstract.I<>Mangled.get_P'() cil managed
   {
-    .override 'I<>Mangled'::get_P
+    .override 'abstract.I<>Mangled'::get_P
     ldc.i4.1
     ret
   }
@@ -462,14 +462,14 @@ namespace @namespace
     ret
   }
 
-  .property instance int32 'I<>Mangled.P'()
+  .property instance int32 'abstract.I<>Mangled.P'()
   {
-    .get instance int32 C::'I<>Mangled.get_P'()
+    .get instance int32 C::'abstract.I<>Mangled.get_P'()
   }
 
   .property instance int32 P()
   {
-    .get instance int32 C::'I<>Mangled.get_P'()
+    .get instance int32 C::'abstract.I<>Mangled.get_P'()
   }
 } // end of class C
 ";
@@ -483,8 +483,8 @@ namespace @namespace
 
             var root = FormatResult("instance", value);
             Verify(GetChildren(root),
-                EvalResult("I<>Mangled.P", "1", "int", null, DkmEvaluationResultFlags.ReadOnly, DkmEvaluationResultCategory.Property, DkmEvaluationResultAccessType.Private),
-                EvalResult("P", "1", "int", "instance.P", DkmEvaluationResultFlags.ReadOnly, DkmEvaluationResultCategory.Property, DkmEvaluationResultAccessType.Private));
+                EvalResult("P", "1", "int", "instance.P", DkmEvaluationResultFlags.ReadOnly, DkmEvaluationResultCategory.Property, DkmEvaluationResultAccessType.Private),
+                EvalResult("abstract.I<>Mangled.P", "1", "int", null, DkmEvaluationResultFlags.ReadOnly, DkmEvaluationResultCategory.Property, DkmEvaluationResultAccessType.Private));
         }
 
         [Fact]

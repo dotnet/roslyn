@@ -9,7 +9,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 {
     internal partial class Binder
     {
-        protected BoundExpression CreateConversion(
+        internal BoundExpression CreateConversion(
             BoundExpression source,
             TypeSymbol destination,
             DiagnosticBag diagnostics)
@@ -555,7 +555,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <summary>
         /// This method implements the checks in spec section 15.2.
         /// </summary>
-        private bool MethodGroupIsCompatibleWithDelegate(BoundExpression receiverOpt, bool isExtensionMethod, MethodSymbol method, NamedTypeSymbol delegateType, Location errorLocation, DiagnosticBag diagnostics)
+        internal bool MethodGroupIsCompatibleWithDelegate(BoundExpression receiverOpt, bool isExtensionMethod, MethodSymbol method, NamedTypeSymbol delegateType, Location errorLocation, DiagnosticBag diagnostics)
         {
             Debug.Assert(delegateType.TypeKind == TypeKind.Delegate);
             Debug.Assert((object)delegateType.DelegateInvokeMethod != null && !delegateType.DelegateInvokeMethod.HasUseSiteError,
@@ -613,22 +613,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             diagnostics.Add(errorLocation, useSiteDiagnostics);
-
-            if (method.IsConditional)
-            {
-                // CS1618: Cannot create delegate with '{0}' because it has a Conditional attribute
-                Error(diagnostics, ErrorCode.ERR_DelegateOnConditional, errorLocation, method);
-                return false;
-            }
-
-            var sourceMethod = method as SourceMemberMethodSymbol;
-            if ((object)sourceMethod != null && sourceMethod.IsPartialWithoutImplementation)
-            {
-                // CS0762: Cannot create delegate from method '{0}' because it is a partial method without an implementing declaration
-                Error(diagnostics, ErrorCode.ERR_PartialMethodToDelegate, errorLocation, method);
-                return false;
-            }
-
             return true;
         }
 
@@ -657,6 +641,21 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (MemberGroupFinalValidation(receiverOpt, selectedMethod, syntax, diagnostics, isExtensionMethod) ||
                 !MethodGroupIsCompatibleWithDelegate(receiverOpt, isExtensionMethod, selectedMethod, delegateType, syntax.Location, diagnostics))
             {
+                return true;
+            }
+
+            if (selectedMethod.IsConditional)
+            {
+                // CS1618: Cannot create delegate with '{0}' because it has a Conditional attribute
+                Error(diagnostics, ErrorCode.ERR_DelegateOnConditional, syntax.Location, selectedMethod);
+                return true;
+            }
+
+            var sourceMethod = selectedMethod as SourceMemberMethodSymbol;
+            if ((object)sourceMethod != null && sourceMethod.IsPartialWithoutImplementation)
+            {
+                // CS0762: Cannot create delegate from method '{0}' because it is a partial method without an implementing declaration
+                Error(diagnostics, ErrorCode.ERR_PartialMethodToDelegate, syntax.Location, selectedMethod);
                 return true;
             }
 
@@ -756,6 +755,19 @@ namespace Microsoft.CodeAnalysis.CSharp
             switch (conversion.Kind)
             {
                 case ConversionKind.Identity:
+                    // An identity conversion to a floating-point type (for example from a cast in
+                    // source code) changes the internal representation of the constant value
+                    // to precisely the required precision.
+                    switch (destination.SpecialType)
+                    {
+                        case SpecialType.System_Single:
+                            return ConstantValue.Create(sourceConstantValue.SingleValue);
+                        case SpecialType.System_Double:
+                            return ConstantValue.Create(sourceConstantValue.DoubleValue);
+                        default:
+                            return sourceConstantValue;
+                    }
+
                 case ConversionKind.NullLiteral:
                     return sourceConstantValue;
 

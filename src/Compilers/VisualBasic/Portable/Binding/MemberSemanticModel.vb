@@ -281,6 +281,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                      SyntaxKind.ExitWhileStatement,
                      SyntaxKind.ExitFunctionStatement,
                      SyntaxKind.ExitSubStatement,
+                     SyntaxKind.ExitOperatorStatement,
+                     SyntaxKind.ExitPropertyStatement,
                      SyntaxKind.ContinueDoStatement,
                      SyntaxKind.ContinueForStatement,
                      SyntaxKind.ContinueWhileStatement,
@@ -291,6 +293,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                      SyntaxKind.ConstructorBlock,
                      SyntaxKind.GetAccessorBlock,
                      SyntaxKind.SetAccessorBlock,
+                     SyntaxKind.OperatorBlock,
                      SyntaxKind.AddHandlerAccessorBlock, SyntaxKind.RemoveHandlerAccessorBlock, SyntaxKind.RaiseEventAccessorBlock,
                      SyntaxKind.ReDimStatement,
                      SyntaxKind.ReDimPreserveStatement,
@@ -300,6 +303,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                      SyntaxKind.OnErrorGoToMinusOneStatement,
                      SyntaxKind.OnErrorGoToLabelStatement,
                      SyntaxKind.OnErrorResumeNextStatement,
+                     SyntaxKind.ResumeStatement,
                      SyntaxKind.ResumeLabelStatement,
                      SyntaxKind.ResumeNextStatement,
                      SyntaxKind.EndStatement,
@@ -324,6 +328,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                      SyntaxKind.EndSelectStatement,
                      SyntaxKind.EndSubStatement,
                      SyntaxKind.EndFunctionStatement,
+                     SyntaxKind.EndOperatorStatement,
                      SyntaxKind.WhileStatement,
                      SyntaxKind.EndWhileStatement,
                      SyntaxKind.TryStatement,
@@ -794,17 +799,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Case Else
                     result = summary.LowestBoundNode
             End Select
-
-            ' Screen out bound nodes that aren't appropriate as IOperations.
-            If result IsNot Nothing Then
-                If result.Kind = BoundKind.EqualsValue Then
-                    result = DirectCast(result, BoundEqualsValue).Value
-                End If
-
-                If result.Kind = BoundKind.FieldOrPropertyInitializer Then
-                    result = DirectCast(result, BoundFieldOrPropertyInitializer).InitialValue
-                End If
-            End If
 
             Return TryCast(result, IOperation)
         End Function

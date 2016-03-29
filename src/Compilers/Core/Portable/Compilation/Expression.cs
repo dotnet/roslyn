@@ -3,6 +3,7 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Diagnostics;
 using System.Linq;
 
 namespace Microsoft.CodeAnalysis.Semantics
@@ -46,7 +47,7 @@ namespace Microsoft.CodeAnalysis.Semantics
                 return SynthesizeNumeric(((INamedTypeSymbol)type).EnumUnderlyingType, value);
             }
 
-            return null;
+            return ConstantValue.Bad;
         }
 
         public static BinaryOperationKind DeriveAdditionKind(ITypeSymbol type)
@@ -74,44 +75,56 @@ namespace Microsoft.CodeAnalysis.Semantics
 
             if (type.TypeKind == TypeKind.Enum)
             {
-                return Semantics.BinaryOperationKind.EnumAdd;
+                return BinaryOperationKind.EnumAdd;
             }
 
-            return Semantics.BinaryOperationKind.None;
+            return BinaryOperationKind.Invalid;
         }
     }
 
-    public sealed class ConditionalChoice : IConditionalChoiceExpression
+    internal sealed class ConditionalChoice : IConditionalChoiceExpression
     {
-        public ConditionalChoice(IExpression condition, IExpression ifTrue, IExpression ifFalse, ITypeSymbol resultType, SyntaxNode syntax)
+        public ConditionalChoice(IOperation condition, IOperation ifTrue, IOperation ifFalse, ITypeSymbol resultType, SyntaxNode syntax)
         {
             this.Condition = condition;
-            this.IfTrue = ifTrue;
-            this.IfFalse = ifFalse;
-            this.ResultType = resultType;
+            this.IfTrueValue = ifTrue;
+            this.IfFalseValue = ifFalse;
+            this.Type = resultType;
             this.Syntax = syntax;
         }
 
-        public IExpression Condition { get; }
+        public IOperation Condition { get; }
 
-        public IExpression IfTrue { get; }
+        public IOperation IfTrueValue { get; }
 
-        public IExpression IfFalse { get; }
+        public IOperation IfFalseValue { get; }
 
-        public ITypeSymbol ResultType { get; }
+        public ITypeSymbol Type { get; }
 
         public SyntaxNode Syntax { get; }
 
         public OperationKind Kind => OperationKind.ConditionalChoiceExpression;
 
-        public object ConstantValue => null;
+        public bool IsInvalid => Condition == null || Condition.IsInvalid || IfTrueValue == null || IfTrueValue.IsInvalid || IfFalseValue == null || IfFalseValue.IsInvalid || Type == null;
+
+        public Optional<object> ConstantValue => default(Optional<object>);
+
+        public void Accept(OperationVisitor visitor)
+        {
+            visitor.VisitConditionalChoiceExpression(this);
+        }
+
+        public TResult Accept<TArgument, TResult>(OperationVisitor<TArgument, TResult> visitor, TArgument argument)
+        {
+            return visitor.VisitConditionalChoiceExpression(this, argument);
+        }
     }
 
-    public sealed class Assignment : IExpressionStatement
+    internal sealed class Assignment : IExpressionStatement
     {
         private readonly AssignmentExpression _assignment;
 
-        public Assignment(IReferenceExpression target, IExpression value, SyntaxNode syntax)
+        public Assignment(IOperation target, IOperation value, SyntaxNode syntax)
         {
             _assignment = new AssignmentExpression(target, value, syntax);
             this.Syntax = syntax;
@@ -121,38 +134,66 @@ namespace Microsoft.CodeAnalysis.Semantics
 
         public OperationKind Kind => OperationKind.ExpressionStatement;
 
-        public IExpression Expression => _assignment;
+        public bool IsInvalid => _assignment.IsInvalid;
 
-        class AssignmentExpression : IAssignmentExpression
+        public IOperation Expression => _assignment;
+
+        public ITypeSymbol Type => null;
+
+        public Optional<object> ConstantValue => default(Optional<object>);
+
+        public void Accept(OperationVisitor visitor)
         {
-            public AssignmentExpression(IReferenceExpression target, IExpression value, SyntaxNode syntax)
+            visitor.VisitExpressionStatement(this);
+        }
+
+        public TResult Accept<TArgument, TResult>(OperationVisitor<TArgument, TResult> visitor, TArgument argument)
+        {
+            return visitor.VisitExpressionStatement(this, argument);
+        }
+
+        private sealed class AssignmentExpression : IAssignmentExpression
+        {
+            public AssignmentExpression(IOperation target, IOperation value, SyntaxNode syntax)
             {
                 this.Value = value;
                 this.Target = target;
                 this.Syntax = syntax;
             }
 
-            public IReferenceExpression Target { get; }
+            public IOperation Target { get; }
 
-            public IExpression Value { get; }
+            public IOperation Value { get; }
 
             public SyntaxNode Syntax { get; }
 
-            public ITypeSymbol ResultType => this.Target.ResultType;
+            public ITypeSymbol Type => this.Target.Type;
 
             public OperationKind Kind => OperationKind.AssignmentExpression;
 
-            public object ConstantValue => null;
+            public bool IsInvalid => Target == null || Target.IsInvalid || Value == null || Value.IsInvalid;
+
+            public Optional<object> ConstantValue => default(Optional<object>);
+
+            public void Accept(OperationVisitor visitor)
+            {
+                visitor.VisitAssignmentExpression(this);
+            }
+
+            public TResult Accept<TArgument, TResult>(OperationVisitor<TArgument, TResult> visitor, TArgument argument)
+            {
+                return visitor.VisitAssignmentExpression(this, argument);
+            }
         }
     }
 
-    public sealed class CompoundAssignment : IExpressionStatement
+    internal sealed class CompoundAssignment : IExpressionStatement
     {
         private readonly CompoundAssignmentExpression _compoundAssignment;
 
-        public CompoundAssignment(IReferenceExpression target, IExpression value, BinaryOperationKind binaryKind, IMethodSymbol operatorMethod, SyntaxNode syntax)
+        public CompoundAssignment(IOperation target, IOperation value, BinaryOperationKind binaryOperationKind, IMethodSymbol operatorMethod, SyntaxNode syntax)
         {
-            _compoundAssignment = new CompoundAssignmentExpression(target, value, binaryKind, operatorMethod, syntax);
+            _compoundAssignment = new CompoundAssignmentExpression(target, value, binaryOperationKind, operatorMethod, syntax);
             this.Syntax = syntax;
         }
 
@@ -160,59 +201,99 @@ namespace Microsoft.CodeAnalysis.Semantics
 
         public OperationKind Kind => OperationKind.ExpressionStatement;
 
-        public IExpression Expression => _compoundAssignment;
+        public bool IsInvalid => _compoundAssignment.IsInvalid;
 
-        class CompoundAssignmentExpression : ICompoundAssignmentExpression
+        public IOperation Expression => _compoundAssignment;
+
+        public ITypeSymbol Type => null;
+
+        public Optional<object> ConstantValue => default(Optional<object>);
+
+        public void Accept(OperationVisitor visitor)
         {
-            public CompoundAssignmentExpression(IReferenceExpression target, IExpression value, BinaryOperationKind binaryKind, IMethodSymbol operatorMethod, SyntaxNode syntax)
+            visitor.VisitExpressionStatement(this);
+        }
+
+        public TResult Accept<TArgument, TResult>(OperationVisitor<TArgument, TResult> visitor, TArgument argument)
+        {
+            return visitor.VisitExpressionStatement(this, argument);
+        }
+
+        private sealed class CompoundAssignmentExpression : ICompoundAssignmentExpression
+        {
+            public CompoundAssignmentExpression(IOperation target, IOperation value, BinaryOperationKind binaryOperationKind, IMethodSymbol operatorMethod, SyntaxNode syntax)
             {
                 this.Target = target;
                 this.Value = value;
-                this.BinaryKind = binaryKind;
-                this.Operator = operatorMethod;
+                this.BinaryOperationKind = binaryOperationKind;
+                this.OperatorMethod = operatorMethod;
                 this.Syntax = syntax;
             }
 
-            public IReferenceExpression Target { get; }
+            public IOperation Target { get; }
 
-            public IExpression Value { get; }
+            public IOperation Value { get; }
 
-            public BinaryOperationKind BinaryKind { get; }
+            public BinaryOperationKind BinaryOperationKind { get; }
 
-            public IMethodSymbol Operator { get; }
+            public IMethodSymbol OperatorMethod { get; }
 
             public SyntaxNode Syntax { get; }
 
-            public ITypeSymbol ResultType => this.Target.ResultType;
+            public ITypeSymbol Type => this.Target.Type;
 
             public OperationKind Kind => OperationKind.CompoundAssignmentExpression;
 
-            public object ConstantValue => null;
+            public bool IsInvalid => Target == null || Target.IsInvalid || Value == null || Value.IsInvalid;
 
-            public bool UsesOperatorMethod => this.Operator != null;
+            public Optional<object> ConstantValue => default(Optional<object>);
+
+            public bool UsesOperatorMethod => this.OperatorMethod != null;
+
+            public void Accept(OperationVisitor visitor)
+            {
+                visitor.VisitCompoundAssignmentExpression(this);
+            }
+
+            public TResult Accept<TArgument, TResult>(OperationVisitor<TArgument, TResult> visitor, TArgument argument)
+            {
+                return visitor.VisitCompoundAssignmentExpression(this, argument);
+            }
         }
     }
 
-    public sealed class IntegerLiteral : ILiteralExpression
+    internal sealed class IntegerLiteral : ILiteralExpression
     {
         private readonly long _value;
 
         public IntegerLiteral(long value, ITypeSymbol resultType, SyntaxNode syntax)
         {
             _value = value;
-            this.ResultType = resultType;
+            this.Type = resultType;
             this.Syntax = syntax;
         }
-        
-        public string Spelling =>_value.ToString();
 
-        public ITypeSymbol ResultType { get; }
+        public string Text =>_value.ToString();
+
+        public ITypeSymbol Type { get; }
 
         public OperationKind Kind => OperationKind.LiteralExpression;
 
-        public object ConstantValue => _value;
+        public bool IsInvalid => false;
+
+        public Optional<object> ConstantValue => new Optional<object>(_value);
 
         public SyntaxNode Syntax { get; }
+
+        public void Accept(OperationVisitor visitor)
+        {
+            visitor.VisitLiteralExpression(this);
+        }
+
+        public TResult Accept<TArgument, TResult>(OperationVisitor<TArgument, TResult> visitor, TArgument argument)
+        {
+            return visitor.VisitLiteralExpression(this, argument);
+        }
     }
 
     internal class Literal : ILiteralExpression
@@ -221,109 +302,180 @@ namespace Microsoft.CodeAnalysis.Semantics
 
         public Literal(ConstantValue value, ITypeSymbol resultType, SyntaxNode syntax)
         {
+            Debug.Assert(value != null, "value can't be null");
             _value = value;
-            this.ResultType = resultType;
+            this.Type = resultType;
             this.Syntax = syntax;
         }
 
-        public string Spelling => _value.Value.ToString();
+        public string Text => _value.GetValueToDisplay();
 
-        public ITypeSymbol ResultType { get; }
+        public ITypeSymbol Type { get; }
 
         public OperationKind Kind => OperationKind.LiteralExpression;
 
-        public object ConstantValue => _value.Value;
+        public bool IsInvalid => _value.IsBad;
+
+        public Optional<object> ConstantValue => new Optional<object>(_value.Value);
 
         public SyntaxNode Syntax { get; }
+
+        public void Accept(OperationVisitor visitor)
+        {
+            visitor.VisitLiteralExpression(this);
+        }
+
+        public TResult Accept<TArgument, TResult>(OperationVisitor<TArgument, TResult> visitor, TArgument argument)
+        {
+            return visitor.VisitLiteralExpression(this, argument);
+        }
     }
 
-    public sealed class Binary : IBinaryOperatorExpression
+    internal sealed class Binary : IBinaryOperatorExpression
     {
-        public Binary(BinaryOperationKind binaryKind, IExpression left, IExpression right, ITypeSymbol resultType, SyntaxNode syntax)
+        public Binary(BinaryOperationKind binaryOperationKind, IOperation left, IOperation right, ITypeSymbol resultType, SyntaxNode syntax)
         {
-            this.BinaryKind = binaryKind;
-            this.Left = left;
-            this.Right = right;
-            this.ResultType = resultType;
+            this.BinaryOperationKind = binaryOperationKind;
+            this.LeftOperand = left;
+            this.RightOperand = right;
+            this.Type = resultType;
             this.Syntax = syntax;
         }
 
-        public BinaryOperationKind BinaryKind { get; }
+        public BinaryOperationKind BinaryOperationKind { get; }
 
-        public IExpression Left { get; }
+        public IOperation LeftOperand { get; }
 
-        public IExpression Right { get; }
+        public IOperation RightOperand { get; }
 
         public bool UsesOperatorMethod => false;
 
-        public IMethodSymbol Operator => null;
+        public IMethodSymbol OperatorMethod => null;
 
-        public ITypeSymbol ResultType { get; }
+        public ITypeSymbol Type { get; }
 
         public OperationKind Kind => OperationKind.BinaryOperatorExpression;
 
-        public object ConstantValue => null;
+        public bool IsInvalid => LeftOperand == null 
+                                || LeftOperand.IsInvalid 
+                                || RightOperand == null
+                                || RightOperand.IsInvalid 
+                                || BinaryOperationKind == BinaryOperationKind.Invalid 
+                                || Type == null;
+
+        public Optional<object> ConstantValue => default(Optional<object>);
 
         public SyntaxNode Syntax { get; }
+
+        public void Accept(OperationVisitor visitor)
+        {
+            visitor.VisitBinaryOperatorExpression(this);
+        }
+
+        public TResult Accept<TArgument, TResult>(OperationVisitor<TArgument, TResult> visitor, TArgument argument)
+        {
+            return visitor.VisitBinaryOperatorExpression(this, argument);
+        }
     }
 
-    public sealed class ArrayCreation: IArrayCreationExpression
+    internal sealed class ArrayCreation : IArrayCreationExpression
     {
         private readonly IArrayTypeSymbol _arrayType;
 
-        public ArrayCreation(IArrayTypeSymbol arrayType, ImmutableArray<IExpression> elementValues, SyntaxNode syntax)
+        public ArrayCreation(IArrayTypeSymbol arrayType, ImmutableArray<IOperation> elementValues, SyntaxNode syntax)
         {
             _arrayType = arrayType;
-            this.DimensionSizes = ImmutableArray.Create<IExpression>(new IntegerLiteral(elementValues.Count(), null, syntax));
-            this.ElementValues = new DimensionInitializer(elementValues);
+            this.DimensionSizes = ImmutableArray.Create<IOperation>(new IntegerLiteral(elementValues.Count(), null, syntax));
+            this.Initializer = new ArrayInitializer(elementValues, syntax, arrayType);
             this.Syntax = syntax;
         }
 
-        public ITypeSymbol ResultType => _arrayType;
+        public ITypeSymbol Type => _arrayType;
 
-        public ImmutableArray<IExpression> DimensionSizes { get; }
+        public ImmutableArray<IOperation> DimensionSizes { get; }
 
         public ITypeSymbol ElementType => _arrayType.ElementType;
 
-        public IArrayInitializer ElementValues { get; }
+        public IArrayInitializer Initializer { get; }
 
         public SyntaxNode Syntax { get; }
 
         public OperationKind Kind => OperationKind.ArrayCreationExpression;
 
-        public object ConstantValue => null;
+        public bool IsInvalid => IsInvalidInitializer(Initializer);
 
-        private class DimensionInitializer : IDimensionArrayInitializer
+        private static bool IsInvalidInitializer(IArrayInitializer initializer) => initializer.IsInvalid;
+
+        public void Accept(OperationVisitor visitor)
         {
-            private readonly ImmutableArray<IArrayInitializer> _elementValues;
-
-            public DimensionInitializer(ImmutableArray<IExpression> elementValues)
-            {
-                ArrayBuilder<IArrayInitializer> builder = ArrayBuilder<IArrayInitializer>.GetInstance();
-                foreach (IExpression element in elementValues)
-                {
-                    builder.Add(new ExpressionInitializer(element));
-                }
-
-                _elementValues = builder.ToImmutableAndFree();
-            }
-
-            public ArrayInitializerKind ArrayClass => ArrayInitializerKind.Dimension;
-
-            public ImmutableArray<IArrayInitializer> ElementValues => _elementValues;
+            visitor.VisitArrayCreationExpression(this);
         }
 
-        private class ExpressionInitializer : IExpressionArrayInitializer
+        public TResult Accept<TArgument, TResult>(OperationVisitor<TArgument, TResult> visitor, TArgument argument)
         {
-            public ExpressionInitializer(IExpression expression)
+            return visitor.VisitArrayCreationExpression(this, argument);
+        }
+
+        public Optional<object> ConstantValue => default(Optional<object>);
+
+        private sealed class ArrayInitializer : IArrayInitializer
+        {
+            public ArrayInitializer(ImmutableArray<IOperation> elementValues, SyntaxNode syntax, ITypeSymbol arrayType)
             {
-                ElementValue = expression;
+                ElementValues = elementValues;
+                Syntax = syntax;
+                Type = arrayType;
             }
 
-            public ArrayInitializerKind ArrayClass => ArrayInitializerKind.Expression;
+            public ImmutableArray<IOperation> ElementValues { get; }
 
-            public IExpression ElementValue { get; }
+            public bool IsInvalid => ElementValues.Any(v => v.IsInvalid);
+
+            public OperationKind Kind => OperationKind.ArrayInitializer;
+
+            public ITypeSymbol Type { get; }
+
+            public SyntaxNode Syntax { get; }
+
+            public Optional<object> ConstantValue => default(Optional<object>);
+
+            public void Accept(OperationVisitor visitor)
+            {
+                visitor.VisitArrayInitializer(this);
+            }
+
+            public TResult Accept<TArgument, TResult>(OperationVisitor<TArgument, TResult> visitor, TArgument argument)
+            {
+                return visitor.VisitArrayInitializer(this, argument);
+            }
         }
     }
-    
+
+    internal sealed class InvalidExpression : IInvalidExpression
+    {
+        public InvalidExpression(SyntaxNode syntax)
+        {
+            this.Syntax = syntax;
+        }
+
+        public Optional<object> ConstantValue => default(Optional<object>);
+
+        public bool IsInvalid => true;
+
+        public OperationKind Kind => OperationKind.InvalidExpression;
+
+        public SyntaxNode Syntax { get; }
+
+        public ITypeSymbol Type => null;
+
+        public void Accept(OperationVisitor visitor)
+        {
+            visitor.VisitInvalidExpression(this);
+        }
+
+        public TResult Accept<TArgument, TResult>(OperationVisitor<TArgument, TResult> visitor, TArgument argument)
+        {
+            return visitor.VisitInvalidExpression(this, argument);
+        }
+    }
 }

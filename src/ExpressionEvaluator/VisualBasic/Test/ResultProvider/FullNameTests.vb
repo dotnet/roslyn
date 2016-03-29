@@ -7,7 +7,7 @@ Imports Microsoft.VisualStudio.Debugger.Evaluation
 Imports Roslyn.Test.Utilities
 Imports Xunit
 
-Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
+Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator.UnitTests
 
     Public Class FullNameTests : Inherits VisualBasicResultProviderTestBase
 
@@ -63,7 +63,7 @@ End Class
 
             root = FormatResult("M(a, b), raw", value) ' non - specifier comma
             Assert.Equal("M(a, b), raw", root.FullName)
-            Assert.Equal("(M(a, b)).F", GetChildren(root).Single().FullName) ' parens not required
+            Assert.Equal("M(a, b).F", GetChildren(root).Single().FullName)
 
             root = FormatResult("a, raw1", value) ' alpha - numeric
             Assert.Equal("a, raw1", root.FullName)
@@ -141,7 +141,7 @@ End Class
             Assert.Equal("a, ac, raw", root.FullName)
         End Sub
 
-        <Fact, WorkItem(1022165)>
+        <Fact, WorkItem(1022165, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1022165")>
         Public Sub Keywords_Root()
             Dim source = "
 Class C
@@ -169,8 +169,6 @@ End Class
             Verify(root,
                 EvalResult("Namespace", "{Object}", "Object", "Namespace"))
         End Sub
-
-
 
         <Fact>
         Public Sub MangledNames_CastRequired()

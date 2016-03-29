@@ -6,6 +6,7 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
+using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Editor.Undo;
 using Microsoft.CodeAnalysis.Navigation;
 using Microsoft.CodeAnalysis.Notification;
@@ -16,7 +17,7 @@ using Roslyn.Utilities;
 namespace Microsoft.CodeAnalysis.Editor.Implementation.CodeActions
 {
     [Export(typeof(ICodeActionEditHandlerService))]
-    internal class CodeActionEditHandlerService : ICodeActionEditHandlerService
+    internal class CodeActionEditHandlerService : ForegroundThreadAffinitizedObject, ICodeActionEditHandlerService
     {
         private readonly IPreviewFactoryService _previewService;
         private readonly IInlineRenameService _renameService;
@@ -38,12 +39,15 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.CodeActions
             get { return _associatedViewService; }
         }
 
-        public SolutionPreviewResult GetPreviews(Workspace workspace, IEnumerable<CodeActionOperation> operations, CancellationToken cancellationToken)
+        public SolutionPreviewResult GetPreviews(
+            Workspace workspace, IEnumerable<CodeActionOperation> operations, CancellationToken cancellationToken)
         {
             if (operations == null)
             {
                 return null;
             }
+
+            SolutionPreviewResult currentResult = null;
 
             foreach (var op in operations)
             {
@@ -59,28 +63,39 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.CodeActions
 
                     if (preview != null && !preview.IsEmpty)
                     {
-                        return preview;
+                        currentResult = SolutionPreviewResult.Merge(currentResult, preview);
+                        continue;
                     }
                 }
 
                 var previewOp = op as PreviewOperation;
                 if (previewOp != null)
                 {
-                    return new SolutionPreviewResult(new List<SolutionPreviewItem>() { new SolutionPreviewItem(projectId: null, documentId: null, lazyPreview: c => previewOp.GetPreviewAsync(c)) });
+                    currentResult = SolutionPreviewResult.Merge(currentResult,
+                        new SolutionPreviewResult(new SolutionPreviewItem(
+                            projectId: null, documentId: null,
+                            lazyPreview: c => previewOp.GetPreviewAsync(c))));
+                    continue;
                 }
 
                 var title = op.Title;
+
                 if (title != null)
                 {
-                    return new SolutionPreviewResult(new List<SolutionPreviewItem>() { new SolutionPreviewItem(projectId: null, documentId: null, lazyPreview: c => Task.FromResult<object>(title)) });
+                    currentResult = SolutionPreviewResult.Merge(currentResult,
+                        new SolutionPreviewResult(new SolutionPreviewItem(
+                            projectId: null, documentId: null, text: title)));
+                    continue;
                 }
             }
 
-            return null;
+            return currentResult;
         }
 
         public void Apply(Workspace workspace, Document fromDocument, IEnumerable<CodeActionOperation> operations, string title, CancellationToken cancellationToken)
         {
+            this.AssertIsForeground();
+
             if (_renameService.ActiveSession != null)
             {
                 workspace.Services.GetService<INotificationService>()?.SendNotification(
@@ -95,7 +110,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.CodeActions
             {
                 foreach (var document in project.Documents)
                 {
-                    if (!document.HasAnyErrors(cancellationToken).WaitAndGetResult(cancellationToken))
+                    if (!document.HasAnyErrorsAsync(cancellationToken).WaitAndGetResult(cancellationToken))
                     {
                         documentErrorLookup.Add(document.Id);
                     }
@@ -106,7 +121,66 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.CodeActions
             var oldSolution = workspace.CurrentSolution;
             Solution updatedSolution = oldSolution;
 
-            foreach (var operation in operations)
+            var operationsList = operations.ToList();
+            if (operationsList.Count > 1)
+            {
+                // Make a linked undo to wrap all these operations.  This way we should
+                // be able to undo them all with one user action.
+                //
+                // Note: we only wrap things with an undo action if:
+                // 
+                //  1. We have multiple operations (this code here).
+                //  2. We have a SolutionChangedAction and we're making changes to multiple 
+                //     documents. (Below in ProcessOperations).
+                //
+                // Or, in other words, if we know we're only editing a single file, then we
+                // don't wrap things with a global undo action.
+                //
+                // The reason for this is a global undo forces all files to save.  And that's
+                // rather a heavyweight and unexpected experience for users (for the common 
+                // case where a single file got edited).
+                //
+                // When we have multiple operations we assume that this is going to be 
+                // more heavyweight. (After all, a full Roslyn solution change can be represented
+                // with a single operation).  As such, we wrap with an undo so all the operations
+                // can be undone at once.
+                using (var transaction = workspace.OpenGlobalUndoTransaction(title))
+                {
+                    updatedSolution = ProcessOperations(workspace, fromDocument, title, oldSolution, updatedSolution, operationsList, cancellationToken);
+
+                    // link current file in the global undo transaction
+                    if (fromDocument != null)
+                    {
+                        transaction.AddDocument(fromDocument.Id);
+                    }
+
+                    transaction.Commit();
+                }
+            }
+            else
+            {
+                updatedSolution = ProcessOperations(workspace, fromDocument, title, oldSolution, updatedSolution, operationsList, cancellationToken);
+            }
+
+#if DEBUG
+            foreach (var project in workspace.CurrentSolution.Projects)
+            {
+                foreach (var document in project.Documents)
+                {
+                    if (documentErrorLookup.Contains(document.Id))
+                    {
+                        document.VerifyNoErrorsAsync("CodeAction introduced error in error-free code", cancellationToken).Wait(cancellationToken);
+                    }
+                }
+            }
+#endif
+
+            TryStartRenameSession(workspace, oldSolution, updatedSolution, cancellationToken);
+        }
+
+        private static Solution ProcessOperations(Workspace workspace, Document fromDocument, string title, Solution oldSolution, Solution updatedSolution, List<CodeActionOperation> operationsList, CancellationToken cancellationToken)
+        {
+            foreach (var operation in operationsList)
             {
                 var applyChanges = operation as ApplyChangesOperation;
                 if (applyChanges == null)
@@ -172,20 +246,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.CodeActions
                 }
             }
 
-#if DEBUG
-            foreach (var project in workspace.CurrentSolution.Projects)
-            {
-                foreach (var document in project.Documents)
-                {
-                    if (documentErrorLookup.Contains(document.Id))
-                    {
-                        document.VerifyNoErrorsAsync("CodeAction introduced error in error-free code", cancellationToken).Wait(cancellationToken);
-                    }
-                }
-            }
-#endif
-
-            TryStartRenameSession(workspace, oldSolution, updatedSolution, cancellationToken);
+            return updatedSolution;
         }
 
         private void TryStartRenameSession(Workspace workspace, Solution oldSolution, Solution newSolution, CancellationToken cancellationToken)

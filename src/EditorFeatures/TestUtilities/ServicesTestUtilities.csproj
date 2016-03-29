@@ -39,6 +39,10 @@
       <Project>{f7712928-1175-47b3-8819-ee086753dee2}</Project>
       <Name>TestUtilities.FX45</Name>
     </ProjectReference>
+    <ProjectReference Include="..\..\Workspaces\Core\Portable\Workspaces.csproj">
+      <Project>{5f8d2414-064a-4b3a-9b42-8e2a04246be5}</Project>
+      <Name>Workspaces</Name>
+    </ProjectReference>
     <ProjectReference Include="..\Core\EditorFeatures.csproj">
       <Project>{3CDEEAB7-2256-418A-BEB2-620B5CB16302}</Project>
       <Name>EditorFeatures</Name>
@@ -64,12 +68,8 @@
     <Compile Include="DispatcherExtensions.cs" />
     <Compile Include="DirectoryExtensions.cs" />
     <Compile Include="ExceptionUtilities.cs" />
-    <Compile Include="Threading\ConditionalStaFactAttribute.cs" />
     <Compile Include="Threading\ConditionalWpfFactAttribute.cs" />
-    <Compile Include="Threading\StaFactAttribute.cs" />
-    <Compile Include="Threading\StaFactDiscoverer.cs" />
     <Compile Include="Threading\StaTaskScheduler.cs" />
-    <Compile Include="Threading\StaTestCase.cs" />
     <Compile Include="Threading\WpfFactAttribute.cs" />
     <Compile Include="Threading\WpfFactDiscoverer.cs" />
     <Compile Include="Threading\WpfTestCase.cs" />
@@ -96,7 +96,6 @@
     <InternalsVisibleToTest Include="Roslyn.Services.Editor.UnitTests" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="App.config" />
     <None Include="project.json" />
   </ItemGroup>
   <ImportGroup Label="Targets">

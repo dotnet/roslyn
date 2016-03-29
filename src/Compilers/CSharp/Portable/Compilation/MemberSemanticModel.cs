@@ -43,6 +43,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             _compilation = compilation;
             _root = root;
             _memberSymbol = memberSymbol;
+
+            if (root.Kind() == SyntaxKind.ArrowExpressionClause)
+            {
+                rootBinder = rootBinder.WithPatternVariablesIfAny(((ArrowExpressionClauseSyntax)root).Expression);
+            }
+
             this.RootBinder = rootBinder.WithAdditionalFlags(GetSemanticModelBinderFlags());
             _parentSemanticModelOpt = parentSemanticModelOpt;
             _speculatedPosition = speculatedPosition;
@@ -135,10 +141,14 @@ namespace Microsoft.CodeAnalysis.CSharp
         private Binder GetEnclosingBinder(CSharpSyntaxNode node, int position)
         {
             AssertPositionAdjusted(position);
+            return GetEnclosingBinder(node, position, RootBinder, _root).WithAdditionalFlags(GetSemanticModelBinderFlags());
+        }
 
-            if (node == _root)
+        private static Binder GetEnclosingBinder(CSharpSyntaxNode node, int position, Binder rootBinder, CSharpSyntaxNode root)
+        {
+            if (node == root)
             {
-                return RootBinder;
+                return rootBinder;
             }
 
             ExpressionSyntax typeOfArgument = null;
@@ -160,7 +170,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     if (LookupPosition.IsInStatementScope(position, stmt))
                     {
-                        binder = RootBinder.GetBinder(current);
+                        binder = rootBinder.GetBinder(current);
 
                         if (binder != null)
                         {
@@ -172,27 +182,27 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     if (LookupPosition.IsInCatchBlockScope(position, (CatchClauseSyntax)current))
                     {
-                        binder = RootBinder.GetBinder(current);
+                        binder = rootBinder.GetBinder(current);
                     }
                 }
                 else if (current.Kind() == SyntaxKind.CatchFilterClause)
                 {
                     if (LookupPosition.IsInCatchFilterScope(position, (CatchFilterClauseSyntax)current))
                     {
-                        binder = RootBinder.GetBinder(current);
+                        binder = rootBinder.GetBinder(current);
                     }
                 }
                 else if (current.IsAnonymousFunction())
                 {
                     if (LookupPosition.IsInAnonymousFunctionOrQuery(position, current))
                     {
-                        binder = RootBinder.GetBinder(current);
+                        binder = rootBinder.GetBinder(current);
 
                         // This should only happen in error scenarios.  For example, C# does not allow array rank
                         // specifiers in types, (e.g. int[1] x;), but the syntax model does.  In order to construct
                         // an appropriate binder chain for the anonymous method body, we need to construct an
                         // ExecutableCodeBinder.
-                        if (binder == null && unexpectedAnonymousFunction == null)
+                        if (binder == null && unexpectedAnonymousFunction == null && current != root)
                         {
                             unexpectedAnonymousFunction = current;
                         }
@@ -208,20 +218,32 @@ namespace Microsoft.CodeAnalysis.CSharp
                     typeOfArgument = typeOfExpression.Type;
                     typeOfEncounteredBeforeUnexpectedAnonymousFunction = unexpectedAnonymousFunction == null;
                 }
+                else if (current.Kind() == SyntaxKind.SwitchSection)
+                {
+                    if (LookupPosition.IsInSwitchSectionScope(position, (SwitchSectionSyntax)current))
+                    {
+                        binder = rootBinder.GetBinder(current);
+                    }
+                }
+                else if (current.Kind() == SyntaxKind.ArrowExpressionClause && current.Parent?.Kind() == SyntaxKind.LocalFunctionStatement)
+                {
+                    binder = rootBinder.GetBinder(current);
+                }
                 else
                 {
                     // If this ever breaks, make sure that all callers of
                     // CanHaveAssociatedLocalBinder are in sync.
-                    Debug.Assert(!current.CanHaveAssociatedLocalBinder());
+                    Debug.Assert(!current.CanHaveAssociatedLocalBinder() || 
+                                 (current == root && current.Kind() == SyntaxKind.ArrowExpressionClause));
                 }
 
-                if (current == _root)
+                if (current == root)
                 {
                     break;
                 }
             }
 
-            binder = binder ?? RootBinder;
+            binder = binder ?? rootBinder;
             Debug.Assert(binder != null);
 
             if (typeOfArgument != null && !typeOfEncounteredBeforeUnexpectedAnonymousFunction)
@@ -234,6 +256,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 binder = new ExecutableCodeBinder(unexpectedAnonymousFunction,
                                                   new LambdaSymbol(binder.ContainingMemberOrLambda,
                                                                    ImmutableArray<ParameterSymbol>.Empty,
+                                                                   RefKind.None,
                                                                    ErrorTypeSymbol.UnknownResultType,
                                                                    unexpectedAnonymousFunction.Kind() == SyntaxKind.AnonymousMethodExpression ? MessageID.IDS_AnonMethod : MessageID.IDS_Lambda,
                                                                    unexpectedAnonymousFunction,
@@ -247,11 +270,23 @@ namespace Microsoft.CodeAnalysis.CSharp
                 binder = new TypeofBinder(typeOfArgument, binder);
             }
 
-            return binder.WithAdditionalFlags(GetSemanticModelBinderFlags());
+            return binder;
         }
 
         private static Binder AdjustBinderForPositionWithinStatement(int position, Binder binder, StatementSyntax stmt)
         {
+            switch (stmt.Kind())
+            {
+                case SyntaxKind.SwitchStatement:
+                    var switchStmt = (SwitchStatementSyntax)stmt;
+                    if (LookupPosition.IsBetweenTokens(position, switchStmt.OpenParenToken, switchStmt.OpenBraceToken))
+                    {
+                        binder = binder.Next;
+                        Debug.Assert(binder is PatternVariableBinder);
+                    }
+                    break;
+            }
+
             return binder;
         }
 
@@ -485,14 +520,38 @@ namespace Microsoft.CodeAnalysis.CSharp
         public override ISymbol GetDeclaredSymbol(VariableDeclaratorSyntax declarationSyntax, CancellationToken cancellationToken = default(CancellationToken))
         {
             CheckSyntaxNode(declarationSyntax);
+            return GetDeclaredLocal(declarationSyntax, declarationSyntax.Identifier);
+        }
 
-            var binder = this.GetEnclosingBinder(GetAdjustedNodePosition(declarationSyntax));
-            foreach (var local in binder.Locals)
+        private LocalSymbol GetDeclaredLocal(CSharpSyntaxNode declarationSyntax, SyntaxToken declaredIdentifier)
+        {
+            for (var binder = this.GetEnclosingBinder(GetAdjustedNodePosition(declarationSyntax)); binder != null; binder = binder.Next)
             {
-                if (local.IdentifierToken == declarationSyntax.Identifier)
+                foreach (var local in binder.Locals)
                 {
-                    return local;
+                    if (local.IdentifierToken == declaredIdentifier)
+                    {
+                        return local;
+                    }
                 }
+            }
+
+            return null;
+        }
+
+        public override ISymbol GetDeclaredSymbol(DeclarationPatternSyntax declarationSyntax, CancellationToken cancellationToken = default(CancellationToken))
+        {
+            CheckSyntaxNode(declarationSyntax);
+            return GetDeclaredLocal(declarationSyntax, declarationSyntax.Identifier);
+        }
+
+        public override ISymbol GetDeclaredSymbol(LetStatementSyntax declarationSyntax, CancellationToken cancellationToken = default(CancellationToken))
+        {
+            CheckSyntaxNode(declarationSyntax);
+
+            if (declarationSyntax.Pattern == null)
+            {
+                return GetDeclaredLocal(declarationSyntax, declarationSyntax.Identifier);
             }
 
             return null;
@@ -520,12 +579,20 @@ namespace Microsoft.CodeAnalysis.CSharp
             CheckSyntaxNode(declarationSyntax);
 
             var binder = this.GetEnclosingBinder(GetAdjustedNodePosition(declarationSyntax));
-            foreach (var label in binder.Labels)
+            while (binder != null && !(binder is SwitchBinder))
             {
-                if (label.IdentifierNodeOrToken.IsNode &&
-                    label.IdentifierNodeOrToken.AsNode() == declarationSyntax)
+                binder = binder.Next;
+            }
+
+            if (binder != null)
+            {
+                foreach (var label in binder.Labels)
                 {
-                    return label;
+                    if (label.IdentifierNodeOrToken.IsNode &&
+                        label.IdentifierNodeOrToken.AsNode() == declarationSyntax)
+                    {
+                        return label;
+                    }
                 }
             }
 
@@ -800,12 +867,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                     break;
             }
 
-            // Screen out bound nodes that aren't appropriate as IOperations.
-            if (result != null && result.Kind == BoundKind.EqualsValue)
-            {
-                result = ((BoundEqualsValue)result).Value;
-            }
-
             return result as IOperation;
         }
 
@@ -901,6 +962,23 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             var bound = GetBoundQueryClause(node);
             return GetTypeInfoForQuery(bound);
+        }
+
+        /// <summary>
+        /// Gets the symbol information for the property of a sub-property pattern.
+        /// </summary>
+        public override SymbolInfo GetSymbolInfo(SubPropertyPatternSyntax node, CancellationToken cancellationToken)
+        {
+            var boundNode = GetLowerBoundNode(node) as BoundSubPropertyPattern;
+            if (boundNode != null)
+            {
+                var property = boundNode.Property;
+                return new SymbolInfo(property, boundNode.ResultKind == LookupResultKind.Viable ? CandidateReason.None : boundNode.ResultKind.ToCandidateReason());
+            }
+            else
+            {
+                return default(SymbolInfo);
+            }
         }
 
         private void GetBoundNodes(CSharpSyntaxNode node, out CSharpSyntaxNode bindableNode, out BoundNode lowestBoundNode, out BoundNode highestBoundNode, out BoundNode boundParent)
@@ -1330,67 +1408,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             Debug.Assert(containingLambda.IsAnonymousFunction());
             Debug.Assert(LookupPosition.IsInAnonymousFunctionOrQuery(position, containingLambda));
 
-            var current = startingNode;
-            while (current != containingLambda)
-            {
-                Debug.Assert(current != null);
-
-                StatementSyntax stmt = current as StatementSyntax;
-                if (stmt != null)
-                {
-                    if (LookupPosition.IsInStatementScope(position, stmt))
-                    {
-                        Binder binder = lambdaBinder.GetBinder(current);
-                        if (binder != null)
-                        {
-                            return AdjustBinderForPositionWithinStatement(position, binder, stmt);
-                        }
-                    }
-                }
-                else if (current.Kind() == SyntaxKind.CatchClause)
-                {
-                    if (LookupPosition.IsInCatchBlockScope(position, (CatchClauseSyntax)current))
-                    {
-                        Binder binder = lambdaBinder.GetBinder(current);
-                        if (binder != null)
-                        {
-                            return binder;
-                        }
-                    }
-                }
-                else if (current.Kind() == SyntaxKind.CatchFilterClause)
-                {
-                    if (LookupPosition.IsInCatchFilterScope(position, (CatchFilterClauseSyntax)current))
-                    {
-                        Binder binder = lambdaBinder.GetBinder(current);
-                        if (binder != null)
-                        {
-                            return binder;
-                        }
-                    }
-                }
-                else if (current.IsAnonymousFunction())
-                {
-                    if (LookupPosition.IsInAnonymousFunctionOrQuery(position, current))
-                    {
-                        Binder binder = lambdaBinder.GetBinder(current);
-                        if (binder != null)
-                        {
-                            return binder;
-                        }
-                    }
-                }
-                else
-                {
-                    // If this ever breaks, make sure that all callers of
-                    // CanHaveAssociatedLocalBinder are in sync.
-                    Debug.Assert(!current.CanHaveAssociatedLocalBinder());
-                }
-
-                current = current.ParentOrStructuredTriviaParent;
-            }
-
-            return lambdaBinder;
+            return GetEnclosingBinder(startingNode, position, lambdaBinder, containingLambda);
         }
 
         /// <summary>
@@ -1564,7 +1582,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                             !(node is OrderingSyntax) &&
                             !(node is JoinIntoClauseSyntax) &&
                             !(node is QueryContinuationSyntax) &&
-                            !(node is ArrowExpressionClauseSyntax))
+                            !(node is ArrowExpressionClauseSyntax) &&
+                            !(node is SubPropertyPatternSyntax))
                         {
                             return GetBindableSyntaxNode(parent);
                         }

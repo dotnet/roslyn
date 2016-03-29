@@ -1,4 +1,4 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
+<?xml version="1.0" encoding="utf-8"?>
 <!-- Copyright (c)  Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information. -->
 
 <Tree Root="SyntaxNode">
@@ -528,51 +528,51 @@
     </FactoryComment>
   </Node>
   <Node Name="AssignmentExpressionSyntax" Base="ExpressionSyntax">
-    <Kind Name="SimpleAssignmentExpression"/>
-    <Kind Name="AddAssignmentExpression"/>
-    <Kind Name="SubtractAssignmentExpression"/>
-    <Kind Name="MultiplyAssignmentExpression"/>
-    <Kind Name="DivideAssignmentExpression"/>
-    <Kind Name="ModuloAssignmentExpression"/>
-    <Kind Name="AndAssignmentExpression"/>
-    <Kind Name="ExclusiveOrAssignmentExpression"/>
-    <Kind Name="OrAssignmentExpression"/>
-    <Kind Name="LeftShiftAssignmentExpression"/>
-    <Kind Name="RightShiftAssignmentExpression"/>
-    <Field Name="Left" Type="ExpressionSyntax">
-      <PropertyComment>
-        <summary>ExpressionSyntax node representing the expression on the left of the assignment operator.</summary>
-      </PropertyComment>
-    </Field>
-    <Field Name="OperatorToken" Type="SyntaxToken">
-      <Kind Name="EqualsToken"/>
-      <Kind Name="PlusEqualsToken"/>
-      <Kind Name="MinusEqualsToken"/>
-      <Kind Name="AsteriskEqualsToken"/>
-      <Kind Name="SlashEqualsToken"/>
-      <Kind Name="PercentEqualsToken"/>
-      <Kind Name="AmpersandEqualsToken"/>
-      <Kind Name="CaretEqualsToken"/>
-      <Kind Name="BarEqualsToken"/>
-      <Kind Name="LessThanLessThanEqualsToken"/>
-      <Kind Name="GreaterThanGreaterThanEqualsToken"/>
-      <PropertyComment>
-        <summary>SyntaxToken representing the operator of the assignment expression.</summary>
-      </PropertyComment>
-    </Field>
-    <Field Name="Right" Type="ExpressionSyntax">
-      <PropertyComment>
-        <summary>ExpressionSyntax node representing the expression on the right of the assignment operator.</summary>
-      </PropertyComment>
-    </Field>
-    <TypeComment>
-      <summary>Class which represents an expression that has an assignment operator.</summary>
-    </TypeComment>
-    <FactoryComment>
-      <summary>Creates an AssignmentExpressionSyntax node.</summary>
-    </FactoryComment>
-  </Node>
-  <Node Name="ConditionalExpressionSyntax" Base="ExpressionSyntax">
+      <Kind Name="SimpleAssignmentExpression"/>
+      <Kind Name="AddAssignmentExpression"/>
+      <Kind Name="SubtractAssignmentExpression"/>
+      <Kind Name="MultiplyAssignmentExpression"/>
+      <Kind Name="DivideAssignmentExpression"/>
+      <Kind Name="ModuloAssignmentExpression"/>
+      <Kind Name="AndAssignmentExpression"/>
+      <Kind Name="ExclusiveOrAssignmentExpression"/>
+      <Kind Name="OrAssignmentExpression"/>
+      <Kind Name="LeftShiftAssignmentExpression"/>
+      <Kind Name="RightShiftAssignmentExpression"/>
+      <Field Name="Left" Type="ExpressionSyntax">
+        <PropertyComment>
+          <summary>ExpressionSyntax node representing the expression on the left of the assignment operator.</summary>
+        </PropertyComment>
+      </Field>
+      <Field Name="OperatorToken" Type="SyntaxToken">
+        <Kind Name="EqualsToken"/>
+        <Kind Name="PlusEqualsToken"/>
+        <Kind Name="MinusEqualsToken"/>
+        <Kind Name="AsteriskEqualsToken"/>
+        <Kind Name="SlashEqualsToken"/>
+        <Kind Name="PercentEqualsToken"/>
+        <Kind Name="AmpersandEqualsToken"/>
+        <Kind Name="CaretEqualsToken"/>
+        <Kind Name="BarEqualsToken"/>
+        <Kind Name="LessThanLessThanEqualsToken"/>
+        <Kind Name="GreaterThanGreaterThanEqualsToken"/>
+        <PropertyComment>
+          <summary>SyntaxToken representing the operator of the assignment expression.</summary>
+        </PropertyComment>
+      </Field>
+      <Field Name="Right" Type="ExpressionSyntax">
+        <PropertyComment>
+          <summary>ExpressionSyntax node representing the expression on the right of the assignment operator.</summary>
+        </PropertyComment>
+      </Field>
+      <TypeComment>
+        <summary>Class which represents an expression that has an assignment operator.</summary>
+      </TypeComment>
+      <FactoryComment>
+        <summary>Creates an AssignmentExpressionSyntax node.</summary>
+      </FactoryComment>
+    </Node>
+    <Node Name="ConditionalExpressionSyntax" Base="ExpressionSyntax">
     <Kind Name="ConditionalExpression"/>
     <Field Name="Condition" Type="ExpressionSyntax">
       <PropertyComment>
@@ -591,11 +591,10 @@
       </PropertyComment>
     </Field>
     <Field Name="ColonToken" Type="SyntaxToken">
-      <Kind Name="ColonToken">
-        <PropertyComment>
-          <summary>SyntaxToken representing the colon.</summary>
-        </PropertyComment>
-      </Kind>
+      <Kind Name="ColonToken"/>
+      <PropertyComment>
+        <summary>SyntaxToken representing the colon.</summary>
+      </PropertyComment>
     </Field>
     <Field Name="WhenFalse" Type="ExpressionSyntax">
       <PropertyComment>
@@ -1167,6 +1166,12 @@
         <summary>SyntaxToken representing equals greater than.</summary>
       </PropertyComment>
     </Field>
+    <Field Name="RefKeyword" Type="SyntaxToken" Optional="true">
+      <Kind Name="RefKeyword"/>
+      <PropertyComment>
+        <summary>SyntaxToken representing the "ref" keyword if present.</summary>
+      </PropertyComment>
+    </Field>
     <Field Name="Body" Type="CSharpSyntaxNode" Override="true">
       <PropertyComment>
         <summary>SyntaxNode representing the body of the lambda expression.</summary>
@@ -1197,6 +1202,12 @@
       <Kind Name="EqualsGreaterThanToken"/>
       <PropertyComment>
         <summary>SyntaxToken representing equals greater than.</summary>
+      </PropertyComment>
+    </Field>
+    <Field Name="RefKeyword" Type="SyntaxToken" Optional="true">
+      <Kind Name="RefKeyword"/>
+      <PropertyComment>
+        <summary>SyntaxToken representing the "ref" keyword if present.</summary>
       </PropertyComment>
     </Field>
     <Field Name="Body" Type="CSharpSyntaxNode" Override="true">
@@ -1576,6 +1587,163 @@
       </PropertyComment>
     </Field>
   </Node>
+  <Node Name="IsPatternExpressionSyntax" Base="ExpressionSyntax">
+    <Kind Name="IsPatternExpression"/>
+    <Field Name="Expression" Type="ExpressionSyntax">
+    <PropertyComment>
+      <summary>ExpressionSyntax node representing the expression on the left of the "is" operator.</summary>
+    </PropertyComment>
+    </Field>
+    <Field Name="IsKeyword" Type="SyntaxToken">
+      <Kind Name="IsKeyword"/>
+    </Field>
+    <Field Name="Pattern" Type="PatternSyntax">
+      <PropertyComment>
+        <summary>PatternSyntax node representing the pattern on the right of the "is" operator.</summary>
+      </PropertyComment>
+    </Field>
+    <TypeComment>
+      <summary>Class which represents a simple pattern-maching expresion using the "is" keyword.</summary>
+    </TypeComment>
+    <FactoryComment>
+      <summary>Creates an IsPatternExpressionSyntax node.</summary>
+    </FactoryComment>
+  </Node>
+  <Node Name="MatchExpressionSyntax" Base="ExpressionSyntax">
+    <Kind Name="MatchExpression"/>
+    <Field Name="Left" Type="ExpressionSyntax" />
+    <Field Name="MatchToken" Type="SyntaxToken">
+      <Kind Name="MatchKeyword"/>
+    </Field>>
+    <Field Name="OpenParenToken" Type="SyntaxToken">
+      <Kind Name="OpenParenToken"/>
+    </Field>
+    <Field Name="Sections" Type="SyntaxList&lt;MatchSectionSyntax&gt;" />
+    <Field Name="CloseParenToken" Type="SyntaxToken">
+      <Kind Name="CloseParenToken"/>
+    </Field>
+  </Node>
+  <Node Name="MatchSectionSyntax" Base="CSharpSyntaxNode">
+    <Kind Name="MatchSection" />
+    <Field Name="CaseKeyword" Type="SyntaxToken">
+      <Kind Name="CaseKeyword"/>
+    </Field>
+    <Field Name="Pattern" Type="PatternSyntax" />
+    <Field Name="WhenClause" Type="WhenClauseSyntax" Optional="true"/>
+    <Field Name="ColonToken" Type="SyntaxToken">
+      <Kind Name="ColonToken"/>
+    </Field>
+    <Field Name="Expression" Type="ExpressionSyntax" />
+  </Node>
+  <Node Name="WhenClauseSyntax" Base="CSharpSyntaxNode">
+    <Kind Name="WhenClause" />
+    <Field Name="WhenKeyword" Type="SyntaxToken" Optional="true">
+      <Kind Name="WhenKeyword"/>
+    </Field>
+    <Field Name="Condition" Type="ExpressionSyntax" Optional="true" />
+  </Node>
+  <Node Name="ThrowExpressionSyntax" Base="ExpressionSyntax">
+    <Kind Name="ThrowExpression" />
+    <Field Name="ThrowKeyword" Type="SyntaxToken" Optional="false">
+      <Kind Name="ThrowKeyword"/>
+    </Field>
+    <Field Name="Expression" Type="ExpressionSyntax" Optional="false"/>
+  </Node>
+  <AbstractNode Name="PatternSyntax" Base="CSharpSyntaxNode" />
+  <Node Name="DeclarationPatternSyntax" Base="PatternSyntax">
+    <Kind Name="DeclarationPattern" />
+    <Field Name="Type" Type="TypeSyntax" />
+    <Field Name="Identifier" Type="SyntaxToken">
+      <Kind Name="IdentifierToken"/>
+    </Field>
+  </Node>
+  <Node Name="WildcardPatternSyntax" Base="PatternSyntax">
+    <Kind Name="WildcardPattern"/>
+    <Field Name="AsteriskToken" Type="SyntaxToken">
+      <Kind Name="AsteriskToken"/>
+    </Field>
+  </Node>
+  <Node Name="ConstantPatternSyntax" Base="PatternSyntax">
+    <Kind Name="ConstantPattern"/>
+    <Field Name="Expression" Type="ExpressionSyntax">
+      <PropertyComment>
+        <summary>ExpressionSyntax node representing the constant expression.</summary>
+      </PropertyComment>
+    </Field>
+  </Node>
+  <Node Name="RecursivePatternSyntax" Base="PatternSyntax">
+    <Kind Name="RecursivePattern"/>
+    <Field Name="Type" Type="TypeSyntax" />
+    <Field Name="PatternList" Type="SubRecursivePatternListSyntax">
+      <PropertyComment>
+        <summary>SubPatternListSyntax node representing the list of patterns in a recursive pattern.</summary>
+      </PropertyComment>
+    </Field>
+  </Node>
+  <Node Name="SubRecursivePatternListSyntax" Base="CSharpSyntaxNode">
+    <Kind Name="SubRecursivePatternList"/>
+    <Field Name="OpenParenToken" Type="SyntaxToken">
+      <Kind Name="OpenParenToken"/>
+      <PropertyComment>
+        <summary>SyntaxToken representing open parenthesis.</summary>
+      </PropertyComment>
+    </Field>
+    <Field Name="SubPatterns" Type="SeparatedSyntaxList&lt;SubRecursivePatternSyntax&gt;">
+      <PropertyComment>
+        <summary>SeparatedSyntaxList of SubPatternsSyntax representing the list of subpatterns.</summary>
+      </PropertyComment>
+    </Field>
+    <Field Name="CloseParenToken" Type="SyntaxToken">
+      <Kind Name="CloseParenToken"/>
+      <PropertyComment>
+        <summary>SyntaxToken representing close parenthesis.</summary>
+      </PropertyComment>
+    </Field>
+  </Node>
+  <Node Name="SubRecursivePatternSyntax" Base="CSharpSyntaxNode">
+    <Kind Name="SubRecursivePattern"/>
+    <Field Name="NameColon" Type="NameColonSyntax" Optional="true">
+      <PropertyComment>
+        <summary>NameColonSyntax node representing the optional name arguments.</summary>
+      </PropertyComment>
+    </Field>
+    <Field Name="Pattern" Type="PatternSyntax">
+      <PropertyComment>
+        <summary>PatternSyntax node representing the pattern.</summary>
+      </PropertyComment>
+    </Field>
+  </Node>
+  <Node Name="PropertyPatternSyntax" Base="PatternSyntax">
+    <Kind Name="PropertyPattern"/>
+    <Field Name="Type" Type="TypeSyntax" />
+    <Field Name="PatternList" Type="SubPropertyPatternListSyntax" />
+  </Node>
+  <Node Name="SubPropertyPatternListSyntax" Base="CSharpSyntaxNode">
+    <Kind Name="SubPropertyPatternList"/>
+    <Field Name="OpenBraceToken" Type="SyntaxToken">
+      <Kind Name="OpenBraceToken"/>
+      <PropertyComment>
+        <summary>SyntaxToken representing open brace.</summary>
+      </PropertyComment>
+    </Field>
+    <Field Name="SubPatterns" Type="SeparatedSyntaxList&lt;SubPropertyPatternSyntax&gt;" />
+    <Field Name="CloseBraceToken" Type="SyntaxToken">
+      <Kind Name="CloseBraceToken"/>
+      <PropertyComment>
+        <summary>SyntaxToken representing close brace.</summary>
+      </PropertyComment>
+    </Field>
+  </Node>
+  <Node Name="SubPropertyPatternSyntax" Base="CSharpSyntaxNode">
+    <Kind Name="SubPropertyPattern"/>
+    <Field Name="Left" Type="SyntaxToken">
+      <Kind Name="IdentifierToken"/>
+    </Field>
+    <Field Name="IsKeyword" Type="SyntaxToken">
+      <Kind Name="IsKeyword"/>
+    </Field>
+    <Field Name="Pattern" Type="PatternSyntax" />
+  </Node>
   <AbstractNode Name="InterpolatedStringContentSyntax" Base="CSharpSyntaxNode" />
   <Node Name="InterpolatedStringTextSyntax" Base="InterpolatedStringContentSyntax">
     <Kind Name="InterpolatedStringText"/>
@@ -1636,6 +1804,9 @@
   <Node Name="LocalFunctionStatementSyntax" Base="StatementSyntax">
     <Kind Name="LocalFunctionStatement"/>
     <Field Name="Modifiers" Type="SyntaxList&lt;SyntaxToken&gt;"/>
+    <Field Name="RefKeyword" Type="SyntaxToken" Optional="true">
+      <Kind Name="RefKeyword"/>
+    </Field>
     <Field Name="ReturnType" Type="TypeSyntax"/>
     <Field Name="Identifier" Type="SyntaxToken">
       <PropertyComment>
@@ -1662,6 +1833,9 @@
         <summary>Gets the modifier list.</summary>
       </PropertyComment>
     </Field>
+    <Field Name="RefKeyword" Type="SyntaxToken" Optional="true">
+      <Kind Name="RefKeyword"/>
+    </Field>
     <Field Name="Declaration" Type="VariableDeclarationSyntax"/>
     <Field Name="SemicolonToken" Type="SyntaxToken">
       <Kind Name="SemicolonToken"/>
@@ -1687,6 +1861,9 @@
     <Kind Name="EqualsValueClause"/>
     <Field Name="EqualsToken" Type="SyntaxToken">
       <Kind Name="EqualsToken"/>
+    </Field>
+    <Field Name="RefKeyword" Type="SyntaxToken" Optional="true">
+      <Kind Name="RefKeyword"/>
     </Field>
     <Field Name="Value" Type="ExpressionSyntax"/>
   </Node>
@@ -1795,6 +1972,9 @@
     <Field Name="ReturnKeyword" Type="SyntaxToken">
       <Kind Name="ReturnKeyword"/>
     </Field>
+    <Field Name="RefKeyword" Type="SyntaxToken" Optional="true">
+      <Kind Name="RefKeyword"/>
+    </Field>
     <Field Name="Expression" Type="ExpressionSyntax" Optional="true"/>
     <Field Name="SemicolonToken" Type="SyntaxToken">
       <Kind Name="SemicolonToken"/>
@@ -1866,6 +2046,9 @@
     </Field>
     <Field Name="OpenParenToken" Type="SyntaxToken">
       <Kind Name="OpenParenToken"/>
+    </Field>
+    <Field Name="RefKeyword" Type="SyntaxToken" Optional="true">
+      <Kind Name="RefKeyword"/>
     </Field>
     <Field Name="Declaration" Type="VariableDeclarationSyntax" Optional="true"/>
     <Field Name="Initializers" Type="SeparatedSyntaxList&lt;ExpressionSyntax&gt;"/>
@@ -2145,6 +2328,30 @@
       <summary>Represents a switch label within a switch statement.</summary>
     </TypeComment>
   </AbstractNode>
+  <Node Name="CasePatternSwitchLabelSyntax" Base="SwitchLabelSyntax">
+    <Kind Name="CasePatternSwitchLabel"/>
+    <Field Name="Keyword" Type="SyntaxToken" Override="true">
+      <Kind Name="CaseKeyword"/>
+      <PropertyComment>
+        <summary>Gets the case keyword token.</summary>
+      </PropertyComment>
+    </Field>
+    <Field Name="Pattern" Type="PatternSyntax">
+      <PropertyComment>
+        <summary>
+          Gets a PatternSyntax that represents the pattern that gets matched for the case label.
+        </summary>
+      </PropertyComment>
+    </Field>
+    <Field Name="WhenClause" Type="WhenClauseSyntax" Optional="true"/>
+    <Field Name="ColonToken" Type="SyntaxToken" Override="true"/>
+    <TypeComment>
+      <summary>Represents a case label within a switch statement.</summary>
+    </TypeComment>
+    <FactoryComment>
+      <summary>Creates a CaseMatchLabelSyntax node.</summary>
+    </FactoryComment>
+  </Node>
   <Node Name="CaseSwitchLabelSyntax" Base="SwitchLabelSyntax">
     <Kind Name="CaseSwitchLabel"/>
     <Field Name="Keyword" Type="SyntaxToken" Override="true">
@@ -2183,6 +2390,29 @@
     <FactoryComment>
       <summary>Creates a DefaultSwitchLabelSyntax node.</summary>
     </FactoryComment>
+  </Node>
+  <Node Name="LetStatementSyntax" Base="StatementSyntax">
+    <Kind Name="LetStatement"/>
+    <Field Name="LetKeyword" Type="SyntaxToken">
+      <Kind Name="LetKeyword"/>
+    </Field>
+    <Field Name="Pattern" Type="PatternSyntax" Optional="true"/>
+    <Field Name="Identifier" Type="SyntaxToken" Optional="true"/>
+    <Field Name="EqualsToken" Type="SyntaxToken">
+      <Kind Name="EqualsToken"/>
+    </Field>
+    <Field Name="Expression" Type="ExpressionSyntax"/>
+    <Field Name="WhenClause" Type="WhenClauseSyntax" Optional="true"/>
+    <Field Name="ElseClause" Type="ElseClauseSyntax" Optional="true"/>
+    <Field Name="SemicolonToken" Type="SyntaxToken"  Optional="true">
+      <Kind Name="SemicolonToken"/>
+    </Field>
+    <TypeComment>
+      <summary>
+        Pattern and Identifier are mutually exclusive; precisely one of them must be present.
+        ElseClause and SemicolonToken are mutually exclusive; precisely one of them must be present.
+      </summary>
+    </TypeComment>
   </Node>
   <Node Name="TryStatementSyntax" Base="StatementSyntax">
     <Kind Name="TryStatement"/>
@@ -2688,6 +2918,12 @@
       </PropertyComment>
       <Kind Name="DelegateKeyword"/>
     </Field>
+    <Field Name="RefKeyword" Type="SyntaxToken" Optional="true">
+      <Kind Name="RefKeyword"/>
+      <PropertyComment>
+        <summary>Gets the "ref" keyword if present.</summary>
+      </PropertyComment>
+    </Field>
     <Field Name="ReturnType" Type="TypeSyntax">
       <PropertyComment>
         <summary>Gets the return type.</summary>
@@ -2938,6 +3174,9 @@
     <Kind Name="MethodDeclaration"/>
     <Field Name="AttributeLists" Type="SyntaxList&lt;AttributeListSyntax&gt;" Override="true"/>
     <Field Name="Modifiers" Type="SyntaxList&lt;SyntaxToken&gt;" Override="true"/>
+    <Field Name="RefKeyword" Type="SyntaxToken" Optional="true">
+      <Kind Name="RefKeyword"/>
+    </Field>
     <Field Name="ReturnType" Type="TypeSyntax">
       <PropertyComment>
         <summary>Gets the return type syntax.</summary>
@@ -3157,6 +3396,9 @@
     <Kind Name="PropertyDeclaration"/>
     <Field Name="AttributeLists" Type="SyntaxList&lt;AttributeListSyntax&gt;" Override="true"/>
     <Field Name="Modifiers" Type="SyntaxList&lt;SyntaxToken&gt;" Override="true"/>
+    <Field Name="RefKeyword" Type="SyntaxToken" Optional="true">
+      <Kind Name="RefKeyword"/>
+    </Field>
     <Field Name="Type" Type="TypeSyntax" Override="true"/>
     <Field Name="ExplicitInterfaceSpecifier" Type="ExplicitInterfaceSpecifierSyntax" Optional="true" Override="true"/>
     <Field Name="Identifier" Type="SyntaxToken">
@@ -3179,6 +3421,9 @@
     <Kind Name="ArrowExpressionClause" />
     <Field Name="ArrowToken" Type="SyntaxToken">
       <Kind Name="EqualsGreaterThanToken" />
+    </Field>
+    <Field Name="RefKeyword" Type="SyntaxToken" Optional="true">
+      <Kind Name="RefKeyword" />
     </Field>
     <Field Name="Expression" Type="ExpressionSyntax" />
   </Node>
@@ -3203,6 +3448,9 @@
     <Kind Name="IndexerDeclaration"/>
     <Field Name="AttributeLists" Type="SyntaxList&lt;AttributeListSyntax&gt;" Override="true"/>
     <Field Name="Modifiers" Type="SyntaxList&lt;SyntaxToken&gt;" Override="true"/>
+    <Field Name="RefKeyword" Type="SyntaxToken" Optional="true">
+      <Kind Name="RefKeyword"/>
+    </Field>
     <Field Name="Type" Type="TypeSyntax" Override="true"/>
     <Field Name="ExplicitInterfaceSpecifier" Type="ExplicitInterfaceSpecifierSyntax" Optional="true" Override="true"/>
     <Field Name="ThisKeyword" Type="SyntaxToken">
@@ -3352,9 +3600,11 @@
         <summary>Gets the modifier list.</summary>
       </PropertyComment>
     </Field>
+    <Field Name="RefKeyword" Type="SyntaxToken" Optional="true">
+      <Kind Name="RefKeyword"/>
+    </Field>
     <Field Name="Type" Type="TypeSyntax" Optional="true"/>
   </Node>
-
   <Node Name="SkippedTokensTriviaSyntax" Base="StructuredTriviaSyntax">
     <Kind Name="SkippedTokensTrivia"/>
     <Field Name="Tokens" Type="SyntaxList&lt;SyntaxToken&gt;"/>

@@ -145,7 +145,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 BoundStatement retStatement = F.Return(retExpression);
 
                 // Create a bound block 
-                F.CloseMethod(F.Block(ImmutableArray.Create<LocalSymbol>(boundLocal.LocalSymbol), ImmutableArray<LocalFunctionSymbol>.Empty, assignment, retStatement));
+                F.CloseMethod(F.Block(ImmutableArray.Create<LocalSymbol>(boundLocal.LocalSymbol), assignment, retStatement));
             }
 
             internal override bool HasSpecialName
@@ -292,7 +292,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     //  Generate expression for return statement
                     //      retExpression <= System.String.Format(args)
                     var formatMethod = manager.System_String__Format_IFormatProvider;
-                    retExpression = F.StaticCall(manager.System_String, formatMethod, F.Null(formatMethod.Parameters[0].Type), format, F.Array(manager.System_Object, arguments));
+                    retExpression = F.StaticCall(manager.System_String, formatMethod, F.Null(formatMethod.Parameters[0].Type), format, F.ArrayOrEmpty(manager.System_Object, arguments));
                 }
                 else
                 {

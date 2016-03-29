@@ -199,7 +199,7 @@ namespace Microsoft.CodeAnalysis
             }
 
             Compilation newCompilation;
-            var driver = AnalyzerDriver.CreateAndAttachToCompilation(c, analyzersArray, options, AnalyzerManager.Instance, onAnalyzerException, false, out newCompilation, CancellationToken.None);
+            var driver = AnalyzerDriver.CreateAndAttachToCompilation(c, analyzersArray, options, AnalyzerManager.Instance, onAnalyzerException, null, false, out newCompilation, CancellationToken.None);
             var discarded = newCompilation.GetDiagnostics();
             diagnostics = driver.GetDiagnosticsAsync(newCompilation).Result.AddRange(exceptionDiagnostics);
 
@@ -235,9 +235,18 @@ namespace Microsoft.CodeAnalysis
         public static TCompilation VerifyEmitDiagnostics<TCompilation>(this TCompilation c, EmitOptions options, params DiagnosticDescription[] expected)
             where TCompilation : Compilation
         {
-            var pdbStream = MonoHelpers.IsRunningOnMono() ? null : new MemoryStream();
-            c.Emit(new MemoryStream(), pdbStream: pdbStream, options: options).Diagnostics.Verify(expected);
+            c.GetEmitDiagnostics(options: options).Verify(expected);
             return c;
+        }
+
+        public static ImmutableArray<Diagnostic> GetEmitDiagnostics<TCompilation>(
+            this TCompilation c,
+            EmitOptions options = null,
+            IEnumerable<ResourceDescription> manifestResources = null)
+            where TCompilation : Compilation
+        {
+            var pdbStream = MonoHelpers.IsRunningOnMono() ? null : new MemoryStream();
+            return c.Emit(new MemoryStream(), pdbStream: pdbStream, options: options, manifestResources: manifestResources).Diagnostics;
         }
 
         public static TCompilation VerifyEmitDiagnostics<TCompilation>(this TCompilation c, params DiagnosticDescription[] expected)
@@ -246,11 +255,16 @@ namespace Microsoft.CodeAnalysis
             return VerifyEmitDiagnostics(c, EmitOptions.Default, expected);
         }
 
+        public static ImmutableArray<Diagnostic> GetEmitDiagnostics<TCompilation>(this TCompilation c)
+            where TCompilation : Compilation
+        {
+            return GetEmitDiagnostics(c, EmitOptions.Default);
+        }
+
         public static TCompilation VerifyEmitDiagnostics<TCompilation>(this TCompilation c, IEnumerable<ResourceDescription> manifestResources, params DiagnosticDescription[] expected)
             where TCompilation : Compilation
         {
-            var pdbStream = MonoHelpers.IsRunningOnMono() ? null : new MemoryStream();
-            c.Emit(new MemoryStream(), pdbStream: pdbStream, manifestResources: manifestResources).Diagnostics.Verify(expected);
+            c.GetEmitDiagnostics(manifestResources: manifestResources).Verify(expected);
             return c;
         }
 

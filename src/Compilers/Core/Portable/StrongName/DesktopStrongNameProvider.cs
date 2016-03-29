@@ -119,7 +119,7 @@ namespace Microsoft.CodeAnalysis
         {
             if (!keyFileSearchPaths.IsDefault && keyFileSearchPaths.Any(path => !PathUtilities.IsAbsolute(path)))
             {
-                throw new ArgumentException(CodeAnalysisResources.AbsolutePathExpected, "keyFileSearchPaths");
+                throw new ArgumentException(CodeAnalysisResources.AbsolutePathExpected, nameof(keyFileSearchPaths));
             }
 
             _keyFileSearchPaths = keyFileSearchPaths.NullToEmpty();
@@ -187,7 +187,6 @@ namespace Microsoft.CodeAnalysis
 
             if (!string.IsNullOrEmpty(keyFilePath))
             {
-
                 try
                 {
                     string resolvedKeyFile = ResolveStrongNameKeyFile(keyFilePath);

@@ -2,6 +2,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Threading;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.Editor.Implementation.Workspaces;
@@ -27,7 +28,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
             action(cacheService, projectId, owner, instance);
         }
 
-        [WpfFact]
+        [Fact]
         public void TestCacheKeepsObjectAlive1()
         {
             Test((cacheService, projectId, owner, instance) =>
@@ -49,7 +50,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
             });
         }
 
-        [WpfFact]
+        [Fact]
         public void TestCacheKeepsObjectAlive2()
         {
             Test((cacheService, projectId, owner, instance) =>
@@ -71,7 +72,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
             });
         }
 
-        [WpfFact]
+        [Fact]
         public void TestCacheDoesNotKeepObjectsAliveAfterOwnerIsCollected1()
         {
             Test((cacheService, projectId, owner, instance) =>
@@ -87,7 +88,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
             });
         }
 
-        [WpfFact]
+        [Fact]
         public void TestCacheDoesNotKeepObjectsAliveAfterOwnerIsCollected2()
         {
             Test((cacheService, projectId, owner, instance) =>
@@ -103,10 +104,11 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
             });
         }
 
-        [WpfFact]
+        [Fact]
         public void TestImplicitCacheKeepsObjectAlive1()
         {
-            var cacheService = new ProjectCacheService(null, int.MaxValue);
+            var workspace = new AdhocWorkspace(MockHostServices.Instance, workspaceKind: WorkspaceKind.Host);
+            var cacheService = new ProjectCacheService(workspace, int.MaxValue);
             var instance = new object();
             var weak = new WeakReference(instance);
             cacheService.CacheObjectIfCachingEnabledForKey(ProjectId.CreateNewId(), (object)null, instance);
@@ -116,10 +118,11 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
             GC.KeepAlive(cacheService);
         }
 
-        [WpfFact]
+        [Fact]
         public void TestImplicitCacheMonitoring()
         {
-            var cacheService = new ProjectCacheService(null, 10, forceCleanup: true);
+            var workspace = new AdhocWorkspace(MockHostServices.Instance, workspaceKind: WorkspaceKind.Host);
+            var cacheService = new ProjectCacheService(workspace, 10);
             var weak = PutObjectInImplicitCache(cacheService);
 
             var timeout = TimeSpan.FromSeconds(10);
@@ -136,7 +139,13 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
             }
             while (weak.IsAlive);
 
-            Assert.False(weak.IsAlive);
+            // FailFast (and thereby capture a dump) to investigate what's
+            // rooting the object.
+            if (weak.IsAlive)
+            {
+                CodeAnalysis.Test.Utilities.ExceptionUtilities.FailFast(new Exception("Please investigate why the object wasn't collected!"));
+            }
+
             GC.KeepAlive(cacheService);
         }
 
@@ -151,7 +160,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
             return weak;
         }
 
-        [WpfFact]
+        [Fact]
         public void TestP2PReference()
         {
             var workspace = new AdhocWorkspace();
@@ -181,7 +190,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
             Assert.False(weak.IsAlive);
         }
 
-        [WpfFact]
+        [Fact]
         public void TestEjectFromImplicitCache()
         {
             List<Compilation> compilations = new List<Compilation>();
@@ -193,7 +202,8 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
             var weakFirst = new WeakReference(compilations[0]);
             var weakLast = new WeakReference(compilations[compilations.Count - 1]);
 
-            var cache = new ProjectCacheService(null, int.MaxValue);
+            var workspace = new AdhocWorkspace(MockHostServices.Instance, workspaceKind: WorkspaceKind.Host);
+            var cache = new ProjectCacheService(workspace, int.MaxValue);
             for (int i = 0; i < ProjectCacheService.ImplicitCacheSize + 1; i++)
             {
                 cache.CacheObjectIfCachingEnabledForKey(ProjectId.CreateNewId(), (object)null, compilations[i]);
@@ -207,7 +217,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
             GC.KeepAlive(cache);
         }
 
-        [WpfFact]
+        [Fact]
         public void TestCacheCompilationTwice()
         {
             var comp1 = CSharpCompilation.Create("1");
@@ -217,7 +227,8 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
             var weak3 = new WeakReference(comp3);
             var weak1 = new WeakReference(comp1);
 
-            var cache = new ProjectCacheService(null, int.MaxValue);
+            var workspace = new AdhocWorkspace(MockHostServices.Instance, workspaceKind: WorkspaceKind.Host);
+            var cache = new ProjectCacheService(workspace, int.MaxValue);
             var key = ProjectId.CreateNewId();
             var owner = new object();
             cache.CacheObjectIfCachingEnabledForKey(key, owner, comp1);
@@ -249,6 +260,50 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
                 GC.Collect();
                 GC.WaitForPendingFinalizers();
                 GC.Collect();
+            }
+        }
+
+        private class MockHostServices : HostServices
+        {
+            public static readonly MockHostServices Instance = new MockHostServices();
+
+            private MockHostServices() { }
+
+            protected internal override HostWorkspaceServices CreateWorkspaceServices(Workspace workspace)
+            {
+                return new MockHostWorkspaceServices(this, workspace);
+            }
+        }
+
+        private class MockHostWorkspaceServices : HostWorkspaceServices
+        {
+            private readonly HostServices _hostServices;
+            private readonly Workspace _workspace;
+            private static readonly IWorkspaceTaskSchedulerFactory s_taskSchedulerFactory = new WorkspaceTaskSchedulerFactory();
+
+            public MockHostWorkspaceServices(HostServices hostServices, Workspace workspace)
+            {
+                _hostServices = hostServices;
+                _workspace = workspace;
+            }
+
+            public override HostServices HostServices => _hostServices;
+
+            public override Workspace Workspace => _workspace;
+            
+            public override IEnumerable<TLanguageService> FindLanguageServices<TLanguageService>(MetadataFilter filter)
+            {
+                return ImmutableArray<TLanguageService>.Empty;
+            }
+
+            public override TWorkspaceService GetService<TWorkspaceService>()
+            {
+                if (s_taskSchedulerFactory is TWorkspaceService)
+                {
+                    return (TWorkspaceService)s_taskSchedulerFactory;
+                }
+
+                return default(TWorkspaceService);
             }
         }
     }

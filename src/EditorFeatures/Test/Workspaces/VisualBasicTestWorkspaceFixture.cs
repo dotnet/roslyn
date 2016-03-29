@@ -2,6 +2,7 @@
 
 using System;
 using System.Linq;
+using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.CodeAnalysis.VisualBasic;
@@ -10,9 +11,9 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
 {
     public class VisualBasicTestWorkspaceFixture : TestWorkspaceFixture
     {
-        protected override TestWorkspace CreateWorkspace()
+        protected override Task<TestWorkspace> CreateWorkspaceAsync()
         {
-            return VisualBasicWorkspaceFactory.CreateWorkspaceFromFiles(
+            return TestWorkspace.CreateVisualBasicAsync(
                 new string[] { string.Empty },
                 new VisualBasicParseOptions[] { new VisualBasicParseOptions(kind: SourceCodeKind.Regular) },
                 new VisualBasicCompilationOptions(OutputKind.DynamicallyLinkedLibrary));

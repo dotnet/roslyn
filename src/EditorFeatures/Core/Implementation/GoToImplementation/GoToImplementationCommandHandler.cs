@@ -66,6 +66,5 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.GoToImplementation
 
             nextHandler();
         }
-
     }
 }

@@ -18,7 +18,7 @@ namespace Roslyn.Hosting.Diagnostics.Waiters
         [ImportingConstructor]
         private TestingOnly_WaitingService([ImportMany] IEnumerable<Lazy<IAsynchronousOperationWaiter, FeatureMetadata>> waiters)
         {
-            this._waiters = waiters;
+            _waiters = waiters;
         }
 
         private void WaitForAsyncOperations(

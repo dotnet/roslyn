@@ -38,7 +38,7 @@ namespace Microsoft.CodeAnalysis.Host
             var service = GetService<TWorkspaceService>();
             if (service == null)
             {
-                throw new InvalidOperationException(WorkspacesResources.WorkspaceServicesUnavailable);
+                throw new InvalidOperationException(string.Format(WorkspacesResources.WorkspaceServicesUnavailable, typeof(TWorkspaceService).FullName));
             }
 
             return service;

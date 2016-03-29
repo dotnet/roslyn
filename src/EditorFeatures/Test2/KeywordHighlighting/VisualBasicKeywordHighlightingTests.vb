@@ -5,8 +5,8 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.KeywordHighlighting
         Inherits AbstractKeywordHighlightingTests
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)>
-        Public Sub VerifyNoHighlightsWhenOptionDisabled()
-            VerifyHighlights(
+        Public Async Function VerifyNoHighlightsWhenOptionDisabled() As System.Threading.Tasks.Task
+            Await VerifyHighlightsAsync(
                 <Workspace>
                     <Project Language="Visual Basic" CommonReferences="true">
                         <Document>
@@ -21,11 +21,11 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.KeywordHighlighting
                     </Project>
                 </Workspace>,
                 optionIsEnabled:=False)
-        End Sub
+        End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)>
-        Public Sub VerifyHighlightsWhenOptionEnabled()
-            VerifyHighlights(
+        Public Async Function VerifyHighlightsWhenOptionEnabled() As System.Threading.Tasks.Task
+            Await VerifyHighlightsAsync(
                 <Workspace>
                     <Project Language="Visual Basic" CommonReferences="true">
                         <Document>
@@ -39,6 +39,6 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.KeywordHighlighting
                         </Document>
                     </Project>
                 </Workspace>)
-        End Sub
+        End Function
     End Class
 End Namespace

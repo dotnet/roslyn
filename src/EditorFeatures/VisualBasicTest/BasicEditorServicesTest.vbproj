@@ -15,11 +15,6 @@
     <TargetFrameworkVersion>v4.6</TargetFrameworkVersion>
     <TargetFrameworkProfile />
   </PropertyGroup>
-  <ItemGroup Label="File References">
-    <Reference Include="Microsoft.VisualStudio.Composition, Version=14.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
-      <HintPath>$(DevEnvDir)\PrivateAssemblies\Microsoft.VisualStudio.Composition.dll</HintPath>
-    </Reference>
-  </ItemGroup>
   <ItemGroup Label="Project References">
     <ProjectReference Include="..\..\Compilers\Core\Portable\CodeAnalysis.csproj">
       <Project>{1EE8CAD3-55F9-4D91-96B2-084641DA9A6C}</Project>
@@ -86,12 +81,10 @@
     <DebugSymbols>true</DebugSymbols>
     <DefineDebug>true</DefineDebug>
     <DefineTrace>true</DefineTrace>
-    <DebugType>full</DebugType>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Release|AnyCPU'">
     <DefineTrace>true</DefineTrace>
     <Optimize>true</Optimize>
-    <DebugType>pdbonly</DebugType>
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="Microsoft.VisualStudio.CoreUtility, Version=$(VisualStudioReferenceAssemblyVersion), Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a">
@@ -116,6 +109,7 @@
       <Private>false</Private>
     </Reference>
     <Reference Include="PresentationCore" />
+    <Reference Include="PresentationFramework" />
     <Reference Include="System" />
     <Reference Include="System.ComponentModel.Composition" />
     <Reference Include="System.Drawing" />
@@ -159,6 +153,7 @@
     <Compile Include="CodeActions\IntroduceVariable\IntroduceVariableTests.vb" />
     <Compile Include="CodeActions\InvertIf\InvertIfTests.vb" />
     <Compile Include="CodeActions\Preview\PreviewTests.vb" />
+    <Compile Include="Diagnostics\AddImport\AddImportTests_NuGet.vb" />
     <Compile Include="Diagnostics\ImplementAbstractClass\ImplementAbstractClassTests_FixAllTests.vb" />
     <Compile Include="Diagnostics\ImplementInterface\ImplementInterfaceTests_FixAllTests.vb" />
     <Compile Include="Diagnostics\Iterator\IteratorTests.vb" />
@@ -204,8 +199,10 @@
     <Compile Include="Diagnostics\ImplementInterface\ImplementInterfaceCommandHandlerTests.vb" />
     <Compile Include="Diagnostics\ImplementInterface\ImplementInterfaceTests.vb" />
     <Compile Include="Diagnostics\InsertMissingCast\InsertMissingCastTests.vb" />
+    <Compile Include="Diagnostics\MakeMethodSynchronous\MakeMethodSynchronousTests.vb" />
     <Compile Include="Diagnostics\MoveToTopOfFile\MoveToTopOfFileTests.vb" />
     <Compile Include="Diagnostics\OverloadBase\OverloadBaseTests.vb" />
+    <Compile Include="Diagnostics\QualifyMemberAccess\QualifyMemberAccessTests.vb" />
     <Compile Include="Diagnostics\RemoveUnnecessaryCast\RemoveUnnecessaryCastTests.vb" />
     <Compile Include="Diagnostics\RemoveUnnecessaryCast\RemoveUnnecessaryCastTests_FixAllTests.vb" />
     <Compile Include="Diagnostics\RemoveUnnecessaryImports\RemoveUnnecessaryImportsTests.vb" />
@@ -271,7 +268,8 @@
     <Compile Include="Formatting\Indentation\SmartIndentProviderTests.vb" />
     <Compile Include="Formatting\Indentation\SmartTokenFormatter_FormatTokenTests.vb" />
     <Compile Include="Formatting\XmlLiterals.Designer.vb" />
-    <Compile Include="VisualBasicGoToAdjacentMemberTests.vb" />
+    <Compile Include="Outlining\AbstractVisualBasicSyntaxTriviaOutlinerTests.vb" />
+    <Compile Include="GoToAdjacentMember\VisualBasicGoToAdjacentMemberTests.vb" />
     <Compile Include="KeywordHighlighting\AbstractVisualBasicKeywordHighlighterTests.vb" />
     <Compile Include="KeywordHighlighting\AccessorDeclarationHighlighterTests.vb" />
     <Compile Include="KeywordHighlighting\ConditionalPreprocessorHighlighterTests.vb" />
@@ -313,8 +311,7 @@
     <Compile Include="Organizing\OrganizeImportsTests.vb" />
     <Compile Include="Organizing\OrganizeModifiersTests.vb" />
     <Compile Include="Organizing\OrganizeTypeDeclarationTests.vb" />
-    <Compile Include="Outlining\AbstractOutlinerTests.vb" />
-    <Compile Include="Outlining\AbstractOutlinerTests`1.vb" />
+    <Compile Include="Outlining\AbstractVisualBasicSyntaxNodeOutlinerTests.vb" />
     <Compile Include="Outlining\AccessorDeclarationOutlinerTests.vb" />
     <Compile Include="Outlining\CommentTests.vb" />
     <Compile Include="Outlining\CompilationUnitOutlinerTests.vb" />
@@ -591,6 +588,7 @@
     <Import Include="Microsoft.CodeAnalysis.VisualBasic.UnitTests" />
     <Import Include="Roslyn.Test.Utilities" />
     <Import Include="Roslyn.Utilities" />
+    <Import Include="System.Threading.Tasks" />
     <Import Include="Xunit" />
   </ItemGroup>
   <ItemGroup>

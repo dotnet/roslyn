@@ -1,4 +1,4 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Collections.Generic;
 using System.Linq;
@@ -22,16 +22,16 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeRefactorings
         [WpfFact]
         public async Task TestExceptionInComputePreview()
         {
-            using (var workspace = CreateWorkspaceFromFile("class D {}", null, null))
+            using (var workspace = await CreateWorkspaceFromFileAsync("class D {}", null, null))
             {
-                await GetPreview(workspace, new ErrorCases.ExceptionInCodeAction()).ConfigureAwait(true);
+                await GetPreview(workspace, new ErrorCases.ExceptionInCodeAction());
             }
         }
 
-        [WpfFact]
-        public void TestExceptionInDisplayText()
+        [Fact]
+        public async Task TestExceptionInDisplayText()
         {
-            using (var workspace = CreateWorkspaceFromFile("class D {}", null, null))
+            using (var workspace = await CreateWorkspaceFromFileAsync("class D {}", null, null))
             {
                 DisplayText(workspace, new ErrorCases.ExceptionInCodeAction());
             }
@@ -40,9 +40,9 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeRefactorings
         [WpfFact]
         public async Task TestExceptionInActionSets()
         {
-            using (var workspace = CreateWorkspaceFromFile("class D {}", null, null))
+            using (var workspace = await CreateWorkspaceFromFileAsync("class D {}", null, null))
             {
-                await ActionSets(workspace, new ErrorCases.ExceptionInCodeAction()).ConfigureAwait(true);
+                await ActionSets(workspace, new ErrorCases.ExceptionInCodeAction());
             }
         }
 
@@ -53,8 +53,9 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeRefactorings
             EditorLayerExtensionManager.ExtensionManager extensionManager;
             VisualStudio.Text.ITextBuffer textBuffer;
             RefactoringSetup(workspace, provider, refactorings, out editHandler, out extensionManager, out textBuffer);
-            var suggestedAction = new CodeRefactoringSuggestedAction(workspace, textBuffer, editHandler, new TestWaitIndicator(), refactorings.First(), provider);
-            await suggestedAction.GetPreviewAsync(CancellationToken.None).ConfigureAwait(true);
+            var suggestedAction = new CodeRefactoringSuggestedAction(workspace, textBuffer, editHandler, 
+                new TestWaitIndicator(), refactorings.First(), provider, operationListener: null);
+            await suggestedAction.GetPreviewAsync(CancellationToken.None);
             Assert.True(extensionManager.IsDisabled(provider));
             Assert.False(extensionManager.IsIgnored(provider));
         }
@@ -66,7 +67,8 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeRefactorings
             EditorLayerExtensionManager.ExtensionManager extensionManager;
             VisualStudio.Text.ITextBuffer textBuffer;
             RefactoringSetup(workspace, provider, refactorings, out editHandler, out extensionManager, out textBuffer);
-            var suggestedAction = new CodeRefactoringSuggestedAction(workspace, textBuffer, editHandler, new TestWaitIndicator(), refactorings.First(), provider);
+            var suggestedAction = new CodeRefactoringSuggestedAction(workspace, textBuffer, editHandler, 
+                new TestWaitIndicator(), refactorings.First(), provider, operationListener: null);
             var text = suggestedAction.DisplayText;
             Assert.True(extensionManager.IsDisabled(provider));
             Assert.False(extensionManager.IsIgnored(provider));
@@ -79,8 +81,9 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeRefactorings
             EditorLayerExtensionManager.ExtensionManager extensionManager;
             VisualStudio.Text.ITextBuffer textBuffer;
             RefactoringSetup(workspace, provider, refactorings, out editHandler, out extensionManager, out textBuffer);
-            var suggestedAction = new CodeRefactoringSuggestedAction(workspace, textBuffer, editHandler, new TestWaitIndicator(), refactorings.First(), provider);
-            var actionSets = await suggestedAction.GetActionSetsAsync(CancellationToken.None).ConfigureAwait(true);
+            var suggestedAction = new CodeRefactoringSuggestedAction(workspace, textBuffer, editHandler,
+                new TestWaitIndicator(), refactorings.First(), provider, operationListener: null);
+            var actionSets = await suggestedAction.GetActionSetsAsync(CancellationToken.None);
             Assert.True(extensionManager.IsDisabled(provider));
             Assert.False(extensionManager.IsIgnored(provider));
         }

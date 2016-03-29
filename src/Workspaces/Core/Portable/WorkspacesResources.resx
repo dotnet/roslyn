@@ -397,7 +397,7 @@
     <value>Removing project references is not supported.</value>
   </data>
   <data name="WorkspaceServicesUnavailable" xml:space="preserve">
-    <value>Services required to accomplish the task are not available from the workspace.</value>
+    <value>Service of type '{0}' is required to accomplish the task but is not available from the workspace.</value>
   </data>
   <data name="DiagnosticCannotBeNull" xml:space="preserve">
     <value>Supplied diagnostic cannot be null.</value>
@@ -458,5 +458,14 @@
   </data>
   <data name="FixableDiagnosticIdsIncorrectlyInitialized" xml:space="preserve">
     <value>'{0}' returned an uninitialized ImmutableArray</value>
+  </data>
+  <data name="Failure" xml:space="preserve">
+    <value>Failure</value>
+  </data>
+  <data name="Warning" xml:space="preserve">
+    <value>Warning</value>
+  </data>
+  <data name="MemberAccessShouldBeQualified" xml:space="preserve">
+    <value>Member access should be qualified.</value>
   </data>
 </root>

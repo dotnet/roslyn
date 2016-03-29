@@ -1,9 +1,11 @@
 ﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+Imports System.Collections.Immutable
 Imports System.IO
 Imports System.Reflection
 Imports System.Reflection.Metadata
 Imports System.Reflection.Metadata.Ecma335
+Imports System.Runtime.InteropServices
 Imports Microsoft.CodeAnalysis
 Imports Microsoft.CodeAnalysis.Test.Utilities
 Imports Microsoft.CodeAnalysis.VisualBasic
@@ -32,8 +34,8 @@ End Class
         Assert.Equal(New Version(1, 2, 3, 4), other.Assembly.Identity.Version)
     End Sub
 
-    <Fact, WorkItem(543708, "DevDiv")>
-    Public Sub VersionAttribute02()
+    <Fact, WorkItem(543708, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543708")>
+    Public Sub VersionAttribute_FourParts()
         Dim comp As VisualBasicCompilation = CreateCompilationWithMscorlib(
 <compilation>
     <file name="a.vb"><![CDATA[
@@ -47,9 +49,34 @@ End Class
         VerifyAssemblyTable(comp, Sub(r)
                                       Assert.Equal(New Version(1, 22, 333, 4444), r.Version)
                                   End Sub)
+    End Sub
 
-        ' ---------------------------------------------
-        comp = CreateCompilationWithMscorlib(
+    <Fact>
+    Public Sub VersionAttribute_TwoParts()
+        Dim comp = CreateCompilationWithMscorlib(
+<compilation>
+    <file name="a.vb"><![CDATA[
+<Assembly: System.Reflection.AssemblyVersion("1.2")>
+Public Class C
+End Class
+]]>
+    </file>
+</compilation>, OutputKind.DynamicallyLinkedLibrary)
+        VerifyAssemblyTable(comp, Sub(r)
+                                      Assert.Equal(1, r.Version.Major)
+                                      Assert.Equal(2, r.Version.Minor)
+                                      Assert.Equal(0, r.Version.Build)
+                                      Assert.Equal(0, r.Version.Revision)
+                                  End Sub)
+    End Sub
+
+    <Fact>
+    Public Sub VersionAttribute_WildCard()
+        Dim now = Date.Now
+        Dim days = 0, seconds = 0
+        VersionTestHelpers.GetDefautVersion(now, days, seconds)
+
+        Dim comp = CreateCompilationWithMscorlib(
 <compilation>
     <file name="a.vb"><![CDATA[
 <Assembly: System.Reflection.AssemblyVersion("10101.0.*")>
@@ -57,15 +84,39 @@ Public Class C
 End Class
 ]]>
     </file>
-</compilation>, OutputKind.DynamicallyLinkedLibrary)
+</compilation>, options:=TestOptions.ReleaseDll.WithCurrentLocalTime(now))
+
         VerifyAssemblyTable(comp, Sub(r)
                                       Assert.Equal(10101, r.Version.Major)
                                       Assert.Equal(0, r.Version.Minor)
+                                      Assert.Equal(days, r.Version.Build)
+                                      Assert.Equal(seconds, r.Version.Revision)
                                   End Sub)
 
     End Sub
 
-    <Fact, WorkItem(545948, "DevDiv")>
+    <Fact>
+    Public Sub VersionAttribute_Overflow()
+        Dim comp = CreateCompilationWithMscorlib(
+<compilation>
+    <file name="a.vb"><![CDATA[
+<Assembly: System.Reflection.AssemblyVersion("10101.0.*")>
+Public Class C
+End Class
+]]>
+    </file>
+</compilation>, options:=TestOptions.ReleaseDll.WithCurrentLocalTime(#2300/1/1#))
+
+        VerifyAssemblyTable(comp, Sub(r)
+                                      Assert.Equal(10101, r.Version.Major)
+                                      Assert.Equal(0, r.Version.Minor)
+                                      Assert.Equal(65535, r.Version.Build)
+                                      Assert.Equal(0, r.Version.Revision)
+                                  End Sub)
+
+    End Sub
+
+    <Fact, WorkItem(545948, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545948")>
     Public Sub VersionAttributeErr()
         Dim comp As VisualBasicCompilation = CreateCompilationWithMscorlib(
 <compilation>
@@ -104,24 +155,7 @@ BC36962: The specified version string does not conform to the required format - 
 
     End Sub
 
-    <Fact>
-    Public Sub FileVersionAttribute()
-        Dim other As VisualBasicCompilation = CreateCompilationWithMscorlib(
-<compilation>
-    <file name="a.vb"><![CDATA[
-<Assembly: System.Reflection.AssemblyFileVersion("1.2.3.4")>
-Public Class C
- Friend Sub Foo()
- End Sub
-End Class
-]]>
-    </file>
-</compilation>, OutputKind.DynamicallyLinkedLibrary)
-        Assert.Empty(other.GetDiagnostics())
-        Assert.Equal("1.2.3.4", DirectCast(other.Assembly, SourceAssemblySymbol).FileVersion)
-    End Sub
-
-    <Fact, WorkItem(545948, "DevDiv")>
+    <Fact, WorkItem(545948, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545948")>
     Public Sub SatelliteContractVersionAttributeErr()
         Dim comp As VisualBasicCompilation = CreateCompilationWithMscorlib(
 <compilation>
@@ -151,7 +185,58 @@ BC36976: The specified version string does not conform to the recommended format
     End Sub
 
     <Fact>
-    Public Sub FileVersionAttributeWrn()
+    Public Sub FileVersionAttribute()
+        Dim other As VisualBasicCompilation = CreateCompilationWithMscorlib(
+<compilation>
+    <file name="a.vb"><![CDATA[
+<Assembly: System.Reflection.AssemblyFileVersion("1.2.3.4")>
+Public Class C
+ Friend Sub Foo()
+ End Sub
+End Class
+]]>
+    </file>
+</compilation>, OutputKind.DynamicallyLinkedLibrary)
+        Assert.Empty(other.GetDiagnostics())
+        Assert.Equal("1.2.3.4", DirectCast(other.Assembly, SourceAssemblySymbol).FileVersion)
+    End Sub
+
+    <Fact>
+    Public Sub FileVersionAttribute_MaxValue()
+        Dim other As VisualBasicCompilation = CreateCompilationWithMscorlib(
+<compilation>
+    <file name="a.vb"><![CDATA[
+<Assembly: System.Reflection.AssemblyFileVersion("65535.65535.65535.65535")>
+Public Class C
+ Friend Sub Foo()
+ End Sub
+End Class
+]]>
+    </file>
+</compilation>, OutputKind.DynamicallyLinkedLibrary)
+        Assert.Empty(other.GetDiagnostics())
+        Assert.Equal("65535.65535.65535.65535", DirectCast(other.Assembly, SourceAssemblySymbol).FileVersion)
+    End Sub
+
+    <Fact>
+    Public Sub FileVersionAttribute_MissingParts()
+        Dim other As VisualBasicCompilation = CreateCompilationWithMscorlib(
+<compilation>
+    <file name="a.vb"><![CDATA[
+<Assembly: System.Reflection.AssemblyFileVersion("1.2")>
+Public Class C
+ Friend Sub Foo()
+ End Sub
+End Class
+]]>
+    </file>
+</compilation>, OutputKind.DynamicallyLinkedLibrary)
+        Assert.Empty(other.GetDiagnostics())
+        Assert.Equal("1.2", DirectCast(other.Assembly, SourceAssemblySymbol).FileVersion)
+    End Sub
+
+    <Fact>
+    Public Sub FileVersionAttributeWrn_Wildcard()
         Dim other As VisualBasicCompilation = CreateCompilationWithMscorlib(
 <compilation>
     <file name="a.vb"><![CDATA[
@@ -168,6 +253,27 @@ End Class
 BC42366: The specified version string does not conform to the recommended format - major.minor.build.revision
 <Assembly: System.Reflection.AssemblyFileVersion("1.2.*")>
                                                  ~~~~~~~
+]]></error>)
+    End Sub
+
+    <Fact>
+    Public Sub FileVersionAttributeWrn_OutOfRange()
+        Dim other As VisualBasicCompilation = CreateCompilationWithMscorlib(
+<compilation>
+    <file name="a.vb"><![CDATA[
+<Assembly: System.Reflection.AssemblyFileVersion("1.65536")>
+Public Class C
+ Friend Sub Foo()
+ End Sub
+End Class
+]]>
+    </file>
+</compilation>, OutputKind.DynamicallyLinkedLibrary)
+        CompilationUtils.AssertTheseDiagnostics(other,
+<error><![CDATA[
+BC42366: The specified version string does not conform to the recommended format - major.minor.build.revision
+<Assembly: System.Reflection.AssemblyFileVersion("1.65536")>
+                                                 ~~~~~~~~~
 ]]></error>)
     End Sub
 
@@ -327,7 +433,7 @@ BC36982: Assembly culture strings may not contain embedded NUL characters.
 ]]></error>)
     End Sub
 
-    <Fact, WorkItem(545951, "DevDiv")>
+    <Fact, WorkItem(545951, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545951")>
     Public Sub CultureAttributeErr()
 
         Dim src = <compilation>
@@ -351,7 +457,8 @@ BC36977: Executables cannot be satellite assemblies; culture should always be em
 
     End Sub
 
-    <Fact(Skip:=("https://github.com/dotnet/roslyn/issues/5866"))>
+    <Fact>
+    <WorkItem(5866, "https://github.com/dotnet/roslyn/issues/5866")>
     Public Sub CultureAttributeMismatch()
         Dim neutral As VisualBasicCompilation = CreateCompilationWithMscorlib(
 <compilation name="neutral">
@@ -427,7 +534,7 @@ BC42371: Referenced assembly 'en_UK, Version=0.0.0.0, Culture=en-UK, PublicKeyTo
 </expected>)
 
         compilation = CreateCompilationWithMscorlibAndReferences(
-<compilation>
+<compilation name="CultureAttributeMismatch1">
     <file name="a.vb"><![CDATA[
 <Assembly: System.Reflection.AssemblyCultureAttribute("en-US")>
 
@@ -447,15 +554,20 @@ end class
 </expected>)
 
         compilation = CreateCompilationWithMscorlibAndReferences(
-<compilation>
+<compilation name="CultureAttributeMismatch2">
     <file name="a.vb">
     </file>
 </compilation>, {compilation.EmitToImageReference()}, TestOptions.ReleaseDll)
 
-        CompileAndVerify(compilation).VerifyDiagnostics()
+        CompileAndVerify(compilation,
+                         dependencies:={New ModuleData(en_usRef.Compilation.Assembly.Identity,
+                                                       OutputKind.DynamicallyLinkedLibrary,
+                                                       en_usRef.Compilation.EmitToArray(),
+                                                       ImmutableArray(Of Byte).Empty, False)}).
+            VerifyDiagnostics()
 
         compilation = CreateCompilationWithMscorlibAndReferences(
-<compilation>
+<compilation name="CultureAttributeMismatch3">
     <file name="a.vb"><![CDATA[
 <Assembly: System.Reflection.AssemblyCultureAttribute("en-US")>
 
@@ -475,12 +587,20 @@ end class
 </expected>)
 
         compilation = CreateCompilationWithMscorlibAndReferences(
-<compilation>
+<compilation name="CultureAttributeMismatch4">
     <file name="a.vb">
     </file>
 </compilation>, {compilation.EmitToImageReference()}, TestOptions.ReleaseDll)
 
         CompileAndVerify(compilation,
+                         dependencies:={New ModuleData(en_UKRef.Compilation.Assembly.Identity,
+                                                       OutputKind.DynamicallyLinkedLibrary,
+                                                       en_UKRef.Compilation.EmitToArray(),
+                                                       ImmutableArray(Of Byte).Empty, False),
+                                        New ModuleData(neutralRef.Compilation.Assembly.Identity,
+                                                       OutputKind.DynamicallyLinkedLibrary,
+                                                       neutralRef.Compilation.EmitToArray(),
+                                                       ImmutableArray(Of Byte).Empty, False)},
                          sourceSymbolValidator:=Sub(m As ModuleSymbol)
                                                     Assert.Equal(1, m.GetReferencedAssemblySymbols().Length)
 
@@ -491,7 +611,8 @@ end class
                          symbolValidator:=Sub(m As ModuleSymbol)
                                               Assert.Equal(2, m.GetReferencedAssemblySymbols().Length)
                                               Assert.Equal("neutral, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null", m.GetReferencedAssemblySymbols()(1).ToTestDisplayString())
-                                          End Sub).VerifyDiagnostics()
+                                          End Sub).
+            VerifyDiagnostics()
 
         compilation = CreateCompilationWithMscorlibAndReferences(
 <compilation>
@@ -619,7 +740,7 @@ End Class
         Assert.Equal("1.2.3garbage", DirectCast(other.Assembly, SourceAssemblySymbol).InformationalVersion)
     End Sub
 
-    <Fact(), WorkItem(529922, "DevDiv")>
+    <Fact(), WorkItem(529922, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529922")>
     Public Sub AlgorithmIdAttribute()
 
         Dim hash_module = TestReferences.SymbolsTests.netModule.hash_module
@@ -964,7 +1085,7 @@ Imports System.Reflection
 
     End Sub
 
-    <Fact, WorkItem(546635, "DevDiv")>
+    <Fact, WorkItem(546635, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546635")>
     Public Sub AssemblyFlagsAttribute02()
         Dim comp = CreateVisualBasicCompilation("AssemblyFlagsAttribute02",
         <![CDATA[<Assembly: System.Reflection.AssemblyFlags(12345)>]]>,
@@ -1339,7 +1460,7 @@ End Class
         Next
     End Sub
 
-    <Fact(), WorkItem(546963, "DevDiv")>
+    <Fact(), WorkItem(546963, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546963")>
     Public Sub AssemblyAttributesFromNetModuleBadMulti()
         Dim source As String = <![CDATA[
 <Assembly: UserDefinedAssemblyAttrNoAllowMultiple("UserDefinedAssemblyAttrNoAllowMultiple (from source)")>
@@ -1373,7 +1494,7 @@ End Class
         Assert.Equal(5, attrs.Length)
     End Sub
 
-    <Fact(), WorkItem(546963, "DevDiv")>
+    <Fact(), WorkItem(546963, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546963")>
     Public Sub InternalsVisibleToAttributeDropIdentical()
         Dim source =
             <compilation>
@@ -1395,7 +1516,7 @@ Imports System.Runtime.CompilerServices
             attrTypeName:="InternalsVisibleToAttribute")
     End Sub
 
-    <Fact(), WorkItem(546963, "DevDiv")>
+    <Fact(), WorkItem(546963, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546963")>
     Public Sub AssemblyAttributesFromSourceDropIdentical()
         Dim source =
             <compilation>
@@ -1431,7 +1552,7 @@ Imports System.Runtime.CompilerServices
             attrTypeName:="UserDefinedAssemblyAttrAllowMultipleAttribute")
     End Sub
 
-    <Fact(), WorkItem(546963, "DevDiv")>
+    <Fact(), WorkItem(546963, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546963")>
     Public Sub AssemblyAttributesFromSourceDropIdentical_02()
         Dim source1 As String = <![CDATA[
 <Assembly: UserDefinedAssemblyAttrNoAllowMultipleAttribute(0)> ' unique
@@ -1468,7 +1589,7 @@ Imports System
             attrTypeName:="UserDefinedAssemblyAttrNoAllowMultipleAttribute")
     End Sub
 
-    <Fact(), WorkItem(546963, "DevDiv")>
+    <Fact(), WorkItem(546963, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546963")>
     Public Sub AssemblyAttributesFromNetModuleDropIdentical_01()
         ' Duplicate ignored attributes in netmodule
         Dim netmoduleAttributes As String = <![CDATA[
@@ -1499,7 +1620,7 @@ Imports System
             attrTypeName:="UserDefinedAssemblyAttrAllowMultipleAttribute")
     End Sub
 
-    <Fact(), WorkItem(546963, "DevDiv")>
+    <Fact(), WorkItem(546963, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546963")>
     Public Sub AssemblyAttributesFromNetModuleDropIdentical_02()
         ' Duplicate ignored attributes in netmodules
         Dim netmodule1Attributes As String = <![CDATA[
@@ -1547,7 +1668,7 @@ Imports System
             attrTypeName:="UserDefinedAssemblyAttrAllowMultipleAttribute")
     End Sub
 
-    <Fact(), WorkItem(546963, "DevDiv")>
+    <Fact(), WorkItem(546963, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546963")>
     Public Sub AssemblyAttributesFromSourceAndNetModuleDropIdentical_01()
         ' All duplicate ignored attributes in netmodule
         Dim netmoduleAttributes As String = <![CDATA[
@@ -1582,7 +1703,7 @@ Imports System
             attrTypeName:="UserDefinedAssemblyAttrAllowMultipleAttribute")
     End Sub
 
-    <Fact(), WorkItem(546963, "DevDiv")>
+    <Fact(), WorkItem(546963, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546963")>
     Public Sub AssemblyAttributesFromSourceAndNetModuleDropIdentical_02()
         ' Duplicate ignored attributes in netmodule & source
         Dim netmoduleAttributes As String = <![CDATA[
@@ -1622,7 +1743,7 @@ Imports System
     End Sub
 #End Region
 
-    <Fact, WorkItem(545527, "DevDiv")>
+    <Fact, WorkItem(545527, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545527")>
     Public Sub CompilationRelaxationsAndRuntimeCompatibility_MultiModule()
         Dim moduleSrc =
 <compilation>
@@ -1660,7 +1781,7 @@ End Class
             End Sub)
     End Sub
 
-    <Fact, WorkItem(546460, "DevDiv")>
+    <Fact, WorkItem(546460, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546460")>
     Public Sub RuntimeCompatibilityAttribute_False()
         ' VB emits catch(Exception) even for an empty catch, so it can never catch non-Exception objects.
 
@@ -1691,7 +1812,7 @@ BC42031: 'Catch' block never reached; 'Exception' handled above in the same Try 
 </errors>)
     End Sub
 
-    <Fact, WorkItem(530585, "DevDiv")>
+    <Fact, WorkItem(530585, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530585")>
     Public Sub Bug16465()
         Dim modSource =
         <![CDATA[
@@ -1768,7 +1889,7 @@ System.Reflection.AssemblyTrademarkAttribute("Roslyn")
         Assert.True(expectedStr.Equals(actualStr), AssertEx.GetAssertMessage(expectedStr, actualStr))
     End Sub
 
-    <Fact, WorkItem(530579, "DevDiv")>
+    <Fact, WorkItem(530579, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530579")>
     Public Sub Bug530579_1()
         Dim mod1Source =
 <compilation name="M1">
@@ -1820,7 +1941,7 @@ System.Reflection.AssemblyTrademarkAttribute("Roslyn")
         Next
     End Sub
 
-    <Fact, WorkItem(530579, "DevDiv")>
+    <Fact, WorkItem(530579, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530579")>
     Public Sub Bug530579_2()
         Dim mod1Source =
 <compilation name="M1">
@@ -1868,7 +1989,7 @@ BC42370: Attribute 'AssemblyDescriptionAttribute' from module 'M1.netmodule' wil
 
     End Sub
 
-    <Fact, WorkItem(530579, "DevDiv")>
+    <Fact, WorkItem(530579, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530579")>
     Public Sub Bug530579_3()
         Dim mod1Source =
 <compilation name="M1">
@@ -1918,7 +2039,7 @@ BC42370: Attribute 'AssemblyDescriptionAttribute' from module 'M2.netmodule' wil
 
     End Sub
 
-    <Fact, WorkItem(530579, "DevDiv")>
+    <Fact, WorkItem(530579, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530579")>
     Public Sub Bug530579_4()
         Dim mod1Source =
 <compilation name="M1">

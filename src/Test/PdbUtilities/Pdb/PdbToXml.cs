@@ -21,18 +21,10 @@ using CDIC = Microsoft.Cci.CustomDebugInfoConstants;
 using ImportScope = Microsoft.CodeAnalysis.ImportScope;
 using PooledStringBuilder = Microsoft.CodeAnalysis.Collections.PooledStringBuilder;
 
-// Point-in-time conflict between System.Reflection.Metadata and temporary internal Roslyn.Reflection.Metadata
-// Replace this with using System.Reflection.Metadata.Decoding and uncomment type parameters when switching
-// back to public System.Reflection.Metadata API. 
-using ArrayShape = Roslyn.Reflection.Metadata.Decoding.ArrayShape;
-using CustomModifier = Roslyn.Reflection.Metadata.Decoding.CustomModifier<string>;
-using MethodSignature = Roslyn.Reflection.Metadata.Decoding.MethodSignature<string>;
-using ISignatureTypeProvider = Roslyn.Reflection.Metadata.Decoding.ISignatureTypeProvider<string>;
-using PrimitiveTypeCode = Roslyn.Reflection.Metadata.Decoding.PrimitiveTypeCode;
-using SignatureDecoder = Roslyn.Reflection.Metadata.Decoding.SignatureDecoder;
-
 namespace Roslyn.Test.PdbUtilities
 {
+    using Roslyn.Reflection.Metadata.Decoding;
+
     /// <summary>
     /// Class to write out XML for a PDB.
     /// </summary>
@@ -148,7 +140,8 @@ namespace Roslyn.Test.PdbUtilities
 
             using (var writer = XmlWriter.Create(xmlWriter, s_xmlWriterSettings))
             {
-                var symReader = SymReaderFactory.CreateReader(pdbStream, metadataReaderOpt);
+                // metadata reader is on stack -> no owner needed
+                var symReader = SymReaderFactory.CreateReader(pdbStream, metadataReaderOpt, metadataMemoryOwnerOpt: null);
 
                 try
                 {
@@ -850,7 +843,7 @@ namespace Roslyn.Test.PdbUtilities
                         _writer.WriteAttributeString("target", target);
                         _writer.WriteAttributeString("kind", "type");
                         Debug.Assert(scope == ImportScope.Unspecified); // Only C# hits this case.
-                        _writer.WriteEndElement(); 
+                        _writer.WriteEndElement();
                     }
                     else
                     {
@@ -989,7 +982,7 @@ namespace Roslyn.Test.PdbUtilities
                     }
                     else
                     {
-                        _writer.WriteAttributeString("signature", FormatSignature(signature));
+                        _writer.WriteAttributeString("signature", FormatLocalConstantSignature(signature));
                     }
                 }
                 else if (value == null)
@@ -1035,7 +1028,7 @@ namespace Roslyn.Test.PdbUtilities
                         (value is sbyte || value is byte || value is short || value is ushort ||
                          value is int || value is uint || value is long || value is ulong))
                     {
-                        _writer.WriteAttributeString("signature", FormatSignature(signature));
+                        _writer.WriteAttributeString("signature", FormatLocalConstantSignature(signature));
                     }
                     else if (runtimeType == value.GetType())
                     {
@@ -1051,27 +1044,20 @@ namespace Roslyn.Test.PdbUtilities
                 _writer.WriteEndElement();
             }
         }
-        
-        private unsafe string FormatSignature(ImmutableArray<byte> signature)
+
+        private unsafe string FormatLocalConstantSignature(ImmutableArray<byte> signature)
         {
             fixed (byte* sigPtr = signature.ToArray())
             {
                 var sigReader = new BlobReader(sigPtr, signature.Length);
-                var provider = new SignatureVisualizer(_metadataReader);
-                return SignatureDecoder.DecodeType(ref sigReader, provider);
+                var decoder = new SignatureDecoder<string>(ConstantSignatureVisualizer.Instance, _metadataReader);
+                return decoder.DecodeType(ref sigReader, allowTypeSpecifications: true);
             }
         }
 
-        private sealed class SignatureVisualizer : ISignatureTypeProvider/*<string>*/
+        private sealed class ConstantSignatureVisualizer : ISignatureTypeProvider<string>
         {
-            private readonly MetadataReader _reader;
-
-            public SignatureVisualizer(MetadataReader reader)
-            {
-                _reader = reader;
-            }
-
-            public MetadataReader Reader => _reader;
+            public static readonly ConstantSignatureVisualizer Instance = new ConstantSignatureVisualizer();
 
             public string GetArrayType(string elementType, ArrayShape shape)
             {
@@ -1080,13 +1066,13 @@ namespace Roslyn.Test.PdbUtilities
 
             public string GetByReferenceType(string elementType)
             {
-                return elementType + "&";  
+                return elementType + "&";
             }
 
-            public string GetFunctionPointerType(MethodSignature/*<string>*/ signature)
+            public string GetFunctionPointerType(MethodSignature<string> signature)
             {
                 // TODO:
-                return "method-ptr"; 
+                return "method-ptr";
             }
 
             public string GetGenericInstance(string genericType, ImmutableArray<string> typeArguments)
@@ -1105,10 +1091,9 @@ namespace Roslyn.Test.PdbUtilities
                 return "!" + index;
             }
 
-            public string GetModifiedType(string unmodifiedType, ImmutableArray<CustomModifier/*<string>*/> customModifiers)
+            public string GetModifiedType(MetadataReader reader, bool isRequired, string modifier, string unmodifiedType)
             {
-                return string.Join(" ", customModifiers.Select(mod => (mod.IsRequired ? "modreq(" : "modopt(") + mod.Type + ")")) + 
-                    unmodifiedType;
+                return (isRequired ? "modreq" : "modopt") + "(" + modifier + ") " + unmodifiedType;
             }
 
             public string GetPinnedType(string elementType)
@@ -1131,18 +1116,24 @@ namespace Roslyn.Test.PdbUtilities
                 return elementType + "[]";
             }
 
-            public string GetTypeFromDefinition(TypeDefinitionHandle handle, bool? isValueType)
+            public string GetTypeFromDefinition(MetadataReader reader, TypeDefinitionHandle handle, SignatureTypeHandleCode code)
             {
-                var typeDef = _reader.GetTypeDefinition(handle);
-                var name = _reader.GetString(typeDef.Name);
-                return typeDef.Namespace.IsNil ? name : _reader.GetString(typeDef.Namespace) + "." + name;
+                var typeDef = reader.GetTypeDefinition(handle);
+                var name = reader.GetString(typeDef.Name);
+                return typeDef.Namespace.IsNil ? name : reader.GetString(typeDef.Namespace) + "." + name;
             }
 
-            public string GetTypeFromReference(TypeReferenceHandle handle, bool? isValueType)
+            public string GetTypeFromReference(MetadataReader reader, TypeReferenceHandle handle, SignatureTypeHandleCode code)
             {
-                var typeRef = _reader.GetTypeReference(handle);
-                var name = _reader.GetString(typeRef.Name);
-                return typeRef.Namespace.IsNil ? name : _reader.GetString(typeRef.Namespace) + "." + name;
+                var typeRef = reader.GetTypeReference(handle);
+                var name = reader.GetString(typeRef.Name);
+                return typeRef.Namespace.IsNil ? name : reader.GetString(typeRef.Namespace) + "." + name;
+            }
+
+            public string GetTypeFromSpecification(MetadataReader reader, TypeSpecificationHandle handle, SignatureTypeHandleCode code)
+            {
+                var sigReader = reader.GetBlobReader(reader.GetTypeSpecification(handle).Signature);
+                return new SignatureDecoder<string>(Instance, reader).DecodeType(ref sigReader);
             }
         }
 
@@ -1504,7 +1495,7 @@ namespace Roslyn.Test.PdbUtilities
             return string.Format("<unexpected token kind: {0}>", AsToken(metadataReader.GetToken(handle)));
         }
 
-#region Utils
+        #region Utils
 
         private void WriteToken(int token)
         {
@@ -1526,6 +1517,6 @@ namespace Roslyn.Test.PdbUtilities
             return input.ToString(CultureInfo.InvariantCulture);
         }
 
-#endregion
+        #endregion
     }
 }

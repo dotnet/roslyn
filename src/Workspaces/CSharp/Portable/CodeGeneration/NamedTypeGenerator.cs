@@ -19,7 +19,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
             TypeDeclarationSyntax destination,
             INamedTypeSymbol namedType,
             CodeGenerationOptions options,
-            IList<bool> availableIndices, 
+            IList<bool> availableIndices,
             CancellationToken cancellationToken)
         {
             var declaration = GenerateNamedTypeDeclaration(service, namedType, GetDestination(destination), options, cancellationToken);
@@ -48,7 +48,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
             CompilationUnitSyntax destination,
             INamedTypeSymbol namedType,
             CodeGenerationOptions options,
-            IList<bool> availableIndices, 
+            IList<bool> availableIndices,
             CancellationToken cancellationToken)
         {
             var declaration = GenerateNamedTypeDeclaration(service, namedType, CodeGenerationDestination.CompilationUnit, options, cancellationToken);
@@ -60,7 +60,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
             ICodeGenerationService service,
             INamedTypeSymbol namedType,
             CodeGenerationDestination destination,
-            CodeGenerationOptions options, 
+            CodeGenerationOptions options,
             CancellationToken cancellationToken)
         {
             options = options ?? CodeGenerationOptions.Default;
@@ -74,7 +74,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
             declaration = options.GenerateMembers && namedType.TypeKind != TypeKind.Delegate
                 ? service.AddMembers(declaration,
                                      GetMembers(namedType).Where(s => s.Kind != SymbolKind.Property || PropertyGenerator.CanBeGenerated((IPropertySymbol)s)),
-                                     options, 
+                                     options,
                                      cancellationToken)
                 : declaration;
 

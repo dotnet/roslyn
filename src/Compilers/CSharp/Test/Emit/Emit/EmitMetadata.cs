@@ -188,7 +188,7 @@ public class Test : Class2
             });
         }
 
-        [WorkItem(687434, "DevDiv")]
+        [WorkItem(687434, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/687434")]
         [Fact()]
         public void Bug687434()
         {
@@ -198,7 +198,7 @@ public class Test : Class2
                 options: TestOptions.DebugDll.WithOutputKind(OutputKind.NetModule));
         }
 
-        [Fact, WorkItem(529006, "DevDiv")]
+        [Fact, WorkItem(529006, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529006")]
         public void AddModule()
         {
             var netModule1 = ModuleMetadata.CreateFromImage(TestResources.SymbolsTests.netModule.netModule1).GetReference(filePath: Path.GetFullPath("netModule1.netmodule"));
@@ -1148,7 +1148,7 @@ public class C : I
         // Property/method override should succeed (and should reference
         // the correct base method, even if there is a method/property
         // with the same name in an intermediate class.
-        [WorkItem(538720, "DevDiv")]
+        [WorkItem(538720, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538720")]
         [Fact]
         public void TestPropertyOverrideGet()
         {
@@ -1912,7 +1912,7 @@ True
 ");
         }
 
-        [WorkItem(540581, "DevDiv")]
+        [WorkItem(540581, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540581")]
         [Fact]
         public void RefEmit_DependencyGraphAndCachedTypeReferences()
         {
@@ -2103,6 +2103,42 @@ public class Methods
             CompileAndVerify(sources, sourceSymbolValidator: validator(true), symbolValidator: validator(false));
         }
 
+        [Fact]
+        public void Issue4695()
+        {
+            string source = @"
+using System;
+
+class Program
+{
+    sealed class Cache
+    {
+        abstract class BucketwiseBase<TArg> where TArg : class
+        {
+            internal abstract void Default(TArg arg);
+        }
+
+        class BucketwiseBase<TAccumulator, TArg> : BucketwiseBase<TArg> where TArg : class
+        {
+            internal override void Default(TArg arg = null) { }
+        }
+
+        public string GetAll()
+        {
+            new BucketwiseBase<object, object>().Default(); // Bad image format thrown here on legacy compiler 
+            return ""OK"";
+        }
+    }
+
+    static void Main(string[] args)
+    {
+        Console.WriteLine(new Cache().GetAll());
+    }
+}
+";
+            CompileAndVerify(source, expectedOutput: "OK");
+        }
+
         private void CheckInternalMembers(NamedTypeSymbol type, bool isFromSource)
         {
             Assert.NotNull(type.GetMembers("Public").SingleOrDefault());
@@ -2113,7 +2149,8 @@ public class Methods
                 Assert.Null(member);
         }
 
-        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/6190"), WorkItem(90)]
+        [WorkItem(90, "https://github.com/dotnet/roslyn/issues/90")]
+        [Fact]
         public void EmitWithNoResourcesAllPlatforms()
         {
             var comp = CreateCompilationWithMscorlib("class Test { static void Main() { } }");
@@ -2126,18 +2163,10 @@ public class Methods
             VerifyEmitWithNoResources(comp, Platform.X86);
         }
 
-        private static void VerifyEmitWithNoResources(CSharpCompilation comp, Platform platform)
+        private void VerifyEmitWithNoResources(CSharpCompilation comp, Platform platform)
         {
             var options = TestOptions.ReleaseExe.WithPlatform(platform);
-
-            using (var outputStream = new MemoryStream())
-            {
-                var success = comp.WithOptions(options).Emit(outputStream).Success;
-                Assert.True(success);
-
-                var peVerifyOutput = CLRHelpers.PeVerify(outputStream.ToImmutable()).Join(Environment.NewLine);
-                Assert.Equal(string.Empty, peVerifyOutput);
-            }
+            CompileAndVerify(comp.WithAssemblyName("EmitWithNoResourcesAllPlatforms_" + platform.ToString()).WithOptions(options));
         }
 
         [Fact]
@@ -2223,7 +2252,7 @@ public class Methods
             var importAddressTableDirectoryBytes = new byte[peHeader.ImportAddressTableDirectory.Size];
             peStream.Position = importAddressTableDirectoryOffset;
             peStream.Read(importAddressTableDirectoryBytes, 0, importAddressTableDirectoryBytes.Length);
-            AssertEx.Equal(new byte[] 
+            AssertEx.Equal(new byte[]
             {
                 0x60, 0x23, 0x00, 0x00,
                 0x00, 0x00, 0x00, 0x00

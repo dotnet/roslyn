@@ -36,7 +36,7 @@ namespace Microsoft.CodeAnalysis.Interactive
         {
             private static readonly ManualResetEventSlim s_clientExited = new ManualResetEventSlim(false);
 
-            private static TaskScheduler s_UIThreadScheduler;
+            private static Control s_control;
 
             private InteractiveAssemblyLoader _assemblyLoader;
             private MetadataShadowCopyProvider _metadataFileProvider;
@@ -113,7 +113,7 @@ namespace Microsoft.CodeAnalysis.Interactive
                 _lastTask = Task.FromResult(initialState);
 
                 Console.OutputEncoding = Encoding.UTF8;
-              
+
                 // We want to be sure to delete the shadow-copied files when the process goes away. Frankly
                 // there's nothing we can do if the process is forcefully quit or goes down in a completely
                 // uncontrolled manner (like a stack overflow). When the process goes down in a controlled
@@ -256,9 +256,8 @@ namespace Microsoft.CodeAnalysis.Interactive
                         {
                             var uiThread = new Thread(() =>
                             {
-                                var c = new Control();
-                                c.CreateControl();
-                                s_UIThreadScheduler = TaskScheduler.FromCurrentSynchronizationContext();
+                                s_control = new Control();
+                                s_control.CreateControl();
                                 resetEvent.Set();
                                 Application.Run();
                             });
@@ -333,7 +332,7 @@ namespace Microsoft.CodeAnalysis.Interactive
                 string baseDirectory)
             {
                 var state = await ReportUnhandledExceptionIfAny(lastTask).ConfigureAwait(false);
-               
+
                 try
                 {
                     Directory.SetCurrentDirectory(baseDirectory);
@@ -549,20 +548,9 @@ namespace Microsoft.CodeAnalysis.Interactive
                 Debug.WriteLine(e);
             }
 
-#endregion
+            #endregion
 
             #region Operations
-
-            // TODO (tomat): testing only
-            public void SetTestObjectFormattingOptions()
-            {
-                _globals.PrintOptions = new ObjectFormattingOptions(
-                    memberFormat: MemberDisplayFormat.Inline,
-                    quoteStrings: true,
-                    useHexadecimalNumbers: false,
-                    maxOutputLength: int.MaxValue,
-                    memberIndentation: "  ");
-            }
 
             /// <summary>
             /// Loads references, set options and execute files specified in the initialization file.
@@ -607,7 +595,7 @@ namespace Microsoft.CodeAnalysis.Interactive
                         {
                             var metadataResolver = CreateMetadataReferenceResolver(args.ReferencePaths, rspDirectory);
                             var sourceResolver = CreateSourceReferenceResolver(args.SourcePaths, rspDirectory);
-                            
+
                             var metadataReferences = new List<PortableExecutableReference>();
                             foreach (CommandLineReference cmdLineReference in args.MetadataReferences)
                             {
@@ -815,31 +803,27 @@ namespace Microsoft.CodeAnalysis.Interactive
 
             private async Task<ScriptState<object>> ExecuteOnUIThread(Script<object> script, ScriptState<object> stateOpt)
             {
-                return await Task.Factory.StartNew(async () =>
-                {
-                    try
+                return await ((Task<ScriptState<object>>)s_control.Invoke(
+                    (Func<Task<ScriptState<object>>>)(async () =>
                     {
-                        var task = (stateOpt == null) ?
-                            script.RunAsync(_globals, CancellationToken.None) :
-                            script.ContinueAsync(stateOpt, CancellationToken.None);
-
-                        return await task.ConfigureAwait(false);
-                    }
-                    catch (FileLoadException e) when (e.InnerException is InteractiveAssemblyLoaderException)
-                    {
-                        Console.Error.WriteLine(e.InnerException.Message);
-                        return null;
-                    }
-                    catch (Exception e)
-                    {
-                        // TODO (tomat): format exception
-                        Console.Error.WriteLine(e);
-                        return null;
-                    }
-                },
-                CancellationToken.None,
-                TaskCreationOptions.None,
-                s_UIThreadScheduler).Unwrap().ConfigureAwait(false);
+                        try
+                        {
+                            var task = (stateOpt == null) ?
+                                script.RunAsync(_globals, CancellationToken.None) :
+                                script.RunFromAsync(stateOpt, CancellationToken.None);
+                            return await task.ConfigureAwait(false);
+                        }
+                        catch (FileLoadException e) when (e.InnerException is InteractiveAssemblyLoaderException)
+                        {
+                            Console.Error.WriteLine(e.InnerException.Message);
+                            return null;
+                        }
+                        catch (Exception e)
+                        {
+                            Console.Error.Write(_replServiceProvider.ObjectFormatter.FormatException(e));
+                            return null;
+                        }
+                    }))).ConfigureAwait(false);
             }
 
             private void DisplayInteractiveErrors(ImmutableArray<Diagnostic> diagnostics, TextWriter output)

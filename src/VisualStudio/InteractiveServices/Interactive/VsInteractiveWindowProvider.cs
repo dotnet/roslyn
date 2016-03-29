@@ -60,7 +60,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Interactive
 
         protected abstract Guid LanguageServiceGuid { get; }
         protected abstract Guid Id { get; }
-        protected abstract string Title { get; }    
+        protected abstract string Title { get; }
         protected abstract core::Microsoft.CodeAnalysis.Internal.Log.FunctionId InteractiveWindowFunctionId { get; }
 
         protected IInteractiveWindowCommandsFactory CommandsFactory
@@ -83,7 +83,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Interactive
         {
             var evaluator = CreateInteractiveEvaluator(_vsServiceProvider, _classifierAggregator, _contentTypeRegistry, _vsWorkspace);
 
-            Debug.Assert(this._vsInteractiveWindow == null);
+            Debug.Assert(_vsInteractiveWindow == null);
 
             // ForceCreate means that the window should be created if the persisted layout indicates that it is visible.
             _vsInteractiveWindow = _vsInteractiveWindowFactory.Create(Id, instanceId, Title, evaluator, __VSCREATETOOLWIN.CTW_fForceCreate);
@@ -134,7 +134,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Interactive
         }
 
         private void LogCloseSession(int languageBufferCount)
-        {                                                                                                                                 
+        {
             core::Microsoft.CodeAnalysis.Internal.Log.Logger.Log(InteractiveWindowFunctionId,
                        core::Microsoft.CodeAnalysis.Internal.Log.KeyValueLogMessage.Create(m =>
                        {
@@ -181,6 +181,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Interactive
                 }
             }
             return interactiveCommands.ToImmutableArray();
-            }
+        }
     }
 }

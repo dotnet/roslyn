@@ -803,7 +803,7 @@ End Module]]>,
 
         End Sub
 
-        <Fact(), WorkItem(543612, "DevDiv")>
+        <Fact(), WorkItem(543612, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543612")>
         Public Sub CallEventHandlerThroughWithEvent01()
             CompileAndVerify(
     <compilation>
@@ -857,7 +857,7 @@ End Class
     ]]>)
         End Sub
 
-        <Fact(), WorkItem(543612, "DevDiv")>
+        <Fact(), WorkItem(543612, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543612")>
         Public Sub CallEventHandlerThroughWithEvent02()
             CompileAndVerify(
     <compilation>
@@ -889,7 +889,7 @@ End Class
     </compilation>, expectedOutput:="1")
         End Sub
 
-        <Fact(), WorkItem(543612, "DevDiv")>
+        <Fact(), WorkItem(543612, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543612")>
         Public Sub ObsoleteRaiseEvent()
             CompileAndVerify(
     <compilation>
@@ -931,7 +931,7 @@ End Module
     </compilation>, expectedOutput:="")
         End Sub
 
-        <Fact(), WorkItem(545428, "DevDiv")>
+        <Fact(), WorkItem(545428, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545428")>
         Public Sub AddHandlerConflictingLocal()
             CompileAndVerify(
     <compilation>
@@ -957,7 +957,7 @@ End Module
     </compilation>, expectedOutput:="System.Int32")
         End Sub
 
-        <Fact(), WorkItem(546055, "DevDiv")>
+        <Fact(), WorkItem(546055, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546055")>
         Public Sub AddHandlerEventNameLookupViaImport()
             CompileAndVerify(
     <compilation>
@@ -997,7 +997,8 @@ hello from ev1
 ]]>)
         End Sub
 
-        <Fact(Skip:="529574")>
+        <Fact>
+        <WorkItem(529574, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems?_a=edit&id=529574")>
         Public Sub TestCrossLanguageOptionalAndParamarray1()
             Dim csCompilation = CreateCSharpCompilation("CS",
             <![CDATA[public class CSClass
@@ -1048,8 +1049,28 @@ Public Module Program
 End Module]]>,
                 compilationOptions:=New VisualBasicCompilationOptions(OutputKind.ConsoleApplication),
                 referencedCompilations:={csCompilation})
-            ' WARNING: Roslyn compiler produced errors while Native compiler didn't.
-            vbCompilation.VerifyDiagnostics()
+            ' WARNING: Roslyn compiler produced errors while Native compiler didn't. This is an intentional breaking change, see associated bug. 
+            vbCompilation.AssertTheseDiagnostics(
+<expected>
+BC31029: Method 'Foo' cannot handle event 'ev' because they do not have a compatible signature.
+    Function Foo(x As String) Handles w.ev, MyBase.ev, MyClass.ev
+                                        ~~
+BC31029: Method 'Foo' cannot handle event 'ev' because they do not have a compatible signature.
+    Function Foo(x As String) Handles w.ev, MyBase.ev, MyClass.ev
+                                                   ~~
+BC31029: Method 'Foo' cannot handle event 'ev' because they do not have a compatible signature.
+    Function Foo(x As String) Handles w.ev, MyBase.ev, MyClass.ev
+                                                               ~~
+BC31029: Method 'Foo2' cannot handle event 'ev' because they do not have a compatible signature.
+    Function Foo2(Optional x As String = "") Handles w.ev, MyBase.ev, MyClass.ev
+                                                       ~~
+BC31029: Method 'Foo2' cannot handle event 'ev' because they do not have a compatible signature.
+    Function Foo2(Optional x As String = "") Handles w.ev, MyBase.ev, MyClass.ev
+                                                                  ~~
+BC31029: Method 'Foo2' cannot handle event 'ev' because they do not have a compatible signature.
+    Function Foo2(Optional x As String = "") Handles w.ev, MyBase.ev, MyClass.ev
+                                                                              ~~
+</expected>)
         End Sub
 
         <Fact()>
@@ -1209,7 +1230,7 @@ PASS
             vbVerifier.VerifyDiagnostics()
         End Sub
 
-        <Fact, WorkItem(545257, "DevDiv")>
+        <Fact, WorkItem(545257, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545257")>
         Public Sub TestCrossLanguageOptionalAndParamarray_Error1()
             Dim csCompilation = CreateCSharpCompilation("CS",
             <![CDATA[public class CSClass
@@ -1660,7 +1681,7 @@ End Namespace
     ]]>)
         End Sub
 
-        <WorkItem(1069554)>
+        <WorkItem(1069554, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1069554")>
         <Fact>
         Public Sub LocalDefinitionInEventHandler()
             Dim c = CompileAndVerify(
@@ -1695,7 +1716,7 @@ End Class
 ]]>)
         End Sub
 
-        <WorkItem(1069554)>
+        <WorkItem(1069554, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1069554")>
         <Fact>
         Public Sub ClosureInEventHandler()
             Dim c = CompileAndVerify(

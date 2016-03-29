@@ -657,7 +657,7 @@ namespace Microsoft.CodeAnalysis.Emit
         {
             visitor.Visit((Cci.IModule)this);
         }
-        
+
         IEnumerable<Cci.INamespaceTypeDefinition> Cci.IModule.GetTopLevelTypes(EmitContext context)
         {
             return GetTopLevelTypes(context);

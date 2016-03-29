@@ -1,5 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Editor.Commands;
 using Microsoft.CodeAnalysis.Editor.CSharp.DocumentationComments;
 using Microsoft.CodeAnalysis.Editor.UnitTests.DocumentationComments;
@@ -14,7 +15,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.DocumentationComments
     public class XmlTagCompletionTests : AbstractXmlTagCompletionTests
     {
         [WpfFact, Trait(Traits.Feature, Traits.Features.XmlTagCompletion)]
-        public void SimpleTagCompletion()
+        public async Task SimpleTagCompletion()
         {
             var text = @"
 /// <foo$$
@@ -24,11 +25,11 @@ class c { }";
 /// <foo>$$</foo>
 class c { }";
 
-            Verify(text, expected, '>');
+            await VerifyAsync(text, expected, '>');
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.XmlTagCompletion)]
-        public void NestedTagCompletion()
+        public async Task NestedTagCompletion()
         {
             var text = @"
 /// <summary>
@@ -42,11 +43,11 @@ class c { }";
 /// </summary>
 class c { }";
 
-            Verify(text, expected, '>');
+            await VerifyAsync(text, expected, '>');
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.XmlTagCompletion)]
-        public void CompleteBeforeIncompleteTag()
+        public async Task CompleteBeforeIncompleteTag()
         {
             var text = @"
 /// <foo$$
@@ -58,11 +59,11 @@ class c { }";
 /// </summary>
 class c { }";
 
-            Verify(text, expected, '>');
+            await VerifyAsync(text, expected, '>');
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.XmlTagCompletion)]
-        public void NotEmptyElement()
+        public async Task NotEmptyElement()
         {
             var text = @"
 /// <$$
@@ -72,11 +73,11 @@ class c { }";
 /// <>$$
 class c { }";
 
-            Verify(text, expected, '>');
+            await VerifyAsync(text, expected, '>');
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.XmlTagCompletion)]
-        public void NotAlreadyCompleteTag()
+        public async Task NotAlreadyCompleteTag()
         {
             var text = @"
 /// <foo$$</foo>
@@ -86,11 +87,11 @@ class c { }";
 /// <foo>$$</foo>
 class c { }";
 
-            Verify(text, expected, '>');
+            await VerifyAsync(text, expected, '>');
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.XmlTagCompletion)]
-        public void NotAlreadyCompleteTag2()
+        public async Task NotAlreadyCompleteTag2()
         {
             var text = @"
 /// <foo$$
@@ -104,11 +105,11 @@ class c { }";
 /// </foo>
 class c { }";
 
-            Verify(text, expected, '>');
+            await VerifyAsync(text, expected, '>');
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.XmlTagCompletion)]
-        public void SimpleSlashCompletion()
+        public async Task SimpleSlashCompletion()
         {
             var text = @"
 /// <foo><$$
@@ -118,11 +119,11 @@ class c { }";
 /// <foo></foo>$$
 class c { }";
 
-            Verify(text, expected, '/');
+            await VerifyAsync(text, expected, '/');
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.XmlTagCompletion)]
-        public void NestedSlashTagCompletion()
+        public async Task NestedSlashTagCompletion()
         {
             var text = @"
 /// <summary>
@@ -136,11 +137,11 @@ class c { }";
 /// </summary>
 class c { }";
 
-            Verify(text, expected, '/');
+            await VerifyAsync(text, expected, '/');
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.XmlTagCompletion)]
-        public void SlashCompleteBeforeIncompleteTag()
+        public async Task SlashCompleteBeforeIncompleteTag()
         {
             var text = @"
 /// <foo><$$
@@ -152,11 +153,11 @@ class c { }";
 /// </summary>
 class c { }";
 
-            Verify(text, expected, '/');
+            await VerifyAsync(text, expected, '/');
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.XmlTagCompletion)]
-        public void SlashNotEmptyElement()
+        public async Task SlashNotEmptyElement()
         {
             var text = @"
 /// <><$$
@@ -166,11 +167,11 @@ class c { }";
 /// <></$$
 class c { }";
 
-            Verify(text, expected, '/');
+            await VerifyAsync(text, expected, '/');
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.XmlTagCompletion)]
-        public void SlashNotAlreadyCompleteTag()
+        public async Task SlashNotAlreadyCompleteTag()
         {
             var text = @"
 /// <foo><$$foo>
@@ -180,11 +181,11 @@ class c { }";
 /// <foo></$$foo>
 class c { }";
 
-            Verify(text, expected, '/');
+            await VerifyAsync(text, expected, '/');
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.XmlTagCompletion)]
-        public void SlashNotAlreadyCompleteTag2()
+        public async Task SlashNotAlreadyCompleteTag2()
         {
             var text = @"
 /// <foo>
@@ -198,12 +199,12 @@ class c { }";
 /// </$$foo>
 class c { }";
 
-            Verify(text, expected, '/');
+            await VerifyAsync(text, expected, '/');
         }
 
-        [WorkItem(638800)]
+        [WorkItem(638800, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/638800")]
         [WpfFact, Trait(Traits.Feature, Traits.Features.XmlTagCompletion)]
-        public void NestedIdenticalTags()
+        public async Task NestedIdenticalTags()
         {
             var text = @"
 /// <foo><foo$$</foo>
@@ -213,12 +214,12 @@ class c { }";
 /// <foo><foo>$$</foo></foo>
 class c { }";
 
-            Verify(text, expected, '>');
+            await VerifyAsync(text, expected, '>');
         }
 
-        [WorkItem(638800)]
+        [WorkItem(638800, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/638800")]
         [WpfFact, Trait(Traits.Feature, Traits.Features.XmlTagCompletion)]
-        public void MultipleNestedIdenticalTags()
+        public async Task MultipleNestedIdenticalTags()
         {
             var text = @"
 /// <foo><foo><foo$$</foo></foo>
@@ -228,12 +229,12 @@ class c { }";
 /// <foo><foo><foo>$$</foo></foo></foo>
 class c { }";
 
-            Verify(text, expected, '>');
+            await VerifyAsync(text, expected, '>');
         }
 
-        [WorkItem(638235)]
+        [WorkItem(638235, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/638235")]
         [WpfFact, Trait(Traits.Feature, Traits.Features.XmlTagCompletion)]
-        public void SlashNotIfCloseTagFollows()
+        public async Task SlashNotIfCloseTagFollows()
         {
             var text = @"
 /// <summary>
@@ -247,7 +248,7 @@ class c { }";
 /// </summary>
 class c { }";
 
-            Verify(text, expected, '/');
+            await VerifyAsync(text, expected, '/');
         }
 
         internal override ICommandHandler<TypeCharCommandArgs> CreateCommandHandler(ITextUndoHistoryRegistry undoHistory)
@@ -255,9 +256,9 @@ class c { }";
             return new XmlTagCompletionCommandHandler(undoHistory, TestWaitIndicator.Default);
         }
 
-        protected override TestWorkspace CreateTestWorkspace(string initialMarkup)
+        protected override Task<TestWorkspace> CreateTestWorkspaceAsync(string initialMarkup)
         {
-            return CSharpWorkspaceFactory.CreateWorkspaceFromLines(initialMarkup);
+            return TestWorkspace.CreateCSharpAsync(initialMarkup);
         }
     }
 }

@@ -1,5 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Completion;
 using Microsoft.CodeAnalysis.CSharp.Completion.Providers;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
@@ -19,8 +20,8 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Completion.CompletionPr
             return new EnumAndCompletionListTagCompletionProvider();
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
-        public void NullableEnum()
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task NullableEnum()
         {
             var markup = @"class Program
 {
@@ -38,13 +39,13 @@ enum Colors
     Green,
 }
 ";
-            VerifyItemExists(markup, "Colors");
+            await VerifyItemExistsAsync(markup, "Colors");
         }
 
-        [WpfFact]
-        [WorkItem(545678)]
+        [Fact]
+        [WorkItem(545678, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545678")]
         [Trait(Traits.Feature, Traits.Features.Completion)]
-        public void EditorBrowsable_EnumMemberAlways()
+        public async Task EditorBrowsable_EnumMemberAlways()
         {
             var markup = @"
 class Program
@@ -61,7 +62,7 @@ public enum Foo
 {
     Member
 }";
-            VerifyItemInEditorBrowsableContexts(
+            await VerifyItemInEditorBrowsableContextsAsync(
                 markup: markup,
                 referencedCode: referencedCode,
                 item: "Foo",
@@ -71,10 +72,10 @@ public enum Foo
                 referencedLanguage: LanguageNames.CSharp);
         }
 
-        [WpfFact]
-        [WorkItem(545678)]
+        [Fact]
+        [WorkItem(545678, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545678")]
         [Trait(Traits.Feature, Traits.Features.Completion)]
-        public void EditorBrowsable_EnumMemberNever()
+        public async Task EditorBrowsable_EnumMemberNever()
         {
             var markup = @"
 class Program
@@ -91,7 +92,7 @@ public enum Foo
 {
     Member
 }";
-            VerifyItemInEditorBrowsableContexts(
+            await VerifyItemInEditorBrowsableContextsAsync(
                 markup: markup,
                 referencedCode: referencedCode,
                 item: "Foo",
@@ -101,10 +102,10 @@ public enum Foo
                 referencedLanguage: LanguageNames.CSharp);
         }
 
-        [WpfFact]
-        [WorkItem(545678)]
+        [Fact]
+        [WorkItem(545678, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545678")]
         [Trait(Traits.Feature, Traits.Features.Completion)]
-        public void EditorBrowsable_EnumMemberAdvanced()
+        public async Task EditorBrowsable_EnumMemberAdvanced()
         {
             var markup = @"
 class Program
@@ -121,7 +122,7 @@ public enum Foo
 {
     Member
 }";
-            VerifyItemInEditorBrowsableContexts(
+            await VerifyItemInEditorBrowsableContextsAsync(
                 markup: markup,
                 referencedCode: referencedCode,
                 item: "Foo",
@@ -131,7 +132,7 @@ public enum Foo
                 referencedLanguage: LanguageNames.CSharp,
                 hideAdvancedMembers: true);
 
-            VerifyItemInEditorBrowsableContexts(
+            await VerifyItemInEditorBrowsableContextsAsync(
                 markup: markup,
                 referencedCode: referencedCode,
                 item: "Foo",
@@ -142,9 +143,9 @@ public enum Foo
                 hideAdvancedMembers: false);
         }
 
-        [WorkItem(8540099)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
-        public void NotInComment()
+        [WorkItem(854099, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/854099")]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task NotInComment()
         {
             var markup = @"class Program
 {
@@ -161,12 +162,12 @@ enum Colors
     Green,
 }
 ";
-            VerifyNoItemsExist(markup);
+            await VerifyNoItemsExistAsync(markup);
         }
 
-        [WorkItem(827897)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
-        public void InYieldReturn()
+        [WorkItem(827897, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/827897")]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task InYieldReturn()
         {
             var markup =
 @"using System;
@@ -179,12 +180,12 @@ class Program
         yield return $$
     }
 }";
-            VerifyItemExists(markup, "DayOfWeek");
+            await VerifyItemExistsAsync(markup, "DayOfWeek");
         }
 
-        [WorkItem(827897)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
-        public void InAsyncMethodReturnStatement()
+        [WorkItem(827897, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/827897")]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task InAsyncMethodReturnStatement()
         {
             var markup =
 @"using System;
@@ -198,11 +199,11 @@ class Program
         return $$
     }
 }";
-            VerifyItemExists(markup, "DayOfWeek");
+            await VerifyItemExistsAsync(markup, "DayOfWeek");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
-        public void NoCompletionListTag()
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task NoCompletionListTag()
         {
             var markup =
 @"using System;
@@ -220,11 +221,11 @@ class Program
         C c = $$
     }
 }";
-            VerifyNoItemsExist(markup);
+            await VerifyNoItemsExistAsync(markup);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
-        public void CompletionList()
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task CompletionList()
         {
             var markup =
 @"using System;
@@ -243,11 +244,11 @@ class Program
         C c = $$
     }
 }";
-            VerifyItemExists(markup, "C");
+            await VerifyItemExistsAsync(markup, "C");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
-        public void CompletionListCrefToString()
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task CompletionListCrefToString()
         {
             var markup =
 @"using System;
@@ -266,11 +267,11 @@ class Program
         C c = $$
     }
 }";
-            VerifyItemExists(markup, "string", glyph: (int)Glyph.ClassPublic);
+            await VerifyItemExistsAsync(markup, "string", glyph: (int)Glyph.ClassPublic);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
-        public void CompletionListEmptyCref()
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task CompletionListEmptyCref()
         {
             var markup =
 @"using System;
@@ -289,11 +290,11 @@ class Program
         C c = $$
     }
 }";
-            VerifyNoItemsExist(markup);
+            await VerifyNoItemsExistAsync(markup);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
-        public void CompletionListInaccessibleType()
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task CompletionListInaccessibleType()
         {
             var markup =
 @"using System;
@@ -314,11 +315,11 @@ class Program
         C c = $$
     }
 }";
-            VerifyNoItemsExist(markup);
+            await VerifyNoItemsExistAsync(markup);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
-        public void CompletionListNotAType()
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task CompletionListNotAType()
         {
             var markup =
 @"using System;
@@ -339,12 +340,12 @@ class Program
         C c = $$
     }
 }";
-            VerifyNoItemsExist(markup);
+            await VerifyNoItemsExistAsync(markup);
         }
 
-        [WorkItem(828196)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
-        public void SuggestAlias()
+        [WorkItem(828196, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/828196")]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task SuggestAlias()
         {
             var markup = @"
 using D = System.Globalization.DigitShapes; 
@@ -355,12 +356,12 @@ class Program
         D d=  $$
     }
 }";
-            VerifyItemExists(markup, "D");
+            await VerifyItemExistsAsync(markup, "D");
         }
 
-        [WorkItem(828196)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
-        public void SuggestAlias2()
+        [WorkItem(828196, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/828196")]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task SuggestAlias2()
         {
             var markup = @"
 namespace N
@@ -376,12 +377,12 @@ class Program
 }
 }
 ";
-            VerifyItemExists(markup, "D");
+            await VerifyItemExistsAsync(markup, "D");
         }
 
-        [WorkItem(828196)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
-        public void SuggestAlias3()
+        [WorkItem(828196, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/828196")]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task SuggestAlias3()
         {
             var markup = @"
 namespace N
@@ -401,12 +402,12 @@ class Program
 }
 }
 ";
-            VerifyItemExists(markup, "D");
+            await VerifyItemExistsAsync(markup, "D");
         }
 
-        [WorkItem(828196)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
-        public void NotInParameterNameContext()
+        [WorkItem(828196, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/828196")]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task NotInParameterNameContext()
         {
             var markup = @"
 enum E
@@ -422,12 +423,12 @@ class C
     }
 }
 ";
-            VerifyItemIsAbsent(markup, "E");
+            await VerifyItemIsAbsentAsync(markup, "E");
         }
 
         [WorkItem(4310, "https://github.com/dotnet/roslyn/issues/4310")]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
-        public void InExpressionBodiedProperty()
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task InExpressionBodiedProperty()
         {
             var markup =
 @"class C
@@ -442,12 +443,12 @@ enum Colors
     Green,
 }
 ";
-            VerifyItemExists(markup, "Colors");
+            await VerifyItemExistsAsync(markup, "Colors");
         }
 
         [WorkItem(4310, "https://github.com/dotnet/roslyn/issues/4310")]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
-        public void InExpressionBodiedMethod()
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task InExpressionBodiedMethod()
         {
             var markup =
 @"class C
@@ -462,7 +463,7 @@ enum Colors
     Green,
 }
 ";
-            VerifyItemExists(markup, "Colors");
+            await VerifyItemExistsAsync(markup, "Colors");
         }
     }
 }

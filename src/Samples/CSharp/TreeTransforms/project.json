@@ -1,0 +1,14 @@
+﻿{
+  "dependencies": {
+    "System.Collections.Immutable": "1.1.37",
+    "System.Reflection.Metadata": "1.2.0"
+  },
+  "frameworks": {
+    "net452": {}
+  },
+  "runtimes": {
+    "win7": {},
+    "win7-x86" : {},
+    "win7-anycpu": {}
+  }
+}

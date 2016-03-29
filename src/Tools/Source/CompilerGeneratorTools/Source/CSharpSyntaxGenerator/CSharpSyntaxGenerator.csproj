@@ -7,42 +7,47 @@
   <PropertyGroup>
     <Configuration Condition="'$(Configuration)' == ''">Debug</Configuration>
     <Platform Condition="'$(Platform)' == ''">AnyCPU</Platform>
-    <PlatformTarget>AnyCPU</PlatformTarget>
     <ProjectGuid>{288089C5-8721-458E-BE3E-78990DAB5E2D}</ProjectGuid>
     <OutputType>Exe</OutputType>
+    <OutDir>$(CompilerGeneratorToolsDir)</OutDir>
     <RootNamespace>Roslyn.Compilers.CSharp.Internal.CSharpSyntaxGenerator</RootNamespace>
     <AssemblyName>CSharpSyntaxGenerator</AssemblyName>
     <Nonshipping>true</Nonshipping>
     <SolutionDir Condition="$(SolutionDir) == '' Or $(SolutionDir) == '*Undefined*'">..\..\..\..\..\..\</SolutionDir>
     <RestorePackages>true</RestorePackages>
-    <TargetFrameworkVersion>v4.5</TargetFrameworkVersion>
+    <AutoGenerateBindingRedirects>True</AutoGenerateBindingRedirects>
+    <ProjectTypeGuids>{786C830F-07A1-408B-BD7F-6EE04809D6DB};{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}</ProjectTypeGuids>
+    <TargetFrameworkIdentifier>.NETPortable</TargetFrameworkIdentifier>
+    <TargetFrameworkVersion>v5.0</TargetFrameworkVersion>
+    <CopyNuGetImplementations>false</CopyNuGetImplementations>
+    <CopyReferencesByDefault>false</CopyReferencesByDefault>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
   </PropertyGroup>
   <ItemGroup>
-    <Reference Include="System" />
-    <Reference Include="System.Core" />
-    <Reference Include="System.Xml" />
-  </ItemGroup>
-  <ItemGroup>
     <Compile Include="AbstractFileWriter.cs" />
-    <Compile Include="AbstractNode.cs" />
-    <Compile Include="Comment.cs" />
-    <Compile Include="Field.cs" />
-    <Compile Include="Kind.cs" />
-    <Compile Include="Node.cs" />
-    <Compile Include="PredefinedNode.cs" />
+    <Compile Include="Model\AbstractNode.cs" />
+    <Compile Include="Model\Comment.cs" />
+    <Compile Include="Model\Field.cs" />
+    <Compile Include="Model\Kind.cs" />
+    <Compile Include="Model\Node.cs" />
+    <Compile Include="Model\PredefinedNode.cs" />
+    <Compile Include="Model\Tree.cs" />
+    <Compile Include="Model\TreeType.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="SignatureWriter.cs" />
     <Compile Include="SourceWriter.cs" />
     <Compile Include="TestWriter.cs" />
-    <Compile Include="Tree.cs" />
-    <Compile Include="TreeType.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="project.json" />
+  </ItemGroup>
+  <ItemGroup>
+    <Content Include="..\..\..\..\..\Compilers\CSharp\Portable\Syntax\Syntax.xml">
+      <Link>Syntax.xml</Link>
+    </Content>
   </ItemGroup>
   <ImportGroup Label="Targets">
     <Import Project="..\..\..\..\..\..\build\Targets\VSL.Imports.targets" />

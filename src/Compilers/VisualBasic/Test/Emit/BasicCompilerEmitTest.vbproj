@@ -51,24 +51,20 @@
     <DebugSymbols>true</DebugSymbols>
     <DefineDebug>true</DefineDebug>
     <DefineTrace>true</DefineTrace>
-    <DebugType>full</DebugType>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Release|AnyCPU'">
     <DefineTrace>true</DefineTrace>
     <Optimize>true</Optimize>
-    <DebugType>pdbonly</DebugType>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug|ARM'">
     <DebugSymbols>true</DebugSymbols>
     <DefineDebug>true</DefineDebug>
     <DefineTrace>true</DefineTrace>
-    <DebugType>full</DebugType>
     <PlatformTarget>ARM</PlatformTarget>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Release|ARM'">
     <DefineTrace>true</DefineTrace>
     <Optimize>true</Optimize>
-    <DebugType>pdbonly</DebugType>
     <PlatformTarget>ARM</PlatformTarget>
   </PropertyGroup>
   <ItemGroup>
@@ -131,6 +127,7 @@
     <Compile Include="CodeGen\WinRTCollectionTests.vb" />
     <Compile Include="Emit\CompilationEmitTests.vb" />
     <Compile Include="Emit\DeterministicTests.vb" />
+    <Compile Include="Emit\EditAndContinue\AssemblyReferencesTests.vb" />
     <Compile Include="Emit\EditAndContinue\EditAndContinueClosureTests.vb" />
     <Compile Include="Emit\EditAndContinue\EditAndContinueStateMachineTests.vb" />
     <Compile Include="Emit\EditAndContinue\EditAndContinueTestBase.vb" />
@@ -232,6 +229,7 @@
     <Content Include="ExpressionTrees\Tests\TestConversion_Widening_UDC.vb" />
     <Content Include="ExpressionTrees\Tests\TestUnary_UDO_IsTrueIsFalse.vb" />
     <Content Include="ExpressionTrees\Tests\TestUnary_UDO_PlusMinusNot.vb" />
+    <Compile Include="PDB\PortablePdbTests.vb" />
   </ItemGroup>
   <ItemGroup>
     <Import Include="IdentifierComparison = Microsoft.CodeAnalysis.CaseInsensitiveComparison" />
@@ -253,7 +251,6 @@
     <Folder Include="My Project\" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="app.config" />
     <None Include="project.json" />
   </ItemGroup>
   <ItemGroup>

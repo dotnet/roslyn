@@ -2,7 +2,7 @@
 
 using System;
 using System.Diagnostics;
-using Microsoft.VisualStudio.Debugger.Clr;
+using Microsoft.VisualStudio.Debugger.ComponentInterfaces;
 using Microsoft.VisualStudio.Debugger.Evaluation;
 using Microsoft.VisualStudio.Debugger.Evaluation.ClrCompilation;
 
@@ -12,7 +12,7 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
     {
         private const string DynamicFormatSpecifier = "dynamic";
 
-        internal static DynamicViewExpansion CreateExpansion(DkmInspectionContext inspectionContext, DkmClrValue value, Formatter formatter)
+        internal static DynamicViewExpansion CreateExpansion(DkmInspectionContext inspectionContext, DkmClrValue value, ResultProvider resultProvider)
         {
             if (value.IsError() || value.IsNull || value.HasExceptionThrown())
             {
@@ -41,16 +41,16 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
             return new DynamicViewExpansion(proxyValue, itemsMemberExpansion);
         }
 
-        internal static EvalResultDataItem CreateMembersOnlyRow(
+        internal static EvalResult CreateMembersOnlyRow(
             DkmInspectionContext inspectionContext,
             string name,
             DkmClrValue value,
-            Formatter formatter)
+            ResultProvider resultProvider)
         {
-            var expansion = CreateExpansion(inspectionContext, value, formatter);
+            var expansion = CreateExpansion(inspectionContext, value, resultProvider);
             return (expansion != null) ?
-                expansion.CreateDynamicViewRow(inspectionContext, name, parent: null, formatter: formatter) :
-                new EvalResultDataItem(name, Resources.DynamicViewNotDynamic);
+                expansion.CreateDynamicViewRow(inspectionContext, name, parent: null, fullNameProvider: resultProvider.FullNameProvider) :
+                new EvalResult(name, Resources.DynamicViewNotDynamic, inspectionContext);
         }
 
         private readonly DkmClrValue _proxyValue;
@@ -67,7 +67,7 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
 
         internal override void GetRows(
             ResultProvider resultProvider,
-            ArrayBuilder<EvalResultDataItem> rows,
+            ArrayBuilder<EvalResult> rows,
             DkmInspectionContext inspectionContext,
             EvalResultDataItem parent,
             DkmClrValue value,
@@ -78,30 +78,27 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
         {
             if (InRange(startIndex, count, index))
             {
-                rows.Add(CreateDynamicViewRow(inspectionContext, Resources.DynamicView, parent, resultProvider.Formatter));
+                rows.Add(CreateDynamicViewRow(inspectionContext, Resources.DynamicView, parent, resultProvider.FullNameProvider));
             }
 
             index++;
         }
 
-        private EvalResultDataItem CreateDynamicViewRow(DkmInspectionContext inspectionContext, string name, EvalResultDataItem parent, Formatter formatter)
+        private EvalResult CreateDynamicViewRow(DkmInspectionContext inspectionContext, string name, EvalResultDataItem parent, IDkmClrFullNameProvider fullNameProvider)
         {
             var proxyTypeAndInfo = new TypeAndCustomInfo(_proxyValue.Type);
             var isRootExpression = parent == null;
-            Debug.Assert(isRootExpression != (name == Resources.DynamicView));
             var fullName = isRootExpression ? name : parent.ChildFullNamePrefix;
-            var sawInvalidIdentifier = false;
             var childFullNamePrefix = (fullName == null) ?
                 null :
-                formatter.GetObjectCreationExpression(formatter.GetTypeName(proxyTypeAndInfo, escapeKeywordIdentifiers: true, sawInvalidIdentifier: out sawInvalidIdentifier), fullName);
-            Debug.Assert(!sawInvalidIdentifier); // Expected type name is "Microsoft.CSharp.RuntimeBinder.DynamicMetaObjectProviderDebugView".
+                fullNameProvider.GetClrObjectCreationExpression(inspectionContext, proxyTypeAndInfo.ClrType, proxyTypeAndInfo.Info, fullName);
             var formatSpecifiers = isRootExpression ? Formatter.NoFormatSpecifiers : parent.FormatSpecifiers;
-            return new EvalResultDataItem(
+            return new EvalResult(
                 ExpansionKind.DynamicView,
                 name,
                 typeDeclaringMemberAndInfo: default(TypeAndCustomInfo),
                 declaredTypeAndInfo: proxyTypeAndInfo,
-                parent: null,
+                useDebuggerDisplay: false,
                 value: _proxyValue,
                 displayValue: Resources.DynamicViewValueWarning,
                 expansion: _proxyMembers,

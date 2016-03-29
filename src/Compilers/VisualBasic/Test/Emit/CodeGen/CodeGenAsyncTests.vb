@@ -13,7 +13,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
     Public Class AsyncTests
         Inherits BasicTestBase
 
-        <WorkItem(1004348, "DevDiv")>
+        <WorkItem(1004348, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1004348")>
         <Fact>
         Public Sub StructVsClass()
             Dim source =
@@ -1615,7 +1615,7 @@ End Module
 ]]>)
         End Sub
 
-        <Fact, WorkItem(1002672)>
+        <Fact, WorkItem(1002672, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1002672")>
         Public Sub Simple_LateBinding_1()
             Dim c = CompileAndVerify(
 <compilation>
@@ -1874,7 +1874,7 @@ End Module
             sequencePoints:="Program+VB$StateMachine_0_Test2.MoveNext")
         End Sub
 
-        <Fact, WorkItem(1002672)>
+        <Fact, WorkItem(1002672, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1002672")>
         Public Sub Simple_LateBinding_2()
             Dim c = CompileAndVerify(
 <compilation>
@@ -2281,7 +2281,7 @@ End Class
 ]]>)
         End Sub
 
-        <WorkItem(553894, "DevDiv")>
+        <WorkItem(553894, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/553894")>
         <Fact()>
         Public Sub Simple_TaskOfT_EmitMetadataOnly()
             Dim compilation = CompilationUtils.CreateCompilationWithReferences(
@@ -3681,7 +3681,9 @@ End Module
 </compilation>, useLatestFramework:=True, expectedOutput:="1")
         End Sub
 
-        <Fact(Skip:="785170"), WorkItem(785170, "DevDiv")>
+        <Fact,
+         WorkItem(94940, "https://devdiv.visualstudio.com/defaultcollection/DevDiv/_workitems#_a=edit&id=94940"),
+         WorkItem(785170, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/785170")>
         Public Sub Imported_AsyncWithEH()
             CompileAndVerify(
 <compilation>
@@ -7310,7 +7312,7 @@ End Module
 </compilation>, useLatestFramework:=True, expectedOutput:="1 3 5 7 9")
         End Sub
 
-        <Fact, WorkItem(1003196)>
+        <Fact, WorkItem(1003196, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1003196")>
         Public Sub AsyncAndPartialMethods()
             CompileAndVerify(
 <compilation>
@@ -8391,7 +8393,7 @@ End Class
                 symbolValidator:=moduleValidator)
         End Sub
 
-        <Fact, WorkItem(1002672)>
+        <Fact, WorkItem(1002672, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1002672")>
         Public Sub EmittedSymbolsCheck_Debug()
             EmittedSymbolsCheck(True)
         End Sub
@@ -8401,7 +8403,7 @@ End Class
             EmittedSymbolsCheck(False)
         End Sub
 
-        <WorkItem(840843, "DevDiv")>
+        <WorkItem(840843, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/840843")>
         <Fact>
         Public Sub MissingAsyncMethodBuilder()
             Dim source = <compilation name="Async">
@@ -8416,7 +8418,7 @@ End Class
             Dim comp = CreateCompilationWithReferences(source, {MscorlibRef}, TestOptions.ReleaseDll) ' NOTE: 4.0, Not 4.5, so it's missing the async helpers.
 
             Using stream As New MemoryStream()
-                AssertTheseDiagnostics(comp.Emit(stream).Diagnostics, <errors><![CDATA[
+                AssertTheseDiagnostics(comp.Emit(stream).Diagnostics, <errors>
 BC31091: Import of type 'AsyncVoidMethodBuilder' from assembly or module 'Async.dll' failed.
     Async Sub M()
     ~~~~~~~~~~~~~~
@@ -8429,10 +8431,13 @@ BC31091: Import of type 'IAsyncStateMachine' from assembly or module 'Async.dll'
 BC35000: Requested operation is not available because the runtime library function 'System.Runtime.CompilerServices.IAsyncStateMachine.MoveNext' is not defined.
     Async Sub M()
     ~~~~~~~~~~~~~~
+BC35000: Requested operation is not available because the runtime library function 'System.Runtime.CompilerServices.IAsyncStateMachine.SetStateMachine' is not defined.
+    Async Sub M()
+    ~~~~~~~~~~~~~~
 BC42356: This async method lacks 'Await' operators and so will run synchronously. Consider using the 'Await' operator to await non-blocking API calls, or 'Await Task.Run(...)' to do CPU-bound work on a background thread.
     Async Sub M()
               ~
-]]></errors>)
+                    </errors>)
             End Using
         End Sub
 
@@ -8556,6 +8561,322 @@ After 12]]>
 
             CompileAndVerify(compilation.WithOptions(TestOptions.ReleaseExe), expectedOutput:=expectedOutput)
         End Sub
+
+        <Fact, WorkItem(7669, "https://github.com/dotnet/roslyn/issues/7669")>
+        Public Sub HoistUsing001()
+            Dim source =
+<compilation name="Async">
+    <file name="a.vb">
+Imports System
+Imports System.Threading.Tasks
+
+Module Module1
+    Class D
+        Implements IDisposable
+
+        Public Sub Dispose() Implements IDisposable.Dispose
+            Console.WriteLine("disposed")
+        End Sub
+    End Class
+
+    Sub Main()
+        Console.WriteLine(Test.Result)
+    End Sub
+
+    Private Async Function Test() As Task(Of String)
+        Console.WriteLine("Pre")
+
+        Using window = New D
+            Console.WriteLine("show")
+
+            For index = 1 To 2
+                Await Task.Delay(100)
+            Next
+        End Using
+
+        Console.WriteLine("Post")
+        Return "result"
+    End Function
+End Module
+
+    </file>
+</compilation>
+
+            Dim expectedOutput = <![CDATA[Pre
+show
+disposed
+Post
+result]]>
+
+            Dim compilation = CompilationUtils.CreateCompilationWithReferences(source, references:=LatestVbReferences, options:=TestOptions.DebugExe)
+            CompileAndVerify(compilation, expectedOutput:=expectedOutput)
+            CompileAndVerify(compilation.WithOptions(TestOptions.ReleaseExe), expectedOutput:=expectedOutput)
+        End Sub
+
+        <Fact, WorkItem(7669, "https://github.com/dotnet/roslyn/issues/7669")>
+        Public Sub HoistUsing002()
+            Dim source =
+<compilation name="Async">
+    <file name="a.vb">
+Imports System
+Imports System.Threading.Tasks
+
+Module Module1
+    Class D
+        Implements IDisposable
+
+        Public Sub Dispose() Implements IDisposable.Dispose
+            Console.WriteLine("disposed")
+        End Sub
+    End Class
+
+    Sub Main()
+        Console.WriteLine(Test.Result)
+    End Sub
+
+    Private Async Function Test() As Task(Of String)
+        Console.WriteLine("Pre")
+
+        Dim window = New D
+        Try
+            Console.WriteLine("show")
+
+            For index = 1 To 2
+                Await Task.Delay(100)
+            Next
+        Finally
+            window.Dispose()
+        End Try
+
+        Console.WriteLine("Post")
+        Return "result"
+    End Function
+End Module
+
+    </file>
+</compilation>
+
+            Dim expectedOutput = <![CDATA[Pre
+show
+disposed
+Post
+result]]>
+
+            Dim compilation = CompilationUtils.CreateCompilationWithReferences(source, references:=LatestVbReferences, options:=TestOptions.DebugExe)
+            CompileAndVerify(compilation, expectedOutput:=expectedOutput)
+            CompileAndVerify(compilation.WithOptions(TestOptions.ReleaseExe), expectedOutput:=expectedOutput)
+        End Sub
+
+        <Fact, WorkItem(7669, "https://github.com/dotnet/roslyn/issues/7669")>
+        Public Sub HoistUsing003()
+            Dim source =
+<compilation name="Async">
+    <file name="a.vb">
+Imports System
+Imports System.Threading.Tasks
+
+Module Module1
+    Class D
+        Implements IDisposable
+
+        Public Sub Dispose() Implements IDisposable.Dispose
+            Console.WriteLine("disposed")
+        End Sub
+    End Class
+
+    Sub Main()
+        Console.WriteLine(Test.Result)
+    End Sub
+
+    Private Async Function Test() As Task(Of String)
+        Console.WriteLine("Pre")
+
+        Dim window as D
+        Try
+            window = New D
+
+            Console.WriteLine("show")
+
+            For index = 1 To 2
+                Await Task.Delay(100)
+            Next
+        Finally
+            window.Dispose()
+        End Try
+
+        Console.WriteLine("Post")
+        Return "result"
+    End Function
+End Module
+
+    </file>
+</compilation>
+
+            Dim expectedOutput = <![CDATA[Pre
+show
+disposed
+Post
+result]]>
+
+            Dim compilation = CompilationUtils.CreateCompilationWithReferences(source, references:=LatestVbReferences, options:=TestOptions.DebugExe)
+            CompileAndVerify(compilation, expectedOutput:=expectedOutput)
+            CompileAndVerify(compilation.WithOptions(TestOptions.ReleaseExe), expectedOutput:=expectedOutput)
+        End Sub
+
+        <Fact, WorkItem(7669, "https://github.com/dotnet/roslyn/issues/7669")>
+        Public Sub HoistUsing004()
+            Dim source =
+<compilation name="Async">
+    <file name="a.vb">
+Imports System
+Imports System.Threading.Tasks
+
+Module Module1
+    Class D
+        Implements IDisposable
+
+        Public Sub Dispose() Implements IDisposable.Dispose
+            Console.WriteLine("disposed")
+        End Sub
+    End Class
+
+    Sub Main()
+        Console.WriteLine(Test.Result)
+    End Sub
+
+    Private Async Function Test() As Task(Of String)
+        Console.WriteLine("Pre")
+
+        Using window1 = New D
+            Console.WriteLine("show")
+
+            Using window = New D
+                Console.WriteLine("show")
+
+                For index = 1 To 2
+                    Await Task.Delay(100)
+                Next
+            End Using
+        End Using
+
+        Console.WriteLine("Post")
+        Return "result"
+    End Function
+End Module
+
+    </file>
+</compilation>
+
+            Dim expectedOutput = <![CDATA[Pre
+show
+show
+disposed
+disposed
+Post
+result]]>
+
+            Dim compilation = CompilationUtils.CreateCompilationWithReferences(source, references:=LatestVbReferences, options:=TestOptions.DebugExe)
+            CompileAndVerify(compilation, expectedOutput:=expectedOutput)
+            CompileAndVerify(compilation.WithOptions(TestOptions.ReleaseExe), expectedOutput:=expectedOutput)
+        End Sub
+
+        <Fact, WorkItem(9463, "https://github.com/dotnet/roslyn/issues/9463")>
+        Public Sub AsyncIteratorReportsDiagnosticsWhenCoreTypesAreMissing()
+
+            Dim source = "
+Imports System.Threading.Tasks
+Namespace System
+    Public Class [Object]
+    End Class
+    Public Class [Int32]
+    End Class
+    Public Class [Boolean]
+    End Class
+    Public Class [String]
+    End Class
+    Public Class Exception
+    End Class
+    Public Class ValueType
+    End Class
+    Public Class [Enum]
+    End Class
+    Public Class Void
+    End Class
+End Namespace
+
+Namespace System.Threading.Tasks
+    Public Class Task
+        Public Function GetAwaiter() As TaskAwaiter
+            Return Nothing
+        End Function
+    End Class
+
+    Public Class TaskAwaiter
+        Implements System.Runtime.CompilerServices.INotifyCompletion
+
+        Public ReadOnly Property IsCompleted As Boolean
+            Get
+                Return True
+            End Get
+        End Property
+
+        Public Sub GetResult()
+        End Sub
+    End Class
+End Namespace
+
+Namespace System.Runtime.CompilerServices
+    Public Interface INotifyCompletion
+    End Interface
+
+    Public Interface ICriticalNotifyCompletion
+    End Interface
+
+    Public Interface IAsyncStateMachine
+        Sub MoveNext()
+        Sub SetStateMachine(stateMachine As IAsyncStateMachine)
+    End Interface
+
+    Public Class AsyncVoidMethodBuilder
+    End Class
+End Namespace
+
+Class C
+    Public Async Sub GetNumber(task As Task)
+        Await task
+    End Sub
+End Class
+"
+            Dim compilation = CreateCompilation({Parse(source)})
+
+            compilation.AssertTheseEmitDiagnostics(<expected>
+BC30456: 'Create' is not a member of 'AsyncVoidMethodBuilder'.
+    Public Async Sub GetNumber(task As Task)
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+BC30456: 'SetException' is not a member of 'AsyncVoidMethodBuilder'.
+    Public Async Sub GetNumber(task As Task)
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+BC30456: 'SetResult' is not a member of 'AsyncVoidMethodBuilder'.
+    Public Async Sub GetNumber(task As Task)
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+BC30456: 'SetStateMachine' is not a member of 'AsyncVoidMethodBuilder'.
+    Public Async Sub GetNumber(task As Task)
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+BC30456: 'Start' is not a member of 'AsyncVoidMethodBuilder'.
+    Public Async Sub GetNumber(task As Task)
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+BC35000: Requested operation is not available because the runtime library function 'Microsoft.VisualBasic.CompilerServices.ProjectData.ClearProjectError' is not defined.
+    Public Async Sub GetNumber(task As Task)
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+BC35000: Requested operation is not available because the runtime library function 'Microsoft.VisualBasic.CompilerServices.ProjectData.SetProjectError' is not defined.
+    Public Async Sub GetNumber(task As Task)
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+BC30456: 'AwaitOnCompleted' is not a member of 'AsyncVoidMethodBuilder'.
+        Await task
+        ~~~~~~~~~~
+                </expected>)
+        End Sub
+
     End Class
 End Namespace
 

@@ -78,7 +78,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.Completion.CompletionProviders.Xm
                     items.AddRange(GetNestedTags(span));
                 }
 
-                if (token.Parent.Parent.Kind() == SyntaxKind.XmlElement && ((XmlElementSyntax)token.Parent.Parent).StartTag.Name.LocalName.ValueText == "list")
+                if (token.Parent.Parent.Kind() == SyntaxKind.XmlElement && ((XmlElementSyntax)token.Parent.Parent).StartTag.Name.LocalName.ValueText == ListTagName)
                 {
                     items.AddRange(GetListItems(span));
                 }
@@ -86,13 +86,13 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.Completion.CompletionProviders.Xm
                 if (token.Parent.IsParentKind(SyntaxKind.XmlEmptyElement) & token.Parent.Parent.IsParentKind(SyntaxKind.XmlElement))
                 {
                     var element = (XmlElementSyntax)token.Parent.Parent.Parent;
-                    if (element.StartTag.Name.LocalName.ValueText == "list")
+                    if (element.StartTag.Name.LocalName.ValueText == ListTagName)
                     {
                         items.AddRange(GetListItems(span));
                     }
                 }
 
-                if (token.Parent.Parent.Kind() == SyntaxKind.XmlElement && ((XmlElementSyntax)token.Parent.Parent).StartTag.Name.LocalName.ValueText == "listheader")
+                if (token.Parent.Parent.Kind() == SyntaxKind.XmlElement && ((XmlElementSyntax)token.Parent.Parent).StartTag.Name.LocalName.ValueText == ListHeaderTagName)
                 {
                     items.AddRange(GetListHeaderItems(span));
                 }
@@ -108,12 +108,12 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.Completion.CompletionProviders.Xm
             {
                 var startTag = (XmlElementStartTagSyntax)token.Parent;
 
-                if (token == startTag.GreaterThanToken && startTag.Name.LocalName.ValueText == "list")
+                if (token == startTag.GreaterThanToken && startTag.Name.LocalName.ValueText == ListTagName)
                 {
                     items.AddRange(GetListItems(span));
                 }
 
-                if (token == startTag.GreaterThanToken && startTag.Name.LocalName.ValueText == "listheader")
+                if (token == startTag.GreaterThanToken && startTag.Name.LocalName.ValueText == ListHeaderTagName)
                 {
                     items.AddRange(GetListHeaderItems(span));
                 }
@@ -125,7 +125,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.Completion.CompletionProviders.Xm
 
         private IEnumerable<CompletionItem> GetTopLevelSingleUseNames(DocumentationCommentTriviaSyntax parentTrivia, TextSpan span)
         {
-            var names = new HashSet<string>(new[] { "summary", "remarks", "example", "completionlist" });
+            var names = new HashSet<string>(new[] { SummaryTagName, RemarksTagName, ExampleTagName, CompletionListTagName });
 
             RemoveExistingTags(parentTrivia, names, (x) => x.StartTag.Name.LocalName.ValueText);
 
@@ -173,11 +173,11 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.Completion.CompletionProviders.Xm
 
             var typeParameters = symbol.TypeParameters.Select(p => p.Name).ToSet();
 
-            RemoveExistingTags(trivia, typeParameters, x => AttributeSelector(x, "typeparam"));
+            RemoveExistingTags(trivia, typeParameters, x => AttributeSelector(x, TypeParamTagName));
 
             items.AddRange(typeParameters.Select(t => new XmlDocCommentCompletionItem(this,
                 filterSpan,
-                FormatParameter("typeparam", t), GetCompletionItemRules())));
+                FormatParameter(TypeParamTagName, t), GetCompletionItemRules())));
             return items;
         }
 
@@ -186,7 +186,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.Completion.CompletionProviders.Xm
             if (!element.StartTag.IsMissing && !element.EndTag.IsMissing)
             {
                 var startTag = element.StartTag;
-                var nameAttribute = startTag.Attributes.OfType<XmlNameAttributeSyntax>().FirstOrDefault(a => a.Name.LocalName.ValueText == "name");
+                var nameAttribute = startTag.Attributes.OfType<XmlNameAttributeSyntax>().FirstOrDefault(a => a.Name.LocalName.ValueText == NameAttributeName);
                 if (nameAttribute != null)
                 {
                     if (startTag.Name.LocalName.ValueText == attribute)
@@ -220,7 +220,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.Completion.CompletionProviders.Xm
                     }
 
                     // We're writing the name of a paramref
-                    if (parentElementName == "paramref")
+                    if (parentElementName == ParamRefTagName)
                     {
                         items.AddRange(parameters.Select(p => new XmlDocCommentCompletionItem(this, filterSpan, p, GetCompletionItemRules())));
                     }
@@ -228,12 +228,12 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.Completion.CompletionProviders.Xm
                     return items;
                 }
 
-                RemoveExistingTags(trivia, parameters, x => AttributeSelector(x, "param"));
-                items.AddRange(parameters.Select(p => new XmlDocCommentCompletionItem(this, filterSpan, FormatParameter("param", p), GetCompletionItemRules())));
+                RemoveExistingTags(trivia, parameters, x => AttributeSelector(x, ParamTagName));
+                items.AddRange(parameters.Select(p => new XmlDocCommentCompletionItem(this, filterSpan, FormatParameter(ParamTagName, p), GetCompletionItemRules())));
             }
 
             var typeParameters = symbol.GetTypeArguments().Select(p => p.Name).ToSet();
-            items.AddRange(typeParameters.Select(t => new XmlDocCommentCompletionItem(this, filterSpan, "typeparam", "name", t, GetCompletionItemRules())));
+            items.AddRange(typeParameters.Select(t => new XmlDocCommentCompletionItem(this, filterSpan, TypeParamTagName, NameAttributeName, t, GetCompletionItemRules())));
             items.Add(new XmlDocCommentCompletionItem(this, filterSpan, "value", GetCompletionItemRules()));
             return items;
         }
@@ -258,11 +258,11 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.Completion.CompletionProviders.Xm
                 }
 
                 // We're writing the name of a paramref or typeparamref
-                if (parentElementName == "paramref")
+                if (parentElementName == ParamRefTagName)
                 {
                     items.AddRange(parameters.Select(p => new XmlDocCommentCompletionItem(this, filterSpan, p, GetCompletionItemRules())));
                 }
-                else if (parentElementName == "typeparamref")
+                else if (parentElementName == TypeParamRefTagName)
                 {
                     items.AddRange(typeParameters.Select(t => new XmlDocCommentCompletionItem(this, filterSpan, t, GetCompletionItemRules())));
                 }
@@ -272,8 +272,8 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.Completion.CompletionProviders.Xm
 
             var returns = true;
 
-            RemoveExistingTags(trivia, parameters, x => AttributeSelector(x, "param"));
-            RemoveExistingTags(trivia, typeParameters, x => AttributeSelector(x, "typeparam"));
+            RemoveExistingTags(trivia, parameters, x => AttributeSelector(x, ParamTagName));
+            RemoveExistingTags(trivia, typeParameters, x => AttributeSelector(x, TypeParamTagName));
 
             foreach (var node in trivia.Content)
             {
@@ -282,7 +282,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.Completion.CompletionProviders.Xm
                 {
                     var startTag = element.StartTag;
 
-                    if (startTag.Name.LocalName.ValueText == "returns")
+                    if (startTag.Name.LocalName.ValueText == ReturnsTagName)
                     {
                         returns = false;
                         break;
@@ -290,12 +290,12 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.Completion.CompletionProviders.Xm
                 }
             }
 
-            items.AddRange(parameters.Select(p => new XmlDocCommentCompletionItem(this, filterSpan, FormatParameter("param", p), GetCompletionItemRules())));
-            items.AddRange(typeParameters.Select(t => new XmlDocCommentCompletionItem(this, filterSpan, FormatParameter("typeparam", t), GetCompletionItemRules())));
+            items.AddRange(parameters.Select(p => new XmlDocCommentCompletionItem(this, filterSpan, FormatParameter(ParamTagName, p), GetCompletionItemRules())));
+            items.AddRange(typeParameters.Select(t => new XmlDocCommentCompletionItem(this, filterSpan, FormatParameter(TypeParamTagName, t), GetCompletionItemRules())));
 
             if (returns && !symbol.ReturnsVoid)
             {
-                items.Add(new XmlDocCommentCompletionItem(this, filterSpan, "returns", GetCompletionItemRules()));
+                items.Add(new XmlDocCommentCompletionItem(this, filterSpan, ReturnsTagName, GetCompletionItemRules()));
             }
 
             return items;

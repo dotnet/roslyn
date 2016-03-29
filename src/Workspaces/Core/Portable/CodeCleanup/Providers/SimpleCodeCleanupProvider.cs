@@ -48,14 +48,14 @@ namespace Microsoft.CodeAnalysis.CodeCleanup.Providers
             return document;
         }
 
-        public SyntaxNode Cleanup(SyntaxNode root, IEnumerable<TextSpan> spans, Workspace workspace, CancellationToken cancellationToken)
+        public Task<SyntaxNode> CleanupAsync(SyntaxNode root, IEnumerable<TextSpan> spans, Workspace workspace, CancellationToken cancellationToken)
         {
             if (_syntaxDelegatee != null)
             {
-                return _syntaxDelegatee(root, spans, workspace, cancellationToken);
+                return Task.FromResult(_syntaxDelegatee(root, spans, workspace, cancellationToken));
             }
 
-            return root;
+            return Task.FromResult(root);
         }
     }
 }

@@ -17,6 +17,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         private readonly TypeSymbol _explicitInterfaceType;
         private readonly string _name;
         private readonly bool _isExpressionBodied;
+        private readonly RefKind _refKind;
 
         private ImmutableArray<MethodSymbol> _lazyExplicitInterfaceImplementations;
         private ImmutableArray<CustomModifier> _lazyReturnTypeCustomModifiers;
@@ -131,6 +132,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 CheckModifiersForBody(location, diagnostics);
             }
 
+            _refKind = syntax.RefKeyword.Kind().GetRefKind();
+
             var info = ModifierUtils.CheckAccessibility(this.DeclarationModifiers);
             if (info != null)
             {
@@ -193,8 +196,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 }
             }
 
+            var returnsVoid = _lazyReturnType.SpecialType == SpecialType.System_Void;
+            if (this.RefKind != RefKind.None && returnsVoid)
+            {
+                diagnostics.Add(ErrorCode.ERR_VoidReturningMethodCannotReturnByRef, syntax.RefKeyword.GetLocation());
+            }
+
             // set ReturnsVoid flag
-            this.SetReturnsVoid(_lazyReturnType.SpecialType == SpecialType.System_Void);
+            this.SetReturnsVoid(returnsVoid);
 
             var location = this.Locations[0];
             this.CheckEffectiveAccessibility(_lazyReturnType, _lazyParameters, diagnostics);
@@ -390,10 +399,18 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             if (!this.IsAsync)
             {
-                state.NotePartComplete(CompletionPart.StartAsyncMethodChecks);
-                if (state.NotePartComplete(CompletionPart.FinishAsyncMethodChecks) && IsPartialDefinition)
+                if (state.NotePartComplete(CompletionPart.StartAsyncMethodChecks))
                 {
-                    DeclaringCompilation.SymbolDeclaredEvent(this);
+                    if (IsPartialDefinition && (object)PartialImplementationPart == null)
+                    {
+                        DeclaringCompilation.SymbolDeclaredEvent(this);
+                    }
+
+                    state.NotePartComplete(CompletionPart.FinishAsyncMethodChecks);
+                }
+                else
+                {
+                    state.SpinWaitComplete(CompletionPart.FinishAsyncMethodChecks, cancellationToken);
                 }
 
                 return;
@@ -402,6 +419,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             DiagnosticBag diagnostics = DiagnosticBag.GetInstance();
             Location errorLocation = this.Locations[0];
 
+            Debug.Assert(this.RefKind == RefKind.None);
             if (!this.IsGenericTaskReturningAsync(this.DeclaringCompilation) && !this.IsTaskReturningAsync(this.DeclaringCompilation) && !this.IsVoidReturningAsync())
             {
                 // The return type of an async method must be void, Task or Task<T>
@@ -431,10 +449,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             if (state.NotePartComplete(CompletionPart.StartAsyncMethodChecks))
             {
                 AddDeclarationDiagnostics(diagnostics);
-                if (state.NotePartComplete(CompletionPart.FinishAsyncMethodChecks) && IsPartialDefinition)
-                {
-                    DeclaringCompilation.SymbolDeclaredEvent(this);
-                }
+                if (IsPartialDefinition) DeclaringCompilation.SymbolDeclaredEvent(this);
+                state.NotePartComplete(CompletionPart.FinishAsyncMethodChecks);
             }
             else
             {
@@ -560,6 +576,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 LazyMethodChecks();
                 return _lazyParameters;
             }
+        }
+
+        internal override RefKind RefKind
+        {
+            get { return _refKind; }
         }
 
         public override TypeSymbol ReturnType
@@ -820,10 +841,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 var location = identifier.GetLocation();
                 var name = identifier.ValueText;
 
-                if (name == this.Name)
-                {
-                    diagnostics.Add(ErrorCode.ERR_TypeVariableSameAsParent, location, name);
-                }
+                // Note: It is not an error to have a type parameter named the same as its enclosing method: void M<M>() {}
 
                 for (int i = 0; i < result.Count; i++)
                 {
@@ -916,6 +934,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             else if (IsAbstract && IsVirtual)
             {
                 diagnostics.Add(ErrorCode.ERR_AbstractNotVirtual, location, this);
+            }
+            else if (IsAbstract && ContainingType.TypeKind == TypeKind.Struct)
+            {
+                // The modifier '{0}' is not valid for this item
+                diagnostics.Add(ErrorCode.ERR_BadMemberFlag, location, SyntaxFacts.GetText(SyntaxKind.AbstractKeyword));
+            }
+            else if (IsVirtual && ContainingType.TypeKind == TypeKind.Struct)
+            {
+                // The modifier '{0}' is not valid for this item
+                diagnostics.Add(ErrorCode.ERR_BadMemberFlag, location, SyntaxFacts.GetText(SyntaxKind.VirtualKeyword));
             }
             else if (IsAbstract && !ContainingType.IsAbstract && (ContainingType.TypeKind == TypeKind.Class || ContainingType.TypeKind == TypeKind.Submission))
             {

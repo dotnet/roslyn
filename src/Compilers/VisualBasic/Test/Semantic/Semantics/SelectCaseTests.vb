@@ -487,7 +487,7 @@ End Module
             Assert.Equal(#8/13/2002 12:14:00 PM#, semanticSummary.ConstantValue.Value)
         End Sub
 
-        <WorkItem(543098, "DevDiv")>
+        <WorkItem(543098, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543098")>
         <Fact()>
         Public Sub SelectCase_BoundLocal()
             Dim compilation = CreateCompilationWithMscorlib(
@@ -530,7 +530,7 @@ End Class
             Assert.False(semanticSummary.ConstantValue.HasValue)
         End Sub
 
-        <WorkItem(543387, "DevDiv")>
+        <WorkItem(543387, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543387")>
         <Fact()>
         Public Sub SelectCase_AnonymousLambda()
             Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(
@@ -565,7 +565,7 @@ BC42016: Implicit conversion from 'Object' to 'Boolean'.
 </expected>)
         End Sub
 
-        <WorkItem(948019, "DevDiv")>
+        <WorkItem(948019, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/948019")>
         <Fact()>
         Public Sub Bug948019_01()
             Dim compilation = CreateCompilationWithMscorlib(
@@ -602,7 +602,7 @@ End Class
             Assert.Equal(SymbolKind.Parameter, symbolInfo.Symbol.Kind)
         End Sub
 
-        <WorkItem(948019, "DevDiv")>
+        <WorkItem(948019, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/948019")>
         <Fact()>
         Public Sub Bug948019_02()
             Dim compilation = CreateCompilationWithMscorlib(

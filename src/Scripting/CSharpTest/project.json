@@ -1,13 +1,7 @@
 ﻿{
-  "supports": {
-    "net46.app": {},
-    "dnxcore50.app": {}
-  },
-  "dependencies": {
-    "xunit.runner.console": "2.1.0"
-  },
+  "dependencies": { },
   "frameworks": {
-    "dotnet": {
+    "dotnet5.4": {
       "imports": "portable-net452"
     }
   }

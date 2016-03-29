@@ -12,8 +12,8 @@ Imports Roslyn.Test.EditorUtilities
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Formatting
     Public Class FormattingTestBase
-        Protected Sub AssertFormatSpan(content As String, expected As String, Optional baseIndentation As Integer? = Nothing, Optional span As TextSpan = Nothing)
-            Using workspace = VisualBasicWorkspaceFactory.CreateWorkspaceFromLines(content)
+        Protected Async Function AssertFormatSpanAsync(content As String, expected As String, Optional baseIndentation As Integer? = Nothing, Optional span As TextSpan = Nothing) As Tasks.Task
+            Using workspace = Await TestWorkspace.CreateVisualBasicAsync(content)
                 Dim hostdoc = workspace.Documents.First()
 
                 ' get original buffer
@@ -23,7 +23,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Formatting
                 Dim clonedBuffer = EditorFactory.CreateBuffer(buffer.ContentType.TypeName, workspace.ExportProvider, buffer.CurrentSnapshot.GetText())
 
                 Dim document = workspace.CurrentSolution.GetDocument(hostdoc.Id)
-                Dim syntaxTree = document.GetSyntaxTreeAsync().Result
+                Dim syntaxTree = Await document.GetSyntaxTreeAsync()
 
                 ' Add Base IndentationRule that we had just set up.
                 Dim formattingRuleProvider = workspace.Services.GetService(Of IHostDependentFormattingRuleFactoryService)()
@@ -36,12 +36,12 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Formatting
                 Dim rules = formattingRuleProvider.CreateRule(document, 0).Concat(Formatter.GetDefaultFormattingRules(document))
 
                 Dim changes = Formatter.GetFormattedTextChanges(
-                    syntaxTree.GetRoot(CancellationToken.None),
+                    Await syntaxTree.GetRootAsync(),
                     workspace.Documents.First(Function(d) d.SelectedSpans.Any()).SelectedSpans,
                     workspace, workspace.Options, rules, CancellationToken.None)
                 AssertResult(expected, clonedBuffer, changes)
             End Using
-        End Sub
+        End Function
 
         Private Shared Sub AssertResult(expected As String, buffer As ITextBuffer, changes As IList(Of TextChange))
             Using edit = buffer.CreateEdit()

@@ -15,7 +15,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.SymbolId
     {
         #region "Metadata vs. Source"
 
-        [WpfFact]
+        [Fact]
         public void M2SNamedTypeSymbols01()
         {
             var src1 = @"using System;
@@ -85,8 +85,8 @@ public class App : C
             ResolveAndVerifySymbol(member04, comp2, originalSymbols[4], comp1, SymbolKeyComparison.CaseSensitive);
         }
 
-        [WorkItem(542700)]
-        [WpfFact]
+        [WorkItem(542700, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542700")]
+        [Fact]
         public void M2SNonTypeMemberSymbols01()
         {
             var src1 = @"using System;
@@ -175,7 +175,7 @@ public class App
 
         #region "Metadata vs. Metadata"
 
-        [WpfFact]
+        [Fact]
         public void M2MMultiTargetingMsCorLib01()
         {
             var src1 = @"using System;
@@ -272,7 +272,7 @@ class Test
             }
         }
 
-        [WpfFact, WorkItem(546255)]
+        [Fact, WorkItem(546255, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546255")]
         public void M2MMultiTargetingMsCorLib02()
         {
             var src1 = @"using System;
@@ -367,7 +367,7 @@ class Test
             ResolveAndVerifyTypeSymbol(list[4], (originalSymbols[0] as PropertySymbol).Type, model, comp20);
         }
 
-        [WpfFact, WorkItem(546255)]
+        [Fact, WorkItem(546255, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546255")]
         public void M2MMultiTargetingMsCorLib03()
         {
             var src1 = @"using System;

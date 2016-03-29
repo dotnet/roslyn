@@ -216,9 +216,9 @@ namespace Microsoft.CodeAnalysis.ReplaceMethodWithProperty
         }
 
         private static void ReplaceGetReferences(
-            string propertyName, bool nameChanged, 
-            IEnumerable<ReferenceLocation> getReferences, 
-            SyntaxNode root, SyntaxEditor editor, 
+            string propertyName, bool nameChanged,
+            IEnumerable<ReferenceLocation> getReferences,
+            SyntaxNode root, SyntaxEditor editor,
             IReplaceMethodWithPropertyService service,
             CancellationToken cancellationToken)
         {
@@ -248,7 +248,7 @@ namespace Microsoft.CodeAnalysis.ReplaceMethodWithProperty
         private static void ReplaceSetReferences(
             string propertyName, bool nameChanged,
             IEnumerable<ReferenceLocation> setReferences,
-            SyntaxNode root, SyntaxEditor editor, 
+            SyntaxNode root, SyntaxEditor editor,
             IReplaceMethodWithPropertyService service,
             CancellationToken cancellationToken)
         {
@@ -357,8 +357,8 @@ namespace Microsoft.CodeAnalysis.ReplaceMethodWithProperty
         private async Task<List<GetAndSetMethods>> GetGetSetPairsAsync(
             Solution updatedSolution,
             Compilation compilation,
-            DocumentId documentId, 
-            MultiDictionary<DocumentId, IMethodSymbol>.ValueSet originalDefinitions, 
+            DocumentId documentId,
+            MultiDictionary<DocumentId, IMethodSymbol>.ValueSet originalDefinitions,
             bool updateSetMethod,
             CancellationToken cancellationToken)
         {
@@ -403,8 +403,8 @@ namespace Microsoft.CodeAnalysis.ReplaceMethodWithProperty
         }
 
         private async Task<MultiDictionary<DocumentId, IMethodSymbol>> GetDefinitionsByDocumentIdAsync(
-            Solution originalSolution, 
-            IEnumerable<ReferencedSymbol> referencedSymbols, 
+            Solution originalSolution,
+            IEnumerable<ReferencedSymbol> referencedSymbols,
             CancellationToken cancellationToken)
         {
             var result = new MultiDictionary<DocumentId, IMethodSymbol>();

@@ -7,7 +7,7 @@ using Microsoft.VisualStudio.Debugger.Evaluation.ClrCompilation;
 using System;
 using Xunit;
 
-namespace Microsoft.CodeAnalysis.CSharp.UnitTests
+namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator.UnitTests
 {
     public class ObjectIdTests : CSharpResultProviderTestBase
     {

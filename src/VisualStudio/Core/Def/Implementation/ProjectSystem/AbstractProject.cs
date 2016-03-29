@@ -41,7 +41,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
         /// </summary>
         private string _filePathOpt;
 
-        private readonly MiscellaneousFilesWorkspace _miscellaneousFilesWorkspaceOpt;
         private readonly VisualStudioWorkspaceImpl _visualStudioWorkspaceOpt;
         private readonly IContentTypeRegistryService _contentTypeRegistryService;
         private readonly IVsReportExternalErrors _externalErrorReporter;
@@ -107,7 +106,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             IVsHierarchy hierarchy,
             string language,
             IServiceProvider serviceProvider,
-            MiscellaneousFilesWorkspace miscellaneousFilesWorkspaceOpt,
             VisualStudioWorkspaceImpl visualStudioWorkspaceOpt,
             HostDiagnosticUpdateSource hostDiagnosticUpdateSourceOpt)
         {
@@ -132,7 +130,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             this.ProjectTracker = projectTracker;
 
             _projectSystemName = projectSystemName;
-            _miscellaneousFilesWorkspaceOpt = miscellaneousFilesWorkspaceOpt;
             _visualStudioWorkspaceOpt = visualStudioWorkspaceOpt;
             _hostDiagnosticUpdateSourceOpt = hostDiagnosticUpdateSourceOpt;
 
@@ -232,8 +229,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
         /// </summary>
         internal string TryGetBinOutputPath() => _binOutputPathOpt;
 
-        internal VisualStudioWorkspaceImpl VisualStudioWorkspace => _visualStudioWorkspaceOpt;
-
         internal IRuleSetFile RuleSetFile => this.ruleSet;
 
         internal HostDiagnosticUpdateSource HostDiagnosticUpdateSource => _hostDiagnosticUpdateSourceOpt;
@@ -248,7 +243,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 
         public string ProjectType => _projectType;
 
-        public Workspace Workspace => (Workspace)_visualStudioWorkspaceOpt ?? _miscellaneousFilesWorkspaceOpt;
+        public Workspace Workspace => _visualStudioWorkspaceOpt;
 
         public VersionStamp Version => _version;
 
@@ -308,7 +303,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
         {
             ValidateReferences();
 
-            return ProjectInfo.Create(
+            var info = ProjectInfo.Create(
                 this.Id,
                 this.Version,
                 this.DisplayName,
@@ -323,6 +318,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                 projectReferences: _projectReferences,
                 analyzerReferences: _analyzers.Values.Select(a => a.GetReference()),
                 additionalDocuments: _additionalDocuments.Values.Select(d => d.GetInitialState()));
+
+            return info.WithHasAllInformation(_intellisenseBuildSucceeded);
         }
 
         protected ImmutableArray<string> GetStrongNameKeyPaths()
@@ -351,6 +348,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
         public ImmutableArray<ProjectReference> GetCurrentProjectReferences()
         {
             return ImmutableArray.CreateRange(_projectReferences);
+        }
+
+        public ImmutableArray<VisualStudioMetadataReference> GetCurrentMetadataReferences()
+        {
+            return ImmutableArray.CreateRange(_metadataReferences);
         }
 
         public IVisualStudioHostDocument GetDocumentOrAdditionalDocument(DocumentId id)
@@ -435,7 +437,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             }
         }
 
-        protected int AddMetadataReferenceAndTryConvertingToProjectReferenceIfPossible(string filePath, MetadataReferenceProperties properties, int hResultForMissingFile)
+        protected int AddMetadataReferenceAndTryConvertingToProjectReferenceIfPossible(string filePath, MetadataReferenceProperties properties)
         {
             // If this file is coming from a project, then we should convert it to a project reference instead
             AbstractProject project;
@@ -450,13 +452,50 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                 }
             }
 
-            if (!File.Exists(filePath))
-            {
-                return hResultForMissingFile;
-            }
-
+            // regardless whether the file exists or not, we still record it. one of reason 
+            // we do that is some cross language p2p references might be resolved
+            // after they are already reported as metadata references. since we use bin path 
+            // as a way to discover them, if we don't previously record the reference ourselves, 
+            // cross p2p references won't be resolved as p2p references when we finally have 
+            // all required information.
+            //
+            // it looks like 
+            //    1. project system sometimes won't guarantee build dependency for intellisense build 
+            //       if it is cross language dependency
+            //    2. output path of referenced cross language project might be changed to right one 
+            //       once it is already added as a metadata reference.
+            //
+            // but this has one consequence. even if a user adds a project in the solution as 
+            // a metadata reference explicitly, that dll will be automatically converted back to p2p 
+            // reference.
+            // 
+            // unfortunately there is no way to prevent this using information we have since, 
+            // at this point, we don't know whether it is a metadata reference added because 
+            // we don't have enough information yet for p2p reference or user explicitly added it 
+            // as a metadata reference.
             AddMetadataReferenceCore(this.MetadataReferenceProvider.CreateMetadataReference(this, filePath, properties));
 
+            // here, we change behavior compared to old C# language service. regardless of file being exist or not, 
+            // we will always return S_OK. this is to support cross language p2p reference better. 
+            // 
+            // this should make project system to cache all cross language p2p references regardless 
+            // whether it actually exist in disk or not. 
+            // (see Roslyn bug 7315 for history - http://vstfdevdiv:8080/DevDiv_Projects/Roslyn/_workitems?_a=edit&id=7315)
+            //
+            // after this point, Roslyn will take care of non-exist metadata reference.
+            //
+            // But, this doesn't sovle the issue where actual metadata reference 
+            // (not cross language p2p reference) is missing at the time project is opened.
+            //
+            // in that case, msbuild filter those actual metadata references out, so project system doesn't know 
+            // path to the reference. since it doesn't know where dll is, it can't (or currently doesn't) 
+            // setup file change notification either to find out when dll becomes available. 
+            //
+            // at this point, user has 2 ways to recover missing metadata reference once it becomes available.
+            //
+            // one way is explicitly clicking that missing reference from solution explorer reference node.
+            // the other is building the project. at that point, project system will refresh references 
+            // which will discover new dll and connect to us. once it is connected, we will take care of it.
             return VSConstants.S_OK;
         }
 
@@ -540,7 +579,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             AddAnalyzerAssembly(analyzer.FullPath);
         }
 
-        protected void AddProjectReference(ProjectReference projectReference)
+        // Internal for unit testing
+        internal void AddProjectReference(ProjectReference projectReference)
         {
             // dev11 is sometimes calling us multiple times for the same data
             if (!CanAddProjectReference(projectReference))
@@ -750,11 +790,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             // We do not want to allow message pumping/reentrancy when processing project system changes.
             using (Dispatcher.CurrentDispatcher.DisableProcessing())
             {
-                if (_miscellaneousFilesWorkspaceOpt != null)
-                {
-                    _miscellaneousFilesWorkspaceOpt.OnFileIncludedInProject(document);
-                }
-
                 _documents.Add(document.Id, document);
                 _documentMonikers.Add(document.Key.Moniker, document);
 
@@ -796,11 +831,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 
         internal void AddAdditionalDocument(IVisualStudioHostDocument document, bool isCurrentContext)
         {
-            if (_miscellaneousFilesWorkspaceOpt != null)
-            {
-                _miscellaneousFilesWorkspaceOpt.OnFileIncludedInProject(document);
-            }
-
             _additionalDocuments.Add(document.Id, document);
             _documentMonikers.Add(document.Key.Moniker, document);
 
@@ -975,11 +1005,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                 this.ProjectTracker.NotifyWorkspaceHosts(host => host.OnDocumentRemoved(document.Id));
             }
 
-            if (_miscellaneousFilesWorkspaceOpt != null)
-            {
-                _miscellaneousFilesWorkspaceOpt.OnFileRemovedFromProject(document);
-            }
-
             document.Opened -= s_documentOpenedEventHandler;
             document.Closing -= s_documentClosingEventHandler;
             document.UpdatedOnDisk -= s_documentUpdatedOnDiskEventHandler;
@@ -999,11 +1024,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                 this.ProjectTracker.NotifyWorkspaceHosts(host => host.OnAdditionalDocumentRemoved(document.Id));
             }
 
-            if (_miscellaneousFilesWorkspaceOpt != null)
-            {
-                _miscellaneousFilesWorkspaceOpt.OnFileRemovedFromProject(document);
-            }
-
             document.Opened -= s_additionalDocumentOpenedEventHandler;
             document.Closing -= s_additionalDocumentClosingEventHandler;
             document.UpdatedOnDisk -= s_additionalDocumentUpdatedOnDiskEventHandler;
@@ -1015,7 +1035,12 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
         {
         }
 
-        protected virtual void UpdateAnalyzerRules()
+        /// <summary>
+        /// Implemented by derived types to provide a way for <see cref="AbstractProject"/> to indicate that options will need to be refreshed.
+        /// It is expected that derived types will read in shared option state stored in this class, create new Compilation and Parse options,
+        /// and call <see cref="SetOptions"/> in response. The default implementation does nothing.
+        /// </summary>
+        protected virtual void UpdateOptions()
         {
         }
 
@@ -1172,8 +1197,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                 _objOutputPathOpt = objOutputPath;
 
                 _compilationOptions = _compilationOptions.WithMetadataReferenceResolver(CreateMetadataReferenceResolver(
-                    metadataService: this.Workspace.Services.GetService<IMetadataService>(), 
-                    projectDirectory: this.ContainingDirectoryPathOpt, 
+                    metadataService: this.Workspace.Services.GetService<IMetadataService>(),
+                    projectDirectory: this.ContainingDirectoryPathOpt,
                     outputDirectory: Path.GetDirectoryName(_objOutputPathOpt)));
 
                 if (_pushingChangesToWorkspaceHosts)

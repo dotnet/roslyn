@@ -124,7 +124,7 @@ namespace Microsoft.CodeAnalysis.Completion
             bool showsWarningIcon = false,
             bool shouldFormatOnCommit = false,
             CompletionItemRules rules = null) :
-                this(completionProvider, displayText, filterSpan, descriptionFactory, glyph, /*hasAsyncDescription*/ true, sortText, 
+                this(completionProvider, displayText, filterSpan, descriptionFactory, glyph, /*hasAsyncDescription*/ true, sortText,
                      filterText, preselect, isBuilder, showsWarningIcon, shouldFormatOnCommit, rules)
         {
         }

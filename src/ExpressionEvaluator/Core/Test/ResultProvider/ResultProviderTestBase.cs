@@ -8,7 +8,6 @@ using System.Runtime.ExceptionServices;
 using Microsoft.CodeAnalysis.Collections;
 using Microsoft.VisualStudio.Debugger;
 using Microsoft.VisualStudio.Debugger.Clr;
-using Microsoft.VisualStudio.Debugger.ComponentInterfaces;
 using Microsoft.VisualStudio.Debugger.Evaluation;
 using Microsoft.VisualStudio.Debugger.Evaluation.ClrCompilation;
 using Xunit;
@@ -17,26 +16,22 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
 {
     public abstract class ResultProviderTestBase
     {
-        private readonly IDkmClrFormatter _formatter;
-        private readonly IDkmClrResultProvider _resultProvider;
-
-        internal readonly DkmInspectionContext DefaultInspectionContext;
-
-        protected static readonly string DynamicDebugViewEmptyMessage;
-
-        static ResultProviderTestBase()
+        internal static string GetDynamicDebugViewEmptyMessage()
         {
+            // Value should not be cached since it depends on the current CultureInfo.
             var exceptionType = typeof(Microsoft.CSharp.RuntimeBinder.RuntimeBinderException).Assembly.GetType(
                 "Microsoft.CSharp.RuntimeBinder.DynamicMetaObjectProviderDebugView+DynamicDebugViewEmptyException");
             var emptyProperty = exceptionType.GetProperty("Empty");
-            DynamicDebugViewEmptyMessage = (string)emptyProperty.GetValue(exceptionType.Instantiate());
+            return (string)emptyProperty.GetValue(exceptionType.Instantiate());
         }
 
-        protected ResultProviderTestBase(ResultProvider resultProvider, DkmInspectionContext defaultInspectionContext)
+        private readonly DkmInspectionSession _inspectionSession;
+        internal readonly DkmInspectionContext DefaultInspectionContext;
+
+        internal ResultProviderTestBase(DkmInspectionSession inspectionSession, DkmInspectionContext defaultInspectionContext)
         {
-            _formatter = resultProvider.Formatter;
-            _resultProvider = resultProvider;
-            this.DefaultInspectionContext = defaultInspectionContext;
+            _inspectionSession = inspectionSession;
+            DefaultInspectionContext = defaultInspectionContext;
 
             // We never want to swallow Exceptions (generate a non-fatal Watson) when running tests.
             ExpressionEvaluatorFatalError.IsFailFastEnabled = true;
@@ -58,7 +53,6 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
                 DkmClrValue.GetHostObjectValue((TypeImpl)type, value),
                 new DkmClrType((TypeImpl)type),
                 alias,
-                _formatter,
                 evalFlags,
                 valueFlags);
         }
@@ -76,7 +70,6 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
                 DkmClrValue.GetHostObjectValue(type.GetLmrType(), value),
                 type,
                 alias,
-                _formatter,
                 evalFlags,
                 valueFlags,
                 nativeComPointer: nativeComPointer);
@@ -91,7 +84,6 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
                 hostObjectValue: message,
                 type: type,
                 alias: null,
-                formatter: _formatter,
                 evalFlags: DkmEvaluationResultFlags.None,
                 valueFlags: DkmClrValueFlags.Error);
         }
@@ -111,7 +103,7 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
         internal string FormatValue(object value, Type type, bool useHexadecimal = false)
         {
             var clrValue = CreateDkmClrValue(value, type);
-            var inspectionContext = CreateDkmInspectionContext(_formatter, DkmEvaluationFlags.None, radix: useHexadecimal ? 16u : 10u);
+            var inspectionContext = CreateDkmInspectionContext(_inspectionSession, DkmEvaluationFlags.None, radix: useHexadecimal ? 16u : 10u);
             return clrValue.GetValueString(inspectionContext, Formatter.NoFormatSpecifiers);
         }
 
@@ -149,16 +141,16 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
             uint radix = 10,
             DkmRuntimeInstance runtimeInstance = null)
         {
-            return CreateDkmInspectionContext(_formatter, flags, radix, runtimeInstance);
+            return CreateDkmInspectionContext(_inspectionSession, flags, radix, runtimeInstance);
         }
 
         internal static DkmInspectionContext CreateDkmInspectionContext(
-            IDkmClrFormatter formatter,
+            DkmInspectionSession inspectionSession,
             DkmEvaluationFlags flags,
             uint radix,
             DkmRuntimeInstance runtimeInstance = null)
         {
-            return new DkmInspectionContext(formatter, flags, radix, runtimeInstance);
+            return new DkmInspectionContext(inspectionSession, flags, radix, runtimeInstance);
         }
 
         internal DkmEvaluationResult FormatResult(string name, DkmClrValue value, DkmClrType declaredType = null, DkmInspectionContext inspectionContext = null)
@@ -168,20 +160,30 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
 
         internal DkmEvaluationResult FormatResult(string name, string fullName, DkmClrValue value, DkmClrType declaredType = null, bool[] declaredTypeInfo = null, DkmInspectionContext inspectionContext = null)
         {
-            DkmEvaluationResult evaluationResult = null;
+            var asyncResult = FormatAsyncResult(name, fullName, value, declaredType, declaredTypeInfo, inspectionContext);
+            var exception = asyncResult.Exception;
+            if (exception != null)
+            {
+                ExceptionDispatchInfo.Capture(exception).Throw();
+            }
+            return asyncResult.Result;
+        }
+
+        internal DkmEvaluationAsyncResult FormatAsyncResult(string name, string fullName, DkmClrValue value, DkmClrType declaredType = null, bool[] declaredTypeInfo = null, DkmInspectionContext inspectionContext = null)
+        {
+            DkmEvaluationAsyncResult asyncResult = default(DkmEvaluationAsyncResult);
             var workList = new DkmWorkList();
-            _resultProvider.GetResult(
-                value,
+            value.GetResult(
                 workList,
-                declaredType: declaredType ?? value.Type,
-                customTypeInfo: DynamicFlagsCustomTypeInfo.Create(declaredTypeInfo).GetCustomTypeInfo(),
-                inspectionContext: inspectionContext ?? DefaultInspectionContext,
-                formatSpecifiers: Formatter.NoFormatSpecifiers,
-                resultName: name,
-                resultFullName: null,
-                completionRoutine: asyncResult => evaluationResult = asyncResult.Result);
+                DeclaredType: declaredType ?? value.Type,
+                CustomTypeInfo: DynamicFlagsCustomTypeInfo.Create(declaredTypeInfo).GetCustomTypeInfo(),
+                InspectionContext: inspectionContext ?? DefaultInspectionContext,
+                FormatSpecifiers: Formatter.NoFormatSpecifiers,
+                ResultName: name,
+                ResultFullName: fullName,
+                CompletionRoutine: r => asyncResult = r);
             workList.Execute();
-            return evaluationResult;
+            return asyncResult;
         }
 
         internal DkmEvaluationResult[] GetChildren(DkmEvaluationResult evalResult, DkmInspectionContext inspectionContext = null)
@@ -226,7 +228,7 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
         {
             DkmGetChildrenAsyncResult getChildrenResult = default(DkmGetChildrenAsyncResult);
             var workList = new DkmWorkList();
-            _resultProvider.GetChildren(evalResult, workList, initialRequestSize, inspectionContext ?? DefaultInspectionContext, r => { getChildrenResult = r; });
+            evalResult.GetChildren(workList, initialRequestSize, inspectionContext ?? DefaultInspectionContext, r => { getChildrenResult = r; });
             workList.Execute();
             var exception = getChildrenResult.Exception;
             if (exception != null)
@@ -241,7 +243,7 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
         {
             DkmEvaluationEnumAsyncResult getItemsResult = default(DkmEvaluationEnumAsyncResult);
             var workList = new DkmWorkList();
-            _resultProvider.GetItems(enumContext, workList, startIndex, count, r => { getItemsResult = r; });
+            enumContext.GetItems(workList, startIndex, count, r => { getItemsResult = r; });
             workList.Execute();
             var exception = getItemsResult.Exception;
             if (exception != null)

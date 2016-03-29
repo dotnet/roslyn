@@ -15,7 +15,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 {
     public partial class LambdaTests : CompilingTestBase
     {
-        [Fact, WorkItem(608181, "DevDiv")]
+        [Fact, WorkItem(608181, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/608181")]
         public void BadInvocationInLambda()
         {
             var src = @"
@@ -218,14 +218,14 @@ class C
     }
 }";
             var compilation = CreateCompilationWithMscorlib(code);
-            compilation.VerifyDiagnostics();
+            compilation.VerifyDiagnostics(); // no errors expected
         }
 
-        [WorkItem(539538, "DevDiv")]
+        [WorkItem(539538, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539538")]
         [Fact]
         public void TestLambdaErrors03()
         {
-            TestErrors(@"
+            string source = @"
 using System;
 
 interface I : IComparable<IComparable<I>> { }
@@ -239,11 +239,14 @@ class C
         Foo(() => null);
     }
 }
-",
-"'Foo' error CS0121: The call is ambiguous between the following methods or properties: 'C.Foo(Func<IComparable<I>>)' and 'C.Foo(Func<I>)'");
+";
+            CreateCompilationWithMscorlib(source).VerifyDiagnostics(
+                // (12,9): error CS0121: The call is ambiguous between the following methods or properties: 'C.Foo(Func<IComparable<I>>)' and 'C.Foo(Func<I>)'
+                //         Foo(() => null);
+                Diagnostic(ErrorCode.ERR_AmbigCall, "Foo").WithArguments("C.Foo(System.Func<System.IComparable<I>>)", "C.Foo(System.Func<I>)").WithLocation(12, 9));
         }
 
-        [WorkItem(539976, "DevDiv")]
+        [WorkItem(539976, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539976")]
         [Fact]
         public void LambdaArgumentToOverloadedDelegate()
         {
@@ -264,7 +267,7 @@ class C
             comp.VerifyDiagnostics();
         }
 
-        [WorkItem(528044, "DevDiv")]
+        [WorkItem(528044, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/528044")]
         [Fact]
         public void MissingReferenceInOverloadResolution()
         {
@@ -313,7 +316,7 @@ class Program
             Assert.Equal(0, comp2.GetDiagnostics().Count());
         }
 
-        [WorkItem(528047, "DevDiv")]
+        [WorkItem(528047, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/528047")]
         [Fact()]
         public void OverloadResolutionWithEmbeddedInteropType()
         {
@@ -400,7 +403,7 @@ class C
             Assert.True(0 < errs.Where(e => e.Code == 1525).Select(e => e).Count(), "Diagnostics contains CS1525");
         }
 
-        [WorkItem(540219, "DevDiv")]
+        [WorkItem(540219, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540219")]
         [Fact]
         public void OverloadResolutionWithStaticType()
         {
@@ -502,7 +505,7 @@ class Program
             Assert.Equal("'x' error CS0721: 'GC': static types cannot be used as parameters", diagnostics.First());
         }
 
-        [WorkItem(540251, "DevDiv")]
+        [WorkItem(540251, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540251")]
         [Fact]
         public void AttributesCannotBeUsedInAnonymousMethods()
         {
@@ -527,7 +530,7 @@ class Program
             // TODO: check error code
         }
 
-        [WorkItem(540263, "DevDiv")]
+        [WorkItem(540263, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540263")]
         [Fact]
         public void ErrorsInUnboundLambdas()
         {
@@ -566,7 +569,7 @@ class Program
         );
         }
 
-        [WorkItem(540181, "DevDiv")]
+        [WorkItem(540181, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540181")]
         [Fact]
         public void ErrorInLambdaArgumentList()
         {
@@ -588,7 +591,7 @@ class Program
                 Diagnostic(ErrorCode.ERR_NameNotInContext, @"nulF").WithArguments("nulF"));
         }
 
-        [WorkItem(541725, "DevDiv")]
+        [WorkItem(541725, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541725")]
         [Fact]
         public void DelegateCreationIsNotStatement()
         {
@@ -616,7 +619,7 @@ class Program
                 Diagnostic(ErrorCode.ERR_IllegalStatement, "new D(()=>{})"));
         }
 
-        [WorkItem(542336, "DevDiv")]
+        [WorkItem(542336, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542336")]
         [Fact]
         public void ThisInStaticContext()
         {
@@ -638,7 +641,7 @@ class Program
                 );
         }
 
-        [WorkItem(542431, "DevDiv")]
+        [WorkItem(542431, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542431")]
         [Fact]
         public void LambdaHasMoreParametersThanDelegate()
         {
@@ -655,7 +658,7 @@ class C
                 Diagnostic(ErrorCode.ERR_BadDelArgCount, "r => 0").WithArguments("System.Func<int>", "1"));
         }
 
-        [Fact, WorkItem(529054, "DevDiv")]
+        [Fact, WorkItem(529054, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529054")]
         public void LambdaInDynamicCall()
         {
             var source = @"
@@ -674,7 +677,7 @@ public class Program
                 );
         }
 
-        [Fact, WorkItem(529389, "DevDiv")]
+        [Fact, WorkItem(529389, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529389")]
         public void ParenthesizedLambdaInCastExpression()
         {
             var source = @"
@@ -725,7 +728,7 @@ class Program
             Assert.Equal(MethodKind.AnonymousFunction, (sym as MethodSymbol).MethodKind);
         }
 
-        [WorkItem(544594, "DevDiv")]
+        [WorkItem(544594, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544594")]
         [Fact]
         public void LambdaInEnumMemberDecl()
         {
@@ -746,7 +749,7 @@ public class TestClass
                 Diagnostic(ErrorCode.WRN_UnreferencedFieldAssg, "MyTest").WithArguments("TestClass.MyTest"));
         }
 
-        [WorkItem(544932, "DevDiv")]
+        [WorkItem(544932, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544932")]
         [Fact]
         public void AnonymousLambdaInEnumSubtraction()
         {
@@ -771,7 +774,7 @@ class Test
             CompileAndVerify(new[] { source }, expectedOutput: expectedOutput);
         }
 
-        [WorkItem(545156, "DevDiv")]
+        [WorkItem(545156, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545156")]
         [Fact]
         public void SpeculativelyBindOverloadResolution()
         {
@@ -804,7 +807,7 @@ class Program
                 SpeculativeBindingOption.BindAsExpression);
         }
 
-        [WorkItem(545343, "DevDiv")]
+        [WorkItem(545343, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545343")]
         [Fact]
         public void LambdaUsingFieldInConstructor()
         {
@@ -834,7 +837,7 @@ public class Derived
             CompileAndVerify(source, expectedOutput: "Local = 2, Field = 1");
         }
 
-        [WorkItem(642222, "DevDiv")]
+        [WorkItem(642222, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/642222")]
         [Fact]
         public void SpeculativelyBindOverloadResolutionAndInferenceWithError()
         {
@@ -897,7 +900,7 @@ namespace IntellisenseBug
             Assert.NotNull(((TypeSymbol)typeInfo.Type).GetMember("String"));
         }
 
-        [WorkItem(722288, "DevDiv")]
+        [WorkItem(722288, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/722288")]
         [Fact]
         public void CompletionInLambdaInIncompleteInvocation()
         {
@@ -951,7 +954,7 @@ public class IntelliSenseError
             Assert.NotNull(((TypeSymbol)typeInfo.Type).GetMember("SomeProperty"));
         }
 
-        [WorkItem(871896, "DevDiv")]
+        [WorkItem(871896, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/871896")]
         [Fact]
         public void Bug871896()
         {
@@ -1007,7 +1010,7 @@ class TestDataPointBase
                 );
         }
 
-        [Fact, WorkItem(960755, "DevDiv")]
+        [Fact, WorkItem(960755, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/960755")]
         public void Bug960755_01()
         {
             var source = @"
@@ -1036,7 +1039,7 @@ class C
             Assert.Equal(CandidateReason.OverloadResolutionFailure, symbolInfo.CandidateReason);
         }
 
-        [Fact, WorkItem(960755, "DevDiv")]
+        [Fact, WorkItem(960755, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/960755")]
         public void Bug960755_02()
         {
             var source = @"
@@ -1064,7 +1067,7 @@ class C
             Assert.Equal(CandidateReason.OverloadResolutionFailure, symbolInfo.CandidateReason);
         }
 
-        [Fact, WorkItem(960755, "DevDiv")]
+        [Fact, WorkItem(960755, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/960755")]
         public void Bug960755_03()
         {
             var source = @"
@@ -1096,7 +1099,185 @@ class C
             Assert.Equal(CandidateReason.None, symbolInfo.CandidateReason);
         }
 
+        [Fact]
+        public void RefLambdaInferenceMethodArgument()
+        {
+            var text = @"
+delegate ref int D();
+
+class C
+{
+    static void MD(D d) { }
+
+    static int i = 0;
+    static void M()
+    {
+        MD(() => ref i);
+        MD(() => { return ref i; });
+        MD(delegate { return ref i; });
+    }
+}
+";
+
+            CreateExperimentalCompilationWithMscorlib45(text).VerifyDiagnostics();
+        }
+
+
+        [Fact]
+        public void RefLambdaInferenceDelegateCreation()
+        {
+            var text = @"
+delegate ref int D();
+
+class C
+{
+    static int i = 0;
+    static void M()
+    {
+        var d = new D(() => ref i);
+        d = new D(() => { return ref i; });
+        d = new D(delegate { return ref i; });
+    }
+}
+";
+
+            CreateExperimentalCompilationWithMscorlib45(text).VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void RefLambdaInferenceOverloadedDelegateType()
+        {
+            var text = @"
+delegate ref int D();
+delegate int E();
+
+class C
+{
+    static void M(D d) { }
+    static void M(E e) { }
+
+    static int i = 0;
+    static void M()
+    {
+        M(() => ref i);
+        M(() => { return ref i; });
+        M(delegate { return ref i; });
+        M(() => i);
+        M(() => { return i; });
+        M(delegate { return i; });
+    }
+}
+";
+
+            CreateExperimentalCompilationWithMscorlib45(text).VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void RefLambdaInferenceArgumentBadRefReturn()
+        {
+            var text = @"
+delegate int E();
+
+class C
+{
+    static void ME(E e) { }
+
+    static int i = 0;
+    static void M()
+    {
+        ME(() => ref i);
+        ME(() => { return ref i; });
+        ME(delegate { return ref i; });
+    }
+}
+";
+
+            CreateExperimentalCompilationWithMscorlib45(text).VerifyDiagnostics(
+                // (11,22): error CS8083: By-reference returns may only be used in by-reference returning methods.
+                //         ME(() => ref i);
+                Diagnostic(ErrorCode.ERR_MustNotHaveRefReturn, "i").WithLocation(11, 22),
+                // (12,20): error CS8083: By-reference returns may only be used in by-reference returning methods.
+                //         ME(() => { return ref i; });
+                Diagnostic(ErrorCode.ERR_MustNotHaveRefReturn, "return").WithLocation(12, 20),
+                // (13,23): error CS8083: By-reference returns may only be used in by-reference returning methods.
+                //         ME(delegate { return ref i; });
+                Diagnostic(ErrorCode.ERR_MustNotHaveRefReturn, "return").WithLocation(13, 23));
+        }
+
+        [Fact]
+        public void RefLambdaInferenceDelegateCreationBadRefReturn()
+        {
+            var text = @"
+delegate int E();
+
+class C
+{
+    static int i = 0;
+    static void M()
+    {
+        var e = new E(() => ref i);
+        e = new E(() => { return ref i; });
+        e = new E(delegate { return ref i; });
+    }
+}
+";
+
+            CreateExperimentalCompilationWithMscorlib45(text).VerifyDiagnostics(
+                // (9,33): error CS8083: By-reference returns may only be used in by-reference returning methods.
+                //         var e = new E(() => ref i);
+                Diagnostic(ErrorCode.ERR_MustNotHaveRefReturn, "i").WithLocation(9, 33),
+                // (10,27): error CS8083: By-reference returns may only be used in by-reference returning methods.
+                //         e = new E(() => { return ref i; });
+                Diagnostic(ErrorCode.ERR_MustNotHaveRefReturn, "return").WithLocation(10, 27),
+                // (11,30): error CS8083: By-reference returns may only be used in by-reference returning methods.
+                //         e = new E(delegate { return ref i; });
+                Diagnostic(ErrorCode.ERR_MustNotHaveRefReturn, "return").WithLocation(11, 30));
+        }
+
+        [Fact]
+        public void RefLambdaInferenceMixedByValueAndByRefReturns()
+        {
+            var text = @"
+delegate ref int D();
+delegate int E();
+
+class C
+{
+    static void MD(D e) { }
+    static void ME(E e) { }
+
+    static int i = 0;
+    static void M()
+    {
+        MD(() => {
+            if (i == 0)
+            {
+                return ref i;
+            }
+            return i;
+        });
+        ME(() => {
+            if (i == 0)
+            {
+                return ref i;
+            }
+            return i;
+        });
+    }
+}
+";
+
+            CreateExperimentalCompilationWithMscorlib45(text).VerifyDiagnostics(
+                // (18,13): error CS8084: By-value returns may only be used in by-value returning methods.
+                //             return i;
+                Diagnostic(ErrorCode.ERR_MustHaveRefReturn, "return").WithLocation(18, 13),
+                // (23,17): error CS8083: By-reference returns may only be used in by-reference returning methods.
+                //                 return ref i;
+                Diagnostic(ErrorCode.ERR_MustNotHaveRefReturn, "return").WithLocation(23, 17));
+        }
+
         [WorkItem(1112875, "DevDiv")]
+        [WorkItem(1112875, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1112875")]
         [Fact]
         public void Bug1112875_1()
         {
@@ -1119,7 +1300,7 @@ class Program
             CompileAndVerify(comp, expectedOutput: "42");
         }
 
-        [WorkItem(1112875, "DevDiv")]
+        [WorkItem(1112875, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1112875")]
         [Fact]
         public void Bug1112875_2()
         {
@@ -1160,7 +1341,7 @@ class Program
                 );
         }
 
-        [Fact, WorkItem(1179899, "DevDiv")]
+        [Fact, WorkItem(1179899, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1179899")]
         public void ParameterReference_01()
         {
             var src = @"
@@ -1195,7 +1376,7 @@ class Program
             Assert.Equal("Program a", symbolInfo.Symbol.ToTestDisplayString());
         }
 
-        [Fact, WorkItem(1179899, "DevDiv")]
+        [Fact, WorkItem(1179899, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1179899")]
         public void ParameterReference_02()
         {
             var src = @"
@@ -1230,7 +1411,7 @@ class Program
             Assert.Equal("Program a", symbolInfo.Symbol.ToTestDisplayString());
         }
 
-        [Fact, WorkItem(1179899, "DevDiv")]
+        [Fact, WorkItem(1179899, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1179899")]
         public void ParameterReference_03()
         {
             var src = @"
@@ -1264,7 +1445,7 @@ class Program
             Assert.Equal("Program a", symbolInfo.Symbol.ToTestDisplayString());
         }
 
-        [Fact, WorkItem(1179899, "DevDiv")]
+        [Fact, WorkItem(1179899, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1179899")]
         public void ParameterReference_04()
         {
             var src = @"
@@ -1397,6 +1578,31 @@ public interface IColumn { }
             CompileAndVerify(compilation, expectedOutput: "Select<T, S>");
         }
 
+        [Fact, WorkItem(1867, "https://github.com/dotnet/roslyn/issues/1867")]
+        public void SyntaxAndSemanticErrorInLambda()
+        {
+            var source =
+@"
+using System;
+class C
+{
+    public static void Main(string[] args)
+    {
+        Action a = () => { new X().ToString() };
+        a();
+    }
+}
+";
+            CreateCompilationWithMscorlib(source).VerifyDiagnostics(
+                // (7,47): error CS1002: ; expected
+                //         Action a = () => { new X().ToString() };
+                Diagnostic(ErrorCode.ERR_SemicolonExpected, "}").WithLocation(7, 47),
+                // (7,32): error CS0246: The type or namespace name 'X' could not be found (are you missing a using directive or an assembly reference?)
+                //         Action a = () => { new X().ToString() };
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "X").WithArguments("X").WithLocation(7, 32)
+                );
+        }
+
         [Fact, WorkItem(4527, "https://github.com/dotnet/roslyn/issues/4527")]
         public void AnonymousMethodExpressionWithoutParameterList()
         {
@@ -1437,5 +1643,100 @@ namespace RoslynAsyncDelegate
 
             CompileAndVerify(compilation);
         }
+
+        [Fact]
+        [WorkItem(1867, "https://github.com/dotnet/roslyn/issues/1867")]
+        public void TestLambdaWithError01()
+        {
+            var source =
+@"using System.Linq;
+class C { C() { string.Empty.Select(() => { new Unbound1 }); } }";
+            CreateCompilationWithMscorlibAndSystemCore(source).VerifyDiagnostics(
+    // (2,58): error CS1526: A new expression requires (), [], or {} after type
+    // class C { C() { string.Empty.Select(() => { new Unbound1 }); } }
+    Diagnostic(ErrorCode.ERR_BadNewExpr, "}").WithLocation(2, 58),
+    // (2,58): error CS1002: ; expected
+    // class C { C() { string.Empty.Select(() => { new Unbound1 }); } }
+    Diagnostic(ErrorCode.ERR_SemicolonExpected, "}").WithLocation(2, 58),
+    // (2,49): error CS0246: The type or namespace name 'Unbound1' could not be found (are you missing a using directive or an assembly reference?)
+    // class C { C() { string.Empty.Select(() => { new Unbound1 }); } }
+    Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "Unbound1").WithArguments("Unbound1").WithLocation(2, 49)
+                );
+        }
+
+        [Fact]
+        [WorkItem(1867, "https://github.com/dotnet/roslyn/issues/1867")]
+        public void TestLambdaWithError02()
+        {
+            var source =
+@"using System.Linq;
+class C { C() { string.Empty.Select(() => { new Unbound1 ( ) }); } }";
+            CreateCompilationWithMscorlibAndSystemCore(source).VerifyDiagnostics(
+    // (2,62): error CS1002: ; expected
+    // class C { C() { string.Empty.Select(() => { new Unbound1 ( ) }); } }
+    Diagnostic(ErrorCode.ERR_SemicolonExpected, "}").WithLocation(2, 62),
+    // (2,49): error CS0246: The type or namespace name 'Unbound1' could not be found (are you missing a using directive or an assembly reference?)
+    // class C { C() { string.Empty.Select(() => { new Unbound1 ( ) }); } }
+    Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "Unbound1").WithArguments("Unbound1").WithLocation(2, 49)
+                );
+        }
+
+        [Fact]
+        [WorkItem(1867, "https://github.com/dotnet/roslyn/issues/1867")]
+        public void TestLambdaWithError03()
+        {
+            var source =
+@"using System.Linq;
+class C { C() { string.Empty.Select(x => Unbound1, Unbound2 Unbound2); } }";
+            CreateCompilationWithMscorlibAndSystemCore(source).VerifyDiagnostics(
+    // (2,61): error CS1003: Syntax error, ',' expected
+    // class C { C() { string.Empty.Select(x => Unbound1, Unbound2 Unbound2); } }
+    Diagnostic(ErrorCode.ERR_SyntaxError, "Unbound2").WithArguments(",", "").WithLocation(2, 61),
+    // (2,52): error CS0103: The name 'Unbound2' does not exist in the current context
+    // class C { C() { string.Empty.Select(x => Unbound1, Unbound2 Unbound2); } }
+    Diagnostic(ErrorCode.ERR_NameNotInContext, "Unbound2").WithArguments("Unbound2").WithLocation(2, 52),
+    // (2,61): error CS0103: The name 'Unbound2' does not exist in the current context
+    // class C { C() { string.Empty.Select(x => Unbound1, Unbound2 Unbound2); } }
+    Diagnostic(ErrorCode.ERR_NameNotInContext, "Unbound2").WithArguments("Unbound2").WithLocation(2, 61),
+    // (2,42): error CS0103: The name 'Unbound1' does not exist in the current context
+    // class C { C() { string.Empty.Select(x => Unbound1, Unbound2 Unbound2); } }
+    Diagnostic(ErrorCode.ERR_NameNotInContext, "Unbound1").WithArguments("Unbound1").WithLocation(2, 42)
+                );
+        }
+
+        [Fact]
+        [WorkItem(1867, "https://github.com/dotnet/roslyn/issues/1867")]
+        public void TestLambdaWithError04()
+        {
+            var source =
+@"using System.Linq;
+class C { C() { string.Empty.Select(x => Unbound1, Unbound2); } }";
+            CreateCompilationWithMscorlibAndSystemCore(source).VerifyDiagnostics(
+    // (2,52): error CS0103: The name 'Unbound2' does not exist in the current context
+    // class C { C() { string.Empty.Select(x => Unbound1, Unbound2); } }
+    Diagnostic(ErrorCode.ERR_NameNotInContext, "Unbound2").WithArguments("Unbound2").WithLocation(2, 52),
+    // (2,42): error CS0103: The name 'Unbound1' does not exist in the current context
+    // class C { C() { string.Empty.Select(x => Unbound1, Unbound2); } }
+    Diagnostic(ErrorCode.ERR_NameNotInContext, "Unbound1").WithArguments("Unbound1").WithLocation(2, 42)
+                );
+        }
+
+        [Fact]
+        [WorkItem(1867, "https://github.com/dotnet/roslyn/issues/1867")]
+        public void TestLambdaWithError05()
+        {
+            var source =
+@"using System.Linq;
+class C { C() { Unbound2.Select(x => Unbound1); } }";
+            CreateCompilationWithMscorlibAndSystemCore(source).VerifyDiagnostics(
+    // (2,17): error CS0103: The name 'Unbound2' does not exist in the current context
+    // class C { C() { Unbound2.Select(x => Unbound1); } }
+    Diagnostic(ErrorCode.ERR_NameNotInContext, "Unbound2").WithArguments("Unbound2").WithLocation(2, 17),
+    // (2,38): error CS0103: The name 'Unbound1' does not exist in the current context
+    // class C { C() { Unbound2.Select(x => Unbound1); } }
+    Diagnostic(ErrorCode.ERR_NameNotInContext, "Unbound1").WithArguments("Unbound1").WithLocation(2, 38)
+                );
+        }
     }
 }
+

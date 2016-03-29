@@ -100,11 +100,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Interactive
             base.ClearOpenDocument(documentId);
         }
 
-        internal new void RegisterText(SourceTextContainer textContainer)
-        {
-            base.RegisterText(textContainer);
-        }
-
         internal new void UnregisterText(SourceTextContainer textContainer)
         {
             base.UnregisterText(textContainer);

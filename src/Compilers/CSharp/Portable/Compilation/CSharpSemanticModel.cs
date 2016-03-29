@@ -496,6 +496,11 @@ namespace Microsoft.CodeAnalysis.CSharp
         public abstract SymbolInfo GetSymbolInfo(SelectOrGroupClauseSyntax node, CancellationToken cancellationToken = default(CancellationToken));
 
         /// <summary>
+        /// Gets the symbol information for the property of a sub-property pattern.
+        /// </summary>
+        public abstract SymbolInfo GetSymbolInfo(SubPropertyPatternSyntax node, CancellationToken cancellationToken = default(CancellationToken));
+
+        /// <summary>
         /// Returns what symbol(s), if any, the given expression syntax bound to in the program.
         /// 
         /// An AliasSymbol will never be returned by this method. What the alias refers to will be
@@ -1378,12 +1383,19 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 Debug.Assert((object)container == null);
                 TypeSymbol containingType = binder.ContainingType;
-                TypeSymbol baseType;
+                TypeSymbol baseType = null;
+
+                // For a script class or a submission class base should have no members.
+                if ((object)containingType != null && containingType.Kind == SymbolKind.NamedType && ((NamedTypeSymbol)containingType).IsScriptClass)
+                {
+                    return ImmutableArray<Symbol>.Empty;
+                }
+
                 if ((object)containingType == null || (object)(baseType = containingType.BaseTypeNoUseSiteDiagnostics) == null)
                 {
                     throw new ArgumentException(
                         "Not a valid position for a call to LookupBaseMembers (must be in a type with a base type)",
-                        "position");
+                        nameof(position));
                 }
                 container = baseType;
             }
@@ -2624,6 +2636,22 @@ namespace Microsoft.CodeAnalysis.CSharp
         public abstract ISymbol GetDeclaredSymbol(VariableDeclaratorSyntax declarationSyntax, CancellationToken cancellationToken = default(CancellationToken));
 
         /// <summary>
+        /// Given a declaration pattern syntax, get the corresponding symbol.
+        /// </summary>
+        /// <param name="declarationSyntax">The syntax node that declares a variable.</param>
+        /// <param name="cancellationToken">The cancellation token.</param>
+        /// <returns>The symbol that was declared.</returns>
+        public abstract ISymbol GetDeclaredSymbol(DeclarationPatternSyntax declarationSyntax, CancellationToken cancellationToken = default(CancellationToken));
+
+        /// <summary>
+        /// Given a let statement syntax, get the corresponding symbol if the statement uses [let &lt;identifier&gt; = ...] form.
+        /// </summary>
+        /// <param name="declarationSyntax">The syntax node that declares a variable.</param>
+        /// <param name="cancellationToken">The cancellation token.</param>
+        /// <returns>The symbol that was declared.</returns>
+        public abstract ISymbol GetDeclaredSymbol(LetStatementSyntax declarationSyntax, CancellationToken cancellationToken = default(CancellationToken));
+
+        /// <summary>
         /// Given a labeled statement syntax, get the corresponding label symbol.
         /// </summary>
         /// <param name="declarationSyntax">The syntax node of the labeled statement.</param>
@@ -2805,11 +2833,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             switch (boundNode.Kind)
             {
                 case BoundKind.MethodGroup:
-                    symbols = GetMethodGroupSemanticSymbols(boundNode, boundNodeForSyntacticParent, binderOpt, out resultKind, out isDynamic, out memberGroup);
+                    symbols = GetMethodGroupSemanticSymbols((BoundMethodGroup)boundNode, boundNodeForSyntacticParent, binderOpt, out resultKind, out isDynamic, out memberGroup);
                     break;
 
                 case BoundKind.PropertyGroup:
-                    symbols = GetPropertyGroupSemanticSymbols(boundNode, boundNodeForSyntacticParent, binderOpt, out resultKind, out memberGroup);
+                    symbols = GetPropertyGroupSemanticSymbols((BoundPropertyGroup)boundNode, boundNodeForSyntacticParent, binderOpt, out resultKind, out memberGroup);
                     break;
 
                 case BoundKind.BadExpression:
@@ -3618,7 +3646,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         // that allows us to return more specific symbols (a specific overload or applicable candidates)
         // we return these. The complete set of symbols of the method group is then returned in methodGroup parameter.
         private ImmutableArray<Symbol> GetMethodGroupSemanticSymbols(
-            BoundExpression boundNode,
+            BoundMethodGroup boundNode,
             BoundNode boundNodeForSyntacticParent,
             Binder binderOpt,
             out LookupResultKind resultKind,
@@ -3629,8 +3657,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             ImmutableArray<Symbol> symbols = ImmutableArray<Symbol>.Empty;
 
-            BoundMethodGroup mgNode = (BoundMethodGroup)boundNode;
-            resultKind = mgNode.ResultKind;
+            resultKind = boundNode.ResultKind;
             if (resultKind == LookupResultKind.Empty)
             {
                 resultKind = LookupResultKind.Viable;
@@ -3640,7 +3667,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             // The method group needs filtering.
             Binder binder = binderOpt ?? GetEnclosingBinder(GetAdjustedNodePosition(boundNode.Syntax));
-            methodGroup = GetReducedAndFilteredMethodGroupSymbols(binder, mgNode).Cast<MethodSymbol, Symbol>();
+            methodGroup = GetReducedAndFilteredMethodGroupSymbols(binder, boundNode).Cast<MethodSymbol, Symbol>();
 
             // We want to get the actual node chosen by overload resolution, if possible. 
             if (boundNodeForSyntacticParent != null)
@@ -3674,7 +3701,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         var delegateCreation = (BoundDelegateCreationExpression)boundNodeForSyntacticParent;
                         if (delegateCreation.Argument == boundNode && (object)delegateCreation.MethodOpt != null)
                         {
-                            symbols = ImmutableArray.Create<Symbol>(delegateCreation.MethodOpt);
+                            symbols = CreateReducedExtensionMethodIfPossible(delegateCreation, boundNode.ReceiverOpt);
                         }
                         break;
 
@@ -3734,7 +3761,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         break;
                 }
             }
-            else if (methodGroup.Length == 1 && !mgNode.HasAnyErrors)
+            else if (methodGroup.Length == 1 && !boundNode.HasAnyErrors)
             {
                 // During speculative binding, there won't be a parent bound node. The parent bound
                 // node may also be absent if the syntactic parent has errors or if one is simply
@@ -3765,7 +3792,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         // NB: It is not safe to pass a null binderOpt during speculative binding.
         private ImmutableArray<Symbol> GetPropertyGroupSemanticSymbols(
-            BoundExpression boundNode,
+            BoundPropertyGroup boundNode,
             BoundNode boundNodeForSyntacticParent,
             Binder binderOpt,
             out LookupResultKind resultKind,
@@ -3775,15 +3802,14 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             ImmutableArray<Symbol> symbols = ImmutableArray<Symbol>.Empty;
 
-            BoundPropertyGroup pgNode = (BoundPropertyGroup)boundNode;
-            resultKind = pgNode.ResultKind;
+            resultKind = boundNode.ResultKind;
             if (resultKind == LookupResultKind.Empty)
             {
                 resultKind = LookupResultKind.Viable;
             }
 
             // The property group needs filtering.
-            propertyGroup = pgNode.Properties.Cast<PropertySymbol, Symbol>();
+            propertyGroup = boundNode.Properties.Cast<PropertySymbol, Symbol>();
 
             // We want to get the actual node chosen by overload resolution, if possible. 
             if (boundNodeForSyntacticParent != null)
@@ -3823,7 +3849,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         break;
                 }
             }
-            else if (propertyGroup.Length == 1 && !pgNode.HasAnyErrors)
+            else if (propertyGroup.Length == 1 && !boundNode.HasAnyErrors)
             {
                 // During speculative binding, there won't be a parent bound node. The parent bound
                 // node may also be absent if the syntactic parent has errors or if one is simply
@@ -4159,6 +4185,19 @@ namespace Microsoft.CodeAnalysis.CSharp
             return ImmutableArray.Create<Symbol>(method);
         }
 
+        private static ImmutableArray<Symbol> CreateReducedExtensionMethodIfPossible(BoundDelegateCreationExpression delegateCreation, BoundExpression receiverOpt)
+        {
+            var method = delegateCreation.MethodOpt;
+            Debug.Assert((object)method != null);
+
+            if (delegateCreation.IsExtensionMethod && method.IsExtensionMethod && (receiverOpt != null))
+            {
+                MethodSymbol reduced = method.ReduceExtensionMethod(receiverOpt.Type);
+                method = reduced ?? method;
+            }
+            return ImmutableArray.Create<Symbol>(method);
+        }
+
         /// <summary>
         /// Gets for each statement info.
         /// </summary>
@@ -4317,6 +4356,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (orderingSyntax != null)
             {
                 return this.GetSymbolInfo(orderingSyntax, cancellationToken);
+            }
+
+            var subPropertyPattern = node as SubPropertyPatternSyntax;
+            if (subPropertyPattern != null)
+            {
+                return this.GetSymbolInfo(subPropertyPattern, cancellationToken);
             }
 
             return SymbolInfo.None;
@@ -4499,6 +4544,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return this.GetDeclaredSymbol((AnonymousObjectMemberDeclaratorSyntax)node, cancellationToken);
                 case SyntaxKind.VariableDeclarator:
                     return this.GetDeclaredSymbol((VariableDeclaratorSyntax)node, cancellationToken);
+                case SyntaxKind.DeclarationPattern:
+                    return this.GetDeclaredSymbol((DeclarationPatternSyntax)node, cancellationToken);
+                case SyntaxKind.LetStatement:
+                    return this.GetDeclaredSymbol((LetStatementSyntax)node, cancellationToken);
                 case SyntaxKind.NamespaceDeclaration:
                     return this.GetDeclaredSymbol((NamespaceDeclarationSyntax)node, cancellationToken);
                 case SyntaxKind.Parameter:
@@ -4608,7 +4657,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             var result = container as NamespaceOrTypeSymbol;
             if ((object)result == null)
             {
-                throw new ArgumentException(CSharpResources.NotACSharpSymbol, "container");
+                throw new ArgumentException(CSharpResources.NotACSharpSymbol, nameof(container));
             }
             return result;
         }

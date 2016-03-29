@@ -192,12 +192,16 @@ class C
 
             var compilation = CreateCompilationWithMscorlib(source);
             compilation.VerifyDiagnostics(
-                // (10,13): error CS1656: Cannot assign to 'i' because it is a 'using variable'
-                Diagnostic(ErrorCode.ERR_AssgReadonlyLocalCause, "i").WithArguments("i", "using variable"),
-                // (11,21): error CS1657: Cannot pass 'i' as a ref or out argument because it is a 'using variable'
-                Diagnostic(ErrorCode.ERR_RefReadonlyLocalCause, "i").WithArguments("i", "using variable"),
-                // (12,21): error CS1657: Cannot pass 'i' as a ref or out argument because it is a 'using variable'
-                Diagnostic(ErrorCode.ERR_RefReadonlyLocalCause, "i").WithArguments("i", "using variable"));
+    // (10,13): error CS1656: Cannot assign to 'i' because it is a 'using variable'
+    //             i = null;
+    Diagnostic(ErrorCode.ERR_AssgReadonlyLocalCause, "i").WithArguments("i", "using variable").WithLocation(10, 13),
+    // (11,21): error CS1657: Cannot use 'i' as a ref or out value because it is a 'using variable'
+    //             Ref(ref i);
+    Diagnostic(ErrorCode.ERR_RefReadonlyLocalCause, "i").WithArguments("i", "using variable").WithLocation(11, 21),
+    // (12,21): error CS1657: Cannot use 'i' as a ref or out value because it is a 'using variable'
+    //             Out(out i);
+    Diagnostic(ErrorCode.ERR_RefReadonlyLocalCause, "i").WithArguments("i", "using variable").WithLocation(12, 21)
+    );
         }
 
         [Fact]
@@ -581,7 +585,7 @@ class C
                 Diagnostic(ErrorCode.ERR_NoConvToIDisp, "t0").WithArguments("T0").WithLocation(16, 16));
         }
 
-        [WorkItem(543168, "DevDiv")]
+        [WorkItem(543168, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543168")]
         [Fact]
         public void EmbeddedDeclaration()
         {
@@ -600,7 +604,7 @@ class C
                 Diagnostic(ErrorCode.ERR_BadEmbeddedStmt, "object o = new object();"));
         }
 
-        [WorkItem(529547, "DevDiv")]
+        [WorkItem(529547, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529547")]
         [Fact]
         public void UnusedLocal()
         {
@@ -633,7 +637,7 @@ public class Test
             CreateCompilationWithMscorlib(source).VerifyDiagnostics();
         }
 
-        [WorkItem(545331, "DevDiv")]
+        [WorkItem(545331, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545331")]
         [Fact]
         public void MissingIDisposable()
         {

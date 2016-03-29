@@ -41,6 +41,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         /// <summary>
         /// OBSOLETE: Use VerifyDiagnostics from Roslyn.Compilers.CSharp.Test.Utilities instead.
         /// </summary>
+        [Obsolete("Use VerifyDiagnostics", true)]
         public static void TestDiagnostics(string source, params string[] diagStrings)
         {
             var comp = CSharpTestBase.CreateCompilationWithMscorlib(source);
@@ -51,6 +52,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         /// <summary>
         /// OBSOLETE: Use VerifyDiagnostics from Roslyn.Compilers.CSharp.Test.Utilities instead.
         /// </summary>
+        [Obsolete("Use VerifyDiagnostics", true)]
         public static void TestDiagnosticsExact(string source, params string[] diagStrings)
         {
             var comp = CSharpTestBase.CreateCompilationWithMscorlib(source);
@@ -62,7 +64,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         /// <summary>
         /// OBSOLETE: Use VerifyDiagnostics from Roslyn.Compilers.CSharp.Test.Utilities instead.
         /// </summary>
-        internal protected static CSharpCompilation VerifyErrorsAndGetCompilationWithMscorlib(string text, params ErrorDescription[] expectedErrorDesp)
+        public static CSharpCompilation VerifyErrorsAndGetCompilationWithMscorlib(string text, params ErrorDescription[] expectedErrorDesp)
         {
             return VerifyErrorsAndGetCompilationWithMscorlib(new string[] { text }, expectedErrorDesp);
         }

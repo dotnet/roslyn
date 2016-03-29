@@ -821,9 +821,6 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             try
             {
-                bool includeInitializersInBody;
-                BoundBlock body;
-
                 // if synthesized method returns its body in lowered form
                 if (methodSymbol.SynthesizesLoweredBoundBody)
                 {
@@ -842,17 +839,19 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return;
                 }
 
+                bool includeInitializersInBody = false;
+                BoundBlock body;
+                bool originalBodyNested = false;
+
                 // initializers that have been analyzed but not yet lowered.
                 BoundStatementList analyzedInitializers = null;
 
-                ImportChain importChain;
+                ImportChain importChain = null;
                 var hasTrailingExpression = false;
 
                 if (methodSymbol.IsScriptConstructor)
                 {
-                    body = BoundBlock.SynthesizedNoLocals(methodSymbol.GetNonNullSyntaxNode(), ImmutableArray<BoundStatement>.Empty);
-                    includeInitializersInBody = false;
-                    importChain = null;
+                    body = new BoundBlock(methodSymbol.GetNonNullSyntaxNode(), ImmutableArray<LocalSymbol>.Empty, ImmutableArray<LocalFunctionSymbol>.Empty, ImmutableArray<BoundStatement>.Empty) { WasCompilerGenerated = true };
                 }
                 else if (methodSymbol.IsScriptInitializer)
                 {
@@ -861,14 +860,11 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                     // the lowered script initializers should not be treated as initializers anymore but as a method body:
                     body = BoundBlock.SynthesizedNoLocals(initializerStatements.Syntax, initializerStatements.Statements);
-                    includeInitializersInBody = false;
 
                     var unusedDiagnostics = DiagnosticBag.GetInstance();
                     DataFlowPass.Analyze(_compilation, methodSymbol, initializerStatements, unusedDiagnostics, requireOutParamsAssigned: false);
                     DiagnosticsPass.IssueDiagnostics(_compilation, initializerStatements, unusedDiagnostics, methodSymbol);
                     unusedDiagnostics.Free();
-
-                    importChain = null;
                 }
                 else
                 {
@@ -876,7 +872,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     includeInitializersInBody = !processedInitializers.BoundInitializers.IsDefaultOrEmpty &&
                                                 !HasThisConstructorInitializer(methodSymbol);
 
-                    body = BindMethodBody(methodSymbol, compilationState, diagsForCurrentMethod, out importChain);
+                    body = BindMethodBody(methodSymbol, compilationState, diagsForCurrentMethod, out importChain, out originalBodyNested);
 
                     // lower initializers just once. the lowered tree will be reused when emitting all constructors 
                     // with field initializers. Once lowered, these initializers will be stashed in processedInitializers.LoweredInitializers
@@ -931,7 +927,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 BoundBlock flowAnalyzedBody = null;
                 if (body != null)
                 {
-                    flowAnalyzedBody = FlowAnalysisPass.Rewrite(methodSymbol, body, diagsForCurrentMethod, hasTrailingExpression);
+                    flowAnalyzedBody = FlowAnalysisPass.Rewrite(methodSymbol, body, diagsForCurrentMethod, hasTrailingExpression: hasTrailingExpression, originalBodyNested: originalBodyNested);
                 }
 
                 bool hasErrors = _hasDeclarationErrors || diagsForCurrentMethod.HasAnyErrors() || processedInitializers.HasErrors;
@@ -961,7 +957,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                         return semanticModel;
                     });
 
-                    _compilation.EventQueue.Enqueue(new SymbolDeclaredCompilationEvent(_compilation, methodSymbol, lazySemanticModel));
+                    MethodSymbol symbolToProduce = methodSymbol.PartialDefinitionPart ?? methodSymbol;
+                    _compilation.EventQueue.TryEnqueue(new SymbolDeclaredCompilationEvent(_compilation, symbolToProduce, lazySemanticModel));
                 }
 
                 // Don't lower if we're not emitting or if there were errors. 
@@ -1467,36 +1464,16 @@ namespace Microsoft.CodeAnalysis.CSharp
         // NOTE: can return null if the method has no body.
         internal static BoundBlock BindMethodBody(MethodSymbol method, TypeCompilationState compilationState, DiagnosticBag diagnostics)
         {
-            ImportChain unused;
-            return BindMethodBody(method, compilationState, diagnostics, out unused);
+            ImportChain importChain;
+            bool originalBodyNested;
+            return BindMethodBody(method, compilationState, diagnostics, out importChain, out originalBodyNested);
         }
 
         // NOTE: can return null if the method has no body.
-        private static BoundBlock BindMethodBody(MethodSymbol method, TypeCompilationState compilationState, DiagnosticBag diagnostics, out ImportChain importChain)
+        private static BoundBlock BindMethodBody(MethodSymbol method, TypeCompilationState compilationState, DiagnosticBag diagnostics, out ImportChain importChain, out bool originalBodyNested)
         {
+            originalBodyNested = false;
             importChain = null;
-
-            var compilation = method.DeclaringCompilation;
-            BoundStatement constructorInitializer = null;
-
-            // delegates have constructors but not constructor initializers
-            if (method.MethodKind == MethodKind.Constructor && !method.ContainingType.IsDelegateType() && !method.IsExtern)
-            {
-                var initializerInvocation = BindConstructorInitializer(method, diagnostics, compilation);
-
-                if (initializerInvocation != null)
-                {
-                    var ctorCall = initializerInvocation as BoundCall;
-                    if (ctorCall != null && !ctorCall.HasAnyErrors && ctorCall.Method != method && ctorCall.Method.ContainingType == method.ContainingType)
-                    {
-                        // Detect and report indirect cycles in the ctor-initializer call graph.
-                        compilationState.ReportCtorInitializerCycles(method, ctorCall.Method, ctorCall.Syntax, diagnostics);
-                    }
-
-                    constructorInitializer = new BoundExpressionStatement(initializerInvocation.Syntax, initializerInvocation) { WasCompilerGenerated = true };
-                    Debug.Assert(initializerInvocation.HasAnyErrors || constructorInitializer.IsConstructorInitializer(), "Please keep this bound node in sync with BoundNodeExtensions.IsConstructorInitializer.");
-                }
-            }
 
             BoundBlock body;
 
@@ -1520,6 +1497,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return null;
                 }
 
+                var compilation = method.DeclaringCompilation;
                 var factory = compilation.GetBinderFactory(sourceMethod.SyntaxTree);
 
                 var blockSyntax = sourceMethod.BodySyntax as BlockSyntax;
@@ -1529,8 +1507,13 @@ namespace Microsoft.CodeAnalysis.CSharp
                     var inMethodBinder = factory.GetBinder(blockSyntax);
 
                     var binder = new ExecutableCodeBinder(blockSyntax, sourceMethod, inMethodBinder);
-                    body = binder.BindBlock(blockSyntax, diagnostics);
+                    body = (BoundBlock)binder.BindEmbeddedBlock(blockSyntax, diagnostics);
                     importChain = binder.ImportChain;
+
+                    if (method.MethodKind == MethodKind.Destructor)
+                    {
+                        return MethodBodySynthesizer.ConstructDestructorBody(method, body);
+                    }
 
                     foreach (var iterator in binder.MethodSymbolsWithYield)
                     {
@@ -1567,7 +1550,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     binder = new ExecutableCodeBinder(arrowExpression, sourceMethod, binder);
                     importChain = binder.ImportChain;
                     // Add locals
-                    return binder.BindExpressionBodyAsBlock(arrowExpression, diagnostics);
+                    return binder.WithPatternVariablesIfAny(arrowExpression.Expression).BindExpressionBodyAsBlock(arrowExpression, diagnostics);
                 }
                 else
                 {
@@ -1582,27 +1565,19 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
             else
             {
-                //  synthesized methods should return their bound bodies 
+                // synthesized methods should return their bound bodies
                 body = null;
             }
 
+            var constructorInitializer = BindConstructorInitializerIfAny(method, compilationState, diagnostics);
             ImmutableArray<BoundStatement> statements;
 
             if (constructorInitializer == null)
             {
                 if (body != null)
                 {
-                    // most common case - we just have a single block for the body.
-                    if (method.MethodKind == MethodKind.Destructor)
-                    {
-                        return MethodBodySynthesizer.ConstructDestructorBody(method, body);
-                    }
-                    else
-                    {
                         return body;
                     }
-                }
-
                 statements = ImmutableArray<BoundStatement>.Empty;
             }
             else if (body == null)
@@ -1612,9 +1587,36 @@ namespace Microsoft.CodeAnalysis.CSharp
             else
             {
                 statements = ImmutableArray.Create(constructorInitializer, body);
+                originalBodyNested = true;
             }
 
             return BoundBlock.SynthesizedNoLocals(method.GetNonNullSyntaxNode(), statements);
+        }
+
+        private static BoundStatement BindConstructorInitializerIfAny(MethodSymbol method, TypeCompilationState compilationState, DiagnosticBag diagnostics)
+        {
+            // delegates have constructors but not constructor initializers
+            if (method.MethodKind == MethodKind.Constructor && !method.ContainingType.IsDelegateType() && !method.IsExtern)
+            {
+                var compilation = method.DeclaringCompilation;
+                var initializerInvocation = BindConstructorInitializer(method, diagnostics, compilation);
+
+                if (initializerInvocation != null)
+                {
+                    var ctorCall = initializerInvocation as BoundCall;
+                    if (ctorCall != null && !ctorCall.HasAnyErrors && ctorCall.Method != method && ctorCall.Method.ContainingType == method.ContainingType)
+                    {
+                        // Detect and report indirect cycles in the ctor-initializer call graph.
+                        compilationState.ReportCtorInitializerCycles(method, ctorCall.Method, ctorCall.Syntax, diagnostics);
+                    }
+
+                    var constructorInitializer = new BoundExpressionStatement(initializerInvocation.Syntax, initializerInvocation) { WasCompilerGenerated = true };
+                    Debug.Assert(initializerInvocation.HasAnyErrors || constructorInitializer.IsConstructorInitializer(), "Please keep this bound node in sync with BoundNodeExtensions.IsConstructorInitializer.");
+                    return constructorInitializer;
+                }
+            }
+
+            return null;
         }
 
         /// <summary>
@@ -1723,8 +1725,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                 outerBinder = compilation.GetBinderFactory(sourceConstructor.SyntaxTree).GetBinder(initializerArgumentListOpt);
             }
 
-            //wrap in ConstructorInitializerBinder for appropriate errors
-            Binder initializerBinder = outerBinder.WithAdditionalFlagsAndContainingMemberOrLambda(BinderFlags.ConstructorInitializer, constructor);
+            // wrap in ConstructorInitializerBinder for appropriate errors
+            // Handle scoping for possible pattern variables declared in the initializer
+            Binder initializerBinder = outerBinder.WithAdditionalFlagsAndContainingMemberOrLambda(BinderFlags.ConstructorInitializer, constructor).
+                                       WithPatternVariablesIfAny(initializerArgumentListOpt);
 
             return initializerBinder.BindConstructorInitializer(initializerArgumentListOpt, constructor, diagnostics);
         }

@@ -6,9 +6,10 @@ Imports System.Dynamic
 Imports Microsoft.CodeAnalysis.ExpressionEvaluator
 Imports Microsoft.VisualStudio.Debugger.Clr
 Imports Microsoft.VisualStudio.Debugger.Evaluation
+Imports Roslyn.Test.Utilities
 Imports Xunit
 
-Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
+Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator.UnitTests
 
     Public Class DynamicViewTests : Inherits VisualBasicResultProviderTestBase
 
@@ -51,10 +52,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
             Verify(GetChildren(result),
                 EvalResult("[Class]", "{System.Dynamic.ExpandoClass}", "System.Dynamic.ExpandoClass", "o.[Class]", DkmEvaluationResultFlags.Expandable Or DkmEvaluationResultFlags.ReadOnly, DkmEvaluationResultCategory.Property, DkmEvaluationResultAccessType.Internal),
                 EvalResult("LockObject", "{Object}", "Object", "o.LockObject", DkmEvaluationResultFlags.ReadOnly, DkmEvaluationResultCategory.Data, DkmEvaluationResultAccessType.Internal),
-                EvalResult("System.Collections.Generic.ICollection(Of System.Collections.Generic.KeyValuePair(Of String, Object)).Count", "1", "Integer", "((System.Collections.Generic.ICollection(Of System.Collections.Generic.KeyValuePair(Of String, Object)))o).Count", DkmEvaluationResultFlags.ReadOnly, DkmEvaluationResultCategory.Property, DkmEvaluationResultAccessType.Private),
-                EvalResult("System.Collections.Generic.ICollection(Of System.Collections.Generic.KeyValuePair(Of String, Object)).IsReadOnly", "False", "Boolean", "((System.Collections.Generic.ICollection(Of System.Collections.Generic.KeyValuePair(Of String, Object)))o).IsReadOnly", DkmEvaluationResultFlags.Boolean Or DkmEvaluationResultFlags.ReadOnly, DkmEvaluationResultCategory.Property, DkmEvaluationResultAccessType.Private),
-                EvalResult("System.Collections.Generic.IDictionary(Of String, Object).Keys", "Count = 1", "System.Collections.Generic.ICollection(Of String) {System.Dynamic.ExpandoObject.KeyCollection}", "((System.Collections.Generic.IDictionary(Of String, Object))o).Keys", DkmEvaluationResultFlags.Expandable Or DkmEvaluationResultFlags.ReadOnly, DkmEvaluationResultCategory.Property, DkmEvaluationResultAccessType.Private),
-                EvalResult("System.Collections.Generic.IDictionary(Of String, Object).Values", "Count = 1", "System.Collections.Generic.ICollection(Of Object) {System.Dynamic.ExpandoObject.ValueCollection}", "((System.Collections.Generic.IDictionary(Of String, Object))o).Values", DkmEvaluationResultFlags.Expandable Or DkmEvaluationResultFlags.ReadOnly, DkmEvaluationResultCategory.Property, DkmEvaluationResultAccessType.Private),
+                EvalResult("System.Collections.Generic.ICollection(Of System.Collections.Generic.KeyValuePair(Of String, Object)).Count", "1", "Integer", "DirectCast(o, System.Collections.Generic.ICollection(Of System.Collections.Generic.KeyValuePair(Of String, Object))).Count", DkmEvaluationResultFlags.ReadOnly, DkmEvaluationResultCategory.Property, DkmEvaluationResultAccessType.Private),
+                EvalResult("System.Collections.Generic.ICollection(Of System.Collections.Generic.KeyValuePair(Of String, Object)).IsReadOnly", "False", "Boolean", "DirectCast(o, System.Collections.Generic.ICollection(Of System.Collections.Generic.KeyValuePair(Of String, Object))).IsReadOnly", DkmEvaluationResultFlags.Boolean Or DkmEvaluationResultFlags.ReadOnly, DkmEvaluationResultCategory.Property, DkmEvaluationResultAccessType.Private),
+                EvalResult("System.Collections.Generic.IDictionary(Of String, Object).Keys", "Count = 1", "System.Collections.Generic.ICollection(Of String) {System.Dynamic.ExpandoObject.KeyCollection}", "DirectCast(o, System.Collections.Generic.IDictionary(Of String, Object)).Keys", DkmEvaluationResultFlags.Expandable Or DkmEvaluationResultFlags.ReadOnly, DkmEvaluationResultCategory.Property, DkmEvaluationResultAccessType.Private),
+                EvalResult("System.Collections.Generic.IDictionary(Of String, Object).Values", "Count = 1", "System.Collections.Generic.ICollection(Of Object) {System.Dynamic.ExpandoObject.ValueCollection}", "DirectCast(o, System.Collections.Generic.IDictionary(Of String, Object)).Values", DkmEvaluationResultFlags.Expandable Or DkmEvaluationResultFlags.ReadOnly, DkmEvaluationResultCategory.Property, DkmEvaluationResultAccessType.Private),
                 EvalResult("_count", "1", "Integer", "o._count", category:=DkmEvaluationResultCategory.Data, access:=DkmEvaluationResultAccessType.Private),
                 EvalResult("_data", "{System.Dynamic.ExpandoObject.ExpandoData}", "System.Dynamic.ExpandoObject.ExpandoData", "o._data", DkmEvaluationResultFlags.Expandable, DkmEvaluationResultCategory.Data, DkmEvaluationResultAccessType.Private),
                 EvalResult("_propertyChanged", "Nothing", "System.ComponentModel.PropertyChangedEventHandler", "o._propertyChanged", category:=DkmEvaluationResultCategory.Data, access:=DkmEvaluationResultAccessType.Private),
@@ -114,21 +115,24 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
         End Sub
 
         <Fact>
+        <WorkItem(5667, "https://github.com/dotnet/roslyn/issues/5667")>
         Public Sub NoMembers()
-            Dim expression = "o"
-            Dim o As Object = New ExpandoObject()
+            Using New EnsureEnglishUICulture()
+                Dim expression = "o"
+                Dim o As Object = New ExpandoObject()
 
-            Dim type = New DkmClrType(CType(o.GetType(), TypeImpl))
-            Dim value = CreateDkmClrValue(o, type)
+                Dim type = New DkmClrType(CType(o.GetType(), TypeImpl))
+                Dim value = CreateDkmClrValue(o, type)
 
-            Dim result = FormatResult(expression, value)
-            Verify(result,
+                Dim result = FormatResult(expression, value)
+                Verify(result,
                 EvalResult(expression, "{System.Dynamic.ExpandoObject}", "System.Dynamic.ExpandoObject", expression, DkmEvaluationResultFlags.Expandable))
-            Dim dynamicView = GetChildren(result).Last()
-            Verify(dynamicView,
-                EvalResult(Resources.DynamicView, Resources.DynamicViewValueWarning, "", "o, dynamic", DkmEvaluationResultFlags.Expandable Or DkmEvaluationResultFlags.ReadOnly))
-            Verify(GetChildren(dynamicView),
-            EvalFailedResult(Resources.ErrorName, DynamicDebugViewEmptyMessage))
+                Dim dynamicView = GetChildren(result).Last()
+                Verify(dynamicView,
+                       EvalResult(Resources.DynamicView, Resources.DynamicViewValueWarning, "", "o, dynamic", DkmEvaluationResultFlags.Expandable Or DkmEvaluationResultFlags.ReadOnly))
+                Verify(GetChildren(dynamicView),
+                       EvalFailedResult(Resources.ErrorName, GetDynamicDebugViewEmptyMessage()))
+            End Using
         End Sub
 
         <Fact>

@@ -24,68 +24,69 @@ using Microsoft.VisualStudio.Text.Tagging;
 using Roslyn.Test.Utilities;
 using Roslyn.Utilities;
 using Xunit;
+using Microsoft.CodeAnalysis.Editor.UnitTests;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Classification
 {
     public partial class SemanticClassifierTests : AbstractCSharpClassifierTests
     {
-        internal override IEnumerable<ClassifiedSpan> GetClassificationSpans(string code, TextSpan textSpan, CSharpParseOptions options)
+        internal override async Task<IEnumerable<ClassifiedSpan>> GetClassificationSpansAsync(string code, TextSpan textSpan, CSharpParseOptions options)
         {
-            using (var workspace = CSharpWorkspaceFactory.CreateWorkspaceFromFile(code, options))
+            using (var workspace = await TestWorkspace.CreateCSharpAsync(code, options))
             {
                 var document = workspace.CurrentSolution.GetDocument(workspace.Documents.First().Id);
 
-                var syntaxTree = document.GetSyntaxTreeAsync().Result;
+                var syntaxTree = await document.GetSyntaxTreeAsync();
 
                 var service = document.GetLanguageService<IClassificationService>();
                 var classifiers = service.GetDefaultSyntaxClassifiers();
                 var extensionManager = workspace.Services.GetService<IExtensionManager>();
 
                 var results = new List<ClassifiedSpan>();
-                service.AddSemanticClassificationsAsync(document, textSpan,
+                await service.AddSemanticClassificationsAsync(document, textSpan,
                     extensionManager.CreateNodeExtensionGetter(classifiers, c => c.SyntaxNodeTypes),
                     extensionManager.CreateTokenExtensionGetter(classifiers, c => c.SyntaxTokenKinds),
-                    results, CancellationToken.None).Wait();
+                    results, CancellationToken.None);
 
                 return results;
             }
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Classification)]
-        public void GenericClassDeclaration()
+        [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
+        public async Task GenericClassDeclaration()
         {
-            TestInMethod(
+            await TestInMethodAsync(
                 className: "Class<T>",
                 methodName: "M",
                 code: @"new Class<int>();",
                 expected: Class("Class"));
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Classification)]
-        public void UsingAlias1()
+        [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
+        public async Task UsingAlias1()
         {
-            Test(@"using M = System.Math;",
+            await TestAsync(@"using M = System.Math;",
                 Class("M"),
                 Class("Math"));
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Classification)]
-        public void DynamicAsTypeArgument()
+        [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
+        public async Task DynamicAsTypeArgument()
         {
-            TestInMethod(
+            await TestInMethodAsync(
                 className: "Class<T>",
                 methodName: "M",
                 code: @"new Class<dynamic>();",
                 expected: Classifications(Class("Class"), Keyword("dynamic")));
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Classification)]
-        public void UsingTypeAliases()
+        [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
+        public async Task UsingTypeAliases()
         {
             var code = @"using Alias = Test; 
 class Test { void M() { Test a = new Test(); Alias b = new Alias(); } }";
 
-            Test(code,
+            await TestAsync(code,
                 code,
                 Class("Alias"),
                 Class("Test"),
@@ -95,246 +96,246 @@ class Test { void M() { Test a = new Test(); Alias b = new Alias(); } }";
                 Class("Alias"));
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Classification)]
-        public void DynamicTypeAlias()
+        [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
+        public async Task DynamicTypeAlias()
         {
-            Test(@"using dynamic = System.EventArgs; class C { dynamic d = new dynamic(); }",
+            await TestAsync(@"using dynamic = System.EventArgs; class C { dynamic d = new dynamic(); }",
                 Class("dynamic"),
                 Class("EventArgs"),
                 Class("dynamic"),
                 Class("dynamic"));
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Classification)]
-        public void DynamicAsDelegateName()
+        [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
+        public async Task DynamicAsDelegateName()
         {
-            Test(@"delegate void dynamic(); class C { void M() { dynamic d; } }",
+            await TestAsync(@"delegate void dynamic(); class C { void M() { dynamic d; } }",
                 Delegate("dynamic"));
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Classification)]
-        public void DynamicAsInterfaceName()
+        [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
+        public async Task DynamicAsInterfaceName()
         {
-            Test(@"interface dynamic { } class C { dynamic d; }",
+            await TestAsync(@"interface dynamic { } class C { dynamic d; }",
                 Interface("dynamic"));
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Classification)]
-        public void DynamicAsEnumName()
+        [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
+        public async Task DynamicAsEnumName()
         {
-            Test(@"enum dynamic { } class C { dynamic d; }",
+            await TestAsync(@"enum dynamic { } class C { dynamic d; }",
                 Enum("dynamic"));
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Classification)]
-        public void DynamicAsClassName()
+        [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
+        public async Task DynamicAsClassName()
         {
-            Test(@"class dynamic { } class C { dynamic d; }",
+            await TestAsync(@"class dynamic { } class C { dynamic d; }",
                 Class("dynamic"));
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Classification)]
-        public void DynamicAsClassNameAndLocalVariableName()
+        [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
+        public async Task DynamicAsClassNameAndLocalVariableName()
         {
-            Test(@"class dynamic { dynamic() { dynamic dynamic; } }",
+            await TestAsync(@"class dynamic { dynamic() { dynamic dynamic; } }",
                 Class("dynamic"));
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Classification)]
-        public void DynamicAsStructName()
+        [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
+        public async Task DynamicAsStructName()
         {
-            Test(@"struct dynamic { } class C { dynamic d; }",
+            await TestAsync(@"struct dynamic { } class C { dynamic d; }",
                 Struct("dynamic"));
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Classification)]
-        public void DynamicAsGenericClassName()
+        [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
+        public async Task DynamicAsGenericClassName()
         {
-            Test(@"class dynamic<T> { } class C { dynamic<int> d; }",
+            await TestAsync(@"class dynamic<T> { } class C { dynamic<int> d; }",
                 Class("dynamic"));
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Classification)]
-        public void DynamicAsGenericClassNameButOtherArity()
+        [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
+        public async Task DynamicAsGenericClassNameButOtherArity()
         {
-            Test(@"class dynamic<T> { } class C { dynamic d; }",
+            await TestAsync(@"class dynamic<T> { } class C { dynamic d; }",
                 Keyword("dynamic"));
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Classification)]
-        public void DynamicAsUndefinedGenericType()
+        [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
+        public async Task DynamicAsUndefinedGenericType()
         {
-            Test(@"class dynamic { } class C { dynamic<int> d; }");
+            await TestAsync(@"class dynamic { } class C { dynamic<int> d; }");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Classification)]
-        public void DynamicAsExternAlias()
+        [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
+        public async Task DynamicAsExternAlias()
         {
-            Test(@"extern alias dynamic;
+            await TestAsync(@"extern alias dynamic;
 class C { dynamic::Foo a; }");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Classification)]
-        public void GenericClassNameButOtherArity()
+        [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
+        public async Task GenericClassNameButOtherArity()
         {
-            Test(@"class A<T> { } class C { A d; }");
+            await TestAsync(@"class A<T> { } class C { A d; }");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Classification)]
-        public void GenericTypeParameter()
+        [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
+        public async Task GenericTypeParameter()
         {
-            Test(@"class C<T> { void M() { default(T) } }",
+            await TestAsync(@"class C<T> { void M() { default(T) } }",
                 TypeParameter("T"));
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Classification)]
-        public void GenericMethodTypeParameter()
+        [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
+        public async Task GenericMethodTypeParameter()
         {
-            Test(@"class C { T M<T>(T t) { return default(T); } }",
+            await TestAsync(@"class C { T M<T>(T t) { return default(T); } }",
                 TypeParameter("T"),
                 TypeParameter("T"),
                 TypeParameter("T"));
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Classification)]
-        public void GenericMethodTypeParameterInLocalVariableDeclaration()
+        [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
+        public async Task GenericMethodTypeParameterInLocalVariableDeclaration()
         {
-            Test(@"class C { void M<T>() { T t; } }",
+            await TestAsync(@"class C { void M<T>() { T t; } }",
                 TypeParameter("T"));
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Classification)]
-        public void ParameterOfLambda1()
+        [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
+        public async Task ParameterOfLambda1()
         {
-            Test(@"class C { C() { Action a = (C p) => { }; } }",
+            await TestAsync(@"class C { C() { Action a = (C p) => { }; } }",
                 Class("C"));
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Classification)]
-        public void ParameterOfAnonymousMethod()
+        [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
+        public async Task ParameterOfAnonymousMethod()
         {
-            Test(@"class C { C() { Action a = delegate (C p) { }; } }",
+            await TestAsync(@"class C { C() { Action a = delegate (C p) { }; } }",
                 Class("C"));
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Classification)]
-        public void GenericTypeParameterAfterWhere()
+        [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
+        public async Task GenericTypeParameterAfterWhere()
         {
-            Test(@"class C<A, B> where A : B { }",
+            await TestAsync(@"class C<A, B> where A : B { }",
                 TypeParameter("A"),
                 TypeParameter("B"));
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Classification)]
-        public void BaseClass()
+        [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
+        public async Task BaseClass()
         {
-            Test(@"class C { } class C2 : C { }",
+            await TestAsync(@"class C { } class C2 : C { }",
                 Class("C"));
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Classification)]
-        public void BaseInterfaceOnInterface()
+        [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
+        public async Task BaseInterfaceOnInterface()
         {
-            Test(@"interface T { } interface T2 : T { }",
+            await TestAsync(@"interface T { } interface T2 : T { }",
                 Interface("T"));
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Classification)]
-        public void BaseInterfaceOnClass()
+        [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
+        public async Task BaseInterfaceOnClass()
         {
-            Test(@"interface T { } class T2 : T { }",
+            await TestAsync(@"interface T { } class T2 : T { }",
                 Interface("T"));
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Classification)]
-        public void InterfaceColorColor()
+        [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
+        public async Task InterfaceColorColor()
         {
-            Test(@"interface T { } class T2 : T { T T; }",
+            await TestAsync(@"interface T { } class T2 : T { T T; }",
                 Interface("T"),
                 Interface("T"));
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Classification)]
-        public void DelegateColorColor()
+        [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
+        public async Task DelegateColorColor()
         {
-            Test(@"delegate void T(); class T2 { T T; }",
+            await TestAsync(@"delegate void T(); class T2 { T T; }",
                 Delegate("T"));
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Classification)]
-        public void DelegateReturnsItself()
+        [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
+        public async Task DelegateReturnsItself()
         {
-            Test(@"delegate T T(); class C { T T(T t); }",
+            await TestAsync(@"delegate T T(); class C { T T(T t); }",
                 Delegate("T"),
                 Delegate("T"),
                 Delegate("T"));
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Classification)]
-        public void StructColorColor()
+        [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
+        public async Task StructColorColor()
         {
-            Test(@"struct T { T T; }",
+            await TestAsync(@"struct T { T T; }",
                 Struct("T"));
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Classification)]
-        public void EnumColorColor()
+        [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
+        public async Task EnumColorColor()
         {
-            Test(@"enum T { T, T } class C { T T; }",
+            await TestAsync(@"enum T { T, T } class C { T T; }",
                 Enum("T"));
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Classification)]
-        public void DynamicAsGenericTypeParameter()
+        [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
+        public async Task DynamicAsGenericTypeParameter()
         {
-            Test(@"class C<dynamic> { dynamic d; }",
+            await TestAsync(@"class C<dynamic> { dynamic d; }",
                 TypeParameter("dynamic"));
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Classification)]
-        public void DynamicAsGenericFieldName()
+        [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
+        public async Task DynamicAsGenericFieldName()
         {
-            Test(@"class A<T> { T dynamic; }",
+            await TestAsync(@"class A<T> { T dynamic; }",
                 TypeParameter("T"));
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Classification)]
-        public void PropertySameNameAsClass()
+        [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
+        public async Task PropertySameNameAsClass()
         {
-            Test(@"class N { N N { get; set; } void M() { N n = N; N = n; N = N; } }",
+            await TestAsync(@"class N { N N { get; set; } void M() { N n = N; N = n; N = N; } }",
                 Class("N"),
                 Class("N"));
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Classification)]
-        public void AttributeWithoutAttributeSuffix()
+        [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
+        public async Task AttributeWithoutAttributeSuffix()
         {
-            Test(@"using System; [Obsolete] class C { }",
+            await TestAsync(@"using System; [Obsolete] class C { }",
                 Class("Obsolete"));
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Classification)]
-        public void AttributeOnNonExistingMember()
+        [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
+        public async Task AttributeOnNonExistingMember()
         {
-            Test(@"using System;
+            await TestAsync(@"using System;
 class A { [Obsolete] }",
                 Class("Obsolete"));
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Classification)]
-        public void AttributeWithoutAttributeSuffixOnAssembly()
+        [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
+        public async Task AttributeWithoutAttributeSuffixOnAssembly()
         {
-            Test(@"using System;
+            await TestAsync(@"using System;
 [assembly: My]
 class MyAttribute : Attribute { }",
                 Class("My"),
                 Class("Attribute"));
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Classification)]
-        public void AttributeViaNestedClassOrDerivedClass()
+        [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
+        public async Task AttributeViaNestedClassOrDerivedClass()
         {
-            Test(@"using System;
+            await TestAsync(@"using System;
 [Base.My]
 [Derived.My]
 class Base
@@ -350,27 +351,27 @@ class Derived : Base { }",
                 Class("Base"));
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Classification)]
-        public void NamedAndOptional()
+        [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
+        public async Task NamedAndOptional()
         {
-            Test(@"class C { void B(C C = null) { } void M() { B(C: null); } }",
+            await TestAsync(@"class C { void B(C C = null) { } void M() { B(C: null); } }",
                 Class("C"));
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Classification)]
-        public void PartiallyWrittenGenericName1()
+        [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
+        public async Task PartiallyWrittenGenericName1()
         {
-            TestInMethod(
+            await TestInMethodAsync(
                 className: "Class<T>",
                 methodName: "M",
                 code: @"Class<int",
                 expected: Class("Class"));
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Classification)]
-        public void PartiallyWrittenGenericName2()
+        [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
+        public async Task PartiallyWrittenGenericName2()
         {
-            TestInMethod(
+            await TestInMethodAsync(
                 className: "Class<T1, T2>",
                 methodName: "M",
                 code: @"Class<int, b",
@@ -381,26 +382,26 @@ class Derived : Base { }",
         // a property name is the same as a type name
         // and the resulting ambiguities that the spec
         // resolves in favor of properties
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Classification)]
-        public void ColorColor()
+        [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
+        public async Task ColorColor()
         {
-            Test(@"class Color { Color Color; }",
+            await TestAsync(@"class Color { Color Color; }",
                 Class("Color"));
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Classification)]
-        public void ColorColor2()
+        [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
+        public async Task ColorColor2()
         {
-            Test(@"class T { T T = new T(); T() { this.T = new T(); } }",
+            await TestAsync(@"class T { T T = new T(); T() { this.T = new T(); } }",
                 Class("T"),
                 Class("T"),
                 Class("T"));
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Classification)]
-        public void ColorColor3()
+        [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
+        public async Task ColorColor3()
         {
-            Test(@"class T { T T = new T(); void M(); T() { T.M(); } }",
+            await TestAsync(@"class T { T T = new T(); void M(); T() { T.M(); } }",
                 Class("T"),
                 Class("T"));
         }
@@ -409,10 +410,10 @@ class Derived : Base { }",
         /// Instance field should be preferred to type
         /// 7.5.4.1
         /// </summary>
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Classification)]
-        public void ColorColor4()
+        [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
+        public async Task ColorColor4()
         {
-            Test(@"class T { T T; void M() { T.T = null; } }",
+            await TestAsync(@"class T { T T; void M() { T.T = null; } }",
                 Class("T"));
         }
 
@@ -420,10 +421,10 @@ class Derived : Base { }",
         /// Type should be preferred to a static field
         /// 7.5.4.1
         /// </summary>
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Classification)]
-        public void ColorColor5()
+        [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
+        public async Task ColorColor5()
         {
-            Test(@"class T { static T T; void M() { T.T = null; } }",
+            await TestAsync(@"class T { static T T; void M() { T.T = null; } }",
                 Class("T"),
                 Class("T"));
         }
@@ -431,10 +432,10 @@ class Derived : Base { }",
         /// <summary>
         /// Needs to prefer the local
         /// </summary>
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Classification)]
-        public void ColorColor6()
+        [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
+        public async Task ColorColor6()
         {
-            Test(@"class T { int field; void M() { T T = new T(); T.field = 0; } }",
+            await TestAsync(@"class T { int field; void M() { T T = new T(); T.field = 0; } }",
                 Class("T"),
                 Class("T"));
         }
@@ -442,108 +443,108 @@ class Derived : Base { }",
         /// <summary>
         /// Needs to prefer the type
         /// </summary>
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Classification)]
-        public void ColorColor7()
+        [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
+        public async Task ColorColor7()
         {
-            Test(@"class T { static int field; void M() { T T = new T(); T.field = 0; } }",
+            await TestAsync(@"class T { static int field; void M() { T T = new T(); T.field = 0; } }",
                 Class("T"),
                 Class("T"),
                 Class("T"));
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Classification)]
-        public void ColorColor8()
+        [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
+        public async Task ColorColor8()
         {
-            Test(@"class T { void M(T T) { } void M2() { T T = new T(); M(T); } }",
+            await TestAsync(@"class T { void M(T T) { } void M2() { T T = new T(); M(T); } }",
                 Class("T"),
                 Class("T"),
                 Class("T"));
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Classification)]
-        public void ColorColor9()
+        [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
+        public async Task ColorColor9()
         {
-            Test(@"class T { T M(T T) { T = new T(); return T; } }",
+            await TestAsync(@"class T { T M(T T) { T = new T(); return T; } }",
                 Class("T"),
                 Class("T"),
                 Class("T"));
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Classification)]
-        public void ColorColor10()
+        [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
+        public async Task ColorColor10()
         {
             // note: 'var' now binds to the type of the local.
-            Test(@"class T { void M() { var T = new object(); T temp = T as T; } }",
+            await TestAsync(@"class T { void M() { var T = new object(); T temp = T as T; } }",
                 Keyword("var"),
                 Class("T"),
                 Class("T"));
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Classification)]
-        public void ColorColor11()
+        [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
+        public async Task ColorColor11()
         {
-            Test(@"class T { void M() { var T = new object(); bool b = T is T; } }",
+            await TestAsync(@"class T { void M() { var T = new object(); bool b = T is T; } }",
                 Keyword("var"),
                 Class("T"));
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Classification)]
-        public void ColorColor12()
+        [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
+        public async Task ColorColor12()
         {
-            Test(@"class T { void M() { T T = new T(); var t = typeof(T); } }",
+            await TestAsync(@"class T { void M() { T T = new T(); var t = typeof(T); } }",
                 Class("T"),
                 Class("T"),
                 Keyword("var"),
                 Class("T"));
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Classification)]
-        public void ColorColor13()
+        [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
+        public async Task ColorColor13()
         {
-            Test(@"class T { void M() { T T = new T(); T t = default(T); } }",
+            await TestAsync(@"class T { void M() { T T = new T(); T t = default(T); } }",
                 Class("T"),
                 Class("T"),
                 Class("T"),
                 Class("T"));
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Classification)]
-        public void ColorColor14()
+        [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
+        public async Task ColorColor14()
         {
-            Test(@"class T { void M() { object T = new T(); T t = (T)T; } }",
+            await TestAsync(@"class T { void M() { object T = new T(); T t = (T)T; } }",
                 Class("T"),
                 Class("T"),
                 Class("T"));
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Classification)]
-        public void NamespaceNameSameAsTypeName1()
+        [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
+        public async Task NamespaceNameSameAsTypeName1()
         {
-            Test(@"namespace T { class T { void M() { T.T T = new T.T(); } } }",
+            await TestAsync(@"namespace T { class T { void M() { T.T T = new T.T(); } } }",
                 Class("T"),
                 Class("T"));
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Classification)]
-        public void NamespaceNameSameAsTypeNameWithGlobal()
+        [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
+        public async Task NamespaceNameSameAsTypeNameWithGlobal()
         {
-            Test(@"namespace T { class T { void M() { global::T.T T = new global::T.T(); } } }",
+            await TestAsync(@"namespace T { class T { void M() { global::T.T T = new global::T.T(); } } }",
                 Class("T"),
                 Class("T"));
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Classification)]
-        public void AmbiguityTypeAsGenericMethodArgumentVsLocal()
+        [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
+        public async Task AmbiguityTypeAsGenericMethodArgumentVsLocal()
         {
-            Test(@"class T { void M<T>() { T T; M<T>(); } }",
+            await TestAsync(@"class T { void M<T>() { T T; M<T>(); } }",
                 TypeParameter("T"),
                 TypeParameter("T"));
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Classification)]
-        public void AmbiguityTypeAsGenericArgumentVsLocal()
+        [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
+        public async Task AmbiguityTypeAsGenericArgumentVsLocal()
         {
-            Test(@"class T { class G<T> { } void M() { T T; G<T> g = new G<T>(); } }",
+            await TestAsync(@"class T { class G<T> { } void M() { T T; G<T> g = new G<T>(); } }",
                 Class("T"),
                 Class("G"),
                 Class("T"),
@@ -551,10 +552,10 @@ class Derived : Base { }",
                 Class("T"));
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Classification)]
-        public void AmbiguityTypeAsGenericArgumentVsField()
+        [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
+        public async Task AmbiguityTypeAsGenericArgumentVsField()
         {
-            Test(@"class T { class H<T> { public static int f; } void M() { T T; int i = H<T>.f; } }",
+            await TestAsync(@"class T { class H<T> { public static int f; } void M() { T T; int i = H<T>.f; } }",
                 Class("T"),
                 Class("H"),
                 Class("T"));
@@ -563,10 +564,10 @@ class Derived : Base { }",
         /// <summary>
         /// 7.5.4.2
         /// </summary>
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Classification)]
-        public void GrammarAmbiguity_7_5_4_2()
+        [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
+        public async Task GrammarAmbiguity_7_5_4_2()
         {
-            Test(@"class M
+            await TestAsync(@"class M
 {
     void m()
     {
@@ -583,17 +584,17 @@ class Derived : Base { }",
                 Class("B"));
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Classification)]
-        public void AnonymousTypePropertyName()
+        [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
+        public async Task AnonymousTypePropertyName()
         {
-            Test(@"using System; class C { void M() { var x = new { String = "" }; } }",
+            await TestAsync(@"using System; class C { void M() { var x = new { String = "" }; } }",
                 Keyword("var"));
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Classification)]
-        public void YieldAsATypeName()
+        [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
+        public async Task YieldAsATypeName()
         {
-            Test(@"using System.Collections.Generic;
+            await TestAsync(@"using System.Collections.Generic;
 class yield { 
     IEnumerable<yield> M() { 
         yield yield = new yield(); 
@@ -604,23 +605,23 @@ class yield {
                 Class("yield"));
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Classification)]
-        public void TypeNameDottedNames()
+        [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
+        public async Task TypeNameDottedNames()
         {
-            Test(@"class C { class Nested { } C.Nested f; }",
+            await TestAsync(@"class C { class Nested { } C.Nested f; }",
                 Class("C"),
                 Class("Nested"));
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Classification)]
-        public void BindingTypeNameFromBCLViaGlobalAlias()
+        [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
+        public async Task BindingTypeNameFromBCLViaGlobalAlias()
         {
-            Test(@"using System; class C { global::System.String f; }",
+            await TestAsync(@"using System; class C { global::System.String f; }",
                 Class("String"));
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Classification)]
-        public void BindingTypeNames()
+        [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
+        public async Task BindingTypeNames()
         {
             string code = @"using System;
 using Str = System.String;
@@ -636,7 +637,7 @@ class C
     global::System.String FCNBCL;
     global::Str GlobalUsingAlias;
 }";
-            Test(code,
+            await TestAsync(code,
                 code,
                 Options.Regular,
                 Class("Str"),
@@ -651,10 +652,10 @@ class C
                 Class("String"));
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Classification)]
-        public void TypesOfClassMembers()
+        [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
+        public async Task TypesOfClassMembers()
         {
-            Test(@"class Type
+            await TestAsync(@"class Type
 {
     public Type() { }
     static Type() { }
@@ -687,151 +688,151 @@ class C
         /// <summary>
         /// NAQ = Namespace Alias Qualifier (?)
         /// </summary>
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Classification)]
-        public void NAQTypeNameCtor()
+        [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
+        public async Task NAQTypeNameCtor()
         {
-            TestInMethod(@"System.IO.BufferedStream b = new global::System.IO.BufferedStream();",
+            await TestInMethodAsync(@"System.IO.BufferedStream b = new global::System.IO.BufferedStream();",
                 Class("BufferedStream"),
                 Class("BufferedStream"));
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Classification)]
-        public void NAQEnum()
+        [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
+        public async Task NAQEnum()
         {
-            Test(@"class C { void M() { global::System.IO.DriveType d; } }",
+            await TestAsync(@"class C { void M() { global::System.IO.DriveType d; } }",
                 Enum("DriveType"));
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Classification)]
-        public void NAQDelegate()
+        [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
+        public async Task NAQDelegate()
         {
-            Test(@"class C { void M() { global::System.AssemblyLoadEventHandler d; } }",
+            await TestAsync(@"class C { void M() { global::System.AssemblyLoadEventHandler d; } }",
                 Delegate("AssemblyLoadEventHandler"));
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Classification)]
-        public void NAQTypeNameMethodCall()
+        [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
+        public async Task NAQTypeNameMethodCall()
         {
-            TestInMethod(@"global::System.String.Clone("");",
+            await TestInMethodAsync(@"global::System.String.Clone("");",
                 Class("String"));
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Classification)]
-        public void NAQEventSubscription()
+        [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
+        public async Task NAQEventSubscription()
         {
-            TestInMethod(@"global::System.AppDomain.CurrentDomain.AssemblyLoad += 
+            await TestInMethodAsync(@"global::System.AppDomain.CurrentDomain.AssemblyLoad += 
             delegate(object sender, System.AssemblyLoadEventArgs args) {};",
                 Class("AppDomain"),
                 Class("AssemblyLoadEventArgs"));
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Classification)]
-        public void AnonymousDelegateParameterType()
+        [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
+        public async Task AnonymousDelegateParameterType()
         {
-            Test(@"class C { void M() { System.Action<System.EventArgs> a = delegate(System.EventArgs e) { }; } }",
+            await TestAsync(@"class C { void M() { System.Action<System.EventArgs> a = delegate(System.EventArgs e) { }; } }",
                 Delegate("Action"),
                 Class("EventArgs"),
                 Class("EventArgs"));
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Classification)]
-        public void NAQCtor()
+        [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
+        public async Task NAQCtor()
         {
-            TestInMethod(@"global::System.Collections.DictionaryEntry de = new global::System.Collections.DictionaryEntry();",
+            await TestInMethodAsync(@"global::System.Collections.DictionaryEntry de = new global::System.Collections.DictionaryEntry();",
                 Struct("DictionaryEntry"),
                 Struct("DictionaryEntry"));
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Classification)]
-        public void NAQSameFileClass()
+        [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
+        public async Task NAQSameFileClass()
         {
             var code = @"class C { static void M() { global::C.M(); } }";
 
-            Test(code,
+            await TestAsync(code,
                 code,
                 Class("C"));
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Classification)]
-        public void InteractiveNAQSameFileClass()
+        [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
+        public async Task InteractiveNAQSameFileClass()
         {
             var code = @"class C { static void M() { global::Script.C.M(); } }";
 
-            Test(code,
+            await TestAsync(code,
                 code,
                 Options.Script,
                 Class("Script"),
                 Class("C"));
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Classification)]
-        public void NAQSameFileClassWithNamespace()
+        [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
+        public async Task NAQSameFileClassWithNamespace()
         {
-            Test(@"using @global = N;
+            await TestAsync(@"using @global = N;
 namespace N { class C { static void M() { global::N.C.M(); } } }",
                 Class("C"));
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Classification)]
-        public void NAQSameFileClassWithNamespaceAndEscapedKeyword()
+        [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
+        public async Task NAQSameFileClassWithNamespaceAndEscapedKeyword()
         {
-            Test(@"using @global = N;
+            await TestAsync(@"using @global = N;
 namespace N { class C { static void M() { @global.C.M(); } } }",
                 Class("C"));
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Classification)]
-        public void NAQGlobalWarning()
+        [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
+        public async Task NAQGlobalWarning()
         {
-            Test(@"using global = N;
+            await TestAsync(@"using global = N;
 namespace N { class C { static void M() { global.C.M(); } } }",
                 Class("C"));
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Classification)]
-        public void NAQUserDefinedNAQNamespace()
+        [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
+        public async Task NAQUserDefinedNAQNamespace()
         {
-            Test(@"using foo = N;
+            await TestAsync(@"using foo = N;
 namespace N { class C { static void M() { foo.C.M(); } } }",
                 Class("C"));
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Classification)]
-        public void NAQUserDefinedNAQNamespaceDoubleColon()
+        [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
+        public async Task NAQUserDefinedNAQNamespaceDoubleColon()
         {
-            Test(@"using foo = N;
+            await TestAsync(@"using foo = N;
 namespace N { class C { static void M() { foo::C.M(); } } }",
                 Class("C"));
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Classification)]
-        public void NAQUserDefinedNamespace1()
+        [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
+        public async Task NAQUserDefinedNamespace1()
         {
-            Test(@"class C { void M() { A.B.D d; } }
+            await TestAsync(@"class C { void M() { A.B.D d; } }
 namespace A { namespace B { class D { } } }",
                 Class("D"));
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Classification)]
-        public void NAQUserDefinedNamespaceWithGlobal()
+        [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
+        public async Task NAQUserDefinedNamespaceWithGlobal()
         {
-            Test(@"class C { void M() { global::A.B.D d; } }
+            await TestAsync(@"class C { void M() { global::A.B.D d; } }
 namespace A { namespace B { class D { } } }",
                 Class("D"));
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Classification)]
-        public void NAQUserDefinedNAQForClass()
+        [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
+        public async Task NAQUserDefinedNAQForClass()
         {
-            Test(@"using IO = global::System.IO;
+            await TestAsync(@"using IO = global::System.IO;
 class C { void M() { IO::BinaryReader b; } }",
                 Class("BinaryReader"));
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Classification)]
-        public void NAQUserDefinedTypes()
+        [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
+        public async Task NAQUserDefinedTypes()
         {
-            Test(@"using rabbit = MyNameSpace;
+            await TestAsync(@"using rabbit = MyNameSpace;
 class C { void M() {
         rabbit::MyClass2.method();
         new rabbit::MyClass2().myEvent += null;
@@ -861,10 +862,10 @@ namespace MyNameSpace {
                 Delegate("MyDelegate"));
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Classification)]
-        public void PreferPropertyOverNestedClass()
+        [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
+        public async Task PreferPropertyOverNestedClass()
         {
-            Test(@"class Outer
+            await TestAsync(@"class Outer
 {
     class A
     {
@@ -883,10 +884,10 @@ namespace MyNameSpace {
                 Class("A"));
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Classification)]
-        public void TypeNameInsideNestedClass()
+        [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
+        public async Task TypeNameInsideNestedClass()
         {
-            Test(@"using System;
+            await TestAsync(@"using System;
 class Outer
 {
     class C
@@ -902,10 +903,10 @@ class Outer
                 Class("Console"));
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Classification)]
-        public void StructEnumTypeNames()
+        [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
+        public async Task StructEnumTypeNames()
         {
-            Test(@"using System;
+            await TestAsync(@"using System;
 class C
 {
     enum MyEnum { }
@@ -920,10 +921,10 @@ class C
                 Struct("Int32"));
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Classification)]
-        public void PreferFieldOverClassWithSameName()
+        [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
+        public async Task PreferFieldOverClassWithSameName()
         {
-            Test(@"class C
+            await TestAsync(@"class C
 {
     public int C;
     void M()
@@ -933,10 +934,10 @@ class C
 }");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Classification)]
-        public void AttributeBinding()
+        [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
+        public async Task AttributeBinding()
         {
-            Test(@"using System;
+            await TestAsync(@"using System;
 [Serializable]            // Binds to System.SerializableAttribute; colorized
 class Serializable { }
 [SerializableAttribute]   // Binds to System.SerializableAttribute; colorized
@@ -957,16 +958,16 @@ class ObsoleteAttribute : Attribute { }",
                 Class("Attribute"));
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Classification)]
-        public void ShouldNotClassifyNamespacesAsTypes()
+        [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
+        public async Task ShouldNotClassifyNamespacesAsTypes()
         {
-            Test(@"using System; namespace Roslyn.Compilers.Internal { }");
+            await TestAsync(@"using System; namespace Roslyn.Compilers.Internal { }");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Classification)]
-        public void NestedTypeCantHaveSameNameAsParentType()
+        [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
+        public async Task NestedTypeCantHaveSameNameAsParentType()
         {
-            Test(@"class Program
+            await TestAsync(@"class Program
 {
     class Program { }
     static void Main(Program p) { }
@@ -976,8 +977,8 @@ class ObsoleteAttribute : Attribute { }",
                 Class("Program"));
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Classification)]
-        public void NestedTypeCantHaveSameNameAsParentTypeWithGlobalNamespaceAlias()
+        [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
+        public async Task NestedTypeCantHaveSameNameAsParentTypeWithGlobalNamespaceAlias()
         {
             var code = @"class Program
 {
@@ -986,15 +987,15 @@ class ObsoleteAttribute : Attribute { }",
     global::Program.Program p;
 }";
 
-            Test(code,
+            await TestAsync(code,
                 code,
                 Class("Program"),
                 Class("Program"),
                 Class("Program"));
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Classification)]
-        public void InteractiveNestedTypeCantHaveSameNameAsParentTypeWithGlobalNamespaceAlias()
+        [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
+        public async Task InteractiveNestedTypeCantHaveSameNameAsParentTypeWithGlobalNamespaceAlias()
         {
             var code = @"class Program
 {
@@ -1003,7 +1004,7 @@ class ObsoleteAttribute : Attribute { }",
     global::Script.Program.Program p;
 }";
 
-            Test(code,
+            await TestAsync(code,
                 code,
                 Options.Script,
                 Class("Program"),
@@ -1012,17 +1013,17 @@ class ObsoleteAttribute : Attribute { }",
                 Class("Program"));
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Classification)]
-        public void EnumFieldWithSameNameShouldBePreferredToType()
+        [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
+        public async Task EnumFieldWithSameNameShouldBePreferredToType()
         {
-            Test(@"enum E { E, F = E }");
+            await TestAsync(@"enum E { E, F = E }");
         }
 
-        [WorkItem(541150)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Classification)]
-        public void TestGenericVarClassification()
+        [WorkItem(541150, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541150")]
+        [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
+        public async Task TestGenericVarClassification()
         {
-            Test(@"using System;
+            await TestAsync(@"using System;
  
 static class Program
 {
@@ -1036,11 +1037,11 @@ class var<T> { }
 ", Keyword("var"));
         }
 
-        [WorkItem(541154)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Classification)]
-        public void TestInaccessibleVarClassification()
+        [WorkItem(541154, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541154")]
+        [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
+        public async Task TestInaccessibleVarClassification()
         {
-            Test(@"using System;
+            await TestAsync(@"using System;
  
 class A
 {
@@ -1059,11 +1060,11 @@ class B : A
                 Keyword("var"));
         }
 
-        [WorkItem(541154)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Classification)]
-        public void TestVarNamedTypeClassification()
+        [WorkItem(541154, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541154")]
+        [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
+        public async Task TestVarNamedTypeClassification()
         {
-            Test(@"
+            await TestAsync(@"
 class var
 {
     static void Main()
@@ -1075,10 +1076,10 @@ class var
         }
 
         [WorkItem(9513, "DevDiv_Projects/Roslyn")]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Classification)]
-        public void RegressionFor9513()
+        [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
+        public async Task RegressionFor9513()
         {
-            Test(@"enum E { A, B }
+            await TestAsync(@"enum E { A, B }
 class C
 {
     void M()
@@ -1103,11 +1104,11 @@ class C
                 Enum("E"));
         }
 
-        [WorkItem(542368)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Classification)]
-        public void RegressionFor9572()
+        [WorkItem(542368, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542368")]
+        [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
+        public async Task RegressionFor9572()
         {
-            Test(@"
+            await TestAsync(@"
 class A<T,S> where T : A<T,S>.I, A<T,T>.I
 {
     public interface I { }
@@ -1124,11 +1125,11 @@ class A<T,S> where T : A<T,S>.I, A<T,T>.I
                 Interface("I"));
         }
 
-        [WorkItem(542368)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Classification)]
-        public void RegressionFor9831()
+        [WorkItem(542368, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542368")]
+        [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
+        public async Task RegressionFor9831()
         {
-            Test(@"F : A",
+            await TestAsync(@"F : A",
                 @"
 public class B<T>
 {
@@ -1147,11 +1148,11 @@ public class X : B<X>
                 Class("A"));
         }
 
-        [WorkItem(542432)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Classification)]
-        public void TestVar()
+        [WorkItem(542432, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542432")]
+        [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
+        public async Task TestVar()
         {
-            Test(@"class Program
+            await TestAsync(@"class Program
 {
     class var<T> { }
     static var<int> GetVarT() { return null; }
@@ -1167,11 +1168,11 @@ public class X : B<X>
                 Class("var"));
         }
 
-        [WorkItem(543123)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Classification)]
-        public void TestVar2()
+        [WorkItem(543123, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543123")]
+        [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
+        public async Task TestVar2()
         {
-            Test(@"class Program
+            await TestAsync(@"class Program
 {
     void Main(string[] args)
     {
@@ -1182,11 +1183,11 @@ public class X : B<X>
                 Keyword("var"));
         }
 
-        [WorkItem(542778)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Classification)]
-        public void TestDuplicateTypeParamWithConstraint()
+        [WorkItem(542778, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542778")]
+        [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
+        public async Task TestDuplicateTypeParamWithConstraint()
         {
-            Test(@"where U : IEnumerable<S>", @"
+            await TestAsync(@"where U : IEnumerable<S>", @"
 using System.Collections.Generic;
 
 class C<T>
@@ -1200,54 +1201,54 @@ class C<T>
                 Interface("IEnumerable"));
         }
 
-        [WorkItem(542685)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Classification)]
-        public void OptimisticallyColorFromInDeclaration()
+        [WorkItem(542685, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542685")]
+        [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
+        public async Task OptimisticallyColorFromInDeclaration()
         {
-            TestInExpression("from ",
+            await TestInExpressionAsync("from ",
                 Keyword("from"));
         }
 
-        [WorkItem(542685)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Classification)]
-        public void OptimisticallyColorFromInAssignment()
+        [WorkItem(542685, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542685")]
+        [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
+        public async Task OptimisticallyColorFromInAssignment()
         {
-            TestInMethod(@"var q = 3; q = from",
+            await TestInMethodAsync(@"var q = 3; q = from",
                 Keyword("var"),
                 Keyword("from"));
         }
 
-        [WorkItem(542685)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Classification)]
-        public void DontColorThingsOtherThanFromInDeclaration()
+        [WorkItem(542685, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542685")]
+        [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
+        public async Task DontColorThingsOtherThanFromInDeclaration()
         {
-            TestInExpression("fro ");
+            await TestInExpressionAsync("fro ");
         }
 
-        [WorkItem(542685)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Classification)]
-        public void DontColorThingsOtherThanFromInAssignment()
+        [WorkItem(542685, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542685")]
+        [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
+        public async Task DontColorThingsOtherThanFromInAssignment()
         {
-            TestInMethod("var q = 3; q = fro ",
+            await TestInMethodAsync("var q = 3; q = fro ",
                 Keyword("var"));
         }
 
-        [WorkItem(542685)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Classification)]
-        public void DontColorFromWhenBoundInDeclaration()
+        [WorkItem(542685, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542685")]
+        [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
+        public async Task DontColorFromWhenBoundInDeclaration()
         {
-            TestInMethod(@"
+            await TestInMethodAsync(@"
 var from = 3;
 var q = from ",
                 Keyword("var"),
                 Keyword("var"));
         }
 
-        [WorkItem(542685)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Classification)]
-        public void DontColorFromWhenBoundInAssignment()
+        [WorkItem(542685, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542685")]
+        [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
+        public async Task DontColorFromWhenBoundInAssignment()
         {
-            TestInMethod(@"
+            await TestInMethodAsync(@"
 var q = 3;
 var from = 3;
 q = from ",
@@ -1255,11 +1256,11 @@ q = from ",
                 Keyword("var"));
         }
 
-        [WorkItem(543404)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Classification)]
-        public void NewOfClassWithOnlyPrivateConstructor()
+        [WorkItem(543404, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543404")]
+        [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
+        public async Task NewOfClassWithOnlyPrivateConstructor()
         {
-            Test(@"class X
+            await TestAsync(@"class X
 {
     private X() { }
 }
@@ -1274,11 +1275,11 @@ class Program
                 Class("X"));
         }
 
-        [WorkItem(544179)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Classification)]
-        public void TestNullableVersusConditionalAmbiguity1()
+        [WorkItem(544179, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544179")]
+        [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
+        public async Task TestNullableVersusConditionalAmbiguity1()
         {
-            Test(@"class Program
+            await TestAsync(@"class Program
 {
     static void Main(string[] args)
     {
@@ -1293,11 +1294,11 @@ public class C1
                 Class("C1"));
         }
 
-        [WorkItem(544179)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Classification)]
-        public void TestPointerVersusMultiplyAmbiguity1()
+        [WorkItem(544179, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544179")]
+        [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
+        public async Task TestPointerVersusMultiplyAmbiguity1()
         {
-            Test(@"class Program
+            await TestAsync(@"class Program
 {
     static void Main(string[] args)
     {
@@ -1312,11 +1313,11 @@ public class C1
                 Class("C1"));
         }
 
-        [WorkItem(544302)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Classification)]
-        public void EnumTypeAssignedToNamedPropertyOfSameNameInAttributeCtor()
+        [WorkItem(544302, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544302")]
+        [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
+        public async Task EnumTypeAssignedToNamedPropertyOfSameNameInAttributeCtor()
         {
-            Test(@"
+            await TestAsync(@"
 using System;
 using System.Runtime.InteropServices;
 
@@ -1330,11 +1331,11 @@ class C
                 Enum("CallingConvention"));
         }
 
-        [WorkItem(531119)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Classification)]
-        public void OnlyClassifyGenericNameOnce()
+        [WorkItem(531119, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/531119")]
+        [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
+        public async Task OnlyClassifyGenericNameOnce()
         {
-            Test(@"
+            await TestAsync(@"
 enum Type { }
 struct Type<T>
 {
@@ -1344,10 +1345,10 @@ struct Type<T>
                 Struct("Type"));
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Classification)]
-        public void NameOf1()
+        [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
+        public async Task NameOf1()
         {
-            Test(@"
+            await TestAsync(@"
 class C
 {
     void foo()
@@ -1360,10 +1361,10 @@ class C
                 Keyword("nameof"));
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Classification)]
-        public void NameOf2()
+        [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
+        public async Task NameOf2()
         {
-            Test(@"
+            await TestAsync(@"
 class C
 {
     void foo()
@@ -1377,10 +1378,10 @@ class C
                 Class("C"));
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Classification)]
-        public void MethodCalledNameOfInScope()
+        [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
+        public async Task MethodCalledNameOfInScope()
         {
-            Test(@"
+            await TestAsync(@"
 class C
 {
     void nameof(int i){ }
@@ -1396,38 +1397,41 @@ class C
                 Keyword("var"));
         }
 
-        [WorkItem(744813)]
+        [WorkItem(744813, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/744813")]
         [WpfFact, Trait(Traits.Feature, Traits.Features.Classification)]
         public async Task TestCreateWithBufferNotInWorkspace()
         {
             // don't crash
-            using (var workspace = CSharpWorkspaceFactory.CreateWorkspaceFromFile(""))
+            using (var workspace = await TestWorkspace.CreateCSharpAsync(""))
             {
                 var document = workspace.CurrentSolution.GetDocument(workspace.Documents.First().Id);
 
                 var contentTypeService = document.GetLanguageService<IContentTypeLanguageService>();
                 var contentType = contentTypeService.GetDefaultContentType();
                 var extraBuffer = workspace.ExportProvider.GetExportedValue<ITextBufferFactoryService>().CreateTextBuffer("", contentType);
-                var textView = workspace.ExportProvider.GetExportedValue<ITextEditorFactoryService>().CreateTextView(extraBuffer);
 
-                var waiter = new Waiter();
-                var provider = new SemanticClassificationViewTaggerProvider(
-                    workspace.ExportProvider.GetExportedValue<IForegroundNotificationService>(),
-                    workspace.ExportProvider.GetExportedValue<ISemanticChangeNotificationService>(),
-                    workspace.ExportProvider.GetExportedValue<ClassificationTypeMap>(),
-                    SpecializedCollections.SingletonEnumerable(
-                        new Lazy<IAsynchronousOperationListener, FeatureMetadata>(
-                        () => waiter, new FeatureMetadata(new Dictionary<string, object>() { { "FeatureName", FeatureAttribute.Classification } }))));
-
-                using (var tagger = (IDisposable)provider.CreateTagger<IClassificationTag>(textView, extraBuffer))
+                WpfTestCase.RequireWpfFact("Creates an IWpfTextView explicitly with an unrelated buffer");
+                using (var disposableView = workspace.ExportProvider.GetExportedValue<ITextEditorFactoryService>().CreateDisposableTextView(extraBuffer))
                 {
-                    using (var edit = extraBuffer.CreateEdit())
-                    {
-                        edit.Insert(0, "class A { }");
-                        edit.Apply();
-                    }
+                    var waiter = new Waiter();
+                    var provider = new SemanticClassificationViewTaggerProvider(
+                        workspace.ExportProvider.GetExportedValue<IForegroundNotificationService>(),
+                        workspace.ExportProvider.GetExportedValue<ISemanticChangeNotificationService>(),
+                        workspace.ExportProvider.GetExportedValue<ClassificationTypeMap>(),
+                        SpecializedCollections.SingletonEnumerable(
+                            new Lazy<IAsynchronousOperationListener, FeatureMetadata>(
+                            () => waiter, new FeatureMetadata(new Dictionary<string, object>() { { "FeatureName", FeatureAttribute.Classification } }))));
 
-                    await waiter.CreateWaitTask().ConfigureAwait(true);
+                    using (var tagger = (IDisposable)provider.CreateTagger<IClassificationTag>(disposableView.TextView, extraBuffer))
+                    {
+                        using (var edit = extraBuffer.CreateEdit())
+                        {
+                            edit.Insert(0, "class A { }");
+                            edit.Apply();
+                        }
+
+                        await waiter.CreateWaitTask();
+                    }
                 }
             }
         }
@@ -1436,7 +1440,7 @@ class C
         public async Task TestGetTagsOnBufferTagger()
         {
             // don't crash
-            using (var workspace = CSharpWorkspaceFactory.CreateWorkspaceFromFile("class C { C c; }"))
+            using (var workspace = await TestWorkspace.CreateCSharpAsync("class C { C c; }"))
             {
                 var document = workspace.Documents.First();
 
@@ -1452,7 +1456,7 @@ class C
                 var tagger = provider.CreateTagger<IClassificationTag>(document.TextBuffer);
                 using (var disposable = (IDisposable)tagger)
                 {
-                    await waiter.CreateWaitTask().ConfigureAwait(true);
+                    await waiter.CreateWaitTask();
 
                     var tags = tagger.GetTags(document.TextBuffer.CurrentSnapshot.GetSnapshotSpanCollection());
                     var allTags = tagger.GetAllTags(document.TextBuffer.CurrentSnapshot.GetSnapshotSpanCollection(), CancellationToken.None);

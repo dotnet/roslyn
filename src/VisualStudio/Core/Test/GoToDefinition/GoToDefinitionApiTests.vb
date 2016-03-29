@@ -2,9 +2,9 @@
 
 Imports System.Threading
 Imports Microsoft.CodeAnalysis
+Imports Microsoft.CodeAnalysis.Editor
 Imports Microsoft.CodeAnalysis.Editor.Host
 Imports Microsoft.CodeAnalysis.Editor.Implementation.GoToDefinition
-Imports Microsoft.CodeAnalysis.Editor.UnitTests.GoToDefinition
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Utilities.GoToHelpers
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
 Imports Roslyn.Test.Utilities
@@ -12,15 +12,15 @@ Imports Roslyn.Test.Utilities
 Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.GoToDefinition
     Public Class GoToDefinitionApiTests
 
-        Private Sub Test(workspaceDefinition As XElement, expectSuccess As Boolean)
-            Using workspace = TestWorkspaceFactory.CreateWorkspace(workspaceDefinition, exportProvider:=GoToTestHelpers.ExportProvider)
+        Private Async Function TestAsync(workspaceDefinition As XElement, expectSuccess As Boolean) As Tasks.Task
+            Using workspace = Await TestWorkspace.CreateAsync(workspaceDefinition, exportProvider:=GoToTestHelpers.ExportProvider)
                 Dim solution = workspace.CurrentSolution
                 Dim cursorDocument = workspace.Documents.First(Function(d) d.CursorPosition.HasValue)
                 Dim cursorPosition = cursorDocument.CursorPosition.Value
 
                 Dim document = solution.GetDocument(cursorDocument.Id)
-                Dim root = document.GetSyntaxRootAsync(CancellationToken.None).Result
-                Dim semanticModel = document.GetSemanticModelAsync(CancellationToken.None).Result
+                Dim root = Await document.GetSyntaxRootAsync()
+                Dim semanticModel = Await document.GetSemanticModelAsync()
                 Dim symbol = root.FindToken(cursorPosition).Parent _
                     .AncestorsAndSelf() _
                     .Select(Function(n) semanticModel.GetDeclaredSymbol(n, CancellationToken.None)) _
@@ -30,26 +30,27 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.GoToDefinition
 
                 Dim symbolId = symbol.GetSymbolKey()
                 Dim project = document.Project
-                Dim compilation = project.GetCompilationAsync(CancellationToken.None).Result
+                Dim compilation = Await project.GetCompilationAsync()
                 Dim symbolInfo = symbolId.Resolve(compilation)
 
                 Assert.NotNull(symbolInfo.Symbol)
 
                 Dim presenter = New MockNavigableItemsPresenter(Sub() Exit Sub)
 
+                WpfTestCase.RequireWpfFact($"{NameOf(GoToDefinitionHelpers)}.{NameOf(GoToDefinitionHelpers.TryGoToDefinition)} assumes it's on the UI thread with a WaitAndGetResult call")
                 Dim success = GoToDefinitionHelpers.TryGoToDefinition(
-                    symbolInfo.Symbol, document.Project, {New Lazy(Of INavigableItemsPresenter)(Function() presenter)}, thirdPartyNavigationAllowed:=True, throwOnHiddenDefinition:=False, cancellationToken:=CancellationToken.None)
+                    symbolInfo.Symbol, document.Project, {}, {New Lazy(Of INavigableItemsPresenter)(Function() presenter)}, thirdPartyNavigationAllowed:=True, throwOnHiddenDefinition:=False, cancellationToken:=CancellationToken.None)
 
                 Assert.Equal(expectSuccess, success)
             End Using
-        End Sub
+        End Function
 
-        Private Sub TestSuccess(workspaceDefinition As XElement)
-            Test(workspaceDefinition, True)
-        End Sub
+        Private Function TestSuccessAsync(workspaceDefinition As XElement) As Tasks.Task
+            Return TestAsync(workspaceDefinition, True)
+        End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.GoToDefinition)>
-        Public Sub TestVBOperator()
+        Public Async Function TestVBOperator() As Tasks.Task
             Dim workspaceDefinition =
 <Workspace>
 
@@ -82,8 +83,7 @@ End Structure
     </Project>
 </Workspace>
 
-            TestSuccess(workspaceDefinition)
-        End Sub
-
+            Await TestSuccessAsync(workspaceDefinition)
+        End Function
     End Class
 End Namespace

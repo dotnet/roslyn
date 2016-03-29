@@ -30,7 +30,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
 
                     return true;
                 }
-                
+
                 return ch == ' ' || ch == '(' || ch == '[';
             }
 

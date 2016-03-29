@@ -21,6 +21,12 @@ x64/
 # NuGet restore semaphore
 build/ToolsetPackages/toolsetpackages.semaphore
 
+# Toolset project lock json
+build/MSBuildToolset/project.lock.json
+
+# NuGet package
+src/Tools/UploadNugetZip/*.zip
+
 # MSTest test Results
 [Tt]est[Rr]esult*/
 [Bb]uild[Ll]og.*
@@ -65,6 +71,7 @@ ipch/
 *.opensdf
 *.sdf
 *.cachefile
+*.VC.opendb
 
 # Visual Studio profiler
 *.psess

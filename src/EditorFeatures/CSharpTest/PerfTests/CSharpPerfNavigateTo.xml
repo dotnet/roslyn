@@ -6,7 +6,8 @@
 
   <TaoTest xmlns="http://microsoft.com/schemas/VSLanguages/TAO">
   <InitTest>
-    <StartTarget />
+    <EnsureCodeMarker />
+    <StartTarget DontResetOptions="true" />
     <OpenProject ProjectFile="C:\Roslyn\LegacyTest\TypeResponsivenessTest\tests\cs\Solution\Picasso\Picasso.sln" DeleteSuoFileBeforeOpening="true" DeleteIDECacheBeforeOpening="true"/>
     <WaitForSolutionCrawler/>
   </InitTest>

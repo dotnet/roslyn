@@ -5,7 +5,7 @@ using Microsoft.CodeAnalysis.Host;
 
 namespace Microsoft.CodeAnalysis.Editor
 {
-    interface IGoToImplementationService : ILanguageService
+    internal interface IGoToImplementationService : ILanguageService
     {
         /// <summary>
         /// Finds the implementations for the symbol at the specific position in the document and then 

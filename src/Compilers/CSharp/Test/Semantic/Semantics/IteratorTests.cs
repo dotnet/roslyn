@@ -93,7 +93,7 @@ class Test
                 );
         }
 
-        [WorkItem(546081, "DevDiv")]
+        [WorkItem(546081, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546081")]
         [Fact]
         public void IteratorBlockWithUnreachableCode()
         {
@@ -134,7 +134,7 @@ class Test
             Assert.True(emitResult.Success);
         }
 
-        [WorkItem(546364, "DevDiv")]
+        [WorkItem(546364, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546364")]
         [Fact]
         public void IteratorWithEnumeratorMoveNext()
         {
@@ -166,7 +166,7 @@ public class Program
             CompileAndVerify(text).VerifyDiagnostics();
         }
 
-        [WorkItem(813557, "DevDiv")]
+        [WorkItem(813557, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/813557")]
         [Fact]
         public void IteratorWithDelegateCreationExpression()
         {
@@ -191,7 +191,7 @@ public class Program
             CompileAndVerify(text).VerifyDiagnostics();
         }
 
-        [WorkItem(888254, "DevDiv")]
+        [WorkItem(888254, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/888254")]
         [Fact]
         public void IteratorWithTryCatch()
         {
@@ -231,7 +231,7 @@ namespace RoslynYield
             CompileAndVerify(text).VerifyDiagnostics();
         }
 
-        [WorkItem(888254, "DevDiv")]
+        [WorkItem(888254, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/888254")]
         [Fact]
         public void IteratorWithTryCatchFinally()
         {
@@ -310,13 +310,13 @@ namespace RoslynYield
                 // yield return int.
                 Diagnostic(ErrorCode.ERR_YieldNotAllowedInScript, "yield").WithLocation(1, 1));
 
-            var tree = comp.SyntaxTrees[0];     
+            var tree = comp.SyntaxTrees[0];
             var yieldNode = (YieldStatementSyntax)tree.GetRoot().DescendantNodes().Where(n => n is YieldStatementSyntax).SingleOrDefault();
 
             Assert.NotNull(yieldNode);
             Assert.Equal(SyntaxKind.YieldReturnStatement, yieldNode.Kind());
 
-            var model = comp.GetSemanticModel(tree);          
+            var model = comp.GetSemanticModel(tree);
             var typeInfo = model.GetTypeInfo(yieldNode.Expression);
 
             Assert.Equal(TypeKind.Error, typeInfo.Type.TypeKind);

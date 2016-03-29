@@ -1,15 +1,7 @@
 ﻿{
-  "supports": {
-    "net46.app": {},
-    "dnxcore50.app": {}
-  },
-  "dependencies": {
-    "Microsoft.CSharp": "4.0.0",
-    "System.Dynamic.Runtime": "4.0.10",
-    "xunit.runner.console": "2.1.0"
-  },
+  "dependencies": { },
   "frameworks": {
-    "dotnet": {
+    "dotnet5.4": {
       "imports": "portable-net452"
     }
   }

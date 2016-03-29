@@ -2,10 +2,16 @@
 
 Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Rename.CSharp
     Public Class InteractiveTests
-        <WpfFact>
+        Private ReadOnly _outputHelper As Abstractions.ITestOutputHelper
+
+        Public Sub New(outputHelper As Abstractions.ITestOutputHelper)
+            _outputHelper = outputHelper
+        End Sub
+
+        <Fact>
         <Trait(Traits.Feature, Traits.Features.Rename)>
         Public Sub RenamingTopLevelMethodsSupported()
-            Using result = RenameEngineResult.Create(
+            Using result = RenameEngineResult.Create(_outputHelper,
                 <Workspace>
                     <Submission Language="C#" CommonReferences="true">
 void [|$$Foo|]()

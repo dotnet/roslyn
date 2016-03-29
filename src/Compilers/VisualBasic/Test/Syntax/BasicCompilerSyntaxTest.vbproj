@@ -18,11 +18,6 @@
     <SyntaxTestDefinition Include="..\..\Portable\Syntax\Syntax.xml" />
   </ItemGroup>
   <ItemGroup Label="Project References">
-    <ProjectReference Include="..\..\..\..\Tools\Source\CompilerGeneratorTools\Source\VisualBasicSyntaxGenerator\VisualBasicSyntaxGenerator.vbproj">
-      <Project>{6AA96934-D6B7-4CC8-990D-DB6B9DD56E34}</Project>
-      <Name>VisualBasicSyntaxGenerator</Name>
-      <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
-    </ProjectReference>
     <ProjectReference Include="..\..\..\..\Test\Utilities\Desktop\TestUtilities.Desktop.csproj">
       <Project>{76C6F005-C89D-4348-BB4A-391898DBEB52}</Project>
       <Name>TestUtilities.Desktop</Name>
@@ -61,24 +56,20 @@
     <DebugSymbols>true</DebugSymbols>
     <DefineDebug>true</DefineDebug>
     <DefineTrace>true</DefineTrace>
-    <DebugType>full</DebugType>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Release|AnyCPU'">
     <DefineTrace>true</DefineTrace>
     <Optimize>true</Optimize>
-    <DebugType>pdbonly</DebugType>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug|ARM'">
     <DebugSymbols>true</DebugSymbols>
     <DefineDebug>true</DefineDebug>
     <DefineTrace>true</DefineTrace>
-    <DebugType>full</DebugType>
     <PlatformTarget>ARM</PlatformTarget>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Release|ARM'">
     <DefineTrace>true</DefineTrace>
     <Optimize>true</Optimize>
-    <DebugType>pdbonly</DebugType>
     <PlatformTarget>ARM</PlatformTarget>
   </PropertyGroup>
   <PropertyGroup>
@@ -96,7 +87,7 @@
     <Compile Include="IncrementalParser\SyntaxDifferences.vb" />
     <Compile Include="LocationTests.vb" />
     <Compile Include="Parser\DeclarationTests.vb" />
-    <Compile Include="Parser\FuzzTesting.vb" />
+    <Compile Include="Parser\ParserRegressionTests.vb" />
     <Compile Include="Parser\InterpolatedStringParsingTests.vb" />
     <Compile Include="Parser\ParseAsyncTests.vb" />
     <Compile Include="Parser\ParseAttributes.vb" />
@@ -139,13 +130,13 @@
     <Compile Include="Syntax\SyntaxNormalizerTests.vb" />
     <Compile Include="Syntax\SyntaxListTests.vb" />
     <Compile Include="Syntax\SyntaxRewriterTests.vb" />
+    <Compile Include="Syntax\SyntaxSubmissionsTests.vb" />
     <Compile Include="Syntax\SyntaxTokenFactoryTests.vb" />
     <Compile Include="Syntax\SyntaxTokenListTests.vb" />
     <Compile Include="Syntax\SyntaxTreeTests.vb" />
     <Compile Include="Syntax\SyntaxTriviaListTests.vb" />
     <Compile Include="TestSyntaxNodes.vb" />
     <Content Include="Syntax\VBAllInOne.txt" />
-    <None Include="app.config" />
     <None Include="project.json" />
     <None Include="Resources\VBAllInOne.vb" />
   </ItemGroup>

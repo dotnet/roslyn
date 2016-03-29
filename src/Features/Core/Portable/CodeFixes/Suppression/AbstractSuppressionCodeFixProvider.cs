@@ -39,10 +39,10 @@ namespace Microsoft.CodeAnalysis.CodeFixes.Suppression
             return SuppressionHelpers.CanBeSuppressed(diagnostic) || SuppressionHelpers.CanBeUnsuppressed(diagnostic);
         }
 
-        protected abstract SyntaxTriviaList CreatePragmaDisableDirectiveTrivia(Diagnostic diagnostic, Func<SyntaxNode, SyntaxNode> formatNode, bool needsLeadingEndOfLine, bool needsTrailingEndOfLine);
-        protected abstract SyntaxTriviaList CreatePragmaRestoreDirectiveTrivia(Diagnostic diagnostic, Func<SyntaxNode, SyntaxNode> formatNode, bool needsLeadingEndOfLine, bool needsTrailingEndOfLine);
+        protected abstract Task<SyntaxTriviaList> CreatePragmaDisableDirectiveTriviaAsync(Diagnostic diagnostic, Func<SyntaxNode, Task<SyntaxNode>> formatNode, bool needsLeadingEndOfLine, bool needsTrailingEndOfLine);
+        protected abstract Task<SyntaxTriviaList> CreatePragmaRestoreDirectiveTriviaAsync(Diagnostic diagnostic, Func<SyntaxNode, Task<SyntaxNode>> formatNode, bool needsLeadingEndOfLine, bool needsTrailingEndOfLine);
 
-        protected abstract SyntaxNode AddGlobalSuppressMessageAttribute(SyntaxNode newRoot, ISymbol targetSymbol, Diagnostic diagnostic, Workspace workspace, CancellationToken cancellationToken);
+        protected abstract Task<SyntaxNode> AddGlobalSuppressMessageAttributeAsync(SyntaxNode newRoot, ISymbol targetSymbol, Diagnostic diagnostic, Workspace workspace, CancellationToken cancellationToken);
 
         protected abstract string DefaultFileExtension { get; }
         protected abstract string SingleLineCommentStart { get; }

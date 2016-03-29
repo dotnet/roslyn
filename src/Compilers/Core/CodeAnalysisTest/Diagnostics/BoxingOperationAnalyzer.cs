@@ -1,4 +1,4 @@
-﻿// Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Collections.Immutable;
 using System.Linq;
@@ -12,15 +12,15 @@ namespace Microsoft.CodeAnalysis.UnitTests.Diagnostics
     {
         /// <summary>Diagnostic category "Performance".</summary>
         private const string PerformanceCategory = "Performance";
-        
-        private readonly static LocalizableString localizableTitle = "Boxing";
-        private readonly static LocalizableString localizableMessage = "Boxing is expensive";
-        
+
+        private readonly static LocalizableString s_localizableTitle = "Boxing";
+        private readonly static LocalizableString s_localizableMessage = "Boxing is expensive";
+
         /// <summary>The diagnostic descriptor used when boxing is detected.</summary>
         public static readonly DiagnosticDescriptor BoxingDescriptor = new DiagnosticDescriptor(
             "BoxingRule",
-            localizableTitle,
-            localizableMessage,
+            s_localizableTitle,
+            s_localizableMessage,
             PerformanceCategory,
             DiagnosticSeverity.Warning,
             isEnabledByDefault: true);
@@ -41,9 +41,9 @@ namespace Microsoft.CodeAnalysis.UnitTests.Diagnostics
                      if (operation.Kind == OperationKind.ConversionExpression)
                      {
                          IConversionExpression conversion = (IConversionExpression)operation;
-                         if (conversion.ResultType.IsReferenceType &&
-                             conversion.Operand.ResultType != null &&
-                             conversion.Operand.ResultType.IsValueType &&
+                         if (conversion.Type.IsReferenceType &&
+                             conversion.Operand.Type != null &&
+                             conversion.Operand.Type.IsValueType &&
                              !conversion.UsesOperatorMethod)
                          {
                              Report(operationContext, conversion.Syntax);
@@ -56,7 +56,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Diagnostics
                          IInvocationExpression invocation = (IInvocationExpression)operation;
 
                          if (invocation.Instance != null &&
-                             invocation.Instance.ResultType.IsValueType &&
+                             invocation.Instance.Type.IsValueType &&
                              invocation.TargetMethod.ContainingType.IsReferenceType)
                          {
                              Report(operationContext, invocation.Instance.Syntax);

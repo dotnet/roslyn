@@ -1,6 +1,7 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Collections.Generic;
+using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CSharp.CodeRefactorings.GenerateFromMembers.GenerateConstructor;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Simplification;
@@ -16,161 +17,168 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeRefactorings.Genera
             return new GenerateConstructorCodeRefactoringProvider();
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructor)]
-        public void TestSingleField()
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructor)]
+        public async Task TestSingleField()
         {
-            Test(
+            await TestAsync(
 @"using System . Collections . Generic ; class Z { [|int a ;|] } ",
 @"using System . Collections . Generic ; class Z { int a ; public Z ( int a ) { this . a = a ; } } ",
 index: 0);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructor)]
-        public void TestMultipleFields()
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructor)]
+        public async Task TestMultipleFields()
         {
-            Test(
+            await TestAsync(
 @"using System . Collections . Generic ; class Z { [|int a ; string b ;|] } ",
 @"using System . Collections . Generic ; class Z { int a ; string b ; public Z ( int a , string b ) { this . a = a ; this . b = b ; } } ",
 index: 0);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructor)]
-        public void TestSecondField()
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructor)]
+        public async Task TestSecondField()
         {
-            Test(
+            await TestAsync(
 @"using System . Collections . Generic ; class Z { int a ; [|string b ;|] public Z ( int a ) { this . a = a ; } } ",
 @"using System . Collections . Generic ; class Z { int a ; string b ; public Z ( string b ) { this . b = b ; } public Z ( int a ) { this . a = a ; } } ",
 index: 0);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructor)]
-        public void TestFieldAssigningConstructor()
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructor)]
+        public async Task TestFieldAssigningConstructor()
         {
-            Test(
+            await TestAsync(
 @"using System . Collections . Generic ; class Z { [|int a ; string b ;|] public Z ( int a ) { this . a = a ; } } ",
 @"using System . Collections . Generic ; class Z { int a ; string b ; public Z ( int a ) { this . a = a ; } public Z ( int a , string b ) { this . a = a ; this . b = b ; } } ",
 index: 0);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructor)]
-        public void TestFieldAssigningConstructor2()
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructor)]
+        public async Task TestFieldAssigningConstructor2()
         {
-            Test(
+            await TestAsync(
 @"using System . Collections . Generic ; class Z { [|int a ; string b ;|] public Z ( int a ) { this . a = a ; } } ",
 @"using System . Collections . Generic ; class Z { int a ; string b ; public Z ( int a ) { this . a = a ; } public Z ( int a , string b ) { this . a = a ; this . b = b ; } } ",
 index: 0);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructor)]
-        public void TestDelegatingConstructor()
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructor)]
+        public async Task TestDelegatingConstructor()
         {
-            Test(
+            await TestAsync(
 @"using System . Collections . Generic ; class Z { [|int a ; string b ;|] public Z ( int a ) { this . a = a ; } } ",
 @"using System . Collections . Generic ; class Z { int a ; string b ; public Z ( int a ) { this . a = a ; } public Z ( int a , string b ) : this ( a ) { this . b = b ; } } ",
 index: 1);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructor)]
-        public void TestMissingWithExistingConstructor()
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructor)]
+        public async Task TestMissingWithExistingConstructor()
         {
-            TestMissing(
+            await TestMissingAsync(
 @"using System . Collections . Generic ; class Z { [|int a ; string b ;|] public Z ( int a ) { this . a = a ; } public Z ( int a , string b ) { this . a = a ; this . b = b ; } } ");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructor)]
-        public void TestMultipleProperties()
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructor)]
+        public async Task TestMultipleProperties()
         {
-            Test(
+            await TestAsync(
 @"class Z { [|public int A { get ; private set ; } public string B { get ; private set ; }|] } ",
 @"class Z { public Z ( int a , string b ) {  A = a ;  B = b ; } public int A { get ; private set ; } public string B { get ; private set ; } } ",
 index: 0);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructor)]
-        public void TestMultiplePropertiesWithQualification()
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructor)]
+        public async Task TestMultiplePropertiesWithQualification()
         {
-            Test(
+            await TestAsync(
 @"class Z { [|public int A { get ; private set ; } public string B { get ; private set ; }|] } ",
 @"class Z { public Z ( int a , string b ) { this . A = a ; this . B = b ; } public int A { get ; private set ; } public string B { get ; private set ; } } ",
-index: 0, options: new Dictionary<OptionKey, object> { { new OptionKey(SimplificationOptions.QualifyMemberAccessWithThisOrMe, "C#"), true } });
+index: 0, options: Option(SimplificationOptions.QualifyPropertyAccess, true));
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructor)]
-        public void TestStruct()
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructor)]
+        public async Task TestStruct()
         {
-            Test(
+            await TestAsync(
 @"using System . Collections . Generic ; struct S { [|int i ;|] } ",
 @"using System . Collections . Generic ; struct S { int i ; public S ( int i ) { this . i = i ; } } ",
 index: 0);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructor)]
-        public void TestStruct1()
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructor)]
+        public async Task TestStruct1()
         {
-            Test(
+            await TestAsync(
 @"using System . Collections . Generic ; struct S { [|int i { get; set; }|] } ",
 @"using System . Collections . Generic ; struct S { public S ( int i ) : this() { this . i = i ; } int i { get; set; } } ",
 index: 0);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructor)]
-        public void TestStruct2()
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructor)]
+        public async Task TestStruct2()
         {
-            Test(
+            await TestAsync(
 @"using System . Collections . Generic ; struct S { int i { get; set; } [|int y;|] } ",
 @"using System . Collections . Generic ; struct S { int i { get; set; } int y; public S ( int y ) : this() { this . y = y ; } } ",
 index: 0);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructor)]
-        public void TestStruct3()
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructor)]
+        public async Task TestStruct3()
         {
-            Test(
+            await TestAsync(
 @"using System . Collections . Generic ; struct S { [|int i { get; set; }|] int y; } ",
 @"using System . Collections . Generic ; struct S { int i { get; set; } int y; public S ( int i ) : this() { this . i = i ; } } ",
 index: 0);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructor)]
-        public void TestGenericType()
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructor)]
+        public async Task TestGenericType()
         {
-            Test(
+            await TestAsync(
 @"using System . Collections . Generic ; class Program < T > { [|int i ;|] } ",
 @"using System . Collections . Generic ; class Program < T > { int i ; public Program ( int i ) { this . i = i ; } } ",
 index: 0);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructor)]
-        public void TestSmartTagText1()
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructor)]
+        public async Task TestSmartTagText1()
         {
-            TestSmartTagText(
+            await TestSmartTagTextAsync(
 @"using System.Collections.Generic; class Program { [|bool b; HashSet<string> s;|] }",
 string.Format(FeaturesResources.GenerateConstructor, "Program", "bool, HashSet<string>"));
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructor)]
-        public void TestSmartTagText2()
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructor)]
+        public async Task TestSmartTagText2()
         {
-            TestSmartTagText(
+            await TestSmartTagTextAsync(
 @"using System . Collections . Generic ; class Program { [|bool b ; HashSet < string > s ;|] public Program ( bool b ) { this . b = b ; } } ",
 string.Format(FeaturesResources.GenerateFieldAssigningConstructor, "Program", "bool, HashSet<string>"));
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructor)]
-        public void TestSmartTagText3()
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructor)]
+        public async Task TestSmartTagText3()
         {
-            TestSmartTagText(
+            await TestSmartTagTextAsync(
 @"using System . Collections . Generic ; class Program { [|bool b ; HashSet < string > s ;|] public Program ( bool b ) { this . b = b ; } } ",
 string.Format(FeaturesResources.GenerateDelegatingConstructor, "Program", "bool, HashSet<string>"),
 index: 1);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructor)]
-        public void TestContextualKeywordName()
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructor)]
+        public async Task TestContextualKeywordName()
         {
-            Test(
+            await TestAsync(
 @"class Program { [|int yield ;|] } ",
 @"class Program { int yield ; public Program ( int yield ) { this . yield = yield ; } } ");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructor)]
+        public async Task TestGenerateConstructorNotOfferedForDuplicate()
+        {
+            await TestMissingAsync(
+"using System ; class X { public X ( string v ) { } static void Test ( ) { new X ( new [|string|] ( ) ) ; } } ");
         }
     }
 }

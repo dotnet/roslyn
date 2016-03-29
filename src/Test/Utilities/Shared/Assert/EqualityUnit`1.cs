@@ -6,7 +6,7 @@ using System.Linq;
 
 namespace Roslyn.Test.Utilities
 {
-    public class EqualityUnit<T>
+    public sealed class EqualityUnit<T>
     {
         private static readonly ReadOnlyCollection<T> s_emptyCollection = new ReadOnlyCollection<T>(new T[] { });
 

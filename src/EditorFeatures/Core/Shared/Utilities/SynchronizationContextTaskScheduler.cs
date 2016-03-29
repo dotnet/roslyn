@@ -30,7 +30,6 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Utilities
         protected override void QueueTask(Task task)
         {
             _synchronizationContext.Post(_postCallback, task);
-
         }
         protected override bool TryExecuteTaskInline(Task task, bool taskWasPreviouslyQueued)
         {

@@ -9,7 +9,7 @@ using Microsoft.VisualStudio.Language.NavigateTo.Interfaces;
 
 namespace Microsoft.CodeAnalysis.Editor.Implementation.NavigateTo
 {
-    internal abstract partial class AbstractNavigateToSearchService
+    internal sealed partial class NavigateToSearchResultProvider
     {
         private class SearchResult : INavigateToSearchResult
         {
@@ -23,10 +23,10 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.NavigateTo
             public string SecondarySort { get; }
             public bool IsCaseSensitive { get; }
 
-            private Document _document;
-            private DeclaredSymbolInfo _declaredSymbolInfo;
-            private Lazy<string> _lazyAdditionalInfo;
-            private Lazy<string> _lazySummary;
+            private readonly Document _document;
+            private readonly DeclaredSymbolInfo _declaredSymbolInfo;
+            private readonly Lazy<string> _lazyAdditionalInfo;
+            private readonly Lazy<string> _lazySummary;
 
             public SearchResult(Document document, DeclaredSymbolInfo declaredSymbolInfo, string kind, MatchKind matchKind, bool isCaseSensitive, INavigableItem navigableItem)
             {

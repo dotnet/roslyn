@@ -15,9 +15,6 @@
     <TargetFrameworkProfile />
   </PropertyGroup>
   <ItemGroup Label="File References">
-    <Reference Include="Microsoft.VisualStudio.Composition, Version=14.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
-      <HintPath>$(DevEnvDir)\PrivateAssemblies\Microsoft.VisualStudio.Composition.dll</HintPath>
-    </Reference>
     <Reference Include="Microsoft.VisualStudio.Imaging.Interop.14.0.DesignTime, Version=14.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
       <EmbedInteropTypes>True</EmbedInteropTypes>
     </Reference>
@@ -116,13 +113,11 @@
     <DebugSymbols>true</DebugSymbols>
     <DefineDebug>true</DefineDebug>
     <DefineTrace>true</DefineTrace>
-    <DebugType>full</DebugType>
     <DocumentationFile>Roslyn.Services.Editor.UnitTests2.xml</DocumentationFile>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Release|AnyCPU'">
     <DefineTrace>true</DefineTrace>
     <Optimize>true</Optimize>
-    <DebugType>pdbonly</DebugType>
     <DocumentationFile>Roslyn.Services.Editor.UnitTests2.xml</DocumentationFile>
   </PropertyGroup>
   <ItemGroup>
@@ -169,11 +164,20 @@
   <ItemGroup>
     <Compile Include="CallHierarchy\CallHierarchyTests.vb" />
     <Compile Include="Diagnostics\InMemoryAssemblyLoader.vb" />
+    <Compile Include="Diagnostics\NamingStyles\NamingStyleTests.IdentifierCreation.Compliance.vb" />
+    <Compile Include="Diagnostics\NamingStyles\NamingStyleTests.IdentifierCreation.ComplexTests.vb" />
+    <Compile Include="Diagnostics\NamingStyles\NamingStyleTests.IdentifierCreation.WordSeparator.vb" />
+    <Compile Include="Diagnostics\NamingStyles\NamingStyleTests.vb" />
+    <Compile Include="Diagnostics\NamingStyles\NamingStyleTests.IdentifierCreation.PrefixSuffix.vb" />
+    <Compile Include="Diagnostics\NamingStyles\NamingStyleTests.IdentifierCreation.Casing.vb" />
     <Compile Include="Diagnostics\UseAutoProperty\UseAutoPropertyTests.vb" />
+    <Compile Include="Expansion\LambdaParameterExpansionTests.vb" />
     <Compile Include="GoToImplementation\GoToImplementationTests.vb" />
+    <Compile Include="IntelliSense\CompletionServiceTests.vb" />
     <Compile Include="InteractivePaste\InteractivePasteCommandHandlerTests.vb" />
     <Compile Include="IntelliSense\CompletionRulesTests.vb" />
     <Compile Include="LanguageServices\SyntaxFactsServiceTests.vb" />
+    <Compile Include="NamingStyles\NamingStylesTests.vb" />
     <Compile Include="Simplification\SimplifierAPITests.vb" />
     <Compile Include="Utilities\GoToHelpers\GoToTestHelpers.vb" />
     <Compile Include="Utilities\MockDocumentNavigationServiceProvider.vb" />

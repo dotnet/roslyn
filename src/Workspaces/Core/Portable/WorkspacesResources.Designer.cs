@@ -431,6 +431,15 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Failure.
+        /// </summary>
+        internal static string Failure {
+            get {
+                return ResourceManager.GetString("Failure", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to File was externally modified: {0}..
         /// </summary>
         internal static string FileWasExternallyModified {
@@ -661,6 +670,15 @@ namespace Microsoft.CodeAnalysis {
         internal static string MatchingNodesMustHaveTheSameLabel {
             get {
                 return ResourceManager.GetString("MatchingNodesMustHaveTheSameLabel", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Member access should be qualified..
+        /// </summary>
+        internal static string MemberAccessShouldBeQualified {
+            get {
+                return ResourceManager.GetString("MemberAccessShouldBeQualified", resourceCulture);
             }
         }
         
@@ -1070,6 +1088,15 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Warning.
+        /// </summary>
+        internal static string Warning {
+            get {
+                return ResourceManager.GetString("Warning", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Workspace is not empty..
         /// </summary>
         internal static string WorkspaceIsNotEmpty {
@@ -1079,7 +1106,7 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Services required to accomplish the task are not available from the workspace..
+        ///   Looks up a localized string similar to Service of type &apos;{0}&apos; is required to accomplish the task but is not available from the workspace..
         /// </summary>
         internal static string WorkspaceServicesUnavailable {
             get {

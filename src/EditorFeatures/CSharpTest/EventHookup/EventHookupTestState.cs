@@ -9,8 +9,8 @@ using System.Xml.Linq;
 using Microsoft.CodeAnalysis.Editor.CSharp.EventHookup;
 using Microsoft.CodeAnalysis.Editor.Implementation.Commands;
 using Microsoft.CodeAnalysis.Editor.UnitTests;
-using Microsoft.CodeAnalysis.Shared.TestHooks;
-using Roslyn.Test.Utilities;
+using Microsoft.CodeAnalysis.Editor.UnitTests.Extensions;
+using Microsoft.CodeAnalysis.Options;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.EventHookup
@@ -20,7 +20,8 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.EventHookup
         private readonly EventHookupCommandHandler _commandHandler;
         private Mutex _testSessionHookupMutex;
 
-        public EventHookupTestState(XElement workspaceElement) : base(workspaceElement, null, false)
+        public EventHookupTestState(XElement workspaceElement, IDictionary<OptionKey, object> options)
+            : base(workspaceElement, null, false)
         {
             CommandHandlerService t = (CommandHandlerService)Workspace.GetService<ICommandHandlerServiceFactory>().GetService(Workspace.Documents.Single().TextBuffer);
             var field = t.GetType().GetField("_commandHandlers", BindingFlags.NonPublic | BindingFlags.GetField | BindingFlags.Instance);
@@ -29,9 +30,10 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.EventHookup
 
             _testSessionHookupMutex = new Mutex(false);
             _commandHandler.TESTSessionHookupMutex = _testSessionHookupMutex;
+            Workspace.ApplyOptions(options);
         }
 
-        public static EventHookupTestState CreateTestState(string markup)
+        public static EventHookupTestState CreateTestState(string markup, IDictionary<OptionKey, object> options = null)
         {
             var workspaceXml = string.Format(@"
 <Workspace>
@@ -40,7 +42,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.EventHookup
     </Project>
 </Workspace>", markup);
 
-            return new EventHookupTestState(XElement.Parse(workspaceXml));
+            return new EventHookupTestState(XElement.Parse(workspaceXml), options);
         }
 
         internal void AssertShowing(string expectedText)

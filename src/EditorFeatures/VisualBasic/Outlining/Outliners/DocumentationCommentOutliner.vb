@@ -12,8 +12,9 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.Outlining
 
         Private Shared Function GetBannerText(documentationComment As DocumentationCommentTriviaSyntax, cancellationToken As CancellationToken) As String
             ' TODO: Consider unifying code to extract text from an Xml Documentation Comment (https://github.com/dotnet/roslyn/issues/2290)
-            Dim summaryElement = documentationComment.Content.OfType(Of XmlElementSyntax)() _
-                                    .FirstOrDefault(Function(e) e.StartTag.Name.ToString = "summary")
+            Dim summaryElement = documentationComment.Content _
+                .OfType(Of XmlElementSyntax)() _
+                .FirstOrDefault(Function(e) e.StartTag.Name.ToString = "summary")
 
             Dim text As String
             If summaryElement IsNot Nothing Then
@@ -48,11 +49,11 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.Outlining
                 Dim span = documentationComment.Span
                 Dim syntaxTree = documentationComment.SyntaxTree
                 Dim line = syntaxTree.GetText(cancellationToken).Lines.GetLineFromPosition(span.Start)
-                text = "''' " & line.ToString().Substring(span.Start - line.Start).Trim() & " " + Ellipsis
+                text = "''' " & line.ToString().Substring(span.Start - line.Start).Trim() & SpaceEllipsis
             End If
 
             If text.Length > MaxXmlDocCommentBannerLength Then
-                text = text.Substring(0, MaxXmlDocCommentBannerLength) & " " & Ellipsis
+                text = text.Substring(0, MaxXmlDocCommentBannerLength) & SpaceEllipsis
             End If
 
             Return text
@@ -83,10 +84,8 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.Outlining
 
             Dim fullSpan = TextSpan.FromBounds(startPos, endPos)
 
-            spans.Add(VisualBasicOutliningHelpers.CreateRegion(
-                            fullSpan,
-                            GetBannerText(documentationComment, cancellationToken),
-                            autoCollapse:=True))
+            spans.Add(
+                CreateRegion(fullSpan, GetBannerText(documentationComment, cancellationToken), autoCollapse:=True))
         End Sub
     End Class
 End Namespace

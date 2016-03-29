@@ -14,6 +14,7 @@ using Microsoft.CodeAnalysis.Versions;
 using Microsoft.VisualStudio.ComponentModelHost;
 using Microsoft.VisualStudio.LanguageServices.Implementation;
 using Microsoft.VisualStudio.LanguageServices.Implementation.Library.FindResults;
+using Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem;
 using Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem.RuleSets;
 using Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource;
 using Microsoft.VisualStudio.LanguageServices.Utilities;
@@ -21,12 +22,14 @@ using Microsoft.VisualStudio.PlatformUI;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
 using Task = System.Threading.Tasks.Task;
+using Microsoft.VisualStudio.LanguageServices.Implementation.Interactive;
+using static Microsoft.CodeAnalysis.Utilities.ForegroundThreadDataKind;
 
 namespace Microsoft.VisualStudio.LanguageServices.Setup
 {
     [Guid(Guids.RoslynPackageIdString)]
     [PackageRegistration(UseManagedResourcesOnly = true)]
-    [ProvideMenuResource("Menus.ctmenu", version: 12)]
+    [ProvideMenuResource("Menus.ctmenu", version: 13)]
     internal class RoslynPackage : Package
     {
         private LibraryManager _libraryManager;
@@ -41,8 +44,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Setup
         {
             base.Initialize();
 
-            ForegroundThreadAffinitizedObject.DefaultForegroundThreadData = ForegroundThreadData.CreateDefault();
-            Debug.Assert(ForegroundThreadAffinitizedObject.DefaultForegroundThreadData.Kind == ForegroundThreadDataKind.Wpf);
+            // Assume that we are being initialized on the UI thread at this point.
+            ForegroundThreadAffinitizedObject.CurrentForegroundThreadData = ForegroundThreadData.CreateDefault(defaultKind: ForcedByPackageInitialize);
+            Debug.Assert(ForegroundThreadAffinitizedObject.CurrentForegroundThreadData.Kind != Unknown);
 
             FatalError.Handler = FailFast.OnFatalException;
             FatalError.NonFatalHandler = WatsonReporter.Report;
@@ -151,6 +155,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Setup
             this.ComponentModel.GetService<VisualStudioMetadataAsSourceFileSupportService>();
             this.ComponentModel.GetService<VirtualMemoryNotificationListener>();
 
+            // The misc files workspace needs to be loaded on the UI thread.  This way it will have
+            // the appropriate task scheduler to report events on.
+            this.ComponentModel.GetService<MiscellaneousFilesWorkspace>();
+
             LoadAnalyzerNodeComponents();
 
             Task.Run(() => LoadComponentsBackground());
@@ -161,9 +169,22 @@ namespace Microsoft.VisualStudio.LanguageServices.Setup
             // Perf: Initialize the command handlers.
             var commandHandlerServiceFactory = this.ComponentModel.GetService<ICommandHandlerServiceFactory>();
             commandHandlerServiceFactory.Initialize(ContentTypeNames.RoslynContentType);
+            LoadInteractiveMenus();
 
             this.ComponentModel.GetService<MiscellaneousTodoListTable>();
             this.ComponentModel.GetService<MiscellaneousDiagnosticListTable>();
+        }
+
+        private void LoadInteractiveMenus()
+        {
+            var menuCommandService = (OleMenuCommandService)GetService(typeof(IMenuCommandService));
+            var monitorSelectionService = (IVsMonitorSelection)this.GetService(typeof(SVsShellMonitorSelection));
+
+            new CSharpResetInteractiveMenuCommand(menuCommandService, monitorSelectionService, ComponentModel)
+                .InitializeResetInteractiveFromProjectCommand();
+
+            new VisualBasicResetInteractiveMenuCommand(menuCommandService, monitorSelectionService, ComponentModel)
+                .InitializeResetInteractiveFromProjectCommand();
         }
 
         internal IComponentModel ComponentModel
@@ -202,6 +223,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Setup
         private void ReportSessionWideTelemetry()
         {
             PersistedVersionStampLogger.LogSummary();
+            LinkedFileDiffMergingLogger.ReportTelemetry();
         }
 
         private void RegisterFindResultsLibraryManager()

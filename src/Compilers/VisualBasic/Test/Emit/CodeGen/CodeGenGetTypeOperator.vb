@@ -303,9 +303,11 @@ Class2`2[T,U]
 ]]>).Compilation
         End Sub
 
-        <Fact(Skip:="542581"), WorkItem(542581, "DevDiv")>
+        <Fact,
+         WorkItem(9850, "https://github.com/dotnet/roslyn/issues/9850"),
+         WorkItem(542581, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542581")>
         Public Sub CodeGen_GetType_InheritedNestedTypeThroughUnboundGeneric()
-            CompileAndVerify(
+            Dim compilation = CreateCompilationWithMscorlib(
 <compilation>
     <file name="a.vb">
 Imports System
@@ -323,9 +325,22 @@ Class DerivedGeneric(Of T)
     Inherits BaseNonGeneric
 End Class
     </file>
-</compilation>, expectedOutput:=<![CDATA[
+</compilation>)
+
+            Const bug9850IsFixed = False
+
+            If bug9850IsFixed Then
+                CompileAndVerify(compilation, expectedOutput:=<![CDATA[
 BaseNonGeneric+E
 ]]>)
+            Else
+                compilation.AssertTheseDiagnostics(
+    <expected>
+BC30002: Type 'DerivedGeneric.E' is not defined.
+        Console.WriteLine(GetType(DerivedGeneric(Of ).E))
+                                  ~~~~~~~~~~~~~~~~~~~~~
+</expected>)
+            End If
         End Sub
 
         <Fact>

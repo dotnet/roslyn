@@ -8,6 +8,7 @@ using Microsoft.VisualStudio.ComponentModelHost;
 using Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
+using static Microsoft.CodeAnalysis.Utilities.ForegroundThreadDataKind;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
 {
@@ -28,9 +29,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
         protected override void Initialize()
         {
             base.Initialize();
-
-            var defaultForegroundThreadData = ForegroundThreadData.CreateDefault();
-            ForegroundThreadAffinitizedObject.DefaultForegroundThreadData = defaultForegroundThreadData;
+            // Assume that we are being initialized on the UI thread at this point.
+            var defaultForegroundThreadData = ForegroundThreadData.CreateDefault(defaultKind: ForcedByPackageInitialize);
+            ForegroundThreadAffinitizedObject.CurrentForegroundThreadData = defaultForegroundThreadData;
             _foregroundObject = new ForegroundThreadAffinitizedObject(defaultForegroundThreadData);
 
             foreach (var editorFactory in CreateEditorFactories())

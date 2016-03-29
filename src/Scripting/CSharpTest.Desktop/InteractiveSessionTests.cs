@@ -79,7 +79,7 @@ Process.GetCurrentProcess()");
         [Fact]
         public void CompilationChain_SubmissionSlots()
         {
-            var s = 
+            var s =
                 CSharpScript.RunAsync("using System;").
                 ContinueWith("using static System.Environment;").
                 ContinueWith("int x; x = 1;").
@@ -145,7 +145,7 @@ new System.Data.DataSet()
                 Diagnostic(ErrorCode.ERR_DottedTypeNameNotFoundInNS, "Data").WithArguments("Data", "System"));
         }
 
-        
+
         /// <summary>
         /// Look at base directory (or directory containing #r) before search paths.
         /// </summary>
@@ -169,11 +169,11 @@ var x = from a in new[] { 1, 2 ,3 } select a + 1;
             AssertEx.Equal(new[] { 2, 3, 4 }, state.ReturnValue);
         }
 
-        [Fact(Skip = "xunit2")]
+        [Fact]
         public async Task References1()
         {
             var options0 = ScriptOptions.Default.AddReferences(
-                typeof(Process).Assembly, 
+                typeof(Process).Assembly,
                 typeof(System.Linq.Expressions.Expression).Assembly);
 
             var s0 = await CSharpScript.RunAsync<Process>($@"
@@ -230,17 +230,17 @@ System.Diagnostics.Process.GetCurrentProcess()
             Assert.NotNull(process);
         }
 
-        private static Lazy<bool> IsSystemV2AndV4Available = new Lazy<bool>(() =>
+        private static Lazy<bool> s_isSystemV2AndV4Available = new Lazy<bool>(() =>
         {
             string path;
-            return GlobalAssemblyCache.ResolvePartialName("System, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089", out path) != null &&
-                   GlobalAssemblyCache.ResolvePartialName("System, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089", out path) != null;
+            return GlobalAssemblyCache.Instance.ResolvePartialName("System, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089", out path) != null &&
+                   GlobalAssemblyCache.Instance.ResolvePartialName("System, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089", out path) != null;
         });
 
         [Fact]
         public void References_Versioning_FxUnification1()
         {
-            if (!IsSystemV2AndV4Available.Value) return;
+            if (!s_isSystemV2AndV4Available.Value) return;
 
             var script = CSharpScript.Create($@"
 #r ""System, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089""
@@ -269,7 +269,7 @@ System.Diagnostics.Process.GetCurrentProcess()
         [Fact]
         public void References_Versioning_FxUnification2()
         {
-            if (!IsSystemV2AndV4Available.Value) return;
+            if (!s_isSystemV2AndV4Available.Value) return;
 
             var script0 = CSharpScript.Create($@"
 #r ""System, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089""
@@ -364,8 +364,8 @@ new C()
         [Fact]
         public void References_Versioning_WeakNames1()
         {
-            var c1 = Temp.CreateFile(extension: ".dll").WriteAllBytes(CreateCompilationWithMscorlib(@"[assembly: System.Reflection.AssemblyVersion(""1.0.0.0"")] public class C {}", assemblyName: "C").EmitToArray());
-            var c2 = Temp.CreateFile(extension: ".dll").WriteAllBytes(CreateCompilationWithMscorlib(@"[assembly: System.Reflection.AssemblyVersion(""2.0.0.0"")] public class C {}", assemblyName: "C").EmitToArray());
+            var c1 = Temp.CreateFile(extension: ".dll").WriteAllBytes(CreateCSharpCompilationWithMscorlib(@"[assembly: System.Reflection.AssemblyVersion(""1.0.0.0"")] public class C {}", assemblyName: "C").EmitToArray());
+            var c2 = Temp.CreateFile(extension: ".dll").WriteAllBytes(CreateCSharpCompilationWithMscorlib(@"[assembly: System.Reflection.AssemblyVersion(""2.0.0.0"")] public class C {}", assemblyName: "C").EmitToArray());
 
             var result = CSharpScript.EvaluateAsync($@"
 #r ""{c1.Path}""
@@ -380,8 +380,8 @@ new C()
         [Fact]
         public void References_Versioning_WeakNames2()
         {
-            var c1 = Temp.CreateFile(extension: ".dll").WriteAllBytes(CreateCompilationWithMscorlib(@"[assembly: System.Reflection.AssemblyVersion(""1.0.0.0"")] public class C {}", assemblyName: "C").EmitToArray());
-            var c2 = Temp.CreateFile(extension: ".dll").WriteAllBytes(CreateCompilationWithMscorlib(@"[assembly: System.Reflection.AssemblyVersion(""2.0.0.0"")] public class C {}", assemblyName: "C").EmitToArray());
+            var c1 = Temp.CreateFile(extension: ".dll").WriteAllBytes(CreateCSharpCompilationWithMscorlib(@"[assembly: System.Reflection.AssemblyVersion(""1.0.0.0"")] public class C {}", assemblyName: "C").EmitToArray());
+            var c2 = Temp.CreateFile(extension: ".dll").WriteAllBytes(CreateCSharpCompilationWithMscorlib(@"[assembly: System.Reflection.AssemblyVersion(""2.0.0.0"")] public class C {}", assemblyName: "C").EmitToArray());
 
             var result = CSharpScript.Create($@"
 #r ""{c1.Path}""
@@ -397,8 +397,8 @@ new C()
         [Fact]
         public void References_Versioning_WeakNames3()
         {
-            var c1 = Temp.CreateFile(extension: ".dll").WriteAllBytes(CreateCompilationWithMscorlib(@"[assembly: System.Reflection.AssemblyVersion(""1.0.0.0"")] public class C {}", assemblyName: "C").EmitToArray());
-            var c2 = Temp.CreateFile(extension: ".dll").WriteAllBytes(CreateCompilationWithMscorlib(@"[assembly: System.Reflection.AssemblyVersion(""2.0.0.0"")] public class C {}", assemblyName: "C").EmitToArray());
+            var c1 = Temp.CreateFile(extension: ".dll").WriteAllBytes(CreateCSharpCompilationWithMscorlib(@"[assembly: System.Reflection.AssemblyVersion(""1.0.0.0"")] public class C {}", assemblyName: "C").EmitToArray());
+            var c2 = Temp.CreateFile(extension: ".dll").WriteAllBytes(CreateCSharpCompilationWithMscorlib(@"[assembly: System.Reflection.AssemblyVersion(""2.0.0.0"")] public class C {}", assemblyName: "C").EmitToArray());
 
             var script0 = CSharpScript.Create($@"
 #r ""{c1.Path}""
@@ -484,7 +484,7 @@ c1 = c2;
             var c0 = s0.Script.GetCompilation();
 
             // includes corlib, host type assembly by default:
-            AssertEx.Equal(new[] 
+            AssertEx.Equal(new[]
             {
                 typeof(object).GetTypeInfo().Assembly.Location,
                 typeof(C).Assembly.Location,
@@ -503,11 +503,11 @@ x
         }
 
         [Fact]
-        public async Task MissingRefrencesAutoResolution()  
+        public async Task MissingRefrencesAutoResolution()
         {
             var portableLib = CSharpCompilation.Create(
-                "PortableLib",                                                
-                new[] { SyntaxFactory.ParseSyntaxTree("public class C {}") }, 
+                "PortableLib",
+                new[] { SyntaxFactory.ParseSyntaxTree("public class C {}") },
                 new[] { SystemRuntimePP7Ref },
                 new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary));
 
@@ -547,7 +547,7 @@ x
         [Fact]
         public void HostObjectInInMemoryAssembly()
         {
-            var lib = CreateCompilationWithMscorlib("public class C { public int X = 1, Y = 2; }", "HostLib");
+            var lib = CreateCSharpCompilationWithMscorlib("public class C { public int X = 1, Y = 2; }", "HostLib");
             var libImage = lib.EmitToArray();
             var libRef = MetadataImageReference.CreateFromImage(libImage);
 
@@ -560,8 +560,8 @@ x
                 loader.RegisterDependency(libAssembly);
 
                 var script = CSharpScript.Create<int>(
-                    "X+Y", 
-                    ScriptOptions.Default.WithReferences(libRef), 
+                    "X+Y",
+                    ScriptOptions.Default.WithReferences(libRef),
                     globalsType: globalsType,
                     assemblyLoader: loader);
 

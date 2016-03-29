@@ -81,7 +81,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
                 var body = F.Block(
                         ImmutableArray.Create<LocalSymbol>(hashCode, i),
-                        ImmutableArray<LocalFunctionSymbol>.Empty,
                         F.If(
                             F.Binary(BinaryOperatorKind.ObjectNotEqual, F.SpecialType(SpecialType.System_Boolean),
                                 F.Parameter(text),
@@ -200,7 +199,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         }
     }
 
-    internal abstract partial class MethodToClassRewriter 
+    internal abstract partial class MethodToClassRewriter
     {
         private sealed partial class BaseMethodWrapperSymbol : SynthesizedMethodBaseSymbol
         {

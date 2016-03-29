@@ -1,5 +1,6 @@
 ' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+Imports System.Threading.Tasks
 Imports System.Xml.Linq
 Imports Microsoft.CodeAnalysis.Completion
 Imports Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
@@ -16,160 +17,160 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Completion.Complet
             MyBase.New(workspaceFixture)
         End Sub
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
-        Public Sub FieldDeclaration1()
+        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function TestFieldDeclaration1() As Task
             Dim markup = <a>Class C
     $$
 End Class</a>
 
-            VerifyNotBuilder(markup)
-        End Sub
+            Await VerifyNotBuilderAsync(markup)
+        End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
-        Public Sub FieldDeclaration2()
+        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function TestFieldDeclaration2() As Task
             Dim markup = <a>Class C
     Public $$
 End Class</a>
 
-            VerifyBuilder(markup)
-        End Sub
+            Await VerifyBuilderAsync(markup)
+        End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
-        Public Sub FieldDeclaration3()
+        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function TestFieldDeclaration3() As Task
             Dim markup = <a>Module M
     Public $$
 End Module</a>
 
-            VerifyBuilder(markup)
-        End Sub
+            Await VerifyBuilderAsync(markup)
+        End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
-        Public Sub FieldDeclaration4()
+        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function TestFieldDeclaration4() As Task
             Dim markup = <a>Structure S
     Public $$
 End Structure</a>
 
-            VerifyBuilder(markup)
-        End Sub
+            Await VerifyBuilderAsync(markup)
+        End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
-        Public Sub FieldDeclaration5()
+        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function TestFieldDeclaration5() As Task
             Dim markup = <a>Class C
     WithEvents $$
 End Class</a>
 
-            VerifyBuilder(markup)
-        End Sub
+            Await VerifyBuilderAsync(markup)
+        End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
-        Public Sub FieldDeclaration6()
+        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function TestFieldDeclaration6() As Task
             Dim markup = <a>Class C
     Protected Friend $$
 End Class</a>
 
-            VerifyBuilder(markup)
-        End Sub
+            Await VerifyBuilderAsync(markup)
+        End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
-        Public Sub ParameterDeclaration1()
+        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function TestParameterDeclaration1() As Task
             Dim markup = <a>Class C
     Public Sub Bar($$
     End Sub
 End Class</a>
 
-            VerifyBuilder(markup)
-        End Sub
+            Await VerifyBuilderAsync(markup)
+        End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
-        Public Sub ParameterDeclaration2()
+        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function TestParameterDeclaration2() As Task
             Dim markup = <a>Class C
     Public Sub Bar(Optional foo as Integer, $$
     End Sub
 End Class</a>
 
-            VerifyNotBuilder(markup)
-        End Sub
+            Await VerifyNotBuilderAsync(markup)
+        End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
-        Public Sub ParameterDeclaration3()
+        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function TestParameterDeclaration3() As Task
             Dim markup = <a>Class C
     Public Sub Bar(Optional $$
     End Sub
 End Class</a>
 
-            VerifyBuilder(markup)
-        End Sub
+            Await VerifyBuilderAsync(markup)
+        End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
-        Public Sub ParameterDeclaration4()
+        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function TestParameterDeclaration4() As Task
             Dim markup = <a>Class C
     Public Sub Bar(Optional x $$
     End Sub
 End Class</a>
 
-            VerifyNotBuilder(markup)
-        End Sub
+            Await VerifyNotBuilderAsync(markup)
+        End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
-        Public Sub ParameterDeclaration5()
+        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function TestParameterDeclaration5() As Task
             Dim markup = <a>Class C
     Public Sub Bar(Optional x As $$
     End Sub
 End Class</a>
 
-            VerifyNotBuilder(markup)
-        End Sub
+            Await VerifyNotBuilderAsync(markup)
+        End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
-        Public Sub ParameterDeclaration6()
+        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function TestParameterDeclaration6() As Task
             Dim markup = <a>Class C
     Public Sub Bar(Optional x As Integer $$
     End Sub
 End Class</a>
 
-            VerifyNotBuilder(markup)
-        End Sub
+            Await VerifyNotBuilderAsync(markup)
+        End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
-        Public Sub ParameterDeclaration7()
+        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function TestParameterDeclaration7() As Task
             Dim markup = <a>Class C
     Public Sub Bar(ByVal $$
     End Sub
 End Class</a>
 
-            VerifyBuilder(markup)
-        End Sub
+            Await VerifyBuilderAsync(markup)
+        End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
-        Public Sub ParameterDeclaration8()
+        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function TestParameterDeclaration8() As Task
             Dim markup = <a>Class C
     Public Sub Bar(ByVal x $$
     End Sub
 End Class</a>
 
-            VerifyNotBuilder(markup)
-        End Sub
+            Await VerifyNotBuilderAsync(markup)
+        End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
-        Public Sub ParameterDeclaration9()
+        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function TestParameterDeclaration9() As Task
             Dim markup = <a>Class C
     Sub Foo $$
 End Class</a>
 
-            VerifyNotBuilder(markup)
-        End Sub
+            Await VerifyNotBuilderAsync(markup)
+        End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
-        Public Sub ParameterDeclaration10()
+        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function TestParameterDeclaration10() As Task
             Dim markup = <a>Class C
     Public Property SomeProp $$
 End Class</a>
 
-            VerifyNotBuilder(markup)
-        End Sub
+            Await VerifyNotBuilderAsync(markup)
+        End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
-        Public Sub SelectClause1()
+        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function TestSelectClause1() As Task
             Dim markup = <a>Class z
     Sub bar()
         Dim a = New Integer(1, 2, 3) {}
@@ -179,11 +180,11 @@ End Class</a>
     End Sub
 End Class</a>
 
-            VerifyBuilder(markup)
-        End Sub
+            Await VerifyBuilderAsync(markup)
+        End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
-        Public Sub SelectClause2()
+        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function TestSelectClause2() As Task
             Dim markup = <a>Class z
     Sub bar()
         Dim a = New Integer(1, 2, 3) {}
@@ -193,22 +194,22 @@ End Class</a>
     End Sub
 End Class</a>
 
-            VerifyBuilder(markup)
-        End Sub
+            Await VerifyBuilderAsync(markup)
+        End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
-        Public Sub ForStatement1()
+        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function TestForStatement1() As Task
             Dim markup = <a>Class z
     Sub bar()
         For $$
     End Sub
 End Class</a>
 
-            VerifyBuilder(markup)
-        End Sub
+            Await VerifyBuilderAsync(markup)
+        End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
-        Public Sub ForStatement2()
+        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function TestForStatement2() As Task
             Dim markup = <a>Class z
     Sub bar()
         For $$ = 1 To 10
@@ -216,12 +217,12 @@ End Class</a>
     End Sub
 End Class</a>
 
-            VerifyBuilder(markup)
-        End Sub
+            Await VerifyBuilderAsync(markup)
+        End Function
 
-        <WorkItem(545351)>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
-        Public Sub BuilderWhenOptionExplicitOff()
+        <WorkItem(545351, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545351")>
+        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function TestBuilderWhenOptionExplicitOff() As Task
             Dim markup = <a>Option Explicit Off
  
 Class C1
@@ -231,12 +232,12 @@ Class C1
 End Class
 </a>
 
-            VerifyBuilder(markup)
-        End Sub
+            Await VerifyBuilderAsync(markup)
+        End Function
 
-        <WorkItem(546659)>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
-        Public Sub UsingStatement()
+        <WorkItem(546659, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546659")>
+        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function TestUsingStatement() As Task
             Dim markup = <a> 
 Class C1
     Sub M()
@@ -244,12 +245,12 @@ Class C1
     End Sub
 End Class
 </a>
-            VerifyBuilder(markup)
-        End Sub
+            Await VerifyBuilderAsync(markup)
+        End Function
 
-        <WorkItem(734596)>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
-        Public Sub OptionExplicitOffStatementLevel1()
+        <WorkItem(734596, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/734596")>
+        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function TestOptionExplicitOffStatementLevel1() As Task
             Dim markup = <a> 
 Option Explicit Off
 Class C1
@@ -258,12 +259,12 @@ Class C1
     End Sub
 End Class
 </a>
-            VerifyBuilder(markup)
-        End Sub
+            Await VerifyBuilderAsync(markup)
+        End Function
 
-        <WorkItem(734596)>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
-        Public Sub OptionExplicitOffStatementLevel2()
+        <WorkItem(734596, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/734596")>
+        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function TestOptionExplicitOffStatementLevel2() As Task
             Dim markup = <a> 
 Option Explicit Off
 Class C1
@@ -272,12 +273,12 @@ Class C1
     End Sub
 End Class
 </a>
-            VerifyBuilder(markup)
-        End Sub
+            Await VerifyBuilderAsync(markup)
+        End Function
 
-        <WorkItem(960416)>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
-        Public Sub ReadonlyField()
+        <WorkItem(960416, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/960416")>
+        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function TestReadonlyField() As Task
             Dim markup = <a> 
 Class C1
     Readonly $$
@@ -285,12 +286,12 @@ Class C1
     End Sub
 End Class
 </a>
-            VerifyBuilder(markup)
-        End Sub
+            Await VerifyBuilderAsync(markup)
+        End Function
 
-        <WorkItem(1044441)>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
-        Public Sub BuilderInDebugger
+        <WorkItem(1044441, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1044441")>
+        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function BuilderInDebugger() As Task
             Dim markup = <a> 
 Class C1
     Sub Foo()
@@ -298,42 +299,42 @@ Class C1
     End Sub
 End Class
 </a>
-            VerifyBuilder(markup, CompletionTriggerInfo.CreateInvokeCompletionTriggerInfo(), useDebuggerOptions:=True)
-        End Sub
+            Await VerifyBuilderAsync(markup, CompletionTriggerInfo.CreateInvokeCompletionTriggerInfo(), useDebuggerOptions:=True)
+        End Function
 
-        Private Sub VerifyNotBuilder(markup As XElement, Optional triggerInfo As CompletionTriggerInfo? = Nothing, Optional useDebuggerOptions As Boolean = False)
-            VerifySuggestionModeWorker(markup, isBuilder:=False, triggerInfo:=triggerInfo, useDebuggerOptions:=useDebuggerOptions)
-        End Sub
+        Private Function VerifyNotBuilderAsync(markup As XElement, Optional triggerInfo As CompletionTriggerInfo? = Nothing, Optional useDebuggerOptions As Boolean = False) As Task
+            Return VerifySuggestionModeWorkerAsync(markup, isBuilder:=False, triggerInfo:=triggerInfo, useDebuggerOptions:=useDebuggerOptions)
+        End Function
 
-        Private Sub VerifyBuilder(markup As XElement, Optional triggerInfo As CompletionTriggerInfo? = Nothing, Optional useDebuggerOptions As Boolean = False)
-            VerifySuggestionModeWorker(markup, isBuilder:=True, triggerInfo:=triggerInfo, useDebuggerOptions:=useDebuggerOptions)
-        End Sub
+        Private Function VerifyBuilderAsync(markup As XElement, Optional triggerInfo As CompletionTriggerInfo? = Nothing, Optional useDebuggerOptions As Boolean = False) As Task
+            Return VerifySuggestionModeWorkerAsync(markup, isBuilder:=True, triggerInfo:=triggerInfo, useDebuggerOptions:=useDebuggerOptions)
+        End Function
 
-        Private Sub VerifySuggestionModeWorker(markup As XElement, isBuilder As Boolean, triggerInfo As CompletionTriggerInfo?, Optional useDebuggerOptions As Boolean = False)
+        Private Async Function VerifySuggestionModeWorkerAsync(markup As XElement, isBuilder As Boolean, triggerInfo As CompletionTriggerInfo?, Optional useDebuggerOptions As Boolean = False) As Task
             Dim code As String = Nothing
             Dim position As Integer = 0
             MarkupTestFile.GetPosition(markup.NormalizedValue, code, position)
 
             Using workspaceFixture = New VisualBasicTestWorkspaceFixture()
                 Dim options = If(useDebuggerOptions,
-                                 workspaceFixture.Workspace.Options.WithDebuggerCompletionOptions(),
-                                 workspaceFixture.Workspace.Options)
+                                 (Await workspaceFixture.GetWorkspaceAsync()).Options.WithDebuggerCompletionOptions(),
+                                 (Await workspaceFixture.GetWorkspaceAsync()).Options)
 
-                Dim document1 = workspaceFixture.UpdateDocument(code, SourceCodeKind.Regular)
-                CheckResults(document1, position, isBuilder, triggerInfo, options)
+                Dim document1 = Await workspaceFixture.UpdateDocumentAsync(code, SourceCodeKind.Regular)
+                Await CheckResultsAsync(document1, position, isBuilder, triggerInfo, options)
 
-                If CanUseSpeculativeSemanticModel(document1, position) Then
-                    Dim document2 = workspaceFixture.UpdateDocument(code, SourceCodeKind.Regular, cleanBeforeUpdate:=False)
-                    CheckResults(document2, position, isBuilder, triggerInfo, options)
+                If Await CanUseSpeculativeSemanticModelAsync(document1, position) Then
+                    Dim document2 = Await workspaceFixture.UpdateDocumentAsync(code, SourceCodeKind.Regular, cleanBeforeUpdate:=False)
+                    Await CheckResultsAsync(document2, position, isBuilder, triggerInfo, options)
                 End If
             End Using
 
-        End Sub
+        End Function
 
-        Private Sub CheckResults(document As Document, position As Integer, isBuilder As Boolean, triggerInfo As CompletionTriggerInfo?, options As OptionSet)
+        Private Async Function CheckResultsAsync(document As Document, position As Integer, isBuilder As Boolean, triggerInfo As CompletionTriggerInfo?, options As OptionSet) As Task
             triggerInfo = If(triggerInfo, CompletionTriggerInfo.CreateTypeCharTriggerInfo("a"c))
 
-            Dim completionList = GetCompletionList(document, position, triggerInfo.Value, options)
+            Dim completionList = Await GetCompletionListAsync(document, position, triggerInfo.Value, options)
 
             If isBuilder Then
                 Assert.NotNull(completionList)
@@ -343,7 +344,7 @@ End Class
                     Assert.True(completionList.Builder Is Nothing, "group.Builder = " & If(completionList.Builder IsNot Nothing, completionList.Builder.DisplayText, "null"))
                 End If
             End If
-        End Sub
+        End Function
 
         Friend Overrides Function CreateCompletionProvider() As CompletionListProvider
             Return New VisualBasicSuggestionModeCompletionProvider()

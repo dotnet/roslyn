@@ -1,5 +1,6 @@
 ' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+Imports System.Threading.Tasks
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.SignatureHelp
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
 Imports Microsoft.CodeAnalysis.Editor.VisualBasic.SignatureHelp
@@ -16,8 +17,8 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.SignatureHelp
             Return New CastExpressionSignatureHelpProvider()
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.SignatureHelp)>
-        Public Sub TestInvocationForCType()
+        <Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)>
+        Public Async Function TestInvocationForCType() As Task
             Dim markup = <a><![CDATA[
 Class C
     Sub Foo()
@@ -33,11 +34,11 @@ End Class
                                      ExpressionToConvert,
                                      currentParameterIndex:=0))
 
-            Test(markup, expectedOrderedItems)
-        End Sub
+            Await TestAsync(markup, expectedOrderedItems)
+        End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.SignatureHelp)>
-        Public Sub TestInvocationForCTypeAfterComma()
+        <Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)>
+        Public Async Function TestInvocationForCTypeAfterComma() As Task
             Dim markup = <a><![CDATA[
 Class C
     Sub Foo()
@@ -53,12 +54,12 @@ End Class
                                      NameOfTypeToConvert,
                                      currentParameterIndex:=1))
 
-            Test(markup, expectedOrderedItems)
-            Test(markup, expectedOrderedItems, usePreviousCharAsTrigger:=True)
-        End Sub
+            Await TestAsync(markup, expectedOrderedItems)
+            Await TestAsync(markup, expectedOrderedItems, usePreviousCharAsTrigger:=True)
+        End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.SignatureHelp)>
-        Public Sub TestInvocationForDirectCast()
+        <Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)>
+        Public Async Function TestInvocationForDirectCast() As Task
             Dim markup = <a><![CDATA[
 Class C
     Sub Foo()
@@ -74,12 +75,12 @@ End Class
                                      ExpressionToConvert,
                                      currentParameterIndex:=0))
 
-            Test(markup, expectedOrderedItems)
-        End Sub
+            Await TestAsync(markup, expectedOrderedItems)
+        End Function
 
-        <WorkItem(530132)>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.SignatureHelp)>
-        Public Sub TestInvocationForTryCast()
+        <WorkItem(530132, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530132")>
+        <Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)>
+        Public Async Function TestInvocationForTryCast() As Task
             Dim markup = <a><![CDATA[
 Class C
     Sub Foo()
@@ -95,8 +96,7 @@ End Class
                                      ExpressionToConvert,
                                      currentParameterIndex:=0))
 
-            Test(markup, expectedOrderedItems)
-        End Sub
-
+            Await TestAsync(markup, expectedOrderedItems)
+        End Function
     End Class
 End Namespace

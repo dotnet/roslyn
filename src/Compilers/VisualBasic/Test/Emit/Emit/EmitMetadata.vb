@@ -15,7 +15,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.Emit
     Public Class EmitMetadata
         Inherits BasicTestBase
 
-        <Fact, WorkItem(547015, "DevDiv")>
+        <Fact, WorkItem(547015, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/547015")>
         Public Sub IncorrectCustomAssemblyTableSize_TooManyMethodSpecs()
             Dim source = TestResources.MetadataTests.Invalid.ManyMethodSpecs
             CompileAndVerify(VisualBasicCompilation.Create("Foo", syntaxTrees:={Parse(source)}, references:={MscorlibRef, SystemCoreRef, MsvbRef}))
@@ -553,7 +553,7 @@ End Class
             Assert.Equal(0, reader.GetTypeDefinition(typeDefs(0)).Attributes)
         End Sub
 
-        <WorkItem(543517, "DevDiv")>
+        <WorkItem(543517, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543517")>
         <Fact()>
         Public Sub EmitBeforeFieldInit()
             CompileAndVerify(
@@ -904,7 +904,9 @@ End Class
 
         End Sub
 
-        <Fact(Skip:="https://github.com/dotnet/roslyn/issues/6190"), WorkItem(90)>
+        <Fact,
+         WorkItem(6190, "https://github.com/dotnet/roslyn/issues/6190"),
+         WorkItem(90, "https://github.com/dotnet/roslyn/issues/90")>
         Public Sub EmitWithNoResourcesAllPlatforms()
             Dim comp = CreateCompilationWithMscorlib(
                 <compilation>
@@ -916,24 +918,17 @@ End Class
                     </file>
                 </compilation>)
 
-            VerifyEmitWithNoResources(comp, Platform.AnyCpu)
-            VerifyEmitWithNoResources(comp, Platform.AnyCpu32BitPreferred)
-            VerifyEmitWithNoResources(comp, Platform.Arm)     ' broken before fix
-            VerifyEmitWithNoResources(comp, Platform.Itanium) ' broken before fix
-            VerifyEmitWithNoResources(comp, Platform.X64)     ' broken before fix
-            VerifyEmitWithNoResources(comp, Platform.X86)
+            VerifyEmitWithNoResources(comp.WithAssemblyName("EmitWithNoResourcesAllPlatforms_AnyCpu"), Platform.AnyCpu)
+            VerifyEmitWithNoResources(comp.WithAssemblyName("EmitWithNoResourcesAllPlatforms_AnyCpu32BitPreferred"), Platform.AnyCpu32BitPreferred)
+            VerifyEmitWithNoResources(comp.WithAssemblyName("EmitWithNoResourcesAllPlatforms_Arm"), Platform.Arm)     ' broken before fix
+            VerifyEmitWithNoResources(comp.WithAssemblyName("EmitWithNoResourcesAllPlatforms_Itanium"), Platform.Itanium) ' broken before fix
+            VerifyEmitWithNoResources(comp.WithAssemblyName("EmitWithNoResourcesAllPlatforms_X64"), Platform.X64)     ' broken before fix
+            VerifyEmitWithNoResources(comp.WithAssemblyName("EmitWithNoResourcesAllPlatforms_X86"), Platform.X86)
         End Sub
 
-        Private Shared Sub VerifyEmitWithNoResources(comp As VisualBasicCompilation, platform As Platform)
+        Private Sub VerifyEmitWithNoResources(comp As VisualBasicCompilation, platform As Platform)
             Dim options = TestOptions.ReleaseExe.WithPlatform(platform)
-
-            Using outputStream As New MemoryStream()
-                Dim success = comp.WithOptions(options).Emit(outputStream).Success
-                Assert.True(success)
-
-                Dim peVerifyOutput = CLRHelpers.PeVerify(outputStream.ToImmutable()).Join(Environment.NewLine)
-                Assert.Equal(String.Empty, peVerifyOutput)
-            End Using
+            CompileAndVerify(comp.WithOptions(options))
         End Sub
     End Class
 End Namespace

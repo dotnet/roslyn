@@ -155,6 +155,76 @@ namespace Microsoft.CodeAnalysis.Editing
         }
 
         /// <summary>
+        /// Creates a method declaration.
+        /// </summary>
+        public virtual SyntaxNode OperatorDeclaration(
+            OperatorKind kind,
+            IEnumerable<SyntaxNode> parameters = null,
+            SyntaxNode returnType = null,
+            Accessibility accessibility = Accessibility.NotApplicable,
+            DeclarationModifiers modifiers = default(DeclarationModifiers),
+            IEnumerable<SyntaxNode> statements = null)
+        {
+            throw new NotImplementedException();
+        }
+
+        /// <summary>
+        /// Creates a method declaration matching an existing method symbol.
+        /// </summary>
+        public SyntaxNode OperatorDeclaration(IMethodSymbol method, IEnumerable<SyntaxNode> statements = null)
+        {
+            if (method.MethodKind != MethodKind.UserDefinedOperator)
+            {
+                throw new ArgumentException("Method is not an operator.");
+            }
+
+            var decl = OperatorDeclaration(
+                GetOperatorKind(method),
+                parameters: method.Parameters.Select(p => ParameterDeclaration(p)),
+                returnType: method.ReturnType.IsSystemVoid() ? null : TypeExpression(method.ReturnType),
+                accessibility: method.DeclaredAccessibility,
+                modifiers: DeclarationModifiers.From(method),
+                statements: statements);
+
+            return decl;
+        }
+
+        private OperatorKind GetOperatorKind(IMethodSymbol method)
+        {
+            switch (method.Name)
+            {
+                case WellKnownMemberNames.ImplicitConversionName: return OperatorKind.ImplicitConversion;
+                case WellKnownMemberNames.ExplicitConversionName: return OperatorKind.ExplicitConversion;
+                case WellKnownMemberNames.AdditionOperatorName: return OperatorKind.Addition;
+                case WellKnownMemberNames.BitwiseAndOperatorName: return OperatorKind.BitwiseAnd;
+                case WellKnownMemberNames.BitwiseOrOperatorName: return OperatorKind.BitwiseOr;
+                case WellKnownMemberNames.DecrementOperatorName: return OperatorKind.Decrement;
+                case WellKnownMemberNames.DivisionOperatorName: return OperatorKind.Division;
+                case WellKnownMemberNames.EqualityOperatorName: return OperatorKind.Equality;
+                case WellKnownMemberNames.ExclusiveOrOperatorName: return OperatorKind.ExclusiveOr;
+                case WellKnownMemberNames.FalseOperatorName: return OperatorKind.False;
+                case WellKnownMemberNames.GreaterThanOperatorName: return OperatorKind.GreaterThan;
+                case WellKnownMemberNames.GreaterThanOrEqualOperatorName: return OperatorKind.GreaterThanOrEqual;
+                case WellKnownMemberNames.IncrementOperatorName: return OperatorKind.Increment;
+                case WellKnownMemberNames.InequalityOperatorName: return OperatorKind.Inequality;
+                case WellKnownMemberNames.LeftShiftOperatorName: return OperatorKind.LeftShift;
+                case WellKnownMemberNames.LessThanOperatorName: return OperatorKind.LessThan;
+                case WellKnownMemberNames.LessThanOrEqualOperatorName: return OperatorKind.LessThanOrEqual;
+                case WellKnownMemberNames.LogicalNotOperatorName: return OperatorKind.LogicalNot;
+                case WellKnownMemberNames.ModulusOperatorName: return OperatorKind.Modulus;
+                case WellKnownMemberNames.MultiplyOperatorName: return OperatorKind.Multiply;
+                case WellKnownMemberNames.OnesComplementOperatorName: return OperatorKind.OnesComplement;
+                case WellKnownMemberNames.RightShiftOperatorName: return OperatorKind.RightShift;
+                case WellKnownMemberNames.SubtractionOperatorName: return OperatorKind.Subtraction;
+                case WellKnownMemberNames.TrueOperatorName: return OperatorKind.True;
+                case WellKnownMemberNames.UnaryNegationOperatorName: return OperatorKind.UnaryNegation;
+                case WellKnownMemberNames.UnaryPlusOperatorName: return OperatorKind.UnaryPlus;
+                default:
+                    throw new ArgumentException("Unknown operator kind.");
+            }
+        }
+
+        /// <summary>
         /// Creates a parameter declaration.
         /// </summary>
         public abstract SyntaxNode ParameterDeclaration(
@@ -436,6 +506,9 @@ namespace Microsoft.CodeAnalysis.Editing
 
                         case MethodKind.Ordinary:
                             return MethodDeclaration(method);
+
+                        case MethodKind.UserDefinedOperator:
+                            return OperatorDeclaration(method);
                     }
                     break;
 

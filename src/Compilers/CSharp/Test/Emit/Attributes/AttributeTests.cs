@@ -62,7 +62,7 @@ class C
             CompileAndVerify(source, sourceSymbolValidator: attributeValidator, symbolValidator: null);
         }
 
-        [WorkItem(984896)]
+        [WorkItem(984896, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/984896")]
         [Fact]
         public void TestAssemblyAttributesErr()
         {
@@ -94,7 +94,7 @@ public unsafe partial class A : C, I
         }
 
 
-        [Fact, WorkItem(545326, "DevDiv")]
+        [Fact, WorkItem(545326, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545326")]
         public void TestAssemblyAttributes_Bug13670()
         {
             var source = @"
@@ -331,7 +331,7 @@ class C
             CompileAndVerify(compilation, sourceSymbolValidator: attributeValidator, symbolValidator: null);
         }
 
-        [WorkItem(688268, "DevDiv")]
+        [WorkItem(688268, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/688268")]
         [Fact]
         public void Bug688268()
         {
@@ -1099,7 +1099,7 @@ namespace AttributeTest
             CompileAndVerify(compilation, sourceSymbolValidator: attributeValidator, symbolValidator: null);
         }
 
-        [WorkItem(688007, "DevDiv")]
+        [WorkItem(688007, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/688007")]
         [Fact]
         public void Bug688007a()
         {
@@ -1143,7 +1143,7 @@ partial class CDoc
             CompileAndVerify(compilation).VerifyDiagnostics();
         }
 
-        [WorkItem(688007, "DevDiv")]
+        [WorkItem(688007, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/688007")]
         [Fact]
         public void Bug688007b()
         {
@@ -1191,7 +1191,7 @@ partial class CDoc
             CompileAndVerify(compilation).VerifyDiagnostics();
         }
 
-        [WorkItem(688007, "DevDiv")]
+        [WorkItem(688007, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/688007")]
         [Fact]
         public void Bug688007c()
         {
@@ -1243,7 +1243,7 @@ partial class CDoc
             CompileAndVerify(compilation).VerifyDiagnostics();
         }
 
-        [WorkItem(688007, "DevDiv")]
+        [WorkItem(688007, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/688007")]
         [Fact]
         public void Bug688007d()
         {
@@ -1435,7 +1435,7 @@ namespace AttributeTest
                 });
         }
 
-        [Fact, WorkItem(531385, "DevDiv")]
+        [Fact, WorkItem(531385, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/531385")]
         public void TestAttributesWithParamArrayInCtor3()
         {
             string source = @"
@@ -1559,7 +1559,7 @@ namespace AttributeTest
             CompileAndVerify(compilation, sourceSymbolValidator: attributeValidator, symbolValidator: null);
         }
 
-        [WorkItem(541058, "DevDiv")]
+        [WorkItem(541058, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541058")]
         [Fact]
         public void TestAttributesWithTypeof()
         {
@@ -1579,7 +1579,7 @@ public class MyAttribute : Attribute
             CompileAndVerify(source);
         }
 
-        [WorkItem(541071, "DevDiv")]
+        [WorkItem(541071, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541071")]
         [Fact]
         public void TestAttributesWithParams()
         {
@@ -1706,7 +1706,7 @@ namespace AttributeTest
             CompileAndVerify(compilation, sourceSymbolValidator: attributeValidator, symbolValidator: null);
         }
 
-        [WorkItem(541397, "DevDiv")]
+        [WorkItem(541397, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541397")]
         [Fact]
         public void TestAttributeWithSameNameAsTypeParameter()
         {
@@ -1748,7 +1748,7 @@ namespace AttributeTest
             CompileAndVerify(compilation, sourceSymbolValidator: attributeValidator, symbolValidator: null);
         }
 
-        [WorkItem(541615, "DevDiv")]
+        [WorkItem(541615, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541615")]
         [Fact]
         public void TestAttributeWithVarIdentifierName()
         {
@@ -1785,7 +1785,7 @@ namespace AttributeTest
             CompileAndVerify(compilation, sourceSymbolValidator: attributeValidator, symbolValidator: null);
         }
 
-        [WorkItem(541505, "DevDiv")]
+        [WorkItem(541505, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541505")]
         [Fact]
         public void AttributeArgumentBind_PropertyWithSameName()
         {
@@ -1830,7 +1830,7 @@ namespace AttributeTest
             CompileAndVerify(compilation, sourceSymbolValidator: attributeValidator, symbolValidator: null);
         }
 
-        [WorkItem(541709, "DevDiv")]
+        [WorkItem(541709, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541709")]
         [Fact]
         public void AttributeOnSynthesizedParameterSymbol()
         {
@@ -2068,7 +2068,7 @@ namespace AttributeTest
             CompileAndVerify(compilation, sourceSymbolValidator: attributeValidator, symbolValidator: null, expectedOutput: expectedOutput);
         }
 
-        [WorkItem(541864, "DevDiv")]
+        [WorkItem(541864, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541864")]
         [Fact]
         public void Bug_8769_TestAttributesWithNamedConstructorArguments()
         {
@@ -2157,7 +2157,7 @@ namespace AttributeTest
             CompileAndVerify(compilation, sourceSymbolValidator: attributeValidator, symbolValidator: null, expectedOutput: expectedOutput);
         }
 
-        [WorkItem(541861, "DevDiv")]
+        [WorkItem(541861, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541861")]
         [Fact]
         public void Bug_8768_TestAttributesWithOptionalConstructorArguments()
         {
@@ -2198,7 +2198,7 @@ namespace AttributeTest
             CompileAndVerify(compilation, sourceSymbolValidator: attributeValidator, symbolValidator: null, expectedOutput: expectedOutput);
         }
 
-        [WorkItem(541854, "DevDiv")]
+        [WorkItem(541854, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541854")]
         [Fact]
         public void Bug8761_StringArrayArgument()
         {
@@ -2219,7 +2219,7 @@ public class A : Attribute
             CompileAndVerify(source, expectedOutput: "");
         }
 
-        [WorkItem(541856, "DevDiv")]
+        [WorkItem(541856, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541856")]
         [Fact]
         public void Bug8763_NullInArrayInitializer()
         {
@@ -2247,7 +2247,7 @@ public class B
             CompileAndVerify(source, expectedOutput: "");
         }
 
-        [WorkItem(541856, "DevDiv")]
+        [WorkItem(541856, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541856")]
         [Fact]
         public void AttributeArrayTypeArgument()
         {
@@ -2326,7 +2326,7 @@ public class I
             CompileAndVerify(source, expectedOutput: "");
         }
 
-        [WorkItem(541859, "DevDiv")]
+        [WorkItem(541859, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541859")]
         [Fact]
         public void Bug8766_AttributeCtorOverloadResolution()
         {
@@ -2351,7 +2351,7 @@ public class A : Attribute
             CompileAndVerify(source, expectedOutput: "int");
         }
 
-        [WorkItem(541876, "DevDiv")]
+        [WorkItem(541876, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541876")]
         [Fact]
         public void Bug8771_AttributeArgumentNameBinding()
         {
@@ -2407,7 +2407,7 @@ class B
             CompileAndVerify(compilation, sourceSymbolValidator: attributeValidator, symbolValidator: null, expectedOutput: expectedOutput);
         }
 
-        [WorkItem(546380, "DevDiv")]
+        [WorkItem(546380, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546380")]
         [Fact]
         public void AttributeWithNestedUnboundGenericType()
         {
@@ -2453,7 +2453,7 @@ public class Program
             CompileAndVerify(compilation, sourceSymbolValidator: attributeValidator, symbolValidator: attributeValidator);
         }
 
-        [WorkItem(546380, "DevDiv")]
+        [WorkItem(546380, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546380")]
         [Fact]
         public void AttributeWithUnboundGenericType()
         {
@@ -2494,7 +2494,7 @@ class Program
             CompileAndVerify(compilation, sourceSymbolValidator: attributeValidator, symbolValidator: attributeValidator);
         }
 
-        [WorkItem(542223, "DevDiv")]
+        [WorkItem(542223, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542223")]
         [Fact]
         public void AttributeArgumentAsEnumFromMetadata()
         {
@@ -2521,7 +2521,7 @@ class Program
             Assert.Equal("Bar", ca.Type.Name);
         }
 
-        [WorkItem(542318, "DevDiv")]
+        [WorkItem(542318, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542318")]
         [Fact]
         public void AttributeWithDaysOfWeekArgument()
         {
@@ -2614,7 +2614,7 @@ public class A : Attribute
             CompileAndVerify(compilation, sourceSymbolValidator: attributeValidator, symbolValidator: null, expectedOutput: expectedOutput);
         }
 
-        [WorkItem(542534, "DevDiv")]
+        [WorkItem(542534, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542534")]
         [Fact]
         public void AttributeOnDefiningPartialMethodDeclaration()
         {
@@ -2638,7 +2638,7 @@ partial class Program
             CompileAndVerify(source, expectedOutput: "1");
         }
 
-        [WorkItem(542534, "DevDiv")]
+        [WorkItem(542534, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542534")]
         [Fact]
         public void AttributeOnDefiningPartialMethodDeclaration_02()
         {
@@ -2725,7 +2725,7 @@ partial class Program
             Assert.Equal(1, param.GetAttributes(e2Class).Count());
         }
 
-        [WorkItem(542533, "DevDiv")]
+        [WorkItem(542533, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542533")]
         [Fact]
         public void AttributesInMultiplePartialDeclarations_Type()
         {
@@ -2766,7 +2766,7 @@ class C
             CompileAndVerify(compilation, sourceSymbolValidator: attributeValidator, symbolValidator: null, expectedOutput: "");
         }
 
-        [WorkItem(542533, "DevDiv")]
+        [WorkItem(542533, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542533")]
         [Fact]
         public void AttributesInMultiplePartialDeclarations_TypeParam()
         {
@@ -2803,7 +2803,7 @@ class C
             CompileAndVerify(compilation, sourceSymbolValidator: attributeValidator, symbolValidator: null, expectedOutput: "");
         }
 
-        [WorkItem(542550, "DevDiv")]
+        [WorkItem(542550, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542550")]
         [Fact]
         public void Bug9824()
         {
@@ -2838,7 +2838,7 @@ public class GClass<T> where T : Attribute
             CompileAndVerify(compilation, sourceSymbolValidator: attributeValidator, symbolValidator: null);
         }
 
-        [WorkItem(543135, "DevDiv")]
+        [WorkItem(543135, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543135")]
         [Fact]
         public void AttributeAndDefaultValueArguments_01()
         {
@@ -2885,7 +2885,7 @@ class C
             CompileAndVerify(compilation, sourceSymbolValidator: attributeValidator, symbolValidator: null, expectedOutput: expectedOutput);
         }
 
-        [WorkItem(543135, "DevDiv")]
+        [WorkItem(543135, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543135")]
         [Fact]
         public void AttributeAndDefaultValueArguments_02()
         {
@@ -2957,7 +2957,7 @@ class C
             CompileAndVerify(compilation, sourceSymbolValidator: attributeValidator, symbolValidator: null, expectedOutput: expectedOutput);
         }
 
-        [WorkItem(529044, "DevDiv")]
+        [WorkItem(529044, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529044")]
         [Fact]
         public void AttributeNameLookup()
         {
@@ -2995,7 +2995,7 @@ public class Test
             CompileAndVerify(compilation, sourceSymbolValidator: attributeValidator, symbolValidator: null, expectedOutput: "");
         }
 
-        [WorkItem(542003, "DevDiv")]
+        [WorkItem(542003, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542003")]
         [Fact]
         public void Bug8956_NullArgumentToSystemTypeParam()
         {
@@ -3052,7 +3052,7 @@ public struct S
             Assert.True(etsym.HasSpecialName);
         }
 
-        [WorkItem(546277, "DevDiv")]
+        [WorkItem(546277, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546277")]
         [Fact]
         public void TestArrayTypeInAttributeArgument()
         {
@@ -3152,7 +3152,7 @@ public class C6 {}
             CompileAndVerify(compilation, sourceSymbolValidator: attributeValidator, symbolValidator: attributeValidator);
         }
 
-        [WorkItem(546621, "DevDiv")]
+        [WorkItem(546621, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546621")]
         [Fact]
         public void TestUnicodeAttributeArgument_Bug16353()
         {
@@ -3175,7 +3175,7 @@ class C
             CompileAndVerify(source, expectedOutput: "True");
         }
 
-        [WorkItem(546621, "DevDiv")]
+        [WorkItem(546621, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546621")]
         [Fact]
         public void TestUnicodeAttributeArgumentsStrings()
         {
@@ -3298,7 +3298,7 @@ public class C
         }
 
         [Fact]
-        [WorkItem(546896, "DevDiv")]
+        [WorkItem(546896, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546896")]
         public void MissingTypeInSignature()
         {
             string lib1 = @"
@@ -3346,7 +3346,7 @@ class D : C
         }
 
         [Fact]
-        [WorkItem(569089, "DevDiv")]
+        [WorkItem(569089, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/569089")]
         public void NullArrays()
         {
             var source = @"
@@ -3427,8 +3427,8 @@ class C
             });
         }
 
-        [WorkItem(121)]
-        [Fact(Skip = "121")]
+        [WorkItem(121, "https://github.com/dotnet/roslyn/issues/121")]
+        [Fact]
         public void Bug_AttributeOnWrongGenericParameter()
         {
             var source = @"
@@ -3509,22 +3509,24 @@ class A
             // It does not go on to produce the other errors.
 
             compilation.VerifyDiagnostics(
-    // (33,2): error CS0246: The type or namespace name 'XDoesNotExist' could not be found (are you missing a using directive or an assembly reference?)
-    // [XDoesNotExist()]
-    Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "XDoesNotExist").WithArguments("XDoesNotExist").WithLocation(33, 2),
-    // (34,2): error CS0181: Attribute constructor parameter 'd' has type 'decimal', which is not a valid attribute parameter type
-    // [X(1m)]
-    Diagnostic(ErrorCode.ERR_BadAttributeParamType, "X").WithArguments("d", "decimal").WithLocation(34, 2),
-    // (35,2): error CS0181: Attribute constructor parameter 'd' has type 'decimal', which is not a valid attribute parameter type
-    // [X(1)]
-    Diagnostic(ErrorCode.ERR_BadAttributeParamType, "X").WithArguments("d", "decimal").WithLocation(35, 2),
-    // (37,2): error CS0121: The call is ambiguous between the following methods or properties: 'XAttribute.XAttribute(ref int)' and 'XAttribute.XAttribute(e1)'
-    // [X(A.dyn)]
-    Diagnostic(ErrorCode.ERR_AmbigCall, "X(A.dyn)").WithArguments("XAttribute.XAttribute(ref int)", "XAttribute.XAttribute(e1)").WithLocation(37, 2),
-    // (38,2): error CS0181: Attribute constructor parameter 'd' has type 'decimal', which is not a valid attribute parameter type
-    // [X(m.NotAConstant() + 2)]
-    Diagnostic(ErrorCode.ERR_BadAttributeParamType, "X").WithArguments("d", "decimal").WithLocation(38, 2)
-                );
+                // (33,2): error CS0246: The type or namespace name 'XDoesNotExistAttribute' could not be found (are you missing a using directive or an assembly reference?)
+                // [XDoesNotExist()]
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "XDoesNotExist").WithArguments("XDoesNotExistAttribute").WithLocation(33, 2),
+                // (33,2): error CS0246: The type or namespace name 'XDoesNotExist' could not be found (are you missing a using directive or an assembly reference?)
+                // [XDoesNotExist()]
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "XDoesNotExist").WithArguments("XDoesNotExist").WithLocation(33, 2),
+                // (34,2): error CS0181: Attribute constructor parameter 'd' has type 'decimal', which is not a valid attribute parameter type
+                // [X(1m)]
+                Diagnostic(ErrorCode.ERR_BadAttributeParamType, "X").WithArguments("d", "decimal").WithLocation(34, 2),
+                // (35,2): error CS0181: Attribute constructor parameter 'd' has type 'decimal', which is not a valid attribute parameter type
+                // [X(1)]
+                Diagnostic(ErrorCode.ERR_BadAttributeParamType, "X").WithArguments("d", "decimal").WithLocation(35, 2),
+                // (37,2): error CS0121: The call is ambiguous between the following methods or properties: 'XAttribute.XAttribute(ref int)' and 'XAttribute.XAttribute(e1)'
+                // [X(A.dyn)]
+                Diagnostic(ErrorCode.ERR_AmbigCall, "X(A.dyn)").WithArguments("XAttribute.XAttribute(ref int)", "XAttribute.XAttribute(e1)").WithLocation(37, 2),
+                // (38,2): error CS0181: Attribute constructor parameter 'd' has type 'decimal', which is not a valid attribute parameter type
+                // [X(m.NotAConstant() + 2)]
+                Diagnostic(ErrorCode.ERR_BadAttributeParamType, "X").WithArguments("d", "decimal").WithLocation(38, 2));
         }
 
         [Fact]
@@ -3594,7 +3596,7 @@ class A
             string source = @"
 using CustomAttribute;
 [Base(1)]
-[BaseAttribute(""SOS"")]
+[@BaseAttribute(""SOS"")]
 static class AttributeMod
 {
     [Derived('Q')]
@@ -3615,13 +3617,17 @@ static class AttributeMod
 
             compilation.VerifyDiagnostics(
                 // (4,2): error CS0579: Duplicate 'BaseAttribute' attribute
-                Diagnostic(ErrorCode.ERR_DuplicateAttribute, @"BaseAttribute").WithArguments("BaseAttribute"),
+                // [@BaseAttribute("SOS")]
+                Diagnostic(ErrorCode.ERR_DuplicateAttribute, "@BaseAttribute").WithArguments("BaseAttribute").WithLocation(4, 2),
                 // (7,6): error CS0592: Attribute 'Derived' is not valid on this declaration type. It is only valid on 'struct, method, parameter' declarations.
-                Diagnostic(ErrorCode.ERR_AttributeOnBadSymbolType, "Derived").WithArguments("Derived", "struct, method, parameter"),
+                //     [Derived('Q')]
+                Diagnostic(ErrorCode.ERR_AttributeOnBadSymbolType, "Derived").WithArguments("Derived", "struct, method, parameter").WithLocation(7, 6),
                 // (8,6): error CS0579: Duplicate 'Derived' attribute
-                Diagnostic(ErrorCode.ERR_DuplicateAttribute, "Derived").WithArguments("Derived"),
+                //     [Derived('C')]
+                Diagnostic(ErrorCode.ERR_DuplicateAttribute, "Derived").WithArguments("Derived").WithLocation(8, 6),
                 // (13,6): error CS0579: Duplicate 'Base' attribute
-                Diagnostic(ErrorCode.ERR_DuplicateAttribute, @"Base").WithArguments("Base"));
+                //     [Base("")]
+                Diagnostic(ErrorCode.ERR_DuplicateAttribute, "Base").WithArguments("Base").WithLocation(13, 6));
         }
 
         [Fact]
@@ -3679,8 +3685,9 @@ class Class3 { }
             var compilation = CreateCompilationWithMscorlib(source);
 
             compilation.VerifyDiagnostics(
-                // (13,2): error CS0246: The type or namespace name '@X' could not be found (are you missing a using directive or an assembly reference?)
-                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "@X").WithArguments("@X"));
+                // (13,2): error CS0246: The type or namespace name 'X' could not be found (are you missing a using directive or an assembly reference?)
+                // [@X]                // Error: No attribute named X
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "@X").WithArguments("X").WithLocation(13, 2));
         }
 
         [Fact]
@@ -3733,7 +3740,7 @@ class X
                 );
         }
 
-        [WorkItem(540924, "DevDiv")]
+        [WorkItem(540924, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540924")]
         [Fact]
         public void AttributeEnumsAsAttributeParameters()
         {
@@ -3762,7 +3769,7 @@ public class MainClass
             compilation.VerifyDiagnostics();
         }
 
-        [WorkItem(768798, "DevDiv")]
+        [WorkItem(768798, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/768798")]
         [Fact(Skip = "768798")]
         public void AttributeInvalidTargetSpecifier()
         {
@@ -3785,7 +3792,7 @@ class X
                 Diagnostic(ErrorCode.WRN_AttributeLocationOnBadDeclaration, "method").WithArguments("method", "type"));
         }
 
-        [WorkItem(768798, "DevDiv")]
+        [WorkItem(768798, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/768798")]
         [Fact(Skip = "768798")]
         public void AttributeInvalidTargetSpecifierOnInvalidAttribute()
         {
@@ -3856,7 +3863,7 @@ public class Test
                 Diagnostic(ErrorCode.ERR_NoCorrespondingArgument, "AttributeUsage(AllowMultiple = true, AllowMultiple = false)").WithArguments("validOn", "System.AttributeUsageAttribute.AttributeUsageAttribute(System.AttributeTargets)").WithLocation(3, 2));
         }
 
-        [WorkItem(541059, "DevDiv")]
+        [WorkItem(541059, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541059")]
         [Fact]
         public void AttributeUsageIsNull()
         {
@@ -3881,7 +3888,7 @@ public class Foo
                 Diagnostic(ErrorCode.ERR_BadArgType, "null").WithArguments("1", "<null>", "System.AttributeTargets"));
         }
 
-        [WorkItem(541072, "DevDiv")]
+        [WorkItem(541072, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541072")]
         [Fact]
         public void AttributeContainsGeneric()
         {
@@ -3954,7 +3961,7 @@ class Foo<T>
                 Diagnostic(ErrorCode.ERR_AttributeCantBeGeneric, "Foo<int>").WithArguments("Foo<T>").WithLocation(2, 2));
         }
 
-        [WorkItem(541423, "DevDiv")]
+        [WorkItem(541423, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541423")]
         [Fact]
         public void ErrorsInMultipleSyntaxTrees()
         {
@@ -3980,7 +3987,7 @@ class B : Attribute
                 Diagnostic(ErrorCode.ERR_AttributeOnBadSymbolType, "B").WithArguments("B", "method").WithLocation(1, 10));
         }
 
-        [WorkItem(542533, "DevDiv")]
+        [WorkItem(542533, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542533")]
         [Fact]
         public void ErrorsInMultipleSyntaxTrees_TypeParam()
         {
@@ -4010,7 +4017,7 @@ class Gen<[A] T> {}
                 Diagnostic(ErrorCode.ERR_AttributeOnBadSymbolType, "B").WithArguments("B", "method").WithLocation(1, 13));
         }
 
-        [WorkItem(541423, "DevDiv")]
+        [WorkItem(541423, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541423")]
         [Fact]
         public void ErrorsInMultiplePartialDeclarations()
         {
@@ -4040,7 +4047,7 @@ partial class C
                 Diagnostic(ErrorCode.ERR_AttributeOnBadSymbolType, "B").WithArguments("B", "method").WithLocation(14, 2));
         }
 
-        [WorkItem(542533, "DevDiv")]
+        [WorkItem(542533, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542533")]
         [Fact]
         public void ErrorsInMultiplePartialDeclarations_TypeParam()
         {
@@ -4071,7 +4078,7 @@ partial class Gen<[B] T>
                 Diagnostic(ErrorCode.ERR_AttributeOnBadSymbolType, "B").WithArguments("B", "method").WithLocation(14, 20));
         }
 
-        [WorkItem(541505, "DevDiv")]
+        [WorkItem(541505, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541505")]
         [Fact]
         public void AttributeArgumentError_CS0120()
         {
@@ -4109,7 +4116,7 @@ class F
                 );
         }
 
-        [Fact, WorkItem(541427, "DevDiv")]
+        [Fact, WorkItem(541427, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541427")]
         public void AttributeTargetsString()
         {
             var source = @"
@@ -4140,7 +4147,7 @@ class Attr: Attribute { public Attr(){} }";
                 Diagnostic(ErrorCode.ERR_AttributeOnBadSymbolType, "Attr").WithArguments("Attr", "assembly"));
         }
 
-        [WorkItem(541259, "DevDiv")]
+        [WorkItem(541259, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541259")]
         [Fact]
         public void CS0182_NonConstantArrayCreationAttributeArgument()
         {
@@ -4183,7 +4190,7 @@ class A : Attribute
                 Diagnostic(ErrorCode.ERR_BadAttributeArgument, "new A[0]"));
         }
 
-        [WorkItem(541753, "DevDiv")]
+        [WorkItem(541753, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541753")]
         [Fact]
         public void CS0182_NestedArrays()
         {
@@ -4211,7 +4218,7 @@ class A : Attribute
                 Diagnostic(ErrorCode.ERR_BadAttributeArgument, "new int[][] { new int[] { 1 } }").WithLocation(4, 4));
         }
 
-        [WorkItem(541849, "DevDiv")]
+        [WorkItem(541849, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541849")]
         [Fact]
         public void CS0182_MultidimensionalArrays()
         {
@@ -4239,7 +4246,7 @@ class Program
                 Diagnostic(ErrorCode.ERR_BadAttributeParamType, "My").WithArguments("x", "int[][*,*]").WithLocation(8, 2));
         }
 
-        [WorkItem(541858, "DevDiv")]
+        [WorkItem(541858, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541858")]
         [Fact]
         public void AttributeDefaultValueArgument()
         {
@@ -4264,7 +4271,7 @@ namespace AttributeTest
             var compilation = CompileAndVerify(source, expectedOutput: "");
         }
 
-        [WorkItem(541858, "DevDiv")]
+        [WorkItem(541858, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541858")]
         [Fact]
         public void CS0416_GenericAttributeDefaultValueArgument()
         {
@@ -4299,7 +4306,7 @@ public class C<T>
                 Diagnostic(ErrorCode.ERR_AttrArgWithTypeVars, "typeof(E2)").WithArguments("C<T>.E2").WithLocation(17, 12));
         }
 
-        [WorkItem(541615, "DevDiv")]
+        [WorkItem(541615, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541615")]
         [Fact]
         public void CS0246_VarAttributeIdentifier()
         {
@@ -4312,6 +4319,9 @@ class Program
 ";
             var compilation = CreateCompilationWithMscorlib(source);
             compilation.VerifyDiagnostics(
+                // (2,2): error CS0246: The type or namespace name 'varAttribute' could not be found (are you missing a using directive or an assembly reference?)
+                // [var()]
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "var").WithArguments("varAttribute").WithLocation(2, 2),
                 // (2,2): error CS0246: The type or namespace name 'var' could not be found (are you missing a using directive or an assembly reference?)
                 // [var()]
                 Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "var").WithArguments("var").WithLocation(2, 2));
@@ -4366,7 +4376,7 @@ namespace AttributeTest
                 Diagnostic(ErrorCode.ERR_NamedArgumentSpecificationBeforeFixedArgument, "1").WithLocation(8, 17));
         }
 
-        [WorkItem(541877, "DevDiv")]
+        [WorkItem(541877, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541877")]
         [Fact]
         public void Bug8772_TestDelegateAttributeNameBinding()
         {
@@ -4969,7 +4979,7 @@ class A2 : System.Attribute { }
                 Diagnostic(ErrorCode.ERR_AmbiguousAttribute, "A").WithArguments("A", "A1", "A2").WithLocation(5, 2));
         }
 
-        [WorkItem(542279, "DevDiv")]
+        [WorkItem(542279, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542279")]
         [Fact]
         public void MethodSignatureAttributes()
         {
@@ -5036,7 +5046,7 @@ public class A : Attribute
                 Diagnostic(ErrorCode.ERR_BadAttributeArgument, "new decimal()").WithLocation(2, 8));
         }
 
-        [WorkItem(542533, "DevDiv")]
+        [WorkItem(542533, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542533")]
         [Fact]
         public void DuplicateAttributeOnTypeParameterOfPartialClass()
         {
@@ -5055,7 +5065,7 @@ partial class C<[A][A] T> { }
                 Diagnostic(ErrorCode.ERR_DuplicateAttribute, @"A").WithArguments("A"));
         }
 
-        [WorkItem(542486, "DevDiv")]
+        [WorkItem(542486, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542486")]
         [Fact]
         public void MethodParameterScope()
         {
@@ -5105,7 +5115,7 @@ class C
             }
         }
 
-        [WorkItem(542486, "DevDiv")]
+        [WorkItem(542486, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542486")]
         [Fact]
         public void MethodTypeParameterScope()
         {
@@ -5145,7 +5155,7 @@ class C
             Assert.Equal(CandidateReason.None, info.CandidateReason);
         }
 
-        [WorkItem(542625, "DevDiv")]
+        [WorkItem(542625, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542625")]
         [Fact]
         public void DuplicateAttributeOnPartialMethod()
         {
@@ -5175,7 +5185,7 @@ partial class C
                 Diagnostic(ErrorCode.ERR_DuplicateAttribute, @"B").WithArguments("B"));
         }
 
-        [WorkItem(542625, "DevDiv")]
+        [WorkItem(542625, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542625")]
         [Fact]
         public void DuplicateAttributeOnTypeParameterOfPartialMethod()
         {
@@ -5234,7 +5244,7 @@ partial class C
                 Diagnostic(ErrorCode.WRN_UnreferencedField, "Foo3").WithArguments("C.Foo3"));
         }
 
-        [WorkItem(542625, "DevDiv")]
+        [WorkItem(542625, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542625")]
         [Fact]
         public void DuplicateAttributeOnParameterOfPartialMethod()
         {
@@ -5308,7 +5318,7 @@ partial class C
             CompileAndVerify(source);
         }
 
-        [WorkItem(543456, "DevDiv")]
+        [WorkItem(543456, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543456")]
         [Fact]
         public void StructLayoutFieldsAreUsed()
         {
@@ -5322,7 +5332,7 @@ struct S
             CreateCompilationWithMscorlib(source).VerifyDiagnostics();
         }
 
-        [WorkItem(542662, "DevDiv")]
+        [WorkItem(542662, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542662")]
         [Fact]
         public void FalseDuplicateOnPartial()
         {
@@ -5350,7 +5360,7 @@ partial class Program
             CompileAndVerify(source, expectedOutput: "1");
         }
 
-        [WorkItem(542652, "DevDiv")]
+        [WorkItem(542652, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542652")]
         [Fact]
         public void Bug9958()
         {
@@ -5376,7 +5386,7 @@ partial class C
                 Diagnostic(ErrorCode.ERR_PartialMethodMustHaveLatent, "Foo").WithArguments("C.Foo<>()"));
         }
 
-        [WorkItem(542909, "DevDiv")]
+        [WorkItem(542909, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542909")]
         [Fact]
         public void OverriddenPropertyMissingAccessor()
         {
@@ -5403,7 +5413,7 @@ class C
             CreateCompilationWithMscorlib(source).VerifyDiagnostics();
         }
 
-        [WorkItem(542899, "DevDiv")]
+        [WorkItem(542899, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542899")]
         [Fact]
         public void TwoSyntaxTrees()
         {
@@ -5424,7 +5434,7 @@ using EnterpriseLibraryExtensions;
             compilation.GetDiagnostics();
         }
 
-        [WorkItem(543785, "DevDiv")]
+        [WorkItem(543785, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543785")]
         [Fact]
         public void OpenGenericTypesUsedAsAttributeArgs()
         {
@@ -5439,18 +5449,21 @@ class Gen<T>
             Assert.NotEmpty(compilation.GetDiagnostics());
 
             compilation.VerifyDiagnostics(
+                // (4,6): error CS0246: The type or namespace name 'TypeAttributeAttribute' could not be found (are you missing a using directive or an assembly reference?)
+                //     [TypeAttribute(typeof(L1.L2.L3<>.L4<>))] public T Fld6;
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "TypeAttribute").WithArguments("TypeAttributeAttribute").WithLocation(4, 6),
                 // (4,6): error CS0246: The type or namespace name 'TypeAttribute' could not be found (are you missing a using directive or an assembly reference?)
                 //     [TypeAttribute(typeof(L1.L2.L3<>.L4<>))] public T Fld6;
-                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "TypeAttribute").WithArguments("TypeAttribute"),
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "TypeAttribute").WithArguments("TypeAttribute").WithLocation(4, 6),
                 // (4,27): error CS0246: The type or namespace name 'L1' could not be found (are you missing a using directive or an assembly reference?)
                 //     [TypeAttribute(typeof(L1.L2.L3<>.L4<>))] public T Fld6;
-                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "L1").WithArguments("L1"),
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "L1").WithArguments("L1").WithLocation(4, 27),
                 // (4,55): warning CS0649: Field 'Gen<T>.Fld6' is never assigned to, and will always have its default value 
                 //     [TypeAttribute(typeof(L1.L2.L3<>.L4<>))] public T Fld6;
-                Diagnostic(ErrorCode.WRN_UnassignedInternalField, "Fld6").WithArguments("Gen<T>.Fld6", ""));
+                Diagnostic(ErrorCode.WRN_UnassignedInternalField, "Fld6").WithArguments("Gen<T>.Fld6", "").WithLocation(4, 55));
         }
 
-        [WorkItem(543914, "DevDiv")]
+        [WorkItem(543914, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543914")]
         [Fact]
         public void OpenGenericTypeInAttribute()
         {
@@ -5513,7 +5526,7 @@ public class Test
                 Diagnostic(ErrorCode.ERR_AttributeCantBeGeneric, "Gen2").WithArguments("Gen2<T>"));
         }
 
-        [WorkItem(544230, "DevDiv")]
+        [WorkItem(544230, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544230")]
         [Fact]
         public void Warnings_Unassigned_Unreferenced_AttributeTypeFields()
         {
@@ -5546,7 +5559,7 @@ class B : Attribute
                 Diagnostic(ErrorCode.WRN_UnassignedInternalField, "InternalField").WithArguments("B.InternalField", "null"));
         }
 
-        [WorkItem(544230, "DevDiv")]
+        [WorkItem(544230, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544230")]
         [Fact]
         public void No_Warnings_For_Assigned_AttributeTypeFields()
         {
@@ -5584,7 +5597,7 @@ class A : Attribute
                 Diagnostic(ErrorCode.ERR_BadNamedAttributeArgument, "InternalField").WithArguments("InternalField"));
         }
 
-        [WorkItem(544351, "DevDiv")]
+        [WorkItem(544351, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544351")]
         [Fact]
         public void CS0182_ERR_BadAttributeArgument_Bug_12638()
         {
@@ -5605,7 +5618,7 @@ class A : Attribute
                 Diagnostic(ErrorCode.ERR_BadAttributeArgument, "new Array[] { new[] { 1 } }").WithLocation(4, 8));
         }
 
-        [WorkItem(544348, "DevDiv")]
+        [WorkItem(544348, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544348")]
         [Fact]
         public void CS0182_ERR_BadAttributeArgument_WithConversions()
         {
@@ -5623,7 +5636,7 @@ class A : Attribute
                 Diagnostic(ErrorCode.ERR_BadAttributeArgument, @"(int)(object)""ABC""").WithLocation(3, 4));
         }
 
-        [WorkItem(544348, "DevDiv")]
+        [WorkItem(544348, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544348")]
         [Fact]
         public void CS0182_ERR_BadAttributeArgument_WithConversions_02()
         {
@@ -5651,7 +5664,7 @@ class B : Attribute
                 Diagnostic(ErrorCode.ERR_BadAttributeArgument, @"(object[])(object)(new string[] { ""a"", null })").WithLocation(9, 4));
         }
 
-        [WorkItem(529392, "DevDiv")]
+        [WorkItem(529392, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529392")]
         [Fact]
         public void CS0182_ERR_BadAttributeArgument_OpenType_ConstantValue()
         {
@@ -5694,7 +5707,7 @@ class C<T>
                 Diagnostic(ErrorCode.ERR_BadAttributeArgument, "C<T>.E.V").WithLocation(11, 12));
         }
 
-        [WorkItem(529392, "DevDiv")]
+        [WorkItem(529392, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529392")]
         [Fact]
         public void AttributeArgument_ConstructedType_ConstantValue()
         {
@@ -5721,7 +5734,7 @@ public class C<T>
             CompileAndVerify(source, expectedOutput: "");
         }
 
-        [WorkItem(544512, "DevDiv")]
+        [WorkItem(544512, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544512")]
         [Fact]
         public void LambdaInAttributeArg()
         {
@@ -5754,7 +5767,7 @@ class X
                 Diagnostic(ErrorCode.ERR_BadNamedAttributeArgumentType, "d").WithArguments("d").WithLocation(14, 9));
         }
 
-        [WorkItem(544590, "DevDiv")]
+        [WorkItem(544590, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544590")]
         [Fact]
         public void LambdaInAttributeArg2()
         {
@@ -5786,7 +5799,7 @@ public class Class1 {
                 Diagnostic(ErrorCode.WRN_UnreferencedEvent, "Click").WithArguments("Class1.Click"));
         }
 
-        [WorkItem(545030, "DevDiv")]
+        [WorkItem(545030, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545030")]
         [Fact]
         public void UserDefinedAttribute_Bug13264()
         {
@@ -5812,7 +5825,7 @@ namespace System
                 Diagnostic(ErrorCode.WRN_SameFullNameThisAggAgg, "Object").WithArguments("", "System.Object", "mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089", "object"));
         }
 
-        [WorkItem(545241, "DevDiv")]
+        [WorkItem(545241, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545241")]
         [Fact]
         public void ConditionalAttributeOnAttribute()
         {
@@ -5860,7 +5873,7 @@ class Test
             CompileAndVerify(source, sourceSymbolValidator: sourceValidator, symbolValidator: metadataValidator);
         }
 
-        [WorkItem(545499, "DevDiv")]
+        [WorkItem(545499, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545499")]
         [Fact]
         public void IncompleteMethodParamAttribute()
         {
@@ -5881,7 +5894,7 @@ public class Test
             Assert.NotEmpty(compilation.GetDiagnostics());
         }
 
-        [Fact, WorkItem(545556, "DevDiv")]
+        [Fact, WorkItem(545556, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545556")]
         public void NameLookupInDelegateParameterAttribute()
         {
             var source = @"
@@ -5901,7 +5914,7 @@ class A : Attribute
                 Diagnostic(ErrorCode.ERR_BadArgType, "Equals").WithArguments("1", "method group", "int"));
         }
 
-        [Fact, WorkItem(546234, "DevDiv")]
+        [Fact, WorkItem(546234, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546234")]
         public void AmbiguousClassNamespaceLookup()
         {
             // One from source, one from PE
@@ -6037,7 +6050,7 @@ class Foo: Attribute
                 Diagnostic(ErrorCode.ERR_NotAnAttributeClass, "X").WithArguments("X"));
         }
 
-        [WorkItem(546283, "DevDiv")]
+        [WorkItem(546283, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546283")]
         [Fact]
         public void ApplyIndexerNameAttributeTwice()
         {
@@ -6064,7 +6077,7 @@ public class IA
             Assert.Equal("ItemX", indexer.MetadataName); //First one wins.
         }
 
-        [WorkItem(530524, "DevDiv")]
+        [WorkItem(530524, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530524")]
         [Fact]
         public void PEMethodSymbolExtensionAttribute1()
         {
@@ -6107,7 +6120,7 @@ public class IA
             Assert.True(method.IsExtensionMethod);
         }
 
-        [WorkItem(530524, "DevDiv")]
+        [WorkItem(530524, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530524")]
         [Fact]
         public void PEMethodSymbolExtensionAttribute2()
         {
@@ -6150,7 +6163,7 @@ public class IA
             Assert.True(method.IsExtensionMethod);
         }
 
-        [WorkItem(530524, "DevDiv")]
+        [WorkItem(530524, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530524")]
         [Fact]
         public void PEMethodSymbolExtensionAttribute3()
         {
@@ -6197,7 +6210,7 @@ public class IA
             Assert.False(method.IsExtensionMethod);
         }
 
-        [WorkItem(530310, "DevDiv")]
+        [WorkItem(530310, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530310")]
         [Fact]
         public void PEParameterSymbolParamArrayAttribute()
         {
@@ -6236,7 +6249,7 @@ public class IA
             Assert.Equal(0, yParam.GetAttributes().Length);
         }
 
-        [WorkItem(546490, "DevDiv")]
+        [WorkItem(546490, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546490")]
         [Fact]
         public void Bug15984()
         {
@@ -6273,7 +6286,7 @@ public class IA
             Assert.Equal(0, type.GetAttributes()[0].ConstructorArguments.Count());
         }
 
-        [WorkItem(611177, "DevDiv")]
+        [WorkItem(611177, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/611177")]
         [Fact]
         public void GenericAttributeType()
         {
@@ -6352,7 +6365,7 @@ public class C<T, U> : Attribute
                 Diagnostic(ErrorCode.ERR_GenericDerivingFromAttribute, "Attribute").WithArguments("System.Attribute"));
         }
 
-        [WorkItem(611177, "DevDiv")]
+        [WorkItem(611177, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/611177")]
         [Fact]
         public void AliasedGenericAttributeType_Source()
         {
@@ -6389,7 +6402,7 @@ public class C<T> : Attribute
                 Diagnostic(ErrorCode.ERR_GenericDerivingFromAttribute, "Attribute").WithArguments("System.Attribute"));
         }
 
-        [WorkItem(611177, "DevDiv")]
+        [WorkItem(611177, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/611177")]
         [Fact]
         public void AliasedGenericAttributeType_Metadata()
         {
@@ -6433,7 +6446,7 @@ class Test
                 Diagnostic(ErrorCode.ERR_AttributeCantBeGeneric, "Alias<int>").WithArguments("C<int>"));
         }
 
-        [WorkItem(611177, "DevDiv")]
+        [WorkItem(611177, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/611177")]
         [Fact]
         public void AliasedGenericAttributeType_Nested()
         {
@@ -6469,7 +6482,7 @@ public class Outer<T>
             Diagnostic(ErrorCode.ERR_AttributeCantBeGeneric, "Inner").WithArguments("Outer<int>.Inner"));
         }
 
-        [WorkItem(687816, "DevDiv")]
+        [WorkItem(687816, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/687816")]
         [Fact]
         public void VerbatimAliasVersusNonVerbatimAlias()
         {
@@ -6495,7 +6508,7 @@ class Program
                 Diagnostic(ErrorCode.ERR_AmbiguousAttribute, "Action").WithArguments("Action", "A.ActionAttribute", "A.ActionAttribute"));
         }
 
-        [WorkItem(687816, "DevDiv")]
+        [WorkItem(687816, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/687816")]
         [Fact]
         public void DeclarationVersusNonVerbatimAlias()
         {
@@ -6521,7 +6534,7 @@ class Program
                 Diagnostic(ErrorCode.ERR_AmbiguousAttribute, "Action").WithArguments("Action", "A.ActionAttribute", "A.ActionAttribute"));
         }
 
-        [WorkItem(728865, "DevDiv")]
+        [WorkItem(728865, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/728865")]
         [Fact]
         public void Repro728865()
         {
@@ -6621,7 +6634,7 @@ The type of the attribute is Microsoft.Yeti.CartesianRowDataAttribute
 ");
         }
 
-        [WorkItem(728865, "DevDiv")]
+        [WorkItem(728865, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/728865")]
         [Fact]
         public void StringArrayArgument1()
         {
@@ -6695,7 +6708,7 @@ public class ArrayOrObjectAttribute : Attribute
             attrs3[2].VerifyValue(0, TypedConstantKind.Array, value3);
         }
 
-        [WorkItem(728865, "DevDiv")]
+        [WorkItem(728865, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/728865")]
         [Fact]
         public void StringArrayArgument2()
         {
@@ -6783,7 +6796,7 @@ public class ParamArrayOrObjectAttribute : Attribute
             attrs4[2].VerifyValue(0, TypedConstantKind.Primitive, "A");
         }
 
-        [WorkItem(728865, "DevDiv")]
+        [WorkItem(728865, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/728865")]
         [Fact]
         public void StringArrayArgument3()
         {
@@ -6865,7 +6878,7 @@ public class StringOrObjectAttribute : Attribute
             attrs4[2].VerifyValue(0, TypedConstantKind.Array, value4);
         }
 
-        [WorkItem(728865, "DevDiv")]
+        [WorkItem(728865, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/728865")]
         [Fact]
         public void IntArrayArgument1()
         {
@@ -6932,7 +6945,7 @@ public class ArrayOrObjectAttribute : Attribute
             attrs3[2].VerifyValue(0, TypedConstantKind.Array, value3);
         }
 
-        [WorkItem(728865, "DevDiv")]
+        [WorkItem(728865, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/728865")]
         [Fact]
         public void IntArrayArgument2()
         {
@@ -7013,7 +7026,7 @@ public class ParamArrayOrObjectAttribute : Attribute
             attrs4[2].VerifyValue(0, TypedConstantKind.Primitive, 1);
         }
 
-        [WorkItem(728865, "DevDiv")]
+        [WorkItem(728865, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/728865")]
         [Fact]
         public void IntArrayArgument3()
         {
@@ -7092,7 +7105,7 @@ public class IntOrObjectAttribute : Attribute
             attrs4[2].VerifyValue(0, TypedConstantKind.Array, value4);
         }
 
-        [WorkItem(739630, "DevDiv")]
+        [WorkItem(739630, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/739630")]
         [Fact]
         public void NullVersusEmptyArray()
         {
@@ -7159,7 +7172,7 @@ public class Test
         }
 
         [Fact]
-        [WorkItem(530266, "DevDiv")]
+        [WorkItem(530266, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530266")]
         public void UnboundGenericTypeInTypedConstant()
         {
             var source = @"
@@ -7195,7 +7208,7 @@ class Target<T>
             Assert.Equal("Target<>", typeInAttribute.ToTestDisplayString());
         }
 
-        [Fact, WorkItem(1020038, "DevDiv")]
+        [Fact, WorkItem(1020038, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1020038")]
         public void Bug1020038()
         {
             var source1 = @"
@@ -7244,7 +7257,7 @@ class Test
             });
         }
 
-        [Fact, WorkItem(937575, "DevDiv"), WorkItem(121, "CodePlex")]
+        [Fact, WorkItem(937575, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/937575"), WorkItem(121, "CodePlex")]
         public void Bug937575()
         {
             var source = @"
@@ -7268,7 +7281,7 @@ class C<T>
             });
         }
 
-        [WorkItem(1144603, "DevDiv")]
+        [WorkItem(1144603, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1144603")]
         [Fact]
         public void EmitMetadataOnlyInPresenceOfErrors()
         {

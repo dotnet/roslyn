@@ -339,7 +339,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 return false;
             }
 
-            if (member1.GetParameterCount() > 0 && !HaveSameParameterTypes(member1.GetParameters(), typeMap1, member2.GetParameters(), typeMap2, 
+            if (member1.GetParameterCount() > 0 && !HaveSameParameterTypes(member1.GetParameters(), typeMap1, member2.GetParameters(), typeMap2,
                                                                            _considerRefOutDifference, _considerCustomModifiers, _ignoreDynamic))
             {
                 return false;
@@ -408,7 +408,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             int hash = 1;
             if ((object)member != null)
             {
-                hash = Hash.Combine(hash, (int)member.Kind);
+                hash = Hash.Combine((int)member.Kind, hash);
 
                 if (_considerName)
                 {
@@ -416,15 +416,25 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     // CONSIDER: could use interface type, but that might be quite expensive
                 }
 
-                if (_considerReturnType && member.GetMemberArity() == 0 && !_considerCustomModifiers) // If it is generic, then type argument might be in return type.
+                if (_considerReturnType)
                 {
-                    hash = Hash.Combine(member.GetTypeOrReturnType(), hash);
+                    RefKind refKind;
+                    TypeSymbol returnType;
+                    ImmutableArray<CustomModifier> returnTypeCustomModifiers;
+                    member.GetTypeOrReturnType(out refKind, out returnType, out returnTypeCustomModifiers);
+
+                    hash = Hash.Combine((int)refKind, hash);
+
+                    if (member.GetMemberArity() == 0 && !_considerCustomModifiers) // If it is generic, then type argument might be in return type.
+                    {
+                        hash = Hash.Combine(returnType, hash);
+                    }
                 }
 
                 // CONSIDER: modify hash for constraints?
 
-                hash = Hash.Combine(hash, member.GetMemberArity());
-                hash = Hash.Combine(hash, member.GetParameterCount());
+                hash = Hash.Combine(member.GetMemberArity(), hash);
+                hash = Hash.Combine(member.GetParameterCount(), hash);
             }
             return hash;
         }
@@ -438,15 +448,22 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         private static bool HaveSameReturnTypes(Symbol member1, TypeMap typeMap1, Symbol member2, TypeMap typeMap2, bool considerCustomModifiers, bool ignoreDynamic)
         {
+            RefKind refKind1;
             TypeSymbol unsubstitutedReturnType1;
             ImmutableArray<CustomModifier> returnTypeCustomModifiers1;
-            member1.GetTypeOrReturnType(out unsubstitutedReturnType1, out returnTypeCustomModifiers1);
+            member1.GetTypeOrReturnType(out refKind1, out unsubstitutedReturnType1, out returnTypeCustomModifiers1);
 
+            RefKind refKind2;
             TypeSymbol unsubstitutedReturnType2;
             ImmutableArray<CustomModifier> returnTypeCustomModifiers2;
-            member2.GetTypeOrReturnType(out unsubstitutedReturnType2, out returnTypeCustomModifiers2);
+            member2.GetTypeOrReturnType(out refKind2, out unsubstitutedReturnType2, out returnTypeCustomModifiers2);
 
             // short-circuit type map building in the easiest cases
+            if ((refKind1 != RefKind.None) != (refKind2 != RefKind.None))
+            {
+                return false;
+            }
+
             var isVoid1 = unsubstitutedReturnType1.SpecialType == SpecialType.System_Void;
             var isVoid2 = unsubstitutedReturnType2.SpecialType == SpecialType.System_Void;
 
@@ -595,7 +612,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        private static bool HaveSameParameterTypes(ImmutableArray<ParameterSymbol> params1, TypeMap typeMap1, ImmutableArray<ParameterSymbol> params2, TypeMap typeMap2, 
+        private static bool HaveSameParameterTypes(ImmutableArray<ParameterSymbol> params1, TypeMap typeMap1, ImmutableArray<ParameterSymbol> params2, TypeMap typeMap2,
                                                    bool considerRefOutDifference, bool considerCustomModifiers, bool ignoreDynamic)
         {
             Debug.Assert(params1.Length == params2.Length);

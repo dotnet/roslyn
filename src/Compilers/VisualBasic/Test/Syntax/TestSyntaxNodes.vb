@@ -1,6 +1,7 @@
 ' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports System.Globalization
+Imports System.Text
 Imports Microsoft.CodeAnalysis
 Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
@@ -1823,7 +1824,7 @@ End Module
             Assert.Equal(vbLf, newline.ToString)
         End Sub
 
-        <Fact, WorkItem(789824, "DevDiv"), WorkItem(530316, "DevDiv")>
+        <Fact, WorkItem(789824, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/789824"), WorkItem(530316, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530316")>
         Public Sub TestGetPreviousToken()
             Dim prog = ParseAndVerify(<![CDATA[
 Module Module1
@@ -1871,7 +1872,7 @@ End Module
             Assert.Equal(SyntaxKind.IdentifierToken, listToken.Kind)
         End Sub
 
-        <Fact, WorkItem(789824, "DevDiv"), WorkItem(530316, "DevDiv")>
+        <Fact, WorkItem(789824, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/789824"), WorkItem(530316, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530316")>
         Public Sub TestGetNextSibling()
             Dim prog = ParseAndVerify(<![CDATA[Module Module1
     dim xxxx ::: Dim yyyy
@@ -1889,7 +1890,7 @@ End Module
 
         End Sub
 
-        <Fact, WorkItem(789824, "DevDiv"), WorkItem(530316, "DevDiv")>
+        <Fact, WorkItem(789824, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/789824"), WorkItem(530316, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530316")>
         Public Sub TestGetPreviousSibling()
             Dim prog = ParseAndVerify(<![CDATA[Module Module1
     dim xxxx ::: Dim yyyy
@@ -1977,7 +1978,7 @@ End Module
 
         End Sub
 
-        <WorkItem(537404, "DevDiv")>
+        <WorkItem(537404, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/537404")>
         <Fact>
         Public Sub TestNodeTokenConversion01()
             Dim prog = ParseAndVerify(<![CDATA[ Class A
@@ -2003,7 +2004,7 @@ End Class
             Assert.Equal(sN.Width, cS.Span.Length)
         End Sub
 
-        <WorkItem(537403, "DevDiv")>
+        <WorkItem(537403, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/537403")>
         <Fact>
         Public Sub TestNodeTokenConversion02()
 
@@ -2014,15 +2015,15 @@ End Class
 
         End Sub
 
-        <WorkItem(537673, "DevDiv")>
+        <WorkItem(537673, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/537673")>
         <Fact>
         Public Sub SyntaxTriviaDefaultIsDirective()
             Dim trivia As New SyntaxTrivia()
             Assert.False(trivia.IsDirective)
         End Sub
 
-        <WorkItem(538362, "DevDiv")>
-        <Fact, WorkItem(530316, "DevDiv")>
+        <WorkItem(538362, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538362")>
+        <Fact, WorkItem(530316, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530316")>
         Public Sub TestGetNextTokenCommon()
             Dim tree As SyntaxTree = VisualBasicSyntaxTree.ParseText("public class foo : end class")
 
@@ -2054,8 +2055,9 @@ End Class
             Debug.Assert(lastToken.Kind = SyntaxKind.EndOfFileToken)
         End Sub
 
-        <WorkItem(755236, "DevDiv")>
-        <Fact(Skip:="802431")>
+        <WorkItem(755236, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/755236")>
+        <WorkItem(9896, "https://github.com/dotnet/roslyn/issues/9896")>
+        <Fact>
         Public Sub TestFindNode()
             Dim code = <code><![CDATA[
 ''' <see cref="Foo"/>
@@ -2078,7 +2080,8 @@ End Class]]>
             Dim position = identifier.Span.Start + 1
 
             Assert.Equal(classStatement, root.FindNode(identifier.Span, findInsideTrivia:=False))
-            Assert.Equal(identifier, root.FindNode(identifier.Span, findInsideTrivia:=True))
+            Assert.Equal(identifier.Parent, root.FindNode(identifier.Span, findInsideTrivia:=True))
+            Assert.Equal(identifier.Parent.Span, identifier.Span)
 
             ' Token span.
             Assert.Equal(classStatement, root.FindNode(classStatement.Identifier.Span, findInsideTrivia:=False))
@@ -2151,7 +2154,7 @@ End Class]]>
             Next
         End Sub
 
-        <WorkItem(539940, "DevDiv")>
+        <WorkItem(539940, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539940")>
         <Fact>
         Public Sub TestFindTriviaNoTriviaExistsAtPosition()
             Dim code = <code>Class Foo
@@ -2283,7 +2286,7 @@ End Class</code>.Value
             Assert.Equal(SyntaxKind.TrueLiteralExpression, nodes(4).Kind)
         End Sub
 
-        <Fact, WorkItem(530316, "DevDiv")>
+        <Fact, WorkItem(530316, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530316")>
         Public Sub TestDescendantTrivia()
             Dim text = <![CDATA[' Foo
 a + b
@@ -2298,7 +2301,7 @@ a + b
             Assert.Equal(SyntaxKind.WhitespaceTrivia, list(3).Kind)
         End Sub
 
-        <Fact, WorkItem(530316, "DevDiv")>
+        <Fact, WorkItem(530316, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530316")>
         Public Sub TestDescendantTriviaIntoStructuredTrivia()
             Dim text = <![CDATA[
 ''' <foo >
@@ -2513,7 +2516,7 @@ End Class
 
         End Sub
 
-        <Fact, WorkItem(530316, "DevDiv")>
+        <Fact, WorkItem(530316, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530316")>
         Public Sub TestRemove_KeepExternalTrivia_KeepUnbalancedDirectives()
             Dim text = <![CDATA[
 #If True
@@ -2654,7 +2657,7 @@ End Module
             Assert.Equal(ChangesFromTransform, changes2UsingCommonSyntax)
         End Sub
 
-        <Fact, WorkItem(658329, "DevDiv")>
+        <Fact, WorkItem(658329, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/658329")>
         Public Sub TestSyntaxTree_GetChangesInValid()
             'GetChanges with two Scenarios where either new or old tree is nothing
             Dim SourceText = <String>
@@ -2676,7 +2679,7 @@ End Module
             Assert.Throws(Of ArgumentNullException)(Sub() FirstImportsClause.SyntaxTree.GetChanges(BlankTree))
         End Sub
 
-        <Fact, WorkItem(658329, "DevDiv")>
+        <Fact, WorkItem(658329, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/658329")>
         Public Sub TestSyntaxTree_GetChangeSpans()
             Dim oldTree = VisualBasicSyntaxTree.ParseText("class A : End Class")
             Dim newTree = oldTree.WithInsertAt(0, "class B : End Class")
@@ -2937,7 +2940,9 @@ End Module
             compilation.VerifyDiagnostics()
         End Sub
 
-        <Fact(Skip:="658398")>
+        <Fact>
+        <WorkItem(111538, "https://devdiv.visualstudio.com/defaultcollection/DevDiv/_workitems?_a=edit&id=111538")>
+        <WorkItem(658398, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems?_a=edit&id=658398")>
         Public Sub Test_UnaryOperatorsInvalid()
             'Added for Code Coverage 
             Dim compilationDef =
@@ -2982,8 +2987,42 @@ End Module
 </compilation>
 
             Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(compilationDef)
-            compilation.VerifyDiagnostics()
-            'TODO add the appropriate errors once bug is fixed
+            compilation.AssertTheseDiagnostics(
+<expected>
+BC30487: Operator '-' is not defined for type 'Char'.
+#If -"1"c Then
+~~~~~~~~~~~~~~
+BC30487: Operator '+' is not defined for type 'String'.
+#If +"1" Then
+~~~~~~~~~~~~~
+BC30487: Operator '+' is not defined for type 'Char'.
+#If +" "c Then
+~~~~~~~~~~~~~~
+BC30037: Character is not valid.
+#If +"test"$ Then
+           ~
+BC30205: End of statement expected.
+#If +"test"$ Then
+           ~
+BC30487: Operator 'Not' is not defined for type 'Char'.
+#If Not " "c Then
+~~~~~~~~~~~~~~~~~
+BC30037: Character is not valid.
+#If NOT "test"$ Then
+              ~
+BC30205: End of statement expected.
+#If NOT "test"$ Then
+              ~
+BC31427: Syntax error in conditional compilation expression.
+#If - Then
+      ~~~~
+BC31427: Syntax error in conditional compilation expression.
+#If + Then
+      ~~~~
+BC31427: Syntax error in conditional compilation expression.
+#If NOT Then
+        ~~~~
+</expected>)
         End Sub
 
         <Fact>
@@ -3139,6 +3178,27 @@ End Module
             Dim Root As CompilationUnitSyntax = CType(tree.GetRoot(), CompilationUnitSyntax)
             Dim x = Root.GetDirectives()
             Assert.Equal(1, x.Count)
+        End Sub
+
+
+        <WorkItem(6536, "https://github.com/dotnet/roslyn/issues/6536")>
+        <Fact>
+        Public Sub TestFindTrivia_NoStackOverflowOnLargeExpression()
+            Dim code As New StringBuilder()
+            code.Append(<![CDATA[
+Module Module1
+     Sub Test()
+         Dim c =  ]]>.Value)
+            For i = 0 To 3000
+                code.Append("""asdf"" + ")
+            Next
+            code.AppendLine(<![CDATA["last"
+    End Sub
+End Module]]>.Value)
+
+            Dim tree = VisualBasicSyntaxTree.ParseText(code.ToString())
+            Dim trivia = tree.GetRoot().FindTrivia(4000)
+            ' no stack overflow
         End Sub
 
 #Region "Equality Verifications"

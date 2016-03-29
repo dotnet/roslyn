@@ -9,7 +9,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Outlining
 {
     public class OutliningSpanTests
     {
-        [WpfFact]
+        [Fact]
         public void TestProperties()
         {
             var span = TextSpan.FromBounds(0, 1);
@@ -25,7 +25,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Outlining
             Assert.Equal(autoCollapse, outliningRegion.AutoCollapse);
         }
 
-        [WpfFact]
+        [Fact]
         public void TestToStringWithHintSpan()
         {
             var span = TextSpan.FromBounds(0, 1);
@@ -38,7 +38,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Outlining
             Assert.Equal("{Span=[0..1), HintSpan=[2..3), BannerText=\"Foo\", AutoCollapse=True, IsDefaultCollapsed=False}", outliningRegion.ToString());
         }
 
-        [WpfFact]
+        [Fact]
         public void TestToStringWithoutHintSpan()
         {
             var span = TextSpan.FromBounds(0, 1);

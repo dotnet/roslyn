@@ -1,6 +1,7 @@
 // Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Linq;
+using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.Editor.CSharp.UnitTests;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
@@ -25,30 +26,30 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.QuickInfo
             return string.Concat(System.Environment.NewLine, formattedCode);
         }
 
-        protected void TestInMethodAndScript(string code, string expectedContent, string expectedDocumentationComment = null)
+        protected async Task TestInMethodAndScriptAsync(string code, string expectedContent, string expectedDocumentationComment = null)
         {
-            TestInMethod(code, expectedContent, expectedDocumentationComment);
-            TestInScript(code, expectedContent, expectedDocumentationComment);
+            await TestInMethodAsync(code, expectedContent, expectedDocumentationComment);
+            await TestInScriptAsync(code, expectedContent, expectedDocumentationComment);
         }
 
-        protected abstract void TestInClass(string code, string expectedContent, string expectedDocumentationComment = null);
+        protected abstract Task TestInClassAsync(string code, string expectedContent, string expectedDocumentationComment = null);
 
-        protected abstract void TestInMethod(string code, string expectedContent, string expectedDocumentationComment = null);
+        protected abstract Task TestInMethodAsync(string code, string expectedContent, string expectedDocumentationComment = null);
 
-        protected abstract void TestInScript(string code, string expectedContent, string expectedDocumentationComment = null);
+        protected abstract Task TestInScriptAsync(string code, string expectedContent, string expectedDocumentationComment = null);
 
-        protected abstract void Test(
+        protected abstract Task TestAsync(
             string code,
             string expectedContent,
             string expectedDocumentationComment = null,
             CSharpParseOptions parseOptions = null);
 
-        protected abstract void AssertNoContent(
+        protected abstract Task AssertNoContentAsync(
             TestWorkspace workspace,
             Document document,
             int position);
 
-        protected abstract void AssertContentIs(
+        protected abstract Task AssertContentIsAsync(
             TestWorkspace workspace,
             Document document,
             int position,

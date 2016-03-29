@@ -8,6 +8,7 @@ using System.Reflection.Metadata.Ecma335;
 using System.Reflection.PortableExecutable;
 using System.Text;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
+using Microsoft.CodeAnalysis.Emit;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.MetadataUtilities;
 using Roslyn.Test.Utilities;
@@ -444,7 +445,7 @@ namespace X
 </symbols>");
         }
 
-        [Fact, WorkItem(1120579)]
+        [Fact, WorkItem(1120579, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1120579")]
         public void TestExternAliases2()
         {
             string source1 = @"
@@ -492,7 +493,7 @@ class A { void M() {  } }
 ");
         }
 
-        [Fact, WorkItem(1120579)]
+        [Fact, WorkItem(1120579, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1120579")]
         public void TestExternAliases3()
         {
             string source1 = @"
@@ -865,7 +866,7 @@ namespace X
 </symbols>");
         }
 
-        [Fact, WorkItem(913022, "DevDiv")]
+        [Fact, WorkItem(913022, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/913022")]
         public void ReferenceWithMultipleAliases()
         {
             var source1 = @"
@@ -935,7 +936,7 @@ public class C
 ");
         }
 
-        [Fact, WorkItem(913022, "DevDiv")]
+        [Fact, WorkItem(913022, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/913022")]
         public void ReferenceWithGlobalAndDuplicateAliases()
         {
             var source1 = @"
@@ -1690,7 +1691,7 @@ class C : I1, I2
 </symbols>");
         }
 
-        [WorkItem(692496, "DevDiv")]
+        [WorkItem(692496, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/692496")]
         [Fact]
         public void SequencePointOnUsingExpression()
         {
@@ -1833,7 +1834,7 @@ class Test { static void Main() { } }
 </symbols>");
         }
 
-        [WorkItem(842479, "DevDiv")]
+        [WorkItem(842479, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/842479")]
         [Fact]
         public void UsingExternAlias()
         {
@@ -1884,7 +1885,7 @@ namespace N
 </symbols>");
         }
 
-        [WorkItem(842478, "DevDiv")]
+        [WorkItem(842478, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/842478")]
         [Fact]
         public void AliasIncludingDynamic()
         {
@@ -1958,7 +1959,7 @@ public class Test : IDisposable
 }", TestOptions.ReleaseExe, methodName: "Test.Main");
         }
 
-        [WorkItem(546754, "DevDiv")]
+        [WorkItem(546754, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546754")]
         [Fact]
         public void ArrayType()
         {
@@ -2019,7 +2020,7 @@ public class C1
 </symbols>");
         }
 
-        [Fact, WorkItem(543615, "DevDiv")]
+        [Fact, WorkItem(543615, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543615")]
         public void WRN_DebugFullNameTooLong()
         {
             var text = @"
@@ -2051,7 +2052,7 @@ namespace foo
                 Diagnostic(ErrorCode.WRN_DebugFullNameTooLong, "Main").WithArguments("AACT TSystem.Action`7[[System.Collections.Generic.Dictionary`2[[System.Int32, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089],[System.Int32, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089]], mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089],[System.Collections.Generic.Dictionary`2[[System.Int32, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089],[System.Int32, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089]], mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089],[System.Collections.Generic.Dictionary`2[[System.Int32, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089],[System.Int32, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089]], mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089],[System.Collections.Generic.Dictionary`2[[System.Int32, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089],[System.Int32, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089]], mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089],[System.Collections.Generic.Dictionary`2[[System.Int32, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089],[System.Int32, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089]], mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089],[System.Collections.Generic.Dictionary`2[[System.Int32, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089],[System.Int32, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089]], mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089],[System.Collections.Generic.Dictionary`2[[System.Int32, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089],[System.Int32, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089]], mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089]], mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089"));
         }
 
-        [WorkItem(1084059, "DevDiv")]
+        [WorkItem(1084059, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1084059")]
         [Fact]
         public void StaticType()
         {
@@ -2132,6 +2133,56 @@ class C
 
                 Assert.Equal(1, reader.GetTableRowCount(TableIndex.TypeSpec));
             });
+        }
+
+        [Fact]
+        public void UnusedImports_Nonexisting()
+        {
+            var source = @"
+extern alias A;
+using B;
+using X = C.D;
+using Y = A::E;
+using Z = F<int>;
+
+class C
+{
+    static void Main() 
+    {
+    }
+}
+";
+            var comp = CreateCompilationWithMscorlib(source);
+
+            comp.VerifyDiagnostics(
+                // (6,11): error CS0246: The type or namespace name 'F<>' could not be found (are you missing a using directive or an assembly reference?)
+                // using Z = F<int>;
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "F<int>").WithArguments("F<>").WithLocation(6, 11),
+                // (5,14): error CS0234: The type or namespace name 'E' does not exist in the namespace 'A' (are you missing an assembly reference?)
+                // using Y = A::E;
+                Diagnostic(ErrorCode.ERR_DottedTypeNameNotFoundInNS, "E").WithArguments("E", "A").WithLocation(5, 14),
+                // (4,13): error CS0426: The type name 'D' does not exist in the type 'C'
+                // using X = C.D;
+                Diagnostic(ErrorCode.ERR_DottedTypeNameNotFoundInAgg, "D").WithArguments("D", "C").WithLocation(4, 13),
+                // (2,14): error CS0430: The extern alias 'A' was not specified in a /reference option
+                // extern alias A;
+                Diagnostic(ErrorCode.ERR_BadExternAlias, "A").WithArguments("A").WithLocation(2, 14),
+                // (3,7): error CS0246: The type or namespace name 'B' could not be found (are you missing a using directive or an assembly reference?)
+                // using B;
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "B").WithArguments("B").WithLocation(3, 7),
+                // (5,1): hidden CS8019: Unnecessary using directive.
+                // using Y = A::E;
+                Diagnostic(ErrorCode.HDN_UnusedUsingDirective, "using Y = A::E;").WithLocation(5, 1),
+                // (3,1): hidden CS8019: Unnecessary using directive.
+                // using B;
+                Diagnostic(ErrorCode.HDN_UnusedUsingDirective, "using B;").WithLocation(3, 1),
+                // (4,1): hidden CS8019: Unnecessary using directive.
+                // using X = C.D;
+                Diagnostic(ErrorCode.HDN_UnusedUsingDirective, "using X = C.D;").WithLocation(4, 1),
+                // (6,1): hidden CS8019: Unnecessary using directive.
+                // using Z = F<int>;
+                Diagnostic(ErrorCode.HDN_UnusedUsingDirective, "using Z = F<int>;").WithLocation(6, 1)
+                );
         }
 
         [Fact]
@@ -2335,6 +2386,92 @@ class C
     </method>
   </methods>
 </symbols>");
+        }
+
+        [Fact]
+        public void ImportScopeEquality()
+        {
+            var sources = new[] { @"
+extern alias A;
+using System;
+using C = System;
+
+namespace N.M 
+{
+   using System.Collections;
+
+   class C1 { void F() {} }
+}
+
+namespace N.M 
+{
+   using System.Collections;
+
+   class C2 { void F() {} }
+}
+", @"
+extern alias A;
+using System;
+using C = System;
+
+namespace N.M 
+{
+   using System.Collections;
+
+   class C3 { void F() {} }
+}
+
+namespace N.M 
+{
+   using System.Collections.Generic;
+
+   class C4 { void F() {} }
+}
+", @"
+extern alias A;
+using System;
+using D = System;
+
+namespace N.M 
+{
+   using System.Collections;
+
+   class C5 { void F() {} }
+}
+", @"
+extern alias A;
+using System;
+
+class C6 { void F() {} }
+" };
+
+            var c = CreateCompilationWithMscorlib(sources, new[] { SystemCoreRef.WithAliases(ImmutableArray.Create("A")) });
+            var pdbStream = new MemoryStream();
+            c.EmitToArray(EmitOptions.Default.WithDebugInformationFormat(DebugInformationFormat.PortablePdb), pdbStream: pdbStream);
+            var pdbImage = pdbStream.ToImmutable();
+            using (var metadata = new PinnedMetadata(pdbImage))
+            {
+                var mdReader = metadata.Reader;
+                var writer = new StringWriter();
+                var mdVisualizer = new MetadataVisualizer(mdReader, writer);
+                mdVisualizer.WriteImportScope();
+
+                AssertEx.AssertEqualToleratingWhitespaceDifferences(@"
+ImportScope (index: 0x35, size: 36): 
+=============================================================================================
+   Parent                    Imports                                                          
+=============================================================================================
+1: nil                       'A' (#1) = 0x23000002 (AssemblyRef)                              
+2: 0x35000001 (ImportScope)  Extern Alias 'A' (#1), 'System' (#7)                             
+3: 0x35000001 (ImportScope)  Extern Alias 'A' (#1), 'System' (#7), 'C' (#1d) = 'System' (#7)  
+4: 0x35000003 (ImportScope)  nil                                                              
+5: 0x35000004 (ImportScope)  'System.Collections' (#27)                                       
+6: 0x35000004 (ImportScope)  'System.Collections.Generic' (#4b)                               
+7: 0x35000001 (ImportScope)  Extern Alias 'A' (#1), 'System' (#7), 'D' (#69) = 'System' (#7)  
+8: 0x35000007 (ImportScope)  nil                                                              
+9: 0x35000008 (ImportScope)  'System.Collections' (#27)    
+", writer.ToString());
+            }
         }
     }
 }

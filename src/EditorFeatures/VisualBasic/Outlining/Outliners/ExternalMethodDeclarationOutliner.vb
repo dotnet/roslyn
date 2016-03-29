@@ -9,7 +9,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.Outlining
         Inherits AbstractSyntaxNodeOutliner(Of DeclareStatementSyntax)
 
         Protected Overrides Sub CollectOutliningSpans(externalMethodDeclaration As DeclareStatementSyntax, spans As List(Of OutliningSpan), cancellationToken As CancellationToken)
-            VisualBasicOutliningHelpers.CollectCommentsRegions(externalMethodDeclaration, spans)
+            CollectCommentsRegions(externalMethodDeclaration, spans)
         End Sub
     End Class
 End Namespace

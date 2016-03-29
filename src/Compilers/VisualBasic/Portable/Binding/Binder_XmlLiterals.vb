@@ -1422,9 +1422,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
     Friend NotInheritable Class XmlNamespaceImportsBinder
         Inherits Binder
 
-        Private ReadOnly _namespaces As Dictionary(Of String, XmlNamespaceAndImportsClausePosition)
+        Private ReadOnly _namespaces As IReadOnlyDictionary(Of String, XmlNamespaceAndImportsClausePosition)
 
-        Public Sub New(containingBinder As Binder, namespaces As Dictionary(Of String, XmlNamespaceAndImportsClausePosition))
+        Public Sub New(containingBinder As Binder, namespaces As IReadOnlyDictionary(Of String, XmlNamespaceAndImportsClausePosition))
             MyBase.New(containingBinder)
             Debug.Assert(namespaces IsNot Nothing)
             Debug.Assert(namespaces.Count > 0)
@@ -1673,6 +1673,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End Get
         End Property
 
+        Public Overrides ReadOnly Property ReturnsByRef As Boolean
+            Get
+                Return _originalDefinition.ReturnsByRef
+            End Get
+        End Property
+
         Public Overrides ReadOnly Property Type As TypeSymbol
             Get
                 Return _originalDefinition.Type
@@ -1906,6 +1912,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                         ImmutableInterlocked.InterlockedInitialize(_lazyParameters, ReducedAccessorParameterSymbol.MakeParameters(Me, _originalDefinition.Parameters))
                     End If
                     Return _lazyParameters
+                End Get
+            End Property
+
+            Public Overrides ReadOnly Property ReturnsByRef As Boolean
+                Get
+                    Return _originalDefinition.ReturnsByRef
                 End Get
             End Property
 

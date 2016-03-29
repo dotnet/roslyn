@@ -26,6 +26,20 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 {
     public class CompilationAPITests : CSharpTestBase
     {
+        [WorkItem(8360, "https://github.com/dotnet/roslyn/issues/8360")]
+        [Fact]
+        public void PublicSignWithRelativeKeyPath()
+        {
+            var options = new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary)
+                .WithPublicSign(true).WithCryptoKeyFile("test.snk");
+            var comp = CSharpCompilation.Create("test", options: options);
+            comp.VerifyDiagnostics(
+    // error CS7088: Invalid 'CryptoKeyFile' value: 'test.snk'.
+    Diagnostic(ErrorCode.ERR_BadCompilationOptionValue).WithArguments("CryptoKeyFile", "test.snk").WithLocation(1, 1),
+    // error CS8102: Public signing was specified and requires a public key, but no public key was specified.
+    Diagnostic(ErrorCode.ERR_PublicSignButNoKey).WithLocation(1, 1));
+        }
+
         [Fact]
         public void CompilationName()
         {
@@ -380,7 +394,7 @@ namespace A.B {
             Assert.Null(c.GetDirectiveReference(rd4[0]));
         }
 
-        [Fact, WorkItem(530131, "DevDiv")]
+        [Fact, WorkItem(530131, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530131")]
         public void MetadataReferenceWithInvalidAlias()
         {
             var refcomp = CSharpCompilation.Create("DLL",
@@ -661,7 +675,7 @@ class D
             Assert.Equal(1, comp1.SyntaxTrees.Length);
         }
 
-        [WorkItem(713356, "DevDiv")]
+        [WorkItem(713356, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/713356")]
         [ClrOnlyFact]
         public void MissedModuleA()
         {
@@ -716,7 +730,7 @@ var a = new C2();
             CompileAndVerify(assembly);
         }
 
-        [WorkItem(713356, "DevDiv")]
+        [WorkItem(713356, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/713356")]
         [Fact]
         public void MissedModuleB_OneError()
         {
@@ -770,8 +784,8 @@ var a = new C2();
                 Diagnostic(ErrorCode.ERR_MissingNetModuleReference).WithArguments("a1.netmodule"));
         }
 
-        [WorkItem(718500, "DevDiv")]
-        [WorkItem(716762, "DevDiv")]
+        [WorkItem(718500, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/718500")]
+        [WorkItem(716762, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/716762")]
         [Fact]
         public void MissedModuleB_NoErrorForUnmanagedModules()
         {
@@ -805,7 +819,7 @@ var a = new C2();
             assembly.VerifyEmitDiagnostics();
         }
 
-        [WorkItem(715872, "DevDiv")]
+        [WorkItem(715872, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/715872")]
         [Fact()]
         public void MissedModuleC()
         {
@@ -1015,7 +1029,7 @@ var a = new C2();
             });
         }
 
-        [WorkItem(537623, "DevDiv")]
+        [WorkItem(537623, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/537623")]
         [Fact]
         public void NegCreateCompilation()
         {
@@ -1023,7 +1037,7 @@ var a = new C2();
             Assert.Throws<ArgumentNullException>(() => CSharpCompilation.Create("foo", references: new MetadataReference[] { null }));
         }
 
-        [WorkItem(537637, "DevDiv")]
+        [WorkItem(537637, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/537637")]
         [Fact]
         public void NegGetSymbol()
         {
@@ -1050,7 +1064,7 @@ var a = new C2();
             });
         }
 
-        [WorkItem(537778, "DevDiv")]
+        [WorkItem(537778, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/537778")]
         // Throw exception when the parameter of the parameter type of GetReferencedAssemblySymbol is VB.CompilationReference
         [Fact]
         public void NegGetSymbol1()
@@ -1085,7 +1099,7 @@ var a = new C2();
         }
 
         // Add already existing item 
-        [Fact, WorkItem(537574, "DevDiv")]
+        [Fact, WorkItem(537574, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/537574")]
         public void NegReference2()
         {
             var ref1 = TestReferences.NetFx.v4_0_30319.mscorlib;
@@ -1110,7 +1124,7 @@ var a = new C2();
         }
 
         // Add a new invalid item 
-        [Fact, WorkItem(537575, "DevDiv")]
+        [Fact, WorkItem(537575, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/537575")]
         public void NegReference3()
         {
             var ref1 = InvalidRef;
@@ -1126,7 +1140,7 @@ var a = new C2();
         }
 
         // Replace an non-existing item with null
-        [Fact, WorkItem(537567, "DevDiv")]
+        [Fact, WorkItem(537567, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/537567")]
         public void NegReference4()
         {
             var ref1 = TestReferences.NetFx.v4_0_30319.mscorlib;
@@ -1147,7 +1161,7 @@ var a = new C2();
         }
 
         // Replace a non-existing item with another valid item
-        [Fact, WorkItem(537566, "DevDiv")]
+        [Fact, WorkItem(537566, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/537566")]
         public void NegReference5()
         {
             var ref1 = TestReferences.NetFx.v4_0_30319.mscorlib;
@@ -1172,7 +1186,7 @@ var a = new C2();
             Assert.Equal(0, comp.SyntaxTrees.Length);
         }
 
-        [WorkItem(527256, "DevDiv")]
+        [WorkItem(527256, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/527256")]
         // Throw exception when the parameter of SyntaxTrees.Contains is null
         [Fact]
         public void NegSyntaxTreesContains()
@@ -1181,7 +1195,7 @@ var a = new C2();
             Assert.False(comp.SyntaxTrees.Contains(null));
         }
 
-        [WorkItem(537784, "DevDiv")]
+        [WorkItem(537784, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/537784")]
         // Throw exception when the parameter of GetSpecialType() is out of range
         [Fact]
         public void NegGetSpecialType()
@@ -1214,7 +1228,7 @@ var a = new C2();
             });
         }
 
-        [WorkItem(538168, "DevDiv")]
+        [WorkItem(538168, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538168")]
         // Replace an non-existing item with another valid item and disorder the args
         [Fact]
         public void NegTree2()
@@ -1228,7 +1242,7 @@ var a = new C2();
             });
         }
 
-        [WorkItem(537576, "DevDiv")]
+        [WorkItem(537576, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/537576")]
         // Add already existing item
         [Fact]
         public void NegSynTree1()
@@ -1393,7 +1407,7 @@ class A
             Assert.Equal("ModuleAssemblyName", compilation.Assembly.Identity.Name);
         }
 
-        [WorkItem(3719)]
+        [WorkItem(3719, "https://github.com/dotnet/roslyn/issues/3719")]
         [Fact]
         public void GetEntryPoint_Script()
         {
@@ -1521,7 +1535,7 @@ class B
             Assert.Equal(2, list.Count);
         }
 
-        [Fact, WorkItem(750437, "DevDiv")]
+        [Fact, WorkItem(750437, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/750437")]
         public void ConflictingAliases()
         {
             var alias = TestReferences.NetFx.v4_0_30319.System.WithAliases(new[] { "alias" });
@@ -1544,7 +1558,7 @@ class myClass : alias::Uri
                 Diagnostic(ErrorCode.ERR_AmbigContext, "alias").WithArguments("alias", "<global namespace>", "<global namespace>"));
         }
 
-        [WorkItem(546088, "DevDiv")]
+        [WorkItem(546088, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546088")]
         [Fact]
         public void CompilationDiagsIncorrectResult()
         {
@@ -1936,7 +1950,7 @@ public class C { public static FrameworkName Foo() { return null; }}";
         }
 
         [Fact]
-        [WorkItem(797640, "DevDiv")]
+        [WorkItem(797640, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/797640")]
         public void GetMetadataReferenceAPITest()
         {
             var comp = CSharpCompilation.Create("Compilation");

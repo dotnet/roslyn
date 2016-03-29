@@ -10,10 +10,10 @@ Imports Roslyn.Utilities
 
 Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Diagnostics
     Public Class VisualStudioWorkspaceDiagnosticAnalyzerProviderServiceTests
-        <WpfFact>
+        <Fact>
         Public Sub GetHostAnalyzerPackagesWithNameTest()
             Dim extensionManager = New MockExtensionManager("Microsoft.VisualStudio.Analyzer", "$RootFolder$\test\test.dll", "$ShellFolder$\test\test.dll", "test\test.dll")
-            Dim packages = VisualStudioWorkspaceDiagnosticAnalyzerProviderService.GetHostAnalyzerPackagesWithName(extensionManager, "ResolvedRootFolder", "ResolvedShellFolder")
+            Dim packages = VisualStudioWorkspaceDiagnosticAnalyzerProviderService.GetHostAnalyzerPackagesWithName(extensionManager, GetType(MockExtensionManager.MockContent))
 
             Assert.Equal(packages.Count(), 3)
 
@@ -30,7 +30,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Diagnostics
             Assert.Equal(packages(2).Assemblies(0), "\InstallPath\test\test.dll")
         End Sub
 
-        <WpfFact>
+        <Fact>
         Public Sub GetHostAnalyzerPackagesTest()
             Dim extensionManager = New MockExtensionManager("Microsoft.VisualStudio.Analyzer", "installPath1", "installPath2", "installPath3")
             Dim packages = VisualStudioWorkspaceDiagnosticAnalyzerProviderService.GetHostAnalyzerPackages(extensionManager)
@@ -44,7 +44,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Diagnostics
             Assert.Equal(packages(0).Assemblies(2), "installPath3")
         End Sub
 
-        <WpfFact, WorkItem(6285, "https://github.com/dotnet/roslyn/issues/6285")>
+        <Fact, WorkItem(6285, "https://github.com/dotnet/roslyn/issues/6285")>
         Public Sub TestHostAnalyzerAssemblyLoader()
             Using tempRoot = New TempRoot
                 Dim dir = tempRoot.CreateDirectory

@@ -1752,7 +1752,7 @@ public class C
         }
 
         [Fact]
-        [WorkItem(976765, "DevDiv")]
+        [WorkItem(976765, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/976765")]
         public void ConditionalMemberAccessConstrained()
         {
             var source = @"
@@ -1803,7 +1803,7 @@ System.Exception");
         }
 
         [Fact]
-        [WorkItem(991400, "DevDiv")]
+        [WorkItem(991400, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/991400")]
         public void ConditionalMemberAccessStatement()
         {
             var source = @"
@@ -1870,7 +1870,7 @@ print2");
         }
 
         [Fact]
-        [WorkItem(991400, "DevDiv")]
+        [WorkItem(991400, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/991400")]
         public void ConditionalMemberAccessStatement01()
         {
             var source = @"
@@ -1961,7 +1961,7 @@ print2");
         }
 
         [Fact]
-        [WorkItem(991400, "DevDiv")]
+        [WorkItem(991400, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/991400")]
         public void ConditionalMemberAccessStatement02()
         {
             var source = @"
@@ -2018,7 +2018,7 @@ print2");
         }
 
         [Fact]
-        [WorkItem(991400, "DevDiv")]
+        [WorkItem(991400, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/991400")]
         public void ConditionalMemberAccessStatement03()
         {
             var source = @"
@@ -4844,7 +4844,7 @@ class Program
 ");
         }
 
-        [WorkItem(1042288)]
+        [WorkItem(1042288, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1042288")]
         [Fact]
         public void Bug1042288()
         {
@@ -5079,7 +5079,7 @@ public struct MyStruct
 }");
         }
 
-        [WorkItem(1103294, "DevDiv")]
+        [WorkItem(1103294, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1103294")]
         [Fact]
         public void Bug1103294_01()
         {
@@ -5127,7 +5127,7 @@ M
 }");
         }
 
-        [WorkItem(1103294, "DevDiv")]
+        [WorkItem(1103294, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1103294")]
         [Fact]
         public void Bug1103294_02()
         {
@@ -5175,7 +5175,7 @@ M
 }");
         }
 
-        [WorkItem(1109164, "DevDiv")]
+        [WorkItem(1109164, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1109164")]
         [Fact]
         public void Bug1109164_01()
         {
@@ -5251,7 +5251,7 @@ M
 }");
         }
 
-        [WorkItem(1109164, "DevDiv")]
+        [WorkItem(1109164, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1109164")]
         [Fact]
         public void Bug1109164_02()
         {
@@ -5298,7 +5298,7 @@ class C
                 );
         }
 
-        [WorkItem(1109164, "DevDiv")]
+        [WorkItem(1109164, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1109164")]
         [Fact]
         public void Bug1109164_03()
         {
@@ -5378,7 +5378,7 @@ M
 }");
         }
 
-        [WorkItem(1109164, "DevDiv")]
+        [WorkItem(1109164, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1109164")]
         [Fact]
         public void Bug1109164_04()
         {
@@ -5425,7 +5425,7 @@ class C<T>
                 );
         }
 
-        [WorkItem(1109164, "DevDiv")]
+        [WorkItem(1109164, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1109164")]
         [Fact]
         public void Bug1109164_05()
         {
@@ -5505,7 +5505,7 @@ M
 }");
         }
 
-        [WorkItem(1109164, "DevDiv")]
+        [WorkItem(1109164, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1109164")]
         [Fact]
         public void Bug1109164_06()
         {
@@ -5554,7 +5554,7 @@ unsafe class C
                 );
         }
 
-        [WorkItem(1109164, "DevDiv")]
+        [WorkItem(1109164, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1109164")]
         [Fact]
         public void Bug1109164_07()
         {
@@ -5600,7 +5600,7 @@ M
 ---");
         }
 
-        [WorkItem(1109164, "DevDiv")]
+        [WorkItem(1109164, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1109164")]
         [Fact]
         public void Bug1109164_08()
         {
@@ -5647,7 +5647,7 @@ M
 ---");
         }
 
-        [WorkItem(1109164, "DevDiv")]
+        [WorkItem(1109164, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1109164")]
         [Fact]
         public void Bug1109164_09()
         {
@@ -5685,7 +5685,7 @@ class C<T>
                 );
         }
 
-        [WorkItem(1109164, "DevDiv")]
+        [WorkItem(1109164, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1109164")]
         [Fact]
         public void Bug1109164_10()
         {
@@ -5865,6 +5865,7 @@ class C
         }
 
         [WorkItem(825, "https://github.com/dotnet/roslyn/issues/825")]
+        [WorkItem(5662, "https://github.com/dotnet/roslyn/issues/5662")]
         [Fact]
         public void ConditionalBoolExpr01b()
         {
@@ -5880,7 +5881,7 @@ class C
         } 
         catch (System.Exception ex)
         {
-            System.Console.WriteLine(ex.Message);
+            System.Console.WriteLine(ex.GetType().Name);
         }        
     }
 
@@ -5900,7 +5901,7 @@ class C
 
 ";
             var verifier = CompileAndVerify(source, expectedOutput: @"False
-Arithmetic operation resulted in an overflow.");
+OverflowException");
 
             verifier.VerifyIL("C.HasLength", @"
 {
@@ -6633,7 +6634,6 @@ True");
 }");
         }
 
-        [WorkItem(1)]
         [Fact]
         public void Bug1()
         {
@@ -6841,6 +6841,56 @@ class C
   IL_002b:  ret
 }
 ");
+        }
+
+        [WorkItem(7388, "https://github.com/dotnet/roslyn/issues/7388")]
+        [Fact]
+        public void ConditionalClassConstrained001()
+        {
+            var source = @"
+using System;
+
+namespace ConsoleApplication9
+{
+    class Program
+    {
+        static void Main(string[] args)
+        {
+            var v = new A<object>();
+            System.Console.WriteLine(A<object>.Test(v));
+        }
+
+        public class A<T> : object where T : class
+        {
+            public T Value { get { return (T)(object)42; }}
+
+            public static T Test(A<T> val)
+            {
+                return val?.Value;
+            }
+        }
+    }
+}
+
+
+";
+            var verifier = CompileAndVerify(source, expectedOutput: @"42");
+
+            verifier.VerifyIL("ConsoleApplication9.Program.A<T>.Test(ConsoleApplication9.Program.A<T>)", @"
+{
+  // Code size       20 (0x14)
+  .maxstack  1
+  .locals init (T V_0)
+  IL_0000:  ldarg.0
+  IL_0001:  brtrue.s   IL_000d
+  IL_0003:  ldloca.s   V_0
+  IL_0005:  initobj    ""T""
+  IL_000b:  ldloc.0
+  IL_000c:  ret
+  IL_000d:  ldarg.0
+  IL_000e:  call       ""T ConsoleApplication9.Program.A<T>.Value.get""
+  IL_0013:  ret
+}");
         }
     }
 }

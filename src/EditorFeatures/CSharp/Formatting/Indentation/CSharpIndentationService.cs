@@ -3,6 +3,7 @@
 using System.Collections.Generic;
 using System.Composition;
 using System.Threading;
+using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
@@ -29,9 +30,10 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.Formatting.Indentation
             return s_instance;
         }
 
-        protected override AbstractIndenter GetIndenter(Document document, ITextSnapshotLine lineToBeIndented, IEnumerable<IFormattingRule> formattingRules, OptionSet optionSet, CancellationToken cancellationToken)
+        protected override async Task<AbstractIndenter> GetIndenterAsync(Document document, ITextSnapshotLine lineToBeIndented, IEnumerable<IFormattingRule> formattingRules, OptionSet optionSet, CancellationToken cancellationToken)
         {
-            return new Indenter(document, formattingRules, optionSet, lineToBeIndented, cancellationToken);
+            var syntacticDocument = await SyntacticDocument.CreateAsync(document, cancellationToken).ConfigureAwait(false);
+            return new Indenter(syntacticDocument, formattingRules, optionSet, lineToBeIndented, cancellationToken);
         }
 
         protected override bool ShouldUseSmartTokenFormatterInsteadOfIndenter(
@@ -114,7 +116,9 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.Formatting.Indentation
                 }
 
                 var argument = node as BaseArgumentListSyntax;
-                if (argument != null && argument.Parent.Kind() != SyntaxKind.ThisConstructorInitializer)
+                if (argument != null &&
+                    argument.Parent.Kind() != SyntaxKind.ThisConstructorInitializer &&
+                    !IsBracketedArgumentListMissingBrackets(argument as BracketedArgumentListSyntax))
                 {
                     AddIndentBlockOperations(list, argument);
                     return;
@@ -149,6 +153,11 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.Formatting.Indentation
                         AddIndentBlockOperations(list, constructorInitializer.ArgumentList);
                     }
                 }
+            }
+
+            private bool IsBracketedArgumentListMissingBrackets(BracketedArgumentListSyntax node)
+            {
+                return node != null && node.OpenBracketToken.IsMissing && node.CloseBracketToken.IsMissing;
             }
 
             private void ReplaceCaseIndentationRules(List<IndentBlockOperation> list, SyntaxNode node)

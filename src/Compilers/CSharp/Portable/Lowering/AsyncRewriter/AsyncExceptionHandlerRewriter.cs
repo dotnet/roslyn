@@ -14,7 +14,7 @@ namespace Microsoft.CodeAnalysis.CSharp
     /// with surrogate replacements that keep actual handler code in regular code blocks.
     /// That allows these constructs to be further lowered at the async lowering pass.
     /// </summary>
-    internal sealed class AsyncExceptionHandlerRewriter : BoundTreeRewriterWithStackGuardWithoutRecursionOnTheLeftOfBinaryOperator 
+    internal sealed class AsyncExceptionHandlerRewriter : BoundTreeRewriterWithStackGuardWithoutRecursionOnTheLeftOfBinaryOperator
     {
         private readonly bool _generateDebugInfo;
         private readonly CSharpCompilation _compilation;
@@ -226,7 +226,6 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             var completeTry = _F.Block(
                 locals.ToImmutableAndFree(),
-                ImmutableArray<LocalFunctionSymbol>.Empty,
                 statements.ToImmutableAndFree());
 
             return completeTry;
@@ -323,7 +322,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 if (returnLabel == null)
                 {
-                    unpendReturn = new BoundReturnStatement(_F.Syntax, pendingValue);
+                    unpendReturn = new BoundReturnStatement(_F.Syntax, RefKind.None, pendingValue);
                 }
                 else
                 {
@@ -403,7 +402,6 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             return _F.Block(
                     ImmutableArray.Create<LocalSymbol>(obj),
-                    ImmutableArray<LocalFunctionSymbol>.Empty,
                     objInit,
                     _F.If(
                         _F.ObjectNotEqual(
@@ -432,7 +430,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // better rethrow 
                 rethrow = _F.Block(
                     ImmutableArray.Create(ex),
-                    ImmutableArray<LocalFunctionSymbol>.Empty,
                     assignment,
                     _F.If(_F.ObjectEqual(_F.Local(ex), _F.Null(ex.Type)), rethrow),
                     // ExceptionDispatchInfo.Capture(pendingExceptionLocal).Throw();
@@ -487,7 +484,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                         currentAwaitCatchFrame.pendingCaughtException,
                         currentAwaitCatchFrame.pendingCatch).
                         AddRange(currentAwaitCatchFrame.GetHoistedLocals()),
-                    ImmutableArray<LocalFunctionSymbol>.Empty,
                     _F.HiddenSequencePoint(),
                     _F.Assignment(
                         _F.Local(currentAwaitCatchFrame.pendingCatch),
@@ -620,7 +616,6 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             var handler = _F.Block(
                     handlerLocals,
-                    ImmutableArray<LocalFunctionSymbol>.Empty,
                     handlerStatements.ToImmutableAndFree()
                 );
 
@@ -713,7 +708,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         /// <summary>
-        /// Analyses method body for try blocks with awaits in finally blocks 
+        /// Analyzes method body for try blocks with awaits in finally blocks 
         /// Also collects labels that such blocks contain.
         /// </summary>
         private sealed class AwaitInFinallyAnalysis : LabelCollector

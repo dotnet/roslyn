@@ -244,7 +244,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
             }
 
             // * [
-            if (currentToken.IsKind(SyntaxKind.OpenBracketToken) && 
+            if (currentToken.IsKind(SyntaxKind.OpenBracketToken) &&
                 !previousToken.IsOpenBraceOrCommaOfObjectInitializer())
             {
                 if (previousToken.IsOpenBraceOfAccessorList() ||
@@ -264,6 +264,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
             if (currentToken.IsKind(SyntaxKind.ColonToken))
             {
                 if (currentToken.Parent.IsKind(SyntaxKind.CaseSwitchLabel,
+                                               SyntaxKind.CasePatternSwitchLabel,
                                                SyntaxKind.DefaultSwitchLabel,
                                                SyntaxKind.LabeledStatement,
                                                SyntaxKind.AttributeTargetSpecifier,

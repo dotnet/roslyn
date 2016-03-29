@@ -2,10 +2,38 @@
   xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
 
   <PropertyGroup>
-    <StartAction Condition="'$(StartActions)' == ''">Program</StartAction>
-    <StartProgram Condition="'$(StartProgram)' == ''">$(NuGetPackagesPath)\xunit.runner.console.2.1.0\tools\xunit.console.x86.exe</StartProgram>
-    <StartArguments Condition="'$(StartArguments)' == ''">$(AssemblyName).dll -html $(OurDir)\xUnitResults\$(AssemblyName).html -noshadow</StartArguments>
-    <StartWorkingDirectory Condition="'$(StartWorkingDirectory)' == ''">$(OutDir)</StartWorkingDirectory>
+    <XUnitPath>$(NuGetPackageRoot)\xunit.runner.console\2.1.0\tools\xunit.console.x86.exe</XUnitPath>
+    <XUnitTestResultsDirectory>$(OutDir)\xUnitResults</XUnitTestResultsDirectory>
+    <XUnitArguments>"$(OutDir)\$(AssemblyName).dll" -html "$(XUnitTestResultsDirectory)\$(AssemblyName).html" -noshadow</XUnitArguments>
   </PropertyGroup>
+
+  <Target Name="Test" DependsOnTargets="Build">
+    <MakeDir Directories="$(XUnitTestResultsDirectory)" />
+    <Exec Command="&quot;$(XUnitPath)&quot; $(XUnitArguments)" />
+  </Target>
+
+  <PropertyGroup>
+    <StartAction Condition="'$(StartActions)' == ''">Program</StartAction>
+    <StartProgram Condition="'$(StartProgram)' == ''">$(XUnitPath)</StartProgram>
+    <StartArguments Condition="'$(StartArguments)' == ''">$(XUnitArguments)</StartArguments>
+  </PropertyGroup>
+
+  <PropertyGroup>
+    <PrepareForBuildDependsOn>$(PrepareForBuildDependsOn);AddDefaultTestAppConfig</PrepareForBuildDependsOn>
+  </PropertyGroup>
+
+  <!-- Add a default test app.config, if the project doesn't already have one-->
+  <Target Name="AddDefaultTestAppConfig">
+    <PropertyGroup>
+      <_AlreadyHasAppConfig Condition="'%(None.Filename)%(None.Extension)' == 'app.config'">true</_AlreadyHasAppConfig>
+    </PropertyGroup>
+
+    <ItemGroup Condition="'$(_AlreadyHasAppConfig)' != 'true'">
+      <None Include="$(MSBuildThisFileDirectory)..\Defaults\app.config">
+        <Link>app.config</Link>
+      </None>
+    </ItemGroup>
+
+  </Target>
 
 </Project>

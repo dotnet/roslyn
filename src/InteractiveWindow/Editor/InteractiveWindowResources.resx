@@ -225,8 +225,29 @@
   <data name="WaitMessage" xml:space="preserve">
     <value>Generating Rich Text Format representation from selection.</value>
   </data>
+  <data name="Backspace" xml:space="preserve">
+    <value>Delete Character To Left</value>
+  </data>
+  <data name="BreakLine" xml:space="preserve">
+    <value>Insert New Line</value>
+  </data>
   <data name="Paste" xml:space="preserve">
     <value>Paste</value>
+  </data>
+  <data name="Cut" xml:space="preserve">
+    <value>Cut Selection</value>
+  </data>
+  <data name="Delete" xml:space="preserve">
+    <value>Delete Text</value>
+  </data>
+  <data name="CutLine" xml:space="preserve">
+    <value>Cut Line</value>
+  </data>
+  <data name="DeleteLine" xml:space="preserve">
+    <value>Delete Line</value>
+  </data>
+  <data name="TypeChar" xml:space="preserve">
+    <value>Insert Text</value>
   </data>
   <data name="CSVBScriptDirectives" xml:space="preserve">
     <value>Script directives:</value>

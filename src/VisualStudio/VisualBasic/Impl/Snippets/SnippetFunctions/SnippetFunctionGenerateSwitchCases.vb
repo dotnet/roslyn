@@ -2,14 +2,15 @@
 
 Imports System.Threading
 Imports Microsoft.CodeAnalysis
+Imports Microsoft.CodeAnalysis.Editor.Shared.Extensions
+Imports Microsoft.CodeAnalysis.Shared.Extensions
 Imports Microsoft.CodeAnalysis.Simplification
 Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic
 Imports Microsoft.CodeAnalysis.VisualBasic.Extensions
-Imports Microsoft.CodeAnalysis.Editor.Shared.Extensions
+Imports Microsoft.VisualStudio.LanguageServices.Implementation.Snippets.SnippetFunctions
 Imports Microsoft.VisualStudio.Text
 Imports Microsoft.VisualStudio.Text.Editor
-Imports Microsoft.VisualStudio.LanguageServices.Implementation.Snippets.SnippetFunctions
 Imports TextSpan = Microsoft.CodeAnalysis.Text.TextSpan
 Imports VsTextSpan = Microsoft.VisualStudio.TextManager.Interop.TextSpan
 

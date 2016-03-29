@@ -106,19 +106,19 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
             ' Add file-level member imports.
             Dim memberImports = sourceFile.MemberImports
-            If memberImports.Length > 0 Then
+            If Not memberImports.IsEmpty Then
                 sourceFileBinder = New TypesOfImportedNamespacesMembersBinder(sourceFileBinder, memberImports)
                 sourceFileBinder = New ImportedTypesAndNamespacesMembersBinder(sourceFileBinder, memberImports)
             End If
 
             'Add file-level alias imports.
-            Dim aliasImports = sourceFile.AliasImports
+            Dim aliasImports = sourceFile.AliasImportsOpt
             If aliasImports IsNot Nothing Then
                 sourceFileBinder = New ImportAliasesBinder(sourceFileBinder, aliasImports)
             End If
 
             ' Add file-level xmlns imports.
-            Dim xmlNamespaces = sourceFile.XmlNamespaces
+            Dim xmlNamespaces = sourceFile.XmlNamespacesOpt
             If xmlNamespaces IsNot Nothing Then
                 sourceFileBinder = New XmlNamespaceImportsBinder(sourceFileBinder, xmlNamespaces)
             End If

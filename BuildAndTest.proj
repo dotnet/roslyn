@@ -11,45 +11,53 @@
     <Configuration Condition="'$(Configuration)' == ''">Debug</Configuration>
     <RunTestArgs Condition="'$(ManualTest)' == ''">$(RunTestArgs) -xml</RunTestArgs>
     <RunTestArgs Condition="'$(Test64)' == 'true'">$(RunTestArgs) -test64</RunTestArgs>
+    <RunTestArgs Condition="'$(Trait)' != ''">$(RunTestArgs) -trait:$(Trait)</RunTestArgs>
+    <RunTestArgs Condition="'$(NoTrait)' != ''">$(RunTestArgs) -notrait:$(NoTrait)</RunTestArgs>
     <IncludePattern Condition="'$(IncludePattern)' == ''">*.UnitTests*.dll</IncludePattern>
     <OutputDirectory>Binaries\$(Configuration)</OutputDirectory>
     <NuGetPackageRoot>$(UserProfile)\.nuget\packages</NuGetPackageRoot>
     <XunitVersion>2.1.0</XunitVersion>
+    <CoreClrTestDirectory>$(OutputDirectory)\CoreClrTest</CoreClrTestDirectory>
+    <MSBuildCommonProperties>
+      RestorePackages=false;
+      TreatWarningsAsErrors=true;
+      DeployExtension=false;
+    </MSBuildCommonProperties>
   </PropertyGroup>
 
   <Target Name="Build">
     <MSBuild BuildInParallel="true"
              Projects="$(RoslynSolution)"
-             Properties="RestorePackages=false;TreatWarningsAsErrors=true;DeployExtension=false"
+             Properties="$(MSBuildCommonProperties)"
              Targets="Build"/>
     <MSBuild BuildInParallel="true"
              Condition="'$(ManualTest)' == ''"
              Projects="$(SamplesSolution)"
-             Properties="RestorePackages=false;TreatWarningsAsErrors=true"
+             Properties="$(MSBuildCommonProperties)"
              Targets="Build"/>
   </Target>
 
   <Target Name="Clean">
     <MSBuild BuildInParallel="true"
              Projects="$(RoslynSolution)"
-             Properties="RestorePackages=false;DeployExtension=false"
+             Properties="$(MSBuildCommonProperties)"
              Targets="Clean"/>
     <MSBuild BuildInParallel="true"
              Condition="'$(ManualTest)' == ''"
              Projects="$(SamplesSolution)"
-             Properties="RestorePackages=false"
+             Properties="$(MSBuildCommonProperties)"
              Targets="Clean"/>
   </Target>
 
   <Target Name="Rebuild">
     <MSBuild BuildInParallel="true"
              Projects="$(RoslynSolution)"
-             Properties="RestorePackages=false;TreatWarningsAsErrors=true;DeployExtension=false"
+             Properties="$(MSBuildCommonProperties)"
              Targets="Rebuild"/>
     <MSBuild BuildInParallel="true"
              Condition="'$(ManualTest)' == ''"
              Projects="$(SamplesSolution)"
-             Properties="RestorePackages=false;TreatWarningsAsErrors=true"
+             Properties="$(MSBuildCommonProperties)"
              Targets="Rebuild"/>
   </Target>
 
@@ -64,19 +72,31 @@
           SkipUnchangedFiles="true"
           UseHardlinksIfPossible="true" />
 
+    <MakeDir Directories="$(CoreClrTestDirectory)\xUnitResults" />
+
     <ItemGroup>
 
       <!-- MakeConst unit tests tracked by https://github.com/dotnet/roslyn/issues/5918 -->
       <TestAssemblies Condition="'$(Test64)' != 'true'" 
-                      Include="$(OutputDirectory)\**\$(IncludePattern)"
-                      Exclude="$(OutputDirectory)\**\MakeConst*" />
+                      Include="$(OutputDirectory)\$(IncludePattern)" />
 
       <TestAssemblies Condition="'$(Test64)' == 'true'" 
-                      Include="$(OutputDirectory)\**\$(IncludePattern)" 
-                      Exclude="$(OutputDirectory)\**\Roslyn.Interactive*;$(OutputDirectory)\**\MakeConst*" />
+                      Include="$(OutputDirectory)\$(IncludePattern)" 
+                      Exclude="$(OutputDirectory)\Roslyn.Interactive*" />
+
+      <CoreTestAssemblies Include="$(CoreClrTestDirectory)\$(IncludePattern)" />
+
+      <MisplacedTestAssemblies Include="$(OutputDirectory)\**\$(IncludePattern)"
+                               Exclude="$(OutputDirectory)\$(IncludePattern);@(CoreTestAssemblies)" />
     </ItemGroup>
 
-    <Exec Command="Binaries\$(Configuration)\RunTests.exe $(NuGetPackageRoot)\xunit.runner.console\$(XunitVersion)\tools $(RunTestArgs) @(TestAssemblies, ' ')" />
+    <Error Condition="'@(MisplacedTestAssemblies->Count())' &gt; 0"
+        Text="Found test assemblies outside a well-known test directory: 
+@(MisplacedTestAssemblies, '%0a')" />
+
+    <Exec Command="$(CoreClrTestDirectory)\CoreRun.exe $(CoreClrTestDirectory)\xunit.console.netcore.exe @(CoreTestAssemblies, ' ') -parallel all -xml $(CoreClrTestDirectory)\xUnitResults\TestResults.xml" />
+
+    <Exec Command="Binaries\$(Configuration)\RunTests\RunTests.exe &quot;$(NuGetPackageRoot)\xunit.runner.console\$(XunitVersion)\tools&quot; $(RunTestArgs) @(TestAssemblies, ' ')" />
 
   </Target>
 

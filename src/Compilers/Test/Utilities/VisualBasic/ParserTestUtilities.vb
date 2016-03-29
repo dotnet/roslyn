@@ -796,31 +796,27 @@ Public Module VerificationHelpers
                 InternalVerifyNoAdjacentTriviaHaveSameKind(child)
             Next
         Else
-            Dim prev As SyntaxTrivia? = Nothing
-            For Each tr In node.AsToken.LeadingTrivia
-                If tr.HasStructure Then
-                    InternalVerifyNoAdjacentTriviaHaveSameKind(tr.GetStructure)
-                End If
-                If prev IsNot Nothing Then
-                    Assert.True(prev.Value.Kind <> tr.Kind,
-                                "Both current and previous trivia have Kind=" & tr.Kind.ToString &
-                                " [See under TokenKind=" & node.Kind().ToString & ", NonTerminalKind=" & node.Parent.Kind.ToString & "]")
-                End If
-                prev = tr
-            Next
-            prev = Nothing
-            For Each tr In node.AsToken.LeadingTrivia
-                If tr.HasStructure Then
-                    InternalVerifyNoAdjacentTriviaHaveSameKind(tr.GetStructure)
-                End If
-                If prev IsNot Nothing Then
-                    Assert.True(prev.Value.Kind <> tr.Kind,
-                                "Both current and previous trivia have Kind=" & tr.Kind.ToString &
-                                " [See under TokenKind=" & node.Kind().ToString & ", NonTerminalKind=" & node.Parent.Kind.ToString & "]")
-                End If
-                prev = tr
-            Next
+            InternalVerifyNoAdjacentTriviaHaveSameKind(node, node.AsToken.LeadingTrivia)
+            InternalVerifyNoAdjacentTriviaHaveSameKind(node, node.AsToken.TrailingTrivia)
         End If
+    End Sub
+
+    Private Sub InternalVerifyNoAdjacentTriviaHaveSameKind(node As SyntaxNodeOrToken, triviaList As SyntaxTriviaList)
+        Dim prev As SyntaxTrivia? = Nothing
+        For Each tr In triviaList
+            If tr.HasStructure Then
+                InternalVerifyNoAdjacentTriviaHaveSameKind(tr.GetStructure)
+            End If
+
+            ' Based on http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems?_a=edit&id=527553
+            ' it is Ok to have adjacent SkippedTokensTrivias
+            If tr.Kind <> SyntaxKind.SkippedTokensTrivia AndAlso prev IsNot Nothing Then
+                Assert.True(prev.Value.Kind <> tr.Kind,
+                            "Both current and previous trivia have Kind=" & tr.Kind.ToString &
+                            " [See under TokenKind=" & node.Kind().ToString & ", NonTerminalKind=" & node.Parent.Kind.ToString & "]")
+            End If
+            prev = tr
+        Next
     End Sub
 
     Private Sub InternalVerifySpanOfChildWithinSpanOfParent(node As SyntaxNodeOrToken)

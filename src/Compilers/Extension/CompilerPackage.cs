@@ -11,11 +11,6 @@ namespace Roslyn.Compilers.Extension
     [ProvideAutoLoad(UIContextGuids.SolutionExists)]
     public sealed class CompilerPackage : Package
     {
-        private const string WriteFileExceptionMessage =
-@"{1}
-
-To reload the Roslyn compiler package, close Visual Studio and any MSBuild processes, then restart Visual Studio.";
-
         protected override void Initialize()
         {
             base.Initialize();
@@ -100,9 +95,14 @@ To reload the Roslyn compiler package, close Visual Studio and any MSBuild proce
             }
             catch (Exception e)
             {
+                var msg =
+$@"{e.Message}
+
+To reload the Roslyn compiler package, close Visual Studio and any MSBuild processes, then restart Visual Studio.";
+
                 VsShellUtilities.ShowMessageBox(
                     this,
-                    string.Format(WriteFileExceptionMessage, e.Message),
+                    msg,
                     null,
                     OLEMSGICON.OLEMSGICON_WARNING,
                     OLEMSGBUTTON.OLEMSGBUTTON_OK,

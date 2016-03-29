@@ -2,6 +2,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Collections.ObjectModel;
 using System.Diagnostics;
 using System.IO;
@@ -12,38 +13,37 @@ using System.Threading.Tasks;
 
 namespace RunTests
 {
+    internal struct RunAllResult
+    {
+        internal bool Succeeded { get; }
+        internal int CacheCount { get; }
+        internal ImmutableArray<TestResult> TestResults { get; }
+
+        internal RunAllResult(bool succeeded, int cacheCount, ImmutableArray<TestResult> testResults)
+        {
+            Succeeded = succeeded;
+            CacheCount = cacheCount;
+            TestResults = testResults;
+        }
+    }
+
     internal sealed class TestRunner
     {
-        private struct TestResult
-        {
-            internal readonly bool Succeeded;
-            internal readonly string AssemblyName;
-            internal readonly TimeSpan Elapsed;
-            internal readonly string ErrorOutput;
+        private readonly ITestExecutor _testExecutor;
+        private readonly Options _options;
 
-            internal TestResult(bool succeeded, string assemblyName, TimeSpan elapsed, string errorOutput)
-            {
-                Succeeded = succeeded;
-                AssemblyName = assemblyName;
-                Elapsed = elapsed;
-                ErrorOutput = errorOutput;
-            }
+        internal TestRunner(Options options, ITestExecutor testExecutor)
+        {
+            _testExecutor = testExecutor;
+            _options = options;
         }
 
-        private readonly string _xunitConsolePath;
-        private readonly bool _useHtml;
-
-        internal TestRunner(string xunitConsolePath, bool useHtml)
+        internal async Task<RunAllResult> RunAllAsync(IEnumerable<AssemblyInfo> assemblyInfoList, CancellationToken cancellationToken)
         {
-            _xunitConsolePath = xunitConsolePath;
-            _useHtml = useHtml;
-        }
-
-        internal async Task<bool> RunAllAsync(IEnumerable<string> assemblyList, CancellationToken cancellationToken)
-        {
-            var max = (int)Environment.ProcessorCount * 1.5;
+            var max = (int)(Environment.ProcessorCount * 1.5);
             var allPassed = true;
-            var waiting = new Stack<string>(assemblyList);
+            var cacheCount = 0;
+            var waiting = new Stack<AssemblyInfo>(assemblyInfoList);
             var running = new List<Task<TestResult>>();
             var completed = new List<TestResult>();
 
@@ -65,9 +65,14 @@ namespace RunTests
                                 allPassed = false;
                             }
 
+                            if (testResult.IsResultFromCache)
+                            {
+                                cacheCount++;
+                            }
+
                             completed.Add(testResult);
                         }
-                        catch (Exception ex) 
+                        catch (Exception ex)
                         {
                             Console.WriteLine($"Error: {ex.Message}");
                             allPassed = false;
@@ -83,7 +88,7 @@ namespace RunTests
 
                 while (running.Count < max && waiting.Count > 0)
                 {
-                    var task = RunTest(waiting.Pop(), cancellationToken);
+                    var task = _testExecutor.RunTestAsync(waiting.Pop(), cancellationToken);
                     running.Add(task);
                 }
 
@@ -93,7 +98,7 @@ namespace RunTests
 
             Print(completed);
 
-            return allPassed;
+            return new RunAllResult(allPassed, cacheCount, completed.ToImmutableArray());
         }
 
         private void Print(List<TestResult> testResults)
@@ -102,120 +107,47 @@ namespace RunTests
 
             foreach (var testResult in testResults.Where(x => !x.Succeeded))
             {
-                Console.WriteLine("Errors {0}: ", testResult.AssemblyName);
-                Console.WriteLine(testResult.ErrorOutput);
+                PrintFailedTestResult(testResult);
             }
 
             Console.WriteLine("================");
             foreach (var testResult in testResults)
             {
                 var color = testResult.Succeeded ? Console.ForegroundColor : ConsoleColor.Red;
-                ConsoleUtil.WriteLine(color, "{0,-75} {1} {2}", testResult.AssemblyName, testResult.Succeeded ? "PASSED" : "FAILED", testResult.Elapsed);
+                var message = string.Format("{0,-75} {1} {2}{3}", testResult.DisplayName, testResult.Succeeded ? "PASSED" : "FAILED", testResult.Elapsed, testResult.IsResultFromCache ? "*" : "");
+                ConsoleUtil.WriteLine(color, message);
+                Logger.Log(message);
             }
             Console.WriteLine("================");
         }
 
-        private async Task<TestResult> RunTest(string assemblyPath, CancellationToken cancellationToken)
+        private void PrintFailedTestResult(TestResult testResult)
         {
-            try
-            { 
-                var assemblyName = Path.GetFileName(assemblyPath);
-                var resultsDir = Path.Combine(Path.GetDirectoryName(assemblyPath), "xUnitResults");
-                var resultsFile = Path.Combine(resultsDir, $"{assemblyName}.{(_useHtml ? "html" : "xml")}");
-                var outputLogPath = Path.Combine(resultsDir, $"{assemblyName}.out.log");
+            // Save out the error output for easy artifact inspecting
+            var resultsDir = testResult.ResultDir;
+            var outputLogPath = Path.Combine(resultsDir, $"{testResult.DisplayName}.out.log");
+            File.WriteAllText(outputLogPath, testResult.StandardOutput);
 
-                // NOTE: xUnit doesn't always create the log directory
-                Directory.CreateDirectory(resultsDir);
+            Console.WriteLine("Errors {0}: ", testResult.AssemblyName);
+            Console.WriteLine(testResult.ErrorOutput);
 
-                // NOTE: xUnit seems to have an occasional issue creating logs create
-                // an empty log just in case, so our runner will still fail.
-                File.Create(resultsFile).Close();
+            // TODO: Put this in the log and take it off the console output to keep it simple? 
+            Console.WriteLine($"Command: {testResult.CommandLine}");
+            Console.WriteLine($"xUnit output log: {outputLogPath}");
 
-                var builder = new StringBuilder();
-                builder.AppendFormat(@"""{0}""", assemblyPath);
-                builder.AppendFormat(@" -{0} ""{1}""", _useHtml ? "html" : "xml", resultsFile);
-                builder.Append(" -noshadow -verbose");
-
-                var errorOutput = new StringBuilder();
-                var start = DateTime.UtcNow;
-
-                var xunitPath = _xunitConsolePath;
-                var processOutput = await ProcessRunner.RunProcessAsync(
-                    xunitPath,
-                    builder.ToString(),
-                    lowPriority: false,
-                    displayWindow: false,
-                    captureOutput: true,
-                    cancellationToken: cancellationToken).ConfigureAwait(false);
-                var span = DateTime.UtcNow - start;
-
-                if (processOutput.ExitCode != 0)
-                {
-                    File.WriteAllLines(outputLogPath, processOutput.OutputLines);
-
-                    // On occasion we get a non-0 output but no actual data in the result file.  The could happen
-                    // if xunit manages to crash when running a unit test (a stack overflow could cause this, for instance).
-                    // To avoid losing information, write the process output to the console.  In addition, delete the results
-                    // file to avoid issues with any tool attempting to interpret the (potentially malformed) text.
-                    var resultData = string.Empty;
-                    try
-                    {
-                        resultData = File.ReadAllText(resultsFile).Trim();
-                    }
-                    catch
-                    {
-                        // Happens if xunit didn't produce a log file
-                    }
-
-                    if (resultData.Length == 0)
-                    {
-                        // Delete the output file.
-                        File.Delete(resultsFile);
-                    }
-
-                    errorOutput.AppendLine($"Command: {_xunitConsolePath} {builder}");
-                    errorOutput.AppendLine($"xUnit output: {outputLogPath}");
-
-                    if (processOutput.ErrorLines.Any())
-                    {
-                        foreach (var line in processOutput.ErrorLines)
-                        {
-                            errorOutput.AppendLine(line);
-                        }
-                    }
-                    else
-                    {
-                        errorOutput.AppendLine($"xunit produced no error output but had exit code {processOutput.ExitCode}");
-                    }
-
-                    // If the results are html, use Process.Start to open in the browser.
-
-                    if (_useHtml && resultData.Length > 0)
-                    {
-                        Process.Start(resultsFile);
-                    }
-                }
-
-                return new TestResult(processOutput.ExitCode == 0, assemblyName, span, errorOutput.ToString());
-            }
-            catch (Exception ex)
+            if (!string.IsNullOrEmpty(testResult.ErrorOutput))
             {
-                throw new Exception($"Unable to run {assemblyPath} with {_xunitConsolePath}. {ex}");
+                Console.WriteLine(testResult.ErrorOutput);
             }
-        }
+            else
+            {
+                Console.WriteLine($"xunit produced no error output but had exit code {testResult.ExitCode}");
+            }
 
-        private static void DeleteFile(string filePath)
-        {
-            try
+            // If the results are html, use Process.Start to open in the browser.
+            if (_options.UseHtml && !string.IsNullOrEmpty(testResult.ResultsFilePath))
             {
-                if (File.Exists(filePath))
-                {
-                    File.Delete(filePath);
-                }
-            }
-            catch
-            {
-                // Ignore
+                Process.Start(testResult.ResultsFilePath);
             }
         }
     }

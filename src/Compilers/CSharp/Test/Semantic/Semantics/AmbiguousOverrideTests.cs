@@ -64,7 +64,7 @@ class EntryPoint
             CompileAndVerify(source, expectedOutput: "121314");
         }
 
-        [WorkItem(544936, "DevDiv")]
+        [WorkItem(544936, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544936")]
         [Fact]
         public void TestAmbiguousInvocationError()
         {
@@ -134,12 +134,13 @@ public class Derived2 : Derived<int>
             var comp = CreateCompilationWithMscorlib(text3, ref2, assemblyName: "Test3");
             var diagnostics = comp.GetDiagnostics();
 
-            var diagStrings = new string[] {
-"'Method' warning CS1957: Member 'Derived2.Method(long, int)' overrides 'Derived<int>.Method(long, int)'. There are multiple override candidates at run-time. It is implementation dependent which method will be called.",
-"'Method' error CS0462: The inherited members 'Derived<TInt>.Method(long, TInt)' and 'Derived<TInt>.Method(long, int)' have the same signature in type 'Derived2', so they cannot be overridden"
-           };
-
-            TestDiagnostics(diagnostics, diagStrings);
+            comp.VerifyDiagnostics(
+                // (4,26): error CS0462: The inherited members 'Derived<TInt>.Method(long, TInt)' and 'Derived<TInt>.Method(long, int)' have the same signature in type 'Derived2', so they cannot be overridden
+                //     public override void Method(long l, int i) { }  //CS0462 and CS1957
+                Diagnostic(ErrorCode.ERR_AmbigOverride, "Method").WithArguments("Derived<TInt>.Method(long, TInt)", "Derived<TInt>.Method(long, int)", "Derived2").WithLocation(4, 26),
+                // (4,26): warning CS1957: Member 'Derived2.Method(long, int)' overrides 'Derived<int>.Method(long, int)'. There are multiple override candidates at run-time. It is implementation dependent which method will be called.
+                //     public override void Method(long l, TInt i) { }
+                Diagnostic(ErrorCode.WRN_MultipleRuntimeOverrideMatches, "Method").WithArguments("Derived<int>.Method(long, int)", "Derived2.Method(long, int)").WithLocation(4, 26));
         }
 
         [Fact]
@@ -354,7 +355,7 @@ class CBar : IFoo // CS0535 * 2
             );
         }
 
-        [WorkItem(540518, "DevDiv")]
+        [WorkItem(540518, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540518")]
         [Fact]
         public void TestExplicitImplementInterfaceMethodsWithCustomModifiers()
         {

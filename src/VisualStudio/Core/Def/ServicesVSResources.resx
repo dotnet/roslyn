@@ -135,12 +135,6 @@
   <data name="FileNameMustHaveTheExtension" xml:space="preserve">
     <value>File name must have the "{0}" extension.</value>
   </data>
-  <data name="BuildingProject" xml:space="preserve">
-    <value>Building Project</value>
-  </data>
-  <data name="ResettingInteractive" xml:space="preserve">
-    <value>Resetting Interactive</value>
-  </data>
   <data name="Debugger" xml:space="preserve">
     <value>Debugger</value>
   </data>
@@ -506,5 +500,175 @@ Use the dropdown to view and switch to other projects this file may belong to.</
   </data>
   <data name="ThisWorkspaceOnlySupportsOpeningDocumentsOnTheUIThread" xml:space="preserve">
     <value>This workspace only supports opening documents on the UI thread.</value>
+  </data>
+  <data name="SynchronizeClassView" xml:space="preserve">
+    <value>Synchronize {0}</value>
+  </data>
+  <data name="SynchronizingWithClassView" xml:space="preserve">
+    <value>Synchronizing with {0}...</value>
+  </data>
+  <data name="FullSolutionAnalysisOff" xml:space="preserve">
+    <value>Low memory detected. Full solution analysis disabled for this solution.</value>
+  </data>
+  <data name="Installing_0" xml:space="preserve">
+    <value>Installing '{0}'</value>
+  </data>
+  <data name="Installing_0_completed" xml:space="preserve">
+    <value>Installing '{0}' completed</value>
+  </data>
+  <data name="Package_install_failed_0" xml:space="preserve">
+    <value>Package install failed: {0}</value>
+  </data>
+  <data name="Unknown" xml:space="preserve">
+    <value>&lt;Unknown&gt;</value>
+  </data>
+  <data name="No" xml:space="preserve">
+    <value>No</value>
+  </data>
+  <data name="Yes" xml:space="preserve">
+    <value>Yes</value>
+  </data>
+  <data name="ChooseASymbolSpecificationAndNamingStyle" xml:space="preserve">
+    <value>Choose a Symbol Specification and a Naming Style.</value>
+  </data>
+  <data name="EnterATitleForThisNamingRule" xml:space="preserve">
+    <value>Enter a title for this Naming Rule.</value>
+  </data>
+  <data name="EnterATitleForThisNamingStyle" xml:space="preserve">
+    <value>Enter a title for this Naming Style.</value>
+  </data>
+  <data name="EnterATitleForThisSymbolSpecification" xml:space="preserve">
+    <value>Enter a title for this Symbol Specification.</value>
+  </data>
+  <data name="AccessibilitiesLabel" xml:space="preserve">
+    <value>Accessibilities (can match any)</value>
+  </data>
+  <data name="CapitalizationLabel" xml:space="preserve">
+    <value>Capitalization:</value>
+  </data>
+  <data name="CapitalizationStyleExample_AllLower" xml:space="preserve">
+    <value>all lower</value>
+  </data>
+  <data name="CapitalizationStyleExample_AllUpper" xml:space="preserve">
+    <value>ALL UPPER</value>
+  </data>
+  <data name="CapitalizationStyleExample_CamelCase" xml:space="preserve">
+    <value>camel Case Name</value>
+  </data>
+  <data name="CapitalizationStyleExample_FirstWordUpper" xml:space="preserve">
+    <value>First word upper</value>
+  </data>
+  <data name="CapitalizationStyleExample_PascalCase" xml:space="preserve">
+    <value>Pascal Case Name</value>
+  </data>
+  <data name="CustomTagsLabel" xml:space="preserve">
+    <value>Custom Tags (must match all)</value>
+  </data>
+  <data name="EnforcementLevelEntryLabel" xml:space="preserve">
+    <value>Severity:</value>
+  </data>
+  <data name="ModifiersLabel" xml:space="preserve">
+    <value>Modifiers (must match all)</value>
+  </data>
+  <data name="NameEntryLabel" xml:space="preserve">
+    <value>Name:</value>
+  </data>
+  <data name="NamingRuleDialogTitle" xml:space="preserve">
+    <value>Naming Rule</value>
+  </data>
+  <data name="NamingStyleDialogTitle" xml:space="preserve">
+    <value>Naming Style</value>
+  </data>
+  <data name="NamingStyleEntryLabel" xml:space="preserve">
+    <value>Naming Style:</value>
+  </data>
+  <data name="NamingStylesExplanationPart1" xml:space="preserve">
+    <value>Naming Rules allow you to define how particular sets of symbols should be named and how incorrectly-named symbols should be handled.</value>
+  </data>
+  <data name="NamingStylesExplanationPart2" xml:space="preserve">
+    <value>The first matching top-level Naming Rule is used by default when naming a symbol, while any special cases are handled by a matching child rule.</value>
+  </data>
+  <data name="NamingStyleTitleLabel" xml:space="preserve">
+    <value>Naming Style Title:</value>
+  </data>
+  <data name="ParentRuleEntryLabel" xml:space="preserve">
+    <value>Parent Rule:</value>
+  </data>
+  <data name="RequiredPrefixLabel" xml:space="preserve">
+    <value>Required Prefix:</value>
+  </data>
+  <data name="RequiredSuffixLabel" xml:space="preserve">
+    <value>Required Suffix:</value>
+  </data>
+  <data name="SampleIdentifierLabel" xml:space="preserve">
+    <value>Sample Identifier:</value>
+  </data>
+  <data name="SymbolKindsLabel" xml:space="preserve">
+    <value>Symbol Kinds (can match any)</value>
+  </data>
+  <data name="SymbolSpecificationDialogTitle" xml:space="preserve">
+    <value>Symbol Specification</value>
+  </data>
+  <data name="SymbolSpecificationEntryLabel" xml:space="preserve">
+    <value>Symbol Specification:</value>
+  </data>
+  <data name="SymbolSpecificationTitleLabel" xml:space="preserve">
+    <value>Symbol Specification Title:</value>
+  </data>
+  <data name="WordSeparatorLabel" xml:space="preserve">
+    <value>Word Separator:</value>
+  </data>
+  <data name="IdentifierWord_Example" xml:space="preserve">
+    <value>example</value>
+    <comment>IdentifierWord_Example and IdentifierWord_Identifier are combined (with prefixes, suffixes, and word separators) into an example identifier name in the NamingStyle UI.</comment>
+  </data>
+  <data name="IdentifierWord_Identifier" xml:space="preserve">
+    <value>identifier</value>
+    <comment>IdentifierWord_Example and IdentifierWord_Identifier are combined (with prefixes, suffixes, and word separators) into an example identifier name in the NamingStyle UI.</comment>
+  </data>
+  <data name="Install_0" xml:space="preserve">
+    <value>Install '{0}'</value>
+  </data>
+  <data name="Uninstalling_0" xml:space="preserve">
+    <value>Uninstalling '{0}'</value>
+  </data>
+  <data name="Uninstalling_0_completed" xml:space="preserve">
+    <value>Uninstalling '{0}' completed</value>
+  </data>
+  <data name="Uninstall_0" xml:space="preserve">
+    <value>Uninstall '{0}'</value>
+  </data>
+  <data name="Package_uninstall_failed_0" xml:space="preserve">
+    <value>Package uninstall failed: {0}</value>
+  </data>
+  <data name="IntellisenseBuildFailedMessage" xml:space="preserve">
+    <value>Error encountered while loading the project. Some project features, such as full solution analysis for the failed project and projects that depend on it, have been disabled.</value>
+  </data>
+  <data name="IntellisenseBuildFailedTitle" xml:space="preserve">
+    <value>Project loading failed.</value>
+  </data>
+  <data name="IntellisenseBuildFailedDescription" xml:space="preserve">
+    <value>To see what caused the issue, please try below.
+
+1. Close Visual Studio
+2. Open a Visual Studio Developer Command Prompt
+3. Set environment variable “TraceDesignTime” to true (set TraceDesignTime=true)
+4. Delete .vs directory/.suo file
+5. Restart VS from the command prompt you set the environment varaible (devenv)
+6. Open the solution
+7. Check '{0}' and look for the failed tasks (FAILED)</value>
+  </data>
+  <data name="IntellisenseBuildFailedDescriptionExtra" xml:space="preserve">
+    <value>Additional information:</value>
+  </data>
+  <data name="Installing_0_failed_Additional_information_1" xml:space="preserve">
+    <value>Installing '{0}' failed.
+
+Additional information: {1}</value>
+  </data>
+  <data name="Uninstalling_0_failed_Additional_information_1" xml:space="preserve">
+    <value>Uninstalling '{0}' failed.
+
+Additional information: {1}</value>
   </data>
 </root>

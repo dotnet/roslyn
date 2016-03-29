@@ -6,11 +6,12 @@ using System.Collections.ObjectModel;
 using Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.ExpressionEvaluator;
+using Microsoft.VisualStudio.Debugger.Clr;
 using Microsoft.VisualStudio.Debugger.Evaluation.ClrCompilation;
 using Roslyn.Test.Utilities;
 using Xunit;
 
-namespace Microsoft.CodeAnalysis.CSharp.UnitTests
+namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator.UnitTests
 {
     public class TypeNameFormatterTests : CSharpResultProviderTestBase
     {
@@ -34,7 +35,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.Equal("string", typeof(string).GetTypeName());
         }
 
-        [Fact, WorkItem(1016796)]
+        [Fact, WorkItem(1016796, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1016796")]
         public void NestedTypes()
         {
             var source = @"
@@ -297,7 +298,7 @@ namespace @return
             Assert.Equal("@return.@yield<@return.@false.@null>.@await", constructedAwaitType.GetTypeName(escapeKeywordIdentifiers: true));
         }
 
-        [WorkItem(1087216)]
+        [WorkItem(1087216, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1087216")]
         [Fact]
         public void DynamicAttribute_KeywordEscaping()
         {
@@ -306,7 +307,7 @@ namespace @return
             Assert.Equal("dynamic", typeof(object).GetTypeName(attributes, escapeKeywordIdentifiers: true));
         }
 
-        [WorkItem(1087216)]
+        [WorkItem(1087216, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1087216")]
         [Fact]
         public void DynamicAttribute_Locations()
         {
@@ -346,7 +347,7 @@ namespace N
             Assert.Equal("N.A<dynamic>.B<dynamic>[]", typeBConstructed.MakeArrayType().GetTypeName(new[] { false, false, true, true }));
         }
 
-        [WorkItem(1087216)]
+        [WorkItem(1087216, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1087216")]
         [Fact]
         public void DynamicAttribute_InvalidFlags()
         {
@@ -391,7 +392,7 @@ namespace N
             Assert.Equal("N.A<dynamic>.B<object>[]", typeBConstructed.MakeArrayType().GetTypeName(new[] { false, false, true }));
         }
 
-        [WorkItem(1087216)]
+        [WorkItem(1087216, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1087216")]
         [Fact]
         public void DynamicAttribute_OtherGuid()
         {
@@ -421,12 +422,8 @@ namespace N
             ImmutableArray<byte> pdbBytes;
             CSharpTestBase.EmitILToArray(il, appendDefaultHeader: true, includePdb: false, assemblyBytes: out assemblyBytes, pdbBytes: out pdbBytes);
             var assembly = ReflectionUtilities.Load(assemblyBytes);
-
             var type = assembly.GetType("Type`1");
-
-            bool sawInvalidIdentifier;
-            var typeName = CSharpFormatter.Instance.GetTypeName(new TypeAndCustomInfo((TypeImpl)type), escapeKeywordIdentifiers: true, sawInvalidIdentifier: out sawInvalidIdentifier);
-            Assert.True(sawInvalidIdentifier);
+            var typeName = type.GetTypeName();
             Assert.Equal("Type<<>Mangled>", typeName);
         }
     }

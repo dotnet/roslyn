@@ -10,6 +10,7 @@ using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 using System.Collections.Immutable;
 using Xunit;
+using System.Threading.Tasks;
 
 namespace Microsoft.CodeAnalysis.UnitTests.Diagnostics
 {
@@ -43,24 +44,24 @@ namespace Microsoft.CodeAnalysis.UnitTests.Diagnostics
             _onAnalyzerException = onAnalyzerException;
         }
 
-        private IEnumerable<Diagnostic> GetDiagnostics(DiagnosticAnalyzer workspaceAnalyzerOpt, Document document, TextSpan span, Project project, bool getDocumentDiagnostics, bool getProjectDiagnostics)
+        private async Task<IEnumerable<Diagnostic>> GetDiagnosticsAsync(DiagnosticAnalyzer workspaceAnalyzerOpt, Document document, TextSpan span, Project project, bool getDocumentDiagnostics, bool getProjectDiagnostics)
         {
             var documentDiagnostics = SpecializedCollections.EmptyEnumerable<Diagnostic>();
             var projectDiagnostics = SpecializedCollections.EmptyEnumerable<Diagnostic>();
 
             if (getDocumentDiagnostics)
             {
-                var dxs = _diagnosticAnalyzerService.GetDiagnosticsAsync(project.Solution, project.Id, document.Id, _includeSuppressedDiagnostics).WaitAndGetResult(CancellationToken.None);
-                documentDiagnostics = Microsoft.CodeAnalysis.Diagnostics.Extensions.ToDiagnosticsAsync(dxs.Where(d => d.HasTextSpan && d.TextSpan.IntersectsWith(span)), project, CancellationToken.None).WaitAndGetResult(CancellationToken.None);
+                var dxs = await _diagnosticAnalyzerService.GetDiagnosticsAsync(project.Solution, project.Id, document.Id, _includeSuppressedDiagnostics);
+                documentDiagnostics = await CodeAnalysis.Diagnostics.Extensions.ToDiagnosticsAsync(dxs.Where(d => d.HasTextSpan && d.TextSpan.IntersectsWith(span)), project, CancellationToken.None);
             }
 
             if (getProjectDiagnostics)
             {
-                var dxs = _diagnosticAnalyzerService.GetDiagnosticsAsync(project.Solution, project.Id, includeSuppressedDiagnostics: _includeSuppressedDiagnostics).WaitAndGetResult(CancellationToken.None);
-                projectDiagnostics = Microsoft.CodeAnalysis.Diagnostics.Extensions.ToDiagnosticsAsync(dxs.Where(d => !d.HasTextSpan), project, CancellationToken.None).WaitAndGetResult(CancellationToken.None);
+                var dxs = await _diagnosticAnalyzerService.GetDiagnosticsAsync(project.Solution, project.Id, includeSuppressedDiagnostics: _includeSuppressedDiagnostics);
+                projectDiagnostics = await CodeAnalysis.Diagnostics.Extensions.ToDiagnosticsAsync(dxs.Where(d => !d.HasTextSpan), project, CancellationToken.None);
             }
 
-            var exceptionDiagnostics = Microsoft.CodeAnalysis.Diagnostics.Extensions.ToDiagnosticsAsync(_exceptionDiagnosticsSource.TestOnly_GetReportedDiagnostics(), project, CancellationToken.None).WaitAndGetResult(CancellationToken.None);
+            var exceptionDiagnostics = await CodeAnalysis.Diagnostics.Extensions.ToDiagnosticsAsync(_exceptionDiagnosticsSource.TestOnly_GetReportedDiagnostics(), project, CancellationToken.None);
             var allDiagnostics = documentDiagnostics.Concat(projectDiagnostics).Concat(exceptionDiagnostics);
 
             if (!_includeSuppressedDiagnostics)
@@ -71,46 +72,46 @@ namespace Microsoft.CodeAnalysis.UnitTests.Diagnostics
             return allDiagnostics;
         }
 
-        public IEnumerable<Diagnostic> GetAllDiagnostics(DiagnosticAnalyzer workspaceAnalyzerOpt, Document document, TextSpan span)
+        public Task<IEnumerable<Diagnostic>> GetAllDiagnosticsAsync(DiagnosticAnalyzer workspaceAnalyzerOpt, Document document, TextSpan span)
         {
-            return GetDiagnostics(workspaceAnalyzerOpt, document, span, document.Project, getDocumentDiagnostics: true, getProjectDiagnostics: true);
+            return GetDiagnosticsAsync(workspaceAnalyzerOpt, document, span, document.Project, getDocumentDiagnostics: true, getProjectDiagnostics: true);
         }
 
-        public IEnumerable<Diagnostic> GetAllDiagnostics(DiagnosticAnalyzer workspaceAnalyzerOpt, Project project)
+        public async Task<IEnumerable<Diagnostic>> GetAllDiagnosticsAsync(DiagnosticAnalyzer workspaceAnalyzerOpt, Project project)
         {
             var diagnostics = new List<Diagnostic>();
             foreach (var document in project.Documents)
             {
-                var span = document.GetSyntaxRootAsync().Result.FullSpan;
-                var documentDiagnostics = GetDocumentDiagnostics(workspaceAnalyzerOpt, document, span);
+                var span = (await document.GetSyntaxRootAsync()).FullSpan;
+                var documentDiagnostics = await GetDocumentDiagnosticsAsync(workspaceAnalyzerOpt, document, span);
                 diagnostics.AddRange(documentDiagnostics);
             }
 
-            var projectDiagnostics = GetProjectDiagnostics(workspaceAnalyzerOpt, project);
+            var projectDiagnostics = await GetProjectDiagnosticsAsync(workspaceAnalyzerOpt, project);
             diagnostics.AddRange(projectDiagnostics);
             return diagnostics;
         }
 
-        public IEnumerable<Diagnostic> GetAllDiagnostics(DiagnosticAnalyzer workspaceAnalyzerOpt, Solution solution)
+        public async Task<IEnumerable<Diagnostic>> GetAllDiagnosticsAsync(DiagnosticAnalyzer workspaceAnalyzerOpt, Solution solution)
         {
             var diagnostics = new List<Diagnostic>();
             foreach (var project in solution.Projects)
             {
-                var projectDiagnostics = GetAllDiagnostics(workspaceAnalyzerOpt, project);
+                var projectDiagnostics = await GetAllDiagnosticsAsync(workspaceAnalyzerOpt, project);
                 diagnostics.AddRange(projectDiagnostics);
             }
 
             return diagnostics;
         }
 
-        public IEnumerable<Diagnostic> GetDocumentDiagnostics(DiagnosticAnalyzer workspaceAnalyzerOpt, Document document, TextSpan span)
+        public Task<IEnumerable<Diagnostic>> GetDocumentDiagnosticsAsync(DiagnosticAnalyzer workspaceAnalyzerOpt, Document document, TextSpan span)
         {
-            return GetDiagnostics(workspaceAnalyzerOpt, document, span, document.Project, getDocumentDiagnostics: true, getProjectDiagnostics: false);
+            return GetDiagnosticsAsync(workspaceAnalyzerOpt, document, span, document.Project, getDocumentDiagnostics: true, getProjectDiagnostics: false);
         }
 
-        public IEnumerable<Diagnostic> GetProjectDiagnostics(DiagnosticAnalyzer workspaceAnalyzerOpt, Project project)
+        public Task<IEnumerable<Diagnostic>> GetProjectDiagnosticsAsync(DiagnosticAnalyzer workspaceAnalyzerOpt, Project project)
         {
-            return GetDiagnostics(workspaceAnalyzerOpt, null, default(TextSpan), project, getDocumentDiagnostics: false, getProjectDiagnostics: true);
+            return GetDiagnosticsAsync(workspaceAnalyzerOpt, null, default(TextSpan), project, getDocumentDiagnostics: false, getProjectDiagnostics: true);
         }
 
         public void Dispose()

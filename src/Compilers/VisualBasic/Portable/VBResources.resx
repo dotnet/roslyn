@@ -742,7 +742,7 @@
     <value>'{0}' is not valid on a local variable declaration.</value>
   </data>
   <data name="ERR_ExpectedConditionalDirective" xml:space="preserve">
-    <value>'If', 'ElseIf', 'Else', 'Const', 'Region', 'ExternalSource', 'ExternalChecksum', 'Enable', 'Disable', or 'End' expected.</value>
+    <value>'If', 'ElseIf', 'Else', 'Const', 'Region', 'ExternalSource', 'ExternalChecksum', 'Enable', 'Disable', 'End' or 'R' expected.</value>
   </data>
   <data name="ERR_ExpectedEQ" xml:space="preserve">
     <value>'=' expected.</value>
@@ -4295,6 +4295,9 @@
   <data name="ERR_FriendRefSigningMismatch" xml:space="preserve">
     <value>Friend access was granted by '{0}', but the strong name signing state of the output assembly does not match that of the granting assembly.</value>
   </data>
+  <data name="ERR_PublicSignNoKey" xml:space="preserve">
+    <value>Public sign was specified and requires a public key, but no public key was specified</value>
+  </data>
   <data name="WRN_DelaySignButNoKey" xml:space="preserve">
     <value>Delay signing was specified and requires a public key, but no public key was specified.</value>
   </data>
@@ -5073,7 +5076,7 @@
                                   referenced metadata files. 
                                   import_list:namespace,...
 /langversion:&lt;number&gt;             Specify language version: 
-                                  9|9.0|10|10.0|11|11.0.
+                                  9|9.0|10|10.0|11|11.0|12|12.0|14|14.0
 /optionexplicit[+|-]              Require explicit declaration of variables.
 /optioninfer[+|-]                 Allow type inference of variables.
 /rootnamespace:&lt;string&gt;           Specifies the root Namespace for all type 
@@ -5103,6 +5106,8 @@
 /codepage:&lt;number&gt;                Specifies the codepage to use when opening 
                                   source files.
 /delaysign[+|-]                   Delay-sign the assembly using only the public
+                                  portion of the strong name key.
+/publicsign[+|-]                  Public-sign the assembly using only the public
                                   portion of the strong name key.
 /errorreport:&lt;string&gt;             Specifies how to handle internal compiler
                                   errors; must be prompt, send, none, or queue
@@ -5343,5 +5348,14 @@
   </data>
   <data name="ERR_InvalidPathMap" xml:space="preserve">
     <value>The pathmap option was incorrectly formatted.</value>
+  </data>
+  <data name="SyntaxTreeIsNotASubmission" xml:space="preserve">
+    <value>Syntax tree should be created from a submission.</value>
+  </data>
+  <data name="ERR_TooManyUserStrings" xml:space="preserve">
+    <value>Combined length of user strings used by the program exceeds allowed limit. Try to decrease use of string or XML literals.</value>
+  </data>
+  <data name="ERR_PeWritingFailure" xml:space="preserve">
+    <value>An error occurred while writing the output file: {0}</value>
   </data>
 </root>

@@ -1,15 +1,16 @@
 ﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-Imports System
-Imports System.Collections.Generic
-Imports Microsoft.CodeAnalysis.Text
-Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
-Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
-
 Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax
 
     Partial Public NotInheritable Class CompilationUnitSyntax
         Inherits VisualBasicSyntaxNode
+        Implements ICompilationUnitSyntax
+
+        Private ReadOnly Property ICompilationUnitSyntax_EndOfFileToken As SyntaxToken Implements ICompilationUnitSyntax.EndOfFileToken
+            Get
+                Return EndOfFileToken
+            End Get
+        End Property
 
         ''' <summary> 
         ''' Returns #r directives specified in the compilation. 
@@ -23,6 +24,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax
             Dim firstToken = CType(Me.GetFirstToken(includeZeroWidth:=True), SyntaxNodeOrToken)
             Return firstToken.GetDirectives(Of ReferenceDirectiveTriviaSyntax)(filter)
         End Function
+
     End Class
 End Namespace
 

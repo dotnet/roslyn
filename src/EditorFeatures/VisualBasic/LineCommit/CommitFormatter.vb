@@ -24,13 +24,13 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.LineCommit
                        p.Name <> PredefinedCodeCleanupProviderNames.Format
             End Function
 
-        Public Sub CommitRegion(spanToFormat As SnapshotSpan,
+        Public Async Function CommitRegionAsync(spanToFormat As SnapshotSpan,
                                 isExplicitFormat As Boolean,
                                 useSemantics As Boolean,
                                 dirtyRegion As SnapshotSpan,
                                 baseSnapshot As ITextSnapshot,
                                 baseTree As SyntaxTree,
-                                cancellationToken As CancellationToken) Implements ICommitFormatter.CommitRegion
+                                cancellationToken As CancellationToken) As Task Implements ICommitFormatter.CommitRegionAsync
 
             Using (Logger.LogBlock(FunctionId.LineCommit_CommitRegion, cancellationToken))
                 Dim buffer = spanToFormat.Snapshot.TextBuffer
@@ -73,7 +73,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.LineCommit
                                                              cancellationToken).WaitAndGetResult(cancellationToken)
                 Else
                     Dim root = document.GetSyntaxRootAsync(cancellationToken).WaitAndGetResult(cancellationToken)
-                    Dim newRoot = CodeCleaner.Cleanup(root, textSpanToFormat, document.Project.Solution.Workspace, codeCleanups, cancellationToken)
+                    Dim newRoot = Await CodeCleaner.CleanupAsync(root, textSpanToFormat, document.Project.Solution.Workspace, codeCleanups, cancellationToken).ConfigureAwait(False)
                     If root Is newRoot Then
                         finalDocument = document
                     Else
@@ -88,7 +88,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.LineCommit
 
                 finalDocument.Project.Solution.Workspace.ApplyDocumentChanges(finalDocument, cancellationToken)
             End Using
-        End Sub
+        End Function
 
         Private Function AbortForDiagnostics(document As Document, textSpanToFormat As TextSpan, cancellationToken As CancellationToken) As Boolean
             Const UnterminatedStringId = "BC30648"

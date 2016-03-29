@@ -144,7 +144,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.NavigationBar
                     t => PushSelectedItemsToPresenter(t.Result),
                     cancellationToken,
                     TaskContinuationOptions.OnlyOnRanToCompletion,
-                    ForegroundThreadAffinitizedObject.DefaultForegroundThreadData.TaskScheduler).CompletesAsyncOperation(asyncToken);
+                    ForegroundThreadAffinitizedObject.CurrentForegroundThreadData.TaskScheduler).CompletesAsyncOperation(asyncToken);
             }
         }
 

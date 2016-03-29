@@ -30,7 +30,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Library.ObjectB
 
         private ObjectListItem _activeListItem;
         private AbstractListItemFactory _listItemFactory;
-        private object classMemberGate = new object();
+        private object _classMemberGate = new object();
 
         protected AbstractObjectBrowserLibraryManager(string languageName, Guid libraryGuid, __SymbolToolLanguage preferredLanguage, IServiceProvider serviceProvider)
             : base(libraryGuid, serviceProvider)
@@ -111,7 +111,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Library.ObjectB
         {
             get
             {
-                lock (classMemberGate)
+                lock (_classMemberGate)
                 {
                     return _classVersion;
                 }
@@ -122,7 +122,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Library.ObjectB
         {
             get
             {
-                lock (classMemberGate)
+                lock (_classMemberGate)
                 {
                     return _membersVersion;
                 }
@@ -136,7 +136,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Library.ObjectB
 
         internal void UpdateClassAndMemberVersions()
         {
-            lock (classMemberGate)
+            lock (_classMemberGate)
             {
                 UpdateClassVersion();
                 UpdateMembersVersion();
@@ -199,7 +199,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Library.ObjectB
 
             return project
                 .GetCompilationAsync(CancellationToken.None)
-                .WaitAndGetResult(CancellationToken.None);
+                .WaitAndGetResult_ObjectBrowser(CancellationToken.None);
         }
 
         public override uint GetLibraryFlags()
@@ -395,11 +395,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Library.ObjectB
                 }
             }
 
-            SharedPools.Default<StringBuilder>().ClearAndFree(namespaceName);
-            SharedPools.Default<StringBuilder>().ClearAndFree(className);
-
             // TODO: Make sure we pass the right value for Visual Basic.
             ppNavInfo = this.LibraryService.NavInfoFactory.Create(libraryName, referenceOwnerName, namespaceName.ToString(), className.ToString(), memberName);
+
+            SharedPools.Default<StringBuilder>().ClearAndFree(namespaceName);
+            SharedPools.Default<StringBuilder>().ClearAndFree(className);
 
             return VSConstants.S_OK;
         }
