@@ -1,6 +1,6 @@
 // Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-#load "../../../util/test_util.csx"
+#load "../../util/test_util.csx"
 using System.IO;
 
 InitUtilities();
@@ -15,4 +15,4 @@ string args = $"{responseFile} /keyfile:{keyfileLocation}";
 string executeInDirectory = Path.Combine(MyTempDirectory(), "csharp");
 
 var msToCompile = WalltimeMs(() => ShellOutVital(ReleaseCscPath(), args, executeInDirectory));
-Report(ReportKind.CompileTime, $"{rspFile} compile duration (ms)", msToCompile);  
+Report(ReportKind.CompileTime, $"{rspFile} compile duration (ms)", msToCompile);
