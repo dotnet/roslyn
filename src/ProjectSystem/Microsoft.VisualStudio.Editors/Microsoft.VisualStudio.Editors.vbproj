@@ -49,7 +49,6 @@
       <EmbedInteropTypes>True</EmbedInteropTypes>
     </Reference>
     <Reference Include="Microsoft.VisualStudio.OLE.Interop" />
-    <Reference Include="Microsoft.VisualStudio.ServicesProxy" />
     <Reference Include="Microsoft.VisualStudio.Utilities" />
     <Reference Include="Microsoft.VisualStudio.Shell.14.0" />
     <Reference Include="Microsoft.VisualStudio.Shell.Design" />
@@ -72,7 +71,6 @@
     <Reference Include="Microsoft.VisualStudio.XmlEditor" />
     <Reference Include="mscorcfg" />
     <Reference Include="PresentationCore" />
-    <Reference Include="RequiredPermissions" />
     <Reference Include="PresentationFramework" />
     <Reference Include="System.Configuration" />
     <Reference Include="System.Core" />
@@ -99,11 +97,6 @@
     <Reference Include="VSLangProj80" />
     <Reference Include="VSLangProj90" />
     <Reference Include="VsWebSite.Interop" />
-    <Reference Include="Microsoft.Internal.Performance.CodeMarkers.DesignTime" />
-    <Reference Include="Microsoft.Internal.VisualStudio.Sqm.Interop.DesignTime">
-      <EmbedInteropTypes>true</EmbedInteropTypes>
-    </Reference>
-    <Reference Include="Microsoft.Internal.VisualStudio.Sqm.Datapoints.DesignTime" />
     <Reference Include="WindowsBase" />
     <Reference Include="Microsoft.VSDesigner" />
     <Reference Include="Microsoft.VSDesigner.WCF" />
