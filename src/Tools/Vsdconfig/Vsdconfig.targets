@@ -5,7 +5,7 @@
           Inputs="@(VsdConfigXml);$(IntermediateOutputPath)\$(AssemblyName).dll"
           Outputs="$(OutDir)\$(AssemblyName).vsdconfig"
           Condition="'$(BuildingProject)' == 'true' AND '$(SkipGenerateVsdconfig)' != 'true'">
-    <Exec Command="&quot;$(VSINSTALLDIR)\VSSDK\VisualStudioIntegration\Tools\Bin\vsdconfigtool.exe&quot; &quot;@(VsdConfigXml)&quot; &quot;$(IntermediateOutputPath)\$(AssemblyName).dll&quot; &quot;$(OutDir)\$(AssemblyName).vsdconfig&quot;" />
+    <Exec Command="&quot;$(DevEnvDir)\..\..\VSSDK\VisualStudioIntegration\Tools\Bin\vsdconfigtool.exe&quot; &quot;@(VsdConfigXml)&quot; &quot;$(IntermediateOutputPath)\$(AssemblyName).dll&quot; &quot;$(OutDir)\$(AssemblyName).vsdconfig&quot;" />
   </Target>
   
   <Target Name="VsdConfigOutputGroup" Outputs="@(VsdConfigOutputGroupOutput)">
