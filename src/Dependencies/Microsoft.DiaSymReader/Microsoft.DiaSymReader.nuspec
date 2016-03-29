@@ -5,10 +5,14 @@
     <summary>Microsoft DiaSymReader interop interfaces and utilities</summary>
     <description>
       Microsoft DiaSymReader interop interfaces and utilities.
-Supported Platforms:
-- .NET Framework 2.0
-- .NET Framework 4.5
     </description>  
+    <dependencies>
+      <group targetFramework="netstandard1.1">
+        <dependency id="System.Runtime" version="4.1.0-rc2-23910" />
+        <dependency id="System.Runtime.InteropServices" version="4.1.0-rc2-23910" />
+        <dependency id="System.Diagnostics.Debug" version="4.0.11-rc2-23910" />            
+      </group>
+    </dependencies>    
     <language>en-US</language>
     <requireLicenseAcceptance>true</requireLicenseAcceptance>
     <version>$currentVersion$</version>
@@ -19,6 +23,8 @@ Supported Platforms:
     <tags>DiaSymReader ISymUnmanagedReader PDB COM interop debugging</tags>
   </metadata>
   <files>
+    <file src="Portable\Microsoft.DiaSymReader.dll" target="lib\netstandard1.1" />
+    <file src="Portable\Microsoft.DiaSymReader.xml" target="lib\netstandard1.1" />
     <file src="Portable\Microsoft.DiaSymReader.dll" target="lib\portable-net45+win8" />
     <file src="Portable\Microsoft.DiaSymReader.xml" target="lib\portable-net45+win8" />
     <file src="NetFX20\Microsoft.DiaSymReader.dll" target="lib\net20" />
