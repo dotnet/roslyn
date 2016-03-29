@@ -55,7 +55,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeFixes.GenerateConstructor
         End Function
 
         Protected Overrides Function IsCandidate(node As SyntaxNode, diagnostic As Diagnostic) As Boolean
-            If TypeOf node Is SimpleNameSyntax OrElse TypeOf node Is InvocationExpressionSyntax OrElse TypeOf node Is ObjectCreationExpressionSyntax OrElse TypeOf node Is AttributeSyntax Then
+            If TypeOf node Is InvocationExpressionSyntax OrElse
+               TypeOf node Is ObjectCreationExpressionSyntax OrElse
+               TypeOf node Is AttributeSyntax Then
                 Return True
             End If
 

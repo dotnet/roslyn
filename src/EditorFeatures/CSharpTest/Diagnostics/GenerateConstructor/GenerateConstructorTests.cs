@@ -766,5 +766,24 @@ class Derived : Base
 @"using System ; using System . Collections . Generic ; using System . Linq ; using System . Threading . Tasks ; abstract class Y { class X : Y { void M ( ) { new X ( new [|string|] ( ) ) ; } } } ",
 @"using System ; using System . Collections . Generic ; using System . Linq ; using System . Threading . Tasks ; abstract class Y { class X : Y { private string v ; public X ( string v ) { this . v = v ; } void M ( ) { new X ( new string ( ) ) ; } } } ");
         }
+
+        [WorkItem(9575, "https://github.com/dotnet/roslyn/issues/9575")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructor)]
+        public async Task TestMissingOnMethodCall()
+        {
+            await TestMissingAsync(
+@"
+class C
+{
+    public C(int arg)
+    {
+    }
+
+    public bool M(string s, int i, bool b)
+    {
+        return [|M|](i, b);
+    }
+}");
+        }
     }
 }

@@ -38,8 +38,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.GenerateConstructor
 
         protected override bool IsCandidate(SyntaxNode node, Diagnostic diagnostic)
         {
-            if (node is SimpleNameSyntax ||
-                node is ObjectCreationExpressionSyntax ||
+            if (node is ObjectCreationExpressionSyntax ||
                 node is ConstructorInitializerSyntax ||
                 node is AttributeSyntax)
             {
