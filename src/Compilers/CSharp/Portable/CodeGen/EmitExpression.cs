@@ -216,10 +216,8 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
                     break;
 
                 case BoundKind.ModuleVersionId:
-                    if (used)
-                    {
-                        EmitModuleVersionIdLoad((BoundModuleVersionId)expression);
-                    }
+                    Debug.Assert(used);
+                    EmitModuleVersionIdLoad((BoundModuleVersionId)expression);
                     break;
 
                 case BoundKind.MethodToken:
