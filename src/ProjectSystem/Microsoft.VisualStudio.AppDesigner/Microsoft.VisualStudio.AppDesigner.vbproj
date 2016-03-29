@@ -131,7 +131,7 @@
     <Compile Include="interop\LOGVIEWID.vb" />
     <Compile Include="interop\NativeMethods.vb" />
     <Compile Include="interop\win.vb" />
-    <Compile Include="IVbpackage.vb" />
+    <Compile Include="IVBPackage.vb" />
     <Compile Include="My Project\AssemblyInfo.vb" />
     <Compile Include="MyApplicationProperties.vb" />
     <Compile Include="PropPageDesigner\ConfigurationState.vb" />
