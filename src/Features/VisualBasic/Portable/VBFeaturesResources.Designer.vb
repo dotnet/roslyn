@@ -90,6 +90,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.VBFeaturesResources
         End Property
         
         '''<summary>
+        '''  Looks up a localized string similar to Add Missing Labels.
+        '''</summary>
+        Friend ReadOnly Property AddSelectLabels() As String
+            Get
+                Return ResourceManager.GetString("AddSelectLabels", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
         '''  Looks up a localized string similar to Aggregate clause.
         '''</summary>
         Friend ReadOnly Property AggregateClause() As String

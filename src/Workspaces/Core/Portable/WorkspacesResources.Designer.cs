@@ -800,6 +800,15 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Populate switch..
+        /// </summary>
+        internal static string PopulateSwitch {
+            get {
+                return ResourceManager.GetString("PopulateSwitch", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to The solution already contains the specified project..
         /// </summary>
         internal static string ProjectAlreadyInSolution {

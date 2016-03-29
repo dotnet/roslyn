@@ -62,6 +62,15 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Add Missing Labels.
+        /// </summary>
+        internal static string AddSwitchLabels {
+            get {
+                return ResourceManager.GetString("AddSwitchLabels", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to anonymous method.
         /// </summary>
         internal static string AnonymousMethod {
@@ -143,7 +152,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to can&apos;t determine valid range of statements to extract out.
+        ///   Looks up a localized string similar to Can&apos;t determine valid range of statements to extract.
         /// </summary>
         internal static string CantDetermineValidRangeOfStatements {
             get {
@@ -593,7 +602,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to no valid statement range to extract out.
+        ///   Looks up a localized string similar to No valid statement range to extract.
         /// </summary>
         internal static string NoValidStatementRangeToExtractOut {
             get {
@@ -863,7 +872,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to the selection contains syntactic errors.
+        ///   Looks up a localized string similar to The selection contains syntactic errors.
         /// </summary>
         internal static string TheSelectionContainsSyntacticErrors {
             get {
