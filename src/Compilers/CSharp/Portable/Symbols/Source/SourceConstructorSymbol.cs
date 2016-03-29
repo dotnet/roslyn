@@ -69,7 +69,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             // NOTE: if we asked for the binder for the body of the constructor, we'd risk a stack overflow because
             // we might still be constructing the member list of the containing type.  However, getting the binder
             // for the parameters should be safe.
-            var bodyBinder = binderFactory.GetBinder(parameterList).WithContainingMemberOrLambda(this);
+            var bodyBinder = binderFactory.GetBinder(parameterList, syntax, this).WithContainingMemberOrLambda(this);
 
             SyntaxToken arglistToken;
             _lazyParameters = ParameterHelpers.MakeParameters(bodyBinder, this, parameterList, true, out arglistToken, diagnostics, false);

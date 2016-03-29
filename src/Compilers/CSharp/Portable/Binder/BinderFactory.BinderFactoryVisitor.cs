@@ -16,7 +16,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         private sealed class BinderFactoryVisitor : CSharpSyntaxVisitor<Binder>
         {
             private int _position;
-            private CSharpSyntaxNode _memberDeclarationOpt;
+            private MemberDeclarationSyntax _memberDeclarationOpt;
             private Symbol _memberOpt;
             private readonly BinderFactory _factory;
 
@@ -25,7 +25,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 _factory = factory;
             }
 
-            internal void Initialize(int position, CSharpSyntaxNode memberDeclarationOpt, Symbol memberOpt)
+            internal void Initialize(int position, MemberDeclarationSyntax memberDeclarationOpt, Symbol memberOpt)
             {
                 _position = position;
                 _memberDeclarationOpt = memberDeclarationOpt;
