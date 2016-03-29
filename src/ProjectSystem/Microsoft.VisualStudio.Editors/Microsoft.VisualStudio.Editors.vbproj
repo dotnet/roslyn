@@ -64,7 +64,6 @@
     <Reference Include="Microsoft.VisualStudio.TemplateWizardInterface" />
     <Reference Include="Microsoft.VisualStudio.TextManager.Interop" />
     <Reference Include="Microsoft.VisualStudio.VSHelp" />
-    <Reference Include="System.Collections.Immutable" />
     <Reference Include="Microsoft.VisualStudio.WCFReference.Interop" />
     <Reference Include="Microsoft.VisualStudio.XmlEditor" />
     <Reference Include="PresentationCore" />
@@ -707,6 +706,7 @@
     <None Include="Docs\Project Designer Architecture.vsd" />
     <None Include="Docs\ProjectDesigner Control Flow.doc" />
     <None Include="MyExtensibility\MyExtensibilityClassDiagram.cd" />
+    <None Include="project.json" />
     <None Include="Resources\Native\ResX.ico" />
     <None Include="Resources\Native\Settings.ico" />
     <None Include="Microsoft.VisualStudio.Editors.pkgdef" />
