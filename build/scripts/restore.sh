@@ -18,6 +18,4 @@ $DOTNET_PATH restore -v Minimal --disable-parallel $(pwd)/build/ToolsetPackages/
 
 echo "Restore CrossPlatform.sln"
 
-chmod +x $ROSLYN_TOOLSET_PATH/corerun
-
-$ROSLYN_TOOLSET_PATH/corerun $ROSLYN_TOOLSET_PATH/MSBuildToolset.dll $(pwd)/CrossPlatform.sln $(pwd)/nuget.exe $DOTNET_PATH
+$ROSLYN_TOOLSET_PATH/RoslynRestore $(pwd)/CrossPlatform.sln $(pwd)/nuget.exe $DOTNET_PATH
