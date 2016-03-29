@@ -840,13 +840,13 @@
 
   <Node Name="BoundCatchBlock" Base="BoundNode">
     <!-- 
-    Local symbol owned by the catch block. 
-    Null if the catch syntax doesn't declare a local variable.
+    Local symbols owned by the catch block. 
+    Empty if the catch syntax doesn't declare a local variable.
     
-    In the initial bound tree this is the exception variable (if present).
-    After the node is lowered it might be another variable or null.
+    In the initial bound tree the first variable is the exception variable (if present).
+    After the node is lowered it might be another variable.
     -->
-    <Field Name="LocalOpt" Type="LocalSymbol" Null="allow"/>
+    <Field Name="Locals" Type="ImmutableArray&lt;LocalSymbol&gt;"/>
 
     <!--
     Refers to the location where the exception object is stored. 

@@ -3411,9 +3411,10 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             BoundExpression exceptionSource = null;
             LocalSymbol local = this.Locals.FirstOrDefault();
-            if ((object)local != null)
+
+            if (local?.DeclarationKind == LocalDeclarationKind.CatchVariable)
             {
-                Debug.Assert(this.Locals.Length == 1);
+                Debug.Assert(local.Type.IsErrorType() || (local.Type == type));
 
                 // Check for local variable conflicts in the *enclosing* binder, not the *current* binder;
                 // obviously we will find a local of the given name in the current binder.
@@ -3423,22 +3424,17 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             var block = BindEmbeddedBlock(node.Block, diagnostics);
-            Debug.Assert((object)local == null || local.DeclarationKind == LocalDeclarationKind.CatchVariable);
-            Debug.Assert((object)local == null || local.Type.IsErrorType() || (local.Type == type));
-            return new BoundCatchBlock(node, local, exceptionSource, type, boundFilter, block, hasError);
+            return new BoundCatchBlock(node, this.Locals, exceptionSource, type, boundFilter, block, hasError);
         }
 
         private BoundExpression BindCatchFilter(CatchFilterClauseSyntax filter, DiagnosticBag diagnostics)
         {
-            // TODO: should pattern variables declared in a catch filter be available in the catch block?
-            PatternVariableBinder patternBinder = new PatternVariableBinder(filter, filter.FilterExpression, this);
-            BoundExpression boundFilter = patternBinder.BindBooleanExpression(filter.FilterExpression, diagnostics);
+            BoundExpression boundFilter = this.BindBooleanExpression(filter.FilterExpression, diagnostics);
             if (boundFilter.ConstantValue != ConstantValue.NotAvailable)
             {
                 Error(diagnostics, ErrorCode.WRN_FilterIsConstant, filter.FilterExpression);
             }
 
-            boundFilter = patternBinder.WrapWithVariablesIfAny(boundFilter);
             boundFilter = new BoundSequencePointExpression(filter, boundFilter, boundFilter.Type);
             return boundFilter;
         }
