@@ -28,8 +28,8 @@
     <Import Include="VSConstants=Microsoft.VisualStudio.VSConstants" />
   </ItemGroup>
   <ItemGroup>
-    <Reference Include="envdte" />
-    <Reference Include="envdte80" />
+    <Reference Include="EnvDTE" />
+    <Reference Include="EnvDTE80" />
     <Reference Include="Microsoft.VisualStudio.Designer.Interfaces" />
     <Reference Include="Microsoft.VisualStudio.OLE.Interop" />
     <Reference Include="Microsoft.VisualStudio.Utilities" />

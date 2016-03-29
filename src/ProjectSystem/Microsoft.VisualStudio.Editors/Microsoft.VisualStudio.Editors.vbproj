@@ -725,17 +725,6 @@
     <None Include="Microsoft.VisualStudio.Editors.pkgdef" />
   </ItemGroup>
   <ItemGroup>
-    <Content Include="..\..\..\vscommon\CodeMarkers\CodeMarkerValues.txt">
-      <Link>-Links\CodeMarkerValues.txt</Link>
-    </Content>
-    <Content Include="..\..\..\vscommon\idl\DiscoveryService90.idl">
-      <Link>-Links\DiscoveryService90.idl</Link>
-    </Content>
-    <Content Include="..\..\..\vscommon\idl\WCFReferences.idl">
-      <Link>-Links\WCFReferences.idl</Link>
-    </Content>
-  </ItemGroup>
-  <ItemGroup>
     <Service Include="{94E38DFF-614B-4CBD-B67C-F211BB35CE8B}" />
   </ItemGroup>
   <ItemGroup>
