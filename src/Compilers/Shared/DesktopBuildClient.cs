@@ -120,7 +120,7 @@ namespace Microsoft.CodeAnalysis.CommandLine
 
                             if (!holdsMutex)
                             {
-                                return Task.FromResult<BuildResponse>(null);
+                                return Task.FromResult<BuildResponse>(new RejectedBuildResponse());
                             }
                         }
                         catch (AbandonedMutexException)
@@ -163,7 +163,7 @@ namespace Microsoft.CodeAnalysis.CommandLine
                 }
             }
 
-            return Task.FromResult<BuildResponse>(null);
+            return Task.FromResult<BuildResponse>(new RejectedBuildResponse());
         }
 
         internal static bool WasServerMutexOpen(string mutexName)
@@ -200,7 +200,7 @@ namespace Microsoft.CodeAnalysis.CommandLine
                 catch (Exception e)
                 {
                     LogException(e, "Error writing build request.");
-                    return null;
+                    return new RejectedBuildResponse();
                 }
 
                 // Wait for the compilation and a monitor to detect if the server disconnects
@@ -224,17 +224,18 @@ namespace Microsoft.CodeAnalysis.CommandLine
                     catch (Exception e)
                     {
                         LogException(e, "Error reading response");
-                        response = null;
+                        response = new RejectedBuildResponse();
                     }
                 }
                 else
                 {
                     Log("Server disconnect");
-                    response = null;
+                    response = new RejectedBuildResponse();
                 }
 
                 // Cancel whatever task is still around
                 serverCts.Cancel();
+                Debug.Assert(response != null);
                 return response;
             }
         }

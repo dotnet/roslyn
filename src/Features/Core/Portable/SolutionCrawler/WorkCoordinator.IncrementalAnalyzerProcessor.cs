@@ -34,6 +34,8 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                 private readonly NormalPriorityProcessor _normalPriorityProcessor;
                 private readonly LowPriorityProcessor _lowPriorityProcessor;
 
+                private readonly Lazy<IDiagnosticAnalyzerService> _lazyDiagnosticAnalyzerService;
+
                 private LogAggregator _logAggregator;
 
                 public IncrementalAnalyzerProcessor(
@@ -48,6 +50,8 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                     _registration = registration;
                     _cacheService = registration.GetService<IProjectCacheService>();
 
+                    _lazyDiagnosticAnalyzerService = new Lazy<IDiagnosticAnalyzerService>(() => GetDiagnosticAnalyzerService(analyzerProviders));
+
                     var lazyActiveFileAnalyzers = new Lazy<ImmutableArray<IIncrementalAnalyzer>>(() => GetActiveFileIncrementalAnalyzers(_registration, analyzerProviders));
                     var lazyAllAnalyzers = new Lazy<ImmutableArray<IIncrementalAnalyzer>>(() => GetIncrementalAnalyzers(_registration, analyzerProviders));
 
@@ -61,13 +65,19 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                     _lowPriorityProcessor = new LowPriorityProcessor(listener, this, lazyAllAnalyzers, globalNotificationService, lowBackOffTimeSpanInMs, shutdownToken);
                 }
 
+                private IDiagnosticAnalyzerService GetDiagnosticAnalyzerService(IEnumerable<Lazy<IIncrementalAnalyzerProvider, IncrementalAnalyzerProviderMetadata>> analyzerProviders)
+                {
+                    // alternatively, we could just MEF import IDiagnosticAnalyzerService directly
+                    // this can be null in test env.
+                    return (IDiagnosticAnalyzerService)analyzerProviders.Where(p => p.Value is IDiagnosticAnalyzerService).SingleOrDefault()?.Value;
+                }
+
                 private static ImmutableArray<IIncrementalAnalyzer> GetActiveFileIncrementalAnalyzers(
                     Registration registration, IEnumerable<Lazy<IIncrementalAnalyzerProvider, IncrementalAnalyzerProviderMetadata>> providers)
                 {
-                    var analyzers = providers.Where(p => p.Metadata.HighPriorityForActiveFile && p.Metadata.WorkspaceKinds.Contains(registration.Workspace.Kind))
-                                             .Select(p => p.Value.CreateIncrementalAnalyzer(registration.Workspace));
+                    var matchingProviders = providers.Where(p => p.Metadata.HighPriorityForActiveFile && p.Metadata.WorkspaceKinds.Contains(registration.Workspace.Kind));
 
-                    var orderedAnalyzers = OrderAnalyzers(analyzers);
+                    var orderedAnalyzers = GetOrderedAnalyzers(registration, matchingProviders);
 
                     SolutionCrawlerLogger.LogActiveFileAnalyzers(registration.CorrelationId, registration.Workspace, orderedAnalyzers);
                     return orderedAnalyzers;
@@ -76,20 +86,21 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                 private static ImmutableArray<IIncrementalAnalyzer> GetIncrementalAnalyzers(
                     Registration registration, IEnumerable<Lazy<IIncrementalAnalyzerProvider, IncrementalAnalyzerProviderMetadata>> providers)
                 {
-                    var analyzers = providers.Where(p => p.Metadata.WorkspaceKinds.Contains(registration.Workspace.Kind))
-                                             .Select(p => p.Value.CreateIncrementalAnalyzer(registration.Workspace));
+                    var matchingProviders = providers.Where(p => p.Metadata.WorkspaceKinds.Contains(registration.Workspace.Kind));
 
-                    var orderedAnalyzers = OrderAnalyzers(analyzers);
+                    var orderedAnalyzers = GetOrderedAnalyzers(registration, matchingProviders);
 
                     SolutionCrawlerLogger.LogAnalyzers(registration.CorrelationId, registration.Workspace, orderedAnalyzers);
                     return orderedAnalyzers;
                 }
 
-                private static ImmutableArray<IIncrementalAnalyzer> OrderAnalyzers(IEnumerable<IIncrementalAnalyzer> analyzers)
+                private static ImmutableArray<IIncrementalAnalyzer> GetOrderedAnalyzers(
+                    Registration registration, IEnumerable<Lazy<IIncrementalAnalyzerProvider, IncrementalAnalyzerProviderMetadata>> providers)
                 {
-                    return SpecializedCollections.SingletonEnumerable(analyzers.FirstOrDefault(a => a is BaseDiagnosticIncrementalAnalyzer))
-                                                                               .Concat(analyzers.Where(a => !(a is BaseDiagnosticIncrementalAnalyzer)))
-                                                                               .WhereNotNull().ToImmutableArray();
+                    // Sort list so BaseDiagnosticIncrementalAnalyzers (if any) come first.  OrderBy orders 'false' keys before 'true'.
+                    return providers.Select(p => p.Value.CreateIncrementalAnalyzer(registration.Workspace))
+                                    .OrderBy(a => !(a is BaseDiagnosticIncrementalAnalyzer))
+                                    .ToImmutableArray();
                 }
 
                 public void Enqueue(WorkItem item)
@@ -120,13 +131,11 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                     diagnosticAnalyzer.TurnOff(useV2Engine);
                 }
 
-                public ImmutableArray<IIncrementalAnalyzer> Analyzers
-                {
-                    get
-                    {
-                        return _normalPriorityProcessor.Analyzers;
-                    }
-                }
+                public ImmutableArray<IIncrementalAnalyzer> Analyzers => _normalPriorityProcessor.Analyzers;
+
+                private Solution CurrentSolution => _registration.CurrentSolution;
+                private ProjectDependencyGraph DependencyGraph => CurrentSolution.GetProjectDependencyGraph();
+                private IDiagnosticAnalyzerService DiagnosticAnalyzerService => _lazyDiagnosticAnalyzerService.Value;
 
                 public Task AsyncProcessorTask
                 {
@@ -139,25 +148,9 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                     }
                 }
 
-                private Solution CurrentSolution
-                {
-                    get
-                    {
-                        return _registration.CurrentSolution;
-                    }
-                }
-
                 private IDisposable EnableCaching(ProjectId projectId)
                 {
                     return _cacheService?.EnableCaching(projectId) ?? NullDisposable.Instance;
-                }
-
-                private ProjectDependencyGraph DependencyGraph
-                {
-                    get
-                    {
-                        return CurrentSolution.GetProjectDependencyGraph();
-                    }
                 }
 
                 private IEnumerable<DocumentId> GetOpenDocumentIds()

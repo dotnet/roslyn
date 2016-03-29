@@ -3115,7 +3115,7 @@ class Error
             Assert.Equal("A.ProtectedClass", typeArgSymbol.ToTestDisplayString());
             Assert.False(model.IsAccessible(callPosition, typeArgSymbol), "Protected inner class is inaccessible");
 
-            var paramTypeSymbol = constructedMethodSymbol.Parameters.Single().Type;
+            var paramTypeSymbol = constructedMethodSymbol.Parameters.Single().Type.TypeSymbol;
             Assert.Equal("I<A.ProtectedClass>", paramTypeSymbol.ToTestDisplayString());
             Assert.False(model.IsAccessible(callPosition, typeArgSymbol), "Type should be inaccessible since type argument is inaccessible");
 
@@ -14637,8 +14637,10 @@ class D
 }
 ";
             CreateCompilationWithMscorlib(text).VerifyDiagnostics(
-                // (21,15): error CS1649: Members of readonly field 'Outer.inner' cannot be passed ref or out (except in a constructor)
-                Diagnostic(ErrorCode.ERR_RefReadonly2, "outer.inner.i").WithArguments("Outer.inner"));
+    // (21,15): error CS1649: Members of readonly field 'Outer.inner' cannot be used as a ref or out value (except in a constructor)
+    //         f(ref outer.inner.i);  // CS1649
+    Diagnostic(ErrorCode.ERR_RefReadonly2, "outer.inner.i").WithArguments("Outer.inner").WithLocation(21, 15)
+);
         }
 
         [Fact]
@@ -14867,8 +14869,10 @@ class C
 }
 ";
             CreateCompilationWithMscorlib(text).VerifyDiagnostics(
-                // (12,19): error CS1657: Cannot pass 'a' as a ref or out argument because it is a 'foreach iteration variable'
-                Diagnostic(ErrorCode.ERR_RefReadonlyLocalCause, "a").WithArguments("a", "foreach iteration variable"));
+    // (12,19): error CS1657: Cannot use 'a' as a ref or out value because it is a 'foreach iteration variable'
+    //             F(ref a); //CS1657
+    Diagnostic(ErrorCode.ERR_RefReadonlyLocalCause, "a").WithArguments("a", "foreach iteration variable").WithLocation(12, 19)
+                );
         }
 
         [Fact]
@@ -22419,9 +22423,10 @@ class Program
 ";
 
             CreateCompilationWithMscorlib(source).VerifyDiagnostics(
-                // (11,58): error CS0199: A static readonly field cannot be passed ref or out (except in a static constructor)
-                //         static readonly Program Field3 = new Program(ref Program.Field2);
-                Diagnostic(ErrorCode.ERR_RefReadonlyStatic, "Program.Field2"));
+    // (11,58): error CS0199: A static readonly field cannot be used as a ref or out value (except in a static constructor)
+    //         static readonly Program Field3 = new Program(ref Program.Field2);
+    Diagnostic(ErrorCode.ERR_RefReadonlyStatic, "Program.Field2").WithLocation(11, 58)
+);
         }
 
         [Fact]

@@ -17,14 +17,29 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.EditAndContinue
 {
     internal sealed class CSharpEditAndContinueTestHelpers : EditAndContinueTestHelpers
     {
-        internal static readonly CSharpEditAndContinueTestHelpers Instance = new CSharpEditAndContinueTestHelpers();
+        private readonly ImmutableArray<PortableExecutableReference> _fxReferences;
+
+        internal static readonly CSharpEditAndContinueTestHelpers Instance = new CSharpEditAndContinueTestHelpers(
+            ImmutableArray.Create(TestReferences.NetFx.v4_0_30316_17626.mscorlib, TestReferences.NetFx.v4_0_30319.System_Core));
+        
+        internal static CSharpEditAndContinueTestHelpers Instance40 => new CSharpEditAndContinueTestHelpers(
+            ImmutableArray.Create(TestReferences.NetFx.v4_0_30319.mscorlib, TestReferences.NetFx.v4_0_30319.System_Core));
+
+        internal static CSharpEditAndContinueTestHelpers InstanceMinAsync => new CSharpEditAndContinueTestHelpers(
+            ImmutableArray.Create(TestReferences.NetFx.Minimal.mincorlib, TestReferences.NetFx.Minimal.minasync));
+
         private static readonly CSharpEditAndContinueAnalyzer s_analyzer = new CSharpEditAndContinueAnalyzer();
+
+        public CSharpEditAndContinueTestHelpers(ImmutableArray<PortableExecutableReference> fxReferences)
+        {
+            _fxReferences = fxReferences;
+        }
 
         public override AbstractEditAndContinueAnalyzer Analyzer { get { return s_analyzer; } }
 
         public override Compilation CreateLibraryCompilation(string name, IEnumerable<SyntaxTree> trees)
         {
-            return CSharpCompilation.Create("New", trees, new[] { TestReferences.NetFx.v4_0_30319.mscorlib, TestReferences.NetFx.v4_0_30319.System_Core }, TestOptions.UnsafeReleaseDll);
+            return CSharpCompilation.Create("New", trees, _fxReferences, TestOptions.UnsafeReleaseDll);
         }
 
         public override SyntaxTree ParseText(string source)

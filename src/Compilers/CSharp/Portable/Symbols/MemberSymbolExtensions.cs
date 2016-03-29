@@ -427,19 +427,19 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         internal static bool IsPartialMethod(this Symbol member)
         {
             var sms = member as SourceMethodSymbol;
-            return (object)sms != null && sms.IsPartial;
+            return sms?.IsPartial == true;
         }
 
         internal static bool IsPartialImplementation(this Symbol member)
         {
             var sms = member as SourceMemberMethodSymbol;
-            return (object)sms != null && sms.IsPartialImplementation;
+            return sms?.IsPartialImplementation == true;
         }
 
         internal static bool IsPartialDefinition(this Symbol member)
         {
             var sms = member as SourceMemberMethodSymbol;
-            return (object)sms != null && sms.IsPartialDefinition;
+            return sms?.IsPartialDefinition == true;
         }
 
         internal static ImmutableArray<Symbol> GetExplicitInterfaceImplementations(this Symbol member)
@@ -459,19 +459,29 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         internal static TypeSymbolWithAnnotations GetTypeOrReturnType(this Symbol member)
         {
+            RefKind refKind;
+            return GetTypeOrReturnType(member, out refKind);
+        }
+
+        internal static TypeSymbolWithAnnotations GetTypeOrReturnType(this Symbol member, out RefKind refKind)
+        {
             switch (member.Kind)
             {
                 case SymbolKind.Field:
                     FieldSymbol field = (FieldSymbol)member;
+                    refKind = RefKind.None;
                     return field.Type;
                 case SymbolKind.Method:
                     MethodSymbol method = (MethodSymbol)member;
+                    refKind = method.RefKind;
                     return method.ReturnType;
                 case SymbolKind.Property:
                     PropertySymbol property = (PropertySymbol)member;
+                    refKind = property.RefKind;
                     return property.Type;
                 case SymbolKind.Event:
                     EventSymbol @event = (EventSymbol)member;
+                    refKind = RefKind.None;
                     return @event.Type;
                 default:
                     throw ExceptionUtilities.UnexpectedValue(member.Kind);

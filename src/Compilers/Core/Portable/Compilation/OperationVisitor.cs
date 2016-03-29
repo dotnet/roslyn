@@ -20,7 +20,7 @@ namespace Microsoft.CodeAnalysis.Semantics
             // no-op
         }
 
-        internal void VisitNoneOperation(IOperation operation)
+        internal virtual void VisitNoneOperation(IOperation operation)
         {
             // no-op
         }
@@ -130,12 +130,7 @@ namespace Microsoft.CodeAnalysis.Semantics
             DefaultVisit(operation);
         }
 
-        public virtual void VisitUsingWithDeclarationStatement(IUsingWithDeclarationStatement operation)
-        {
-            DefaultVisit(operation);
-        }
-
-        public virtual void VisitUsingWithExpressionStatement(IUsingWithExpressionStatement operation)
+        public virtual void VisitUsingStatement(IUsingStatement operation)
         {
             DefaultVisit(operation);
         }
@@ -240,6 +235,21 @@ namespace Microsoft.CodeAnalysis.Semantics
             DefaultVisit(operation);
         }
 
+        public virtual void VisitConditionalAccessInstanceExpression(IConditionalAccessInstanceExpression operation)
+        {
+            DefaultVisit(operation);
+        }
+
+        public virtual void VisitPlaceholderExpression(IPlaceholderExpression operation)
+        {
+            DefaultVisit(operation);
+        }
+
+        public virtual void VisitIndexedPropertyReferenceExpression(IIndexedPropertyReferenceExpression operation)
+        {
+            DefaultVisit(operation);
+        }
+
         public virtual void VisitUnaryOperatorExpression(IUnaryOperatorExpression operation)
         {
             DefaultVisit(operation);
@@ -265,7 +275,7 @@ namespace Microsoft.CodeAnalysis.Semantics
             DefaultVisit(operation);
         }
 
-        public virtual void VisitIsExpression(IIsExpression operation)
+        public virtual void VisitIsTypeExpression(IIsTypeExpression operation)
         {
             DefaultVisit(operation);
         }
@@ -410,7 +420,7 @@ namespace Microsoft.CodeAnalysis.Semantics
             return default(TResult);
         }
 
-        internal TResult VisitNoneOperation(IOperation operation, TArgument argument)
+        internal virtual TResult VisitNoneOperation(IOperation operation, TArgument argument)
         {
             return default(TResult);
         }
@@ -520,16 +530,11 @@ namespace Microsoft.CodeAnalysis.Semantics
             return DefaultVisit(operation, argument);
         }
 
-        public virtual TResult VisitUsingWithDeclarationStatement(IUsingWithDeclarationStatement operation, TArgument argument)
+        public virtual TResult VisitUsingStatement(IUsingStatement operation, TArgument argument)
         {
             return DefaultVisit(operation, argument);
         }
-
-        public virtual TResult VisitUsingWithExpressionStatement(IUsingWithExpressionStatement operation, TArgument argument)
-        {
-            return DefaultVisit(operation, argument);
-        }
-
+        
         public virtual TResult VisitFixedStatement(IFixedStatement operation, TArgument argument)
         {
             return DefaultVisit(operation, argument);
@@ -630,6 +635,21 @@ namespace Microsoft.CodeAnalysis.Semantics
             return DefaultVisit(operation, argument);
         }
 
+        public virtual TResult VisitConditionalAccessInstanceExpression(IConditionalAccessInstanceExpression operation, TArgument argument)
+        {
+            return DefaultVisit(operation, argument);
+        }
+
+        public virtual TResult VisitPlaceholderExpression(IPlaceholderExpression operation, TArgument argument)
+        {
+            return DefaultVisit(operation, argument);
+        }
+
+        public virtual TResult VisitIndexedPropertyReferenceExpression(IIndexedPropertyReferenceExpression operation, TArgument argument)
+        {
+            return DefaultVisit(operation, argument);
+        }
+
         public virtual TResult VisitUnaryOperatorExpression(IUnaryOperatorExpression operation, TArgument argument)
         {
             return DefaultVisit(operation, argument);
@@ -655,7 +675,7 @@ namespace Microsoft.CodeAnalysis.Semantics
             return DefaultVisit(operation, argument);
         }
 
-        public virtual TResult VisitIsExpression(IIsExpression operation, TArgument argument)
+        public virtual TResult VisitIsTypeExpression(IIsTypeExpression operation, TArgument argument)
         {
             return DefaultVisit(operation, argument);
         }

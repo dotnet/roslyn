@@ -142,6 +142,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             get { return ImmutableArray<TypeSymbolWithAnnotations>.Empty; }
         }
 
+        internal override RefKind RefKind
+        {
+            get { return RefKind.None; }
+        }
+
         public override TypeSymbolWithAnnotations ReturnType
         {
             get { return TypeSymbolWithAnnotations.Create(_returnType); }

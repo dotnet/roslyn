@@ -2,13 +2,12 @@
 
 using System.Collections.Immutable;
 using System.Diagnostics;
-using Microsoft.CodeAnalysis.CSharp.Emit;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.Symbols
 {
     /// <summary>
-    /// Represents a compiler generated field.
+    /// Represents a compiler generated field or captured variable.
     /// </summary>
     internal abstract class SynthesizedFieldSymbolBase : FieldSymbol
     {
@@ -33,25 +32,28 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 (isStatic ? DeclarationModifiers.Static : DeclarationModifiers.None);
         }
 
+        internal abstract bool SuppressDynamicAttribute
+        {
+            get;
+        }
+
         internal override void AddSynthesizedAttributes(ModuleCompilationState compilationState, ref ArrayBuilder<SynthesizedAttributeData> attributes)
         {
             base.AddSynthesizedAttributes(compilationState, ref attributes);
 
-            // do not emit Dynamic or CompilerGenerated attributes for fields inside compiler generated types:
-            if (_containingType.IsImplicitlyDeclared)
-            {
-                return;
-            }
-
             CSharpCompilation compilation = this.DeclaringCompilation;
 
-            // Assume that someone checked earlier that the attribute ctor is available and has no use-site errors.
-            AddSynthesizedAttribute(ref attributes, compilation.TrySynthesizeAttribute(WellKnownMember.System_Runtime_CompilerServices_CompilerGeneratedAttribute__ctor));
-
-            // TODO (tomat): do we need to emit dynamic attribute on any synthesized field?
-            if (this.Type.TypeSymbol.ContainsDynamic())
+            // do not emit CompilerGenerated attributes for fields inside compiler generated types:
+            if (!_containingType.IsImplicitlyDeclared)
             {
-                // Assume that someone checked earlier that the attribute ctor is available and has no use-site errors.
+            AddSynthesizedAttribute(ref attributes, compilation.TrySynthesizeAttribute(WellKnownMember.System_Runtime_CompilerServices_CompilerGeneratedAttribute__ctor));
+            }
+
+            if (!this.SuppressDynamicAttribute &&
+                this.Type.TypeSymbol.ContainsDynamic() &&
+                compilation.HasDynamicEmitAttributes() &&
+                compilation.CanEmitBoolean())
+            {
                 AddSynthesizedAttribute(ref attributes, compilation.SynthesizeDynamicAttribute(this.Type.TypeSymbol, this.Type.CustomModifiers.Length));
             }
         }

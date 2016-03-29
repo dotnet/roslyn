@@ -1618,7 +1618,7 @@ class C
             Assert.Equal(ConversionKind.ImplicitReference, info.EnumeratorConversion.Kind);
 
             Assert.Equal(ConversionKind.Identity, boundNode.ElementConversion.Kind);
-            Assert.Equal("C.var", boundNode.IterationVariable.Type.ToTestDisplayString());
+            Assert.Equal("C.var", boundNode.IterationVariable.Type.TypeSymbol.ToTestDisplayString());
         }
 
         [Fact]

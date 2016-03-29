@@ -226,7 +226,7 @@ class C
                     var metadataDecoder = new MetadataDecoder(module);
                     SignatureHeader signatureHeader;
                     BadImageFormatException metadataException;
-                    var parameters = metadataDecoder.GetSignatureForMethod(methodHandle, out signatureHeader, out metadataException);
+                    var parameters = metadataDecoder.GetSignatureForMethod(methodHandle, out signatureHeader, out metadataException, allowByRefReturn: true);
                     Assert.Equal(parameters.Length, 5);
                     var actualReturnType = parameters[0].Type;
                     Assert.Equal(actualReturnType.TypeKind, TypeKind.Class); // not error

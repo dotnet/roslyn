@@ -1922,5 +1922,96 @@ Remove Overridden2
 Add Overridden3
 Remove Overridden3");
         }
+
+        [Fact, WorkItem(7845, "https://github.com/dotnet/roslyn/issues/7845")]
+        public void EventFieldWithDynamic()
+        {
+            var ilSource = @"
+.class public auto ansi beforefieldinit CL1
+       extends [mscorlib] System.Object
+{
+    .method public hidebysig specialname rtspecialname
+            instance void  .ctor() cil managed
+    {
+      // Code size       7 (0x7)
+      .maxstack  1
+      IL_0000: ldarg.0
+      IL_0001: call instance void[mscorlib] System.Object::.ctor()
+      IL_0006: ret
+    } // end of method CL1`1::.ctor
+
+    .event class [mscorlib]System.Action`1<object modopt([mscorlib]System.Runtime.CompilerServices.IsConst)[]> Test
+    {
+      .addon instance void CL1::add_Test(class [mscorlib]System.Action`1<object modopt([mscorlib]System.Runtime.CompilerServices.IsConst)[]>)
+      .removeon instance void CL1::remove_Test(class [mscorlib]System.Action`1<object modopt([mscorlib]System.Runtime.CompilerServices.IsConst)[]>)
+    } // end of event CL1::Test
+
+    .method public hidebysig newslot specialname virtual 
+            instance void  add_Test(class [mscorlib]System.Action`1<object modopt([mscorlib]System.Runtime.CompilerServices.IsConst)[]> 'value') cil managed
+    {
+      // Code size       2 (0x2)
+      .maxstack  1
+      IL_0000: ldarg.0
+      IL_0001: throw
+    } // end of method CL1::get_Test
+
+    .method public hidebysig newslot specialname virtual 
+            instance void  remove_Test(class [mscorlib]System.Action`1<object modopt([mscorlib]System.Runtime.CompilerServices.IsConst)[]> 'value') cil managed
+    {
+      // Code size       3 (0x3)
+      .maxstack  1
+      IL_0000: ldarg.0
+      IL_0001: throw
+      IL_0002:  ret
+    } // end of method CL1::set_Test
+} // end of class CL1
+";
+            var source = @"
+using System;
+
+class Module1
+{
+    static void Main()
+    {
+        CL2 cl2 = new CL2();
+        CL1 cl1 = cl2;
+        cl1.Test += (d) => Console.WriteLine(d[0] + "" and "" + d[1]);
+        cl2.Raise();
+
+        CL3 cl3 = new CL3();
+        cl1 = cl3;
+        cl1.Test += (d) => Console.WriteLine(""Charlie"");
+        cl3.Raise();
+    }
+}
+
+class CL2 : CL1
+{
+    public override event Action<dynamic[]> Test;
+    public void Raise() => Test(new string[] { ""Alice"", ""Bob"" });
+}
+
+class CL3 : CL1
+{
+    public override event Action<object[]> Test;
+    public void Raise() => Test(null);
+}
+";
+            var compilation = CreateCompilationWithCustomILSource(source, ilSource, new[] { CSharpRef, SystemCoreRef }, options: TestOptions.ReleaseExe);
+
+            var cl2 = compilation.GetTypeByMetadataName("CL2");
+            var test2 = cl2.GetMember<EventSymbol>("Test");
+            Assert.Equal("event System.Action<dynamic modopt(System.Runtime.CompilerServices.IsConst) []> CL2.Test",
+                         test2.ToTestDisplayString());
+
+            var cl3 = compilation.GetTypeByMetadataName("CL3");
+            var test3 = cl3.GetMember<EventSymbol>("Test");
+            Assert.Equal("event System.Action<System.Object modopt(System.Runtime.CompilerServices.IsConst) []> CL3.Test",
+                         test3.ToTestDisplayString());
+
+            CompileAndVerify(compilation, expectedOutput: 
+@"Alice and Bob
+Charlie");
+        }
     }
 }

@@ -5,11 +5,16 @@ using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.CodeRefactorings.InlineTemporary;
 using Roslyn.Test.Utilities;
 using Xunit;
+using System.Collections.Generic;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeRefactorings.InlineTemporary
 {
     public class InlineTemporaryTests : AbstractCSharpCodeActionTest
     {
+        private static readonly Dictionary<string, string> s_experimentalFeatures = new Dictionary<string, string> { { "localFunctions", "true" }, { "refLocalsAndReturns", "true" } };
+        public static readonly CSharpParseOptions ExperimentalParseOptions =
+            new CSharpParseOptions(kind: SourceCodeKind.Regular, documentationMode: DocumentationMode.None, languageVersion: LanguageVersion.CSharp6).WithFeatures(s_experimentalFeatures);
+
         protected override object CreateCodeRefactoringProvider(Workspace workspace)
         {
             return new InlineTemporaryCodeRefactoringProvider();
@@ -60,6 +65,23 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeRefactorings.Inline
         public async Task NotOnField()
         {
             await TestMissingAsync(@"class C { int [||]x = 42; void M() { System.Console.WriteLine(x); } }");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
+        public async Task WithRefInitializer1()
+        {
+            await TestMissingAsync(@"
+class C
+{
+    ref int M()
+    {
+        int[] arr = new[] { 1, 2, 3 };
+        ref int [||]x = ref arr[2];
+        return ref x;
+    }
+}", 
+                // TODO: propagating features to the project is currently NYI
+                parseOptions: ExperimentalParseOptions);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
@@ -3886,6 +3908,46 @@ class C
         M((FormattableString)$""{x}, {y}"");
     }
 }";
+            await TestAsync(initial, expected, compareTokens: false);
+        }
+
+        [WorkItem(9576, "https://github.com/dotnet/roslyn/issues/9576")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
+        public async Task InlineIntoLambdaWithReturnStatementWithNoExpression()
+        {
+            const string initial = @"
+using System;
+class C
+{
+    static void M(Action a) { }
+
+    static void N()
+    {
+        var [||]x = 42;
+        M(() =>
+        {
+            Console.WriteLine(x);
+            return;
+        });
+    }
+}";
+
+            const string expected = @"
+using System;
+class C
+{
+    static void M(Action a) { }
+
+    static void N()
+    {
+        M(() =>
+        {
+            Console.WriteLine(42);
+            return;
+        });
+    }
+}";
+
             await TestAsync(initial, expected, compareTokens: false);
         }
     }

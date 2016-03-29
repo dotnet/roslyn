@@ -40,6 +40,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 get { return false; }
             }
 
+            internal override RefKind RefKind
+            {
+                get { return RefKind.None; }
+            }
+
             public override TypeSymbolWithAnnotations ReturnType
             {
                 get { return TypeSymbolWithAnnotations.Create(this.Manager.System_Boolean); }

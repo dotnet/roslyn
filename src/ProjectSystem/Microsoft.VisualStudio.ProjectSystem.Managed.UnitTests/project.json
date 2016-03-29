@@ -1,0 +1,11 @@
+﻿{
+  "frameworks": {
+    "net46": {}
+  },
+  "dependencies": {
+    "xunit.assert": "2.1.0",
+    "xunit.extensibility.core": "2.1.0",
+    "xunit.extensibility.execution": "2.1.0",
+    "Moq": "4.2.1402.2112"
+  }
+}

@@ -3667,11 +3667,11 @@ class Program
 ";
             var option = TestOptions.ReleaseExe;
             CreateCompilationWithMscorlib(source, options: option, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp6)).VerifyDiagnostics(
-    // (6,9): error CS8058: Feature 'local functions' is only available in 'experimental' language version.
+    // (6,9): error CS8058: Feature 'local functions' is experimental and unsupported; use '/features:localFunctions' to enable.
     //         void Local()
     Diagnostic(ErrorCode.ERR_FeatureIsExperimental, @"void Local()
         {
-        }").WithArguments("local functions").WithLocation(6, 9)
+        }").WithArguments("local functions", "localFunctions").WithLocation(6, 9)
                 );
         }
     }

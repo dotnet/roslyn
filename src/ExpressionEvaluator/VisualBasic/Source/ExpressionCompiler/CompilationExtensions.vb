@@ -104,6 +104,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
             optimizationLevel:=OptimizationLevel.Release,
             assemblyIdentityComparer:=IdentityComparer).
             WithMetadataImportOptions(MetadataImportOptions.All).
+            WithReferencesSupersedeLowerVersions(True).
             WithSuppressEmbeddedDeclarations(True)
 
     End Module

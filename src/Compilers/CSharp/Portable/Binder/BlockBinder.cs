@@ -40,14 +40,42 @@ namespace Microsoft.CodeAnalysis.CSharp
             return (labels != null) ? labels.ToImmutableAndFree() : ImmutableArray<LabelSymbol>.Empty;
         }
 
-        internal override ImmutableArray<LocalSymbol> GetDeclaredLocalsForScope()
+        internal override ImmutableArray<LocalSymbol> GetDeclaredLocalsForScope(CSharpSyntaxNode node)
         {
-            return this.Locals;
+            if (node.Kind() == SyntaxKind.Block)
+            {
+                if (((BlockSyntax)node).Statements == _statements)
+                {
+                    return this.Locals;
+                }
+            }
+            else if (_statements.Count == 1 && _statements.First() == node)
+            {
+                // This code compensates for the fact that we fake an enclosing block
+                // when there is an (illegal) local declaration as a controlled statement.
+                return this.Locals;
+            }
+
+            throw ExceptionUtilities.Unreachable;
         }
 
-        internal override ImmutableArray<LocalFunctionSymbol> GetDeclaredLocalFunctionsForScope()
+        internal override ImmutableArray<LocalFunctionSymbol> GetDeclaredLocalFunctionsForScope(CSharpSyntaxNode node)
         {
-            return this.LocalFunctions;
+            if (node.Kind() == SyntaxKind.Block)
+            {
+                if (((BlockSyntax)node).Statements == _statements)
+                {
+                    return this.LocalFunctions;
+                }
+            }
+            else if (_statements.Count == 1 && _statements.First() == node)
+            {
+                // This code compensates for the fact that we fake an enclosing block
+                // when there is an (illegal) local function declaration as a controlled statement.
+                return this.LocalFunctions;
+            }
+
+            throw ExceptionUtilities.Unreachable;
         }
     }
 }

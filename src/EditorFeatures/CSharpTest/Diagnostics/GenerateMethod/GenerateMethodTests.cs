@@ -207,7 +207,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.GenerateMet
 @"using System; class C { void Method() { Foo(1 as int?); } private void Foo(int? v) { throw new NotImplementedException(); } }");
         }
 
-        [WpfFact(Skip = "530177"), Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)]
         public async Task TestPointArgument()
         {
             await TestAsync(
@@ -215,7 +215,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.GenerateMet
 @"using System; class C { void Method() { int* p; Foo(p); } private unsafe void Foo(int* p) { throw new NotImplementedException(); } }");
         }
 
-        [WpfFact(Skip = "530177"), Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)]
         public async Task TestArgumentWithPointerName()
         {
             await TestAsync(
@@ -223,20 +223,20 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.GenerateMet
 @"using System; class C { void Method() { int* p; Foo(p); } private unsafe void Foo(int* p) { throw new NotImplementedException(); } }");
         }
 
-        [WpfFact(Skip = "530177"), Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)]
         public async Task TestArgumentWithPointTo()
         {
             await TestAsync(
 @"class C { void Method() { int* p; [|Foo|](*p); } }",
-@"using System; class C { void Method() { int* p; Foo(*p); } private void Foo(int p) { throw new NotImplementedException(); } }");
+@"using System; class C { void Method() { int* p; Foo(*p); } private void Foo(int v) { throw new NotImplementedException(); } }");
         }
 
-        [WpfFact(Skip = "530177"), Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)]
         public async Task TestArgumentWithAddress()
         {
             await TestAsync(
 @"class C { unsafe void Method() { int a = 10; [|Foo|](&a); } }",
-@"using System; class C { unsafe void Method() { int a = 10; Foo(&a); } private unsafe void Foo(int* p) { throw new NotImplementedException(); } }");
+@"using System; class C { unsafe void Method() { int a = 10; Foo(&a); } private unsafe void Foo(int* v) { throw new NotImplementedException(); } }");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)]
@@ -2835,6 +2835,50 @@ public class Test
 }");
         }
 
+        [WorkItem(8230, "https://github.com/dotnet/roslyn/issues/8230")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)]
+        public async Task TestGenerateMethodForOverloadedSignatureWithDelegateType()
+        {
+            await TestAsync(
+@"
+using System;
+
+class PropertyMetadata
+{
+    public PropertyMetadata(object defaultValue) { }
+    public PropertyMetadata(EventHandler changedHandler) { }
+}
+
+class Program
+{
+    static void Main()
+    {
+        new PropertyMetadata([|OnChanged|]);
+    }
+}
+",
+@"using System;
+
+class PropertyMetadata
+{
+    public PropertyMetadata(object defaultValue) { }
+    public PropertyMetadata(EventHandler changedHandler) { }
+}
+
+class Program
+{
+    static void Main()
+    {
+        new PropertyMetadata(OnChanged);
+    }
+
+    private static void OnChanged(object sender, EventArgs e)
+    {
+        throw new NotImplementedException();
+    }
+}");
+        }
+
         public class GenerateConversionTest : AbstractCSharpDiagnosticProviderBasedUserDiagnosticTest
         {
             internal override Tuple<DiagnosticAnalyzer, CodeFixProvider> CreateDiagnosticProviderAndFixer(Workspace workspace)
@@ -2912,15 +2956,6 @@ public class Test
                 await TestAsync(
     @"class Digit { public Digit ( double d ) { val = d ; } public double val ; } class Program { static void Main ( string [ ] args ) { Digit dig = new Digit ( 7 ) ; double num = [|( double ) dig|] ; } } ",
     @"using System ; class Digit { public Digit ( double d ) { val = d ; } public double val ; public static explicit operator double ( Digit v ) { throw new NotImplementedException ( ) ; } } class Program { static void Main ( string [ ] args ) { Digit dig = new Digit ( 7 ) ; double num = ( double ) dig ; } } ");
-            }
-
-            [WorkItem(774321, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/774321")]
-            [WpfFact(Skip = "xunit2"), Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)]
-            public async Task TestEquivalenceKey()
-            {
-                await TestEquivalenceKeyAsync(
-    @"class C { void M() { this.[|M1|](System.Exception.M2()); } } ",
-    string.Format(FeaturesResources.GenerateMethodIn, "C", "M1"));
             }
         }
     }

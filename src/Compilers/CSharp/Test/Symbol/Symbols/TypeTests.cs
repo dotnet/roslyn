@@ -463,7 +463,7 @@ public partial class A { }
             Assert.True(field1.IsStatic);
             var elemType1 = (field1 as FieldSymbol).Type;
             Assert.Equal(TypeKind.Array, elemType1.TypeKind);
-            Assert.Equal("System.Int32[,]", elemType1.ToTestDisplayString());
+            Assert.Equal("System.Int32[,]", elemType1.TypeSymbol.ToTestDisplayString());
 
             // ArrayType public API
             Assert.False(elemType1.TypeSymbol.IsStatic);
@@ -1171,7 +1171,7 @@ class D : C
             var global = comp.GlobalNamespace;
             var d = global.GetMembers("D").Single() as NamedTypeSymbol;
             var x = d.GetMembers("x").Single() as FieldSymbol;
-            Assert.Equal("B.A.X", x.Type.ToTestDisplayString());
+            Assert.Equal("B.A.X", x.Type.TypeSymbol.ToTestDisplayString());
         }
 
         [WorkItem(537970, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/537970")]

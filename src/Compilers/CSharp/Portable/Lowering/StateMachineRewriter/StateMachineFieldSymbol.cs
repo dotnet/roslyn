@@ -42,6 +42,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             this.SlotDebugInfo = slotDebugInfo;
         }
 
+        internal override bool SuppressDynamicAttribute
+        {
+            get { return true; }
+        }
+
         internal override TypeSymbolWithAnnotations GetFieldType(ConsList<FieldSymbol> fieldsBeingBound)
         {
             return _type;

@@ -1682,6 +1682,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ERR_InvalidPathMap = 37253
         ERR_PublicSignNoKey = 37254
         ERR_TooManyUserStrings = 37255
+        ERR_PeWritingFailure = 37256
 
         ERR_LastPlusOne
 
@@ -1882,7 +1883,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         'WRN_PDBConstantStringValueTooLong = 42363  we gave up on this warning. See comments in commonCompilation.Emit()
         WRN_ReturnTypeAttributeOnWriteOnlyProperty = 42364
 
-        WRN_UnreachableCode = 42365
+        ' // AVAILABLE 42365
+
         WRN_InvalidVersionFormat = 42366
         WRN_MainIgnored = 42367
         WRN_EmptyPrefixAndXmlnsLocalName = 42368

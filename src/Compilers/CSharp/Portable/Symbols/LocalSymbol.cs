@@ -271,6 +271,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     case LocalDeclarationKind.FixedVariable:
                     case LocalDeclarationKind.ForEachIterationVariable:
                     case LocalDeclarationKind.UsingVariable:
+                    case LocalDeclarationKind.PatternVariable:
                         return false;
                     default:
                         return true;
@@ -329,6 +330,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         internal abstract RefKind RefKind
         {
             get;
+        }
+
+        internal virtual bool IsReturnable
+        {
+            get
+            {
+                // by default all locals are returnable
+                return true;
+            }
         }
 
         #region ILocalSymbol Members

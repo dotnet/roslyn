@@ -13,6 +13,7 @@ using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.Editor;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
+using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.TextManager.Interop;
 using Roslyn.Utilities;
 
@@ -30,7 +31,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 
         private readonly Dictionary<Guid, LanguageInformation> _languageInformationByLanguageGuid = new Dictionary<Guid, LanguageInformation>();
 
-        private readonly HashSet<DocumentKey> _filesInProjects = new HashSet<DocumentKey>();
+        /// <summary>
+        /// <see cref="WorkspaceRegistration"/> instances for all open buffers being tracked by by this object
+        /// for possible inclusion into this workspace.
+        /// </summary>
+        private IBidirectionalMap<uint, WorkspaceRegistration> _docCookieToWorkspaceRegistration = BidirectionalMap<uint, WorkspaceRegistration>.Empty;
 
         private readonly Dictionary<ProjectId, HostProject> _hostProjects = new Dictionary<ProjectId, HostProject>();
         private readonly Dictionary<uint, HostProject> _docCookiesToHostProject = new Dictionary<uint, HostProject>();
@@ -121,30 +126,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                    select manager.CreateMetadataReferenceSnapshot(fullPath, MetadataReferenceProperties.Assembly);
         }
 
-        internal void OnFileIncludedInProject(IVisualStudioHostDocument document)
-        {
-            uint docCookie;
-            if (_runningDocumentTable.TryGetCookieForInitializedDocument(document.FilePath, out docCookie))
-            {
-                TryRemoveDocumentFromMiscellaneousWorkspace(docCookie, document.FilePath);
-            }
-
-            _filesInProjects.Add(document.Key);
-        }
-
-        internal void OnFileRemovedFromProject(IVisualStudioHostDocument document)
-        {
-            // Remove the document key from the filesInProjects map first because adding documents
-            // to the misc files workspace requires that they not appear in this map.
-            _filesInProjects.Remove(document.Key);
-
-            uint docCookie;
-            if (_runningDocumentTable.TryGetCookieForInitializedDocument(document.Key.Moniker, out docCookie))
-            {
-                AddDocumentToMiscellaneousOrMetadataAsSourceWorkspace(docCookie, document.Key.Moniker);
-            }
-        }
-
         public int OnAfterAttributeChange(uint docCookie, uint grfAttribs)
         {
             return VSConstants.S_OK;
@@ -160,10 +141,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                 // 1) the old file already was a misc file, at which point we might just be doing a rename from
                 //    one name to another with the same extension
                 // 2) the old file was a different extension that we weren't tracking, which may have now changed
-                if (TryRemoveDocumentFromMiscellaneousWorkspace(docCookie, pszMkDocumentOld) || TryGetLanguageInformation(pszMkDocumentOld) == null)
+                if (TryUntrackClosingDocument(docCookie, pszMkDocumentOld) || TryGetLanguageInformation(pszMkDocumentOld) == null)
                 {
                     // Add the new one, if appropriate. 
-                    AddDocumentToMiscellaneousOrMetadataAsSourceWorkspace(docCookie, pszMkDocumentNew);
+                    TrackOpenedDocument(docCookie, pszMkDocumentNew);
                 }
             }
 
@@ -176,8 +157,14 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 
                 if (moniker != null && TryGetLanguageInformation(moniker) != null && !_docCookiesToHostProject.ContainsKey(docCookie))
                 {
-                    AddDocumentToMiscellaneousOrMetadataAsSourceWorkspace(docCookie, moniker);
+                    TrackOpenedDocument(docCookie, moniker);
                 }
+            }
+
+            if ((grfAttribs & (uint)__VSRDTATTRIB3.RDTA_DocumentInitialized) != 0)
+            {
+                // The document is now initialized, we should try tracking it
+                TrackOpenedDocument(docCookie, _runningDocumentTable.GetDocumentMoniker(docCookie));
             }
 
             return VSConstants.S_OK;
@@ -207,79 +194,180 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
         {
             if (dwReadLocksRemaining + dwEditLocksRemaining == 0)
             {
-                TryRemoveDocumentFromMiscellaneousWorkspace(docCookie, _runningDocumentTable.GetDocumentMoniker(docCookie));
+                TryUntrackClosingDocument(docCookie, _runningDocumentTable.GetDocumentMoniker(docCookie));
             }
 
             return VSConstants.S_OK;
         }
 
-        private void AddDocumentToMiscellaneousOrMetadataAsSourceWorkspace(uint docCookie, string moniker)
+        private void TrackOpenedDocument(uint docCookie, string moniker)
         {
             var languageInformation = TryGetLanguageInformation(moniker);
 
-            if (languageInformation != null &&
-                !_filesInProjects.Any(d => StringComparer.OrdinalIgnoreCase.Equals(d.Moniker, moniker)) &&
-                !_docCookiesToHostProject.ContainsKey(docCookie))
+            if (languageInformation == null)
             {
-                // See if we should push to this to the metadata-to-source workspace instead.
-                if (_runningDocumentTable.IsDocumentInitialized(docCookie))
-                {
-                    var vsTextBuffer = (IVsTextBuffer)_runningDocumentTable.GetDocumentData(docCookie);
-                    var textBuffer = _editorAdaptersFactoryService.GetDocumentBuffer(vsTextBuffer);
+                // We can never put this document in a workspace, so just bail
+                return;
+            }
 
-                    if (_fileTrackingMetadataAsSourceService.TryAddDocumentToWorkspace(moniker, textBuffer))
+            // We don't want to realize the document here unless it's already initialized. Document initialization is watched in 
+            // OnAfterAttributeChangeEx and will retrigger this if it wasn't already done.
+            if (_runningDocumentTable.IsDocumentInitialized(docCookie) && !_docCookieToWorkspaceRegistration.ContainsKey(docCookie))
+            {
+                var vsTextBuffer = (IVsTextBuffer)_runningDocumentTable.GetDocumentData(docCookie);
+                var textBuffer = _editorAdaptersFactoryService.GetDocumentBuffer(vsTextBuffer);
+
+                // As long as the buffer is initialized, then we should see if we should attach
+                if (textBuffer != null)
+                {
+                    var registration = Workspace.GetWorkspaceRegistration(textBuffer.AsTextContainer());
+
+                    registration.WorkspaceChanged += Registration_WorkspaceChanged;
+                    _docCookieToWorkspaceRegistration = _docCookieToWorkspaceRegistration.Add(docCookie, registration);
+
+                    if (!IsClaimedByAnotherWorkspace(registration))
                     {
-                        // We already added it, so we will keep it excluded from the misc files workspace
-                        return;
+                        AttachToDocument(docCookie, moniker);
                     }
                 }
-
-                var parseOptions = languageInformation.ParseOptions;
-
-                if (Path.GetExtension(moniker) == languageInformation.ScriptExtension)
-                {
-                    parseOptions = parseOptions.WithKind(SourceCodeKind.Script);
-                }
-
-                // First, create the project
-                var hostProject = new HostProject(this, CurrentSolution.Id, languageInformation.LanguageName, parseOptions, _metadataReferences);
-
-                // Now try to find the document. We accept any text buffer, since we've already verified it's an appropriate file in ShouldIncludeFile.
-                var document = _documentProvider.TryGetDocumentForFile(hostProject, (uint)VSConstants.VSITEMID.Nil, moniker, parseOptions.Kind, t => true);
-
-                // If the buffer has not yet been initialized, we won't get a document.
-                if (document == null)
-                {
-                    return;
-                }
-
-                // Since we have a document, we can do the rest of the project setup.
-                _hostProjects.Add(hostProject.Id, hostProject);
-                OnProjectAdded(hostProject.CreateProjectInfoForCurrentState());
-
-                OnDocumentAdded(document.GetInitialState());
-                hostProject.Document = document;
-
-                // Notify the document provider, so it knows the document is now open and a part of
-                // the project
-                _documentProvider.NotifyDocumentRegisteredToProject(document);
-
-                Contract.ThrowIfFalse(document.IsOpen);
-
-                var buffer = document.GetOpenTextBuffer();
-                OnDocumentOpened(document.Id, document.GetOpenTextContainer());
-
-                _docCookiesToHostProject.Add(docCookie, hostProject);
             }
         }
 
-        private bool TryRemoveDocumentFromMiscellaneousWorkspace(uint docCookie, string moniker)
+        private void Registration_WorkspaceChanged(object sender, EventArgs e)
+        {
+            var workspaceRegistration = (WorkspaceRegistration)sender;
+            uint docCookie;
+
+            // external workspace that listens to events from IVSRunningDocumentTable4 (just like MiscellaneousFilesWorkspace does) and registers the text buffer for opened document prior to Miscellaneous workspace getting notified of the docCookie - the prior contract assumes that MiscellaneousFilesWorkspace is always the first one to get notified
+            if (!_docCookieToWorkspaceRegistration.TryGetKey(workspaceRegistration, out docCookie))
+            {
+                // We haven't even started tracking the document corresponding to this registration - likely because some external workspace registered the document's buffer prior to MiscellaneousWorkspace getting notified of it.
+                // Just bail out for now, we will eventually receive the opened document notification and track its docCookie registration.
+                return;
+            }
+
+            var moniker = _runningDocumentTable.GetDocumentMoniker(docCookie);
+
+            if (workspaceRegistration.Workspace == null)
+            {
+                HostProject hostProject;
+
+                if (_docCookiesToHostProject.TryGetValue(docCookie, out hostProject))
+                {
+                    // The workspace was taken from us and released and we have only asynchronously found out now.
+                    var document = hostProject.Document;
+
+                    if (document.IsOpen)
+                    {
+                        RegisterText(document.GetOpenTextContainer());
+                    }
+                }
+                else
+                {
+                    // We should now claim this
+                    AttachToDocument(docCookie, moniker);
+                }
+            }
+            else if (IsClaimedByAnotherWorkspace(workspaceRegistration))
+            {
+                // It's now claimed by another workspace, so we should unclaim it
+                if (_docCookiesToHostProject.ContainsKey(docCookie))
+                {
+                    DetachFromDocument(docCookie, moniker);
+                }
+            }
+        }
+
+        /// <summary>
+        /// Stops tracking a document in the RDT for whether we should attach to it.
+        /// </summary>
+        /// <returns>true if we were previously tracking it.</returns>
+        private bool TryUntrackClosingDocument(uint docCookie, string moniker)
+        {
+            bool unregisteredRegistration = false;
+
+            // Remove our registration changing handler before we call DetachFromDocument. Otherwise, calling DetachFromDocument
+            // causes us to set the workspace to null, which we then respond to as an indication that we should
+            // attach again.
+            WorkspaceRegistration registration;
+            if (_docCookieToWorkspaceRegistration.TryGetValue(docCookie, out registration))
+            {
+                registration.WorkspaceChanged -= Registration_WorkspaceChanged;
+                _docCookieToWorkspaceRegistration = _docCookieToWorkspaceRegistration.RemoveKey(docCookie);
+                unregisteredRegistration = true;
+            }
+
+            DetachFromDocument(docCookie, moniker);
+
+            return unregisteredRegistration;
+        }
+
+        private bool IsClaimedByAnotherWorkspace(WorkspaceRegistration registration)
+        {
+            // Currently, we are also responsible for pushing documents to the metadata as source workspace,
+            // so we count that here as well
+            return registration.Workspace != null && registration.Workspace.Kind != WorkspaceKind.MetadataAsSource && registration.Workspace.Kind != WorkspaceKind.MiscellaneousFiles;
+        }
+
+        private void AttachToDocument(uint docCookie, string moniker)
+        {
+            var vsTextBuffer = (IVsTextBuffer)_runningDocumentTable.GetDocumentData(docCookie);
+            var textBuffer = _editorAdaptersFactoryService.GetDocumentBuffer(vsTextBuffer);
+
+            if (_fileTrackingMetadataAsSourceService.TryAddDocumentToWorkspace(moniker, textBuffer))
+            {
+                // We already added it, so we will keep it excluded from the misc files workspace
+                return;
+            }
+
+            // This should always succeed since we only got here if we already confirmed the moniker is acceptable
+            var languageInformation = TryGetLanguageInformation(moniker);
+            Contract.ThrowIfNull(languageInformation);
+            var parseOptions = languageInformation.ParseOptions;
+
+            if (Path.GetExtension(moniker) == languageInformation.ScriptExtension)
+            {
+                parseOptions = parseOptions.WithKind(SourceCodeKind.Script);
+            }
+
+            // First, create the project
+            var hostProject = new HostProject(this, CurrentSolution.Id, languageInformation.LanguageName, parseOptions, _metadataReferences);
+
+            // Now try to find the document. We accept any text buffer, since we've already verified it's an appropriate file in ShouldIncludeFile.
+            var document = _documentProvider.TryGetDocumentForFile(hostProject, (uint)VSConstants.VSITEMID.Nil, moniker, parseOptions.Kind, t => true);
+
+            // If the buffer has not yet been initialized, we won't get a document.
+            if (document == null)
+            {
+                return;
+            }
+
+            // Since we have a document, we can do the rest of the project setup.
+            _hostProjects.Add(hostProject.Id, hostProject);
+            OnProjectAdded(hostProject.CreateProjectInfoForCurrentState());
+
+            OnDocumentAdded(document.GetInitialState());
+            hostProject.Document = document;
+
+            // Notify the document provider, so it knows the document is now open and a part of
+            // the project
+            _documentProvider.NotifyDocumentRegisteredToProject(document);
+
+            Contract.ThrowIfFalse(document.IsOpen);
+
+            var buffer = document.GetOpenTextBuffer();
+            OnDocumentOpened(document.Id, document.GetOpenTextContainer());
+
+            _docCookiesToHostProject.Add(docCookie, hostProject);
+        }
+
+        private void DetachFromDocument(uint docCookie, string moniker)
         {
             HostProject hostProject;
 
             if (_fileTrackingMetadataAsSourceService.TryRemoveDocumentFromWorkspace(moniker))
             {
-                return true;
+                return;
             }
 
             if (_docCookiesToHostProject.TryGetValue(docCookie, out hostProject))
@@ -293,10 +381,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                 _hostProjects.Remove(hostProject.Id);
                 _docCookiesToHostProject.Remove(docCookie);
 
-                return true;
+                return;
             }
-
-            return false;
         }
 
         protected override void Dispose(bool finalize)

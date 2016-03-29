@@ -168,7 +168,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             get
             {
                 CheckDefinitionInvariant();
-                return this.Type.TypeSymbol is ByRefReturnErrorTypeSymbol;
+                return this.RefKind == RefKind.Ref;
             }
         }
 

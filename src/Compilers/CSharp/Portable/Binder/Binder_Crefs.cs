@@ -738,6 +738,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                                 // These are ignored by this specific MemberSignatureComparer.
                                 containingType: null,
                                 name: null,
+                                refKind: RefKind.None,
                                 returnType: null,
                                 explicitInterfaceImplementations: ImmutableArray<MethodSymbol>.Empty);
                             break;
@@ -751,6 +752,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                                 // These are ignored by this specific MemberSignatureComparer.
                                 containingType: null,
                                 name: null,
+                                refKind: RefKind.None,
                                 type: null,
                                 isStatic: false,
                                 explicitInterfaceImplementations: ImmutableArray<PropertySymbol>.Empty);

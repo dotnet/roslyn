@@ -113,6 +113,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
             optimizationLevel: OptimizationLevel.Release,
             assemblyIdentityComparer: IdentityComparer).
             WithMetadataImportOptions(MetadataImportOptions.All).
+            WithReferencesSupersedeLowerVersions(true).
             WithTopLevelBinderFlags(
                 BinderFlags.SuppressObsoleteChecks |
                 BinderFlags.IgnoreAccessibility |

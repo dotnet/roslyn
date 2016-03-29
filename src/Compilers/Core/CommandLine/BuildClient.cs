@@ -2,6 +2,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Reflection;
@@ -95,27 +96,13 @@ namespace Microsoft.CodeAnalysis.CommandLine
 
             if (hasShared)
             {
+                sessionKey = sessionKey ?? GetSessionKey(buildPaths);
                 var libDirectory = Environment.GetEnvironmentVariable("LIB");
-                try
+                var serverResult = RunServerCompilation(textWriter, parsedArgs, buildPaths, libDirectory, sessionKey, keepAlive);
+                if (serverResult.HasValue)
                 {
-                    sessionKey = sessionKey ?? GetSessionKey(buildPaths);
-                    var buildResponseTask = RunServerCompilation(
-                        parsedArgs,
-                        buildPaths,
-                        sessionKey,
-                        keepAlive,
-                        libDirectory,
-                        CancellationToken.None);
-                    var buildResponse = buildResponseTask.Result;
-                    if (buildResponse != null)
-                    {
-                        return HandleResponse(buildResponse, parsedArgs.ToArray(), buildPaths, textWriter);
-                    }
-                }
-                catch (OperationCanceledException)
-                {
-                    // #7866 tracks cleaning up this code. 
-                    return RunCompilationResult.Succeeded;
+                    Debug.Assert(serverResult.Value.RanOnServer);
+                    return serverResult.Value;
                 }
             }
 
@@ -149,35 +136,64 @@ namespace Microsoft.CodeAnalysis.CommandLine
 
         protected abstract int RunLocalCompilation(string[] arguments, BuildPaths buildPaths, TextWriter textWriter);
 
+        /// <summary>
+        /// Runs the provided compilation on the server.  If the compilation cannot be completed on the server then null
+        /// will be returned.
+        /// </summary>
+        internal RunCompilationResult? RunServerCompilation(TextWriter textWriter, List<string> arguments, BuildPaths buildPaths, string libDirectory, string sessionName, string keepAlive)
+        {
+            BuildResponse buildResponse;
+
+            try
+            {
+                var buildResponseTask = RunServerCompilation(
+                    arguments,
+                    buildPaths,
+                    sessionName,
+                    keepAlive,
+                    libDirectory,
+                    CancellationToken.None);
+                buildResponse = buildResponseTask.Result;
+
+                Debug.Assert(buildResponse != null);
+                if (buildResponse == null)
+                {
+                    return null;
+                }
+            }
+            catch (Exception)
+            {
+                return null;
+            }
+
+            switch (buildResponse.Type)
+            {
+                case BuildResponse.ResponseType.Completed:
+                    {
+                        var completedResponse = (CompletedBuildResponse)buildResponse;
+                        return ConsoleUtil.RunWithUtf8Output(completedResponse.Utf8Output, textWriter, tw =>
+                        {
+                            tw.Write(completedResponse.Output);
+                            return new RunCompilationResult(completedResponse.ReturnCode, ranOnServer: true);
+                        });
+                    }
+
+                case BuildResponse.ResponseType.MismatchedVersion:
+                case BuildResponse.ResponseType.Rejected:
+                case BuildResponse.ResponseType.AnalyzerInconsistency:
+                    // Build could not be completed on the server.
+                    return null;
+                default:
+                    // Will not happen with our server but hypothetically could be sent by a rouge server.  Should
+                    // not let that block compilation.
+                    Debug.Assert(false);
+                    return null;
+            }
+        }
+
         protected abstract Task<BuildResponse> RunServerCompilation(List<string> arguments, BuildPaths buildPaths, string sessionName, string keepAlive, string libDirectory, CancellationToken cancellationToken);
 
         protected abstract string GetSessionKey(BuildPaths buildPaths);
-
-        protected virtual RunCompilationResult HandleResponse(BuildResponse response, string[] arguments, BuildPaths buildPaths, TextWriter textWriter)
-        {
-            switch (response.Type)
-            {
-                case BuildResponse.ResponseType.MismatchedVersion:
-                    Console.Error.WriteLine(CommandLineParser.MismatchedVersionErrorText);
-                    return RunCompilationResult.Failed;
-
-                case BuildResponse.ResponseType.Completed:
-                    var completedResponse = (CompletedBuildResponse)response;
-                    return ConsoleUtil.RunWithUtf8Output(completedResponse.Utf8Output, textWriter, tw =>
-                    {
-                        tw.Write(completedResponse.Output);
-                        return new RunCompilationResult(completedResponse.ReturnCode, ranOnServer: true);
-                    });
-
-                case BuildResponse.ResponseType.Rejected:
-                case BuildResponse.ResponseType.AnalyzerInconsistency:
-                    var exitCode = RunLocalCompilation(arguments, buildPaths, textWriter);
-                    return new RunCompilationResult(exitCode);
-
-                default:
-                    throw new InvalidOperationException("Encountered unknown response type");
-            }
-        }
 
         protected static IEnumerable<string> GetCommandLineArgs(IEnumerable<string> args)
         {

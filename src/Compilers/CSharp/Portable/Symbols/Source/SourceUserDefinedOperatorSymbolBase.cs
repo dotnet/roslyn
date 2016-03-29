@@ -612,6 +612,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             get { return ImmutableArray<TypeParameterSymbol>.Empty; }
         }
 
+        internal override RefKind RefKind
+        {
+            get { return RefKind.None; }
+        }
+
         public sealed override TypeSymbolWithAnnotations ReturnType
         {
             get

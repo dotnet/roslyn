@@ -114,6 +114,7 @@
     <Compile Include="Diagnostics\DiagnosticAnalyzerTests.AllInOne.vb" />
     <Compile Include="Diagnostics\DiagnosticAnalyzerTests.vb" />
     <Compile Include="Diagnostics\GetDiagnosticsTests.vb" />
+    <Compile Include="Diagnostics\IOperationTests.vb" />
     <Compile Include="Diagnostics\OperationAnalyzerTests.vb" />
     <Compile Include="ExtensionMethods\SemanticModelTests.vb" />
     <Compile Include="Extensions.vb" />
@@ -221,7 +222,6 @@
     <EmbeddedResource Include="Semantics\LongTypeNameNative.vb.txt" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="app.config" />
     <None Include="project.json" />
   </ItemGroup>
   <ItemGroup>

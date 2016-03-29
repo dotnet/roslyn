@@ -20,6 +20,7 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
                  accessibility,
                  modifiers,
                  returnType: null,
+                 returnsByRef: false,
                  explicitInterfaceSymbolOpt: null,
                  name: string.Empty,
                  typeParameters: SpecializedCollections.EmptyList<ITypeParameterSymbol>(),

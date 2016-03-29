@@ -5,12 +5,9 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
-using System.Reflection.Metadata;
 using Microsoft.CodeAnalysis.CodeGen;
-using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
-using Microsoft.CodeAnalysis.Symbols;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
@@ -149,7 +146,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
 
                 var exprType = expr.Type;
                 // Expression type will be null for "throw null;".
-                if (((object)exprType != null) && (exprType.TypeKind == TypeKind.TypeParameter))
+                if (exprType?.TypeKind == TypeKind.TypeParameter)
                 {
                     this.EmitBox(exprType, expr.Syntax);
                 }
@@ -677,8 +674,14 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
         private void EmitReturnStatement(BoundReturnStatement boundReturnStatement)
         {
             var expressionOpt = boundReturnStatement.ExpressionOpt;
-
-            this.EmitExpression(expressionOpt, used: true);
+            if (boundReturnStatement.RefKind == RefKind.None)
+            {
+                this.EmitExpression(expressionOpt, true);
+            }
+            else
+            {
+                this.EmitAddress(expressionOpt, AddressKind.Writeable);
+            }
 
             if (ShouldUseIndirectReturn())
             {
@@ -1023,14 +1026,20 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
 
         private void EmitSwitchStatement(BoundSwitchStatement switchStatement)
         {
+            var preambleOpt = switchStatement.LoweredPreambleOpt;
+            if (preambleOpt != null)
+            {
+                EmitStatement(preambleOpt);
+            }
+
             // Switch expression must have a valid switch governing type
-            Debug.Assert((object)switchStatement.BoundExpression.Type != null);
-            Debug.Assert(switchStatement.BoundExpression.Type.IsValidSwitchGoverningType());
+            Debug.Assert((object)switchStatement.Expression.Type != null);
+            Debug.Assert(switchStatement.Expression.Type.IsValidSwitchGoverningType());
 
             // We must have rewritten nullable switch expression into non-nullable constructs.
-            Debug.Assert(!switchStatement.BoundExpression.Type.IsNullableType());
+            Debug.Assert(!switchStatement.Expression.Type.IsNullableType());
 
-            BoundExpression expression = switchStatement.BoundExpression;
+            BoundExpression expression = switchStatement.Expression;
             ImmutableArray<BoundSwitchSection> switchSections = switchStatement.SwitchSections;
             GeneratedLabelSymbol breakLabel = switchStatement.BreakLabel;
             LabelSymbol constantTargetOpt = switchStatement.ConstantTargetOpt;
@@ -1072,7 +1081,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
             var labelsBuilder = ArrayBuilder<KeyValuePair<ConstantValue, object>>.GetInstance();
             foreach (var section in sections)
             {
-                foreach (BoundSwitchLabel boundLabel in section.BoundSwitchLabels)
+                foreach (BoundSwitchLabel boundLabel in section.SwitchLabels)
                 {
                     var label = (SourceLabelSymbol)boundLabel.Label;
                     if (label.IdentifierNodeOrToken.Kind() == SyntaxKind.DefaultSwitchLabel)
@@ -1348,7 +1357,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
 
         private void EmitSwitchSection(BoundSwitchSection switchSection)
         {
-            foreach (var boundSwitchLabel in switchSection.BoundSwitchLabels)
+            foreach (var boundSwitchLabel in switchSection.SwitchLabels)
             {
                 _builder.MarkLabel(boundSwitchLabel.Label);
             }
@@ -1509,11 +1518,11 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
         /// <summary>
         /// Allocates a temp without identity.
         /// </summary>
-        private LocalDefinition AllocateTemp(TypeSymbol type, SyntaxNode syntaxNode)
+        private LocalDefinition AllocateTemp(TypeSymbol type, SyntaxNode syntaxNode, LocalSlotConstraints slotConstraints = LocalSlotConstraints.None)
         {
             return _builder.LocalSlotManager.AllocateSlot(
                 _module.Translate(type, syntaxNode, _diagnostics),
-                LocalSlotConstraints.None);
+                slotConstraints);
         }
 
         /// <summary>
@@ -1564,11 +1573,12 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
             public override BoundNode VisitSwitchStatement(BoundSwitchStatement node)
             {
                 var breakLabelClone = GetLabelClone(node.BreakLabel);
+                var preambleOpt = (BoundStatement)this.Visit(node.LoweredPreambleOpt);
 
                 // expressions do not contain labels or branches
-                BoundExpression boundExpression = node.BoundExpression;
+                BoundExpression boundExpression = node.Expression;
                 ImmutableArray<BoundSwitchSection> switchSections = (ImmutableArray<BoundSwitchSection>)this.VisitList(node.SwitchSections);
-                return node.Update(boundExpression, node.ConstantTargetOpt, node.InnerLocals, node.InnerLocalFunctions, switchSections, breakLabelClone, node.StringEquality);
+                return node.Update(preambleOpt, boundExpression, node.ConstantTargetOpt, node.InnerLocals, node.InnerLocalFunctions, switchSections, breakLabelClone, node.StringEquality);
             }
 
             public override BoundNode VisitSwitchLabel(BoundSwitchLabel node)

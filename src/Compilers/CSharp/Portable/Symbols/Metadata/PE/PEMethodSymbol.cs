@@ -495,6 +495,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
 
         internal PEParameterSymbol ReturnTypeParameter => Signature.ReturnParam;
 
+        internal override RefKind RefKind => Signature.ReturnParam.RefKind;
+
         public override TypeSymbolWithAnnotations ReturnType => Signature.ReturnParam.Type;
 
         /// <summary>
@@ -549,7 +551,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
 
             SignatureHeader signatureHeader;
             BadImageFormatException mrEx;
-            ParamInfo<TypeSymbol>[] paramInfo = new MetadataDecoder(moduleSymbol, this).GetSignatureForMethod(_handle, out signatureHeader, out mrEx);
+            ParamInfo<TypeSymbol>[] paramInfo = new MetadataDecoder(moduleSymbol, this).GetSignatureForMethod(_handle, out signatureHeader, out mrEx, allowByRefReturn: true);
             bool makeBad = (mrEx != null);
 
             // If method is not generic, let's assign empty list for type parameters
@@ -582,9 +584,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             {
                 @params = ImmutableArray<ParameterSymbol>.Empty;
             }
-
-            // paramInfo[0] contains information about return "parameter"
-            Debug.Assert(!paramInfo[0].IsByRef);
 
             // Dynamify object type if necessary
             paramInfo[0].Type = paramInfo[0].Type.AsDynamicIfNoPia(_containingType);

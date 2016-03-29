@@ -1285,7 +1285,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_BlockBodyAndExpressionBody = 8057,
         ERR_FeatureIsExperimental = 8058,
         ERR_FeatureNotAvailableInVersion6 = 8059,
-        // available 8060-8069
+        ERR_FeatureIsUnimplemented = 8060,
+        // available 8061-8069
         ERR_SwitchFallOut = 8070,
         // ERR_UnexpectedBoundGenericName = 8071, // for nameof - used in an early prototype
         ERR_NullPropagatingOpInExpressionTree = 8072,
@@ -1320,9 +1321,60 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_InvalidPathMap = 8101,
         ERR_PublicSignButNoKey = 8102,
         ERR_TooManyUserStrings = 8103,
-        ERR_ExpressionTreeContainsLocalFunction = 8104,
+        ERR_PeWritingFailure = 8104,
         ERR_ReturnTypesDontMatch = 8105,
         ERR_DynamicLocalFunctionParameter = 8106,
-        ERR_CantInferVoid = 8107
+        ERR_CantInferVoid = 8107,
+        ERR_PatternNullableType = 8108,
+        ERR_BadIsPatternExpression = 8109,
+        ERR_AmbigMatch0 = 8110,
+        ERR_AmbigMatch1 = 8111,
+        ERR_ThrowMisplaced = 8112,
+        ERR_ElseClauseRequiredWithWhenClause = 8113,
+        ERR_ExpressionTreeContainsLocalFunction = 8114,
+
+        // huge gap here???
+
+        ERR_AutoPropertyCannotBeRefReturning = 8890,
+        ERR_RefPropertyMustHaveGetAccessor = 8891,
+        ERR_RefPropertyCannotHaveSetAccessor = 8892,
+        ERR_CantChangeRefReturnOnOverride = 8893,
+        ERR_MustNotHaveRefReturn = 8894,
+        ERR_MustHaveRefReturn = 8895,
+        ERR_RefReturnMustHaveIdentityConversion = 8896,
+        ERR_CloseUnimplementedInterfaceMemberWrongRefReturn = 8897,
+        ERR_VoidReturningMethodCannotReturnByRef = 8898,
+        ERR_BadIteratorReturnRef = 8899,
+        ERR_BadRefReturnExpressionTree = 8900,
+        ERR_RefReturningCallInExpressionTree = 8901,
+
+        ERR_RefReturnLvalueExpected = 8910,
+        ERR_RefReturnNonreturnableLocal = 8911,
+        ERR_RefReturnNonreturnableLocal2 = 8912,
+        ERR_RefReturnRangeVariable = 8913,
+        ERR_RefReturnRangeVariable2 = 8914,
+        ERR_RefReturnReadonly = 8916,
+        ERR_RefReturnReadonlyStatic = 8917,
+        ERR_RefReturnReadonly2 = 8918,
+        ERR_RefReturnReadonlyStatic2 = 8919,
+        ERR_RefReturnCall = 8920,
+        ERR_RefReturnCall2 = 8921,
+        ERR_RefReturnParameter = 8922,
+        ERR_RefReturnParameter2 = 8923,
+        ERR_RefReturnLocal = 8924,
+        ERR_RefReturnLocal2 = 8925,
+        ERR_RefReturnStructThis = 8926,
+
+        ERR_MustBeRefAssignable = 8930,
+        ERR_MustBeRefAssignableLocal = 8931,
+        ERR_InitializeByValueVariableWithReference = 8932,
+        ERR_InitializeByReferenceVariableWithValue = 8933,
+        ERR_RefAssignmentMustHaveIdentityConversion = 8934,
+        ERR_ByReferenceVariableMustBeInitialized = 8935,
+
+        ERR_AnonDelegateCantUseLocal = 8940,
+        ERR_BadIteratorLocalType = 8941,
+        ERR_BadAsyncLocalType = 8942,
+        ERR_RefReturningCallAndAwait = 8943,
     }
 }

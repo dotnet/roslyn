@@ -6,6 +6,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes
     {
         public const string AddAwait = "Add Await For Expression";
         public const string AddAsync = "Add Async To Member";
+        public const string ApplyNamingStyle = "Apply Naming Style";
         public const string ChangeReturnType = "Change Return Type";
         public const string ChangeToYield = "Change To Yield";
         public const string ConvertToAsync = "Convert To Async";
@@ -28,6 +29,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes
         public const string ImplementInterface = "Implement Interface";
         public const string InsertMissingCast = nameof(InsertMissingCast);
         public const string MoveToTopOfFile = "Move To Top Of File";
+        public const string QualifyMemberAccess = nameof(QualifyMemberAccess);
         public const string RemoveUnnecessaryCast = "Remove Unnecessary Casts";
         public const string RemoveUnnecessaryImports = "Remove Unnecessary Usings or Imports";
         public const string RenameTracking = "Rename Tracking";
@@ -36,5 +38,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes
         public const string Suppression = nameof(Suppression);
         public const string AddOverloads = "Add Overloads to member";
         public const string AddNew = "Add new keyword to member";
+        public const string UseImplicitType = nameof(UseImplicitType);
+        public const string UseExplicitType = nameof(UseExplicitType);
     }
 }

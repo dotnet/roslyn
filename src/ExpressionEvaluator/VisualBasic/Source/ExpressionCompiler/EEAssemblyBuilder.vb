@@ -162,12 +162,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
                 End Get
             End Property
 
-            Public Overrides Function TryGetPreviousHoistedLocalSlotIndex(currentDeclarator As SyntaxNode, currentType As ITypeReference, synthesizedKind As SynthesizedLocalKind, currentId As LocalDebugId, <Out> ByRef slotIndex As Integer) As Boolean
+            Public Overrides Function TryGetPreviousHoistedLocalSlotIndex(currentDeclarator As SyntaxNode, currentType As ITypeReference, synthesizedKind As SynthesizedLocalKind, currentId As LocalDebugId, diagnostics As DiagnosticBag, <Out> ByRef slotIndex As Integer) As Boolean
                 slotIndex = -1
                 Return False
             End Function
 
-            Public Overrides Function TryGetPreviousAwaiterSlotIndex(currentType As ITypeReference, <Out> ByRef slotIndex As Integer) As Boolean
+            Public Overrides Function TryGetPreviousAwaiterSlotIndex(currentType As ITypeReference, diagnostics As DiagnosticBag, <Out> ByRef slotIndex As Integer) As Boolean
                 slotIndex = -1
                 Return False
             End Function

@@ -287,6 +287,17 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
+        internal override void AddSynthesizedAttributes(ModuleCompilationState compilationState, ref ArrayBuilder<SynthesizedAttributeData> attributes)
+        {
+            base.AddSynthesizedAttributes(compilationState, ref attributes);
+
+            if (this.Type.TypeSymbol.ContainsDynamic())
+            {
+                var compilation = this.DeclaringCompilation;
+                AddSynthesizedAttribute(ref attributes, compilation.SynthesizeDynamicAttribute(this.Type.TypeSymbol, customModifiersCount: 0));
+            }
+        }
+
         internal sealed override bool HasSpecialName
         {
             get

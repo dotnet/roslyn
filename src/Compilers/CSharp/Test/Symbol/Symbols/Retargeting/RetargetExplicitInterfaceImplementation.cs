@@ -195,7 +195,7 @@ public  class D : C
                 Assert.Same(interfaceV2Property1, retargetedClassCProperty1Impl);
                 Assert.NotSame(interfaceV1Property1, retargetedClassCProperty1Impl);
                 Assert.Equal(retargetedClassCProperty1Impl.Name, interfaceV1Property1.Name);
-                Assert.Equal(retargetedClassCProperty1Impl.Type.ToTestDisplayString(), interfaceV1Property1.Type.ToTestDisplayString());
+                Assert.Equal(retargetedClassCProperty1Impl.Type.TypeSymbol.ToTestDisplayString(), interfaceV1Property1.Type.TypeSymbol.ToTestDisplayString());
             }
 
             var retargetedClassCProperty2 = (PropertySymbol)retargetedClassC.GetMembers("Interface1.Property2").Single();
@@ -222,7 +222,7 @@ public  class D : C
                 Assert.Same(interfaceV2Property4, retargetedClassCProperty4Impl);
                 Assert.NotSame(interfaceV1Property4, retargetedClassCProperty4Impl);
                 Assert.Equal(retargetedClassCProperty4Impl.Name, interfaceV1Property4.Name);
-                Assert.Equal(retargetedClassCProperty4Impl.Type.ToTestDisplayString(), interfaceV1Property4.Type.ToTestDisplayString());
+                Assert.Equal(retargetedClassCProperty4Impl.Type.TypeSymbol.ToTestDisplayString(), interfaceV1Property4.Type.TypeSymbol.ToTestDisplayString());
             }
 
             var retargetedClassCIndexer1 = FindIndexerWithParameterCount(retargetedClassC, 1);
@@ -233,7 +233,7 @@ public  class D : C
                 Assert.Same(interfaceV2Indexer1, retargetedClassCIndexer1Impl);
                 Assert.NotSame(interfaceV1Indexer1, retargetedClassCIndexer1Impl);
                 Assert.Equal(retargetedClassCIndexer1Impl.Name, interfaceV1Indexer1.Name);
-                Assert.Equal(retargetedClassCIndexer1Impl.Type.ToTestDisplayString(), interfaceV1Indexer1.Type.ToTestDisplayString());
+                Assert.Equal(retargetedClassCIndexer1Impl.Type.TypeSymbol.ToTestDisplayString(), interfaceV1Indexer1.Type.TypeSymbol.ToTestDisplayString());
             }
 
             var retargetedClassCIndexer2 = FindIndexerWithParameterCount(retargetedClassC, 2);
@@ -260,7 +260,7 @@ public  class D : C
                 Assert.Same(interfaceV2Indexer4, retargetedClassCIndexer4Impl);
                 Assert.NotSame(interfaceV1Indexer4, retargetedClassCIndexer4Impl);
                 Assert.Equal(retargetedClassCIndexer4Impl.Name, interfaceV1Indexer4.Name);
-                Assert.Equal(retargetedClassCIndexer4Impl.Type.ToTestDisplayString(), interfaceV1Indexer4.Type.ToTestDisplayString());
+                Assert.Equal(retargetedClassCIndexer4Impl.Type.TypeSymbol.ToTestDisplayString(), interfaceV1Indexer4.Type.TypeSymbol.ToTestDisplayString());
             }
 
             var retargetedClassCEvent1 = (EventSymbol)retargetedClassC.GetMembers("Interface1.Event1").Single();
@@ -271,7 +271,7 @@ public  class D : C
                 Assert.Same(interfaceV2Event1, retargetedClassCEvent1Impl);
                 Assert.NotSame(interfaceV1Event1, retargetedClassCEvent1Impl);
                 Assert.Equal(retargetedClassCEvent1Impl.Name, interfaceV1Event1.Name);
-                Assert.Equal(retargetedClassCEvent1Impl.Type.ToTestDisplayString(), interfaceV1Event1.Type.ToTestDisplayString());
+                Assert.Equal(retargetedClassCEvent1Impl.Type.TypeSymbol.ToTestDisplayString(), interfaceV1Event1.Type.TypeSymbol.ToTestDisplayString());
             }
 
             var retargetedClassCEvent2 = (EventSymbol)retargetedClassC.GetMembers("Interface1.Event2").Single();
@@ -298,7 +298,7 @@ public  class D : C
                 Assert.Same(interfaceV2Event4, retargetedClassCEvent4Impl);
                 Assert.NotSame(interfaceV1Event4, retargetedClassCEvent4Impl);
                 Assert.Equal(retargetedClassCEvent4Impl.Name, interfaceV1Event4.Name);
-                Assert.Equal(retargetedClassCEvent4Impl.Type.ToTestDisplayString(), interfaceV1Event4.Type.ToTestDisplayString());
+                Assert.Equal(retargetedClassCEvent4Impl.Type.TypeSymbol.ToTestDisplayString(), interfaceV1Event4.Type.TypeSymbol.ToTestDisplayString());
             }
         }
 

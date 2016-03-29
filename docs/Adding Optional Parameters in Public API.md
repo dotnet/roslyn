@@ -79,3 +79,18 @@ The resulting code should 1) have only one overload with optional parameters, wh
 most parameters of all the overloads, and 3) all previous overloads should still exist, 
 properly commented with their release version, and contain only mandatory parameters.
 
+## NOTE ##
+
+After this change, if Public API Analyzer complains about it, you should copy the entry for your change from PublicAPI.Shipped.txt and then put that entry in PublicAPI.Unshipped.txt with `*REMOVED*` prefix.
+
+PublicAPI.Shipped.txt
+
+``` txt
+Example.O(string o1 = null, string o2 = null) -> void
+```
+
+PublicAPI.Unshipped.txt
+
+``` txt
+*REMOVED*Example.O(string o1 = null, string o2 = null) -> void
+```
