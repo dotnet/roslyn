@@ -1325,7 +1325,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
         {
             if (details.GetMethod(WellKnownMemberNames.StaticConstructorName) == null)
             {
-                details.TryAddSynthesizedMethod(new SynthesizedPrivateImplementationDetailsStaticConstructor(SourceModule, PrivateImplClass, GetUntranslatedSpecialType(SpecialType.System_Void, syntaxOpt, diagnostics)));
+                details.TryAddSynthesizedMethod(new SynthesizedPrivateImplementationDetailsStaticConstructor(SourceModule, details, GetUntranslatedSpecialType(SpecialType.System_Void, syntaxOpt, diagnostics)));
             }  
         }
 
