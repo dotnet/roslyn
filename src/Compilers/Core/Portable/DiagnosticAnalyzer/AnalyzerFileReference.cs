@@ -150,45 +150,6 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         /// </summary>
         internal void AddAnalyzers(ImmutableArray<DiagnosticAnalyzer>.Builder builder, string language)
         {
-            ImmutableDictionary<string, ImmutableHashSet<string>> analyzerTypeNameMap;
-            Assembly analyzerAssembly = null;
-
-            try
-            {
-                analyzerTypeNameMap = GetAnalyzerTypeNameMap();
-
-                // If there are no analyzers, don't load the assembly at all.
-                if (!analyzerTypeNameMap.ContainsKey(language))
-                {
-                    return;
-                }
-
-                analyzerAssembly = GetAssembly();
-                if (analyzerAssembly == null)
-                {
-                    // This can be null if NoOpAnalyzerAssemblyLoader is used.
-                    return;
-                }
-            }
-            catch (Exception e)
-            {
-                this.AnalyzerLoadFailed?.Invoke(this, new AnalyzerLoadFailureEventArgs(AnalyzerLoadFailureEventArgs.FailureErrorCode.UnableToLoadAnalyzer, e.Message));
-                return;
-            }
-
-            var initialCount = builder.Count;
-            var reportedError = false;
-
-            // Add language specific analyzers.
-            var analyzers = GetLanguageSpecificAnalyzers(analyzerAssembly, analyzerTypeNameMap, language, ref reportedError);
-            builder.AddRange(analyzers);
-
-            // If there were types with the attribute but weren't an analyzer, generate a diagnostic.
-            // If we've reported errors already while trying to instantiate types, don't complain that there are no analyzers.
-            if (builder.Count == initialCount && !reportedError)
-            {
-                this.AnalyzerLoadFailed?.Invoke(this, new AnalyzerLoadFailureEventArgs(AnalyzerLoadFailureEventArgs.FailureErrorCode.NoAnalyzers, CodeAnalysisResources.NoAnalyzersFound));
-            }
             _diagnosticAnalyzers.AddExtensions(builder, language);
         }
 

@@ -2048,47 +2048,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             return diagnostics.ToReadOnlyAndFree();
         }
 
-        /// <summary>
-        /// Filter out warnings based on the compiler options (/nowarn, /warn and /warnaserror) and the pragma warning directives.
-        /// 'incoming' is freed.
-        /// </summary>
-        /// <returns>True when there is no error or warning treated as an error.</returns>
-        internal override bool FilterAndAppendAndFreeDiagnostics(DiagnosticBag accumulator, ref DiagnosticBag incoming)
-        {
-            bool result = FilterAndAppendDiagnostics(accumulator, incoming.AsEnumerableWithoutResolution());
-            incoming.Free();
-            incoming = null;
-            return result;
-        }
-
-        /// <summary>
-        /// Filter out warnings based on the compiler options (/nowarn, /warn and /warnaserror) and the pragma warning directives.
-        /// </summary>
-        /// <returns>True when there is no error.</returns>
-        private bool FilterAndAppendDiagnostics(DiagnosticBag accumulator, IEnumerable<Diagnostic> incoming)
-        {
-            bool hasError = false;
-            bool reportSuppressedDiagnostics = Options.ReportSuppressedDiagnostics;
-
-            foreach (Diagnostic d in incoming)
-            {
-                var filtered = _options.FilterDiagnostic(d);
-                if (filtered == null ||
-                    (!reportSuppressedDiagnostics && filtered.IsSuppressed))
-                {
-                    continue;
-                }
-                else if (filtered.Severity == DiagnosticSeverity.Error)
-                {
-                    hasError = true;
-                }
-
-                accumulator.Add(filtered);
-            }
-
-            return !hasError;
-        }
-
         private ImmutableArray<Diagnostic> GetSourceDeclarationDiagnostics(SyntaxTree syntaxTree = null, TextSpan? filterSpanWithinTree = null, Func<IEnumerable<Diagnostic>, SyntaxTree, TextSpan?, IEnumerable<Diagnostic>> locationFilterOpt = null, CancellationToken cancellationToken = default(CancellationToken))
         {
             GlobalImports.Complete(cancellationToken);

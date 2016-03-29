@@ -465,16 +465,6 @@ namespace Microsoft.CodeAnalysis
                                 filterOpt: null,
                                 cancellationToken: cancellationToken);
 
-                            if (analyzerDriver != null)
-                            {
-                                var hostDiagnostics = analyzerDriver.GetDiagnosticsAsync(compilation).Result;
-                                diagnosticBag.AddRange(hostDiagnostics);
-                                if (hostDiagnostics.Any(IsReportedError))
-                                {
-                                    success = false;
-                                }
-                            }
-
                             if (success)
                             {
                                 // NOTE: as native compiler does, we generate the documentation file
@@ -509,6 +499,18 @@ namespace Microsoft.CodeAnalysis
                                             diagnosticBag,
                                             cancellationToken);
                                     }
+                                }
+                            }
+
+                            if (analyzerDriver != null)
+                            {
+                                // GetDiagnosticsAsync is called after GenerateResourcesAndDocumentationComments
+                                // since that method calls EventQueue.TryComplete. Without TryComplete, we may miss diagnostics.
+                                var hostDiagnostics = analyzerDriver.GetDiagnosticsAsync(compilation).Result;
+                                diagnosticBag.AddRange(hostDiagnostics);
+                                if (hostDiagnostics.Any(IsReportedError))
+                                {
+                                    success = false;
                                 }
                             }
                         }

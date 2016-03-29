@@ -2,6 +2,7 @@
 
 using System;
 using System.Collections.Concurrent;
+using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
@@ -37,11 +38,25 @@ namespace Microsoft.CodeAnalysis.CodeGen
 
         private ImmutableDictionary<string, MethodData> _lazyMethodsByName;
 
+        // Returns map indexed by name for those methods that have a unique name.
         public ImmutableDictionary<string, MethodData> GetMethodsByName()
         {
             if (_lazyMethodsByName == null)
             {
-                var methodsByName = Methods.ToImmutableDictionary(p => GetMethodName(p.Key), p => p.Value);
+                var map = new Dictionary<string, MethodData>();
+                foreach (var pair in Methods)
+                {
+                    var name = GetMethodName(pair.Key);
+                    if (map.ContainsKey(name))
+                    {
+                        map[name] = default(MethodData);
+                    }
+                    else
+                    {
+                        map.Add(name, pair.Value);
+                    }
+                }
+                var methodsByName = map.Where(p => p.Value.Method != null).ToImmutableDictionary();
                 Interlocked.CompareExchange(ref _lazyMethodsByName, methodsByName, null);
             }
             return _lazyMethodsByName;

@@ -1331,12 +1331,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             Dictionary<string, ImmutableArray<Symbol>> membersByName = GetMembersByName();
 
-            if (membersByName.Values.All(m => m.Length == 1))
-            {
-                // No duplicate names.
-                return;
-            }
-
             // Collisions involving indexers are handled specially.
             CheckIndexerNameConflicts(diagnostics, membersByName);
 
@@ -1456,6 +1450,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     // second and third categories as follows:
 
                     var conversion = symbol as SourceUserDefinedConversionSymbol;
+                    var method = symbol as SourceMethodSymbol;
                     // Does this conversion collide with any previously-seen conversion?
                     if ((object)conversion != null)
                     {
@@ -1465,9 +1460,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                             diagnostics.Add(ErrorCode.ERR_DuplicateConversionInClass, conversion.Locations[0], this);
                         }
                     }
-
-                    var method = symbol as SourceMethodSymbol;
-                    if ((object)method != null)
+                    else if ((object)method != null)
                     {
                         SourceMethodSymbol previousMethod;
                         if (methodsBySignature.TryGetValue(method, out previousMethod))
@@ -1526,16 +1519,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 }
             }
 
-
             var indexersBySignature = new Dictionary<PropertySymbol, PropertySymbol>(MemberSignatureComparer.DuplicateSourceComparer);
 
             // Note: Can't assume that all indexers are called WellKnownMemberNames.Indexer because 
             // they may be explicit interface implementations.
-            foreach (string name in membersByName.Keys)
+            foreach (var members in membersByName.Values)
             {
                 string lastIndexerName = null;
                 indexersBySignature.Clear();
-                foreach (var symbol in membersByName[name])
+                foreach (var symbol in members)
                 {
                     if (symbol.IsIndexer())
                     {

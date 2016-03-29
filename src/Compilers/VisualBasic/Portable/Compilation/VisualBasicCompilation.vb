@@ -2046,35 +2046,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End If
         End Sub
 
-        Friend Overrides Function FilterAndAppendAndFreeDiagnostics(accumulator As DiagnosticBag, ByRef incoming As DiagnosticBag) As Boolean
-            Dim result As Boolean = FilterAndAppendDiagnostics(accumulator, incoming.AsEnumerableWithoutResolution())
-            incoming.Free()
-            incoming = Nothing
-            Return result
-        End Function
-
-        ' Filter out some warnings based on the compiler options (/nowarn and /warnaserror).
-        Friend Overloads Function FilterAndAppendDiagnostics(accumulator As DiagnosticBag, ByRef incoming As IEnumerable(Of Diagnostic)) As Boolean
-            Dim hasError As Boolean = False
-            Dim reportSuppressedDiagnostics = Options.ReportSuppressedDiagnostics
-
-            For Each diagnostic As Diagnostic In incoming
-                Dim filtered = Me._options.FilterDiagnostic(diagnostic)
-                If filtered Is Nothing OrElse
-                    (Not reportSuppressedDiagnostics AndAlso filtered.IsSuppressed) Then
-                    Continue For
-                End If
-
-                If filtered.Severity = DiagnosticSeverity.Error Then
-                    hasError = True
-                End If
-
-                accumulator.Add(filtered)
-            Next
-
-            Return Not hasError
-        End Function
-
         Friend Overrides Function AnalyzerForLanguage(analyzers As ImmutableArray(Of DiagnosticAnalyzer), analyzerManager As AnalyzerManager) As AnalyzerDriver
             Dim getKind As Func(Of SyntaxNode, SyntaxKind) = Function(node As SyntaxNode) node.Kind
             Dim isComment As Func(Of SyntaxTrivia, Boolean) = Function(trivia As SyntaxTrivia) trivia.Kind() = SyntaxKind.CommentTrivia
@@ -2264,8 +2235,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         Friend Overrides Function GenerateResourcesAndDocumentationComments(
             moduleBuilder As CommonPEModuleBuilder,
-            win32Resources As Stream,
             xmlDocStream As Stream,
+            win32Resources As Stream,
             diagnostics As DiagnosticBag,
             cancellationToken As CancellationToken) As Boolean
 
