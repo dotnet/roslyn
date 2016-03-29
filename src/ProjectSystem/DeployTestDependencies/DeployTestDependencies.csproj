@@ -23,6 +23,14 @@
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
   </PropertyGroup>
   <ItemGroup>
+    <ProjectReference Include="..\Microsoft.VisualStudio.AppDesigner\Microsoft.VisualStudio.AppDesigner.vbproj">
+      <Project>{19725d6f-4690-412b-934a-fc48d752b802}</Project>
+      <Name>Microsoft.VisualStudio.AppDesigner</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\Microsoft.VisualStudio.Editors\Microsoft.VisualStudio.Editors.vbproj">
+      <Project>{cd6e5d00-7b0b-442d-9f5d-eaec1a71838a}</Project>
+      <Name>Microsoft.VisualStudio.Editors</Name>
+    </ProjectReference>
     <ProjectReference Include="..\Microsoft.VisualStudio.ProjectSystem.CSharp.VS\Microsoft.VisualStudio.ProjectSystem.CSharp.VS.csproj">
       <Project>{765ef6eb-9f36-4d68-8c3d-9e11cd49e0bc}</Project>
       <Name>Microsoft.VisualStudio.ProjectSystem.CSharp.VS</Name>
