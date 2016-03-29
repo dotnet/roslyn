@@ -109,7 +109,6 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
                 case SymbolKind.Event: return CompletionItemFilter.EventFilters;
                 case SymbolKind.Namespace: return CompletionItemFilter.NamespaceFilters;
                 case SymbolKind.Property: return CompletionItemFilter.PropertyFilters;
-                case SymbolKind.RangeVariable: // fall through
                 case SymbolKind.Field:
                     return ((IFieldSymbol)symbol).IsConst
                         ? CompletionItemFilter.ConstantFilters
@@ -130,6 +129,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
                         case TypeKind.Structure: return CompletionItemFilter.StructureFilters;
                     }
                     break;
+                case SymbolKind.RangeVariable:
                 case SymbolKind.Local:
                 case SymbolKind.Parameter: return CompletionItemFilter.LocalAndParameterFilters;
             }
