@@ -5,11 +5,8 @@
 ' </copyright>                                                                
 '------------------------------------------------------------------------------
 '
-
-Imports System
-Imports system.ComponentModel
-
-Imports Microsoft.VisualStudio.Shell.Design.Serialization
+Imports System.ComponentModel
+Imports System.Reflection
 
 Namespace Microsoft.VisualStudio.Editors.SettingsDesigner
     ''' <summary>
@@ -51,7 +48,7 @@ Namespace Microsoft.VisualStudio.Editors.SettingsDesigner
                 If tc.CanConvertFrom(GetType(String)) AndAlso tc.CanConvertTo(GetType(String)) Then
                     Return True
                 End If
-                If type.GetConstructor(BindingFlags.Instance Or Reflection.BindingFlags.Public, Nothing, System.Reflection.CallingConventions.HasThis, System.Type.EmptyTypes, Nothing) IsNot Nothing Then
+                If type.GetConstructor(BindingFlags.Instance Or BindingFlags.Public, Nothing, System.Reflection.CallingConventions.HasThis, System.Type.EmptyTypes, Nothing) IsNot Nothing Then
                     Return True
                 End If
             Catch ex As Exception

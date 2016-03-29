@@ -251,6 +251,9 @@ Namespace Microsoft.Internal.Performance
         perfMSVSEditorsShowTabEnd = 8401
         perfMSVSEditorsActivateLogicalViewStart = 8402
         perfMSVSEditorsActivateLogicalViewEnd = 8403
+
+        perfMSVSEditorsReferencePageWCFAdded = 8413
+        perfMSVSEditorsReferencePagePostponedUIRefreshDone = 8414
     End Enum
 
 End Namespace

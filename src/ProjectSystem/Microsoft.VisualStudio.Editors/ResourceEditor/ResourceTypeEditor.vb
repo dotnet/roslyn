@@ -202,16 +202,11 @@ Namespace Microsoft.VisualStudio.Editors.ResourceEditor
         ''' <remarks></remarks>
         Shared Sub New()
             Dim IntrinsicEditors As New Hashtable
-            Const ThisAssemblyRef As String = "Microsoft.VisualStudio.Editors, Version=" & ThisAssembly.Version _
-                & ", Culture=neutral, PublicKeyToken=" + AssemblyRef.MicrosoftPublicKey
 
             ' Our set of intrinsic editors for resource type editors.
-            IntrinsicEditors(GetType(Bitmap)) = GetType(ResourceTypeEditorBitmap).FullName & ", " _
-                & ThisAssemblyRef
-            IntrinsicEditors(GetType(Icon)) = GetType(ResourceTypeEditorIcon).FullName & ", " _
-                & ThisAssemblyRef
-            IntrinsicEditors(GetType(String)) = GetType(ResourceTypeEditorString).FullName & ", " _
-                & ThisAssemblyRef
+            IntrinsicEditors(GetType(Bitmap)) = GetType(ResourceTypeEditorBitmap).AssemblyQualifiedName
+            IntrinsicEditors(GetType(Icon)) = GetType(ResourceTypeEditorIcon).AssemblyQualifiedName
+            IntrinsicEditors(GetType(String)) = GetType(ResourceTypeEditorString).AssemblyQualifiedName
 
             ' Add our intrinsic editors to TypeDescriptor.
             '

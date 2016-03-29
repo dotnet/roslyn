@@ -2634,7 +2634,7 @@ Namespace Microsoft.VisualStudio.Editors.ResourceEditor
         'Gets a unique drag-drop, copy/paste data format for the resource editor.  This format is visible across all instances of the
         '  resource editor in any project (as long as they are the same version - can't copy between two different versions of 
         '  Visual Studio, because the format name is qualified with the assembly's version.
-        Private ReadOnly CF_RESOURCES As String = "MS.VS.Editors.Resources " + ThisAssembly.Version
+        Private ReadOnly CF_RESOURCES As String = "MS.VS.Editors.Resources " + GetType(ResourceEditorDataFormats).Assembly.GetName().Version.ToString()
 
         'Gets a unique drag-drop, copy/paste data format for the resource editor that is visible only between the same
         '  instance of the resource editor.  To do this, we simply append the HashCode of this resource editor's view instance
