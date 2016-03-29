@@ -291,12 +291,25 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
 
         private static bool MatchingXmlNames(XmlNameSyntax name, XmlNameSyntax endName)
         {
-            // NOTE we do not compare colon tokens.
-            //      as long as name and prefix are matching we will consider names equivalent
-            //      it would be a different error if colon are missing
-            return name.FullWidth == endName.FullWidth &&
-                name.LocalName.ValueText == endName.LocalName.ValueText &&
-                name.Prefix?.Prefix.ValueText == endName.Prefix?.Prefix.ValueText;
+            // PERF: because of deduplication we often get the same name for name and endName,
+            //       so we will check for such case first before materializing text for entire nodes 
+            //       and comparing that.
+            if (name == endName)
+            {
+                return true;
+            }
+
+            // before doing ToString, check if 
+            // all nodes contributing to ToString are recursively the same
+            // NOTE: leading and trailing trivia do not contribute to ToString
+            if (!name.HasLeadingTrivia && 
+                !endName.HasTrailingTrivia &&
+                name.IsEquivalentTo(endName))
+            {
+                return true;
+            }
+
+            return name.ToString() == endName.ToString();
         }
 
         // assuming this is not used concurrently

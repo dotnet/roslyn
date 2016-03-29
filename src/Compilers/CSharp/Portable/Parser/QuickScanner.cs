@@ -28,8 +28,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             Dot,
             CompoundPunctStart,
             DoneAfterNext,
+            // we are relying on Bad state immediately following Done 
+            // to be able to detect exiting conditions in one "state >= Done" test.
+            // And we are also relying on this to be the last item in the enum.
             Done,
-            Bad
+            Bad = Done + 1    
         }
 
         private enum CharFlags : byte
@@ -209,6 +212,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 var flags = uc < charPropLength ? (CharFlags)s_charProperties[uc] : CharFlags.Complex;
 
                 state = (QuickScanState)s_stateTransitions[(int)state, (int)flags];
+                // NOTE: that Bad > Done and it is the only state like that
+                // as a result, we will exit the loop on either Bad or Done.
+                // the assert below will validate that these are the only states on which we exit
+                // Also note that we must exit on Done or Bad
+                // since the state machine does not have transitions for these states 
+                // and will promptly fail if we do not exit.
                 if (state >= QuickScanState.Done)
                 {
                     goto exitWhile;
@@ -221,7 +230,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         exitWhile:
 
             TextWindow.AdvanceChar(i - TextWindow.Offset);
-            Debug.Assert(state == QuickScanState.Bad || state == QuickScanState.Done);
+            Debug.Assert(state == QuickScanState.Bad || state == QuickScanState.Done, "can only exit with Bad or Done");
 
             if (state == QuickScanState.Done)
             {

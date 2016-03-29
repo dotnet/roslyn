@@ -2679,12 +2679,9 @@ class A {}
 
             Assert.NotNull(tree);
             Assert.Equal(text, tree.GetCompilationUnitRoot().ToFullString());
-            Assert.Equal(7, tree.GetCompilationUnitRoot().ErrorsAndWarnings().Length);
+            Assert.Equal(4, tree.GetCompilationUnitRoot().ErrorsAndWarnings().Length);
             VerifyDiagnostics(tree.GetCompilationUnitRoot(), new List<TestError>
             {
-                    new TestError(1570, true),
-                    new TestError(1570, true),
-                    new TestError(1570, true),
                     new TestError(1570, true),
                     new TestError(1570, true),
                     new TestError(1570, true),
