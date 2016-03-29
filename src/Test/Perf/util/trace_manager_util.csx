@@ -1,4 +1,5 @@
-#load "ScenarioGenerator_util.csx"
+#load "scenario_generator_util.csx"
+#load "test_util.csx"
 
 using System;
 using System.Diagnostics;
@@ -23,16 +24,13 @@ interface ITraceManager
 
 class TraceManagerFactory
 {
-    public static ITraceManager GetTraceManager(
-        int iterations = 3,
-        string cpcFolderPath = @"%SYSTEMDRIVE%\CPC",
-        string scenarioPath = @"%SYSTEMDRIVE%\CPC")
+    public static ITraceManager GetTraceManager(int iterations = 1)
     {
-        var cpcFullPath = Path.Combine(Environment.ExpandEnvironmentVariables(cpcFolderPath), "CPC.exe");
+        var cpcFullPath = Path.Combine(GetCPCDirectoryPath(), "CPC.exe");
+        var scenarioPath = GetCPCDirectoryPath();
         if (File.Exists(cpcFullPath))
         {
-            var expandedScenarioPath = Environment.ExpandEnvironmentVariables(scenarioPath);
-            return new TraceManager(iterations, cpcFullPath, expandedScenarioPath);
+            return new TraceManager(iterations, cpcFullPath, scenarioPath);
         }
         else
         {
@@ -108,11 +106,11 @@ class TraceManager : ITraceManager
 {
     private readonly ScenarioGenerator _scenarioGenerator;
 
-    private string _cpcPath = "CPC.exe";
+    private string _cpcPath;
     private int _startEventAbsoluteInstance = 1;
     private int _stopEventAbsoluteInstance = 1;
     private readonly int _iterations;
-    
+
     public TraceManager(
         int iterations,
         string cpcPath,
@@ -122,49 +120,35 @@ class TraceManager : ITraceManager
         _cpcPath = cpcPath;
         _scenarioGenerator = new ScenarioGenerator(scenarioPath);
     }
-    
-    public int Iterations 
+
+    public int Iterations
     {
         get
         {
             return _iterations;
-        }    
+        }
     }
-    
+
     public void Setup()
     {
-         var processResult = RunProcess(_cpcPath, "/Setup /DisableArchive");
-        if (processResult.Failed)
-        {
-            throw new SystemException($@"The process ""CPC.exe /Setup /DisableArchive"" failed. {processResult.StdErr}");
-        }
+        ShellOutVital(_cpcPath, "/Setup /DisableArchive");
     }
 
     public void Start()
     {
-        var processResult = RunProcess(_cpcPath, "/Start /DisableArchive");
-        if (processResult.Failed)
-        {
-            throw new SystemException($@"The process ""CPC.exe /Start /DisableArchive"" failed. {processResult.StdErr}");
-        }
+        ShellOutVital(_cpcPath, "/Start /DisableArchive");
     }
 
     public void Stop()
     {
-        var processResult = RunProcess(_cpcPath, @"/Stop /DisableArchive /ScenarioPath=""%SYSTEMDRIVE%/CPC/scenarios.xml"" /ConsumptionTempResultsPath=""%SYSTEMDRIVE%/CPC/consumptionTempResults.xml""");
-        if (processResult.Failed)
-        {
-            throw new SystemException($@"The process ""CPC.exe /Stop /DisableArchive"" failed. {processResult.StdErr}");
-        }
+        var scenariosXmlPath = Path.Combine(GetCPCDirectoryPath(), "scenarios.xml");
+        var consumptionTempResultsPath = Path.Combine(GetCPCDirectoryPath(), "ConsumptionTempResultsPath.xml");
+        ShellOutVital(_cpcPath, $"/Stop /DisableArchive /ScenarioPath=\"{scenariosXmlPath}\" /ConsumptionTempResultsPath=\"{consumptionTempResultsPath}\"");
     }
 
     public void Cleanup()
     {
-        var processResult = RunProcess(_cpcPath, "/Cleanup /DisableArchive");
-        if (processResult.Failed)
-        {
-            throw new SystemException($@"The process ""CPC.exe /Cleanup /DisableArchive"" failed. {processResult.StdErr}");
-        }
+        ShellOutVital(_cpcPath, "/Cleanup /DisableArchive");
     }
 
     public void StartScenario(string scenarioName, string processName)
@@ -204,28 +188,5 @@ class TraceManager : ITraceManager
         _scenarioGenerator.Initialize();
         _startEventAbsoluteInstance = 1;
         _stopEventAbsoluteInstance = 1;
-    }
-
-    private ProcessResult RunProcess(string executablePath, string args)
-    {
-        var startInfo = new ProcessStartInfo(executablePath, args);
-        startInfo.UseShellExecute = true;
-        var process = new Process
-        {
-            StartInfo = startInfo,
-        };
-
-        process.Start();
-
-        process.WaitForExit();
-
-        return new ProcessResult
-        {
-            ExecutablePath = executablePath,
-            Args = args,
-            Code = process.ExitCode,
-            StdOut = "",
-            StdErr = "",
-        };
     }
 }
