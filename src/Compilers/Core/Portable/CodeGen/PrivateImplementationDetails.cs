@@ -47,7 +47,6 @@ namespace Microsoft.CodeAnalysis.CodeGen
             new ConcurrentDictionary<ImmutableArray<byte>, MappedField>(ByteSequenceComparer.Instance);
 
         private ModuleVersionIdField _mvidField;
-        private Cci.IMethodDefinition _staticConstructor;
 
         // synthesized methods
         private ImmutableArray<Cci.IMethodDefinition> _orderedSynthesizedMethods;
@@ -160,30 +159,17 @@ namespace Microsoft.CodeAnalysis.CodeGen
             return new ExplicitSizeStruct(size, this, _systemValueType);
         }
 
-        internal bool HasStaticConstructor => _staticConstructor != null;
-
-        internal Cci.IFieldReference GetOrAddModuleVersionId(Cci.ITypeReference mvidType, Func<Cci.IMethodDefinition> staticConstructorCreator)
+        internal Cci.IFieldReference GetModuleVersionId(Cci.ITypeReference mvidType)
         {
             if (_mvidField == null)
             {
-                Interlocked.CompareExchange(ref _mvidField, new ModuleVersionIdField("MVID", this, mvidType), null);
-                EnsureStaticConstructorExists(staticConstructorCreator);
+                Interlocked.CompareExchange(ref _mvidField, new ModuleVersionIdField(this, mvidType), null);
             }
 
+            Debug.Assert(_mvidField.Type.Equals(mvidType));
             return _mvidField;
         }
 
-        private void EnsureStaticConstructorExists(Func<Cci.IMethodDefinition> creator)
-        {
-            if (_staticConstructor == null)
-            {
-                if (Interlocked.CompareExchange(ref _staticConstructor, creator(), null) == null)
-                {
-                    _synthesizedMethods.TryAdd(_staticConstructor.Name, _staticConstructor);
-                }
-            }
-        }
-        
         // Add a new synthesized method indexed by its name if the method isn't already present.
         internal bool TryAddSynthesizedMethod(Cci.IMethodDefinition method)
         {
@@ -273,7 +259,16 @@ namespace Microsoft.CodeAnalysis.CodeGen
         {
             public static readonly FieldComparer Instance = new FieldComparer();
 
-            public int Compare(SynthesizedStaticField x, SynthesizedStaticField y) => x.Name.CompareTo(y.Name);
+            private FieldComparer()
+            {
+            }
+
+            public int Compare(SynthesizedStaticField x, SynthesizedStaticField y)
+            {
+                // Fields are always synthesized with non-null names.
+                Debug.Assert(x.Name != null && y.Name != null);
+                return x.Name.CompareTo(y.Name);
+            }
         }
     }
 
@@ -395,6 +390,8 @@ namespace Microsoft.CodeAnalysis.CodeGen
 
         public Cci.ITypeReference GetType(EmitContext context) => _type;
 
+        internal Cci.ITypeReference Type => _type;
+
         public Cci.IFieldDefinition GetResolvedField(EmitContext context) => this;
 
         public Cci.ISpecializedFieldReference AsSpecializedFieldReference => null;
@@ -407,8 +404,8 @@ namespace Microsoft.CodeAnalysis.CodeGen
 
     internal sealed class ModuleVersionIdField : SynthesizedStaticField
     {
-        internal ModuleVersionIdField(string name, Cci.INamedTypeDefinition containingType, Cci.ITypeReference type)
-            : base(name, containingType, type)
+        internal ModuleVersionIdField(Cci.INamedTypeDefinition containingType, Cci.ITypeReference type)
+            : base("MVID", containingType, type)
         {
         }
 

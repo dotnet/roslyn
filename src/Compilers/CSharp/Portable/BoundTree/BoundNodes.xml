@@ -437,7 +437,9 @@
   <Node Name="BoundTypeOfOperator" Base="BoundTypeOf">
     <Field Name="SourceType" Type="BoundTypeExpression"/>
   </Node>
-    
+  
+  <!-- Represents Typeof(PrivateImplementationDetails), which is a special case because PrivateImplementationDetails has no language-level symbol.
+       Used in the synthesized static constructor for PrivateImplementationDetails. -->
   <Node Name="BoundTypeOfPrivateImplementationDetails" Base="BoundTypeOf">
   </Node>
 
@@ -448,7 +450,7 @@
     <Field Name="Method" Type="MethodSymbol"/>
   </Node>
 
-  <!-- Represents the GUID that is the current module's MVID. -->
+  <!-- Represents the GUID that is the current module's MVID. Implemented as a reference to PrivateImplementationDetails.MVID, which has no language-level symbol. -->
   <Node Name="BoundModuleVersionId" Base="BoundExpression">
     <!-- Non-null type is required for this node kind -->
     <Field Name="Type" Type="TypeSymbol" Override="true" Null="disallow"/>

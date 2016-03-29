@@ -197,10 +197,8 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
                     break;
 
                 case BoundKind.TypeOfPrivateImplementationDetails:
-                    if (used) // unused typeof has no side-effects
-                    {
-                        EmitTypeOfPrivateImplementationDetailsExpression((BoundTypeOfPrivateImplementationDetails)expression);
-                    }
+                    Debug.Assert(used);
+                    EmitTypeOfPrivateImplementationDetailsExpression((BoundTypeOfPrivateImplementationDetails)expression);
                     break;
 
                 case BoundKind.TypeOfOperator:
@@ -2663,7 +2661,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
         private void EmitTypeOfPrivateImplementationDetailsExpression(BoundTypeOfPrivateImplementationDetails boundTypeOfOperator)
         {
             _builder.EmitOpCode(ILOpCode.Ldtoken);
-            EmitTypeReferenceToken(_module.PrivateImplClass, boundTypeOfOperator.Syntax);
+            EmitTypeReferenceToken(_module.GetPrivateImplClass(boundTypeOfOperator.Syntax, _diagnostics), boundTypeOfOperator.Syntax);
             EmitGetTypeFromHandle(boundTypeOfOperator);
         }
 

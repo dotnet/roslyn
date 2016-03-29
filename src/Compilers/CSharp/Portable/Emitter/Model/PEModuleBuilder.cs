@@ -1316,16 +1316,18 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
         internal Cci.IFieldReference GetModuleVersionId(Cci.ITypeReference mvidType, CSharpSyntaxNode syntaxOpt, DiagnosticBag diagnostics)
         {
             PrivateImplementationDetails details = GetPrivateImplClass(syntaxOpt, diagnostics);
-            // Avoid creating a closure for the static constructor creator unless it is likely to be executed.
-            return details.HasStaticConstructor ?
-                details.GetOrAddModuleVersionId(mvidType, null) :
-                GetModuleVersionIdWithStaticConstructorCreation(mvidType, syntaxOpt, diagnostics);
-        }
+            EnsurePrivateImplementationDetailsStaticConstructor(details, syntaxOpt, diagnostics);
 
-        private Cci.IFieldReference GetModuleVersionIdWithStaticConstructorCreation(Cci.ITypeReference mvidType, CSharpSyntaxNode syntaxOpt, DiagnosticBag diagnostics) =>
-            PrivateImplClass.GetOrAddModuleVersionId(
-                mvidType,
-                () => new SynthesizedPrivateImplementationDetailsStaticConstructor(SourceModule, PrivateImplClass, GetUntranslatedSpecialType(SpecialType.System_Void, syntaxOpt, diagnostics)));
+            return details.GetModuleVersionId(mvidType);
+        }
+        
+        private void EnsurePrivateImplementationDetailsStaticConstructor(PrivateImplementationDetails details, CSharpSyntaxNode syntaxOpt, DiagnosticBag diagnostics)
+        {
+            if (details.GetMethod(WellKnownMemberNames.StaticConstructorName) == null)
+            {
+                details.TryAddSynthesizedMethod(new SynthesizedPrivateImplementationDetailsStaticConstructor(SourceModule, PrivateImplClass, GetUntranslatedSpecialType(SpecialType.System_Void, syntaxOpt, diagnostics)));
+            }  
+        }
 
         #region Test Hooks
 
