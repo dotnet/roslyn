@@ -12,7 +12,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Rename
                 _outputHelper = outputHelper
             End Sub
 
-            <WpfFact(Skip:="798375, 799977")>
+            <WpfFact>
             <WorkItem(798375, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/798375")>
             <WorkItem(773543, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/773543")>
             <Trait(Traits.Feature, Traits.Features.Rename)>
@@ -40,7 +40,7 @@ End Class
                 End Using
             End Sub
 
-            <WpfFact(Skip:="798375")>
+            <WpfFact>
             <WorkItem(798375, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/798375")>
             <WorkItem(773534, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/773534")>
             <Trait(Traits.Feature, Traits.Features.Rename)>
@@ -1835,7 +1835,7 @@ End Module
 
             <WorkItem(566542, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/566542")>
             <WorkItem(545604, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545604")>
-            <WpfFact(Skip:="566542"), Trait(Traits.Feature, Traits.Features.Rename)>
+            <WpfFact, Trait(Traits.Feature, Traits.Features.Rename)>
             Public Sub QualifyTypeNameInImports()
                 Using result = RenameEngineResult.Create(_outputHelper,
                     <Workspace>
