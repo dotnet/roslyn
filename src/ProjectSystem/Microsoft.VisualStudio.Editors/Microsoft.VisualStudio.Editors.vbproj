@@ -34,7 +34,6 @@
     <Reference Include="EnvDTE" />
     <Reference Include="EnvDTE80" />
     <Reference Include="Microsoft.Build.Tasks.Core" />
-    <Reference Include="Microsoft.VisualStudio.CommonIDE" />
     <Reference Include="Microsoft.VisualStudio.Data.Core" />
     <Reference Include="Microsoft.VisualStudio.Data.Services" />
     <Reference Include="Microsoft.VisualStudio.DataDesign.Common" />
@@ -43,6 +42,7 @@
     </Reference>
     <Reference Include="Microsoft.VisualStudio.Designer.Interfaces" />
     <Reference Include="Microsoft.VisualStudio.ManagedInterfaces" />
+    <Reference Include="Microsoft.VisualStudio.Shell.Immutable.10.0" />
     <Reference Include="Microsoft.VisualStudio.ImageCatalog" />
     <Reference Include="Microsoft.VisualStudio.Imaging.Interop.14.0.DesignTime">
       <EmbedInteropTypes>True</EmbedInteropTypes>
@@ -51,7 +51,6 @@
     <Reference Include="Microsoft.VisualStudio.Utilities" />
     <Reference Include="Microsoft.VisualStudio.Shell.14.0" />
     <Reference Include="Microsoft.VisualStudio.Shell.Design" />
-    <Reference Include="Microsoft.VisualStudio.Shell.Immutable.10.0" />
     <Reference Include="Microsoft.VisualStudio.Shell.Interop" />
     <Reference Include="Microsoft.VisualStudio.ComponentModelHost" />
     <Reference Include="Microsoft.VisualStudio.Shell.Interop.10.0" />
@@ -75,29 +74,23 @@
     <Reference Include="System.Data" />
     <Reference Include="System.Design" />
     <Reference Include="System.Drawing" />
-    <Reference Include="System.Runtime.Serialization" />
-    <Reference Include="System.Security" />
-    <Reference Include="System.ServiceModel" />
-    <Reference Include="System.Web" />
     <Reference Include="System.Web.ApplicationServices" />
     <Reference Include="System.Web.Extensions" />
-    <Reference Include="System.Web.RegularExpressions" />
-    <Reference Include="System.Web.Services" />
     <Reference Include="System.Windows.Forms" />
     <Reference Include="System.Xml" />
     <Reference Include="System.Xml.Linq" />
     <Reference Include="VSLangProj" />
+    <Reference Include="VSLangProj2" />
+    <Reference Include="VSLangProj80" />
+    <Reference Include="VSLangProj90" />
     <Reference Include="VSLangProj100" />
     <Reference Include="VSLangProj110">
       <EmbedInteropTypes>true</EmbedInteropTypes>
     </Reference>
-    <Reference Include="VSLangProj2" />
-    <Reference Include="VSLangProj80" />
-    <Reference Include="VSLangProj90" />
     <Reference Include="VsWebSite.Interop" />
-    <Reference Include="WindowsBase" />
     <Reference Include="Microsoft.VSDesigner" />
     <Reference Include="Microsoft.VSDesigner.WCF" />
+    <Reference Include="WindowsBase" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\..\Compilers\Core\Portable\CodeAnalysis.csproj">
