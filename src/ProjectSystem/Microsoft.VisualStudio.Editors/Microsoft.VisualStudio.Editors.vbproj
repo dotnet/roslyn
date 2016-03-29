@@ -1,6 +1,6 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="14.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
-  <Import Project="..\..\..\..\build\Targets\VSL.Settings.targets" />
+  <Import Project="..\..\..\build\Targets\VSL.Settings.targets" />
   <PropertyGroup>
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
@@ -107,15 +107,15 @@
     <Reference Include="Microsoft.VSDesigner.WCF" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\..\..\Compilers\Core\Portable\CodeAnalysis.csproj">
+    <ProjectReference Include="..\..\Compilers\Core\Portable\CodeAnalysis.csproj">
       <Project>{1ee8cad3-55f9-4d91-96b2-084641da9a6c}</Project>
       <Name>CodeAnalysis</Name>
     </ProjectReference>
-    <ProjectReference Include="..\..\..\Workspaces\Core\Portable\Workspaces.csproj">
+    <ProjectReference Include="..\..\Workspaces\Core\Portable\Workspaces.csproj">
       <Project>{5f8d2414-064a-4b3a-9b42-8e2a04246be5}</Project>
       <Name>Workspaces</Name>
     </ProjectReference>
-    <ProjectReference Include="..\..\Core\Def\ServicesVisualStudio.csproj">
+    <ProjectReference Include="..\..\VisualStudio\Core\Def\ServicesVisualStudio.csproj">
       <Project>{86fd5b9a-4fa0-4b10-b59f-cfaf077a859c}</Project>
       <Name>ServicesVisualStudio</Name>
     </ProjectReference>
@@ -325,7 +325,7 @@
     <Compile Include="$(ExternalAPIsPath)\NetFX\$(TargetFrameworkVersion)\inc\StrongNameHelpers.vb">
       <ExcludeFromStyleCop>true</ExcludeFromStyleCop>
     </Compile>
-    <Compile Include="..\..\..\Common\ManagedCodeMarkers.vb">
+    <Compile Include="..\..\Common\ManagedCodeMarkers.vb">
       <Link>ManagedCodeMarkers.vb</Link>
     </Compile>
     <Compile Include="..\DesignerUI\VisualStudioEditorsID.vb" />
@@ -752,5 +752,5 @@
   <ItemGroup>
     <Folder Include="Resources\Common\" />
   </ItemGroup>
-  <Import Project="..\..\..\..\build\Targets\VSL.Imports.targets" />
+  <Import Project="..\..\..\build\Targets\VSL.Imports.targets" />
 </Project>
