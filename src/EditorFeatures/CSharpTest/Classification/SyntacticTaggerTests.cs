@@ -36,6 +36,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Classification
                     null,
                     new SyntacticClassificationTaggerProvider(null, null, null));
 
+                // Capture the expected value before the await, in case it changes.
                 var expectedLength = subjectBuffer.CurrentSnapshot.Length;
                 int? actualVersionNumber = null;
                 int? actualLength = null;
@@ -51,6 +52,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Classification
                 await checkpoint.Task;
                 Assert.Equal(1, actualVersionNumber);
                 Assert.Equal(expectedLength, actualLength);
+                Assert.Equal(1, callstacks.Count);
 
                 checkpoint = new Checkpoint();
 
@@ -64,6 +66,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Classification
                 await checkpoint.Task;
                 Assert.Equal(2, actualVersionNumber);
                 Assert.Equal(expectedLength, actualLength);
+                Assert.Equal(2, callstacks.Count);
             }
         }
     }
