@@ -39,7 +39,9 @@
     <Reference Include="Microsoft.VisualStudio.Data.Core" />
     <Reference Include="Microsoft.VisualStudio.Data.Services" />
     <Reference Include="Microsoft.VisualStudio.DataDesign.Common" />
-    <Reference Include="Microsoft.VisualStudio.DataTools.Interop" />
+    <Reference Include="Microsoft.VisualStudio.DataTools.Interop">
+      <HintPath>$(DevEnvDir)\Microsoft.VisualStudio.DataTools.Interop.dll</HintPath>
+    </Reference>
     <Reference Include="Microsoft.VisualStudio.Designer.Interfaces" />
     <Reference Include="Microsoft.VisualStudio.ManagedInterfaces" />
     <Reference Include="Microsoft.VisualStudio.ImageCatalog" />
@@ -322,13 +324,14 @@
     </EmbeddedResource>
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="$(ExternalAPIsPath)\NetFX\$(TargetFrameworkVersion)\inc\StrongNameHelpers.vb">
-      <ExcludeFromStyleCop>true</ExcludeFromStyleCop>
+    <Compile Include="..\..\Common\IVsSqm.vb">
+      <Link>IVsSqm.vb</Link>
     </Compile>
+    <Compile Include="StrongNameHelpers.vb" />
     <Compile Include="..\..\Common\ManagedCodeMarkers.vb">
       <Link>ManagedCodeMarkers.vb</Link>
     </Compile>
-    <Compile Include="..\DesignerUI\VisualStudioEditorsID.vb" />
+    <Compile Include="DesignerUI\VisualStudioEditorsID.vb" />
     <Compile Include="AddImportsDialogs\AddImportDialogBase.vb">
       <SubType>Form</SubType>
     </Compile>
