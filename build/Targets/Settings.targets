@@ -78,8 +78,6 @@
 
   <PropertyGroup Condition="'$(DevEnvDir)' == ''">
     <DevEnvDir>$(VSINSTALLDIR)\Common7\IDE</DevEnvDir>
-    <DevEnvDir Condition="'$(VisualStudioVersion)' == '12.0'">$(VS120COMNTOOLS)\..\IDE</DevEnvDir>
-    <DevEnvDir Condition="'$(VisualStudioVersion)' == '14.0'">$(VS140COMNTOOLS)\..\IDE</DevEnvDir>
     <DevEnvDir>$([System.IO.Path]::GetFullPath('$(DevEnvDir)'))</DevEnvDir>
   </PropertyGroup>
 
