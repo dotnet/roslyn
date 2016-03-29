@@ -5143,6 +5143,60 @@ End Class
 
             edits.VerifyRudeDiagnostics(active)
         End Sub
+
+        <Fact>
+        Public Sub AsyncMethodEdit_Semantics()
+            Dim src1 = "
+Imports System
+Imports System.Threading.Tasks
+Class C
+    Async Function F() As Task(Of Integer)
+        Console.WriteLine(1)
+        Await Task.FromResult(1)
+    End Function
+End Class
+"
+            Dim src2 = "
+Imports System
+Imports System.Threading.Tasks
+Class C
+    Async Function F() As Task(Of Integer)
+        Console.WriteLine(2)
+        Await Task.FromResult(1)
+    End Function
+End Class
+"
+            Dim edits = GetTopEdits(src1, src2)
+
+            edits.VerifySemanticDiagnostics()
+        End Sub
+
+        <Fact>
+        Public Sub IteratorMethodEdit_Semantics()
+            Dim src1 = "
+Imports System
+Imports System.Collections.Generic
+Class C
+    Iterator Function F() As IEnumerable(Of Integer)
+        Console.WriteLine(1)
+        Yield 1
+    End Function
+End Class
+"
+            Dim src2 = "
+Imports System
+Imports System.Collections.Generic
+Class C
+    Iterator Function F() As IEnumerable(Of Integer)
+        Console.WriteLine(2)
+        Yield 1
+    End Function
+End Class
+"
+            Dim edits = GetTopEdits(src1, src2)
+
+            edits.VerifySemanticDiagnostics()
+        End Sub
 #End Region
 
 #Region "On Error"
