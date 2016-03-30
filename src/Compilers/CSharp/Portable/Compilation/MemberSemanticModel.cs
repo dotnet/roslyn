@@ -225,6 +225,13 @@ namespace Microsoft.CodeAnalysis.CSharp
                         binder = rootBinder.GetBinder(current);
                     }
                 }
+                else if (current.Kind() == SyntaxKind.MatchSection)
+                {
+                    if (LookupPosition.IsInMatchSectionScope(position, (MatchSectionSyntax)current))
+                    {
+                        binder = rootBinder.GetBinder(current);
+                    }
+                }
                 else if (current.Kind() == SyntaxKind.ArrowExpressionClause && current.Parent?.Kind() == SyntaxKind.LocalFunctionStatement)
                 {
                     binder = rootBinder.GetBinder(current);

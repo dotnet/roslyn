@@ -66,6 +66,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 (kind = syntax.Kind()) == SyntaxKind.CatchClause ||
                 kind == SyntaxKind.CatchFilterClause ||
                 kind == SyntaxKind.SwitchSection ||
+                kind == SyntaxKind.MatchSection ||
                 kind == SyntaxKind.ArrowExpressionClause;
         }
 

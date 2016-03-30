@@ -716,7 +716,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             var sectionBuilder = ArrayBuilder<BoundMatchCase>.GetInstance(node.Sections.Count);
             foreach (var section in node.Sections)
             {
-                var sectionBinder = new PatternVariableBinder(section, this); // each section has its own locals.
+                var sectionBinder = this.GetBinder(section); // each section has its own locals.
                 var pattern = sectionBinder.BindPattern(section.Pattern, expression, expression.Type, section.HasErrors, diagnostics);
                 var guard = (section.WhenClause != null) ? sectionBinder.BindBooleanExpression(section.WhenClause.Condition, diagnostics) : null;
                 var e = sectionBinder.BindExpression(section.Expression, diagnostics);

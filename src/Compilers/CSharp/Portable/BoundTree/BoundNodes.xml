@@ -844,7 +844,8 @@
     Empty if the catch syntax doesn't declare a local variable.
     
     In the initial bound tree the first variable is the exception variable (if present).
-    After the node is lowered it might be another variable.
+    After the node is lowered the exception variable might become a field and will be removed from 
+    the array, otherwise it will stay at the first position.
     -->
     <Field Name="Locals" Type="ImmutableArray&lt;LocalSymbol&gt;"/>
 

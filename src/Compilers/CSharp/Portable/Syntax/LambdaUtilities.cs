@@ -375,10 +375,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // With the introduction of pattern-matching, many nodes now contain top-level
                 // expressions that may introduce pattern variables.
                 case SyntaxKind.EqualsValueClause:
-                case SyntaxKind.CatchFilterClause:
+                case SyntaxKind.MatchSection:
                     return true;
 
                 // Due to pattern-matching, any statement that contains an expression may introduce a scope.
+                // PROTOTYPE(patterns): The set of statements below needs a clean-up. For example, checked
+                //                      statement doesn't introduce a scope. 
                 case SyntaxKind.CheckedStatement:
                 case SyntaxKind.DoStatement:
                 case SyntaxKind.ExpressionStatement:

@@ -244,6 +244,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         }
 
         /// <remarks>
+        /// Used to determine whether it would be appropriate to use the binder for the match section (if any).
+        /// Not used to determine whether the position is syntactically within the section.
+        /// </remarks>
+        internal static bool IsInMatchSectionScope(int position, MatchSectionSyntax section)
+        {
+            Debug.Assert(section != null);
+            return section.Span.Contains(position);
+        }
+
+        /// <remarks>
         /// Used to determine whether it would be appropriate to use the binder for the statement (if any).
         /// Not used to determine whether the position is syntactically within the statement.
         /// </remarks>
