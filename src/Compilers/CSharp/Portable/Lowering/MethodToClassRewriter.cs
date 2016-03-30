@@ -109,15 +109,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         public override BoundNode VisitCatchBlock(BoundCatchBlock node)
         {
-            if ((object)node.LocalOpt != null)
+            if (!node.Locals.IsDefaultOrEmpty)
             {
                 // Yield/await aren't supported in catch block atm, but we need to rewrite the type 
-                // of the variable owned by the catch block. Note that this variable might be a closure frame reference.
-                LocalSymbol newLocal;
-                TryRewriteLocal(node.LocalOpt, out newLocal);
+                // of the variables owned by the catch block. Note that one of these variables might be a closure frame reference.
+                var newLocals = RewriteLocals(node.Locals);
 
                 return node.Update(
-                    newLocal,
+                    newLocals,
                     (BoundExpression)this.Visit(node.ExceptionSourceOpt),
                     this.VisitType(node.ExceptionTypeOpt),
                     (BoundExpression)this.Visit(node.ExceptionFilterOpt),

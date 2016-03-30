@@ -1,0 +1,82 @@
+<?xml version="1.0"?>
+<package xmlns="http://schemas.microsoft.com/packaging/2011/08/nuspec.xsd">
+  <metadata>
+    <id>Microsoft.CodeAnalysis.Common</id>
+    <summary>A shared package used by the Microsoft .NET Compiler Platform ("Roslyn").</summary>
+    <description>
+      A shared package used by the Microsoft .NET Compiler Platform ("Roslyn"). Do not install this package manually, it will be added as a prerequisite by other packages that require it.
+      
+Supported Platforms:
+- .NET Framework 4.5
+- Windows 8
+- Portable Class Libraries
+    </description>
+    <dependencies>
+        <group targetFramework="portable-net45+win8">
+            <dependency id="System.Collections.Immutable" version="$systemCollectionsImmutableVersion$" />
+            <dependency id="System.Reflection.Metadata" version="$systemReflectionMetadataVersion$" />
+            <dependency id="Microsoft.CodeAnalysis.Analyzers" version="$codeAnalysisAnalyzersVersion$" />
+        </group>
+
+        <group targetFramework="netstandard1.3">
+            <dependency id="System.Collections.Immutable" version="$systemCollectionsImmutableVersion$" />
+            <dependency id="System.Reflection.Metadata" version="$systemReflectionMetadataVersion$" />
+            <dependency id="Microsoft.CodeAnalysis.Analyzers" version="$codeAnalysisAnalyzersVersion$" />
+
+            <dependency id="System.AppContext" version="4.1.0-rc2-23910" />
+            <dependency id="System.Collections" version="4.0.11-rc2-23910" />
+            <dependency id="System.Collections.Concurrent" version="4.0.12-rc2-23910" />
+            <dependency id="System.Console" version="4.0.0-rc2-23910" />
+            <dependency id="System.Diagnostics.Debug" version="4.0.11-rc2-23910" />
+            <dependency id="System.Diagnostics.FileVersionInfo" version="4.0.0-rc2-23910" exclude="Compile" />
+            <dependency id="System.Diagnostics.StackTrace" version="4.0.1-rc2-23910" exclude="Compile" />
+            <dependency id="System.Diagnostics.Tools" version="4.0.1-rc2-23910" />
+            <dependency id="System.Dynamic.Runtime" version="4.0.11-rc2-23910" />
+            <dependency id="System.Globalization" version="4.0.11-rc2-23910" />
+            <dependency id="System.IO.FileSystem" version="4.0.1-rc2-23910" />
+            <dependency id="System.Linq" version="4.0.1-rc2-23910" />
+            <dependency id="System.Linq.Expressions" version="4.0.11-rc2-23910" />
+            <dependency id="System.Reflection" version="4.1.0-rc2-23910" />
+            <dependency id="System.Reflection.Primitives" version="4.0.1-rc2-23910" />
+            <dependency id="System.Resources.ResourceManager" version="4.0.1-rc2-23910" />
+            <dependency id="System.Runtime" version="4.0.21-rc2-23910" />
+            <dependency id="System.Runtime.Extensions" version="4.0.11-rc2-23910" />
+            <dependency id="System.Runtime.Handles" version="4.0.1-rc2-23910" />
+            <dependency id="System.Runtime.InteropServices" version="4.0.21-rc2-23910" />
+            <dependency id="System.Runtime.Numerics" version="4.0.1-rc2-23910" />
+            <dependency id="System.Security.Cryptography.Algorithms" version="4.0.0-rc2-23910" />
+            <dependency id="System.Security.Cryptography.Encoding" version="4.0.0-rc2-23910" />
+            <dependency id="System.Security.Cryptography.X509Certificates" version="4.0.0-rc2-23910" />
+            <dependency id="System.Text.Encoding" version="4.0.11-rc2-23910" />
+            <dependency id="System.Text.Encoding.CodePages" version="4.0.1-rc2-23910" exclude="Compile" />
+            <dependency id="System.Text.Encoding.Extensions" version="4.0.11-rc2-23910" />
+            <dependency id="System.Threading" version="4.0.11-rc2-23910" exclude="Compile" />
+            <dependency id="System.Threading.Tasks" version="4.0.11-rc2-23910" />
+            <dependency id="System.Threading.Tasks.Parallel" version="4.0.1-rc2-23910" />
+            <dependency id="System.Threading.Thread" version="4.0.0-rc2-23910" exclude="Compile" />
+            <dependency id="System.Xml.ReaderWriter" version="4.0.11-rc2-23910" />
+            <dependency id="System.Xml.XDocument" version="4.0.11-rc2-23910" />
+            <dependency id="System.Xml.XmlDocument" version="4.0.1-rc2-23910" exclude="Compile" />
+            <dependency id="System.Xml.XPath.XDocument" version="4.0.1-rc2-23910" exclude="Compile" />
+        </group>
+    </dependencies>
+
+    <language>en-US</language>
+    <requireLicenseAcceptance>true</requireLicenseAcceptance>
+    <version>$version$</version>
+    <authors>$authors$</authors>
+    <licenseUrl>$licenseUrl$</licenseUrl>
+    <projectUrl>$projectUrl$</projectUrl>
+    <releaseNotes>$releaseNotes$</releaseNotes>
+    <tags>$tags$</tags>
+  </metadata>
+  <files>
+    <file src="Microsoft.CodeAnalysis.dll" target="lib\portable-net45+win8" />
+    <file src="Microsoft.CodeAnalysis.xml" target="lib\portable-net45+win8" />
+    <file src="Microsoft.CodeAnalysis.dll" target="lib\net45" />
+    <file src="Microsoft.CodeAnalysis.xml" target="lib\net45" />
+    <file src="Microsoft.CodeAnalysis.dll" target="lib\netstandard1.3" />
+    <file src="Microsoft.CodeAnalysis.xml" target="lib\netstandard1.3" />
+    <file src="$thirdPartyNoticesPath$" target="" />
+  </files>
+</package>

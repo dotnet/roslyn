@@ -74,6 +74,9 @@
     <Reference Include="WindowsBase" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="..\..\Test\Shared\EventListenerGuard.cs">
+      <Link>EventListenerGuard.cs</Link>
+    </Compile>
     <Compile Include="InteractiveWindowEditorsFactoryService.cs" />
     <Compile Include="InteractiveWindowTestHost.cs" />
     <Compile Include="HistoryTests.cs" />

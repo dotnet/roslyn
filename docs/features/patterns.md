@@ -174,7 +174,7 @@ The scope of a pattern variable is as follows:
 - If the pattern appears in the condition of an `if` statement, its scope is the condition and controlled statement of the `if` statement, but not its `else` clause.
 - If the pattern appears in the `when` clause of a `catch`, its scope is the *catch-clause*.
 - If the pattern appears in a *switch-label*, its scope is the *switch-section*.
-- If the pattern appears in a *match-label*, its scope is the *match-section*.
+- If the pattern is the *pattern* of or in the *expression* of a *match-section*, its scope is that *match-section*.
 - If the pattern appears in the `when` clause of a *switch-label* or *match-label*, its scope of that *switch-section* or *match-section*.
 - If the pattern appears in the body of an expression-bodied lambda, its scope is that lambda's body.
 - If the pattern appears in the body of an expression-bodied method or property, its scope is that expression body.
@@ -188,6 +188,8 @@ The scope of a pattern variable is as follows:
 Other cases are errors for other reasons (e.g. in a parameter's default value or an attribute, both of which are an error because those contexts require a constant expression).
 
 The use of a pattern variables is a value, not a variable. In other words pattern variables are read-only.
+
+- [ ] **Open issue**: is this the right scope for *ctor-initializer*?
 
 ## User-defined operator is
 

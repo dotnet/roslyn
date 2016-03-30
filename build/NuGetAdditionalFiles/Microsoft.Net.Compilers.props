@@ -1,0 +1,35 @@
+<Project DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <!-- The UsingTask, UseSharedCompilation, and ToolPath/Exe variables all interact to 
+       choose which compiler path to use and whether or not to use the compiler server.
+       If UsingTask and UseSharedCompilation are set then the compiler server next to the
+       task will be used (i.e., the one in this package).
+       If UseSharedCompilation is false or ToolPath/Exe are set the compiler server will
+       not be used and the compiler exe at the ToolPath, if set, will be executed, otherwise
+       the executable in the MSBuild install path will be executed. -->
+
+  <!-- Always use the local build task, even if we just shell out to an exe in case there are
+       new properties in the local build task. -->
+  <UsingTask TaskName="Microsoft.CodeAnalysis.BuildTasks.Csc"
+             AssemblyFile="$(MSBuildThisFileDirectory)..\tools\Microsoft.Build.Tasks.CodeAnalysis.dll"
+             Condition="'$(MSBuildToolsVersion)' == '14.0'" />
+  <UsingTask TaskName="Microsoft.CodeAnalysis.BuildTasks.Vbc"
+             AssemblyFile="$(MSBuildThisFileDirectory)..\tools\Microsoft.Build.Tasks.CodeAnalysis.dll"
+             Condition="'$(MSBuildToolsVersion)' == '14.0'" />
+  <PropertyGroup>
+    <!-- By default don't use the compiler server on VS 2015 and never use it
+         otherwise (it is not yet supported on VS 2013 or below).-->
+    <UseSharedCompilation Condition="'$(UseSharedCompilation)' == ''
+                                     or '$(MSBuildToolsVersion)' != '14.0'">false</UseSharedCompilation>
+    <CSharpCoreTargetsPath>$(MSBuildThisFileDirectory)..\tools\Microsoft.CSharp.Core.targets</CSharpCoreTargetsPath>
+    <VisualBasicCoreTargetsPath>$(MSBuildThisFileDirectory)..\tools\Microsoft.VisualBasic.Core.targets</VisualBasicCoreTargetsPath>
+  </PropertyGroup>
+
+  <!-- If we're not using the compiler server, set ToolPath/Exe to direct to
+       the exes in this package -->
+  <PropertyGroup Condition="'$(UseSharedCompilation)' != 'true'">
+    <CscToolPath>$(MSBuildThisFileDirectory)..\tools</CscToolPath>
+    <CscToolExe>csc.exe</CscToolExe>
+    <VbcToolPath>$(MSBuildThisFileDirectory)..\tools</VbcToolPath>
+    <VbcToolExe>vbc.exe</VbcToolExe>
+  </PropertyGroup>
+</Project>

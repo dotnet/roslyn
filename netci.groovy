@@ -1,6 +1,9 @@
 // Groovy Script: http://www.groovy-lang.org/syntax.html
 // Jenkins DSL: https://github.com/jenkinsci/job-dsl-plugin/wiki
 
+import jobs.generation.Utilities;
+def project = GithubProject
+
 static void addLogRotator(def myJob) {
   myJob.with {
     logRotator {
@@ -137,21 +140,27 @@ static void addPushTrigger(def myJob) {
   }
 }
 
-static void addPullRequestTrigger(def myJob, String contextName, String opsysName, String triggerKeyword = 'this', Boolean triggerOnly = false) {
+// Generates the standard trigger phrases.  This is the regex which ends up matching lines like:
+//  test win32 please
+static String generateTriggerPhrase(String jobName, String opsysName, String triggerKeyword = 'this') {
+    return "(?i).*test\\W+(${jobName.replace('_', '/').substring(7)}|${opsysName}|${triggerKeyword}|${opsysName}\\W+${triggerKeyword}|${triggerKeyword}\\W+${opsysName})\\W+please.*";
+}
+
+static void addPullRequestTrigger(def myJob, String jobName, String triggerPhraseText, Boolean triggerPhraseOnly = false) {
   myJob.with {
     triggers {
       pullRequest {
         admin('Microsoft')
         useGitHubHooks(true)
-        triggerPhrase("(?i).*test\\W+(${contextName.replace('_', '/').substring(7)}|${opsysName}|${triggerKeyword}|${opsysName}\\W+${triggerKeyword}|${triggerKeyword}\\W+${opsysName})\\W+please.*")
-        onlyTriggerPhrase(triggerOnly)
+        triggerPhrase(triggerPhraseText)
+        onlyTriggerPhrase(triggerPhraseOnly)
         autoCloseFailedPullRequests(false)
         orgWhitelist('Microsoft')
         allowMembersOfWhitelistedOrgsAsAdmin(true)
         permitAll(true)
         extensions {
           commitStatus {
-            context(contextName.replace('_', '/').substring(7))
+            context(jobName.replace('_', '/').substring(7))
           }
         }
       }
@@ -159,7 +168,7 @@ static void addPullRequestTrigger(def myJob, String contextName, String opsysNam
   }
 }
 
-static void addStandardJob(def myJob, String jobName, String branchName, String buildTarget, String opsys) {
+static void addStandardJob(def myJob, String jobName, String branchName, String triggerPhrase, Boolean triggerPhraseOnly = false) {
   addLogRotator(myJob)
   addWrappers(myJob)
 
@@ -168,14 +177,7 @@ static void addStandardJob(def myJob, String jobName, String branchName, String 
   addArtifactArchiving(myJob, includePattern, excludePattern)
 
   if (branchName == 'prtest') {
-    switch (buildTarget) {
-      case 'unit32':
-        addPullRequestTrigger(myJob, jobName, opsys, "(unit|unit32|unit\\W+32)")
-        break;
-      case 'unit64':
-        addPullRequestTrigger(myJob, jobName, opsys, '(unit|unit64|unit\\W+64)')
-        break;
-    }
+    addPullRequestTrigger(myJob, jobName, triggerPhrase, triggerPhraseOnly);
     addScm(myJob, '${sha1}', '+refs/pull/*:refs/remotes/origin/pr/*')
   } else {
     addPushTrigger(myJob)
@@ -203,10 +205,22 @@ def branchNames = []
               description('')
             }
 
+            // Generate the PR trigger phrase for this job.
+            String triggerKeyword = '';
+            switch (buildTarget) {
+              case 'unit32':
+                triggerKeyword =  '(unit|unit32|unit\\W+32)';
+                break;
+              case 'unit64':
+                triggerKeyword = '(unit|unit64|unit\\W+64)';
+                break;
+            }
+            String triggerPhrase = generateTriggerPhrase(jobName, opsys, triggerKeyword);
+            Boolean triggerPhraseOnly = false;
+
             switch (opsys) {
               case 'win':
                 myJob.with {
-                  label('windows-roslyn')
                   steps {
                     batchFile("""set TEMP=%WORKSPACE%\\Binaries\\Temp
 mkdir %TEMP%
@@ -214,6 +228,7 @@ set TMP=%TEMP%
 .\\cibuild.cmd ${(configuration == 'dbg') ? '/debug' : '/release'} ${(buildTarget == 'unit32') ? '/test32' : '/test64'}""")
                   }
                 }
+                Utilities.setMachineAffinity(myJob, 'Windows_NT', 'latest-or-auto')
                 // Generic throttling for Windows, no category
                 addConcurrentBuild(myJob, null)
                 break;
@@ -234,35 +249,35 @@ set TMP=%TEMP%
                   }
                 }
                 addConcurrentBuild(myJob, 'roslyn/mac/unit')
+                triggerPhraseOnly = true;
                 break;
             }
 
             addUnitPublisher(myJob)
-            addStandardJob(myJob, jobName, branchName, buildTarget, opsys)
+            addStandardJob(myJob, jobName, branchName, triggerPhrase, triggerPhraseOnly);
           }
         }
       }
     }
   }
 
-  if (branchName != 'prtest') {
-    def determinismJobName = "roslyn_${jobBranchName}_determinism"
-    def determinismJob = job(determinismJobName) {
-      description('')
-    }
+  def determinismJobName = "roslyn_${jobBranchName}_determinism"
+  def determinismJob = job(determinismJobName) {
+    description('')
+  }
 
-    determinismJob.with {
-      label('windows-roslyn')
-      steps {
-        batchFile("""set TEMP=%WORKSPACE%\\Binaries\\Temp
+  determinismJob.with {
+    label('windows-roslyn')
+    steps {
+      batchFile("""set TEMP=%WORKSPACE%\\Binaries\\Temp
 mkdir %TEMP%
 set TMP=%TEMP%
 .\\cibuild.cmd /testDeterminism""")
-      }
     }
-
-    addConcurrentBuild(determinismJob, null)
-    addStandardJob(determinismJob, determinismJobName, branchName, "unit32", "win")
   }
+
+  Utilities.setMachineAffinity(determinismJob, 'Windows_NT', 'latest-or-auto')
+  addConcurrentBuild(determinismJob, null)
+  addStandardJob(determinismJob, determinismJobName, branchName,  "(?i).*test\\W+determinism.*", true);
 }
 

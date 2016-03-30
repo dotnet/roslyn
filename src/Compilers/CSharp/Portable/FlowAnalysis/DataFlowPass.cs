@@ -1977,10 +1977,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private void VisitCatchBlockInternal(BoundCatchBlock catchBlock, ref LocalState finallyState)
         {
-            if ((object)catchBlock.LocalOpt != null)
-            {
-                DeclareVariable(catchBlock.LocalOpt);
-            }
+            DeclareVariables(catchBlock.Locals);
 
             var exceptionSource = catchBlock.ExceptionSourceOpt;
             if (exceptionSource != null)
@@ -1990,9 +1987,9 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             base.VisitCatchBlock(catchBlock, ref finallyState);
 
-            if ((object)catchBlock.LocalOpt != null)
+            foreach (var local in catchBlock.Locals)
             {
-                ReportIfUnused(catchBlock.LocalOpt, assigned: false);
+                ReportIfUnused(local, assigned: local.DeclarationKind != LocalDeclarationKind.CatchVariable);
             }
         }
 

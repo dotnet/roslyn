@@ -17,33 +17,38 @@ using System.Net;
 // Arguments
 //
 
+// This is due to a design decision in csi that has Args non-static.
+// Non-static variables are impossible to read inide of nested classes.
+static IEnumerable<string> StaticArgs = null;
+StaticArgs = Args;
+
 /// Returns the path to log file if one exists.
 /// Returns null otherwise.
-string LogFile() {
+static string LogFile()
+{
     var key = "--log=";
-    return(from arg in Args
-    where arg.StartsWith(key)
-    select arg.Substring(key.Length)).FirstOrDefault();
+    return (from arg in StaticArgs where arg.StartsWith(key) select arg.Substring(key.Length)).FirstOrDefault();
 }
 
 /// Returns true if --verbosity is passed on the command line
-bool IsVerbose() {
-    return Args.Contains("--verbose");
+static bool IsVerbose()
+{
+    return StaticArgs.Contains("--verbose");
 }
 
 //
 // Directory Locating Functions
 //
 
-string _myWorkingFile = null;
+static string _myWorkingFile = null;
 
-void InitUtilities([CallerFilePath] string sourceFilePath = "")
+static void InitUtilities([CallerFilePath] string sourceFilePath = "")
 {
     _myWorkingFile = sourceFilePath;
 }
 
 /// Returns the directory that houses the currenly executing script.
-string MyWorkingDirectory()
+static string MyWorkingDirectory()
 {
     if (_myWorkingFile == null)
     {
@@ -54,14 +59,14 @@ string MyWorkingDirectory()
 
 /// Returns the directory that you can put artifacts like
 /// etl traces or compiled binaries
-string MyArtifactsDirectory()
+static string MyArtifactsDirectory()
 {
     var path = Path.Combine(MyWorkingDirectory(), "artifacts");
     Directory.CreateDirectory(path);
     return path;
 }
 
-string MyTempDirectory()
+static string MyTempDirectory()
 {
     var workingDir = MyWorkingDirectory();
     var path = Path.Combine(workingDir, "temp");
@@ -69,46 +74,63 @@ string MyTempDirectory()
     return path;
 }
 
-string RoslynDirectory()
+static string RoslynDirectory()
 {
     var workingDir = MyWorkingDirectory();
     var srcTestPerf = Path.Combine("src", "Test", "Perf").ToString();
     return workingDir.Substring(0, workingDir.IndexOf(srcTestPerf));
 }
 
-string BinDirectory()
+static string PerfDirectory()
+{
+    return Path.Combine(RoslynDirectory(), "src", "Test", "Perf");
+}
+
+static string BinDirectory()
 {
     return Path.Combine(RoslynDirectory(), "Binaries");
 }
 
-string BinDebugDirectory()
+static string BinDebugDirectory()
 {
     return Path.Combine(BinDirectory(), "Debug");
 }
 
-string BinReleaseDirectory()
+static string BinReleaseDirectory()
 {
     return Path.Combine(BinDirectory(), "Release");
 }
 
-string DebugCscPath()
+static string DebugCscPath()
 {
     return Path.Combine(BinDebugDirectory(), "csc.exe");
 }
 
-string ReleaseCscPath()
+static string ReleaseCscPath()
 {
     return Path.Combine(BinReleaseDirectory(), "csc.exe");
 }
 
-string DebugVbcPath()
+static string DebugVbcPath()
 {
     return Path.Combine(BinDebugDirectory(), "vbc.exe");
 }
 
-string ReleaseVbcPath()
+static string ReleaseVbcPath()
 {
     return Path.Combine(BinReleaseDirectory(), "vbc.exe");
+}
+
+static string GetCPCDirectoryPath()
+{
+    var path =  Path.Combine(PerfDirectory(), "temp", "cpc");
+    Directory.CreateDirectory(path);
+    return path;
+}
+
+static string GetViBenchToJsonExeFilePath()
+{
+    return Path.Combine(GetCPCDirectoryPath(), "ViBenchToJson.exe");
 }
 
 //
@@ -129,25 +151,28 @@ class ProcessResult
 
 /// Shells out, and if the process fails, log the error
 /// and quit the script.
-void ShellOutVital(
-        string file,
-        string args,
-        string workingDirectory = null,
-        CancellationToken? cancelationToken = null) {
-    var result = ShellOut(file, args, workingDirectory, cancelationToken);
-    if (result.Failed) {
-        LogProcessResult(result);
-        throw new System.Exception("ShellOutVital Failed");
-    }
-}
-
-ProcessResult ShellOut(
+static void ShellOutVital(
         string file,
         string args,
         string workingDirectory = null,
         CancellationToken? cancelationToken = null)
 {
-    if (workingDirectory == null) {
+    var result = ShellOut(file, args, workingDirectory, cancelationToken);
+    if (result.Failed)
+    {
+        LogProcessResult(result);
+        throw new System.Exception("ShellOutVital Failed");
+    }
+}
+
+static ProcessResult ShellOut(
+        string file,
+        string args,
+        string workingDirectory = null,
+        CancellationToken? cancelationToken = null)
+{
+    if (workingDirectory == null)
+    {
         workingDirectory = MyWorkingDirectory();
     }
 
@@ -163,31 +188,36 @@ ProcessResult ShellOut(
         EnableRaisingEvents = true,
     };
 
-    if (cancelationToken != null) {
+    if (cancelationToken != null)
+    {
         cancelationToken.Value.Register(() => process.Kill());
     }
 
-    if (IsVerbose()) {
+    if (IsVerbose())
+    {
         Log($"running \"{file}\" with arguments \"{args}\" from directory {workingDirectory}");
     }
+
     process.Start();
 
     var output = new StringWriter();
     var error = new StringWriter();
 
     process.OutputDataReceived += (s, e) => {
-        if (!String.IsNullOrEmpty(e.Data)) {
+        if (!String.IsNullOrEmpty(e.Data))
+        {
             output.WriteLine(e.Data);
         }
     };
 
     process.ErrorDataReceived += (s, e) => {
-        if (!String.IsNullOrEmpty(e.Data)) {
+        if (!String.IsNullOrEmpty(e.Data))
+        {
             error.WriteLine(e.Data);
         }
     };
 
-    process.BeginOutputReadLine(); 
+    process.BeginOutputReadLine();
     process.BeginErrorReadLine();
     process.WaitForExit();
 
@@ -200,9 +230,11 @@ ProcessResult ShellOut(
     };
 }
 
-string StdoutFrom(string program, string args = "") {
+string StdoutFrom(string program, string args = "")
+{
     var result = ShellOut(program, args);
-    if (result.Failed) {
+    if (result.Failed)
+    {
         LogProcessResult(result);
         throw new Exception("Shelling out failed");
     }
@@ -213,7 +245,7 @@ string StdoutFrom(string program, string args = "") {
 // Timing and Testing
 //
 
-long WalltimeMs(Action action)
+static long WalltimeMs(Action action)
 {
     var stopwatch = new Stopwatch();
     stopwatch.Start();
@@ -221,7 +253,7 @@ long WalltimeMs(Action action)
     return stopwatch.ElapsedMilliseconds;
 }
 
-long WalltimeMs<R>(Func<R> action)
+static long WalltimeMs<R>(Func<R> action)
 {
     var stopwatch = new Stopwatch();
     stopwatch.Start();
@@ -239,24 +271,26 @@ enum ReportKind: int {
     FileSize,
 }
 
-/// A list of 
-var Metrics = new List<Tuple<int, string, object>>();
+/// A list of
+static var Metrics = new List<Tuple<int, string, object>>();
 
 /// Logs a message.
 ///
 /// The actual implementation of this method may change depending on
 /// if the script is being run standalone or through the test runner.
-void Log(string info)
+static void Log(string info)
 {
     System.Console.WriteLine(info);
     var log = LogFile();
-    if (log != null) {
+    if (log != null)
+    {
         File.AppendAllText(log, info + System.Environment.NewLine);
     }
 }
 
 /// Logs the result of a finished process
-void LogProcessResult(ProcessResult result) {
+static void LogProcessResult(ProcessResult result)
+{
     Log(String.Format("The process \"{0}\" {1} with code {2}",
         $"{result.ExecutablePath} {result.Args}",
         result.Failed ? "failed" : "succeeded",
@@ -266,7 +300,7 @@ void LogProcessResult(ProcessResult result) {
 }
 
 /// Reports a metric to be recorded in the performance monitor.
-void Report(ReportKind reportKind, string description, object value)
+static void Report(ReportKind reportKind, string description, object value)
 {
     Metrics.Add(Tuple.Create((int) reportKind, description, value));
     Log(description + ": " + value.ToString());
@@ -277,7 +311,8 @@ void Report(ReportKind reportKind, string description, object value)
 ///
 /// If this current version has already been downloaded
 /// and extracted, do nothing.
-void DownloadProject(string name, int version) {
+static void DownloadProject(string name, int version)
+{
     var zipFileName = $"{name}.{version}.zip";
     var zipPath = Path.Combine(MyTempDirectory(), zipFileName);
     // If we've already downloaded the zip, assume that it
@@ -289,7 +324,8 @@ void DownloadProject(string name, int version) {
     }
 
     // Remove all .zip files that were downloaded before.
-    foreach (var path in Directory.EnumerateFiles(MyTempDirectory(), $"{name}.*.zip")) {
+    foreach (var path in Directory.EnumerateFiles(MyTempDirectory(), $"{name}.*.zip"))
+    {
         Log($"Removing old zip {path}");
         File.Delete(path);
     }

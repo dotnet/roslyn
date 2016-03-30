@@ -21,20 +21,20 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         override protected ImmutableArray<LocalSymbol> BuildLocals()
         {
-            SourceLocalSymbol local = null;
+            var locals = ArrayBuilder<LocalSymbol>.GetInstance();
 
             var declarationOpt = _syntax.Declaration;
             if ((declarationOpt != null) && (declarationOpt.Identifier.Kind() != SyntaxKind.None))
             {
-                local = SourceLocalSymbol.MakeLocal(this.ContainingMemberOrLambda, this, RefKind.None, declarationOpt.Type, declarationOpt.Identifier, LocalDeclarationKind.CatchVariable);
+                locals.Add(SourceLocalSymbol.MakeLocal(this.ContainingMemberOrLambda, this, RefKind.None, declarationOpt.Type, declarationOpt.Identifier, LocalDeclarationKind.CatchVariable));
             }
 
-            if ((object)local != null)
+            if (_syntax.Filter != null)
             {
-                return ImmutableArray.Create<LocalSymbol>(local);
+                BuildAndAddPatternVariables(locals, _syntax.Filter.FilterExpression);
             }
 
-            return ImmutableArray<LocalSymbol>.Empty;
+            return locals.ToImmutableAndFree();
         }
 
         internal override ImmutableArray<LocalSymbol> GetDeclaredLocalsForScope(CSharpSyntaxNode node)
