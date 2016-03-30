@@ -2863,6 +2863,40 @@ public class Program
         }
 
         [Fact]
+        public void WhitespaceInXmlEndName()
+        {
+            var text = @"
+/// <A:B>
+///   good
+/// </A:B>
+/// <A:B>
+///   bad
+/// </A :B>
+/// <A:B>
+///   bad
+/// </A: B>
+public class Program
+{
+}";
+
+            var tree = Parse(text);
+            tree.GetDiagnostics().Verify(
+                // (7,7): warning CS1570: XML comment has badly formed XML -- 'End tag 'A :B' does not match the start tag 'A:B'.'
+                // /// </A :B>
+                Diagnostic(ErrorCode.WRN_XMLParseError, "A :B").WithArguments("A :B", "A:B").WithLocation(7, 7),
+                // (7,8): warning CS1570: XML comment has badly formed XML -- 'Whitespace is not allowed at this location.'
+                // /// </A :B>
+                Diagnostic(ErrorCode.WRN_XMLParseError, " ").WithLocation(7, 8),
+                // (10,7): warning CS1570: XML comment has badly formed XML -- 'End tag 'A: B' does not match the start tag 'A:B'.'
+                // /// </A: B>
+                Diagnostic(ErrorCode.WRN_XMLParseError, "A: B").WithArguments("A: B", "A:B").WithLocation(10, 7),
+                // (10,9): warning CS1570: XML comment has badly formed XML -- 'Whitespace is not allowed at this location.'
+                // /// </A: B>
+                Diagnostic(ErrorCode.WRN_XMLParseError, " ").WithLocation(10, 9)
+                );
+        }
+
+        [Fact]
         [Trait("Feature", "Xml Documentation Comments")]
         public void TestDocumentationComment()
         {

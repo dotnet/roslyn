@@ -63,7 +63,9 @@
     <Reference Include="Microsoft.VisualStudio.Language.StandardClassification, Version=$(VisualStudioReferenceAssemblyVersion), Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a">
       <Private>false</Private>
     </Reference>
-    <Reference Include="Microsoft.VisualStudio.Platform.VSEditor, Version=$(VisualStudioReferenceAssemblyVersion), Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a" />
+    <Reference Include="Microsoft.VisualStudio.Platform.VSEditor, Version=$(VisualStudioReferenceAssemblyVersion), Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a">
+      <HintPath>$(DevEnvDir)\CommonExtensions\Microsoft\Editor\Microsoft.VisualStudio.Platform.VSEditor.dll</HintPath>
+    </Reference>
     <Reference Include="Microsoft.VisualStudio.Platform.VSEditor.Interop.dll">
       <HintPath>$(DevEnvDir)\PrivateAssemblies\Microsoft.VisualStudio.Platform.VSEditor.Interop.dll</HintPath>
     </Reference>

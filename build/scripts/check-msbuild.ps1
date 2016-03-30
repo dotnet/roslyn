@@ -9,17 +9,31 @@ try
     $exitCode = 0
     $pattern = "\bwarning\b\s+\bMSB(\d+):(.*)"
     $ignoreCase = [System.Text.RegularExpressions.RegexOptions]::IgnoreCase
-    foreach ($line in gc $logFile) {
+    $reader = new-object "System.IO.StreamReader" -argumentList $logFile
+    while ($true) {
+        $line = $reader.ReadLine()
+        if ($line -eq $null) {
+            break;
+        }
+
+        if (-not $line.Contains("warning")) {
+            continue;
+        }
+
         $m = [regex]::Match($line, $pattern, $ignoreCase)
         if ($m.Success) {
             $num = $m.Groups[1].Value
             $text = $m.Groups[2].Value
             $location = $line.Substring(0, $m.Index)
 
-            # MSBuild race condition.  Doesn't break build so don't promote to error for now
+            # MSBuild race conditions.  Doesn't break build so don't promote to error for now
             #
             # https://github.com/dotnet/roslyn/issues/10116
-            if ($num -eq 3491 -and [regex]::Match($text, "Could not write lines to file.*Portable", $ignoreCase)) {
+            if ($num -eq 3491 -and [regex]::Match($text, ".*Could not write lines to file.*Portable", $ignoreCase)) {
+                continue
+            }
+
+            if ($num -eq 3026) {
                 continue
             }
 
@@ -30,6 +44,7 @@ try
         }
     }
 
+    $reader.Close()
     exit $exitCode
 }
 catch

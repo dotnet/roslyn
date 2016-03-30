@@ -56,10 +56,12 @@
     </Reference>
     <Reference Include="Microsoft.VisualStudio.ImageCatalog, Version=$(VisualStudioReferenceAssemblyVersion), Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a" />
     <Reference Include="Microsoft.VisualStudio.Imaging, Version=$(VisualStudioReferenceAssemblyVersion), Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a" />
-    <Reference Include="Microsoft.VisualStudio.Imaging.Interop.14.0.DesignTime, Version=$(VisualStudioReferenceAssemblyVersion), Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a">
+    <Reference Include="Microsoft.VisualStudio.Imaging.Interop.14.0.DesignTime, Version=14.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a">
       <EmbedInteropTypes>true</EmbedInteropTypes>
     </Reference>
-    <Reference Include="Microsoft.VisualStudio.Language.CallHierarchy, Version=$(VisualStudioReferenceAssemblyVersion), Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a" />
+    <Reference Include="Microsoft.VisualStudio.Language.CallHierarchy, Version=$(VisualStudioReferenceAssemblyVersion), Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a">
+      <HintPath>$(DevEnvDir)\PrivateAssemblies\Microsoft.VisualStudio.Language.CallHierarchy.dll</HintPath>
+    </Reference>
     <Reference Include="Microsoft.VisualStudio.Language.Intellisense, Version=$(VisualStudioReferenceAssemblyVersion), Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a">
       <Private>false</Private>
     </Reference>
@@ -67,7 +69,6 @@
     <Reference Include="Microsoft.VisualStudio.Language.StandardClassification, Version=$(VisualStudioReferenceAssemblyVersion), Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a">
       <Private>false</Private>
     </Reference>
-    <Reference Include="Microsoft.VisualStudio.Platform.VSEditor, Version=$(VisualStudioReferenceAssemblyVersion), Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a" />
     <Reference Include="Microsoft.VisualStudio.Text.Data, Version=$(VisualStudioReferenceAssemblyVersion), Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a">
       <Private>false</Private>
     </Reference>
@@ -293,6 +294,7 @@
     <Compile Include="Implementation\GoToDefinition\INavigableDefinitionProvider.cs" />
     <Compile Include="Implementation\GoToImplementation\AbstractGoToImplementationService.cs" />
     <Compile Include="Implementation\GoToImplementation\IGoToImplementationService.cs" />
+    <Compile Include="Implementation\Intellisense\Completion\BraceCompletionMetadata.cs" />
     <Compile Include="Implementation\Intellisense\Completion\OptionSetExtensions.cs" />
     <Compile Include="Implementation\Interactive\IAbstractResetInteractiveCommand.cs" />
     <Compile Include="Implementation\NavigateTo\NavigateToSearchResultProvider.cs" />

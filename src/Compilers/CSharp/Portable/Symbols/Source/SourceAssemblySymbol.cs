@@ -2508,7 +2508,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
                 if (wellKnownAttributeData != null && wellKnownAttributeData.ForwardedTypes != null)
                 {
-                    forwardedTypesFromSource = new Dictionary<string, NamedTypeSymbol>();
+                    forwardedTypesFromSource = new Dictionary<string, NamedTypeSymbol>(StringOrdinalComparer.Instance);
 
                     foreach (NamedTypeSymbol forwardedType in wellKnownAttributeData.ForwardedTypes)
                     {
