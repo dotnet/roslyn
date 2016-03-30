@@ -50,7 +50,7 @@ class MyAnalyzer : DiagnosticAnalyzer
     {
     }
 }";
-            var expected = new[]
+            DiagnosticResult[] expected = new[]
             {
                 GetCSharpExpectedDiagnostic(21, 48, parameterName: "compilationContext", isCompilationStartAction: true),
                 GetCSharpExpectedDiagnostic(33, 47, parameterName: "codeBlockContext", isCompilationStartAction: false)
@@ -95,7 +95,7 @@ Class MyAnalyzer
     End Sub
 End Class
 ";
-            var expected = new[]
+            DiagnosticResult[] expected = new[]
             {
                 GetBasicExpectedDiagnostic(19, 17, parameterName: "compilationContext", isCompilationStartAction: true),
                 GetBasicExpectedDiagnostic(30, 46, parameterName: "codeBlockContext", isCompilationStartAction: false)
@@ -309,10 +309,10 @@ End Class
 
         private static DiagnosticResult GetExpectedDiagnostic(string language, int line, int column, string parameterName, bool isCompilationStartAction)
         {
-            var arg2 = isCompilationStartAction ? "Initialize" : "Initialize, CompilationStartAction";
-            var message = string.Format(CodeAnalysisDiagnosticsResources.StartActionWithNoRegisteredActionsMessage, parameterName, arg2);
+            string arg2 = isCompilationStartAction ? "Initialize" : "Initialize, CompilationStartAction";
+            string message = string.Format(CodeAnalysisDiagnosticsResources.StartActionWithNoRegisteredActionsMessage, parameterName, arg2);
 
-            var fileName = language == LanguageNames.CSharp ? "Test0.cs" : "Test0.vb";
+            string fileName = language == LanguageNames.CSharp ? "Test0.cs" : "Test0.vb";
             return new DiagnosticResult
             {
                 Id = DiagnosticIds.StartActionWithNoRegisteredActionsRuleId,

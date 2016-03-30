@@ -21,11 +21,11 @@ namespace Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers
 
             internal IEnumerable<TClassDeclarationSyntax> GetClassDeclarationNodes(INamedTypeSymbol namedType, CancellationToken cancellationToken)
             {
-                foreach (var syntax in namedType.DeclaringSyntaxReferences.Select(s => s.GetSyntax(cancellationToken)))
+                foreach (SyntaxNode syntax in namedType.DeclaringSyntaxReferences.Select(s => s.GetSyntax(cancellationToken)))
                 {
                     if (syntax != null)
                     {
-                        var classDecl = syntax.FirstAncestorOrSelf<TClassDeclarationSyntax>(ascendOutOfTrivia: false);
+                        TClassDeclarationSyntax classDecl = syntax.FirstAncestorOrSelf<TClassDeclarationSyntax>(ascendOutOfTrivia: false);
                         if (classDecl != null)
                         {
                             yield return classDecl;
@@ -37,14 +37,14 @@ namespace Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers
             protected override void AnalyzeDiagnosticAnalyzer(SymbolAnalysisContext symbolContext)
             {
                 var namedType = (INamedTypeSymbol)symbolContext.Symbol;
-                var classDecls = GetClassDeclarationNodes(namedType, symbolContext.CancellationToken);
-                foreach (var classDecl in classDecls)
+                IEnumerable<TClassDeclarationSyntax> classDecls = GetClassDeclarationNodes(namedType, symbolContext.CancellationToken);
+                foreach (TClassDeclarationSyntax classDecl in classDecls)
                 {
-                    var syntaxNodes = classDecl.DescendantNodes(n => !(n is TClassDeclarationSyntax) || ReferenceEquals(n, classDecl)).OfType<TSyntaxNodeOfInterest>();
+                    IEnumerable<TSyntaxNodeOfInterest> syntaxNodes = classDecl.DescendantNodes(n => !(n is TClassDeclarationSyntax) || ReferenceEquals(n, classDecl)).OfType<TSyntaxNodeOfInterest>();
                     if (syntaxNodes.Any())
                     {
-                        var semanticModel = symbolContext.Compilation.GetSemanticModel(classDecl.SyntaxTree);
-                        foreach (var syntaxNode in syntaxNodes)
+                        SemanticModel semanticModel = symbolContext.Compilation.GetSemanticModel(classDecl.SyntaxTree);
+                        foreach (TSyntaxNodeOfInterest syntaxNode in syntaxNodes)
                         {
                             AnalyzeNode(symbolContext, syntaxNode, semanticModel);
                         }

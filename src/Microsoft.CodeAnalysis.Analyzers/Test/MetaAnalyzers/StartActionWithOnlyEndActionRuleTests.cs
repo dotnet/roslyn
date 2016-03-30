@@ -52,7 +52,7 @@ class MyAnalyzer : DiagnosticAnalyzer
         codeBlockContext.RegisterCodeBlockEndAction(null);
     }
 }";
-            var expected = new[]
+            DiagnosticResult[] expected = new[]
             {
                 GetCSharpExpectedDiagnostic(21, 48, parameterName: "compilationContext", isCompilationStartAction: true),
                 GetCSharpExpectedDiagnostic(34, 47, parameterName: "codeBlockContext", isCompilationStartAction: false)
@@ -99,7 +99,7 @@ Class MyAnalyzer
     End Sub
 End Class
 ";
-            var expected = new[]
+            DiagnosticResult[] expected = new[]
             {
                 GetBasicExpectedDiagnostic(19, 17, parameterName: "compilationContext", isCompilationStartAction: true),
                 GetBasicExpectedDiagnostic(31, 46, parameterName: "codeBlockContext", isCompilationStartAction: false)
@@ -323,12 +323,12 @@ End Class
 
         private static DiagnosticResult GetExpectedDiagnostic(string language, int line, int column, string parameterName, bool isCompilationStartAction)
         {
-            var endActionName = isCompilationStartAction ? "CompilationEndAction" : "CodeBlockEndAction";
-            var statelessActionName = isCompilationStartAction ? "RegisterCompilationAction" : "RegisterCodeBlockAction";
-            var arg4 = isCompilationStartAction ? "Initialize" : "Initialize, CompilationStartAction";
-            var message = string.Format(CodeAnalysisDiagnosticsResources.StartActionWithOnlyEndActionMessage, parameterName, endActionName, statelessActionName, arg4);
+            string endActionName = isCompilationStartAction ? "CompilationEndAction" : "CodeBlockEndAction";
+            string statelessActionName = isCompilationStartAction ? "RegisterCompilationAction" : "RegisterCodeBlockAction";
+            string arg4 = isCompilationStartAction ? "Initialize" : "Initialize, CompilationStartAction";
+            string message = string.Format(CodeAnalysisDiagnosticsResources.StartActionWithOnlyEndActionMessage, parameterName, endActionName, statelessActionName, arg4);
 
-            var fileName = language == LanguageNames.CSharp ? "Test0.cs" : "Test0.vb";
+            string fileName = language == LanguageNames.CSharp ? "Test0.cs" : "Test0.vb";
             return new DiagnosticResult
             {
                 Id = DiagnosticIds.StartActionWithOnlyEndActionRuleId,

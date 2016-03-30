@@ -1,6 +1,5 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System;
 using System.Linq;
 using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.Analyzers;
@@ -42,22 +41,22 @@ namespace Microsoft.CodeAnalysis.CSharp.Analyzers
         private static readonly string s_With = "With";
 
         private static readonly ImmutableArray<string> s_immutableMethodNames = ImmutableArray.Create(
-            s_Add, 
-            s_Remove, 
-            s_Replace, 
+            s_Add,
+            s_Remove,
+            s_Replace,
             s_With);
 
         public override void Initialize(AnalysisContext context)
         {
             context.RegisterCompilationStartAction(compilationContext =>
             {
-                var solutionSymbol = compilationContext.Compilation.GetTypeByMetadataName(s_solutionFullName);
-                var projectSymbol = compilationContext.Compilation.GetTypeByMetadataName(s_projectFullName);
-                var documentSymbol = compilationContext.Compilation.GetTypeByMetadataName(s_documentFullName);
-                var syntaxNodeSymbol = compilationContext.Compilation.GetTypeByMetadataName(s_syntaxNodeFullName);
-                var compilationSymbol = compilationContext.Compilation.GetTypeByMetadataName(s_compilationFullName);
+                INamedTypeSymbol solutionSymbol = compilationContext.Compilation.GetTypeByMetadataName(s_solutionFullName);
+                INamedTypeSymbol projectSymbol = compilationContext.Compilation.GetTypeByMetadataName(s_projectFullName);
+                INamedTypeSymbol documentSymbol = compilationContext.Compilation.GetTypeByMetadataName(s_documentFullName);
+                INamedTypeSymbol syntaxNodeSymbol = compilationContext.Compilation.GetTypeByMetadataName(s_syntaxNodeFullName);
+                INamedTypeSymbol compilationSymbol = compilationContext.Compilation.GetTypeByMetadataName(s_compilationFullName);
 
-                var immutableSymbols = ImmutableArray.Create(solutionSymbol, projectSymbol, documentSymbol, syntaxNodeSymbol, compilationSymbol);
+                ImmutableArray<INamedTypeSymbol> immutableSymbols = ImmutableArray.Create(solutionSymbol, projectSymbol, documentSymbol, syntaxNodeSymbol, compilationSymbol);
                 //Only register our node action if we can find the symbols for our immutable types
                 if (immutableSymbols.Any(n => n == null))
                 {
@@ -69,7 +68,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Analyzers
 
         public void AnalyzeInvocationForIgnoredReturnValue(SyntaxNodeAnalysisContext context, ImmutableArray<INamedTypeSymbol> immutableTypeSymbols)
         {
-            var model = context.SemanticModel;
+            SemanticModel model = context.SemanticModel;
             var candidateInvocation = (InvocationExpressionSyntax)context.Node;
 
             //We're looking for invocations that are direct children of expression statements
@@ -94,12 +93,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Analyzers
 
             //If we're not in one of the known immutable types, quit
             var parentType = methodSymbol.ReceiverType as INamedTypeSymbol;
-            if(parentType == null)
+            if (parentType == null)
             {
                 return;
             }
-            
-            var baseTypesAndSelf = methodSymbol.ReceiverType.GetBaseTypes().ToList();
+
+            System.Collections.Generic.List<INamedTypeSymbol> baseTypesAndSelf = methodSymbol.ReceiverType.GetBaseTypes().ToList();
             baseTypesAndSelf.Add(parentType);
 
             if (!baseTypesAndSelf.Any(n => immutableTypeSymbols.Contains(n)))
@@ -107,8 +106,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Analyzers
                 return;
             }
 
-            var location = candidateInvocation.GetLocation();
-            var diagnostic = Diagnostic.Create(DoNotIgnoreReturnValueDiagnosticRule, location, methodSymbol.ReceiverType.Name, methodSymbol.Name);
+            Location location = candidateInvocation.GetLocation();
+            Diagnostic diagnostic = Diagnostic.Create(DoNotIgnoreReturnValueDiagnosticRule, location, methodSymbol.ReceiverType.Name, methodSymbol.Name);
             context.ReportDiagnostic(diagnostic);
         }
     }
