@@ -8,19 +8,24 @@ using Xunit;
 namespace Roslyn.VisualStudio.Integration.UnitTests
 {
     [Collection(nameof(SharedIntegrationHostFixture))]
-    public class CSharpInteractiveDemo
+    public class CSharpInteractiveDemo : IDisposable
     {
-        private readonly IntegrationHost _host;
+        private readonly VisualStudioInstanceContext _visualStudio;
         private readonly InteractiveWindow _interactiveWindow;
 
-        public CSharpInteractiveDemo(SharedIntegrationHost sharedHost)
+        public CSharpInteractiveDemo(VisualStudioInstanceFactory instanceFactory)
         {
-            _host = sharedHost.GetHost();
+            _visualStudio = instanceFactory.GetNewOrUsedInstance();
 
-            _interactiveWindow = _host.CSharpInteractiveWindow;
+            _interactiveWindow = _visualStudio.Instance.CSharpInteractiveWindow;
 
             _interactiveWindow.ShowAsync().GetAwaiter().GetResult();
             _interactiveWindow.ResetAsync().GetAwaiter().GetResult();
+        }
+
+        public void Dispose()
+        {
+            _visualStudio.Dispose();
         }
 
         [Fact]
@@ -68,12 +73,12 @@ Fac(4)").ConfigureAwait(continueOnCapturedContext: false);
             await _interactiveWindow.SubmitTextToReplAsync(@"#r ""WindowsBase""
 #r ""PresentationCore""
 #r ""PresentationFramework""
-#r ""System.Xaml""").ConfigureAwait(continueOnCapturedContext: false);
+#r ""System.Xaml""");
 
             await _interactiveWindow.SubmitTextToReplAsync(@"using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Media;
-using System.Windows.Media.Imaging;").ConfigureAwait(continueOnCapturedContext: false);
+using System.Windows.Media.Imaging;");
 
             await _interactiveWindow.SubmitTextToReplAsync(@"var w = new Window();
 w.Title = ""Hello World"";
@@ -82,7 +87,7 @@ w.FontSize = 24;
 w.Height = 300;
 w.Width = 300;
 w.Topmost = true;
-w.Visibility = Visibility.Visible;").ConfigureAwait(continueOnCapturedContext: false);
+w.Visibility = Visibility.Visible;");
 
             var testValue = Guid.NewGuid();
 
@@ -93,14 +98,14 @@ b.Click += (sender, e) => Console.WriteLine(""Hello, World!"");
 
 var g = new Grid();
 g.Children.Add(b);
-w.Content = g;").ConfigureAwait(continueOnCapturedContext: false);
+w.Content = g;");
 
-            await _host.ClickAutomationElementAsync(testValue.ToString(), recursive: true).ConfigureAwait(continueOnCapturedContext: false);
-            await _interactiveWindow.WaitForReplPromptAsync().ConfigureAwait(continueOnCapturedContext: false);
+            await _visualStudio.Instance.ClickAutomationElementAsync(testValue.ToString(), recursive: true);
+            await _interactiveWindow.WaitForReplPromptAsync();
 
             Assert.Equal("Hello, World!", _interactiveWindow.LastReplOutput);
 
-            await _interactiveWindow.SubmitTextToReplAsync("b = null; w.Close(); w = null;").ConfigureAwait(continueOnCapturedContext: false);
+            await _interactiveWindow.SubmitTextToReplAsync("b = null; w.Close(); w = null;");
         }
     }
 }

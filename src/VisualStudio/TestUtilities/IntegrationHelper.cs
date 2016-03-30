@@ -115,14 +115,14 @@ namespace Roslyn.VisualStudio.Test.Utilities
         }
 
         /// <summary>Locates the DTE object for the specified process.</summary>
-        public static DTE LocateDteForProcess(Process process)
+        public static DTE TryLocateDteForProcess(Process process)
         {
             object dte = null;
             IRunningObjectTable runningObjectTable = null;
             IEnumMoniker enumMoniker = null;
             IBindCtx bindContext = null;
             var monikers = new IMoniker[1];
-            var vsProgId = IntegrationHost.VsProgId;
+            var vsProgId = VisualStudioInstanceFactory.VsProgId;
 
             Ole32.GetRunningObjectTable(0, out runningObjectTable);
             runningObjectTable.EnumRunning(out enumMoniker);
@@ -135,9 +135,14 @@ namespace Roslyn.VisualStudio.Test.Utilities
                 var monikersFetched = 0u;
                 var hresult = enumMoniker.Next(1, monikers, out monikersFetched);
 
-                if (hresult < VSConstants.S_OK)
+                if (hresult == VSConstants.S_FALSE)
                 {
-                    throw Marshal.GetExceptionForHR(hresult);
+                    // There's nothing further to enumerate, so fail
+                    return null;
+                }
+                else
+                {
+                    Marshal.ThrowExceptionForHR(hresult);
                 }
 
                 var moniker = monikers[0];
@@ -201,6 +206,29 @@ namespace Roslyn.VisualStudio.Test.Utilities
             {
                 await Task.Yield();
             }
+        }
+
+        public static void RetryDteCall(Action action)
+        {
+            while (true)
+            {
+                try
+                {
+                    action();
+                    return;
+                }
+                catch (COMException exception) when (exception.HResult == VSConstants.RPC_E_CALL_REJECTED)
+                {
+                    // We'll just try again in this case
+                }
+            }
+        }
+
+        public static T RetryDteCall<T>(Func<T> action)
+        {
+            T returnValue = default(T);
+            RetryDteCall(() => { returnValue = action(); });
+            return returnValue;
         }
 
         public static async Task<T> WaitForNotNullAsync<T>(Func<T> action) where T : class

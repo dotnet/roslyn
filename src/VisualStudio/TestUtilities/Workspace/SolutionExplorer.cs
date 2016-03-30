@@ -8,13 +8,13 @@ namespace Roslyn.VisualStudio.Test.Utilities
     /// <summary>Provides a means of interacting with the Solution Explorer in the Visual Studio host.</summary>
     public class SolutionExplorer
     {
-        private readonly IntegrationHost _host;
+        private readonly VisualStudioInstance _visualStudio;
         private Solution _solution;
         // TODO: Integrate with the SolutionExplorer service
 
-        internal SolutionExplorer(IntegrationHost host)
+        internal SolutionExplorer(VisualStudioInstance visualStudio)
         {
-            _host = host;
+            _visualStudio = visualStudio;
         }
 
         /// <summary>Gets the solution currently loaded in the host process or <c>null</c> if no solution is currently loaded.</summary>
@@ -24,7 +24,7 @@ namespace Roslyn.VisualStudio.Test.Utilities
         /// <summary>Creates and loads a new solution in the host process, closing the existing solution without saving if one exists.</summary>
         public Solution CreateSolution(string solutionName)
         {
-            var dteSolution = _host.Dte.Solution;
+            var dteSolution = _visualStudio.Dte.Solution;
 
             if (dteSolution.IsOpen)
             {
@@ -40,7 +40,7 @@ namespace Roslyn.VisualStudio.Test.Utilities
 
         public void CloseSolution(bool saveFirst = false)
         {
-            _host.Dte.Solution.Close(saveFirst);
+            _visualStudio.Dte.Solution.Close(saveFirst);
         }
     }
 }

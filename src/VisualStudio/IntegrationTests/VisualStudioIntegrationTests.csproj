@@ -12,13 +12,11 @@
     <Nonshipping>true</Nonshipping>
   </PropertyGroup>
   <ItemGroup>
-    <None Include="App.config" />
     <None Include="project.json" />
   </ItemGroup>
   <ItemGroup>
     <Compile Include="CSharp\CSharpBuild.cs" />
     <Compile Include="CSharp\CSharpInteractiveDemo.cs" />
-    <Compile Include="SharedIntegrationHost.cs" />
     <Compile Include="SharedIntegrationHostFixture.cs" />
     <Compile Include="VisualBasic\BasicBuild.cs" />
   </ItemGroup>
@@ -38,4 +36,5 @@
     <Folder Include="Properties\" />
   </ItemGroup>
   <Import Project="..\..\..\build\Targets\VSL.Imports.targets" />
+  <Import Project="..\..\..\build\Targets\Roslyn.Toolsets.Xunit.targets" />
 </Project>
