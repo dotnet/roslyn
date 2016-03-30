@@ -603,7 +603,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
             }
         }
 
-        internal sealed override Cci.INamedTypeReference GetSpecialType(SpecialType specialType, CSharpSyntaxNode syntaxNodeOpt, DiagnosticBag diagnostics)
+        private NamedTypeSymbol GetUntranslatedSpecialType(SpecialType specialType, CSharpSyntaxNode syntaxNodeOpt, DiagnosticBag diagnostics)
         {
             Debug.Assert(diagnostics != null);
 
@@ -617,7 +617,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
                                                syntaxNodeOpt != null ? syntaxNodeOpt.Location : NoLocation.Singleton);
             }
 
-            return Translate(typeSymbol,
+            return typeSymbol;
+        }
+
+        internal sealed override Cci.INamedTypeReference GetSpecialType(SpecialType specialType, CSharpSyntaxNode syntaxNodeOpt, DiagnosticBag diagnostics)
+        {
+            return Translate(GetUntranslatedSpecialType(specialType, syntaxNodeOpt, diagnostics),
                              diagnostics: diagnostics,
                              syntaxNodeOpt: syntaxNodeOpt,
                              needDeclaration: true);
@@ -1306,6 +1311,22 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
             var found = _fixedImplementationTypes.TryGetValue(field, out result);
             Debug.Assert(found);
             return result;
+        }
+
+        internal Cci.IFieldReference GetModuleVersionId(Cci.ITypeReference mvidType, CSharpSyntaxNode syntaxOpt, DiagnosticBag diagnostics)
+        {
+            PrivateImplementationDetails details = GetPrivateImplClass(syntaxOpt, diagnostics);
+            EnsurePrivateImplementationDetailsStaticConstructor(details, syntaxOpt, diagnostics);
+
+            return details.GetModuleVersionId(mvidType);
+        }
+        
+        private void EnsurePrivateImplementationDetailsStaticConstructor(PrivateImplementationDetails details, CSharpSyntaxNode syntaxOpt, DiagnosticBag diagnostics)
+        {
+            if (details.GetMethod(WellKnownMemberNames.StaticConstructorName) == null)
+            {
+                details.TryAddSynthesizedMethod(new SynthesizedPrivateImplementationDetailsStaticConstructor(SourceModule, details, GetUntranslatedSpecialType(SpecialType.System_Void, syntaxOpt, diagnostics)));
+            }  
         }
 
         #region Test Hooks

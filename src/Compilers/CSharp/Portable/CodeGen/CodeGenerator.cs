@@ -306,9 +306,14 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
             _indirectReturnState = IndirectReturnState.Emitted;
         }
 
+        private void EmitTypeReferenceToken(Cci.ITypeReference symbol, CSharpSyntaxNode syntaxNode)
+        {
+            _builder.EmitToken(symbol, syntaxNode, _diagnostics);
+        }
+
         private void EmitSymbolToken(TypeSymbol symbol, CSharpSyntaxNode syntaxNode)
         {
-            _builder.EmitToken(_module.Translate(symbol, syntaxNode, _diagnostics), syntaxNode, _diagnostics);
+            EmitTypeReferenceToken(_module.Translate(symbol, syntaxNode, _diagnostics), syntaxNode);
         }
 
         private void EmitSymbolToken(MethodSymbol method, CSharpSyntaxNode syntaxNode, BoundArgListOperator optArgList, bool encodeAsRawToken = false)

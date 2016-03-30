@@ -52,6 +52,7 @@ namespace Microsoft.CodeAnalysis
         System_Type__GetTypeFromCLSID,
         System_Type__GetTypeFromHandle,
         System_Type__Missing,
+        System_Type__Module,
 
         System_Reflection_AssemblyKeyFileAttribute__ctor,
         System_Reflection_AssemblyKeyNameAttribute__ctor,
@@ -65,6 +66,8 @@ namespace Microsoft.CodeAnalysis
         System_Reflection_FieldInfo__GetFieldFromHandle2,
 
         System_Reflection_Missing__Value,
+
+        System_Reflection_Module__ModuleVersionId,
 
         System_IEquatable_T__Equals,
 

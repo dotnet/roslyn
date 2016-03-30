@@ -943,13 +943,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             { WasCompilerGenerated = true };
         }
 
-        public BoundExpression TypeofBeforeRewriting(TypeSymbol type)
+        public BoundExpression TypeOfPrivateImplementationDetails()
         {
-            return new BoundTypeOfOperator(
+            return new BoundTypeOfPrivateImplementationDetails(
                 Syntax,
-                Type(type),
-                // For some reason the rewriting logic asserts that the GetTypeFromHandle property is null.
-                null,
+                WellKnownMethod(CodeAnalysis.WellKnownMember.System_Type__GetTypeFromHandle),
                 WellKnownType(CodeAnalysis.WellKnownType.System_Type))
             { WasCompilerGenerated = true };
         }
@@ -986,6 +984,15 @@ namespace Microsoft.CodeAnalysis.CSharp
                 method,
                 SpecialType(Microsoft.CodeAnalysis.SpecialType.System_Int32))
             { WasCompilerGenerated = true };
+        }
+
+        /// <summary>
+        /// Synthesizes an expression that evaluates to the current module's MVID.
+        /// </summary>
+        /// <returns></returns>
+        public BoundExpression ModuleVersionId()
+        {
+            return new BoundModuleVersionId(Syntax, WellKnownType(Microsoft.CodeAnalysis.WellKnownType.System_Guid)) { WasCompilerGenerated = true };
         }
 
         public BoundExpression MethodInfo(MethodSymbol method)
