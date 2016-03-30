@@ -140,7 +140,6 @@ public class C
                     manifestResources: null,
                     options: null,
                     debugEntryPoint: null,
-                    getHostDiagnostics: null,
                     testData: new CompilationTestData() { SymWriterFactory = () => new MockSymUnmanagedWriter() });
 
                 result.Diagnostics.Verify(

@@ -81,6 +81,7 @@
     </Compile>
     <Compile Include="ErrorLoggerTests.cs" />
     <Compile Include="MiscTests.cs" />
+    <Compile Include="SourceGeneratorTests.cs" />
     <Compile Include="TouchedFileLoggingTests.cs" />
   </ItemGroup>
   <ItemGroup>

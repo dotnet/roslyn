@@ -1,12 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System;
-using System.Collections.Generic;
 using System.Diagnostics;
-using System.Linq;
-using Microsoft.CodeAnalysis.CSharp.Symbols;
-using Microsoft.CodeAnalysis.CSharp.Syntax;
-using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.Symbols
@@ -66,6 +60,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 diagnostics.Add(ErrorCode.ERR_PartialMethodInvalidModifier, errorLocation);
             }
+            if ((result & (DeclarationModifiers.Partial | DeclarationModifiers.Replace)) == (DeclarationModifiers.Partial | DeclarationModifiers.Replace))
+            {
+                diagnostics.Add(ErrorCode.ERR_PartialReplace, errorLocation);
+            }
             return result;
         }
 
@@ -109,10 +107,68 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     return SyntaxFacts.GetText(SyntaxKind.VirtualKeyword);
                 case DeclarationModifiers.Override:
                     return SyntaxFacts.GetText(SyntaxKind.OverrideKeyword);
+                case DeclarationModifiers.Replace:
+                    return SyntaxFacts.GetText(SyntaxKind.ReplaceKeyword);
                 case DeclarationModifiers.Async:
                     return SyntaxFacts.GetText(SyntaxKind.AsyncKeyword);
                 default:
                     throw ExceptionUtilities.UnexpectedValue(modifier);
+            }
+        }
+
+        private static DeclarationModifiers ToDeclarationModifier(SyntaxKind kind, bool ignoreParameterModifiers)
+        {
+            switch (kind)
+            {
+                case SyntaxKind.AbstractKeyword:
+                    return DeclarationModifiers.Abstract;
+                case SyntaxKind.AsyncKeyword:
+                    return DeclarationModifiers.Async;
+                case SyntaxKind.SealedKeyword:
+                    return DeclarationModifiers.Sealed;
+                case SyntaxKind.StaticKeyword:
+                    return DeclarationModifiers.Static;
+                case SyntaxKind.NewKeyword:
+                    return DeclarationModifiers.New;
+                case SyntaxKind.PublicKeyword:
+                    return DeclarationModifiers.Public;
+                case SyntaxKind.ProtectedKeyword:
+                    return DeclarationModifiers.Protected;
+                case SyntaxKind.InternalKeyword:
+                    return DeclarationModifiers.Internal;
+                case SyntaxKind.PrivateKeyword:
+                    return DeclarationModifiers.Private;
+                case SyntaxKind.ExternKeyword:
+                    return DeclarationModifiers.Extern;
+                case SyntaxKind.ReadOnlyKeyword:
+                    return DeclarationModifiers.ReadOnly;
+                case SyntaxKind.PartialKeyword:
+                    return DeclarationModifiers.Partial;
+                case SyntaxKind.UnsafeKeyword:
+                    return DeclarationModifiers.Unsafe;
+                case SyntaxKind.VirtualKeyword:
+                    return DeclarationModifiers.Virtual;
+                case SyntaxKind.OverrideKeyword:
+                    return DeclarationModifiers.Override;
+                case SyntaxKind.ReplaceKeyword:
+                    return DeclarationModifiers.Replace;
+                case SyntaxKind.ConstKeyword:
+                    return DeclarationModifiers.Const;
+                case SyntaxKind.FixedKeyword:
+                    return DeclarationModifiers.Fixed;
+                case SyntaxKind.VolatileKeyword:
+                    return DeclarationModifiers.Volatile;
+                case SyntaxKind.ThisKeyword:
+                case SyntaxKind.RefKeyword:
+                case SyntaxKind.OutKeyword:
+                case SyntaxKind.ParamsKeyword:
+                    if (ignoreParameterModifiers)
+                    {
+                        return DeclarationModifiers.None;
+                    }
+                    goto default;
+                default:
+                    throw ExceptionUtilities.UnexpectedValue(kind);
             }
         }
 
@@ -122,96 +178,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             foreach (var modifier in modifiers)
             {
-                DeclarationModifiers one;
-                switch (modifier.ContextualKind())
-                {
-                    case SyntaxKind.AbstractKeyword:
-                        one = DeclarationModifiers.Abstract;
-                        break;
-
-                    case SyntaxKind.AsyncKeyword:
-                        one = DeclarationModifiers.Async;
-                        break;
-
-                    case SyntaxKind.SealedKeyword:
-                        one = DeclarationModifiers.Sealed;
-                        break;
-
-                    case SyntaxKind.StaticKeyword:
-                        one = DeclarationModifiers.Static;
-                        break;
-
-                    case SyntaxKind.NewKeyword:
-                        one = DeclarationModifiers.New;
-                        break;
-
-                    case SyntaxKind.PublicKeyword:
-                        one = DeclarationModifiers.Public;
-                        break;
-
-                    case SyntaxKind.ProtectedKeyword:
-                        one = DeclarationModifiers.Protected;
-                        break;
-
-                    case SyntaxKind.InternalKeyword:
-                        one = DeclarationModifiers.Internal;
-                        break;
-
-                    case SyntaxKind.PrivateKeyword:
-                        one = DeclarationModifiers.Private;
-                        break;
-
-                    case SyntaxKind.ExternKeyword:
-                        one = DeclarationModifiers.Extern;
-                        break;
-
-                    case SyntaxKind.ReadOnlyKeyword:
-                        one = DeclarationModifiers.ReadOnly;
-                        break;
-
-                    case SyntaxKind.PartialKeyword:
-                        one = DeclarationModifiers.Partial;
-                        break;
-
-                    case SyntaxKind.UnsafeKeyword:
-                        one = DeclarationModifiers.Unsafe;
-                        break;
-
-                    case SyntaxKind.VirtualKeyword:
-                        one = DeclarationModifiers.Virtual;
-                        break;
-
-                    case SyntaxKind.OverrideKeyword:
-                        one = DeclarationModifiers.Override;
-                        break;
-
-                    case SyntaxKind.ConstKeyword:
-                        one = DeclarationModifiers.Const;
-                        break;
-
-                    case SyntaxKind.FixedKeyword:
-                        one = DeclarationModifiers.Fixed;
-                        break;
-
-                    case SyntaxKind.VolatileKeyword:
-                        one = DeclarationModifiers.Volatile;
-                        break;
-
-                    case SyntaxKind.ThisKeyword:
-                    case SyntaxKind.RefKeyword:
-                    case SyntaxKind.OutKeyword:
-                    case SyntaxKind.ParamsKeyword:
-                        if (ignoreParameterModifiers)
-                        {
-                            continue;
-                        }
-
-                        goto default;
-
-                    default:
-                        throw ExceptionUtilities.UnexpectedValue(modifier.ContextualKind());
-                }
-
+                DeclarationModifiers one = ToDeclarationModifier(modifier.ContextualKind(), ignoreParameterModifiers);
                 result |= one;
             }
 

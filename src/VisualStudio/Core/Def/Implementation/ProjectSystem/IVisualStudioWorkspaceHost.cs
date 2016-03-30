@@ -29,10 +29,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
         void OnProjectNameChanged(ProjectId projectId, string name, string filePath);
         void OnAnalyzerReferenceAdded(ProjectId projectId, AnalyzerReference analyzerReference);
         void OnAnalyzerReferenceRemoved(ProjectId projectId, AnalyzerReference analyzerReference);
-        void OnAdditionalDocumentAdded(DocumentInfo additionalDocument);
-        void OnAdditionalDocumentRemoved(DocumentId additionalDocument);
+        void OnAdditionalDocumentAdded(DocumentInfo documentInfo);
+        void OnAdditionalDocumentRemoved(DocumentId documentInfo);
         void OnAdditionalDocumentOpened(DocumentId documentId, ITextBuffer textBuffer, bool isCurrentContext);
         void OnAdditionalDocumentClosed(DocumentId documentId, ITextBuffer textBuffer, TextLoader loader);
         void OnAdditionalDocumentTextUpdatedOnDisk(DocumentId id);
+        void UpdateGeneratedDocumentsIfNecessary(ProjectId projectInfo);
     }
 }

@@ -209,6 +209,11 @@ namespace Roslyn.Utilities
             {
                 SetAttributesMethod.Invoke(null, new[] { path, attributes });
             }
+
+            internal static readonly Action<string, string, System.Text.Encoding> WriteAllText = Type
+                .GetTypeInfo()
+                .GetDeclaredMethod(nameof(WriteAllText), paramTypes: new[] { typeof(string), typeof(string), typeof(System.Text.Encoding) })
+                .CreateDelegate<Action<string, string, System.Text.Encoding>>();
         }
 
         internal static class Directory
