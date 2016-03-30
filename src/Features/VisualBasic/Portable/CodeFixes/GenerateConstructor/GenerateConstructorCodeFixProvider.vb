@@ -54,14 +54,20 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeFixes.GenerateConstructor
             Return node
         End Function
 
-        Protected Overrides Function IsCandidate(node As SyntaxNode, diagnostic As Diagnostic) As Boolean
+        Protected Overrides Function IsCandidate(node As SyntaxNode, token As SyntaxToken, diagnostic As Diagnostic) As Boolean
             If TypeOf node Is InvocationExpressionSyntax OrElse
                TypeOf node Is ObjectCreationExpressionSyntax OrElse
                TypeOf node Is AttributeSyntax Then
                 Return True
             End If
 
-            Return diagnostic.Id = BC30387 AndAlso TypeOf node Is ClassBlockSyntax
+            Return diagnostic.Id = BC30387 AndAlso
+                TypeOf node Is ClassBlockSyntax AndAlso
+                IsInClassDeclarationHeader(DirectCast(node, ClassBlockSyntax), token)
+        End Function
+
+        Private Function IsInClassDeclarationHeader(node As ClassBlockSyntax, token As SyntaxToken) As Boolean
+            Return node.ClassStatement.Span.Contains(token.Span)
         End Function
     End Class
 End Namespace
