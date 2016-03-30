@@ -4,17 +4,16 @@ using System.Collections.Immutable;
 using System.Composition;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.Completion;
-using Microsoft.CodeAnalysis.SpellCheck;
-using Microsoft.CodeAnalysis.CSharp.Syntax;
-using System;
 using Microsoft.CodeAnalysis.CSharp.CodeFixes.AddImport;
 using Microsoft.CodeAnalysis.CSharp.CodeFixes.GenerateMethod;
+using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.CodeAnalysis.SpellCheck;
 
 namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.Spellcheck
 {
     [ExportCodeFixProvider(LanguageNames.CSharp, Name = PredefinedCodeFixProviderNames.SpellCheck), Shared]
     [ExtensionOrder(After = PredefinedCodeFixProviderNames.RemoveUnnecessaryCast)]
-    internal partial class SpellCheckCodeFixProvider : AbstractSpellCheckCodeFixProvider<SimpleNameSyntax>
+    internal partial class CSharpSpellCheckCodeFixProvider : AbstractSpellCheckCodeFixProvider<SimpleNameSyntax>
     {
         private const string CS0426 = nameof(CS0426); // The type name '0' does not exist in the type '1'
 
