@@ -7,7 +7,6 @@ TOOLSET_TMP_PATH = $(BINARIES_PATH)/toolset
 BOOTSTRAP_PATH = $(BINARIES_PATH)/Bootstrap
 BUILD_LOG_PATH =
 XUNIT_VERSION = 2.1.0
-HOME_DIR = $(shell cd ~ && pwd)
 
 MSBUILD_ADDITIONALARGS := /v:m /fl /fileloggerparameters:Verbosity=normal /p:Configuration=$(BUILD_CONFIGURATION)
 
@@ -35,12 +34,10 @@ MSBUILD_CMD = $(ROSLYN_TOOLSET_PATH)/corerun $(ROSLYN_TOOLSET_PATH)/MSBuild.exe 
 
 all: toolset
 	export ReferenceAssemblyRoot=$(ROSLYN_TOOLSET_PATH)/reference-assemblies/Framework ; \
-	export HOME=$(HOME_DIR) ; \
 	$(MSBUILD_CMD) CrossPlatform.sln
 
 bootstrap: toolset
 	export ReferenceAssemblyRoot=$(ROSLYN_TOOLSET_PATH)/reference-assemblies/Framework ; \
-	export HOME=$(HOME_DIR) ; \
 	$(MSBUILD_CMD) src/Compilers/CSharp/CscCore/CscCore.csproj && \
 	$(MSBUILD_CMD) src/Compilers/VisualBasic/VbcCore/VbcCore.csproj && \
 	mkdir -p $(BOOTSTRAP_PATH) && \
