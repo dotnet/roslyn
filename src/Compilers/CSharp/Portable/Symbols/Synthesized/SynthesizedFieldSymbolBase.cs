@@ -2,13 +2,12 @@
 
 using System.Collections.Immutable;
 using System.Diagnostics;
-using Microsoft.CodeAnalysis.CSharp.Emit;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.Symbols
 {
     /// <summary>
-    /// Represents a compiler generated field.
+    /// Represents a compiler generated field or captured variable.
     /// </summary>
     internal abstract class SynthesizedFieldSymbolBase : FieldSymbol
     {
@@ -33,21 +32,27 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 (isStatic ? DeclarationModifiers.Static : DeclarationModifiers.None);
         }
 
+        internal abstract bool SuppressDynamicAttribute
+        {
+            get;
+        }
+
         internal override void AddSynthesizedAttributes(ModuleCompilationState compilationState, ref ArrayBuilder<SynthesizedAttributeData> attributes)
         {
             base.AddSynthesizedAttributes(compilationState, ref attributes);
 
-            // do not emit Dynamic or CompilerGenerated attributes for fields inside compiler generated types:
-            if (_containingType.IsImplicitlyDeclared)
-            {
-                return;
-            }
-
             CSharpCompilation compilation = this.DeclaringCompilation;
 
-            AddSynthesizedAttribute(ref attributes, compilation.TrySynthesizeAttribute(WellKnownMember.System_Runtime_CompilerServices_CompilerGeneratedAttribute__ctor));
+            // do not emit CompilerGenerated attributes for fields inside compiler generated types:
+            if (!_containingType.IsImplicitlyDeclared)
+            {
+                AddSynthesizedAttribute(ref attributes, compilation.TrySynthesizeAttribute(WellKnownMember.System_Runtime_CompilerServices_CompilerGeneratedAttribute__ctor));
+            }
 
-            if (this.Type.ContainsDynamic() && compilation.HasDynamicEmitAttributes() && compilation.CanEmitBoolean())
+            if (!this.SuppressDynamicAttribute &&
+                this.Type.ContainsDynamic() &&
+                compilation.HasDynamicEmitAttributes() &&
+                compilation.CanEmitBoolean())
             {
                 AddSynthesizedAttribute(ref attributes, compilation.SynthesizeDynamicAttribute(this.Type, this.CustomModifiers.Length));
             }

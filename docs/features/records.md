@@ -21,78 +21,145 @@ This new form is called a *caller-receiver default-argument*, and is allowed onl
 
 When an argument is omitted from an invocation of a function member for a corresponding optional parameter with a *caller-receiver default-argument*, the value of the receiver's member is implicitly passed. 
 
+> **Design Notes**: the main reason for the caller-receiver parameter is to support the *with-expression*. The idea is that you can declare a method like this
+> ```cs
+> class Point
+> {
+>     public readonly int X;
+>     public readonly int Y;
+>     public Point With(int x = this.X, int y = this.Y) => new Point(x, y);
+>     // etc
+> }
+> ```
+> and then use it like this
+> ```cs
+>     Point p = new Point(3, 4);
+>     p = p.With(x: 1);
+> ```
+> To create a new `Point` just like an existing `Point` but with the value of `X` changed.
+> 
+> It is an open question whether or not the syntactic form of the *with-expression* is worth adding once we have support for caller-receiver parameters, so it is possible we would do this *instead of* rather than *in addition to* the *with-expression*.
+
 - [ ] **Open issue**: What is the order in which a *caller-receiver default-argument* is evaluated with respect to other arguments? Should we say that it is unspecified?
 
 # with-expressions
 
 A new expression form is proposed:
 
-> *primary-expression*:<br>
-&nbsp;&nbsp;&nbsp;&nbsp;*with-expression*
+```antlr
+primary_expression
+    : with_expression
+    ;
 
-> *with-expression*:<br>
-&nbsp;&nbsp;&nbsp;&nbsp;*primary-expression* `with` `{` *with-initializer-list* `}`
+with_expression
+    : primary_expression 'with' '{' with_initializer_list '}'
+    ;
 
-> *with-initializer-list*:<br>
-&nbsp;&nbsp;&nbsp;&nbsp;*with-initializer*<br>
-&nbsp;&nbsp;&nbsp;&nbsp;*with-initializer* `,` *with-initializer-list*
+with_initializer_list
+    : with_initializer
+    | with_initiaizer ',' with_initializer_list
+    ;
 
-> *with-initializer*:<br>
-&nbsp;&nbsp;&nbsp;&nbsp;*identifier* `=` *expression*
+with_initializer
+    : identifier '=' expression
+    ;
+```
 
 The token `with` is a new context-sensitive keyword.
 
-A with expression of the form
+Each *identifier* on the left of a *with_initilaizer* must bind to an accessible instance field or property of the type of the *primary_expression* of the *with_expression*. There may be no duplicated name among these identifiers of a given *with_expression*.
 
-> *e* `with` `{` *identifier* = *e1*, ... `}`
+A *with_expression* of the form
+
+> *e1* `with` `{` *identifier* = *e2*, ... `}`
 
 is treated as an invocation of the form
 
-> *e*.With(*identifier*: *e1*, ...)
+> *e1*`.With(`*identifier2*`:` *e2*, ...`)`
 
-- [ ] **Open issue**: Does this syntactic sugar actually pay for itself? Is it really so much better than simply writing the invocation?
+Where, for each method named `With` that is an accessible instance member of *e1*, we select *identifier2* as the name of the first parameter in that method that has a caller-receiver parameter that is the same member as the instance field or property bound to *identifier*. If no such parameter can be identified that method is eliminated from consideration. The method to be invoked is selected from among the remaining candidates by overload resolution.
+
+> **Design Notes**: Given caller-receiver parameters, many of the benefits of the *with-expression* are available without this special syntax form. We are therefore considering whether or not it is needed. Its main benefit is allowing one to program in terms of the names of fields and properties, rather than in terms of the names of parameters. In this way we improve both readability and the quality of tooling (e.g. go-to-definition on the identifier of a *with_expression* would navigate to the property rather than to a method parameter).
+
+- [ ] **Open issue**: This description should be modified to support extension methods.
+- [ ] **Open issue**: Does this syntactic sugar actually pay for itself?
 
 # pattern-matching
 
 See the [Pattern Matching Specification](patterns.md) for a specification of `operator is` and its relationship to pattern-matching.
 
+> **Design Notes**: By virtue of the compiler-generated `operator is` as specified herein, and the specification for pattern-matching, a record declaration
+> ```cs
+> public class Point(int X, int Y);
+> ```
+> will support positional pattern-matching as follows
+> ```cs
+> Point p = new Point(3, 4);
+> if (p is Point(3, var y)) { // if X is 3
+>     Console.WriteLine(y);   // print Y
+> }
+> ```
+
 # record type declarations
 
 The syntax for a `class` or `struct` declaration is extended to support value parameters; the parameters become properties of the type:
 
->*class-declaration*:<br>
-&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;*attributes*<sub>opt</sub> *class-modifiers*<sub>opt</sub> *partial*<sub>opt</sub> `class` *identifier* *type-parameter-list*<sub>opt</sub> *record-parameters*<sub>opt</sub></span> *class-base*<sub>opt</sub> *type-parameter-constraints-clauses*<sub>opt</sub> *class-body*
+```antlr
+class_declaration
+    : attributes? class_modifiers? 'partial'? 'class' identifier type_parameter_list?
+      record_parameters? record_class_base? type_parameter_constraints_clauses? class_body
+    ;
 
->struct-declaration:<br>
-&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;*attributes*<sub>opt</sub> *struct-modifiers*<sub>opt</sub> *partial*<sub>opt</sub> `struct` *identifier* *type-parameter-list*<sub>opt</sub> *record-parameters*<sub>opt</sub> *struct-interfaces*<sub>opt</sub> *type-parameter-constraints-clauses*<sub>opt</sub> *struct-body*
+struct_declaration
+    : attributes? struct_modifiers? 'partial'? 'struct' identifier type_parameter_list?
+      record_parameters? struct_interfaces? type_parameter_constraints_clauses? struct_body
+    ;
 
->*record-parameters*:<br>
-&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;`(` *record-parameter-list*<sub>opt</sub> `)`
+record_class_base
+    : class_type record_base_arguments?
+    | interface_type_list
+    | class_type record_base_arguments? ',' interface_type_list
+    ;
 
->*record-parameter-list*:<br>
-&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;*record-parameter*<br>
-&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;*record-parameter-list* `,` *record-parameter*
+record_base_arguments
+    : '(' argument_list? ')'
+    ;
 
->*record-parameter*:<br>
-&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;*attributes*<sub>opt</sub> *type* *identifier* *default-argument*<sub>opt</sub>
+record_parameters
+    : '(' record_parameter_list? ')'
+    ;
 
->*class-body*:<br>
-&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;`{` *class-member-declarations*<sub>opt</sub> `}`<br>
-&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;`;`
+record_parameter_list
+    : record_parameter
+    | record_parameter record_parameter_list
+    ;
 
->*struct-body*:<br>
-&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;`{` *struct-member-declarations*<sub>opt</sub> `}`<br>
-&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;`;`
+record_parameter
+    : attributes? type identifier record_property_name? default_argument?
+    ;
 
-- [ ] **Open issue**: What are the name conflict rules for the parameter names? Presumably one is not allowed to conflict with a type parameter or another *record-parameter*.
+record_property_name
+    : ':' identifier
+    ;
 
-Because record types are often useful without the need for any members explicitly declared in a class-body, we modify the syntax of the declaration to allow a body to be simply a semicolon.
+class_body
+    : '{' class_member_declarations? '}'
+    | ';'
+    ;
+
+struct_body
+    : '{' struct_members_declarations? '}'
+    | ';'
+    ;
+```
+
+> **Design Notes**: Because record types are often useful without the need for any members explicitly declared in a class-body, we modify the syntax of the declaration to allow a body to be simply a semicolon.
 
 A class (struct) declared with the *record-parameters* is called a *record class* (*record struct*), either of which is a *record type*.
 
-The *class-modifiers* of a record class declaration must contain either the modifier `abstract` or `sealed`.
-
-- [ ] **Open issue**: We need to specify the scope of the record-parameters. Where can they be used?
+- [ ] **Open issue**: We need to include *primary_constructor_body* in the grammar so that it can appear inside a record type declaration.
+- [ ] **Open issue**: What are the name conflict rules for the parameter names? Presumably one is not allowed to conflict with a type parameter or another *record-parameter*.
+- [ ] **Open issue**: We need to specify the scope of the record-parameters. Where can they be used? Presumably within instance field initializers and *primary_constructor_body* at least.
 - [ ] **Open issue**: Can a record type declaration be partial? If so, must the parameters be repeated on each part?
 
 ### Members of a record type
@@ -101,42 +168,51 @@ In addition to the members declared in the *class-body*, a record type has the f
 
 #### Primary Constructor
 
-A *record struct* and a `sealed` *record class* has a `public` constructor whose signature corresponds to the value parameters of the type declaration. This is called the *primary constructor* for the type, and causes the *default constructor* to be suppressed. An `abstract` *record class* has only the explicitly declared constructors or, if none are declared, the default constructor.
-
-The programmer may provide an explicit constructor with the same signature as the primary constructor, which must be declared `public`, whose body provides additional code to execute during construction. It may not contain a *constructor-initializer*.
+A record type has a `public` constructor whose signature corresponds to the value parameters of the type declaration. This is called the *primary constructor* for the type, and causes the implicitly declared *default constructor* to be suppressed.
 
 At runtime the primary constructor
 
 * initializes compiler-generated backing fields for the properties corresponding to the value parameters (if these properties are compiler-provided; [see 1.1.2](#1.1.2)); then
-
 * executes the instance field initializers appearing in the *class-body*; and then
-
 * invokes a base class constructor:
+    * If there are arguments in the *record_base_arguments*, a base constructor selected by overload resolution with these arguments is invoked;
+    * Otherwise a base constructor is invoked with no arguments.
+* executes the body of each *primary_constructor_body*, if any, in source order.
 
-	* If there are arguments in the *class-base* specification, a base constructor selected by overload resolution with these arguments is invoked;
+- [ ] **Open issue**: We need to specify that order, particularly across compilation units for partials.
+- [ ] **Open Issue**: We need to specify that every explicitly declared constructor must chain to the primry constructor.
+- [ ] **Open issue**: Should it be allowed to change the access modifier on the primary constructor?
+- [ ] **Open issue**: In a record struct, it is an error for there to be no record parameters?
 
-	* Otherwise a base constructor is invoked with no arguments.
+#### Primary constructor body
 
-* executes the body of an explicitly-declared primary constructor, if any.
+```antlr
+primary_constructor_body
+    : attributes? constructor_modifiers? identifier block
+    ;
+```
 
-- [ ] **Open issue**: Is this the syntax we want for adding code to the primary constructor?
-- [ ] **Open issue**: Should it be possible to change the access modifier on the primary constructor?
+A *primary_constructor_body* may only be used within a record type declaration. The *identifier* of a *primary_constructor_body* shall name the record type in which it is declared.
+
+The *primary_constructor_body* does not declare a member on its own, but is a way for the programmer to provide attributes for, and specify the access of, a record type's primary constructor. It also enables the programmer to provide additional code that will be executed when an instance of the record type is constructed.
+
+- [ ] **Open issue**: We should note that a struct default constructor bypasses this.
+- [ ] **Open issue**: We should specify the execution order of initialization.
+- [ ] **Open issue**: Should we allow something like a *primary_constructor_body* (presumably without attributes and modifiers) in a non-record type declaration, and treat it like we would the code of an instance field initializer?
 
 #### Properties
 
-For each value parameter of a record type declaration there is a corresponding `public` property member whose name and type are taken from the value parameter declaration. If this public property is explicitly declared in the body of the type declaration, it must have the `public` access modifier and a public `get` accessor.
-
-If this `public` property is not explicitly declared within the *class-body*, then the compiler produces the property as follows:
+For each record parameter of a record type declaration there is a corresponding `public` property member whose name and type are taken from the value parameter declaration. Its name is the *identifier* of the *record_property_name*, if present, or the *identifier* of the *record_parameter* otherwise. If no concrete (i.e. non-abstract) public property with a `get` accessor and with this name and type is explicitly declared or inherited, it is produced by the compiler as follows:
 
 * For a *record struct* or a `sealed` *record class*:
  * A `private` `readonly` field is produced as a backing field for a `readonly` property. Its value is initialized during construction with the value of the corresponding primary constructor parameter.
  * The property's `get` accessor is implemented to return the value of the backing field.
-* For an `abstract` *record class*:
- * The property is declared `abstract` with only a `get` accessor.
+ * Each "matching" inherited virtual property's `get` accessor is overridden.
+
+> **Design notes**: In other words, if you extend a base class or implement an interface that declares a public abstract property with the same name and type as a record parameter, that property is overridden or implemented.
 
 - [ ] **Open issue**: Should it be possible to change the access modifier on a property when it is explicitly declared?
 - [ ] **Open issue**: Should it be possible to substitute a field for a property?
-- [ ] **Open issue**: We should specify that the generated properties shall `override` any inherited abstract properties.
 
 #### Object Methods
 
@@ -145,6 +221,8 @@ For a *record struct* or a `sealed` *record class*, implementations of the metho
 - [ ] **Open issue**: We should precisely specify their implementation.
 - [ ] **Open issue**: We should also add the interface `IEquatable<T>` for the record type and specify that implementations are provided.
 - [ ] **Open issue**: We should also specify that we implement every `IEquatable<T>.Equals`.
+- [ ] **Open issue**: We should specify precisely how we solve the problem of Equals in the face of record inheritance: specifically how we generate equality methods such that they are symmetric, transitive, reflexive, etc.
+- [ ] **Open issue**: It has been proposed that we implement `operator ==` and `operator !=` for record types.
 
 #### `operator is`
 
@@ -156,11 +234,31 @@ See [the pattern-matching specification](patterns.md) for the semantics of `oper
 
 Unless there is a user-declared member named `With` declared, a record type has a compiler-provided method named `With` whose return type is the record type itself, and containing one value parameter corresponding to each *record-parameter* in the same order that these parameters appear in the record type declaration. Each parameter shall have a *caller-receiver default-argument* of the corresponding property.
 
-In an `abstract` record class, the compiler-provided `With` method is abstract.
-
-In a record struct, or in a `sealed` record class, the compiler-provided `With` method's implementation shall return a new instance produced by invoking the the primary constructor with the parameters as arguments to create a new instance from the parameters, and return that new instance.
+In an `abstract` record class, the compiler-provided `With` method is abstract. Otherwise the compiler-provided `With` method's implementation shall return a new instance produced by invoking the the primary constructor with the parameters as arguments to create a new instance from the parameters, and return that new instance.
 
 - [ ] **Open issue**: We should also specify when we override or implement inherited virtual `With` methods.
+- [ ] **Open issue**: We should say what happens when we inherit a non-virtual `With` method.
+
+> **Design notes**: Because record types are by default immutable, the `With` method provides a way of creating a new instance that is the same as an existing instance but with selected properties given new values. For example, given
+> ```cs
+> public class Point(int X, int Y);
+> ```
+> there is a compiler-provided member
+> ```cs
+>     public Point With(int X = this.X, int Y = this.Y) => new Point(X, Y);
+> ```
+> Which enables an variable of the record type
+> ```cs
+> var p = new Point(3, 4);
+> ```
+> to be replaced with an instance that has one or more properties different
+> ```cs
+>     p = p.With(X: 5);
+> ```
+> This can also be expressed using the *with_expression*:
+> ```cs
+>     p = p with { X = 5 };
+> ```
 
 # 5. Examples
 
@@ -190,7 +288,7 @@ public struct Pair : IEquatable<Pair>
     }
     public override bool Equals(object other)
     {
-		return (other as Pair?)?.Equals(this) == true;
+        return (other as Pair)?.Equals(this) == true;
     }
     public override GetHashCode()
     {
@@ -206,6 +304,18 @@ public struct Pair : IEquatable<Pair>
 ```
 
 - [ ] **Open issue**: should the implementation of Equals(Pair other) be a public member of Pair?
+- [ ] **Open issue**: This implementation of `Equals` is not symmetric in the face of inheritance.
+
+> **Design notes**: Because one record type can inherit from another, and this implementation of `Equals` would not be symmetric in that case, it is not correct. We propose to implement equality this way:
+> ```cs
+>     public bool Equals(Pair other) // for IEquatable<Pair>
+>     {
+>         return other != null && EqualityContract == other.EqualityContract &&
+>             Equals(First, other.First) && Equals(Second, other.Second);
+>     }
+>     protected virtual Type EqualityContract => typeof(Pair);
+> ```
+> Derived records would `override EqualityContract`. The less attractive alternative is to restrict inheritance.
 
 ### sealed record example
 
@@ -229,13 +339,13 @@ public sealed class Student : IEquatable<Student>
     }
     public bool Equals(Student other) // for IEquatable<Student>
     {
-        return Equals(Name, other.Name) && Equals(Gpa, other.Gpa);
+        return other != null && Equals(Name, other.Name) && Equals(Gpa, other.Gpa);
     }
     public override bool Equals(object other)
     {
-		return (other as Student?)?.Equals(this) == true;
+        return this.Equals(other as Student);
     }
-    public override GetHashCode()
+    public override int GetHashCode()
     {
         return (Name?.GetHashCode()*17 + Gpa?.GetHashCode()).GetValueOrDefault();
     }
@@ -261,8 +371,23 @@ is translated into this code
 ```cs
 public abstract class Person : IEquatable<Person>
 {
-    public abstract string Name { get; }
-    public abstract bool Equals(Person other); // for IEquatable<Person>
+    public string Name { get; }
+    public Person(string Name)
+    {
+        this.Name = Name;
+    }
+    public bool Equals(Person other)
+    {
+        return other != null && Equals(Name, other.Name);
+    }
+    public override Equals(object other)
+    {
+        return Equals(other as Person);
+    }
+    public override int GetHashCode()
+    {
+        return (Name?.GetHashCode()).GetValueOrDefault();
+    }
     public abstract Person With(string Name = this.Name);
     public static void operator is(Person self, out string Name)
     {
@@ -276,7 +401,7 @@ public abstract class Person : IEquatable<Person>
 Given the abstract record class `Person` above, this sealed record class
 
 ```cs
-public sealed class Student(string Name, decimal Gpa) : Person;
+public sealed class Student(string Name, decimal Gpa) : Person(Name);
 ```
 
 is translated into this code
@@ -286,7 +411,7 @@ public sealed class Student : Person, IEquatable<Student>
 {
     public override string Name { get; }
     public decimal Gpa { get; }
-    public Student(string Name, decimal Gpa)
+    public Student(string Name, decimal Gpa) : base(Name)
     {
         this.Name = Name;
         this.Gpa = Gpa;

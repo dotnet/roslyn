@@ -5,10 +5,9 @@ using System.Collections.Generic;
 // { [ file name ], [ ngen ? true | false ] }
 var IDEFiles = new Dictionary<string, bool>()
 {
-    { "CSharpInteractive.rsp", true },
+    { "CSharpInteractive.rsp", false },
     { "Esent.Interop.dll", true },
     { "InteractiveHost.exe", true },
-    { "Microsoft.Build.Tasks.CodeAnalysis.dll", true },
     { "Microsoft.CodeAnalysis.CSharp.dll", true },
     { "Microsoft.CodeAnalysis.CSharp.EditorFeatures.dll", true },
     { "Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator.ExpressionCompiler.dll", true },
@@ -19,6 +18,7 @@ var IDEFiles = new Dictionary<string, bool>()
     { "Microsoft.CodeAnalysis.dll", true },
     { "Microsoft.CodeAnalysis.EditorFeatures.dll", true },
     { "Microsoft.CodeAnalysis.EditorFeatures.Text.dll", true },
+    { "Microsoft.CodeAnalysis.Elfie.dll", true },
     { "Microsoft.CodeAnalysis.ExpressionEvaluator.ExpressionCompiler.dll", true },
     { "Microsoft.CodeAnalysis.ExpressionEvaluator.ResultProvider.dll", true },
     { "Microsoft.CodeAnalysis.Features.dll", true },

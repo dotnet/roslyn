@@ -7,12 +7,14 @@ using System;
 using System.Diagnostics;
 using System.IO;
 
+InitUtilities();
+
 // If we're being #load'ed by uninstall.csx, set the "uninstall" flag.
-var uninstall = Environment.GetCommandLineArgs(1) == "uninstall.csx";
+var uninstall = Environment.GetCommandLineArgs()[1] == "uninstall.csx";
 var message = uninstall ? "Restoring previous copy of" : "Installing";
 
 // TODO: Use actual command line argument parser so we can have help text, etc...
-var sourceFolder = Args.Length == 1 ? Args[0] : @"C:\Roslyn\Binaries\Release";
+var sourceFolder = Args.Count == 1 ? Args[0] : @"C:\Roslyn\Binaries\Release";
 
 foreach (var processName in new[] { "devenv", "msbuild", "VBCSCompiler"})
 {
@@ -24,70 +26,79 @@ foreach (var processName in new[] { "devenv", "msbuild", "VBCSCompiler"})
     }
 }
 
-Log($"{message} Roslyn binaries to VS folder.");
-var devenvFolder = Path.GetFullPath(Environment.GetFolderPath(Environment.SpecialFolder.ProgramFilesX86), @"Microsoft Visual Studio 14.0\Common7\IDE\PrivateAssemblies");
+Log($"\n{message} Roslyn binaries to VS folder.");
+var devenvFolder = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ProgramFilesX86), @"Microsoft Visual Studio 14.0\Common7\IDE");
 var destinationFolder = Path.Combine(devenvFolder, "PrivateAssemblies");
+var filesToNGen = new List<string>();
 foreach (var file in IDEFiles)
 {
-    var destinationFile = CopyFile(Path.Combine(sourceFolder, file.Item1), destinationFolder, uninstall);
+    var destinationFile = CopyFile(Path.Combine(sourceFolder, file.Key), destinationFolder, uninstall);
 
-    if (file.Item2)
+    if (file.Value)
     {
-        NGen(destinationFile, x86Only: true);
+        filesToNGen.Add(destinationFile);
     }
+}
+
+// We'll do ngen as a second pass to ensure that all assembly's dependencies have been copied.
+foreach (var file in filesToNGen)
+{
+    NGen(file, x86Only: true);
 }
 
 var devenv = Path.Combine(devenvFolder, "devenv.exe");
-var result = ShellOut(devenv, "/clearcache");
-if (!result.Succeeded)
-{
-    return result.Code;
-}
-result = ShellOut(devenv, "/updateconfiguration");
-if (!result.Succeeded)
-{
-    return result.Code;
-}
-result = ShellOut(devenv, "/resetsettingsfull Default.vssettings /command \"File.Exit\"");
-if (!result.Succeeded)
-{
-    return result.Code;
-}
+ShellOutVital(devenv, "/clearcache");
+ShellOutVital(devenv, "/updateconfiguration");
+ShellOutVital(devenv, $"/resetsettingsfull {Path.Combine(sourceFolder, "Default.vssettings")} /command \"File.Exit\"");
 
-Log($"{message} compilers in MSBuild folders.");
-destinationFolder = Path.GetFullPath(Environment.GetFolderPath(Environment.SpecialFolder.ProgramFilesX86), @"MSBuild\14.0\Bin");
-destinationFolder64 = Path.GetFullPath(Environment.GetFolderPath(Environment.SpecialFolder.ProgramFilesX86), @"MSBuild\14.0\Bin\amd64");
+Log($"\n{message} compilers in MSBuild folders.");
+destinationFolder = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ProgramFilesX86), @"MSBuild\14.0\Bin");
+var destinationFolder64 = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ProgramFilesX86), @"MSBuild\14.0\Bin\amd64");
+filesToNGen = new List<string>();
 foreach (var file in MSBuildFiles)
 {
-    var destinationFile = CopyFile(Path.Combine(sourceFolder, file.Item1), destinationFolder, uninstall);
+    var sourceFile = Path.Combine(sourceFolder, file.Key);
 
-    if (file.Item2)
+    var destinationFile = CopyFile(sourceFile, destinationFolder, uninstall);
+
+    if (file.Value)
     {
-        // It may be surprising that the binary under the 32-bit folder is also ngen'ed
-        // for x64, but that's what the Build Tools setup does, so we will mimic it.
-        NGen(destinationFile);
+        filesToNGen.Add(destinationFile);
     }
 
-    destinationFile = CopyFile(file.Item1, destinationFolder64, uninstall);
+    destinationFile = CopyFile(sourceFile, destinationFolder64, uninstall);
 
-    if (file.Item2)
+    if (file.Value)
     {
-        // It may be surprising that the binary under the amd64 folder is also ngen'ed
-        // for x86, but that's what the Build Tools setup does, so we will mimic it.
-        NGen(destinationFile);
+        filesToNGen.Add(destinationFile);
     }
+}
+
+// We'll do ngen as a second pass to ensure that all assembly's dependencies have been copied.
+foreach (var file in filesToNGen)
+{
+    // It may be surprising that the binary under the 32-bit folder is also ngen'ed
+    // for x64, and that the binary under the amd64 folder is also ngen'ed for x86,
+    // but that's what the Build Tools setup does, so we will mimic it.
+    NGen(file);
 }
 
 string CopyFile(string sourceFile, string destinationFolder, bool uninstall)
 {
-    var fileName = Path.GetFileName(file.Item1);
+    var fileName = Path.GetFileName(sourceFile);
     var destinationFile = Path.Combine(destinationFolder, fileName);
     var backupFolder = Path.Combine(destinationFolder, "backup");
     var backupFile = Path.Combine(backupFolder, fileName);
 
+    // It's okay to skip backing it up a file if it has already been
+    // backed up, or if it doesn't exist in the existing installation.
+    var shouldBackup = !File.Exists(backupFile) && File.Exists(destinationFile);
     if (uninstall)
     {
-        File.Copy(backupFile, destinationFile, overwrite: true);
+        if (shouldBackup)
+        {
+            File.Move(backupFile, destinationFile);
+        }
     }
     else
     {
@@ -96,9 +107,12 @@ string CopyFile(string sourceFile, string destinationFolder, bool uninstall)
             Directory.CreateDirectory(backupFolder);
         }
 
-        File.Copy(destinationFile, backupFile, overwrite: true);
+        if (shouldBackup)
+        {
+            File.Copy(destinationFile, backupFile);
+        }
 
-        File.Copy(file, destinationFile, overwrite: true);
+        File.Copy(sourceFile, destinationFile, overwrite: true);
     }
 
     return destinationFile;
