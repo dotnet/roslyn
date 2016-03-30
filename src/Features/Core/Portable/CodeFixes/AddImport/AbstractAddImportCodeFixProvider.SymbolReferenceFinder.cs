@@ -231,24 +231,59 @@ namespace Microsoft.CodeAnalysis.CodeFixes.AddImport
                 string name, int arity, bool isAttributeSearch, CancellationToken cancellationToken)
             {
                 var workspaceServices = _document.Project.Solution.Workspace.Services;
-                var searchService = _owner._packageSearchService ?? workspaceServices.GetService<IPackageSearchService>();
+
+                var searchService = _owner._typeSearchService ?? workspaceServices.GetService<ITypeSearchService>();
                 var installerService = _owner._packageInstallerService ?? workspaceServices.GetService<IPackageInstallerService>();
 
-                if (searchService != null && installerService != null && installerService.IsEnabled)
+                if (searchService != null)
+                {
+                    cancellationToken.ThrowIfCancellationRequested();
+                    await FindReferenceAssemblyTypeReferencesAsync(
+                        searchService, allReferences, nameNode, name, arity, isAttributeSearch, cancellationToken).ConfigureAwait(false);
+                }
+
+                if (searchService != null && 
+                    installerService.IsEnabled)
                 {
                     foreach (var packageSource in installerService.PackageSources)
                     {
                         cancellationToken.ThrowIfCancellationRequested();
-                        await FindNugetOrReferenceAssemblyTypeReferencesAsync(
+                        await FindNugetTypeReferencesAsync(
                             packageSource, searchService, installerService, allReferences,
                             nameNode, name, arity, isAttributeSearch, cancellationToken).ConfigureAwait(false);
                     }
                 }
             }
 
-            private async Task FindNugetOrReferenceAssemblyTypeReferencesAsync(
+            private async Task FindReferenceAssemblyTypeReferencesAsync(
+                ITypeSearchService searchService,
+                List<Reference> allReferences,
+                TSimpleNameSyntax nameNode,
+                string name,
+                int arity,
+                bool isAttributeSearch,
+                CancellationToken cancellationToken)
+            {
+                cancellationToken.ThrowIfCancellationRequested();
+                var results = await searchService.FindReferenceAssembliesWithTypeAsync(
+                    name, arity, cancellationToken).ConfigureAwait(false);
+
+                var project = _document.Project;
+                var projectId = project.Id;
+                var workspace = project.Solution.Workspace;
+
+                foreach (var result in results)
+                {
+                    cancellationToken.ThrowIfCancellationRequested();
+                    await HandleReferenceAssemblyReferenceAsync(
+                        allReferences, nameNode, project,
+                        isAttributeSearch, result, weight: allReferences.Count, cancellationToken: cancellationToken).ConfigureAwait(false);
+                }
+            }
+
+            private async Task FindNugetTypeReferencesAsync(
                 PackageSource source,
-                IPackageSearchService searchService,
+                ITypeSearchService searchService,
                 IPackageInstallerService installerService,
                 List<Reference> allReferences,
                 TSimpleNameSyntax nameNode,
@@ -258,40 +293,28 @@ namespace Microsoft.CodeAnalysis.CodeFixes.AddImport
                 CancellationToken cancellationToken)
             {
                 cancellationToken.ThrowIfCancellationRequested();
-                var results = searchService.FindPackagesWithType(source.Name, name, arity, cancellationToken);
+                var results = await searchService.FindPackagesWithTypeAsync(
+                    source.Name, name, arity, cancellationToken).ConfigureAwait(false);
 
                 var project = _document.Project;
                 var projectId = project.Id;
                 var workspace = project.Solution.Workspace;
 
-                int weight = 0;
                 foreach (var result in results)
                 {
                     cancellationToken.ThrowIfCancellationRequested();
-                    if (result.IsDesktopFramework)
-                    {
-                        await HandleReferenceAssemblyReferenceAsync(
-                            installerService, allReferences, nameNode, project,
-                            isAttributeSearch, result, weight, cancellationToken).ConfigureAwait(false);
-                    }
-                    else
-                    {
-                        await HandleNugetReferenceAsync(
-                            source.Source, installerService, allReferences, nameNode, 
-                            project, isAttributeSearch, result, weight).ConfigureAwait(false);
-                    }
-
-                    weight++;
+                    await HandleNugetReferenceAsync(
+                        source.Source, installerService, allReferences, nameNode,
+                        project, isAttributeSearch, result, weight: allReferences.Count).ConfigureAwait(false);
                 }
             }
 
             private async Task HandleReferenceAssemblyReferenceAsync(
-                IPackageInstallerService installerService,
                 List<Reference> allReferences,
                 TSimpleNameSyntax nameNode,
                 Project project,
                 bool isAttributeSearch,
-                PackageWithTypeResult result,
+                ReferenceAssemblyWithTypeResult result,
                 int weight,
                 CancellationToken cancellationToken)
             {
@@ -307,8 +330,8 @@ namespace Microsoft.CodeAnalysis.CodeFixes.AddImport
                     }
                 }
 
-                var desiredName = GetDesiredName(isAttributeSearch, result);
-                allReferences.Add(new AssemblyReference(_owner, installerService,
+                var desiredName = GetDesiredName(isAttributeSearch, result.TypeName);
+                allReferences.Add(new AssemblyReference(_owner,
                     new SearchResult(desiredName, nameNode, result.ContainingNamespaceNames, weight), result));
             }
 
@@ -324,7 +347,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes.AddImport
             {
                 if (!installerService.IsInstalled(project.Solution.Workspace, project.Id, result.PackageName))
                 {
-                    var desiredName = GetDesiredName(isAttributeSearch, result);
+                    var desiredName = GetDesiredName(isAttributeSearch, result.TypeName);
                     allReferences.Add(new PackageReference(_owner, installerService,
                         new SearchResult(desiredName, nameNode, result.ContainingNamespaceNames, weight), 
                         source, result.PackageName, result.Version));
@@ -333,9 +356,9 @@ namespace Microsoft.CodeAnalysis.CodeFixes.AddImport
                 return SpecializedTasks.EmptyTask;
             }
 
-            private static string GetDesiredName(bool isAttributeSearch, PackageWithTypeResult result)
+            private static string GetDesiredName(bool isAttributeSearch, string typeName)
             {
-                var desiredName = result.TypeName;
+                var desiredName = typeName;
                 if (isAttributeSearch)
                 {
                     desiredName = desiredName.GetWithoutAttributeSuffix(isCaseSensitive: false);

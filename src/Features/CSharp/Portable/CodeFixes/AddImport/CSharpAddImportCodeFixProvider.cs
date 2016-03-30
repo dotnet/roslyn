@@ -154,7 +154,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.AddImport
         /// <summary>For testing purposes only (so that tests can pass in mock values)</summary> 
         internal CSharpAddImportCodeFixProvider(
             IPackageInstallerService installerService,
-            IPackageSearchService packageSearchService)
+            ITypeSearchService packageSearchService)
             : base(installerService, packageSearchService)
         {
         }

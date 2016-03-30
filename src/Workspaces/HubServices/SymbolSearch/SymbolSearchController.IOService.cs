@@ -3,11 +3,11 @@
 using System.Collections.Generic;
 using System.IO;
 
-namespace Microsoft.VisualStudio.LanguageServices.Packaging
+namespace Microsoft.CodeAnalysis.HubServices.SymbolSearch
 {
-    internal partial class PackageSearchService
+    public partial class SymbolSearchController
     {
-        private class IOService : IPackageSearchIOService
+        private class IOService : ISymbolSearchIOService
         {
             public void Create(DirectoryInfo directory) => directory.Create();
 

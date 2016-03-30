@@ -6,12 +6,12 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Microsoft.VisualStudio.LanguageServices.Packaging
+namespace Microsoft.CodeAnalysis.HubServices.SymbolSearch
 {
     /// <summary>
     /// Used so we can mock out patching in unit tests.
     /// </summary>
-    internal interface IPackageSearchPatchService
+    internal interface ISymbolSearchPatchService
     {
         byte[] ApplyPatch(byte[] databaseBytes, byte[] patchBytes);
     }

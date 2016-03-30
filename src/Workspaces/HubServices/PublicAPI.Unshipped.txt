@@ -1,0 +1,14 @@
+Microsoft.CodeAnalysis.HubServices.HubDataModel
+Microsoft.CodeAnalysis.HubServices.HubDataModel.Data.get -> string
+Microsoft.CodeAnalysis.HubServices.HubDataModel.Data.set -> void
+Microsoft.CodeAnalysis.HubServices.HubDataModel.Id.get -> string
+Microsoft.CodeAnalysis.HubServices.HubDataModel.Id.set -> void
+Microsoft.CodeAnalysis.HubServices.JsonController
+Microsoft.CodeAnalysis.HubServices.Startup
+Microsoft.CodeAnalysis.HubServices.SymbolSearch.SymbolSearchController
+Microsoft.CodeAnalysis.HubServices.SymbolSearch.SymbolSearchController.CancelOperation(Microsoft.CodeAnalysis.HubServices.HubDataModel value) -> void
+Microsoft.CodeAnalysis.HubServices.SymbolSearch.SymbolSearchController.FindPackagesWithType(Microsoft.CodeAnalysis.HubServices.HubDataModel model) -> System.Net.Http.HttpResponseMessage
+Microsoft.CodeAnalysis.HubServices.SymbolSearch.SymbolSearchController.FindReferenceAssembliesWithType(Microsoft.CodeAnalysis.HubServices.HubDataModel model) -> System.Net.Http.HttpResponseMessage
+Microsoft.CodeAnalysis.HubServices.SymbolSearch.SymbolSearchController.OnConfigurationChanged(Microsoft.CodeAnalysis.HubServices.HubDataModel model) -> System.Net.Http.HttpResponseMessage
+Microsoft.CodeAnalysis.HubServices.SymbolSearch.SymbolSearchController.SymbolSearchController() -> void
+override Microsoft.CodeAnalysis.HubServices.Startup.BuildApplication(Owin.IAppBuilder app) -> void

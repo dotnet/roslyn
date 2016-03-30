@@ -1,0 +1,8 @@
+﻿{
+    "Name":"Microsoft.CodeAnalysis.HubServices",
+    "Services": {
+        "SymbolSearch": "SymbolSearch"
+    },
+    "OwinStartupAssemblyName":"Microsoft.CodeAnalysis.HubServices",
+    "OwinStartupClassName":"Microsoft.CodeAnalysis.HubServices.Startup"
+}

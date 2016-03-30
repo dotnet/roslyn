@@ -1,6 +1,4 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
-
-using System;
+﻿using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.IO;
@@ -12,23 +10,16 @@ using System.Threading.Tasks;
 using System.Xml;
 using System.Xml.Linq;
 using Microsoft.CodeAnalysis.Elfie.Model;
-using Microsoft.CodeAnalysis.Packaging;
 using Microsoft.CodeAnalysis.Shared.Utilities;
-using Microsoft.Internal.VisualStudio.Shell.Interop;
-using Roslyn.Utilities;
+using Microsoft.VisualStudio.RemoteControl;
 using static System.FormattableString;
 
-namespace Microsoft.VisualStudio.LanguageServices.Packaging
+namespace Microsoft.CodeAnalysis.HubServices.SymbolSearch
 {
-    /// <summary>
-    /// A service which enables searching for packages matching certain criteria.
-    /// It works against an <see cref="Microsoft.CodeAnalysis.Elfie"/> database to find results.
-    /// 
-    /// This implementation also spawns a task which will attempt to keep that database up to
-    /// date by downloading patches on a daily basis.
-    /// </summary>
-    internal partial class PackageSearchService
+    public partial class SymbolSearchController
     {
+        private static readonly LinkedList<string> s_log = new LinkedList<string>();
+        
         // Internal for testing purposes.
         internal const string ContentAttributeName = "content";
         internal const string ChecksumAttributeName = "checksum";
@@ -38,9 +29,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Packaging
 
         private const string HostId = "RoslynNuGetSearch";
         private const string MicrosoftAssemblyReferencesName = "MicrosoftAssemblyReferences";
-        private static readonly LinkedList<string> s_log = new LinkedList<string>();
-
-        private readonly int _dataFormatVersion = AddReferenceDatabase.TextFileFormatVersion;
 
         /// <summary>
         /// Cancellation support for the task we use to keep the local database up to date.
@@ -49,47 +37,13 @@ namespace Microsoft.VisualStudio.LanguageServices.Packaging
         private readonly CancellationTokenSource _cancellationTokenSource;
         private readonly CancellationToken _cancellationToken;
 
-        private readonly ConcurrentDictionary<string, object> _sourceToUpdateSentinel =
+        private static readonly ConcurrentDictionary<string, object> _sourceToUpdateSentinel =
             new ConcurrentDictionary<string, object>();
 
-        private readonly DirectoryInfo _cacheDirectoryInfo;
-        //private readonly FileInfo _databaseFileInfo;
-
-        // Interfaces that abstract out the external functionality we need.  Used so we can easily
-        // mock behavior during tests.
-        private readonly IPackageInstallerService _installerService;
-        private readonly IPackageSearchDelayService _delayService;
-        private readonly IPackageSearchIOService _ioService;
-        private readonly IPackageSearchLogService _logService;
-        private readonly IPackageSearchRemoteControlService _remoteControlService;
-        private readonly IPackageSearchPatchService _patchService;
-        private readonly IPackageSearchDatabaseFactoryService _databaseFactoryService;
-        private readonly Func<Exception, bool> _reportAndSwallowException;
-
-        public void Dispose()
-        {
-            // Cancel any existing work.
-            _cancellationTokenSource.Cancel();
-        }
-
-        private void LogInfo(string text) => _logService.LogInfo(text);
-
-        private void LogException(Exception e, string text) => _logService.LogException(e, text);
-
-        private void OnPackageSourcesChanged(object sender, EventArgs e)
-        {
-            // Kick off a database update.  Wait a few seconds before starting so we don't
-            // interfere too much with solution loading.
-            var sources = _installerService.PackageSources;
-            foreach (var source in sources)
-            {
-                Task.Delay(TimeSpan.FromSeconds(10)).ContinueWith(_ =>
-                    UpdateSourceInBackgroundAsync(source.Name), TaskScheduler.Default);
-            }
-        }
+        private readonly int _dataFormatVersion = AddReferenceDatabase.TextFileFormatVersion;
 
         // internal for testing purposes.
-        internal Task UpdateSourceInBackgroundAsync(string source)
+        internal async Task UpdateSourceInBackgroundAsync(string cacheDirectory, string source)
         {
             // Only the first thread to try to update this source should succeed
             // and cause us to actually being the update loop. 
@@ -99,28 +53,30 @@ namespace Microsoft.VisualStudio.LanguageServices.Packaging
             if (ourSentinel != currentSentinel)
             {
                 // We already have an update loop for this source.  Nothing for us to do.
-                return SpecializedTasks.EmptyTask;
+                return;
             }
 
             // We were the first ones to try to update this source.  Spawn off a task to do
             // the updating.
-            return new Updater(this, source).UpdateInBackgroundAsync();
+            await new Updater(this, cacheDirectory, source).UpdateInBackgroundAsync().ConfigureAwait(false);
         }
 
         private class Updater
         {
-            private readonly PackageSearchService _service;
+            private readonly SymbolSearchController _service;
             private readonly string _source;
+            private readonly DirectoryInfo _cacheDirectoryInfo;
             private readonly FileInfo _databaseFileInfo;
 
-            public Updater(PackageSearchService service, string source)
+            public Updater(SymbolSearchController service, string cacheDirectory, string source)
             {
                 _service = service;
                 _source = source;
+                _cacheDirectoryInfo = new DirectoryInfo(cacheDirectory);
 
                 var fileName = ConvertToFileName(source);
                 _databaseFileInfo = new FileInfo(
-                    Path.Combine(_service._cacheDirectoryInfo.FullName, fileName + ".txt"));
+                    Path.Combine(_cacheDirectoryInfo.FullName, fileName + ".txt"));
             }
 
             /// <summary>
@@ -233,12 +189,12 @@ namespace Microsoft.VisualStudio.LanguageServices.Packaging
                 _service.LogInfo("Cleaning cache directory");
 
                 // (intentionally not wrapped in IOUtilities.  If this throws we want to restart).
-                if (!_service._ioService.Exists(_service._cacheDirectoryInfo))
+                if (!_service._ioService.Exists(_cacheDirectoryInfo))
                 {
                     _service.LogInfo("Creating cache directory");
 
                     // (intentionally not wrapped in IOUtilities.  If this throws we want to restart).
-                    _service._ioService.Create(_service._cacheDirectoryInfo);
+                    _service._ioService.Create(_cacheDirectoryInfo);
                     _service.LogInfo("Cache directory created");
                 }
 
@@ -311,7 +267,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Packaging
                     () =>
                     {
                         var guidString = Guid.NewGuid().ToString();
-                        var tempFilePath = Path.Combine(_service._cacheDirectoryInfo.FullName, guidString + ".tmp");
+                        var tempFilePath = Path.Combine(_cacheDirectoryInfo.FullName, guidString + ".tmp");
 
                         _service.LogInfo($"Temp file path: {tempFilePath}");
 
@@ -403,7 +359,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Packaging
             private AddReferenceDatabase CreateAndSetInMemoryDatabase(byte[] bytes)
             {
                 var database = CreateDatabaseFromBytes(bytes);
-                _service._sourceToDatabase[_source] = database;
+                SymbolSearchController._sourceToDatabase[_source] = database;
                 return database;
             }
 
@@ -541,13 +497,13 @@ namespace Microsoft.VisualStudio.LanguageServices.Packaging
             }
 
             /// <summary>Returns 'null' if download is not available and caller should keep polling.</summary>
-            private async Task<XElement> TryDownloadFileAsync(IPackageSearchRemoteControlClient client)
+            private async Task<XElement> TryDownloadFileAsync(ISymbolSearchRemoteControlClient client)
             {
                 _service.LogInfo("Read file from client");
 
                 // "ReturnsNull": Only return a file if we have it locally *and* it's not older than our polling time (1 day).
 
-                using (var stream = await client.ReadFileAsync(__VsRemoteControlBehaviorOnStale.ReturnsNull).ConfigureAwait(false))
+                using (var stream = await client.ReadFileAsync(BehaviorOnStale.ReturnNull).ConfigureAwait(false))
                 {
                     if (stream == null)
                     {

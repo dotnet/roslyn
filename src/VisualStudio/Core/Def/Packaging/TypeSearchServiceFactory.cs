@@ -3,25 +3,30 @@
 using System.Collections.Generic;
 using System.Composition;
 using System.Threading;
+using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Packaging;
 using Microsoft.CodeAnalysis.Shared.Options;
+using Microsoft.VisualStudio.LanguageServices.HubServices;
 using Roslyn.Utilities;
 using VSShell = Microsoft.VisualStudio.Shell;
 
 namespace Microsoft.VisualStudio.LanguageServices.Packaging
 {
-    [ExportWorkspaceServiceFactory(typeof(IPackageSearchService), WorkspaceKind.Host), Shared]
-    internal class PackageSearchServiceFactory : IWorkspaceServiceFactory
+    [ExportWorkspaceServiceFactory(typeof(ITypeSearchService), WorkspaceKind.Host), Shared]
+    internal class TypeSearchServiceFactory : IWorkspaceServiceFactory
     {
+        private readonly IHubClient _hubClient;
         private readonly VSShell.SVsServiceProvider _serviceProvider;
 
         [ImportingConstructor]
-        public PackageSearchServiceFactory(
+        public TypeSearchServiceFactory(
+            IHubClient hubClient,
             VSShell.SVsServiceProvider serviceProvider)
         {
+            _hubClient = hubClient;
             _serviceProvider = serviceProvider;
         }
 
@@ -33,19 +38,24 @@ namespace Microsoft.VisualStudio.LanguageServices.Packaging
                 // Only support package search in vs workspace.
                 if (workspaceServices.Workspace is VisualStudioWorkspace)
                 {
-                    return new PackageSearchService(_serviceProvider, workspaceServices.GetService<IPackageInstallerService>());
+                    return new TypeSearchService(_serviceProvider, _hubClient, workspaceServices.GetService<IPackageInstallerService>());
                 }
             }
 
-            return new NullPackageSearchService();
+            return new NullTypeSearchService();
         }
 
-        private class NullPackageSearchService : IPackageSearchService
+        private class NullTypeSearchService : ITypeSearchService
         {
-            public IEnumerable<PackageWithTypeResult> FindPackagesWithType(
+            public Task<IEnumerable<PackageWithTypeResult>> FindPackagesWithTypeAsync(
                 string source, string name, int arity, CancellationToken cancellationToken)
             {
-                return SpecializedCollections.EmptyEnumerable<PackageWithTypeResult>();
+                return Task.FromResult(SpecializedCollections.EmptyEnumerable<PackageWithTypeResult>());
+            }
+
+            public Task<IEnumerable<ReferenceAssemblyWithTypeResult>> FindReferenceAssembliesWithTypeAsync(string name, int arity, CancellationToken cancellationToken)
+            {
+                return Task.FromResult(SpecializedCollections.EmptyEnumerable<ReferenceAssemblyWithTypeResult>());
             }
         }
     }

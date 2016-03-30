@@ -6,12 +6,12 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Microsoft.VisualStudio.LanguageServices.Packaging
+namespace Microsoft.CodeAnalysis.HubServices.SymbolSearch
 {
     /// <summary>
     /// Used so we can mock out how the search service delays work for testing purposes.
     /// </summary>
-    internal interface IPackageSearchDelayService
+    internal interface ISymbolSearchDelayService
     {
         /// <summary>
         /// The time to wait after a successful update (default = 1 day).
