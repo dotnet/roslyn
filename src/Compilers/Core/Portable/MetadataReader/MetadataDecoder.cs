@@ -99,23 +99,25 @@ namespace Microsoft.CodeAnalysis
             TypeSymbol type;
             HandleKind tokenType = token.Kind;
 
-            if (tokenType == HandleKind.TypeDefinition)
+            switch (tokenType)
             {
-                type = GetTypeOfTypeDef((TypeDefinitionHandle)token, out isNoPiaLocalType, isContainingType: false);
-            }
-            else if (tokenType == HandleKind.TypeSpecification)
-            {
-                isNoPiaLocalType = false;
-                type = GetTypeOfTypeSpec((TypeSpecificationHandle)token);
-            }
-            else if (tokenType == HandleKind.TypeReference)
-            {
-                type = GetTypeOfTypeRef((TypeReferenceHandle)token, out isNoPiaLocalType);
-            }
-            else
-            {
-                isNoPiaLocalType = false;
-                type = GetUnsupportedMetadataTypeSymbol();
+                case HandleKind.TypeDefinition:
+                    type = GetTypeOfTypeDef((TypeDefinitionHandle)token, out isNoPiaLocalType, isContainingType: false);
+                    break;
+
+                case HandleKind.TypeSpecification:
+                    isNoPiaLocalType = false;
+                    type = GetTypeOfTypeSpec((TypeSpecificationHandle)token);
+                    break;
+
+                case HandleKind.TypeReference:
+                    type = GetTypeOfTypeRef((TypeReferenceHandle)token, out isNoPiaLocalType);
+                    break;
+
+                default:
+                    isNoPiaLocalType = false;
+                    type = GetUnsupportedMetadataTypeSymbol();
+                    break;
             }
 
             Debug.Assert(type != null);
