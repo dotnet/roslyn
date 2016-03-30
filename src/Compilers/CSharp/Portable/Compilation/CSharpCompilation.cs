@@ -1673,11 +1673,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        internal Binder GetBinder(SyntaxReference reference)
-        {
-            return GetBinderFactory(reference.SyntaxTree).GetBinder((CSharpSyntaxNode)reference.GetSyntax());
-        }
-
         internal Binder GetBinder(CSharpSyntaxNode syntax)
         {
             return GetBinderFactory(syntax.SyntaxTree).GetBinder(syntax);

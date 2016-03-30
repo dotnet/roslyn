@@ -1367,7 +1367,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             var syntaxTree = _syntaxRef.SyntaxTree;
             var syntax = (BasePropertyDeclarationSyntax)_syntaxRef.GetSyntax();
             var binderFactory = compilation.GetBinderFactory(syntaxTree);
-            var binder = binderFactory.GetBinder(syntax);
+            var binder = binderFactory.GetBinder(syntax, syntax, this);
             SyntaxTokenList modifiers = syntax.Modifiers;
             binder = binder.WithUnsafeRegionIfNecessary(modifiers);
             return binder.WithAdditionalFlagsAndContainingMemberOrLambda(BinderFlags.SuppressConstraintChecks, this);

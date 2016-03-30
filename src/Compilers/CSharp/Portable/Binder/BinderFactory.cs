@@ -91,7 +91,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// </summary>
         /// <param name="memberDeclarationOpt"/>
         /// <param name="memberOpt"/>
-        internal Binder GetBinder(CSharpSyntaxNode node, CSharpSyntaxNode memberDeclarationOpt = null, Symbol memberOpt = null)
+        internal Binder GetBinder(CSharpSyntaxNode node, MemberDeclarationSyntax memberDeclarationOpt = null, Symbol memberOpt = null)
         {
             int position = node.SpanStart;
 
@@ -106,7 +106,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return GetBinder(node, position, memberDeclarationOpt, memberOpt);
         }
 
-        internal Binder GetBinder(CSharpSyntaxNode node, int position, CSharpSyntaxNode memberDeclarationOpt = null, Symbol memberOpt = null)
+        internal Binder GetBinder(CSharpSyntaxNode node, int position, MemberDeclarationSyntax memberDeclarationOpt = null, Symbol memberOpt = null)
         {
             Debug.Assert(node != null);
 
