@@ -219,15 +219,17 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
             else if (type.IsNullableType())
             {
-                // This is a semantic error in the binder, so we should not get here.
-                // Not sure what the semantics should be, as (null is Nullable<int>) is false.
+                // While `(o is int?)` is statically an error in the binder, we can get here
+                // through generic substitution. Note that (null is int?) is false.
 
                 // bool Is<T>(object e, out T? t) where T : struct
                 // {
                 //     t = e as T?;
-                //     return e == null || t.HasValue;
+                //     return t.HasValue;
                 // }
-                throw new NotImplementedException();
+                var assignment = _factory.AssignmentExpression(_factory.Local(target), _factory.As(input, type));
+                var result = _factory.Call(_factory.Local(target), GetNullableMethod(syntax, type, SpecialMember.System_Nullable_T_get_HasValue));
+                return _factory.Sequence(assignment, result);
             }
             else if (type.IsValueType)
             {
