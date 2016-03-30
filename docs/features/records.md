@@ -263,6 +263,29 @@ In an `abstract` record class, the compiler-provided `With` method is abstract. 
 
 # 5. Examples
 
+### Compatibility of record types
+
+Because the programmer can add members to a record type declaration, it is often possible to change the set of record elements without affecting existing clients. For example, given an initial version of a record type
+
+```cs
+// v1
+public class Person(string Name, DateTime DateOfBirth);
+```
+
+A new element of the record type can be compatibly added in the next revision of the type without affecting binary or source compatibility:
+
+```cs
+// v2
+public class Person(string Name, DateTime DateOfBirth, string HomeTown)
+{
+    // Note: below operations added to retain binary compatibility with v1
+    public Person(string Name, DateTime DateOfBirth) : this(Name, DateOfBirth, string.Empty) {}
+    public static void operator is(Person self, out string Name, out DateTime DateOfBirth)
+        { Name = self.Name; DateOfBirth = self.DateOfBirth; }
+    public Person With(string Name, DateTime DateOfBirth) => new Person(Name, DateOfBirth);
+}
+```
+
 ### record struct example
 
 This record struct
