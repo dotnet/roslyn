@@ -314,7 +314,7 @@ public struct Pair : IEquatable<Pair>
     {
         return (other as Pair)?.Equals(this) == true;
     }
-    public override GetHashCode()
+    public override int GetHashCode()
     {
         return (First?.GetHashCode()*17 + Second?.GetHashCode()).GetValueOrDefault();
     }
@@ -404,7 +404,7 @@ public abstract class Person : IEquatable<Person>
     {
         return other != null && Equals(Name, other.Name);
     }
-    public override Equals(object other)
+    public override bool Equals(object other)
     {
         return Equals(other as Person);
     }
