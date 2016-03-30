@@ -19,6 +19,7 @@
     <Compile Include="$(MSBuildThisFileDirectory)InteractiveCompiler.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)IVbcHostObject6.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)ManagedCompiler.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)MonoHelpers.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)PropertyDictionary.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)RCWForCurrentContext.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Utilities.cs" />
