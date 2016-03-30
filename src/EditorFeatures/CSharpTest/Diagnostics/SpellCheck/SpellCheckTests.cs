@@ -420,12 +420,12 @@ class C
             await TestAsync(text, expected);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddImport)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSpellcheck)]
         public async Task TestTestObjectConstruction()
         {
             await TestAsync(
 "class AwesomeClass { void M() { var foo = new [|AwesomeClas()|]; } }",
-"class AwesomeClass { void M() { var foo = new AwesomeClass() } }");
+"class AwesomeClass { void M() { var foo = new AwesomeClass(); } }");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSpellcheck)]
