@@ -8,62 +8,62 @@ Pattern matching extensions for C# enable many of the benefits of algebraic data
 The `is` operator is extended to test an expression against a *pattern*.
 
 ```antlr
-relational-expression
-    : relational-expression 'is' complex-pattern
-    | relational-expression 'is' type
+relational_expression
+    : relational_expression 'is' complex_pattern
+    | relational_expression 'is' type
     ;
 ```
 
-It is a compile-time error if *e* does not designate a value or does not have a type.
+This form of *relational_expression* is in addition to the existing forms in the C# specification. It is a compile-time error if the *relational_expression* to the left of the `is` token does not designate a value or does not have a type.
 
 Every *identifier* of the pattern introduces a new local variable that is *definitely assigned* after the `is` operator is `true` (i.e. *definitely assigned when true*).
 
 ## Patterns
 
-Patterns are used in the `is` operator and in a *switch-statement* to express the shape of data against which incoming data is to be compared. Patterns may be recursive so that subparts of the data may be matched against subpatterns.
+Patterns are used in the `is` operator and in a *switch_statement* to express the shape of data against which incoming data is to be compared. Patterns may be recursive so that subparts of the data may be matched against subpatterns.
 
 ```antlr
-complex-pattern
+complex_pattern
     : type identifier
-    | recursive-pattern
-    | recursive-pattern identifier
-    | property-pattern
-    | property-pattern identifier
+    | recursive_pattern
+    | recursive_pattern identifier
+    | property_pattern
+    | property_pattern identifier
     ;
 
-recursive-pattern
+recursive_pattern
     :  type '(' subpattern+ ')'
     ;
 
 subpattern
-    : argument-name? pattern
+    : argument_name? pattern
     ;
 
-property-pattern
-    :  type '{' property-subpattern+ '}'
+property_pattern
+    :  type '{' property_subpattern+ '}'
     ;
 
-property-subpattern
+property_subpattern
     : identifier 'is' pattern
     ;
 
 pattern
-    : simple-pattern
-    | complex-pattern
+    : simple_pattern
+    | complex_pattern
     ;
 
-simple-pattern
-    : constant-pattern
-    | wildcard-pattern
+simple_pattern
+    : constant_pattern
+    | wildcard_pattern
     | 'var' identifier
     ;
 
-wildcard-pattern
+wildcard_pattern
     : '*'
     ;
 
-constant-pattern
-    : shift-expression
+constant_pattern
+    : shift_expression
     ;
 ```
 
@@ -72,12 +72,12 @@ constant-pattern
 The type pattern both tests that an expression is of a given type and casts it to that type if the test succeeds. This introduces a local variable of the given type named by the given identifier. That local variable is *definitely assigned* when the is operator is true.
 
 ```antlr
-complex-pattern
+complex_pattern
     : type identifier
     ;
 ```
 
-The runtime semantic of this expression is that it tests the runtime type of the left-hand *relational-expression* operand against the *type* in the pattern. If it is of that runtime type (or some subtype), the result of the `is operator` is `true` and the local variable is assigned the value of the left-hand operand.
+The runtime semantic of this expression is that it tests the runtime type of the left-hand *relational_expression* operand against the *type* in the pattern. If it is of that runtime type (or some subtype), the result of the `is operator` is `true` and the local variable is assigned the value of the left-hand operand.
 
 Certain combinations of static type of the left-hand-side and the given type are considered incompatible and result in compile-time error. A value of static type `E` is said to be *pattern compatible* with the type `T` if there exists an identity conversion, an implicit reference conversion, a boxing conversion, an explicit reference conversion, or an unboxing conversion from `E` to `T`. It is a compile-time error if an expression of type `E` is not pattern compatible with the type in a type pattern that it is matched with.
 
@@ -112,8 +112,8 @@ A constant pattern tests the runtime value of an expression against a constant v
 An expression *e* matches a constant pattern *c* if `object.Equals(e, c)` returns `true`.
 
 ```antlr
-constant-pattern
-    : constant-expression
+constant_pattern
+    : constant_expression
     ;
 ```
 
@@ -136,64 +136,62 @@ An expression *e* matches the pattern `*` always. In other words, every expressi
 A recursive pattern enables the program to invoke an appropriate `operator is`, and (if the operator returns `true`) perform further pattern matching on the values that are returned from it. In the absence of an `operator is`, if the named type was defined with a *parameter list*, then the properties declared in the type's parameters are read to match subpatterns.
 
 ```antlr
-recursive-pattern
-    : type '(' subpattern-list? ')'
+recursive_pattern
+    : type '(' subpattern_list? ')'
     ;
 ```
 
-Given a match of an expression *e* to the pattern *type* `(` *subpattern-list*<sub>opt</sub> `)`, a method is selected by searching in *type* for accessible declarations of `operator is` and selecting one among them using *match operator overload resolution*. It is a compile-time error if the expression *e* is not *pattern compatible* with the type of the first argument of the selected operator.
+Given a match of an expression *e* to the pattern *type* `(` *subpattern_list* `)`, a method is selected by searching in *type* for accessible declarations of `operator is` and selecting one among them using *match operator overload resolution*. It is a compile-time error if the expression *e* is not *pattern compatible* with the type of the first argument of the selected operator.
 
 - If a suitable `operator is` exists, at runtime, the value of the expression is tested against the type of the first argument as in a type pattern. If this fails then the recursive pattern match fails and the result is `false`. If it succeeds, the operator is invoked with fresh compiler-generated variables to receive the `out` parameters. Each value that was received is matched against the corresponding *subpattern*, and the match succeeds if all of these succeed. The order in which subpatterns are matched is not specified, and a failed match may not match all subpatterns.
 - If no suitable `operator is` was found, and *type* designates a type that was defined with a parameter list, the number of subpatterns must be the same as the number of parameters of the type. In that case the properties declared in the type's parameter list are read and matched against the subpatterns, as above.
 - Otherwise it is an error.
 
-If a *subpattern* has an *argument-name*, then every subsequent *subpattern* must have an *argument-name*. In this case each argument name must match a parameter name (of an overloaded `operator is` in the first bullet above, or of the type's parameter list in the second bullet). [Note: this needs to be made more precise.]
+If a *subpattern* has an *argument_name*, then every subsequent *subpattern* must have an *argument_name*. In this case each argument name must match a parameter name (of an overloaded `operator is` in the first bullet above, or of the type's parameter list in the second bullet). [Note: this needs to be made more precise.]
 
 ### Property Pattern
 
 A property pattern enables the program to recursively match values extracted by the use of properties.
 
 ```antlr
-property-pattern
-    : type '{' property-subpattern+ '}'
+property_pattern
+    : type '{' property_subpattern+ '}'
     ;
 
-property-subpattern
+property_subpattern
     : identifier 'is' pattern
     ;
 ```
 
-Given a match of an expression *e* to the pattern *type* `{` *property-pattern-list* `}`, it is a compile-time error if the expression *e* is not *pattern compatible* with the type *T* designated by *type*.
+Given a match of an expression *e* to the pattern *type* `{` *property_pattern_list* `}`, it is a compile-time error if the expression *e* is not *pattern compatible* with the type *T* designated by *type*.
 
-At runtime, the expression is tested against *T*. If this fails then the property pattern match fails and the result is `false`. If it succeeds, then each of the identifiers appearing on the left-hand-side of its *property-pattern-list* must designate a readable property or field of *T*. Each such field or property is matched against its corresponding pattern, and the result of the whole match is `false` only if the result of any of these is `false`. The order in which subpatterns are matched is not specified, and a failed match may not match all subpatterns at runtime.
+At runtime, the expression is tested against *T*. If this fails then the property pattern match fails and the result is `false`. If it succeeds, then each of the identifiers appearing on the left-hand-side of its *property_pattern_list* must designate a readable property or field of *T*. Each such field or property is matched against its corresponding pattern, and the result of the whole match is `false` only if the result of any of these is `false`. The order in which subpatterns are matched is not specified, and a failed match may not match all subpatterns at runtime.
 
 ### Scope of Pattern Variables
 
 The scope of a pattern variable is as follows:
 
 - If the pattern appears in the condition of an `if` statement, its scope is the condition and controlled statement of the `if` statement, but not its `else` clause.
-- If the pattern appears in the `when` clause of a `catch`, its scope is the *catch-clause*.
-- If the pattern appears in a *switch-label*, its scope is the *switch-section*.
-- If the pattern is the *pattern* of or in the *expression* of a *match-section*, its scope is that *match-section*.
-- If the pattern appears in the `when` clause of a *switch-label* or *match-label*, its scope of that *switch-section* or *match-section*.
-- If the pattern appears in the body of an expression-bodied lambda, its scope is that lambda's body.
-- If the pattern appears in the body of an expression-bodied method or property, its scope is that expression body.
-- If the pattern appears in the body of an expression-bodied local function, its scope is that method body.
-- If the pattern appears in a *ctor-initializer*, its scope is the constructor body.
+- If the pattern appears in the `when` clause of a `catch`, its scope is the *catch_clause*.
+- If the pattern appears in a *switch_label*, its scope is the *switch_section*.
+- If the pattern is the *pattern* of or in the *expression* of a *match_section*, its scope is that *match_section*.
+- If the pattern appears in the `when` clause of a *switch_label* or *match_label*, its scope of that *switch_section* or *match_section*.
+- If the pattern appears in the body of an expression_bodied lambda, its scope is that lambda's body.
+- If the pattern appears in the body of an expression_bodied method or property, its scope is that expression body.
+- If the pattern appears in the body of an expression_bodied local function, its scope is that method body.
+- If the pattern appears in a *ctor_initializer*, its scope is the constructor body.
 - If the pattern appears in a field initializer, its scope is that field initializer.
-- If the pattern appears in the pattern of a *let-statement*, its scope is the enclosing block.
-- If the pattern appears in the pattern of a *case-expression*, its scope is the *case-expression*.
+- If the pattern appears in the pattern of a *let_statement*, its scope is the enclosing block.
+- If the pattern appears in the pattern of a *case_expression*, its scope is the *case_expression*.
 - Otherwise if the pattern appears directly in some *statement*, its scope is that *statement*.
 
 Other cases are errors for other reasons (e.g. in a parameter's default value or an attribute, both of which are an error because those contexts require a constant expression).
 
 The use of a pattern variables is a value, not a variable. In other words pattern variables are read-only.
 
-- [ ] **Open issue**: is this the right scope for *ctor-initializer*?
+## User_defined operator is
 
-## User-defined operator is
-
-An explicit `operator is` may be declared to extend the pattern matching capabilities. Such a method is invoked by the `is` operator or a *switch-statement* with a *recursive-pattern*.
+An explicit `operator is` may be declared to extend the pattern matching capabilities. Such a method is invoked by the `is` operator or a *switch_statement* with a *recursive_pattern*.
 
 For example, suppose we have a type representing a Cartesian point in 2-space:
 
@@ -233,106 +231,106 @@ Which prints `5`.
 The `switch` statement is extended to select for execution the first block having an associated pattern that matches the *switch expression*.
 
 ```antlr
-switch-label
-    : 'case' complex-pattern case-guard? ':'
-    | 'case' constant-expression case-guard? ':'
+switch_label
+    : 'case' complex_pattern case_guard? ':'
+    | 'case' constant_expression case_guard? ':'
     | 'default' ':'
     ;
 
-case-guard
+case_guard
     : 'when' expression
     ;
 ```
 
 [TODO: we need to explain the interaction with definite assignment here.]
-[TODO: we need to describe the scope of pattern variables appearing in the switch-label.]
+[TODO: we need to describe the scope of pattern variables appearing in the *switch_label*.]
 
 The order in which patterns are matched is not defined. A compiler is permitted to match patterns out of order, and to reuse the results of already matched patterns to compute the result of matching of other patterns.
 
 In some cases the compiler can prove that a switch section can have no effect at runtime because its pattern is subsumed by a previous case. In these cases a warning may be produced. [TODO: these warnings should be mandatory and we should specify precisely when they are produced.]
 
-If a *case-guard* is present, its expression of type `bool`. It is evaluated as an additional condition that must be satisfied for the case to be considered satisfied.
+If a *case_guard* is present, its expression of type `bool`. It is evaluated as an additional condition that must be satisfied for the case to be considered satisfied.
 
 ## Match Expression
 
-A *match-expression* is added to support `switch`-like semantics for an expression context.
+A *match_expression* is added to support `switch`-like semantics for an expression context.
 
 The C# language syntax is augmented with the following syntactic productions:
 
 ```antlr
-relational-expression
-    : match-expression
+relational_expression
+    : match_expression
     ;
 
-match-expression
-    : relational-expression 'switch' match-block
+match_expression
+    : relational_expression 'switch' match_block
     ;
 
-match-block
-    : '(' match-sections ','? ')'
+match_block
+    : '(' match_sections ','? ')'
     ;
 
-match-sections
-	: match-section
-	| match-sections ',' match-section
+match_sections
+	: match_section
+	| match_sections ',' match_section
 	;
 
-match-section
-    : 'case' pattern case-guard? ':' expression
+match_section
+    : 'case' pattern case_guard? ':' expression
     ;
 
-case-guard
+case_guard
     : 'when' expression
     ;
 ```
 
-The *match-expression* is not allowed as an *expression-statement*.
+The *match_expression* is not allowed as an *expression_statement*.
 
-The type of the *match-expression* is the *best common type* of the expressions appearing to the right of the `:` tokens of the *match section*s.
+The type of the *match_expression* is the *best common type* of the expressions appearing to the right of the `:` tokens of the *match section*s.
 
-It is an error if the compiler can prove (using a set of techniques that has not yet been specified) that some *match-section*'s pattern cannot affect the result because some previous pattern will always match.
+It is an error if the compiler can prove (using a set of techniques that has not yet been specified) that some *match_section*'s pattern cannot affect the result because some previous pattern will always match.
 
-At runtime, the result of the *match-expression* is the value of the *expression* of the first *match-section* for which the expression on the left-hand-side of the *match-expression* matches the *match-section*'s pattern, and for which the *case-guard* of the *match-section*, if present, evaluates to `true`.
+At runtime, the result of the *match_expression* is the value of the *expression* of the first *match_section* for which the expression on the left-hand-side of the *match_expression* matches the *match_section*'s pattern, and for which the *case_guard* of the *match_section*, if present, evaluates to `true`.
 
 ## Case expression
 
-A *case-expression* is a short-hand version of the *match-expression* where there is only one case.
+A *case_expression* is a shorthand version of the *match_expression* where there is only one case.
 
 ```antlr
-relational-expression
-        : case-expression
+relational_expression
+        : case_expression
         ;
 
-case-expression
-        : shift-expression 'case' pattern ':' shift-expression
+case_expression
+        : shift_expression 'case' pattern ':' shift_expression
         ;
 ```
 
-A *case-expression* of the form *e1* `case` *pattern* `:` *e2* is shorthand for *e1* `switch` `(` `case` *pattern* `:` *e2* `)`
+A *case_expression* of the form *e1* `case` *pattern* `:` *e2* is shorthand for *e1* `switch` `(` `case` *pattern* `:` *e2* `)`
 
 ## Throw expression
 
 We extend the set of expression forms to include
 
 ```antlr
-throw-expression
-    : 'throw' null-coalescing-expression
+throw_expression
+    : 'throw' null_coalescing_expression
     ;
 
-null-coalescing-expression
-    : throw-expression
+null_coalescing_expression
+    : throw_expression
     ;
 ```
 
 The type rules are as follows:
 
-- A *throw-expression* has no type.
-- A *throw-expression* is convertible to every type by an implicit conversion.
+- A *throw_expression* has no type.
+- A *throw_expression* is convertible to every type by an implicit conversion.
 
 The flow-analysis rules are as follows:
 
-- For every variable *v*, *v* is definitely assigned before the *null-coalescing-expression* of a *throw-expression* iff it is definitely assigned before the *throw-expression*.
-- For every variable *v*, *v* is definitely assigned after *throw-expression*.
+- For every variable *v*, *v* is definitely assigned before the *null_coalescing_expression* of a *throw_expression* iff it is definitely assigned before the *throw_expression*.
+- For every variable *v*, *v* is definitely assigned after *throw_expression*.
 
 A *throw expression* is allowed in only the following contexts:
 - As the second or third operand of a ternary conditional operator `?:`
@@ -345,15 +343,15 @@ A *throw expression* is allowed in only the following contexts:
 Inspired by an [F# feature](https://msdn.microsoft.com/en-us/library/dd233238.aspx) and a [conversation on github](https://github.com/dotnet/roslyn/issues/5154#issuecomment-151974994), and similar features in [Swift](https://developer.apple.com/library/ios/documentation/Swift/Conceptual/Swift_Programming_Language/Statements.html) and proposed for [Rust](https://github.com/mbrubeck/rfcs/blob/if-not-let/text/0000-let-else.md), we support decomposition with a *let statement*:
 
 ```antlr
-block-statement
-    : let-statement
+block_statement
+    : let_statement
     ;
 
-let-statement
+let_statement
     : 'let' identifier '=' expression ';'
-    | 'let' complex-pattern '=' expression ';'
-    | 'let' complex-pattern '=' expression 'else' embedded-statement
-    | 'let' complex-pattern '=' expression 'when' expression 'else' embedded-statement
+    | 'let' complex_pattern '=' expression ';'
+    | 'let' complex_pattern '=' expression 'else' embedded_statement
+    | 'let' complex_pattern '=' expression 'when' expression 'else' embedded_statement
     ;
 ```
 
@@ -366,15 +364,15 @@ is shorthand for
 
 > `let` `var` *identifier* `=` *expression* `;`
 
-(i.e. a *var-pattern*) and is a convenient way for declaring a read-only local variable.
+(i.e. a *var_pattern*) and is a convenient way for declaring a read-only local variable.
 
 Semantically, it is an error unless precisely one of the following is true
 - the compiler can prove that the expression always matches the pattern; or
 - an `else` clause is present.
 
-Any pattern variables in the *pattern* are in scope throughout the enclosing block. They are not definitely assigned before the `else` clause. They are definitely assigned after the *let-statement* if there is no `else` clause or they are definitely assigned at the end of the `else` clause (which could only occur because the end point of the `else` clause is unreachable). It is an error to use these variables before their point of definition.
+Any pattern variables in the *pattern* are in scope throughout the enclosing block. They are not definitely assigned before the `else` clause. They are definitely assigned after the *let_statement* if there is no `else` clause or they are definitely assigned at the end of the `else` clause (which could only occur because the end point of the `else` clause is unreachable). It is an error to use these variables before their point of definition.
 
-A *let-statement* is a *block-statement* and not an *embedded-statement* because its primary purpose is to introduce names into the enclosing scope. It therefore does not introduce a dangling-else ambiguity.
+A *let_statement* is a *block_statement* and not an *embedded_statement* because its primary purpose is to introduce names into the enclosing scope. It therefore does not introduce a dangling-else ambiguity.
 
 If a `when` clause is present, the expression following it must be of type `bool`.
 
@@ -382,7 +380,7 @@ At runtime the expression to the right of `=` is evaluated and matched against t
 
 ## Some Possible Optimizations
 
-The compilation of pattern matching can take advantage of common parts of patterns. For example, if the top-level type test of two successive patterns in a *switch-statement* is the same type, the generated code can skip the type test for the second pattern.
+The compilation of pattern matching can take advantage of common parts of patterns. For example, if the top-level type test of two successive patterns in a *switch_statement* is the same type, the generated code can skip the type test for the second pattern.
 
 When some of the patterns are integers or strings, the compiler can generate the same kind of code it generates for a switch-statement in earlier versions of the language.
 
@@ -498,7 +496,7 @@ var areas =
 
 ### Tuple decomposition
 
-The *let-statement* would apply to tuples as follows. Given
+The *let_statement* would apply to tuples as follows. Given
 
 ```cs
 public (int, int) Coordinates => …
@@ -525,12 +523,3 @@ Much of the Roslyn compiler code base, and client code written to use Roslyn for
 * "Views", or user-written operator "is", is useful for treating, for example,
  json as if it is an application-specific data structure. Pattern matching is very convenient for
  dispatching in an actors framework.
-
-## A Open Issues
-
-*	Pattern matching with anonymous types.
-*	Pattern matching with arrays.
-*	Pattern matching with List<T>, Dictionary<K, V>
-*	How should the type `dynamic` interact with pattern matching?
-*	In what situations should the compiler be required by specification to warn about a match that must fail. E.g. switch on a `byte` but case label is out of range?
-*	Should it be possible to name the whole matched thing in a property and/or recursive pattern, like `case Point p (2, int x):` ?
