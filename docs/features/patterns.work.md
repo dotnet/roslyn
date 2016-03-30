@@ -37,6 +37,12 @@ Open design issues (needing LDM decisions)
 - [ ] Should we allow throw expression on right of && and || ? #9453
 - [ ] Should `operator is` be allowed to take a ref first parameter, for example for value types? Is the answer the same as for all other operators?
 - [ ] We need to specify the meaning of the things we need the decision tree for: subsumption, completeness, irrefutable.
+- [ ] Will we support pattern matching with anonymous types?
+- [ ] Will we support pattern matching with arrays?
+- [ ] Will we support pattern matching with List<T>, Dictionary<K, V>?
+- [ ] How should the type `dynamic` interact with pattern matching?
+- [ ] In what situations should the compiler be required by specification to warn about a match that must fail? E.g. switch on a `byte` but case label is out of range?
+- [ ] Should it be possible to name the whole matched thing in a property pattern, like `case Point p { X is 2 }:` ?
 
 Implementation progress checklist:
 - [x] Allow declaration of `operator is` and use it for recursive patterns.
