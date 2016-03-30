@@ -50,11 +50,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.SolutionExplore
 
         private static IReadOnlyCollection<DocumentInfo> GetDocuments(Project project)
         {
-            var projectState = project.State;
             var builder = ArrayBuilder<DocumentInfo>.GetInstance();
-            foreach (var id in projectState.DocumentIds)
+            foreach (var id in project.DocumentIds)
             {
-                var info = projectState.GetDocumentState(id).Info;
+                var info = project.GetDocumentState(id).Info;
                 if (info.IsGenerated)
                 {
                     builder.Add(info);

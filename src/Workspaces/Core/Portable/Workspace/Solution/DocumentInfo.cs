@@ -59,8 +59,6 @@ namespace Microsoft.CodeAnalysis
             string filePath,
             bool isGenerated)
         {
-            Debug.Assert(isGenerated == ((filePath != null) && IsGeneratedFile(filePath)));
-
             if (id == null)
             {
                 throw new ArgumentNullException(nameof(id));
@@ -90,12 +88,6 @@ namespace Microsoft.CodeAnalysis
             bool isGenerated = false)
         {
             return new DocumentInfo(id, name, folders, sourceCodeKind, loader, filePath, isGenerated);
-        }
-
-        internal static bool IsGeneratedFile(string path)
-        {
-            path = path.ToLower();
-            return path.Contains(@"obj\debug\") && !path.Contains(@"obj\debug\temporarygeneratedfile_");
         }
 
         private DocumentInfo With(

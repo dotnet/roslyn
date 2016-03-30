@@ -918,11 +918,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             // We do not want to allow message pumping/reentrancy when processing project system changes.
             using (Dispatcher.CurrentDispatcher.DisableProcessing())
             {
-                if (_miscellaneousFilesWorkspaceOpt != null)
-                {
-                    _miscellaneousFilesWorkspaceOpt.OnFileIncludedInProject(document);
-                }
-
                 _documents.Add(document.Id, document);
                 _documentMonikers.Add(document.Key.Moniker, document);
 

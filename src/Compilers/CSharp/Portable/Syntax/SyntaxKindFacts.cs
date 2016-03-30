@@ -1171,8 +1171,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return SyntaxKind.TypeVarKeyword;
                 case "global":
                     return SyntaxKind.GlobalKeyword;
-                case "nameof":
-                    return SyntaxKind.NameOfKeyword;
                 case "async":
                     return SyntaxKind.AsyncKeyword;
                 case "await":
