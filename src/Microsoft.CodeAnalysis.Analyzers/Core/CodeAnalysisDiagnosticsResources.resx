@@ -141,14 +141,20 @@
   <data name="ApplyDiagnosticAnalyzerAttribute_2" xml:space="preserve">
     <value>Apply DiagnosticAnalyzer attribute for both '{0}' and '{1}'.</value>
   </data>
-  <data name="MissingKindArgumentToRegisterActionMessage" xml:space="preserve">
-    <value>Specify at least one '{0}' of interest while registering a {1} analyzer action.</value>
+  <data name="MissingSymbolKindArgumentToRegisterActionMessage" xml:space="preserve">
+    <value>Specify at least one SymbolKind of interest while registering a symbol analyzer action.</value>
+  </data>
+  <data name="MissingSyntaxKindArgumentToRegisterActionMessage" xml:space="preserve">
+    <value>Specify at least one SyntaxKind of interest while registering a syntax node analyzer action.</value>
+  </data>
+  <data name="MissingOperationKindArgumentToRegisterActionMessage" xml:space="preserve">
+    <value>Specify at least one OperationKind of interest while registering an operation analyzer action.</value>
   </data>
   <data name="MissingKindArgumentToRegisterActionTitle" xml:space="preserve">
     <value>Missing kind argument while registering an analyzer action.</value>
   </data>
   <data name="MissingKindArgumentToRegisterActionDescription" xml:space="preserve">
-    <value>You must specify at least one syntax/symbol kinds of interest while registering a syntax/symbol analyzer action. Otherwise, the registered action will be dead code and will never be invoked during analysis.</value>
+    <value>You must specify at least one syntax/symbol/operation kinds of interest while registering a syntax/symbol/operation analyzer action. Otherwise, the registered action will be dead code and will never be invoked during analysis.</value>
   </data>
   <data name="UnsupportedSymbolKindArgumentToRegisterActionMessage" xml:space="preserve">
     <value>SymbolKind '{0}' is not supported for symbol analyzer actions.</value>

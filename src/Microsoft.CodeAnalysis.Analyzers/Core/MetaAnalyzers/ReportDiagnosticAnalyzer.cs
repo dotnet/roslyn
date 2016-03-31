@@ -52,8 +52,20 @@ namespace Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers
                 return null;
             }
 
-            INamedTypeSymbol codeBlockEndAnalysisContext = compilation.GetTypeByMetadataName(CodeBlockEndAnalysisContextFullName);
-            if (codeBlockEndAnalysisContext == null)
+            INamedTypeSymbol codeBlockAnalysisContext = compilation.GetTypeByMetadataName(CodeBlockAnalysisContextFullName);
+            if (codeBlockAnalysisContext == null)
+            {
+                return null;
+            }
+
+            INamedTypeSymbol operationBlockAnalysisContext = compilation.GetTypeByMetadataName(OperationBlockAnalysisContextFullName);
+            if (operationBlockAnalysisContext == null)
+            {
+                return null;
+            }
+
+            INamedTypeSymbol operationAnalysisContext = compilation.GetTypeByMetadataName(OperationAnalysisContextFullName);
+            if (operationAnalysisContext == null)
             {
                 return null;
             }
@@ -94,8 +106,8 @@ namespace Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers
                 return null;
             }
 
-            ImmutableHashSet<INamedTypeSymbol> contextTypes = ImmutableHashSet.Create(compilationEndAnalysisContext, codeBlockEndAnalysisContext,
-                semanticModelAnalysisContext, symbolAnalysisContext, syntaxNodeAnalysisContext, syntaxTreeAnalysisContext);
+            var contextTypes = ImmutableHashSet.Create(compilationEndAnalysisContext, codeBlockAnalysisContext,
+                operationBlockAnalysisContext, operationAnalysisContext, semanticModelAnalysisContext, symbolAnalysisContext, syntaxNodeAnalysisContext, syntaxTreeAnalysisContext);
 
             return GetAnalyzer(contextTypes, diagnosticType, diagnosticDescriptorType, diagnosticAnalyzer, diagnosticAnalyzerAttribute);
         }

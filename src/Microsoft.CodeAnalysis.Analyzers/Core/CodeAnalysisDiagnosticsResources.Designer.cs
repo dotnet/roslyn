@@ -296,20 +296,11 @@ namespace Microsoft.CodeAnalysis.Analyzers {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to You must specify at least one syntax/symbol kinds of interest while registering a syntax/symbol analyzer action. Otherwise, the registered action will be dead code and will never be invoked during analysis..
+        ///   Looks up a localized string similar to You must specify at least one syntax/symbol/operation kinds of interest while registering a syntax/symbol/operation analyzer action. Otherwise, the registered action will be dead code and will never be invoked during analysis..
         /// </summary>
         internal static string MissingKindArgumentToRegisterActionDescription {
             get {
                 return ResourceManager.GetString("MissingKindArgumentToRegisterActionDescription", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Specify at least one &apos;{0}&apos; of interest while registering a {1} analyzer action..
-        /// </summary>
-        internal static string MissingKindArgumentToRegisterActionMessage {
-            get {
-                return ResourceManager.GetString("MissingKindArgumentToRegisterActionMessage", resourceCulture);
             }
         }
         
@@ -319,6 +310,33 @@ namespace Microsoft.CodeAnalysis.Analyzers {
         internal static string MissingKindArgumentToRegisterActionTitle {
             get {
                 return ResourceManager.GetString("MissingKindArgumentToRegisterActionTitle", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Specify at least one OperationKind of interest while registering an operation analyzer action..
+        /// </summary>
+        internal static string MissingOperationKindArgumentToRegisterActionMessage {
+            get {
+                return ResourceManager.GetString("MissingOperationKindArgumentToRegisterActionMessage", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Specify at least one SymbolKind of interest while registering a symbol analyzer action..
+        /// </summary>
+        internal static string MissingSymbolKindArgumentToRegisterActionMessage {
+            get {
+                return ResourceManager.GetString("MissingSymbolKindArgumentToRegisterActionMessage", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Specify at least one SyntaxKind of interest while registering a syntax node analyzer action..
+        /// </summary>
+        internal static string MissingSyntaxKindArgumentToRegisterActionMessage {
+            get {
+                return ResourceManager.GetString("MissingSyntaxKindArgumentToRegisterActionMessage", resourceCulture);
             }
         }
         
