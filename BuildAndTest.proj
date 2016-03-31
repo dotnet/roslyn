@@ -112,7 +112,7 @@
 
       <!--
       The time reserved for the process watchdog to kill all test processes and obtain crash
-      dumps from them, measure in seconds. Ignored if $(RunProcessWatchdog) is not true.
+      dumps from them, measure in seconds.
       -->
       <BufferTime>300</BufferTime>
 
@@ -120,7 +120,7 @@
       The fully constructed command line which runs a PowerShell script that runs both the
       Core CLR unit tests and the desktop unit tests under the control of the process watchdog.
       -->
-      <RunProcessWatchdogScriptCommand>PowerShell.exe -ExecutionPolicy RemoteSigned .\build\scripts\Run-TestsWithProcessWatchdog.ps1 -ProcessWatchDogExe $(ProcessWatchDogExe) -ProcessWatchdogOutputDirectory $(ProcessWatchdogOutputDirectory) -ProcDumpExe $(ProcDumpExe) -CoreRunExe '$(CoreRunExe)' -CoreRunArgs '$(CoreRunArgs)' -RunTestsExe '$(RunTestsExe)' -RunTestsArgs '$(RunTestsArgs)' -BuildStartTime $(BuildStartTime) -BuildTimeLimit $(BuildTimeLimit) -BufferTime $(BufferTime)</RunProcessWatchdogScriptCommand>
+      <RunProcessWatchdogScriptCommand>PowerShell.exe -ExecutionPolicy RemoteSigned -NoProfile .\build\scripts\Run-TestsWithProcessWatchdog.ps1 -ProcessWatchDogExe $(ProcessWatchDogExe) -ProcessWatchdogOutputDirectory $(ProcessWatchdogOutputDirectory) -ProcDumpExe $(ProcDumpExe) -CoreRunExe '$(CoreRunExe)' -CoreRunArgs '$(CoreRunArgs)' -RunTestsExe '$(RunTestsExe)' -RunTestsArgs '$(RunTestsArgs)' -BuildStartTime $(BuildStartTime) -BuildTimeLimit $(BuildTimeLimit) -BufferTime $(BufferTime)</RunProcessWatchdogScriptCommand>
     </PropertyGroup>
 
     <Exec Condition="'$(RunProcessWatchdog)' == 'true'" Command="$(RunProcessWatchdogScriptCommand)" />

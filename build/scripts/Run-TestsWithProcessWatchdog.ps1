@@ -56,6 +56,11 @@ Param(
     [Parameter(Mandatory=$true)] [int] $BufferTime
 )
 
+Set-StrictMode -Version 2.0
+$ErrorActionPreference = "Stop"
+
+$BuildStartSeconds = [DateTime]::ParseExact($BuildStartTime, "yyyy'-'MM'-'dd'T'HH':'mm':'ss'.'ff", [CultureInfo]::InvariantCulture)
+
 function Check-TimeRemaining($testGroupName)
 {
     $timeRemaining = Get-TimeRemaining
@@ -69,7 +74,7 @@ function Check-TimeRemaining($testGroupName)
 }
 
 function Get-TimeRemaining() {
-    $secondsSinceStart = ([DateTime]::Now - [DateTime]::Parse($BuildStartTime)).TotalSeconds
+    $secondsSinceStart = ([DateTime]::Now - $BuildStartSeconds).TotalSeconds
     [Math]::Truncate($BuildTimeLimit * 60 - $secondsSinceStart - $BufferTime)
 }
 
