@@ -8,11 +8,16 @@ using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.RuntimeMembers;
 using Microsoft.CodeAnalysis.Text;
+using Microsoft.CodeAnalysis.CodeGen;
+using System;
 
 namespace Microsoft.CodeAnalysis.CSharp.Symbols
 {
     internal sealed partial class SynthesizedStringSwitchHashMethod : SynthesizedGlobalMethodSymbol
     {
+        private const uint InitialHashValue = (uint)2166136261;
+        private const int Multiplier = 16777619;
+
         /// <summary>
         /// Compute the hashcode of a sub string using FNV-1a
         /// See http://en.wikipedia.org/wiki/Fowler%E2%80%93Noll%E2%80%93Vo_hash_function
@@ -27,13 +32,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             uint hashCode = 0;
             if (text != null)
             {
-                hashCode = unchecked((uint)2166136261);
+                hashCode = unchecked(InitialHashValue);
 
                 int i = 0;
                 goto start;
 
             again:
-                hashCode = unchecked((text[i] ^ hashCode) * 16777619);
+                hashCode = unchecked((text[i] ^ hashCode) * Multiplier);
                 i = i + 1;
 
             start:
@@ -86,7 +91,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                                 F.Parameter(text),
                                 F.Null(text.Type)),
                             F.Block(
-                                F.Assignment(F.Local(hashCode), F.Literal((uint)2166136261)),
+                                F.Assignment(F.Local(hashCode), F.Literal(InitialHashValue)),
                                 F.Assignment(F.Local(i), F.Literal(0)),
                                 F.Goto(start),
                                 F.Label(again),
@@ -101,7 +106,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                                                     F.Local(i)),
                                                 ConversionKind.ImplicitNumeric),
                                             F.Local(hashCode)),
-                                        F.Literal(16777619))),
+                                        F.Literal(Multiplier))),
                                 F.Assignment(
                                     F.Local(i),
                                     F.Binary(BinaryOperatorKind.Addition, i.Type,
@@ -257,7 +262,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// <param name="methodToInvoke">Method to invoke in constructed body.</param>
         /// <param name="useBaseReference">True for "base.", false for "this.".</param>
         /// <returns>Body for implementedMethod.</returns>
-        internal static BoundBlock ConstructSingleInvocationMethodBody(SyntheticBoundNodeFactory F, MethodSymbol methodToInvoke, bool useBaseReference)
+        internal static BoundBlock ConstructSingleInvocationMethodBody(
+            SyntheticBoundNodeFactory F,
+            MethodSymbol methodToInvoke,
+            bool useBaseReference)
         {
             var argBuilder = ArrayBuilder<BoundExpression>.GetInstance();
             //var refKindBuilder = ArrayBuilder<RefKind>.GetInstance();
@@ -275,6 +283,331 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return F.CurrentMethod.ReturnsVoid
                         ? F.Block(F.ExpressionStatement(invocation), F.Return())
                         : F.Block(F.Return(invocation));
+        }
+    }
+
+    internal class SynthesizedAsIntValueMethod : SynthesizedGlobalMethodSymbol
+    {
+        private readonly Emit.PEModuleBuilder _module;
+
+        public SynthesizedAsIntValueMethod(Emit.PEModuleBuilder module, PrivateImplementationDetails pi)
+            : base(module.SourceModule, pi,
+                   module.Compilation.GetSpecialType(SpecialType.System_Boolean),
+                   PrivateImplementationDetails.AsIntValueName)
+        {
+            this._module = module;
+            var compilation = _module.Compilation;
+            this.SetParameters(ImmutableArray.Create<ParameterSymbol>(
+                new SynthesizedParameterSymbol(this, compilation.GetSpecialType(SpecialType.System_Object), 0, RefKind.None, "o"),
+                new SynthesizedParameterSymbol(this, compilation.GetSpecialType(SpecialType.System_Int32), 1, RefKind.Out, "value")
+                ));
+        }
+
+        internal override void GenerateMethodBody(TypeCompilationState compilationState, DiagnosticBag diagnostics)
+        {
+            ///// <summary>
+            ///// If o is of an integral numeric type and contains a value that is in the range of an int,
+            ///// return true and set the value parameter to that value.
+            ///// </summary>
+            //internal static bool AsIntValue(object o, out int value)
+            //{
+            //    value = 0;
+            //    if (o == null)
+            //    {
+            //        return false;
+            //    }
+            //    Type t = o.GetType();
+            //    if (t == typeof(byte)) { value = (byte)o; return true; }
+            //    if (t == typeof(sbyte)) { value = (sbyte)o; return true; }
+            //    if (t == typeof(short)) { value = (short)o; return true; }
+            //    if (t == typeof(ushort)) { value = (ushort)o; return true; }
+            //    if (t == typeof(int)) { value = (int)o; return true; }
+            //    if (t == typeof(long))
+            //    {
+            //        long l = (long)o;
+            //        value = (int)l;
+            //        return (l >= int.MinValue && l <= int.MaxValue);
+            //    }
+            //    if (t == typeof(uint))
+            //    {
+            //        uint ui = (uint)o;
+            //        value = (int)ui;
+            //        return (ui <= int.MaxValue);
+            //    }
+            //    if (t == typeof(ulong))
+            //    {
+            //        ulong ul = (ulong)o;
+            //        value = (int)ul;
+            //        return (ul <= int.MaxValue);
+            //    }
+            //    // not an integral type
+            //    return false;
+            //}
+            SyntheticBoundNodeFactory F = new SyntheticBoundNodeFactory(
+                this, this.GetNonNullSyntaxNode(), compilationState, diagnostics);
+            F.CurrentMethod = this;
+
+            var _byte = F.SpecialType(SpecialType.System_Byte);
+            var _sbyte = F.SpecialType(SpecialType.System_SByte);
+            var _short = F.SpecialType(SpecialType.System_Int16);
+            var _ushort = F.SpecialType(SpecialType.System_UInt16);
+            var _int = F.SpecialType(SpecialType.System_Int32);
+            var _uint = F.SpecialType(SpecialType.System_UInt32);
+            var _long = F.SpecialType(SpecialType.System_Int64);
+            var _ulong = F.SpecialType(SpecialType.System_UInt64);
+            var _bool = F.SpecialType(SpecialType.System_Boolean);
+
+            var t = F.SynthesizedLocal(F.WellKnownType(WellKnownType.System_Type));
+            var ui = F.SynthesizedLocal(_uint);
+            var l = F.SynthesizedLocal(_long);
+            var ul = F.SynthesizedLocal(_ulong);
+
+            var o = this.Parameters[0];
+            var value = this.Parameters[1];
+            var object_getTypeMethod = F.WellKnownMethod(WellKnownMember.System_Object__GetType);
+
+            var body = F.Block(ImmutableArray.Create(t),
+                //    value = 0;
+                F.Assignment(F.Parameter(value), F.Literal(0)),
+                //    if (o == null) return false;
+                F.If(F.ObjectEqual(F.Parameter(o), F.Null(o.Type)), F.Return(F.Literal(false))),
+                //    Type t = o.GetType();
+                F.Assignment(F.Local(t), F.Call(F.Parameter(o), object_getTypeMethod)),
+                //    if (t == typeof(byte)) { value = (byte)o; return true; }
+                F.If(F.ObjectEqual(F.Local(t), F.Typeof(_byte)), F.Block(
+                    F.Assignment(F.Parameter(value), F.Convert(_int, F.Convert(_byte, F.Parameter(o)))),
+                    F.Return(F.Literal(true)))),
+                //    if (t == typeof(sbyte)) { value = (sbyte)o; return true; }
+                F.If(F.ObjectEqual(F.Local(t), F.Typeof(_sbyte)), F.Block(
+                    F.Assignment(F.Parameter(value), F.Convert(_int, F.Convert(_sbyte, F.Parameter(o)))),
+                    F.Return(F.Literal(true)))),
+                //    if (t == typeof(short)) { value = (short)o; return true; }
+                F.If(F.ObjectEqual(F.Local(t), F.Typeof(_short)), F.Block(
+                    F.Assignment(F.Parameter(value), F.Convert(_int, F.Convert(_short, F.Parameter(o)))),
+                    F.Return(F.Literal(true)))),
+                //    if (t == typeof(ushort)) { value = (ushort)o; return true; }
+                F.If(F.ObjectEqual(F.Local(t), F.Typeof(_ushort)), F.Block(
+                    F.Assignment(F.Parameter(value), F.Convert(_int, F.Convert(_ushort, F.Parameter(o)))),
+                    F.Return(F.Literal(true)))),
+                //    if (t == typeof(int)) { value = (int)o; return true; }
+                F.If(F.ObjectEqual(F.Local(t), F.Typeof(_int)), F.Block(
+                    F.Assignment(F.Parameter(value), F.Convert(_int, F.Parameter(o))),
+                    F.Return(F.Literal(true)))),
+                //    if (t == typeof(long))
+                //    {
+                //        long l = (long)o;
+                //        value = (int)l;
+                //        return (l >= int.MinValue && l <= int.MaxValue);
+                //    }
+                F.If(F.ObjectEqual(F.Local(t), F.Typeof(_long)), F.Block(ImmutableArray.Create(l),
+                    F.Assignment(F.Local(l), F.Convert(_long, F.Parameter(o))),
+                    F.Assignment(F.Parameter(value), F.Convert(_int, F.Local(l))),
+                    F.Return(F.LogicalAnd(F.Binary(BinaryOperatorKind.LongGreaterThanOrEqual, _bool, F.Local(l), F.Literal((long)int.MinValue)),
+                                            F.Binary(BinaryOperatorKind.LongLessThanOrEqual, _bool, F.Local(l), F.Literal((long)int.MaxValue))))
+                    )),
+                //    if (t == typeof(uint))
+                //    {
+                //        uint ui = (uint)o;
+                //        value = (int)ui;
+                //        return (ui <= int.MaxValue);
+                //    }
+                F.If(F.ObjectEqual(F.Local(t), F.Typeof(_uint)), F.Block(ImmutableArray.Create(ui),
+                    F.Assignment(F.Local(ui), F.Convert(_uint, F.Parameter(o))),
+                    F.Assignment(F.Parameter(value), F.Convert(_int, F.Local(ui))),
+                    F.Return(F.Binary(BinaryOperatorKind.UIntLessThanOrEqual, _bool, F.Local(ui), F.Literal((uint)int.MaxValue)))
+                    )),
+                //    if (t == typeof(ulong))
+                //    {
+                //        ulong ul = (ulong)o;
+                //        value = (int)ul;
+                //        return (ul <= int.MaxValue);
+                //    }
+                F.If(F.ObjectEqual(F.Local(t), F.Typeof(_ulong)), F.Block(ImmutableArray.Create(ul),
+                    F.Assignment(F.Local(ul), F.Convert(_ulong, F.Parameter(o))),
+                    F.Assignment(F.Parameter(value), F.Convert(_int, F.Local(ul))),
+                    F.Return(F.Binary(BinaryOperatorKind.ULongLessThanOrEqual, _bool, F.Local(ul), F.Literal((ulong)int.MaxValue)))
+                    )),
+                //    // not an integral type
+                //    return false;
+                F.Return(F.Literal(false))
+                );
+
+            // NOTE: we created this block in its most-lowered form, so analysis is unnecessary
+            F.CloseMethod(body);
+        }
+    }
+
+    internal class SynthesizedAsLargePositiveMethod : SynthesizedGlobalMethodSymbol
+    {
+        private readonly Emit.PEModuleBuilder _module;
+
+        public SynthesizedAsLargePositiveMethod(Emit.PEModuleBuilder module, PrivateImplementationDetails pi)
+            : base(module.SourceModule, pi,
+                   module.Compilation.GetSpecialType(SpecialType.System_Boolean),
+                   PrivateImplementationDetails.AsLargePositiveName)
+        {
+            this._module = module;
+            var compilation = module.Compilation;
+            this.SetParameters(ImmutableArray.Create<ParameterSymbol>(
+                new SynthesizedParameterSymbol(this, compilation.GetSpecialType(SpecialType.System_Object), 0, RefKind.None, "o"),
+                new SynthesizedParameterSymbol(this, compilation.GetSpecialType(SpecialType.System_UInt64), 1, RefKind.Out, "value")
+                ));
+        }
+        internal override void GenerateMethodBody(TypeCompilationState compilationState, DiagnosticBag diagnostics)
+        {
+            ///// <summary>
+            ///// If o is of an integral numeric type and contains a value that is greater than any value of int,
+            ///// return true and set the value parameter to that value.
+            ///// </summary>
+            //internal static bool AsLargePositive(object o, out ulong value)
+            //{
+            //    value = 0;
+            //    if (o == null) return false;
+            //    Type t = o.GetType();
+            //    if (t == typeof(uint))
+            //    {
+            //        uint ui = (uint)o;
+            //        value = (ulong)ui;
+            //        return (ui > int.MaxValue);
+            //    }
+            //    if (t == typeof(long))
+            //    {
+            //        long l = (long)o;
+            //        value = (ulong)l;
+            //        return (l > int.MaxValue);
+            //    }
+            //    if (t == typeof(ulong))
+            //    {
+            //        value = (ulong)o;
+            //        return (value > int.MaxValue);
+            //    }
+            //    return false;
+            //}
+            SyntheticBoundNodeFactory F = new SyntheticBoundNodeFactory(
+                this, this.GetNonNullSyntaxNode(), compilationState, diagnostics);
+            F.CurrentMethod = this;
+
+            var _uint = F.SpecialType(SpecialType.System_UInt32);
+            var _long = F.SpecialType(SpecialType.System_Int64);
+            var _ulong = F.SpecialType(SpecialType.System_UInt64);
+            var _bool = F.SpecialType(SpecialType.System_Boolean);
+
+            var t = F.SynthesizedLocal(F.WellKnownType(WellKnownType.System_Type));
+            var ui = F.SynthesizedLocal(_uint);
+            var l = F.SynthesizedLocal(_long);
+
+            var o = this.Parameters[0];
+            var value = this.Parameters[1];
+            var object_getTypeMethod = F.WellKnownMethod(WellKnownMember.System_Object__GetType);
+
+            var body = F.Block(ImmutableArray.Create(t),
+                //    value = 0;
+                F.Assignment(F.Parameter(value), F.Literal(0UL)),
+                //    if (o == null) return false;
+                F.If(F.ObjectEqual(F.Parameter(o), F.Null(o.Type)), F.Return(F.Literal(false))),
+                //    Type t = o.GetType();
+                F.Assignment(F.Local(t), F.Call(F.Parameter(o), object_getTypeMethod)),
+                //    if (t == typeof(uint))
+                //    {
+                //        uint ui = (uint)o;
+                //        value = (ulong)ui;
+                //        return (ui > int.MaxValue);
+                //    }
+                F.If(F.ObjectEqual(F.Local(t), F.Typeof(_uint)), F.Block(ImmutableArray.Create(ui),
+                    F.Assignment(F.Local(ui), F.Convert(_uint, F.Parameter(o))),
+                    F.Assignment(F.Parameter(value), F.Convert(_ulong, F.Local(ui))),
+                    F.Return(F.Binary(BinaryOperatorKind.UIntGreaterThan, _bool, F.Local(ui), F.Literal((uint)int.MaxValue)))
+                    )),
+                //    if (t == typeof(long))
+                //    {
+                //        long l = (long)o;
+                //        value = (ulong)l;
+                //        return (l > int.MaxValue);
+                //    }
+                F.If(F.ObjectEqual(F.Local(t), F.Typeof(_long)), F.Block(ImmutableArray.Create(l),
+                    F.Assignment(F.Local(l), F.Convert(_long, F.Parameter(o))),
+                    F.Assignment(F.Parameter(value), F.Convert(_ulong, F.Local(l))),
+                    F.Return(F.Binary(BinaryOperatorKind.LongGreaterThan, _bool, F.Local(l), F.Literal((long)int.MinValue)))
+                    )),
+                //    if (t == typeof(ulong))
+                //    {
+                //        value = (ulong)o;
+                //        return (value > int.MaxValue);
+                //    }
+                F.If(F.ObjectEqual(F.Local(t), F.Typeof(_ulong)), F.Block(
+                    F.Assignment(F.Parameter(value), F.Convert(_ulong, F.Parameter(o))),
+                    F.Return(F.Binary(BinaryOperatorKind.ULongGreaterThan, _bool, F.Parameter(value), F.Literal((ulong)int.MaxValue)))
+                    )),
+                //    return false;
+                F.Return(F.Literal(false))
+                );
+
+            // NOTE: we created this block in its most-lowered form, so analysis is unnecessary
+            F.CloseMethod(body);
+        }
+    }
+
+    internal class SynthesizedAsLargeNegativeMethod : SynthesizedGlobalMethodSymbol
+    {
+        private readonly Emit.PEModuleBuilder _module;
+
+        public SynthesizedAsLargeNegativeMethod(Emit.PEModuleBuilder module, PrivateImplementationDetails pi)
+            : base(module.SourceModule, pi, module.Compilation.GetSpecialType(SpecialType.System_Boolean), PrivateImplementationDetails.AsLargeNegativeName)
+        {
+            this._module = module;
+            var compilation = module.Compilation;
+            this.SetParameters(ImmutableArray.Create<ParameterSymbol>(
+                new SynthesizedParameterSymbol(this, compilation.GetSpecialType(SpecialType.System_Object), 0, RefKind.None, "o"),
+                new SynthesizedParameterSymbol(this, compilation.GetSpecialType(SpecialType.System_Int64), 1, RefKind.Out, "value")
+                ));
+        }
+
+        internal override void GenerateMethodBody(TypeCompilationState compilationState, DiagnosticBag diagnostics)
+        {
+            ///// <summary>
+            ///// If o is of an integral numeric type and contains a value that is less than any value of int,
+            ///// return true and set the value parameter to that value. Note that this can only occur when
+            ///// o is of type long.
+            ///// </summary>
+            //internal static bool AsLargeNegative(object o, out long value)
+            //{
+            //    if (o == null || o.GetType() != typeof(long))
+            //    {
+            //        value = 0;
+            //        return false;
+            //    }
+            //    value = (long)o;
+            //    return value < int.MinValue;
+            //}
+            SyntheticBoundNodeFactory F = new SyntheticBoundNodeFactory(
+                this, this.GetNonNullSyntaxNode(), compilationState, diagnostics);
+            F.CurrentMethod = this;
+
+            var _long = F.SpecialType(SpecialType.System_Int64);
+            var _bool = F.SpecialType(SpecialType.System_Boolean);
+
+            var o = this.Parameters[0];
+            var value = this.Parameters[1];
+            var object_getTypeMethod = F.WellKnownMethod(WellKnownMember.System_Object__GetType);
+
+            var body = F.Block(
+                //    if (o == null || o.GetType() != typeof(long))
+                //    {
+                //        value = 0;
+                //        return false;
+                //    }
+                F.If(F.LogicalOr(F.ObjectEqual(F.Parameter(o), F.Null(o.Type)), F.ObjectEqual(F.Call(F.Parameter(o), object_getTypeMethod), F.Typeof(_long))),
+                    F.Block(
+                        F.Assignment(F.Parameter(value), F.Literal(0L))),
+                        F.Return(F.Literal(false))),
+                //    value = (long)o;
+                F.Assignment(F.Parameter(value), F.Convert(_long, F.Parameter(o))),
+                //    return value < int.MinValue;
+                F.Return(F.Binary(BinaryOperatorKind.LongLessThan, _bool, F.Parameter(value), F.Literal((long)int.MinValue)))
+                );
+
+            // NOTE: we created this block in its most-lowered form, so analysis is unnecessary
+            F.CloseMethod(body);
         }
     }
 }

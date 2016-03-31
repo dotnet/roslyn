@@ -11893,43 +11893,308 @@ System.NullReferenceException");
         }
 
         [Fact]
-
-        public void NullableFromGenericOperatorIs()
+        public void PatternMatchingNumericHelpers()
         {
             var source = @"
-using System;
-class Program
+public static class Program
 {
-    static void Main(string[] args)
+    public static void Main()
     {
-        Console.WriteLine(((byte)1) is Odd<byte>());
-        Console.WriteLine(((byte)1) is Odd<byte?>());
-        Console.WriteLine(((byte)2) is Odd<byte>());
-        Console.WriteLine(((byte)2) is Odd<byte?>());
-        Console.WriteLine(string.Empty is Odd<string>());
+        AssertTrue(Box((byte)(0)) is (byte)(0));
+        AssertTrue(Box((byte)(0)) is (sbyte)(0));
+        AssertTrue(Box((byte)(0)) is (short)(0));
+        AssertTrue(Box((byte)(0)) is (ushort)(0));
+        AssertTrue(Box((byte)(0)) is (int)(0));
+        AssertTrue(Box((byte)(0)) is (uint)(0U));
+        AssertTrue(Box((byte)(0)) is (long)(0L));
+        AssertTrue(Box((byte)(0)) is (ulong)(0UL));
+        AssertTrue(Box((byte)(1)) is (byte)(1));
+        AssertTrue(Box((byte)(1)) is (sbyte)(1));
+        AssertTrue(Box((byte)(1)) is (short)(1));
+        AssertTrue(Box((byte)(1)) is (ushort)(1));
+        AssertTrue(Box((byte)(1)) is (int)(1));
+        AssertTrue(Box((byte)(1)) is (uint)(1U));
+        AssertTrue(Box((byte)(1)) is (long)(1L));
+        AssertTrue(Box((byte)(1)) is (ulong)(1UL));
+        AssertTrue(Box((byte)(255)) is (byte)(255));
+        AssertTrue(Box((sbyte)(-128)) is (sbyte)(-128));
+        AssertTrue(Box((sbyte)(0)) is (byte)(0));
+        AssertTrue(Box((sbyte)(0)) is (sbyte)(0));
+        AssertTrue(Box((sbyte)(0)) is (short)(0));
+        AssertTrue(Box((sbyte)(0)) is (ushort)(0));
+        AssertTrue(Box((sbyte)(0)) is (int)(0));
+        AssertTrue(Box((sbyte)(0)) is (uint)(0U));
+        AssertTrue(Box((sbyte)(0)) is (long)(0L));
+        AssertTrue(Box((sbyte)(0)) is (ulong)(0UL));
+        AssertTrue(Box((sbyte)(1)) is (byte)(1));
+        AssertTrue(Box((sbyte)(1)) is (sbyte)(1));
+        AssertTrue(Box((sbyte)(1)) is (short)(1));
+        AssertTrue(Box((sbyte)(1)) is (ushort)(1));
+        AssertTrue(Box((sbyte)(1)) is (int)(1));
+        AssertTrue(Box((sbyte)(1)) is (uint)(1U));
+        AssertTrue(Box((sbyte)(1)) is (long)(1L));
+        AssertTrue(Box((sbyte)(1)) is (ulong)(1UL));
+        AssertTrue(Box((sbyte)(127)) is (sbyte)(127));
+        AssertTrue(Box((short)(-32768)) is (short)(-32768));
+        AssertTrue(Box((short)(0)) is (byte)(0));
+        AssertTrue(Box((short)(0)) is (sbyte)(0));
+        AssertTrue(Box((short)(0)) is (short)(0));
+        AssertTrue(Box((short)(0)) is (ushort)(0));
+        AssertTrue(Box((short)(0)) is (int)(0));
+        AssertTrue(Box((short)(0)) is (uint)(0U));
+        AssertTrue(Box((short)(0)) is (long)(0L));
+        AssertTrue(Box((short)(0)) is (ulong)(0UL));
+        AssertTrue(Box((short)(1)) is (byte)(1));
+        AssertTrue(Box((short)(1)) is (sbyte)(1));
+        AssertTrue(Box((short)(1)) is (short)(1));
+        AssertTrue(Box((short)(1)) is (ushort)(1));
+        AssertTrue(Box((short)(1)) is (int)(1));
+        AssertTrue(Box((short)(1)) is (uint)(1U));
+        AssertTrue(Box((short)(1)) is (long)(1L));
+        AssertTrue(Box((short)(1)) is (ulong)(1UL));
+        AssertTrue(Box((short)(32767)) is (short)(32767));
+        AssertTrue(Box((ushort)(0)) is (byte)(0));
+        AssertTrue(Box((ushort)(0)) is (sbyte)(0));
+        AssertTrue(Box((ushort)(0)) is (short)(0));
+        AssertTrue(Box((ushort)(0)) is (ushort)(0));
+        AssertTrue(Box((ushort)(0)) is (int)(0));
+        AssertTrue(Box((ushort)(0)) is (uint)(0U));
+        AssertTrue(Box((ushort)(0)) is (long)(0L));
+        AssertTrue(Box((ushort)(0)) is (ulong)(0UL));
+        AssertTrue(Box((ushort)(1)) is (byte)(1));
+        AssertTrue(Box((ushort)(1)) is (sbyte)(1));
+        AssertTrue(Box((ushort)(1)) is (short)(1));
+        AssertTrue(Box((ushort)(1)) is (ushort)(1));
+        AssertTrue(Box((ushort)(1)) is (int)(1));
+        AssertTrue(Box((ushort)(1)) is (uint)(1U));
+        AssertTrue(Box((ushort)(1)) is (long)(1L));
+        AssertTrue(Box((ushort)(1)) is (ulong)(1UL));
+        AssertTrue(Box((ushort)(65535)) is (ushort)(65535));
+        AssertTrue(Box((int)(-2147483648)) is (int)(-2147483648));
+        AssertTrue(Box((int)(0)) is (byte)(0));
+        AssertTrue(Box((int)(0)) is (sbyte)(0));
+        AssertTrue(Box((int)(0)) is (short)(0));
+        AssertTrue(Box((int)(0)) is (ushort)(0));
+        AssertTrue(Box((int)(0)) is (int)(0));
+        AssertTrue(Box((int)(0)) is (uint)(0U));
+        AssertTrue(Box((int)(0)) is (long)(0L));
+        AssertTrue(Box((int)(0)) is (ulong)(0UL));
+        AssertTrue(Box((int)(1)) is (byte)(1));
+        AssertTrue(Box((int)(1)) is (sbyte)(1));
+        AssertTrue(Box((int)(1)) is (short)(1));
+        AssertTrue(Box((int)(1)) is (ushort)(1));
+        AssertTrue(Box((int)(1)) is (int)(1));
+        AssertTrue(Box((int)(1)) is (uint)(1U));
+        AssertTrue(Box((int)(1)) is (long)(1L));
+        AssertTrue(Box((int)(1)) is (ulong)(1UL));
+        AssertTrue(Box((int)(2147483647)) is (int)(2147483647));
+        AssertTrue(Box((int)(2147483647)) is (uint)(2147483647U));
+        AssertTrue(Box((int)(2147483647)) is (long)(2147483647L));
+        AssertTrue(Box((int)(2147483647)) is (ulong)(2147483647UL));
+        AssertTrue(Box((uint)(0U)) is (byte)(0));
+        AssertTrue(Box((uint)(0U)) is (sbyte)(0));
+        AssertTrue(Box((uint)(0U)) is (short)(0));
+        AssertTrue(Box((uint)(0U)) is (ushort)(0));
+        AssertTrue(Box((uint)(0U)) is (int)(0));
+        AssertTrue(Box((uint)(0U)) is (uint)(0U));
+        AssertTrue(Box((uint)(0U)) is (long)(0L));
+        AssertTrue(Box((uint)(0U)) is (ulong)(0UL));
+        AssertTrue(Box((uint)(1U)) is (byte)(1));
+        AssertTrue(Box((uint)(1U)) is (sbyte)(1));
+        AssertTrue(Box((uint)(1U)) is (short)(1));
+        AssertTrue(Box((uint)(1U)) is (ushort)(1));
+        AssertTrue(Box((uint)(1U)) is (int)(1));
+        AssertTrue(Box((uint)(1U)) is (uint)(1U));
+        AssertTrue(Box((uint)(1U)) is (long)(1L));
+        AssertTrue(Box((uint)(1U)) is (ulong)(1UL));
+        AssertTrue(Box((uint)(2147483647U)) is (int)(2147483647));
+        AssertTrue(Box((uint)(2147483647U)) is (uint)(2147483647U));
+        AssertTrue(Box((uint)(2147483647U)) is (long)(2147483647L));
+        AssertTrue(Box((uint)(2147483647U)) is (ulong)(2147483647UL));
+        AssertTrue(Box((uint)(2147483648U)) is (uint)(2147483648U));
+        AssertTrue(Box((uint)(2147483648U)) is (long)(2147483648L));
+        AssertTrue(Box((uint)(2147483648U)) is (ulong)(2147483648UL));
+        AssertTrue(Box((uint)(4294967295U)) is (uint)(4294967295U));
+        AssertTrue(Box((long)(-9223372036854775808L)) is (long)(-9223372036854775808L));
+        AssertTrue(Box((long)(0L)) is (byte)(0));
+        AssertTrue(Box((long)(0L)) is (sbyte)(0));
+        AssertTrue(Box((long)(0L)) is (short)(0));
+        AssertTrue(Box((long)(0L)) is (ushort)(0));
+        AssertTrue(Box((long)(0L)) is (int)(0));
+        AssertTrue(Box((long)(0L)) is (uint)(0U));
+        AssertTrue(Box((long)(0L)) is (long)(0L));
+        AssertTrue(Box((long)(0L)) is (ulong)(0UL));
+        AssertTrue(Box((long)(1L)) is (byte)(1));
+        AssertTrue(Box((long)(1L)) is (sbyte)(1));
+        AssertTrue(Box((long)(1L)) is (short)(1));
+        AssertTrue(Box((long)(1L)) is (ushort)(1));
+        AssertTrue(Box((long)(1L)) is (int)(1));
+        AssertTrue(Box((long)(1L)) is (uint)(1U));
+        AssertTrue(Box((long)(1L)) is (long)(1L));
+        AssertTrue(Box((long)(1L)) is (ulong)(1UL));
+        AssertTrue(Box((long)(2147483647L)) is (int)(2147483647));
+        AssertTrue(Box((long)(2147483647L)) is (uint)(2147483647U));
+        AssertTrue(Box((long)(2147483647L)) is (long)(2147483647L));
+        AssertTrue(Box((long)(2147483647L)) is (ulong)(2147483647UL));
+        AssertTrue(Box((long)(2147483648L)) is (uint)(2147483648U));
+        AssertTrue(Box((long)(2147483648L)) is (long)(2147483648L));
+        AssertTrue(Box((long)(2147483648L)) is (ulong)(2147483648UL));
+        AssertTrue(Box((long)(9223372036854775807L)) is (long)(9223372036854775807L));
+        AssertTrue(Box((ulong)(0UL)) is (byte)(0));
+        AssertTrue(Box((ulong)(0UL)) is (sbyte)(0));
+        AssertTrue(Box((ulong)(0UL)) is (short)(0));
+        AssertTrue(Box((ulong)(0UL)) is (ushort)(0));
+        AssertTrue(Box((ulong)(0UL)) is (int)(0));
+        AssertTrue(Box((ulong)(0UL)) is (uint)(0U));
+        AssertTrue(Box((ulong)(0UL)) is (long)(0L));
+        AssertTrue(Box((ulong)(0UL)) is (ulong)(0UL));
+        AssertTrue(Box((ulong)(1UL)) is (byte)(1));
+        AssertTrue(Box((ulong)(1UL)) is (sbyte)(1));
+        AssertTrue(Box((ulong)(1UL)) is (short)(1));
+        AssertTrue(Box((ulong)(1UL)) is (ushort)(1));
+        AssertTrue(Box((ulong)(1UL)) is (int)(1));
+        AssertTrue(Box((ulong)(1UL)) is (uint)(1U));
+        AssertTrue(Box((ulong)(1UL)) is (long)(1L));
+        AssertTrue(Box((ulong)(1UL)) is (ulong)(1UL));
+        AssertTrue(Box((ulong)(2147483647UL)) is (int)(2147483647));
+        AssertTrue(Box((ulong)(2147483647UL)) is (uint)(2147483647U));
+        AssertTrue(Box((ulong)(2147483647UL)) is (long)(2147483647L));
+        AssertTrue(Box((ulong)(2147483647UL)) is (ulong)(2147483647UL));
+        AssertTrue(Box((ulong)(2147483648UL)) is (uint)(2147483648U));
+        AssertTrue(Box((ulong)(2147483648UL)) is (long)(2147483648L));
+        AssertTrue(Box((ulong)(2147483648UL)) is (ulong)(2147483648UL));
+        AssertTrue(Box((ulong)(18446744073709551615UL)) is (ulong)(18446744073709551615UL));
+        AssertFalse(Box((byte)(0)) is (sbyte)(127));
+        AssertFalse(Box((byte)(0)) is (short)(-32768));
+        AssertFalse(Box((byte)(0)) is (int)(2147483647));
+        AssertFalse(Box((byte)(0)) is (ulong)(1UL));
+        AssertFalse(Box((byte)(0)) is (ulong)(18446744073709551615UL));
+        AssertFalse(Box((byte)(1)) is (byte)(0));
+        AssertFalse(Box((byte)(1)) is (sbyte)(-128));
+        AssertFalse(Box((byte)(1)) is (int)(0));
+        AssertFalse(Box((byte)(255)) is (byte)(0));
+        AssertFalse(Box((byte)(255)) is (short)(0));
+        AssertFalse(Box((byte)(255)) is (int)(0));
+        AssertFalse(Box((byte)(255)) is (uint)(1U));
+        AssertFalse(Box((sbyte)(-128)) is (byte)(255));
+        AssertFalse(Box((sbyte)(-128)) is (short)(0));
+        AssertFalse(Box((sbyte)(-128)) is (short)(1));
+        AssertFalse(Box((sbyte)(-128)) is (ushort)(65535));
+        AssertFalse(Box((sbyte)(-128)) is (int)(1));
+        AssertFalse(Box((sbyte)(-128)) is (uint)(0U));
+        AssertFalse(Box((sbyte)(-128)) is (uint)(4294967295U));
+        AssertFalse(Box((sbyte)(0)) is (byte)(255));
+        AssertFalse(Box((sbyte)(0)) is (sbyte)(1));
+        AssertFalse(Box((sbyte)(0)) is (ushort)(65535));
+        AssertFalse(Box((sbyte)(0)) is (int)(1));
+        AssertFalse(Box((sbyte)(0)) is (uint)(4294967295U));
+        AssertFalse(Box((sbyte)(1)) is (short)(32767));
+        AssertFalse(Box((sbyte)(1)) is (int)(0));
+        AssertFalse(Box((sbyte)(1)) is (uint)(2147483647U));
+        AssertFalse(Box((sbyte)(127)) is (int)(-2147483648));
+        AssertFalse(Box((sbyte)(127)) is (int)(0));
+        AssertFalse(Box((sbyte)(127)) is (uint)(2147483647U));
+        AssertFalse(Box((short)(-32768)) is (byte)(255));
+        AssertFalse(Box((short)(0)) is (byte)(1));
+        AssertFalse(Box((short)(0)) is (sbyte)(1));
+        AssertFalse(Box((short)(0)) is (int)(1));
+        AssertFalse(Box((short)(0)) is (long)(2147483647L));
+        AssertFalse(Box((short)(0)) is (long)(2147483648L));
+        AssertFalse(Box((short)(0)) is (ulong)(1UL));
+        AssertFalse(Box((short)(1)) is (short)(32767));
+        AssertFalse(Box((short)(1)) is (uint)(2147483648U));
+        AssertFalse(Box((short)(1)) is (long)(-9223372036854775808L));
+        AssertFalse(Box((short)(32767)) is (long)(0L));
+        AssertFalse(Box((short)(32767)) is (long)(2147483648L));
+        AssertFalse(Box((short)(32767)) is (ulong)(1UL));
+        AssertFalse(Box((ushort)(0)) is (short)(32767));
+        AssertFalse(Box((ushort)(1)) is (sbyte)(-128));
+        AssertFalse(Box((ushort)(1)) is (int)(0));
+        AssertFalse(Box((ushort)(1)) is (long)(2147483648L));
+        AssertFalse(Box((ushort)(65535)) is (byte)(0));
+        AssertFalse(Box((ushort)(65535)) is (byte)(255));
+        AssertFalse(Box((ushort)(65535)) is (ushort)(0));
+        AssertFalse(Box((int)(-2147483648)) is (byte)(255));
+        AssertFalse(Box((int)(-2147483648)) is (short)(1));
+        AssertFalse(Box((int)(-2147483648)) is (uint)(1U));
+        AssertFalse(Box((int)(-2147483648)) is (ulong)(2147483647UL));
+        AssertFalse(Box((int)(0)) is (short)(32767));
+        AssertFalse(Box((int)(0)) is (int)(2147483647));
+        AssertFalse(Box((int)(0)) is (uint)(4294967295U));
+        AssertFalse(Box((int)(0)) is (long)(2147483648L));
+        AssertFalse(Box((int)(1)) is (byte)(0));
+        AssertFalse(Box((int)(1)) is (byte)(255));
+        AssertFalse(Box((int)(1)) is (short)(-32768));
+        AssertFalse(Box((int)(1)) is (uint)(2147483648U));
+        AssertFalse(Box((int)(2147483647)) is (short)(1));
+        AssertFalse(Box((int)(2147483647)) is (ushort)(0));
+        AssertFalse(Box((int)(2147483647)) is (uint)(2147483648U));
+        AssertFalse(Box((int)(2147483647)) is (long)(1L));
+        AssertFalse(Box((uint)(0U)) is (int)(2147483647));
+        AssertFalse(Box((uint)(0U)) is (long)(-9223372036854775808L));
+        AssertFalse(Box((uint)(1U)) is (sbyte)(0));
+        AssertFalse(Box((uint)(1U)) is (long)(0L));
+        AssertFalse(Box((uint)(2147483647U)) is (sbyte)(0));
+        AssertFalse(Box((uint)(2147483647U)) is (sbyte)(127));
+        AssertFalse(Box((uint)(2147483647U)) is (short)(0));
+        AssertFalse(Box((uint)(2147483647U)) is (short)(1));
+        AssertFalse(Box((uint)(2147483648U)) is (sbyte)(1));
+        AssertFalse(Box((uint)(2147483648U)) is (short)(1));
+        AssertFalse(Box((uint)(2147483648U)) is (long)(-9223372036854775808L));
+        AssertFalse(Box((uint)(4294967295U)) is (sbyte)(1));
+        AssertFalse(Box((uint)(4294967295U)) is (ushort)(65535));
+        AssertFalse(Box((uint)(4294967295U)) is (uint)(1U));
+        AssertFalse(Box((uint)(4294967295U)) is (long)(-9223372036854775808L));
+        AssertFalse(Box((uint)(4294967295U)) is (long)(2147483648L));
+        AssertFalse(Box((long)(-9223372036854775808L)) is (ushort)(0));
+        AssertFalse(Box((long)(-9223372036854775808L)) is (uint)(2147483648U));
+        AssertFalse(Box((long)(-9223372036854775808L)) is (long)(1L));
+        AssertFalse(Box((long)(-9223372036854775808L)) is (long)(2147483648L));
+        AssertFalse(Box((long)(0L)) is (int)(1));
+        AssertFalse(Box((long)(0L)) is (ulong)(2147483647UL));
+        AssertFalse(Box((long)(2147483647L)) is (uint)(1U));
+        AssertFalse(Box((long)(2147483648L)) is (sbyte)(127));
+        AssertFalse(Box((long)(2147483648L)) is (uint)(0U));
+        AssertFalse(Box((long)(9223372036854775807L)) is (byte)(0));
+        AssertFalse(Box((long)(9223372036854775807L)) is (long)(-9223372036854775808L));
+        AssertFalse(Box((ulong)(0UL)) is (ushort)(1));
+        AssertFalse(Box((ulong)(0UL)) is (uint)(1U));
+        AssertFalse(Box((ulong)(0UL)) is (uint)(2147483647U));
+        AssertFalse(Box((ulong)(0UL)) is (long)(1L));
+        AssertFalse(Box((ulong)(0UL)) is (ulong)(2147483648UL));
+        AssertFalse(Box((ulong)(1UL)) is (ushort)(65535));
+        AssertFalse(Box((ulong)(1UL)) is (int)(2147483647));
+        AssertFalse(Box((ulong)(1UL)) is (long)(-9223372036854775808L));
+        AssertFalse(Box((ulong)(2147483647UL)) is (sbyte)(0));
+        AssertFalse(Box((ulong)(2147483647UL)) is (long)(-9223372036854775808L));
+        AssertFalse(Box((ulong)(2147483648UL)) is (byte)(0));
+        AssertFalse(Box((ulong)(2147483648UL)) is (short)(-32768));
+        AssertFalse(Box((ulong)(2147483648UL)) is (ushort)(1));
+        AssertFalse(Box((ulong)(2147483648UL)) is (int)(1));
+        AssertFalse(Box((ulong)(2147483648UL)) is (uint)(0U));
+        AssertFalse(Box((ulong)(18446744073709551615UL)) is (byte)(0));
+        AssertFalse(Box((ulong)(18446744073709551615UL)) is (sbyte)(1));
+        AssertFalse(Box((ulong)(18446744073709551615UL)) is (sbyte)(127));
+        AssertFalse(Box((ulong)(18446744073709551615UL)) is (short)(1));
+        AssertFalse(Box((ulong)(18446744073709551615UL)) is (ushort)(1));
+        AssertFalse(Box((ulong)(18446744073709551615UL)) is (ulong)(0UL));
+        System.Console.WriteLine(""done"");
     }
-}
-public class Odd<T>
-{
-    public static bool operator is(T o)
+    private static object Box(object o) => o;
+    private static void AssertTrue(bool shouldBeTrue)
     {
-        switch ((object)o)
-        {
-            case byte i:    return (i % 2) != 0;
-            case sbyte i:   return (i % 2) != 0;
-            default:        return false;
-        }
+        if (!shouldBeTrue) throw null;
+    }
+    private static void AssertFalse(bool shouldBeFalse)
+    {
+        if (shouldBeFalse) throw null;
     }
 }
 ";
             var compilation = CreateCompilationWithMscorlib(source, options: TestOptions.ReleaseExe, parseOptions: patternParseOptions);
             compilation.VerifyDiagnostics();
-            var verifier = CompileAndVerify(compilation, expectedOutput: @"
-True
-True
-False
-False
-False");
+            var verifier = CompileAndVerify(compilation, expectedOutput: @"done");
         }
+
     }
 }

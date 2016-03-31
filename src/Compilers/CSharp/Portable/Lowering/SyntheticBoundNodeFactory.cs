@@ -544,6 +544,16 @@ namespace Microsoft.CodeAnalysis.CSharp
             return new BoundLiteral(Syntax, ConstantValue.Create(value), SpecialType(Microsoft.CodeAnalysis.SpecialType.System_UInt32)) { WasCompilerGenerated = true };
         }
 
+        public BoundLiteral Literal(long value)
+        {
+            return new BoundLiteral(Syntax, ConstantValue.Create(value), SpecialType(Microsoft.CodeAnalysis.SpecialType.System_Int64)) { WasCompilerGenerated = true };
+        }
+
+        public BoundLiteral Literal(ulong value)
+        {
+            return new BoundLiteral(Syntax, ConstantValue.Create(value), SpecialType(Microsoft.CodeAnalysis.SpecialType.System_UInt64)) { WasCompilerGenerated = true };
+        }
+
         public BoundObjectCreationExpression New(NamedTypeSymbol type, params BoundExpression[] args)
         {
             // TODO: add diagnostics for when things fall apart
@@ -1045,9 +1055,14 @@ namespace Microsoft.CodeAnalysis.CSharp
                 arg = Convert(conversion.Method.Parameters[0].Type, arg);
             }
 
-            if (conversion.Kind == ConversionKind.ImplicitReference && arg.IsLiteralNull())
+            switch (conversion.Kind)
             {
-                return Null(type);
+                case ConversionKind.ImplicitReference:
+                    if (arg.IsLiteralNull()) return Null(type);
+                    break;
+                case ConversionKind.ImplicitConstant:
+                    if (arg.ConstantValue != null) return new BoundLiteral(Syntax, arg.ConstantValue, type) { WasCompilerGenerated = true };
+                    break;
             }
 
             return new BoundConversion(Syntax, arg, conversion, isChecked, true, null, type) { WasCompilerGenerated = true };

@@ -2,7 +2,7 @@
 
 namespace Microsoft.CodeAnalysis
 {
-    // Members of well known types
+    // Members of well-known types (and members of special types that mention well-known types)
     internal enum WellKnownMember
     {
         System_Math__RoundDouble,
@@ -355,6 +355,7 @@ namespace Microsoft.CodeAnalysis
         System_Runtime_GCLatencyMode__SustainedLowLatency,
 
         System_String__Format_IFormatProvider,
+        System_Object__GetType,
         Count
     }
 }

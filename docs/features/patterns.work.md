@@ -3,6 +3,7 @@ This is a checklist (moved from #9375) of implementation of pattern matching as 
 Open design issues (needing LDM decisions)
 - [ ] There would be an ambiguity with a hypothetical "type pattern" and the constant pattern. This is the reason we do not allow the latter in an is-pattern expression, and don't allow the former in a sub-property pattern. But that is irregular. Can we come up with name lookup rules that support both?
   - [ ] If we support `3 is 3`, is that a constant expression? Can a `match` expression be constant?
+  - [ ] Can we support `{ PropName is Type }` in a property pattern?
 - [ ] Do we want pattern-matching in the `switch` statement? Or do we want a separate statement-based construct instead? (#8821)
     - [ ] What does `goto case` mean?
       - [ ] Do we limit `goto case` to constants?
@@ -46,7 +47,7 @@ Open design issues (needing LDM decisions)
 
 Implementation progress checklist:
 - [x] Allow declaration of `operator is` and use it for recursive patterns.
-- [ ] **Match constant patterns with appropriate integral conversions** (#8819)
+- [x] Match constant patterns with appropriate integral conversions (#8819)
 - [ ] **Add a decision tree** to enable
   - [ ] completeness checking: a mutli-armed pattern-matching expression is required to be complete
   - [ ] subsumption checking: a branch of a switch statement or match expression may not be subsumed by the totality of previous branches (#8823)
@@ -67,7 +68,6 @@ Implementation progress checklist:
   - [x] Type ID
   - [x] *
   - [x] 3
-    - [x] matching with exact type for integral constants (as a short-term hack)
   - [x] `var` ID
   - [x] Type { ID is Pattern ... }
   - [x] Type ( Pattern ... )

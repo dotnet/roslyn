@@ -332,7 +332,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// </summary>
         internal static bool IsDefaultValueTypeConstructor(this MethodSymbol method)
         {
-            if (!method.ContainingType.IsValueType)
+            if (method.ContainingType?.IsValueType != true)
             {
                 return false;
             }
