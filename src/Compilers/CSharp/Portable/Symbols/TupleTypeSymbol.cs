@@ -73,7 +73,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             var numElements = elementTypes.Length;
 
-            // PROTOTYPE handling for greater than 8
+            // PROTOTYPE(tuples) handling for greater than 8
             if (numElements <= 1 || numElements > 7)
             {
                 throw ExceptionUtilities.Unreachable;
@@ -109,7 +109,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             if (arity > 7)
             {
-                // PROTOTYPE
+                // PROTOTYPE(tuples)
                 arity = 1;
             }
             return tupleTypes[arity - 1];
@@ -133,7 +133,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             if (arity > 7)
             {
-                // PROTOTYPE
+                // PROTOTYPE(tuples)
                 arity = 1;
             }
             return tupleCtors[arity - 1];
@@ -210,7 +210,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             if (position > 6)
             {
-                // PROTOTYPE
+                // PROTOTYPE(tuples)
                 position = 0;
             }
             return memberNames[position];
@@ -221,7 +221,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// </summary>
         internal static bool IsMemberNameReserved(string name)
         {
-            // PROTOTYPE handle "Rest" and others like "ToString"?
+            // PROTOTYPE(tuples) handle "Rest" and others like "ToString"?
             return memberNames.Contains(name, StringComparer.Ordinal);
         }
         private static readonly string[] memberNames = { "Item1", "Item2", "Item3", "Item4", "Item5", "Item6", "Item7" };
@@ -283,7 +283,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             get
             {
-                // PROTOTYPE: need to figure what is the right behavior when underlying is obsolete
+                // PROTOTYPE(tuples): need to figure what is the right behavior when underlying is obsolete
                 return null;
             }
         }
@@ -295,7 +295,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         public override ImmutableArray<Symbol> GetMembers(string name)
         {
-            //PROTOTYPE: PERF do we need to have a dictionary here?
+            //PROTOTYPE(tuples): PERF do we need to have a dictionary here?
             //      tuples will be typically small 2 or 3 elements only
             return ImmutableArray<Symbol>.CastUp(_fields).WhereAsArray(field => field.Name == name);
         }
@@ -377,7 +377,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             if (ignoreDynamic)
             {
-                //PROTOTYPE: rename ignoreDynamic or introduce another "ignoreTuple" flag
+                //PROTOTYPE(tuples): rename ignoreDynamic or introduce another "ignoreTuple" flag
                 // if ignoring dynamic, compare underlying tuple types
                 if (t2.IsTupleType)
                 {
@@ -841,7 +841,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             get
             {
-                // PROTOTYPE: need to figure what is the right behavior when underlying is obsolete
+                // PROTOTYPE(tuples): need to figure what is the right behavior when underlying is obsolete
                 return null;
             }
         }
