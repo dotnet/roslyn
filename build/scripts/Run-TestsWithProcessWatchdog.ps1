@@ -19,9 +19,6 @@ The directory into which ProcessWatchdog.exe should write memory dumps and scree
 .PARAMETER ProcDumpExe
 The path to the SysInternals executable ProcDump.exe, which produces memory dumps.
 
-.PARAMETER CoreRunArgs
-The arguments to be passed to CoreRun.exe.
-
 .PARAMETER CoreRunExe
 The path to the executable CoreRun.exe, which runs the Core CLR unit tests.
 
@@ -36,16 +33,13 @@ The arguments to be passed to RunTests.exe.
 
 .PARAMETER BuildStartTime
 The time the Jenkins build started, in the ISO 8601-compatible format YYYY-MM-DDThh:mm:ss.
-Ignored if $RunProcessWatchdog is not $true.
 
 .PARAMETER BuildTimeLimit
 The total time allowed for the Jenkins build, measured in minutes.
-Ignored if $RunProcessWatchdog is not $true.
 
 .PARAMETER BufferTime
 The time reserved for the process watchdog to kill all test processes and obtain crash
 dumps from them, measure in seconds. 
-Ignored if $RunProcessWatchdog is not $true.
 #>
 
 [CmdletBinding()]
@@ -75,7 +69,6 @@ function Check-TimeRemaining($testGroupName)
 }
 
 function Get-TimeRemaining() {
-    
     $secondsSinceStart = ([DateTime]::Now - [DateTime]::Parse($BuildStartTime)).TotalSeconds
     [Math]::Truncate($BuildTimeLimit * 60 - $secondsSinceStart - $BufferTime)
 }
