@@ -20,7 +20,6 @@ var SolutionRoot = Path.GetFullPath(Path.Combine(ScriptRoot(), "../"));
 
 string ScriptRoot([CallerFilePath]string path = "") => Path.GetDirectoryName(path);
 
-
 #region Config Variables
 
 // Strip trailing '\' characters because if the path is later passed on the
@@ -98,6 +97,11 @@ var PreReleaseOnlyPackages = new HashSet<string>
     "Microsoft.Net.CSharp.Interactive.netcore",
 };
 
+// Create an empty directory to be used in NuGet pack
+var emptyDir = Path.Combine(Path.GetTempPath(), Path.GetRandomFileName());
+var dirInfo = Directory.CreateDirectory(emptyDir);
+File.Create(Path.Combine(emptyDir, "_._")).Close();
+
 int PackFiles(string[] packageNames, string licenseUrl)
 {
     int exit = 0;
@@ -107,7 +111,6 @@ int PackFiles(string[] packageNames, string licenseUrl)
         var nugetArgs = $@"pack {file} " +
             $"-BasePath \"{BinDir}\" " +
             $"-OutputDirectory \"{OutDir}\" " +
-            "-ExcludeEmptyDirectories " +
             $"-prop licenseUrl=\"{licenseUrl}\" " +
             $"-prop version=\"{BuildVersion}\" " +
             $"-prop authors={Authors} " +
@@ -117,7 +120,8 @@ int PackFiles(string[] packageNames, string licenseUrl)
             $"-prop systemReflectionMetadataVersion=\"{SystemReflectionMetadataVersion}\" " +
             $"-prop codeAnalysisAnalyzersVersion=\"{CodeAnalysisAnalyzersVersion}\" " +
             $"-prop thirdPartyNoticesPath=\"{ThirdPartyNoticesPath}\" " +
-            $"-prop netCompilersPropsPath=\"{NetCompilersPropsPath}\"";
+            $"-prop netCompilersPropsPath=\"{NetCompilersPropsPath}\" " +
+            $"-prop emptyDirPath=\"{emptyDir}\"";;
 
         var nugetExePath = Path.GetFullPath(Path.Combine(SolutionRoot, "nuget.exe"));
         var p = new Process();
@@ -170,5 +174,14 @@ GeneratePublishingConfig();
 int exit = PackFiles(RedistPackageNames, LicenseUrlRedist);
 if (exit == 0) exit = PackFiles(NonRedistPackageNames, LicenseUrlNonRedist);
 if (exit == 0) exit = PackFiles(TestPackageNames, LicenseUrlTest);
+
+try
+{
+    dirInfo.Delete(recursive: true);
+}
+catch
+{
+    // Ignore errors
+}
 
 Environment.Exit(exit);

@@ -1,7 +1,7 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 14
-VisualStudioVersion = 14.0.24720.0
+VisualStudioVersion = 14.0.25123.0
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CodeAnalysis", "src\Compilers\Core\Portable\CodeAnalysis.csproj", "{1EE8CAD3-55F9-4D91-96B2-084641DA9A6C}"
 EndProject
@@ -85,6 +85,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CSharpScriptingTest", "src\
 EndProject
 Project("{F184B08F-C81C-45F6-A57F-5ABD9991F28F}") = "BasicScriptingTest", "src\Scripting\VisualBasicTest\BasicScriptingTest.vbproj", "{ABC7262E-1053-49F3-B846-E3091BB92E8C}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CommonCoreClrRuntime", "src\Tools\CommonCoreClrRuntime\CommonCoreClrRuntime.csproj", "{1B665337-9D6A-451A-AEAC-F7BF1AF95FFB}"
+EndProject
 Global
 	GlobalSection(SharedMSBuildProjectFiles) = preSolution
 		src\Test\Utilities\Shared\TestUtilities.projitems*{ccbd3438-3e84-40a9-83ad-533f23bcfca5}*SharedItemsImports = 4
@@ -94,8 +96,8 @@ Global
 		src\Compilers\Core\CommandLine\CommandLine.projitems*{ad6f474e-e6d4-4217-91f3-b7af1be31ccc}*SharedItemsImports = 13
 		src\Compilers\Core\AnalyzerDriver\AnalyzerDriver.projitems*{d0bc9be7-24f6-40ca-8dc6-fcb93bd44b34}*SharedItemsImports = 13
 		src\Compilers\Core\SharedCollections\SharedCollections.projitems*{afde6bea-5038-4a4a-a88e-dbd2e4088eed}*SharedItemsImports = 4
-		src\Compilers\Core\AnalyzerDriver\AnalyzerDriver.projitems*{1ee8cad3-55f9-4d91-96b2-084641da9a6c}*SharedItemsImports = 4
 		src\Compilers\Core\SharedCollections\SharedCollections.projitems*{1ee8cad3-55f9-4d91-96b2-084641da9a6c}*SharedItemsImports = 4
+		src\Compilers\Core\AnalyzerDriver\AnalyzerDriver.projitems*{1ee8cad3-55f9-4d91-96b2-084641da9a6c}*SharedItemsImports = 4
 		src\Compilers\CSharp\CSharpAnalyzerDriver\CSharpAnalyzerDriver.projitems*{b501a547-c911-4a05-ac6e-274a50dff30e}*SharedItemsImports = 4
 		src\Compilers\VisualBasic\BasicAnalyzerDriver\BasicAnalyzerDriver.projitems*{2523d0e6-df32-4a3e-8ae0-a19bffae2ef6}*SharedItemsImports = 4
 		src\Compilers\Core\SharedCollections\SharedCollections.projitems*{c1930979-c824-496b-a630-70f5369a636f}*SharedItemsImports = 13
@@ -662,6 +664,20 @@ Global
 		{ABC7262E-1053-49F3-B846-E3091BB92E8C}.Release|x64.Build.0 = Release|Any CPU
 		{ABC7262E-1053-49F3-B846-E3091BB92E8C}.Release|x86.ActiveCfg = Release|Any CPU
 		{ABC7262E-1053-49F3-B846-E3091BB92E8C}.Release|x86.Build.0 = Release|Any CPU
+		{1B665337-9D6A-451A-AEAC-F7BF1AF95FFB}.Debug|Any CPU.ActiveCfg = Debug|x64
+		{1B665337-9D6A-451A-AEAC-F7BF1AF95FFB}.Debug|ARM.ActiveCfg = Debug|x64
+		{1B665337-9D6A-451A-AEAC-F7BF1AF95FFB}.Debug|Mixed Platforms.ActiveCfg = Debug|x64
+		{1B665337-9D6A-451A-AEAC-F7BF1AF95FFB}.Debug|Mixed Platforms.Build.0 = Debug|x64
+		{1B665337-9D6A-451A-AEAC-F7BF1AF95FFB}.Debug|x64.ActiveCfg = Debug|x64
+		{1B665337-9D6A-451A-AEAC-F7BF1AF95FFB}.Debug|x64.Build.0 = Debug|x64
+		{1B665337-9D6A-451A-AEAC-F7BF1AF95FFB}.Debug|x86.ActiveCfg = Debug|x64
+		{1B665337-9D6A-451A-AEAC-F7BF1AF95FFB}.Release|Any CPU.ActiveCfg = Release|x64
+		{1B665337-9D6A-451A-AEAC-F7BF1AF95FFB}.Release|ARM.ActiveCfg = Release|x64
+		{1B665337-9D6A-451A-AEAC-F7BF1AF95FFB}.Release|Mixed Platforms.ActiveCfg = Release|x64
+		{1B665337-9D6A-451A-AEAC-F7BF1AF95FFB}.Release|Mixed Platforms.Build.0 = Release|x64
+		{1B665337-9D6A-451A-AEAC-F7BF1AF95FFB}.Release|x64.ActiveCfg = Release|x64
+		{1B665337-9D6A-451A-AEAC-F7BF1AF95FFB}.Release|x64.Build.0 = Release|x64
+		{1B665337-9D6A-451A-AEAC-F7BF1AF95FFB}.Release|x86.ActiveCfg = Release|x64
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -702,5 +718,6 @@ Global
 		{3E7DEA65-317B-4F43-A25D-62F18D96CFD7} = {A6F70573-57FE-49F9-A26C-75B8D202B795}
 		{2DAE4406-7A89-4B5F-95C3-BC5422CE47CE} = {A6F70573-57FE-49F9-A26C-75B8D202B795}
 		{ABC7262E-1053-49F3-B846-E3091BB92E8C} = {A6F70573-57FE-49F9-A26C-75B8D202B795}
+		{1B665337-9D6A-451A-AEAC-F7BF1AF95FFB} = {FD0FAF5F-1DED-485C-99FA-84B97F3A8EEC}
 	EndGlobalSection
 EndGlobal
