@@ -21,19 +21,29 @@ if /I "%1" == "/testDeterminism" set TestDeterminism=true&&shift&& goto :ParseAr
 
 REM /buildTimeLimit is the time limit, measured in minutes, for the Jenkins job that runs
 REM the build. The Jenkins script netci.groovy passes the time limit to this script.
-
-REM netci.groovy does not yet pass the time limit to cibuild.cmd. We are making this
-REM change to cibuild.cmd in all branches *before* modifying netci.groovy. If we didn't
-REM do things in this order, we'd have to modify cibuild.cmd in *all* branches *at the
-REM same time* we made the change to netci.groovy. This way, we'll be able to first
-REM modify netci.groovy to pass the new parameter without causing any harm. Then we'll
-REM be able go to each branch in turn, modifying cibuild.cmd and BuildAndTest.cmd to
-REM actually make use of the new parameter.
-if /I "%1" == "/buildTimeLimit" set BuildTimeLimit=%2&&shift&&shift&& goto:ParseArguments
+if /I "%1" == "/buildTimeLimit" set BuildTimeLimit=%2&&shift&&shift&& goto :ParseArguments
 
 call :Usage && exit /b 1
 :DoneParsing
 
+REM This script takes the presence of the /buildTimeLimit option as an indication that it
+REM should run the tests under the control of the ProcessWatchdog, which, if the tests
+REM exceed the time limit, will take a screenshot, obtain memory dumps from the test
+REM process and all its descendants, and shut those processes down.
+REM
+REM Developers building from the command line will presumably not pass /buildTimeLimit,
+REM and so the tests will not run under the ProcessWatchdog.
+if not "%BuildTimeLimit%" == "" (
+    set CurrentDate=%date%
+    set CurrentTime=%time%
+    set BuildStartTime=!CurrentDate:~-4!-!CurrentDate:~-10,2!-!CurrentDate:~-7,2!T!CurrentTime!
+    set RunProcessWatchdog=true
+) else (
+    set RunProcessWatchdog=false
+)
+
+echo %BuildStartTime%
+    
 call "C:\Program Files (x86)\Microsoft Visual Studio 14.0\Common7\Tools\VsDevCmd.bat" || goto :BuildFailed
 
 powershell -noprofile -executionPolicy RemoteSigned -file "%RoslynRoot%\build\scripts\check-branch.ps1" || goto :BuildFailed
@@ -70,7 +80,7 @@ if defined TestDeterminism (
     exit /b 0
 )
 
-msbuild %MSBuildAdditionalCommandLineArgs% /p:BootstrapBuildPath="%bindir%\Bootstrap" BuildAndTest.proj /p:Configuration=%BuildConfiguration% /p:Test64=%Test64% /p:PathMap="%RoslynRoot%=q:\roslyn" /p:Feature=pdb-path-determinism /fileloggerparameters:LogFile="%bindir%\Build.log";verbosity=diagnostic || goto :BuildFailed
+msbuild %MSBuildAdditionalCommandLineArgs% /p:BootstrapBuildPath="%bindir%\Bootstrap" BuildAndTest.proj /p:Configuration=%BuildConfiguration% /p:Test64=%Test64% /p:RunProcessWatchdog=%RunProcessWatchdog% /p:BuildStartTime=%BuildStartTime% /p:"ProcDumpExe=%ProcDumpExe%" /p:BuildTimeLimit=%BuildTimeLimit% /p:PathMap="%RoslynRoot%=q:\roslyn" /p:Feature=pdb-path-determinism /fileloggerparameters:LogFile="%bindir%\Build.log";verbosity=diagnostic || goto :BuildFailed
 powershell -noprofile -executionPolicy RemoteSigned -file "%RoslynRoot%\build\scripts\check-msbuild.ps1" "%bindir%\Build.log" || goto :BuildFailed
 
 call :TerminateBuildProcesses
