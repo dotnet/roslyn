@@ -1,11 +1,7 @@
 Option Explicit On
 Option Strict On
 Option Compare Binary
-
-Imports System
 Imports System.ComponentModel
-Imports System.Diagnostics
-Imports VB = Microsoft.VisualBasic
 
 
 Namespace Microsoft.VisualStudio.Editors.ResourceEditor

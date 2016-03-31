@@ -1,8 +1,4 @@
-Imports System
-Imports System.Collections.Generic
-Imports System.ComponentModel
 Imports System.ComponentModel.Design
-Imports System.Diagnostics
 Imports System.Runtime.InteropServices
 
 Namespace Microsoft.VisualStudio.Editors.DesignerFramework
@@ -319,7 +315,7 @@ Namespace Microsoft.VisualStudio.Editors.DesignerFramework
         End Sub
 
     End Class
-	
+
     ''' <summary>    
     ''' This class is used to replace the command handlers when the designer surface is closed. When the
     ''' designer is opened again this imposter handler is being replaced with actual handlers.
@@ -350,7 +346,7 @@ Namespace Microsoft.VisualStudio.Editors.DesignerFramework
         ''' <remarks>This handler is never invoked since the command is disabled.</remarks>
         Private Shared Sub CommandHandler(ByVal sender As Object, ByVal e As EventArgs)
         End Sub
-    End Class	
+    End Class
 
     ''' <summary>
     ''' Helper class to handle a group of commands where only one should be checked (latched)

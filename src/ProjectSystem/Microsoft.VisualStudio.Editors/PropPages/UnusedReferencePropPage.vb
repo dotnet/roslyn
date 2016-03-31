@@ -1,12 +1,7 @@
-Imports Microsoft.VisualBasic
 Imports Microsoft.VisualStudio.Editors.Common
 Imports Microsoft.VisualStudio.Editors.Interop
 Imports Microsoft.VisualStudio.Shell.Interop
-Imports System
-Imports System.Collections
-Imports System.Diagnostics
 Imports System.Reflection.AssemblyName
-Imports System.Runtime.InteropServices
 Imports System.Windows.Forms
 
 Namespace Microsoft.VisualStudio.Editors.PropertyPages

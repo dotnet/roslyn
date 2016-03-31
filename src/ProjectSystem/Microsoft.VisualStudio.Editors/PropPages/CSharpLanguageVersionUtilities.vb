@@ -1,6 +1,3 @@
-Imports Microsoft.VisualStudio.Shell.Interop
-Imports System
-
 Namespace Microsoft.VisualStudio.Editors.PropertyPages
 
     ''' <summary>

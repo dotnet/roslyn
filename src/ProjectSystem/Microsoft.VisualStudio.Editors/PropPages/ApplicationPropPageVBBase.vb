@@ -1,19 +1,10 @@
-Imports Microsoft.VisualBasic
-
-Imports System
-Imports System.Diagnostics
 Imports System.ComponentModel
 Imports System.ComponentModel.Design
-Imports System.Collections
-Imports System.Collections.Generic
-Imports System.Runtime.InteropServices
 Imports System.Windows.Forms
 Imports Microsoft.VisualStudio.Editors.MyApplication
 Imports Microsoft.VisualStudio.Shell.Interop
-Imports Microsoft.VisualStudio.Editors
 Imports Microsoft.VisualStudio.Editors.Common
 Imports VSLangProj80
-Imports Microsoft.VisualStudio.Editors.PropPageDesigner
 
 
 

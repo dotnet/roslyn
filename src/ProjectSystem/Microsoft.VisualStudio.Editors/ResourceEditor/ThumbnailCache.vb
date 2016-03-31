@@ -3,9 +3,6 @@ Option Strict On
 Option Compare Binary
 
 Imports Microsoft.VisualStudio.Editors.Common.Utils
-Imports System
-Imports System.Collections
-Imports System.Diagnostics
 Imports System.Drawing
 Imports System.Windows.Forms
 
@@ -268,7 +265,7 @@ Namespace Microsoft.VisualStudio.Editors.ResourceEditor
             Debug.Assert(Not IsInMruList(Index))
             m_Keys.Add(Key, Index)
         End Sub
-        
+
         ''' <summary>
         ''' Invalidates the thumbnail associated with this key.  I.e., if the thumbnail is found in the cache (via the
         '''   key, it is removed.  If if is not found, nothing happens.
@@ -416,7 +413,7 @@ Namespace Microsoft.VisualStudio.Editors.ResourceEditor
 
             ' Check whether we need grow the size of the MRU table...
             If MruIndex >= m_MruList.Length Then
-                Dim newLength As Integer = Math.Max(MruIndex, Math.Min(MruIndex*2, m_MaximumSuggestedCacheSize + m_ReservedImagesCount))
+                Dim newLength As Integer = Math.Max(MruIndex, Math.Min(MruIndex * 2, m_MaximumSuggestedCacheSize + m_ReservedImagesCount))
                 ReDim Preserve m_MruList(newLength)
             End If
 
@@ -495,15 +492,15 @@ Namespace Microsoft.VisualStudio.Editors.ResourceEditor
             Debug.Assert(count = m_MruList.Length)
         End Sub
 
-        
+
         ''' <summary>
         '''  MruListItem:
         '''   We use an array of this structure to implement a MRU list...
         ''' </summary>
         Private Structure MruListItem
-            Public  PreviousIndex As Integer        ' Index of the previous item in the list
-            Public  NextIndex As Integer            ' Index of the next item in the list
-            Public  Key As Object                   ' Key object we cached
+            Public PreviousIndex As Integer        ' Index of the previous item in the list
+            Public NextIndex As Integer            ' Index of the next item in the list
+            Public Key As Object                   ' Key object we cached
         End Structure
 
     End Class

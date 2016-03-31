@@ -1,7 +1,5 @@
 Imports Microsoft.VisualStudio.Editors.AppDesInterop
 Imports Microsoft.VisualStudio.Editors.PropertyPages
-Imports System
-Imports System.Diagnostics
 Imports VB = Microsoft.VisualBasic
 
 Namespace Microsoft.VisualStudio.Editors.AppDesCommon

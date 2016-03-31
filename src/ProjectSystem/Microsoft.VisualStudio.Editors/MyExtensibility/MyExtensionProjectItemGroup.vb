@@ -1,9 +1,5 @@
 Option Strict On
 Option Explicit On
-
-Imports System
-Imports System.Collections.Generic
-Imports System.Diagnostics
 Imports EnvDTE
 Imports Microsoft.VisualStudio.Editors.MyExtensibility.MyExtensibilityUtil
 

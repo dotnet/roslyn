@@ -1,11 +1,8 @@
-Imports System
-Imports System.Diagnostics
 Imports System.ComponentModel
 Imports System.Runtime.InteropServices
 Imports System.CodeDom
 Imports System.CodeDom.Compiler
 Imports System.IO
-Imports System.Text.RegularExpressions
 
 Imports EnvDTE
 Imports Microsoft.VisualStudio.Shell

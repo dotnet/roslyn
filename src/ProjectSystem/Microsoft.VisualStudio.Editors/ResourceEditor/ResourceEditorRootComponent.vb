@@ -3,13 +3,8 @@ Option Strict On
 Option Compare Binary
 
 Imports EnvDTE
-Imports System
 Imports System.ComponentModel
 Imports System.ComponentModel.Design
-Imports System.Diagnostics
-Imports System.Globalization
-Imports System.IO
-Imports System.Runtime.InteropServices
 
 Imports Microsoft.VisualStudio.Shell.Interop
 
@@ -41,7 +36,7 @@ Namespace Microsoft.VisualStudio.Editors.ResourceEditor
         Private m_ResourceFile As ResourceFile
 
         'The resx resource file we are currently editing
-        Private m_ResourceFileName  As String
+        Private m_ResourceFileName As String
 
         'Cached reference to our associated root designer
         Private m_RootDesigner As ResourceEditorRootDesigner
@@ -139,9 +134,9 @@ Namespace Microsoft.VisualStudio.Editors.ResourceEditor
             Get
                 Return m_ResourceFileName
             End Get
-            Set 
+            Set
                 m_ResourceFileName = value
-            End Set  
+            End Set
         End Property
 
         ''' <summary>
@@ -236,7 +231,7 @@ Namespace Microsoft.VisualStudio.Editors.ResourceEditor
                     Dim kindString As String = parentItem.Kind
                     Try
                         Dim kindGuid As Guid = New Guid(kindString)
-                        If kindGuid.Equals(new Guid(EnvDTE.Constants.vsProjectItemKindPhysicalFile)) Then 
+                        If kindGuid.Equals(new Guid(EnvDTE.Constants.vsProjectItemKindPhysicalFile)) Then
                             Return True
                         End If
                     Catch ex As Exception

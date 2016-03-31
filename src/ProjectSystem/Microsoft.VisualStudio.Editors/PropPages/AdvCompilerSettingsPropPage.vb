@@ -1,21 +1,9 @@
 'This is the advanced compiler options page for VB only.
 
-Imports Microsoft.VisualBasic
-Imports Microsoft.VisualStudio.Shell.Interop
-Imports System
-Imports System.Collections.Generic
 Imports System.ComponentModel
-Imports System.Diagnostics
-Imports System.Globalization
-Imports System.Runtime.Versioning
 Imports System.Windows.Forms
-Imports VB = Microsoft.VisualBasic
 Imports VBStrings = Microsoft.VisualBasic.Strings
 Imports VSLangProj80
-Imports VslangProj90
-Imports VslangProj100
-
-Imports Microsoft.VisualStudio.Editors.Common
 Namespace Microsoft.VisualStudio.Editors.PropertyPages
 
     Friend Class AdvCompilerSettingsPropPage

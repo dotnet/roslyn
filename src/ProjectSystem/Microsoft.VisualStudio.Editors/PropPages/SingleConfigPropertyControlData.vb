@@ -1,10 +1,5 @@
-﻿Imports Microsoft.VisualBasic
-Imports Microsoft.VisualStudio.Editors.Common
+﻿Imports Microsoft.VisualStudio.Editors.Common
 Imports Microsoft.VisualStudio.Shell.Interop
-Imports System
-Imports System.ComponentModel
-Imports System.Diagnostics
-Imports System.Drawing
 Imports System.Windows.Forms
 
 

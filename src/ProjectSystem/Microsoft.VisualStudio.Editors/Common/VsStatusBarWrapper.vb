@@ -1,8 +1,5 @@
 Option Strict On
 Option Explicit On
-
-Imports System
-Imports System.Diagnostics
 Imports Microsoft.VisualStudio.Shell.Interop
 
 Namespace Microsoft.VisualStudio.Editors.Common

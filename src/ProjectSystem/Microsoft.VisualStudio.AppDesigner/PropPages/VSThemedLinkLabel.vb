@@ -1,5 +1,4 @@
-﻿Imports System
-Imports System.Drawing
+﻿Imports System.Drawing
 Imports Microsoft.VisualStudio.Shell.Interop
 Imports Microsoft.VisualStudio.Editors.AppDesCommon
 

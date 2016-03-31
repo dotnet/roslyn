@@ -1,12 +1,5 @@
-Imports Microsoft.VisualBasic
-Imports System
-Imports System.Diagnostics
-Imports System.ComponentModel.Design
 Imports System.Windows.Forms
-Imports System.Drawing
-Imports Microsoft.VisualStudio.Editors
 Imports Microsoft.VisualStudio.Editors.Common
-Imports System.Runtime.InteropServices
 Imports System.ComponentModel
 
 Namespace Microsoft.VisualStudio.Editors.PropertyPages
@@ -97,41 +90,41 @@ Namespace Microsoft.VisualStudio.Editors.PropertyPages
                     Dim prop As PropertyDescriptor = StartupObjectPropertyControlData.PropDesc
 
                     With StartupObject
-                            .DropDownStyle = ComboBoxStyle.DropDownList
-                            .Items.Clear()
+                        .DropDownStyle = ComboBoxStyle.DropDownList
+                        .Items.Clear()
 
-                            ' (Not Set) should always be available in the list
-                            .Items.Add(SR.GetString(SR.PPG_Application_StartupObjectNotSet))
+                        ' (Not Set) should always be available in the list
+                        .Items.Add(SR.GetString(SR.PPG_Application_StartupObjectNotSet))
 
-                            If PopulateDropdown Then
-                                RefreshPropertyStandardValues()
+                        If PopulateDropdown Then
+                            RefreshPropertyStandardValues()
 
-                                'Certain project types may not support standard values
-                                If prop.Converter.GetStandardValuesSupported() Then
-                                    Switches.TracePDPerf("*** Populating start-up object list from the project [may be slow for a large project]")
-                                    Debug.Assert(Not InsideInitSave, "PERFORMANCE ALERT: We shouldn't be populating the start-up object dropdown list during page initialization, it should be done later if needed.")
-                                    Using New WaitCursor
-                                        For Each str As String In prop.Converter.GetStandardValues()
-                                            .Items.Add(str)
-                                        Next
-                                    End Using
-                                End If
+                            'Certain project types may not support standard values
+                            If prop.Converter.GetStandardValuesSupported() Then
+                                Switches.TracePDPerf("*** Populating start-up object list from the project [may be slow for a large project]")
+                                Debug.Assert(Not InsideInitSave, "PERFORMANCE ALERT: We shouldn't be populating the start-up object dropdown list during page initialization, it should be done later if needed.")
+                                Using New WaitCursor
+                                    For Each str As String In prop.Converter.GetStandardValues()
+                                        .Items.Add(str)
+                                    Next
+                                End Using
                             End If
+                        End If
 
-                            '(Okay to use InitialValue because we checked against IsMissing above)
-                            Dim SelectedItemText As String = CStr(StartupObjectPropertyControlData.InitialValue)
-                            If IsNothing(SelectedItemText) OrElse (SelectedItemText = "") Then
-                                SelectedItemText = SR.GetString(SR.PPG_Application_StartupObjectNotSet)
-                            End If
+                        '(Okay to use InitialValue because we checked against IsMissing above)
+                        Dim SelectedItemText As String = CStr(StartupObjectPropertyControlData.InitialValue)
+                        If IsNothing(SelectedItemText) OrElse (SelectedItemText = "") Then
+                            SelectedItemText = SR.GetString(SR.PPG_Application_StartupObjectNotSet)
+                        End If
 
+                        .SelectedItem = SelectedItemText
+                        If .SelectedItem Is Nothing Then
+                            .Items.Add(SelectedItemText)
+                            'CONSIDER: Can we use the object returned by .Items.Add to set the selection?
                             .SelectedItem = SelectedItemText
-                            If .SelectedItem Is Nothing Then
-                                .Items.Add(SelectedItemText)
-                                'CONSIDER: Can we use the object returned by .Items.Add to set the selection?
-                                .SelectedItem = SelectedItemText
-                            End If
-                        End With
-                    End If
+                        End If
+                    End With
+                End If
             Finally
                 m_fInsideInit = InsideInitSave
             End Try

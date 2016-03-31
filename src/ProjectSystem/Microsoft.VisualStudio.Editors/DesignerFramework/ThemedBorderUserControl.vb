@@ -1,8 +1,4 @@
-﻿Imports System
-Imports System.Collections.Generic
-Imports System.ComponentModel
-Imports System.Drawing
-Imports System.Text
+﻿Imports System.Drawing
 Imports System.Windows.Forms
 Imports System.Windows.Forms.VisualStyles
 

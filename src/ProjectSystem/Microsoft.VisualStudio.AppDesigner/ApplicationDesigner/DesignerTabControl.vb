@@ -1,10 +1,6 @@
 Imports Common = Microsoft.VisualStudio.Editors.AppDesCommon
 Imports Microsoft.VisualStudio.Shell.Interop
-Imports System
-Imports System.Collections
-Imports System.Collections.Generic
 Imports System.Drawing
-Imports System.Diagnostics
 Imports System.Windows.Forms
 Imports System.Windows.Forms.Design
 

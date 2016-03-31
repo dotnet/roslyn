@@ -1,9 +1,7 @@
-Imports System.Diagnostics
 Imports System.Drawing
 Imports System.Windows.Forms
 Imports system.Windows.Forms.Design
 Imports Microsoft.VisualStudio.Shell
-Imports Microsoft.VisualStudio.Shell.Interop
 
 Namespace Microsoft.VisualStudio.Editors.Package
 
@@ -184,10 +182,10 @@ Namespace Microsoft.VisualStudio.Editors.Package
             Next
         End Sub
 
-    Private Sub SetDirty(ByVal sender As Object, ByVal e As System.EventArgs)
-      Debug.WriteLine(String.Format("Control {0} dirtied", DirectCast(sender, Control).Name))
-      Me.Dirty = True
-    End Sub
+        Private Sub SetDirty(ByVal sender As Object, ByVal e As System.EventArgs)
+            Debug.WriteLine(String.Format("Control {0} dirtied", DirectCast(sender, Control).Name))
+            Me.Dirty = True
+        End Sub
 
     End Class
 End Namespace

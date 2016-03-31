@@ -1,8 +1,5 @@
 ﻿Imports Microsoft.VisualStudio.Editors.Common
-Imports System
-Imports System.Collections.Generic
 Imports System.ComponentModel
-Imports System.Diagnostics
 Imports System.Windows.Forms
 Imports Microsoft.VisualStudio.Shell.Interop
 Imports NativeMethods = Microsoft.VisualStudio.Editors.Interop.NativeMethods

@@ -1,8 +1,5 @@
 ﻿Imports Microsoft.VisualStudio.Editors.DesignerFramework
-Imports System
-Imports System.Diagnostics
 Imports System.Drawing
-Imports System.Windows.Forms
 
 Namespace Microsoft.VisualStudio.Editors.ResourceEditor
 
@@ -27,13 +24,13 @@ Namespace Microsoft.VisualStudio.Editors.ResourceEditor
             Me.messageLabel.PerformLayout()
             Me.dialogLayoutPanel.PerformLayout()
 
-            Me.ClientSize = New Size(Me.ClientSize.Width, Me.dialogLayoutPanel.Size.Height + Me.Padding.Top * 2)           
+            Me.ClientSize = New Size(Me.ClientSize.Width, Me.dialogLayoutPanel.Size.Height + Me.Padding.Top * 2)
             AddHandler Me.dialogLayoutPanel.SizeChanged, AddressOf TableLayoutPanelSizeChanged
             F1Keyword = HelpIDs.Dlg_OpenFileWarning
         End Sub
 
         Private Sub TableLayoutPanelSizeChanged(ByVal sender As Object, ByVal e As EventArgs)
-            Me.ClientSize = New Size(Me.ClientSize.Width, Me.dialogLayoutPanel.Size.Height + Me.Padding.Top * 2)           
+            Me.ClientSize = New Size(Me.ClientSize.Width, Me.dialogLayoutPanel.Size.Height + Me.Padding.Top * 2)
         End Sub
 
         'Form overrides dispose to clean up the component list.

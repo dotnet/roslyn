@@ -1,18 +1,9 @@
-Imports Microsoft.VisualBasic
-Imports System
 Imports System.ComponentModel
 Imports System.Globalization
-Imports System.Reflection
-Imports System.Resources
-Imports System.Diagnostics
-Imports System.Runtime.InteropServices
-Imports System.Runtime.CompilerServices
 Imports VSLangProj80
 Imports System.Windows.Forms
 
 Imports Microsoft.VisualStudio.Editors.Common
-Imports Microsoft.VisualStudio.PlatformUI
-Imports System.Collections.Generic
 
 Namespace Microsoft.VisualStudio.Editors.PropertyPages
 
@@ -61,7 +52,7 @@ Namespace Microsoft.VisualStudio.Editors.PropertyPages
             AddChangeHandlers()
 
             MyBase.PageRequiresScaling = False
-            
+
             m_FileVersionTextBoxes = New System.Windows.Forms.TextBox(3) { _
                 Me.FileVersionMajorTextBox, Me.FileVersionMinorTextBox, Me.FileVersionBuildTextBox, Me.FileVersionRevisionTextBox}
             m_AssemblyVersionTextBoxes = New System.Windows.Forms.TextBox(3) { _

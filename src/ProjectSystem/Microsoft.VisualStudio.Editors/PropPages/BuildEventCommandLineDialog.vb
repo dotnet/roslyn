@@ -1,17 +1,7 @@
-Imports System
 Imports System.Text
-Imports Microsoft.VisualBasic
 Imports System.Windows.Forms
 Imports System.Windows.Forms.Design
 Imports System.Drawing
-Imports Microsoft.VisualStudio.Shell.Interop
-Imports Microsoft.VisualStudio.Editors.Interop
-Imports System.ComponentModel
-Imports System.ComponentModel.Design
-Imports System.Runtime.InteropServices
-Imports Microsoft.VisualStudio.Shell
-
-Imports VSHelp = Microsoft.VisualStudio.VSHelp
 
 Namespace Microsoft.VisualStudio.Editors.PropertyPages
 
@@ -414,7 +404,7 @@ Namespace Microsoft.VisualStudio.Editors.PropertyPages
                     End If
 
                 Catch ex as System.Exception
-                     System.Diagnostics.Debug.Fail("Unexpected exception during Help invocation " + ex.Message)
+                    System.Diagnostics.Debug.Fail("Unexpected exception during Help invocation " + ex.Message)
                 End Try
             End If
         End Sub

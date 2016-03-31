@@ -1,7 +1,5 @@
-﻿Imports System
-Imports System.Drawing
+﻿Imports System.Drawing
 Imports System.Windows.Forms
-Imports System.Diagnostics
 Imports VsShell = Microsoft.VisualStudio.Shell.Interop
 Imports VsErrorHandler = Microsoft.VisualStudio.ErrorHandler
 
@@ -14,7 +12,7 @@ Namespace Microsoft.VisualStudio.Editors.AddImports
         Sub New(ByVal serviceProvider As IServiceProvider)
             If serviceProvider Is Nothing Then
                 Throw New ArgumentNullException("serviceProvider")
-            End If        
+            End If
             m_ServiceProvider = serviceProvider
         End Sub
 

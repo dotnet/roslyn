@@ -4,14 +4,9 @@ Option Compare Binary
 
 Imports Microsoft.VisualStudio.Editors.Common
 Imports Microsoft.VisualStudio.Editors.Common.Utils
-Imports System
-Imports System.Collections
-Imports System.Diagnostics
-Imports System.Globalization
 Imports System.IO
 Imports System.Windows.Forms
 Imports VB = Microsoft.VisualBasic
-Imports Microsoft.VisualStudio.Editors
 
 'CONSIDER: Only watch files in the current category.  Currently I'm watching all files, regardless
 'CONSIDER: of whether the user is showing that category or not.

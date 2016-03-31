@@ -1,18 +1,4 @@
-Imports System
-Imports System.Diagnostics
-Imports System.ComponentModel
 Imports System.Runtime.InteropServices
-Imports System.CodeDom
-Imports System.CodeDom.Compiler
-Imports System.IO
-
-Imports Microsoft.VisualStudio.Shell
-Imports Microsoft.VisualStudio.Shell.Interop
-Imports Microsoft.VisualStudio.OLE.Interop
-Imports Microsoft.VisualStudio.Designer.Interfaces
-Imports Microsoft.VisualStudio.Editors.Interop
-Imports Microsoft.VSDesigner.VSDesignerPackage
-Imports Microsoft.VSDesigner.Common
 Imports System.Reflection
 
 Namespace Microsoft.VisualStudio.Editors.SettingsDesigner

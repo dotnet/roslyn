@@ -1,9 +1,4 @@
-Imports System
-Imports System.Collections.Generic
-Imports System.ComponentModel
 Imports System.ComponentModel.Design
-Imports System.Diagnostics
-Imports System.Runtime.InteropServices
 
 Namespace Microsoft.VisualStudio.Editors.AppDesDesignerFramework
 
@@ -37,7 +32,7 @@ Namespace Microsoft.VisualStudio.Editors.AppDesDesignerFramework
         '   We also update the status of this menu item in this property based on 
         '   m_AlwaysCheckStatus and m_StatusValid flag.
         '**************************************************************************
-<CodeAnalysis.SuppressMessage("Microsoft.Security", "CA2123:OverrideLinkDemandsShouldBeIdenticalToBase")> _
+        <CodeAnalysis.SuppressMessage("Microsoft.Security", "CA2123:OverrideLinkDemandsShouldBeIdenticalToBase")> _
         Public Overrides ReadOnly Property OleStatus() As Integer
             Get
                 If m_AlwaysCheckStatus OrElse Not m_StatusValid Then

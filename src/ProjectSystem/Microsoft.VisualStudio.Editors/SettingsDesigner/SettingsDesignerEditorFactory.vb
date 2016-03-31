@@ -1,7 +1,4 @@
-﻿Imports System
-Imports System.Runtime.InteropServices
-Imports Microsoft.VisualStudio.Editors
-Imports Microsoft.VisualStudio.Shell.Interop
+﻿Imports System.Runtime.InteropServices
 Imports LOGVIEWID = Microsoft.VisualStudio.Editors.Interop.LOGVIEWID
 Imports NativeMethods = Microsoft.VisualStudio.Editors.Interop.NativeMethods
 

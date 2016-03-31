@@ -1,6 +1,4 @@
 Imports EnvDTE
-Imports System
-Imports System.Diagnostics
 
 
 Namespace Microsoft.VisualStudio.Editors.Common

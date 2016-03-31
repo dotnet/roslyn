@@ -1,6 +1,4 @@
-Imports System
 Imports System.IO
-Imports System.Xml
 Imports System.Xml.Serialization
 
 Namespace Microsoft.VisualStudio.Editors.MyApplication
@@ -32,8 +30,8 @@ Namespace Microsoft.VisualStudio.Editors.MyApplication
         ''' <param name="Writer">Text writer on stream to serialize MyApplicationData to</param>
         ''' <remarks></remarks>
         Public Shared Sub Serialize(ByVal data As MyApplicationData, ByVal Writer As TextWriter)
-            Dim serializer As XmlSerializer = new MyApplicationDataSerializer() 
-                                              'New XmlSerializer(GetType(MyApplicationData))
+            Dim serializer As XmlSerializer = new MyApplicationDataSerializer()
+            'New XmlSerializer(GetType(MyApplicationData))
             serializer.Serialize(Writer, data)
         End Sub
 

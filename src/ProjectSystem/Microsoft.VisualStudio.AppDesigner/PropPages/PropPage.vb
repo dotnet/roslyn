@@ -1,12 +1,7 @@
-Imports Microsoft.VisualBasic
-Imports System
-Imports System.Diagnostics
-Imports System.ComponentModel
 Imports System.ComponentModel.Design
 Imports Common = Microsoft.VisualStudio.Editors.AppDesCommon
 Imports Microsoft.VisualStudio.ManagedInterfaces.ProjectDesigner
 Imports Microsoft.VisualStudio.OLE.Interop
-Imports Microsoft.VisualStudio.Shell.Interop
 Imports System.Windows.Forms
 Imports System.Runtime.InteropServices
 Imports System.Drawing
@@ -43,7 +38,7 @@ Namespace Microsoft.VisualStudio.Editors.PropertyPages
     ''' </summary>
     ''' <remarks></remarks>
     <ComVisible(False)> _
-        Public Interface IPropertyPageInternal
+    Public Interface IPropertyPageInternal
         Sub Apply()
         Sub Help(ByVal HelpDir As String)
         Function IsPageDirty() As Boolean

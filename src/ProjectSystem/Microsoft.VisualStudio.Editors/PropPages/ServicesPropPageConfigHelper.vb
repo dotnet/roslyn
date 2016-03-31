@@ -1,19 +1,10 @@
-Imports Microsoft.VisualStudio.Editors
-Imports Microsoft.VisualStudio.Editors.Interop
-Imports Microsoft.VisualStudio.Shell
 Imports Microsoft.VisualStudio.Shell.Interop
-
-
-Imports System
-Imports System.Diagnostics
 Imports System.Diagnostics.CodeAnalysis
 Imports System.Globalization
 Imports System.IO
 Imports System.Runtime.InteropServices
 Imports System.Text
-Imports System.Web
 Imports System.Xml
-Imports Microsoft.VisualBasic
 Imports Microsoft.VisualStudio.Editors.SettingsDesigner
 Imports Microsoft.VisualStudio.Shell.Design.Serialization
 Imports Microsoft.VSDesigner
@@ -984,7 +975,7 @@ Namespace Microsoft.VisualStudio.Editors.PropertyPages
             val = val.Trim()
             If val = String.Empty Then Return String.Empty
             If val.EndsWith("/") Then
-               return val & suffix
+                return val & suffix
             End If
             return val & "/" & suffix
         End Function

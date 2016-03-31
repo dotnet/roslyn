@@ -1,5 +1,3 @@
-Imports System
-Imports System.ComponentModel
 Imports System.ComponentModel.Design
 
 Namespace Microsoft.VisualStudio.Editors.SettingsDesigner

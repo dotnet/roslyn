@@ -1,9 +1,5 @@
 Option Strict On
-Option Explicit On 
-
-Imports Microsoft.VisualBasic
-Imports System
-Imports System.Reflection
+Option Explicit On
 Imports System.Security
 Imports System.Security.Permissions
 Imports System.Xml
@@ -39,7 +35,7 @@ Namespace Microsoft.VisualStudio.Editors.VBAttributeEditor
 
             ' Add the attributes
             For Each attribute As XmlAttribute In element.Attributes
-                securityElement .AddAttribute(attribute.Name, attribute.Value)
+                securityElement.AddAttribute(attribute.Name, attribute.Value)
             Next
 
             ' Add the child nodes
@@ -84,14 +80,14 @@ Namespace Microsoft.VisualStudio.Editors.VBAttributeEditor
                 Dim projectPermissionSet As PermissionSet = Nothing
 
                 If (strManifestFileName IsNot Nothing) AndAlso (strManifestFileName.Length > 0) Then
-        
+
                     Dim manifestInfo As New TrustInfo
                     manifestInfo.PreserveFullTrustPermissionSet = true
 
                     Try
                         Using appManifestDocData as New DocData(m_serviceProvider, strManifestFileName)
 
-                             manifestInfo.ReadManifest(DocDataToStream(appManifestDocData))
+                            manifestInfo.ReadManifest(DocDataToStream(appManifestDocData))
 
                         End Using
 

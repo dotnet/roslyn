@@ -1,14 +1,7 @@
-Imports Microsoft.VisualStudio.Editors.AppDesDesignerFramework
-Imports Microsoft.VisualStudio.Editors.AppDesInterop
-Imports System
 Imports System.ComponentModel
 Imports System.Windows.Forms
 Imports System.Windows.Forms.Design
-Imports System.Diagnostics
-Imports System.Drawing
 Imports System.ComponentModel.Design
-Imports EnvDTE
-Imports VSHelp = Microsoft.VisualStudio.VSHelp
 
 Namespace Microsoft.VisualStudio.Editors.AppDesDesignerFramework
 

@@ -1,10 +1,6 @@
 Option Strict On
 Option Explicit On
-
-Imports System
-Imports System.Diagnostics
 Imports System.Drawing
-Imports System.Math
 Imports System.Windows.Forms
 Imports Microsoft.VisualStudio.Editors.Common
 Imports Microsoft.VisualStudio.PlatformUI

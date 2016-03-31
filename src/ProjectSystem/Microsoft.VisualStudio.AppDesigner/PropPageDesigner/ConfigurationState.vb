@@ -1,11 +1,6 @@
 ﻿Imports Common = Microsoft.VisualStudio.Editors.AppDesCommon
 Imports Microsoft.VisualStudio.Shell.Interop
-Imports System
-Imports System.Collections
-Imports System.ComponentModel
-Imports System.ComponentModel.Design
-Imports System.Diagnostics
-Imports VSITEMID=Microsoft.VisualStudio.Editors.VSITEMIDAPPDES
+Imports VSITEMID = Microsoft.VisualStudio.Editors.VSITEMIDAPPDES
 
 Namespace Microsoft.VisualStudio.Editors.PropPageDesigner
 

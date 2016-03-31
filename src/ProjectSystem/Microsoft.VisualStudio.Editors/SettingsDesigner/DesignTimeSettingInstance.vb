@@ -1,6 +1,4 @@
-Imports System
 Imports System.ComponentModel
-Imports System.Diagnostics
 Imports Microsoft.VisualStudio.Editors.PropertyPages
 
 Imports IVsHierarchy = Microsoft.VisualStudio.Shell.Interop.IVsHierarchy

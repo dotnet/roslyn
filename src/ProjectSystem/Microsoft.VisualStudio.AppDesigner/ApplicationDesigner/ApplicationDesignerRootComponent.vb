@@ -1,7 +1,5 @@
-Imports System
 Imports System.ComponentModel
 Imports System.ComponentModel.Design
-Imports System.Diagnostics
 Imports Microsoft.VisualStudio.Shell.Interop
 
 Namespace Microsoft.VisualStudio.Editors.ApplicationDesigner

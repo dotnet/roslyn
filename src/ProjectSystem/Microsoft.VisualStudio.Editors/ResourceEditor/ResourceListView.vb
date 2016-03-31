@@ -1,10 +1,6 @@
 Option Explicit On
 Option Strict On
 Option Compare Binary
-
-Imports System
-Imports System.Collections
-Imports System.Diagnostics
 Imports System.Drawing
 Imports System.Runtime.InteropServices
 Imports System.Windows.Forms

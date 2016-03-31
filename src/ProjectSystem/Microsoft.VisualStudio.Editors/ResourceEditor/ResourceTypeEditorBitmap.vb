@@ -1,9 +1,7 @@
 Option Explicit On
 Option Strict On
 Option Compare Binary
-Imports System
 Imports System.Collections.Specialized
-Imports System.Diagnostics
 Imports System.Drawing
 Imports System.IO
 

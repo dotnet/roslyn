@@ -4,18 +4,12 @@ Imports Microsoft.VisualStudio.Editors.SettingsDesigner
 Imports Microsoft.VisualStudio.Shell.Design
 Imports Microsoft.VisualStudio.Shell.Design.Serialization
 Imports Microsoft.VisualStudio.Shell.Interop
-Imports System
 Imports System.CodeDom
-Imports System.Collections
-Imports System.Collections.Generic
 Imports System.ComponentModel
 Imports System.ComponentModel.Design
 Imports System.ComponentModel.Design.Serialization
 Imports System.Configuration
-Imports System.Diagnostics
-Imports System.Globalization
 Imports System.Runtime.InteropServices
-Imports System.Windows.Forms
 
 Imports Microsoft.VSDesigner
 Imports System.Reflection

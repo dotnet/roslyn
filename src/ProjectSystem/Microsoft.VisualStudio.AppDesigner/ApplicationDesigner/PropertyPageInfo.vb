@@ -1,19 +1,8 @@
-Imports EnvDTE
-Imports Microsoft.VisualStudio.Editors
 Imports Common = Microsoft.VisualStudio.Editors.AppDesCommon
 Imports Microsoft.VisualStudio.Editors.AppDesInterop
-Imports System
-Imports System.Diagnostics
-Imports System.Drawing
 Imports System.Runtime.InteropServices
-Imports System.Windows.Forms
-Imports System.Windows.Forms.Design
-Imports System.ComponentModel.Design
-Imports Microsoft.VisualStudio.Designer.Interfaces
-Imports Microsoft.VisualBasic
 Imports Microsoft.VisualStudio.Shell.Interop
 Imports OleInterop = Microsoft.VisualStudio.OLE.Interop
-Imports Microsoft.VisualStudio.Shell.Design.Serialization
 
 Namespace Microsoft.VisualStudio.Editors.ApplicationDesigner
 

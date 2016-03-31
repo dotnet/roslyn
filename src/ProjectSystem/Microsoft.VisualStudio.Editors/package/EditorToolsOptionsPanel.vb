@@ -1,8 +1,5 @@
 Option Strict On
 Option Explicit On
-
-Imports System
-Imports System.Windows.Forms
 Namespace Microsoft.VisualStudio.Editors.Package
     Public Class EditorToolsOptionsPanel
 

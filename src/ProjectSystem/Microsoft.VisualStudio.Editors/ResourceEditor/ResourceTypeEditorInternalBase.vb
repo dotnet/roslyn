@@ -3,17 +3,7 @@ Option Strict On
 Option Compare Binary
 
 Imports Microsoft.VisualStudio.Editors.Package
-Imports System
-Imports System.Collections
-Imports System.ComponentModel
-Imports System.Diagnostics
-Imports System.Drawing
-Imports System.Drawing.Imaging
-Imports System.Globalization
 Imports System.IO
-Imports System.Text
-Imports System.Windows.Forms
-Imports Microsoft.VisualStudio.Editors
 
 Namespace Microsoft.VisualStudio.Editors.ResourceEditor
 

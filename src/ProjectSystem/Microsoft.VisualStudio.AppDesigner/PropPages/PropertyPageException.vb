@@ -1,4 +1,3 @@
-Imports System
 Imports System.Runtime.Serialization
 
 Namespace Microsoft.VisualStudio.Editors.PropertyPages

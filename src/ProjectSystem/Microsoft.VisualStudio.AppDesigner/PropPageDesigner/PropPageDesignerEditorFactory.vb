@@ -1,20 +1,9 @@
-Imports System
-Imports System.ComponentModel
-Imports System.ComponentModel.Design
-Imports System.ComponentModel.Design.Serialization
-Imports System.Diagnostics
-Imports System.Globalization
-Imports System.IO
 Imports System.Runtime.InteropServices
-Imports System.Runtime.Serialization.Formatters
-Imports System.Windows.Forms
 Imports Common = Microsoft.VisualStudio.Editors.AppDesCommon
 Imports Microsoft.VisualStudio.OLE.Interop
 Imports Microsoft.VisualStudio.Designer.Interfaces
 Imports Microsoft.VisualStudio.Shell
 Imports Microsoft.VisualStudio.Shell.Interop
-Imports Microsoft.VisualStudio.TextManager.Interop
-Imports Microsoft.VisualStudio.Editors.AppDesDesignerFramework
 
 Namespace Microsoft.VisualStudio.Editors.PropPageDesigner
 

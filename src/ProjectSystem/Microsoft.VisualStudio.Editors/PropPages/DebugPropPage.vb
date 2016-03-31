@@ -1,18 +1,8 @@
-Imports System
-Imports Microsoft.VisualBasic
-Imports Microsoft.VisualStudio.Editors.Common
-Imports VB = Microsoft.VisualBasic
 Imports System.ComponentModel
 Imports System.Windows.Forms
-Imports System.Diagnostics
-Imports Microsoft.VisualStudio.Shell.Interop
-Imports Microsoft.VisualStudio.Editors.Interop
 Imports System.IO
 Imports VSLangProj80
-Imports Microsoft.VisualStudio.Editors.PropertyPages
-Imports Microsoft.VisualStudio.Editors
 Imports Microsoft.VisualStudio.PlatformUI
-Imports System.Collections.Generic
 
 Namespace Microsoft.VisualStudio.Editors.PropertyPages
 
@@ -416,7 +406,7 @@ Namespace Microsoft.VisualStudio.Editors.PropertyPages
 
                     m_ControlData = datalist.ToArray()
 
-                    
+
                 End If
                 Return m_ControlData
             End Get

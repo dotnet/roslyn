@@ -1,14 +1,8 @@
-Imports System
-Imports System.Collections
-Imports System.Collections.Generic
 Imports System.ComponentModel
 Imports System.ComponentModel.Design
 Imports System.ComponentModel.Design.Serialization
 Imports System.Configuration
-Imports System.Diagnostics
 Imports System.Globalization
-Imports System.Runtime.InteropServices
-Imports System.Text
 Imports System.Web.ClientServices.Providers
 Imports System.Windows.Forms
 Imports System.Windows.Forms.Design
@@ -1286,7 +1280,7 @@ Namespace Microsoft.VisualStudio.Editors.SettingsDesigner
                         End If
                     Case ValueColumnNo
                         Dim cell As DataGridViewUITypeEditorCell = TryCast( _
-                                        m_SettingsGridView.Rows(e.RowIndex).Cells(e.ColumnIndex),  _
+                                        m_SettingsGridView.Rows(e.RowIndex).Cells(e.ColumnIndex), _
                                         DataGridViewUITypeEditorCell)
 
                         ' If the type has been invalidated, we need to make sure that we treat it as a string...

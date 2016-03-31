@@ -1,5 +1,3 @@
-Imports System
-Imports System.Diagnostics
 Imports System.Runtime.InteropServices
 Imports Microsoft.VisualStudio.Shell.Interop
 Imports Microsoft.VisualStudio.TextManager.Interop

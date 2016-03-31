@@ -1,6 +1,4 @@
-﻿Imports System
-Imports System.Drawing
-Imports System.Windows.Forms
+﻿Imports System.Windows.Forms
 
 Namespace Microsoft.VisualStudio.Editors.AddImports
     Friend Module Util
@@ -35,7 +33,7 @@ Namespace Microsoft.VisualStudio.Editors.AddImports
                     second = input.Substring(i + 2, input.Length - i - 2)
                 End If
             End If
-            
+
             Return mnemonicChar
         End Function
 

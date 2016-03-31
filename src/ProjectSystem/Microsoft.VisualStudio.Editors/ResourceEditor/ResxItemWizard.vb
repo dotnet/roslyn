@@ -1,10 +1,7 @@
 Option Strict On
 Option Explicit On
 Option Compare Binary
-
-Imports System
 Imports System.Collections.Specialized
-Imports System.Diagnostics
 Imports EnvDTE
 Imports Microsoft.VisualStudio.TemplateWizard
 

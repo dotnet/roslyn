@@ -1,20 +1,13 @@
-Imports System
-Imports system.collections
 Imports System.Drawing
-Imports System.Diagnostics
 Imports System.Runtime.InteropServices
 Imports Common = Microsoft.VisualStudio.Editors.AppDesCommon
 Imports Microsoft.VisualStudio.Shell.Interop
-Imports Microsoft.VisualStudio.TextManager.Interop
 Imports Microsoft.VisualStudio.Editors.AppDesInterop
-Imports win = Microsoft.VisualStudio.Editors.AppDesInterop.win
 Imports Microsoft.VisualStudio.Shell.Design
 Imports System.Windows.Forms
 Imports System.ComponentModel.Design
 Imports System.ComponentModel.Design.Serialization
 Imports System.Reflection
-Imports Microsoft.VisualStudio.Shell
-Imports IOleServiceProvider = Microsoft.VisualStudio.OLE.Interop.IServiceProvider
 Imports IOleDataObject = Microsoft.VisualStudio.OLE.Interop.IDataObject
 
 Namespace Microsoft.VisualStudio.Editors.AppDesDesignerFramework

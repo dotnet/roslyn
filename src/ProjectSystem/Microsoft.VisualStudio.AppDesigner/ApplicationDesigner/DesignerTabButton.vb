@@ -1,7 +1,4 @@
 Imports Common = Microsoft.VisualStudio.Editors.AppDesCommon
-Imports System
-Imports System.ComponentModel
-Imports System.Diagnostics
 Imports System.Drawing
 Imports System.Windows.Forms
 

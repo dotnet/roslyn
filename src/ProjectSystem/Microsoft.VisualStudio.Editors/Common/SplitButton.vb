@@ -1,7 +1,4 @@
 ﻿Option Infer On
-
-Imports System
-Imports System.ComponentModel.Design
 Imports System.Drawing
 Imports System.Windows.Forms
 Imports System.Windows.Forms.VisualStyles

@@ -1,4 +1,3 @@
-Imports System
 Imports System.Runtime.InteropServices
 
 Namespace Microsoft.VisualStudio.Editors.Interop

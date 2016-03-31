@@ -1,8 +1,3 @@
-Imports Microsoft.VisualBasic
-Imports System
-Imports System.Runtime.CompilerServices
-
-
 Namespace Microsoft.VisualStudio.Editors.AppDesCommon
 
     Friend Module ArgumentValidation

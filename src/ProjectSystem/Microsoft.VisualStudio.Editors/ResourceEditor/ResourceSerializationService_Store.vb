@@ -3,16 +3,8 @@ Option Strict On
 Option Compare Binary
 
 Imports Microsoft.VisualStudio.Editors.Common.Utils
-Imports System.Reflection
-Imports System
 Imports System.ComponentModel
-Imports System.ComponentModel.Design
-Imports System.ComponentModel.Design.Serialization
-Imports System.Resources
-Imports System.Collections
-Imports System.Collections.Specialized
 Imports System.IO
-Imports System.Diagnostics
 Imports System.Runtime.Serialization
 Imports System.Runtime.Serialization.Formatters.Binary
 

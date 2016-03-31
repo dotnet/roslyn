@@ -1,13 +1,7 @@
 Option Strict On
 Option Explicit On
-
-Imports System
-Imports System.Collections
-Imports System.Collections.Generic
 Imports System.ComponentModel
-Imports System.Diagnostics
 Imports System.IO
-Imports System.Reflection
 Imports System.Text
 Imports System.Xml
 Imports EnvDTE

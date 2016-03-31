@@ -1,9 +1,6 @@
 Imports Microsoft.VisualStudio.Shell.Interop
-
-Imports System
 Imports System.CodeDom
 Imports System.CodeDom.Compiler
-Imports System.Diagnostics
 Imports System.Reflection
 
 Namespace Microsoft.VisualStudio.Editors.SettingsDesigner.ProjectUtils

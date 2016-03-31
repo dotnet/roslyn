@@ -1,10 +1,5 @@
 Imports Microsoft.VisualStudio.Editors.DesignerFramework
-Imports System.Collections
-Imports System.Collections.Generic
-Imports System.Diagnostics
 Imports System.Windows.Forms
-Imports System.Windows.Forms.Design
-Imports System
 Imports System.Drawing
 Imports System.Reflection
 Imports Microsoft.VisualStudio.Shell.Interop
@@ -206,7 +201,7 @@ Namespace Microsoft.VisualStudio.Editors.SettingsDesigner
                                     TypeTreeView.AddTypeNode(Node, availableType.FullName)
                                 End If
                             Next
-                        End If                    
+                        End If
                     End Using
                 End If
             End If
@@ -498,7 +493,7 @@ Namespace Microsoft.VisualStudio.Editors.SettingsDesigner
         Private Enum NodeType
             ASSEMBLY_NODE
             NAMESPACE_NODE
-            TYPE_NODE            
+            TYPE_NODE
         End Enum
 
 

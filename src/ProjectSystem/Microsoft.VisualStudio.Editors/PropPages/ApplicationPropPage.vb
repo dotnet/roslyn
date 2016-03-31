@@ -1,22 +1,10 @@
-Imports Microsoft.VisualBasic
-Imports Microsoft.VisualStudio.Shell.Interop
-Imports System
-Imports System.Collections
-Imports System.Collections.Generic
-Imports System.Diagnostics
 Imports System.IO
-Imports System.ComponentModel.Design
 Imports System.Windows.Forms
-Imports System.Drawing
-Imports Microsoft.VisualStudio.Editors
 Imports Microsoft.VisualStudio.Editors.Common
-Imports System.Runtime.InteropServices
 Imports System.ComponentModel
 Imports VSLangProj80
 Imports VslangProj90
-Imports VslangProj100
 Imports VSLangProj110
-Imports Microsoft.VisualStudio.Editors.PropertyPages
 
 Namespace Microsoft.VisualStudio.Editors.PropertyPages
 
@@ -390,7 +378,7 @@ Namespace Microsoft.VisualStudio.Editors.PropertyPages
                     datalist.Add(data)
                     datalist.Add(m_TargetFrameworkPropertyControlData)
                     m_ControlData = datalist.ToArray()
-                    
+
                 End If
                 Return m_ControlData
             End Get

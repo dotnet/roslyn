@@ -1,9 +1,5 @@
 Imports Microsoft.VisualStudio.Editors.AppDesDesignerFramework
-Imports System
-Imports System.Diagnostics
 Imports System.Windows.Forms
-
-Imports Common = Microsoft.VisualStudio.Editors.AppDesCommon
 
 Namespace Microsoft.VisualStudio.Editors.PropertyPages
 

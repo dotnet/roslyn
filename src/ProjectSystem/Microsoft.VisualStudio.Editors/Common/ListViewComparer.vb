@@ -1,10 +1,5 @@
 Option Strict On
 Option Explicit On
-
-Imports System
-Imports System.Collections
-Imports System.Diagnostics
-Imports System.Globalization
 Imports System.Windows.Forms
 
 Namespace Microsoft.VisualStudio.Editors.Common

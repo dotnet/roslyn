@@ -1,10 +1,5 @@
 Imports EnvDTE
 Imports Microsoft.VisualStudio.Shell.Interop
-Imports System
-Imports System.Collections.Generic
-Imports System.Diagnostics
-Imports System.Drawing
-Imports System.IO
 Imports System.Threading
 
 

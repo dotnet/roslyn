@@ -1,12 +1,7 @@
 ﻿Imports EnvDTE
 Imports VB = Microsoft.VisualBasic
 Imports Microsoft.VisualStudio.Shell.Interop
-Imports System
-Imports System.Collections.Generic
-Imports System.Diagnostics
 Imports System.Drawing
-Imports System.Linq
-Imports System.IO
 Imports System.Windows.Forms
 Imports System.Windows.Forms.Design
 
@@ -845,7 +840,7 @@ Namespace Microsoft.VisualStudio.Editors.Common
         Friend Shared Function CreateTypeResolutionService(ByVal serviceProvider As IServiceProvider, ByVal hierarchy As IVsHierarchy) As System.ComponentModel.Design.ITypeResolutionService
             Dim dynamicTypeService As Microsoft.VisualStudio.Shell.Design.DynamicTypeService = _
                     TryCast(serviceProvider.GetService( _
-                    GetType(Microsoft.VisualStudio.Shell.Design.DynamicTypeService)),  _
+                    GetType(Microsoft.VisualStudio.Shell.Design.DynamicTypeService)), _
                     Microsoft.VisualStudio.Shell.Design.DynamicTypeService)
 
             Dim trs As System.ComponentModel.Design.ITypeResolutionService = Nothing

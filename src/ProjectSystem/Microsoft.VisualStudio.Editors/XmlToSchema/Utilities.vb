@@ -1,8 +1,5 @@
 ﻿Option Infer On
-
-Imports System
 Imports System.ComponentModel
-Imports System.Diagnostics
 Imports System.Diagnostics.CodeAnalysis
 Imports System.Drawing
 Imports System.Security.Permissions

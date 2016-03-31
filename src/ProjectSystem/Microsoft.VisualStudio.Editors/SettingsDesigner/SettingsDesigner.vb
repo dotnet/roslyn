@@ -1,12 +1,6 @@
-Imports System
-Imports System.Collections
-Imports System.Collections.Generic
-Imports System.ComponentModel
 Imports System.ComponentModel.Design
-Imports System.Diagnostics
 
 Imports Microsoft.VisualStudio.Editors.Interop
-Imports Microsoft.VisualStudio.Shell.Design
 Imports Microsoft.VisualStudio.Shell.interop
 
 Namespace Microsoft.VisualStudio.Editors.SettingsDesigner

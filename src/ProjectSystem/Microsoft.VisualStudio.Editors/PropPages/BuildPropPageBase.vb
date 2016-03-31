@@ -1,8 +1,6 @@
 Imports Microsoft.VisualStudio.Editors.Common
-Imports System
 Imports System.ComponentModel
 Imports System.Windows.Forms
-Imports VSLangProj80
 Imports VSLangProj110
 Imports System.Reflection
 

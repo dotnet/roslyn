@@ -1,6 +1,4 @@
-﻿Imports System
-Imports System.Diagnostics.CodeAnalysis
-Imports System.Drawing
+﻿Imports System.Diagnostics.CodeAnalysis
 Imports System.Windows.Forms
 
 Namespace Microsoft.VisualStudio.Editors.PropertyPages
@@ -201,7 +199,7 @@ Namespace Microsoft.VisualStudio.Editors.PropertyPages
                 System.Diagnostics.Debug.Fail("Unexpected exception during Help invocation " + ex.Message)
             End Try
         End Sub
-        
+
         Private Sub ServiceAuthenticationForm_HelpButtonClicked(ByVal sender As System.Object, ByVal e As System.ComponentModel.CancelEventArgs) Handles Me.HelpButtonClicked
             ShowHelp()
         End Sub

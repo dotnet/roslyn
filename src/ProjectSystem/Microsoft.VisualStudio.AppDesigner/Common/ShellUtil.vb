@@ -1,15 +1,10 @@
 ﻿Imports EnvDTE
 Imports VB = Microsoft.VisualBasic
 Imports Microsoft.VisualStudio.Shell.Interop
-Imports System
-Imports System.Collections.Generic
-Imports System.Diagnostics
 Imports System.Drawing
-Imports System.Linq
-Imports System.IO
 Imports System.Windows.Forms
 Imports System.Windows.Forms.Design
-Imports VSITEMID=Microsoft.VisualStudio.Editors.VSITEMIDAPPDES
+Imports VSITEMID = Microsoft.VisualStudio.Editors.VSITEMIDAPPDES
 
 Namespace Microsoft.VisualStudio.Editors.AppDesCommon
 
@@ -57,23 +52,23 @@ Namespace Microsoft.VisualStudio.Editors.AppDesCommon
         End Function
 
         Public Shared Function GetDesignerThemeColor(ByVal uiShellService As IVsUIShell5, ByVal themeCategory As Guid, ByVal themeColorName As String, ByVal colorType As __THEMEDCOLORTYPE, ByVal defaultColor As Color) As Color
-                
+
             If uiShellService IsNot Nothing Then
                 Dim rgbaValue As UInt32
-               
+
                 Dim hr As Int32 = VSErrorHandler.CallWithCOMConvention(
                     Sub()
                         rgbaValue = uiShellService.GetThemedColor(themeCategory, themeColorName, CType(colorType, System.UInt32))
                     End Sub)
-               
+
                 If VSErrorHandler.Succeeded(hr) Then
                     Return RGBAToColor(rgbaValue)
                 End If
             End If
-                
+
             Debug.Fail("Unable to get color from the shell, using a predetermined default color instead." & VB.vbCrLf & "Color Category = " & themeCategory.ToString() & ", Color Name = " & themeColorName & ", Color Type = " & colorType & ", Default Color = &h" & VB.Hex(DefaultColor.ToArgb))
             Return defaultColor
-        End Function 
+        End Function
 
         Private Shared Function RGBAToColor(ByVal rgbaValue As UInt32) As Color
             Return Color.FromArgb(CInt((rgbaValue And &HFF000000UI) >> 24), CInt(rgbaValue And &HFFUI), CInt((rgbaValue And &HFF00UI) >> 8), CInt((rgbaValue And &HFF0000UI) >> 16))

@@ -1,10 +1,5 @@
 Option Strict On
-Option Explicit On 
-
-Imports Microsoft.VisualStudio.Shell
-Imports System
-Imports System.ComponentModel
-Imports System.Diagnostics
+Option Explicit On
 Imports System.Runtime.CompilerServices
 Imports System.Runtime.InteropServices
 

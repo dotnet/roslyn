@@ -1,7 +1,5 @@
-Imports Microsoft.VisualStudio
 Imports Microsoft.VisualStudio.OLE.Interop
 Imports Microsoft.VisualStudio.Shell.Interop
-Imports System.Diagnostics
 Imports System.Windows.Forms
 
 Namespace Microsoft.VisualStudio.Editors.PropertyPages
@@ -22,7 +20,7 @@ Namespace Microsoft.VisualStudio.Editors.PropertyPages
         End Sub
 
         Private Function IsInstallOtherFrameworksSelected() As Boolean
-            Return Me.comboBox.SelectedIndex >= 0 AndAlso 
+            Return Me.comboBox.SelectedIndex >= 0 AndAlso
                    TypeOf Me.comboBox.Items(Me.comboBox.SelectedIndex) Is InstallOtherFrameworksComboBoxValue
         End Function
 

@@ -1,14 +1,3 @@
-Imports Microsoft.VisualBasic
-Imports System
-Imports System.Diagnostics
-Imports System.ComponentModel.Design
-Imports System.Windows.Forms
-Imports System.Drawing
-Imports Microsoft.VisualStudio.Editors
-Imports Microsoft.VisualStudio.Editors.AppDesInterop
-Imports System.Runtime.InteropServices
-Imports System.Collections
-Imports Microsoft.VisualStudio.Shell.Interop
 Imports System.ComponentModel
 
 Namespace Microsoft.VisualStudio.Editors.PropertyPages

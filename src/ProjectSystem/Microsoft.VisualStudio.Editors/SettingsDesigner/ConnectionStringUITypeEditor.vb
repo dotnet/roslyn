@@ -1,7 +1,4 @@
-Imports System
-Imports System.Diagnostics
 Imports System.drawing.Design
-Imports System.Windows.Forms.Design
 Imports Microsoft.VisualStudio.Data.Core
 Imports Microsoft.VisualStudio.Data.Services
 Imports Microsoft.VisualStudio.Data.Services.SupportEntities

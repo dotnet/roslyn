@@ -2,9 +2,6 @@ Option Strict On
 Option Explicit On
 
 Imports Microsoft.VisualStudio.Editors.Common
-Imports System
-Imports System.Diagnostics
-Imports System.Drawing
 Imports System.Windows.Forms
 
 Namespace Microsoft.VisualStudio.Editors.DesignerFramework

@@ -1,9 +1,5 @@
-Imports System
-Imports System.Collections
-Imports System.Collections.Generic
 Imports System.ComponentModel
 Imports System.ComponentModel.Design.Serialization
-Imports System.Diagnostics
 Imports System.io
 Imports System.Runtime.Serialization
 Imports System.Runtime.Serialization.Formatters.Binary
@@ -38,13 +34,13 @@ Namespace Microsoft.VisualStudio.Editors.DesignerFramework
         End Sub
 
 
-	' default impl of abstract base member.  see serialization store for details.
-	'	
- 	public readonly Overrides property Errors() as ICollection
-	     get
-		return new object(-1){}
-	     end get
-	end property
+        ' default impl of abstract base member.  see serialization store for details.
+        '	
+        public readonly Overrides property Errors() as ICollection
+            get
+                return new object(-1) {}
+            end get
+        end property
 
 
         ''' <summary>
@@ -81,7 +77,7 @@ Namespace Microsoft.VisualStudio.Editors.DesignerFramework
             End If
         End Sub
 
-	  
+
 
 #Region "ISerialization implementation"
 

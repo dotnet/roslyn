@@ -1,11 +1,6 @@
-Imports System
-Imports System.Diagnostics
 Imports System.IO
-Imports System.Windows.Forms
 Imports System.Windows.Forms.Design
 Imports System.Xml
-Imports System.Collections
-Imports System.Collections.Generic
 Imports System.Configuration
 
 Imports Microsoft.VisualStudio.Shell.Design.Serialization

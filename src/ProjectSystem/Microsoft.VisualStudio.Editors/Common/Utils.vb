@@ -1,7 +1,4 @@
-Imports System
-Imports System.Collections
 Imports System.ComponentModel.Design
-Imports System.Diagnostics
 Imports System.Drawing
 Imports System.Drawing.Imaging
 Imports System.IO
@@ -9,7 +6,6 @@ Imports System.Runtime.InteropServices
 Imports System.Runtime.Versioning
 Imports System.Text
 Imports System.Windows.Forms
-Imports Microsoft.VisualBasic
 Imports Microsoft.VisualStudio.Editors.Interop
 Imports Microsoft.VisualStudio.Imaging.Interop
 Imports Microsoft.VisualStudio.Shell

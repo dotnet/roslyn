@@ -1,9 +1,6 @@
-Imports System
 Imports System.Security
-Imports System.Text
 Imports System.Runtime.CompilerServices
 Imports System.Runtime.InteropServices
-Imports System.Diagnostics.CodeAnalysis
 
 Namespace Microsoft.Runtime.Hosting
     Friend Class StrongNameHelpers

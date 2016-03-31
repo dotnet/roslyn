@@ -1,7 +1,4 @@
-﻿Imports System
-Imports System.Collections
-Imports System.Collections.Generic
-
+﻿
 Imports Microsoft.VisualStudio.Shell.Interop
 
 Namespace Microsoft.VisualStudio.Editors.DesignerFramework

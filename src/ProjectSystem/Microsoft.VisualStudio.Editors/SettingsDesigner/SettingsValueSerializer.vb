@@ -1,7 +1,5 @@
-Imports System
 Imports System.ComponentModel
 Imports System.Configuration
-Imports System.Diagnostics
 
 Imports Microsoft.VisualStudio.Shell.Design.Serialization
 

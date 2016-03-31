@@ -1,7 +1,4 @@
-Imports Microsoft.VisualStudio.Editors
 Imports Microsoft.VisualStudio.ManagedInterfaces.ProjectDesigner
-Imports System
-Imports System.Diagnostics
 
 Namespace Microsoft.VisualStudio.Editors.PropertyPages
 

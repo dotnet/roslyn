@@ -1,7 +1,3 @@
-Imports Microsoft.Internal.Performance
-Imports System
-Imports System.Diagnostics
-
 Namespace Microsoft.VisualStudio.Editors.Common
 
     ''' <summary>

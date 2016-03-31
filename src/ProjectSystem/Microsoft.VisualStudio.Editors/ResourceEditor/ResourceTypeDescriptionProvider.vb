@@ -1,10 +1,7 @@
 Option Explicit On
 Option Strict On
 Option Compare Binary
-
-Imports System
 Imports System.ComponentModel
-Imports System.Diagnostics
 
 Namespace Microsoft.VisualStudio.Editors.ResourceEditor
 

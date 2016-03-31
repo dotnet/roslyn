@@ -1,6 +1,3 @@
-Imports Microsoft.VisualBasic
-Imports System
-
 Namespace Microsoft.VisualStudio.Editors.Common
 
     Friend Module ArgumentValidation

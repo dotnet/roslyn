@@ -1,13 +1,8 @@
 'This is the C#/J# version of the Compile property page.  'CompilePropPage2.vb is the VB version.
 
-Imports System
-Imports System.Collections.Generic
 Imports System.ComponentModel
-Imports System.Diagnostics
 Imports System.IO
 Imports System.Windows.Forms
-Imports System.Globalization
-Imports Microsoft.VisualBasic
 Imports Microsoft.VisualStudio.Editors.Common
 Imports Microsoft.VisualStudio.PlatformUI
 Imports Microsoft.VisualStudio.Shell.Interop

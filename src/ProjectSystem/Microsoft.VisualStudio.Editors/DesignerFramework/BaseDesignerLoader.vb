@@ -2,14 +2,11 @@ Option Strict On
 Option Explicit On
 
 Imports Microsoft.VisualStudio.Editors.Common
-Imports Microsoft.VisualStudio.Editors.Package
 Imports Microsoft.VisualStudio.Shell.Design.Serialization
 Imports Microsoft.VisualStudio.Shell.Interop
 Imports Microsoft.VisualStudio.TextManager.Interop
-Imports System
 Imports System.ComponentModel.Design
 Imports System.ComponentModel.Design.Serialization
-Imports System.Diagnostics
 Imports System.IO
 
 

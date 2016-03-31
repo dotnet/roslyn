@@ -1,22 +1,15 @@
 Option Strict On
 Option Explicit On
-
-Imports System
 Imports System.IO
-Imports System.Collections
-Imports System.Collections.Generic
 Imports System.Runtime.InteropServices
 Imports System.Xml
 Imports System.Xml.Schema
-Imports System.Diagnostics
 Imports System.Threading
 Imports System.Threading.Tasks
 Imports System.ComponentModel.Design
 Imports Microsoft.VisualStudio.XmlEditor
 Imports Microsoft.VisualStudio.Shell.Interop
-Imports Microsoft.Win32.SafeHandles
 Imports Microsoft.VisualStudio.WCFReference.Interop
-Imports System.ComponentModel
 
 Imports NativeMethods = Microsoft.VisualStudio.ErrorHandler
 
@@ -461,7 +454,7 @@ Namespace Microsoft.VisualStudio.Editors.XmlIntellisense
                     Dim packageSP As IServiceProvider = TryCast(package, IServiceProvider)
                     If packageSP IsNot Nothing Then
                         Dim service As IXmlSchemaDesignerService = TryCast( _
-                            packageSP.GetService(GetType(IXmlSchemaDesignerService)),  _
+                            packageSP.GetService(GetType(IXmlSchemaDesignerService)), _
                             IXmlSchemaDesignerService)
                         If service IsNot Nothing Then
                             ' Call the service to show the element or the namespace (whichever is not null).

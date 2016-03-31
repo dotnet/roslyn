@@ -1,13 +1,8 @@
 Option Explicit On
 Option Strict On
 Option Compare Binary
-
-Imports System
-Imports System.Diagnostics
 Imports System.Drawing
 Imports System.Drawing.Imaging
-Imports System.Globalization
-Imports System.IO
 
 Namespace Microsoft.VisualStudio.Editors.ResourceEditor
 

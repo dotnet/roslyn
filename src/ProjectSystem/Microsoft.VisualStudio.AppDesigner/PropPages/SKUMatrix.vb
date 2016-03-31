@@ -1,4 +1,3 @@
-Imports System
 Imports VSLangProj80
 Imports Microsoft.VisualStudio.Shell
 

@@ -1,13 +1,4 @@
-Imports System
-Imports System.ComponentModel
 Imports System.ComponentModel.Design
-Imports System.CodeDom
-Imports System.CodeDom.Compiler
-Imports System.Collections
-Imports System.Collections.Specialized
-Imports System.Diagnostics
-Imports System.IO
-Imports System.Reflection
 Imports System.Text
 Imports System.Windows.Forms
 Imports System.ComponentModel.Design.Serialization
@@ -15,8 +6,6 @@ Imports Common = Microsoft.VisualStudio.Editors.AppDesCommon
 Imports Microsoft.VisualStudio.Shell.Design
 Imports Microsoft.VisualStudio.Shell.Design.Serialization
 Imports Microsoft.VisualStudio.Shell.Interop
-Imports Microsoft.VisualStudio.TextManager.Interop
-Imports Microsoft.VisualStudio.Editors
 Imports System.Drawing
 
 Namespace Microsoft.VisualStudio.Editors.ApplicationDesigner

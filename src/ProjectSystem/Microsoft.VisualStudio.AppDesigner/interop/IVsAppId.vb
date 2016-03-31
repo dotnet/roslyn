@@ -3,7 +3,6 @@
 '    QueryService(IID_IVsAppId), 
 '  srpVsAppId->GetProperty(VSAPROPID_SKUEdition, &varEdition)))
 '-----------------------------------------------------------------------------
-Imports System
 Imports System.Runtime.InteropServices
 
 Namespace Microsoft.VisualStudio.Editors.AppDesInterop

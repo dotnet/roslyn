@@ -1,4 +1,3 @@
-Imports System
 Imports Microsoft.VisualStudio.Editors.AppDesInterop
 
 Namespace Microsoft.VisualStudio.Editors.AppDesCommon

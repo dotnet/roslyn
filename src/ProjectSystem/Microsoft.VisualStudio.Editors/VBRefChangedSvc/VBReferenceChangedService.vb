@@ -1,15 +1,10 @@
 Option Strict On
 Option Explicit On
-
-Imports System
-Imports System.ComponentModel.Design
-Imports System.Diagnostics
 Imports System.Runtime.InteropServices
 
 Imports Microsoft.VisualStudio.Shell.Interop
 
 Imports Microsoft.VisualStudio.Editors.Interop
-Imports Microsoft.VisualStudio.Editors.Package
 
 Namespace Microsoft.VisualStudio.Editors.VBRefChangedSvc
 

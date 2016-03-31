@@ -1,8 +1,6 @@
 Option Explicit On
 Option Strict On
 Option Compare Binary
-
-Imports System.Diagnostics
 Imports System.Drawing
 Imports System.IO
 Imports Microsoft.VisualStudio.Imaging

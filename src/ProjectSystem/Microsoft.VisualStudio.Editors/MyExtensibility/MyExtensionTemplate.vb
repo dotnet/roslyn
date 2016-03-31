@@ -1,11 +1,6 @@
 Option Strict On
 Option Explicit On
-
-Imports System
-Imports System.Diagnostics
 Imports System.Xml
-Imports System.Xml.Schema
-Imports System.Xml.Serialization
 Imports Microsoft.VisualStudio.Editors.MyExtensibility.EnvDTE90Interop
 Imports Microsoft.VisualStudio.Editors.MyExtensibility.MyExtensibilityUtil
 

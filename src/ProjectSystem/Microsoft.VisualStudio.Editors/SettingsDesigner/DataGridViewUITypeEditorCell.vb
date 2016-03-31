@@ -1,6 +1,4 @@
-Imports System
 Imports System.ComponentModel
-Imports System.Diagnostics
 Imports System.Drawing
 Imports System.Drawing.Design
 Imports System.Windows.Forms
@@ -142,7 +140,7 @@ Namespace Microsoft.VisualStudio.Editors.SettingsDesigner
         ''' <param name="paintParts"></param>
         ''' <remarks></remarks>
         Protected Overrides Sub Paint(ByVal graphics As System.Drawing.Graphics, ByVal clipBounds As System.Drawing.Rectangle, ByVal cellBounds As System.Drawing.Rectangle, ByVal rowIndex As Integer, ByVal cellState As System.Windows.Forms.DataGridViewElementStates, ByVal value As Object, ByVal formattedValue As Object, ByVal errorText As String, ByVal cellStyle As System.Windows.Forms.DataGridViewCellStyle, ByVal advancedBorderStyle As System.Windows.Forms.DataGridViewAdvancedBorderStyle, ByVal paintParts As System.Windows.Forms.DataGridViewPaintParts)
-            MyBase.Paint(graphics, clipBounds, cellBounds, rowIndex, cellState, value, formattedValue, errorText, cellStyle, advancedBorderStyle, paintParts)   
+            MyBase.Paint(graphics, clipBounds, cellBounds, rowIndex, cellState, value, formattedValue, errorText, cellStyle, advancedBorderStyle, paintParts)
 
 
             Dim DrawForeColor As Color

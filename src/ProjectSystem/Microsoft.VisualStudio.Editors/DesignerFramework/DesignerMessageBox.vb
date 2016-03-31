@@ -1,12 +1,6 @@
-Imports Microsoft.VisualBasic
 Imports Microsoft.VisualStudio.Shell.Interop
-Imports System
-Imports System.Diagnostics
 Imports System.Windows.Forms
 Imports System.Windows.Forms.Design
-Imports System.ComponentModel
-Imports System.ComponentModel.Design
-Imports System.Runtime.InteropServices
 Imports System.Reflection
 
 Namespace Microsoft.VisualStudio.Editors.DesignerFramework

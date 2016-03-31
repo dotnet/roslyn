@@ -1,27 +1,12 @@
 Imports Microsoft.VisualBasic.ApplicationServices
 Imports Microsoft.VisualStudio.Editors.Common
-Imports Microsoft.VisualStudio.Editors.Common.CodeModelUtils
-Imports Microsoft.VisualStudio.Editors.Common.DTEUtils
 Imports Microsoft.VisualStudio.Editors.MyApplication
-Imports Microsoft.VisualBasic
-Imports System
-Imports System.Collections
-Imports System.Diagnostics
-Imports System.ComponentModel.Design
 Imports System.Windows.Forms
-Imports System.Drawing
-Imports Microsoft.VisualStudio.Editors
-Imports System.Runtime.InteropServices
 Imports System.ComponentModel
 Imports Microsoft.VisualStudio.Shell.Interop
-Imports System.IO
-Imports Microsoft.VisualStudio.Shell.Design.Serialization
-Imports System.Text
-Imports EnvDTE
 Imports VSLangProj80
 Imports VslangProj90
 Imports VSLangProj110
-Imports System.Collections.Generic
 
 Namespace Microsoft.VisualStudio.Editors.PropertyPages
 
@@ -1172,66 +1157,66 @@ Namespace Microsoft.VisualStudio.Editors.PropertyPages
                     Dim SwapWithMyAppData As Boolean = Me.MyApplicationFrameworkEnabled()
 
                     With StartupObjectComboBox
-                            .Items.Clear()
+                        .Items.Clear()
 
-                            If PopulateDropdown Then
-                                Using New WaitCursor
-                                    Switches.TracePDPerf("*** Populating start-up object list from the project [may be slow for a large project]")
-                                    Debug.Assert(Not InsideInitSave, "PERFORMANCE ALERT: We shouldn't be populating the start-up object dropdown list during page initialization, it should be done later if needed.")
-                                    Dim StartupObjects As ICollection = Nothing
-                                    If MyApplicationFrameworkEnabled() Then
-                                        StartupObjects = GetFormEntryPoints(IncludeSplashScreen:=False)
-                                    Else
-                                        RefreshPropertyStandardValues() 'Force us to see any new start-up objects in the project
+                        If PopulateDropdown Then
+                            Using New WaitCursor
+                                Switches.TracePDPerf("*** Populating start-up object list from the project [may be slow for a large project]")
+                                Debug.Assert(Not InsideInitSave, "PERFORMANCE ALERT: We shouldn't be populating the start-up object dropdown list during page initialization, it should be done later if needed.")
+                                Dim StartupObjects As ICollection = Nothing
+                                If MyApplicationFrameworkEnabled() Then
+                                    StartupObjects = GetFormEntryPoints(IncludeSplashScreen:=False)
+                                Else
+                                    RefreshPropertyStandardValues() 'Force us to see any new start-up objects in the project
 
-                                        'Certain project types may not support standard values
-                                        If prop.Converter.GetStandardValuesSupported() Then
-                                            StartupObjects = prop.Converter.GetStandardValues()
-                                        End If
+                                    'Certain project types may not support standard values
+                                    If prop.Converter.GetStandardValuesSupported() Then
+                                        StartupObjects = prop.Converter.GetStandardValues()
                                     End If
-
-                                    If StartupObjects IsNot Nothing Then
-                                        For Each o As Object In StartupObjects
-                                            Dim EntryPoint As String = RemoveCurrentRootNamespace(TryCast(o, String))
-                                            'Remove "My.MyApplication" from the list
-                                            If SwapWithMyAppData AndAlso Const_SubMain.Equals(EntryPoint, StringComparison.OrdinalIgnoreCase) Then
-                                                'Do not add 'Sub Main' for MY applications
-                                            ElseIf Not Const_MyApplicationEntryPoint.Equals(EntryPoint, StringComparison.OrdinalIgnoreCase) Then
-                                                .Items.Add(EntryPoint)
-                                            End If
-                                        Next
-                                    End If
-                                End Using
-                            End If
-
-                            '(Okay to use StartupObject's InitialValue because we checked it against IsMissing up above)
-                            Dim SelectedItemText As String = RemoveCurrentRootNamespace(CStr(StartupObjectPropertyControlData.InitialValue))
-                            If SwapWithMyAppData Then
-                                'We're using the My application framework for start-up, so that means we need to show the MainForm from
-                                '  our my application stuff instead of what's in the start-up object (which would set to the My application
-                                '  start-up).
-                                SelectedItemText = MainFormTextboxNoRootNS.Text
-                            End If
-
-                            .SelectedItem = SelectedItemText
-                            If .SelectedItem Is Nothing AndAlso SelectedItemText <> "" Then
-                                .SelectedIndex = .Items.Add(SelectedItemText)
-                            End If
-
-                            If PopulateDropdown Then
-                                'If "Sub Main" is not in the list and this isn't a WindowsApplication with My, then add it.
-                                Dim SubMainIndex As Integer = .Items.IndexOf(Const_SubMain)
-                                If SwapWithMyAppData Then
-                                    'Remove "Sub Main" if this is a MY app
-                                    If SubMainIndex > 0 Then
-                                        .Items.RemoveAt(SubMainIndex)
-                                    End If
-                                ElseIf .Items.IndexOf(Const_SubMain) < 0 Then
-                                    .Items.Add(Const_SubMain)
                                 End If
+
+                                If StartupObjects IsNot Nothing Then
+                                    For Each o As Object In StartupObjects
+                                        Dim EntryPoint As String = RemoveCurrentRootNamespace(TryCast(o, String))
+                                        'Remove "My.MyApplication" from the list
+                                        If SwapWithMyAppData AndAlso Const_SubMain.Equals(EntryPoint, StringComparison.OrdinalIgnoreCase) Then
+                                            'Do not add 'Sub Main' for MY applications
+                                        ElseIf Not Const_MyApplicationEntryPoint.Equals(EntryPoint, StringComparison.OrdinalIgnoreCase) Then
+                                            .Items.Add(EntryPoint)
+                                        End If
+                                    Next
+                                End If
+                            End Using
+                        End If
+
+                        '(Okay to use StartupObject's InitialValue because we checked it against IsMissing up above)
+                        Dim SelectedItemText As String = RemoveCurrentRootNamespace(CStr(StartupObjectPropertyControlData.InitialValue))
+                        If SwapWithMyAppData Then
+                            'We're using the My application framework for start-up, so that means we need to show the MainForm from
+                            '  our my application stuff instead of what's in the start-up object (which would set to the My application
+                            '  start-up).
+                            SelectedItemText = MainFormTextboxNoRootNS.Text
+                        End If
+
+                        .SelectedItem = SelectedItemText
+                        If .SelectedItem Is Nothing AndAlso SelectedItemText <> "" Then
+                            .SelectedIndex = .Items.Add(SelectedItemText)
+                        End If
+
+                        If PopulateDropdown Then
+                            'If "Sub Main" is not in the list and this isn't a WindowsApplication with My, then add it.
+                            Dim SubMainIndex As Integer = .Items.IndexOf(Const_SubMain)
+                            If SwapWithMyAppData Then
+                                'Remove "Sub Main" if this is a MY app
+                                If SubMainIndex > 0 Then
+                                    .Items.RemoveAt(SubMainIndex)
+                                End If
+                            ElseIf .Items.IndexOf(Const_SubMain) < 0 Then
+                                .Items.Add(Const_SubMain)
                             End If
-                        End With
-                    End If
+                        End If
+                    End With
+                End If
             Finally
                 'Restore previous state
                 m_fInsideInit = InsideInitSave

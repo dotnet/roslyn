@@ -1,27 +1,16 @@
 Option Explicit On
 Option Strict On
 Option Compare Binary
-
-Imports EnvDTE
 Imports Microsoft.VisualStudio.Designer.Interfaces
 Imports Microsoft.VisualStudio.Editors.Common
 Imports Microsoft.VisualStudio.Editors.Common.Utils
-Imports Microsoft.VisualStudio.Editors.Package
 Imports Microsoft.VisualStudio.Shell
 Imports Microsoft.VisualStudio.Shell.Interop
 Imports Microsoft.VSDesigner
-Imports System
 Imports System.CodeDom.Compiler
-Imports System.Collections
-Imports System.Collections.Specialized
 Imports System.ComponentModel.Design
-Imports System.ComponentModel.Design.Serialization
-Imports System.Globalization
 Imports System.Resources
 Imports System.IO
-Imports System.Diagnostics
-Imports System.Runtime.Serialization
-Imports System.Runtime.Serialization.Formatters.Binary
 Imports System.Windows.Forms
 Imports VB = Microsoft.VisualBasic
 

@@ -1,15 +1,8 @@
 Option Strict On
 Option Explicit On
-
-Imports System
-Imports System.Collections.Generic
-Imports System.ComponentModel.Design
-Imports System.Diagnostics
 Imports System.Runtime.InteropServices
 Imports EnvDTE
-Imports Microsoft.VisualStudio.Shell
 Imports Microsoft.VisualStudio.Shell.Interop
-Imports Microsoft.VisualStudio.Editors
 Imports Microsoft.VisualStudio.Editors.Common
 Imports Microsoft.VisualStudio.Editors.MyExtensibility.MyExtensibilityUtil
 

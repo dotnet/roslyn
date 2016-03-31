@@ -1,13 +1,7 @@
 Option Strict On
 Option Explicit On
-
-Imports System
-Imports System.Collections
-Imports System.Collections.Generic
 Imports System.ComponentModel
-Imports System.Diagnostics
 Imports System.Reflection
-Imports System.Windows.Forms
 Imports Microsoft.VisualStudio.Editors.MyExtensibility.MyExtensibilityUtil
 Imports Res = My.Resources.MyExtensibilityRes
 

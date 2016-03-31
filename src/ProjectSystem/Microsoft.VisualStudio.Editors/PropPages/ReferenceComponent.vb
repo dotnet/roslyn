@@ -1,8 +1,3 @@
-Imports System
-Imports System.ComponentModel
-Imports System.Diagnostics
-Imports Microsoft.VisualStudio.Editors
-
 Namespace Microsoft.VisualStudio.Editors.PropertyPages
 
     ''' <Summary>

@@ -1,9 +1,4 @@
-Imports Microsoft.VisualStudio.Shell.Design.Serialization
-Imports Microsoft.VisualStudio.Shell.Interop
-Imports Microsoft.VSDesigner.VSDesignerPackage
 Imports System.Diagnostics.CodeAnalysis
-
-Imports System
 Imports System.Xml
 
 Namespace Microsoft.VisualStudio.Editors.PropertyPages

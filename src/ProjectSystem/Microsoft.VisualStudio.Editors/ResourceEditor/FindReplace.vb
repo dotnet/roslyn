@@ -4,15 +4,6 @@ Option Compare Binary
 
 Imports Microsoft.VisualStudio.Editors.Common
 Imports Microsoft.VisualStudio.Editors.Common.Utils
-Imports System
-Imports System.ComponentModel
-Imports System.ComponentModel.Design
-Imports System.ComponentModel.Design.Serialization
-Imports System.Collections
-Imports System.Diagnostics
-Imports System.Runtime.InteropServices
-Imports System.Globalization
-Imports VB = Microsoft.VisualBasic
 Imports Microsoft.VisualStudio.Shell.Interop
 Imports Microsoft.VisualStudio.TextManager.Interop
 
@@ -403,7 +394,7 @@ Namespace Microsoft.VisualStudio.Editors.ResourceEditor
                 Else
                     ' We were in the middle of a find loop already, so return "Find reached the starting point of the search."
                     pResult = CType(__VSFINDRESULT.VSFR_EndOfSearch, UInteger)
-                
+
                     ' Select any resources that were selected when we started an in selection search
                     If FindInSelection Then
                         View.HighlightResources(m_ResourcesToSearch, True)
@@ -511,7 +502,7 @@ Namespace Microsoft.VisualStudio.Editors.ResourceEditor
             Dim bstrReplaceText As String = Nothing
             Dim fFound As Integer = 0
             Dim charArray As Char() = SearchText.ToCharArray()
-            Dim textArray As UShort() = new UShort(charArray.Length-1) {}
+            Dim textArray As UShort() = new UShort(charArray.Length - 1) {}
             charArray.CopyTo(textArray, 0)
             Dim hr As Integer = Helper.FindInText(SearchPattern, Nothing, grfFindOptions, CUInt(BufferFlags), CUInt(textArray.Length), textArray, iFound, cchFound, bstrReplaceText, fFound)
 

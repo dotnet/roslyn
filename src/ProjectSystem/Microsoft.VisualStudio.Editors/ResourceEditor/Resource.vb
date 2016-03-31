@@ -1,19 +1,11 @@
 Option Explicit On
 Option Strict On
 Option Compare Binary
-
-Imports EnvDTE
-Imports Microsoft.VisualStudio.Designer.Interfaces
 Imports Microsoft.VisualStudio.Editors.Common.Utils
 Imports Microsoft.VisualStudio.Shell
-Imports System
 Imports System.CodeDom.Compiler
-Imports System.Collections
-Imports System.Collections.Generic
 Imports System.ComponentModel
 Imports System.ComponentModel.Design
-Imports System.Diagnostics
-Imports System.Drawing
 Imports System.Globalization
 Imports System.IO
 Imports System.Reflection
@@ -21,7 +13,6 @@ Imports System.Resources
 Imports System.Runtime.Serialization
 Imports System.Text
 Imports VB = Microsoft.VisualBasic
-Imports Microsoft.VisualStudio.Editors
 
 
 Namespace Microsoft.VisualStudio.Editors.ResourceEditor
@@ -120,7 +111,7 @@ Namespace Microsoft.VisualStudio.Editors.ResourceEditor
             ''' </returns>
             ''' <seealso cref='System.ComponentModel.TypeConverter' />
             Public Overrides Function ConvertFrom(ByVal context As ITypeDescriptorContext, ByVal culture As CultureInfo, ByVal value As Object) As Object
-                If TypeOf(value) Is String Then
+                If TypeOf (value) Is String Then
                     Dim strValue As String = CStr(value)
                     If String.Compare(strValue, LinkedDisplayValue, StringComparison.OrdinalIgnoreCase) = 0 Then
                         Return ResourcePersistenceMode.Linked
@@ -158,7 +149,7 @@ Namespace Microsoft.VisualStudio.Editors.ResourceEditor
             ''' </returns>
             Public Overrides Function ConvertTo(ByVal context As ITypeDescriptorContext, ByVal culture As CultureInfo, ByVal value As Object, ByVal destinationType As Type) As Object
                 If destinationType.Equals(GetType(String)) Then
-                    If value IsNot Nothing AndAlso TypeOf(value) Is ResourcePersistenceMode Then
+                    If value IsNot Nothing AndAlso TypeOf (value) Is ResourcePersistenceMode Then
                         Select Case CType(value, ResourcePersistenceMode)
                             Case ResourcePersistenceMode.Linked
                                 Return LinkedDisplayValue
@@ -2685,8 +2676,8 @@ Namespace Microsoft.VisualStudio.Editors.ResourceEditor
 
                     If Char.IsSurrogate(ch) Then
                         ' We should treat Surrogate characters specially. Do not split them into two characters
-                        If i < Name.Length - 1 AndAlso IsHighSurrogate(ch) AndAlso IsLowSurrogate(Name.Chars(i+1)) Then
-                            chstr = CStr(ch) + CStr(Name.Chars(i+1))
+                        If i < Name.Length - 1 AndAlso IsHighSurrogate(ch) AndAlso IsLowSurrogate(Name.Chars(i + 1)) Then
+                            chstr = CStr(ch) + CStr(Name.Chars(i + 1))
                             i = i + 1
                         Else
                             ' broken surrogates are always invalid.

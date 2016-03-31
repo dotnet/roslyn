@@ -1,8 +1,4 @@
-Imports System
-Imports System.Diagnostics
 Imports System.Windows.Forms
-Imports Microsoft.VisualStudio.Shell
-Imports Microsoft.VisualStudio.Shell.Interop
 Imports System.Runtime.InteropServices
 
 Imports Microsoft.VisualStudio.TextManager.Interop
@@ -88,7 +84,7 @@ Namespace Microsoft.VisualStudio.Editors.Package
                 _dialog._indentSizeTextBox.Focus()
                 Return False
             End If
-            
+
 
             Return True
         End Function

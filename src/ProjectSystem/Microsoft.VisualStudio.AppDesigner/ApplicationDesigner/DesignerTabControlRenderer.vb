@@ -1,8 +1,5 @@
-Imports Microsoft.VisualStudio
 Imports Common = Microsoft.VisualStudio.Editors.AppDesCommon
 Imports Microsoft.VisualStudio.Shell.Interop
-Imports System
-Imports System.Diagnostics
 Imports System.Drawing
 Imports System.Drawing.Drawing2D
 Imports System.Windows.Forms
@@ -39,15 +36,15 @@ Namespace Microsoft.VisualStudio.Editors.ApplicationDesigner
 
         ' Tab button foreground/background 
         Private buttonForegroundColor As Color
-        Private buttonBackgroundColor as Color 
-        
+        Private buttonBackgroundColor as Color
+
         ' Tab button selected foreground/background 
         Private selectedButtonForegroundColor As Color
-        Private selectedButtonBackgroundColor as Color 
+        Private selectedButtonBackgroundColor as Color
 
         ' Tab button hover foreground/background
         Private hoverButtonForegroundColor As Color
-        Private hoverButtonBackgroundColor as Color 
+        Private hoverButtonBackgroundColor as Color
 
 #End Region
 
@@ -57,13 +54,13 @@ Namespace Microsoft.VisualStudio.Editors.ApplicationDesigner
         Private controlBackgroundBrush As SolidBrush
 
         ' Tab button foreground/background 
-        Private buttonBackgroundBrush as Brush 
-        
+        Private buttonBackgroundBrush as Brush
+
         ' Tab button selected foreground/background 
-        Private selectedButtonBackgroundBrush as Brush 
+        Private selectedButtonBackgroundBrush as Brush
 
         ' Tab button hover foreground/background
-        Private hoverButtonBackgroundBrush as Brush 
+        Private hoverButtonBackgroundBrush as Brush
 
 #End Region
 
@@ -78,9 +75,9 @@ Namespace Microsoft.VisualStudio.Editors.ApplicationDesigner
         Private Const minimumButtonTextWidthSpace As Integer = 25
 
         'The width and height to use for all of the buttons.
-        Private Const DefaultButtonHeight = 24 
-        Private buttonHeight As Integer 
-        Private buttonWidth As Integer 
+        Private Const DefaultButtonHeight = 24
+        Private buttonHeight As Integer
+        Private buttonWidth As Integer
 
         Private Const buttonTextLeftOffset As Integer = 8 'Padding from left side of the button to where the tab text is drawn
         Private Const buttonTextRightSpace As Integer = 8 'Extra space to leave after tab text
@@ -90,7 +87,7 @@ Namespace Microsoft.VisualStudio.Editors.ApplicationDesigner
         'The width/height of the downward-slanting line underneath the buttons (not including the two curved ends' (arcs') width/height)
 
         Private Const buttonBorderWidth As Integer = 1   'Thickness of each half of the separators between buttons
-        
+
         Private Const OverflowButtonTopOffset As Integer = 2 'Offset of overflow button (the button's edge, not the glyph inside it) from the bottom of the bottommost button
         Private Const OverflowButtonRightOffset As Integer = 2 'Offset of right edge of overflow button from vertical line 3
 
@@ -177,7 +174,7 @@ Namespace Microsoft.VisualStudio.Editors.ApplicationDesigner
             End Get
         End Property
 
-         ''' <summary>
+        ''' <summary>
         ''' Attempts to obtain the IVsUIShell5 interface.
         ''' </summary>
         ''' <value>The IVsUIShell5 service if found, otherwise null</value>
@@ -249,7 +246,7 @@ Namespace Microsoft.VisualStudio.Editors.ApplicationDesigner
                 '  color service.  If we make the control available as a stand-alone component, we would need to add logic to
                 '  do the right thing when not hosted inside Visual Studio, and change according to the theme.
 
-                        
+
                 controlBackgroundColor = AppDesCommon.ShellUtil.GetDesignerThemeColor(VsUIShell, ProjectDesignerThemeCategory, "Background", __THEMEDCOLORTYPE.TCT_Background, SystemColors.Control)
 
                 buttonForegroundColor = AppDesCommon.ShellUtil.GetDesignerThemeColor(VsUIShell, ProjectDesignerThemeCategory, "CategoryTab", __THEMEDCOLORTYPE.TCT_Foreground, SystemColors.ControlText)
@@ -315,10 +312,10 @@ Namespace Microsoft.VisualStudio.Editors.ApplicationDesigner
                 CreateGDIObjects()
 
                 Dim rect As Rectangle = m_Owner.Bounds
-                
+
                 ' Calling this calculates the button width and height for each tab, we need the height for calculating the VerticalButtonSpace 
                 CalcLineOffsets(rect)
-                
+
                 'Calculate the number of buttons we have space to show
                 Dim VerticalButtonSpace As Integer = m_Owner.Height - buttonPagePadding.Vertical - m_Owner.OverflowButton.Height
                 Dim MaxButtonsSpace As Integer = VerticalButtonSpace \ buttonHeight
@@ -331,11 +328,11 @@ Namespace Microsoft.VisualStudio.Editors.ApplicationDesigner
 
                 rect = m_Owner.ClientRectangle
                 tabControlRect = rect
-      
+
                 'Reposition the tab panel
                 Dim BoundingRect As Rectangle = Rectangle.FromLTRB(tabControlRect.Left + buttonWidth + buttonPagePadding.Left, tabControlRect.Top, tabControlRect.Right, tabControlRect.Bottom)
                 m_Owner.HostingPanel.Bounds = BoundingRect
-                
+
                 SetButtonPositions()
 
                 m_GradientBrushesCreated = True
@@ -377,24 +374,24 @@ Namespace Microsoft.VisualStudio.Editors.ApplicationDesigner
             Dim largestButtonTextSize As Size = GetLargestButtonTextSize()
 
             ' Calculate the height of the tab button, we either take the max of either the default size or the text size + padding. 
-            buttonHeight = Math.Max(largestButtonTextSize.Height + buttonPagePadding.Vertical, DefaultButtonHeight) 
+            buttonHeight = Math.Max(largestButtonTextSize.Height + buttonPagePadding.Vertical, DefaultButtonHeight)
 
             'Now calculate the minimum width 
-            minimumWidth = m_Owner.HostingPanel.MinimumSize.Width + 1 + buttonPagePadding.Right + 1 
+            minimumWidth = m_Owner.HostingPanel.MinimumSize.Width + 1 + buttonPagePadding.Right + 1
             width = Math.Max(width, minimumWidth)
 
             'Now calculate required height 
-            minimumHeight = m_Owner.HostingPanel.MinimumSize.Height + 1 + buttonPagePadding.Bottom + 1 
+            minimumHeight = m_Owner.HostingPanel.MinimumSize.Height + 1 + buttonPagePadding.Bottom + 1
             height = Math.Max(height, minimumHeight)
 
             ' Calcuate the required height by tab button area...
-            Dim panelMinimumHeight As Integer = buttonHeight * visibleButtonSlots + 1 + buttonPagePadding.Bottom + 1 
+            Dim panelMinimumHeight As Integer = buttonHeight * visibleButtonSlots + 1 + buttonPagePadding.Bottom + 1
             height = Math.Max(height, panelMinimumHeight)
 
             m_Owner.MinimumSize = New Size(minimumWidth, minimumHeight)
 
             'Add 2 for extra horizontal line above first tab and after last tab
-          
+
             'Set location of top,left corner where tab buttons begin
             buttonsLocationX = buttonPagePadding.Left
             buttonsLocationY = buttonPagePadding.Top
@@ -538,7 +535,7 @@ Namespace Microsoft.VisualStudio.Editors.ApplicationDesigner
 
             Dim backgroundBrush As Brush = buttonBackgroundBrush
             Dim foregroundColor As Color = buttonForegroundColor ' TextRenderer.DrawText takes a color over a brush 
-             
+
             If IsSelected Then
                 backgroundBrush = selectedButtonBackgroundBrush
                 foregroundColor = selectedButtonForegroundColor
@@ -546,22 +543,22 @@ Namespace Microsoft.VisualStudio.Editors.ApplicationDesigner
                 backgroundBrush = hoverButtonBackgroundBrush
                 foregroundColor = hoverButtonForegroundColor
             End If
- 
+
             Const TriangleWidth As Integer = 6
             Const TriangleHeight As Integer = 12
- 
+
             ' Triangle starts at the width of the control minus the width of the triangle
             Dim triangleHorizontalStart As Integer = (button.Width - TriangleWidth)
- 
+
             ' Find relative start of triangle, half of the height of the control minus half of the height of the triangle
             Dim triangleVerticalStart As Single = (CSng(button.Height) / 2) - (CSng(TriangleHeight) / 2)
- 
+
             g.FillRectangle(backgroundBrush, New Rectangle(0, 0, triangleHorizontalStart, button.Height))
- 
-        
+
+
             ' Draw the "arrow" part of the tab button if the item is selected for hovered 
             If IsSelected Then
- 
+
                 ' Create an array of points which describes the path of the triangle
                 Dim trainglePoints() As PointF =
                 {
@@ -569,22 +566,22 @@ Namespace Microsoft.VisualStudio.Editors.ApplicationDesigner
                     New PointF(button.Width, CSng(triangleVerticalStart) + CSng(TriangleHeight) / 2), _
                     New PointF(triangleHorizontalStart - 1, triangleVerticalStart + TriangleHeight)
                 }
- 
+
                 Using trianglePath As New GraphicsPath()
- 
+
                     trianglePath.AddPolygon(trainglePoints)
- 
+
                     ' Draw the rectangle using Fill Rectangle with the default smoothing mode
                     ' If the rectangle is drawn with SmoothingMode.HighQuality / AntiAliased it
                     ' gets "soft" edges so only the triangle part of the path is drawn with this mode
- 
+
                     Dim previousSmoothingMode = g.SmoothingMode
                     g.SmoothingMode = SmoothingMode.HighQuality
- 
+
                     ' Draw the traingle part of the path
                     g.FillPath(backgroundBrush, trianglePath)
                     g.SmoothingMode = previousSmoothingMode
- 
+
                 End Using
             End If
 

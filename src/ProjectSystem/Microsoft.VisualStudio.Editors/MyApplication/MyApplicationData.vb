@@ -1,5 +1,3 @@
-Imports System
-
 Namespace Microsoft.VisualStudio.Editors.MyApplication
 
     <ComponentModel.EditorBrowsable(ComponentModel.EditorBrowsableState.Never)> _

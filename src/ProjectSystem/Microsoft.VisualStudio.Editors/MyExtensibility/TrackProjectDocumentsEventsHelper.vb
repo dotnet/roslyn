@@ -1,9 +1,5 @@
 ﻿Option Strict On
 Option Explicit On
-
-Imports System
-Imports System.ComponentModel
-Imports System.Diagnostics
 Imports Microsoft.VisualStudio.Shell.Interop
 Imports Microsoft.VisualStudio.Editors.Interop
 
@@ -47,7 +43,7 @@ Namespace Microsoft.VisualStudio.Editors.MyExtensibility
 
             m_ServiceProvider = serviceProvider
 
-            m_vsTrackProjectDocuments = TryCast(m_ServiceProvider.GetService(GetType(SVsTrackProjectDocuments)),  _
+            m_vsTrackProjectDocuments = TryCast(m_ServiceProvider.GetService(GetType(SVsTrackProjectDocuments)), _
                 IVsTrackProjectDocuments2)
             If m_vsTrackProjectDocuments Is Nothing Then
                 Throw New Exception("Could not get IVsTrackProjectDocuments2!")

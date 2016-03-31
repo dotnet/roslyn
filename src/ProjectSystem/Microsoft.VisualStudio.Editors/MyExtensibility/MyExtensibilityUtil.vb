@@ -1,10 +1,5 @@
 Option Strict On
 Option Explicit On
-
-Imports System
-Imports System.Collections
-Imports System.Collections.Generic
-Imports System.Diagnostics
 Imports System.Reflection
 Imports System.Runtime.CompilerServices
 Imports System.Runtime.InteropServices
@@ -405,7 +400,7 @@ Namespace Microsoft.VisualStudio.Editors.MyExtensibility.EnvDTE90Interop
         <MethodImpl(MethodImplOptions.InternalCall, MethodCodeType:=MethodCodeType.Runtime)> _
         <DispId(-4)> _
         Overloads Function GetEnumerator() As _
-            <MarshalAs(UnmanagedType.CustomMarshaler, _
+        <MarshalAs(UnmanagedType.CustomMarshaler, _
                 MarshalTypeRef:=GetType(EnumeratorToEnumVariantMarshaler))> IEnumerator
 
         <DispId(0)> _

@@ -1,12 +1,8 @@
 ﻿Option Infer On
-
-Imports System
-Imports System.Collections.Generic
 Imports System.IO
 Imports System.Windows.Forms.Design
 Imports EnvDTE
 Imports Microsoft.VisualStudio.TemplateWizard
-Imports System.Runtime.InteropServices
 
 Namespace Microsoft.VisualStudio.Editors.XmlToSchema
     Public NotInheritable Class Wizard

@@ -1,6 +1,3 @@
-Imports System.Diagnostics
-Imports System
-
 Namespace Microsoft.VisualStudio.Editors.Interop
     Friend Class LOGVIEWID
         '---------------------------------------------------------------------------

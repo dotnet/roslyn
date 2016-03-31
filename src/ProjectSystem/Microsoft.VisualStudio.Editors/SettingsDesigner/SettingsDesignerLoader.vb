@@ -1,24 +1,12 @@
-Imports System
-Imports System.CodeDom.Compiler
-Imports System.Collections
-Imports System.Collections.Generic
-Imports System.ComponentModel
 Imports System.ComponentModel.Design
 Imports System.ComponentModel.Design.Serialization
-Imports System.Configuration
-Imports System.Diagnostics
 Imports System.Runtime.InteropServices
-Imports Microsoft.VisualStudio.Designer.Interfaces
 Imports Microsoft.VisualStudio.Editors.Common
 Imports Microsoft.VisualStudio.Editors.Interop
 Imports Microsoft.VisualStudio.Shell
 Imports Microsoft.VisualStudio.Shell.Design
 Imports Microsoft.VisualStudio.Shell.Interop
-Imports Microsoft.VisualStudio.OLE.Interop
 Imports Microsoft.VisualStudio.Shell.design.serialization
-Imports Microsoft.VisualStudio.TextManager.Interop
-
-Imports Microsoft.VSDesigner
 
 Namespace Microsoft.VisualStudio.Editors.SettingsDesigner
 
@@ -85,7 +73,7 @@ Namespace Microsoft.VisualStudio.Editors.SettingsDesigner
             If dynamicTypeService IsNot Nothing Then
                 typeDiscoveryService = dynamicTypeService.GetTypeDiscoveryService(Me.VsHierarchy, Me.ProjectItemid)
             End If
-         
+
             Dim cm As EnvDTE.CodeModel = Nothing
             If projectItem IsNot Nothing AndAlso projectItem.ContainingProject IsNot Nothing AndAlso projectItem.ContainingProject.CodeModel IsNot Nothing Then
                 cm = projectItem.ContainingProject.CodeModel

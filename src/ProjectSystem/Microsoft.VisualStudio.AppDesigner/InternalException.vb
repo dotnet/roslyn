@@ -1,5 +1,3 @@
-Imports Microsoft.VisualBasic
-Imports System
 Imports System.ComponentModel
 
 Namespace Microsoft.VisualStudio.Editors.Package

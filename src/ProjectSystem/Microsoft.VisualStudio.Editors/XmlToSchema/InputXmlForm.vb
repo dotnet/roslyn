@@ -1,15 +1,10 @@
 ﻿Option Infer On
-
-Imports System
-Imports System.ComponentModel.Design
-Imports System.Collections.Generic
 Imports System.IO
 Imports System.Xml
 Imports System.Xml.Linq
 Imports System.Xml.Schema
 Imports System.Windows.Forms
 Imports System.Windows.Forms.Design
-Imports Microsoft.VisualBasic
 
 Namespace Microsoft.VisualStudio.Editors.XmlToSchema
 

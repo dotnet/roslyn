@@ -1,11 +1,6 @@
 Option Strict On
 Option Explicit On
-
-Imports System
-Imports System.Collections
-Imports System.ComponentModel
 Imports System.ComponentModel.Design
-Imports System.Diagnostics
 
 Namespace Microsoft.VisualStudio.Editors.AppDesDesignerFramework
 

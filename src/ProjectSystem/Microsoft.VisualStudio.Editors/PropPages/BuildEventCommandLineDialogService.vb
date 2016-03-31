@@ -1,14 +1,5 @@
 Option Strict On
-Option Explicit On 
-
-Imports Microsoft.VisualStudio.Shell
-Imports System
-Imports System.ComponentModel
-Imports System.Diagnostics
-Imports System.Runtime.CompilerServices
-Imports System.Runtime.InteropServices
-
-Imports Interop = Microsoft.VisualStudio.Editors.Interop
+Option Explicit On
 
 Namespace Microsoft.VisualStudio.Editors.PropertyPages
 

@@ -1,19 +1,14 @@
 Option Explicit On
 Option Strict On
 Option Compare Binary
-
-Imports System
-Imports System.Diagnostics
 Imports System.IO
 Imports System.ComponentModel.Design
 Imports System.ComponentModel.Design.Serialization
 Imports System.Text
 Imports System.Windows.Forms
 Imports Microsoft.VisualStudio.Editors.Common
-Imports Microsoft.VisualStudio.Shell.Design.Serialization
 Imports Microsoft.VisualStudio.Shell.Interop
 Imports Microsoft.VSDesigner
-Imports Microsoft.VisualStudio.Shell.Design
 
 Namespace Microsoft.VisualStudio.Editors.ResourceEditor
 

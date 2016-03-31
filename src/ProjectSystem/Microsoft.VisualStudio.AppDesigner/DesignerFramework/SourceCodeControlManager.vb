@@ -1,9 +1,3 @@
-Imports System
-Imports System.Diagnostics
-Imports System.Runtime.InteropServices
-Imports System.Collections.Generic
-
-Imports Microsoft.VisualStudio.Shell.Design
 Imports Microsoft.VisualStudio.Shell.Interop
 
 Namespace Microsoft.VisualStudio.Editors.AppDesDesignerFramework

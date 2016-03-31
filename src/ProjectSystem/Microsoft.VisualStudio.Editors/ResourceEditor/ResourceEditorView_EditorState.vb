@@ -3,12 +3,8 @@ Option Strict On
 Option Compare Binary
 
 Imports Microsoft.VisualStudio.Editors.Common.Utils
-Imports System
-Imports System.Collections
 Imports System.Collections.Specialized
-Imports System.Diagnostics
 Imports System.Drawing
-Imports System.Windows.Forms
 
 Namespace Microsoft.VisualStudio.Editors.ResourceEditor
 

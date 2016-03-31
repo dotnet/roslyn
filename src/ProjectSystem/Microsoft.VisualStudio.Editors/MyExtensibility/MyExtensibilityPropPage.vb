@@ -2,11 +2,7 @@
 
 Option Strict On
 Option Explicit On
-
-Imports System
-Imports System.Collections.Generic
 Imports System.ComponentModel.Design
-Imports System.Diagnostics
 Imports System.Windows.Forms
 #If Not WINFORMEDITOR Then
 Imports Microsoft.VisualStudio.Editors.Common
@@ -50,7 +46,7 @@ Namespace Microsoft.VisualStudio.Editors.PropertyPages
 
             Dim vsMenuService As IMenuCommandService = _
                 TryCast( _
-                MyExtensibilitySolutionService.Instance.GetService(GetType(IMenuCommandService)),  _
+                MyExtensibilitySolutionService.Instance.GetService(GetType(IMenuCommandService)), _
                 IMenuCommandService)
             Debug.Assert(vsMenuService IsNot Nothing, "Could not get vsMenuService!")
             Me.listViewExtensions.MenuCommandService = vsMenuService

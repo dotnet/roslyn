@@ -1,14 +1,9 @@
-Imports System
 Imports System.ComponentModel
-Imports System.Diagnostics
 Imports System.Drawing
 Imports System.Windows.Forms
-Imports Microsoft.VisualBasic
 Imports Microsoft.Win32
-Imports Microsoft.VisualStudio.Editors
 Imports Microsoft.VisualStudio.Editors.Common
 Imports Microsoft.VisualStudio.PlatformUI
-Imports VB = Microsoft.VisualBasic
 Imports VSLangProj80
 
 Namespace Microsoft.VisualStudio.Editors.PropertyPages

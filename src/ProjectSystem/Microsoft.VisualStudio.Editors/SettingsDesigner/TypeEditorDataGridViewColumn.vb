@@ -1,4 +1,3 @@
-Imports System
 Imports System.Windows.Forms
 
 Namespace Microsoft.VisualStudio.Editors.SettingsDesigner

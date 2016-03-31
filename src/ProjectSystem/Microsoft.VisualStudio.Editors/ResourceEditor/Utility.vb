@@ -4,16 +4,11 @@ Option Compare Binary
 
 Imports Microsoft.VisualStudio.Editors.Common
 Imports Microsoft.VisualStudio.Editors.Common.Utils
-Imports Microsoft.VisualStudio.Editors.Package
-Imports System
 Imports System.ComponentModel
-Imports System.Diagnostics
 Imports System.Drawing
-Imports System.Globalization
 Imports System.IO
 Imports System.Text
 Imports System.Text.RegularExpressions
-Imports Microsoft.VisualBasic
 
 Namespace Microsoft.VisualStudio.Editors.ResourceEditor
 

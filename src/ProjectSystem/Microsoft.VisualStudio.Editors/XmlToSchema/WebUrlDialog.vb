@@ -1,6 +1,4 @@
-﻿Imports System
-Imports System.ComponentModel.Design
-Imports System.Diagnostics
+﻿Imports System.ComponentModel.Design
 Imports System.Windows.Forms
 Imports System.Xml.Linq
 

@@ -1,14 +1,7 @@
-Imports Microsoft.VisualStudio.Editors.DesignerFramework
-Imports Microsoft.VisualStudio.Editors.Interop
-Imports System
 Imports System.ComponentModel
 Imports System.Windows.Forms
 Imports System.Windows.Forms.Design
-Imports System.Diagnostics
-Imports System.Drawing
 Imports System.ComponentModel.Design
-Imports EnvDTE
-Imports VSHelp = Microsoft.VisualStudio.VSHelp
 
 Namespace Microsoft.VisualStudio.Editors.DesignerFramework
 
@@ -159,7 +152,7 @@ Namespace Microsoft.VisualStudio.Editors.DesignerFramework
         '   Shows the help topic for the dialog.
         '**************************************************************************
         Protected Sub ShowHelp()
-            If m_ServiceProvider IsNot  Nothing AndAlso F1Keyword IsNot Nothing Then
+            If m_ServiceProvider IsNot Nothing AndAlso F1Keyword IsNot Nothing Then
                 DesignUtil.DisplayTopicFromF1Keyword(m_ServiceProvider, F1Keyword)
             End If
         End Sub 'ShowHelp

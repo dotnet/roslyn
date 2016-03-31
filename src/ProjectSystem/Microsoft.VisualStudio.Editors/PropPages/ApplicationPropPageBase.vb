@@ -1,20 +1,11 @@
 ﻿Imports EnvDTE
-Imports Microsoft.VisualBasic
 Imports Microsoft.VisualStudio.Editors.Common
-Imports System
-Imports System.Collections
 Imports System.ComponentModel
-Imports System.Diagnostics
 Imports System.Drawing
 Imports System.Drawing.Drawing2D
 Imports System.Windows.Forms
 Imports VSLangProj80
 Imports VslangProj90
-Imports Microsoft.VisualStudio.Editors.PropertyPages
-Imports Microsoft.VisualStudio.Editors
-Imports Microsoft.VisualStudio.PlatformUI
-Imports Microsoft.VisualStudio.Shell.Interop
-Imports NativeMethods = Microsoft.VisualStudio.Editors.Interop.NativeMethods
 
 Namespace Microsoft.VisualStudio.Editors.PropertyPages
 

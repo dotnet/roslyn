@@ -1,23 +1,8 @@
 Option Explicit On
 Option Strict On
 Option Compare Binary
-
-Imports System
-Imports System.ComponentModel
-Imports System.ComponentModel.Design
-Imports System.ComponentModel.Design.Serialization
-Imports System.Diagnostics
-Imports System.Globalization
-Imports System.IO
 Imports System.Runtime.InteropServices
-Imports System.Runtime.Serialization.Formatters
-Imports System.Windows.Forms
-Imports Microsoft.VisualStudio.OLE.Interop
-Imports Microsoft.VisualStudio.Designer.Interfaces
-Imports Microsoft.VisualStudio.Shell
 Imports Microsoft.VisualStudio.Shell.Interop
-Imports Microsoft.VisualStudio.TextManager.Interop
-Imports VsTextBufferClass = Microsoft.VisualStudio.TextManager.Interop.VsTextBufferClass
 Imports Microsoft.VisualStudio.Editors.Interop
 Imports Microsoft.VSDesigner.Common
 

@@ -1,12 +1,7 @@
-Imports System
-Imports System.ComponentModel.Design
 Imports Microsoft.VisualStudio.Editors.Common
 Imports Microsoft.VisualStudio.Editors.Common.Utils
-Imports Microsoft.VisualBasic
 Imports Microsoft.VisualStudio.Shell.Interop
 Imports System.Runtime.InteropServices
-Imports System.Diagnostics
-Imports System.Collections
 Imports Microsoft.VisualStudio.Shell.Design.Serialization
 Imports System.IO
 Imports System.ComponentModel

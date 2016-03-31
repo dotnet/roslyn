@@ -1,20 +1,13 @@
-Imports System
-Imports system.collections
 Imports System.Drawing
-Imports System.Diagnostics
 Imports System.Runtime.InteropServices
 Imports Microsoft.VisualStudio.Editors.Common
 Imports Microsoft.VisualStudio.Shell.Interop
-Imports Microsoft.VisualStudio.TextManager.Interop
 Imports Microsoft.VisualStudio.Editors.Interop
-Imports win = Microsoft.VisualStudio.Editors.Interop.win
 Imports Microsoft.VisualStudio.Shell.Design
 Imports System.Windows.Forms
 Imports System.ComponentModel.Design
 Imports System.ComponentModel.Design.Serialization
 Imports System.Reflection
-Imports Microsoft.VisualStudio.Shell
-Imports IOleServiceProvider = Microsoft.VisualStudio.OLE.Interop.IServiceProvider
 Imports IOleDataObject = Microsoft.VisualStudio.OLE.Interop.IDataObject
 
 Namespace Microsoft.VisualStudio.Editors.DesignerFramework
@@ -63,7 +56,7 @@ Namespace Microsoft.VisualStudio.Editors.DesignerFramework
             Private undoCursor As Cursor
 
             Private m_View As TopLevelControl       ' a TopLevel control is required to handle SystemEvent correctly when it is hosted inside a native window
-                                                    ' However, as the comments below, we can not use a Form here. We will have to create a customized control here.
+            ' However, as the comments below, we can not use a Form here. We will have to create a customized control here.
             Private m_loadError As Boolean
             Private host As IDesignerHost
 
@@ -492,7 +485,7 @@ Namespace Microsoft.VisualStudio.Editors.DesignerFramework
             ''' </summary>
             Private Class TopLevelControl
                 Inherits Control
-                
+
                 ''' <summary>
                 ''' Constructor
                 ''' </summary>

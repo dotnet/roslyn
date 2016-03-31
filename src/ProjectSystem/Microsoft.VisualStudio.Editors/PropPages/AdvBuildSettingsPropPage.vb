@@ -1,11 +1,6 @@
-Imports System
 Imports System.ComponentModel
-Imports System.Diagnostics
-Imports System.IO
 Imports System.Windows.Forms
-Imports System.Drawing
 Imports System.Globalization
-Imports Microsoft.VisualBasic
 Imports Microsoft.VisualStudio.PlatformUI
 Imports VBStrings = Microsoft.VisualBasic.Strings
 Imports VSLangProj80

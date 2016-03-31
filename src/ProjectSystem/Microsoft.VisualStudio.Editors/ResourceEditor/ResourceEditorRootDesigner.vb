@@ -5,20 +5,13 @@ Option Compare Binary
 
 Imports Microsoft.VisualStudio.Editors.Common.Utils
 Imports Microsoft.VisualStudio.Editors.Interop
-Imports System
 Imports System.ComponentModel
 Imports System.ComponentModel.Design
 Imports System.ComponentModel.Design.Serialization
-Imports System.Collections
-Imports System.Diagnostics
 Imports System.Runtime.InteropServices
-Imports System.Globalization
-Imports VB = Microsoft.VisualBasic
-Imports Microsoft.VisualStudio
 Imports Microsoft.VisualStudio.Shell
 Imports Microsoft.VisualStudio.Shell.Interop
 Imports Microsoft.VisualStudio.TextManager.Interop
-Imports OleInterop = Microsoft.VisualStudio.OLE.Interop
 
 Namespace Microsoft.VisualStudio.Editors.ResourceEditor
 

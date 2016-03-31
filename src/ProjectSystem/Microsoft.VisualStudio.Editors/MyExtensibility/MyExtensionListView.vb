@@ -1,12 +1,7 @@
 Option Strict On
 Option Explicit On
-
-Imports System
 Imports System.ComponentModel.Design
-Imports System.Diagnostics
 Imports System.Windows.Forms
-
-Imports Microsoft.VisualStudio.Editors
 Imports Microsoft.VisualStudio.Editors.DesignerFramework
 
 Namespace Microsoft.VisualStudio.Editors.MyExtensibility

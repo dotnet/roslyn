@@ -1,7 +1,5 @@
 Imports EnvDTE
 Imports Microsoft.VisualStudio.Shell.Interop
-Imports System
-Imports System.Collections.Generic
 Imports System.Runtime.Versioning
 
 Namespace Microsoft.VisualStudio.Editors.PropertyPages

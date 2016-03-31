@@ -1,5 +1,4 @@
-﻿Imports System.Diagnostics
-Imports System.ComponentModel
+﻿Imports System.ComponentModel
 
 
 Namespace Microsoft.VisualStudio.Editors.PropertyPages

@@ -1,17 +1,5 @@
-Imports Microsoft.VisualBasic
-Imports System
-Imports System.Diagnostics
-Imports System.ComponentModel
-Imports System.ComponentModel.Design
-Imports Microsoft.VisualStudio.Editors.Common
-Imports Microsoft.VisualStudio.ManagedInterfaces.ProjectDesigner
-Imports Microsoft.VisualStudio.OLE.Interop
-Imports Microsoft.VisualStudio.Shell.Interop
 Imports System.Windows.Forms
 Imports System.Runtime.InteropServices
-Imports System.Drawing
-Imports NativeMethods = Microsoft.VisualStudio.Editors.Interop.NativeMethods
-Imports Microsoft.VisualStudio.Editors.PropertyPages
 
 Namespace Microsoft.VisualStudio.Editors.PropertyPages
 

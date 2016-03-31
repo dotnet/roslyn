@@ -1,10 +1,7 @@
 Option Strict On
-Option Explicit On 
-
-Imports System
+Option Explicit On
 Imports System.Runtime.InteropServices
 Imports System.Runtime.CompilerServices
-Imports Microsoft.Win32.SafeHandles
 
 Namespace Microsoft.VisualStudio.Editors.XmlIntellisense
 

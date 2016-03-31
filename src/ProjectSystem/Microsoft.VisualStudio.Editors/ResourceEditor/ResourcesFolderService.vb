@@ -4,13 +4,7 @@ Option Compare Binary
 
 Imports EnvDTE
 Imports EnvDTE.Constants
-Imports Microsoft.VisualStudio
-Imports Microsoft.VisualStudio.Shell
-Imports Microsoft.VisualStudio.Shell.Interop
-Imports System
-Imports System.Diagnostics
 Imports System.IO
-Imports System.Runtime.InteropServices
 Imports System.Text
 Imports System.Threading
 Imports System.Windows.Forms

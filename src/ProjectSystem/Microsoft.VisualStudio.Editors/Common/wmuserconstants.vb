@@ -1,4 +1,3 @@
-Imports System
 Imports Microsoft.VisualStudio.Editors.Interop
 
 Namespace Microsoft.VisualStudio.Editors.Common

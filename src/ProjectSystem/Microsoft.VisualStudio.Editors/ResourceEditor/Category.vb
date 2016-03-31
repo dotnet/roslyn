@@ -1,15 +1,8 @@
 Option Explicit On
 Option Strict On
 Option Compare Binary
-
-Imports Microsoft.VisualBasic
-Imports System
-Imports System.Collections
 Imports System.ComponentModel.Design
-Imports System.Diagnostics
-Imports System.Drawing
 Imports System.Globalization
-Imports System.Windows.Forms
 
 Namespace Microsoft.VisualStudio.Editors.ResourceEditor
 

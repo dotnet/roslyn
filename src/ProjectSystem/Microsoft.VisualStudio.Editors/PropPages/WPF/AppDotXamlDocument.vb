@@ -1,13 +1,7 @@
-Imports Microsoft.VisualBasic
-Imports System
-Imports System.Diagnostics
 Imports System.IO
 Imports System.Runtime.InteropServices
 Imports System.Text
-Imports System.Text.RegularExpressions
 Imports System.Xml
-
-Imports Microsoft.VisualStudio
 Imports Microsoft.VisualStudio.TextManager.Interop
 Imports Microsoft.VisualStudio.Editors.Common.ArgumentValidation
 

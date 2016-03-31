@@ -1,17 +1,11 @@
-Imports System
 Imports System.CodeDom
 Imports System.CodeDom.Compiler
-Imports System.Collections
-Imports System.Collections.Generic
 Imports System.ComponentModel
 Imports System.ComponentModel.Design
-Imports System.Diagnostics
 
 Imports Microsoft.VisualStudio.Designer.Interfaces
 Imports Microsoft.VisualStudio.Editors.Common
-Imports Microsoft.VisualStudio.Editors.Interop
 Imports Microsoft.VisualStudio.Shell.Interop
-Imports VB = Microsoft.VisualBasic
 
 
 Namespace Microsoft.VisualStudio.Editors.DesignerFramework

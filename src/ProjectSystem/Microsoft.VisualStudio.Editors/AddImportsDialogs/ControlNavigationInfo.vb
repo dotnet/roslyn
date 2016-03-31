@@ -1,5 +1,4 @@
 ﻿Imports System.Windows.Forms
-Imports System
 
 Namespace Microsoft.VisualStudio.Editors.AddImports
     Friend Class ControlNavigationInfo

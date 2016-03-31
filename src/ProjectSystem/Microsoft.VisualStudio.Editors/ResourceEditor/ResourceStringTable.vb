@@ -4,15 +4,8 @@ Option Compare Binary
 
 Imports Microsoft.VisualStudio.Editors.Common
 Imports Microsoft.VisualStudio.Editors.Common.Utils
-Imports System
-Imports System.Collections
-Imports System.Diagnostics
-Imports System.Drawing
-Imports System.Globalization
-Imports System.Math
 Imports System.Security.Permissions
 Imports System.Windows.Forms
-Imports VB = Microsoft.VisualBasic
 Imports Microsoft.VisualStudio.PlatformUI
 
 Namespace Microsoft.VisualStudio.Editors.ResourceEditor
@@ -200,7 +193,7 @@ Namespace Microsoft.VisualStudio.Editors.ResourceEditor
             End Get
         End Property
 
-        
+
 #End Region
 
 
@@ -444,11 +437,11 @@ Namespace Microsoft.VisualStudio.Editors.ResourceEditor
                     'Otherwise, we need to abort the changes.  This isn't ideal behavior, but it's better than forcing the
                     '  user to be stuck in the resource editor.
                     CancelEdit()
-                    EndEdit(DataGridViewDataErrorContexts.InitialValueRestoration )
+                    EndEdit(DataGridViewDataErrorContexts.InitialValueRestoration)
                 End If
             Else If IsCurrentCellInEditMode Then
                 ' We should leave EditMode anyway (we could be in ReadOnly mode after F5)
-                EndEdit(DataGridViewDataErrorContexts.InitialValueRestoration )
+                EndEdit(DataGridViewDataErrorContexts.InitialValueRestoration)
             End If
         End Sub
 
@@ -1826,7 +1819,7 @@ Namespace Microsoft.VisualStudio.Editors.ResourceEditor
                 ' The following code is added to fix devdiv bug 874
                 ' we want to let the multiline editbox to handle up/down key, when the current position is not the first/last line in the control
                 '  The default logic of this editbox doesn't handle wrapped text correctly.
-                Dim firstCharIndexInCurrentLine As Integer = GetFirstCharIndexOfCurrentLine ()
+                Dim firstCharIndexInCurrentLine As Integer = GetFirstCharIndexOfCurrentLine()
                 Select Case (keyData And Keys.KeyCode)
                     Case Keys.Down
                         Dim currentLineNumber As Integer = GetLineFromCharIndex(firstCharIndexInCurrentLine)

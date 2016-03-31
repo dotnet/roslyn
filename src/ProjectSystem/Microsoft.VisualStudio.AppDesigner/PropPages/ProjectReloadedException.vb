@@ -1,8 +1,4 @@
-Imports Microsoft.VisualBasic
-Imports System
-Imports System.Diagnostics
 Imports System.Runtime.Serialization
-Imports Microsoft.VisualStudio.Editors
 
 Namespace Microsoft.VisualStudio.Editors.PropertyPages
 

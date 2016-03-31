@@ -1,9 +1,3 @@
-Imports Microsoft.VisualBasic
-Imports System
-Imports System.Diagnostics
-Imports System.ComponentModel.Design
-Imports System.Windows.Forms
-Imports System.Drawing
 Imports System.Runtime.InteropServices
 
 Namespace Microsoft.VisualStudio.Editors
@@ -15,7 +9,7 @@ Namespace Microsoft.VisualStudio.Editors
         '
         Public Const WS_CHILD As Integer = &H40000000L
         Public Const WS_CLIPSIBLINGS As Integer = &H4000000L
-        
+
     End Class
 
     <ComVisible(False)> _

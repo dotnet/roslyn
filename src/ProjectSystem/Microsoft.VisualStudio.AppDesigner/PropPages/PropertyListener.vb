@@ -1,17 +1,12 @@
 ﻿Option Explicit On
 Option Strict On
 Option Compare Binary
-
-Imports Microsoft.VisualStudio.Editors
 Imports Common = Microsoft.VisualStudio.Editors.AppDesCommon
 Imports Microsoft.VisualStudio.Editors.AppDesInterop
-Imports Microsoft.VisualStudio.Shell
 Imports Microsoft.VisualStudio.Shell.Interop
-Imports System
-Imports System.Diagnostics
 Imports System.Runtime.InteropServices
 Imports VB = Microsoft.VisualBasic
-Imports VSITEMID=Microsoft.VisualStudio.Editors.VSITEMIDAPPDES
+Imports VSITEMID = Microsoft.VisualStudio.Editors.VSITEMIDAPPDES
 
 Namespace Microsoft.VisualStudio.Editors.PropertyPages
 

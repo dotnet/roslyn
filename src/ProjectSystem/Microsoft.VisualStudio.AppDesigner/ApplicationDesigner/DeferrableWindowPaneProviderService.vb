@@ -1,14 +1,6 @@
-Imports Microsoft.VisualStudio
 Imports Microsoft.VisualStudio.Shell.Design
 Imports Microsoft.VisualStudio.Shell.Design.Serialization
-Imports Microsoft.VisualStudio.Shell.Interop
-Imports Microsoft.VisualStudio.Shell
-Imports System
 Imports System.ComponentModel.Design
-Imports System.Diagnostics
-Imports System.IO
-Imports System.Runtime.InteropServices
-Imports System.Windows.Forms
 Namespace Microsoft.VisualStudio.Editors.ApplicationDesigner
 
 

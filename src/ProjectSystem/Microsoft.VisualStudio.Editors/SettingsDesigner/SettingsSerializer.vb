@@ -1,5 +1,3 @@
-Imports System
-Imports System.Diagnostics
 Imports System.IO
 Imports System.Xml
 
@@ -113,7 +111,7 @@ Namespace Microsoft.VisualStudio.Editors.SettingsDesigner
 #End If
             ' CONSIDER, should I throw here to prevent the designer loader from blowing up / loading only part
             ' of the file and clobber it on the next write
-            
+
             Dim xmlReader As System.Xml.XmlTextReader = New System.Xml.XmlTextReader(Reader)
             xmlReader.Normalization = False
 
@@ -315,7 +313,7 @@ Namespace Microsoft.VisualStudio.Editors.SettingsDesigner
                     Dim scs As Microsoft.VSDesigner.VSDesignerPackage.SerializableConnectionString
                     scs = DirectCast(valueSerializer.Deserialize(GetType(Microsoft.VSDesigner.VSDesignerPackage.SerializableConnectionString), _
                                                                 designTimeValue, _
-                                                                Globalization.CultureInfo.InvariantCulture),  _
+                                                                Globalization.CultureInfo.InvariantCulture), _
                                     Microsoft.VSDesigner.VSDesignerPackage.SerializableConnectionString)
                     If scs IsNot Nothing AndAlso scs.ConnectionString IsNot Nothing Then
                         defaultValue = scs.ConnectionString

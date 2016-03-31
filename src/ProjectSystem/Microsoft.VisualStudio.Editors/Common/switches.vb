@@ -1,7 +1,5 @@
 Imports Microsoft.VisualStudio.Editors.Interop
 Imports Microsoft.VisualStudio.Editors.PropertyPages
-Imports System
-Imports System.Diagnostics
 Imports VB = Microsoft.VisualBasic
 
 Namespace Microsoft.VisualStudio.Editors.Common
@@ -690,7 +688,7 @@ Namespace Microsoft.VisualStudio.Editors.Common
         <Conditional("DEBUG")> _
         Public Shared Sub TracePDAccessModifierCombobox(ByVal traceLevel As TraceLevel, ByVal message As String)
 #If DEBUG Then
-            trace.WriteLineIf(PDAccessModifierCombobox.Level >= tracelevel,"PDAccessModifierCombobox: " & message)
+            trace.WriteLineIf(PDAccessModifierCombobox.Level >= tracelevel, "PDAccessModifierCombobox: " & message)
 #End If
         End Sub
 

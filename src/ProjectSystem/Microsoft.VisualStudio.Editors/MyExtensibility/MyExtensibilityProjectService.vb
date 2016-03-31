@@ -1,23 +1,11 @@
 Option Strict On
 Option Explicit On
-
-Imports System
-Imports System.Collections
-Imports System.Collections.Generic
-Imports System.Diagnostics
-Imports System.IO
-Imports System.Reflection
 Imports System.Text
 Imports System.Windows.Forms
-Imports System.Xml
 Imports EnvDTE
-Imports EnvDTE80
-Imports Microsoft.VisualStudio.Shell.Design.Serialization
 Imports Microsoft.VisualStudio.Shell.Interop
 Imports Microsoft.VisualStudio.Editors.Common
 Imports Microsoft.VisualStudio.Editors.DesignerFramework
-Imports Microsoft.VisualStudio.Editors.Interop
-Imports Microsoft.VisualStudio.Editors.MyApplication
 Imports Microsoft.VisualStudio.Editors.MyExtensibility.MyExtensibilitySolutionService
 Imports Microsoft.VisualStudio.Editors.MyExtensibility.MyExtensibilityUtil
 Imports Res = My.Resources.MyExtensibilityRes

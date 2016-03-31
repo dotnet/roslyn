@@ -1,21 +1,10 @@
 Option Strict On
 Option Explicit On
-
-Imports System
-Imports System.ComponentModel
-Imports System.ComponentModel.Design
-Imports System.ComponentModel.Design.Serialization
-Imports System.Diagnostics
-Imports System.Globalization
 Imports System.IO
 Imports System.Runtime.InteropServices
-Imports System.Runtime.Serialization.Formatters
-Imports System.Windows.Forms
-Imports Microsoft.VisualStudio
 Imports Microsoft.VisualStudio.Editors.Common
 Imports Microsoft.VisualStudio.OLE.Interop
 Imports Microsoft.VisualStudio.Designer.Interfaces
-Imports Microsoft.VisualStudio.Shell
 Imports Microsoft.VisualStudio.Shell.Interop
 Imports Microsoft.VisualStudio.TextManager.Interop
 Imports VB = Microsoft.VisualBasic
@@ -66,7 +55,7 @@ Namespace Microsoft.VisualStudio.Editors.DesignerFramework
     '''           UserControl or ControlContainer)
     ''' </remarks>
     <CLSCompliant(False)> _
-        Friend MustInherit Class BaseEditorFactory
+    Friend MustInherit Class BaseEditorFactory
         Implements IVsEditorFactory, IDisposable
 
 

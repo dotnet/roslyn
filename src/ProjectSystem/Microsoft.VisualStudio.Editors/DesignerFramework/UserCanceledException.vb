@@ -1,9 +1,6 @@
 Option Strict On
 Option Explicit On
 
-Imports Microsoft.VisualStudio.Editors
-Imports System
-
 Namespace Microsoft.VisualStudio.Editors.DesignerFramework
 
     ''' <summary>

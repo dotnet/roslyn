@@ -1,19 +1,4 @@
-Imports System
-Imports System.Collections
-Imports System.ComponentModel
-Imports System.ComponentModel.Design
-Imports System.ComponentModel.Design.Serialization
-Imports System.Diagnostics
-Imports System.Runtime.InteropServices
 Imports System.Windows.Forms
-Imports System.Windows.Forms.Design
-
-Imports Microsoft.VisualStudio.Designer.Interfaces
-Imports Microsoft.VisualStudio.Editors.Common
-Imports Microsoft.VisualStudio.Editors.DesignerFramework
-Imports Microsoft.VisualStudio.Editors.Interop
-Imports Microsoft.VisualStudio.Shell.Interop
-Imports Microsoft.VSDesigner.VSDesignerPackage
 
 Namespace Microsoft.VisualStudio.Editors.DesignerFramework
 

@@ -1,5 +1,3 @@
-Imports System
-
 Namespace Microsoft.VisualStudio.Editors.SettingsDesigner
     ''' <summary>
     ''' Map between display names (the name that appear in the UI), the type name persisted in the .settings file

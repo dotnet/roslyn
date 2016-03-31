@@ -1,8 +1,5 @@
 Option Strict On
 Option Explicit On
-
-Imports System
-Imports System.Collections.Generic
 Imports System.Drawing
 Imports System.Windows.Forms
 

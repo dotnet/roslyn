@@ -1,8 +1,6 @@
 Option Strict On
 Option Explicit On
 
-Imports System
-
 Namespace Microsoft.VisualStudio.Editors.MyExtensibility
 
     ''' ;INamedDescribedObject

@@ -1,12 +1,6 @@
 Option Strict On
 Option Explicit On
 
-Imports Microsoft.VisualStudio.Editors.ResourceEditor
-Imports System
-Imports System.Collections
-Imports System.Diagnostics
-Imports System.Windows.Forms
-
 Namespace Microsoft.VisualStudio.Editors.ResourceEditor
 
     ''' <summary>

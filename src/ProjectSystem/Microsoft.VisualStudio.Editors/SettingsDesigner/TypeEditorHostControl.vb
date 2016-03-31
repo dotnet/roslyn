@@ -1,6 +1,4 @@
 Imports Microsoft.VisualStudio.Editors.Common
-Imports System
-Imports System.Diagnostics
 Imports System.Drawing
 Imports System.ComponentModel
 Imports System.Drawing.Design

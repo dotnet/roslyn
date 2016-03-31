@@ -1,18 +1,9 @@
-Imports Microsoft.VisualBasic
-Imports System
-Imports System.Diagnostics
 Imports System.ComponentModel.Design
 Imports Microsoft.VisualStudio.Shell
-Imports Microsoft.VisualStudio.Shell.Design
-Imports Microsoft.VisualStudio.Shell.Design.Serialization
-Imports System.Runtime.InteropServices
 Imports Microsoft.VisualStudio.Shell.Interop
-Imports Microsoft.VisualStudio.WCFReference.Interop
 Imports Microsoft.VisualStudio.Editors.Package
 Imports Microsoft.VisualStudio.XmlEditor
-Imports System.Runtime.CompilerServices
-Imports Microsoft.VisualStudio.Editors
-<Assembly: System.Runtime.InteropServices.GuidAttribute("832BFEE6-9036-423E-B90A-EA4C582DA1D2")> 
+<Assembly: System.Runtime.InteropServices.GuidAttribute("832BFEE6-9036-423E-B90A-EA4C582DA1D2")>
 
 Namespace Microsoft.VisualStudio.Editors
 

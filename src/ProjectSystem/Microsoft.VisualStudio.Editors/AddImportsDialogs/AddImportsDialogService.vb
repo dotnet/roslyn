@@ -1,5 +1,4 @@
-﻿imports System
-Imports System.Windows.Forms
+﻿Imports System.Windows.Forms
 
 Namespace Microsoft.VisualStudio.Editors.AddImports
     Friend Class AddImportsDialogService
@@ -19,7 +18,7 @@ Namespace Microsoft.VisualStudio.Editors.AddImports
             End If
             m_ServiceProvider = packageServiceProvider
         End Sub
-        
+
         Public Function ShowDialog(ByVal [namespace] As String, ByVal identifier As String, byval minimallyQualifiedName as String, ByVal dialogType As AddImportsDialogType, ByVal helpCallBack As IVBAddImportsDialogHelpCallback) As AddImportsResult Implements IVBAddImportsDialogService.ShowDialog
             Select Case dialogType
                 Case AddImportsDialogType.AddImportsCollisionDialog

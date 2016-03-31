@@ -1,14 +1,8 @@
-Imports System
 Imports System.ComponentModel
-Imports System.Diagnostics
 Imports System.Diagnostics.CodeAnalysis
 Imports System.ComponentModel.Design
-Imports System.Text
 Imports System.Windows.Forms
 Imports System.Xml
-Imports Microsoft.VisualStudio.Shell.Design.Serialization
-Imports Microsoft.VisualStudio.Shell.Interop
-Imports Microsoft.VSDesigner.VSDesignerPackage
 Imports Microsoft.VisualStudio.Editors.Common
 
 
@@ -254,7 +248,7 @@ Namespace Microsoft.VisualStudio.Editors.PropertyPages
             End If
 
             ignoreLostFocus = True
-            
+
             'DevDiv Bugs 88577, If the user isn't targetting V3.5 or above, bring up
             'an error stating that the functionality is only available for 3.5 or greater.
             'Also, uncheck the checkbox
@@ -279,7 +273,7 @@ Namespace Microsoft.VisualStudio.Editors.PropertyPages
         Private Sub SetApplicationServicesEnabled(ByVal enable As Boolean)
             'If there's no app.config and we wanted to disable, we're done here.
             If CurrentAppConfigDocument Is Nothing AndAlso Not enable Then Return
-            
+
             SetWaitCursor(True)
             Try
                 Dim initialText As String = Nothing
@@ -400,10 +394,10 @@ Namespace Microsoft.VisualStudio.Editors.PropertyPages
             If textToValidate = "" Then Exit Sub
             Dim badUri As Boolean
             Dim index As Integer = textToValidate.LastIndexOf(".")
-            If index <> -1 Then          
+            If index <> -1 Then
                 Dim invalidExtensions() As String = {".asmx", ".axd", ".svc"}
                 For Each extension As String In invalidExtensions
-                    If textToValidate.EndsWith(extension) Then 
+                    If textToValidate.EndsWith(extension) Then
                         badUri = True
                         Exit For
                     End If
@@ -416,7 +410,7 @@ Namespace Microsoft.VisualStudio.Editors.PropertyPages
                 'Showing a messagebox in the middle of canceling validation is bad mojo
                 Me.BeginInvoke(New MethodInvoker(AddressOf ShowInvalidUrlError))
                 e.Cancel = True
-            End If            
+            End If
         End Sub
 
         Sub ShowInvalidUrlError()

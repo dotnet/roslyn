@@ -1,18 +1,10 @@
-Imports Microsoft.VisualBasic
-Imports System
-Imports System.Diagnostics
 Imports System.ComponentModel.Design
 Imports System.Windows.Forms
-Imports System.Drawing
-Imports Microsoft.VisualStudio.Editors
 Imports Common = Microsoft.VisualStudio.Editors.AppDesCommon
-Imports Interop = Microsoft.VisualStudio.Editors.AppDesInterop
-Imports System.Runtime.InteropServices
-Imports System.Collections
 Imports Microsoft.VisualStudio.Shell.Interop
 Imports System.ComponentModel
 
-Imports VSITEMID=Microsoft.VisualStudio.Editors.VSITEMIDAPPDES
+Imports VSITEMID = Microsoft.VisualStudio.Editors.VSITEMIDAPPDES
 
 Namespace Microsoft.VisualStudio.Editors.PropertyPages
 

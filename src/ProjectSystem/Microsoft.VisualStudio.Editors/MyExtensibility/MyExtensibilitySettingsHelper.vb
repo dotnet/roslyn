@@ -1,12 +1,6 @@
 Option Strict On
 Option Explicit On
 
-Imports System
-Imports System.Collections.Generic
-Imports System.Diagnostics
-Imports System.Reflection
-Imports Microsoft.VisualStudio.Editors.MyExtensibility.MyExtensibilityUtil
-
 Namespace Microsoft.VisualStudio.Editors.MyExtensibility
 
     Partial Class MyExtensibilitySettings

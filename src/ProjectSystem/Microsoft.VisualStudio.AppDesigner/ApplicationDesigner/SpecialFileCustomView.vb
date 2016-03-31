@@ -1,7 +1,4 @@
 ﻿Imports Microsoft.VisualStudio.Shell.Interop
-Imports System
-Imports System.Diagnostics
-Imports System.Windows.Forms
 
 Namespace Microsoft.VisualStudio.Editors.ApplicationDesigner
 

@@ -1,5 +1,3 @@
-Imports System
-Imports System.Diagnostics
 Imports Common = Microsoft.VisualStudio.Editors.AppDesCommon
 Imports Interop = Microsoft.VisualStudio.Editors.AppDesInterop
 

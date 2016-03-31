@@ -1,9 +1,6 @@
 Option Explicit On
 Option Strict On
 Option Compare Binary
-
-Imports System
-Imports System.Collections
 Imports System.ComponentModel
 Imports System.Globalization
 Imports System.Text

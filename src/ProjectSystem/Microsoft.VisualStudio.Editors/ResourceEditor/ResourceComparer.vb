@@ -1,9 +1,6 @@
 Option Explicit On
 Option Strict On
 Option Compare Binary
-
-Imports System.Collections
-Imports System.Diagnostics
 Imports System.Globalization
 
 Namespace Microsoft.VisualStudio.Editors.ResourceEditor

@@ -1,4 +1,3 @@
-Imports System
 Imports System.Windows.Forms
 Imports Microsoft.VisualStudio.Shell.Interop
 Imports VSLangProj80

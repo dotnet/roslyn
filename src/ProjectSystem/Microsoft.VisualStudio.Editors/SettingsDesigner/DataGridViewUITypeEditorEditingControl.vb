@@ -1,9 +1,5 @@
-Imports System
-Imports System.Diagnostics
 Imports System.Drawing.Design
 Imports System.Windows.Forms
-
-Imports Microsoft.VisualStudio.Editors.Interop
 Imports Microsoft.VSDesigner.VSDesignerPackage
 
 Namespace Microsoft.VisualStudio.Editors.SettingsDesigner

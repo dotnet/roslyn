@@ -1,5 +1,4 @@
-﻿Imports System
-Imports System.Runtime.CompilerServices
+﻿Imports System.Runtime.CompilerServices
 Imports System.Runtime.InteropServices
 
 'NOTE: This is only a partial AssemblyInfo.vb file.  The rest of the assembly
@@ -14,14 +13,14 @@ Imports System.Runtime.InteropServices
  "07d1fa57c4aed9f0a32e84aa0faefd0de9e8fd6aec8f87fb03766c834c99921e" & _
  "b23be79ad9d5dcc1dd9ad236132102900b723cf980957fc4e177108fc607774f" & _
  "29e8320e92ea05ece4e821c0a5efe8f1645c4c0c93c1ab99285d622caa652c1d" & _
- "fad63d745d6f2de5f17e5eaf0fc4963d261c8a12436518206dc093344d5ad293")> 
+ "fad63d745d6f2de5f17e5eaf0fc4963d261c8a12436518206dc093344d5ad293")>
 
 <Assembly: InternalsVisibleTo("Microsoft.VisualStudio.Editors.UnitTests, PublicKey=" & _
  "0024000004800000940000000602000000240000525341310004000001000100" & _
  "07d1fa57c4aed9f0a32e84aa0faefd0de9e8fd6aec8f87fb03766c834c99921e" & _
  "b23be79ad9d5dcc1dd9ad236132102900b723cf980957fc4e177108fc607774f" & _
  "29e8320e92ea05ece4e821c0a5efe8f1645c4c0c93c1ab99285d622caa652c1d" & _
- "fad63d745d6f2de5f17e5eaf0fc4963d261c8a12436518206dc093344d5ad293")> 
+ "fad63d745d6f2de5f17e5eaf0fc4963d261c8a12436518206dc093344d5ad293")>
 
 <Assembly: InternalsVisibleTo("Microsoft.VisualStudio.Windows.UI.Xaml.Project, PublicKey=" & _
  "002400000480000094000000060200000024000052534131000400000100010007d1fa57c4aed9" & _
@@ -54,7 +53,7 @@ Imports System.Runtime.InteropServices
  "07d1fa57c4aed9f0a32e84aa0faefd0de9e8fd6aec8f87fb03766c834c99921e" & _
  "b23be79ad9d5dcc1dd9ad236132102900b723cf980957fc4e177108fc607774f" & _
  "29e8320e92ea05ece4e821c0a5efe8f1645c4c0c93c1ab99285d622caa652c1d" & _
- "fad63d745d6f2de5f17e5eaf0fc4963d261c8a12436518206dc093344d5ad293")> 
+ "fad63d745d6f2de5f17e5eaf0fc4963d261c8a12436518206dc093344d5ad293")>
 
 <Assembly: InternalsVisibleTo("ProTooling.Automation.Apex, PublicKey=" & _
  "002400000480000094000000060200000024000052534131000400000100010007d1fa57c4aed9" & _
@@ -68,7 +67,7 @@ Imports System.Runtime.InteropServices
  "f0a32e84aa0faefd0de9e8fd6aec8f87fb03766c834c99921eb23be79ad9d5dcc1dd9ad2361321" & _
  "02900b723cf980957fc4e177108fc607774f29e8320e92ea05ece4e821c0a5efe8f1645c4c0c93" & _
  "c1ab99285d622caa652c1dfad63d745d6f2de5f17e5eaf0fc4963d261c8a12436518206dc09334" & _
- "4d5ad293")> 
+ "4d5ad293")>
 
 'As a result of Project Designer handoff the following types has moved to AppDesigner.dll
 'Using type forwarding to that assembly so as not to break any dependencies that other assemblies might have on the following types
@@ -94,7 +93,7 @@ Imports System.Runtime.InteropServices
 <Assembly: TypeForwardedTo(GetType(Microsoft.VisualStudio.Editors.ApplicationDesigner.PropertyPageSite))>
 <Assembly: TypeForwardedTo(GetType(Microsoft.VisualStudio.Editors.ApplicationDesigner.SpecialFileCustomDocumentMonikerProvider))>
 <Assembly: TypeForwardedTo(GetType(Microsoft.VisualStudio.Editors.ApplicationDesigner.SpecialFileCustomView))>
-<Assembly: TypeForwardedTo(GetType(Microsoft.VisualStudio.Editors.ApplicationDesigner.SpecialFileCustomViewProvider))> 
+<Assembly: TypeForwardedTo(GetType(Microsoft.VisualStudio.Editors.ApplicationDesigner.SpecialFileCustomViewProvider))>
 
 <Assembly: TypeForwardedTo(GetType(Microsoft.VisualStudio.Editors.PropertyPages.ChildPageSite))>
 <Assembly: TypeForwardedTo(GetType(Microsoft.VisualStudio.Editors.PropertyPages.ControlDataFlags))>
@@ -111,7 +110,7 @@ Imports System.Runtime.InteropServices
 <Assembly: TypeForwardedTo(GetType(Microsoft.VisualStudio.Editors.PropertyPages.SKUMatrix))>
 <Assembly: TypeForwardedTo(GetType(Microsoft.VisualStudio.Editors.PropertyPages.ValidationResult))>
 <Assembly: TypeForwardedTo(GetType(Microsoft.VisualStudio.Editors.PropertyPages.VBPropPageBase))>
-<Assembly: TypeForwardedTo(GetType(Microsoft.VisualStudio.Editors.PropertyPages.VSProductSKU))> 
+<Assembly: TypeForwardedTo(GetType(Microsoft.VisualStudio.Editors.PropertyPages.VSProductSKU))>
 
 
 <Assembly: TypeForwardedTo(GetType(Microsoft.VisualStudio.Editors.PropPageDesigner.ConfigurationState))>
@@ -125,6 +124,6 @@ Imports System.Runtime.InteropServices
 <Assembly: TypeForwardedTo(GetType(Microsoft.VisualStudio.Editors.PropPageDesigner.PropPageDesignerRootComponent))>
 <Assembly: TypeForwardedTo(GetType(Microsoft.VisualStudio.Editors.PropPageDesigner.PropPageDesignerRootDesigner))>
 <Assembly: TypeForwardedTo(GetType(Microsoft.VisualStudio.Editors.PropPageDesigner.PropPageDesignerView))>
-<Assembly: TypeForwardedTo(GetType(Microsoft.VisualStudio.Editors.PropPageDesigner.PropPageDesignerWindowPane))> 
+<Assembly: TypeForwardedTo(GetType(Microsoft.VisualStudio.Editors.PropPageDesigner.PropPageDesignerWindowPane))>
 
 

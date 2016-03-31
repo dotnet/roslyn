@@ -1,5 +1,4 @@
-﻿Imports System
-Imports System.Runtime.InteropServices
+﻿Imports System.Runtime.InteropServices
 
 Namespace Microsoft.VisualStudio.Editors.ApplicationDesigner
 

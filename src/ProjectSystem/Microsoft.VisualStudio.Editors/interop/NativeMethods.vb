@@ -1,7 +1,4 @@
-Imports System
 Imports System.Runtime.InteropServices
-Imports System.Security.Permissions
-Imports System.Text
 Imports Microsoft.VisualStudio.OLE.Interop
 Imports ComTypes = System.Runtime.InteropServices.ComTypes
 
@@ -231,7 +228,7 @@ Namespace Microsoft.VisualStudio.Editors.Interop
             Protected Overrides Sub Finalize()
 
 #If DEBUG Then
-                System.Diagnostics.Debug.Assert(cookie = 0, "We should never finalize an active connection point. (Interface = " & eventInterface.FullName & "), allocating code (see stack) is responsible for unhooking the ConnectionPoint by calling Disconnect.  Hookup Stack =" & Microsoft.VisualBasic.vbNewLine &  callStack)
+                System.Diagnostics.Debug.Assert(cookie = 0, "We should never finalize an active connection point. (Interface = " & eventInterface.FullName & "), allocating code (see stack) is responsible for unhooking the ConnectionPoint by calling Disconnect.  Hookup Stack =" & Microsoft.VisualBasic.vbNewLine & callStack)
 #End If
                 ' We can't call Disconnect here, because connectionPoint could be finalized earlier
                 MyBase.Finalize()
@@ -240,88 +237,88 @@ Namespace Microsoft.VisualStudio.Editors.Interop
 
         End Class 'ConnectionPointCookie
 
-	' ClickOnce signing page native methods and structs
+        ' ClickOnce signing page native methods and structs
 
-	Friend Enum KeySpec
-	    ' Fields	
-	    AT_KEYEXCHANGE = 1
-	    AT_SIGNATURE = 2
-	End Enum
+        Friend Enum KeySpec
+            ' Fields	
+            AT_KEYEXCHANGE = 1
+            AT_SIGNATURE = 2
+        End Enum
 
-	 <StructLayout(LayoutKind.Sequential)> _
-	Friend Structure CRYPTOAPI_BLOB
-	    Friend cbData As UInt32
-	    Friend pbData As IntPtr
-	End Structure
+        <StructLayout(LayoutKind.Sequential)> _
+        Friend Structure CRYPTOAPI_BLOB
+            Friend cbData As UInt32
+            Friend pbData As IntPtr
+        End Structure
 
- 
-	<DllImport("crypt32.dll", CharSet:=CharSet.Unicode, SetLastError:=True)> _
-	Friend Shared Function PFXImportCertStore(<[In]> ByVal blob As IntPtr, <[In]> ByVal password As String, <[In]> ByVal flags As CryptFlags) As IntPtr
-	End Function
- 
-	<Flags> _
-	Friend Enum CryptFlags
-	    ' Fields
-	    Exportable = 1
-	    MachineKeySet = &H20
-	    UserKeySet = &H1000
-	    UserProtected = 2
-	End Enum
 
-	<DllImport("crypt32.dll", SetLastError:=True)> _
-	Friend Shared Function CertEnumCertificatesInStore(<[In]> ByVal CertStore As IntPtr, <[In]> ByVal PrevCertContext As IntPtr) As IntPtr
-	End Function
+        <DllImport("crypt32.dll", CharSet:=CharSet.Unicode, SetLastError:=True)> _
+        Friend Shared Function PFXImportCertStore(<[In]> ByVal blob As IntPtr, <[In]> ByVal password As String, <[In]> ByVal flags As CryptFlags) As IntPtr
+        End Function
 
-	<DllImport("crypt32.dll", SetLastError:=True)> _
-	Friend Shared Function CryptAcquireCertificatePrivateKey(<[In]> ByVal CertContext As IntPtr, <[In]> ByVal flags As UInt32, <[In]> ByVal reserved As IntPtr, <[In], Out> ByRef CryptProv As IntPtr, <[In], Out> ByRef KeySpec As KeySpec, <[In], Out, MarshalAs(UnmanagedType.Bool)> ByRef CallerFreeProv As Boolean) As <MarshalAs(UnmanagedType.Bool)> Boolean
-	End Function
+        <Flags> _
+        Friend Enum CryptFlags
+            ' Fields
+            Exportable = 1
+            MachineKeySet = &H20
+            UserKeySet = &H1000
+            UserProtected = 2
+        End Enum
 
-	<DllImport("advapi32.dll", SetLastError:=True)> _
-	Friend Shared Function CryptGetUserKey(<[In]> ByVal CryptProv As IntPtr, <[In]> ByVal KeySpec As KeySpec, <[In], Out> ByRef Key As IntPtr) As <MarshalAs(UnmanagedType.Bool)> Boolean
-	End Function
+        <DllImport("crypt32.dll", SetLastError:=True)> _
+        Friend Shared Function CertEnumCertificatesInStore(<[In]> ByVal CertStore As IntPtr, <[In]> ByVal PrevCertContext As IntPtr) As IntPtr
+        End Function
 
-	<DllImport("advapi32.dll", SetLastError:=True)> _
-	Friend Shared Function CryptExportKey(<[In]> ByVal Key As IntPtr, <[In]> ByVal ExpKey As IntPtr, <[In]> ByVal type As BlobType, <[In]> ByVal Flags As UInt32, <[In]> ByVal Data As IntPtr, <[In], Out> ByRef DataLen As UInt32) As <MarshalAs(UnmanagedType.Bool)> Boolean
-	End Function
+        <DllImport("crypt32.dll", SetLastError:=True)> _
+        Friend Shared Function CryptAcquireCertificatePrivateKey(<[In]> ByVal CertContext As IntPtr, <[In]> ByVal flags As UInt32, <[In]> ByVal reserved As IntPtr, <[In], Out> ByRef CryptProv As IntPtr, <[In], Out> ByRef KeySpec As KeySpec, <[In], Out, MarshalAs(UnmanagedType.Bool)> ByRef CallerFreeProv As Boolean) As <MarshalAs(UnmanagedType.Bool)> Boolean
+        End Function
 
-	Friend Enum BlobType
-	    ' Fields
-	    OPAQUEKEYBLOB = 9
-	    PLAINTEXTKEYBLOB = 8
-	    PRIVATEKEYBLOB = 7
-	    PUBLICKEYBLOB = 6
-	    PUBLICKEYBLOBEX = 10
-	    SIMPLEBLOB = 1
-	    SYMMETRICWRAPKEYBLOB = 11
-	End Enum
+        <DllImport("advapi32.dll", SetLastError:=True)> _
+        Friend Shared Function CryptGetUserKey(<[In]> ByVal CryptProv As IntPtr, <[In]> ByVal KeySpec As KeySpec, <[In], Out> ByRef Key As IntPtr) As <MarshalAs(UnmanagedType.Bool)> Boolean
+        End Function
 
-	<DllImport("advapi32.dll", SetLastError:=True)> _
-	Friend Shared Function CryptDestroyKey(ByVal hKey As IntPtr) As <MarshalAs(UnmanagedType.Bool)> Boolean
-	End Function
+        <DllImport("advapi32.dll", SetLastError:=True)> _
+        Friend Shared Function CryptExportKey(<[In]> ByVal Key As IntPtr, <[In]> ByVal ExpKey As IntPtr, <[In]> ByVal type As BlobType, <[In]> ByVal Flags As UInt32, <[In]> ByVal Data As IntPtr, <[In], Out> ByRef DataLen As UInt32) As <MarshalAs(UnmanagedType.Bool)> Boolean
+        End Function
 
-	<DllImport("advapi32.dll", SetLastError:=True)> _
-	Friend Shared Function CryptReleaseContext(<[In]> ByVal Prov As IntPtr, <[In]> ByVal Flags As UInt32) As <MarshalAs(UnmanagedType.Bool)> Boolean
-	End Function
+        Friend Enum BlobType
+            ' Fields
+            OPAQUEKEYBLOB = 9
+            PLAINTEXTKEYBLOB = 8
+            PRIVATEKEYBLOB = 7
+            PUBLICKEYBLOB = 6
+            PUBLICKEYBLOBEX = 10
+            SIMPLEBLOB = 1
+            SYMMETRICWRAPKEYBLOB = 11
+        End Enum
 
-	<DllImport("crypt32.dll", SetLastError:=True)> _
-	Friend Shared Function CertFreeCertificateContext(ByVal CertContext As IntPtr) As <MarshalAs(UnmanagedType.Bool)> Boolean
-	End Function
+        <DllImport("advapi32.dll", SetLastError:=True)> _
+        Friend Shared Function CryptDestroyKey(ByVal hKey As IntPtr) As <MarshalAs(UnmanagedType.Bool)> Boolean
+        End Function
 
-	<DllImport("crypt32.dll", SetLastError:=True)> _
-	Friend Shared Function CertCloseStore(<[In]> ByVal CertStore As IntPtr, ByVal Flags As CertStoreClose) As <MarshalAs(UnmanagedType.Bool)> Boolean
-	End Function
+        <DllImport("advapi32.dll", SetLastError:=True)> _
+        Friend Shared Function CryptReleaseContext(<[In]> ByVal Prov As IntPtr, <[In]> ByVal Flags As UInt32) As <MarshalAs(UnmanagedType.Bool)> Boolean
+        End Function
 
- 
-	<Flags> _
-	Friend Enum CertStoreClose
-	    ' Fields
-	    CERT_CLOSE_STORE_CHECK_FLAG = 2
-	    CERT_CLOSE_STORE_FORCE_FLAG = 1
-	End Enum
+        <DllImport("crypt32.dll", SetLastError:=True)> _
+        Friend Shared Function CertFreeCertificateContext(ByVal CertContext As IntPtr) As <MarshalAs(UnmanagedType.Bool)> Boolean
+        End Function
 
-       <PreserveSig()> Friend Declare Function _
-            SetParent _
-                Lib "user32" (ByVal hwnd As IntPtr, ByVal hWndParent As IntPtr) As IntPtr
+        <DllImport("crypt32.dll", SetLastError:=True)> _
+        Friend Shared Function CertCloseStore(<[In]> ByVal CertStore As IntPtr, ByVal Flags As CertStoreClose) As <MarshalAs(UnmanagedType.Bool)> Boolean
+        End Function
+
+
+        <Flags> _
+        Friend Enum CertStoreClose
+            ' Fields
+            CERT_CLOSE_STORE_CHECK_FLAG = 2
+            CERT_CLOSE_STORE_FORCE_FLAG = 1
+        End Enum
+
+        <PreserveSig()> Friend Declare Function _
+             SetParent _
+                 Lib "user32" (ByVal hwnd As IntPtr, ByVal hWndParent As IntPtr) As IntPtr
 
 
         <PreserveSig()> Friend Declare Function _
@@ -331,7 +328,7 @@ Namespace Microsoft.VisualStudio.Editors.Interop
         <PreserveSig()> Friend Declare Function _
             GetFocus _
                 Lib "user32" () As IntPtr
-        
+
         <PreserveSig()> Friend Declare Function _
             SetFocus _
                 Lib "user32" (ByVal hwnd As IntPtr) As Integer
@@ -499,7 +496,7 @@ Namespace Microsoft.VisualStudio.Editors.Interop
         <PreserveSig()> Function OpenScope(<[In](), MarshalAs(UnmanagedType.LPWStr)> ByVal szScope As String, <[In]()> ByVal dwOpenFlags As UInt32, <[In]()> ByRef riid As Guid, <Out(), MarshalAs(UnmanagedType.Interface)> ByRef obj As Object) As Integer
         Function OpenScopeOnMemory(<[In]()> ByVal pData As IntPtr, <[In]()> ByVal cbData As UInt32, <[In]()> ByVal dwOpenFlags As UInt32, <[In]()> ByRef riid As Guid) As <MarshalAs(UnmanagedType.Interface)> Object
     End Interface
- 
+
     <StructLayout(LayoutKind.Sequential)> _
     Friend Class HDITEM2
         Public mask As Integer = 0

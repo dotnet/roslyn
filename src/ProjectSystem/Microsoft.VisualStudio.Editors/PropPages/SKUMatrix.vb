@@ -1,4 +1,3 @@
-Imports System
 Imports VSLangProj80
 Imports Microsoft.VisualStudio.Shell
 
@@ -51,7 +50,7 @@ Namespace Microsoft.VisualStudio.Editors.PropertyPages
                 Select Case PropertyId
                     Case VsProjPropId.VBPROJPROPID_EnableSQLServerDebugging, _
                         VsProjPropId.VBPROJPROPID_RemoteDebugEnabled
-                        
+
                         Return True
                 End Select
             End If

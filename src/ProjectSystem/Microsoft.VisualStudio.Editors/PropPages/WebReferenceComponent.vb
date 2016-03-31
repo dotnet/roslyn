@@ -1,8 +1,5 @@
-Imports System
 Imports System.ComponentModel
 Imports System.ComponentModel.Design
-Imports System.Diagnostics
-Imports Microsoft.VisualStudio.Editors
 
 Namespace Microsoft.VisualStudio.Editors.PropertyPages
 
@@ -199,7 +196,7 @@ Namespace Microsoft.VisualStudio.Editors.PropertyPages
         Public Function GetPropertyOwner(ByVal pd As System.ComponentModel.PropertyDescriptor) As Object Implements System.ComponentModel.ICustomTypeDescriptor.GetPropertyOwner
             Return Me
         End Function
-#End Region        
+#End Region
     End Class
 
 #Region "UrlBehaviorType"

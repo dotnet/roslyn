@@ -1,8 +1,6 @@
-Imports System
 Imports System.ComponentModel.Design
 Imports Microsoft.VisualStudio.Shell.Interop
 Imports Microsoft.VisualStudio.Editors.AppDesInterop
-Imports System.Diagnostics
 
 
 Namespace Microsoft.VisualStudio.Editors
