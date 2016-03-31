@@ -1,10 +1,3 @@
-'******************************************************************************
-'* DeferrableWindowPaneProviderServiceBase.vb
-'*
-'* Copyright (C) 2004-2004 Microsoft Corporation. All Rights Reserved.
-'* Information Contained Herein Is Proprietary and Confidential.
-'******************************************************************************
-
 Imports System
 Imports system.collections
 Imports System.Drawing

@@ -1,9 +1,3 @@
-'-----------------------------------------------------------------------------------------------------------
-'
-'  Copyright (c) Microsoft Corporation.  All rights reserved.
-'
-'-----------------------------------------------------------------------------------------------------------
-
 Imports System
 
 Namespace Microsoft.VisualStudio.Editors.PropertyPages

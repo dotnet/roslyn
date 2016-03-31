@@ -1,12 +1,3 @@
-'//------------------------------------------------------------------------------
-'// <copyright from='1997' to='2001' company='Microsoft Corporation'>           
-'//    Copyright (c) Microsoft Corporation. All Rights Reserved.                
-'//    Information Contained Herein is Proprietary and Confidential.            
-'// </copyright>                                                                
-'//------------------------------------------------------------------------------
-
-'// Copyright (C) 1997, 1998, 1999 Microsoft Corporation  All Rights Reserved
-
 #If 0 Then
 Imports System
 Imports System.Runtime.InteropServices

@@ -1,12 +1,4 @@
-'******************************************************************************
-'* AdvCompilerSettingsPropPage.vb
-'*
-'* Copyright (C) 1999-2004 Microsoft Corporation. All Rights Reserved.
-'* Information Contained Herein Is Proprietary and Confidential.
-'******************************************************************************
-'
 'This is the advanced compiler options page for VB only.
-
 
 Imports Microsoft.VisualBasic
 Imports Microsoft.VisualStudio.Shell.Interop

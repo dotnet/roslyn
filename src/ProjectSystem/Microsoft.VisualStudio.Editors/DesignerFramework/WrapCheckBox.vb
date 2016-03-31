@@ -1,10 +1,3 @@
-'--------------------------------------------------------------------
-' <copyright file="WrapCheckBox.vb" company="Microsoft">
-'    Copyright (c) Microsoft Corporation.  All rights reserved.
-'    Information Contained Herein Is Proprietary and Confidential.
-' </copyright>
-'--------------------------------------------------------------------
-
 Option Strict On
 Option Explicit On
 

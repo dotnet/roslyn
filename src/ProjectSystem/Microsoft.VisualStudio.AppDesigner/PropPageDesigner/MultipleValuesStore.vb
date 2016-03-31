@@ -1,11 +1,4 @@
-﻿'******************************************************************************
-'* PropertyPagePropertyDescriptor.vb
-'*
-'* Copyright (C) 1999-2003 Microsoft Corporation. All Rights Reserved.
-'* Information Contained Herein Is Proprietary and Confidential.
-'******************************************************************************
-
-Imports Common = Microsoft.VisualStudio.Editors.AppDesCommon
+﻿Imports Common = Microsoft.VisualStudio.Editors.AppDesCommon
 Imports Microsoft.VisualStudio.Shell.Interop
 Imports System
 Imports System.ComponentModel

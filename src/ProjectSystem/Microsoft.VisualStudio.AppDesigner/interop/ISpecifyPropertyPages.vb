@@ -1,9 +1,3 @@
-'//------------------------------------------------------------------------------
-'/// <copyright file="ISpecifyPropertyPages.cs" company="Microsoft">
-'//     Copyright (c) Microsoft Corporation.  All rights reserved.
-'// </copyright>                                                                
-'//------------------------------------------------------------------------------
-
 Imports System.Runtime.InteropServices
 Imports System.Diagnostics
 Imports System

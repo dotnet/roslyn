@@ -1,11 +1,4 @@
-﻿'******************************************************************************
-'* ILangInactiveCfgPropertyNotifySink.vb
-'*
-'* Copyright (C) Microsoft Corporation. All Rights Reserved.
-'* Information Contained Herein Is Proprietary and Confidential.
-'******************************************************************************
-
-Imports System.Runtime.InteropServices
+﻿Imports System.Runtime.InteropServices
 Imports System.Diagnostics
 Imports System
 

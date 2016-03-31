@@ -1,10 +1,3 @@
-''-----------------------------------------------------------------------------
-'' <copyright file="ServiceReferenceComponent.vb" company="Microsoft">
-''    Copyright (C) Microsoft Corporation. All Rights Reserved.
-'' </copyright>
-''-----------------------------------------------------------------------------
-
-
 Imports System
 Imports System.ComponentModel
 Imports System.ComponentModel.Design

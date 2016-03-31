@@ -1,12 +1,3 @@
-'******************************************************************************
-'    Copyright (C) 2002-2003, Microsoft Corporation.  All Rights Reserved.
-'    Information Contained Herein Is Proprietary and Confidential.
-'
-'    Purpose:
-'
-'        This file implements the SVsBuildEventCommandLineDialogService
-'
-'******************************************************************************
 Option Strict On
 Option Explicit On 
 

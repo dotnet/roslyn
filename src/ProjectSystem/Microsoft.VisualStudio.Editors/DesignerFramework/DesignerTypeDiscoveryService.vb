@@ -1,10 +1,4 @@
-﻿''-----------------------------------------------------------------------------
-'' <copyright file="DesignerTypeDiscoveryService.vb" company="Microsoft">
-''    Copyright (C) Microsoft Corporation. All Rights Reserved.
-'' </copyright>
-''-----------------------------------------------------------------------------
-
-Imports System
+﻿Imports System
 Imports System.Collections
 Imports System.Collections.Generic
 

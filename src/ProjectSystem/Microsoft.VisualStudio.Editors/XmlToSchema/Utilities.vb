@@ -1,10 +1,4 @@
-﻿'-----------------------------------------------------------------------------------------------------------
-'
-'  Copyright (c) Microsoft Corporation.  All rights reserved.
-'
-'-----------------------------------------------------------------------------------------------------------
-
-Option Infer On
+﻿Option Infer On
 
 Imports System
 Imports System.ComponentModel

@@ -1,10 +1,3 @@
-'******************************************************************************
-'* PropPageDesignerView.vb
-'*
-'* Copyright (C) 1999-2003 Microsoft Corporation. All Rights Reserved.
-'* Information Contained Herein Is Proprietary and Confidential.
-'******************************************************************************
-
 Imports Common = Microsoft.VisualStudio.Editors.AppDesCommon
 Imports Microsoft.VisualStudio.Editors.AppDesCommon.Utils
 Imports Microsoft.VisualStudio.ManagedInterfaces.ProjectDesigner

@@ -1,10 +1,3 @@
-'******************************************************************************
-'* SKUMatrix.vb
-'*
-'* Copyright (C) 1999-2003 Microsoft Corporation. All Rights Reserved.
-'* Information Contained Herein Is Proprietary and Confidential.
-'******************************************************************************
-
 Imports System
 Imports VSLangProj80
 Imports Microsoft.VisualStudio.Shell

@@ -1,11 +1,3 @@
-'------------------------------------------------------------------------------
-' <copyright from='2003' to='2005' company='Microsoft Corporation'>           
-'    Copyright (c) Microsoft Corporation. All Rights Reserved.                
-'    Information Contained Herein is Proprietary and Confidential.            
-' </copyright>                                                                
-'------------------------------------------------------------------------------
-'
-
 Imports System
 
 Namespace Microsoft.VisualStudio.Editors.SettingsDesigner

@@ -1,11 +1,4 @@
-﻿'******************************************************************************
-'* ValidationResult.vb
-'*
-'* Copyright (C) 2004-2004 Microsoft Corporation. All Rights Reserved.
-'* Information Contained Herein Is Proprietary and Confidential.
-'******************************************************************************
-
-Namespace Microsoft.VisualStudio.Editors.PropertyPages
+﻿Namespace Microsoft.VisualStudio.Editors.PropertyPages
 
     ''' <summary>
     ''' Validation Result,

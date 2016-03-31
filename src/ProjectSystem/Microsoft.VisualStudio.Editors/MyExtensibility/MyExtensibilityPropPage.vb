@@ -1,9 +1,3 @@
-'--------------------------------------------------------------------
-' <copyright file="MyExtensibilityPropPage.vb" company="Microsoft">
-'    Copyright (c) Microsoft Corporation.  All rights reserved.
-'    Information Contained Herein Is Proprietary and Confidential.
-' </copyright>
-'--------------------------------------------------------------------
 #Const WINFORMEDITOR = False ' Set to True to open in WinForm Editor. Remember to set it back.
 
 Option Strict On

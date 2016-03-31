@@ -1,11 +1,3 @@
-'------------------------------------------------------------------------------
-' <copyright from='2003' to='2004' company='Microsoft Corporation'>           
-'    Copyright (c) Microsoft Corporation. All Rights Reserved.                
-'    Information Contained Herein is Proprietary and Confidential.            
-' </copyright>                                                                
-'------------------------------------------------------------------------------
-'
-
 Imports Microsoft.VisualStudio.Editors.DesignerFramework
 Imports System.Collections
 Imports System.Collections.Generic

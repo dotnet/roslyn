@@ -1,11 +1,4 @@
-﻿'******************************************************************************
-'* VSThemedLinkLabel.vb
-'*
-'* Copyright (C) Microsoft Corporation. All Rights Reserved.
-'* Information Contained Herein Is Proprietary and Confidential.
-'******************************************************************************
-
-Imports System
+﻿Imports System
 Imports System.Drawing
 Imports Microsoft.VisualStudio.Shell.Interop
 Imports Microsoft.VisualStudio.Editors.AppDesCommon

@@ -1,8 +1,3 @@
-'-----------------------------------------------------------------------------------------------------------
-'
-'  Copyright (c) Microsoft Corporation.  All rights reserved.
-'
-'-----------------------------------------------------------------------------------------------------------
 Imports VSLangProj110
 
 Namespace Microsoft.VisualStudio.Editors.PropertyPages

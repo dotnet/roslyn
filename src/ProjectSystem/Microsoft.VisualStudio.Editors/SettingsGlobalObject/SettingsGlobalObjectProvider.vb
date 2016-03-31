@@ -1,8 +1,3 @@
-'------------------------------------------------------------------------------
-' <copyright file="SettingsGlobalObjectProvider.vb" company="Microsoft">
-'     Copyright (c) Microsoft Corporation.  All rights reserved.
-' </copyright>                                                                
-'------------------------------------------------------------------------------
 Imports EnvDTE
 Imports Microsoft.VisualStudio.Editors.Interop
 Imports Microsoft.VisualStudio.Editors.SettingsDesigner

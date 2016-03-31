@@ -1,9 +1,3 @@
-'-----------------------------------------------------------------------------------------------------------
-'
-'  Copyright (c) Microsoft Corporation.  All rights reserved.
-'
-'-----------------------------------------------------------------------------------------------------------
-
 Imports EnvDTE
 Imports Microsoft.VisualStudio.Shell.Interop
 Imports System

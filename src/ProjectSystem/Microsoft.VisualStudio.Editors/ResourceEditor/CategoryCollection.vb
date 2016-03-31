@@ -1,10 +1,3 @@
-'******************************************************************************
-'* CategoryCollection.vb
-'*
-'* Copyright (C) 1999-2003 Microsoft Corporation. All Rights Reserved.
-'* Information Contained Herein Is Proprietary and Confidential.
-'******************************************************************************
-
 Option Strict On
 Option Explicit On
 

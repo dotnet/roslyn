@@ -1,9 +1,3 @@
-'//------------------------------------------------------------------------------
-'// <copyright file="DeferrableWindowPaneProviderService.cs" company="Microsoft">
-'     Copyright (c) Microsoft Corporation.  All rights reserved.
-' </copyright>                                                                
-'------------------------------------------------------------------------------
-
 Imports Microsoft.VisualStudio
 Imports Microsoft.VisualStudio.Shell.Design
 Imports Microsoft.VisualStudio.Shell.Design.Serialization

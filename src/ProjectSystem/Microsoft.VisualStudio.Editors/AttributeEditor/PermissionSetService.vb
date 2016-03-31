@@ -1,12 +1,3 @@
-'******************************************************************************
-'    Copyright (C) Microsoft Corporation.  All Rights Reserved.
-'    Information Contained Herein Is Proprietary and Confidential.
-'
-'    Purpose:
-'
-'        This file implements the SVbPermissionSetService
-'
-'******************************************************************************
 Option Strict On
 Option Explicit On 
 

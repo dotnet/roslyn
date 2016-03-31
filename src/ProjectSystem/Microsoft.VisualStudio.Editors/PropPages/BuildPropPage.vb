@@ -1,11 +1,3 @@
-'******************************************************************************
-'* BuildPropPage.vb
-'*
-'* Copyright (C) 1999-2003 Microsoft Corporation. All Rights Reserved.
-'* Information Contained Herein Is Proprietary and Confidential.
-'******************************************************************************
-
-
 'This is the C#/J# version of the Compile property page.  'CompilePropPage2.vb is the VB version.
 
 Imports System

@@ -1,10 +1,3 @@
-'******************************************************************************
-'* ResourceEditorRefactorNotify.vb
-'*
-'* Copyright (C) Microsoft Corporation. All Rights Reserved.
-'* Information Contained Herein Is Proprietary and Confidential.
-'******************************************************************************
-
 Option Explicit On
 Option Strict On
 Option Compare Binary

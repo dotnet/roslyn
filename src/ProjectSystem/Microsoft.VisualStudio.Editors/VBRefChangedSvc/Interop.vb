@@ -1,10 +1,3 @@
-'******************************************************************************
-'* \wizard\vbdesigner\designer\VBRefChangedSvc\Interop.vb
-'*
-'* Copyright (c) Microsoft Corporation.  All rights reserved.
-'* Information Contained Herein Is Proprietary and Confidential.
-'******************************************************************************
-
 Imports System
 Imports System.Runtime.CompilerServices
 Imports System.Runtime.InteropServices

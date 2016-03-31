@@ -1,9 +1,3 @@
-'//------------------------------------------------------------------------------
-'/// <copyright file="IVsStrongNameKeys.cs" company="Microsoft">
-'//     Copyright (c) Microsoft Corporation.  All rights reserved.
-'// </copyright>                                                                
-'//------------------------------------------------------------------------------
-
 #If 0 Then
 Imports System.Runtime.InteropServices
 Imports System.Diagnostics

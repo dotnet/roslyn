@@ -1,10 +1,3 @@
-'------------------------------------------------------------------------------
-' <copyright company='Microsoft Corporation'>           
-'    Copyright (c) Microsoft Corporation. All Rights Reserved.                
-'    Information Contained Herein is Proprietary and Confidential.            
-' </copyright>                                                                
-'------------------------------------------------------------------------------
-'
 Namespace My.Resources
 
 
@@ -14,8 +7,8 @@ Namespace My.Resources
     '  or else change the project's root namespace which I don't want to do at this point.
     '  But then the class name gets generated as "Microsoft_VisualStudio_AppDesigner_Designer".
     'So hide that one and introduce a "Designer" class instead.
-    <System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)> _
-        Partial Friend Class Microsoft_VisualStudio_AppDesigner_Designer
+    <System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)>
+    Partial Friend Class Microsoft_VisualStudio_AppDesigner_Designer
     End Class
 
     ''' <summary>

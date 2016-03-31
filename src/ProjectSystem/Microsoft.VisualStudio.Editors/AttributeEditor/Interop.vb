@@ -1,12 +1,3 @@
-'******************************************************************************
-'    Copyright (C) 2002-2003, Microsoft Corporation.  All Rights Reserved.
-'    Information Contained Herein Is Proprietary and Confidential.
-'
-'    Purpose:
-'
-'        This file defines the interop interfaces for the Permission Service
-'
-'******************************************************************************
 Option Strict On
 Option Explicit On 
 

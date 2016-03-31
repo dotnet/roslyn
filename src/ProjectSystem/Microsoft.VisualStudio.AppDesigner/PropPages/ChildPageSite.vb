@@ -1,10 +1,3 @@
-'******************************************************************************
-'* ChildPageSite.vb
-'*
-'* Copyright (C) 2005 Microsoft Corporation. All Rights Reserved.
-'* Information Contained Herein Is Proprietary and Confidential.
-'******************************************************************************
-
 Imports Microsoft.VisualStudio.Editors
 Imports Microsoft.VisualStudio.ManagedInterfaces.ProjectDesigner
 Imports System

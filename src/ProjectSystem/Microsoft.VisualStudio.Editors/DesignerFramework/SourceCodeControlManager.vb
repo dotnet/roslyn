@@ -1,9 +1,3 @@
-'------------------------------------------------------------------------------
-' <copyright from='2005' to='2005' company='Microsoft Corporation'>           
-'    Copyright (c) Microsoft Corporation. All Rights Reserved.                
-'    Information Contained Herein is Proprietary and Confidential.            
-' </copyright>                                                                
-'------------------------------------------------------------------------------
 Imports System
 Imports System.Diagnostics
 Imports System.Runtime.InteropServices

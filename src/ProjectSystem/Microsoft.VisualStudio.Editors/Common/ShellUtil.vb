@@ -1,11 +1,4 @@
-﻿'******************************************************************************
-'* Shell.vb
-'*
-'* Copyright (C) Microsoft Corporation. All Rights Reserved.
-'* Information Contained Herein Is Proprietary and Confidential.
-'******************************************************************************
-
-Imports EnvDTE
+﻿Imports EnvDTE
 Imports VB = Microsoft.VisualBasic
 Imports Microsoft.VisualStudio.Shell.Interop
 Imports System

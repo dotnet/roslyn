@@ -1,10 +1,3 @@
-'------------------------------------------------------------------------------
-' <copyright from='1997' to='2003' company='Microsoft Corporation'>           
-'    Copyright (c) Microsoft Corporation. All Rights Reserved.                
-'    Information Contained Herein is Proprietary and Confidential.            
-' </copyright>                                                                
-'------------------------------------------------------------------------------
-
 Namespace Microsoft.VisualStudio.Editors.MyApplication
 
     Public Class MyApplicationPropertiesBase

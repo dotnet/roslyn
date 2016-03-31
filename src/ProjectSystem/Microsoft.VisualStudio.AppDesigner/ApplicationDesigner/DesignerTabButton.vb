@@ -1,10 +1,3 @@
- '******************************************************************************
-'* ProjectDesignerTabButton.vb
-'*
-'* Copyright (C) 1999-2004 Microsoft Corporation. All Rights Reserved.
-'* Information Contained Herein Is Proprietary and Confidential.
-'******************************************************************************
-
 Imports Common = Microsoft.VisualStudio.Editors.AppDesCommon
 Imports System
 Imports System.ComponentModel

@@ -1,10 +1,3 @@
-'------------------------------------------------------------------------------
-'/ <copyright from='1997' to='2001' company='Microsoft Corporation'>           
-'/    Copyright (c) Microsoft Corporation. All Rights Reserved.                
-'/    Information Contained Herein is Proprietary and Confidential.            
-'/ </copyright>                                                                
-'------------------------------------------------------------------------------
-
 #If 0 Then
 
 Imports System.Diagnostics

@@ -1,9 +1,3 @@
-'------------------------------------------------------------------------------
-'?<copyright file="BaseRootDesigner.vb" company="Microsoft">
-'   Copyright (c) Microsoft Corporation. All rights reserved.
-'?</copyright>
-'------------------------------------------------------------------------------
-
 Option Strict On
 Option Explicit On
 

@@ -1,12 +1,3 @@
-'******************************************************************************
-'* HelpKeywords.vb
-'*
-'* Copyright (C) 1999-2003 Microsoft Corporation. All Rights Reserved.
-'* Information Contained Herein Is Proprietary and Confidential.
-'******************************************************************************
-
-
-'
 ' All help keywords for anything inside this assembly should be defined here,
 '   so that it is easier for UE to find them.
 '

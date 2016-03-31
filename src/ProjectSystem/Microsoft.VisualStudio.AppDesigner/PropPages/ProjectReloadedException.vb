@@ -1,10 +1,3 @@
-'******************************************************************************
-'* ProjectReloadedException.vb
-'*
-'* Copyright (C) Microsoft Corporation. All Rights Reserved.
-'* Information Contained Herein Is Proprietary and Confidential.
-'******************************************************************************
-
 Imports Microsoft.VisualBasic
 Imports System
 Imports System.Diagnostics
