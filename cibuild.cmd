@@ -35,14 +35,13 @@ REM Developers building from the command line will presumably not pass /buildTim
 REM and so the tests will not run under the ProcessWatchdog.
 if not "%BuildTimeLimit%" == "" (
     set CurrentDate=%date%
-    set CurrentTime=%time%
+    set CurrentTime=%time: =0%
+	set Current
     set BuildStartTime=!CurrentDate:~-4!-!CurrentDate:~-10,2!-!CurrentDate:~-7,2!T!CurrentTime!
     set RunProcessWatchdog=true
 ) else (
     set RunProcessWatchdog=false
 )
-
-echo %BuildStartTime%
     
 call "C:\Program Files (x86)\Microsoft Visual Studio 14.0\Common7\Tools\VsDevCmd.bat" || goto :BuildFailed
 
