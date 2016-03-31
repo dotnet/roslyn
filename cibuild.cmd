@@ -36,7 +36,6 @@ REM and so the tests will not run under the ProcessWatchdog.
 if not "%BuildTimeLimit%" == "" (
     set CurrentDate=%date%
     set CurrentTime=%time: =0%
-	set Current
     set BuildStartTime=!CurrentDate:~-4!-!CurrentDate:~-10,2!-!CurrentDate:~-7,2!T!CurrentTime!
     set RunProcessWatchdog=true
 ) else (
