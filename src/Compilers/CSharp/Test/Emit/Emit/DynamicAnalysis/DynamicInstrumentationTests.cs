@@ -190,6 +190,104 @@ True
         }
 
         [Fact]
+        public void ArrowPropertyCoverage()
+        {
+            string source = @"
+using System;
+
+public class Program
+{
+    public static void Main(string[] args)
+    {
+        TestMain();
+    }
+
+    static void TestMain()
+    {
+        int x = Count;
+    }
+
+    static int Function(int x) => x;
+
+    static int Count => Function(44);
+}
+";
+            string expectedOutput = @"Flushing
+1
+True
+2
+True
+3
+True
+4
+True
+";
+
+            CompilationVerifier verifier = CompileAndVerify(source + InstrumentationHelperSource, emitOptions: EmitOptions.Default.WithInstrument("Test.Flag"), expectedOutput: expectedOutput);
+        }
+
+        [Fact]
+        public void MultipleDeclarationsCoverage()
+        {
+            string source = @"
+using System;
+
+public class Program
+{
+    public static void Main(string[] args)
+    {
+        TestMain();
+    }
+
+    static void TestMain()
+    {
+        DoubleDeclaration(5);
+        DoubleForDeclaration(5);
+    }
+
+    static int DoubleDeclaration(int x)
+    {
+        int c = x;
+        int a, b;
+        a = b = c;
+        int d = a, e = b;
+        return d + e;
+    }
+
+    static int DoubleForDeclaration(int x)
+    {
+        for(int a = x, b = x; a + b < 10; a++)
+        {
+            x++;
+        }
+
+        return x;
+    }
+}
+";
+            string expectedOutput = @"Flushing
+1
+True
+2
+True
+True
+3
+True
+True
+True
+True
+True
+4
+True
+False
+False
+True
+";
+
+            CompilationVerifier verifier = CompileAndVerify(source + InstrumentationHelperSource, emitOptions: EmitOptions.Default.WithInstrument("Test.Flag"), expectedOutput: expectedOutput);
+        }
+
+        [Fact]
         public void ManyStatementsCoverage()
         {
             string source = @"

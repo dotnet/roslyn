@@ -2,6 +2,7 @@
 
 using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.CodeGen;
+using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 
 namespace Microsoft.CodeAnalysis.CSharp
@@ -29,11 +30,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                     TypeSymbol payloadElementType = boolType;
                     ArrayTypeSymbol payloadType = ArrayTypeSymbol.CreateCSharpArray(compilation.Assembly, payloadElementType);
                     FieldSymbol payloadField = GetPayloadField(method, methodOrdinal, payloadType, factory);
+                    bool methodUsesArrowSyntax = methodBody.Syntax.Kind() == SyntaxKind.ArrowExpressionClause;
 
                     // Synthesize the instrumentation and collect the spans of interest.
 
                     // PROTOTYPE (https://github.com/dotnet/roslyn/issues/9819): Try to integrate instrumentation with lowering, to avoid an extra pass over the bound tree.
-                    BoundBlock newMethodBody = InstrumentationInjectionRewriter.InstrumentMethod(method, methodBody, payloadField, compilationState, diagnostics, debugDocumentProvider, out dynamicAnalysisSpans);
+                    BoundBlock newMethodBody = InstrumentationInjectionRewriter.InstrumentMethod(method, methodBody, methodUsesArrowSyntax, payloadField, compilationState, diagnostics, debugDocumentProvider, out dynamicAnalysisSpans);
 
                     // Synthesize the initialization of the instrumentation payload array, using concurrency-safe code:
                     //
@@ -47,6 +49,15 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                     BoundExpression payloadNullTest = factory.Binary(BinaryOperatorKind.ObjectEqual, boolType, factory.Field(null, payloadField), factory.Null(payloadType));
                     BoundStatement payloadIf = factory.If(payloadNullTest, createPayloadCall);
+
+                    // Methods defined with => syntax don't have a block syntax, and so won't naturally get a sequence point for the
+                    // entry of the method. It is a requirement that there be a sequence point before any executable code. A sequence point
+                    // won't be generated automatically for the synthesized if statement because the if statement is compiler generated, so
+                    // force the generation of a sequence point for the if statement.
+                    if (methodUsesArrowSyntax)
+                    {
+                        payloadIf = factory.SequencePoint(payloadIf.Syntax, payloadIf);
+                    }
 
                     ImmutableArray<BoundStatement> newStatements = newMethodBody.Statements.Insert(0, payloadIf);
                     newMethodBody = newMethodBody.Update(newMethodBody.Locals, newMethodBody.LocalFunctions, newStatements);
@@ -117,17 +128,18 @@ namespace Microsoft.CodeAnalysis.CSharp
         private readonly TypeCompilationState _compilationState;
         private readonly DiagnosticBag _diagnostics;
         private readonly DebugDocumentProvider _debugDocumentProvider;
+        private readonly bool _methodUsesArrowSyntax;
 
-        public static BoundBlock InstrumentMethod(MethodSymbol method, BoundBlock methodBody, FieldSymbol payloadField, TypeCompilationState compilationState, DiagnosticBag diagnostics, DebugDocumentProvider debugDocumentProvider, out ImmutableArray<SourceSpan> dynamicAnalysisSpans)
+        public static BoundBlock InstrumentMethod(MethodSymbol method, BoundBlock methodBody, bool methodUsesArrowSyntax, FieldSymbol payloadField, TypeCompilationState compilationState, DiagnosticBag diagnostics, DebugDocumentProvider debugDocumentProvider, out ImmutableArray<SourceSpan> dynamicAnalysisSpans)
         {
             ArrayBuilder<SourceSpan> spansBuilder = ArrayBuilder<SourceSpan>.GetInstance();
-            BoundTreeRewriter collector = new InstrumentationInjectionRewriter(method, spansBuilder, payloadField, compilationState, diagnostics, debugDocumentProvider);
+            BoundTreeRewriter collector = new InstrumentationInjectionRewriter(method, methodUsesArrowSyntax, spansBuilder, payloadField, compilationState, diagnostics, debugDocumentProvider);
             BoundBlock newMethodBody = (BoundBlock)collector.Visit(methodBody);
             dynamicAnalysisSpans = spansBuilder.ToImmutableAndFree();
             return newMethodBody;
         }
 
-        private InstrumentationInjectionRewriter(MethodSymbol method, ArrayBuilder<SourceSpan> spansBuilder, FieldSymbol payload, TypeCompilationState compilationState, DiagnosticBag diagnostics, DebugDocumentProvider debugDocumentProvider)
+        private InstrumentationInjectionRewriter(MethodSymbol method, bool methodUsesArrowSyntax, ArrayBuilder<SourceSpan> spansBuilder, FieldSymbol payload, TypeCompilationState compilationState, DiagnosticBag diagnostics, DebugDocumentProvider debugDocumentProvider)
         {
             _method = method;
             _spansBuilder = spansBuilder;
@@ -135,10 +147,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             _compilationState = compilationState;
             _diagnostics = diagnostics;
             _debugDocumentProvider = debugDocumentProvider;
+            _methodUsesArrowSyntax = methodUsesArrowSyntax;
         }
 
         public override BoundNode Visit(BoundNode node)
         {
+            BoundNode visited = base.Visit(node);
             BoundStatement statement = node as BoundStatement;
             if (statement != null)
             {
@@ -157,13 +171,30 @@ namespace Microsoft.CodeAnalysis.CSharp
                     case BoundKind.TryStatement:
                     // A for statement implicitly gets coverage for the initial statements and the increment statement.
                     case BoundKind.ForStatement:
+                        return visited;
+                    case BoundKind.ReturnStatement:
+                        if (_methodUsesArrowSyntax)
+                        {
+                            // The return statement for methods defined with => is compiler generated, but requires instrumentation.
+                            return ForceCollectDynamicAnalysis((BoundReturnStatement)visited);
+                        }
+                        break;
+                    case BoundKind.LocalDeclaration:
+                        if (statement.Syntax.Parent.Kind() == SyntaxKind.VariableDeclaration && ((VariableDeclarationSyntax)statement.Syntax.Parent).Variables.Count > 1)
+                        {
+                            // This declaration is part of a MultipleLocalDeclarations statement,
+                            // and so should not be treated as a separate statement.
+                            return visited;
+                        }
                         break;
                     default:
-                        return CollectDynamicAnalysis(base.Visit(node));
+                        break;
                 }
+
+                return CollectDynamicAnalysis(visited);
             }
 
-            return base.Visit(node);
+            return visited;
         }
         
         private BoundNode CollectDynamicAnalysis(BoundNode node)
@@ -184,6 +215,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return statement;
             }
 
+            return ForceCollectDynamicAnalysis(statement);
+        }
+
+        private BoundNode ForceCollectDynamicAnalysis(BoundStatement statement)
+        {
             // Add an entry in the spans array.
 
             CSharpSyntaxNode syntaxForSpan = SyntaxForSpan(statement);
