@@ -127,7 +127,6 @@
     <Compile Include="interop\ILangInactiveCfgPropertyNotifySink.vb" />
     <Compile Include="interop\ISpecifyPropertyPages.vb" />
     <Compile Include="interop\IVsAppId.vb" />
-    <Compile Include="interop\LOGFONT.vb" />
     <Compile Include="interop\LOGVIEWID.vb" />
     <Compile Include="interop\NativeMethods.vb" />
     <Compile Include="interop\win.vb" />

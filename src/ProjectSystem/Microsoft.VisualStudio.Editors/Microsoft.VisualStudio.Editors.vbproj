@@ -395,17 +395,12 @@
     </Compile>
     <Compile Include="GlobalSuppressions.vb" />
     <Compile Include="HelpKeywords.vb" />
-    <Compile Include="interop\__PROJECTREFERENCETYPE.vb" />
-    <Compile Include="interop\_LOGFONTW.vb" />
     <Compile Include="interop\IInternetSecurityManager.vb" />
     <Compile Include="interop\IVBEntryPointProvider.vb" />
     <Compile Include="interop\IVBReferenceUsageProvider.vb" />
     <Compile Include="interop\IVsAppId.vb" />
     <Compile Include="interop\IVsBuildEventCommandLineDialogService.vb" />
     <Compile Include="interop\IVsBuildEventMacroProvider.vb" />
-    <Compile Include="interop\IVsEnumCryptoProviderContainers.vb" />
-    <Compile Include="interop\IVsEnumCryptoProviders.vb" />
-    <Compile Include="interop\LOGFONT.vb" />
     <Compile Include="interop\LOGVIEWID.vb" />
     <Compile Include="interop\NativeMethods.vb" />
     <Compile Include="interop\win.vb" />
