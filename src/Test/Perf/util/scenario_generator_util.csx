@@ -31,38 +31,38 @@ public class ScenarioGenerator
 
     public void AddScenariosFileStart()
     {
-        Log(@"<?xml version=""1.0"" encoding=""utf-8"" ?>");
-        Log(@"<scenarios>");
+        WriteToBuffer(@"<?xml version=""1.0"" encoding=""utf-8"" ?>");
+        WriteToBuffer(@"<scenarios>");
     }
 
     public void AddScenariosFileEnd()
     {
-        Log(@"</scenarios>");
+        WriteToBuffer(@"</scenarios>");
     }
 
     public void AddStartScenario(string scenarioName, string processName)
     {
-        Log($@"<scenario name=""{scenarioName}"" process=""{processName}"">");
+        WriteToBuffer($@"<scenario name=""{scenarioName}"" process=""{processName}"">");
     }
 
     public void AddEndScenario()
     {
-        Log(@"</scenario>");
+        WriteToBuffer(@"</scenario>");
     }
 
     public void AddStartEvent(int absoluteInstance)
     {
-        Log($@"<from providerGuid=""{KernelProviderGuid}"" absoluteInstance=""{absoluteInstance}"" process=""csc"" eventName = ""Process/Start""/>");
+        WriteToBuffer($@"<from providerGuid=""{KernelProviderGuid}"" absoluteInstance=""{absoluteInstance}"" process=""csc"" eventName = ""Process/Start""/>");
     }
 
     public void AddEndEvent()
     {
-        Log($@"<to providerGuid=""{KernelProviderGuid}"" absoluteInstance=""1"" process=""csc"" eventName=""Process/Stop""/>");
+        WriteToBuffer($@"<to providerGuid=""{KernelProviderGuid}"" absoluteInstance=""1"" process=""csc"" eventName=""Process/Stop""/>");
     }
 
     public void AddComment(string comment)
     {
-        Log($@"<!-- {comment} -->");
+        WriteToBuffer($@"<!-- {comment} -->");
     }
 
     public void WriteToDisk()
@@ -70,8 +70,8 @@ public class ScenarioGenerator
         File.WriteAllLines(_fullPath, _buffer);
     }
 
-    private void Log(string log)
+    private void WriteToBuffer(string content)
     {
-        _buffer.Add(log);
+        _buffer.Add(content);
     }
 }

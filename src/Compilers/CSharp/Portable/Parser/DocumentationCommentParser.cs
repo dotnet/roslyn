@@ -244,7 +244,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                                 endName = this.WithXmlParseError(endName, XmlParseErrorCode.XML_InvalidWhitespace);
                             }
 
-                            if (!endName.IsMissing && name.ToString() != endName.ToString())
+                            if (!endName.IsMissing && !MatchingXmlNames(name, endName))
                             {
                                 endName = this.WithXmlParseError(endName, XmlParseErrorCode.XML_ElementTypeMatch, endName.ToString(), name.ToString());
                             }
@@ -288,6 +288,30 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 _pool.Free(attrs);
             }
         }
+
+        private static bool MatchingXmlNames(XmlNameSyntax name, XmlNameSyntax endName)
+        {
+            // PERF: because of deduplication we often get the same name for name and endName,
+            //       so we will check for such case first before materializing text for entire nodes 
+            //       and comparing that.
+            if (name == endName)
+            {
+                return true;
+            }
+
+            // before doing ToString, check if 
+            // all nodes contributing to ToString are recursively the same
+            // NOTE: leading and trailing trivia do not contribute to ToString
+            if (!name.HasLeadingTrivia && 
+                !endName.HasTrailingTrivia &&
+                name.IsEquivalentTo(endName))
+            {
+                return true;
+            }
+
+            return name.ToString() == endName.ToString();
+        }
+
         // assuming this is not used concurrently
         private readonly HashSet<string> _attributesSeen = new HashSet<string>();
 
