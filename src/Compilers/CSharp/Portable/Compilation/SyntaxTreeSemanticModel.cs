@@ -919,7 +919,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                                     variableDecl,   //pass in the entire field initializer to permit region analysis. 
                                     fieldSymbol,
                                     //if we're in regular C#, then insert an extra binder to perform field initialization checks
-                                    GetFieldOrPropertyInitializerBinder(fieldSymbol, outer, variableDecl.Initializer?.Value));
+                                    GetFieldOrPropertyInitializerBinder(fieldSymbol, outer, variableDecl.Initializer));
                             }
 
                         case SyntaxKind.PropertyDeclaration:
@@ -930,7 +930,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                                     this.Compilation,
                                     propertyDecl,
                                     propertySymbol,
-                                    GetFieldOrPropertyInitializerBinder(propertySymbol.BackingField, outer, propertyDecl.Initializer?.Value));
+                                    GetFieldOrPropertyInitializerBinder(propertySymbol.BackingField, outer, propertyDecl.Initializer));
                             }
 
                         case SyntaxKind.Parameter:
@@ -961,7 +961,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                                     this.Compilation,
                                     enumDecl,
                                     enumSymbol,
-                                    GetFieldOrPropertyInitializerBinder(enumSymbol, outer, enumDecl.EqualsValue?.Value));
+                                    GetFieldOrPropertyInitializerBinder(enumSymbol, outer, enumDecl.EqualsValue));
                             }
                         default:
                             throw ExceptionUtilities.UnexpectedValue(node.Parent.Kind());
@@ -1030,14 +1030,21 @@ namespace Microsoft.CodeAnalysis.CSharp
                         if ((object)constructorSymbol == null)
                             return null;
 
+                        // insert an extra binder to perform constructor initialization checks
+                        // Handle scoping for possible pattern variables declared in the initializer
+                        Binder initializerBinder = outer.WithAdditionalFlagsAndContainingMemberOrLambda(BinderFlags.ConstructorInitializer, constructorSymbol);
+                        ArgumentListSyntax argumentList = ((ConstructorInitializerSyntax)node).ArgumentList;
+
+                        if (argumentList != null)
+                        {
+                            initializerBinder = new ExecutableCodeBinder(argumentList, constructorSymbol, initializerBinder);
+                        }
+
                         return InitializerSemanticModel.Create(
                             this.Compilation,
                             (ConstructorInitializerSyntax)node,
                             constructorSymbol,
-                            //insert an extra binder to perform constructor initialization checks
-                            // Handle scoping for possible pattern variables declared in the initializer
-                            outer.WithAdditionalFlagsAndContainingMemberOrLambda(BinderFlags.ConstructorInitializer, constructorSymbol).
-                                WithPatternVariablesIfAny(((ConstructorInitializerSyntax)node).ArgumentList));
+                            initializerBinder);
                     }
 
                 case SyntaxKind.Attribute:
@@ -1079,7 +1086,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return null;
         }
 
-        private Binder GetFieldOrPropertyInitializerBinder(FieldSymbol symbol, Binder outer, ExpressionSyntax valueSyntaxOpt)
+        private Binder GetFieldOrPropertyInitializerBinder(FieldSymbol symbol, Binder outer, EqualsValueClauseSyntax initializer)
         {
             BinderFlags flags = BinderFlags.None;
 
@@ -1089,13 +1096,14 @@ namespace Microsoft.CodeAnalysis.CSharp
                 flags |= BinderFlags.FieldInitializer;
             }
 
-            Binder result = new LocalScopeBinder(outer).WithAdditionalFlagsAndContainingMemberOrLambda(flags, symbol);
-            if (valueSyntaxOpt != null)
+            outer = new LocalScopeBinder(outer).WithAdditionalFlagsAndContainingMemberOrLambda(flags, symbol);
+
+            if (initializer != null)
             {
-                result = result.WithPatternVariablesIfAny(valueSyntaxOpt);
+                outer = new ExecutableCodeBinder(initializer, symbol, outer);
             }
 
-            return result;
+            return outer;
         }
 
         private static bool IsMemberDeclaration(CSharpSyntaxNode node)

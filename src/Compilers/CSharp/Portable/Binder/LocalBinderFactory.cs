@@ -26,7 +26,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         private readonly SmallDictionary<CSharpSyntaxNode, Binder> _map;
         private bool _sawYield;
         private readonly ArrayBuilder<CSharpSyntaxNode> _methodsWithYields;
-        private MethodSymbol _method;
+        private Symbol _containingMemberOrLambda;
         private Binder _enclosing;
         private readonly CSharpSyntaxNode _root;
 
@@ -49,9 +49,9 @@ namespace Microsoft.CodeAnalysis.CSharp
         // Currently the types of these are restricted to only be whatever the syntax parameter is, plus any LocalFunctionStatementSyntax contained within it.
         // This may change if the language is extended to allow iterator lambdas, in which case the lambda would also be returned.
         // (lambdas currently throw a diagnostic in WithLambdaParametersBinder.GetIteratorElementType when a yield is used within them)
-        public static SmallDictionary<CSharpSyntaxNode, Binder> BuildMap(MethodSymbol method, CSharpSyntaxNode syntax, Binder enclosing, ArrayBuilder<CSharpSyntaxNode> methodsWithYields)
+        public static SmallDictionary<CSharpSyntaxNode, Binder> BuildMap(Symbol containingMemberOrLambda, CSharpSyntaxNode syntax, Binder enclosing, ArrayBuilder<CSharpSyntaxNode> methodsWithYields)
         {
-            var builder = new LocalBinderFactory(method, syntax, enclosing, methodsWithYields);
+            var builder = new LocalBinderFactory(containingMemberOrLambda, syntax, enclosing, methodsWithYields);
             builder.Visit(syntax);
             // the other place this is possible is in a local function
             if (builder._sawYield)
@@ -70,11 +70,13 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        private LocalBinderFactory(MethodSymbol method, CSharpSyntaxNode root, Binder enclosing, ArrayBuilder<CSharpSyntaxNode> methodsWithYields)
+        private LocalBinderFactory(Symbol containingMemberOrLambda, CSharpSyntaxNode root, Binder enclosing, ArrayBuilder<CSharpSyntaxNode> methodsWithYields)
         {
-            Debug.Assert((object)method != null);
+            Debug.Assert((object)containingMemberOrLambda != null);
+            Debug.Assert(containingMemberOrLambda.Kind != SymbolKind.Local && containingMemberOrLambda.Kind != SymbolKind.RangeVariable && containingMemberOrLambda.Kind != SymbolKind.Parameter);
+
             _map = new SmallDictionary<CSharpSyntaxNode, Binder>(ReferenceEqualityComparer.Instance);
-            _method = method;
+            _containingMemberOrLambda = containingMemberOrLambda;
             _enclosing = enclosing;
             _methodsWithYields = methodsWithYields;
             _root = root;
@@ -161,8 +163,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (match != null)
             {
-                var oldMethod = _method;
-                _method = match;
+                var oldMethod = _containingMemberOrLambda;
+                _containingMemberOrLambda = match;
                 Binder addToMap;
                 if (match.IsGenericMethod)
                 {
@@ -178,7 +180,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     Visit(body, addToMap);
                 }
-                _method = oldMethod;
+                _containingMemberOrLambda = oldMethod;
             }
             else
             {
@@ -206,6 +208,45 @@ namespace Microsoft.CodeAnalysis.CSharp
             Visit(node.Expression, arrowBinder);
         }
 
+        public override void VisitEqualsValueClause(EqualsValueClauseSyntax node)
+        {
+            var valueBinder = new PatternVariableBinder(node, node.Value, _enclosing);
+            AddToMap(node, valueBinder);
+            Visit(node.Value, valueBinder);
+        }
+
+        public override void VisitAttribute(AttributeSyntax node)
+        {
+            var attrBinder = new PatternVariableBinder(node, _enclosing);
+            AddToMap(node, attrBinder);
+
+            if (node.ArgumentList?.Arguments.Count > 0)
+            {
+                foreach (var argument in node.ArgumentList.Arguments)
+                {
+                    Visit(argument.Expression, attrBinder);
+                }
+            }
+        }
+
+        public override void VisitArgumentList(ArgumentListSyntax node)
+        {
+            if (_root == node)
+            {
+                var argBinder = new PatternVariableBinder(node, node.Arguments, _enclosing);
+                AddToMap(node, argBinder);
+
+                foreach (var arg in node.Arguments)
+                {
+                    Visit(arg.Expression, argBinder);
+                }
+            }
+            else
+            {
+                base.VisitArgumentList(node);
+            }
+        }
+
         public override void VisitAnonymousMethodExpression(AnonymousMethodExpressionSyntax node)
         {
             // Do not descend into a lambda unless it is a root node
@@ -228,7 +269,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         // Top-level block has an enclosing that is not a BinderContext. All others must (so that variables can be declared).
         public override void VisitBlock(BlockSyntax node)
         {
-            Debug.Assert((object)_method == _enclosing.ContainingMemberOrLambda);
+            Debug.Assert((object)_containingMemberOrLambda == _enclosing.ContainingMemberOrLambda);
             var blockBinder = new BlockBinder(_enclosing, node.Statements);
             AddToMap(node, blockBinder);
 
@@ -241,7 +282,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public override void VisitUsingStatement(UsingStatementSyntax node)
         {
-            Debug.Assert((object)_method == _enclosing.ContainingMemberOrLambda);
+            Debug.Assert((object)_containingMemberOrLambda == _enclosing.ContainingMemberOrLambda);
             var usingBinder = new UsingStatementBinder(_enclosing, node);
             AddToMap(node, usingBinder);
 
@@ -270,7 +311,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public override void VisitWhileStatement(WhileStatementSyntax node)
         {
-            Debug.Assert((object)_method == _enclosing.ContainingMemberOrLambda);
+            Debug.Assert((object)_containingMemberOrLambda == _enclosing.ContainingMemberOrLambda);
             var patternBinder = new PatternVariableBinder(node, node.Condition, _enclosing);
             var whileBinder = new WhileBinder(patternBinder, node);
             AddToMap(node, whileBinder);
@@ -281,7 +322,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public override void VisitDoStatement(DoStatementSyntax node)
         {
-            Debug.Assert((object)_method == _enclosing.ContainingMemberOrLambda);
+            Debug.Assert((object)_containingMemberOrLambda == _enclosing.ContainingMemberOrLambda);
             var patternBinder = new PatternVariableBinder(node, node.Condition, _enclosing);
             var whileBinder = new WhileBinder(patternBinder, node);
             AddToMap(node, whileBinder);
@@ -292,7 +333,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public override void VisitForStatement(ForStatementSyntax node)
         {
-            Debug.Assert((object)_method == _enclosing.ContainingMemberOrLambda);
+            Debug.Assert((object)_containingMemberOrLambda == _enclosing.ContainingMemberOrLambda);
             var binder = new ForLoopBinder(_enclosing, node);
             AddToMap(node, binder);
 
@@ -330,7 +371,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public override void VisitForEachStatement(ForEachStatementSyntax node)
         {
-            Debug.Assert((object)_method == _enclosing.ContainingMemberOrLambda);
+            Debug.Assert((object)_containingMemberOrLambda == _enclosing.ContainingMemberOrLambda);
             var patternBinder = new PatternVariableBinder(node, node.Expression, _enclosing);
 
             Visit(node.Expression, patternBinder);
@@ -359,7 +400,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public override void VisitFixedStatement(FixedStatementSyntax node)
         {
-            Debug.Assert((object)_method == _enclosing.ContainingMemberOrLambda);
+            Debug.Assert((object)_containingMemberOrLambda == _enclosing.ContainingMemberOrLambda);
             var binder = new FixedStatementBinder(_enclosing, node);
             AddToMap(node, binder);
 
@@ -397,7 +438,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public override void VisitSwitchStatement(SwitchStatementSyntax node)
         {
-            Debug.Assert((object)_method == _enclosing.ContainingMemberOrLambda);
+            Debug.Assert((object)_containingMemberOrLambda == _enclosing.ContainingMemberOrLambda);
             var patternBinder = new PatternVariableBinder(node, node.Expression, _enclosing);
 
             Visit(node.Expression, patternBinder);
@@ -501,7 +542,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public override void VisitCatchClause(CatchClauseSyntax node)
         {
-            Debug.Assert((object)_method == _enclosing.ContainingMemberOrLambda);
+            Debug.Assert((object)_containingMemberOrLambda == _enclosing.ContainingMemberOrLambda);
             var clauseBinder = new CatchClauseBinder(_enclosing, node);
             AddToMap(node, clauseBinder);
 
@@ -674,7 +715,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         // but we still want to bind it.  We'll pretend that the statement was
                         // inside a block.
 
-                        Debug.Assert((object)_method == enclosing.ContainingMemberOrLambda);
+                        Debug.Assert((object)_containingMemberOrLambda == enclosing.ContainingMemberOrLambda);
                         var blockBinder = new BlockBinder(enclosing, new SyntaxList<StatementSyntax>(statement));
                         AddToMap(statement, blockBinder);
                         Visit(statement, blockBinder);

@@ -18,7 +18,6 @@ namespace Microsoft.CodeAnalysis.CSharp
     {
         private readonly Symbol _memberSymbol;
         private readonly CSharpSyntaxNode _root;
-        private readonly MethodSymbol _owner;
         private SmallDictionary<CSharpSyntaxNode, Binder> _lazyBinderMap;
         private ImmutableArray<MethodSymbol> _methodSymbolsWithYield;
 
@@ -30,14 +29,16 @@ namespace Microsoft.CodeAnalysis.CSharp
         internal ExecutableCodeBinder(CSharpSyntaxNode root, Symbol memberSymbol, Binder next, BinderFlags additionalFlags)
             : base(next, (next.Flags | additionalFlags) & ~BinderFlags.AllClearedAtExecutableCodeBoundary)
         {
+            Debug.Assert((object)memberSymbol == null ||
+                         (memberSymbol.Kind != SymbolKind.Local && memberSymbol.Kind != SymbolKind.RangeVariable && memberSymbol.Kind != SymbolKind.Parameter));
+
             _memberSymbol = memberSymbol;
             _root = root;
-            _owner = memberSymbol as MethodSymbol;
         }
 
         internal override Symbol ContainingMemberOrLambda
         {
-            get { return _owner ?? Next.ContainingMemberOrLambda; }
+            get { return _memberSymbol ?? Next.ContainingMemberOrLambda; }
         }
 
         internal Symbol MemberSymbol { get { return _memberSymbol; } }
@@ -52,14 +53,13 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             SmallDictionary<CSharpSyntaxNode, Binder> map;
             ImmutableArray<MethodSymbol> methodSymbolsWithYield;
-            var methodSymbol = _owner;
 
             // Ensure that the member symbol is a method symbol.
-            if ((object)methodSymbol != null && _root != null)
+            if ((object)_memberSymbol != null && _root != null)
             {
                 var methodsWithYield = ArrayBuilder<CSharpSyntaxNode>.GetInstance();
                 var symbolsWithYield = ArrayBuilder<MethodSymbol>.GetInstance();
-                map = LocalBinderFactory.BuildMap(methodSymbol, _root, this, methodsWithYield);
+                map = LocalBinderFactory.BuildMap(_memberSymbol, _root, this, methodsWithYield);
                 foreach (var methodWithYield in methodsWithYield)
                 {
                     Binder binder;

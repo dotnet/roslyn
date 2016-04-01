@@ -232,6 +232,23 @@ namespace Microsoft.CodeAnalysis.CSharp
                         binder = rootBinder.GetBinder(current);
                     }
                 }
+                else if (current.Kind() == SyntaxKind.ArgumentList)
+                {
+                    var argList = (ArgumentListSyntax)current;
+
+                    if (LookupPosition.IsBetweenTokens(position, argList.OpenParenToken, argList.CloseParenToken))
+                    {
+                        binder = rootBinder.GetBinder(current);
+                    }
+                }
+                else if (current.Kind() == SyntaxKind.EqualsValueClause)
+                {
+                    binder = rootBinder.GetBinder(current);
+                }
+                else if (current.Kind() == SyntaxKind.Attribute)
+                {
+                    binder = rootBinder.GetBinder(current);
+                }
                 else if (current.Kind() == SyntaxKind.ArrowExpressionClause && current.Parent?.Kind() == SyntaxKind.LocalFunctionStatement)
                 {
                     binder = rootBinder.GetBinder(current);
