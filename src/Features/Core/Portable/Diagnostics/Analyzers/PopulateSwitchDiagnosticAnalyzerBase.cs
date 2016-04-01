@@ -16,7 +16,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.PopulateSwitch
                                                                     DiagnosticCategory.EditAndContinue,
                                                                     DiagnosticSeverity.Hidden,
                                                                     isEnabledByDefault: true,
-                                                                    customTags: DiagnosticCustomTags.EditAndContinue);
+                                                                    customTags: DiagnosticCustomTags.Unnecessary);
 
         #region Interface methods
 
