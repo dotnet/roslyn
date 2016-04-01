@@ -5,6 +5,7 @@ using System.Diagnostics;
 using System.IO;
 using System.Reflection;
 using System.Runtime.CompilerServices;
+using System.Linq;
 using System.Xml.Linq;
 
 string usage = @"usage: BuildNuGets.csx <binaries-dir> <build-version> <output-directory>";
@@ -54,44 +55,54 @@ CodeAnalysisAnalyzersVersion = doc.Descendants(ns + nameof(CodeAnalysisAnalyzers
 var NuGetAdditionalFilesPath = Path.Combine(SolutionRoot, "build/NuGetAdditionalFiles");
 var ThirdPartyNoticesPath = Path.Combine(NuGetAdditionalFilesPath, "ThirdPartyNotices.rtf");
 var NetCompilersPropsPath = Path.Combine(NuGetAdditionalFilesPath, "Microsoft.Net.Compilers.props");
+var IsReleaseVersion = !BuildVersion.Contains('-');
 
-string[] RedistFiles = {
-    "Microsoft.CodeAnalysis.BuildTask.Portable.nuspec",
-    "Microsoft.CodeAnalysis.EditorFeatures.Text.nuspec",
-    "Microsoft.CodeAnalysis.VisualBasic.Scripting.nuspec",
-    "Microsoft.CodeAnalysis.Common.nuspec",
-    "Microsoft.CodeAnalysis.Features.nuspec",
-    "Microsoft.CodeAnalysis.VisualBasic.Workspaces.nuspec",
-    "Microsoft.CodeAnalysis.Compilers.nuspec",
-    "Microsoft.CodeAnalysis.nuspec",
-    "Microsoft.CodeAnalysis.Workspaces.Common.nuspec",
-    "Microsoft.CodeAnalysis.CSharp.Features.nuspec",
-    "Microsoft.CodeAnalysis.Scripting.Common.nuspec",
-    "Microsoft.CodeAnalysis.CSharp.nuspec",
-    "Microsoft.CodeAnalysis.Scripting.nuspec",
-    "Microsoft.CodeAnalysis.CSharp.Scripting.nuspec",
-    "Microsoft.CodeAnalysis.CSharp.Workspaces.nuspec",
-    "Microsoft.CodeAnalysis.VisualBasic.Features.nuspec",
-    "Microsoft.VisualStudio.LanguageServices.nuspec",
-    "Microsoft.CodeAnalysis.EditorFeatures.nuspec",
-    "Microsoft.CodeAnalysis.VisualBasic.nuspec",
+string[] RedistPackageNames = {
+    "Microsoft.CodeAnalysis.BuildTask.Portable",
+    "Microsoft.CodeAnalysis.Common",
+    "Microsoft.CodeAnalysis.Compilers",
+    "Microsoft.CodeAnalysis.CSharp.Features",
+    "Microsoft.CodeAnalysis.CSharp",
+    "Microsoft.CodeAnalysis.CSharp.Scripting",
+    "Microsoft.CodeAnalysis.CSharp.Workspaces",
+    "Microsoft.CodeAnalysis.EditorFeatures",
+    "Microsoft.CodeAnalysis.EditorFeatures.Text",
+    "Microsoft.CodeAnalysis.Features",
+    "Microsoft.CodeAnalysis",
+    "Microsoft.CodeAnalysis.Scripting.Common",
+    "Microsoft.CodeAnalysis.Scripting",
+    "Microsoft.CodeAnalysis.VisualBasic.Features",
+    "Microsoft.CodeAnalysis.VisualBasic",
+    "Microsoft.CodeAnalysis.VisualBasic.Scripting",
+    "Microsoft.CodeAnalysis.VisualBasic.Workspaces",
+    "Microsoft.CodeAnalysis.Workspaces.Common",
+    "Microsoft.VisualStudio.LanguageServices",
 };
 
-string[] NonRedistFiles = {
-    "Microsoft.Net.Compilers.nuspec",
-    "Microsoft.Net.Compilers.netcore.nuspec",
-    "Microsoft.Net.CSharp.Interactive.netcore.nuspec",
+string[] NonRedistPackageNames = {
+    "Microsoft.Net.Compilers",
+    "Microsoft.Net.Compilers.netcore",
+    "Microsoft.Net.CSharp.Interactive.netcore",
 };
 
-string[] TestFiles = {
-    "Microsoft.CodeAnalysis.Test.Resources.Proprietary.nuspec",
+string[] TestPackageNames = {
+    "Microsoft.CodeAnalysis.Test.Resources.Proprietary",
 };
 
-int PackFiles(string[] files, string licenseUrl)
+// the following packages will only be publised on myget not on nuget:
+var PreReleaseOnlyPackages = new HashSet<string>
+{
+    "Microsoft.CodeAnalysis.EditorFeatures",
+    "Microsoft.CodeAnalysis.VisualBasic.Scripting",
+    "Microsoft.Net.Compilers.netcore",
+    "Microsoft.Net.CSharp.Interactive.netcore",
+};
+
+int PackFiles(string[] packageNames, string licenseUrl)
 {
     int exit = 0;
 
-    foreach (var file in files.Select(f => Path.Combine(NuspecDirPath, f)))
+    foreach (var file in packageNames.Select(f => Path.Combine(NuspecDirPath, f + ".nuspec")))
     {
         var nugetArgs = $@"pack {file} " +
             $"-BasePath \"{BinDir}\" " +
@@ -127,8 +138,37 @@ int PackFiles(string[] files, string licenseUrl)
     return exit;
 }
 
-int exit = PackFiles(RedistFiles, LicenseUrlRedist);
-if (exit == 0) PackFiles(NonRedistFiles, LicenseUrlNonRedist);
-if (exit == 0) PackFiles(TestFiles, LicenseUrlTest);
+XDocument CreatePublishingConfigDoc(IEnumerable<string> packageNames)
+{
+    var packages =
+        packageNames.Select(packageName =>
+            new XElement("package", new XAttribute("id", packageName), new XAttribute("version", BuildVersion.ToString())));
+
+    return new XDocument(new XElement("packages", packages.ToArray()));
+}
+
+void GeneratePublishingConfig()
+{
+    if (IsReleaseVersion)
+    {
+        // nuget:
+        var nuget = CreatePublishingConfigDoc(RedistPackageNames.Concat(NonRedistPackageNames).Where(pn => !PreReleaseOnlyPackages.Contains(pn)));
+        nuget.Save(Path.Combine(OutDir, "nuget_org-packages.config"));
+    }
+    else
+    {
+        // myget:
+        var myget = CreatePublishingConfigDoc(RedistPackageNames.Concat(NonRedistPackageNames));
+        myget.Save(Path.Combine(OutDir, "myget_org-packages.config"));
+    }
+}
+
+Directory.CreateDirectory(OutDir);
+
+GeneratePublishingConfig();
+
+int exit = PackFiles(RedistPackageNames, LicenseUrlRedist);
+if (exit == 0) exit = PackFiles(NonRedistPackageNames, LicenseUrlNonRedist);
+if (exit == 0) exit = PackFiles(TestPackageNames, LicenseUrlTest);
 
 Environment.Exit(exit);
