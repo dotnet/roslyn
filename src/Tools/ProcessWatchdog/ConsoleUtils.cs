@@ -13,14 +13,20 @@ namespace ProcessWatchdog
                 string.Format(CultureInfo.CurrentCulture, format, args));
         }
 
-        internal static void LogError(string messageFormat, params object[] args)
+        internal static void LogError(ErrorCode errorCode, string messageFormat, params object[] args)
         {
             string fullMessage = string.Format(
-                CultureInfo.CurrentCulture,
+                CultureInfo.InvariantCulture,
                 Resources.ErrorFormat,
+                FormatErrorCode(errorCode),
                 string.Format(CultureInfo.CurrentCulture, messageFormat, args));
 
             Console.Error.WriteLine(fullMessage);
+        }
+
+        private static string FormatErrorCode(ErrorCode errorCode)
+        {
+            return string.Format(CultureInfo.InvariantCulture, "PW{0:D4}", (int)errorCode);
         }
     }
 }
