@@ -1033,6 +1033,7 @@
       "sha512": "dryP6nBDWD2aH6OUidwoPQLebelnfA6DDKUs9PxJ6iPDbT9t5eSKyjqLSas/nQFEJZwXXWVnbImrgK/IgiyOdQ==",
       "type": "package",
       "files": [
+        "tools/.vs/xunit.console.x86/v14/.suo",
         "tools/HTML.xslt",
         "tools/NUnitXml.xslt",
         "tools/xUnit1.xslt",

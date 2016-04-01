@@ -1397,11 +1397,7 @@
           "runtimes/osx.10.10-x64/native/libsos.dylib": {}
         }
       },
-      "runtime.osx.10.10-x64.Microsoft.NETCore.TestHost/1.0.0-beta-23504": {
-        "native": {
-          "runtimes/osx.10.10-x64/native/corerun": {}
-        }
-      },
+      "runtime.osx.10.10-x64.Microsoft.NETCore.TestHost/1.0.0-beta-23504": {},
       "runtime.osx.10.10.System.IO.FileSystem/4.0.1-beta-23504": {
         "dependencies": {
           "System.Collections": "4.0.10",
@@ -3083,11 +3079,7 @@
           "runtimes/ubuntu.14.04-x64/native/libsosplugin.so": {}
         }
       },
-      "runtime.ubuntu.14.04-x64.Microsoft.NETCore.TestHost/1.0.0-beta-23504": {
-        "native": {
-          "runtimes/ubuntu.14.04-x64/native/corerun": {}
-        }
-      },
+      "runtime.ubuntu.14.04-x64.Microsoft.NETCore.TestHost/1.0.0-beta-23504": {},
       "runtime.unix.Microsoft.Win32.Primitives/4.0.1-beta-23504": {
         "dependencies": {
           "System.Runtime": "4.0.20",
@@ -6357,8 +6349,7 @@
         "runtimes/osx.10.10-x64/native/libmscordaccore.dylib",
         "runtimes/osx.10.10-x64/native/libmscordbi.dylib",
         "runtimes/osx.10.10-x64/native/libprotojit.dylib",
-        "runtimes/osx.10.10-x64/native/libsos.dylib",
-        "tools/crossgen"
+        "runtimes/osx.10.10-x64/native/libsos.dylib"
       ]
     },
     "runtime.osx.10.10-x64.Microsoft.NETCore.TestHost/1.0.0-beta-23504": {
@@ -6366,8 +6357,7 @@
       "type": "package",
       "files": [
         "runtime.osx.10.10-x64.Microsoft.NETCore.TestHost.1.0.0-beta-23504.nupkg.sha512",
-        "runtime.osx.10.10-x64.Microsoft.NETCore.TestHost.nuspec",
-        "runtimes/osx.10.10-x64/native/corerun"
+        "runtime.osx.10.10-x64.Microsoft.NETCore.TestHost.nuspec"
       ]
     },
     "runtime.osx.10.10.System.IO.FileSystem/4.0.1-beta-23504": {
@@ -6459,8 +6449,7 @@
         "runtimes/ubuntu.14.04-x64/native/libmscordbi.so",
         "runtimes/ubuntu.14.04-x64/native/libprotojit.so",
         "runtimes/ubuntu.14.04-x64/native/libsos.so",
-        "runtimes/ubuntu.14.04-x64/native/libsosplugin.so",
-        "tools/crossgen"
+        "runtimes/ubuntu.14.04-x64/native/libsosplugin.so"
       ]
     },
     "runtime.ubuntu.14.04-x64.Microsoft.NETCore.TestHost/1.0.0-beta-23504": {
@@ -6468,8 +6457,7 @@
       "type": "package",
       "files": [
         "runtime.ubuntu.14.04-x64.Microsoft.NETCore.TestHost.1.0.0-beta-23504.nupkg.sha512",
-        "runtime.ubuntu.14.04-x64.Microsoft.NETCore.TestHost.nuspec",
-        "runtimes/ubuntu.14.04-x64/native/corerun"
+        "runtime.ubuntu.14.04-x64.Microsoft.NETCore.TestHost.nuspec"
       ]
     },
     "runtime.unix.Microsoft.Win32.Primitives/4.0.1-beta-23504": {

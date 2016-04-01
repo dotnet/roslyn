@@ -73,6 +73,60 @@
           "lib/net45/_._": {}
         }
       },
+      "Microsoft.VisualStudio.OLE.Interop/7.10.6070": {
+        "compile": {
+          "lib/Microsoft.VisualStudio.OLE.Interop.dll": {}
+        },
+        "runtime": {
+          "lib/Microsoft.VisualStudio.OLE.Interop.dll": {}
+        }
+      },
+      "Microsoft.VisualStudio.Shell.Immutable.11.0/11.0.50727": {
+        "dependencies": {
+          "Microsoft.VisualStudio.OLE.Interop": "7.10.6070",
+          "Microsoft.VisualStudio.Shell.Interop": "7.10.6071"
+        },
+        "compile": {
+          "lib/net45/Microsoft.VisualStudio.Shell.Immutable.11.0.dll": {}
+        },
+        "runtime": {
+          "lib/net45/Microsoft.VisualStudio.Shell.Immutable.11.0.dll": {}
+        }
+      },
+      "Microsoft.VisualStudio.Shell.Immutable.14.0/14.1.24720": {
+        "dependencies": {
+          "Microsoft.VisualStudio.Shell.Immutable.11.0": "11.0.50727"
+        },
+        "compile": {
+          "lib/net45/Microsoft.VisualStudio.Shell.Immutable.14.0.dll": {}
+        },
+        "runtime": {
+          "lib/net45/Microsoft.VisualStudio.Shell.Immutable.14.0.dll": {}
+        }
+      },
+      "Microsoft.VisualStudio.Shell.Interop/7.10.6071": {
+        "dependencies": {
+          "Microsoft.VisualStudio.OLE.Interop": "7.10.6070",
+          "Microsoft.VisualStudio.TextManager.Interop": "7.10.6070"
+        },
+        "compile": {
+          "lib/Microsoft.VisualStudio.Shell.Interop.dll": {}
+        },
+        "runtime": {
+          "lib/Microsoft.VisualStudio.Shell.Interop.dll": {}
+        }
+      },
+      "Microsoft.VisualStudio.TextManager.Interop/7.10.6070": {
+        "dependencies": {
+          "Microsoft.VisualStudio.OLE.Interop": "7.10.6070"
+        },
+        "compile": {
+          "lib/Microsoft.VisualStudio.TextManager.Interop.dll": {}
+        },
+        "runtime": {
+          "lib/Microsoft.VisualStudio.TextManager.Interop.dll": {}
+        }
+      },
       "System.AppContext/4.0.0": {
         "dependencies": {
           "System.Runtime": "4.0.0"
@@ -380,6 +434,60 @@
           "lib/net45/_._": {}
         }
       },
+      "Microsoft.VisualStudio.OLE.Interop/7.10.6070": {
+        "compile": {
+          "lib/Microsoft.VisualStudio.OLE.Interop.dll": {}
+        },
+        "runtime": {
+          "lib/Microsoft.VisualStudio.OLE.Interop.dll": {}
+        }
+      },
+      "Microsoft.VisualStudio.Shell.Immutable.11.0/11.0.50727": {
+        "dependencies": {
+          "Microsoft.VisualStudio.OLE.Interop": "7.10.6070",
+          "Microsoft.VisualStudio.Shell.Interop": "7.10.6071"
+        },
+        "compile": {
+          "lib/net45/Microsoft.VisualStudio.Shell.Immutable.11.0.dll": {}
+        },
+        "runtime": {
+          "lib/net45/Microsoft.VisualStudio.Shell.Immutable.11.0.dll": {}
+        }
+      },
+      "Microsoft.VisualStudio.Shell.Immutable.14.0/14.1.24720": {
+        "dependencies": {
+          "Microsoft.VisualStudio.Shell.Immutable.11.0": "11.0.50727"
+        },
+        "compile": {
+          "lib/net45/Microsoft.VisualStudio.Shell.Immutable.14.0.dll": {}
+        },
+        "runtime": {
+          "lib/net45/Microsoft.VisualStudio.Shell.Immutable.14.0.dll": {}
+        }
+      },
+      "Microsoft.VisualStudio.Shell.Interop/7.10.6071": {
+        "dependencies": {
+          "Microsoft.VisualStudio.OLE.Interop": "7.10.6070",
+          "Microsoft.VisualStudio.TextManager.Interop": "7.10.6070"
+        },
+        "compile": {
+          "lib/Microsoft.VisualStudio.Shell.Interop.dll": {}
+        },
+        "runtime": {
+          "lib/Microsoft.VisualStudio.Shell.Interop.dll": {}
+        }
+      },
+      "Microsoft.VisualStudio.TextManager.Interop/7.10.6070": {
+        "dependencies": {
+          "Microsoft.VisualStudio.OLE.Interop": "7.10.6070"
+        },
+        "compile": {
+          "lib/Microsoft.VisualStudio.TextManager.Interop.dll": {}
+        },
+        "runtime": {
+          "lib/Microsoft.VisualStudio.TextManager.Interop.dll": {}
+        }
+      },
       "System.AppContext/4.0.0": {
         "dependencies": {
           "System.Runtime": "4.0.0"
@@ -685,6 +793,60 @@
         },
         "runtime": {
           "lib/net45/_._": {}
+        }
+      },
+      "Microsoft.VisualStudio.OLE.Interop/7.10.6070": {
+        "compile": {
+          "lib/Microsoft.VisualStudio.OLE.Interop.dll": {}
+        },
+        "runtime": {
+          "lib/Microsoft.VisualStudio.OLE.Interop.dll": {}
+        }
+      },
+      "Microsoft.VisualStudio.Shell.Immutable.11.0/11.0.50727": {
+        "dependencies": {
+          "Microsoft.VisualStudio.OLE.Interop": "7.10.6070",
+          "Microsoft.VisualStudio.Shell.Interop": "7.10.6071"
+        },
+        "compile": {
+          "lib/net45/Microsoft.VisualStudio.Shell.Immutable.11.0.dll": {}
+        },
+        "runtime": {
+          "lib/net45/Microsoft.VisualStudio.Shell.Immutable.11.0.dll": {}
+        }
+      },
+      "Microsoft.VisualStudio.Shell.Immutable.14.0/14.1.24720": {
+        "dependencies": {
+          "Microsoft.VisualStudio.Shell.Immutable.11.0": "11.0.50727"
+        },
+        "compile": {
+          "lib/net45/Microsoft.VisualStudio.Shell.Immutable.14.0.dll": {}
+        },
+        "runtime": {
+          "lib/net45/Microsoft.VisualStudio.Shell.Immutable.14.0.dll": {}
+        }
+      },
+      "Microsoft.VisualStudio.Shell.Interop/7.10.6071": {
+        "dependencies": {
+          "Microsoft.VisualStudio.OLE.Interop": "7.10.6070",
+          "Microsoft.VisualStudio.TextManager.Interop": "7.10.6070"
+        },
+        "compile": {
+          "lib/Microsoft.VisualStudio.Shell.Interop.dll": {}
+        },
+        "runtime": {
+          "lib/Microsoft.VisualStudio.Shell.Interop.dll": {}
+        }
+      },
+      "Microsoft.VisualStudio.TextManager.Interop/7.10.6070": {
+        "dependencies": {
+          "Microsoft.VisualStudio.OLE.Interop": "7.10.6070"
+        },
+        "compile": {
+          "lib/Microsoft.VisualStudio.TextManager.Interop.dll": {}
+        },
+        "runtime": {
+          "lib/Microsoft.VisualStudio.TextManager.Interop.dll": {}
         }
       },
       "System.AppContext/4.0.0": {
@@ -1123,6 +1285,56 @@
         "ref/netcore50/Microsoft.VisualBasic.xml",
         "ref/win8/_._",
         "ref/wpa81/_._"
+      ]
+    },
+    "Microsoft.VisualStudio.OLE.Interop/7.10.6070": {
+      "sha512": "qbAjubmKEMFgiU+jHSYh91JA3VuMYkVsvMyfbie4hCxveIMixveb8Fc3DFJlFdGJF5nngi0EpGOsUjndlMSJmw==",
+      "type": "package",
+      "files": [
+        "Microsoft.VisualStudio.OLE.Interop.7.10.6070.nupkg.sha512",
+        "Microsoft.VisualStudio.OLE.Interop.nuspec",
+        "lib/Microsoft.VisualStudio.OLE.Interop.dll",
+        "lib/Microsoft.VisualStudio.OLE.Interop.xml"
+      ]
+    },
+    "Microsoft.VisualStudio.Shell.Immutable.11.0/11.0.50727": {
+      "sha512": "TBNsE4wWq2yAF66NpwixUe6lQ74eyBYIuy775Mp9DMMfzTXkxy09AEmGt2a/WH1HS9kp4l853ML+DWgQzR955g==",
+      "type": "package",
+      "files": [
+        "Microsoft.VisualStudio.Shell.Immutable.11.0.11.0.50727.nupkg.sha512",
+        "Microsoft.VisualStudio.Shell.Immutable.11.0.nuspec",
+        "lib/net45/Microsoft.VisualStudio.Shell.Immutable.11.0.dll",
+        "lib/net45/Microsoft.VisualStudio.Shell.Immutable.11.0.xml"
+      ]
+    },
+    "Microsoft.VisualStudio.Shell.Immutable.14.0/14.1.24720": {
+      "sha512": "/kBLRK2mMijyIfjNmv42xqa5DZeDvOV7tfPEwjbXdRDhZTI2FXlifyuc8wZ0sYdbr1uGpF8gO/EBdZp5UXjGog==",
+      "type": "package",
+      "files": [
+        "Microsoft.VisualStudio.Shell.Immutable.14.0.14.1.24720.nupkg.sha512",
+        "Microsoft.VisualStudio.Shell.Immutable.14.0.nuspec",
+        "lib/net45/Microsoft.VisualStudio.Shell.Immutable.14.0.dll",
+        "lib/net45/microsoft.visualstudio.shell.immutable.14.0.xml"
+      ]
+    },
+    "Microsoft.VisualStudio.Shell.Interop/7.10.6071": {
+      "sha512": "2qNRyqc/oejFU+TyXTeLWEiGV12VKmc/QuDxCnlHGvEQHgNx1aRsqh2noxnuNvxmKku6U7Wqw30bGF2jFXpttw==",
+      "type": "package",
+      "files": [
+        "Microsoft.VisualStudio.Shell.Interop.7.10.6071.nupkg.sha512",
+        "Microsoft.VisualStudio.Shell.Interop.nuspec",
+        "lib/Microsoft.VisualStudio.Shell.Interop.dll",
+        "lib/Microsoft.VisualStudio.Shell.Interop.xml"
+      ]
+    },
+    "Microsoft.VisualStudio.TextManager.Interop/7.10.6070": {
+      "sha512": "4sg+M8RD4qziRvsH4zmaLP2xAZ5MAqf3gj7F7XIOWlYWaBwKDOx1x+i/pelXRXROcoynFj1MfzeCH4j+4VqNug==",
+      "type": "package",
+      "files": [
+        "Microsoft.VisualStudio.TextManager.Interop.7.10.6070.nupkg.sha512",
+        "Microsoft.VisualStudio.TextManager.Interop.nuspec",
+        "lib/Microsoft.VisualStudio.TextManager.Interop.dll",
+        "lib/Microsoft.VisualStudio.TextManager.Interop.xml"
       ]
     },
     "System.AppContext/4.0.0": {

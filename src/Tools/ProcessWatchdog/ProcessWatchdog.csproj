@@ -30,6 +30,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="ConsoleUtils.cs" />
+    <Compile Include="ErrorCode.cs" />
     <Compile Include="ProcDump.cs" />
     <Compile Include="Options.cs" />
     <Compile Include="ProcessTracker.cs" />

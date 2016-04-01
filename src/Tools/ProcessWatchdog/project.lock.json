@@ -348,16 +348,14 @@
   "libraries": {
     "CommandLineParser/2.0.273-beta": {
       "sha512": "EBYRuYk9kZoDnpZNL9gQFuothWo62akT9YL7d/vYFXpylt6AMJYnHBAgVZ+bGfcKPqioynH8izzMJYdraFtZnA==",
-      "type": "Package",
+      "type": "package",
       "files": [
+        "CommandLineParser.2.0.273-beta.nupkg.sha512",
         "CommandLineParser.nuspec",
-        "[Content_Types].xml",
-        "_rels/.rels",
         "lib/net40/CommandLine.XML",
         "lib/net40/CommandLine.dll",
         "lib/net45/CommandLine.XML",
-        "lib/net45/CommandLine.dll",
-        "package/services/metadata/core-properties/d01dfbbc96674ad28b3296654dac82a3.psmdcp"
+        "lib/net45/CommandLine.dll"
       ]
     },
     "System.Collections/4.0.0": {
