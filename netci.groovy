@@ -4,6 +4,8 @@
 import jobs.generation.Utilities;
 def project = GithubProject
 
+buildTimeLimit = 120
+
 static void addLogRotator(def myJob) {
   myJob.with {
     logRotator {
@@ -50,7 +52,7 @@ static void addWrappers(def myJob) {
   myJob.with {
     wrappers {
       timeout {
-        absolute(120)
+        absolute(buildTimeLimit)
         abortBuild()
       }
       timestamps()
@@ -225,7 +227,7 @@ def branchNames = []
                     batchFile("""set TEMP=%WORKSPACE%\\Binaries\\Temp
 mkdir %TEMP%
 set TMP=%TEMP%
-.\\cibuild.cmd ${(configuration == 'dbg') ? '/debug' : '/release'} ${(buildTarget == 'unit32') ? '/test32' : '/test64'}""")
+.\\cibuild.cmd ${(configuration == 'dbg') ? '/debug' : '/release'} ${(buildTarget == 'unit32') ? '/test32' : '/test64'} /buildTimeLimit ${buildTimeLimit}""")
                   }
                 }
                 Utilities.setMachineAffinity(myJob, 'Windows_NT', 'latest-or-auto')
