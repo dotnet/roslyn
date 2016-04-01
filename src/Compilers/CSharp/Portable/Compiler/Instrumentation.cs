@@ -22,6 +22,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 MethodSymbol flushPayload = GetFlushPayload(compilation, methodBody.Syntax, diagnostics);
 
                 // Do not instrument the instrumentation helpers if they are part of the current compilation (which occurs only during testing). GetCreatePayload will fail with an infinite recursion if it is instrumented.
+                // PROTOTYPE (https://github.com/dotnet/roslyn/issues/10266): It is not correct to always skip implict methods, because that will miss field initializers.
                 if ((object)createPayload != null && (object)flushPayload != null && !method.IsImplicitlyDeclared && !method.Equals(createPayload) && !method.Equals(flushPayload))
                 {
                     // Create the symbol for the instrumentation payload.
