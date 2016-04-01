@@ -190,7 +190,7 @@ True
         }
 
         [Fact]
-        public void ArrowPropertyCoverage()
+        public void ImplicitBlockMethodsCoverage()
         {
             string source = @"
 using System;
@@ -205,11 +205,21 @@ public class Program
     static void TestMain()
     {
         int x = Count;
+        x += Prop;
+        Prop = x;
+        Lambda(x, (y) => y + 1);
     }
 
     static int Function(int x) => x;
 
     static int Count => Function(44);
+
+    static int Prop { get; set; }
+
+    static int Lambda(int x, Func<int, int> l)
+    {
+        return l(x);
+    }
 }
 ";
             string expectedOutput = @"Flushing
@@ -217,9 +227,18 @@ public class Program
 True
 2
 True
+True
+True
+True
 3
 True
 4
+True
+5
+True
+6
+True
+7
 True
 ";
 
