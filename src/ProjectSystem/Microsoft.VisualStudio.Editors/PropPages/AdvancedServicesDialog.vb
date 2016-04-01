@@ -1,3 +1,5 @@
+' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+
 Imports System.Diagnostics.CodeAnalysis
 Imports System.Xml
 
@@ -5,7 +7,7 @@ Namespace Microsoft.VisualStudio.Editors.PropertyPages
     Friend Class AdvancedServicesDialog
         Inherits PropPageUserControlBase
 
-        Dim savedXml As String
+        Private _savedXml As String
         Friend WithEvents RoleServiceCacheTimeoutLabel As System.Windows.Forms.Label
         Friend WithEvents TimeQuantity As System.Windows.Forms.NumericUpDown
         Friend WithEvents TimeUnitComboBox As System.Windows.Forms.ComboBox
@@ -14,11 +16,11 @@ Namespace Microsoft.VisualStudio.Editors.PropertyPages
         Friend WithEvents HonorServerCookieExpirationCheckbox As System.Windows.Forms.CheckBox
         Friend WithEvents SavePasswordHashLocallyCheckbox As System.Windows.Forms.CheckBox
         Friend WithEvents TableLayoutPanel1 As System.Windows.Forms.TableLayoutPanel
-        Dim appConfigDocument As XmlDocument
+        Private _appConfigDocument As XmlDocument
 
         Protected Overrides Sub PostInitPage()
             Try
-                appConfigDocument = ServicesPropPageAppConfigHelper.AppConfigXmlDocument(PropertyPageSite, ProjectHierarchy, False)
+                _appConfigDocument = ServicesPropPageAppConfigHelper.AppConfigXmlDocument(PropertyPageSite, ProjectHierarchy, False)
             Catch innerException As XmlException
                 Dim ex As New XmlException(SR.GetString(SR.PPG_Services_InvalidAppConfigXml))
                 DesignerFramework.DesignerMessageBox.Show(CType(ServiceProvider, IServiceProvider), "", ex, DesignerFramework.DesignUtil.GetDefaultCaption(Site))
@@ -28,8 +30,8 @@ Namespace Microsoft.VisualStudio.Editors.PropertyPages
 
             Enabled = True
 
-            SavePasswordHashLocallyCheckbox.Checked = ServicesPropPageAppConfigHelper.GetSavePasswordHashLocally(appConfigDocument, ProjectHierarchy)
-            Dim honorCookieExpiryValue As Nullable(Of Boolean) = ServicesPropPageAppConfigHelper.GetEffectiveHonorCookieExpiry(appConfigDocument, ProjectHierarchy)
+            SavePasswordHashLocallyCheckbox.Checked = ServicesPropPageAppConfigHelper.GetSavePasswordHashLocally(_appConfigDocument, ProjectHierarchy)
+            Dim honorCookieExpiryValue As Nullable(Of Boolean) = ServicesPropPageAppConfigHelper.GetEffectiveHonorCookieExpiry(_appConfigDocument, ProjectHierarchy)
             If honorCookieExpiryValue.HasValue Then
                 HonorServerCookieExpirationCheckbox.Checked = CBool(honorCookieExpiryValue)
             Else
@@ -37,21 +39,21 @@ Namespace Microsoft.VisualStudio.Editors.PropertyPages
             End If
 
             AddTimeUnitsToComboBox()
-            SetCacheTimeoutControlValues(ServicesPropPageAppConfigHelper.GetCacheTimeout(appConfigDocument, ProjectHierarchy))
-            SetUseCustomConnectionStringControlValues(appConfigDocument)
+            SetCacheTimeoutControlValues(ServicesPropPageAppConfigHelper.GetCacheTimeout(_appConfigDocument, ProjectHierarchy))
+            SetUseCustomConnectionStringControlValues(_appConfigDocument)
 
-            savedXml = appConfigDocument.OuterXml
+            _savedXml = _appConfigDocument.OuterXml
         End Sub
 
         Public Overrides Sub Apply()
-            ServicesPropPageAppConfigHelper.TryWriteXml(appConfigDocument, CType(ServiceProvider, IServiceProvider), ProjectHierarchy)
+            ServicesPropPageAppConfigHelper.TryWriteXml(_appConfigDocument, CType(ServiceProvider, IServiceProvider), ProjectHierarchy)
             Me.IsDirty = False
         End Sub
 
         Protected Overrides Sub Dispose(ByVal disposing As Boolean)
             Try
-                If disposing AndAlso components IsNot Nothing Then
-                    components.Dispose()
+                If disposing AndAlso _components IsNot Nothing Then
+                    _components.Dispose()
                 End If
             Finally
                 MyBase.Dispose(disposing)
@@ -60,7 +62,7 @@ Namespace Microsoft.VisualStudio.Editors.PropertyPages
 
 
         'Required by the Windows Form Designer
-        Private components As System.ComponentModel.IContainer
+        Private _components As System.ComponentModel.IContainer
 
         'NOTE: The following procedure is required by the Windows Form Designer
         'It can be modified using the Windows Form Designer.  
@@ -264,11 +266,11 @@ Namespace Microsoft.VisualStudio.Editors.PropertyPages
                     If CustomConnectionString.Text = SR.GetString(SR.PPG_Services_connectionStringValueDefaultDisplayValue) Then
                         CustomConnectionString.Text = ServicesPropPageAppConfigHelper.connectionStringValueDefault
                     End If
-                    ServicesPropPageAppConfigHelper.SetConnectionStringText(appConfigDocument, CustomConnectionString.Text, ProjectHierarchy)
+                    ServicesPropPageAppConfigHelper.SetConnectionStringText(_appConfigDocument, CustomConnectionString.Text, ProjectHierarchy)
                 Case System.Windows.Forms.CheckState.Unchecked
                     'We're using the default
                     CustomConnectionString.Text = SR.GetString(SR.PPG_Services_connectionStringValueDefaultDisplayValue)
-                    ServicesPropPageAppConfigHelper.SetConnectionStringText(appConfigDocument, Nothing, ProjectHierarchy)
+                    ServicesPropPageAppConfigHelper.SetConnectionStringText(_appConfigDocument, Nothing, ProjectHierarchy)
             End Select
 
             CustomConnectionString.Enabled = UseCustomConnectionStringCheckBox.CheckState = System.Windows.Forms.CheckState.Checked
@@ -278,7 +280,7 @@ Namespace Microsoft.VisualStudio.Editors.PropertyPages
 
         Private Sub CustomConnectionString_TextChanged(ByVal sender As Object, ByVal e As System.EventArgs) Handles CustomConnectionString.TextChanged
             If CustomConnectionString.Enabled Then
-                ServicesPropPageAppConfigHelper.SetConnectionStringText(appConfigDocument, CustomConnectionString.Text, ProjectHierarchy)
+                ServicesPropPageAppConfigHelper.SetConnectionStringText(_appConfigDocument, CustomConnectionString.Text, ProjectHierarchy)
                 SetDirtyFlag()
             End If
         End Sub
@@ -309,22 +311,22 @@ Namespace Microsoft.VisualStudio.Editors.PropertyPages
             End Select
             TimeQuantity.Maximum = Integer.MaxValue \ multiplier
             seconds = CInt(TimeQuantity.Value) * multiplier
-            ServicesPropPageAppConfigHelper.SetCacheTimeout(appConfigDocument, seconds, ProjectHierarchy)
+            ServicesPropPageAppConfigHelper.SetCacheTimeout(_appConfigDocument, seconds, ProjectHierarchy)
             SetDirtyFlag()
         End Sub
 
         Private Sub SavePasswordHashLocallyCheckbox_CheckedChanged(ByVal sender As Object, ByVal e As System.EventArgs) Handles SavePasswordHashLocallyCheckbox.CheckedChanged
-            ServicesPropPageAppConfigHelper.SetSavePasswordHashLocally(appConfigDocument, SavePasswordHashLocallyCheckbox.Checked, ProjectHierarchy)
+            ServicesPropPageAppConfigHelper.SetSavePasswordHashLocally(_appConfigDocument, SavePasswordHashLocallyCheckbox.Checked, ProjectHierarchy)
             SetDirtyFlag()
         End Sub
 
         Private Sub HonorServerCookieExpirySavePasswordHashLocallyCheckbox_CheckedChanged(ByVal sender As Object, ByVal e As System.EventArgs) Handles HonorServerCookieExpirationCheckbox.CheckedChanged
-            ServicesPropPageAppConfigHelper.SetHonorCookieExpiry(appConfigDocument, HonorServerCookieExpirationCheckbox.Checked, ProjectHierarchy)
+            ServicesPropPageAppConfigHelper.SetHonorCookieExpiry(_appConfigDocument, HonorServerCookieExpirationCheckbox.Checked, ProjectHierarchy)
             SetDirtyFlag()
         End Sub
 
         Private Sub SetDirtyFlag()
-            Me.IsDirty = appConfigDocument IsNot Nothing AndAlso appConfigDocument.OuterXml <> savedXml
+            Me.IsDirty = _appConfigDocument IsNot Nothing AndAlso _appConfigDocument.OuterXml <> _savedXml
         End Sub
     End Class
 End Namespace

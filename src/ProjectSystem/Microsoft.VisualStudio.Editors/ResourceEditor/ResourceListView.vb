@@ -1,3 +1,5 @@
+' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+
 Option Explicit On
 Option Strict On
 Option Compare Binary
@@ -22,108 +24,108 @@ Namespace Microsoft.VisualStudio.Editors.ResourceEditor
         '  Since we're using the listview in virtual mode (in order to accomplish
         '  delay-load of the images from disk), we keep track of the data ourselves.
         '  The base listview notifies us when it needs data to display.
-        Private m_VirtualResourceList As New ArrayList 'Of Resource
+        Private _virtualResourceList As New ArrayList 'Of Resource
 
         'A cache of thumbnails for the listview items that we are displaying.  This has
         '  knowledge of our imagelist, and manages it for us.
-        Private m_ThumbnailCache As ThumbnailCache
+        Private _thumbnailCache As ThumbnailCache
 
         'The imagelist which contains all thumbnails currently cached for this listview.
         '  This is managed by our thumbnail cache.  Note that a listview always gets its
         '  images to display from an imagelist.  Since we don't want to create an imagelist
         '  large enough to hold a thumbnail for every resource that might be in the resx
         '  we use a cached system.  This also helps with scalability.
-        Private m_ThumbnailImageList As ImageList
+        Private _thumbnailImageList As ImageList
 
         'This imagelist contains state images.  These images are shown to the left of the
         '  listview item and are used to show error glyphs.
-        Private m_StateImageList As ImageList
+        Private _stateImageList As ImageList
 
         'The width of the selection border that we draw around thumbnails in the "Thumbnails"
         '  view.
-        Private Const DefaultSelectionBorderWidth As Integer = 2
+        Private Const s_defaultSelectionBorderWidth As Integer = 2
 
         'The width of the non-selected border around thumbnails in the "Thumbnails" view.
-        Private Const DefaultBorderWidth As Integer = 1
+        Private Const s_defaultBorderWidth As Integer = 1
 
         'The width/height of images in "Thumbnails" view (not including the borders).
-        Private Const DefaultLargeImageWidthHeight As Integer = 96
+        Private Const s_defaultLargeImageWidthHeight As Integer = 96
 
         'The width/height of images in the smaller views ("icons", "details").  No border is used
         '  in these cases.
-        Private Const DefaultSmallImageWidthHeight As Integer = 20
+        Private Const s_defaultSmallImageWidthHeight As Integer = 20
 
         ' The above settings scaled up for High DPI
-        Private SelectionBorderWidth As Integer = DpiHelper.LogicalToDeviceUnitsX(DefaultSelectionBorderWidth)
-        Private BorderWidth As Integer = DpiHelper.LogicalToDeviceUnitsX(DefaultBorderWidth)
-        Private LargeImageWidthHeight As Integer = DpiHelper.LogicalToDeviceUnitsX(DefaultLargeImageWidthHeight)
-        Private SmallImageWidthHeight As Integer = DpiHelper.LogicalToDeviceUnitsX(DefaultSmallImageWidthHeight)
+        Private _selectionBorderWidth As Integer = DpiHelper.LogicalToDeviceUnitsX(s_defaultSelectionBorderWidth)
+        Private _borderWidth As Integer = DpiHelper.LogicalToDeviceUnitsX(s_defaultBorderWidth)
+        Private _largeImageWidthHeight As Integer = DpiHelper.LogicalToDeviceUnitsX(s_defaultLargeImageWidthHeight)
+        Private _smallImageWidthHeight As Integer = DpiHelper.LogicalToDeviceUnitsX(s_defaultSmallImageWidthHeight)
 
         'The default column width for the "Name" column in "Details" view
-        Private Const DefaultColumnWidthName As Integer = 150 'Includes the size of the thumbnail icon
+        Private Const s_defaultColumnWidthName As Integer = 150 'Includes the size of the thumbnail icon
 
         'The default column width for the "Filename" column in "Details" view
-        Private Const DefaultColumnWidthFilename As Integer = 300
+        Private Const s_defaultColumnWidthFilename As Integer = 300
 
         'The default column width for the "Image Type" column in "Details" view
-        Private Const DefaultColumnWidthImageType As Integer = 150
+        Private Const s_defaultColumnWidthImageType As Integer = 150
 
         'The default column width for the "Size" column in "Details" view
-        Private Const DefaultColumnWidthSize As Integer = 60
+        Private Const s_defaultColumnWidthSize As Integer = 60
 
         'The default column width for the "Comment" column in "Details" view
-        Private Const DefaultColumnWidthComment As Integer = 300
+        Private Const s_defaultColumnWidthComment As Integer = 300
 
         'If this is turned on, attempted retrieval of listview items will simply return
         '  a blank entry.  This is useful when the resourc editor is being disposed of.
-        Private m_DisableItemRetrieval As Boolean
+        Private _disableItemRetrieval As Boolean
 
         'The ResourceFile used to populate this grid.
-        Private m_ResourceFile As ResourceFile
+        Private _resourceFile As ResourceFile
 
         'The index to the reserved error glyph at the beginning of the imagelist.
-        Private Const IMAGELIST_INDEX_ERROR As Integer = 0
+        Private Const s_IMAGELIST_INDEX_ERROR As Integer = 0
 
         'The index to the reserved SortUp glyph at the beginning of the imagelist.
-        Private Const IMAGELIST_INDEX_SORT_UP As Integer = 1
+        Private Const s_IMAGELIST_INDEX_SORT_UP As Integer = 1
 
         'The index to the reserved SortDown glyph at the beginning of the imagelist.
-        Private Const IMAGELIST_INDEX_SORT_DOWN As Integer = 2
+        Private Const s_IMAGELIST_INDEX_SORT_DOWN As Integer = 2
 
         ' The index means we haven't loaded the image yet
-        Private Const IMAGELIST_INDEX_NEED_LOAD As Integer = -1
+        Private Const s_IMAGELIST_INDEX_NEED_LOAD As Integer = -1
 
         'The index into the state imagelist for the (small) error glyph
-        Private Const STATEIMAGELIST_INDEX_ERROR As Integer = 0
+        Private Const s_STATEIMAGELIST_INDEX_ERROR As Integer = 0
 
         'If true, and label editing fails validation, no messagebox will be shown, it
         '  will just fail silently.
-        Private m_CancelLabelEditIfValidationFails As Boolean
+        Private _cancelLabelEditIfValidationFails As Boolean
 
         ' Current sorter
-        Private m_Sorter As DetailViewSorter
+        Private _sorter As DetailViewSorter
 
         ' Current Image cache information
         ' OnCacheVirtualItems will tell us the window of the items we need cache. We need save it in m_ImageStartIndex and m_ImageEndIndex
         ' On each Idle message, we only load one image, so we save the position in m_IdleProcessingIndex, so we can continue later...
-        Private m_ImageStartIndex As Integer            ' The first image we should load at Idle time
-        Private m_ImageEndIndex As Integer              ' The last image we should load
-        Private m_IdleProcessingIndex As Integer        ' Current Index, sometime we update this to speed up loading images...
+        Private _imageStartIndex As Integer            ' The first image we should load at Idle time
+        Private _imageEndIndex As Integer              ' The last image we should load
+        Private _idleProcessingIndex As Integer        ' Current Index, sometime we update this to speed up loading images...
 
         ' If we need load several blocks of images, we push the early requirement in the stack, and load them later
-        Private m_CacheRequirementStack As Stack
+        Private _cacheRequirementStack As Stack
 
         ' If the ListView asks for the image, we know it want to paint it, and we want to load it earlier than the others.
         '  In that senario, we update m_IdleProcessingIndex to load that item first.
         '  However, we shouldn't update it if we have already updated it before handling any Idle message.
         '  The reason is the first item required is often the focused item, which we want to paint first.
-        Private m_NeedLoadVisibleItem As Boolean
+        Private _needLoadVisibleItem As Boolean
 
         ' if it is true, we have already hooked up the Idle message
-        Private m_OnIdleEnabled As Boolean
+        Private _onIdleEnabled As Boolean
 
         ' Detail View Column Count
-        Private Const DETAIL_VIEW_COLUMN_COUNT As Integer = 5
+        Private Const s_DETAIL_VIEW_COLUMN_COUNT As Integer = 5
 
 
 #End Region
@@ -195,19 +197,19 @@ Namespace Microsoft.VisualStudio.Editors.ResourceEditor
             'Disable item retrieval so that if we get asked for more information
             '  after we've already started disposing, we won't try to fetch any
             '  real data.
-            m_DisableItemRetrieval = True
+            _disableItemRetrieval = True
 
             If Disposing Then
-                m_ThumbnailCache = Nothing
+                _thumbnailCache = Nothing
 
-                If m_ThumbnailImageList IsNot Nothing Then
-                    m_ThumbnailImageList.Dispose()
-                    m_ThumbnailImageList = Nothing
+                If _thumbnailImageList IsNot Nothing Then
+                    _thumbnailImageList.Dispose()
+                    _thumbnailImageList = Nothing
                 End If
 
-                If m_StateImageList IsNot Nothing Then
-                    m_StateImageList.Dispose()
-                    m_StateImageList = Nothing
+                If _stateImageList IsNot Nothing Then
+                    _stateImageList.Dispose()
+                    _stateImageList = Nothing
                 End If
             End If
 
@@ -266,10 +268,10 @@ Namespace Microsoft.VisualStudio.Editors.ResourceEditor
         ''' <remarks></remarks>
         Public Property DisableItemRetrieval() As Boolean
             Get
-                Return m_DisableItemRetrieval
+                Return _disableItemRetrieval
             End Get
             Set(ByVal Value As Boolean)
-                m_DisableItemRetrieval = Value
+                _disableItemRetrieval = Value
             End Set
         End Property
 
@@ -297,8 +299,8 @@ Namespace Microsoft.VisualStudio.Editors.ResourceEditor
         ''' <remarks>Can be called only after population</remarks>
         Private ReadOnly Property ResourceFile() As ResourceFile
             Get
-                Debug.Assert(m_ResourceFile IsNot Nothing, "Has Populate not yet been called?  m_ResourceFile is nothing")
-                Return m_ResourceFile
+                Debug.Assert(_resourceFile IsNot Nothing, "Has Populate not yet been called?  m_ResourceFile is nothing")
+                Return _resourceFile
             End Get
         End Property
 
@@ -310,7 +312,7 @@ Namespace Microsoft.VisualStudio.Editors.ResourceEditor
 
 
 #Region "UI-Related Features"
-        Private m_ColumnInitialized As Boolean
+        Private _columnInitialized As Boolean
 
         ''' <summary>
         ''' Initialize our columns for details view
@@ -325,15 +327,15 @@ Namespace Microsoft.VisualStudio.Editors.ResourceEditor
             '***** WARNING: This order and number of columns *MUST* match the order in DetailViewColumn
             '*****
 
-            If Not m_ColumnInitialized Then
+            If Not _columnInitialized Then
 
-                Columns.Add(SR.GetString(SR.RSE_DetailsCol_Name), DpiHelper.LogicalToDeviceUnitsX(DefaultColumnWidthName), HorizontalAlignment.Left)
-                Columns.Add(SR.GetString(SR.RSE_DetailsCol_Filename), DpiHelper.LogicalToDeviceUnitsX(DefaultColumnWidthFilename), HorizontalAlignment.Left)
-                Columns.Add(SR.GetString(SR.RSE_DetailsCol_ImageType), DpiHelper.LogicalToDeviceUnitsX(DefaultColumnWidthImageType), HorizontalAlignment.Left)
-                Columns.Add(SR.GetString(SR.RSE_DetailsCol_Size), DpiHelper.LogicalToDeviceUnitsX(DefaultColumnWidthSize), HorizontalAlignment.Left)
-                Columns.Add(SR.GetString(SR.RSE_DetailsCol_Comment), DpiHelper.LogicalToDeviceUnitsX(DefaultColumnWidthComment), HorizontalAlignment.Left)
+                Columns.Add(SR.GetString(SR.RSE_DetailsCol_Name), DpiHelper.LogicalToDeviceUnitsX(s_defaultColumnWidthName), HorizontalAlignment.Left)
+                Columns.Add(SR.GetString(SR.RSE_DetailsCol_Filename), DpiHelper.LogicalToDeviceUnitsX(s_defaultColumnWidthFilename), HorizontalAlignment.Left)
+                Columns.Add(SR.GetString(SR.RSE_DetailsCol_ImageType), DpiHelper.LogicalToDeviceUnitsX(s_defaultColumnWidthImageType), HorizontalAlignment.Left)
+                Columns.Add(SR.GetString(SR.RSE_DetailsCol_Size), DpiHelper.LogicalToDeviceUnitsX(s_defaultColumnWidthSize), HorizontalAlignment.Left)
+                Columns.Add(SR.GetString(SR.RSE_DetailsCol_Comment), DpiHelper.LogicalToDeviceUnitsX(s_defaultColumnWidthComment), HorizontalAlignment.Left)
 
-                m_ColumnInitialized = True
+                _columnInitialized = True
             End If
 
             '*****
@@ -351,17 +353,17 @@ Namespace Microsoft.VisualStudio.Editors.ResourceEditor
             StopIdleMessage()
 
             MyBase.VirtualListSize = 0
-            m_ThumbnailCache = Nothing
-            m_VirtualResourceList.Clear()
+            _thumbnailCache = Nothing
+            _virtualResourceList.Clear()
 
             '... Dispose old imagelist, if any
-            If m_ThumbnailImageList IsNot Nothing Then
-                m_ThumbnailImageList.Dispose()
-                m_ThumbnailImageList = Nothing
+            If _thumbnailImageList IsNot Nothing Then
+                _thumbnailImageList.Dispose()
+                _thumbnailImageList = Nothing
             End If
-            If m_StateImageList IsNot Nothing Then
-                m_StateImageList.Dispose()
-                m_StateImageList = Nothing
+            If _stateImageList IsNot Nothing Then
+                _stateImageList.Dispose()
+                _stateImageList = Nothing
             End If
         End Sub
 
@@ -375,40 +377,40 @@ Namespace Microsoft.VisualStudio.Editors.ResourceEditor
         ''' <remarks></remarks>
         Public Sub Populate(ByVal ResourceFile As ResourceFile, ByVal CategoryToFilterOn As Category)
             MyBase.VirtualListSize = 0
-            m_ResourceFile = ResourceFile
+            _resourceFile = ResourceFile
 
             'Create and set up a new imagelist
             'The images and their sizes used below are already scaled up for High DPI, so we don't need to scale up the imagelist as well
-            m_ThumbnailImageList = New ImageList
+            _thumbnailImageList = New ImageList
 
             '... Set the size of images we are working with
             'Also, add a single error glyph to the beginning of the imagelist.  This image will be "reserved", and thus not
             '  play into the recycling of thumbnails.  We will use it only under dire need, because every call to
             '  get the thumbnail image of that resource will try to load the value again.
             If View = ResourceView.Thumbnail Then
-                m_ThumbnailImageList.ImageSize = New Size(LargeImageWidthHeight + BorderWidth + SelectionBorderWidth, LargeImageWidthHeight + BorderWidth + SelectionBorderWidth)
-                m_ThumbnailImageList.Images.Add(Nothing, ParentView.CachedResources.ErrorGlyphLarge)
+                _thumbnailImageList.ImageSize = New Size(_largeImageWidthHeight + _borderWidth + _selectionBorderWidth, _largeImageWidthHeight + _borderWidth + _selectionBorderWidth)
+                _thumbnailImageList.Images.Add(Nothing, ParentView.CachedResources.ErrorGlyphLarge)
             Else
-                m_ThumbnailImageList.ImageSize = New Size(SmallImageWidthHeight, SmallImageWidthHeight)
-                m_ThumbnailImageList.Images.Add(Nothing, ParentView.CachedResources.ErrorGlyphSmall)
+                _thumbnailImageList.ImageSize = New Size(_smallImageWidthHeight, _smallImageWidthHeight)
+                _thumbnailImageList.Images.Add(Nothing, ParentView.CachedResources.ErrorGlyphSmall)
             End If
 
             ' Those images are used to indicate which column is being sorted
             ' We use the same system color as the ListView in the window explorer, so it will work in high contrast mode
-            m_ThumbnailImageList.Images.Add("SortUp", MapBitmapColor(ParentView.CachedResources.SortUpGlyph, Color.Black,
+            _thumbnailImageList.Images.Add("SortUp", MapBitmapColor(ParentView.CachedResources.SortUpGlyph, Color.Black,
                                                                      Common.ShellUtil.GetVSColor(Shell.Interop.__VSSYSCOLOREX3.VSCOLOR_GRAYTEXT, SystemColors.GrayText, UseVSTheme:=False)))
-            m_ThumbnailImageList.Images.Add("SortDown", MapBitmapColor(ParentView.CachedResources.SortDownGlyph, Color.Black,
+            _thumbnailImageList.Images.Add("SortDown", MapBitmapColor(ParentView.CachedResources.SortDownGlyph, Color.Black,
                                                                      Common.ShellUtil.GetVSColor(Shell.Interop.__VSSYSCOLOREX3.VSCOLOR_GRAYTEXT, SystemColors.GrayText, UseVSTheme:=False)))
 
             'We need to set the transparent color of the ImageList, or the selection 
             '  rectangle trick used in CreateThumbnail will not work.
-            m_ThumbnailImageList.TransparentColor = Common.ShellUtil.GetVSColor(Shell.Interop.__VSSYSCOLOREX3.VSCOLOR_WINDOW, SystemColors.Window, UseVSTheme:=False)
+            _thumbnailImageList.TransparentColor = Common.ShellUtil.GetVSColor(Shell.Interop.__VSSYSCOLOREX3.VSCOLOR_WINDOW, SystemColors.Window, UseVSTheme:=False)
 
             'Color depth
-            m_ThumbnailImageList.ColorDepth = ColorDepth.Depth16Bit
+            _thumbnailImageList.ColorDepth = ColorDepth.Depth16Bit
 
             'New thumbnail cache based on this imagelist
-            m_ThumbnailCache = New ThumbnailCache(m_ThumbnailImageList)
+            _thumbnailCache = New ThumbnailCache(_thumbnailImageList)
 
             'Go through all resources, and pick out the ones which belong to the specified category, 
             '  and add them to our virtual list
@@ -418,48 +420,48 @@ Namespace Microsoft.VisualStudio.Editors.ResourceEditor
                 If Resource.GetCategory(Categories) Is CategoryToFilterOn Then
                     Debug.Assert(Not Resource.ResourceTypeEditor.DisplayInStringTable,
                             "Why are we trying to display this type of resource in a listview?")
-                    m_VirtualResourceList.Add(Resource)
+                    _virtualResourceList.Add(Resource)
                 End If
             Next
 
             ' restore sort order
-            m_Sorter = TryCast(CategoryToFilterOn.Sorter, DetailViewSorter)
-            If m_Sorter Is Nothing Then
-                m_Sorter = New DetailViewSorter(0, False)
-                CategoryToFilterOn.Sorter = m_Sorter
+            _sorter = TryCast(CategoryToFilterOn.Sorter, DetailViewSorter)
+            If _sorter Is Nothing Then
+                _sorter = New DetailViewSorter(0, False)
+                CategoryToFilterOn.Sorter = _sorter
             End If
 
             ' Clear old column header sort indicator
-            For columnIndex As Integer = 0 To DETAIL_VIEW_COLUMN_COUNT - 1
+            For columnIndex As Integer = 0 To s_DETAIL_VIEW_COLUMN_COUNT - 1
                 ClearColumnSortImage(columnIndex)
             Next
 
             ' Set column header sort indicator
-            SetColumnSortImage(m_Sorter.ColumnIndex, m_Sorter.InReverseOrder)
+            SetColumnSortImage(_sorter.ColumnIndex, _sorter.InReverseOrder)
 
             'Sort the list alphabetically to start with (when the user adds new entries later, we'll
             '  add them to the list at the end)
-            m_VirtualResourceList.Sort(m_Sorter)
+            _virtualResourceList.Sort(_sorter)
 
             'Set the base listview's correct imagelist property to point to the imagelist we have created
             If View = ResourceView.Thumbnail Then
                 MyBase.SmallImageList = Nothing
-                MyBase.LargeImageList = m_ThumbnailImageList
+                MyBase.LargeImageList = _thumbnailImageList
             Else
                 MyBase.LargeImageList = Nothing
-                MyBase.SmallImageList = m_ThumbnailImageList
+                MyBase.SmallImageList = _thumbnailImageList
             End If
 
             'Set up the state imagelist (for displaying error glyphs next to the listview items)
-            m_StateImageList = New ImageList()
-            m_StateImageList.ColorDepth = ColorDepth.Depth8Bit
-            m_StateImageList.ImageSize = ParentView.CachedResources.ErrorGlyphState.Size
-            m_StateImageList.Images.Add(ParentView.CachedResources.ErrorGlyphState)
-            MyBase.StateImageList = m_StateImageList
+            _stateImageList = New ImageList()
+            _stateImageList.ColorDepth = ColorDepth.Depth8Bit
+            _stateImageList.ImageSize = ParentView.CachedResources.ErrorGlyphState.Size
+            _stateImageList.Images.Add(ParentView.CachedResources.ErrorGlyphState)
+            MyBase.StateImageList = _stateImageList
 
             'Finally, let the base listview know how many resources it has, so it can start
             '  querying us for info on them.
-            MyBase.VirtualListSize = m_VirtualResourceList.Count
+            MyBase.VirtualListSize = _virtualResourceList.Count
 
             ParentView.RootDesigner.InvalidateFindLoop(False)
         End Sub
@@ -475,12 +477,12 @@ Namespace Microsoft.VisualStudio.Editors.ResourceEditor
         ''' <remarks></remarks>
         Public Sub InvalidateResource(ByVal Resource As Resource, Optional ByVal InvalidateThumbnail As Boolean = False)
             Debug.Assert(Resource IsNot Nothing)
-            If Not m_VirtualResourceList.Contains(Resource) Then
+            If Not _virtualResourceList.Contains(Resource) Then
                 Exit Sub
             End If
 
             If InvalidateThumbnail Then
-                m_ThumbnailCache.InvalidateThumbnail(Resource)
+                _thumbnailCache.InvalidateThumbnail(Resource)
             End If
 
             Dim ItemIndex As Integer = IndexOf(Resource)
@@ -543,7 +545,7 @@ Namespace Microsoft.VisualStudio.Editors.ResourceEditor
                         Else
                             'Validation failed.
                             e.CancelEdit = True
-                            If Not m_CancelLabelEditIfValidationFails Then
+                            If Not _cancelLabelEditIfValidationFails Then
                                 ParentView.DsMsgBox(Exception)
                             End If
                         End If
@@ -584,8 +586,8 @@ Namespace Microsoft.VisualStudio.Editors.ResourceEditor
             If ParentView.IsInEditing Then
                 ' Don't do this if we are not in edit mode. The function will refresh the window...
                 'If name change validation fails, we want this to fail silently
-                Dim CancelLabelEditIfValidationFailsSave As Boolean = m_CancelLabelEditIfValidationFails
-                m_CancelLabelEditIfValidationFails = True
+                Dim CancelLabelEditIfValidationFailsSave As Boolean = _cancelLabelEditIfValidationFails
+                _cancelLabelEditIfValidationFails = True
                 Try
                     'The user might be in the middle of editing a resource name via editing the listview item's
                     '  label.  The easiest way to force this to commit is to flip the LabelEdit property off/on.
@@ -593,7 +595,7 @@ Namespace Microsoft.VisualStudio.Editors.ResourceEditor
                     LabelEdit = False
                     LabelEdit = True
                 Finally
-                    m_CancelLabelEditIfValidationFails = CancelLabelEditIfValidationFailsSave
+                    _cancelLabelEditIfValidationFails = CancelLabelEditIfValidationFailsSave
                 End Try
             End If
         End Sub
@@ -605,10 +607,10 @@ Namespace Microsoft.VisualStudio.Editors.ResourceEditor
         ''' <param name="e">Event args</param>
         ''' <remarks></remarks>
         Protected Overrides Sub OnColumnClick(ByVal e As ColumnClickEventArgs)
-            If e.Column <> m_Sorter.ColumnIndex Then
+            If e.Column <> _sorter.ColumnIndex Then
                 SortOnColumn(e.Column, False)
             Else
-                SortOnColumn(e.Column, Not m_Sorter.InReverseOrder)
+                SortOnColumn(e.Column, Not _sorter.InReverseOrder)
             End If
 
             MyBase.OnColumnClick(e)
@@ -654,16 +656,16 @@ Namespace Microsoft.VisualStudio.Editors.ResourceEditor
                     SelectedIndices.Clear()
 
                     ' clear the old indicator
-                    ClearColumnSortImage(m_Sorter.ColumnIndex)
+                    ClearColumnSortImage(_sorter.ColumnIndex)
 
-                    m_Sorter.ColumnIndex = columnIndex
-                    m_Sorter.InReverseOrder = inReverseOrder
+                    _sorter.ColumnIndex = columnIndex
+                    _sorter.InReverseOrder = inReverseOrder
 
                     ' set new sort indicator
                     SetColumnSortImage(columnIndex, inReverseOrder)
 
                     ' Sort the virtual list...ReferenceList.Sort()
-                    m_VirtualResourceList.Sort(m_Sorter)
+                    _virtualResourceList.Sort(_sorter)
 
                 Finally
                     EndUpdate()
@@ -702,9 +704,9 @@ Namespace Microsoft.VisualStudio.Editors.ResourceEditor
                     .fmt = Interop.win.HDF_STRING Or Interop.win.HDF_IMAGE Or Interop.win.HDF_BITMAP_ON_RIGHT
 
                     If inReverseOrder Then
-                        .iImage = IMAGELIST_INDEX_SORT_DOWN
+                        .iImage = s_IMAGELIST_INDEX_SORT_DOWN
                     Else
-                        .iImage = IMAGELIST_INDEX_SORT_UP
+                        .iImage = s_IMAGELIST_INDEX_SORT_UP
                     End If
                 End With
 
@@ -753,14 +755,14 @@ Namespace Microsoft.VisualStudio.Editors.ResourceEditor
             MyBase.OnSystemColorsChanged(e)
 
             ' Update sort indicator...
-            m_ThumbnailImageList.Images.Item(IMAGELIST_INDEX_SORT_UP) = MapBitmapColor(ParentView.CachedResources.SortUpGlyph, Color.Black,
+            _thumbnailImageList.Images.Item(s_IMAGELIST_INDEX_SORT_UP) = MapBitmapColor(ParentView.CachedResources.SortUpGlyph, Color.Black,
                                                                                        Common.ShellUtil.GetVSColor(Shell.Interop.__VSSYSCOLOREX3.VSCOLOR_GRAYTEXT, SystemColors.GrayText, UseVSTheme:=False))
-            m_ThumbnailImageList.Images.Item(IMAGELIST_INDEX_SORT_DOWN) = MapBitmapColor(ParentView.CachedResources.SortDownGlyph, Color.Black,
+            _thumbnailImageList.Images.Item(s_IMAGELIST_INDEX_SORT_DOWN) = MapBitmapColor(ParentView.CachedResources.SortDownGlyph, Color.Black,
                                                                                          Common.ShellUtil.GetVSColor(Shell.Interop.__VSSYSCOLOREX3.VSCOLOR_GRAYTEXT, SystemColors.GrayText, UseVSTheme:=False))
 
             ' Reset column header sort indicator
-            If Me.View = ResourceView.Details AndAlso m_Sorter IsNot Nothing Then
-                SetColumnSortImage(m_Sorter.ColumnIndex, m_Sorter.InReverseOrder)
+            If Me.View = ResourceView.Details AndAlso _sorter IsNot Nothing Then
+                SetColumnSortImage(_sorter.ColumnIndex, _sorter.InReverseOrder)
             End If
         End Sub
 
@@ -781,7 +783,7 @@ Namespace Microsoft.VisualStudio.Editors.ResourceEditor
         Protected Overrides Sub OnCacheVirtualItems(ByVal e As System.Windows.Forms.CacheVirtualItemsEventArgs)
             MyBase.OnCacheVirtualItems(e)
 
-            If m_ThumbnailCache IsNot Nothing Then
+            If _thumbnailCache IsNot Nothing Then
                 Const AbsoluteMinimumCacheSize As Integer = 30
 
                 'First, set up the minimum working set - the number of pictures we're expecting the listview to
@@ -792,8 +794,8 @@ Namespace Microsoft.VisualStudio.Editors.ResourceEditor
                 'NOTE: OnCacheVirtualItems often called with a range of items (or one item) it needs paint, (but not a whole page.)
                 '  We should never shrink the cache size because of this. 
                 Dim cacheSize As Integer = Math.Max(e.EndIndex - e.StartIndex + 1, AbsoluteMinimumCacheSize)
-                If cacheSize > m_ThumbnailCache.MinimumSizeBeforeRecycling Then
-                    m_ThumbnailCache.MinimumSizeBeforeRecycling = cacheSize
+                If cacheSize > _thumbnailCache.MinimumSizeBeforeRecycling Then
+                    _thumbnailCache.MinimumSizeBeforeRecycling = cacheSize
 
                     'Now we determine a maximum cache size.  This selection is somewhat arbitrary, but can be
                     '  fine-tuned as we get experience to give the best performance/memory balance.
@@ -806,9 +808,9 @@ Namespace Microsoft.VisualStudio.Editors.ResourceEditor
                     Const PagesInCache As Integer = 5
                     Const PagesInCachDetailView As Integer = 20
                     If Me.View = ResourceView.Details Then
-                        m_ThumbnailCache.MaximumSuggestedCacheSize = m_ThumbnailCache.MinimumSizeBeforeRecycling * PagesInCachDetailView
+                        _thumbnailCache.MaximumSuggestedCacheSize = _thumbnailCache.MinimumSizeBeforeRecycling * PagesInCachDetailView
                     Else
-                        m_ThumbnailCache.MaximumSuggestedCacheSize = m_ThumbnailCache.MinimumSizeBeforeRecycling * PagesInCache
+                        _thumbnailCache.MaximumSuggestedCacheSize = _thumbnailCache.MinimumSizeBeforeRecycling * PagesInCache
                     End If
                 End If
 
@@ -825,46 +827,46 @@ Namespace Microsoft.VisualStudio.Editors.ResourceEditor
         ''' <param name="EndIndex"></param>
         ''' <remarks></remarks>
         Private Sub RequireCacheImage(ByVal StartIndex As Integer, ByVal EndIndex As Integer)
-            If Not m_OnIdleEnabled Then
-                m_ImageStartIndex = StartIndex
-                m_ImageEndIndex = EndIndex
+            If Not _onIdleEnabled Then
+                _imageStartIndex = StartIndex
+                _imageEndIndex = EndIndex
 
                 ' only hook up the idle message when it is necessary...
-                While m_ImageStartIndex <= m_ImageEndIndex
-                    Dim Resource As Resource = GetResourceFromVirtualIndex(m_ImageStartIndex)
-                    If Resource IsNot Nothing AndAlso Not m_ThumbnailCache.IsThumbnailInCache(Resource) Then
-                        m_IdleProcessingIndex = m_ImageStartIndex
+                While _imageStartIndex <= _imageEndIndex
+                    Dim Resource As Resource = GetResourceFromVirtualIndex(_imageStartIndex)
+                    If Resource IsNot Nothing AndAlso Not _thumbnailCache.IsThumbnailInCache(Resource) Then
+                        _idleProcessingIndex = _imageStartIndex
                         AddHandler System.Windows.Forms.Application.Idle, AddressOf OnDelayLoadImages
-                        m_OnIdleEnabled = True
+                        _onIdleEnabled = True
 
                         ' suspend delaying checking for performance...
                         ResourceFile.SuspendDelayingCheckingForErrors(True)
                         Return
                     End If
-                    m_ImageStartIndex = m_ImageStartIndex + 1
+                    _imageStartIndex = _imageStartIndex + 1
                 End While
             Else
                 ' Try to merge...
-                If StartIndex <= m_ImageEndIndex + 1 AndAlso EndIndex >= m_ImageStartIndex - 1 Then
-                    m_ImageStartIndex = Math.Min(StartIndex, m_ImageStartIndex)
-                    m_ImageEndIndex = Math.Max(EndIndex, m_ImageEndIndex)
-                    If Not m_NeedLoadVisibleItem Then
-                        m_IdleProcessingIndex = StartIndex
+                If StartIndex <= _imageEndIndex + 1 AndAlso EndIndex >= _imageStartIndex - 1 Then
+                    _imageStartIndex = Math.Min(StartIndex, _imageStartIndex)
+                    _imageEndIndex = Math.Max(EndIndex, _imageEndIndex)
+                    If Not _needLoadVisibleItem Then
+                        _idleProcessingIndex = StartIndex
                     End If
                     Return
                 End If
 
                 ' If we can't merge to the current job, we push one to the stack.
-                If m_CacheRequirementStack Is Nothing Then
-                    m_CacheRequirementStack = New Stack()
+                If _cacheRequirementStack Is Nothing Then
+                    _cacheRequirementStack = New Stack()
                 End If
 
                 ' Push the old items into the stack, so we can process new items first...
-                m_CacheRequirementStack.Push(New ImageCacheRequirement(m_ImageStartIndex, m_ImageEndIndex))
+                _cacheRequirementStack.Push(New ImageCacheRequirement(_imageStartIndex, _imageEndIndex))
 
-                m_ImageStartIndex = StartIndex
-                m_ImageEndIndex = EndIndex
-                m_IdleProcessingIndex = m_ImageStartIndex
+                _imageStartIndex = StartIndex
+                _imageEndIndex = EndIndex
+                _idleProcessingIndex = _imageStartIndex
             End If
         End Sub
 
@@ -873,10 +875,10 @@ Namespace Microsoft.VisualStudio.Editors.ResourceEditor
         ''' </summary>
         ''' <remarks></remarks>
         Private Sub StopIdleMessage()
-            If m_OnIdleEnabled Then
-                m_CacheRequirementStack = Nothing
+            If _onIdleEnabled Then
+                _cacheRequirementStack = Nothing
                 RemoveHandler System.Windows.Forms.Application.Idle, AddressOf OnDelayLoadImages
-                m_OnIdleEnabled = False
+                _onIdleEnabled = False
 
                 ResourceFile.SuspendDelayingCheckingForErrors(False)
             End If
@@ -890,43 +892,43 @@ Namespace Microsoft.VisualStudio.Editors.ResourceEditor
         ''' <param name="e">Event arguments</param>
         ''' <remarks></remarks>
         Private Sub OnDelayLoadImages(ByVal sender As Object, ByVal e As EventArgs)
-            Debug.Assert(m_ThumbnailCache IsNot Nothing)
-            m_NeedLoadVisibleItem = False
-            If m_ThumbnailCache IsNot Nothing Then
+            Debug.Assert(_thumbnailCache IsNot Nothing)
+            _needLoadVisibleItem = False
+            If _thumbnailCache IsNot Nothing Then
                 Dim moreCacheRequirement As Boolean = True
                 While moreCacheRequirement
-                    If m_ImageStartIndex < 0 Then
+                    If _imageStartIndex < 0 Then
                         Debug.Fail("why m_ImageStartIndex < 0")
-                        m_ImageStartIndex = 0
+                        _imageStartIndex = 0
                     End If
-                    If m_ImageStartIndex < m_VirtualResourceList.Count Then
+                    If _imageStartIndex < _virtualResourceList.Count Then
                         ' Make sure everything is under the limitation of the virtual item list...
-                        If m_ImageEndIndex >= m_VirtualResourceList.Count Then
-                            m_ImageEndIndex = m_VirtualResourceList.Count - 1
+                        If _imageEndIndex >= _virtualResourceList.Count Then
+                            _imageEndIndex = _virtualResourceList.Count - 1
                         End If
 
-                        If m_IdleProcessingIndex < m_ImageStartIndex OrElse m_IdleProcessingIndex > m_ImageEndIndex Then
-                            m_IdleProcessingIndex = m_ImageStartIndex
+                        If _idleProcessingIndex < _imageStartIndex OrElse _idleProcessingIndex > _imageEndIndex Then
+                            _idleProcessingIndex = _imageStartIndex
                         End If
 
                         ' We could start from the middle of the range (to update FocusedItem first...)
-                        Dim LoopStartIndex As Integer = m_IdleProcessingIndex
-                        Dim i As Integer = m_IdleProcessingIndex
+                        Dim LoopStartIndex As Integer = _idleProcessingIndex
+                        Dim i As Integer = _idleProcessingIndex
                         Dim nextItem As Integer
                         Do
                             nextItem = i + 1
-                            If nextItem > m_ImageEndIndex Then
-                                nextItem = m_ImageStartIndex
+                            If nextItem > _imageEndIndex Then
+                                nextItem = _imageStartIndex
                             End If
-                            m_IdleProcessingIndex = nextItem    ' We need keep the position where we start in the next idle message
+                            _idleProcessingIndex = nextItem    ' We need keep the position where we start in the next idle message
                             ' m_IdleProcessingIndex could be updated when ListView reentry us in GetItemRect.
 
                             ' We skip items out of the View Port...
                             Dim itemRectangle As Rectangle = MyBase.GetItemRect(i)
                             If itemRectangle.IntersectsWith(Me.ClientRectangle) Then
                                 Dim Resource As Resource = GetResourceFromVirtualIndex(i)
-                                If Resource IsNot Nothing AndAlso Not m_ThumbnailCache.IsThumbnailInCache(Resource) Then
-                                    If GetThumbnailIndex(Resource, False) <> IMAGELIST_INDEX_NEED_LOAD Then
+                                If Resource IsNot Nothing AndAlso Not _thumbnailCache.IsThumbnailInCache(Resource) Then
+                                    If GetThumbnailIndex(Resource, False) <> s_IMAGELIST_INDEX_NEED_LOAD Then
                                         Invalidate(itemRectangle)
                                     End If
                                     Exit Sub
@@ -939,11 +941,11 @@ Namespace Microsoft.VisualStudio.Editors.ResourceEditor
 
                     ' If we have done with the current block of images, we need handle other block in the stack...
                     moreCacheRequirement = False
-                    If m_CacheRequirementStack IsNot Nothing AndAlso m_CacheRequirementStack.Count > 0 Then
-                        Dim requirement As ImageCacheRequirement = DirectCast(m_CacheRequirementStack.Pop(), ImageCacheRequirement)
-                        m_ImageStartIndex = requirement.StartIndex
-                        m_ImageEndIndex = requirement.EndIndex
-                        m_IdleProcessingIndex = m_ImageStartIndex
+                    If _cacheRequirementStack IsNot Nothing AndAlso _cacheRequirementStack.Count > 0 Then
+                        Dim requirement As ImageCacheRequirement = DirectCast(_cacheRequirementStack.Pop(), ImageCacheRequirement)
+                        _imageStartIndex = requirement.StartIndex
+                        _imageEndIndex = requirement.EndIndex
+                        _idleProcessingIndex = _imageStartIndex
                         moreCacheRequirement = True
                     End If
                 End While
@@ -976,7 +978,7 @@ Namespace Microsoft.VisualStudio.Editors.ResourceEditor
                 Exit Sub
             End If
 
-            If m_ThumbnailCache Is Nothing OrElse m_ThumbnailImageList Is Nothing OrElse e.ItemIndex >= m_VirtualResourceList.Count Then
+            If _thumbnailCache Is Nothing OrElse _thumbnailImageList Is Nothing OrElse e.ItemIndex >= _virtualResourceList.Count Then
                 Debug.Fail("RetrieveVirtualItem: shouldn't be in here right now")
                 e.Item = New ListViewItem 'defensive
                 Exit Sub
@@ -996,13 +998,13 @@ Namespace Microsoft.VisualStudio.Editors.ResourceEditor
             '  thumbnail.
             Dim ImageListIndex As Integer = GetThumbnailIndex(Resource, True)
 
-            If ImageListIndex = IMAGELIST_INDEX_NEED_LOAD Then
+            If ImageListIndex = s_IMAGELIST_INDEX_NEED_LOAD Then
                 ' Delay load the image...
                 DelayLoadingValue = True
-                If e.ItemIndex >= m_ImageStartIndex AndAlso e.ItemIndex <= m_ImageEndIndex Then
-                    If Not m_NeedLoadVisibleItem Then
-                        m_IdleProcessingIndex = e.ItemIndex
-                        m_NeedLoadVisibleItem = True
+                If e.ItemIndex >= _imageStartIndex AndAlso e.ItemIndex <= _imageEndIndex Then
+                    If Not _needLoadVisibleItem Then
+                        _idleProcessingIndex = e.ItemIndex
+                        _needLoadVisibleItem = True
                     End If
                 Else
                     RequireCacheImage(e.ItemIndex, e.ItemIndex)
@@ -1017,7 +1019,7 @@ Namespace Microsoft.VisualStudio.Editors.ResourceEditor
             If ResourceFile.ResourceHasTasks(Resource) Then
                 'This resource has some task list items.  Need to set its state to
                 '  show the error glyph.
-                e.Item.StateImageIndex = STATEIMAGELIST_INDEX_ERROR
+                e.Item.StateImageIndex = s_STATEIMAGELIST_INDEX_ERROR
             End If
 
             'We also need to fill in the sub items (the additional columns in a details view)
@@ -1104,17 +1106,17 @@ Namespace Microsoft.VisualStudio.Editors.ResourceEditor
         Private Function GetThumbnailIndex(ByVal Resource As Resource, ByVal AllowDelayLoading As Boolean) As Integer
             'Verify that the error glyphs aren't too big (we don't expand them, so being too small
             '  is okay)
-            Debug.Assert(ParentView.CachedResources.ErrorGlyphLarge.Size.Width <= LargeImageWidthHeight _
-                AndAlso ParentView.CachedResources.ErrorGlyphLarge.Size.Height <= LargeImageWidthHeight,
+            Debug.Assert(ParentView.CachedResources.ErrorGlyphLarge.Size.Width <= _largeImageWidthHeight _
+                AndAlso ParentView.CachedResources.ErrorGlyphLarge.Size.Height <= _largeImageWidthHeight,
                 "Large error glyph is too big")
-            Debug.Assert(ParentView.CachedResources.ErrorGlyphSmall.Size.Width <= SmallImageWidthHeight _
-                AndAlso ParentView.CachedResources.ErrorGlyphSmall.Size.Height <= SmallImageWidthHeight,
+            Debug.Assert(ParentView.CachedResources.ErrorGlyphSmall.Size.Width <= _smallImageWidthHeight _
+                AndAlso ParentView.CachedResources.ErrorGlyphSmall.Size.Height <= _smallImageWidthHeight,
                 "Small error glyph is too big")
 
             'Do we already have a thumbnail cached for this object (and is it stil valid)?
             Dim Found As Boolean
             Dim Index As Integer
-            m_ThumbnailCache.GetCachedImageListIndex(Resource, Found, Index)
+            _thumbnailCache.GetCachedImageListIndex(Resource, Found, Index)
             If Found Then
                 'Yes - return the cached index
                 Return Index
@@ -1126,7 +1128,7 @@ Namespace Microsoft.VisualStudio.Editors.ResourceEditor
             Dim ThumbnailSourceImage As Image
             Dim IsSharedImage As Boolean = Resource.ResourceTypeEditor.IsImageForThumbnailShared
             If Not IsSharedImage AndAlso AllowDelayLoading Then
-                Return IMAGELIST_INDEX_NEED_LOAD
+                Return s_IMAGELIST_INDEX_NEED_LOAD
             Else
                 Try
                     ThumbnailSourceImage = Resource.ResourceTypeEditor.GetImageForThumbnail(Resource, Me.BackColor)
@@ -1151,17 +1153,17 @@ Namespace Microsoft.VisualStudio.Editors.ResourceEditor
 
             If IsSharedImage Then
                 ' Try to reuse the image in the list first.
-                m_ThumbnailCache.GetCachedImageListIndex(ThumbnailSourceImage, Found, Index)
+                _thumbnailCache.GetCachedImageListIndex(ThumbnailSourceImage, Found, Index)
                 If Found Then
                     'Yes - return the cached index
-                    m_ThumbnailCache.ReuseSharedImage(Resource, Index)
+                    _thumbnailCache.ReuseSharedImage(Resource, Index)
                     Return Index
                 End If
             End If
 
 
             'Create a thumbnail of the correct size for the image.
-            Dim ThumbnailSize As Size = m_ThumbnailImageList.ImageSize
+            Dim ThumbnailSize As Size = _thumbnailImageList.ImageSize
             Dim Thumbnail As Bitmap
 
             Try
@@ -1169,7 +1171,7 @@ Namespace Microsoft.VisualStudio.Editors.ResourceEditor
                 Dim DrawBorder As Boolean = (Me.View = ResourceView.Thumbnail)
 
                 'NOTE: This is a slow operation, we should prevent to do so if it is possible...
-                Thumbnail = CreateThumbnail(ThumbnailSourceImage, ThumbnailSize, DrawBorder, BorderWidth, SelectionBorderWidth, m_ThumbnailImageList.TransparentColor)
+                Thumbnail = CreateThumbnail(ThumbnailSourceImage, ThumbnailSize, DrawBorder, _borderWidth, _selectionBorderWidth, _thumbnailImageList.TransparentColor)
             Catch ex As Exception
                 Debug.Fail("Failed creating thumbnail")
                 Thumbnail = Nothing
@@ -1178,13 +1180,13 @@ Namespace Microsoft.VisualStudio.Editors.ResourceEditor
                 If Thumbnail Is Nothing Then
                     'We'd prefer not to use this, but since CreateThumbnail isn't working, we have no choice.  Trouble is,
                     '  every call to GetThumbnailIndex() will retry to create the thumbnail.  But now we have no choice.
-                    Return IMAGELIST_INDEX_ERROR
+                    Return s_IMAGELIST_INDEX_ERROR
                 ElseIf IsSharedImage Then
-                    Index = m_ThumbnailCache.Add(ThumbnailSourceImage, Thumbnail, True)
-                    m_ThumbnailCache.ReuseSharedImage(Resource, Index)
+                    Index = _thumbnailCache.Add(ThumbnailSourceImage, Thumbnail, True)
+                    _thumbnailCache.ReuseSharedImage(Resource, Index)
                     Return Index
                 Else
-                    Return m_ThumbnailCache.Add(Resource, Thumbnail, False)
+                    Return _thumbnailCache.Add(Resource, Thumbnail, False)
                 End If
             End Using
         End Function
@@ -1199,13 +1201,13 @@ Namespace Microsoft.VisualStudio.Editors.ResourceEditor
         ''' <returns>The Resource from that index.</returns>
         ''' <remarks>Throws an exception if out of bounds</remarks>
         Public Function GetResourceFromVirtualIndex(ByVal Index As Integer) As Resource
-            If Index < 0 OrElse Index >= m_VirtualResourceList.Count Then
+            If Index < 0 OrElse Index >= _virtualResourceList.Count Then
                 Debug.Fail("GetResourceFromVirtualIndex: virtual resource index out of bounds")
                 Return Nothing
             End If
 
-            Debug.Assert(TypeOf m_VirtualResourceList(Index) Is Resource)
-            Return DirectCast(m_VirtualResourceList(Index), Resource)
+            Debug.Assert(TypeOf _virtualResourceList(Index) Is Resource)
+            Return DirectCast(_virtualResourceList(Index), Resource)
         End Function
 
 
@@ -1217,7 +1219,7 @@ Namespace Microsoft.VisualStudio.Editors.ResourceEditor
         ''' <remarks>Returns -1 if not found.</remarks>
         Public Function IndexOf(ByVal Resource As Resource) As Integer
             Debug.Assert(Resource IsNot Nothing)
-            Return m_VirtualResourceList.IndexOf(Resource)
+            Return _virtualResourceList.IndexOf(Resource)
         End Function
 
 #End Region
@@ -1290,9 +1292,9 @@ Namespace Microsoft.VisualStudio.Editors.ResourceEditor
 
         Private Declare Auto Function SendMessage Lib "User32" (ByVal hWnd As IntPtr, ByVal msg As Integer, ByVal wParam As Integer, ByRef lParam As LVITEM) As IntPtr
 
-        Private Const LVIF_STATE As Integer = &H8
-        Private Const LVIS_SELECTED As Integer = &H2
-        Private Const LVM_SETITEMSTATE As Integer = (&H1000 + 43)
+        Private Const s_LVIF_STATE As Integer = &H8
+        Private Const s_LVIS_SELECTED As Integer = &H2
+        Private Const s_LVM_SETITEMSTATE As Integer = (&H1000 + 43)
 
 
         Private Sub SetItemState(ByVal index As Integer, ByVal state As Integer, ByVal mask As Integer)
@@ -1303,10 +1305,10 @@ Namespace Microsoft.VisualStudio.Editors.ResourceEditor
 
             If MyBase.Handle <> IntPtr.Zero Then
                 Dim lvi As New LVITEM
-                lvi.mask = LVIF_STATE
+                lvi.mask = s_LVIF_STATE
                 lvi.state = state
                 lvi.stateMask = mask
-                SendMessage(MyBase.Handle, LVM_SETITEMSTATE, index, lvi)
+                SendMessage(MyBase.Handle, s_LVM_SETITEMSTATE, index, lvi)
             End If
         End Sub
 
@@ -1317,9 +1319,9 @@ Namespace Microsoft.VisualStudio.Editors.ResourceEditor
             End If
 
             If Selected Then
-                SetItemState(ResourceIndex, LVIS_SELECTED, LVIS_SELECTED)
+                SetItemState(ResourceIndex, s_LVIS_SELECTED, s_LVIS_SELECTED)
             Else
-                SetItemState(ResourceIndex, 0, LVIS_SELECTED)
+                SetItemState(ResourceIndex, 0, s_LVIS_SELECTED)
             End If
         End Sub
 
@@ -1360,26 +1362,26 @@ Namespace Microsoft.VisualStudio.Editors.ResourceEditor
         ''' </remarks>
         Public Sub AddResources(ByVal Resources As IList)
             UnselectAll()
-            Debug.Assert(m_VirtualResourceList.Count = MyBase.VirtualListSize)
+            Debug.Assert(_virtualResourceList.Count = MyBase.VirtualListSize)
 
             ' Select the last item, or the list view could scroll a lot when we add a new item to it.
-            If m_VirtualResourceList.Count > 0 Then
-                Me.FocusedItem = Items(m_VirtualResourceList.Count - 1)
+            If _virtualResourceList.Count > 0 Then
+                Me.FocusedItem = Items(_virtualResourceList.Count - 1)
             End If
 
             'Alphabetize
             Dim AlphabetizedResources As New ArrayList(Resources)
-            AlphabetizedResources.Sort(m_Sorter)
+            AlphabetizedResources.Sort(_sorter)
 
             '... and add them to the end of the list.
-            Dim DisableItemRetrievalSave As Boolean = m_DisableItemRetrieval
-            m_DisableItemRetrieval = True
+            Dim DisableItemRetrievalSave As Boolean = _disableItemRetrieval
+            _disableItemRetrieval = True
             Try
                 For Each NewResource As Resource In AlphabetizedResources
                     'First verify that the resource is really in our ResourceFile and that it's not already been added
-                    If Not m_VirtualResourceList.Contains(NewResource) Then
+                    If Not _virtualResourceList.Contains(NewResource) Then
                         If ResourceFile.Contains(NewResource) Then
-                            m_VirtualResourceList.Add(NewResource)
+                            _virtualResourceList.Add(NewResource)
                         Else
                             Debug.Fail("Trying to add a resource to the listview that's not in the ResourceFile")
                         End If
@@ -1388,11 +1390,11 @@ Namespace Microsoft.VisualStudio.Editors.ResourceEditor
                     End If
                 Next
             Finally
-                m_DisableItemRetrieval = DisableItemRetrievalSave
+                _disableItemRetrieval = DisableItemRetrievalSave
             End Try
 
             'Update the virtual count and redraw with the new entries.
-            MyBase.VirtualListSize = m_VirtualResourceList.Count
+            MyBase.VirtualListSize = _virtualResourceList.Count
             MyBase.Invalidate()
         End Sub
 
@@ -1405,21 +1407,21 @@ Namespace Microsoft.VisualStudio.Editors.ResourceEditor
         ''' <remarks></remarks>
         Public Sub RemoveResources(ByVal Resources As IList)
             UnselectAll()
-            Debug.Assert(m_VirtualResourceList.Count = MyBase.VirtualListSize)
+            Debug.Assert(_virtualResourceList.Count = MyBase.VirtualListSize)
 
-            Dim DisableItemRetrievalSave As Boolean = m_DisableItemRetrieval
-            m_DisableItemRetrieval = True
+            Dim DisableItemRetrievalSave As Boolean = _disableItemRetrieval
+            _disableItemRetrieval = True
             Try
                 For Each Resource As Resource In Resources
-                    If m_VirtualResourceList.Contains(Resource) Then
-                        m_VirtualResourceList.Remove(Resource)
+                    If _virtualResourceList.Contains(Resource) Then
+                        _virtualResourceList.Remove(Resource)
                     End If
                 Next
             Finally
-                m_DisableItemRetrieval = DisableItemRetrievalSave
+                _disableItemRetrieval = DisableItemRetrievalSave
             End Try
 
-            MyBase.VirtualListSize = m_VirtualResourceList.Count
+            MyBase.VirtualListSize = _virtualResourceList.Count
             MyBase.Invalidate()
         End Sub
 
@@ -1432,12 +1434,12 @@ Namespace Microsoft.VisualStudio.Editors.ResourceEditor
             Implements IComparer
 
             ' which column is used to sort the list
-            Private m_columnIndex As Integer
-            Private m_reverseOrder As Boolean
+            Private _columnIndex As Integer
+            Private _reverseOrder As Boolean
 
             Public Sub New(ByVal columnIndex As Integer, ByVal reverseOrder As Boolean)
-                m_columnIndex = columnIndex
-                m_reverseOrder = reverseOrder
+                _columnIndex = columnIndex
+                _reverseOrder = reverseOrder
             End Sub
 
             ''' <Summary>
@@ -1445,10 +1447,10 @@ Namespace Microsoft.VisualStudio.Editors.ResourceEditor
             ''' </Summary>
             Friend Property ColumnIndex() As Integer
                 Get
-                    Return m_columnIndex
+                    Return _columnIndex
                 End Get
                 Set(ByVal value As Integer)
-                    m_columnIndex = value
+                    _columnIndex = value
                 End Set
             End Property
 
@@ -1457,10 +1459,10 @@ Namespace Microsoft.VisualStudio.Editors.ResourceEditor
             ''' </Summary>
             Friend Property InReverseOrder() As Boolean
                 Get
-                    Return m_reverseOrder
+                    Return _reverseOrder
                 End Get
                 Set(ByVal value As Boolean)
-                    m_reverseOrder = value
+                    _reverseOrder = value
                 End Set
             End Property
 
@@ -1468,11 +1470,11 @@ Namespace Microsoft.VisualStudio.Editors.ResourceEditor
             '''  Compare two list items
             ''' </Summary>
             Public Function Compare(ByVal x As Object, ByVal y As Object) As Integer Implements System.Collections.IComparer.Compare
-                Dim ret As Integer = String.Compare(GetColumnValue(x, m_columnIndex), GetColumnValue(y, m_columnIndex), StringComparison.CurrentCultureIgnoreCase)
-                If ret = 0 AndAlso m_columnIndex <> 0 Then
+                Dim ret As Integer = String.Compare(GetColumnValue(x, _columnIndex), GetColumnValue(y, _columnIndex), StringComparison.CurrentCultureIgnoreCase)
+                If ret = 0 AndAlso _columnIndex <> 0 Then
                     ret = String.Compare(GetColumnValue(x, 0), GetColumnValue(y, 0), StringComparison.CurrentCultureIgnoreCase)
                 End If
-                If m_reverseOrder Then
+                If _reverseOrder Then
                     ret = -ret
                 End If
                 Return ret

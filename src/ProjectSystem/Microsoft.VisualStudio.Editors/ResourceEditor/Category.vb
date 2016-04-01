@@ -1,3 +1,5 @@
+' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+
 Option Explicit On
 Option Strict On
 Option Compare Binary
@@ -36,17 +38,17 @@ Namespace Microsoft.VisualStudio.Editors.ResourceEditor
 
 
         'Backing for public properties
-        Private m_AssociatedResourceTypeEditors() As ResourceTypeEditor
-        Private m_CategoryDisplay As Display
-        Private ReadOnly m_LocalizedName As String
-        Private ReadOnly m_ProgrammaticName As String
-        Private m_ResourceCount As Integer = 0
-        Private m_ResourceView As ResourceListView.ResourceView = ResourceListView.ResourceView.Thumbnail
-        Private m_AllowNewEntriesInStringTable As Boolean 'applies only to Display.StringTable
-        Private m_ShowTypeColumnInStringTable As Boolean 'applies only to Display.StringTable
-        Private m_MenuCommand as MenuCommand
-        Private m_addCommand As EventHandler
-        Private m_Sorter As IComparer           ' how to sort resources in the category...
+        Private _associatedResourceTypeEditors() As ResourceTypeEditor
+        Private _categoryDisplay As Display
+        Private ReadOnly _localizedName As String
+        Private ReadOnly _programmaticName As String
+        Private _resourceCount As Integer = 0
+        Private _resourceView As ResourceListView.ResourceView = ResourceListView.ResourceView.Thumbnail
+        Private _allowNewEntriesInStringTable As Boolean 'applies only to Display.StringTable
+        Private _showTypeColumnInStringTable As Boolean 'applies only to Display.StringTable
+        Private _menuCommand as MenuCommand
+        Private _addCommand As EventHandler
+        Private _sorter As IComparer           ' how to sort resources in the category...
 
 
         '======================================================================
@@ -70,17 +72,17 @@ Namespace Microsoft.VisualStudio.Editors.ResourceEditor
             Debug.Assert(Not AssociatedResourceTypeEditors Is Nothing, "Must be at least one resource type editor per category.")
             Debug.Assert(MenuCommand IsNot Nothing, "You must supply a MenuCommand")
 
-            m_ProgrammaticName = ProgrammaticName
-            m_LocalizedName = LocalizedName
-            m_CategoryDisplay = CategoryDisplay
-            m_ShowTypeColumnInStringTable = False
-            m_MenuCommand = MenuCommand
-            Me.m_addCommand = addCommand
+            _programmaticName = ProgrammaticName
+            _localizedName = LocalizedName
+            _categoryDisplay = CategoryDisplay
+            _showTypeColumnInStringTable = False
+            _menuCommand = MenuCommand
+            Me._addCommand = addCommand
 
             If AssociatedResourceTypeEditors IsNot Nothing Then
-                m_AssociatedResourceTypeEditors = AssociatedResourceTypeEditors
+                _associatedResourceTypeEditors = AssociatedResourceTypeEditors
             Else
-                m_AssociatedResourceTypeEditors = New ResourceTypeEditor() {}
+                _associatedResourceTypeEditors = New ResourceTypeEditor() {}
             End If
         End Sub
 
@@ -101,7 +103,7 @@ Namespace Microsoft.VisualStudio.Editors.ResourceEditor
         ''' <remarks></remarks>
         Public ReadOnly Property AssociatedResourceTypeEditors() As ResourceTypeEditor()
             Get
-                Return m_AssociatedResourceTypeEditors
+                Return _associatedResourceTypeEditors
             End Get
         End Property
 
@@ -114,7 +116,7 @@ Namespace Microsoft.VisualStudio.Editors.ResourceEditor
         ''' <remarks></remarks>
         Public ReadOnly Property CategoryDisplay() As Display
             Get
-                Return m_CategoryDisplay
+                Return _categoryDisplay
             End Get
         End Property
 
@@ -126,7 +128,7 @@ Namespace Microsoft.VisualStudio.Editors.ResourceEditor
         ''' <remarks></remarks>
         Public ReadOnly Property CommandToShow() As MenuCommand
             Get
-                Return m_MenuCommand
+                Return _menuCommand
             End Get
         End Property
 
@@ -138,10 +140,10 @@ Namespace Microsoft.VisualStudio.Editors.ResourceEditor
         ''' <remarks></remarks>
         Public Property AddCommand() As EventHandler
             Get
-                Return m_addCommand
+                Return _addCommand
             End Get
             Set(ByVal value As EventHandler)
-                m_addCommand = value
+                _addCommand = value
             End Set
         End Property
 
@@ -153,7 +155,7 @@ Namespace Microsoft.VisualStudio.Editors.ResourceEditor
         ''' <remarks></remarks>
         Public ReadOnly Property LocalizedName() As String
             Get
-                Return m_LocalizedName
+                Return _localizedName
             End Get
         End Property
 
@@ -166,7 +168,7 @@ Namespace Microsoft.VisualStudio.Editors.ResourceEditor
         ''' <remarks></remarks>
         Public ReadOnly Property ProgrammaticName() As String
             Get
-                Return m_ProgrammaticName
+                Return _programmaticName
             End Get
         End Property
 
@@ -183,15 +185,15 @@ Namespace Microsoft.VisualStudio.Editors.ResourceEditor
         ''' </remarks>
         Public Property ResourceCount() As Integer
             Get
-                Return m_ResourceCount
+                Return _resourceCount
             End Get
             Set(ByVal Value As Integer)
                 Dim ResourcesExisted As Boolean = ResourcesExist
-                m_ResourceCount = Value
+                _resourceCount = Value
 
-                If m_ResourceCount < 0 Then
-                    Debug.Fail("Resources count is less than zero for category " & m_ProgrammaticName)
-                    m_ResourceCount = 0
+                If _resourceCount < 0 Then
+                    Debug.Fail("Resources count is less than zero for category " & _programmaticName)
+                    _resourceCount = 0
                 End If
 
                 If ResourcesExisted <> ResourcesExist Then
@@ -208,7 +210,7 @@ Namespace Microsoft.VisualStudio.Editors.ResourceEditor
         ''' <remarks></remarks>
         Public ReadOnly Property ResourcesExist() As Boolean
             Get
-                Return m_ResourceCount > 0
+                Return _resourceCount > 0
             End Get
         End Property
 
@@ -222,10 +224,10 @@ Namespace Microsoft.VisualStudio.Editors.ResourceEditor
         ''' <remarks></remarks>
         Public Property ResourceView() As ResourceListView.ResourceView
             Get
-                Return m_ResourceView
+                Return _resourceView
             End Get
             Set(ByVal Value As ResourceListView.ResourceView)
-                m_ResourceView = Value
+                _resourceView = Value
             End Set
         End Property
 
@@ -238,11 +240,11 @@ Namespace Microsoft.VisualStudio.Editors.ResourceEditor
         ''' <remarks></remarks>
         Public Property ShowTypeColumnInStringTable() As Boolean
             Get
-                Return m_ShowTypeColumnInStringTable
+                Return _showTypeColumnInStringTable
             End Get
             Set(ByVal Value As Boolean)
-                Debug.Assert(m_CategoryDisplay = Display.StringTable, "This property only applies to string table categories")
-                m_ShowTypeColumnInStringTable = Value
+                Debug.Assert(_categoryDisplay = Display.StringTable, "This property only applies to string table categories")
+                _showTypeColumnInStringTable = Value
             End Set
         End Property
 
@@ -253,10 +255,10 @@ Namespace Microsoft.VisualStudio.Editors.ResourceEditor
         ''' <remarks></remarks>
         Public Property Sorter() As IComparer
             Get
-                Return m_Sorter
+                Return _sorter
             End Get
             Set
-                m_Sorter = value
+                _sorter = value
             End Set
         End Property
 
@@ -269,17 +271,17 @@ Namespace Microsoft.VisualStudio.Editors.ResourceEditor
         ''' <remarks></remarks>
         Public Property AllowNewEntriesInStringTable() As Boolean
             Get
-                Return m_AllowNewEntriesInStringTable
+                Return _allowNewEntriesInStringTable
             End Get
             Set(ByVal Value As Boolean)
-                Debug.Assert(m_CategoryDisplay = Display.StringTable, "This property only applies to string table categories")
-                m_AllowNewEntriesInStringTable = Value
+                Debug.Assert(_categoryDisplay = Display.StringTable, "This property only applies to string table categories")
+                _allowNewEntriesInStringTable = Value
             End Set
         End Property
 
         Public Function Compare(ByVal Resource1 As Resource, ByVal Resource2 As Resource) As Integer
-            If m_Sorter IsNot Nothing
-                Return m_Sorter.Compare(Resource1, Resource2)
+            If _sorter IsNot Nothing
+                Return _sorter.Compare(Resource1, Resource2)
             Else
                 ' Name is the default order...
                 Return String.Compare(Resource1.Name, Resource2.Name, ignoreCase:=True, culture:=CultureInfo.CurrentUICulture)

@@ -1,3 +1,5 @@
+' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+
 Imports System.ComponentModel.Design
 
 Namespace Microsoft.VisualStudio.Editors.PropPageDesigner
@@ -16,7 +18,7 @@ Namespace Microsoft.VisualStudio.Editors.PropPageDesigner
         Implements IRootDesigner
 
         'The view associated with this root designer.
-        Private m_View As PropPageDesignerView
+        Private _view As PropPageDesignerView
 
         ''' <summary>
         ''' Returns the PropPageDesignerRootComponent component that is being edited by this designer.
@@ -73,11 +75,11 @@ Namespace Microsoft.VisualStudio.Editors.PropPageDesigner
                 Throw New ArgumentException("Not a supported view technology", "Technology")
             End If
 
-            If m_View Is Nothing Then
-                m_View = New PropPageDesignerView(Me)
+            If _view Is Nothing Then
+                _view = New PropPageDesignerView(Me)
             End If
 
-            Return m_View
+            Return _view
         End Function
 
         ''' <summary>
@@ -106,9 +108,9 @@ Namespace Microsoft.VisualStudio.Editors.PropPageDesigner
         ''' <remarks></remarks>
         Protected Overloads Overrides Sub Dispose(ByVal Disposing As Boolean)
             If Disposing Then
-                If m_View IsNot Nothing Then
-                    m_View.Dispose()
-                    m_View = Nothing
+                If _view IsNot Nothing Then
+                    _view.Dispose()
+                    _view = Nothing
                 End If
             End If
 

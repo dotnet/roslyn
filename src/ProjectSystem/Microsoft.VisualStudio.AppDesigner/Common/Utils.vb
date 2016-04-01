@@ -1,3 +1,5 @@
+' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+
 Imports System.ComponentModel.Design
 Imports System.Drawing
 Imports System.IO
@@ -18,7 +20,7 @@ Namespace Microsoft.VisualStudio.Editors.AppDesCommon
         Public VBPackageInstance As IVBPackage = Nothing
 
         ' The maximal amount of files that can be added at one shot. (copied from other VS features)
-        Const VSDPLMAXFILES As Integer = 200
+        Private Const s_VSDPLMAXFILES As Integer = 200
 
         'Property page GUIDs.  These are used only for sorting the tabs in the project designer, and for providing a
         '  unique ID for SQM.  Both cases are optional (we handle getting property pages with GUIDs we don't recognize).
@@ -490,7 +492,7 @@ Namespace Microsoft.VisualStudio.Editors.AppDesCommon
 
             Dim MaxPathName As Integer = AppDesInterop.win.MAX_PATH + 1
             If MutiSelect Then
-                MaxPathName = (AppDesInterop.win.MAX_PATH + 1) * VSDPLMAXFILES
+                MaxPathName = (AppDesInterop.win.MAX_PATH + 1) * s_VSDPLMAXFILES
             End If
 
             Dim vsOpenFileName As Shell.Interop.VSOPENFILENAMEW()
@@ -649,7 +651,7 @@ Namespace Microsoft.VisualStudio.Editors.AppDesCommon
             ' in this list. All unknown entries will be reported as &hFF
             '
             ' Add more entries to the end of this list. Do *not* put any new entries in the middle of the list!
-            Private Shared SqmOrder() As Guid = { _
+            Private Shared s_sqmOrder() As Guid = { _
                 KnownPropertyPageGuids.GuidApplicationPage_VB, _
                 KnownPropertyPageGuids.GuidApplicationPage_CS, _
                 KnownPropertyPageGuids.GuidApplicationPage_JS, _
@@ -687,8 +689,8 @@ Namespace Microsoft.VisualStudio.Editors.AppDesCommon
             ''' <returns></returns>
             ''' <remarks></remarks>
             Public Shared Function PageGuidToId(ByVal guid As Guid) As Byte
-                For i As Integer = 0 To SqmOrder.Length - 1
-                    If SqmOrder(i).Equals(guid) Then
+                For i As Integer = 0 To s_sqmOrder.Length - 1
+                    If s_sqmOrder(i).Equals(guid) Then
                         Return CByte(i + 1)
                     End If
                 Next

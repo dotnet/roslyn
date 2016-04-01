@@ -1,3 +1,5 @@
+' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+
 Namespace My.Resources
 
     'Hide the Microsoft_VisualStudio_Editors_Designer class.  To keep the .resources file

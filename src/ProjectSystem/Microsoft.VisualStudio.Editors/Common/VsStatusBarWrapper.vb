@@ -1,3 +1,5 @@
+' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+
 Option Strict On
 Option Explicit On
 Imports Microsoft.VisualStudio.Shell.Interop
@@ -13,48 +15,48 @@ Namespace Microsoft.VisualStudio.Editors.Common
         Public Sub New(ByVal vsStatusBar As IVsStatusbar)
             Debug.Assert(vsStatusBar IsNot Nothing, "Must provide IVsStatusBar!")
 
-            m_VsStatusBar = vsStatusBar
+            _vsStatusBar = vsStatusBar
         End Sub
 
         Public Sub StartProgress(ByVal label As String, ByVal total As Integer)
             Debug.Assert(total > 0, "total must > 0!")
-            m_VsStatusBarCookie = 0
-            m_Completed = 0
-            m_Total = total
-            m_VsStatusBar.Progress(m_VsStatusBarCookie, 1, label, CUInt(m_Completed), CUInt(m_Total))
+            _vsStatusBarCookie = 0
+            _completed = 0
+            _total = total
+            _vsStatusBar.Progress(_vsStatusBarCookie, 1, label, CUInt(_completed), CUInt(_total))
         End Sub
 
         Public Sub UpdateProgress(ByVal label As String)
-            Debug.Assert(m_VsStatusBarCookie > 0, "Haven't StartProgress!")
-            If m_VsStatusBarCookie = 0 Then
+            Debug.Assert(_vsStatusBarCookie > 0, "Haven't StartProgress!")
+            If _vsStatusBarCookie = 0 Then
                 Exit Sub
             End If
 
-            m_Completed += 1
-            Debug.Assert(m_Completed <= m_Total)
-            If m_Completed <= m_Total Then
-                m_VsStatusBar.Progress(m_VsStatusBarCookie, 1, label, CUInt(m_Completed), CUInt(m_Total))
+            _completed += 1
+            Debug.Assert(_completed <= _total)
+            If _completed <= _total Then
+                _vsStatusBar.Progress(_vsStatusBarCookie, 1, label, CUInt(_completed), CUInt(_total))
             End If
         End Sub
 
         Public Sub StopProgress(ByVal label As String)
-            Debug.Assert(m_VsStatusBarCookie > 0, "Haven't StartProgress!")
-            If m_VsStatusBarCookie = 0 Then
+            Debug.Assert(_vsStatusBarCookie > 0, "Haven't StartProgress!")
+            If _vsStatusBarCookie = 0 Then
                 Exit Sub
             End If
 
-            m_VsStatusBar.Progress(m_VsStatusBarCookie, 0, label, CUInt(m_Total), CUInt(m_Total))
+            _vsStatusBar.Progress(_vsStatusBarCookie, 0, label, CUInt(_total), CUInt(_total))
         End Sub
 
         Public Sub SetText(ByVal text As String)
-            m_VsStatusBar.SetText(text)
+            _vsStatusBar.SetText(text)
         End Sub
 
-        Private m_VsStatusBar As IVsStatusbar
+        Private _vsStatusBar As IVsStatusbar
 
-        Private m_VsStatusBarCookie As UInteger = 0
-        Private m_Total As Integer = 0
-        Private m_Completed As Integer
+        Private _vsStatusBarCookie As UInteger = 0
+        Private _total As Integer = 0
+        Private _completed As Integer
 
     End Class
 End Namespace

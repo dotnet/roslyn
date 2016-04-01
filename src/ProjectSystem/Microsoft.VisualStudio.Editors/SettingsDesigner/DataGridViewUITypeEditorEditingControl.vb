@@ -1,3 +1,5 @@
+' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+
 Imports System.Drawing.Design
 Imports System.Windows.Forms
 Imports Microsoft.VSDesigner.VSDesignerPackage
@@ -12,9 +14,9 @@ Namespace Microsoft.VisualStudio.Editors.SettingsDesigner
         Inherits TypeEditorHostControl
         Implements IDataGridViewEditingControl
 
-        Private m_DataGridView As DataGridView
-        Private m_RowIndex As Integer
-        Private m_valueChanged As Boolean
+        Private _dataGridView As DataGridView
+        Private _rowIndex As Integer
+        Private _valueChanged As Boolean
 
 #Region "DataGridView event handlers"
 
@@ -81,11 +83,11 @@ Namespace Microsoft.VisualStudio.Editors.SettingsDesigner
         ''' <remarks></remarks>
         Public Property DataGridView() As System.Windows.Forms.DataGridView Implements System.Windows.Forms.IDataGridViewEditingControl.EditingControlDataGridView
             Get
-                Return m_DataGridView
+                Return _dataGridView
             End Get
             Set(ByVal Value As System.Windows.Forms.DataGridView)
                 DisconnectDataGridViewEventHandlers()
-                m_DataGridView = Value
+                _dataGridView = Value
                 ConnectDataGridViewEventHandlers()
             End Set
         End Property
@@ -107,8 +109,8 @@ Namespace Microsoft.VisualStudio.Editors.SettingsDesigner
 
         Public ReadOnly Property IDataGridViewEditingPanel_Cursor() As System.Windows.Forms.Cursor Implements System.Windows.Forms.IDataGridViewEditingControl.EditingPanelCursor
             Get
-                If m_DataGridView IsNot Nothing Then
-                    Return m_DataGridView.Cursor
+                If _dataGridView IsNot Nothing Then
+                    Return _dataGridView.Cursor
                 Else
                     Return System.Windows.Forms.Cursor.Current
                 End If
@@ -137,10 +139,10 @@ Namespace Microsoft.VisualStudio.Editors.SettingsDesigner
 
         Public Property RowIndex() As Integer Implements System.Windows.Forms.IDataGridViewEditingControl.EditingControlRowIndex
             Get
-                Return m_RowIndex
+                Return _rowIndex
             End Get
             Set(ByVal Value As Integer)
-                m_RowIndex = Value
+                _rowIndex = Value
             End Set
         End Property
 
@@ -226,37 +228,37 @@ Namespace Microsoft.VisualStudio.Editors.SettingsDesigner
 
         Public Property ValueChanged() As Boolean Implements System.Windows.Forms.IDataGridViewEditingControl.EditingControlValueChanged
             Get
-                Return m_valueChanged
+                Return _valueChanged
             End Get
             Set(ByVal Value As Boolean)
-                m_valueChanged = Value
-                If m_DataGridView.CurrentCellAddress.X = -1 OrElse m_DataGridView.CurrentCellAddress.Y = -1 Then
-                    Debug.Assert(m_DataGridView.IsCurrentCellInEditMode, "Why did the value change when we aren't in edit mode!?")
-                    m_DataGridView.CurrentCell = m_DataGridView.Rows(RowIndex).Cells(3)
-                    Debug.Assert(m_DataGridView.CurrentCell IsNot Nothing AndAlso _
-                                 TypeOf m_DataGridView.CurrentCell Is DataGridViewUITypeEditorCell, _
+                _valueChanged = Value
+                If _dataGridView.CurrentCellAddress.X = -1 OrElse _dataGridView.CurrentCellAddress.Y = -1 Then
+                    Debug.Assert(_dataGridView.IsCurrentCellInEditMode, "Why did the value change when we aren't in edit mode!?")
+                    _dataGridView.CurrentCell = _dataGridView.Rows(RowIndex).Cells(3)
+                    Debug.Assert(_dataGridView.CurrentCell IsNot Nothing AndAlso _
+                                 TypeOf _dataGridView.CurrentCell Is DataGridViewUITypeEditorCell, _
                                  "Wrong cell type - was expecting a DataGridViewUITypeEditorCell")
                 End If
-                m_DataGridView.NotifyCurrentCellDirty(ValueChanged)
+                _dataGridView.NotifyCurrentCellDirty(ValueChanged)
             End Set
         End Property
 #End Region
 
 
 #Region "Service provider stuff"
-        Private m_ServiceProvider As IServiceProvider
+        Private _serviceProvider As IServiceProvider
         Friend Property ServiceProvider() As IServiceProvider
             Get
-                Return m_ServiceProvider
+                Return _serviceProvider
             End Get
             Set(ByVal Value As IServiceProvider)
-                m_ServiceProvider = Value
+                _serviceProvider = Value
             End Set
         End Property
 
         Protected Overrides Function GetService(ByVal service As System.Type) As Object
-            If m_ServiceProvider IsNot Nothing Then
-                Dim requestedService As Object = m_ServiceProvider.GetService(service)
+            If _serviceProvider IsNot Nothing Then
+                Dim requestedService As Object = _serviceProvider.GetService(service)
                 If requestedService IsNot Nothing Then
                     Return requestedService
                 End If

@@ -1,3 +1,5 @@
+' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+
 Imports Microsoft.Win32
 Imports System.Runtime.InteropServices
 
@@ -26,7 +28,7 @@ Namespace Microsoft.Internal.Performance
             End Sub
 #End If 'Codemarkers_IncludeAppEnum           
 
-            <DllImport(TestDllName, EntryPoint:="PerfCodeMarker")>
+            <DllImport(s_testDllName, EntryPoint:="PerfCodeMarker")>
             Public Shared Sub TestDllPerfCodeMarker(ByVal nTimerID As System.Int32, ByVal uiLow As System.UInt32, ByVal uiHigh As System.UInt32)
             End Sub
 
@@ -41,7 +43,7 @@ Namespace Microsoft.Internal.Performance
             End Sub
 #End If 'Codemarkers_IncludeAppEnum           
 
-            <DllImport(ProductDllName, EntryPoint:="PerfCodeMarker")>
+            <DllImport(s_productDllName, EntryPoint:="PerfCodeMarker")>
             Public Shared Sub ProductDllPerfCodeMarker(ByVal nTimerID As System.Int32, ByVal uiLow As System.UInt32, ByVal uiHigh As System.UInt32)
             End Sub
 
@@ -70,41 +72,41 @@ Namespace Microsoft.Internal.Performance
 
         ' Atom name. This ATOM will be set by the host application when code markers are enabled
         ' in the registry.
-        Private Const AtomName As String = "VSCodeMarkersEnabled"
+        Private Const s_atomName As String = "VSCodeMarkersEnabled"
 
         ' Test CodeMarkers DLL name
-        Private Const TestDllName As String = "Microsoft.Internal.Performance.CodeMarkers.dll"
+        Private Const s_testDllName As String = "Microsoft.Internal.Performance.CodeMarkers.dll"
 
         ' Product CodeMarkers DLL name
-        Private Const ProductDllName As String = "Microsoft.VisualStudio.CodeMarkers.dll"
+        Private Const s_productDllName As String = "Microsoft.VisualStudio.CodeMarkers.dll"
 
         ' Do we want to use code markers?
-        Private fUseCodeMarkers As Boolean
+        Private _fUseCodeMarkers As Boolean
 
         ' should CodeMarker events be fired to the test or product CodeMarker DLL
-        Private fShouldUseTestDll As Boolean?
-        Private regroot As String
+        Private _fShouldUseTestDll As Boolean?
+        Private _regroot As String
         Private ReadOnly Property ShouldUseTestDll As Boolean
             Get
-                If Not fShouldUseTestDll.HasValue Then
+                If Not _fShouldUseTestDll.HasValue Then
 
                     Try
                         ' this code can either be used in an InitPerf (loads CodeMarker DLL) or AttachPerf context (CodeMarker DLL already loaded)
                         ' in the InitPerf context we have a regroot and should check for the test DLL registration
                         ' in the AttachPerf context we should see which module is already loaded 
-                        If regroot = Nothing Then
-                            fShouldUseTestDll = NativeMethods.GetModuleHandle(ProductDllName) = IntPtr.Zero
+                        If _regroot = Nothing Then
+                            _fShouldUseTestDll = NativeMethods.GetModuleHandle(s_productDllName) = IntPtr.Zero
                         Else
                             ' if CodeMarkers are explictly enabled in the registry then try to
                             ' use the test DLL, otherwise fall back to trying to use the product DLL
-                            fShouldUseTestDll = CodeMarkers.UsePrivateCodeMarkers(regroot)
+                            _fShouldUseTestDll = CodeMarkers.UsePrivateCodeMarkers(_regroot)
                         End If
                     Catch ex As Exception
-                        fShouldUseTestDll = True
+                        _fShouldUseTestDll = True
                     End Try
                 End If
 
-                Return fShouldUseTestDll.Value
+                Return _fShouldUseTestDll.Value
             End Get
         End Property
 
@@ -112,13 +114,13 @@ Namespace Microsoft.Internal.Performance
         ' Checks to see if code markers are enabled by looking for a named ATOM
         Private Sub New()
             ' This ATOM will be set by the native Code Markers host
-            fUseCodeMarkers = (NativeMethods.FindAtom(AtomName) <> 0)
+            _fUseCodeMarkers = (NativeMethods.FindAtom(s_atomName) <> 0)
         End Sub 'New
 
         ' Implements sending the code marker value nTimerID.
         ' Implements sending the code marker value nTimerID.
         Public Sub CodeMarker(ByVal nTimerID As Integer)
-            If Not fUseCodeMarkers Then
+            If Not _fUseCodeMarkers Then
                 Return
             End If
             Try
@@ -130,7 +132,7 @@ Namespace Microsoft.Internal.Performance
             Catch ex As DllNotFoundException
                 ' If the DLL doesn't load or the entry point doesn't exist, then
                 ' abandon all further attempts to send codemarkers.
-                fUseCodeMarkers = False
+                _fUseCodeMarkers = False
             End Try
         End Sub 'CodeMarker
 
@@ -241,7 +243,7 @@ Namespace Microsoft.Internal.Performance
     End Structure
 #End If
 
-    Enum CodeMarkerEvent
+    Friend Enum CodeMarkerEvent
 
         perfMSVSEditorsShowTabBegin = 8400
         perfMSVSEditorsShowTabEnd = 8401

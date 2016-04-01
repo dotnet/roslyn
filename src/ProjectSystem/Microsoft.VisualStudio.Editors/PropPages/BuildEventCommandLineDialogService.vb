@@ -1,3 +1,5 @@
+' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+
 Option Strict On
 Option Explicit On
 
@@ -12,13 +14,13 @@ Namespace Microsoft.VisualStudio.Editors.PropertyPages
     Friend NotInheritable Class BuildEventCommandLineDialogService
         Implements Interop.IVsBuildEventCommandLineDialogService
 
-        Private m_serviceProvider As IServiceProvider
+        Private _serviceProvider As IServiceProvider
 
         Friend Sub New(ByVal sp As IServiceProvider)
-            m_serviceProvider = sp
+            _serviceProvider = sp
         End Sub
 
-        Function EditCommandLine(ByVal WindowText As String, ByVal HelpID As String, ByVal OriginalCommandLine As String, ByVal MacroProvider As Interop.IVsBuildEventMacroProvider, ByRef Result As String) As Integer _
+        Public Function EditCommandLine(ByVal WindowText As String, ByVal HelpID As String, ByVal OriginalCommandLine As String, ByVal MacroProvider As Interop.IVsBuildEventMacroProvider, ByRef Result As String) As Integer _
             Implements Interop.IVsBuildEventCommandLineDialogService.EditCommandLine
 
             Dim frm As New BuildEventCommandLineDialog
@@ -49,7 +51,7 @@ Namespace Microsoft.VisualStudio.Editors.PropertyPages
             frm.SetTokensAndValues(Names, Values)
 
             '// Show the form
-            If (frm.ShowDialog(m_serviceProvider) = System.Windows.Forms.DialogResult.OK) Then
+            If (frm.ShowDialog(_serviceProvider) = System.Windows.Forms.DialogResult.OK) Then
                 Result = frm.EventCommandLine
                 Return 0
             Else

@@ -1,3 +1,5 @@
+' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+
 Option Explicit On
 Option Strict On
 Option Compare Binary
@@ -28,38 +30,38 @@ Namespace Microsoft.VisualStudio.Editors.ResourceEditor
 
 
         'Pointer to the root designer
-        Private m_RootDesigner As ResourceEditorRootDesigner
+        Private _rootDesigner As ResourceEditorRootDesigner
 
         'The find state object. Find state is an opaque object we hold on behalf of the find engine.
         '  Setting this object to Nothing will reset the find / replace loop.
-        Private m_FindState As Object
+        Private _findState As Object
 
         'The array of resources used in Find / Replace.  This array is in the order desired by search.
-        Private m_ResourcesToSearch() As Resource
+        Private _resourcesToSearch() As Resource
 
         ' if the last search is in a selection, the m_ResourcesToSearch contains Resources in the selection. We need refresh the list when necessary.
-        Private m_LastSearchInSelection As Boolean
+        Private _lastSearchInSelection As Boolean
 
         'Where we started the most recent find / replace loop.  We will keep searching until we
         '  loop around and get back to this same index.
-        Private m_StartIndex As Integer
+        Private _startIndex As Integer
 
         'Field where we started the most recent find / replace loop.  We will keep searching until we
         '  loop around and get back to this same index.
-        Private m_StartField As Field
+        Private _startField As Field
 
         'Where we are in the current target array list.
-        Private m_CurrentIndex As Integer
+        Private _currentIndex As Integer
 
         'Which field we are currently looking at in the CurrentIndex resource
-        Private m_CurrentFieldInCurrentIndex As Field
+        Private _currentFieldInCurrentIndex As Field
 
         'Indicates that we're currently changing the selection programmatically, so we should disregard
         '  attempts to invalidate the find loop.
-        Private m_ProgrammaticallyChangingSelection As Boolean
+        Private _programmaticallyChangingSelection As Boolean
 
         'Last resource that had a match
-        Private m_LastResourceWithMatchFound As Resource
+        Private _lastResourceWithMatchFound As Resource
 
 
 
@@ -72,7 +74,7 @@ Namespace Microsoft.VisualStudio.Editors.ResourceEditor
             If RootDesigner Is Nothing Then
                 Throw New ArgumentNullException("RootDesigner")
             End If
-            m_RootDesigner = RootDesigner
+            _rootDesigner = RootDesigner
         End Sub
 
 
@@ -95,17 +97,17 @@ Namespace Microsoft.VisualStudio.Editors.ResourceEditor
         '''   can be reset.
         ''' </remarks>
         Public Sub InvalidateFindLoop(ByVal ResourcesAddedOrRemoved As Boolean)
-            If m_ProgrammaticallyChangingSelection Then
+            If _programmaticallyChangingSelection Then
                 Exit Sub
             End If
 
             Trace("** Find loop invalidated")
 
-            m_FindState = Nothing
+            _findState = Nothing
 
             'If resources have been added or removed, we must invalidate our sorted resource list
             If ResourcesAddedOrRemoved Then
-                m_ResourcesToSearch = Nothing
+                _resourcesToSearch = Nothing
             End If
         End Sub
 
@@ -137,7 +139,7 @@ Namespace Microsoft.VisualStudio.Editors.ResourceEditor
                         __VSFINDOPTIONS.FR_Find Or _
                         __VSFINDOPTIONS.FR_Document
 
-                    If m_LastSearchInSelection AndAlso m_ResourcesToSearch IsNot Nothing _
+                    If _lastSearchInSelection AndAlso _resourcesToSearch IsNot Nothing _
                         OrElse View.GetSelectedResources().Length > 0 _
                     Then
                         'Find in selection supported if there are resources selected (or if we're currently in the middle of find
@@ -173,7 +175,7 @@ Namespace Microsoft.VisualStudio.Editors.ResourceEditor
 
                 Case __VSFTPROPID.VSFTPROPID_DocName
                     ' Full path of filename or persistence moniker.
-                    pvar = m_RootDesigner.GetResXFileNameAndPath()
+                    pvar = _rootDesigner.GetResXFileNameAndPath()
                     Return Interop.NativeMethods.S_OK
 
                 Case __VSFTPROPID.VSFTPROPID_IsDiskFile
@@ -191,7 +193,7 @@ Namespace Microsoft.VisualStudio.Editors.ResourceEditor
                     Return Interop.NativeMethods.S_OK
 
                 Case __VSFTPROPID.VSFTPROPID_WindowFrame
-                    pvar = m_RootDesigner.GetService(GetType(IVsWindowFrame))
+                    pvar = _rootDesigner.GetService(GetType(IVsWindowFrame))
                     Return Interop.NativeMethods.S_OK
 
                 Case Else
@@ -207,7 +209,7 @@ Namespace Microsoft.VisualStudio.Editors.ResourceEditor
         ''' <returns>m_FindState</returns>
         ''' <remarks>If m_FindState is set to Nothing, the shell will reset the next find loop.</remarks>
         Public Function GetFindState() As Object
-            Return m_FindState
+            Return _findState
         End Function
 
 
@@ -217,7 +219,7 @@ Namespace Microsoft.VisualStudio.Editors.ResourceEditor
         ''' <param name="pUnk">The find state object to hold.</param>
         ''' <remarks></remarks>
         Public Sub SetFindState(ByVal pUnk As Object)
-            m_FindState = pUnk
+            _findState = pUnk
         End Sub
 
 
@@ -249,24 +251,24 @@ Namespace Microsoft.VisualStudio.Editors.ResourceEditor
             End If
 
             ' First, check the state of the find / replace loop.
-            If FindReset OrElse m_ResourcesToSearch Is Nothing Then
+            If FindReset OrElse _resourcesToSearch Is Nothing Then
                 If FindReset Then
-                    If FindInSelection OrElse m_LastSearchInSelection Then
+                    If FindInSelection OrElse _lastSearchInSelection Then
                         ' We always reset the list when the search type is changed. And we always sync to the selection when a new search in selection starts
-                        m_ResourcesToSearch = Nothing
+                        _resourcesToSearch = Nothing
                     End If
                 End If
 
-                If m_ResourcesToSearch IsNot Nothing AndAlso m_ResourcesToSearch.Length <> View.ResourceFile.ResourcesHashTable.Count Then
+                If _resourcesToSearch IsNot Nothing AndAlso _resourcesToSearch.Length <> View.ResourceFile.ResourcesHashTable.Count Then
                     Debug.Fail("The number of resources has changed, but InvalidateFindLoop() wasn't called.  This must be called when resources are added/removed.")
-                    m_ResourcesToSearch = Nothing 'defensive - force re-generation anyway
+                    _resourcesToSearch = Nothing 'defensive - force re-generation anyway
                 End If
 
-                If m_ResourcesToSearch Is Nothing Then
+                If _resourcesToSearch Is Nothing Then
                     Trace("Determining resources to search through and starting new loop.")
                     'Something changed since the last search (or it's the first search) - figure out which
                     '  resources we're going to search through.
-                    m_ResourcesToSearch = GetResourcesToSearch(FindInSelection)
+                    _resourcesToSearch = GetResourcesToSearch(FindInSelection)
                 Else
                     Trace("Resetting find loop using previous set of resources")
                 End If
@@ -278,21 +280,21 @@ Namespace Microsoft.VisualStudio.Editors.ResourceEditor
 
                 ' Start the search over at the selected resource
                 FindJustStarted = True
-                m_LastResourceWithMatchFound = Nothing
-                m_LastSearchInSelection = FindInSelection
+                _lastResourceWithMatchFound = Nothing
+                _lastSearchInSelection = FindInSelection
                 DetermineSearchStart(FindBackwards, FindInSelection)
 
                 'Remember this location.
-                m_StartIndex = m_CurrentIndex
-                m_StartField = m_CurrentFieldInCurrentIndex
+                _startIndex = _currentIndex
+                _startField = _currentFieldInCurrentIndex
             Else
                 ' In the middle of a find / replace loop. The next position was already calculated the last time.
                 Trace("Starting again on current find/replace loop.")
-                Debug.Assert(m_CurrentIndex >= 0 AndAlso m_CurrentIndex < m_ResourcesToSearch.Length, "Invalid current find index")
+                Debug.Assert(_currentIndex >= 0 AndAlso _currentIndex < _resourcesToSearch.Length, "Invalid current find index")
             End If
 
             ' Now, start the find / replace for this run.  We'll keep going until we reach the end or find a match.
-            If m_ResourcesToSearch.Length > 0 Then
+            If _resourcesToSearch.Length > 0 Then
 
                 ' Loop through the resource array to find the pattern.
                 ' We exit the loop when we go back where we start, indicating by these condition:
@@ -301,17 +303,17 @@ Namespace Microsoft.VisualStudio.Editors.ResourceEditor
                 '       since CurrentIndex = StartIndex at the start of a loop). AND
                 Dim VeryFirstSearch As Boolean = FindJustStarted
                 While VeryFirstSearch OrElse _
-                        Not (m_CurrentIndex = m_StartIndex AndAlso m_CurrentFieldInCurrentIndex = m_StartField)
+                        Not (_currentIndex = _startIndex AndAlso _currentFieldInCurrentIndex = _startField)
                     VeryFirstSearch = False
 
-                    Debug.Assert(0 <= m_CurrentIndex AndAlso m_CurrentIndex < m_ResourcesToSearch.Length, _
+                    Debug.Assert(0 <= _currentIndex AndAlso _currentIndex < _resourcesToSearch.Length, _
                         "m_FindCurrentIndex out of range!!!")
-                    Debug.Assert(m_ResourcesToSearch(m_CurrentIndex) IsNot Nothing, "Invalid resource!!!")
+                    Debug.Assert(_resourcesToSearch(_currentIndex) IsNot Nothing, "Invalid resource!!!")
 
                     ' Get the text to search for
                     Dim Text As String = ""
-                    Dim CurrentResource As Resource = m_ResourcesToSearch(m_CurrentIndex)
-                    Select Case m_CurrentFieldInCurrentIndex
+                    Dim CurrentResource As Resource = _resourcesToSearch(_currentIndex)
+                    Select Case _currentFieldInCurrentIndex
                         Case Field.Name
                             Text = CurrentResource.Name
 
@@ -344,8 +346,8 @@ Namespace Microsoft.VisualStudio.Editors.ResourceEditor
                     End Select
 
                     Dim MatchFound As Boolean
-                    Trace("Search for '" & pszSearch & "' in resource '" & CurrentResource.Name & "', property '" & m_CurrentFieldInCurrentIndex.ToString() & "' (" & Text & ")")
-                    If m_LastResourceWithMatchFound Is CurrentResource AndAlso ResourceIsSearchedAsSingleUnit(CurrentResource) Then
+                    Trace("Search for '" & pszSearch & "' in resource '" & CurrentResource.Name & "', property '" & _currentFieldInCurrentIndex.ToString() & "' (" & Text & ")")
+                    If _lastResourceWithMatchFound Is CurrentResource AndAlso ResourceIsSearchedAsSingleUnit(CurrentResource) Then
                         'Special case: This is a resource not shown in a string table, so we aren't able to individually highlight
                         '  the(Name And Comment) etc fields.  Since we already found a match in some field in this resource, force 
                         '  it to move to the next resource (instead of next field in this resource) for the next search attempt by
@@ -360,18 +362,18 @@ Namespace Microsoft.VisualStudio.Editors.ResourceEditor
                             'Yes, we have a match!
                             Trace("    Match found!")
 
-                            Debug.Assert(Not m_ProgrammaticallyChangingSelection)
-                            m_ProgrammaticallyChangingSelection = True 'Guard because we'll get called back in InvalidateFindLoop from this.
+                            Debug.Assert(Not _programmaticallyChangingSelection)
+                            _programmaticallyChangingSelection = True 'Guard because we'll get called back in InvalidateFindLoop from this.
                             Try
                                 View.UnselectAllResources()
-                                View.HighlightResource(CurrentResource, m_CurrentFieldInCurrentIndex, SelectInPropertyGrid:=True)
+                                View.HighlightResource(CurrentResource, _currentFieldInCurrentIndex, SelectInPropertyGrid:=True)
                             Finally
-                                m_ProgrammaticallyChangingSelection = False
+                                _programmaticallyChangingSelection = False
                             End Try
 
                             ' NOTE: We continue to calculate the next index for the next call, then exit this call after that if found.
                             MatchFound = True
-                            m_LastResourceWithMatchFound = CurrentResource
+                            _lastResourceWithMatchFound = CurrentResource
                         Else
                             Trace("    No match.")
                         End If
@@ -397,7 +399,7 @@ Namespace Microsoft.VisualStudio.Editors.ResourceEditor
 
                     ' Select any resources that were selected when we started an in selection search
                     If FindInSelection Then
-                        View.HighlightResources(m_ResourcesToSearch, True)
+                        View.HighlightResources(_resourcesToSearch, True)
                     End If
                 End If
             Else
@@ -441,14 +443,14 @@ Namespace Microsoft.VisualStudio.Editors.ResourceEditor
         ''' <remarks></remarks>
         Private Sub IncrementCurrentIndex(ByVal FindBackwards As Boolean)
             If FindBackwards Then
-                m_CurrentIndex -= 1
-                If m_CurrentIndex < 0 Then
-                    m_CurrentIndex = m_ResourcesToSearch.Length - 1
+                _currentIndex -= 1
+                If _currentIndex < 0 Then
+                    _currentIndex = _resourcesToSearch.Length - 1
                 End If
             Else
-                m_CurrentIndex += 1
-                If m_CurrentIndex >= m_ResourcesToSearch.Length Then
-                    m_CurrentIndex = 0
+                _currentIndex += 1
+                If _currentIndex >= _resourcesToSearch.Length Then
+                    _currentIndex = 0
                 End If
             End If
         End Sub
@@ -460,25 +462,25 @@ Namespace Microsoft.VisualStudio.Editors.ResourceEditor
         ''' <param name="FindBackwards">TRUE indicates finding backwards; otherwise, FALSE.</param>
         ''' <remarks></remarks>
         Private Sub IncrementCurrentIndexAndField(ByVal FindBackwards As Boolean)
-            Dim NextFieldIndex As Integer = CInt(m_CurrentFieldInCurrentIndex)
+            Dim NextFieldIndex As Integer = CInt(_currentFieldInCurrentIndex)
             If FindBackwards Then
-                NextFieldIndex = m_CurrentFieldInCurrentIndex - 1
+                NextFieldIndex = _currentFieldInCurrentIndex - 1
                 If NextFieldIndex < 0 Then
                     NextFieldIndex = Field.MaximumValue
                     IncrementCurrentIndex(FindBackwards)
                 End If
             Else
-                NextFieldIndex = m_CurrentFieldInCurrentIndex + 1
+                NextFieldIndex = _currentFieldInCurrentIndex + 1
                 If NextFieldIndex > Field.MaximumValue Then
                     NextFieldIndex = 0
                     IncrementCurrentIndex(FindBackwards)
                 End If
             End If
 
-            m_CurrentFieldInCurrentIndex = DirectCast(NextFieldIndex, Field)
+            _currentFieldInCurrentIndex = DirectCast(NextFieldIndex, Field)
 
-            Debug.Assert(m_CurrentIndex >= 0 AndAlso m_CurrentIndex < m_ResourcesToSearch.Length)
-            Debug.Assert(System.Enum.IsDefined(GetType(Field), m_CurrentFieldInCurrentIndex), "Field enum is not contiguous?")
+            Debug.Assert(_currentIndex >= 0 AndAlso _currentIndex < _resourcesToSearch.Length)
+            Debug.Assert(System.Enum.IsDefined(GetType(Field), _currentFieldInCurrentIndex), "Field enum is not contiguous?")
         End Sub
 
 
@@ -557,18 +559,18 @@ Namespace Microsoft.VisualStudio.Editors.ResourceEditor
         ''' <param name="FindInSelection">True if we're finding in a selection</param>
         ''' <remarks>Sets current index and field to the determined starting location.</remarks>
         Private Sub DetermineSearchStart(ByVal FindBackwards As Boolean, ByVal FindInSelection As Boolean)
-            Debug.Assert(m_ResourcesToSearch IsNot Nothing)
+            Debug.Assert(_resourcesToSearch IsNot Nothing)
             Dim StartingResource As Resource = Nothing
 
             'Generally, we actually start searching after (before for backwards) the currently-selected
             '  cell, rather than on it, unless we're searching inside a selection
             Dim StartAfterOrBeforeCell As Boolean = Not FindInSelection
 
-            m_CurrentFieldInCurrentIndex = Field.MinimumValue
+            _currentFieldInCurrentIndex = Field.MinimumValue
 
             If View.ResourceFile.ResourcesHashTable.Count = 0 Then
                 'No resources at all.
-                m_CurrentIndex = 0
+                _currentIndex = 0
                 Exit Sub
             End If
 
@@ -590,14 +592,14 @@ Namespace Microsoft.VisualStudio.Editors.ResourceEditor
                     StartingResource = SelectedResources(0)
                 Else
                     StartingResource = SelectedResources(SelectedResources.Length - 1)
-                    m_CurrentFieldInCurrentIndex = Field.MaximumValue
+                    _currentFieldInCurrentIndex = Field.MaximumValue
                 End If
             Else
                 'If no selection, start at the current cell
                 If View.CurrentCategory.CategoryDisplay = Category.Display.StringTable AndAlso View.StringTable.CurrentCell IsNot Nothing Then
                     Dim CurrentCellRow As Integer = View.StringTable.CurrentCell.RowIndex
                     If CurrentCellRow < View.StringTable.RowCountVirtual Then
-                        m_CurrentFieldInCurrentIndex = View.StringTable.GetCurrentCellFindField()
+                        _currentFieldInCurrentIndex = View.StringTable.GetCurrentCellFindField()
                         StartingResource = View.StringTable.GetResourceFromRowIndex(View.StringTable.CurrentCell.RowIndex, AllowUncommittedRow:=False)
                     End If
 
@@ -605,7 +607,7 @@ Namespace Microsoft.VisualStudio.Editors.ResourceEditor
                         'If no selection and no current cell, start with the first resource in the current category
                         Dim CurrentCategory As Category = View.CurrentCategory
                         Dim Categories As CategoryCollection = View.Categories
-                        For Each Resource As Resource In m_ResourcesToSearch
+                        For Each Resource As Resource In _resourcesToSearch
                             If Resource.GetCategory(Categories) Is CurrentCategory Then
                                 StartingResource = Resource
                                 Exit For
@@ -619,11 +621,11 @@ Namespace Microsoft.VisualStudio.Editors.ResourceEditor
             End If
 
             If StartingResource IsNot Nothing Then
-                m_CurrentIndex = System.Array.IndexOf(m_ResourcesToSearch, StartingResource)
-                If m_CurrentIndex < 0 Then
+                _currentIndex = System.Array.IndexOf(_resourcesToSearch, StartingResource)
+                If _currentIndex < 0 Then
                     Debug.Fail("Couldn't find resource that we just had our fingers on")
-                    m_CurrentIndex = 0
-                    m_CurrentFieldInCurrentIndex = Field.MinimumValue
+                    _currentIndex = 0
+                    _currentFieldInCurrentIndex = Field.MinimumValue
                     Return
                 End If
 
@@ -637,12 +639,12 @@ Namespace Microsoft.VisualStudio.Editors.ResourceEditor
                     End If
                 End If
 
-                Trace("Determined new search start location: " & StartingResource.Name & "/" & m_CurrentFieldInCurrentIndex.ToString())
+                Trace("Determined new search start location: " & StartingResource.Name & "/" & _currentFieldInCurrentIndex.ToString())
             Else
                 'We still don't have anywhere reasonable to start searching (happens for instance if you start searching from a category
                 '  that doesn't contain any resources).  Let's start at the very beginning.  A very good place to start.  Do re me...
-                m_CurrentIndex = 0
-                m_CurrentFieldInCurrentIndex = Field.MinimumValue
+                _currentIndex = 0
+                _currentFieldInCurrentIndex = Field.MinimumValue
             End If
         End Sub
 
@@ -654,7 +656,7 @@ Namespace Microsoft.VisualStudio.Editors.ResourceEditor
         ''' <remarks></remarks>
         Private ReadOnly Property View() As ResourceEditorView
             Get
-                Return m_RootDesigner.GetView()
+                Return _rootDesigner.GetView()
             End Get
         End Property
 
@@ -666,7 +668,7 @@ Namespace Microsoft.VisualStudio.Editors.ResourceEditor
         ''' <remarks></remarks>
         Private ReadOnly Property HasView() As Boolean
             Get
-                Return m_RootDesigner.HasView()
+                Return _rootDesigner.HasView()
             End Get
         End Property
 

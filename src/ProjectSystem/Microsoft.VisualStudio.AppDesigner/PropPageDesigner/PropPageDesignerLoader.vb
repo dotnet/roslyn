@@ -1,3 +1,5 @@
+' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+
 Imports System.ComponentModel.Design.Serialization
 Imports Microsoft.VisualStudio.Editors.AppDesCommon
 Imports Microsoft.VisualStudio.Shell.Interop
@@ -12,7 +14,7 @@ Namespace Microsoft.VisualStudio.Editors.PropPageDesigner
         Inherits BasicDesignerLoader
         Implements System.IDisposable
 
-        Private m_punkDocData As Object
+        Private _punkDocData As Object
 
         ''' <summary>
         ''' This method is called immediately after the first time
@@ -54,7 +56,7 @@ Namespace Microsoft.VisualStudio.Editors.PropPageDesigner
 
             Debug.Assert(TypeOf punkDocData Is PropPageDesignerDocData, "Unexpected docdata type")
             If TypeOf punkDocData Is PropPageDesignerDocData Then
-                m_punkDocData = punkDocData
+                _punkDocData = punkDocData
             End If
 
         End Sub
@@ -112,8 +114,8 @@ Namespace Microsoft.VisualStudio.Editors.PropPageDesigner
         Protected Overloads Sub Dispose(ByVal disposing As Boolean)
             If disposing Then
                 ' Dispose of managed resources.
-                If TypeOf m_punkDocData Is PropPageDesignerDocData Then
-                    DirectCast(m_punkDocData, PropPageDesignerDocData).Dispose()
+                If TypeOf _punkDocData Is PropPageDesignerDocData Then
+                    DirectCast(_punkDocData, PropPageDesignerDocData).Dispose()
                 End If
                 'Remove our ComponentSerializationService
                 LoaderHost.RemoveService(GetType(ComponentSerializationService))

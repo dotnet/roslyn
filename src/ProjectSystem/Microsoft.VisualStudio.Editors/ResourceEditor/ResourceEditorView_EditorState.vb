@@ -1,3 +1,5 @@
+' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+
 Option Explicit On
 Option Strict On
 Option Compare Binary
@@ -8,7 +10,7 @@ Imports System.Drawing
 
 Namespace Microsoft.VisualStudio.Editors.ResourceEditor
 
-    Partial Class ResourceEditorView
+    Friend Partial Class ResourceEditorView
 
         ''' <summary>
         ''' A class that contains the current editor state (current category, grid column widths, etc.).
@@ -22,28 +24,28 @@ Namespace Microsoft.VisualStudio.Editors.ResourceEditor
         '''   the use of partial classes.
         ''' </remarks>
         Friend NotInheritable Class EditorState
-            Private m_StatePersisted As Boolean
+            Private _statePersisted As Boolean
 
             'Current category name.  We save by name instead of reference in case the category no longer exists, etc.
-            Private m_CurrentCategoryName As String
+            Private _currentCategoryName As String
 
             'Names of the currently selected resources (in the listview or stringtable, whichever is showing).
-            Private m_SelectedResourceNames() As String
+            Private _selectedResourceNames() As String
 
             'Widths of the columns in the string table (whether or not the stringtable is currently showing)
-            Private m_StringTableColumnWidths() As Integer
+            Private _stringTableColumnWidths() As Integer
 
             'Current cell in the string table (if string table is currently showing)
-            Private m_StringTableCurrentCellAddress As Point
+            Private _stringTableCurrentCellAddress As Point
 
             'Current listview view (thumbnail, icons, etc.) for each category, hashed by category name (whether or not these categories are showing)
-            Private m_ResourceViewHash As New ListDictionary
+            Private _resourceViewHash As New ListDictionary
 
             'Current sorter for each category, hashed by category name (whether or not these categories are showing)
-            Private m_CategorySorter As New ListDictionary
+            Private _categorySorter As New ListDictionary
 
             'Widths of the columns in the listview's details view (whether or not the listview is currently showing)
-            Private m_ListViewColumnWidths() As Integer
+            Private _listViewColumnWidths() As Integer
 
 
 
@@ -53,7 +55,7 @@ Namespace Microsoft.VisualStudio.Editors.ResourceEditor
             ''' </summary>
             ''' <remarks></remarks>
             Public Sub New()
-                m_StatePersisted = False
+                _statePersisted = False
             End Sub
 
             ''' <summary>
@@ -63,7 +65,7 @@ Namespace Microsoft.VisualStudio.Editors.ResourceEditor
             ''' <remarks></remarks>
             Public ReadOnly Property StatePersisted() As Boolean
                 Get
-                    Return m_StatePersisted
+                    Return _statePersisted
                 End Get
             End Property
 
@@ -72,14 +74,14 @@ Namespace Microsoft.VisualStudio.Editors.ResourceEditor
             ''' </summary>
             ''' <remarks></remarks>
             Private Sub Clear()
-                m_StatePersisted = False
-                m_CurrentCategoryName = Nothing
-                m_SelectedResourceNames = Nothing
-                m_StringTableColumnWidths = Nothing
-                m_StringTableCurrentCellAddress = New Point(0, 0)
-                m_ResourceViewHash.Clear()
-                m_CategorySorter.Clear()
-                m_ListViewColumnWidths = Nothing
+                _statePersisted = False
+                _currentCategoryName = Nothing
+                _selectedResourceNames = Nothing
+                _stringTableColumnWidths = Nothing
+                _stringTableCurrentCellAddress = New Point(0, 0)
+                _resourceViewHash.Clear()
+                _categorySorter.Clear()
+                _listViewColumnWidths = Nothing
             End Sub
 
             ''' <summary>
@@ -94,44 +96,44 @@ Namespace Microsoft.VisualStudio.Editors.ResourceEditor
                     Clear()
 
                     'Current category
-                    If View.m_CurrentCategory IsNot Nothing Then
-                        m_CurrentCategoryName = View.m_CurrentCategory.ProgrammaticName
+                    If View._currentCategory IsNot Nothing Then
+                        _currentCategoryName = View._currentCategory.ProgrammaticName
                     End If
 
                     'Selected resources (don't include selected cells, just actual selected rows in the string table)
                     Dim SelectedResources() As Resource = View.GetSelectedResources()
                     If SelectedResources IsNot Nothing AndAlso SelectedResources.Length > 0 Then
                         'For the string table, 
-                        ReDim m_SelectedResourceNames(SelectedResources.Length - 1)
+                        ReDim _selectedResourceNames(SelectedResources.Length - 1)
                         For i As Integer = 0 To SelectedResources.Length - 1
-                            m_SelectedResourceNames(i) = SelectedResources(i).Name
+                            _selectedResourceNames(i) = SelectedResources(i).Name
                         Next
                     End If
 
                     'String table column widths
-                    ReDim m_StringTableColumnWidths(View.StringTable.ColumnCount - 1)
+                    ReDim _stringTableColumnWidths(View.StringTable.ColumnCount - 1)
                     For i As Integer = 0 To View.StringTable.ColumnCount - 1
-                        m_StringTableColumnWidths(i) = View.StringTable.Columns(i).Width
+                        _stringTableColumnWidths(i) = View.StringTable.Columns(i).Width
                     Next
 
                     'Current cell in the string table (if shown)
                     If View.StringTable.Visible Then
-                        m_StringTableCurrentCellAddress = View.StringTable.CurrentCellAddress
+                        _stringTableCurrentCellAddress = View.StringTable.CurrentCellAddress
                     End If
 
                     'ListView column widths
-                    ReDim m_ListViewColumnWidths(View.ResourceListView.Columns.Count - 1)
-                    For i As Integer = 0 To View.ResourceListView.Columns.Count - 1
-                        m_ListViewColumnWidths(i) = View.ResourceListView.Columns(i).Width
+                    ReDim _listViewColumnWidths(View._resourceListView.Columns.Count - 1)
+                    For i As Integer = 0 To View._resourceListView.Columns.Count - 1
+                        _listViewColumnWidths(i) = View._resourceListView.Columns(i).Width
                     Next
 
                     'ResourceView mode for all categories
-                    For Each Category As Category In View.m_Categories
-                        m_ResourceViewHash.Add(Category.ProgrammaticName, Category.ResourceView)
-                        m_CategorySorter.Add(Category.ProgrammaticName, Category.Sorter)
+                    For Each Category As Category In View._categories
+                        _resourceViewHash.Add(Category.ProgrammaticName, Category.ResourceView)
+                        _categorySorter.Add(Category.ProgrammaticName, Category.Sorter)
                     Next
 
-                    m_StatePersisted = True
+                    _statePersisted = True
                 Catch ex As Exception
                     RethrowIfUnrecoverable(ex)
                     Debug.Fail("Exception depersisting editor state - state will not be restored.  " & ex.ToString())
@@ -149,15 +151,15 @@ Namespace Microsoft.VisualStudio.Editors.ResourceEditor
             ''' <param name="View">The resource editor view instance to depersist the old state into</param>
             ''' <remarks></remarks>
             Public Sub DepersistStateInto(ByVal View As ResourceEditorView)
-                If m_StatePersisted Then
+                If _statePersisted Then
                     Try
                         Debug.Assert(View IsNot Nothing, "View can't be Nothing in EditorState")
 
                         'String table column widths
-                        If m_StringTableColumnWidths IsNot Nothing AndAlso m_StringTableColumnWidths.Length = View.StringTable.ColumnCount Then
-                            For i As Integer = 0 To m_StringTableColumnWidths.Length - 1
+                        If _stringTableColumnWidths IsNot Nothing AndAlso _stringTableColumnWidths.Length = View.StringTable.ColumnCount Then
+                            For i As Integer = 0 To _stringTableColumnWidths.Length - 1
                                 Try
-                                    View.StringTable.Columns(i).Width = m_StringTableColumnWidths(i)
+                                    View.StringTable.Columns(i).Width = _stringTableColumnWidths(i)
                                 Catch ex As Exception
                                     RethrowIfUnrecoverable(ex)
                                     'Ignore exceptions if unable to set a column width (columns can have minimum widths)
@@ -167,10 +169,10 @@ Namespace Microsoft.VisualStudio.Editors.ResourceEditor
                         End If
 
                         'ListView column widths
-                        If m_ListViewColumnWidths IsNot Nothing AndAlso m_ListViewColumnWidths.Length = View.ResourceListView.Columns.Count Then
-                            For i As Integer = 0 To m_ListViewColumnWidths.Length - 1
+                        If _listViewColumnWidths IsNot Nothing AndAlso _listViewColumnWidths.Length = View._resourceListView.Columns.Count Then
+                            For i As Integer = 0 To _listViewColumnWidths.Length - 1
                                 Try
-                                    View.ResourceListView.Columns(i).Width = m_ListViewColumnWidths(i)
+                                    View._resourceListView.Columns(i).Width = _listViewColumnWidths(i)
                                 Catch ex As Exception
                                     RethrowIfUnrecoverable(ex)
                                     'Ignore exceptions
@@ -180,34 +182,34 @@ Namespace Microsoft.VisualStudio.Editors.ResourceEditor
                         End If
 
                         'Current category
-                        Dim CurrentCategory As Category = View.m_Categories(m_CurrentCategoryName)
+                        Dim CurrentCategory As Category = View._categories(_currentCategoryName)
                         If CurrentCategory IsNot Nothing Then
                             View.SwitchToCategory(CurrentCategory)
                         End If
 
                         'ResourceView mode for all categories
                         Dim NeedsRefresh As Boolean = False
-                        For Each Entry As DictionaryEntry In m_ResourceViewHash
-                            Dim Category As Category = View.m_Categories(CStr(Entry.Key))
+                        For Each Entry As DictionaryEntry In _resourceViewHash
+                            Dim Category As Category = View._categories(CStr(Entry.Key))
                             If Category IsNot Nothing Then
                                 View.ChangeResourceViewForCategory(Category, DirectCast(Entry.Value, ResourceListView.ResourceView))
                             End If
                         Next
 
-                        For Each Entry As DictionaryEntry In m_CategorySorter
-                            Dim Category As Category = View.m_Categories(CStr(Entry.Key))
+                        For Each Entry As DictionaryEntry In _categorySorter
+                            Dim Category As Category = View._categories(CStr(Entry.Key))
                             If Category IsNot Nothing Then
                                 View.ChangeSorterForCategory(Category, DirectCast(Entry.Value, IComparer))
                             End If
                         Next
 
                         'Selected resources
-                        If m_SelectedResourceNames IsNot Nothing Then
+                        If _selectedResourceNames IsNot Nothing Then
                             'We have to search for the resources by name.  Some of them may no longer exist.
                             '  We'll select the ones we can still find.
                             Dim ResourcesToSelect As New ArrayList
-                            For Each Name As String In m_SelectedResourceNames
-                                Dim Resource As Resource = View.m_ResourceFile.FindResource(Name)
+                            For Each Name As String In _selectedResourceNames
+                                Dim Resource As Resource = View._resourceFile.FindResource(Name)
                                 If Resource IsNot Nothing Then
                                     ResourcesToSelect.Add(Resource)
                                 End If
@@ -217,7 +219,7 @@ Namespace Microsoft.VisualStudio.Editors.ResourceEditor
 
                         'Current cell in the string table (if shown)
                         If View.StringTable.Visible Then
-                            m_StringTableCurrentCellAddress = View.StringTable.CurrentCellAddress
+                            _stringTableCurrentCellAddress = View.StringTable.CurrentCellAddress
                         End If
 
                     Catch ex As Exception

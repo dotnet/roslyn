@@ -1,3 +1,5 @@
+' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+
 Option Strict On
 Option Explicit On
 Imports System.Runtime.InteropServices
@@ -38,12 +40,12 @@ Namespace Microsoft.VisualStudio.Editors.MyExtensibility
         ''' </summary>
         Public Shared ReadOnly Property Instance() As MyExtensibilitySolutionService
             Get
-                If m_SharedInstance Is Nothing Then
-                    m_SharedInstance = New MyExtensibilitySolutionService(VBPackage.Instance)
+                If s_sharedInstance Is Nothing Then
+                    s_sharedInstance = New MyExtensibilitySolutionService(VBPackage.Instance)
                 End If
 
-                Debug.Assert(m_SharedInstance IsNot Nothing)
-                Return m_SharedInstance
+                Debug.Assert(s_sharedInstance IsNot Nothing)
+                Return s_sharedInstance
             End Get
         End Property
 
@@ -53,22 +55,22 @@ Namespace Microsoft.VisualStudio.Editors.MyExtensibility
         ''' </summary>
         Public Shared ReadOnly Property IdeStatusBar() As VsStatusBarWrapper
             Get
-                If m_IdeStatusBar Is Nothing Then
+                If s_ideStatusBar Is Nothing Then
                     Dim vsStatusBar As IVsStatusbar = TryCast( _
                         VBPackage.Instance.GetService(GetType(IVsStatusbar)), IVsStatusbar)
                     If vsStatusBar IsNot Nothing Then
-                        m_IdeStatusBar = New VsStatusBarWrapper(vsStatusBar)
+                        s_ideStatusBar = New VsStatusBarWrapper(vsStatusBar)
                     End If
 
-                    Debug.Assert(m_IdeStatusBar IsNot Nothing, "Could not get IVsStatusBar!")
+                    Debug.Assert(s_ideStatusBar IsNot Nothing, "Could not get IVsStatusBar!")
                 End If
 
-                Return m_IdeStatusBar
+                Return s_ideStatusBar
             End Get
         End Property
 
-        Private Shared m_SharedInstance As MyExtensibilitySolutionService ' shared instance for the current VS environment.
-        Private Shared m_IdeStatusBar As VsStatusBarWrapper ' shared instance of the current VS status bar.
+        Private Shared s_sharedInstance As MyExtensibilitySolutionService ' shared instance for the current VS environment.
+        Private Shared s_ideStatusBar As VsStatusBarWrapper ' shared instance of the current VS status bar.
 #End Region
 
         ''' ;GetService
@@ -76,7 +78,7 @@ Namespace Microsoft.VisualStudio.Editors.MyExtensibility
         ''' Obtain the specified service.
         ''' </summary>
         Public Function GetService(ByVal serviceType As Type) As Object
-            Return m_VBPackage.GetService(serviceType)
+            Return _VBPackage.GetService(serviceType)
         End Function
 
         ''' ;ReferenceAdded
@@ -110,7 +112,7 @@ Namespace Microsoft.VisualStudio.Editors.MyExtensibility
             If projectHierarchy Is Nothing Then
                 Try
                     Dim vsMonitorSelection As IVsMonitorSelection = TryCast( _
-                        m_VBPackage.GetService(GetType(IVsMonitorSelection)), IVsMonitorSelection)
+                        _VBPackage.GetService(GetType(IVsMonitorSelection)), IVsMonitorSelection)
 
                     If vsMonitorSelection IsNot Nothing Then
                         Dim vsHierarchyPointer As IntPtr = IntPtr.Zero
@@ -153,11 +155,11 @@ Namespace Microsoft.VisualStudio.Editors.MyExtensibility
 
             ' Create a MyExtensibilityProjectService for the current project if need to
             If project IsNot Nothing Then
-                If Not m_ProjectServices.ContainsKey(project) Then
-                    m_ProjectServices.Add(project, _
-                        MyExtensibilityProjectService.CreateNew(m_VBPackage, project, projectHierarchy, Me.ExtensibilitySettings))
+                If Not _projectServices.ContainsKey(project) Then
+                    _projectServices.Add(project, _
+                        MyExtensibilityProjectService.CreateNew(_VBPackage, project, projectHierarchy, Me.ExtensibilitySettings))
                 End If
-                Return m_ProjectServices(project)
+                Return _projectServices(project)
             End If
 
             Return Nothing
@@ -166,10 +168,10 @@ Namespace Microsoft.VisualStudio.Editors.MyExtensibility
 
         Public ReadOnly Property TrackProjectDocumentsEvents() As TrackProjectDocumentsEventsHelper
             Get
-                If m_TrackProjectDocumentsEvents Is Nothing Then
-                    m_TrackProjectDocumentsEvents = TrackProjectDocumentsEventsHelper.GetInstance(m_VBPackage)
+                If _trackProjectDocumentsEvents Is Nothing Then
+                    _trackProjectDocumentsEvents = TrackProjectDocumentsEventsHelper.GetInstance(_VBPackage)
                 End If
-                Return m_TrackProjectDocumentsEvents
+                Return _trackProjectDocumentsEvents
             End Get
         End Property
 
@@ -180,7 +182,7 @@ Namespace Microsoft.VisualStudio.Editors.MyExtensibility
         ''' </summary>
         Private Sub New(ByVal vbPackage As VBPackage)
             Debug.Assert(vbPackage IsNot Nothing, "vbPackage Is Nothing")
-            m_VBPackage = vbPackage
+            _VBPackage = vbPackage
             Me.AddEnvDTEEvents()
         End Sub
 
@@ -190,10 +192,10 @@ Namespace Microsoft.VisualStudio.Editors.MyExtensibility
         ''' </summary>
         Private ReadOnly Property ExtensibilitySettings() As MyExtensibilitySettings
             Get
-                If m_ExtensibilitySettings Is Nothing Then
+                If _extensibilitySettings Is Nothing Then
 
                     Dim vsAppDataDir As String = String.Empty
-                    Dim vsShell As IVsShell = TryCast(m_VBPackage.GetService(GetType(IVsShell)), IVsShell)
+                    Dim vsShell As IVsShell = TryCast(_VBPackage.GetService(GetType(IVsShell)), IVsShell)
                     If vsShell IsNot Nothing Then
                         Dim appDataDir As Object = Nothing
                         Dim hr As Integer = vsShell.GetProperty(__VSSPROPID.VSSPROPID_AppDataDir, appDataDir)
@@ -201,9 +203,9 @@ Namespace Microsoft.VisualStudio.Editors.MyExtensibility
                             vsAppDataDir = CStr(appDataDir)
                         End If
                     End If
-                    m_ExtensibilitySettings = New MyExtensibilitySettings(vsAppDataDir)
+                    _extensibilitySettings = New MyExtensibilitySettings(vsAppDataDir)
                 End If
-                Return m_ExtensibilitySettings
+                Return _extensibilitySettings
             End Get
         End Property
 
@@ -245,22 +247,22 @@ Namespace Microsoft.VisualStudio.Editors.MyExtensibility
         ''' Hook ourselves up to listen to DTE and solution events.
         ''' </summary>
         Private Sub AddEnvDTEEvents()
-            Dim dte As EnvDTE80.DTE2 = TryCast(m_VBPackage.GetService(GetType(_DTE)), EnvDTE80.DTE2)
+            Dim dte As EnvDTE80.DTE2 = TryCast(_VBPackage.GetService(GetType(_DTE)), EnvDTE80.DTE2)
             If dte IsNot Nothing Then
                 Dim events As EnvDTE80.Events2 = TryCast(dte.Events, EnvDTE80.Events2)
                 If events IsNot Nothing Then
-                    m_SolutionEvents = events.SolutionEvents
-                    If m_SolutionEvents IsNot Nothing Then
-                        AddHandler m_SolutionEvents.AfterClosing, _
+                    _solutionEvents = events.SolutionEvents
+                    If _solutionEvents IsNot Nothing Then
+                        AddHandler _solutionEvents.AfterClosing, _
                             New EnvDTE._dispSolutionEvents_AfterClosingEventHandler( _
                             AddressOf Me.SolutionEvents_AfterClosing)
-                        AddHandler m_SolutionEvents.ProjectRemoved, _
+                        AddHandler _solutionEvents.ProjectRemoved, _
                             New EnvDTE._dispSolutionEvents_ProjectRemovedEventHandler( _
                             AddressOf Me.SolutionEvents_ProjectRemoved)
                     End If
-                    m_DTEEvents = events.DTEEvents
-                    If m_DTEEvents IsNot Nothing Then
-                        AddHandler m_DTEEvents.OnBeginShutdown, _
+                    _DTEEvents = events.DTEEvents
+                    If _DTEEvents IsNot Nothing Then
+                        AddHandler _DTEEvents.OnBeginShutdown, _
                             New EnvDTE._dispDTEEvents_OnBeginShutdownEventHandler( _
                             AddressOf Me.DTEEvents_OnBeginShutDown)
                     End If
@@ -273,20 +275,20 @@ Namespace Microsoft.VisualStudio.Editors.MyExtensibility
         ''' Remove ourselves as listener of DTE and solution events.
         ''' </summary>
         Private Sub RemoveEnvDTEEvents()
-            If m_SolutionEvents IsNot Nothing Then
-                RemoveHandler m_SolutionEvents.AfterClosing, _
+            If _solutionEvents IsNot Nothing Then
+                RemoveHandler _solutionEvents.AfterClosing, _
                     New EnvDTE._dispSolutionEvents_AfterClosingEventHandler( _
                     AddressOf Me.SolutionEvents_AfterClosing)
-                RemoveHandler m_SolutionEvents.ProjectRemoved, _
+                RemoveHandler _solutionEvents.ProjectRemoved, _
                     New EnvDTE._dispSolutionEvents_ProjectRemovedEventHandler( _
                     AddressOf Me.SolutionEvents_ProjectRemoved)
-                m_SolutionEvents = Nothing
+                _solutionEvents = Nothing
             End If
-            If m_DTEEvents IsNot Nothing Then
-                RemoveHandler m_DTEEvents.OnBeginShutdown, _
+            If _DTEEvents IsNot Nothing Then
+                RemoveHandler _DTEEvents.OnBeginShutdown, _
                     New EnvDTE._dispDTEEvents_OnBeginShutdownEventHandler( _
                     AddressOf Me.DTEEvents_OnBeginShutDown)
-                m_DTEEvents = Nothing
+                _DTEEvents = Nothing
             End If
         End Sub
 
@@ -297,13 +299,13 @@ Namespace Microsoft.VisualStudio.Editors.MyExtensibility
         ''' <remarks></remarks>
         Private Sub SolutionEvents_AfterClosing()
             Switches.TraceMyExtensibility(TraceLevel.Verbose, "MyExtensibilitySolutionService.SolutionEvents_AfterClosing: Entry. Clear project services dictionary.")
-            m_ProjectServices.Clear()
+            _projectServices.Clear()
 
-            If m_TrackProjectDocumentsEvents IsNot Nothing Then
+            If _trackProjectDocumentsEvents IsNot Nothing Then
                 Switches.TraceMyExtensibility(TraceLevel.Verbose, "MyExtensibilitySolutionService.SolutionEvents_AfterClosing: UnAdviseTrackProjectDocumentsEvents.")
-                m_TrackProjectDocumentsEvents.UnAdviseTrackProjectDocumentsEvents()
+                _trackProjectDocumentsEvents.UnAdviseTrackProjectDocumentsEvents()
                 Switches.TraceMyExtensibility(TraceLevel.Verbose, "MyExtensibilitySolutionService.SolutionEvents_AfterClosing: Clear m_TrackProjectDocumentsEvents.")
-                m_TrackProjectDocumentsEvents = Nothing
+                _trackProjectDocumentsEvents = Nothing
             End If
             Switches.TraceMyExtensibility(TraceLevel.Verbose, "MyExtensibilitySolutionService.SolutionEvents_AfterClosing: Exit.")
         End Sub
@@ -318,9 +320,9 @@ Namespace Microsoft.VisualStudio.Editors.MyExtensibility
                 Exit Sub
             End If
 
-            If m_ProjectServices.ContainsKey(project) Then
-                Dim removedProjectService As MyExtensibilityProjectService = m_ProjectServices(project)
-                m_ProjectServices.Remove(project)
+            If _projectServices.ContainsKey(project) Then
+                Dim removedProjectService As MyExtensibilityProjectService = _projectServices(project)
+                _projectServices.Remove(project)
                 If removedProjectService IsNot Nothing Then
                     removedProjectService.Dispose()
                     removedProjectService = Nothing
@@ -342,17 +344,17 @@ Namespace Microsoft.VisualStudio.Editors.MyExtensibility
         End Sub
 #End Region
 
-        Private m_VBPackage As VBPackage
+        Private _VBPackage As VBPackage
         ' Collection of MyExtensibilityProjectServices for each known project.
-        Private m_ProjectServices As New Dictionary(Of Project, MyExtensibilityProjectService)()
+        Private _projectServices As New Dictionary(Of Project, MyExtensibilityProjectService)()
         ' My Extensibility settings of the current VS. Lazy init.
-        Private m_ExtensibilitySettings As MyExtensibilitySettings
+        Private _extensibilitySettings As MyExtensibilitySettings
         ' Handle solution closing and project removal events.
-        Private m_SolutionEvents As EnvDTE.SolutionEvents
+        Private _solutionEvents As EnvDTE.SolutionEvents
         ' Handle DTE closing events
-        Private m_DTEEvents As EnvDTE.DTEEvents
+        Private _DTEEvents As EnvDTE.DTEEvents
         ' lazy-init instance of TrackProjectDocumentsEventsHelper
-        Private m_TrackProjectDocumentsEvents As TrackProjectDocumentsEventsHelper
+        Private _trackProjectDocumentsEvents As TrackProjectDocumentsEventsHelper
 
     End Class
 

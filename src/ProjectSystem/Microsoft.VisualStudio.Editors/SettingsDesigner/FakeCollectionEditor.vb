@@ -1,3 +1,5 @@
+' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+
 Imports System.Collections.Specialized
 Imports System.Drawing.Design
 
@@ -11,14 +13,14 @@ Namespace Microsoft.VisualStudio.Editors.SettingsDesigner
     Friend Class StringArrayEditorForStringCollections
         Inherits System.Drawing.Design.UITypeEditor
 
-        Private m_parent As UITypeEditor
+        Private _parent As UITypeEditor
 
         ''' <summary>
         ''' Create a new StringArrayEditorForStringCollections
         ''' </summary>
         ''' <remarks></remarks>
         Public Sub New()
-            m_parent = DirectCast(System.ComponentModel.TypeDescriptor.GetEditor(GetType(String()), GetType(UITypeEditor)), UITypeEditor)
+            _parent = DirectCast(System.ComponentModel.TypeDescriptor.GetEditor(GetType(String()), GetType(UITypeEditor)), UITypeEditor)
         End Sub
 
         ''' <summary>
@@ -31,27 +33,27 @@ Namespace Microsoft.VisualStudio.Editors.SettingsDesigner
         ''' <returns></returns>
         ''' <remarks></remarks>
         Public Overrides Function EditValue(ByVal context As System.ComponentModel.ITypeDescriptorContext, ByVal provider As System.IServiceProvider, ByVal value As Object) As Object
-            Dim result As Object = m_parent.EditValue(context, provider, ConvertToUITypeEditorSource(value))
+            Dim result As Object = _parent.EditValue(context, provider, ConvertToUITypeEditorSource(value))
             Return ConvertToOriginal(result)
         End Function
 
 #Region "Forwarding UITypeEditor methods to our parent UITypeEditor"
         Public Overrides Function GetEditStyle(ByVal context As System.ComponentModel.ITypeDescriptorContext) As System.Drawing.Design.UITypeEditorEditStyle
-            Return m_parent.GetEditStyle(context)
+            Return _parent.GetEditStyle(context)
         End Function
 
         Public Overrides Sub PaintValue(ByVal e As System.Drawing.Design.PaintValueEventArgs)
-            m_parent.PaintValue(e)
+            _parent.PaintValue(e)
         End Sub
 
         Public Overrides ReadOnly Property IsDropDownResizable() As Boolean
             Get
-                Return m_parent.IsDropDownResizable()
+                Return _parent.IsDropDownResizable()
             End Get
         End Property
 
         Public Overrides Function GetPaintValueSupported(ByVal context As System.ComponentModel.ITypeDescriptorContext) As Boolean
-            Return m_parent.GetPaintValueSupported(context)
+            Return _parent.GetPaintValueSupported(context)
         End Function
 #End Region
         ''' <summary>

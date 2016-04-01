@@ -1,3 +1,5 @@
+' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+
 Imports System.Windows.Forms
 Imports Microsoft.VisualStudio.Shell.Interop
 Imports VSLangProj80
@@ -33,8 +35,8 @@ Namespace Microsoft.VisualStudio.Editors.PropertyPages
         'UserControl overrides dispose to clean up the component list.
         Protected Overloads Overrides Sub Dispose(ByVal disposing As Boolean)
             If disposing Then
-                If Not (components Is Nothing) Then
-                    components.Dispose()
+                If Not (_components Is Nothing) Then
+                    _components.Dispose()
                 End If
             End If
             MyBase.Dispose(disposing)
@@ -51,7 +53,7 @@ Namespace Microsoft.VisualStudio.Editors.PropertyPages
         Friend WithEvents overarchingTableLayoutPanel As System.Windows.Forms.TableLayoutPanel
 
         'Required by the Windows Form Designer
-        Private components As System.ComponentModel.IContainer
+        Private _components As System.ComponentModel.IContainer
 
         'NOTE: The following procedure is required by the Windows Form Designer
         'It can be modified using the Windows Form Designer.
@@ -142,7 +144,7 @@ Namespace Microsoft.VisualStudio.Editors.PropertyPages
 
 #End Region
 
-        Enum Tokens
+        Public Enum Tokens
             OutDir = 0
             ConfigurationName
             ProjectName
@@ -165,7 +167,7 @@ Namespace Microsoft.VisualStudio.Editors.PropertyPages
             Tokens_MAX
         End Enum
 
-        Private Shared ReadOnly m_TokenNames() As String = { _
+        Private Shared ReadOnly s_tokenNames() As String = { _
             "OutDir", _
             "ConfigurationName", _
             "ProjectName", _
@@ -281,7 +283,7 @@ Namespace Microsoft.VisualStudio.Editors.PropertyPages
             '// Initialize the token values
 
             GetTokenValues(Values, valueHelper)
-            frm.SetTokensAndValues(m_TokenNames, Values)
+            frm.SetTokensAndValues(s_tokenNames, Values)
 
 
             '// Show the form
@@ -303,7 +305,7 @@ Namespace Microsoft.VisualStudio.Editors.PropertyPages
             Values = CType(Array.CreateInstance(GetType(String), Tokens.Tokens_MAX), String())
 
             For i = 0 To Tokens.Tokens_MAX - 1
-                Values(i) = valueHelper(m_TokenNames(i))
+                Values(i) = valueHelper(s_tokenNames(i))
             Next
 
             Return True

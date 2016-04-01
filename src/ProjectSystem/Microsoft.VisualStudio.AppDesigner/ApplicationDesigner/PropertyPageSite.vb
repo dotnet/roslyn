@@ -1,3 +1,5 @@
+' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+
 Imports Microsoft.VisualStudio.Editors.AppDesInterop
 Imports OleInterop = Microsoft.VisualStudio.OLE.Interop
 
@@ -29,13 +31,13 @@ Namespace Microsoft.VisualStudio.Editors.ApplicationDesigner
         Implements IServiceProvider
         Implements OLE.Interop.IServiceProvider
 
-        Private m_PropPage As OleInterop.IPropertyPage
-        Private m_AppDesView As IPropertyPageSiteOwner
-        Private m_IsImmediateApply As Boolean = True
+        Private _propPage As OleInterop.IPropertyPage
+        Private _appDesView As IPropertyPageSiteOwner
+        Private _isImmediateApply As Boolean = True
 
         'The service provider to delegate IServiceProvider calls through
-        Private m_BackingServiceProvider As IServiceProvider
-        Private m_HasBeenSetDirty As Boolean
+        Private _backingServiceProvider As IServiceProvider
+        Private _hasBeenSetDirty As Boolean
 
         ''' <summary>
         ''' Constructor.
@@ -44,10 +46,10 @@ Namespace Microsoft.VisualStudio.Editors.ApplicationDesigner
         '''   ApplicationDesignerView, except for unit testing.</param>
         ''' <param name="PropPage"></param>
         ''' <remarks></remarks>
-        Sub New(ByVal View As IPropertyPageSiteOwner, ByVal PropPage As OleInterop.IPropertyPage)
+        Public Sub New(ByVal View As IPropertyPageSiteOwner, ByVal PropPage As OleInterop.IPropertyPage)
             Debug.Assert(View IsNot Nothing AndAlso PropPage IsNot Nothing)
-            m_AppDesView = View
-            m_PropPage = PropPage
+            _appDesView = View
+            _propPage = PropPage
             PropPage.SetPageSite(Me)
         End Sub
 
@@ -60,7 +62,7 @@ Namespace Microsoft.VisualStudio.Editors.ApplicationDesigner
         ''' <remarks></remarks>
         Public Property BackingServiceProvider() As IServiceProvider
             Get
-                Return m_BackingServiceProvider
+                Return _backingServiceProvider
             End Get
             Set(ByVal value As IServiceProvider)
 #If DEBUG Then
@@ -69,7 +71,7 @@ Namespace Microsoft.VisualStudio.Editors.ApplicationDesigner
                     Debug.Assert(NativeServiceProvider IsNot Nothing, "The managed IServiceProvider passed in to PropertyPageSite constructor does not wrap a native IServiceProvider")
                 End If
 #End If
-                m_BackingServiceProvider = value
+                _backingServiceProvider = value
             End Set
         End Property
 
@@ -84,10 +86,10 @@ Namespace Microsoft.VisualStudio.Editors.ApplicationDesigner
         ''' </summary>
         Public Property HasBeenSetDirty() As Boolean
             Get
-                Return m_HasBeenSetDirty
+                Return _hasBeenSetDirty
             End Get
             Set(ByVal value As Boolean)
-                m_HasBeenSetDirty = value
+                _hasBeenSetDirty = value
             End Set
         End Property
 
@@ -100,8 +102,8 @@ Namespace Microsoft.VisualStudio.Editors.ApplicationDesigner
 
         Public Sub GetLocaleID(ByRef pLocaleID As UInteger) Implements OleInterop.IPropertyPageSite.GetLocaleID
             'Try getting the locale ID from the shell
-            If m_AppDesView IsNot Nothing Then
-                pLocaleID = m_AppDesView.GetLocaleID()
+            If _appDesView IsNot Nothing Then
+                pLocaleID = _appDesView.GetLocaleID()
                 Return
             End If
 
@@ -137,17 +139,17 @@ Namespace Microsoft.VisualStudio.Editors.ApplicationDesigner
             Try
                 InsideOnStatusChange = True
                 ' If the page is dirty and 
-                If m_IsImmediateApply AndAlso _
+                If _isImmediateApply AndAlso _
                     (dwFlags And PROPPAGESTATUS_VALIDATE) <> 0 Then
-                    If m_PropPage.IsPageDirty() = Microsoft.VisualStudio.Editors.AppDesInterop.NativeMethods.S_OK Then
+                    If _propPage.IsPageDirty() = Microsoft.VisualStudio.Editors.AppDesInterop.NativeMethods.S_OK Then
                         Try
-                            m_PropPage.Apply()
+                            _propPage.Apply()
                         Catch ex As Exception
                             successed = False
                             If Not AppDesCommon.IsCheckoutCanceledException(ex) Then
-                                Debug.Assert(m_AppDesView IsNot Nothing, "No project designer - can't show error message: " & ex.ToString())
-                                If m_AppDesView IsNot Nothing Then
-                                    m_AppDesView.DsMsgBox(ex)
+                                Debug.Assert(_appDesView IsNot Nothing, "No project designer - can't show error message: " & ex.ToString())
+                                If _appDesView IsNot Nothing Then
+                                    _appDesView.DsMsgBox(ex)
                                 End If
                             End If
                         End Try
@@ -155,7 +157,7 @@ Namespace Microsoft.VisualStudio.Editors.ApplicationDesigner
                 End If
 
                 If (dwFlags And PROPPAGESTATUS_DIRTY) <> 0 Then
-                    m_HasBeenSetDirty = True
+                    _hasBeenSetDirty = True
                 End If
                 If (dwFlags And PROPPAGESTATUS_CLEAN) <> 0 Then
                     'If the page marks itself as clean, other than in the case where
@@ -163,11 +165,11 @@ Namespace Microsoft.VisualStudio.Editors.ApplicationDesigner
                     '  by the check against recursion using InsideOnStatusChange), then we'll
                     '  honor that state with HasBeenSetDirty, assuming they have some unorthodox
                     '  method of getting to a clean state.
-                    m_HasBeenSetDirty = False
+                    _hasBeenSetDirty = False
                 End If
 
-                If m_AppDesView IsNot Nothing Then
-                    m_AppDesView.DelayRefreshDirtyIndicators()
+                If _appDesView IsNot Nothing Then
+                    _appDesView.DelayRefreshDirtyIndicators()
                 End If
             Finally
                 'Make sure to renable this code
@@ -220,11 +222,11 @@ Namespace Microsoft.VisualStudio.Editors.ApplicationDesigner
         'UserControl overrides dispose to clean up the component list.
         Protected Overloads Sub Dispose(ByVal disposing As Boolean)
             If disposing Then
-                If m_PropPage IsNot Nothing Then
-                    m_PropPage = Nothing
+                If _propPage IsNot Nothing Then
+                    _propPage = Nothing
                 End If
-                m_AppDesView = Nothing
-                m_BackingServiceProvider = Nothing
+                _appDesView = Nothing
+                _backingServiceProvider = Nothing
             End If
         End Sub
 #End Region
@@ -246,15 +248,15 @@ Namespace Microsoft.VisualStudio.Editors.ApplicationDesigner
             OrElse serviceType Is GetType(ApplicationDesignerView) _
             Then
                 'Delegate to app designer
-                If m_AppDesView IsNot Nothing Then
-                    Return m_AppDesView.GetService(serviceType)
+                If _appDesView IsNot Nothing Then
+                    Return _appDesView.GetService(serviceType)
                 Else
                     Return Nothing
                 End If
             End If
 
-            If m_BackingServiceProvider IsNot Nothing Then
-                Return m_BackingServiceProvider.GetService(serviceType)
+            If _backingServiceProvider IsNot Nothing Then
+                Return _backingServiceProvider.GetService(serviceType)
             Else
                 Debug.Fail("No service provider has been set in the PropertyPageSite")
                 Return Nothing
@@ -279,9 +281,9 @@ Namespace Microsoft.VisualStudio.Editors.ApplicationDesigner
         '''   necessary in order to hook up help.
         ''' </remarks>
         Public Function QueryService(ByRef guidService As System.Guid, ByRef riid As System.Guid, ByRef ppvObject As System.IntPtr) As Integer Implements OLE.Interop.IServiceProvider.QueryService
-            If m_BackingServiceProvider IsNot Nothing Then
+            If _backingServiceProvider IsNot Nothing Then
                 'Get the native service provider which the managed IServiceProvider wraps
-                Dim NativeServiceProvider As OLE.Interop.IServiceProvider = TryCast(m_BackingServiceProvider.GetService(GetType(OLE.Interop.IServiceProvider)), OLE.Interop.IServiceProvider)
+                Dim NativeServiceProvider As OLE.Interop.IServiceProvider = TryCast(_backingServiceProvider.GetService(GetType(OLE.Interop.IServiceProvider)), OLE.Interop.IServiceProvider)
                 If NativeServiceProvider IsNot Nothing Then
                     Return NativeServiceProvider.QueryService(guidService, riid, ppvObject)
                 Else

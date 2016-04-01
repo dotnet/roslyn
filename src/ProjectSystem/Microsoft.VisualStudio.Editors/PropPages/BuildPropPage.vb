@@ -1,3 +1,5 @@
+' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+
 'This is the C#/J# version of the Compile property page.  'CompilePropPage2.vb is the VB version.
 
 Imports System.ComponentModel
@@ -40,8 +42,8 @@ Namespace Microsoft.VisualStudio.Editors.PropertyPages
         'UserControl overrides dispose to clean up the component list.
         Protected Overloads Overrides Sub Dispose(ByVal disposing As Boolean)
             If disposing Then
-                If Not (components Is Nothing) Then
-                    components.Dispose()
+                If Not (_components Is Nothing) Then
+                    _components.Dispose()
                 End If
             End If
             MyBase.Dispose(disposing)
@@ -88,7 +90,7 @@ Namespace Microsoft.VisualStudio.Editors.PropertyPages
         Friend WithEvents cboSGenOption As System.Windows.Forms.ComboBox
 
         'Required by the Windows Form Designer
-        Private components As System.ComponentModel.IContainer
+        Private _components As System.ComponentModel.IContainer
 
         'PERF: A note about the labels used as lines.  The 3D label is being set to 1 px high,
         '   so you’re really only using the grey part of it.  Using BorderStyle.Fixed3D seems
@@ -495,7 +497,7 @@ Namespace Microsoft.VisualStudio.Editors.PropertyPages
 
 #End Region
 
-        Enum TreatWarningsSetting
+        Public Enum TreatWarningsSetting
             WARNINGS_ALL
             WARNINGS_SPECIFIC
             WARNINGS_NONE
@@ -1587,7 +1589,7 @@ Namespace Microsoft.VisualStudio.Editors.PropertyPages
         '''   we hide the configuration/platform comboboxes.
         ''' </summary>
         ''' <remarks></remarks>
-        Function IsSimplifiedConfigs() As Boolean
+        Public Function IsSimplifiedConfigs() As Boolean
             Return Common.ShellUtil.GetIsSimplifiedConfigMode(ProjectHierarchy)
         End Function
 
@@ -1600,7 +1602,7 @@ Namespace Microsoft.VisualStudio.Editors.PropertyPages
         ''' <param name="stSymbol"></param>
         ''' <returns></returns>
         ''' <remarks></remarks>
-        Function AddSymbol(ByVal stOldCondCompConstants As String, ByVal stSymbol As String) As String
+        Public Function AddSymbol(ByVal stOldCondCompConstants As String, ByVal stSymbol As String) As String
             '// See if we find it
             Dim rgConstants() As String
             Dim bFound As Boolean = False
@@ -1643,7 +1645,7 @@ Namespace Microsoft.VisualStudio.Editors.PropertyPages
         ''' <param name="stSymbol"></param>
         ''' <returns></returns>
         ''' <remarks></remarks>
-        Function FindSymbol(ByVal stOldCondCompConstants As String, ByVal stSymbol As String) As Boolean
+        Public Function FindSymbol(ByVal stOldCondCompConstants As String, ByVal stSymbol As String) As Boolean
             '// See if we find it
             Dim rgConstants() As String
 
@@ -1672,7 +1674,7 @@ Namespace Microsoft.VisualStudio.Editors.PropertyPages
         ''' <param name="stSymbol"></param>
         ''' <returns></returns>
         ''' <remarks></remarks>
-        Function RemoveSymbol(ByVal stOldCondCompConstants As String, ByVal stSymbol As String) As String
+        Public Function RemoveSymbol(ByVal stOldCondCompConstants As String, ByVal stSymbol As String) As String
             '// Look for the DEBUG constant
             Dim rgConstants() As String
             Dim stNewConstants As String = ""

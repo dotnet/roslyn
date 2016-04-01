@@ -1,3 +1,5 @@
+' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+
 Imports Common = Microsoft.VisualStudio.Editors.AppDesCommon
 Imports Interop = Microsoft.VisualStudio.Editors.AppDesInterop
 
@@ -10,8 +12,8 @@ Namespace Microsoft.VisualStudio.Editors.PropertyPages
     ' within our assembly
     Public NotInheritable Class VSProductSKU
 
-        Private Shared m_ProductSKU As VSASKUEdition = VSASKUEdition.None
-        Private Shared m_ProductSubSKU As VSASubSKUEdition = VSASubSKUEdition.None
+        Private Shared s_productSKU As VSASKUEdition = VSASKUEdition.None
+        Private Shared s_productSubSKU As VSASubSKUEdition = VSASubSKUEdition.None
 
         'CONSIDER: The preferred way to enable/disable runtime features is now to use
         '  registry keys (which are controlled via FLDB) rather than using the SKU/SubSKU.
@@ -43,8 +45,8 @@ Namespace Microsoft.VisualStudio.Editors.PropertyPages
             Web = &H40 'from vsappid80.idl
         End Enum
 
-        Private Const VSAPROPID_SKUEdition As Integer = -8534
-        Private Const VSAPROPID_SubSKUEdition As Integer = -8546
+        Private Const s_VSAPROPID_SKUEdition As Integer = -8534
+        Private Const s_VSAPROPID_SubSKUEdition As Integer = -8546
 
 
         ''' <summary>
@@ -56,7 +58,7 @@ Namespace Microsoft.VisualStudio.Editors.PropertyPages
         Public Shared ReadOnly Property ProductSKU() As VSASKUEdition
             Get
                 EnsureInited()
-                Return m_ProductSKU
+                Return s_productSKU
             End Get
         End Property
 
@@ -69,7 +71,7 @@ Namespace Microsoft.VisualStudio.Editors.PropertyPages
         Public Shared ReadOnly Property ProductSubSKU() As VSASubSKUEdition
             Get
                 EnsureInited()
-                Return m_ProductSubSKU
+                Return s_productSubSKU
             End Get
         End Property
 
@@ -81,7 +83,7 @@ Namespace Microsoft.VisualStudio.Editors.PropertyPages
         Public Shared ReadOnly Property IsStandard() As Boolean
             Get
                 EnsureInited()
-                Return (m_ProductSKU >= VSASKUEdition.Standard AndAlso m_ProductSKU < VSASKUEdition.VSTO)
+                Return (s_productSKU >= VSASKUEdition.Standard AndAlso s_productSKU < VSASKUEdition.VSTO)
             End Get
         End Property
 
@@ -94,7 +96,7 @@ Namespace Microsoft.VisualStudio.Editors.PropertyPages
         Public Shared ReadOnly Property IsVSTO() As Boolean
             Get
                 EnsureInited()
-                Return (m_ProductSKU >= VSASKUEdition.VSTO AndAlso m_ProductSKU < VSASKUEdition.Professional)
+                Return (s_productSKU >= VSASKUEdition.VSTO AndAlso s_productSKU < VSASKUEdition.Professional)
             End Get
         End Property
 
@@ -106,7 +108,7 @@ Namespace Microsoft.VisualStudio.Editors.PropertyPages
         Public Shared ReadOnly Property IsProfessional() As Boolean
             Get
                 EnsureInited()
-                Return (m_ProductSKU >= VSASKUEdition.Professional AndAlso m_ProductSKU < VSASKUEdition.Enterprise)
+                Return (s_productSKU >= VSASKUEdition.Professional AndAlso s_productSKU < VSASKUEdition.Enterprise)
             End Get
         End Property
 
@@ -119,7 +121,7 @@ Namespace Microsoft.VisualStudio.Editors.PropertyPages
         Public Shared ReadOnly Property IsExpress() As Boolean
             Get
                 EnsureInited()
-                Return (m_ProductSKU = VSASKUEdition.Express)
+                Return (s_productSKU = VSASKUEdition.Express)
             End Get
         End Property
 
@@ -132,7 +134,7 @@ Namespace Microsoft.VisualStudio.Editors.PropertyPages
         Public Shared ReadOnly Property IsAcademic() As Boolean
             Get
                 EnsureInited()
-                Return (m_ProductSKU = VSASKUEdition.AcademicStudent)
+                Return (s_productSKU = VSASKUEdition.AcademicStudent)
             End Get
         End Property
 
@@ -145,7 +147,7 @@ Namespace Microsoft.VisualStudio.Editors.PropertyPages
         Public Shared ReadOnly Property IsEnterprise() As Boolean
             Get
                 EnsureInited()
-                Return (m_ProductSKU >= VSASKUEdition.Enterprise)
+                Return (s_productSKU >= VSASKUEdition.Enterprise)
             End Get
         End Property
 
@@ -158,7 +160,7 @@ Namespace Microsoft.VisualStudio.Editors.PropertyPages
         Public Shared ReadOnly Property IsVB() As Boolean
             Get
                 EnsureInited()
-                Return (m_ProductSubSKU = VSASubSKUEdition.VB)
+                Return (s_productSubSKU = VSASubSKUEdition.VB)
             End Get
         End Property
 
@@ -171,7 +173,7 @@ Namespace Microsoft.VisualStudio.Editors.PropertyPages
         Public Shared ReadOnly Property IsVC() As Boolean
             Get
                 EnsureInited()
-                Return (m_ProductSubSKU = VSASubSKUEdition.VC)
+                Return (s_productSubSKU = VSASubSKUEdition.VC)
             End Get
         End Property
 
@@ -183,7 +185,7 @@ Namespace Microsoft.VisualStudio.Editors.PropertyPages
         ''' </summary>
         ''' <remarks></remarks>
         Private Shared Sub EnsureInited()
-            If m_ProductSKU = VSASKUEdition.None Then
+            If s_productSKU = VSASKUEdition.None Then
                 If Common.Utils.VBPackageInstance IsNot Nothing Then
                     Init(DirectCast(Common.Utils.VBPackageInstance, IServiceProvider))
                 End If
@@ -209,13 +211,13 @@ Namespace Microsoft.VisualStudio.Editors.PropertyPages
             VsAppIdService = TryCast(ServiceProvider.GetService(GetType(Interop.IVsAppId)), Interop.IVsAppId)
             If VsAppIdService IsNot Nothing Then
                 Try
-                    hr = VsAppIdService.GetProperty(VSAPROPID_SKUEdition, objSKU)
+                    hr = VsAppIdService.GetProperty(s_VSAPROPID_SKUEdition, objSKU)
                     If hr >= 0 AndAlso (TypeOf objSKU Is Integer) Then
-                        m_ProductSKU = DirectCast(CInt(objSKU), VSASKUEdition)
+                        s_productSKU = DirectCast(CInt(objSKU), VSASKUEdition)
                     End If
-                    hr = VsAppIdService.GetProperty(VSAPROPID_SubSKUEdition, objSubSKU)
+                    hr = VsAppIdService.GetProperty(s_VSAPROPID_SubSKUEdition, objSubSKU)
                     If hr >= 0 AndAlso (TypeOf objSubSKU Is Integer) Then
-                        m_ProductSubSKU = DirectCast(CInt(objSubSKU), VSASubSKUEdition)
+                        s_productSubSKU = DirectCast(CInt(objSubSKU), VSASubSKUEdition)
                     End If
                 Catch ex As Exception
                     'ignore for now
@@ -225,18 +227,18 @@ Namespace Microsoft.VisualStudio.Editors.PropertyPages
             End If
 
 #If DEBUG Then
-            Trace.WriteLine("Project Designer: SKU detected as " & m_ProductSKU.ToString())
-            Trace.WriteLine("Project Designer: Sub-SKU detected as " & m_ProductSubSKU.ToString())
+            Trace.WriteLine("Project Designer: SKU detected as " & s_productSKU.ToString())
+            Trace.WriteLine("Project Designer: Sub-SKU detected as " & s_productSubSKU.ToString())
 
             If Common.Switches.PDSku.ValueDefined Then
                 Dim NewSku As VSASKUEdition = Common.Switches.PDSku.Value
                 Trace.WriteLine("****** PROJECT DESIGNER ONLY: OVERRIDING SKU VALUE TO: " & NewSku.ToString())
-                m_ProductSKU = NewSku
+                s_productSKU = NewSku
             End If
             If Common.Switches.PDSubSku.ValueDefined Then
                 Dim NewSubSku As VSASubSKUEdition = Common.Switches.PDSubSku.Value
                 Trace.WriteLine("****** PROJECT DESIGNER ONLY: OVERRIDING SUB-SKU VALUE TO: " & NewSubSku.ToString())
-                m_ProductSubSKU = NewSubSku
+                s_productSubSKU = NewSubSku
             End If
 #End If
         End Sub

@@ -1,3 +1,5 @@
+' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+
 Imports System.ComponentModel.Design
 
 Namespace Microsoft.VisualStudio.Editors.SettingsDesigner
@@ -15,7 +17,7 @@ Namespace Microsoft.VisualStudio.Editors.SettingsDesigner
         ''' Our wrapped transaction, or nothing if not designer host is available
         ''' </summary>
         ''' <remarks></remarks>
-        Private m_Transaction As DesignerTransaction
+        Private _transaction As DesignerTransaction
 
         ''' <summary>
         ''' Create a new instance
@@ -49,7 +51,7 @@ Namespace Microsoft.VisualStudio.Editors.SettingsDesigner
         ''' <remarks></remarks>
         Private Sub Initialize(ByVal DesignerHost As IDesignerHost, ByVal Description As String)
             If DesignerHost IsNot Nothing Then
-                m_Transaction = DesignerHost.CreateTransaction(Description)
+                _transaction = DesignerHost.CreateTransaction(Description)
             End If
         End Sub
 
@@ -58,8 +60,8 @@ Namespace Microsoft.VisualStudio.Editors.SettingsDesigner
         ''' </summary>
         ''' <remarks>If no wrapped transaction is available, this is a nop</remarks>
         Public Sub Cancel()
-            If m_Transaction IsNot Nothing Then
-                m_Transaction.Cancel()
+            If _transaction IsNot Nothing Then
+                _transaction.Cancel()
             End If
         End Sub
 
@@ -68,8 +70,8 @@ Namespace Microsoft.VisualStudio.Editors.SettingsDesigner
         ''' </summary>
         ''' <remarks>If no wrapped transaction is available, this is a nop</remarks>
         Public Sub Commit()
-            If m_Transaction IsNot Nothing Then
-                m_Transaction.Commit()
+            If _transaction IsNot Nothing Then
+                _transaction.Commit()
             End If
         End Sub
 
@@ -79,8 +81,8 @@ Namespace Microsoft.VisualStudio.Editors.SettingsDesigner
         ''' </summary>
         ''' <remarks>Allows for a "using" statement</remarks>
         Public Sub Dispose() Implements System.IDisposable.Dispose
-            If m_Transaction IsNot Nothing AndAlso Not m_Transaction.Committed() Then
-                m_Transaction.Cancel()
+            If _transaction IsNot Nothing AndAlso Not _transaction.Committed() Then
+                _transaction.Cancel()
             End If
         End Sub
 

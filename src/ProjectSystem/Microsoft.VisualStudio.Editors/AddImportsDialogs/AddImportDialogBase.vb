@@ -1,4 +1,6 @@
-﻿Imports System.Drawing
+﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+
+Imports System.Drawing
 Imports System.Windows.Forms
 Imports VsShell = Microsoft.VisualStudio.Shell.Interop
 Imports VsErrorHandler = Microsoft.VisualStudio.ErrorHandler
@@ -7,13 +9,13 @@ Namespace Microsoft.VisualStudio.Editors.AddImports
     Friend MustInherit Class AddImportDialogBase
         Inherits Form
 
-        Private ReadOnly m_ServiceProvider As IServiceProvider
+        Private ReadOnly _serviceProvider As IServiceProvider
 
-        Sub New(ByVal serviceProvider As IServiceProvider)
+        Public Sub New(ByVal serviceProvider As IServiceProvider)
             If serviceProvider Is Nothing Then
                 Throw New ArgumentNullException("serviceProvider")
             End If
-            m_ServiceProvider = serviceProvider
+            _serviceProvider = serviceProvider
         End Sub
 
         Protected Overrides Sub OnLoad(ByVal e As EventArgs)
@@ -24,7 +26,7 @@ Namespace Microsoft.VisualStudio.Editors.AddImports
 
         Protected ReadOnly Property DialogFont() As Font
             Get
-                Dim hostLocale As VsShell.IUIHostLocale2 = CType(m_ServiceProvider.GetService(GetType(VsShell.SUIHostLocale)), VsShell.IUIHostLocale2)
+                Dim hostLocale As VsShell.IUIHostLocale2 = CType(_serviceProvider.GetService(GetType(VsShell.SUIHostLocale)), VsShell.IUIHostLocale2)
                 If hostLocale IsNot Nothing Then
                     Dim fonts(1) As VsShell.UIDLGLOGFONT
                     If VSErrorHandler.Succeeded(hostLocale.GetDialogFont(fonts)) Then

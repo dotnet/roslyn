@@ -1,3 +1,5 @@
+' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+
 Imports Common = Microsoft.VisualStudio.Editors.AppDesCommon
 Imports System.Drawing
 Imports System.Windows.Forms
@@ -7,8 +9,8 @@ Namespace Microsoft.VisualStudio.Editors.ApplicationDesigner
     Public Class ProjectDesignerTabButton
         Inherits Button
 
-        Private m_Index As Integer
-        Private m_DirtyIndicator As Boolean
+        Private _index As Integer
+        Private _dirtyIndicator As Boolean
 
 
         Public Sub New()
@@ -36,11 +38,11 @@ Namespace Microsoft.VisualStudio.Editors.ApplicationDesigner
         ''' <remarks></remarks>
         Public Property DirtyIndicator() As Boolean
             Get
-                Return m_DirtyIndicator
+                Return _dirtyIndicator
             End Get
             Set(ByVal value As Boolean)
-                If value <> m_DirtyIndicator Then
-                    m_DirtyIndicator = value
+                If value <> _dirtyIndicator Then
+                    _dirtyIndicator = value
                     Invalidate()
                 End If
             End Set
@@ -84,12 +86,12 @@ Namespace Microsoft.VisualStudio.Editors.ApplicationDesigner
 
         Public ReadOnly Property ButtonIndex() As Integer
             Get
-                Return m_Index
+                Return _index
             End Get
         End Property
 
         Public Sub SetIndex(ByVal index As Integer)
-            m_Index = index
+            _index = index
         End Sub
 
 
@@ -179,11 +181,11 @@ Namespace Microsoft.VisualStudio.Editors.ApplicationDesigner
             Inherits ButtonBaseAccessibleObject
 
             ' button which this accessible object belongs to
-            Private m_Button As ProjectDesignerTabButton
+            Private _button As ProjectDesignerTabButton
 
             Public Sub New(ByVal owner As ProjectDesignerTabButton)
                 MyBase.New(owner)
-                m_Button = owner
+                _button = owner
             End Sub
 
             ''' <summary>
@@ -191,7 +193,7 @@ Namespace Microsoft.VisualStudio.Editors.ApplicationDesigner
             ''' </summary>
             Public Overrides ReadOnly Property State() As AccessibleStates
                 Get
-                    Return m_Button.AccessibleState
+                    Return _button.AccessibleState
                 End Get
             End Property
 
@@ -217,7 +219,7 @@ Namespace Microsoft.VisualStudio.Editors.ApplicationDesigner
             ''' Do the default action - select the tab
             ''' </summary>
             Public Overrides Sub DoDefaultAction()
-                m_Button.PerformClick()
+                _button.PerformClick()
             End Sub
 
         End Class

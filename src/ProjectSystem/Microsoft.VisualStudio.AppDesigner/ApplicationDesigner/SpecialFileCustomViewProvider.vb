@@ -1,4 +1,6 @@
-﻿Imports Microsoft.VisualStudio.Shell.Interop
+﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+
+Imports Microsoft.VisualStudio.Shell.Interop
 Imports System.Windows.Forms
 
 Namespace Microsoft.VisualStudio.Editors.ApplicationDesigner
@@ -11,11 +13,11 @@ Namespace Microsoft.VisualStudio.Editors.ApplicationDesigner
     Public Class SpecialFileCustomViewProvider
         Inherits CustomViewProvider
 
-        Private m_View As Control
-        Private m_LinkText As String
-        Private m_DesignerView As ApplicationDesignerView
-        Private m_DesignerPanel As ApplicationDesignerPanel
-        Private m_SpecialFileId As Integer
+        Private _view As Control
+        Private _linkText As String
+        Private _designerView As ApplicationDesignerView
+        Private _designerPanel As ApplicationDesignerPanel
+        Private _specialFileId As Integer
 
 
         ''' <summary>
@@ -28,11 +30,11 @@ Namespace Microsoft.VisualStudio.Editors.ApplicationDesigner
         ''' <remarks></remarks>
         Public Sub New(ByVal DesignerView As ApplicationDesignerView, ByVal DesignerPanel As ApplicationDesignerPanel, ByVal SpecialFileId As Integer, ByVal LinkText As String)
             Debug.Assert(DesignerView IsNot Nothing)
-            m_DesignerView = DesignerView
+            _designerView = DesignerView
             Debug.Assert(DesignerPanel IsNot Nothing)
-            m_DesignerPanel = DesignerPanel
-            m_LinkText = LinkText
-            m_SpecialFileId = SpecialFileId
+            _designerPanel = DesignerPanel
+            _linkText = LinkText
+            _specialFileId = SpecialFileId
         End Sub
 
         ''' <summary>
@@ -42,7 +44,7 @@ Namespace Microsoft.VisualStudio.Editors.ApplicationDesigner
         ''' <remarks></remarks>
         Public ReadOnly Property LinkText() As String
             Get
-                Return m_LinkText
+                Return _linkText
             End Get
         End Property
 
@@ -53,7 +55,7 @@ Namespace Microsoft.VisualStudio.Editors.ApplicationDesigner
         ''' <remarks></remarks>
         Public ReadOnly Property DesignerView() As ApplicationDesignerView
             Get
-                Return m_DesignerView
+                Return _designerView
             End Get
         End Property
 
@@ -64,7 +66,7 @@ Namespace Microsoft.VisualStudio.Editors.ApplicationDesigner
         ''' <remarks></remarks>
         Public ReadOnly Property SpecialFileId() As Integer
             Get
-                Return m_SpecialFileId
+                Return _specialFileId
             End Get
         End Property
 
@@ -75,7 +77,7 @@ Namespace Microsoft.VisualStudio.Editors.ApplicationDesigner
         ''' <remarks></remarks>
         Public ReadOnly Property DesignerPanel() As ApplicationDesignerPanel
             Get
-                Return m_DesignerPanel
+                Return _designerPanel
             End Get
         End Property
 
@@ -87,7 +89,7 @@ Namespace Microsoft.VisualStudio.Editors.ApplicationDesigner
         ''' <remarks></remarks>
         Public Overrides ReadOnly Property View() As Control
             Get
-                Return m_View
+                Return _view
             End Get
         End Property
 
@@ -96,12 +98,12 @@ Namespace Microsoft.VisualStudio.Editors.ApplicationDesigner
         ''' </summary>
         ''' <remarks></remarks>
         Public Overrides Sub CreateView()
-            If m_View Is Nothing Then
+            If _view Is Nothing Then
                 Dim NewView As New SpecialFileCustomView
-                NewView.LinkLabel.SetThemedColor(m_DesignerPanel.VsUIShell5)
+                NewView.LinkLabel.SetThemedColor(_designerPanel.VsUIShell5)
                 NewView.SetSite(Me)
 
-                m_View = NewView
+                _view = NewView
             End If
         End Sub
 
@@ -110,9 +112,9 @@ Namespace Microsoft.VisualStudio.Editors.ApplicationDesigner
         ''' </summary>
         ''' <remarks></remarks>
         Public Overrides Sub CloseView()
-            If m_View IsNot Nothing Then
-                m_View.Dispose()
-                m_View = Nothing
+            If _view IsNot Nothing Then
+                _view.Dispose()
+                _view = Nothing
             End If
         End Sub
 
@@ -145,8 +147,8 @@ Namespace Microsoft.VisualStudio.Editors.ApplicationDesigner
     Public NotInheritable Class SpecialFileCustomDocumentMonikerProvider
         Inherits CustomDocumentMonikerProvider
 
-        Private m_SpecialFileId As Integer
-        Private m_DesignerView As ApplicationDesignerView
+        Private _specialFileId As Integer
+        Private _designerView As ApplicationDesignerView
 
         ''' <summary>
         ''' Constructor.
@@ -160,8 +162,8 @@ Namespace Microsoft.VisualStudio.Editors.ApplicationDesigner
                 Throw New ArgumentNullException("DesignerView")
             End If
 
-            m_SpecialFileId = SpecialFileId
-            m_DesignerView = DesignerView
+            _specialFileId = SpecialFileId
+            _designerView = DesignerView
 
 #If DEBUG Then
             Try
@@ -177,7 +179,7 @@ Namespace Microsoft.VisualStudio.Editors.ApplicationDesigner
             'Ask the project for the filename (do not create if it doesn't exist)
             Dim ItemId As UInteger
             Dim SpecialFilePath As String = Nothing
-            Dim hr As Integer = m_DesignerView.SpecialFiles.GetFile(m_SpecialFileId, CUInt(__PSFFLAGS.PSFF_FullPath), ItemId, SpecialFilePath)
+            Dim hr As Integer = _designerView.SpecialFiles.GetFile(_specialFileId, CUInt(__PSFFLAGS.PSFF_FullPath), ItemId, SpecialFilePath)
             If VSErrorHandler.Succeeded(hr) AndAlso SpecialFilePath <> "" Then
                 'The file is supported (it doesn't necessarily mean that it exists yet)
                 Return SpecialFilePath

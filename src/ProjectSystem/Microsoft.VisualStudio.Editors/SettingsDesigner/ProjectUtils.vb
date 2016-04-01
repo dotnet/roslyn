@@ -1,3 +1,5 @@
+' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+
 Imports Microsoft.VisualStudio.Shell.Interop
 Imports System.CodeDom
 Imports System.CodeDom.Compiler
@@ -382,16 +384,16 @@ Namespace Microsoft.VisualStudio.Editors.SettingsDesigner.ProjectUtils
         Friend Class KnownClassName
             Implements IFindFilter
 
-            Private m_ClassName As String
-            Private m_ClassOrModule As ClassOrModule
+            Private _className As String
+            Private _classOrModule As ClassOrModule
 
             Friend Sub New(ByVal ClassName As String, Optional ByVal ClassOrModule As ClassOrModule = ClassOrModule.ClassOnly)
-                m_ClassName = ClassName
-                m_ClassOrModule = ClassOrModule
+                _className = ClassName
+                _classOrModule = ClassOrModule
             End Sub
 
             Public Function IsMatch(ByVal Element As EnvDTE.CodeElement) As Boolean Implements IFindFilter.IsMatch
-                Select Case m_ClassOrModule
+                Select Case _classOrModule
                     Case ClassOrModule.ClassOnly
                         If Element.Kind <> EnvDTE.vsCMElement.vsCMElementClass Then
                             Return False
@@ -408,7 +410,7 @@ Namespace Microsoft.VisualStudio.Editors.SettingsDesigner.ProjectUtils
                         Debug.Fail("Unexpected case")
                 End Select
 
-                Return m_ClassName.Equals(Element.FullName, StringComparison.Ordinal)
+                Return _className.Equals(Element.FullName, StringComparison.Ordinal)
             End Function
         End Class
 
@@ -423,20 +425,20 @@ Namespace Microsoft.VisualStudio.Editors.SettingsDesigner.ProjectUtils
             ''' The class to expand
             ''' </summary>
             ''' <remarks></remarks>
-            Private m_ClassToExpand As EnvDTE80.CodeClass2
+            Private _classToExpand As EnvDTE80.CodeClass2
 
             Friend Sub New(ByVal ClassToExpand As EnvDTE80.CodeClass2)
                 If ClassToExpand Is Nothing Then
                     Debug.Fail("Can't find a class that expands a NULL class...")
                     Throw New System.ArgumentNullException()
                 End If
-                m_ClassToExpand = ClassToExpand
+                _classToExpand = ClassToExpand
             End Sub
 
             Public Function IsMatch(ByVal Element As EnvDTE.CodeElement) As Boolean Implements IFindFilter.IsMatch
                 If Element.Kind = EnvDTE.vsCMElement.vsCMElementClass AndAlso _
-                    (Not FileName(m_ClassToExpand.ProjectItem).Equals(FileName(Element.ProjectItem), System.StringComparison.Ordinal)) AndAlso _
-                    m_ClassToExpand.FullName.Equals(Element.FullName) _
+                    (Not FileName(_classToExpand.ProjectItem).Equals(FileName(Element.ProjectItem), System.StringComparison.Ordinal)) AndAlso _
+                    _classToExpand.FullName.Equals(Element.FullName) _
                 Then
                     Dim cc2 As EnvDTE80.CodeClass2 = TryCast(Element, EnvDTE80.CodeClass2)
                     If cc2 IsNot Nothing AndAlso cc2.DataTypeKind = EnvDTE80.vsCMDataTypeKind.vsCMDataTypeKindPartial Then
@@ -454,8 +456,8 @@ Namespace Microsoft.VisualStudio.Editors.SettingsDesigner.ProjectUtils
         Friend Class FindPropertyFilter
             Implements IFindFilter
 
-            Private m_ContaintingClass As EnvDTE.CodeElement
-            Private m_PropertyName As String
+            Private _containtingClass As EnvDTE.CodeElement
+            Private _propertyName As String
 
             Public Sub New(ByVal ContainingClass As EnvDTE.CodeElement, ByVal PropertyName As String)
                 If ContainingClass Is Nothing Then
@@ -468,8 +470,8 @@ Namespace Microsoft.VisualStudio.Editors.SettingsDesigner.ProjectUtils
                     Throw New ArgumentNullException()
                 End If
 
-                m_ContaintingClass = ContainingClass
-                m_PropertyName = PropertyName
+                _containtingClass = ContainingClass
+                _propertyName = PropertyName
             End Sub
 
             Public Function IsMatch(ByVal Element As EnvDTE.CodeElement) As Boolean Implements IFindFilter.IsMatch
@@ -487,7 +489,7 @@ Namespace Microsoft.VisualStudio.Editors.SettingsDesigner.ProjectUtils
                     comparisonType = StringComparison.Ordinal
                 End If
 
-                If Not Element.Name.Equals(m_PropertyName, comparisonType) Then
+                If Not Element.Name.Equals(_propertyName, comparisonType) Then
                     Return False
                 End If
 
@@ -497,7 +499,7 @@ Namespace Microsoft.VisualStudio.Editors.SettingsDesigner.ProjectUtils
                     Return False
                 End If
 
-                If Prop.Parent.FullName.Equals(m_ContaintingClass.FullName, comparisonType) Then
+                If Prop.Parent.FullName.Equals(_containtingClass.FullName, comparisonType) Then
                     Return True
                 Else
                     Return False
@@ -512,8 +514,8 @@ Namespace Microsoft.VisualStudio.Editors.SettingsDesigner.ProjectUtils
         Friend Class FindFunctionFilter
             Implements IFindFilter
 
-            Private m_ContaintingClass As EnvDTE.CodeElement
-            Private m_FunctionName As String
+            Private _containtingClass As EnvDTE.CodeElement
+            Private _functionName As String
 
             Public Sub New(ByVal ContainingClass As EnvDTE.CodeElement, ByVal FunctionName As String)
                 If ContainingClass Is Nothing Then
@@ -526,8 +528,8 @@ Namespace Microsoft.VisualStudio.Editors.SettingsDesigner.ProjectUtils
                     Throw New ArgumentNullException()
                 End If
 
-                m_ContaintingClass = ContainingClass
-                m_FunctionName = FunctionName
+                _containtingClass = ContainingClass
+                _functionName = FunctionName
             End Sub
 
             ''' <summary>
@@ -549,7 +551,7 @@ Namespace Microsoft.VisualStudio.Editors.SettingsDesigner.ProjectUtils
                     comparisonType = StringComparison.Ordinal
                 End If
 
-                If Not Element.Name.Equals(m_FunctionName, comparisonType) Then
+                If Not Element.Name.Equals(_functionName, comparisonType) Then
                     Return False
                 End If
 
@@ -561,7 +563,7 @@ Namespace Microsoft.VisualStudio.Editors.SettingsDesigner.ProjectUtils
                 End If
 
                 Dim ContaintingClass As EnvDTE.CodeClass = TryCast(Func.Parent, EnvDTE.CodeClass)
-                If ContaintingClass IsNot Nothing AndAlso ContaintingClass.FullName.Equals(m_ContaintingClass.FullName, comparisonType) Then
+                If ContaintingClass IsNot Nothing AndAlso ContaintingClass.FullName.Equals(_containtingClass.FullName, comparisonType) Then
                     Return True
                 Else
                     Return False

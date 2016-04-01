@@ -1,3 +1,5 @@
+' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+
 Imports Microsoft.VisualStudio.Shell.Interop
 Imports Microsoft.VSDesigner
 
@@ -10,12 +12,12 @@ Namespace Microsoft.VisualStudio.Editors.SettingsDesigner
     Friend Class SettingsTypeCache
         Implements IDisposable
 
-        Private m_multiTargetService As MultiTargetService
-        Private m_typeResolutionService As System.ComponentModel.Design.ITypeResolutionService
-        Private m_caseSensitive As Boolean
+        Private _multiTargetService As MultiTargetService
+        Private _typeResolutionService As System.ComponentModel.Design.ITypeResolutionService
+        Private _caseSensitive As Boolean
 
         ' The list of types that we always know how to find. 
-        Private ReadOnly m_wellKnownTypes() As System.Type = { _
+        Private ReadOnly _wellKnownTypes() As System.Type = { _
                                                     GetType(Boolean), _
                                                     GetType(Byte), _
                                                     GetType(Char), _
@@ -51,18 +53,18 @@ Namespace Microsoft.VisualStudio.Editors.SettingsDesigner
                 Throw New ArgumentNullException()
             End If
 
-            m_multiTargetService = New MultiTargetService(vsHierarchy, ItemId, False)
-            m_typeResolutionService = typeResolutionService
-            m_caseSensitive = caseSensitive
+            _multiTargetService = New MultiTargetService(vsHierarchy, ItemId, False)
+            _typeResolutionService = typeResolutionService
+            _caseSensitive = caseSensitive
         End Sub
 
         Private Sub Dispose(ByVal disposing As Boolean)
             If disposing Then
-                If m_multiTargetService IsNot Nothing Then
-                    m_multiTargetService.Dispose()
-                    m_multiTargetService = Nothing
+                If _multiTargetService IsNot Nothing Then
+                    _multiTargetService.Dispose()
+                    _multiTargetService = Nothing
                 End If
-                m_typeResolutionService = Nothing
+                _typeResolutionService = Nothing
             End If
         End Sub
 
@@ -87,7 +89,7 @@ Namespace Microsoft.VisualStudio.Editors.SettingsDesigner
                     Return wellKnownType
                 End If
             Next
-            Return ResolveType(typeName, m_caseSensitive)
+            Return ResolveType(typeName, _caseSensitive)
         End Function
 
 
@@ -98,7 +100,7 @@ Namespace Microsoft.VisualStudio.Editors.SettingsDesigner
         ''' <returns></returns>
         ''' <remarks></remarks>
         Public Function GetWellKnownTypes() As System.Type()
-            Return m_multiTargetService.GetSupportedTypes(m_wellKnownTypes)
+            Return _multiTargetService.GetSupportedTypes(_wellKnownTypes)
         End Function
 
         ''' <summary>
@@ -131,11 +133,11 @@ Namespace Microsoft.VisualStudio.Editors.SettingsDesigner
             ElseIf System.String.Equals(persistedSettingTypeName, SettingsSerializer.CultureInvariantVirtualTypeNameWebReference, StringComparison.Ordinal) Then
                 t = GetType(String)
             Else
-                t = m_typeResolutionService.GetType(persistedSettingTypeName, False, Not caseSensitive)
+                t = _typeResolutionService.GetType(persistedSettingTypeName, False, Not caseSensitive)
             End If
 
             If t IsNot Nothing Then
-                Return m_multiTargetService.GetSupportedType(t, False)
+                Return _multiTargetService.GetSupportedType(t, False)
             Else
                 Return t
             End If
@@ -145,9 +147,9 @@ Namespace Microsoft.VisualStudio.Editors.SettingsDesigner
             Dim qualifiedAssemblyName As String = Nothing
 
             If Not String.IsNullOrEmpty(sourceTypeName) Then
-                Dim t As System.Type = m_typeResolutionService.GetType(sourceTypeName, False, Not m_caseSensitive)
+                Dim t As System.Type = _typeResolutionService.GetType(sourceTypeName, False, Not _caseSensitive)
                 If t IsNot Nothing Then
-                    qualifiedAssemblyName = m_multiTargetService.TypeNameConverter(t)
+                    qualifiedAssemblyName = _multiTargetService.TypeNameConverter(t)
                 End If
             End If
 

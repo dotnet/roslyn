@@ -1,3 +1,5 @@
+' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+
 Option Explicit On
 Option Strict On
 Option Compare Binary
@@ -86,8 +88,8 @@ Namespace Microsoft.VisualStudio.Editors.ResourceEditor
 
 
 
-        Private m_HashCodeCache As Integer
-        Private m_IsHashCodeCached As Boolean
+        Private _hashCodeCache As Integer
+        Private _isHashCodeCached As Boolean
 
 
         ''' <summary>
@@ -295,11 +297,11 @@ Namespace Microsoft.VisualStudio.Editors.ResourceEditor
         Public NotOverridable Overrides Function GetHashCode() As Integer
             'Hash is based on the hash of the type name of this ResourceTypeEditor.  This can be
             '  somewhat expensive, so we cache it (it cannot change).
-            If Not m_IsHashCodeCached Then
-                m_IsHashCodeCached = True
-                m_HashCodeCache = Me.GetType.AssemblyQualifiedName.GetHashCode
+            If Not _isHashCodeCached Then
+                _isHashCodeCached = True
+                _hashCodeCache = Me.GetType.AssemblyQualifiedName.GetHashCode
             End If
-            Return m_HashCodeCache
+            Return _hashCodeCache
         End Function
 
         ''' <summary>

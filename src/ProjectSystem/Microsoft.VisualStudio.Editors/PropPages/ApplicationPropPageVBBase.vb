@@ -1,3 +1,5 @@
+' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+
 Imports System.ComponentModel
 Imports System.ComponentModel.Design
 Imports System.Windows.Forms
@@ -379,18 +381,18 @@ Namespace Microsoft.VisualStudio.Editors.PropertyPages
         ''' <remarks></remarks>
         Protected Class ApplicationTypeInfo
 
-            Private m_ApplicationType As MyApplication.ApplicationTypes
-            Private m_DisplayName As String
-            Private m_Name As String 'Non-localized name
-            Private m_supportedInExpress As Boolean
+            Private _applicationType As MyApplication.ApplicationTypes
+            Private _displayName As String
+            Private _name As String 'Non-localized name
+            Private _supportedInExpress As Boolean
 
             ' Basic references need to be added to the project when the user changed the type of the application.
             '  We should maintain it to be the same as the list in the project templates.
-            Private Shared ReadOnly References_WindowsApp As String() = New String() {"System.Deployment", "System.Drawing", "System.Windows.Forms"}
-            Private Shared ReadOnly References_WindowsClassLib As String() = New String() {"System.Data", "System.Xml"}
-            Private Shared ReadOnly References_CommandLineApp As String() = New String() {"System.Data", "System.Deployment", "System.Xml"}
-            Private Shared ReadOnly References_WindowsService As String() = New String() {"System.Data", "System.Deployment", "System.ServiceProcess", "System.Xml"}
-            Private Shared ReadOnly References_WebControl As String() = New String() {"System.Data", "System.Drawing", "System.Management", "System.Web", "System.Xml"}
+            Private Shared ReadOnly s_references_WindowsApp As String() = New String() {"System.Deployment", "System.Drawing", "System.Windows.Forms"}
+            Private Shared ReadOnly s_references_WindowsClassLib As String() = New String() {"System.Data", "System.Xml"}
+            Private Shared ReadOnly s_references_CommandLineApp As String() = New String() {"System.Data", "System.Deployment", "System.Xml"}
+            Private Shared ReadOnly s_references_WindowsService As String() = New String() {"System.Data", "System.Deployment", "System.ServiceProcess", "System.Xml"}
+            Private Shared ReadOnly s_references_WebControl As String() = New String() {"System.Data", "System.Drawing", "System.Management", "System.Web", "System.Xml"}
 
 
             ''' <summary>
@@ -401,34 +403,34 @@ Namespace Microsoft.VisualStudio.Editors.PropertyPages
             ''' <param name="SupportedInExpress"></param>
             ''' <remarks></remarks>
             Public Sub New(ByVal ApplicationType As MyApplication.ApplicationTypes, ByVal DisplayName As String, ByVal SupportedInExpress As Boolean)
-                m_ApplicationType = ApplicationType
-                m_DisplayName = DisplayName
-                m_Name = System.Enum.GetName(GetType(MyApplication.ApplicationTypes), ApplicationType)
-                m_supportedInExpress = SupportedInExpress
+                _applicationType = ApplicationType
+                _displayName = DisplayName
+                _name = System.Enum.GetName(GetType(MyApplication.ApplicationTypes), ApplicationType)
+                _supportedInExpress = SupportedInExpress
             End Sub
 
 #Region "Trivial property get:ers"
             Public ReadOnly Property ApplicationType() As MyApplication.ApplicationTypes
                 Get
-                    Return m_ApplicationType
+                    Return _applicationType
                 End Get
             End Property
 
             Public ReadOnly Property DisplayName() As String
                 Get
-                    Return m_DisplayName
+                    Return _displayName
                 End Get
             End Property
 
             Public ReadOnly Property Name() As String
                 Get
-                    Return m_Name
+                    Return _name
                 End Get
             End Property
 
             Public ReadOnly Property SupportedInExpress() As Boolean
                 Get
-                    Return m_supportedInExpress
+                    Return _supportedInExpress
                 End Get
             End Property
 
@@ -444,15 +446,15 @@ Namespace Microsoft.VisualStudio.Editors.PropertyPages
                 Get
                     Select Case ApplicationType
                         Case ApplicationTypes.WindowsApp
-                            Return References_WindowsApp
+                            Return s_references_WindowsApp
                         Case ApplicationTypes.WindowsClassLib
-                            Return References_WindowsClassLib
+                            Return s_references_WindowsClassLib
                         Case ApplicationTypes.CommandLineApp
-                            Return References_CommandLineApp
+                            Return s_references_CommandLineApp
                         Case ApplicationTypes.WindowsService
-                            Return References_WindowsService
+                            Return s_references_WindowsService
                         Case ApplicationTypes.WebControl
-                            Return References_WebControl
+                            Return s_references_WebControl
                         Case Else
                             Debug.Fail("Unknown application type")
                             Return New String() {}
@@ -507,8 +509,8 @@ Namespace Microsoft.VisualStudio.Editors.PropertyPages
                 Public Delegate Function CompareFun(ByVal SemicolonSeparatedNames As String, ByVal Item As ApplicationTypeInfo) As Boolean
 
                 ' Non-localized name to match
-                Private m_names As New Generic.Dictionary(Of String, Boolean)
-                Private m_mustBeSupportedInExpressSKUs As Boolean
+                Private _names As New Generic.Dictionary(Of String, Boolean)
+                Private _mustBeSupportedInExpressSKUs As Boolean
 
                 ''' <summary>
                 ''' Create a new filter predicate
@@ -517,9 +519,9 @@ Namespace Microsoft.VisualStudio.Editors.PropertyPages
                 ''' <param name="MustBeSupportedInExpressSKUs">If true, only application types supported by express SKUs will be returned</param>
                 ''' <remarks></remarks>
                 Friend Sub New(ByVal SemicolonSeparatedNames As String, ByVal MustBeSupportedInExpressSKUs As Boolean)
-                    m_mustBeSupportedInExpressSKUs = MustBeSupportedInExpressSKUs
+                    _mustBeSupportedInExpressSKUs = MustBeSupportedInExpressSKUs
                     For Each AppType As String In SemicolonSeparatedNames.Split(";"c)
-                        m_names(AppType) = True
+                        _names(AppType) = True
                     Next
                 End Sub
 
@@ -530,8 +532,8 @@ Namespace Microsoft.VisualStudio.Editors.PropertyPages
                 ''' <returns></returns>
                 ''' <remarks></remarks>
                 Friend Function Compare(ByVal Item As ApplicationTypeInfo) As Boolean
-                    If Not m_mustBeSupportedInExpressSKUs OrElse Item.SupportedInExpress Then
-                        Return m_names.ContainsKey(Item.Name)
+                    If Not _mustBeSupportedInExpressSKUs OrElse Item.SupportedInExpress Then
+                        Return _names.ContainsKey(Item.Name)
                     Else
                         Return False
                     End If
@@ -543,14 +545,14 @@ Namespace Microsoft.VisualStudio.Editors.PropertyPages
             ''' </summary>
             ''' <remarks></remarks>
             Private Class AppTypePredicate
-                Private m_appTypeToFind As ApplicationTypes
+                Private _appTypeToFind As ApplicationTypes
 
                 Friend Sub New(ByVal appType As ApplicationTypes)
-                    m_appTypeToFind = appType
+                    _appTypeToFind = appType
                 End Sub
 
                 Friend Function Compare(ByVal Item As ApplicationTypeInfo) As Boolean
-                    Return m_appTypeToFind = Item.ApplicationType
+                    Return _appTypeToFind = Item.ApplicationType
                 End Function
             End Class
 #End Region

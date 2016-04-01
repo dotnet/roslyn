@@ -1,3 +1,5 @@
+' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+
 Option Explicit On
 Option Strict On
 Option Compare Binary
@@ -38,8 +40,8 @@ Namespace Microsoft.VisualStudio.Editors.ResourceEditor
         'Form overrides dispose to clean up the component list.
         Protected Overloads Overrides Sub Dispose(ByVal disposing As Boolean)
             If disposing Then
-                If Not (components Is Nothing) Then
-                    components.Dispose()
+                If Not (_components Is Nothing) Then
+                    _components.Dispose()
                 End If
             End If
             MyBase.Dispose(disposing)
@@ -53,7 +55,7 @@ Namespace Microsoft.VisualStudio.Editors.ResourceEditor
         Friend WithEvents overarchingTableLayoutPanel As System.Windows.Forms.TableLayoutPanel
 
         'Required by the Windows Form Designer
-        Private components As System.ComponentModel.IContainer
+        Private _components As System.ComponentModel.IContainer
 
         'NOTE: The following procedure is required by the Windows Form Designer
         'It can be modified using the Windows Form Designer.  
@@ -144,10 +146,10 @@ Namespace Microsoft.VisualStudio.Editors.ResourceEditor
 
 
         'Set to true if the user cancels the dialog
-        Private m_Canceled As Boolean
+        Private _canceled As Boolean
 
         ' RootDesigner
-        Private m_RootDesigner As ResourceEditorRootDesigner
+        Private _rootDesigner As ResourceEditorRootDesigner
 
 
 
@@ -166,10 +168,10 @@ Namespace Microsoft.VisualStudio.Editors.ResourceEditor
                     .ActiveControl = .TextBoxName
                     .TextBoxName.SelectionStart = 0
                     .TextBoxName.SelectionLength = .TextBoxName.Text.Length()
-                    .m_Canceled = True
-                    .m_RootDesigner = RootDesigner
+                    ._canceled = True
+                    ._rootDesigner = RootDesigner
                     .ShowDialog()
-                    If .m_Canceled Then
+                    If ._canceled Then
                         UserCancel = True
                         Return Nothing
                     Else
@@ -189,7 +191,7 @@ Namespace Microsoft.VisualStudio.Editors.ResourceEditor
         ''' <param name="e"></param>
         ''' <remarks></remarks>
         Private Sub ButtonAdd_Click(ByVal sender As Object, ByVal e As System.EventArgs) Handles ButtonAdd.Click
-            Dim ResourceView As ResourceEditorView = m_RootDesigner.GetView()
+            Dim ResourceView As ResourceEditorView = _rootDesigner.GetView()
             Debug.Assert(ResourceView IsNot Nothing, "Why there is no view?")
             If ResourceView IsNot Nothing Then
                 Dim NewResourceName As String = Me.TextBoxName.Text
@@ -199,7 +201,7 @@ Namespace Microsoft.VisualStudio.Editors.ResourceEditor
                 ElseIf Not Resource.ValidateName(ResourceView.ResourceFile, NewResourceName, String.Empty, NewResourceName, Exception) Then
                     ResourceView.DsMsgBox(Exception)
                 Else
-                    m_Canceled = False
+                    _canceled = False
                     Close()
                 End If
 

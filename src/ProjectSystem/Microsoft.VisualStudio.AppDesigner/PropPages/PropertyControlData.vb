@@ -1,3 +1,5 @@
+' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+
 Imports System.ComponentModel.Design
 Imports System.Windows.Forms
 Imports Common = Microsoft.VisualStudio.Editors.AppDesCommon
@@ -15,12 +17,12 @@ Namespace Microsoft.VisualStudio.Editors.PropertyPages
     <DebuggerDisplay("{PropertyName}, InitialValue={InitialValue}, IsDirty={IsDirty}")> _
     Public Class PropertyControlData
 
-        Private Shared ReadOnly m_IndeterminateValue As Object = New Object
-        Private Shared ReadOnly m_MissingValue As Object = New Object
+        Private Shared ReadOnly s_indeterminateValue As Object = New Object
+        Private Shared ReadOnly s_missingValue As Object = New Object
 
 
 #If DEBUG Then
-        Private m_isInitialized As Boolean
+        Private _isInitialized As Boolean
 #End If
 
         'The DISPID that corresponds to the property in the project.  It is important that this DISPID match the actual
@@ -29,12 +31,12 @@ Namespace Microsoft.VisualStudio.Editors.PropertyPages
         'For properties which do not correspond to project properties (user-persisted), any unique integer can be used, but it is
         '  best to keep them out of the range of properties implemented by the project system (the VB, C# and J# projects use integers
         '  above 10000).
-        Private m_DispId As Integer 'A numeric id for this property
+        Private _dispId As Integer 'A numeric id for this property
 
         'The name of the property in the project system's extensibility.  The name must match the project's property because properties 
         '  are looked up by name (not DISPID).  This allows project flavors to hide one property and add another with the same name but
         '  a different DISPID in order to "override" a property.
-        Private m_PropertyName As String
+        Private _propertyName As String
 
         'Localized name for UI (used for Undo/Redo units, for example)
         Public DisplayPropertyName As String
@@ -42,12 +44,12 @@ Namespace Microsoft.VisualStudio.Editors.PropertyPages
         'The single value which represents the currently-persisted value.  If there are multiple configurations, this
         '  will have the value IndeterminateValue (and m_AllInitialValues will contain the array of differing values).
         '  If the property was not found, this will have the value MissingValue.
-        Private m_InitialValue As Object
+        Private _initialValue As Object
 
         'All initial values for all objects (usually configurations) passed in to SetObjects, if multiple values are supported
         '  for this property.  Generally only stored if the values were actually different.  Otherwise, this may
         '  simply be Nothing.
-        Private m_AllInitialValues As Object()
+        Private _allInitialValues As Object()
 
         Protected SetCallback As SetDelegate
         Protected GetCallback As GetDelegate
@@ -68,11 +70,11 @@ Namespace Microsoft.VisualStudio.Editors.PropertyPages
 
         'Used by PropertyDescriptorSetValue to know whether or not the 
         '  OnValueChanged event fired on the property descriptor
-        Private m_OnValueChangedWasFired As Boolean
+        Private _onValueChangedWasFired As Boolean
 
         'True if the controls associated with this property can be enabled/disabled
         '  (will be false e.g. if the property is hidden or read-only)
-        Private m_ControlsCanBeEnabled As Boolean = True
+        Private _controlsCanBeEnabled As Boolean = True
 
 #Region "Delegates"
 
@@ -246,8 +248,8 @@ Namespace Microsoft.VisualStudio.Editors.PropertyPages
                 Debug.Fail("Property ID must be non-negative")
                 Throw AppDesCommon.CreateArgumentException("id")
             End If
-            Me.m_DispId = id
-            Me.m_PropertyName = name
+            Me._dispId = id
+            Me._propertyName = name
             Me.m_FormControl = FormControl
             Me.Flags = flags 'Flags must be set before setting IsDirty...
             Debug.Assert(Not IsCommonProperty, "Should not pass in ControlDataFlags.CommonProperty to the PropertyControlData constructor")
@@ -281,7 +283,7 @@ Namespace Microsoft.VisualStudio.Editors.PropertyPages
         ''' <remarks></remarks>
         Public ReadOnly Property DispId() As Integer
             Get
-                Return m_DispId
+                Return _dispId
             End Get
         End Property
 
@@ -295,7 +297,7 @@ Namespace Microsoft.VisualStudio.Editors.PropertyPages
         ''' <remarks></remarks>
         Public ReadOnly Property PropertyName() As String
             Get
-                Return m_PropertyName
+                Return _propertyName
             End Get
         End Property
 
@@ -537,7 +539,7 @@ Namespace Microsoft.VisualStudio.Editors.PropertyPages
                 '  just to change the Browsable attribute to False.
                 'Unfortunately we can't easily change this behavior without affecting backwards 
                 '  compatibility, so we have to live with it for now.
-                Return m_MissingValue
+                Return s_missingValue
             End Get
         End Property
 
@@ -551,7 +553,7 @@ Namespace Microsoft.VisualStudio.Editors.PropertyPages
         <DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden)> _
         Public Shared ReadOnly Property Indeterminate() As Object
             Get
-                Return m_IndeterminateValue
+                Return s_indeterminateValue
             End Get
         End Property
 
@@ -565,9 +567,9 @@ Namespace Microsoft.VisualStudio.Editors.PropertyPages
         Public ReadOnly Property IsIndeterminate() As Boolean
             Get
 #If DEBUG Then
-                Debug.Assert(m_isInitialized, "Why are we checking if the property is indeterminate before the value is initialized!?")
+                Debug.Assert(_isInitialized, "Why are we checking if the property is indeterminate before the value is initialized!?")
 #End If
-                Return (InitialValue Is m_IndeterminateValue)
+                Return (InitialValue Is s_indeterminateValue)
             End Get
         End Property
 
@@ -581,9 +583,9 @@ Namespace Microsoft.VisualStudio.Editors.PropertyPages
         Public ReadOnly Property IsMissing() As Boolean
             Get
 #If DEBUG Then
-                Debug.Assert(m_isInitialized, "Why are we checking if the property is missing before the value is initialized!?")
+                Debug.Assert(_isInitialized, "Why are we checking if the property is missing before the value is initialized!?")
 #End If
-                Return InitialValue Is m_MissingValue
+                Return InitialValue Is s_missingValue
             End Get
         End Property
 
@@ -604,7 +606,7 @@ Namespace Microsoft.VisualStudio.Editors.PropertyPages
         ''' <returns></returns>
         ''' <remarks></remarks>
         Public Shared Function IsSpecialValue(ByVal Value As Object) As Boolean
-            Return (Value Is m_MissingValue) OrElse (Value Is m_IndeterminateValue)
+            Return (Value Is s_missingValue) OrElse (Value Is s_indeterminateValue)
         End Function
 
         Public Property IsHidden() As Boolean
@@ -630,7 +632,7 @@ Namespace Microsoft.VisualStudio.Editors.PropertyPages
         ''' <remarks></remarks>
         Public ReadOnly Property InitialValue() As Object
             Get
-                Return m_InitialValue
+                Return _initialValue
             End Get
         End Property
 
@@ -644,9 +646,9 @@ Namespace Microsoft.VisualStudio.Editors.PropertyPages
         ''' <remarks></remarks>
         Public ReadOnly Property AllInitialValues() As Object()
             Get
-                Debug.Assert(m_AllInitialValues Is Nothing OrElse m_AllInitialValues.Length = RawPropertiesObjects.Length AndAlso m_AllInitialValues.Length = ExtendedPropertiesObjects.Length, _
+                Debug.Assert(_allInitialValues Is Nothing OrElse _allInitialValues.Length = RawPropertiesObjects.Length AndAlso _allInitialValues.Length = ExtendedPropertiesObjects.Length, _
                     "AllInitialValues should always be the same length as the array returned by RawPropertiesObjects and ExtendedPropertiesObjects")
-                Return m_AllInitialValues
+                Return _allInitialValues
             End Get
         End Property
 
@@ -688,8 +690,8 @@ Namespace Microsoft.VisualStudio.Editors.PropertyPages
         ''' <param name="InitialValue">The value to set as the initial value.</param>
         ''' <remarks></remarks>
         Public Sub SetInitialValues(ByVal InitialValue As Object)
-            m_InitialValue = InitialValue
-            m_AllInitialValues = Nothing
+            _initialValue = InitialValue
+            _allInitialValues = Nothing
         End Sub
 
 
@@ -709,8 +711,8 @@ Namespace Microsoft.VisualStudio.Editors.PropertyPages
                 OrElse (AllInitialValues.Length = RawPropertiesObjects.Length AndAlso AllInitialValues.Length = ExtendedPropertiesObjects.Length), _
                 "AllInitialValues should always be the same length as the array returned by RawPropertiesObjects and ExtendedPropertiesObjects")
 
-            m_InitialValue = InitialValue
-            m_AllInitialValues = AllInitialValues
+            _initialValue = InitialValue
+            _allInitialValues = AllInitialValues
         End Sub
 
 
@@ -728,8 +730,8 @@ Namespace Microsoft.VisualStudio.Editors.PropertyPages
                 Throw AppDesCommon.CreateArgumentException("AllInitialValues")
             End If
 
-            m_InitialValue = GetValueOrIndeterminateFromArray(AllInitialValues)
-            m_AllInitialValues = AllInitialValues
+            _initialValue = GetValueOrIndeterminateFromArray(AllInitialValues)
+            _allInitialValues = AllInitialValues
         End Sub
 
 
@@ -845,7 +847,7 @@ Namespace Microsoft.VisualStudio.Editors.PropertyPages
                 m_Initializing = SaveInitialized
             End Try
 #If DEBUG Then
-            m_isInitialized = True
+            _isInitialized = True
 #End If
         End Sub
 
@@ -888,7 +890,7 @@ Namespace Microsoft.VisualStudio.Editors.PropertyPages
                 If Me.IsReadOnly Then
                     'The property is read only.  We want to disable the control, but we do want to still set its
                     '  current value, so we let the other If cases go through after this.
-                    m_ControlsCanBeEnabled = False
+                    _controlsCanBeEnabled = False
 
                     If FormControl IsNot Nothing Then
                         SetControlsReadOnly(New Control() {Me.FormControl})
@@ -898,7 +900,7 @@ Namespace Microsoft.VisualStudio.Editors.PropertyPages
 
 
                 If Me.IsHidden OrElse (value Is PropertyControlData.MissingProperty) Then
-                    m_ControlsCanBeEnabled = False
+                    _controlsCanBeEnabled = False
 
                     'Unsupported property for this project type, hide property and associated controls
                     HideOrDisableControls(Me.AssociatedControls, Me.IsHidden)
@@ -953,7 +955,7 @@ Namespace Microsoft.VisualStudio.Editors.PropertyPages
         ''' </summary>
         ''' <remarks></remarks>
         Private Sub EnableAssociatedControls(ByVal controls() As Control, ByVal Enabled As Boolean)
-            If Not m_ControlsCanBeEnabled Then
+            If Not _controlsCanBeEnabled Then
                 'A flavor has disabled this property or made it readonly - we shouldn't enable the controls even
                 '  if requested.
                 Common.Switches.TracePDProperties(TraceLevel.Warning, "EnableControls - ignoring request to enable controls because property has been disabled: " & Me.PropertyName)
@@ -1707,7 +1709,7 @@ Namespace Microsoft.VisualStudio.Editors.PropertyPages
         ''' </summary>
         ''' <remarks></remarks>
         Private Class PropertyDescriptorSetValueHelper
-            Private m_ValueChangedWasFired As Boolean
+            Private _valueChangedWasFired As Boolean
 
             ''' <summary>
             ''' Performs a SetValue on the given component, descriptor and new value.  Throws if there
@@ -1721,7 +1723,7 @@ Namespace Microsoft.VisualStudio.Editors.PropertyPages
                 'Hook up to detect if ValueChanged is fired
                 Descriptor.AddValueChanged(Component, AddressOf ValueChanged)
 
-                m_ValueChangedWasFired = False
+                _valueChangedWasFired = False
                 Try
                     'Go ahead and do the SetValue.  It will throw if there's an exception
                     '  (other than cancel/checkout exceptions).
@@ -1729,7 +1731,7 @@ Namespace Microsoft.VisualStudio.Editors.PropertyPages
 
                     'If we made it here, either the value was successfully changed, or
                     '  the set was canceled by the user in a checkout dialog, etc.
-                    If m_ValueChangedWasFired Then
+                    If _valueChangedWasFired Then
                         'The set was successful
                         Return
                     Else
@@ -1744,7 +1746,7 @@ Namespace Microsoft.VisualStudio.Editors.PropertyPages
 
                 Finally
                     Descriptor.RemoveValueChanged(Component, AddressOf ValueChanged)
-                    m_ValueChangedWasFired = False
+                    _valueChangedWasFired = False
                 End Try
             End Sub
 
@@ -1754,8 +1756,8 @@ Namespace Microsoft.VisualStudio.Editors.PropertyPages
             ''' </summary>
             ''' <remarks></remarks>
             Private Sub ValueChanged(ByVal sender As Object, ByVal e As EventArgs)
-                Debug.Assert(Not m_ValueChangedWasFired, "OnValueChanged() fired multiple times?")
-                m_ValueChangedWasFired = True
+                Debug.Assert(Not _valueChangedWasFired, "OnValueChanged() fired multiple times?")
+                _valueChangedWasFired = True
             End Sub
 
         End Class

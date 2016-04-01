@@ -1,16 +1,18 @@
-﻿Imports System.Drawing
+﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+
+Imports System.Drawing
 Imports System.Windows.Forms
 
 Namespace Microsoft.VisualStudio.Editors.AddImports
     Friend Class AutoAddImportsExtensionCollisionDialog
-        Private m_lastFocus As Control
-        Private m_helpCallBack As IVBAddImportsDialogHelpCallback
+        Private _lastFocus As Control
+        Private _helpCallBack As IVBAddImportsDialogHelpCallback
 
         Public Sub New(ByVal [namespace] As String, ByVal identifier As String, ByVal minimallyQualifiedName As String, ByVal helpCAllback As IVBAddImportsDialogHelpCallback, ByVal isp As IServiceProvider)
             MyBase.New(isp)
             Me.SuspendLayout()
             Try
-                m_helpCallBack = helpCAllback
+                _helpCallBack = helpCAllback
                 InitializeComponent()
                 txtMain_.Text = String.Format(My.Resources.AddImports.AddImportsExtensionMethodsMainFormatString, [namespace], identifier, minimallyQualifiedName)
                 txtMain_.AutoSize = True
@@ -31,11 +33,11 @@ Namespace Microsoft.VisualStudio.Editors.AddImports
         End Function
 
         Private Sub ButtonGotFocus(ByVal sender As Object, ByVal e As EventArgs) Handles btnOk_.GotFocus, btnCancel_.GotFocus
-            m_lastFocus = CType(sender, Control)
+            _lastFocus = CType(sender, Control)
         End Sub
 
         Private Sub LabelGotFocus(ByVal sender As Object, ByVal e As System.EventArgs) Handles txtMain_.GotFocus
-            m_lastFocus.Focus()
+            _lastFocus.Focus()
         End Sub
 
         Private Sub ClickHelpButton(ByVal sender As Object, ByVal e As System.ComponentModel.CancelEventArgs) Handles Me.HelpButtonClicked
@@ -44,8 +46,8 @@ Namespace Microsoft.VisualStudio.Editors.AddImports
         End Sub
 
         Private Sub RequestHelp(ByVal sender As Object, ByVal hlpevent As System.Windows.Forms.HelpEventArgs) Handles Me.HelpRequested
-            If (m_helpCallBack IsNot Nothing) Then
-                m_helpCallBack.InvokeHelp()
+            If (_helpCallBack IsNot Nothing) Then
+                _helpCallBack.InvokeHelp()
             End If
         End Sub
     End Class

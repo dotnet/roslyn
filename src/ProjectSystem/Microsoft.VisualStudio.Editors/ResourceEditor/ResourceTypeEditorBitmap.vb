@@ -1,3 +1,5 @@
+' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+
 Option Explicit On
 Option Strict On
 Option Compare Binary
@@ -16,7 +18,7 @@ Namespace Microsoft.VisualStudio.Editors.ResourceEditor
 
         'All common file extensions handled by this resource type editor
         'We don't include an extension for EXIF, because they're just saved as JPEG files
-        Private Extensions() As String = {
+        Private _extensions() As String = {
             EXT_BMP,
             EXT_GIF,
             EXT_JPEG, EXT_JPG,
@@ -25,7 +27,7 @@ Namespace Microsoft.VisualStudio.Editors.ResourceEditor
 
         ' Extensions supported in a device project
         ' NOTE: WinCE does not support TIF file...
-        Private ExtensionsForDevice() As String = {
+        Private _extensionsForDevice() As String = {
             EXT_BMP,
             EXT_GIF,
             EXT_JPEG, EXT_JPG,
@@ -33,7 +35,7 @@ Namespace Microsoft.VisualStudio.Editors.ResourceEditor
 
 
         ' keep the mapping table from extension to resource ID
-        Private Shared m_ManifestResourceList As ListDictionary
+        Private Shared s_manifestResourceList As ListDictionary
 
 
         '======================================================================
@@ -121,18 +123,18 @@ Namespace Microsoft.VisualStudio.Editors.ResourceEditor
         ''' <return></return>
         ''' <remarks></remarks>
         Private Shared Function GetManifestResourceList() As ListDictionary
-            If m_ManifestResourceList Is Nothing Then
-                m_ManifestResourceList = New ListDictionary(StringComparer.OrdinalIgnoreCase)
+            If s_manifestResourceList Is Nothing Then
+                s_manifestResourceList = New ListDictionary(StringComparer.OrdinalIgnoreCase)
 
-                m_ManifestResourceList.Add(EXT_BMP, "BlankBmp")
-                m_ManifestResourceList.Add(EXT_GIF, "BlankGif")
-                m_ManifestResourceList.Add(EXT_JPEG, "BlankJpeg")
-                m_ManifestResourceList.Add(EXT_JPG, "BlankJpeg")
-                m_ManifestResourceList.Add(EXT_PNG, "BlankPng")
-                m_ManifestResourceList.Add(EXT_TIF, "BlankTiff")
-                m_ManifestResourceList.Add(EXT_TIFF, "BlankTiff")
+                s_manifestResourceList.Add(EXT_BMP, "BlankBmp")
+                s_manifestResourceList.Add(EXT_GIF, "BlankGif")
+                s_manifestResourceList.Add(EXT_JPEG, "BlankJpeg")
+                s_manifestResourceList.Add(EXT_JPG, "BlankJpeg")
+                s_manifestResourceList.Add(EXT_PNG, "BlankPng")
+                s_manifestResourceList.Add(EXT_TIF, "BlankTiff")
+                s_manifestResourceList.Add(EXT_TIFF, "BlankTiff")
             End If
-            Return m_ManifestResourceList
+            Return s_manifestResourceList
         End Function
 
         ''' <summary>
@@ -149,9 +151,9 @@ Namespace Microsoft.VisualStudio.Editors.ResourceEditor
         ''' </remarks>
         Public Overrides Function GetOpenFileDialogFilter(ByVal ResourceContentFile As IResourceContentFile) As String
             If ResourceContentFile.IsInsideDeviceProject() Then
-                Return CreateSingleDialogFilter(SR.GetString(SR.RSE_Filter_Bitmap), ExtensionsForDevice)
+                Return CreateSingleDialogFilter(SR.GetString(SR.RSE_Filter_Bitmap), _extensionsForDevice)
             Else
-                Return CreateSingleDialogFilter(SR.GetString(SR.RSE_Filter_Bitmap), Extensions)
+                Return CreateSingleDialogFilter(SR.GetString(SR.RSE_Filter_Bitmap), _extensions)
             End If
         End Function
 
@@ -164,7 +166,7 @@ Namespace Microsoft.VisualStudio.Editors.ResourceEditor
         ''' <returns> a file extension list
         ''' </returns>
         Public Overrides Function GetSafeFileExtensionList() As String()
-            Return Extensions
+            Return _extensions
         End Function
 
         ''' <summary>
@@ -183,8 +185,8 @@ Namespace Microsoft.VisualStudio.Editors.ResourceEditor
             Dim FilterText As String = ""
 
             'Find out which filter to use based on the expected resource extension
-            If MatchAgainstListOfExtensions(Extension, Extensions, ExtensionIndex) Then
-                Select Case Extensions(ExtensionIndex)
+            If MatchAgainstListOfExtensions(Extension, _extensions, ExtensionIndex) Then
+                Select Case _extensions(ExtensionIndex)
                     Case EXT_BMP
                         FilterText = SR.GetString(SR.RSE_FilterSave_BMP)
                     Case EXT_PNG
@@ -196,7 +198,7 @@ Namespace Microsoft.VisualStudio.Editors.ResourceEditor
                     Case EXT_TIF, EXT_TIFF
                         FilterText = SR.GetString(SR.RSE_FilterSave_TIFF)
                     Case Else
-                        Debug.Fail("Unexpected extension " & Extensions(ExtensionIndex))
+                        Debug.Fail("Unexpected extension " & _extensions(ExtensionIndex))
                 End Select
             End If
 
@@ -233,7 +235,7 @@ Namespace Microsoft.VisualStudio.Editors.ResourceEditor
         ''' </returns>
         ''' <remarks>Extension should be checked case-insensitively.</remarks>
         Public Overrides Function GetExtensionPriority(ByVal Extension As String) As Integer
-            If MatchAgainstListOfExtensions(Extension, Extensions) Then
+            If MatchAgainstListOfExtensions(Extension, _extensions) Then
                 Return ExtensionPriorities.Normal
             Else
                 Return ExtensionPriorities.NotHandled

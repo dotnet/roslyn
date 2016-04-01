@@ -1,3 +1,5 @@
+' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+
 Option Explicit On
 Option Strict On
 Option Compare Binary
@@ -17,7 +19,7 @@ Namespace Microsoft.VisualStudio.Editors.ResourceEditor
         Public Const EXT_ICO As String = ".ico"
 
         'All common file extensions handled by this resource type editor
-        Private Extensions() As String = {EXT_ICO}
+        Private _extensions() As String = {EXT_ICO}
 
 
 
@@ -129,7 +131,7 @@ Namespace Microsoft.VisualStudio.Editors.ResourceEditor
         ''' <returns> a file extension list
         ''' </returns>
         Public Overrides Function GetSafeFileExtensionList() As String()
-            Return Extensions
+            Return _extensions
         End Function
 
 
@@ -146,7 +148,7 @@ Namespace Microsoft.VisualStudio.Editors.ResourceEditor
         '''   "Metafiles (*.wmf, *.emf)|*.wmf;*.emf"
         ''' </remarks>
         Public Overrides Function GetOpenFileDialogFilter(ByVal ResourceContentFile As IResourceContentFile) As String
-            Return CreateSingleDialogFilter(SR.GetString(SR.RSE_Filter_Icon), Extensions)
+            Return CreateSingleDialogFilter(SR.GetString(SR.RSE_Filter_Icon), _extensions)
         End Function
 
 
@@ -196,7 +198,7 @@ Namespace Microsoft.VisualStudio.Editors.ResourceEditor
         ''' </returns>
         ''' <remarks>Extension should be checked case-insensitively.</remarks>
         Public Overrides Function GetExtensionPriority(ByVal Extension As String) As Integer
-            If MatchAgainstListOfExtensions(Extension, Extensions) Then
+            If MatchAgainstListOfExtensions(Extension, _extensions) Then
                 Return ExtensionPriorities.Normal
             Else
                 Return ExtensionPriorities.NotHandled

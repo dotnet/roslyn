@@ -1,4 +1,6 @@
-﻿Imports System.ComponentModel
+﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+
+Imports System.ComponentModel
 
 
 Namespace Microsoft.VisualStudio.Editors.PropertyPages
@@ -13,12 +15,12 @@ Namespace Microsoft.VisualStudio.Editors.PropertyPages
     Public Class UserPropertyDescriptor
         Inherits PropertyDescriptor
 
-        Private m_PropertyType As System.Type
-        Private m_IsReadOnly As Boolean
+        Private _propertyType As System.Type
+        Private _isReadOnly As Boolean
 
         Public Sub New(ByVal Name As String, ByVal PropertyType As System.Type)
             MyBase.New(Name, New System.Attribute() {})
-            m_PropertyType = PropertyType
+            _propertyType = PropertyType
         End Sub
 
         Public Overrides Function CanResetValue(ByVal component As Object) As Boolean
@@ -40,13 +42,13 @@ Namespace Microsoft.VisualStudio.Editors.PropertyPages
 
         Public Overrides ReadOnly Property IsReadOnly() As Boolean
             Get
-                Return m_IsReadOnly
+                Return _isReadOnly
             End Get
         End Property
 
         Public Overrides ReadOnly Property PropertyType() As System.Type
             Get
-                Return m_PropertyType
+                Return _propertyType
             End Get
         End Property
 

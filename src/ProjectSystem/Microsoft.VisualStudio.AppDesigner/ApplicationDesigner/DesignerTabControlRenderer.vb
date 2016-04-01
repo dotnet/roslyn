@@ -1,3 +1,5 @@
+' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+
 Imports Common = Microsoft.VisualStudio.Editors.AppDesCommon
 Imports Microsoft.VisualStudio.Shell.Interop
 Imports System.Drawing
@@ -32,87 +34,87 @@ Namespace Microsoft.VisualStudio.Editors.ApplicationDesigner
 #Region "Colors"
 
         ' Background of the entire control 
-        Private controlBackgroundColor As Color
+        Private _controlBackgroundColor As Color
 
         ' Tab button foreground/background 
-        Private buttonForegroundColor As Color
-        Private buttonBackgroundColor as Color
+        Private _buttonForegroundColor As Color
+        Private _buttonBackgroundColor as Color
 
         ' Tab button selected foreground/background 
-        Private selectedButtonForegroundColor As Color
-        Private selectedButtonBackgroundColor as Color
+        Private _selectedButtonForegroundColor As Color
+        Private _selectedButtonBackgroundColor as Color
 
         ' Tab button hover foreground/background
-        Private hoverButtonForegroundColor As Color
-        Private hoverButtonBackgroundColor as Color
+        Private _hoverButtonForegroundColor As Color
+        Private _hoverButtonBackgroundColor as Color
 
 #End Region
 
 #Region "GDI objects"
 
         ' Background of the control 
-        Private controlBackgroundBrush As SolidBrush
+        Private _controlBackgroundBrush As SolidBrush
 
         ' Tab button foreground/background 
-        Private buttonBackgroundBrush as Brush
+        Private _buttonBackgroundBrush as Brush
 
         ' Tab button selected foreground/background 
-        Private selectedButtonBackgroundBrush as Brush
+        Private _selectedButtonBackgroundBrush as Brush
 
         ' Tab button hover foreground/background
-        Private hoverButtonBackgroundBrush as Brush
+        Private _hoverButtonBackgroundBrush as Brush
 
 #End Region
 
         ' Category guid for project designer theme colors 
-        Private Shared ReadOnly ProjectDesignerThemeCategory As New Guid("ef1a2d2c-5d16-4ddb-8d04-79d0f6c1c56e")
+        Private Shared ReadOnly s_projectDesignerThemeCategory As New Guid("ef1a2d2c-5d16-4ddb-8d04-79d0f6c1c56e")
 
         'The left X position for all tab buttons
-        Private buttonsLocationX As Integer
+        Private _buttonsLocationX As Integer
         'The top Y position for the topmost button
-        Private buttonsLocationY As Integer 'Start y location
+        Private _buttonsLocationY As Integer 'Start y location
         'Smallest text width to allow for in the buttons, even if all of the buttons have text wider than this value
-        Private Const minimumButtonTextWidthSpace As Integer = 25
+        Private Const s_minimumButtonTextWidthSpace As Integer = 25
 
         'The width and height to use for all of the buttons.
-        Private Const DefaultButtonHeight = 24
-        Private buttonHeight As Integer
-        Private buttonWidth As Integer
+        Private Const s_defaultButtonHeight = 24
+        Private _buttonHeight As Integer
+        Private _buttonWidth As Integer
 
-        Private Const buttonTextLeftOffset As Integer = 8 'Padding from left side of the button to where the tab text is drawn
-        Private Const buttonTextRightSpace As Integer = 8 'Extra space to leave after tab text
-        Private visibleButtonSlots As Integer '# of button positions we are currently displaying (min = 1), the rest go into overflow when not enough room
-        Private buttonPagePadding As Padding
+        Private Const s_buttonTextLeftOffset As Integer = 8 'Padding from left side of the button to where the tab text is drawn
+        Private Const s_buttonTextRightSpace As Integer = 8 'Extra space to leave after tab text
+        Private _visibleButtonSlots As Integer '# of button positions we are currently displaying (min = 1), the rest go into overflow when not enough room
+        Private _buttonPagePadding As Padding
 
         'The width/height of the downward-slanting line underneath the buttons (not including the two curved ends' (arcs') width/height)
 
-        Private Const buttonBorderWidth As Integer = 1   'Thickness of each half of the separators between buttons
+        Private Const s_buttonBorderWidth As Integer = 1   'Thickness of each half of the separators between buttons
 
-        Private Const OverflowButtonTopOffset As Integer = 2 'Offset of overflow button (the button's edge, not the glyph inside it) from the bottom of the bottommost button
-        Private Const OverflowButtonRightOffset As Integer = 2 'Offset of right edge of overflow button from vertical line 3
+        Private Const s_overflowButtonTopOffset As Integer = 2 'Offset of overflow button (the button's edge, not the glyph inside it) from the bottom of the bottommost button
+        Private Const s_overflowButtonRightOffset As Integer = 2 'Offset of right edge of overflow button from vertical line 3
 
-        Private tabControlRect As Rectangle 'The entire area of the tab control, including the tabs and panel area
+        Private _tabControlRect As Rectangle 'The entire area of the tab control, including the tabs and panel area
 
         'Pointer to the ProjectDesignerTabControl which owns this renderer.  May not be null
-        Private m_Owner As ProjectDesignerTabControl
+        Private _owner As ProjectDesignerTabControl
 
         'The service provider to use.  May be Nothing
-        Private m_serviceProvider As IServiceProvider
+        Private _serviceProvider As IServiceProvider
 
         'Backs the PreferredButtonInSwitchableSlot property
-        Private m_PreferredButtonForSwitchableSlot As ProjectDesignerTabButton
+        Private _preferredButtonForSwitchableSlot As ProjectDesignerTabButton
 
         'True if currently in UpdateCacheStatus
-        Private m_UpdatingCache As Boolean
+        Private _updatingCache As Boolean
 
         'True if currently in CreateGDIObjects
-        Private m_CreatingGDIObjects As Boolean
+        Private _creatingGDIObjects As Boolean
 
         'True if the GDI objects have been created
-        Private m_GDIObjectsCreated As Boolean
+        Private _GDIObjectsCreated As Boolean
 
         'True if the gradient brushes have been created
-        Private m_GradientBrushesCreated As Boolean
+        Private _gradientBrushesCreated As Boolean
 
         ''' <summary>
         ''' Constructor.
@@ -123,9 +125,9 @@ Namespace Microsoft.VisualStudio.Editors.ApplicationDesigner
             If owner Is Nothing Then
                 Throw New ArgumentNullException("owner")
             End If
-            m_Owner = owner
+            _owner = owner
 
-            buttonPagePadding = New Padding(9, 5, 9, 5)
+            _buttonPagePadding = New Padding(9, 5, 9, 5)
         End Sub 'New
 
 
@@ -140,16 +142,16 @@ Namespace Microsoft.VisualStudio.Editors.ApplicationDesigner
         ''' <remarks></remarks>
         Public Property ServiceProvider() As IServiceProvider
             Get
-                Return m_serviceProvider
+                Return _serviceProvider
             End Get
             Set(ByVal value As IServiceProvider)
-                m_serviceProvider = value
-                If m_GDIObjectsCreated Then
+                _serviceProvider = value
+                If _GDIObjectsCreated Then
                     'If we've already created GDI stuff/layout, we will need to re-create them.  Otherwise
                     '  we just wait for on-demand.
                     CreateGDIObjects(True)
                 End If
-                m_Owner.Invalidate()
+                _owner.Invalidate()
             End Set
         End Property
 
@@ -209,12 +211,12 @@ Namespace Microsoft.VisualStudio.Editors.ApplicationDesigner
         ''' <remarks></remarks>
         Public Property PreferredButtonForSwitchableSlot() As ProjectDesignerTabButton
             Get
-                Return m_PreferredButtonForSwitchableSlot
+                Return _preferredButtonForSwitchableSlot
             End Get
             Set(ByVal value As ProjectDesignerTabButton)
-                If value IsNot m_PreferredButtonForSwitchableSlot Then
-                    m_PreferredButtonForSwitchableSlot = value
-                    m_Owner.Invalidate()
+                If value IsNot _preferredButtonForSwitchableSlot Then
+                    _preferredButtonForSwitchableSlot = value
+                    _owner.Invalidate()
                     UpdateCacheState()
                     value.Invalidate()
                 End If
@@ -228,15 +230,15 @@ Namespace Microsoft.VisualStudio.Editors.ApplicationDesigner
         ''' <param name="ForceUpdate">If True, the GDI objects are updated if they have already been created.</param>
         ''' <remarks></remarks>
         Public Sub CreateGDIObjects(Optional ByVal ForceUpdate As Boolean = False)
-            If m_CreatingGDIObjects Then
+            If _creatingGDIObjects Then
                 Exit Sub
             End If
-            If m_GDIObjectsCreated AndAlso Not ForceUpdate Then
+            If _GDIObjectsCreated AndAlso Not ForceUpdate Then
                 Exit Sub
             End If
 
             Try
-                m_CreatingGDIObjects = True
+                _creatingGDIObjects = True
 
                 'Get Colors from the shell
                 Dim VsUIShell As IVsUIShell5 = VsUIShell5Service
@@ -247,34 +249,34 @@ Namespace Microsoft.VisualStudio.Editors.ApplicationDesigner
                 '  do the right thing when not hosted inside Visual Studio, and change according to the theme.
 
 
-                controlBackgroundColor = AppDesCommon.ShellUtil.GetDesignerThemeColor(VsUIShell, ProjectDesignerThemeCategory, "Background", __THEMEDCOLORTYPE.TCT_Background, SystemColors.Control)
+                _controlBackgroundColor = AppDesCommon.ShellUtil.GetDesignerThemeColor(VsUIShell, s_projectDesignerThemeCategory, "Background", __THEMEDCOLORTYPE.TCT_Background, SystemColors.Control)
 
-                buttonForegroundColor = AppDesCommon.ShellUtil.GetDesignerThemeColor(VsUIShell, ProjectDesignerThemeCategory, "CategoryTab", __THEMEDCOLORTYPE.TCT_Foreground, SystemColors.ControlText)
-                buttonBackgroundColor = AppDesCommon.ShellUtil.GetDesignerThemeColor(VsUIShell, ProjectDesignerThemeCategory, "CategoryTab", __THEMEDCOLORTYPE.TCT_Background, SystemColors.Control)
+                _buttonForegroundColor = AppDesCommon.ShellUtil.GetDesignerThemeColor(VsUIShell, s_projectDesignerThemeCategory, "CategoryTab", __THEMEDCOLORTYPE.TCT_Foreground, SystemColors.ControlText)
+                _buttonBackgroundColor = AppDesCommon.ShellUtil.GetDesignerThemeColor(VsUIShell, s_projectDesignerThemeCategory, "CategoryTab", __THEMEDCOLORTYPE.TCT_Background, SystemColors.Control)
 
-                selectedButtonForegroundColor = AppDesCommon.ShellUtil.GetDesignerThemeColor(VsUIShell, ProjectDesignerThemeCategory, "SelectedCategoryTab", __THEMEDCOLORTYPE.TCT_Foreground, SystemColors.HighlightText)
-                selectedButtonBackgroundColor = AppDesCommon.ShellUtil.GetDesignerThemeColor(VsUIShell, ProjectDesignerThemeCategory, "SelectedCategoryTab", __THEMEDCOLORTYPE.TCT_Background, SystemColors.Highlight)
+                _selectedButtonForegroundColor = AppDesCommon.ShellUtil.GetDesignerThemeColor(VsUIShell, s_projectDesignerThemeCategory, "SelectedCategoryTab", __THEMEDCOLORTYPE.TCT_Foreground, SystemColors.HighlightText)
+                _selectedButtonBackgroundColor = AppDesCommon.ShellUtil.GetDesignerThemeColor(VsUIShell, s_projectDesignerThemeCategory, "SelectedCategoryTab", __THEMEDCOLORTYPE.TCT_Background, SystemColors.Highlight)
 
-                hoverButtonForegroundColor = AppDesCommon.ShellUtil.GetDesignerThemeColor(VsUIShell, ProjectDesignerThemeCategory, "MouseOverCategoryTab", __THEMEDCOLORTYPE.TCT_Foreground, SystemColors.HighlightText)
-                hoverButtonBackgroundColor = AppDesCommon.ShellUtil.GetDesignerThemeColor(VsUIShell, ProjectDesignerThemeCategory, "MouseOverCategoryTab", __THEMEDCOLORTYPE.TCT_Background, SystemColors.HotTrack)
+                _hoverButtonForegroundColor = AppDesCommon.ShellUtil.GetDesignerThemeColor(VsUIShell, s_projectDesignerThemeCategory, "MouseOverCategoryTab", __THEMEDCOLORTYPE.TCT_Foreground, SystemColors.HighlightText)
+                _hoverButtonBackgroundColor = AppDesCommon.ShellUtil.GetDesignerThemeColor(VsUIShell, s_projectDesignerThemeCategory, "MouseOverCategoryTab", __THEMEDCOLORTYPE.TCT_Background, SystemColors.HotTrack)
 
                 'Get GDI objects
-                controlBackgroundBrush = New SolidBrush(controlBackgroundColor)
-                buttonBackgroundBrush = New SolidBrush(buttonBackgroundColor)
-                selectedButtonBackgroundBrush = New SolidBrush(selectedButtonBackgroundColor)
-                hoverButtonBackgroundBrush = New SolidBrush(hoverButtonBackgroundColor)
+                _controlBackgroundBrush = New SolidBrush(_controlBackgroundColor)
+                _buttonBackgroundBrush = New SolidBrush(_buttonBackgroundColor)
+                _selectedButtonBackgroundBrush = New SolidBrush(_selectedButtonBackgroundColor)
+                _hoverButtonBackgroundBrush = New SolidBrush(_hoverButtonBackgroundColor)
 
                 If ForceUpdate Then
                     'Colors may have changed, need to update state.  Also, the gradient brushes are
                     '  created in UpdateCacheState (because they depend on button sizes), so we need
                     '  to create them, too
-                    m_Owner.Invalidate()
+                    _owner.Invalidate()
                     UpdateCacheState()
                 End If
 
-                m_GDIObjectsCreated = True
+                _GDIObjectsCreated = True
             Finally
-                m_CreatingGDIObjects = False
+                _creatingGDIObjects = False
             End Try
         End Sub
 
@@ -299,45 +301,45 @@ Namespace Microsoft.VisualStudio.Editors.ApplicationDesigner
         '''   Otherwise immediately returns.
         ''' </summary>
         ''' <remarks></remarks>
-        Sub UpdateCacheState()
-            If m_UpdatingCache Then
+        Public Sub UpdateCacheState()
+            If _updatingCache Then
                 Exit Sub
             End If
             If ServiceProvider Is Nothing Then
                 Exit Sub
             End If
 
-            m_UpdatingCache = True
+            _updatingCache = True
             Try
                 CreateGDIObjects()
 
-                Dim rect As Rectangle = m_Owner.Bounds
+                Dim rect As Rectangle = _owner.Bounds
 
                 ' Calling this calculates the button width and height for each tab, we need the height for calculating the VerticalButtonSpace 
                 CalcLineOffsets(rect)
 
                 'Calculate the number of buttons we have space to show
-                Dim VerticalButtonSpace As Integer = m_Owner.Height - buttonPagePadding.Vertical - m_Owner.OverflowButton.Height
-                Dim MaxButtonsSpace As Integer = VerticalButtonSpace \ buttonHeight
+                Dim VerticalButtonSpace As Integer = _owner.Height - _buttonPagePadding.Vertical - _owner.OverflowButton.Height
+                Dim MaxButtonsSpace As Integer = VerticalButtonSpace \ _buttonHeight
 
-                visibleButtonSlots = Math.Min(m_Owner.TabButtonCount, MaxButtonsSpace)
-                If visibleButtonSlots < 1 Then
-                    visibleButtonSlots = 1 ' Must show at least one button
+                _visibleButtonSlots = Math.Min(_owner.TabButtonCount, MaxButtonsSpace)
+                If _visibleButtonSlots < 1 Then
+                    _visibleButtonSlots = 1 ' Must show at least one button
                 End If
 
 
-                rect = m_Owner.ClientRectangle
-                tabControlRect = rect
+                rect = _owner.ClientRectangle
+                _tabControlRect = rect
 
                 'Reposition the tab panel
-                Dim BoundingRect As Rectangle = Rectangle.FromLTRB(tabControlRect.Left + buttonWidth + buttonPagePadding.Left, tabControlRect.Top, tabControlRect.Right, tabControlRect.Bottom)
-                m_Owner.HostingPanel.Bounds = BoundingRect
+                Dim BoundingRect As Rectangle = Rectangle.FromLTRB(_tabControlRect.Left + _buttonWidth + _buttonPagePadding.Left, _tabControlRect.Top, _tabControlRect.Right, _tabControlRect.Bottom)
+                _owner.HostingPanel.Bounds = BoundingRect
 
                 SetButtonPositions()
 
-                m_GradientBrushesCreated = True
+                _gradientBrushesCreated = True
             Finally
-                m_UpdatingCache = False
+                _updatingCache = False
             End Try
         End Sub
 
@@ -352,13 +354,13 @@ Namespace Microsoft.VisualStudio.Editors.ApplicationDesigner
             Dim maxTextWidth As Integer = 0
             Dim maxTextHeight As Integer = 0
             Dim button As ProjectDesignerTabButton
-            For Each button In m_Owner.TabButtons
+            For Each button In _owner.TabButtons
                 Dim size As Size = TextRenderer.MeasureText(button.Text, button.Font)
                 maxTextWidth = Math.Max(size.Width, maxTextWidth)
                 maxTextHeight = Math.Max(size.Height, maxTextHeight)
             Next button
 
-            Return New Size(Math.Max(maxTextWidth + buttonTextRightSpace, minimumButtonTextWidthSpace), maxTextHeight) 'Add buffer for right hand side
+            Return New Size(Math.Max(maxTextWidth + s_buttonTextRightSpace, s_minimumButtonTextWidthSpace), maxTextHeight) 'Add buffer for right hand side
         End Function
 
         ''' <summary>
@@ -374,30 +376,30 @@ Namespace Microsoft.VisualStudio.Editors.ApplicationDesigner
             Dim largestButtonTextSize As Size = GetLargestButtonTextSize()
 
             ' Calculate the height of the tab button, we either take the max of either the default size or the text size + padding. 
-            buttonHeight = Math.Max(largestButtonTextSize.Height + buttonPagePadding.Vertical, DefaultButtonHeight)
+            _buttonHeight = Math.Max(largestButtonTextSize.Height + _buttonPagePadding.Vertical, s_defaultButtonHeight)
 
             'Now calculate the minimum width 
-            minimumWidth = m_Owner.HostingPanel.MinimumSize.Width + 1 + buttonPagePadding.Right + 1
+            minimumWidth = _owner.HostingPanel.MinimumSize.Width + 1 + _buttonPagePadding.Right + 1
             width = Math.Max(width, minimumWidth)
 
             'Now calculate required height 
-            minimumHeight = m_Owner.HostingPanel.MinimumSize.Height + 1 + buttonPagePadding.Bottom + 1
+            minimumHeight = _owner.HostingPanel.MinimumSize.Height + 1 + _buttonPagePadding.Bottom + 1
             height = Math.Max(height, minimumHeight)
 
             ' Calcuate the required height by tab button area...
-            Dim panelMinimumHeight As Integer = buttonHeight * visibleButtonSlots + 1 + buttonPagePadding.Bottom + 1
+            Dim panelMinimumHeight As Integer = _buttonHeight * _visibleButtonSlots + 1 + _buttonPagePadding.Bottom + 1
             height = Math.Max(height, panelMinimumHeight)
 
-            m_Owner.MinimumSize = New Size(minimumWidth, minimumHeight)
+            _owner.MinimumSize = New Size(minimumWidth, minimumHeight)
 
             'Add 2 for extra horizontal line above first tab and after last tab
 
             'Set location of top,left corner where tab buttons begin
-            buttonsLocationX = buttonPagePadding.Left
-            buttonsLocationY = buttonPagePadding.Top
+            _buttonsLocationX = _buttonPagePadding.Left
+            _buttonsLocationY = _buttonPagePadding.Top
 
             'Calculate width of tab button
-            buttonWidth = largestButtonTextSize.Width + buttonPagePadding.Horizontal + 20
+            _buttonWidth = largestButtonTextSize.Width + _buttonPagePadding.Horizontal + 20
         End Sub
 
 
@@ -412,10 +414,10 @@ Namespace Microsoft.VisualStudio.Editors.ApplicationDesigner
             'The currently-selected tab must take preference over the current setting of the preferred
             '  button.  If the selected tab would not be visible, set it into the preferred button for
             '  the switchable slot.
-            Dim SwitchableSlotIndex As Integer = visibleButtonSlots - 1
-            If m_Owner.SelectedItem IsNot Nothing AndAlso m_Owner.SelectedIndex >= SwitchableSlotIndex Then
-                Debug.Assert(m_Owner.SelectedItem IsNot Nothing)
-                PreferredButtonForSwitchableSlot = m_Owner.SelectedItem
+            Dim SwitchableSlotIndex As Integer = _visibleButtonSlots - 1
+            If _owner.SelectedItem IsNot Nothing AndAlso _owner.SelectedIndex >= SwitchableSlotIndex Then
+                Debug.Assert(_owner.SelectedItem IsNot Nothing)
+                PreferredButtonForSwitchableSlot = _owner.SelectedItem
             End If
 
             Dim Index As Integer
@@ -425,13 +427,13 @@ Namespace Microsoft.VisualStudio.Editors.ApplicationDesigner
 #If DEBUG Then
             Dim SwitchableSlotShown As Boolean = False 'Whether we have shown a button in the switchable slot
 #End If
-            Dim OverflowNeeded As Boolean = (visibleButtonSlots < m_Owner.TabButtonCount)
+            Dim OverflowNeeded As Boolean = (_visibleButtonSlots < _owner.TabButtonCount)
 
             'Find the preferred button for the switchable slot
             PreferredButtonIndex = -1
             Index = 0
             If PreferredButton IsNot Nothing Then
-                For Each Button In m_Owner.TabButtons
+                For Each Button In _owner.TabButtons
                     If Button Is PreferredButton Then
                         PreferredButtonIndex = Index
                         Exit For
@@ -442,8 +444,8 @@ Namespace Microsoft.VisualStudio.Editors.ApplicationDesigner
             End If
 
             Index = 0
-            For Each Button In m_Owner.TabButtons
-                Button.Size = New Size(buttonWidth, buttonHeight)
+            For Each Button In _owner.TabButtons
+                Button.Size = New Size(_buttonWidth, _buttonHeight)
 
                 If Index < SwitchableSlotIndex Then
                     'This button is definitely visible
@@ -486,15 +488,15 @@ Namespace Microsoft.VisualStudio.Editors.ApplicationDesigner
 #End If
 
             'Now calculate the position of the overflow button, and whether it should be visible
-            m_Owner.OverflowButton.Location = New Point( _
-                buttonsLocationX + buttonWidth - OverflowButtonTopOffset - m_Owner.OverflowButton.Width, _
-                buttonsLocationY + visibleButtonSlots * buttonHeight + OverflowButtonTopOffset)
-            m_Owner.OverflowButton.Visible = OverflowNeeded
+            _owner.OverflowButton.Location = New Point( _
+                _buttonsLocationX + _buttonWidth - s_overflowButtonTopOffset - _owner.OverflowButton.Width, _
+                _buttonsLocationY + _visibleButtonSlots * _buttonHeight + s_overflowButtonTopOffset)
+            _owner.OverflowButton.Visible = OverflowNeeded
         End Sub
 
         Private Function SetButtonBounds(ByVal Button As Button, ByVal ButtonIndex As Integer) As Size
-            Button.Size = New Size(buttonWidth, buttonHeight)
-            Button.Location = New Point(buttonsLocationX, buttonsLocationY + ButtonIndex * buttonHeight)
+            Button.Size = New Size(_buttonWidth, _buttonHeight)
+            Button.Location = New Point(_buttonsLocationX, _buttonsLocationY + ButtonIndex * _buttonHeight)
         End Function
 #End Region
 
@@ -509,14 +511,14 @@ Namespace Microsoft.VisualStudio.Editors.ApplicationDesigner
         Public Sub RenderBackground(ByVal g As Graphics)
             CreateGDIObjects()
 
-            If Not m_GradientBrushesCreated Then
+            If Not _gradientBrushesCreated Then
                 Debug.Fail("PERF/FLICKER WARNING: ProjectDesignerTabRenderer.RenderBackground() called before fully initialized")
                 Exit Sub
             End If
 
             'Fill layers bottom up
             '... Background
-            g.FillRectangle(controlBackgroundBrush, tabControlRect)
+            g.FillRectangle(_controlBackgroundBrush, _tabControlRect)
         End Sub
 
 
@@ -533,15 +535,15 @@ Namespace Microsoft.VisualStudio.Editors.ApplicationDesigner
         Public Sub RenderButton(ByVal g As Graphics, ByVal button As ProjectDesignerTabButton, ByVal IsSelected As Boolean, ByVal IsHovered As Boolean)
             CreateGDIObjects()
 
-            Dim backgroundBrush As Brush = buttonBackgroundBrush
-            Dim foregroundColor As Color = buttonForegroundColor ' TextRenderer.DrawText takes a color over a brush 
+            Dim backgroundBrush As Brush = _buttonBackgroundBrush
+            Dim foregroundColor As Color = _buttonForegroundColor ' TextRenderer.DrawText takes a color over a brush 
 
             If IsSelected Then
-                backgroundBrush = selectedButtonBackgroundBrush
-                foregroundColor = selectedButtonForegroundColor
+                backgroundBrush = _selectedButtonBackgroundBrush
+                foregroundColor = _selectedButtonForegroundColor
             Else If IsHovered Then
-                backgroundBrush = hoverButtonBackgroundBrush
-                foregroundColor = hoverButtonForegroundColor
+                backgroundBrush = _hoverButtonBackgroundBrush
+                foregroundColor = _hoverButtonForegroundColor
             End If
 
             Const TriangleWidth As Integer = 6
@@ -585,7 +587,7 @@ Namespace Microsoft.VisualStudio.Editors.ApplicationDesigner
                 End Using
             End If
 
-            Dim textRect As New Rectangle(buttonTextLeftOffset, 0, button.Width - buttonTextLeftOffset, button.Height)
+            Dim textRect As New Rectangle(s_buttonTextLeftOffset, 0, button.Width - s_buttonTextLeftOffset, button.Height)
             TextRenderer.DrawText(g, button.TextWithDirtyIndicator, button.Font, textRect, foregroundColor, TextFormatFlags.Left Or TextFormatFlags.SingleLine Or TextFormatFlags.VerticalCenter)
         End Sub 'RenderButton 
 

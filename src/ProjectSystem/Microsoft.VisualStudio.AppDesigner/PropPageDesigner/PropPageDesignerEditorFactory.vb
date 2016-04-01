@@ -1,3 +1,5 @@
+' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+
 Imports System.Runtime.InteropServices
 Imports Common = Microsoft.VisualStudio.Editors.AppDesCommon
 Imports Microsoft.VisualStudio.OLE.Interop
@@ -21,25 +23,25 @@ Namespace Microsoft.VisualStudio.Editors.PropPageDesigner
         Implements IVsEditorFactory
 
         'The all important GUIDs 
-        Private Shared ReadOnly m_EditorGuid As New Guid("{b270807c-d8c6-49eb-8ebe-8e8d566637a1}")
-        Private Shared ReadOnly m_CommandUIGuid As New Guid("{86670efa-3c28-4115-8776-a4d5bb1f27cc}")
+        Private Shared ReadOnly s_editorGuid As New Guid("{b270807c-d8c6-49eb-8ebe-8e8d566637a1}")
+        Private Shared ReadOnly s_commandUIGuid As New Guid("{86670efa-3c28-4115-8776-a4d5bb1f27cc}")
 
         'Exposing the GUID for the rest of the assembly to see
         Public Shared ReadOnly Property EditorGuid() As Guid
             Get
-                Return m_EditorGuid
+                Return s_editorGuid
             End Get
         End Property
 
         'Exposing the GUID for the rest of the assembly to see
         Public Shared ReadOnly Property CommandUIGuid() As Guid
             Get
-                Return m_CommandUIGuid
+                Return s_commandUIGuid
             End Get
         End Property
 
-        Private m_Site As Object 'The site that owns this editor factory
-        Private m_SiteProvider As Shell.ServiceProvider 'The service provider from m_Site
+        Private _site As Object 'The site that owns this editor factory
+        Private _siteProvider As Shell.ServiceProvider 'The service provider from m_Site
 
         ''' <summary>
         ''' Creates a new editor for the given pile of flags.  Helper function for the overload
@@ -80,26 +82,26 @@ Namespace Microsoft.VisualStudio.Editors.PropPageDesigner
                     DocData = Nothing
                     Caption = Nothing
 
-                    Dim DesignerService As IVSMDDesignerService = CType(m_SiteProvider.GetService(GetType(IVSMDDesignerService)), IVSMDDesignerService)
+                    Dim DesignerService As IVSMDDesignerService = CType(_siteProvider.GetService(GetType(IVSMDDesignerService)), IVSMDDesignerService)
                     If DesignerService Is Nothing Then
                         Throw New Exception(SR.GetString(SR.DFX_EditorNoDesignerService, FileName))
                     End If
 
                     If ExistingDocData Is Nothing Then
-                        DocData = New PropPageDesignerDocData(m_SiteProvider)
+                        DocData = New PropPageDesignerDocData(_siteProvider)
                     Else
                         Throw New COMException(SR.GetString(SR.DFX_IncompatibleBuffer), AppDesInterop.NativeMethods.VS_E_INCOMPATIBLEDOCDATA)
                     End If
 
                     DesignerLoader = CType(DesignerService.CreateDesignerLoader(GetType(PropPageDesignerLoader).AssemblyQualifiedName), PropPageDesignerLoader)
-                    DesignerLoader.InitializeEx(m_SiteProvider, Hierarchy, ItemId, DocData)
+                    DesignerLoader.InitializeEx(_siteProvider, Hierarchy, ItemId, DocData)
 
-                    Dim OleProvider As OLE.Interop.IServiceProvider = CType(m_SiteProvider.GetService(GetType(OLE.Interop.IServiceProvider)), OLE.Interop.IServiceProvider)
+                    Dim OleProvider As OLE.Interop.IServiceProvider = CType(_siteProvider.GetService(GetType(OLE.Interop.IServiceProvider)), OLE.Interop.IServiceProvider)
                     Dim Designer As IVSMDDesigner = DesignerService.CreateDesigner(OleProvider, DesignerLoader)
 
                     'Site the TextStream
                     If TypeOf DocData Is IObjectWithSite Then
-                        CType(DocData, IObjectWithSite).SetSite(m_Site)
+                        CType(DocData, IObjectWithSite).SetSite(_site)
                     Else
                         Debug.Fail("DocData does not implement IObjectWithSite")
                     End If
@@ -112,7 +114,7 @@ Namespace Microsoft.VisualStudio.Editors.PropPageDesigner
                     Caption = "" ' Leave empty - The property page Title will appear as the caption 'Application|References|Debug etc.'
 
                     'Set the command UI
-                    CmdUIGuid = m_CommandUIGuid
+                    CmdUIGuid = s_commandUIGuid
                 End Using
 
             Catch ex As Exception
@@ -132,8 +134,8 @@ Namespace Microsoft.VisualStudio.Editors.PropPageDesigner
         ''' </summary>
         ''' <remarks></remarks>
         Public Function Close() As Integer Implements Shell.Interop.IVsEditorFactory.Close
-            m_SiteProvider = Nothing
-            m_Site = Nothing
+            _siteProvider = Nothing
+            _site = Nothing
         End Function
 
         ''' <summary>
@@ -202,13 +204,13 @@ Namespace Microsoft.VisualStudio.Editors.PropPageDesigner
         ''' <remarks></remarks>
         Public Function SetSite(ByVal Site As OLE.Interop.IServiceProvider) As Integer Implements Shell.Interop.IVsEditorFactory.SetSite
             'This same Site already set?  Or Site not yet initialized (= Nothing)?  If so, NOP.
-            If Me.m_Site Is Site Then
+            If Me._site Is Site Then
                 Exit Function
             End If
             'Site is different - set it
-            Me.m_Site = Site
+            Me._site = Site
             If TypeOf Site Is OLE.Interop.IServiceProvider Then
-                m_SiteProvider = New ServiceProvider(CType(Site, Microsoft.VisualStudio.OLE.Interop.IServiceProvider))
+                _siteProvider = New ServiceProvider(CType(Site, Microsoft.VisualStudio.OLE.Interop.IServiceProvider))
             Else
                 Debug.Fail("Site IsNot OLE.Interop.IServiceProvider")
             End If

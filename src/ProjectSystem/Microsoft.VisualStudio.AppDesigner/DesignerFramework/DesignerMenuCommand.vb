@@ -1,3 +1,5 @@
+' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+
 Imports System.ComponentModel.Design
 
 Namespace Microsoft.VisualStudio.Editors.AppDesDesignerFramework
@@ -35,7 +37,7 @@ Namespace Microsoft.VisualStudio.Editors.AppDesDesignerFramework
         <CodeAnalysis.SuppressMessage("Microsoft.Security", "CA2123:OverrideLinkDemandsShouldBeIdenticalToBase")> _
         Public Overrides ReadOnly Property OleStatus() As Integer
             Get
-                If m_AlwaysCheckStatus OrElse Not m_StatusValid Then
+                If _alwaysCheckStatus OrElse Not _statusValid Then
                     UpdateStatus()
                 End If
                 Return MyBase.OleStatus
@@ -59,18 +61,18 @@ Namespace Microsoft.VisualStudio.Editors.AppDesDesignerFramework
         Public Overrides Sub Invoke()
             MyBase.Invoke()
 
-            If Not (m_RootDesigner Is Nothing) Then
+            If Not (_rootDesigner Is Nothing) Then
                 ' Refresh the status of all the menus for the current designer.
-                m_RootDesigner.RefreshMenuStatus()
+                _rootDesigner.RefreshMenuStatus()
             End If
         End Sub 'Invoke
         <CodeAnalysis.SuppressMessage("Microsoft.Security", "CA2123:OverrideLinkDemandsShouldBeIdenticalToBase")> _
         Public Overrides Sub Invoke(ByVal inArg As Object, ByVal outArg As System.IntPtr)
             MyBase.Invoke(inArg, outArg)
 
-            If Not (m_RootDesigner Is Nothing) Then
+            If Not (_rootDesigner Is Nothing) Then
                 ' Refresh the status of all the menus for the current designer.
-                m_RootDesigner.RefreshMenuStatus()
+                _rootDesigner.RefreshMenuStatus()
             End If
         End Sub
 
@@ -78,9 +80,9 @@ Namespace Microsoft.VisualStudio.Editors.AppDesDesignerFramework
         Public Overrides Sub Invoke(ByVal inArg As Object)
             MyBase.Invoke(inArg)
 
-            If Not (m_RootDesigner Is Nothing) Then
+            If Not (_rootDesigner Is Nothing) Then
                 ' Refresh the status of all the menus for the current designer.
-                m_RootDesigner.RefreshMenuStatus()
+                _rootDesigner.RefreshMenuStatus()
             End If
         End Sub
 
@@ -116,11 +118,11 @@ Namespace Microsoft.VisualStudio.Editors.AppDesDesignerFramework
 
             MyBase.New(CommandHandler, CommandID)
 
-            Me.m_RootDesigner = RootDesigner
-            Me.m_CommandEnabledHandler = CommandEnabledHandler
-            Me.m_CommandCheckedHandler = CommandCheckedHandler
-            Me.m_CommandVisibleHandler = CommandVisibleHandler
-            Me.m_AlwaysCheckStatus = AlwaysCheckStatus
+            Me._rootDesigner = RootDesigner
+            Me._commandEnabledHandler = CommandEnabledHandler
+            Me._commandCheckedHandler = CommandCheckedHandler
+            Me._commandVisibleHandler = CommandVisibleHandler
+            Me._alwaysCheckStatus = AlwaysCheckStatus
             If CommandText <> "" Then
                 Me.Text = CommandText
             End If
@@ -140,7 +142,7 @@ Namespace Microsoft.VisualStudio.Editors.AppDesDesignerFramework
         '   Refresh the status of the command.
         '**************************************************************************
         Public Sub RefreshStatus()
-            m_StatusValid = False
+            _statusValid = False
             OnCommandChanged(EventArgs.Empty)
         End Sub 'RefreshStatus
 
@@ -155,24 +157,24 @@ Namespace Microsoft.VisualStudio.Editors.AppDesDesignerFramework
         '   Calls the command status handlers (if any) to set the status of the command.
         '**************************************************************************
         Private Sub UpdateStatus()
-            If Not (Me.m_CommandEnabledHandler Is Nothing) Then
-                Enabled = m_CommandEnabledHandler(Me)
+            If Not (Me._commandEnabledHandler Is Nothing) Then
+                Enabled = _commandEnabledHandler(Me)
             End If
-            If Not (Me.m_CommandCheckedHandler Is Nothing) Then
-                Checked = m_CommandCheckedHandler(Me)
+            If Not (Me._commandCheckedHandler Is Nothing) Then
+                Checked = _commandCheckedHandler(Me)
             End If
-            If Not (Me.m_CommandVisibleHandler Is Nothing) Then
-                Visible = m_CommandVisibleHandler(Me)
+            If Not (Me._commandVisibleHandler Is Nothing) Then
+                Visible = _commandVisibleHandler(Me)
             End If
-            m_StatusValid = True
+            _statusValid = True
         End Sub 'UpdateStatus
 
-        Private m_RootDesigner As BaseRootDesigner ' Pointer to the RootDesigner allowing refreshing all menu commands.
-        Private m_CommandEnabledHandler As CheckCommandStatusHandler ' Handler to check if the command should be enabled.
-        Private m_CommandCheckedHandler As CheckCommandStatusHandler ' Handler to check if the command should be checked.
-        Private m_CommandVisibleHandler As CheckCommandStatusHandler ' Handler to check if the command should be hidden.
-        Private m_AlwaysCheckStatus As Boolean ' True to always check the status of the command after every call. False otherwise.
-        Private m_StatusValid As Boolean ' Whether the status of the command is still valid.
+        Private _rootDesigner As BaseRootDesigner ' Pointer to the RootDesigner allowing refreshing all menu commands.
+        Private _commandEnabledHandler As CheckCommandStatusHandler ' Handler to check if the command should be enabled.
+        Private _commandCheckedHandler As CheckCommandStatusHandler ' Handler to check if the command should be checked.
+        Private _commandVisibleHandler As CheckCommandStatusHandler ' Handler to check if the command should be hidden.
+        Private _alwaysCheckStatus As Boolean ' True to always check the status of the command after every call. False otherwise.
+        Private _statusValid As Boolean ' Whether the status of the command is still valid.
     End Class 'DesignerMenuCommand
 
     Public Delegate Function CheckCommandStatusHandler(ByVal MenuCommand As DesignerMenuCommand) As Boolean

@@ -1,3 +1,5 @@
+' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+
 Imports Common = Microsoft.VisualStudio.Editors.AppDesCommon
 Imports Microsoft.VisualStudio.Editors.AppDesInterop
 Imports System.Runtime.InteropServices
@@ -13,18 +15,18 @@ Namespace Microsoft.VisualStudio.Editors.ApplicationDesigner
     Public Class PropertyPageInfo
         Implements System.IDisposable
 
-        Private m_Guid As Guid 'The GUID for the property page
-        Private m_IsConfigPage As Boolean 'True if the page's properties can have different values in different configurations
+        Private _guid As Guid 'The GUID for the property page
+        Private _isConfigPage As Boolean 'True if the page's properties can have different values in different configurations
 
-        Private m_ComPropPageInstance As OleInterop.IPropertyPage
-        Private m_Info As OleInterop.PROPPAGEINFO
-        Private m_Site As PropertyPageSite
-        Private m_LoadException As Exception 'The exception that occurred while loading the page, if any
-        Private m_ParentView As ApplicationDesignerView 'The owning application designer view
-        Private m_LoadAlreadyAttempted As Boolean 'Whether or not we've attempted to load this property page
+        Private _comPropPageInstance As OleInterop.IPropertyPage
+        Private _info As OleInterop.PROPPAGEINFO
+        Private _site As PropertyPageSite
+        Private _loadException As Exception 'The exception that occurred while loading the page, if any
+        Private _parentView As ApplicationDesignerView 'The owning application designer view
+        Private _loadAlreadyAttempted As Boolean 'Whether or not we've attempted to load this property page
 
-        Private Const REGKEY_CachedPageTitles As String = "\ProjectDesigner\CachedPageTitles"
-        Private Const REGVALUE_CachedLocaleId As String = "LocaleID"
+        Private Const s_REGKEY_CachedPageTitles As String = "\ProjectDesigner\CachedPageTitles"
+        Private Const s_REGVALUE_CachedLocaleId As String = "LocaleID"
 
 
 
@@ -37,9 +39,9 @@ Namespace Microsoft.VisualStudio.Editors.ApplicationDesigner
         Public Sub New(ByVal ParentView As ApplicationDesignerView, ByVal Guid As Guid, ByVal IsConfigurationDependentPage As Boolean)
             Debug.Assert(Not Guid.Equals(System.Guid.Empty), "Empty guid?")
             Debug.Assert(ParentView IsNot Nothing)
-            Me.m_ParentView = ParentView
-            Me.m_Guid = Guid
-            Me.m_IsConfigPage = IsConfigurationDependentPage
+            Me._parentView = ParentView
+            Me._guid = Guid
+            Me._isConfigPage = IsConfigurationDependentPage
         End Sub
 
 
@@ -57,17 +59,17 @@ Namespace Microsoft.VisualStudio.Editors.ApplicationDesigner
         Protected Overloads Sub Dispose(ByVal disposing As Boolean)
             If disposing Then
                 Try
-                    If m_ComPropPageInstance IsNot Nothing Then
-                        m_ComPropPageInstance.Deactivate()
-                        m_ComPropPageInstance.SetPageSite(Nothing)
-                        If Marshal.IsComObject(m_ComPropPageInstance) Then
-                            Marshal.ReleaseComObject(m_ComPropPageInstance)
+                    If _comPropPageInstance IsNot Nothing Then
+                        _comPropPageInstance.Deactivate()
+                        _comPropPageInstance.SetPageSite(Nothing)
+                        If Marshal.IsComObject(_comPropPageInstance) Then
+                            Marshal.ReleaseComObject(_comPropPageInstance)
                         End If
-                        m_ComPropPageInstance = Nothing
+                        _comPropPageInstance = Nothing
                     End If
-                    If m_Site IsNot Nothing Then
-                        m_Site.Dispose()
-                        m_Site = Nothing
+                    If _site IsNot Nothing Then
+                        _site.Dispose()
+                        _site = Nothing
                     End If
                 Catch ex As OutOfMemoryException
                     Throw
@@ -92,7 +94,7 @@ Namespace Microsoft.VisualStudio.Editors.ApplicationDesigner
         ''' <remarks></remarks>
         Public ReadOnly Property Guid() As Guid
             Get
-                Return m_Guid
+                Return _guid
             End Get
         End Property
 
@@ -104,7 +106,7 @@ Namespace Microsoft.VisualStudio.Editors.ApplicationDesigner
         ''' <remarks></remarks>
         Public ReadOnly Property IsConfigPage() As Boolean
             Get
-                Return m_IsConfigPage
+                Return _isConfigPage
             End Get
         End Property
 
@@ -116,7 +118,7 @@ Namespace Microsoft.VisualStudio.Editors.ApplicationDesigner
         ''' <remarks></remarks>
         Public ReadOnly Property LoadException() As Exception
             Get
-                Return m_LoadException
+                Return _loadException
             End Get
         End Property
 
@@ -128,7 +130,7 @@ Namespace Microsoft.VisualStudio.Editors.ApplicationDesigner
         Public ReadOnly Property ComPropPageInstance() As OleInterop.IPropertyPage
             Get
                 TryLoadPropertyPage()
-                Return m_ComPropPageInstance
+                Return _comPropPageInstance
             End Get
         End Property
 
@@ -141,7 +143,7 @@ Namespace Microsoft.VisualStudio.Editors.ApplicationDesigner
         Public ReadOnly Property Site() As PropertyPageSite
             Get
                 TryLoadPropertyPage()
-                Return m_Site
+                Return _site
             End Get
         End Property
 
@@ -153,21 +155,21 @@ Namespace Microsoft.VisualStudio.Editors.ApplicationDesigner
         ''' </summary>
         ''' <remarks>Overridable for unit testing.</remarks>
         Public Overridable Sub TryLoadPropertyPage()
-            Debug.Assert(m_ParentView IsNot Nothing)
-            If m_LoadAlreadyAttempted Then
+            Debug.Assert(_parentView IsNot Nothing)
+            If _loadAlreadyAttempted Then
                 Return
             End If
-            Debug.Assert(m_LoadException Is Nothing)
-            m_LoadAlreadyAttempted = True
+            Debug.Assert(_loadException Is Nothing)
+            _loadAlreadyAttempted = True
 
             Try
-                Common.Switches.TracePDPerf("*** PERFORMANCE WARNING: Attempting to load property page " & m_Guid.ToString)
+                Common.Switches.TracePDPerf("*** PERFORMANCE WARNING: Attempting to load property page " & _guid.ToString)
                 Dim LocalRegistry As ILocalRegistry
-                LocalRegistry = CType(m_ParentView.GetService(GetType(ILocalRegistry)), ILocalRegistry)
+                LocalRegistry = CType(_parentView.GetService(GetType(ILocalRegistry)), ILocalRegistry)
 
                 If LocalRegistry Is Nothing Then
                     Debug.Fail("Unabled to obtain ILocalRegistry")
-                    m_LoadException = New ArgumentNullException("ParentView")
+                    _loadException = New ArgumentNullException("ParentView")
                     Return
                 End If
 
@@ -179,7 +181,7 @@ Namespace Microsoft.VisualStudio.Editors.ApplicationDesigner
 
                 Dim ObjectPtr As IntPtr
 
-                VSErrorHandler.ThrowOnFailure(LocalRegistry.CreateInstance(m_Guid, Nothing, NativeMethods.IID_IUnknown, win.CLSCTX_INPROC_SERVER, ObjectPtr))
+                VSErrorHandler.ThrowOnFailure(LocalRegistry.CreateInstance(_guid, Nothing, NativeMethods.IID_IUnknown, win.CLSCTX_INPROC_SERVER, ObjectPtr))
                 Try
                     PageObject = Marshal.GetObjectForIUnknown(ObjectPtr)
                 Finally
@@ -189,44 +191,44 @@ Namespace Microsoft.VisualStudio.Editors.ApplicationDesigner
                 ComPropertyPageInstance = CType(PageObject, OleInterop.IPropertyPage)
 
                 'Save the IPropertyPage object
-                m_ComPropPageInstance = ComPropertyPageInstance
+                _comPropPageInstance = ComPropertyPageInstance
 
                 'Set the page site
-                m_Site = New PropertyPageSite(m_ParentView, ComPropertyPageInstance)
+                _site = New PropertyPageSite(_parentView, ComPropertyPageInstance)
 
                 'Get the property page's PAGEINFO for later use
                 ComPropertyPageInstance.GetPageInfo(PageInfos)
-                m_Info = PageInfos(0)
+                _info = PageInfos(0)
 
-                Common.Switches.TracePDPerf("  [Loaded property page '" & m_Info.pszTitle & "']")
+                Common.Switches.TracePDPerf("  [Loaded property page '" & _info.pszTitle & "']")
 
 #If DEBUG Then
                 'Verify that loading the property page actually gave us the same title as the
                 '  cached version.
-                If m_Info.pszTitle IsNot Nothing AndAlso CachedTitle IsNot Nothing Then
-                    Debug.Assert(m_Info.pszTitle.Equals(CachedTitle), _
+                If _info.pszTitle IsNot Nothing AndAlso CachedTitle IsNot Nothing Then
+                    Debug.Assert(_info.pszTitle.Equals(CachedTitle), _
                         "The page title retrieved from cache ('" & CachedTitle & "') was not the same as that retrieved by " _
-                        & "loading the page ('" & m_Info.pszTitle & "')")
+                        & "loading the page ('" & _info.pszTitle & "')")
                 End If
 #End If
 
                 'Cache the title for future use
-                CachedTitle = m_Info.pszTitle
+                CachedTitle = _info.pszTitle
 
             Catch Ex As Exception When Not AppDesCommon.IsUnrecoverable(Ex)
                 'Debug.Fail("Unable to create property page with guid " & m_Guid.ToString() & vbCrLf & Ex.Message)
-                If m_ComPropPageInstance IsNot Nothing Then
+                If _comPropPageInstance IsNot Nothing Then
                     'IPropertyPage.GetPageInfo probably failed - if that didn't 
                     ' succeed, then nothing much else will likely work on the page either
-                    If Marshal.IsComObject(m_ComPropPageInstance) Then
-                        Marshal.ReleaseComObject(m_ComPropPageInstance)
+                    If Marshal.IsComObject(_comPropPageInstance) Then
+                        Marshal.ReleaseComObject(_comPropPageInstance)
                     End If
-                    m_ComPropPageInstance = Nothing
+                    _comPropPageInstance = Nothing
                 Else
                     'Page failed to load
                 End If
 
-                m_LoadException = Ex 'Save this to display later
+                _loadException = Ex 'Save this to display later
             End Try
         End Sub
 
@@ -244,11 +246,11 @@ Namespace Microsoft.VisualStudio.Editors.ApplicationDesigner
         ''' </remarks>
         Public ReadOnly Property Title() As String
             Get
-                If m_LoadAlreadyAttempted Then
-                    If m_LoadException Is Nothing AndAlso m_Info.pszTitle <> "" Then
-                        Debug.Assert(m_LoadAlreadyAttempted AndAlso m_LoadException Is Nothing)
-                        Common.Switches.TracePDPerf("PropertyPageInfo.Title: Property page was already loaded, returning from m_Info: '" & m_Info.pszTitle & "'")
-                        Return m_Info.pszTitle
+                If _loadAlreadyAttempted Then
+                    If _loadException Is Nothing AndAlso _info.pszTitle <> "" Then
+                        Debug.Assert(_loadAlreadyAttempted AndAlso _loadException Is Nothing)
+                        Common.Switches.TracePDPerf("PropertyPageInfo.Title: Property page was already loaded, returning from m_Info: '" & _info.pszTitle & "'")
+                        Return _info.pszTitle
                     Else
                         Common.Switches.TracePDPerf("PropertyPageInfo.Title: Previously attempted to load property page and failed, returning empty title")
                         Return String.Empty
@@ -263,7 +265,7 @@ Namespace Microsoft.VisualStudio.Editors.ApplicationDesigner
 
                     'No cache, we have no choice but to load the property page and ask it for the title
                     TryLoadPropertyPage() 'This will cache the newly-obtained title.
-                    Return m_Info.pszTitle
+                    Return _info.pszTitle
                 End If
             End Get
         End Property
@@ -276,7 +278,7 @@ Namespace Microsoft.VisualStudio.Editors.ApplicationDesigner
         ''' <remarks></remarks>
         Private ReadOnly Property CurrentLocaleID() As UInteger
             Get
-                Return CType(m_ParentView, IPropertyPageSiteOwner).GetLocaleID()
+                Return CType(_parentView, IPropertyPageSiteOwner).GetLocaleID()
             End Get
         End Property
 
@@ -291,7 +293,7 @@ Namespace Microsoft.VisualStudio.Editors.ApplicationDesigner
             Get
                 'We must include both the property page GUID and the locale ID
                 '  so that we react properly to user language changes.
-                Return m_Guid.ToString() & "," & CurrentLocaleID.ToString()
+                Return _guid.ToString() & "," & CurrentLocaleID.ToString()
             End Get
         End Property
 
@@ -303,7 +305,7 @@ Namespace Microsoft.VisualStudio.Editors.ApplicationDesigner
         ''' <remarks></remarks>
         Private Property CachedTitle() As String
             Get
-                Dim KeyPath As String = m_ParentView.DTEProject.DTE.RegistryRoot & REGKEY_CachedPageTitles
+                Dim KeyPath As String = _parentView.DTEProject.DTE.RegistryRoot & s_REGKEY_CachedPageTitles
                 Dim Key As Win32.RegistryKey = Nothing
                 Try
                     Key = Win32.Registry.CurrentUser.OpenSubKey(KeyPath)
@@ -331,7 +333,7 @@ Namespace Microsoft.VisualStudio.Editors.ApplicationDesigner
                 End If
                 Dim Key As Win32.RegistryKey = Nothing
                 Try
-                    Key = Win32.Registry.CurrentUser.CreateSubKey(m_ParentView.DTEProject.DTE.RegistryRoot & REGKEY_CachedPageTitles)
+                    Key = Win32.Registry.CurrentUser.CreateSubKey(_parentView.DTEProject.DTE.RegistryRoot & s_REGKEY_CachedPageTitles)
                     If Key IsNot Nothing Then
                         Key.SetValue(CachedTitleValueName, value, Win32.RegistryValueKind.String)
                     End If

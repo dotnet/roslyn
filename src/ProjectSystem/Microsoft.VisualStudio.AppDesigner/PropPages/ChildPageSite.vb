@@ -1,3 +1,5 @@
+' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+
 Imports Microsoft.VisualStudio.ManagedInterfaces.ProjectDesigner
 
 Namespace Microsoft.VisualStudio.Editors.PropertyPages
@@ -18,9 +20,9 @@ Namespace Microsoft.VisualStudio.Editors.PropertyPages
         ''' <remarks></remarks>
         Public Const NestingCharacter As String = ":"
 
-        Private m_wrappedInternalSite As IPropertyPageSiteInternal 'May *not* be Nothing
-        Private m_wrappedUndoSite As IVsProjectDesignerPageSite    'May be Nothing
-        Private m_nestedPropertyNamePrefix As String               'Prefix string to be placed at the beginning of PropertyName to distinguish properties from the page hosted by this child page site
+        Private _wrappedInternalSite As IPropertyPageSiteInternal 'May *not* be Nothing
+        Private _wrappedUndoSite As IVsProjectDesignerPageSite    'May be Nothing
+        Private _nestedPropertyNamePrefix As String               'Prefix string to be placed at the beginning of PropertyName to distinguish properties from the page hosted by this child page site
 
 
         ''' <summary>
@@ -39,9 +41,9 @@ Namespace Microsoft.VisualStudio.Editors.PropertyPages
                 Debug.Fail("Can't wrap a NULL site!")
                 Throw New ArgumentNullException()
             End If
-            m_wrappedInternalSite = wrappedInternalSite
-            m_wrappedUndoSite = wrappedUndoSite
-            m_nestedPropertyNamePrefix = childPage.GetType.FullName & NestingCharacter
+            _wrappedInternalSite = wrappedInternalSite
+            _wrappedUndoSite = wrappedUndoSite
+            _nestedPropertyNamePrefix = childPage.GetType.FullName & NestingCharacter
         End Sub
 
 
@@ -66,7 +68,7 @@ Namespace Microsoft.VisualStudio.Editors.PropertyPages
         ''' <returns></returns>
         ''' <remarks></remarks>
         Public Function GetLocaleID() As Integer Implements IPropertyPageSiteInternal.GetLocaleID
-            Return m_wrappedInternalSite.GetLocaleID()
+            Return _wrappedInternalSite.GetLocaleID()
         End Function
 
         ''' <summary>
@@ -76,7 +78,7 @@ Namespace Microsoft.VisualStudio.Editors.PropertyPages
         ''' <returns></returns>
         ''' <remarks></remarks>
         Public Function GetService(ByVal ServiceType As System.Type) As Object Implements IPropertyPageSiteInternal.GetService
-            Return m_wrappedInternalSite.GetService(ServiceType)
+            Return _wrappedInternalSite.GetService(ServiceType)
         End Function
 
         ''' <summary>
@@ -100,7 +102,7 @@ Namespace Microsoft.VisualStudio.Editors.PropertyPages
         '''   process it, and E_NOTIMPL to indicate that the site does not support keyboard processing.
         ''' </remarks>
         Public Function TranslateAccelerator(ByVal msg As System.Windows.Forms.Message) As Integer Implements IPropertyPageSiteInternal.TranslateAccelerator
-            Return m_wrappedInternalSite.TranslateAccelerator(msg)
+            Return _wrappedInternalSite.TranslateAccelerator(msg)
         End Function
 
 
@@ -115,8 +117,8 @@ Namespace Microsoft.VisualStudio.Editors.PropertyPages
         ''' <returns></returns>
         ''' <remarks></remarks>
         Public Function GetTransaction(ByVal description As String) As System.ComponentModel.Design.DesignerTransaction Implements ManagedInterfaces.ProjectDesigner.IVsProjectDesignerPageSite.GetTransaction
-            If m_wrappedUndoSite IsNot Nothing Then
-                Return m_wrappedUndoSite.GetTransaction(description)
+            If _wrappedUndoSite IsNot Nothing Then
+                Return _wrappedUndoSite.GetTransaction(description)
             End If
 
             Return Nothing
@@ -132,8 +134,8 @@ Namespace Microsoft.VisualStudio.Editors.PropertyPages
         ''' <param name="newValue"></param>
         ''' <remarks></remarks>
         Public Sub OnPropertyChanged(ByVal propertyName As String, ByVal propertyDescriptor As System.ComponentModel.PropertyDescriptor, ByVal oldValue As Object, ByVal newValue As Object) Implements ManagedInterfaces.ProjectDesigner.IVsProjectDesignerPageSite.OnPropertyChanged
-            If m_wrappedUndoSite IsNot Nothing Then
-                m_wrappedUndoSite.OnPropertyChanged(MungePropertyName(propertyName), propertyDescriptor, oldValue, newValue)
+            If _wrappedUndoSite IsNot Nothing Then
+                _wrappedUndoSite.OnPropertyChanged(MungePropertyName(propertyName), propertyDescriptor, oldValue, newValue)
             End If
         End Sub
 
@@ -145,8 +147,8 @@ Namespace Microsoft.VisualStudio.Editors.PropertyPages
         ''' <param name="propertyDescriptor"></param>
         ''' <remarks></remarks>
         Public Sub OnPropertyChanging(ByVal propertyName As String, ByVal propertyDescriptor As System.ComponentModel.PropertyDescriptor) Implements ManagedInterfaces.ProjectDesigner.IVsProjectDesignerPageSite.OnPropertyChanging
-            If m_wrappedUndoSite IsNot Nothing Then
-                m_wrappedUndoSite.OnPropertyChanging(MungePropertyName(propertyName), propertyDescriptor)
+            If _wrappedUndoSite IsNot Nothing Then
+                _wrappedUndoSite.OnPropertyChanging(MungePropertyName(propertyName), propertyDescriptor)
             End If
         End Sub
 
@@ -164,7 +166,7 @@ Namespace Microsoft.VisualStudio.Editors.PropertyPages
             '  parent form that may be undone by the user.  But that means that the parent page will receive the requests (through
             '  IVsPropertyDesignerPage) for looking up and setting properties related to undo/redo functionality.  Prefixing the
             '  property name with the child page's type name lets the parent page know where to forward these requests.
-            Return m_nestedPropertyNamePrefix & propertyName
+            Return _nestedPropertyNamePrefix & propertyName
         End Function
 
 #End Region

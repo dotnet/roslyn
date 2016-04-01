@@ -1,3 +1,5 @@
+' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+
 Option Explicit On
 Option Strict On
 Option Compare Binary
@@ -23,57 +25,57 @@ Namespace Microsoft.VisualStudio.Editors.ResourceEditor
         Friend Const COLUMN_VALUE As Integer = 2
         Friend Const COLUMN_COMMENT As Integer = 3
 
-        Private Const ROW_BORDER_HEIGHT As Integer = 2
+        Private Const s_ROW_BORDER_HEIGHT As Integer = 2
 
         'A list of all Resource entries that are displayed in this string table (with the exception
         '  of the uncommitted resource, if any)
-        Private m_VirtualResourceList As New ArrayList
+        Private _virtualResourceList As New ArrayList
 
         'The row that is currently being removed, if any.
-        Private m_RemovingRow As DataGridViewRow
+        Private _removingRow As DataGridViewRow
 
         'The ResourceFile used to populate this grid.
-        Private m_ResourceFile As ResourceFile
+        Private _resourceFile As ResourceFile
 
         'True if this is the first time the grid is being populated.
-        Private m_FirstTimeShowingStringTable As Boolean = True
+        Private _firstTimeShowingStringTable As Boolean = True
 
         'A Resource which is created when the user starts entering data, but
         '  hasn't committed any of that data yet.
-        Private m_UncommittedResource As Resource
+        Private _uncommittedResource As Resource
 
         'This is the last "uncommitted" row that was just committed.  If the user presses
         '  ESC, this row will be deleted again by the grid, and we'll need to uncommit it
         '  by removing it from the ResourceFile again.
-        Private m_LastCommittedResource As Resource
+        Private _lastCommittedResource As Resource
 
         'In one edit action, we should only try to check out once...
         ' CONSIDER: should we implement it on the DesignerLoader, so we can support other controls as well?
-        Private m_InEditActions As Integer
+        Private _inEditActions As Integer
 
         'Indicates whether check-out has failed once in this action...
-        Private m_CheckOutFailedInTheAction As Boolean
+        Private _checkOutFailedInTheAction As Boolean
 
 
         'Default column width percentages for each column.  Yes, this adds up to more than 100%
         '  if the type column is visible, but that's okay.
-        Private Const DefaultColumnWidthPercentage_Name As Integer = 20
-        Private Const DefaultColumnWidthPercentage_Type As Integer = 25
-        Private Const DefaultColumnWidthPercentage_Value As Integer = 50
-        Private Const DefaultColumnWidthPercentage_Comment As Integer = 30
+        Private Const s_defaultColumnWidthPercentage_Name As Integer = 20
+        Private Const s_defaultColumnWidthPercentage_Type As Integer = 25
+        Private Const s_defaultColumnWidthPercentage_Value As Integer = 50
+        Private Const s_defaultColumnWidthPercentage_Comment As Integer = 30
 
         'Minimum scrolling widths
-        Private Const ColumnMinScrollingWidth_Name As Integer = 100
-        Private Const ColumnMinScrollingWidth_Type As Integer = 60
-        Private Const ColumnMinScrollingWidth_Value As Integer = 150
-        Private Const ColumnMinScrollingWidth_Comment As Integer = 80
+        Private Const s_columnMinScrollingWidth_Name As Integer = 100
+        Private Const s_columnMinScrollingWidth_Type As Integer = 60
+        Private Const s_columnMinScrollingWidth_Value As Integer = 150
+        Private Const s_columnMinScrollingWidth_Comment As Integer = 80
 
         'The error glyphs don't show up if the row height is below the glyph size.  We don't want that
         '  to happen, so restrict the minimum height.
-        Private Const RowMinimumHeight As Integer = 20
+        Private Const s_rowMinimumHeight As Integer = 20
 
         ' Current sorter
-        Private m_Sorter As StringTableSorter
+        Private _sorter As StringTableSorter
 
         ''' <summary>
         ''' Constructor
@@ -188,8 +190,8 @@ Namespace Microsoft.VisualStudio.Editors.ResourceEditor
         ''' <remarks>Can be called only after population</remarks>
         Private ReadOnly Property ResourceFile() As ResourceFile
             Get
-                Debug.Assert(m_ResourceFile IsNot Nothing, "Has Populate not yet been called?  m_ResourceFile is nothing")
-                Return m_ResourceFile
+                Debug.Assert(_resourceFile IsNot Nothing, "Has Populate not yet been called?  m_ResourceFile is nothing")
+                Return _resourceFile
             End Get
         End Property
 
@@ -217,12 +219,12 @@ Namespace Microsoft.VisualStudio.Editors.ResourceEditor
             ' ==== Name Column
 
             Dim ColumnWidth As Integer
-            ColumnWidth = DpiHelper.LogicalToDeviceUnitsX(ColumnMinScrollingWidth_Name)
+            ColumnWidth = DpiHelper.LogicalToDeviceUnitsX(s_columnMinScrollingWidth_Name)
             Dim NameColumn As New DataGridViewTextBoxColumn
             With NameColumn
                 .AutoSizeMode = DataGridViewAutoSizeColumnMode.Fill
                 .CellTemplate = New ResourceStringTextBoxCell()
-                .FillWeight = DefaultColumnWidthPercentage_Name
+                .FillWeight = s_defaultColumnWidthPercentage_Name
                 .MinimumWidth = ColumnWidth
                 .Name = SR.GetString(SR.RSE_ResourceNameColumn)
                 .Width = ColumnWidth
@@ -233,12 +235,12 @@ Namespace Microsoft.VisualStudio.Editors.ResourceEditor
 
             ' ==== Type Column
 
-            ColumnWidth = DpiHelper.LogicalToDeviceUnitsX(ColumnMinScrollingWidth_Type)
+            ColumnWidth = DpiHelper.LogicalToDeviceUnitsX(s_columnMinScrollingWidth_Type)
             Dim TypeColumn As New DataGridViewTextBoxColumn
             With TypeColumn
                 .AutoSizeMode = DataGridViewAutoSizeColumnMode.Fill
                 .CellTemplate = New ResourceStringTextBoxCell()
-                .FillWeight = DefaultColumnWidthPercentage_Type
+                .FillWeight = s_defaultColumnWidthPercentage_Type
                 .MinimumWidth = ColumnWidth
                 .Name = SR.GetString(SR.RSE_TypeColumn)
                 .ReadOnly = True 'Can't modify the Type column - just for info
@@ -253,12 +255,12 @@ Namespace Microsoft.VisualStudio.Editors.ResourceEditor
             '... By specifying DataGridViewTextBoxColumn here, we're indicating that user-added rows
             '      (i.e., through the "new row" at the bottom of the DataGridView) will be of type
             '      ResourceStringTextBoxCell.
-            ColumnWidth = DpiHelper.LogicalToDeviceUnitsX(ColumnMinScrollingWidth_Value)
+            ColumnWidth = DpiHelper.LogicalToDeviceUnitsX(s_columnMinScrollingWidth_Value)
             Dim ValueColumn As New DataGridViewTextBoxColumn
             With ValueColumn
                 .AutoSizeMode = DataGridViewAutoSizeColumnMode.Fill
                 .CellTemplate = New ResourceStringTextBoxCell()
-                .FillWeight = DefaultColumnWidthPercentage_Value
+                .FillWeight = s_defaultColumnWidthPercentage_Value
                 .MinimumWidth = ColumnWidth
                 .Name = SR.GetString(SR.RSE_ResourceColumn)
                 .Width = ColumnWidth
@@ -268,12 +270,12 @@ Namespace Microsoft.VisualStudio.Editors.ResourceEditor
             Me.Columns.Add(ValueColumn)
 
             ' ==== Comment Column
-            ColumnWidth = DpiHelper.LogicalToDeviceUnitsX(ColumnMinScrollingWidth_Comment)
+            ColumnWidth = DpiHelper.LogicalToDeviceUnitsX(s_columnMinScrollingWidth_Comment)
             Dim CommentColumn As New DataGridViewTextBoxColumn
             With CommentColumn
                 .AutoSizeMode = DataGridViewAutoSizeColumnMode.Fill
                 .CellTemplate = New ResourceStringTextBoxCell()
-                .FillWeight = DefaultColumnWidthPercentage_Comment
+                .FillWeight = s_defaultColumnWidthPercentage_Comment
                 .MinimumWidth = ColumnWidth
                 .Name = SR.GetString(SR.RSE_CommentColumn)
                 .Width = ColumnWidth
@@ -297,9 +299,9 @@ Namespace Microsoft.VisualStudio.Editors.ResourceEditor
         ''' <param name="CategoryToFilterOn">Which category of resources to show.</param>
         ''' <remarks></remarks>
         Public Sub Populate(ByVal ResourceFile As ResourceFile, ByVal CategoryToFilterOn As Category)
-            m_ResourceFile = ResourceFile
+            _resourceFile = ResourceFile
             Rows.Clear()
-            m_VirtualResourceList.Clear()
+            _virtualResourceList.Clear()
 
             'First, create a sorted list of resources that we want to display
             Dim ResourcesToDisplay As New ArrayList
@@ -317,17 +319,17 @@ Namespace Microsoft.VisualStudio.Editors.ResourceEditor
             Next
 
             ' restore sort order
-            m_Sorter = TryCast(CategoryToFilterOn.Sorter, StringTableSorter)
-            If m_Sorter Is Nothing Then
-                m_Sorter = New StringTableSorter(0, False)
-                CategoryToFilterOn.Sorter = m_Sorter
+            _sorter = TryCast(CategoryToFilterOn.Sorter, StringTableSorter)
+            If _sorter Is Nothing Then
+                _sorter = New StringTableSorter(0, False)
+                CategoryToFilterOn.Sorter = _sorter
             End If
 
             ' restore sort UI
             For i As Integer = 0 To Me.Columns.Count - 1
-                If i <> m_Sorter.ColumnIndex Then
+                If i <> _sorter.ColumnIndex Then
                     Me.Columns(i).HeaderCell.SortGlyphDirection = System.Windows.Forms.SortOrder.None
-                ElseIf m_Sorter.InReverseOrder Then
+                ElseIf _sorter.InReverseOrder Then
                     Me.Columns(i).HeaderCell.SortGlyphDirection = System.Windows.Forms.SortOrder.Descending
                 Else
                     Me.Columns(i).HeaderCell.SortGlyphDirection = System.Windows.Forms.SortOrder.Ascending
@@ -336,7 +338,7 @@ Namespace Microsoft.VisualStudio.Editors.ResourceEditor
 
             '... Sort the list alphabetically to start with (when we add new entries, we'll add them to
             '  the list at the end)
-            ResourcesToDisplay.Sort(m_Sorter)
+            ResourcesToDisplay.Sort(_sorter)
 
             'Now add these resources into the table
             AddResourcesHelper(ResourcesToDisplay)
@@ -352,8 +354,8 @@ Namespace Microsoft.VisualStudio.Editors.ResourceEditor
         ''' <remarks></remarks>
         Public Sub Clear()
             Rows.Clear()
-            m_VirtualResourceList.Clear()
-            m_UncommittedResource = Nothing
+            _virtualResourceList.Clear()
+            _uncommittedResource = Nothing
         End Sub
 
 
@@ -367,7 +369,7 @@ Namespace Microsoft.VisualStudio.Editors.ResourceEditor
 
             'The error glyphs don't show up if the row height is below the glyph size.  We don't want that
             '  to happen, so restrict the minimum height.
-            NewRow.MinimumHeight = Math.Max(DpiHelper.LogicalToDeviceUnitsY(RowMinimumHeight), Me.Font.Height + DpiHelper.LogicalToDeviceUnitsY(ROW_BORDER_HEIGHT))
+            NewRow.MinimumHeight = Math.Max(DpiHelper.LogicalToDeviceUnitsY(s_rowMinimumHeight), Me.Font.Height + DpiHelper.LogicalToDeviceUnitsY(s_ROW_BORDER_HEIGHT))
 
             'Build up the new row (with blank values) cell by cell
 
@@ -652,7 +654,7 @@ Namespace Microsoft.VisualStudio.Editors.ResourceEditor
         ''' </summary>
         Protected Overrides Sub OnCurrentCellDirtyStateChanged(ByVal e As EventArgs)
             If IsCurrentCellDirty Then
-                If Not m_CheckOutFailedInTheAction Then
+                If Not _checkOutFailedInTheAction Then
                     ' Make sure the file has been checked out...
                     Try
                         ParentView.RootDesigner.DesignerLoader.ManualCheckOut()
@@ -661,11 +663,11 @@ Namespace Microsoft.VisualStudio.Editors.ResourceEditor
                         'with a CheckoutCanceled exception; the user is already aware he canceled)
                         ParentView.DsMsgBox(ex)
 
-                        m_CheckOutFailedInTheAction = True
+                        _checkOutFailedInTheAction = True
                     End Try
                 End If
 
-                If m_CheckOutFailedInTheAction Then
+                If _checkOutFailedInTheAction Then
                     If Me.EditingControl IsNot Nothing Then
                         Me.EditingControl.Select()
                     End If
@@ -683,10 +685,10 @@ Namespace Microsoft.VisualStudio.Editors.ResourceEditor
         ''' CONSIDER: should we implement this on the DesignerLoader?
         ''' </summary>
         Friend Sub StartOneAction()
-            If m_InEditActions = 0 Then
-                m_CheckOutFailedInTheAction = False
+            If _inEditActions = 0 Then
+                _checkOutFailedInTheAction = False
             End If
-            m_InEditActions = m_InEditActions + 1
+            _inEditActions = _inEditActions + 1
         End Sub
 
         ''' <summary>
@@ -695,8 +697,8 @@ Namespace Microsoft.VisualStudio.Editors.ResourceEditor
         ''' CONSIDER: should we implement this on the DesignerLoader?
         ''' </summary>
         Friend Sub EndOneAction()
-            m_InEditActions = m_InEditActions - 1
-            Debug.Assert(m_InEditActions >= 0, "we should never call EndOneAction more than StartOneAction!")
+            _inEditActions = _inEditActions - 1
+            Debug.Assert(_inEditActions >= 0, "we should never call EndOneAction more than StartOneAction!")
         End Sub
 
 #End Region
@@ -712,7 +714,7 @@ Namespace Microsoft.VisualStudio.Editors.ResourceEditor
         ''' <remarks></remarks>
         Public Sub AddResources(ByVal Resources As IList)
             UnselectAll()
-            Debug.Assert(m_VirtualResourceList.Count = RowCountVirtual)
+            Debug.Assert(_virtualResourceList.Count = RowCountVirtual)
 
             AddResourcesHelper(Resources)
 
@@ -741,7 +743,7 @@ Namespace Microsoft.VisualStudio.Editors.ResourceEditor
                 End If
 
                 Debug.Assert(Resource.ResourceTypeEditor.DisplayInStringTable())
-                m_VirtualResourceList.Add(Resource)
+                _virtualResourceList.Add(Resource)
             Next
 
             '... Then add rows for each virtual entry
@@ -833,12 +835,12 @@ Namespace Microsoft.VisualStudio.Editors.ResourceEditor
         Public Sub RemoveResources(ByVal Resources As IList)
             UnselectAll()
 
-            Debug.Assert(m_RemovingRow Is Nothing)
+            Debug.Assert(_removingRow Is Nothing)
             Try
                 For Each Resource As Resource In Resources
-                    If m_VirtualResourceList.Contains(Resource) Then
+                    If _virtualResourceList.Contains(Resource) Then
                         Dim Row As DataGridViewRow = GetRowFromResource(Resource)
-                        m_RemovingRow = Row
+                        _removingRow = Row
 
                         'Must cancel any edits before removing rows.
                         If Not CancelEdit() Then
@@ -846,11 +848,11 @@ Namespace Microsoft.VisualStudio.Editors.ResourceEditor
                         End If
 
                         Rows.Remove(Row)
-                        m_VirtualResourceList.Remove(Resource)
+                        _virtualResourceList.Remove(Resource)
                     End If
                 Next
             Finally
-                m_RemovingRow = Nothing
+                _removingRow = Nothing
             End Try
 
             MyBase.Invalidate()
@@ -868,7 +870,7 @@ Namespace Microsoft.VisualStudio.Editors.ResourceEditor
         ''' <remarks></remarks>
         Public ReadOnly Property RowCountVirtual() As Integer
             Get
-                Return m_VirtualResourceList.Count
+                Return _virtualResourceList.Count
             End Get
         End Property
 
@@ -898,7 +900,7 @@ Namespace Microsoft.VisualStudio.Editors.ResourceEditor
         ''' <remarks></remarks>
         Public Function GetRowIndexFromResource(ByVal SearchResource As Resource) As Integer
             Debug.Assert(SearchResource IsNot Nothing)
-            Dim IndexFound As Integer = m_VirtualResourceList.IndexOf(SearchResource)
+            Dim IndexFound As Integer = _virtualResourceList.IndexOf(SearchResource)
             Return IndexFound
         End Function
 
@@ -928,11 +930,11 @@ Namespace Microsoft.VisualStudio.Editors.ResourceEditor
         ''' <remarks></remarks>
         Public Function GetResourceFromRowIndex(ByVal RowIndex As Integer, ByVal AllowUncommittedRow As Boolean) As Resource
             If RowIndex >= 0 AndAlso RowIndex < RowCountVirtual Then
-                Return DirectCast(m_VirtualResourceList(RowIndex), Resource)
+                Return DirectCast(_virtualResourceList(RowIndex), Resource)
             Else
                 If AllowUncommittedRow Then
-                    Debug.Assert(m_UncommittedResource IsNot Nothing)
-                    Return m_UncommittedResource
+                    Debug.Assert(_uncommittedResource IsNot Nothing)
+                    Return _uncommittedResource
                 End If
 
                 Debug.Fail("GetResourceFromRowIndex: RowIndex out of bounds (AllowUncommittedRow=False)")
@@ -1082,7 +1084,7 @@ Namespace Microsoft.VisualStudio.Editors.ResourceEditor
         Protected Overrides Sub OnCellValuePushed(ByVal e As DataGridViewCellValueEventArgs)
             MyBase.OnCellValuePushed(e)
 
-            If m_RemovingRow Is Rows(e.RowIndex) Then
+            If _removingRow Is Rows(e.RowIndex) Then
                 'If we are removing cells, we want to ignore changes to those cells, because the validation
                 '  logic can get bypassed, and hey, we're deleting them anyway.
                 Exit Sub
@@ -1174,7 +1176,7 @@ Namespace Microsoft.VisualStudio.Editors.ResourceEditor
             '  show up at all.
             'See CreateNewResourceRow().  Currently you can't create a row for OnNewRowNeeded, there's
             '  supposed to be a template row to be able to use for this later in m3, if needed.
-            e.Row.MinimumHeight = Math.Max(DpiHelper.LogicalToDeviceUnitsY(RowMinimumHeight), Me.Font.Height + DpiHelper.LogicalToDeviceUnitsY(ROW_BORDER_HEIGHT))
+            e.Row.MinimumHeight = Math.Max(DpiHelper.LogicalToDeviceUnitsY(s_rowMinimumHeight), Me.Font.Height + DpiHelper.LogicalToDeviceUnitsY(s_ROW_BORDER_HEIGHT))
 
             If ResourceFile Is Nothing Then
                 Debug.Fail("No resource file")
@@ -1182,8 +1184,8 @@ Namespace Microsoft.VisualStudio.Editors.ResourceEditor
             End If
 
             Dim UniqueName As String = ResourceFile.GetUniqueName(ResourceTypeEditors.String)
-            Dim NewResource As Resource = New Resource(m_ResourceFile, UniqueName, Nothing, "", ParentView)
-            m_UncommittedResource = NewResource
+            Dim NewResource As Resource = New Resource(_resourceFile, UniqueName, Nothing, "", ParentView)
+            _uncommittedResource = NewResource
         End Sub
 
 
@@ -1215,30 +1217,30 @@ Namespace Microsoft.VisualStudio.Editors.ResourceEditor
         ''' </summary>
         ''' <remarks></remarks>
         Private Sub CommitTheUncommittedRow()
-            If m_UncommittedResource IsNot Nothing Then
-                Debug.Assert(Not ResourceFile.Contains(m_UncommittedResource), "The uncommitted resource is already in the resource list!")
-                If ResourceFile.Contains(m_UncommittedResource.Name) Then
+            If _uncommittedResource IsNot Nothing Then
+                Debug.Assert(Not ResourceFile.Contains(_uncommittedResource), "The uncommitted resource is already in the resource list!")
+                If ResourceFile.Contains(_uncommittedResource.Name) Then
                     'The Name that was picked is no longer unique.  Need to patch it up now to a definitely unique value
-                    m_UncommittedResource.Name = ResourceFile.GetUniqueName(ResourceTypeEditors.String)
+                    _uncommittedResource.Name = ResourceFile.GetUniqueName(ResourceTypeEditors.String)
                 End If
 
                 'Add the new resource
-                ResourceFile.AddResource(m_UncommittedResource)
+                ResourceFile.AddResource(_uncommittedResource)
                 Try
-                    m_VirtualResourceList.Add(m_UncommittedResource)
+                    _virtualResourceList.Add(_uncommittedResource)
                 Catch ex As Exception
                     'We must keep these two lists in sync.  If the second failed, revert the first
-                    ResourceFile.RemoveResource(m_UncommittedResource, False)
+                    ResourceFile.RemoveResource(_uncommittedResource, False)
                     Throw
                 End Try
 
                 'This is the last "uncommitted" row that was just committed.  If the user presses
                 '  ESC, this row will be deleted again by the grid, and we'll need to uncommit it
                 '  by removing it from the ResourceFile again.
-                m_LastCommittedResource = m_UncommittedResource
+                _lastCommittedResource = _uncommittedResource
 
                 'No more uncommitted resource.
-                m_UncommittedResource = Nothing
+                _uncommittedResource = Nothing
 
                 'Now that the resource has been committed, we can go ahead and select it
                 '  into the properties window.
@@ -1287,14 +1289,14 @@ Namespace Microsoft.VisualStudio.Editors.ResourceEditor
             End If
             Debug.Assert(Not AllowUserToDeleteRows, "This routine wasn't written to support this - needs to be reworked")
 
-            If e.Row.Index = MyBase.RowCount - 1 AndAlso m_VirtualResourceList.Count = MyBase.RowCount - 1 Then
-                Debug.Assert(m_UncommittedResource Is Nothing, "m_UncommittedResource should have been nothing")
-                Dim ResourceToUncommit As Resource = DirectCast(m_VirtualResourceList(m_VirtualResourceList.Count - 1), Resource)
-                If ResourceToUncommit Is m_LastCommittedResource Then
+            If e.Row.Index = MyBase.RowCount - 1 AndAlso _virtualResourceList.Count = MyBase.RowCount - 1 Then
+                Debug.Assert(_uncommittedResource Is Nothing, "m_UncommittedResource should have been nothing")
+                Dim ResourceToUncommit As Resource = DirectCast(_virtualResourceList(_virtualResourceList.Count - 1), Resource)
+                If ResourceToUncommit Is _lastCommittedResource Then
                     'We've verified that we're deleting the newly-added row.  Remove it now.
-                    m_VirtualResourceList.RemoveAt(m_VirtualResourceList.Count - 1)
+                    _virtualResourceList.RemoveAt(_virtualResourceList.Count - 1)
                     ResourceFile.RemoveResource(ResourceToUncommit, False)
-                    m_UncommittedResource = ResourceToUncommit
+                    _uncommittedResource = ResourceToUncommit
 
                     ParentView.PropertyGridUpdate()
                 Else
@@ -1514,10 +1516,10 @@ Namespace Microsoft.VisualStudio.Editors.ResourceEditor
         Protected Overrides Sub OnColumnHeaderMouseClick(ByVal e As DataGridViewCellMouseEventArgs)
             MyBase.OnColumnHeaderMouseClick(e)
 
-            If e.ColumnIndex <> m_Sorter.ColumnIndex Then
+            If e.ColumnIndex <> _sorter.ColumnIndex Then
                 SortOnColumn(e.ColumnIndex, False)
             Else
-                SortOnColumn(e.ColumnIndex, Not m_Sorter.InReverseOrder)
+                SortOnColumn(e.ColumnIndex, Not _sorter.InReverseOrder)
             End If
         End Sub
 
@@ -1570,27 +1572,27 @@ Namespace Microsoft.VisualStudio.Editors.ResourceEditor
                 ClearSelection()
 
 
-                If columnIndex <> m_Sorter.ColumnIndex Then
-                    Me.Columns(m_Sorter.ColumnIndex).HeaderCell.SortGlyphDirection = System.Windows.Forms.SortOrder.None
-                    m_Sorter.ColumnIndex = columnIndex
+                If columnIndex <> _sorter.ColumnIndex Then
+                    Me.Columns(_sorter.ColumnIndex).HeaderCell.SortGlyphDirection = System.Windows.Forms.SortOrder.None
+                    _sorter.ColumnIndex = columnIndex
                 End If
 
-                m_Sorter.InReverseOrder = inReverseOrder
+                _sorter.InReverseOrder = inReverseOrder
 
-                If m_Sorter.InReverseOrder Then
+                If _sorter.InReverseOrder Then
                     Me.Columns(columnIndex).HeaderCell.SortGlyphDirection = System.Windows.Forms.SortOrder.Descending
                 Else
                     Me.Columns(columnIndex).HeaderCell.SortGlyphDirection = System.Windows.Forms.SortOrder.Ascending
                 End If
 
                 ' Sort the virtual list...ReferenceList.Sort()
-                m_VirtualResourceList.Sort(m_Sorter)
+                _virtualResourceList.Sort(_sorter)
 
                 Me.Refresh()
 
                 ' Restore current position...
                 If currentResource IsNot Nothing AndAlso currentCellColumnIndex >= 0 Then
-                    Dim rowIndex As Integer = m_VirtualResourceList.IndexOf(currentResource)
+                    Dim rowIndex As Integer = _virtualResourceList.IndexOf(currentResource)
                     If rowIndex >= 0 Then
                         CurrentCell = Rows(rowIndex).Cells(currentCellColumnIndex)
                     End If
@@ -1612,12 +1614,12 @@ Namespace Microsoft.VisualStudio.Editors.ResourceEditor
             Implements IComparer
 
             ' which column is used to sort the list
-            Private m_columnIndex As Integer
-            Private m_reverseOrder As Boolean
+            Private _columnIndex As Integer
+            Private _reverseOrder As Boolean
 
             Public Sub New(ByVal columnIndex As Integer, ByVal reverseOrder As Boolean)
-                m_columnIndex = columnIndex
-                m_reverseOrder = reverseOrder
+                _columnIndex = columnIndex
+                _reverseOrder = reverseOrder
             End Sub
 
             ''' <Summary>
@@ -1625,10 +1627,10 @@ Namespace Microsoft.VisualStudio.Editors.ResourceEditor
             ''' </Summary>
             Friend Property ColumnIndex() As Integer
                 Get
-                    Return m_columnIndex
+                    Return _columnIndex
                 End Get
                 Set(ByVal value As Integer)
-                    m_columnIndex = value
+                    _columnIndex = value
                 End Set
             End Property
 
@@ -1637,10 +1639,10 @@ Namespace Microsoft.VisualStudio.Editors.ResourceEditor
             ''' </Summary>
             Friend Property InReverseOrder() As Boolean
                 Get
-                    Return m_reverseOrder
+                    Return _reverseOrder
                 End Get
                 Set(ByVal value As Boolean)
-                    m_reverseOrder = value
+                    _reverseOrder = value
                 End Set
             End Property
 
@@ -1648,11 +1650,11 @@ Namespace Microsoft.VisualStudio.Editors.ResourceEditor
             '''  Compare two list items
             ''' </Summary>
             Public Function Compare(ByVal x As Object, ByVal y As Object) As Integer Implements System.Collections.IComparer.Compare
-                Dim ret As Integer = String.Compare(GetColumnValue(x, m_columnIndex), GetColumnValue(y, m_columnIndex), StringComparison.CurrentCultureIgnoreCase)
-                If ret = 0 AndAlso m_columnIndex <> COLUMN_NAME Then
+                Dim ret As Integer = String.Compare(GetColumnValue(x, _columnIndex), GetColumnValue(y, _columnIndex), StringComparison.CurrentCultureIgnoreCase)
+                If ret = 0 AndAlso _columnIndex <> COLUMN_NAME Then
                     ret = String.Compare(GetColumnValue(x, COLUMN_NAME), GetColumnValue(y, COLUMN_NAME), StringComparison.CurrentCultureIgnoreCase)
                 End If
-                If m_reverseOrder Then
+                If _reverseOrder Then
                     ret = -ret
                 End If
                 Return ret

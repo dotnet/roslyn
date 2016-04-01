@@ -1,3 +1,5 @@
+' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+
 Option Explicit On
 Option Strict On
 Option Compare Binary
@@ -12,7 +14,7 @@ Namespace Microsoft.VisualStudio.Editors.ResourceEditor
 
         'All common file extensions handled by this resource type editor.
         Public Const EXT_WAV As String = ".wav"
-        Private Extensions() As String = {EXT_WAV}
+        Private _extensions() As String = {EXT_WAV}
 
         'The resource value type that is used for audio files
         Friend Shared ReadOnly AudioFileValueType As System.Type = GetType(MemoryStream)
@@ -21,7 +23,7 @@ Namespace Microsoft.VisualStudio.Editors.ResourceEditor
         Friend Shared ReadOnly BinaryFileValueType As System.Type = GetType(Byte())
 
         'The shared Thumbnail Image
-        Private Shared m_ThumbnailForAudio As Image
+        Private Shared s_thumbnailForAudio As Image
 
 
         ''' <summary>
@@ -49,10 +51,10 @@ Namespace Microsoft.VisualStudio.Editors.ResourceEditor
         ''' </remarks>
         Public Overrides Function GetImageForThumbnail(ByVal Resource As IResource, background As Color) As Image
             ValidateResourceValue(Resource, GetType(Byte()), GetType(MemoryStream))
-            If m_ThumbnailForAudio Is Nothing Then
-                m_ThumbnailForAudio = Common.Utils.GetImageFromImageService(KnownMonikers.Sound, 48, 48, background)
+            If s_thumbnailForAudio Is Nothing Then
+                s_thumbnailForAudio = Common.Utils.GetImageFromImageService(KnownMonikers.Sound, 48, 48, background)
             End If
-            Return m_ThumbnailForAudio
+            Return s_thumbnailForAudio
         End Function
 
 
@@ -66,7 +68,7 @@ Namespace Microsoft.VisualStudio.Editors.ResourceEditor
         ''' </returns>
         ''' <remarks>Extension should be checked case-insensitively.</remarks>
         Public Overrides Function GetExtensionPriority(ByVal Extension As String) As Integer
-            If MatchAgainstListOfExtensions(Extension, Extensions) Then
+            If MatchAgainstListOfExtensions(Extension, _extensions) Then
                 Return ExtensionPriorities.Normal
             End If
         End Function
@@ -226,7 +228,7 @@ Namespace Microsoft.VisualStudio.Editors.ResourceEditor
         ''' <returns> a file extension list
         ''' </returns>
         Public Overrides Function GetSafeFileExtensionList() As String()
-            Return Extensions
+            Return _extensions
         End Function
 
         ''' <summary>
@@ -242,7 +244,7 @@ Namespace Microsoft.VisualStudio.Editors.ResourceEditor
         '''   "Metafiles (*.wmf, *.emf)|*.wmf;*.emf"
         ''' </remarks>
         Public Overrides Function GetOpenFileDialogFilter(ByVal ResourceContentFile As IResourceContentFile) As String
-            Return CreateSingleDialogFilter(SR.GetString(SR.RSE_Filter_Audio), Extensions)
+            Return CreateSingleDialogFilter(SR.GetString(SR.RSE_Filter_Audio), _extensions)
         End Function
 
 

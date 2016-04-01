@@ -1,3 +1,5 @@
+' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+
 Imports System.CodeDom
 Imports System.CodeDom.Compiler
 Imports System.ComponentModel
@@ -63,25 +65,25 @@ Namespace Microsoft.VisualStudio.Editors.DesignerFramework
     Friend MustInherit Class AccessModifierCombobox
         Implements IDisposable
 
-        Private m_isDisposed As Boolean = False
-        Private m_rootDesigner As BaseRootDesigner
-        Private m_projectItem As EnvDTE.ProjectItem
-        Private m_serviceProvider As IServiceProvider
-        Private m_namespaceToOverrideIfCustomToolIsEmpty As String
-        Private m_codeGeneratorEntries As New List(Of CodeGenerator)
-        Private m_recognizedCustomToolValues As New List(Of String)
+        Private _isDisposed As Boolean = False
+        Private _rootDesigner As BaseRootDesigner
+        Private _projectItem As EnvDTE.ProjectItem
+        Private _serviceProvider As IServiceProvider
+        Private _namespaceToOverrideIfCustomToolIsEmpty As String
+        Private _codeGeneratorEntries As New List(Of CodeGenerator)
+        Private _recognizedCustomToolValues As New List(Of String)
 
-        Private m_designerCommandBarComboBoxCommand As DesignerCommandBarComboBox
-        Private m_commandIdCombobox As CommandID
+        Private _designerCommandBarComboBoxCommand As DesignerCommandBarComboBox
+        Private _commandIdCombobox As CommandID
 
         ' Cached flag to indicate if the custom tools associated with this combobox are
         ' registered for the current project type.
         ' The states are True (registered), False (not registerd) or Missing (we haven't 
         ' checked the project system yet)
         ' This field should only be accessed through the CustomToolsRegistered property.
-        Private m_customToolsRegistered As Nullable(Of Boolean)
+        Private _customToolsRegistered As Nullable(Of Boolean)
 
-        Enum Access
+        Public Enum Access
             [Public]
             [Friend]
         End Enum
@@ -89,19 +91,19 @@ Namespace Microsoft.VisualStudio.Editors.DesignerFramework
 #Region "Nested class CodeGenerator"
 
         Private MustInherit Class CodeGenerator
-            Private m_customToolValue As String
+            Private _customToolValue As String
 
             Public Sub New(ByVal customToolValue As String)
                 If customToolValue Is Nothing Then
                     Throw New ArgumentNullException("customToolValue")
                 End If
-                m_customToolValue = customToolValue
+                _customToolValue = customToolValue
             End Sub
 
             Public MustOverride ReadOnly Property DisplayName() As String
             Public ReadOnly Property CustomToolValue() As String
                 Get
-                    Return m_customToolValue
+                    Return _customToolValue
                 End Get
             End Property
         End Class
@@ -109,7 +111,7 @@ Namespace Microsoft.VisualStudio.Editors.DesignerFramework
         Private Class CodeGeneratorWithName
             Inherits CodeGenerator
 
-            Private m_displayName As String
+            Private _displayName As String
 
             Public Sub New(ByVal displayName As String, ByVal customToolValue As String)
                 MyBase.New(customToolValue)
@@ -117,12 +119,12 @@ Namespace Microsoft.VisualStudio.Editors.DesignerFramework
                 If displayName Is Nothing Then
                     Throw New ArgumentNullException(displayName)
                 End If
-                m_displayName = displayName
+                _displayName = displayName
             End Sub
 
             Public Overrides ReadOnly Property DisplayName() As String
                 Get
-                    Return m_displayName
+                    Return _displayName
                 End Get
             End Property
         End Class
@@ -130,8 +132,8 @@ Namespace Microsoft.VisualStudio.Editors.DesignerFramework
         Private Class CodeGeneratorWithDelayedName
             Inherits CodeGenerator
 
-            Private m_accessibility As AccessModifierConverter.Access
-            Private m_serviceProvider As IServiceProvider
+            Private _accessibility As AccessModifierConverter.Access
+            Private _serviceProvider As IServiceProvider
 
             Public Sub New(ByVal accessibility As AccessModifierConverter.Access, ByVal serviceProvider As IServiceProvider, ByVal customToolValue As String)
                 MyBase.New(customToolValue)
@@ -140,19 +142,19 @@ Namespace Microsoft.VisualStudio.Editors.DesignerFramework
                     Throw New ArgumentNullException("serviceProvider")
                 End If
 
-                m_accessibility = accessibility
-                m_serviceProvider = serviceProvider
+                _accessibility = accessibility
+                _serviceProvider = serviceProvider
             End Sub
 
             Public Overrides ReadOnly Property DisplayName() As String
                 Get
                     Dim codeDomProvider As CodeDomProvider = Nothing
-                    Dim vsmdCodeDomProvider As IVSMDCodeDomProvider = TryCast(m_serviceProvider.GetService(GetType(IVSMDCodeDomProvider)), IVSMDCodeDomProvider)
+                    Dim vsmdCodeDomProvider As IVSMDCodeDomProvider = TryCast(_serviceProvider.GetService(GetType(IVSMDCodeDomProvider)), IVSMDCodeDomProvider)
                     If vsmdCodeDomProvider IsNot Nothing Then
                         codeDomProvider = TryCast(vsmdCodeDomProvider.CodeDomProvider(), CodeDomProvider)
                     End If
 
-                    Return New AccessModifierConverter(codeDomProvider).ConvertToString(m_accessibility)
+                    Return New AccessModifierConverter(codeDomProvider).ConvertToString(_accessibility)
                 End Get
             End Property
         End Class
@@ -321,10 +323,10 @@ Namespace Microsoft.VisualStudio.Editors.DesignerFramework
                 Throw New ArgumentNullException("serviceProvider")
             End If
 
-            m_rootDesigner = rootDesigner
-            m_projectItem = projectItem
-            m_serviceProvider = serviceProvider
-            m_namespaceToOverrideIfCustomToolIsEmpty = namespaceToOverrideIfCustomToolIsEmpty
+            _rootDesigner = rootDesigner
+            _projectItem = projectItem
+            _serviceProvider = serviceProvider
+            _namespaceToOverrideIfCustomToolIsEmpty = namespaceToOverrideIfCustomToolIsEmpty
         End Sub
 
         ''' <summary>
@@ -336,8 +338,8 @@ Namespace Microsoft.VisualStudio.Editors.DesignerFramework
         Public Sub AddCodeGeneratorEntry(ByVal accessibility As AccessModifierConverter.Access, ByVal customToolValue As String)
             Debug.Assert(System.Enum.IsDefined(GetType(AccessModifierConverter.Access), accessibility))
 
-            Dim entry As New CodeGeneratorWithDelayedName(accessibility, m_serviceProvider, customToolValue)
-            m_codeGeneratorEntries.Add(entry)
+            Dim entry As New CodeGeneratorWithDelayedName(accessibility, _serviceProvider, customToolValue)
+            _codeGeneratorEntries.Add(entry)
             AddRecognizedCustomToolValue(entry.CustomToolValue)
         End Sub
 
@@ -350,7 +352,7 @@ Namespace Microsoft.VisualStudio.Editors.DesignerFramework
         ''' <remarks></remarks>
         Public Sub AddCodeGeneratorEntry(ByVal displayName As String, ByVal customToolValue As String)
             Dim entry As New CodeGeneratorWithName(displayName, customToolValue)
-            m_codeGeneratorEntries.Add(entry)
+            _codeGeneratorEntries.Add(entry)
             AddRecognizedCustomToolValue(entry.CustomToolValue)
         End Sub
 
@@ -364,17 +366,17 @@ Namespace Microsoft.VisualStudio.Editors.DesignerFramework
         ''' <param name="customToolValue"></param>
         ''' <remarks></remarks>
         Public Sub AddRecognizedCustomToolValue(ByVal customToolValue As String)
-            If Not m_recognizedCustomToolValues.Contains(customToolValue) Then
-                m_recognizedCustomToolValues.Add(customToolValue)
+            If Not _recognizedCustomToolValues.Contains(customToolValue) Then
+                _recognizedCustomToolValues.Add(customToolValue)
                 ' We also make sure to reset the cached value for if the custom tool(s)
                 ' is/are registered...
-                m_customToolsRegistered = New Nullable(Of Boolean)
+                _customToolsRegistered = New Nullable(Of Boolean)
             End If
         End Sub
 
         Protected ReadOnly Property RootDesigner() As BaseRootDesigner
             Get
-                Return m_rootDesigner
+                Return _rootDesigner
             End Get
         End Property
 
@@ -382,10 +384,10 @@ Namespace Microsoft.VisualStudio.Editors.DesignerFramework
             ' For a dynamic combobox, we need to add two commands, one to handle the combobox, and one to fill
             ' it with items...
             Dim MenuCommands As New List(Of MenuCommand)
-            m_designerCommandBarComboBoxCommand = New DesignerCommandBarComboBox(m_rootDesigner, commandIdCombobox, AddressOf GetCurrentValue, AddressOf SetCurrentValue, AddressOf EnabledHandler)
-            m_commandIdCombobox = commandIdCombobox
-            MenuCommands.Add(m_designerCommandBarComboBoxCommand)
-            MenuCommands.Add(New DesignerCommandBarComboBoxFiller(m_rootDesigner, commandIdGetDropdownValues, AddressOf GetDropdownValues))
+            _designerCommandBarComboBoxCommand = New DesignerCommandBarComboBox(_rootDesigner, commandIdCombobox, AddressOf GetCurrentValue, AddressOf SetCurrentValue, AddressOf EnabledHandler)
+            _commandIdCombobox = commandIdCombobox
+            MenuCommands.Add(_designerCommandBarComboBoxCommand)
+            MenuCommands.Add(New DesignerCommandBarComboBoxFiller(_rootDesigner, commandIdGetDropdownValues, AddressOf GetDropdownValues))
 
             RegisterMenuCommandForwarder()
 
@@ -402,7 +404,7 @@ Namespace Microsoft.VisualStudio.Editors.DesignerFramework
         Private Function TryGetCustomToolPropertyValue(ByRef value As String) As Boolean
             value = Nothing
 
-            Dim ToolProperty As EnvDTE.Property = DTEUtils.GetProjectItemProperty(m_projectItem, DTEUtils.PROJECTPROPERTY_CUSTOMTOOL)
+            Dim ToolProperty As EnvDTE.Property = DTEUtils.GetProjectItemProperty(_projectItem, DTEUtils.PROJECTPROPERTY_CUSTOMTOOL)
             If ToolProperty IsNot Nothing Then
                 Dim CurrentCustomToolValue As String = TryCast(ToolProperty.Value, String)
                 value = CurrentCustomToolValue
@@ -434,7 +436,7 @@ Namespace Microsoft.VisualStudio.Editors.DesignerFramework
         Private Function GetCurrentMatchingGenerator() As CodeGenerator
             Dim customToolValue As String = Nothing
             If TryGetCustomToolPropertyValue(customToolValue) Then
-                For Each entry As CodeGenerator In m_codeGeneratorEntries
+                For Each entry As CodeGenerator In _codeGeneratorEntries
                     If entry.CustomToolValue.Equals(customToolValue, StringComparison.OrdinalIgnoreCase) Then
                         Return entry
                     End If
@@ -451,7 +453,7 @@ Namespace Microsoft.VisualStudio.Editors.DesignerFramework
         Private Sub SetCurrentValue(ByVal value As String)
             Switches.TracePDAccessModifierCombobox(TraceLevel.Verbose, "SetCurrentValue: " & Me.GetType.Name & ": " & value)
 
-            For Each entry As CodeGenerator In m_codeGeneratorEntries
+            For Each entry As CodeGenerator In _codeGeneratorEntries
                 If entry.DisplayName.Equals(value, StringComparison.CurrentCultureIgnoreCase) Then
                     TrySetCustomToolValue(entry.CustomToolValue)
                     Return
@@ -469,8 +471,8 @@ Namespace Microsoft.VisualStudio.Editors.DesignerFramework
         ''' <remarks></remarks>
         Private Sub TrySetCustomToolValue(ByVal value As String)
             Try
-                Dim ToolProperty As EnvDTE.Property = DTEUtils.GetProjectItemProperty(m_projectItem, DTEUtils.PROJECTPROPERTY_CUSTOMTOOL)
-                Dim ToolNamespaceProperty As EnvDTE.Property = DTEUtils.GetProjectItemProperty(m_projectItem, DTEUtils.PROJECTPROPERTY_CUSTOMTOOLNAMESPACE)
+                Dim ToolProperty As EnvDTE.Property = DTEUtils.GetProjectItemProperty(_projectItem, DTEUtils.PROJECTPROPERTY_CUSTOMTOOL)
+                Dim ToolNamespaceProperty As EnvDTE.Property = DTEUtils.GetProjectItemProperty(_projectItem, DTEUtils.PROJECTPROPERTY_CUSTOMTOOLNAMESPACE)
 
                 If ToolProperty IsNot Nothing Then
                     Dim previousToolValue As String = TryCast(ToolProperty.Value, String)
@@ -482,21 +484,21 @@ Namespace Microsoft.VisualStudio.Editors.DesignerFramework
                     ToolProperty.Value = value
 
                     If ToolNamespaceProperty IsNot Nothing _
-                    AndAlso m_namespaceToOverrideIfCustomToolIsEmpty IsNot Nothing _
+                    AndAlso _namespaceToOverrideIfCustomToolIsEmpty IsNot Nothing _
                     AndAlso previousToolValue = "" Then
                         ' This is currently used for the VB scenario - if the custom tool has been yet been set, and
                         '   the user turns on code generation, we want to also set the custom tool namespace to the
                         '   default for VB (My.Resources).
-                        ToolNamespaceProperty.Value = m_namespaceToOverrideIfCustomToolIsEmpty
+                        ToolNamespaceProperty.Value = _namespaceToOverrideIfCustomToolIsEmpty
                     End If
 
-                    m_rootDesigner.RefreshMenuStatus()
+                    _rootDesigner.RefreshMenuStatus()
                 Else
                     Debug.Fail("Couldn't find CustomTool property.  Dropdown shouldn't have been enabled.")
                 End If
             Catch ex As Exception
                 DesignerFramework.DesignerMessageBox.Show( _
-                    m_rootDesigner, _
+                    _rootDesigner, _
                     SR.GetString(SR.RSE_Task_CantChangeCustomToolOrNamespace), _
                     ex, _
                     Nothing) 'Note: when we integrate the changes to DesignerMessageBox.Show, the caption property can be removed)
@@ -509,7 +511,7 @@ Namespace Microsoft.VisualStudio.Editors.DesignerFramework
         Friend Function GetDropdownValues() As String()
             Dim Values As New List(Of String)
 
-            For Each entry As CodeGenerator In m_codeGeneratorEntries
+            For Each entry As CodeGenerator In _codeGeneratorEntries
                 Values.Add(entry.DisplayName)
             Next
 
@@ -556,7 +558,7 @@ Namespace Microsoft.VisualStudio.Editors.DesignerFramework
             '  it and won't easily be able to get back the original value.  This is an advanced 
             '  scenario, and the advanced user can change this value directly in the property sheet
             '  if really needed.
-            If customToolValue <> "" AndAlso Not m_recognizedCustomToolValues.Contains(customToolValue) Then
+            If customToolValue <> "" AndAlso Not _recognizedCustomToolValues.Contains(customToolValue) Then
                 Return False
             End If
 
@@ -571,20 +573,20 @@ Namespace Microsoft.VisualStudio.Editors.DesignerFramework
         ''' <remarks></remarks>
         Protected Overridable ReadOnly Property CustomToolRegistered() As Boolean
             Get
-                If Not m_customToolsRegistered.HasValue Then
+                If Not _customToolsRegistered.HasValue Then
                     ' If one or more of the custom tools in the drop-down are not registered for the current
                     '  project type, we disable the combobox...
-                    For Each generator As CodeGenerator In m_codeGeneratorEntries
+                    For Each generator As CodeGenerator In _codeGeneratorEntries
                         If Not ShellUtil.IsCustomToolRegistered(Hierarchy, generator.CustomToolValue) Then
-                            m_customToolsRegistered = False
-                            Return m_customToolsRegistered.Value
+                            _customToolsRegistered = False
+                            Return _customToolsRegistered.Value
                         End If
                     Next
 
-                    m_customToolsRegistered = True
+                    _customToolsRegistered = True
                 End If
 
-                Return m_customToolsRegistered.Value
+                Return _customToolsRegistered.Value
             End Get
         End Property
 
@@ -593,7 +595,7 @@ Namespace Microsoft.VisualStudio.Editors.DesignerFramework
         ''' </summary>
         Protected Overridable ReadOnly Property Hierarchy() As IVsHierarchy
             Get
-                Return Common.ShellUtil.VsHierarchyFromDTEProject(m_serviceprovider, m_projectItem.ContainingProject)
+                Return Common.ShellUtil.VsHierarchyFromDTEProject(_serviceProvider, _projectItem.ContainingProject)
             End Get
         End Property
 
@@ -601,13 +603,13 @@ Namespace Microsoft.VisualStudio.Editors.DesignerFramework
 #Region "IDisposable"
 
         Protected Overridable Sub Dispose(ByVal disposing As Boolean)
-            If Not m_isDisposed Then
+            If Not _isDisposed Then
                 If disposing Then
                     UnregisterMenuCommandForwarder()
                 End If
             End If
 
-            m_isDisposed = True
+            _isDisposed = True
         End Sub
 
         Public Sub Dispose() Implements IDisposable.Dispose
@@ -630,11 +632,11 @@ Namespace Microsoft.VisualStudio.Editors.DesignerFramework
         End Sub
 
         Protected Overridable Sub RegisterMenuCommandForwarder()
-            DesignerMenuCommandForwarder.RegisterMenuCommandForwarder(m_commandIdCombobox, m_designerCommandBarComboBoxCommand)
+            DesignerMenuCommandForwarder.RegisterMenuCommandForwarder(_commandIdCombobox, _designerCommandBarComboBoxCommand)
         End Sub
 
         Protected Overridable Sub UnregisterMenuCommandForwarder()
-            DesignerMenuCommandForwarder.UnregisterMenuCommandForwarder(m_commandIdCombobox, m_designerCommandBarComboBoxCommand)
+            DesignerMenuCommandForwarder.UnregisterMenuCommandForwarder(_commandIdCombobox, _designerCommandBarComboBoxCommand)
         End Sub
 
 #End Region

@@ -1,3 +1,5 @@
+' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+
 Imports System.ComponentModel
 Imports Microsoft.VisualStudio.Editors.PropertyPages
 
@@ -31,43 +33,43 @@ Namespace Microsoft.VisualStudio.Editors.SettingsDesigner
         ''' The name of this setting instance
         ''' </summary>
         ''' <remarks></remarks>
-        Private m_name As String
+        Private _name As String
 
         ''' <summary>
         ''' The type name (as persisted in the .settings file) of this setting
         ''' </summary>
         ''' <remarks></remarks>
-        Private m_settingTypeName As String = GetType(String).FullName
+        Private _settingTypeName As String = GetType(String).FullName
 
         ''' <summary>
         ''' The setting scope (application or user) for this setting
         ''' </summary>
         ''' <remarks></remarks>
-        Private m_settingScope As SettingScope = SettingScope.User
+        Private _settingScope As SettingScope = SettingScope.User
 
         ''' <summary>
         ''' Is this setting a roaming setting?
         ''' </summary>
         ''' <remarks></remarks>
-        Private m_roaming As Boolean = False
+        Private _roaming As Boolean = False
 
         ''' <summary>
         ''' The serialized representation of this setting
         ''' </summary>
         ''' <remarks></remarks>
-        Private m_serializedValue As String = ""
+        Private _serializedValue As String = ""
 
         ''' <summary>
         ''' The setting provider if any
         ''' </summary>
         ''' <remarks></remarks>
-        Private m_provider As String
+        Private _provider As String
 
         ''' <summary>
         ''' The description for this setting
         ''' </summary>
         ''' <remarks></remarks>
-        Private m_description As String
+        Private _description As String
 
         ''' <summary>
         ''' Flag indicating if we want to add the serialized value as a
@@ -76,17 +78,17 @@ Namespace Microsoft.VisualStudio.Editors.SettingsDesigner
         ''' through the property grid...
         ''' </summary>
         ''' <remarks></remarks>
-        Private m_generateDefaultValueInCode As Boolean = True
+        Private _generateDefaultValueInCode As Boolean = True
 
 #Region "Cached property descriptors with this instance as the owner"
-        Private m_generateDefaultValueInCodePropertyDescriptor As New GenerateDefaultValueInCodePropertyDescriptor(Me)
-        Private m_namePropertyDescriptor As New NamePropertyDescriptor(Me)
-        Private m_descriptionPropertyDescriptor As New DescriptionPropertyDescriptor(Me)
-        Private m_providerPropertyDescriptor As New ProviderPropertyDescriptor(Me)
-        Private m_roamingPropertyDescriptor As New RoamingPropertyDescriptor(Me)
-        Private m_scopePropertyDescriptor As New ScopePropertyDescriptor(Me)
-        Private m_serializedValuePropertyDescriptor As New SerializedValuePropertyDescriptor(Me)
-        Private m_settingTypeNamePropertyDescriptor As New SettingTypeNamePropertyDescriptor(Me)
+        Private _generateDefaultValueInCodePropertyDescriptor As New GenerateDefaultValueInCodePropertyDescriptor(Me)
+        Private _namePropertyDescriptor As New NamePropertyDescriptor(Me)
+        Private _descriptionPropertyDescriptor As New DescriptionPropertyDescriptor(Me)
+        Private _providerPropertyDescriptor As New ProviderPropertyDescriptor(Me)
+        Private _roamingPropertyDescriptor As New RoamingPropertyDescriptor(Me)
+        Private _scopePropertyDescriptor As New ScopePropertyDescriptor(Me)
+        Private _serializedValuePropertyDescriptor As New SerializedValuePropertyDescriptor(Me)
+        Private _settingTypeNamePropertyDescriptor As New SettingTypeNamePropertyDescriptor(Me)
 #End Region
 
         Public Sub New()
@@ -115,7 +117,7 @@ Namespace Microsoft.VisualStudio.Editors.SettingsDesigner
         End Function
 
         Private Function GetDefaultProperty() As System.ComponentModel.PropertyDescriptor Implements System.ComponentModel.ICustomTypeDescriptor.GetDefaultProperty
-            Return m_namePropertyDescriptor
+            Return _namePropertyDescriptor
         End Function
 
         Private Function GetEditor(ByVal editorBaseType As System.Type) As Object Implements System.ComponentModel.ICustomTypeDescriptor.GetEditor
@@ -136,14 +138,14 @@ Namespace Microsoft.VisualStudio.Editors.SettingsDesigner
 
         Private Function GetProperties(ByVal attributes() As System.Attribute) As System.ComponentModel.PropertyDescriptorCollection Implements System.ComponentModel.ICustomTypeDescriptor.GetProperties
             Return New PropertyDescriptorCollection(New PropertyDescriptor() { _
-                                                            m_namePropertyDescriptor, _
-                                                            m_roamingPropertyDescriptor, _
-                                                            m_descriptionPropertyDescriptor, _
-                                                            m_providerPropertyDescriptor, _
-                                                            m_scopePropertyDescriptor, _
-                                                            m_generateDefaultValueInCodePropertyDescriptor, _
-                                                            m_settingTypeNamePropertyDescriptor, _
-                                                            m_serializedValuePropertyDescriptor})
+                                                            _namePropertyDescriptor, _
+                                                            _roamingPropertyDescriptor, _
+                                                            _descriptionPropertyDescriptor, _
+                                                            _providerPropertyDescriptor, _
+                                                            _scopePropertyDescriptor, _
+                                                            _generateDefaultValueInCodePropertyDescriptor, _
+                                                            _settingTypeNamePropertyDescriptor, _
+                                                            _serializedValuePropertyDescriptor})
         End Function
 
         Private Function GetPropertyOwner(ByVal pd As System.ComponentModel.PropertyDescriptor) As Object Implements System.ComponentModel.ICustomTypeDescriptor.GetPropertyOwner
@@ -173,16 +175,16 @@ Namespace Microsoft.VisualStudio.Editors.SettingsDesigner
         Private MustInherit Class DesignTimeSettingInstanceCustomPropertyDescriptorBase
             Inherits PropertyDescriptor
 
-            Private m_owner As DesignTimeSettingInstance
+            Private _owner As DesignTimeSettingInstance
 
             Public Sub New(ByVal owner As DesignTimeSettingInstance, ByVal name As String)
                 MyBase.New(name, New System.Attribute() {})
-                m_owner = owner
+                _owner = owner
             End Sub
 
             Public ReadOnly Property Owner() As DesignTimeSettingInstance
                 Get
-                    Return m_owner
+                    Return _owner
                 End Get
             End Property
 
@@ -369,7 +371,7 @@ Namespace Microsoft.VisualStudio.Editors.SettingsDesigner
                 MyBase.New(owner, "Name")
             End Sub
 
-            Overrides Function CanResetValue(ByVal component As Object) As Boolean
+            Public Overrides Function CanResetValue(ByVal component As Object) As Boolean
                 Return False
             End Function
 
@@ -679,7 +681,7 @@ Namespace Microsoft.VisualStudio.Editors.SettingsDesigner
                 MyBase.New(GetType(DesignTimeSettingInstance.SettingScope))
             End Sub
 
-            Overrides Function CanConvertFrom(ByVal context As System.ComponentModel.ITypeDescriptorContext, ByVal type As System.Type) As Boolean
+            Public Overrides Function CanConvertFrom(ByVal context As System.ComponentModel.ITypeDescriptorContext, ByVal type As System.Type) As Boolean
                 If GetType(String).Equals(type) Then
                     Return True
                 Else
@@ -687,7 +689,7 @@ Namespace Microsoft.VisualStudio.Editors.SettingsDesigner
                 End If
             End Function
 
-            Overrides Function CanConvertTo(ByVal context As System.ComponentModel.ITypeDescriptorContext, ByVal type As System.Type) As Boolean
+            Public Overrides Function CanConvertTo(ByVal context As System.ComponentModel.ITypeDescriptorContext, ByVal type As System.Type) As Boolean
                 If GetType(String).Equals(type) Then
                     Return True
                 Else
@@ -777,13 +779,13 @@ Namespace Microsoft.VisualStudio.Editors.SettingsDesigner
         ''' <remarks></remarks>
         Public ReadOnly Property NameProperty() As PropertyDescriptor
             Get
-                Return m_namePropertyDescriptor
+                Return _namePropertyDescriptor
             End Get
         End Property
 
         Public ReadOnly Property Name() As String
             Get
-                Return m_name
+                Return _name
             End Get
         End Property
 
@@ -808,7 +810,7 @@ Namespace Microsoft.VisualStudio.Editors.SettingsDesigner
                     Throw New System.ArgumentException(SR.GetString(SR.SD_ERR_InvalidIdentifier_1Arg, value))
                 End If
             End If
-            m_name = value
+            _name = value
         End Sub
 #End Region
 
@@ -822,18 +824,18 @@ Namespace Microsoft.VisualStudio.Editors.SettingsDesigner
         ''' <remarks></remarks>
         Public ReadOnly Property ScopeProperty() As PropertyDescriptor
             Get
-                Return m_scopePropertyDescriptor
+                Return _scopePropertyDescriptor
             End Get
         End Property
 
         Public ReadOnly Property Scope() As SettingScope
             Get
-                Return m_settingScope
+                Return _settingScope
             End Get
         End Property
 
         Public Sub SetScope(ByVal value As SettingScope)
-            m_settingScope = value
+            _settingScope = value
         End Sub
 #End Region
 
@@ -847,18 +849,18 @@ Namespace Microsoft.VisualStudio.Editors.SettingsDesigner
         ''' <remarks></remarks>
         Public ReadOnly Property TypeNameProperty() As PropertyDescriptor
             Get
-                Return m_settingTypeNamePropertyDescriptor
+                Return _settingTypeNamePropertyDescriptor
             End Get
         End Property
 
         Public ReadOnly Property SettingTypeName() As String
             Get
-                Return m_settingTypeName
+                Return _settingTypeName
             End Get
         End Property
 
         Public Sub SetSettingTypeName(ByVal value As String)
-            m_settingTypeName = value
+            _settingTypeName = value
         End Sub
 #End Region
 
@@ -872,18 +874,18 @@ Namespace Microsoft.VisualStudio.Editors.SettingsDesigner
         ''' <remarks></remarks>
         Public ReadOnly Property SerializedValueProperty() As PropertyDescriptor
             Get
-                Return Me.m_serializedValuePropertyDescriptor
+                Return Me._serializedValuePropertyDescriptor
             End Get
         End Property
 
         Public ReadOnly Property SerializedValue() As String
             Get
-                Return m_serializedValue
+                Return _serializedValue
             End Get
         End Property
 
         Public Sub SetSerializedValue(ByVal value As String)
-            m_serializedValue = value
+            _serializedValue = value
         End Sub
 #End Region
 
@@ -898,12 +900,12 @@ Namespace Microsoft.VisualStudio.Editors.SettingsDesigner
         ''' <remarks></remarks>
         Public ReadOnly Property Roaming() As Boolean
             Get
-                Return m_roaming
+                Return _roaming
             End Get
         End Property
 
         Public Sub SetRoaming(ByVal value As Boolean)
-            m_roaming = value
+            _roaming = value
         End Sub
 #End Region
 
@@ -917,12 +919,12 @@ Namespace Microsoft.VisualStudio.Editors.SettingsDesigner
         ''' <remarks></remarks>
         Public ReadOnly Property Description() As String
             Get
-                Return m_description
+                Return _description
             End Get
         End Property
 
         Public Sub SetDescription(ByVal value As String)
-            m_description = value
+            _description = value
         End Sub
 #End Region
 
@@ -936,12 +938,12 @@ Namespace Microsoft.VisualStudio.Editors.SettingsDesigner
         ''' <remarks></remarks>
         Public ReadOnly Property Provider() As String
             Get
-                Return m_provider
+                Return _provider
             End Get
         End Property
 
         Public Sub SetProvider(ByVal value As String)
-            m_provider = value
+            _provider = value
 
             ' Setting the provider may actually change the scope display name...
             TypeDescriptor.Refresh(Me)
@@ -959,12 +961,12 @@ Namespace Microsoft.VisualStudio.Editors.SettingsDesigner
         ''' <remarks></remarks>
         Public ReadOnly Property GenerateDefaultValueInCode() As Boolean
             Get
-                Return m_generateDefaultValueInCode
+                Return _generateDefaultValueInCode
             End Get
         End Property
 
         Public Sub SetGenerateDefaultValueInCode(ByVal value As Boolean)
-            m_generateDefaultValueInCode = value
+            _generateDefaultValueInCode = value
         End Sub
 #End Region
 
@@ -1108,38 +1110,38 @@ Namespace Microsoft.VisualStudio.Editors.SettingsDesigner
 
 #Region "ISerializable implementation"
 
-        Private Const SERIALIZATION_DESCRIPTION As String = "Description"
-        Private Const SERIALIZATION_GENERATE_DEFAULT_VALUE_IN_CODE As String = "GenerateDefaultValueInCode"
-        Private Const SERIALIZATION_IS_ROAMING As String = "Roaming"
-        Private Const SERIALIZATION_NAME As String = "Name"
-        Private Const SERIALIZATION_PROVIDER As String = "Provider"
-        Private Const SERIALIZATION_TYPE As String = "SerializedType"
-        Private Const SERIALIZATION_VALUE As String = "SerializedValue"
-        Private Const SERIALIZATION_SCOPE As String = "Scope"
+        Private Const s_SERIALIZATION_DESCRIPTION As String = "Description"
+        Private Const s_SERIALIZATION_GENERATE_DEFAULT_VALUE_IN_CODE As String = "GenerateDefaultValueInCode"
+        Private Const s_SERIALIZATION_IS_ROAMING As String = "Roaming"
+        Private Const s_SERIALIZATION_NAME As String = "Name"
+        Private Const s_SERIALIZATION_PROVIDER As String = "Provider"
+        Private Const s_SERIALIZATION_TYPE As String = "SerializedType"
+        Private Const s_SERIALIZATION_VALUE As String = "SerializedValue"
+        Private Const s_SERIALIZATION_SCOPE As String = "Scope"
 
         'See .NET Framework Developer's Guide, "Custom Serialization" for more information
         Protected Sub New(ByVal Info As System.Runtime.Serialization.SerializationInfo, ByVal Context As System.Runtime.Serialization.StreamingContext)
-            m_description = Info.GetString(SERIALIZATION_DESCRIPTION)
-            m_generateDefaultValueInCode = Info.GetBoolean(SERIALIZATION_GENERATE_DEFAULT_VALUE_IN_CODE)
-            m_name = Info.GetString(SERIALIZATION_NAME)
-            m_roaming = Info.GetBoolean(SERIALIZATION_IS_ROAMING)
-            m_provider = Info.GetString(SERIALIZATION_PROVIDER)
-            m_settingTypeName = Info.GetString(SERIALIZATION_TYPE)
-            m_serializedValue = Info.GetString(SERIALIZATION_VALUE)
-            m_settingScope = CType(Info.GetInt32(SERIALIZATION_SCOPE), SettingScope)
+            _description = Info.GetString(s_SERIALIZATION_DESCRIPTION)
+            _generateDefaultValueInCode = Info.GetBoolean(s_SERIALIZATION_GENERATE_DEFAULT_VALUE_IN_CODE)
+            _name = Info.GetString(s_SERIALIZATION_NAME)
+            _roaming = Info.GetBoolean(s_SERIALIZATION_IS_ROAMING)
+            _provider = Info.GetString(s_SERIALIZATION_PROVIDER)
+            _settingTypeName = Info.GetString(s_SERIALIZATION_TYPE)
+            _serializedValue = Info.GetString(s_SERIALIZATION_VALUE)
+            _settingScope = CType(Info.GetInt32(s_SERIALIZATION_SCOPE), SettingScope)
         End Sub
 
 
         <System.Security.Permissions.SecurityPermission(System.Security.Permissions.SecurityAction.Demand, SerializationFormatter:=True)> _
         Private Sub GetObjectData(ByVal Info As System.Runtime.Serialization.SerializationInfo, ByVal Context As System.Runtime.Serialization.StreamingContext) Implements System.Runtime.Serialization.ISerializable.GetObjectData
-            Info.AddValue(SERIALIZATION_DESCRIPTION, m_description)
-            Info.AddValue(SERIALIZATION_GENERATE_DEFAULT_VALUE_IN_CODE, m_generateDefaultValueInCode)
-            Info.AddValue(SERIALIZATION_NAME, m_name)
-            Info.AddValue(SERIALIZATION_IS_ROAMING, m_roaming)
-            Info.AddValue(SERIALIZATION_PROVIDER, m_provider)
-            Info.AddValue(SERIALIZATION_TYPE, m_settingTypeName)
-            Info.AddValue(SERIALIZATION_VALUE, m_serializedValue)
-            Info.AddValue(SERIALIZATION_SCOPE, CType(m_settingScope, Int32))
+            Info.AddValue(s_SERIALIZATION_DESCRIPTION, _description)
+            Info.AddValue(s_SERIALIZATION_GENERATE_DEFAULT_VALUE_IN_CODE, _generateDefaultValueInCode)
+            Info.AddValue(s_SERIALIZATION_NAME, _name)
+            Info.AddValue(s_SERIALIZATION_IS_ROAMING, _roaming)
+            Info.AddValue(s_SERIALIZATION_PROVIDER, _provider)
+            Info.AddValue(s_SERIALIZATION_TYPE, _settingTypeName)
+            Info.AddValue(s_SERIALIZATION_VALUE, _serializedValue)
+            Info.AddValue(s_SERIALIZATION_SCOPE, CType(_settingScope, Int32))
         End Sub
 
 #End Region

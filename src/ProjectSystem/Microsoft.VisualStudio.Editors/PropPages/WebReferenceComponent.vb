@@ -1,3 +1,5 @@
+' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+
 Imports System.ComponentModel
 Imports System.ComponentModel.Design
 
@@ -10,12 +12,12 @@ Namespace Microsoft.VisualStudio.Editors.PropertyPages
         Inherits Component
         Implements ICustomTypeDescriptor, IReferenceComponent, IUpdatableReferenceComponent
 
-        Private m_page As ReferencePropPage
-        Private m_projectItem As EnvDTE.ProjectItem
+        Private _page As ReferencePropPage
+        Private _projectItem As EnvDTE.ProjectItem
 
-        Sub New(ByVal page As ReferencePropPage, ByVal projectItem As EnvDTE.ProjectItem)
-            m_page = page
-            m_projectItem = projectItem
+        Public Sub New(ByVal page As ReferencePropPage, ByVal projectItem As EnvDTE.ProjectItem)
+            _page = page
+            _projectItem = projectItem
         End Sub
 
         <VBDescription(My.Resources.Designer.ConstantResourceIDs.PPG_WebReferenceNameDescription)> _
@@ -24,15 +26,15 @@ Namespace Microsoft.VisualStudio.Editors.PropertyPages
         Public Property Name() As String
             Get
                 Try
-                    Return m_projectItem.Name
+                    Return _projectItem.Name
                 Catch ex As Exception
                     Debug.Fail(ex.Message)
                     Return String.Empty
                 End Try
             End Get
             Set(ByVal value As String)
-                m_projectItem.Name = value
-                m_page.OnWebReferencePropertyChanged(Me)
+                _projectItem.Name = value
+                _page.OnWebReferencePropertyChanged(Me)
             End Set
         End Property
 
@@ -43,7 +45,7 @@ Namespace Microsoft.VisualStudio.Editors.PropertyPages
 
         Friend ReadOnly Property WebReference() As EnvDTE.ProjectItem
             Get
-                Return m_projectItem
+                Return _projectItem
             End Get
         End Property
 
@@ -64,7 +66,7 @@ Namespace Microsoft.VisualStudio.Editors.PropertyPages
                 Dim prop As EnvDTE.[Property] = GetItemProperty("UrlBehavior")
                 If prop IsNot Nothing Then
                     prop.Value = CInt(value)
-                    m_page.OnWebReferencePropertyChanged(Me)
+                    _page.OnWebReferencePropertyChanged(Me)
                 Else
                     Debug.Fail("Why we can not find UrlBehavior")
                 End If
@@ -98,7 +100,7 @@ Namespace Microsoft.VisualStudio.Editors.PropertyPages
                 Dim prop As EnvDTE.[Property] = GetItemProperty("WebReference")
                 If prop IsNot Nothing Then
                     prop.Value = value
-                    m_page.OnWebReferencePropertyChanged(Me)
+                    _page.OnWebReferencePropertyChanged(Me)
                 Else
                     Debug.Fail("Why we can not find WebReference")
                 End If
@@ -113,7 +115,7 @@ Namespace Microsoft.VisualStudio.Editors.PropertyPages
         ' Access the property through EnvDTE.ProjectItem.Properties
         Private Function GetItemProperty(ByVal propertyName As String) As EnvDTE.[Property]
             Try
-                Dim properties As EnvDTE.Properties = m_projectItem.Properties
+                Dim properties As EnvDTE.Properties = _projectItem.Properties
                 If properties IsNot Nothing Then
                     Return properties.Item(propertyName)
                 End If
@@ -125,7 +127,7 @@ Namespace Microsoft.VisualStudio.Editors.PropertyPages
 
         ' Remove the webReference...
         Private Sub Remove() Implements IReferenceComponent.Remove
-            m_projectItem.Remove()
+            _projectItem.Remove()
         End Sub
 
         Private Function GetName() As String Implements IReferenceComponent.GetName
@@ -212,15 +214,15 @@ Namespace Microsoft.VisualStudio.Editors.PropertyPages
     Friend Class UrlBehaviorTypeConverter
         Inherits TypeConverter
 
-        Private Shared m_displayValues As String()
+        Private Shared s_displayValues As String()
 
         ' a help collection to hold localized strings
         Private Shared ReadOnly Property DisplayValues() As String()
             Get
-                If m_displayValues Is Nothing Then
-                    m_displayValues = New String() {SR.GetString(SR.PPG_UrlBehavior_Static), SR.GetString(SR.PPG_UrlBehavior_Dynamic)}
+                If s_displayValues Is Nothing Then
+                    s_displayValues = New String() {SR.GetString(SR.PPG_UrlBehavior_Static), SR.GetString(SR.PPG_UrlBehavior_Dynamic)}
                 End If
-                Return m_displayValues
+                Return s_displayValues
             End Get
         End Property
 

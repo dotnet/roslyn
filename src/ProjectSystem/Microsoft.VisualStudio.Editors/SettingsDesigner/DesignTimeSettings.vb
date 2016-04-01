@@ -1,3 +1,5 @@
+' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+
 Imports System.ComponentModel
 
 Namespace Microsoft.VisualStudio.Editors.SettingsDesigner
@@ -17,19 +19,19 @@ Namespace Microsoft.VisualStudio.Editors.SettingsDesigner
         Implements System.Collections.Generic.IEnumerable(Of DesignTimeSettingInstance)
 
         ' The namespace used the last time this instance was serialized
-        Private m_persistedNamespace As String
+        Private _persistedNamespace As String
 
         ''' <summary>
         ''' We may want to special-case handling of the generated class name to avoid
         ''' name clashes with updated projects...
         ''' </summary>
         ''' <remarks></remarks>
-        Private m_useSpecialClassName As Boolean
+        Private _useSpecialClassName As Boolean
 
-        Private m_settings As New System.Collections.Generic.List(Of DesignTimeSettingInstance)(16)
+        Private _settings As New System.Collections.Generic.List(Of DesignTimeSettingInstance)(16)
 
         Private Function IEnumerableOfDesignTimeSettingInstance_GetEnumerator() As System.Collections.Generic.IEnumerator(Of DesignTimeSettingInstance) Implements System.Collections.Generic.IEnumerable(Of DesignTimeSettingInstance).GetEnumerator
-            Return m_settings.GetEnumerator()
+            Return _settings.GetEnumerator()
         End Function
 
         Private Function IEnumerable_GetEnumerator() As System.Collections.IEnumerator Implements System.Collections.IEnumerable.GetEnumerator
@@ -39,7 +41,7 @@ Namespace Microsoft.VisualStudio.Editors.SettingsDesigner
         <Browsable(False)> _
         Public ReadOnly Property Count() As Integer
             Get
-                Return m_settings.Count
+                Return _settings.Count
             End Get
         End Property
 
@@ -53,10 +55,10 @@ Namespace Microsoft.VisualStudio.Editors.SettingsDesigner
         ''' <remarks></remarks>
         Friend Property UseSpecialClassName() As Boolean
             Get
-                Return m_useSpecialClassName
+                Return _useSpecialClassName
             End Get
             Set(ByVal value As Boolean)
-                m_useSpecialClassName = value
+                _useSpecialClassName = value
             End Set
         End Property
 
@@ -67,10 +69,10 @@ Namespace Microsoft.VisualStudio.Editors.SettingsDesigner
         ''' <remarks>May return NULL if no namespace was persisted!!!</remarks>
         Friend Property PersistedNamespace() As String
             Get
-                Return m_persistedNamespace
+                Return _persistedNamespace
             End Get
             Set(ByVal value As String)
-                m_persistedNamespace = value
+                _persistedNamespace = value
             End Set
         End Property
 
@@ -185,7 +187,7 @@ Namespace Microsoft.VisualStudio.Editors.SettingsDesigner
             End If
 
             Dim ExistingNames As New System.Collections.Hashtable
-            For Each Instance As DesignTimeSettingInstance In m_settings
+            For Each Instance As DesignTimeSettingInstance In _settings
                 ExistingNames.Item(Instance.Name) = Nothing
             Next
 
@@ -194,7 +196,7 @@ Namespace Microsoft.VisualStudio.Editors.SettingsDesigner
                 Return SuggestedName
             End If
 
-            For i As Integer = 1 To Me.m_settings.Count + 1
+            For i As Integer = 1 To Me._settings.Count + 1
                 SuggestedName = MakeValidIdentifier(Base & i.ToString())
                 If Not ExistingNames.ContainsKey(SuggestedName) Then
                     Return SuggestedName
@@ -268,7 +270,7 @@ Namespace Microsoft.VisualStudio.Editors.SettingsDesigner
                 Throw New ArgumentException()
             End If
 
-            m_settings.Add(Instance)
+            _settings.Add(Instance)
             If Site IsNot Nothing AndAlso Site.Container IsNot Nothing Then
                 ' Let's make sure we have this instance in "our" container (if any)
                 If Instance.Site Is Nothing OrElse Not (Site.Container Is Instance.Site.Container) Then
@@ -289,7 +291,7 @@ Namespace Microsoft.VisualStudio.Editors.SettingsDesigner
         ''' Useful to prevent adding the same setting multiple times
         ''' </remarks>
         Friend Function Contains(ByVal instance As DesignTimeSettingInstance) As Boolean
-            Return m_settings.Contains(instance)
+            Return _settings.Contains(instance)
         End Function
 
         ''' <summary>
@@ -305,7 +307,7 @@ Namespace Microsoft.VisualStudio.Editors.SettingsDesigner
             ' which in turn will make us try and remove the item again. By removing the item from
             ' our internal collection and guarding against doing this multiple times, we avoid the
             ' nasty stack overflow...
-            If m_settings.Remove(instance) AndAlso _
+            If _settings.Remove(instance) AndAlso _
                 instance.Site IsNot Nothing AndAlso _
                 instance.Site.Container IsNot Nothing _
             Then

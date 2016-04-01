@@ -1,4 +1,6 @@
-﻿Option Explicit On
+﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+
+Option Explicit On
 Option Strict On
 Option Compare Binary
 Imports Common = Microsoft.VisualStudio.Editors.AppDesCommon
@@ -19,12 +21,12 @@ Namespace Microsoft.VisualStudio.Editors.PropertyPages
         Implements AppDesInterop.ILangInactiveCfgPropertyNotifySink
         Implements IDisposable
 
-        Private m_CookieActiveCfg As NativeMethods.ConnectionPointCookie 'The connection cookie for IPropertyNotifySink
-        Private m_CookieInactiveCfg As NativeMethods.ConnectionPointCookie 'The connection cookie for ILangInactiveCfgPropertyNotifySink
-        Private m_PropPage As PropPageUserControlBase 'The property page to notify when a property changes
+        Private _cookieActiveCfg As NativeMethods.ConnectionPointCookie 'The connection cookie for IPropertyNotifySink
+        Private _cookieInactiveCfg As NativeMethods.ConnectionPointCookie 'The connection cookie for ILangInactiveCfgPropertyNotifySink
+        Private _propPage As PropPageUserControlBase 'The property page to notify when a property changes
 
 #If DEBUG Then
-        Private m_DebugSourceName As String 'For debugging purposes: name of the properties object that is being listened to
+        Private _debugSourceName As String 'For debugging purposes: name of the properties object that is being listened to
 #End If
 
         ''' <summary>
@@ -35,9 +37,9 @@ Namespace Microsoft.VisualStudio.Editors.PropertyPages
         ''' <param name="DebugSourceName">For debugging purposes: name of the properties object that is being listened to.</param>
         ''' <remarks></remarks>
         Private Sub New(ByVal PropPage As PropPageUserControlBase, ByVal EventSource As Object, ByVal DebugSourceName As String)
-            m_PropPage = PropPage
+            _propPage = PropPage
 #If DEBUG Then
-            m_DebugSourceName = DebugSourceName
+            _debugSourceName = DebugSourceName
 #End If
         End Sub
 
@@ -95,14 +97,14 @@ Namespace Microsoft.VisualStudio.Editors.PropertyPages
                     Dim Listener As New PropertyListener(PropPage, EventSource, DebugSourceName)
 
                     CookieActiveCfg = New NativeMethods.ConnectionPointCookie(EventSource, Listener, GetType(OLE.Interop.IPropertyNotifySink))
-                    Listener.m_CookieActiveCfg = CookieActiveCfg
+                    Listener._cookieActiveCfg = CookieActiveCfg
                     CookieActiveCfg = Nothing
                     Common.Switches.TracePDProperties(TraceLevel.Info, "... Succeeded for the active configuration (or for common properties)")
 
                     If ListenToInactiveConfigs Then
                         Try
                             CookieInactiveCfg = New NativeMethods.ConnectionPointCookie(EventSource, Listener, GetType(AppDesInterop.ILangInactiveCfgPropertyNotifySink))
-                            Listener.m_CookieInactiveCfg = CookieInactiveCfg
+                            Listener._cookieInactiveCfg = CookieInactiveCfg
                             CookieInactiveCfg = Nothing
                             Common.Switches.TracePDProperties(TraceLevel.Info, "... Succeeded for inactive configurations")
                         Catch ex As Exception
@@ -142,17 +144,17 @@ Namespace Microsoft.VisualStudio.Editors.PropertyPages
         ''' <remarks></remarks>
         Private Overloads Sub Dispose(ByVal Disposing As Boolean)
             If Disposing Then
-                If m_CookieActiveCfg IsNot Nothing Then
-                    m_CookieActiveCfg.Disconnect()
-                    m_CookieActiveCfg = Nothing
+                If _cookieActiveCfg IsNot Nothing Then
+                    _cookieActiveCfg.Disconnect()
+                    _cookieActiveCfg = Nothing
                 End If
-                If m_CookieInactiveCfg IsNot Nothing Then
-                    m_CookieInactiveCfg.Disconnect()
-                    m_CookieInactiveCfg = Nothing
+                If _cookieInactiveCfg IsNot Nothing Then
+                    _cookieInactiveCfg.Disconnect()
+                    _cookieInactiveCfg = Nothing
                 End If
             Else
-                Debug.Assert(m_CookieActiveCfg Is Nothing, "PropertyListener didn't get disposed")
-                Debug.Assert(m_CookieInactiveCfg Is Nothing, "PropertyListener didn't get disposed")
+                Debug.Assert(_cookieActiveCfg Is Nothing, "PropertyListener didn't get disposed")
+                Debug.Assert(_cookieInactiveCfg Is Nothing, "PropertyListener didn't get disposed")
             End If
         End Sub
 
@@ -214,10 +216,10 @@ Namespace Microsoft.VisualStudio.Editors.PropertyPages
         Private Sub OnChanged(ByVal DISPID As Integer) Implements OLE.Interop.IPropertyNotifySink.OnChanged
             Dim DebugSourceName As String = Nothing
 #If DEBUG Then
-            DebugSourceName = m_DebugSourceName
+            DebugSourceName = _debugSourceName
 #End If
-            Debug.Assert(m_PropPage IsNot Nothing)
-            m_PropPage.OnExternalPropertyChanged(DISPID, DebugSourceName)
+            Debug.Assert(_propPage IsNot Nothing)
+            _propPage.OnExternalPropertyChanged(DISPID, DebugSourceName)
         End Sub
 
 
@@ -244,9 +246,9 @@ Namespace Microsoft.VisualStudio.Editors.PropertyPages
         Private Sub OnRequestEdit(ByVal DISPID As Integer) Implements OLE.Interop.IPropertyNotifySink.OnRequestEdit
             Dim DebugSourceName As String = Nothing
 #If DEBUG Then
-            DebugSourceName = m_DebugSourceName
+            DebugSourceName = _debugSourceName
 #End If
-            m_PropPage.OnExternalPropertyRequestEdit(DISPID, DebugSourceName)
+            _propPage.OnExternalPropertyRequestEdit(DISPID, DebugSourceName)
         End Sub
 
 
@@ -260,9 +262,9 @@ Namespace Microsoft.VisualStudio.Editors.PropertyPages
         Public Function OnChanged(ByVal dispid As Integer, ByVal wszConfigName As String) As Integer Implements AppDesInterop.ILangInactiveCfgPropertyNotifySink.OnChanged
             Dim DebugSourceName As String = Nothing
 #If DEBUG Then
-            DebugSourceName = "[Inactive Config '" & wszConfigName & "'] : " & m_DebugSourceName
+            DebugSourceName = "[Inactive Config '" & wszConfigName & "'] : " & _debugSourceName
 #End If
-            m_PropPage.OnExternalPropertyChanged(dispid, DebugSourceName)
+            _propPage.OnExternalPropertyChanged(dispid, DebugSourceName)
         End Function
     End Class
 

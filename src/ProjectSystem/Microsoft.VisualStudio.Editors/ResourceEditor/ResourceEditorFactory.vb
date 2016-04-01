@@ -1,4 +1,6 @@
-﻿Option Explicit On
+﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+
+Option Explicit On
 Option Strict On
 Option Compare Binary
 Imports System.ComponentModel.Design
@@ -26,8 +28,8 @@ Namespace Microsoft.VisualStudio.Editors.ResourceEditor
         Friend Const ResourceEditor_EditorGuid As String = "ff4d6aca-9352-4a5f-821e-f4d6ebdcab11"
 
 
-        Private vsTrackProjectDocumentsEventsCookie As UInt32
-        Private vsTrackProjectDocuments As IVsTrackProjectDocuments2
+        Private _vsTrackProjectDocumentsEventsCookie As UInt32
+        Private _vsTrackProjectDocuments As IVsTrackProjectDocuments2
 
         ''' <summary>
         ''' Creates and registers a new editor factory.  This is called
@@ -70,11 +72,11 @@ Namespace Microsoft.VisualStudio.Editors.ResourceEditor
 
 
         Protected Overrides Sub OnSited()
-            If vsTrackProjectDocuments Is Nothing AndAlso Not Me.ServiceProvider Is Nothing Then
-                vsTrackProjectDocuments = TryCast(Me.ServiceProvider.GetService(GetType(SVsTrackProjectDocuments)), IVsTrackProjectDocuments2)
-                If Not (vsTrackProjectDocuments Is Nothing) Then
-                    ErrorHandler.ThrowOnFailure(vsTrackProjectDocuments.AdviseTrackProjectDocumentsEvents(Me, vsTrackProjectDocumentsEventsCookie))
-                    Debug.Assert(vsTrackProjectDocumentsEventsCookie <> 0)
+            If _vsTrackProjectDocuments Is Nothing AndAlso Not Me.ServiceProvider Is Nothing Then
+                _vsTrackProjectDocuments = TryCast(Me.ServiceProvider.GetService(GetType(SVsTrackProjectDocuments)), IVsTrackProjectDocuments2)
+                If Not (_vsTrackProjectDocuments Is Nothing) Then
+                    ErrorHandler.ThrowOnFailure(_vsTrackProjectDocuments.AdviseTrackProjectDocumentsEvents(Me, _vsTrackProjectDocumentsEventsCookie))
+                    Debug.Assert(_vsTrackProjectDocumentsEventsCookie <> 0)
                 End If
             End If
         End Sub 'OnSited
@@ -82,11 +84,11 @@ Namespace Microsoft.VisualStudio.Editors.ResourceEditor
 
         Protected Overrides Sub Dispose(ByVal disposing As Boolean)
             If disposing Then
-                If vsTrackProjectDocumentsEventsCookie <> 0 Then
-                    If Not (vsTrackProjectDocuments Is Nothing) Then
-                        ErrorHandler.ThrowOnFailure(vsTrackProjectDocuments.UnadviseTrackProjectDocumentsEvents(vsTrackProjectDocumentsEventsCookie))
-                        vsTrackProjectDocumentsEventsCookie = 0
-                        vsTrackProjectDocuments = Nothing
+                If _vsTrackProjectDocumentsEventsCookie <> 0 Then
+                    If Not (_vsTrackProjectDocuments Is Nothing) Then
+                        ErrorHandler.ThrowOnFailure(_vsTrackProjectDocuments.UnadviseTrackProjectDocumentsEvents(_vsTrackProjectDocumentsEventsCookie))
+                        _vsTrackProjectDocumentsEventsCookie = 0
+                        _vsTrackProjectDocuments = Nothing
                     End If
                 End If
             End If

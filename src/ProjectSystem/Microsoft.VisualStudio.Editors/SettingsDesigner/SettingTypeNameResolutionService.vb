@@ -1,3 +1,5 @@
+' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+
 Namespace Microsoft.VisualStudio.Editors.SettingsDesigner
     ''' <summary>
     ''' Map between display names (the name that appear in the UI), the type name persisted in the .settings file
@@ -23,13 +25,13 @@ Namespace Microsoft.VisualStudio.Editors.SettingsDesigner
 #Region "Private fields"
 
         ' Map from language specific names to the corresponding .NET FX type name
-        Private m_LanguageSpecificToFxTypeName As System.Collections.Generic.Dictionary(Of String, String)
+        Private _languageSpecificToFxTypeName As System.Collections.Generic.Dictionary(Of String, String)
 
         ' Map from .NET FX type names to language specific type names
-        Private m_FxTypeNameToLanguageSpecific As System.Collections.Generic.Dictionary(Of String, String)
+        Private _fxTypeNameToLanguageSpecific As System.Collections.Generic.Dictionary(Of String, String)
 
         ' Is the current language case-sensitive?
-        Private m_caseSensitive As Boolean
+        Private _caseSensitive As Boolean
 
 #End Region
 
@@ -46,7 +48,7 @@ Namespace Microsoft.VisualStudio.Editors.SettingsDesigner
                     language = language.UNKNOWN
             End Select
 
-            m_caseSensitive = caseSensitive
+            _caseSensitive = caseSensitive
 
             Dim comparer As System.Collections.Generic.IEqualityComparer(Of String)
             If caseSensitive Then
@@ -55,8 +57,8 @@ Namespace Microsoft.VisualStudio.Editors.SettingsDesigner
                 comparer = System.StringComparer.OrdinalIgnoreCase
             End If
 
-            m_LanguageSpecificToFxTypeName = New System.Collections.Generic.Dictionary(Of String, String)(16, comparer)
-            m_FxTypeNameToLanguageSpecific = New System.Collections.Generic.Dictionary(Of String, String)(16, comparer)
+            _languageSpecificToFxTypeName = New System.Collections.Generic.Dictionary(Of String, String)(16, comparer)
+            _fxTypeNameToLanguageSpecific = New System.Collections.Generic.Dictionary(Of String, String)(16, comparer)
             If language <> language.UNKNOWN Then
                 ' add language specific type names for C#, VB, J# respectively
                 AddEntry((GetType(Boolean).FullName), New String() {"bool", "Boolean", "boolean"}(language))
@@ -85,7 +87,7 @@ Namespace Microsoft.VisualStudio.Editors.SettingsDesigner
         ''' <remarks></remarks>
         Public ReadOnly Property IsCaseSensitive() As Boolean
             Get
-                Return m_caseSensitive
+                Return _caseSensitive
             End Get
         End Property
         ''' <summary>
@@ -101,7 +103,7 @@ Namespace Microsoft.VisualStudio.Editors.SettingsDesigner
                 Return DisplayTypeNameConnectionString
             ElseIf String.Equals(typeName, SettingsSerializer.CultureInvariantVirtualTypeNameWebReference, StringComparison.Ordinal) Then
                 Return DisplayTypeNameWebReference
-            ElseIf m_FxTypeNameToLanguageSpecific.TryGetValue(typeName, displayName) Then
+            ElseIf _fxTypeNameToLanguageSpecific.TryGetValue(typeName, displayName) Then
                 Return displayName
             End If
             Return typeName
@@ -137,7 +139,7 @@ Namespace Microsoft.VisualStudio.Editors.SettingsDesigner
                 Return SettingsSerializer.CultureInvariantVirtualTypeNameConnectionString
             ElseIf String.Equals(typeName, DisplayTypeNameWebReference, StringComparison.Ordinal) Then
                 Return SettingsSerializer.CultureInvariantVirtualTypeNameWebReference
-            ElseIf m_LanguageSpecificToFxTypeName.TryGetValue(typeName, persistedTypeName) Then
+            ElseIf _languageSpecificToFxTypeName.TryGetValue(typeName, persistedTypeName) Then
                 Return persistedTypeName
             Else
                 Return typeName
@@ -164,8 +166,8 @@ Namespace Microsoft.VisualStudio.Editors.SettingsDesigner
 
         Private Sub AddEntry(ByVal FxName As String, ByVal languageSpecificName As String)
             If languageSpecificName <> "" Then
-                m_LanguageSpecificToFxTypeName(languageSpecificName) = FxName
-                m_FxTypeNameToLanguageSpecific(FxName) = languageSpecificName
+                _languageSpecificToFxTypeName(languageSpecificName) = FxName
+                _fxTypeNameToLanguageSpecific(FxName) = languageSpecificName
             End If
         End Sub
 #End Region

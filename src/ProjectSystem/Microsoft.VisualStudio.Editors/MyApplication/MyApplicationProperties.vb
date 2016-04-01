@@ -1,3 +1,5 @@
+' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+
 Imports Microsoft.VisualStudio.Editors.Common
 Imports Microsoft.VisualStudio.Editors.Common.Utils
 Imports Microsoft.VisualStudio.Shell.Interop
@@ -132,11 +134,11 @@ Namespace Microsoft.VisualStudio.Editors.MyApplication
     Public NotInheritable Class MyApplicationManager
         Implements IVsMyAppManager
 
-        Private m_MyProps As MyApplicationProperties
+        Private _myProps As MyApplicationProperties
 
         'WeakReference list of MyApplicationProperties objects, one for each
         '  IVsHierarchy that we've been initialized against
-        Private Shared m_MyPropertyInstances As New Hashtable
+        Private Shared s_myPropertyInstances As New Hashtable
 
 
         ''' <summary>
@@ -150,24 +152,24 @@ Namespace Microsoft.VisualStudio.Editors.MyApplication
                 Throw New ArgumentNullException("ProjectHierarchy")
             End If
 
-            SyncLock m_MyPropertyInstances
+            SyncLock s_myPropertyInstances
                 Dim weakref As WeakReference
 
-                If m_MyPropertyInstances.Contains(ProjectHierarchy) Then
-                    weakref = TryCast(m_MyPropertyInstances.Item(ProjectHierarchy), WeakReference)
+                If s_myPropertyInstances.Contains(ProjectHierarchy) Then
+                    weakref = TryCast(s_myPropertyInstances.Item(ProjectHierarchy), WeakReference)
                     If weakref.IsAlive Then
-                        m_MyProps = TryCast(weakref.Target, MyApplicationProperties)
+                        _myProps = TryCast(weakref.Target, MyApplicationProperties)
                         Return VSConstants.S_OK
                     End If
                     'Reference is no longer alive, remove it from the list
-                    m_MyPropertyInstances.Remove(ProjectHierarchy)
+                    s_myPropertyInstances.Remove(ProjectHierarchy)
                 End If
 
                 'Create a new instance
-                m_MyProps = New MyApplicationProperties()
-                m_MyProps.Init(ProjectHierarchy)
+                _myProps = New MyApplicationProperties()
+                _myProps.Init(ProjectHierarchy)
                 'Cache for later use
-                m_MyPropertyInstances.Add(ProjectHierarchy, New WeakReference(m_MyProps))
+                s_myPropertyInstances.Add(ProjectHierarchy, New WeakReference(_myProps))
             End SyncLock
 
             Return NativeMethods.S_OK
@@ -181,7 +183,7 @@ Namespace Microsoft.VisualStudio.Editors.MyApplication
         ''' <returns></returns>
         ''' <remarks></remarks>
         Private Function GetProperties(ByRef MyAppProps As Object) As Integer Implements IVsMyAppManager.GetProperties
-            MyAppProps = m_MyProps
+            MyAppProps = _myProps
             Return NativeMethods.S_OK
         End Function
 
@@ -191,9 +193,9 @@ Namespace Microsoft.VisualStudio.Editors.MyApplication
         ''' <returns></returns>
         ''' <remarks></remarks>
         Private Function Close() As Integer Implements IVsMyAppManager.Close
-            If m_MyProps IsNot Nothing Then
-                m_MyProps.Close()
-                m_MyProps = Nothing
+            If _myProps IsNot Nothing Then
+                _myProps.Close()
+                _myProps = Nothing
             End If
             Return NativeMethods.S_OK
         End Function
@@ -205,8 +207,8 @@ Namespace Microsoft.VisualStudio.Editors.MyApplication
         ''' <returns></returns>
         ''' <remarks></remarks>
         Private Function Save() As Integer Implements IVsMyAppManager.Save
-            If m_MyProps IsNot Nothing Then
-                m_MyProps.Save()
+            If _myProps IsNot Nothing Then
+                _myProps.Save()
             End If
             Return NativeMethods.S_OK
         End Function
@@ -258,41 +260,41 @@ Namespace Microsoft.VisualStudio.Editors.MyApplication
         Friend Const Const_MyType_Custom As String = "Custom"
 
         'Constants for property change notifications
-        Private Const PROPNAME_CustomSubMain As String = "CustomSubMain"
-        Private Const PROPNAME_MainForm As String = "MainForm"
-        Private Const PROPNAME_SingleInstance As String = "SingleInstance"
-        Private Const PROPNAME_ShutdownMode As String = "ShutdownMode"
-        Private Const PROPNAME_EnableVisualStyles As String = "EnableVisualStyles"
-        Private Const PROPNAME_SaveMySettingsOnExit As String = "SaveMySettingsOnExit"
-        Private Const PROPNAME_AuthenticationMode As String = "AuthenticationMode"
-        Private Const PROPNAME_SplashScreen As String = "SplashScreen"
+        Private Const s_PROPNAME_CustomSubMain As String = "CustomSubMain"
+        Private Const s_PROPNAME_MainForm As String = "MainForm"
+        Private Const s_PROPNAME_SingleInstance As String = "SingleInstance"
+        Private Const s_PROPNAME_ShutdownMode As String = "ShutdownMode"
+        Private Const s_PROPNAME_EnableVisualStyles As String = "EnableVisualStyles"
+        Private Const s_PROPNAME_SaveMySettingsOnExit As String = "SaveMySettingsOnExit"
+        Private Const s_PROPNAME_AuthenticationMode As String = "AuthenticationMode"
+        Private Const s_PROPNAME_SplashScreen As String = "SplashScreen"
 
-        Private m_ProjectHierarchy As Shell.Interop.IVsHierarchy
-        Private WithEvents m_MyAppDocData As DocData 'The DocData which backs the MyApplication.myapp file
-        Private m_ProjectDesignerProjectItem As EnvDTE.ProjectItem
-        Private m_ServiceProvider As Microsoft.VisualStudio.Shell.ServiceProvider
-        Private m_DocDataService As DesignerDocDataService
-        Private m_MyAppData As MyApplication.MyApplicationData
+        Private _projectHierarchy As Shell.Interop.IVsHierarchy
+        Private WithEvents _myAppDocData As DocData 'The DocData which backs the MyApplication.myapp file
+        Private _projectDesignerProjectItem As EnvDTE.ProjectItem
+        Private _serviceProvider As Microsoft.VisualStudio.Shell.ServiceProvider
+        Private _docDataService As DesignerDocDataService
+        Private _myAppData As MyApplication.MyApplicationData
 
         'The filename for the XML file where we store the MyApplication properties
-        Private Const Const_MyApplicationFileName As String = "Application.myapp"
-        Private Const Const_MyApplicationFileName_B1Compat As String = "MyApplication.myapp" 'Old (Beta 1) name for this file to remain backwards compatible
+        Private Const s_const_MyApplicationFileName As String = "Application.myapp"
+        Private Const s_const_MyApplicationFileName_B1Compat As String = "MyApplication.myapp" 'Old (Beta 1) name for this file to remain backwards compatible
 
-        Private m_MyAppFileName As String 'The actual file for the XML file that we found and are using (*not* including the path)
+        Private _myAppFileName As String 'The actual file for the XML file that we found and are using (*not* including the path)
 
-        Private Const Const_MyApplicationEntryPoint As String = "My.MyApplication"
+        Private Const s_const_MyApplicationEntryPoint As String = "My.MyApplication"
 
         'The name of the file where users hook up My events
-        Private Const Const_MyEventsFileName As String = "ApplicationEvents.vb"
-        Private Const Const_MyEventsFileName_B2Compat As String = "Application.vb"
-        Private Const Const_MyEventsFileName_B1Compat As String = "MyEvents.vb" 'Old (Beta 1) name for this file to remain backwards compatible
+        Private Const s_const_MyEventsFileName As String = "ApplicationEvents.vb"
+        Private Const s_const_MyEventsFileName_B2Compat As String = "Application.vb"
+        Private Const s_const_MyEventsFileName_B1Compat As String = "MyEvents.vb" 'Old (Beta 1) name for this file to remain backwards compatible
 
         'The relevant project property names
-        Private Const PROJECTPROPERTY_CUSTOMTOOL As String = "CustomTool"
-        Private Const PROJECTPROPERTY_CUSTOMTOOLNAMESPACE As String = "CustomToolNamespace"
+        Private Const s_PROJECTPROPERTY_CUSTOMTOOL As String = "CustomTool"
+        Private Const s_PROJECTPROPERTY_CUSTOMTOOLNAMESPACE As String = "CustomToolNamespace"
 
         'The custom tool name to use for the default resx file in VB projects
-        Private Const MYAPPCUSTOMTOOL As String = "MyApplicationCodeGenerator"
+        Private Const s_MYAPPCUSTOMTOOL As String = "MyApplicationCodeGenerator"
 
         ''' <summary>
         ''' Constructor.
@@ -315,29 +317,29 @@ Namespace Microsoft.VisualStudio.Editors.MyApplication
                 Throw New ArgumentNullException("ProjectHierarchy")
             End If
 
-            m_ProjectHierarchy = ProjectHierarchy
+            _projectHierarchy = ProjectHierarchy
 
-            hr = m_ProjectHierarchy.GetProperty(VSITEMID.ROOT, __VSHPROPID.VSHPROPID_ExtObject, obj)
+            hr = _projectHierarchy.GetProperty(VSITEMID.ROOT, __VSHPROPID.VSHPROPID_ExtObject, obj)
             If NativeMethods.Succeeded(hr) Then
                 Dim DTEProject As EnvDTE.Project = TryCast(obj, EnvDTE.Project)
                 Debug.Assert(DTEProject IsNot Nothing)
                 If DTEProject IsNot Nothing Then
-                    m_ServiceProvider = New Microsoft.VisualStudio.Shell.ServiceProvider(TryCast(DTEProject.DTE, Microsoft.VisualStudio.OLE.Interop.IServiceProvider))
+                    _serviceProvider = New Microsoft.VisualStudio.Shell.ServiceProvider(TryCast(DTEProject.DTE, Microsoft.VisualStudio.OLE.Interop.IServiceProvider))
                 End If
             End If
 
             'Get the Project Designer node
-            m_ProjectDesignerProjectItem = GetProjectItemForProjectDesigner(ProjectHierarchy)
+            _projectDesignerProjectItem = GetProjectItemForProjectDesigner(ProjectHierarchy)
 
             'Determine the filename for the .myapp file
-            m_MyAppFileName = Const_MyApplicationFileName
+            _myAppFileName = s_const_MyApplicationFileName
 
             'BEGIN Beta 1 Backwards compatibility
             If Not File.Exists(MyAppFileNameWithPath) Then
-                Dim FileNameCompat As String = IO.Path.Combine(ProjectDesignerProjectItem.FileNames(1), Const_MyApplicationFileName_B1Compat)
+                Dim FileNameCompat As String = IO.Path.Combine(ProjectDesignerProjectItem.FileNames(1), s_const_MyApplicationFileName_B1Compat)
                 If File.Exists(FileNameCompat) Then
                     'The new version of the filename does not exist, but the old one does - use it instead
-                    m_MyAppFileName = Const_MyApplicationFileName_B1Compat
+                    _myAppFileName = s_const_MyApplicationFileName_B1Compat
                     Debug.Assert(File.Exists(MyAppFileNameWithPath), "Huh?")
                 End If
             End If
@@ -347,15 +349,15 @@ Namespace Microsoft.VisualStudio.Editors.MyApplication
                 'The .myapp file exists - try to read it in
                 PrepareMyAppDocData()
                 Using Reader As TextReader = GetMyAppTextReader()
-                    m_MyAppData = MyApplication.MyApplicationSerializer.Deserialize(Reader)
+                    _myAppData = MyApplication.MyApplicationSerializer.Deserialize(Reader)
                     Reader.Close()
                 End Using
-                m_MyAppData.IsDirty = False
+                _myAppData.IsDirty = False
             Else
                 'The .myapp file doesn't exist.  Just use default properties.  Don't force create the .myapp file until
                 '  a property is changed that forces us to write to it.
-                m_MyAppData = New MyApplication.MyApplicationData()
-                m_MyAppData.IsDirty = False
+                _myAppData = New MyApplication.MyApplicationData()
+                _myAppData.IsDirty = False
             End If
         End Sub
 
@@ -370,16 +372,16 @@ Namespace Microsoft.VisualStudio.Editors.MyApplication
         '''   like regular designers.
         ''' </remarks>
         Private Sub FlushToDocData()
-            Debug.Assert(m_MyAppDocData IsNot Nothing, "m_MyAppDocData is nothing")
-            If m_MyAppDocData IsNot Nothing Then
+            Debug.Assert(_myAppDocData IsNot Nothing, "m_MyAppDocData is nothing")
+            If _myAppDocData IsNot Nothing Then
                 Using Writer As TextWriter = GetMyAppTextWriter()
-                    MyApplication.MyApplicationSerializer.Serialize(m_MyAppData, Writer)
+                    MyApplication.MyApplicationSerializer.Serialize(_myAppData, Writer)
                     Writer.Close()
                 End Using
 
                 'The IsDirty flag indicates that we have changes in memory which have not been committed to the doc data yet.  Thus,
                 '  we're no longer dirty.
-                m_MyAppData.IsDirty = False
+                _myAppData.IsDirty = False
             End If
         End Sub
 
@@ -389,13 +391,13 @@ Namespace Microsoft.VisualStudio.Editors.MyApplication
         ''' </summary>
         ''' <remarks></remarks>
         Private Sub CheckOutDocData()
-            Debug.Assert(m_ServiceProvider IsNot Nothing, "m_ServiceProvider is nothing")
+            Debug.Assert(_serviceProvider IsNot Nothing, "m_ServiceProvider is nothing")
 
             PrepareMyAppDocData()
 
-            Debug.Assert(m_MyAppDocData IsNot Nothing, "m_MyAppDocData is nothing")
-            If m_MyAppDocData IsNot Nothing AndAlso m_ServiceProvider IsNot Nothing Then
-                m_MyAppDocData.CheckoutFile(m_ServiceProvider)
+            Debug.Assert(_myAppDocData IsNot Nothing, "m_MyAppDocData is nothing")
+            If _myAppDocData IsNot Nothing AndAlso _serviceProvider IsNot Nothing Then
+                _myAppDocData.CheckoutFile(_serviceProvider)
             End If
         End Sub
 
@@ -431,13 +433,13 @@ Namespace Microsoft.VisualStudio.Editors.MyApplication
 
         Private ReadOnly Property ServiceProvider() As Microsoft.VisualStudio.Shell.ServiceProvider
             Get
-                Return m_ServiceProvider
+                Return _serviceProvider
             End Get
         End Property
 
         Private ReadOnly Property ProjectDesignerProjectItem() As EnvDTE.ProjectItem
             Get
-                Return m_ProjectDesignerProjectItem
+                Return _projectDesignerProjectItem
             End Get
         End Property
 
@@ -459,19 +461,19 @@ Namespace Microsoft.VisualStudio.Editors.MyApplication
         ''' <remarks></remarks>
         Friend ReadOnly Property CustomSubMainRaw() As Boolean Implements IMyApplicationPropertiesInternal.CustomSubMainRaw
             Get
-                Return Not m_MyAppData.MySubMain
+                Return Not _myAppData.MySubMain
             End Get
         End Property
 
 
         Public Property CustomSubMain() As Boolean Implements IVsMyApplicationProperties.CustomSubMain
             Get
-                Return Not m_MyAppData.MySubMain AndAlso IsMySubMainSupported(m_ProjectHierarchy)
+                Return Not _myAppData.MySubMain AndAlso IsMySubMainSupported(_projectHierarchy)
             End Get
             Set(ByVal value As Boolean)
-                If m_MyAppData.MySubMain <> (Not value) Then
+                If _myAppData.MySubMain <> (Not value) Then
                     CheckOutDocData()
-                    m_MyAppData.MySubMain = Not value
+                    _myAppData.MySubMain = Not value
                     FlushToDocData()
 
                     'Changing this property in the generated .vb file can cause or remove build errors, so we
@@ -479,7 +481,7 @@ Namespace Microsoft.VisualStudio.Editors.MyApplication
                     RunCustomTool()
 
                     'Notify users of property change
-                    OnPropertyChanged(PROPNAME_CustomSubMain)
+                    OnPropertyChanged(s_PROPNAME_CustomSubMain)
                 End If
             End Set
         End Property
@@ -493,10 +495,10 @@ Namespace Microsoft.VisualStudio.Editors.MyApplication
         ''' </remarks>
         Public Property MainForm() As String Implements IVsMyApplicationProperties.MainForm
             Get
-                If m_MyAppData.MainFormNoRootNS = "" Then
+                If _myAppData.MainFormNoRootNS = "" Then
                     Return ""
                 Else
-                    Return AddNamespace(GetRootNamespace(), m_MyAppData.MainFormNoRootNS)
+                    Return AddNamespace(GetRootNamespace(), _myAppData.MainFormNoRootNS)
                 End If
             End Get
             Set(ByVal value As String)
@@ -515,12 +517,12 @@ Namespace Microsoft.VisualStudio.Editors.MyApplication
         ''' </remarks>
         Friend Property MainFormNoRootNamespace() As String Implements IMyApplicationPropertiesInternal.MainFormNoRootNamespace
             Get
-                Return NothingToEmptyString(m_MyAppData.MainFormNoRootNS)
+                Return NothingToEmptyString(_myAppData.MainFormNoRootNS)
             End Get
             Set(ByVal value As String)
-                If System.String.CompareOrdinal(NothingToEmptyString(m_MyAppData.MainFormNoRootNS), NothingToEmptyString(value)) <> 0 Then
+                If System.String.CompareOrdinal(NothingToEmptyString(_myAppData.MainFormNoRootNS), NothingToEmptyString(value)) <> 0 Then
                     CheckOutDocData()
-                    m_MyAppData.MainFormNoRootNS = EmptyStringToNothing(value)
+                    _myAppData.MainFormNoRootNS = EmptyStringToNothing(value)
                     FlushToDocData()
 
                     'Changing this property in the generated .vb file can cause or remove build errors, so we
@@ -528,30 +530,30 @@ Namespace Microsoft.VisualStudio.Editors.MyApplication
                     RunCustomTool()
 
                     'Notify users of property change
-                    OnPropertyChanged(PROPNAME_MainForm)
+                    OnPropertyChanged(s_PROPNAME_MainForm)
                 End If
             End Set
         End Property
 
         Public Property SingleInstance() As Boolean Implements IVsMyApplicationProperties.SingleInstance
             Get
-                Return m_MyAppData.SingleInstance
+                Return _myAppData.SingleInstance
             End Get
             Set(ByVal value As Boolean)
-                If m_MyAppData.SingleInstance <> value Then
+                If _myAppData.SingleInstance <> value Then
                     CheckOutDocData()
-                    m_MyAppData.SingleInstance = value
+                    _myAppData.SingleInstance = value
                     FlushToDocData()
 
                     'Notify users of property change
-                    OnPropertyChanged(PROPNAME_SingleInstance)
+                    OnPropertyChanged(s_PROPNAME_SingleInstance)
                 End If
             End Set
         End Property
 
         Public Property ShutdownMode() As Integer Implements IVsMyApplicationProperties.ShutdownMode
             Get
-                Return m_MyAppData.ShutdownMode
+                Return _myAppData.ShutdownMode
             End Get
             Set(ByVal value As Integer)
                 Select Case value
@@ -563,52 +565,52 @@ Namespace Microsoft.VisualStudio.Editors.MyApplication
                         Throw New ArgumentOutOfRangeException("value")
                 End Select
 
-                If m_MyAppData.ShutdownMode <> value Then
+                If _myAppData.ShutdownMode <> value Then
                     CheckOutDocData()
-                    m_MyAppData.ShutdownMode = value
+                    _myAppData.ShutdownMode = value
                     FlushToDocData()
 
                     'Notify users of property change
-                    OnPropertyChanged(PROPNAME_ShutdownMode)
+                    OnPropertyChanged(s_PROPNAME_ShutdownMode)
                 End If
             End Set
         End Property
 
         Public Property EnableVisualStyles() As Boolean Implements IVsMyApplicationProperties.EnableVisualStyles
             Get
-                Return m_MyAppData.EnableVisualStyles
+                Return _myAppData.EnableVisualStyles
             End Get
             Set(ByVal value As Boolean)
-                If m_MyAppData.EnableVisualStyles <> value Then
+                If _myAppData.EnableVisualStyles <> value Then
                     CheckOutDocData()
-                    m_MyAppData.EnableVisualStyles = value
+                    _myAppData.EnableVisualStyles = value
                     FlushToDocData()
 
                     'Notify users of property change
-                    OnPropertyChanged(PROPNAME_EnableVisualStyles)
+                    OnPropertyChanged(s_PROPNAME_EnableVisualStyles)
                 End If
             End Set
         End Property
 
         Public Property SaveMySettingsOnExit() As Boolean Implements IVsMyApplicationProperties.SaveMySettingsOnExit
             Get
-                Return m_MyAppData.SaveMySettingsOnExit
+                Return _myAppData.SaveMySettingsOnExit
             End Get
             Set(ByVal value As Boolean)
-                If m_MyAppData.SaveMySettingsOnExit <> value Then
+                If _myAppData.SaveMySettingsOnExit <> value Then
                     CheckOutDocData()
-                    m_MyAppData.SaveMySettingsOnExit = value
+                    _myAppData.SaveMySettingsOnExit = value
                     FlushToDocData()
 
                     'Notify users of property change
-                    OnPropertyChanged(PROPNAME_SaveMySettingsOnExit)
+                    OnPropertyChanged(s_PROPNAME_SaveMySettingsOnExit)
                 End If
             End Set
         End Property
 
         Public Property AuthenticationMode() As Integer Implements IVsMyApplicationProperties.AuthenticationMode
             Get
-                Return m_MyAppData.AuthenticationMode
+                Return _myAppData.AuthenticationMode
             End Get
             Set(ByVal value As Integer)
                 Select Case value
@@ -620,13 +622,13 @@ Namespace Microsoft.VisualStudio.Editors.MyApplication
                         Throw New ArgumentOutOfRangeException("value")
                 End Select
 
-                If m_MyAppData.AuthenticationMode <> value Then
+                If _myAppData.AuthenticationMode <> value Then
                     CheckOutDocData()
-                    m_MyAppData.AuthenticationMode = value
+                    _myAppData.AuthenticationMode = value
                     FlushToDocData()
 
                     'Notify users of property change
-                    OnPropertyChanged(PROPNAME_AuthenticationMode)
+                    OnPropertyChanged(s_PROPNAME_AuthenticationMode)
                 End If
             End Set
         End Property
@@ -638,10 +640,10 @@ Namespace Microsoft.VisualStudio.Editors.MyApplication
         ''' If this property is not currently set to a meaningful value, we return empty string.
         Public Property SplashScreen() As String Implements IVsMyApplicationProperties.SplashScreen
             Get
-                If m_MyAppData.SplashScreenNoRootNS = "" Then
+                If _myAppData.SplashScreenNoRootNS = "" Then
                     Return ""
                 Else
-                    Return AddNamespace(GetRootNamespace(), m_MyAppData.SplashScreenNoRootNS)
+                    Return AddNamespace(GetRootNamespace(), _myAppData.SplashScreenNoRootNS)
                 End If
             End Get
             Set(ByVal value As String)
@@ -660,12 +662,12 @@ Namespace Microsoft.VisualStudio.Editors.MyApplication
         ''' </remarks>
         Friend Property SplashScreenNoRootNS() As String Implements IMyApplicationPropertiesInternal.SplashScreenNoRootNS
             Get
-                Return NothingToEmptyString(m_MyAppData.SplashScreenNoRootNS)
+                Return NothingToEmptyString(_myAppData.SplashScreenNoRootNS)
             End Get
             Set(ByVal value As String)
-                If System.String.CompareOrdinal(NothingToEmptyString(m_MyAppData.SplashScreenNoRootNS), NothingToEmptyString(value)) <> 0 Then
+                If System.String.CompareOrdinal(NothingToEmptyString(_myAppData.SplashScreenNoRootNS), NothingToEmptyString(value)) <> 0 Then
                     CheckOutDocData()
-                    m_MyAppData.SplashScreenNoRootNS = EmptyStringToNothing(value)
+                    _myAppData.SplashScreenNoRootNS = EmptyStringToNothing(value)
                     FlushToDocData()
 
                     'Changing this property in the generated .vb file can cause or remove build errors, so we
@@ -673,7 +675,7 @@ Namespace Microsoft.VisualStudio.Editors.MyApplication
                     RunCustomTool()
 
                     'Notify users of property change
-                    OnPropertyChanged(PROPNAME_SplashScreen)
+                    OnPropertyChanged(s_PROPNAME_SplashScreen)
                 End If
             End Set
         End Property
@@ -707,11 +709,11 @@ Namespace Microsoft.VisualStudio.Editors.MyApplication
                     MyApplication.MyApplicationSerializer.Serialize(New MyApplication.MyApplicationData(), writer)
                     stream = Nothing 'Writer will now close
 
-                    m_MyAppDocData = Nothing
-                    If m_DocDataService IsNot Nothing Then
-                        m_DocDataService.Dispose()
+                    _myAppDocData = Nothing
+                    If _docDataService IsNot Nothing Then
+                        _docDataService.Dispose()
                     End If
-                    m_DocDataService = Nothing
+                    _docDataService = Nothing
                 Finally
                     If writer IsNot Nothing Then
                         writer.Close()
@@ -727,19 +729,19 @@ Namespace Microsoft.VisualStudio.Editors.MyApplication
                 Item = AddFileToProject(ProjectDesignerProjectItem.ProjectItems, MyAppFileNameWithPath, False)
 
                 'Make sure the custom tool for the MyApplication data file is set correctly
-                SetCustomTool(Item, MYAPPCUSTOMTOOL)
+                SetCustomTool(Item, s_MYAPPCUSTOMTOOL)
 
                 'BuildAction should be None so the file doesn't get published
                 Common.DTEUtils.SetBuildAction(Item, VSLangProj.prjBuildAction.prjBuildActionNone)
             End If
 
             'Create the DocData for the file
-            If m_MyAppDocData Is Nothing Then
-                Debug.Assert(m_DocDataService Is Nothing)
-                m_MyAppDocData = New DocData(ServiceProvider, Item.FileNames(1))
+            If _myAppDocData Is Nothing Then
+                Debug.Assert(_docDataService Is Nothing)
+                _myAppDocData = New DocData(ServiceProvider, Item.FileNames(1))
 
-                Dim ItemId As UInteger = DTEUtils.ItemIdOfProjectItem(m_ProjectHierarchy, Item)
-                m_DocDataService = New DesignerDocDataService(ServiceProvider, m_ProjectHierarchy, ItemId, MyAppDocData)
+                Dim ItemId As UInteger = DTEUtils.ItemIdOfProjectItem(_projectHierarchy, Item)
+                _docDataService = New DesignerDocDataService(ServiceProvider, _projectHierarchy, ItemId, MyAppDocData)
             End If
         End Sub
 
@@ -751,7 +753,7 @@ Namespace Microsoft.VisualStudio.Editors.MyApplication
         ''' <remarks></remarks>
         Private ReadOnly Property MyAppFileName() As String
             Get
-                Return m_MyAppFileName
+                Return _myAppFileName
             End Get
         End Property
 
@@ -762,7 +764,7 @@ Namespace Microsoft.VisualStudio.Editors.MyApplication
         ''' <returns></returns>
         ''' <remarks></remarks>
         Private Function MyAppFileNameWithPath() As String
-            Return IO.Path.Combine(ProjectDesignerProjectItem.FileNames(1), m_MyAppFileName)
+            Return IO.Path.Combine(ProjectDesignerProjectItem.FileNames(1), _myAppFileName)
         End Function
 
 
@@ -781,11 +783,11 @@ Namespace Microsoft.VisualStudio.Editors.MyApplication
                 Next
 
                 ' Nope - clear out whatever docdata we had...
-                m_MyAppDocData = Nothing
-                If m_DocDataService IsNot Nothing Then
-                    m_DocDataService.Dispose()
+                _myAppDocData = Nothing
+                If _docDataService IsNot Nothing Then
+                    _docDataService.Dispose()
                 End If
-                m_DocDataService = Nothing
+                _docDataService = Nothing
 
                 Return Nothing
             End Get
@@ -798,7 +800,7 @@ Namespace Microsoft.VisualStudio.Editors.MyApplication
         ''' <remarks></remarks>
         Private ReadOnly Property MyAppDocData() As DocData
             Get
-                Return m_MyAppDocData
+                Return _myAppDocData
             End Get
         End Property
 
@@ -809,7 +811,7 @@ Namespace Microsoft.VisualStudio.Editors.MyApplication
         ''' <remarks></remarks>
         Private ReadOnly Property MyAppData() As MyApplication.MyApplicationData
             Get
-                Return Me.m_MyAppData
+                Return Me._myAppData
             End Get
         End Property
 
@@ -820,7 +822,7 @@ Namespace Microsoft.VisualStudio.Editors.MyApplication
         ''' <remarks></remarks>
         Private ReadOnly Property DocDataService() As DesignerDocDataService
             Get
-                Return m_DocDataService
+                Return _docDataService
             End Get
         End Property
 
@@ -868,8 +870,8 @@ Namespace Microsoft.VisualStudio.Editors.MyApplication
         ''' </summary>
         ''' <remarks>Caller is responsible for catching exceptions</remarks>
         Private Sub SetCustomTool(ByVal ProjectItem As EnvDTE.ProjectItem, ByVal Value As String)
-            Dim ToolProperty As EnvDTE.Property = GetProjectItemProperty(ProjectItem, PROJECTPROPERTY_CUSTOMTOOL)
-            Dim NamespaceProperty As EnvDTE.Property = GetProjectItemProperty(ProjectItem, PROJECTPROPERTY_CUSTOMTOOLNAMESPACE)
+            Dim ToolProperty As EnvDTE.Property = GetProjectItemProperty(ProjectItem, s_PROJECTPROPERTY_CUSTOMTOOL)
+            Dim NamespaceProperty As EnvDTE.Property = GetProjectItemProperty(ProjectItem, s_PROJECTPROPERTY_CUSTOMTOOLNAMESPACE)
 
             Try
                 If ToolProperty Is Nothing Then
@@ -1000,18 +1002,18 @@ Namespace Microsoft.VisualStudio.Editors.MyApplication
 
             'Search for the Application.vb (used to be MyEvents.vb) file
             Dim FileIsNew As Boolean
-            Dim MyEventsProjectItem As EnvDTE.ProjectItem = QueryProjectItems(ProjectDesignerProjectItem.ProjectItems, Const_MyEventsFileName)
+            Dim MyEventsProjectItem As EnvDTE.ProjectItem = QueryProjectItems(ProjectDesignerProjectItem.ProjectItems, s_const_MyEventsFileName)
             If MyEventsProjectItem Is Nothing Then
                 'The file doesn't exist in the My Application folder.  Let's also look in the root folder, in case the user
                 '  moved it there.
-                MyEventsProjectItem = QueryProjectItems(ProjectDesignerProjectItem.ContainingProject.ProjectItems, Const_MyEventsFileName)
+                MyEventsProjectItem = QueryProjectItems(ProjectDesignerProjectItem.ContainingProject.ProjectItems, s_const_MyEventsFileName)
 
                 'BEGIN Beta 2 Backwards compatibility
                 If MyEventsProjectItem Is Nothing Then
                     'Could not find the file with the new, expected name.  Also search for the old name in both places
-                    MyEventsProjectItem = QueryProjectItems(ProjectDesignerProjectItem.ProjectItems, Const_MyEventsFileName_B2Compat)
+                    MyEventsProjectItem = QueryProjectItems(ProjectDesignerProjectItem.ProjectItems, s_const_MyEventsFileName_B2Compat)
                     If MyEventsProjectItem Is Nothing Then
-                        MyEventsProjectItem = QueryProjectItems(ProjectDesignerProjectItem.ContainingProject.ProjectItems, Const_MyEventsFileName_B2Compat)
+                        MyEventsProjectItem = QueryProjectItems(ProjectDesignerProjectItem.ContainingProject.ProjectItems, s_const_MyEventsFileName_B2Compat)
                     End If
                 End If
                 'END Beta 2 Backwards compatibility
@@ -1019,9 +1021,9 @@ Namespace Microsoft.VisualStudio.Editors.MyApplication
                 'BEGIN Beta 1 Backwards compatibility
                 If MyEventsProjectItem Is Nothing Then
                     'Could not find the file with the new, expected name.  Also search for the old name in both places
-                    MyEventsProjectItem = QueryProjectItems(ProjectDesignerProjectItem.ProjectItems, Const_MyEventsFileName_B1Compat)
+                    MyEventsProjectItem = QueryProjectItems(ProjectDesignerProjectItem.ProjectItems, s_const_MyEventsFileName_B1Compat)
                     If MyEventsProjectItem Is Nothing Then
-                        MyEventsProjectItem = QueryProjectItems(ProjectDesignerProjectItem.ContainingProject.ProjectItems, Const_MyEventsFileName_B1Compat)
+                        MyEventsProjectItem = QueryProjectItems(ProjectDesignerProjectItem.ContainingProject.ProjectItems, s_const_MyEventsFileName_B1Compat)
                     End If
                 End If
                 'END Beta 1 Backwards compatibility
@@ -1042,7 +1044,7 @@ Namespace Microsoft.VisualStudio.Editors.MyApplication
                         Return
                     End If
 
-                    MyEventsProjectItem = CreateNewMyEventsFile(ProjectDesignerProjectItem.ContainingProject.ProjectItems, Const_MyEventsFileName, Const_MyEventsNamespace, Const_MyEventsClassName)
+                    MyEventsProjectItem = CreateNewMyEventsFile(ProjectDesignerProjectItem.ContainingProject.ProjectItems, s_const_MyEventsFileName, Const_MyEventsNamespace, Const_MyEventsClassName)
                     FileIsNew = True
                 End If
             End If
@@ -1120,10 +1122,10 @@ Namespace Microsoft.VisualStudio.Editors.MyApplication
         ''' </summary>
         ''' <remarks></remarks>
         Friend Sub Close()
-            If m_MyAppDocData IsNot Nothing Then
-                m_MyAppDocData = Nothing
-                m_DocDataService.Dispose()
-                m_DocDataService = Nothing
+            If _myAppDocData IsNot Nothing Then
+                _myAppDocData = Nothing
+                _docDataService.Dispose()
+                _docDataService = Nothing
             End If
         End Sub
 
@@ -1134,14 +1136,14 @@ Namespace Microsoft.VisualStudio.Editors.MyApplication
         ''' </summary>
         ''' <remarks></remarks>
         Friend Sub Save()
-            If m_MyAppDocData IsNot Nothing Then
+            If _myAppDocData IsNot Nothing Then
                 'Make sure the doc data is up to date (in reality in our current model, we shouldn't ever be in a dirty state
                 '  like this).
-                If Me.m_MyAppData.IsDirty Then
+                If Me._myAppData.IsDirty Then
                     FlushToDocData()
                 End If
 
-                If m_DocDataService IsNot Nothing AndAlso m_DocDataService.PrimaryDocData.Modified Then
+                If _docDataService IsNot Nothing AndAlso _docDataService.PrimaryDocData.Modified Then
                     'The doc data is dirty.  We need to flush it immediately to disk.  This routine
                     '  gets called from the project system when it is saving the project file.  All other
                     '  files in the project (e.g. the .myapp) will have already been saved by now if we're
@@ -1165,7 +1167,7 @@ Namespace Microsoft.VisualStudio.Editors.MyApplication
                     End If
                 End If
 
-                m_MyAppData.IsDirty = False
+                _myAppData.IsDirty = False
             End If
         End Sub
 
@@ -1187,9 +1189,9 @@ Namespace Microsoft.VisualStudio.Editors.MyApplication
         ''' <returns></returns>
         ''' <remarks></remarks>
         Private Function GetRootNamespace() As String
-            If m_ProjectHierarchy IsNot Nothing Then
+            If _projectHierarchy IsNot Nothing Then
                 Dim ObjNamespace As Object = Nothing
-                VSErrorHandler.ThrowOnFailure(m_ProjectHierarchy.GetProperty(VSITEMID.ROOT, __VSHPROPID.VSHPROPID_DefaultNamespace, ObjNamespace))
+                VSErrorHandler.ThrowOnFailure(_projectHierarchy.GetProperty(VSITEMID.ROOT, __VSHPROPID.VSHPROPID_DefaultNamespace, ObjNamespace))
                 Return DirectCast(ObjNamespace, String)
             End If
 
@@ -1225,17 +1227,17 @@ Namespace Microsoft.VisualStudio.Editors.MyApplication
         ''' <param name="sender"></param>
         ''' <param name="e"></param>
         ''' <remarks></remarks>
-        Private Sub MyAppDocDataChanged(ByVal sender As Object, ByVal e As EventArgs) Handles m_MyAppDocData.DataChanged
+        Private Sub MyAppDocDataChanged(ByVal sender As Object, ByVal e As EventArgs) Handles _myAppDocData.DataChanged
             'Now read the data 
             Using Reader As TextReader = GetMyAppTextReader()
                 Dim NewValues As MyApplicationData = MyApplication.MyApplicationSerializer.Deserialize(Reader)
                 Reader.Close()
 
                 'Remember the old values
-                Dim OldValues As MyApplicationData = m_MyAppData
+                Dim OldValues As MyApplicationData = _myAppData
 
                 '... and store the new ones
-                m_MyAppData = NewValues
+                _myAppData = NewValues
 
                 'Some of the properties may have just changed.  Go through and fire notifications for the ones that actually did.
                 FireChangeNotificationsForNewValues(OldValues, NewValues)
@@ -1252,42 +1254,42 @@ Namespace Microsoft.VisualStudio.Editors.MyApplication
         Private Sub FireChangeNotificationsForNewValues(ByVal OldValues As MyApplication.MyApplicationData, ByVal NewValues As MyApplication.MyApplicationData)
             'AuthenticationMode
             If OldValues.AuthenticationMode <> NewValues.AuthenticationMode Then
-                OnPropertyChanged(PROPNAME_AuthenticationMode)
+                OnPropertyChanged(s_PROPNAME_AuthenticationMode)
             End If
 
             'CustomSubMain
             If OldValues.MySubMain <> NewValues.MySubMain Then
-                OnPropertyChanged(PROPNAME_CustomSubMain)
+                OnPropertyChanged(s_PROPNAME_CustomSubMain)
             End If
 
             'EnableVisualStyles
             If OldValues.EnableVisualStyles <> NewValues.EnableVisualStyles Then
-                OnPropertyChanged(PROPNAME_EnableVisualStyles)
+                OnPropertyChanged(s_PROPNAME_EnableVisualStyles)
             End If
 
             'MainForm
             If Not StringPropertyValuesEqual(OldValues.MainFormNoRootNS, NewValues.MainFormNoRootNS) Then
-                OnPropertyChanged(PROPNAME_MainForm)
+                OnPropertyChanged(s_PROPNAME_MainForm)
             End If
 
             'SaveMySettingsOnExit
             If OldValues.SaveMySettingsOnExit <> NewValues.SaveMySettingsOnExit Then
-                OnPropertyChanged(PROPNAME_SaveMySettingsOnExit)
+                OnPropertyChanged(s_PROPNAME_SaveMySettingsOnExit)
             End If
 
             'ShutdownMode
             If OldValues.ShutdownMode <> NewValues.ShutdownMode Then
-                OnPropertyChanged(PROPNAME_ShutdownMode)
+                OnPropertyChanged(s_PROPNAME_ShutdownMode)
             End If
 
             'SingleInstance
             If OldValues.SingleInstance <> NewValues.SingleInstance Then
-                OnPropertyChanged(PROPNAME_SingleInstance)
+                OnPropertyChanged(s_PROPNAME_SingleInstance)
             End If
 
             'SplashScreen
             If Not StringPropertyValuesEqual(OldValues.SplashScreenNoRootNS, NewValues.SplashScreenNoRootNS) Then
-                OnPropertyChanged(PROPNAME_SplashScreen)
+                OnPropertyChanged(s_PROPNAME_SplashScreen)
             End If
 
         End Sub

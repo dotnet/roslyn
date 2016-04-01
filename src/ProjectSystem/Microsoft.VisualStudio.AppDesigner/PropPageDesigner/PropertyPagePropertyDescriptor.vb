@@ -1,3 +1,5 @@
+' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+
 Imports Microsoft.VisualStudio.ManagedInterfaces.ProjectDesigner
 Imports System.ComponentModel
 
@@ -16,12 +18,12 @@ Namespace Microsoft.VisualStudio.Editors.PropPageDesigner
         Inherits PropertyDescriptor
 
         'The property descriptor for the Project or Config property we wrap
-        Private m_PropDesc As PropertyDescriptor
-        Private m_TypeConverter As TypeConverter
-        Private m_DisplayName As String
-        Private m_Name As String
-        Private m_PropertyType As System.Type
-        Private m_IsReadOnly As Boolean
+        Private _propDesc As PropertyDescriptor
+        Private _typeConverter As TypeConverter
+        Private _displayName As String
+        Private _name As String
+        Private _propertyType As System.Type
+        Private _isReadOnly As Boolean
 
         ''' <summary>
         ''' Constructs a PropertyDescriptor using the wrapped properties property descriptor
@@ -33,18 +35,18 @@ Namespace Microsoft.VisualStudio.Editors.PropPageDesigner
 
             Debug.Assert(PropDesc IsNot Nothing)
 
-            m_PropDesc = PropDesc
+            _propDesc = PropDesc
 
-            If m_PropDesc.PropertyType.IsEnum Then
-                m_PropertyType = m_PropDesc.PropertyType.UnderlyingSystemType
-                m_TypeConverter = New TypeConverter()
+            If _propDesc.PropertyType.IsEnum Then
+                _propertyType = _propDesc.PropertyType.UnderlyingSystemType
+                _typeConverter = New TypeConverter()
             Else
-                m_PropertyType = m_PropDesc.PropertyType
-                m_TypeConverter = m_PropDesc.Converter
+                _propertyType = _propDesc.PropertyType
+                _typeConverter = _propDesc.Converter
             End If
-            m_DisplayName = m_PropDesc.DisplayName
-            m_Name = PropertyName
-            m_IsReadOnly = m_PropDesc.IsReadOnly
+            _displayName = _propDesc.DisplayName
+            _name = PropertyName
+            _isReadOnly = _propDesc.IsReadOnly
         End Sub
 
 
@@ -67,7 +69,7 @@ Namespace Microsoft.VisualStudio.Editors.PropPageDesigner
         ''' <remarks></remarks>
         Public Overrides ReadOnly Property IsReadOnly() As Boolean
             Get
-                Return m_IsReadOnly
+                Return _isReadOnly
             End Get
         End Property
 
@@ -79,7 +81,7 @@ Namespace Microsoft.VisualStudio.Editors.PropPageDesigner
         ''' <remarks></remarks>
         Public Overrides ReadOnly Property PropertyType() As System.Type
             Get
-                Return m_PropertyType
+                Return _propertyType
             End Get
         End Property
 
@@ -159,7 +161,7 @@ Namespace Microsoft.VisualStudio.Editors.PropPageDesigner
         ''' <remarks></remarks>
         Public Overrides ReadOnly Property Converter() As TypeConverter
             Get
-                Return m_TypeConverter
+                Return _typeConverter
             End Get
         End Property
 
@@ -171,10 +173,10 @@ Namespace Microsoft.VisualStudio.Editors.PropPageDesigner
         ''' <remarks></remarks>
         Public Overrides ReadOnly Property Name() As String
             Get
-                If m_Name = "" Then
+                If _name = "" Then
                     Return MyBase.Name
                 Else
-                    Return m_Name
+                    Return _name
                 End If
             End Get
         End Property
@@ -188,13 +190,13 @@ Namespace Microsoft.VisualStudio.Editors.PropPageDesigner
         ''' <remarks></remarks>
         Public Overrides ReadOnly Property DisplayName() As String
             Get
-                Return m_DisplayName
+                Return _displayName
             End Get
         End Property
 
         Public Overrides Function GetChildProperties(ByVal instance As Object, ByVal filter As Attribute()) As PropertyDescriptorCollection
-            If m_PropDesc IsNot Nothing Then
-                Return m_PropDesc.GetChildProperties(instance, filter)
+            If _propDesc IsNot Nothing Then
+                Return _propDesc.GetChildProperties(instance, filter)
             End If
             Return Nothing
         End Function
@@ -206,8 +208,8 @@ Namespace Microsoft.VisualStudio.Editors.PropPageDesigner
         ''' <returns></returns>
         ''' <remarks></remarks>
         Public Overrides Function GetEditor(ByVal editorBaseType As Type) As Object
-            If m_PropDesc IsNot Nothing Then
-                Return m_PropDesc.GetEditor(editorBaseType)
+            If _propDesc IsNot Nothing Then
+                Return _propDesc.GetEditor(editorBaseType)
             End If
             Return Nothing
         End Function

@@ -1,3 +1,5 @@
+' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+
 Imports Microsoft.VisualStudio.Shell.Interop
 Imports System.ComponentModel
 Imports System.IO
@@ -22,34 +24,34 @@ Namespace Microsoft.VisualStudio.Editors.PropertyPages
             InitializeComponent()
 
             'Add any initialization after the InitializeComponent() call
-            NotifyError = SR.GetString(SR.PPG_Compile_Notification_Error)
-            NotifyNone = SR.GetString(SR.PPG_Compile_Notification_None)
-            NotifyWarning = SR.GetString(SR.PPG_Compile_Notification_Warning)
+            _notifyError = SR.GetString(SR.PPG_Compile_Notification_Error)
+            _notifyNone = SR.GetString(SR.PPG_Compile_Notification_None)
+            _notifyWarning = SR.GetString(SR.PPG_Compile_Notification_Warning)
             MyBase.PageRequiresScaling = False
             MyBase.AutoScaleMode = AutoScaleMode.Font
 
             AddChangeHandlers()
 
             Dim optionStrictErrors As New System.Collections.ArrayList
-            For Each ErrorInfo As ErrorInfo In m_ErrorInfos
+            For Each ErrorInfo As ErrorInfo In _errorInfos
                 If ErrorInfo.ErrorOnOptionStrict Then
                     optionStrictErrors.AddRange(ErrorInfo.ErrList)
                 End If
             Next
-            ReDim m_OptionStrictIDs(optionStrictErrors.Count - 1)
-            optionStrictErrors.CopyTo(m_OptionStrictIDs)
-            System.Array.Sort(m_OptionStrictIDs)
+            ReDim _optionStrictIDs(optionStrictErrors.Count - 1)
+            optionStrictErrors.CopyTo(_optionStrictIDs)
+            System.Array.Sort(_optionStrictIDs)
 
-            NotificationColumn.Items.Add(NotifyNone)
-            NotificationColumn.Items.Add(NotifyWarning)
-            NotificationColumn.Items.Add(NotifyError)
+            NotificationColumn.Items.Add(_notifyNone)
+            NotificationColumn.Items.Add(_notifyWarning)
+            NotificationColumn.Items.Add(_notifyError)
         End Sub
 
         'UserControl overrides dispose to clean up the component list.
         Protected Overloads Overrides Sub Dispose(ByVal disposing As Boolean)
             If disposing Then
-                If Not (components Is Nothing) Then
-                    components.Dispose()
+                If Not (_components Is Nothing) Then
+                    _components.Dispose()
                 End If
             End If
             MyBase.Dispose(disposing)
@@ -62,8 +64,8 @@ Namespace Microsoft.VisualStudio.Editors.PropertyPages
         Friend WithEvents overarchingTableLayoutPanel As System.Windows.Forms.TableLayoutPanel
         Friend WithEvents buildOutputTableLayoutPanel As System.Windows.Forms.TableLayoutPanel
 
-        Private m_settingGenerateXmlDocumentation As Boolean
-        Private m_generateXmlDocumentation As Object
+        Private _settingGenerateXmlDocumentation As Boolean
+        Private _generateXmlDocumentation As Object
         Friend WithEvents CompileOptionsGroupBox As System.Windows.Forms.GroupBox
         Friend WithEvents CompileOptionsTableLayoutPanel As System.Windows.Forms.TableLayoutPanel
         Friend WithEvents OptionExplicitLabel As System.Windows.Forms.Label
@@ -88,11 +90,11 @@ Namespace Microsoft.VisualStudio.Editors.PropertyPages
         Friend WithEvents Prefer32BitCheckBox As System.Windows.Forms.CheckBox
 
         ' Shared cache of raw and extended configuration objects
-        Private m_objectCache As FakeAllConfigurationsPropertyControlData.ConfigurationObjectCache
+        Private _objectCache As FakeAllConfigurationsPropertyControlData.ConfigurationObjectCache
         Friend WithEvents AdvancedCompileOptionsLabelLine As System.Windows.Forms.Label
 
         'Required by the Windows Form Designer
-        Private components As System.ComponentModel.IContainer
+        Private _components As System.ComponentModel.IContainer
         'put this bock in
         'Me.WarningsGridView = New Microsoft.VisualStudio.Editors.PropertyPages.CompilePropPage2.InternalDataGridView
 
@@ -382,37 +384,37 @@ Namespace Microsoft.VisualStudio.Editors.PropertyPages
 
 
         ' The list of warning ids that are affected by option strict on/off
-        Private m_OptionStrictIDs() As Integer
+        Private _optionStrictIDs() As Integer
 
         ' List of warnings to ignore
-        Private m_noWarn() As Integer
+        Private _noWarn() As Integer
 
         ' List of warnings to report as errors
-        Private m_specWarnAsError() As Integer
+        Private _specWarnAsError() As Integer
 
-        Private m_comVisible As Object
+        Private _comVisible As Object
 
         'Localized error/warning strings for notify column
-        Private NotifyError As String
-        Private NotifyNone As String
-        Private NotifyWarning As String
-        Const ConditionColumnIndex As Integer = 0
-        Const NotifyColumnIndex As Integer = 1
-        Private Const ConditionColumnWidthPercentage As Integer = 35 'non-resizable column
-        Private Const NotifyColumnWidthPercentage As Integer = 100
+        Private _notifyError As String
+        Private _notifyNone As String
+        Private _notifyWarning As String
+        Private Const s_conditionColumnIndex As Integer = 0
+        Private Const s_notifyColumnIndex As Integer = 1
+        Private Const s_conditionColumnWidthPercentage As Integer = 35 'non-resizable column
+        Private Const s_notifyColumnWidthPercentage As Integer = 100
 
         'Minimum scrolling widths - widths below which resizing the settings designer will cause a horizontal
         '  scrollbar to appear rather than sizing the column below this size
-        Private Const ConditionColumnMinScrollingWidth As Integer = 100
-        Private Const NotifyColumnMinScrollingWidth As Integer = 100 'non-resizable column
+        Private Const s_conditionColumnMinScrollingWidth As Integer = 100
+        Private Const s_notifyColumnMinScrollingWidth As Integer = 100 'non-resizable column
 
         ' Cached extended objects for all configurations...
-        Private m_cachedExtendedObjects() As Object
+        Private _cachedExtendedObjects() As Object
 
-        Private m_OptionStrictCustomText As String
-        Private m_OptionStrictOnText As String
-        Private m_OptionStrictOffText As String
-        Private m_refreshingWarningsList As Boolean
+        Private _optionStrictCustomText As String
+        Private _optionStrictOnText As String
+        Private _optionStrictOffText As String
+        Private _refreshingWarningsList As Boolean
 
         ' Since the option strict combobox value depends
         ' on a combination of the noWarn, specWarnAsError and
@@ -422,7 +424,7 @@ Namespace Microsoft.VisualStudio.Editors.PropertyPages
         ' ordered in a consistent way, we queue an update of the UI
         ' on the IDLE so that it happens after all the settings have
         ' been set...
-        Private m_optionStrictComboBoxUpdateQueued As Boolean
+        Private _optionStrictComboBoxUpdateQueued As Boolean
 
 #Region "Queued update of text in option strict combobox"
         Private Delegate Sub QueueUpdateOptionStrictComboBoxDelegate()
@@ -434,12 +436,12 @@ Namespace Microsoft.VisualStudio.Editors.PropertyPages
         ''' </summary>
         ''' <remarks></remarks>
         Private Sub QueueUpdateOptionStrictComboBox()
-            If m_optionStrictComboBoxUpdateQueued Then
+            If _optionStrictComboBoxUpdateQueued Then
                 Return
             End If
 
             Me.BeginInvoke(New QueueUpdateOptionStrictComboBoxDelegate(AddressOf Me.UpdateOptionStrictComboBox))
-            m_optionStrictComboBoxUpdateQueued = True
+            _optionStrictComboBoxUpdateQueued = True
         End Sub
 
 
@@ -453,29 +455,29 @@ Namespace Microsoft.VisualStudio.Editors.PropertyPages
             Try
                 If IsOptionStrictOn() Then
                     ' On means that we should remove the "Custom" from the drop-down
-                    OptionStrictComboBox.Items.Remove(m_OptionStrictCustomText)
+                    OptionStrictComboBox.Items.Remove(_optionStrictCustomText)
                 ElseIf IsOptionStrictCustom() Then
                     ' If we are showing "Custom", but the current settings are the same as
                     ' "Off", remove the "Custom" entry from the combobox and change current selection
                     ' to "Off"
                     If Not IsSameAsOptionStrictCustom() Then
-                        OptionStrictComboBox.Items.Remove(m_OptionStrictCustomText)
-                        OptionStrictComboBox.SelectedIndex = OptionStrictComboBox.Items.IndexOf(m_OptionStrictOffText)
+                        OptionStrictComboBox.Items.Remove(_optionStrictCustomText)
+                        OptionStrictComboBox.SelectedIndex = OptionStrictComboBox.Items.IndexOf(_optionStrictOffText)
                     End If
                 ElseIf IsOptionStrictOff() Then
                     ' Off may actually mean "Custom"
                     If Not IsSameAsOptionStrictOff() Then
                         ' Change from showing "Off" to "Custom" in combobox
-                        Dim newIndex As Integer = OptionStrictComboBox.Items.IndexOf(m_OptionStrictCustomText)
+                        Dim newIndex As Integer = OptionStrictComboBox.Items.IndexOf(_optionStrictCustomText)
                         If newIndex = -1 Then
                             ' Add the option strict custom text since it wasn't already in there...
-                            newIndex = OptionStrictComboBox.Items.Add(m_OptionStrictCustomText)
+                            newIndex = OptionStrictComboBox.Items.Add(_optionStrictCustomText)
                         End If
                         OptionStrictComboBox.SelectedIndex = newIndex
                     End If
                 End If
             Finally
-                m_optionStrictComboBoxUpdateQueued = False
+                _optionStrictComboBoxUpdateQueued = False
             End Try
         End Sub
 #End Region
@@ -533,7 +535,7 @@ Namespace Microsoft.VisualStudio.Editors.PropertyPages
                 _enabled = False
             End If
 
-            Dim NotifyColumn As DataGridViewComboBoxColumn = CType(Me.WarningsGridView.Columns.Item(NotifyColumnIndex), DataGridViewComboBoxColumn)
+            Dim NotifyColumn As DataGridViewComboBoxColumn = CType(Me.WarningsGridView.Columns.Item(s_notifyColumnIndex), DataGridViewComboBoxColumn)
             If _enabled AndAlso DisableAllWarningsCheckBox.CheckState = CheckState.Unchecked AndAlso Me.WarningsAsErrorCheckBox.CheckState = CheckState.Unchecked Then
                 For Each column As DataGridViewColumn In WarningsGridView.Columns
                     column.DefaultCellStyle.BackColor = WarningsGridView.DefaultCellStyle.BackColor
@@ -556,29 +558,29 @@ Namespace Microsoft.VisualStudio.Editors.PropertyPages
 
         Protected Overrides ReadOnly Property ControlData() As PropertyControlData()
             Get
-                If m_objectCache IsNot Nothing Then
-                    m_objectCache.Reset(ProjectHierarchy, ServiceProvider, False)
+                If _objectCache IsNot Nothing Then
+                    _objectCache.Reset(ProjectHierarchy, ServiceProvider, False)
                 End If
 
                 If m_ControlData Is Nothing Then
                     'Note: "TreatSpecificWarningsAsErrors - For the grid that contains the ability to turn warnings on and off for specific warnings,
                     '  we use a hidden textbox with the name "SpecWarnAsErrorTextBox".  In this, we build up the list of warnings to treat
                     '  individually.
-                    m_objectCache = New FakeAllConfigurationsPropertyControlData.ConfigurationObjectCache(ProjectHierarchy, ServiceProvider)
+                    _objectCache = New FakeAllConfigurationsPropertyControlData.ConfigurationObjectCache(ProjectHierarchy, ServiceProvider)
 
                     m_ControlData = New PropertyControlData() { _
-                        New FakeAllConfigurationsPropertyControlData(m_objectCache, VsProjPropId2.VBPROJPROPID_NoWarn, "NoWarn", Nothing, AddressOf Me.NoWarnSet, AddressOf Me.NoWarnGet, ControlDataFlags.UserHandledEvents, Nothing), _
-                        New FakeAllConfigurationsPropertyControlData(m_objectCache, VsProjPropId80.VBPROJPROPID_TreatSpecificWarningsAsErrors, "TreatSpecificWarningsAsErrors", Nothing, AddressOf Me.SpecWarnAsErrorSet, AddressOf Me.SpecWarnAsErrorGet, ControlDataFlags.UserHandledEvents, Nothing), _
+                        New FakeAllConfigurationsPropertyControlData(_objectCache, VsProjPropId2.VBPROJPROPID_NoWarn, "NoWarn", Nothing, AddressOf Me.NoWarnSet, AddressOf Me.NoWarnGet, ControlDataFlags.UserHandledEvents, Nothing), _
+                        New FakeAllConfigurationsPropertyControlData(_objectCache, VsProjPropId80.VBPROJPROPID_TreatSpecificWarningsAsErrors, "TreatSpecificWarningsAsErrors", Nothing, AddressOf Me.SpecWarnAsErrorSet, AddressOf Me.SpecWarnAsErrorGet, ControlDataFlags.UserHandledEvents, Nothing), _
                         New PropertyControlData(VsProjPropId.VBPROJPROPID_OptionExplicit, "OptionExplicit", Me.OptionExplicitComboBox, New Control() {Me.OptionExplicitLabel}), _
                         New PropertyControlData(VsProjPropId.VBPROJPROPID_OptionStrict, "OptionStrict", Me.OptionStrictComboBox, AddressOf Me.OptionStrictSet, AddressOf Me.OptionStrictGet, ControlDataFlags.UserHandledEvents, New Control() {Me.OptionStrictLabel}), _
                         New PropertyControlData(VsProjPropId.VBPROJPROPID_OptionCompare, "OptionCompare", Me.OptionCompareComboBox, New Control() {Me.OptionCompareLabel}), _
                         New PropertyControlData(VBProjPropId90.VBPROJPROPID_OptionInfer, "OptionInfer", Me.OptionInferComboBox, New Control() {Me.OptionInferLabel}), _
                         New SingleConfigPropertyControlData(SingleConfigPropertyControlData.Configs.Release, _
                             VsProjPropId.VBPROJPROPID_OutputPath, "OutputPath", Me.BuildOutputPathTextBox, Nothing, AddressOf Me.OutputPathGet, ControlDataFlags.None, New Control() {Me.BuildOutputPathLabel}), _
-                        New FakeAllConfigurationsPropertyControlData(m_objectCache, VsProjPropId.VBPROJPROPID_DocumentationFile, "DocumentationFile", Nothing, AddressOf Me.DocumentationFileNameSet, AddressOf Me.DocumentationFileNameGet, ControlDataFlags.UserHandledEvents, New Control() {Me.GenerateXMLCheckBox}), _
-                        New FakeAllConfigurationsPropertyControlData(m_objectCache, VsProjPropId.VBPROJPROPID_WarningLevel, "WarningLevel", Me.DisableAllWarningsCheckBox, AddressOf Me.WarningLevelSet, AddressOf Me.WarningLevelGet, ControlDataFlags.UserHandledEvents, Nothing), _
-                        New FakeAllConfigurationsPropertyControlData(m_objectCache, VsProjPropId.VBPROJPROPID_TreatWarningsAsErrors, "TreatWarningsAsErrors", Me.WarningsAsErrorCheckBox, Nothing, Nothing, ControlDataFlags.UserHandledEvents, Nothing), _
-                        New FakeAllConfigurationsPropertyControlData(m_objectCache, VsProjPropId.VBPROJPROPID_RegisterForComInterop, "RegisterForComInterop", Me.RegisterForComInteropCheckBox, Nothing, Nothing, ControlDataFlags.UserHandledEvents, Nothing), _
+                        New FakeAllConfigurationsPropertyControlData(_objectCache, VsProjPropId.VBPROJPROPID_DocumentationFile, "DocumentationFile", Nothing, AddressOf Me.DocumentationFileNameSet, AddressOf Me.DocumentationFileNameGet, ControlDataFlags.UserHandledEvents, New Control() {Me.GenerateXMLCheckBox}), _
+                        New FakeAllConfigurationsPropertyControlData(_objectCache, VsProjPropId.VBPROJPROPID_WarningLevel, "WarningLevel", Me.DisableAllWarningsCheckBox, AddressOf Me.WarningLevelSet, AddressOf Me.WarningLevelGet, ControlDataFlags.UserHandledEvents, Nothing), _
+                        New FakeAllConfigurationsPropertyControlData(_objectCache, VsProjPropId.VBPROJPROPID_TreatWarningsAsErrors, "TreatWarningsAsErrors", Me.WarningsAsErrorCheckBox, Nothing, Nothing, ControlDataFlags.UserHandledEvents, Nothing), _
+                        New FakeAllConfigurationsPropertyControlData(_objectCache, VsProjPropId.VBPROJPROPID_RegisterForComInterop, "RegisterForComInterop", Me.RegisterForComInteropCheckBox, Nothing, Nothing, ControlDataFlags.UserHandledEvents, Nothing), _
                         New PropertyControlData(VsProjPropId80.VBPROJPROPID_ComVisible, "ComVisible", Nothing, AddressOf Me.ComVisibleSet, AddressOf Me.ComVisibleGet, ControlDataFlags.Hidden Or ControlDataFlags.PersistedInAssemblyInfoFile), _
                         New PropertyControlData(VsProjPropId80.VBPROJPROPID_PlatformTarget, "PlatformTarget", Me.TargetCPUComboBox, AddressOf PlatformTargetSet, AddressOf PlatformTargetGet, ControlDataFlags.None, New Control() {TargetCPULabel}), _
                         New PropertyControlData(VsProjPropId110.VBPROJPROPID_Prefer32Bit, "Prefer32Bit", Me.Prefer32BitCheckBox, AddressOf Prefer32BitSet, AddressOf Prefer32BitGet) _
@@ -593,10 +595,10 @@ Namespace Microsoft.VisualStudio.Editors.PropertyPages
         Private Function DocumentationFileNameGet(ByVal control As Control, ByVal prop As PropertyDescriptor, ByRef value As Object) As Boolean
             Select Case GenerateXMLCheckBox.CheckState
                 Case CheckState.Checked
-                    If String.IsNullOrEmpty(TryCast(m_generateXmlDocumentation, String)) Then
-                        m_generateXmlDocumentation = ProjectProperties.AssemblyName & ".xml"
+                    If String.IsNullOrEmpty(TryCast(_generateXmlDocumentation, String)) Then
+                        _generateXmlDocumentation = ProjectProperties.AssemblyName & ".xml"
                     End If
-                    value = m_generateXmlDocumentation
+                    value = _generateXmlDocumentation
                 Case CheckState.Unchecked
                     value = ""
                 Case Else
@@ -607,10 +609,10 @@ Namespace Microsoft.VisualStudio.Editors.PropertyPages
         End Function
 
         Private Function DocumentationFileNameSet(ByVal control As Control, ByVal prop As PropertyDescriptor, ByVal value As Object) As Boolean
-            If m_settingGenerateXmlDocumentation Then
+            If _settingGenerateXmlDocumentation Then
                 Return False
             End If
-            m_settingGenerateXmlDocumentation = True
+            _settingGenerateXmlDocumentation = True
             Try
                 If PropertyControlData.IsSpecialValue(value) Then
                     GenerateXMLCheckBox.CheckState = CheckState.Indeterminate
@@ -621,10 +623,10 @@ Namespace Microsoft.VisualStudio.Editors.PropertyPages
                 End If
 
                 ' Store this value off for later...
-                m_generateXmlDocumentation = value
+                _generateXmlDocumentation = value
                 Return True
             Finally
-                m_settingGenerateXmlDocumentation = False
+                _settingGenerateXmlDocumentation = False
             End Try
         End Function
 
@@ -642,8 +644,8 @@ Namespace Microsoft.VisualStudio.Editors.PropertyPages
         ''' <returns></returns>
         ''' <remarks></remarks>
         Private Function NoWarnGet(ByVal control As Control, ByVal prop As PropertyDescriptor, ByRef value As Object) As Boolean
-            If m_noWarn IsNot Nothing Then
-                value = ConcatenateNumbers(m_noWarn)
+            If _noWarn IsNot Nothing Then
+                value = ConcatenateNumbers(_noWarn)
                 Return True
             Else
                 Return False
@@ -662,13 +664,13 @@ Namespace Microsoft.VisualStudio.Editors.PropertyPages
         ''' <remarks></remarks>
         Private Function NoWarnSet(ByVal control As Control, ByVal prop As PropertyDescriptor, ByVal value As Object) As Boolean
             If value Is PropertyControlData.Indeterminate OrElse value Is PropertyControlData.MissingProperty Then
-                m_noWarn = Nothing
+                _noWarn = Nothing
             Else
                 If Not TypeOf value Is String Then
                     Debug.Fail("Expected a string value for property NoWarn")
                     Throw Common.CreateArgumentException("value")
                 End If
-                m_noWarn = SplitToNumbers(DirectCast(value, String))
+                _noWarn = SplitToNumbers(DirectCast(value, String))
             End If
             If Not m_fInsideInit Then
                 ' Settings this require us to update the warnings grid view...
@@ -690,8 +692,8 @@ Namespace Microsoft.VisualStudio.Editors.PropertyPages
         ''' <returns></returns>
         ''' <remarks></remarks>
         Private Function SpecWarnAsErrorGet(ByVal control As Control, ByVal prop As PropertyDescriptor, ByRef value As Object) As Boolean
-            Debug.Assert(m_specWarnAsError IsNot Nothing)
-            value = ConcatenateNumbers(m_specWarnAsError)
+            Debug.Assert(_specWarnAsError IsNot Nothing)
+            value = ConcatenateNumbers(_specWarnAsError)
             Return True
         End Function
 
@@ -707,13 +709,13 @@ Namespace Microsoft.VisualStudio.Editors.PropertyPages
         ''' <remarks></remarks>
         Private Function SpecWarnAsErrorSet(ByVal control As Control, ByVal prop As PropertyDescriptor, ByVal value As Object) As Boolean
             If value Is PropertyControlData.Indeterminate OrElse value Is PropertyControlData.MissingProperty Then
-                m_specWarnAsError = Nothing
+                _specWarnAsError = Nothing
             Else
                 If Not TypeOf value Is String Then
                     Debug.Fail("Expected a string value for property SpecWarnAsError")
                     Throw Common.CreateArgumentException("value")
                 End If
-                m_specWarnAsError = SplitToNumbers(DirectCast(value, String))
+                _specWarnAsError = SplitToNumbers(DirectCast(value, String))
             End If
             If Not m_fInsideInit Then
                 ' Changing this property requires us to update the warnings grid view...
@@ -770,7 +772,7 @@ Namespace Microsoft.VisualStudio.Editors.PropertyPages
 #Region "OptionStrict getter and setter"
         Private Function OptionStrictGet(ByVal control As Control, ByVal prop As PropertyDescriptor, ByRef value As Object) As Boolean
             Dim strValue As String = CStr(OptionStrictComboBox.SelectedItem)
-            If m_OptionStrictCustomText.Equals(strValue, System.StringComparison.Ordinal) Then
+            If _optionStrictCustomText.Equals(strValue, System.StringComparison.Ordinal) Then
                 value = VSLangProj.prjOptionStrict.prjOptionStrictOff
             Else
                 value = prop.Converter.ConvertFrom(strValue)
@@ -816,8 +818,8 @@ Namespace Microsoft.VisualStudio.Editors.PropertyPages
         ''' </summary>
         ''' <remarks></remarks>
         Public Overrides Sub SetObjects(ByVal objects() As Object)
-            If m_objectCache IsNot Nothing Then
-                m_objectCache.Reset(ProjectHierarchy, ServiceProvider, True)
+            If _objectCache IsNot Nothing Then
+                _objectCache.Reset(ProjectHierarchy, ServiceProvider, True)
             End If
             MyBase.SetObjects(objects)
         End Sub
@@ -830,8 +832,8 @@ Namespace Microsoft.VisualStudio.Editors.PropertyPages
         ''' but should *not* include a space when passed to the compiler/set the property value
         ''' </summary>
         ''' <remarks></remarks>
-        Private Const AnyCPUPropertyValue As String = "AnyCPU"
-        Private Const AnyCPUPlatformName As String = "Any CPU"
+        Private Const s_anyCPUPropertyValue As String = "AnyCPU"
+        Private Const s_anyCPUPlatformName As String = "Any CPU"
 
         ''' <summary>
         ''' Customizable processing done before the class has populated controls in the ControlData array
@@ -855,17 +857,17 @@ Namespace Microsoft.VisualStudio.Editors.PropertyPages
                 OptionStrictComboBox.Items.Clear()
                 For Each o As Object In _TypeConverter.GetStandardValues()
                     If CInt(o) = VSLangProj.prjOptionStrict.prjOptionStrictOn Then
-                        m_OptionStrictOnText = _TypeConverter.ConvertToString(o)
-                        OptionStrictComboBox.Items.Add(m_OptionStrictOnText)
+                        _optionStrictOnText = _TypeConverter.ConvertToString(o)
+                        OptionStrictComboBox.Items.Add(_optionStrictOnText)
                     ElseIf CInt(o) = VSLangProj.prjOptionStrict.prjOptionStrictOff Then
-                        m_OptionStrictOffText = _TypeConverter.ConvertToString(o)
-                        OptionStrictComboBox.Items.Add(m_OptionStrictOffText)
+                        _optionStrictOffText = _TypeConverter.ConvertToString(o)
+                        OptionStrictComboBox.Items.Add(_optionStrictOffText)
                     End If
                 Next
             End If
 
 
-            m_OptionStrictCustomText = SR.GetString(SR.PPG_Compile_OptionStrict_Custom)
+            _optionStrictCustomText = SR.GetString(SR.PPG_Compile_OptionStrict_Custom)
 
             Dim PlatformEntries As New List(Of String)
 
@@ -886,8 +888,8 @@ Namespace Microsoft.VisualStudio.Editors.PropertyPages
                             hr = cfgProv.GetSupportedPlatformNames(platformCount, platforms, actualPlatformCount)
                             If VSErrorHandler.Succeeded(hr) Then
                                 For platformNo As Integer = 0 To CInt(platformCount - 1)
-                                    If AnyCPUPlatformName.Equals(platforms(platformNo), StringComparison.Ordinal) Then
-                                        PlatformEntries.Add(AnyCPUPropertyValue)
+                                    If s_anyCPUPlatformName.Equals(platforms(platformNo), StringComparison.Ordinal) Then
+                                        PlatformEntries.Add(s_anyCPUPropertyValue)
                                     Else
                                         PlatformEntries.Add(platforms(platformNo))
                                     End If
@@ -955,7 +957,7 @@ Namespace Microsoft.VisualStudio.Editors.PropertyPages
         End Sub
 #End Region
 
-        Enum ErrorNotification
+        Public Enum ErrorNotification
             None
             Warning
             [Error]
@@ -978,7 +980,7 @@ Namespace Microsoft.VisualStudio.Editors.PropertyPages
             End Sub
         End Class
 
-        Private m_ErrorInfos As ErrorInfo() = { _
+        Private _errorInfos As ErrorInfo() = { _
             New ErrorInfo(SR.GetString(SR.PPG_Compile_42016), "42016,41999", ErrorNotification.None, True, New Integer() {42016, 41999}), _
             New ErrorInfo(SR.GetString(SR.PPG_Compile_42017_42018_42019), "42017,42018,42019,42032,42036", ErrorNotification.None, True, New Integer() {42017, 42018, 42019, 42032, 42036}), _
             New ErrorInfo(SR.GetString(SR.PPG_Compile_42020), "42020,42021,42022", ErrorNotification.None, True, New Integer() {42020, 42021, 42022}), _
@@ -991,8 +993,8 @@ Namespace Microsoft.VisualStudio.Editors.PropertyPages
             New ErrorInfo(SR.GetString(SR.PPG_Compile_42029), "42029,42031", ErrorNotification.None, False, New Integer() {42029, 42031})}
 
         Private Sub PopulateErrorList()
-            Dim NotificationColumn As DataGridViewComboBoxColumn = CType(Me.WarningsGridView.Columns.Item(NotifyColumnIndex), DataGridViewComboBoxColumn)
-            Dim ConditionColumn As DataGridViewTextBoxColumn = CType(Me.WarningsGridView.Columns.Item(ConditionColumnIndex), DataGridViewTextBoxColumn)
+            Dim NotificationColumn As DataGridViewComboBoxColumn = CType(Me.WarningsGridView.Columns.Item(s_notifyColumnIndex), DataGridViewComboBoxColumn)
+            Dim ConditionColumn As DataGridViewTextBoxColumn = CType(Me.WarningsGridView.Columns.Item(s_conditionColumnIndex), DataGridViewTextBoxColumn)
             Dim Index As Integer
             Dim row As DataGridViewRow
 
@@ -1000,14 +1002,14 @@ Namespace Microsoft.VisualStudio.Editors.PropertyPages
                 .Rows.Clear()
                 .ScrollBars = ScrollBars.Vertical
 
-                For Each ErrorInfo As ErrorInfo In m_ErrorInfos
+                For Each ErrorInfo As ErrorInfo In _errorInfos
                     Index = .Rows.Add(ErrorInfo.Title) ', NotificationText)
                     row = .Rows.Item(Index)
                     ErrorInfo.Index = Index
                 Next
 
-                .AutoResizeColumn(ConditionColumnIndex, DataGridViewAutoSizeColumnMode.DisplayedCells)
-                .AutoResizeColumn(NotifyColumnIndex, DataGridViewAutoSizeColumnMode.DisplayedCells)
+                .AutoResizeColumn(s_conditionColumnIndex, DataGridViewAutoSizeColumnMode.DisplayedCells)
+                .AutoResizeColumn(s_notifyColumnIndex, DataGridViewAutoSizeColumnMode.DisplayedCells)
                 .ColumnHeadersHeightSizeMode = DataGridViewColumnHeadersHeightSizeMode.AutoSize
                 .RowHeadersWidthSizeMode = DataGridViewRowHeadersWidthSizeMode.DisableResizing
             End With
@@ -1020,15 +1022,15 @@ Namespace Microsoft.VisualStudio.Editors.PropertyPages
 #Region "Helper methods to map UI values to properties"
 
         Private Function IsOptionStrictOn() As Boolean
-            Return (Me.m_OptionStrictOnText.Equals(CStr(Me.OptionStrictComboBox.SelectedItem), System.StringComparison.Ordinal))
+            Return (Me._optionStrictOnText.Equals(CStr(Me.OptionStrictComboBox.SelectedItem), System.StringComparison.Ordinal))
         End Function
 
         Private Function IsOptionStrictOff() As Boolean
-            Return (Me.m_OptionStrictOffText.Equals(CStr(Me.OptionStrictComboBox.SelectedItem), System.StringComparison.Ordinal))
+            Return (Me._optionStrictOffText.Equals(CStr(Me.OptionStrictComboBox.SelectedItem), System.StringComparison.Ordinal))
         End Function
 
         Private Function IsOptionStrictCustom() As Boolean
-            Return (Me.m_OptionStrictCustomText.Equals(CStr(Me.OptionStrictComboBox.SelectedItem), System.StringComparison.Ordinal))
+            Return (Me._optionStrictCustomText.Equals(CStr(Me.OptionStrictComboBox.SelectedItem), System.StringComparison.Ordinal))
         End Function
 
         Private Function TreatAllWarningsAsErrors() As Boolean
@@ -1058,11 +1060,11 @@ Namespace Microsoft.VisualStudio.Editors.PropertyPages
                     Return True
                 End If
 
-                If m_noWarn Is Nothing Then
+                If _noWarn Is Nothing Then
                     Return True
                 End If
 
-                If m_specWarnAsError Is Nothing Then
+                If _specWarnAsError Is Nothing Then
                     Return True
                 End If
 
@@ -1088,7 +1090,7 @@ Namespace Microsoft.VisualStudio.Editors.PropertyPages
         ''' <param name="e"></param>
         ''' <remarks></remarks>
         Private Sub WarningsGridView_CellFormatting(ByVal sender As Object, ByVal e As System.Windows.Forms.DataGridViewCellFormattingEventArgs) Handles WarningsGridView.CellFormatting
-            If e.ColumnIndex = NotifyColumnIndex Then
+            If e.ColumnIndex = s_notifyColumnIndex Then
                 ' If either this is in an indeterminate state because we have different warning levels 
                 ' in different configurations, or if the current value is indeterminate (DBNull) because
                 ' only a subset of the values the make up this row's set of warning id's were included in
@@ -1097,7 +1099,7 @@ Namespace Microsoft.VisualStudio.Editors.PropertyPages
                 If e.Value Is DBNull.Value Then
                     isBlankCell = True
                 ElseIf IndeterminateWarningsState Then
-                    If Not m_ErrorInfos(e.RowIndex).ErrorOnOptionStrict OrElse IsOptionStrictCustom() Then
+                    If Not _errorInfos(e.RowIndex).ErrorOnOptionStrict OrElse IsOptionStrictCustom() Then
                         isBlankCell = True
                     End If
                 End If
@@ -1134,7 +1136,7 @@ Namespace Microsoft.VisualStudio.Editors.PropertyPages
             If Not m_fInsideInit Then
                 If RegisterForComInteropCheckBox.Checked Then
                     ' Whenever the user checks the register for Com interop, we should also set the COM visible property
-                    m_comVisible = True
+                    _comVisible = True
                     SetDirty(VsProjPropId80.VBPROJPROPID_ComVisible, False)
                 End If
                 SetDirty(VsProjPropId.VBPROJPROPID_RegisterForComInterop, True)
@@ -1152,7 +1154,7 @@ Namespace Microsoft.VisualStudio.Editors.PropertyPages
         ''' <remarks>
         ''' </remarks>
         Private Function ComVisibleGet(ByVal control As Control, ByVal prop As PropertyDescriptor, ByRef value As Object) As Boolean
-            value = m_comVisible
+            value = _comVisible
             Return True
         End Function
 
@@ -1165,7 +1167,7 @@ Namespace Microsoft.VisualStudio.Editors.PropertyPages
         ''' <returns></returns>
         ''' <remarks></remarks>
         Private Function ComVisibleSet(ByVal control As Control, ByVal prop As PropertyDescriptor, ByVal value As Object) As Boolean
-            m_comVisible = value
+            _comVisible = value
             Return True
         End Function
 
@@ -1202,12 +1204,12 @@ Namespace Microsoft.VisualStudio.Editors.PropertyPages
                 Exit Sub
             End If
 
-            Dim savedRefreshingWarningsList As Boolean = m_refreshingWarningsList
+            Dim savedRefreshingWarningsList As Boolean = _refreshingWarningsList
             If savedRefreshingWarningsList Then
                 Debug.Fail("Recursive update of warnings list...")
             End If
             Try
-                m_refreshingWarningsList = True
+                _refreshingWarningsList = True
                 If WarningsGridView.IsCurrentCellInEditMode Then
                     WarningsGridView.CancelEdit()
                     WarningsGridView.CurrentCell = Nothing
@@ -1216,46 +1218,46 @@ Namespace Microsoft.VisualStudio.Editors.PropertyPages
                 Dim rows As DataGridViewRowCollection = Me.WarningsGridView.Rows
                 Dim ComboboxCell As DataGridViewComboBoxCell
 
-                For Each ErrorInfo As ErrorInfo In m_ErrorInfos
+                For Each ErrorInfo As ErrorInfo In _errorInfos
                     Dim row As DataGridViewRow = rows.Item(ErrorInfo.Index)
 
-                    ComboboxCell = DirectCast(row.Cells(NotifyColumnIndex), DataGridViewComboBoxCell)
+                    ComboboxCell = DirectCast(row.Cells(s_notifyColumnIndex), DataGridViewComboBoxCell)
 
                     'Check for this error in NoWarn.Text or SpecWarnAsErrorTextBox.Text
                     If IsOptionStrictOn() AndAlso ErrorInfo.ErrorOnOptionStrict Then
                         ' Option Strict ON overrides everything below
-                        ComboboxCell.Value = NotifyError
+                        ComboboxCell.Value = _notifyError
                     ElseIf DisableAllWarnings() Then
                         ' If the DisableAllWarnings checkbox is checked we will set this guy to NotifyNone
                         ' and not care about warning levels for specific warnings...
-                        ComboboxCell.Value = NotifyNone
-                    ElseIf TreatAllWarningsAsErrors() AndAlso m_noWarn IsNot Nothing AndAlso AreNumbersInList(m_noWarn, ErrorInfo.ErrList) = TriState.False Then
+                        ComboboxCell.Value = _notifyNone
+                    ElseIf TreatAllWarningsAsErrors() AndAlso _noWarn IsNot Nothing AndAlso AreNumbersInList(_noWarn, ErrorInfo.ErrList) = TriState.False Then
                         ' If the TreatWarningsAsErrors checkbox is checked we will set this guy to NotifyError
                         ' (since we already know that DisableAllWarnings wasn't checked)
-                        ComboboxCell.Value = NotifyError
+                        ComboboxCell.Value = _notifyError
                     Else
                         ' If none of the above, we have to check the lists of specific errors to
                         ' ignore/report as errors
                         Dim IsNoWarn, IsWarnAsError As TriState
-                        If m_noWarn IsNot Nothing Then
-                            IsNoWarn = AreNumbersInList(m_noWarn, ErrorInfo.ErrList)
+                        If _noWarn IsNot Nothing Then
+                            IsNoWarn = AreNumbersInList(_noWarn, ErrorInfo.ErrList)
                         Else
                             IsNoWarn = TriState.UseDefault
                         End If
 
-                        If m_specWarnAsError IsNot Nothing Then
-                            IsWarnAsError = AreNumbersInList(m_specWarnAsError, ErrorInfo.ErrList)
+                        If _specWarnAsError IsNot Nothing Then
+                            IsWarnAsError = AreNumbersInList(_specWarnAsError, ErrorInfo.ErrList)
                         Else
                             IsWarnAsError = TriState.UseDefault
                         End If
 
                         'NOTE: Order of test is important
                         If IsNoWarn = TriState.True Then
-                            ComboboxCell.Value = NotifyNone
+                            ComboboxCell.Value = _notifyNone
                         ElseIf IsWarnAsError = TriState.True AndAlso IsNoWarn <> TriState.UseDefault Then
-                            ComboboxCell.Value = NotifyError
+                            ComboboxCell.Value = _notifyError
                         ElseIf IsNoWarn = TriState.False AndAlso IsWarnAsError = TriState.False Then
-                            ComboboxCell.Value = NotifyWarning
+                            ComboboxCell.Value = _notifyWarning
                         Else
                             ComboboxCell.Value = System.DBNull.Value
                         End If
@@ -1265,7 +1267,7 @@ Namespace Microsoft.VisualStudio.Editors.PropertyPages
                 QueueUpdateOptionStrictComboBox()
 
             Finally
-                m_refreshingWarningsList = savedRefreshingWarningsList
+                _refreshingWarningsList = savedRefreshingWarningsList
             End Try
         End Sub
 
@@ -1467,7 +1469,7 @@ Namespace Microsoft.VisualStudio.Editors.PropertyPages
         End Sub
 
         Private Sub GenerateXMLCheckBox_CheckStateChanged(ByVal sender As Object, ByVal e As System.EventArgs) Handles GenerateXMLCheckBox.CheckStateChanged
-            If Not m_fInsideInit AndAlso Not m_settingGenerateXmlDocumentation Then
+            If Not m_fInsideInit AndAlso Not _settingGenerateXmlDocumentation Then
                 Me.SetDirty(VsProjPropId.VBPROJPROPID_DocumentationFile, True)
             End If
         End Sub
@@ -1481,7 +1483,7 @@ Namespace Microsoft.VisualStudio.Editors.PropertyPages
                 Me.TargetCPUComboBox.SelectedIndex = -1
             Else
                 If (IsNothing(TryCast(value, String)) OrElse TryCast(value, String) = "") Then
-                    Me.TargetCPUComboBox.SelectedItem = AnyCPUPropertyValue
+                    Me.TargetCPUComboBox.SelectedItem = s_anyCPUPropertyValue
                 Else
                     Me.TargetCPUComboBox.SelectedItem = TryCast(value, String)
                 End If
@@ -1503,10 +1505,10 @@ Namespace Microsoft.VisualStudio.Editors.PropertyPages
         ''' <returns></returns>
         ''' <remarks></remarks>
         Private Function IsSameAsOptionStrictOff() As Boolean
-            If m_specWarnAsError IsNot Nothing AndAlso _
-               m_noWarn IsNot Nothing AndAlso _
-               AreNumbersInList(m_noWarn, m_OptionStrictIDs) = TriState.True AndAlso _
-               AreNumbersInList(m_specWarnAsError, m_OptionStrictIDs) = TriState.False _
+            If _specWarnAsError IsNot Nothing AndAlso _
+               _noWarn IsNot Nothing AndAlso _
+               AreNumbersInList(_noWarn, _optionStrictIDs) = TriState.True AndAlso _
+               AreNumbersInList(_specWarnAsError, _optionStrictIDs) = TriState.False _
             Then
                 Return True
             Else
@@ -1521,10 +1523,10 @@ Namespace Microsoft.VisualStudio.Editors.PropertyPages
         ''' <returns></returns>
         ''' <remarks></remarks>
         Private Function IsSameAsOptionStrictOn() As Boolean
-            If m_specWarnAsError IsNot Nothing AndAlso _
-               m_noWarn IsNot Nothing AndAlso _
-               AreNumbersInList(m_specWarnAsError, m_OptionStrictIDs) = TriState.True AndAlso _
-               AreNumbersInList(m_noWarn, m_OptionStrictIDs) = TriState.False _
+            If _specWarnAsError IsNot Nothing AndAlso _
+               _noWarn IsNot Nothing AndAlso _
+               AreNumbersInList(_specWarnAsError, _optionStrictIDs) = TriState.True AndAlso _
+               AreNumbersInList(_noWarn, _optionStrictIDs) = TriState.False _
             Then
                 Return True
             Else
@@ -1545,7 +1547,7 @@ Namespace Microsoft.VisualStudio.Editors.PropertyPages
         Private Sub UpdatePropertiesFromCurrentState()
             ' If we are inside init, we are in the process of updating the list or if we have set
             ' a "global" treatment of (disable all warnings/treat all warnings as errors) we skip the actual set...
-            If Not (m_fInsideInit OrElse m_refreshingWarningsList OrElse TreatAllWarningsAsErrors() OrElse DisableAllWarnings()) Then
+            If Not (m_fInsideInit OrElse _refreshingWarningsList OrElse TreatAllWarningsAsErrors() OrElse DisableAllWarnings()) Then
                 'Get/Set the entire property set
                 'Enumerate the rows and get the values to write
                 Dim cell As DataGridViewCell
@@ -1559,52 +1561,52 @@ Namespace Microsoft.VisualStudio.Editors.PropertyPages
                 For Index As Integer = 0 To WarningsGridView.Rows.Count - 1
                     cell = Me.WarningsGridView.Rows.Item(Index).Cells.Item(1)
                     CellValue = DirectCast(cell.EditedFormattedValue, String)
-                    Dim Numbers As String = m_ErrorInfos(Index).Numbers
+                    Dim Numbers As String = _errorInfos(Index).Numbers
                     If Numbers <> "" Then
-                        If CellValue.Equals(NotifyNone) Then
-                            For Each err As Integer In m_ErrorInfos(Index).ErrList
+                        If CellValue.Equals(_notifyNone) Then
+                            For Each err As Integer In _errorInfos(Index).ErrList
                                 NoNotifyList.Add(err)
                             Next
-                        ElseIf CellValue.Equals(NotifyError) Then
-                            For Each err As Integer In m_ErrorInfos(Index).ErrList
+                        ElseIf CellValue.Equals(_notifyError) Then
+                            For Each err As Integer In _errorInfos(Index).ErrList
                                 ErrorsList.Add(err)
                             Next
                         ElseIf CellValue = "" Then
                             ' This is an indeterminate value - we should keep whatever we have in there
                             ' from before...
-                            If m_noWarn Is Nothing Then
+                            If _noWarn Is Nothing Then
                                 Debug.Fail("Why did we try to update properties from current set with an empty noWarn?")
-                                m_noWarn = New Integer() {}
+                                _noWarn = New Integer() {}
                             End If
-                            For Each err As Integer In Intersect(m_ErrorInfos(Index).ErrList, m_noWarn)
+                            For Each err As Integer In Intersect(_errorInfos(Index).ErrList, _noWarn)
                                 NoNotifyList.Add(err)
                             Next
-                            If m_specWarnAsError Is Nothing Then
+                            If _specWarnAsError Is Nothing Then
                                 Debug.Fail("Why did we try to update properties from current set with an empty specWarnAsError?")
-                                m_specWarnAsError = New Integer() {}
+                                _specWarnAsError = New Integer() {}
                             End If
-                            For Each err As Integer In Intersect(m_ErrorInfos(Index).ErrList, m_specWarnAsError)
+                            For Each err As Integer In Intersect(_errorInfos(Index).ErrList, _specWarnAsError)
                                 ErrorsList.Add(err)
                             Next
                         End If
                     End If
                 Next
 
-                m_noWarn = NoNotifyList.ToArray()
-                m_specWarnAsError = ErrorsList.ToArray()
+                _noWarn = NoNotifyList.ToArray()
+                _specWarnAsError = ErrorsList.ToArray()
 
-                System.Array.Sort(m_noWarn)
-                System.Array.Sort(m_specWarnAsError)
+                System.Array.Sort(_noWarn)
+                System.Array.Sort(_specWarnAsError)
 
                 ' Update option strict combobox...
                 Dim optionStrictChanged As Boolean = False
                 If (Not IsSameAsOptionStrictOn()) AndAlso IsOptionStrictOn() Then
-                    OptionStrictComboBox.SelectedIndex = OptionStrictComboBox.Items.IndexOf(m_OptionStrictOffText)
+                    OptionStrictComboBox.SelectedIndex = OptionStrictComboBox.Items.IndexOf(_optionStrictOffText)
                     optionStrictChanged = True
                     ' Potentially update option strict to "custom"
                 ElseIf IsSameAsOptionStrictOn() AndAlso (Not IsOptionStrictOn()) Then
                     optionStrictChanged = True
-                    OptionStrictComboBox.SelectedIndex = OptionStrictComboBox.Items.IndexOf(m_OptionStrictOnText)
+                    OptionStrictComboBox.SelectedIndex = OptionStrictComboBox.Items.IndexOf(_optionStrictOnText)
                 End If
 
                 QueueUpdateOptionStrictComboBox()
@@ -1626,13 +1628,13 @@ Namespace Microsoft.VisualStudio.Editors.PropertyPages
         Private Sub ResetOptionStrictness(ByVal Value As String)
             OptionStrictComboBox.SelectedItem = Value
             Select Case Value
-                Case m_OptionStrictOnText
-                    m_noWarn = RemoveItems(m_noWarn, m_OptionStrictIDs)
-                    m_specWarnAsError = Union(m_specWarnAsError, m_OptionStrictIDs)
-                Case m_OptionStrictOffText
-                    m_specWarnAsError = RemoveItems(m_specWarnAsError, m_OptionStrictIDs)
-                    m_noWarn = Union(m_noWarn, m_OptionStrictIDs)
-                Case m_OptionStrictCustomText
+                Case _optionStrictOnText
+                    _noWarn = RemoveItems(_noWarn, _optionStrictIDs)
+                    _specWarnAsError = Union(_specWarnAsError, _optionStrictIDs)
+                Case _optionStrictOffText
+                    _specWarnAsError = RemoveItems(_specWarnAsError, _optionStrictIDs)
+                    _noWarn = Union(_noWarn, _optionStrictIDs)
+                Case _optionStrictCustomText
                     ' Just leave things as they are...
                 Case Else
                     Debug.Fail("Unknown option strict level: " & Value)
@@ -1793,7 +1795,7 @@ Namespace Microsoft.VisualStudio.Editors.PropertyPages
         ''' <param name="e"></param>
         ''' <remarks></remarks>
         Private Sub NotificationLevelChanged(ByVal sender As Object, ByVal e As DataGridViewCellEventArgs) Handles WarningsGridView.CellValueChanged
-            If Not m_fInsideInit AndAlso Not m_refreshingWarningsList AndAlso e.RowIndex >= 0 AndAlso e.ColumnIndex = NotifyColumnIndex Then
+            If Not m_fInsideInit AndAlso Not _refreshingWarningsList AndAlso e.RowIndex >= 0 AndAlso e.ColumnIndex = s_notifyColumnIndex Then
                 UpdatePropertiesFromCurrentState()
             End If
         End Sub
@@ -1811,8 +1813,8 @@ Namespace Microsoft.VisualStudio.Editors.PropertyPages
             If IndeterminateWarningsState Then
                 'Prompt user for resetting settings...
                 If DesignerFramework.DesignUtil.ShowMessage(ServiceProvider, SR.GetString(SR.PPG_Compile_ResetIndeterminateWarningLevels), DesignerFramework.DesignUtil.GetDefaultCaption(ServiceProvider), MessageBoxButtons.OKCancel, MessageBoxIcon.Question) = DialogResult.OK Then
-                    m_noWarn = m_OptionStrictIDs
-                    m_specWarnAsError = New Integer() {}
+                    _noWarn = _optionStrictIDs
+                    _specWarnAsError = New Integer() {}
                     UpdateWarningList()
                 Else
                     e.Cancel = True
@@ -1852,36 +1854,36 @@ Namespace Microsoft.VisualStudio.Editors.PropertyPages
             ''' </summary>
             Friend Class ConfigurationObjectCache
                 ' Cached properties for the extended and raw config objects
-                Private m_extendedObjects() As Object
-                Private m_rawObjects() As Object
+                Private _extendedObjects() As Object
+                Private _rawObjects() As Object
 
                 ' Cached instance of our IVsCfgProvider2 instance
-                Private m_vscfgprovider As IVsCfgProvider2
+                Private _vscfgprovider As IVsCfgProvider2
 
                 ' Cached hierarchy
-                Private m_hierarchy As IVsHierarchy
+                Private _hierarchy As IVsHierarchy
 
                 ' Cached service provider
-                Private m_serviceProvider As IServiceProvider
+                Private _serviceProvider As IServiceProvider
 
                 ''' <summary>
                 ''' Create a new instance of
                 ''' </summary>
                 Friend Sub New(ByVal Hierarchy As IVsHierarchy, ByVal ServiceProvider As IServiceProvider)
-                    m_hierarchy = Hierarchy
-                    m_serviceProvider = ServiceProvider
+                    _hierarchy = Hierarchy
+                    _serviceProvider = ServiceProvider
                 End Sub
 
                 ''' <summary>
                 ''' Reset our cached values if we have a new hierarchy and/or serviceprovider
                 ''' </summary>
                 Friend Sub Reset(ByVal Hierarchy As IVsHierarchy, ByVal ServiceProvider As IServiceProvider, ByVal forceReset As Boolean)
-                    If forceReset OrElse m_hierarchy IsNot Hierarchy OrElse m_serviceProvider IsNot ServiceProvider Then
-                        m_hierarchy = Hierarchy
-                        m_serviceProvider = ServiceProvider
-                        m_extendedObjects = Nothing
-                        m_rawObjects = Nothing
-                        m_vscfgprovider = Nothing
+                    If forceReset OrElse _hierarchy IsNot Hierarchy OrElse _serviceProvider IsNot ServiceProvider Then
+                        _hierarchy = Hierarchy
+                        _serviceProvider = ServiceProvider
+                        _extendedObjects = Nothing
+                        _rawObjects = Nothing
+                        _vscfgprovider = Nothing
                     End If
                 End Sub
 
@@ -1892,13 +1894,13 @@ Namespace Microsoft.VisualStudio.Editors.PropertyPages
                 ''' <remarks></remarks>
                 Private ReadOnly Property VsCfgProvider() As IVsCfgProvider2
                     Get
-                        If m_vscfgprovider Is Nothing Then
+                        If _vscfgprovider Is Nothing Then
                             Dim Value As Object = Nothing
-                            VSErrorHandler.ThrowOnFailure(m_hierarchy.GetProperty(VSITEMID.ROOT, __VSHPROPID.VSHPROPID_ConfigurationProvider, Value))
-                            m_vscfgprovider = TryCast(Value, IVsCfgProvider2)
+                            VSErrorHandler.ThrowOnFailure(_hierarchy.GetProperty(VSITEMID.ROOT, __VSHPROPID.VSHPROPID_ConfigurationProvider, Value))
+                            _vscfgprovider = TryCast(Value, IVsCfgProvider2)
                         End If
-                        Debug.Assert(m_vscfgprovider IsNot Nothing, "Failed to get config provider")
-                        Return m_vscfgprovider
+                        Debug.Assert(_vscfgprovider IsNot Nothing, "Failed to get config provider")
+                        Return _vscfgprovider
                     End Get
                 End Property
 
@@ -1932,24 +1934,24 @@ Namespace Microsoft.VisualStudio.Editors.PropertyPages
                 ''' <remarks></remarks>
                 Friend ReadOnly Property ConfigExtendedPropertiesObjects() As Object()
                     Get
-                        If m_extendedObjects Is Nothing Then
+                        If _extendedObjects Is Nothing Then
                             Dim aem As Microsoft.VisualStudio.Editors.PropertyPages.AutomationExtenderManager
-                            aem = Microsoft.VisualStudio.Editors.PropertyPages.AutomationExtenderManager.GetAutomationExtenderManager(m_serviceProvider)
-                            m_extendedObjects = aem.GetExtendedObjects(ConfigRawPropertiesObjects)
-                            Debug.Assert(m_extendedObjects IsNot Nothing, "Extended objects unavailable")
+                            aem = Microsoft.VisualStudio.Editors.PropertyPages.AutomationExtenderManager.GetAutomationExtenderManager(_serviceProvider)
+                            _extendedObjects = aem.GetExtendedObjects(ConfigRawPropertiesObjects)
+                            Debug.Assert(_extendedObjects IsNot Nothing, "Extended objects unavailable")
                         End If
-                        Return m_extendedObjects
+                        Return _extendedObjects
                     End Get
                 End Property
             End Class
 
             ' Shared cache of raw & extended configuration objects
-            Private m_ConfigurationObjectCache As ConfigurationObjectCache
+            Private _configurationObjectCache As ConfigurationObjectCache
 
             ' Create a new instance
             Public Sub New(ByVal ConfigurationObjectCache As ConfigurationObjectCache, ByVal id As Integer, ByVal name As String, ByVal control As Control, ByVal setter As SetDelegate, ByVal getter As GetDelegate, ByVal flags As ControlDataFlags, ByVal AssocControls As System.Windows.Forms.Control())
                 MyBase.New(id, name, control, setter, getter, flags, AssocControls)
-                m_ConfigurationObjectCache = ConfigurationObjectCache
+                _configurationObjectCache = ConfigurationObjectCache
             End Sub
 
             ''' <summary>
@@ -1960,7 +1962,7 @@ Namespace Microsoft.VisualStudio.Editors.PropertyPages
             ''' <remarks></remarks>
             Public Overrides ReadOnly Property RawPropertiesObjects() As Object()
                 Get
-                    Return m_ConfigurationObjectCache.ConfigRawPropertiesObjects()
+                    Return _configurationObjectCache.ConfigRawPropertiesObjects()
                 End Get
             End Property
 
@@ -1972,7 +1974,7 @@ Namespace Microsoft.VisualStudio.Editors.PropertyPages
             ''' <remarks></remarks>
             Public Overrides ReadOnly Property ExtendedPropertiesObjects() As Object()
                 Get
-                    Return m_ConfigurationObjectCache.ConfigExtendedPropertiesObjects()
+                    Return _configurationObjectCache.ConfigExtendedPropertiesObjects()
                 End Get
             End Property
 

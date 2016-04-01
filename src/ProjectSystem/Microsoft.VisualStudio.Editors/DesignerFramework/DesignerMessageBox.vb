@@ -1,3 +1,5 @@
+' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+
 Imports Microsoft.VisualStudio.Shell.Interop
 Imports System.Windows.Forms
 Imports System.Windows.Forms.Design
@@ -14,7 +16,7 @@ Namespace Microsoft.VisualStudio.Editors.DesignerFramework
     ' This class is converted from <DD>\wizard\vsdesigner\designer\microsoft\vsdesigner\VSDMessageBox.cs.
     Friend Class DesignerMessageBox
 
-        Private Const MaxErrorMessageLength As Integer = 600
+        Private Const s_maxErrorMessageLength As Integer = 600
 
         '= FRIEND =============================================================
 
@@ -92,8 +94,8 @@ Namespace Microsoft.VisualStudio.Editors.DesignerFramework
                 End If
 
                 ' limit the length of message to prevent a bad layout.
-                If Message.Length > MaxErrorMessageLength Then
-                    Message = Message.Substring(0, MaxErrorMessageLength)
+                If Message.Length > s_maxErrorMessageLength Then
+                    Message = Message.Substring(0, s_maxErrorMessageLength)
                 End If
             Else
                 Debug.Assert(Message <> "")
@@ -244,7 +246,7 @@ Namespace Microsoft.VisualStudio.Editors.DesignerFramework
                 Case MessageBoxIcon.Exclamation
                     'case MessageBoxIcon.Warning:
                     Return OLEMSGICON.OLEMSGICON_WARNING
-                    'case MessageBoxIcon.Asterisk:
+                'case MessageBoxIcon.Asterisk:
                 Case MessageBoxIcon.Information
                     Return OLEMSGICON.OLEMSGICON_INFO
                 Case MessageBoxIcon.Question

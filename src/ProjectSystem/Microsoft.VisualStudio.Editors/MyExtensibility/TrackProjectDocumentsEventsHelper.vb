@@ -1,4 +1,6 @@
-﻿Option Strict On
+﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+
+Option Strict On
 Option Explicit On
 Imports Microsoft.VisualStudio.Shell.Interop
 Imports Microsoft.VisualStudio.Editors.Interop
@@ -27,12 +29,12 @@ Namespace Microsoft.VisualStudio.Editors.MyExtensibility
         ''' Stop listening to IVsTrackProjectDocumentsEvents2
         ''' </summary>
         Public Sub UnAdviseTrackProjectDocumentsEvents()
-            If m_vsTrackProjectDocumentsEventsCookie <> 0 Then
-                If m_vsTrackProjectDocuments IsNot Nothing Then
-                    m_vsTrackProjectDocuments.UnadviseTrackProjectDocumentsEvents(m_vsTrackProjectDocumentsEventsCookie)
-                    m_vsTrackProjectDocuments = Nothing
+            If _vsTrackProjectDocumentsEventsCookie <> 0 Then
+                If _vsTrackProjectDocuments IsNot Nothing Then
+                    _vsTrackProjectDocuments.UnadviseTrackProjectDocumentsEvents(_vsTrackProjectDocumentsEventsCookie)
+                    _vsTrackProjectDocuments = Nothing
                 End If
-                m_vsTrackProjectDocumentsEventsCookie = 0
+                _vsTrackProjectDocumentsEventsCookie = 0
             End If
         End Sub
 
@@ -41,17 +43,17 @@ Namespace Microsoft.VisualStudio.Editors.MyExtensibility
                 Throw New ArgumentNullException("serviceProvider")
             End If
 
-            m_ServiceProvider = serviceProvider
+            _serviceProvider = serviceProvider
 
-            m_vsTrackProjectDocuments = TryCast(m_ServiceProvider.GetService(GetType(SVsTrackProjectDocuments)), _
+            _vsTrackProjectDocuments = TryCast(_serviceProvider.GetService(GetType(SVsTrackProjectDocuments)), _
                 IVsTrackProjectDocuments2)
-            If m_vsTrackProjectDocuments Is Nothing Then
+            If _vsTrackProjectDocuments Is Nothing Then
                 Throw New Exception("Could not get IVsTrackProjectDocuments2!")
             End If
 
             ErrorHandler.ThrowOnFailure( _
-                m_vsTrackProjectDocuments.AdviseTrackProjectDocumentsEvents(Me, m_vsTrackProjectDocumentsEventsCookie))
-            Debug.Assert(m_vsTrackProjectDocumentsEventsCookie <> 0)
+                _vsTrackProjectDocuments.AdviseTrackProjectDocumentsEvents(Me, _vsTrackProjectDocumentsEventsCookie))
+            Debug.Assert(_vsTrackProjectDocumentsEventsCookie <> 0)
         End Sub
 
 #Region " IVsTrackProjectDocumentsEvents2 methods that are handled "
@@ -117,8 +119,8 @@ Namespace Microsoft.VisualStudio.Editors.MyExtensibility
 
 #End Region
 
-        Private m_ServiceProvider As IServiceProvider
-        Private m_vsTrackProjectDocuments As IVsTrackProjectDocuments2
-        Private m_vsTrackProjectDocumentsEventsCookie As UInteger
+        Private _serviceProvider As IServiceProvider
+        Private _vsTrackProjectDocuments As IVsTrackProjectDocuments2
+        Private _vsTrackProjectDocumentsEventsCookie As UInteger
     End Class
 End Namespace

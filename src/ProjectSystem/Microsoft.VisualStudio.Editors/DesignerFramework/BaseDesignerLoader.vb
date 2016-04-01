@@ -1,3 +1,5 @@
+' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+
 Option Strict On
 Option Explicit On
 
@@ -15,7 +17,7 @@ Namespace Microsoft.VisualStudio.Editors.DesignerFramework
         Inherits BasicDesignerLoader
         Implements IVsTextBufferDataEvents, IVsRunningDocTableEvents2, IDisposable
 
-        Private m_SourceCodeControlManager As SourceCodeControlManager
+        Private _sourceCodeControlManager As SourceCodeControlManager
 
         'We use the DesignerDocDataService class as a cheap way of getting check-in/out behavior.  See
         '  the Modify property.  We let it manage our DocData as its "primary" (in this case, only)
@@ -27,8 +29,8 @@ Namespace Microsoft.VisualStudio.Editors.DesignerFramework
         Protected WithEvents m_WindowEvents As EnvDTE.WindowEvents
 
         ' Support readOnly mode...
-        Private m_ReadOnlyMode As Boolean
-        Private m_ReadOnlyPrompt As String
+        Private _readOnlyMode As Boolean
+        Private _readOnlyPrompt As String
 
 
         ''' <summary>
@@ -46,13 +48,13 @@ Namespace Microsoft.VisualStudio.Editors.DesignerFramework
         '''   were to happen in the middle of things.
         ''' </remarks>
         Friend Overridable Sub ManualCheckOut(ByRef ProjectReloaded As Boolean)
-            If m_ReadOnlyMode Then
-                Throw New ApplicationException(m_ReadOnlyPrompt)
+            If _readOnlyMode Then
+                Throw New ApplicationException(_readOnlyPrompt)
             End If
 
             Try
                 If ManagingDynamicSetOfFiles Then
-                    m_SourceCodeControlManager.ManagedFiles = FilesToCheckOut
+                    _sourceCodeControlManager.ManagedFiles = FilesToCheckOut
                 End If
 
                 Dim RootDesigner As IRootDesigner = Nothing
@@ -72,7 +74,7 @@ Namespace Microsoft.VisualStudio.Editors.DesignerFramework
                 End If
                 Try
 
-                    m_SourceCodeControlManager.EnsureFilesEditable()
+                    _sourceCodeControlManager.EnsureFilesEditable()
 
                 Finally
                     If View IsNot Nothing Then
@@ -94,14 +96,14 @@ Namespace Microsoft.VisualStudio.Editors.DesignerFramework
         ''' <returns></returns>
         ''' <remarks></remarks>
         Friend Overridable Function OkToEdit() As Boolean
-            If m_ReadOnlyMode Then
+            If _readOnlyMode Then
                 Return False
             End If
 
             If ManagingDynamicSetOfFiles Then
-                m_SourceCodeControlManager.ManagedFiles = FilesToCheckOut
+                _sourceCodeControlManager.ManagedFiles = FilesToCheckOut
             End If
-            Return m_SourceCodeControlManager.AreFilesEditable()
+            Return _sourceCodeControlManager.AreFilesEditable()
         End Function
 
         ''' <summary>
@@ -142,8 +144,8 @@ Namespace Microsoft.VisualStudio.Editors.DesignerFramework
         ''' <param name="Message"></param>
         ''' <remarks></remarks>
         Friend Sub SetReadOnlyMode(ByVal ReadOnlyMode As Boolean, ByVal Message As String)
-            m_ReadOnlyMode = ReadOnlyMode
-            m_ReadOnlyPrompt = Message
+            _readOnlyMode = ReadOnlyMode
+            _readOnlyPrompt = Message
         End Sub
 
 
@@ -177,9 +179,9 @@ Namespace Microsoft.VisualStudio.Editors.DesignerFramework
             HandleFlush(SerializationManager)
         End Sub
 
-        Private m_LoadDeferred As Boolean = False
-        Private m_DeferredLoaderService As IDesignerLoaderService
-        Private m_DeferredLoadManager As IDesignerSerializationManager
+        Private _loadDeferred As Boolean = False
+        Private _deferredLoaderService As IDesignerLoaderService
+        Private _deferredLoadManager As IDesignerSerializationManager
         Protected NotOverridable Overrides Sub PerformLoad(ByVal SerializationManager As IDesignerSerializationManager)
             ' Are we aready loaded?  If not, then we must defer the entire process for later.
             '
@@ -190,18 +192,18 @@ Namespace Microsoft.VisualStudio.Editors.DesignerFramework
                 '  tracking IVsTextBufferDataEvents.OnLoadCompleted(), at which point we'll call into this
                 '  function again.
 
-                Debug.Assert(Not m_LoadDeferred, "Load already deferred in PerformLoad()")
-                m_LoadDeferred = True
+                Debug.Assert(Not _loadDeferred, "Load already deferred in PerformLoad()")
+                _loadDeferred = True
 
-                m_DeferredLoaderService = DirectCast(GetService(GetType(IDesignerLoaderService)), IDesignerLoaderService)
-                If m_DeferredLoaderService Is Nothing Then
+                _deferredLoaderService = DirectCast(GetService(GetType(IDesignerLoaderService)), IDesignerLoaderService)
+                If _deferredLoaderService Is Nothing Then
                     Debug.Fail("Deferred load doc data requires support for IDesignerLoaderService")
                     Throw New NotSupportedException(SR.GetString(SR.DFX_IncompatibleBuffer))
                 End If
 
-                Debug.Assert(m_DeferredLoadManager Is Nothing)
-                m_DeferredLoadManager = SerializationManager
-                m_DeferredLoaderService.AddLoadDependency()
+                Debug.Assert(_deferredLoadManager Is Nothing)
+                _deferredLoadManager = SerializationManager
+                _deferredLoaderService.AddLoadDependency()
             Else
                 'The DocData has already been loaded.  We can go ahead with the actual deserialization.
 
@@ -216,7 +218,7 @@ Namespace Microsoft.VisualStudio.Editors.DesignerFramework
             End If
         End Sub
 
-        Private m_paneProviderService As DeferrableWindowPaneProviderServiceBase
+        Private _paneProviderService As DeferrableWindowPaneProviderServiceBase
         ''' <summary>
         ''' Provide a WindowPaneProviderService. Override if you want to provide a different provider pane
         ''' </summary>
@@ -224,14 +226,14 @@ Namespace Microsoft.VisualStudio.Editors.DesignerFramework
         ''' <remarks></remarks>
         Protected Overridable Function GetWindowPaneProviderService() As Microsoft.VisualStudio.Shell.Design.WindowPaneProviderService
             Try
-                If m_paneProviderService Is Nothing Then
-                    m_paneProviderService = New DeferrableWindowPaneProviderServiceBase(LoaderHost, Me.SupportToolbox)
+                If _paneProviderService Is Nothing Then
+                    _paneProviderService = New DeferrableWindowPaneProviderServiceBase(LoaderHost, Me.SupportToolbox)
                 End If
             Catch Ex As ObjectDisposedException
                 ' There is a slight possibility that the loader host is killed before we get a chance to try 
                 ' to register ourselves.... No problemos, just ignore!
             End Try
-            Return m_paneProviderService
+            Return _paneProviderService
         End Function
 
         Protected MustOverride Sub HandleFlush(ByVal SerializationManager As System.ComponentModel.Design.Serialization.IDesignerSerializationManager)
@@ -249,7 +251,7 @@ Namespace Microsoft.VisualStudio.Editors.DesignerFramework
             End Get
         End Property
 
-        Private m_VsTextBufferDataEventsCookie As Interop.NativeMethods.ConnectionPointCookie
+        Private _vsTextBufferDataEventsCookie As Interop.NativeMethods.ConnectionPointCookie
 
         Protected Sub SetAllBufferText(ByVal Text As String)
             Dim Writer As New DocDataTextWriter(m_DocData)
@@ -272,27 +274,27 @@ Namespace Microsoft.VisualStudio.Editors.DesignerFramework
         Protected WithEvents m_DocData As DocData
 
         'The "base" editor caption.  See SetBaseEditorCaption for more details.
-        Private m_BaseEditorCaption As String = Nothing
+        Private _baseEditorCaption As String = Nothing
 
         'The moniker of file that's loaded in the designer
-        Private m_Moniker As String = Nothing
+        Private _moniker As String = Nothing
 
-        Private m_Rdt As IVsRunningDocumentTable
-        Private m_RdtEventsCookie As UInteger
-        Private m_DocCookie As UInteger
-        Private m_ProjectItemid As UInteger
-        Private m_VsHierarchy As IVsHierarchy
-        Private m_punkDocData As Object
+        Private _rdt As IVsRunningDocumentTable
+        Private _rdtEventsCookie As UInteger
+        Private _docCookie As UInteger
+        Private _projectItemid As UInteger
+        Private _vsHierarchy As IVsHierarchy
+        Private _punkDocData As Object
 
         Friend ReadOnly Property VsHierarchy() As IVsHierarchy
             Get
-                Return m_VsHierarchy
+                Return _vsHierarchy
             End Get
         End Property
 
         Friend ReadOnly Property ProjectItemid() As System.UInt32
             Get
-                Return m_ProjectItemid
+                Return _projectItemid
             End Get
         End Property
 
@@ -341,7 +343,7 @@ Namespace Microsoft.VisualStudio.Editors.DesignerFramework
                 End If
 
                 UnadviseRunningDocTableEvents()
-                m_Rdt = Nothing
+                _rdt = Nothing
 
                 'Remove any services we proffered.
                 '
@@ -384,7 +386,7 @@ Namespace Microsoft.VisualStudio.Editors.DesignerFramework
         End Enum
 
         Public Function GetEditorCaption(ByVal Status As EditorCaptionState) As String
-            Dim Caption As String = m_BaseEditorCaption
+            Dim Caption As String = _baseEditorCaption
             If Caption Is Nothing Then
                 Caption = ""
             End If
@@ -407,9 +409,9 @@ Namespace Microsoft.VisualStudio.Editors.DesignerFramework
 
 
         Private Sub Disconnect()
-            If m_VsTextBufferDataEventsCookie IsNot Nothing Then
-                m_VsTextBufferDataEventsCookie.Disconnect()
-                m_VsTextBufferDataEventsCookie = Nothing
+            If _vsTextBufferDataEventsCookie IsNot Nothing Then
+                _vsTextBufferDataEventsCookie.Disconnect()
+                _vsTextBufferDataEventsCookie = Nothing
             End If
         End Sub
 
@@ -426,7 +428,7 @@ Namespace Microsoft.VisualStudio.Editors.DesignerFramework
             '  We pass it our punkDocData, and it wraps it with a new DocData class.  This DocData
             '  class is accessible as PrimaryDocData (in our case, it's the only doc data that the
             '  DesignerDocDataService instance will be handling).
-            m_DocDataService = New DesignerDocDataService(LoaderHost, m_VsHierarchy, m_ProjectItemid, m_punkDocData)
+            m_DocDataService = New DesignerDocDataService(LoaderHost, _vsHierarchy, _projectItemid, _punkDocData)
             m_DocData = m_DocDataService.PrimaryDocData
 
             Dim WindowPaneProviderSvc As Microsoft.VisualStudio.Shell.Design.WindowPaneProviderService = GetWindowPaneProviderService()
@@ -458,10 +460,10 @@ Namespace Microsoft.VisualStudio.Editors.DesignerFramework
                 moniker = String.Empty
             End If
 
-            m_Moniker = moniker
-            m_VsHierarchy = Hierarchy
-            m_ProjectItemid = ItemId
-            m_punkDocData = punkDocData
+            _moniker = moniker
+            _vsHierarchy = Hierarchy
+            _projectItemid = ItemId
+            _punkDocData = punkDocData
 
             'Get the WindowEvents object
             m_WindowEvents = ProjectItem.DTE.Events.WindowEvents
@@ -479,7 +481,7 @@ Namespace Microsoft.VisualStudio.Editors.DesignerFramework
             If TypeOf punkDocData Is TextManager.Interop.IVsTextStream Then
                 Dim TextStream As IVsTextStream = DirectCast(punkDocData, IVsTextStream)
                 If TextStream IsNot Nothing Then
-                    m_VsTextBufferDataEventsCookie = New Interop.NativeMethods.ConnectionPointCookie(TextStream, Me, GetType(IVsTextBufferDataEvents))
+                    _vsTextBufferDataEventsCookie = New Interop.NativeMethods.ConnectionPointCookie(TextStream, Me, GetType(IVsTextBufferDataEvents))
                 Else
                     Debug.Fail("Huh?")
                 End If
@@ -504,19 +506,19 @@ Namespace Microsoft.VisualStudio.Editors.DesignerFramework
                 End If
             End If
 
-            m_SourceCodeControlManager = New SourceCodeControlManager(ServiceProvider, Hierarchy)
-            m_SourceCodeControlManager.ManagedFiles = FilesToCheckOut
+            _sourceCodeControlManager = New SourceCodeControlManager(ServiceProvider, Hierarchy)
+            _sourceCodeControlManager.ManagedFiles = FilesToCheckOut
         End Sub
 
         Public Overrides Sub BeginLoad(host As IDesignerLoaderHost)
             MyBase.BeginLoad(host)
 
             ' now that the base's BeginLoad has run, we can get services
-            m_Rdt = TryCast(GetService(GetType(IVsRunningDocumentTable)), IVsRunningDocumentTable)
-            Debug.Assert(m_Rdt IsNot Nothing, "Couldn't get running document table")
+            _rdt = TryCast(GetService(GetType(IVsRunningDocumentTable)), IVsRunningDocumentTable)
+            Debug.Assert(_rdt IsNot Nothing, "Couldn't get running document table")
 
             ' see if we can get the cookie from the RDT (it may not have been registered yet)
-            m_DocCookie = GetDocCookie(m_Moniker)
+            _docCookie = GetDocCookie(_moniker)
 
             ' sign up for events from the RDT
             AdviseRunningDocTableEvents()
@@ -530,7 +532,7 @@ Namespace Microsoft.VisualStudio.Editors.DesignerFramework
         '  If this default behavior is good enough, then BaseEditorCaption can be
         '  left at its default setting.
         Protected Sub SetBaseEditorCaption(ByVal Caption As String)
-            m_BaseEditorCaption = Caption
+            _baseEditorCaption = Caption
         End Sub
 
         Public Sub OnFileChanged(ByVal grfChange As UInteger, ByVal dwFileAttrs As UInteger) Implements TextManager.Interop.IVsTextBufferDataEvents.OnFileChanged
@@ -546,10 +548,10 @@ Namespace Microsoft.VisualStudio.Editors.DesignerFramework
         ' IPersistFile::InitNew. This event is also fired if the text buffer executes a reload of its file in response to
         ' an IVsTextBufferDataEvents::OnFileChanged event, as when a file is edited outside of the environment.
         Public Function OnLoadCompleted(ByVal fReload As Integer) As Integer Implements TextManager.Interop.IVsTextBufferDataEvents.OnLoadCompleted
-            If m_LoadDeferred Then
-                Debug.Assert(m_DeferredLoaderService IsNot Nothing)
+            If _loadDeferred Then
+                Debug.Assert(_deferredLoaderService IsNot Nothing)
 
-                m_LoadDeferred = False
+                _loadDeferred = False
 
                 ' And now request the load.  We don't care about reloads here
                 ' because we're not loaded yet.
@@ -558,16 +560,16 @@ Namespace Microsoft.VisualStudio.Editors.DesignerFramework
                 Dim Successful As Boolean = True
 
                 Try
-                    PerformLoad(m_DeferredLoadManager)
+                    PerformLoad(_deferredLoadManager)
                 Catch ex As Exception
                     Errors = New Object() {ex}
                     Successful = False
                 End Try
 
-                m_DeferredLoaderService.DependentLoadComplete(Successful, Errors)
-                If Not m_LoadDeferred Then
-                    m_DeferredLoaderService = Nothing
-                    m_DeferredLoadManager = Nothing
+                _deferredLoaderService.DependentLoadComplete(Successful, Errors)
+                If Not _loadDeferred Then
+                    _deferredLoaderService = Nothing
+                    _deferredLoadManager = Nothing
                 End If
             End If
         End Function
@@ -713,8 +715,8 @@ Namespace Microsoft.VisualStudio.Editors.DesignerFramework
         ''' </summary>
         ''' <remarks></remarks>
         Private Sub AdviseRunningDocTableEvents()
-            If m_Rdt IsNot Nothing Then
-                VSErrorHandler.ThrowOnFailure(m_Rdt.AdviseRunningDocTableEvents(Me, m_RdtEventsCookie))
+            If _rdt IsNot Nothing Then
+                VSErrorHandler.ThrowOnFailure(_rdt.AdviseRunningDocTableEvents(Me, _rdtEventsCookie))
             End If
         End Sub
 
@@ -723,11 +725,11 @@ Namespace Microsoft.VisualStudio.Editors.DesignerFramework
         ''' </summary>
         ''' <remarks></remarks>
         Private Sub UnadviseRunningDocTableEvents()
-            If m_RdtEventsCookie <> 0 Then
-                If m_Rdt IsNot Nothing Then
-                    VSErrorHandler.ThrowOnFailure(m_Rdt.UnadviseRunningDocTableEvents(m_RdtEventsCookie))
+            If _rdtEventsCookie <> 0 Then
+                If _rdt IsNot Nothing Then
+                    VSErrorHandler.ThrowOnFailure(_rdt.UnadviseRunningDocTableEvents(_rdtEventsCookie))
                 End If
-                m_RdtEventsCookie = 0
+                _rdtEventsCookie = 0
             End If
         End Sub
 
@@ -742,7 +744,7 @@ Namespace Microsoft.VisualStudio.Editors.DesignerFramework
             End If
 
             Dim docCookie As UInteger = 0
-            Dim rdt4 As IVsRunningDocumentTable4 = TryCast(m_Rdt, IVsRunningDocumentTable4)
+            Dim rdt4 As IVsRunningDocumentTable4 = TryCast(_rdt, IVsRunningDocumentTable4)
 
             If rdt4 IsNot Nothing Then
                 If rdt4.IsMonikerValid(filename) Then
@@ -761,7 +763,7 @@ Namespace Microsoft.VisualStudio.Editors.DesignerFramework
         ''' <param name="docCookie">The document's cookie</param>
         ''' <returns>The document's moniker</returns>
         Private Function GetDocumentMoniker(ByVal docCookie As UInteger) As String
-            Dim rdt4 As IVsRunningDocumentTable4 = TryCast(m_Rdt, IVsRunningDocumentTable4)
+            Dim rdt4 As IVsRunningDocumentTable4 = TryCast(_rdt, IVsRunningDocumentTable4)
             Dim moniker As String = String.Empty
 
             If rdt4 IsNot Nothing Then
@@ -801,40 +803,40 @@ Namespace Microsoft.VisualStudio.Editors.DesignerFramework
             Implements IVsRunningDocTableEvents2.OnAfterAttributeChangeEx
 
             ' if we don't have our cookie yet and a document is being initialized, see if it's ours
-            If (m_DocCookie = 0) AndAlso ((attributes And __VSRDTATTRIB3.RDTA_DocumentInitialized) <> 0) AndAlso (m_Moniker.Length > 0) Then
+            If (_docCookie = 0) AndAlso ((attributes And __VSRDTATTRIB3.RDTA_DocumentInitialized) <> 0) AndAlso (_moniker.Length > 0) Then
                 Dim moniker As String = GetDocumentMoniker(docCookie)
 
-                If PathEquals(m_Moniker, moniker) Then
-                    m_DocCookie = docCookie
+                If PathEquals(_moniker, moniker) Then
+                    _docCookie = docCookie
                 End If
             End If
 
             ' if this change was for our document, see if anything interesting changed
-            If m_DocCookie = docCookie Then
+            If _docCookie = docCookie Then
                 Dim updateProjectItemService As Boolean = False
 
                 ' if the hierarchy was updated, remember the new value
-                If ((attributes And __VSRDTATTRIB.RDTA_Hierarchy) <> 0) AndAlso (m_VsHierarchy Is hierOld) Then
-                    m_VsHierarchy = hierNew
+                If ((attributes And __VSRDTATTRIB.RDTA_Hierarchy) <> 0) AndAlso (_vsHierarchy Is hierOld) Then
+                    _vsHierarchy = hierNew
 
                     ' update the IVsHierarchy service with the new value
-                    UpdateService(GetType(IVsHierarchy), m_VsHierarchy)
+                    UpdateService(GetType(IVsHierarchy), _vsHierarchy)
 
                     ' the hierarchy is a component of the ProjectItem, so we need to update the ProejctItem service as well
                     updateProjectItemService = True
                 End If
 
                 ' if the itemid was updated, remember the new value
-                If ((attributes And __VSRDTATTRIB.RDTA_ItemID) <> 0) AndAlso (m_ProjectItemid = itemidOld) Then
-                    m_ProjectItemid = itemidNew
+                If ((attributes And __VSRDTATTRIB.RDTA_ItemID) <> 0) AndAlso (_projectItemid = itemidOld) Then
+                    _projectItemid = itemidNew
 
                     ' the project item ID is a component of the ProjectItem, so we need to update the ProejctItem service
                     updateProjectItemService = True
                 End If
 
                 ' if the filename was updated, remember the new value
-                If ((attributes And __VSRDTATTRIB.RDTA_MkDocument) <> 0) AndAlso PathEquals(m_Moniker, pszMkDocumentOld) Then
-                    m_Moniker = pszMkDocumentNew
+                If ((attributes And __VSRDTATTRIB.RDTA_MkDocument) <> 0) AndAlso PathEquals(_moniker, pszMkDocumentOld) Then
+                    _moniker = pszMkDocumentNew
                 End If
 
                 ' update the ProjectItem service if we need to

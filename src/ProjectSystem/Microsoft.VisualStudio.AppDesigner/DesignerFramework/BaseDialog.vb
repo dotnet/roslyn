@@ -1,3 +1,5 @@
+' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+
 Imports System.ComponentModel
 Imports System.Windows.Forms
 Imports System.Windows.Forms.Design
@@ -54,7 +56,7 @@ Namespace Microsoft.VisualStudio.Editors.AppDesDesignerFramework
                 Throw New ArgumentNullException("ServiceProvider")
             End If
 
-            Me.m_ServiceProvider = ServiceProvider
+            Me._serviceProvider = ServiceProvider
 
             ' Initialize default dialog settings
             KeyPreview = True
@@ -80,12 +82,12 @@ Namespace Microsoft.VisualStudio.Editors.AppDesDesignerFramework
             If Me.FormBorderStyle = System.Windows.Forms.FormBorderStyle.FixedDialog Then
                 Me.Icon = Nothing
             End If
-            If Me.m_UIService Is Nothing Then
-                Me.m_UIService = CType(GetService(GetType(IUIService)), IUIService)
+            If Me._UIService Is Nothing Then
+                Me._UIService = CType(GetService(GetType(IUIService)), IUIService)
             End If
 
-            If Not (Me.m_UIService Is Nothing) Then
-                Return Me.m_UIService.ShowDialog(Me)
+            If Not (Me._UIService Is Nothing) Then
+                Return Me._UIService.ShowDialog(Me)
             Else
                 Return MyBase.ShowDialog()
             End If
@@ -101,12 +103,12 @@ Namespace Microsoft.VisualStudio.Editors.AppDesDesignerFramework
         '**************************************************************************
         Public Property ServiceProvider() As IServiceProvider
             Get
-                Debug.Assert(m_ServiceProvider IsNot Nothing, "No service provider.  Did you call the wrong constructor?")
-                Return m_ServiceProvider
+                Debug.Assert(_serviceProvider IsNot Nothing, "No service provider.  Did you call the wrong constructor?")
+                Return _serviceProvider
             End Get
             Set(ByVal Value As IServiceProvider)
                 Debug.Assert(Value IsNot Nothing, "Bad service provider")
-                m_ServiceProvider = Value
+                _serviceProvider = Value
             End Set
         End Property
 
@@ -123,10 +125,10 @@ Namespace Microsoft.VisualStudio.Editors.AppDesDesignerFramework
         '**************************************************************************
         Protected Overridable Property F1Keyword() As String
             Get
-                Return m_HelpKeyword
+                Return _helpKeyword
             End Get
             Set(ByVal Value As String)
-                m_HelpKeyword = Value
+                _helpKeyword = Value
             End Set
         End Property
 
@@ -152,8 +154,8 @@ Namespace Microsoft.VisualStudio.Editors.AppDesDesignerFramework
         '   Shows the help topic for the dialog.
         '**************************************************************************
         Protected Sub ShowHelp()
-            If m_ServiceProvider IsNot Nothing AndAlso F1Keyword IsNot Nothing Then
-                DesignUtil.DisplayTopicFromF1Keyword(m_ServiceProvider, F1Keyword)
+            If _serviceProvider IsNot Nothing AndAlso F1Keyword IsNot Nothing Then
+                DesignUtil.DisplayTopicFromF1Keyword(_serviceProvider, F1Keyword)
             End If
         End Sub 'ShowHelp
 
@@ -266,9 +268,9 @@ Namespace Microsoft.VisualStudio.Editors.AppDesDesignerFramework
             End If
         End Sub 'OnHelpRequested
 
-        Private m_ServiceProvider As IServiceProvider
-        Private m_HelpKeyword As String
-        Private m_UIService As IUIService
+        Private _serviceProvider As IServiceProvider
+        Private _helpKeyword As String
+        Private _UIService As IUIService
 
     End Class
 

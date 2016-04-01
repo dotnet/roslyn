@@ -1,3 +1,5 @@
+' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+
 Imports System.Drawing
 Imports System.Windows.Forms
 Imports system.Windows.Forms.Design
@@ -8,8 +10,8 @@ Namespace Microsoft.VisualStudio.Editors.Package
     Public MustInherit Class ScalingDialogPage
         Inherits DialogPage
 
-        Private m_isInitialized As Boolean
-        Private m_isDirty As Boolean
+        Private _isInitialized As Boolean
+        Private _isDirty As Boolean
 
         ''' <summary>
         ''' Pick font to use in this dialog page
@@ -32,16 +34,16 @@ Namespace Microsoft.VisualStudio.Editors.Package
         Protected MustOverride Sub LoadSettings()
         Protected MustOverride Sub SaveSettings()
 
-        Private m_SettingsLoaded As Boolean = False
+        Private _settingsLoaded As Boolean = False
 
         ''' <summary>
         ''' If we haven't allready loaded our settings, do so!
         ''' </summary>
         ''' <remarks></remarks>
         Public Overrides Sub LoadSettingsFromStorage()
-            If Not m_SettingsLoaded OrElse Not Me.Dirty Then
+            If Not _settingsLoaded OrElse Not Me.Dirty Then
                 LoadSettings()
-                m_SettingsLoaded = True
+                _settingsLoaded = True
                 Dirty = False
             End If
         End Sub
@@ -51,9 +53,9 @@ Namespace Microsoft.VisualStudio.Editors.Package
         ''' </summary>
         ''' <remarks></remarks>
         Public Overrides Sub SaveSettingsToStorage()
-            If m_SettingsLoaded AndAlso Me.Dirty Then
+            If _settingsLoaded AndAlso Me.Dirty Then
                 SaveSettings()
-                m_SettingsLoaded = False
+                _settingsLoaded = False
                 Dirty = False
             End If
         End Sub
@@ -64,7 +66,7 @@ Namespace Microsoft.VisualStudio.Editors.Package
         ''' <param name="e"></param>
         ''' <remarks></remarks>
         Protected Overrides Sub OnClosed(ByVal e As System.EventArgs)
-            m_SettingsLoaded = False
+            _settingsLoaded = False
             MyBase.OnClosed(e)
         End Sub
 
@@ -82,7 +84,7 @@ Namespace Microsoft.VisualStudio.Editors.Package
         ' This should be the initial size of the option pages...
         ' Since the scaling logic differs between winforms and native dialogs, we
         ' use this size to determine how much to scale our controls...
-        Private m_PreviousSize As Size = New Size(395, 289)
+        Private _previousSize As Size = New Size(395, 289)
 
         ''' <summary>
         ''' Set font and scale page accordingly
@@ -104,16 +106,16 @@ Namespace Microsoft.VisualStudio.Editors.Package
 
             If Dialog.Controls.Count() >= 1 Then
                 Dim NewFont As Font = GetDialogFont()
-                Dim dx As Single = AdjustScale(CSng(Dialog.Size.Width / m_PreviousSize.Width))
-                Dim dy As Single = AdjustScale(CSng(Dialog.Size.Height / m_PreviousSize.Height))
+                Dim dx As Single = AdjustScale(CSng(Dialog.Size.Width / _previousSize.Width))
+                Dim dy As Single = AdjustScale(CSng(Dialog.Size.Height / _previousSize.Height))
 
                 ' Set the font of the child controls and scale accordingly - we can't set it 
                 ' on the top-most control, because that would re-create the window, and the VSIP 
                 ' Package doesn't like that!
 
-                Dialog.Size = m_PreviousSize
+                Dialog.Size = _previousSize
                 Dialog.Scale(New SizeF(dx, dy))
-                m_PreviousSize = Dialog.Size
+                _previousSize = Dialog.Size
 
                 For Each child As Control In Dialog.Controls
                     If InheritsFont(child) Then
@@ -122,9 +124,9 @@ Namespace Microsoft.VisualStudio.Editors.Package
                 Next
             End If
 
-            If Not m_isInitialized Then
+            If Not _isInitialized Then
                 AttachHandlers(Dialog)
-                m_isInitialized = True
+                _isInitialized = True
             End If
         End Sub
 
@@ -153,10 +155,10 @@ Namespace Microsoft.VisualStudio.Editors.Package
 
         Friend Property Dirty() As Boolean
             Get
-                Return m_isDirty
+                Return _isDirty
             End Get
             Set(ByVal value As Boolean)
-                m_isDirty = value
+                _isDirty = value
             End Set
         End Property
 

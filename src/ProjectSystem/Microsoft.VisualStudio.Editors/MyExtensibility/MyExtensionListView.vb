@@ -1,3 +1,5 @@
+' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+
 Option Strict On
 Option Explicit On
 Imports System.ComponentModel.Design
@@ -19,13 +21,13 @@ Namespace Microsoft.VisualStudio.Editors.MyExtensibility
 
         Public Property MenuCommandService() As IMenuCommandService
             Get
-                Debug.Assert(m_MenuCommandService IsNot Nothing)
-                Return m_MenuCommandService
+                Debug.Assert(_menuCommandService IsNot Nothing)
+                Return _menuCommandService
             End Get
             Set(ByVal value As IMenuCommandService)
                 Debug.Assert(value IsNot Nothing)
                 Me.UnregisterMenuCommands()
-                m_MenuCommandService = value
+                _menuCommandService = value
                 Me.RegisterMenuCommands()
             End Set
         End Property
@@ -33,14 +35,14 @@ Namespace Microsoft.VisualStudio.Editors.MyExtensibility
         Private Sub MyExtensionListView_ContextMenuShow( _
                 ByVal sender As Object, ByVal e As MouseEventArgs) Handles Me.ContextMenuShow
 
-            m_MenuCommandRemoveExtension.Enabled = Me.SelectedItems.Count > 0
+            _menuCommandRemoveExtension.Enabled = Me.SelectedItems.Count > 0
 
             Me.MenuCommandService.ShowContextMenu( _
                 Constants.MenuConstants.CommandIDMYEXTENSIONContextMenu, e.X, e.Y)
         End Sub
 
         Private Sub RegisterMenuCommands()
-            For Each menuCommand As MenuCommand In m_MenuCommands
+            For Each menuCommand As MenuCommand In _menuCommands
                 Dim existingCommand As MenuCommand = Me.MenuCommandService.FindCommand(menuCommand.CommandID)
                 If existingCommand IsNot Nothing Then
                     Me.MenuCommandService.RemoveCommand(existingCommand)
@@ -50,9 +52,9 @@ Namespace Microsoft.VisualStudio.Editors.MyExtensibility
         End Sub
 
         Private Sub UnregisterMenuCommands()
-            If m_MenuCommandService IsNot Nothing Then
-                For Each menuCommand As MenuCommand In m_MenuCommands
-                    m_MenuCommandService.RemoveCommand(menuCommand)
+            If _menuCommandService IsNot Nothing Then
+                For Each menuCommand As MenuCommand In _menuCommands
+                    _menuCommandService.RemoveCommand(menuCommand)
                 Next
             End If
         End Sub
@@ -65,15 +67,15 @@ Namespace Microsoft.VisualStudio.Editors.MyExtensibility
             RaiseEvent RemoveExtension(sender, e)
         End Sub
 
-        Private m_MenuCommandService As IMenuCommandService
+        Private _menuCommandService As IMenuCommandService
 
-        Private m_MenuCommandAddExtension As New MenuCommand( _
+        Private _menuCommandAddExtension As New MenuCommand( _
             New EventHandler(AddressOf AddExtension_Click), _
             Constants.MenuConstants.CommandIDMyEXTENSIONAddExtension)
-        Private m_MenuCommandRemoveExtension As New MenuCommand( _
+        Private _menuCommandRemoveExtension As New MenuCommand( _
             New EventHandler(AddressOf RemoveExtension_Click), _
             Constants.MenuConstants.CommandIDMyEXTENSIONRemoveExtension)
-        Private m_MenuCommands() As MenuCommand = _
-            {m_MenuCommandAddExtension, m_MenuCommandRemoveExtension}
+        Private _menuCommands() As MenuCommand = _
+            {_menuCommandAddExtension, _menuCommandRemoveExtension}
     End Class
 End Namespace

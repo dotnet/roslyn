@@ -1,3 +1,5 @@
+' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+
 Option Strict On
 Option Explicit On
 Imports System.Text
@@ -59,7 +61,7 @@ Namespace Microsoft.VisualStudio.Editors.MyExtensibility
             If projectSettings Is Nothing Then
                 Return Nothing
             End If
-            projectService.m_ProjectSettings = projectSettings
+            projectService._projectSettings = projectSettings
 
             Return projectService
         End Function
@@ -71,16 +73,16 @@ Namespace Microsoft.VisualStudio.Editors.MyExtensibility
         ''' </summary>
         Public Sub AddExtensionsFromPropPage()
             Dim addExtensionsDialog As New AddMyExtensionsDialog( _
-                m_VBPackage, m_ExtensibilitySettings.GetExtensionTemplates(Me.ProjectTypeID, m_Project))
+                _VBPackage, _extensibilitySettings.GetExtensionTemplates(Me.ProjectTypeID, _project))
             If addExtensionsDialog.ShowDialog() = DialogResult.OK Then
-                m_ExcludedTemplates = addExtensionsDialog.ExtensionTemplatesToAdd
+                _excludedTemplates = addExtensionsDialog.ExtensionTemplatesToAdd
                 Try
                     Dim extensionsAddedSB As New StringBuilder()
                     Me.AddTemplates(addExtensionsDialog.ExtensionTemplatesToAdd, extensionsAddedSB)
                     Me.SetExtensionsStatus(extensionsAddedSB, Nothing)
                 Catch ex As Exception When Not IsUnrecoverable(ex)
                 Finally
-                    m_ExcludedTemplates = Nothing
+                    _excludedTemplates = Nothing
                 End Try
             End If
         End Sub
@@ -90,7 +92,7 @@ Namespace Microsoft.VisualStudio.Editors.MyExtensibility
         ''' Return a list of all extension project item groups in the current project to display in "My Extensions" property page.
         ''' </summary>
         Public Function GetExtensionProjectItemGroups() As List(Of MyExtensionProjectItemGroup)
-            Return m_ProjectSettings.GetExtensionProjectItemGroups()
+            Return _projectSettings.GetExtensionProjectItemGroups()
         End Function
 
         ''' ;ReferenceAdded
@@ -128,7 +130,7 @@ Namespace Microsoft.VisualStudio.Editors.MyExtensibility
         Public Sub GetExtensionTemplateNameAndDescription( _
                 ByVal id As String, ByVal version As Version, ByVal assemblyName As String, _
                 ByRef name As String, ByRef description As String)
-            m_ExtensibilitySettings.GetExtensionTemplateNameAndDescription(Me.ProjectTypeID, m_Project, _
+            _extensibilitySettings.GetExtensionTemplateNameAndDescription(Me.ProjectTypeID, _project, _
                 id, version, assemblyName, _
                 name, description)
         End Sub
@@ -139,9 +141,9 @@ Namespace Microsoft.VisualStudio.Editors.MyExtensibility
         ''' the project settings associated with this project service.
         ''' </summary>
         Public Sub Dispose()
-            If m_ProjectSettings IsNot Nothing Then
-                m_ProjectSettings.UnadviseTrackProjectDocumentsEvents()
-                m_ProjectSettings = Nothing
+            If _projectSettings IsNot Nothing Then
+                _projectSettings.UnadviseTrackProjectDocumentsEvents()
+                _projectSettings = Nothing
             End If
         End Sub
 
@@ -160,10 +162,10 @@ Namespace Microsoft.VisualStudio.Editors.MyExtensibility
             Debug.Assert(projectHierarchy IsNot Nothing, "projectHierarchy Is Nothing")
             Debug.Assert(extensibilitySettings IsNot Nothing, "extensibilitySettings Is Nothing")
 
-            m_VBPackage = vbPackage
-            m_Project = project
-            m_ProjectHierarchy = projectHierarchy
-            m_ExtensibilitySettings = extensibilitySettings
+            _VBPackage = vbPackage
+            _project = project
+            _projectHierarchy = projectHierarchy
+            _extensibilitySettings = extensibilitySettings
         End Sub
 
         ''' ;ProjectTypeID
@@ -174,19 +176,19 @@ Namespace Microsoft.VisualStudio.Editors.MyExtensibility
         ''' </summary>
         Private ReadOnly Property ProjectTypeID() As String
             Get
-                If m_ProjectTypeID Is Nothing Then
+                If _projectTypeID Is Nothing Then
                     Dim projGuid As Guid = Guid.Empty
                     Try
-                        If m_ProjectHierarchy IsNot Nothing Then
+                        If _projectHierarchy IsNot Nothing Then
                             Dim hr As Integer
                             Try
-                                hr = m_ProjectHierarchy.GetGuidProperty( _
+                                hr = _projectHierarchy.GetGuidProperty( _
                                     VSITEMID.ROOT, __VSHPROPID2.VSHPROPID_AddItemTemplatesGuid, projGuid)
                             Catch ex As Exception When Not Common.Utils.IsUnrecoverable(ex)
                                 hr = System.Runtime.InteropServices.Marshal.GetHRForException(ex)
                             End Try
                             If VSErrorHandler.Failed(hr) Then
-                                hr = m_ProjectHierarchy.GetGuidProperty( _
+                                hr = _projectHierarchy.GetGuidProperty( _
                                     VSITEMID.ROOT, __VSHPROPID.VSHPROPID_TypeGuid, projGuid)
                                 If VSErrorHandler.Failed(hr) Then
                                     projGuid = Guid.Empty
@@ -198,16 +200,16 @@ Namespace Microsoft.VisualStudio.Editors.MyExtensibility
                         Debug.Fail(String.Format("Failed to get project guid: {0}", ex.ToString()))
                     End Try
                     If Guid.Empty.Equals(projGuid) Then
-                        If m_Project IsNot Nothing Then
-                            m_ProjectTypeID = m_Project.Kind
+                        If _project IsNot Nothing Then
+                            _projectTypeID = _project.Kind
                         End If
                     Else
-                        m_ProjectTypeID = projGuid.ToString("B").ToUpperInvariant()
+                        _projectTypeID = projGuid.ToString("B").ToUpperInvariant()
                     End If
                 End If
 
-                Debug.Assert(Not StringIsNullEmptyOrBlank(m_ProjectTypeID), "Could not get project type ID!")
-                Return m_ProjectTypeID
+                Debug.Assert(Not StringIsNullEmptyOrBlank(_projectTypeID), "Could not get project type ID!")
+                Return _projectTypeID
             End Get
         End Property
 
@@ -224,19 +226,19 @@ Namespace Microsoft.VisualStudio.Editors.MyExtensibility
             Debug.Assert(Not StringIsNullEmptyOrBlank(assemblyFullName), "assemblyFullName is NULL!")
             Debug.Assert(String.Equals(NormalizeAssemblyFullName(assemblyFullName), assemblyFullName, _
                 StringComparison.OrdinalIgnoreCase), "assemblyFullName not normalized!")
-            Debug.Assert(m_PendingAssemblyChangesList Is Nothing OrElse m_PendingAssemblyChangesList.Count > 0, _
+            Debug.Assert(_pendingAssemblyChangesList Is Nothing OrElse _pendingAssemblyChangesList.Count > 0, _
                 "m_AssemblyActionList in in valid state!")
             Debug.Assert(changeType = AddRemoveAction.Add OrElse changeType = AddRemoveAction.Remove, _
                 "Invalid changeType!")
 
-            Dim pendingChangesExist As Boolean = m_PendingAssemblyChangesList IsNot Nothing
+            Dim pendingChangesExist As Boolean = _pendingAssemblyChangesList IsNot Nothing
             If changeType = AddRemoveAction.Add Then
                 HandleReferenceAdded(assemblyFullName)
             Else
                 HandleReferenceRemoved(assemblyFullName)
             End If
 
-            If Not pendingChangesExist AndAlso m_PendingAssemblyChangesList IsNot Nothing Then
+            If Not pendingChangesExist AndAlso _pendingAssemblyChangesList IsNot Nothing Then
                 AddHandler Application.Idle, AddressOf Me.HandleReferenceChangedOnIdle
             End If
         End Sub
@@ -253,17 +255,17 @@ Namespace Microsoft.VisualStudio.Editors.MyExtensibility
             Dim addActivity As New AssemblyChange(assemblyFullName, AddRemoveAction.Add)
             ' Check the pending assembly changes list, if this assembly is in the list with Added status, 
             ' ignore this reference added.
-            If m_PendingAssemblyChangesList IsNot Nothing AndAlso m_PendingAssemblyChangesList.Contains(addActivity) Then
+            If _pendingAssemblyChangesList IsNot Nothing AndAlso _pendingAssemblyChangesList.Contains(addActivity) Then
                 Exit Sub
             End If
 
             ' Check if the assembly has any extension templates associated with it.
             Dim extensionTemplates As List(Of MyExtensionTemplate) = _
-                m_ExtensibilitySettings.GetExtensionTemplates(Me.ProjectTypeID, m_Project, assemblyFullName)
+                _extensibilitySettings.GetExtensionTemplates(Me.ProjectTypeID, _project, assemblyFullName)
             ' Check the list of templates being added directly from My Extension property page.
             ' These should be excluded from adding again due to references being added.
-            If m_ExcludedTemplates IsNot Nothing AndAlso extensionTemplates IsNot Nothing AndAlso m_ExcludedTemplates.Count > 0 Then
-                For Each excludedTemplate As MyExtensionTemplate In m_ExcludedTemplates
+            If _excludedTemplates IsNot Nothing AndAlso extensionTemplates IsNot Nothing AndAlso _excludedTemplates.Count > 0 Then
+                For Each excludedTemplate As MyExtensionTemplate In _excludedTemplates
                     If extensionTemplates.Contains(excludedTemplate) Then
                         extensionTemplates.Remove(excludedTemplate)
                     End If
@@ -276,14 +278,14 @@ Namespace Microsoft.VisualStudio.Editors.MyExtensibility
 
             ' Prompt the user if neccessary.
             Dim addExtensions As Boolean = True
-            Dim assemblyOption As AssemblyOption = m_ExtensibilitySettings.GetAssemblyAutoAdd(assemblyFullName)
+            Dim assemblyOption As AssemblyOption = _extensibilitySettings.GetAssemblyAutoAdd(assemblyFullName)
             If assemblyOption = assemblyOption.Prompt Then
                 Dim addExtensionDialog As AssemblyOptionDialog = _
                     AssemblyOptionDialog.GetAssemblyOptionDialog( _
-                    assemblyFullName, m_VBPackage, extensionTemplates, AddRemoveAction.Add)
+                    assemblyFullName, _VBPackage, extensionTemplates, AddRemoveAction.Add)
                 addExtensions = (addExtensionDialog.ShowDialog() = DialogResult.Yes)
                 If addExtensionDialog.OptionChecked Then
-                    m_ExtensibilitySettings.SetAssemblyAutoAdd(assemblyFullName, addExtensions)
+                    _extensibilitySettings.SetAssemblyAutoAdd(assemblyFullName, addExtensions)
                 End If
             Else
                 addExtensions = (assemblyOption = MyExtensibility.AssemblyOption.Yes)
@@ -292,10 +294,10 @@ Namespace Microsoft.VisualStudio.Editors.MyExtensibility
             If addExtensions Then
                 ' Queue the activity to the pending changes list.
                 addActivity.ExtensionTemplates = extensionTemplates
-                If m_PendingAssemblyChangesList Is Nothing Then
-                    m_PendingAssemblyChangesList = New List(Of AssemblyChange)
+                If _pendingAssemblyChangesList Is Nothing Then
+                    _pendingAssemblyChangesList = New List(Of AssemblyChange)
                 End If
-                m_PendingAssemblyChangesList.Add(addActivity)
+                _pendingAssemblyChangesList.Add(addActivity)
             End If
         End Sub
 
@@ -317,16 +319,16 @@ Namespace Microsoft.VisualStudio.Editors.MyExtensibility
 
             ' Check the pending assembly changes list, find the index of existing remove activity (if any) 
             ' and existing add activity (if any)
-            If m_PendingAssemblyChangesList IsNot Nothing Then
-                Debug.Assert(m_PendingAssemblyChangesList.IndexOf(removeActivity) = _
-                    m_PendingAssemblyChangesList.LastIndexOf(removeActivity), _
+            If _pendingAssemblyChangesList IsNot Nothing Then
+                Debug.Assert(_pendingAssemblyChangesList.IndexOf(removeActivity) = _
+                    _pendingAssemblyChangesList.LastIndexOf(removeActivity), _
                     "m_PendingAssemblyChangesList should contain 1 instance of remove activity!")
-                Debug.Assert(m_PendingAssemblyChangesList.IndexOf(addActivity) = _
-                    m_PendingAssemblyChangesList.LastIndexOf(addActivity), _
+                Debug.Assert(_pendingAssemblyChangesList.IndexOf(addActivity) = _
+                    _pendingAssemblyChangesList.LastIndexOf(addActivity), _
                     "m_PendingAssemblyChangesList should contain 1 instance of add activity!")
 
-                previousRemoveActivityIndex = m_PendingAssemblyChangesList.IndexOf(removeActivity)
-                previousAddActivityIndex = m_PendingAssemblyChangesList.IndexOf(addActivity)
+                previousRemoveActivityIndex = _pendingAssemblyChangesList.IndexOf(removeActivity)
+                previousAddActivityIndex = _pendingAssemblyChangesList.IndexOf(addActivity)
             End If
 
             If previousAddActivityIndex > 0 Then
@@ -338,7 +340,7 @@ Namespace Microsoft.VisualStudio.Editors.MyExtensibility
                 Exit Sub
             Else
                 ' If assembly action list does not contain either, check for existing extension project items.
-                projectItemGroupsToRemove = m_ProjectSettings.GetExtensionProjectItemGroups(assemblyFullName)
+                projectItemGroupsToRemove = _projectSettings.GetExtensionProjectItemGroups(assemblyFullName)
                 ' If there are no extension project items, no op.
                 If projectItemGroupsToRemove Is Nothing OrElse projectItemGroupsToRemove.Count = 0 Then
                     Exit Sub
@@ -347,21 +349,21 @@ Namespace Microsoft.VisualStudio.Editors.MyExtensibility
 
             ' Either there's a pending "Add Foo" activity or some project items to remove. Prompt if neccessary.
             Dim removeExtensions As Boolean = True
-            Dim assemblyOption As AssemblyOption = m_ExtensibilitySettings.GetAssemblyAutoRemove(assemblyFullName)
+            Dim assemblyOption As AssemblyOption = _extensibilitySettings.GetAssemblyAutoRemove(assemblyFullName)
             If assemblyOption = assemblyOption.Prompt Then
                 Dim itemList As IList = Nothing
                 If previousAddActivityIndex > 0 Then
-                    itemList = m_PendingAssemblyChangesList(previousAddActivityIndex).ExtensionTemplates
+                    itemList = _pendingAssemblyChangesList(previousAddActivityIndex).ExtensionTemplates
                 Else
                     itemList = projectItemGroupsToRemove
                 End If
 
                 Dim removeExtensionDialog As AssemblyOptionDialog = _
                     AssemblyOptionDialog.GetAssemblyOptionDialog( _
-                    assemblyFullName, m_VBPackage, itemList, AddRemoveAction.Remove)
+                    assemblyFullName, _VBPackage, itemList, AddRemoveAction.Remove)
                 removeExtensions = (removeExtensionDialog.ShowDialog() = DialogResult.Yes)
                 If removeExtensionDialog.OptionChecked Then
-                    m_ExtensibilitySettings.SetAssemblyAutoRemove(assemblyFullName, removeExtensions)
+                    _extensibilitySettings.SetAssemblyAutoRemove(assemblyFullName, removeExtensions)
                 End If
             Else
                 removeExtensions = (assemblyOption = MyExtensibility.AssemblyOption.Yes)
@@ -370,13 +372,13 @@ Namespace Microsoft.VisualStudio.Editors.MyExtensibility
             If removeExtensions Then
                 ' Queue the activity to the pending changes list.
                 If previousAddActivityIndex > 0 Then
-                    m_PendingAssemblyChangesList.RemoveAt(previousAddActivityIndex)
+                    _pendingAssemblyChangesList.RemoveAt(previousAddActivityIndex)
                 Else
-                    If m_PendingAssemblyChangesList Is Nothing Then
-                        m_PendingAssemblyChangesList = New List(Of AssemblyChange)
+                    If _pendingAssemblyChangesList Is Nothing Then
+                        _pendingAssemblyChangesList = New List(Of AssemblyChange)
                     End If
                     removeActivity.ExtensionProjectItemGroups = projectItemGroupsToRemove
-                    m_PendingAssemblyChangesList.Add(removeActivity)
+                    _pendingAssemblyChangesList.Add(removeActivity)
                 End If
             End If
         End Sub
@@ -388,22 +390,22 @@ Namespace Microsoft.VisualStudio.Editors.MyExtensibility
         Private Sub HandleReferenceChangedOnIdle(ByVal sender As Object, ByVal e As EventArgs)
             RemoveHandler Application.Idle, AddressOf Me.HandleReferenceChangedOnIdle
 
-            Debug.Assert(m_PendingAssemblyChangesList IsNot Nothing, "Invalid pending assembly changes list!")
+            Debug.Assert(_pendingAssemblyChangesList IsNot Nothing, "Invalid pending assembly changes list!")
 
             Dim extensionAddedSB As New StringBuilder
             Dim extensionRemovedSB As New StringBuilder
 
-            While m_PendingAssemblyChangesList.Count > 0
-                Dim asmActivity As AssemblyChange = m_PendingAssemblyChangesList(0)
+            While _pendingAssemblyChangesList.Count > 0
+                Dim asmActivity As AssemblyChange = _pendingAssemblyChangesList(0)
                 If asmActivity.ChangeType = AddRemoveAction.Add Then
                     Me.AddTemplates(asmActivity.ExtensionTemplates, extensionAddedSB)
                 Else
                     Me.RemoveExtensionProjectItemGroups(asmActivity.ExtensionProjectItemGroups, extensionRemovedSB)
                 End If
-                m_PendingAssemblyChangesList.RemoveAt(0)
+                _pendingAssemblyChangesList.RemoveAt(0)
             End While
 
-            m_PendingAssemblyChangesList = Nothing
+            _pendingAssemblyChangesList = Nothing
             Me.SetExtensionsStatus(extensionAddedSB, extensionRemovedSB)
         End Sub
 
@@ -423,9 +425,9 @@ Namespace Microsoft.VisualStudio.Editors.MyExtensibility
 
                     ' If extension already exists in project, prompt user for replacing.
                     Dim existingExtProjItemGroup As MyExtensionProjectItemGroup = _
-                        m_ProjectSettings.GetExtensionProjectItemGroup(extensionTemplate.ID)
+                        _projectSettings.GetExtensionProjectItemGroup(extensionTemplate.ID)
                     If existingExtProjItemGroup IsNot Nothing Then
-                        Dim replaceExtension As DialogResult = DesignerMessageBox.Show(m_VBPackage, _
+                        Dim replaceExtension As DialogResult = DesignerMessageBox.Show(_VBPackage, _
                             String.Format(Res.ExtensionExists_Message, _
                                 existingExtProjItemGroup.ExtensionVersion.ToString(), _
                                 extensionTemplate.DisplayName, _
@@ -435,11 +437,11 @@ Namespace Microsoft.VisualStudio.Editors.MyExtensibility
                         If replaceExtension = DialogResult.No Then
                             Continue For
                         End If
-                        m_ProjectSettings.RemoveExtensionProjectItemGroup(existingExtProjItemGroup)
+                        _projectSettings.RemoveExtensionProjectItemGroup(existingExtProjItemGroup)
                     End If
 
                     ' Add extension project item template and set project item attributes.
-                    Dim projectItemsAdded As List(Of ProjectItem) = m_ProjectSettings.AddExtensionTemplate(extensionTemplate)
+                    Dim projectItemsAdded As List(Of ProjectItem) = _projectSettings.AddExtensionTemplate(extensionTemplate)
                     '' If succeeded, add the extension to our collection, otherwise, show warning message.
                     If projectItemsAdded IsNot Nothing AndAlso projectItemsAdded.Count > 0 Then
                         IdeStatusBar.UpdateProgress(String.Format(Res.StatusBar_Add_Progress, extensionTemplate.DisplayName))
@@ -472,7 +474,7 @@ Namespace Microsoft.VisualStudio.Editors.MyExtensibility
                 For i As Integer = 0 To extensionProjectItemGroups.Count - 1
                     Dim extensionProjectItemGroup As MyExtensionProjectItemGroup = extensionProjectItemGroups(i)
                     Try
-                        m_ProjectSettings.RemoveExtensionProjectItemGroup(extensionProjectItemGroup)
+                        _projectSettings.RemoveExtensionProjectItemGroup(extensionProjectItemGroup)
                         IdeStatusBar.UpdateProgress(String.Format(Res.StatusBar_Remove_Progress, extensionProjectItemGroup.DisplayName))
                         If projectFilesRemovedSB.Length = 0 Then
                             projectFilesRemovedSB.Append(extensionProjectItemGroup.DisplayName)
@@ -508,30 +510,30 @@ Namespace Microsoft.VisualStudio.Editors.MyExtensibility
         ''' <summary>
         ''' Forward the ExtensionChanged event.
         ''' </summary>
-        Private Sub m_ProjectSettings_ExtensionChanged() Handles m_ProjectSettings.ExtensionChanged
+        Private Sub m_ProjectSettings_ExtensionChanged() Handles _projectSettings.ExtensionChanged
             RaiseEvent ExtensionChanged()
         End Sub
 #End Region
 
         ' Service provider, current project, project hierarchy and solution.
-        Private m_VBPackage As VBPackage
-        Private m_Project As EnvDTE.Project
-        Private m_ProjectHierarchy As IVsHierarchy
-        Private m_ProjectTypeID As String
+        Private _VBPackage As VBPackage
+        Private _project As EnvDTE.Project
+        Private _projectHierarchy As IVsHierarchy
+        Private _projectTypeID As String
 
         ' Extension templates information.
-        Private m_ExtensibilitySettings As MyExtensibilitySettings
+        Private _extensibilitySettings As MyExtensibilitySettings
         ' Managing extension code files in current project.
-        Private WithEvents m_ProjectSettings As MyExtensibilityProjectSettings
+        Private WithEvents _projectSettings As MyExtensibilityProjectSettings
 
         ' Add / remove extension templates through compiler notification.
         '' List of pending assembly changes that will be handled on Idle loop.
-        Private m_PendingAssemblyChangesList As List(Of AssemblyChange)
+        Private _pendingAssemblyChangesList As List(Of AssemblyChange)
         '' List of templates being added through My Extension property pages. 
         '' These should be excluded from any reference added events resulting from the templates being added.
         '' Scenario: Template T triggerred by A, also contains A. Add template T explicitly should not 
         '' trigger template T again. 
-        Private m_ExcludedTemplates As List(Of MyExtensionTemplate)
+        Private _excludedTemplates As List(Of MyExtensionTemplate)
 
 #Region "Private Class AssemblyChange"
         ''' ;AssemblyChange
@@ -547,53 +549,53 @@ Namespace Microsoft.VisualStudio.Editors.MyExtensibility
                 Debug.Assert(actionType = AddRemoveAction.Add Or actionType = AddRemoveAction.Remove, _
                     "Invalid actionType!")
 
-                m_AssemblyName = assemblyName
-                m_ChangeType = actionType
+                _assemblyName = assemblyName
+                _changeType = actionType
             End Sub
 
             Public ReadOnly Property AssemblyName() As String
                 Get
-                    Return m_AssemblyName
+                    Return _assemblyName
                 End Get
             End Property
 
             Public ReadOnly Property ChangeType() As AddRemoveAction
                 Get
-                    Return m_ChangeType
+                    Return _changeType
                 End Get
             End Property
 
             Public Property ExtensionTemplates() As List(Of MyExtensionTemplate)
                 Get
-                    Return m_ExtensionTemplates
+                    Return _extensionTemplates
                 End Get
                 Set(ByVal value As List(Of MyExtensionTemplate))
-                    m_ExtensionTemplates = value
+                    _extensionTemplates = value
                 End Set
             End Property
 
             Public Property ExtensionProjectItemGroups() As List(Of MyExtensionProjectItemGroup)
                 Get
-                    Return m_ExtensionProjectFiles
+                    Return _extensionProjectFiles
                 End Get
                 Set(ByVal value As List(Of MyExtensionProjectItemGroup))
-                    m_ExtensionProjectFiles = value
+                    _extensionProjectFiles = value
                 End Set
             End Property
 
             Public Overrides Function Equals(ByVal obj As Object) As Boolean
                 Dim asmActivity As AssemblyChange = TryCast(obj, AssemblyChange)
                 If asmActivity IsNot Nothing Then
-                    Return String.Equals(m_AssemblyName, asmActivity.m_AssemblyName, StringComparison.OrdinalIgnoreCase) _
-                        AndAlso m_ChangeType = asmActivity.m_ChangeType
+                    Return String.Equals(_assemblyName, asmActivity._assemblyName, StringComparison.OrdinalIgnoreCase) _
+                        AndAlso _changeType = asmActivity._changeType
                 End If
                 Return MyBase.Equals(obj)
             End Function
 
-            Private m_AssemblyName As String
-            Private m_ChangeType As AddRemoveAction
-            Private m_ExtensionTemplates As List(Of MyExtensionTemplate)
-            Private m_ExtensionProjectFiles As List(Of MyExtensionProjectItemGroup)
+            Private _assemblyName As String
+            Private _changeType As AddRemoveAction
+            Private _extensionTemplates As List(Of MyExtensionTemplate)
+            Private _extensionProjectFiles As List(Of MyExtensionProjectItemGroup)
         End Class ' Private Class AssemblyChange
 #End Region ' "Private Class AssemblyChange"
 

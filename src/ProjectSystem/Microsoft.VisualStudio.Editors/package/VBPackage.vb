@@ -1,3 +1,5 @@
+' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+
 Imports System.ComponentModel.Design
 Imports Microsoft.VisualStudio.Shell
 Imports Microsoft.VisualStudio.Shell.Interop
@@ -29,18 +31,18 @@ Namespace Microsoft.VisualStudio.Editors
         Inherits Microsoft.VisualStudio.Shell.Package
         Implements Editors.IVBPackage
 
-        Private m_PermissionSetService As VBAttributeEditor.PermissionSetService
-        Private m_XmlIntellisenseService As XmlIntellisense.XmlIntellisenseService
-        Private m_BuildEventCommandLineDialogService As PropertyPages.BuildEventCommandLineDialogService
-        Private m_VBReferenceChangedService As VBRefChangedSvc.VBReferenceChangedService
-        Private m_ResourceEditorRefactorNotify As ResourceEditor.ResourceEditorRefactorNotify
-        Private m_UserConfigCleaner As UserConfigCleaner
-        Private m_AddImportsDialogService As AddImports.AddImportsDialogService
+        Private _permissionSetService As VBAttributeEditor.PermissionSetService
+        Private _xmlIntellisenseService As XmlIntellisense.XmlIntellisenseService
+        Private _buildEventCommandLineDialogService As PropertyPages.BuildEventCommandLineDialogService
+        Private _VBReferenceChangedService As VBRefChangedSvc.VBReferenceChangedService
+        Private _resourceEditorRefactorNotify As ResourceEditor.ResourceEditorRefactorNotify
+        Private _userConfigCleaner As UserConfigCleaner
+        Private _addImportsDialogService As AddImports.AddImportsDialogService
 
-        Private Const ProjectDesignerSUOKey As String = "ProjectDesigner"
+        Private Const s_projectDesignerSUOKey As String = "ProjectDesigner"
 
         ' Map between unique project GUID and the last viewed tab in the project designer...
-        Private m_lastViewedProjectDesignerTab As System.Collections.Generic.Dictionary(Of Guid, Byte)
+        Private _lastViewedProjectDesignerTab As System.Collections.Generic.Dictionary(Of Guid, Byte)
 
         ''' <summary>
         ''' Constructor
@@ -48,7 +50,7 @@ Namespace Microsoft.VisualStudio.Editors
         ''' <remarks></remarks>
         Public Sub New()
             ' Make sure we persist this 
-            AddOptionKey(ProjectDesignerSUOKey)
+            AddOptionKey(s_projectDesignerSUOKey)
         End Sub
 
         ''' <summary>
@@ -110,7 +112,7 @@ Namespace Microsoft.VisualStudio.Editors
             ' Expose VBReferenceChangedService
             ServiceContainer.AddService(GetType(VBRefChangedSvc.Interop.IVbReferenceChangedService), CallBack, True)
 
-            m_UserConfigCleaner = New UserConfigCleaner(Me)
+            _userConfigCleaner = New UserConfigCleaner(Me)
         End Sub 'New
 
         Public ReadOnly Property MenuCommandService() As IMenuCommandService Implements IVBPackage.MenuCommandService
@@ -130,12 +132,12 @@ Namespace Microsoft.VisualStudio.Editors
 
             ' Is the Permission Set Service being requested?
             If serviceType Is GetType(VBAttributeEditor.Interop.IVbPermissionSetService) Then
-                If (m_PermissionSetService Is Nothing) Then
-                    m_PermissionSetService = New VBAttributeEditor.PermissionSetService(container)
+                If (_permissionSetService Is Nothing) Then
+                    _permissionSetService = New VBAttributeEditor.PermissionSetService(container)
                 End If
 
                 ' Return cached Permission Set Service
-                Return m_PermissionSetService
+                Return _permissionSetService
             End If
 
             ' Is the Xml Intellisense Service being requested?
@@ -146,38 +148,38 @@ Namespace Microsoft.VisualStudio.Editors
 
             ' Is the IVsBuildEventCommandLineDialogService being requested?
             If serviceType Is GetType(Editors.Interop.IVsBuildEventCommandLineDialogService) Then
-                If (m_BuildEventCommandLineDialogService Is Nothing) Then
-                    m_BuildEventCommandLineDialogService = New PropertyPages.BuildEventCommandLineDialogService(container)
+                If (_buildEventCommandLineDialogService Is Nothing) Then
+                    _buildEventCommandLineDialogService = New PropertyPages.BuildEventCommandLineDialogService(container)
                 End If
 
                 ' Return cached BuildEventCommandLineDialogService
-                Return m_BuildEventCommandLineDialogService
+                Return _buildEventCommandLineDialogService
             End If
 
             If serviceType Is GetType(ResourceEditor.ResourceEditorRefactorNotify) Then
-                If (m_ResourceEditorRefactorNotify Is Nothing) Then
-                    m_ResourceEditorRefactorNotify = New ResourceEditor.ResourceEditorRefactorNotify()
+                If (_resourceEditorRefactorNotify Is Nothing) Then
+                    _resourceEditorRefactorNotify = New ResourceEditor.ResourceEditorRefactorNotify()
                 End If
 
                 ' return cached refactor-notify implementer
-                Return m_ResourceEditorRefactorNotify
+                Return _resourceEditorRefactorNotify
             End If
 
             If serviceType Is GetType(AddImports.IVBAddImportsDialogService) Then
-                If (m_AddImportsDialogService Is Nothing) Then
-                    m_AddImportsDialogService = New AddImports.AddImportsDialogService(Me)
+                If (_addImportsDialogService Is Nothing) Then
+                    _addImportsDialogService = New AddImports.AddImportsDialogService(Me)
                 End If
 
-                Return m_AddImportsDialogService
+                Return _addImportsDialogService
             End If
 
             ' Lazy-init VBReferenceChangedService and return the cached service.
             If serviceType Is GetType(VBRefChangedSvc.Interop.IVbReferenceChangedService) Then
-                If m_VBReferenceChangedService Is Nothing Then
-                    m_VBReferenceChangedService = New VBRefChangedSvc.VBReferenceChangedService()
+                If _VBReferenceChangedService Is Nothing Then
+                    _VBReferenceChangedService = New VBRefChangedSvc.VBReferenceChangedService()
                 End If
 
-                Return m_VBReferenceChangedService
+                Return _VBReferenceChangedService
             End If
 
             Debug.Fail("VBPackage was requested to create a package it has no knowledge about: " & serviceType.ToString())
@@ -192,17 +194,17 @@ Namespace Microsoft.VisualStudio.Editors
         ''' This code is factored out of OnCreateService in order to delay loading Microsoft.VisualStudio.XmlEditor.dll
         ''' </remarks>
         Private Function GetXmlIntellisenseService(ByVal container As IServiceContainer) As XmlIntellisense.XmlIntellisenseService
-            If (m_XmlIntellisenseService Is Nothing) Then
+            If (_xmlIntellisenseService Is Nothing) Then
                 ' Xml Intellisense Service is only available if the Xml Editor Schema Service is available as well
                 Dim schemaService As XmlSchemaService = DirectCast(container.GetService(GetType(XmlSchemaService)), XmlSchemaService)
 
                 If schemaService IsNot Nothing Then
-                    m_XmlIntellisenseService = New XmlIntellisense.XmlIntellisenseService(container, schemaService)
+                    _xmlIntellisenseService = New XmlIntellisense.XmlIntellisenseService(container, schemaService)
                 End If
             End If
 
             ' Return cached Xml Intellisense Service
-            Return m_XmlIntellisenseService
+            Return _xmlIntellisenseService
         End Function
 
         ''' <summary>
@@ -212,9 +214,9 @@ Namespace Microsoft.VisualStudio.Editors
         ''' <remarks></remarks>
         Protected Overrides Sub Dispose(ByVal disposing As Boolean)
             If disposing Then
-                If m_UserConfigCleaner IsNot Nothing Then
-                    m_UserConfigCleaner.Dispose()
-                    m_UserConfigCleaner = Nothing
+                If _userConfigCleaner IsNot Nothing Then
+                    _userConfigCleaner.Dispose()
+                    _userConfigCleaner = Nothing
                 End If
             End If
             MyBase.Dispose(disposing)
@@ -300,7 +302,7 @@ Namespace Microsoft.VisualStudio.Editors
         ''' <param name="stream">Stream to read from</param>
         ''' <remarks></remarks>
         Protected Overrides Sub OnLoadOptions(ByVal key As String, ByVal stream As System.IO.Stream)
-            If String.Equals(key, ProjectDesignerSUOKey, StringComparison.Ordinal) Then
+            If String.Equals(key, s_projectDesignerSUOKey, StringComparison.Ordinal) Then
                 Dim reader As New IO.BinaryReader(stream)
                 Dim buf(15) As Byte ' Space enough for a GUID - 16 bytes...
                 Try
@@ -308,10 +310,10 @@ Namespace Microsoft.VisualStudio.Editors
                         Dim projGuid As Guid
                         projGuid = New Guid(buf)
                         Dim tab As Byte = reader.ReadByte()
-                        If m_lastViewedProjectDesignerTab Is Nothing Then
-                            m_lastViewedProjectDesignerTab = New Collections.Generic.Dictionary(Of Guid, Byte)
+                        If _lastViewedProjectDesignerTab Is Nothing Then
+                            _lastViewedProjectDesignerTab = New Collections.Generic.Dictionary(Of Guid, Byte)
                         End If
-                        m_lastViewedProjectDesignerTab(projGuid) = tab
+                        _lastViewedProjectDesignerTab(projGuid) = tab
                     End While
                 Catch ex As Exception When Not Common.Utils.IsUnrecoverable(ex)
                     Debug.Fail(String.Format("Failed to read settings: {0}", ex))
@@ -328,17 +330,17 @@ Namespace Microsoft.VisualStudio.Editors
         ''' <param name="stream">Stream to read data from</param>
         ''' <remarks></remarks>
         Protected Overrides Sub OnSaveOptions(ByVal key As String, ByVal stream As System.IO.Stream)
-            If String.Equals(key, ProjectDesignerSUOKey, StringComparison.Ordinal) Then
+            If String.Equals(key, s_projectDesignerSUOKey, StringComparison.Ordinal) Then
                 ' This is the project designer's last active tab
-                If m_lastViewedProjectDesignerTab IsNot Nothing Then
+                If _lastViewedProjectDesignerTab IsNot Nothing Then
                     Dim hier As IVsHierarchy = Nothing
                     Dim sol As IVsSolution = TryCast(GetService(GetType(IVsSolution)), IVsSolution)
                     Debug.Assert(sol IsNot Nothing, "No solution!? We won't persist the last active tab in the project designer")
                     If sol IsNot Nothing Then
-                        For Each projectGuid As Guid In m_lastViewedProjectDesignerTab.Keys
+                        For Each projectGuid As Guid In _lastViewedProjectDesignerTab.Keys
                             ' We check all current projects to see what the last active tab was
                             If Editors.Interop.NativeMethods.Succeeded(sol.GetProjectOfGuid(projectGuid, hier)) Then
-                                Dim tab As Byte = m_lastViewedProjectDesignerTab(projectGuid)
+                                Dim tab As Byte = _lastViewedProjectDesignerTab(projectGuid)
                                 If tab <> 0 Then
                                     ' We only need to persist this if the last tab was different than the 
                                     ' default value...
@@ -384,7 +386,7 @@ Namespace Microsoft.VisualStudio.Editors
         ''' <remarks></remarks>
         Public Function GetLastShownApplicationDesignerTab(ByVal projectHierarchy As IVsHierarchy) As Integer Implements Editors.IVBPackage.GetLastShownApplicationDesignerTab
             Dim value As Byte
-            If m_lastViewedProjectDesignerTab IsNot Nothing AndAlso m_lastViewedProjectDesignerTab.TryGetValue(ProjectGUID(projectHierarchy), value) Then
+            If _lastViewedProjectDesignerTab IsNot Nothing AndAlso _lastViewedProjectDesignerTab.TryGetValue(ProjectGUID(projectHierarchy), value) Then
                 Return value
             Else
                 ' Default to tab 0
@@ -399,14 +401,14 @@ Namespace Microsoft.VisualStudio.Editors
         ''' <param name="tab">Tab number</param>
         ''' <remarks></remarks>
         Public Sub SetLastShownApplicationDesignerTab(ByVal projectHierarchy As IVsHierarchy, ByVal tab As Integer) Implements Editors.IVBPackage.SetLastShownApplicationDesignerTab
-            If m_lastViewedProjectDesignerTab Is Nothing Then
-                m_lastViewedProjectDesignerTab = New System.Collections.Generic.Dictionary(Of Guid, Byte)
+            If _lastViewedProjectDesignerTab Is Nothing Then
+                _lastViewedProjectDesignerTab = New System.Collections.Generic.Dictionary(Of Guid, Byte)
             End If
             ' Make sure we don't under/overflow...
             If tab > Byte.MaxValue OrElse tab < Byte.MinValue Then
                 tab = 0
             End If
-            m_lastViewedProjectDesignerTab(ProjectGUID(projectHierarchy)) = CByte(tab)
+            _lastViewedProjectDesignerTab(ProjectGUID(projectHierarchy)) = CByte(tab)
         End Sub
 #End Region
 
@@ -423,13 +425,13 @@ Namespace Microsoft.VisualStudio.Editors
             Implements IVsSolutionEvents, IDisposable
 
             ' Our solution events cookie.
-            Private m_cookie As UInteger
+            Private _cookie As UInteger
 
             ' A handle to the IVsSolution service providing the events
-            Private m_solution As IVsSolution
+            Private _solution As IVsSolution
 
             ' List of files to clean up when a ZIP project is discarded
-            Private m_filesToCleanUp As New Collections.Generic.List(Of String)
+            Private _filesToCleanUp As New Collections.Generic.List(Of String)
 
             ''' <summary>
             ''' Create a new instance of this class
@@ -437,15 +439,15 @@ Namespace Microsoft.VisualStudio.Editors
             ''' <param name="sp"></param>
             ''' <remarks></remarks>
             Public Sub New(ByVal sp As IServiceProvider)
-                m_solution = TryCast(sp.GetService(GetType(IVsSolution)), IVsSolution)
-                Debug.Assert(m_solution IsNot Nothing, "Failed to get IVsSolution - clean up of user config files in ZIP projects will not work...")
-                If m_solution IsNot Nothing Then
-                    Dim hr As Integer = m_solution.AdviseSolutionEvents(Me, m_cookie)
+                _solution = TryCast(sp.GetService(GetType(IVsSolution)), IVsSolution)
+                Debug.Assert(_solution IsNot Nothing, "Failed to get IVsSolution - clean up of user config files in ZIP projects will not work...")
+                If _solution IsNot Nothing Then
+                    Dim hr As Integer = _solution.AdviseSolutionEvents(Me, _cookie)
 #If DEBUG Then
                     Debug.Assert(Editors.Interop.NativeMethods.Succeeded(hr), "Failed to advise solution events - we won't clean up user config files in ZIP projects...")
 #End If
                     If Not Editors.Interop.NativeMethods.Succeeded(hr) Then
-                        m_cookie = 0
+                        _cookie = 0
                     End If
                 End If
             End Sub
@@ -455,13 +457,13 @@ Namespace Microsoft.VisualStudio.Editors
             ''' </summary>
             ''' <remarks></remarks>
             Private Sub UnadviseSolutionEvents()
-                If m_cookie <> 0 AndAlso m_solution IsNot Nothing Then
-                    Dim hr As Integer = m_solution.UnadviseSolutionEvents(m_cookie)
+                If _cookie <> 0 AndAlso _solution IsNot Nothing Then
+                    Dim hr As Integer = _solution.UnadviseSolutionEvents(_cookie)
 #If DEBUG Then
                     Debug.Assert(Editors.Interop.NativeMethods.Succeeded(hr), "Failed to unadvise solution events - we may leak..")
 #End If
                     If Editors.Interop.NativeMethods.Succeeded(hr) Then
-                        m_cookie = 0
+                        _cookie = 0
                     End If
                 End If
             End Sub
@@ -474,8 +476,8 @@ Namespace Microsoft.VisualStudio.Editors
             ''' <returns></returns>
             ''' <remarks></remarks>
             Public Function OnAfterCloseSolution(ByVal pUnkReserved As Object) As Integer Implements Shell.Interop.IVsSolutionEvents.OnAfterCloseSolution
-                SettingsDesigner.SettingsDesigner.DeleteFilesAndDirectories(m_filesToCleanUp, Nothing)
-                m_filesToCleanUp.Clear()
+                SettingsDesigner.SettingsDesigner.DeleteFilesAndDirectories(_filesToCleanUp, Nothing)
+                _filesToCleanUp.Clear()
                 Return Editors.Interop.NativeMethods.S_OK
             End Function
 
@@ -488,12 +490,12 @@ Namespace Microsoft.VisualStudio.Editors
             ''' <remarks></remarks>
             Public Function OnBeforeCloseSolution(ByVal pUnkReserved As Object) As Integer Implements Shell.Interop.IVsSolutionEvents.OnBeforeCloseSolution
                 Try
-                    m_filesToCleanUp.Clear()
+                    _filesToCleanUp.Clear()
 
                     Dim hr As Integer
                     ' Check if this is a deferred save project & there is only one project in the solution
                     Dim oBool As Object = Nothing
-                    hr = m_solution.GetProperty(Microsoft.VisualStudio.Shell.Interop.__VSPROPID2.VSPROPID_DeferredSaveSolution, oBool)
+                    hr = _solution.GetProperty(Microsoft.VisualStudio.Shell.Interop.__VSPROPID2.VSPROPID_DeferredSaveSolution, oBool)
 #If DEBUG Then
                     Debug.Assert(Editors.Interop.NativeMethods.Succeeded(hr), "Failed to get VSPROPID_DeferredSaveSolution - we will not clean up user.config files...")
 #End If
@@ -502,14 +504,14 @@ Namespace Microsoft.VisualStudio.Editors
                     If oBool IsNot Nothing AndAlso CBool(oBool) Then
                         ' This is a ZIP project - let's find the projects and list all configuration files associated with it...
                         Dim projEnum As IEnumHierarchies = Nothing
-                        ErrorHandler.ThrowOnFailure(m_solution.GetProjectEnum(CUInt(__VSENUMPROJFLAGS.EPF_ALLINSOLUTION), Guid.Empty, projEnum))
+                        ErrorHandler.ThrowOnFailure(_solution.GetProjectEnum(CUInt(__VSENUMPROJFLAGS.EPF_ALLINSOLUTION), Guid.Empty, projEnum))
                         Dim hiers(0) As IVsHierarchy
                         Dim fetched As UInteger
 
                         Do While projEnum.Next(CUInt(hiers.Length), hiers, fetched) = Editors.Interop.NativeMethods.S_OK AndAlso fetched > 0
                             If hiers(0) IsNot Nothing Then
                                 Dim dirs As Collections.Generic.List(Of String) = SettingsDesigner.SettingsDesigner.FindUserConfigDirectories(hiers(0))
-                                m_filesToCleanUp.AddRange(SettingsDesigner.SettingsDesigner.FindUserConfigFiles(dirs))
+                                _filesToCleanUp.AddRange(SettingsDesigner.SettingsDesigner.FindUserConfigFiles(dirs))
                             End If
                         Loop
                     End If
@@ -558,17 +560,17 @@ Namespace Microsoft.VisualStudio.Editors
             End Function
 #End Region
 
-            Private disposed As Boolean = False
+            Private _disposed As Boolean = False
 
             ' IDisposable
             Private Overloads Sub Dispose(ByVal disposing As Boolean)
-                If Not Me.disposed Then
+                If Not Me._disposed Then
                     If disposing Then
                         UnadviseSolutionEvents()
                     End If
                 End If
-                Debug.Assert(m_cookie = 0, "We didn't unadvise solution events")
-                Me.disposed = True
+                Debug.Assert(_cookie = 0, "We didn't unadvise solution events")
+                Me._disposed = True
             End Sub
 
 #Region " IDisposable Support "

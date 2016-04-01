@@ -1,3 +1,5 @@
+' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+
 Imports System.Windows.Forms
 
 Namespace Microsoft.VisualStudio.Editors.DesignerFramework
@@ -8,12 +10,12 @@ Namespace Microsoft.VisualStudio.Editors.DesignerFramework
         'True if the designer's view was forcibly closed (by SCC) during an apply.  In this case, we want to
         '  delay disposing our controls, and exit the apply and events as soon as possible to avoid possible
         '  problems since the project may have been closed down from under us.
-        Private m_ProjectReloadedDuringCheckout As Boolean
+        Private _projectReloadedDuringCheckout As Boolean
 
         'When positive, the designer is in a project checkout section, which means that the project
         '  file might get checked out, which means that it is possible the checkout will cause a reload
         '  of the project.  
-        Private m_CheckoutSectionCount As Integer
+        Private _checkoutSectionCount As Integer
 
 
 
@@ -28,8 +30,8 @@ Namespace Microsoft.VisualStudio.Editors.DesignerFramework
         ''' </summary>
         ''' <remarks></remarks>
         Protected Friend Sub EnterProjectCheckoutSection()
-            Debug.Assert(m_CheckoutSectionCount >= 0, "Bad m_CheckoutCriticalSectionCount count")
-            m_CheckoutSectionCount = m_CheckoutSectionCount + 1
+            Debug.Assert(_checkoutSectionCount >= 0, "Bad m_CheckoutCriticalSectionCount count")
+            _checkoutSectionCount = _checkoutSectionCount + 1
         End Sub
 
 
@@ -60,9 +62,9 @@ Namespace Microsoft.VisualStudio.Editors.DesignerFramework
         ''' </summary>
         ''' <remarks></remarks>
         Protected Friend Sub LeaveProjectCheckoutSection()
-            m_CheckoutSectionCount = m_CheckoutSectionCount - 1
-            Debug.Assert(m_CheckoutSectionCount >= 0, "Mismatched EnterProjectCheckoutSection/LeaveProjectCheckoutSection calls")
-            If m_CheckoutSectionCount = 0 AndAlso m_ProjectReloadedDuringCheckout Then
+            _checkoutSectionCount = _checkoutSectionCount - 1
+            Debug.Assert(_checkoutSectionCount >= 0, "Mismatched EnterProjectCheckoutSection/LeaveProjectCheckoutSection calls")
+            If _checkoutSectionCount = 0 AndAlso _projectReloadedDuringCheckout Then
                 Try
                     Trace.WriteLine("**** Dispose happened during a checkout.  Queueing a delayed Dispose() call for the designer view.")
                     If Not IsHandleCreated Then
@@ -88,7 +90,7 @@ Namespace Microsoft.VisualStudio.Editors.DesignerFramework
         ''' <remarks></remarks>
         Protected Friend ReadOnly Property ProjectReloadedDuringCheckout() As Boolean
             Get
-                Return m_ProjectReloadedDuringCheckout
+                Return _projectReloadedDuringCheckout
             End Get
         End Property
 
@@ -100,7 +102,7 @@ Namespace Microsoft.VisualStudio.Editors.DesignerFramework
         ''' <remarks></remarks>
         Protected ReadOnly Property IsInProjectCheckoutSection() As Boolean
             Get
-                Return m_CheckoutSectionCount > 0
+                Return _checkoutSectionCount > 0
             End Get
         End Property
 
@@ -123,7 +125,7 @@ Namespace Microsoft.VisualStudio.Editors.DesignerFramework
                     '  trying to avoid right now.
 
                     Trace.WriteLine("***** BaseDesignerView.Dispose(): Being forcibly disposed during an checkout.  Disposal of controls will be delayed until after the current callstack is finished.")
-                    m_ProjectReloadedDuringCheckout = True
+                    _projectReloadedDuringCheckout = True
                     Return
                 End If
             End If
@@ -140,7 +142,7 @@ Namespace Microsoft.VisualStudio.Editors.DesignerFramework
         Private Sub DelayedMyBaseDispose()
             'Set this flag back to false so that subclasses which override Dispose() know when it's
             '  safe to Dispose of their controls.
-            m_ProjectReloadedDuringCheckout = False
+            _projectReloadedDuringCheckout = False
             MyBase.Dispose(True)
         End Sub
 

@@ -1,3 +1,5 @@
+' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+
 Option Strict On
 Option Explicit On
 Imports System.Drawing
@@ -38,7 +40,7 @@ Namespace Microsoft.VisualStudio.Editors.DesignerFramework
                     Not proposedsize.Width.Equals(Int32.MaxValue) OrElse _
                     Not proposedsize.Height.Equals(Int32.MaxValue)) Then
                 ' we have the possiblility of wrapping... back out the single line of text
-                Dim bordersAndPadding As Size = prefSize - cachedSizeOfOneLineOfText
+                Dim bordersAndPadding As Size = prefSize - _cachedSizeOfOneLineOfText
                 ' add back in the text size, subtract baseprefsize.width and 3 from proposed size width 
                 ' so they wrap properly
                 Dim newConstraints As Size = proposedsize - bordersAndPadding - New Size(3, 0)
@@ -51,12 +53,12 @@ Namespace Microsoft.VisualStudio.Editors.DesignerFramework
                     newConstraints.Height = 0
                 End If
 
-                If (Not preferredSizeHash.ContainsKey(newConstraints)) Then
+                If (Not _preferredSizeHash.ContainsKey(newConstraints)) Then
                     prefSize = bordersAndPadding + TextRenderer.MeasureText(Me.Text, Me.Font, _
                         newConstraints, TextFormatFlags.WordBreak)
-                    preferredSizeHash(newConstraints) = prefSize
+                    _preferredSizeHash(newConstraints) = prefSize
                 Else
-                    prefSize = preferredSizeHash(newConstraints)
+                    prefSize = _preferredSizeHash(newConstraints)
                 End If
             End If
             Return prefSize
@@ -64,18 +66,18 @@ Namespace Microsoft.VisualStudio.Editors.DesignerFramework
 
         Private Sub CacheTextSize()
             'When the text has changed, the preferredSizeHash is invalid...
-            preferredSizeHash.Clear()
+            _preferredSizeHash.Clear()
 
             If String.IsNullOrEmpty(Me.Text) Then
-                cachedSizeOfOneLineOfText = System.Drawing.Size.Empty
+                _cachedSizeOfOneLineOfText = System.Drawing.Size.Empty
             Else
-                cachedSizeOfOneLineOfText = TextRenderer.MeasureText(Me.Text, Me.Font, _
+                _cachedSizeOfOneLineOfText = TextRenderer.MeasureText(Me.Text, Me.Font, _
                     New Size(Int32.MaxValue, Int32.MaxValue), TextFormatFlags.WordBreak)
             End If
         End Sub
 
-        Private cachedSizeOfOneLineOfText As System.Drawing.Size = System.Drawing.Size.Empty
-        Private preferredSizeHash As New Dictionary(Of Size, Size)()
+        Private _cachedSizeOfOneLineOfText As System.Drawing.Size = System.Drawing.Size.Empty
+        Private _preferredSizeHash As New Dictionary(Of Size, Size)()
 
     End Class
 End Namespace

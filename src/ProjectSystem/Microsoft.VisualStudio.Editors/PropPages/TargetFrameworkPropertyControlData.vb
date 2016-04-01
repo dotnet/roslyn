@@ -1,3 +1,5 @@
+' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+
 Imports Microsoft.VisualStudio.OLE.Interop
 Imports Microsoft.VisualStudio.Shell.Interop
 Imports System.Windows.Forms
@@ -7,21 +9,21 @@ Namespace Microsoft.VisualStudio.Editors.PropertyPages
     ''' <summary>
     ''' A customized property control data for the target framework combo box
     ''' </summary>
-    Class TargetFrameworkPropertyControlData
+    Friend Class TargetFrameworkPropertyControlData
         Inherits PropertyControlData
 
-        Private comboBox As ComboBox
+        Private _comboBox As ComboBox
 
         Public Sub New(ByVal id As Integer, ByVal name As String, ByVal comboBox As ComboBox, ByVal setter As SetDelegate, ByVal getter As GetDelegate, ByVal flags As ControlDataFlags, ByVal AssocControls As System.Windows.Forms.Control())
             MyBase.New(id, name, comboBox, setter, getter, flags, AssocControls)
-            Me.comboBox = comboBox
+            Me._comboBox = comboBox
 
-            AddHandler Me.comboBox.DropDownClosed, AddressOf ComboBox_DropDownClosed
+            AddHandler Me._comboBox.DropDownClosed, AddressOf ComboBox_DropDownClosed
         End Sub
 
         Private Function IsInstallOtherFrameworksSelected() As Boolean
-            Return Me.comboBox.SelectedIndex >= 0 AndAlso
-                   TypeOf Me.comboBox.Items(Me.comboBox.SelectedIndex) Is InstallOtherFrameworksComboBoxValue
+            Return Me._comboBox.SelectedIndex >= 0 AndAlso
+                   TypeOf Me._comboBox.Items(Me._comboBox.SelectedIndex) Is InstallOtherFrameworksComboBoxValue
         End Function
 
         Private Sub NativageToInstallOtherFrameworksFWLink()
@@ -62,7 +64,7 @@ Namespace Microsoft.VisualStudio.Editors.PropertyPages
                 ' If the drop down is closed and the selection is still on the 'Install other frameworks...' value,
                 ' move the selection back to the last target framework value.  This can happen if arrowing when the drop
                 ' down is open (no commit) and pressing escape
-                Me.comboBox.SelectedIndex = IndexOfLastCommittedValue
+                Me._comboBox.SelectedIndex = IndexOfLastCommittedValue
 
             End If
 
@@ -74,16 +76,16 @@ Namespace Microsoft.VisualStudio.Editors.PropertyPages
 
                 ' If the user chooses 'Install other frameworks...', move the selection back to the last target
                 ' framework value and navigate to the fwlink
-                Me.comboBox.SelectedIndex = IndexOfLastCommittedValue
+                Me._comboBox.SelectedIndex = IndexOfLastCommittedValue
                 NativageToInstallOtherFrameworksFWLink()
 
-            ElseIf Me.comboBox.SelectedIndex <> IndexOfLastCommittedValue Then
+            ElseIf Me._comboBox.SelectedIndex <> IndexOfLastCommittedValue Then
 
                 MyBase.ComboBox_SelectionChangeCommitted(sender, e)
 
                 ' Keep track of what the user chose in case 'Install other frameworks...' is chosen later,
                 ' which allows us to revert back to this value
-                IndexOfLastCommittedValue = Me.comboBox.SelectedIndex
+                IndexOfLastCommittedValue = Me._comboBox.SelectedIndex
 
             End If
 
@@ -98,7 +100,7 @@ Namespace Microsoft.VisualStudio.Editors.PropertyPages
             Me.Site = Nothing
 
             ' Clear the handler added in the constructor
-            RemoveHandler Me.comboBox.DropDownClosed, AddressOf ComboBox_DropDownClosed
+            RemoveHandler Me._comboBox.DropDownClosed, AddressOf ComboBox_DropDownClosed
         End Sub
 
         ''' <summary>

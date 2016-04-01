@@ -1,3 +1,5 @@
+' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+
 Option Explicit On
 Option Strict On
 Option Compare Binary
@@ -20,7 +22,7 @@ Namespace Microsoft.VisualStudio.Editors.ResourceEditor
 
 
         ' The instance of the Resource that we're providing type description information for.
-        Private m_Instance As Resource = Nothing
+        Private _instance As Resource = Nothing
 
 
         '======================================================================
@@ -38,7 +40,7 @@ Namespace Microsoft.VisualStudio.Editors.ResourceEditor
             MyBase.New()
 
             Debug.Assert(Instance IsNot Nothing, "Instance is Nothing!!!")
-            m_Instance = Instance
+            _instance = Instance
         End Sub
 
 
@@ -55,7 +57,7 @@ Namespace Microsoft.VisualStudio.Editors.ResourceEditor
         ''' <returns>A PropertyDescriptorCollection that represents the properties for this Resource instance.</returns>
         ''' <remarks>We call the Resource instance to describe its properties itself.</remarks>
         Public Overrides Function GetProperties() As PropertyDescriptorCollection
-            Return m_Instance.GetProperties
+            Return _instance.GetProperties
         End Function
 
 
@@ -66,7 +68,7 @@ Namespace Microsoft.VisualStudio.Editors.ResourceEditor
         ''' <returns>A PropertyDescriptorCollection that represents the filtered properties for this Resource instance.</returns>
         ''' <remarks>We don't have any attributes on the properties except possibly the Category attribute.</remarks>
         Public Overrides Function GetProperties(ByVal attributes() As Attribute) As PropertyDescriptorCollection
-            Return m_Instance.GetProperties
+            Return _instance.GetProperties
         End Function
 
 
@@ -76,8 +78,8 @@ Namespace Microsoft.VisualStudio.Editors.ResourceEditor
         ''' </summary>
         ''' <remarks></remarks>
         Public Overrides Function GetComponentName() As String
-            Debug.Assert(m_Instance.Name <> "")
-            Return m_Instance.Name
+            Debug.Assert(_instance.Name <> "")
+            Return _instance.Name
         End Function
 
         ''' <summary>
@@ -87,8 +89,8 @@ Namespace Microsoft.VisualStudio.Editors.ResourceEditor
         ''' <remarks></remarks>
         Public Overrides Function GetClassName() As String
             ' CONSIDER: We should return Category here...
-            If m_Instance IsNot Nothing
-                Dim typeName As String = m_Instance.FriendlyValueTypeName
+            If _instance IsNot Nothing
+                Dim typeName As String = _instance.FriendlyValueTypeName
                 Dim idx As Integer = typeName.LastIndexOf("."c)
                 If idx > 0 Then
                     typeName = typeName.Substring(idx + 1)

@@ -1,3 +1,5 @@
+' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+
 Imports System.ComponentModel
 Imports System.Drawing
 Imports System.Windows.Forms
@@ -14,17 +16,17 @@ Namespace Microsoft.VisualStudio.Editors.PropertyPages
 
 
         ' We map colors for all bitmap buttons on the page, because the default one is too dark in high-contrast mode, and it is difficult to know whether it is disabled
-        Private MoveUpImageOriginal As Image
-        Private MoveUpImage As Image
-        Private MoveUpGreyImage As Image
-        Private MoveDownImageOriginal As Image
-        Private MoveDownImage As Image
-        Private MoveDownGreyImage As Image
-        Private RemoveFolderImageOriginal As Image
-        Private RemoveFolderImage As Image
-        Private RemoveFolderGreyImage As Image
+        Private _moveUpImageOriginal As Image
+        Private _moveUpImage As Image
+        Private _moveUpGreyImage As Image
+        Private _moveDownImageOriginal As Image
+        Private _moveDownImage As Image
+        Private _moveDownGreyImage As Image
+        Private _removeFolderImageOriginal As Image
+        Private _removeFolderImage As Image
+        Private _removeFolderGreyImage As Image
 
-        Private inContrastMode As Boolean   ' whether we are in ContrastMode
+        Private _inContrastMode As Boolean   ' whether we are in ContrastMode
 
 #Region " Windows Form Designer generated code "
 
@@ -43,14 +45,14 @@ Namespace Microsoft.VisualStudio.Editors.PropertyPages
             Me.MinimumSize = Me.Size
 
             ' Recalculate all images for the button from the default image we put in the resource file
-            MoveUpImageOriginal = Me.MoveUp.Image
-            MoveDownImageOriginal = Me.MoveDown.Image
-            RemoveFolderImageOriginal = Me.RemoveFolder.Image
+            _moveUpImageOriginal = Me.MoveUp.Image
+            _moveDownImageOriginal = Me.MoveDown.Image
+            _removeFolderImageOriginal = Me.RemoveFolder.Image
 
             ' Rescale images
-            DpiHelper.LogicalToDeviceUnits(MoveUpImageOriginal)
-            DpiHelper.LogicalToDeviceUnits(MoveDownImageOriginal)
-            DpiHelper.LogicalToDeviceUnits(RemoveFolderImageOriginal)
+            DpiHelper.LogicalToDeviceUnits(_moveUpImageOriginal)
+            DpiHelper.LogicalToDeviceUnits(_moveDownImageOriginal)
+            DpiHelper.LogicalToDeviceUnits(_removeFolderImageOriginal)
 
             GenerateButtonImages()
             UpdateButtonImages()
@@ -64,8 +66,8 @@ Namespace Microsoft.VisualStudio.Editors.PropertyPages
         'Form overrides dispose to clean up the component list.
         Protected Overloads Overrides Sub Dispose(ByVal disposing As Boolean)
             If disposing Then
-                If Not (components Is Nothing) Then
-                    components.Dispose()
+                If Not (_components Is Nothing) Then
+                    _components.Dispose()
                 End If
                 RemoveHandler SystemEvents.UserPreferenceChanged, AddressOf Me.SystemEvents_UserPreferenceChanged
             End If
@@ -73,7 +75,7 @@ Namespace Microsoft.VisualStudio.Editors.PropertyPages
         End Sub
 
         'Required by the Windows Form Designer
-        Private components As System.ComponentModel.IContainer
+        Private _components As System.ComponentModel.IContainer
         Friend WithEvents FolderLabel As System.Windows.Forms.Label
         Friend WithEvents Folder As System.Windows.Forms.TextBox
         Friend WithEvents FolderBrowse As System.Windows.Forms.Button
@@ -565,21 +567,21 @@ Namespace Microsoft.VisualStudio.Editors.PropertyPages
         '''</summary>
         Private Sub UpdateButtonImages()
             If MoveUp.Enabled Then
-                MoveUp.Image = MoveUpImage
+                MoveUp.Image = _moveUpImage
             Else
-                MoveUp.Image = MoveUpGreyImage
+                MoveUp.Image = _moveUpGreyImage
             End If
 
             If MoveDown.Enabled Then
-                MoveDown.Image = MoveDownImage
+                MoveDown.Image = _moveDownImage
             Else
-                MoveDown.Image = MoveDownGreyImage
+                MoveDown.Image = _moveDownGreyImage
             End If
 
             If RemoveFolder.Enabled Then
-                RemoveFolder.Image = RemoveFolderImage
+                RemoveFolder.Image = _removeFolderImage
             Else
-                RemoveFolder.Image = RemoveFolderGreyImage
+                RemoveFolder.Image = _removeFolderGreyImage
             End If
         End Sub
 
@@ -591,23 +593,23 @@ Namespace Microsoft.VisualStudio.Editors.PropertyPages
             Dim greyColor As Color = SystemColors.ControlDark
 
             If SystemInformation.HighContrast Then
-                inContrastMode = True
+                _inContrastMode = True
                 greyColor = SystemColors.Control
             Else
-                inContrastMode = False
+                _inContrastMode = False
             End If
 
-            Dim originalImage As Image = MoveUpImageOriginal
-            MoveUpImage = Utils.MapBitmapColor(originalImage, Color.Black, SystemColors.ControlText)
-            MoveUpGreyImage = Utils.MapBitmapColor(originalImage, Color.Black, greyColor)
+            Dim originalImage As Image = _moveUpImageOriginal
+            _moveUpImage = Utils.MapBitmapColor(originalImage, Color.Black, SystemColors.ControlText)
+            _moveUpGreyImage = Utils.MapBitmapColor(originalImage, Color.Black, greyColor)
 
-            originalImage = MoveDownImageOriginal
-            MoveDownImage = Utils.MapBitmapColor(originalImage, Color.Black, SystemColors.ControlText)
-            MoveDownGreyImage = Utils.MapBitmapColor(originalImage, Color.Black, greyColor)
+            originalImage = _moveDownImageOriginal
+            _moveDownImage = Utils.MapBitmapColor(originalImage, Color.Black, SystemColors.ControlText)
+            _moveDownGreyImage = Utils.MapBitmapColor(originalImage, Color.Black, greyColor)
 
-            originalImage = RemoveFolderImageOriginal
-            RemoveFolderImage = Utils.MapBitmapColor(originalImage, Color.Black, SystemColors.ControlText)
-            RemoveFolderGreyImage = Utils.MapBitmapColor(originalImage, Color.Black, greyColor)
+            originalImage = _removeFolderImageOriginal
+            _removeFolderImage = Utils.MapBitmapColor(originalImage, Color.Black, SystemColors.ControlText)
+            _removeFolderGreyImage = Utils.MapBitmapColor(originalImage, Color.Black, greyColor)
         End Sub
 
         ''' <summary>
@@ -616,7 +618,7 @@ Namespace Microsoft.VisualStudio.Editors.PropertyPages
         Private Sub SystemEvents_UserPreferenceChanged(ByVal sender As Object, ByVal e As UserPreferenceChangedEventArgs)
             Select Case e.Category
                 Case UserPreferenceCategory.Accessibility
-                    If inContrastMode <> SystemInformation.HighContrast Then
+                    If _inContrastMode <> SystemInformation.HighContrast Then
                         GenerateButtonImages()
                         UpdateButtonImages()
                     End If

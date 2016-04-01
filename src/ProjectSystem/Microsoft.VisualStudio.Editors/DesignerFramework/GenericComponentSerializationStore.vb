@@ -1,3 +1,5 @@
+' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+
 Imports System.ComponentModel
 Imports System.ComponentModel.Design.Serialization
 Imports System.io
@@ -17,11 +19,11 @@ Namespace Microsoft.VisualStudio.Editors.DesignerFramework
         '  until we're Close:d, until then this just keeps track of what we
         '  want to serialize.  It will be cleared out when we Close.
         'Private m_HashedObjectsToSerialize As New Dictionary(Of Object, ObjectData)
-        Private m_HashedObjectsToSerialize As New Hashtable
+        Private _hashedObjectsToSerialize As New Hashtable
         'The actual "serialized" data (binary serialized objects and
         '  property values) which is available after Close().  This data drives
         '  the deserialization process.
-        Private m_SerializedState As ArrayList
+        Private _serializedState As ArrayList
 
         ''' <summary>
         ''' Public empty constructor
@@ -50,10 +52,10 @@ Namespace Microsoft.VisualStudio.Editors.DesignerFramework
         ''' </summary>
         ''' <remarks></remarks>
         Public Overrides Sub Close()
-            If m_SerializedState Is Nothing Then
-                Dim SerializedState As New ArrayList(m_HashedObjectsToSerialize.Count)
+            If _serializedState Is Nothing Then
+                Dim SerializedState As New ArrayList(_hashedObjectsToSerialize.Count)
                 'Go through each object that we wanted to save anything from...
-                For Each Data As ObjectData In m_HashedObjectsToSerialize.Values
+                For Each Data As ObjectData In _hashedObjectsToSerialize.Values
                     If Data.IsEntireObject Then
                         'We're saving the entire object.
                         '  The constructor for SerializedObjectData will do the
@@ -72,8 +74,8 @@ Namespace Microsoft.VisualStudio.Editors.DesignerFramework
 
                 'Save what we've serialized, and clear out the old data - it's no longer
                 '  needed.
-                m_SerializedState = SerializedState
-                m_HashedObjectsToSerialize = Nothing
+                _serializedState = SerializedState
+                _hashedObjectsToSerialize = Nothing
             End If
         End Sub
 
@@ -82,7 +84,7 @@ Namespace Microsoft.VisualStudio.Editors.DesignerFramework
 #Region "ISerialization implementation"
 
         'Serialization keys for ISerializable
-        Const KEY_STATE As String = "State"
+        Private Const s_KEY_STATE As String = "State"
 
         ''' <summary>
         '''     Implements the save part of ISerializable.
@@ -93,7 +95,7 @@ Namespace Microsoft.VisualStudio.Editors.DesignerFramework
         ''' <remarks></remarks>
         <System.Security.Permissions.SecurityPermission(System.Security.Permissions.SecurityAction.Demand, SerializationFormatter:=True)> _
         Public Sub GetObjectData(ByVal info As System.Runtime.Serialization.SerializationInfo, ByVal context As System.Runtime.Serialization.StreamingContext) Implements System.Runtime.Serialization.ISerializable.GetObjectData
-            info.AddValue(KEY_STATE, m_SerializedState)
+            info.AddValue(s_KEY_STATE, _serializedState)
         End Sub
 
 
@@ -105,7 +107,7 @@ Namespace Microsoft.VisualStudio.Editors.DesignerFramework
         ''' <param name="Context">Serialization context</param>
         ''' <remarks></remarks>
         Private Sub New(ByVal Info As SerializationInfo, ByVal Context As StreamingContext)
-            m_SerializedState = DirectCast(Info.GetValue(KEY_STATE, GetType(ArrayList)), ArrayList)
+            _serializedState = DirectCast(Info.GetValue(s_KEY_STATE, GetType(ArrayList)), ArrayList)
         End Sub
 
 #End Region
@@ -152,7 +154,7 @@ Namespace Microsoft.VisualStudio.Editors.DesignerFramework
         '''   our list of things to be serialized.
         ''' </remarks>
         Public Sub AddObject(ByVal Component As Object)
-            If m_SerializedState IsNot Nothing Then
+            If _serializedState IsNot Nothing Then
                 Debug.Fail("State already serialization, shouldn't be adding new stuff")
                 Throw New Package.InternalException
             End If
@@ -177,7 +179,7 @@ Namespace Microsoft.VisualStudio.Editors.DesignerFramework
         '''   our list of things to be serialized.
         ''' </remarks>
         Friend Sub AddMember(ByVal Component As Object, ByVal Member As PropertyDescriptor)
-            If m_SerializedState IsNot Nothing Then
+            If _serializedState IsNot Nothing Then
                 Debug.Fail("State already serialization, shouldn't be adding new stuff")
                 Throw New Package.InternalException
             End If
@@ -201,12 +203,12 @@ Namespace Microsoft.VisualStudio.Editors.DesignerFramework
         ''' <remarks></remarks>
         Private Function GetSerializationData(ByVal Component As Object) As ObjectData
             Dim Data As ObjectData
-            If m_HashedObjectsToSerialize.ContainsKey(Component) Then
-                Data = CType(m_HashedObjectsToSerialize(Component), ObjectData)
+            If _hashedObjectsToSerialize.ContainsKey(Component) Then
+                Data = CType(_hashedObjectsToSerialize(Component), ObjectData)
             Else
                 'No object created for this object yet.  Create one now.
                 Data = New ObjectData(Component)
-                m_HashedObjectsToSerialize(Component) = Data
+                _hashedObjectsToSerialize(Component) = Data
             End If
 
             Return Data
@@ -274,10 +276,10 @@ Namespace Microsoft.VisualStudio.Editors.DesignerFramework
         ''' <returns>The objects which have been serialized.</returns>
         ''' <remarks></remarks>
         Private Function DeserializeHelper(ByVal Container As IContainer, ByVal RecycleInstances As Boolean) As ICollection
-            Dim NewObjects As New ArrayList(m_SerializedState.Count)
+            Dim NewObjects As New ArrayList(_serializedState.Count)
 
             'Handle each individual component or property at a time...
-            For Each SerializedObject As SerializedObjectData In m_SerializedState
+            For Each SerializedObject As SerializedObjectData In _serializedState
                 If SerializedObject.IsEntireObject Then
                     '... we have an entire object.  Go ahead and create it from
                     '  the stored binary serialization.
@@ -346,10 +348,10 @@ Namespace Microsoft.VisualStudio.Editors.DesignerFramework
         Protected Class ObjectData
 
             'Backing for public properties
-            Private m_IsEntireObject As Boolean
-            Private m_Members As ArrayList
-            Private m_Value As Object
-            Private m_ObjectName As String
+            Private _isEntireObject As Boolean
+            Private _members As ArrayList
+            Private _value As Object
+            Private _objectName As String
 
             ''' <summary>
             ''' Constructor
@@ -366,17 +368,17 @@ Namespace Microsoft.VisualStudio.Editors.DesignerFramework
                 If TypeOf Value Is IComponent Then
                     Dim comp As IComponent = DirectCast(Value, IComponent)
                     If comp.Site IsNot Nothing Then
-                        m_ObjectName = comp.Site.Name
+                        _objectName = comp.Site.Name
                     End If
                 End If
 
-                If m_ObjectName = "" Then
+                If _objectName = "" Then
                     ' We better create a unique name for this guy...
-                    m_ObjectName = Guid.NewGuid.ToString().Replace("-", "_")
+                    _objectName = Guid.NewGuid.ToString().Replace("-", "_")
                 End If
 
                 ' Store the value for later
-                m_Value = Value
+                _value = Value
             End Sub
 
             ''' <summary>
@@ -386,7 +388,7 @@ Namespace Microsoft.VisualStudio.Editors.DesignerFramework
             ''' <remarks></remarks>
             Public ReadOnly Property Name() As String
                 Get
-                    Return m_ObjectName
+                    Return _objectName
                 End Get
             End Property
 
@@ -397,7 +399,7 @@ Namespace Microsoft.VisualStudio.Editors.DesignerFramework
             ''' <remarks></remarks>
             Public ReadOnly Property Value() As Object
                 Get
-                    Return m_Value
+                    Return _value
                 End Get
             End Property
 
@@ -410,13 +412,13 @@ Namespace Microsoft.VisualStudio.Editors.DesignerFramework
             ''' <remarks></remarks>
             Public Property IsEntireObject() As Boolean
                 Get
-                    Return m_IsEntireObject
+                    Return _isEntireObject
                 End Get
                 Set(ByVal Value As Boolean)
-                    If Value AndAlso m_Members IsNot Nothing Then
-                        m_Members.Clear()
+                    If Value AndAlso _members IsNot Nothing Then
+                        _members.Clear()
                     End If
-                    m_IsEntireObject = Value
+                    _isEntireObject = Value
                 End Set
             End Property
 
@@ -429,10 +431,10 @@ Namespace Microsoft.VisualStudio.Editors.DesignerFramework
             ''' <remarks></remarks>
             Public ReadOnly Property Members() As ArrayList
                 Get
-                    If m_Members Is Nothing Then
-                        m_Members = New ArrayList
+                    If _members Is Nothing Then
+                        _members = New ArrayList
                     End If
-                    Return m_Members
+                    Return _members
                 End Get
             End Property
 
@@ -452,9 +454,9 @@ Namespace Microsoft.VisualStudio.Editors.DesignerFramework
         Private Class SerializedObjectData
 
             'Backing for public properties
-            Private m_ObjectName As String
-            Private m_PropertyName As String
-            Private m_SerializedValue As Byte()
+            Private _objectName As String
+            Private _propertyName As String
+            Private _serializedValue As Byte()
 
             ''' <summary>
             ''' Constructor
@@ -465,8 +467,8 @@ Namespace Microsoft.VisualStudio.Editors.DesignerFramework
                 If Value Is Nothing Then
                     Throw New ArgumentNullException("Value")
                 End If
-                m_ObjectName = Value.Name
-                m_SerializedValue = SerializeObject(Value.Value)
+                _objectName = Value.Name
+                _serializedValue = SerializeObject(Value.Value)
             End Sub
 
             ''' <summary>
@@ -482,9 +484,9 @@ Namespace Microsoft.VisualStudio.Editors.DesignerFramework
                     Throw New ArgumentNullException("Property")
                 End If
 
-                m_ObjectName = Value.Name
-                m_PropertyName = [Property].Name
-                m_SerializedValue = SerializeObject([Property].GetValue(Value.Value))
+                _objectName = Value.Name
+                _propertyName = [Property].Name
+                _serializedValue = SerializeObject([Property].GetValue(Value.Value))
             End Sub
 
             ''' <summary>
@@ -495,19 +497,19 @@ Namespace Microsoft.VisualStudio.Editors.DesignerFramework
             ''' <remarks></remarks>
             Friend ReadOnly Property IsEntireObject() As Boolean
                 Get
-                    Return m_PropertyName = ""
+                    Return _propertyName = ""
                 End Get
             End Property
 
             Friend ReadOnly Property ObjectName() As String
                 Get
-                    Return m_ObjectName
+                    Return _objectName
                 End Get
             End Property
 
             Friend ReadOnly Property PropertyName() As String
                 Get
-                    Return m_PropertyName
+                    Return _propertyName
                 End Get
             End Property
 
@@ -522,10 +524,10 @@ Namespace Microsoft.VisualStudio.Editors.DesignerFramework
             End Function
 
             Public Function DeserializeObject() As Object
-                If m_SerializedValue.Length = 0 Then
+                If _serializedValue.Length = 0 Then
                     Return Nothing
                 Else
-                    Dim MemoryStream As New MemoryStream(m_SerializedValue)
+                    Dim MemoryStream As New MemoryStream(_serializedValue)
                     Return (New BinaryFormatter).Deserialize(MemoryStream)
                 End If
             End Function

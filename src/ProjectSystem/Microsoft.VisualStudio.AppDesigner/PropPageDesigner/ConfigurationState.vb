@@ -1,4 +1,6 @@
-﻿Imports Common = Microsoft.VisualStudio.Editors.AppDesCommon
+﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+
+Imports Common = Microsoft.VisualStudio.Editors.AppDesCommon
 Imports Microsoft.VisualStudio.Shell.Interop
 Imports VSITEMID = Microsoft.VisualStudio.Editors.VSITEMIDAPPDES
 
@@ -23,33 +25,33 @@ Namespace Microsoft.VisualStudio.Editors.PropPageDesigner
 
         'The active project/hierarchy (with the current design, this can never change for this instance of the 
         '  project designer/configuration state
-        Private m_Project As EnvDTE.Project
-        Private m_ProjectHierarchy As IVsHierarchy
+        Private _project As EnvDTE.Project
+        Private _projectHierarchy As IVsHierarchy
 
         'The configuration provider for the project
-        Private m_VsCfgProvider As IVsCfgProvider2
+        Private _vsCfgProvider As IVsCfgProvider2
 
         'Pointer to the parent application designer view
-        Private m_View As ApplicationDesigner.ApplicationDesignerView
+        Private _view As ApplicationDesigner.ApplicationDesignerView
 
         'The current selections in the configuration/platform comboboxes
-        Private m_SelectedConfigIndex As Integer
-        Private m_SelectedPlatformIndex As Integer
+        Private _selectedConfigIndex As Integer
+        Private _selectedPlatformIndex As Integer
 
         'The current list of entries to be displayed in the comboboxes of all config-dependent
         '  property pages
-        Private m_ConfigurationDropdownEntries As DropdownItem()
-        Private m_PlatformDropdownEntries As DropdownItem()
+        Private _configurationDropdownEntries As DropdownItem()
+        Private _platformDropdownEntries As DropdownItem()
 
         'Solution build manager for this solution
-        Private m_VsSolutionBuildManager As IVsSolutionBuildManager
+        Private _vsSolutionBuildManager As IVsSolutionBuildManager
 
         'Event-listening cookies
-        Private m_UpdateSolutionEventsCookie As UInteger
-        Private m_CfgProviderEventsCookie As UInteger
+        Private _updateSolutionEventsCookie As UInteger
+        Private _cfgProviderEventsCookie As UInteger
 
         'Last value of SimplifiedConfigMode, so we know when it changes
-        Private m_SimplifiedConfigModeLastKnownValue As Boolean
+        Private _simplifiedConfigModeLastKnownValue As Boolean
 
 #End Region
 
@@ -120,16 +122,16 @@ Namespace Microsoft.VisualStudio.Editors.PropPageDesigner
                 Throw New ArgumentNullException()
             End If
 
-            m_Project = Project
-            m_ProjectHierarchy = ProjectHierarchy
-            m_View = View
+            _project = Project
+            _projectHierarchy = ProjectHierarchy
+            _view = View
 
             Dim ConfigProvider As Object = Nothing
             VSErrorHandler.ThrowOnFailure(ProjectHierarchy.GetProperty(VSITEMID.ROOT, __VSHPROPID.VSHPROPID_ConfigurationProvider, ConfigProvider))
-            m_VsCfgProvider = DirectCast(ConfigProvider, IVsCfgProvider2)
+            _vsCfgProvider = DirectCast(ConfigProvider, IVsCfgProvider2)
 
             'Initialize m_SimplifiedConfigModeLastKnownValue
-            m_SimplifiedConfigModeLastKnownValue = IsSimplifiedConfigMode
+            _simplifiedConfigModeLastKnownValue = IsSimplifiedConfigMode
 
             AdviseEventHandling()
         End Sub
@@ -141,9 +143,9 @@ Namespace Microsoft.VisualStudio.Editors.PropPageDesigner
         ''' <remarks></remarks>
         Public Sub Dispose() Implements System.IDisposable.Dispose
             UnadviseEventHandling()
-            Me.m_Project = Nothing
-            Me.m_VsCfgProvider = Nothing
-            m_VsSolutionBuildManager = Nothing
+            Me._project = Nothing
+            Me._vsCfgProvider = Nothing
+            _vsSolutionBuildManager = Nothing
         End Sub
 
 
@@ -158,10 +160,10 @@ Namespace Microsoft.VisualStudio.Editors.PropPageDesigner
         ''' <param name="FireNotifications">If true, notifications are sent to the pages (but only if the selection actually changed)</param>
         ''' <remarks></remarks>
         Public Sub ChangeSelection(ByVal ConfigName As String, ByVal ConfigSelectionType As SelectionTypes, ByVal PlatformName As String, ByVal PlatformSelectionType As SelectionTypes, ByVal PreferExactMatch As Boolean, ByVal FireNotifications As Boolean)
-            Dim NewSelectedConfigIndex As Integer = FindItemToSelect(m_ConfigurationDropdownEntries, m_SelectedConfigIndex, ConfigName, ConfigSelectionType, PreferExactMatch)
-            Dim NewSelectedPlatformIndex As Integer = FindItemToSelect(m_PlatformDropdownEntries, m_SelectedPlatformIndex, PlatformName, PlatformSelectionType, PreferExactMatch)
-            Debug.Assert(NewSelectedConfigIndex >= 0 AndAlso NewSelectedConfigIndex < m_ConfigurationDropdownEntries.Length)
-            Debug.Assert(NewSelectedPlatformIndex >= 0 AndAlso NewSelectedPlatformIndex < m_PlatformDropdownEntries.Length)
+            Dim NewSelectedConfigIndex As Integer = FindItemToSelect(_configurationDropdownEntries, _selectedConfigIndex, ConfigName, ConfigSelectionType, PreferExactMatch)
+            Dim NewSelectedPlatformIndex As Integer = FindItemToSelect(_platformDropdownEntries, _selectedPlatformIndex, PlatformName, PlatformSelectionType, PreferExactMatch)
+            Debug.Assert(NewSelectedConfigIndex >= 0 AndAlso NewSelectedConfigIndex < _configurationDropdownEntries.Length)
+            Debug.Assert(NewSelectedPlatformIndex >= 0 AndAlso NewSelectedPlatformIndex < _platformDropdownEntries.Length)
 
             ChangeSelection(NewSelectedConfigIndex, NewSelectedPlatformIndex, FireNotifications)
         End Sub
@@ -175,12 +177,12 @@ Namespace Microsoft.VisualStudio.Editors.PropPageDesigner
         ''' <param name="FireNotifications">If true, notifications are sent to the pages (but only if the selection actually changed)</param>
         ''' <remarks></remarks>
         Public Sub ChangeSelection(ByVal ConfigIndex As Integer, ByVal PlatformIndex As Integer, ByVal FireNotifications As Boolean)
-            Debug.Assert(ConfigIndex >= 0 AndAlso ConfigIndex < m_ConfigurationDropdownEntries.Length)
-            Debug.Assert(PlatformIndex >= 0 AndAlso PlatformIndex < m_PlatformDropdownEntries.Length)
+            Debug.Assert(ConfigIndex >= 0 AndAlso ConfigIndex < _configurationDropdownEntries.Length)
+            Debug.Assert(PlatformIndex >= 0 AndAlso PlatformIndex < _platformDropdownEntries.Length)
 
-            If m_SelectedConfigIndex <> ConfigIndex OrElse m_SelectedPlatformIndex <> PlatformIndex Then
-                m_SelectedConfigIndex = ConfigIndex
-                m_SelectedPlatformIndex = PlatformIndex
+            If _selectedConfigIndex <> ConfigIndex OrElse _selectedPlatformIndex <> PlatformIndex Then
+                _selectedConfigIndex = ConfigIndex
+                _selectedPlatformIndex = PlatformIndex
 
                 'Notify the pages to update their selection
                 If FireNotifications Then
@@ -198,7 +200,7 @@ Namespace Microsoft.VisualStudio.Editors.PropPageDesigner
         ''' <remarks></remarks>
         Public ReadOnly Property SelectedConfigIndex() As Integer
             Get
-                Return m_SelectedConfigIndex
+                Return _selectedConfigIndex
             End Get
         End Property
 
@@ -211,7 +213,7 @@ Namespace Microsoft.VisualStudio.Editors.PropPageDesigner
         ''' <remarks></remarks>
         Public ReadOnly Property SelectedPlatformIndex() As Integer
             Get
-                Return m_SelectedPlatformIndex
+                Return _selectedPlatformIndex
             End Get
         End Property
 
@@ -233,10 +235,10 @@ Namespace Microsoft.VisualStudio.Editors.PropPageDesigner
         ''' <remarks></remarks>
         Public ReadOnly Property ConfigurationDropdownEntries() As DropdownItem()
             Get
-                If m_PlatformDropdownEntries Is Nothing OrElse m_ConfigurationDropdownEntries Is Nothing Then
+                If _platformDropdownEntries Is Nothing OrElse _configurationDropdownEntries Is Nothing Then
                     UpdateDropdownEntries()
                 End If
-                Return m_ConfigurationDropdownEntries
+                Return _configurationDropdownEntries
             End Get
         End Property
 
@@ -248,10 +250,10 @@ Namespace Microsoft.VisualStudio.Editors.PropPageDesigner
         ''' <remarks></remarks>
         Public ReadOnly Property PlatformDropdownEntries() As DropdownItem()
             Get
-                If m_PlatformDropdownEntries Is Nothing OrElse m_ConfigurationDropdownEntries Is Nothing Then
+                If _platformDropdownEntries Is Nothing OrElse _configurationDropdownEntries Is Nothing Then
                     UpdateDropdownEntries()
                 End If
-                Return m_PlatformDropdownEntries
+                Return _platformDropdownEntries
             End Get
         End Property
 
@@ -269,62 +271,62 @@ Namespace Microsoft.VisualStudio.Editors.PropPageDesigner
             Debug.Assert(GetAllConfigs().Length = ConfigNames.Length * PlatformNames.Length, "Isn't there one config for each config name/platform combination?")
 
             'Populate the configuration entries
-            m_ConfigurationDropdownEntries = New DropdownItem(ConfigNames.Length + 2) {} 'Max possible size (+2: "active" and "all configs")
-            m_PlatformDropdownEntries = New DropdownItem(PlatformNames.Length + 2) {} 'Max possible size (+2: "active" and "all platforms")
+            _configurationDropdownEntries = New DropdownItem(ConfigNames.Length + 2) {} 'Max possible size (+2: "active" and "all configs")
+            _platformDropdownEntries = New DropdownItem(PlatformNames.Length + 2) {} 'Max possible size (+2: "active" and "all platforms")
 
             'Populate the configuration entries
 
             '... Add the "Active" item at the top
             Dim ConfigIndex As Integer = 0
-            m_ConfigurationDropdownEntries(ConfigIndex) = New DropdownItem(ActiveConfiguration.ConfigurationName, SelectionTypes.Active)
+            _configurationDropdownEntries(ConfigIndex) = New DropdownItem(ActiveConfiguration.ConfigurationName, SelectionTypes.Active)
             ConfigIndex += 1
 
             '... followed by all individual items (but only if more than one)
             If ConfigNames.Length > 1 Then
                 For Each ConfigName As String In ConfigNames
-                    m_ConfigurationDropdownEntries(ConfigIndex) = New DropdownItem(ConfigName, SelectionTypes.Normal)
+                    _configurationDropdownEntries(ConfigIndex) = New DropdownItem(ConfigName, SelectionTypes.Normal)
                     ConfigIndex += 1
                 Next
 
                 '... followed by "All Configurations" (but only if there's more than one)
-                m_ConfigurationDropdownEntries(ConfigIndex) = New DropdownItem(SR.GetString(SR.PPG_AllConfigurations), SelectionTypes.All)
+                _configurationDropdownEntries(ConfigIndex) = New DropdownItem(SR.GetString(SR.PPG_AllConfigurations), SelectionTypes.All)
                 ConfigIndex += 1
             End If
-            ReDim Preserve m_ConfigurationDropdownEntries(ConfigIndex - 1)
+            ReDim Preserve _configurationDropdownEntries(ConfigIndex - 1)
 
             'Populate the platform entries
 
             '... Add the "Active" item at the top
             Dim PlatformIndex As Integer = 0
-            m_PlatformDropdownEntries(PlatformIndex) = New DropdownItem(ActiveConfiguration.PlatformName, SelectionTypes.Active)
+            _platformDropdownEntries(PlatformIndex) = New DropdownItem(ActiveConfiguration.PlatformName, SelectionTypes.Active)
             PlatformIndex += 1
 
             '... followed by all individual items (but only if more than one)
             If PlatformNames.Length > 1 Then
                 For Each PlatformName As String In PlatformNames
-                    m_PlatformDropdownEntries(PlatformIndex) = New DropdownItem(PlatformName, SelectionTypes.Normal)
+                    _platformDropdownEntries(PlatformIndex) = New DropdownItem(PlatformName, SelectionTypes.Normal)
                     PlatformIndex += 1
                 Next
 
                 '... followed by "All platforms" (but only if there's more than one)
-                m_PlatformDropdownEntries(PlatformIndex) = New DropdownItem(SR.GetString(SR.PPG_AllPlatforms), SelectionTypes.All)
+                _platformDropdownEntries(PlatformIndex) = New DropdownItem(SR.GetString(SR.PPG_AllPlatforms), SelectionTypes.All)
                 PlatformIndex += 1
             End If
-            ReDim Preserve m_PlatformDropdownEntries(PlatformIndex - 1)
+            ReDim Preserve _platformDropdownEntries(PlatformIndex - 1)
 
 #If DEBUG Then
-            For i As Integer = 0 To m_ConfigurationDropdownEntries.Length - 1
-                Debug.Assert(m_ConfigurationDropdownEntries(i) IsNot Nothing)
+            For i As Integer = 0 To _configurationDropdownEntries.Length - 1
+                Debug.Assert(_configurationDropdownEntries(i) IsNot Nothing)
             Next
-            For i As Integer = 0 To m_PlatformDropdownEntries.Length - 1
-                Debug.Assert(m_PlatformDropdownEntries(i) IsNot Nothing)
+            For i As Integer = 0 To _platformDropdownEntries.Length - 1
+                Debug.Assert(_platformDropdownEntries(i) IsNot Nothing)
             Next
-            Debug.Assert(m_ConfigurationDropdownEntries.Length > 0)
-            Debug.Assert(m_PlatformDropdownEntries.Length > 0)
+            Debug.Assert(_configurationDropdownEntries.Length > 0)
+            Debug.Assert(_platformDropdownEntries.Length > 0)
 #End If
 
-            m_SelectedConfigIndex = 0
-            m_SelectedPlatformIndex = 0
+            _selectedConfigIndex = 0
+            _selectedPlatformIndex = 0
         End Sub
 
 
@@ -335,8 +337,8 @@ Namespace Microsoft.VisualStudio.Editors.PropPageDesigner
         ''' <remarks></remarks>
         Public ReadOnly Property Project() As EnvDTE.Project
             Get
-                Debug.Assert(m_Project IsNot Nothing)
-                Return m_Project
+                Debug.Assert(_project IsNot Nothing)
+                Return _project
             End Get
         End Property
 
@@ -348,8 +350,8 @@ Namespace Microsoft.VisualStudio.Editors.PropPageDesigner
         ''' <remarks></remarks>
         Public ReadOnly Property VsCfgProvider() As IVsCfgProvider2
             Get
-                Debug.Assert(m_VsCfgProvider IsNot Nothing)
-                Return m_VsCfgProvider
+                Debug.Assert(_vsCfgProvider IsNot Nothing)
+                Return _vsCfgProvider
             End Get
         End Property
 
@@ -362,7 +364,7 @@ Namespace Microsoft.VisualStudio.Editors.PropPageDesigner
         ''' <remarks></remarks>
         Public ReadOnly Property IsSimplifiedConfigMode() As Boolean
             Get
-                Return AppDesCommon.ShellUtil.GetIsSimplifiedConfigMode(m_ProjectHierarchy)
+                Return AppDesCommon.ShellUtil.GetIsSimplifiedConfigMode(_projectHierarchy)
             End Get
         End Property
 
@@ -376,9 +378,9 @@ Namespace Microsoft.VisualStudio.Editors.PropPageDesigner
         Public Sub CheckForModeChanges()
             Common.Switches.TracePDConfigs("CheckForModeChanges")
             Dim SimplifiedConfigModeCurrent As Boolean = Me.IsSimplifiedConfigMode
-            If SimplifiedConfigModeCurrent <> m_SimplifiedConfigModeLastKnownValue Then
+            If SimplifiedConfigModeCurrent <> _simplifiedConfigModeLastKnownValue Then
                 Common.Switches.TracePDConfigs("Simplified Config Mode has changed")
-                m_SimplifiedConfigModeLastKnownValue = SimplifiedConfigModeCurrent
+                _simplifiedConfigModeLastKnownValue = SimplifiedConfigModeCurrent
                 RaiseEvent SimplifiedConfigModeChanged()
             End If
         End Sub
@@ -539,11 +541,11 @@ Namespace Microsoft.VisualStudio.Editors.PropPageDesigner
         ''' </summary>
         ''' <remarks></remarks>
         Private Sub AdviseEventHandling()
-            Debug.Assert(m_UpdateSolutionEventsCookie = 0)
-            Debug.Assert(m_CfgProviderEventsCookie = 0)
-            m_VsSolutionBuildManager = DirectCast(m_View.GetService(GetType(IVsSolutionBuildManager)), IVsSolutionBuildManager)
-            VSErrorHandler.ThrowOnFailure(m_VsSolutionBuildManager.AdviseUpdateSolutionEvents(Me, m_UpdateSolutionEventsCookie))
-            VSErrorHandler.ThrowOnFailure(VsCfgProvider.AdviseCfgProviderEvents(Me, m_CfgProviderEventsCookie))
+            Debug.Assert(_updateSolutionEventsCookie = 0)
+            Debug.Assert(_cfgProviderEventsCookie = 0)
+            _vsSolutionBuildManager = DirectCast(_view.GetService(GetType(IVsSolutionBuildManager)), IVsSolutionBuildManager)
+            VSErrorHandler.ThrowOnFailure(_vsSolutionBuildManager.AdviseUpdateSolutionEvents(Me, _updateSolutionEventsCookie))
+            VSErrorHandler.ThrowOnFailure(VsCfgProvider.AdviseCfgProviderEvents(Me, _cfgProviderEventsCookie))
         End Sub
 
 
@@ -552,14 +554,14 @@ Namespace Microsoft.VisualStudio.Editors.PropPageDesigner
         ''' </summary>
         ''' <remarks></remarks>
         Private Sub UnadviseEventHandling()
-            If m_UpdateSolutionEventsCookie <> 0 AndAlso m_VsSolutionBuildManager IsNot Nothing Then
-                VSErrorHandler.ThrowOnFailure(m_VsSolutionBuildManager.UnadviseUpdateSolutionEvents(m_UpdateSolutionEventsCookie))
-                m_UpdateSolutionEventsCookie = 0
+            If _updateSolutionEventsCookie <> 0 AndAlso _vsSolutionBuildManager IsNot Nothing Then
+                VSErrorHandler.ThrowOnFailure(_vsSolutionBuildManager.UnadviseUpdateSolutionEvents(_updateSolutionEventsCookie))
+                _updateSolutionEventsCookie = 0
             End If
 
-            If m_CfgProviderEventsCookie <> 0 AndAlso m_VsCfgProvider IsNot Nothing Then
-                VSErrorHandler.ThrowOnFailure(m_VsCfgProvider.UnadviseCfgProviderEvents(m_CfgProviderEventsCookie))
-                m_CfgProviderEventsCookie = 0
+            If _cfgProviderEventsCookie <> 0 AndAlso _vsCfgProvider IsNot Nothing Then
+                VSErrorHandler.ThrowOnFailure(_vsCfgProvider.UnadviseCfgProviderEvents(_cfgProviderEventsCookie))
+                _cfgProviderEventsCookie = 0
             End If
         End Sub
 
@@ -571,10 +573,10 @@ Namespace Microsoft.VisualStudio.Editors.PropPageDesigner
         '''   the current "active" configuration and platform will be selected.</param>
         ''' <remarks></remarks>
         Private Sub UpdateEntriesAndNotifyPages(ByVal KeepCurrentSelection As Boolean)
-            Dim CurrentConfigName As String = ConfigurationDropdownEntries(m_SelectedConfigIndex).Name
-            Dim CurrentConfigSelectionType As SelectionTypes = ConfigurationDropdownEntries(m_SelectedConfigIndex).SelectionType
-            Dim CurrentPlatformName As String = PlatformDropdownEntries(m_SelectedPlatformIndex).Name
-            Dim CurrentPlatformSelectionType As SelectionTypes = PlatformDropdownEntries(m_SelectedPlatformIndex).SelectionType
+            Dim CurrentConfigName As String = ConfigurationDropdownEntries(_selectedConfigIndex).Name
+            Dim CurrentConfigSelectionType As SelectionTypes = ConfigurationDropdownEntries(_selectedConfigIndex).SelectionType
+            Dim CurrentPlatformName As String = PlatformDropdownEntries(_selectedPlatformIndex).Name
+            Dim CurrentPlatformSelectionType As SelectionTypes = PlatformDropdownEntries(_selectedPlatformIndex).SelectionType
 
             UpdateDropdownEntries()
 
@@ -705,7 +707,7 @@ Namespace Microsoft.VisualStudio.Editors.PropPageDesigner
         ''' <remarks></remarks>
         Public Function OnActiveProjectCfgChange(ByVal pIVsHierarchy As Shell.Interop.IVsHierarchy) As Integer Implements Shell.Interop.IVsUpdateSolutionEvents.OnActiveProjectCfgChange
             Try
-                If pIVsHierarchy Is Nothing OrElse pIVsHierarchy Is m_ProjectHierarchy Then
+                If pIVsHierarchy Is Nothing OrElse pIVsHierarchy Is _projectHierarchy Then
                     Common.Switches.TracePDConfigs("OnActiveProjectCfgChange: Hierarchy matches or is Nothing, changing configs")
 
                     'Note that with KeepCurrentSelection:=True, if the currently-selected config/platform is the "Active" one, then the selection

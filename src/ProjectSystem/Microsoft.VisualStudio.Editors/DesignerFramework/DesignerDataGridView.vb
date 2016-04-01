@@ -1,3 +1,5 @@
+' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+
 Option Strict On
 Option Explicit On
 Imports System.Drawing
@@ -30,22 +32,22 @@ Namespace Microsoft.VisualStudio.Editors.DesignerFramework
         Public Event CellClickBeginEdit(ByVal sender As Object, ByVal e As System.ComponentModel.CancelEventArgs)
 
         'Backing property fields
-        Private m_DFAutoSizeColumnWidths As Boolean
-        Private m_ColumnMinimumScrollingWidths() As Integer
+        Private _DFAutoSizeColumnWidths As Boolean
+        Private _columnMinimumScrollingWidths() As Integer
 
         'Current percentage of the total width of the control that each column takes up, as a decimal
         '  between 0 and 1.0
-        Private m_ColumnWidthPercentages() As Double
+        Private _columnWidthPercentages() As Double
 
         'True iff we are changing a column's width programmatically
-        Private m_ColumnWidthChangingProgrammatically As Boolean
+        Private _columnWidthChangingProgrammatically As Boolean
 
         'True iff the last time the control resized, we weren't able to contract all of the column
         '  widths to the proper values because we hit at least one column's minimum scrolling width.
-        Private m_CurrentGridSizeTooSmall As Boolean
+        Private _currentGridSizeTooSmall As Boolean
 
         ' In the multiple selection mode, we shouldn't enter editMode automatically
-        Private m_InMultiSelectionMode As Boolean
+        Private _inMultiSelectionMode As Boolean
 
         ''' <summary>
         ''' Constructor
@@ -63,7 +65,7 @@ Namespace Microsoft.VisualStudio.Editors.DesignerFramework
         ''' </summary>
         Friend ReadOnly Property InMultiSelectionMode() As Boolean
             Get
-                Return m_InMultiSelectionMode
+                Return _inMultiSelectionMode
             End Get
         End Property
 
@@ -104,7 +106,7 @@ Namespace Microsoft.VisualStudio.Editors.DesignerFramework
             Dim ht As HitTestInfo = Me.HitTest(e.X, e.Y)
 
             If (Control.ModifierKeys And (Keys.Control Or Keys.Shift)) <> 0 Then
-                m_InMultiSelectionMode = True
+                _inMultiSelectionMode = True
             End If
 
             Try
@@ -121,7 +123,7 @@ Namespace Microsoft.VisualStudio.Editors.DesignerFramework
                             End If
                         ElseIf ht.Type = DataGridViewHitTestType.RowHeader Then
                             If IsCurrentCellInEditMode _
-                                OrElse (Not m_InMultiSelectionMode AndAlso Not Me.Rows(ht.RowIndex).Selected) _
+                                OrElse (Not _inMultiSelectionMode AndAlso Not Me.Rows(ht.RowIndex).Selected) _
                             Then
                                 ' Clear the current cell so we make sure that we have validated it...
                                 Me.CurrentCell = Nothing
@@ -166,14 +168,14 @@ Namespace Microsoft.VisualStudio.Editors.DesignerFramework
 
                 If Not IsCurrentCellInEditMode Then
                     If ht.Type = DataGridViewHitTestType.None Then
-                        If Not m_InMultiSelectionMode Then
+                        If Not _inMultiSelectionMode Then
                             ClearSelection()
                         End If
                     End If
                 End If
 
             Finally
-                m_InMultiSelectionMode = False
+                _inMultiSelectionMode = False
             End Try
         End Sub
 

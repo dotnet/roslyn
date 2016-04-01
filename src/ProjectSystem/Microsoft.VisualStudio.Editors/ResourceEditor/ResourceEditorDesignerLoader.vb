@@ -1,3 +1,5 @@
+' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+
 Option Explicit On
 Option Strict On
 Option Compare Binary
@@ -22,14 +24,14 @@ Namespace Microsoft.VisualStudio.Editors.ResourceEditor
 
         'A reference to the root component that we loaded.  This is needed during Flush
         '  operations, etc.
-        Private m_RootComponent As ResourceEditorRootComponent
+        Private _rootComponent As ResourceEditorRootComponent
 
         ' User confirmed to update a form resx file. It is very easy to corrupt this file...
-        Private m_AllowToUpdateDependentFile As Boolean
+        Private _allowToUpdateDependentFile As Boolean
 
         ' When we are trying check-out the file, some dialogs could pop up and the designer could lose focus. But we should ignore
         '  some of those events to prevent committing the change again because of those Focus changing events...
-        Private m_IsTryingCheckOut As Boolean
+        Private _isTryingCheckOut As Boolean
 
         ''' <summary>
         ''' "Saves" or flushes the current contents of the resource editor into the DocData's
@@ -45,13 +47,13 @@ Namespace Microsoft.VisualStudio.Editors.ResourceEditor
             Debug.Assert(Modified, "PerformFlush shouldn't get called if the designer's not dirty")
 
             Try
-                If m_RootComponent IsNot Nothing Then
+                If _rootComponent IsNot Nothing Then
                     ' Make sure the ResourceFile is up to date with any pending user changes
-                    m_RootComponent.RootDesigner.CommitAnyPendingChanges()
+                    _rootComponent.RootDesigner.CommitAnyPendingChanges()
 
                     Using New WaitCursor
-                        Debug.Assert(m_RootComponent.ResourceFile IsNot Nothing)
-                        SetAllBufferText(SerializeResourcesToText(m_RootComponent.ResourceFile))
+                        Debug.Assert(_rootComponent.ResourceFile IsNot Nothing)
+                        SetAllBufferText(SerializeResourcesToText(_rootComponent.ResourceFile))
                     End Using
                 Else
                     Debug.Fail("m_RootComponent is Nothing")
@@ -140,7 +142,7 @@ Namespace Microsoft.VisualStudio.Editors.ResourceEditor
                         NewResourceEditorRoot.LoadResXResourceFile(ResourceFile)
 
                         'We need to stash away a reference to the root component for use in Flush, etc.
-                        m_RootComponent = NewResourceEditorRoot
+                        _rootComponent = NewResourceEditorRoot
 
                         'Try to restore the editor state from before the last reload, if any.
                         NewResourceEditorRoot.RootDesigner.TryDepersistSavedEditorState()
@@ -150,7 +152,7 @@ Namespace Microsoft.VisualStudio.Editors.ResourceEditor
                     Catch ex As Exception
                         RethrowIfUnrecoverable(ex)
 
-                        m_RootComponent = Nothing
+                        _rootComponent = Nothing
 
                         'No need to dispose the resource editor root, the host will do this for us.
                         ResourceFile.Dispose()
@@ -167,8 +169,8 @@ Namespace Microsoft.VisualStudio.Editors.ResourceEditor
         ''' </summary>
         ''' <remarks></remarks>
         Protected Overrides Sub OnDesignerLoadCompleted()
-            If m_RootComponent IsNot Nothing Then
-                m_RootComponent.RootDesigner.OnDesignerLoadCompleted()
+            If _rootComponent IsNot Nothing Then
+                _rootComponent.RootDesigner.OnDesignerLoadCompleted()
             End If
         End Sub
 
@@ -179,9 +181,9 @@ Namespace Microsoft.VisualStudio.Editors.ResourceEditor
         ''' <returns>The ResX in a string.</returns>
         ''' <remarks></remarks>
         Private Function SerializeResourcesToText(ByVal ResXFile As ResourceFile) As String
-            If m_RootComponent IsNot Nothing Then
+            If _rootComponent IsNot Nothing Then
                 ' Make sure the ResourceFile is up to date with any pending user changes
-                m_RootComponent.RootDesigner.CommitAnyPendingChanges()
+                _rootComponent.RootDesigner.CommitAnyPendingChanges()
 
                 ' Note that we cannot use a StringWriter based on a StringBuilder, 
                 ' because that would produce a ResX file with UTF-16 encoding 
@@ -256,14 +258,14 @@ Namespace Microsoft.VisualStudio.Editors.ResourceEditor
         ''' <remarks></remarks>
         Protected Overrides Sub OnDesignerWindowActivated(ByVal Activated As Boolean)
             MyBase.OnDesignerWindowActivated(Activated)
-            If m_RootComponent IsNot Nothing AndAlso m_RootComponent.RootDesigner IsNot Nothing Then
-                If m_RootComponent.RootDesigner.HasView Then
-                    m_RootComponent.RootDesigner.GetView().OnDesignerWindowActivated(Activated)
+            If _rootComponent IsNot Nothing AndAlso _rootComponent.RootDesigner IsNot Nothing Then
+                If _rootComponent.RootDesigner.HasView Then
+                    _rootComponent.RootDesigner.GetView().OnDesignerWindowActivated(Activated)
                 End If
                 If Not Activated Then
-                    If Not m_IsTryingCheckOut Then
+                    If Not _isTryingCheckOut Then
                         ' Commit any changes when the user moves to another window
-                        m_RootComponent.RootDesigner.CommitAnyPendingChanges()
+                        _rootComponent.RootDesigner.CommitAnyPendingChanges()
                     End If
                 End If
             End If
@@ -292,27 +294,27 @@ Namespace Microsoft.VisualStudio.Editors.ResourceEditor
         ''' </remarks>
         <System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)> _
         Friend Overrides Sub ManualCheckOut(ByRef ProjectReloaded As Boolean)
-            Dim originalState As Boolean = m_IsTryingCheckOut
-            m_IsTryingCheckOut = True
+            Dim originalState As Boolean = _isTryingCheckOut
+            _isTryingCheckOut = True
             Try
                 ' NOTE: What we do here is not really check-out operation. We actually don't want users to edit Form RESX file.
                 '  Because the winForm designer doesn't support linked file yet, a new linked file added in the resource editor will make
                 '  WinForm designer to fail. In this case, the customer will have to remove the new item by hand. Also, any new items or comments added will be ignored and discarded by winForm designer.
                 '  However, we don't want to block them to edit that file totally, as some user do want to edit some strings in this way -- or export/import an image to edit it.
                 '  So, we pop up a warning dialog when the customer starts to edit the file. 
-                If m_RootComponent IsNot Nothing Then
-                    Dim Designer As ResourceEditorRootDesigner = m_RootComponent.RootDesigner
+                If _rootComponent IsNot Nothing Then
+                    Dim Designer As ResourceEditorRootDesigner = _rootComponent.RootDesigner
                     If Designer IsNot Nothing Then
                         Dim ResourceView As ResourceEditorView = Designer.GetView()
                         ' We let the base class handle the read only mode
                         If ResourceView IsNot Nothing AndAlso Not ResourceView.ReadOnlyMode AndAlso _
-                            m_RootComponent.IsDependentFile AndAlso Not m_AllowToUpdateDependentFile Then
+                            _rootComponent.IsDependentFile AndAlso Not _allowToUpdateDependentFile Then
 
                             If ResourceView.DsMsgBox(SR.GetString(SR.RSE_Err_UpdateADependentFile), MessageBoxButtons.YesNo, MessageBoxIcon.Warning, MessageBoxDefaultButton.Button2, HelpIDs.Err_EditFormResx) = DialogResult.Yes Then
-                                m_AllowToUpdateDependentFile = True
+                                _allowToUpdateDependentFile = True
                             End If
 
-                            If Not m_AllowToUpdateDependentFile Then
+                            If Not _allowToUpdateDependentFile Then
                                 'Throw New OperationCanceledException()
                                 Throw CheckoutException.Canceled
                             End If
@@ -322,7 +324,7 @@ Namespace Microsoft.VisualStudio.Editors.ResourceEditor
 
                 MyBase.ManualCheckOut(ProjectReloaded)
             Finally
-                m_IsTryingCheckOut = originalState
+                _isTryingCheckOut = originalState
             End Try
         End Sub
 
@@ -334,16 +336,16 @@ Namespace Microsoft.VisualStudio.Editors.ResourceEditor
         ''' <returns></returns>
         ''' <remarks></remarks>
         Friend Overrides Function OkToEdit() As Boolean
-            If Not m_AllowToUpdateDependentFile Then
-                If m_RootComponent IsNot Nothing Then
-                    Dim Designer As ResourceEditorRootDesigner = m_RootComponent.RootDesigner
+            If Not _allowToUpdateDependentFile Then
+                If _rootComponent IsNot Nothing Then
+                    Dim Designer As ResourceEditorRootDesigner = _rootComponent.RootDesigner
                     If Designer IsNot Nothing Then
                         If Not Designer.HasView Then
                             ' It means the DesignerView hasn't been created, or we are still initilizing it
                             Return False
                         End If
 
-                        If m_RootComponent.IsDependentFile Then
+                        If _rootComponent.IsDependentFile Then
                             Return False
                         End If
                     End If

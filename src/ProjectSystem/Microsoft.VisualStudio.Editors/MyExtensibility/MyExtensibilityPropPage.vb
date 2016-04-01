@@ -1,3 +1,5 @@
+' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+
 #Const WINFORMEDITOR = False ' Set to True to open in WinForm Editor. Remember to set it back.
 
 Option Strict On
@@ -41,8 +43,8 @@ Namespace Microsoft.VisualStudio.Editors.PropertyPages
         Protected Overrides Sub PreInitPage()
             Debug.Assert(Me.ProjectHierarchy IsNot Nothing)
 
-            m_ProjectService = MyExtensibilitySolutionService.Instance.GetProjectService(Me.ProjectHierarchy)
-            Debug.Assert(m_ProjectService IsNot Nothing)
+            _projectService = MyExtensibilitySolutionService.Instance.GetProjectService(Me.ProjectHierarchy)
+            Debug.Assert(_projectService IsNot Nothing)
 
             Dim vsMenuService As IMenuCommandService = _
                 TryCast( _
@@ -87,10 +89,10 @@ Namespace Microsoft.VisualStudio.Editors.PropertyPages
             InitializeComponent()
 
             ' Support sorting.
-            m_Comparer = New ListViewComparer()
-            m_Comparer.SortColumn = 0
-            m_Comparer.Sorting = SortOrder.Ascending
-            Me.listViewExtensions.ListViewItemSorter = m_Comparer
+            _comparer = New ListViewComparer()
+            _comparer.SortColumn = 0
+            _comparer.Sorting = SortOrder.Ascending
+            Me.listViewExtensions.ListViewItemSorter = _comparer
             Me.listViewExtensions.Sorting = SortOrder.Ascending
 
             'Opt out of page scaling since we're using AutoScaleMode
@@ -118,7 +120,7 @@ Namespace Microsoft.VisualStudio.Editors.PropertyPages
 
         Private Sub listViewExtensions_ColumnClick(ByVal sender As Object, ByVal e As ColumnClickEventArgs) _
                 Handles listViewExtensions.ColumnClick
-            ListViewComparer.HandleColumnClick(Me.listViewExtensions, m_Comparer, e)
+            ListViewComparer.HandleColumnClick(Me.listViewExtensions, _comparer, e)
         End Sub
 
         Private Sub listViewExtensions_RemoveExtension(ByVal sender As Object, ByVal e As EventArgs) _
@@ -131,7 +133,7 @@ Namespace Microsoft.VisualStudio.Editors.PropertyPages
             EnableButtonRemove()
         End Sub
 
-        Private Sub m_ProjectService_ExtensionChanged() Handles m_ProjectService.ExtensionChanged
+        Private Sub m_ProjectService_ExtensionChanged() Handles _projectService.ExtensionChanged
             Me.RefreshExtensionsList()
         End Sub
 
@@ -147,8 +149,8 @@ Namespace Microsoft.VisualStudio.Editors.PropertyPages
         ''' Launch the Add extension dialog.
         ''' </summary>
         Private Sub AddExtension()
-            Debug.Assert(m_ProjectService IsNot Nothing)
-            m_ProjectService.AddExtensionsFromPropPage()
+            Debug.Assert(_projectService IsNot Nothing)
+            _projectService.AddExtensionsFromPropPage()
         End Sub
 
         ''' ;EnableButtonRemove
@@ -182,7 +184,7 @@ Namespace Microsoft.VisualStudio.Editors.PropertyPages
         Private Sub RefreshExtensionsList()
             Me.listViewExtensions.Items.Clear()
             Dim extProjItemGroups As List(Of MyExtensionProjectItemGroup) = _
-                m_ProjectService.GetExtensionProjectItemGroups()
+                _projectService.GetExtensionProjectItemGroups()
             If extProjItemGroups IsNot Nothing Then
                 For Each extProjItemGroup As MyExtensionProjectItemGroup In extProjItemGroups
                     Me.listViewExtensions.Items.Add(ExtensionProjectItemGroupToListViewItem(extProjItemGroup))
@@ -207,14 +209,14 @@ Namespace Microsoft.VisualStudio.Editors.PropertyPages
                 End If
             Next
 
-            Debug.Assert(m_ProjectService IsNot Nothing)
-            m_ProjectService.RemoveExtensionsFromPropPage(extProjItemGroups)
+            Debug.Assert(_projectService IsNot Nothing)
+            _projectService.RemoveExtensionsFromPropPage(extProjItemGroups)
 
             Me.RefreshExtensionsList()
         End Sub
 
-        Private WithEvents m_ProjectService As MyExtensibilityProjectService = Nothing
-        Private m_Comparer As ListViewComparer
+        Private WithEvents _projectService As MyExtensibilityProjectService = Nothing
+        Private _comparer As ListViewComparer
 #End If
 
 #Region "Windows Form Designer generated code"
@@ -225,7 +227,7 @@ Namespace Microsoft.VisualStudio.Editors.PropertyPages
         Friend WithEvents tableLayoutAddRemoveButtons As System.Windows.Forms.TableLayoutPanel
         Friend WithEvents buttonRemove As System.Windows.Forms.Button
         Friend WithEvents buttonAdd As System.Windows.Forms.Button
-        Private components As System.ComponentModel.IContainer
+        Private _components As System.ComponentModel.IContainer
         Friend WithEvents colHeaderExtensionVersion As System.Windows.Forms.ColumnHeader
         Friend WithEvents colHeaderExtensionDescription As System.Windows.Forms.ColumnHeader
 

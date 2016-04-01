@@ -1,3 +1,5 @@
+' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+
 Imports Microsoft.VisualStudio.Editors.AppDesInterop
 Imports Microsoft.VisualStudio.Editors.PropertyPages
 Imports VB = Microsoft.VisualBasic
@@ -404,17 +406,17 @@ Namespace Microsoft.VisualStudio.Editors.AppDesCommon
 
 
 #If DEBUG Then
-        Private Shared m_TimeCodeStart As Date
-        Private Shared m_FirstTimeCodeTaken As Boolean
+        Private Shared s_timeCodeStart As Date
+        Private Shared s_firstTimeCodeTaken As Boolean
 #End If
 
         Public Shared Function TimeCode() As String
 #If DEBUG Then
-            If Not m_FirstTimeCodeTaken Then
+            If Not s_firstTimeCodeTaken Then
                 ResetTimeCode()
             End If
 
-            Dim ts As TimeSpan = Microsoft.VisualBasic.Now.Subtract(m_TimeCodeStart)
+            Dim ts As TimeSpan = Microsoft.VisualBasic.Now.Subtract(s_timeCodeStart)
             Return ts.TotalSeconds.ToString("0000.00000") & VB.vbTab
             'Return n.ToString("hh:mm:ss.") & Microsoft.VisualBasic.Format(n.Millisecond, "000") & VB.vbTab
 #Else
@@ -425,8 +427,8 @@ Namespace Microsoft.VisualStudio.Editors.AppDesCommon
         <Conditional("DEBUG")> _
         Public Shared Sub ResetTimeCode()
 #If DEBUG Then
-            m_TimeCodeStart = VB.Now
-            m_FirstTimeCodeTaken = True
+            s_timeCodeStart = VB.Now
+            s_firstTimeCodeTaken = True
 #End If
         End Sub
 

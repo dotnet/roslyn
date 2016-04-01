@@ -1,3 +1,5 @@
+' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+
 Imports Microsoft.VisualBasic.ApplicationServices
 Imports Microsoft.VisualStudio.Editors.Common
 Imports Microsoft.VisualStudio.Editors.MyApplication
@@ -24,8 +26,8 @@ Namespace Microsoft.VisualStudio.Editors.PropertyPages
         'UserControl overrides dispose to clean up the component list.
         Protected Overloads Overrides Sub Dispose(ByVal disposing As Boolean)
             If disposing Then
-                If Not (components Is Nothing) Then
-                    components.Dispose()
+                If Not (_components Is Nothing) Then
+                    _components.Dispose()
                 End If
 
             End If
@@ -65,7 +67,7 @@ Namespace Microsoft.VisualStudio.Editors.PropertyPages
         Friend WithEvents TableLayoutPanel1 As System.Windows.Forms.TableLayoutPanel
 
         'Required by the Windows Form Designer
-        Private components As System.ComponentModel.IContainer
+        Private _components As System.ComponentModel.IContainer
 
         'NOTE: The following procedure is required by the Windows Form Designer
         'It can be modified using the Windows Form Designer.  
@@ -352,30 +354,30 @@ Namespace Microsoft.VisualStudio.Editors.PropertyPages
         Protected Const Const_MyApplication As String = "MyApplication"
 
 
-        Private m_ShutdownModeStringValues As String()
-        Private m_AuthenticationModeStringValues As String()
-        Private m_NoneText As String
-        Private m_MyType As String
-        Private m_StartupObjectLabelText As String 'This one is in the form's resx when initialized
-        Private m_StartupFormLabelText As String 'This one we pull from resources
+        Private _shutdownModeStringValues As String()
+        Private _authenticationModeStringValues As String()
+        Private _noneText As String
+        Private _myType As String
+        Private _startupObjectLabelText As String 'This one is in the form's resx when initialized
+        Private _startupFormLabelText As String 'This one we pull from resources
 
         'This is the (cached) MyApplication.MyApplicationProperties object returned by the project system
-        Private m_MyApplicationPropertiesCache As IMyApplicationPropertiesInternal
-        Private WithEvents m_MyApplicationPropertiesNotifyPropertyChanged As INotifyPropertyChanged
+        Private _myApplicationPropertiesCache As IMyApplicationPropertiesInternal
+        Private WithEvents _myApplicationPropertiesNotifyPropertyChanged As INotifyPropertyChanged
 
         'Set to true if we have tried to cache the MyApplication properties value.  If this is True and
         '  m_MyApplicationPropertiesCache is Nothing, it indicates that the MyApplication property is not
         '  supported in this project system (which may mean the project flavor has turned off this support)
-        Private m_IsMyApplicationPropertiesCached As Boolean
+        Private _isMyApplicationPropertiesCached As Boolean
 
         'Cache whether MyType is one of the disabled values so we don't have to fetch it constantly
         '  from the project properties
-        Private m_IsMyTypeDisabled As Boolean
-        Private m_IsMyTypeDisabledCached As Boolean
+        Private _isMyTypeDisabled As Boolean
+        Private _isMyTypeDisabledCached As Boolean
 
         ' If set, we are using my application types as the 'output type'.  Otherwise, we are using
         ' output types provided by the project system
-        Private m_UsingMyApplicationTypes As Boolean = True
+        Private _usingMyApplicationTypes As Boolean = True
 
         Protected Const Const_EnableVisualStyles As String = "EnableVisualStyles"
         Protected Const Const_AuthenticationMode As String = "AuthenticationMode"
@@ -390,7 +392,7 @@ Namespace Microsoft.VisualStudio.Editors.PropertyPages
         ' Shared list of all known application types and their properties...
         Private Shared s_applicationTypes As New Generic.List(Of ApplicationTypeInfo)
 
-        Private m_settingApplicationType As Boolean
+        Private _settingApplicationType As Boolean
 
         ''' <summary>
         '''  Set up shared state...
@@ -416,16 +418,16 @@ Namespace Microsoft.VisualStudio.Editors.PropertyPages
             AddChangeHandlers()
 
             'Remember original text of the Start-up object label text
-            m_StartupObjectLabelText = Me.StartupObjectLabel.Text
+            _startupObjectLabelText = Me.StartupObjectLabel.Text
 
             'Get text for the forms case from resources
-            m_StartupFormLabelText = SR.GetString(SR.PPG_Application_StartupFormLabelText)
+            _startupFormLabelText = SR.GetString(SR.PPG_Application_StartupFormLabelText)
 
-            m_NoneText = SR.GetString(SR.PPG_ComboBoxSelect_None)
+            _noneText = SR.GetString(SR.PPG_ComboBoxSelect_None)
 
             'Ordering of strings here determines value stored in MyApplication.myapp
-            m_ShutdownModeStringValues = New String() {SR.GetString(SR.PPG_MyApplication_StartupMode_FormCloses), SR.GetString(SR.PPG_MyApplication_StartupMode_AppExits)}
-            m_AuthenticationModeStringValues = New String() {SR.GetString(SR.PPG_MyApplication_AuthenMode_Windows), SR.GetString(SR.PPG_MyApplication_AuthenMode_ApplicationDefined)}
+            _shutdownModeStringValues = New String() {SR.GetString(SR.PPG_MyApplication_StartupMode_FormCloses), SR.GetString(SR.PPG_MyApplication_StartupMode_AppExits)}
+            _authenticationModeStringValues = New String() {SR.GetString(SR.PPG_MyApplication_AuthenMode_Windows), SR.GetString(SR.PPG_MyApplication_AuthenMode_ApplicationDefined)}
             MyBase.PageRequiresScaling = False
         End Sub
 
@@ -524,9 +526,9 @@ Namespace Microsoft.VisualStudio.Editors.PropertyPages
         Protected Overrides Sub CleanupCOMReferences()
             MyBase.CleanupCOMReferences()
 
-            m_MyApplicationPropertiesCache = Nothing
-            m_MyApplicationPropertiesNotifyPropertyChanged = Nothing
-            m_IsMyApplicationPropertiesCached = False
+            _myApplicationPropertiesCache = Nothing
+            _myApplicationPropertiesNotifyPropertyChanged = Nothing
+            _isMyApplicationPropertiesCached = False
         End Sub
 
 
@@ -544,24 +546,24 @@ Namespace Microsoft.VisualStudio.Editors.PropertyPages
         ''' <remarks></remarks>
         Private ReadOnly Property MyApplicationProperties() As IMyApplicationPropertiesInternal
             Get
-                Debug.Assert(Implies(m_MyApplicationPropertiesCache IsNot Nothing, m_IsMyApplicationPropertiesCached))
-                Debug.Assert(Implies(m_MyApplicationPropertiesNotifyPropertyChanged IsNot Nothing, m_IsMyApplicationPropertiesCached))
-                If Not m_IsMyApplicationPropertiesCached Then
+                Debug.Assert(Implies(_myApplicationPropertiesCache IsNot Nothing, _isMyApplicationPropertiesCached))
+                Debug.Assert(Implies(_myApplicationPropertiesNotifyPropertyChanged IsNot Nothing, _isMyApplicationPropertiesCached))
+                If Not _isMyApplicationPropertiesCached Then
                     'Set a flag so we don't keep trying to query for this property
-                    m_IsMyApplicationPropertiesCached = True
+                    _isMyApplicationPropertiesCached = True
 
                     Dim ApplicationProperties As Object = Nothing
                     If GetProperty(VBProjPropId.VBPROJPROPID_MyApplication, ApplicationProperties) Then
-                        m_MyApplicationPropertiesCache = TryCast(ApplicationProperties, IMyApplicationPropertiesInternal)
-                        m_MyApplicationPropertiesNotifyPropertyChanged = TryCast(ApplicationProperties, INotifyPropertyChanged)
+                        _myApplicationPropertiesCache = TryCast(ApplicationProperties, IMyApplicationPropertiesInternal)
+                        _myApplicationPropertiesNotifyPropertyChanged = TryCast(ApplicationProperties, INotifyPropertyChanged)
                     Else
                         'MyApplication property is not supported in this project system
-                        m_MyApplicationPropertiesCache = Nothing
-                        m_MyApplicationPropertiesNotifyPropertyChanged = Nothing
+                        _myApplicationPropertiesCache = Nothing
+                        _myApplicationPropertiesNotifyPropertyChanged = Nothing
                     End If
                 End If
 
-                Return m_MyApplicationPropertiesCache
+                Return _myApplicationPropertiesCache
             End Get
         End Property
 
@@ -620,7 +622,7 @@ Namespace Microsoft.VisualStudio.Editors.PropertyPages
         ''' <returns></returns>
         ''' <remarks></remarks>
         Protected Function MyTypeGet(ByVal control As Control, ByVal prop As PropertyDescriptor, ByRef value As Object) As Boolean
-            value = m_MyType
+            value = _myType
             Return True
         End Function
 
@@ -637,9 +639,9 @@ Namespace Microsoft.VisualStudio.Editors.PropertyPages
             Dim stValue As String = CType(value, String)
 
             If (Not stValue Is Nothing) AndAlso (stValue.Trim().Length > 0) Then
-                m_MyType = stValue
+                _myType = stValue
             Else
-                m_MyType = Nothing
+                _myType = Nothing
             End If
 
             UpdateApplicationTypeUI()
@@ -663,7 +665,7 @@ Namespace Microsoft.VisualStudio.Editors.PropertyPages
         ''' <remarks>OutputType is obtained from the value in the Application Type field</remarks>
         Protected Function OutputTypeGet(ByVal control As Control, ByVal prop As PropertyDescriptor, ByRef value As Object) As Boolean
 
-            If m_UsingMyApplicationTypes Then
+            If _usingMyApplicationTypes Then
                 Dim AppType As ApplicationTypes
 
                 If ApplicationTypeComboBox.SelectedItem IsNot Nothing Then
@@ -685,7 +687,7 @@ Namespace Microsoft.VisualStudio.Editors.PropertyPages
 
         Protected Function OutputTypeSet(ByVal control As Control, ByVal prop As PropertyDescriptor, ByVal value As Object) As Boolean
 
-            If m_UsingMyApplicationTypes Then
+            If _usingMyApplicationTypes Then
                 'No UI for OutputType, ApplicationType provides our UI selection
                 UpdateApplicationTypeUI()
 
@@ -711,7 +713,7 @@ Namespace Microsoft.VisualStudio.Editors.PropertyPages
         ''' </summary>
         ''' <remarks></remarks>
         Private Sub UpdateApplicationTypeUI()
-            If m_settingApplicationType Then
+            If _settingApplicationType Then
                 Return
             End If
 
@@ -976,7 +978,7 @@ Namespace Microsoft.VisualStudio.Editors.PropertyPages
             Else
                 With Me.SplashScreenComboBox
                     .Items.Clear()
-                    .Items.Add(m_NoneText)
+                    .Items.Add(_noneText)
 
                     If PopulateDropdown Then
                         Switches.TracePDPerf("*** Populating splash screen list from the project [may be slow for a large project]")
@@ -1055,7 +1057,7 @@ Namespace Microsoft.VisualStudio.Editors.PropertyPages
                 Return False
             End If
 
-            If Not m_UsingMyApplicationTypes Then
+            If Not _usingMyApplicationTypes Then
                 Return False
             End If
 
@@ -1145,7 +1147,7 @@ Namespace Microsoft.VisualStudio.Editors.PropertyPages
                     With StartupObjectComboBox
                         .DropDownStyle = ComboBoxStyle.DropDownList
                         .Items.Clear()
-                        .SelectedIndex = .Items.Add(m_NoneText)
+                        .SelectedIndex = .Items.Add(_noneText)
                     End With
 
                     If StartupObjectPropertyControlData.IsMissing Then
@@ -1303,18 +1305,18 @@ Namespace Microsoft.VisualStudio.Editors.PropertyPages
             Else
 
                 ' If the project specifies the output types, use the output types instead of the my application types
-                m_UsingMyApplicationTypes = Not PopulateOutputTypeComboBoxFromProjectProperty(ApplicationTypeComboBox)
+                _usingMyApplicationTypes = Not PopulateOutputTypeComboBoxFromProjectProperty(ApplicationTypeComboBox)
 
-                If m_UsingMyApplicationTypes Then
+                If _usingMyApplicationTypes Then
                     MyBase.PopulateApplicationTypes(ApplicationTypeComboBox, s_applicationTypes)
                 End If
             End If
 
             Me.ShutdownModeComboBox.Items.Clear()
-            Me.ShutdownModeComboBox.Items.AddRange(m_ShutdownModeStringValues)
+            Me.ShutdownModeComboBox.Items.AddRange(_shutdownModeStringValues)
 
             Me.AuthenticationModeComboBox.Items.Clear()
-            Me.AuthenticationModeComboBox.Items.AddRange(m_AuthenticationModeStringValues)
+            Me.AuthenticationModeComboBox.Items.AddRange(_authenticationModeStringValues)
 
             Me.PopulateTargetFrameworkComboBox(Me.TargetFrameworkComboBox)
 
@@ -1417,7 +1419,7 @@ Namespace Microsoft.VisualStudio.Editors.PropertyPages
                         'If user horked the values, default to form exit
                         index = 0
                     End If
-                    Value = Me.m_ShutdownModeStringValues(index)
+                    Value = Me._shutdownModeStringValues(index)
                 End If
 
             ElseIf PropertyName = Const_SplashScreenNoRootNS Then
@@ -1425,7 +1427,7 @@ Namespace Microsoft.VisualStudio.Editors.PropertyPages
                     Value = PropertyControlData.MissingProperty
                 Else
                     If MyApplicationProperties.SplashScreenNoRootNS = "" Then
-                        Value = Me.m_NoneText
+                        Value = Me._noneText
                     ElseIf IsNoneText(MyApplicationProperties.SplashScreenNoRootNS) Then
                         Debug.Fail("Splash screen should not have been saved as (None)")
                         Value = ""
@@ -1441,7 +1443,7 @@ Namespace Microsoft.VisualStudio.Editors.PropertyPages
                     Dim MainForm As String = MyApplicationProperties.MainFormNoRootNamespace
                     Debug.Assert(Not IsNoneText(MainForm), "MainForm should not have been persisted as (None)")
                     If MainForm = "" Then
-                        Value = Me.m_NoneText
+                        Value = Me._noneText
                     ElseIf Not IsNoneText(MainForm) Then
                         Value = MainForm
                     End If
@@ -1464,7 +1466,7 @@ Namespace Microsoft.VisualStudio.Editors.PropertyPages
                         Index = ApplicationServices.AuthenticationMode.Windows
                     End If
 
-                    Value = Me.m_AuthenticationModeStringValues(Index)
+                    Value = Me._authenticationModeStringValues(Index)
                 End If
             ElseIf PropertyName = Const_SaveMySettingsOnExit Then
                 If Not MyApplicationPropertiesSupported Then
@@ -1509,7 +1511,7 @@ Namespace Microsoft.VisualStudio.Editors.PropertyPages
                 End If
 
                 Dim index As Integer
-                If m_ShutdownModeStringValues(1).Equals(CStr(Value), StringComparison.CurrentCultureIgnoreCase) Then
+                If _shutdownModeStringValues(1).Equals(CStr(Value), StringComparison.CurrentCultureIgnoreCase) Then
                     'If user horked the values, default to form exit
                     index = 1
                 Else
@@ -1557,9 +1559,9 @@ Namespace Microsoft.VisualStudio.Editors.PropertyPages
                 End If
 
                 Dim Index As Integer
-                If m_AuthenticationModeStringValues(AuthenticationMode.Windows).Equals(CStr(Value), StringComparison.CurrentCultureIgnoreCase) Then
+                If _authenticationModeStringValues(AuthenticationMode.Windows).Equals(CStr(Value), StringComparison.CurrentCultureIgnoreCase) Then
                     Index = AuthenticationMode.Windows
-                ElseIf m_AuthenticationModeStringValues(AuthenticationMode.ApplicationDefined).Equals(CStr(Value), StringComparison.CurrentCultureIgnoreCase) Then
+                ElseIf _authenticationModeStringValues(AuthenticationMode.ApplicationDefined).Equals(CStr(Value), StringComparison.CurrentCultureIgnoreCase) Then
                     Index = AuthenticationMode.ApplicationDefined
                 Else
                     'If user horked the values, default to Windows
@@ -1624,16 +1626,16 @@ Namespace Microsoft.VisualStudio.Editors.PropertyPages
         ''' <returns></returns>
         ''' <remarks></remarks>
         Private Function MyTypeDisabled() As Boolean
-            If Not m_IsMyTypeDisabledCached Then
-                m_IsMyTypeDisabledCached = True
+            If Not _isMyTypeDisabledCached Then
+                _isMyTypeDisabledCached = True
                 Dim MyType As String = GetMyTypeFromProject()
 
-                m_IsMyTypeDisabled = MyType IsNot Nothing _
+                _isMyTypeDisabled = MyType IsNot Nothing _
                     AndAlso (MyType.Equals(MyApplication.MyApplicationProperties.Const_MyType_Empty, StringComparison.OrdinalIgnoreCase) _
                                 OrElse MyType.Equals(MyApplication.MyApplicationProperties.Const_MyType_Custom, StringComparison.OrdinalIgnoreCase))
             End If
 
-            Return m_IsMyTypeDisabled
+            Return _isMyTypeDisabled
         End Function
 
 
@@ -1664,9 +1666,9 @@ Namespace Microsoft.VisualStudio.Editors.PropertyPages
                     Dim stValue As String = CType(NewMyType, String)
 
                     If (Not stValue Is Nothing) AndAlso (stValue.Trim().Length > 0) Then
-                        m_MyType = stValue
+                        _myType = stValue
                     Else
-                        m_MyType = Nothing
+                        _myType = Nothing
                     End If
 
                     SetDirty(VBProjPropId.VBPROJPROPID_MyType, ReadyToApply)
@@ -1723,9 +1725,9 @@ Namespace Microsoft.VisualStudio.Editors.PropertyPages
         ''' <remarks></remarks>
         Private Sub SetStartupObjectLabelText()
             If MyApplicationFrameworkEnabled() Then
-                Me.StartupObjectLabel.Text = m_StartupFormLabelText
+                Me.StartupObjectLabel.Text = _startupFormLabelText
             Else
-                Me.StartupObjectLabel.Text = m_StartupObjectLabelText
+                Me.StartupObjectLabel.Text = _startupObjectLabelText
             End If
         End Sub
 
@@ -1781,16 +1783,16 @@ Namespace Microsoft.VisualStudio.Editors.PropertyPages
                 Return
             End If
 
-            If m_settingApplicationType Then
+            If _settingApplicationType Then
                 Return
             End If
 
             Try
-                m_settingApplicationType = True
+                _settingApplicationType = True
 
                 Dim outputType As UInteger
 
-                If m_UsingMyApplicationTypes Then
+                If _usingMyApplicationTypes Then
                     'Disable or enable the controls based on ApplicationType
                     Dim AppType As ApplicationTypes = GetAppTypeFromUI()
                     EnableControlSet(AppType)
@@ -1833,7 +1835,7 @@ Namespace Microsoft.VisualStudio.Editors.PropertyPages
                 PopulateControlSet(CurrentAppType)
                 ShowErrorMessage(ex)
             Finally
-                m_settingApplicationType = False
+                _settingApplicationType = False
 
             End Try
 
@@ -2010,7 +2012,7 @@ Namespace Microsoft.VisualStudio.Editors.PropertyPages
             'We use ordinal because a) we put the value into the combobox, it could not have magically
             '  changed case, and b) we don't want to use culture-aware because if the user changes cultures
             '  while our page is up, our functionality might be affected
-            Return Value IsNot Nothing AndAlso Value.Equals(m_NoneText, StringComparison.Ordinal)
+            Return Value IsNot Nothing AndAlso Value.Equals(_noneText, StringComparison.Ordinal)
         End Function
 
 
@@ -2020,7 +2022,7 @@ Namespace Microsoft.VisualStudio.Editors.PropertyPages
         ''' <param name="sender"></param>
         ''' <param name="e"></param>
         ''' <remarks></remarks>
-        Private Sub MyApplicationProperties_PropertyChanged(ByVal sender As Object, ByVal e As System.ComponentModel.PropertyChangedEventArgs) Handles m_MyApplicationPropertiesNotifyPropertyChanged.PropertyChanged
+        Private Sub MyApplicationProperties_PropertyChanged(ByVal sender As Object, ByVal e As System.ComponentModel.PropertyChangedEventArgs) Handles _myApplicationPropertiesNotifyPropertyChanged.PropertyChanged
             Debug.Assert(e.PropertyName <> "")
             Switches.TracePDProperties(TraceLevel.Info, "MyApplicationProperties_PropertyChanged(""" & e.PropertyName & """)")
 

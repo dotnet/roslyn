@@ -1,3 +1,5 @@
+' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+
 Imports System.ComponentModel
 Imports System.Windows.Forms
 Imports System.Globalization
@@ -43,8 +45,8 @@ Namespace Microsoft.VisualStudio.Editors.PropertyPages
         'UserControl overrides dispose to clean up the component list.
         Protected Overloads Overrides Sub Dispose(ByVal disposing As Boolean)
             If disposing Then
-                If Not (components Is Nothing) Then
-                    components.Dispose()
+                If Not (_components Is Nothing) Then
+                    _components.Dispose()
                 End If
             End If
             MyBase.Dispose(disposing)
@@ -70,7 +72,7 @@ Namespace Microsoft.VisualStudio.Editors.PropertyPages
         Friend WithEvents outputLineLabel As System.Windows.Forms.Label
 
         'Required by the Windows Form Designer
-        Private components As System.ComponentModel.IContainer
+        Private _components As System.ComponentModel.IContainer
 
         'PERF: A note about the labels used as lines.  The 3D label is being set to 1 px high,
         '   so you’re really only using the grey part of it.  Using BorderStyle.Fixed3D seems

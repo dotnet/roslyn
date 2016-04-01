@@ -1,3 +1,5 @@
+' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+
 Imports System.Runtime.Serialization
 
 Namespace Microsoft.VisualStudio.Editors.PropertyPages
@@ -12,7 +14,7 @@ Namespace Microsoft.VisualStudio.Editors.PropertyPages
     Public Class PropertyPageException
         Inherits ApplicationException
 
-        Private m_showHeaderAndFooterInErrorControl As Boolean = True
+        Private _showHeaderAndFooterInErrorControl As Boolean = True
 
         Public Sub New(ByVal message As String)
             Me.New(message, Nothing, DirectCast(Nothing, Exception))
@@ -33,7 +35,7 @@ Namespace Microsoft.VisualStudio.Editors.PropertyPages
 
         Public Sub New(ByVal message As String, ByVal innerException As Exception, ByVal ShowHeaderandFooterInErrorControl As Boolean)
             MyBase.New(message, innerException)
-            m_showHeaderAndFooterInErrorControl = ShowHeaderandFooterInErrorControl
+            _showHeaderAndFooterInErrorControl = ShowHeaderandFooterInErrorControl
         End Sub
 
         ''' <summary>
@@ -51,10 +53,10 @@ Namespace Microsoft.VisualStudio.Editors.PropertyPages
 
         Public Property ShowHeaderAndFooterInErrorControl() As Boolean
             Get
-                Return m_showHeaderAndFooterInErrorControl
+                Return _showHeaderAndFooterInErrorControl
             End Get
             Set(ByVal value As Boolean)
-                m_showHeaderAndFooterInErrorControl = value
+                _showHeaderAndFooterInErrorControl = value
             End Set
         End Property
 

@@ -1,3 +1,5 @@
+' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+
 Imports Microsoft.VisualStudio.Shell.Interop
 
 Namespace Microsoft.VisualStudio.Editors.AppDesDesignerFramework
@@ -10,10 +12,10 @@ Namespace Microsoft.VisualStudio.Editors.AppDesDesignerFramework
 
 #Region "Private fields"
         ' Service provider used to get services
-        Private m_serviceProvider As IServiceProvider
+        Private _serviceProvider As IServiceProvider
 
         ' A map of file names to manage
-        Private m_managedFiles As New Dictionary(Of String, Boolean)(3, StringComparer.OrdinalIgnoreCase)
+        Private _managedFiles As New Dictionary(Of String, Boolean)(3, StringComparer.OrdinalIgnoreCase)
 
 #End Region
 
@@ -32,7 +34,7 @@ Namespace Microsoft.VisualStudio.Editors.AppDesDesignerFramework
                 Throw New ArgumentNullException("sp")
             End If
 
-            m_serviceProvider = sp
+            _serviceProvider = sp
         End Sub
 #End Region
 
@@ -44,7 +46,7 @@ Namespace Microsoft.VisualStudio.Editors.AppDesDesignerFramework
         ''' <param name="mkDocument"></param>
         ''' <remarks></remarks>
         Public Sub ManageFile(ByVal mkDocument As String)
-            m_managedFiles(mkDocument) = True
+            _managedFiles(mkDocument) = True
         End Sub
 
         ''' <summary>
@@ -56,7 +58,7 @@ Namespace Microsoft.VisualStudio.Editors.AppDesDesignerFramework
         ''' </remarks>
         Public Sub StopManagingFile(ByVal mkDocument As String)
             Debug.WriteLineIf(AppDesCommon.Switches.MSVBE_SCC.TraceInfo, String.Format("Stop managing {0}'s SCC status", mkDocument))
-            m_managedFiles.Remove(mkDocument)
+            _managedFiles.Remove(mkDocument)
         End Sub
 
         ''' <summary>
@@ -67,12 +69,12 @@ Namespace Microsoft.VisualStudio.Editors.AppDesDesignerFramework
         ''' <remarks></remarks>
         Public Property ManagedFiles() As List(Of String)
             Get
-                Return New List(Of String)(m_managedFiles.Keys)
+                Return New List(Of String)(_managedFiles.Keys)
             End Get
             Set(ByVal value As List(Of String))
-                m_managedFiles.Clear()
+                _managedFiles.Clear()
                 For Each file As String In value
-                    m_managedFiles(file) = True
+                    _managedFiles(file) = True
                 Next
             End Set
         End Property
@@ -114,7 +116,7 @@ Namespace Microsoft.VisualStudio.Editors.AppDesDesignerFramework
         ''' <remarks></remarks>
         Private Function QueryEditableFilesInternal(ByVal checkOnly As Boolean, ByVal throwOnFailure As Boolean) As Boolean
             ' Do actual checkout here...
-            Return QueryEditableFiles(m_serviceProvider, ManagedFiles, throwOnFailure, checkOnly)
+            Return QueryEditableFiles(_serviceProvider, ManagedFiles, throwOnFailure, checkOnly)
         End Function
 #End Region
 

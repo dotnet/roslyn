@@ -1,3 +1,5 @@
+' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+
 Imports System.ComponentModel.Design
 Imports Microsoft.VisualStudio.Shell.Interop
 Imports Microsoft.VisualStudio.Editors.AppDesInterop
@@ -21,7 +23,7 @@ Namespace Microsoft.VisualStudio.Editors
 
     Public Class VBPackageUtils
 
-        Private Shared m_editorsPackage As IVBPackage
+        Private Shared s_editorsPackage As IVBPackage
         Public Delegate Function getServiceDelegate(ByVal ServiceType As Type) As Object
         ''' <summary>
         ''' 
@@ -32,7 +34,7 @@ Namespace Microsoft.VisualStudio.Editors
         ''' <remarks></remarks>
         Public Shared ReadOnly Property PackageInstance(ByVal GetService As getServiceDelegate) As IVBPackage
             Get
-                If m_editorsPackage Is Nothing Then
+                If s_editorsPackage Is Nothing Then
                     Dim shell As IVsShell = DirectCast(GetService(GetType(IVsShell)), IVsShell)
                     Dim pPackage As IVsPackage = Nothing
                     If shell IsNot Nothing Then
@@ -40,9 +42,9 @@ Namespace Microsoft.VisualStudio.Editors
                         Debug.Assert(NativeMethods.Succeeded(hr) AndAlso pPackage IsNot Nothing, "VB editors package not loaded?!?")
                     End If
 
-                    m_editorsPackage = TryCast(pPackage, IVBPackage)
+                    s_editorsPackage = TryCast(pPackage, IVBPackage)
                 End If
-                Return m_editorsPackage
+                Return s_editorsPackage
             End Get
         End Property
     End Class

@@ -1,3 +1,5 @@
+' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+
 Imports System.ComponentModel.Design
 
 Imports Microsoft.VisualStudio.Editors.Interop
@@ -18,10 +20,10 @@ Namespace Microsoft.VisualStudio.Editors.SettingsDesigner
         Friend Const ApplicationScopeName As String = "Application"
         Friend Const UserScopeName As String = "User"
         Friend Const CultureInvariantDefaultProfileName As String = "(Default)"
-        Private Const SpecialClassName As String = "MySettings"
+        Private Const s_specialClassName As String = "MySettings"
 
         ' Our view
-        Private m_SettingsDesignerViewProperty As SettingsDesignerView
+        Private _settingsDesignerViewProperty As SettingsDesignerView
 
         ''' <summary>
         ''' Trace switch used by all SettingsDesigner components - should be moved to the common Swithces file
@@ -42,12 +44,12 @@ Namespace Microsoft.VisualStudio.Editors.SettingsDesigner
         ''' <remarks></remarks>
         Private ReadOnly Property View() As SettingsDesignerView
             Get
-                If m_SettingsDesignerViewProperty Is Nothing Then
+                If _settingsDesignerViewProperty Is Nothing Then
                     Debug.WriteLineIf(TraceSwitch.TraceVerbose, "Creating SettingsDesignerView")
-                    m_SettingsDesignerViewProperty = New SettingsDesignerView
-                    m_SettingsDesignerViewProperty.SetDesigner(Me)
+                    _settingsDesignerViewProperty = New SettingsDesignerView
+                    _settingsDesignerViewProperty.SetDesigner(Me)
                 End If
-                Return m_SettingsDesignerViewProperty
+                Return _settingsDesignerViewProperty
             End Get
         End Property
 
@@ -58,7 +60,7 @@ Namespace Microsoft.VisualStudio.Editors.SettingsDesigner
         ''' <remarks></remarks>
         Friend ReadOnly Property HasView() As Boolean
             Get
-                Return m_SettingsDesignerViewProperty IsNot Nothing
+                Return _settingsDesignerViewProperty IsNot Nothing
             End Get
         End Property
 
@@ -105,8 +107,8 @@ Namespace Microsoft.VisualStudio.Editors.SettingsDesigner
         ''' </summary>
         ''' <remarks></remarks>
         Public Sub CommitPendingChanges(ByVal suppressValidationUI As Boolean, ByVal cancelOnValidationFailure As Boolean)
-            If m_SettingsDesignerViewProperty IsNot Nothing Then
-                m_SettingsDesignerViewProperty.CommitPendingChanges(suppressValidationUI, cancelOnValidationFailure)
+            If _settingsDesignerViewProperty IsNot Nothing Then
+                _settingsDesignerViewProperty.CommitPendingChanges(suppressValidationUI, cancelOnValidationFailure)
             End If
         End Sub
 
@@ -138,10 +140,10 @@ Namespace Microsoft.VisualStudio.Editors.SettingsDesigner
 
         Protected Overrides Sub Dispose(ByVal Disposing As Boolean)
             If Disposing Then
-                If m_SettingsDesignerViewProperty IsNot Nothing Then
+                If _settingsDesignerViewProperty IsNot Nothing Then
                     Debug.WriteLineIf(TraceSwitch.TraceVerbose, "Disposing SettingsDesignerView")
-                    m_SettingsDesignerViewProperty.Dispose()
-                    m_SettingsDesignerViewProperty = Nothing
+                    _settingsDesignerViewProperty.Dispose()
+                    _settingsDesignerViewProperty = Nothing
                 End If
             End If
             MyBase.Dispose(Disposing)
@@ -221,7 +223,7 @@ Namespace Microsoft.VisualStudio.Editors.SettingsDesigner
                         End If
 
                         If Settings.UseSpecialClassName Then
-                            Return SettingsDesigner.SpecialClassName
+                            Return SettingsDesigner.s_specialClassName
                         End If
                     Catch ex As Exception When Not Common.IsUnrecoverable(ex)
                         Debug.Fail(String.Format("Failed to crack open {0} to determine if we were supposed to use the ""Special"" settings class name: {1}", FullPath, ex))

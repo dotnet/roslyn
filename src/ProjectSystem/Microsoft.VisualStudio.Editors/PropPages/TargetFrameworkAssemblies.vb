@@ -1,3 +1,5 @@
+' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+
 Imports Microsoft.VisualStudio.Shell.Interop
 
 Namespace Microsoft.VisualStudio.Editors.PropertyPages
@@ -15,27 +17,27 @@ Namespace Microsoft.VisualStudio.Editors.PropertyPages
         ''' </summary>
         ''' <remarks></remarks>
         Friend Class TargetFramework
-            Private m_version As UInteger
-            Private m_description As String
+            Private _version As UInteger
+            Private _description As String
 
             Public Sub New(ByVal version As UInteger, ByVal description As String)
                 If description Is Nothing Then
                     Throw New ArgumentNullException("description")
                 End If
 
-                m_version = version
-                m_description = description
+                _version = version
+                _description = description
             End Sub
 
             Public ReadOnly Property Version() As UInteger
                 Get
-                    Return m_version
+                    Return _version
                 End Get
             End Property
 
             Public ReadOnly Property Description() As String
                 Get
-                    Return m_description
+                    Return _description
                 End Get
             End Property
 
@@ -45,7 +47,7 @@ Namespace Microsoft.VisualStudio.Editors.PropertyPages
             ''' <returns></returns>
             ''' <remarks></remarks>
             Public Overrides Function ToString() As String
-                Return m_description
+                Return _description
             End Function
         End Class
 

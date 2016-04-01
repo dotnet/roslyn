@@ -1,3 +1,5 @@
+' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+
 Imports Microsoft.VisualStudio.Editors.Common
 Imports Microsoft.VisualStudio.Editors.MyApplication
 Imports System.Windows.Forms
@@ -23,35 +25,35 @@ Namespace Microsoft.VisualStudio.Editors.PropertyPages.WPF
         'Inherits UserControl
 
         'Holds the DocData for the Application.xaml file
-        Private WithEvents m_ApplicationXamlDocData As DocData
+        Private WithEvents _applicationXamlDocData As DocData
 
-        Private Shared m_NoneText As String '(None)" in the startup object combobox
-        Private Shared m_StartupObjectLabelText As String 'The label text to use for a startup object
-        Private Shared m_StartupUriLabelText As String 'The label text to use for a startup Uri
-        Private m_errorControl As AppDotXamlErrorControl
+        Private Shared s_noneText As String '(None)" in the startup object combobox
+        Private Shared s_startupObjectLabelText As String 'The label text to use for a startup object
+        Private Shared s_startupUriLabelText As String 'The label text to use for a startup Uri
+        Private _errorControl As AppDotXamlErrorControl
 
         Protected Const STARTUPOBJECT_SubMain As String = "Sub Main"
 
-        Private Const VB_EXTENSION As String = ".vb"
+        Private Const s_VB_EXTENSION As String = ".vb"
 
-        Const BUILDACTION_PAGE As String = "Page"
-        Const BUILDACTION_APPLICATIONDEFINITION As String = "ApplicationDefinition"
+        Private Const s_BUILDACTION_PAGE As String = "Page"
+        Private Const s_BUILDACTION_APPLICATIONDEFINITION As String = "ApplicationDefinition"
 
 
 #Region "User-defined properties for this page"
 
-        Private Const PROPID_StartupObjectOrUri As Integer = 100
-        Private Const PROPNAME_StartupObjectOrUri As String = "StartupObjectOrUri"
+        Private Const s_PROPID_StartupObjectOrUri As Integer = 100
+        Private Const s_PROPNAME_StartupObjectOrUri As String = "StartupObjectOrUri"
 
-        Private Const PROPID_ShutDownMode As Integer = 101
-        Private Const PROPNAME_ShutDownMode As String = "ShutdownMode"
+        Private Const s_PROPID_ShutDownMode As Integer = 101
+        Private Const s_PROPNAME_ShutDownMode As String = "ShutdownMode"
 
-        Private Const PROPID_UseApplicationFramework As Integer = 102
-        Private Const PROPNAME_UseApplicationFramework As String = "UseApplicationFramework"
+        Private Const s_PROPID_UseApplicationFramework As Integer = 102
+        Private Const s_PROPNAME_UseApplicationFramework As String = "UseApplicationFramework"
 
         'This property is added by the WPF flavor as an extended property
-        Private Const PROPID_HostInBrowser As Integer = 103
-        Private Const PROPNAME_HostInBrowser As String = "HostInBrowser"
+        Private Const s_PROPID_HostInBrowser As Integer = 103
+        Private Const s_PROPNAME_HostInBrowser As String = "HostInBrowser"
 
 #End Region
 
@@ -65,8 +67,8 @@ Namespace Microsoft.VisualStudio.Editors.PropertyPages.WPF
             '  function, which is called by the base in its Dispose method and also
             '  when requested by the property page host.
             If disposing Then
-                If Not (components Is Nothing) Then
-                    components.Dispose()
+                If Not (_components Is Nothing) Then
+                    _components.Dispose()
                 End If
 
                 CleanUpApplicationXamlDocData()
@@ -84,7 +86,7 @@ Namespace Microsoft.VisualStudio.Editors.PropertyPages.WPF
         ''' <remarks></remarks>
         Protected Overrides Sub CleanupCOMReferences()
             TrySaveDocDataIfLastEditor()
-            m_docDataHasChanged = False
+            _docDataHasChanged = False
 
             MyBase.CleanupCOMReferences()
 
@@ -97,9 +99,9 @@ Namespace Microsoft.VisualStudio.Editors.PropertyPages.WPF
         ''' <remarks></remarks>
         Private Sub CleanUpApplicationXamlDocData()
             TrySaveDocDataIfLastEditor()
-            If m_ApplicationXamlDocData IsNot Nothing Then
-                Dim docData As DocData = m_ApplicationXamlDocData
-                m_ApplicationXamlDocData = Nothing
+            If _applicationXamlDocData IsNot Nothing Then
+                Dim docData As DocData = _applicationXamlDocData
+                _applicationXamlDocData = Nothing
                 docData.Dispose()
             End If
         End Sub
@@ -116,11 +118,11 @@ Namespace Microsoft.VisualStudio.Editors.PropertyPages.WPF
             InitializeApplicationTypes()
             InitializeShutdownModeValues()
 
-            m_NoneText = SR.GetString(SR.PPG_ComboBoxSelect_None)
+            s_noneText = SR.GetString(SR.PPG_ComboBoxSelect_None)
 
             'Get text for the Startup Object/Uri label from resources
-            m_StartupUriLabelText = My.Resources.Designer.PPG_Application_StartupUriLabelText
-            m_StartupObjectLabelText = My.Resources.Designer.PPG_Application_StartupObjectLabelText
+            s_startupUriLabelText = My.Resources.Designer.PPG_Application_StartupUriLabelText
+            s_startupObjectLabelText = My.Resources.Designer.PPG_Application_StartupObjectLabelText
         End Sub
 
 #End Region
@@ -183,7 +185,7 @@ Namespace Microsoft.VisualStudio.Editors.PropertyPages.WPF
                     '  will still cause a file checkout, it just won't be grouped together if there are
                     '  any other files needing to be checked out at the same time.
                     list.Add(New PropertyControlData( _
-                        PROPID_StartupObjectOrUri, PROPNAME_StartupObjectOrUri, _
+                        s_PROPID_StartupObjectOrUri, s_PROPNAME_StartupObjectOrUri, _
                         Me.StartupObjectOrUriComboBox, _
                         AddressOf Me.SetStartupObjectOrUriIntoUI, AddressOf Me.GetStartupObjectOrUriFromUI, _
                         ControlDataFlags.UserPersisted Or ControlDataFlags.NoOptimisticFileCheckout, _
@@ -201,7 +203,7 @@ Namespace Microsoft.VisualStudio.Editors.PropertyPages.WPF
 
                     'ShutdownMode (user-defined)
                     list.Add(New PropertyControlData( _
-                        PROPID_ShutDownMode, PROPNAME_ShutDownMode, _
+                        s_PROPID_ShutDownMode, s_PROPNAME_ShutDownMode, _
                         Me.ShutdownModeComboBox, _
                         AddressOf SetShutdownModeIntoUI, AddressOf GetShutdownModeFromUI, _
                         ControlDataFlags.UserPersisted Or ControlDataFlags.PersistedInApplicationDefinitionFile, _
@@ -210,7 +212,7 @@ Namespace Microsoft.VisualStudio.Editors.PropertyPages.WPF
                     'UseApplicationFramework (user-defined)
                     'Use RefreshAllPropertiesWhenChanged to force other property controls to get re-enabled/disabled when this changes
                     list.Add(New PropertyControlData( _
-                        PROPID_UseApplicationFramework, PROPNAME_UseApplicationFramework, UseApplicationFrameworkCheckBox, _
+                        s_PROPID_UseApplicationFramework, s_PROPNAME_UseApplicationFramework, UseApplicationFrameworkCheckBox, _
                         AddressOf SetUseApplicationFrameworkIntoUI, AddressOf GetUseApplicationFrameworkFromUI, _
                         ControlDataFlags.UserPersisted Or ControlDataFlags.RefreshAllPropertiesWhenChanged, _
                         New Control() {Me.WindowsAppGroupBox}))
@@ -218,7 +220,7 @@ Namespace Microsoft.VisualStudio.Editors.PropertyPages.WPF
                     'HostInBrowser (Avalon flavor extended property)
                     '  Tells whether the project is an XBAP app
                     list.Add(New PropertyControlData( _
-                        PROPID_HostInBrowser, PROPNAME_HostInBrowser, Nothing, _
+                        s_PROPID_HostInBrowser, s_PROPNAME_HostInBrowser, Nothing, _
                         ControlDataFlags.Hidden))
 
                     ' ApplicationManifest - added simply to enable flavoring visibility of the button
@@ -315,7 +317,7 @@ Namespace Microsoft.VisualStudio.Editors.PropertyPages.WPF
 #Region "Saving the doc data"
 
         Private Sub TrySaveDocDataIfLastEditor()
-            If m_ApplicationXamlDocData IsNot Nothing AndAlso ServiceProvider IsNot Nothing Then
+            If _applicationXamlDocData IsNot Nothing AndAlso ServiceProvider IsNot Nothing Then
                 Try
                     Dim rdt As IVsRunningDocumentTable = TryCast(ServiceProvider.GetService(GetType(IVsRunningDocumentTable)), IVsRunningDocumentTable)
                     Debug.Assert((rdt IsNot Nothing), "What?  No RDT?")
@@ -331,7 +333,7 @@ Namespace Microsoft.VisualStudio.Editors.PropertyPages.WPF
                     Dim editLocks As UInteger = 0
 
                     Try
-                        VSErrorHandler.ThrowOnFailure(rdt.FindAndLockDocument(CType(_VSRDTFLAGS.RDT_NoLock, UInteger), m_ApplicationXamlDocData.Name, hier, itemId, localPunk, docCookie))
+                        VSErrorHandler.ThrowOnFailure(rdt.FindAndLockDocument(CType(_VSRDTFLAGS.RDT_NoLock, UInteger), _applicationXamlDocData.Name, hier, itemId, localPunk, docCookie))
                     Finally
                         If Not localPunk.Equals(IntPtr.Zero) Then
                             Marshal.Release(localPunk)
@@ -558,7 +560,7 @@ Namespace Microsoft.VisualStudio.Editors.PropertyPages.WPF
         ''' <param name="Enable"></param>
         ''' <remarks></remarks>
         Private Sub EnableUseApplicationFrameworkCheckBox(ByVal Enable As Boolean)
-            GetPropertyControlData(PROPID_UseApplicationFramework).EnableControls(Enable)
+            GetPropertyControlData(s_PROPID_UseApplicationFramework).EnableControls(Enable)
         End Sub
 
         Private Enum TriState
@@ -751,7 +753,7 @@ Namespace Microsoft.VisualStudio.Editors.PropertyPages.WPF
                         'We only do this if the build action is actually set to None.  We'll assume if it was set to
                         '  anything else that the user intended it that way.
                         If DTEUtils.GetBuildAction(foundAppDefinition) = VSLangProj.prjBuildAction.prjBuildActionNone Then
-                            DTEUtils.SetBuildActionAsString(foundAppDefinition, BUILDACTION_APPLICATIONDEFINITION)
+                            DTEUtils.SetBuildActionAsString(foundAppDefinition, s_BUILDACTION_APPLICATIONDEFINITION)
                         End If
                     End If
 
@@ -789,15 +791,15 @@ Namespace Microsoft.VisualStudio.Editors.PropertyPages.WPF
         ''' <returns></returns>
         ''' <remarks></remarks>
         Private Function GetApplicationXamlDocData(ByVal createAppXamlIfDoesNotExist As Boolean) As DocData
-            If m_ApplicationXamlDocData Is Nothing Then
+            If _applicationXamlDocData Is Nothing Then
                 Dim applicationXamlProjectItem As ProjectItem = FindApplicationXamlProjectItem(createAppXamlIfDoesNotExist)
                 If applicationXamlProjectItem IsNot Nothing Then
-                    m_ApplicationXamlDocData = New DocData(ServiceProvider, applicationXamlProjectItem.FileNames(1))
+                    _applicationXamlDocData = New DocData(ServiceProvider, applicationXamlProjectItem.FileNames(1))
                 End If
             End If
 
-            If m_ApplicationXamlDocData IsNot Nothing Then
-                Return m_ApplicationXamlDocData
+            If _applicationXamlDocData IsNot Nothing Then
+                Return _applicationXamlDocData
             ElseIf createAppXamlIfDoesNotExist Then
                 Debug.Fail("This function should not have reached here if createAppDotXamlFileIfNotExist was passed in as True.  It should have thrown an exception by now.")
                 Throw New PropertyPageException( _
@@ -874,8 +876,8 @@ Namespace Microsoft.VisualStudio.Editors.PropertyPages.WPF
         ''' <remarks></remarks>
         <Serializable()> _
         Friend MustInherit Class StartupObjectOrUri
-            Private m_value As String
-            Private m_description As String
+            Private _value As String
+            Private _description As String
 
             Public Sub New(ByVal value As String, ByVal description As String)
                 If value Is Nothing Then
@@ -885,8 +887,8 @@ Namespace Microsoft.VisualStudio.Editors.PropertyPages.WPF
                     description = ""
                 End If
 
-                m_value = value
-                m_description = description
+                _value = value
+                _description = description
             End Sub
 
             ''' <summary>
@@ -900,13 +902,13 @@ Namespace Microsoft.VisualStudio.Editors.PropertyPages.WPF
 
             Public ReadOnly Property Value() As String
                 Get
-                    Return m_value
+                    Return _value
                 End Get
             End Property
 
             Public ReadOnly Property Description() As String
                 Get
-                    Return m_description
+                    Return _description
                 End Get
             End Property
 
@@ -967,7 +969,7 @@ Namespace Microsoft.VisualStudio.Editors.PropertyPages.WPF
             Inherits StartupObject
 
             Public Sub New()
-                MyBase.New("", m_NoneText)
+                MyBase.New("", s_noneText)
             End Sub
 
             Protected Overrides ReadOnly Property IsEquivalentToSubMain() As Boolean
@@ -1139,9 +1141,9 @@ Namespace Microsoft.VisualStudio.Editors.PropertyPages.WPF
             If value Is Nothing Then
                 Debug.Fail("Unexpected null value in SetStartupObjectOrUriIntoUI")
             ElseIf TypeOf value Is StartupObject Then
-                StartupObjectOrUriLabel.Text = m_StartupObjectLabelText
+                StartupObjectOrUriLabel.Text = s_startupObjectLabelText
             ElseIf TypeOf value Is StartupUri Then
-                StartupObjectOrUriLabel.Text = m_StartupUriLabelText
+                StartupObjectOrUriLabel.Text = s_startupUriLabelText
             Else
                 Debug.Fail("Unexpected startup/uri type")
             End If
@@ -1290,7 +1292,7 @@ Namespace Microsoft.VisualStudio.Editors.PropertyPages.WPF
                 If IO.Path.GetExtension(projectitem.FileNames(1)).Equals(".xaml", StringComparison.OrdinalIgnoreCase) Then
                     'We only want .xaml files with BuildAction="Page"
                     Dim CurrentBuildAction As String = DTEUtils.GetBuildActionAsString(projectitem)
-                    If CurrentBuildAction IsNot Nothing AndAlso BUILDACTION_PAGE.Equals(CurrentBuildAction, StringComparison.OrdinalIgnoreCase) Then
+                    If CurrentBuildAction IsNot Nothing AndAlso s_BUILDACTION_PAGE.Equals(CurrentBuildAction, StringComparison.OrdinalIgnoreCase) Then
                         'Build action is correct.
 
                         'Is the item inside the project folders (instead of, say, a link to an external file)?
@@ -1350,8 +1352,8 @@ Namespace Microsoft.VisualStudio.Editors.PropertyPages.WPF
         ''' </summary>
         ''' <remarks></remarks>
         Friend Class ShutdownMode
-            Private m_Value As String
-            Private m_Description As String
+            Private _value As String
+            Private _description As String
 
             Public Sub New(ByVal value As String, ByVal description As String)
                 If value Is Nothing Then
@@ -1361,24 +1363,24 @@ Namespace Microsoft.VisualStudio.Editors.PropertyPages.WPF
                     Throw New ArgumentNullException("description")
                 End If
 
-                Me.m_Value = value
-                Me.m_Description = description
+                Me._value = value
+                Me._description = description
             End Sub
 
             Public ReadOnly Property Value() As String
                 Get
-                    Return m_Value
+                    Return _value
                 End Get
             End Property
 
             Public ReadOnly Property Description() As String
                 Get
-                    Return m_Description
+                    Return _description
                 End Get
             End Property
 
             Public Overrides Function ToString() As String
-                Return m_Description
+                Return _description
             End Function
 
         End Class
@@ -1490,13 +1492,13 @@ Namespace Microsoft.VisualStudio.Editors.PropertyPages.WPF
         ''' </remarks>
         Public Overrides Function GetUserDefinedPropertyDescriptor(ByVal PropertyName As String) As PropertyDescriptor
             Select Case PropertyName
-                Case PROPNAME_StartupObjectOrUri
+                Case s_PROPNAME_StartupObjectOrUri
                     Return New UserPropertyDescriptor(PropertyName, GetType(StartupObjectOrUri))
 
-                Case PROPNAME_ShutDownMode
+                Case s_PROPNAME_ShutDownMode
                     Return New UserPropertyDescriptor(PropertyName, GetType(String))
 
-                Case PROPNAME_UseApplicationFramework
+                Case s_PROPNAME_UseApplicationFramework
                     'Note: Need to specify Int32 instead of TriState enum because undo/redo code doesn't
                     '  handle the enum properly.
                     Return New UserPropertyDescriptor(PropertyName, GetType(Integer))
@@ -1520,7 +1522,7 @@ Namespace Microsoft.VisualStudio.Editors.PropertyPages.WPF
             '  doing a refresh will not re-enable them.  Instead, we show an error value inside the control to the user.
 
             Select Case PropertyName
-                Case PROPNAME_StartupObjectOrUri
+                Case s_PROPNAME_StartupObjectOrUri
                     Try
                         If IsStartupObjectMissing() Then
                             Value = PropertyControlData.MissingProperty
@@ -1535,14 +1537,14 @@ Namespace Microsoft.VisualStudio.Editors.PropertyPages.WPF
                         End If
                     End Try
 
-                Case PROPNAME_ShutDownMode
+                Case s_PROPNAME_ShutDownMode
                     Try
                         Value = GetShutdownModeFromStorage()
                     Catch ex As Exception
                         Value = ""
                     End Try
 
-                Case PROPNAME_UseApplicationFramework
+                Case s_PROPNAME_UseApplicationFramework
                     Try
                         Value = GetUseApplicationFrameworkFromStorage()
                     Catch ex As Exception
@@ -1565,13 +1567,13 @@ Namespace Microsoft.VisualStudio.Editors.PropertyPages.WPF
         ''' <remarks></remarks>
         Public Overrides Function WriteUserDefinedProperty(ByVal PropertyName As String, ByVal Value As Object) As Boolean
             Select Case PropertyName
-                Case PROPNAME_StartupObjectOrUri
+                Case s_PROPNAME_StartupObjectOrUri
                     SetStartupObjectOrUriValueIntoStorage(CType(Value, StartupObjectOrUri))
 
-                Case PROPNAME_ShutDownMode
+                Case s_PROPNAME_ShutDownMode
                     SetShutdownModeIntoStorage(CType(Value, String))
 
-                Case PROPNAME_UseApplicationFramework
+                Case s_PROPNAME_UseApplicationFramework
                     SetUseApplicationFrameworkIntoStorage(CType(Value, TriState))
 
                 Case Else
@@ -1651,7 +1653,7 @@ Namespace Microsoft.VisualStudio.Editors.PropertyPages.WPF
         End Function
 
         Private Function GetExpectedApplicationEventsFileName(ByVal appDotXamlFilename As String) As String
-            Return appDotXamlFilename & VB_EXTENSION
+            Return appDotXamlFilename & s_VB_EXTENSION
         End Function
 
         Private Function CreateApplicationEventsFile(ByVal parent As ProjectItem) As ProjectItem
@@ -1667,7 +1669,7 @@ Namespace Microsoft.VisualStudio.Editors.PropertyPages.WPF
 
             'Now find the item that was added (for some reason, AddFromTemplate won't return this
             '  to us).
-            Dim newProjectItem As ProjectItem = FindDependentFile(parent, VB_EXTENSION)
+            Dim newProjectItem As ProjectItem = FindDependentFile(parent, s_VB_EXTENSION)
             If newProjectItem Is Nothing Then
                 Throw New PropertyPageException(My.Resources.Designer.PPG_Unexpected)
             End If
@@ -1686,7 +1688,7 @@ Namespace Microsoft.VisualStudio.Editors.PropertyPages.WPF
                 Dim appXamlProjectItem As ProjectItem = FindApplicationXamlProjectItem(True)
 
                 'Look for a dependent .vb file, this should be the normal case
-                Dim dependentVBItem As ProjectItem = FindDependentFile(appXamlProjectItem, VB_EXTENSION)
+                Dim dependentVBItem As ProjectItem = FindDependentFile(appXamlProjectItem, s_VB_EXTENSION)
 
                 If dependentVBItem Is Nothing Then
                     'If none, then also look for a file with the same name as the Application.xaml file (+ .vb) in either the
@@ -1738,33 +1740,33 @@ Namespace Microsoft.VisualStudio.Editors.PropertyPages.WPF
 #Region "Error control"
 
         'If this is non-null, then the error control is visible
-        Private WithEvents m_pageErrorControl As AppDotXamlErrorControl = Nothing
+        Private WithEvents _pageErrorControl As AppDotXamlErrorControl = Nothing
 
         Private Sub DisplayErrorControl(ByVal message As String)
             RemoveErrorControl()
 
             Me.SuspendLayout()
             Me.overarchingTableLayoutPanel.Visible = False
-            m_pageErrorControl = New AppDotXamlErrorControl(message)
-            m_pageErrorControl.Dock = DockStyle.Fill
-            Me.Controls.Add(m_pageErrorControl)
-            m_pageErrorControl.BringToFront()
-            m_pageErrorControl.Visible = True
+            _pageErrorControl = New AppDotXamlErrorControl(message)
+            _pageErrorControl.Dock = DockStyle.Fill
+            Me.Controls.Add(_pageErrorControl)
+            _pageErrorControl.BringToFront()
+            _pageErrorControl.Visible = True
             Me.ResumeLayout()
             Me.PerformLayout()
         End Sub
 
         Private Sub RemoveErrorControl()
-            If m_pageErrorControl IsNot Nothing Then
-                Me.Controls.Remove(m_pageErrorControl)
-                m_pageErrorControl.Dispose()
-                m_pageErrorControl = Nothing
+            If _pageErrorControl IsNot Nothing Then
+                Me.Controls.Remove(_pageErrorControl)
+                _pageErrorControl.Dispose()
+                _pageErrorControl = Nothing
             End If
 
             Me.overarchingTableLayoutPanel.Visible = True
         End Sub
 
-        Private Sub PageErrorControl_EditXamlClick() Handles m_pageErrorControl.EditXamlClicked
+        Private Sub PageErrorControl_EditXamlClick() Handles _pageErrorControl.EditXamlClicked
             TryShowXamlEditor(False)
         End Sub
 
@@ -1815,16 +1817,16 @@ Namespace Microsoft.VisualStudio.Editors.PropertyPages.WPF
 
 #Region "DocData changes"
 
-        Private m_docDataHasChanged As Boolean
+        Private _docDataHasChanged As Boolean
 
-        Private Sub ApplicationXamlDocData_DataChanged(ByVal sender As Object, ByVal e As EventArgs) Handles m_ApplicationXamlDocData.DataChanged
-            m_docDataHasChanged = True
+        Private Sub ApplicationXamlDocData_DataChanged(ByVal sender As Object, ByVal e As EventArgs) Handles _applicationXamlDocData.DataChanged
+            _docDataHasChanged = True
         End Sub
 
         Private Sub RetryPageLoad()
-            If m_docDataHasChanged Then
+            If _docDataHasChanged Then
                 Try
-                    m_docDataHasChanged = False
+                    _docDataHasChanged = False
                     RemoveErrorControl()
                     RefreshPropertyValues()
                     DisplayErrorControlIfAppXamlIsInvalid()
@@ -1838,7 +1840,7 @@ Namespace Microsoft.VisualStudio.Editors.PropertyPages.WPF
             MyBase.WndProc(m)
 
             If m.Msg = Interop.win.WM_SETFOCUS Then
-                If m_docDataHasChanged Then
+                If _docDataHasChanged Then
                     Me.BeginInvoke(New MethodInvoker(AddressOf RetryPageLoad))
                 End If
             End If
@@ -1849,7 +1851,7 @@ Namespace Microsoft.VisualStudio.Editors.PropertyPages.WPF
 #Region "XBAP projects"
 
         Private Function IsXBAP() As Boolean
-            Dim pcd As PropertyControlData = GetPropertyControlData(PROPID_HostInBrowser)
+            Dim pcd As PropertyControlData = GetPropertyControlData(s_PROPID_HostInBrowser)
             If pcd.IsSpecialValue Then
                 'HostInBrowser property not available.  This shouldn't happen except in
                 '  unit tests.
@@ -1937,7 +1939,7 @@ Namespace Microsoft.VisualStudio.Editors.PropertyPages.WPF
         Friend WithEvents ViewUACSettingsButton As System.Windows.Forms.Button
 
         'Required by the Windows Form Designer
-        Private components As System.ComponentModel.IContainer
+        Private _components As System.ComponentModel.IContainer
 
         'NOTE: The following procedure is required by the Windows Form Designer
         'It can be modified using the Windows Form Designer.  

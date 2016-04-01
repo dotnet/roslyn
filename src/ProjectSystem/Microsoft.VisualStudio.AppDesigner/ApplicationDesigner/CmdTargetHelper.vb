@@ -1,3 +1,5 @@
+' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+
 Imports Microsoft.VisualStudio.Shell.Interop
 Imports Common = Microsoft.VisualStudio.Editors.AppDesCommon
 Imports Microsoft.VisualStudio.Editors.AppDesInterop
@@ -16,29 +18,29 @@ Namespace Microsoft.VisualStudio.Editors.ApplicationDesigner
         Implements OleInterop.IOleCommandTarget
         Implements IVsWindowFrameNotify3
 
-        Private m_WindowPane As ApplicationDesignerWindowPane
+        Private _windowPane As ApplicationDesignerWindowPane
 
         Public Sub New(ByVal WindowPane As ApplicationDesignerWindowPane)
             Debug.Assert(WindowPane IsNot Nothing)
-            m_WindowPane = WindowPane
+            _windowPane = WindowPane
         End Sub
 
         ' Window navigation items
-        Const cmdidPaneNextSubPane As Integer = 1062
-        Const cmdidPanePrevSubPane As Integer = 1063
-        Const cmdidPaneNextPane As Integer = 316
-        Const cmdidPanePrevPane As Integer = 317
-        Const cmdidPaneNextTab As Integer = 286
-        Const cmdidPanePrevTab As Integer = 287
-        Const cmdidCloseDocument As Integer = 658
+        Private Const s_cmdidPaneNextSubPane As Integer = 1062
+        Private Const s_cmdidPanePrevSubPane As Integer = 1063
+        Private Const s_cmdidPaneNextPane As Integer = 316
+        Private Const s_cmdidPanePrevPane As Integer = 317
+        Private Const s_cmdidPaneNextTab As Integer = 286
+        Private Const s_cmdidPanePrevTab As Integer = 287
+        Private Const s_cmdidCloseDocument As Integer = 658
         'case cmdidPaneCloseToolWindow
         'case cmdidPaneActivateDocWindow
-        Const cmdidCloseAllDocuments As Integer = 627
-        Const cmdidNextDocumentNav As Integer = 1124
-        Const cmdidPrevDocumentNav As Integer = 1125
-        Const cmdidNextDocument As Integer = 628
-        Const cmdidPrevDocument As Integer = 629
-        Const cmdidSaveSolution As Integer = 224
+        Private Const s_cmdidCloseAllDocuments As Integer = 627
+        Private Const s_cmdidNextDocumentNav As Integer = 1124
+        Private Const s_cmdidPrevDocumentNav As Integer = 1125
+        Private Const s_cmdidNextDocument As Integer = 628
+        Private Const s_cmdidPrevDocument As Integer = 629
+        Private Const s_cmdidSaveSolution As Integer = 224
 
         ''' <summary>
         ''' Executes a specified command or displays help for a command.
@@ -67,7 +69,7 @@ Namespace Microsoft.VisualStudio.Editors.ApplicationDesigner
         Private Function IOleCommandTarget_Exec(ByRef pguidCmdGroup As System.Guid, ByVal nCmdID As UInteger, ByVal nCmdexecopt As UInteger, ByVal pvaIn As System.IntPtr, ByVal pvaOut As System.IntPtr) As Integer Implements OleInterop.IOleCommandTarget.Exec
             Common.Switches.TracePDCmdTarget(TraceLevel.Info, "CmdTargetHelper.IOleCommandTarget.Exec: Guid=" & pguidCmdGroup.ToString & ", nCmdID=" & nCmdID)
 
-            If m_WindowPane Is Nothing Then
+            If _windowPane Is Nothing Then
                 Debug.Fail("CmdTargetHelper.IOleCommandTarget_Exec(): m_WindowPane shouldn't be Nothing")
                 Return AppDesInterop.NativeMethods.OLECMDERR_E_NOTSUPPORTED 'Not much we can do
             End If
@@ -81,7 +83,7 @@ Namespace Microsoft.VisualStudio.Editors.ApplicationDesigner
                         'Execute a Save for the App Designer (saves all DocData pages)
                         Return HrSaveProjectDesigner()
 
-                    Case cmdidSaveSolution
+                    Case s_cmdidSaveSolution
                         Common.Switches.TracePDCmdTarget(TraceLevel.Warning, "  Peeking: cmdidSaveSolution")
 
                         'There are scenarios with some property pages where a page doesn't get saved properly
@@ -102,7 +104,7 @@ Namespace Microsoft.VisualStudio.Editors.ApplicationDesigner
                         Return NativeMethods.S_OK
 
 
-                    Case Microsoft.VisualStudio.Editors.Constants.MenuConstants.cmdidFileClose, cmdidCloseDocument
+                    Case Microsoft.VisualStudio.Editors.Constants.MenuConstants.cmdidFileClose, s_cmdidCloseDocument
                         'cmdidFileClose = File.CLose
                         'cmdidCloseDocument = CTRL+F4 or right-click Close on the MDI tab
 
@@ -113,29 +115,29 @@ Namespace Microsoft.VisualStudio.Editors.ApplicationDesigner
 
                         'Prompt for save, and then close the project designer's window frame.  
                         '  Note that this causes us to notified in IVsWindowFrameNotify3.OnClose.
-                        m_WindowPane.ClosePromptSave()
+                        _windowPane.ClosePromptSave()
                         Return NativeMethods.S_OK
 
-                    Case cmdidCloseAllDocuments
+                    Case s_cmdidCloseAllDocuments
                         'There are scenarios with some property pages where a page doesn't get saved properly
                         '  with pending changes if all documents are closed.  This makes sure things get saved
                         '  properly.
 
                         Common.Switches.TracePDCmdTarget(TraceLevel.Warning, "  Peeking: cmdidCloseAllDocuments")
 
-                        m_WindowPane.ClosePromptSave()
+                        _windowPane.ClosePromptSave()
 
                         'Now let the shell do its normal processing of this command
                         Return AppDesInterop.NativeMethods.OLECMDERR_E_NOTSUPPORTED
 
-                    Case cmdidPaneNextTab 'Window.NextTab (CTRL+PGDN by default) - move to the next tab in the project designer
+                    Case s_cmdidPaneNextTab 'Window.NextTab (CTRL+PGDN by default) - move to the next tab in the project designer
                         Common.Switches.TracePDCmdTarget(TraceLevel.Warning, "  Handling: cmdidPaneNextTab")
-                        Me.m_WindowPane.NextTab()
+                        Me._windowPane.NextTab()
                         Return NativeMethods.S_OK
 
-                    Case cmdidPanePrevTab 'Window.PrevTab (CTRL+PGUP by default) - move to the previous tab in the project designer
+                    Case s_cmdidPanePrevTab 'Window.PrevTab (CTRL+PGUP by default) - move to the previous tab in the project designer
                         Common.Switches.TracePDCmdTarget(TraceLevel.Warning, "  Handling: cmdidPanePrevTab")
-                        Me.m_WindowPane.PrevTab()
+                        Me._windowPane.PrevTab()
                         Return NativeMethods.S_OK
 
                         'Are any of these possibly needed?
@@ -163,10 +165,10 @@ Namespace Microsoft.VisualStudio.Editors.ApplicationDesigner
         ''' <remarks></remarks>
         Private Function HrSaveProjectDesigner() As Integer
             'Execute a Save for the App Designer (saves all DocData pages)
-            Dim hr As Integer = m_WindowPane.SaveChildren(__VSRDTSAVEOPTIONS.RDTSAVEOPT_ForceSave)
+            Dim hr As Integer = _windowPane.SaveChildren(__VSRDTSAVEOPTIONS.RDTSAVEOPT_ForceSave)
             If VSErrorHandler.Succeeded(hr) Then
                 '... and also a save of the project file itself
-                m_WindowPane.SaveProjectFile() 'This will throw if there's a failure
+                _windowPane.SaveProjectFile() 'This will throw if there's a failure
             End If
 
             Return hr
@@ -213,12 +215,12 @@ Namespace Microsoft.VisualStudio.Editors.ApplicationDesigner
                         prgCmds(0).cmdf = Supported Or Invisible 'CONSIDER: Invisible doesn't seem to work, but it does at least get disabled
                         Return NativeMethods.S_OK
 
-                    Case Microsoft.VisualStudio.Editors.Constants.MenuConstants.cmdidFileClose, cmdidCloseDocument
+                    Case Microsoft.VisualStudio.Editors.Constants.MenuConstants.cmdidFileClose, s_cmdidCloseDocument
                         Common.Switches.TracePDCmdTarget(TraceLevel.Info, "  Query: cmdidFileClose, cmdidCloseDocument")
                         prgCmds(0).cmdf = Supported Or Enabled
                         Return NativeMethods.S_OK
 
-                    Case cmdidPaneNextTab, cmdidPanePrevTab
+                    Case s_cmdidPaneNextTab, s_cmdidPanePrevTab
                         Common.Switches.TracePDCmdTarget(TraceLevel.Info, "  Query: cmdidPaneNextTab or cmdidPanePrevTab")
                         prgCmds(0).cmdf = Supported Or Enabled
                         Return NativeMethods.S_OK
@@ -274,7 +276,7 @@ Namespace Microsoft.VisualStudio.Editors.ApplicationDesigner
             'If the user clicks on the X in the project designer window right-top corner, then the first we know about it is in this
             '  call, where we handle saving.
 
-            If m_WindowPane Is Nothing Then
+            If _windowPane Is Nothing Then
                 Debug.Fail("CmdTargetHelper.OnClose(): m_WindowPane shouldn't be Nothing")
                 Return NativeMethods.S_OK 'Not much we can do
             End If
@@ -287,8 +289,8 @@ Namespace Microsoft.VisualStudio.Editors.ApplicationDesigner
                 Case CUInt(Shell.Interop.__FRAMECLOSE.FRAMECLOSE_NoSave)
                     'We hit this in the File.Close/CTRL+F4 case, because we have already saved any files the user wanted to save, and then
                     '  passed in NoSave to CloseFrame.  Nothing to do except notify the project designer that we're shutting down.
-                    If m_WindowPane.AppDesignerView IsNot Nothing Then
-                        m_WindowPane.AppDesignerView.NotifyShuttingDown()
+                    If _windowPane.AppDesignerView IsNot Nothing Then
+                        _windowPane.AppDesignerView.NotifyShuttingDown()
                     End If
                     Return NativeMethods.S_OK
                 Case CUInt(Shell.Interop.__FRAMECLOSE.FRAMECLOSE_PromptSave)
@@ -301,7 +303,7 @@ Namespace Microsoft.VisualStudio.Editors.ApplicationDesigner
             End Select
 
             'Ask the user if s/he wants to save the child documents (depending on flags).  If so, go ahead and save them now.
-            Dim hr As Integer = m_WindowPane.SaveChildren(flags)
+            Dim hr As Integer = _windowPane.SaveChildren(flags)
             If NativeMethods.Failed(hr) Then
                 'Fails (among other possible cases) when the user chooses Cancel.  Return the hresult so the
                 '  close gets canceled.
@@ -312,8 +314,8 @@ Namespace Microsoft.VisualStudio.Editors.ApplicationDesigner
             pgrfSaveOptions = CUInt(Shell.Interop.__FRAMECLOSE.FRAMECLOSE_NoSave)
 
             'Let the project designer know it's shutting down
-            If m_WindowPane.AppDesignerView IsNot Nothing Then
-                m_WindowPane.AppDesignerView.NotifyShuttingDown()
+            If _windowPane.AppDesignerView IsNot Nothing Then
+                _windowPane.AppDesignerView.NotifyShuttingDown()
             End If
 
             Return NativeMethods.S_OK

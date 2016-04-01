@@ -1,17 +1,19 @@
-﻿Imports System.Drawing
+﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+
+Imports System.Drawing
 Imports System.Windows.Forms
 
 Namespace Microsoft.VisualStudio.Editors.AddImports
     Friend Class AutoAddImportsCollisionDialog
-        Private m_importMnemonic As Nullable(Of Char) = Nothing
-        Private m_doNotImportMnemonic As Nullable(Of Char) = Nothing
-        Private m_lastFocus As Control
-        Private m_helpCallBack As IVBAddImportsDialogHelpCallback
+        Private _importMnemonic As Nullable(Of Char) = Nothing
+        Private _doNotImportMnemonic As Nullable(Of Char) = Nothing
+        Private _lastFocus As Control
+        Private _helpCallBack As IVBAddImportsDialogHelpCallback
 
         Public Sub New(ByVal [namespace] As String, ByVal identifier As String, ByVal minimallyQualifiedName As String, ByVal callBack As IVBAddImportsDialogHelpCallback, ByVal isp As IServiceProvider)
             MyBase.New(isp)
-            m_lastFocus = Me
-            m_helpCallBack = callBack
+            _lastFocus = Me
+            _helpCallBack = callBack
             InitializeComponent()
             Me.SuspendLayout()
             Try
@@ -24,12 +26,12 @@ Namespace Microsoft.VisualStudio.Editors.AddImports
                 m_lblMain.AutoSize = True
 
                 Dim importAnywaysText As String = String.Format(My.Resources.AddImports.ImportsAnywaysFormatString, [namespace], [identifier], minimallyQualifiedName)
-                m_importMnemonic = ProcessMnemonicString(importAnywaysText)
+                _importMnemonic = ProcessMnemonicString(importAnywaysText)
                 m_lblImportsAnyways.Text = importAnywaysText
                 m_lblImportsAnyways.AutoSize = True
 
                 Dim qualifyCurrentText As String = String.Format(My.Resources.AddImports.QualifyCurrentLineFormatString, [namespace], [identifier], minimallyQualifiedName)
-                m_doNotImportMnemonic = ProcessMnemonicString(qualifyCurrentText)
+                _doNotImportMnemonic = ProcessMnemonicString(qualifyCurrentText)
                 m_lblQualifyCurrentLine.Text = qualifyCurrentText
                 m_lblQualifyCurrentLine.AutoSize = True
 
@@ -74,8 +76,8 @@ Namespace Microsoft.VisualStudio.Editors.AddImports
         End Sub
 
         Private Sub RequestHelp(ByVal sender As Object, ByVal hlpevent As System.Windows.Forms.HelpEventArgs) Handles Me.HelpRequested
-            If (m_helpCallBack IsNot Nothing) Then
-                m_helpCallBack.InvokeHelp()
+            If (_helpCallBack IsNot Nothing) Then
+                _helpCallBack.InvokeHelp()
             End If
         End Sub
 

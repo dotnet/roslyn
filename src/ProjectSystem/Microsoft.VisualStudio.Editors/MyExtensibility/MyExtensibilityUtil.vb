@@ -1,3 +1,5 @@
+' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+
 Option Strict On
 Option Explicit On
 Imports System.Reflection
@@ -130,21 +132,21 @@ Namespace Microsoft.VisualStudio.Editors.MyExtensibility
             Me.ParseAssemblyFullName(assemblyFullName, assemblyName, assemblyVersion)
 
             If assemblyName Is Nothing Then
-                If m_AssemblyIndependentList Is Nothing Then
-                    m_AssemblyIndependentList = New List(Of T)()
+                If _assemblyIndependentList Is Nothing Then
+                    _assemblyIndependentList = New List(Of T)()
                 End If
-                m_AssemblyIndependentList.Add(item)
+                _assemblyIndependentList.Add(item)
             Else
-                If m_AssemblyDictionary Is Nothing Then
-                    m_AssemblyDictionary = New Dictionary(Of String, AssemblyVersionDictionary(Of T))( _
+                If _assemblyDictionary Is Nothing Then
+                    _assemblyDictionary = New Dictionary(Of String, AssemblyVersionDictionary(Of T))( _
                         System.StringComparer.OrdinalIgnoreCase)
                 End If
                 Dim asmVersionDictionary As AssemblyVersionDictionary(Of T) = Nothing
-                If m_AssemblyDictionary.ContainsKey(assemblyName) Then
-                    asmVersionDictionary = m_AssemblyDictionary(assemblyName)
+                If _assemblyDictionary.ContainsKey(assemblyName) Then
+                    asmVersionDictionary = _assemblyDictionary(assemblyName)
                 Else
                     asmVersionDictionary = New AssemblyVersionDictionary(Of T)
-                    m_AssemblyDictionary.Add(assemblyName, asmVersionDictionary)
+                    _assemblyDictionary.Add(assemblyName, asmVersionDictionary)
                 End If
                 asmVersionDictionary.AddItem(assemblyVersion, item)
             End If
@@ -158,11 +160,11 @@ Namespace Microsoft.VisualStudio.Editors.MyExtensibility
             If item Is Nothing Then
                 Exit Sub
             End If
-            If m_AssemblyIndependentList IsNot Nothing AndAlso m_AssemblyIndependentList.Contains(item) Then
-                m_AssemblyIndependentList.Remove(item)
+            If _assemblyIndependentList IsNot Nothing AndAlso _assemblyIndependentList.Contains(item) Then
+                _assemblyIndependentList.Remove(item)
             End If
-            If m_AssemblyDictionary IsNot Nothing AndAlso m_AssemblyDictionary.Values.Count > 0 Then
-                For Each versionDict As AssemblyVersionDictionary(Of T) In m_AssemblyDictionary.Values
+            If _assemblyDictionary IsNot Nothing AndAlso _assemblyDictionary.Values.Count > 0 Then
+                For Each versionDict As AssemblyVersionDictionary(Of T) In _assemblyDictionary.Values
                     versionDict.RemoveItem(item)
                 Next
             End If
@@ -177,10 +179,10 @@ Namespace Microsoft.VisualStudio.Editors.MyExtensibility
             Me.ParseAssemblyFullName(assemblyFullName, assemblyName, assemblyVersion)
 
             If assemblyName Is Nothing Then
-                Return m_AssemblyIndependentList
+                Return _assemblyIndependentList
             Else
-                If m_AssemblyDictionary IsNot Nothing AndAlso m_AssemblyDictionary.ContainsKey(assemblyName) Then
-                    Return m_AssemblyDictionary(assemblyName).GetItems(assemblyVersion)
+                If _assemblyDictionary IsNot Nothing AndAlso _assemblyDictionary.ContainsKey(assemblyName) Then
+                    Return _assemblyDictionary(assemblyName).GetItems(assemblyVersion)
                 End If
             End If
             Return Nothing
@@ -192,12 +194,12 @@ Namespace Microsoft.VisualStudio.Editors.MyExtensibility
         Public Function GetAllItems() As List(Of T)
             Dim result As New List(Of T)
 
-            If m_AssemblyIndependentList IsNot Nothing AndAlso m_AssemblyIndependentList.Count > 0 Then
-                result.AddRange(m_AssemblyIndependentList)
+            If _assemblyIndependentList IsNot Nothing AndAlso _assemblyIndependentList.Count > 0 Then
+                result.AddRange(_assemblyIndependentList)
             End If
 
-            If m_AssemblyDictionary IsNot Nothing Then
-                For Each asmVersionDictionary As AssemblyVersionDictionary(Of T) In m_AssemblyDictionary.Values
+            If _assemblyDictionary IsNot Nothing Then
+                For Each asmVersionDictionary As AssemblyVersionDictionary(Of T) In _assemblyDictionary.Values
                     Dim versionDependentItems As List(Of T) = asmVersionDictionary.GetAllItems()
                     If versionDependentItems IsNot Nothing AndAlso versionDependentItems.Count > 0 Then
                         result.AddRange(versionDependentItems)
@@ -212,11 +214,11 @@ Namespace Microsoft.VisualStudio.Editors.MyExtensibility
         End Function
 
         Public Sub Clear()
-            If m_AssemblyIndependentList IsNot Nothing Then
-                m_AssemblyIndependentList.Clear()
+            If _assemblyIndependentList IsNot Nothing Then
+                _assemblyIndependentList.Clear()
             End If
-            If m_AssemblyDictionary IsNot Nothing Then
-                m_AssemblyDictionary.Clear()
+            If _assemblyDictionary IsNot Nothing Then
+                _assemblyDictionary.Clear()
             End If
         End Sub
 
@@ -238,8 +240,8 @@ Namespace Microsoft.VisualStudio.Editors.MyExtensibility
             End If
         End Sub
 
-        Private m_AssemblyIndependentList As List(Of T)
-        Private m_AssemblyDictionary As Dictionary(Of String, AssemblyVersionDictionary(Of T))
+        Private _assemblyIndependentList As List(Of T)
+        Private _assemblyDictionary As Dictionary(Of String, AssemblyVersionDictionary(Of T))
 
         ''' <summary>
         ''' A dictionary based on assembly version. It contains a list of version independent items
@@ -256,20 +258,20 @@ Namespace Microsoft.VisualStudio.Editors.MyExtensibility
                     Exit Sub
                 End If
                 If version Is Nothing Then
-                    If m_VersionIndependentList Is Nothing Then
-                        m_VersionIndependentList = New List(Of Y)
+                    If _versionIndependentList Is Nothing Then
+                        _versionIndependentList = New List(Of Y)
                     End If
-                    m_VersionIndependentList.Add(item)
+                    _versionIndependentList.Add(item)
                 Else
                     Dim itemList As List(Of Y) = Nothing
-                    If m_VersionDependentDictionary Is Nothing Then
-                        m_VersionDependentDictionary = New Dictionary(Of Version, List(Of Y))()
+                    If _versionDependentDictionary Is Nothing Then
+                        _versionDependentDictionary = New Dictionary(Of Version, List(Of Y))()
                     End If
-                    If m_VersionDependentDictionary.ContainsKey(version) Then
-                        itemList = m_VersionDependentDictionary(version)
+                    If _versionDependentDictionary.ContainsKey(version) Then
+                        itemList = _versionDependentDictionary(version)
                     Else
                         itemList = New List(Of Y)
-                        m_VersionDependentDictionary.Add(version, itemList)
+                        _versionDependentDictionary.Add(version, itemList)
                     End If
                     itemList.Add(item)
                 End If
@@ -282,13 +284,13 @@ Namespace Microsoft.VisualStudio.Editors.MyExtensibility
                 Dim result As New List(Of Y)
 
                 ' Always include version independent list.
-                If m_VersionIndependentList IsNot Nothing AndAlso m_VersionIndependentList.Count > 0 Then
-                    result.AddRange(m_VersionIndependentList)
+                If _versionIndependentList IsNot Nothing AndAlso _versionIndependentList.Count > 0 Then
+                    result.AddRange(_versionIndependentList)
                 End If
 
                 If version IsNot Nothing Then ' Include the version dependent list if applicable
-                    If m_VersionDependentDictionary IsNot Nothing AndAlso m_VersionDependentDictionary.ContainsKey(version) Then
-                        Dim itemList As List(Of Y) = m_VersionDependentDictionary(version)
+                    If _versionDependentDictionary IsNot Nothing AndAlso _versionDependentDictionary.ContainsKey(version) Then
+                        Dim itemList As List(Of Y) = _versionDependentDictionary(version)
                         If itemList IsNot Nothing AndAlso itemList.Count > 0 Then
                             result.AddRange(itemList)
                         End If
@@ -307,12 +309,12 @@ Namespace Microsoft.VisualStudio.Editors.MyExtensibility
             Public Function GetAllItems() As List(Of Y)
                 Dim result As New List(Of Y)
 
-                If m_VersionIndependentList IsNot Nothing AndAlso m_VersionIndependentList.Count > 0 Then
-                    result.AddRange(m_VersionIndependentList)
+                If _versionIndependentList IsNot Nothing AndAlso _versionIndependentList.Count > 0 Then
+                    result.AddRange(_versionIndependentList)
                 End If
 
-                If m_VersionDependentDictionary IsNot Nothing Then
-                    For Each itemList As List(Of Y) In m_VersionDependentDictionary.Values
+                If _versionDependentDictionary IsNot Nothing Then
+                    For Each itemList As List(Of Y) In _versionDependentDictionary.Values
                         result.AddRange(itemList)
                     Next
                 End If
@@ -331,12 +333,12 @@ Namespace Microsoft.VisualStudio.Editors.MyExtensibility
                 If item Is Nothing Then
                     Exit Sub
                 End If
-                If m_VersionIndependentList IsNot Nothing AndAlso m_VersionIndependentList.Contains(item) Then
-                    m_VersionIndependentList.Remove(item)
+                If _versionIndependentList IsNot Nothing AndAlso _versionIndependentList.Contains(item) Then
+                    _versionIndependentList.Remove(item)
                 End If
-                If m_VersionDependentDictionary IsNot Nothing AndAlso _
-                        m_VersionDependentDictionary.Values IsNot Nothing Then
-                    For Each itemList As List(Of Y) In m_VersionDependentDictionary.Values
+                If _versionDependentDictionary IsNot Nothing AndAlso _
+                        _versionDependentDictionary.Values IsNot Nothing Then
+                    For Each itemList As List(Of Y) In _versionDependentDictionary.Values
                         If itemList.Contains(item) Then
                             itemList.Remove(item)
                         End If
@@ -345,16 +347,16 @@ Namespace Microsoft.VisualStudio.Editors.MyExtensibility
             End Sub
 
             Public Sub Clear()
-                If m_VersionIndependentList IsNot Nothing Then
-                    m_VersionIndependentList.Clear()
+                If _versionIndependentList IsNot Nothing Then
+                    _versionIndependentList.Clear()
                 End If
-                If m_VersionDependentDictionary IsNot Nothing Then
-                    m_VersionDependentDictionary.Clear()
+                If _versionDependentDictionary IsNot Nothing Then
+                    _versionDependentDictionary.Clear()
                 End If
             End Sub
 
-            Private m_VersionIndependentList As List(Of Y)
-            Private m_VersionDependentDictionary As Dictionary(Of Version, List(Of Y))
+            Private _versionIndependentList As List(Of Y)
+            Private _versionDependentDictionary As Dictionary(Of Version, List(Of Y))
         End Class
     End Class
 End Namespace

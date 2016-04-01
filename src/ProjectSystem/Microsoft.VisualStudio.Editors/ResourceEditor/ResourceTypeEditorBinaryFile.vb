@@ -1,3 +1,5 @@
+' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+
 Option Explicit On
 Option Strict On
 Option Compare Binary
@@ -13,7 +15,7 @@ Namespace Microsoft.VisualStudio.Editors.ResourceEditor
         Friend Shared ReadOnly BinaryFileValueType As System.Type = GetType(Byte())
 
         ' file with those extension are safe to open 
-        Private SafeExtensions() As String = {
+        Private _safeExtensions() As String = {
             ".avi",
             ".emf",
             ".mp3",
@@ -23,7 +25,7 @@ Namespace Microsoft.VisualStudio.Editors.ResourceEditor
         }
 
         'The shared Thumbnail Image
-        Private Shared m_ThumbnailForBinaryFile As Image
+        Private Shared s_thumbnailForBinaryFile As Image
 
         ''' <summary>
         '''  Whether all valid items share a same image
@@ -67,10 +69,10 @@ Namespace Microsoft.VisualStudio.Editors.ResourceEditor
         Public Overrides Function GetImageForThumbnail(ByVal Resource As IResource, background As Color) As Image
             ValidateResourceValue(Resource, BinaryFileValueType)
             Debug.Assert(Resource.IsLink)
-            If m_ThumbnailForBinaryFile Is Nothing Then
-                m_ThumbnailForBinaryFile = Common.Utils.GetImageFromImageService(KnownMonikers.BinaryFile, 48, 48, background)
+            If s_thumbnailForBinaryFile Is Nothing Then
+                s_thumbnailForBinaryFile = Common.Utils.GetImageFromImageService(KnownMonikers.BinaryFile, 48, 48, background)
             End If
-            Return m_ThumbnailForBinaryFile
+            Return s_thumbnailForBinaryFile
         End Function
 
 
@@ -126,7 +128,7 @@ Namespace Microsoft.VisualStudio.Editors.ResourceEditor
         ''' <returns> a file extension list
         ''' </returns>
         Public Overrides Function GetSafeFileExtensionList() As String()
-            Return SafeExtensions
+            Return _safeExtensions
         End Function
 
 

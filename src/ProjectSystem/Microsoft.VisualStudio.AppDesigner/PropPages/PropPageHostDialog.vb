@@ -1,3 +1,5 @@
+' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+
 Imports Microsoft.VisualStudio.Editors.AppDesDesignerFramework
 Imports System.Windows.Forms
 
@@ -7,12 +9,12 @@ Namespace Microsoft.VisualStudio.Editors.PropertyPages
         Inherits BaseDialog
         'Inherits Form
 
-        Private m_propPage As PropPageUserControlBase
+        Private _propPage As PropPageUserControlBase
         Public WithEvents Cancel As System.Windows.Forms.Button
         Public WithEvents OK As System.Windows.Forms.Button
         Public WithEvents okCancelTableLayoutPanel As System.Windows.Forms.TableLayoutPanel
         Public WithEvents overArchingTableLayoutPanel As System.Windows.Forms.TableLayoutPanel
-        Private m_FirstFocusHandled As Boolean
+        Private _firstFocusHandled As Boolean
 
         ''' <summary>
         ''' Gets the F1 keyword to push into the user context for this property page
@@ -22,8 +24,8 @@ Namespace Microsoft.VisualStudio.Editors.PropertyPages
         Protected Overrides Property F1Keyword() As String
             Get
                 Dim keyword As String = MyBase.F1Keyword
-                If String.IsNullOrEmpty(keyword) AndAlso m_propPage IsNot Nothing Then
-                    Return DirectCast(m_propPage, IPropertyPageInternal).GetHelpContextF1Keyword()
+                If String.IsNullOrEmpty(keyword) AndAlso _propPage IsNot Nothing Then
+                    Return DirectCast(_propPage, IPropertyPageInternal).GetHelpContextF1Keyword()
                 End If
                 Return keyword
             End Get
@@ -34,34 +36,34 @@ Namespace Microsoft.VisualStudio.Editors.PropertyPages
 
         Public Property PropPage() As PropPageUserControlBase
             Get
-                Return m_propPage
+                Return _propPage
             End Get
             Set(ByVal Value As PropPageUserControlBase)
                 Me.SuspendLayout()
-                If m_propPage IsNot Nothing Then
+                If _propPage IsNot Nothing Then
                     'Remove previous page if any
-                    overArchingTableLayoutPanel.Controls.Remove(m_propPage)
+                    overArchingTableLayoutPanel.Controls.Remove(_propPage)
                 End If
-                m_propPage = Value
-                If m_propPage IsNot Nothing Then
+                _propPage = Value
+                If _propPage IsNot Nothing Then
                     'm_propPage.SuspendLayout()
                     Me.BackColor = Value.BackColor
                     Me.MinimumSize = System.Drawing.Size.Empty
                     Me.AutoSize = True
 
-                    If (m_propPage.PageResizable) Then
+                    If (_propPage.PageResizable) Then
                         Me.FormBorderStyle = System.Windows.Forms.FormBorderStyle.Sizable
                     Else
                         Me.FormBorderStyle = System.Windows.Forms.FormBorderStyle.FixedDialog
                     End If
 
-                    m_propPage.Margin = New System.Windows.Forms.Padding(0, 0, 0, 3)
-                    m_propPage.Anchor = CType((((System.Windows.Forms.AnchorStyles.Top Or System.Windows.Forms.AnchorStyles.Bottom) _
+                    _propPage.Margin = New System.Windows.Forms.Padding(0, 0, 0, 3)
+                    _propPage.Anchor = CType((((System.Windows.Forms.AnchorStyles.Top Or System.Windows.Forms.AnchorStyles.Bottom) _
                         Or System.Windows.Forms.AnchorStyles.Left) _
                         Or System.Windows.Forms.AnchorStyles.Right), System.Windows.Forms.AnchorStyles)
-                    m_propPage.TabIndex = 0
+                    _propPage.TabIndex = 0
                     'overArchingTableLayoutPanel.SuspendLayout()
-                    overArchingTableLayoutPanel.Controls.Add(m_propPage, 0, 0)
+                    overArchingTableLayoutPanel.Controls.Add(_propPage, 0, 0)
                     'overArchingTableLayoutPanel.ResumeLayout(False)
 
                     'm_propPage.ResumeLayout(False)
@@ -77,15 +79,15 @@ Namespace Microsoft.VisualStudio.Editors.PropertyPages
         'Form overrides dispose to clean up the component list.
         Protected Overloads Overrides Sub Dispose(ByVal disposing As Boolean)
             If disposing Then
-                If Not (components Is Nothing) Then
-                    components.Dispose()
+                If Not (_components Is Nothing) Then
+                    _components.Dispose()
                 End If
             End If
             MyBase.Dispose(disposing)
         End Sub
 
         'Required by the Windows Form Designer
-        Private components As System.ComponentModel.IContainer
+        Private _components As System.ComponentModel.IContainer
 
         'NOTE: The following procedure is required by the Windows Form Designer
         'It can be modified using the Windows Form Designer.  
@@ -201,16 +203,16 @@ Namespace Microsoft.VisualStudio.Editors.PropertyPages
                 End If
                 Me.Close()
             Catch ex As ValidationException
-                m_propPage.ShowErrorMessage(ex)
+                _propPage.ShowErrorMessage(ex)
                 ex.RestoreFocus()
                 Return
             Catch ex As SystemException
-                m_propPage.ShowErrorMessage(ex)
+                _propPage.ShowErrorMessage(ex)
                 Return
             Catch ex As Exception
                 Debug.Fail(ex.Message)
                 AppDesCommon.RethrowIfUnrecoverable(ex)
-                m_propPage.ShowErrorMessage(ex)
+                _propPage.ShowErrorMessage(ex)
                 Return
             End Try
         End Sub
@@ -227,10 +229,10 @@ Namespace Microsoft.VisualStudio.Editors.PropertyPages
         End Sub
 
         Public Sub SetFocusToPage()
-            If Not m_FirstFocusHandled AndAlso m_propPage IsNot Nothing Then
-                m_FirstFocusHandled = True
-                For i As Integer = 0 To m_propPage.Controls.Count - 1
-                    With m_propPage.Controls.Item(i)
+            If Not _firstFocusHandled AndAlso _propPage IsNot Nothing Then
+                _firstFocusHandled = True
+                For i As Integer = 0 To _propPage.Controls.Count - 1
+                    With _propPage.Controls.Item(i)
                         If .CanFocus() Then
                             .Focus()
                             Return

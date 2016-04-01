@@ -1,3 +1,5 @@
+' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+
 Option Strict On
 Option Explicit On
 Imports System.ComponentModel
@@ -27,7 +29,7 @@ Namespace Microsoft.VisualStudio.Editors.MyExtensibility
         ''' </summary>
         Public Sub New(ByVal folderPath As String)
             Try ' Attempt to construct the setting file path. Ignore ArgumentException.
-                m_SettingsFilePath = Path.Combine(folderPath, ASM_SETTINGS_FILE_NAME)
+                _settingsFilePath = Path.Combine(folderPath, s_ASM_SETTINGS_FILE_NAME)
             Catch ex As ArgumentException
             End Try
 
@@ -49,10 +51,10 @@ Namespace Microsoft.VisualStudio.Editors.MyExtensibility
 
             Me.InitializeProjectKindSettings(projectTypeID, project)
 
-            If m_ExtensionInfos.ContainsKey(projectTypeID) Then
-                Debug.Assert(m_ExtensionInfos(projectTypeID) IsNot Nothing, "Corruped m_ExtensionInfos!")
+            If _extensionInfos.ContainsKey(projectTypeID) Then
+                Debug.Assert(_extensionInfos(projectTypeID) IsNot Nothing, "Corruped m_ExtensionInfos!")
 
-                Dim extensionLists As List(Of MyExtensionTemplate) = m_ExtensionInfos(projectTypeID).GetItems(assemblyFullName)
+                Dim extensionLists As List(Of MyExtensionTemplate) = _extensionInfos(projectTypeID).GetItems(assemblyFullName)
                 If extensionLists Is Nothing OrElse extensionLists.Count <= 0 Then
                     Return extensionLists
                 End If
@@ -92,8 +94,8 @@ Namespace Microsoft.VisualStudio.Editors.MyExtensibility
 
             Dim result As New List(Of MyExtensionTemplate)
 
-            If m_ExtensionInfos.ContainsKey(projectTypeID) Then
-                Dim asmDictionary As AssemblyDictionary(Of MyExtensionTemplate) = m_ExtensionInfos(projectTypeID)
+            If _extensionInfos.ContainsKey(projectTypeID) Then
+                Dim asmDictionary As AssemblyDictionary(Of MyExtensionTemplate) = _extensionInfos(projectTypeID)
                 If asmDictionary IsNot Nothing Then
                     Return asmDictionary.GetAllItems()
                 Else
@@ -132,10 +134,10 @@ Namespace Microsoft.VisualStudio.Editors.MyExtensibility
 
             Me.InitializeProjectKindSettings(projectTypeID, project)
 
-            If Not m_ExtensionInfos.ContainsKey(projectTypeID) Then
+            If Not _extensionInfos.ContainsKey(projectTypeID) Then
                 Exit Sub
             End If
-            Dim asmDictionary As AssemblyDictionary(Of MyExtensionTemplate) = m_ExtensionInfos(projectTypeID)
+            Dim asmDictionary As AssemblyDictionary(Of MyExtensionTemplate) = _extensionInfos(projectTypeID)
             If asmDictionary IsNot Nothing Then
                 Dim extensionTemplates As List(Of MyExtensionTemplate) = Nothing
                 If assemblyName IsNot Nothing Then
@@ -204,8 +206,8 @@ Namespace Microsoft.VisualStudio.Editors.MyExtensibility
                 Return AssemblyOption.Prompt
             End If
             assemblyFullName = NormalizeAssemblyFullName(assemblyFullName)
-            If m_AutoOptions.ContainsKey(assemblyFullName) Then
-                Dim asmAutoOption As AssemblyAutoOption = m_AutoOptions(assemblyFullName)
+            If _autoOptions.ContainsKey(assemblyFullName) Then
+                Dim asmAutoOption As AssemblyAutoOption = _autoOptions(assemblyFullName)
                 Debug.Assert(asmAutoOption IsNot Nothing, "Corrupted m_AutoOptions!")
                 Return IIf(Of AssemblyOption)(addOrRemove = AddRemoveAction.Add, asmAutoOption.AutoAdd, asmAutoOption.AutoRemove)
             Else
@@ -224,7 +226,7 @@ Namespace Microsoft.VisualStudio.Editors.MyExtensibility
                 Exit Sub
             End If
 
-            If m_ExtensionInfos.ContainsKey(projectTypeID) Then ' Settings for this project kind already initialized
+            If _extensionInfos.ContainsKey(projectTypeID) Then ' Settings for this project kind already initialized
                 Exit Sub
             End If
 
@@ -236,7 +238,7 @@ Namespace Microsoft.VisualStudio.Editors.MyExtensibility
 
             Dim templatesWithCustomData As Templates = Nothing
             Try
-                templatesWithCustomData = solution3.GetProjectItemTemplates(projectTypeID, CUSTOM_DATA_SIGNATURE)
+                templatesWithCustomData = solution3.GetProjectItemTemplates(projectTypeID, s_CUSTOM_DATA_SIGNATURE)
             Catch ex As Exception ' Ignore exceptions.
             End Try
             If templatesWithCustomData Is Nothing OrElse templatesWithCustomData.Count = 0 Then
@@ -254,7 +256,7 @@ Namespace Microsoft.VisualStudio.Editors.MyExtensibility
                 Exit Sub
             End If
 
-            m_ExtensionInfos.Add(projectTypeID, assemblyDictionary)
+            _extensionInfos.Add(projectTypeID, assemblyDictionary)
         End Sub
 
         ''' ;LoadAssemblySettings
@@ -262,7 +264,7 @@ Namespace Microsoft.VisualStudio.Editors.MyExtensibility
         ''' Load the settings for triggering assemblies if the setting file exists.
         ''' </summary>
         Private Sub LoadAssemblySettings()
-            If Not File.Exists(m_SettingsFilePath) Then
+            If Not File.Exists(_settingsFilePath) Then
                 Exit Sub
             End If
 
@@ -271,7 +273,7 @@ Namespace Microsoft.VisualStudio.Editors.MyExtensibility
             Dim xmlReader As XmlTextReader = Nothing
             Dim xmlDocument As New XmlDocument()
             Try
-                fileStream = New FileStream(m_SettingsFilePath, FileMode.Open, FileAccess.Read, FileShare.Read)
+                fileStream = New FileStream(_settingsFilePath, FileMode.Open, FileAccess.Read, FileShare.Read)
                 xmlReader = New XmlTextReader(fileStream)
 
                 ' Required by Fxcop rule CA3054 - DoNotAllowDTDXmlTextReader
@@ -298,20 +300,20 @@ Namespace Microsoft.VisualStudio.Editors.MyExtensibility
             For Each childNode As XmlNode In xmlElement.ChildNodes
                 Dim assemblyElement As XmlElement = TryCast(childNode, XmlElement)
                 If assemblyElement Is Nothing OrElse _
-                        Not StringEquals(assemblyElement.LocalName, ASSEMBLY_ELEMENT) Then
+                        Not StringEquals(assemblyElement.LocalName, s_ASSEMBLY_ELEMENT) Then
                     Continue For
                 End If
 
                 Dim assemblyFullName As String = NormalizeAssemblyFullName( _
-                    GetAttributeValue(assemblyElement, ASSEMBLY_FULLNAME_ATTRIBUTE))
-                If StringIsNullEmptyOrBlank(assemblyFullName) OrElse m_AutoOptions.ContainsKey(assemblyFullName) Then
+                    GetAttributeValue(assemblyElement, s_ASSEMBLY_FULLNAME_ATTRIBUTE))
+                If StringIsNullEmptyOrBlank(assemblyFullName) OrElse _autoOptions.ContainsKey(assemblyFullName) Then
                     Continue For
                 End If
 
-                Dim autoAdd As AssemblyOption = ReadAssemblyOptionAttribute(assemblyElement, ASSEMBLY_AUTOADD_ATTRIBUTE)
-                Dim autoRemove As AssemblyOption = ReadAssemblyOptionAttribute(assemblyElement, ASSEMBLY_AUTOREMOVE_ATTRIBUTE)
+                Dim autoAdd As AssemblyOption = ReadAssemblyOptionAttribute(assemblyElement, s_ASSEMBLY_AUTOADD_ATTRIBUTE)
+                Dim autoRemove As AssemblyOption = ReadAssemblyOptionAttribute(assemblyElement, s_ASSEMBLY_AUTOREMOVE_ATTRIBUTE)
 
-                m_AutoOptions.Add(assemblyFullName, New AssemblyAutoOption(autoAdd, autoRemove))
+                _autoOptions.Add(assemblyFullName, New AssemblyAutoOption(autoAdd, autoRemove))
             Next
         End Sub
 
@@ -324,20 +326,20 @@ Namespace Microsoft.VisualStudio.Editors.MyExtensibility
             Dim fileStream As FileStream = Nothing
             Dim xmlWriter As XmlTextWriter = Nothing
             Try
-                fileStream = New FileStream(m_SettingsFilePath, FileMode.Create, FileAccess.Write, FileShare.None)
+                fileStream = New FileStream(_settingsFilePath, FileMode.Create, FileAccess.Write, FileShare.None)
                 xmlWriter = New XmlTextWriter(fileStream, Encoding.UTF8)
 
                 xmlWriter.Formatting = Formatting.Indented
                 xmlWriter.Indentation = 2
 
                 xmlWriter.WriteStartDocument()
-                xmlWriter.WriteStartElement(MY_EXTENSIONS_ELEMENT, MY_EXTENSIONS_ELEMENT_NAMESPACE)
+                xmlWriter.WriteStartElement(s_MY_EXTENSIONS_ELEMENT, s_MY_EXTENSIONS_ELEMENT_NAMESPACE)
 
-                For Each entry As KeyValuePair(Of String, AssemblyAutoOption) In m_AutoOptions
-                    xmlWriter.WriteStartElement(ASSEMBLY_ELEMENT)
-                    xmlWriter.WriteAttributeString(ASSEMBLY_FULLNAME_ATTRIBUTE, entry.Key)
-                    WriteAssemblyOptionAttribute(xmlWriter, ASSEMBLY_AUTOADD_ATTRIBUTE, entry.Value.AutoAdd)
-                    WriteAssemblyOptionAttribute(xmlWriter, ASSEMBLY_AUTOREMOVE_ATTRIBUTE, entry.Value.AutoRemove)
+                For Each entry As KeyValuePair(Of String, AssemblyAutoOption) In _autoOptions
+                    xmlWriter.WriteStartElement(s_ASSEMBLY_ELEMENT)
+                    xmlWriter.WriteAttributeString(s_ASSEMBLY_FULLNAME_ATTRIBUTE, entry.Key)
+                    WriteAssemblyOptionAttribute(xmlWriter, s_ASSEMBLY_AUTOADD_ATTRIBUTE, entry.Value.AutoAdd)
+                    WriteAssemblyOptionAttribute(xmlWriter, s_ASSEMBLY_AUTOREMOVE_ATTRIBUTE, entry.Value.AutoRemove)
                     xmlWriter.WriteEndElement()
                 Next
 
@@ -365,8 +367,8 @@ Namespace Microsoft.VisualStudio.Editors.MyExtensibility
             Dim inputValue As AssemblyOption = IIf(Of AssemblyOption)(value, AssemblyOption.Yes, AssemblyOption.No)
 
             Dim asmAutoOption As AssemblyAutoOption = Nothing
-            If m_AutoOptions.ContainsKey(assemblyFullName) Then
-                asmAutoOption = m_AutoOptions(assemblyFullName)
+            If _autoOptions.ContainsKey(assemblyFullName) Then
+                asmAutoOption = _autoOptions(assemblyFullName)
                 Debug.Assert(asmAutoOption IsNot Nothing, "Corrupted m_AutoOptions!")
                 Dim existingValue As AssemblyOption = IIf(Of AssemblyOption)(addOrRemove = AddRemoveAction.Add, asmAutoOption.AutoAdd, asmAutoOption.AutoRemove)
                 If existingValue = inputValue Then
@@ -386,7 +388,7 @@ Namespace Microsoft.VisualStudio.Editors.MyExtensibility
                 Else
                     asmAutoOption = New AssemblyAutoOption(AssemblyOption.Prompt, inputValue)
                 End If
-                m_AutoOptions.Add(assemblyFullName, asmAutoOption)
+                _autoOptions.Add(assemblyFullName, asmAutoOption)
             End If
 
             Me.SaveAssemblySettings()
@@ -446,11 +448,11 @@ Namespace Microsoft.VisualStudio.Editors.MyExtensibility
         ''' </summary>
         Private Shared ReadOnly Property AssemblyOptionConverter() As TypeConverter
             Get
-                If m_AssemblyOptionConverter Is Nothing Then
-                    m_AssemblyOptionConverter = TypeDescriptor.GetConverter(GetType(AssemblyOption))
+                If s_assemblyOptionConverter Is Nothing Then
+                    s_assemblyOptionConverter = TypeDescriptor.GetConverter(GetType(AssemblyOption))
                 End If
-                Debug.Assert(m_AssemblyOptionConverter IsNot Nothing, "Could not get converter for AssemblyOption!")
-                Return m_AssemblyOptionConverter
+                Debug.Assert(s_assemblyOptionConverter IsNot Nothing, "Could not get converter for AssemblyOption!")
+                Return s_assemblyOptionConverter
             End Get
         End Property
 
@@ -461,28 +463,28 @@ Namespace Microsoft.VisualStudio.Editors.MyExtensibility
         ' - value is an AssemblyDictionary of object. AssemblyDictionary contains extension templates
         '   + key is an assembly full name.
         '   + enabling getting extension templates associated with an assembly with / without version.
-        Private m_ExtensionInfos As New Dictionary(Of String, AssemblyDictionary(Of MyExtensionTemplate))
+        Private _extensionInfos As New Dictionary(Of String, AssemblyDictionary(Of MyExtensionTemplate))
         ' The auto options dictionary:
         ' - key is assembly full name without culture / public key - case insensitive.
         ' - value is AssemblyAutoOption.
-        Private m_AutoOptions As New Dictionary(Of String, AssemblyAutoOption)(System.StringComparer.OrdinalIgnoreCase)
+        Private _autoOptions As New Dictionary(Of String, AssemblyAutoOption)(System.StringComparer.OrdinalIgnoreCase)
 
         ' Assembly settings file path
-        Private m_SettingsFilePath As String
+        Private _settingsFilePath As String
         ' Cached and lazy-init TypeConverter for AssemblyOption enumeration.
-        Private Shared m_AssemblyOptionConverter As TypeConverter
+        Private Shared s_assemblyOptionConverter As TypeConverter
 
         ' Custom data signature in .vstemplate file
-        Private Const CUSTOM_DATA_SIGNATURE As String = "Microsoft.VisualBasic.MyExtension"
+        Private Const s_CUSTOM_DATA_SIGNATURE As String = "Microsoft.VisualBasic.MyExtension"
         ' File name, element / attribute names for triggering assemblies settings.
-        Private Const ASM_SETTINGS_FILE_NAME As String = "VBMyExtensionSettings.xml"
-        Private Const MY_EXTENSIONS_ELEMENT As String = "VBMyExtensions"
-        Private Const MY_EXTENSIONS_ELEMENT_NAMESPACE As String = _
+        Private Const s_ASM_SETTINGS_FILE_NAME As String = "VBMyExtensionSettings.xml"
+        Private Const s_MY_EXTENSIONS_ELEMENT As String = "VBMyExtensions"
+        Private Const s_MY_EXTENSIONS_ELEMENT_NAMESPACE As String = _
             "urn:schemas-microsoft-com:xml-msvbmyextensions"
-        Private Const ASSEMBLY_ELEMENT As String = "Assembly"
-        Private Const ASSEMBLY_FULLNAME_ATTRIBUTE As String = "FullName"
-        Private Const ASSEMBLY_AUTOADD_ATTRIBUTE As String = "AutoAdd"
-        Private Const ASSEMBLY_AUTOREMOVE_ATTRIBUTE As String = "AutoRemove"
+        Private Const s_ASSEMBLY_ELEMENT As String = "Assembly"
+        Private Const s_ASSEMBLY_FULLNAME_ATTRIBUTE As String = "FullName"
+        Private Const s_ASSEMBLY_AUTOADD_ATTRIBUTE As String = "AutoAdd"
+        Private Const s_ASSEMBLY_AUTOREMOVE_ATTRIBUTE As String = "AutoRemove"
 
     End Class
 End Namespace

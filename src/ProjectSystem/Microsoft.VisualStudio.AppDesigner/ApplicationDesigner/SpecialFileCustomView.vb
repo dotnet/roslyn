@@ -1,4 +1,6 @@
-﻿Imports Microsoft.VisualStudio.Shell.Interop
+﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+
+Imports Microsoft.VisualStudio.Shell.Interop
 
 Namespace Microsoft.VisualStudio.Editors.ApplicationDesigner
 
@@ -17,7 +19,7 @@ Namespace Microsoft.VisualStudio.Editors.ApplicationDesigner
         Inherits System.Windows.Forms.UserControl
 
         'The SpecialFileCustomViewProvider which created this class instance
-        Private m_ViewProvider As SpecialFileCustomViewProvider
+        Private _viewProvider As SpecialFileCustomViewProvider
 
 
         ''' <summary>
@@ -27,9 +29,9 @@ Namespace Microsoft.VisualStudio.Editors.ApplicationDesigner
         ''' <param name="ViewProvider"></param>
         ''' <remarks></remarks>
         Public Sub SetSite(ByVal ViewProvider As SpecialFileCustomViewProvider)
-            m_ViewProvider = ViewProvider
+            _viewProvider = ViewProvider
             If ViewProvider IsNot Nothing Then
-                LinkLabel.Text = m_ViewProvider.LinkText
+                LinkLabel.Text = _viewProvider.LinkText
             End If
         End Sub
 
@@ -49,35 +51,35 @@ Namespace Microsoft.VisualStudio.Editors.ApplicationDesigner
         ''' </summary>
         ''' <remarks></remarks>
         Private Sub CreateNewSpecialFile()
-            If m_ViewProvider IsNot Nothing Then
-                Debug.Assert(m_ViewProvider.DesignerView IsNot Nothing)
-                If m_ViewProvider.DesignerView IsNot Nothing _
-                AndAlso m_ViewProvider.DesignerPanel IsNot Nothing _
-                AndAlso m_ViewProvider.DesignerView.SpecialFiles IsNot Nothing Then
+            If _viewProvider IsNot Nothing Then
+                Debug.Assert(_viewProvider.DesignerView IsNot Nothing)
+                If _viewProvider.DesignerView IsNot Nothing _
+                AndAlso _viewProvider.DesignerPanel IsNot Nothing _
+                AndAlso _viewProvider.DesignerView.SpecialFiles IsNot Nothing Then
                     Dim ItemId As UInteger
                     Dim FileName As String = Nothing
 
                     Try
                         'Create the file
                         VSErrorHandler.ThrowOnFailure( _
-                            m_ViewProvider.DesignerView.SpecialFiles.GetFile(m_ViewProvider.SpecialFileId, _
+                            _viewProvider.DesignerView.SpecialFiles.GetFile(_viewProvider.SpecialFileId, _
                                 CUInt(__PSFFLAGS.PSFF_FullPath + __PSFFLAGS.PSFF_CreateIfNotExist), _
                                 ItemId, FileName) _
                             )
 
                         'Set the filename
-                        m_ViewProvider.DesignerPanel.MkDocument = FileName
+                        _viewProvider.DesignerPanel.MkDocument = FileName
 
                         'Remove the custom view
-                        m_ViewProvider.DesignerPanel.CloseFrame() 'Note: this call may Dispose 'Me'
-                        m_ViewProvider.DesignerPanel.CustomViewProvider = Nothing
+                        _viewProvider.DesignerPanel.CloseFrame() 'Note: this call may Dispose 'Me'
+                        _viewProvider.DesignerPanel.CustomViewProvider = Nothing
 
                         'Now show without the custom view, which will cause the
                         '  real editor to appear on the file
-                        m_ViewProvider.DesignerPanel.ShowDesigner(True)
+                        _viewProvider.DesignerPanel.ShowDesigner(True)
                     Catch ex As Exception
                         AppDesCommon.RethrowIfUnrecoverable(ex)
-                        m_ViewProvider.DesignerView.DsMsgBox(ex)
+                        _viewProvider.DesignerView.DsMsgBox(ex)
                     End Try
                 End If
             End If

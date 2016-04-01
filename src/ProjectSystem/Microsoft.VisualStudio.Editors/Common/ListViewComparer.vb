@@ -1,3 +1,5 @@
+' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+
 Option Strict On
 Option Explicit On
 Imports System.Windows.Forms
@@ -15,19 +17,19 @@ Namespace Microsoft.VisualStudio.Editors.Common
         Implements IComparer
 
         ' which column is used to sort the list view
-        Private m_SortColumn As Integer
+        Private _sortColumn As Integer
 
-        Private m_sorting As SortOrder = SortOrder.Ascending
+        Private _sorting As SortOrder = SortOrder.Ascending
 
         '@ <Summary>
         '@  Which column should be used to sort the list. Start from 0
         '@ </Summary>
         Public Property SortColumn() As Integer
             Get
-                Return m_SortColumn
+                Return _sortColumn
             End Get
             Set(ByVal value As Integer)
-                m_SortColumn = Value
+                _sortColumn = Value
             End Set
         End Property
 
@@ -36,10 +38,10 @@ Namespace Microsoft.VisualStudio.Editors.Common
         '@ </Summary>
         Public Property Sorting() As SortOrder
             Get
-                Return m_sorting
+                Return _sorting
             End Get
             Set(ByVal value As SortOrder)
-                m_sorting = Value
+                _sorting = Value
             End Set
         End Property
 
@@ -47,11 +49,11 @@ Namespace Microsoft.VisualStudio.Editors.Common
         '@  Compare two list items
         '@ </Summary>
         Public Function Compare(ByVal x As Object, ByVal y As Object) As Integer Implements System.Collections.IComparer.Compare
-            Dim ret As Integer = String.Compare(GetColumnValue(x, m_SortColumn), GetColumnValue(y, m_SortColumn), StringComparison.OrdinalIgnoreCase)
-            If ret = 0 AndAlso m_SortColumn <> 0 Then
+            Dim ret As Integer = String.Compare(GetColumnValue(x, _sortColumn), GetColumnValue(y, _sortColumn), StringComparison.OrdinalIgnoreCase)
+            If ret = 0 AndAlso _sortColumn <> 0 Then
                 ret = String.Compare(GetColumnValue(x, 0), GetColumnValue(y, 0), StringComparison.OrdinalIgnoreCase)
             End If
-            If m_sorting = SortOrder.Descending Then
+            If _sorting = SortOrder.Descending Then
                 ret = -ret
             End If
             Return ret

@@ -1,4 +1,6 @@
-﻿Imports EnvDTE
+﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+
+Imports EnvDTE
 Imports Microsoft.VisualStudio.Editors.Common
 Imports System.ComponentModel
 Imports System.Drawing
@@ -17,14 +19,14 @@ Namespace Microsoft.VisualStudio.Editors.PropertyPages
     Public Class ApplicationPropPageBase
         Inherits PropPageUserControlBase
 
-        Private m_LastIconImage As String
+        Private _lastIconImage As String
         Protected m_DefaultIconText As String
         Protected m_DefaultManifestText As String
         Protected m_NoManifestText As String
         Protected m_DefaultIcon As Icon
 
         'Required by the Windows Form Designer
-        Private components As System.ComponentModel.IContainer
+        Private _components As System.ComponentModel.IContainer
 
         <System.Diagnostics.DebuggerStepThrough()> _
         Private Sub InitializeComponent()
@@ -55,7 +57,7 @@ Namespace Microsoft.VisualStudio.Editors.PropertyPages
         ''' <remarks></remarks>
         Protected ReadOnly Property LastIconImage() As String
             Get
-                Return m_LastIconImage
+                Return _lastIconImage
             End Get
         End Property
 
@@ -202,7 +204,7 @@ Namespace Microsoft.VisualStudio.Editors.PropertyPages
                     If Not ValidIcon Then
                         'Restore the previous setting (this is important because it might be the
                         '  special <browse> item in VB, etc.).
-                        ApplicationIconCombobox.SelectedItem = m_LastIconImage
+                        ApplicationIconCombobox.SelectedItem = _lastIconImage
                         Return
                     End If
 
@@ -216,7 +218,7 @@ Namespace Microsoft.VisualStudio.Editors.PropertyPages
 
                     If ProjectItem Is Nothing Then
                         'Could not copy
-                        ApplicationIconCombobox.SelectedItem = m_LastIconImage
+                        ApplicationIconCombobox.SelectedItem = _lastIconImage
                     Else
                         Dim sRelativePath As String = GetProjectRelativeFilePath(ProjectItem.FileNames(1))
 
@@ -244,7 +246,7 @@ Namespace Microsoft.VisualStudio.Editors.PropertyPages
                 End If
             Else
                 'Restore the previous setting
-                ApplicationIconCombobox.SelectedItem = m_LastIconImage
+                ApplicationIconCombobox.SelectedItem = _lastIconImage
             End If
         End Sub
 
@@ -266,7 +268,7 @@ Namespace Microsoft.VisualStudio.Editors.PropertyPages
 
                 If Not SetIconImagePath(ApplicationIconText, ApplicationIconCombobox, ApplicationIconPictureBox, AddToProject) Then
                     'Path did not exist, revert to previous
-                    If Not SetIconImagePath(m_LastIconImage, ApplicationIconCombobox, ApplicationIconPictureBox, AddToProject) Then
+                    If Not SetIconImagePath(_lastIconImage, ApplicationIconCombobox, ApplicationIconPictureBox, AddToProject) Then
                         'Still failed
                         If Not SetIconImagePath(m_DefaultIconText, ApplicationIconCombobox, ApplicationIconPictureBox, AddToProject) Then
                             Debug.Fail("should never happen")
@@ -280,20 +282,20 @@ Namespace Microsoft.VisualStudio.Editors.PropertyPages
 
                 'vswhidbey 484471: clear the last icon cache so the next call
                 'to SetIconImagePath will not exit early if the path is equal 
-                m_LastIconImage = ""
+                _lastIconImage = ""
             End If
         End Sub
 
 
         Private Function SetIconImagePath(ByVal path As String, ByVal ApplicationIconCombobox As ComboBox, ByVal ApplicationIconPictureBox As PictureBox, ByVal AddToProject As Boolean) As Boolean
-            If path IsNot Nothing AndAlso path.Equals(m_LastIconImage, StringComparison.Ordinal) Then
+            If path IsNot Nothing AndAlso path.Equals(_lastIconImage, StringComparison.Ordinal) Then
                 'PERF: Nothing to do if nothing has changed
                 Return True
             End If
 
             'Check for a valid path
             If IconEntryIsSpecial(path) OrElse path = "" Then
-                m_LastIconImage = m_DefaultIconText
+                _lastIconImage = m_DefaultIconText
                 ApplicationIconPictureBox.Image = IconToImage(m_DefaultIcon, ApplicationIconPictureBox.ClientSize)
                 ApplicationIconCombobox.SelectedItem = m_DefaultIconText
                 Return True
@@ -366,7 +368,7 @@ Namespace Microsoft.VisualStudio.Editors.PropertyPages
                     ApplicationIconCombobox.SelectedItem = sRelativePath
                 End If
 
-                m_LastIconImage = sRelativePath
+                _lastIconImage = sRelativePath
                 Return True
             End If
             Return False

@@ -1,3 +1,5 @@
+' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+
 Option Explicit On
 Option Strict On
 Option Compare Binary
@@ -13,10 +15,10 @@ Namespace Microsoft.VisualStudio.Editors.ResourceEditor
         Implements IComparer
 
         'A hashtable that maps a Category to its sort order
-        Private m_CategoryToCategoryOrderHash As New Hashtable
+        Private _categoryToCategoryOrderHash As New Hashtable
 
         'All categories included in the search
-        Private m_Categories As CategoryCollection
+        Private _categories As CategoryCollection
 
 
 
@@ -27,17 +29,17 @@ Namespace Microsoft.VisualStudio.Editors.ResourceEditor
         ''' <remarks></remarks>
         Public Sub New(ByVal OrderedCategories As CategoryCollection)
             Debug.Assert(OrderedCategories IsNot Nothing)
-            m_Categories = OrderedCategories
+            _categories = OrderedCategories
 
             'Fill our hashtable with the desired category search order.  Map is from Category to its search order
             '  (lower has higher priority)
 
             Dim CategoryOrder As Integer = 0
             For Each Category As Category In OrderedCategories
-                m_CategoryToCategoryOrderHash.Add(Category, CategoryOrder)
+                _categoryToCategoryOrderHash.Add(Category, CategoryOrder)
                 CategoryOrder += 1
             Next
-            Debug.Assert(m_CategoryToCategoryOrderHash.Count = OrderedCategories.Count)
+            Debug.Assert(_categoryToCategoryOrderHash.Count = OrderedCategories.Count)
         End Sub
 
 
@@ -63,11 +65,11 @@ Namespace Microsoft.VisualStudio.Editors.ResourceEditor
             Dim Resource1 As Resource = DirectCast(x, Resource)
             Dim Resource2 As Resource = DirectCast(y, Resource)
 
-            Dim category1 As Category = Resource1.GetCategory(m_Categories)
+            Dim category1 As Category = Resource1.GetCategory(_categories)
 
             'First compare by category
-            Dim Resource1CategoryOrder As Integer = DirectCast(m_CategoryToCategoryOrderHash(category1), Integer)
-            Dim Resource2CategoryOrder As Integer = DirectCast(m_CategoryToCategoryOrderHash(Resource2.GetCategory(m_Categories)), Integer)
+            Dim Resource1CategoryOrder As Integer = DirectCast(_categoryToCategoryOrderHash(category1), Integer)
+            Dim Resource2CategoryOrder As Integer = DirectCast(_categoryToCategoryOrderHash(Resource2.GetCategory(_categories)), Integer)
 
             If Resource1CategoryOrder > Resource2CategoryOrder Then
                 Return 1

@@ -1,4 +1,6 @@
-﻿Imports System.Windows.Forms
+﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+
+Imports System.Windows.Forms
 
 Namespace Microsoft.VisualStudio.Editors.AddImports
     Friend Module Util
@@ -37,15 +39,15 @@ Namespace Microsoft.VisualStudio.Editors.AddImports
             Return mnemonicChar
         End Function
 
-        Function NextControl(ByVal c As Control) As Control
+        Public Function NextControl(ByVal c As Control) As Control
             Return CType(c.Tag, ControlNavigationInfo).NextControl
         End Function
 
-        Function PreviousControl(ByVal c As Control) As Control
+        Public Function PreviousControl(ByVal c As Control) As Control
             Return CType(c.Tag, ControlNavigationInfo).PreviousControl
         End Function
 
-        Sub SetNavigationInfo(ByVal c As Control, ByVal nextControl As Control, ByVal previousControl As Control)
+        Public Sub SetNavigationInfo(ByVal c As Control, ByVal nextControl As Control, ByVal previousControl As Control)
             c.Tag = New ControlNavigationInfo(nextControl, previousControl)
         End Sub
     End Module

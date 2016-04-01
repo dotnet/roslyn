@@ -1,3 +1,5 @@
+' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+
 Imports System.ComponentModel
 Imports System.ComponentModel.Design
 Imports Microsoft.VisualStudio.Shell.Interop
@@ -13,14 +15,14 @@ Namespace Microsoft.VisualStudio.Editors.PropPageDesigner
         Inherits Component
 
         'Private cache for important data
-        Private m_Hierarchy As IVsHierarchy
-        Private m_ItemId As UInt32
-        Private m_RootDesigner As PropPageDesignerRootDesigner
-        Private m_Name As String = "PropPageDesignerRootComponent"
+        Private _hierarchy As IVsHierarchy
+        Private _itemId As UInt32
+        Private _rootDesigner As PropPageDesignerRootDesigner
+        Private _name As String = "PropPageDesignerRootComponent"
 
         Public ReadOnly Property Name() As String
             Get
-                Return m_Name
+                Return _name
             End Get
         End Property
 
@@ -35,15 +37,15 @@ Namespace Microsoft.VisualStudio.Editors.PropPageDesigner
         ''' <remarks></remarks>
         Public ReadOnly Property RootDesigner() As PropPageDesignerRootDesigner
             Get
-                If m_RootDesigner Is Nothing Then
+                If _rootDesigner Is Nothing Then
                     'Not yet cached - get this info from the designer host
                     Debug.Assert(Not Container Is Nothing)
                     Dim Host As IDesignerHost = CType(Container, IDesignerHost)
-                    m_RootDesigner = CType(Host.GetDesigner(Me), PropPageDesignerRootDesigner)
+                    _rootDesigner = CType(Host.GetDesigner(Me), PropPageDesignerRootDesigner)
                 End If
 
-                Debug.Assert(Not m_RootDesigner Is Nothing, "Don't have an associated designer?!?")
-                Return m_RootDesigner
+                Debug.Assert(Not _rootDesigner Is Nothing, "Don't have an associated designer?!?")
+                Return _rootDesigner
             End Get
         End Property
 
@@ -54,10 +56,10 @@ Namespace Microsoft.VisualStudio.Editors.PropPageDesigner
         ''' <remarks></remarks>
         Public Property Hierarchy() As IVsHierarchy
             Get
-                Return m_Hierarchy
+                Return _hierarchy
             End Get
             Set(ByVal Value As IVsHierarchy)
-                m_Hierarchy = Value
+                _hierarchy = Value
             End Set
         End Property
 
@@ -68,10 +70,10 @@ Namespace Microsoft.VisualStudio.Editors.PropPageDesigner
         ''' <remarks></remarks>
         Public Property ItemId() As System.UInt32
             Get
-                Return m_ItemId
+                Return _itemId
             End Get
             Set(ByVal Value As System.UInt32)
-                m_ItemId = Value
+                _itemId = Value
             End Set
         End Property
 

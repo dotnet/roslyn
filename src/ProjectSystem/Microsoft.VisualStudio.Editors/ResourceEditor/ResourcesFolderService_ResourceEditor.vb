@@ -1,3 +1,5 @@
+' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+
 Option Explicit On
 Option Strict On
 Option Compare Binary
@@ -11,7 +13,7 @@ Namespace Microsoft.VisualStudio.Editors.ResourceEditor
     'This file expands ResourcesFolderService with a few methods which are specific to the Resource Editor and
     '  do not need to be public to or ported for the Resource Picker.
 
-    Partial Class ResourcesFolderService
+    Friend Partial Class ResourcesFolderService
 
         ''' <summary>
         ''' Attempts to add a file to the project according to the registered ResourcesFolderBehavior for this project.

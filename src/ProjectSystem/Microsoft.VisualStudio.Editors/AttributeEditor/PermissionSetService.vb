@@ -1,3 +1,5 @@
+' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+
 Option Strict On
 Option Explicit On
 Imports System.Security
@@ -22,13 +24,13 @@ Namespace Microsoft.VisualStudio.Editors.VBAttributeEditor
     Friend NotInheritable Class PermissionSetService
         Implements Interop.IVbPermissionSetService
 
-        Private m_serviceProvider As IServiceProvider
+        Private _serviceProvider As IServiceProvider
 
         Friend Sub New(ByVal sp As IServiceProvider)
-            m_serviceProvider = sp
+            _serviceProvider = sp
         End Sub
 
-        Function CreateSecurityElementFromXmlElement(ByVal element As XmlElement) As SecurityElement
+        Public Function CreateSecurityElementFromXmlElement(ByVal element As XmlElement) As SecurityElement
 
             ' Create the new security element
             Dim securityElement As New SecurityElement(element.Name)
@@ -48,7 +50,7 @@ Namespace Microsoft.VisualStudio.Editors.VBAttributeEditor
             Return securityElement
         End Function
 
-        Function LoadPermissionSet(ByVal strPermissionSet As String) As PermissionSet
+        Public Function LoadPermissionSet(ByVal strPermissionSet As String) As PermissionSet
 
             ' Load the XML
             Dim document As New XmlDocument
@@ -85,7 +87,7 @@ Namespace Microsoft.VisualStudio.Editors.VBAttributeEditor
                     manifestInfo.PreserveFullTrustPermissionSet = true
 
                     Try
-                        Using appManifestDocData as New DocData(m_serviceProvider, strManifestFileName)
+                        Using appManifestDocData as New DocData(_serviceProvider, strManifestFileName)
 
                             manifestInfo.ReadManifest(DocDataToStream(appManifestDocData))
 

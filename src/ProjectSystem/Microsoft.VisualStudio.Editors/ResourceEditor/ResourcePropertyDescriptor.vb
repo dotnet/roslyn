@@ -1,3 +1,5 @@
+' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+
 Option Explicit On
 Option Strict On
 Option Compare Binary
@@ -37,13 +39,13 @@ Namespace Microsoft.VisualStudio.Editors.ResourceEditor
 
 
         ' The type of the property
-        Private m_PropertyType As Type = Nothing
+        Private _propertyType As Type = Nothing
 
         ' Indicates whether this property is read-only or not
-        Private m_IsReadOnly As Boolean = False
+        Private _isReadOnly As Boolean = False
 
         ' Indicates whether the property can be reset or not
-        Private m_CanReset As Boolean = False
+        Private _canReset As Boolean = False
 
 
 
@@ -64,9 +66,9 @@ Namespace Microsoft.VisualStudio.Editors.ResourceEditor
         Public Sub New(ByVal Name As String, ByVal Type As Type, ByVal IsReadOnly As Boolean, _
                Optional ByVal CanReset As Boolean = False, Optional ByVal Attributes() As Attribute = Nothing)
             MyBase.New(Name, Attributes)
-            m_PropertyType = Type
-            m_IsReadOnly = IsReadOnly
-            m_CanReset = CanReset
+            _propertyType = Type
+            _isReadOnly = IsReadOnly
+            _canReset = CanReset
         End Sub
 
 
@@ -94,7 +96,7 @@ Namespace Microsoft.VisualStudio.Editors.ResourceEditor
         ''' <remarks></remarks>
         Public Overrides ReadOnly Property IsReadOnly() As Boolean
             Get
-                Return m_IsReadOnly
+                Return _isReadOnly
             End Get
         End Property
 
@@ -106,7 +108,7 @@ Namespace Microsoft.VisualStudio.Editors.ResourceEditor
         ''' <remarks></remarks>
         Public Overrides ReadOnly Property PropertyType() As System.Type
             Get
-                Return m_PropertyType
+                Return _propertyType
             End Get
         End Property
 
@@ -152,7 +154,7 @@ Namespace Microsoft.VisualStudio.Editors.ResourceEditor
                         Debug.Assert(ChangeService IsNot Nothing, "IComponentChangeService not found")
                     End If
 
-                    If Not m_IsReadOnly Then
+                    If Not _isReadOnly Then
                         Dim NotifyComponentChange As Boolean = True
                         If MyBase.Name = PROPERTY_NAME Then
                             'We must special-case the "Name" property.  In this case, we want the Undo engine
@@ -210,7 +212,7 @@ Namespace Microsoft.VisualStudio.Editors.ResourceEditor
         ''' <returns>TRUE if resetting the Resource instance changes this property value; otherwise, FALSE.</returns>
         ''' <remarks>Since there is no 'reset' on a resource, we always return False.</remarks>
         Public Overrides Function CanResetValue(ByVal Component As Object) As Boolean
-            Return m_CanReset
+            Return _canReset
         End Function
 
 
@@ -220,7 +222,7 @@ Namespace Microsoft.VisualStudio.Editors.ResourceEditor
         ''' <param name="Component">The Resource instance with the property value that is to be reset.</param>
         ''' <remarks>Not implemented since there is no 'reset'.</remarks>
         Public Overrides Sub ResetValue(ByVal Component As Object)
-            Debug.Assert(m_CanReset)
+            Debug.Assert(_canReset)
             Debug.Assert(Component IsNot Nothing, "ResourcePropertyDescriptor.ResetValue: Component is Nothing")
             If Component IsNot Nothing Then
                 Debug.Assert(TypeOf Component Is Resource, "ResourcePropertyDescriptor.ResetValue: Component is not a Resource")

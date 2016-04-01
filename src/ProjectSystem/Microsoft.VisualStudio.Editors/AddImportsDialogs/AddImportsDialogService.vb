@@ -1,11 +1,13 @@
-﻿Imports System.Windows.Forms
+﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+
+Imports System.Windows.Forms
 
 Namespace Microsoft.VisualStudio.Editors.AddImports
     Friend Class AddImportsDialogService
         Implements IVBAddImportsDialogService
 
         ' Package Service Provider
-        Private m_ServiceProvider As IServiceProvider
+        Private _serviceProvider As IServiceProvider
 
         ''' <summary>
         ''' Constructor
@@ -16,13 +18,13 @@ Namespace Microsoft.VisualStudio.Editors.AddImports
             If packageServiceProvider Is Nothing Then
                 Throw New ArgumentNullException("packageServiceProvider")
             End If
-            m_ServiceProvider = packageServiceProvider
+            _serviceProvider = packageServiceProvider
         End Sub
 
         Public Function ShowDialog(ByVal [namespace] As String, ByVal identifier As String, byval minimallyQualifiedName as String, ByVal dialogType As AddImportsDialogType, ByVal helpCallBack As IVBAddImportsDialogHelpCallback) As AddImportsResult Implements IVBAddImportsDialogService.ShowDialog
             Select Case dialogType
                 Case AddImportsDialogType.AddImportsCollisionDialog
-                    Using d As New AutoAddImportsCollisionDialog([namespace], identifier, minimallyQualifiedName, helpCallBack, m_ServiceProvider)
+                    Using d As New AutoAddImportsCollisionDialog([namespace], identifier, minimallyQualifiedName, helpCallBack, _serviceProvider)
                         Dim result As DialogResult = d.ShowDialog
 
                         If (result = DialogResult.Cancel) Then
@@ -34,7 +36,7 @@ Namespace Microsoft.VisualStudio.Editors.AddImports
                         End If
                     End Using
                 Case AddImportsDialogType.AddImportsExtensionCollisionDialog
-                    Using d As New AutoAddImportsExtensionCollisionDialog([namespace], identifier, minimallyQualifiedName, helpCallBack, m_ServiceProvider)
+                    Using d As New AutoAddImportsExtensionCollisionDialog([namespace], identifier, minimallyQualifiedName, helpCallBack, _serviceProvider)
                         Dim result As DialogResult = d.ShowDialog
 
                         If result = DialogResult.Cancel Then

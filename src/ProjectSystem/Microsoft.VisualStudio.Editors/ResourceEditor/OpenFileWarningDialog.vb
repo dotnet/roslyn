@@ -1,4 +1,6 @@
-﻿Imports Microsoft.VisualStudio.Editors.DesignerFramework
+﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+
+Imports Microsoft.VisualStudio.Editors.DesignerFramework
 Imports System.Drawing
 
 Namespace Microsoft.VisualStudio.Editors.ResourceEditor
@@ -35,9 +37,9 @@ Namespace Microsoft.VisualStudio.Editors.ResourceEditor
 
         'Form overrides dispose to clean up the component list.
         Protected Overloads Overrides Sub Dispose(ByVal disposing As Boolean)
-            If disposing AndAlso components IsNot Nothing Then
+            If disposing AndAlso _components IsNot Nothing Then
                 RemoveHandler Me.dialogLayoutPanel.SizeChanged, AddressOf TableLayoutPanelSizeChanged
-                components.Dispose()
+                _components.Dispose()
             End If
             MyBase.Dispose(disposing)
         End Sub
@@ -74,7 +76,7 @@ Namespace Microsoft.VisualStudio.Editors.ResourceEditor
         End Sub
 
         'Required by the Windows Form Designer
-        Private components As System.ComponentModel.IContainer
+        Private _components As System.ComponentModel.IContainer
 
         'NOTE: The following procedure is required by the Windows Form Designer
         'It can be modified using the Windows Form Designer.  

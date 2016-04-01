@@ -1,3 +1,5 @@
+' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+
 Imports System.drawing.Design
 Imports Microsoft.VisualStudio.Data.Core
 Imports Microsoft.VisualStudio.Data.Services
@@ -332,14 +334,14 @@ Namespace Microsoft.VisualStudio.Editors.SettingsDesigner
 #End Region
 
         Private Class DataConnectionDialogFilterer
-            Private targetProject As EnvDTE.Project
+            Private _targetProject As EnvDTE.Project
 
             Public Sub New(ByVal project As EnvDTE.Project)
-                Me.targetProject = project
+                Me._targetProject = project
             End Sub
 
             Public Function IsCombinationSupported(ByVal source As Guid, ByVal provider As Guid) As Boolean
-                Return Microsoft.VSDesigner.Data.DataProviderProjectControl.IsProjectSupported(provider, Me.targetProject)
+                Return Microsoft.VSDesigner.Data.DataProviderProjectControl.IsProjectSupported(provider, Me._targetProject)
             End Function
         End Class
 

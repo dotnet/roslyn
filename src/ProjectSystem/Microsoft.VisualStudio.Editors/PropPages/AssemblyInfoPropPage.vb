@@ -1,3 +1,5 @@
+' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+
 Imports System.ComponentModel
 Imports System.Globalization
 Imports VSLangProj80
@@ -11,19 +13,19 @@ Namespace Microsoft.VisualStudio.Editors.PropertyPages
         'Inherits System.Windows.Forms.UserControl
         Inherits PropPageUserControlBase
 
-        Private m_FileVersionTextBoxes As System.Windows.Forms.TextBox()
-        Private m_AssemblyVersionTextBoxes As System.Windows.Forms.TextBox()
+        Private _fileVersionTextBoxes As System.Windows.Forms.TextBox()
+        Private _assemblyVersionTextBoxes As System.Windows.Forms.TextBox()
 
         'After 65535, the project system doesn't complain, and in theory any value is allowed as
         '  the string version of this, but after this value the numeric version of the file version
         '  no longer matches the string version.
-        Const MaxFileVersionPartValue As UInteger = 65535
+        Private Const s_maxFileVersionPartValue As UInteger = 65535
         Friend WithEvents NeutralLanguageComboBox As System.Windows.Forms.ComboBox
 
         'After 65535, the project system doesn't complain, but you get a compile error.
-        Const MaxAssemblyVersionPartValue As UInteger = 65534
+        Private Const s_maxAssemblyVersionPartValue As UInteger = 65534
 
-        Private m_NeutralLanguageNoneText As String 'Text for "None" in the neutral language combobox (stored in case thread language changes)
+        Private _neutralLanguageNoneText As String 'Text for "None" in the neutral language combobox (stored in case thread language changes)
 
 
         ''' <summary>
@@ -53,25 +55,25 @@ Namespace Microsoft.VisualStudio.Editors.PropertyPages
 
             MyBase.PageRequiresScaling = False
 
-            m_FileVersionTextBoxes = New System.Windows.Forms.TextBox(3) { _
+            _fileVersionTextBoxes = New System.Windows.Forms.TextBox(3) { _
                 Me.FileVersionMajorTextBox, Me.FileVersionMinorTextBox, Me.FileVersionBuildTextBox, Me.FileVersionRevisionTextBox}
-            m_AssemblyVersionTextBoxes = New System.Windows.Forms.TextBox(3) { _
+            _assemblyVersionTextBoxes = New System.Windows.Forms.TextBox(3) { _
                 Me.AssemblyVersionMajorTextBox, Me.AssemblyVersionMinorTextBox, Me.AssemblyVersionBuildTextBox, Me.AssemblyVersionRevisionTextBox}
-            m_NeutralLanguageNoneText = SR.GetString(SR.PPG_NeutralLanguage_None)
+            _neutralLanguageNoneText = SR.GetString(SR.PPG_NeutralLanguage_None)
         End Sub
 
         'Form overrides dispose to clean up the component list.
         Protected Overloads Overrides Sub Dispose(ByVal disposing As Boolean)
             If disposing Then
-                If Not (components Is Nothing) Then
-                    components.Dispose()
+                If Not (_components Is Nothing) Then
+                    _components.Dispose()
                 End If
             End If
             MyBase.Dispose(disposing)
         End Sub
 
         'Required by the Windows Form Designer
-        Private components As System.ComponentModel.IContainer
+        Private _components As System.ComponentModel.IContainer
 
         'NOTE: The following procedure is required by the Windows Form Designer
         'It can be modified using the Windows Form Designer.  
@@ -436,10 +438,10 @@ Namespace Microsoft.VisualStudio.Editors.PropertyPages
 
             Dim Textboxes As System.Windows.Forms.TextBox()
             If (control Is Me.FileVersionLayoutPanel) Then
-                Textboxes = Me.m_FileVersionTextBoxes
+                Textboxes = Me._fileVersionTextBoxes
             Else
                 Debug.Assert(control Is Me.AssemblyVersionLayoutPanel)
-                Textboxes = Me.m_AssemblyVersionTextBoxes
+                Textboxes = Me._assemblyVersionTextBoxes
             End If
             For index As Integer = 0 To 3
                 Textboxes(index).Text = Values(index)
@@ -474,7 +476,7 @@ Namespace Microsoft.VisualStudio.Editors.PropertyPages
         ''' <param name="Version">[Out] the resulting combined version string, if valid.</param>
         ''' <remarks></remarks>
         Private Sub ValidateAssemblyVersion(ByRef Version As String)
-            ValidateVersion(Me.m_AssemblyVersionTextBoxes, MaxAssemblyVersionPartValue, SR.GetString(SR.PPG_Property_AssemblyVersion), True, Version)
+            ValidateVersion(Me._assemblyVersionTextBoxes, s_maxAssemblyVersionPartValue, SR.GetString(SR.PPG_Property_AssemblyVersion), True, Version)
         End Sub
 
 
@@ -484,7 +486,7 @@ Namespace Microsoft.VisualStudio.Editors.PropertyPages
         ''' <param name="Version">[Out] the resulting combined version string, if valid.</param>
         ''' <remarks></remarks>
         Private Sub ValidateAssemblyFileVersion(ByRef Version As String)
-            ValidateVersion(Me.m_FileVersionTextBoxes, MaxFileVersionPartValue, SR.GetString(SR.PPG_Property_AssemblyFileVersion), False, Version)
+            ValidateVersion(Me._fileVersionTextBoxes, s_maxFileVersionPartValue, SR.GetString(SR.PPG_Property_AssemblyFileVersion), False, Version)
         End Sub
 
 
@@ -616,7 +618,7 @@ Namespace Microsoft.VisualStudio.Editors.PropertyPages
             If NeutralLanguageComboBox.Items.Count = 0 Then
                 Using New WaitCursor
                     'First, the "None" entry
-                    NeutralLanguageComboBox.Items.Add(m_NeutralLanguageNoneText)
+                    NeutralLanguageComboBox.Items.Add(_neutralLanguageNoneText)
 
                     'Followed by all possible cultures
                     Dim AllCultures As CultureInfo() = CultureInfo.GetCultures(CultureTypes.NeutralCultures Or CultureTypes.SpecificCultures Or CultureTypes.InstalledWin32Cultures)
@@ -657,7 +659,7 @@ Namespace Microsoft.VisualStudio.Editors.PropertyPages
                 Dim LanguageAbbrev As String = CStr(value)
                 Dim Culture As CultureInfo = Nothing
                 If LanguageAbbrev = "" Then
-                    SelectedText = m_NeutralLanguageNoneText
+                    SelectedText = _neutralLanguageNoneText
                 Else
                     Try
                         Culture = CultureInfo.GetCultureInfo(LanguageAbbrev)
@@ -690,7 +692,7 @@ Namespace Microsoft.VisualStudio.Editors.PropertyPages
                 value = NeutralLanguageComboBox.Text
             Else
                 Dim DisplayName As String = DirectCast(NeutralLanguageComboBox.SelectedItem, String)
-                If DisplayName = "" OrElse DisplayName.Equals(m_NeutralLanguageNoneText, StringComparison.CurrentCultureIgnoreCase) Then
+                If DisplayName = "" OrElse DisplayName.Equals(_neutralLanguageNoneText, StringComparison.CurrentCultureIgnoreCase) Then
                     '"None"
                     value = ""
                 Else
@@ -749,7 +751,7 @@ Namespace Microsoft.VisualStudio.Editors.PropertyPages
                     ValidateAssemblyVersion(Version)
                 Catch ex As ArgumentException
                     message = ex.Message
-                    returnControl = m_AssemblyVersionTextBoxes(0)
+                    returnControl = _assemblyVersionTextBoxes(0)
                     Return ValidationResult.Failed
                 End Try
             ElseIf controlData.FormControl Is FileVersionLayoutPanel Then
@@ -758,7 +760,7 @@ Namespace Microsoft.VisualStudio.Editors.PropertyPages
                     ValidateAssemblyFileVersion(Version)
                 Catch ex As ArgumentException
                     message = ex.Message
-                    returnControl = m_FileVersionTextBoxes(0)
+                    returnControl = _fileVersionTextBoxes(0)
                     Return ValidationResult.Failed
                 End Try
             End If

@@ -1,3 +1,5 @@
+' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+
 Imports Common = Microsoft.VisualStudio.Editors.AppDesCommon
 Imports Microsoft.VisualStudio.ManagedInterfaces.ProjectDesigner
 Imports System.ComponentModel.Design
@@ -32,7 +34,7 @@ Namespace Microsoft.VisualStudio.Editors.PropertyPages
 
 #Region " Windows Form Designer generated code "
 
-        Dim m_UIShell5Service As Microsoft.VisualStudio.Shell.Interop.IVsUIShell5
+        Private _UIShell5Service As Microsoft.VisualStudio.Shell.Interop.IVsUIShell5
 
         Public Sub New()
             Me.New(Nothing)
@@ -44,7 +46,7 @@ Namespace Microsoft.VisualStudio.Editors.PropertyPages
 
             Me.Text = SR.GetString(SR.PPG_PropertyPageControlName)
             Me.AccessibleRole = System.Windows.Forms.AccessibleRole.PropertyPage
-            Me.m_ServiceProvider = serviceProvider
+            Me._serviceProvider = serviceProvider
 
             'This call is required by the Windows Form Designer.
             InitializeComponent()
@@ -75,9 +77,9 @@ Namespace Microsoft.VisualStudio.Editors.PropertyPages
                     '  trying to avoid right now.
 
                     Trace.WriteLine("***** PropPageUserControlBase.Dispose(): Being forcibly deactivated during an checkout.  Disposal of controls will be delayed until after the current callstack is finished.")
-                    m_ProjectReloadedDuringCheckout = True
+                    _projectReloadedDuringCheckout = True
 
-                    For Each page As PropPageUserControlBase In m_ChildPages.Values
+                    For Each page As PropPageUserControlBase In _childPages.Values
 
                         Dim HostDialog As PropPageHostDialog = GetPropPageHostDialog(page)
 
@@ -87,21 +89,21 @@ Namespace Microsoft.VisualStudio.Editors.PropertyPages
                            HostDialog.PropPage IsNot Nothing AndAlso _
                            HostDialog.PropPage.IsInProjectCheckoutSection Then
 
-                            HostDialog.PropPage.m_ProjectReloadedDuringCheckout = True
+                            HostDialog.PropPage._projectReloadedDuringCheckout = True
                         End If
                     Next page
 
                 Else
-                    Debug.Assert(m_SuspendPropertyChangeListeningDispIds.Count = 0, "Missing a ResumePropertyChangeListening() call?")
+                    Debug.Assert(_suspendPropertyChangeListeningDispIds.Count = 0, "Missing a ResumePropertyChangeListening() call?")
 
                     RemoveFromRunningTable()
-                    If Not (components Is Nothing) Then
-                        components.Dispose()
+                    If Not (_components Is Nothing) Then
+                        _components.Dispose()
                     End If
 
                     'Dispose all child pages.  A child page normally stays open if an exception
                     '  occurs during the OK button click, so we have to force it closed.
-                    For Each page As PropPageUserControlBase In m_ChildPages.Values
+                    For Each page As PropPageUserControlBase In _childPages.Values
                         Dim HostDialog As PropPageHostDialog = GetPropPageHostDialog(page)
                         If HostDialog IsNot Nothing Then
                             If HostDialog.PropPage IsNot Nothing Then
@@ -110,7 +112,7 @@ Namespace Microsoft.VisualStudio.Editors.PropertyPages
                             HostDialog.Dispose()
                         End If
                     Next page
-                    m_ChildPages.Clear()
+                    _childPages.Clear()
 
                     MyBase.Dispose(disposing)
                 End If 'If m_fIsApplying...
@@ -120,7 +122,7 @@ Namespace Microsoft.VisualStudio.Editors.PropertyPages
 
 
         'Required by the Windows Form Designer
-        Private components As System.ComponentModel.IContainer
+        Private _components As System.ComponentModel.IContainer
 
         'NOTE: The following procedure is required by the Windows Form Designer
         'It can be modified using the Windows Form Designer.  
@@ -169,10 +171,10 @@ Namespace Microsoft.VisualStudio.Editors.PropertyPages
         Protected m_IsDirty As Boolean
 
         'Backs the CanApplyNow property
-        Private m_CanApplyNow As Boolean = True
+        Private _canApplyNow As Boolean = True
 
         'The site passed in to SetPageSite.  May be Nothing if not currently sited.
-        Private m_Site As IPropertyPageSiteInternal
+        Private _site As IPropertyPageSiteInternal
 
         'May be used by derived property pages to cache their PropertyControlData in their ControlData property override.
         '  Not used directly by the architecture, which should always make a get property call to ControlData.
@@ -193,14 +195,14 @@ Namespace Microsoft.VisualStudio.Editors.PropertyPages
         Public m_ExtendedObjects As Object()
 
         'The DTE object associated with the objects passed to SetObjects.  If there is none, this is Nothing.
-        Private m_DTE As EnvDTE.DTE
+        Private _DTE As EnvDTE.DTE
 
         'The EnvDTE.Project object associated with the objects passed to SetObjects.  If there is none, this is Nothing.
-        Private m_DTEProject As EnvDTE.Project
+        Private _DTEProject As EnvDTE.Project
 
         ' Hook up to build events so we can enable/disable the property 
         ' page while building
-        Private WithEvents m_buildEvents As EnvDTE.BuildEvents
+        Private WithEvents _buildEvents As EnvDTE.BuildEvents
 
         'A collection of (extended) property descriptors which have been collected from the project itself.  These
         '  properties were *not* passed in to us through SetObjects, and are not configuration-dependent.  Some 
@@ -213,92 +215,92 @@ Namespace Microsoft.VisualStudio.Editors.PropertyPages
         '  common project properties in these types of projects.  Note that this object was *not* passed
         '  in through SetObjects, rather we obtained it by querying for the project.  It is used
         '  for common property handling.  See comments for m_CommonPropertyDescriptors.
-        Private m_ProjectPropertiesObject As VSLangProj.ProjectProperties
+        Private _projectPropertiesObject As VSLangProj.ProjectProperties
 
         'Cached result from RawPropertiesObjectsOfAllProperties
-        Private m_CachedRawPropertiesSuperset As Object()
+        Private _cachedRawPropertiesSuperset As Object()
 
-        Private m_ServiceProvider As Microsoft.VisualStudio.Shell.ServiceProvider 'Cached service provider
-        Private m_ProjectHierarchy As IVsHierarchy 'The IVsHierarchy for the current project
+        Private _serviceProvider As Microsoft.VisualStudio.Shell.ServiceProvider 'Cached service provider
+        Private _projectHierarchy As IVsHierarchy 'The IVsHierarchy for the current project
 
         'Debug mode stuff
 
-        Private m_CurrentDebugMode As Shell.Interop.DBGMODE
+        Private _currentDebugMode As Shell.Interop.DBGMODE
 
         ' Cached IVsDebugger from shell in case we don't have a service provider at
         ' shutdown so we can undo our event handler
-        Private m_VsDebugger As IVsDebugger
-        Private m_VsDebuggerEventsCookie As UInteger
+        Private _vsDebugger As IVsDebugger
+        Private _vsDebuggerEventsCookie As UInteger
 
         'True iff multiple projects are currently selected
-        Private m_MultiProjectSelect As Boolean
+        Private _multiProjectSelect As Boolean
 
-        Private m_UIShellService As IVsUIShell
-        Private m_UIShell2Service As IVsUIShell2
+        Private _UIShellService As IVsUIShell
+        Private _UIShell2Service As IVsUIShell2
 
-        Private Shared RunningPropertyPages As New ArrayList
+        Private Shared s_runningPropertyPages As New ArrayList
 
         'Child property pages that have been shown are cached here
-        Private m_ChildPages As New Dictionary(Of Type, PropPageUserControlBase)
+        Private _childPages As New Dictionary(Of Type, PropPageUserControlBase)
         Protected m_ScalingCompleted As Boolean
 
-        Private m_PageRequiresScaling As Boolean = True
+        Private _pageRequiresScaling As Boolean = True
 
         ' When true, the dialog is not scaled automatically
         ' Currently only used by the Publish page because it isn't a normal page
-        Private m_ManualPageScaling As Boolean = False
+        Private _manualPageScaling As Boolean = False
 
         'Backcolor for all property pages
         Public Shared ReadOnly PropPageBackColor As Color = System.Drawing.SystemColors.Control
 
-        Private m_activated As Boolean = True
-        Private m_inDelayValidation As Boolean
+        Private _activated As Boolean = True
+        Private _inDelayValidation As Boolean
 
         'Saves whether the page should be enabled or disabled, according to the page's subclass.
         '  However, this state is only honored while the project is not running, etc.
-        Private m_PageEnabledState As Boolean = True
+        Private _pageEnabledState As Boolean = True
 
         'A list of all connected property listeners
-        Private m_PropertyListeners As New ArrayList '(Of PropertyListener)
+        Private _propertyListeners As New ArrayList '(Of PropertyListener)
 
         'Whether the page should be enabled based only on the debug state of the application
-        Private m_PageEnabledPerDebugMode As Boolean = True
+        Private _pageEnabledPerDebugMode As Boolean = True
 
         'Whether the page should be enabled based on if we are building or not
-        Private m_PageEnabledPerBuildMode As Boolean = True
+        Private _pageEnabledPerBuildMode As Boolean = True
 
         'True iff this property page is configuration-specific (like the compile page) instead of
         '  configuration-independent (like the application pages)
-        Private m_fConfigurationSpecificPage As Boolean
+        Private _fConfigurationSpecificPage As Boolean
 
         'Dispids which the page is changing manually, and which are to be ignored while listening for
         '  property changes
-        Private m_SuspendPropertyChangeListeningDispIds As New List(Of Integer)
+        Private _suspendPropertyChangeListeningDispIds As New List(Of Integer)
 
         'DISPID_UNKNOWN
         Public DISPID_UNKNOWN As Integer = Interop.win.DISPID_UNKNOWN
 
         'Cookie for use with IVsShell.{Advise,Unadvise}BroadcastMessages
-        Private m_CookieBroadcastMessages As UInteger
-        Private m_VsShellForUnadvisingBroadcastMessages As IVsShell
+        Private _cookieBroadcastMessages As UInteger
+        Private _vsShellForUnadvisingBroadcastMessages As IVsShell
 
         'True if we're in the middle of an Apply
-        Private m_fIsApplying As Boolean
+        Private _fIsApplying As Boolean
 
         'A list of properties from which we received a property change notification
         '  while another property on the page while being changed or an apply was
         '  in progress.  They will be sent off after the change/apply is done.
-        Private m_CachedPropertyChanges As List(Of PropertyChange)
+        Private _cachedPropertyChanges As List(Of PropertyChange)
 
         'True if the property page was forcibly closed (by SCC) during an apply.  In this case, we want to
         '  delay disposing our controls, and exit the apply and events as soon as possible to avoid possible
         '  problems since the project may have been closed down from under us.
-        Private m_ProjectReloadedDuringCheckout As Boolean
+        Private _projectReloadedDuringCheckout As Boolean
 
         'When positive, the property page is in a project checkout section, which means that the project
         '  file might get checked out, which means that it is possible the checkout will cause a reload
         '  of the project.  
-        Private m_CheckoutSectionCount As Integer
+        Private _checkoutSectionCount As Integer
 
         ''' <summary>
         '''  Return a set of control groups. We validate the editing inside a control group when the focus moves out of it.
@@ -313,7 +315,7 @@ Namespace Microsoft.VisualStudio.Editors.PropertyPages
 
         Public ReadOnly Property ProjectHierarchy() As IVsHierarchy
             Get
-                Return m_ProjectHierarchy
+                Return _projectHierarchy
             End Get
         End Property
 
@@ -325,10 +327,10 @@ Namespace Microsoft.VisualStudio.Editors.PropertyPages
         ''' <remarks></remarks>
         Protected Property PageRequiresScaling() As Boolean 'CONSIDER: This should be opt-in, not opt-out
             Get
-                Return m_PageRequiresScaling
+                Return _pageRequiresScaling
             End Get
             Set(ByVal Value As Boolean)
-                m_PageRequiresScaling = Value
+                _pageRequiresScaling = Value
             End Set
         End Property
 
@@ -339,10 +341,10 @@ Namespace Microsoft.VisualStudio.Editors.PropertyPages
         ''' <remarks>Used only by the Publish page for now</remarks>
         Protected Property ManualPageScaling() As Boolean
             Get
-                Return m_ManualPageScaling
+                Return _manualPageScaling
             End Get
             Set(ByVal value As Boolean)
-                m_ManualPageScaling = value
+                _manualPageScaling = value
             End Set
         End Property
 
@@ -364,10 +366,10 @@ Namespace Microsoft.VisualStudio.Editors.PropertyPages
         ''' <remarks></remarks>
         Protected Shadows Property Enabled() As Boolean
             Get
-                Return m_PageEnabledState
+                Return _pageEnabledState
             End Get
             Set(ByVal value As Boolean)
-                m_PageEnabledState = value
+                _pageEnabledState = value
                 SetEnabledState()
             End Set
         End Property
@@ -378,7 +380,7 @@ Namespace Microsoft.VisualStudio.Editors.PropertyPages
         ''' <remarks></remarks>
         Protected ReadOnly Property IsActivated() As Boolean
             Get
-                Return m_activated
+                Return _activated
             End Get
         End Property
 
@@ -388,19 +390,19 @@ Namespace Microsoft.VisualStudio.Editors.PropertyPages
         ''' </summary>
         ''' <remarks></remarks>
         Private Sub SetEnabledState()
-            Dim ShouldBeEnabled As Boolean = m_PageEnabledState AndAlso m_PageEnabledPerDebugMode AndAlso m_PageEnabledPerBuildMode AndAlso m_Objects IsNot Nothing
+            Dim ShouldBeEnabled As Boolean = _pageEnabledState AndAlso _pageEnabledPerDebugMode AndAlso _pageEnabledPerBuildMode AndAlso m_Objects IsNot Nothing
             MyBase.Enabled = ShouldBeEnabled
         End Sub
 
         Private Sub AddToRunningTable()
-            SyncLock RunningPropertyPages
-                RunningPropertyPages.Add(Me)
+            SyncLock s_runningPropertyPages
+                s_runningPropertyPages.Add(Me)
             End SyncLock
         End Sub
 
         Private Sub RemoveFromRunningTable()
-            SyncLock RunningPropertyPages
-                RunningPropertyPages.Remove(Me)
+            SyncLock s_runningPropertyPages
+                s_runningPropertyPages.Remove(Me)
             End SyncLock
         End Sub
 
@@ -413,8 +415,8 @@ Namespace Microsoft.VisualStudio.Editors.PropertyPages
         ''' <remarks>If multiple pages host a property, this will return the first value found.</remarks>
         Protected Shared Function GetPropertyFromRunningPages(ByVal SourcePage As PropPageUserControlBase, ByVal dispid As Integer, ByRef obj As Object) As Boolean
             Debug.Assert(SourcePage.CommonPropertiesObject IsNot Nothing)
-            SyncLock RunningPropertyPages
-                For Each page As PropPageUserControlBase In RunningPropertyPages
+            SyncLock s_runningPropertyPages
+                For Each page As PropPageUserControlBase In s_runningPropertyPages
                     'We must restrict the set of pages that we inspect to those running against the same project.
                     '  Therefore we check for a match against CommonPropertiesObject.  Note that checking against
                     '  DTEProject is not okay because not all project types support that.
@@ -436,9 +438,9 @@ Namespace Microsoft.VisualStudio.Editors.PropertyPages
         ''' <remarks></remarks>
         Protected ReadOnly Property PropertyPageSite() As OLE.Interop.IPropertyPageSite
             Get
-                If m_Site IsNot Nothing Then
+                If _site IsNot Nothing Then
                     Dim OleSite As OLE.Interop.IPropertyPageSite = _
-                        DirectCast(m_Site.GetService(GetType(OLE.Interop.IPropertyPageSite)), OLE.Interop.IPropertyPageSite)
+                        DirectCast(_site.GetService(GetType(OLE.Interop.IPropertyPageSite)), OLE.Interop.IPropertyPageSite)
                     Debug.Assert(OleSite IsNot Nothing, "IPropertyPageSiteInternal didn't provide an IPropertyPageSite through GetService")
                     Return OleSite
                 End If
@@ -454,7 +456,7 @@ Namespace Microsoft.VisualStudio.Editors.PropertyPages
         ''' <remarks></remarks>
         Protected ReadOnly Property GetServiceFromPropertyPageSite(ByVal ServiceType As Type) As Object
             Get
-                If m_Site IsNot Nothing Then
+                If _site IsNot Nothing Then
                     Dim OleSite As OLE.Interop.IPropertyPageSite = PropertyPageSite
                     Dim sp As IServiceProvider = TryCast(OleSite, IServiceProvider)
                     Debug.Assert(sp IsNot Nothing, "Property page site didn't provide a managed service provider")
@@ -477,14 +479,14 @@ Namespace Microsoft.VisualStudio.Editors.PropertyPages
         ''' </remarks>
         Public ReadOnly Property CommonPropertiesObject() As Object
             Get
-                If m_ProjectPropertiesObject IsNot Nothing Then
+                If _projectPropertiesObject IsNot Nothing Then
                     'Used by VB, J#, C#-based projects
-                    Return m_ProjectPropertiesObject
+                    Return _projectPropertiesObject
                 Else
                     'C++ projects.
-                    If m_DTEProject IsNot Nothing Then
-                        Debug.Assert(m_DTEProject.Object IsNot Nothing)
-                        Return m_DTEProject.Object
+                    If _DTEProject IsNot Nothing Then
+                        Debug.Assert(_DTEProject.Object IsNot Nothing)
+                        Return _DTEProject.Object
                     Else
                         Return Nothing 'This is possible if we've already been cleaned up
                     End If
@@ -523,7 +525,7 @@ Namespace Microsoft.VisualStudio.Editors.PropertyPages
         ''' <remarks></remarks>
         Public ReadOnly Property IsConfigurationSpecificPage() As Boolean
             Get
-                Return m_fConfigurationSpecificPage
+                Return _fConfigurationSpecificPage
             End Get
         End Property
 
@@ -535,7 +537,7 @@ Namespace Microsoft.VisualStudio.Editors.PropertyPages
         ''' <param name="DispId">The DISPID to ignore changes from.  If DISPID_UNKNOWN, then all property changes will be ignored.</param>
         ''' <remarks></remarks>
         Public Sub SuspendPropertyChangeListening(ByVal DispId As Integer)
-            m_SuspendPropertyChangeListeningDispIds.Add(DispId)
+            _suspendPropertyChangeListeningDispIds.Add(DispId)
         End Sub
 
 
@@ -545,7 +547,7 @@ Namespace Microsoft.VisualStudio.Editors.PropertyPages
         ''' </summary>
         ''' <remarks></remarks>
         Public Sub ResumePropertyChangeListening(ByVal DispId As Integer)
-            m_SuspendPropertyChangeListeningDispIds.Remove(DispId)
+            _suspendPropertyChangeListeningDispIds.Remove(DispId)
             CheckPlayCachedPropertyChanges()
         End Sub
 
@@ -556,7 +558,7 @@ Namespace Microsoft.VisualStudio.Editors.PropertyPages
         ''' <returns></returns>
         ''' <remarks></remarks>
         Private Function PropertyOnPageBeingChanged() As Boolean
-            Return m_SuspendPropertyChangeListeningDispIds.Count > 0
+            Return _suspendPropertyChangeListeningDispIds.Count > 0
         End Function
 
 
@@ -571,7 +573,7 @@ Namespace Microsoft.VisualStudio.Editors.PropertyPages
         ''' </remarks>
         Private ReadOnly Property RawPropertiesObjectsOfAllProperties() As Object()
             Get
-                If m_CachedRawPropertiesSuperset Is Nothing Then
+                If _cachedRawPropertiesSuperset Is Nothing Then
                     If m_Objects Is Nothing Then
                         Debug.Fail("m_Objects is nothing")
                         Return New Object() {}
@@ -588,11 +590,11 @@ Namespace Microsoft.VisualStudio.Editors.PropertyPages
                             Next
                         End If
                     Next
-                    ReDim m_CachedRawPropertiesSuperset(Superset.Count - 1)
-                    Superset.Values.CopyTo(m_CachedRawPropertiesSuperset, 0)
+                    ReDim _cachedRawPropertiesSuperset(Superset.Count - 1)
+                    Superset.Values.CopyTo(_cachedRawPropertiesSuperset, 0)
                 End If
 
-                Return m_CachedRawPropertiesSuperset
+                Return _cachedRawPropertiesSuperset
             End Get
         End Property
 
@@ -734,7 +736,7 @@ Namespace Microsoft.VisualStudio.Editors.PropertyPages
         <DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden)> _
         Public ReadOnly Property MultiProjectSelect() As Boolean
             Get
-                Return m_MultiProjectSelect
+                Return _multiProjectSelect
             End Get
         End Property
 
@@ -746,21 +748,21 @@ Namespace Microsoft.VisualStudio.Editors.PropertyPages
         <DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden)> _
         Protected ReadOnly Property ServiceProvider() As Microsoft.VisualStudio.Shell.ServiceProvider
             Get
-                If m_ServiceProvider Is Nothing Then
+                If _serviceProvider Is Nothing Then
                     Dim isp As Microsoft.VisualStudio.OLE.Interop.IServiceProvider = Nothing
 
-                    If m_Site IsNot Nothing Then
-                        isp = TryCast(m_Site.GetService(GetType(OLE.Interop.IServiceProvider)), OLE.Interop.IServiceProvider)
+                    If _site IsNot Nothing Then
+                        isp = TryCast(_site.GetService(GetType(OLE.Interop.IServiceProvider)), OLE.Interop.IServiceProvider)
                     End If
 
                     If isp Is Nothing AndAlso DTE IsNot Nothing Then
                         isp = TryCast(DTE, Microsoft.VisualStudio.OLE.Interop.IServiceProvider)
                     End If
                     If isp IsNot Nothing Then
-                        m_ServiceProvider = New Microsoft.VisualStudio.Shell.ServiceProvider(isp)
+                        _serviceProvider = New Microsoft.VisualStudio.Shell.ServiceProvider(isp)
                     End If
                 End If
-                Return m_ServiceProvider
+                Return _serviceProvider
             End Get
         End Property
 
@@ -772,7 +774,7 @@ Namespace Microsoft.VisualStudio.Editors.PropertyPages
         <DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden)> _
         Protected ReadOnly Property DTE() As EnvDTE.DTE
             Get
-                Return m_DTE
+                Return _DTE
             End Get
         End Property
 
@@ -784,7 +786,7 @@ Namespace Microsoft.VisualStudio.Editors.PropertyPages
         <DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden)> _
         Public ReadOnly Property DTEProject() As EnvDTE.Project
             Get
-                Return m_DTEProject
+                Return _DTEProject
             End Get
         End Property
 
@@ -798,7 +800,7 @@ Namespace Microsoft.VisualStudio.Editors.PropertyPages
         <DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden)> _
         Public ReadOnly Property ProjectProperties() As VSLangProj.ProjectProperties
             Get
-                Return m_ProjectPropertiesObject
+                Return _projectPropertiesObject
             End Get
         End Property
 
@@ -836,8 +838,8 @@ Namespace Microsoft.VisualStudio.Editors.PropertyPages
         ''' </summary>
         ''' <remarks></remarks>
         Protected Sub EnterProjectCheckoutSection()
-            Debug.Assert(m_CheckoutSectionCount >= 0, "Bad m_CheckoutCriticalSectionCount count")
-            m_CheckoutSectionCount = m_CheckoutSectionCount + 1
+            Debug.Assert(_checkoutSectionCount >= 0, "Bad m_CheckoutCriticalSectionCount count")
+            _checkoutSectionCount = _checkoutSectionCount + 1
         End Sub
 
 
@@ -869,9 +871,9 @@ Namespace Microsoft.VisualStudio.Editors.PropertyPages
         ''' </summary>
         ''' <remarks></remarks>
         Protected Sub LeaveProjectCheckoutSection()
-            m_CheckoutSectionCount = m_CheckoutSectionCount - 1
-            Debug.Assert(m_CheckoutSectionCount >= 0, "Mismatched EnterProjectCheckoutSection/LeaveProjectCheckoutSection calls")
-            If m_CheckoutSectionCount = 0 AndAlso m_ProjectReloadedDuringCheckout Then
+            _checkoutSectionCount = _checkoutSectionCount - 1
+            Debug.Assert(_checkoutSectionCount >= 0, "Mismatched EnterProjectCheckoutSection/LeaveProjectCheckoutSection calls")
+            If _checkoutSectionCount = 0 AndAlso _projectReloadedDuringCheckout Then
                 Try
                     Trace.WriteLine("**** Deactivate happened during a checkout.  Now that Apply is finished, queueing a delayed Dispose() call for the page.")
                     If Not IsHandleCreated Then
@@ -896,7 +898,7 @@ Namespace Microsoft.VisualStudio.Editors.PropertyPages
         ''' <remarks></remarks>
         Public ReadOnly Property ProjectReloadedDuringCheckout() As Boolean
             Get
-                Return m_ProjectReloadedDuringCheckout
+                Return _projectReloadedDuringCheckout
             End Get
         End Property
 
@@ -908,7 +910,7 @@ Namespace Microsoft.VisualStudio.Editors.PropertyPages
         ''' <remarks></remarks>
         Protected ReadOnly Property IsInProjectCheckoutSection() As Boolean
             Get
-                Return m_CheckoutSectionCount > 0
+                Return _checkoutSectionCount > 0
             End Get
         End Property
 
@@ -921,7 +923,7 @@ Namespace Microsoft.VisualStudio.Editors.PropertyPages
         Private Sub DelayedDispose()
             'Set this flag back to false so that subclasses which override Dispose() know when it's
             '  safe to Dispose of their controls.
-            m_ProjectReloadedDuringCheckout = False
+            _projectReloadedDuringCheckout = False
             Dispose()
         End Sub
 
@@ -996,7 +998,7 @@ Namespace Microsoft.VisualStudio.Editors.PropertyPages
             End If
 
             'Check child pages for any dirty state
-            For Each page As PropPageUserControlBase In m_ChildPages.Values
+            For Each page As PropPageUserControlBase In _childPages.Values
                 If page.IsPageDirty() Then
                     Return True
                 End If
@@ -1031,15 +1033,15 @@ Namespace Microsoft.VisualStudio.Editors.PropertyPages
             DisconnectBroadcastMessages()
             DisconnectBuildEvents()
 
-            m_DTEProject = Nothing
-            m_DTE = Nothing
-            m_ProjectPropertiesObject = Nothing
-            m_ServiceProvider = Nothing
-            m_Site = Nothing
-            m_CachedRawPropertiesSuperset = Nothing
+            _DTEProject = Nothing
+            _DTE = Nothing
+            _projectPropertiesObject = Nothing
+            _serviceProvider = Nothing
+            _site = Nothing
+            _cachedRawPropertiesSuperset = Nothing
 
             'Ask all child pages to clean themselves up
-            For Each page As PropPageUserControlBase In m_ChildPages.Values
+            For Each page As PropPageUserControlBase In _childPages.Values
                 page.SetObjects(Nothing)
             Next page
         End Sub
@@ -1058,12 +1060,12 @@ Namespace Microsoft.VisualStudio.Editors.PropertyPages
                 For i As Integer = 1 To objects.Length - 1
                     NextProj = GetProjectHierarchyFromObject(objects(i))
                     If (NextProj Is Nothing OrElse NextProj IsNot FirstProj) Then
-                        Me.m_MultiProjectSelect = True
+                        Me._multiProjectSelect = True
                         Return
                     End If
                 Next
             End If
-            Me.m_MultiProjectSelect = False
+            Me._multiProjectSelect = False
         End Sub
 
         ''' <summary>
@@ -1133,7 +1135,7 @@ Namespace Microsoft.VisualStudio.Editors.PropertyPages
         ''' <remarks></remarks>
         Private Sub SetPageSite(ByVal site As IPropertyPageSiteInternal) Implements IPropertyPageInternal.SetPageSite
             DisconnectDebuggerEvents()
-            m_Site = site
+            _site = site
 
             If site IsNot Nothing Then
                 'PERF: set the Font as early as possible to avoid flicker
@@ -1142,10 +1144,10 @@ Namespace Microsoft.VisualStudio.Editors.PropertyPages
             End If
 
             'Also change site of any existing child pages
-            For Each page As PropPageUserControlBase In m_ChildPages.Values
+            For Each page As PropPageUserControlBase In _childPages.Values
                 Dim childSite As ChildPageSite = Nothing
                 If site IsNot Nothing Then
-                    childSite = New ChildPageSite(page, site, m_PropPageUndoSite)
+                    childSite = New ChildPageSite(page, site, _propPageUndoSite)
                 End If
                 page.SetPageSite(childSite)
             Next page
@@ -1199,14 +1201,14 @@ Namespace Microsoft.VisualStudio.Editors.PropertyPages
                     Me.ApplyPageChanges()
                 End If
 
-                For Each page As PropPageUserControlBase In m_ChildPages.Values
+                For Each page As PropPageUserControlBase In _childPages.Values
                     If page.IsDirty() Then
                         page.Apply()
                     End If
                 Next page
                 Successful = True
             Finally
-                If Not m_ProjectReloadedDuringCheckout Then
+                If Not _projectReloadedDuringCheckout Then
                     OnApplyComplete(Successful)
                 End If
             End Try
@@ -1225,11 +1227,11 @@ Namespace Microsoft.VisualStudio.Editors.PropertyPages
         '''   or they may be something else.
         '''</remarks>
         Public Overridable Sub SetObjects(ByVal objects() As Object)
-            Debug.Assert(m_Site IsNot Nothing OrElse (objects Is Nothing OrElse objects.Length = 0), "SetObjects() called (with non-null objects), but we are not sited!")
+            Debug.Assert(_site IsNot Nothing OrElse (objects Is Nothing OrElse objects.Length = 0), "SetObjects() called (with non-null objects), but we are not sited!")
             m_Objects = Nothing
 
-            m_fConfigurationSpecificPage = False
-            m_CachedRawPropertiesSuperset = Nothing
+            _fConfigurationSpecificPage = False
+            _cachedRawPropertiesSuperset = Nothing
 
             'Clean up any previous event handlers
             DisconnectPropertyNotify()
@@ -1258,8 +1260,8 @@ Namespace Microsoft.VisualStudio.Editors.PropertyPages
                 ' DTE
                 ' ExtensibilityObjects
                 '
-                m_DTE = Nothing
-                m_DTEProject = Nothing
+                _DTE = Nothing
+                _DTEProject = Nothing
 
                 Dim Hier As IVsHierarchy = Nothing
                 Dim ItemId As UInteger
@@ -1269,18 +1271,18 @@ Namespace Microsoft.VisualStudio.Editors.PropertyPages
                 '  figure out whether this page is specific to individual configurations or common to all
                 If TypeOf ThisObj Is IVsCfgBrowseObject Then
                     'The object(s) passed in are configuration-specific
-                    m_fConfigurationSpecificPage = True
+                    _fConfigurationSpecificPage = True
                     VSErrorHandler.ThrowOnFailure(CType(ThisObj, IVsCfgBrowseObject).GetProjectItem(Hier, ItemId))
                 ElseIf TypeOf ThisObj Is IVsBrowseObject Then
                     'The object(s) passed in are common to all configurations
-                    m_fConfigurationSpecificPage = False
+                    _fConfigurationSpecificPage = False
                     VSErrorHandler.ThrowOnFailure(CType(ThisObj, IVsBrowseObject).GetProjectItem(Hier, ItemId))
                 Else
                     Debug.Fail("Object passed in to SetObjects() must be an IVsBrowseObject or IVsCfgBrowseObject")
                     Throw New NotSupportedException
                 End If
                 Debug.Assert(Hier IsNot Nothing, "Should have thrown")
-                m_ProjectHierarchy = Hier
+                _projectHierarchy = Hier
 
                 Dim hr As Integer
                 Dim obj As Object = Nothing
@@ -1288,19 +1290,19 @@ Namespace Microsoft.VisualStudio.Editors.PropertyPages
                 hr = Hier.GetProperty(VSITEMID.ROOT, __VSHPROPID.VSHPROPID_ExtObject, obj)
 
                 If TypeOf obj Is EnvDTE.Project Then
-                    m_DTEProject = CType(obj, EnvDTE.Project)
-                    m_DTE = m_DTEProject.DTE
+                    _DTEProject = CType(obj, EnvDTE.Project)
+                    _DTE = _DTEProject.DTE
                 End If
 
                 hr = Hier.GetProperty(VSITEMID.ROOT, __VSHPROPID.VSHPROPID_BrowseObject, obj)
                 If TypeOf obj Is VSLangProj.ProjectProperties Then
-                    m_ProjectPropertiesObject = CType(obj, VSLangProj.ProjectProperties)
-                ElseIf m_DTEProject IsNot Nothing Then
-                    If TypeOf m_DTEProject.Object Is VSLangProj.ProjectProperties Then
-                        m_ProjectPropertiesObject = CType(m_DTEProject.Object, VSLangProj.ProjectProperties)
+                    _projectPropertiesObject = CType(obj, VSLangProj.ProjectProperties)
+                ElseIf _DTEProject IsNot Nothing Then
+                    If TypeOf _DTEProject.Object Is VSLangProj.ProjectProperties Then
+                        _projectPropertiesObject = CType(_DTEProject.Object, VSLangProj.ProjectProperties)
                     Else
                         'Must be a C++ project - CommonPropertiesObject will return m_DTEProject.Object
-                        m_ProjectPropertiesObject = Nothing
+                        _projectPropertiesObject = Nothing
                     End If
                     obj = Nothing
                 End If
@@ -1344,7 +1346,7 @@ Namespace Microsoft.VisualStudio.Editors.PropertyPages
                 If objects.Length = 1 AndAlso CommonPropertiesObject Is objects(0) Then
                     'The object passed in to us *is* the common project properties object.  We've already calculated the
                     '  extended properties from that, so no need to repeat it (can be performance intensive).
-                    Debug.Assert(Not m_fConfigurationSpecificPage)
+                    Debug.Assert(Not _fConfigurationSpecificPage)
                     m_CommonPropertyDescriptors = m_ObjectsPropertyDescriptorsArray(0)
                 Else
                     Try
@@ -1383,7 +1385,7 @@ Namespace Microsoft.VisualStudio.Editors.PropertyPages
             End Try
 
             'Also call SetObjects for any existing child pages
-            For Each page As PropPageUserControlBase In m_ChildPages.Values
+            For Each page As PropPageUserControlBase In _childPages.Values
                 page.SetObjects(objects)
             Next page
         End Sub
@@ -1490,8 +1492,8 @@ Namespace Microsoft.VisualStudio.Editors.PropertyPages
 #End Region
 
 #Region "Delay validation helpers"
-        Private m_delayValidationGroup As Integer = -1              ' the control group ID: we need do validation when focus moves out of this group
-        Private m_delayValidationQueue As ListDictionary            ' it hosts a list of controlData objects, which need to be validated
+        Private _delayValidationGroup As Integer = -1              ' the control group ID: we need do validation when focus moves out of this group
+        Private _delayValidationQueue As ListDictionary            ' it hosts a list of controlData objects, which need to be validated
 
 
         ''' <summary>
@@ -1537,10 +1539,10 @@ Namespace Microsoft.VisualStudio.Editors.PropertyPages
         ''' <param name="dataControl"></param>
         ''' <remarks></remarks>
         Protected Sub SkipValidating(ByVal dataControl As Control)
-            If m_delayValidationQueue IsNot Nothing Then
+            If _delayValidationQueue IsNot Nothing Then
                 For Each item As PropertyControlData In ControlData
                     If item.FormControl Is dataControl Then
-                        m_delayValidationQueue.Remove(item)
+                        _delayValidationQueue.Remove(item)
                         Return
                     End If
                 Next item
@@ -1575,28 +1577,28 @@ Namespace Microsoft.VisualStudio.Editors.PropertyPages
         ''' <remarks></remarks>
         Private Sub DelayValidate(ByVal controlGroup As Integer, ByVal items As ArrayList)
             Dim oldItems As ListDictionary = Nothing
-            If m_delayValidationGroup < 0 Then
+            If _delayValidationGroup < 0 Then
 
-                m_delayValidationGroup = controlGroup
-                If m_delayValidationQueue Is Nothing Then
-                    m_delayValidationQueue = New ListDictionary()
+                _delayValidationGroup = controlGroup
+                If _delayValidationQueue Is Nothing Then
+                    _delayValidationQueue = New ListDictionary()
                 End If
                 HookDelayValidationEvents()
 
-            ElseIf m_delayValidationGroup <> controlGroup Then
+            ElseIf _delayValidationGroup <> controlGroup Then
                 UnhookDelayValidationEvents()
 
-                oldItems = m_delayValidationQueue
-                m_delayValidationGroup = controlGroup
-                m_delayValidationQueue = New ListDictionary()
+                oldItems = _delayValidationQueue
+                _delayValidationGroup = controlGroup
+                _delayValidationQueue = New ListDictionary()
 
                 HookDelayValidationEvents()
             Else
-                Debug.Assert(m_delayValidationQueue IsNot Nothing, "Why we didn't create the queue")
+                Debug.Assert(_delayValidationQueue IsNot Nothing, "Why we didn't create the queue")
             End If
 
             For Each item As Object In items
-                m_delayValidationQueue.Item(item) = Nothing
+                _delayValidationQueue.Item(item) = Nothing
             Next
 
             ' We need process the existing delay validation queue if it belongs to another control group
@@ -1612,14 +1614,14 @@ Namespace Microsoft.VisualStudio.Editors.PropertyPages
         ''' <returns>return false if the validation failed</returns>
         ''' <remarks></remarks>
         Protected Function ProcessDelayValidationQueue(ByVal canThrow As Boolean) As Boolean
-            Dim oldItems As ListDictionary = m_delayValidationQueue
+            Dim oldItems As ListDictionary = _delayValidationQueue
 
-            If m_delayValidationGroup >= 0 Then
+            If _delayValidationGroup >= 0 Then
                 UnhookDelayValidationEvents()
             End If
 
-            m_delayValidationGroup = -1
-            m_delayValidationQueue = Nothing
+            _delayValidationGroup = -1
+            _delayValidationQueue = Nothing
 
             If oldItems IsNot Nothing Then
                 Return ProcessDelayValidationQueue(oldItems, canThrow)
@@ -1637,9 +1639,9 @@ Namespace Microsoft.VisualStudio.Editors.PropertyPages
             Dim firstControl As Control = Nothing
             Dim finalMessage As String = String.Empty
             Dim finalResult As ValidationResult = ValidationResult.Succeeded
-            Dim currentState As Boolean = m_inDelayValidation
+            Dim currentState As Boolean = _inDelayValidation
 
-            m_inDelayValidation = True
+            _inDelayValidation = True
             Try
                 ' do validation for all items in the queue, but we collect all messages, and report them one time...
                 For Each _controlData As PropertyControlData In items.Keys
@@ -1681,7 +1683,7 @@ Namespace Microsoft.VisualStudio.Editors.PropertyPages
                     Return False
                 End If
             Finally
-                m_inDelayValidation = currentState
+                _inDelayValidation = currentState
             End Try
             Return True
         End Function
@@ -1691,7 +1693,7 @@ Namespace Microsoft.VisualStudio.Editors.PropertyPages
         ''' </summary>
         ''' <remarks></remarks>
         Private Sub HookDelayValidationEvents()
-            Dim controlList As Control() = ValidationControlGroups(m_delayValidationGroup)
+            Dim controlList As Control() = ValidationControlGroups(_delayValidationGroup)
             For Each c As Control In controlList
                 AddHandler c.Leave, AddressOf OnLeavingControlGroup
             Next
@@ -1702,7 +1704,7 @@ Namespace Microsoft.VisualStudio.Editors.PropertyPages
         ''' </summary>
         ''' <remarks></remarks>
         Private Sub UnhookDelayValidationEvents()
-            Dim controlList As Control() = ValidationControlGroups(m_delayValidationGroup)
+            Dim controlList As Control() = ValidationControlGroups(_delayValidationGroup)
             For Each c As Control In controlList
                 RemoveHandler c.Leave, AddressOf OnLeavingControlGroup
             Next
@@ -1833,8 +1835,8 @@ NextControl:
                 '  shut down in the middle of the apply.  If that happens, we need to try to exit as early as possible.
                 'Thus, checking out the files early has two advantages: 1) keeps it to a single checkout prompt, 2)
                 '  helps us shut down more gracefully if the checkout causes a project reload.
-                If m_ServiceProvider IsNot Nothing AndAlso m_ProjectHierarchy IsNot Nothing Then
-                    Dim SccManager As New AppDesDesignerFramework.SourceCodeControlManager(m_ServiceProvider, m_ProjectHierarchy)
+                If _serviceProvider IsNot Nothing AndAlso _projectHierarchy IsNot Nothing Then
+                    Dim SccManager As New AppDesDesignerFramework.SourceCodeControlManager(_serviceProvider, _projectHierarchy)
                     For Each Data As PropertyControlData In ControlData
                         If Data.IsDirty Then
                             Dim ValueHasChanged As Boolean = False
@@ -1886,7 +1888,7 @@ NextControl:
                         Common.Switches.TracePDProperties(TraceLevel.Warning, "Calling QueryEdit on these files: " & String.Join(", ", SccManager.ManagedFiles.ToArray()))
                         SccManager.EnsureFilesEditable()
 
-                        If m_ProjectReloadedDuringCheckout Then
+                        If _projectReloadedDuringCheckout Then
                             'Project is reloading.  Can't try to change the property values, we just need to exit as soon as possible.
                             Trace.WriteLine("**** Dispose was forced while we were trying to check out files.  No property changes were made, exiting apply.")
                             Return
@@ -1936,7 +1938,7 @@ NextControl:
         ''' <remarks>Properties are only flushed if they are marked as dirty.</remarks>
         Protected Overridable Sub ApplyPageChanges()
             Debug.Assert(Not Me.MultiProjectSelect, "Apply should not be occuring with multiple projects selected")
-            Debug.Assert(Not m_ProjectReloadedDuringCheckout)
+            Debug.Assert(Not _projectReloadedDuringCheckout)
             Dim control As System.Windows.Forms.Control = Nothing
             Dim Transaction As DesignerTransaction = Nothing
             Dim Succeeded As Boolean = False
@@ -1950,8 +1952,8 @@ NextControl:
             Dim BatchObjects() As AppDesInterop.ILangPropertyProvideBatchUpdate = Nothing
             Dim vsProjectBuildSystem As IVsProjectBuildSystem = Nothing
 
-            Debug.Assert(Not m_fIsApplying)
-            m_fIsApplying = True
+            Debug.Assert(Not _fIsApplying)
+            _fIsApplying = True
             EnterProjectCheckoutSection()
             Try
                 ' we should validate the page before appling any change...
@@ -1960,7 +1962,7 @@ NextControl:
                 ValidatePageChanges(True)
 
                 CheckOutFilesForApply()
-                If m_ProjectReloadedDuringCheckout Then
+                If _projectReloadedDuringCheckout Then
                     Return
                 End If
 
@@ -2024,7 +2026,7 @@ NextControl:
                     Next
 
                     PreApplyPageChanges()
-                    If m_ProjectReloadedDuringCheckout Then
+                    If _projectReloadedDuringCheckout Then
                         Return
                     End If
 
@@ -2045,7 +2047,7 @@ NextControl:
                             'If setting a property causes the project to get reloaded,
                             '  exit ASAP.  Our project references are now invalid.
                             Debug.Assert(ProjectReloadedDuringCheckout, "This should already have been set")
-                            m_ProjectReloadedDuringCheckout = True
+                            _projectReloadedDuringCheckout = True
                             If ProjectMayBeReloadedDuringPropertySet Then
                                 ProjectReloadWasValid = True
                             End If
@@ -2091,9 +2093,9 @@ NextControl:
                     Throw
 
                 Finally
-                    m_fIsApplying = False
+                    _fIsApplying = False
 
-                    If m_ProjectReloadedDuringCheckout Then
+                    If _projectReloadedDuringCheckout Then
 
                         Debug.Assert(ProjectReloadWasValid, "The project was reloaded during an attempt to change properties.  This might" _
                             & " indicate that SCC updated the file during a checkout.  But that implies that we didn't check out all necessary" _
@@ -2158,10 +2160,10 @@ NextControl:
                         '  while we were trying to set a property.  In this case, m_Site may now be Nothing, so
                         '  we have to guard against its use.  And we should shut down as quickly as possible if
                         '  this does happen.  We normally try to avoid this scenario by checking the files out first, but we're being defensive.
-                        If m_Site Is Nothing Then
+                        If _site Is Nothing Then
                             Debug.Fail("How did the site get removed if not because of a dispose during apply?")
                         End If
-                        If m_Site IsNot Nothing Then
+                        If _site IsNot Nothing Then
                             If control IsNot Nothing Then
                                 control.Focus()
                             End If
@@ -2169,7 +2171,7 @@ NextControl:
                             'Are we still dirty?
                             m_IsDirty = False 'Setting to false beforehand causes notification on IsDirty assignment when still dirty
                             Dim ShouldBeDirty As Boolean = IsAnyPropertyDirty()
-                            If Not Succeeded AndAlso Not m_Site.IsImmediateApply() Then
+                            If Not Succeeded AndAlso Not _site.IsImmediateApply() Then
                                 'If the page is not immediate apply, and the apply did not succeed, we need to keep the page
                                 '  dirty.  It's possible the page was marked dirty separately of any property (e.g. the
                                 '  Unused References dialog), and if the page is not dirty, the next OK click will have no effect.
@@ -2184,7 +2186,7 @@ NextControl:
 
                 End Try
             Catch validateEx As ValidationException
-                If Not m_ProjectReloadedDuringCheckout AndAlso m_Site IsNot Nothing Then
+                If Not _projectReloadedDuringCheckout AndAlso _site IsNot Nothing Then
                     If validateEx.InnerException IsNot Nothing _
                     AndAlso (Common.IsCheckoutCanceledException(validateEx.InnerException) OrElse TypeOf validateEx.InnerException Is CheckoutException) Then
                         'If there was a check-out exception, it's possible some of the
@@ -2193,7 +2195,7 @@ NextControl:
                         '  all the properties to their original state, and reset the dirty state of the
                         '  properties and the page.  For immediate apply, the user has to click OK/Cancel
                         '  so this is not an issue there.
-                        If m_Site.IsImmediateApply Then
+                        If _site.IsImmediateApply Then
                             Try
                                 RestoreInitialValues()
                             Catch ex As Exception When Not AppDesCommon.IsUnrecoverable(ex)
@@ -2207,7 +2209,7 @@ NextControl:
 
                 Throw
             Finally
-                m_fIsApplying = False
+                _fIsApplying = False
                 LeaveProjectCheckoutSection()
             End Try
 
@@ -2247,9 +2249,9 @@ NextControl:
         End Function
 
         Public Overridable Function GetTransaction() As DesignerTransaction
-            If Me.m_PropPageUndoSite IsNot Nothing Then
+            If Me._propPageUndoSite IsNot Nothing Then
                 Dim Description As String = GetTransactionDescription()
-                Return m_PropPageUndoSite.GetTransaction(Description)
+                Return _propPageUndoSite.GetTransaction(Description)
             End If
             Return Nothing
         End Function
@@ -2271,8 +2273,8 @@ NextControl:
         ''' <param name="PropDesc"></param>
         ''' <remarks></remarks>
         Public Overridable Sub OnPropertyChanging(ByVal PropertyName As String, ByVal PropDesc As PropertyDescriptor)
-            If Me.m_PropPageUndoSite IsNot Nothing Then
-                m_PropPageUndoSite.OnPropertyChanging(PropertyName, PropDesc)
+            If Me._propPageUndoSite IsNot Nothing Then
+                _propPageUndoSite.OnPropertyChanging(PropertyName, PropDesc)
             End If
         End Sub
 
@@ -2286,8 +2288,8 @@ NextControl:
         ''' <param name="PropertyName"></param>
         ''' <remarks></remarks>
         Public Overridable Sub OnPropertyChanged(ByVal PropertyName As String, ByVal PropDesc As PropertyDescriptor, ByVal OldValue As Object, ByVal NewValue As Object)
-            If Me.m_PropPageUndoSite IsNot Nothing Then
-                m_PropPageUndoSite.OnPropertyChanged(PropertyName, PropDesc, OldValue, NewValue)
+            If Me._propPageUndoSite IsNot Nothing Then
+                _propPageUndoSite.OnPropertyChanged(PropertyName, PropDesc, OldValue, NewValue)
             End If
         End Sub
 
@@ -2856,10 +2858,10 @@ NextControl:
 
         Protected Property CanApplyNow() As Boolean
             Get
-                Return m_CanApplyNow
+                Return _canApplyNow
             End Get
             Set(ByVal Value As Boolean)
-                m_CanApplyNow = Value
+                _canApplyNow = Value
             End Set
         End Property
 
@@ -2890,8 +2892,8 @@ NextControl:
                 End If
 
                 m_IsDirty = Value
-                If m_Site IsNot Nothing Then
-                    m_Site.OnStatusChange(StatusChangeFlags)
+                If _site IsNot Nothing Then
+                    _site.OnStatusChange(StatusChangeFlags)
                 End If
             End Set
         End Property
@@ -2958,10 +2960,10 @@ NextControl:
         DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden)> _
         Protected ReadOnly Property VsUIShellService() As IVsUIShell
             Get
-                If (m_UIShellService Is Nothing) Then
-                    m_UIShellService = CType(ServiceProvider.GetService(GetType(IVsUIShell)), IVsUIShell)
+                If (_UIShellService Is Nothing) Then
+                    _UIShellService = CType(ServiceProvider.GetService(GetType(IVsUIShell)), IVsUIShell)
                 End If
-                Return m_UIShellService
+                Return _UIShellService
             End Get
         End Property
 
@@ -2974,7 +2976,7 @@ NextControl:
         DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden)> _
         Protected ReadOnly Property VsUIShell2Service() As IVsUIShell2
             Get
-                If (m_UIShell2Service Is Nothing) Then
+                If (_UIShell2Service Is Nothing) Then
                     Dim VsUiShell As IVsUIShell = Nothing
                     If Common.Utils.VBPackageInstance IsNot Nothing Then
                         VsUiShell = TryCast(Common.Utils.VBPackageInstance.GetService(GetType(IVsUIShell)), IVsUIShell)
@@ -2982,10 +2984,10 @@ NextControl:
                         VsUiShell = TryCast(ServiceProvider.GetService(GetType(IVsUIShell)), IVsUIShell)
                     End If
                     If VsUiShell IsNot Nothing Then
-                        m_UIShell2Service = TryCast(VsUiShell, IVsUIShell2)
+                        _UIShell2Service = TryCast(VsUiShell, IVsUIShell2)
                     End If
                 End If
-                Return m_UIShell2Service
+                Return _UIShell2Service
             End Get
         End Property
 
@@ -2996,7 +2998,7 @@ NextControl:
         ''' <remarks></remarks>
         Protected ReadOnly Property VsUIShell5Service() As IVsUIShell5
             Get
-                If (m_UIShell5Service Is Nothing) Then
+                If (_UIShell5Service Is Nothing) Then
                     Dim VsUiShell As IVsUIShell = Nothing
                     If Common.Utils.VBPackageInstance IsNot Nothing Then
                         VsUiShell = TryCast(Common.Utils.VBPackageInstance.GetService(GetType(IVsUIShell)), IVsUIShell)
@@ -3004,10 +3006,10 @@ NextControl:
                         VsUiShell = TryCast(ServiceProvider.GetService(GetType(IVsUIShell)), IVsUIShell)
                     End If
                     If VsUiShell IsNot Nothing Then
-                        m_UIShell5Service = TryCast(VsUiShell, IVsUIShell5)
+                        _UIShell5Service = TryCast(VsUiShell, IVsUIShell5)
                     End If
                 End If
-                Return m_UIShell5Service
+                Return _UIShell5Service
             End Get
         End Property
 
@@ -3110,14 +3112,14 @@ NextControl:
         Protected Function ShowChildPage(ByVal Title As String, ByVal PageType As System.Type, ByVal F1Keyword As String) As DialogResult
             Dim Page As PropPageUserControlBase
 
-            If m_Site Is Nothing Then
+            If _site Is Nothing Then
                 Debug.Fail("Can't show a child page if we're not sited")
                 Throw New System.InvalidOperationException
             End If
 
-            If m_ChildPages.ContainsKey(PageType) Then
+            If _childPages.ContainsKey(PageType) Then
                 'Already created
-                Page = m_ChildPages(PageType)
+                Page = _childPages(PageType)
 
                 'Refresh to make sure the page has picked up all current values (even with property listening that sometimes
                 '  can be an issue)
@@ -3131,15 +3133,15 @@ NextControl:
                 'Not yet created, create, site and initialize
                 Try
                     Page = CType(System.Activator.CreateInstance(PageType), PropPageUserControlBase)
-                    m_ChildPages.Add(PageType, Page)
-                    Dim ChildPageSite As New ChildPageSite(Page, m_Site, m_PropPageUndoSite)
+                    _childPages.Add(PageType, Page)
+                    Dim ChildPageSite As New ChildPageSite(Page, _site, _propPageUndoSite)
                     Page.SetPageSite(ChildPageSite)
                     If TypeOf Page Is IVsProjectDesignerPage Then
                         DirectCast(Page, IVsProjectDesignerPage).SetSite(ChildPageSite)
                     End If
                     Page.SetObjects(m_Objects)
                 Catch ex As Exception
-                    m_ChildPages.Remove(PageType)
+                    _childPages.Remove(PageType)
                     AppDesCommon.RethrowIfUnrecoverable(ex)
                     ShowErrorMessage(SR.GetString(SR.APPDES_ErrorLoadingPropPage) & vbCrLf & Common.DebugMessageFromException(ex))
                     Return DialogResult.Cancel
@@ -3167,12 +3169,12 @@ NextControl:
             End Try
 
             'It's possible the site has been torn down now (iff SCC caused a project re-load), so guard against that
-            If m_Site IsNot Nothing Then
+            If _site IsNot Nothing Then
                 'Dirty state may have been changed, cancel needs to cleanup
                 If IsPageDirty() Then
-                    m_Site.OnStatusChange(PROPPAGESTATUS.Dirty Or PROPPAGESTATUS.Validate)
+                    _site.OnStatusChange(PROPPAGESTATUS.Dirty Or PROPPAGESTATUS.Validate)
                 Else
-                    m_Site.OnStatusChange(PROPPAGESTATUS.Clean)
+                    _site.OnStatusChange(PROPPAGESTATUS.Clean)
                 End If
             End If
 
@@ -3410,7 +3412,7 @@ NextControl:
 
         Protected ReadOnly Property IsUndoEnabled() As Boolean
             Get
-                Return (m_PropPageUndoSite IsNot Nothing)
+                Return (_propPageUndoSite IsNot Nothing)
             End Get
         End Property
 
@@ -3427,9 +3429,9 @@ NextControl:
         ''' </remarks>
         Protected ReadOnly Property ProjectKind() As String
             Get
-                Debug.Assert(m_DTEProject IsNot Nothing, "Can't get ProjectKind because DTEProject not available")
-                If m_DTEProject IsNot Nothing Then
-                    Return m_DTEProject.Kind
+                Debug.Assert(_DTEProject IsNot Nothing, "Can't get ProjectKind because DTEProject not available")
+                If _DTEProject IsNot Nothing Then
+                    Return _DTEProject.Kind
                 Else
                     Return String.Empty
                 End If
@@ -3443,9 +3445,9 @@ NextControl:
         ''' <value></value>
         Protected ReadOnly Property ProjectLanguage() As String
             Get
-                Debug.Assert(m_DTEProject IsNot Nothing, "Can't get ProjectLanguage because DTEProject not available")
-                If m_DTEProject IsNot Nothing Then
-                    Dim codeModel As EnvDTE.CodeModel = m_DTEProject.CodeModel
+                Debug.Assert(_DTEProject IsNot Nothing, "Can't get ProjectLanguage because DTEProject not available")
+                If _DTEProject IsNot Nothing Then
+                    Dim codeModel As EnvDTE.CodeModel = _DTEProject.CodeModel
                     If codeModel IsNot Nothing Then
                         Return codeModel.Language
                     End If
@@ -3484,7 +3486,7 @@ NextControl:
 #End Region
 
 #Region "IVsProjectDesignerPage"
-        Private m_PropPageUndoSite As IVsProjectDesignerPageSite
+        Private _propPageUndoSite As IVsProjectDesignerPageSite
 
 
         ''' <summary>
@@ -3512,7 +3514,7 @@ NextControl:
             If NestingCharIndex >= 0 Then
                 Dim NestedPageTypeName As String = EncodedPropertyName.Substring(0, NestingCharIndex)
                 Dim NestedPropertyName As String = EncodedPropertyName.Substring(NestingCharIndex + 1)
-                For Each Child As PropPageUserControlBase In m_ChildPages.Values
+                For Each Child As PropPageUserControlBase In _childPages.Values
                     If Child.GetType.FullName.Equals(NestedPageTypeName, StringComparison.Ordinal) Then
                         'Found the page
                         Return Child.GetPropertyControlData(NestedPropertyName)
@@ -3720,7 +3722,7 @@ NextControl:
         ''' <param name="site"></param>
         ''' <remarks></remarks>
         Private Sub IVsProjectDesignerPage_SetSite(ByVal Site As IVsProjectDesignerPageSite) Implements IVsProjectDesignerPage.SetSite
-            m_PropPageUndoSite = Site
+            _propPageUndoSite = Site
         End Sub
 
 
@@ -3742,8 +3744,8 @@ NextControl:
         ''' <param name="activated">True if the page has been activated, or False if it has been deactivated.</param>
         ''' <remarks></remarks>
         Private Sub OnActivated(ByVal activated As Boolean) Implements IVsProjectDesignerPage.OnActivated
-            If m_activated <> activated Then
-                m_activated = activated
+            If _activated <> activated Then
+                _activated = activated
                 OnPageActivated(activated)
             End If
         End Sub
@@ -4006,7 +4008,7 @@ NextControl:
                         '  the form is dirty, and it's immediate commit and not in a dialog, and it's not a multi-line 
                         '  textbox.
                         If ParentForm Is Nothing _
-                        AndAlso m_Site IsNot Nothing AndAlso m_Site.IsImmediateApply() _
+                        AndAlso _site IsNot Nothing AndAlso _site.IsImmediateApply() _
                         AndAlso ActiveControl IsNot Nothing _
                         AndAlso ActiveControl.GetType() Is GetType(TextBox) _
                         AndAlso ActiveControl.Focused _
@@ -4031,7 +4033,7 @@ NextControl:
         Protected Overrides Sub WndProc(ByRef m As Message)
             If m.Msg = Microsoft.VisualStudio.Editors.AppDesCommon.WmUserConstants.WM_PAGE_POSTVALIDATION Then
 
-                If m_delayValidationGroup >= 0 AndAlso m_activated AndAlso Not m_inDelayValidation AndAlso Not IsFocusInControlGroup(m_delayValidationGroup) Then
+                If _delayValidationGroup >= 0 AndAlso _activated AndAlso Not _inDelayValidation AndAlso Not IsFocusInControlGroup(_delayValidationGroup) Then
                     ProcessDelayValidationQueue(False)
                 End If
             Else
@@ -4089,16 +4091,16 @@ NextControl:
         ''' </summary>
         ''' <remarks></remarks>
         Private Sub ConnectDebuggerEvents()
-            If DisableOnDebug AndAlso ServiceProvider IsNot Nothing AndAlso m_VsDebuggerEventsCookie = 0 Then
-                If m_VsDebugger Is Nothing Then
-                    m_VsDebugger = CType(ServiceProvider.GetService(GetType(IVsDebugger)), IVsDebugger)
+            If DisableOnDebug AndAlso ServiceProvider IsNot Nothing AndAlso _vsDebuggerEventsCookie = 0 Then
+                If _vsDebugger Is Nothing Then
+                    _vsDebugger = CType(ServiceProvider.GetService(GetType(IVsDebugger)), IVsDebugger)
                 End If
-                If m_VsDebugger IsNot Nothing Then
-                    VSErrorHandler.ThrowOnFailure(m_VsDebugger.AdviseDebuggerEvents(Me, m_VsDebuggerEventsCookie))
+                If _vsDebugger IsNot Nothing Then
+                    VSErrorHandler.ThrowOnFailure(_vsDebugger.AdviseDebuggerEvents(Me, _vsDebuggerEventsCookie))
 
                     Dim mode As DBGMODE() = New DBGMODE() {DBGMODE.DBGMODE_Design}
                     'Get the current mode
-                    VSErrorHandler.ThrowOnFailure(m_VsDebugger.GetMode(mode))
+                    VSErrorHandler.ThrowOnFailure(_vsDebugger.GetMode(mode))
                     UpdateDebuggerStatus(mode(0))
                 Else
                     Debug.Fail("Cannot obtain IVsDebugger from shell")
@@ -4112,11 +4114,11 @@ NextControl:
         ''' </summary>
         ''' <remarks></remarks>
         Private Sub DisconnectDebuggerEvents()
-            If m_VsDebugger IsNot Nothing AndAlso m_VsDebuggerEventsCookie <> 0 Then
-                VSErrorHandler.ThrowOnFailure(m_VsDebugger.UnadviseDebuggerEvents(m_VsDebuggerEventsCookie))
-                m_VsDebuggerEventsCookie = 0
+            If _vsDebugger IsNot Nothing AndAlso _vsDebuggerEventsCookie <> 0 Then
+                VSErrorHandler.ThrowOnFailure(_vsDebugger.UnadviseDebuggerEvents(_vsDebuggerEventsCookie))
+                _vsDebuggerEventsCookie = 0
             End If
-            m_VsDebugger = Nothing
+            _vsDebugger = Nothing
         End Sub
 
         ''' <summary>
@@ -4129,12 +4131,12 @@ NextControl:
                 Exit Sub
             End If
 
-            If m_CookieBroadcastMessages = 0 AndAlso m_VsShellForUnadvisingBroadcastMessages Is Nothing Then
+            If _cookieBroadcastMessages = 0 AndAlso _vsShellForUnadvisingBroadcastMessages Is Nothing Then
                 If ServiceProvider IsNot Nothing Then
-                    m_VsShellForUnadvisingBroadcastMessages = DirectCast(ServiceProvider.GetService(GetType(IVsShell)), IVsShell)
+                    _vsShellForUnadvisingBroadcastMessages = DirectCast(ServiceProvider.GetService(GetType(IVsShell)), IVsShell)
                 End If
-                If m_VsShellForUnadvisingBroadcastMessages IsNot Nothing Then
-                    VSErrorHandler.ThrowOnFailure(m_VsShellForUnadvisingBroadcastMessages.AdviseBroadcastMessages(Me, m_CookieBroadcastMessages))
+                If _vsShellForUnadvisingBroadcastMessages IsNot Nothing Then
+                    VSErrorHandler.ThrowOnFailure(_vsShellForUnadvisingBroadcastMessages.AdviseBroadcastMessages(Me, _cookieBroadcastMessages))
                 Else
                     Debug.Fail("Unable to get IVsShell for broadcast messages")
                 End If
@@ -4146,11 +4148,11 @@ NextControl:
         ''' </summary>
         ''' <remarks></remarks>
         Private Sub DisconnectBroadcastMessages()
-            If m_CookieBroadcastMessages <> 0 AndAlso m_VsShellForUnadvisingBroadcastMessages IsNot Nothing Then
-                VSErrorHandler.ThrowOnFailure(m_VsShellForUnadvisingBroadcastMessages.UnadviseBroadcastMessages(m_CookieBroadcastMessages))
-                m_CookieBroadcastMessages = 0
+            If _cookieBroadcastMessages <> 0 AndAlso _vsShellForUnadvisingBroadcastMessages IsNot Nothing Then
+                VSErrorHandler.ThrowOnFailure(_vsShellForUnadvisingBroadcastMessages.UnadviseBroadcastMessages(_cookieBroadcastMessages))
+                _cookieBroadcastMessages = 0
             End If
-            m_VsShellForUnadvisingBroadcastMessages = Nothing
+            _vsShellForUnadvisingBroadcastMessages = Nothing
         End Sub
 
         ''' <summary>
@@ -4159,11 +4161,11 @@ NextControl:
         ''' <param name="mode"></param>
         ''' <remarks></remarks>
         Private Sub UpdateDebuggerStatus(ByVal mode As DBGMODE)
-            m_CurrentDebugMode = mode
+            _currentDebugMode = mode
             If DisableOnDebug AndAlso DisableWhenDebugMode(mode) Then
-                m_PageEnabledPerDebugMode = False
+                _pageEnabledPerDebugMode = False
             Else
-                m_PageEnabledPerDebugMode = True
+                _pageEnabledPerDebugMode = True
             End If
             SetEnabledState()
         End Sub
@@ -4174,9 +4176,9 @@ NextControl:
         ''' <param name="scope"></param>
         ''' <param name="action"></param>
         ''' <remarks></remarks>
-        Private Sub BuildBegin(ByVal scope As EnvDTE.vsBuildScope, ByVal action As EnvDTE.vsBuildAction) Handles m_buildEvents.OnBuildBegin
+        Private Sub BuildBegin(ByVal scope As EnvDTE.vsBuildScope, ByVal action As EnvDTE.vsBuildAction) Handles _buildEvents.OnBuildBegin
             Debug.Assert(DisableOnBuild, "Why did we get a BuildBegin event when we shouldn't be listening?")
-            m_PageEnabledPerBuildMode = False
+            _pageEnabledPerBuildMode = False
             SetEnabledState()
         End Sub
 
@@ -4186,9 +4188,9 @@ NextControl:
         ''' <param name="scope"></param>
         ''' <param name="action"></param>
         ''' <remarks></remarks>
-        Private Sub BuildDone(ByVal scope As EnvDTE.vsBuildScope, ByVal action As EnvDTE.vsBuildAction) Handles m_buildEvents.OnBuildDone
+        Private Sub BuildDone(ByVal scope As EnvDTE.vsBuildScope, ByVal action As EnvDTE.vsBuildAction) Handles _buildEvents.OnBuildDone
             Debug.Assert(DisableOnBuild, "Why did we get a BuildDone event when we shouldn't be listening?")
-            m_PageEnabledPerBuildMode = True
+            _pageEnabledPerBuildMode = True
             SetEnabledState()
         End Sub
 
@@ -4198,8 +4200,8 @@ NextControl:
         ''' <remarks></remarks>
         Private Sub ConnectBuildEvents()
             If Me.DisableOnBuild Then
-                If m_DTE IsNot Nothing Then
-                    m_buildEvents = Me.m_DTE.Events.BuildEvents
+                If _DTE IsNot Nothing Then
+                    _buildEvents = Me._DTE.Events.BuildEvents
                     ' We only hook up build events if we have to...
                     Dim monSel As IVsMonitorSelection = DirectCast(GetServiceFromPropertyPageSite(GetType(IVsMonitorSelection)), IVsMonitorSelection)
 
@@ -4208,14 +4210,14 @@ NextControl:
                         monSel.GetCmdUIContextCookie(New System.Guid(UIContextGuids.SolutionBuilding), solutionBuildingCookie)
                         Dim isActiveFlag As Integer
                         monSel.IsCmdUIContextActive(solutionBuildingCookie, isActiveFlag)
-                        m_PageEnabledPerBuildMode = Not CBool(isActiveFlag)
+                        _pageEnabledPerBuildMode = Not CBool(isActiveFlag)
                     Else
                         Debug.Fail("No service provider - we don't know if we are building (assuming not)")
-                        m_PageEnabledPerBuildMode = True
+                        _pageEnabledPerBuildMode = True
                     End If
                 Else
                     Debug.Fail("No DTE - can't hook up build events - we don't know if start/stop building...")
-                    m_PageEnabledPerBuildMode = True
+                    _pageEnabledPerBuildMode = True
                 End If
                 'BUGFIX: Dev11#45255 
                 SetEnabledState()
@@ -4227,7 +4229,7 @@ NextControl:
         ''' </summary>
         ''' <remarks></remarks>
         Private Sub DisconnectBuildEvents()
-            m_buildEvents = Nothing
+            _buildEvents = Nothing
         End Sub
 
 
@@ -4251,7 +4253,7 @@ NextControl:
 #If DEBUG Then
                 'Get a reasonable name for the source in debug mode (for tracing)
                 DebugSourceName = "Objects #" & i
-                If m_fConfigurationSpecificPage Then
+                If _fConfigurationSpecificPage Then
                     Try
                         'Get the configuration's name
                         Dim Cfg As IVsCfg = TryCast(Obj, IVsCfg)
@@ -4268,7 +4270,7 @@ NextControl:
                 AttemptConnectPropertyNotifyObject(Obj, DebugSourceName)
             Next
 
-            If m_fConfigurationSpecificPage Then
+            If _fConfigurationSpecificPage Then
                 'Also need to listen to changes on common properties (only needed for config-specific pages because
                 '  for non-config-specific pages, m_Objects *is* the common properties object
                 AttemptConnectPropertyNotifyObject(CommonPropertiesObject, "Common Project Properties")
@@ -4284,9 +4286,9 @@ NextControl:
         ''' <param name="DebugSourceName">A debug name for the source</param>
         ''' <remarks></remarks>
         Private Sub AttemptConnectPropertyNotifyObject(ByVal EventSource As Object, ByVal DebugSourceName As String)
-            Dim Listener As PropertyListener = PropertyListener.TryCreate(Me, EventSource, DebugSourceName, m_ProjectHierarchy, TypeOf EventSource Is IVsCfgBrowseObject)
+            Dim Listener As PropertyListener = PropertyListener.TryCreate(Me, EventSource, DebugSourceName, _projectHierarchy, TypeOf EventSource Is IVsCfgBrowseObject)
             If Listener IsNot Nothing Then
-                m_PropertyListeners.Add(Listener)
+                _propertyListeners.Add(Listener)
             End If
         End Sub
 
@@ -4296,10 +4298,10 @@ NextControl:
         ''' </summary> 'we persist this without the root namespace
         ''' <remarks></remarks>
         Private Sub DisconnectPropertyNotify()
-            For Each Listener As PropertyListener In m_PropertyListeners
+            For Each Listener As PropertyListener In _propertyListeners
                 Listener.Dispose()
             Next
-            m_PropertyListeners.Clear()
+            _propertyListeners.Clear()
         End Sub
 
 
@@ -4326,16 +4328,16 @@ NextControl:
 
             'Are we currently in the process of changing this exact property through PropertyControlData?  If so, the change should normally
             '  be ignored.
-            Dim SuspendAllChanges As Boolean = m_SuspendPropertyChangeListeningDispIds.Contains(DISPID_UNKNOWN)
+            Dim SuspendAllChanges As Boolean = _suspendPropertyChangeListeningDispIds.Contains(DISPID_UNKNOWN)
             Dim ChangeIsDirect As Boolean = SuspendAllChanges _
-                OrElse (DISPID <> DISPID_UNKNOWN AndAlso m_SuspendPropertyChangeListeningDispIds.Contains(DISPID))
-            Debug.Assert(Common.Utils.Implies(m_fIsApplying, PropertyOnPageBeingChanged()), "If we're applying, the change should have come through a PropertyControlData")
+                OrElse (DISPID <> DISPID_UNKNOWN AndAlso _suspendPropertyChangeListeningDispIds.Contains(DISPID))
+            Debug.Assert(Common.Utils.Implies(_fIsApplying, PropertyOnPageBeingChanged()), "If we're applying, the change should have come through a PropertyControlData")
 
             Dim Source As PropertyChangeSource = PropertyChangeSource.External
 
-            Dim IsInternalToPage As Boolean = ChangeIsDirect OrElse Me.PropertyOnPageBeingChanged() OrElse m_fIsApplying
+            Dim IsInternalToPage As Boolean = ChangeIsDirect OrElse Me.PropertyOnPageBeingChanged() OrElse _fIsApplying
             If ChangeIsDirect Then
-                Debug.Assert(Me.PropertyOnPageBeingChanged() OrElse m_fIsApplying)
+                Debug.Assert(Me.PropertyOnPageBeingChanged() OrElse _fIsApplying)
                 Common.Switches.TracePDProperties(TraceLevel.Verbose, "  (Direct - property is being changed by this page itself)")
                 Source = PropertyChangeSource.Direct
             Else
@@ -4350,10 +4352,10 @@ NextControl:
                 'We don't want to send the notification now - this might mess up the UI for properties
                 '  which are still dirty and need to have their current values intact in order to be
                 '  correctly applied.  Queue this notification for later.
-                If m_CachedPropertyChanges Is Nothing Then
-                    m_CachedPropertyChanges = New List(Of PropertyChange)
+                If _cachedPropertyChanges Is Nothing Then
+                    _cachedPropertyChanges = New List(Of PropertyChange)
                 End If
-                m_CachedPropertyChanges.Add(New PropertyChange(DISPID, Source))
+                _cachedPropertyChanges.Add(New PropertyChange(DISPID, Source))
             Else
                 'Safe to send the notification now
                 OnExternalPropertyChanged(DISPID, Source)
@@ -4414,13 +4416,13 @@ NextControl:
         ''' <remarks></remarks>
         Private Sub CheckPlayCachedPropertyChanges()
             Common.Switches.TracePDProperties(TraceLevel.Verbose, "PlayCachedPropertyChanges()")
-            If m_fIsApplying OrElse PropertyOnPageBeingChanged() Then
-                Common.Switches.TracePDProperties(TraceLevel.Verbose, "... Ignoring - IsApplying=" & m_fIsApplying & ", PropertyOnPageBeingChanged=" & PropertyOnPageBeingChanged())
+            If _fIsApplying OrElse PropertyOnPageBeingChanged() Then
+                Common.Switches.TracePDProperties(TraceLevel.Verbose, "... Ignoring - IsApplying=" & _fIsApplying & ", PropertyOnPageBeingChanged=" & PropertyOnPageBeingChanged())
                 Return
             End If
 
-            If m_CachedPropertyChanges IsNot Nothing Then
-                For Each Change As PropertyChange In m_CachedPropertyChanges
+            If _cachedPropertyChanges IsNot Nothing Then
+                For Each Change As PropertyChange In _cachedPropertyChanges
                     Try
                         'These are all internal to the page, since they were
                         '  queued up because they occurred during an apply
@@ -4429,7 +4431,7 @@ NextControl:
                         ShowErrorMessage(ex)
                     End Try
                 Next
-                m_CachedPropertyChanges = Nothing
+                _cachedPropertyChanges = Nothing
             End If
         End Sub
 

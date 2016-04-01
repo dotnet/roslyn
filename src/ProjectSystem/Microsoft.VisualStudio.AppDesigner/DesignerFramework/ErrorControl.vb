@@ -1,3 +1,5 @@
+' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+
 Imports System.Drawing
 Imports System.Windows.Forms
 
@@ -11,8 +13,8 @@ Namespace Microsoft.VisualStudio.Editors.AppDesDesignerFramework
     ''' <remarks></remarks>
     Public NotInheritable Class ErrorControl
 
-        Private m_FirstGotFocus As Boolean = True
-        Private m_sizingLabel As Label
+        Private _firstGotFocus As Boolean = True
+        Private _sizingLabel As Label
 
         Public Sub New()
             ' This call is required by the Windows Form Designer.
@@ -22,7 +24,7 @@ Namespace Microsoft.VisualStudio.Editors.AppDesDesignerFramework
             Me.IconGlyph.Image = SystemIcons.Error.ToBitmap()
 
             ' A label used for determining the preferred size of the text in the textbox
-            m_sizingLabel = New Label()
+            _sizingLabel = New Label()
         End Sub
 
 
@@ -89,12 +91,12 @@ Namespace Microsoft.VisualStudio.Editors.AppDesDesignerFramework
         ''' <param name="e"></param>
         ''' <remarks></remarks>
         Private Sub ErrorText_GotFocus(ByVal sender As Object, ByVal e As System.EventArgs) Handles ErrorText.GotFocus
-            If m_FirstGotFocus Then
+            If _firstGotFocus Then
                 'The first time a textbox gets focus, WinForms selects all text in it.  That
                 '  doesn't really make sense in this case, so set it back to no selection.
                 Me.ErrorText.SelectionLength = 0
                 Me.ErrorText.SelectionStart = Me.ErrorText.Text.Length
-                m_FirstGotFocus = False
+                _firstGotFocus = False
             End If
         End Sub
 
@@ -114,12 +116,12 @@ Namespace Microsoft.VisualStudio.Editors.AppDesDesignerFramework
 
             'Use a label of the same size to determine the preferred size.  We use the
             '  suggested width, and expand the height as needed.
-            m_sizingLabel.Font = Me.ErrorText.Font
-            m_sizingLabel.Text = Me.ErrorText.Text & Microsoft.VisualBasic.vbCrLf & Microsoft.VisualBasic.vbCrLf & " " 'Add an extra line of buffer
-            m_sizingLabel.Width = proposedSize.Width - sizeBeyondTheTextbox.Width
-            m_sizingLabel.AutoSize = False
+            _sizingLabel.Font = Me.ErrorText.Font
+            _sizingLabel.Text = Me.ErrorText.Text & Microsoft.VisualBasic.vbCrLf & Microsoft.VisualBasic.vbCrLf & " " 'Add an extra line of buffer
+            _sizingLabel.Width = proposedSize.Width - sizeBeyondTheTextbox.Width
+            _sizingLabel.AutoSize = False
 
-            Dim textPreferredSize As Size = m_sizingLabel.GetPreferredSize(New Size(m_sizingLabel.Width, 0))
+            Dim textPreferredSize As Size = _sizingLabel.GetPreferredSize(New Size(_sizingLabel.Width, 0))
             Return Drawing.Size.Add(textPreferredSize, sizeBeyondTheTextbox)
         End Function
 

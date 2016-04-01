@@ -1,26 +1,28 @@
-﻿Imports System.Diagnostics.CodeAnalysis
+﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+
+Imports System.Diagnostics.CodeAnalysis
 Imports System.Windows.Forms
 
 Namespace Microsoft.VisualStudio.Editors.PropertyPages
     Friend Class ServicesAuthenticationForm
         Inherits System.Windows.Forms.Form
 
-        Private m_serviceProvider As IServiceProvider
-        Private m_authenticationUrl As String
+        Private _serviceProvider As IServiceProvider
+        Private _authenticationUrl As String
 
         <SuppressMessage("Microsoft.Design", "CA1054:UriParametersShouldNotBeStrings")> _
         Public Sub New(ByVal authenticationUrl As String, ByVal authenticationHost As String, ByVal serviceProvider As IServiceProvider)
             InitializeComponent()
             AuthenticationServiceUrl.Text = authenticationHost
-            m_authenticationUrl = authenticationUrl
-            m_serviceProvider = serviceProvider
+            _authenticationUrl = authenticationUrl
+            _serviceProvider = serviceProvider
         End Sub
 
 
         <SuppressMessage("Microsoft.Design", "CA1056:UriPropertiesShouldNotBeStrings")> _
         Public ReadOnly Property AuthenticationUrl() As String
             Get
-                Return m_authenticationUrl
+                Return _authenticationUrl
             End Get
         End Property
 
@@ -40,8 +42,8 @@ Namespace Microsoft.VisualStudio.Editors.PropertyPages
         <System.Diagnostics.DebuggerNonUserCode()> _
         Protected Overrides Sub Dispose(ByVal disposing As Boolean)
             Try
-                If disposing AndAlso components IsNot Nothing Then
-                    components.Dispose()
+                If disposing AndAlso _components IsNot Nothing Then
+                    _components.Dispose()
                 End If
             Finally
                 MyBase.Dispose(disposing)
@@ -61,7 +63,7 @@ Namespace Microsoft.VisualStudio.Editors.PropertyPages
         Friend WithEvents Cancel As System.Windows.Forms.Button
 
         'Required by the Windows Form Designer
-        Private components As System.ComponentModel.IContainer
+        Private _components As System.ComponentModel.IContainer
 
         'NOTE: The following procedure is required by the Windows Form Designer
         'It can be modified using the Windows Form Designer.  
@@ -189,8 +191,8 @@ Namespace Microsoft.VisualStudio.Editors.PropertyPages
         <SuppressMessage("Microsoft.Design", "CA1031:DoNotCatchGeneralExceptionTypes")> _
         Private Sub ShowHelp()
             Try
-                If m_serviceProvider IsNot Nothing Then
-                    Dim vshelp As VsHelp.Help = CType(m_serviceProvider.GetService(GetType(VsHelp.Help)), VsHelp.Help)
+                If _serviceProvider IsNot Nothing Then
+                    Dim vshelp As VsHelp.Help = CType(_serviceProvider.GetService(GetType(VsHelp.Help)), VsHelp.Help)
                     vshelp.DisplayTopicFromF1Keyword(HelpKeywords.VBProjPropSettingsLogin)
                 Else
                     System.Diagnostics.Debug.Fail("Can not find ServiceProvider")
@@ -208,18 +210,18 @@ Namespace Microsoft.VisualStudio.Editors.PropertyPages
             ShowHelp()
         End Sub
 
-        Private loadAnonymous As Boolean
+        Private _loadAnonymous As Boolean
         Public Property LoadAnonymously() As Boolean
             Get
-                Return loadAnonymous
+                Return _loadAnonymous
             End Get
             Set(ByVal value As Boolean)
-                loadAnonymous = value
+                _loadAnonymous = value
             End Set
         End Property
 
         Private Sub Cancel_Click(ByVal sender As System.Object, ByVal e As System.EventArgs) Handles Cancel.Click
-            loadAnonymous = True
+            _loadAnonymous = True
             Me.DialogResult = System.Windows.Forms.DialogResult.OK
         End Sub
 

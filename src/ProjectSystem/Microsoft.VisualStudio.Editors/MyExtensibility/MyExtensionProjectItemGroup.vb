@@ -1,3 +1,5 @@
+' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+
 Option Strict On
 Option Explicit On
 Imports EnvDTE
@@ -24,67 +26,67 @@ Namespace Microsoft.VisualStudio.Editors.MyExtensibility
             Debug.Assert(Not StringIsNullEmptyOrBlank(extensionID), "Invalid extensionID!")
             Debug.Assert(extensionVersion IsNot Nothing, "Invalid extensionVersion!")
 
-            m_ExtensionID = extensionID
-            m_ExtensionVersion = extensionVersion
-            m_ExtensionName = extensionName
-            m_ExtensionDescription = extensionDescription
+            _extensionID = extensionID
+            _extensionVersion = extensionVersion
+            _extensionName = extensionName
+            _extensionDescription = extensionDescription
         End Sub
 
         Public ReadOnly Property ExtensionProjectItems() As List(Of ProjectItem)
             Get
-                Return m_ProjectItems
+                Return _projectItems
             End Get
         End Property
 
         Public ReadOnly Property ExtensionID() As String
             Get
-                Return m_ExtensionID
+                Return _extensionID
             End Get
         End Property
 
         Public ReadOnly Property ExtensionVersion() As Version
             Get
-                Return m_ExtensionVersion
+                Return _extensionVersion
             End Get
         End Property
 
         Public ReadOnly Property ExtensionDescription() As String Implements INamedDescribedObject.Description
             Get
-                Return m_ExtensionDescription
+                Return _extensionDescription
             End Get
         End Property
 
         Public ReadOnly Property DisplayName() As String Implements INamedDescribedObject.DisplayName
             Get
-                If StringIsNullEmptyOrBlank(m_ExtensionName) Then
-                    Return m_ExtensionID
+                If StringIsNullEmptyOrBlank(_extensionName) Then
+                    Return _extensionID
                 Else
-                    Return m_ExtensionName
+                    Return _extensionName
                 End If
             End Get
         End Property
 
         Public Sub AddProjectItem(ByVal projectItem As ProjectItem)
             If projectItem IsNot Nothing Then
-                If m_ProjectItems Is Nothing Then
-                    m_ProjectItems = New List(Of ProjectItem)
+                If _projectItems Is Nothing Then
+                    _projectItems = New List(Of ProjectItem)
                 End If
-                m_ProjectItems.Add(projectItem)
+                _projectItems.Add(projectItem)
             End If
         End Sub
 
         Public Function IDEquals(ByVal id As String) As Boolean
-            Return String.Equals(m_ExtensionID, id, StringComparison.Ordinal)
+            Return String.Equals(_extensionID, id, StringComparison.Ordinal)
         End Function
 
         Private Sub New()
         End Sub
 
-        Private m_ExtensionID As String
-        Private m_ExtensionVersion As Version
-        Private m_ExtensionName As String
-        Private m_ExtensionDescription As String
-        Private m_ProjectItems As List(Of ProjectItem)
+        Private _extensionID As String
+        Private _extensionVersion As Version
+        Private _extensionName As String
+        Private _extensionDescription As String
+        Private _projectItems As List(Of ProjectItem)
     End Class
 
 End Namespace

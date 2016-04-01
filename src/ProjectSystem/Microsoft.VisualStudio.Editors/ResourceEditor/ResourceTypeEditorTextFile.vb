@@ -1,3 +1,5 @@
+' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+
 Option Explicit On
 Option Strict On
 Option Compare Binary
@@ -18,13 +20,13 @@ Namespace Microsoft.VisualStudio.Editors.ResourceEditor
         '  If the user doesn't like these showing up as text files, he can always change
         '  it to a binary file from the properties window.
         Public Const EXT_TXT As String = ".txt"
-        Private SafeExtensions() As String = {
+        Private _safeExtensions() As String = {
             EXT_TXT,
             ".text",
             ".rtf",
             ".xml"
         }
-        Private AllExtensions() As String = {
+        Private _allExtensions() As String = {
             ".asa",
             ".asax",
             ".ascx",
@@ -149,7 +151,7 @@ Namespace Microsoft.VisualStudio.Editors.ResourceEditor
         }
 
         'The shared Thumbnail Image
-        Private Shared m_ThumbnailForTextFile As Image
+        Private Shared s_thumbnailForTextFile As Image
 
         ''' <summary>
         '''  Whether all valid items share a same image
@@ -193,10 +195,10 @@ Namespace Microsoft.VisualStudio.Editors.ResourceEditor
         ''' </remarks>
         Public Overrides Function GetImageForThumbnail(ByVal Resource As IResource, background As Color) As Image
             ValidateResourceValue(Resource, TextFileValueType)
-            If m_ThumbnailForTextFile Is Nothing Then
-                m_ThumbnailForTextFile = Common.GetImageFromImageService(KnownMonikers.TextFile, 48, 48, background)
+            If s_thumbnailForTextFile Is Nothing Then
+                s_thumbnailForTextFile = Common.GetImageFromImageService(KnownMonikers.TextFile, 48, 48, background)
             End If
-            Return m_ThumbnailForTextFile
+            Return s_thumbnailForTextFile
         End Function
 
 
@@ -210,7 +212,7 @@ Namespace Microsoft.VisualStudio.Editors.ResourceEditor
         ''' </returns>
         ''' <remarks>Extension should be checked case-insensitively.</remarks>
         Public Overrides Function GetExtensionPriority(ByVal Extension As String) As Integer
-            If MatchAgainstListOfExtensions(Extension, AllExtensions) Then
+            If MatchAgainstListOfExtensions(Extension, _allExtensions) Then
                 Return ExtensionPriorities.Low
             End If
         End Function
@@ -270,7 +272,7 @@ Namespace Microsoft.VisualStudio.Editors.ResourceEditor
         ''' <returns> a file extension list
         ''' </returns>
         Public Overrides Function GetSafeFileExtensionList() As String()
-            Return SafeExtensions
+            Return _safeExtensions
         End Function
 
 

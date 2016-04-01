@@ -1,3 +1,5 @@
+' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+
 Imports VSLangProj80
 Imports Microsoft.VisualStudio.Shell
 
@@ -9,7 +11,7 @@ Namespace Microsoft.VisualStudio.Editors.PropertyPages
     Friend NotInheritable Class SKUMatrix
 
         ' This guid is duplicated in "src\appid\VW8Express\stub\guids.h" and "src\wizard\vbdesigner\AppDesigner\PropPages\SKUMatrix.vb"
-        Private Shared Readonly m_guidShowEnableUnmanagedDebugging As New Guid("2172A533-76E4-483F-BFB9-71D9B8253B13")
+        Private Shared Readonly s_guidShowEnableUnmanagedDebugging As New Guid("2172A533-76E4-483F-BFB9-71D9B8253B13")
 
         Private Sub New()
             'Disallow creation
@@ -31,7 +33,7 @@ Namespace Microsoft.VisualStudio.Editors.PropertyPages
                         Return True
 
                     Case VsProjPropId.VBPROJPROPID_EnableUnmanagedDebugging
-                        Return Not UIContext.FromUIContextGuid(m_guidShowEnableUnmanagedDebugging).IsActive
+                        Return Not UIContext.FromUIContextGuid(s_guidShowEnableUnmanagedDebugging).IsActive
                 End Select
 
                 'These properties are to be hidden for the VB Express SKU

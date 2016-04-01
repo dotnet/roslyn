@@ -1,4 +1,6 @@
-﻿Imports EnvDTE
+﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+
+Imports EnvDTE
 Imports VB = Microsoft.VisualBasic
 Imports Microsoft.VisualStudio.Shell.Interop
 Imports System.Drawing
@@ -584,11 +586,11 @@ Namespace Microsoft.VisualStudio.Editors.AppDesCommon
             Public Event BroadcastMessage(ByVal msg As UInteger, ByVal wParam As IntPtr, ByVal lParam As IntPtr)
 
             'Cookie for use with IVsShell.{Advise,Unadvise}BroadcastMessages
-            Private m_CookieBroadcastMessages As UInteger
-            Private m_ServiceProvider As IServiceProvider
+            Private _cookieBroadcastMessages As UInteger
+            Private _serviceProvider As IServiceProvider
 
             Public Sub New(ByVal sp As IServiceProvider)
-                m_ServiceProvider = sp
+                _serviceProvider = sp
                 ConnectBroadcastEvents()
             End Sub
 
@@ -597,22 +599,22 @@ Namespace Microsoft.VisualStudio.Editors.AppDesCommon
 
             Public Sub ConnectBroadcastEvents()
                 Dim VSShell As IVsShell = Nothing
-                If m_ServiceProvider IsNot Nothing Then
-                    VSShell = DirectCast(m_ServiceProvider.GetService(GetType(IVsShell)), IVsShell)
+                If _serviceProvider IsNot Nothing Then
+                    VSShell = DirectCast(_serviceProvider.GetService(GetType(IVsShell)), IVsShell)
                 End If
                 If VSShell IsNot Nothing Then
-                    VSErrorHandler.ThrowOnFailure(VSShell.AdviseBroadcastMessages(Me, m_CookieBroadcastMessages))
+                    VSErrorHandler.ThrowOnFailure(VSShell.AdviseBroadcastMessages(Me, _cookieBroadcastMessages))
                 Else
                     Debug.Fail("Unable to get IVsShell for broadcast messages")
                 End If
             End Sub
 
             Private Sub DisconnectBroadcastMessages()
-                If m_CookieBroadcastMessages <> 0 Then
-                    Dim VsShell As IVsShell = DirectCast(m_ServiceProvider.GetService(GetType(IVsShell)), IVsShell)
+                If _cookieBroadcastMessages <> 0 Then
+                    Dim VsShell As IVsShell = DirectCast(_serviceProvider.GetService(GetType(IVsShell)), IVsShell)
                     If VsShell IsNot Nothing Then
-                        VSErrorHandler.ThrowOnFailure(VsShell.UnadviseBroadcastMessages(m_CookieBroadcastMessages))
-                        m_CookieBroadcastMessages = 0
+                        VSErrorHandler.ThrowOnFailure(VsShell.UnadviseBroadcastMessages(_cookieBroadcastMessages))
+                        _cookieBroadcastMessages = 0
                     End If
                 End If
             End Sub
@@ -645,16 +647,16 @@ Namespace Microsoft.VisualStudio.Editors.AppDesCommon
 
 #Region "Standard dispose pattern - the only thing we need to do is to unadvise events..."
 
-            Private disposed As Boolean = False
+            Private _disposed As Boolean = False
 
             ' IDisposable
             Private Overloads Sub Dispose(ByVal disposing As Boolean)
-                If Not Me.disposed Then
+                If Not Me._disposed Then
                     If disposing Then
                         DisconnectBroadcastMessages()
                     End If
                 End If
-                Me.disposed = True
+                Me._disposed = True
             End Sub
 
 
@@ -685,9 +687,9 @@ Namespace Microsoft.VisualStudio.Editors.AppDesCommon
             Inherits BroadcastMessageEventsHelper
 
             ' Control that we are going to set the font on (if any)
-            Private m_Control As System.Windows.Forms.Control
+            Private _control As System.Windows.Forms.Control
 
-            Private m_ServiceProvider As IServiceProvider
+            Private _serviceProvider As IServiceProvider
 
             ''' <summary>
             ''' Create a new instance...
@@ -702,11 +704,11 @@ Namespace Microsoft.VisualStudio.Editors.AppDesCommon
                 Debug.Assert(sp IsNot Nothing, "Why did we get a NULL service provider!?")
                 Debug.Assert(ctrl IsNot Nothing, "Why didn't we get a control to provide the dialog font for!?")
 
-                m_ServiceProvider = sp
-                m_Control = ctrl
+                _serviceProvider = sp
+                _control = ctrl
 
                 If SetFontInitially Then
-                    m_Control.Font = GetDialogFont(sp)
+                    _control.Font = GetDialogFont(sp)
                 End If
             End Sub
 
@@ -720,12 +722,12 @@ Namespace Microsoft.VisualStudio.Editors.AppDesCommon
             Protected Overrides Sub OnBroadcastMessage(ByVal msg As UInteger, ByVal wParam As System.IntPtr, ByVal lParam As System.IntPtr)
                 MyBase.OnBroadcastMessage(msg, wParam, lParam)
 
-                If m_Control IsNot Nothing Then
+                If _control IsNot Nothing Then
                     If msg = AppDesInterop.win.WM_SETTINGCHANGE Then
                         ' Only set font if it is different from the current font...
-                        Dim newFont As Font = GetDialogFont(m_ServiceProvider)
-                        If Not newFont.Equals(m_Control.Font) Then
-                            m_Control.Font = newFont
+                        Dim newFont As Font = GetDialogFont(_serviceProvider)
+                        If Not newFont.Equals(_control.Font) Then
+                            _control.Font = newFont
                         End If
                     End If
                 End If

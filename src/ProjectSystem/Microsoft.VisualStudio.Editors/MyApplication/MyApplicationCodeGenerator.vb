@@ -1,3 +1,5 @@
+' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+
 Imports System.ComponentModel
 Imports System.Runtime.InteropServices
 Imports System.CodeDom
@@ -23,11 +25,11 @@ Namespace Microsoft.VisualStudio.Editors.MyApplication
     Public NotInheritable Class MyApplicationCodeGenerator
         Implements IVsSingleFileGenerator, IObjectWithSite, System.IServiceProvider, IVsRefactorNotify
 
-        Private m_Site As Object
-        Private m_CodeDomProvider As CodeDomProvider
-        Private m_ServiceProvider As ServiceProvider
+        Private _site As Object
+        Private _codeDomProvider As CodeDomProvider
+        Private _serviceProvider As ServiceProvider
 
-        Private Const MyNamespaceName As String = "My"
+        Private Const s_myNamespaceName As String = "My"
         Friend Const SingleFileGeneratorName As String = "MyApplicationCodeGenerator"
 
         ''' <summary>
@@ -141,7 +143,7 @@ Namespace Microsoft.VisualStudio.Editors.MyApplication
 
             ' Create a new namespace to put our class in
             '
-            Dim MyNamespace As New System.CodeDom.CodeNamespace(MyNamespaceName)
+            Dim MyNamespace As New System.CodeDom.CodeNamespace(s_myNamespaceName)
 
             'MySubMain will be set to indicate a WindowsApplication sans MY, or non-WindowsApplication type
             If MyApplication.MySubMain AndAlso MyApplicationProperties.IsMySubMainSupported(DirectCast(GetService(GetType(IVsHierarchy)), IVsHierarchy)) Then
@@ -411,20 +413,20 @@ Namespace Microsoft.VisualStudio.Editors.MyApplication
         ''' <remarks></remarks>
         Private Property CodeDomProvider() As CodeDomProvider
             Get
-                If m_CodeDomProvider Is Nothing Then
+                If _codeDomProvider Is Nothing Then
                     Dim VSMDCodeDomProvider As IVSMDCodeDomProvider = CType(GetService(GetType(IVSMDCodeDomProvider)), IVSMDCodeDomProvider)
                     If VSMDCodeDomProvider IsNot Nothing Then
-                        m_CodeDomProvider = CType(VSMDCodeDomProvider.CodeDomProvider, CodeDomProvider)
+                        _codeDomProvider = CType(VSMDCodeDomProvider.CodeDomProvider, CodeDomProvider)
                     End If
-                    Debug.Assert(m_CodeDomProvider IsNot Nothing, "Get CodeDomProvider Interface failed.  GetService(QueryService(CodeDomProvider) returned Null.")
+                    Debug.Assert(_codeDomProvider IsNot Nothing, "Get CodeDomProvider Interface failed.  GetService(QueryService(CodeDomProvider) returned Null.")
                 End If
-                Return m_CodeDomProvider
+                Return _codeDomProvider
             End Get
             Set(ByVal Value As CodeDomProvider)
                 If Value Is Nothing Then
                     Throw New ArgumentNullException()
                 End If
-                m_CodeDomProvider = Value
+                _codeDomProvider = Value
             End Set
         End Property
 
@@ -480,12 +482,12 @@ Namespace Microsoft.VisualStudio.Editors.MyApplication
 
 #Region "IObjectWithSite implementation"
         Private Sub GetSite(ByRef riid As System.Guid, ByRef ppvSite As System.IntPtr) Implements OLE.Interop.IObjectWithSite.GetSite
-            If m_Site Is Nothing Then
+            If _site Is Nothing Then
                 ' Throw E_FAIL
                 Throw New Win32Exception(NativeMethods.E_FAIL)
             End If
 
-            Dim pUnknownPointer As IntPtr = Marshal.GetIUnknownForObject(m_Site)
+            Dim pUnknownPointer As IntPtr = Marshal.GetIUnknownForObject(_site)
             Try
                 Marshal.QueryInterface(pUnknownPointer, riid, ppvSite)
 
@@ -502,7 +504,7 @@ Namespace Microsoft.VisualStudio.Editors.MyApplication
         End Sub
 
         Private Sub SetSite(ByVal pUnkSite As Object) Implements OLE.Interop.IObjectWithSite.SetSite
-            m_Site = pUnkSite
+            _site = pUnkSite
         End Sub
 #End Region
 
@@ -807,11 +809,11 @@ Namespace Microsoft.VisualStudio.Editors.MyApplication
         ''' <remarks></remarks>
         Private ReadOnly Property ServiceProvider() As ServiceProvider
             Get
-                If m_ServiceProvider Is Nothing Then
-                    Dim OleSp As OLE.Interop.IServiceProvider = CType(m_Site, OLE.Interop.IServiceProvider)
-                    m_ServiceProvider = New ServiceProvider(OleSp)
+                If _serviceProvider Is Nothing Then
+                    Dim OleSp As OLE.Interop.IServiceProvider = CType(_site, OLE.Interop.IServiceProvider)
+                    _serviceProvider = New ServiceProvider(OleSp)
                 End If
-                Return m_ServiceProvider
+                Return _serviceProvider
             End Get
         End Property
 

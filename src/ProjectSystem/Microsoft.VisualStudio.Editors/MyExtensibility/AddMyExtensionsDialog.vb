@@ -1,3 +1,5 @@
+' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+
 Option Strict On
 Option Explicit On
 Imports System.ComponentModel
@@ -38,19 +40,19 @@ Namespace Microsoft.VisualStudio.Editors.MyExtensibility
 
             Me.F1Keyword = HelpIDs.Dlg_AddMyNamespaceExtensions
 
-            m_ExtensionTemplates = extensionTemplates
+            _extensionTemplates = extensionTemplates
 
-            If m_ExtensionTemplates IsNot Nothing Then
-                For Each extensionTemplate As MyExtensionTemplate In m_ExtensionTemplates
+            If _extensionTemplates IsNot Nothing Then
+                For Each extensionTemplate As MyExtensionTemplate In _extensionTemplates
                     Me.listViewExtensions.Items.Add(ExtensionTemplateToListViewItem(extensionTemplate))
                 Next
             End If
 
-            m_Comparer = New ListViewComparer()
-            m_Comparer.SortColumn = 0
-            m_Comparer.Sorting = SortOrder.Ascending
-            Me.listViewExtensions.ListViewItemSorter = m_Comparer
-            Me.listViewExtensions.Sorting = m_Comparer.Sorting
+            _comparer = New ListViewComparer()
+            _comparer.SortColumn = 0
+            _comparer.Sorting = SortOrder.Ascending
+            Me.listViewExtensions.ListViewItemSorter = _comparer
+            Me.listViewExtensions.Sorting = _comparer.Sorting
             Me.listViewExtensions.Sort()
 
             EnableButtonOK()
@@ -63,14 +65,14 @@ Namespace Microsoft.VisualStudio.Editors.MyExtensibility
         ''' </summary>
         Public ReadOnly Property ExtensionTemplatesToAdd() As List(Of MyExtensionTemplate)
             Get
-                Return m_ExtensionTemplatesToAdd
+                Return _extensionTemplatesToAdd
             End Get
         End Property
 
 #Region "Event handlers"
         Private Sub listViewExtensions_ColumnClick(ByVal sender As Object, ByVal e As ColumnClickEventArgs) _
                 Handles listViewExtensions.ColumnClick
-            ListViewComparer.HandleColumnClick(Me.listViewExtensions, m_Comparer, e)
+            ListViewComparer.HandleColumnClick(Me.listViewExtensions, _comparer, e)
         End Sub
 
         Private Sub listViewExtensions_DoubleClick(ByVal sender As Object, ByVal e As EventArgs) _
@@ -107,12 +109,12 @@ Namespace Microsoft.VisualStudio.Editors.MyExtensibility
         ''' </summary>
         Private Sub AddExtensions()
             If Me.listViewExtensions.SelectedItems.Count > 0 Then
-                m_ExtensionTemplatesToAdd = New List(Of MyExtensionTemplate)
+                _extensionTemplatesToAdd = New List(Of MyExtensionTemplate)
 
                 For Each item As ListViewItem In Me.listViewExtensions.SelectedItems
                     Dim extensionTemplate As MyExtensionTemplate = TryCast(item.Tag, MyExtensionTemplate)
                     If extensionTemplate IsNot Nothing Then
-                        m_ExtensionTemplatesToAdd.Add(extensionTemplate)
+                        _extensionTemplatesToAdd.Add(extensionTemplate)
                     End If
                 Next
 
@@ -144,9 +146,9 @@ Namespace Microsoft.VisualStudio.Editors.MyExtensibility
             Return item
         End Function
 
-        Private m_ExtensionTemplates As List(Of MyExtensionTemplate)
-        Private m_ExtensionTemplatesToAdd As List(Of MyExtensionTemplate)
-        Private m_Comparer As ListViewComparer
+        Private _extensionTemplates As List(Of MyExtensionTemplate)
+        Private _extensionTemplatesToAdd As List(Of MyExtensionTemplate)
+        Private _comparer As ListViewComparer
 
 #Region "Windows Forms Designer generated code"
 

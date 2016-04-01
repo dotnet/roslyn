@@ -1,3 +1,5 @@
+' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+
 Imports System.ComponentModel
 Imports System.Diagnostics.CodeAnalysis
 Imports System.ComponentModel.Design
@@ -13,12 +15,12 @@ Namespace Microsoft.VisualStudio.Editors.PropertyPages
 #Else
         Inherits PropPageUserControlBase
 #End If
-        Private ignoreCheckedChanged As Boolean
-        Private ignoreLostFocus As Boolean
-        Private appConfigError As Boolean
-        Private frameworkVersionNumber As UInteger
+        Private _ignoreCheckedChanged As Boolean
+        Private _ignoreLostFocus As Boolean
+        Private _appConfigError As Boolean
+        Private _frameworkVersionNumber As UInteger
         Friend WithEvents TableLayoutPanel2 As System.Windows.Forms.TableLayoutPanel
-        Private Const RequiredFrameworkVersion As UInteger = &H30005
+        Private Const s_requiredFrameworkVersion As UInteger = &H30005
 
         Private Sub InitializeComponent()
             Dim resources As System.ComponentModel.ComponentResourceManager = New System.ComponentModel.ComponentResourceManager(GetType(ServicesPropPage))
@@ -190,26 +192,26 @@ Namespace Microsoft.VisualStudio.Editors.PropertyPages
             PageRequiresScaling = False
         End Sub
 
-        Private m_currentAppConfigDocument As XmlDocument
-        Private alreadyLoaded As Boolean
-        Private inEnsureXmlUpToDate As Boolean
+        Private _currentAppConfigDocument As XmlDocument
+        Private _alreadyLoaded As Boolean
+        Private _inEnsureXmlUpToDate As Boolean
 
         Private Sub EnsureXmlUpToDate()
-            If inEnsureXmlUpToDate Then Exit Sub
+            If _inEnsureXmlUpToDate Then Exit Sub
 
             Try
-                inEnsureXmlUpToDate = True
-                appConfigError = False
+                _inEnsureXmlUpToDate = True
+                _appConfigError = False
                 Dim newDoc As XmlDocument = ServicesPropPageAppConfigHelper.AppConfigXmlDocument(PropertyPageSite, ProjectHierarchy, False)
                 'We want to change the document & properties if stuff has changed.  If both documents are null, Object.Equals will return true and
                 'we don't need to update.  Other than that, we want to update if one of the documents are null or if neither is and their xml differs.
-                If Not alreadyLoaded OrElse (Not Object.Equals(newDoc, CurrentAppConfigDocument) AndAlso (newDoc Is Nothing OrElse CurrentAppConfigDocument Is Nothing OrElse _
+                If Not _alreadyLoaded OrElse (Not Object.Equals(newDoc, CurrentAppConfigDocument) AndAlso (newDoc Is Nothing OrElse CurrentAppConfigDocument Is Nothing OrElse _
                         newDoc.OuterXml <> CurrentAppConfigDocument.OuterXml)) Then
-                    alreadyLoaded = True
+                    _alreadyLoaded = True
                     CurrentAppConfigDocument = newDoc
-                    If Not appConfigError Then
+                    If Not _appConfigError Then
                         'If the application is targetting earlier than .NET Framework 3.5 or a client subset of .NET Framework, then disable this tab.
-                        If frameworkVersionNumber < RequiredFrameworkVersion OrElse Utils.IsClientFrameworkSubset(ProjectHierarchy) Then
+                        If _frameworkVersionNumber < s_requiredFrameworkVersion OrElse Utils.IsClientFrameworkSubset(ProjectHierarchy) Then
                             SetControlsEnabledProperty(False)
                             EnableApplicationServices.Enabled = False
                         Else
@@ -220,16 +222,16 @@ Namespace Microsoft.VisualStudio.Editors.PropertyPages
                 End If
 
             Finally
-                inEnsureXmlUpToDate = False
+                _inEnsureXmlUpToDate = False
             End Try
         End Sub
 
         Private Property CurrentAppConfigDocument() As XmlDocument
             Get
-                Return m_currentAppConfigDocument
+                Return _currentAppConfigDocument
             End Get
             Set(ByVal value As XmlDocument)
-                m_currentAppConfigDocument = value
+                _currentAppConfigDocument = value
                 If value IsNot Nothing Then SetApplicationServicesEnabled(ServicesPropPageAppConfigHelper.ApplicationServicesAreEnabled(CurrentAppConfigDocument, ProjectHierarchy))
             End Set
         End Property
@@ -242,32 +244,32 @@ Namespace Microsoft.VisualStudio.Editors.PropertyPages
         End Sub
 
         Private Sub EnableApplicationServices_CheckedChanged(ByVal sender As System.Object, ByVal e As System.EventArgs) Handles EnableApplicationServices.CheckedChanged
-            If ignoreCheckedChanged Then
-                ignoreCheckedChanged = False
+            If _ignoreCheckedChanged Then
+                _ignoreCheckedChanged = False
                 Exit Sub
             End If
 
-            ignoreLostFocus = True
+            _ignoreLostFocus = True
 
             'DevDiv Bugs 88577, If the user isn't targetting V3.5 or above, bring up
             'an error stating that the functionality is only available for 3.5 or greater.
             'Also, uncheck the checkbox
-            If EnableApplicationServices.Checked AndAlso frameworkVersionNumber < RequiredFrameworkVersion Then
+            If EnableApplicationServices.Checked AndAlso _frameworkVersionNumber < s_requiredFrameworkVersion Then
                 DesignerFramework.DesignerMessageBox.Show(ServiceProvider, SR.GetString(SR.PPG_Services_VersionWarning), Nothing, MessageBoxButtons.OK, MessageBoxIcon.Warning)
-                ignoreCheckedChanged = True
+                _ignoreCheckedChanged = True
                 EnableApplicationServices.Checked = False
             Else If Not EnableApplicationServices.Checked Then
                 Dim result As DialogResult = DesignerFramework.DesignerMessageBox.Show(ServiceProvider, _
                     SR.GetString(SR.PPG_Services_ConfirmRemoveServices), SR.GetString(SR.PPG_Services_ConfirmRemoveServices_Caption), _
                     MessageBoxButtons.OKCancel, MessageBoxIcon.Warning, MessageBoxDefaultButton.Button2)
                 If result = DialogResult.Cancel Then
-                    ignoreCheckedChanged = True
+                    _ignoreCheckedChanged = True
                     EnableApplicationServices.Checked = True
                 End If
             End If
 
             SetApplicationServicesEnabled(EnableApplicationServices.Checked)
-            ignoreLostFocus = False
+            _ignoreLostFocus = False
         End Sub
 
         Private Sub SetApplicationServicesEnabled(ByVal enable As Boolean)
@@ -287,7 +289,7 @@ Namespace Microsoft.VisualStudio.Editors.PropertyPages
                     Catch ex As CheckoutException
                         'Could not check the file out so we couldn't get an app config document
                         'Undo the user's selection
-                        ignoreCheckedChanged = True
+                        _ignoreCheckedChanged = True
                         EnableApplicationServices.Checked = Not EnableApplicationServices.Checked
                         Return
                     End Try
@@ -296,7 +298,7 @@ Namespace Microsoft.VisualStudio.Editors.PropertyPages
                 If CurrentAppConfigDocument Is Nothing Then
                     'By now you should have the app config document.  If you don't, something's
                     'seriously wrong...
-                    appConfigError = True
+                    _appConfigError = True
                     SetControlsProperties(False)
                     'NOTE: when the messagebox returns, we'll re-read app config and see if it's better.
                     'If we didn't want to do this, we'd set ignoreCheckedChanged to true before the call
@@ -326,9 +328,9 @@ Namespace Microsoft.VisualStudio.Editors.PropertyPages
         End Sub
 
         Private Sub WriteXml()
-            ignoreLostFocus = True
+            _ignoreLostFocus = True
             Dim writtenSuccessfully As Boolean = ServicesPropPageAppConfigHelper.TryWriteXml(CurrentAppConfigDocument, CType(ServiceProvider, IServiceProvider), ProjectHierarchy)
-            ignoreLostFocus = False
+            _ignoreLostFocus = False
 
             If Not writtenSuccessfully Then
                 EnsureXmlUpToDate()
@@ -336,8 +338,8 @@ Namespace Microsoft.VisualStudio.Editors.PropertyPages
         End Sub
 
         Private Sub SetControlsProperties(ByVal enable As Boolean)
-            ignoreCheckedChanged = True
-            EnableApplicationServices.Enabled = Not appConfigError
+            _ignoreCheckedChanged = True
+            EnableApplicationServices.Enabled = Not _appConfigError
             If enable Then
                 EnableApplicationServices.Checked = True
                 Try
@@ -351,7 +353,7 @@ Namespace Microsoft.VisualStudio.Editors.PropertyPages
                     End If
                     CustomCredentialProviderType.Text = ServicesPropPageAppConfigHelper.CustomCredentialProviderType(CurrentAppConfigDocument, ProjectHierarchy)
                 Catch ex As InvalidOperationException
-                    appConfigError = True
+                    _appConfigError = True
                     SetControlsProperties(False)
                     Dim xmlException As New XmlException(SR.GetString(SR.PPG_Services_InvalidUrls))
                     DesignerFramework.DesignerMessageBox.Show(CType(ServiceProvider, IServiceProvider), "", xmlException, DesignerFramework.DesignUtil.GetDefaultCaption(Site))
@@ -366,7 +368,7 @@ Namespace Microsoft.VisualStudio.Editors.PropertyPages
                 CustomCredentialProviderType.Text = String.Empty
             End If
             SetControlsEnabledProperty(enable)
-            ignoreCheckedChanged = False
+            _ignoreCheckedChanged = False
         End Sub
 
         Private Sub SetControlsEnabledProperty(ByVal shouldEnable As Boolean)
@@ -413,11 +415,11 @@ Namespace Microsoft.VisualStudio.Editors.PropertyPages
             End If
         End Sub
 
-        Sub ShowInvalidUrlError()
-            ignoreLostFocus = True
+        Public Sub ShowInvalidUrlError()
+            _ignoreLostFocus = True
             Dim ex As New XmlException(SR.GetString(SR.PPG_Services_InvalidUrl))
             DesignerFramework.DesignerMessageBox.Show(CType(ServiceProvider, IServiceProvider), "", ex, DesignerFramework.DesignUtil.GetDefaultCaption(Site))
-            ignoreLostFocus = False
+            _ignoreLostFocus = False
         End Sub
 
         Private Sub RolesServiceUrl_Validated(ByVal sender As Object, ByVal e As System.EventArgs) Handles RolesServiceUrl.Validated
@@ -479,7 +481,7 @@ Namespace Microsoft.VisualStudio.Editors.PropertyPages
         End Sub
 
         Private Sub Loaded(ByVal sender As System.Object, ByVal e As System.EventArgs) Handles Me.Load
-            frameworkVersionNumber = Utils.GetProjectTargetFrameworkVersion(ProjectHierarchy)
+            _frameworkVersionNumber = Utils.GetProjectTargetFrameworkVersion(ProjectHierarchy)
             EnsureXmlUpToDate()
         End Sub
 
@@ -514,7 +516,7 @@ Namespace Microsoft.VisualStudio.Editors.PropertyPages
         End Sub
 
         Private Sub UpdateXmlDocWhenLostFocus(ByVal sender As Object, ByVal e As EventArgs) Handles Me.LostFocus
-            If Not ignoreLostFocus Then EnsureXmlUpToDate()
+            If Not _ignoreLostFocus Then EnsureXmlUpToDate()
         End Sub
 
         Private Sub AddProjectReferences()

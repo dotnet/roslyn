@@ -1,3 +1,5 @@
+' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+
 Option Strict On
 Option Explicit On
 Imports System.ComponentModel
@@ -114,7 +116,7 @@ Namespace Microsoft.VisualStudio.Editors.MyExtensibility
         Friend WithEvents buttonYes As System.Windows.Forms.Button
         Friend WithEvents checkBoxOption As DesignerFramework.WrapCheckBox
         Friend WithEvents buttonNo As System.Windows.Forms.Button
-        Private components As System.ComponentModel.IContainer
+        Private _components As System.ComponentModel.IContainer
 
         Private Sub InitializeComponent()
             Dim resources As System.ComponentModel.ComponentResourceManager = New System.ComponentModel.ComponentResourceManager(GetType(AssemblyOptionDialog))

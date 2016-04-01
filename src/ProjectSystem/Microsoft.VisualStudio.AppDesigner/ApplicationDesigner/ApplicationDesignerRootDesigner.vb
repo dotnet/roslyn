@@ -1,3 +1,5 @@
+' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+
 Imports System.ComponentModel
 Imports System.ComponentModel.Design
 
@@ -17,8 +19,8 @@ Namespace Microsoft.VisualStudio.Editors.ApplicationDesigner
         Implements IRootDesigner
 
         'The view associated with this root designer.
-        Private m_View As ApplicationDesignerView
-        Private m_ViewLockObject As Object = New Object()
+        Private _view As ApplicationDesignerView
+        Private _viewLockObject As Object = New Object()
 
         ''' <summary>
         ''' Returns the ApplicationDesignerRootComponent component that is being edited by this designer.
@@ -62,9 +64,9 @@ Namespace Microsoft.VisualStudio.Editors.ApplicationDesigner
         ''' <remarks></remarks>
         Protected Overloads Overrides Sub Dispose(ByVal Disposing As Boolean)
             If Disposing Then
-                If m_View IsNot Nothing Then
-                    m_View.Dispose()
-                    m_View = Nothing
+                If _view IsNot Nothing Then
+                    _view.Dispose()
+                    _view = Nothing
                 End If
             End If
 
@@ -100,14 +102,14 @@ Namespace Microsoft.VisualStudio.Editors.ApplicationDesigner
                 Throw New ArgumentException("Not a supported view technology", "Technology")
             End If
 
-            If m_View Is Nothing Then
-                m_View = New ApplicationDesignerView(Me)
+            If _view Is Nothing Then
+                _view = New ApplicationDesignerView(Me)
                 'Delaying out designer load prevents our IRootDesigner.GetView from getting called
                 'before we have initized the m_View local
                 'm_View.InitView()
             End If
 
-            Return m_View
+            Return _view
         End Function
 
         ''' <summary>

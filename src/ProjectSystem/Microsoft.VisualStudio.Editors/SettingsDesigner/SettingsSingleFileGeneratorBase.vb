@@ -1,3 +1,5 @@
+' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+
 Imports System.ComponentModel
 Imports System.Runtime.InteropServices
 Imports System.CodeDom
@@ -17,29 +19,29 @@ Namespace Microsoft.VisualStudio.Editors.SettingsDesigner
     Public Class SettingsSingleFileGeneratorBase
         Implements IVsSingleFileGenerator, IObjectWithSite, System.IServiceProvider, IVsRefactorNotify
 
-        Private m_Site As Object
-        Private m_CodeDomProvider As CodeDomProvider
-        Private m_ServiceProvider As ServiceProvider
+        Private _site As Object
+        Private _codeDomProvider As CodeDomProvider
+        Private _serviceProvider As ServiceProvider
 
 
-        Private Const AddedHandlerFieldName As String = "addedHandler"
-        Private Const AddedHandlerLockObjectFieldName As String = "addedHandlerLockObject"
-        Private Const AutoSaveSubName As String = "AutoSaveSettings"
+        Private Const s_addedHandlerFieldName As String = "addedHandler"
+        Private Const s_addedHandlerLockObjectFieldName As String = "addedHandlerLockObject"
+        Private Const s_autoSaveSubName As String = "AutoSaveSettings"
         Friend Const DefaultInstanceFieldName As String = "defaultInstance"
         Friend Const DefaultInstancePropertyName As String = "Default"
 
         Friend Const MyNamespaceName As String = "My"
-        Private Const MySettingsModuleName As String = "MySettingsProperty"
-        Private Const MySettingsPropertyName As String = "Settings"
+        Private Const s_mySettingsModuleName As String = "MySettingsProperty"
+        Private Const s_mySettingsPropertyName As String = "Settings"
 
-        Private Const MyTypeWinFormsDefineConstant_If As String = "#If _MyType = ""WindowsForms"" Then"
-        Private Const MyTypeWinFormsDefineConstant_EndIf As String = "#End If"
+        Private Const s_myTypeWinFormsDefineConstant_If As String = "#If _MyType = ""WindowsForms"" Then"
+        Private Const s_myTypeWinFormsDefineConstant_EndIf As String = "#End If"
 
-        Private Const HideAutoSaveRegionBegin As String = "#Region ""{0}"""
-        Private Const HideAutoSaveRegionEnd As String = "#End Region"
+        Private Const s_hideAutoSaveRegionBegin As String = "#Region ""{0}"""
+        Private Const s_hideAutoSaveRegionEnd As String = "#End Region"
 
-        Private Const DocCommentSummaryStart As String = "<summary>"
-        Private Const DocCommentSummaryEnd As String = "</summary>"
+        Private Const s_docCommentSummaryStart As String = "<summary>"
+        Private Const s_docCommentSummaryEnd As String = "</summary>"
 
         Friend Const DesignerGeneratedFileSuffix As String = ".Designer"
 
@@ -421,16 +423,16 @@ Namespace Microsoft.VisualStudio.Editors.SettingsDesigner
 
                 AutoSaveSnippet.Value = _
                     Environment.NewLine & _
-                    MyTypeWinFormsDefineConstant_If & Environment.NewLine & _
-                    "               If Not " & AddedHandlerFieldName & " Then" & Environment.NewLine & _
-                    "                    SyncLock " & AddedHandlerLockObjectFieldName & Environment.NewLine & _
-                    "                        If Not " & AddedHandlerFieldName & " Then" & Environment.NewLine & _
-                    "                            AddHandler My.Application.Shutdown, AddressOf " & AutoSaveSubName & Environment.NewLine & _
-                    "                            " & AddedHandlerFieldName & " = True" & Environment.NewLine & _
+                    s_myTypeWinFormsDefineConstant_If & Environment.NewLine & _
+                    "               If Not " & s_addedHandlerFieldName & " Then" & Environment.NewLine & _
+                    "                    SyncLock " & s_addedHandlerLockObjectFieldName & Environment.NewLine & _
+                    "                        If Not " & s_addedHandlerFieldName & " Then" & Environment.NewLine & _
+                    "                            AddHandler My.Application.Shutdown, AddressOf " & s_autoSaveSubName & Environment.NewLine & _
+                    "                            " & s_addedHandlerFieldName & " = True" & Environment.NewLine & _
                     "                        End If" & Environment.NewLine & _
                     "                    End SyncLock" & Environment.NewLine & _
                     "                End If" & Environment.NewLine & _
-                    MyTypeWinFormsDefineConstant_EndIf
+                    s_myTypeWinFormsDefineConstant_EndIf
 
                 CodeProperty.GetStatements.Add(AutoSaveSnippet)
             End If
@@ -497,9 +499,9 @@ Namespace Microsoft.VisualStudio.Editors.SettingsDesigner
                 attr.Arguments.Add(New CodeAttributeArgument(New CodePrimitiveExpression(Instance.Description)))
                 CodeProperty.CustomAttributes.Add(attr)
 
-                CodeProperty.Comments.Add(New CodeCommentStatement(DocCommentSummaryStart, True))
+                CodeProperty.Comments.Add(New CodeCommentStatement(s_docCommentSummaryStart, True))
                 CodeProperty.Comments.Add(New CodeCommentStatement(System.Security.SecurityElement.Escape(Instance.Description), True))
-                CodeProperty.Comments.Add(New CodeCommentStatement(DocCommentSummaryEnd, True))
+                CodeProperty.Comments.Add(New CodeCommentStatement(s_docCommentSummaryEnd, True))
             End If
 
             ' Add DebuggerNonUserCode attribute
@@ -692,20 +694,20 @@ Namespace Microsoft.VisualStudio.Editors.SettingsDesigner
             '
             Dim AutoSaveCode As New CodeSnippetTypeMember()
             AutoSaveCode.Text = _
-                String.Format(HideAutoSaveRegionBegin, SR.GetString(SR.SD_SFG_AutoSaveRegionText)) & Environment.NewLine & _
-                MyTypeWinFormsDefineConstant_If & Environment.NewLine & _
-                "    Private Shared " & AddedHandlerFieldName & " As Boolean" & Environment.NewLine & _
+                String.Format(s_hideAutoSaveRegionBegin, SR.GetString(SR.SD_SFG_AutoSaveRegionText)) & Environment.NewLine & _
+                s_myTypeWinFormsDefineConstant_If & Environment.NewLine & _
+                "    Private Shared " & s_addedHandlerFieldName & " As Boolean" & Environment.NewLine & _
                 Environment.NewLine & _
-                "    Private Shared " & AddedHandlerLockObjectFieldName & " As New Object" & Environment.NewLine & _
+                "    Private Shared " & s_addedHandlerLockObjectFieldName & " As New Object" & Environment.NewLine & _
                 Environment.NewLine & _
                 "    <Global.System.Diagnostics.DebuggerNonUserCodeAttribute(), Global.System.ComponentModel.EditorBrowsableAttribute(Global.System.ComponentModel.EditorBrowsableState.Advanced)> _" & Environment.NewLine & _
-                "    Private Shared Sub " & AutoSaveSubName & "(ByVal sender As Global.System.Object, ByVal e As Global.System.EventArgs)" & Environment.NewLine & _
+                "    Private Shared Sub " & s_autoSaveSubName & "(ByVal sender As Global.System.Object, ByVal e As Global.System.EventArgs)" & Environment.NewLine & _
                 "        If My.Application.SaveMySettingsOnExit Then" & Environment.NewLine & _
-                "            " & MyNamespaceName & "." & MySettingsPropertyName & ".Save()" & Environment.NewLine & _
+                "            " & MyNamespaceName & "." & s_mySettingsPropertyName & ".Save()" & Environment.NewLine & _
                 "        End If" & Environment.NewLine & _
                 "    End Sub" & Environment.NewLine & _
-                MyTypeWinFormsDefineConstant_EndIf & Environment.NewLine & _
-                HideAutoSaveRegionEnd
+                s_myTypeWinFormsDefineConstant_EndIf & Environment.NewLine & _
+                s_hideAutoSaveRegionEnd
 
             GeneratedType.Members.Add(AutoSaveCode)
 
@@ -716,7 +718,7 @@ Namespace Microsoft.VisualStudio.Editors.SettingsDesigner
             ' Create a property named Settings
             '
             Dim SettingProperty As New CodeMemberProperty
-            SettingProperty.Name = MySettingsPropertyName
+            SettingProperty.Name = s_mySettingsPropertyName
             SettingProperty.HasGet = True
             SettingProperty.HasSet = False
 
@@ -748,7 +750,7 @@ Namespace Microsoft.VisualStudio.Editors.SettingsDesigner
             '    Global.System.Runtime.CompilerServices.CompilerGeneratedAttribute()>  _
             '   Module MySettingsProperty
             '        
-            Dim ModuleDecl As New CodeTypeDeclaration(MySettingsModuleName)
+            Dim ModuleDecl As New CodeTypeDeclaration(s_mySettingsModuleName)
             ModuleDecl.UserData("Module") = True
             ModuleDecl.TypeAttributes = TypeAttributes.Sealed Or TypeAttributes.NestedAssembly
             ModuleDecl.CustomAttributes.Add(New CodeAttributeDeclaration(CreateGlobalCodeTypeReference(GetType(Microsoft.VisualBasic.HideModuleNameAttribute))))
@@ -882,20 +884,20 @@ Namespace Microsoft.VisualStudio.Editors.SettingsDesigner
         '@ <remarks></remarks>
         Private Property CodeDomProvider() As CodeDomProvider
             Get
-                If m_CodeDomProvider Is Nothing Then
+                If _codeDomProvider Is Nothing Then
                     Dim VSMDCodeDomProvider As IVSMDCodeDomProvider = CType(GetService(GetType(IVSMDCodeDomProvider)), IVSMDCodeDomProvider)
                     If VSMDCodeDomProvider IsNot Nothing Then
-                        m_CodeDomProvider = CType(VSMDCodeDomProvider.CodeDomProvider, CodeDomProvider)
+                        _codeDomProvider = CType(VSMDCodeDomProvider.CodeDomProvider, CodeDomProvider)
                     End If
-                    Debug.Assert(m_CodeDomProvider IsNot Nothing, "Get CodeDomProvider Interface failed.  GetService(QueryService(CodeDomProvider) returned Null.")
+                    Debug.Assert(_codeDomProvider IsNot Nothing, "Get CodeDomProvider Interface failed.  GetService(QueryService(CodeDomProvider) returned Null.")
                 End If
-                Return m_CodeDomProvider
+                Return _codeDomProvider
             End Get
             Set(ByVal Value As CodeDomProvider)
                 If Value Is Nothing Then
                     Throw New ArgumentNullException()
                 End If
-                m_CodeDomProvider = Value
+                _codeDomProvider = Value
             End Set
         End Property
 
@@ -906,11 +908,11 @@ Namespace Microsoft.VisualStudio.Editors.SettingsDesigner
         '@ <remarks></remarks>
         Private ReadOnly Property ServiceProvider() As ServiceProvider
             Get
-                If m_ServiceProvider Is Nothing AndAlso m_Site IsNot Nothing Then
-                    Dim OleSp As OLE.Interop.IServiceProvider = CType(m_Site, OLE.Interop.IServiceProvider)
-                    m_ServiceProvider = New ServiceProvider(OleSp)
+                If _serviceProvider Is Nothing AndAlso _site IsNot Nothing Then
+                    Dim OleSp As OLE.Interop.IServiceProvider = CType(_site, OLE.Interop.IServiceProvider)
+                    _serviceProvider = New ServiceProvider(OleSp)
                 End If
-                Return m_ServiceProvider
+                Return _serviceProvider
             End Get
         End Property
 
@@ -928,12 +930,12 @@ Namespace Microsoft.VisualStudio.Editors.SettingsDesigner
 
 #Region "IObjectWithSite implementation"
         Private Sub GetSite(ByRef riid As System.Guid, ByRef ppvSite As System.IntPtr) Implements OLE.Interop.IObjectWithSite.GetSite
-            If m_Site Is Nothing Then
+            If _site Is Nothing Then
                 ' Throw E_FAIL
                 Throw New Win32Exception(NativeMethods.E_FAIL)
             End If
 
-            Dim pUnknownPointer As IntPtr = Marshal.GetIUnknownForObject(m_Site)
+            Dim pUnknownPointer As IntPtr = Marshal.GetIUnknownForObject(_site)
             Try
                 Marshal.QueryInterface(pUnknownPointer, riid, ppvSite)
 
@@ -950,13 +952,13 @@ Namespace Microsoft.VisualStudio.Editors.SettingsDesigner
         End Sub
 
         Private Sub SetSite(ByVal pUnkSite As Object) Implements OLE.Interop.IObjectWithSite.SetSite
-            m_Site = pUnkSite
+            _site = pUnkSite
             ClearCachedServices()
         End Sub
 
         Private Sub ClearCachedServices()
-            m_ServiceProvider = Nothing
-            m_CodeDomProvider = Nothing
+            _serviceProvider = Nothing
+            _codeDomProvider = Nothing
         End Sub
 #End Region
 

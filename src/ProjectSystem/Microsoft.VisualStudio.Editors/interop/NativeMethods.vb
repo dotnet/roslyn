@@ -1,3 +1,5 @@
+' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+
 Imports System.Runtime.InteropServices
 Imports Microsoft.VisualStudio.OLE.Interop
 Imports ComTypes = System.Runtime.InteropServices.ComTypes
@@ -6,8 +8,8 @@ Namespace Microsoft.VisualStudio.Editors.Interop
     <ComVisible(False)> _
     Friend NotInheritable Class NativeMethods
 
-        Private Const VB_COMPILER_GUID As String = "019971d6-4685-11d2-b48a-0000f87572eb"
-        Friend Shared ReadOnly VBCompilerGuid As System.Guid = New System.Guid(VB_COMPILER_GUID)
+        Private Const s_VB_COMPILER_GUID As String = "019971d6-4685-11d2-b48a-0000f87572eb"
+        Friend Shared ReadOnly VBCompilerGuid As System.Guid = New System.Guid(s_VB_COMPILER_GUID)
 
         '/ <summary>
         '/     Handle type for HDC's that count against the Win98 limit of five DC's.  HDC's
@@ -92,12 +94,12 @@ Namespace Microsoft.VisualStudio.Editors.Interop
 
 
         Friend Class ConnectionPointCookie
-            Private connectionPoint As IConnectionPoint
-            Private connectionPoint2 As ComTypes.IConnectionPoint
-            Private cookie As UInteger
+            Private _connectionPoint As IConnectionPoint
+            Private _connectionPoint2 As ComTypes.IConnectionPoint
+            Private _cookie As UInteger
 #If DEBUG Then
-            Private callStack As String
-            Private eventInterface As Type
+            Private _callStack As String
+            Private _eventInterface As Type
 #End If
 
 
@@ -125,19 +127,19 @@ Namespace Microsoft.VisualStudio.Editors.Interop
 
                     Try
                         Dim tmp As Guid = eventInterface.GUID
-                        cpc.FindConnectionPoint(tmp, connectionPoint)
+                        cpc.FindConnectionPoint(tmp, _connectionPoint)
                     Catch
-                        connectionPoint = Nothing
+                        _connectionPoint = Nothing
                     End Try
 
-                    If connectionPoint Is Nothing Then
+                    If _connectionPoint Is Nothing Then
                         ex = New ArgumentException(String.Format("The source object does not expose the {0} event inteface.", eventInterface.Name))
                     Else
                         Try
-                            connectionPoint.Advise(sink, cookie)
+                            _connectionPoint.Advise(sink, _cookie)
                         Catch e As Exception
-                            cookie = 0
-                            connectionPoint = Nothing
+                            _cookie = 0
+                            _connectionPoint = Nothing
                             ex = New Exception(String.Format("IConnectionPoint::Advise failed for event interface '{0}'", eventInterface.Name))
                         End Try
                     End If
@@ -146,28 +148,28 @@ Namespace Microsoft.VisualStudio.Editors.Interop
 
                     Try
                         Dim tmp As Guid = eventInterface.GUID
-                        cpc.FindConnectionPoint(tmp, connectionPoint2)
+                        cpc.FindConnectionPoint(tmp, _connectionPoint2)
                     Catch
-                        connectionPoint2 = Nothing
+                        _connectionPoint2 = Nothing
                     End Try
 
-                    If connectionPoint2 Is Nothing Then
+                    If _connectionPoint2 Is Nothing Then
                         ex = New ArgumentException(String.Format("The source object does not expose the {0} event inteface.", eventInterface.Name))
                     Else
                         Dim cookie2 As Integer
                         Try
-                            connectionPoint2.Advise(sink, cookie2)
+                            _connectionPoint2.Advise(sink, cookie2)
                         Catch e As Exception
-                            connectionPoint2 = Nothing
+                            _connectionPoint2 = Nothing
                             ex = New Exception(String.Format("IConnectionPoint::Advise failed for event interface '{0}'", eventInterface.Name))
                         End Try
-                        cookie = CUInt(cookie2)
+                        _cookie = CUInt(cookie2)
                     End If
                     ex = New InvalidCastException("The source object does not expose IConnectionPointContainer.")
                 End If
 
 
-                If throwException AndAlso (connectionPoint Is Nothing OrElse cookie = 0) Then
+                If throwException AndAlso (_connectionPoint Is Nothing OrElse _cookie = 0) Then
                     If ex Is Nothing Then
                         Throw New ArgumentException(String.Format("Could not create connection point for event interface '{0}'", eventInterface.Name))
                     Else
@@ -176,8 +178,8 @@ Namespace Microsoft.VisualStudio.Editors.Interop
                 End If
 
 #If DEBUG Then
-                callStack = Environment.StackTrace
-                Me.eventInterface = eventInterface
+                _callStack = Environment.StackTrace
+                Me._eventInterface = eventInterface
 #End If
             End Sub 'New
 
@@ -198,25 +200,25 @@ Namespace Microsoft.VisualStudio.Editors.Interop
             '/ this method will do nothing.
             '/ </devdoc>
             Friend Overloads Sub Disconnect(ByVal release As Boolean)
-                If cookie <> 0 Then
+                If _cookie <> 0 Then
                     Try
-                        If connectionPoint IsNot Nothing Then
-                            connectionPoint.Unadvise(cookie)
+                        If _connectionPoint IsNot Nothing Then
+                            _connectionPoint.Unadvise(_cookie)
 
                             If release Then
-                                Marshal.ReleaseComObject(connectionPoint)
+                                Marshal.ReleaseComObject(_connectionPoint)
                             End If
-                            connectionPoint = Nothing
-                        ElseIf connectionPoint2 IsNot Nothing Then
-                            connectionPoint2.Unadvise(CInt(cookie))
+                            _connectionPoint = Nothing
+                        ElseIf _connectionPoint2 IsNot Nothing Then
+                            _connectionPoint2.Unadvise(CInt(_cookie))
 
                             If release Then
-                                Marshal.ReleaseComObject(connectionPoint2)
+                                Marshal.ReleaseComObject(_connectionPoint2)
                             End If
-                            connectionPoint2 = Nothing
+                            _connectionPoint2 = Nothing
                         End If
                     Finally
-                        cookie = 0
+                        _cookie = 0
                         GC.SuppressFinalize(Me)
                     End Try
                 End If
@@ -228,7 +230,7 @@ Namespace Microsoft.VisualStudio.Editors.Interop
             Protected Overrides Sub Finalize()
 
 #If DEBUG Then
-                System.Diagnostics.Debug.Assert(cookie = 0, "We should never finalize an active connection point. (Interface = " & eventInterface.FullName & "), allocating code (see stack) is responsible for unhooking the ConnectionPoint by calling Disconnect.  Hookup Stack =" & Microsoft.VisualBasic.vbNewLine & callStack)
+                System.Diagnostics.Debug.Assert(_cookie = 0, "We should never finalize an active connection point. (Interface = " & _eventInterface.FullName & "), allocating code (see stack) is responsible for unhooking the ConnectionPoint by calling Disconnect.  Hookup Stack =" & Microsoft.VisualBasic.vbNewLine & _callStack)
 #End If
                 ' We can't call Disconnect here, because connectionPoint could be finalized earlier
                 MyBase.Finalize()

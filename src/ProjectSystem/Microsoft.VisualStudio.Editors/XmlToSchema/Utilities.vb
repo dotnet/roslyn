@@ -1,4 +1,6 @@
-﻿Option Infer On
+﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+
+Option Infer On
 Imports System.ComponentModel
 Imports System.Diagnostics.CodeAnalysis
 Imports System.Drawing
@@ -33,29 +35,29 @@ Namespace Microsoft.VisualStudio.Editors.XmlToSchema
     Friend MustInherit Class XmlToSchemaForm
         Inherits Form
 
-        Private m_serviceProvider As IServiceProvider
+        Private _serviceProvider As IServiceProvider
 
         Protected Sub New()
             Me.HelpButton = True
         End Sub
 
         Protected Sub New(ByVal serviceProvider As IServiceProvider)
-            m_serviceProvider = serviceProvider
+            _serviceProvider = serviceProvider
             Me.HelpButton = True
         End Sub
 
         Public Property ServiceProvider() As IServiceProvider
             Get
-                Return m_serviceProvider
+                Return _serviceProvider
             End Get
             Set(ByVal value As IServiceProvider)
-                m_serviceProvider = value
+                _serviceProvider = value
             End Set
         End Property
 
         Protected ReadOnly Property DialogFont() As Font
             Get
-                Dim hostLocale As VsShell.IUIHostLocale2 = CType(m_serviceProvider.GetService(GetType(VsShell.SUIHostLocale)), VsShell.IUIHostLocale2)
+                Dim hostLocale As VsShell.IUIHostLocale2 = CType(_serviceProvider.GetService(GetType(VsShell.SUIHostLocale)), VsShell.IUIHostLocale2)
                 If hostLocale IsNot Nothing Then
                     Dim fonts(1) As VsShell.UIDLGLOGFONT
                     If VSErrorHandler.Succeeded(hostLocale.GetDialogFont(fonts)) Then
@@ -68,8 +70,8 @@ Namespace Microsoft.VisualStudio.Editors.XmlToSchema
         End Property
 
         Protected Overrides Sub OnLoad(ByVal e As EventArgs)
-            Debug.Assert(m_serviceProvider IsNot Nothing)
-            If m_serviceProvider IsNot Nothing Then
+            Debug.Assert(_serviceProvider IsNot Nothing)
+            If _serviceProvider IsNot Nothing Then
                 Me.Font = Me.DialogFont
             End If
             MyBase.OnLoad(e)
@@ -83,8 +85,8 @@ Namespace Microsoft.VisualStudio.Editors.XmlToSchema
         Private Sub ShowHelp()
             Try
                 Dim f1Word = GetF1Keyword()
-                If m_serviceProvider IsNot Nothing AndAlso Not String.IsNullOrEmpty(f1Word) Then
-                    Dim vshelp As VSHelp.Help = CType(m_serviceProvider.GetService(GetType(VSHelp.Help)), VSHelp.Help)
+                If _serviceProvider IsNot Nothing AndAlso Not String.IsNullOrEmpty(f1Word) Then
+                    Dim vshelp As VSHelp.Help = CType(_serviceProvider.GetService(GetType(VSHelp.Help)), VSHelp.Help)
                     vshelp.DisplayTopicFromF1Keyword(f1Word)
                 Else
                     Debug.Fail("Can not find ServiceProvider")

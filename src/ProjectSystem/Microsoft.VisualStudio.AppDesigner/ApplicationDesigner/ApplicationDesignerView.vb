@@ -1,3 +1,5 @@
+' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+
 Imports EnvDTE
 Imports Common = Microsoft.VisualStudio.Editors.AppDesCommon
 Imports Microsoft.VisualStudio.Editors.AppDesInterop
@@ -39,7 +41,7 @@ Namespace Microsoft.VisualStudio.Editors.ApplicationDesigner
         End Sub
 
         'Required by the Windows Form Designer
-        Private components As System.ComponentModel.IContainer
+        Private _components As System.ComponentModel.IContainer
 
         'NOTE: The following procedure is required by the Windows Form Designer
         'It can be modified using the Windows Form Designer.  
@@ -60,69 +62,69 @@ Namespace Microsoft.VisualStudio.Editors.ApplicationDesigner
 #End Region
 
 #If DEBUG Then
-        private Shared ApplicationDesignerViewCount As Integer = 0
-        private Shared InstanceCount As Integer = 0
-        Private MyInstanceCount As Integer
+        private Shared s_applicationDesignerViewCount As Integer = 0
+        private Shared s_instanceCount As Integer = 0
+        Private _myInstanceCount As Integer
 #End If
 
         ' explicitly hard-coding these strings since that's what QA's
         '   automation will look for in order to find our various tabs
         '
-        Const PROP_PAGE_TAB_PREFIX As String = "PropPage_"
-        Const RESOURCES_AUTOMATION_TAB_NAME As String = "Resources"
-        Const SETTINGS_AUTOMATION_TAB_NAME As String = "Settings"
+        Private Const s_PROP_PAGE_TAB_PREFIX As String = "PropPage_"
+        Private Const s_RESOURCES_AUTOMATION_TAB_NAME As String = "Resources"
+        Private Const s_SETTINGS_AUTOMATION_TAB_NAME As String = "Settings"
 
         'The designer panels hold the property pages and other designers
-        Private m_DesignerPanels As ApplicationDesignerPanel()
-        Private m_ActivePanelIndex As Integer = -1
+        Private _designerPanels As ApplicationDesignerPanel()
+        Private _activePanelIndex As Integer = -1
 
         'App Designer data
-        Private m_serviceProvider As IServiceProvider
-        Private m_ProjectHierarchy As IVsHierarchy
-        Private m_ProjectFilePath As String 'Full path to the project filename
+        Private _serviceProvider As IServiceProvider
+        Private _projectHierarchy As IVsHierarchy
+        Private _projectFilePath As String 'Full path to the project filename
 
         '*** Project Property related data
-        Private m_ProjectObject As Object 'Project's browse object
-        Private m_DTEProject As EnvDTE.Project 'Project's DTE object
-        Private m_SpecialFiles As IVsProjectSpecialFiles
+        Private _projectObject As Object 'Project's browse object
+        Private _DTEProject As EnvDTE.Project 'Project's DTE object
+        Private _specialFiles As IVsProjectSpecialFiles
 
         'Set to true when the application designer window pane has completely initialized the application designer view
-        Private m_InitializationComplete As Boolean
+        Private _initializationComplete As Boolean
 
         '*** Monitor Selection
-        Private m_monitorSelection As IVsMonitorSelection
-        Private m_selectionEventsCookie As UInteger
+        Private _monitorSelection As IVsMonitorSelection
+        Private _selectionEventsCookie As UInteger
 
         'Data shared by all pages hooked up to this project designer (available through GetService)
-        Private m_ConfigurationState As PropPageDesigner.ConfigurationState
+        Private _configurationState As PropPageDesigner.ConfigurationState
 
         'True if we have queued a delayed request to refresh the dirty indicators of any tab
         '  or the project designer.
-        Private m_RefreshDirtyIndicatorsQueued As Boolean
+        Private _refreshDirtyIndicatorsQueued As Boolean
 
         'The state of the project designer dirty indicator last time it was updated
-        Private m_LastProjectDesignerDirtyState As Boolean
+        Private _lastProjectDesignerDirtyState As Boolean
 
         'True if SetFrameDirtyIndicator has already been called at least once
-        Private m_ProjectDesignerDirtyStateInitialized As Boolean
+        Private _projectDesignerDirtyStateInitialized As Boolean
 
         'Cookie for IVsRunningDocumentTableEvents
-        Private m_rdtEventsCookie As UInteger
+        Private _rdtEventsCookie As UInteger
 
         ' Instance of the editors package
-        Private m_editorsPackage As IVBPackage
+        Private _editorsPackage As IVBPackage
 
         'True if we're in the process of showing a tab
-        Private m_InShowTab As Boolean
+        Private _inShowTab As Boolean
 
         'True if we're already in the middle of showing a panel's WindowFrame
-        Private m_isInPanelWindowFrameShow As Boolean
+        Private _isInPanelWindowFrameShow As Boolean
 
         'True if it's okay for us to activate child panels on WM_SETFOCUS
-        Private m_OkayToActivatePanelsOnFocus As Boolean
+        Private _okayToActivatePanelsOnFocus As Boolean
 
         ' Helper class to handle font change notifications...
-        Private m_FontChangeWatcher As Common.ShellUtil.FontChangeMonitor
+        Private _fontChangeWatcher As Common.ShellUtil.FontChangeMonitor
 
         ''' <summary>
         ''' Constructor for the ApplicationDesigner view
@@ -137,7 +139,7 @@ Namespace Microsoft.VisualStudio.Editors.ApplicationDesigner
             SetSite(serviceProvider)
 
             'PERF: Set font before InitializeComponent so we don't cause unnecessary layouts (needs the site first)
-            m_FontChangeWatcher = New Common.ShellUtil.FontChangeMonitor(Me, Me, True)
+            _fontChangeWatcher = New Common.ShellUtil.FontChangeMonitor(Me, Me, True)
 
             'This call is required by the Windows Form Designer.
             InitializeComponent()
@@ -146,9 +148,9 @@ Namespace Microsoft.VisualStudio.Editors.ApplicationDesigner
             AddHandler HostingPanel.Layout, AddressOf HostingPanel_Layout
             AddHandler HostingPanel.SizeChanged, AddressOf HostingPanel_SizeChanged
 
-            ApplicationDesignerViewCount += 1
-            InstanceCount += 1
-            MyInstanceCount = InstanceCount
+            s_applicationDesignerViewCount += 1
+            s_instanceCount += 1
+            _myInstanceCount = s_instanceCount
             'Need to allow for multiple VB projects in this assert
             'Debug.Assert(ApplicationDesignerViewCount = 1, "Multiple ApplicationDesigners created!")
 #End If
@@ -215,23 +217,23 @@ Namespace Microsoft.VisualStudio.Editors.ApplicationDesigner
 
                     Debug.Assert(TypeOf Hierarchy Is IVsProject, "We didn't get a hierarchy to a project?")
 
-                    m_ProjectHierarchy = Hierarchy
-                    m_SpecialFiles = TryCast(m_ProjectHierarchy, IVsProjectSpecialFiles)
+                    _projectHierarchy = Hierarchy
+                    _specialFiles = TryCast(_projectHierarchy, IVsProjectSpecialFiles)
                 End If
 
-                If m_ProjectHierarchy Is Nothing Then
+                If _projectHierarchy Is Nothing Then
                     Debug.Fail("Failed to get project hierarchy")
                     Throw New Package.InternalException()
                 End If
-                Debug.Assert(m_SpecialFiles IsNot Nothing, "Failed to get IVsProjectSpecialFiles for Hierarchy")
+                Debug.Assert(_specialFiles IsNot Nothing, "Failed to get IVsProjectSpecialFiles for Hierarchy")
 
                 Dim ExtObject As Object = Nothing
-                hr = m_ProjectHierarchy.GetProperty(VSITEMID.ROOT, __VSHPROPID.VSHPROPID_ExtObject, ExtObject)
+                hr = _projectHierarchy.GetProperty(VSITEMID.ROOT, __VSHPROPID.VSHPROPID_ExtObject, ExtObject)
                 If NativeMethods.Succeeded(hr) Then
                     Dim DTE As EnvDTE.DTE
 
                     If TypeOf ExtObject Is EnvDTE.Project Then
-                        m_DTEProject = CType(ExtObject, EnvDTE.Project)
+                        _DTEProject = CType(ExtObject, EnvDTE.Project)
                         DTE = DTEProject.DTE
                     End If
 
@@ -239,19 +241,19 @@ Namespace Microsoft.VisualStudio.Editors.ApplicationDesigner
                     'Title should never be seen
                     Me.Text = "AppDesigner+" & DTEProject.Name
 
-                    m_ProjectFilePath = DTEProject.FullName
+                    _projectFilePath = DTEProject.FullName
                 End If
 
-                If m_DTEProject Is Nothing Then
+                If _DTEProject Is Nothing Then
                     'Currently we require the DTE Project object.  In the future, if we are allowed in 
                     '  other project types, we'll need to ease this restriction.
                     Debug.Fail("Unable to retrieve DTE Project object")
                     Throw New Package.InternalException
                 End If
 
-                m_monitorSelection = CType(GetService(GetType(IVsMonitorSelection)), IVsMonitorSelection)
-                If m_monitorSelection IsNot Nothing Then
-                    m_monitorSelection.AdviseSelectionEvents(Me, m_selectionEventsCookie)
+                _monitorSelection = CType(GetService(GetType(IVsMonitorSelection)), IVsMonitorSelection)
+                If _monitorSelection IsNot Nothing Then
+                    _monitorSelection.AdviseSelectionEvents(Me, _selectionEventsCookie)
                 End If
 
                 'PERF: Before adding any page panels, we need to activate the main windowframe, so that it 
@@ -281,13 +283,13 @@ Namespace Microsoft.VisualStudio.Editors.ApplicationDesigner
         ''' <remarks></remarks>
         Public ReadOnly Property DTEProject() As EnvDTE.Project
             Get
-                Return m_DTEProject
+                Return _DTEProject
             End Get
         End Property
 
         Public ReadOnly Property SpecialFiles() As IVsProjectSpecialFiles
             Get
-                Return m_SpecialFiles
+                Return _specialFiles
             End Get
         End Property
 
@@ -298,7 +300,7 @@ Namespace Microsoft.VisualStudio.Editors.ApplicationDesigner
         ''' <remarks>Used to persist user data</remarks>
         Private ReadOnly Property Package() As IVBPackage
             Get
-                If m_editorsPackage Is Nothing Then
+                If _editorsPackage Is Nothing Then
                     Dim shell As IVsShell = DirectCast(GetService(GetType(IVsShell)), IVsShell)
                     Dim pPackage As IVsPackage = Nothing
                     If shell IsNot Nothing Then
@@ -306,9 +308,9 @@ Namespace Microsoft.VisualStudio.Editors.ApplicationDesigner
                         Debug.Assert(NativeMethods.Succeeded(hr) AndAlso pPackage IsNot Nothing, "VB editors package not loaded?!?")
                     End If
 
-                    m_editorsPackage = TryCast(pPackage, IVBPackage)
+                    _editorsPackage = TryCast(pPackage, IVBPackage)
                 End If
-                Return m_editorsPackage
+                Return _editorsPackage
             End Get
         End Property
 
@@ -321,8 +323,8 @@ Namespace Microsoft.VisualStudio.Editors.ApplicationDesigner
             Get
                 Dim editorsPackage As IVBPackage = Package
                 If editorsPackage IsNot Nothing Then
-                    Dim result As Integer = editorsPackage.GetLastShownApplicationDesignerTab(m_ProjectHierarchy)
-                    If result >= 0 AndAlso result < m_DesignerPanels.Length Then
+                    Dim result As Integer = editorsPackage.GetLastShownApplicationDesignerTab(_projectHierarchy)
+                    If result >= 0 AndAlso result < _designerPanels.Length Then
                         Return result
                     End If
                 End If
@@ -331,7 +333,7 @@ Namespace Microsoft.VisualStudio.Editors.ApplicationDesigner
             Set(ByVal value As Integer)
                 Dim editorsPackage As IVBPackage = Package
                 If editorsPackage IsNot Nothing Then
-                    editorsPackage.SetLastShownApplicationDesignerTab(m_ProjectHierarchy, value)
+                    editorsPackage.SetLastShownApplicationDesignerTab(_projectHierarchy, value)
                 End If
             End Set
         End Property
@@ -344,7 +346,7 @@ Namespace Microsoft.VisualStudio.Editors.ApplicationDesigner
         ''' <remarks></remarks>
         Public Sub NotifyShuttingDown()
             Common.Switches.TracePDFocus(TraceLevel.Info, "NotifyShuttingDown")
-            m_OkayToActivatePanelsOnFocus = False
+            _okayToActivatePanelsOnFocus = False
         End Sub
 
 
@@ -401,18 +403,18 @@ Namespace Microsoft.VisualStudio.Editors.ApplicationDesigner
         ''' <remarks>Used to build table of documents to save</remarks>
         Public ReadOnly Property GetSaveTreeItems(ByVal flags As __VSRDTSAVEOPTIONS) As VSSAVETREEITEM()
             Get
-                Dim items As VSSAVETREEITEM() = New VSSAVETREEITEM(m_DesignerPanels.Length - 1) {}
+                Dim items As VSSAVETREEITEM() = New VSSAVETREEITEM(_designerPanels.Length - 1) {}
                 Dim Count As Integer
                 Dim DocCookie As UInteger
                 Dim Hierarchy As IVsHierarchy = Nothing
                 Dim ItemId As UInteger
 
-                If m_DesignerPanels IsNot Nothing Then
-                    For Index As Integer = 0 To m_DesignerPanels.Length - 1
+                If _designerPanels IsNot Nothing Then
+                    For Index As Integer = 0 To _designerPanels.Length - 1
                         'If the designer was opened, then add it to the list for saving
-                        If m_DesignerPanels(Index) IsNot Nothing AndAlso _
-                            m_DesignerPanels(Index).VsWindowFrame IsNot Nothing Then
-                            DocCookie = m_DesignerPanels(Index).DocCookie
+                        If _designerPanels(Index) IsNot Nothing AndAlso _
+                            _designerPanels(Index).VsWindowFrame IsNot Nothing Then
+                            DocCookie = _designerPanels(Index).DocCookie
                             If IsDocDataDirty(DocCookie, Hierarchy, ItemId) Then
                                 If Count >= items.Length Then
                                     ReDim Preserve items(Count)
@@ -463,28 +465,28 @@ Namespace Microsoft.VisualStudio.Editors.ApplicationDesigner
 #If DEBUG Then
                 RemoveHandler HostingPanel.Layout, AddressOf HostingPanel_Layout
 #End If
-                If m_monitorSelection IsNot Nothing AndAlso m_selectionEventsCookie <> 0 Then
-                    m_monitorSelection.UnadviseSelectionEvents(m_selectionEventsCookie)
-                    m_monitorSelection = Nothing
-                    m_selectionEventsCookie = 0
+                If _monitorSelection IsNot Nothing AndAlso _selectionEventsCookie <> 0 Then
+                    _monitorSelection.UnadviseSelectionEvents(_selectionEventsCookie)
+                    _monitorSelection = Nothing
+                    _selectionEventsCookie = 0
                 End If
                 UnadviseRunningDocTableEvents()
 
-                If m_FontChangeWatcher IsNot Nothing Then
-                    m_FontChangeWatcher.Dispose()
-                    m_FontChangeWatcher = Nothing
+                If _fontChangeWatcher IsNot Nothing Then
+                    _fontChangeWatcher.Dispose()
+                    _fontChangeWatcher = Nothing
                 End If
 
-                If components IsNot Nothing Then
-                    components.Dispose()
+                If _components IsNot Nothing Then
+                    _components.Dispose()
                 End If
 
-                If m_DesignerPanels IsNot Nothing Then
-                    For Index As Integer = 0 To m_DesignerPanels.Length - 1
-                        If m_DesignerPanels(Index) IsNot Nothing Then
+                If _designerPanels IsNot Nothing Then
+                    For Index As Integer = 0 To _designerPanels.Length - 1
+                        If _designerPanels(Index) IsNot Nothing Then
                             Try
-                                Dim Panel As ApplicationDesignerPanel = m_DesignerPanels(Index)
-                                m_DesignerPanels(Index) = Nothing
+                                Dim Panel As ApplicationDesignerPanel = _designerPanels(Index)
+                                _designerPanels(Index) = Nothing
                                 Panel.Dispose()
                             Catch ex As Exception When Not Common.Utils.IsUnrecoverable(ex)
                                 Trace.WriteLine("Exception trying to dispose ApplicationDesignerPanel: " & vbCrLf & ex.ToString())
@@ -494,13 +496,13 @@ Namespace Microsoft.VisualStudio.Editors.ApplicationDesigner
                     Next
                 End If
 
-                If m_ConfigurationState IsNot Nothing Then
-                    m_ConfigurationState.Dispose()
-                    m_ConfigurationState = Nothing
+                If _configurationState IsNot Nothing Then
+                    _configurationState.Dispose()
+                    _configurationState = Nothing
                 End If
 
 #If DEBUG Then
-                ApplicationDesignerViewCount -= 1
+                s_applicationDesignerViewCount -= 1
 #End If
             End If
             MyBase.Dispose(disposing)
@@ -587,25 +589,25 @@ Namespace Microsoft.VisualStudio.Editors.ApplicationDesigner
 
 
         Private Function GetProjectBrowseObject() As Object
-            If m_ProjectObject Is Nothing Then
+            If _projectObject Is Nothing Then
                 Dim BrowseObject As Object = Nothing
-                VSErrorHandler.ThrowOnFailure(m_ProjectHierarchy.GetProperty(VSITEMID.ROOT, __VSHPROPID.VSHPROPID_BrowseObject, BrowseObject))
-                m_ProjectObject = BrowseObject
+                VSErrorHandler.ThrowOnFailure(_projectHierarchy.GetProperty(VSITEMID.ROOT, __VSHPROPID.VSHPROPID_BrowseObject, BrowseObject))
+                _projectObject = BrowseObject
             End If
-            Return m_ProjectObject
+            Return _projectObject
         End Function
 
-        Private m_VsCfgProvider As IVsCfgProvider2
+        Private _vsCfgProvider As IVsCfgProvider2
         Private ReadOnly Property VsCfgProvider() As IVsCfgProvider2
             Get
-                If m_VsCfgProvider Is Nothing Then
+                If _vsCfgProvider Is Nothing Then
                     Dim Value As Object = Nothing
 
-                    VSErrorHandler.ThrowOnFailure(m_ProjectHierarchy.GetProperty(VSITEMID.ROOT, __VSHPROPID.VSHPROPID_ConfigurationProvider, Value))
+                    VSErrorHandler.ThrowOnFailure(_projectHierarchy.GetProperty(VSITEMID.ROOT, __VSHPROPID.VSHPROPID_ConfigurationProvider, Value))
 
-                    m_VsCfgProvider = CType(Value, IVsCfgProvider2)
+                    _vsCfgProvider = CType(Value, IVsCfgProvider2)
                 End If
-                Return m_VsCfgProvider
+                Return _vsCfgProvider
             End Get
         End Property
 
@@ -621,10 +623,10 @@ Namespace Microsoft.VisualStudio.Editors.ApplicationDesigner
 
         Public Property ActiveView() As Guid
             Get
-                If m_ActivePanelIndex < 0 OrElse m_ActivePanelIndex >= m_DesignerPanels.Length OrElse m_DesignerPanels(m_ActivePanelIndex) Is Nothing Then
+                If _activePanelIndex < 0 OrElse _activePanelIndex >= _designerPanels.Length OrElse _designerPanels(_activePanelIndex) Is Nothing Then
                     Return Guid.Empty
                 End If
-                Dim Panel As ApplicationDesignerPanel = m_DesignerPanels(m_ActivePanelIndex)
+                Dim Panel As ApplicationDesignerPanel = _designerPanels(_activePanelIndex)
                 'Use ActualGuid so that for property pages we return the property page's guid 
                 '  instead of the PropPageDesigner's guid
                 Return Panel.ActualGuid
@@ -634,16 +636,16 @@ Namespace Microsoft.VisualStudio.Editors.ApplicationDesigner
                 Common.Switches.TracePDFocus(TraceLevel.Info, "ApplicationDesignerView: set_ActiveView")
                 'Find the guid and switch to that tab
                 'Keep the current tab if guid not found
-                For Index As Integer = 0 To m_DesignerPanels.Length - 1
+                For Index As Integer = 0 To _designerPanels.Length - 1
                     'If this is a property page, check the property page guid (thus using ActualGuid)
-                    If Value.Equals(m_DesignerPanels(Index).ActualGuid) Then
+                    If Value.Equals(_designerPanels(Index).ActualGuid) Then
                         ShowTab(Index)
                         Return
                     End If
                 Next
 
                 'Guid not found - keep current tab
-                ShowTab(m_ActivePanelIndex)
+                ShowTab(_activePanelIndex)
             End Set
         End Property
 
@@ -662,14 +664,14 @@ Namespace Microsoft.VisualStudio.Editors.ApplicationDesigner
             FileExists = False
             FullPathToProjectItem = Nothing
 
-            If m_SpecialFiles Is Nothing Then
+            If _specialFiles Is Nothing Then
                 Debug.Fail("IVsProjectSpecialFiles is Nothing - can't look for the given tab's file - tab will be hidden")
                 Return
             End If
 
             Dim ItemId As UInteger
             Dim SpecialFilePath As String = Nothing
-            Dim hr As Integer = m_SpecialFiles.GetFile(FileId, CUInt(__PSFFLAGS.PSFF_FullPath), ItemId, SpecialFilePath)
+            Dim hr As Integer = _specialFiles.GetFile(FileId, CUInt(__PSFFLAGS.PSFF_FullPath), ItemId, SpecialFilePath)
             If VSErrorHandler.Succeeded(hr) Then
                 'Yes, the tab is supported
                 TabSupported = True
@@ -719,7 +721,7 @@ Namespace Microsoft.VisualStudio.Editors.ApplicationDesigner
             'Total tab count
             TabCount = PropertyPages.Length + AppDesignerItems.Count 'Resource Designer + Settings Designer + property pages
 
-            m_DesignerPanels = New ApplicationDesignerPanel(TabCount - 1) {}
+            _designerPanels = New ApplicationDesignerPanel(TabCount - 1) {}
 
             'Create the designer panels
             For Index As Integer = 0 To TabCount - 1
@@ -728,9 +730,9 @@ Namespace Microsoft.VisualStudio.Editors.ApplicationDesigner
                 If Index < PropertyPages.Length Then
                     'This is a property page
                     Debug.Assert(PropertyPages(Index) IsNot Nothing)
-                    DesignerPanel = New ApplicationDesignerPanel(Me, m_ProjectHierarchy, CUInt(Index), PropertyPages(Index))
+                    DesignerPanel = New ApplicationDesignerPanel(Me, _projectHierarchy, CUInt(Index), PropertyPages(Index))
                 Else
-                    DesignerPanel = New ApplicationDesignerPanel(Me, m_ProjectHierarchy, CUInt(Index))
+                    DesignerPanel = New ApplicationDesignerPanel(Me, _projectHierarchy, CUInt(Index))
                 End If
 
                 With DesignerPanel
@@ -751,7 +753,7 @@ Namespace Microsoft.VisualStudio.Editors.ApplicationDesigner
 
                     If .PropertyPageInfo IsNot Nothing Then
                         'It must be a property page tab
-                        .MkDocument = m_ProjectFilePath & ";" & PropertyPages(Index).Guid.ToString()
+                        .MkDocument = _projectFilePath & ";" & PropertyPages(Index).Guid.ToString()
                         .PhysicalView = PropertyPages(Index).Guid.ToString()
                         .EditFlags = CUInt(_VSRDTFLAGS.RDT_VirtualDocument Or _VSRDTFLAGS.RDT_DontAddToMRU)
 
@@ -761,7 +763,7 @@ Namespace Microsoft.VisualStudio.Editors.ApplicationDesigner
                         .EditorCaption = PropertyPages(Index).Title
 
                         .TabTitle = .EditorCaption
-                        .TabAutomationName = PROP_PAGE_TAB_PREFIX & PropertyPages(Index).Guid.ToString("N")
+                        .TabAutomationName = s_PROP_PAGE_TAB_PREFIX & PropertyPages(Index).Guid.ToString("N")
 
                     Else
                         Dim FileName As String = DirectCast(AppDesignerItems(Index - PropertyPages.Length), String)
@@ -771,7 +773,7 @@ Namespace Microsoft.VisualStudio.Editors.ApplicationDesigner
                             'Add .resx file with a known editor so user config cannot change
                             .EditorGuid = New Guid(My.Resources.Microsoft_VisualStudio_AppDesigner_Designer.ResourceEditorFactory_GUID)
                             .EditorCaption = SR.GetString(SR.APPDES_ResourceTabTitle)
-                            .TabAutomationName = RESOURCES_AUTOMATION_TAB_NAME
+                            .TabAutomationName = s_RESOURCES_AUTOMATION_TAB_NAME
 
                             'If the resx file doesn't actually exist yet, we have to display the "Click here
                             '  to create it" message instead of the actual editor.
@@ -788,7 +790,7 @@ Namespace Microsoft.VisualStudio.Editors.ApplicationDesigner
                             'Add .settings file with a known editor so user config cannot change
                             .EditorGuid = New Guid(My.Resources.Microsoft_VisualStudio_AppDesigner_Designer.SettingsDesignerEditorFactory_GUID)
                             .EditorCaption = SR.GetString(SR.APPDES_SettingsTabTitle)
-                            .TabAutomationName = SETTINGS_AUTOMATION_TAB_NAME
+                            .TabAutomationName = s_SETTINGS_AUTOMATION_TAB_NAME
 
                             'If the settings file doesn't actually exist yet, we have to display the "Click here
                             '  to create it" message instead of the actual editor.
@@ -814,18 +816,18 @@ Namespace Microsoft.VisualStudio.Editors.ApplicationDesigner
                     .ResumeLayout(False) 'Controls.Add below will call PerformLayout, so no need to do it here.
 
                     'Don't actually add the panel to the HostingPanel yet...
-                    m_DesignerPanels(Index) = DesignerPanel
+                    _designerPanels(Index) = DesignerPanel
                 End With
             Next
 
             'Order the tabs
-            OrderTabs(m_DesignerPanels)
+            OrderTabs(_designerPanels)
 
             'PERF: Tell the tab control how many panels there are and what their titles are before
             '  adding the AppicationDesignerPanels, so that the final size of the HostingPanel is
             '  known.
-            For i As Integer = 0 To m_DesignerPanels.GetUpperBound(0)
-                Dim iTab As Integer = MyBase.AddTab(m_DesignerPanels(i).TabTitle, m_DesignerPanels(i).TabAutomationName)
+            For i As Integer = 0 To _designerPanels.GetUpperBound(0)
+                Dim iTab As Integer = MyBase.AddTab(_designerPanels(i).TabTitle, _designerPanels(i).TabAutomationName)
                 MyBase.GetTabButton(iTab).TabStop = False 'Keep from setting focus to the tabs when they're clicked so we don't fire OnItemGotFocus
             Next
 
@@ -834,7 +836,7 @@ Namespace Microsoft.VisualStudio.Editors.ApplicationDesigner
             '  the panels.  We couldn't do it before adding the tab titles because they affect the 
             '  size of the HostingPanel.  Now we should have a stable size for the hosting panel.
             For Index As Integer = 0 To TabCount - 1
-                Dim DesignerPanel As ApplicationDesignerPanel = m_DesignerPanels(Index)
+                Dim DesignerPanel As ApplicationDesignerPanel = _designerPanels(Index)
                 MyBase.HostingPanel.Controls.Add(DesignerPanel)
             Next
 
@@ -877,7 +879,7 @@ Namespace Microsoft.VisualStudio.Editors.ApplicationDesigner
 
             'Get the requested ordering of project designer pages from the IVsHierarchy.
             Dim CLSIDListObject As Object = Nothing
-            Dim hr As Integer = m_ProjectHierarchy.GetProperty(VSITEMID.ROOT, __VSHPROPID2.VSHPROPID_PriorityPropertyPagesCLSIDList, CLSIDListObject)
+            Dim hr As Integer = _projectHierarchy.GetProperty(VSITEMID.ROOT, __VSHPROPID2.VSHPROPID_PriorityPropertyPagesCLSIDList, CLSIDListObject)
             If VSErrorHandler.Succeeded(hr) AndAlso TypeOf CLSIDListObject Is String Then
                 Dim CLSIDListString As String = DirectCast(CLSIDListObject, String)
                 Dim CLSIDList As New List(Of Guid)
@@ -954,20 +956,20 @@ Namespace Microsoft.VisualStudio.Editors.ApplicationDesigner
         End Function
 
         Private Sub SetSite(ByVal serviceProvider As IServiceProvider)
-            m_serviceProvider = serviceProvider
+            _serviceProvider = serviceProvider
 
             'Set the provider into the base tab control so it can get access to fonts and colors
-            MyBase.ServiceProvider = m_serviceProvider
+            MyBase.ServiceProvider = _serviceProvider
         End Sub
 
         Public Shadows Function GetService(ByVal ServiceType As Type) As Object Implements System.IServiceProvider.GetService, IPropertyPageSiteOwner.GetService
             Dim Service As Object
 
             If ServiceType Is GetType(PropPageDesigner.ConfigurationState) Then
-                If m_ConfigurationState Is Nothing Then
-                    m_ConfigurationState = New PropPageDesigner.ConfigurationState(m_DTEProject, m_ProjectHierarchy, Me)
+                If _configurationState Is Nothing Then
+                    _configurationState = New PropPageDesigner.ConfigurationState(_DTEProject, _projectHierarchy, Me)
                 End If
-                Return m_ConfigurationState
+                Return _configurationState
             End If
 
             If ServiceType Is GetType(ApplicationDesignerView) Then
@@ -975,7 +977,7 @@ Namespace Microsoft.VisualStudio.Editors.ApplicationDesigner
                 Return Me
             End If
 
-            Service = m_serviceProvider.GetService(ServiceType)
+            Service = _serviceProvider.GetService(ServiceType)
             Return Service
         End Function
 
@@ -985,8 +987,8 @@ Namespace Microsoft.VisualStudio.Editors.ApplicationDesigner
         ''' <returns>Return true if success </returns>
         ''' <remarks></remarks>
         Public Function CommitAnyPendingChanges() As Boolean
-            If m_ActivePanelIndex >= 0 Then
-                Dim currentPanel As ApplicationDesignerPanel = m_DesignerPanels(m_ActivePanelIndex)
+            If _activePanelIndex >= 0 Then
+                Dim currentPanel As ApplicationDesignerPanel = _designerPanels(_activePanelIndex)
                 If currentPanel IsNot Nothing Then
                     Return currentPanel.CommitPendingEdit()
                 End If
@@ -1004,14 +1006,14 @@ Namespace Microsoft.VisualStudio.Editors.ApplicationDesigner
         Private Sub ShowTab(ByVal Index As Integer, Optional ByVal ForceShow As Boolean = False)
 
             Common.Switches.TracePDFocus(TraceLevel.Warning, "ApplicationDesignerView.ShowTab(" & Index & ")")
-            If m_InShowTab Then
+            If _inShowTab Then
                 Common.Switches.TracePDFocus(TraceLevel.Warning, " ...Already in ShowTab")
                 Exit Sub
             End If
 
-            m_InShowTab = True
+            _inShowTab = True
             Try
-                If m_ActivePanelIndex = Index AndAlso Not ForceShow Then
+                If _activePanelIndex = Index AndAlso Not ForceShow Then
                     'PERF: PERFORMANCE SENSITIVE CODE: No need to go through the designer creation again if we're already on the
                     '  correct page.
                     Common.Switches.TracePDFocus(TraceLevel.Warning, "  ... Ignoring because Index is already " & Index & " and ForceShow=False")
@@ -1019,7 +1021,7 @@ Namespace Microsoft.VisualStudio.Editors.ApplicationDesigner
                 End If
 
                 ' If current Page can not commit pending changes, we shouldn't go away (but only if we're actually changing tabs)
-                If (Index <> m_ActivePanelIndex) AndAlso Not CommitAnyPendingChanges() Then
+                If (Index <> _activePanelIndex) AndAlso Not CommitAnyPendingChanges() Then
                     Common.Switches.TracePDFocus(TraceLevel.Warning, "  ... Ignoring because CommitAnyPendingChanges returned False")
                     Return
                 End If
@@ -1029,7 +1031,7 @@ Namespace Microsoft.VisualStudio.Editors.ApplicationDesigner
                 Common.Switches.TracePDPerf("CodeMarker: perfMSVSEditorsShowTabBegin")
                 Microsoft.Internal.Performance.CodeMarkers.Instance.CodeMarker(CodeMarkerEvent.perfMSVSEditorsShowTabBegin)
 
-                Dim NewCurrentPanel As ApplicationDesignerPanel = m_DesignerPanels(Index)
+                Dim NewCurrentPanel As ApplicationDesignerPanel = _designerPanels(Index)
                 Dim ErrorMessage As String = Nothing
                 Dim DesignerAlreadyShownOnCreation As Boolean = False
 
@@ -1038,7 +1040,7 @@ Namespace Microsoft.VisualStudio.Editors.ApplicationDesigner
                 NewCurrentPanel.m_Debug_cWindowFrameBoundsUpdated = 0
 #End If
                 Try
-                    If m_ActivePanelIndex <> Index Then
+                    If _activePanelIndex <> Index Then
                         LastShownTab = Index
                         Dim PageId As Byte = AppDesCommon.Utils.SQMData.PageGuidToId(NewCurrentPanel.ActualGuid)
 #If DEBUG Then
@@ -1055,10 +1057,10 @@ Namespace Microsoft.VisualStudio.Editors.ApplicationDesigner
                         AddSqmItemToStream(VsSqmDataPoint.DATAID_STRM_VB_EDITOR_PROJPROPSHOW, PageId)
                     End If
 
-                    m_ActivePanelIndex = Index
+                    _activePanelIndex = Index
 
                     'Hide any visible panel that is not the currently selected panel
-                    For Each Panel As ApplicationDesignerPanel In m_DesignerPanels
+                    For Each Panel As ApplicationDesignerPanel In _designerPanels
                         If Panel IsNot NewCurrentPanel Then
                             Panel.ShowDesigner(False)
                         End If
@@ -1096,7 +1098,7 @@ Namespace Microsoft.VisualStudio.Editors.ApplicationDesigner
                                     Dim PropPageView As PropPageDesigner.PropPageDesignerView
                                     PropPageView = TryCast(.DocView, PropPageDesigner.PropPageDesignerView)
                                     If PropPageView IsNot Nothing Then
-                                        PropPageView.Init(DTEProject, .PropertyPageInfo.ComPropPageInstance, .PropertyPageInfo.Site, m_ProjectHierarchy, .PropertyPageInfo.IsConfigPage)
+                                        PropPageView.Init(DTEProject, .PropertyPageInfo.ComPropPageInstance, .PropertyPageInfo.Site, _projectHierarchy, .PropertyPageInfo.IsConfigPage)
                                     Else
                                         'Must have had error loading
                                     End If
@@ -1174,12 +1176,12 @@ Namespace Microsoft.VisualStudio.Editors.ApplicationDesigner
                 Common.Switches.TracePDPerf("CodeMarker: perfMSVSEditorsShowTabEnd")
                 Common.Switches.TracePDPerfEnd("ApplicationDesignerView.ShowTab")
             Finally
-                m_InShowTab = False
+                _inShowTab = False
             End Try
         End Sub
 
         'Standard title for messageboxes, etc.
-        Private ReadOnly MessageBoxCaption As String = SR.GetString(SR.APPDES_Title)
+        Private ReadOnly _messageBoxCaption As String = SR.GetString(SR.APPDES_Title)
 
         ''' <summary>
         ''' Displays a message box using the Visual Studio-approved manner.
@@ -1197,8 +1199,8 @@ Namespace Microsoft.VisualStudio.Editors.ApplicationDesigner
                 Optional ByVal DefaultButton As MessageBoxDefaultButton = MessageBoxDefaultButton.Button1, _
                 Optional ByVal HelpLink As String = Nothing) As DialogResult
 
-            Debug.Assert(m_serviceProvider IsNot Nothing)
-            Return AppDesDesignerFramework.DesignerMessageBox.Show(m_serviceProvider, Message, Me.MessageBoxCaption, _
+            Debug.Assert(_serviceProvider IsNot Nothing)
+            Return AppDesDesignerFramework.DesignerMessageBox.Show(_serviceProvider, Message, Me._messageBoxCaption, _
                 Buttons, Icon, DefaultButton, HelpLink)
         End Function
 
@@ -1212,8 +1214,8 @@ Namespace Microsoft.VisualStudio.Editors.ApplicationDesigner
         Public Sub DsMsgBox(ByVal ex As Exception, _
                 Optional ByVal HelpLink As String = Nothing) Implements IPropertyPageSiteOwner.DsMsgBox
 
-            Debug.Assert(m_serviceProvider IsNot Nothing)
-            AppDesDesignerFramework.DesignerMessageBox.Show(m_serviceProvider, ex, Me.MessageBoxCaption, HelpLink:=HelpLink)
+            Debug.Assert(_serviceProvider IsNot Nothing)
+            AppDesDesignerFramework.DesignerMessageBox.Show(_serviceProvider, ex, Me._messageBoxCaption, HelpLink:=HelpLink)
         End Sub
 
 
@@ -1223,15 +1225,15 @@ Namespace Microsoft.VisualStudio.Editors.ApplicationDesigner
         ''' <param name="forward">If true, moves forward a tab.  If false, moves back a tab.</param>
         ''' <remarks></remarks>
         Public Sub SwitchTab(ByVal forward As Boolean)
-            Dim Index As Integer = m_ActivePanelIndex
+            Dim Index As Integer = _activePanelIndex
             If forward Then
                 Index += 1
             Else
                 Index -= 1
             End If
             If Index < 0 Then
-                Index = m_DesignerPanels.Length - 1
-            ElseIf Index >= m_DesignerPanels.Length Then
+                Index = _designerPanels.Length - 1
+            ElseIf Index >= _designerPanels.Length Then
                 Index = 0
             End If
             ShowTab(Index)
@@ -1248,8 +1250,8 @@ Namespace Microsoft.VisualStudio.Editors.ApplicationDesigner
             ShowTab(SelectedIndex, ForceShow:=True)
 
             ' we need set back the tab, if we failed to switch...
-            If SelectedIndex <> m_ActivePanelIndex Then
-                SelectedIndex = m_ActivePanelIndex
+            If SelectedIndex <> _activePanelIndex Then
+                SelectedIndex = _activePanelIndex
             End If
         End Sub
 
@@ -1260,7 +1262,7 @@ Namespace Microsoft.VisualStudio.Editors.ApplicationDesigner
         ''' <param name="m"></param>
         ''' <remarks></remarks>
         Protected Overrides Sub WndProc(ByRef m As System.Windows.Forms.Message)
-            If m.Msg = AppDesInterop.win.WM_SETFOCUS AndAlso Not m_isInPanelWindowFrameShow Then 'in MDI mode this can get hit recursively
+            If m.Msg = AppDesInterop.win.WM_SETFOCUS AndAlso Not _isInPanelWindowFrameShow Then 'in MDI mode this can get hit recursively
                 'We need to intercept WM_SETFOCUS on the project designer to keep WinForms from setting focus to the
                 '  current control (one of the tab buttons).  Instead, we want to keep the tab buttons from getting
                 '  focus (unless they're clicked on directly), and instead activate the current page directly.
@@ -1271,19 +1273,19 @@ Namespace Microsoft.VisualStudio.Editors.ApplicationDesigner
                 Common.Switches.TracePDFocus(TraceLevel.Warning, "Preprocess: Stealing ApplicationDesignerView.WM_SETFOCUS handling")
                 Common.Switches.TracePDFocus(TraceLevel.Verbose, New Diagnostics.StackTrace().ToString)
 
-                If Not m_InShowTab AndAlso m_OkayToActivatePanelsOnFocus Then
-                    If m_ActivePanelIndex >= 0 AndAlso m_ActivePanelIndex < m_DesignerPanels.Length Then
-                        Dim Panel As ApplicationDesignerPanel = m_DesignerPanels(m_ActivePanelIndex)
+                If Not _inShowTab AndAlso _okayToActivatePanelsOnFocus Then
+                    If _activePanelIndex >= 0 AndAlso _activePanelIndex < _designerPanels.Length Then
+                        Dim Panel As ApplicationDesignerPanel = _designerPanels(_activePanelIndex)
                         If Panel IsNot Nothing Then
                             If Panel.VsWindowFrame IsNot Nothing Then
                                 'Activate the currently-active panel's window frame, give it focus, and ensure that 
                                 '  the active document is updated.
                                 Common.Switches.TracePDFocus(TraceLevel.Warning, "... VsWindowFrame.Show()")
                                 Try
-                                    m_isInPanelWindowFrameShow = True
+                                    _isInPanelWindowFrameShow = True
                                     Panel.VsWindowFrame.Show()
                                 Finally
-                                    m_isInPanelWindowFrameShow = False
+                                    _isInPanelWindowFrameShow = False
                                 End Try
                             ElseIf Panel.CustomViewProvider IsNot Nothing Then
                                 MyBase.WndProc(m)
@@ -1310,7 +1312,7 @@ Namespace Microsoft.VisualStudio.Editors.ApplicationDesigner
         ''' <remarks></remarks>
         Public Sub OnInitializationComplete()
             Common.Switches.TracePDFocus(TraceLevel.Warning, "OnInitializationComplete")
-            m_InitializationComplete = True
+            _initializationComplete = True
 
             'UI initialization is complete.  Now we need to now show the first page.
             ShowTab(LastShownTab, True)
@@ -1321,7 +1323,7 @@ Namespace Microsoft.VisualStudio.Editors.ApplicationDesigner
             '... and start listening to when the dirty state might change
             AdviseRunningDocTableEvents()
 
-            m_OkayToActivatePanelsOnFocus = True
+            _okayToActivatePanelsOnFocus = True
         End Sub
 
 
@@ -1334,7 +1336,7 @@ Namespace Microsoft.VisualStudio.Editors.ApplicationDesigner
         ''' <remarks></remarks>
         Public ReadOnly Property InitializationComplete() As Boolean
             Get
-                Return m_InitializationComplete
+                Return _initializationComplete
             End Get
         End Property
 
@@ -1346,13 +1348,13 @@ Namespace Microsoft.VisualStudio.Editors.ApplicationDesigner
         ''' </summary>
         ''' <remarks></remarks>
         Public Sub DelayRefreshDirtyIndicators() Implements IPropertyPageSiteOwner.DelayRefreshDirtyIndicators
-            If Not m_InitializationComplete Then
+            If Not _initializationComplete Then
                 Exit Sub
             End If
 
-            If Not m_RefreshDirtyIndicatorsQueued AndAlso Me.IsHandleCreated Then
+            If Not _refreshDirtyIndicatorsQueued AndAlso Me.IsHandleCreated Then
                 BeginInvoke(New MethodInvoker(AddressOf RefreshDirtyIndicatorsHelper))
-                m_RefreshDirtyIndicatorsQueued = True
+                _refreshDirtyIndicatorsQueued = True
             End If
         End Sub
 
@@ -1365,9 +1367,9 @@ Namespace Microsoft.VisualStudio.Editors.ApplicationDesigner
         Private Sub RefreshDirtyIndicatorsHelper()
             Try
                 'First, update all tab dirty indicators
-                If m_DesignerPanels IsNot Nothing Then
-                    For i As Integer = 0 To m_DesignerPanels.Length - 1
-                        GetTabButton(i).DirtyIndicator = m_DesignerPanels(i) IsNot Nothing AndAlso m_DesignerPanels(i).IsDirty()
+                If _designerPanels IsNot Nothing Then
+                    For i As Integer = 0 To _designerPanels.Length - 1
+                        GetTabButton(i).DirtyIndicator = _designerPanels(i) IsNot Nothing AndAlso _designerPanels(i).IsDirty()
                     Next
                 End If
 
@@ -1379,7 +1381,7 @@ Namespace Microsoft.VisualStudio.Editors.ApplicationDesigner
                 Dim ProjectDesignerIsDirty As Boolean = False
 
                 Dim AnyTabIsDirty As Boolean = False
-                For i As Integer = 0 To m_DesignerPanels.Length - 1
+                For i As Integer = 0 To _designerPanels.Length - 1
                     AnyTabIsDirty = AnyTabIsDirty OrElse GetTabButton(i).DirtyIndicator
                 Next
                 ProjectDesignerIsDirty = AnyTabIsDirty OrElse IsProjectFileDirty(DTEProject)
@@ -1393,7 +1395,7 @@ Namespace Microsoft.VisualStudio.Editors.ApplicationDesigner
                 Debug.Fail(String.Format("Exception {0} caught when trying to update dirty indicators...", ex))
             Finally
                 'Allow us to queue refresh requests again
-                m_RefreshDirtyIndicatorsQueued = False
+                _refreshDirtyIndicatorsQueued = False
             End Try
         End Sub
 
@@ -1474,15 +1476,15 @@ Namespace Microsoft.VisualStudio.Editors.ApplicationDesigner
         ''' <param name="Dirty">If true, the asterisk is added, if false, it is removed.</param>
         ''' <remarks></remarks>
         Private Sub SetFrameDirtyIndicator(ByVal Dirty As Boolean)
-            If Not m_ProjectDesignerDirtyStateInitialized OrElse m_LastProjectDesignerDirtyState <> Dirty Then
+            If Not _projectDesignerDirtyStateInitialized OrElse _lastProjectDesignerDirtyState <> Dirty Then
                 Dim Frame As IVsWindowFrame = Me.WindowFrame
                 If Frame IsNot Nothing Then
                     'VSFPROPID_OverrideDirtyState - this is a tri-state property.  If Empty, we get default behavior.  True/False
                     '  overrides the state.
                     Dim newState As Object = Dirty
                     Frame.SetProperty(__VSFPROPID2.VSFPROPID_OverrideDirtyState, newState)
-                    m_LastProjectDesignerDirtyState = Dirty
-                    m_ProjectDesignerDirtyStateInitialized = True
+                    _lastProjectDesignerDirtyState = Dirty
+                    _projectDesignerDirtyStateInitialized = True
                 End If
             End If
         End Sub
@@ -1524,14 +1526,14 @@ Namespace Microsoft.VisualStudio.Editors.ApplicationDesigner
         ''' </param>
         ''' <seealso cref='IVsSelectionEvents'/>
         Public Function OnElementValueChanged(ByVal elementid As UInteger, ByVal varValueOld As Object, ByVal varValueNew As Object) As Integer Implements Shell.Interop.IVsSelectionEvents.OnElementValueChanged
-            If elementid = 1 AndAlso m_DesignerPanels IsNot Nothing AndAlso varValueOld IsNot varValueNew Then ' WindowFrame changed
-                For Each panel As ApplicationDesignerPanel In m_DesignerPanels
+            If elementid = 1 AndAlso _designerPanels IsNot Nothing AndAlso varValueOld IsNot varValueNew Then ' WindowFrame changed
+                For Each panel As ApplicationDesignerPanel In _designerPanels
                     If panel.VsWindowFrame Is varValueOld Then
                         panel.OnWindowActivated(False)
                         Exit For
                     End If
                 Next
-                For Each panel As ApplicationDesignerPanel In m_DesignerPanels
+                For Each panel As ApplicationDesignerPanel In _designerPanels
                     If panel.VsWindowFrame Is varValueNew Then
                         panel.OnWindowActivated(True)
                         Exit For
@@ -1593,7 +1595,7 @@ Namespace Microsoft.VisualStudio.Editors.ApplicationDesigner
             Dim rdt As IVsRunningDocumentTable = TryCast(GetService(GetType(IVsRunningDocumentTable)), IVsRunningDocumentTable)
             Debug.Assert(rdt IsNot Nothing, "Couldn't get running document table")
             If rdt IsNot Nothing Then
-                VSErrorHandler.ThrowOnFailure(rdt.AdviseRunningDocTableEvents(Me, m_rdtEventsCookie))
+                VSErrorHandler.ThrowOnFailure(rdt.AdviseRunningDocTableEvents(Me, _rdtEventsCookie))
             End If
         End Sub
 
@@ -1603,13 +1605,13 @@ Namespace Microsoft.VisualStudio.Editors.ApplicationDesigner
         ''' </summary>
         ''' <remarks></remarks>
         Private Sub UnadviseRunningDocTableEvents()
-            If m_rdtEventsCookie <> 0 Then
+            If _rdtEventsCookie <> 0 Then
                 Dim rdt As IVsRunningDocumentTable = TryCast(GetService(GetType(IVsRunningDocumentTable)), IVsRunningDocumentTable)
                 Debug.Assert(rdt IsNot Nothing, "Couldn't get running document table")
                 If rdt IsNot Nothing Then
-                    VSErrorHandler.ThrowOnFailure(rdt.UnadviseRunningDocTableEvents(m_rdtEventsCookie))
+                    VSErrorHandler.ThrowOnFailure(rdt.UnadviseRunningDocTableEvents(_rdtEventsCookie))
                 End If
-                m_rdtEventsCookie = 0
+                _rdtEventsCookie = 0
             End If
         End Sub
 
@@ -1664,8 +1666,8 @@ Namespace Microsoft.VisualStudio.Editors.ApplicationDesigner
         ''' <returns></returns>
         ''' <remarks></remarks>
         Public Function OnAfterSave(ByVal docCookie As UInteger) As Integer Implements IVsRunningDocTableEvents.OnAfterSave
-            Debug.Assert(m_DesignerPanels IsNot Nothing, "m_DesignerPanels should not be Nothing")
-            If m_DesignerPanels IsNot Nothing Then
+            Debug.Assert(_designerPanels IsNot Nothing, "m_DesignerPanels should not be Nothing")
+            If _designerPanels IsNot Nothing Then
                 'Was the project file saved?
                 If docCookie = GetProjectFileCookie(DTEProject) Then
                     'Yes.  Need to reset the undo/redo clean state of all property pages
@@ -1686,14 +1688,14 @@ Namespace Microsoft.VisualStudio.Editors.ApplicationDesigner
         ''' <returns></returns>
         ''' <remarks></remarks>
         Public Function OnBeforeDocumentWindowShow(ByVal docCookie As UInteger, ByVal fFirstShow As Integer, ByVal pFrame As Shell.Interop.IVsWindowFrame) As Integer Implements IVsRunningDocTableEvents.OnBeforeDocumentWindowShow
-            Debug.Assert(m_DesignerPanels IsNot Nothing, "m_DesignerPanels should not be Nothing")
-            If m_DesignerPanels IsNot Nothing Then
-                If Not m_InShowTab Then
+            Debug.Assert(_designerPanels IsNot Nothing, "m_DesignerPanels should not be Nothing")
+            If _designerPanels IsNot Nothing Then
+                If Not _inShowTab Then
                     ' If the window frame passed to us belongs to any of our panels,
                     ' we better set that as the active tab...
-                    For Index As Integer = 0 To m_DesignerPanels.Length - 1
+                    For Index As Integer = 0 To _designerPanels.Length - 1
                         Dim panel As ApplicationDesignerPanel
-                        panel = Me.m_DesignerPanels(Index)
+                        panel = Me._designerPanels(Index)
                         Debug.Assert(panel IsNot Nothing, "m_DesignerPanels(Index) should not be Nothing")
                         If Object.ReferenceEquals(panel.VsWindowFrame, pFrame) Then
                             ShowTab(Index)
@@ -1744,10 +1746,10 @@ Namespace Microsoft.VisualStudio.Editors.ApplicationDesigner
         ''' </summary>
         ''' <remarks></remarks>
         Public Sub SetUndoRedoCleanStateOnAllPropertyPages()
-            For i As Integer = 0 To m_DesignerPanels.Length - 1
-                Debug.Assert(m_DesignerPanels(i) IsNot Nothing, "m_DesignerPanels(Index) should not be Nothing")
-                If m_DesignerPanels(i) IsNot Nothing AndAlso m_DesignerPanels(i).IsPropertyPage Then
-                    Dim PropPageView As PropPageDesigner.PropPageDesignerView = TryCast(m_DesignerPanels(i).DocView, PropPageDesigner.PropPageDesignerView)
+            For i As Integer = 0 To _designerPanels.Length - 1
+                Debug.Assert(_designerPanels(i) IsNot Nothing, "m_DesignerPanels(Index) should not be Nothing")
+                If _designerPanels(i) IsNot Nothing AndAlso _designerPanels(i).IsPropertyPage Then
+                    Dim PropPageView As PropPageDesigner.PropPageDesignerView = TryCast(_designerPanels(i).DocView, PropPageDesigner.PropPageDesignerView)
                     If PropPageView IsNot Nothing Then
                         PropPageView.SetUndoRedoCleanState()
                     End If

@@ -1,3 +1,5 @@
+' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+
 Option Explicit On
 Option Strict On
 Option Compare Binary
@@ -19,10 +21,10 @@ Namespace Microsoft.VisualStudio.Editors.ResourceEditor
         Implements ISerializable
 
         'The Encoding instance that we're wrapping
-        Private m_Encoding As Encoding
+        Private _encoding As Encoding
 
         'Key for serialization
-        Private Const KEY_NAME As String = "Name"
+        Private Const s_KEY_NAME As String = "Name"
 
 
         ''' <summary>
@@ -31,7 +33,7 @@ Namespace Microsoft.VisualStudio.Editors.ResourceEditor
         ''' <param name="Encoding">The encoding to wrap.  Nothing is acceptable (indicates a default value - won't be written out to the resx if Nothing).</param>
         ''' <remarks></remarks>
         Public Sub New(ByVal Encoding As Encoding)
-            m_Encoding = Encoding
+            _encoding = Encoding
         End Sub
 
 
@@ -42,9 +44,9 @@ Namespace Microsoft.VisualStudio.Editors.ResourceEditor
         ''' <param name="context"></param>
         ''' <remarks></remarks>
         Private Sub New(ByVal info As System.Runtime.Serialization.SerializationInfo, ByVal context As System.Runtime.Serialization.StreamingContext)
-            Dim EncodingName As String = info.GetString(KEY_NAME)
+            Dim EncodingName As String = info.GetString(s_KEY_NAME)
             If EncodingName <> "" Then
-                m_Encoding = Text.Encoding.GetEncoding(EncodingName)
+                _encoding = Text.Encoding.GetEncoding(EncodingName)
             End If
         End Sub
 
@@ -56,10 +58,10 @@ Namespace Microsoft.VisualStudio.Editors.ResourceEditor
         ''' <remarks></remarks>
         Public Property Encoding() As Encoding
             Get
-                Return m_Encoding
+                Return _encoding
             End Get
             Set(ByVal Value As Encoding)
-                m_Encoding = Encoding
+                _encoding = Encoding
             End Set
         End Property
 
@@ -70,8 +72,8 @@ Namespace Microsoft.VisualStudio.Editors.ResourceEditor
         ''' <returns></returns>
         ''' <remarks></remarks>
         Public Function DisplayName() As String
-            If m_Encoding IsNot Nothing Then
-                Return SR.GetString(SR.RSE_EncodingDisplayName, m_Encoding.EncodingName, CStr(m_Encoding.CodePage))
+            If _encoding IsNot Nothing Then
+                Return SR.GetString(SR.RSE_EncodingDisplayName, _encoding.EncodingName, CStr(_encoding.CodePage))
             Else
                 'Default
                 Return SR.GetString(SR.RSE_DefaultEncoding)
@@ -86,10 +88,10 @@ Namespace Microsoft.VisualStudio.Editors.ResourceEditor
         ''' <param name="context"></param>
         ''' <remarks></remarks>
         Private Sub GetObjectData(ByVal info As System.Runtime.Serialization.SerializationInfo, ByVal context As System.Runtime.Serialization.StreamingContext) Implements ISerializable.GetObjectData
-            If m_Encoding IsNot Nothing Then
-                info.AddValue(KEY_NAME, m_Encoding.WebName)
+            If _encoding IsNot Nothing Then
+                info.AddValue(s_KEY_NAME, _encoding.WebName)
             Else
-                info.AddValue(KEY_NAME, "")
+                info.AddValue(s_KEY_NAME, "")
             End If
         End Sub
     End Class

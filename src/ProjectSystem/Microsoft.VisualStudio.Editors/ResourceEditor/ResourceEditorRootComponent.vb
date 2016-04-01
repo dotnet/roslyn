@@ -1,3 +1,5 @@
+' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+
 Option Explicit On
 Option Strict On
 Option Compare Binary
@@ -30,28 +32,28 @@ Namespace Microsoft.VisualStudio.Editors.ResourceEditor
 #Region "Fields"
 
         'True iff the root component is being torn down or is already torn down.
-        Private m_TearingDown As Boolean
+        Private _tearingDown As Boolean
 
         'The resx resource file we are currently editing
-        Private m_ResourceFile As ResourceFile
+        Private _resourceFile As ResourceFile
 
         'The resx resource file we are currently editing
-        Private m_ResourceFileName As String
+        Private _resourceFileName As String
 
         'Cached reference to our associated root designer
-        Private m_RootDesigner As ResourceEditorRootDesigner
+        Private _rootDesigner As ResourceEditorRootDesigner
 
         'Whether the resource file belongs to another file (form/userControl)
-        Private m_IsDependentFile As Boolean
+        Private _isDependentFile As Boolean
 
         'Whether the resource item belongs to a device project
-        Private m_IsInsideDeviceProject As Boolean
+        Private _isInsideDeviceProject As Boolean
 
         'Whether the resource item belongs to the global resource folder in ASP .Net application
-        Private m_IsGlobalResourceInASP As Boolean
+        Private _isGlobalResourceInASP As Boolean
 
         ' ASP.Net ProjectKind GUID
-        Private Shared ReadOnly ProjectGuid_ASPDotNet As New Guid("E24C65DC-7377-472b-9ABA-BC803B73C61A")
+        Private Shared ReadOnly s_projectGuid_ASPDotNet As New Guid("E24C65DC-7377-472b-9ABA-BC803B73C61A")
 
 
 #End Region
@@ -66,15 +68,15 @@ Namespace Microsoft.VisualStudio.Editors.ResourceEditor
         ''' <param name="Disposing"></param>
         ''' <remarks></remarks>
         Protected Overrides Sub Dispose(ByVal Disposing As Boolean)
-            m_TearingDown = True
+            _tearingDown = True
 
             If Disposing Then
                 'Stop the resource file from listening to component change events.  It doesn't need to try to
                 '  remove each component separately.  The base class call to Dispose here will remove all
                 '  the subcomponents (Resources) from the host, and we'll dispose the Resources themselves
                 '  in ResourceFile.Dispose() later.
-                If m_ResourceFile IsNot Nothing Then
-                    m_ResourceFile.ComponentChangeService = Nothing
+                If _resourceFile IsNot Nothing Then
+                    _resourceFile.ComponentChangeService = Nothing
                 End If
             End If
 
@@ -108,7 +110,7 @@ Namespace Microsoft.VisualStudio.Editors.ResourceEditor
         ''' <remarks></remarks>
         Friend ReadOnly Property IsTearingDown() As Boolean
             Get
-                Return m_TearingDown
+                Return _tearingDown
             End Get
         End Property
 
@@ -120,8 +122,8 @@ Namespace Microsoft.VisualStudio.Editors.ResourceEditor
         ''' <remarks></remarks>
         Friend ReadOnly Property ResourceFile() As ResourceFile
             Get
-                Debug.Assert(Not m_ResourceFile Is Nothing, "m_ResourceFile should have already been created!  SetResXResourceFile not called?")
-                Return m_ResourceFile
+                Debug.Assert(Not _resourceFile Is Nothing, "m_ResourceFile should have already been created!  SetResXResourceFile not called?")
+                Return _resourceFile
             End Get
         End Property
 
@@ -132,10 +134,10 @@ Namespace Microsoft.VisualStudio.Editors.ResourceEditor
         ''' <remarks></remarks>
         Friend Property ResourceFileName() As String
             Get
-                Return m_ResourceFileName
+                Return _resourceFileName
             End Get
             Set
-                m_ResourceFileName = value
+                _resourceFileName = value
             End Set
         End Property
 
@@ -148,15 +150,15 @@ Namespace Microsoft.VisualStudio.Editors.ResourceEditor
         ''' <remarks></remarks>
         Friend ReadOnly Property RootDesigner() As ResourceEditorRootDesigner
             Get
-                If m_RootDesigner Is Nothing Then
+                If _rootDesigner Is Nothing Then
                     'Not yet cached - get this info from the designer host
                     Debug.Assert(Not Container Is Nothing)
                     Dim Host As IDesignerHost = CType(Container, IDesignerHost)
-                    m_RootDesigner = CType(Host.GetDesigner(Me), ResourceEditorRootDesigner)
+                    _rootDesigner = CType(Host.GetDesigner(Me), ResourceEditorRootDesigner)
                 End If
 
-                Debug.Assert(Not m_RootDesigner Is Nothing, "Don't have an associated designer?!?")
-                Return m_RootDesigner
+                Debug.Assert(Not _rootDesigner Is Nothing, "Don't have an associated designer?!?")
+                Return _rootDesigner
             End Get
         End Property
 
@@ -165,7 +167,7 @@ Namespace Microsoft.VisualStudio.Editors.ResourceEditor
         '''</summary>
         Friend ReadOnly Property IsDependentFile() As Boolean
             Get
-                Return m_IsDependentFile
+                Return _isDependentFile
             End Get
         End Property
 
@@ -174,7 +176,7 @@ Namespace Microsoft.VisualStudio.Editors.ResourceEditor
         '''</summary>
         Friend ReadOnly Property IsInsideDeviceProject() As Boolean
             Get
-                Return m_IsInsideDeviceProject
+                Return _isInsideDeviceProject
             End Get
         End Property
 
@@ -183,7 +185,7 @@ Namespace Microsoft.VisualStudio.Editors.ResourceEditor
         ''' </summary>
         Friend ReadOnly Property IsGlobalResourceInASP() As Boolean
             Get
-                Return m_IsGlobalResourceInASP
+                Return _isGlobalResourceInASP
             End Get
         End Property
 
@@ -200,13 +202,13 @@ Namespace Microsoft.VisualStudio.Editors.ResourceEditor
         Friend Sub LoadResXResourceFile(ByVal NewResourceFile As ResourceFile)
             Debug.Assert(NewResourceFile.RootComponent Is Me)
             Debug.Assert(Not NewResourceFile Is Nothing)
-            Debug.Assert(m_ResourceFile Is Nothing, "ResourceEditorRootComponent.LoadResXResourceFile(): a resource file has already been loaded")
+            Debug.Assert(_resourceFile Is Nothing, "ResourceEditorRootComponent.LoadResXResourceFile(): a resource file has already been loaded")
 
             'Set our reference to the new resx file
-            m_ResourceFile = NewResourceFile
-            m_IsDependentFile = IsDependentItem()
-            m_IsInsideDeviceProject = IsInDeviceProject()
-            m_IsGlobalResourceInASP = IsInGlobalResourceFolderInASP()
+            _resourceFile = NewResourceFile
+            _isDependentFile = IsDependentItem()
+            _isInsideDeviceProject = IsInDeviceProject()
+            _isGlobalResourceInASP = IsInGlobalResourceFolderInASP()
 
             'Now let the root designer know of the change.  It will
             '  cause the designer UI to be changed.
@@ -272,7 +274,7 @@ Namespace Microsoft.VisualStudio.Editors.ResourceEditor
                 End If
 
                 Dim projectKind As String = project.Kind
-                If projectKind Is Nothing OrElse Not ProjectGuid_ASPDotNet.Equals(New Guid(projectKind)) Then
+                If projectKind Is Nothing OrElse Not s_projectGuid_ASPDotNet.Equals(New Guid(projectKind)) Then
                     ' NOT Venus project
                     Return False
                 End If

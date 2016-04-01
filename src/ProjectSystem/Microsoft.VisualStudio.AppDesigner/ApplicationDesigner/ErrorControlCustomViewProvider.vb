@@ -1,4 +1,6 @@
-﻿Imports Microsoft.VisualStudio.Editors.AppDesDesignerFramework
+﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+
+Imports Microsoft.VisualStudio.Editors.AppDesDesignerFramework
 Imports System.Windows.Forms
 
 Namespace Microsoft.VisualStudio.Editors.ApplicationDesigner
@@ -10,9 +12,9 @@ Namespace Microsoft.VisualStudio.Editors.ApplicationDesigner
     Public Class ErrorControlCustomViewProvider
         Inherits CustomViewProvider
 
-        Private m_View As ErrorControl 'The Error control as view
-        Private m_ErrorText As String    'Error text, if given
-        Private m_Exception As Exception 'Erorr exception, if given
+        Private _view As ErrorControl 'The Error control as view
+        Private _errorText As String    'Error text, if given
+        Private _exception As Exception 'Erorr exception, if given
 
 
         ''' <summary>
@@ -21,7 +23,7 @@ Namespace Microsoft.VisualStudio.Editors.ApplicationDesigner
         ''' <param name="ErrorText">The error text to display in the error control.</param>
         ''' <remarks></remarks>
         Public Sub New(ByVal ErrorText As String)
-            m_ErrorText = ErrorText
+            _errorText = ErrorText
         End Sub
 
         ''' <summary>
@@ -30,7 +32,7 @@ Namespace Microsoft.VisualStudio.Editors.ApplicationDesigner
         ''' <param name="Exception">The exception to display in the error control.</param>
         ''' <remarks></remarks>
         Public Sub New(ByVal Exception As Exception)
-            m_Exception = Exception
+            _exception = Exception
         End Sub
 
 
@@ -41,7 +43,7 @@ Namespace Microsoft.VisualStudio.Editors.ApplicationDesigner
         ''' <remarks></remarks>
         Public Overrides ReadOnly Property View() As Control
             Get
-                Return m_View
+                Return _view
             End Get
         End Property
 
@@ -50,11 +52,11 @@ Namespace Microsoft.VisualStudio.Editors.ApplicationDesigner
         ''' </summary>
         ''' <remarks></remarks>
         Public Overrides Sub CreateView()
-            If m_View Is Nothing Then
-                If m_Exception IsNot Nothing Then
-                    m_View = New ErrorControl(m_Exception)
+            If _view Is Nothing Then
+                If _exception IsNot Nothing Then
+                    _view = New ErrorControl(_exception)
                 Else
-                    m_View = New ErrorControl(m_ErrorText)
+                    _view = New ErrorControl(_errorText)
                 End If
             End If
         End Sub
@@ -64,9 +66,9 @@ Namespace Microsoft.VisualStudio.Editors.ApplicationDesigner
         ''' </summary>
         ''' <remarks></remarks>
         Public Overrides Sub CloseView()
-            If m_View IsNot Nothing Then
-                m_View.Dispose()
-                m_View = Nothing
+            If _view IsNot Nothing Then
+                _view.Dispose()
+                _view = Nothing
             End If
         End Sub
 

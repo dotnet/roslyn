@@ -1,3 +1,5 @@
+' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+
 Imports Common = Microsoft.VisualStudio.Editors.AppDesCommon
 Imports Microsoft.VisualStudio.Shell.Interop
 Imports System.Drawing
@@ -10,31 +12,31 @@ Namespace Microsoft.VisualStudio.Editors.ApplicationDesigner
         Inherits ContainerControl
 
         'A list of all buttons currently contained by the control
-        Private m_buttonCollection As New List(Of ProjectDesignerTabButton)
+        Private _buttonCollection As New List(Of ProjectDesignerTabButton)
 
-        Private m_Renderer As ProjectDesignerTabRenderer 'The renderer to use for painting.  May not be Nothing.
-        Private m_SelectedItem As ProjectDesignerTabButton ' Currently-seleted item.  May be Nothing.
-        Private m_HoverItem As ProjectDesignerTabButton ' Currently-hovered item.  May be Nothing.
-        Private m_HostingPanel As Panel
+        Private _renderer As ProjectDesignerTabRenderer 'The renderer to use for painting.  May not be Nothing.
+        Private _selectedItem As ProjectDesignerTabButton ' Currently-seleted item.  May be Nothing.
+        Private _hoverItem As ProjectDesignerTabButton ' Currently-hovered item.  May be Nothing.
+        Private _hostingPanel As Panel
 
         'The overflow button for displaying tabs which can't currently fit
         Public WithEvents OverflowButton As Button
 
         'The overflow menu that gets displayed when the overflow button is pressed
-        Private m_OverflowMenu As New ContextMenuStrip
-        Private m_OverflowTooltip As New ToolTip
+        Private _overflowMenu As New ContextMenuStrip
+        Private _overflowTooltip As New ToolTip
 
         'Backs up the ServiceProvider property
-        Private m_ServiceProvider As IServiceProvider
+        Private _serviceProvider As IServiceProvider
 
         ''' <summary>
         '''  Listen for font/color changes from the shell
         ''' </summary>
         ''' <remarks></remarks>
-        Private WithEvents m_BroadcastMessageEventsHelper As Common.ShellUtil.BroadcastMessageEventsHelper
+        Private WithEvents _broadcastMessageEventsHelper As Common.ShellUtil.BroadcastMessageEventsHelper
 
-        Private ReadOnly DefaultOverflowBorderColor As Color = SystemColors.MenuText
-        Private ReadOnly DefaultOverflowHoverColor As Color = SystemColors.Highlight
+        Private ReadOnly _defaultOverflowBorderColor As Color = SystemColors.MenuText
+        Private ReadOnly _defaultOverflowHoverColor As Color = SystemColors.Highlight
 
 
 
@@ -42,7 +44,7 @@ Namespace Microsoft.VisualStudio.Editors.ApplicationDesigner
 
 
         Public Sub New()
-            m_Renderer = New ProjectDesignerTabRenderer(Me)
+            _renderer = New ProjectDesignerTabRenderer(Me)
 
             SuspendLayout()
             Try
@@ -59,19 +61,19 @@ Namespace Microsoft.VisualStudio.Editors.ApplicationDesigner
         'Control override dispose to clean up the component list.
         Protected Overrides Sub Dispose(ByVal disposing As Boolean)
             If disposing Then
-                If components IsNot Nothing Then
-                    components.Dispose()
+                If _components IsNot Nothing Then
+                    _components.Dispose()
                 End If
-                If m_BroadcastMessageEventsHelper IsNot Nothing Then
-                    m_BroadcastMessageEventsHelper.Dispose()
-                    m_BroadcastMessageEventsHelper = Nothing
+                If _broadcastMessageEventsHelper IsNot Nothing Then
+                    _broadcastMessageEventsHelper.Dispose()
+                    _broadcastMessageEventsHelper = Nothing
                 End If
             End If
             MyBase.Dispose(disposing)
         End Sub 'Dispose
 
         'Required by the Control Designer
-        Private components As System.ComponentModel.IContainer
+        Private _components As System.ComponentModel.IContainer
 
 
         ' NOTE: The following procedure is required by the Component Designer
@@ -80,7 +82,7 @@ Namespace Microsoft.VisualStudio.Editors.ApplicationDesigner
         '<System.Diagnostics.DebuggerNonUserCode()> 
         Private Sub InitializeComponent()
             Me.SuspendLayout()
-            Me.components = New System.ComponentModel.Container
+            Me._components = New System.ComponentModel.Container
 
             'No scrollbars
             Me.AutoScroll = False
@@ -95,13 +97,13 @@ Namespace Microsoft.VisualStudio.Editors.ApplicationDesigner
         ''' </summary>
         ''' <remarks></remarks>
         Private Sub Initialize()
-            m_HostingPanel = New Panel()
-            m_HostingPanel.BackColor = PropertyPages.PropPageUserControlBase.PropPageBackColor
-            m_HostingPanel.Visible = True
-            m_HostingPanel.Anchor = AnchorStyles.Top Or AnchorStyles.Left Or AnchorStyles.Bottom Or AnchorStyles.Right
-            m_HostingPanel.AutoScroll = True
-            m_HostingPanel.Text = "HostingPanel" 'For debugging
-            m_HostingPanel.AccessibleName = SR.GetString(SR.APPDES_HostingPanelName)
+            _hostingPanel = New Panel()
+            _hostingPanel.BackColor = PropertyPages.PropPageUserControlBase.PropPageBackColor
+            _hostingPanel.Visible = True
+            _hostingPanel.Anchor = AnchorStyles.Top Or AnchorStyles.Left Or AnchorStyles.Bottom Or AnchorStyles.Right
+            _hostingPanel.AutoScroll = True
+            _hostingPanel.Text = "HostingPanel" 'For debugging
+            _hostingPanel.AccessibleName = SR.GetString(SR.APPDES_HostingPanelName)
 
             'Add any initialization after the InitializeComponent() call
             '
@@ -110,7 +112,7 @@ Namespace Microsoft.VisualStudio.Editors.ApplicationDesigner
             Me.Size = New System.Drawing.Size(144, 754)
             Me.TabIndex = 0
             Me.DoubleBuffered = True
-            Me.Controls.Add(m_HostingPanel)
+            Me.Controls.Add(_hostingPanel)
 
             SetUpOverflowButton()
         End Sub 'InitTabInfo
@@ -127,11 +129,11 @@ Namespace Microsoft.VisualStudio.Editors.ApplicationDesigner
                 .Name = "OverflowButton"
                 .Text = ""
                 .AccessibleName = SR.GetString(SR.APPDES_OverflowButton_AccessibilityName)
-                .FlatAppearance.BorderColor = DefaultOverflowBorderColor
-                .FlatAppearance.MouseOverBackColor = DefaultOverflowHoverColor
+                .FlatAppearance.BorderColor = _defaultOverflowBorderColor
+                .FlatAppearance.MouseOverBackColor = _defaultOverflowHoverColor
                 .Size = New Size(18, 18)
                 .Visible = False 'Don't show it until we need it
-                m_OverflowTooltip.SetToolTip(OverflowButton, SR.GetString(SR.APPDES_OverflowButton_Tooltip))
+                _overflowTooltip.SetToolTip(OverflowButton, SR.GetString(SR.APPDES_OverflowButton_Tooltip))
 
             End With
             MyBase.Controls.Add(OverflowButton)
@@ -149,13 +151,13 @@ Namespace Microsoft.VisualStudio.Editors.ApplicationDesigner
         ''' <remarks></remarks>
         Public Property ServiceProvider() As IServiceProvider
             Get
-                Return m_ServiceProvider
+                Return _serviceProvider
             End Get
             Set(ByVal value As IServiceProvider)
-                m_ServiceProvider = value
-                m_Renderer.ServiceProvider = value
+                _serviceProvider = value
+                _renderer.ServiceProvider = value
 
-                If m_ServiceProvider IsNot Nothing Then
+                If _serviceProvider IsNot Nothing Then
                     OnGotServiceProvider()
                 End If
             End Set
@@ -170,22 +172,22 @@ Namespace Microsoft.VisualStudio.Editors.ApplicationDesigner
             'We now should have access to the color provider service
             Dim vsUiShell As IVsUIShell = Nothing
             Dim vsUiShell2 As IVsUIShell2 = DirectCast(vsUiShell, IVsUIShell2)
-            If m_ServiceProvider IsNot Nothing Then
-                vsUiShell = DirectCast(m_ServiceProvider.GetService(GetType(IVsUIShell)), IVsUIShell)
+            If _serviceProvider IsNot Nothing Then
+                vsUiShell = DirectCast(_serviceProvider.GetService(GetType(IVsUIShell)), IVsUIShell)
                 If vsUiShell IsNot Nothing Then
                     vsUiShell2 = DirectCast(vsUiShell, IVsUIShell2)
                 End If
             End If
 
-            OverflowButton.FlatAppearance.BorderColor = AppDesCommon.ShellUtil.GetColor(vsUiShell2, Shell.Interop.__VSSYSCOLOREX.VSCOLOR_COMMANDBAR_BORDER, DefaultOverflowBorderColor)
-            OverflowButton.FlatAppearance.MouseOverBackColor = AppDesCommon.ShellUtil.GetColor(vsUiShell2, Shell.Interop.__VSSYSCOLOREX.VSCOLOR_COMMANDBAR_HOVER, DefaultOverflowHoverColor)
+            OverflowButton.FlatAppearance.BorderColor = AppDesCommon.ShellUtil.GetColor(vsUiShell2, Shell.Interop.__VSSYSCOLOREX.VSCOLOR_COMMANDBAR_BORDER, _defaultOverflowBorderColor)
+            OverflowButton.FlatAppearance.MouseOverBackColor = AppDesCommon.ShellUtil.GetColor(vsUiShell2, Shell.Interop.__VSSYSCOLOREX.VSCOLOR_COMMANDBAR_HOVER, _defaultOverflowHoverColor)
 
-            If m_BroadcastMessageEventsHelper IsNot Nothing Then
-                m_BroadcastMessageEventsHelper.Dispose()
-                m_BroadcastMessageEventsHelper = Nothing
+            If _broadcastMessageEventsHelper IsNot Nothing Then
+                _broadcastMessageEventsHelper.Dispose()
+                _broadcastMessageEventsHelper = Nothing
             End If
-            If m_ServiceProvider IsNot Nothing Then
-                m_BroadcastMessageEventsHelper = New Common.ShellUtil.BroadcastMessageEventsHelper(m_ServiceProvider)
+            If _serviceProvider IsNot Nothing Then
+                _broadcastMessageEventsHelper = New Common.ShellUtil.BroadcastMessageEventsHelper(_serviceProvider)
             End If
         End Sub
 
@@ -195,9 +197,9 @@ Namespace Microsoft.VisualStudio.Editors.ApplicationDesigner
         ''' </summary>
         ''' <value></value>
         ''' <remarks></remarks>
-        ReadOnly Property TabButtons() As IEnumerable(Of ProjectDesignerTabButton)
+        Public ReadOnly Property TabButtons() As IEnumerable(Of ProjectDesignerTabButton)
             Get
-                Return m_buttonCollection
+                Return _buttonCollection
             End Get
         End Property
 
@@ -207,7 +209,7 @@ Namespace Microsoft.VisualStudio.Editors.ApplicationDesigner
         ''' </summary>
         ''' <remarks></remarks>
         Public Sub ClearTabs()
-            m_buttonCollection.Clear()
+            _buttonCollection.Clear()
             InvalidateLayout()
         End Sub
 
@@ -219,7 +221,7 @@ Namespace Microsoft.VisualStudio.Editors.ApplicationDesigner
         ''' <returns></returns>
         ''' <remarks></remarks>
         Public Function GetTabButton(ByVal index As Integer) As ProjectDesignerTabButton
-            Return m_buttonCollection(index)
+            Return _buttonCollection(index)
         End Function
 
 
@@ -230,7 +232,7 @@ Namespace Microsoft.VisualStudio.Editors.ApplicationDesigner
         ''' <remarks></remarks>
         Public ReadOnly Property TabButtonCount() As Integer
             Get
-                Return m_buttonCollection.Count
+                Return _buttonCollection.Count
             End Get
         End Property
 
@@ -242,7 +244,7 @@ Namespace Microsoft.VisualStudio.Editors.ApplicationDesigner
         ''' <remarks></remarks>
         Public ReadOnly Property HostingPanel() As Panel
             Get
-                Return m_HostingPanel
+                Return _hostingPanel
             End Get
         End Property
 
@@ -255,7 +257,7 @@ Namespace Microsoft.VisualStudio.Editors.ApplicationDesigner
         Protected Overrides Sub OnLayout(ByVal levent As LayoutEventArgs)
             Common.Switches.TracePDPerfBegin(levent, "DesignerTabControl.OnLayout()")
 
-            m_Renderer.PerformLayout() 'This can affect the layout of other controls on this page
+            _renderer.PerformLayout() 'This can affect the layout of other controls on this page
             MyBase.OnLayout(levent)
 
             Invalidate()
@@ -286,8 +288,8 @@ Namespace Microsoft.VisualStudio.Editors.ApplicationDesigner
                 Dim Button As New ProjectDesignerTabButton()
                 Button.Text = Title
                 Button.Name = AutomationName
-                m_buttonCollection.Add(Button)
-                newIndex = m_buttonCollection.Count - 1
+                _buttonCollection.Add(Button)
+                newIndex = _buttonCollection.Count - 1
                 Controls.Add(Button)
                 Button.SetIndex(newIndex)
                 Button.Visible = True
@@ -310,7 +312,7 @@ Namespace Microsoft.VisualStudio.Editors.ApplicationDesigner
         ''' <remarks></remarks>
         Public ReadOnly Property HoverItem() As ProjectDesignerTabButton
             Get
-                Return m_HoverItem
+                Return _hoverItem
             End Get
         End Property
 
@@ -322,39 +324,39 @@ Namespace Microsoft.VisualStudio.Editors.ApplicationDesigner
         ''' <remarks></remarks>
         Public Property SelectedItem() As ProjectDesignerTabButton
             Get
-                Return m_SelectedItem
+                Return _selectedItem
             End Get
             Set(ByVal value As ProjectDesignerTabButton)
                 Dim oldSelectedItem As ProjectDesignerTabButton = Nothing
 
-                If m_SelectedItem Is value Then
+                If _selectedItem Is value Then
                     Return
                 End If
-                If m_SelectedItem IsNot Nothing Then
-                    oldSelectedItem = m_SelectedItem
-                    m_SelectedItem.Invalidate()
+                If _selectedItem IsNot Nothing Then
+                    oldSelectedItem = _selectedItem
+                    _selectedItem.Invalidate()
                 End If
-                m_SelectedItem = value
+                _selectedItem = value
 
                 'If the selected item was the hover item, then clear it
-                If m_HoverItem Is value Then
-                    m_HoverItem = Nothing
+                If _hoverItem Is value Then
+                    _hoverItem = Nothing
                 End If
-                If m_SelectedItem IsNot Nothing Then
-                    m_SelectedItem.Visible = True 'Must be visible in order to properly get the focus
-                    If m_SelectedItem.CanFocus AndAlso SelectedItem.TabStop Then
+                If _selectedItem IsNot Nothing Then
+                    _selectedItem.Visible = True 'Must be visible in order to properly get the focus
+                    If _selectedItem.CanFocus AndAlso SelectedItem.TabStop Then
                         Common.Switches.TracePDFocus(TraceLevel.Warning, "ProjectDesignerTabControl.set_SelectedItem - Setting focus to selected tab")
-                        m_SelectedItem.Focus()
+                        _selectedItem.Focus()
                     End If
-                    m_SelectedItem.Invalidate()
+                    _selectedItem.Invalidate()
                 End If
 
                 ' Fire state change event to notify the screen reader...
                 If oldSelectedItem IsNot Nothing Then
                     CType(oldSelectedItem.AccessibilityObject, ControlAccessibleObject).NotifyClients(AccessibleEvents.StateChange)
                 End If
-                If m_SelectedItem IsNot Nothing Then
-                    CType(m_SelectedItem.AccessibilityObject, ControlAccessibleObject).NotifyClients(AccessibleEvents.StateChange)
+                If _selectedItem IsNot Nothing Then
+                    CType(_selectedItem.AccessibilityObject, ControlAccessibleObject).NotifyClients(AccessibleEvents.StateChange)
                 End If
             End Set
         End Property
@@ -367,17 +369,17 @@ Namespace Microsoft.VisualStudio.Editors.ApplicationDesigner
         ''' <remarks></remarks>
         Public Property SelectedIndex() As Integer
             Get
-                If m_SelectedItem Is Nothing Then
+                If _selectedItem Is Nothing Then
                     Return -1
                 End If
 
-                Return m_SelectedItem.ButtonIndex
+                Return _selectedItem.ButtonIndex
             End Get
             Set(ByVal value As Integer)
                 If value = -1 Then
                     SelectedItem = Nothing
                 Else
-                    SelectedItem = m_buttonCollection(value)
+                    SelectedItem = _buttonCollection(value)
                 End If
             End Set
         End Property
@@ -419,8 +421,8 @@ Namespace Microsoft.VisualStudio.Editors.ApplicationDesigner
         ''' <param name="item"></param>
         ''' <remarks></remarks>
         Public Sub OnItemEnter(ByVal e As EventArgs, ByVal item As ProjectDesignerTabButton)
-            If m_HoverItem IsNot item Then
-                m_HoverItem = item
+            If _hoverItem IsNot item Then
+                _hoverItem = item
                 item.Invalidate()
             End If
         End Sub
@@ -433,8 +435,8 @@ Namespace Microsoft.VisualStudio.Editors.ApplicationDesigner
         ''' <param name="item"></param>
         ''' <remarks></remarks>
         Public Sub OnItemLeave(ByVal e As EventArgs, ByVal item As ProjectDesignerTabButton)
-            If m_HoverItem Is item Then
-                m_HoverItem = Nothing
+            If _hoverItem Is item Then
+                _hoverItem = Nothing
                 item.Invalidate()
             End If
         End Sub
@@ -464,7 +466,7 @@ Namespace Microsoft.VisualStudio.Editors.ApplicationDesigner
         ''' <remarks></remarks>
         Public ReadOnly Property Renderer() As ProjectDesignerTabRenderer
             Get
-                Return m_Renderer
+                Return _renderer
             End Get
         End Property
 
@@ -476,34 +478,34 @@ Namespace Microsoft.VisualStudio.Editors.ApplicationDesigner
         ''' <remarks></remarks>
         Private Sub OverflowButton_Click(ByVal sender As Object, ByVal e As System.EventArgs) Handles OverflowButton.Click
             'Set up to use VS colors
-            If m_ServiceProvider IsNot Nothing Then
-                Dim uiSvc As IUIService = DirectCast(m_ServiceProvider.GetService(GetType(IUIService)), IUIService)
+            If _serviceProvider IsNot Nothing Then
+                Dim uiSvc As IUIService = DirectCast(_serviceProvider.GetService(GetType(IUIService)), IUIService)
                 'Set up the menu font and toolstrip renderer
                 If uiSvc IsNot Nothing Then
                     Dim Renderer As ToolStripProfessionalRenderer = DirectCast(uiSvc.Styles("VsRenderer"), ToolStripProfessionalRenderer)
                     If Renderer IsNot Nothing Then
-                        m_OverflowMenu.Renderer = Renderer
+                        _overflowMenu.Renderer = Renderer
                     End If
 
                     Dim NewFont As Font = DirectCast(uiSvc.Styles("DialogFont"), Drawing.Font)
                     If NewFont IsNot Nothing Then
-                        m_OverflowMenu.Font = NewFont
+                        _overflowMenu.Font = NewFont
                     End If
 
                     Dim CommandBarTextActiveColor As Color = DirectCast(uiSvc.Styles("CommandBarTextActive"), Color)
-                    m_OverflowMenu.ForeColor = CommandBarTextActiveColor
+                    _overflowMenu.ForeColor = CommandBarTextActiveColor
 
                     Dim CommandBarMenuBackgroundGradientEndColor As Color = DirectCast(uiSvc.Styles("CommandBarMenuBackgroundGradientEnd"), Color)
-                    m_OverflowMenu.BackColor = CommandBarMenuBackgroundGradientEndColor
+                    _overflowMenu.BackColor = CommandBarMenuBackgroundGradientEndColor
 
                 End If
             End If
 
             'Remove old menu items and handlers
-            For Each Item As ToolStripMenuItem In m_OverflowMenu.Items
+            For Each Item As ToolStripMenuItem In _overflowMenu.Items
                 RemoveHandler Item.Click, AddressOf OverflowMenuItemClick
             Next
-            m_OverflowMenu.Items.Clear()
+            _overflowMenu.Items.Clear()
 
             'Create a menu structure for the buttons, and let the user select from that.  We include in the overflow
             '  menu only buttons which are not currently visible in the available space.
@@ -516,14 +518,14 @@ Namespace Microsoft.VisualStudio.Editors.ApplicationDesigner
                         AddHandler .Click, AddressOf OverflowMenuItemClick
                         .Tag = button
                     End With
-                    m_OverflowMenu.Items.Add(MenuItem)
+                    _overflowMenu.Items.Add(MenuItem)
                 End If
             Next
 
-            If m_OverflowMenu.Items.Count > 0 Then
+            If _overflowMenu.Items.Count > 0 Then
                 'Show the overflow menu
                 Dim OverflowMenuDistanceFromButtonButtonLeft As Size = New Size(-2, 2)
-                m_OverflowMenu.Show(Me, _
+                _overflowMenu.Show(Me, _
                     OverflowButton.Left + OverflowMenuDistanceFromButtonButtonLeft.Width, _
                     OverflowButton.Bottom + OverflowMenuDistanceFromButtonButtonLeft.Height)
             Else
@@ -550,7 +552,7 @@ Namespace Microsoft.VisualStudio.Editors.ApplicationDesigner
                 '  We do that by setting it as the preferred button for the switchable slot.
                 '(This must be done after OnItemClick, because otherwise the selected item will be
                 '  wrong and the renderer gives preference to the selected item.)
-                m_Renderer.PreferredButtonForSwitchableSlot = Button
+                _renderer.PreferredButtonForSwitchableSlot = Button
             End If
         End Sub
 
@@ -561,10 +563,10 @@ Namespace Microsoft.VisualStudio.Editors.ApplicationDesigner
         ''' <param name="wparam"></param>
         ''' <param name="lparam"></param>
         ''' <remarks></remarks>
-        Private Sub m_BroadcastMessageEventsHelper_BroadcastMessage(ByVal msg As UInteger, ByVal wParam As System.IntPtr, ByVal lParam As System.IntPtr) Handles m_BroadcastMessageEventsHelper.BroadcastMessage
+        Private Sub m_BroadcastMessageEventsHelper_BroadcastMessage(ByVal msg As UInteger, ByVal wParam As System.IntPtr, ByVal lParam As System.IntPtr) Handles _broadcastMessageEventsHelper.BroadcastMessage
             Select Case msg
                 Case AppDesInterop.win.WM_PALETTECHANGED, AppDesInterop.win.WM_SYSCOLORCHANGE, AppDesInterop.win.WM_THEMECHANGED
-                    m_Renderer.CreateGDIObjects(True)
+                    _renderer.CreateGDIObjects(True)
             End Select
         End Sub
 
@@ -638,11 +640,11 @@ Namespace Microsoft.VisualStudio.Editors.ApplicationDesigner
             Inherits ControlAccessibleObject
 
             ' button which this accessible object belongs to
-            Private m_TabControl As ProjectDesignerTabControl
+            Private _tabControl As ProjectDesignerTabControl
 
             Public Sub New(ByVal owner As ProjectDesignerTabControl)
                 MyBase.New(owner)
-                m_TabControl = owner
+                _tabControl = owner
             End Sub
 
             ''' <summary>
@@ -668,8 +670,8 @@ Namespace Microsoft.VisualStudio.Editors.ApplicationDesigner
             ''' </summary>
             Public Overrides Property Value() As String
                 Get
-                    If m_TabControl.SelectedItem IsNot Nothing Then
-                        Return m_TabControl.SelectedItem.Text
+                    If _tabControl.SelectedItem IsNot Nothing Then
+                        Return _tabControl.SelectedItem.Text
                     Else
                         Return Nothing
                     End If

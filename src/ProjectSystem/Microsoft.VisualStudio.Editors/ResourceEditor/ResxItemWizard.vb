@@ -1,3 +1,5 @@
+' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+
 Option Strict On
 Option Explicit On
 Option Compare Binary
@@ -17,7 +19,7 @@ Namespace Microsoft.VisualStudio.Editors.ResourceEditor
     Public Class ResxItemWizard
         Implements IWizard
 
-        Private propertiesToSet As StringDictionary
+        Private _propertiesToSet As StringDictionary
 
         ''' <summary>
         ''' Do nothing
@@ -45,7 +47,7 @@ Namespace Microsoft.VisualStudio.Editors.ResourceEditor
         Public Sub ProjectItemFinishedGenerating(ByVal projectItem As EnvDTE.ProjectItem) Implements IWizard.ProjectItemFinishedGenerating
 
             Debug.Assert(projectItem IsNot Nothing, "Null projectItem?")
-            If (projectItem IsNot Nothing AndAlso propertiesToSet IsNot Nothing) Then
+            If (projectItem IsNot Nothing AndAlso _propertiesToSet IsNot Nothing) Then
 
                 Dim fileName As String = projectItem.FileNames(1)
                 Debug.Assert(fileName IsNot Nothing AndAlso fileName.Length > 0, "bogus ProjectItem.FileNames(1) value?")
@@ -56,7 +58,7 @@ Namespace Microsoft.VisualStudio.Editors.ResourceEditor
                 Debug.Assert(itemProperties IsNot Nothing, "null projectItem.Properties?")
                 If (itemProperties IsNot Nothing) Then
 
-                    For Each propertyEntry As System.Collections.DictionaryEntry In propertiesToSet
+                    For Each propertyEntry As System.Collections.DictionaryEntry In _propertiesToSet
 
                         Dim name As String = TryCast(propertyEntry.Key, String)
                         Dim value As String = TryCast(propertyEntry.Value, String)
@@ -121,7 +123,7 @@ Namespace Microsoft.VisualStudio.Editors.ResourceEditor
 
                 If (replacementsDictionary.ContainsKey("$itemproperties$")) Then
 
-                    propertiesToSet = New StringDictionary()
+                    _propertiesToSet = New StringDictionary()
 
                     Dim propertyNames As String = replacementsDictionary("$itemproperties$")
 
@@ -133,8 +135,8 @@ Namespace Microsoft.VisualStudio.Editors.ResourceEditor
 
                             Dim macroName As String = "$" & trimmedPropertyName & "$"
 
-                            If (replacementsDictionary.ContainsKey(macroName) AndAlso Not propertiesToSet.ContainsKey(trimmedPropertyName)) Then
-                                propertiesToSet.Add(trimmedPropertyName, replacementsDictionary(macroName))
+                            If (replacementsDictionary.ContainsKey(macroName) AndAlso Not _propertiesToSet.ContainsKey(trimmedPropertyName)) Then
+                                _propertiesToSet.Add(trimmedPropertyName, replacementsDictionary(macroName))
                             End If
                         End If
                     Next
@@ -142,7 +144,7 @@ Namespace Microsoft.VisualStudio.Editors.ResourceEditor
                     ' if the dictionary does not have $itemproperties$ then there's nothing
                     '   for us to set, so we clear out our string-dictionary
                     '
-                    propertiesToSet = Nothing
+                    _propertiesToSet = Nothing
                 End If
 
             End If

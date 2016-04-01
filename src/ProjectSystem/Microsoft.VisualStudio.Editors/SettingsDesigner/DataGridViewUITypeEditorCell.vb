@@ -1,3 +1,5 @@
+' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+
 Imports System.ComponentModel
 Imports System.Drawing
 Imports System.Drawing.Design
@@ -12,14 +14,14 @@ Namespace Microsoft.VisualStudio.Editors.SettingsDesigner
     Friend NotInheritable Class DataGridViewUITypeEditorCell
         Inherits DataGridViewCell
 
-        Private m_ServiceProvider As IServiceProvider
+        Private _serviceProvider As IServiceProvider
 
         ''' <summary>
         ''' For edit on keydown or mouse click we sometimes need to
         ''' ignore a mouse click...
         ''' </summary>
         ''' <remarks></remarks>
-        Private m_ignoreNextMouseClick As Boolean
+        Private _ignoreNextMouseClick As Boolean
 
 #Region "DataGridViewCell overrides"
 
@@ -207,8 +209,8 @@ Namespace Microsoft.VisualStudio.Editors.SettingsDesigner
             ' Clicking in the currently selected cell should start edit...
             Dim ptCurrentCell As Point = DataGridView.CurrentCellAddress
             If ptCurrentCell.X = e.ColumnIndex AndAlso ptCurrentCell.Y = e.RowIndex AndAlso e.Button = MouseButtons.Left Then
-                If m_ignoreNextMouseClick Then
-                    m_ignoreNextMouseClick = False
+                If _ignoreNextMouseClick Then
+                    _ignoreNextMouseClick = False
                 ElseIf (Control.ModifierKeys And (Keys.Control Or Keys.Shift)) = 0 Then
                     Me.DataGridView.BeginEdit(True)
                 End If
@@ -265,7 +267,7 @@ Namespace Microsoft.VisualStudio.Editors.SettingsDesigner
                 End If
 
                 ' If the datagridview isn't ready to be edited, we want to ignore the next mouse click...
-                m_ignoreNextMouseClick = ec.Cancel
+                _ignoreNextMouseClick = ec.Cancel
             End If
         End Sub
 
@@ -277,17 +279,17 @@ Namespace Microsoft.VisualStudio.Editors.SettingsDesigner
         ''' <remarks></remarks>
         Protected Overrides Sub OnLeave(ByVal rowIndex As Integer, ByVal throughMouseClick As Boolean)
             MyBase.OnLeave(rowIndex, throughMouseClick)
-            m_ignoreNextMouseClick = False
+            _ignoreNextMouseClick = False
         End Sub
 
 #End Region
 
         Friend Property ServiceProvider() As IServiceProvider
             Get
-                Return m_ServiceProvider
+                Return _serviceProvider
             End Get
             Set(ByVal Value As IServiceProvider)
-                m_ServiceProvider = Value
+                _serviceProvider = Value
             End Set
         End Property
 

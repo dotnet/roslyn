@@ -1,3 +1,5 @@
+' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+
 Option Strict On
 Option Explicit On
 Imports System.Windows.Forms
@@ -21,7 +23,7 @@ Namespace Microsoft.VisualStudio.Editors.AppDesCommon
     Friend Class WaitCursor
         Implements IDisposable
 
-        Private PreviousCursor As Cursor
+        Private _previousCursor As Cursor
 
 
         '**************************************************************************
@@ -33,7 +35,7 @@ Namespace Microsoft.VisualStudio.Editors.AppDesCommon
         '   Changes the cursor to a wait cursor until the class is Disposed
         '**************************************************************************
         Public Sub New()
-            PreviousCursor = Cursor.Current
+            _previousCursor = Cursor.Current
             Cursor.Current = Cursors.WaitCursor
         End Sub 'Ne
 
@@ -47,9 +49,9 @@ Namespace Microsoft.VisualStudio.Editors.AppDesCommon
         '   May be called multiple times safely.
         '**************************************************************************
         Public Sub Dispose() Implements IDisposable.Dispose
-            If Not (PreviousCursor Is Nothing) Then
-                Cursor.Current = PreviousCursor
-                PreviousCursor = Nothing
+            If Not (_previousCursor Is Nothing) Then
+                Cursor.Current = _previousCursor
+                _previousCursor = Nothing
             Else
                 Cursor.Current = Cursors.Default
             End If

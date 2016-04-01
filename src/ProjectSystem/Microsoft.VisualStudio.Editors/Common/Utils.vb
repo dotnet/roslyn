@@ -1,3 +1,5 @@
+' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+
 Imports System.ComponentModel.Design
 Imports System.Drawing
 Imports System.Drawing.Imaging
@@ -25,9 +27,9 @@ Namespace Microsoft.VisualStudio.Editors.Common
 
 
         ' The maximal amount of files that can be added at one shot. (copied from other VS features)
-        Const VSDPLMAXFILES As Integer = 200
+        Private Const s_VSDPLMAXFILES As Integer = 200
 
-        Private m_ImageService As IVsImageService2
+        Private s_imageService As IVsImageService2
 
         'Property page GUIDs.  These are used only for sorting the tabs in the project designer, and for providing a
         '  unique ID for SQM.  Both cases are optional (we handle getting property pages with GUIDs we don't recognize).
@@ -242,12 +244,12 @@ Namespace Microsoft.VisualStudio.Editors.Common
 
         Private ReadOnly Property ImageService() As IVsImageService2
             Get
-                If (m_ImageService Is Nothing) Then
+                If (s_imageService Is Nothing) Then
                     Dim serviceProvider As ServiceProvider
                     serviceProvider = ServiceProvider.GlobalProvider
-                    m_ImageService = CType(serviceProvider.GetService(GetType(SVsImageService)), IVsImageService2)
+                    s_imageService = CType(serviceProvider.GetService(GetType(SVsImageService)), IVsImageService2)
                 End If
-                Return m_ImageService
+                Return s_imageService
             End Get
         End Property
 
@@ -714,7 +716,7 @@ Namespace Microsoft.VisualStudio.Editors.Common
 
             Dim MaxPathName As Integer = Interop.win.MAX_PATH + 1
             If MutiSelect Then
-                MaxPathName = (Interop.win.MAX_PATH + 1) * VSDPLMAXFILES
+                MaxPathName = (Interop.win.MAX_PATH + 1) * s_VSDPLMAXFILES
             End If
 
             Dim vsOpenFileName As Shell.Interop.VSOPENFILENAMEW()
@@ -1442,7 +1444,7 @@ Namespace Microsoft.VisualStudio.Editors.Common
             ' in this list. All unknown entries will be reported as &hFF
             '
             ' Add more entries to the end of this list. Do *not* put any new entries in the middle of the list!
-            Private Shared SqmOrder() As Guid = { _
+            Private Shared s_sqmOrder() As Guid = { _
                 KnownPropertyPageGuids.GuidApplicationPage_VB, _
                 KnownPropertyPageGuids.GuidApplicationPage_CS, _
                 KnownPropertyPageGuids.GuidApplicationPage_JS, _
@@ -1482,8 +1484,8 @@ Namespace Microsoft.VisualStudio.Editors.Common
             ''' <returns></returns>
             ''' <remarks></remarks>
             Friend Shared Function PageGuidToId(ByVal guid As Guid) As Byte
-                For i As Integer = 0 To SqmOrder.Length - 1
-                    If SqmOrder(i).Equals(guid) Then
+                For i As Integer = 0 To s_sqmOrder.Length - 1
+                    If s_sqmOrder(i).Equals(guid) Then
                         Return CByte(i + 1)
                     End If
                 Next
@@ -1495,16 +1497,16 @@ Namespace Microsoft.VisualStudio.Editors.Common
 
 #Region "Wrapper that allows indirect calls into the static helpers in order to help unit test our code"
 
-        Private m_instance As New Helper
+        Private s_instance As New Helper
 
         Friend ReadOnly Property Instance() As Helper
             Get
-                Return m_instance
+                Return s_instance
             End Get
         End Property
 
         Friend Sub SetFakeHelper(ByVal fakeHelper As Helper)
-            m_instance = fakeHelper
+            s_instance = fakeHelper
         End Sub
 
         ''' <summary>

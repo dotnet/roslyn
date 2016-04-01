@@ -1,3 +1,5 @@
+' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+
 Namespace Microsoft.VisualStudio.Editors.MyApplication
 
     <ComponentModel.EditorBrowsable(ComponentModel.EditorBrowsableState.Never)> _
@@ -10,105 +12,105 @@ Namespace Microsoft.VisualStudio.Editors.MyApplication
             'Default authentication mode to "Windows"
             AuthenticationMode = Global.Microsoft.VisualBasic.ApplicationServices.AuthenticationMode.Windows
 
-            m_SaveMySettingsOnExit = True
+            _saveMySettingsOnExit = True
         End Sub
 
-        Private m_MySubMain As Boolean 'True indicates My.MyApplication will be StartupObject
-        Private m_MainFormNoRootNS As String 'Form for My.MyApplication to instantiate for main window (without the root namespace)
-        Private m_SingleInstance As Boolean
-        Private m_ShutdownMode As Integer
-        Private m_EnableVisualStyles As Boolean
-        Private m_AuthenticationMode As Integer
-        Private m_SplashScreenNoRootNS As String 'Splash screen to use (without the root namespace)
-        Private m_SaveMySettingsOnExit As Boolean 'Whether to save My.Settings on shutdown
+        Private _mySubMain As Boolean 'True indicates My.MyApplication will be StartupObject
+        Private _mainFormNoRootNS As String 'Form for My.MyApplication to instantiate for main window (without the root namespace)
+        Private _singleInstance As Boolean
+        Private _shutdownMode As Integer
+        Private _enableVisualStyles As Boolean
+        Private _authenticationMode As Integer
+        Private _splashScreenNoRootNS As String 'Splash screen to use (without the root namespace)
+        Private _saveMySettingsOnExit As Boolean 'Whether to save My.Settings on shutdown
 
-        Private m_Dirty As Boolean
+        Private _dirty As Boolean
 
         Public Property IsDirty() As Boolean
             Get
-                Return m_Dirty
+                Return _dirty
             End Get
             Set(ByVal value As Boolean)
-                m_Dirty = value
+                _dirty = value
             End Set
         End Property
 
         Public Property MySubMain() As Boolean 'True indicates My.MyApplication will be StartupObject
             Get
-                Return m_MySubMain
+                Return _mySubMain
             End Get
             Set(ByVal value As Boolean)
-                m_MySubMain = value
+                _mySubMain = value
                 IsDirty = True
             End Set
         End Property
 
         Public Property MainFormNoRootNS() As String 'Form for My.MyApplication to instantiate for main window (not including the root namespace)
             Get
-                Return m_MainFormNoRootNS
+                Return _mainFormNoRootNS
             End Get
             Set(ByVal value As String)
-                m_MainFormNoRootNS = value
+                _mainFormNoRootNS = value
                 IsDirty = True
             End Set
         End Property
 
         Public Property SingleInstance() As Boolean
             Get
-                Return m_SingleInstance
+                Return _singleInstance
             End Get
             Set(ByVal value As Boolean)
-                m_SingleInstance = value
+                _singleInstance = value
                 IsDirty = True
             End Set
         End Property
 
         Public Property ShutdownMode() As Integer
             Get
-                Return m_ShutdownMode
+                Return _shutdownMode
             End Get
             Set(ByVal value As Integer)
-                m_ShutdownMode = value
+                _shutdownMode = value
                 IsDirty = True
             End Set
         End Property
 
         Public Property EnableVisualStyles() As Boolean
             Get
-                Return m_EnableVisualStyles
+                Return _enableVisualStyles
             End Get
             Set(ByVal value As Boolean)
-                m_EnableVisualStyles = value
+                _enableVisualStyles = value
                 IsDirty = True
             End Set
         End Property
 
         Public Property AuthenticationMode() As Integer
             Get
-                Return m_AuthenticationMode
+                Return _authenticationMode
             End Get
             Set(ByVal value As Integer)
-                m_AuthenticationMode = value
+                _authenticationMode = value
                 IsDirty = True
             End Set
         End Property
 
         Public Property SplashScreenNoRootNS() As String
             Get
-                Return m_SplashScreenNoRootNS
+                Return _splashScreenNoRootNS
             End Get
             Set(ByVal value As String)
-                m_SplashScreenNoRootNS = value
+                _splashScreenNoRootNS = value
                 IsDirty = True
             End Set
         End Property
 
         Public Property SaveMySettingsOnExit() As Boolean
             Get
-                Return m_SaveMySettingsOnExit
+                Return _saveMySettingsOnExit
             End Get
             Set(ByVal value As Boolean)
-                m_SaveMySettingsOnExit = value
+                _saveMySettingsOnExit = value
                 IsDirty = True
             End Set
         End Property

@@ -1,3 +1,5 @@
+' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+
 Imports System.ComponentModel
 Imports System.ComponentModel.Design.Serialization
 Imports System.io
@@ -9,7 +11,7 @@ Namespace Microsoft.VisualStudio.Editors.DesignerFramework
         Inherits ComponentSerializationService
 
 
-        Private m_ServiceProvider As IServiceProvider
+        Private _serviceProvider As IServiceProvider
 
         ''' <summary>
         ''' This method creates a new SerializationService.  The serialization store can 
@@ -19,7 +21,7 @@ Namespace Microsoft.VisualStudio.Editors.DesignerFramework
         ''' <param name="Provider">.</param>
         ''' <remarks></remarks>
         Public Sub New(ByVal Provider As IServiceProvider)
-            m_ServiceProvider = Provider
+            _serviceProvider = Provider
         End Sub
 
         ''' <summary>
@@ -229,10 +231,10 @@ Namespace Microsoft.VisualStudio.Editors.DesignerFramework
         ''' <remarks>Not used by this class, may be useful for derived classes</remarks>
         Protected Property ServiceProvider() As IServiceProvider
             Get
-                Return m_ServiceProvider
+                Return _serviceProvider
             End Get
             Set(ByVal Value As IServiceProvider)
-                m_ServiceProvider = Value
+                _serviceProvider = Value
             End Set
         End Property
     End Class

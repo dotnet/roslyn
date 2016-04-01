@@ -1,4 +1,6 @@
-﻿Imports Microsoft.VisualStudio.Editors.Common
+﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+
+Imports Microsoft.VisualStudio.Editors.Common
 Imports Microsoft.VisualStudio.Shell.Interop
 Imports System.Windows.Forms
 
@@ -28,15 +30,15 @@ Namespace Microsoft.VisualStudio.Editors.PropertyPages
     Friend Class SingleConfigPropertyControlData
         Inherits PropertyControlData
 
-        Private Const ReleaseConfigName As String = "Release"
-        Private Const DebugConfigName As String = "Debug"
+        Private Const s_releaseConfigName As String = "Release"
+        Private Const s_debugConfigName As String = "Debug"
 
         Public Enum Configs
             Debug
             Release
         End Enum
 
-        Private m_SpecificConfigName As String
+        Private _specificConfigName As String
 
 
         ' Constructor.  Same as PropertyControlData, except for Config.
@@ -67,12 +69,12 @@ Namespace Microsoft.VisualStudio.Editors.PropertyPages
             MyBase.New(id, name, control, setter, getter, flags, AssocControls)
             Select Case Config
                 Case Configs.Debug
-                    m_SpecificConfigName = DebugConfigName
+                    _specificConfigName = s_debugConfigName
                 Case Configs.Release
-                    m_SpecificConfigName = ReleaseConfigName
+                    _specificConfigName = s_releaseConfigName
                 Case Else
                     Debug.Fail("Unrecognized Configs enum value")
-                    m_SpecificConfigName = ""
+                    _specificConfigName = ""
             End Select
 
             Debug.Assert(Not IsUserPersisted, "SingleConfigPropertyControlData - Can't be used for user-persisted properties")
@@ -146,8 +148,8 @@ Namespace Microsoft.VisualStudio.Editors.PropertyPages
         '''   should be considered.
         ''' </remarks>
         Private Function IndexOfSpecificConfig(ByVal Objects() As Object) As Integer
-            Debug.Assert(m_SpecificConfigName IsNot Nothing)
-            If m_SpecificConfigName = "" Then
+            Debug.Assert(_specificConfigName IsNot Nothing)
+            If _specificConfigName = "" Then
                 Return -1
             End If
 
@@ -173,7 +175,7 @@ Namespace Microsoft.VisualStudio.Editors.PropertyPages
                     Dim ConfigName As String = Nothing
                     Dim PlatformName As String = Nothing
                     ShellUtil.GetConfigAndPlatformFromIVsCfg(Config, ConfigName, PlatformName)
-                    If m_SpecificConfigName IsNot Nothing AndAlso m_SpecificConfigName.Equals(ConfigName, StringComparison.CurrentCultureIgnoreCase) Then
+                    If _specificConfigName IsNot Nothing AndAlso _specificConfigName.Equals(ConfigName, StringComparison.CurrentCultureIgnoreCase) Then
                         'Found it - return the index to it
                         Return Index
                     End If

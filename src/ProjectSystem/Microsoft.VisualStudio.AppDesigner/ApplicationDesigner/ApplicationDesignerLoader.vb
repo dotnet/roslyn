@@ -1,3 +1,5 @@
+' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+
 Imports System.ComponentModel.Design
 Imports System.Text
 Imports System.Windows.Forms
@@ -26,10 +28,10 @@ Namespace Microsoft.VisualStudio.Editors.ApplicationDesigner
         '  Modifyi property).
         Protected m_DocDataService As DesignerDocDataService
 
-        Private m_punkDocData As Object
+        Private _punkDocData As Object
 
 #If DEBUG Then
-        Private m_designerEventService As IDesignerEventService
+        Private _designerEventService As IDesignerEventService
 #End If
 
         ''' <summary>
@@ -49,9 +51,9 @@ Namespace Microsoft.VisualStudio.Editors.ApplicationDesigner
 
 #If DEBUG Then
             If Common.Switches.PDDesignerActivations.Level <> TraceLevel.Off Then
-                m_designerEventService = DirectCast(LoaderHost.GetService(GetType(IDesignerEventService)), IDesignerEventService)
-                If m_designerEventService IsNot Nothing Then
-                    AddHandler m_designerEventService.ActiveDesignerChanged, AddressOf Me.OnActiveDesignerChanged
+                _designerEventService = DirectCast(LoaderHost.GetService(GetType(IDesignerEventService)), IDesignerEventService)
+                If _designerEventService IsNot Nothing Then
+                    AddHandler _designerEventService.ActiveDesignerChanged, AddressOf Me.OnActiveDesignerChanged
                 End If
             End If
 #End If
@@ -92,7 +94,7 @@ Namespace Microsoft.VisualStudio.Editors.ApplicationDesigner
                 Throw New InvalidOperationException()
             End If
 
-            m_punkDocData = punkDocData
+            _punkDocData = punkDocData
 
             'In order to get free check-out behavior, we use the new VSIP class DesignerDocDataService.
             '  We pass it our punkDocData, and it wraps it with a new DocData class.  This DocData
@@ -149,9 +151,9 @@ Namespace Microsoft.VisualStudio.Editors.ApplicationDesigner
 #If DEBUG Then
         Private Declare Auto Function GetDC Lib "user32" (ByVal hWnd As IntPtr) As IntPtr
         Private Declare Auto Function ReleaseDC Lib "user32" (ByVal hWnd As IntPtr, ByVal hDC As IntPtr) As Integer
-        Private m_DesignerChangeCount As Integer = 0
+        Private _designerChangeCount As Integer = 0
         Private Sub OnActiveDesignerChanged(ByVal sender As Object, ByVal e As ActiveDesignerEventArgs)
-            m_DesignerChangeCount += 1
+            _designerChangeCount += 1
             If Common.Switches.PDDesignerActivations.TraceWarning Then
                 Dim s As New StringBuilder
 
@@ -162,7 +164,7 @@ Namespace Microsoft.VisualStudio.Editors.ApplicationDesigner
                 If e.NewDesigner IsNot Nothing AndAlso e.NewDesigner.RootComponent IsNot Nothing Then
                     newDesigner = CType(e.NewDesigner.RootComponent, Object).GetType().FullName()
                 End If
-                s.AppendLine(String.Format("OnActiveDesignerChanged: {0}: #{1}: '{2}' -> '{3}'", Common.Switches.TimeCode, m_DesignerChangeCount, oldDesigner, newDesigner))
+                s.AppendLine(String.Format("OnActiveDesignerChanged: {0}: #{1}: '{2}' -> '{3}'", Common.Switches.TimeCode, _designerChangeCount, oldDesigner, newDesigner))
 
                 If Common.Switches.PDDesignerActivations.TraceInfo Then
                     'Print the currently-active designer to the screen DC - that makes it a lot easier to verify that the active designer is
@@ -172,7 +174,7 @@ Namespace Microsoft.VisualStudio.Editors.ApplicationDesigner
                         Using g As Graphics = Graphics.FromHdc(hDC)
                             Dim rect As New Rectangle(100, Screen.PrimaryScreen.Bounds.Height - 30, Screen.PrimaryScreen.Bounds.Width - 100, 30)
                             g.FillRectangle(Brushes.White, rect)
-                            g.DrawString("Current Active Designer: " & m_DesignerChangeCount & ": " & newDesigner, _
+                            g.DrawString("Current Active Designer: " & _designerChangeCount & ": " & newDesigner, _
                                 New Font("Arial", 14, FontStyle.Bold, GraphicsUnit.Pixel), Brushes.Red, rect)
                         End Using
                     Finally
@@ -209,12 +211,12 @@ Namespace Microsoft.VisualStudio.Editors.ApplicationDesigner
                 End If
 
 #If DEBUG Then
-                If m_designerEventService IsNot Nothing Then
-                    RemoveHandler m_designerEventService.ActiveDesignerChanged, AddressOf Me.OnActiveDesignerChanged
+                If _designerEventService IsNot Nothing Then
+                    RemoveHandler _designerEventService.ActiveDesignerChanged, AddressOf Me.OnActiveDesignerChanged
                 End If
 #End If
-                Debug.Assert(m_punkDocData IsNot Nothing)
-                m_punkDocData = Nothing
+                Debug.Assert(_punkDocData IsNot Nothing)
+                _punkDocData = Nothing
             End If
             'Dispose of unmanaged resources
         End Sub

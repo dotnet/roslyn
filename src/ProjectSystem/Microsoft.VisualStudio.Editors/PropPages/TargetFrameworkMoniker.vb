@@ -1,3 +1,5 @@
+' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+
 Imports EnvDTE
 Imports Microsoft.VisualStudio.Shell.Interop
 Imports System.Runtime.Versioning
@@ -7,25 +9,25 @@ Namespace Microsoft.VisualStudio.Editors.PropertyPages
     ''' <summary>
     ''' Represents a target framework moniker and can be placed into a control
     ''' </summary>
-    Class TargetFrameworkMoniker
+    Friend Class TargetFrameworkMoniker
 
         ''' <summary>
         ''' Stores the target framework moniker
         ''' </summary>
-        Private m_Moniker As String
+        Private _moniker As String
 
         ''' <summary>
         ''' Stores the display name of the target framework moniker
         ''' </summary>
-        Private m_DisplayName As String
+        Private _displayName As String
 
         ''' <summary>
         ''' Constructor that uses the target framework moniker and display name provided by DTAR
         ''' </summary>
         Public Sub New(ByVal moniker As String, ByVal displayName As String)
 
-            m_Moniker = moniker
-            m_DisplayName = displayName
+            _moniker = moniker
+            _displayName = displayName
 
         End Sub
 
@@ -34,7 +36,7 @@ Namespace Microsoft.VisualStudio.Editors.PropertyPages
         ''' </summary>
         Public ReadOnly Property Moniker() As String
             Get
-                Return m_Moniker
+                Return _moniker
             End Get
         End Property
 
@@ -42,7 +44,7 @@ Namespace Microsoft.VisualStudio.Editors.PropertyPages
         ''' Use the display name provided by DTAR for the string display
         ''' </summary>
         Public Overrides Function ToString() As String
-            Return m_DisplayName
+            Return _displayName
         End Function
 
         ''' <summary>

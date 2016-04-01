@@ -1,4 +1,6 @@
-﻿Imports System.Runtime.CompilerServices
+﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+
+Imports System.Runtime.CompilerServices
 Imports System.Runtime.InteropServices
 
 'NOTE: This is only a partial AssemblyInfo.vb file.  The rest of the assembly

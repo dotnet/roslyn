@@ -1,9 +1,11 @@
+' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+
 Option Strict On
 Option Explicit On
 
 Namespace Microsoft.VisualStudio.Editors.MyExtensibility
 
-    Partial Class MyExtensibilitySettings
+    Friend Partial Class MyExtensibilitySettings
 
         ''' ;AssemblyAutoOption
         ''' <summary>
@@ -12,30 +14,30 @@ Namespace Microsoft.VisualStudio.Editors.MyExtensibility
         Private Class AssemblyAutoOption
 
             Public Sub New(ByVal autoAdd As AssemblyOption, ByVal autoRemove As AssemblyOption)
-                m_AutoAdd = autoAdd
-                m_AutoRemove = autoRemove
+                _autoAdd = autoAdd
+                _autoRemove = autoRemove
             End Sub
 
             Public Property AutoAdd() As AssemblyOption
                 Get
-                    Return m_AutoAdd
+                    Return _autoAdd
                 End Get
                 Set(ByVal value As AssemblyOption)
-                    m_AutoAdd = value
+                    _autoAdd = value
                 End Set
             End Property
 
             Public Property AutoRemove() As AssemblyOption
                 Get
-                    Return m_AutoRemove
+                    Return _autoRemove
                 End Get
                 Set(ByVal value As AssemblyOption)
-                    m_AutoRemove = value
+                    _autoRemove = value
                 End Set
             End Property
 
-            Private m_AutoAdd As AssemblyOption = AssemblyOption.Prompt
-            Private m_AutoRemove As AssemblyOption = AssemblyOption.Prompt
+            Private _autoAdd As AssemblyOption = AssemblyOption.Prompt
+            Private _autoRemove As AssemblyOption = AssemblyOption.Prompt
         End Class
     End Class
 End Namespace

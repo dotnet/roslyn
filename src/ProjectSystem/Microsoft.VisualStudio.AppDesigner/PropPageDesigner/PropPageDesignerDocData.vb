@@ -1,3 +1,5 @@
+' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+
 Imports System.Runtime.InteropServices
 Imports Microsoft.VisualStudio.Shell.Interop
 Imports Microsoft.VisualStudio.TextManager.Interop
@@ -31,21 +33,21 @@ Namespace Microsoft.VisualStudio.Editors.PropPageDesigner
         ' VsTextBuffer class used for providing a textbuffer implementation 
         ' which the IDE needs to operate.  Nothing currently written or read from the 
         ' text stream.
-        Private m_VsTextBuffer As IVsTextBuffer
+        Private _vsTextBuffer As IVsTextBuffer
 
         'Service provider members
-        Private m_BaseProvider As IServiceProvider
-        Private m_SiteProvider As IServiceProvider
+        Private _baseProvider As IServiceProvider
+        Private _siteProvider As IServiceProvider
 
         ' IVsHierarchy, ItemId, and cookie passed in on registration
-        Private m_VsHierarchy As IVsHierarchy
-        Private m_ItemId As UInteger
-        Private m_DocCookie As UInteger
-        Private m_MkDocument As String
+        Private _vsHierarchy As IVsHierarchy
+        Private _itemId As UInteger
+        Private _docCookie As UInteger
+        Private _mkDocument As String
 
         ' Dirty and readonly state
-        Private m_IsReadOnly As Boolean
-        Private m_IsDirty As Boolean
+        Private _isReadOnly As Boolean
+        Private _isDirty As Boolean
 
         ''' <summary>
         ''' Constructor
@@ -54,7 +56,7 @@ Namespace Microsoft.VisualStudio.Editors.PropPageDesigner
         ''' <remarks></remarks>
         Public Sub New(ByVal BaseProvider As IServiceProvider)
             'not must init to do here
-            m_BaseProvider = BaseProvider
+            _baseProvider = BaseProvider
         End Sub
 
         ''' <summary>
@@ -64,14 +66,14 @@ Namespace Microsoft.VisualStudio.Editors.PropPageDesigner
         ''' <remarks></remarks>
         Private ReadOnly Property VsTextStream() As IVsTextBuffer
             Get
-                If m_VsTextBuffer IsNot Nothing Then
-                    Return m_VsTextBuffer
+                If _vsTextBuffer IsNot Nothing Then
+                    Return _vsTextBuffer
                 End If
 
                 ' Get the LocalRegistry service and use it to create an instance of the VsTextBuffer class
                 Dim localRegistry As ILocalRegistry = Nothing
-                If m_BaseProvider IsNot Nothing Then
-                    localRegistry = DirectCast(m_BaseProvider.GetService(GetType(ILocalRegistry)), ILocalRegistry)
+                If _baseProvider IsNot Nothing Then
+                    localRegistry = DirectCast(_baseProvider.GetService(GetType(ILocalRegistry)), ILocalRegistry)
                 End If
                 If localRegistry Is Nothing Then
                     Throw New COMException(SR.GetString(SR.DFX_NoLocalRegistry), AppDesInterop.NativeMethods.E_FAIL)
@@ -85,12 +87,12 @@ Namespace Microsoft.VisualStudio.Editors.PropPageDesigner
                     VSErrorHandler.ThrowOnFailure(localRegistry.CreateInstance(GetType(VsTextBufferClass).GUID, Nothing, guidTemp, win.CLSCTX_INPROC_SERVER, objPtr))
 
                     If Not objPtr.Equals(IntPtr.Zero) Then
-                        m_VsTextBuffer = CType(Marshal.GetObjectForIUnknown(objPtr), IVsTextStream)
+                        _vsTextBuffer = CType(Marshal.GetObjectForIUnknown(objPtr), IVsTextStream)
                         Marshal.Release(objPtr)
 
-                        Dim ows As Microsoft.VisualStudio.OLE.Interop.IObjectWithSite = TryCast(m_VsTextBuffer, Microsoft.VisualStudio.OLE.Interop.IObjectWithSite)
+                        Dim ows As Microsoft.VisualStudio.OLE.Interop.IObjectWithSite = TryCast(_vsTextBuffer, Microsoft.VisualStudio.OLE.Interop.IObjectWithSite)
                         If (ows IsNot Nothing) Then
-                            Dim sp As Microsoft.VisualStudio.OLE.Interop.IServiceProvider = TryCast(m_BaseProvider.GetService(GetType(Microsoft.VisualStudio.OLE.Interop.IServiceProvider)), Microsoft.VisualStudio.OLE.Interop.IServiceProvider)
+                            Dim sp As Microsoft.VisualStudio.OLE.Interop.IServiceProvider = TryCast(_baseProvider.GetService(GetType(Microsoft.VisualStudio.OLE.Interop.IServiceProvider)), Microsoft.VisualStudio.OLE.Interop.IServiceProvider)
                             Debug.Assert(sp IsNot Nothing, "Expected to get a native service provider from our managed service provider")
 
                             If (sp IsNot Nothing) Then
@@ -101,7 +103,7 @@ Namespace Microsoft.VisualStudio.Editors.PropPageDesigner
                 Catch ex As Exception
                     Throw New COMException(SR.GetString(SR.DFX_UnableCreateTextBuffer), AppDesInterop.NativeMethods.E_FAIL)
                 End Try
-                Return m_VsTextBuffer
+                Return _vsTextBuffer
             End Get
         End Property
 
@@ -116,10 +118,10 @@ Namespace Microsoft.VisualStudio.Editors.PropPageDesigner
             If riidKey.Equals(GetType(IVsUserData).GUID) Then
                 'IID_IVsUserData (GUID_VsBufferMoniker) is the guid used for retrieving MkDocument (filename)
                 Return NativeMethods.S_OK
-                pvtData = m_MkDocument
+                pvtData = _mkDocument
                 Return NativeMethods.S_OK
-            ElseIf m_VsTextBuffer IsNot Nothing Then
-                Return CType(m_VsTextBuffer, IVsUserData).GetData(riidKey, pvtData)
+            ElseIf _vsTextBuffer IsNot Nothing Then
+                Return CType(_vsTextBuffer, IVsUserData).GetData(riidKey, pvtData)
             Else
                 Return NativeMethods.E_FAIL
             End If
@@ -132,8 +134,8 @@ Namespace Microsoft.VisualStudio.Editors.PropPageDesigner
         ''' <param name="vtData"></param>
         ''' <remarks></remarks>
         Public Function SetData(ByRef riidKey As System.Guid, ByVal vtData As Object) As Integer Implements TextManager.Interop.IVsUserData.SetData
-            If m_VsTextBuffer IsNot Nothing Then
-                Return CType(m_VsTextBuffer, IVsUserData).SetData(riidKey, vtData)
+            If _vsTextBuffer IsNot Nothing Then
+                Return CType(_vsTextBuffer, IVsUserData).SetData(riidKey, vtData)
             Else
                 Return NativeMethods.E_FAIL
             End If
@@ -197,7 +199,7 @@ Namespace Microsoft.VisualStudio.Editors.PropPageDesigner
         End Function
 
         Public Function IsDocDataDirty2(ByRef pfDirty As Integer) As Integer Implements Shell.Interop.IVsPersistDocData2.IsDocDataDirty
-            If m_IsDirty Then
+            If _isDirty Then
                 pfDirty = 1
             Else
                 pfDirty = 0
@@ -205,7 +207,7 @@ Namespace Microsoft.VisualStudio.Editors.PropPageDesigner
         End Function
 
         Public Function IsDocDataReadOnly(ByRef pfReadOnly As Integer) As Integer Implements Shell.Interop.IVsPersistDocData2.IsDocDataReadOnly
-            If m_IsReadOnly Then
+            If _isReadOnly Then
                 pfReadOnly = 1
             Else
                 pfReadOnly = 0
@@ -218,14 +220,14 @@ Namespace Microsoft.VisualStudio.Editors.PropPageDesigner
 
         Public Function LoadDocData2(ByVal pszMkDocument As String) As Integer Implements Shell.Interop.IVsPersistDocData2.LoadDocData
             'Nothing to do here, no real file to load
-            m_MkDocument = pszMkDocument
+            _mkDocument = pszMkDocument
             RaiseEvent OnLoadCompleted(0) 'FALSE == 0
         End Function
 
         Public Function OnRegisterDocData2(ByVal docCookie As UInteger, ByVal pHierNew As Shell.Interop.IVsHierarchy, ByVal itemidNew As UInteger) As Integer Implements Shell.Interop.IVsPersistDocData2.OnRegisterDocData
-            m_DocCookie = docCookie
-            m_VsHierarchy = pHierNew
-            m_ItemId = itemidNew
+            _docCookie = docCookie
+            _vsHierarchy = pHierNew
+            _itemId = itemidNew
         End Function
 
         Public Function ReloadDocData2(ByVal grfFlags As UInteger) As Integer Implements Shell.Interop.IVsPersistDocData2.ReloadDocData
@@ -244,17 +246,17 @@ Namespace Microsoft.VisualStudio.Editors.PropPageDesigner
 
         Public Function SetDocDataDirty(ByVal fDirty As Integer) As Integer Implements Shell.Interop.IVsPersistDocData2.SetDocDataDirty
             If fDirty <> 0 Then
-                m_IsDirty = True
+                _isDirty = True
             Else
-                m_IsDirty = False
+                _isDirty = False
             End If
         End Function
 
         Public Function SetDocDataReadOnly(ByVal fReadOnly As Integer) As Integer Implements Shell.Interop.IVsPersistDocData2.SetDocDataReadOnly
             If fReadOnly <> 0 Then
-                m_IsReadOnly = True
+                _isReadOnly = True
             Else
-                m_IsReadOnly = False
+                _isReadOnly = False
             End If
             Return VSConstants.S_OK
         End Function
@@ -309,7 +311,7 @@ Namespace Microsoft.VisualStudio.Editors.PropPageDesigner
         ''' <param name="ppvSite"></param>
         ''' <remarks></remarks>
         Public Sub GetSite(ByRef riid As System.Guid, ByRef ppvSite As System.IntPtr) Implements OLE.Interop.IObjectWithSite.GetSite
-            Dim punk As IntPtr = Marshal.GetIUnknownForObject(m_SiteProvider)
+            Dim punk As IntPtr = Marshal.GetIUnknownForObject(_siteProvider)
             Dim hr As Integer
             hr = Marshal.QueryInterface(punk, riid, ppvSite)
             Marshal.Release(punk)
@@ -325,9 +327,9 @@ Namespace Microsoft.VisualStudio.Editors.PropPageDesigner
         ''' <remarks></remarks>
         Public Sub SetSite(ByVal pUnkSite As Object) Implements OLE.Interop.IObjectWithSite.SetSite
             If TypeOf pUnkSite Is OLE.Interop.IServiceProvider Then
-                m_SiteProvider = New Shell.ServiceProvider(DirectCast(pUnkSite, OLE.Interop.IServiceProvider))
+                _siteProvider = New Shell.ServiceProvider(DirectCast(pUnkSite, OLE.Interop.IServiceProvider))
             Else
-                m_SiteProvider = Nothing
+                _siteProvider = Nothing
             End If
         End Sub
 #End Region
@@ -349,16 +351,16 @@ Namespace Microsoft.VisualStudio.Editors.PropPageDesigner
         Protected Overloads Sub Dispose(ByVal disposing As Boolean)
             If disposing Then
                 ' Dispose managed resources.
-                m_BaseProvider = Nothing
-                If m_VsTextBuffer IsNot Nothing Then
+                _baseProvider = Nothing
+                If _vsTextBuffer IsNot Nothing Then
                     ' Close IVsPersistDocData
-                    Dim docData As IVsPersistDocData = TryCast(m_VsTextBuffer, IVsPersistDocData)
+                    Dim docData As IVsPersistDocData = TryCast(_vsTextBuffer, IVsPersistDocData)
                     If docData IsNot Nothing Then
                         docData.Close()
                     End If
-                    m_VsTextBuffer = Nothing
+                    _vsTextBuffer = Nothing
                 End If
-                m_VsHierarchy = Nothing
+                _vsHierarchy = Nothing
             End If
             ' Call the appropriate methods to clean up 
             ' unmanaged resources here.

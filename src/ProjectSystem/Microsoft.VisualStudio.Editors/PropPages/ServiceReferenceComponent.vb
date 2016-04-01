@@ -1,3 +1,5 @@
+' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+
 Imports System.ComponentModel
 Imports System.ComponentModel.Design
 
@@ -12,12 +14,12 @@ Namespace Microsoft.VisualStudio.Editors.PropertyPages
         Inherits Component
         Implements ICustomTypeDescriptor, IReferenceComponent, IUpdatableReferenceComponent
 
-        Private m_Collection As IVsWCFReferenceGroupCollection
-        Private m_ReferenceGroup As IVsWCFReferenceGroup
+        Private _collection As IVsWCFReferenceGroupCollection
+        Private _referenceGroup As IVsWCFReferenceGroup
 
-        Sub New(ByVal collection As IVsWCFReferenceGroupCollection, ByVal referenceGroup As IVsWCFReferenceGroup)
-            m_Collection = collection
-            m_ReferenceGroup = referenceGroup
+        Public Sub New(ByVal collection As IVsWCFReferenceGroupCollection, ByVal referenceGroup As IVsWCFReferenceGroup)
+            _collection = collection
+            _referenceGroup = referenceGroup
         End Sub
 
         <VBDescription(My.Resources.Designer.ConstantResourceIDs.PPG_ServiceReferenceNamespaceDescription)> _
@@ -25,10 +27,10 @@ Namespace Microsoft.VisualStudio.Editors.PropertyPages
         <HelpKeyword("ServiceReference Properties.Namespace")> _
         Public Property [Namespace]() As String
             Get
-                Return m_ReferenceGroup.GetNamespace()
+                Return _referenceGroup.GetNamespace()
             End Get
             Set(ByVal value As String)
-                m_ReferenceGroup.SetNamespace(value)
+                _referenceGroup.SetNamespace(value)
             End Set
         End Property
 
@@ -43,9 +45,9 @@ Namespace Microsoft.VisualStudio.Editors.PropertyPages
         <MergablePropertyAttribute(False)> _
         Public Property ServiceReferenceURL() As String
             Get
-                If m_ReferenceGroup.GetReferenceCount() = 1 Then
-                    Return m_ReferenceGroup.GetReferenceUrl(0)
-                ElseIf m_ReferenceGroup.GetReferenceCount() > 1 Then
+                If _referenceGroup.GetReferenceCount() = 1 Then
+                    Return _referenceGroup.GetReferenceUrl(0)
+                ElseIf _referenceGroup.GetReferenceCount() > 1 Then
                     Return SR.GetString(SR.CSRDlg_MultipleURL)
                 Else
                     Return ""
@@ -54,15 +56,15 @@ Namespace Microsoft.VisualStudio.Editors.PropertyPages
             End Get
             Set(ByVal value As String)
                 value = value.Trim()
-                Dim currentCount As Integer = m_ReferenceGroup.GetReferenceCount()
+                Dim currentCount As Integer = _referenceGroup.GetReferenceCount()
                 If currentCount = 1 Then
                     If value <> "" Then
-                        Dim currentUrl As String = m_ReferenceGroup.GetReferenceUrl(0)
-                        m_ReferenceGroup.SetReferenceUrl(0, value)
+                        Dim currentUrl As String = _referenceGroup.GetReferenceUrl(0)
+                        _referenceGroup.SetReferenceUrl(0, value)
                         Try
-                            m_ReferenceGroup.Update(Nothing)
+                            _referenceGroup.Update(Nothing)
                         Catch ex As Exception
-                            m_ReferenceGroup.SetReferenceUrl(0, currentUrl)
+                            _referenceGroup.SetReferenceUrl(0, currentUrl)
                             Throw ex
                         End Try
                     Else
@@ -72,7 +74,7 @@ Namespace Microsoft.VisualStudio.Editors.PropertyPages
                     Throw New NotSupportedException(SR.PPG_ServiceReferenceProperty_MultipleUrlNotSupported)
                 Else
                     If value <> "" Then
-                        m_ReferenceGroup.AddReference(Nothing, value)
+                        _referenceGroup.AddReference(Nothing, value)
                     ENd If
                 End If
             End Set
@@ -90,7 +92,7 @@ Namespace Microsoft.VisualStudio.Editors.PropertyPages
         ''' <remarks></remarks>
         Friend ReadOnly Property ReferenceGroup() As IVsWCFReferenceGroup
             Get
-                Return m_ReferenceGroup
+                Return _referenceGroup
             End Get
         End Property
 
@@ -100,7 +102,7 @@ Namespace Microsoft.VisualStudio.Editors.PropertyPages
         ''' <return></return>
         ''' <remarks></remarks>
         Private Sub Remove() Implements IReferenceComponent.Remove
-            m_Collection.Remove(m_ReferenceGroup)
+            _collection.Remove(_referenceGroup)
         End Sub
 
         Private Function GetName() As String Implements IReferenceComponent.GetName
@@ -111,7 +113,7 @@ Namespace Microsoft.VisualStudio.Editors.PropertyPages
         ''' Update the web reference
         '''</summary>
         Private Sub Update() Implements IUpdatableReferenceComponent.Update
-            m_ReferenceGroup.Update(Nothing)
+            _referenceGroup.Update(Nothing)
         End Sub
 
 #Region "System.ComponentModel.ICustomTypeDescriptor"
@@ -180,7 +182,7 @@ Namespace Microsoft.VisualStudio.Editors.PropertyPages
         Public Function GetProperties() As System.ComponentModel.PropertyDescriptorCollection Implements System.ComponentModel.ICustomTypeDescriptor.GetProperties
             Dim orig As PropertyDescriptorCollection = TypeDescriptor.GetProperties(Me.GetType())
 
-            If m_ReferenceGroup.GetReferenceCount() > 1 Then
+            If _referenceGroup.GetReferenceCount() > 1 Then
                 Return GetModifiedPropertyList(orig)
             Else
                 Return orig
@@ -190,7 +192,7 @@ Namespace Microsoft.VisualStudio.Editors.PropertyPages
         Public Function GetProperties1(ByVal attributes() As System.Attribute) As System.ComponentModel.PropertyDescriptorCollection Implements System.ComponentModel.ICustomTypeDescriptor.GetProperties
             Dim orig As PropertyDescriptorCollection = TypeDescriptor.GetProperties(Me.GetType(), attributes)
 
-            If m_ReferenceGroup.GetReferenceCount() > 1 Then
+            If _referenceGroup.GetReferenceCount() > 1 Then
                 Return GetModifiedPropertyList(orig)
             Else
                 Return orig

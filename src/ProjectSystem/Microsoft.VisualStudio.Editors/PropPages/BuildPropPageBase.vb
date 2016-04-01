@@ -1,3 +1,5 @@
+' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+
 Imports Microsoft.VisualStudio.Editors.Common
 Imports System.ComponentModel
 Imports System.Windows.Forms
@@ -95,14 +97,14 @@ Namespace Microsoft.VisualStudio.Editors.PropertyPages
         ' Holds the last value the Prefer32Bit check box had when enabled (or explicity
         ' set by the project system), so that the proper state is restored if the 
         ' control is disabled and then later enabled
-        Private lastPrefer32BitValue As Boolean
+        Private _lastPrefer32BitValue As Boolean
 
         Protected Sub RefreshEnabledStatusForPrefer32Bit(control As CheckBox)
 
             Dim enabledBefore As Boolean = control.Enabled
 
             If control.Enabled Then
-                Me.lastPrefer32BitValue = control.Checked
+                Me._lastPrefer32BitValue = control.Checked
             End If
 
             EnableControl(control, IsPrefer32BitSupported())
@@ -115,7 +117,7 @@ Namespace Microsoft.VisualStudio.Editors.PropertyPages
             ElseIf Not enabledBefore AndAlso control.Enabled Then
 
                 ' If transitioning from disabled to enabled, restore the value of the checkbox.
-                control.Checked = Me.lastPrefer32BitValue
+                control.Checked = Me._lastPrefer32BitValue
 
             End If
 
@@ -138,7 +140,7 @@ Namespace Microsoft.VisualStudio.Editors.PropertyPages
             Else
                 ' The project is setting the property value while the control is disabled, so store the
                 ' value for when the control is enabled
-                Me.lastPrefer32BitValue = CBool(value)
+                Me._lastPrefer32BitValue = CBool(value)
             End If
 
             Return True
@@ -152,7 +154,7 @@ Namespace Microsoft.VisualStudio.Editors.PropertyPages
                 ' of the property (the checkbox is always unchecked when disabled).  So we return the
                 ' property value that we cached from when the control was last enabled (or explicitly
                 ' set by the the project system while the control was disabled)
-                value = lastPrefer32BitValue
+                value = _lastPrefer32BitValue
                 Return True
             End If
 

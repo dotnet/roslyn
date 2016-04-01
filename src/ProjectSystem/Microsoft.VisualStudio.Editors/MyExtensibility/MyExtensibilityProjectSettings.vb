@@ -1,4 +1,6 @@
-﻿Option Strict On
+﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+
+Option Strict On
 Option Explicit On
 Imports System.IO
 Imports System.Windows.Forms
@@ -54,49 +56,49 @@ Namespace Microsoft.VisualStudio.Editors.MyExtensibility
             Debug.Assert(extensionTemplate IsNot Nothing, "NULL extensionTemplate!")
 
             ' Start monitoring the project items being added from the template.
-            m_MonitorState = MonitorState.AddTemplate
-            If m_ProjectItemsAddedFromTemplate IsNot Nothing Then
-                m_ProjectItemsAddedFromTemplate.Clear()
+            _monitorState = MonitorState.AddTemplate
+            If _projectItemsAddedFromTemplate IsNot Nothing Then
+                _projectItemsAddedFromTemplate.Clear()
             End If
 
             ' Add the template.
             Me.GetMyExtensionsFolderProjectItem()
             Dim suggestedName As String = Me.GetProjectItemName(extensionTemplate.BaseName)
-            Debug.Assert(m_ExtensionFolderProjectItem IsNot Nothing, "Could not create MyExtensions folder!")
+            Debug.Assert(_extensionFolderProjectItem IsNot Nothing, "Could not create MyExtensions folder!")
             Try
-                m_ExtensionFolderProjectItem.ProjectItems.AddFromTemplate(extensionTemplate.FilePath, suggestedName)
+                _extensionFolderProjectItem.ProjectItems.AddFromTemplate(extensionTemplate.FilePath, suggestedName)
             Catch ex As Exception When Not Utils.IsUnrecoverable(ex)
-                DesignerMessageBox.Show(m_ServiceProvider, ex, Nothing)
+                DesignerMessageBox.Show(_serviceProvider, ex, Nothing)
             End Try
 
             ' Stop monitoring project items being added.
-            m_MonitorState = MonitorState.Normal
+            _monitorState = MonitorState.Normal
 
             Dim result As List(Of ProjectItem) = Nothing
 
-            If m_ProjectItemsAddedFromTemplate Is Nothing OrElse m_ProjectItemsAddedFromTemplate.Count <= 0 Then
+            If _projectItemsAddedFromTemplate Is Nothing OrElse _projectItemsAddedFromTemplate.Count <= 0 Then
                 ' No project items were added, show warning message and return nothing.
-                DesignerMessageBox.Show(m_ServiceProvider, _
+                DesignerMessageBox.Show(_serviceProvider, _
                     String.Format(Res.CouldNotAddProjectItemTemplate_Message, extensionTemplate.DisplayName), _
                     Res.CouldNotAddProjectItemTemplate_Title, _
                     MessageBoxButtons.OK, MessageBoxIcon.Warning, MessageBoxDefaultButton.Button1)
-            ElseIf m_VsBuildPropertyStorage IsNot Nothing Then
+            ElseIf _vsBuildPropertyStorage IsNot Nothing Then
                 ' Some project items were added, if IVsBuildPropertyStorage is available, attempt to set the attribute.
                 result = New List(Of ProjectItem)
-                For Each projectItemAdded As ProjectItem In m_ProjectItemsAddedFromTemplate
+                For Each projectItemAdded As ProjectItem In _projectItemsAddedFromTemplate
                     Try
                         Dim extensionProjectItemID As UInteger = DTEUtils.ItemIdOfProjectItem( _
-                            m_ProjectHierarchy, projectItemAdded)
-                        m_VsBuildPropertyStorage.SetItemAttribute(extensionProjectItemID, MSBUILD_ATTR_ASSEMBLY, extensionTemplate.AssemblyFullName)
-                        m_VsBuildPropertyStorage.SetItemAttribute(extensionProjectItemID, MSBUILD_ATTR_ID, extensionTemplate.ID)
-                        m_VsBuildPropertyStorage.SetItemAttribute(extensionProjectItemID, MSBUILD_ATTR_VERSION, extensionTemplate.Version.ToString())
+                            _projectHierarchy, projectItemAdded)
+                        _vsBuildPropertyStorage.SetItemAttribute(extensionProjectItemID, s_MSBUILD_ATTR_ASSEMBLY, extensionTemplate.AssemblyFullName)
+                        _vsBuildPropertyStorage.SetItemAttribute(extensionProjectItemID, s_MSBUILD_ATTR_ID, extensionTemplate.ID)
+                        _vsBuildPropertyStorage.SetItemAttribute(extensionProjectItemID, s_MSBUILD_ATTR_VERSION, extensionTemplate.Version.ToString())
 
                         Me.AddExtensionProjectFile(extensionTemplate.AssemblyFullName, projectItemAdded, _
                             extensionTemplate.ID, extensionTemplate.Version, extensionTemplate.DisplayName, extensionTemplate.Description)
 
                         result.Add(projectItemAdded)
                     Catch ex As Exception When Not Common.Utils.IsUnrecoverable(ex) ' Ignore recoverable exceptions
-                        DesignerMessageBox.Show(m_ServiceProvider, _
+                        DesignerMessageBox.Show(_serviceProvider, _
                             String.Format(Res.CouldNotSetExtensionAttributes_Message, _
                                 projectItemAdded.Name, extensionTemplate.DisplayName), _
                             Res.CouldNotSetExtensionAttributes_Title, _
@@ -104,7 +106,7 @@ Namespace Microsoft.VisualStudio.Editors.MyExtensibility
                     End Try
                 Next
                 If result.Count <= 0 Then
-                    DesignerMessageBox.Show(m_ServiceProvider, _
+                    DesignerMessageBox.Show(_serviceProvider, _
                         String.Format(Res.CouldNotSetExtensionAttributes_AllItems, extensionTemplate.DisplayName), _
                         Res.CouldNotSetExtensionAttributes_Title, _
                         MessageBoxButtons.OK, MessageBoxIcon.Warning, MessageBoxDefaultButton.Button1)
@@ -123,11 +125,11 @@ Namespace Microsoft.VisualStudio.Editors.MyExtensibility
         ''' in the current project. Return Nothing if none is found.
         ''' </summary>
         Public Function GetExtensionProjectItemGroup(ByVal extensionID As String) As MyExtensionProjectItemGroup
-            If StringIsNullEmptyOrBlank(extensionID) OrElse m_ExtProjItemGroups Is Nothing Then
+            If StringIsNullEmptyOrBlank(extensionID) OrElse _extProjItemGroups Is Nothing Then
                 Return Nothing
             End If
 
-            Dim extProjItemGroups As List(Of MyExtensionProjectItemGroup) = m_ExtProjItemGroups.GetAllItems()
+            Dim extProjItemGroups As List(Of MyExtensionProjectItemGroup) = _extProjItemGroups.GetAllItems()
             If extProjItemGroups Is Nothing OrElse extProjItemGroups.Count <= 0 Then
                 Return Nothing
             End If
@@ -147,8 +149,8 @@ Namespace Microsoft.VisualStudio.Editors.MyExtensibility
         ''' </summary>
         Public Function GetExtensionProjectItemGroups() As List(Of MyExtensionProjectItemGroup)
             Dim result As List(Of MyExtensionProjectItemGroup) = Nothing
-            If m_ExtProjItemGroups IsNot Nothing Then
-                result = m_ExtProjItemGroups.GetAllItems()
+            If _extProjItemGroups IsNot Nothing Then
+                result = _extProjItemGroups.GetAllItems()
             End If
 
             If result Is Nothing OrElse result.Count <= 0 Then
@@ -164,8 +166,8 @@ Namespace Microsoft.VisualStudio.Editors.MyExtensibility
         Public Function GetExtensionProjectItemGroups(ByVal assemblyFullName As String) _
                 As List(Of MyExtensionProjectItemGroup)
             If assemblyFullName IsNot Nothing AndAlso _
-                    m_ExtProjItemGroups IsNot Nothing Then
-                Return m_ExtProjItemGroups.GetItems(assemblyFullName)
+                    _extProjItemGroups IsNot Nothing Then
+                Return _extProjItemGroups.GetItems(assemblyFullName)
             Else
                 Return Nothing
             End If
@@ -179,12 +181,12 @@ Namespace Microsoft.VisualStudio.Editors.MyExtensibility
             If extensionProjectItemGroup Is Nothing Then
                 Exit Sub
             End If
-            If m_ExtensionFolderProjectItem Is Nothing Then
+            If _extensionFolderProjectItem Is Nothing Then
                 Exit Sub
             End If
 
             ' Set the monitor state to pause raising event
-            m_MonitorState = MonitorState.RemoveProjectItem
+            _monitorState = MonitorState.RemoveProjectItem
 
             If extensionProjectItemGroup.ExtensionProjectItems IsNot Nothing Then
                 For i As Integer = 0 To extensionProjectItemGroup.ExtensionProjectItems.Count - 1
@@ -195,12 +197,12 @@ Namespace Microsoft.VisualStudio.Editors.MyExtensibility
                 Next
             End If
 
-            m_ExtProjItemGroups.RemoveItem(extensionProjectItemGroup)
+            _extProjItemGroups.RemoveItem(extensionProjectItemGroup)
 
             Me.RemoveMyExtensionsFolderIfEmpty()
 
             ' Reset monitor state
-            m_MonitorState = MonitorState.Normal
+            _monitorState = MonitorState.Normal
         End Sub
 
 #End Region
@@ -213,15 +215,15 @@ Namespace Microsoft.VisualStudio.Editors.MyExtensibility
         ''' This will reset m_ExtensionFolderProjectItem to Nothing first.
         ''' </summary>
         Private Sub FindMyExtensionsFolderProjectItem()
-            m_ExtensionFolderProjectItem = Nothing
+            _extensionFolderProjectItem = Nothing
 
             Dim parentProjectItems As ProjectItems = Me.GetParentProjectItems()
             Debug.Assert(parentProjectItems IsNot Nothing, "Could not find parent ProjectItems!")
 
             Dim result As ProjectItem = Nothing
             For Each projectItem As ProjectItem In parentProjectItems
-                If StringEquals(projectItem.Name, EXTENSION_FOLDER_NAME) Then
-                    m_ExtensionFolderProjectItem = projectItem
+                If StringEquals(projectItem.Name, s_EXTENSION_FOLDER_NAME) Then
+                    _extensionFolderProjectItem = projectItem
                     Exit For
                 End If
             Next
@@ -233,18 +235,18 @@ Namespace Microsoft.VisualStudio.Editors.MyExtensibility
         ''' Result will be in m_ExtensionFolderProjectItem.
         ''' </summary>
         Private Sub GetMyExtensionsFolderProjectItem()
-            If m_ExtensionFolderProjectItem Is Nothing Then
+            If _extensionFolderProjectItem Is Nothing Then
                 Me.FindMyExtensionsFolderProjectItem()
 
-                If m_ExtensionFolderProjectItem Is Nothing Then
+                If _extensionFolderProjectItem Is Nothing Then
                     Dim parentProjectItems As ProjectItems = Me.GetParentProjectItems()
                     Debug.Assert(parentProjectItems IsNot Nothing, "Could not find parent ProjectItems!")
 
-                    m_ExtensionFolderProjectItem = parentProjectItems.AddFolder(EXTENSION_FOLDER_NAME)
+                    _extensionFolderProjectItem = parentProjectItems.AddFolder(s_EXTENSION_FOLDER_NAME)
                 End If
             End If
 
-            Debug.Assert(m_ExtensionFolderProjectItem IsNot Nothing, "Fail to create MyExtensions folder!")
+            Debug.Assert(_extensionFolderProjectItem IsNot Nothing, "Fail to create MyExtensions folder!")
         End Sub
 
         ''' ;GetParentProjectItems
@@ -256,11 +258,11 @@ Namespace Microsoft.VisualStudio.Editors.MyExtensibility
         Private Function GetParentProjectItems() As ProjectItems
             ' Try to find "My Project" special folder first.
             Dim myProjectFolderProjectItem As ProjectItem = _
-                MyApplicationProperties.GetProjectItemForProjectDesigner(m_ProjectHierarchy)
+                MyApplicationProperties.GetProjectItemForProjectDesigner(_projectHierarchy)
 
             If myProjectFolderProjectItem Is Nothing Then
-                Debug.Assert(m_Project.ProjectItems IsNot Nothing, "Current project ProjectItems is NULL!")
-                Return m_Project.ProjectItems
+                Debug.Assert(_project.ProjectItems IsNot Nothing, "Current project ProjectItems is NULL!")
+                Return _project.ProjectItems
             Else
                 Debug.Assert(myProjectFolderProjectItem.ProjectItems IsNot Nothing, _
                     "My Project folder ProjectItems is NULL!")
@@ -274,9 +276,9 @@ Namespace Microsoft.VisualStudio.Editors.MyExtensibility
         ''' </summary>
         ''' <remarks></remarks>
         Private Sub RemoveMyExtensionsFolderIfEmpty()
-            If m_ExtensionFolderProjectItem IsNot Nothing AndAlso m_ExtensionFolderProjectItem.ProjectItems.Count <= 0 Then
-                m_ExtensionFolderProjectItem.Delete()
-                m_ExtensionFolderProjectItem = Nothing
+            If _extensionFolderProjectItem IsNot Nothing AndAlso _extensionFolderProjectItem.ProjectItems.Count <= 0 Then
+                _extensionFolderProjectItem.Delete()
+                _extensionFolderProjectItem = Nothing
             End If
         End Sub
 
@@ -298,12 +300,12 @@ Namespace Microsoft.VisualStudio.Editors.MyExtensibility
                 assemblyFullName = String.Empty
             End If
 
-            If m_ExtProjItemGroups Is Nothing Then
-                m_ExtProjItemGroups = New AssemblyDictionary(Of MyExtensionProjectItemGroup)()
+            If _extProjItemGroups Is Nothing Then
+                _extProjItemGroups = New AssemblyDictionary(Of MyExtensionProjectItemGroup)()
             End If
 
             Dim currentExtensionProjectItemGroup As MyExtensionProjectItemGroup = Nothing
-            Dim extProjItemGroups As List(Of MyExtensionProjectItemGroup) = m_ExtProjItemGroups.GetItems(assemblyFullName)
+            Dim extProjItemGroups As List(Of MyExtensionProjectItemGroup) = _extProjItemGroups.GetItems(assemblyFullName)
             If extProjItemGroups IsNot Nothing AndAlso extProjItemGroups.Count > 0 Then
                 For Each extProjItemGroup As MyExtensionProjectItemGroup In extProjItemGroups
                     If extProjItemGroup.IDEquals(extensionID) Then
@@ -315,7 +317,7 @@ Namespace Microsoft.VisualStudio.Editors.MyExtensibility
             If currentExtensionProjectItemGroup Is Nothing Then
                 currentExtensionProjectItemGroup = New MyExtensionProjectItemGroup( _
                     extensionID, extensionVersion, extensionName, extensionDescription)
-                m_ExtProjItemGroups.AddItem(assemblyFullName, currentExtensionProjectItemGroup)
+                _extProjItemGroups.AddItem(assemblyFullName, currentExtensionProjectItemGroup)
             End If
             currentExtensionProjectItemGroup.AddProjectItem(extensionProjectItem)
         End Sub
@@ -326,10 +328,10 @@ Namespace Microsoft.VisualStudio.Editors.MyExtensibility
         ''' </summary>
         Private Function GetBuildAttribute(ByVal projectItemID As UInteger, ByVal attributeName As String) As String
             Debug.Assert(Not String.IsNullOrEmpty(attributeName), "NULL attributeName")
-            Debug.Assert(m_VsBuildPropertyStorage IsNot Nothing, "NULL IVsBuildPropertyStrorage!")
+            Debug.Assert(_vsBuildPropertyStorage IsNot Nothing, "NULL IVsBuildPropertyStrorage!")
 
             Dim result As String = Nothing
-            m_VsBuildPropertyStorage.GetItemAttribute(projectItemID, attributeName, result)
+            _vsBuildPropertyStorage.GetItemAttribute(projectItemID, attributeName, result)
             If result IsNot Nothing Then
                 result = result.Trim()
             End If
@@ -342,29 +344,29 @@ Namespace Microsoft.VisualStudio.Editors.MyExtensibility
         ''' from its ProjectItem.
         ''' </summary>
         Private Sub LoadExtensionProjectFiles()
-            If m_ExtProjItemGroups IsNot Nothing Then
-                m_ExtProjItemGroups.Clear()
+            If _extProjItemGroups IsNot Nothing Then
+                _extProjItemGroups.Clear()
             End If
 
-            If m_VsBuildPropertyStorage Is Nothing Then
+            If _vsBuildPropertyStorage Is Nothing Then
                 Exit Sub
             End If
 
             Me.FindMyExtensionsFolderProjectItem()
-            If m_ExtensionFolderProjectItem Is Nothing Then
+            If _extensionFolderProjectItem Is Nothing Then
                 Exit Sub
             End If
 
-            Debug.Assert(m_ProjectService IsNot Nothing)
-            For Each extensionProjectItem As ProjectItem In m_ExtensionFolderProjectItem.ProjectItems
-                Dim extensionProjectItemID As UInteger = DTEUtils.ItemIdOfProjectItem(m_ProjectHierarchy, extensionProjectItem)
+            Debug.Assert(_projectService IsNot Nothing)
+            For Each extensionProjectItem As ProjectItem In _extensionFolderProjectItem.ProjectItems
+                Dim extensionProjectItemID As UInteger = DTEUtils.ItemIdOfProjectItem(_projectHierarchy, extensionProjectItem)
 
-                Dim assemblyName As String = GetBuildAttribute(extensionProjectItemID, MSBUILD_ATTR_ASSEMBLY)
+                Dim assemblyName As String = GetBuildAttribute(extensionProjectItemID, s_MSBUILD_ATTR_ASSEMBLY)
                 If assemblyName Is Nothing Then
                     assemblyName = String.Empty
                 End If
-                Dim templateID As String = GetBuildAttribute(extensionProjectItemID, MSBUILD_ATTR_ID)
-                Dim templateVersion As Version = GetVersion(GetBuildAttribute(extensionProjectItemID, MSBUILD_ATTR_VERSION))
+                Dim templateID As String = GetBuildAttribute(extensionProjectItemID, s_MSBUILD_ATTR_ID)
+                Dim templateVersion As Version = GetVersion(GetBuildAttribute(extensionProjectItemID, s_MSBUILD_ATTR_VERSION))
 
                 If String.IsNullOrEmpty(templateID) Then
                     Continue For
@@ -372,7 +374,7 @@ Namespace Microsoft.VisualStudio.Editors.MyExtensibility
 
                 Dim templateName As String = Nothing
                 Dim templateDescription As String = Nothing
-                m_ProjectService.GetExtensionTemplateNameAndDescription(templateID, templateVersion, assemblyName, _
+                _projectService.GetExtensionTemplateNameAndDescription(templateID, templateVersion, assemblyName, _
                     templateName, templateDescription)
 
                 Me.AddExtensionProjectFile(assemblyName, extensionProjectItem, _
@@ -424,24 +426,24 @@ Namespace Microsoft.VisualStudio.Editors.MyExtensibility
         Private Sub OnAfterAddFilesEx(ByVal cProjects As Integer, ByVal cFiles As Integer, ByVal rgpProjects() As IVsProject, ByVal rgFirstIndices() As Integer, ByVal rgpszMkDocuments() As String, ByVal rgFlags() As VSADDFILEFLAGS)
             Debug.Assert(rgpszMkDocuments IsNot Nothing, "NULL rgpszMkDocuments!")
 
-            If m_MonitorState <> MonitorState.AddTemplate Then ' Return if not monitoring add templates.
+            If _monitorState <> MonitorState.AddTemplate Then ' Return if not monitoring add templates.
                 Exit Sub
             End If
 
-            If m_ExtensionFolderProjectItem IsNot Nothing Then
-                Dim myExtensionsFolderPath As String = GetProjectItemPath(m_ExtensionFolderProjectItem)
+            If _extensionFolderProjectItem IsNot Nothing Then
+                Dim myExtensionsFolderPath As String = GetProjectItemPath(_extensionFolderProjectItem)
                 ' MyExtensions maybe removed and becomes invalid and the path will be Nothing.
                 If myExtensionsFolderPath IsNot Nothing Then
                     For Each filePath As String In rgpszMkDocuments
                         If IsUnderFolder(filePath, myExtensionsFolderPath) Then
                             Dim fileName As String = Path.GetFileName(filePath)
                             Dim subProjectItem As ProjectItem = _
-                                DTEUtils.FindProjectItem(m_ExtensionFolderProjectItem.ProjectItems, fileName)
+                                DTEUtils.FindProjectItem(_extensionFolderProjectItem.ProjectItems, fileName)
                             Debug.Assert(subProjectItem IsNot Nothing, "Could not find subProjectItem!")
-                            If m_ProjectItemsAddedFromTemplate Is Nothing Then
-                                m_ProjectItemsAddedFromTemplate = New List(Of ProjectItem)()
+                            If _projectItemsAddedFromTemplate Is Nothing Then
+                                _projectItemsAddedFromTemplate = New List(Of ProjectItem)()
                             End If
-                            m_ProjectItemsAddedFromTemplate.Add(subProjectItem)
+                            _projectItemsAddedFromTemplate.Add(subProjectItem)
                         End If
                     Next
                 End If
@@ -456,14 +458,14 @@ Namespace Microsoft.VisualStudio.Editors.MyExtensibility
         Private Sub OnAfterRemoveFiles(ByVal cProjects As Integer, ByVal cFiles As Integer, ByVal rgpProjects() As IVsProject, ByVal rgFirstIndices() As Integer, ByVal rgpszMkDocuments() As String, ByVal rgFlags() As VSREMOVEFILEFLAGS)
             Debug.Assert(rgpszMkDocuments IsNot Nothing, "NULL rgpszMkDocuments!")
 
-            If m_MonitorState = MonitorState.RemoveProjectItem Then
+            If _monitorState = MonitorState.RemoveProjectItem Then
                 ' If in RemoveProjectItem state, do not raise event since project service will raise event itself.
                 Exit Sub
             End If
 
             Dim subItemChanged As Boolean = False
-            If m_ExtensionFolderProjectItem IsNot Nothing Then
-                Dim myExtensionsFolderPath As String = GetProjectItemPath(m_ExtensionFolderProjectItem)
+            If _extensionFolderProjectItem IsNot Nothing Then
+                Dim myExtensionsFolderPath As String = GetProjectItemPath(_extensionFolderProjectItem)
                 ' MyExtensions maybe removed and becomes invalid and the path will be Nothing.
                 If myExtensionsFolderPath IsNot Nothing Then
                     For Each filePath As String In rgpszMkDocuments
@@ -488,15 +490,15 @@ Namespace Microsoft.VisualStudio.Editors.MyExtensibility
             Debug.Assert(rgszMkNewNames IsNot Nothing, "NULL rgszMkNewNames!")
             Debug.Assert(rgszMkOldNames IsNot Nothing, "NULL rgszMkOldNames!")
 
-            If m_MonitorState <> MonitorState.Normal Then
+            If _monitorState <> MonitorState.Normal Then
                 Exit Sub
             End If
 
             ' Check if the extension folder was added back / removed by this rename.
             ' If it was, raise event and exit sub.
-            Dim extensionFolderExistsBefore As Boolean = m_ExtensionFolderProjectItem IsNot Nothing
+            Dim extensionFolderExistsBefore As Boolean = _extensionFolderProjectItem IsNot Nothing
             Me.FindMyExtensionsFolderProjectItem()
-            Dim extensionFolderExistsAfter As Boolean = m_ExtensionFolderProjectItem IsNot Nothing
+            Dim extensionFolderExistsAfter As Boolean = _extensionFolderProjectItem IsNot Nothing
             If extensionFolderExistsBefore <> extensionFolderExistsAfter Then
                 Me.RaiseChangeEvent()
                 Exit Sub
@@ -504,8 +506,8 @@ Namespace Microsoft.VisualStudio.Editors.MyExtensibility
 
             ' If it was not, check if the change affect files underneath it and raise event if neccessary.
             ' Only care about when file is moved in / out of this folder.
-            If m_ExtensionFolderProjectItem IsNot Nothing Then
-                Dim myExtensionsFolderPath As String = GetProjectItemPath(m_ExtensionFolderProjectItem)
+            If _extensionFolderProjectItem IsNot Nothing Then
+                Dim myExtensionsFolderPath As String = GetProjectItemPath(_extensionFolderProjectItem)
                 If Not StringIsNullEmptyOrBlank(myExtensionsFolderPath) Then
                     Dim minLength As Integer = Math.Min(rgszMkOldNames.Length, rgszMkNewNames.Length)
                     For i As Integer = 0 To minLength - 1
@@ -528,16 +530,16 @@ Namespace Microsoft.VisualStudio.Editors.MyExtensibility
         Private Sub OnAfterRemoveDirectories(ByVal cProjects As Integer, ByVal cDirectories As Integer, ByVal rgpProjects() As IVsProject, ByVal rgFirstIndices() As Integer, ByVal rgpszMkDocuments() As String, ByVal rgFlags() As VSREMOVEDIRECTORYFLAGS)
             Debug.Assert(rgpszMkDocuments IsNot Nothing, "NULL rgpszMkDocuments!")
 
-            If m_MonitorState <> MonitorState.Normal Then
+            If _monitorState <> MonitorState.Normal Then
                 Exit Sub
             End If
 
-            If m_ExtensionFolderProjectItem IsNot Nothing Then
+            If _extensionFolderProjectItem IsNot Nothing Then
                 For Each dirPath As String In rgpszMkDocuments
                     Dim dirName As String = GetDirectoryName(dirPath)
-                    If StringEquals(dirName, EXTENSION_FOLDER_NAME) Then
+                    If StringEquals(dirName, s_EXTENSION_FOLDER_NAME) Then
                         Me.FindMyExtensionsFolderProjectItem()
-                        If m_ExtensionFolderProjectItem Is Nothing Then
+                        If _extensionFolderProjectItem Is Nothing Then
                             Me.RaiseChangeEvent()
                             Exit For
                         End If
@@ -552,17 +554,17 @@ Namespace Microsoft.VisualStudio.Editors.MyExtensibility
         ''' </summary>
         Private Sub OnAfterRenameDirectories(ByVal cProjects As Integer, ByVal cDirs As Integer, ByVal rgpProjects() As IVsProject, ByVal rgFirstIndices() As Integer, ByVal rgszMkOldNames() As String, ByVal rgszMkNewNames() As String, ByVal rgFlags() As VSRENAMEDIRECTORYFLAGS)
 
-            If m_MonitorState <> MonitorState.Normal Then
+            If _monitorState <> MonitorState.Normal Then
                 Exit Sub
             End If
 
-            Dim myExtensionsFolderExistsBefore As Boolean = m_ExtensionFolderProjectItem IsNot Nothing
+            Dim myExtensionsFolderExistsBefore As Boolean = _extensionFolderProjectItem IsNot Nothing
             Dim namesToCheck As String() = IIf(Of String())(myExtensionsFolderExistsBefore, rgszMkOldNames, rgszMkNewNames)
             For Each dirPath As String In namesToCheck
                 Dim dirName As String = GetDirectoryName(dirPath)
-                If StringEquals(dirName, EXTENSION_FOLDER_NAME) Then
+                If StringEquals(dirName, s_EXTENSION_FOLDER_NAME) Then
                     Me.FindMyExtensionsFolderProjectItem()
-                    Dim myExtensionsFolderExistsAfter As Boolean = m_ExtensionFolderProjectItem IsNot Nothing
+                    Dim myExtensionsFolderExistsAfter As Boolean = _extensionFolderProjectItem IsNot Nothing
                     If myExtensionsFolderExistsAfter <> myExtensionsFolderExistsBefore Then
                         Me.RaiseChangeEvent()
                         Exit For
@@ -616,8 +618,8 @@ Namespace Microsoft.VisualStudio.Editors.MyExtensibility
             Return pathStr.TrimEnd(New Char() {Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar})
         End Function
 
-        Private m_MonitorState As MonitorState = MonitorState.Normal
-        Private m_ProjectItemsAddedFromTemplate As List(Of ProjectItem)
+        Private _monitorState As MonitorState = MonitorState.Normal
+        Private _projectItemsAddedFromTemplate As List(Of ProjectItem)
 
         Private Enum MonitorState As Byte
             Normal
@@ -635,10 +637,10 @@ Namespace Microsoft.VisualStudio.Editors.MyExtensibility
         ''' </summary>
         Private Function GetProjectItemName(ByVal templateBaseName As String) As String
             If StringIsNullEmptyOrBlank(templateBaseName) Then ' Verify and fix up input.
-                templateBaseName = DEFAULT_CODE_FILE_NAME
+                templateBaseName = s_DEFAULT_CODE_FILE_NAME
             End If
 
-            If m_ExtensionFolderProjectItem Is Nothing Then ' If MyExtensions does not exist, no point to search for it.
+            If _extensionFolderProjectItem Is Nothing Then ' If MyExtensions does not exist, no point to search for it.
                 Return templateBaseName
             End If
 
@@ -647,7 +649,7 @@ Namespace Microsoft.VisualStudio.Editors.MyExtensibility
 
             Dim candidateProjectItemName As String = templateBaseName
             Dim postfix As Integer = 1
-            While (DTEUtils.FindProjectItem(m_ExtensionFolderProjectItem.ProjectItems, candidateProjectItemName) IsNot Nothing)
+            While (DTEUtils.FindProjectItem(_extensionFolderProjectItem.ProjectItems, candidateProjectItemName) IsNot Nothing)
                 candidateProjectItemName = baseName & postfix.ToString() & baseExtension
                 postfix += 1
             End While
@@ -664,37 +666,37 @@ Namespace Microsoft.VisualStudio.Editors.MyExtensibility
             Debug.Assert(projectHierarchy IsNot Nothing, "projectHierarchy")
             Debug.Assert(vsBuildPropertyStorage IsNot Nothing, "vsBuildPropertyStorage")
 
-            m_ProjectService = projectService
-            m_ServiceProvider = serviceProvider
-            m_Project = project
-            m_ProjectHierarchy = projectHierarchy
-            m_VsBuildPropertyStorage = vsBuildPropertyStorage
+            _projectService = projectService
+            _serviceProvider = serviceProvider
+            _project = project
+            _projectHierarchy = projectHierarchy
+            _vsBuildPropertyStorage = vsBuildPropertyStorage
 
             Me.LoadExtensionProjectFiles()
             Me.AdviseTrackProjectDocumentsEvents()
         End Sub
 #End Region
 
-        Private m_ProjectService As MyExtensibilityProjectService
-        Private m_ServiceProvider As IServiceProvider ' Usually VBPackage.
-        Private m_Project As EnvDTE.Project ' The associated project.
-        Private m_ProjectHierarchy As IVsHierarchy ' The associated project hierarchy.
+        Private _projectService As MyExtensibilityProjectService
+        Private _serviceProvider As IServiceProvider ' Usually VBPackage.
+        Private _project As EnvDTE.Project ' The associated project.
+        Private _projectHierarchy As IVsHierarchy ' The associated project hierarchy.
 
-        Private m_VsBuildPropertyStorage As IVsBuildPropertyStorage ' Used to set the item extension attributes.
+        Private _vsBuildPropertyStorage As IVsBuildPropertyStorage ' Used to set the item extension attributes.
 
-        Private m_ExtensionFolderProjectItem As EnvDTE.ProjectItem ' "My Extensions" folder.
+        Private _extensionFolderProjectItem As EnvDTE.ProjectItem ' "My Extensions" folder.
 
         ' The dictionary of MyExtensionProjectItemGroup, indexed by the triggering assemblies.
-        Private m_ExtProjItemGroups As AssemblyDictionary(Of MyExtensionProjectItemGroup)
+        Private _extProjItemGroups As AssemblyDictionary(Of MyExtensionProjectItemGroup)
 
         ' MyExtensions folder and Extensions.xml file name.
-        Private Const EXTENSION_FOLDER_NAME As String = "MyExtensions"
+        Private Const s_EXTENSION_FOLDER_NAME As String = "MyExtensions"
         ' Extension code file's attributes in project file.
-        Private Const MSBUILD_ATTR_ASSEMBLY As String = "VBMyExtensionAssembly"
-        Private Const MSBUILD_ATTR_ID As String = "VBMyExtensionTemplateID"
-        Private Const MSBUILD_ATTR_VERSION As String = "VBMyExtensionTemplateVersion"
+        Private Const s_MSBUILD_ATTR_ASSEMBLY As String = "VBMyExtensionAssembly"
+        Private Const s_MSBUILD_ATTR_ID As String = "VBMyExtensionTemplateID"
+        Private Const s_MSBUILD_ATTR_VERSION As String = "VBMyExtensionTemplateVersion"
         ' Default code file name.
-        Private Const DEFAULT_CODE_FILE_NAME As String = "Code.vb"
+        Private Const s_DEFAULT_CODE_FILE_NAME As String = "Code.vb"
 
     End Class
 End Namespace

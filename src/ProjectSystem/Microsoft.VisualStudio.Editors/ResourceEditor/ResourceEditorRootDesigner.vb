@@ -1,3 +1,5 @@
+' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+
 Option Explicit On
 Option Strict On
 Option Compare Binary
@@ -30,42 +32,42 @@ Namespace Microsoft.VisualStudio.Editors.ResourceEditor
 #Region "Fields"
 
         ' The view associated with this root designer.
-        Private m_View As ResourceEditorView
+        Private _view As ResourceEditorView
 
         ' Cache the IDesignerHost associated to the RootDesigner. 
         ' We use it to temporarily add Resource to the ResourceEditorRoot to push them to Property Window's drop down list.
-        Private WithEvents m_DesignerHost As IDesignerHost = Nothing
+        Private WithEvents _designerHost As IDesignerHost = Nothing
 
         ' Contains information about the current state of Find/Replace
-        Private m_FindReplace As New FindReplace(Me)
+        Private _findReplace As New FindReplace(Me)
 
         ' Indicates whether or not we are trying to register our view helper on a delayed basis
-        Private m_DelayRegisteringViewHelper As Boolean
+        Private _delayRegisteringViewHelper As Boolean
 
         ' The ErrorListProvider to support error list window
-        Private m_ErrorListProvider As ErrorListProvider
+        Private _errorListProvider As ErrorListProvider
 
         ' Cached IVsDebugger from shell in case we don't have a service provider at
         ' shutdown so we can undo our event handler
-        Private m_VsDebugger As IVsDebugger
-        Private m_VsDebuggerEventsCookie As UInteger
+        Private _vsDebugger As IVsDebugger
+        Private _vsDebuggerEventsCookie As UInteger
 
         ' The UndoEngine
-        Private WithEvents m_UndoEngine As UndoEngine
+        Private WithEvents _undoEngine As UndoEngine
 
         ' Current Debug mode
-        Private m_currentDebugMode As Shell.Interop.DBGMODE = DBGMODE.DBGMODE_Design
+        Private _currentDebugMode As Shell.Interop.DBGMODE = DBGMODE.DBGMODE_Design
 
         ' ReadOnlyMode in design mode, we should restore the original mode when we return to the design mode
-        Private m_IsReadOnlyInDesignMode As Boolean
+        Private _isReadOnlyInDesignMode As Boolean
 
         ' Is waiting to be reloaded, we should prevent refreshing UI when reloading is pending
-        Private m_IsInReloading As Boolean
+        Private _isInReloading As Boolean
 
         ' BUGFIX: Dev11#45255 
         ' Hook up to build events so we can enable/disable the property 
         ' page while building
-        Private WithEvents m_buildEvents As EnvDTE.BuildEvents
+        Private WithEvents _buildEvents As EnvDTE.BuildEvents
 #End Region
 
 #Region "Constructors/destructors"
@@ -84,11 +86,11 @@ Namespace Microsoft.VisualStudio.Editors.ResourceEditor
                 DisconnectDebuggerEvents()
                 UnRegisterViewHelper()
 
-                m_UndoEngine = Nothing
+                _undoEngine = Nothing
 
-                If m_View IsNot Nothing Then
-                    m_View.Dispose()
-                    m_View = Nothing
+                If _view IsNot Nothing Then
+                    _view.Dispose()
+                    _view = Nothing
                 End If
             End If
 
@@ -136,8 +138,8 @@ Namespace Microsoft.VisualStudio.Editors.ResourceEditor
         ''' </remarks>
         Friend ReadOnly Property DesignerHost() As IDesignerHost
             Get
-                Debug.Assert(m_DesignerHost IsNot Nothing, "Cannot get IDesignerHost!!!")
-                Return m_DesignerHost
+                Debug.Assert(_designerHost IsNot Nothing, "Cannot get IDesignerHost!!!")
+                Return _designerHost
             End Get
         End Property
 
@@ -170,10 +172,10 @@ Namespace Microsoft.VisualStudio.Editors.ResourceEditor
         ''' </remarks>
         Friend Property IsInReloading() As Boolean
             Get
-                Return m_IsInReloading
+                Return _isInReloading
             End Get
             Set(ByVal value As Boolean)
-                m_IsInReloading = value
+                _isInReloading = value
             End Set
         End Property
 
@@ -201,7 +203,7 @@ Namespace Microsoft.VisualStudio.Editors.ResourceEditor
         ''' <remarks></remarks>
         Public ReadOnly Property HasView() As Boolean
             Get
-                Return m_View IsNot Nothing
+                Return _view IsNot Nothing
             End Get
         End Property
 
@@ -232,7 +234,7 @@ Namespace Microsoft.VisualStudio.Editors.ResourceEditor
                 Throw New ArgumentException("Not a supported view technology", "Technology")
             End If
 
-            If m_View Is Nothing Then
+            If _view Is Nothing Then
                 'Need to create a view
 
                 If Me.RootComponent.IsTearingDown Then
@@ -249,7 +251,7 @@ Namespace Microsoft.VisualStudio.Editors.ResourceEditor
                 CreatingNewView = True
                 Try
 
-                    m_View = New ResourceEditorView(Me)
+                    _view = New ResourceEditorView(Me)
 
                     'Let the view know of its root designer (me).
                     '
@@ -258,14 +260,14 @@ Namespace Microsoft.VisualStudio.Editors.ResourceEditor
                     '  (done on SetSite) to end up calling GetView again, and if the constructor
                     '  call weren't complete at that time, this would end up getting called
                     '  recursively, creating a second view (bad).
-                    m_View.SetRootDesigner(Me)
+                    _view.SetRootDesigner(Me)
 
                 Finally
                     CreatingNewView = False
                 End Try
             End If
 
-            Return m_View
+            Return _view
         End Function
 
 #End Region
@@ -277,10 +279,10 @@ Namespace Microsoft.VisualStudio.Editors.ResourceEditor
         ''' </summary>
         ''' <remarks></remarks>
         Friend Function GetErrorListProvider() As ErrorListProvider
-            If m_ErrorListProvider Is Nothing Then
-                m_ErrorListProvider = New ErrorListProvider(DesignerHost)
+            If _errorListProvider Is Nothing Then
+                _errorListProvider = New ErrorListProvider(DesignerHost)
             End If
-            Return m_ErrorListProvider
+            Return _errorListProvider
         End Function
 
 #End Region
@@ -294,8 +296,8 @@ Namespace Microsoft.VisualStudio.Editors.ResourceEditor
         Public Overrides Sub Initialize(ByVal component As IComponent)
             MyBase.Initialize(component)
 
-            m_DesignerHost = CType(GetService(GetType(IDesignerHost)), IDesignerHost)
-            Debug.Assert(m_DesignerHost IsNot Nothing, "Cannot get IDesignerHost!!!")
+            _designerHost = CType(GetService(GetType(IDesignerHost)), IDesignerHost)
+            Debug.Assert(_designerHost IsNot Nothing, "Cannot get IDesignerHost!!!")
         End Sub
 
         ''' <summary>
@@ -386,13 +388,13 @@ Namespace Microsoft.VisualStudio.Editors.ResourceEditor
         ''' Never throws exceptions (ignores any errors)
         ''' </remarks>
         Public Sub TryPersistCurrentEditorState()
-            If m_View IsNot Nothing Then
+            If _view IsNot Nothing Then
                 Try
                     'See if our designer loader has already placed an EditorState object in the host as a service.  If so, persist into it.
                     Dim EditorState As ResourceEditorView.EditorState = DirectCast(GetService(GetType(ResourceEditorView.EditorState)), ResourceEditorView.EditorState)
                     If EditorState IsNot Nothing Then
                         'Go ahead and persist the state
-                        EditorState.PersistStateFrom(m_View)
+                        EditorState.PersistStateFrom(_view)
                     Else
                         'The service was not proffered.  This should mean simply that our designer loader has already
                         '  been disposed (so our service was removed), which is the case when the resource editor
@@ -417,13 +419,13 @@ Namespace Microsoft.VisualStudio.Editors.ResourceEditor
         ''' Never throws exceptions (ignores any errors).
         ''' </remarks>
         Public Sub TryDepersistSavedEditorState()
-            If m_View IsNot Nothing Then
+            If _view IsNot Nothing Then
                 Try
                     'Do we have an old editor state?  If so, it would be on the host as a service (cause we put it there
                     '  in TryPersistCurrentEditorState().
                     Dim EditorState As ResourceEditorView.EditorState = DirectCast(GetService(GetType(ResourceEditorView.EditorState)), ResourceEditorView.EditorState)
                     If EditorState IsNot Nothing AndAlso EditorState.StatePersisted Then
-                        EditorState.DepersistStateInto(m_View)
+                        EditorState.DepersistStateInto(_view)
                     End If
                 Catch ex As Exception
                     RethrowIfUnrecoverable(ex)
@@ -465,23 +467,23 @@ Namespace Microsoft.VisualStudio.Editors.ResourceEditor
                 If VsWindowFrame IsNot Nothing Then
                     VSErrorHandler.ThrowOnFailure(VsWindowFrame.SetProperty(__VSFPROPID.VSFPROPID_ViewHelper, New UnknownWrapper(Me)))
                 Else
-                    If m_View IsNot Nothing Then
+                    If _view IsNot Nothing Then
                         'We don't have a window frame yet.  Need to delay this registration until we do.
                         '  Easiest way is to use BeginInvoke.
-                        If m_DelayRegisteringViewHelper Then
+                        If _delayRegisteringViewHelper Then
                             'This is already our second try
                             Debug.Fail("Unable to delay-register our view helper")
-                            m_DelayRegisteringViewHelper = False
+                            _delayRegisteringViewHelper = False
                         Else
                             'Try again, delayed.
-                            m_DelayRegisteringViewHelper = True
+                            _delayRegisteringViewHelper = True
 
                             ' VS Whidbey #260046 -- Make sure the control is created before calling Invoke/BeginInvoke                                                      
-                            If (m_View.Created = False) Then
-                                m_View.CreateControl()
+                            If (_view.Created = False) Then
+                                _view.CreateControl()
                             End If
 
-                            m_View.BeginInvoke(New System.Windows.Forms.MethodInvoker(AddressOf RegisterViewHelper))
+                            _view.BeginInvoke(New System.Windows.Forms.MethodInvoker(AddressOf RegisterViewHelper))
                         End If
                     Else
                         Debug.Fail("View not set in RegisterViewHelper() - can't delay-register view helper")
@@ -521,7 +523,7 @@ Namespace Microsoft.VisualStudio.Editors.ResourceEditor
         '''   can be reset.
         ''' </remarks>
         Friend Sub InvalidateFindLoop(ByVal ResourcesAddedOrRemoved As Boolean)
-            m_FindReplace.InvalidateFindLoop(ResourcesAddedOrRemoved)
+            _findReplace.InvalidateFindLoop(ResourcesAddedOrRemoved)
         End Sub
 
 
@@ -532,7 +534,7 @@ Namespace Microsoft.VisualStudio.Editors.ResourceEditor
         ''' <param name="pgrfOptions">Specifies supported options, syntax and options, taken from __VSFINDOPTIONS.</param>
         ''' <remarks></remarks>
         Private Function GetCapabilities(ByVal pfImage() As Boolean, ByVal pgrfOptions() As UInteger) As Integer Implements TextManager.Interop.IVsFindTarget.GetCapabilities
-            m_FindReplace.GetCapabilities(pfImage, pgrfOptions)
+            _findReplace.GetCapabilities(pfImage, pgrfOptions)
             Return NativeMethods.S_OK
         End Function
 
@@ -545,7 +547,7 @@ Namespace Microsoft.VisualStudio.Editors.ResourceEditor
         ''' <returns>S_OK if success, otherwise an error code.</returns>
         ''' <remarks></remarks>
         Private Function GetProperty(ByVal propid As UInteger, ByRef pvar As Object) As Integer Implements TextManager.Interop.IVsFindTarget.GetProperty
-            Return m_FindReplace.GetProperty(propid, pvar)
+            Return _findReplace.GetProperty(propid, pvar)
         End Function
 
 
@@ -555,7 +557,7 @@ Namespace Microsoft.VisualStudio.Editors.ResourceEditor
         ''' <returns>m_FindState</returns>
         ''' <remarks>If m_FindState is set to Nothing, the shell will reset the next find loop.</remarks>
         Private Function GetFindState(ByRef state As Object) As Integer Implements TextManager.Interop.IVsFindTarget.GetFindState
-            state = m_FindReplace.GetFindState()
+            state = _findReplace.GetFindState()
             Return NativeMethods.S_OK
         End Function
 
@@ -566,7 +568,7 @@ Namespace Microsoft.VisualStudio.Editors.ResourceEditor
         ''' <param name="pUnk">The find state object to hold.</param>
         ''' <remarks></remarks>
         Private Function SetFindState(ByVal pUnk As Object) As Integer Implements TextManager.Interop.IVsFindTarget.SetFindState
-            m_FindReplace.SetFindState(pUnk)
+            _findReplace.SetFindState(pUnk)
             Return NativeMethods.S_OK
         End Function
 
@@ -588,7 +590,7 @@ Namespace Microsoft.VisualStudio.Editors.ResourceEditor
         ''' </remarks>
         Private Function Find(ByVal pszSearch As String, ByVal grfOptions As UInteger, ByVal fResetStartPoint As Integer, _
                             ByVal pHelper As IVsFindHelper, ByRef pResult As UInteger) As Integer Implements IVsFindTarget.Find
-            m_FindReplace.Find(pszSearch, grfOptions, fResetStartPoint, pHelper, pResult)
+            _findReplace.Find(pszSearch, grfOptions, fResetStartPoint, pHelper, pResult)
             Return NativeMethods.S_OK
         End Function
 
@@ -665,7 +667,7 @@ Namespace Microsoft.VisualStudio.Editors.ResourceEditor
         ''' </remarks>
         Public Function IOleCommandTarget_Exec(ByRef pguidCmdGroup As System.Guid, ByVal nCmdID As UInteger, ByVal nCmdexecopt As UInteger, ByVal pvaIn As System.IntPtr, ByVal pvaOut As System.IntPtr) As Integer _
         Implements OLE.Interop.IOleCommandTarget.Exec
-            Dim View As ResourceEditorView = m_View
+            Dim View As ResourceEditorView = _view
             If View IsNot Nothing Then
                 Dim Handled As Boolean = False
                 View.HandleViewHelperCommandExec(pguidCmdGroup, nCmdID, Handled)
@@ -703,13 +705,13 @@ Namespace Microsoft.VisualStudio.Editors.ResourceEditor
             ConnectBuildEvents()
             'test if in build process
             Dim DesignerLoaderService As Object = GetService(GetType(IDesignerLoaderService))
-            If m_View IsNot Nothing And DesignerLoaderService IsNot Nothing Then
+            If _view IsNot Nothing And DesignerLoaderService IsNot Nothing Then
                 If IsInBuildProgress() Then
                     DesignerLoader.SetReadOnlyMode(True, String.Empty)
-                    m_View.ReadOnlyMode = True
+                    _view.ReadOnlyMode = True
                 Else
                     DesignerLoader.SetReadOnlyMode(False, String.Empty)
-                    m_View.ReadOnlyMode = False
+                    _view.ReadOnlyMode = False
                 End If
             End If
         End Sub
@@ -718,13 +720,13 @@ Namespace Microsoft.VisualStudio.Editors.ResourceEditor
         ''' We need get undoEngine to monitor undo state. But it is not available when the designer is just loaded. We do this on the first transaction (change) happens in the designer.
         ''' </summary>
         ''' <remarks></remarks>
-        Private Sub DesignerHost_TransactionOpening(ByVal sender As Object, ByVal e As System.EventArgs) Handles m_DesignerHost.TransactionOpening
-            If m_UndoEngine Is Nothing Then
-                m_UndoEngine = DirectCast(GetService(GetType(UndoEngine)), UndoEngine)
+        Private Sub DesignerHost_TransactionOpening(ByVal sender As Object, ByVal e As System.EventArgs) Handles _designerHost.TransactionOpening
+            If _undoEngine Is Nothing Then
+                _undoEngine = DirectCast(GetService(GetType(UndoEngine)), UndoEngine)
                 ' We get UndoEngine here, because we need monitor undo start/end event. But when this trasaction itself is caused by an UNDO operation,
                 ' it is already too late to hook up the event, and we lost the first UNDO start event. Here, we check whether the transaction
                 '  is caused by UNDO, and simulate the first UNDO start event.
-                If m_UndoEngine IsNot Nothing AndAlso m_UndoEngine.UndoInProgress Then
+                If _undoEngine IsNot Nothing AndAlso _undoEngine.UndoInProgress Then
                     UndoEngine_Undoing(Me, System.EventArgs.Empty)
                 End If
             End If
@@ -738,7 +740,7 @@ Namespace Microsoft.VisualStudio.Editors.ResourceEditor
             Dim dte As EnvDTE.DTE
             DTE = CType(GetService(GetType(EnvDTE.DTE)), EnvDTE.DTE)
             If dte IsNot Nothing Then
-                m_buildEvents = dte.Events.BuildEvents
+                _buildEvents = dte.Events.BuildEvents
             Else
                 Debug.Fail("No DTE - can't hook up build events - we don't know if start/stop building...")
             End If
@@ -750,11 +752,11 @@ Namespace Microsoft.VisualStudio.Editors.ResourceEditor
         ''' <param name="scope"></param>
         ''' <param name="action"></param>
         ''' <remarks></remarks>
-        Private Sub BuildBegin(ByVal scope As EnvDTE.vsBuildScope, ByVal action As EnvDTE.vsBuildAction) Handles m_buildEvents.OnBuildBegin
+        Private Sub BuildBegin(ByVal scope As EnvDTE.vsBuildScope, ByVal action As EnvDTE.vsBuildAction) Handles _buildEvents.OnBuildBegin
             Dim DesignerLoaderService As Object = GetService(GetType(IDesignerLoaderService))
             If DesignerLoaderService IsNot Nothing Then
                 DesignerLoader.SetReadOnlyMode(True, String.Empty)
-                m_View.ReadOnlyMode = True
+                _view.ReadOnlyMode = True
             End If
         End Sub
 
@@ -764,11 +766,11 @@ Namespace Microsoft.VisualStudio.Editors.ResourceEditor
         ''' <param name="scope"></param>
         ''' <param name="action"></param>
         ''' <remarks></remarks>
-        Private Sub BuildDone(ByVal scope As EnvDTE.vsBuildScope, ByVal action As EnvDTE.vsBuildAction) Handles m_buildEvents.OnBuildDone
+        Private Sub BuildDone(ByVal scope As EnvDTE.vsBuildScope, ByVal action As EnvDTE.vsBuildAction) Handles _buildEvents.OnBuildDone
             Dim DesignerLoaderService As Object = GetService(GetType(IDesignerLoaderService))
             If DesignerLoaderService IsNot Nothing Then
                 DesignerLoader.SetReadOnlyMode(False, String.Empty)
-                m_View.ReadOnlyMode = False
+                _view.ReadOnlyMode = False
             End If
         End Sub
 
@@ -777,14 +779,14 @@ Namespace Microsoft.VisualStudio.Editors.ResourceEditor
         ''' </summary>
         ''' <remarks></remarks>
         Private Sub ConnectDebuggerEvents()
-            If m_VsDebuggerEventsCookie = 0 Then
-                m_VsDebugger = CType(GetService(GetType(IVsDebugger)), IVsDebugger)
-                If m_VsDebugger IsNot Nothing Then
-                    VSErrorHandler.ThrowOnFailure(m_VsDebugger.AdviseDebuggerEvents(Me, m_VsDebuggerEventsCookie))
+            If _vsDebuggerEventsCookie = 0 Then
+                _vsDebugger = CType(GetService(GetType(IVsDebugger)), IVsDebugger)
+                If _vsDebugger IsNot Nothing Then
+                    VSErrorHandler.ThrowOnFailure(_vsDebugger.AdviseDebuggerEvents(Me, _vsDebuggerEventsCookie))
 
                     Dim mode As DBGMODE() = New DBGMODE() {DBGMODE.DBGMODE_Design}
                     'Get the current mode
-                    VSErrorHandler.ThrowOnFailure(m_VsDebugger.GetMode(mode))
+                    VSErrorHandler.ThrowOnFailure(_vsDebugger.GetMode(mode))
                     OnModeChange(mode(0))
                 Else
                     Debug.Fail("Cannot obtain IVsDebugger from shell")
@@ -798,10 +800,10 @@ Namespace Microsoft.VisualStudio.Editors.ResourceEditor
         ''' </summary>
         ''' <remarks></remarks>
         Private Sub DisconnectDebuggerEvents()
-            If m_VsDebugger IsNot Nothing AndAlso m_VsDebuggerEventsCookie <> 0 Then
-                VSErrorHandler.ThrowOnFailure(m_VsDebugger.UnadviseDebuggerEvents(m_VsDebuggerEventsCookie))
-                m_VsDebuggerEventsCookie = 0
-                m_VsDebugger = Nothing
+            If _vsDebugger IsNot Nothing AndAlso _vsDebuggerEventsCookie <> 0 Then
+                VSErrorHandler.ThrowOnFailure(_vsDebugger.UnadviseDebuggerEvents(_vsDebuggerEventsCookie))
+                _vsDebuggerEventsCookie = 0
+                _vsDebugger = Nothing
             End If
         End Sub
 
@@ -811,20 +813,20 @@ Namespace Microsoft.VisualStudio.Editors.ResourceEditor
         ''' <param name="dbgmodeNew"></param>
         Private Function OnModeChange(ByVal dbgmodeNew As Shell.Interop.DBGMODE) As Integer Implements Shell.Interop.IVsDebuggerEvents.OnModeChange
             Try
-                If m_View IsNot Nothing Then
+                If _view IsNot Nothing Then
                     If dbgmodeNew = DBGMODE.DBGMODE_Design Then
-                        If m_currentDebugMode <> DBGMODE.DBGMODE_Design AndAlso Not m_IsReadOnlyInDesignMode Then
+                        If _currentDebugMode <> DBGMODE.DBGMODE_Design AndAlso Not _isReadOnlyInDesignMode Then
                             DesignerLoader.SetReadOnlyMode(False, String.Empty)
-                            m_View.ReadOnlyMode = False
+                            _view.ReadOnlyMode = False
                         End If
-                    ElseIf m_currentDebugMode = DBGMODE.DBGMODE_Design Then
-                        m_IsReadOnlyInDesignMode = m_View.ReadOnlyMode
+                    ElseIf _currentDebugMode = DBGMODE.DBGMODE_Design Then
+                        _isReadOnlyInDesignMode = _view.ReadOnlyMode
                         DesignerLoader.SetReadOnlyMode(True, SR.GetString(SR.RSE_Err_CantEditInDebugMode))
-                        m_View.ReadOnlyMode = True
+                        _view.ReadOnlyMode = True
                     End If
                 End If
             Finally
-                m_currentDebugMode = dbgmodeNew
+                _currentDebugMode = dbgmodeNew
             End Try
         End Function
 
@@ -839,9 +841,9 @@ Namespace Microsoft.VisualStudio.Editors.ResourceEditor
         ''' <param name="sender"></param>
         ''' <param name="e"></param>
         ''' <remarks></remarks>
-        Private Sub UndoEngine_Undoing(ByVal sender As Object, ByVal e As System.EventArgs) Handles m_UndoEngine.Undoing
-            If m_View IsNot Nothing Then
-                m_View.OnUndoing()
+        Private Sub UndoEngine_Undoing(ByVal sender As Object, ByVal e As System.EventArgs) Handles _undoEngine.Undoing
+            If _view IsNot Nothing Then
+                _view.OnUndoing()
             End If
         End Sub
 
@@ -851,9 +853,9 @@ Namespace Microsoft.VisualStudio.Editors.ResourceEditor
         ''' <param name="sender"></param>
         ''' <param name="e"></param>
         ''' <remarks></remarks>
-        Private Sub UndoEngine_Undone(ByVal sender As Object, ByVal e As System.EventArgs) Handles m_UndoEngine.Undone
-            If m_View IsNot Nothing Then
-                m_View.OnUndone()
+        Private Sub UndoEngine_Undone(ByVal sender As Object, ByVal e As System.EventArgs) Handles _undoEngine.Undone
+            If _view IsNot Nothing Then
+                _view.OnUndone()
             End If
         End Sub
 

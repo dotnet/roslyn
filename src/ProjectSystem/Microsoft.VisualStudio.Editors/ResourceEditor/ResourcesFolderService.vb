@@ -1,4 +1,6 @@
-﻿Option Explicit On
+﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+
+Option Explicit On
 Option Strict On
 Option Compare Binary
 
@@ -72,16 +74,16 @@ Namespace Microsoft.VisualStudio.Editors.ResourceEditor
 
 
         'The default name to use for the Resources file unless the registry says otherwise.
-        Private Const DEFAULT_RESOURCE_FOLDER_NAME As String = "Resources"
+        Private Const s_DEFAULT_RESOURCE_FOLDER_NAME As String = "Resources"
 
         'Name of the "Projects" key in the Visual Studio registry subtree
-        Private Const KEYPATH_PROJECTS As String = "Projects"
+        Private Const s_KEYPATH_PROJECTS As String = "Projects"
 
         'Name of the key in the registry that indicates what add-to-project behavior to use for a particular project
-        Private Const KEYNAME_RESOURCESFOLDERBEHAVIOR As String = "ResourcesFolderBehavior"
+        Private Const s_KEYNAME_RESOURCESFOLDERBEHAVIOR As String = "ResourcesFolderBehavior"
 
         'Name of the key in the registry that indicates the name of the Resources folder for a particular project
-        Private Const KEYNAME_RESOURCESFOLDERNAME As String = "ResourcesFolderName"
+        Private Const s_KEYNAME_RESOURCESFOLDERNAME As String = "ResourcesFolderName"
 
 #End Region
 
@@ -115,12 +117,12 @@ Namespace Microsoft.VisualStudio.Editors.ResourceEditor
 
         'A Guid version of vsProjectItemKindPhysicalFolder, which as a projectitem kind indicates that the
         '  projectitem is a physical folder on disk (as opposed to a virtual folder, etc.)
-        Private Shared ReadOnly Guid_vsProjectItemKindPhysicalFolder As New Guid(vsProjectItemKindPhysicalFolder)
+        Private Shared ReadOnly s_guid_vsProjectItemKindPhysicalFolder As New Guid(vsProjectItemKindPhysicalFolder)
 
 #End Region
 
         'Trace switch for this class.
-        Private Shared RFSSwitch As New TraceSwitch("ResourcesFolderService", "Traces the behavior of the Resources Folder Service")
+        Private Shared s_RFSSwitch As New TraceSwitch("ResourcesFolderService", "Traces the behavior of the Resources Folder Service")
 
 
 #Region "Tracing"
@@ -137,7 +139,7 @@ Namespace Microsoft.VisualStudio.Editors.ResourceEditor
                 'Only use String.Format when we have specific format arguments, although we might accidently break on something like a stray "{" in a filename
                 Message = String.Format(Message, FormatArguments)
             End If
-            Debug.WriteLineIf(RFSSwitch.TraceVerbose, "Resources Folder Service: " & Message)
+            Debug.WriteLineIf(s_RFSSwitch.TraceVerbose, "Resources Folder Service: " & Message)
         End Sub
 
 #End Region
@@ -326,7 +328,7 @@ Namespace Microsoft.VisualStudio.Editors.ResourceEditor
         Private Shared Function CopyFileWithinProject(ByVal Project As Project, ByVal SourceFilePath As String, ByVal DestinationFolder As ProjectItems) As String
             'Need to determine the destination disk path
             Dim DestinationFolderPath As String
-            If Guid_vsProjectItemKindPhysicalFolder.Equals(New Guid(DestinationFolder.Kind)) Then
+            If s_guid_vsProjectItemKindPhysicalFolder.Equals(New Guid(DestinationFolder.Kind)) Then
                 DestinationFolderPath = GetFolderNameFromProjectItems(DestinationFolder)
             Else
                 'DestinationFolderPath is not a physical folder on the disk.  It might be
@@ -530,7 +532,7 @@ Namespace Microsoft.VisualStudio.Editors.ResourceEditor
             '  of the project.  Search for it.
             FoundProjectItem = QueryProjectItems(Project.ProjectItems, ResourcesFolderName)
             If FoundProjectItem IsNot Nothing Then
-                If Guid_vsProjectItemKindPhysicalFolder.Equals(New Guid(FoundProjectItem.Kind)) Then
+                If s_guid_vsProjectItemKindPhysicalFolder.Equals(New Guid(FoundProjectItem.Kind)) Then
                     'Okay, we found it.  Return its ProjectItems property.
                     Trace("Resources folder found: " & FoundProjectItem.Name)
                 Else
@@ -621,7 +623,7 @@ Namespace Microsoft.VisualStudio.Editors.ResourceEditor
 
             'We currently don't support anything but the default Resources folder name ("Resources")
             '  However, this could be changed later to be optionally pulled from the Registry.
-            ResourcesFolderName = DEFAULT_RESOURCE_FOLDER_NAME
+            ResourcesFolderName = s_DEFAULT_RESOURCE_FOLDER_NAME
 
             If Project Is Nothing OrElse IsMiscellaneousProject(Project) Then
                 'If there's no project or it's the miscellaneous files project, we simply get AddNone behavior.
@@ -644,7 +646,7 @@ Namespace Microsoft.VisualStudio.Editors.ResourceEditor
                 If VsRootKeyPath <> "" AndAlso Not VsRootKeyPath.EndsWith("\") Then
                     VSProjectsKeyPath.Append("\")
                 End If
-                VSProjectsKeyPath.Append(KEYPATH_PROJECTS)
+                VSProjectsKeyPath.Append(s_KEYPATH_PROJECTS)
                 VSProjectsKeyPath.Append("\")
                 VSProjectsKeyPath.Append(Project.Kind)
 
@@ -653,8 +655,8 @@ Namespace Microsoft.VisualStudio.Editors.ResourceEditor
                 If VsProjectsKey IsNot Nothing Then
                     Try
                         'Read the values
-                        Dim DesiredBehavior As ResourcesFolderBehavior = DirectCast(VsProjectsKey.GetValue(KEYNAME_RESOURCESFOLDERBEHAVIOR, ResourcesFolderBehavior.AddNone), ResourcesFolderBehavior)
-                        Dim DesiredResourcesFolderName As String = DirectCast(VsProjectsKey.GetValue(KEYNAME_RESOURCESFOLDERNAME, ResourcesFolderName), String)
+                        Dim DesiredBehavior As ResourcesFolderBehavior = DirectCast(VsProjectsKey.GetValue(s_KEYNAME_RESOURCESFOLDERBEHAVIOR, ResourcesFolderBehavior.AddNone), ResourcesFolderBehavior)
+                        Dim DesiredResourcesFolderName As String = DirectCast(VsProjectsKey.GetValue(s_KEYNAME_RESOURCESFOLDERNAME, ResourcesFolderName), String)
 
                         'Validate the behavior from the registry
                         If System.Enum.IsDefined(GetType(ResourcesFolderBehavior), DesiredBehavior) Then
@@ -741,7 +743,7 @@ Namespace Microsoft.VisualStudio.Editors.ResourceEditor
                         DestinationProjectItems = Project.ProjectItems
                     Else
                         DestinationProjectItems = ResXProjectItem.Collection
-                        If Not Guid_vsProjectItemKindPhysicalFolder.Equals(New Guid(DestinationProjectItems.Kind)) Then
+                        If Not s_guid_vsProjectItemKindPhysicalFolder.Equals(New Guid(DestinationProjectItems.Kind)) Then
                             'We don't want to add to a non-physical folder.  Choose the root folder instead.
                             DestinationProjectItems = Project.ProjectItems
                         End If
@@ -850,7 +852,7 @@ Namespace Microsoft.VisualStudio.Editors.ResourceEditor
         ''' <returns>The filename and path of the project item.</returns>
         ''' <remarks></remarks>
         Private Shared Function GetFileNameFromFolderProjectItem(ByVal ProjectItem As ProjectItem) As String
-            If Guid_vsProjectItemKindPhysicalFolder.Equals(New Guid(ProjectItem.Kind)) Then
+            If s_guid_vsProjectItemKindPhysicalFolder.Equals(New Guid(ProjectItem.Kind)) Then
                 'The FileNames property represents the actual full path of the directory if the folder
                 '  is an actual physical folder on disk.
                 Debug.Assert(ProjectItem.FileCount = 1, "Didn't expect multiple filenames for a folder ProjectItem")
@@ -869,7 +871,7 @@ Namespace Microsoft.VisualStudio.Editors.ResourceEditor
         ''' <returns>The directory name of the collection on disk.</returns>
         ''' <remarks></remarks>
         Friend Shared Function GetFolderNameFromProjectItems(ByVal ProjectItems As ProjectItems) As String
-            If Guid_vsProjectItemKindPhysicalFolder.Equals(New Guid(ProjectItems.Kind)) Then
+            If s_guid_vsProjectItemKindPhysicalFolder.Equals(New Guid(ProjectItems.Kind)) Then
                 If TypeOf ProjectItems.Parent Is Project Then
                     Return GetProjectDirectory(DirectCast(ProjectItems.Parent, Project))
                 ElseIf TypeOf ProjectItems.Parent Is ProjectItem Then
@@ -990,7 +992,7 @@ Namespace Microsoft.VisualStudio.Editors.ResourceEditor
             Debug.Assert(FullFolderPathToFind.Equals(EnsureBackslash(FullFolderPathToFind), StringComparison.OrdinalIgnoreCase), _
                 "FullFolderPathToFind should have already had EnsureBackslash() called on it")
 
-            If Guid_vsProjectItemKindPhysicalFolder.Equals(New Guid(ProjectItemsTree.Kind)) Then
+            If s_guid_vsProjectItemKindPhysicalFolder.Equals(New Guid(ProjectItemsTree.Kind)) Then
                 Dim ProjectItemsFilePath As String = GetFolderNameFromProjectItems(ProjectItemsTree)
                 If EnsureBackslash(Path.GetFullPath(ProjectItemsFilePath)).Equals(FullFolderPathToFind, StringComparison.OrdinalIgnoreCase) Then
                     Return ProjectItemsTree

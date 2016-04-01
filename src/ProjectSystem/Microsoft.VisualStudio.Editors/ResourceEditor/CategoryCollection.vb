@@ -1,3 +1,5 @@
+' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+
 Option Strict On
 Option Explicit On
 
@@ -15,7 +17,7 @@ Namespace Microsoft.VisualStudio.Editors.ResourceEditor
 
 
         'A hashtable list of resources by name.
-        Private m_InnerHashByName As New Hashtable 'Of String (case-sensitive)
+        Private _innerHashByName As New Hashtable 'Of String (case-sensitive)
 
 
 
@@ -48,7 +50,7 @@ Namespace Microsoft.VisualStudio.Editors.ResourceEditor
         ''' <remarks>Does not throw an exception if not found.</remarks>
         Default Public ReadOnly Property Item(ByVal ProgrammaticCategoryName As String) As Category
             Get
-                Return DirectCast(m_InnerHashByName(ProgrammaticCategoryName), Category)
+                Return DirectCast(_innerHashByName(ProgrammaticCategoryName), Category)
             End Get
         End Property
 
@@ -72,7 +74,7 @@ Namespace Microsoft.VisualStudio.Editors.ResourceEditor
             MyBase.InnerList.Add(Category)
 
             'Add to the hash table (for indexing by programmatic name)
-            m_InnerHashByName.Add(Category.ProgrammaticName, Category)
+            _innerHashByName.Add(Category.ProgrammaticName, Category)
         End Sub
 
 

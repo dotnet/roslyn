@@ -1,3 +1,5 @@
+' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+
 Option Explicit On
 Option Strict On
 Option Compare Binary
@@ -18,7 +20,7 @@ Namespace Microsoft.VisualStudio.Editors.ResourceEditor
         Inherits TypeConverter
 
         'Our cached set of standard SerializableEncoding values
-        Private m_StandardValuesCache As StandardValuesCollection
+        Private _standardValuesCache As StandardValuesCollection
 
 
         ''' <summary>
@@ -112,7 +114,7 @@ Namespace Microsoft.VisualStudio.Editors.ResourceEditor
         ''' </summary>
         ''' <remarks></remarks>
         Public Overrides Function GetStandardValues(ByVal Context As ITypeDescriptorContext) As StandardValuesCollection
-            If m_StandardValuesCache Is Nothing Then
+            If _standardValuesCache Is Nothing Then
                 'We want to sort like the the Save As... dialog does.  In particular, we want this sorting:
                 '
                 '  Default
@@ -161,10 +163,10 @@ Namespace Microsoft.VisualStudio.Editors.ResourceEditor
                 AllEncodings.AddRange(SortedUnicodeEncodings.Values)
                 AllEncodings.AddRange(SortedEncodings.Values)
 
-                m_StandardValuesCache = New StandardValuesCollection(AllEncodings)
+                _standardValuesCache = New StandardValuesCollection(AllEncodings)
             End If
 
-            Return m_StandardValuesCache
+            Return _standardValuesCache
         End Function
 
 

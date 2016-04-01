@@ -1,3 +1,5 @@
+' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+
 Imports System.Runtime.InteropServices
 Imports Microsoft.Internal.Performance
 Imports Microsoft.VisualStudio.Editors.AppDesDesignerFramework
@@ -20,11 +22,11 @@ Namespace Microsoft.VisualStudio.Editors.ApplicationDesigner
         Implements IVsWindowPaneCommit
 
         'The main view (the ApplicationDesignerView will be a child of this control)
-        Private m_View As ApplicationDesignerWindowPaneControl
+        Private _view As ApplicationDesignerWindowPaneControl
 
-        Private host As IDesignerHost
-        Private m_ViewHelper As CmdTargetHelper
-        Private m_UIShell2Service As IVsUIShell2
+        Private _host As IDesignerHost
+        Private _viewHelper As CmdTargetHelper
+        Private _UIShell2Service As IVsUIShell2
 
 
         ''' <summary>
@@ -39,11 +41,11 @@ Namespace Microsoft.VisualStudio.Editors.ApplicationDesigner
             '   and use it for focus management!  It will steal key
             '   events from the shell and royaly screw things up.
             '
-            m_View = New ApplicationDesignerWindowPaneControl()
-            AddHandler m_View.GotFocus, AddressOf Me.OnViewFocus
-            m_View.BackColor = PropertyPages.PropPageUserControlBase.PropPageBackColor
+            _view = New ApplicationDesignerWindowPaneControl()
+            AddHandler _view.GotFocus, AddressOf Me.OnViewFocus
+            _view.BackColor = PropertyPages.PropPageUserControlBase.PropPageBackColor
 
-            host = TryCast(GetService(GetType(IDesignerHost)), IDesignerHost)
+            _host = TryCast(GetService(GetType(IDesignerHost)), IDesignerHost)
 
             AddHandler surface.Unloaded, AddressOf Me.OnSurfaceUnloaded
 
@@ -62,9 +64,9 @@ Namespace Microsoft.VisualStudio.Editors.ApplicationDesigner
             Dim WindowFrame As IVsWindowFrame
             WindowFrame = TryCast(GetService(GetType(IVsWindowFrame)), IVsWindowFrame)
             If WindowFrame IsNot Nothing Then
-                m_ViewHelper = New CmdTargetHelper(Me)
+                _viewHelper = New CmdTargetHelper(Me)
                 'Must marshal ourselves as IUnknown wrapper
-                VSErrorHandler.ThrowOnFailure(WindowFrame.SetProperty(__VSFPROPID.VSFPROPID_ViewHelper, New System.Runtime.InteropServices.UnknownWrapper(m_ViewHelper)))
+                VSErrorHandler.ThrowOnFailure(WindowFrame.SetProperty(__VSFPROPID.VSFPROPID_ViewHelper, New System.Runtime.InteropServices.UnknownWrapper(_viewHelper)))
 
                 ' make sure scrollbars in the view are not themed
                 VSErrorHandler.ThrowOnFailure(WindowFrame.SetProperty(__VSFPROPID5.VSFPROPID_NativeScrollbarThemeMode, __VSNativeScrollbarThemeMode.NSTM_None))
@@ -100,9 +102,9 @@ Namespace Microsoft.VisualStudio.Editors.ApplicationDesigner
         Private Sub OnViewFocus(ByVal sender As Object, ByVal e As EventArgs)
             'Note: this sub never seems to get hit when controls count > 0
             Common.Switches.TracePDFocus(TraceLevel.Warning, "ApplicationDesignerWindowPane.OnViewFocus (Project Designer's window pane)")
-            If m_View IsNot Nothing AndAlso m_View.Controls.Count > 0 Then
-                Common.Switches.TracePDFocus(TraceLevel.Warning, "  ...setting focus to view's first child: """ & m_View.Controls(0).Name & """" & " (view is type """ & m_View.GetType.Name & """)")
-                m_View.Controls(0).Focus()
+            If _view IsNot Nothing AndAlso _view.Controls.Count > 0 Then
+                Common.Switches.TracePDFocus(TraceLevel.Warning, "  ...setting focus to view's first child: """ & _view.Controls(0).Name & """" & " (view is type """ & _view.GetType.Name & """)")
+                _view.Controls(0).Focus()
             Else
                 Common.Switches.TracePDFocus(TraceLevel.Warning, "  ... ignoring - m_View currently has no children")
             End If
@@ -110,7 +112,7 @@ Namespace Microsoft.VisualStudio.Editors.ApplicationDesigner
 
         Public Overrides ReadOnly Property Window() As System.Windows.Forms.IWin32Window
             Get
-                Return m_View
+                Return _view
             End Get
         End Property
 
@@ -126,7 +128,7 @@ Namespace Microsoft.VisualStudio.Editors.ApplicationDesigner
 
             Common.Switches.TracePDFocus(TraceLevel.Warning, "ApplicationDesignerWindowPane.PopulateView")
             Using New Common.WaitCursor()
-                m_View.Controls.Clear()
+                _view.Controls.Clear()
                 Dim childView As Control = Nothing
 
                 Try
@@ -140,7 +142,7 @@ Namespace Microsoft.VisualStudio.Editors.ApplicationDesigner
                         childAppDesignerView.SuspendLayout()
                         childAppDesignerView.Dock = DockStyle.Fill
                         childAppDesignerView.ResumeLayout(False)
-                        m_View.Controls.Add(childAppDesignerView)
+                        _view.Controls.Add(childAppDesignerView)
 
                         'Okay, go ahead and set up the designer view.  This adds all the tabs but does not
                         '  activate the project designer or add or activate any of the property page panels.
@@ -177,7 +179,7 @@ Namespace Microsoft.VisualStudio.Editors.ApplicationDesigner
                 If childView.Parent Is Nothing Then
                     Common.Switches.TracePDFocus(TraceLevel.Warning, "  ... ApplicationDesignerWindowPane.PopulateView: Adding viewChild to view")
                     childView.Dock = DockStyle.Fill
-                    m_View.Controls.Add(childView)
+                    _view.Controls.Add(childView)
                 End If
 
                 'Don't set the active view here - OnInitializationComplete() will handle that (using
@@ -199,9 +201,9 @@ Namespace Microsoft.VisualStudio.Editors.ApplicationDesigner
         '     in which case we should dispose it.
         ' </devdoc>
         Private Sub OnSurfaceUnloaded(ByVal sender As Object, ByVal e As EventArgs)
-            If (m_View IsNot Nothing AndAlso m_View.Controls.Count > 0) Then
-                Dim controls As Control() = New Control(m_View.Controls.Count - 1) {}
-                m_View.Controls.CopyTo(controls, 0)
+            If (_view IsNot Nothing AndAlso _view.Controls.Count > 0) Then
+                Dim controls As Control() = New Control(_view.Controls.Count - 1) {}
+                _view.Controls.CopyTo(controls, 0)
                 For Each c As Control In controls
                     c.Dispose()
                 Next
@@ -275,8 +277,8 @@ Namespace Microsoft.VisualStudio.Editors.ApplicationDesigner
 
         Public ReadOnly Property AppDesignerView() As ApplicationDesignerView
             Get
-                If m_View IsNot Nothing AndAlso m_View.Controls.Count > 0 Then
-                    Return TryCast(m_View.Controls(0), ApplicationDesignerView)
+                If _view IsNot Nothing AndAlso _view.Controls.Count > 0 Then
+                    Return TryCast(_view.Controls(0), ApplicationDesignerView)
                 Else
                     Return Nothing
                 End If
@@ -449,15 +451,15 @@ Namespace Microsoft.VisualStudio.Editors.ApplicationDesigner
         ''' <remarks></remarks>
         Public ReadOnly Property VsUIShell2Service() As IVsUIShell2
             Get
-                If (m_UIShell2Service Is Nothing) Then
+                If (_UIShell2Service Is Nothing) Then
                     If (Common.Utils.VBPackageInstance IsNot Nothing) Then
                         Dim VsUiShell As IVsUIShell = CType(Common.Utils.VBPackageInstance.GetService(GetType(IVsUIShell)), IVsUIShell)
                         If VsUiShell IsNot Nothing Then
-                            m_UIShell2Service = TryCast(VsUiShell, IVsUIShell2)
+                            _UIShell2Service = TryCast(VsUiShell, IVsUIShell2)
                         End If
                     End If
                 End If
-                Return m_UIShell2Service
+                Return _UIShell2Service
 
             End Get
         End Property
@@ -495,7 +497,7 @@ Namespace Microsoft.VisualStudio.Editors.ApplicationDesigner
             Dim WindowFrame As IVsWindowFrame
             WindowFrame = TryCast(GetService(GetType(IVsWindowFrame)), IVsWindowFrame)
             If WindowFrame IsNot Nothing Then
-                m_ViewHelper = Nothing
+                _viewHelper = Nothing
                 'Must marshal ourselves as IUnknown wrapper
                 VSErrorHandler.ThrowOnFailure(WindowFrame.SetProperty(__VSFPROPID.VSFPROPID_ViewHelper, New System.Runtime.InteropServices.UnknownWrapper(Nothing)))
             End If
@@ -515,7 +517,7 @@ Namespace Microsoft.VisualStudio.Editors.ApplicationDesigner
         ''' <param name="disposing"></param>
         ''' <remarks></remarks>
         Protected Overloads Sub Dispose(ByVal disposing As Boolean)
-            Dim disposedView As Control = m_View
+            Dim disposedView As Control = _view
 
             Try
                 If (disposing) Then
@@ -529,8 +531,8 @@ Namespace Microsoft.VisualStudio.Editors.ApplicationDesigner
                     ' disposedView.  After we're done calling base.Dispose()
                     ' will take care of our own stuff.
                     '
-                    m_UIShell2Service = Nothing
-                    m_View = Nothing
+                    _UIShell2Service = Nothing
+                    _view = Nothing
                     Dim DesSurface As DesignSurface = Surface
                     If (DesSurface IsNot Nothing) Then
                         RemoveHandler DesSurface.Unloaded, AddressOf Me.OnSurfaceUnloaded

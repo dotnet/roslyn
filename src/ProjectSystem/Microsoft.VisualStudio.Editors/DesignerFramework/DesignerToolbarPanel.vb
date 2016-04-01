@@ -1,3 +1,5 @@
+' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+
 Option Strict On
 Option Explicit On
 Imports System.Windows.Forms
@@ -15,20 +17,20 @@ Namespace Microsoft.VisualStudio.Editors.DesignerFramework
         Inherits Panel
         Implements IVsToolWindowToolbar
 
-        Private m_toolbarHost As Microsoft.VisualStudio.Shell.Interop.IVsToolWindowToolbarHost
+        Private _toolbarHost As Microsoft.VisualStudio.Shell.Interop.IVsToolWindowToolbarHost
 
         ' GUID for hosted toolbar as specified in CTC file
-        Private m_guid As Guid
+        Private _guid As Guid
 
         ' ID of hosted toolbar as specified in CTC file
-        Private m_id As UInteger
+        Private _id As UInteger
 
         ' UI Shell service
-        Private m_uiShell As IVsUIShell
+        Private _uiShell As IVsUIShell
 
         ' If we set the toolbar before our handle is created, we have to remember to 
         ' associate the handle with the toolbar on handle create...
-        Private m_associateToolbarOnHandleCreate As Boolean
+        Private _associateToolbarOnHandleCreate As Boolean
 
         ''' <summary>
         ''' Constructor
@@ -48,7 +50,7 @@ Namespace Microsoft.VisualStudio.Editors.DesignerFramework
         Public Sub Activate(ByVal h As IntPtr)
             ' It seems that designers don't set the active secondary toolbar when activated -
             ' this should take care of that!
-            m_toolbarHost.ProcessMouseActivation(h, win.WM_SETFOCUS, 0, 0)
+            _toolbarHost.ProcessMouseActivation(h, win.WM_SETFOCUS, 0, 0)
         End Sub
 
         ''' <summary>
@@ -64,9 +66,9 @@ Namespace Microsoft.VisualStudio.Editors.DesignerFramework
             End If
 
             ' Keep these guys around for later...
-            m_guid = guid
-            m_id = id
-            m_uiShell = uiShell
+            _guid = guid
+            _id = id
+            _uiShell = uiShell
 
             If Me.IsHandleCreated Then
                 ' Fine - handle was already created, let's associate the toolbar with the handle
@@ -74,7 +76,7 @@ Namespace Microsoft.VisualStudio.Editors.DesignerFramework
             Else
                 ' No handle created yet. Make note that we should associate the handle with the toolbar
                 ' as soon as we have one!
-                m_associateToolbarOnHandleCreate = True
+                _associateToolbarOnHandleCreate = True
             End If
         End Sub
 
@@ -86,7 +88,7 @@ Namespace Microsoft.VisualStudio.Editors.DesignerFramework
         ''' <remarks></remarks>
         Protected Overrides Sub OnHandleCreated(ByVal e As System.EventArgs)
             MyBase.OnHandleCreated(e)
-            If m_associateToolbarOnHandleCreate Then
+            If _associateToolbarOnHandleCreate Then
                 InternalAssociateToolbarWithHandle()
             End If
         End Sub
@@ -99,13 +101,13 @@ Namespace Microsoft.VisualStudio.Editors.DesignerFramework
         ''' <remarks></remarks>
         Protected Overrides Sub OnHandleDestroyed(ByVal e As System.EventArgs)
             MyBase.OnHandleDestroyed(e)
-            If m_toolbarHost IsNot Nothing Then
+            If _toolbarHost IsNot Nothing Then
                 ' We had a toolbar host (which should be associated with the old handle)
                 ' Let's kill it and make note that if we get a new handle, we should 
                 ' hook it up!
-                m_toolbarHost.Close(0)
-                m_toolbarHost = Nothing
-                m_associateToolbarOnHandleCreate = True
+                _toolbarHost.Close(0)
+                _toolbarHost = Nothing
+                _associateToolbarOnHandleCreate = True
             End If
         End Sub
 
@@ -115,13 +117,13 @@ Namespace Microsoft.VisualStudio.Editors.DesignerFramework
         ''' <remarks></remarks>
         Private Sub InternalAssociateToolbarWithHandle()
             Debug.Assert(Me.IsHandleCreated, "No handle created when calling InternaleAssociateToolbarWithHandle")
-            If m_uiShell IsNot Nothing Then
-                m_uiShell.SetupToolbar(Me.Handle, Me, m_toolbarHost)
+            If _uiShell IsNot Nothing Then
+                _uiShell.SetupToolbar(Me.Handle, Me, _toolbarHost)
             End If
 
-            m_toolbarHost.AddToolbar(VSTWT_LOCATION.VSTWT_TOP, m_guid, m_id)
-            m_toolbarHost.ShowHideToolbar(m_guid, m_id, 1)
-            m_associateToolbarOnHandleCreate = False
+            _toolbarHost.AddToolbar(VSTWT_LOCATION.VSTWT_TOP, _guid, _id)
+            _toolbarHost.ShowHideToolbar(_guid, _id, 1)
+            _associateToolbarOnHandleCreate = False
         End Sub
 
         ''' <summary>
@@ -131,8 +133,8 @@ Namespace Microsoft.VisualStudio.Editors.DesignerFramework
         ''' <remarks></remarks>
         Protected Overrides Sub OnSizeChanged(ByVal e As System.EventArgs)
             MyBase.OnSizeChanged(e)
-            If m_toolbarHost IsNot Nothing Then
-                m_toolbarHost.BorderChanged()
+            If _toolbarHost IsNot Nothing Then
+                _toolbarHost.BorderChanged()
             End If
         End Sub
 
@@ -211,9 +213,9 @@ Namespace Microsoft.VisualStudio.Editors.DesignerFramework
         ''' <remarks></remarks>
         Protected Overrides Sub Dispose(ByVal disposing As Boolean)
             If disposing Then
-                If m_toolbarHost IsNot Nothing Then
-                    m_toolbarHost.Close(0)
-                    m_toolbarHost = Nothing
+                If _toolbarHost IsNot Nothing Then
+                    _toolbarHost.Close(0)
+                    _toolbarHost = Nothing
                 End If
             End If
             MyBase.Dispose(disposing)

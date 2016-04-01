@@ -1,3 +1,5 @@
+' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+
 'This is the advanced compiler options page for VB only.
 
 Imports System.ComponentModel
@@ -33,15 +35,15 @@ Namespace Microsoft.VisualStudio.Editors.PropertyPages
         'Form overrides dispose to clean up the component list.
         Protected Overloads Overrides Sub Dispose(ByVal disposing As Boolean)
             If disposing Then
-                If Not (components Is Nothing) Then
-                    components.Dispose()
+                If Not (_components Is Nothing) Then
+                    _components.Dispose()
                 End If
             End If
             MyBase.Dispose(disposing)
         End Sub
 
         'Required by the Windows Form Designer
-        Private components As System.ComponentModel.IContainer
+        Private _components As System.ComponentModel.IContainer
 
         'NOTE: The following procedure is required by the Windows Form Designer
         'It can be modified using the Windows Form Designer.  
@@ -268,7 +270,7 @@ Namespace Microsoft.VisualStudio.Editors.PropertyPages
 
 #End Region
 
-        Enum TreatWarningsSetting
+        Public Enum TreatWarningsSetting
             WARNINGS_ALL
             WARNINGS_SPECIFIC
             WARNINGS_NONE
@@ -277,10 +279,10 @@ Namespace Microsoft.VisualStudio.Editors.PropertyPages
         'The state of the DebugSymbols value - true or false
         '  This is automatically set to true whenever the value in the DebugInfo combobox is set to something else
         '  than None, and false otherwise
-        Private m_DebugSymbols As Object
+        Private _debugSymbols As Object
 
-        Private Const DEBUGINFO_NONE As String = ""
-        Private Const DEBUGINFO_FULL As String = "full"
+        Private Const s_DEBUGINFO_NONE As String = ""
+        Private Const s_DEBUGINFO_FULL As String = "full"
 
         Protected Overrides ReadOnly Property ControlData() As PropertyControlData()
             Get
@@ -409,8 +411,8 @@ Namespace Microsoft.VisualStudio.Editors.PropertyPages
         ''' <returns></returns>
         ''' <remarks></remarks>
         Private Function DebugSymbolsGet(ByVal control As Control, ByVal prop As PropertyDescriptor, ByRef value As Object) As Boolean
-            If TypeOf m_DebugSymbols Is Boolean Then
-                value = CType(m_DebugSymbols, Boolean)
+            If TypeOf _debugSymbols Is Boolean Then
+                value = CType(_debugSymbols, Boolean)
                 Return True
             Else
                 Return False
@@ -426,7 +428,7 @@ Namespace Microsoft.VisualStudio.Editors.PropertyPages
         ''' <returns></returns>
         ''' <remarks></remarks>
         Private Function DebugSymbolsSet(ByVal control As Control, ByVal prop As PropertyDescriptor, ByVal value As Object) As Boolean
-            m_DebugSymbols = value
+            _debugSymbols = value
             Return True
         End Function
 
@@ -493,9 +495,9 @@ Namespace Microsoft.VisualStudio.Editors.PropertyPages
         Private Sub DebugInfoComboBox_SelectionChangeCommitted(ByVal sender As Object, ByVal e As EventArgs) Handles DebugInfoComboBox.SelectionChangeCommitted
             If DebugInfoComboBox.SelectedIndex = 0 Then
                 ' Index 0 corresponds to "None" 
-                m_DebugSymbols = False
+                _debugSymbols = False
             Else
-                m_DebugSymbols = True
+                _debugSymbols = True
             End If
             SetDirty(VsProjPropId80.VBPROJPROPID_DebugInfo, False)
             SetDirty(VsProjPropId.VBPROJPROPID_DebugSymbols, False)

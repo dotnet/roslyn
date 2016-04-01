@@ -1,3 +1,5 @@
+' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+
 Imports Microsoft.VisualStudio.Editors.DesignerFramework
 Imports System.Windows.Forms
 Imports System.Drawing
@@ -16,33 +18,33 @@ Namespace Microsoft.VisualStudio.Editors.SettingsDesigner
         'Inherits System.Windows.Forms.Form
         Inherits BaseDialog
 
-        Private Shared previousSize As System.Drawing.Size = System.Drawing.Size.Empty
+        Private Shared s_previousSize As System.Drawing.Size = System.Drawing.Size.Empty
 
-        Private m_ProjectItemid As UInteger
-        Private m_VsHierarchy As IVsHierarchy
+        Private _projectItemid As UInteger
+        Private _vsHierarchy As IVsHierarchy
 
         Public Sub New(ByVal ServiceProvider As IServiceProvider, ByVal vsHierarchy As IVsHierarchy, ByVal ItemId As UInteger)
             MyBase.New(ServiceProvider)
 
-            m_VsHierarchy = vsHierarchy
-            m_ProjectItemid = ItemId
+            _vsHierarchy = vsHierarchy
+            _projectItemid = ItemId
 
             'This call is required by the Windows Form Designer.
             InitializeComponent()
 
-            If Not previousSize.IsEmpty Then
-                Me.Size = New System.Drawing.Size(Math.Min(CInt(Me.MinimumSize.Width * 1.5), previousSize.Width), _
-                                                  Math.Min(CInt(Me.MinimumSize.Height * 1.5), previousSize.Height))
+            If Not s_previousSize.IsEmpty Then
+                Me.Size = New System.Drawing.Size(Math.Min(CInt(Me.MinimumSize.Width * 1.5), s_previousSize.Width), _
+                                                  Math.Min(CInt(Me.MinimumSize.Height * 1.5), s_previousSize.Height))
 
             End If
 
             'Add any initialization after the InitializeComponent() call
-            TypeTreeView = New TypeTV
-            TypeTreeView.AccessibleName = SR.GetString(SR.SD_SelectATypeTreeView_AccessibleName)
-            TypeTreeView.Dock = DockStyle.Fill
-            AddHandler TypeTreeView.AfterSelect, AddressOf Me.TypeTreeViewAfterSelectHandler
-            AddHandler TypeTreeView.BeforeExpand, AddressOf Me.TypeTreeViewBeforeExpandHandler
-            TreeViewPanel.Controls.Add(TypeTreeView)
+            _typeTreeView = New TypeTV
+            _typeTreeView.AccessibleName = SR.GetString(SR.SD_SelectATypeTreeView_AccessibleName)
+            _typeTreeView.Dock = DockStyle.Fill
+            AddHandler _typeTreeView.AfterSelect, AddressOf Me.TypeTreeViewAfterSelectHandler
+            AddHandler _typeTreeView.BeforeExpand, AddressOf Me.TypeTreeViewBeforeExpandHandler
+            TreeViewPanel.Controls.Add(_typeTreeView)
             F1Keyword = HelpIDs.Dlg_PickType
         End Sub
 
@@ -58,8 +60,8 @@ Namespace Microsoft.VisualStudio.Editors.SettingsDesigner
         'Form overrides dispose to clean up the component list.
         Protected Overloads Overrides Sub Dispose(ByVal disposing As Boolean)
             If disposing Then
-                If Not (components Is Nothing) Then
-                    components.Dispose()
+                If Not (_components Is Nothing) Then
+                    _components.Dispose()
                 End If
             End If
             MyBase.Dispose(disposing)
@@ -73,7 +75,7 @@ Namespace Microsoft.VisualStudio.Editors.SettingsDesigner
         Friend WithEvents overarchingTableLayoutPanel As System.Windows.Forms.TableLayoutPanel
 
         'Required by the Windows Form Designer
-        Private components As System.ComponentModel.IContainer
+        Private _components As System.ComponentModel.IContainer
 
         'NOTE: The following procedure is required by the Windows Form Designer
         'It can be modified using the Windows Form Designer.  
@@ -174,7 +176,7 @@ Namespace Microsoft.VisualStudio.Editors.SettingsDesigner
 
 #End Region
 
-        Private TypeTreeView As TypeTV
+        Private _typeTreeView As TypeTV
 
         Private Sub TypeTreeViewAfterSelectHandler(ByVal sender As Object, ByVal e As TreeViewEventArgs)
             If e.Node IsNot Nothing Then
@@ -192,13 +194,13 @@ Namespace Microsoft.VisualStudio.Editors.SettingsDesigner
                 Dim Node As TypeTVNode = TryCast(e.Node, TypeTVNode)
                 If Node IsNot Nothing AndAlso Node.IsAssemblyNode AndAlso Node.HasDummyNode Then
                     Node.RemoveDummyNode()
-                    Using mtsrv As New Microsoft.VSDesigner.MultiTargetService(m_VsHierarchy, m_ProjectItemid, False)
+                    Using mtsrv As New Microsoft.VSDesigner.MultiTargetService(_vsHierarchy, _projectItemid, False)
                         If (mtsrv IsNot Nothing) Then
                             Dim typs As System.Type() = mtsrv.GetSupportedTypes(Node.Text, AddressOf GetAssemblyCallback)
                             For Each availableType As System.Type In typs
                                 'TypeTextBox.AutoCompleteCustomSource.Add(availableType.FullName)
                                 If availableType.FullName.Contains(".") AndAlso SettingTypeValidator.IsValidSettingType(mtsrv.GetRuntimeType(availableType)) Then
-                                    TypeTreeView.AddTypeNode(Node, availableType.FullName)
+                                    _typeTreeView.AddTypeNode(Node, availableType.FullName)
                                 End If
                             Next
                         End If
@@ -251,7 +253,7 @@ Namespace Microsoft.VisualStudio.Editors.SettingsDesigner
                 For Each availableType As System.Type In types
                     TypeTextBox.AutoCompleteCustomSource.Add(availableType.FullName)
                     If availableType.FullName.Contains(".") Then
-                        TypeTreeView.AddTypeNode(Nothing, availableType.FullName)
+                        _typeTreeView.AddTypeNode(Nothing, availableType.FullName)
                     End If
                 Next
             End If
@@ -260,7 +262,7 @@ Namespace Microsoft.VisualStudio.Editors.SettingsDesigner
         Public Sub SetProjectReferencedAssemblies()
             TypeTextBox.AutoCompleteCustomSource.Clear()
 
-            Dim envDTE As EnvDTE.Project = DTEUtils.EnvDTEProject(m_VsHierarchy)
+            Dim envDTE As EnvDTE.Project = DTEUtils.EnvDTEProject(_vsHierarchy)
             Dim VSProject As VSLangProj.VSProject = DirectCast(envDTE.Object, VSLangProj.VSProject)
             Dim References As VSLangProj.References = Nothing
 
@@ -269,11 +271,11 @@ Namespace Microsoft.VisualStudio.Editors.SettingsDesigner
             End If
 
             If References IsNot Nothing Then
-                Using mtsrv As New Microsoft.VSDesigner.MultiTargetService(m_VsHierarchy, m_ProjectItemid, False)
+                Using mtsrv As New Microsoft.VSDesigner.MultiTargetService(_vsHierarchy, _projectItemid, False)
                     For ReferenceNo As Integer = 1 To References.Count()
                         Dim reference As String = References.Item(ReferenceNo).Name()
                         If mtsrv Is Nothing OrElse mtsrv.IsSupportedAssembly(reference) Then
-                            TypeTreeView.AddAssemblyNode(reference)
+                            _typeTreeView.AddAssemblyNode(reference)
                         End If
                     Next
                 End Using
@@ -500,67 +502,67 @@ Namespace Microsoft.VisualStudio.Editors.SettingsDesigner
         Private Class TypeTVNode
             Inherits TreeNode
 
-            Private m_NodeType As NodeType
+            Private _nodeType As NodeType
 
-            Private Const DUMMY_ITEM_TEXT As String = " THIS IS THE DUMMY ITEM "
-            Private Const assemblyImageIndex As Integer = 0
-            Private Const selectedAssemblyImageIndex As Integer = 0
-            Private Const namespaceImageIndex As Integer = 1
-            Private Const selectedNamespaceImageIndex As Integer = 1
-            Private Const typeImageIndex As Integer = 2
-            Private Const selectedTypeImageIndex As Integer = 2
+            Private Const s_DUMMY_ITEM_TEXT As String = " THIS IS THE DUMMY ITEM "
+            Private Const s_assemblyImageIndex As Integer = 0
+            Private Const s_selectedAssemblyImageIndex As Integer = 0
+            Private Const s_namespaceImageIndex As Integer = 1
+            Private Const s_selectedNamespaceImageIndex As Integer = 1
+            Private Const s_typeImageIndex As Integer = 2
+            Private Const s_selectedTypeImageIndex As Integer = 2
 
             Public Sub New(ByVal nodeType As NodeType)
-                Me.m_NodeType = nodeType
+                Me._nodeType = nodeType
 
                 Select Case nodeType
                     Case NodeType.ASSEMBLY_NODE
-                        ImageIndex = assemblyImageIndex
-                        SelectedImageIndex = selectedAssemblyImageIndex
+                        ImageIndex = s_assemblyImageIndex
+                        SelectedImageIndex = s_selectedAssemblyImageIndex
                     Case NodeType.NAMESPACE_NODE
-                        ImageIndex = namespaceImageIndex
-                        SelectedImageIndex = selectedNamespaceImageIndex
+                        ImageIndex = s_namespaceImageIndex
+                        SelectedImageIndex = s_selectedNamespaceImageIndex
                     Case NodeType.TYPE_NODE
-                        ImageIndex = typeImageIndex
-                        SelectedImageIndex = selectedTypeImageIndex
+                        ImageIndex = s_typeImageIndex
+                        SelectedImageIndex = s_selectedTypeImageIndex
                 End Select
 
             End Sub
 
             Public ReadOnly Property IsAssemblyNode() As Boolean
                 Get
-                    Return m_NodeType = NodeType.ASSEMBLY_NODE
+                    Return _nodeType = NodeType.ASSEMBLY_NODE
                 End Get
             End Property
 
             Public ReadOnly Property HasDummyNode() As Boolean
                 Get
-                    Return Me.Nodes.ContainsKey(DUMMY_ITEM_TEXT)
+                    Return Me.Nodes.ContainsKey(s_DUMMY_ITEM_TEXT)
                 End Get
             End Property
 
 
             Public ReadOnly Property IsNameSpaceNode() As Boolean
                 Get
-                    Return m_NodeType = NodeType.NAMESPACE_NODE
+                    Return _nodeType = NodeType.NAMESPACE_NODE
                 End Get
             End Property
 
             Public ReadOnly Property IsTypeNode() As Boolean
                 Get
-                    Return m_NodeType = NodeType.TYPE_NODE
+                    Return _nodeType = NodeType.TYPE_NODE
                 End Get
             End Property
 
             Public Sub AddDummyNode()
                 If IsAssemblyNode() AndAlso Me.Nodes.Count = 0 Then
-                    Me.Nodes.Add(DUMMY_ITEM_TEXT, DUMMY_ITEM_TEXT)
+                    Me.Nodes.Add(s_DUMMY_ITEM_TEXT, s_DUMMY_ITEM_TEXT)
                 End If
             End Sub
 
             Public Sub RemoveDummyNode()
-                If IsAssemblyNode() AndAlso Me.Nodes.ContainsKey(DUMMY_ITEM_TEXT) Then
-                    Me.Nodes.RemoveByKey(DUMMY_ITEM_TEXT)
+                If IsAssemblyNode() AndAlso Me.Nodes.ContainsKey(s_DUMMY_ITEM_TEXT) Then
+                    Me.Nodes.RemoveByKey(s_DUMMY_ITEM_TEXT)
                 End If
             End Sub
 
@@ -610,7 +612,7 @@ Namespace Microsoft.VisualStudio.Editors.SettingsDesigner
         ''' <param name="e"></param>
         ''' <remarks></remarks>
         Private Sub TypePickerDialog_FormClosed(ByVal sender As Object, ByVal e As System.Windows.Forms.FormClosedEventArgs) Handles Me.FormClosed
-            previousSize = Me.Size
+            s_previousSize = Me.Size
         End Sub
 
         Private Sub TypePickerDialog_HelpButtonClicked(ByVal sender As System.Object, ByVal e As System.ComponentModel.CancelEventArgs) Handles MyBase.HelpButtonClicked

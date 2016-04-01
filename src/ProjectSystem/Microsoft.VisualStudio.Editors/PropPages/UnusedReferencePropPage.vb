@@ -1,3 +1,5 @@
+' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+
 Imports Microsoft.VisualStudio.Editors.Common
 Imports Microsoft.VisualStudio.Editors.Interop
 Imports Microsoft.VisualStudio.Shell.Interop
@@ -11,19 +13,19 @@ Namespace Microsoft.VisualStudio.Editors.PropertyPages
         Inherits PropPageUserControlBase
 
         ' Rate to poll compiler for unused references in milliseconds 
-        Const PollingRate As Integer = 500
+        Private Const s_pollingRate As Integer = 500
 
         ' Whether we have generated the list
-        Private m_UnusedReferenceListReady As Boolean
+        Private _unusedReferenceListReady As Boolean
 
         ' Project hierarchy
-        Private m_Hier As IVsHierarchy
+        Private _hier As IVsHierarchy
 
         ' Compiler's reference usage provider interface
-        Private m_RefUsageProvider As IVBReferenceUsageProvider
+        Private _refUsageProvider As IVBReferenceUsageProvider
 
         ' Timer to poll compiler for unused references list
-        Private m_GetUnusedRefsTimer As Timer
+        Private _getUnusedRefsTimer As Timer
 
         Friend WithEvents ColHdr_Type As System.Windows.Forms.ColumnHeader
         Friend WithEvents ColHdr_Path As System.Windows.Forms.ColumnHeader
@@ -37,11 +39,11 @@ Namespace Microsoft.VisualStudio.Editors.PropertyPages
         Friend WithEvents m_HostDialog As PropPageHostDialog
 
         ' helper object to sort the reference list
-        Private m_ReferenceSorter As ListViewComparer
+        Private _referenceSorter As ListViewComparer
 
         ' keep the last status of the last call to GetUnusedReferences...
         ' we only update UI when the status was changed...
-        Private m_LastStatus As ReferenceUsageResult = ReferenceUsageResult.ReferenceUsageUnknown
+        Private _lastStatus As ReferenceUsageResult = ReferenceUsageResult.ReferenceUsageUnknown
 
 #Region " Windows Form Designer generated code "
 
@@ -55,14 +57,14 @@ Namespace Microsoft.VisualStudio.Editors.PropertyPages
             AddChangeHandlers()
 
             'support sorting
-            m_ReferenceSorter = New ListViewComparer()
+            _referenceSorter = New ListViewComparer()
         End Sub
 
         'Form overrides dispose to clean up the component list.
         Protected Overloads Overrides Sub Dispose(ByVal disposing As Boolean)
             If disposing Then
-                If Not (components Is Nothing) Then
-                    components.Dispose()
+                If Not (_components Is Nothing) Then
+                    _components.Dispose()
                 End If
             End If
             MyBase.Dispose(disposing)
@@ -70,7 +72,7 @@ Namespace Microsoft.VisualStudio.Editors.PropertyPages
 
 
         'Required by the Windows Form Designer
-        Private components As System.ComponentModel.IContainer
+        Private _components As System.ComponentModel.IContainer
 
         'NOTE: The following procedure is required by the Windows Form Designer
         'It can be modified using the Windows Form Designer.  
@@ -199,17 +201,17 @@ Namespace Microsoft.VisualStudio.Editors.PropertyPages
         Private Sub InitDialog()
             Try
                 ' Get our project hierarchy
-                m_Hier = ProjectHierarchy
+                _hier = ProjectHierarchy
 
                 ' Get reference usage provider interface
-                m_RefUsageProvider = CType(ServiceProvider.GetService(NativeMethods.VBCompilerGuid), IVBReferenceUsageProvider)
+                _refUsageProvider = CType(ServiceProvider.GetService(NativeMethods.VBCompilerGuid), IVBReferenceUsageProvider)
             Catch ex As Exception
                 Debug.Fail("An exception was thrown in UnusedReferencePropPage.InitDialog" & vbCrLf & ex.ToString)
                 Throw
             End Try
 
             ' Disable remove button and clear IsDirty
-            m_UnusedReferenceListReady = False
+            _unusedReferenceListReady = False
             EnableRemoveRefs(False)
 
             ' Begin requesting unused references
@@ -225,10 +227,10 @@ Namespace Microsoft.VisualStudio.Editors.PropertyPages
         Private Sub Abort()
 
             ' Stop polling
-            m_GetUnusedRefsTimer.Stop()
+            _getUnusedRefsTimer.Stop()
 
             ' End get unused references operation
-            m_RefUsageProvider.StopGetUnusedReferences(m_Hier)
+            _refUsageProvider.StopGetUnusedReferences(_hier)
 
             ' Reset mouse cursor
             Debug.Assert(Me.ParentForm IsNot Nothing)
@@ -300,9 +302,9 @@ Namespace Microsoft.VisualStudio.Editors.PropertyPages
         Private Sub UpdateStatus(ByVal Status As ReferenceUsageResult)
 
             ' Only update status when necessary
-            If Status <> m_LastStatus Then
+            If Status <> _lastStatus Then
                 ' Remeber last status set
-                m_LastStatus = Status
+                _lastStatus = Status
 
                 ' Use a arrow and hourglass cursor if waiting
                 Debug.Assert(Me.ParentForm IsNot Nothing)
@@ -313,7 +315,7 @@ Namespace Microsoft.VisualStudio.Editors.PropertyPages
                 End If
 
                 ' Are there any unused references?
-                If Status = ReferenceUsageResult.ReferenceUsageOK AndAlso m_UnusedReferenceListReady AndAlso _
+                If Status = ReferenceUsageResult.ReferenceUsageOK AndAlso _unusedReferenceListReady AndAlso _
                     UnusedReferenceList IsNot Nothing AndAlso UnusedReferenceList.Items.Count > 0 Then
                     ' Do initial enabling of remove button
                     EnableRemoveRefs(True)
@@ -386,9 +388,9 @@ Namespace Microsoft.VisualStudio.Editors.PropertyPages
                 Next
 
                 ' We need reset order every time the dialog pops up
-                UnusedReferenceList.ListViewItemSorter = m_ReferenceSorter
-                m_ReferenceSorter.SortColumn = 0
-                m_ReferenceSorter.Sorting = SortOrder.Ascending
+                UnusedReferenceList.ListViewItemSorter = _referenceSorter
+                _referenceSorter.SortColumn = 0
+                _referenceSorter.Sorting = SortOrder.Ascending
                 UnusedReferenceList.Sorting = SortOrder.Ascending
 
                 UnusedReferenceList.Sort()
@@ -404,14 +406,14 @@ Namespace Microsoft.VisualStudio.Editors.PropertyPages
         Private Sub BeginGetUnusedRefs()
 
             ' Get a new timer
-            m_GetUnusedRefsTimer = New Timer
-            m_GetUnusedRefsTimer.Interval = PollingRate
-            AddHandler m_GetUnusedRefsTimer.Tick, AddressOf GetUnusedRefsTimer_Tick
+            _getUnusedRefsTimer = New Timer
+            _getUnusedRefsTimer.Interval = s_pollingRate
+            AddHandler _getUnusedRefsTimer.Tick, AddressOf GetUnusedRefsTimer_Tick
 
-            m_LastStatus = ReferenceUsageResult.ReferenceUsageUnknown
+            _lastStatus = ReferenceUsageResult.ReferenceUsageUnknown
 
             ' Begin requesting unused references
-            m_GetUnusedRefsTimer.Start()
+            _getUnusedRefsTimer.Start()
 
         End Sub
 
@@ -426,12 +428,12 @@ Namespace Microsoft.VisualStudio.Editors.PropertyPages
             ' Request unused references from 
             Dim UnusedRefPathsString As String = Nothing
             Dim Result As ReferenceUsageResult = _
-                m_RefUsageProvider.GetUnusedReferences(m_Hier, UnusedRefPathsString)
+                _refUsageProvider.GetUnusedReferences(_hier, UnusedRefPathsString)
 
             Try
                 If Result <> ReferenceUsageResult.ReferenceUsageWaiting Then
                     ' Stop polling
-                    m_GetUnusedRefsTimer.Stop()
+                    _getUnusedRefsTimer.Stop()
                 End If
 
                 If Result = ReferenceUsageResult.ReferenceUsageOK Then
@@ -516,7 +518,7 @@ Namespace Microsoft.VisualStudio.Editors.PropertyPages
                         ' Update listview
                         UpdateUnusedReferenceList(UnusedRefsList)
 
-                        m_UnusedReferenceListReady = True
+                        _unusedReferenceListReady = True
                     End Using
                 End If
 
@@ -552,7 +554,7 @@ Namespace Microsoft.VisualStudio.Editors.PropertyPages
                 Using New WaitCursor
                     Dim batchEdit As ProjectBatchEdit = Nothing
                     If checkedItems.Count > 1 Then
-                        batchEdit = New ProjectBatchEdit(m_Hier)
+                        batchEdit = New ProjectBatchEdit(_hier)
                     End If
                     Using batchEdit
                         ' Iterate all checked references to remove
@@ -599,7 +601,7 @@ Namespace Microsoft.VisualStudio.Editors.PropertyPages
         ''' <param name="sender">Event args</param>
         ''' <param name="e">Event args</param>
         Private Sub UnusedRerenceList_ColumnClick(ByVal sender As Object, ByVal e As ColumnClickEventArgs) Handles UnusedReferenceList.ColumnClick
-            ListViewComparer.HandleColumnClick(UnusedReferenceList, m_ReferenceSorter, e)
+            ListViewComparer.HandleColumnClick(UnusedReferenceList, _referenceSorter, e)
         End Sub
 
         Private Sub GetUnusedRefsTimer_Tick(ByVal sender As Object, ByVal e As System.EventArgs)

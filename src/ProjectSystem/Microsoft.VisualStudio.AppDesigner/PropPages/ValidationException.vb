@@ -1,4 +1,6 @@
-﻿Imports System.Windows.Forms
+﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+
+Imports System.Windows.Forms
 
 Namespace Microsoft.VisualStudio.Editors.PropertyPages
 
@@ -9,27 +11,27 @@ Namespace Microsoft.VisualStudio.Editors.PropertyPages
     Friend Class ValidationException
         Inherits ApplicationException
 
-        Private m_validationResult As ValidationResult
-        Private m_control As Control
+        Private _validationResult As ValidationResult
+        Private _control As Control
 
         Public Sub New(ByVal result As ValidationResult, ByVal message As String, Optional ByVal control As Control = Nothing, Optional ByVal InnerException As Exception = Nothing)
             MyBase.New(message, InnerException)
 
-            m_validationResult = result
-            m_control = control
+            _validationResult = result
+            _control = control
         End Sub
 
         Public ReadOnly Property Result() As ValidationResult
             Get
-                Return m_validationResult
+                Return _validationResult
             End Get
         End Property
 
         Public Sub RestoreFocus()
-            If m_control IsNot Nothing Then
-                m_control.Focus()
-                If TypeOf m_control Is TextBox Then
-                    CType(m_control, TextBox).SelectAll()
+            If _control IsNot Nothing Then
+                _control.Focus()
+                If TypeOf _control Is TextBox Then
+                    CType(_control, TextBox).SelectAll()
                 End If
             End If
         End Sub

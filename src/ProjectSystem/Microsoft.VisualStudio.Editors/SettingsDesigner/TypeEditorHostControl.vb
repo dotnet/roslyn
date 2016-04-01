@@ -1,3 +1,5 @@
+' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+
 Imports Microsoft.VisualStudio.Editors.Common
 Imports System.Drawing
 Imports System.ComponentModel
@@ -24,72 +26,72 @@ Namespace Microsoft.VisualStudio.Editors.SettingsDesigner
             InitializeComponent()
 
             'Add any initialization after the InitializeComponent() call 
-            Me.PreviewPanel.BackColor = ShellUtil.GetVSColor(Shell.Interop.__VSSYSCOLOREX3.VSCOLOR_WINDOW, System.Drawing.SystemColors.Window, UseVSTheme:=False)
+            Me._previewPanel.BackColor = ShellUtil.GetVSColor(Shell.Interop.__VSSYSCOLOREX3.VSCOLOR_WINDOW, System.Drawing.SystemColors.Window, UseVSTheme:=False)
             Me.BackColor = ShellUtil.GetVSColor(Shell.Interop.__VSSYSCOLOREX3.VSCOLOR_WINDOW, System.Drawing.SystemColors.Window, UseVSTheme:=False)
-            m_editControls = New Control() {ValueTextBox, ValueComboBox}
-            Me.EditControl = ValueTextBox
+            _editControls = New Control() {_valueTextBox, _valueComboBox}
+            Me.EditControl = _valueTextBox
         End Sub
 
         'UserControl1 overrides dispose to clean up the component list. 
         Protected Overloads Overrides Sub Dispose(ByVal disposing As Boolean)
             If disposing Then
-                If Not (components Is Nothing) Then
-                    components.Dispose()
+                If Not (_components Is Nothing) Then
+                    _components.Dispose()
                 End If
             End If
             MyBase.Dispose(disposing)
         End Sub
 
         'Required by the Windows Form Designer 
-        Private components As System.ComponentModel.IContainer
+        Private _components As System.ComponentModel.IContainer
 
         'NOTE: The following procedure is required by the Windows Form Designer 
         'It can be modified using the Windows Form Designer. 
         'Do not modify it using the code editor. 
-        Private WithEvents ValueTextBox As System.Windows.Forms.TextBox
-        Private WithEvents ShowEditorButton As ComboBoxDotDotDotButton
-        Private WithEvents ValueComboBox As System.Windows.Forms.ComboBox
-        Private WithEvents PreviewPanel As System.Windows.Forms.Panel
+        Private WithEvents _valueTextBox As System.Windows.Forms.TextBox
+        Private WithEvents _showEditorButton As ComboBoxDotDotDotButton
+        Private WithEvents _valueComboBox As System.Windows.Forms.ComboBox
+        Private WithEvents _previewPanel As System.Windows.Forms.Panel
         <System.Diagnostics.DebuggerStepThrough()> Private Sub InitializeComponent()
 
             Dim resources As System.ComponentModel.ComponentResourceManager = New System.ComponentModel.ComponentResourceManager(GetType(TypeEditorHostControl))
-            Me.ValueTextBox = New TypeEditorHostControlTextBox
-            Me.ShowEditorButton = New ComboBoxDotDotDotButton
-            Me.PreviewPanel = New System.Windows.Forms.Panel
-            Me.ValueComboBox = New System.Windows.Forms.ComboBox
+            Me._valueTextBox = New TypeEditorHostControlTextBox
+            Me._showEditorButton = New ComboBoxDotDotDotButton
+            Me._previewPanel = New System.Windows.Forms.Panel
+            Me._valueComboBox = New System.Windows.Forms.ComboBox
             Me.SuspendLayout()
             '
             'ValueTextBox
             '
-            resources.ApplyResources(Me.ValueTextBox, "ValueTextBox")
-            Me.ValueTextBox.BorderStyle = System.Windows.Forms.BorderStyle.None
-            Me.ValueTextBox.Name = "ValueTextBox"
+            resources.ApplyResources(Me._valueTextBox, "ValueTextBox")
+            Me._valueTextBox.BorderStyle = System.Windows.Forms.BorderStyle.None
+            Me._valueTextBox.Name = "ValueTextBox"
             '
             'ShowEditorButton
             '
-            resources.ApplyResources(Me.ShowEditorButton, "ShowEditorButton")
-            Me.ShowEditorButton.BackColor = Common.ShellUtil.GetVSColor(Shell.Interop.__VSSYSCOLOREX3.VSCOLOR_THREEDFACE,
+            resources.ApplyResources(Me._showEditorButton, "ShowEditorButton")
+            Me._showEditorButton.BackColor = Common.ShellUtil.GetVSColor(Shell.Interop.__VSSYSCOLOREX3.VSCOLOR_THREEDFACE,
                                                                         System.Drawing.SystemColors.ButtonFace, UseVSTheme:=False)
-            Me.ShowEditorButton.Name = "ShowEditorButton"
-            Me.ShowEditorButton.UseVisualStyleBackColor = False
+            Me._showEditorButton.Name = "ShowEditorButton"
+            Me._showEditorButton.UseVisualStyleBackColor = False
             '
             'PreviewPanel
             '
-            resources.ApplyResources(Me.PreviewPanel, "PreviewPanel")
-            Me.PreviewPanel.Name = "PreviewPanel"
+            resources.ApplyResources(Me._previewPanel, "PreviewPanel")
+            Me._previewPanel.Name = "PreviewPanel"
             '
             'ValueComboBox
             '
-            Me.ValueComboBox.FormattingEnabled = True
-            resources.ApplyResources(Me.ValueComboBox, "ValueComboBox")
-            Me.ValueComboBox.Name = "ValueComboBox"
+            Me._valueComboBox.FormattingEnabled = True
+            resources.ApplyResources(Me._valueComboBox, "ValueComboBox")
+            Me._valueComboBox.Name = "ValueComboBox"
             '
             'TypeEditorHostControl
             '
-            Me.Controls.Add(Me.ValueComboBox)
-            Me.Controls.Add(Me.PreviewPanel)
-            Me.Controls.Add(Me.ShowEditorButton)
-            Me.Controls.Add(Me.ValueTextBox)
+            Me.Controls.Add(Me._valueComboBox)
+            Me.Controls.Add(Me._previewPanel)
+            Me.Controls.Add(Me._showEditorButton)
+            Me.Controls.Add(Me._valueTextBox)
             Me.Name = "TypeEditorHostControl"
             resources.ApplyResources(Me, "$this")
             Me.ResumeLayout(False)
@@ -100,10 +102,10 @@ Namespace Microsoft.VisualStudio.Editors.SettingsDesigner
 #End Region
 
 #Region "Private fields"
-        Private m_TypeEditor As UITypeEditor
-        Private m_TypeConverter As TypeConverter
-        Private m_InnerValue As Object
-        Private m_InnerValueType As Type
+        Private _typeEditor As UITypeEditor
+        Private _typeConverter As TypeConverter
+        Private _innerValue As Object
+        Private _innerValueType As Type
 
         ''' <summary>
         ''' Flag indicating that the text in the editing control is changed, and
@@ -111,20 +113,20 @@ Namespace Microsoft.VisualStudio.Editors.SettingsDesigner
         ''' value
         ''' </summary>
         ''' <remarks></remarks>
-        Private m_textValueDirty As Boolean
+        Private _textValueDirty As Boolean
 
         ' Indicating if we are currently showing a UI type editor
-        Private m_IsShowingUITypeEditor As Boolean
+        Private _isShowingUITypeEditor As Boolean
 
-        Private m_currentEditControl As Control
-        Private m_editControls() As Control
+        Private _currentEditControl As Control
+        Private _editControls() As Control
 
         ' Holder window for drop-downs...
-        Private m_Dialog As DropDownHolder
+        Private _dialog As DropDownHolder
 
         ' Flag to avoid fireing value change notifications when we programatically set the
         ' text...
-        Private m_ignoreTextChangeEvents As Boolean
+        Private _ignoreTextChangeEvents As Boolean
 
 #End Region
 
@@ -132,68 +134,68 @@ Namespace Microsoft.VisualStudio.Editors.SettingsDesigner
 
         Public Property ValueType() As Type
             Get
-                Return m_InnerValueType
+                Return _innerValueType
             End Get
             Set(ByVal Value As Type)
-                m_InnerValueType = Value
+                _innerValueType = Value
 
                 ' Let's try and get a UITypeEditor for this type! 
-                m_TypeEditor = GetSpecificEditorForType(Value)
-                If m_TypeEditor Is Nothing Then
+                _typeEditor = GetSpecificEditorForType(Value)
+                If _typeEditor Is Nothing Then
                     If Value Is GetType(String) Then
                         ' We'll use the multiline string editor for strings...
-                        m_TypeEditor = New System.ComponentModel.Design.MultilineStringEditor()
+                        _typeEditor = New System.ComponentModel.Design.MultilineStringEditor()
                     Else
-                        m_TypeEditor = CType(TypeDescriptor.GetEditor(Value, GetType(UITypeEditor)), UITypeEditor)
+                        _typeEditor = CType(TypeDescriptor.GetEditor(Value, GetType(UITypeEditor)), UITypeEditor)
                     End If
                 End If
 
                 ' Cache a type converter 
-                m_TypeConverter = TypeDescriptor.GetConverter(Value)
+                _typeConverter = TypeDescriptor.GetConverter(Value)
 
                 ' If we have a type editor, let's see if it supports preview of 
                 ' the value... 
                 Dim PreviewSupported As Boolean = False
-                If Not m_TypeEditor Is Nothing Then
-                    PreviewSupported = m_TypeEditor.GetPaintValueSupported()
+                If Not _typeEditor Is Nothing Then
+                    PreviewSupported = _typeEditor.GetPaintValueSupported()
                 End If
-                PreviewPanel.Visible = PreviewSupported
+                _previewPanel.Visible = PreviewSupported
 
                 ' We should show the "button" if (and only if) we have a valid 
                 ' UITypeEditor!
                 Dim ShowEditorButtonVisible As Boolean = False
-                If Not m_TypeEditor Is Nothing Then
-                    Select Case m_TypeEditor.GetEditStyle()
+                If Not _typeEditor Is Nothing Then
+                    Select Case _typeEditor.GetEditStyle()
                         Case UITypeEditorEditStyle.DropDown
-                            ShowEditorButton.PaintStyle = ComboBoxDotDotDotButton.PaintStyles.DropDown
+                            _showEditorButton.PaintStyle = ComboBoxDotDotDotButton.PaintStyles.DropDown
                             ShowEditorButtonVisible = True
                         Case UITypeEditorEditStyle.Modal
-                            ShowEditorButton.PaintStyle = ComboBoxDotDotDotButton.PaintStyles.DotDotDot
+                            _showEditorButton.PaintStyle = ComboBoxDotDotDotButton.PaintStyles.DotDotDot
                             ShowEditorButtonVisible = True
                     End Select
                 End If
-                ShowEditorButton.Visible = ShowEditorButtonVisible
+                _showEditorButton.Visible = ShowEditorButtonVisible
 
                 ' If we are showing something that supports GetStandardValues, but doesn't have a UITypeEditor, we'll 
                 ' show a nice combobox instead of that boring edit box!
                 If (Not ShowEditorButtonVisible) _
-                    AndAlso m_TypeConverter IsNot Nothing _
-                    AndAlso m_TypeConverter.GetStandardValuesSupported() _
-                    AndAlso m_TypeConverter.GetStandardValues().Count() > 0 _
+                    AndAlso _typeConverter IsNot Nothing _
+                    AndAlso _typeConverter.GetStandardValuesSupported() _
+                    AndAlso _typeConverter.GetStandardValues().Count() > 0 _
                 Then
-                    EditControl = ValueComboBox
-                    ValueComboBox.Items.Clear()
-                    For Each stdValue As Object In m_TypeConverter.GetStandardValues()
-                        ValueComboBox.Items.Add(stdValue)
+                    EditControl = _valueComboBox
+                    _valueComboBox.Items.Clear()
+                    For Each stdValue As Object In _typeConverter.GetStandardValues()
+                        _valueComboBox.Items.Add(stdValue)
                     Next
                 Else
-                    EditControl = ValueTextBox
+                    EditControl = _valueTextBox
                 End If
 
                 ' If the preview panel is visible, we've gotta make sure we draw the
                 ' new value on it! 
-                If PreviewPanel.Visible Then
-                    PreviewPanel.Invalidate()
+                If _previewPanel.Visible Then
+                    _previewPanel.Invalidate()
                 End If
             End Set
         End Property
@@ -201,28 +203,28 @@ Namespace Microsoft.VisualStudio.Editors.SettingsDesigner
         Public Property Value() As Object
             Get
                 If TextValueDirty Then
-                    m_InnerValue = ParseValue(EditControl.Text, ValueType)
+                    _innerValue = ParseValue(EditControl.Text, ValueType)
                     TextValueDirty = False
                 End If
-                Return m_InnerValue
+                Return _innerValue
             End Get
             Set(ByVal Value As Object)
                 If Value IsNot Nothing Then
                     ValueType = Value.GetType()
                 End If
-                m_InnerValue = Value
+                _innerValue = Value
                 Text = FormatValue(Value)
                 ' If the preview panel is visible, we've gotta make sure we draw the
                 ' new value on it! 
-                If PreviewPanel.Visible Then
-                    PreviewPanel.Invalidate()
+                If _previewPanel.Visible Then
+                    _previewPanel.Invalidate()
                 End If
             End Set
         End Property
 
         Protected ReadOnly Property InnerValue() As Object
             Get
-                Return m_InnerValue
+                Return _innerValue
             End Get
         End Property
 
@@ -231,11 +233,11 @@ Namespace Microsoft.VisualStudio.Editors.SettingsDesigner
         End Function
 
         Protected Overridable Function FormatValue(ByVal ValueToFormat As Object) As String
-            Return m_TypeConverter.ConvertToString(ValueToFormat)
+            Return _typeConverter.ConvertToString(ValueToFormat)
         End Function
 
         Protected Overridable Function ParseValue(ByVal SerializedValue As String, ByVal ValueType As Type) As Object
-            Return m_TypeConverter.ConvertFromString(SerializedValue)
+            Return _typeConverter.ConvertFromString(SerializedValue)
         End Function
 
 #End Region
@@ -247,13 +249,13 @@ Namespace Microsoft.VisualStudio.Editors.SettingsDesigner
         ''' <param name="sender"></param>
         ''' <param name="e"></param>
         ''' <remarks></remarks>
-        Private Sub PreviewPanel_Paint(ByVal sender As Object, ByVal e As System.Windows.Forms.PaintEventArgs) Handles PreviewPanel.Paint
-            If Not m_TypeEditor Is Nothing Then
-                If m_TypeEditor.GetPaintValueSupported Then
+        Private Sub PreviewPanel_Paint(ByVal sender As Object, ByVal e As System.Windows.Forms.PaintEventArgs) Handles _previewPanel.Paint
+            If Not _typeEditor Is Nothing Then
+                If _typeEditor.GetPaintValueSupported Then
                     Using ForegroundPen As New Pen(Me.ForeColor)
-                        Dim DrawRect As New Rectangle(1, 1, PreviewPanel.ClientRectangle.Width - 4, PreviewPanel.ClientRectangle.Height - 4)
+                        Dim DrawRect As New Rectangle(1, 1, _previewPanel.ClientRectangle.Width - 4, _previewPanel.ClientRectangle.Height - 4)
                         If Value IsNot Nothing Then
-                            m_TypeEditor.PaintValue(Value, e.Graphics, DrawRect)
+                            _typeEditor.PaintValue(Value, e.Graphics, DrawRect)
                         End If
                         e.Graphics.DrawRectangle(ForegroundPen, DrawRect)
                     End Using
@@ -277,33 +279,33 @@ Namespace Microsoft.VisualStudio.Editors.SettingsDesigner
             Dim TextBoxWidth As Integer = Me.Width
 
             ' All controls have the same height!
-            PreviewPanel.Height = Me.Height
+            _previewPanel.Height = Me.Height
             EditControl.Height = Me.Height
 
-            ShowEditorButton.Height = System.Windows.Forms.SystemInformation.VerticalScrollBarThumbHeight + 2 * ShowEditorButton.FlatAppearance.BorderSize
-            ShowEditorButton.Width = System.Windows.Forms.SystemInformation.VerticalScrollBarWidth + 2 * ShowEditorButton.FlatAppearance.BorderSize
+            _showEditorButton.Height = System.Windows.Forms.SystemInformation.VerticalScrollBarThumbHeight + 2 * _showEditorButton.FlatAppearance.BorderSize
+            _showEditorButton.Width = System.Windows.Forms.SystemInformation.VerticalScrollBarWidth + 2 * _showEditorButton.FlatAppearance.BorderSize
 
             ' Let's make the preview panel nice and square...
-            PreviewPanel.Width = PreviewPanel.Height
+            _previewPanel.Width = _previewPanel.Height
 
             ' If the preview panel is showing, bump the text box right
             ' and decrease it's width
-            If PreviewPanel.Visible Then
-                TextBoxWidth -= PreviewPanel.Width
-                TextBoxLeft += PreviewPanel.Width
+            If _previewPanel.Visible Then
+                TextBoxWidth -= _previewPanel.Width
+                TextBoxLeft += _previewPanel.Width
             End If
 
             ' If we show the browse button, decrease the text box width
-            If ShowEditorButton.Visible Then
-                TextBoxWidth -= ShowEditorButton.Width
+            If _showEditorButton.Visible Then
+                TextBoxWidth -= _showEditorButton.Width
             End If
 
             ' Position controls
             Me.EditControl.Left = TextBoxLeft
             Me.EditControl.Width = TextBoxWidth
 
-            ShowEditorButton.Top = 0
-            Me.ShowEditorButton.Left = EditControl.Left + EditControl.Width
+            _showEditorButton.Top = 0
+            Me._showEditorButton.Left = EditControl.Left + EditControl.Width
         End Sub
 
 #End Region
@@ -315,8 +317,8 @@ Namespace Microsoft.VisualStudio.Editors.SettingsDesigner
         ''' <param name="sender"></param>
         ''' <param name="e"></param>
         ''' <remarks></remarks>
-        Private Sub ShowEditorButton_Click(ByVal sender As System.Object, ByVal e As System.EventArgs) Handles ShowEditorButton.Click
-            Debug.Assert(Not m_TypeEditor Is Nothing)
+        Private Sub ShowEditorButton_Click(ByVal sender As System.Object, ByVal e As System.EventArgs) Handles _showEditorButton.Click
+            Debug.Assert(Not _typeEditor Is Nothing)
             ShowUITypeEditor()
         End Sub
 
@@ -327,12 +329,12 @@ Namespace Microsoft.VisualStudio.Editors.SettingsDesigner
         <System.Security.SecurityCritical()> _
         <System.Runtime.ExceptionServices.HandleProcessCorruptedStateExceptions()> _
         Private Sub ShowUITypeEditor()
-            If m_TypeEditor IsNot Nothing Then
-                If m_IsShowingUITypeEditor Then
+            If _typeEditor IsNot Nothing Then
+                If _isShowingUITypeEditor Then
                     Return
                 End If
 
-                m_IsShowingUITypeEditor = True
+                _isShowingUITypeEditor = True
                 Try
                     ' If this is a type that implements IList, we try to create a new instance before 
                     ' passing it to the UITypeEditor. Not doing so will show the UITypeEditor, everything will
@@ -346,7 +348,7 @@ Namespace Microsoft.VisualStudio.Editors.SettingsDesigner
                         Catch ex As Exception When Not Common.IsUnrecoverable(ex)
                         End Try
                     End If
-                    Dim editedValue As Object = m_TypeEditor.EditValue(Context, Me, existingValue)
+                    Dim editedValue As Object = _typeEditor.EditValue(Context, Me, existingValue)
 
                     ' If we created a new instance to pass to the UITypeEditor, and the user didn't add any 
                     ' items, then we set the value back to nothing...
@@ -371,7 +373,7 @@ Namespace Microsoft.VisualStudio.Editors.SettingsDesigner
                                        Ex, _
                                        Microsoft.VisualStudio.Editors.DesignerFramework.DesignUtil.GetDefaultCaption(sp))
                 Finally
-                    m_IsShowingUITypeEditor = False
+                    _isShowingUITypeEditor = False
                 End Try
             End If
         End Sub
@@ -383,8 +385,8 @@ Namespace Microsoft.VisualStudio.Editors.SettingsDesigner
         ''' <param name="sender"></param>
         ''' <param name="e"></param>
         ''' <remarks></remarks>
-        Private Sub TextChangedHandler(ByVal sender As Object, ByVal e As EventArgs) Handles ValueTextBox.TextChanged, ValueComboBox.TextChanged
-            If Not m_ignoreTextChangeEvents Then
+        Private Sub TextChangedHandler(ByVal sender As Object, ByVal e As EventArgs) Handles _valueTextBox.TextChanged, _valueComboBox.TextChanged
+            If Not _ignoreTextChangeEvents Then
                 TextValueDirty = True
                 OnValueChanged()
             End If
@@ -397,19 +399,19 @@ Namespace Microsoft.VisualStudio.Editors.SettingsDesigner
         ''' <param name="sender"></param>
         ''' <param name="e"></param>
         ''' <remarks></remarks>
-        Private Sub KeyDownHandler(ByVal sender As Object, ByVal e As KeyEventArgs) Handles ValueTextBox.KeyDown
-            If m_TypeEditor IsNot Nothing Then
-                If m_TypeEditor.GetEditStyle() = UITypeEditorEditStyle.DropDown Then
+        Private Sub KeyDownHandler(ByVal sender As Object, ByVal e As KeyEventArgs) Handles _valueTextBox.KeyDown
+            If _typeEditor IsNot Nothing Then
+                If _typeEditor.GetEditStyle() = UITypeEditorEditStyle.DropDown Then
                     If e.Alt AndAlso (e.KeyCode And Keys.KeyCode) = Keys.Down Then
-                        If Not m_IsShowingUITypeEditor Then
+                        If Not _isShowingUITypeEditor Then
                             ShowUITypeEditor()
                             e.Handled = True
                             Return
                         End If
                     End If
-                ElseIf m_TypeEditor.GetEditStyle() = UITypeEditorEditStyle.Modal Then
+                ElseIf _typeEditor.GetEditStyle() = UITypeEditorEditStyle.Modal Then
                     If (e.KeyCode And Keys.KeyCode) = Keys.Enter Then
-                        If Not m_IsShowingUITypeEditor Then
+                        If Not _isShowingUITypeEditor Then
                             ShowUITypeEditor()
                             e.Handled = True
                             Return
@@ -428,7 +430,7 @@ Namespace Microsoft.VisualStudio.Editors.SettingsDesigner
         ''' <remarks></remarks>
         Protected Overrides Function IsInputKey(ByVal keyData As System.Windows.Forms.Keys) As Boolean
             If keyData = Keys.Enter Then
-                If ShowEditorButton.Focused AndAlso m_TypeEditor IsNot Nothing AndAlso m_TypeEditor.GetEditStyle() = UITypeEditorEditStyle.Modal Then
+                If _showEditorButton.Focused AndAlso _typeEditor IsNot Nothing AndAlso _typeEditor.GetEditStyle() = UITypeEditorEditStyle.Modal Then
                     Return True
                 End If
             End If
@@ -440,8 +442,8 @@ Namespace Microsoft.VisualStudio.Editors.SettingsDesigner
 #Region "IWindowsFormsEditorService"
 
         Public Sub CloseDropDown() Implements System.Windows.Forms.Design.IWindowsFormsEditorService.CloseDropDown
-            Debug.Assert(m_Dialog.Controls.Count = 1)
-            m_Dialog.Hide()
+            Debug.Assert(_dialog.Controls.Count = 1)
+            _dialog.Hide()
         End Sub
 
         Private Sub DropDownHolderSizeChanged(ByVal sender As Object, ByVal e As EventArgs)
@@ -449,14 +451,14 @@ Namespace Microsoft.VisualStudio.Editors.SettingsDesigner
         End Sub
 
         Private Sub DropDownHolderSize(ByVal control As System.Windows.Forms.Control)
-            If m_Dialog IsNot Nothing AndAlso control IsNot Nothing Then
+            If _dialog IsNot Nothing AndAlso control IsNot Nothing Then
 
                 ' Calculate size & position
                 Dim currentScreen As System.Windows.Forms.Screen = System.Windows.Forms.Screen.FromControl(Me)
 
                 ' Get preferred size & position of control...
                 Dim dialogSize As Size = New Size(control.PreferredSize.Width + 2, control.PreferredSize.Height + 2)
-                Dim UpperLeft As Point = PointToScreen(New Point(Me.Width - dialogSize.Width, Me.ShowEditorButton.Height))
+                Dim UpperLeft As Point = PointToScreen(New Point(Me.Width - dialogSize.Width, Me._showEditorButton.Height))
 
                 ' If the dialog gets clipped at the bottom of the screen, let's try to reposition it above the
                 ' edit control...
@@ -478,28 +480,28 @@ Namespace Microsoft.VisualStudio.Editors.SettingsDesigner
                 dialogSize.Height = Math.Min(currentScreen.WorkingArea.Height, dialogSize.Height)
                 dialogSize.Width = Math.Min(currentScreen.WorkingArea.Width, dialogSize.Width)
 
-                m_Dialog.Size = dialogSize
-                m_Dialog.Left = UpperLeft.X
-                m_Dialog.Top = UpperLeft.Y
+                _dialog.Size = dialogSize
+                _dialog.Left = UpperLeft.X
+                _dialog.Top = UpperLeft.Y
             End If
         End Sub
 
         Public Sub DropDownControl(ByVal control As System.Windows.Forms.Control) Implements System.Windows.Forms.Design.IWindowsFormsEditorService.DropDownControl
-            If m_Dialog Is Nothing Then
-                m_Dialog = New DropDownHolder
+            If _dialog Is Nothing Then
+                _dialog = New DropDownHolder
             End If
 
             ' Let's make sure we don't have any child controls in this guy! 
-            m_Dialog.Controls.Clear()
+            _dialog.Controls.Clear()
             DropDownHolderSize(control)
             AddHandler control.SizeChanged, AddressOf DropDownHolderSizeChanged
-            m_Dialog.Editor = control
-            m_Dialog.TopLevel = True
-            m_Dialog.Owner = Me.ParentForm
-            m_Dialog.ShowInTaskbar = False
-            m_Dialog.Show()
-            m_Dialog.Activate()
-            While m_Dialog.Visible
+            _dialog.Editor = control
+            _dialog.TopLevel = True
+            _dialog.Owner = Me.ParentForm
+            _dialog.ShowInTaskbar = False
+            _dialog.Show()
+            _dialog.Activate()
+            While _dialog.Visible
                 Application.DoEvents()
                 Microsoft.VisualStudio.Editors.Interop.NativeMethods.MsgWaitForMultipleObjects(0, IntPtr.Zero, True, 250, Microsoft.VisualStudio.Editors.Interop.win.QS_ALLINPUT)
             End While
@@ -511,7 +513,7 @@ Namespace Microsoft.VisualStudio.Editors.SettingsDesigner
             If Not UiSvc Is Nothing Then
                 Return UiSvc.ShowDialog(dialog)
             Else
-                Return dialog.ShowDialog(ShowEditorButton)
+                Return dialog.ShowDialog(_showEditorButton)
             End If
         End Function
 
@@ -525,7 +527,7 @@ Namespace Microsoft.VisualStudio.Editors.SettingsDesigner
         ''' <remarks>Can return NULL if no type converter is available!</remarks>
         Private ReadOnly Property TypeConverter() As TypeConverter
             Get
-                Return m_TypeConverter
+                Return _typeConverter
             End Get
         End Property
 
@@ -537,7 +539,7 @@ Namespace Microsoft.VisualStudio.Editors.SettingsDesigner
         ''' <remarks></remarks>
         Public ReadOnly Property IsShowingUITypeEditor() As Boolean
             Get
-                Return m_IsShowingUITypeEditor
+                Return _isShowingUITypeEditor
             End Get
         End Property
 
@@ -649,8 +651,8 @@ Namespace Microsoft.VisualStudio.Editors.SettingsDesigner
         ''' <param name="sender"></param>
         ''' <param name="e"></param>
         ''' <remarks></remarks>
-        Private Sub ValueComboBox_SelectedIndexChanged(ByVal sender As System.Object, ByVal e As System.EventArgs) Handles ValueComboBox.SelectedIndexChanged
-            m_InnerValue = ValueComboBox.SelectedItem
+        Private Sub ValueComboBox_SelectedIndexChanged(ByVal sender As System.Object, ByVal e As System.EventArgs) Handles _valueComboBox.SelectedIndexChanged
+            _innerValue = _valueComboBox.SelectedItem
             TextValueDirty = False
             OnValueChanged()
         End Sub
@@ -662,10 +664,10 @@ Namespace Microsoft.VisualStudio.Editors.SettingsDesigner
         ''' <remarks></remarks>
         Private Property TextValueDirty() As Boolean
             Get
-                Return m_textValueDirty
+                Return _textValueDirty
             End Get
             Set(ByVal value As Boolean)
-                m_textValueDirty = value
+                _textValueDirty = value
             End Set
         End Property
 
@@ -689,19 +691,19 @@ Namespace Microsoft.VisualStudio.Editors.SettingsDesigner
         ''' <remarks></remarks>
         Public Property SelectionLength() As Integer
             Get
-                If ValueComboBox.Visible Then
-                    Return ValueComboBox.SelectionLength
+                If _valueComboBox.Visible Then
+                    Return _valueComboBox.SelectionLength
                 Else
-                    Debug.Assert(ValueTextBox.Visible, "No edit control visible!?")
-                    Return ValueTextBox.SelectionLength
+                    Debug.Assert(_valueTextBox.Visible, "No edit control visible!?")
+                    Return _valueTextBox.SelectionLength
                 End If
             End Get
             Set(ByVal value As Integer)
-                If ValueComboBox.Visible Then
-                    ValueComboBox.SelectionLength = value
+                If _valueComboBox.Visible Then
+                    _valueComboBox.SelectionLength = value
                 Else
-                    Debug.Assert(ValueTextBox.Visible, "No edit control visible!?")
-                    ValueTextBox.SelectionLength = value
+                    Debug.Assert(_valueTextBox.Visible, "No edit control visible!?")
+                    _valueTextBox.SelectionLength = value
                 End If
             End Set
         End Property
@@ -713,19 +715,19 @@ Namespace Microsoft.VisualStudio.Editors.SettingsDesigner
         ''' <remarks></remarks>
         Public Property SelectionStart() As Integer
             Get
-                If ValueComboBox.Visible Then
-                    Return ValueComboBox.SelectionStart
+                If _valueComboBox.Visible Then
+                    Return _valueComboBox.SelectionStart
                 Else
-                    Debug.Assert(ValueTextBox.Visible, "No edit control visible!?")
-                    Return ValueTextBox.SelectionStart
+                    Debug.Assert(_valueTextBox.Visible, "No edit control visible!?")
+                    Return _valueTextBox.SelectionStart
                 End If
             End Get
             Set(ByVal value As Integer)
-                If ValueComboBox.Visible Then
-                    ValueComboBox.SelectionStart = value
+                If _valueComboBox.Visible Then
+                    _valueComboBox.SelectionStart = value
                 Else
-                    Debug.Assert(ValueTextBox.Visible, "No edit control visible!?")
-                    ValueTextBox.SelectionStart = value
+                    Debug.Assert(_valueTextBox.Visible, "No edit control visible!?")
+                    _valueTextBox.SelectionStart = value
                 End If
             End Set
         End Property
@@ -737,19 +739,19 @@ Namespace Microsoft.VisualStudio.Editors.SettingsDesigner
         ''' <remarks></remarks>
         Public Property SelectedText() As String
             Get
-                If ValueComboBox.Visible Then
-                    Return ValueComboBox.SelectedText
+                If _valueComboBox.Visible Then
+                    Return _valueComboBox.SelectedText
                 Else
-                    Debug.Assert(ValueTextBox.Visible, "No edit control visible!?")
-                    Return ValueTextBox.SelectedText
+                    Debug.Assert(_valueTextBox.Visible, "No edit control visible!?")
+                    Return _valueTextBox.SelectedText
                 End If
             End Get
             Set(ByVal value As String)
-                If ValueComboBox.Visible Then
-                    ValueComboBox.SelectedText = value
+                If _valueComboBox.Visible Then
+                    _valueComboBox.SelectedText = value
                 Else
-                    Debug.Assert(ValueTextBox.Visible, "No edit control visible!?")
-                    ValueTextBox.SelectedText = value
+                    Debug.Assert(_valueTextBox.Visible, "No edit control visible!?")
+                    _valueTextBox.SelectedText = value
                 End If
             End Set
         End Property
@@ -764,12 +766,12 @@ Namespace Microsoft.VisualStudio.Editors.SettingsDesigner
                 Return EditControl.Text
             End Get
             Set(ByVal value As String)
-                Dim savedIgnoreTextChangeEvents As Boolean = m_ignoreTextChangeEvents
+                Dim savedIgnoreTextChangeEvents As Boolean = _ignoreTextChangeEvents
                 Try
-                    m_ignoreTextChangeEvents = True
+                    _ignoreTextChangeEvents = True
                     EditControl.Text = value
                 Finally
-                    m_ignoreTextChangeEvents = savedIgnoreTextChangeEvents
+                    _ignoreTextChangeEvents = savedIgnoreTextChangeEvents
                 End Try
             End Set
         End Property
@@ -781,21 +783,21 @@ Namespace Microsoft.VisualStudio.Editors.SettingsDesigner
         ''' <remarks></remarks>
         Friend Property EditControl() As Control
             Get
-                If m_currentEditControl IsNot Nothing Then
-                    Return m_currentEditControl
+                If _currentEditControl IsNot Nothing Then
+                    Return _currentEditControl
                 Else
-                    Return ValueTextBox
+                    Return _valueTextBox
                 End If
             End Get
             Set(ByVal value As Control)
-                For Each ctrl As Control In m_editControls
+                For Each ctrl As Control In _editControls
                     If ctrl Is value Then
                         ctrl.Visible = True
                     Else
                         ctrl.Visible = False
                     End If
                 Next
-                m_currentEditControl = value
+                _currentEditControl = value
             End Set
         End Property
 
@@ -863,7 +865,7 @@ Namespace Microsoft.VisualStudio.Editors.SettingsDesigner
                 DropDown = 1
             End Enum
 
-            Private Const DotDotDotString As String = "..."
+            Private Const s_dotDotDotString As String = "..."
 
             ' Current style to draw
             Private _paintStyle As PaintStyles = PaintStyles.DotDotDot
@@ -926,7 +928,7 @@ Namespace Microsoft.VisualStudio.Editors.SettingsDesigner
                     Case PaintStyles.DotDotDot
                         Dim drawRect As Rectangle = Me.ClientRectangle
                         drawRect.Offset(Me.FlatAppearance.BorderSize, 0)
-                        TextRenderer.DrawText(pevent.Graphics, DotDotDotString, Me.Font, drawRect, Me.ForeColor)
+                        TextRenderer.DrawText(pevent.Graphics, s_dotDotDotString, Me.Font, drawRect, Me.ForeColor)
                     Case PaintStyles.DropDown
                         If ComboBoxRenderer.IsSupported Then
                             Dim drawstyle As VisualStyles.ComboBoxState

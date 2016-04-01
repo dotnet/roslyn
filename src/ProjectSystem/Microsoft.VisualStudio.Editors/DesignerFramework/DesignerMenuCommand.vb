@@ -1,3 +1,5 @@
+' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+
 Imports System.ComponentModel.Design
 Imports System.Runtime.InteropServices
 
@@ -35,7 +37,7 @@ Namespace Microsoft.VisualStudio.Editors.DesignerFramework
         '**************************************************************************
         Public Overrides ReadOnly Property OleStatus() As Integer
             Get
-                If m_AlwaysCheckStatus OrElse Not m_StatusValid Then
+                If _alwaysCheckStatus OrElse Not _statusValid Then
                     UpdateStatus()
                 End If
                 Return MyBase.OleStatus
@@ -57,27 +59,27 @@ Namespace Microsoft.VisualStudio.Editors.DesignerFramework
         Public Overrides Sub Invoke()
             MyBase.Invoke()
 
-            If Not (m_RootDesigner Is Nothing) Then
+            If Not (_rootDesigner Is Nothing) Then
                 ' Refresh the status of all the menus for the current designer.
-                m_RootDesigner.RefreshMenuStatus()
+                _rootDesigner.RefreshMenuStatus()
             End If
         End Sub 'Invoke
 
         Public Overrides Sub Invoke(ByVal inArg As Object, ByVal outArg As System.IntPtr)
             MyBase.Invoke(inArg, outArg)
 
-            If Not (m_RootDesigner Is Nothing) Then
+            If Not (_rootDesigner Is Nothing) Then
                 ' Refresh the status of all the menus for the current designer.
-                m_RootDesigner.RefreshMenuStatus()
+                _rootDesigner.RefreshMenuStatus()
             End If
         End Sub
 
         Public Overrides Sub Invoke(ByVal inArg As Object)
             MyBase.Invoke(inArg)
 
-            If Not (m_RootDesigner Is Nothing) Then
+            If Not (_rootDesigner Is Nothing) Then
                 ' Refresh the status of all the menus for the current designer.
-                m_RootDesigner.RefreshMenuStatus()
+                _rootDesigner.RefreshMenuStatus()
             End If
         End Sub
 
@@ -103,21 +105,21 @@ Namespace Microsoft.VisualStudio.Editors.DesignerFramework
         '   CommandText: If specified (and the TEXTMENUCHANGES flag is set for the command in the CTC file) you can 
         '       supplies your own text for the command. 
         '**************************************************************************
-        Friend Sub New(ByVal RootDesigner As BaseRootDesigner, ByVal CommandID As CommandID, _
-                        ByVal CommandHandler As EventHandler, _
-                        Optional ByVal CommandEnabledHandler As CheckCommandStatusHandler = Nothing, _
-                        Optional ByVal CommandCheckedHandler As CheckCommandStatusHandler = Nothing, _
-                        Optional ByVal CommandVisibleHandler As CheckCommandStatusHandler = Nothing, _
-                        Optional ByVal AlwaysCheckStatus As Boolean = False, _
+        Friend Sub New(ByVal RootDesigner As BaseRootDesigner, ByVal CommandID As CommandID,
+                        ByVal CommandHandler As EventHandler,
+                        Optional ByVal CommandEnabledHandler As CheckCommandStatusHandler = Nothing,
+                        Optional ByVal CommandCheckedHandler As CheckCommandStatusHandler = Nothing,
+                        Optional ByVal CommandVisibleHandler As CheckCommandStatusHandler = Nothing,
+                        Optional ByVal AlwaysCheckStatus As Boolean = False,
                         Optional ByVal CommandText As String = Nothing)
 
             MyBase.New(CommandHandler, CommandID)
 
-            Me.m_RootDesigner = RootDesigner
-            Me.m_CommandEnabledHandler = CommandEnabledHandler
-            Me.m_CommandCheckedHandler = CommandCheckedHandler
-            Me.m_CommandVisibleHandler = CommandVisibleHandler
-            Me.m_AlwaysCheckStatus = AlwaysCheckStatus
+            Me._rootDesigner = RootDesigner
+            Me._commandEnabledHandler = CommandEnabledHandler
+            Me._commandCheckedHandler = CommandCheckedHandler
+            Me._commandVisibleHandler = CommandVisibleHandler
+            Me._alwaysCheckStatus = AlwaysCheckStatus
             If CommandText <> "" Then
                 Me.Text = CommandText
             End If
@@ -137,7 +139,7 @@ Namespace Microsoft.VisualStudio.Editors.DesignerFramework
         '   Refresh the status of the command.
         '**************************************************************************
         Friend Sub RefreshStatus()
-            m_StatusValid = False
+            _statusValid = False
             OnCommandChanged(EventArgs.Empty)
         End Sub 'RefreshStatus
 
@@ -152,27 +154,27 @@ Namespace Microsoft.VisualStudio.Editors.DesignerFramework
         '   Calls the command status handlers (if any) to set the status of the command.
         '**************************************************************************
         Private Sub UpdateStatus()
-            If Not (Me.m_CommandEnabledHandler Is Nothing) Then
-                Enabled = m_CommandEnabledHandler(Me)
+            If Not (Me._commandEnabledHandler Is Nothing) Then
+                Enabled = _commandEnabledHandler(Me)
             End If
-            If Not (Me.m_CommandCheckedHandler Is Nothing) Then
-                Checked = m_CommandCheckedHandler(Me)
+            If Not (Me._commandCheckedHandler Is Nothing) Then
+                Checked = _commandCheckedHandler(Me)
             End If
-            If Not (Me.m_CommandVisibleHandler Is Nothing) Then
-                Visible = m_CommandVisibleHandler(Me)
+            If Not (Me._commandVisibleHandler Is Nothing) Then
+                Visible = _commandVisibleHandler(Me)
             End If
-            m_StatusValid = True
+            _statusValid = True
         End Sub 'UpdateStatus
 
-        Private m_RootDesigner As BaseRootDesigner ' Pointer to the RootDesigner allowing refreshing all menu commands.
-        Private m_CommandEnabledHandler As CheckCommandStatusHandler ' Handler to check if the command should be enabled.
-        Private m_CommandCheckedHandler As CheckCommandStatusHandler ' Handler to check if the command should be checked.
-        Private m_CommandVisibleHandler As CheckCommandStatusHandler ' Handler to check if the command should be hidden.
-        Private m_AlwaysCheckStatus As Boolean ' True to always check the status of the command after every call. False otherwise.
-        Private m_StatusValid As Boolean ' Whether the status of the command is still valid.
+        Private _rootDesigner As BaseRootDesigner ' Pointer to the RootDesigner allowing refreshing all menu commands.
+        Private _commandEnabledHandler As CheckCommandStatusHandler ' Handler to check if the command should be enabled.
+        Private _commandCheckedHandler As CheckCommandStatusHandler ' Handler to check if the command should be checked.
+        Private _commandVisibleHandler As CheckCommandStatusHandler ' Handler to check if the command should be hidden.
+        Private _alwaysCheckStatus As Boolean ' True to always check the status of the command after every call. False otherwise.
+        Private _statusValid As Boolean ' Whether the status of the command is still valid.
     End Class 'DesignerMenuCommand
 
-    Delegate Function CheckCommandStatusHandler(ByVal MenuCommand As DesignerMenuCommand) As Boolean
+    Friend Delegate Function CheckCommandStatusHandler(ByVal MenuCommand As DesignerMenuCommand) As Boolean
 
 
     ''' <summary>
@@ -186,7 +188,7 @@ Namespace Microsoft.VisualStudio.Editors.DesignerFramework
 
         Public Delegate Function ItemsGetter() As String()
 
-        Private m_getter As ItemsGetter
+        Private _getter As ItemsGetter
 
         ''' <summary>
         ''' Constructor
@@ -204,7 +206,7 @@ Namespace Microsoft.VisualStudio.Editors.DesignerFramework
             End If
             Me.Visible = True
             Me.Enabled = True
-            m_getter = getter
+            _getter = getter
         End Sub
 
         ''' <summary>
@@ -217,8 +219,8 @@ Namespace Microsoft.VisualStudio.Editors.DesignerFramework
                 Throw New ArgumentNullException
             End If
 
-            If m_getter IsNot Nothing Then
-                Dim items As String() = m_getter()
+            If _getter IsNot Nothing Then
+                Dim items As String() = _getter()
                 Marshal.GetNativeVariantForObject(items, e.OutValue)
             End If
         End Sub
@@ -255,8 +257,8 @@ Namespace Microsoft.VisualStudio.Editors.DesignerFramework
         Public Delegate Function CurrentTextGetter() As String
         Public Delegate Sub CurrentTextSetter(ByVal value As String)
 
-        Private m_currentTextGetter As CurrentTextGetter
-        Private m_currentTextSetter As CurrentTextSetter
+        Private _currentTextGetter As CurrentTextGetter
+        Private _currentTextSetter As CurrentTextSetter
 
         ''' <summary>
         ''' Construct for the combobox command handler
@@ -274,8 +276,8 @@ Namespace Microsoft.VisualStudio.Editors.DesignerFramework
             End If
             Me.Visible = True
             Me.Enabled = True
-            m_currentTextGetter = currentTextGetter
-            m_currentTextSetter = currentTextSetter
+            _currentTextGetter = currentTextGetter
+            _currentTextSetter = currentTextSetter
         End Sub
 
         ''' <summary>
@@ -286,13 +288,13 @@ Namespace Microsoft.VisualStudio.Editors.DesignerFramework
         Private Sub InstanceCommandHandler(ByVal e As Microsoft.VisualStudio.Shell.OleMenuCmdEventArgs)
             If e.InValue Is Nothing Then
                 ' Request to get the current text...
-                Marshal.GetNativeVariantForObject(m_currentTextGetter(), e.OutValue)
+                Marshal.GetNativeVariantForObject(_currentTextGetter(), e.OutValue)
             Else
                 ' Request to set the text
                 If Not TypeOf e.InValue Is String Then
                     Throw New InvalidOperationException()
                 End If
-                m_currentTextSetter(DirectCast(e.InValue, String))
+                _currentTextSetter(DirectCast(e.InValue, String))
             End If
         End Sub
 
@@ -355,7 +357,7 @@ Namespace Microsoft.VisualStudio.Editors.DesignerFramework
     ''' <remarks></remarks>
     Friend Class LatchedCommandGroup
 
-        Private m_commands As New Dictionary(Of Integer, MenuCommand)
+        Private _commands As New Dictionary(Of Integer, MenuCommand)
 
         ''' <summary>
         ''' Add a command to the group
@@ -364,7 +366,7 @@ Namespace Microsoft.VisualStudio.Editors.DesignerFramework
         ''' <param name="Command">The command to add</param>
         ''' <remarks></remarks>
         Public Sub Add(ByVal Id As Integer, ByVal Command As MenuCommand)
-            m_commands(id) = Command
+            _commands(Id) = Command
         End Sub
 
         ''' <summary>
@@ -374,7 +376,7 @@ Namespace Microsoft.VisualStudio.Editors.DesignerFramework
         ''' <remarks></remarks>
         Public ReadOnly Property Commands() As System.Collections.ICollection
             Get
-                Return m_commands.Values
+                Return _commands.Values
             End Get
         End Property
 
@@ -384,7 +386,7 @@ Namespace Microsoft.VisualStudio.Editors.DesignerFramework
         ''' <param name="CommandToCheck"></param>
         ''' <remarks>Will uncheck all commands if the command passed in was not in the group...</remarks>
         Public Sub Check(ByVal CommandToCheck As MenuCommand)
-            For Each Command As MenuCommand In m_commands.Values
+            For Each Command As MenuCommand In _commands.Values
                 If Command Is CommandToCheck Then
                     Command.Checked = True
                 Else
@@ -400,7 +402,7 @@ Namespace Microsoft.VisualStudio.Editors.DesignerFramework
         ''' <remarks></remarks>
         Public Sub Check(ByVal Id As Integer)
             Dim CommandToCheck As MenuCommand = Nothing
-            If Not m_commands.TryGetValue(Id, CommandToCheck) Then
+            If Not _commands.TryGetValue(Id, CommandToCheck) Then
                 Throw New ArgumentOutOfRangeException
             End If
             Check(CommandToCheck)

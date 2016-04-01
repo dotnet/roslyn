@@ -1,3 +1,5 @@
+' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+
 Imports EnvDTE
 Imports Microsoft.VisualStudio.Editors.Interop
 Imports Microsoft.VisualStudio.Editors.SettingsDesigner
@@ -47,8 +49,8 @@ Namespace Microsoft.VisualStudio.Editors.SettingsGlobalObjects
         Private _typedGlobalObjects As Dictionary(Of Project, Dictionary(Of Type, GlobalObjectCollection))
         Private _oldGlobalObjects As Dictionary(Of Project, GlobalObjectCollection)
 
-        Private vsTrackProjectDocuments As IVsTrackProjectDocuments2
-        Private vsTrackProjectDocumentsEventsCookie As UInt32
+        Private _vsTrackProjectDocuments As IVsTrackProjectDocuments2
+        Private _vsTrackProjectDocumentsEventsCookie As UInt32
 
         Private _solutionEvents As SolutionEvents
         Private _rdt As IVsRunningDocumentTable
@@ -56,7 +58,7 @@ Namespace Microsoft.VisualStudio.Editors.SettingsGlobalObjects
 
         Private _ignoreAppConfigChanges As Boolean
 
-        Private Shared _globalSettings As TraceSwitch
+        Private Shared s_globalSettings As TraceSwitch
 
         ''' <summary>
         ''' 
@@ -73,11 +75,11 @@ Namespace Microsoft.VisualStudio.Editors.SettingsGlobalObjects
         ''' <remarks></remarks>
         Friend Shared ReadOnly Property GlobalSettings() As TraceSwitch
             Get
-                If (_globalSettings Is Nothing) Then
-                    _globalSettings = New TraceSwitch("GlobalSettings", "Enable tracing for the Typed Settings GlobalObjectProvider.")
+                If (s_globalSettings Is Nothing) Then
+                    s_globalSettings = New TraceSwitch("GlobalSettings", "Enable tracing for the Typed Settings GlobalObjectProvider.")
                 End If
 
-                Return _globalSettings
+                Return s_globalSettings
             End Get
         End Property
 
@@ -244,13 +246,13 @@ Namespace Microsoft.VisualStudio.Editors.SettingsGlobalObjects
                     _solutionEvents = Nothing
 
                     ' Remove for item added/removed events...
-                    If vsTrackProjectDocuments IsNot Nothing Then
-                        If vsTrackProjectDocuments IsNot Nothing AndAlso vsTrackProjectDocumentsEventsCookie <> 0 Then
-                            Dim hr As Integer = vsTrackProjectDocuments.UnadviseTrackProjectDocumentsEvents(vsTrackProjectDocumentsEventsCookie)
+                    If _vsTrackProjectDocuments IsNot Nothing Then
+                        If _vsTrackProjectDocuments IsNot Nothing AndAlso _vsTrackProjectDocumentsEventsCookie <> 0 Then
+                            Dim hr As Integer = _vsTrackProjectDocuments.UnadviseTrackProjectDocumentsEvents(_vsTrackProjectDocumentsEventsCookie)
                             Debug.Assert(NativeMethods.Succeeded(hr), String.Format("GlobalSettings failed to unadvice VsTrackDocumentsEvents {0}", hr))
                         End If
-                        vsTrackProjectDocuments = Nothing
-                        vsTrackProjectDocumentsEventsCookie = 0
+                        _vsTrackProjectDocuments = Nothing
+                        _vsTrackProjectDocumentsEventsCookie = 0
                     End If
 
                 End If
@@ -349,11 +351,11 @@ Namespace Microsoft.VisualStudio.Editors.SettingsGlobalObjects
                 AddHandler _solutionEvents.BeforeClosing, AddressOf OnBeforeSolutionClosed
 
                 ' Listen for item added/removed events...
-                If vsTrackProjectDocuments Is Nothing Then
-                    vsTrackProjectDocuments = DirectCast(GetService(GetType(SVsTrackProjectDocuments)), IVsTrackProjectDocuments2)
-                    If (vsTrackProjectDocuments IsNot Nothing) Then
-                        VSErrorHandler.ThrowOnFailure(vsTrackProjectDocuments.AdviseTrackProjectDocumentsEvents(Me, vsTrackProjectDocumentsEventsCookie))
-                        Debug.Assert(vsTrackProjectDocumentsEventsCookie <> 0, "AdviseTrackProjectDocumentsEvents gave us a 0 cookie!")
+                If _vsTrackProjectDocuments Is Nothing Then
+                    _vsTrackProjectDocuments = DirectCast(GetService(GetType(SVsTrackProjectDocuments)), IVsTrackProjectDocuments2)
+                    If (_vsTrackProjectDocuments IsNot Nothing) Then
+                        VSErrorHandler.ThrowOnFailure(_vsTrackProjectDocuments.AdviseTrackProjectDocumentsEvents(Me, _vsTrackProjectDocumentsEventsCookie))
+                        Debug.Assert(_vsTrackProjectDocumentsEventsCookie <> 0, "AdviseTrackProjectDocumentsEvents gave us a 0 cookie!")
                     End If
                 End If
 
@@ -2028,7 +2030,7 @@ Namespace Microsoft.VisualStudio.Editors.SettingsGlobalObjects
         Private NotInheritable Class SettingsFileCodeDomSerializer
             Inherits CodeDomSerializer
 
-            Private Shared _default As SettingsFileCodeDomSerializer
+            Private Shared s_default As SettingsFileCodeDomSerializer
 
             ''' <summary>
             ''' Provides a stock serializer instance.
@@ -2037,10 +2039,10 @@ Namespace Microsoft.VisualStudio.Editors.SettingsGlobalObjects
             ''' <remarks></remarks>
             Friend Shared ReadOnly Property [Default]() As SettingsFileCodeDomSerializer
                 Get
-                    If (_default Is Nothing) Then
-                        _default = New SettingsFileCodeDomSerializer()
+                    If (s_default Is Nothing) Then
+                        s_default = New SettingsFileCodeDomSerializer()
                     End If
-                    Return _default
+                    Return s_default
                 End Get
             End Property
 
@@ -2334,8 +2336,8 @@ Namespace Microsoft.VisualStudio.Editors.SettingsGlobalObjects
         Private Class ConcreteApplicationSettings
             Inherits System.Configuration.ApplicationSettingsBase
 
-            Dim _globalObject As SettingsFileGlobalObject
-            Dim _properties As SettingsPropertyCollection
+            Private _globalObject As SettingsFileGlobalObject
+            Private _properties As SettingsPropertyCollection
 
             ''' <summary>
             ''' 
@@ -2395,7 +2397,7 @@ Namespace Microsoft.VisualStudio.Editors.SettingsGlobalObjects
         Private Class GlobalSettingsPropertyCollection
             Inherits SettingsPropertyCollection
 
-            Dim _globalObject As SettingsFileGlobalObject
+            Private _globalObject As SettingsFileGlobalObject
 
             ''' <summary>
             ''' 
@@ -2618,7 +2620,7 @@ Namespace Microsoft.VisualStudio.Editors.SettingsGlobalObjects
     ''' Class that helps get an IVsHierarchy given a DTE project.
     ''' </summary>
     ''' <remarks></remarks>
-    Class ProjectUtilities
+    Friend Class ProjectUtilities
 
         Public Shared Function GetVsHierarchy(ByVal provider As IServiceProvider, ByVal project As Project) As IVsHierarchy
             ' YUCK.  We need to use DTE to get references because VSIP doesn't define

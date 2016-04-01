@@ -1,3 +1,5 @@
+' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+
 ' All help keywords for anything inside this assembly should be defined here,
 '   so that it is easier for UE to find them.
 '
@@ -37,7 +39,7 @@ Namespace Microsoft.VisualStudio.Editors.PropertyPages
         Friend Const VBProjPropServices As String = "vb.ProjectPropertiesServices"
         Friend Const VBProjPropXBAPSecurity As String = "vb.XBAPProjectPropertiesSecurity"
         Friend Const VBProjPropXBAPSecurityLink As String = "vb.XBAPProjectPropertiesSecurity.HowTo"
-        Friend Const VBProjPropXBAPAllowPartiallyTrustedCallers As String = "System.Security.AllowPartiallyTrustedCallersAttribute" 
+        Friend Const VBProjPropXBAPAllowPartiallyTrustedCallers As String = "System.Security.AllowPartiallyTrustedCallersAttribute"
         Friend Const VBProjPropSigningNewCertDialog As String = "vb.ProjectPropertiesSigning.PfxPasswordDialog"
         Friend Const VBProjPropSigningPasswordNeededDialog As String = "vb.ProjectPropertiesSigning.PasswordNeededDialog"
         Friend Const VBProjPropSigningChangePasswordDialog As String = "vb.ProjectPropertiesSigning.ChangePasswordDialog"

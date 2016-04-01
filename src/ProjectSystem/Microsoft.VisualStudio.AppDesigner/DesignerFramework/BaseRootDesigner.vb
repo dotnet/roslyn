@@ -1,3 +1,5 @@
+' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+
 Option Strict On
 Option Explicit On
 Imports System.ComponentModel.Design
@@ -60,15 +62,15 @@ Namespace Microsoft.VisualStudio.Editors.AppDesDesignerFramework
         ''' <value>The cached ISelectionService.</value>
         Public ReadOnly Property SelectionService() As ISelectionService
             Get
-                If m_SelectionService Is Nothing Then
-                    SyncLock m_SyncLockObject
-                        If m_SelectionService Is Nothing Then
-                            m_SelectionService = CType(MyBase.GetService(GetType(ISelectionService)), ISelectionService)
-                            Debug.Assert(m_SelectionService IsNot Nothing, "Cannot get ISelectionService!!!")
+                If _selectionService Is Nothing Then
+                    SyncLock _syncLockObject
+                        If _selectionService Is Nothing Then
+                            _selectionService = CType(MyBase.GetService(GetType(ISelectionService)), ISelectionService)
+                            Debug.Assert(_selectionService IsNot Nothing, "Cannot get ISelectionService!!!")
                         End If
                     End SyncLock
                 End If
-                Return m_SelectionService
+                Return _selectionService
             End Get
         End Property
 
@@ -156,15 +158,15 @@ Namespace Microsoft.VisualStudio.Editors.AppDesDesignerFramework
         ''' <remarks>Don't want to expose this one to other classes to encourage using RegisterMenuCommands.</remarks>
         Private ReadOnly Property MenuCommandService() As IMenuCommandService
             Get
-                If m_MenuCommandService Is Nothing Then
-                    SyncLock m_SyncLockObject
-                        If m_MenuCommandService Is Nothing Then
-                            m_MenuCommandService = CType(Me.GetService(GetType(IMenuCommandService)), IMenuCommandService)
-                            Debug.Assert(Not m_MenuCommandService Is Nothing, "Cannot get menu command service!")
+                If _menuCommandService Is Nothing Then
+                    SyncLock _syncLockObject
+                        If _menuCommandService Is Nothing Then
+                            _menuCommandService = CType(Me.GetService(GetType(IMenuCommandService)), IMenuCommandService)
+                            Debug.Assert(Not _menuCommandService Is Nothing, "Cannot get menu command service!")
                         End If
                     End SyncLock
                 End If
-                Return m_MenuCommandService
+                Return _menuCommandService
             End Get
         End Property
 
@@ -174,7 +176,7 @@ Namespace Microsoft.VisualStudio.Editors.AppDesDesignerFramework
         ''' <value>An ArrayList contains MenuCommand.</value>
         Private ReadOnly Property MenuCommands() As ArrayList
             Get
-                Return m_MenuCommands
+                Return _menuCommands
             End Get
         End Property
 
@@ -186,13 +188,13 @@ Namespace Microsoft.VisualStudio.Editors.AppDesDesignerFramework
         End Sub
 
         ' All the menu commands this designer exposes. Use MenuCommands to access this.
-        Private m_MenuCommands As New ArrayList
+        Private _menuCommands As New ArrayList
         ' Pointer to the IMenuCommandService.
-        Private m_MenuCommandService As IMenuCommandService = Nothing
+        Private _menuCommandService As IMenuCommandService = Nothing
         ' Pointer to ISelectionService
-        Private m_SelectionService As ISelectionService = Nothing
+        Private _selectionService As ISelectionService = Nothing
         ' SyncLock object used to lazy initialized private fields.
-        Private m_SyncLockObject As New Object
+        Private _syncLockObject As New Object
 
     End Class
 End Namespace

@@ -1,3 +1,5 @@
+' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+
 Imports System.ComponentModel.Design
 Imports System.ComponentModel.Design.Serialization
 Imports System.Runtime.InteropServices
@@ -20,31 +22,31 @@ Namespace Microsoft.VisualStudio.Editors.SettingsDesigner
 
 #Region "Private fields"
         ''' References to the app.config file (if any)
-        Private m_AppConfigDocData As DocData
+        Private _appConfigDocData As DocData
 
-        Private m_ServiceProvider As ServiceProvider
+        Private _serviceProvider As ServiceProvider
 
-        Private m_Flushing As Boolean
+        Private _flushing As Boolean
 
-        Private Const prjKindVenus As String = "{E24C65DC-7377-472b-9ABA-BC803B73C61A}"
+        Private Const s_prjKindVenus As String = "{E24C65DC-7377-472b-9ABA-BC803B73C61A}"
 
         ' Set flag if we make changes to the settings object during load that should
         ' set the docdata to dirty immediately after we have loaded.
-        Private m_ModifiedDuringLoad As Boolean
+        Private _modifiedDuringLoad As Boolean
 
         ' Cached IVsDebugger from shell in case we don't have a service provider at
         ' shutdown so we can undo our event handler
-        Private m_VsDebugger As IVsDebugger
-        Private m_VsDebuggerEventsCookie As UInteger
+        Private _vsDebugger As IVsDebugger
+        Private _vsDebuggerEventsCookie As UInteger
 
         ' Current Debug mode
-        Private m_currentDebugMode As Shell.Interop.DBGMODE = DBGMODE.DBGMODE_Design
+        Private _currentDebugMode As Shell.Interop.DBGMODE = DBGMODE.DBGMODE_Design
 
         ' BUGFIX: Dev11#45255 
         ' Hook up to build events so we can enable/disable the property 
         ' page while building
-        Private WithEvents m_buildEvents As EnvDTE.BuildEvents
-        Private m_readOnly As Boolean
+        Private WithEvents _buildEvents As EnvDTE.BuildEvents
+        Private _readOnly As Boolean
 #End Region
 
 #Region "Base class overrides"
@@ -69,7 +71,7 @@ Namespace Microsoft.VisualStudio.Editors.SettingsDesigner
             ' Add our dynamic type service...
             Dim typeDiscoveryService As ITypeDiscoveryService = Nothing
             Dim dynamicTypeService As Microsoft.VisualStudio.Shell.Design.DynamicTypeService = _
-                DirectCast(m_ServiceProvider.GetService(GetType(Microsoft.VisualStudio.Shell.Design.DynamicTypeService)), Microsoft.VisualStudio.Shell.Design.DynamicTypeService)
+                DirectCast(_serviceProvider.GetService(GetType(Microsoft.VisualStudio.Shell.Design.DynamicTypeService)), Microsoft.VisualStudio.Shell.Design.DynamicTypeService)
             If dynamicTypeService IsNot Nothing Then
                 typeDiscoveryService = dynamicTypeService.GetTypeDiscoveryService(Me.VsHierarchy, Me.ProjectItemid)
             End If
@@ -114,7 +116,7 @@ Namespace Microsoft.VisualStudio.Editors.SettingsDesigner
         Friend Overrides Sub InitializeEx(ByVal ServiceProvider As Shell.ServiceProvider, ByVal moniker As String, ByVal Hierarchy As IVsHierarchy, ByVal ItemId As UInteger, ByVal punkDocData As Object)
             MyBase.InitializeEx(ServiceProvider, moniker, Hierarchy, ItemId, punkDocData)
 
-            m_ServiceProvider = ServiceProvider
+            _serviceProvider = ServiceProvider
 
             SetSingleFileGenerator()
         End Sub
@@ -153,7 +155,7 @@ Namespace Microsoft.VisualStudio.Editors.SettingsDesigner
         ''' <remarks></remarks>
         Protected Overrides Sub HandleFlush(ByVal SerializationManager As System.ComponentModel.Design.Serialization.IDesignerSerializationManager)
             Try
-                m_Flushing = True
+                _flushing = True
                 Dim Designer As SettingsDesigner = DirectCast(LoaderHost.GetDesigner(RootComponent), SettingsDesigner)
                 If Designer IsNot Nothing Then
                     Designer.CommitPendingChanges(True, False)
@@ -176,7 +178,7 @@ Namespace Microsoft.VisualStudio.Editors.SettingsDesigner
                 ' Flush values to app.config file
                 FlushAppConfig()
             Finally
-                m_Flushing = False
+                _flushing = False
             End Try
         End Sub
 
@@ -224,7 +226,7 @@ Namespace Microsoft.VisualStudio.Editors.SettingsDesigner
             AttachAppConfigDocData(False)
 
 
-            If m_AppConfigDocData IsNot Nothing Then
+            If _appConfigDocData IsNot Nothing Then
                 Common.Switches.TraceSDSerializeSettings(TraceLevel.Verbose, "Loading app.config")
                 LoadAppConfig()
             End If
@@ -293,13 +295,13 @@ Namespace Microsoft.VisualStudio.Editors.SettingsDesigner
         ''' <remarks></remarks>
         Private Function AttachAppConfigDocData(ByVal CreateIfNotExist As Boolean) As Boolean
             ' Now, Let's try and get to the app.config file
-            If m_AppConfigDocData Is Nothing Then
-                m_AppConfigDocData = AppConfigSerializer.GetAppConfigDocData(VBPackage.Instance, VsHierarchy, CreateIfNotExist, False, m_DocDataService)
-                If m_AppConfigDocData IsNot Nothing Then
-                    AddHandler m_AppConfigDocData.DataChanged, AddressOf Me.ExternalChange
+            If _appConfigDocData Is Nothing Then
+                _appConfigDocData = AppConfigSerializer.GetAppConfigDocData(VBPackage.Instance, VsHierarchy, CreateIfNotExist, False, m_DocDataService)
+                If _appConfigDocData IsNot Nothing Then
+                    AddHandler _appConfigDocData.DataChanged, AddressOf Me.ExternalChange
                 End If
             End If
-            Return m_AppConfigDocData IsNot Nothing
+            Return _appConfigDocData IsNot Nothing
         End Function
 
 
@@ -359,7 +361,7 @@ Namespace Microsoft.VisualStudio.Editors.SettingsDesigner
                 AndAlso e.Member.Name.Equals("Name", StringComparison.OrdinalIgnoreCase) _
                 AndAlso String.Equals(instance.SettingTypeName, SettingsSerializer.CultureInvariantVirtualTypeNameWebReference, StringComparison.Ordinal) _
             Then
-                If m_ServiceProvider IsNot Nothing _
+                If _serviceProvider IsNot Nothing _
                     AndAlso Me.ProjectItem IsNot Nothing _
                     AndAlso Me.ProjectItem.ContainingProject IsNot Nothing _
                     AndAlso Me.ProjectItem.ContainingProject.FullName <> "" _
@@ -367,7 +369,7 @@ Namespace Microsoft.VisualStudio.Editors.SettingsDesigner
                     ' Check out the project file...
                     Dim filesToCheckOut As New List(Of String)(1)
                     filesToCheckOut.Add(Me.ProjectItem.ContainingProject.FullName)
-                    DesignerFramework.SourceCodeControlManager.QueryEditableFiles(m_ServiceProvider, filesToCheckOut, True, False)
+                    DesignerFramework.SourceCodeControlManager.QueryEditableFiles(_serviceProvider, filesToCheckOut, True, False)
                 End If
             End If
         End Sub
@@ -442,7 +444,7 @@ Namespace Microsoft.VisualStudio.Editors.SettingsDesigner
                                                           OrElse ex.ErrorCode = NativeMethods.E_FAIL
                                 ' We should ignore if the customer cancels this or we can not build the project...
                             Catch ex As Exception When Not Common.Utils.IsUnrecoverable(ex, True)
-                                DesignerFramework.DesignerMessageBox.Show(m_ServiceProvider, ex, DesignerFramework.DesignUtil.GetDefaultCaption(m_ServiceProvider))
+                                DesignerFramework.DesignerMessageBox.Show(_serviceProvider, ex, DesignerFramework.DesignUtil.GetDefaultCaption(_serviceProvider))
                             Finally
                                 SettingsSingleFileGeneratorBase.AllowSymbolRename = False
                             End Try
@@ -489,8 +491,8 @@ Namespace Microsoft.VisualStudio.Editors.SettingsDesigner
         ''' <param name="e"></param>
         ''' <remarks></remarks>
         Private Sub ExternalChange(ByVal sender As Object, ByVal e As System.EventArgs)
-            If Not m_Flushing Then
-                Debug.Assert(m_AppConfigDocData IsNot Nothing, "Why did we get a change notification for a NULL App.Config DocData?")
+            If Not _flushing Then
+                Debug.Assert(_appConfigDocData IsNot Nothing, "Why did we get a change notification for a NULL App.Config DocData?")
                 Common.Switches.TraceSDSerializeSettings(TraceLevel.Info, "Queueing a reload due to an external change of the app.config DocData")
                 Reload(ReloadOptions.NoFlush)
             End If
@@ -501,7 +503,7 @@ Namespace Microsoft.VisualStudio.Editors.SettingsDesigner
         ''' </summary>
         ''' <remarks></remarks>
         Private Sub LoadAppConfig()
-            Debug.Assert(m_AppConfigDocData IsNot Nothing, "Can't load a non-existing app.config file!")
+            Debug.Assert(_appConfigDocData IsNot Nothing, "Can't load a non-existing app.config file!")
             Try
                 Dim cfgHelper As New ConfigurationHelperService
 
@@ -510,7 +512,7 @@ Namespace Microsoft.VisualStudio.Editors.SettingsDesigner
                                                     DirectCast(GetService(GetType(SettingsTypeCache)), SettingsTypeCache), _
                                                     DirectCast(GetService(GetType(SettingsValueCache)), SettingsValueCache), _
                                                     cfgHelper.GetSectionName(ProjectUtils.FullyQualifiedClassName(GeneratedClassNamespace(True), GeneratedClassName), String.Empty), _
-                                                    m_AppConfigDocData, _
+                                                    _appConfigDocData, _
                                                     AppConfigSerializer.MergeValueMode.Prompt, _
                                                     CType(GetService(GetType(System.Windows.Forms.Design.IUIService)), System.Windows.Forms.Design.IUIService))
                 If objectDirty <> AppConfigSerializer.DirtyState.NoChange Then
@@ -519,11 +521,11 @@ Namespace Microsoft.VisualStudio.Editors.SettingsDesigner
                     ' 
                     ' Since component change notifications are ignored while we are loading the object,
                     ' we have to do this after the load is completed....
-                    m_ModifiedDuringLoad = True
+                    _modifiedDuringLoad = True
                 End If
             Catch ex As System.Configuration.ConfigurationErrorsException
                 ' We failed to load the app config xml document....
-                DesignerFramework.DesignUtil.ReportError(m_ServiceProvider, SR.GetString(SR.SD_FailedToLoadAppConfigValues), HelpIDs.Err_LoadingAppConfigFile)
+                DesignerFramework.DesignUtil.ReportError(_serviceProvider, SR.GetString(SR.SD_FailedToLoadAppConfigValues), HelpIDs.Err_LoadingAppConfigFile)
             Catch Ex As Exception
                 Debug.Fail(String.Format("Failed to load app.config {0}", Ex))
                 Throw
@@ -543,12 +545,12 @@ Namespace Microsoft.VisualStudio.Editors.SettingsDesigner
             'test if in build process
             If IsInBuildProgress() Then
                 SetReadOnlyMode(True, String.Empty)
-                m_readOnly = True
+                _readOnly = True
             Else
                 SetReadOnlyMode(False, String.Empty)
-                m_readOnly = False
+                _readOnly = False
             End If
-            If m_ModifiedDuringLoad AndAlso InDesignMode() Then
+            If _modifiedDuringLoad AndAlso InDesignMode() Then
                 Try
                     Me.OnModifying()
                     Me.Modified = True
@@ -556,7 +558,7 @@ Namespace Microsoft.VisualStudio.Editors.SettingsDesigner
                     ' What should we do here???
                 End Try
             End If
-            m_ModifiedDuringLoad = False
+            _modifiedDuringLoad = False
         End Sub
 
         ''' <summary>
@@ -565,19 +567,19 @@ Namespace Microsoft.VisualStudio.Editors.SettingsDesigner
         ''' <remarks></remarks>
         Private Sub FlushAppConfig()
             If AttachAppConfigDocData(True) Then
-                Debug.Assert(m_AppConfigDocData IsNot Nothing, "Why did AttachAppConfigDocData return true when we don't have an app.config docdata!?")
+                Debug.Assert(_appConfigDocData IsNot Nothing, "Why did AttachAppConfigDocData return true when we don't have an app.config docdata!?")
                 Try
                     AppConfigSerializer.Serialize(RootComponent, _
                                 DirectCast(GetService(GetType(SettingsTypeCache)), SettingsTypeCache), _
                                 DirectCast(GetService(GetType(SettingsValueCache)), SettingsValueCache), _
                                 GeneratedClassName, _
                                 GeneratedClassNamespace(True), _
-                                m_AppConfigDocData, _
+                                _appConfigDocData, _
                                 VsHierarchy, _
                                 True)
                 Catch Ex As Exception When Not Common.Utils.IsUnrecoverable(Ex)
                     ' We failed to flush values to the app config document....
-                    DesignerFramework.DesignUtil.ReportError(m_ServiceProvider, SR.GetString(SR.SD_FailedToSaveAppConfigValues), HelpIDs.Err_SavingAppConfigFile)
+                    DesignerFramework.DesignUtil.ReportError(_serviceProvider, SR.GetString(SR.SD_FailedToSaveAppConfigValues), HelpIDs.Err_SavingAppConfigFile)
                 End Try
             End If
         End Sub
@@ -624,8 +626,8 @@ Namespace Microsoft.VisualStudio.Editors.SettingsDesigner
                 End If
 
                 ' Unregister any change handlers that we've associated with the app.config file
-                If m_AppConfigDocData IsNot Nothing Then
-                    RemoveHandler m_AppConfigDocData.DataChanged, AddressOf Me.ExternalChange
+                If _appConfigDocData IsNot Nothing Then
+                    RemoveHandler _appConfigDocData.DataChanged, AddressOf Me.ExternalChange
 
                     ' 
                     ' DevDiv 79301:
@@ -636,15 +638,15 @@ Namespace Microsoft.VisualStudio.Editors.SettingsDesigner
                     ' The DesignerDocDataService that normally handles this will not save dependent files unless the primary
                     ' docdata is modified...
                     '
-                    If m_docData IsNot Nothing AndAlso (Not m_docData.Modified) AndAlso m_appConfigDocData.Modified Then
-                        m_appConfigDocData.Dispose()
+                    If m_docData IsNot Nothing AndAlso (Not m_docData.Modified) AndAlso _appConfigDocData.Modified Then
+                        _appConfigDocData.Dispose()
                     Else
                         ' 
                         ' Please note that we should normally let the DesignerDocDataService's dispose dispose
                         ' the child docdata - this will be done in the BaseDesignerLoader's Dipose.
                         ' 
                     End If
-                    m_AppConfigDocData = Nothing
+                    _appConfigDocData = Nothing
                 End If
 
                 DisconnectDebuggerEvents()
@@ -706,7 +708,7 @@ Namespace Microsoft.VisualStudio.Editors.SettingsDesigner
 
 
         Friend Function InDesignMode() As Boolean
-            Return m_currentDebugMode = DBGMODE.DBGMODE_Design
+            Return _currentDebugMode = DBGMODE.DBGMODE_Design
         End Function
 
 #Region "INameCreationService"
@@ -764,22 +766,22 @@ Namespace Microsoft.VisualStudio.Editors.SettingsDesigner
             Dim dte As EnvDTE.DTE
             dte = CType(GetService(GetType(EnvDTE.DTE)), EnvDTE.DTE)
             If dte IsNot Nothing Then
-                m_buildEvents = dte.Events.BuildEvents
+                _buildEvents = dte.Events.BuildEvents
             Else
                 Debug.Fail("No DTE - can't hook up build events - we don't know if start/stop building...")
             End If
         End Sub
 
         Friend Function IsReadOnly() As Boolean
-            Return m_readOnly
+            Return _readOnly
         End Function
 
         ''' <summary>
         ''' A build has started - disable/enable page
         ''' </summary>
-        Private Sub BuildBegin(ByVal scope As EnvDTE.vsBuildScope, ByVal action As EnvDTE.vsBuildAction) Handles m_buildEvents.OnBuildBegin
+        Private Sub BuildBegin(ByVal scope As EnvDTE.vsBuildScope, ByVal action As EnvDTE.vsBuildAction) Handles _buildEvents.OnBuildBegin
             SetReadOnlyMode(True, String.Empty)
-            m_readOnly = True
+            _readOnly = True
             RefreshView()
         End Sub
 
@@ -789,9 +791,9 @@ Namespace Microsoft.VisualStudio.Editors.SettingsDesigner
         ''' <param name="scope"></param>
         ''' <param name="action"></param>
         ''' <remarks></remarks>
-        Private Sub BuildDone(ByVal scope As EnvDTE.vsBuildScope, ByVal action As EnvDTE.vsBuildAction) Handles m_buildEvents.OnBuildDone
+        Private Sub BuildDone(ByVal scope As EnvDTE.vsBuildScope, ByVal action As EnvDTE.vsBuildAction) Handles _buildEvents.OnBuildDone
             SetReadOnlyMode(False, String.Empty)
-            m_readOnly = False
+            _readOnly = False
             RefreshView()
         End Sub
 
@@ -812,14 +814,14 @@ Namespace Microsoft.VisualStudio.Editors.SettingsDesigner
         ''' </summary>
         ''' <remarks></remarks>
         Private Sub ConnectDebuggerEvents()
-            If m_VsDebuggerEventsCookie = 0 Then
-                m_VsDebugger = CType(GetService(GetType(IVsDebugger)), IVsDebugger)
-                If m_VsDebugger IsNot Nothing Then
-                    VSErrorHandler.ThrowOnFailure(m_VsDebugger.AdviseDebuggerEvents(Me, m_VsDebuggerEventsCookie))
+            If _vsDebuggerEventsCookie = 0 Then
+                _vsDebugger = CType(GetService(GetType(IVsDebugger)), IVsDebugger)
+                If _vsDebugger IsNot Nothing Then
+                    VSErrorHandler.ThrowOnFailure(_vsDebugger.AdviseDebuggerEvents(Me, _vsDebuggerEventsCookie))
 
                     Dim mode As DBGMODE() = New DBGMODE() {DBGMODE.DBGMODE_Design}
                     'Get the current mode
-                    VSErrorHandler.ThrowOnFailure(m_VsDebugger.GetMode(mode))
+                    VSErrorHandler.ThrowOnFailure(_vsDebugger.GetMode(mode))
                     OnModeChange(mode(0))
                 Else
                     Debug.Fail("Cannot obtain IVsDebugger from shell")
@@ -834,10 +836,10 @@ Namespace Microsoft.VisualStudio.Editors.SettingsDesigner
         ''' <remarks></remarks>
         Private Sub DisconnectDebuggerEvents()
             Try
-                If m_VsDebugger IsNot Nothing AndAlso m_VsDebuggerEventsCookie <> 0 Then
-                    VSErrorHandler.ThrowOnFailure(m_VsDebugger.UnadviseDebuggerEvents(m_VsDebuggerEventsCookie))
-                    m_VsDebuggerEventsCookie = 0
-                    m_VsDebugger = Nothing
+                If _vsDebugger IsNot Nothing AndAlso _vsDebuggerEventsCookie <> 0 Then
+                    VSErrorHandler.ThrowOnFailure(_vsDebugger.UnadviseDebuggerEvents(_vsDebuggerEventsCookie))
+                    _vsDebuggerEventsCookie = 0
+                    _vsDebugger = Nothing
                 End If
             Catch ex As Exception When Not Common.IsUnrecoverable(ex)
             End Try
@@ -851,11 +853,11 @@ Namespace Microsoft.VisualStudio.Editors.SettingsDesigner
             Try
                 If dbgmodeNew = DBGMODE.DBGMODE_Design Then
                     SetReadOnlyMode(False, String.Empty)
-                ElseIf m_currentDebugMode = DBGMODE.DBGMODE_Design Then
+                ElseIf _currentDebugMode = DBGMODE.DBGMODE_Design Then
                     SetReadOnlyMode(True, SR.GetString(SR.SD_ERR_CantEditInDebugMode))
                 End If
             Finally
-                m_currentDebugMode = dbgmodeNew
+                _currentDebugMode = dbgmodeNew
             End Try
 
             ' Let's try to refresh whatever menus we have here...

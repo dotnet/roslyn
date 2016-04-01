@@ -1,3 +1,5 @@
+' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+
 Option Strict On
 Option Explicit On
 Imports System.IO
@@ -61,10 +63,10 @@ Namespace Microsoft.VisualStudio.Editors.DesignerFramework
 
 #Region "Fields and Structures"
 
-        Private m_Site As Object 'The site that owns this editor factory
-        Private m_ServiceProvider As Shell.ServiceProvider 'The service provider from m_Site
-        Private m_DesignerLoaderType As Type 'The type of designer loader to create.  Typically there is a separate designer loader class per editor factory (and therefore per designer type)
-        Private Shared ReadOnly DefaultPhysicalViewName As String = Nothing 'The default physical view *must* be Nothing
+        Private _site As Object 'The site that owns this editor factory
+        Private _serviceProvider As Shell.ServiceProvider 'The service provider from m_Site
+        Private _designerLoaderType As Type 'The type of designer loader to create.  Typically there is a separate designer loader class per editor factory (and therefore per designer type)
+        Private Shared ReadOnly s_defaultPhysicalViewName As String = Nothing 'The default physical view *must* be Nothing
 
 #End Region
 
@@ -74,7 +76,7 @@ Namespace Microsoft.VisualStudio.Editors.DesignerFramework
         ''' </summary>
         Public Sub New(ByVal DesignerLoaderType As Type)
             Debug.Assert(Not DesignerLoaderType Is Nothing)
-            m_DesignerLoaderType = DesignerLoaderType
+            _designerLoaderType = DesignerLoaderType
         End Sub
 
 
@@ -94,7 +96,7 @@ Namespace Microsoft.VisualStudio.Editors.DesignerFramework
         ''' <returns></returns>
         ''' <remarks></remarks>
         Protected Function CreateNewTextStreamBuffer() As IVsTextStream
-            Dim LocalRegistry As ILocalRegistry = CType(m_ServiceProvider.GetService(GetType(ILocalRegistry)), ILocalRegistry)
+            Dim LocalRegistry As ILocalRegistry = CType(_serviceProvider.GetService(GetType(ILocalRegistry)), ILocalRegistry)
             Dim TextStreamInstance As IVsTextStream = Nothing
 
             If LocalRegistry Is Nothing Then
@@ -338,7 +340,7 @@ Namespace Microsoft.VisualStudio.Editors.DesignerFramework
                     DocData = Nothing
                     Caption = Nothing
 
-                    Dim DesignerService As IVSMDDesignerService = CType(m_ServiceProvider.GetService(GetType(IVSMDDesignerService)), IVSMDDesignerService)
+                    Dim DesignerService As IVSMDDesignerService = CType(_serviceProvider.GetService(GetType(IVSMDDesignerService)), IVSMDDesignerService)
                     If DesignerService Is Nothing Then
                         Throw New Exception(SR.GetString(SR.DFX_EditorNoDesignerService, FileName))
                     End If
@@ -350,7 +352,7 @@ Namespace Microsoft.VisualStudio.Editors.DesignerFramework
                     'Site the TextStream
                     If ExistingDocData Is Nothing Then
                         If TypeOf NewDocData Is IObjectWithSite Then
-                            CType(NewDocData, IObjectWithSite).SetSite(m_Site)
+                            CType(NewDocData, IObjectWithSite).SetSite(_site)
                         End If
                     End If
 
@@ -359,7 +361,7 @@ Namespace Microsoft.VisualStudio.Editors.DesignerFramework
                     'Create the appropriate designer loader
                     '  Note: there is no formal need to go through DesignerService.CreateDesignerLoader for this, but there's
                     '  nothing wrong with it, either.
-                    Dim DesignerLoaderClassName As String = m_DesignerLoaderType.AssemblyQualifiedName
+                    Dim DesignerLoaderClassName As String = _designerLoaderType.AssemblyQualifiedName
                     Dim DesignerLoaderObject As Object = DesignerService.CreateDesignerLoader(DesignerLoaderClassName)
                     If DesignerLoaderObject Is Nothing Then
                         Debug.Fail("DesignerService.CreateDesignerLoader() returned Nothing")
@@ -372,13 +374,13 @@ Namespace Microsoft.VisualStudio.Editors.DesignerFramework
                     DesignerLoader = CType(DesignerLoaderObject, BaseDesignerLoader)
 
                     'Initialize the sucker
-                    Debug.Assert(m_ServiceProvider IsNot Nothing)
-                    DesignerLoader.InitializeEx(m_ServiceProvider, FileName, Hierarchy, ItemId, NewDocData)
+                    Debug.Assert(_serviceProvider IsNot Nothing)
+                    DesignerLoader.InitializeEx(_serviceProvider, FileName, Hierarchy, ItemId, NewDocData)
 
                     'Now slam the two together and make a designer
 
                     '... Get a managed Designer (this will expose an IVsWindowPane to the shell)
-                    Dim OleProvider As OLE.Interop.IServiceProvider = CType(m_ServiceProvider.GetService(GetType(OLE.Interop.IServiceProvider)), OLE.Interop.IServiceProvider)
+                    Dim OleProvider As OLE.Interop.IServiceProvider = CType(_serviceProvider.GetService(GetType(OLE.Interop.IServiceProvider)), OLE.Interop.IServiceProvider)
                     Dim Designer As IVSMDDesigner = DesignerService.CreateDesigner(OleProvider, DesignerLoader)
                     Debug.Assert(Not (Designer Is Nothing), "Designer service should have thrown if it had a problem.")
 
@@ -462,7 +464,7 @@ Namespace Microsoft.VisualStudio.Editors.DesignerFramework
         ''' </remarks>
         Protected ReadOnly Property ServiceProvider() As Shell.ServiceProvider
             Get
-                Return m_ServiceProvider
+                Return _serviceProvider
             End Get
         End Property
 
@@ -482,20 +484,20 @@ Namespace Microsoft.VisualStudio.Editors.DesignerFramework
         ''' <remarks></remarks>
         Private Sub SetSiteInternal(ByVal Site As Object)
             'This same Site already set?  Or Site not yet initialized (= Nothing)?  If so, NOP.
-            If Me.m_Site Is Site Then
+            If Me._site Is Site Then
                 Debug.Fail("Why is this EditorFactory site:ed twice?")
                 Exit Sub
             End If
 
             'Site is different - set it
-            If m_ServiceProvider IsNot Nothing Then
+            If _serviceProvider IsNot Nothing Then
                 ' Let's make sure we dispose any old service provider we had...
-                m_ServiceProvider.Dispose()
-                m_ServiceProvider = Nothing
+                _serviceProvider.Dispose()
+                _serviceProvider = Nothing
             End If
-            Me.m_Site = Site
+            Me._site = Site
             If TypeOf Site Is OLE.Interop.IServiceProvider Then
-                m_ServiceProvider = New Shell.ServiceProvider(CType(Site, OLE.Interop.IServiceProvider))
+                _serviceProvider = New Shell.ServiceProvider(CType(Site, OLE.Interop.IServiceProvider))
             End If
 
             Me.OnSited()
@@ -518,11 +520,11 @@ Namespace Microsoft.VisualStudio.Editors.DesignerFramework
         ''' <remarks>Standard implementation pattern for IDisposable</remarks>
         Protected Overridable Overloads Sub Dispose(ByVal Disposing As Boolean)
             If Disposing Then
-                If m_ServiceProvider IsNot Nothing Then
-                    m_ServiceProvider.Dispose()
-                    m_ServiceProvider = Nothing
+                If _serviceProvider IsNot Nothing Then
+                    _serviceProvider.Dispose()
+                    _serviceProvider = Nothing
                 End If
-                m_Site = Nothing
+                _site = Nothing
             End If
         End Sub
 
