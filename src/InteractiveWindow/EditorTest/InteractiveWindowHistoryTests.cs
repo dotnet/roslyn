@@ -77,6 +77,29 @@ namespace Microsoft.VisualStudio.InteractiveWindow.UnitTests
         }
 
         [WpfFact]
+        public async Task CheckHistoryPreviousWithAnEmptySubmission() {
+            //submit, submit, submit, up, up, up
+            const string inputString1 = "1 ";
+            const string inputString2 = " ";
+            const string inputString3 = "3 ";
+
+            await InsertAndExecuteInput(inputString1).ConfigureAwait(true);
+            await InsertAndExecuteInput(inputString2).ConfigureAwait(true);
+            await InsertAndExecuteInput(inputString3).ConfigureAwait(true);
+
+            _operations.HistoryPrevious();
+            AssertCurrentSubmission(inputString3);
+
+            //second input was empty, so it wasn't added to history
+            _operations.HistoryPrevious();
+            AssertCurrentSubmission(inputString1);
+
+            //has reached the top, no change
+            _operations.HistoryPrevious();
+            AssertCurrentSubmission(inputString1);
+        }
+
+        [WpfFact]
         public async Task CheckHistoryPreviousNotCircular()
         {
             //submit, submit, up, up, up
