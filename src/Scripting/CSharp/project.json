@@ -5,8 +5,8 @@
     "System.Dynamic.Runtime": "4.0.10"
   },
   "frameworks": {
-    "dotnet5.4": {
-      "imports": "portable-net452"
+    "netstandard1.3": {
+      "imports": [ "portable-net452", "dotnet5.4" ]
     }
   }
 }
