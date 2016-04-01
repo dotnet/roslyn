@@ -17,12 +17,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Analyzers.MetaAnalyzers
                                                  analysisContext As INamedTypeSymbol,
                                                  compilationStartAnalysisContext As INamedTypeSymbol,
                                                  codeBlockStartAnalysisContext As INamedTypeSymbol,
+                                                 operationBlockStartAnalysisContext As INamedTypeSymbol,
                                                  symbolKind As INamedTypeSymbol,
                                                  diagnosticAnalyzer As INamedTypeSymbol,
                                                  diagnosticAnalyzerAttribute As INamedTypeSymbol) As RegisterActionCodeBlockAnalyzer
             Dim basicSyntaxKind = compilation.GetTypeByMetadataName(s_basicSyntaxKindFullName)
             Dim csharpSyntaxKind = compilation.GetTypeByMetadataName(s_CSharpSyntaxKindFullName)
-            Return New BasicRegisterActionCodeBlockAnalyzer(basicSyntaxKind, csharpSyntaxKind, analysisContext, compilationStartAnalysisContext, codeBlockStartAnalysisContext, symbolKind, diagnosticAnalyzer, diagnosticAnalyzerAttribute)
+            Return New BasicRegisterActionCodeBlockAnalyzer(basicSyntaxKind, csharpSyntaxKind, analysisContext, compilationStartAnalysisContext, codeBlockStartAnalysisContext,
+                                                            operationBlockStartAnalysisContext, symbolKind, diagnosticAnalyzer, diagnosticAnalyzerAttribute)
         End Function
 
         Private NotInheritable Class BasicRegisterActionCodeBlockAnalyzer
@@ -36,10 +38,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Analyzers.MetaAnalyzers
                            analysisContext As INamedTypeSymbol,
                            compilationStartAnalysisContext As INamedTypeSymbol,
                            codeBlockStartAnalysisContext As INamedTypeSymbol,
+                           operationBlockStartAnalysisContext As INamedTypeSymbol,
                            symbolKind As INamedTypeSymbol,
                            diagnosticAnalyzer As INamedTypeSymbol,
                            diagnosticAnalyzerAttribute As INamedTypeSymbol)
-                MyBase.New(analysisContext, compilationStartAnalysisContext, codeBlockStartAnalysisContext, symbolKind, diagnosticAnalyzer, diagnosticAnalyzerAttribute)
+                MyBase.New(analysisContext, compilationStartAnalysisContext, codeBlockStartAnalysisContext, operationBlockStartAnalysisContext, symbolKind, diagnosticAnalyzer, diagnosticAnalyzerAttribute)
 
                 Me._basicSyntaxKind = basicSyntaxKind
                 Me._csharpSyntaxKind = csharpSyntaxKind
