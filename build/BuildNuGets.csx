@@ -27,9 +27,9 @@ string ScriptRoot([CallerFilePath]string path = "") => Path.GetDirectoryName(pat
 // utilities will consider the '\"' as an escape sequence for the end quote
 var BinDir = Path.GetFullPath(Args[0]).TrimEnd('\\');
 var BuildVersion = Args[1].Trim();
-var NuspecDirPath = Path.Combine(SolutionRoot, "src/NuGet");
 var OutDir = Path.GetFullPath(Args[2]).TrimEnd('\\');
 
+var NuspecDirPath = Path.Combine(SolutionRoot, "src/NuGet");
 var LicenseUrlRedist = @"http://go.microsoft.com/fwlink/?LinkId=529443";
 var LicenseUrlNonRedist = @"http://go.microsoft.com/fwlink/?LinkId=529444";
 var LicenseUrlTest = @"http://go.microsoft.com/fwlink/?LinkId=529445";
@@ -38,16 +38,13 @@ var Authors = @"Microsoft";
 var ProjectURL = @"http://msdn.com/roslyn";
 var Tags = @"Roslyn CodeAnalysis Compiler CSharp VB VisualBasic Parser Scanner Lexer Emit CodeGeneration Metadata IL Compilation Scripting Syntax Semantics";
 
-string SystemCollectionsImmutableVersion;
-string SystemReflectionMetadataVersion;
-string CodeAnalysisAnalyzersVersion;
-
 // Read preceding variables from MSBuild file
 var doc = XDocument.Load(Path.Combine(SolutionRoot, "build/Targets/VSL.Versions.targets"));
 XNamespace ns = @"http://schemas.microsoft.com/developer/msbuild/2003";
-SystemCollectionsImmutableVersion = doc.Descendants(ns + nameof(SystemCollectionsImmutableVersion)).Single().Value;
-SystemReflectionMetadataVersion = doc.Descendants(ns + nameof(SystemReflectionMetadataVersion)).Single().Value;
-CodeAnalysisAnalyzersVersion = doc.Descendants(ns + nameof(CodeAnalysisAnalyzersVersion)).Single().Value;
+string SystemCollectionsImmutableVersion = doc.Descendants(ns + nameof(SystemCollectionsImmutableVersion)).Single().Value;
+string SystemReflectionMetadataVersion = doc.Descendants(ns + nameof(SystemReflectionMetadataVersion)).Single().Value;
+string CodeAnalysisAnalyzersVersion = doc.Descendants(ns + nameof(CodeAnalysisAnalyzersVersion)).Single().Value;
+string MicrosoftDiaSymReaderNativeVersion = doc.Descendants(ns + nameof(MicrosoftDiaSymReaderNativeVersion)).Single().Value;
 
 #endregion
 
@@ -119,6 +116,7 @@ int PackFiles(string[] packageNames, string licenseUrl)
             $"-prop systemCollectionsImmutableVersion=\"{SystemCollectionsImmutableVersion}\" " +
             $"-prop systemReflectionMetadataVersion=\"{SystemReflectionMetadataVersion}\" " +
             $"-prop codeAnalysisAnalyzersVersion=\"{CodeAnalysisAnalyzersVersion}\" " +
+            $"-prop microsoftDiaSymReaderNativeVersion=\"{MicrosoftDiaSymReaderNativeVersion}\" " +            
             $"-prop thirdPartyNoticesPath=\"{ThirdPartyNoticesPath}\" " +
             $"-prop netCompilersPropsPath=\"{NetCompilersPropsPath}\" " +
             $"-prop emptyDirPath=\"{emptyDir}\"";;

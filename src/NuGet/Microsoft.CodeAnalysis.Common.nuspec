@@ -16,12 +16,14 @@ Supported Platforms:
             <dependency id="System.Collections.Immutable" version="$systemCollectionsImmutableVersion$" />
             <dependency id="System.Reflection.Metadata" version="$systemReflectionMetadataVersion$" />
             <dependency id="Microsoft.CodeAnalysis.Analyzers" version="$codeAnalysisAnalyzersVersion$" />
+            <dependency id="Microsoft.DiaSymReader.Native" version="$microsoftDiaSymReaderNativeVersion$" />
         </group>
 
         <group targetFramework="netstandard1.3">
             <dependency id="System.Collections.Immutable" version="$systemCollectionsImmutableVersion$" />
             <dependency id="System.Reflection.Metadata" version="$systemReflectionMetadataVersion$" />
             <dependency id="Microsoft.CodeAnalysis.Analyzers" version="$codeAnalysisAnalyzersVersion$" />
+            <dependency id="Microsoft.DiaSymReader.Native" version="$microsoftDiaSymReaderNativeVersion$" />
 
             <dependency id="System.AppContext" version="4.1.0-rc2-23931" />
             <dependency id="System.Collections" version="4.0.11-rc2-23931" />
