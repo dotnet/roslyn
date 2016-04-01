@@ -381,7 +381,7 @@ End Class
                     break;
 
                 default:
-                    throw new NotSupportedException();
+                    throw new ArgumentException("kind");
             }
 
             string message = string.Format(CodeAnalysisDiagnosticsResources.StartActionWithOnlyEndActionMessage, parameterName, endActionName, statelessActionName, arg4);

@@ -106,7 +106,7 @@ namespace Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers
                 return null;
             }
 
-            var contextTypes = ImmutableHashSet.Create(compilationEndAnalysisContext, codeBlockAnalysisContext,
+            ImmutableHashSet<INamedTypeSymbol> contextTypes = ImmutableHashSet.Create(compilationEndAnalysisContext, codeBlockAnalysisContext,
                 operationBlockAnalysisContext, operationAnalysisContext, semanticModelAnalysisContext, symbolAnalysisContext, syntaxNodeAnalysisContext, syntaxTreeAnalysisContext);
 
             return GetAnalyzer(contextTypes, diagnosticType, diagnosticDescriptorType, diagnosticAnalyzer, diagnosticAnalyzerAttribute);

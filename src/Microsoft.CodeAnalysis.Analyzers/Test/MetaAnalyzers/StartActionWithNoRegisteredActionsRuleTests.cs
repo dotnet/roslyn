@@ -206,7 +206,7 @@ abstract class MyAnalyzer<T> : DiagnosticAnalyzer
         }
 
         [Fact]
-        public void CSharp_NoDiagnosticCases_3()
+        public void CSharp_NoDiagnosticCases_OperationAnalyzerRegistration()
         {
             var source = @"
 using System;
@@ -215,7 +215,7 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Diagnostics;
 
 [DiagnosticAnalyzer(LanguageNames.CSharp)]
-abstract class MyAnalyzer : DiagnosticAnalyzer
+class MyAnalyzer : DiagnosticAnalyzer
 {
     public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics
     {
@@ -236,7 +236,7 @@ abstract class MyAnalyzer : DiagnosticAnalyzer
 }
 
 [DiagnosticAnalyzer(LanguageNames.CSharp)]
-abstract class MyAnalyzer2 : DiagnosticAnalyzer
+class MyAnalyzer2 : DiagnosticAnalyzer
 {
     public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics
     {
@@ -259,7 +259,7 @@ abstract class MyAnalyzer2 : DiagnosticAnalyzer
         }
 
         [Fact]
-        public void CSharp_NoDiagnosticCases_4()
+        public void CSharp_NoDiagnosticCases_NestedOperationAnalyzerRegistration()
         {
             var source = @"
 using System;
@@ -268,7 +268,7 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Diagnostics;
 
 [DiagnosticAnalyzer(LanguageNames.CSharp)]
-abstract class MyAnalyzer : DiagnosticAnalyzer
+class MyAnalyzer : DiagnosticAnalyzer
 {
     public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics
     {
@@ -315,7 +315,7 @@ abstract class MyAnalyzer : DiagnosticAnalyzer
 
             VerifyCSharp(source, addLanguageSpecificCodeAnalysisReference: false);
         }
-
+    
         [Fact]
         public void VisualBasic_NoDiagnosticCases()
         {
@@ -401,7 +401,7 @@ End Class
         }
 
         [Fact]
-        public void VisualBasic_NoDiagnosticCases_3()
+        public void VisualBasic_NoDiagnosticCases_OperationAnalyzerRegistration()
         {
             var source = @"
 Imports System
@@ -410,7 +410,7 @@ Imports Microsoft.CodeAnalysis
 Imports Microsoft.CodeAnalysis.Diagnostics
 
 <DiagnosticAnalyzer(LanguageNames.VisualBasic)> _
-MustInherit Class MyAnalyzer
+Class MyAnalyzer
 	Inherits DiagnosticAnalyzer
 	Public Overrides ReadOnly Property SupportedDiagnostics() As ImmutableArray(Of DiagnosticDescriptor)
 		Get
@@ -427,7 +427,7 @@ MustInherit Class MyAnalyzer
 End Class
 
 <DiagnosticAnalyzer(LanguageNames.VisualBasic)> _
-MustInherit Class MyAnalyzer2
+Class MyAnalyzer2
 	Inherits DiagnosticAnalyzer
 	Public Overrides ReadOnly Property SupportedDiagnostics() As ImmutableArray(Of DiagnosticDescriptor)
 		Get
@@ -447,7 +447,7 @@ End Class
         }
 
         [Fact]
-        public void VisualBasic_NoDiagnosticCases_4()
+        public void VisualBasic_NoDiagnosticCases_NestedOperationAnalyzerRegistration()
         {
             var source = @"
 Imports System
@@ -540,7 +540,7 @@ End Class
                     break;
 
                 default:
-                    throw new NotSupportedException();
+                    throw new ArgumentException("kind");
             }
 
             string message = string.Format(CodeAnalysisDiagnosticsResources.StartActionWithNoRegisteredActionsMessage, parameterName, arg2);

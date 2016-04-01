@@ -113,6 +113,8 @@ namespace Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers
             {
                 return ImmutableArray.Create(
                     MissingSymbolKindArgumentRule,
+                    MissingSyntaxKindArgumentRule,
+                    MissingOperationKindArgumentRule,
                     UnsupportedSymbolKindArgumentRule,
                     InvalidSyntaxKindTypeArgumentRule,
                     StartActionWithNoRegisteredActionsRule,

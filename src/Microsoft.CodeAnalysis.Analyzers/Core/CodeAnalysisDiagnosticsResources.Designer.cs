@@ -296,7 +296,7 @@ namespace Microsoft.CodeAnalysis.Analyzers {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to You must specify at least one syntax/symbol/operation kinds of interest while registering a syntax/symbol/operation analyzer action. Otherwise, the registered action will be dead code and will never be invoked during analysis..
+        ///   Looks up a localized string similar to You must specify at least one syntax, symbol or operation kind when registering a syntax, symbol, or operation analyzer action respectively. Otherwise, the registered action will never be invoked during analysis..
         /// </summary>
         internal static string MissingKindArgumentToRegisterActionDescription {
             get {
@@ -305,7 +305,7 @@ namespace Microsoft.CodeAnalysis.Analyzers {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Missing kind argument while registering an analyzer action..
+        ///   Looks up a localized string similar to Missing kind argument when registering an analyzer action..
         /// </summary>
         internal static string MissingKindArgumentToRegisterActionTitle {
             get {
@@ -314,7 +314,7 @@ namespace Microsoft.CodeAnalysis.Analyzers {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Specify at least one OperationKind of interest while registering an operation analyzer action..
+        ///   Looks up a localized string similar to Specify at least one OperationKind of interest when registering an operation analyzer action..
         /// </summary>
         internal static string MissingOperationKindArgumentToRegisterActionMessage {
             get {
@@ -323,7 +323,7 @@ namespace Microsoft.CodeAnalysis.Analyzers {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Specify at least one SymbolKind of interest while registering a symbol analyzer action..
+        ///   Looks up a localized string similar to Specify at least one SymbolKind of interest when registering a symbol analyzer action..
         /// </summary>
         internal static string MissingSymbolKindArgumentToRegisterActionMessage {
             get {
@@ -332,7 +332,7 @@ namespace Microsoft.CodeAnalysis.Analyzers {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Specify at least one SyntaxKind of interest while registering a syntax node analyzer action..
+        ///   Looks up a localized string similar to Specify at least one SyntaxKind of interest when registering a syntax node analyzer action..
         /// </summary>
         internal static string MissingSyntaxKindArgumentToRegisterActionMessage {
             get {
@@ -416,7 +416,7 @@ namespace Microsoft.CodeAnalysis.Analyzers {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Unsupported SymbolKind argument while registering a symbol analyzer action..
+        ///   Looks up a localized string similar to Unsupported SymbolKind argument when registering a symbol analyzer action..
         /// </summary>
         internal static string UnsupportedSymbolKindArgumentToRegisterActionTitle {
             get {
