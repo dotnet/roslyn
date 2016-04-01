@@ -11931,5 +11931,31 @@ False
 False
 False");
         }
+
+        [Fact, WorkItem(10158, "https://github.com/dotnet/roslyn/issues/10158")]
+
+        public void ArrayInPropertyPattern()
+        {
+            var source = @"
+using System;
+
+class Program
+{
+    static void Main()
+    {
+        M(1.ToString(), 2.ToString(), 3.ToString());
+        M(null);
+        M(new string[] {});
+    }
+    static void M(params string[] args)
+    {
+        if (args is object[] { Length is var length }) { Console.Write(length); }
+    }
+}
+";
+            var compilation = CreateCompilationWithMscorlib(source, options: TestOptions.ReleaseExe, parseOptions: patternParseOptions);
+            compilation.VerifyDiagnostics();
+            var verifier = CompileAndVerify(compilation, expectedOutput: @"30");
+        }
     }
 }

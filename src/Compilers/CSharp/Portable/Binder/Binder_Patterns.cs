@@ -360,7 +360,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             bool hasErrors,
             DiagnosticBag diagnostics)
         {
-            var type = (NamedTypeSymbol)this.BindType(node.Type, diagnostics);
+            var type = this.BindType(node.Type, diagnostics);
             hasErrors = hasErrors ||
                 CheckValidPatternType(node.Type, operand, operandType, type,
                                       isVar: false, patternTypeWasInSource: false, diagnostics: diagnostics);
