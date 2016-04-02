@@ -1,20 +1,20 @@
 <Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <PropertyGroup>
-    <AssemblyVersion>1.0.0</AssemblyVersion>
-    <IsReleaseVersion>true</IsReleaseVersion>
+    <AssemblyVersion>1.1.0</AssemblyVersion>
+    <IsReleaseVersion>false</IsReleaseVersion>
   </PropertyGroup>
 
   <Choose>
     <When Condition="$(BuildNumber) == ''">
       <PropertyGroup>
-        <NuGetVersionSuffix>rc</NuGetVersionSuffix>
+        <NuGetVersionSuffix>beta1</NuGetVersionSuffix>
         <BuildVersion>$(AssemblyVersion).0</BuildVersion>
       </PropertyGroup>
     </When>
 
     <Otherwise>
       <PropertyGroup>
-        <NuGetVersionSuffix>rc-$(BuildNumber.Split('.')[0])</NuGetVersionSuffix>
+        <NuGetVersionSuffix>beta1-$(BuildNumber.Split('.')[0])</NuGetVersionSuffix>
         <BuildVersion>$(AssemblyVersion).$(BuildNumber.Split('.')[0])</BuildVersion>
       </PropertyGroup>
     </Otherwise>
