@@ -37,11 +37,14 @@ Edit & Continue lets you modify/add to your source code in break-mode while debu
 | Modify a catch-block if it contains an active statement (leaf or internal) | - |
 | Modify a try-catch-finally block if the finally clause contains an active statement | - |
 | Renaming of any kind | - |
-| Delete members or types | - |
+| Delete members, types, namespaces | - |
 | Delete entire method bodies | Not supported because deleting an entire method body would make the method “abstract”—which is not currently supported |
 | Add using statements | - | 
+| Add a namespace | - |
 | Edit a member with On Error or Resume statements | Specific to Visual Basic |
 | Edit a member containing an Aggregate, Group By, Simple Join, or Group Join LINQ query clause | Specific to Visual Basic |
+| Edit an async method/lambda in a project that doesn't define or reference AsyncStateMachineAttribute type (e.g. projects targeting .NET Framework 4.0 and lower) | - |
+| Edit an iterator method/lambda in a project that doesn't define or reference IteratorStateMachineAttribute type (e.g. projects targeting .NET Framework 4.0 and lower) | - |
 
 ### App Model EnC Support
 
