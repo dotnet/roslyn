@@ -853,10 +853,48 @@ namespace Microsoft.CodeAnalysis
 
         internal abstract CommonMessageProvider MessageProvider { get; }
 
+        /// <summary>
+        /// Filter out warnings based on the compiler options (/nowarn, /warn and /warnaserror) and the pragma warning directives.
+        /// 'incoming' is freed.
+        /// </summary>
         /// <param name="accumulator">Bag to which filtered diagnostics will be added.</param>
         /// <param name="incoming">Diagnostics to be filtered.</param>
         /// <returns>True if there were no errors or warnings-as-errors.</returns>
-        internal abstract bool FilterAndAppendAndFreeDiagnostics(DiagnosticBag accumulator, ref DiagnosticBag incoming);
+        internal bool FilterAndAppendAndFreeDiagnostics(DiagnosticBag accumulator, ref DiagnosticBag incoming)
+        {
+            bool result = FilterAndAppendDiagnostics(accumulator, incoming.AsEnumerableWithoutResolution());
+            incoming.Free();
+            incoming = null;
+            return result;
+        }
+
+        /// <summary>
+        /// Filter out warnings based on the compiler options (/nowarn, /warn and /warnaserror) and the pragma warning directives.
+        /// </summary>
+        /// <returns>True when there is no error.</returns>
+        internal bool FilterAndAppendDiagnostics(DiagnosticBag accumulator, IEnumerable<Diagnostic> incoming)
+        {
+            bool hasError = false;
+            bool reportSuppressedDiagnostics = Options.ReportSuppressedDiagnostics;
+
+            foreach (Diagnostic d in incoming)
+            {
+                var filtered = Options.FilterDiagnostic(d);
+                if (filtered == null ||
+                    (!reportSuppressedDiagnostics && filtered.IsSuppressed))
+                {
+                    continue;
+                }
+                else if (filtered.Severity == DiagnosticSeverity.Error)
+                {
+                    hasError = true;
+                }
+
+                accumulator.Add(filtered);
+            }
+
+            return !hasError;
+        }
 
         #endregion
 
@@ -1542,14 +1580,17 @@ namespace Microsoft.CodeAnalysis
                         filterOpt: null,
                         cancellationToken: cancellationToken);
 
-                    if (success)
+                    if (!moduleBeingBuilt.EmitOptions.EmitMetadataOnly)
                     {
-                        success = GenerateResourcesAndDocumentationComments(
+                        if (!GenerateResourcesAndDocumentationComments(
                             moduleBeingBuilt,
                             xmlDocumentationStream,
                             win32Resources,
                             diagnostics,
-                            cancellationToken);
+                            cancellationToken))
+                        {
+                            success = false;
+                        }
                     }
                 }
                 finally
