@@ -401,5 +401,36 @@ class C
    public List<int> F;
 }");
         }
+
+        [Fact]
+        [WorkItem(8797, "https://github.com/dotnet/roslyn/issues/8797")]
+        public async Task TestLeadingWhitespaceLinesArePreserved()
+        {
+            await TestAsync(
+@"
+
+class C 
+{
+   public System.Collections.Generic.List<int> F;
+}",
+
+@"
+
+using System.Collections.Generic;
+
+class C 
+{
+   public System.Collections.Generic.List<int> F;
+}",
+
+@"
+
+using System.Collections.Generic;
+
+class C 
+{
+   public List<int> F;
+}");
+        }
     }
 }
