@@ -41,6 +41,7 @@ Edit & Continue lets you modify/add to your source code in break-mode while debu
 | Delete entire method bodies | Not supported because deleting an entire method body would make the method “abstract”—which is not currently supported |
 | Add using statements | - | 
 | Add a namespace | - |
+| Edit a member referencing an embedded interop type | - |
 | Edit a member with On Error or Resume statements | Specific to Visual Basic |
 | Edit a member containing an Aggregate, Group By, Simple Join, or Group Join LINQ query clause | Specific to Visual Basic |
 | Edit an async method/lambda in a project that doesn't define or reference AsyncStateMachineAttribute type (e.g. projects targeting .NET Framework 4.0 and lower) | - |
