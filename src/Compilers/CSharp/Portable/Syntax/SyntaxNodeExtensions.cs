@@ -70,7 +70,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 kind == SyntaxKind.EqualsValueClause ||
                 kind == SyntaxKind.Attribute ||
                 kind == SyntaxKind.ArgumentList ||
-                kind == SyntaxKind.ArrowExpressionClause;
+                kind == SyntaxKind.ArrowExpressionClause ||
+                (syntax is ExpressionSyntax && (syntax.Parent as LambdaExpressionSyntax)?.Body == syntax);
         }
 
         /// <summary>

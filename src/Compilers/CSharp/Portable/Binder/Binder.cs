@@ -756,12 +756,6 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 #endif
         
-        internal Binder WithPatternVariablesIfAny(ExpressionSyntax scopeOpt)
-        {
-            Debug.Assert(Locals.Length == 0);
-            return new PatternVariableBinder(scopeOpt, scopeOpt, this);
-        }
-
         internal void BuildAndAddPatternVariables(
             ArrayBuilder<LocalSymbol> builder,
             CSharpSyntaxNode node = null,

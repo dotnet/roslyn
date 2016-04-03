@@ -1,9 +1,10 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System.Threading;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
+using Microsoft.CodeAnalysis.CSharp.Syntax;
 using System.Collections.Immutable;
 using System.Diagnostics;
+using System.Threading;
 
 namespace Microsoft.CodeAnalysis.CSharp
 {
@@ -65,6 +66,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                     Binder binder;
                     if (map.TryGetValue(methodWithYield, out binder))
                     {
+                        Symbol containing = binder.ContainingMemberOrLambda;
+
                         // get the closest inclosing InMethodBinder and make it an iterator
                         InMethodBinder inMethod = null;
                         while (binder != null)
@@ -74,14 +77,14 @@ namespace Microsoft.CodeAnalysis.CSharp
                                 break;
                             binder = binder.Next;
                         }
-                        if (inMethod != null)
+                        if (inMethod != null && (object)inMethod.ContainingMemberOrLambda == containing)
                         {
                             inMethod.MakeIterator();
                             symbolsWithYield.Add((MethodSymbol)inMethod.ContainingMemberOrLambda);
                         }
                         else
                         {
-                            Debug.Assert(false);
+                            Debug.Assert(methodWithYield == _root && methodWithYield is ExpressionSyntax);
                         }
                     }
                     else

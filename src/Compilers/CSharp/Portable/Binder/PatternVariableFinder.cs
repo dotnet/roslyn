@@ -48,14 +48,22 @@ namespace Microsoft.CodeAnalysis.CSharp
             // Variables declared in [in] expressions of top level from clause and 
             // join clauses are in scope 
             Visit(node.FromClause.Expression);
+            Visit(node.Body);
+        }
 
-            foreach (var clause in node.Body.Clauses)
+        public override void VisitQueryBody(QueryBodySyntax node)
+        {
+            // Variables declared in [in] expressions of top level from clause and 
+            // join clauses are in scope 
+            foreach (var clause in node.Clauses)
             {
                 if (clause.Kind() == SyntaxKind.JoinClause)
                 {
                     Visit(((JoinClauseSyntax)clause).InExpression);
                 }
             }
+
+            Visit(node.Continuation);
         }
 
         public override void VisitBinaryExpression(BinaryExpressionSyntax node)

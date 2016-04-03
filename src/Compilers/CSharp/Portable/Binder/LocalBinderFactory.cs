@@ -52,7 +52,18 @@ namespace Microsoft.CodeAnalysis.CSharp
         public static SmallDictionary<CSharpSyntaxNode, Binder> BuildMap(Symbol containingMemberOrLambda, CSharpSyntaxNode syntax, Binder enclosing, ArrayBuilder<CSharpSyntaxNode> methodsWithYields)
         {
             var builder = new LocalBinderFactory(containingMemberOrLambda, syntax, enclosing, methodsWithYields);
-            builder.Visit(syntax);
+
+            if (syntax is ExpressionSyntax)
+            {
+                var binder = new PatternVariableBinder(syntax, (ExpressionSyntax)syntax, enclosing);
+                builder.AddToMap(syntax, binder);
+                builder.Visit(syntax, binder);
+            }
+            else
+            {
+                builder.Visit(syntax);
+            }
+
             // the other place this is possible is in a local function
             if (builder._sawYield)
                 methodsWithYields.Add(syntax);
@@ -116,20 +127,10 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public override void VisitSimpleLambdaExpression(SimpleLambdaExpressionSyntax node)
         {
-            // Do not descend into a lambda unless it is a root node
-            if (_root != node)
-            {
-                return;
-            }
-
-            CSharpSyntaxNode body = node.Body;
-            if (body.Kind() == SyntaxKind.Block)
-            {
-                VisitBlock((BlockSyntax)body);
-            }
+            VisitLambdaExpression(node);
         }
 
-        public override void VisitParenthesizedLambdaExpression(ParenthesizedLambdaExpressionSyntax node)
+        private void VisitLambdaExpression(LambdaExpressionSyntax node)
         {
             // Do not descend into a lambda unless it is a root node
             if (_root != node)
@@ -142,6 +143,17 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 VisitBlock((BlockSyntax)body);
             }
+            else
+            {
+                var binder = new PatternVariableBinder(node, (ExpressionSyntax)body, _enclosing);
+                AddToMap(body, binder);
+                Visit(body, binder);
+            }
+        }
+
+        public override void VisitParenthesizedLambdaExpression(ParenthesizedLambdaExpressionSyntax node)
+        {
+            VisitLambdaExpression(node);
         }
 
         public override void VisitLocalFunctionStatement(LocalFunctionStatementSyntax node)
@@ -686,7 +698,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             // If this ever breaks, make sure that all callers of
             // CanHaveAssociatedLocalBinder are in sync.
-            Debug.Assert(node.CanHaveAssociatedLocalBinder());
+            Debug.Assert(node.CanHaveAssociatedLocalBinder() || 
+                (node == _root && node is ExpressionSyntax));
 
             // Cleverness: for some nodes (e.g. lock), we want to specify a binder flag that
             // applies to the embedded statement, but not to the entire node.  Since the
@@ -727,6 +740,25 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 Visit(statement, enclosing);
             }
+        }
+
+        public override void VisitQueryExpression(QueryExpressionSyntax node)
+        {
+            Visit(node.FromClause.Expression);
+            Visit(node.Body);
+        }
+
+        public override void VisitQueryBody(QueryBodySyntax node)
+        {
+            foreach (var clause in node.Clauses)
+            {
+                if (clause.Kind() == SyntaxKind.JoinClause)
+                {
+                    Visit(((JoinClauseSyntax)clause).InExpression);
+                }
+            }
+
+            Visit(node.Continuation);
         }
     }
 }

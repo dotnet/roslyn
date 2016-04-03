@@ -562,7 +562,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 var xExpression = new BoundParameter(let, lambdaSymbol.Parameters[0]) { WasCompilerGenerated = true };
 
-                lambdaBodyBinder = lambdaBodyBinder.WithPatternVariablesIfAny(let.Expression);
+                lambdaBodyBinder = lambdaBodyBinder.GetBinder(let.Expression);
+                Debug.Assert(lambdaBodyBinder != null);
 
                 var yExpression = lambdaBodyBinder.BindValue(let.Expression, d, BindValueKind.RValue);
                 SourceLocation errorLocation = new SourceLocation(let.SyntaxTree, new TextSpan(let.Identifier.SpanStart, let.Expression.Span.End - let.Identifier.SpanStart));
@@ -647,7 +648,6 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             return MakeQueryUnboundLambda(expression, new QueryUnboundLambdaState(this, qvm, parameters, (LambdaSymbol lambdaSymbol, ref Binder lambdaBodyBinder, DiagnosticBag diagnostics) =>
             {
-                lambdaBodyBinder = lambdaBodyBinder.WithPatternVariablesIfAny(expression);
                 return lambdaBodyBinder.BindLambdaExpressionAsBlock(RefKind.None, expression, diagnostics);
             }));
         }
