@@ -4,6 +4,7 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.ErrorReporting;
@@ -94,21 +95,49 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV1
                     {
                         var memberDxData = await GetSemanticDiagnosticsAsync(analyzerDriver, stateSet.Analyzer).ConfigureAwait(false);
 
-                        diagnosticData = _owner.UpdateDocumentDiagnostics(existingData, ranges.Ranges, memberDxData.AsImmutableOrEmpty(), root.SyntaxTree, member, memberId);
-                        ValidateMemberDiagnostics(stateSet.Analyzer, document, root, diagnosticData);
+                        // if all the current diagnostics have all their locations in this document,
+                        // then we can do a simple move of them.
+                        if (existingData.Items.All(CanReuseDiagnostic) &&
+                            memberDxData.All(CanReuseDiagnostic))
+                        {
+                            diagnosticData = _owner.UpdateDocumentDiagnostics(existingData, ranges.Ranges, memberDxData.AsImmutableOrEmpty(), root.SyntaxTree, member, memberId);
+                            ValidateMemberDiagnostics(stateSet.Analyzer, document, root, diagnosticData);
+                        }
+                        else
+                        {
+                            // if we can't re-use existing document state, only option we have is updating whole document state here.
+                            diagnosticData = await UpdateAllSemanticDiagnostics(
+                                stateSet, analyzerDriver, diagnosticData).ConfigureAwait(false);
+                        }
                     }
                     else
                     {
                         // if we can't re-use existing document state, only option we have is updating whole document state here.
-                        var dx = await GetSemanticDiagnosticsAsync(analyzerDriver, stateSet.Analyzer).ConfigureAwait(false);
-                        diagnosticData = dx.AsImmutableOrEmpty();
+                        diagnosticData = await UpdateAllSemanticDiagnostics(
+                            stateSet, analyzerDriver, diagnosticData).ConfigureAwait(false);
                     }
+
                     return new AnalysisData(versions.TextVersion, versions.DataVersion, GetExistingItems(existingData), diagnosticData);
                 }
                 catch (Exception e) when (FatalError.ReportUnlessCanceled(e))
                 {
                     throw ExceptionUtilities.Unreachable;
                 }
+            }
+
+            private bool CanReuseDiagnostic(DiagnosticData diagnostic)
+            {
+                // We can't reuse diagnostics that contain additional locations.  It's too 
+                // difficult to ensure that all the locations will be moved to the right
+
+                return diagnostic.AdditionalLocations == null || diagnostic.AdditionalLocations.Count == 0;
+            }
+
+            private static async Task<ImmutableArray<DiagnosticData>> UpdateAllSemanticDiagnostics(StateSet stateSet, DiagnosticAnalyzerDriver analyzerDriver, ImmutableArray<DiagnosticData> diagnosticData)
+            {
+                var dx = await GetSemanticDiagnosticsAsync(analyzerDriver, stateSet.Analyzer).ConfigureAwait(false);
+                diagnosticData = dx.AsImmutableOrEmpty();
+                return diagnosticData;
             }
 
             private bool CanUseRange(int memberId, ImmutableArray<TextSpan> ranges)
