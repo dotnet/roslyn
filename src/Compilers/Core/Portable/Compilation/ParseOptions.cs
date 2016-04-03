@@ -2,6 +2,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.Linq;
 using Roslyn.Utilities;
 
@@ -37,6 +38,7 @@ namespace Microsoft.CodeAnalysis
             return CommonWithKind(kind);
         }
 
+        [EditorBrowsable(EditorBrowsableState.Never)]
         public abstract ParseOptions CommonWithKind(SourceCodeKind kind);
 
         /// <summary>
