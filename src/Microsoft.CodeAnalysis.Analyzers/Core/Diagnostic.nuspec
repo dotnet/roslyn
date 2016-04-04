@@ -25,6 +25,8 @@
     <file src="$binaries$Microsoft.CodeAnalysis.CSharp.Analyzers.dll" target="analyzers\dotnet\cs" />
     <file src="$binaries$Microsoft.CodeAnalysis.Analyzers.dll" target="analyzers\dotnet\vb" />
     <file src="$binaries$Microsoft.CodeAnalysis.VisualBasic.Analyzers.dll" target="analyzers\dotnet\vb" />
+    <file src="$binaries$Analyzer.Utilities.dll" target="analyzers\dotnet\cs" />
+    <file src="$binaries$Analyzer.Utilities.dll" target="analyzers\dotnet\vb" />
     <file src="Install.ps1" target="tools" />
     <file src="Uninstall.ps1" target="tools" />
     <file src="ThirdPartyNotices.rtf" target="" />

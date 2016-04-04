@@ -40,13 +40,13 @@ namespace Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers
         {
             context.RegisterCompilationStartAction(compilationContext =>
             {
-                var diagnosticDescriptorType = compilationContext.Compilation.GetTypeByMetadataName(DiagnosticAnalyzerCorrectnessAnalyzer.DiagnosticDescriptorFullName);
+                INamedTypeSymbol diagnosticDescriptorType = compilationContext.Compilation.GetTypeByMetadataName(DiagnosticAnalyzerCorrectnessAnalyzer.DiagnosticDescriptorFullName);
                 if (diagnosticDescriptorType == null)
                 {
                     return;
                 }
 
-                var analyzer = GetAnalyzer(compilationContext.Compilation, diagnosticDescriptorType);
+                CompilationAnalyzer analyzer = GetAnalyzer(compilationContext.Compilation, diagnosticDescriptorType);
                 if (analyzer == null)
                 {
                     return;
@@ -72,7 +72,7 @@ namespace Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers
             public void AnalyzeObjectCreation(SyntaxNodeAnalysisContext context)
             {
                 var objectCreation = (TObjectCreationExpressionSyntax)context.Node;
-                var symbol = context.SemanticModel.GetSymbolInfo(objectCreation).Symbol;
+                ISymbol symbol = context.SemanticModel.GetSymbolInfo(objectCreation).Symbol;
                 if (symbol == null ||
                     symbol.Kind != SymbolKind.Method ||
                     !_diagnosticDescriptorType.Equals(symbol.ContainingType) ||
@@ -82,13 +82,13 @@ namespace Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers
                 }
 
                 var method = (IMethodSymbol)symbol;
-                var title = method.Parameters.Where(p => p.Name == "title").FirstOrDefault();
+                IParameterSymbol title = method.Parameters.Where(p => p.Name == "title").FirstOrDefault();
                 if (title != null &&
                     title.Type != null &&
                     title.Type.SpecialType == SpecialType.System_String)
                 {
-                    var typeName = GetObjectCreationType(objectCreation);
-                    var diagnostic = Diagnostic.Create(UseLocalizableStringsInDescriptorRule, typeName.GetLocation(), DiagnosticAnalyzerCorrectnessAnalyzer.LocalizableStringFullName);
+                    SyntaxNode typeName = GetObjectCreationType(objectCreation);
+                    Diagnostic diagnostic = Diagnostic.Create(UseLocalizableStringsInDescriptorRule, typeName.GetLocation(), DiagnosticAnalyzerCorrectnessAnalyzer.LocalizableStringFullName);
                     context.ReportDiagnostic(diagnostic);
                 }
             }

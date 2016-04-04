@@ -3,5 +3,10 @@
 namespace Roslyn.Diagnostics.Analyzers
 {
     internal static class DiagnosticCategory
-    {        public static readonly string ApiDesign = RoslynDiagnosticsAnalyzersResources.CategoryApiDesign;        public static readonly string Performance = RoslynDiagnosticsAnalyzersResources.CategoryPerformance;        public static readonly string Reliability = RoslynDiagnosticsAnalyzersResources.CategoryReliability;        public static readonly string Usage = RoslynDiagnosticsAnalyzersResources.CategoryUsage;}
+    {
+        public static readonly string ApiDesign = "ApiDesign";
+        public static readonly string Performance = "Performance";
+        public static readonly string Reliability = "Reliability";
+        public static readonly string Usage = "Usage";
+    }
 }

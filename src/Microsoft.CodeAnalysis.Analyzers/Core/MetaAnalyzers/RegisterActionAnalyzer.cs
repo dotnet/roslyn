@@ -18,13 +18,35 @@ namespace Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers
         where TLanguageKindEnum : struct
     {
         private static readonly LocalizableString s_localizableTitleMissingKindArgument = new LocalizableResourceString(nameof(CodeAnalysisDiagnosticsResources.MissingKindArgumentToRegisterActionTitle), CodeAnalysisDiagnosticsResources.ResourceManager, typeof(CodeAnalysisDiagnosticsResources));
-        private static readonly LocalizableString s_localizableMessageMissingKindArgument = new LocalizableResourceString(nameof(CodeAnalysisDiagnosticsResources.MissingKindArgumentToRegisterActionMessage), CodeAnalysisDiagnosticsResources.ResourceManager, typeof(CodeAnalysisDiagnosticsResources));
+        private static readonly LocalizableString s_localizableMessageMissingSymbolKindArgument = new LocalizableResourceString(nameof(CodeAnalysisDiagnosticsResources.MissingSymbolKindArgumentToRegisterActionMessage), CodeAnalysisDiagnosticsResources.ResourceManager, typeof(CodeAnalysisDiagnosticsResources));
+        private static readonly LocalizableString s_localizableMessageMissingSyntaxKindArgument = new LocalizableResourceString(nameof(CodeAnalysisDiagnosticsResources.MissingSyntaxKindArgumentToRegisterActionMessage), CodeAnalysisDiagnosticsResources.ResourceManager, typeof(CodeAnalysisDiagnosticsResources));
+        private static readonly LocalizableString s_localizableMessageMissingOperationKindArgument = new LocalizableResourceString(nameof(CodeAnalysisDiagnosticsResources.MissingOperationKindArgumentToRegisterActionMessage), CodeAnalysisDiagnosticsResources.ResourceManager, typeof(CodeAnalysisDiagnosticsResources));
         private static readonly LocalizableString s_localizableDescriptionMissingKindArgument = new LocalizableResourceString(nameof(CodeAnalysisDiagnosticsResources.MissingKindArgumentToRegisterActionDescription), CodeAnalysisDiagnosticsResources.ResourceManager, typeof(CodeAnalysisDiagnosticsResources));
 
-        public static DiagnosticDescriptor MissingKindArgumentRule = new DiagnosticDescriptor(
+        public static DiagnosticDescriptor MissingSymbolKindArgumentRule = new DiagnosticDescriptor(
             DiagnosticIds.MissingKindArgumentToRegisterActionRuleId,
             s_localizableTitleMissingKindArgument,
-            s_localizableMessageMissingKindArgument,
+            s_localizableMessageMissingSymbolKindArgument,
+            AnalyzerDiagnosticCategory.AnalyzerCorrectness,
+            DiagnosticSeverity.Warning,
+            isEnabledByDefault: true,
+            description: s_localizableDescriptionMissingKindArgument,
+            customTags: WellKnownDiagnosticTags.Telemetry);
+
+        public static DiagnosticDescriptor MissingSyntaxKindArgumentRule = new DiagnosticDescriptor(
+            DiagnosticIds.MissingKindArgumentToRegisterActionRuleId,
+            s_localizableTitleMissingKindArgument,
+            s_localizableMessageMissingSyntaxKindArgument,
+            AnalyzerDiagnosticCategory.AnalyzerCorrectness,
+            DiagnosticSeverity.Warning,
+            isEnabledByDefault: true,
+            description: s_localizableDescriptionMissingKindArgument,
+            customTags: WellKnownDiagnosticTags.Telemetry);
+
+        public static DiagnosticDescriptor MissingOperationKindArgumentRule = new DiagnosticDescriptor(
+            DiagnosticIds.MissingKindArgumentToRegisterActionRuleId,
+            s_localizableTitleMissingKindArgument,
+            s_localizableMessageMissingOperationKindArgument,
             AnalyzerDiagnosticCategory.AnalyzerCorrectness,
             DiagnosticSeverity.Warning,
             isEnabledByDefault: true,
@@ -90,7 +112,9 @@ namespace Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers
             get
             {
                 return ImmutableArray.Create(
-                    MissingKindArgumentRule,
+                    MissingSymbolKindArgumentRule,
+                    MissingSyntaxKindArgumentRule,
+                    MissingOperationKindArgumentRule,
                     UnsupportedSymbolKindArgumentRule,
                     InvalidSyntaxKindTypeArgumentRule,
                     StartActionWithNoRegisteredActionsRule,
@@ -100,27 +124,33 @@ namespace Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers
 
         protected override DiagnosticAnalyzerSymbolAnalyzer GetDiagnosticAnalyzerSymbolAnalyzer(CompilationStartAnalysisContext compilationContext, INamedTypeSymbol diagnosticAnalyzer, INamedTypeSymbol diagnosticAnalyzerAttribute)
         {
-            var compilation = compilationContext.Compilation;
+            Compilation compilation = compilationContext.Compilation;
 
-            var analysisContext = compilation.GetTypeByMetadataName(AnalysisContextFullName);
+            INamedTypeSymbol analysisContext = compilation.GetTypeByMetadataName(AnalysisContextFullName);
             if (analysisContext == null)
             {
                 return null;
             }
 
-            var compilationStartAnalysisContext = compilation.GetTypeByMetadataName(CompilationStartAnalysisContextFullName);
+            INamedTypeSymbol compilationStartAnalysisContext = compilation.GetTypeByMetadataName(CompilationStartAnalysisContextFullName);
             if (compilationStartAnalysisContext == null)
             {
                 return null;
             }
 
-            var codeBlockStartAnalysisContext = compilation.GetTypeByMetadataName(CodeBlockStartAnalysisContextFullName);
+            INamedTypeSymbol codeBlockStartAnalysisContext = compilation.GetTypeByMetadataName(CodeBlockStartAnalysisContextFullName);
             if (codeBlockStartAnalysisContext == null)
             {
                 return null;
             }
 
-            var symbolKind = compilation.GetTypeByMetadataName(SymbolKindFullName);
+            INamedTypeSymbol operationBlockStartAnalysisContext = compilation.GetTypeByMetadataName(OperationBlockStartAnalysisContextFullName);
+            if (operationBlockStartAnalysisContext == null)
+            {
+                return null;
+            }
+
+            INamedTypeSymbol symbolKind = compilation.GetTypeByMetadataName(SymbolKindFullName);
             if (symbolKind == null)
             {
                 return null;
@@ -128,7 +158,9 @@ namespace Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers
 
             compilationContext.RegisterCodeBlockStartAction<TLanguageKindEnum>(codeBlockContext =>
             {
-                var analyzer = GetCodeBlockAnalyzer(compilation, analysisContext, compilationStartAnalysisContext, codeBlockStartAnalysisContext, symbolKind, diagnosticAnalyzer, diagnosticAnalyzerAttribute);
+                RegisterActionCodeBlockAnalyzer analyzer = GetCodeBlockAnalyzer(compilation, analysisContext, compilationStartAnalysisContext,
+                    codeBlockStartAnalysisContext, operationBlockStartAnalysisContext, symbolKind, diagnosticAnalyzer, diagnosticAnalyzerAttribute);
+
                 analyzer.CodeBlockStartAction(codeBlockContext);
             });
 
@@ -136,13 +168,22 @@ namespace Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers
             return null;
         }
 
-        protected abstract RegisterActionCodeBlockAnalyzer GetCodeBlockAnalyzer(Compilation compilation, INamedTypeSymbol analysisContext, INamedTypeSymbol compilationStartAnalysisContext, INamedTypeSymbol codeBlockStartAnalysisContext, INamedTypeSymbol symbolKind, INamedTypeSymbol diagnosticAnalyzer, INamedTypeSymbol diagnosticAnalyzerAttribute);
+        protected abstract RegisterActionCodeBlockAnalyzer GetCodeBlockAnalyzer(
+            Compilation compilation,
+            INamedTypeSymbol analysisContext,
+            INamedTypeSymbol compilationStartAnalysisContext,
+            INamedTypeSymbol codeBlockStartAnalysisContext,
+            INamedTypeSymbol operationBlockStartAnalysisContext,
+            INamedTypeSymbol symbolKind,
+            INamedTypeSymbol diagnosticAnalyzer,
+            INamedTypeSymbol diagnosticAnalyzerAttribute);
 
         protected abstract class RegisterActionCodeBlockAnalyzer
         {
             private readonly INamedTypeSymbol _analysisContext;
             private readonly INamedTypeSymbol _compilationStartAnalysisContext;
             private readonly INamedTypeSymbol _codeBlockStartAnalysisContext;
+            private readonly INamedTypeSymbol _operationBlockStartAnalysisContext;
             private readonly INamedTypeSymbol _symbolKind;
 
             private static readonly ImmutableHashSet<string> s_supportedSymbolKinds =
@@ -180,6 +221,7 @@ namespace Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers
                 INamedTypeSymbol analysisContext,
                 INamedTypeSymbol compilationStartAnalysisContext,
                 INamedTypeSymbol codeBlockStartAnalysisContext,
+                INamedTypeSymbol operationBlockStartAnalysisContext,
                 INamedTypeSymbol symbolKind,
                 INamedTypeSymbol diagnosticAnalyzer,
                 INamedTypeSymbol diagnosticAnalyzerAttribute)
@@ -187,6 +229,7 @@ namespace Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers
                 _analysisContext = analysisContext;
                 _compilationStartAnalysisContext = compilationStartAnalysisContext;
                 _codeBlockStartAnalysisContext = codeBlockStartAnalysisContext;
+                _operationBlockStartAnalysisContext = operationBlockStartAnalysisContext;
                 _symbolKind = symbolKind;
 
                 _nestedActionsMap = null;
@@ -211,7 +254,7 @@ namespace Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers
                     return;
                 }
 
-                foreach (var param in method.Parameters)
+                foreach (IParameterSymbol param in method.Parameters)
                 {
                     AnalyzeParameterDeclaration(param);
                 }
@@ -237,11 +280,11 @@ namespace Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers
                 }
 
                 // Only analyze this method if declares a parameter with one of the allowed analysis context types.
-                foreach (var parameter in method.Parameters)
+                foreach (IParameterSymbol parameter in method.Parameters)
                 {
                     var namedType = parameter.Type as INamedTypeSymbol;
                     if (namedType != null &&
-                        IsContextType(namedType, _analysisContext, _codeBlockStartAnalysisContext, _compilationStartAnalysisContext))
+                        IsContextType(namedType, _analysisContext, _codeBlockStartAnalysisContext, _operationBlockStartAnalysisContext, _compilationStartAnalysisContext))
                     {
                         return true;
                     }
@@ -252,10 +295,10 @@ namespace Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers
 
             private static bool IsContextType(ITypeSymbol type, params INamedTypeSymbol[] allowedContextTypes)
             {
-                var namedType = (type as INamedTypeSymbol)?.OriginalDefinition;
+                INamedTypeSymbol namedType = (type as INamedTypeSymbol)?.OriginalDefinition;
                 if (namedType != null)
                 {
-                    foreach (var contextType in allowedContextTypes)
+                    foreach (INamedTypeSymbol contextType in allowedContextTypes)
                     {
                         if (namedType.Equals(contextType))
                         {
@@ -276,9 +319,9 @@ namespace Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers
             private void AnalyzeInvocation(SyntaxNodeAnalysisContext context)
             {
                 var invocation = context.Node as TInvocationExpressionSyntax;
-                var semanticModel = context.SemanticModel;
+                SemanticModel semanticModel = context.SemanticModel;
 
-                var symbol = semanticModel.GetSymbolInfo(invocation, context.CancellationToken).Symbol;
+                ISymbol symbol = semanticModel.GetSymbolInfo(invocation, context.CancellationToken).Symbol;
                 if (symbol == null || symbol.Kind != SymbolKind.Method || !symbol.Name.StartsWith("Register", StringComparison.Ordinal))
                 {
                     return;
@@ -287,44 +330,47 @@ namespace Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers
                 var method = (IMethodSymbol)symbol;
                 NoteRegisterActionInvocation(method, invocation, semanticModel, context.CancellationToken);
 
-                var isRegisterSymbolAction = IsRegisterAction(RegisterSymbolActionName, method, _analysisContext, _compilationStartAnalysisContext);
-                var isRegisterSyntaxNodeAction = IsRegisterAction(RegisterSyntaxNodeActionName, method, _analysisContext, _compilationStartAnalysisContext, _codeBlockStartAnalysisContext);
-                var isRegisterCodeBlockStartAction = IsRegisterAction(RegisterCodeBlockStartActionName, method, _analysisContext, _compilationStartAnalysisContext);
+                bool isRegisterSymbolAction = IsRegisterAction(RegisterSymbolActionName, method, _analysisContext, _compilationStartAnalysisContext);
+                bool isRegisterSyntaxNodeAction = IsRegisterAction(RegisterSyntaxNodeActionName, method, _analysisContext, _compilationStartAnalysisContext, _codeBlockStartAnalysisContext);
+                bool isRegisterCodeBlockStartAction = IsRegisterAction(RegisterCodeBlockStartActionName, method, _analysisContext, _compilationStartAnalysisContext);
+                bool isRegisterOperationAction = IsRegisterAction(RegisterOperationActionName, method, _analysisContext, _compilationStartAnalysisContext, _operationBlockStartAnalysisContext);
 
-                if (isRegisterSymbolAction || isRegisterSyntaxNodeAction)
+                if (isRegisterSymbolAction || isRegisterSyntaxNodeAction || isRegisterOperationAction)
                 {
                     if (method.Parameters.Length == 2 && method.Parameters[1].IsParams)
                     {
-                        var arguments = GetArgumentExpressions(invocation);
+                        IEnumerable<SyntaxNode> arguments = GetArgumentExpressions(invocation);
                         if (arguments != null)
                         {
-                            var argumentCount = arguments.Count();
+                            int argumentCount = arguments.Count();
                             if (argumentCount >= 1)
                             {
-                                var type = semanticModel.GetTypeInfo(arguments.First(), context.CancellationToken).ConvertedType;
+                                ITypeSymbol type = semanticModel.GetTypeInfo(arguments.First(), context.CancellationToken).ConvertedType;
                                 if (type == null || type.Name.Equals(nameof(Action)))
                                 {
                                     if (argumentCount == 1)
                                     {
-                                        string arg1, arg2;
+                                        DiagnosticDescriptor rule;
                                         if (isRegisterSymbolAction)
                                         {
-                                            arg1 = nameof(SymbolKind);
-                                            arg2 = "symbol";
+                                            rule = MissingSymbolKindArgumentRule;
+                                        }
+                                        else if (isRegisterOperationAction)
+                                        {
+                                            rule = MissingOperationKindArgumentRule;
                                         }
                                         else
                                         {
-                                            arg1 = "SyntaxKind";
-                                            arg2 = "syntax";
+                                            rule = MissingSyntaxKindArgumentRule;
                                         }
 
-                                        var invocationExpression = GetInvocationExpression(invocation);
-                                        var diagnostic = Diagnostic.Create(MissingKindArgumentRule, invocationExpression.GetLocation(), arg1, arg2);
+                                        SyntaxNode invocationExpression = GetInvocationExpression(invocation);
+                                        Diagnostic diagnostic = Diagnostic.Create(rule, invocationExpression.GetLocation());
                                         context.ReportDiagnostic(diagnostic);
                                     }
                                     else if (isRegisterSymbolAction)
                                     {
-                                        foreach (var argument in arguments.Skip(1))
+                                        foreach (SyntaxNode argument in arguments.Skip(1))
                                         {
                                             symbol = semanticModel.GetSymbolInfo(argument, context.CancellationToken).Symbol;
                                             if (symbol != null &&
@@ -332,7 +378,7 @@ namespace Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers
                                                 _symbolKind.Equals(symbol.ContainingType) &&
                                                 !s_supportedSymbolKinds.Contains(symbol.Name))
                                             {
-                                                var diagnostic = Diagnostic.Create(UnsupportedSymbolKindArgumentRule, argument.GetLocation(), symbol.Name);
+                                                Diagnostic diagnostic = Diagnostic.Create(UnsupportedSymbolKindArgumentRule, argument.GetLocation(), symbol.Name);
                                                 context.ReportDiagnostic(diagnostic);
                                             }
                                         }
@@ -356,10 +402,10 @@ namespace Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers
                     }
                     else
                     {
-                        var typeParam = method.TypeParameters.SingleOrDefault(t => t.Name == TLanguageKindEnumName);
+                        ITypeParameterSymbol typeParam = method.TypeParameters.SingleOrDefault(t => t.Name == TLanguageKindEnumName);
                         if (typeParam != null)
                         {
-                            var index = method.TypeParameters.IndexOf(typeParam);
+                            int index = method.TypeParameters.IndexOf(typeParam);
                             typeArgument = method.TypeArguments[index];
                         }
                     }
@@ -369,14 +415,14 @@ namespace Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers
                         typeArgument.TypeKind != TypeKind.Error &&
                         !IsSyntaxKind(typeArgument))
                     {
-                        var location = typeArgument.Locations[0];
+                        Location location = typeArgument.Locations[0];
                         if (!location.IsInSource)
                         {
-                            var invocationExpression = GetInvocationExpression(invocation);
+                            SyntaxNode invocationExpression = GetInvocationExpression(invocation);
                             location = invocationExpression.GetLocation();
                         }
 
-                        var diagnostic = Diagnostic.Create(InvalidSyntaxKindTypeArgumentRule, location, typeArgument.Name, TLanguageKindEnumName, method.Name);
+                        Diagnostic diagnostic = Diagnostic.Create(InvalidSyntaxKindTypeArgumentRule, location, typeArgument.Name, TLanguageKindEnumName, method.Name);
                         context.ReportDiagnostic(diagnostic);
                     }
                 }
@@ -384,7 +430,7 @@ namespace Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers
 
             private void AnalyzeArgumentSyntax(SyntaxNodeAnalysisContext context)
             {
-                var argumentExpression = GetArgumentExpression((TArgumentSyntax)context.Node);
+                SyntaxNode argumentExpression = GetArgumentExpression((TArgumentSyntax)context.Node);
                 if (argumentExpression != null)
                 {
                     var parameter = context.SemanticModel.GetSymbolInfo(argumentExpression, context.CancellationToken).Symbol as IParameterSymbol;
@@ -406,7 +452,7 @@ namespace Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers
 
             private void AnalyzeParameterDeclaration(IParameterSymbol parameter)
             {
-                if (IsContextType(parameter.Type, _compilationStartAnalysisContext, _codeBlockStartAnalysisContext))
+                if (IsContextType(parameter.Type, _compilationStartAnalysisContext, _codeBlockStartAnalysisContext, _operationBlockStartAnalysisContext))
                 {
                     _declaredStartAnalysisContextParams = _declaredStartAnalysisContextParams ?? new HashSet<IParameterSymbol>();
                     _declaredStartAnalysisContextParams.Add(parameter);
@@ -417,7 +463,7 @@ namespace Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers
             {
                 // We skip analysis for context parameters that are passed as arguments to any invocation.
                 // This is to avoid false positives, as the registration responsibility is not on the current method.
-                if (IsContextType(parameter.Type, _compilationStartAnalysisContext, _codeBlockStartAnalysisContext))
+                if (IsContextType(parameter.Type, _compilationStartAnalysisContext, _codeBlockStartAnalysisContext, _operationBlockStartAnalysisContext))
                 {
                     _startAnalysisContextParamsToSkip = _startAnalysisContextParamsToSkip ?? new HashSet<IParameterSymbol>();
                     _startAnalysisContextParamsToSkip.Add(parameter);
@@ -432,7 +478,7 @@ namespace Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers
                     return;
                 }
 
-                var receiver = GetInvocationReceiver(invocation);
+                SyntaxNode receiver = GetInvocationReceiver(invocation);
                 if (receiver == null)
                 {
                     return;
@@ -470,7 +516,7 @@ namespace Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers
                     return;
                 }
 
-                foreach (var contextParameter in _declaredStartAnalysisContextParams)
+                foreach (IParameterSymbol contextParameter in _declaredStartAnalysisContextParams)
                 {
                     // Check if we must bail out on this context parameter.
                     if (_startAnalysisContextParamsToSkip != null && _startAnalysisContextParamsToSkip.Contains(contextParameter))
@@ -484,12 +530,13 @@ namespace Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers
                     List<NodeAndSymbol> registeredActions = null;
                     if (_nestedActionsMap != null && _nestedActionsMap.TryGetValue(contextParameter, out registeredActions))
                     {
-                        foreach (var invocationInfo in registeredActions)
+                        foreach (NodeAndSymbol invocationInfo in registeredActions)
                         {
                             switch (invocationInfo.Method.Name)
                             {
                                 case RegisterCompilationEndActionName:
                                 case RegisterCodeBlockEndActionName:
+                                case RegisterOperationBlockEndActionName:
                                     hasEndAction = true;
                                     break;
 
@@ -510,13 +557,14 @@ namespace Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers
 
             private void ReportDiagnostic(CodeBlockAnalysisContext codeBlockContext, IParameterSymbol contextParameter, bool hasEndAction)
             {
-                Debug.Assert(IsContextType(contextParameter.Type, _codeBlockStartAnalysisContext, _compilationStartAnalysisContext));
-                var isCompilationStartAction = contextParameter.Type.Equals(_compilationStartAnalysisContext);
+                Debug.Assert(IsContextType(contextParameter.Type, _codeBlockStartAnalysisContext, _compilationStartAnalysisContext, _operationBlockStartAnalysisContext));
+                bool isCompilationStartAction = contextParameter.Type.OriginalDefinition.Equals(_compilationStartAnalysisContext.OriginalDefinition);
+                bool isOperationBlockStartAction = !isCompilationStartAction && contextParameter.Type.OriginalDefinition.Equals(_operationBlockStartAnalysisContext.OriginalDefinition);
 
-                var location = contextParameter.DeclaringSyntaxReferences.First()
+                Location location = contextParameter.DeclaringSyntaxReferences.First()
                         .GetSyntax(codeBlockContext.CancellationToken).GetLocation();
 
-                var parameterName = contextParameter.Name;
+                string parameterName = contextParameter.Name;
                 string endActionName;
                 string statelessActionName;
                 string parentRegisterMethodName;
@@ -525,6 +573,12 @@ namespace Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers
                     endActionName = "CompilationEndAction";
                     statelessActionName = RegisterCompilationActionName;
                     parentRegisterMethodName = "Initialize";
+                }
+                else if (isOperationBlockStartAction)
+                {
+                    endActionName = "OperationBlockEndAction";
+                    statelessActionName = RegisterOperationBlockActionName;
+                    parentRegisterMethodName = "Initialize, CompilationStartAction";
                 }
                 else
                 {

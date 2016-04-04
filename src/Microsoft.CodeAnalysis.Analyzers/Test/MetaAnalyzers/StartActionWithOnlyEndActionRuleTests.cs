@@ -1,5 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System;
 using Microsoft.CodeAnalysis.Analyzers;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.CSharp.Analyzers.MetaAnalyzers;
@@ -41,6 +42,7 @@ class MyAnalyzer : DiagnosticAnalyzer
 
         context.RegisterSyntaxNodeAction(AnalyzeSyntax, SyntaxKind.InvocationExpression);
         context.RegisterCodeBlockStartAction<SyntaxKind>(AnalyzeCodeBlockStart);
+        context.RegisterOperationBlockStartAction(AnalyzeOperationBlockStart);
     }
 
     private static void AnalyzeSyntax(SyntaxNodeAnalysisContext context)
@@ -51,11 +53,17 @@ class MyAnalyzer : DiagnosticAnalyzer
     {
         codeBlockContext.RegisterCodeBlockEndAction(null);
     }
+
+    private static void AnalyzeOperationBlockStart(OperationBlockStartAnalysisContext operationBlockContext)
+    {
+        operationBlockContext.RegisterOperationBlockEndAction(null);
+    }
 }";
-            var expected = new[]
+            DiagnosticResult[] expected = new[]
             {
-                GetCSharpExpectedDiagnostic(21, 48, parameterName: "compilationContext", isCompilationStartAction: true),
-                GetCSharpExpectedDiagnostic(34, 47, parameterName: "codeBlockContext", isCompilationStartAction: false)
+                GetCSharpExpectedDiagnostic(21, 48, parameterName: "compilationContext", kind: StartActionKind.CompilationStartAction),
+                GetCSharpExpectedDiagnostic(35, 47, parameterName: "codeBlockContext", kind: StartActionKind.CodeBlockStartAction),
+                GetCSharpExpectedDiagnostic(40, 52, parameterName: "operationBlockContext", kind: StartActionKind.OperationBlockStartAction)
             };
 
             VerifyCSharp(source, addLanguageSpecificCodeAnalysisReference: true, expected: expected);
@@ -89,6 +97,7 @@ Class MyAnalyzer
 
         context.RegisterSyntaxNodeAction(AddressOf AnalyzeSyntax, SyntaxKind.InvocationExpression)
         context.RegisterCodeBlockStartAction(Of SyntaxKind)(AddressOf AnalyzeCodeBlockStart)
+        context.RegisterOperationBlockStartAction(AddressOf AnalyzeOperationBlockStart)
     End Sub
 
     Private Shared Sub AnalyzeSyntax(context As SyntaxNodeAnalysisContext)
@@ -97,12 +106,17 @@ Class MyAnalyzer
     Private Shared Sub AnalyzeCodeBlockStart(codeBlockContext As CodeBlockStartAnalysisContext(Of SyntaxKind))
         codeBlockContext.RegisterCodeBlockEndAction(Nothing)
     End Sub
+
+    Private Shared Sub AnalyzeOperationBlockStart(operationBlockContext As OperationBlockStartAnalysisContext)
+        operationBlockContext.RegisterOperationBlockEndAction(Nothing)
+    End Sub
 End Class
 ";
-            var expected = new[]
+            DiagnosticResult[] expected = new[]
             {
-                GetBasicExpectedDiagnostic(19, 17, parameterName: "compilationContext", isCompilationStartAction: true),
-                GetBasicExpectedDiagnostic(31, 46, parameterName: "codeBlockContext", isCompilationStartAction: false)
+                GetBasicExpectedDiagnostic(19, 17, parameterName: "compilationContext", kind: StartActionKind.CompilationStartAction),
+                GetBasicExpectedDiagnostic(32, 46, parameterName: "codeBlockContext", kind: StartActionKind.CodeBlockStartAction),
+                GetBasicExpectedDiagnostic(36, 51, parameterName: "operationBlockContext", kind: StartActionKind.OperationBlockStartAction)
             };
 
             VerifyBasic(source, addLanguageSpecificCodeAnalysisReference: true, expected: expected);
@@ -135,6 +149,7 @@ abstract class MyAnalyzer<T> : DiagnosticAnalyzer
         context.RegisterCompilationStartAction(compilationContext =>
         {
             compilationContext.RegisterCodeBlockStartAction<SyntaxKind>(AnalyzeCodeBlockStart);
+            compilationContext.RegisterOperationBlockStartAction(AnalyzeOperationBlockStart);
             compilationContext.RegisterCompilationEndAction(null);
         });
     }
@@ -147,6 +162,16 @@ abstract class MyAnalyzer<T> : DiagnosticAnalyzer
     {
         context.RegisterSyntaxNodeAction(AnalyzeSyntax, SyntaxKind.InvocationExpression);
         context.RegisterCodeBlockEndAction(null);
+    }
+
+    private static void AnalyzeOperation(OperationAnalysisContext context)
+    {
+    }
+
+    private static void AnalyzeOperationBlockStart(OperationBlockStartAnalysisContext context)
+    {
+        context.RegisterOperationAction(AnalyzeOperation, OperationKind.InvocationExpression);
+        context.RegisterOperationBlockEndAction(null);
     }
 }";
 
@@ -226,6 +251,7 @@ Class MyAnalyzer(Of T As Structure)
         context.RegisterCompilationStartAction(
             Sub(compilationContext As CompilationStartAnalysisContext)
                 compilationContext.RegisterCodeBlockStartAction(Of SyntaxKind)(AddressOf AnalyzeCodeBlockStart)
+                compilationContext.RegisterOperationBlockStartAction(AddressOf AnalyzeOperationBlockStart)
                 compilationContext.RegisterCompilationEndAction(Nothing)
             End Sub
         )
@@ -237,6 +263,14 @@ Class MyAnalyzer(Of T As Structure)
     Private Shared Sub AnalyzeCodeBlockStart(context As CodeBlockStartAnalysisContext(Of SyntaxKind))
         context.RegisterSyntaxNodeAction(AddressOf AnalyzeSyntax, SyntaxKind.InvocationExpression)
         context.RegisterCodeBlockEndAction(Nothing)
+    End Sub
+
+    Private Shared Sub AnalyzeOperation(context As OperationAnalysisContext)
+    End Sub
+
+    Private Shared Sub AnalyzeOperationBlockStart(context As OperationBlockStartAnalysisContext)
+        context.RegisterOperationAction(AddressOf AnalyzeOperation, OperationKind.InvocationExpression)
+        context.RegisterOperationBlockEndAction(Nothing)
     End Sub
 End Class
 ";
@@ -311,24 +345,48 @@ End Class
             return new BasicRegisterActionAnalyzer();
         }
 
-        private static DiagnosticResult GetCSharpExpectedDiagnostic(int line, int column, string parameterName, bool isCompilationStartAction)
+        private static DiagnosticResult GetCSharpExpectedDiagnostic(int line, int column, string parameterName, StartActionKind kind)
         {
-            return GetExpectedDiagnostic(LanguageNames.CSharp, line, column, parameterName, isCompilationStartAction);
+            return GetExpectedDiagnostic(LanguageNames.CSharp, line, column, parameterName, kind);
         }
 
-        private static DiagnosticResult GetBasicExpectedDiagnostic(int line, int column, string parameterName, bool isCompilationStartAction)
+        private static DiagnosticResult GetBasicExpectedDiagnostic(int line, int column, string parameterName, StartActionKind kind)
         {
-            return GetExpectedDiagnostic(LanguageNames.VisualBasic, line, column, parameterName, isCompilationStartAction);
+            return GetExpectedDiagnostic(LanguageNames.VisualBasic, line, column, parameterName, kind);
         }
 
-        private static DiagnosticResult GetExpectedDiagnostic(string language, int line, int column, string parameterName, bool isCompilationStartAction)
+        private static DiagnosticResult GetExpectedDiagnostic(string language, int line, int column, string parameterName, StartActionKind kind)
         {
-            var endActionName = isCompilationStartAction ? "CompilationEndAction" : "CodeBlockEndAction";
-            var statelessActionName = isCompilationStartAction ? "RegisterCompilationAction" : "RegisterCodeBlockAction";
-            var arg4 = isCompilationStartAction ? "Initialize" : "Initialize, CompilationStartAction";
-            var message = string.Format(CodeAnalysisDiagnosticsResources.StartActionWithOnlyEndActionMessage, parameterName, endActionName, statelessActionName, arg4);
+            string endActionName;
+            string statelessActionName;
+            string arg4;
+            switch (kind)
+            {
+                case StartActionKind.CompilationStartAction:
+                    endActionName = "CompilationEndAction";
+                    statelessActionName = "RegisterCompilationAction";
+                    arg4 = "Initialize";
+                    break;
 
-            var fileName = language == LanguageNames.CSharp ? "Test0.cs" : "Test0.vb";
+                case StartActionKind.CodeBlockStartAction:
+                    endActionName = "CodeBlockEndAction";
+                    statelessActionName = "RegisterCodeBlockAction";
+                    arg4 = "Initialize, CompilationStartAction";
+                    break;
+
+                case StartActionKind.OperationBlockStartAction:
+                    endActionName = "OperationBlockEndAction";
+                    statelessActionName = "RegisterOperationBlockAction";
+                    arg4 = "Initialize, CompilationStartAction";
+                    break;
+
+                default:
+                    throw new ArgumentException("kind");
+            }
+
+            string message = string.Format(CodeAnalysisDiagnosticsResources.StartActionWithOnlyEndActionMessage, parameterName, endActionName, statelessActionName, arg4);
+
+            string fileName = language == LanguageNames.CSharp ? "Test0.cs" : "Test0.vb";
             return new DiagnosticResult
             {
                 Id = DiagnosticIds.StartActionWithOnlyEndActionRuleId,
@@ -339,6 +397,13 @@ End Class
                     new DiagnosticResultLocation(fileName, line, column)
                 }
             };
+        }
+
+        private enum StartActionKind
+        {
+            CompilationStartAction,
+            CodeBlockStartAction,
+            OperationBlockStartAction
         }
     }
 }
