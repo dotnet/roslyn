@@ -11893,7 +11893,6 @@ System.NullReferenceException");
         }
 
         [Fact]
-
         public void NullableFromGenericOperatorIs()
         {
             var source = @"
@@ -11933,7 +11932,6 @@ False");
         }
 
         [Fact, WorkItem(10158, "https://github.com/dotnet/roslyn/issues/10158")]
-
         public void ArrayInPropertyPattern()
         {
             var source = @"
@@ -11956,6 +11954,12 @@ class Program
             var compilation = CreateCompilationWithMscorlib(source, options: TestOptions.ReleaseExe, parseOptions: patternParseOptions);
             compilation.VerifyDiagnostics();
             var verifier = CompileAndVerify(compilation, expectedOutput: @"30");
+            var tree = compilation.SyntaxTrees[0];
+            var model = compilation.GetSemanticModel(tree);
+            var length = tree.GetRoot().DescendantNodes().OfType<IdentifierNameSyntax>().Where(n => n.ToString() == "Length").First();
+            var si = model.GetSymbolInfo(length);
+            Assert.Equal("Length", si.Symbol.Name);
+            Assert.Equal("Int32", ((PropertySymbol)si.Symbol).Type.Name);
         }
     }
 }
