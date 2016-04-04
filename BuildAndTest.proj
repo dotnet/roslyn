@@ -10,6 +10,7 @@
     <SamplesSolution>$(MSBuildThisFileDirectory)src\Samples\Samples.sln</SamplesSolution>
     <Configuration Condition="'$(Configuration)' == ''">Debug</Configuration>
     <RunTestArgs Condition="'$(ManualTest)' == ''">$(RunTestArgs) -xml</RunTestArgs>
+    <RunTestArgs>$(RunTestArgs) -nocache</RunTestArgs>
     <RunTestArgs Condition="'$(Test64)' == 'true'">$(RunTestArgs) -test64</RunTestArgs>
     <RunTestArgs Condition="'$(Trait)' != ''">$(RunTestArgs) -trait:$(Trait)</RunTestArgs>
     <RunTestArgs Condition="'$(NoTrait)' != ''">$(RunTestArgs) -notrait:$(NoTrait)</RunTestArgs>
@@ -120,7 +121,7 @@
       The fully constructed command line which runs a PowerShell script that runs both the
       Core CLR unit tests and the desktop unit tests under the control of the process watchdog.
       -->
-      <RunProcessWatchdogScriptCommand>PowerShell.exe -ExecutionPolicy RemoteSigned -NoProfile .\build\scripts\Run-TestsWithProcessWatchdog.ps1 -ProcessWatchDogExe $(ProcessWatchDogExe) -ProcessWatchdogOutputDirectory $(ProcessWatchdogOutputDirectory) -ProcDumpExe $(ProcDumpExe) -CoreRunExe '$(CoreRunExe)' -CoreRunArgs '$(CoreRunArgs)' -RunTestsExe '$(RunTestsExe)' -RunTestsArgs '$(RunTestsArgs)' -BuildStartTime $(BuildStartTime) -BuildTimeLimit $(BuildTimeLimit) -BufferTime $(BufferTime)</RunProcessWatchdogScriptCommand>
+      <RunProcessWatchdogScriptCommand>PowerShell.exe -ExecutionPolicy RemoteSigned -NoProfile .\build\scripts\Run-TestsWithProcessWatchdog.ps1 -ProcessWatchDogExe $(ProcessWatchDogExe) -ProcessWatchdogOutputDirectory $(ProcessWatchdogOutputDirectory) -ProcDumpExe $(ProcDumpExe) -CoreRunExe '$(CoreRunExe)' -CoreRunArgs '$(CoreRunArgs)' -RunTestsExe '$(RunTestsExe)' -RunTestsArgs '$(RunTestsArgs)' -BuildStartTime $(BuildStartTime) -BuildTimeLimit 20 -BufferTime $(BufferTime)</RunProcessWatchdogScriptCommand>
     </PropertyGroup>
 
     <Exec Condition="'$(RunProcessWatchdog)' == 'true'" Command="$(RunProcessWatchdogScriptCommand)" />
