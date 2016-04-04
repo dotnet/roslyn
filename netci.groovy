@@ -232,7 +232,7 @@ def branchNames = []
                     batchFile("""set TEMP=%WORKSPACE%\\Binaries\\Temp
 mkdir %TEMP%
 set TMP=%TEMP%
-.\\cibuild.cmd ${(configuration == 'dbg') ? '/debug' : '/release'} ${(buildTarget == 'unit32') ? '/test32' : '/test64'} /buildTimeLimit ${BuildTimeLimit}""")
+.\\cibuild.cmd ${(configuration == 'dbg') ? '/debug' : '/release'} ${(buildTarget == 'unit32') ? '/test32' : '/test64'}""")
                   }
                 }
                 Utilities.setMachineAffinity(myJob, 'Windows_NT', 'latest-or-auto')
