@@ -11933,7 +11933,6 @@ False");
         }
 
         [Fact, WorkItem(9430, "https://github.com/dotnet/roslyn/issues/9430")]
-
         public void PatternInLocalFuncion()
         {
             var source = @"
