@@ -180,7 +180,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                 filterSpan: filterSpan,
                 descriptionFactory: c => Task.FromResult(keyword.DescriptionFactory(c)),
                 glyph: Glyph.Keyword,
-                shouldFormatOnCommit: keyword.ShouldFormatOnCommit);
+                shouldFormatOnCommit: keyword.ShouldFormatOnCommit,
+                matchPriority: keyword.MatchPriority);
         }
     }
 }

@@ -1,13 +1,14 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.Completion;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Test.Utilities;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Recommendations
 {
-    public class CharKeywordRecommenderTests : KeywordRecommenderTests
+    public class ShortKeywordRecommenderTests : KeywordRecommenderTests
     {
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
         public async Task TestAtRoot_Interactive()
@@ -106,9 +107,9 @@ $$");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public async Task TestNotInEnumBaseTypes()
+        public async Task TestEnumBaseTypes()
         {
-            await VerifyAbsenceAsync(
+            await VerifyKeywordAsync(
 @"enum E : $$");
         }
 
@@ -586,67 +587,9 @@ class C { }
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public async Task TestAfterAsync()
-        {
-            await VerifyKeywordAsync(@"class c { async $$ }");
-        }
-
-        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
         public async Task TestNotAfterAsyncAsType()
         {
             await VerifyAbsenceAsync(@"class c { async async $$ }");
-        }
-
-        [WorkItem(988025, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/988025")]
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
-        public async Task TestInGenericMethodTypeParameterList1()
-        {
-            var markup = @"
-class Class1<T, D>
-{
-    public static Class1<T, D> Create() { return null; }
-}
-static class Class2
-{
-    public static void Test<T,D>(this Class1<T, D> arg)
-    {
-    }
-}
-class Program
-{
-    static void Main(string[] args)
-    {
-        Class1<string, int>.Create().Test<$$
-    }
-}
-";
-            await VerifyKeywordAsync(markup);
-        }
-
-        [WorkItem(988025, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/988025")]
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
-        public async Task TestInGenericMethodTypeParameterList2()
-        {
-            var markup = @"
-class Class1<T, D>
-{
-    public static Class1<T, D> Create() { return null; }
-}
-static class Class2
-{
-    public static void Test<T,D>(this Class1<T, D> arg)
-    {
-    }
-}
-class Program
-{
-    static void Main(string[] args)
-    {
-        Class1<string, int>.Create().Test<string,$$
-    }
-}
-";
-            await VerifyKeywordAsync(markup);
         }
 
         [WorkItem(1468, "https://github.com/dotnet/roslyn/issues/1468")]
@@ -659,5 +602,21 @@ using System;
 class C { }
 ");
         }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        public async Task Preselection()
+        {
+            await VerifyKeywordAsync(@"
+class Program
+{
+    static void Main(string[] args)
+    {
+        Helper($$)
+    }
+    static void Helper(short x) { }
+}
+", matchPriority: MatchPriority.Keyword);
+        }
     }
 }
+

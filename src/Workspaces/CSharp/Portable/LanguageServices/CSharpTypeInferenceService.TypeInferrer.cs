@@ -213,6 +213,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     (IfStatementSyntax ifStatement) => InferTypeInIfStatement(ifStatement, token),
                     (InitializerExpressionSyntax initializerExpression) => InferTypeInInitializerExpression(initializerExpression, previousToken: token),
                     (LockStatementSyntax lockStatement) => InferTypeInLockStatement(lockStatement, token),
+                    (MemberAccessExpressionSyntax memberAccessExpression) => InferTypeInMemberAccessExpression(memberAccessExpression),
                     (NameColonSyntax nameColon) => InferTypeInNameColon(nameColon, token),
                     (NameEqualsSyntax nameEquals) => InferTypeInNameEquals(nameEquals, token),
                     (ObjectCreationExpressionSyntax objectCreation) => InferTypeInObjectCreationExpression(objectCreation, token),
@@ -234,8 +235,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 if (previousToken.HasValue)
                 {
-                    // If we have a position, then it must be after the colon in a named argument.
-                    if (argument.NameColon == null || argument.NameColon.ColonToken != previousToken)
+                    // If we have a position, then it must be after the colon in a named argument or after the out keyword.
+                    if ((argument.NameColon == null || argument.NameColon.ColonToken != previousToken) && 
+                        (argument.RefOrOutKeyword == default(SyntaxToken) || argument.RefOrOutKeyword != previousToken))
                     {
                         return SpecializedCollections.EmptyEnumerable<ITypeSymbol>();
                     }
@@ -644,7 +646,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
 
                 var name = argumentOpt != null && argumentOpt.NameColon != null ? argumentOpt.NameColon.Name.Identifier.ValueText : null;
-                return InferTypeInArgument(index, parameterizedSymbols, name);
+                return InferTypeInArgument(index, parameterizedSymbols, name, RefKind.None);
             }
 
             private IEnumerable<ITypeSymbol> InferTypeInArgument(
@@ -653,21 +655,28 @@ namespace Microsoft.CodeAnalysis.CSharp
                 ArgumentSyntax argumentOpt)
             {
                 var name = argumentOpt != null && argumentOpt.NameColon != null ? argumentOpt.NameColon.Name.Identifier.ValueText : null;
-                return InferTypeInArgument(index, parameterizedSymbols, name);
+                var refKind = RefKind.None;
+                if (argumentOpt != null && argumentOpt.RefOrOutKeyword != default(SyntaxToken))
+                {
+                    refKind = argumentOpt.RefOrOutKeyword.Kind() == SyntaxKind.OutKeyword ? RefKind.Out : RefKind.Ref;
+                }
+
+                return InferTypeInArgument(index, parameterizedSymbols, name, refKind);
             }
 
             private IEnumerable<ITypeSymbol> InferTypeInArgument(
                 int index,
                 IEnumerable<ImmutableArray<IParameterSymbol>> parameterizedSymbols,
-                string name)
+                string name,
+                RefKind refkind)
             {
                 // If the callsite has a named argument, then try to find a method overload that has a
                 // parameter with that name.  If we can find one, then return the type of that one.
                 if (name != null)
                 {
                     var parameters = parameterizedSymbols.SelectMany(m => m)
-                                                        .Where(p => p.Name == name)
-                                                        .Select(p => p.Type);
+                                                        .Where(p => p.Name == name && p.RefKind == refkind)
+                                                        .SelectMany(p => ExpandParamsParameter(p));
                     if (parameters.Any())
                     {
                         return parameters;
@@ -679,9 +688,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                     // based on index.
                     var q = from parameterSet in parameterizedSymbols
                             where index < parameterSet.Length
-                            select parameterSet[index].Type;
+                            select ExpandParamsParameter(parameterSet[index]);
 
-                    return q;
+                    return q.Flatten();
                 }
 
                 return SpecializedCollections.EmptyEnumerable<ITypeSymbol>();
@@ -1414,7 +1423,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return InferTypes(awaitExpression.Expression);
                 }
 
-                return SpecializedCollections.EmptyEnumerable<ITypeSymbol>();
+                return InferTypes(expression);
             }
 
             private IEnumerable<ITypeSymbol> InferTypeInNameEquals(NameEqualsSyntax nameEquals, SyntaxToken? previousToken = null)

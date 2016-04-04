@@ -93,5 +93,23 @@ End Class
             Await VerifyRecommendationsMissingAsync(code, _keywordList)
         End Function
 
+        <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
+        Public Async Function Preselection() As Task
+            Dim code =
+<File>
+Class Program
+    Sub Main(args As String())
+        Foo(|)
+    End Sub
+
+    Sub Foo(x As Integer)
+
+    End Sub
+End Class
+</File>
+
+            Await VerifyRecommendationsWithPriority(code, CodeAnalysis.Completion.MatchPriority.Keyword, "Integer")
+        End Function
+
     End Class
 End Namespace

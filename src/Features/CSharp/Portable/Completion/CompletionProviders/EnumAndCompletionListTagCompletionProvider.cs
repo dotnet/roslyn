@@ -55,6 +55,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                     return;
                 }
 
+                // Don't show up within member access
+                // This previously worked because the type inferrer didn't work
+                // in member access expressions.
+                if (token.IsKind(SyntaxKind.DotToken))
+                {
+                    return;
+                }
+
                 var typeInferenceService = document.GetLanguageService<ITypeInferenceService>();
 
                 var span = new TextSpan(position, 0);
@@ -106,7 +114,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                     filterSpan: textChangeSpan,
                     descriptionFactory: CommonCompletionUtilities.CreateDescriptionFactory(workspace, semanticModel, position, alias ?? type),
                     glyph: (alias ?? type).GetGlyph(),
-                    preselect: true,
+                    matchPriority: MatchPriority.Preselect,
                     rules: ItemRules.Instance);
 
                 context.AddItem(item);

@@ -1573,7 +1573,8 @@ try
 { }
 catch (Exception) if ([|M|].N)
 }";
-            await TestInMethodAsync(text, "System.Object", testPosition: false);
+            await TestInMethodAsync(text, "System.Boolean", testPosition: false);
+
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.TypeInferenceService)]
@@ -1797,6 +1798,46 @@ public class C
     }
 }";
             await TestAsync(text, "global::System.ConsoleModifiers", testNode: false);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.TypeInferenceService)]
+        public async Task TestAfterRef()
+        {
+            var text =
+    @"class Program
+{
+    static void Main(string[] args)
+    {
+        GetBool(ref [||])
+
+    }
+
+    static void GetBool(ref bool b)
+    {
+        b = false;
+    }
+}";
+            await TestAsync(text, "System.Boolean", testPosition: true, testNode: false);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.TypeInferenceService)]
+        public async Task TestAfterOut()
+        {
+            var text =
+    @"class Program
+{
+    static void Main(string[] args)
+    {
+        GetBool(out [||])
+
+    }
+
+    static void GetBool(out bool b)
+    {
+        b = false;
+    }
+}";
+            await TestAsync(text, "System.Boolean", testPosition: true, testNode: false);
         }
     }
 }

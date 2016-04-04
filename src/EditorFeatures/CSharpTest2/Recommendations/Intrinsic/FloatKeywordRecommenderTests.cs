@@ -1,13 +1,15 @@
 // Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.Completion;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Test.Utilities;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Recommendations
 {
-    public class UShortKeywordRecommenderTests : KeywordRecommenderTests
+    public class FloatKeywordRecommenderTests : KeywordRecommenderTests
     {
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
         public async Task TestAtRoot_Interactive()
@@ -106,9 +108,9 @@ $$");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public async Task TestEnumBaseTypes()
+        public async Task TestNotInEnumBaseTypes()
         {
-            await VerifyKeywordAsync(
+            await VerifyAbsenceAsync(
 @"enum E : $$");
         }
 
@@ -323,49 +325,6 @@ $$");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public async Task TestInLocalVariableDeclaration()
-        {
-            await VerifyKeywordAsync(AddInsideMethod(
-@"$$"));
-        }
-
-        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public async Task TestInForVariableDeclaration()
-        {
-            await VerifyKeywordAsync(AddInsideMethod(
-@"for ($$"));
-        }
-
-        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public async Task TestInForeachVariableDeclaration()
-        {
-            await VerifyKeywordAsync(AddInsideMethod(
-@"foreach ($$"));
-        }
-
-        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public async Task TestInUsingVariableDeclaration()
-        {
-            await VerifyKeywordAsync(AddInsideMethod(
-@"using ($$"));
-        }
-
-        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public async Task TestInFromVariableDeclaration()
-        {
-            await VerifyKeywordAsync(AddInsideMethod(
-@"var q = from $$"));
-        }
-
-        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public async Task TestInJoinVariableDeclaration()
-        {
-            await VerifyKeywordAsync(AddInsideMethod(
-@"var q = from a in b 
-          join $$"));
-        }
-
-        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
         public async Task TestAfterMethodOpenParen()
         {
             await VerifyKeywordAsync(
@@ -523,6 +482,22 @@ $$");
 @"new $$"));
         }
 
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        public async Task TestAfterOut2()
+        {
+            await VerifyKeywordAsync(
+@"class C {
+    private static void RoundToFloat(double d, out $$");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        public async Task TestAfterOut3()
+        {
+            await VerifyKeywordAsync(
+@"class C {
+    private static void RoundToFloat(double d, out $$ float f)");
+        }
+
         [WorkItem(538804, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538804")]
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
         public async Task TestInTypeOf()
@@ -606,6 +581,21 @@ using System;
 /// <see cref=""List{$$}"" />
 class C { }
 ");
+        }
+
+        [WpfFact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        public async Task Preselection()
+        {
+            await VerifyKeywordAsync(@"
+class Program
+{
+    static void Main(string[] args)
+    {
+        Helper($$)
+    }
+    static void Helper(float x) { }
+}
+", matchPriority: MatchPriority.Keyword);
         }
     }
 }

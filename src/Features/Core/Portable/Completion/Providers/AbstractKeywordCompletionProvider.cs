@@ -78,7 +78,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
                 descriptionFactory: c => Task.FromResult(keyword.DescriptionFactory(c)),
                 glyph: Glyph.Keyword,
                 isIntrinsic: keyword.IsIntrinsic,
-                preselect: keyword.ShouldPreselect);
+                matchPriority: keyword.MatchPriority);
         }
 
         protected virtual async Task<IEnumerable<RecommendedKeyword>> RecommendKeywordsAsync(

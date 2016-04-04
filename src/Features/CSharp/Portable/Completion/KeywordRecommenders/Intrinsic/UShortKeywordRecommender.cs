@@ -6,13 +6,14 @@ using Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.Utilities;
 using Microsoft.CodeAnalysis.Shared.Extensions;
+using System.Linq;
 
 namespace Microsoft.CodeAnalysis.CSharp.Completion.KeywordRecommenders
 {
-    internal class UIntKeywordRecommender : AbstractSyntacticSingleKeywordRecommender
+    internal class UShortKeywordRecommender : AbstractSyntacticSingleKeywordRecommender
     {
-        public UIntKeywordRecommender()
-            : base(SyntaxKind.UIntKeyword)
+        public UShortKeywordRecommender()
+            : base(SyntaxKind.UShortKeyword)
         {
         }
 
@@ -44,6 +45,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.KeywordRecommenders
                     validTypeDeclarations: SyntaxKindSet.ClassInterfaceStructTypeDeclarations,
                     canBePartial: false,
                     cancellationToken: cancellationToken);
+        }
+
+        protected override bool ShouldPreselect(CSharpSyntaxContext context, CancellationToken cancellationToken)
+        {
+            return context.InferredTypes.Any(t => t.SpecialType == SpecialType.System_UInt16);
         }
     }
 }

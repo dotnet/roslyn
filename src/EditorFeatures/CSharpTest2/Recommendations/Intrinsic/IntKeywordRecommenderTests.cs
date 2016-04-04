@@ -1,13 +1,15 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.Completion;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Test.Utilities;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Recommendations
 {
-    public class DoubleKeywordRecommenderTests : KeywordRecommenderTests
+    public class IntKeywordRecommenderTests : KeywordRecommenderTests
     {
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
         public async Task TestAtRoot_Interactive()
@@ -41,10 +43,40 @@ $$");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        public async Task TestAfterStaticKeyword_Interactive()
+        {
+            await VerifyKeywordAsync(SourceCodeKind.Script,
+@"static $$");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        public async Task TestAfterPublicKeyword_Interactive()
+        {
+            await VerifyKeywordAsync(SourceCodeKind.Script,
+@"public $$");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
         public async Task TestNotInUsingAlias()
         {
             await VerifyAbsenceAsync(
 @"using Foo = $$");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        public async Task TestNotInPreprocessor1()
+        {
+            await VerifyAbsenceAsync(
+@"class C {
+#$$");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        public async Task TestNotInPreprocessor2()
+        {
+            await VerifyAbsenceAsync(
+@"class C {
+#if $$");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
@@ -84,21 +116,6 @@ $$");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public async Task TestAfterOuterConst()
-        {
-            await VerifyKeywordAsync(
-@"class C {
-    const $$");
-        }
-
-        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public async Task TestAfterInnerConst()
-        {
-            await VerifyKeywordAsync(AddInsideMethod(
-@"const $$"));
-        }
-
-        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
         public async Task TestInEmptyStatement()
         {
             await VerifyKeywordAsync(AddInsideMethod(
@@ -106,9 +123,9 @@ $$");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public async Task TestNotInEnumBaseTypes()
+        public async Task TestEnumBaseTypes()
         {
-            await VerifyAbsenceAsync(
+            await VerifyKeywordAsync(
 @"enum E : $$");
         }
 
@@ -523,6 +540,49 @@ $$");
 @"new $$"));
         }
 
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        public async Task TestAfterOuterConst()
+        {
+            await VerifyKeywordAsync(
+@"class C {
+    const $$");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        public async Task TestAfterInnerConst()
+        {
+            await VerifyKeywordAsync(AddInsideMethod(
+@"const $$"));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        public async Task TestInUncheckedCast()
+        {
+            await VerifyKeywordAsync(AddInsideMethod(
+@"return unchecked(($$"));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        public async Task TestNotAfterPointerDecl()
+        {
+            await VerifyAbsenceAsync(AddInsideMethod(
+@"int* $$"));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        public async Task TestNotAfterNullableDecl()
+        {
+            await VerifyAbsenceAsync(AddInsideMethod(
+@"int? $$"));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        public async Task TestAfterNew()
+        {
+            await VerifyKeywordAsync(AddInsideMethod(
+@"int[] i = new $$"));
+        }
+
         [WorkItem(538804, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538804")]
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
         public async Task TestInTypeOf()
@@ -545,6 +605,17 @@ $$");
         {
             await VerifyKeywordAsync(AddInsideMethod(
 @"sizeof($$"));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        public async Task TestAfterTopLevelMemberDeclaration()
+        {
+            await VerifyKeywordAsync(SourceCodeKind.Script, @"
+void Foo()
+{
+}
+
+$$");
         }
 
         [WorkItem(544219, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544219")]
@@ -606,6 +677,21 @@ using System;
 /// <see cref=""List{$$}"" />
 class C { }
 ");
+        }
+
+        [WpfFact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        public async Task Preselection()
+        {
+            await VerifyKeywordAsync(@"
+class Program
+{
+    static void Main(string[] args)
+    {
+        Helper($$)
+    }
+    static void Helper(int x) { }
+}
+", matchPriority: MatchPriority.Keyword);
         }
     }
 }

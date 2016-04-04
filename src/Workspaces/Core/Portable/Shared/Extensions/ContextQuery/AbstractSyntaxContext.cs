@@ -5,6 +5,7 @@ using System.Threading;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.LanguageServices;
 using Roslyn.Utilities;
+using System;
 
 namespace Microsoft.CodeAnalysis.Shared.Extensions.ContextQuery
 {
@@ -28,7 +29,8 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions.ContextQuery
             bool isEnumTypeMemberAccessContext,
             bool isNameOfContext,
             bool isInQuery,
-            bool isInImportsDirective)
+            bool isInImportsDirective,
+            IEnumerable<ITypeSymbol> inferredTypes)
         {
             this.Workspace = workspace;
             this.SemanticModel = semanticModel;
@@ -47,6 +49,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions.ContextQuery
             this.IsNameOfContext = isNameOfContext;
             this.IsInQuery = isInQuery;
             this.IsInImportsDirective = isInImportsDirective;
+            this.InferredTypes = inferredTypes;
         }
 
         public Workspace Workspace { get; }
@@ -71,6 +74,9 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions.ContextQuery
 
         public bool IsInQuery { get; }
         public bool IsInImportsDirective { get; }
+        public IEnumerable<ITypeSymbol> InferredTypes { get; private set; }
+
+
 
         private ISet<INamedTypeSymbol> ComputeOuterTypes(CancellationToken cancellationToken)
         {
@@ -85,6 +91,12 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions.ContextQuery
             }
 
             return SpecializedCollections.EmptySet<INamedTypeSymbol>();
+        }
+
+        protected static IEnumerable<ITypeSymbol> ComputeInferredTypes(Workspace workspace, SemanticModel semanticModel, int position, CancellationToken cancellationToken)
+        {
+            var typeInferenceService = workspace.Services.GetLanguageServices(semanticModel.Language).GetService<ITypeInferenceService>();
+            return typeInferenceService.InferTypes(semanticModel, position, cancellationToken);
         }
 
         public ISet<INamedTypeSymbol> GetOuterTypes(CancellationToken cancellationToken)

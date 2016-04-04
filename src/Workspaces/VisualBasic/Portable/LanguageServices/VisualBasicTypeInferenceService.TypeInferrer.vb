@@ -136,6 +136,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     Function(caseStatement As CaseStatementSyntax) InferTypeInCaseStatement(caseStatement),
                     Function(castExpression As CastExpressionSyntax) InferTypeInCastExpression(castExpression),
                     Function(catchFilterClause As CatchFilterClauseSyntax) InferTypeInCatchFilterClause(catchFilterClause, previousToken:=token),
+                    Function(collectionInitializer As CollectionInitializerSyntax) InferTypeInCollectionInitializerExpression(collectionInitializer, previousToken:=token),
                     Function(conditionalExpression As BinaryConditionalExpressionSyntax) InferTypeInBinaryConditionalExpression(conditionalExpression, previousToken:=token),
                     Function(conditionalExpression As TernaryConditionalExpressionSyntax) InferTypeInTernaryConditionalExpression(conditionalExpression, previousToken:=token),
                     Function(doStatement As DoStatementSyntax) InferTypeInDoStatement(token),
@@ -145,6 +146,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     Function(forStatement As ForStatementSyntax) InferTypeInForStatement(forStatement, previousToken:=token),
                     Function(forStepClause As ForStepClauseSyntax) InferTypeInForStepClause(forStepClause, token),
                     Function(ifStatement As IfStatementSyntax) InferTypeInIfOrElseIfStatement(token),
+                    Function(memberAccess As MemberAccessExpressionSyntax) InferTypeInMemberAccessExpression(memberAccess),
                     Function(nameColonEquals As NameColonEqualsSyntax) InferTypeInArgumentList(TryCast(nameColonEquals.Parent.Parent, ArgumentListSyntax), DirectCast(nameColonEquals.Parent, ArgumentSyntax)),
                     Function(namedFieldInitializer As NamedFieldInitializerSyntax) InferTypeInNamedFieldInitializer(namedFieldInitializer, token),
                     Function(objectCreation As ObjectCreationExpressionSyntax) InferTypes(objectCreation),
@@ -323,11 +325,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                         .SelectMany(Function(m) m) _
                                         .Where(Function(p) p.Name = simpleArgument.NameColonEquals.Name.Identifier.ValueText)
 
-                    Return parameters.Select(Function(p) p.Type)
+                    Return parameters.SelectMany(Function(p) ExpandParamsParameter(p))
                 Else
                     ' Otherwise, just take the first overload and pick what type this parameter is
                     ' based on index.
-                    Return parameterizedSymbols.Where(Function(a) index < a.Length).Select(Function(a) a(index).Type)
+                    Return parameterizedSymbols.Where(Function(a) index < a.Length).SelectMany(Function(a) ExpandParamsParameter(a(index)))
                 End If
 
                 Return SpecializedCollections.EmptyEnumerable(Of ITypeSymbol)()
@@ -808,7 +810,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     Return InferTypes(awaitExpression.Expression)
                 End If
 
-                Return SpecializedCollections.EmptyEnumerable(Of ITypeSymbol)()
+                Return InferTypes(expression)
             End Function
 
             Private Function InferTypeInNamedFieldInitializer(initializer As NamedFieldInitializerSyntax, Optional previousToken As SyntaxToken = Nothing) As IEnumerable(Of ITypeSymbol)

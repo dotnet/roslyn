@@ -25,4 +25,5 @@ namespace Microsoft.CodeAnalysis.LanguageServices
         IEnumerable<ITypeSymbol> InferTypes(SemanticModel semanticModel, SyntaxNode expression, CancellationToken cancellationToken);
         IEnumerable<ITypeSymbol> InferTypes(SemanticModel semanticModel, int position, CancellationToken cancellationToken);
     }
+
 }

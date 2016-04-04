@@ -66,19 +66,19 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
             Return ValueTuple.Create(text, text)
         End Function
 
-        Protected Overrides Function CreateItem(displayAndInsertionText As ValueTuple(Of String, String), position As Integer, symbols As List(Of ISymbol), context As AbstractSyntaxContext, textChangeSpan As TextSpan, preselect As Boolean, supportedPlatformData As SupportedPlatformData) As CompletionItem
+        Protected Overrides Function CreateItem(displayAndInsertionText As ValueTuple(Of String, String), position As Integer, symbols As List(Of ISymbol), context As AbstractSyntaxContext, textChangeSpan As TextSpan, matchPriority As MatchPriority, supportedPlatformData As SupportedPlatformData) As CompletionItem
             Return New SymbolCompletionItem(
                 Me,
                 displayAndInsertionText.Item1,
                 displayAndInsertionText.Item2,
-                GetFilterText(symbols(0), displayAndInsertionText.Item1, context),
+                MyBase.GetFilterText(symbols(0), displayAndInsertionText.Item1, context),
                 textChangeSpan,
                 position,
                 symbols,
                 displayAndInsertionText.Item1,
                 context,
                 Glyph.EnumMember,
-                preselect:=preselect,
+                matchPriority:=CodeAnalysis.Completion.MatchPriority.Preselect,
                 supportedPlatforms:=supportedPlatformData)
 
         End Function

@@ -6,13 +6,14 @@ using Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.Utilities;
 using Microsoft.CodeAnalysis.Shared.Extensions;
+using System.Linq;
 
 namespace Microsoft.CodeAnalysis.CSharp.Completion.KeywordRecommenders
 {
-    internal class DoubleKeywordRecommender : AbstractSyntacticSingleKeywordRecommender
+    internal class SByteKeywordRecommender : AbstractSyntacticSingleKeywordRecommender
     {
-        public DoubleKeywordRecommender()
-            : base(SyntaxKind.DoubleKeyword)
+        public SByteKeywordRecommender()
+            : base(SyntaxKind.SByteKeyword)
         {
         }
 
@@ -20,12 +21,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.KeywordRecommenders
         {
             var syntaxTree = context.SyntaxTree;
             return
-                context.IsAnyExpressionContext ||
+                context.IsNonAttributeExpressionContext ||
                 context.IsDefiniteCastTypeContext ||
                 context.IsStatementContext ||
                 context.IsGlobalStatementContext ||
                 context.IsObjectCreationTypeContext ||
                 (context.IsGenericTypeArgumentContext && !context.TargetToken.Parent.HasAncestor<XmlCrefAttributeSyntax>()) ||
+                context.IsEnumBaseListContext ||
                 context.IsIsOrAsTypeContext ||
                 context.IsLocalVariableDeclarationContext ||
                 context.IsFixedVariableDeclarationContext ||
@@ -43,6 +45,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.KeywordRecommenders
                     validTypeDeclarations: SyntaxKindSet.ClassInterfaceStructTypeDeclarations,
                     canBePartial: false,
                     cancellationToken: cancellationToken);
+        }
+
+        protected override bool ShouldPreselect(CSharpSyntaxContext context, CancellationToken cancellationToken)
+        {
+            return context.InferredTypes.Any(t => t.SpecialType == SpecialType.System_SByte);
         }
     }
 }

@@ -4,6 +4,7 @@ using System;
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.Completion;
 using Microsoft.CodeAnalysis.Completion.Providers;
 using Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery;
 using Roslyn.Utilities;
@@ -47,22 +48,34 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.KeywordRecommenders
             if (syntaxKind.HasValue)
             {
                 return SpecializedCollections.SingletonEnumerable(
-                    new RecommendedKeyword(SyntaxFacts.GetText(syntaxKind.Value), shouldFormatOnCommit: this.ShouldFormatOnCommit));
+                    new RecommendedKeyword(SyntaxFacts.GetText(syntaxKind.Value), 
+                        shouldFormatOnCommit: this.ShouldFormatOnCommit, 
+                        matchPriority: ShouldPreselect(context, cancellationToken) ? MatchPriority.Keyword : MatchPriority.Default));
             }
 
             return null;
         }
 
-        internal async Task<IEnumerable<RecommendedKeyword>> RecommendKeywordsAsync_Test(int position, CSharpSyntaxContext context)
+        protected virtual bool ShouldPreselect(CSharpSyntaxContext context, CancellationToken cancellationToken)
         {
+            return false;
+        }
+
+        internal async Task<IEnumerable<RecommendedKeyword>> RecommendKeywordsAsync_Test(int position, CSharpSyntaxContext context)
+        { 
             var syntaxKind = await this.RecommendKeywordAsync(position, context, CancellationToken.None).ConfigureAwait(false);
             if (syntaxKind.HasValue)
             {
                 return SpecializedCollections.SingletonEnumerable(
-                    new RecommendedKeyword(SyntaxFacts.GetText(syntaxKind.Value)));
+                    new RecommendedKeyword(SyntaxFacts.GetText(syntaxKind.Value), matchPriority: ShouldPreselect(context, CancellationToken.None) ? MatchPriority.Keyword : MatchPriority.Default));
             }
 
             return null;
+        }
+
+        protected virtual bool ShouldPreselect(CSharpSyntaxContext context)
+        {
+            return false;
         }
 
         private async Task<SyntaxKind?> RecommendKeywordAsync(int position, CSharpSyntaxContext context, CancellationToken cancellationToken)
