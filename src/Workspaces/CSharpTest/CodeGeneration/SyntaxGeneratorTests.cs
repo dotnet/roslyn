@@ -1832,6 +1832,109 @@ public class C
         }
 
         [Fact]
+        public void TestAddMemberAdjustsNewNodeToMatchContainer()
+        {
+            var i = _g.InterfaceDeclaration("i");
+            VerifySyntax<InterfaceDeclarationSyntax>(i,
+@"interface i
+{
+}");
+
+            var m = _g.MethodDeclaration("m");
+            VerifySyntax<MethodDeclarationSyntax>(m,
+@"void m()
+{
+}");
+
+            var i2 = _g.AddMembers(i, new SyntaxNode[] { m });
+            VerifySyntax<InterfaceDeclarationSyntax>(i2,
+@"interface i
+{
+    void m();
+}");
+        }
+
+        [Fact]
+        public void TestReplaceNodeAdjustsNewNodeToMatchContainer()
+        {
+            var i = _g.InterfaceDeclaration("i", members: new SyntaxNode[] { _g.MethodDeclaration("m") });
+            VerifySyntax<InterfaceDeclarationSyntax>(i,
+@"interface i
+{
+    void m();
+}");
+
+            var mi = i.DescendantNodes().OfType<MethodDeclarationSyntax>().First();
+
+            var m2 = _g.MethodDeclaration("m2");
+            VerifySyntax<MethodDeclarationSyntax>(m2,
+@"void m2()
+{
+}");
+
+            var i2 = _g.ReplaceNode(i, mi, m2);
+            VerifySyntax<InterfaceDeclarationSyntax>(i2,
+@"interface i
+{
+    void m2();
+}");
+        }
+
+        [Fact]
+        public void TestInsertNodeAfterAdjustsNewNodeToMatchContainer()
+        {
+            var i = _g.InterfaceDeclaration("i", members: new SyntaxNode[] { _g.MethodDeclaration("m") });
+            VerifySyntax<InterfaceDeclarationSyntax>(i,
+@"interface i
+{
+    void m();
+}");
+
+            var mi = i.DescendantNodes().OfType<MethodDeclarationSyntax>().First();
+
+            var m2 = _g.MethodDeclaration("m2");
+            VerifySyntax<MethodDeclarationSyntax>(m2,
+@"void m2()
+{
+}");
+
+            var i2 = _g.InsertNodesAfter(i, mi, new SyntaxNode[] { m2 });
+            VerifySyntax<InterfaceDeclarationSyntax>(i2,
+@"interface i
+{
+    void m();
+    void m2();
+}");
+        }
+
+        [Fact]
+        public void TestInsertNodeBeforeAdjustsNewNodeToMatchContainer()
+        {
+            var i = _g.InterfaceDeclaration("i", members: new SyntaxNode[] { _g.MethodDeclaration("m") });
+            VerifySyntax<InterfaceDeclarationSyntax>(i,
+@"interface i
+{
+    void m();
+}");
+
+            var mi = i.DescendantNodes().OfType<MethodDeclarationSyntax>().First();
+
+            var m2 = _g.MethodDeclaration("m2");
+            VerifySyntax<MethodDeclarationSyntax>(m2,
+@"void m2()
+{
+}");
+
+            var i2 = _g.InsertNodesBefore(i, mi, new SyntaxNode[] { m2 });
+            VerifySyntax<InterfaceDeclarationSyntax>(i2,
+@"interface i
+{
+    void m2();
+    void m();
+}");
+        }
+
+        [Fact]
         public void TestAddMembers()
         {
             AssertMemberNamesEqual("m", _g.AddMembers(_g.ClassDeclaration("d"), new[] { _g.MethodDeclaration("m") }));
@@ -2048,6 +2151,57 @@ public class C
             Assert.Equal(DeclarationModifiers.None, _g.GetModifiers(_g.WithModifiers(_g.LocalDeclarationStatement(_g.IdentifierName("t"), "loc"), DeclarationModifiers.Abstract)));
             Assert.Equal(DeclarationModifiers.None, _g.GetModifiers(_g.WithModifiers(_g.Attribute("a"), DeclarationModifiers.Abstract)));
             Assert.Equal(DeclarationModifiers.None, _g.GetModifiers(_g.WithModifiers(SyntaxFactory.TypeParameter("tp"), DeclarationModifiers.Abstract)));
+        }
+
+        [WorkItem(10327, "https://github.com/dotnet/roslyn/issues/10327")]
+        [Fact]
+        public void TestMakingMethodAbstractRemovesStatementBlock()
+        {
+            var mn = _g.MethodDeclaration("m");
+            VerifySyntax<MethodDeclarationSyntax>(mn,
+@"void m()
+{
+}");
+
+            var ma = _g.WithModifiers(mn, DeclarationModifiers.Abstract);
+            VerifySyntax<MethodDeclarationSyntax>(ma,
+@"abstract void m();");
+        }
+
+        [WorkItem(10327, "https://github.com/dotnet/roslyn/issues/10327")]
+        [Fact]
+        public void TestMakingMethodNotAbstractAddsStatementBlock()
+        {
+            var ma = _g.MethodDeclaration("m", modifiers: DeclarationModifiers.Abstract);
+            VerifySyntax<MethodDeclarationSyntax>(ma,
+@"abstract void m();");
+
+            var mv = _g.WithModifiers(ma, DeclarationModifiers.Virtual);
+            VerifySyntax<MethodDeclarationSyntax>(mv,
+@"virtual void m()
+{
+}");
+
+            var mn = _g.WithModifiers(ma, DeclarationModifiers.None);
+            VerifySyntax<MethodDeclarationSyntax>(mn,
+@"void m()
+{
+}");
+        }
+
+        [WorkItem(10327, "https://github.com/dotnet/roslyn/issues/10327")]
+        [Fact]
+        public void TestAddingStatementsToAbstractMethodChangesToVirtual()
+        {
+            var ma = _g.MethodDeclaration("m", modifiers: DeclarationModifiers.Abstract);
+            VerifySyntax<MethodDeclarationSyntax>(ma,
+@"abstract void m();");
+
+            var ms = _g.WithStatements(ma, new SyntaxNode[] { });
+            VerifySyntax<MethodDeclarationSyntax>(ms,
+@"virtual void m()
+{
+}");
         }
 
         [Fact]

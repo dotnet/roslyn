@@ -855,6 +855,59 @@ End Class</x>.Value)
 
         End Sub
 
+        <WorkItem(0, "https://github.com/dotnet/roslyn/issues/10327")>
+        <Fact>
+        Public Sub TestAddingStatementsToAbstractMethodChangesToMustOverride()
+            Dim ms = _g.MethodDeclaration("m", modifiers:=DeclarationModifiers.Abstract)
+            Assert.Equal(DeclarationModifiers.Abstract, _g.GetModifiers(ms))
+            VerifySyntax(Of MethodStatementSyntax)(
+                ms,
+<x>MustOverride Sub m()</x>.Value)
+
+            Dim mb = _g.WithStatements(ms, {})
+            VerifySyntax(Of MethodBlockSyntax)(
+                mb,
+<x>Overridable Sub m()
+End Sub</x>.Value)
+        End Sub
+
+        <WorkItem(0, "https://github.com/dotnet/roslyn/issues/10327")>
+        <Fact>
+        Public Sub TestMakingMethodAbstractChangesToStatement()
+            Dim ms = _g.MethodDeclaration("m")
+            VerifySyntax(Of MethodBlockSyntax)(
+                ms,
+<x>Sub m()
+End Sub</x>.Value)
+
+            Dim mb = _g.WithModifiers(ms, DeclarationModifiers.Abstract)
+            VerifySyntax(Of MethodStatementSyntax)(
+                mb,
+<x>MustOverride Sub m()</x>.Value)
+        End Sub
+
+        <WorkItem(0, "https://github.com/dotnet/roslyn/issues/10327")>
+        <Fact>
+        Public Sub TestMakingMethodNotAbstractChangesToBlock()
+            Dim ma = _g.MethodDeclaration("m", modifiers:=DeclarationModifiers.Abstract)
+            Assert.Equal(DeclarationModifiers.Abstract, _g.GetModifiers(ma))
+            VerifySyntax(Of MethodStatementSyntax)(
+                ma,
+<x>MustOverride Sub m()</x>.Value)
+
+            Dim mv = _g.WithModifiers(ma, DeclarationModifiers.Virtual)
+            VerifySyntax(Of MethodBlockSyntax)(
+                mv,
+<x>Overridable Sub m()
+End Sub</x>.Value)
+
+            Dim mn = _g.WithModifiers(ma, DeclarationModifiers.None)
+            VerifySyntax(Of MethodBlockSyntax)(
+                mn,
+<x>Sub m()
+End Sub</x>.Value)
+        End Sub
+
         <Fact>
         Public Sub TestOperatorDeclaration()
             Dim parameterTypes = {
@@ -2205,6 +2258,113 @@ End Class
 Public Class C
 End Class
 ")
+        End Sub
+
+        <Fact>
+        Public Sub TestAddMemberAdjustsNewNodeToMatchContainer()
+            Dim i = _g.InterfaceDeclaration("i")
+            VerifySyntax(Of InterfaceBlockSyntax)(i,
+"Interface i
+End Interface")
+
+            Dim m = _g.MethodDeclaration("m")
+            VerifySyntax(Of MethodBlockSyntax)(m,
+"Sub m()
+End Sub")
+
+            Dim i2 = _g.AddMembers(i, {m})
+            VerifySyntax(Of InterfaceBlockSyntax)(i2,
+"Interface i
+
+    Sub m()
+
+End Interface")
+
+        End Sub
+
+        <Fact>
+        Public Sub TestReplaceNodeAdjustsNewNodeToMatchContainer()
+            Dim i = _g.InterfaceDeclaration("i", members:={_g.MethodDeclaration("m")})
+            VerifySyntax(Of InterfaceBlockSyntax)(i,
+"Interface i
+
+    Sub m()
+
+End Interface")
+
+            Dim mi = i.DescendantNodes().OfType(Of MethodStatementSyntax).First()
+
+            Dim m2 = _g.MethodDeclaration("m2")
+            VerifySyntax(Of MethodBlockSyntax)(m2,
+"Sub m2()
+End Sub")
+
+            Dim i2 = _g.ReplaceNode(i, mi, m2)
+            VerifySyntax(Of InterfaceBlockSyntax)(i2,
+"Interface i
+
+    Sub m2()
+
+End Interface")
+
+        End Sub
+
+        <Fact>
+        Public Sub TestInsertNodeAfterAdjustsNewNodeToMatchContainer()
+            Dim i = _g.InterfaceDeclaration("i", members:={_g.MethodDeclaration("m")})
+            VerifySyntax(Of InterfaceBlockSyntax)(i,
+"Interface i
+
+    Sub m()
+
+End Interface")
+
+            Dim mi = i.DescendantNodes().OfType(Of MethodStatementSyntax).First()
+
+            Dim m2 = _g.MethodDeclaration("m2")
+            VerifySyntax(Of MethodBlockSyntax)(m2,
+"Sub m2()
+End Sub")
+
+            Dim i2 = _g.InsertNodesAfter(i, mi, {m2})
+            VerifySyntax(Of InterfaceBlockSyntax)(i2,
+"Interface i
+
+    Sub m()
+
+    Sub m2()
+
+End Interface")
+
+        End Sub
+
+        <Fact>
+        Public Sub TestInsertNodeBeforeAdjustsNewNodeToMatchContainer()
+            Dim i = _g.InterfaceDeclaration("i", members:={_g.MethodDeclaration("m")})
+            VerifySyntax(Of InterfaceBlockSyntax)(i,
+"Interface i
+
+    Sub m()
+
+End Interface")
+
+            Dim mi = i.DescendantNodes().OfType(Of MethodStatementSyntax).First()
+
+            Dim m2 = _g.MethodDeclaration("m2")
+            VerifySyntax(Of MethodBlockSyntax)(m2,
+"Sub m2()
+End Sub")
+
+            Dim i2 = _g.InsertNodesBefore(i, mi, {m2})
+            VerifySyntax(Of InterfaceBlockSyntax)(i2,
+"Interface i
+
+    Sub m2()
+
+    Sub m()
+
+End Interface")
+
         End Sub
 
         <Fact>

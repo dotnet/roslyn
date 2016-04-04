@@ -1327,7 +1327,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
         End Function
 
         Private Function AsNamespaceMembers(declarations As IEnumerable(Of SyntaxNode)) As SyntaxList(Of StatementSyntax)
-            Return If(declarations Is Nothing, Nothing, SyntaxFactory.List(declarations.OfType(Of StatementSyntax)().Where(Function(s) Not TypeOf s Is ImportsStatementSyntax)))
+            Return If(declarations Is Nothing, Nothing, SyntaxFactory.List(declarations.Select(AddressOf AsNamespaceMember).Where(Function(s) s IsNot Nothing)))
+        End Function
+
+        Private Function AsNamespaceMember(declaration As SyntaxNode) As StatementSyntax
+            If TypeOf declaration Is ImportsStatementSyntax Then
+                Return Nothing
+            Else
+                Return TryCast(declaration, StatementSyntax)
+            End If
         End Function
 
         Public Overrides Function NamespaceImportDeclaration(name As SyntaxNode) As SyntaxNode
@@ -2351,7 +2359,18 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
 
             If (currentMods <> modifiers) Then
                 Dim newTokens = GetModifierList(acc, modifiers And GetAllowedModifiers(declaration.Kind), GetDeclarationKind(declaration), isDefault)
-                Return WithModifierTokens(declaration, Merge(tokens, newTokens))
+                Return FixDeclarationWithModifiers(currentMods, WithModifierTokens(declaration, Merge(tokens, newTokens)))
+            Else
+                Return declaration
+            End If
+        End Function
+
+        Private Function FixDeclarationWithModifiers(originalMods As DeclarationModifiers, declaration As SyntaxNode) As SyntaxNode
+            Dim currentMods = Me.GetModifiers(declaration)
+            If currentMods.IsAbstract AndAlso Me.HasStatementBlock(declaration.Kind) Then
+                Return Me.WithoutStatements(declaration)
+            ElseIf Not currentMods.IsAbstract And originalMods.IsAbstract Then
+                Return Me.WithStatements(declaration, {})
             Else
                 Return declaration
             End If
@@ -3075,9 +3094,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
 
         Private Function AsMembersOf(declaration As SyntaxNode, members As IEnumerable(Of SyntaxNode)) As IEnumerable(Of StatementSyntax)
             Select Case declaration.Kind
-                Case SyntaxKind.CompilationUnit
-                    Return AsNamespaceMembers(members)
-                Case SyntaxKind.NamespaceBlock
+                Case SyntaxKind.CompilationUnit,
+                    SyntaxKind.NamespaceBlock
                     Return AsNamespaceMembers(members)
                 Case SyntaxKind.ClassBlock
                     Return AsClassMembers(members)
@@ -3090,7 +3108,60 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
                 Case Else
                     Return SpecializedCollections.EmptyEnumerable(Of StatementSyntax)
             End Select
+        End Function
 
+        Private Function AsMemberOf(declaration As SyntaxNode, member As SyntaxNode) As StatementSyntax
+            Select Case declaration.Kind
+                Case SyntaxKind.NamespaceBlock,
+                     SyntaxKind.CompilationUnit
+                    Return AsNamespaceMember(member)
+                Case SyntaxKind.ClassBlock
+                    Return AsClassMember(member)
+                Case SyntaxKind.StructureBlock
+                    Return AsClassMember(member)
+                Case SyntaxKind.InterfaceBlock
+                    Return AsInterfaceMember(member)
+                Case SyntaxKind.EnumBlock
+                    Return AsEnumMember(member)
+                Case Else
+                    Return Nothing
+            End Select
+        End Function
+
+        Private Function AsNodesLike(existingNode As SyntaxNode, newNodes As IEnumerable(Of SyntaxNode)) As IEnumerable(Of SyntaxNode)
+            Return If(newNodes Is Nothing, Nothing, newNodes.Select(Function(n) AsNodeLike(existingNode, n)))
+        End Function
+
+        Private Function AsNodeLike(existingNode As SyntaxNode, newNode As SyntaxNode) As SyntaxNode
+            Select Case GetDeclarationKind(existingNode)
+                Case DeclarationKind.Class,
+                    DeclarationKind.Interface,
+                    DeclarationKind.Struct,
+                    DeclarationKind.Enum,
+                    DeclarationKind.Delegate,
+                    DeclarationKind.Namespace,
+                    DeclarationKind.CompilationUnit,
+                    DeclarationKind.Method,
+                    DeclarationKind.Operator,
+                    DeclarationKind.ConversionOperator,
+                    DeclarationKind.Constructor,
+                    DeclarationKind.Destructor,
+                    DeclarationKind.Field,
+                    DeclarationKind.Property,
+                    DeclarationKind.Indexer,
+                    DeclarationKind.Event,
+                    DeclarationKind.CustomEvent
+
+                    Dim container = Me.GetDeclaration(existingNode.Parent)
+                    If container IsNot Nothing Then
+                        Return Me.AsMemberOf(container, newNode)
+                    End If
+
+                Case DeclarationKind.Attribute
+                    Return Me.AsAttributeList(newNode)
+            End Select
+
+            Return newNode
         End Function
 
         Public Overrides Function InsertMembers(declaration As SyntaxNode, index As Integer, members As IEnumerable(Of SyntaxNode)) As SyntaxNode
@@ -3152,8 +3223,27 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
             End Select
         End Function
 
+        Private Function HasStatementBlock(kind As SyntaxKind) As Boolean
+            Select Case kind
+                Case SyntaxKind.FunctionBlock,
+                     SyntaxKind.SubBlock,
+                     SyntaxKind.ConstructorBlock,
+                     SyntaxKind.OperatorBlock,
+                     SyntaxKind.MultiLineFunctionLambdaExpression,
+                     SyntaxKind.MultiLineSubLambdaExpression,
+                     SyntaxKind.GetAccessorBlock,
+                     SyntaxKind.SetAccessorBlock,
+                     SyntaxKind.AddHandlerAccessorBlock,
+                     SyntaxKind.RemoveHandlerAccessorBlock,
+                     SyntaxKind.RaiseEventAccessorBlock
+                    Return True
+                Case Else
+                    Return False
+            End Select
+        End Function
+
         Public Overrides Function WithStatements(declaration As SyntaxNode, statements As IEnumerable(Of SyntaxNode)) As SyntaxNode
-            Return Isolate(declaration, Function(d) WithStatementsInternal(d, statements))
+            Return Isolate(declaration, Function(d) FixDeclarationsWithStatements(WithStatementsInternal(d, statements)))
         End Function
 
         Private Function WithStatementsInternal(declaration As SyntaxNode, statements As IEnumerable(Of SyntaxNode)) As SyntaxNode
@@ -3162,6 +3252,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
                 Case SyntaxKind.FunctionBlock,
                      SyntaxKind.SubBlock
                     Return DirectCast(declaration, MethodBlockSyntax).WithStatements(list)
+                Case SyntaxKind.FunctionStatement
+                    Return SyntaxFactory.FunctionBlock(DirectCast(declaration, MethodStatementSyntax), list)
+                Case SyntaxKind.SubStatement
+                    Return SyntaxFactory.SubBlock(DirectCast(declaration, MethodStatementSyntax), list)
                 Case SyntaxKind.ConstructorBlock
                     Return DirectCast(declaration, ConstructorBlockSyntax).WithStatements(list)
                 Case SyntaxKind.OperatorBlock
@@ -3181,9 +3275,66 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
                      SyntaxKind.RemoveHandlerAccessorBlock,
                      SyntaxKind.RaiseEventAccessorBlock
                     Return DirectCast(declaration, AccessorBlockSyntax).WithStatements(list)
+                Case SyntaxKind.GetAccessorStatement
+                    Return SyntaxFactory.GetAccessorBlock(DirectCast(declaration, AccessorStatementSyntax), list)
+                Case SyntaxKind.SetAccessorStatement
+                    Return SyntaxFactory.SetAccessorBlock(DirectCast(declaration, AccessorStatementSyntax), list)
+                Case SyntaxKind.AddHandlerAccessorStatement
+                    Return SyntaxFactory.AddHandlerAccessorBlock(DirectCast(declaration, AccessorStatementSyntax), list)
+                Case SyntaxKind.RemoveHandlerAccessorBlock
+                    Return SyntaxFactory.RemoveHandlerAccessorBlock(DirectCast(declaration, AccessorStatementSyntax), list)
+                Case SyntaxKind.RaiseEventAccessorStatement
+                    Return SyntaxFactory.RaiseEventAccessorBlock(DirectCast(declaration, AccessorStatementSyntax), list)
                 Case Else
                     Return declaration
             End Select
+        End Function
+
+        Private Function FixDeclarationsWithStatements(declaration As SyntaxNode) As SyntaxNode
+            If HasStatementBlock(declaration.Kind) Then
+                Dim mods = GetModifiers(declaration)
+                If mods.IsAbstract Then
+                    ' declarations with statement blocks cannot be abstract: convert to virtual (must override) instead
+                    Return WithModifiers(declaration, mods.WithIsAbstract(False).WithIsVirtual(True))
+                End If
+            End If
+
+            Return declaration
+        End Function
+
+        ''' <summary>
+        ''' Converts declarations in block form into declarations in statement form
+        ''' </summary>
+        Private Function WithoutStatements(declaration As SyntaxNode) As SyntaxNode
+            Return Isolate(declaration, Function(d) FixDeclarationsWithoutStatements(WithoutStatementsInternal(d)))
+        End Function
+
+        Private Function WithoutStatementsInternal(declaration As SyntaxNode) As SyntaxNode
+            Select Case declaration.Kind
+                Case SyntaxKind.FunctionBlock,
+                     SyntaxKind.SubBlock
+                    Return DirectCast(declaration, MethodBlockSyntax).BlockStatement
+                Case SyntaxKind.GetAccessorStatement,
+                    SyntaxKind.SetAccessorStatement,
+                    SyntaxKind.AddHandlerAccessorStatement,
+                    SyntaxKind.RemoveHandlerAccessorStatement,
+                    SyntaxKind.RaiseEventAccessorBlock
+                    Return DirectCast(declaration, AccessorBlockSyntax).AccessorStatement
+                Case Else
+                    Return declaration
+            End Select
+        End Function
+
+        Private Function FixDeclarationsWithoutStatements(declaration As SyntaxNode) As SyntaxNode
+            If Not HasStatementBlock(declaration.Kind) Then
+                Dim mods = GetModifiers(declaration)
+                If mods.IsVirtual Then
+                    ' declarations without statement blocks cannot be virtual: convert to abstract instead
+                    Return WithModifiers(declaration, mods.WithIsVirtual(False).WithIsAbstract(True))
+                End If
+            End If
+
+            Return declaration
         End Function
 
         Public Overrides Function GetAccessors(declaration As SyntaxNode) As IReadOnlyList(Of SyntaxNode)
@@ -3533,6 +3684,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
 
 #Region "Remove, Replace, Insert"
         Public Overrides Function ReplaceNode(root As SyntaxNode, declaration As SyntaxNode, newDeclaration As SyntaxNode) As SyntaxNode
+            newDeclaration = Me.AsNodeLike(declaration, newDeclaration)
+
             If newDeclaration Is Nothing Then
                 Return Me.RemoveNode(root, declaration)
             End If
@@ -3625,6 +3778,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
         End Function
 
         Private Function InsertDeclarationsBeforeInternal(root As SyntaxNode, declaration As SyntaxNode, newDeclarations As IEnumerable(Of SyntaxNode)) As SyntaxNode
+            newDeclarations = Me.AsNodesLike(declaration, newDeclarations)
+
             Dim fullDecl = Me.GetFullDeclaration(declaration)
             If fullDecl Is declaration OrElse GetDeclarationCount(fullDecl) = 1 Then
                 Return MyBase.InsertNodesBefore(root, declaration, newDeclarations)
@@ -3651,6 +3806,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
         End Function
 
         Private Function InsertNodesAfterInternal(root As SyntaxNode, declaration As SyntaxNode, newDeclarations As IEnumerable(Of SyntaxNode)) As SyntaxNode
+            newDeclarations = Me.AsNodesLike(declaration, newDeclarations)
+
             Dim fullDecl = Me.GetFullDeclaration(declaration)
             If fullDecl Is declaration OrElse GetDeclarationCount(fullDecl) = 1 Then
                 Return MyBase.InsertNodesAfter(root, declaration, newDeclarations)

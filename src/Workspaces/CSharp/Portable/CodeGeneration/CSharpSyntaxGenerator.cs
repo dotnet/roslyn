@@ -502,6 +502,30 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
             return declaration;
         }
 
+        private SyntaxNode WithBody(SyntaxNode declaration)
+        {
+            switch (declaration.Kind())
+            {
+                case SyntaxKind.MethodDeclaration:
+                    var method = (MethodDeclarationSyntax)declaration;
+                    return (method.Body == null) ? method.WithSemicolonToken(default(SyntaxToken)).WithBody(CreateBlock(null)) : method;
+                case SyntaxKind.OperatorDeclaration:
+                    var op = (OperatorDeclarationSyntax)declaration;
+                    return op.Body == null ? op.WithSemicolonToken(default(SyntaxToken)).WithBody(CreateBlock(null)) : op;
+                case SyntaxKind.ConversionOperatorDeclaration:
+                    var cop = (ConversionOperatorDeclarationSyntax)declaration;
+                    return cop.Body == null ? cop.WithSemicolonToken(default(SyntaxToken)).WithBody(CreateBlock(null)) : cop;
+                case SyntaxKind.GetAccessorDeclaration:
+                case SyntaxKind.SetAccessorDeclaration:
+                case SyntaxKind.AddAccessorDeclaration:
+                case SyntaxKind.RemoveAccessorDeclaration:
+                    var acc = (AccessorDeclarationSyntax)declaration;
+                    return this.WithBody(acc);
+            }
+
+            return declaration;
+        }
+
         private SyntaxNode WithBodies(SyntaxNode declaration)
         {
             switch (declaration.Kind())
@@ -544,6 +568,55 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
             {
                 return accessor;
             }
+        }
+
+        private bool HasBody(SyntaxNode declaration)
+        {
+            switch (declaration.Kind())
+            {
+                case SyntaxKind.MethodDeclaration:
+                    var method = (MethodDeclarationSyntax)declaration;
+                    return method.Body != null;
+                case SyntaxKind.OperatorDeclaration:
+                    var op = (OperatorDeclarationSyntax)declaration;
+                    return op.Body != null;
+                case SyntaxKind.ConversionOperatorDeclaration:
+                    var cop = (ConversionOperatorDeclarationSyntax)declaration;
+                    return cop.Body != null;
+                case SyntaxKind.GetAccessorDeclaration:
+                case SyntaxKind.SetAccessorDeclaration:
+                case SyntaxKind.AddAccessorDeclaration:
+                case SyntaxKind.RemoveAccessorDeclaration:
+                    var acc = (AccessorDeclarationSyntax)declaration;
+                    return acc.Body != null;
+
+                default:
+                    return false;
+            }
+        }
+
+        private SyntaxNode WithoutBody(SyntaxNode declaration)
+        {
+            switch (declaration.Kind())
+            {
+                case SyntaxKind.MethodDeclaration:
+                    var method = (MethodDeclarationSyntax)declaration;
+                    return (method.Body != null) ? method.WithSemicolonToken(SyntaxFactory.Token(SyntaxKind.SemicolonToken)).WithBody(null) : method;
+                case SyntaxKind.OperatorDeclaration:
+                    var op = (OperatorDeclarationSyntax)declaration;
+                    return op.Body != null ? op.WithSemicolonToken(SyntaxFactory.Token(SyntaxKind.SemicolonToken)).WithBody(null) : op;
+                case SyntaxKind.ConversionOperatorDeclaration:
+                    var cop = (ConversionOperatorDeclarationSyntax)declaration;
+                    return cop.Body == null ? cop.WithSemicolonToken(SyntaxFactory.Token(SyntaxKind.SemicolonToken)).WithBody(null) : cop;
+                case SyntaxKind.GetAccessorDeclaration:
+                case SyntaxKind.SetAccessorDeclaration:
+                case SyntaxKind.AddAccessorDeclaration:
+                case SyntaxKind.RemoveAccessorDeclaration:
+                    var acc = (AccessorDeclarationSyntax)declaration;
+                    return this.WithoutBody(acc);
+            }
+
+            return declaration;
         }
 
         private SyntaxNode WithoutBodies(SyntaxNode declaration)
@@ -878,7 +951,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
         {
             if (attributes != null)
             {
-                return SyntaxFactory.List(attributes.Select(AsAttributeList));
+                return SyntaxFactory.List(attributes.Select(a => AsAttributeList(a)));
             }
             else
             {
@@ -886,12 +959,16 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
             }
         }
 
-        private AttributeListSyntax AsAttributeList(SyntaxNode node)
+        private AttributeListSyntax AsAttributeList(SyntaxNode node, bool keepTargets = false)
         {
             var attr = node as AttributeSyntax;
             if (attr != null)
             {
                 return SyntaxFactory.AttributeList(SyntaxFactory.SingletonSeparatedList(attr));
+            }
+            else if (keepTargets)
+            {
+                return (AttributeListSyntax)node;
             }
             else
             {
@@ -1321,7 +1398,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
 
         public override SyntaxNode InsertMembers(SyntaxNode declaration, int index, IEnumerable<SyntaxNode> members)
         {
-            var newMembers = this.AsMembersOf(declaration, members);
+            var newMembers = this.AsMembersOf(declaration, members).OfType<MemberDeclarationSyntax>();
 
             var existingMembers = this.GetMembers(declaration);
             if (index >= 0 && index < existingMembers.Count)
@@ -1362,7 +1439,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
 
         private IEnumerable<MemberDeclarationSyntax> AsMembersOf(SyntaxNode declaration, IEnumerable<SyntaxNode> members)
         {
-            return members != null ? members.Select(m => AsMemberOf(declaration, m)).OfType<MemberDeclarationSyntax>() : null;
+            return members.Select(m => AsMemberOf(declaration, m)).OfType<MemberDeclarationSyntax>();
         }
 
         private SyntaxNode AsMemberOf(SyntaxNode declaration, SyntaxNode member)
@@ -1556,7 +1633,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
                     DeclarationModifiers tmp;
                     this.GetAccessibilityAndModifiers(tokens, out accessibility, out tmp);
                     var newTokens = this.Merge(tokens, AsModifierList(accessibility, modifiers));
-                    return SetModifierTokens(d, newTokens);
+                    return FixWithModifiers(existingModifiers, SetModifierTokens(d, newTokens));
                 });
             }
             else
@@ -1564,6 +1641,21 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
                 // no change
                 return declaration;
             }
+        }
+
+        private SyntaxNode FixWithModifiers(DeclarationModifiers originalMods, SyntaxNode declaration)
+        {
+            var currentMods = this.GetModifiers(declaration);
+            if (currentMods.IsAbstract && HasBody(declaration))
+            {
+                return this.WithoutBody(declaration);
+            }
+            else if (!currentMods.IsAbstract && originalMods.IsAbstract)
+            {
+                return this.WithBody(declaration);
+            }
+
+            return declaration;
         }
 
         private SyntaxTokenList GetModifierTokens(SyntaxNode declaration)
@@ -2465,8 +2557,19 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
                 case DeclarationKind.Interface:
                 case DeclarationKind.Struct:
                 case DeclarationKind.Enum:
+                case DeclarationKind.Delegate:
                 case DeclarationKind.Namespace:
                 case DeclarationKind.CompilationUnit:
+                case DeclarationKind.Method:
+                case DeclarationKind.Operator:
+                case DeclarationKind.ConversionOperator:
+                case DeclarationKind.Constructor:
+                case DeclarationKind.Destructor:
+                case DeclarationKind.Field:
+                case DeclarationKind.Property:
+                case DeclarationKind.Indexer:
+                case DeclarationKind.Event:
+                case DeclarationKind.CustomEvent:
                     var container = this.GetDeclaration(existingNode.Parent);
                     if (container != null)
                     {
@@ -2475,7 +2578,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
                     break;
 
                 case DeclarationKind.Attribute:
-                    return this.AsAttributeList(newNode);
+                    return this.AsAttributeList(newNode, keepTargets: true);
             }
 
             return newNode;
@@ -2769,6 +2872,11 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
 
         public override SyntaxNode WithStatements(SyntaxNode declaration, IEnumerable<SyntaxNode> statements)
         {
+            return Isolate(declaration, d => FixDeclarationWithStatements(WithStatementsInternal(d, statements)));
+        }
+
+        private SyntaxNode WithStatementsInternal(SyntaxNode declaration, IEnumerable<SyntaxNode> statements)
+        {
             BlockSyntax body = CreateBlock(statements);
             BlockSyntax somebody = statements != null ? body : null;
             SyntaxToken semicolon = statements == null ? SyntaxFactory.Token(SyntaxKind.SemicolonToken) : default(SyntaxToken);
@@ -2797,6 +2905,20 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
                 default:
                     return declaration;
             }
+        }
+
+        private SyntaxNode FixDeclarationWithStatements(SyntaxNode declaration)
+        {
+            if (HasBody(declaration))
+            {
+                var mods = GetModifiers(declaration);
+                if (mods.IsAbstract)
+                {
+                    return WithModifiers(declaration, mods.WithIsAbstract(false).WithIsVirtual(true));
+                }
+            }
+
+            return declaration;
         }
 
         public override IReadOnlyList<SyntaxNode> GetAccessors(SyntaxNode declaration)
@@ -3204,6 +3326,8 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
 
         private SyntaxNode InsertNodesBeforeInternal(SyntaxNode root, SyntaxNode declaration, IEnumerable<SyntaxNode> newDeclarations)
         {
+            newDeclarations = this.AsNodesLike(declaration, newDeclarations);
+
             var fullDecl = this.GetFullDeclaration(declaration);
             if (fullDecl == declaration || GetDeclarationCount(fullDecl) == 1)
             {
@@ -3237,6 +3361,8 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
 
         private SyntaxNode InsertNodesAfterInternal(SyntaxNode root, SyntaxNode declaration, IEnumerable<SyntaxNode> newDeclarations)
         {
+            newDeclarations = this.AsNodesLike(declaration, newDeclarations);
+
             var fullDecl = this.GetFullDeclaration(declaration);
             if (fullDecl == declaration || GetDeclarationCount(fullDecl) == 1)
             {
