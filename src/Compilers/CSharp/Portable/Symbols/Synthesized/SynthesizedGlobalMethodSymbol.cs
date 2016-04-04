@@ -15,7 +15,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
     /// <summary>
     /// Represents a compiler generated synthesized method symbol
     /// that must be emitted in the compiler generated
-    /// PrivateImplementationDetails class
+    /// PrivateImplementationDetails class.
     /// </summary>
     internal abstract class SynthesizedGlobalMethodSymbol : MethodSymbol
     {
@@ -73,16 +73,19 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// Synthesized methods that must be emitted in the compiler generated
         /// PrivateImplementationDetails class have null containing type symbol.
         /// </summary>
-        public sealed override Symbol ContainingSymbol
-        {
-            get { return null; }
-        }
+        public sealed override Symbol ContainingSymbol => ContainingType;
 
         public sealed override NamedTypeSymbol ContainingType
         {
             get
             {
-                return null;
+                PrivateImplementationDetails privateImplType = _privateImplType;
+                if (privateImplType.LanguageProxy == (object)null)
+                {
+                    privateImplType.LanguageProxy = new PrivateImplementationDetailsLanguageProxy(DeclaringCompilation, privateImplType);
+                }
+
+                return (NamedTypeSymbol)privateImplType.LanguageProxy;
             }
         }
 

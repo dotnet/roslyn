@@ -768,6 +768,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
             {
                 namedTypeSymbol = AnonymousTypeManager.TranslateAnonymousTypeSymbol(namedTypeSymbol);
             }
+            else if (namedTypeSymbol == (object)PrivateImplClass?.LanguageProxy)
+            {
+                return PrivateImplClass;
+            }
 
             // Substitute error types with a special singleton object.
             // Unreported bad types can come through NoPia embedding, for example.
@@ -1083,7 +1087,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
             Debug.Assert(methodSymbol.IsDefinitionOrDistinct());
 
             // Method of anonymous type being translated
-            if (container?.IsAnonymousType == true)
+            if (container.IsAnonymousType)
             {
                 methodSymbol = AnonymousTypeManager.TranslateAnonymousTypeMethodSymbol(methodSymbol);
             }

@@ -56,6 +56,9 @@ namespace Microsoft.CodeAnalysis.CodeGen
         private ImmutableArray<Cci.ITypeReference> _orderedProxyTypes;
         private readonly ConcurrentDictionary<uint, Cci.ITypeReference> _proxyTypes = new ConcurrentDictionary<uint, Cci.ITypeReference>();
 
+        // proxy for language representation of the PrivateImplementationDetails class
+        private ITypeSymbol _languageProxy;
+
         internal PrivateImplementationDetails(
             Cci.IModule moduleBuilder,
             string moduleName,
@@ -117,6 +120,24 @@ namespace Microsoft.CodeAnalysis.CodeGen
         }
 
         private bool IsFrozen => _frozen != 0;
+
+        /// <summary>
+        /// This is the language-specific type symbol representing the private
+        /// implementation details class. Setter uses Interlocked.CompareExchange so that the
+        /// language proxy is set atomically, therefore the client should always
+        /// use the value from the getter after setting.
+        /// </summary>
+        public ITypeSymbol LanguageProxy
+        {
+            get
+            {
+                return _languageProxy;
+            }
+            internal set
+            {
+                Interlocked.CompareExchange(ref _languageProxy, value, null);
+            }
+        }
 
         internal Cci.IFieldReference CreateDataField(ImmutableArray<byte> data)
         {

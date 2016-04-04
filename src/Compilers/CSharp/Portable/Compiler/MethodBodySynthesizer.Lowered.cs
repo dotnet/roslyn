@@ -290,7 +290,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
     {
         private readonly Emit.PEModuleBuilder _module;
 
-        public SynthesizedAsIntValueMethod(Emit.PEModuleBuilder module, PrivateImplementationDetails pi)
+        public SynthesizedAsIntValueMethod(Emit.PEModuleBuilder module, PrivateImplementationDetails pi, DiagnosticBag diagnostics, CSharpSyntaxNode node)
             : base(module.SourceModule, pi,
                    module.Compilation.GetSpecialType(SpecialType.System_Boolean),
                    PrivateImplementationDetails.AsIntValueName)
@@ -301,6 +301,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 new SynthesizedParameterSymbol(this, compilation.GetSpecialType(SpecialType.System_Object), 0, RefKind.None, "o"),
                 new SynthesizedParameterSymbol(this, compilation.GetSpecialType(SpecialType.System_Int32), 1, RefKind.Out, "value")
                 ));
+            Binder.ReportUseSiteDiagnostics(this.ReturnType, diagnostics, node);
+            Binder.ReportUseSiteDiagnostics(this.Parameters[0].Type, diagnostics, node);
+            Binder.ReportUseSiteDiagnostics(this.Parameters[1].Type, diagnostics, node);
         }
 
         internal override void GenerateMethodBody(TypeCompilationState compilationState, DiagnosticBag diagnostics)
@@ -317,6 +320,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             //        return false;
             //    }
             //    Type t = o.GetType();
+            //    // CONSIDER: Can we use a switch on t.GetTypeCode() if that method exists?
             //    if (t == typeof(byte)) { value = (byte)o; return true; }
             //    if (t == typeof(sbyte)) { value = (sbyte)o; return true; }
             //    if (t == typeof(short)) { value = (short)o; return true; }
@@ -441,7 +445,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
     {
         private readonly Emit.PEModuleBuilder _module;
 
-        public SynthesizedAsLargePositiveMethod(Emit.PEModuleBuilder module, PrivateImplementationDetails pi)
+        public SynthesizedAsLargePositiveMethod(Emit.PEModuleBuilder module, PrivateImplementationDetails pi, DiagnosticBag diagnostics, CSharpSyntaxNode node)
             : base(module.SourceModule, pi,
                    module.Compilation.GetSpecialType(SpecialType.System_Boolean),
                    PrivateImplementationDetails.AsLargePositiveName)
@@ -452,6 +456,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 new SynthesizedParameterSymbol(this, compilation.GetSpecialType(SpecialType.System_Object), 0, RefKind.None, "o"),
                 new SynthesizedParameterSymbol(this, compilation.GetSpecialType(SpecialType.System_UInt64), 1, RefKind.Out, "value")
                 ));
+            Binder.ReportUseSiteDiagnostics(this.ReturnType, diagnostics, node);
+            Binder.ReportUseSiteDiagnostics(this.Parameters[0].Type, diagnostics, node);
+            Binder.ReportUseSiteDiagnostics(this.Parameters[1].Type, diagnostics, node);
         }
         internal override void GenerateMethodBody(TypeCompilationState compilationState, DiagnosticBag diagnostics)
         {
@@ -464,6 +471,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             //    value = 0;
             //    if (o == null) return false;
             //    Type t = o.GetType();
+            //    // CONSIDER: Can we use a switch on t.GetTypeCode() if that method exists?
             //    if (t == typeof(uint))
             //    {
             //        uint ui = (uint)o;
@@ -551,7 +559,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
     {
         private readonly Emit.PEModuleBuilder _module;
 
-        public SynthesizedAsLargeNegativeMethod(Emit.PEModuleBuilder module, PrivateImplementationDetails pi)
+        public SynthesizedAsLargeNegativeMethod(Emit.PEModuleBuilder module, PrivateImplementationDetails pi, DiagnosticBag diagnostics, CSharpSyntaxNode node)
             : base(module.SourceModule, pi, module.Compilation.GetSpecialType(SpecialType.System_Boolean), PrivateImplementationDetails.AsLargeNegativeName)
         {
             this._module = module;
@@ -560,6 +568,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 new SynthesizedParameterSymbol(this, compilation.GetSpecialType(SpecialType.System_Object), 0, RefKind.None, "o"),
                 new SynthesizedParameterSymbol(this, compilation.GetSpecialType(SpecialType.System_Int64), 1, RefKind.Out, "value")
                 ));
+            Binder.ReportUseSiteDiagnostics(this.ReturnType, diagnostics, node);
+            Binder.ReportUseSiteDiagnostics(this.Parameters[0].Type, diagnostics, node);
+            Binder.ReportUseSiteDiagnostics(this.Parameters[1].Type, diagnostics, node);
         }
 
         internal override void GenerateMethodBody(TypeCompilationState compilationState, DiagnosticBag diagnostics)

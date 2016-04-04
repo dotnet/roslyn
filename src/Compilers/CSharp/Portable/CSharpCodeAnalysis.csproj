@@ -686,6 +686,7 @@
     <Compile Include="Symbols\Synthesized\GeneratedLabelSymbol.cs" />
     <Compile Include="Symbols\Synthesized\GeneratedNameKind.cs" />
     <Compile Include="Symbols\Synthesized\GeneratedNames.cs" />
+    <Compile Include="Symbols\Synthesized\PrivateImplementationDetailsLanguageProxy.cs" />
     <Compile Include="Symbols\Synthesized\SynthesizedAccessorValueParameterSymbol.cs" />
     <Compile Include="Symbols\Synthesized\SynthesizedBackingFieldSymbol.cs" />
     <Compile Include="Symbols\Synthesized\SynthesizedContainer.cs" />

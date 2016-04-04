@@ -18,6 +18,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             return CompareWithConstant(input, pattern.Value);
         }
 
+        // A constant is categorized as either
+        // 1. A large negative integral value (less than int.MinValue), in which case we translate via a
+        //    call to a helper method PrivateImplementationDetails.AsLargeNegativeHelper
+        // 2. A large positive integral value (greater than int.MaxValue), using helper AsLargePositiveHelper
+        // 3. An integral value in the range of the type `int` using helper AsIntValueHelper
+        // 4. Something else, which we translate into an invocation of object.Equals(object, object)
         private BoundExpression CompareWithConstant(BoundExpression input, BoundExpression boundConstant)
         {
             // PROTOTYPE(patterns): We can generate excellent code when the input is a constant,
@@ -45,7 +51,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (helper == null)
             {
                 Debug.Assert(this.EmitModule == null);
-                return BadExpression(input);
+                return new BoundBadExpression(
+                    input.Syntax, LookupResultKind.NotReferencable, ImmutableArray<Symbol>.Empty,
+                    ImmutableArray.Create<BoundNode>(input, boundConstant), _factory.SpecialType(SpecialType.System_Boolean));
             }
 
             Debug.Assert(helper.Parameters[0].Type.SpecialType == SpecialType.System_Object);
@@ -66,7 +74,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             var equalsTest =
                 _factory.Binary(comparison, _factory.SpecialType(SpecialType.System_Boolean),
-                    _factory.Convert(comparisonType, _factory.Local(temp)),
+                    _factory.Local(temp),
                     _factory.Convert(comparisonType, boundConstant));
             return _factory.Sequence(temp, _factory.LogicalAnd(call, equalsTest));
         }
@@ -111,7 +119,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return MakePrivateImplementationHelper(
                 node,
                 PrivateImplementationDetails.AsLargeNegativeName,
-                (m, pi) => new SynthesizedAsLargeNegativeMethod(m, pi));
+                (module, pi, diagnostics, node2) => new SynthesizedAsLargeNegativeMethod(module, pi, diagnostics, node2));
         }
 
         private MethodSymbol AsLargePositiveHelper(CSharpSyntaxNode node)
@@ -119,7 +127,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return MakePrivateImplementationHelper(
                 node,
                 PrivateImplementationDetails.AsLargePositiveName,
-                (m, pi) => new SynthesizedAsLargePositiveMethod(m, pi));
+                (module, pi, diagnostics, node2) => new SynthesizedAsLargePositiveMethod(module, pi, diagnostics, node2));
         }
 
         private MethodSymbol AsIntValueHelper(CSharpSyntaxNode node)
@@ -127,13 +135,13 @@ namespace Microsoft.CodeAnalysis.CSharp
             return MakePrivateImplementationHelper(
                 node,
                 PrivateImplementationDetails.AsIntValueName,
-                (m, pi) => new SynthesizedAsIntValueMethod(m, pi));
+                (module, pi, diagnostics, node2) => new SynthesizedAsIntValueMethod(module, pi, diagnostics, node2));
         }
 
         private MethodSymbol MakePrivateImplementationHelper(
             CSharpSyntaxNode node,
             string helperName,
-            Func<Emit.PEModuleBuilder, PrivateImplementationDetails, SynthesizedGlobalMethodSymbol> makeHelper)
+            Func<Emit.PEModuleBuilder, PrivateImplementationDetails, DiagnosticBag, CSharpSyntaxNode, SynthesizedGlobalMethodSymbol> makeHelper)
         {
             var module = this.EmitModule;
             if (module == null)
@@ -141,17 +149,19 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return null;
             }
 
-            // If we have already generated the helper, possibly for another switch
-            // or on another thread, we don't need to regenerate it.
+            // If we have already generated the helper, possibly on another thread, we don't need to regenerate it.
             var privateImplClass = module.GetPrivateImplClass(node, _diagnostics);
             var helper = (MethodSymbol)privateImplClass.GetMethod(helperName);
-            if (helper != (object)null)
+            if (helper == (object)null)
             {
-                return helper;
+                helper = makeHelper(module, privateImplClass, _diagnostics, node);
+                Debug.Assert(helperName == helper.Name);
+                if (!privateImplClass.TryAddSynthesizedMethod(helper))
+                {
+                    helper = (MethodSymbol)privateImplClass.GetMethod(helperName);
+                }
             }
 
-            helper = makeHelper(module, privateImplClass);
-            privateImplClass.TryAddSynthesizedMethod(helper);
             return helper;
         }
     }
