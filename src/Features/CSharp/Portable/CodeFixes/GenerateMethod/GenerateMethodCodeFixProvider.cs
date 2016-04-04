@@ -41,7 +41,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.GenerateMethod
         public override ImmutableArray<string> FixableDiagnosticIds { get; } = 
             GenerateMethodDiagnosticIds.FixableDiagnosticIds;
 
-        protected override bool IsCandidate(SyntaxNode node, Diagnostic diagnostic)
+        protected override bool IsCandidate(SyntaxNode node, SyntaxToken token, Diagnostic diagnostic)
         {
             return node.IsKind(SyntaxKind.IdentifierName) ||
                    node.IsKind(SyntaxKind.MethodDeclaration) ||
