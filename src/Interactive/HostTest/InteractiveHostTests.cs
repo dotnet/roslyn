@@ -216,7 +216,7 @@ System.Console.Error.WriteLine(""error-\u7890!"");
             Assert.Equal("4\r\n", error);
         }
 
-        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/10323")]
+        [Fact]
         public void StackOverflow()
         {
             // Windows Server 2008 (OS v6.0), Vista (OS v6.0) and XP (OS v5.1) ignores SetErrorMode and shows crash dialog, which would hang the test:
