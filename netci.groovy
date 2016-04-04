@@ -2,8 +2,14 @@
 // Jenkins DSL: https://github.com/jenkinsci/job-dsl-plugin/wiki
 
 import jobs.generation.Utilities;
+import static Constants.*;
+
 def project = GithubProject
-def buildTimeLimit = 120
+
+class Constants {
+    // Number of minutes a build job is given to complete.
+    static final BuildTimeLimit = 120;
+}
 
 static void addLogRotator(def myJob) {
   myJob.with {
@@ -51,7 +57,7 @@ static void addWrappers(def myJob) {
   myJob.with {
     wrappers {
       timeout {
-        absolute(buildTimeLimit)
+        absolute(BuildTimeLimit)
         abortBuild()
       }
       timestamps()
@@ -226,7 +232,7 @@ def branchNames = []
                     batchFile("""set TEMP=%WORKSPACE%\\Binaries\\Temp
 mkdir %TEMP%
 set TMP=%TEMP%
-.\\cibuild.cmd ${(configuration == 'dbg') ? '/debug' : '/release'} ${(buildTarget == 'unit32') ? '/test32' : '/test64'} /buildTimeLimit ${buildTimeLimit}""")
+.\\cibuild.cmd ${(configuration == 'dbg') ? '/debug' : '/release'} ${(buildTarget == 'unit32') ? '/test32' : '/test64'} /buildTimeLimit ${BuildTimeLimit}""")
                   }
                 }
                 Utilities.setMachineAffinity(myJob, 'Windows_NT', 'latest-or-auto')
