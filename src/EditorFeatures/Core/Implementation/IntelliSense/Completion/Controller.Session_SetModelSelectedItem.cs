@@ -21,6 +21,13 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
                     updateController: false);
             }
 
+            public void SetModelIsHardSelection(bool isHardSelection)
+            {
+                AssertIsForeground();
+
+                Computation.ChainTaskAndNotifyControllerWhenFinished(model => model?.WithHardSelection(isHardSelection));
+            }
+
             private Model SetModelSelectedItemInBackground(
                 Model model,
                 Func<Model, CompletionItem> selector)

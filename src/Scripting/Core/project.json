@@ -1,6 +1,6 @@
 ﻿{
   "dependencies": {
-    "Microsoft.NETCore.Portable.Compatibility": "1.0.1-beta-23504",
+    "Microsoft.NETCore.Portable.Compatibility": "1.0.0",
     "System.AppContext": "4.0.0",
     "System.Collections": "4.0.10",
     "System.Collections.Immutable": "1.1.37",
@@ -22,8 +22,8 @@
     "System.Threading.Tasks": "4.0.10"
   },
   "frameworks": {
-    "dotnet5.4": {
-      "imports": "portable-net452"
+    "netstandard1.3": {
+      "imports": [ "portable-net452", "dotnet5.4" ]
     }
   }
 }

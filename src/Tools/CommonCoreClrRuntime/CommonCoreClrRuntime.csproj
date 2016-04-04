@@ -5,13 +5,13 @@
   <PropertyGroup>
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
     <Platform Condition=" '$(Platform)' == '' ">x64</Platform>
-    <ProjectGuid>{B5A6057A-EB4C-49FB-987D-943137E72E47}</ProjectGuid>
+    <ProjectGuid>{1B665337-9D6A-451A-AEAC-F7BF1AF95FFB}</ProjectGuid>
     <OutputType>Library</OutputType>
-    <AssemblyName>CommonNetCoreReferences_DoNotUse</AssemblyName>
+    <AssemblyName>CommonCoreClrRuntime_DoNotUse</AssemblyName>
     <Prefer32Bit>false</Prefer32Bit>
     <LargeAddressAware>true</LargeAddressAware>
     <SolutionDir Condition="'$(SolutionDir)' == '' OR '$(SolutionDir)' == '*Undefined*'">..\..\..\..\</SolutionDir>
-    <OutDir>$(OutDir)\CoreClrTest</OutDir>
+    <OutDir>$(OutDir)\CoreClr</OutDir>
     <RestorePackages>true</RestorePackages>
     <AutoGenerateBindingRedirects>True</AutoGenerateBindingRedirects>
     <ProjectTypeGuids>{786C830F-07A1-408B-BD7F-6EE04809D6DB};{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}</ProjectTypeGuids>
@@ -26,12 +26,6 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="project.json" />
-  </ItemGroup>
-  <ItemGroup>
-    <ProjectReference Include="..\CommonCoreClrRuntime\CommonCoreClrRuntime.csproj">
-      <Project>{1b665337-9d6a-451a-aeac-f7bf1af95ffb}</Project>
-      <Name>CommonCoreClrRuntime</Name>
-    </ProjectReference>
   </ItemGroup>
   <ImportGroup Label="Targets">
     <Import Project="..\..\..\build\Targets\VSL.Imports.targets" />
