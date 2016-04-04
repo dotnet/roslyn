@@ -11931,6 +11931,72 @@ False
 False");
         }
 
+        [Fact, WorkItem(9430, "https://github.com/dotnet/roslyn/issues/9430")]
+        public void PatternInLocalFuncion()
+        {
+            var source = @"
+using System;
+
+class Program
+{
+    static void Main(string[] args)
+    {
+        Expression Plus(Expression a, Expression b) => new Plus(a, b);
+        Expression Times(Expression a, Expression b) => new Times(a, b);
+        Expression Constant(double value) => new Constant(value);
+
+        Expression Derivative(Expression expr) => expr match (
+            case Plus(var a, var b) : Plus(Derivative(a), Derivative(b))
+            case Times(var a, var b) : Plus(Times(a, Derivative(b)), Times(Derivative(a), b))
+            case Constant(var v) : Constant(0)
+            case X() : Constant(1)
+            case * : throw new InvalidOperationException()
+            );
+
+        Expression x = new X();
+        var f = Plus(Plus(Times(x, x), Times(Constant(2), x)), Constant(2));
+        var d = Derivative(f);
+        Console.WriteLine(d.Eval(10));
+    }
+}
+
+public abstract class Expression
+{
+    public abstract double Eval(double x);
+}
+public class Plus : Expression
+{
+    public Plus(Expression left, Expression right) { Left = left; Right = right; }
+    public Expression Left { get; }
+    public Expression Right { get; }
+    public override double Eval(double x) => Left.Eval(x) + Right.Eval(x);
+}
+public class Times : Expression
+{
+    public Times(Expression left, Expression right) { Left = left; Right = right; }
+    public Expression Left { get; }
+    public Expression Right { get; }
+    public override double Eval(double x) => Left.Eval(x) * Right.Eval(x);
+}
+public class Constant : Expression
+{
+    public Constant(double value) { Value = value; }
+    public double Value { get; }
+    public override double Eval(double x) => Value;
+}
+public class X : Expression
+{
+    public override double Eval(double x) => x;
+}
+
+";
+            var compilation = CreateCompilationWithMscorlib(source,
+                options: TestOptions.ReleaseExe,
+                parseOptions: patternParseOptions.WithFeature(MessageID.IDS_FeatureLocalFunctions.RequiredFeature(), "true"));
+            compilation.VerifyDiagnostics();
+            var verifier = CompileAndVerify(compilation, expectedOutput: @"22");
+        }
+
         [Fact, WorkItem(10158, "https://github.com/dotnet/roslyn/issues/10158")]
         public void ArrayInPropertyPattern()
         {
