@@ -199,11 +199,43 @@ namespace Microsoft.CodeAnalysis.CSharp
                         }
                         break;
                     case BoundKind.LocalDeclaration:
-                        if (statement.Syntax.Parent.Kind() == SyntaxKind.VariableDeclaration && ((VariableDeclarationSyntax)statement.Syntax.Parent).Variables.Count > 1)
+                        if (statement.Syntax.Parent.Kind() == SyntaxKind.VariableDeclaration)
                         {
-                            // This declaration is part of a MultipleLocalDeclarations statement,
-                            // and so should not be treated as a separate statement.
-                            return visited;
+                            VariableDeclarationSyntax declarationSyntax = (VariableDeclarationSyntax)statement.Syntax.Parent;
+                            if (declarationSyntax.Variables.Count > 1)
+                            {
+                                // This declaration is part of a MultipleLocalDeclarations statement,
+                                // and so should not be treated as a separate statement.
+                                return visited;
+                            }
+
+                            switch (declarationSyntax.Parent.Kind())
+                            {
+                                case SyntaxKind.UsingStatement:
+                                case SyntaxKind.FixedStatement:
+                                    // Using and Fixed statements include a MultipleLocalDeclarations node even when they contain only one declaration,
+                                    // so this declaration should not be treated as a separate statement.
+                                    return visited;
+                            }
+                        }
+                        break;
+                    case BoundKind.MultipleLocalDeclarations:
+                        switch (statement.Syntax.Parent.Kind())
+                        {
+                            case SyntaxKind.UsingStatement:
+                                if (statement.Syntax == ((UsingStatementSyntax)statement.Syntax.Parent).Declaration)
+                                {
+                                    // This statement represents the declarations in a Using statement, and should not be treated as a separate statement.
+                                    return visited;
+                                }
+                                break;
+                            case SyntaxKind.FixedStatement:
+                                if (statement.Syntax == ((FixedStatementSyntax)statement.Syntax.Parent).Declaration)
+                                {
+                                    // This statement represents the declarations in a Fixed statement, and should not be treated as a separate statement.
+                                    return visited;
+                                }
+                                break;
                         }
                         break;
                     default:
@@ -292,6 +324,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                         syntaxForSpan = ((BoundNode)usingStatement.ExpressionOpt ?? usingStatement.DeclarationsOpt).Syntax;
                         break;
                     }
+                case BoundKind.FixedStatement:
+                    syntaxForSpan = ((BoundFixedStatement)statement).Declarations.Syntax;
+                    break;
                 case BoundKind.LockStatement:
                     syntaxForSpan = ((BoundLockStatement)statement).Argument.Syntax;
                     break;

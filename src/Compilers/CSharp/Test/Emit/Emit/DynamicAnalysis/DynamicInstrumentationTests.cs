@@ -307,6 +307,61 @@ True
         }
 
         [Fact]
+        public void UsingAndFixedCoverage()
+        {
+            string source = @"
+using System;
+using System.IO;
+
+public class Program
+{
+    public static void Main(string[] args)
+    {
+        TestMain();
+    }
+
+    static void TestMain()
+    {
+        using (var memoryStream = new MemoryStream())
+        {
+            ;
+        }
+
+        var otherStream = new MemoryStream();
+        using (otherStream)
+        {
+            ;
+        }
+
+        unsafe
+        {
+            double[] a = { 1, 2, 3 };
+            fixed(double* p = a)
+            {
+                ;
+            }
+        }
+    }
+}
+";
+            string expectedOutput = @"Flushing
+1
+True
+2
+True
+True
+True
+True
+True
+True
+True
+True
+";
+           
+            CompilationVerifier verifier = CompileAndVerify(source + InstrumentationHelperSource, options: TestOptions.UnsafeDebugExe,  emitOptions: EmitOptions.Default.WithInstrument("Test.Flag"), expectedOutput: expectedOutput);
+        }
+
+        [Fact]
         public void ManyStatementsCoverage()
         {
             string source = @"
@@ -580,9 +635,9 @@ True
             CompileAndVerify(source + InstrumentationHelperSource, emitOptions: EmitOptions.Default.WithInstrument("Test.Flag"), expectedOutput: expectedOutput);
         }
 
-        private CompilationVerifier CompileAndVerify(string source, EmitOptions emitOptions, string expectedOutput = null)
+        private CompilationVerifier CompileAndVerify(string source, EmitOptions emitOptions, string expectedOutput = null, CompilationOptions options = null)
         {
-            return base.CompileAndVerify(source, expectedOutput: expectedOutput, additionalRefs: s_asyncRefs, emitOptions: emitOptions);
+            return base.CompileAndVerify(source, expectedOutput: expectedOutput, additionalRefs: s_asyncRefs, options: options, emitOptions: emitOptions);
         }
 
         private static readonly MetadataReference[] s_asyncRefs = new[] { MscorlibRef_v4_0_30316_17626, SystemRef_v4_0_30319_17929, SystemCoreRef_v4_0_30319_17929 };
