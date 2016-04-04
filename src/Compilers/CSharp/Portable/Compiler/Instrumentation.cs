@@ -209,17 +209,26 @@ namespace Microsoft.CodeAnalysis.CSharp
                                 return visited;
                             }
 
+                            // A statement that represents the declarations in a using or fixed statement should not be treated as a separate statement.
                             switch (declarationSyntax.Parent.Kind())
                             {
                                 case SyntaxKind.UsingStatement:
+                                    if (declarationSyntax == ((UsingStatementSyntax)declarationSyntax.Parent).Declaration)
+                                    {
+                                        return visited;
+                                    }
+                                    break;
                                 case SyntaxKind.FixedStatement:
-                                    // Using and Fixed statements include a MultipleLocalDeclarations node even when they contain only one declaration,
-                                    // so this declaration should not be treated as a separate statement.
-                                    return visited;
+                                    if (declarationSyntax == ((FixedStatementSyntax)declarationSyntax.Parent).Declaration)
+                                    {
+                                        return visited;
+                                    }
+                                    break;
                             }
                         }
                         break;
                     case BoundKind.MultipleLocalDeclarations:
+                        // Using and fixed statements have a multiple local declarations node even if they contain only one declaration.
                         switch (statement.Syntax.Parent.Kind())
                         {
                             case SyntaxKind.UsingStatement:

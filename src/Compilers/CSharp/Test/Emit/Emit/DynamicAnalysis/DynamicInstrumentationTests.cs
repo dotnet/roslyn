@@ -327,6 +327,11 @@ public class Program
             ;
         }
 
+        using (MemoryStream s1 = new MemoryStream(), s2 = new MemoryStream())
+        {
+            ;
+        }
+
         var otherStream = new MemoryStream();
         using (otherStream)
         {
@@ -340,6 +345,10 @@ public class Program
             {
                 ;
             }
+            fixed(double* q = a, r = a)
+            {
+                ;
+            }
         }
     }
 }
@@ -348,6 +357,10 @@ public class Program
 1
 True
 2
+True
+True
+True
+True
 True
 True
 True
