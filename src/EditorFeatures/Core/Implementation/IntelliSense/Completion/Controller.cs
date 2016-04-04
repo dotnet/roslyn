@@ -124,12 +124,14 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
             else
             {
                 var selectedItem = modelOpt.SelectedItem;
-                var viewSpan = modelOpt.GetSubjectBufferFilterSpanInViewBuffer(selectedItem.FilterSpan);
-                var triggerSpan = modelOpt.GetCurrentSpanInSnapshot(viewSpan, this.TextView.TextSnapshot)
+                var viewSpan = selectedItem == null ? (ViewTextSpan?)null : modelOpt.GetSubjectBufferFilterSpanInViewBuffer(selectedItem.FilterSpan);
+                var triggerSpan = viewSpan == null ? null : modelOpt.GetCurrentSpanInSnapshot(viewSpan.Value, this.TextView.TextSnapshot)
                                           .CreateTrackingSpan(SpanTrackingMode.EdgeInclusive);
 
                 sessionOpt.PresenterSession.PresentItems(
-                    triggerSpan, modelOpt.FilteredItems, selectedItem, modelOpt.Builder, this.SubjectBuffer.GetOption(EditorCompletionOptions.UseSuggestionMode), modelOpt.IsSoftSelection);
+                    triggerSpan, modelOpt.FilteredItems, selectedItem, modelOpt.Builder,
+                    this.SubjectBuffer.GetOption(EditorCompletionOptions.UseSuggestionMode), 
+                    modelOpt.IsSoftSelection, modelOpt.CompletionItemFilters, modelOpt.CompletionItemToFilterText);
             }
         }
 
