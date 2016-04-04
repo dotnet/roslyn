@@ -2,6 +2,7 @@
 
 using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.CodeGen;
+using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 
 namespace Microsoft.CodeAnalysis.CSharp
@@ -21,7 +22,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 MethodSymbol flushPayload = GetFlushPayload(compilation, methodBody.Syntax, diagnostics);
 
                 // Do not instrument the instrumentation helpers if they are part of the current compilation (which occurs only during testing). GetCreatePayload will fail with an infinite recursion if it is instrumented.
-                if ((object)createPayload != null && (object)flushPayload != null && !method.Equals(createPayload) && !method.Equals(flushPayload))
+                // PROTOTYPE (https://github.com/dotnet/roslyn/issues/10266): It is not correct to always skip implict methods, because that will miss field initializers.
+                if ((object)createPayload != null && (object)flushPayload != null && !method.IsImplicitlyDeclared && !method.Equals(createPayload) && !method.Equals(flushPayload))
                 {
                     // Create the symbol for the instrumentation payload.
                     SyntheticBoundNodeFactory factory = new SyntheticBoundNodeFactory(method, methodBody.Syntax, compilationState, diagnostics);
@@ -29,11 +31,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                     TypeSymbol payloadElementType = boolType;
                     ArrayTypeSymbol payloadType = ArrayTypeSymbol.CreateCSharpArray(compilation.Assembly, payloadElementType);
                     FieldSymbol payloadField = GetPayloadField(method, methodOrdinal, payloadType, factory);
+                    bool methodHasExplicitBlock = MethodHasExplicitBlock(method);
 
                     // Synthesize the instrumentation and collect the spans of interest.
 
                     // PROTOTYPE (https://github.com/dotnet/roslyn/issues/9819): Try to integrate instrumentation with lowering, to avoid an extra pass over the bound tree.
-                    BoundBlock newMethodBody = InstrumentationInjectionRewriter.InstrumentMethod(method, methodBody, payloadField, compilationState, diagnostics, debugDocumentProvider, out dynamicAnalysisSpans);
+                    BoundBlock newMethodBody = InstrumentationInjectionRewriter.InstrumentMethod(method, methodBody, methodHasExplicitBlock, payloadField, compilationState, diagnostics, debugDocumentProvider, out dynamicAnalysisSpans);
 
                     // Synthesize the initialization of the instrumentation payload array, using concurrency-safe code:
                     //
@@ -47,6 +50,15 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                     BoundExpression payloadNullTest = factory.Binary(BinaryOperatorKind.ObjectEqual, boolType, factory.Field(null, payloadField), factory.Null(payloadType));
                     BoundStatement payloadIf = factory.If(payloadNullTest, createPayloadCall);
+
+                    // Methods defined without block syntax won't naturally get a sequence point for the entry of the method.
+                    // It is a requirement that there be a sequence point before any executable code. A sequence point
+                    // won't be generated automatically for the synthesized if statement because the if statement is compiler generated, so
+                    // force the generation of a sequence point for the if statement.
+                    if (!methodHasExplicitBlock)
+                    {
+                        payloadIf = factory.SequencePoint(payloadIf.Syntax, payloadIf);
+                    }
 
                     ImmutableArray<BoundStatement> newStatements = newMethodBody.Statements.Insert(0, payloadIf);
                     newMethodBody = newMethodBody.Update(newMethodBody.Locals, newMethodBody.LocalFunctions, newStatements);
@@ -75,6 +87,17 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             dynamicAnalysisSpans = ImmutableArray<SourceSpan>.Empty;
             return methodBody;
+        }
+
+        private static bool MethodHasExplicitBlock(MethodSymbol method)
+        {
+            SourceMethodSymbol asSourceMethod = method.ConstructedFrom as SourceMethodSymbol;
+            if ((object)asSourceMethod != null)
+            {
+                return asSourceMethod.BodySyntax is BlockSyntax;
+            }
+
+            return false;
         }
 
         private static FieldSymbol GetPayloadField(MethodSymbol method, int methodOrdinal, TypeSymbol payloadType, SyntheticBoundNodeFactory factory)
@@ -117,17 +140,18 @@ namespace Microsoft.CodeAnalysis.CSharp
         private readonly TypeCompilationState _compilationState;
         private readonly DiagnosticBag _diagnostics;
         private readonly DebugDocumentProvider _debugDocumentProvider;
+        private readonly bool _methodHasExplicitBlock;
 
-        public static BoundBlock InstrumentMethod(MethodSymbol method, BoundBlock methodBody, FieldSymbol payloadField, TypeCompilationState compilationState, DiagnosticBag diagnostics, DebugDocumentProvider debugDocumentProvider, out ImmutableArray<SourceSpan> dynamicAnalysisSpans)
+        public static BoundBlock InstrumentMethod(MethodSymbol method, BoundBlock methodBody, bool methodHasExplicitBlock, FieldSymbol payloadField, TypeCompilationState compilationState, DiagnosticBag diagnostics, DebugDocumentProvider debugDocumentProvider, out ImmutableArray<SourceSpan> dynamicAnalysisSpans)
         {
             ArrayBuilder<SourceSpan> spansBuilder = ArrayBuilder<SourceSpan>.GetInstance();
-            BoundTreeRewriter collector = new InstrumentationInjectionRewriter(method, spansBuilder, payloadField, compilationState, diagnostics, debugDocumentProvider);
+            BoundTreeRewriter collector = new InstrumentationInjectionRewriter(method, methodHasExplicitBlock, spansBuilder, payloadField, compilationState, diagnostics, debugDocumentProvider);
             BoundBlock newMethodBody = (BoundBlock)collector.Visit(methodBody);
             dynamicAnalysisSpans = spansBuilder.ToImmutableAndFree();
             return newMethodBody;
         }
 
-        private InstrumentationInjectionRewriter(MethodSymbol method, ArrayBuilder<SourceSpan> spansBuilder, FieldSymbol payload, TypeCompilationState compilationState, DiagnosticBag diagnostics, DebugDocumentProvider debugDocumentProvider)
+        private InstrumentationInjectionRewriter(MethodSymbol method, bool methodHasExplicitBlock, ArrayBuilder<SourceSpan> spansBuilder, FieldSymbol payload, TypeCompilationState compilationState, DiagnosticBag diagnostics, DebugDocumentProvider debugDocumentProvider)
         {
             _method = method;
             _spansBuilder = spansBuilder;
@@ -135,10 +159,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             _compilationState = compilationState;
             _diagnostics = diagnostics;
             _debugDocumentProvider = debugDocumentProvider;
+            _methodHasExplicitBlock = methodHasExplicitBlock;
         }
 
         public override BoundNode Visit(BoundNode node)
         {
+            BoundNode visited = base.Visit(node);
             BoundStatement statement = node as BoundStatement;
             if (statement != null)
             {
@@ -157,13 +183,37 @@ namespace Microsoft.CodeAnalysis.CSharp
                     case BoundKind.TryStatement:
                     // A for statement implicitly gets coverage for the initial statements and the increment statement.
                     case BoundKind.ForStatement:
+                        return visited;
+                    case BoundKind.ReturnStatement:
+                        if (!_methodHasExplicitBlock && ((BoundReturnStatement)statement).ExpressionOpt != null)
+                        {
+                            // The return statement for value-returning methods defined without a block is compiler generated, but requires instrumentation.
+                            return ForceCollectDynamicAnalysis(visited);
+                        }
+                        break;
+                    case BoundKind.ExpressionStatement:
+                        if (!_methodHasExplicitBlock)
+                        {
+                            // The assignment statement for a property set method defined without a block is compiler generated, but requires instrumentation.
+                            return ForceCollectDynamicAnalysis(visited);
+                        }
+                        break;
+                    case BoundKind.LocalDeclaration:
+                        if (statement.Syntax.Parent.Kind() == SyntaxKind.VariableDeclaration && ((VariableDeclarationSyntax)statement.Syntax.Parent).Variables.Count > 1)
+                        {
+                            // This declaration is part of a MultipleLocalDeclarations statement,
+                            // and so should not be treated as a separate statement.
+                            return visited;
+                        }
                         break;
                     default:
-                        return CollectDynamicAnalysis(base.Visit(node));
+                        break;
                 }
+
+                return CollectDynamicAnalysis(visited);
             }
 
-            return base.Visit(node);
+            return visited;
         }
         
         private BoundNode CollectDynamicAnalysis(BoundNode node)
@@ -184,6 +234,16 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return statement;
             }
 
+            return CollectDynamicAnalysisCore(statement);
+        }
+
+        private BoundNode ForceCollectDynamicAnalysis(BoundNode node)
+        {
+            return CollectDynamicAnalysisCore((BoundStatement)node);
+        }
+
+        private BoundNode CollectDynamicAnalysisCore(BoundStatement statement)
+        {
             // Add an entry in the spans array.
 
             CSharpSyntaxNode syntaxForSpan = SyntaxForSpan(statement);
