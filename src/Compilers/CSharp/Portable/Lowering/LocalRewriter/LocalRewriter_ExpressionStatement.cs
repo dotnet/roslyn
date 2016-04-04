@@ -22,7 +22,13 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
             else
             {
-                return AddSequencePoint(node.Update(loweredExpression));
+                BoundStatement result = node.Update(loweredExpression);
+                if (this.Instrument && !node.WasCompilerGenerated)
+                {
+                    result = _instrumenter.InstrumentExpressionStatement(node, result);
+                }
+
+                return result;
             }
         }
 

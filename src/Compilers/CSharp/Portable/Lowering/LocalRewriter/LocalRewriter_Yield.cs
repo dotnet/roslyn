@@ -10,12 +10,24 @@ namespace Microsoft.CodeAnalysis.CSharp
     {
         public override BoundNode VisitYieldBreakStatement(BoundYieldBreakStatement node)
         {
-            return AddSequencePoint((BoundStatement)base.VisitYieldBreakStatement(node));
+            var result = (BoundStatement)base.VisitYieldBreakStatement(node);
+            if (this.Instrument && !node.WasCompilerGenerated)
+            {
+                result = _instrumenter.InstrumentYieldBreakStatement(node, result);
+            }
+
+            return result;
         }
 
         public override BoundNode VisitYieldReturnStatement(BoundYieldReturnStatement node)
         {
-            return AddSequencePoint((BoundStatement)base.VisitYieldReturnStatement(node));
+            var result = (BoundStatement)base.VisitYieldReturnStatement(node);
+            if (this.Instrument && !node.WasCompilerGenerated)
+            {
+                result = _instrumenter.InstrumentYieldReturnStatement(node, result);
+            }
+
+            return result;
         }
     }
 }

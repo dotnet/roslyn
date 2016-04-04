@@ -131,9 +131,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             BoundStatement expressionStatement = new BoundExpressionStatement(expressionSyntax, tempAssignment);
-            if (this.GenerateDebugInfo)
+            if (this.Instrument)
             {
-                expressionStatement = AddSequencePoint(usingSyntax, expressionStatement);
+                expressionStatement = _instrumenter.InstrumentUsingTargetCapture(node, expressionStatement);
             }
 
             BoundStatement tryFinally = RewriteUsingStatementTryFinally(usingSyntax, tryBlock, boundTemp);

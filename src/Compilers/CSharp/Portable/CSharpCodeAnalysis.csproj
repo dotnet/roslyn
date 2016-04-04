@@ -378,6 +378,9 @@
     <Compile Include="Lowering\DiagnosticsPass_Warnings.cs" />
     <Compile Include="Lowering\Extensions.cs" />
     <Compile Include="Lowering\InitializerRewriter.cs" />
+    <Compile Include="Lowering\Instrumentation\CompoundInstrumenter.cs" />
+    <Compile Include="Lowering\Instrumentation\DebugInfoInjector.cs" />
+    <Compile Include="Lowering\Instrumentation\Instrumenter.cs" />
     <Compile Include="Lowering\IteratorRewriter\IteratorConstructor.cs" />
     <Compile Include="Lowering\IteratorRewriter\IteratorFinallyMethodSymbol.cs" />
     <Compile Include="Lowering\IteratorRewriter\IteratorMethodToStateMachineRewriter.IteratorFinallyFrame.cs" />

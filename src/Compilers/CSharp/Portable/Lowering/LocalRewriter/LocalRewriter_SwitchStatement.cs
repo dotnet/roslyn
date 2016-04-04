@@ -52,18 +52,9 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             // Create the sequence point if generating debug info and
             // node is not compiler generated
-            if (this.GenerateDebugInfo && !node.WasCompilerGenerated)
+            if (this.Instrument && !node.WasCompilerGenerated)
             {
-                SwitchStatementSyntax switchSyntax = (SwitchStatementSyntax)syntax;
-                TextSpan switchSequencePointSpan = TextSpan.FromBounds(
-                    switchSyntax.SwitchKeyword.SpanStart,
-                    switchSyntax.CloseParenToken.Span.End);
-
-                return new BoundSequencePointWithSpan(
-                    syntax: syntax,
-                    statementOpt: rewrittenStatement,
-                    span: switchSequencePointSpan,
-                    hasErrors: false);
+                rewrittenStatement = _instrumenter.InstrumentSwitchStatement(node, rewrittenStatement);
             }
 
             return rewrittenStatement;

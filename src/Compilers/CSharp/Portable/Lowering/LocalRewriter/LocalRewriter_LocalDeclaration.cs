@@ -12,10 +12,10 @@ namespace Microsoft.CodeAnalysis.CSharp
     {
         public override BoundNode VisitLocalDeclaration(BoundLocalDeclaration node)
         {
-            return RewriteLocalDeclaration(node.Syntax, node.LocalSymbol, VisitExpression(node.InitializerOpt), node.WasCompilerGenerated, node.HasErrors);
+            return RewriteLocalDeclaration(node, node.Syntax, node.LocalSymbol, VisitExpression(node.InitializerOpt), node.HasErrors);
         }
 
-        private BoundStatement RewriteLocalDeclaration(CSharpSyntaxNode syntax, LocalSymbol localSymbol, BoundExpression rewrittenInitializer, bool wasCompilerGenerated = false, bool hasErrors = false)
+        private BoundStatement RewriteLocalDeclaration(BoundLocalDeclaration originalOpt, CSharpSyntaxNode syntax, LocalSymbol localSymbol, BoundExpression rewrittenInitializer, bool hasErrors = false)
         {
             // A declaration of a local variable without an initializer has no associated IL.
             // Simply remove the declaration from the bound tree. The local symbol will
@@ -66,16 +66,18 @@ namespace Microsoft.CodeAnalysis.CSharp
                     localSymbol.RefKind),
                 hasErrors);
 
-            return AddLocalDeclarationSequencePointIfNecessary(syntax, localSymbol, rewrittenLocalDeclaration, wasCompilerGenerated);
+            return AddLocalDeclarationSequencePointIfNecessary(originalOpt, localSymbol, rewrittenLocalDeclaration);
         }
 
-        private BoundStatement AddLocalDeclarationSequencePointIfNecessary(CSharpSyntaxNode syntax, LocalSymbol localSymbol, BoundStatement rewrittenLocalDeclaration, bool wasCompilerGenerated = false)
+        private BoundStatement AddLocalDeclarationSequencePointIfNecessary(BoundLocalDeclaration originalOpt, LocalSymbol localSymbol, BoundStatement rewrittenLocalDeclaration)
         {
             // Add sequence points, if necessary.
-            if (this.GenerateDebugInfo && !wasCompilerGenerated && !localSymbol.IsConst && syntax.Kind() == SyntaxKind.VariableDeclarator)
+            if (this.Instrument && originalOpt?.WasCompilerGenerated == false && !localSymbol.IsConst && 
+                (originalOpt.Syntax.Kind() == SyntaxKind.VariableDeclarator || 
+                    (originalOpt.Syntax.Kind() == SyntaxKind.LocalDeclarationStatement && 
+                        ((LocalDeclarationStatementSyntax)originalOpt.Syntax).Declaration.Variables.Count == 1)))
             {
-                Debug.Assert(syntax.SyntaxTree != null);
-                rewrittenLocalDeclaration = AddSequencePoint((VariableDeclaratorSyntax)syntax, rewrittenLocalDeclaration);
+                rewrittenLocalDeclaration = _instrumenter.InstrumentLocalInitialization(originalOpt, rewrittenLocalDeclaration);
             }
 
             return rewrittenLocalDeclaration;

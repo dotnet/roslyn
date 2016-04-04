@@ -17,12 +17,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             // or if they are expression-bodied properties.
             // We do this to ensure that expression lambdas and expression-bodied
             // properties have sequence points.
-            if (this.GenerateDebugInfo &&
+            if (this.Instrument &&
                 (!rewritten.WasCompilerGenerated ||
                  (node.ExpressionOpt != null && IsLambdaOrExpressionBodiedMember)))
             {
-                // We're not calling AddSequencePoint since it ignores compiler-generated nodes.
-                return new BoundSequencePoint(rewritten.Syntax, rewritten);
+                rewritten = _instrumenter.InstrumentReturnStatement(node, rewritten);
             }
 
             return rewritten;

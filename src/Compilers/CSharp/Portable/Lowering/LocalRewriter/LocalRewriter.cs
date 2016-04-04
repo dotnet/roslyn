@@ -24,6 +24,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         private bool _sawAwait;
         private bool _sawAwaitInExceptionHandler;
         private readonly DiagnosticBag _diagnostics;
+        private readonly Instrumenter _instrumenter;
 
         private LocalRewriter(
             CSharpCompilation compilation,
@@ -33,7 +34,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             SyntheticBoundNodeFactory factory,
             SynthesizedSubmissionFields previousSubmissionFields,
             bool allowOmissionOfConditionalCalls,
-            DiagnosticBag diagnostics)
+            DiagnosticBag diagnostics,
+            Instrumenter instrumenter)
         {
             _compilation = compilation;
             _factory = factory;
@@ -43,6 +45,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             _previousSubmissionFields = previousSubmissionFields;
             _allowOmissionOfConditionalCalls = allowOmissionOfConditionalCalls;
             _diagnostics = diagnostics;
+
+            Debug.Assert(instrumenter != null);
+            _instrumenter = instrumenter;
         }
 
         /// <summary>
@@ -68,7 +73,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             try
             {
                 var factory = new SyntheticBoundNodeFactory(method, statement.Syntax, compilationState, diagnostics);
-                var localRewriter = new LocalRewriter(compilation, method, methodOrdinal, containingType, factory, previousSubmissionFields, allowOmissionOfConditionalCalls, diagnostics);
+                var localRewriter = new LocalRewriter(compilation, method, methodOrdinal, containingType, factory, previousSubmissionFields, allowOmissionOfConditionalCalls, diagnostics,
+                                                     DebugInfoInjector.Singleton);
+
                 var loweredStatement = (BoundStatement)localRewriter.Visit(statement);
                 sawLambdas = localRewriter._sawLambdas;
                 sawLocalFunctions = localRewriter._sawLocalFunctions;
@@ -85,7 +92,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        private bool GenerateDebugInfo
+        private bool Instrument
         {
             get
             {
@@ -123,16 +130,6 @@ namespace Microsoft.CodeAnalysis.CSharp
         private PEModuleBuilder EmitModule
         {
             get { return _factory.CompilationState.ModuleBuilderOpt; }
-        }
-
-        private BoundStatement AddSequencePoint(BoundStatement node)
-        {
-            if (this.GenerateDebugInfo && !node.WasCompilerGenerated)
-            {
-                node = new BoundSequencePoint(node.Syntax, node);
-            }
-
-            return node;
         }
 
         public override BoundNode Visit(BoundNode node)
