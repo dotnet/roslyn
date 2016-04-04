@@ -28,9 +28,33 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
             if (model == null ||
                 this.IsCaretOutsideAllItemBounds(model, caretPoint))
             {
-                // Completions hadn't even been computed yet or the caret is out of bounds.  
+                // Completions hadn't even been computed yet or the caret is out of bounds.
                 // Just cancel everything we're doing.
                 this.StopModelComputation();
+                return;
+            }
+
+            // TODO(cyrusn): Find a way to allow the user to cancel out of this.
+            model = sessionOpt.WaitForModel();
+            if (model == null)
+            {
+                return;
+            }
+
+            if (model.SelectedItem != null && model.IsHardSelection)
+            {
+                // Switch to soft selection, if user moved caret to the start of a non-empty filter span.
+                // This prevents commiting if user types a commit character at this position later, but still has the list if user types filter character
+                // i.e. blah| -> |blah -> !|blah
+                // We want the filter span non-empty because we still want completion in the following case:
+                // A a = new | -> A a = new (|
+
+                var selectedItem = Controller.GetExternallyUsableCompletionItem(model.SelectedItem);
+                var currentSpan = model.GetSubjectBufferFilterSpanInViewBuffer(selectedItem.FilterSpan).TextSpan;
+                if (caretPoint == currentSpan.Start && currentSpan.Length > 0)
+                {
+                    sessionOpt.SetModelIsHardSelection(false);
+                }
             }
         }
 
