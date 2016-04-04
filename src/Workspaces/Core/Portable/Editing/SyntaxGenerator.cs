@@ -1943,6 +1943,11 @@ namespace Microsoft.CodeAnalysis.Editing
         /// </summary>
         public abstract SyntaxNode AwaitExpression(SyntaxNode expression);
 
+        /// <summary>
+        /// Creates an nameof expression.
+        /// </summary>
+        public abstract SyntaxNode NameOfExpression(SyntaxNode expression);
+
         #endregion
     }
 }
