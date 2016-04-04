@@ -3,8 +3,7 @@
 
 import jobs.generation.Utilities;
 def project = GithubProject
-
-buildTimeLimit = 120
+def buildTimeLimit = 120
 
 static void addLogRotator(def myJob) {
   myJob.with {
