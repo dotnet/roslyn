@@ -14,7 +14,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.PopulateSwi
         internal override Tuple<DiagnosticAnalyzer, CodeFixProvider> CreateDiagnosticProviderAndFixer(Workspace workspace)
         {
             return new Tuple<DiagnosticAnalyzer, CodeFixProvider>(
-                new CSharpPopulateSwitchDiagnosticAnalyzer(), new PopulateSwitchCodeFixProvider());
+                new CSharpPopulateSwitchDiagnosticAnalyzer(), new CSharpPopulateSwitchCodeFixProvider());
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsPopulateSwitch)]
@@ -33,13 +33,13 @@ namespace ConsoleApplication1
         void Method()
         {
             var e = MyEnum.Fizz;
-            switch (e)
+            switch ([|e|])
             {
-                [|case MyEnum.Fizz:
+                case MyEnum.Fizz:
                 case MyEnum.Buzz:
                 case MyEnum.FizzBuzz:
                 default:
-                    break;|]
+                    break;
             }
         }
     }
@@ -63,12 +63,12 @@ namespace ConsoleApplication1
         void Method()
         {
             var e = MyEnum.Fizz;
-            switch (e)
+            switch ([|e|])
             {
-                [|case MyEnum.Fizz:
+                case MyEnum.Fizz:
                 case MyEnum.Buzz:
                 case MyEnum.FizzBuzz:
-                    break;|]
+                    break;
             }
         }
     }
@@ -117,11 +117,11 @@ namespace ConsoleApplication1
         void Method()
         {
             var e = MyEnum.Fizz;
-            switch (e)
+            switch ([|e|])
             {
-                [|case MyEnum.Fizz:
+                case MyEnum.Fizz:
                 case MyEnum.Buzz:
-                    break;|]
+                    break;
             }
         }
     }
@@ -171,13 +171,13 @@ namespace ConsoleApplication1
         void Method()
         {
             var e = MyEnum.Fizz;
-            switch (e)
+            switch ([|e|])
             {
-                [|case MyEnum.Fizz:
+                case MyEnum.Fizz:
                 case MyEnum.Buzz:
                     break;
                 default:
-                    break;|]
+                    break;
             }
         }
     }
@@ -227,11 +227,11 @@ namespace ConsoleApplication1
         void Method()
         {
             var e = MyEnum.Fizz;
-            switch (e)
+            switch ([|e|])
             {
-                [|case MyEnum.Fizz:
+                case MyEnum.Fizz:
                 case MyEnum.Buzz:
-                    break;|]
+                    break;
             }
         }
     }
@@ -281,12 +281,12 @@ namespace ConsoleApplication1
         void Method()
         {
             var e = MyEnum.Fizz;
-            switch (e)
+            switch ([|e|])
             {
-                [|case MyEnum.Fizz:
+                case MyEnum.Fizz:
                 case MyEnum.Buzz:
                 default:
-                    break;|]
+                    break;
             }
         }
     }
@@ -335,13 +335,13 @@ namespace ConsoleApplication1
         void Method()
         {
             var e = MyEnum.Fizz;
-            switch (e)
+            switch ([|e|])
             {
-                [|default:
+                default:
                     break;
                 case MyEnum.Fizz:
                 case MyEnum.Buzz:
-                    break;|]
+                    break;
             }
         }
     }
@@ -391,9 +391,8 @@ namespace ConsoleApplication1
         void Method()
         {
             var e = MyEnum.Fizz;
-            switch (e)
+            switch ([|e|])
             {
-                [||]
             }
         }
     }
@@ -441,9 +440,9 @@ namespace ConsoleApplication1
         void Method()
         {
             var e = Append;
-            switch (e)
+            switch ([|e|])
             {
-                [|case CreateNew:
+                case CreateNew:
                     break;
                 case Create:
                     break;
@@ -456,7 +455,7 @@ namespace ConsoleApplication1
                 case Append:
                     break;
                 default:
-                    break;|]
+                    break;
             }
         }
     }
@@ -477,9 +476,9 @@ namespace ConsoleApplication1
         void Method()
         {
             var e = Append;
-            switch (e)
+            switch ([|e|])
             {
-                [|case CreateNew:
+                case CreateNew:
                     break;
                 case OpenOrCreate:
                     break;
@@ -492,7 +491,7 @@ namespace ConsoleApplication1
                 case Create:
                     break;
                 default:
-                    break;|]
+                    break;
             }
         }
     }
@@ -513,9 +512,9 @@ namespace ConsoleApplication1
         void Method()
         {
             var e = Append;
-            switch (e)
+            switch ([|e|])
             {
-                [|case CreateNew:
+                case CreateNew:
                     break;
                 case Create:
                     break;
@@ -524,7 +523,7 @@ namespace ConsoleApplication1
                 case OpenOrCreate:
                     break;
                 default:
-                    break;|]
+                    break;
             }
         }
     }
@@ -549,9 +548,9 @@ namespace ConsoleApplication1
                     break;
                 case OpenOrCreate:
                     break;
-                case Append:
+                case System.IO.FileMode.Truncate:
                     break;
-                case Truncate:
+                case System.IO.FileMode.Append:
                     break;
                 default:
                     break;
@@ -575,8 +574,8 @@ namespace ConsoleApplication1
         void Method()
         {
             var e = Append;
-            switch (e)
-            {[||]
+            switch ([|e|])
+            {
             }
         }
     }
@@ -593,17 +592,17 @@ namespace ConsoleApplication1
             var e = Append;
             switch (e)
             {
-                case CreateNew:
+                case System.IO.FileMode.CreateNew:
                     break;
-                case Create:
+                case System.IO.FileMode.Create:
                     break;
-                case Open:
+                case System.IO.FileMode.Open:
                     break;
-                case OpenOrCreate:
+                case System.IO.FileMode.OpenOrCreate:
                     break;
-                case Truncate:
+                case System.IO.FileMode.Truncate:
                     break;
-                case Append:
+                case System.IO.FileMode.Append:
                     break;
                 default:
                     break;
@@ -632,12 +631,12 @@ namespace ConsoleApplication1
         void Method()
         {
             var e = MyEnum.Fizz;
-            switch (e)
+            switch ([|e|])
             {
-                [|case MyEnum.Fizz:
+                case MyEnum.Fizz:
                 case MyEnum.Buzz:
                 default:
-                    break;|]
+                    break;
             }
         }
     }
@@ -663,12 +662,12 @@ namespace ConsoleApplication1
         void Method()
         {
             var e = MyEnum.Fizz;
-            switch (e)
+            switch ([|e|])
             {
-                [|case MyEnum.Fizz:
+                case MyEnum.Fizz:
                 case MyEnum.Buzz:
                 default:
-                    break;|]
+                    break;
             }
         }
     }
@@ -693,12 +692,12 @@ namespace ConsoleApplication1
         void Method()
         {
             var e = MyEnum.Fizz;
-            switch (e)
+            switch ([|e|])
             {
-                [|case MyEnum.Fizz:
+                case MyEnum.Fizz:
                 case MyEnum.Buzz:
                 default:
-                    break;|]
+                    break;
             }
         }
     }
@@ -723,12 +722,12 @@ namespace ConsoleApplication1
         void Method()
         {
             var e = MyEnum.Fizz;
-            switch (e)
+            switch ([|e|])
             {
-                [|case MyEnum.Fizz:
+                case MyEnum.Fizz:
                 case MyEnum.Buzz:
                 default:
-                    break;|]
+                    break;
             }
         }
     }
@@ -753,11 +752,11 @@ namespace ConsoleApplication1
         void Method()
         {
             var e = MyEnum.Fizz;
-            switch (e)
+            switch ([|e|])
             {
-                [|case MyEnum.Fizz:
+                case MyEnum.Fizz:
                 case MyEnum.Buzz:
-                    break;|]
+                    break;
             }
         }
     }
@@ -809,11 +808,11 @@ namespace ConsoleApplication1
         void Method()
         {
             var e = MyEnum.Fizz;
-            switch (e)
+            switch ([|e|])
             {
-                [|case MyEnum.Fizz:
+                case MyEnum.Fizz:
                 case MyEnum.Buzz:
-                    break;|]
+                    break;
             }
         }
     }
@@ -861,12 +860,12 @@ namespace ConsoleApplication1
         void Method()
         {
             var e = ""test"";
-            switch (e)
+            switch ([|e|])
             {
-                [|case ""test1"":
+                case ""test1"":
                 case ""test1"":
                 default:
-                    break;|]
+                    break;
             }
         }
     }

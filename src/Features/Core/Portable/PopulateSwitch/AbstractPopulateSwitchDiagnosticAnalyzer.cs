@@ -1,11 +1,11 @@
 ﻿using Microsoft.CodeAnalysis.Shared.Extensions;
-using Microsoft.CodeAnalysis.Text;
+using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Threading;
 
 namespace Microsoft.CodeAnalysis.Diagnostics.PopulateSwitch
 {
-    internal abstract class PopulateSwitchDiagnosticAnalyzerBase<TLanguageKindEnum> : DiagnosticAnalyzer, IBuiltInAnalyzer where TLanguageKindEnum : struct
+    internal abstract class AbstractPopulateSwitchDiagnosticAnalyzerBase<TLanguageKindEnum> : DiagnosticAnalyzer, IBuiltInAnalyzer where TLanguageKindEnum : struct
     {
         private static readonly LocalizableString s_localizableTitle = new LocalizableResourceString(nameof(FeaturesResources.AddMissingStatements), FeaturesResources.ResourceManager, typeof(FeaturesResources));
         private static readonly LocalizableString s_localizableMessage = new LocalizableResourceString(nameof(WorkspacesResources.PopulateSwitch), WorkspacesResources.ResourceManager, typeof(WorkspacesResources));
@@ -14,24 +14,18 @@ namespace Microsoft.CodeAnalysis.Diagnostics.PopulateSwitch
                                                                     s_localizableTitle,
                                                                     s_localizableMessage,
                                                                     DiagnosticCategory.EditAndContinue,
-                                                                    DiagnosticSeverity.Hidden,
+                                                                    DiagnosticSeverity.Warning,
                                                                     isEnabledByDefault: true,
                                                                     customTags: DiagnosticCustomTags.Unnecessary);
 
         #region Interface methods
 
-        public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics
-        {
-            get
-            {
-                return ImmutableArray.Create(s_descriptor);
-            }
-        }
+        public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics => ImmutableArray.Create(s_descriptor);
 
         public override void Initialize(AnalysisContext context)
         {
             context.RegisterSyntaxNodeAction(
-                (nodeContext) =>
+                nodeContext =>
                 {
                     Diagnostic diagnostic;
                     if (TryPopulateSwitch(nodeContext.SemanticModel, nodeContext.Node, out diagnostic, nodeContext.CancellationToken))
@@ -42,24 +36,74 @@ namespace Microsoft.CodeAnalysis.Diagnostics.PopulateSwitch
                 SyntaxKindsOfInterest);
         }
 
-        public abstract ImmutableArray<TLanguageKindEnum> SyntaxKindsOfInterest { get; }
+        protected abstract ImmutableArray<TLanguageKindEnum> SyntaxKindsOfInterest { get; }
 
         #endregion
 
-        protected abstract bool SwitchIsFullyPopulated(SemanticModel model, SyntaxNode node, CancellationToken cancellationToken);
-        protected abstract TextSpan GetDiagnosticSpan(SyntaxNode node);
+        protected abstract SyntaxNode GetExpression(SyntaxNode node);
+        protected abstract List<SyntaxNode> GetCaseLabels(SyntaxNode node, out bool hasDefaultCase);
+
+        private bool SwitchIsFullyPopulated(SemanticModel model, SyntaxNode node)
+        {
+            var enumType = model.GetTypeInfo(GetExpression(node)).Type as INamedTypeSymbol;
+            if (enumType == null || enumType.TypeKind != TypeKind.Enum)
+            {
+                return true;
+            }
+
+            // ignore enums marked with Flags per spec: https://github.com/dotnet/roslyn/issues/6766#issuecomment-156878851
+            foreach (var attribute in enumType.GetAttributes())
+            {
+                var containingClass = attribute.AttributeClass.ToDisplayString();
+                if (containingClass == typeof(System.FlagsAttribute).FullName)
+                {
+                    return true;
+                }
+            }
+
+            bool hasDefaultCase;
+            var caseLabels = GetCaseLabels(node, out hasDefaultCase);
+
+            if (!hasDefaultCase)
+            {
+                return false;
+            }
+
+            var labelSymbols = new List<ISymbol>();
+            foreach (var label in caseLabels)
+            {
+                labelSymbols.Add(model.GetSymbolInfo(label).Symbol);
+            }
+
+            foreach (var member in enumType.GetMembers())
+            {
+                // skip `.ctor` and `__value`
+                var fieldSymbol = member as IFieldSymbol;
+                if (fieldSymbol == null || fieldSymbol.Type.SpecialType != SpecialType.None)
+                {
+                    continue;
+                }
+                
+                if (!labelSymbols.Contains(member))
+                {
+                    return false;
+                }
+            }
+
+            return true;
+        }
 
         private bool TryPopulateSwitch(SemanticModel model, SyntaxNode node, out Diagnostic diagnostic, CancellationToken cancellationToken)
         {
             diagnostic = default(Diagnostic);
 
-            if (SwitchIsFullyPopulated(model, node, cancellationToken))
+            if (SwitchIsFullyPopulated(model, node))
             {
                 return false;
             }
 
             var tree = model.SyntaxTree;
-            var span = GetDiagnosticSpan(node);
+            var span = GetExpression(node).Span;
             if (tree.OverlapsHiddenPosition(span, cancellationToken))
             {
                 return false;

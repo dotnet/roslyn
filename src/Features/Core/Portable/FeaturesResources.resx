@@ -916,4 +916,7 @@ This version used in: {2}</value>
   <data name="AddMissingStatements" xml:space="preserve">
     <value>Add missing statements to switch</value>
   </data>
+  <data name="AddSwitchLabels" xml:space="preserve">
+    <value>Add Missing Labels</value>
+  </data>
 </root>

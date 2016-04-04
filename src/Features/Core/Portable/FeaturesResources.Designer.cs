@@ -242,6 +242,15 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Add Missing Labels.
+        /// </summary>
+        internal static string AddSwitchLabels {
+            get {
+                return ResourceManager.GetString("AddSwitchLabels", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to An active statement has been removed from its original method. You must revert your changes to continue or restart the debugging session..
         /// </summary>
         internal static string AnActiveStatementHasBeenRemoved {

@@ -6,7 +6,6 @@ namespace Microsoft.CodeAnalysis.CodeFixes
     {
         public const string AddAwait = "Add Await For Expression";
         public const string AddAsync = "Add Async To Member";
-        public const string AddLabelsToSwitch = "Add Labels To Switch";
         public const string ChangeReturnType = "Change Return Type";
         public const string ChangeToYield = "Change To Yield";
         public const string ConvertToAsync = "Convert To Async";
@@ -29,6 +28,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes
         public const string ImplementInterface = "Implement Interface";
         public const string InsertMissingCast = nameof(InsertMissingCast);
         public const string MoveToTopOfFile = "Move To Top Of File";
+        public const string PopulateSwitch = "Populate Switch";
         public const string RemoveUnnecessaryCast = "Remove Unnecessary Casts";
         public const string RemoveUnnecessaryImports = "Remove Unnecessary Usings or Imports";
         public const string RenameTracking = "Rename Tracking";

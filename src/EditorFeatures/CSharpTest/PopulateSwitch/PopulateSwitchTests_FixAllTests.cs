@@ -26,12 +26,12 @@ namespace ConsoleApplication1
         void Method()
         {
             var e = MyEnum.Fizz;
-            switch (e)
+            switch ({|FixAllInDocument:e|})
             {
-                {|FixAllInDocument:case MyEnum.Fizz:
+                case MyEnum.Fizz:
                 case MyEnum.Buzz:
                 case MyEnum.FizzBuzz:
-                    break;|}
+                    break;
             }
             switch (e)
             {
@@ -190,12 +190,12 @@ namespace ConsoleApplication1
         void Method()
         {
             var e = MyEnum.Fizz;
-            switch (e)
+            switch ({|FixAllInProject:e|})
             {
-                {|FixAllInProject:case MyEnum.Fizz:
+                case MyEnum.Fizz:
                 case MyEnum.Buzz:
                 case MyEnum.FizzBuzz:
-                    break;|}
+                    break;
             }
         }
     }
@@ -340,12 +340,12 @@ namespace ConsoleApplication1
         void Method()
         {
             var e = MyEnum1.Fizz;
-            switch (e)
+            switch ({|FixAllInSolution:e|})
             {
-                {|FixAllInSolution:case MyEnum1.Fizz:
+                case MyEnum1.Fizz:
                 case MyEnum1.Buzz:
                 case MyEnum1.FizzBuzz:
-                    break;|}
+                    break;
             }
         }
     }

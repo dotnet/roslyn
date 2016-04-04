@@ -80,8 +80,6 @@
     <Compile Include="CodeFixes\ImplementInterface\ImplementInterfaceCodeFixProvider.cs" />
     <Compile Include="CodeFixes\Iterator\CSharpAddYieldCodeFixProvider.cs" />
     <Compile Include="CodeFixes\Iterator\CSharpChangeToIEnumerableCodeFixProvider.cs" />
-    <Compile Include="CodeFixes\PopulateSwitch\PopulateSwitchCodeFixProvider.cs" />
-    <Compile Include="CodeFixes\PopulateSwitch\PopulateSwitchCodeFixProvider.PopulateSwitchFixAllProvider.cs" />
     <Compile Include="CodeFixes\RemoveUnnecessaryCast\RemoveUnnecessaryCastCodeFixProvider.RemoveUnnecessaryCastFixAllProvider.cs" />
     <Compile Include="CodeFixes\RemoveUnnecessaryCast\RemoveUnnecessaryCastCodeFixProvider.cs" />
     <Compile Include="CodeFixes\RemoveUnnecessaryUsings\RemoveUnnecessaryUsingsCodeFixProvider.cs" />
@@ -267,7 +265,7 @@
       <DesignTime>True</DesignTime>
       <DependentUpon>CSharpFeaturesResources.resx</DependentUpon>
     </Compile>
-    <Compile Include="Diagnostics\Analyzers\CSharpPopulateSwitchDiagnosticAnalyzer.cs" />
+    <Compile Include="PopulateSwitch\CSharpPopulateSwitchDiagnosticAnalyzer.cs" />
     <Compile Include="Diagnostics\Analyzers\CSharpUnboundIdentifiersDiagnosticAnalyzer.cs" />
     <Compile Include="Diagnostics\Analyzers\CSharpRemoveUnnecessaryCastDiagnosticAnalyzer.cs" />
     <Compile Include="Diagnostics\Analyzers\CSharpRemoveUnnecessaryImportsDiagnosticAnalyzer.cs" />
@@ -352,6 +350,7 @@
     <Compile Include="Organizing\Organizers\OperatorDeclarationOrganizer.cs" />
     <Compile Include="Organizing\Organizers\PropertyDeclarationOrganizer.cs" />
     <Compile Include="Organizing\Organizers\StructDeclarationOrganizer.cs" />
+    <Compile Include="PopulateSwitch\CSharpPopulateSwitchCodeFixProvider.cs" />
     <Compile Include="RemoveUnnecessaryImports\CSharpRemoveUnnecessaryImportsService.cs" />
     <Compile Include="RemoveUnnecessaryImports\CSharpRemoveUnnecessaryImportsService.Rewriter.cs" />
     <Compile Include="ReplaceMethodWithProperty\CSharpReplaceMethodWithPropertyService.cs" />

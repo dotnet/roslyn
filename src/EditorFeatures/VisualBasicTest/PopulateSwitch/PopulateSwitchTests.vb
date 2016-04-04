@@ -8,7 +8,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Diagnostics.Popula
         Inherits AbstractVisualBasicDiagnosticProviderBasedUserDiagnosticTest
 
         Friend Overrides Function CreateDiagnosticProviderAndFixer(workspace As Workspace) As Tuple(Of DiagnosticAnalyzer, CodeFixProvider)
-            Return New Tuple(Of DiagnosticAnalyzer, CodeFixProvider)(New VisualBasicPopulateSwitchDiagnosticAnalyzer(), New PopulateSwitchCodeFixProvider())
+            Return New Tuple(Of DiagnosticAnalyzer, CodeFixProvider)(New VisualBasicPopulateSwitchDiagnosticAnalyzer(), New VisualBasicPopulateSwitchCodeFixProvider())
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsPopulateSwitch)>
@@ -23,15 +23,15 @@ End Enum
 Class Foo
     Sub Bar()
         Dim e = MyEnum.Fizz
-        Select Case e
-            [|Case MyEnum.Fizz
+        Select Case [|e|]
+            Case MyEnum.Fizz
                 Exit Select
             Case MyEnum.Buzz
                 Exit Select
             Case MyEnum.FizzBuzz
                 Exit Select
             Case Else
-                Exit Select|]
+                Exit Select
         End Select
     End Sub
 End Class
@@ -39,7 +39,7 @@ End Class
 
             Await TestMissingAsync(markup)
         End Function
-        
+
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsPopulateSwitch)>
         Public Async Function AllMembersExist_NotElse() As Task
             Dim markup =
@@ -52,13 +52,13 @@ End Enum
 Class Foo
     Sub Bar()
         Dim e = MyEnum.Fizz
-        Select Case e
-            [|Case MyEnum.Fizz
+        Select Case [|e|]
+            Case MyEnum.Fizz
                 Exit Select
             Case MyEnum.Buzz
                 Exit Select
             Case MyEnum.FizzBuzz
-                Exit Select|]
+                Exit Select
         End Select
     End Sub
 End Class
@@ -90,7 +90,7 @@ End Class
 
             Await TestAsync(markup, expected, compareTokens:=False)
         End Function
-        
+
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsPopulateSwitch)>
         Public Async Function NotAllMembersExist_NotElse() As Task
             Dim markup =
@@ -103,11 +103,11 @@ End Enum
 Class Foo
     Sub Bar()
         Dim e = MyEnum.Fizz
-        Select Case e
-            [|Case MyEnum.Fizz
+        Select Case [|e|]
+            Case MyEnum.Fizz
                 Exit Select
             Case MyEnum.Buzz
-                Exit Select|]
+                Exit Select
         End Select
     End Sub
 End Class
@@ -139,7 +139,7 @@ End Class
 
             Await TestAsync(markup, expected, compareTokens:=False)
         End Function
-        
+
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsPopulateSwitch)>
         Public Async Function NotAllMembersExist_WithElse() As Task
             Dim markup =
@@ -152,13 +152,13 @@ End Enum
 Class Foo
     Sub Bar()
         Dim e = MyEnum.Fizz
-        Select Case e
-            [|Case MyEnum.Fizz
+        Select Case [|e|]
+            Case MyEnum.Fizz
                 Exit Select
             Case MyEnum.Buzz
                 Exit Select
             Case Else
-                Exit Select|]
+                Exit Select
         End Select
     End Sub
 End Class
@@ -190,7 +190,7 @@ End Class
 
             Await TestAsync(markup, expected, compareTokens:=False)
         End Function
-        
+
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsPopulateSwitch)>
         Public Async Function NotAllMembersExist_NotElse_EnumHasExplicitType() As Task
             Dim markup =
@@ -203,11 +203,11 @@ End Enum
 Class Foo
     Sub Bar()
         Dim e = MyEnum.Fizz
-        Select Case e
-            [|Case MyEnum.Fizz
+        Select Case [|e|]
+            Case MyEnum.Fizz
                 Exit Select
             Case MyEnum.Buzz
-                Exit Select|]
+                Exit Select
         End Select
     End Sub
 End Class
@@ -239,7 +239,7 @@ End Class
 
             Await TestAsync(markup, expected, compareTokens:=False)
         End Function
-        
+
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsPopulateSwitch)>
         Public Async Function NotAllMembersExist_WithMembersAndElseInBlock_NewValuesAboveElseBlock() As Task
             Dim markup =
@@ -252,12 +252,12 @@ End Enum
 Class Foo
     Sub Bar()
         Dim e = MyEnum.Fizz
-        Select Case e
-            [|Case MyEnum.Fizz
+        Select Case [|e|]
+            Case MyEnum.Fizz
                 Exit Select
             Case MyEnum.Buzz
             Case Else
-                Exit Select|]
+                Exit Select
         End Select
     End Sub
 End Class
@@ -301,7 +301,7 @@ End Enum
 Class Foo
     Sub Bar()
         Dim e = MyEnum.Fizz
-        Select Case e[||]
+        Select Case [|e|]
         End Select
     End Sub
 End Class
@@ -330,7 +330,7 @@ Class Foo
     End Sub
 End Class
 </File>
-            
+
             Await TestAsync(markup, expected, compareTokens:=False)
         End Function
 
@@ -347,8 +347,8 @@ End Enum
 Class Foo
     Sub Bar()
         Dim e = CreateNew
-        Select Case e
-            [|Case CreateNew
+        Select Case [|e|]
+            Case CreateNew
                 Exit Select
             Case Create
                 Exit Select
@@ -361,12 +361,12 @@ Class Foo
             Case Append
                 Exit Select
             Case Else
-                Exit Select|]
+                Exit Select
         End Select
     End Sub
 End Class
 </File>
-            
+
             Await TestMissingAsync(markup)
         End Function
 
@@ -383,8 +383,8 @@ End Enum
 Class Foo
     Sub Bar()
         Dim e = CreateNew
-        Select Case e
-            [|Case Truncate
+        Select Case [|e|]
+            Case Truncate
                 Exit Select
             Case Append
                 Exit Select
@@ -397,12 +397,12 @@ Class Foo
             Case Create
                 Exit Select
             Case Else
-                Exit Select|]
+                Exit Select
         End Select
     End Sub
 End Class
 </File>
-            
+
             Await TestMissingAsync(markup)
         End Function
 
@@ -419,21 +419,21 @@ End Enum
 Class Foo
     Sub Bar()
         Dim e = CreateNew
-        Select Case e
-            [|Case CreateNew
+        Select Case [|e|]
+            Case CreateNew
                 Exit Select
             Case Create
                 Exit Select
             Case Open
                 Exit Select
             Case Else
-                Exit Select|]
+                Exit Select
         End Select
     End Sub
 End Class
 </File>
 
-                        Dim expected =
+            Dim expected =
 <File>
 Imports System.IO.FileMode
 Enum MyEnum
@@ -451,11 +451,11 @@ Class Foo
                 Exit Select
             Case Open
                 Exit Select
-            Case System.IO.FileMode.Append
+            Case System.IO.FileMode.OpenOrCreate
                 Exit Select
             Case System.IO.FileMode.Truncate
                 Exit Select
-            Case System.IO.FileMode.OpenOrCreate
+            Case System.IO.FileMode.Append
                 Exit Select
             Case Else
                 Exit Select
@@ -463,7 +463,7 @@ Class Foo
     End Sub
 End Class
 </File>
-            
+
             Await TestAsync(markup, expected, compareTokens:=False)
         End Function
 
@@ -480,14 +480,14 @@ End Enum
 Class Foo
     Sub Bar()
         Dim e = CreateNew
-        Select Case e
-            [||]
+        Select Case [|e|]
+            
         End Select
     End Sub
 End Class
 </File>
 
-                        Dim expected =
+            Dim expected =
 <File>
 Imports System.IO.FileMode
 Enum MyEnum
@@ -517,10 +517,10 @@ Class Foo
     End Sub
 End Class
 </File>
-            
+
             Await TestAsync(markup, expected, compareTokens:=False)
         End Function
-        
+
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsPopulateSwitch)>
         Public Async Function NotAllMembersExist_EnumIsFlags() As Task
             Dim markup =
@@ -535,11 +535,11 @@ End Enum
 Class Foo
     Sub Bar()
         Dim e = MyEnum.Fizz
-        Select Case e
-            [|Case MyEnum.Fizz
+        Select Case [|e|]
+            Case MyEnum.Fizz
                 Exit Select
             Case MyEnum.Buzz
-                Exit Select|]
+                Exit Select
         End Select
     End Sub
 End Class
@@ -547,7 +547,7 @@ End Class
 
             Await TestMissingAsync(markup)
         End Function
-        
+
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsPopulateSwitch)>
         Public Async Function NotAllMembersExist_EnumIsFlagsAttribute() As Task
             Dim markup =
@@ -562,11 +562,11 @@ End Enum
 Class Foo
     Sub Bar()
         Dim e = MyEnum.Fizz
-        Select Case e
-            [|Case MyEnum.Fizz
+        Select Case [|e|]
+            Case MyEnum.Fizz
                 Exit Select
             Case MyEnum.Buzz
-                Exit Select|]
+                Exit Select
         End Select
     End Sub
 End Class
@@ -574,7 +574,7 @@ End Class
 
             Await TestMissingAsync(markup)
         End Function
-        
+
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsPopulateSwitch)>
         Public Async Function NotAllMembersExist_EnumIsFullyQualifiedSystemFlags() As Task
             Dim markup =
@@ -588,11 +588,11 @@ End Enum
 Class Foo
     Sub Bar()
         Dim e = MyEnum.Fizz
-        Select Case e
-            [|Case MyEnum.Fizz
+        Select Case [|e|]
+            Case MyEnum.Fizz
                 Exit Select
             Case MyEnum.Buzz
-                Exit Select|]
+                Exit Select
         End Select
     End Sub
 End Class
@@ -600,7 +600,7 @@ End Class
 
             Await TestMissingAsync(markup)
         End Function
-        
+
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsPopulateSwitch)>
         Public Async Function NotAllMembersExist_EnumIsFullyQualifiedSystemFlagsAttribute() As Task
             Dim markup =
@@ -614,11 +614,11 @@ End Enum
 Class Foo
     Sub Bar()
         Dim e = MyEnum.Fizz
-        Select Case e
-            [|Case MyEnum.Fizz
+        Select Case [|e|]
+            Case MyEnum.Fizz
                 Exit Select
             Case MyEnum.Buzz
-                Exit Select|]
+                Exit Select
         End Select
     End Sub
 End Class
@@ -626,7 +626,7 @@ End Class
 
             Await TestMissingAsync(markup)
         End Function
-        
+
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsPopulateSwitch)>
         Public Async Function NotAllMembersExist_EnumHasNonFlagsAttribute() As Task
             Dim markup =
@@ -640,11 +640,11 @@ End Enum
 Class Foo
     Sub Bar()
         Dim e = MyEnum.Fizz
-        Select Case e
-            [|Case MyEnum.Fizz
+        Select Case [|e|]
+            Case MyEnum.Fizz
                 Exit Select
             Case MyEnum.Buzz
-                Exit Select|]
+                Exit Select
         End Select
     End Sub
 End Class
@@ -677,7 +677,7 @@ End Class
 
             Await TestAsync(markup, expected, compareTokens:=False)
         End Function
-        
+
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsPopulateSwitch)>
         Public Async Function NotAllMembersExist_EnumIsNested() As Task
             Dim markup =
@@ -690,11 +690,11 @@ Class Foo
     End Enum
     Sub Bar()
         Dim e = MyEnum.Fizz
-        Select Case e
-            [|Case MyEnum.Fizz
+        Select Case [|e|]
+            Case MyEnum.Fizz
                 Exit Select
             Case MyEnum.Buzz
-                Exit Select|]
+                Exit Select
         End Select
     End Sub
 End Class
@@ -715,7 +715,7 @@ Class Foo
                 Exit Select
             Case MyEnum.Buzz
                 Exit Select
-            Case Foo.MyEnum.FizzBuzz
+            Case MyEnum.FizzBuzz
                 Exit Select
             Case Else
                 Exit Select
@@ -726,7 +726,7 @@ End Class
 
             Await TestAsync(markup, expected, compareTokens:=False)
         End Function
-        
+
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsPopulateSwitch)>
         Public Async Function NotAllMembersExist_SwitchIsNotEnum() As Task
             Dim markup =
@@ -734,11 +734,11 @@ End Class
 Class Foo
     Sub Bar()
         Dim e = "Test"
-        Select Case e
-            [|Case "Fizz"
+        Select Case [|e|]
+            Case "Fizz"
                 Exit Select
             Case Test"
-                Exit Select|]
+                Exit Select
         End Select
     End Sub
 End Class

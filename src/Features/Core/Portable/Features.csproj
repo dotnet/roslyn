@@ -181,7 +181,7 @@
     <Compile Include="Completion\SuggestionMode\SuggestionModeCompletionProvider.cs" />
     <Compile Include="Diagnostics\AnalyzerHelper.cs" />
     <Compile Include="Diagnostics\AbstractHostDiagnosticUpdateSource.cs" />
-    <Compile Include="Diagnostics\Analyzers\PopulateSwitchDiagnosticAnalyzerBase.cs" />
+    <Compile Include="PopulateSwitch\AbstractPopulateSwitchDiagnosticAnalyzer.cs" />
     <Compile Include="Diagnostics\AnalyzerUpdateArgsId.cs" />
     <Compile Include="Diagnostics\DiagnosticEventTaskScheduler.cs" />
     <Compile Include="Diagnostics\DiagnosticService_UpdateSourceRegistrationService.cs" />
@@ -254,6 +254,7 @@
     <Compile Include="MakeMethodSynchronous\AbstractMakeMethodSynchronousCodeFixProvider.cs" />
     <Compile Include="Navigation\NavigationOptions.cs" />
     <Compile Include="Navigation\NavigationOptionsProvider.cs" />
+    <Compile Include="PopulateSwitch\AbstractPopulateSwitchCodeFixProvider.cs" />
     <Compile Include="QuickInfo\QuickInfoUtilities.cs" />
     <Compile Include="RemoveUnnecessaryImports\AbstractRemoveUnnecessaryImportsService.cs" />
     <Compile Include="ReplaceMethodWithProperty\ReplaceMethodWithPropertyCodeRefactoringProvider.cs" />

@@ -17,13 +17,13 @@ End Enum
 Class Foo
     Sub Bar()
         Dim e = MyEnum1.Fizz
-        Select Case e
-            {|FixAllInDocument:Case MyEnum1.Fizz
+        Select Case {|FixAllInDocument:e|}
+            Case MyEnum1.Fizz
                 Exit Select
             Case MyEnum1.Buzz
                 Exit Select
             Case Else
-                Exit Select|}
+                Exit Select
         End Select
 
         Select Case e
@@ -163,7 +163,7 @@ End Class]]>
                                    </Document>
                                </Project>
                            </Workspace>.ToString()
-            
+
             Await TestAsync(input, expected, compareTokens:=False, fixAllActionEquivalenceKey:=Nothing)
         End Function
 
@@ -182,13 +182,13 @@ End Enum
 Class Foo
     Sub Bar()
         Dim e = MyEnum1.Fizz
-        Select Case e
-            {|FixAllInProject:Case MyEnum1.Fizz
+        Select Case {|FixAllInProject:e|}
+            Case MyEnum1.Fizz
                 Exit Select
             Case MyEnum1.Buzz
                 Exit Select
             Case MyEnum1.FizzBuzz
-                Exit Select|}
+                Exit Select
         End Select
     End Sub
 End Class]]>
@@ -310,7 +310,7 @@ End Class]]>
                                    </Document>
                                </Project>
                            </Workspace>.ToString()
-            
+
             Await TestAsync(input, expected, compareTokens:=False, fixAllActionEquivalenceKey:=Nothing)
         End Function
 
@@ -329,11 +329,11 @@ End Enum
 Class Foo
     Sub Bar()
         Dim e = MyEnum1.Fizz
-        Select Case e
-            {|FixAllInSolution:Case MyEnum1.Fizz
+        Select Case {|FixAllInSolution:e|}
+            Case MyEnum1.Fizz
                 Exit Select
             Case MyEnum1.Buzz
-                Exit Select|}
+                Exit Select
         End Select
     End Sub
 End Class]]>
@@ -453,7 +453,7 @@ End Class]]>
                                    </Document>
                                </Project>
                            </Workspace>.ToString()
-            
+
             Await TestAsync(input, expected, compareTokens:=False, fixAllActionEquivalenceKey:=Nothing)
         End Function
     End Class
