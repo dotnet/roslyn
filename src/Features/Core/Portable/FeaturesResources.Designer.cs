@@ -197,15 +197,6 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Add missing statements to switch.
-        /// </summary>
-        internal static string AddMissingStatements {
-            get {
-                return ResourceManager.GetString("AddMissingStatements", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   Looks up a localized string similar to Add missing switch cases.
         /// </summary>
         internal static string AddMissingSwitchCases {
