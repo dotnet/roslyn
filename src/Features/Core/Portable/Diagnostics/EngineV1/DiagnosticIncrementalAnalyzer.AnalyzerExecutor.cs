@@ -106,14 +106,14 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV1
                         else
                         {
                             // if we can't re-use existing document state, only option we have is updating whole document state here.
-                            diagnosticData = await UpdateAllSemanticDiagnostics(
+                            diagnosticData = await UpdateAllSemanticDiagnosticsAsync(
                                 stateSet, analyzerDriver, diagnosticData).ConfigureAwait(false);
                         }
                     }
                     else
                     {
                         // if we can't re-use existing document state, only option we have is updating whole document state here.
-                        diagnosticData = await UpdateAllSemanticDiagnostics(
+                        diagnosticData = await UpdateAllSemanticDiagnosticsAsync(
                             stateSet, analyzerDriver, diagnosticData).ConfigureAwait(false);
                     }
 
@@ -133,7 +133,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV1
                 return diagnostic.AdditionalLocations == null || diagnostic.AdditionalLocations.Count == 0;
             }
 
-            private static async Task<ImmutableArray<DiagnosticData>> UpdateAllSemanticDiagnostics(StateSet stateSet, DiagnosticAnalyzerDriver analyzerDriver, ImmutableArray<DiagnosticData> diagnosticData)
+            private static async Task<ImmutableArray<DiagnosticData>> UpdateAllSemanticDiagnosticsAsync(
+                StateSet stateSet, DiagnosticAnalyzerDriver analyzerDriver, ImmutableArray<DiagnosticData> diagnosticData)
             {
                 var dx = await GetSemanticDiagnosticsAsync(analyzerDriver, stateSet.Analyzer).ConfigureAwait(false);
                 diagnosticData = dx.AsImmutableOrEmpty();
