@@ -8,12 +8,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Diagnostics.PopulateSwitch
 
     <DiagnosticAnalyzer(LanguageNames.VisualBasic)>
     Friend NotInheritable Class VisualBasicPopulateSwitchDiagnosticAnalyzer
-        Inherits AbstractPopulateSwitchDiagnosticAnalyzerBase(Of SyntaxKind)
+        Inherits AbstractPopulateSwitchDiagnosticAnalyzerBase(Of SyntaxKind, SelectBlockSyntax)
 
-        Protected Overrides Function GetCaseLabels(node As SyntaxNode, <Out> ByRef hasDefaultCase As Boolean) As List(Of SyntaxNode)
-
-            Dim selectBlock = DirectCast(node, SelectBlockSyntax)
-
+        Protected Overrides Function GetCaseLabels(selectBlock As SelectBlockSyntax, <Out> ByRef hasDefaultCase As Boolean) As List(Of SyntaxNode)
+            
             Dim caseLabels As New List(Of SyntaxNode)
             hasDefaultCase = False
 
@@ -35,9 +33,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Diagnostics.PopulateSwitch
         Private Shared ReadOnly s_kindsOfInterest As ImmutableArray(Of SyntaxKind) = ImmutableArray.Create(SyntaxKind.SelectBlock)
         Protected Overrides ReadOnly Property SyntaxKindsOfInterest As ImmutableArray(Of SyntaxKind) = s_kindsOfInterest
 
-        Protected Overrides Function GetExpression(node As SyntaxNode) As SyntaxNode
-
-            Dim selectBlock = DirectCast(node, SelectBlockSyntax)
+        Protected Overrides Function GetExpression(selectBlock As SelectBlockSyntax) As SyntaxNode
+            
             Return selectBlock.SelectStatement.Expression
         End Function
     End Class

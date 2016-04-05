@@ -7,22 +7,20 @@ using System.Collections.Immutable;
 namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.PopulateSwitch
 {
     [DiagnosticAnalyzer(LanguageNames.CSharp)]
-    internal sealed class CSharpPopulateSwitchDiagnosticAnalyzer : AbstractPopulateSwitchDiagnosticAnalyzerBase<SyntaxKind>
+    internal sealed class CSharpPopulateSwitchDiagnosticAnalyzer : AbstractPopulateSwitchDiagnosticAnalyzerBase<SyntaxKind, SwitchStatementSyntax>
     {
         private static readonly ImmutableArray<SyntaxKind> s_kindsOfInterest = ImmutableArray.Create(SyntaxKind.SwitchStatement);
         protected override ImmutableArray<SyntaxKind> SyntaxKindsOfInterest { get; } = s_kindsOfInterest;
 
-        protected override SyntaxNode GetExpression(SyntaxNode node)
+        protected override SyntaxNode GetExpression(SwitchStatementSyntax switchBlock)
         {
-            var switchBlock = (SwitchStatementSyntax)node;
             return switchBlock.Expression;
         }
 
-        protected override List<SyntaxNode> GetCaseLabels(SyntaxNode node, out bool hasDefaultCase)
+        protected override List<SyntaxNode> GetCaseLabels(SwitchStatementSyntax switchBlock, out bool hasDefaultCase)
         {
             hasDefaultCase = false;
-
-            var switchBlock = (SwitchStatementSyntax)node;
+            
             var caseLabels = new List<SyntaxNode>();
 
             foreach (var section in switchBlock.Sections)

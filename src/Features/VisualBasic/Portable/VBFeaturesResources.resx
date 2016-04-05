@@ -1201,7 +1201,4 @@ Sub(&lt;parameterList&gt;) &lt;statement&gt;</value>
   <data name="ReferenceKeywordTooltip" xml:space="preserve">
     <value>Add a metadata reference to specified assembly and all its dependencies, e.g. #r "myLib.dll".</value>
   </data>
-  <data name="AddSelectLabels" xml:space="preserve">
-    <value>Add Missing Labels</value>
-  </data>
 </root>

@@ -11,65 +11,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeFixes.PopulateSwitch
     <ExportCodeFixProvider(LanguageNames.VisualBasic, Name:=PredefinedCodeFixProviderNames.PopulateSwitch), [Shared]>
     <ExtensionOrder(After:=PredefinedCodeFixProviderNames.AddOverloads)>
     Partial Friend Class VisualBasicPopulateSwitchCodeFixProvider
-        Inherits AbstractPopulateSwitchCodeFixProvider
+        Inherits AbstractPopulateSwitchCodeFixProvider(Of SelectBlockSyntax)
 
-        Protected Overrides Function GetSwitchExpression(node As SyntaxNode) As SyntaxNode
-
-            Dim selectBlock = DirectCast(node, SelectBlockSyntax)
+        Protected Overrides Function GetSwitchExpression(selectBlock As SelectBlockSyntax) As SyntaxNode
+            
             Return selectBlock.SelectStatement.Expression
-        End Function
-
-        Protected Overrides Function GetMissingLabels(node As SyntaxNode, model As SemanticModel, enumType As INamedTypeSymbol, <Out> ByRef containsDefaultLabel As Boolean) As List(Of String)
-
-            Dim caseLabels = GetCaseLabels(DirectCast(node, SelectBlockSyntax), containsDefaultLabel)
-            Dim symbols As New List(Of ISymbol)
-
-            For Each label In caseLabels
-
-                ' these are the labels like `MyEnum.EnumMember`
-                Dim memberAccessExpression = TryCast(label, MemberAccessExpressionSyntax)
-                If Not memberAccessExpression Is Nothing
-
-                    Dim symbol = model.GetSymbolInfo(memberAccessExpression).Symbol
-                    If Not symbol Is Nothing
-                        symbols.Add(symbol)
-                        Continue For
-                    End If
-                End If
-
-                ' these are the labels like `EnumMember` (such as when using `Imports Namespace.MyEnum;`)
-                Dim identifierName = TryCast(label, IdentifierNameSyntax)
-                If Not identifierName Is Nothing
-
-                    Dim symbol = model.GetSymbolInfo(identifierName).Symbol
-                    If Not symbol Is Nothing
-                        symbols.Add(symbol)
-                    End If
-                End If
-            Next
-
-            Dim missingLabels As New List(Of String)
-
-            For Each member In enumType.GetMembers()
-                Dim field = TryCast(member, IFieldSymbol)
-                If field Is Nothing OrElse (Not field.Type.SpecialType = SpecialType.None)
-                    Continue For
-                End If
-
-                Dim memberExists = False
-                For Each symbol In symbols
-                    If symbol Is member
-                        memberExists = True
-                        Exit For
-                    End If
-                Next
-
-                If Not memberExists
-                    missingLabels.Add(member.Name)
-                End If
-            Next
-
-            Return missingLabels
         End Function
 
         Protected Overrides Function InsertPosition(sections As List(Of SyntaxNode)) As Integer
@@ -90,32 +36,27 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeFixes.PopulateSwitch
             Return numOfBlocksWithNoStatementsWithElse
         End Function
 
-        Protected Overrides Function GetSwitchSections(node As SyntaxNode) As List(Of SyntaxNode)
-
-            Dim selectBlock = DirectCast(node, SelectBlockSyntax)
+        Protected Overrides Function GetSwitchSections(selectBlock As SelectBlockSyntax) As List(Of SyntaxNode)
+            
             Return New List(Of SyntaxNode)(selectBlock.CaseBlocks)
         End Function
 
-        Protected Overrides Function NewSwitchNode(node As SyntaxNode, sections As List(Of SyntaxNode)) As SyntaxNode
-            Dim selectBlock = DirectCast(node, SelectBlockSyntax)
+        Protected Overrides Function NewSwitchNode(selectBlock As SelectBlockSyntax, sections As List(Of SyntaxNode)) As SyntaxNode
+            
             Return selectBlock.WithCaseBlocks(SyntaxFactory.List(sections)).WithAdditionalAnnotations(Formatter.Annotation, Simplifier.Annotation)
         End Function
 
         Protected Overrides Function GetSwitchStatementNode(root As SyntaxNode, span As TextSpan) As SyntaxNode
-            Dim token = root.FindToken(span.Start)
-            If Not token.Span.IntersectsWith(span)
-                Return Nothing
-            End If
-
+            
             Dim selectExpression = DirectCast(root.FindNode(span), ExpressionSyntax)
             Return DirectCast(selectExpression.Parent.Parent, SelectBlockSyntax)
         End Function
 
-        Private Function GetCaseLabels(selectBlock As SelectBlockSyntax, <Out> ByRef containsDefaultLabel As Boolean) As List(Of ExpressionSyntax)
+        Protected Overrides Function GetCaseLabels(selectBlock As SelectBlockSyntax, <Out> ByRef containsDefaultLabel As Boolean) As List(Of SyntaxNode)
 
             containsDefaultLabel = False
 
-            Dim caseLabels = New List(Of ExpressionSyntax)
+            Dim caseLabels = New List(Of SyntaxNode)
             For Each block In selectBlock.CaseBlocks
                 For Each caseSyntax In block.CaseStatement.Cases
 

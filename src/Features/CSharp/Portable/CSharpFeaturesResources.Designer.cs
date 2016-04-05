@@ -62,15 +62,6 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Add Missing Labels.
-        /// </summary>
-        internal static string AddSwitchLabels {
-            get {
-                return ResourceManager.GetString("AddSwitchLabels", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   Looks up a localized string similar to anonymous method.
         /// </summary>
         internal static string AnonymousMethod {

@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
@@ -11,7 +12,7 @@ using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.PopulateSwitch
 {
-    internal abstract class AbstractPopulateSwitchCodeFixProvider : CodeFixProvider
+    internal abstract class AbstractPopulateSwitchCodeFixProvider<TSwitchBlockSyntax> : CodeFixProvider where TSwitchBlockSyntax : SyntaxNode
     {
         public override ImmutableArray<string> FixableDiagnosticIds => ImmutableArray.Create(IDEDiagnosticIds.PopulateSwitchDiagnosticId);
 
@@ -22,39 +23,34 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.PopulateSwitch
             var document = context.Document;
             var span = context.Span;
             var cancellationToken = context.CancellationToken;
-
+            
             var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
-            var model = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
             var node = GetSwitchStatementNode(root, span);
-            if (node == null)
-            {
-                return;
-            }
 
             context.RegisterCodeFix(
                 new MyCodeAction(
-                    FeaturesResources.AddSwitchLabels,
-                    c => AddMissingSwitchLabelsAsync(model, document, root, node)),
+                    FeaturesResources.AddMissingSwitchCases,
+                    c => AddMissingSwitchLabelsAsync(document, root, (TSwitchBlockSyntax)node, cancellationToken)),
                 context.Diagnostics);
         }
 
-        protected abstract SyntaxNode GetSwitchExpression(SyntaxNode node);
-
-        protected abstract List<string> GetMissingLabels(SyntaxNode node, SemanticModel model, INamedTypeSymbol enumType,
-            out bool containsDefaultLabel);
+        protected abstract SyntaxNode GetSwitchExpression(TSwitchBlockSyntax switchBlock);
 
         protected abstract int InsertPosition(List<SyntaxNode> sections);
 
-        protected abstract List<SyntaxNode> GetSwitchSections(SyntaxNode node);
+        protected abstract List<SyntaxNode> GetSwitchSections(TSwitchBlockSyntax switchBlock);
 
-        protected abstract SyntaxNode NewSwitchNode(SyntaxNode node, List<SyntaxNode> sections);
+        protected abstract SyntaxNode NewSwitchNode(TSwitchBlockSyntax switchBlock, List<SyntaxNode> sections);
 
         protected abstract SyntaxNode GetSwitchStatementNode(SyntaxNode root, TextSpan span);
 
-        private Task<Document> AddMissingSwitchLabelsAsync(SemanticModel model, Document document, SyntaxNode root, SyntaxNode switchNode)
+        protected abstract List<SyntaxNode> GetCaseLabels(TSwitchBlockSyntax switchBlock, out bool containsDefaultLabel);
+
+        private async Task<Document> AddMissingSwitchLabelsAsync(Document document, SyntaxNode root, TSwitchBlockSyntax switchNode, CancellationToken cancellationToken)
         {
+            var model = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
+
             var enumType = (INamedTypeSymbol)model.GetTypeInfo(GetSwitchExpression(switchNode)).Type;
-            var fullyQualifiedEnumType = enumType.ToDisplayString();
 
             bool containsDefaultLabel;
             var missingLabels = GetMissingLabels(switchNode, model, enumType, out containsDefaultLabel);
@@ -67,7 +63,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.PopulateSwitch
             var newSections = GetSwitchSections(switchNode);
             foreach (var label in missingLabels)
             {
-                var caseLabel = generator.DottedName($"{fullyQualifiedEnumType}.{label}");
+                var caseLabel = generator.MemberAccessExpression(generator.TypeExpression(enumType), label);
 
                 var section = generator.SwitchSection(caseLabel, new List<SyntaxNode> { switchExitStatement });
 
@@ -90,7 +86,22 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.PopulateSwitch
             var newNode = NewSwitchNode(switchNode, newSections);
 
             var newRoot = root.ReplaceNode(switchNode, newNode);
-            return Task.FromResult(document.WithSyntaxRoot(newRoot));
+            return document.WithSyntaxRoot(newRoot);
+        }
+
+        private List<string> GetMissingLabels(TSwitchBlockSyntax switchBlock, SemanticModel model, INamedTypeSymbol enumType, out bool containsDefaultLabel)
+        {
+            var caseLabels = GetCaseLabels(switchBlock, out containsDefaultLabel);
+
+            var symbols = caseLabels.Select(label => model.GetSymbolInfo(label).Symbol).Where(symbol => symbol != null).ToList();
+
+            return (from member in enumType.GetMembers()
+                let field = member as IFieldSymbol
+                where field != null && field.Type.SpecialType == SpecialType.None
+                let memberExists = symbols.Any(symbol => symbol == member)
+                where !memberExists
+                select member.Name)
+                .ToList();
         }
 
         private class MyCodeAction : CodeAction.DocumentChangeAction

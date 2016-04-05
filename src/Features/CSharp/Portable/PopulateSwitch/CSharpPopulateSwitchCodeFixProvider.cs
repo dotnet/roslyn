@@ -10,109 +10,30 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.PopulateSwitch
 {
     [ExportCodeFixProvider(LanguageNames.CSharp, Name = PredefinedCodeFixProviderNames.PopulateSwitch), Shared]
     [ExtensionOrder(After = PredefinedCodeFixProviderNames.ImplementInterface)]
-    internal class CSharpPopulateSwitchCodeFixProvider : AbstractPopulateSwitchCodeFixProvider
+    internal class CSharpPopulateSwitchCodeFixProvider : AbstractPopulateSwitchCodeFixProvider<SwitchStatementSyntax>
     {
         protected override SyntaxNode GetSwitchStatementNode(SyntaxNode root, TextSpan span)
         {
-            var token = root.FindToken(span.Start);
-            if (!token.Span.IntersectsWith(span))
-            {
-                return null;
-            }
-            
             var switchExpression = (ExpressionSyntax)root.FindNode(span);
-            return (SwitchStatementSyntax) switchExpression.Parent;
+            return (SwitchStatementSyntax)switchExpression.Parent;
         }
 
-        protected override SyntaxNode GetSwitchExpression(SyntaxNode node)
-        {
-            var switchStatement = (SwitchStatementSyntax)node;
-            return switchStatement.Expression;
-        }
+        protected override SyntaxNode GetSwitchExpression(SwitchStatementSyntax switchStatement) => switchStatement.Expression;
 
-        protected override List<string> GetMissingLabels(SyntaxNode node, SemanticModel model, INamedTypeSymbol enumType, out bool containsDefaultLabel)
-        {
-            var caseLabels = GetCaseLabels((SwitchStatementSyntax)node, out containsDefaultLabel);
+        protected override int InsertPosition(List<SyntaxNode> sections) => sections.Count - 1;
 
-            var symbols = new List<ISymbol>();
-            foreach (var label in caseLabels)
-            {
-                // these are the labels like `MyEnum.EnumMember`
-                var memberAccessExpression = label as MemberAccessExpressionSyntax;
-                if (memberAccessExpression != null)
-                {
-                    var symbol = model.GetSymbolInfo(memberAccessExpression).Symbol;
-                    if (symbol != null)
-                    {
-                        symbols.Add(symbol);
-                    }
-                    continue;
-                }
+        protected override List<SyntaxNode> GetSwitchSections(SwitchStatementSyntax switchStatement) => new List<SyntaxNode>(switchStatement.Sections);
 
-                // these are the labels like `EnumMember` (such as when using `using static Namespace.MyEnum;`)
-                var identifierName = label as IdentifierNameSyntax;
-                if (identifierName != null)
-                {
-                    var symbol = model.GetSymbolInfo(identifierName).Symbol;
-                    if (symbol != null)
-                    {
-                        symbols.Add(symbol);
-                    }
-                }
-            }
-
-            var missingLabels = new List<string>();
-            foreach (var member in enumType.GetMembers())
-            {
-                // don't create members like ".ctor"
-                if (member.IsImplicitlyDeclared)
-                {
-                    continue;
-                }
-
-                var memberExists = false;
-                foreach (var symbol in symbols)
-                {
-                    if (symbol == member)
-                    {
-                        memberExists = true;
-                        break;
-                    }
-                }
-
-                if (!memberExists)
-                {
-                    missingLabels.Add(member.Name);
-                }
-            }
-
-            return missingLabels;
-        }
-
-        protected override int InsertPosition(List<SyntaxNode> sections)
-        {
-            return sections.Count - 1;
-        }
-
-        protected override List<SyntaxNode> GetSwitchSections(SyntaxNode node)
-        {
-            var switchBlock = (SwitchStatementSyntax)node;
-            return new List<SyntaxNode>(switchBlock.Sections);
-        }
-
-        protected override SyntaxNode NewSwitchNode(SyntaxNode node, List<SyntaxNode> sections)
-        {
-            var switchBlock = (SwitchStatementSyntax)node;
-            return switchBlock.WithSections(SyntaxFactory.List(sections))
+        protected override SyntaxNode NewSwitchNode(SwitchStatementSyntax switchStatement, List<SyntaxNode> sections) => 
+            switchStatement.WithSections(SyntaxFactory.List(sections))
                 .WithAdditionalAnnotations(Formatter.Annotation, Simplifier.Annotation);
-        }
 
-        private List<ExpressionSyntax> GetCaseLabels(SwitchStatementSyntax switchBlock, out bool containsDefaultLabel)
+        protected override List<SyntaxNode> GetCaseLabels(SwitchStatementSyntax switchStatement, out bool containsDefaultLabel)
         {
             containsDefaultLabel = false;
 
-            var caseLabels = new List<ExpressionSyntax>();
-            foreach (var section in switchBlock.Sections)
+            var caseLabels = new List<SyntaxNode>();
+            foreach (var section in switchStatement.Sections)
             {
                 foreach (var label in section.Labels)
                 {

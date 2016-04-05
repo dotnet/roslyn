@@ -5,15 +5,15 @@ using System.Threading;
 
 namespace Microsoft.CodeAnalysis.Diagnostics.PopulateSwitch
 {
-    internal abstract class AbstractPopulateSwitchDiagnosticAnalyzerBase<TLanguageKindEnum> : DiagnosticAnalyzer, IBuiltInAnalyzer where TLanguageKindEnum : struct
+    internal abstract class AbstractPopulateSwitchDiagnosticAnalyzerBase<TLanguageKindEnum, TSwitchBlockSyntax> : DiagnosticAnalyzer, IBuiltInAnalyzer where TLanguageKindEnum : struct where TSwitchBlockSyntax : SyntaxNode
     {
-        private static readonly LocalizableString s_localizableTitle = new LocalizableResourceString(nameof(FeaturesResources.AddMissingStatements), FeaturesResources.ResourceManager, typeof(FeaturesResources));
+        private static readonly LocalizableString s_localizableTitle = new LocalizableResourceString(nameof(FeaturesResources.AddMissingSwitchCases), FeaturesResources.ResourceManager, typeof(FeaturesResources));
         private static readonly LocalizableString s_localizableMessage = new LocalizableResourceString(nameof(WorkspacesResources.PopulateSwitch), WorkspacesResources.ResourceManager, typeof(WorkspacesResources));
 
         private static readonly DiagnosticDescriptor s_descriptor = new DiagnosticDescriptor(IDEDiagnosticIds.PopulateSwitchDiagnosticId,
                                                                     s_localizableTitle,
                                                                     s_localizableMessage,
-                                                                    DiagnosticCategory.EditAndContinue,
+                                                                    DiagnosticCategory.Style,
                                                                     DiagnosticSeverity.Warning,
                                                                     isEnabledByDefault: true,
                                                                     customTags: DiagnosticCustomTags.Unnecessary);
@@ -40,10 +40,10 @@ namespace Microsoft.CodeAnalysis.Diagnostics.PopulateSwitch
 
         #endregion
 
-        protected abstract SyntaxNode GetExpression(SyntaxNode node);
-        protected abstract List<SyntaxNode> GetCaseLabels(SyntaxNode node, out bool hasDefaultCase);
+        protected abstract SyntaxNode GetExpression(TSwitchBlockSyntax node);
+        protected abstract List<SyntaxNode> GetCaseLabels(TSwitchBlockSyntax switchBlock, out bool hasDefaultCase);
 
-        private bool SwitchIsFullyPopulated(SemanticModel model, SyntaxNode node)
+        private bool SwitchIsFullyPopulated(SemanticModel model, TSwitchBlockSyntax node)
         {
             var enumType = model.GetTypeInfo(GetExpression(node)).Type as INamedTypeSymbol;
             if (enumType == null || enumType.TypeKind != TypeKind.Enum)
@@ -72,7 +72,13 @@ namespace Microsoft.CodeAnalysis.Diagnostics.PopulateSwitch
             var labelSymbols = new List<ISymbol>();
             foreach (var label in caseLabels)
             {
-                labelSymbols.Add(model.GetSymbolInfo(label).Symbol);
+                var symbol = model.GetSymbolInfo(label).Symbol;
+                if (symbol == null)
+                {
+                    return true;
+                }
+
+                labelSymbols.Add(symbol);
             }
 
             foreach (var member in enumType.GetMembers())
@@ -95,15 +101,17 @@ namespace Microsoft.CodeAnalysis.Diagnostics.PopulateSwitch
 
         private bool TryPopulateSwitch(SemanticModel model, SyntaxNode node, out Diagnostic diagnostic, CancellationToken cancellationToken)
         {
+            var switchBlock = (TSwitchBlockSyntax)node;
+
             diagnostic = default(Diagnostic);
 
-            if (SwitchIsFullyPopulated(model, node))
+            if (SwitchIsFullyPopulated(model, switchBlock))
             {
                 return false;
             }
 
             var tree = model.SyntaxTree;
-            var span = GetExpression(node).Span;
+            var span = GetExpression(switchBlock).Span;
             if (tree.OverlapsHiddenPosition(span, cancellationToken))
             {
                 return false;

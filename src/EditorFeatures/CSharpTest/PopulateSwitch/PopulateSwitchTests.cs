@@ -548,9 +548,9 @@ namespace ConsoleApplication1
                     break;
                 case OpenOrCreate:
                     break;
-                case System.IO.FileMode.Truncate:
+                case Truncate:
                     break;
-                case System.IO.FileMode.Append:
+                case Append:
                     break;
                 default:
                     break;
@@ -592,17 +592,17 @@ namespace ConsoleApplication1
             var e = Append;
             switch (e)
             {
-                case System.IO.FileMode.CreateNew:
+                case CreateNew:
                     break;
-                case System.IO.FileMode.Create:
+                case Create:
                     break;
-                case System.IO.FileMode.Open:
+                case Open:
                     break;
-                case System.IO.FileMode.OpenOrCreate:
+                case OpenOrCreate:
                     break;
-                case System.IO.FileMode.Truncate:
+                case Truncate:
                     break;
-                case System.IO.FileMode.Append:
+                case Append:
                     break;
                 default:
                     break;
