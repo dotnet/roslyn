@@ -2798,7 +2798,7 @@ namespace Microsoft.CodeAnalysis
                     (byte)SignatureTypeCode.GenericTypeParameter, 4,
                     (byte)SignatureTypeCode.GenericTypeParameter, 5,
 
-                 // System_ValueTuple_T1_T2_T3_T4_T5_T6_T7__ctor
+                // System_ValueTuple_T1_T2_T3_T4_T5_T6_T7__ctor
                 (byte)MemberFlags.Constructor,                                                                              // Flags
                 (byte)WellKnownType.System_ValueTuple_T1_T2_T3_T4_T5_T6_T7,                                                 // DeclaringTypeId
                 0,                                                                                                          // Arity
@@ -2811,6 +2811,21 @@ namespace Microsoft.CodeAnalysis
                     (byte)SignatureTypeCode.GenericTypeParameter, 4,
                     (byte)SignatureTypeCode.GenericTypeParameter, 5,
                     (byte)SignatureTypeCode.GenericTypeParameter, 6,
+
+                // System_ValueTuple_T1_T2_T3_T4_T5_T6_T7_TRest__ctor
+                (byte)MemberFlags.Constructor,                                                                              // Flags
+                (byte)WellKnownType.ExtSentinel, (byte)(WellKnownType.System_ValueTuple_T1_T2_T3_T4_T5_T6_T7_TRest - WellKnownType.ExtSentinel),  // DeclaringTypeId
+                0,                                                                                                          // Arity
+                    8,                                                                                                      // Method Signature
+                    (byte)SignatureTypeCode.TypeHandle, (byte)SpecialType.System_Void,
+                    (byte)SignatureTypeCode.GenericTypeParameter, 0,
+                    (byte)SignatureTypeCode.GenericTypeParameter, 1,
+                    (byte)SignatureTypeCode.GenericTypeParameter, 2,
+                    (byte)SignatureTypeCode.GenericTypeParameter, 3,
+                    (byte)SignatureTypeCode.GenericTypeParameter, 4,
+                    (byte)SignatureTypeCode.GenericTypeParameter, 5,
+                    (byte)SignatureTypeCode.GenericTypeParameter, 6,
+                    (byte)SignatureTypeCode.GenericTypeParameter, 7,
 
                 // System_String__Format_IFormatProvider
                 (byte)(MemberFlags.Method | MemberFlags.Static),                                                            // Flags
@@ -3170,6 +3185,7 @@ namespace Microsoft.CodeAnalysis
                 ".ctor",                                    // System_ValueTuple_T1_T2_T3_T4_T5__ctor
                 ".ctor",                                    // System_ValueTuple_T1_T2_T3_T4_T5_T6__ctor
                 ".ctor",                                    // System_ValueTuple_T1_T2_T3_T4_T5_T6_T7__ctor
+                ".ctor",                                    // System_ValueTuple_T1_T2_T3_T4_T5_T6_T7_TRest__ctor
 
                 "Format",                                   // System_String__Format_IFormatProvider
             };

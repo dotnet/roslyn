@@ -1,14 +1,15 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using Microsoft.CodeAnalysis.Collections;
+using Microsoft.CodeAnalysis.CSharp.Symbols;
+using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.CodeAnalysis.RuntimeMembers;
+using Roslyn.Utilities;
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
-using Microsoft.CodeAnalysis.CSharp.Symbols;
-using Microsoft.CodeAnalysis.CSharp.Syntax;
-using Microsoft.CodeAnalysis.RuntimeMembers;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp
 {
@@ -396,30 +397,99 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private TypeSymbol BindTupleType(TupleTypeSyntax syntax, DiagnosticBag diagnostics)
         {
-            var count = syntax.Elements.Count;
-            var types = ArrayBuilder<TypeSymbol>.GetInstance(count);
-            var names = ArrayBuilder<string>.GetInstance(count);
-            for (int i = 0; i < count; i++)
+            int numElements = syntax.Elements.Count;
+            var types = ArrayBuilder<TypeSymbol>.GetInstance(numElements);
+            ArrayBuilder<string> elementNames = null;
+
+            // set of names already used
+            var uniqueFieldNames = PooledHashSet<string>.GetInstance();
+            int countOfExplicitNames = 0;
+
+            for (int i = 0; i < numElements; i++)
             {
                 var argumentSyntax = syntax.Elements[i];
 
                 var argumentType = BindType(argumentSyntax.Type, diagnostics);
                 types.Add(argumentType);
 
-                // PROTOTYPE(tuples) the error handling on missing, reserved or non-unique names should be fixed
-                var nameSyntax = argumentSyntax.Name;
-                var name = (object)nameSyntax != null ? nameSyntax.Identifier.ValueText : TupleTypeSymbol.UnderlyingMemberName(i);
-                names.Add(name);
+                string name = argumentSyntax.Name?.Identifier.ValueText;
+
+                // validate name if we have one
+                if (name != null)
+                {
+                    countOfExplicitNames++;
+                    CheckTupleMemberName(name, i, argumentSyntax.Name, diagnostics, uniqueFieldNames);
+                }
+                CollectTupleFieldMemberNames(name, i + 1, numElements, ref elementNames);
+            }
+            uniqueFieldNames.Free();
+
+            if (countOfExplicitNames != 0 && countOfExplicitNames != numElements)
+            {
+                Error(diagnostics, ErrorCode.ERR_TupleExplicitNamesOnAllMembersOrNone, syntax);
             }
 
-            var typesArray = types.ToImmutableAndFree();
-            if (typesArray.Length < 2 || typesArray.Length > 7)
+            ImmutableArray<TypeSymbol> typesArray = types.ToImmutableAndFree();
+            if (typesArray.Length < 2)
             {
+                // PROTOTYPE(tuples)
                 return new ExtendedErrorTypeSymbol(this.Compilation.Assembly.GlobalNamespace, LookupResultKind.NotCreatable, diagnostics.Add(ErrorCode.ERR_PrototypeNotYetImplemented, syntax.Location));
             }
 
-            var tuple = new TupleTypeSymbol(typesArray, names.ToImmutableAndFree(), syntax, this, diagnostics);
+            var tuple = new TupleTypeSymbol(
+                typesArray,
+                elementNames == null ?
+                    default(ImmutableArray<string>) :
+                    elementNames.ToImmutableAndFree(),
+                syntax,
+                this,
+                diagnostics);
+
             return tuple;
+        }
+
+        private static void CollectTupleFieldMemberNames(string name, int position, int tupleSize, ref ArrayBuilder<string> elementNames)
+        {
+            // add the name to the list
+            // names would typically all be there or none at all
+            // but in case we need to handle this in error cases
+            if (elementNames != null)
+            {
+                elementNames.Add(name ?? TupleTypeSymbol.TupleMemberName(position));
+            }
+            else
+            {
+                if (name != null)
+                {
+                    elementNames = ArrayBuilder<string>.GetInstance(tupleSize);
+                    for (int j = 1; j < position; j++)
+                    {
+                        elementNames.Add(TupleTypeSymbol.TupleMemberName(j));
+                    }
+                    elementNames.Add(name);
+                }
+            }
+        }
+
+        private static bool CheckTupleMemberName(string name, int position, CSharpSyntaxNode syntax, DiagnosticBag diagnostics, PooledHashSet<string> uniqueFieldNames)
+        {
+            int reserved = TupleTypeSymbol.IsMemberNameReserved(name);
+            if (reserved == 0)
+            {
+                Error(diagnostics, ErrorCode.ERR_TupleReservedMemberNameAnyPosition, syntax, name);
+                return false;
+            }
+            else if (reserved > 0 && reserved != position + 1)
+            {
+                Error(diagnostics, ErrorCode.ERR_TupleReservedMemberName, syntax, name, reserved);
+                return false;
+            }
+            else if (!uniqueFieldNames.Add(name))
+            {
+                Error(diagnostics, ErrorCode.ERR_TupleDuplicateMemberName, syntax);
+                return false;
+            }
+            return true;
         }
 
         private Symbol BindPredefinedTypeSymbol(PredefinedTypeSyntax node, DiagnosticBag diagnostics)
