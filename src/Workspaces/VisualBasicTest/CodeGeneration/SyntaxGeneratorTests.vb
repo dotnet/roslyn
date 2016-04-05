@@ -443,6 +443,11 @@ End Class
         End Sub
 
         <Fact>
+        Public Sub TestNameOfExpressions()
+            VerifySyntax(Of NameOfExpressionSyntax)(_g.NameOfExpression(_g.IdentifierName("x")), "NameOf(x)")
+        End Sub
+
+        <Fact>
         Public Sub TestReturnStatements()
             VerifySyntax(Of ReturnStatementSyntax)(_g.ReturnStatement(), "Return")
             VerifySyntax(Of ReturnStatementSyntax)(_g.ReturnStatement(_g.IdentifierName("x")), "Return x")

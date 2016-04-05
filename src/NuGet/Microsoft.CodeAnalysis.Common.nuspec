@@ -19,13 +19,12 @@ Supported Platforms:
         </group>
 
         <group targetFramework="netstandard1.3">
-            <dependency id="System.Collections.Immutable" version="$systemCollectionsImmutableVersion$" />
-            <dependency id="System.Reflection.Metadata" version="$systemReflectionMetadataVersion$" />
             <dependency id="Microsoft.CodeAnalysis.Analyzers" version="$codeAnalysisAnalyzersVersion$" />
 
             <dependency id="System.AppContext" version="4.1.0-rc2-23931" />
             <dependency id="System.Collections" version="4.0.11-rc2-23931" />
             <dependency id="System.Collections.Concurrent" version="4.0.12-rc2-23931" />
+            <dependency id="System.Collections.Immutable" version="1.2.0-rc2-23931" />
             <dependency id="System.Console" version="4.0.0-rc2-23931" />
             <dependency id="System.Diagnostics.Debug" version="4.0.11-rc2-23931" />
             <dependency id="System.Diagnostics.FileVersionInfo" version="4.0.0-rc2-23931" exclude="Compile" />
@@ -38,6 +37,7 @@ Supported Platforms:
             <dependency id="System.Linq" version="4.1.0-rc2-23931" />
             <dependency id="System.Linq.Expressions" version="4.0.11-rc2-23931" />
             <dependency id="System.Reflection" version="4.1.0-rc2-23931" />
+            <dependency id="System.Reflection.Metadata" version="1.3.0-rc2-23931" />
             <dependency id="System.Reflection.Primitives" version="4.0.1-rc2-23931" />
             <dependency id="System.Resources.ResourceManager" version="4.0.1-rc2-23931" />
             <dependency id="System.Runtime" version="4.1.0-rc2-23931" />
