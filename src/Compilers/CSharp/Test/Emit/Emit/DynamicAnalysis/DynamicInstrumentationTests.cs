@@ -54,6 +54,16 @@ namespace Microsoft.CodeAnalysis.CSharp.DynamicAnalysis.UnitTests
     }
 }
 ";
+        const string XunitFactAttributeSource = @"
+namespace Xunit
+{
+    [AttributeUsage(AttributeTargets.Method, AllowMultiple = false)]
+    public class FactAttribute : Attribute
+    {
+        public FactAttribute() { }
+    }
+}
+";
 
         [Fact]
         public void GotoCoverage()
@@ -68,6 +78,7 @@ public class Program
         TestMain();
     }
 
+    [Xunit.Fact]
     static void TestMain()
     {
         Console.WriteLine(""foo"");
@@ -185,7 +196,7 @@ True
   IL_0052:  ret
 }
 ";
-            CompilationVerifier verifier = CompileAndVerify(source + InstrumentationHelperSource, emitOptions: EmitOptions.Default.WithInstrument("Test.Flag"), expectedOutput: expectedOutput);
+            CompilationVerifier verifier = CompileAndVerify(source + InstrumentationHelperSource + XunitFactAttributeSource, emitOptions: EmitOptions.Default.WithInstrument("Test.Flag"), expectedOutput: expectedOutput);
             verifier.VerifyIL("Program.Barney", expectedBarneyIL);
         }
 
@@ -201,7 +212,8 @@ public class Program
     {
         TestMain();
     }
-
+    
+    [Xunit.Fact]
     static void TestMain()
     {
         int x = Count;
@@ -242,7 +254,7 @@ True
 True
 ";
 
-            CompilationVerifier verifier = CompileAndVerify(source + InstrumentationHelperSource, emitOptions: EmitOptions.Default.WithInstrument("Test.Flag"), expectedOutput: expectedOutput);
+            CompilationVerifier verifier = CompileAndVerify(source + InstrumentationHelperSource + XunitFactAttributeSource, emitOptions: EmitOptions.Default.WithInstrument("Test.Flag"), expectedOutput: expectedOutput);
         }
 
         [Fact]
@@ -258,6 +270,7 @@ public class Program
         TestMain();
     }
 
+    [Xunit.Fact]
     static void TestMain()
     {
         DoubleDeclaration(5);
@@ -303,7 +316,7 @@ False
 True
 ";
 
-            CompilationVerifier verifier = CompileAndVerify(source + InstrumentationHelperSource, emitOptions: EmitOptions.Default.WithInstrument("Test.Flag"), expectedOutput: expectedOutput);
+            CompilationVerifier verifier = CompileAndVerify(source + InstrumentationHelperSource + XunitFactAttributeSource, emitOptions: EmitOptions.Default.WithInstrument("Test.Flag"), expectedOutput: expectedOutput);
         }
 
         [Fact]
@@ -319,6 +332,8 @@ public class Program
         TestMain();
     }
 
+
+    [Xunit.Fact]
     static void TestMain()
     {
         VariousStatements(2);
@@ -451,7 +466,7 @@ True
 True
 ";
 
-            CompileAndVerify(source + InstrumentationHelperSource, emitOptions: EmitOptions.Default.WithInstrument("Test.Flag"), expectedOutput: expectedOutput);
+            CompileAndVerify(source + InstrumentationHelperSource + XunitFactAttributeSource, emitOptions: EmitOptions.Default.WithInstrument("Test.Flag"), expectedOutput: expectedOutput);
         }
 
         [Fact]
@@ -467,6 +482,7 @@ public class Program
         TestMain();
     }
 
+    [Xunit.Fact]
     static void TestMain()
     {
         int y = 5;
@@ -504,7 +520,7 @@ False
 True
 ";
 
-            CompileAndVerify(source + InstrumentationHelperSource, emitOptions: EmitOptions.Default.WithInstrument("Test.Flag"), expectedOutput: expectedOutput);
+            CompileAndVerify(source + InstrumentationHelperSource + XunitFactAttributeSource, emitOptions: EmitOptions.Default.WithInstrument("Test.Flag"), expectedOutput: expectedOutput);
         }
 
         [Fact]
@@ -521,6 +537,7 @@ public class Program
         TestMain();
     }
 
+    [Xunit.Fact]
     static void TestMain()
     {
         Console.WriteLine(Outer(""Goo"").Result);
@@ -577,7 +594,65 @@ True
 True
 ";
 
-            CompileAndVerify(source + InstrumentationHelperSource, emitOptions: EmitOptions.Default.WithInstrument("Test.Flag"), expectedOutput: expectedOutput);
+            CompileAndVerify(source + InstrumentationHelperSource + XunitFactAttributeSource, emitOptions: EmitOptions.Default.WithInstrument("Test.Flag"), expectedOutput: expectedOutput);
+        }
+
+        [Fact]
+        public void XunitFactAttribute()
+        {
+            string source = @"
+using System;
+
+public class Program
+{
+    public static void Main(string[] args)
+    {
+        MethodWithFactAttribute(1);
+        MethodWithOutFactAttribute(1);
+        MethodWithFactAttribute(1);
+    }
+
+    [Xunit.Fact]
+    static int MethodWithFactAttribute(int x)
+    {
+        var y = x + 1;
+        var z = y + 1;
+        return z;
+    }
+
+    static int MethodWithOutFactAttribute(int x)
+    {
+        var y = x + 1;
+        var z = y + 1;
+        return z;
+    }
+}
+";
+            string expectedOutput = @"Flushing
+1
+True
+False
+False
+2
+True
+True
+True
+Flushing
+1
+False
+True
+True
+2
+True
+True
+True
+3
+True
+True
+True
+";
+
+            CompilationVerifier verifier = CompileAndVerify(source + InstrumentationHelperSource + XunitFactAttributeSource, emitOptions: EmitOptions.Default.WithInstrument("Test.Flag"), expectedOutput: expectedOutput);
         }
 
         private CompilationVerifier CompileAndVerify(string source, EmitOptions emitOptions, string expectedOutput = null)
