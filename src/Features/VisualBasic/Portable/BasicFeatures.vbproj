@@ -116,8 +116,8 @@
     <Compile Include="CodeFixes\MoveToTopOfFile\MoveToTopOfFileCodeFixProvider.vb" />
     <Compile Include="CodeFixes\OverloadBase\OverloadBaseCodeFixProvider.AddOverloads.vb" />
     <Compile Include="CodeFixes\OverloadBase\OverloadBaseCodeFixProvider.vb" />
-    <Compile Include="CodeFixes\PopulateSwitch\VisualBasicPopulateSwitchCodeFixProvider.vb" />
-    <Compile Include="CodeFixes\PopulateSwitch\VisualBasicPopulateSwitchDiagnosticAnalyzer.vb" />
+    <Compile Include="PopulateSwitch\VisualBasicPopulateSwitchCodeFixProvider.vb" />
+    <Compile Include="PopulateSwitch\VisualBasicPopulateSwitchDiagnosticAnalyzer.vb" />
     <Compile Include="CodeFixes\RemoveUnnecessaryCast\RemoveUnnecessaryCastCodeFixProvider.RemoveUnnecessaryCastFixAllProvider.vb" />
     <Compile Include="CodeFixes\RemoveUnnecessaryCast\RemoveUnnecessaryCastCodeFixProvider.Rewriter.vb" />
     <Compile Include="CodeFixes\RemoveUnnecessaryCast\RemoveUnnecessaryCastCodeFixProvider.vb" />
@@ -369,6 +369,7 @@
     <Compile Include="Organizing\Organizers\TypeBlockOrganizer.vb" />
     <Compile Include="Organizing\VisualBasicOrganizerService.Rewriter.vb" />
     <Compile Include="Organizing\VisualBasicOrganizerService.vb" />
+    <Compile Include="PopulateSwitch\VisualBasicPopulateSwitchHelperClass.vb" />
     <Compile Include="RemoveUnnecessaryImports\VisualBasicRemoveUnnecessaryImportsService.Rewriter.vb" />
     <Compile Include="RemoveUnnecessaryImports\VisualBasicRemoveUnnecessaryImportsService.vb" />
     <Compile Include="RemoveUnnecessaryImports\VisualBasicRemoveUnnecessaryImportsService.Visitor.vb" />

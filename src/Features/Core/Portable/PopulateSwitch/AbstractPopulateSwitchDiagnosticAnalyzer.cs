@@ -75,6 +75,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics.PopulateSwitch
                 var symbol = model.GetSymbolInfo(label).Symbol;
                 if (symbol == null)
                 {
+                    // something is wrong with the label and the SemanticModel was unable to determine its symbol
+                    // abort analyzer
                     return true;
                 }
 
@@ -121,9 +123,6 @@ namespace Microsoft.CodeAnalysis.Diagnostics.PopulateSwitch
             return true;
         }
 
-        public DiagnosticAnalyzerCategory GetAnalyzerCategory()
-        {
-            return DiagnosticAnalyzerCategory.SemanticSpanAnalysis;
-        }
+        public DiagnosticAnalyzerCategory GetAnalyzerCategory() => DiagnosticAnalyzerCategory.SemanticSpanAnalysis;
     }
 }

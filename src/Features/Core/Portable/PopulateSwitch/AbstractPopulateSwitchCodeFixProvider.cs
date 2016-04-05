@@ -8,11 +8,16 @@ using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editing;
+using Microsoft.CodeAnalysis.Formatting;
+using Microsoft.CodeAnalysis.Simplification;
 using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.PopulateSwitch
 {
-    internal abstract class AbstractPopulateSwitchCodeFixProvider<TSwitchBlockSyntax> : CodeFixProvider where TSwitchBlockSyntax : SyntaxNode
+    internal abstract class AbstractPopulateSwitchCodeFixProvider<TSwitchBlockSyntax, TExpressionSyntax, TSwitchSectionSyntax> : CodeFixProvider 
+            where TSwitchBlockSyntax : SyntaxNode
+            where TSwitchSectionSyntax : SyntaxNode
+            where TExpressionSyntax : SyntaxNode
     {
         public override ImmutableArray<string> FixableDiagnosticIds => ImmutableArray.Create(IDEDiagnosticIds.PopulateSwitchDiagnosticId);
 
@@ -20,35 +25,34 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.PopulateSwitch
 
         public sealed override async Task RegisterCodeFixesAsync(CodeFixContext context)
         {
-            var document = context.Document;
-            var span = context.Span;
-            var cancellationToken = context.CancellationToken;
-            
-            var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
-            var node = GetSwitchStatementNode(root, span);
-
             context.RegisterCodeFix(
                 new MyCodeAction(
                     FeaturesResources.AddMissingSwitchCases,
-                    c => AddMissingSwitchLabelsAsync(document, root, (TSwitchBlockSyntax)node, cancellationToken)),
+                    c => AddMissingSwitchLabelsAsync(context)),
                 context.Diagnostics);
         }
 
-        protected abstract SyntaxNode GetSwitchExpression(TSwitchBlockSyntax switchBlock);
+        protected abstract TExpressionSyntax GetSwitchExpression(TSwitchBlockSyntax switchBlock);
 
-        protected abstract int InsertPosition(List<SyntaxNode> sections);
+        protected abstract int InsertPosition(List<TSwitchSectionSyntax> sections);
 
-        protected abstract List<SyntaxNode> GetSwitchSections(TSwitchBlockSyntax switchBlock);
+        protected abstract List<TSwitchSectionSyntax> GetSwitchSections(TSwitchBlockSyntax switchBlock);
 
-        protected abstract SyntaxNode NewSwitchNode(TSwitchBlockSyntax switchBlock, List<SyntaxNode> sections);
+        protected abstract SyntaxNode NewSwitchNode(TSwitchBlockSyntax switchBlock, List<TSwitchSectionSyntax> sections);
 
-        protected abstract SyntaxNode GetSwitchStatementNode(SyntaxNode root, TextSpan span);
+        protected abstract TSwitchBlockSyntax GetSwitchStatementNode(SyntaxNode root, TextSpan span);
 
         protected abstract List<SyntaxNode> GetCaseLabels(TSwitchBlockSyntax switchBlock, out bool containsDefaultLabel);
 
-        private async Task<Document> AddMissingSwitchLabelsAsync(Document document, SyntaxNode root, TSwitchBlockSyntax switchNode, CancellationToken cancellationToken)
+        private async Task<Document> AddMissingSwitchLabelsAsync(CodeFixContext context)
         {
+            var document = context.Document;
+            var span = context.Span;
+            var cancellationToken = context.CancellationToken;
+
+            var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
             var model = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
+            var switchNode = GetSwitchStatementNode(root, span);
 
             var enumType = (INamedTypeSymbol)model.GetTypeInfo(GetSwitchExpression(switchNode)).Type;
 
@@ -65,7 +69,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.PopulateSwitch
             {
                 var caseLabel = generator.MemberAccessExpression(generator.TypeExpression(enumType), label);
 
-                var section = generator.SwitchSection(caseLabel, new List<SyntaxNode> { switchExitStatement });
+                var section = (TSwitchSectionSyntax)generator.SwitchSection(caseLabel, new List<SyntaxNode> { switchExitStatement });
 
                 // ensure that the new cases are above the last section if a default case exists, but below all other sections
                 if (containsDefaultLabel)
@@ -80,10 +84,11 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.PopulateSwitch
 
             if (!containsDefaultLabel)
             {
-                newSections.Add(generator.DefaultSwitchSection(statements));
+                newSections.Add((TSwitchSectionSyntax)generator.DefaultSwitchSection(statements));
             }
 
-            var newNode = NewSwitchNode(switchNode, newSections);
+            var newNode = NewSwitchNode(switchNode, newSections)
+                .WithAdditionalAnnotations(Formatter.Annotation, Simplifier.Annotation);
 
             var newRoot = root.ReplaceNode(switchNode, newNode);
             return document.WithSyntaxRoot(newRoot);
