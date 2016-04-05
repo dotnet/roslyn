@@ -30,7 +30,7 @@
           "lib/net45/_._": {}
         }
       },
-      "Microsoft.NETCore.Portable.Compatibility/1.0.1-beta-23504": {
+      "Microsoft.NETCore.Portable.Compatibility/1.0.0": {
         "compile": {
           "ref/net45/_._": {}
         },
@@ -334,11 +334,11 @@
         "ref/xamarinmac20/_._"
       ]
     },
-    "Microsoft.NETCore.Portable.Compatibility/1.0.1-beta-23504": {
-      "sha512": "/12zABXWCTHNRBN6bNHxoqvmnJ1UKVaDSOR1BsAM+sv2aXjGMEM7bcDecvT/1zMKilWDmJpiPJJNCxjdZPQRTA==",
+    "Microsoft.NETCore.Portable.Compatibility/1.0.0": {
+      "sha512": "5/IFqf2zN1jzktRJitxO+5kQ+0AilcIbPvSojSJwDG3cGNSMZg44LXLB5E9RkSETE0Wh4QoALdNh1koKoF7/mA==",
       "type": "package",
       "files": [
-        "Microsoft.NETCore.Portable.Compatibility.1.0.1-beta-23504.nupkg.sha512",
+        "Microsoft.NETCore.Portable.Compatibility.1.0.0.nupkg.sha512",
         "Microsoft.NETCore.Portable.Compatibility.nuspec",
         "lib/dnxcore50/System.ComponentModel.DataAnnotations.dll",
         "lib/dnxcore50/System.Core.dll",

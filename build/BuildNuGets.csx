@@ -20,7 +20,6 @@ var SolutionRoot = Path.GetFullPath(Path.Combine(ScriptRoot(), "../"));
 
 string ScriptRoot([CallerFilePath]string path = "") => Path.GetDirectoryName(path);
 
-
 #region Config Variables
 
 // Strip trailing '\' characters because if the path is later passed on the
@@ -39,23 +38,27 @@ var Authors = @"Microsoft";
 var ProjectURL = @"http://msdn.com/roslyn";
 var Tags = @"Roslyn CodeAnalysis Compiler CSharp VB VisualBasic Parser Scanner Lexer Emit CodeGeneration Metadata IL Compilation Scripting Syntax Semantics";
 
-string SystemCollectionsImmutableVersion;
-string SystemReflectionMetadataVersion;
-string CodeAnalysisAnalyzersVersion;
-
 // Read preceding variables from MSBuild file
 var doc = XDocument.Load(Path.Combine(SolutionRoot, "build/Targets/VSL.Versions.targets"));
 XNamespace ns = @"http://schemas.microsoft.com/developer/msbuild/2003";
-SystemCollectionsImmutableVersion = doc.Descendants(ns + nameof(SystemCollectionsImmutableVersion)).Single().Value;
-SystemReflectionMetadataVersion = doc.Descendants(ns + nameof(SystemReflectionMetadataVersion)).Single().Value;
-CodeAnalysisAnalyzersVersion = doc.Descendants(ns + nameof(CodeAnalysisAnalyzersVersion)).Single().Value;
+string SystemCollectionsImmutableVersion = doc.Descendants(ns + nameof(SystemCollectionsImmutableVersion)).Single().Value;
+string SystemReflectionMetadataVersion = doc.Descendants(ns + nameof(SystemReflectionMetadataVersion)).Single().Value;
+string CodeAnalysisAnalyzersVersion = doc.Descendants(ns + nameof(CodeAnalysisAnalyzersVersion)).Single().Value;
+
+string MicrosoftDiaSymReaderVersion = GetExistingPackageVersion("Microsoft.DiaSymReader");
+string MicrosoftDiaSymReaderPortablePdbVersion = GetExistingPackageVersion("Microsoft.DiaSymReader.PortablePdb");
+
+string GetExistingPackageVersion(string name)
+{
+    string path = Directory.Exists(OutDir) ? Directory.GetFiles(OutDir, name + ".*.nupkg").SingleOrDefault() : null;
+    return (path == null) ? null : Path.GetFileNameWithoutExtension(path).Substring(name.Length + 1);
+}
 
 #endregion
 
 var NuGetAdditionalFilesPath = Path.Combine(SolutionRoot, "build/NuGetAdditionalFiles");
 var ThirdPartyNoticesPath = Path.Combine(NuGetAdditionalFilesPath, "ThirdPartyNotices.rtf");
 var NetCompilersPropsPath = Path.Combine(NuGetAdditionalFilesPath, "Microsoft.Net.Compilers.props");
-var IsReleaseVersion = !BuildVersion.Contains('-');
 
 string[] RedistPackageNames = {
     "Microsoft.CodeAnalysis.BuildTask.Portable",
@@ -98,6 +101,11 @@ var PreReleaseOnlyPackages = new HashSet<string>
     "Microsoft.Net.CSharp.Interactive.netcore",
 };
 
+// Create an empty directory to be used in NuGet pack
+var emptyDir = Path.Combine(Path.GetTempPath(), Path.GetRandomFileName());
+var dirInfo = Directory.CreateDirectory(emptyDir);
+File.Create(Path.Combine(emptyDir, "_._")).Close();
+
 int PackFiles(string[] packageNames, string licenseUrl)
 {
     int exit = 0;
@@ -107,7 +115,6 @@ int PackFiles(string[] packageNames, string licenseUrl)
         var nugetArgs = $@"pack {file} " +
             $"-BasePath \"{BinDir}\" " +
             $"-OutputDirectory \"{OutDir}\" " +
-            "-ExcludeEmptyDirectories " +
             $"-prop licenseUrl=\"{licenseUrl}\" " +
             $"-prop version=\"{BuildVersion}\" " +
             $"-prop authors={Authors} " +
@@ -117,7 +124,8 @@ int PackFiles(string[] packageNames, string licenseUrl)
             $"-prop systemReflectionMetadataVersion=\"{SystemReflectionMetadataVersion}\" " +
             $"-prop codeAnalysisAnalyzersVersion=\"{CodeAnalysisAnalyzersVersion}\" " +
             $"-prop thirdPartyNoticesPath=\"{ThirdPartyNoticesPath}\" " +
-            $"-prop netCompilersPropsPath=\"{NetCompilersPropsPath}\"";
+            $"-prop netCompilersPropsPath=\"{NetCompilersPropsPath}\" " +
+            $"-prop emptyDirPath=\"{emptyDir}\"";;
 
         var nugetExePath = Path.GetFullPath(Path.Combine(SolutionRoot, "nuget.exe"));
         var p = new Process();
@@ -138,30 +146,60 @@ int PackFiles(string[] packageNames, string licenseUrl)
     return exit;
 }
 
-XDocument CreatePublishingConfigDoc(IEnumerable<string> packageNames)
+XElement MakePackageElement(string packageName, string version)
 {
-    var packages =
-        packageNames.Select(packageName =>
-            new XElement("package", new XAttribute("id", packageName), new XAttribute("version", BuildVersion.ToString())));
+    return new XElement("package", new XAttribute("id", packageName), new XAttribute("version", version));
+}
 
-    return new XDocument(new XElement("packages", packages.ToArray()));
+IEnumerable<XElement> MakeRoslynPackageElements(bool isRelease)
+{
+    var packageNames = RedistPackageNames.Concat(NonRedistPackageNames);
+
+    if (isRelease)
+    {
+        packageNames = packageNames.Where(pn => !PreReleaseOnlyPackages.Contains(pn));
+    }
+
+    return packageNames.Select(packageName => MakePackageElement(packageName, BuildVersion));
+}
+
+void GeneratePublishingConfig(string fileName, IEnumerable<XElement> packages)
+{
+    var doc = new XDocument(new XElement("packages", packages.ToArray()));
+    doc.Save(Path.Combine(OutDir, fileName));
+}
+
+// Currently we publish some of the Roslyn dependencies. Remove this once they are moved to a separate repo.
+IEnumerable<XElement> MakePackageElementsForPublishedDependencies(bool isRelease)
+{
+    if (MicrosoftDiaSymReaderVersion != null && isRelease == IsReleaseVersion(MicrosoftDiaSymReaderVersion))
+    {
+        yield return MakePackageElement("Microsoft.DiaSymReader", MicrosoftDiaSymReaderVersion);
+    }
+
+    if (MicrosoftDiaSymReaderPortablePdbVersion != null && isRelease == IsReleaseVersion(MicrosoftDiaSymReaderPortablePdbVersion))
+    {
+        yield return MakePackageElement("Microsoft.DiaSymReader.PortablePdb", MicrosoftDiaSymReaderPortablePdbVersion);
+    }
 }
 
 void GeneratePublishingConfig()
 {
-    if (IsReleaseVersion)
+    if (IsReleaseVersion(BuildVersion))
     {
         // nuget:
-        var nuget = CreatePublishingConfigDoc(RedistPackageNames.Concat(NonRedistPackageNames).Where(pn => !PreReleaseOnlyPackages.Contains(pn)));
-        nuget.Save(Path.Combine(OutDir, "nuget_org-packages.config"));
+        var packages = MakeRoslynPackageElements(isRelease: true).Concat(MakePackageElementsForPublishedDependencies(isRelease: true));
+        GeneratePublishingConfig("nuget_org-packages.config", packages);
     }
     else
     {
         // myget:
-        var myget = CreatePublishingConfigDoc(RedistPackageNames.Concat(NonRedistPackageNames));
-        myget.Save(Path.Combine(OutDir, "myget_org-packages.config"));
+        var packages = MakeRoslynPackageElements(isRelease: false).Concat(MakePackageElementsForPublishedDependencies(isRelease: false));
+        GeneratePublishingConfig("myget_org-packages.config", packages);
     }
 }
+
+bool IsReleaseVersion(string version) => !version.Contains('-');
 
 Directory.CreateDirectory(OutDir);
 
@@ -170,5 +208,14 @@ GeneratePublishingConfig();
 int exit = PackFiles(RedistPackageNames, LicenseUrlRedist);
 if (exit == 0) exit = PackFiles(NonRedistPackageNames, LicenseUrlNonRedist);
 if (exit == 0) exit = PackFiles(TestPackageNames, LicenseUrlTest);
+
+try
+{
+    dirInfo.Delete(recursive: true);
+}
+catch
+{
+    // Ignore errors
+}
 
 Environment.Exit(exit);

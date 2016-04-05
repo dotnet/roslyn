@@ -14,7 +14,7 @@
           "lib/net45/_._": {}
         }
       },
-      "Microsoft.NETCore.Portable.Compatibility/1.0.1-beta-23504": {
+      "Microsoft.NETCore.Portable.Compatibility/1.0.0": {
         "compile": {
           "ref/net45/_._": {}
         },
@@ -201,12 +201,12 @@
           "lib/net45/_._": {}
         }
       },
-      "System.Runtime/4.0.21-beta-23504": {
+      "System.Runtime/4.0.20": {
         "compile": {
-          "ref/net45/_._": {}
+          "ref/net46/_._": {}
         },
         "runtime": {
-          "lib/net45/_._": {}
+          "lib/net46/_._": {}
         }
       },
       "System.Runtime.Extensions/4.0.10": {
@@ -270,7 +270,7 @@
           "lib/net45/_._": {}
         }
       },
-      "Microsoft.NETCore.Portable.Compatibility/1.0.1-beta-23504": {
+      "Microsoft.NETCore.Portable.Compatibility/1.0.0": {
         "compile": {
           "ref/net45/_._": {}
         },
@@ -457,12 +457,12 @@
           "lib/net45/_._": {}
         }
       },
-      "System.Runtime/4.0.21-beta-23504": {
+      "System.Runtime/4.0.20": {
         "compile": {
-          "ref/net45/_._": {}
+          "ref/net46/_._": {}
         },
         "runtime": {
-          "lib/net45/_._": {}
+          "lib/net46/_._": {}
         }
       },
       "System.Runtime.Extensions/4.0.10": {
@@ -526,7 +526,7 @@
           "lib/net45/_._": {}
         }
       },
-      "Microsoft.NETCore.Portable.Compatibility/1.0.1-beta-23504": {
+      "Microsoft.NETCore.Portable.Compatibility/1.0.0": {
         "compile": {
           "ref/net45/_._": {}
         },
@@ -713,12 +713,12 @@
           "lib/net45/_._": {}
         }
       },
-      "System.Runtime/4.0.21-beta-23504": {
+      "System.Runtime/4.0.20": {
         "compile": {
-          "ref/net45/_._": {}
+          "ref/net46/_._": {}
         },
         "runtime": {
-          "lib/net45/_._": {}
+          "lib/net46/_._": {}
         }
       },
       "System.Runtime.Extensions/4.0.10": {
@@ -811,11 +811,11 @@
         "ref/xamarinmac20/_._"
       ]
     },
-    "Microsoft.NETCore.Portable.Compatibility/1.0.1-beta-23504": {
-      "sha512": "/12zABXWCTHNRBN6bNHxoqvmnJ1UKVaDSOR1BsAM+sv2aXjGMEM7bcDecvT/1zMKilWDmJpiPJJNCxjdZPQRTA==",
+    "Microsoft.NETCore.Portable.Compatibility/1.0.0": {
+      "sha512": "5/IFqf2zN1jzktRJitxO+5kQ+0AilcIbPvSojSJwDG3cGNSMZg44LXLB5E9RkSETE0Wh4QoALdNh1koKoF7/mA==",
       "type": "package",
       "files": [
-        "Microsoft.NETCore.Portable.Compatibility.1.0.1-beta-23504.nupkg.sha512",
+        "Microsoft.NETCore.Portable.Compatibility.1.0.0.nupkg.sha512",
         "Microsoft.NETCore.Portable.Compatibility.nuspec",
         "lib/dnxcore50/System.ComponentModel.DataAnnotations.dll",
         "lib/dnxcore50/System.Core.dll",
@@ -1393,72 +1393,33 @@
         "runtimes/win8-aot/lib/netcore50/System.Resources.ResourceManager.dll"
       ]
     },
-    "System.Runtime/4.0.21-beta-23504": {
-      "sha512": "aCPLcyPqkUAPYyHh6JUn4Hlp2WvO9y6e+X11yzwXGN9NWzP6Za7PZy/bIBTkP1Lsey16WzP42N66A9X4G7DOzQ==",
+    "System.Runtime/4.0.20": {
+      "sha512": "X7N/9Bz7jVPorqdVFO86ns1sX6MlQM+WTxELtx+Z4VG45x9+LKmWH0GRqjgKprUnVuwmfB9EJ9DQng14Z7/zwg==",
       "type": "package",
       "files": [
-        "System.Runtime.4.0.21-beta-23504.nupkg.sha512",
+        "System.Runtime.4.0.20.nupkg.sha512",
         "System.Runtime.nuspec",
         "lib/DNXCore50/System.Runtime.dll",
         "lib/MonoAndroid10/_._",
         "lib/MonoTouch10/_._",
-        "lib/net45/_._",
+        "lib/net46/_._",
         "lib/netcore50/System.Runtime.dll",
-        "lib/win8/_._",
-        "lib/wp80/_._",
-        "lib/wpa81/_._",
         "lib/xamarinios10/_._",
         "lib/xamarinmac20/_._",
         "ref/MonoAndroid10/_._",
         "ref/MonoTouch10/_._",
-        "ref/dotnet5.1/System.Runtime.dll",
-        "ref/dotnet5.1/System.Runtime.xml",
-        "ref/dotnet5.1/de/System.Runtime.xml",
-        "ref/dotnet5.1/es/System.Runtime.xml",
-        "ref/dotnet5.1/fr/System.Runtime.xml",
-        "ref/dotnet5.1/it/System.Runtime.xml",
-        "ref/dotnet5.1/ja/System.Runtime.xml",
-        "ref/dotnet5.1/ko/System.Runtime.xml",
-        "ref/dotnet5.1/ru/System.Runtime.xml",
-        "ref/dotnet5.1/zh-hans/System.Runtime.xml",
-        "ref/dotnet5.1/zh-hant/System.Runtime.xml",
-        "ref/dotnet5.3/System.Runtime.dll",
-        "ref/dotnet5.3/System.Runtime.xml",
-        "ref/dotnet5.3/de/System.Runtime.xml",
-        "ref/dotnet5.3/es/System.Runtime.xml",
-        "ref/dotnet5.3/fr/System.Runtime.xml",
-        "ref/dotnet5.3/it/System.Runtime.xml",
-        "ref/dotnet5.3/ja/System.Runtime.xml",
-        "ref/dotnet5.3/ko/System.Runtime.xml",
-        "ref/dotnet5.3/ru/System.Runtime.xml",
-        "ref/dotnet5.3/zh-hans/System.Runtime.xml",
-        "ref/dotnet5.3/zh-hant/System.Runtime.xml",
-        "ref/dotnet5.4/System.Runtime.dll",
-        "ref/dotnet5.4/System.Runtime.xml",
-        "ref/dotnet5.4/de/System.Runtime.xml",
-        "ref/dotnet5.4/es/System.Runtime.xml",
-        "ref/dotnet5.4/fr/System.Runtime.xml",
-        "ref/dotnet5.4/it/System.Runtime.xml",
-        "ref/dotnet5.4/ja/System.Runtime.xml",
-        "ref/dotnet5.4/ko/System.Runtime.xml",
-        "ref/dotnet5.4/ru/System.Runtime.xml",
-        "ref/dotnet5.4/zh-hans/System.Runtime.xml",
-        "ref/dotnet5.4/zh-hant/System.Runtime.xml",
-        "ref/net45/_._",
-        "ref/netcore50/System.Runtime.dll",
-        "ref/netcore50/System.Runtime.xml",
-        "ref/netcore50/de/System.Runtime.xml",
-        "ref/netcore50/es/System.Runtime.xml",
-        "ref/netcore50/fr/System.Runtime.xml",
-        "ref/netcore50/it/System.Runtime.xml",
-        "ref/netcore50/ja/System.Runtime.xml",
-        "ref/netcore50/ko/System.Runtime.xml",
-        "ref/netcore50/ru/System.Runtime.xml",
-        "ref/netcore50/zh-hans/System.Runtime.xml",
-        "ref/netcore50/zh-hant/System.Runtime.xml",
-        "ref/win8/_._",
-        "ref/wp80/_._",
-        "ref/wpa81/_._",
+        "ref/dotnet/System.Runtime.dll",
+        "ref/dotnet/System.Runtime.xml",
+        "ref/dotnet/de/System.Runtime.xml",
+        "ref/dotnet/es/System.Runtime.xml",
+        "ref/dotnet/fr/System.Runtime.xml",
+        "ref/dotnet/it/System.Runtime.xml",
+        "ref/dotnet/ja/System.Runtime.xml",
+        "ref/dotnet/ko/System.Runtime.xml",
+        "ref/dotnet/ru/System.Runtime.xml",
+        "ref/dotnet/zh-hans/System.Runtime.xml",
+        "ref/dotnet/zh-hant/System.Runtime.xml",
+        "ref/net46/_._",
         "ref/xamarinios10/_._",
         "ref/xamarinmac20/_._",
         "runtimes/win8-aot/lib/netcore50/System.Runtime.dll"
@@ -1673,9 +1634,7 @@
     }
   },
   "projectFileDependencyGroups": {
-    "": [
-      "System.Runtime >= 4.0.21-beta-23504"
-    ],
+    "": [],
     ".NETFramework,Version=v4.6": []
   }
 }

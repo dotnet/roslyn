@@ -2,7 +2,7 @@
   "locked": false,
   "version": 1,
   "targets": {
-    ".NETPlatform,Version=v5.4": {
+    ".NETStandard,Version=v1.3": {
       "Microsoft.CSharp/4.0.0": {
         "dependencies": {
           "System.Collections": "4.0.10",
@@ -29,7 +29,7 @@
           "lib/dotnet/Microsoft.CSharp.dll": {}
         }
       },
-      "Microsoft.NETCore.Portable.Compatibility/1.0.1-beta-23504": {
+      "Microsoft.NETCore.Portable.Compatibility/1.0.0": {
         "compile": {
           "ref/dotnet/System.ComponentModel.DataAnnotations.dll": {},
           "ref/dotnet/System.Core.dll": {},
@@ -74,10 +74,10 @@
           "System.Threading": "4.0.0"
         },
         "compile": {
-          "lib/dotnet/System.Collections.Immutable.dll": {}
+          "lib/portable-net45+win8+wp8+wpa81/System.Collections.Immutable.dll": {}
         },
         "runtime": {
-          "lib/dotnet/System.Collections.Immutable.dll": {}
+          "lib/portable-net45+win8+wp8+wpa81/System.Collections.Immutable.dll": {}
         }
       },
       "System.Diagnostics.Debug/4.0.10": {
@@ -353,11 +353,11 @@
         "ref/xamarinmac20/_._"
       ]
     },
-    "Microsoft.NETCore.Portable.Compatibility/1.0.1-beta-23504": {
-      "sha512": "/12zABXWCTHNRBN6bNHxoqvmnJ1UKVaDSOR1BsAM+sv2aXjGMEM7bcDecvT/1zMKilWDmJpiPJJNCxjdZPQRTA==",
+    "Microsoft.NETCore.Portable.Compatibility/1.0.0": {
+      "sha512": "5/IFqf2zN1jzktRJitxO+5kQ+0AilcIbPvSojSJwDG3cGNSMZg44LXLB5E9RkSETE0Wh4QoALdNh1koKoF7/mA==",
       "type": "package",
       "files": [
-        "Microsoft.NETCore.Portable.Compatibility.1.0.1-beta-23504.nupkg.sha512",
+        "Microsoft.NETCore.Portable.Compatibility.1.0.0.nupkg.sha512",
         "Microsoft.NETCore.Portable.Compatibility.nuspec",
         "lib/dnxcore50/System.ComponentModel.DataAnnotations.dll",
         "lib/dnxcore50/System.Core.dll",
@@ -1275,6 +1275,6 @@
       "System.AppContext >= 4.0.0",
       "System.Dynamic.Runtime >= 4.0.10"
     ],
-    ".NETPlatform,Version=v5.4": []
+    ".NETStandard,Version=v1.3": []
   }
 }
