@@ -2,7 +2,14 @@
 // Jenkins DSL: https://github.com/jenkinsci/job-dsl-plugin/wiki
 
 import jobs.generation.Utilities;
+import static Constants.*;
+
 def project = GithubProject
+
+class Constants {
+    // Number of minutes a build job is given to complete.
+    static final BuildTimeLimit = 120;
+}
 
 static void addLogRotator(def myJob) {
   myJob.with {
@@ -50,7 +57,7 @@ static void addWrappers(def myJob) {
   myJob.with {
     wrappers {
       timeout {
-        absolute(120)
+        absolute(BuildTimeLimit)
         abortBuild()
       }
       timestamps()

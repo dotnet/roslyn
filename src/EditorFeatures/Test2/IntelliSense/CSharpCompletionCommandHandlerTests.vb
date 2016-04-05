@@ -987,6 +987,34 @@ class C
             End Using
         End Function
 
+        <WorkItem(5487, "https://github.com/dotnet/roslyn/issues/5487")>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function TestCommitCharTypedAtTheBeginingOfTheFilterSpan() As Task
+            Using state = TestState.CreateCSharpTestState(
+                  <Document><![CDATA[
+class C
+{
+    public bool Method()
+    {
+        if ($$
+    }
+}
+            ]]></Document>)
+
+                state.SendTypeChars("Met")
+                Await state.AssertCompletionSession()
+                state.SendLeftKey()
+                state.SendLeftKey()
+                state.SendLeftKey()
+                Await state.AssertSelectedCompletionItem(isSoftSelected:=True)
+                state.SendTypeChars("!")
+                Await state.AssertNoCompletionSession()
+                Await state.WaitForAsynchronousOperationsAsync()
+                Assert.Equal("if (!Met", state.GetLineTextFromCaretPosition().Trim())
+                Assert.Equal("M", state.GetCaretPoint().BufferPosition.GetChar())
+            End Using
+        End Function
+
         <WorkItem(622957, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/622957")>
         <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Async Function TestBangFiltersInDocComment() As Task

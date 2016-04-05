@@ -18,6 +18,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
             Return SyntaxFactory.AwaitExpression(DirectCast(expression, ExpressionSyntax))
         End Function
 
+        Public Overrides Function NameOfExpression(expression As SyntaxNode) As SyntaxNode
+            Return SyntaxFactory.NameOfExpression(DirectCast(expression, ExpressionSyntax))
+        End Function
+
         Private Function Parenthesize(expression As SyntaxNode) As ParenthesizedExpressionSyntax
             Return DirectCast(expression, ExpressionSyntax).Parenthesize()
         End Function

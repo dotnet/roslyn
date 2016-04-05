@@ -1,5 +1,6 @@
 {
     "dependencies": {
+        "Microsoft.NETCore.Platforms": "1.0.0",
         "Microsoft.CodeAnalysis.Test.Resources.Proprietary": "1.2.0-beta1-20160105-04",
         "Microsoft.Build.Mono.Debug": "14.1.0",
         "Microsoft.DiaSymReader.Native": "1.3.3",
@@ -11,6 +12,6 @@
         "Roslyn.Build.Util": "0.9.3-portable"
     },
     "frameworks": {
-        "net45": {}
+        "net46": {}
     }
 }
