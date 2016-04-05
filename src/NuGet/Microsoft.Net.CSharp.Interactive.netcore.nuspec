@@ -19,30 +19,30 @@
             <group targetFramework="dnxcore50">
                 <dependency id="Microsoft.CodeAnalysis.Compilers" version="$version$" />
                 <dependency id="Microsoft.CodeAnalysis.Scripting" version="$version$" />
-                <dependency id="System.AppContext" version="4.0.1-rc2-24008" />
-                <dependency id="System.Collections" version="4.0.11-rc2-24008" />
-                <dependency id="System.Collections.Immutable" version="1.1.37" />
-                <dependency id="System.Diagnostics.Debug" version="4.0.11-rc2-24008" />
-                <dependency id="System.Diagnostics.StackTrace" version="4.0.1-rc2-24008" />
-                <dependency id="System.Diagnostics.Tools" version="4.0.1-rc2-24008" />
-                <dependency id="System.Globalization" version="4.0.11-rc2-24008" />
-                <dependency id="System.IO" version="4.0.11-rc2-24008" />
-                <dependency id="System.IO.FileSystem" version="4.0.1-rc2-24008" />
-                <dependency id="System.IO.FileSystem.Primitives" version="4.0.1-rc2-24008" />
-                <dependency id="System.Linq" version="4.0.1-rc2-24008" />
-                <dependency id="System.Linq.Expressions" version="4.0.11-rc2-24008" />
-                <dependency id="System.Reflection" version="4.1.0-rc2-24008" />
-                <dependency id="System.Reflection.Metadata" version="1.1.0-rc2-24008" />
-                <dependency id="System.Reflection.Primitives" version="4.0.1-rc2-24008" />
-                <dependency id="System.Resources.ResourceManager" version="4.0.1-rc2-24008" />
-                <dependency id="System.Runtime" version="4.0.21-rc2-24008" />
-                <dependency id="System.Runtime.Extensions" version="4.0.11-rc2-24008" />
-                <dependency id="System.Runtime.Handles" version="4.0.1-rc2-24008" />
-                <dependency id="System.Runtime.InteropServices" version="4.0.21-rc2-24008" />
-                <dependency id="System.Text.Encoding" version="4.0.11-rc2-24008" />
-                <dependency id="System.Text.Encoding.Extensions" version="4.0.11-rc2-24008" />
-                <dependency id="System.Threading" version="4.0.11-rc2-24008" />
-                <dependency id="System.Threading.Tasks" version="4.0.11-rc2-24008" />
+                <dependency id="System.AppContext" version="4.0.1-rc3-24005-00" />
+                <dependency id="System.Collections" version="4.0.11-rc3-24005-00" />
+                <dependency id="System.Collections.Immutable" version="1.2.0-rc3-24005-00" />
+                <dependency id="System.Diagnostics.Debug" version="4.0.11-rc3-24005-00" />
+                <dependency id="System.Diagnostics.StackTrace" version="4.0.1-rc3-24005-00" />
+                <dependency id="System.Diagnostics.Tools" version="4.0.1-rc3-24005-00" />
+                <dependency id="System.Globalization" version="4.0.11-rc3-24005-00" />
+                <dependency id="System.IO" version="4.0.11-rc3-24005-00" />
+                <dependency id="System.IO.FileSystem" version="4.0.1-rc3-24005-00" />
+                <dependency id="System.IO.FileSystem.Primitives" version="4.0.1-rc3-24005-00" />
+                <dependency id="System.Linq" version="4.0.1-rc3-24005-00" />
+                <dependency id="System.Linq.Expressions" version="4.0.11-rc3-24005-00" />
+                <dependency id="System.Reflection" version="4.1.0-rc3-24005-00" />
+                <dependency id="System.Reflection.Metadata" version="1.1.0-rc3-24005-00" />
+                <dependency id="System.Reflection.Primitives" version="4.0.1-rc3-24005-00" />
+                <dependency id="System.Resources.ResourceManager" version="4.0.1-rc3-24005-00" />
+                <dependency id="System.Runtime" version="4.0.21-rc3-24005-00" />
+                <dependency id="System.Runtime.Extensions" version="4.0.11-rc3-24005-00" />
+                <dependency id="System.Runtime.Handles" version="4.0.1-rc3-24005-00" />
+                <dependency id="System.Runtime.InteropServices" version="4.0.21-rc3-24005-00" />
+                <dependency id="System.Text.Encoding" version="4.0.11-rc3-24005-00" />
+                <dependency id="System.Text.Encoding.Extensions" version="4.0.11-rc3-24005-00" />
+                <dependency id="System.Threading" version="4.0.11-rc3-24005-00" />
+                <dependency id="System.Threading.Tasks" version="4.0.11-rc3-24005-00" />
             </group>
         </dependencies>
     </metadata>
