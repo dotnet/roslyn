@@ -30,7 +30,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options.Formatting
         private static readonly string s_fieldDeclarationPreviewTrue = @"
 class C{
     int capacity;
-    void foo()
+    void Method()
     {
 //[
         this.capacity = 0;
@@ -41,7 +41,7 @@ class C{
         private static readonly string s_fieldDeclarationPreviewFalse = @"
 class C{
     int capacity;
-    void foo()
+    void Method()
     {
 //[
         capacity = 0;
@@ -52,7 +52,7 @@ class C{
         private static readonly string s_propertyDeclarationPreviewTrue = @"
 class C{
     public int Id { get; set; }
-    void foo()
+    void Method()
     {
 //[
         this.Id = 0;
@@ -63,7 +63,7 @@ class C{
         private static readonly string s_propertyDeclarationPreviewFalse = @"
 class C{
     public int Id { get; set; }
-    void foo()
+    void Method()
     {
 //[
         Id = 0;
@@ -74,11 +74,11 @@ class C{
         private static readonly string s_eventDeclarationPreviewTrue = @"
 using System;
 class C{
-    event EventHandler e;
+    event EventHandler Elapsed;
     void Handler(object sender, EventArgs args)
     {
 //[
-        this.e += Handler;
+        this.Elapsed += Handler;
 //]
     }
 }";
@@ -86,11 +86,11 @@ class C{
         private static readonly string s_eventDeclarationPreviewFalse = @"
 using System;
 class C{
-    event EventHandler e;
+    event EventHandler Elapsed;
     void Handler(object sender, EventArgs args)
     {
 //[
-        e += Handler;
+        Elapsed += Handler;
 //]
     }
 }";
@@ -168,7 +168,7 @@ class Program
         private static readonly string s_varForIntrinsicsPreviewFalse = @"
 using System;
 class C{
-    void foo()
+    void Method()
     {
 //[
         int x = 5; // built-in types
@@ -179,7 +179,7 @@ class C{
         private static readonly string s_varForIntrinsicsPreviewTrue = @"
 using System;
 class C{
-    void foo()
+    void Method()
     {
 //[
         var x = 5; // built-in types
@@ -190,7 +190,7 @@ class C{
         private static readonly string s_varWhereApparentPreviewFalse = @"
 using System;
 class C{
-    void foo()
+    void Method()
     {
 //[
         C cobj = new C(); // type is apparent from assignment expression
@@ -201,7 +201,7 @@ class C{
         private static readonly string s_varWhereApparentPreviewTrue = @"
 using System;
 class C{
-    void foo()
+    void Method()
     {
 //[
         var cobj = new C(); // type is apparent from assignment expression
