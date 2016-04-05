@@ -86,7 +86,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             if (numElements <= 1)
             {
                 throw ExceptionUtilities.Unreachable;
-        }
+            }
             NamedTypeSymbol underlyingType = GetTupleUnderlyingType(elementTypes, syntax, binder, diagnostics);
 
             return new TupleTypeSymbol(underlyingType, elementNames, binder.Compilation.Assembly);
@@ -140,7 +140,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             var fieldsBuilder = ArrayBuilder<TupleFieldSymbol>.GetInstance(originalTuple._fields.Length);
             var originalFields = originalTuple._fields;
-            
+
             for (int i = 0; i < originalFields.Length; i++)
             {
                 fieldsBuilder.Add(originalFields[i].WithName(this, GetFieldNameFromArrayOrDefaultName(newElementNames, i)));
@@ -753,7 +753,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             get
             {
-                return _fields.Length;
+                return 0;
             }
         }
 
