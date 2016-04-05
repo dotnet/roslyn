@@ -11,9 +11,15 @@ using System.Linq;
 
 InitUtilities();
 
-Console.WriteLine("Pass additional test search paths as command line arguments");
+Console.WriteLine("Pass additional test search paths as `--directory=additionaltests`");
 
-var testDirectories = new[] { Path.Combine(MyWorkingDirectory(), "Tests") }.Concat(Args);
+IEnumerable<string> ExtractAdditionalDirectories(IEnumerable<string> args)
+{
+    return args.Where(s => s.StartsWith("--directory="))
+               .Select(s => s.Split('=')[1]);
+}
+
+var testDirectories = new[] { Path.Combine(MyWorkingDirectory(), "Tests") }.Concat(ExtractAdditionalDirectories(Args));
 
 var allResults = new List<Tuple<string, List<Tuple<int, string, object>>>>();
 var failed = false;
