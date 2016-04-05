@@ -637,6 +637,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 var patternBinder = new PatternVariableBinder(node, node.Expression, _enclosing);
                 AddToMap(node, patternBinder);
+                Visit(node.Expression, patternBinder);
             }
         }
 
