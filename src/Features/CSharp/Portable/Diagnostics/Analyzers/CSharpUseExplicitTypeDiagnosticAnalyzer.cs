@@ -10,10 +10,10 @@ using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 
-namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.TypingStyles
+namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.TypeStyle
 {
     [DiagnosticAnalyzer(LanguageNames.CSharp)]
-    internal sealed class CSharpUseExplicitTypingDiagnosticAnalyzer : CSharpTypingStyleDiagnosticAnalyzerBase
+    internal sealed class CSharpUseExplicitTypeDiagnosticAnalyzer : CSharpTypeStyleDiagnosticAnalyzerBase
     {
         private static readonly LocalizableString s_Title =
             new LocalizableResourceString(nameof(CSharpFeaturesResources.UseExplicitTypeDiagnosticTitle), CSharpFeaturesResources.ResourceManager, typeof(CSharpFeaturesResources));
@@ -21,8 +21,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.TypingStyles
         private static readonly LocalizableString s_Message =
             new LocalizableResourceString(nameof(CSharpFeaturesResources.UseExplicitType), CSharpFeaturesResources.ResourceManager, typeof(CSharpFeaturesResources));
 
-        public CSharpUseExplicitTypingDiagnosticAnalyzer()
-            : base(diagnosticId: IDEDiagnosticIds.UseExplicitTypingDiagnosticId,
+        public CSharpUseExplicitTypeDiagnosticAnalyzer()
+            : base(diagnosticId: IDEDiagnosticIds.UseExplicitTypeDiagnosticId,
                    title: s_Title,
                    message: s_Message)
         {
@@ -43,7 +43,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.TypingStyles
             {
                 return !stylePreferences.HasFlag(TypeStyle.ImplicitTypeForIntrinsicTypes);
             }
-            else if (state.IsTypingApparentInContext)
+            else if (state.IsTypeApparentInContext)
             {
                 return !stylePreferences.HasFlag(TypeStyle.ImplicitTypeWhereApparent);
             }
