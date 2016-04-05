@@ -271,6 +271,7 @@ public class Program
         int c = x;
         int a, b;
         int f;
+
         a = b = f = c;
         int d = a, e = b;
         return d + e + f;

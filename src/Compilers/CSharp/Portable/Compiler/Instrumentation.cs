@@ -168,6 +168,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             BoundStatement statement = node as BoundStatement;
             if (statement != null)
             {
+                // The default behavior is to instrument a statement unless it is compiler generated.
+                // Filter out statements that are not to be instrumented, and force instrumentation of some compiler-generated statements.
                 switch (statement.Kind)
                 {
                     case BoundKind.SwitchSection:
