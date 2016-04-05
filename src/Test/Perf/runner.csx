@@ -7,10 +7,13 @@
 using System.Collections.Generic;
 using System.IO;
 using System;
+using System.Linq;
 
 InitUtilities();
 
-var testDirectory = Path.Combine(MyWorkingDirectory(), "Tests");
+Console.WriteLine("Pass additional test search paths as command line arguments");
+
+var testDirectories = new[] { Path.Combine(MyWorkingDirectory(), "Tests") }.Concat(Args);
 
 var allResults = new List<Tuple<string, List<Tuple<int, string, object>>>>();
 var failed = false;
@@ -29,7 +32,7 @@ for(int i = 0; i < traceManager.Iterations; ++ i)
     traceManager.Start();
 
     // Run all the scripts that we've found and populate allResults.
-    foreach (var script in GetAllCsxRecursive(testDirectory))
+    foreach (var script in testDirectories.SelectMany(d => GetAllCsxRecursive(d)))
     {
         var scriptName = Path.GetFileNameWithoutExtension(script);
         Log("\nRunning " + scriptName);
