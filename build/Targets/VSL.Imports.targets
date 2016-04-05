@@ -212,6 +212,12 @@
     </ItemGroup>
   </Target>
 
+  <ItemDefinitionGroup>
+    <NuGetPackageToIncludeInVsix>
+      <Visible>false</Visible>
+    </NuGetPackageToIncludeInVsix>
+  </ItemDefinitionGroup>
+
   <!-- ====================================================================================
 
          Generation of AssemblyVersion attributes from the BuildVersion property
