@@ -1,0 +1,44 @@
+##Checklist of work for Source Generators:
+- [ ] GenerateSource
+  - [ ] Return errors to caller
+  - [ ] Catch exceptions and return to caller as errors
+  - [ ] Execute generators in parallel using same concurrent policy as analyzers (P2)
+- [ ] `AddCompilationUnit`
+  - [ ] Create `GeneratedSource` directory (on demand) in `$OutputPath`
+  - [ ] Create separate directories for each generator (on demand), using generator assembly file name. e.g.: `$OutputPath/GeneratedSource/MyGenerator.dll/MySource.cs`
+  - [ ] `AddCompilation` should take `SourceText` and `ParseOptions` rather than `SyntaxTree`: ```AddCompilation(string name, SourceText text, ParseOptions options)```
+- [ ] Add `IsGenerated` property to `SyntaxTree`. See `DocumentInfo.IsGenerated` and ```AnalyzerDriver.IsGeneratedCode(SyntaxTree tree)```.
+- [ ] Incremental parsing when adding/removing `replace`. See `src/Compilers/CSharp/Test/Syntax/IncrementalParsing/ReplaceOriginalTests.cs`
+- [ ] Match signature on replace/original
+  - [ ] Compare parameter names
+  - [ ] Compare default values
+  - [ ] Compare type parameter names and constraints
+  - [ ] Inherit type parameter constraints from original definition if absent in `replace`
+  - [ ] Compare set of property/event accessors
+  - [ ] Compare modifiers: `sealed`, `static`, `virtual`, `new`, and `override`
+- [ ] `replace` members
+  - [ ] `replace` for explicit implementation
+  - [ ] `replace` for user-defined operators
+  - [ ] `replace` for static and instance constructors
+    - [ ] Allow writing to `readonly` fields in original constructor
+  - [ ] `replace` for destructors
+  - [ ] `replace` for field-like events
+  - [ ] `replace` for extension methods
+  - [ ] `replace` partial methods
+  - [ ] `replace` external method
+- [ ] Add `Replaced` and `ReplacedBy` to ISymbol
+- [ ] Report diagnostics
+  - [ ] Report error for multiple `replace`
+  - [ ] Report error for signature mismatch
+  - [ ] Report error for `replace` with no original
+  - [ ] Report error for a `replace` member with `extern` or `abstract`
+- [ ] Allow a member to be replaced multiple times (P2)
+  - [ ] Use ```[Order]``` attributes to determine chain
+- [ ] Emit metadata
+  - [ ] Include namespace and type name in managled name of original explicit interface implementation
+  - [ ] Include (deterministic) unique id in managled name of original overloaded methods: ```<M>v__0```, ```<M>v__1```, ...
+  - [ ] Drop original methods that are not called in optimized builds (P2)
+- [ ] IDE
+  - [ ] Include diagnostics from `SourceGenerator.Execute` in Errors list (P2)  
+- [ ] EE
+  - [ ] Bind `original` to mangled method or accessor
