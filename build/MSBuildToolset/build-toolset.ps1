@@ -20,6 +20,11 @@ try
 
         $publishDir = "$dnxcoreDir\$TargetRuntime\publish"
 
+        # Fix up AssignLinkMetadata
+        # TODO(https://github.com/Microsoft/msbuild/issues/544)
+        $curVersionTargets = "$publishDir\Microsoft.Common.CurrentVersion.targets"
+        (Get-Content $curVersionTargets).replace(';AssignLinkMetadata</PrepareForBuildDependsOn>', '</PrepareForBuildDependsOn>') | Set-Content $curVersionTargets
+
         # Set up tasks and targets
         $extensionsMSDir = "$publishDir\Extensions\Microsoft"
         $nugetExtensionsDir = "$extensionsMSDir\NuGet"

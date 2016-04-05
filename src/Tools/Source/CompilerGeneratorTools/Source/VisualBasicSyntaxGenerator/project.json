@@ -1,10 +1,9 @@
 {
   "dependencies": {
-    "Microsoft.NETCore.Portable.Compatibility": "1.0.1-beta-23504",
-    "Microsoft.NETCore": "5.0.1-beta-23504",
-    "System.Console": "4.0.0-beta-23504",
-    "System.Reflection": "4.1.0-beta-23504",
-    "System.Security.Cryptography.Algorithms": "4.0.0-beta-23504"
+    "Microsoft.NETCore.Portable.Compatibility": "1.0.0",
+    "NETStandard.Library": "1.5.0-rc2-23931",
+    "System.Console": "4.0.0-rc2-23931",
+    "System.Security.Cryptography.Algorithms": "4.1.0-rc2-23931"
   },
   "frameworks": {
     "dnxcore50": {}

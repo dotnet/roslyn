@@ -113,9 +113,9 @@
         <BaseNuGetRuntimeIdentifier Condition="'$(OS)' == 'Windows_NT'">win7</BaseNuGetRuntimeIdentifier>
       </PropertyGroup>
 
-      <!-- Upgrade portable DLLs to v5.4 -->
+      <!-- Upgrade portable projects to .NETStandard 1.3 -->
       <PropertyGroup Condition="'$(OutputType)' == 'Library'">
-        <NuGetTargetMoniker>.NETPlatform,Version=v5.4</NuGetTargetMoniker>
+        <NuGetTargetMoniker>.NETStandard,Version=v1.3</NuGetTargetMoniker>
       </PropertyGroup>
     </When>
   </Choose>

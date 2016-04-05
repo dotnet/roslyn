@@ -37,7 +37,34 @@
           "lib/portable-net45+win8/Microsoft.DiaSymReader.dll": {}
         }
       },
-      "Microsoft.DiaSymReader.Native/1.3.3": {},
+      "Microsoft.DiaSymReader.Native/1.3.3": {
+        "runtimeTargets": {
+          "runtimes/win-x64/native/Microsoft.DiaSymReader.Native.amd64.dll": {
+            "assetType": "native",
+            "rid": "win-x64"
+          },
+          "runtimes/win-x86/native/Microsoft.DiaSymReader.Native.x86.dll": {
+            "assetType": "native",
+            "rid": "win-x86"
+          },
+          "runtimes/win/native/Microsoft.DiaSymReader.Native.amd64.dll": {
+            "assetType": "native",
+            "rid": "win"
+          },
+          "runtimes/win/native/Microsoft.DiaSymReader.Native.arm.dll": {
+            "assetType": "native",
+            "rid": "win"
+          },
+          "runtimes/win/native/Microsoft.DiaSymReader.Native.x86.dll": {
+            "assetType": "native",
+            "rid": "win"
+          },
+          "runtimes/win8-arm/native/Microsoft.DiaSymReader.Native.arm.dll": {
+            "assetType": "native",
+            "rid": "win8-arm"
+          }
+        }
+      },
       "Microsoft.NETCore.Platforms/1.0.1-beta-23504": {
         "dependencies": {
           "Microsoft.NETCore.Targets": "1.0.1-beta-23504"
@@ -640,29 +667,15 @@
           "lib/DNXCore50/System.Reflection.Extensions.dll": {}
         }
       },
-      "System.Reflection.Metadata/1.2.0-rc2-23826": {
+      "System.Reflection.Metadata/1.2.0": {
         "dependencies": {
-          "System.Collections": "4.0.0",
-          "System.Collections.Immutable": "1.1.37",
-          "System.Diagnostics.Debug": "4.0.0",
-          "System.IO": "4.0.0",
-          "System.Linq": "4.0.0",
-          "System.Reflection": "4.0.0",
-          "System.Reflection.Extensions": "4.0.0",
-          "System.Reflection.Primitives": "4.0.0",
-          "System.Resources.ResourceManager": "4.0.0",
-          "System.Runtime": "4.0.0",
-          "System.Runtime.Extensions": "4.0.0",
-          "System.Runtime.InteropServices": "4.0.0",
-          "System.Text.Encoding": "4.0.0",
-          "System.Text.Encoding.Extensions": "4.0.0",
-          "System.Threading": "4.0.0"
+          "System.Collections.Immutable": "1.1.37"
         },
         "compile": {
-          "lib/dotnet5.2/System.Reflection.Metadata.dll": {}
+          "lib/portable-net45+win8/System.Reflection.Metadata.dll": {}
         },
         "runtime": {
-          "lib/dotnet5.2/System.Reflection.Metadata.dll": {}
+          "lib/portable-net45+win8/System.Reflection.Metadata.dll": {}
         }
       },
       "System.Reflection.Primitives/4.0.1-beta-23504": {
@@ -1123,6 +1136,12 @@
         },
         "runtime": {
           "lib/dnxcore50/_._": {}
+        },
+        "runtimeTargets": {
+          "runtimes/any/native/xunit.console.netcore.exe": {
+            "assetType": "native",
+            "rid": "any"
+          }
         }
       },
       "xunit.core/2.1.0": {
@@ -1434,11 +1453,7 @@
           "runtimes/osx.10.10-x64/native/libsos.dylib": {}
         }
       },
-      "runtime.osx.10.10-x64.Microsoft.NETCore.TestHost/1.0.0-beta-23504": {
-        "native": {
-          "runtimes/osx.10.10-x64/native/corerun": {}
-        }
-      },
+      "runtime.osx.10.10-x64.Microsoft.NETCore.TestHost/1.0.0-beta-23504": {},
       "runtime.osx.10.10.System.Diagnostics.Process/4.1.0-beta-23504": {
         "dependencies": {
           "Microsoft.Win32.Primitives": "4.0.0",
@@ -2189,29 +2204,15 @@
           "lib/DNXCore50/System.Reflection.Extensions.dll": {}
         }
       },
-      "System.Reflection.Metadata/1.2.0-rc2-23826": {
+      "System.Reflection.Metadata/1.2.0": {
         "dependencies": {
-          "System.Collections": "4.0.0",
-          "System.Collections.Immutable": "1.1.37",
-          "System.Diagnostics.Debug": "4.0.0",
-          "System.IO": "4.0.0",
-          "System.Linq": "4.0.0",
-          "System.Reflection": "4.0.0",
-          "System.Reflection.Extensions": "4.0.0",
-          "System.Reflection.Primitives": "4.0.0",
-          "System.Resources.ResourceManager": "4.0.0",
-          "System.Runtime": "4.0.0",
-          "System.Runtime.Extensions": "4.0.0",
-          "System.Runtime.InteropServices": "4.0.0",
-          "System.Text.Encoding": "4.0.0",
-          "System.Text.Encoding.Extensions": "4.0.0",
-          "System.Threading": "4.0.0"
+          "System.Collections.Immutable": "1.1.37"
         },
         "compile": {
-          "lib/dotnet5.2/System.Reflection.Metadata.dll": {}
+          "lib/portable-net45+win8/System.Reflection.Metadata.dll": {}
         },
         "runtime": {
-          "lib/dotnet5.2/System.Reflection.Metadata.dll": {}
+          "lib/portable-net45+win8/System.Reflection.Metadata.dll": {}
         }
       },
       "System.Reflection.Primitives/4.0.1-beta-23504": {
@@ -3199,11 +3200,7 @@
           "runtimes/ubuntu.14.04-x64/native/libsosplugin.so": {}
         }
       },
-      "runtime.ubuntu.14.04-x64.Microsoft.NETCore.TestHost/1.0.0-beta-23504": {
-        "native": {
-          "runtimes/ubuntu.14.04-x64/native/corerun": {}
-        }
-      },
+      "runtime.ubuntu.14.04-x64.Microsoft.NETCore.TestHost/1.0.0-beta-23504": {},
       "runtime.unix.Microsoft.Win32.Primitives/4.0.1-beta-23504": {
         "dependencies": {
           "System.Runtime": "4.0.20",
@@ -3811,29 +3808,15 @@
           "lib/DNXCore50/System.Reflection.Extensions.dll": {}
         }
       },
-      "System.Reflection.Metadata/1.2.0-rc2-23826": {
+      "System.Reflection.Metadata/1.2.0": {
         "dependencies": {
-          "System.Collections": "4.0.0",
-          "System.Collections.Immutable": "1.1.37",
-          "System.Diagnostics.Debug": "4.0.0",
-          "System.IO": "4.0.0",
-          "System.Linq": "4.0.0",
-          "System.Reflection": "4.0.0",
-          "System.Reflection.Extensions": "4.0.0",
-          "System.Reflection.Primitives": "4.0.0",
-          "System.Resources.ResourceManager": "4.0.0",
-          "System.Runtime": "4.0.0",
-          "System.Runtime.Extensions": "4.0.0",
-          "System.Runtime.InteropServices": "4.0.0",
-          "System.Text.Encoding": "4.0.0",
-          "System.Text.Encoding.Extensions": "4.0.0",
-          "System.Threading": "4.0.0"
+          "System.Collections.Immutable": "1.1.37"
         },
         "compile": {
-          "lib/dotnet5.2/System.Reflection.Metadata.dll": {}
+          "lib/portable-net45+win8/System.Reflection.Metadata.dll": {}
         },
         "runtime": {
-          "lib/dotnet5.2/System.Reflection.Metadata.dll": {}
+          "lib/portable-net45+win8/System.Reflection.Metadata.dll": {}
         }
       },
       "System.Reflection.Primitives/4.0.1-beta-23504": {
@@ -5588,29 +5571,15 @@
           "lib/DNXCore50/System.Reflection.Extensions.dll": {}
         }
       },
-      "System.Reflection.Metadata/1.2.0-rc2-23826": {
+      "System.Reflection.Metadata/1.2.0": {
         "dependencies": {
-          "System.Collections": "4.0.0",
-          "System.Collections.Immutable": "1.1.37",
-          "System.Diagnostics.Debug": "4.0.0",
-          "System.IO": "4.0.0",
-          "System.Linq": "4.0.0",
-          "System.Reflection": "4.0.0",
-          "System.Reflection.Extensions": "4.0.0",
-          "System.Reflection.Primitives": "4.0.0",
-          "System.Resources.ResourceManager": "4.0.0",
-          "System.Runtime": "4.0.0",
-          "System.Runtime.Extensions": "4.0.0",
-          "System.Runtime.InteropServices": "4.0.0",
-          "System.Text.Encoding": "4.0.0",
-          "System.Text.Encoding.Extensions": "4.0.0",
-          "System.Threading": "4.0.0"
+          "System.Collections.Immutable": "1.1.37"
         },
         "compile": {
-          "lib/dotnet5.2/System.Reflection.Metadata.dll": {}
+          "lib/portable-net45+win8/System.Reflection.Metadata.dll": {}
         },
         "runtime": {
-          "lib/dotnet5.2/System.Reflection.Metadata.dll": {}
+          "lib/portable-net45+win8/System.Reflection.Metadata.dll": {}
         }
       },
       "System.Reflection.Primitives/4.0.1-beta-23504": {
@@ -6774,8 +6743,7 @@
         "runtimes/osx.10.10-x64/native/libmscordaccore.dylib",
         "runtimes/osx.10.10-x64/native/libmscordbi.dylib",
         "runtimes/osx.10.10-x64/native/libprotojit.dylib",
-        "runtimes/osx.10.10-x64/native/libsos.dylib",
-        "tools/crossgen"
+        "runtimes/osx.10.10-x64/native/libsos.dylib"
       ]
     },
     "runtime.osx.10.10-x64.Microsoft.NETCore.TestHost/1.0.0-beta-23504": {
@@ -6783,8 +6751,7 @@
       "type": "package",
       "files": [
         "runtime.osx.10.10-x64.Microsoft.NETCore.TestHost.1.0.0-beta-23504.nupkg.sha512",
-        "runtime.osx.10.10-x64.Microsoft.NETCore.TestHost.nuspec",
-        "runtimes/osx.10.10-x64/native/corerun"
+        "runtime.osx.10.10-x64.Microsoft.NETCore.TestHost.nuspec"
       ]
     },
     "runtime.osx.10.10.System.Diagnostics.Process/4.1.0-beta-23504": {
@@ -6886,8 +6853,7 @@
         "runtimes/ubuntu.14.04-x64/native/libmscordbi.so",
         "runtimes/ubuntu.14.04-x64/native/libprotojit.so",
         "runtimes/ubuntu.14.04-x64/native/libsos.so",
-        "runtimes/ubuntu.14.04-x64/native/libsosplugin.so",
-        "tools/crossgen"
+        "runtimes/ubuntu.14.04-x64/native/libsosplugin.so"
       ]
     },
     "runtime.ubuntu.14.04-x64.Microsoft.NETCore.TestHost/1.0.0-beta-23504": {
@@ -6895,8 +6861,7 @@
       "type": "package",
       "files": [
         "runtime.ubuntu.14.04-x64.Microsoft.NETCore.TestHost.1.0.0-beta-23504.nupkg.sha512",
-        "runtime.ubuntu.14.04-x64.Microsoft.NETCore.TestHost.nuspec",
-        "runtimes/ubuntu.14.04-x64/native/corerun"
+        "runtime.ubuntu.14.04-x64.Microsoft.NETCore.TestHost.nuspec"
       ]
     },
     "runtime.unix.Microsoft.Win32.Primitives/4.0.1-beta-23504": {
@@ -9086,16 +9051,16 @@
         "runtimes/win8-aot/lib/netcore50/System.Reflection.Extensions.dll"
       ]
     },
-    "System.Reflection.Metadata/1.2.0-rc2-23826": {
-      "sha512": "iaq5zpluF7mUMd5hFyhmZGyCSzF6glZjvNI2VAhLFQEp8sGA/tROj6NoZL42q6HhoHxi1XyGeoIXPi5hyw0+5w==",
+    "System.Reflection.Metadata/1.2.0": {
+      "sha512": "3LjvW/Gr3f3+O8adWT04bV1nvbgQ3X1NYZHgRC76L/VdJ78nUCkwIcHguEH85fHIQ1TGldRpMJ3nqlMqaRwReA==",
       "type": "package",
       "files": [
-        "System.Reflection.Metadata.1.2.0-rc2-23826.nupkg.sha512",
+        "System.Reflection.Metadata.1.2.0.nupkg.sha512",
         "System.Reflection.Metadata.nuspec",
         "ThirdPartyNotices.txt",
         "dotnet_library_license.txt",
-        "lib/dotnet5.2/System.Reflection.Metadata.dll",
-        "lib/dotnet5.2/System.Reflection.Metadata.xml",
+        "lib/netstandard1.1/System.Reflection.Metadata.dll",
+        "lib/netstandard1.1/System.Reflection.Metadata.xml",
         "lib/portable-net45+win8/System.Reflection.Metadata.dll",
         "lib/portable-net45+win8/System.Reflection.Metadata.xml"
       ]
