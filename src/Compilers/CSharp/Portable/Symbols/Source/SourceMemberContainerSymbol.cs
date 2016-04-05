@@ -1287,7 +1287,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 var membersDictionary = MakeAllMembers(diagnostics);
                 if (Interlocked.CompareExchange(ref _lazyMembersDictionary, membersDictionary, null) == null)
                 {
-                    MergePartialAndReplacedMembers(_lazyMembersDictionary, diagnostics);
+                    var memberNames = ArrayBuilder<string>.GetInstance(membersDictionary.Count);
+                    memberNames.AddRange(membersDictionary.Keys);
+                    MergeReplacedMembers(memberNames, membersDictionary, diagnostics);
+                    MergePartialMembers(memberNames, membersDictionary, diagnostics);
+                    memberNames.Free();
                     AddDeclarationDiagnostics(diagnostics);
                     state.NotePartComplete(CompletionPart.Members);
                 }
@@ -1334,9 +1338,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             // Collisions involving indexers are handled specially.
             CheckIndexerNameConflicts(diagnostics, membersByName);
 
-            // key and value will be the same object in this dictionary.
+            // key and value will be the same object in these dictionaries.
             var methodsBySignature = new Dictionary<SourceMethodSymbol, SourceMethodSymbol>(MemberSignatureComparer.DuplicateSourceComparer);
-            var conversionsBySignature = new HashSet<SourceUserDefinedConversionSymbol>(ConversionSignatureComparer.Comparer);
+            var conversionsAsMethods = new Dictionary<SourceMethodSymbol, SourceMethodSymbol>(MemberSignatureComparer.DuplicateSourceComparer);
+            var conversionsAsConversions = new HashSet<SourceUserDefinedConversionSymbol>(ConversionSignatureComparer.Comparer);
 
             // SPEC: The signature of an operator must differ from the signatures of all other
             // SPEC: operators declared in the same class.
@@ -1451,17 +1456,52 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
                     var conversion = symbol as SourceUserDefinedConversionSymbol;
                     var method = symbol as SourceMethodSymbol;
-                    // Does this conversion collide with any previously-seen conversion?
                     if ((object)conversion != null)
                     {
-                        if (!conversionsBySignature.Add(conversion))
+                        // Does this conversion collide *as a conversion* with any previously-seen
+                        // conversion?
+
+                        if (!conversionsAsConversions.Add(conversion))
                         {
                             // CS0557: Duplicate user-defined conversion in type 'C'
                             diagnostics.Add(ErrorCode.ERR_DuplicateConversionInClass, conversion.Locations[0], this);
                         }
+                        else
+                        {
+                            // The other set might already contain a conversion which would collide
+                            // *as a method* with the current conversion.
+                            if (!conversionsAsMethods.ContainsKey(conversion))
+                            {
+                                conversionsAsMethods.Add(conversion, conversion);
+                            }
+                        }
+
+                        // Does this conversion collide *as a method* with any previously-seen
+                        // non-conversion method?
+
+                        SourceMethodSymbol previousMethod;
+                        if (methodsBySignature.TryGetValue(conversion, out previousMethod))
+                        {
+                            ReportMethodSignatureCollision(diagnostics, conversion, previousMethod);
+                        }
+                        // Do not add the conversion to the set of previously-seen methods; that set
+                        // is only non-conversion methods.
                     }
                     else if ((object)method != null)
                     {
+                        // Does this method collide *as a method* with any previously-seen
+                        // conversion?
+
+                        SourceMethodSymbol previousConversion;
+                        if (conversionsAsMethods.TryGetValue(method, out previousConversion))
+                        {
+                            ReportMethodSignatureCollision(diagnostics, method, previousConversion);
+                        }
+                        // Do not add the method to the set of previously-seen conversions.
+
+                        // Does this method collide *as a method* with any previously-seen
+                        // non-conversion method?
+
                         SourceMethodSymbol previousMethod;
                         if (methodsBySignature.TryGetValue(method, out previousMethod))
                         {
@@ -2281,15 +2321,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return this.DeclaringCompilation.GetBinder(syntaxNode);
         }
 
-        private static void MergePartialAndReplacedMembers(
+        private static void MergeReplacedMembers(
+            ArrayBuilder<string> memberNames,
             Dictionary<string, ImmutableArray<Symbol>> membersByName,
             DiagnosticBag diagnostics)
         {
             var membersGroupedBySignature = new Dictionary<Symbol, OneOrMany<Symbol>>(MemberSignatureComparer.DuplicateSourceComparer);
-            //key and value will be the same object
-            var methodsBySignature = new Dictionary<MethodSymbol, SourceMethodSymbol>(MemberSignatureComparer.DuplicateSourceComparer);
 
-            foreach (var name in membersByName.Keys.ToArray())
+            foreach (var name in memberNames)
             {
                 var members = membersByName[name];
                 if (members.Length < 2)
@@ -2374,10 +2413,21 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                         }
                     }
                 }
+            }
+        }
 
+        private static void MergePartialMembers(
+            ArrayBuilder<string> memberNames,
+            Dictionary<string, ImmutableArray<Symbol>> membersByName,
+            DiagnosticBag diagnostics)
+        {
+            //key and value will be the same object
+            var methodsBySignature = new Dictionary<MethodSymbol, SourceMethodSymbol>(MemberSignatureComparer.DuplicateSourceComparer);
+
+            foreach (var name in memberNames)
+            {
                 methodsBySignature.Clear();
-
-                foreach (var symbol in members)
+                foreach (var symbol in membersByName[name])
                 {
                     var method = symbol as SourceMethodSymbol;
                     if ((object)method == null || !method.IsPartial)

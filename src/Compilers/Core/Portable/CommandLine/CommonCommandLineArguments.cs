@@ -358,25 +358,16 @@ namespace Microsoft.CodeAnalysis
             }
         }
 
-        internal ImmutableArray<DiagnosticAnalyzer> ResolveAnalyzersFromArguments(string language, List<DiagnosticInfo> diagnostics, CommonMessageProvider messageProvider, TouchedFileLogger touchedFiles, IAnalyzerAssemblyLoader analyzerLoader)
-        {
-            return ResolveAnalyzersFromArguments<DiagnosticAnalyzer>(language, diagnostics, messageProvider, touchedFiles, analyzerLoader, (r, b) => r.AddAnalyzers(b, language));
-        }
-
-        internal ImmutableArray<SourceGenerator> ResolveGeneratorsFromArguments(string language, List<DiagnosticInfo> diagnostics, CommonMessageProvider messageProvider, TouchedFileLogger touchedFiles, IAnalyzerAssemblyLoader analyzerLoader)
-        {
-            return ResolveAnalyzersFromArguments<SourceGenerator>(language, diagnostics, messageProvider, touchedFiles, analyzerLoader, (r, b) => r.AddGenerators(b, language));
-        }
-
-        private ImmutableArray<TExtension> ResolveAnalyzersFromArguments<TExtension>(
+        internal void ResolveAnalyzersAndGeneratorsFromArguments(
             string language,
             List<DiagnosticInfo> diagnostics,
             CommonMessageProvider messageProvider,
-            TouchedFileLogger touchedFiles,
             IAnalyzerAssemblyLoader analyzerLoader,
-            Action<AnalyzerFileReference, ImmutableArray<TExtension>.Builder> addAnalyzers)
+            out ImmutableArray<DiagnosticAnalyzer> analyzers,
+            out ImmutableArray<SourceGenerator> generators)
         {
-            var builder = ImmutableArray.CreateBuilder<TExtension>();
+            var analyzerBuilder = ImmutableArray.CreateBuilder<DiagnosticAnalyzer>();
+            var generatorBuilder = ImmutableArray.CreateBuilder<SourceGenerator>();
 
             EventHandler<AnalyzerLoadFailureEventArgs> errorHandler = (o, e) =>
             {
@@ -413,7 +404,8 @@ namespace Microsoft.CodeAnalysis
                 if (resolvedReference != null)
                 {
                     resolvedReference.AnalyzerLoadFailed += errorHandler;
-                    addAnalyzers(resolvedReference, builder);
+                    resolvedReference.AddAnalyzers(analyzerBuilder, language);
+                    resolvedReference.AddGenerators(generatorBuilder, language);
                     resolvedReference.AnalyzerLoadFailed -= errorHandler;
                 }
                 else
@@ -422,7 +414,8 @@ namespace Microsoft.CodeAnalysis
                 }
             }
 
-            return builder.ToImmutable();
+            analyzers = analyzerBuilder.ToImmutable();
+            generators = generatorBuilder.ToImmutable();
         }
 
         private AnalyzerFileReference ResolveAnalyzerReference(CommandLineAnalyzerReference reference, IAnalyzerAssemblyLoader analyzerLoader)

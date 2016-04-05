@@ -36,16 +36,17 @@ namespace Microsoft.CodeAnalysis.CSharp.Test.Utilities
             throw new NotImplementedException();
         }
 
-        protected override ImmutableArray<DiagnosticAnalyzer> ResolveAnalyzersFromArguments(List<DiagnosticInfo> diagnostics, CommonMessageProvider messageProvider, TouchedFileLogger touchedFiles)
+        protected override void ResolveAnalyzersAndGeneratorsFromArguments(
+            List<DiagnosticInfo> diagnostics,
+            CommonMessageProvider messageProvider,
+            out ImmutableArray<DiagnosticAnalyzer> analyzers,
+            out ImmutableArray<SourceGenerator> generators)
         {
-            var analyzers = base.ResolveAnalyzersFromArguments(diagnostics, messageProvider, touchedFiles);
-
+            base.ResolveAnalyzersAndGeneratorsFromArguments(diagnostics, messageProvider, out analyzers, out generators);
             if (!_analyzers.IsDefaultOrEmpty)
             {
                 analyzers = analyzers.InsertRange(0, _analyzers);
             }
-
-            return analyzers;
         }
 
         public override Compilation CreateCompilation(TextWriter consoleOutput, TouchedFileLogger touchedFilesLogger, ErrorLogger errorLogger)

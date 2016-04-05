@@ -1386,6 +1386,11 @@ namespace Microsoft.CodeAnalysis
             DiagnosticBag diagnostics,
             CancellationToken cancellationToken);
 
+        internal abstract void ReportUnusedImports(
+            SyntaxTree filterTree,
+            DiagnosticBag diagnostics,
+            CancellationToken cancellationToken);
+
         internal bool Compile(
             CommonPEModuleBuilder moduleBuilder,
             bool emittingPdb,
@@ -1590,6 +1595,11 @@ namespace Microsoft.CodeAnalysis
                             cancellationToken))
                         {
                             success = false;
+                        }
+
+                        if (success)
+                        {
+                            ReportUnusedImports(null, diagnostics, cancellationToken);
                         }
                     }
                 }

@@ -1561,7 +1561,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End Get
         End Property
 
-        Friend Sub ReportUnusedImports(filterTree As SyntaxTree, diagnostics As DiagnosticBag, cancellationToken As CancellationToken)
+        Friend Overrides Sub ReportUnusedImports(filterTree As SyntaxTree, diagnostics As DiagnosticBag, cancellationToken As CancellationToken)
             If _lazyImportInfos IsNot Nothing Then
                 Dim unusedBuilder As ArrayBuilder(Of TextSpan) = Nothing
 
@@ -2250,7 +2250,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Dim assemblyName = FileNameUtilities.ChangeExtension(moduleBeingBuilt.EmitOptions.OutputNameOverride, extension:=Nothing)
 
             DocumentationCommentCompiler.WriteDocumentationCommentXml(Me, assemblyName, xmlDocStream, methodBodyDiagnosticBag, cancellationToken)
-            Me.ReportUnusedImports(Nothing, methodBodyDiagnosticBag, cancellationToken)
 
             SetupWin32Resources(moduleBeingBuilt, win32Resources, methodBodyDiagnosticBag)
 

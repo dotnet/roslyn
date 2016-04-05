@@ -20,6 +20,7 @@
   - [ ] `replace` for explicit implementation
   - [ ] `replace` for user-defined operators
   - [ ] `replace` for static and instance constructors
+    - [ ] Allow calling `base` constructor in original constructor
     - [ ] Allow writing to `readonly` fields in original constructor
   - [ ] `replace` for destructors
   - [ ] `replace` for field-like events
@@ -35,8 +36,8 @@
 - [ ] Allow a member to be replaced multiple times (P2)
   - [ ] Use ```[Order]``` attributes to determine chain
 - [ ] Emit metadata
-  - [ ] Include namespace and type name in managled name of original explicit interface implementation
-  - [ ] Include (deterministic) unique id in managled name of original overloaded methods: ```<M>v__0```, ```<M>v__1```, ...
+  - [ ] Include namespace and type name in mangled name of original explicit interface implementation
+  - [ ] Include (deterministic) unique id in mangled name of original overloaded methods: ```<M>v__0```, ```<M>v__1```, ...
   - [ ] Drop original methods that are not called in optimized builds (P2)
 - [ ] IDE
   - [ ] Include diagnostics from `SourceGenerator.Execute` in Errors list (P2)  

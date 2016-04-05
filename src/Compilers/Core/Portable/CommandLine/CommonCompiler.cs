@@ -11,7 +11,6 @@ using System.Reflection;
 using System.Text;
 using System.Threading;
 using Microsoft.CodeAnalysis.Diagnostics;
-using Microsoft.CodeAnalysis.Emit;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.Shell.Interop;
 using Roslyn.Utilities;
@@ -42,8 +41,11 @@ namespace Microsoft.CodeAnalysis
         protected abstract uint GetSqmAppID();
         protected abstract bool TryGetCompilerDiagnosticCode(string diagnosticId, out uint code);
         protected abstract void CompilerSpecificSqm(IVsSqmMulti sqm, uint sqmSession);
-        protected abstract ImmutableArray<DiagnosticAnalyzer> ResolveAnalyzersFromArguments(List<DiagnosticInfo> diagnostics, CommonMessageProvider messageProvider, TouchedFileLogger touchedFiles);
-        protected abstract ImmutableArray<SourceGenerator> ResolveGeneratorsFromArguments(List<DiagnosticInfo> diagnostics, CommonMessageProvider messageProvider, TouchedFileLogger touchedFiles);
+        protected abstract void ResolveAnalyzersAndGeneratorsFromArguments(
+            List<DiagnosticInfo> diagnostics,
+            CommonMessageProvider messageProvider,
+            out ImmutableArray<DiagnosticAnalyzer> analyzers,
+            out ImmutableArray<SourceGenerator> generators);
 
         public CommonCompiler(CommandLineParser parser, string responseFile, string[] args, string clientDirectory, string baseDirectory, string sdkDirectoryOpt, string additionalReferenceDirectories, IAnalyzerAssemblyLoader assemblyLoader)
         {
@@ -357,8 +359,9 @@ namespace Microsoft.CodeAnalysis
             }
 
             var diagnostics = new List<DiagnosticInfo>();
-            var analyzers = ResolveAnalyzersFromArguments(diagnostics, MessageProvider, touchedFilesLogger);
-            var sourceGenerators = ResolveGeneratorsFromArguments(diagnostics, MessageProvider, touchedFilesLogger);
+            ImmutableArray<DiagnosticAnalyzer> analyzers;
+            ImmutableArray<SourceGenerator> sourceGenerators;
+            ResolveAnalyzersAndGeneratorsFromArguments(diagnostics, MessageProvider, out analyzers, out sourceGenerators);
             var additionalTextFiles = ResolveAdditionalFilesFromArguments(diagnostics, MessageProvider, touchedFilesLogger);
             if (ReportErrors(diagnostics, consoleOutput, errorLogger))
             {
@@ -498,14 +501,20 @@ namespace Microsoft.CodeAnalysis
                                             win32ResourceStreamOpt,
                                             diagnosticBag,
                                             cancellationToken);
+
+                                        if (success)
+                                        {
+                                            compilation.ReportUnusedImports(null, diagnosticBag, cancellationToken);
+                                        }
                                     }
                                 }
                             }
 
                             if (analyzerDriver != null)
                             {
-                                // GetDiagnosticsAsync is called after GenerateResourcesAndDocumentationComments
-                                // since that method calls EventQueue.TryComplete. Without TryComplete, we may miss diagnostics.
+                                // GetDiagnosticsAsync is called after ReportUnusedImports
+                                // since that method calls EventQueue.TryComplete. Without
+                                // TryComplete, we may miss diagnostics.
                                 var hostDiagnostics = analyzerDriver.GetDiagnosticsAsync(compilation).Result;
                                 diagnosticBag.AddRange(hostDiagnostics);
                                 if (hostDiagnostics.Any(IsReportedError))
