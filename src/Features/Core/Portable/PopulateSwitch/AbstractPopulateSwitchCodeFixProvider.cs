@@ -23,13 +23,15 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.PopulateSwitch
 
         public override FixAllProvider GetFixAllProvider() => WellKnownFixAllProviders.BatchFixer;
 
-        public sealed override async Task RegisterCodeFixesAsync(CodeFixContext context)
+        public sealed override Task RegisterCodeFixesAsync(CodeFixContext context)
         {
             context.RegisterCodeFix(
                 new MyCodeAction(
                     FeaturesResources.AddMissingSwitchCases,
                     c => AddMissingSwitchLabelsAsync(context)),
                 context.Diagnostics);
+
+            return Task.FromResult(true);
         }
 
         protected abstract TExpressionSyntax GetSwitchExpression(TSwitchBlockSyntax switchBlock);
