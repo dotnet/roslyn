@@ -209,7 +209,7 @@
     <Compile Include="Diagnostics\RemoveUnnecessaryImports\RemoveUnnecessaryImportsTests_FixAllTests.vb" />
     <Compile Include="Diagnostics\SimplifyTypeNames\SimplifyTypeNamesTests_FixAllTests.vb" />
     <Compile Include="Diagnostics\SimplifyTypeNames\SimplifyTypeNamesTests.vb" />
-    <Compile Include="Diagnostics\Spellcheck\SpellcheckTests.vb" />
+    <Compile Include="Diagnostics\Spellcheck\SpellCheckTests.vb" />
     <Compile Include="Diagnostics\Suppression\SuppressionAllCodeTests.vb" />
     <Compile Include="Diagnostics\Suppression\SuppressionTests.vb" />
     <Compile Include="Diagnostics\UseAutoProperty\UseAutoPropertyTests.vb" />
