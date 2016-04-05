@@ -24,6 +24,15 @@ You must sign a [Contributor License Agreement (CLA)](http://cla2.dotnetfoundati
 2. Both Roslyn and external contributors are expected to do their work in a local fork and submit code for consideration via a pull request.
 3. When the pull request process deems the change ready it will be merged directly into the tree. 
 
+###Getting started coding in Visual Studio
+
+1. After you've cloned the roslyn repro, run `Restore.cmd`. This restores all required NuGet packages. (Normally VS does this as part of a build, but the auto-restore feature has been disabled for Roslyn).
+2. Load the Roslyn.sln solution into VS and build. (Other solutions can be used, but depend upon this main solution having been built).
+3. To run individual tests, install [Test Driven .NET](http://www.testdriven.net/). You can right-click on a file, or a test within a file, to run that test.
+4. To test your changes live within VS itself, use Roslyn.sln and the project `VisualStudio\VisualStudioSetup`: when you do F5 on this project, it launches an isolated instance ("hive") of VS which runs upon your modified version of Roslyn for IDE and for Project|Build. (Or, you can install `Binaries\Debug\Roslyn.VisualStudio.Setup.vsix` on its own, no other files required).
+5. To run all tests, run `cibuild.cmd`. This restores, builds, and runs all tests. (It won't tell you which ones failed until after it's completely finished, though).
+
+
 ###Creating New Issues
 
 Please follow these guidelines when creating new issues in the issue tracker:
