@@ -17,6 +17,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Scripting.Hosting
                     responseFile,
                     AppContext.BaseDirectory,
                     CorLightup.Desktop.TryGetRuntimeDirectory(),
+                    AppContext.BaseDirectory,
                     args,
                     New NotImplementedAnalyzerLoader())
 
