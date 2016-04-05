@@ -185,17 +185,19 @@ namespace Microsoft.CodeAnalysis.CSharp
                     case BoundKind.ForStatement:
                         return visited;
                     case BoundKind.ReturnStatement:
+                        // A synthesized return statement that does not return a value never requires instrumentation.
+                        // A property set method defined without a block has such a synthesized return statement.
                         if (!_methodHasExplicitBlock && ((BoundReturnStatement)statement).ExpressionOpt != null)
                         {
                             // The return statement for value-returning methods defined without a block is compiler generated, but requires instrumentation.
-                            return ForceCollectDynamicAnalysis(visited);
+                            return CollectDynamicAnalysis(visited);
                         }
                         break;
                     case BoundKind.ExpressionStatement:
                         if (!_methodHasExplicitBlock)
                         {
                             // The assignment statement for a property set method defined without a block is compiler generated, but requires instrumentation.
-                            return ForceCollectDynamicAnalysis(visited);
+                            return CollectDynamicAnalysis(visited);
                         }
                         break;
                     case BoundKind.LocalDeclaration:
@@ -226,6 +228,13 @@ namespace Microsoft.CodeAnalysis.CSharp
                                     break;
                             }
                         }
+
+                        // Declarations without initializers are not instrumented.
+                        if (!HasInitializer((BoundLocalDeclaration)statement))
+                        {
+                            return visited;
+                        }
+
                         break;
                     case BoundKind.MultipleLocalDeclarations:
                         // Using and fixed statements have a multiple local declarations node even if they contain only one declaration.
@@ -246,17 +255,46 @@ namespace Microsoft.CodeAnalysis.CSharp
                                 }
                                 break;
                         }
+
+                        // Declarations without initializers are not instrumented.
+                        // Ultimately the individual initializers will be implemented, but for now instrument the statement if it has any initializers.
+                        if (!HasInitializer((BoundMultipleLocalDeclarations)statement))
+                        {
+                            return visited;
+                        }
+
                         break;
                     default:
                         break;
                 }
 
-                return CollectDynamicAnalysis(visited);
+                if (!statement.WasCompilerGenerated)
+                {
+                    return CollectDynamicAnalysis(visited);
+                }
             }
 
             return visited;
         }
         
+        private static bool HasInitializer(BoundLocalDeclaration local)
+        {
+            return local.InitializerOpt != null;
+        }
+
+        private static bool HasInitializer(BoundMultipleLocalDeclarations multiple)
+        {
+            foreach (BoundLocalDeclaration local in multiple.LocalDeclarations)
+            {
+                if (HasInitializer(local))
+                {
+                    return true;
+                }
+            }
+
+            return false;
+        }
+
         private BoundNode CollectDynamicAnalysis(BoundNode node)
         {
             BoundStatement statement = node as BoundStatement;
@@ -269,21 +307,6 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         private BoundNode CollectDynamicAnalysis(BoundStatement statement)
-        {
-            if (statement.WasCompilerGenerated)
-            {
-                return statement;
-            }
-
-            return CollectDynamicAnalysisCore(statement);
-        }
-
-        private BoundNode ForceCollectDynamicAnalysis(BoundNode node)
-        {
-            return CollectDynamicAnalysisCore((BoundStatement)node);
-        }
-
-        private BoundNode CollectDynamicAnalysisCore(BoundStatement statement)
         {
             // Add an entry in the spans array.
 

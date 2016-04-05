@@ -260,6 +260,8 @@ public class Program
 
     static void TestMain()
     {
+        int x;
+        int a, b;
         DoubleDeclaration(5);
         DoubleForDeclaration(5);
     }
@@ -268,9 +270,10 @@ public class Program
     {
         int c = x;
         int a, b;
-        a = b = c;
+        int f;
+        a = b = f = c;
         int d = a, e = b;
-        return d + e;
+        return d + e + f;
     }
 
     static int DoubleForDeclaration(int x)
@@ -291,7 +294,6 @@ True
 True
 True
 3
-True
 True
 True
 True
@@ -613,7 +615,7 @@ public class Program
 
     async static Task<string> Second(string s)
     {
-        string doubled;
+        string doubled = """";
         if (s.Length > 2)
             doubled = s + s;
         else
