@@ -1408,6 +1408,26 @@ class C
         }
 
         [Fact]
+        public void TupleDefaultInOptionalParam()
+        {
+            var source = @"
+class C
+{
+    public static void Main()
+    {
+        M();
+    }
+
+    static void M((int a, string b) x = default((int, string)))
+    {
+        System.Console.WriteLine($""{x.a} {x.b}"");
+    }
+}
+" + trivial2uple;
+            CompileAndVerify(source, additionalRefs: new[] { SystemCoreRef }, expectedOutput: @"0 ");
+        }
+
+        [Fact]
         public void TupleAsNamedParam()
         {
             var source = @"
@@ -1715,6 +1735,405 @@ class C3
             var comp1 = CreateCompilationWithMscorlib(source1);
             var comp2 = CreateCompilationWithMscorlib(source2);
             var comp = CompileAndVerify(source, expectedOutput: @"1 1 2 2 3 3 4 4 5 5 6 6 True", additionalRefs: new[] { new CSharpCompilationReference(comp1), new CSharpCompilationReference(comp2) });
+        }
+
+        [Fact]
+        public void UnderlyingTypeMemberWithWrongSignature()
+        {
+            string source = @"
+class C
+{
+    static void M()
+    {
+        var x = (""Alice"", ""Bob"");
+        System.Console.WriteLine($""{x.Item1}"");
+    }
+}
+
+namespace System
+{
+    public struct ValueTuple<T1, T2>
+    {
+        public int Item1; // Not T1
+        public int Item2;
+
+        public ValueTuple(T1 item1, T2 item2)
+        {
+            this.Item1 = 1;
+            this.Item2 = 2;
+        }
+    }
+}
+";
+            var comp = CreateCompilationWithMscorlib(source, assemblyName: "comp");
+            comp.VerifyDiagnostics();
+            comp.VerifyEmitDiagnostics(
+                // (7,37): error CS8205: Member 'Item1' was not found on type 'ValueTuple<T1, T2>' from assembly 'comp, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'.
+                //         System.Console.WriteLine($"{x.Item1}");
+                Diagnostic(ErrorCode.ERR_PredefinedTypeMemberNotFoundInAssembly, "x.Item1").WithArguments("Item1", "System.ValueTuple<T1, T2>", "comp, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null").WithLocation(7, 37)
+                );
+        }
+
+        [Fact]
+        public void ImplementTupleInterface()
+        {
+            string source = @"
+public interface I
+{
+    (int, int) M((string, string) a);
+}
+
+class C : I
+{
+    static void Main()
+    {
+        I i = new C();
+        var r = i.M((""Alice"", ""Bob""));
+        System.Console.WriteLine($""{r.Item1} {r.Item2}"");
+    }
+
+    public (int, int) M((string, string) a)
+    {
+        return (a.Item1.Length, a.Item2.Length);
+    }
+}
+" + trivial2uple + trivial3uple + trivalRemainingTuples;
+
+            var comp = CompileAndVerify(source, expectedOutput: @"5 3");
+            comp.VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void ImplementTupleInterfaceWithDifferentNames()
+        {
+            string source = @"
+public interface I
+{
+    (int i1, int i2) M((string s1, string s2) a);
+}
+
+class C : I
+{
+    static void Main()
+    {
+        I i = new C();
+        var r = i.M((""Alice"", ""Bob""));
+        System.Console.WriteLine($""{r.Item1} {r.Item2}"");
+    }
+
+    public (int i3, int i4) M((string s3, string s4) a)
+    {
+        return (a.Item1.Length, a.Item2.Length);
+    }
+}
+" + trivial2uple + trivial3uple + trivalRemainingTuples;
+
+            var comp = CompileAndVerify(source, expectedOutput: @"5 3");
+            comp.VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void ImplementLongTupleInterface()
+        {
+            string source = @"
+public interface I
+{
+    (int, int, int, int, int, int, int, int) M((int, int, int, int, int, int, int, int) a);
+}
+
+class C : I
+{
+    static void Main()
+    {
+        I i = new C();
+        var r = i.M((1, 2, 3, 4, 5, 6, 7, 8));
+        System.Console.WriteLine($""{r.Item1} {r.Item7} {r.Item8}"");
+    }
+
+    public (int, int, int, int, int, int, int, int) M((int, int, int, int, int, int, int, int) a)
+    {
+        return a;
+    }
+}
+" + trivial2uple + trivial3uple + trivalRemainingTuples;
+
+            var comp = CompileAndVerify(source, expectedOutput: @"1 7 8");
+            comp.VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void ImplementTupleInterfaceWithValueTuple()
+        {
+            string source = @"
+public interface I
+{
+    (int i1, int i2) M((string, string) a);
+}
+
+class C : I
+{
+    static void Main()
+    {
+        I i = new C();
+        var r = i.M((""Alice"", ""Bob""));
+        System.Console.WriteLine($""{r.i1} {r.i2}"");
+    }
+
+    public System.ValueTuple<int, int> M(System.ValueTuple<string, string> a)
+    {
+        return (a.Item1.Length, a.Item2.Length);
+    }
+}
+" + trivial2uple + trivial3uple + trivalRemainingTuples;
+
+            var comp = CompileAndVerify(source, expectedOutput: @"5 3");
+            comp.VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void ImplementValueTupleInterfaceWithTuple()
+        {
+            string source = @"
+public interface I
+{
+    System.ValueTuple<int, int> M(System.ValueTuple<string, string> a);
+}
+
+class C : I
+{
+    static void Main()
+    {
+        I i = new C();
+        var r = i.M((""Alice"", ""Bob""));
+        System.Console.WriteLine($""{r.Item1} {r.Item2}"");
+    }
+
+    public (int, int) M((string, string) a)
+    {
+        return new System.ValueTuple<int, int>(a.Item1.Length, a.Item2.Length);
+    }
+}
+" + trivial2uple + trivial3uple + trivalRemainingTuples;
+
+            var comp = CompileAndVerify(source, expectedOutput: @"5 3");
+            comp.VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void OverrideTupleMethodWithDifferentNames()
+        {
+            string source = @"
+class C
+{
+    public virtual (int a, int b) M((int c, int d) x)
+    {
+        throw new System.Exception();
+    }
+}
+class D : C
+{
+    static void Main()
+    {
+        C c = new D();
+        var r = c.M((1, 2));
+        System.Console.WriteLine($""{r.a} {r.b}"");
+    }
+
+    public override (int e, int f) M((int g, int h) y)
+    {
+        return y;
+    }
+}
+" + trivial2uple;
+
+            var comp = CompileAndVerify(source, expectedOutput: @"1 2");
+            comp.VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void NewTupleMethodWithDifferentNames()
+        {
+            string source = @"
+class C
+{
+    public virtual (int a, int b) M((int c, int d) x)
+    {
+        System.Console.WriteLine(""base"");
+        return x;
+    }
+}
+class D : C
+{
+    static void Main()
+    {
+        D d = new D();
+        d.M((1, 2));
+        C c = d;
+        c.M((1, 2));
+    }
+
+    public new (int e, int f) M((int g, int h) y)
+    {
+        System.Console.Write(""new "");
+        return y;
+    }
+}
+" + trivial2uple;
+
+            var comp = CompileAndVerify(source, expectedOutput: @"new base");
+            comp.VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void DuplicateTupleMethodsNotAllowed()
+        {
+            string source = @"
+class C
+{
+    public (int, int) M((string, string) a)
+    {
+        return new System.ValueTuple<int, int>(a.Item1.Length, a.Item2.Length);
+    }
+
+    public System.ValueTuple<int, int> M(System.ValueTuple<string, string> a)
+    {
+        return (a.Item1.Length, a.Item2.Length);
+    }
+}
+" + trivial2uple;
+
+            var comp = CreateCompilationWithMscorlib(source);
+            comp.VerifyDiagnostics(
+                // (9,40): error CS0111: Type 'C' already defines a member called 'M' with the same parameter types
+                //     public System.ValueTuple<int, int> M(System.ValueTuple<string, string> a)
+                Diagnostic(ErrorCode.ERR_MemberAlreadyExists, "M").WithArguments("M", "C").WithLocation(9, 40)
+                );
+        }
+
+        [Fact]
+        public void TupleArrays()
+        {
+            string source = @"
+public interface I
+{
+    System.ValueTuple<int, int>[] M((int, int)[] a);
+}
+
+class C : I
+{
+    static void Main()
+    {
+        I i = new C();
+        var r = i.M(new [] { new System.ValueTuple<int, int>(1, 2) });
+        System.Console.WriteLine($""{r[0].Item1} {r[0].Item2}"");
+    }
+
+    public (int, int)[] M(System.ValueTuple<int, int>[] a)
+    {
+        return new [] { (a[0].Item1, a[0].Item2) };
+    }
+}
+" + trivial2uple;
+
+            var comp = CompileAndVerify(source, expectedOutput: @"1 2");
+            comp.VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void TupleRef()
+        {
+            string source = @"
+class C
+{
+    static void Main()
+    {
+        var r = (1, 2);
+        M(ref r);
+        System.Console.WriteLine($""{r.Item1} {r.Item2}"");
+    }
+
+    static void M(ref (int, int) a)
+    {
+        System.Console.WriteLine($""{a.Item1} {a.Item2}"");
+        a = (3, 4);
+    }
+}
+" + trivial2uple;
+
+            var comp = CompileAndVerify(source, expectedOutput:
+@"1 2
+3 4");
+            comp.VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void TupleOut()
+        {
+            string source = @"
+class C
+{
+    static void Main()
+    {
+        (int, int) r;
+        M(out r);
+        System.Console.WriteLine($""{r.Item1} {r.Item2}"");
+    }
+
+    static void M(out (int, int) a)
+    {
+        a = (1, 2);
+    }
+}
+" + trivial2uple;
+
+            var comp = CompileAndVerify(source, expectedOutput: @"1 2");
+            comp.VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void TupleTypeArgs()
+        {
+            string source = @"
+class C
+{
+    static void Main()
+    {
+        var a = (1, ""Alice"");
+        var r = M<int, string>(a);
+        System.Console.WriteLine($""{r.Item1} {r.Item2}"");
+    }
+
+    static (T1, T2) M<T1, T2>((T1, T2) a)
+    {
+        return a;
+    }
+}
+" + trivial2uple;
+
+            var comp = CompileAndVerify(source, expectedOutput: @"1 Alice");
+            comp.VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void NullableTuple()
+        {
+            string source = @"
+class C
+{
+    static void Main()
+    {
+        M((1, ""Alice""));
+    }
+
+    static void M((int, string)? a)
+    {
+        System.Console.WriteLine($""{a.HasValue} {a.Value.Item1} {a.Value.Item2}"");
+    }
+}
+" + trivial2uple;
+
+            var comp = CompileAndVerify(source, expectedOutput: @"True 1 Alice");
+            comp.VerifyDiagnostics();
         }
 
         [Fact]
