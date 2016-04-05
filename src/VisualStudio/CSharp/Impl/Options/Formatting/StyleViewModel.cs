@@ -20,8 +20,6 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options.Formatting
     /// </remarks>
     internal class StyleViewModel : AbstractOptionPreviewViewModel
     {
-        public ObservableCollection<AbstractCodeStyleOptionViewModel> CodeStyleItems { get; set; }
-
         internal override bool ShouldPersistOption(OptionKey key)
         {
             return key.Option.Feature == CSharpCodeStyleOptions.FeatureName || key.Option.Feature == SimplificationOptions.PerLanguageFeatureName;
@@ -29,24 +27,92 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options.Formatting
 
         #region "Preview Text"
 
-        private static readonly string s_declarationPreviewTrue = @"
+        private static readonly string s_fieldDeclarationPreviewTrue = @"
 class C{
-    int x;
-    void foo()
+    int capacity;
+    void Method()
     {
 //[
-        this.x = 0;
+        this.capacity = 0;
 //]
     }
 }";
 
-        private static readonly string s_declarationPreviewFalse = @"
+        private static readonly string s_fieldDeclarationPreviewFalse = @"
 class C{
-    int x;
-    void foo()
+    int capacity;
+    void Method()
     {
 //[
-        x = 0;
+        capacity = 0;
+//]
+    }
+}";
+
+        private static readonly string s_propertyDeclarationPreviewTrue = @"
+class C{
+    public int Id { get; set; }
+    void Method()
+    {
+//[
+        this.Id = 0;
+//]
+    }
+}";
+
+        private static readonly string s_propertyDeclarationPreviewFalse = @"
+class C{
+    public int Id { get; set; }
+    void Method()
+    {
+//[
+        Id = 0;
+//]
+    }
+}";
+
+        private static readonly string s_eventDeclarationPreviewTrue = @"
+using System;
+class C{
+    event EventHandler Elapsed;
+    void Handler(object sender, EventArgs args)
+    {
+//[
+        this.Elapsed += Handler;
+//]
+    }
+}";
+
+        private static readonly string s_eventDeclarationPreviewFalse = @"
+using System;
+class C{
+    event EventHandler Elapsed;
+    void Handler(object sender, EventArgs args)
+    {
+//[
+        Elapsed += Handler;
+//]
+    }
+}";
+
+        private static readonly string s_methodDeclarationPreviewTrue = @"
+using System;
+class C{
+    void Display()
+    {
+//[
+        this.Display();
+//]
+    }
+}";
+
+        private static readonly string s_methodDeclarationPreviewFalse = @"
+using System;
+class C{
+    void Display()
+    {
+//[
+        Display();
 //]
     }
 }";
@@ -102,10 +168,10 @@ class Program
         private static readonly string s_varForIntrinsicsPreviewFalse = @"
 using System;
 class C{
-    void foo()
+    void Method()
     {
 //[
-        int x = 5; // intrinsic types
+        int x = 5; // built-in types
 //]
     }
 }";
@@ -113,10 +179,10 @@ class C{
         private static readonly string s_varForIntrinsicsPreviewTrue = @"
 using System;
 class C{
-    void foo()
+    void Method()
     {
 //[
-        var x = 5; // intrinsic types
+        var x = 5; // built-in types
 //]
     }
 }";
@@ -124,10 +190,10 @@ class C{
         private static readonly string s_varWhereApparentPreviewFalse = @"
 using System;
 class C{
-    void foo()
+    void Method()
     {
 //[
-        C cobj = new C(); // typing is apparent from assignment expression
+        C cobj = new C(); // type is apparent from assignment expression
 //]
     }
 }";
@@ -135,10 +201,10 @@ class C{
         private static readonly string s_varWhereApparentPreviewTrue = @"
 using System;
 class C{
-    void foo()
+    void Method()
     {
 //[
-        var cobj = new C(); // typing is apparent from assignment expression
+        var cobj = new C(); // type is apparent from assignment expression
 //]
     }
 }";
@@ -146,10 +212,10 @@ class C{
         private static readonly string s_varWherePossiblePreviewFalse = @"
 using System;
 class C{
-    void foo()
+    void Init()
     {
 //[
-        Action f = this.foo(); // everywhere else.
+        Action f = this.Init(); // everywhere else.
 //]
     }
 }";
@@ -157,10 +223,10 @@ class C{
         private static readonly string s_varWherePossiblePreviewTrue = @"
 using System;
 class C{
-    void foo()
+    void Init()
     {
 //[
-        var f = this.foo(); // everywhere else.
+        var f = this.Init(); // everywhere else.
 //]
     }
 }";
@@ -168,8 +234,6 @@ class C{
 
         internal StyleViewModel(OptionSet optionSet, IServiceProvider serviceProvider) : base(optionSet, serviceProvider, LanguageNames.CSharp)
         {
-            CodeStyleItems = new ObservableCollection<AbstractCodeStyleOptionViewModel>();
-
             var collectionView = (ListCollectionView)CollectionViewSource.GetDefaultView(CodeStyleItems);
             collectionView.GroupDescriptions.Add(new PropertyGroupDescription(nameof(AbstractCodeStyleOptionViewModel.GroupName)));
 
@@ -195,10 +259,10 @@ class C{
                 new CodeStylePreference(CSharpVSResources.PreferExplicitType, isChecked: false),
             };
 
-            CodeStyleItems.Add(new BooleanCodeStyleOptionViewModel(SimplificationOptions.QualifyFieldAccess, CSharpVSResources.QualifyFieldAccessWithThis, s_declarationPreviewTrue, s_declarationPreviewFalse, this, optionSet, qualifyGroupTitle, qualifyMemberAccessPreferences));
-            CodeStyleItems.Add(new BooleanCodeStyleOptionViewModel(SimplificationOptions.QualifyPropertyAccess, CSharpVSResources.QualifyPropertyAccessWithThis, s_declarationPreviewTrue, s_declarationPreviewFalse, this, optionSet, qualifyGroupTitle, qualifyMemberAccessPreferences));
-            CodeStyleItems.Add(new BooleanCodeStyleOptionViewModel(SimplificationOptions.QualifyMethodAccess, CSharpVSResources.QualifyMethodAccessWithThis, s_declarationPreviewTrue, s_declarationPreviewFalse, this, optionSet, qualifyGroupTitle, qualifyMemberAccessPreferences));
-            CodeStyleItems.Add(new BooleanCodeStyleOptionViewModel(SimplificationOptions.QualifyEventAccess, CSharpVSResources.QualifyEventAccessWithThis, s_declarationPreviewTrue, s_declarationPreviewFalse, this, optionSet, qualifyGroupTitle, qualifyMemberAccessPreferences));
+            CodeStyleItems.Add(new BooleanCodeStyleOptionViewModel(SimplificationOptions.QualifyFieldAccess, CSharpVSResources.QualifyFieldAccessWithThis, s_fieldDeclarationPreviewTrue, s_fieldDeclarationPreviewFalse, this, optionSet, qualifyGroupTitle, qualifyMemberAccessPreferences));
+            CodeStyleItems.Add(new BooleanCodeStyleOptionViewModel(SimplificationOptions.QualifyPropertyAccess, CSharpVSResources.QualifyPropertyAccessWithThis, s_propertyDeclarationPreviewTrue, s_propertyDeclarationPreviewFalse, this, optionSet, qualifyGroupTitle, qualifyMemberAccessPreferences));
+            CodeStyleItems.Add(new BooleanCodeStyleOptionViewModel(SimplificationOptions.QualifyMethodAccess, CSharpVSResources.QualifyMethodAccessWithThis, s_methodDeclarationPreviewTrue, s_methodDeclarationPreviewFalse, this, optionSet, qualifyGroupTitle, qualifyMemberAccessPreferences));
+            CodeStyleItems.Add(new BooleanCodeStyleOptionViewModel(SimplificationOptions.QualifyEventAccess, CSharpVSResources.QualifyEventAccessWithThis, s_eventDeclarationPreviewTrue, s_eventDeclarationPreviewFalse, this, optionSet, qualifyGroupTitle, qualifyMemberAccessPreferences));
 
             CodeStyleItems.Add(new BooleanCodeStyleOptionViewModel(SimplificationOptions.PreferIntrinsicPredefinedTypeKeywordInDeclaration, CSharpVSResources.PreferIntrinsicPredefinedTypeKeywordInDeclaration, s_intrinsicPreviewDeclarationTrue, s_intrinsicPreviewDeclarationFalse, this, optionSet, predefinedTypesGroupTitle, predefinedTypesPreferences));
             CodeStyleItems.Add(new BooleanCodeStyleOptionViewModel(SimplificationOptions.PreferIntrinsicPredefinedTypeKeywordInMemberAccess, CSharpVSResources.PreferIntrinsicPredefinedTypeKeywordInMemberAccess, s_intrinsicPreviewMemberAccessTrue, s_intrinsicPreviewMemberAccessFalse, this, optionSet, predefinedTypesGroupTitle, predefinedTypesPreferences));
