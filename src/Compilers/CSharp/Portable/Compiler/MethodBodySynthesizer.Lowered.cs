@@ -310,7 +310,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             ///// <summary>
             ///// If o is of an integral numeric type and contains a value that is in the range of an int,
-            ///// return true and set the value parameter to that value.
+            ///// return true and set the value parameter to that value. Otherwise it leaves an arbitrary
+            ///// value in value and returns false.
             ///// </summary>
             //internal static bool AsIntValue(object o, out int value)
             //{
@@ -464,7 +465,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             ///// <summary>
             ///// If o is of an integral numeric type and contains a value that is greater than any value of int,
-            ///// return true and set the value parameter to that value.
+            ///// return true and set the value parameter to that value. Otherwise it leaves an arbitrary
+            ///// value in value and returns false.
             ///// </summary>
             //internal static bool AsLargePositive(object o, out ulong value)
             //{
@@ -576,9 +578,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         internal override void GenerateMethodBody(TypeCompilationState compilationState, DiagnosticBag diagnostics)
         {
             ///// <summary>
-            ///// If o is of an integral numeric type and contains a value that is less than any value of int,
-            ///// return true and set the value parameter to that value. Note that this can only occur when
-            ///// o is of type long.
+            ///// If o is of an integral numeric type (namely, long) and contains a value that is less than
+            ///// any value of int, return true and set the value parameter to that value.  Otherwise it
+            ///// leaves an arbitrary value in value and returns false.
             ///// </summary>
             //internal static bool AsLargeNegative(object o, out long value)
             //{
