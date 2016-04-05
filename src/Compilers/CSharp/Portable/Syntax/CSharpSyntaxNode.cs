@@ -68,13 +68,13 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             get
             {
-                ComputeSyntaxTree(this);
-                Debug.Assert(this._syntaxTree != null);
-                return this._syntaxTree;
+                var result =  this._syntaxTree ?? ComputeSyntaxTree(this);
+                Debug.Assert(result != null);
+                return result;
             }
         }
 
-        private static void ComputeSyntaxTree(CSharpSyntaxNode node)
+        private static SyntaxTree ComputeSyntaxTree(CSharpSyntaxNode node)
         {
             ArrayBuilder<CSharpSyntaxNode> nodes = null;
             SyntaxTree tree = null;
@@ -91,21 +91,21 @@ namespace Microsoft.CodeAnalysis.CSharp
                 var parent = node.Parent;
                 if (parent == null)
                 {
+                    // set the tree on the root node atomically
                     Interlocked.CompareExchange(ref node._syntaxTree, CSharpSyntaxTree.CreateWithoutClone(node), null);
                     tree = node._syntaxTree;
                     break;
                 }
-                else if (parent._syntaxTree != null)
+
+                tree = parent._syntaxTree;
+                if (tree != null)
                 {
-                    Interlocked.CompareExchange(ref node._syntaxTree, parent._syntaxTree, null);
-                    tree = node._syntaxTree;
+                    node._syntaxTree = tree;
                     break;
                 }
-                else
-                {
-                    (nodes ?? (nodes = ArrayBuilder<CSharpSyntaxNode>.GetInstance())).Add(node);
-                    node = parent;
-                }
+
+                (nodes ?? (nodes = ArrayBuilder<CSharpSyntaxNode>.GetInstance())).Add(node);
+                node = parent;
             }
 
             // Propagate the syntax tree downwards if necessary
@@ -115,15 +115,21 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 foreach (var n in nodes)
                 {
-                    var existingTree = Interlocked.CompareExchange(ref n._syntaxTree, tree, null);
+                    var existingTree =  n._syntaxTree;
                     if (existingTree != null)
                     {
-                        tree = existingTree;
+                        Debug.Assert(existingTree == tree, "how could this node belong to a different tree?");
+
+                        // yield the race
+                        break;
                     }
+                    n._syntaxTree = tree;
                 }
 
                 nodes.Free();
             }
+
+            return tree;
         }
 
         public abstract TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor);
@@ -262,7 +268,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             this.Green.WriteTo(writer, true, true);
         }
 
-        #region serialization
+#region serialization
 
 
         private static readonly RecordingObjectBinder s_defaultBinder = new ConcurrentRecordingObjectBinder();
@@ -393,7 +399,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             return s_serializationData;
         }
-        #endregion
+#endregion
 
         /// <summary>
         /// Determines whether this node is structurally equivalent to another.
@@ -451,7 +457,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return LambdaUtilities.GetLambda(this);
         }
 
-        #region Directives
+#region Directives
 
         internal IList<DirectiveTriviaSyntax> GetDirectives(Func<DirectiveTriviaSyntax, bool> filter = null)
         {
@@ -538,9 +544,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             return null;
         }
 
-        #endregion
+#endregion
 
-        #region Node Lookup
+#region Node Lookup
 
         /// <summary>
         /// Returns child node or token that contains given position.
@@ -558,9 +564,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             Debug.Assert(childNodeOrToken.FullSpan.Contains(position), "ChildThatContainsPosition's return value does not contain the requested position.");
             return childNodeOrToken;
         }
-        #endregion
+#endregion
 
-        #region Token Lookup
+#region Token Lookup
 
         /// <summary>
         /// Gets the first token of the tree rooted by this node.
@@ -664,9 +670,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             return nonTriviaToken;
         }
 
-        #endregion
+#endregion
 
-        #region Trivia Lookup
+#region Trivia Lookup
 
         /// <summary>
         /// Finds a descendant trivia of this node at the specified position, where the position is
@@ -693,9 +699,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             return base.FindTrivia(position, findInsideTrivia);
         }
 
-        #endregion
+#endregion
 
-        #region SyntaxNode members
+#region SyntaxNode members
 
         /// <summary>
         /// Determine if this node is structurally equivalent to another.
@@ -771,6 +777,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             return SyntaxFactory.AreEquivalent(this, (CSharpSyntaxNode)node, topLevel);
         }
 
-        #endregion
+#endregion
     }
 }

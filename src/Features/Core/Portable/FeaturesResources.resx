@@ -339,8 +339,8 @@
   <data name="Summary" xml:space="preserve">
     <value>Summary:</value>
   </data>
-  <data name="Parameters" xml:space="preserve">
-    <value>Parameters:</value>
+  <data name="Locals_and_parameters" xml:space="preserve">
+    <value>Locals and parameters</value>
   </data>
   <data name="TypeParameters" xml:space="preserve">
     <value>Type parameters:</value>
@@ -912,5 +912,50 @@ This version used in: {2}</value>
   </data>
   <data name="Install_version_0" xml:space="preserve">
     <value>Install version '{0}'</value>
+  </data>
+  <data name="Classes" xml:space="preserve">
+    <value>Classes</value>
+  </data>
+  <data name="Constants" xml:space="preserve">
+    <value>Constants</value>
+  </data>
+  <data name="Delegates" xml:space="preserve">
+    <value>Delegates</value>
+  </data>
+  <data name="Enums" xml:space="preserve">
+    <value>Enums</value>
+  </data>
+  <data name="Events" xml:space="preserve">
+    <value>Events</value>
+  </data>
+  <data name="Extension_methods" xml:space="preserve">
+    <value>Extension methods</value>
+  </data>
+  <data name="Fields" xml:space="preserve">
+    <value>Fields</value>
+  </data>
+  <data name="Interfaces" xml:space="preserve">
+    <value>Interfaces</value>
+  </data>
+  <data name="Locals" xml:space="preserve">
+    <value>Locals</value>
+  </data>
+  <data name="Methods" xml:space="preserve">
+    <value>Methods</value>
+  </data>
+  <data name="Modules" xml:space="preserve">
+    <value>Modules</value>
+  </data>
+  <data name="Namespaces" xml:space="preserve">
+    <value>Namespaces</value>
+  </data>
+  <data name="Properties" xml:space="preserve">
+    <value>Properties</value>
+  </data>
+  <data name="Structures" xml:space="preserve">
+    <value>Structures</value>
+  </data>
+  <data name="Parameters" xml:space="preserve">
+    <value>Parameters:</value>
   </data>
 </root>
