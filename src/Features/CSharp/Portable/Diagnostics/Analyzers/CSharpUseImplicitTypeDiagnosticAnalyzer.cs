@@ -31,7 +31,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.TypeStyle
 
         protected override bool IsStylePreferred(SemanticModel semanticModel, OptionSet optionSet, State state, CancellationToken cancellationToken)
         {
-            var stylePreferences = state.TypeStyle;
+            var stylePreferences = state.TypeStylePreference;
             var shouldNotify = state.ShouldNotify();
 
             // If notification preference is None, don't offer the suggestion.
@@ -42,15 +42,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.TypeStyle
 
             if (state.IsInIntrinsicTypeContext)
             {
-                return stylePreferences.HasFlag(TypeStyle.ImplicitTypeForIntrinsicTypes);
+                return stylePreferences.HasFlag(TypeStylePreference.ImplicitTypeForIntrinsicTypes);
             }
             else if (state.IsTypeApparentInContext)
             {
-                return stylePreferences.HasFlag(TypeStyle.ImplicitTypeWhereApparent);
+                return stylePreferences.HasFlag(TypeStylePreference.ImplicitTypeWhereApparent);
             }
             else
             {
-                return stylePreferences.HasFlag(TypeStyle.ImplicitTypeWherePossible);
+                return stylePreferences.HasFlag(TypeStylePreference.ImplicitTypeWherePossible);
             }
         }
 
