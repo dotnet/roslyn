@@ -18,7 +18,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.TypeStyle
     {
         internal class State
         {
-            private readonly Dictionary<CodeStyle.TypeStyle.TypeStylePreference, DiagnosticSeverity> _styleToSeverityMap;
+            private readonly Dictionary<TypeStylePreference, DiagnosticSeverity> _styleToSeverityMap;
 
             public TypeStylePreference TypeStylePreference { get; private set; }
             public bool IsInIntrinsicTypeContext { get; private set; }
@@ -28,7 +28,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.TypeStyle
             public State(bool isVariableDeclarationContext)
             {
                 this.IsInVariableDeclarationContext = isVariableDeclarationContext;
-                _styleToSeverityMap = new Dictionary<CodeStyle.TypeStyle.TypeStylePreference, DiagnosticSeverity>();
+                _styleToSeverityMap = new Dictionary<TypeStylePreference, DiagnosticSeverity>();
             }
 
             public static State Generate(SyntaxNode declaration, SemanticModel semanticModel, OptionSet optionSet, bool isVariableDeclarationContext, CancellationToken cancellationToken)
@@ -42,15 +42,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.TypeStyle
             {
                 if (IsInIntrinsicTypeContext)
                 {
-                    return _styleToSeverityMap[CodeStyle.TypeStyle.TypeStylePreference.ImplicitTypeForIntrinsicTypes];
+                    return _styleToSeverityMap[TypeStylePreference.ImplicitTypeForIntrinsicTypes];
                 }
                 else if (IsTypeApparentInContext)
                 {
-                    return _styleToSeverityMap[CodeStyle.TypeStyle.TypeStylePreference.ImplicitTypeWhereApparent];
+                    return _styleToSeverityMap[TypeStylePreference.ImplicitTypeWhereApparent];
                 }
                 else
                 {
-                    return _styleToSeverityMap[CodeStyle.TypeStyle.TypeStylePreference.ImplicitTypeWherePossible];
+                    return _styleToSeverityMap[TypeStylePreference.ImplicitTypeWherePossible];
                 }
             }
 
@@ -74,7 +74,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.TypeStyle
             /// Returns true if type information could be gleaned by simply looking at the given statement.
             /// This typically means that the type name occurs in right hand side of an assignment.
             /// </summary>
-            private bool IsTypeApparentInDeclaration(VariableDeclarationSyntax variableDeclaration, SemanticModel semanticModel, CodeStyle.TypeStyle.TypeStylePreference stylePreferences, CancellationToken cancellationToken)
+            private bool IsTypeApparentInDeclaration(VariableDeclarationSyntax variableDeclaration, SemanticModel semanticModel, TypeStylePreference stylePreferences, CancellationToken cancellationToken)
             {
                 var initializer = variableDeclaration.Variables.Single().Initializer;
                 var initializerExpression = GetInitializerExpression(initializer);
@@ -126,29 +126,29 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.TypeStyle
 
             private TypeStylePreference GetCurrentTypeStylePreferences(OptionSet optionSet)
             {
-                var stylePreferences = CodeStyle.TypeStyle.TypeStylePreference.None;
+                var stylePreferences = TypeStylePreference.None;
 
                 var styleForIntrinsicTypes = optionSet.GetOption(CSharpCodeStyleOptions.UseImplicitTypeForIntrinsicTypes);
                 var styleForApparent = optionSet.GetOption(CSharpCodeStyleOptions.UseImplicitTypeWhereApparent);
                 var styleForElsewhere = optionSet.GetOption(CSharpCodeStyleOptions.UseImplicitTypeWherePossible);
 
-                _styleToSeverityMap.Add(CodeStyle.TypeStyle.TypeStylePreference.ImplicitTypeForIntrinsicTypes, styleForIntrinsicTypes.Notification.Value);
-                _styleToSeverityMap.Add(CodeStyle.TypeStyle.TypeStylePreference.ImplicitTypeWhereApparent, styleForApparent.Notification.Value);
-                _styleToSeverityMap.Add(CodeStyle.TypeStyle.TypeStylePreference.ImplicitTypeWherePossible, styleForElsewhere.Notification.Value);
+                _styleToSeverityMap.Add(TypeStylePreference.ImplicitTypeForIntrinsicTypes, styleForIntrinsicTypes.Notification.Value);
+                _styleToSeverityMap.Add(TypeStylePreference.ImplicitTypeWhereApparent, styleForApparent.Notification.Value);
+                _styleToSeverityMap.Add(TypeStylePreference.ImplicitTypeWherePossible, styleForElsewhere.Notification.Value);
 
                 if (styleForIntrinsicTypes.IsChecked)
                 {
-                    stylePreferences |= CodeStyle.TypeStyle.TypeStylePreference.ImplicitTypeForIntrinsicTypes;
+                    stylePreferences |= TypeStylePreference.ImplicitTypeForIntrinsicTypes;
                 }
 
                 if (styleForApparent.IsChecked)
                 {
-                    stylePreferences |= CodeStyle.TypeStyle.TypeStylePreference.ImplicitTypeWhereApparent;
+                    stylePreferences |= TypeStylePreference.ImplicitTypeWhereApparent;
                 }
 
                 if (styleForElsewhere.IsChecked)
                 {
-                    stylePreferences |= CodeStyle.TypeStyle.TypeStylePreference.ImplicitTypeWherePossible;
+                    stylePreferences |= TypeStylePreference.ImplicitTypeWherePossible;
                 }
 
                 return stylePreferences;
