@@ -1809,7 +1809,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
     }
 
-    internal partial class BoundMethodToken
+    internal partial class BoundMethodDefinitionToken
     {
         protected override OperationKind ExpressionKind => OperationKind.None;
 

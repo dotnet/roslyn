@@ -45,7 +45,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     
                     BoundExpression mvid = factory.ModuleVersionId();
 
-                    BoundExpression methodToken = factory.MethodToken(method);
+                    BoundExpression methodToken = factory.MethodDefinitionToken(method);
                     BoundStatement createPayloadCall = factory.ExpressionStatement(factory.Call(null, createPayload, mvid, methodToken, factory.Field(null, payloadField), factory.Literal(dynamicAnalysisSpans.Length)));
 
                     BoundExpression payloadNullTest = factory.Binary(BinaryOperatorKind.ObjectEqual, boolType, factory.Field(null, payloadField), factory.Null(payloadType));
