@@ -46,7 +46,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeFixes.PopulateSwitch
             Return DirectCast(selectExpression.Parent.Parent, SelectBlockSyntax)
         End Function
 
-        Protected Overrides Function GetCaseLabels(selectBlock As SelectBlockSyntax, <Out> ByRef containsDefaultLabel As Boolean) As List(Of SyntaxNode)
+        Protected Overrides Function GetCaseLabels(selectBlock As SelectBlockSyntax, <Out> ByRef containsDefaultLabel As Boolean) As List(Of ExpressionSyntax)
             Return VisualBasicPopulateSwitchHelperClass.GetCaseLabels(selectBlock, containsDefaultLabel)
         End Function
     End Class

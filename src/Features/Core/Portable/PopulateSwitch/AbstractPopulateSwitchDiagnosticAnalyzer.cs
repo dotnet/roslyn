@@ -5,7 +5,10 @@ using System.Threading;
 
 namespace Microsoft.CodeAnalysis.Diagnostics.PopulateSwitch
 {
-    internal abstract class AbstractPopulateSwitchDiagnosticAnalyzerBase<TLanguageKindEnum, TSwitchBlockSyntax> : DiagnosticAnalyzer, IBuiltInAnalyzer where TLanguageKindEnum : struct where TSwitchBlockSyntax : SyntaxNode
+    internal abstract class AbstractPopulateSwitchDiagnosticAnalyzerBase<TLanguageKindEnum, TSwitchBlockSyntax, TExpressionSyntax> : DiagnosticAnalyzer, IBuiltInAnalyzer 
+        where TLanguageKindEnum : struct
+        where TSwitchBlockSyntax : SyntaxNode
+        where TExpressionSyntax : SyntaxNode
     {
         private static readonly LocalizableString s_localizableTitle = new LocalizableResourceString(nameof(FeaturesResources.AddMissingSwitchCases), FeaturesResources.ResourceManager, typeof(FeaturesResources));
         private static readonly LocalizableString s_localizableMessage = new LocalizableResourceString(nameof(WorkspacesResources.PopulateSwitch), WorkspacesResources.ResourceManager, typeof(WorkspacesResources));
@@ -40,8 +43,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics.PopulateSwitch
 
         #endregion
 
-        protected abstract SyntaxNode GetExpression(TSwitchBlockSyntax node);
-        protected abstract List<SyntaxNode> GetCaseLabels(TSwitchBlockSyntax switchBlock, out bool hasDefaultCase);
+        protected abstract TExpressionSyntax GetExpression(TSwitchBlockSyntax node);
+        protected abstract List<TExpressionSyntax> GetCaseLabels(TSwitchBlockSyntax switchBlock, out bool hasDefaultCase);
 
         private bool SwitchIsFullyPopulated(SemanticModel model, TSwitchBlockSyntax node)
         {

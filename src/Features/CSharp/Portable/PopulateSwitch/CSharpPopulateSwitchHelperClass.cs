@@ -5,11 +5,11 @@ namespace Microsoft.CodeAnalysis.CSharp.PopulateSwitch
 {
     internal static class CSharpPopulateSwitchHelperClass
     {
-        public static List<SyntaxNode> GetCaseLabels(SwitchStatementSyntax switchStatement, out bool containsDefaultLabel)
+        public static List<ExpressionSyntax> GetCaseLabels(SwitchStatementSyntax switchStatement, out bool containsDefaultLabel)
         {
             containsDefaultLabel = false;
 
-            var caseLabels = new List<SyntaxNode>();
+            var caseLabels = new List<ExpressionSyntax>();
             foreach (var section in switchStatement.Sections)
             {
                 foreach (var label in section.Labels)

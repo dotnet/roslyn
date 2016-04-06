@@ -3,10 +3,10 @@ Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.PopulateSwitch
     Friend Module VisualBasicPopulateSwitchHelperClass
-        Public Function GetCaseLabels(selectBlock As SelectBlockSyntax, <Out> ByRef containsDefaultLabel As Boolean) As List(Of SyntaxNode)
+        Public Function GetCaseLabels(selectBlock As SelectBlockSyntax, <Out> ByRef containsDefaultLabel As Boolean) As List(Of ExpressionSyntax)
                 containsDefaultLabel = False
 
-                Dim caseLabels = New List(Of SyntaxNode)
+                Dim caseLabels = New List(Of ExpressionSyntax)
                 For Each block In selectBlock.CaseBlocks
                     For Each caseSyntax In block.CaseStatement.Cases
 

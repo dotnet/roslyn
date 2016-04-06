@@ -8,16 +8,13 @@ using Microsoft.CodeAnalysis.CSharp.PopulateSwitch;
 namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.PopulateSwitch
 {
     [DiagnosticAnalyzer(LanguageNames.CSharp)]
-    internal sealed class CSharpPopulateSwitchDiagnosticAnalyzer : AbstractPopulateSwitchDiagnosticAnalyzerBase<SyntaxKind, SwitchStatementSyntax>
+    internal sealed class CSharpPopulateSwitchDiagnosticAnalyzer : AbstractPopulateSwitchDiagnosticAnalyzerBase<SyntaxKind, SwitchStatementSyntax, ExpressionSyntax>
     {
         protected override ImmutableArray<SyntaxKind> SyntaxKindsOfInterest { get; } = ImmutableArray.Create(SyntaxKind.SwitchStatement);
 
-        protected override SyntaxNode GetExpression(SwitchStatementSyntax switchBlock)
-        {
-            return switchBlock.Expression;
-        }
+        protected override ExpressionSyntax GetExpression(SwitchStatementSyntax switchBlock) => switchBlock.Expression;
 
-        protected override List<SyntaxNode> GetCaseLabels(SwitchStatementSyntax switchBlock, out bool hasDefaultCase)
+        protected override List<ExpressionSyntax> GetCaseLabels(SwitchStatementSyntax switchBlock, out bool hasDefaultCase)
             => CSharpPopulateSwitchHelperClass.GetCaseLabels(switchBlock, out hasDefaultCase);
     }
 }

@@ -26,7 +26,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.PopulateSwitch
         protected override SyntaxNode NewSwitchNode(SwitchStatementSyntax switchStatement, List<SwitchSectionSyntax> sections) => 
             switchStatement.WithSections(SyntaxFactory.List(sections));
 
-        protected override List<SyntaxNode> GetCaseLabels(SwitchStatementSyntax switchStatement, out bool containsDefaultLabel)
+        protected override List<ExpressionSyntax> GetCaseLabels(SwitchStatementSyntax switchStatement, out bool containsDefaultLabel)
             => CSharpPopulateSwitchHelperClass.GetCaseLabels(switchStatement, out containsDefaultLabel);
     }
 }

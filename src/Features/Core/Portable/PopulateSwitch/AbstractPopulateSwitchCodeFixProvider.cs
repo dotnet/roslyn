@@ -44,7 +44,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.PopulateSwitch
 
         protected abstract TSwitchBlockSyntax GetSwitchStatementNode(SyntaxNode root, TextSpan span);
 
-        protected abstract List<SyntaxNode> GetCaseLabels(TSwitchBlockSyntax switchBlock, out bool containsDefaultLabel);
+        protected abstract List<TExpressionSyntax> GetCaseLabels(TSwitchBlockSyntax switchBlock, out bool containsDefaultLabel);
 
         private async Task<Document> AddMissingSwitchLabelsAsync(CodeFixContext context)
         {
