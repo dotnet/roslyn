@@ -12,7 +12,7 @@ This is the TODO list for the development of the tuples language feature for C# 
 - [ ] Validation with other C# features (evaluation order, dynamic, unsafe code/pointers, optional parameter constants, nullable)
 - [ ] Semantic info and other IDE stuff
     - [ ] Debugger / watch window / expression evaluation / EnC
-- [ ] Update well-known tuple types to TN naming convention
+- [x] Update well-known tuple types to TN naming convention
 - [ ] Generating and loading metadata for user-defined member names
 - [ ] Figure out full behavior for reserved member names
 - [ ] Support tuples 8+

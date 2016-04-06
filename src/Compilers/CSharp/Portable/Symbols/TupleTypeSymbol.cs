@@ -208,7 +208,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// <summary>
         /// Find the well-known ValueTuple type of a given arity.
         /// For example, for arity=2:
-        /// returns WellKnownType.System_ValueTuple_T1_T2
+        /// returns WellKnownType.System_ValueTuple_T2
         /// </summary>
         private static WellKnownType GetTupleType(int arity)
         {
@@ -221,22 +221,22 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         private static readonly WellKnownType[] tupleTypes = {
                                                             WellKnownType.System_ValueTuple_T1,
-                                                            WellKnownType.System_ValueTuple_T1_T2,
-                                                            WellKnownType.System_ValueTuple_T1_T2_T3,
-                                                            WellKnownType.System_ValueTuple_T1_T2_T3_T4,
-                                                            WellKnownType.System_ValueTuple_T1_T2_T3_T4_T5,
-                                                            WellKnownType.System_ValueTuple_T1_T2_T3_T4_T5_T6,
-                                                            WellKnownType.System_ValueTuple_T1_T2_T3_T4_T5_T6_T7,
-                                                            WellKnownType.System_ValueTuple_T1_T2_T3_T4_T5_T6_T7_TRest };
+                                                            WellKnownType.System_ValueTuple_T2,
+                                                            WellKnownType.System_ValueTuple_T3,
+                                                            WellKnownType.System_ValueTuple_T4,
+                                                            WellKnownType.System_ValueTuple_T5,
+                                                            WellKnownType.System_ValueTuple_T6,
+                                                            WellKnownType.System_ValueTuple_T7,
+                                                            WellKnownType.System_ValueTuple_TRest };
 
         /// <summary>
         /// Find the constructor for a well-known ValueTuple type of a given arity.
         ///
         /// For example, for arity=2:
-        /// returns WellKnownMember.System_ValueTuple_T1_T2__ctor
+        /// returns WellKnownMember.System_ValueTuple_T2__ctor
         ///
         /// For arity=12:
-        /// return System_ValueTuple_T1_T2_T3_T4_T5_T6_T7_TRest__ctor
+        /// return System_ValueTuple_TRest__ctor
         /// </summary>
         internal static WellKnownMember GetTupleCtor(int arity)
         {
@@ -249,18 +249,18 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         private static readonly WellKnownMember[] tupleCtors = {
                                                             WellKnownMember.System_ValueTuple_T1__ctor,
-                                                            WellKnownMember.System_ValueTuple_T1_T2__ctor,
-                                                            WellKnownMember.System_ValueTuple_T1_T2_T3__ctor,
-                                                            WellKnownMember.System_ValueTuple_T1_T2_T3_T4__ctor,
-                                                            WellKnownMember.System_ValueTuple_T1_T2_T3_T4_T5__ctor,
-                                                            WellKnownMember.System_ValueTuple_T1_T2_T3_T4_T5_T6__ctor,
-                                                            WellKnownMember.System_ValueTuple_T1_T2_T3_T4_T5_T6_T7__ctor,
-                                                            WellKnownMember.System_ValueTuple_T1_T2_T3_T4_T5_T6_T7_TRest__ctor };
+                                                            WellKnownMember.System_ValueTuple_T2__ctor,
+                                                            WellKnownMember.System_ValueTuple_T3__ctor,
+                                                            WellKnownMember.System_ValueTuple_T4__ctor,
+                                                            WellKnownMember.System_ValueTuple_T5__ctor,
+                                                            WellKnownMember.System_ValueTuple_T6__ctor,
+                                                            WellKnownMember.System_ValueTuple_T7__ctor,
+                                                            WellKnownMember.System_ValueTuple_TRest__ctor };
 
         /// <summary>
         /// Find the well-known members to the ValueTuple type of a given arity and position.
         /// For example, for arity=3 and position=1:
-        /// returns WellKnownMember.System_ValueTuple_T1_T2_T3__Item1
+        /// returns WellKnownMember.System_ValueTuple_T3__Item1
         /// </summary>
         internal static WellKnownMember GetTupleTypeMember(int arity, int position)
         {
@@ -272,53 +272,53 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                                                             WellKnownMember.System_ValueTuple_T1__Item1 },
 
                                                         new[]{
-                                                            WellKnownMember.System_ValueTuple_T1_T2__Item1,
-                                                            WellKnownMember.System_ValueTuple_T1_T2__Item2 },
+                                                            WellKnownMember.System_ValueTuple_T2__Item1,
+                                                            WellKnownMember.System_ValueTuple_T2__Item2 },
 
                                                         new[]{
-                                                            WellKnownMember.System_ValueTuple_T1_T2_T3__Item1,
-                                                            WellKnownMember.System_ValueTuple_T1_T2_T3__Item2,
-                                                            WellKnownMember.System_ValueTuple_T1_T2_T3__Item3 },
+                                                            WellKnownMember.System_ValueTuple_T3__Item1,
+                                                            WellKnownMember.System_ValueTuple_T3__Item2,
+                                                            WellKnownMember.System_ValueTuple_T3__Item3 },
 
                                                         new[]{
-                                                            WellKnownMember.System_ValueTuple_T1_T2_T3_T4__Item1,
-                                                            WellKnownMember.System_ValueTuple_T1_T2_T3_T4__Item2,
-                                                            WellKnownMember.System_ValueTuple_T1_T2_T3_T4__Item3,
-                                                            WellKnownMember.System_ValueTuple_T1_T2_T3_T4__Item4 },
+                                                            WellKnownMember.System_ValueTuple_T4__Item1,
+                                                            WellKnownMember.System_ValueTuple_T4__Item2,
+                                                            WellKnownMember.System_ValueTuple_T4__Item3,
+                                                            WellKnownMember.System_ValueTuple_T4__Item4 },
 
                                                         new[]{
-                                                            WellKnownMember.System_ValueTuple_T1_T2_T3_T4_T5__Item1,
-                                                            WellKnownMember.System_ValueTuple_T1_T2_T3_T4_T5__Item2,
-                                                            WellKnownMember.System_ValueTuple_T1_T2_T3_T4_T5__Item3,
-                                                            WellKnownMember.System_ValueTuple_T1_T2_T3_T4_T5__Item4,
-                                                            WellKnownMember.System_ValueTuple_T1_T2_T3_T4_T5__Item5 },
+                                                            WellKnownMember.System_ValueTuple_T5__Item1,
+                                                            WellKnownMember.System_ValueTuple_T5__Item2,
+                                                            WellKnownMember.System_ValueTuple_T5__Item3,
+                                                            WellKnownMember.System_ValueTuple_T5__Item4,
+                                                            WellKnownMember.System_ValueTuple_T5__Item5 },
 
                                                         new[]{
-                                                            WellKnownMember.System_ValueTuple_T1_T2_T3_T4_T5_T6__Item1,
-                                                            WellKnownMember.System_ValueTuple_T1_T2_T3_T4_T5_T6__Item2,
-                                                            WellKnownMember.System_ValueTuple_T1_T2_T3_T4_T5_T6__Item3,
-                                                            WellKnownMember.System_ValueTuple_T1_T2_T3_T4_T5_T6__Item4,
-                                                            WellKnownMember.System_ValueTuple_T1_T2_T3_T4_T5_T6__Item5,
-                                                            WellKnownMember.System_ValueTuple_T1_T2_T3_T4_T5_T6__Item6 },
+                                                            WellKnownMember.System_ValueTuple_T6__Item1,
+                                                            WellKnownMember.System_ValueTuple_T6__Item2,
+                                                            WellKnownMember.System_ValueTuple_T6__Item3,
+                                                            WellKnownMember.System_ValueTuple_T6__Item4,
+                                                            WellKnownMember.System_ValueTuple_T6__Item5,
+                                                            WellKnownMember.System_ValueTuple_T6__Item6 },
 
                                                         new[]{
-                                                            WellKnownMember.System_ValueTuple_T1_T2_T3_T4_T5_T6_T7__Item1,
-                                                            WellKnownMember.System_ValueTuple_T1_T2_T3_T4_T5_T6_T7__Item2,
-                                                            WellKnownMember.System_ValueTuple_T1_T2_T3_T4_T5_T6_T7__Item3,
-                                                            WellKnownMember.System_ValueTuple_T1_T2_T3_T4_T5_T6_T7__Item4,
-                                                            WellKnownMember.System_ValueTuple_T1_T2_T3_T4_T5_T6_T7__Item5,
-                                                            WellKnownMember.System_ValueTuple_T1_T2_T3_T4_T5_T6_T7__Item6,
-                                                            WellKnownMember.System_ValueTuple_T1_T2_T3_T4_T5_T6_T7__Item7 },
+                                                            WellKnownMember.System_ValueTuple_T7__Item1,
+                                                            WellKnownMember.System_ValueTuple_T7__Item2,
+                                                            WellKnownMember.System_ValueTuple_T7__Item3,
+                                                            WellKnownMember.System_ValueTuple_T7__Item4,
+                                                            WellKnownMember.System_ValueTuple_T7__Item5,
+                                                            WellKnownMember.System_ValueTuple_T7__Item6,
+                                                            WellKnownMember.System_ValueTuple_T7__Item7 },
 
                                                         new[]{
-                                                            WellKnownMember.System_ValueTuple_T1_T2_T3_T4_T5_T6_T7_TRest__Item1,
-                                                            WellKnownMember.System_ValueTuple_T1_T2_T3_T4_T5_T6_T7_TRest__Item2,
-                                                            WellKnownMember.System_ValueTuple_T1_T2_T3_T4_T5_T6_T7_TRest__Item3,
-                                                            WellKnownMember.System_ValueTuple_T1_T2_T3_T4_T5_T6_T7_TRest__Item4,
-                                                            WellKnownMember.System_ValueTuple_T1_T2_T3_T4_T5_T6_T7_TRest__Item5,
-                                                            WellKnownMember.System_ValueTuple_T1_T2_T3_T4_T5_T6_T7_TRest__Item6,
-                                                            WellKnownMember.System_ValueTuple_T1_T2_T3_T4_T5_T6_T7_TRest__Item7,
-                                                            WellKnownMember.System_ValueTuple_T1_T2_T3_T4_T5_T6_T7_TRest__Rest }
+                                                            WellKnownMember.System_ValueTuple_TRest__Item1,
+                                                            WellKnownMember.System_ValueTuple_TRest__Item2,
+                                                            WellKnownMember.System_ValueTuple_TRest__Item3,
+                                                            WellKnownMember.System_ValueTuple_TRest__Item4,
+                                                            WellKnownMember.System_ValueTuple_TRest__Item5,
+                                                            WellKnownMember.System_ValueTuple_TRest__Item6,
+                                                            WellKnownMember.System_ValueTuple_TRest__Item7,
+                                                            WellKnownMember.System_ValueTuple_TRest__Rest }
         };
 
         /// <summary>

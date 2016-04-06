@@ -246,16 +246,16 @@ namespace Microsoft.CodeAnalysis
         System_Runtime_GCLatencyMode,
 
         System_ValueTuple_T1,
-        System_ValueTuple_T1_T2,
-        System_ValueTuple_T1_T2_T3,
-        System_ValueTuple_T1_T2_T3_T4,
-        System_ValueTuple_T1_T2_T3_T4_T5,
-        System_ValueTuple_T1_T2_T3_T4_T5_T6,
-        System_ValueTuple_T1_T2_T3_T4_T5_T6_T7,
+        System_ValueTuple_T2,
+        System_ValueTuple_T3,
+        System_ValueTuple_T4,
+        System_ValueTuple_T5,
+        System_ValueTuple_T6,
+        System_ValueTuple_T7,
 
         ExtSentinel, // Not a real type, just a marker for types above 255 and strictly below 512
 
-        System_ValueTuple_T1_T2_T3_T4_T5_T6_T7_TRest,
+        System_ValueTuple_TRest,
 
         System_IFormatProvider,
 
