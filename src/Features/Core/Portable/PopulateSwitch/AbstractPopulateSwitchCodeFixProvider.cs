@@ -13,7 +13,7 @@ using Microsoft.CodeAnalysis.Simplification;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
-namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.PopulateSwitch
+namespace Microsoft.CodeAnalysis.PopulateSwitch
 {
     internal abstract class AbstractPopulateSwitchCodeFixProvider<TSwitchBlockSyntax, TExpressionSyntax, TSwitchSectionSyntax> : CodeFixProvider 
             where TSwitchBlockSyntax : SyntaxNode

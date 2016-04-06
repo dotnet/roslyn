@@ -3,8 +3,9 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Threading;
 using System;
+using Microsoft.CodeAnalysis.Diagnostics;
 
-namespace Microsoft.CodeAnalysis.Diagnostics.PopulateSwitch
+namespace Microsoft.CodeAnalysis.PopulateSwitch
 {
     internal abstract class AbstractPopulateSwitchDiagnosticAnalyzerBase<TLanguageKindEnum, TSwitchBlockSyntax, TExpressionSyntax> : DiagnosticAnalyzer, IBuiltInAnalyzer
         where TLanguageKindEnum : struct
@@ -74,38 +75,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics.PopulateSwitch
                 return false;
             }
 
-            var labelSymbols = new HashSet<ISymbol>();
-            foreach (var label in caseLabels)
-            {
-                var symbol = model.GetSymbolInfo(label).Symbol;
-                if (symbol == null)
-                {
-                    // something is wrong with the label and the SemanticModel was unable to 
-                    // determine its symbol.  Abort the analyzer by considering this switch
-                    // statement as complete.
-                    return false;
-                }
-
-                labelSymbols.Add(symbol);
-            }
-
-            foreach (var member in enumType.GetMembers())
-            {
-                // skip `.ctor` and `__value`
-                var fieldSymbol = member as IFieldSymbol;
-                if (fieldSymbol == null || fieldSymbol.Type.SpecialType != SpecialType.None)
-                {
-                    continue;
-                }
-                
-                if (!labelSymbols.Contains(member))
-                {
-                    // We're missing a label for this member.  The switch is not complete.
-                    return true;
-                }
-            }
-
-            return false;
+            var unusedLabels = PopulateSwitchHelpers.GetUnusedSwitchLabels(model, enumType, caseLabels);
+            return unusedLabels.Count > 0;
         }
 
         public DiagnosticAnalyzerCategory GetAnalyzerCategory() => DiagnosticAnalyzerCategory.SemanticSpanAnalysis;
