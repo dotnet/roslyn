@@ -443,8 +443,8 @@
   <Node Name="BoundTypeOfPrivateImplementationDetails" Base="BoundTypeOf">
   </Node>
 
-   <!-- Represents the raw metadata token value for a method. Dynamic instrumentation depends on tracking method tokens. -->
-  <Node Name="BoundMethodToken" Base="BoundExpression">
+   <!-- Represents the raw metadata token value for a method definition. Dynamic instrumentation depends on tracking method tokens. -->
+  <Node Name="BoundMethodDefinitionToken" Base="BoundExpression">
     <!-- Non-null type is required for this node kind -->
     <Field Name="Type" Type="TypeSymbol" Override="true" Null="disallow"/>
     <Field Name="Method" Type="MethodSymbol"/>

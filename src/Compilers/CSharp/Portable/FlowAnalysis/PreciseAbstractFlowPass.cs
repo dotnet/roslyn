@@ -1293,7 +1293,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return null;
         }
 
-        public override BoundNode VisitMethodToken(BoundMethodToken node)
+        public override BoundNode VisitMethodDefinitionToken(BoundMethodDefinitionToken node)
         {
             return null;
         }
