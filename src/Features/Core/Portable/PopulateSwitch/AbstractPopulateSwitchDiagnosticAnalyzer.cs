@@ -44,7 +44,7 @@ namespace Microsoft.CodeAnalysis.PopulateSwitch
             if (SwitchIsIncomplete(model, switchBlock) &&
                 !tree.OverlapsHiddenPosition(switchBlock.Span, context.CancellationToken))
             {
-                var diagnostic = Diagnostic.Create(s_descriptor, tree.GetLocation((Text.TextSpan)switchBlock.Span));
+                var diagnostic = Diagnostic.Create(s_descriptor, switchBlock.GetLocation());
                 context.ReportDiagnostic(diagnostic);
             }
         }
