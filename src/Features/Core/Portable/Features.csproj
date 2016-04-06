@@ -254,6 +254,8 @@
     <Compile Include="MakeMethodSynchronous\AbstractMakeMethodSynchronousCodeFixProvider.cs" />
     <Compile Include="Navigation\NavigationOptions.cs" />
     <Compile Include="Navigation\NavigationOptionsProvider.cs" />
+    <Compile Include="PopulateSwitch\AbstractPopulateSwitchCodeFixProvider.cs" />
+    <Compile Include="PopulateSwitch\AbstractPopulateSwitchDiagnosticAnalyzer.cs" />
     <Compile Include="QuickInfo\QuickInfoUtilities.cs" />
     <Compile Include="RemoveUnnecessaryImports\AbstractRemoveUnnecessaryImportsService.cs" />
     <Compile Include="ReplaceMethodWithProperty\ReplaceMethodWithPropertyCodeRefactoringProvider.cs" />

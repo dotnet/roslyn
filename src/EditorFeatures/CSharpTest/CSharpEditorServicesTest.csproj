@@ -350,6 +350,8 @@
     <Compile Include="Outlining\RegionDirectiveOutlinerTests.cs" />
     <Compile Include="Outlining\SimpleLambdaExpressionOutlinerTests.cs" />
     <Compile Include="Outlining\TypeDeclarationOutlinerTests.cs" />
+    <Compile Include="PopulateSwitch\PopulateSwitchTests.cs" />
+    <Compile Include="PopulateSwitch\PopulateSwitchTests_FixAllTests.cs" />
     <Compile Include="QuickInfo\SemanticQuickInfoSourceTests.cs" />
     <Compile Include="QuickInfo\SyntacticQuickInfoSourceTests.cs" />
     <Compile Include="Semantics\SpeculationAnalyzerTests.cs" />
