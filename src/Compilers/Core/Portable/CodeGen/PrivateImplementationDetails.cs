@@ -47,6 +47,7 @@ namespace Microsoft.CodeAnalysis.CodeGen
             new ConcurrentDictionary<ImmutableArray<byte>, MappedField>(ByteSequenceComparer.Instance);
 
         private ModuleVersionIdField _mvidField;
+        // Maps from analysis kind (which is an arbitrary unique integer) to the greatest assigned payload index for the analysis kind.
         private readonly ConcurrentDictionary<int, int> _instrumentationPayloadIndices = new ConcurrentDictionary<int, int>();
 
         // synthesized methods
@@ -171,12 +172,38 @@ namespace Microsoft.CodeAnalysis.CodeGen
             return _mvidField;
         }
 
+        // Every method instrumented for a given analysis kind has a payload index for that analysis kind. The payload index
+        // gives the entry for that method in the payloads array.
+        // PROTOTYPE (https://github.com/dotnet/roslyn/issues/10386):
+        // Indices are assigned in the order requested, which makes them nondeterministic, which makes instrumented builds
+        // nondeterministic.
         internal int GetInstrumentationPayloadIndex(Cci.IMethodDefinition method, Cci.ITypeReference payloadType, int analysisIndex)
         {
-            int lastPayloadIndex;
-            if (_instrumentationPayloadIndices.TryGetValue(analysisIndex , out lastPayloadIndex))
+            while (true)
             {
+                int lastPayloadIndex;
+                if (!_instrumentationPayloadIndices.TryGetValue(analysisIndex, out lastPayloadIndex))
+                {
+                    // This is the first request for a payload index for this kind of analysis.
+                    lastPayloadIndex = -1;
+                    if (_instrumentationPayloadIndices.TryAdd(analysisIndex, lastPayloadIndex))
+                    {
+                        // This request has successfully established the map entry.
+                    }
+                    else
+                    {
+                        // A request on another thread has established the map entry.
+                        bool foundAnalysisIndexEntry =_instrumentationPayloadIndices.TryGetValue(analysisIndex, out lastPayloadIndex);
+                        Debug.Assert(foundAnalysisIndexEntry);
+                    }
+                }
 
+                lastPayloadIndex++;
+                if (_instrumentationPayloadIndices.TryUpdate(analysisIndex, lastPayloadIndex, lastPayloadIndex - 1))
+                {
+                    // Last index for this analysis kind as been successfully incremented.
+                    return lastPayloadIndex;
+                }
             }
         }
 
