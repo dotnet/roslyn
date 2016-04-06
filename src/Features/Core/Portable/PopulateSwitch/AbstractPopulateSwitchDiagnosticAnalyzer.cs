@@ -34,10 +34,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.PopulateSwitch
         private void AnalyzeNode(SyntaxNodeAnalysisContext context)
         {
             var model = context.SemanticModel;
-            var node = context.Node;
-            var cancellationToken = context.CancellationToken;
-
-            var switchBlock = (TSwitchBlockSyntax)node;
+            var switchBlock = (TSwitchBlockSyntax)context.Node;
 
             if (SwitchIsFullyPopulated(model, switchBlock))
             {
@@ -46,7 +43,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.PopulateSwitch
 
             var tree = model.SyntaxTree;
             var span = switchBlock.Span;
-            if (tree.OverlapsHiddenPosition(span, cancellationToken))
+            if (tree.OverlapsHiddenPosition(span, context.CancellationToken))
             {
                 return;
             }
