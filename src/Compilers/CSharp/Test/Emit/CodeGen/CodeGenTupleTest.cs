@@ -849,41 +849,44 @@ class C
 {
     static void Main()
     {
-        (int, string a) x = (b: 1, ""hello"", 2);
+        (int, string) x = (1, ""hello"");
     }
 }
 ";
-            // PROTOTYPE(tuples) those are not the final diagnostics
             var comp = CreateCompilationWithMscorlib(source);
             comp.VerifyDiagnostics(
-                // (6,9): error CS8204: Tuple member names must all be provided, if any one is provided.
-                //         (int, string a) x = (b: 1, "hello", 2);
-                Diagnostic(ErrorCode.ERR_TupleExplicitNamesOnAllMembersOrNone, "(int, string a)").WithLocation(6, 9),
                 // (6,9): error CS0518: Predefined type 'System.ValueTuple`2' is not defined or imported
-                //         (int, string a) x = (b: 1, "hello", 2);
-                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "(int, string a)").WithArguments("System.ValueTuple`2").WithLocation(6, 9),
-                // (6,9): error CS0656: Missing compiler required member 'System.ValueTuple`2.Item1'
-                //         (int, string a) x = (b: 1, "hello", 2);
-                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "(int, string a)").WithArguments("System.ValueTuple`2", "Item1").WithLocation(6, 9),
-                // (6,9): error CS0656: Missing compiler required member 'System.ValueTuple`2.Item2'
-                //         (int, string a) x = (b: 1, "hello", 2);
-                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "(int, string a)").WithArguments("System.ValueTuple`2", "Item2").WithLocation(6, 9),
-                // (6,29): error CS8204: Tuple member names must all be provided, if any one is provided.
-                //         (int, string a) x = (b: 1, "hello", 2);
-                Diagnostic(ErrorCode.ERR_TupleExplicitNamesOnAllMembersOrNone, @"(b: 1, ""hello"", 2)").WithLocation(6, 29),
-                // (6,29): error CS0518: Predefined type 'System.ValueTuple`3' is not defined or imported
-                //         (int, string a) x = (b: 1, "hello", 2);
-                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, @"(b: 1, ""hello"", 2)").WithArguments("System.ValueTuple`3").WithLocation(6, 29),
-                // (6,29): error CS0656: Missing compiler required member 'System.ValueTuple`3.Item1'
-                //         (int, string a) x = (b: 1, "hello", 2);
-                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, @"(b: 1, ""hello"", 2)").WithArguments("System.ValueTuple`3", "Item1").WithLocation(6, 29),
-                // (6,29): error CS0656: Missing compiler required member 'System.ValueTuple`3.Item2'
-                //         (int, string a) x = (b: 1, "hello", 2);
-                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, @"(b: 1, ""hello"", 2)").WithArguments("System.ValueTuple`3", "Item2").WithLocation(6, 29),
-                // (6,29): error CS0656: Missing compiler required member 'System.ValueTuple`3.Item3'
-                //         (int, string a) x = (b: 1, "hello", 2);
-                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, @"(b: 1, ""hello"", 2)").WithArguments("System.ValueTuple`3", "Item3").WithLocation(6, 29)
-                );
+                //         (int, string) x = (1, "hello");
+                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "(int, string)").WithArguments("System.ValueTuple`2").WithLocation(6, 9),
+                // (6,27): error CS0518: Predefined type 'System.ValueTuple`2' is not defined or imported
+                //         (int, string) x = (1, "hello");
+                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, @"(1, ""hello"")").WithArguments("System.ValueTuple`2").WithLocation(6, 27)
+                               );
+        }
+
+        [Fact]
+        public void TupleUsageWithMissingTupleMembers()
+        {
+            var source = @"
+namespace System
+{
+    public struct ValueTuple<T1, T2> { }
+}
+
+class C
+{
+    static void Main()
+    {
+        (int, int) x = (1, 2);
+    }
+}
+";
+            var comp = CreateCompilationWithMscorlib(source, assemblyName: "comp");
+            comp.VerifyEmitDiagnostics(
+                // (11,24): error CS8205: Member '.ctor' was not found on type 'ValueTuple<T1, T2>' from assembly 'comp, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'.
+                //         (int, int) x = (1, 2);
+                Diagnostic(ErrorCode.ERR_PredefinedTypeMemberNotFoundInAssembly, "(1, 2)").WithArguments(".ctor", "System.ValueTuple<T1, T2>", "comp, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null").WithLocation(11, 24)
+                               );
         }
 
         [Fact]
@@ -1186,22 +1189,10 @@ class C
                 // (10,12): error CS0518: Predefined type 'System.ValueTuple`2' is not defined or imported
                 //     static (T1 first, T2 second) M<T1, T2>()
                 Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "(T1 first, T2 second)").WithArguments("System.ValueTuple`2").WithLocation(10, 12),
-                // (10,12): error CS0656: Missing compiler required member 'System.ValueTuple`2.Item1'
-                //     static (T1 first, T2 second) M<T1, T2>()
-                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "(T1 first, T2 second)").WithArguments("System.ValueTuple`2", "Item1").WithLocation(10, 12),
-                // (10,12): error CS0656: Missing compiler required member 'System.ValueTuple`2.Item2'
-                //     static (T1 first, T2 second) M<T1, T2>()
-                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "(T1 first, T2 second)").WithArguments("System.ValueTuple`2", "Item2").WithLocation(10, 12),
                 // (12,16): error CS0518: Predefined type 'System.ValueTuple`2' is not defined or imported
                 //         return (default(T1), default(T2));
-                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "(default(T1), default(T2))").WithArguments("System.ValueTuple`2").WithLocation(12, 16),
-                // (12,16): error CS0656: Missing compiler required member 'System.ValueTuple`2.Item1'
-                //         return (default(T1), default(T2));
-                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "(default(T1), default(T2))").WithArguments("System.ValueTuple`2", "Item1").WithLocation(12, 16),
-                // (12,16): error CS0656: Missing compiler required member 'System.ValueTuple`2.Item2'
-                //         return (default(T1), default(T2));
-                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "(default(T1), default(T2))").WithArguments("System.ValueTuple`2", "Item2").WithLocation(12, 16)
-                );
+                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "(default(T1), default(T2))").WithArguments("System.ValueTuple`2").WithLocation(12, 16)
+                                );
         }
 
         [Fact]
@@ -1476,6 +1467,188 @@ class C
 " + trivial2uple;
 
             var comp = CompileAndVerify(source, expectedOutput: @"{1, hello}");
+        }
+
+        [Fact]
+        public void DistinctTupleTypesInCompilation()
+        {
+            var source1 = @"
+public class C1
+{
+    public static (int a, int b) M()
+    {
+        return (1, 2);
+    }
+}
+" + trivial2uple;
+
+            var source2 = @"
+public class C2
+{
+    public static (int c, int d) M()
+    {
+        return (3, 4);
+    }
+}
+" + trivial2uple;
+
+            var source = @"
+class C3
+{
+    public static void Main()
+    {
+        System.Console.Write(C1.M().Item1 + "" "");
+        System.Console.Write(C1.M().a + "" "");
+        System.Console.Write(C1.M().Item2 + "" "");
+        System.Console.Write(C1.M().b + "" "");
+        System.Console.Write(C2.M().Item1 + "" "");
+        System.Console.Write(C2.M().c + "" "");
+        System.Console.Write(C2.M().Item2 + "" "");
+        System.Console.Write(C2.M().d);
+    }
+}
+";
+            var comp1 = CreateCompilationWithMscorlib(source1);
+            var comp2 = CreateCompilationWithMscorlib(source2);
+            var comp = CompileAndVerify(source, expectedOutput: @"1 1 2 2 3 3 4 4", additionalRefs: new[] { new CSharpCompilationReference(comp1), new CSharpCompilationReference(comp2) });
+        }
+
+        [Fact]
+        public void DistinctTupleTypesInCompilationCannotAssign()
+        {
+            var source1 = @"
+public class C1
+{
+    public static (int a, int b) M()
+    {
+        return (1, 2);
+    }
+}
+" + trivial2uple;
+
+            var source2 = @"
+public class C2
+{
+    public static (int c, int d) M()
+    {
+        return (3, 4);
+    }
+}
+" + trivial2uple;
+
+            var source = @"
+class C3
+{
+    public static void Main()
+    {
+        var x = C1.M();
+        x = C2.M();
+    }
+}
+";
+            var comp1 = CreateCompilationWithMscorlib(source1);
+            var comp2 = CreateCompilationWithMscorlib(source2);
+            var comp = CreateCompilationWithMscorlib(source, references: new[] { new CSharpCompilationReference(comp1), new CSharpCompilationReference(comp2) });
+
+            // PROTOTYPE(tuples) this error is misleading or worse.
+            comp.VerifyDiagnostics(
+                // (7,13): error CS0029: Cannot implicitly convert type '<tuple: int c, int d>' to '<tuple: int a, int b>'
+                //         x = C2.M();
+                Diagnostic(ErrorCode.ERR_NoImplicitConv, "C2.M()").WithArguments("<tuple: int c, int d>", "<tuple: int a, int b>").WithLocation(7, 13)
+                );
+        }
+
+        [Fact]
+        public void AmbiguousTupleTypesForCreation()
+        {
+            var source = @"
+class C3
+{
+    public static void Main()
+    {
+        var x = (1, 1);
+    }
+}
+";
+            var comp1 = CreateCompilationWithMscorlib(trivial2uple, assemblyName: "comp1");
+            var comp2 = CreateCompilationWithMscorlib(trivial2uple);
+
+            var comp = CompileAndVerify(source, additionalRefs: new[] { new CSharpCompilationReference(comp1), new CSharpCompilationReference(comp2) });
+            comp.VerifyDiagnostics(
+                // warning CS1685: The predefined type 'ValueTuple<T1, T2>' is defined in multiple assemblies in the global alias; using definition from 'comp1, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'
+                Diagnostic(ErrorCode.WRN_MultiplePredefTypes).WithArguments("System.ValueTuple<T1, T2>", "comp1, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null").WithLocation(1, 1)
+                                );
+        }
+
+        [Fact]
+        public void AmbiguousTupleTypesForDeclaration()
+        {
+            var source = @"
+class C3
+{
+    public void M((int, int) x) { }
+}
+";
+            var comp1 = CreateCompilationWithMscorlib(trivial2uple, assemblyName: "comp1");
+            var comp2 = CreateCompilationWithMscorlib(trivial2uple);
+
+            var comp = CompileAndVerify(source, additionalRefs: new[] { new CSharpCompilationReference(comp1), new CSharpCompilationReference(comp2) });
+            comp.VerifyDiagnostics(
+                // warning CS1685: The predefined type 'ValueTuple<T1, T2>' is defined in multiple assemblies in the global alias; using definition from 'comp1, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'
+                Diagnostic(ErrorCode.WRN_MultiplePredefTypes).WithArguments("System.ValueTuple<T1, T2>", "comp1, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null").WithLocation(1, 1)
+                                );
+        }
+
+        [Fact]
+        public void LocalTupleTypeWinsWhenTupleTypesInCompilation()
+        {
+            var source1 = @"
+public class C1
+{
+    public static (int a, int b) M()
+    {
+        return (1, 2);
+    }
+}
+" + trivial2uple;
+
+            var source2 = @"
+public class C2
+{
+    public static (int c, int d) M()
+    {
+        return (3, 4);
+    }
+}
+" + trivial2uple;
+
+            var source = @"
+class C3
+{
+    public static void Main()
+    {
+        System.Console.Write(C1.M().Item1 + "" "");
+        System.Console.Write(C1.M().a + "" "");
+        System.Console.Write(C1.M().Item2 + "" "");
+        System.Console.Write(C1.M().b + "" "");
+        System.Console.Write(C2.M().Item1 + "" "");
+        System.Console.Write(C2.M().c + "" "");
+        System.Console.Write(C2.M().Item2 + "" "");
+        System.Console.Write(C2.M().d + "" "");
+
+        var x = (e: 5, f: 6);
+        System.Console.Write(x.Item1 + "" "");
+        System.Console.Write(x.e + "" "");
+        System.Console.Write(x.Item2 + "" "");
+        System.Console.Write(x.f + "" "");
+        System.Console.Write(x.GetType().Assembly == typeof(C3).Assembly);
+    }
+}
+" + trivial2uple;
+
+            var comp1 = CreateCompilationWithMscorlib(source1);
+            var comp2 = CreateCompilationWithMscorlib(source2);
+            var comp = CompileAndVerify(source, expectedOutput: @"1 1 2 2 3 3 4 4 5 5 6 6 True", additionalRefs: new[] { new CSharpCompilationReference(comp1), new CSharpCompilationReference(comp2) });
         }
 
         [Fact]

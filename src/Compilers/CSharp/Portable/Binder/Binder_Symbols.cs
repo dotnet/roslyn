@@ -436,16 +436,14 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return new ExtendedErrorTypeSymbol(this.Compilation.Assembly.GlobalNamespace, LookupResultKind.NotCreatable, diagnostics.Add(ErrorCode.ERR_PrototypeNotYetImplemented, syntax.Location));
             }
 
-            var tuple = new TupleTypeSymbol(
-                typesArray,
-                elementNames == null ?
-                    default(ImmutableArray<string>) :
-                    elementNames.ToImmutableAndFree(),
-                syntax,
-                this,
-                diagnostics);
-
-            return tuple;
+            return TupleTypeSymbol.Create(
+                                            typesArray,
+                                            elementNames == null ?
+                                                default(ImmutableArray<string>) :
+                                                elementNames.ToImmutableAndFree(),
+                                            syntax,
+                                            this,
+                                            diagnostics);
         }
 
         private static void CollectTupleFieldMemberNames(string name, int position, int tupleSize, ref ArrayBuilder<string> elementNames)

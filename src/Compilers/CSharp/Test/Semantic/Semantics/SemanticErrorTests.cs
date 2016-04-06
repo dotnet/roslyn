@@ -7195,12 +7195,6 @@ class A
     // (7,9): error CS0518: Predefined type 'System.ValueTuple`2' is not defined or imported
     //         (a, b) =>
     Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "(a, b)").WithArguments("System.ValueTuple`2").WithLocation(7, 9),
-    // (7,9): error CS0656: Missing compiler required member 'System.ValueTuple`2.Item1'
-    //         (a, b) =>
-    Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "(a, b)").WithArguments("System.ValueTuple`2", "Item1").WithLocation(7, 9),
-    // (7,9): error CS0656: Missing compiler required member 'System.ValueTuple`2.Item2'
-    //         (a, b) =>
-    Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "(a, b)").WithArguments("System.ValueTuple`2", "Item2").WithLocation(7, 9),
     // (11,9): error CS0201: Only assignment, call, increment, decrement, and new object expressions can be used as a statement
     //         x + y; x == 1;
     Diagnostic(ErrorCode.ERR_IllegalStatement, "x + y").WithLocation(11, 9),

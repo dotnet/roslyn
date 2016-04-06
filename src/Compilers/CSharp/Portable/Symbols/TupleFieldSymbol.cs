@@ -24,7 +24,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         ///
         /// position is 1 for Item1.
         /// </summary>
-        internal TupleFieldSymbol(string name, TupleTypeSymbol containingTuple, TypeSymbol type, int position, FieldSymbol underlyingFieldOpt)
+        private TupleFieldSymbol(string name, TupleTypeSymbol containingTuple, TypeSymbol type, int position, FieldSymbol underlyingFieldOpt)
         {
             _name = name;
             _containingTuple = containingTuple;
@@ -44,32 +44,21 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return new TupleFieldSymbol(_name, newContainingTuple, newFieldType, _position, newUnderlyingFieldOpt);
         }
 
-        internal static FieldSymbol GetUnderlyingField(int containingTupleArity, NamedTypeSymbol containingUnderlyingType, int fieldIndex, CSharpSyntaxNode syntax, Binder binder, DiagnosticBag diagnostics)
+        /// <summary>
+        /// Helps construct a TupleFieldSymbol.
+        ///
+        /// Note that errors related to underlying field are ignored.
+        /// </summary>
+        internal static TupleFieldSymbol Create(string elementName, TupleTypeSymbol containingTuple, NamedTypeSymbol linkType, int fieldIndex, AssemblySymbol accessWithin)
         {
-            int tupleRemainder;
-            int tupleChainLength = TupleTypeSymbol.NumberOfValueTuples(containingTupleArity, out tupleRemainder);
-
-            int fieldRemainder;
+            int fieldRemainder; // one-based
             int fieldChainLength = TupleTypeSymbol.NumberOfValueTuples(fieldIndex + 1, out fieldRemainder);
 
-            int containingLinkSize = TupleTypeSymbol.RestPosition;
-            if (fieldChainLength == tupleChainLength)
-            {
-                containingLinkSize = tupleRemainder;
-            }
+            WellKnownMember wellKnownTypeMember = TupleTypeSymbol.GetTupleTypeMember(linkType.Arity, fieldRemainder);
+            var linkField = (FieldSymbol)TupleTypeSymbol.GetWellKnownMemberInType(linkType.OriginalDefinition, wellKnownTypeMember, accessWithin);
+            FieldSymbol underlyingField = linkField?.AsMember(linkType);
 
-            // PROTOTYPE(tuples) Constructing a TupleTypeSymbol with TupleFieldSymbols should not produce diagnostics for missing well-known members and type members.
-            //                      The error handling should be shifted to lowering. This will help when we implement metadata loading.
-            WellKnownMember wellKnownTypeMember = TupleTypeSymbol.GetTupleTypeMember(containingLinkSize, fieldRemainder);
-            var linkField = (FieldSymbol)Binder.GetWellKnownTypeMember(binder.Compilation, wellKnownTypeMember, diagnostics, syntax: syntax);
-            if ((object)linkField == null)
-            {
-                return null;
-            }
-
-            NamedTypeSymbol linkType = TupleTypeSymbol.GetNestedTupleType(containingUnderlyingType, fieldChainLength - 1);
-
-            return linkField.AsMember(linkType);
+            return new TupleFieldSymbol(elementName, containingTuple, linkType.TypeArgumentsNoUseSiteDiagnostics[fieldRemainder - 1], fieldIndex + 1, underlyingField);
         }
 
         public override string Name
