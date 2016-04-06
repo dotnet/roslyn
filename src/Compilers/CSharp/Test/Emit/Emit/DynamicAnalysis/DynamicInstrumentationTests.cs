@@ -336,6 +336,7 @@ public class Program
         TestMain();
     }
 
+    [Xunit.Fact]
     static void TestMain()
     {
         using (var memoryStream = new MemoryStream())
@@ -387,7 +388,7 @@ True
 True
 ";
            
-            CompilationVerifier verifier = CompileAndVerify(source + InstrumentationHelperSource, options: TestOptions.UnsafeDebugExe,  emitOptions: EmitOptions.Default.WithInstrument("Test.Flag"), expectedOutput: expectedOutput);
+            CompilationVerifier verifier = CompileAndVerify(source + InstrumentationHelperSource + XunitFactAttributeSource, options: TestOptions.UnsafeDebugExe,  emitOptions: EmitOptions.Default.WithInstrument("Test.Flag"), expectedOutput: expectedOutput);
         }
 
         [Fact]
