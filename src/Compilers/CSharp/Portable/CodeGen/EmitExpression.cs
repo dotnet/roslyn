@@ -220,10 +220,10 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
                     EmitModuleVersionIdLoad((BoundModuleVersionId)expression);
                     break;
 
-                case BoundKind.MethodToken:
+                case BoundKind.MethodDefinitionToken:
                     if (used)
                     {
-                        EmitMethodTokenExpression((BoundMethodToken)expression);
+                        EmitMethodDefinitionTokenExpression((BoundMethodDefinitionToken)expression);
                     }
                     break;
 
@@ -2678,12 +2678,12 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
             EmitSymbolToken(type, boundSizeOfOperator.SourceType.Syntax);
         }
 
-        private void EmitMethodTokenExpression(BoundMethodToken node)
+        private void EmitMethodDefinitionTokenExpression(BoundMethodDefinitionToken node)
         {
             Debug.Assert(node.Method.IsDefinition);
             Debug.Assert(node.Type.SpecialType == SpecialType.System_Int32);
             _builder.EmitOpCode(ILOpCode.Ldtoken);
-            EmitSymbolToken(node.Method, node.Syntax, null, encodeAsRawToken: true);
+            EmitSymbolToken(node.Method, node.Syntax, null, encodeAsRawDefinitionToken: true);
         }
 
         private void EmitModuleVersionIdLoad(BoundModuleVersionId node)

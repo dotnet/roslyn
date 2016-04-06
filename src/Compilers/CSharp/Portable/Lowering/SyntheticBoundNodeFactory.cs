@@ -977,9 +977,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             { WasCompilerGenerated = true };
         }
 
-        public BoundExpression MethodToken(MethodSymbol method)
+        public BoundExpression MethodDefinitionToken(MethodSymbol method)
         {
-            return new BoundMethodToken(
+            return new BoundMethodDefinitionToken(
                 Syntax,
                 method,
                 SpecialType(Microsoft.CodeAnalysis.SpecialType.System_Int32))
