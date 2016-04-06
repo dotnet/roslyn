@@ -22,23 +22,38 @@ namespace Microsoft.CodeAnalysis.Diagnostics.PopulateSwitch
 
         #region Interface methods
 
+        protected abstract ImmutableArray<TLanguageKindEnum> SyntaxKindsOfInterest { get; }
+
         public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics => ImmutableArray.Create(s_descriptor);
 
         public override void Initialize(AnalysisContext context)
         {
-            context.RegisterSyntaxNodeAction(
-                nodeContext =>
-                {
-                    Diagnostic diagnostic;
-                    if (TryPopulateSwitch(nodeContext.SemanticModel, nodeContext.Node, out diagnostic, nodeContext.CancellationToken))
-                    {
-                        nodeContext.ReportDiagnostic(diagnostic);
-                    }
-                },
-                SyntaxKindsOfInterest);
+            context.RegisterSyntaxNodeAction(AnalyzeNode, SyntaxKindsOfInterest);
         }
 
-        protected abstract ImmutableArray<TLanguageKindEnum> SyntaxKindsOfInterest { get; }
+        private void AnalyzeNode(SyntaxNodeAnalysisContext context)
+        {
+            var model = context.SemanticModel;
+            var node = context.Node;
+            var cancellationToken = context.CancellationToken;
+
+            var switchBlock = (TSwitchBlockSyntax)node;
+
+            if (SwitchIsFullyPopulated(model, switchBlock))
+            {
+                return;
+            }
+
+            var tree = model.SyntaxTree;
+            var span = switchBlock.Span;
+            if (tree.OverlapsHiddenPosition(span, cancellationToken))
+            {
+                return;
+            }
+
+            var diagnostic = Diagnostic.Create(s_descriptor, tree.GetLocation(span));
+            context.ReportDiagnostic(diagnostic);
+        }
 
         #endregion
 
@@ -100,28 +115,6 @@ namespace Microsoft.CodeAnalysis.Diagnostics.PopulateSwitch
                 }
             }
 
-            return true;
-        }
-
-        private bool TryPopulateSwitch(SemanticModel model, SyntaxNode node, out Diagnostic diagnostic, CancellationToken cancellationToken)
-        {
-            var switchBlock = (TSwitchBlockSyntax)node;
-
-            diagnostic = default(Diagnostic);
-
-            if (SwitchIsFullyPopulated(model, switchBlock))
-            {
-                return false;
-            }
-
-            var tree = model.SyntaxTree;
-            var span = switchBlock.Span;
-            if (tree.OverlapsHiddenPosition(span, cancellationToken))
-            {
-                return false;
-            }
-
-            diagnostic = Diagnostic.Create(s_descriptor, tree.GetLocation(span));
             return true;
         }
 
