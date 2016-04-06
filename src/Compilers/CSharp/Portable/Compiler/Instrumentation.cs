@@ -128,7 +128,15 @@ namespace Microsoft.CodeAnalysis.CSharp
         private static bool IsTestMethod(MethodSymbol method)
         {
             // PROTOTYPE (https://github.com/dotnet/roslyn/issues/9811): Make this real. 
-            return method.Name.StartsWith("Test");
+            var attributes = method.GetAttributes();
+            foreach (var attribute in attributes)
+            {
+                if (attribute.IsTargetAttribute("Xunit", "FactAttribute"))
+                {
+                    return true;
+                }
+            }
+            return false;
         }
     }
 
