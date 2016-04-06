@@ -151,6 +151,16 @@
       </IncludeOutputGroupsInVSIXLocalOnly>
     </ProjectReference>
   </ItemGroup>
+  <ItemGroup>
+    <!-- Even though the VS process includes these, we need to also include them in the VSIX for the interactive host processes -->
+    <NuGetPackageToIncludeInVsix Include="System.Collections.Immutable" />
+    <NuGetPackageToIncludeInVsix Include="System.Reflection.Metadata" />
+    <!-- Other interactive host process dependencies -->
+    <NuGetPackageToIncludeInVsix Include="System.AppContext" />
+    <NuGetPackageToIncludeInVsix Include="System.Diagnostics.StackTrace" />
+    <NuGetPackageToIncludeInVsix Include="System.IO.FileSystem" />
+    <NuGetPackageToIncludeInVsix Include="System.IO.FileSystem.Primitives" />
+  </ItemGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
     <CodeAnalysisRuleSet>MinimumRecommendedRules.ruleset</CodeAnalysisRuleSet>
     <PlatformTarget>AnyCPU</PlatformTarget>
@@ -172,7 +182,10 @@
     <Compile Include="AssemblyRedirects.cs" />
   </ItemGroup>
   <ItemGroup>
-    <Reference Include="Microsoft.VisualStudio.Shell.14.0, Version=$(VisualStudioReferenceAssemblyVersion), Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL" />
+    <Reference Include="Microsoft.VisualStudio.Shell.14.0, Version=$(VisualStudioReferenceAssemblyVersion), Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
+      <Private>false</Private>
+      <HintPath>$(DevEnvDir)\PrivateAssemblies\Microsoft.VisualStudio.Shell.14.0.dll</HintPath>
+    </Reference>
     <Reference Include="Microsoft.VisualStudio.Shell.Immutable.10.0, Version=10.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL" />
     <Reference Include="System" />
   </ItemGroup>

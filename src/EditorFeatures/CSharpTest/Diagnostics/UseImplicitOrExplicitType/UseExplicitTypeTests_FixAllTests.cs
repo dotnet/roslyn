@@ -5,14 +5,14 @@ using Microsoft.CodeAnalysis.CSharp;
 using Roslyn.Test.Utilities;
 using Xunit;
 
-namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.UseExplicitTyping
+namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.UseExplicitType
 {
     public partial class UseExplicitTypeTests : AbstractCSharpDiagnosticProviderBasedUserDiagnosticTest
     {
         #region "Fix all occurrences tests"
 
         [Fact]
-        [Trait(Traits.Feature, Traits.Features.CodeActionsUseImplicitTyping)]
+        [Trait(Traits.Feature, Traits.Features.CodeActionsUseImplicitType)]
         [Trait(Traits.Feature, Traits.Features.CodeActionsFixAllOccurrences)]
         public async Task TestFixAllInDocumentScope_PreferExplicitTypeEverywhere()
         {
@@ -123,11 +123,11 @@ class Program2
     </Project>
 </Workspace>";
 
-            await TestAsync(input, expected, options: ExplicitTypingEverywhere(), fixAllActionEquivalenceKey: fixAllActionId);
+            await TestAsync(input, expected, options: ExplicitTypeEverywhere(), fixAllActionEquivalenceKey: fixAllActionId);
         }
 
         [Fact]
-        [Trait(Traits.Feature, Traits.Features.CodeActionsUseImplicitTyping)]
+        [Trait(Traits.Feature, Traits.Features.CodeActionsUseImplicitType)]
         [Trait(Traits.Feature, Traits.Features.CodeActionsFixAllOccurrences)]
         public async Task TestFixAllInProject_PreferExplicitTypeEverywhere()
         {
@@ -238,11 +238,11 @@ class Program2
     </Project>
 </Workspace>";
 
-            await TestAsync(input, expected, options: ExplicitTypingEverywhere(), fixAllActionEquivalenceKey: fixAllActionId);
+            await TestAsync(input, expected, options: ExplicitTypeEverywhere(), fixAllActionEquivalenceKey: fixAllActionId);
         }
 
         [Fact]
-        [Trait(Traits.Feature, Traits.Features.CodeActionsUseImplicitTyping)]
+        [Trait(Traits.Feature, Traits.Features.CodeActionsUseImplicitType)]
         [Trait(Traits.Feature, Traits.Features.CodeActionsFixAllOccurrences)]
         public async Task TestFixAllInSolution_PreferExplicitTypeEverywhere()
         {
@@ -353,11 +353,11 @@ class Program2
     </Project>
 </Workspace>";
 
-            await TestAsync(input, expected, options: ExplicitTypingEverywhere(), fixAllActionEquivalenceKey: fixAllActionId);
+            await TestAsync(input, expected, options: ExplicitTypeEverywhere(), fixAllActionEquivalenceKey: fixAllActionId);
         }
 
         [Fact]
-        [Trait(Traits.Feature, Traits.Features.CodeActionsUseImplicitTyping)]
+        [Trait(Traits.Feature, Traits.Features.CodeActionsUseImplicitType)]
         [Trait(Traits.Feature, Traits.Features.CodeActionsFixAllOccurrences)]
         public async Task TestFixAllInDocumentScope_PreferExplicitTypeExceptWhereApparent()
         {
@@ -404,7 +404,7 @@ class Program
     </Project>
 </Workspace>";
 
-            await TestAsync(input, expected, options: ExplicitTypingExceptWhereApparent(), fixAllActionEquivalenceKey: fixAllActionId);
+            await TestAsync(input, expected, options: ExplicitTypeExceptWhereApparent(), fixAllActionEquivalenceKey: fixAllActionId);
         }
 
         #endregion

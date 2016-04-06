@@ -97,7 +97,7 @@ namespace ProcessWatchdog {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Error: {0}.
+        ///   Looks up a localized string similar to Error {0}: {1}.
         /// </summary>
         internal static string ErrorFormat {
             get {

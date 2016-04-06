@@ -10,7 +10,7 @@ namespace Roslyn.Utilities
     /// </summary>
     internal class ReferenceEqualityComparer : IEqualityComparer<object>
     {
-        public static readonly IEqualityComparer<object> Instance = new ReferenceEqualityComparer();
+        public static readonly ReferenceEqualityComparer Instance = new ReferenceEqualityComparer();
 
         private ReferenceEqualityComparer()
         {
@@ -22,6 +22,11 @@ namespace Roslyn.Utilities
         }
 
         int IEqualityComparer<object>.GetHashCode(object a)
+        {
+            return ReferenceEqualityComparer.GetHashCode(a);
+        }
+
+        public static int GetHashCode(object a)
         {
             return RuntimeHelpers.GetHashCode(a);
         }

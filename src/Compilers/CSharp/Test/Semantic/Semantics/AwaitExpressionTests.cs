@@ -7,6 +7,7 @@ using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
+using System.Linq;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 {
@@ -53,14 +54,21 @@ public class C {
             Assert.Equal("System.Boolean System.Runtime.CompilerServices.TaskAwaiter<System.Int32>.IsCompleted { get; }", info.IsCompletedProperty.ToTestDisplayString());
         }
 
-        private AwaitExpressionInfo GetAwaitExpressionInfo(string text, params DiagnosticDescription[] diagnostics)
+        private AwaitExpressionInfo GetAwaitExpressionInfo(string text, out CSharpCompilation compilation, params DiagnosticDescription[] diagnostics)
         {
             var tree = Parse(text, options: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp5));
             var comp = CreateCompilationWithMscorlib45(new SyntaxTree[] { tree }, new MetadataReference[] { SystemRef });
             comp.VerifyDiagnostics(diagnostics);
+            compilation = comp;
             var syntaxNode = (AwaitExpressionSyntax)tree.FindNodeOrTokenByKind(SyntaxKind.AwaitExpression).AsNode();
             var treeModel = comp.GetSemanticModel(tree);
             return treeModel.GetAwaitExpressionInfo(syntaxNode);
+        }
+
+        private AwaitExpressionInfo GetAwaitExpressionInfo(string text, params DiagnosticDescription[] diagnostics)
+        {
+            CSharpCompilation temp;
+            return GetAwaitExpressionInfo(text, out temp, diagnostics);
         }
 
         [Fact]
@@ -142,6 +150,35 @@ class C
                 // (8,27): error CS4007: 'await' cannot be used in an expression containing the type 'System.TypedReference'
                 //         Console.WriteLine(new TypedReference().Equals(await Task.FromResult(0)));
                 Diagnostic(ErrorCode.ERR_ByRefTypeAndAwait, "await Task.FromResult(0)").WithArguments("System.TypedReference").WithLocation(8, 55));
+        }
+
+        [Fact]
+        [WorkItem(3951, "https://github.com/dotnet/roslyn/issues/3951")]
+        public void TestAwaitInNonAsync()
+        {
+            var text =
+@"using System.Threading.Tasks;
+
+class C
+{
+    void Foo(Task<int> t)
+    {
+        var v = await t;
+    }
+}";
+            CSharpCompilation compilation;
+            var info = GetAwaitExpressionInfo(text, out compilation,
+                // (7,21): error CS4033: The 'await' operator can only be used within an async method. Consider marking this method with the 'async' modifier and changing its return type to 'Task'.
+                //         int c = 1 + await t;
+                Diagnostic(ErrorCode.ERR_BadAwaitWithoutVoidAsyncMethod, "await t").WithLocation(7, 17)
+                );
+            Assert.Equal("System.Runtime.CompilerServices.TaskAwaiter<System.Int32> System.Threading.Tasks.Task<System.Int32>.GetAwaiter()", info.GetAwaiterMethod.ToTestDisplayString());
+            Assert.Equal("System.Int32 System.Runtime.CompilerServices.TaskAwaiter<System.Int32>.GetResult()", info.GetResultMethod.ToTestDisplayString());
+            Assert.Equal("System.Boolean System.Runtime.CompilerServices.TaskAwaiter<System.Int32>.IsCompleted { get; }", info.IsCompletedProperty.ToTestDisplayString());
+            var semanticModel = compilation.GetSemanticModel(compilation.SyntaxTrees[0]);
+            var decl = compilation.SyntaxTrees[0].GetRoot().DescendantNodes().OfType<VariableDeclaratorSyntax>().AsSingleton();
+            var symbolV = (LocalSymbol)semanticModel.GetDeclaredSymbol(decl);
+            Assert.Equal("System.Int32", symbolV.Type.ToTestDisplayString());
         }
     }
 }

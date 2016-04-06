@@ -63,6 +63,8 @@
     <Compile Include="CaseInsensitiveComparison.cs" />
     <Compile Include="CodeGen\DynamicAnalysisMethodBodyData.cs" />
     <Compile Include="CodeGen\ILEmitStyle.cs" />
+    <Compile Include="InternalUtilities\EmptyComparer.cs" />
+    <Compile Include="InternalUtilities\StringOrdinalComparer.cs" />
     <Compile Include="Compilation\OperationVisitor.cs" />
     <Compile Include="Compilation\OperationWalker.cs" />
     <Compile Include="Compilation\ScriptCompilationInfo.cs" />

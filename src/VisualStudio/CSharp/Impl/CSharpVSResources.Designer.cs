@@ -1026,9 +1026,27 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp {
         /// <summary>
         ///   Looks up a localized string similar to For built-in types.
         /// </summary>
-        internal static string UseVarForIntrinsicTypes {
+        internal static string UseImplicitTypeForIntrinsicTypes {
             get {
-                return ResourceManager.GetString("UseVarForIntrinsicTypes", resourceCulture);
+                return ResourceManager.GetString("UseImplicitTypeForIntrinsicTypes", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Elsewhere.
+        /// </summary>
+        internal static string UseImplicitTypeWhenPossible {
+            get {
+                return ResourceManager.GetString("UseImplicitTypeWhenPossible", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to When variable type is apparent.
+        /// </summary>
+        internal static string UseImplicitTypeWhenTypeIsApparent {
+            get {
+                return ResourceManager.GetString("UseImplicitTypeWhenTypeIsApparent", resourceCulture);
             }
         }
         
@@ -1038,24 +1056,6 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp {
         internal static string UseVarWhenGeneratingLocals {
             get {
                 return ResourceManager.GetString("UseVarWhenGeneratingLocals", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Elsewhere.
-        /// </summary>
-        internal static string UseVarWhenPossible {
-            get {
-                return ResourceManager.GetString("UseVarWhenPossible", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to When variable type is apparent.
-        /// </summary>
-        internal static string UseVarWhenTypeIsApparent {
-            get {
-                return ResourceManager.GetString("UseVarWhenTypeIsApparent", resourceCulture);
             }
         }
         

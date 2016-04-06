@@ -30,6 +30,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                 ch == ' ' ||
                 ch == '[' ||
                 ch == '(' ||
+                ch == '~' ||
                 (options.GetOption(CompletionOptions.TriggerOnTypingLetters, LanguageNames.CSharp) && CompletionUtilities.IsStartingNewWord(text, characterPosition));
         }
 
