@@ -43,8 +43,6 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.PopulateSwitch
 
         protected abstract TSwitchBlockSyntax NewSwitchNode(TSwitchBlockSyntax switchBlock, SyntaxList<TSwitchSectionSyntax> sections);
 
-        protected abstract TSwitchBlockSyntax GetSwitchStatementNode(SyntaxNode root, TextSpan span);
-
         protected abstract List<TExpressionSyntax> GetCaseLabels(TSwitchBlockSyntax switchBlock, out bool containsDefaultLabel);
 
         private async Task<Document> AddMissingSwitchLabelsAsync(CodeFixContext context)
@@ -55,7 +53,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.PopulateSwitch
 
             var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
             var model = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
-            var switchNode = GetSwitchStatementNode(root, span);
+            var switchNode = (TSwitchBlockSyntax) root.FindNode(span);
 
             var enumType = (INamedTypeSymbol)model.GetTypeInfo(GetSwitchExpression(switchNode)).Type;
 

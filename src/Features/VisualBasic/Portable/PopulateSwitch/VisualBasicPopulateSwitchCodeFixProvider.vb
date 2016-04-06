@@ -41,11 +41,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeFixes.PopulateSwitch
             Return selectBlock.WithCaseBlocks(SyntaxFactory.List(sections))
         End Function
 
-        Protected Overrides Function GetSwitchStatementNode(root As SyntaxNode, span As TextSpan) As SelectBlockSyntax
-            Dim selectExpression = DirectCast(root.FindNode(span), ExpressionSyntax)
-            Return DirectCast(selectExpression.Parent.Parent, SelectBlockSyntax)
-        End Function
-
         Protected Overrides Function GetCaseLabels(selectBlock As SelectBlockSyntax, <Out> ByRef containsDefaultLabel As Boolean) As List(Of ExpressionSyntax)
             Return VisualBasicPopulateSwitchHelperClass.GetCaseLabels(selectBlock, containsDefaultLabel)
         End Function

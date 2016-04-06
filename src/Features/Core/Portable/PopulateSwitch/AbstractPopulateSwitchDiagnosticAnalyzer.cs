@@ -17,9 +17,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics.PopulateSwitch
                                                                     s_localizableTitle,
                                                                     s_localizableMessage,
                                                                     DiagnosticCategory.Style,
-                                                                    DiagnosticSeverity.Warning,
-                                                                    isEnabledByDefault: true,
-                                                                    customTags: DiagnosticCustomTags.Unnecessary);
+                                                                    DiagnosticSeverity.Hidden,
+                                                                    isEnabledByDefault: true);
 
         #region Interface methods
 
@@ -116,7 +115,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.PopulateSwitch
             }
 
             var tree = model.SyntaxTree;
-            var span = GetExpression(switchBlock).Span;
+            var span = switchBlock.Span;
             if (tree.OverlapsHiddenPosition(span, cancellationToken))
             {
                 return false;

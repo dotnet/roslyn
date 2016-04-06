@@ -11,12 +11,6 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.PopulateSwitch
     [ExtensionOrder(After = PredefinedCodeFixProviderNames.ImplementInterface)]
     internal class CSharpPopulateSwitchCodeFixProvider : AbstractPopulateSwitchCodeFixProvider<SwitchStatementSyntax, ExpressionSyntax, SwitchSectionSyntax>
     {
-        protected override SwitchStatementSyntax GetSwitchStatementNode(SyntaxNode root, TextSpan span)
-        {
-            var switchExpression = (ExpressionSyntax)root.FindNode(span);
-            return (SwitchStatementSyntax)switchExpression.Parent;
-        }
-
         protected override ExpressionSyntax GetSwitchExpression(SwitchStatementSyntax switchStatement) => switchStatement.Expression;
 
         protected override int InsertPosition(SyntaxList<SwitchSectionSyntax> sections) => sections.Count - 1;
