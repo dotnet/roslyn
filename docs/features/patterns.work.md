@@ -2,6 +2,18 @@ This is a checklist (moved from #9375) of implementation of pattern matching as 
 
 Open design issues (needing LDM decisions)
 - [ ] There would be an ambiguity with a hypothetical "type pattern" and the constant pattern. This is the reason we do not allow the latter in an is-pattern expression, and don't allow the former in a sub-property pattern. But that is irregular. Can we come up with name lookup rules that support both?
+
+  ```
+    class Color { }
+    class D
+    {
+        const int Color = 3;
+        void f(object x) { if (x is Color) Console.WriteLine("c"); }
+        // Current name-lookup-rules mean that this "Color" refers to the type, not the constant
+        // I bet that folks would like to pattern-match on constants, e.g.
+        // if x is Message { PayloadKind is OnedrivePayloadKinds.Request, Body is string req } ...
+    }
+  ```
   - [ ] If we support `3 is 3`, is that a constant expression? Can a `match` expression be constant?
 - [ ] Do we want pattern-matching in the `switch` statement? Or do we want a separate statement-based construct instead? (#8821)
     - [ ] What does `goto case` mean?
@@ -11,6 +23,23 @@ Open design issues (needing LDM decisions)
       - [ ] Can a constant `case` label with a `when` clause be the target of `goto case`?
     - [ ] How do we write the rules for the switch-expression (conversion) and matching labels (i.e. constant patterns) so that it approximates the current behavior?
     - [ ] Do we allow multiple cases in the same `switch` block if one of them defines a pattern variable?
+    
+    ```
+    Expr IdentitySimplification(Expr src)
+    {
+      switch (src)
+      {
+         case Sum(0,i):
+         case Sum(i,0):
+            return i; // this is pretty darn slick!
+         case Mul(1,i):
+         case Mul(i,1):
+            return i;
+         default:
+            return src;
+      }
+    }
+    ```
 - [ ] What syntax do we want for the `match` expression? (#8818)
   - [ ] Does a `match` expression have to be complete? If not, what happens? Warning? Exception? Both?
   - [ ] What about the `case` expression?
@@ -39,10 +68,24 @@ Open design issues (needing LDM decisions)
 - [ ] We need to specify the meaning of the things we need the decision tree for: subsumption, completeness, irrefutable.
 - [ ] Will we support pattern matching with anonymous types?
 - [ ] Will we support pattern matching with arrays?
-- [ ] Will we support pattern matching with List<T>, Dictionary<K, V>?
+- [ ] Will we support pattern matching with List<T>, Dictionary<K, V>? Think particularly of F#'s really useful list deconstruction, which feels impossible with IEnumerable since patterns shouldn't generally be executing methods like GetEnumerator/MoveNext.
 - [ ] How should the type `dynamic` interact with pattern matching?
 - [ ] In what situations should the compiler be required by specification to warn about a match that must fail? E.g. switch on a `byte` but case label is out of range?
 - [ ] Should it be possible to name the whole matched thing in a property pattern, like `case Point p { X is 2 }:` ?
+- [ ] Should it be possible to omit the type name, if the switch statement is statically known, to make it easier to write?
+
+  ```
+  Rectangle r;
+  if (r is Rectangle { Width is 100, Height is var height }) 
+  if (r is { Width is 100, Height is var height }) // slicker
+  ```
+- [ ] Will the fact that `null` doesn't match against any type be confusing? This will often force folks to use `var`, even when their preferred coding style is to always use explicit types. I can see why this behavior is implied by the current behavior of "is", and it makes sense when doing checks based on runtime-type, but it feels ugly when doing pattern-matching in cases where all types are statically known.
+  ```
+  (int i, string s) t = (5, null);
+  if (t is (5,var s1)) ... // matches
+  if (t is (5,string s1)) .. // doesn't match
+  ```
+- [ ] We've seen simple cases for Point, but will it in practice produce readable code? Read [this comment](https://github.com/dotnet/roslyn/issues/10153#issuecomment-202913215): "Every time I try to come up with a reasonably expressive syntax for this, any sample pattern explodes into a huge mess. ... So to sum up; pattern matching with a user-defined  is  operator is just extremely confusing."
 
 Implementation progress checklist:
 - [x] Allow declaration of `operator is` and use it for recursive patterns.
