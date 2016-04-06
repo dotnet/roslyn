@@ -85,7 +85,7 @@ Open design issues (needing LDM decisions)
   if (t is (5,var s1)) ... // matches
   if (t is (5,string s1)) .. // doesn't match
   ```
-- [ ] We've seen simple cases for Point, but will it in practice produce readable code? Read [this comment](https://github.com/dotnet/roslyn/issues/10153#issuecomment-202913215): "Every time I try to come up with a reasonably expressive syntax for this, any sample pattern explodes into a huge mess. ... So to sum up; pattern matching with a user-defined  is  operator is just extremely confusing."
+- [ ] We've seen simple cases for Point, but will (user-defined pattern-matching operators) in practice produce readable code?
 
 Implementation progress checklist:
 - [x] Allow declaration of `operator is` and use it for recursive patterns.
