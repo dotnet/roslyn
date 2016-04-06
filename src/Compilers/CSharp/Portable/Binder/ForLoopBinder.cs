@@ -71,17 +71,18 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 Debug.Assert(node.Initializers.Count == 0);
                 ImmutableArray<BoundLocalDeclaration> unused;
-                initializer = this.BindForOrUsingOrFixedDeclarations(node.Declaration, LocalDeclarationKind.ForInitializerVariable, diagnostics, out unused);
+                initializer = originalBinder.BindForOrUsingOrFixedDeclarations(node.Declaration, LocalDeclarationKind.ForInitializerVariable, diagnostics, out unused);
             }
             else
             {
-                initializer = this.BindStatementExpressionList(node.Initializers, diagnostics);
+                initializer = originalBinder.BindStatementExpressionList(node.Initializers, diagnostics);
             }
 
-            var condition = (node.Condition != null) ? BindBooleanExpression(node.Condition, diagnostics) : null;
-            var increment = BindStatementExpressionList(node.Incrementors, diagnostics);
+            var condition = (node.Condition != null) ? originalBinder.BindBooleanExpression(node.Condition, diagnostics) : null;
+            var increment = originalBinder.BindStatementExpressionList(node.Incrementors, diagnostics);
             var body = originalBinder.BindPossibleEmbeddedStatement(node.Statement, diagnostics);
 
+            Debug.Assert(this.Locals == this.GetDeclaredLocalsForScope(node));
             return new BoundForStatement(node,
                                          this.Locals,
                                          initializer,
@@ -90,6 +91,21 @@ namespace Microsoft.CodeAnalysis.CSharp
                                          body,
                                          this.BreakLabel,
                                          this.ContinueLabel);
+        }
+
+        internal override ImmutableArray<LocalSymbol> GetDeclaredLocalsForScope(CSharpSyntaxNode scopeDesignator)
+        {
+            if (_syntax == scopeDesignator)
+            {
+                return this.Locals;
+            }
+
+            throw ExceptionUtilities.Unreachable;
+        }
+
+        internal override ImmutableArray<LocalFunctionSymbol> GetDeclaredLocalFunctionsForScope(CSharpSyntaxNode scopeDesignator)
+        {
+            throw ExceptionUtilities.Unreachable;
         }
     }
 }

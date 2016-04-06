@@ -71,7 +71,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                 kind == SyntaxKind.Attribute ||
                 kind == SyntaxKind.ArgumentList ||
                 kind == SyntaxKind.ArrowExpressionClause ||
-                (syntax is ExpressionSyntax && (syntax.Parent as LambdaExpressionSyntax)?.Body == syntax);
+                (syntax is ExpressionSyntax && 
+                    ((syntax.Parent as LambdaExpressionSyntax)?.Body == syntax ||
+                     (syntax.Parent as SwitchStatementSyntax)?.Expression == syntax ||
+                     (syntax.Parent as ForEachStatementSyntax)?.Expression == syntax ||
+                     (syntax.Parent as IfStatementSyntax)?.Condition == syntax));
         }
 
         /// <summary>

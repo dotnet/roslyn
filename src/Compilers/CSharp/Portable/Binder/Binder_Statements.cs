@@ -34,12 +34,6 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// </remarks>
         public virtual BoundStatement BindStatement(StatementSyntax node, DiagnosticBag diagnostics)
         {
-            Binder statementBinder = this.GetBinder(node);
-            return (statementBinder ?? this).BindStatementCore(node, diagnostics);
-        }
-
-        private BoundStatement BindStatementCore(StatementSyntax node, DiagnosticBag diagnostics)
-        {
             Debug.Assert(node != null);
             BoundStatement result;
             switch (node.Kind())
@@ -48,11 +42,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                     result = BindBlock((BlockSyntax)node, diagnostics);
                     break;
                 case SyntaxKind.LocalDeclarationStatement:
-                    result = BindDeclarationStatement((LocalDeclarationStatementSyntax)node, diagnostics);
+                    result = BindLocalDeclarationStatement((LocalDeclarationStatementSyntax)node, diagnostics);
                     break;
                 case SyntaxKind.LocalFunctionStatement:
-                    // The binder in the map is for the method body, so we use the *enclosing* binder for the block
-                    result = Next.BindLocalFunctionStatement((LocalFunctionStatementSyntax)node, diagnostics);
+                    result = BindLocalFunctionStatement((LocalFunctionStatementSyntax)node, diagnostics);
                     break;
                 case SyntaxKind.ExpressionStatement:
                     result = BindExpressionStatement((ExpressionStatementSyntax)node, diagnostics);
@@ -134,25 +127,17 @@ namespace Microsoft.CodeAnalysis.CSharp
                     break;
             }
 
-            Debug.Assert(result.WasCompilerGenerated == false, "Synthetic node would not get cached");
+            BoundBlock block;
+            Debug.Assert(result.WasCompilerGenerated == false ||
+                         (result.Kind == BoundKind.Block &&
+                          (block = (BoundBlock)result).Statements.Length == 1 &&
+                          block.Statements.Single().WasCompilerGenerated == false), "Synthetic node would not get cached");
 
             Debug.Assert(result.Syntax is StatementSyntax, "BoundStatement should be associated with a statement syntax.");
 
             Debug.Assert(System.Linq.Enumerable.Contains(result.Syntax.AncestorsAndSelf(), node), @"Bound statement (or one of its parents) 
                                                                             should have same syntax as the given syntax node. 
                                                                             Otherwise it may be confusing to the binder cache that uses syntax node as keys.");
-
-            // An if statement already has its pattern variables in the resulting bound node.
-            // This is necessary because it has its own scoping rules.
-            if (node.Kind() != SyntaxKind.IfStatement)
-            {
-                // Other statements do not, and require an enclosing bound node to store them.
-                PatternVariableBinder patternBinder = this as PatternVariableBinder ?? Next as PatternVariableBinder;
-                if (patternBinder != null && patternBinder.Syntax == node && !patternBinder.Locals.IsDefaultOrEmpty)
-                {
-                    result = new BoundBlock(node, patternBinder.Locals, ImmutableArray<LocalFunctionSymbol>.Empty, ImmutableArray.Create(result), result.HasErrors);
-                }
-            }
 
             return result;
         }
@@ -211,13 +196,16 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private BoundStatement BindYieldReturnStatement(YieldStatementSyntax node, DiagnosticBag diagnostics)
         {
-            TypeSymbol elementType = this.GetIteratorElementType(node, diagnostics);
+            var binder = GetBinder(node);
+            Debug.Assert(binder != null);
+
+            TypeSymbol elementType = binder.GetIteratorElementType(node, diagnostics);
             BoundExpression argument = (node.Expression == null)
                 ? BadExpression(node)
-                : BindValue(node.Expression, diagnostics, BindValueKind.RValue);
+                : binder.BindValue(node.Expression, diagnostics, BindValueKind.RValue);
             if (!argument.HasAnyErrors)
             {
-                argument = GenerateConversionForAssignment(elementType, argument, diagnostics);
+                argument = binder.GenerateConversionForAssignment(elementType, argument, diagnostics);
             }
 
             // NOTE: it's possible that more than one of these conditions is satisfied and that
@@ -240,7 +228,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 Error(diagnostics, ErrorCode.ERR_YieldNotAllowedInScript, node.YieldKeyword);
             }
 
-            return new BoundYieldReturnStatement(node, argument);
+            return binder.WrapWithVariablesIfAny(node, new BoundYieldReturnStatement(node, argument));
         }
 
         private BoundStatement BindYieldBreakStatement(YieldStatementSyntax node, DiagnosticBag diagnostics)
@@ -262,7 +250,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             var lockBinder = this.GetBinder(node);
             Debug.Assert(lockBinder != null);
-            return lockBinder.BindLockStatementParts(diagnostics, lockBinder);
+            return lockBinder.WrapWithVariablesIfAny(node, lockBinder.BindLockStatementParts(diagnostics, lockBinder));
         }
 
         internal virtual BoundStatement BindLockStatementParts(DiagnosticBag diagnostics, Binder originalBinder)
@@ -317,7 +305,19 @@ namespace Microsoft.CodeAnalysis.CSharp
             return boundExpr;
         }
 
-        private BoundThrowStatement BindThrow(ThrowStatementSyntax node, DiagnosticBag diagnostics)
+        private BoundStatement BindThrow(ThrowStatementSyntax node, DiagnosticBag diagnostics)
+        {
+            if (node.Expression == null)
+            {
+                return BindThrowParts(node, diagnostics);
+            }
+
+            var binder = GetBinder(node);
+            Debug.Assert(binder != null);
+            return binder.WrapWithVariablesIfAny(node, binder.BindThrowParts(node, diagnostics));
+        }
+
+        private BoundThrowStatement BindThrowParts(ThrowStatementSyntax node, DiagnosticBag diagnostics)
         {
             BoundExpression boundExpr = null;
             bool hasErrors = false;
@@ -420,7 +420,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         Error(diagnostics, ErrorCode.ERR_InvalidGotoCase, node);
                         return new BoundBadStatement(node, ImmutableArray<BoundNode>.Empty, true);
                     }
-                    return binder.BindGotoCaseOrDefault(node, diagnostics);
+                    return binder.BindGotoCaseOrDefault(node, this, diagnostics);
 
                 default:
                     throw ExceptionUtilities.UnexpectedValue(node.Kind());
@@ -428,6 +428,14 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         private BoundStatement BindLocalFunctionStatement(LocalFunctionStatementSyntax node, DiagnosticBag diagnostics)
+        {
+            var binder = GetBinder(node);
+            Debug.Assert(binder != null);
+
+            return binder.BindLocalFunctionStatementParts(node, diagnostics);
+        }
+
+        private BoundStatement BindLocalFunctionStatementParts(LocalFunctionStatementSyntax node, DiagnosticBag diagnostics)
         {
             // already defined symbol in containing block
             var localSymbol = this.LookupLocalFunction(node.Identifier);
@@ -445,54 +453,44 @@ namespace Microsoft.CodeAnalysis.CSharp
                 hasErrors |= this.ValidateDeclarationNameConflictsInScope(localSymbol, diagnostics);
             }
 
-            var binder = this.GetBinder(node);
-
             // Binder could be null in error scenarios (as above)
             BoundBlock block;
-            if (binder != null)
+            if (node.Body != null)
             {
-                if (node.Body != null)
-                {
-                    block = binder.BindEmbeddedBlock(node.Body, diagnostics);
-                }
-                else if (node.ExpressionBody != null)
-                {
-                    block = binder.BindExpressionBodyAsBlock(node.ExpressionBody, diagnostics);
-                }
-                else
-                {
-                    block = null;
-                    hasErrors = true;
-                    // TODO: add a message for this?
-                    diagnostics.Add(ErrorCode.ERR_ConcreteMissingBody, localSymbol.Locations[0], localSymbol);
-                }
-
-                if (block != null)
-                {
-                    localSymbol.ComputeReturnType();
-
-                    // Have to do ControlFlowPass here because in MethodCompiler, we don't call this for synthed methods
-                    // rather we go directly to LowerBodyOrInitializer, which skips over flow analysis (which is in CompileMethod)
-                    // (the same thing - calling ControlFlowPass.Analyze in the lowering - is done for lambdas)
-                    // It's a bit of code duplication, but refactoring would make things worse.
-                    var endIsReachable = ControlFlowPass.Analyze(localSymbol.DeclaringCompilation, localSymbol, block, diagnostics);
-                    if (endIsReachable)
-                    {
-                        if (ImplicitReturnIsOkay(localSymbol))
-                        {
-                            block = FlowAnalysisPass.AppendImplicitReturn(block, localSymbol, node.Body);
-                        }
-                        else
-                        {
-                            diagnostics.Add(ErrorCode.ERR_ReturnExpected, localSymbol.Locations[0], localSymbol);
-                        }
-                    }
-                }
+                block = BindEmbeddedBlock(node.Body, diagnostics);
+            }
+            else if (node.ExpressionBody != null)
+            {
+                block = BindExpressionBodyAsBlock(node.ExpressionBody, diagnostics);
             }
             else
             {
                 block = null;
                 hasErrors = true;
+                // TODO: add a message for this?
+                diagnostics.Add(ErrorCode.ERR_ConcreteMissingBody, localSymbol.Locations[0], localSymbol);
+            }
+
+            if (block != null)
+            {
+                localSymbol.ComputeReturnType();
+
+                // Have to do ControlFlowPass here because in MethodCompiler, we don't call this for synthed methods
+                // rather we go directly to LowerBodyOrInitializer, which skips over flow analysis (which is in CompileMethod)
+                // (the same thing - calling ControlFlowPass.Analyze in the lowering - is done for lambdas)
+                // It's a bit of code duplication, but refactoring would make things worse.
+                var endIsReachable = ControlFlowPass.Analyze(localSymbol.DeclaringCompilation, localSymbol, block, diagnostics);
+                if (endIsReachable)
+                {
+                    if (ImplicitReturnIsOkay(localSymbol))
+                    {
+                        block = FlowAnalysisPass.AppendImplicitReturn(block, localSymbol, node.Body);
+                    }
+                    else
+                    {
+                        diagnostics.Add(ErrorCode.ERR_ReturnExpected, localSymbol.Locations[0], localSymbol);
+                    }
+                }
             }
 
             localSymbol.GrabDiagnostics(diagnostics);
@@ -506,9 +504,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                 (method.IsAsync && method.DeclaringCompilation.GetWellKnownType(WellKnownType.System_Threading_Tasks_Task) == method.ReturnType);
         }
 
-        public BoundExpressionStatement BindExpressionStatement(ExpressionStatementSyntax node, DiagnosticBag diagnostics)
+        public BoundStatement BindExpressionStatement(ExpressionStatementSyntax node, DiagnosticBag diagnostics)
         {
-            return BindExpressionStatement(node, node.Expression, node.AllowsAnyExpression, diagnostics);
+            var binder = GetBinder(node);
+            Debug.Assert(binder != null);
+            return binder.WrapWithVariablesIfAny(node, binder.BindExpressionStatement(node, node.Expression, node.AllowsAnyExpression, diagnostics));
         }
 
         private BoundExpressionStatement BindExpressionStatement(CSharpSyntaxNode node, ExpressionSyntax syntax, bool allowsAnyExpression, DiagnosticBag diagnostics)
@@ -549,7 +549,15 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        private BoundStatement BindDeclarationStatement(LocalDeclarationStatementSyntax node, DiagnosticBag diagnostics)
+        private BoundStatement BindLocalDeclarationStatement(LocalDeclarationStatementSyntax node, DiagnosticBag diagnostics)
+        {
+            var binder = GetBinder(node);
+            Debug.Assert(binder != null);
+
+            return binder.WrapWithVariablesIfAny(node, binder.BindDeclarationStatementParts(node, diagnostics));
+        }
+
+        private BoundStatement BindDeclarationStatementParts(LocalDeclarationStatementSyntax node, DiagnosticBag diagnostics)
         {
             var typeSyntax = node.Declaration.Type;
             bool isConst = node.IsConst;
@@ -2312,10 +2320,18 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         internal BoundBlock BindEmbeddedBlock(BlockSyntax node, DiagnosticBag diagnostics)
         {
-            return this.GetBinder(node).BindBlock(node, diagnostics);
+            return BindBlock(node, diagnostics);
         }
 
         private BoundBlock BindBlock(BlockSyntax node, DiagnosticBag diagnostics)
+        {
+            var binder = GetBinder(node);
+            Debug.Assert(binder != null);
+
+            return binder.BindBlockParts(node, diagnostics);
+        }
+
+        private BoundBlock BindBlockParts(BlockSyntax node, DiagnosticBag diagnostics)
         {
             var syntaxStatements = node.Statements;
             int nStatements = syntaxStatements.Count;
@@ -2327,6 +2343,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 var boundStatement = BindStatement(syntaxStatements[i], diagnostics);
                 boundStatements.Add(boundStatement);
             }
+
+            ImmutableArray<LocalSymbol> locals = GetDeclaredLocalsForScope(node);
 
             if (IsDirectlyInIterator)
             {
@@ -2340,7 +2358,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     Debug.Assert(!diagnostics.IsEmptyWithoutResolution);
                 }
 
-                foreach (var local in Locals)
+                foreach (var local in locals)
                 {
                     if (local.RefKind != RefKind.None)
                     {
@@ -2351,7 +2369,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             return new BoundBlock(
                 node,
-                GetDeclaredLocalsForScope(node),
+                locals,
                 GetDeclaredLocalFunctionsForScope(node),
                 boundStatements.ToImmutableAndFree());
         }
@@ -2754,17 +2772,17 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private BoundStatement BindIfStatement(IfStatementSyntax node, DiagnosticBag diagnostics)
         {
-            var condition = BindBooleanExpression(node.Condition, diagnostics);
-            var consequence = BindPossibleEmbeddedStatement(node.Statement, diagnostics);
+            Binder binder = this.GetBinder(node.Condition);
+            Debug.Assert(binder != null);
+
+            var condition = binder.BindBooleanExpression(node.Condition, diagnostics);
+            var consequence = binder.BindPossibleEmbeddedStatement(node.Statement, diagnostics);
 
             // Note that the else clause does not use the pattern variable binder;
             // pattern variables from the condition are not in scope in the else statement.
             BoundStatement alternative = (node.Else == null) ? null : BindPossibleEmbeddedStatement(node.Else.Statement, diagnostics);
 
-            // If there were patterns in the condition, their variables are in scope within the condition and then clause, but not the else clause
-            PatternVariableBinder patternBinder = this as PatternVariableBinder;
-            ImmutableArray<LocalSymbol> patternVariables = (patternBinder != null && patternBinder.Syntax == node) ? patternBinder.Locals : ImmutableArray<LocalSymbol>.Empty;
-            BoundStatement result = new BoundIfStatement(node, patternVariables, condition, consequence, alternative);
+            BoundStatement result = new BoundIfStatement(node, binder.GetDeclaredLocalsForScope(node.Condition), condition, consequence, alternative);
             return result;
         }
 
@@ -2908,7 +2926,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             Debug.Assert(node != null);
             Binder switchBinder = this.GetBinder(node);
-            return switchBinder.BindSwitchExpressionAndSections(node, switchBinder, diagnostics);
+            return switchBinder.GetBinder(node.Expression).WrapWithVariablesIfAny(node.Expression, switchBinder.BindSwitchExpressionAndSections(node, switchBinder, diagnostics));
         }
 
         internal virtual BoundStatement BindSwitchExpressionAndSections(SwitchStatementSyntax node, Binder originalBinder, DiagnosticBag diagnostics)
@@ -2916,13 +2934,13 @@ namespace Microsoft.CodeAnalysis.CSharp
             return this.Next.BindSwitchExpressionAndSections(node, originalBinder, diagnostics);
         }
 
-        private BoundWhileStatement BindWhile(WhileStatementSyntax node, DiagnosticBag diagnostics)
+        private BoundStatement BindWhile(WhileStatementSyntax node, DiagnosticBag diagnostics)
         {
             Debug.Assert(node != null);
 
             var loopBinder = this.GetBinder(node);
             Debug.Assert(loopBinder != null);
-            return loopBinder.BindWhileParts(diagnostics, loopBinder);
+            return loopBinder.WrapWithVariablesIfAny(node, loopBinder.BindWhileParts(diagnostics, loopBinder));
         }
 
         internal virtual BoundWhileStatement BindWhileParts(DiagnosticBag diagnostics, Binder originalBinder)
@@ -2930,11 +2948,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             return this.Next.BindWhileParts(diagnostics, originalBinder);
         }
 
-        private BoundDoStatement BindDo(DoStatementSyntax node, DiagnosticBag diagnostics)
+        private BoundStatement BindDo(DoStatementSyntax node, DiagnosticBag diagnostics)
         {
             var loopBinder = this.GetBinder(node);
             Debug.Assert(loopBinder != null);
-            return loopBinder.BindDoParts(diagnostics, loopBinder);
+
+            return loopBinder.WrapWithVariablesIfAny(node, loopBinder.BindDoParts(diagnostics, loopBinder));
         }
 
         internal virtual BoundDoStatement BindDoParts(DiagnosticBag diagnostics, Binder originalBinder)
@@ -3027,7 +3046,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         private BoundStatement BindForEach(ForEachStatementSyntax node, DiagnosticBag diagnostics)
         {
             Binder loopBinder = this.GetBinder(node);
-            return loopBinder.BindForEachParts(diagnostics, loopBinder);
+            return this.GetBinder(node.Expression).WrapWithVariablesIfAny(node.Expression, loopBinder.BindForEachParts(diagnostics, loopBinder));
         }
 
         internal virtual BoundStatement BindForEachParts(DiagnosticBag diagnostics, Binder originalBinder)
@@ -3102,7 +3121,19 @@ namespace Microsoft.CodeAnalysis.CSharp
             return null;
         }
 
-        private BoundReturnStatement BindReturn(ReturnStatementSyntax syntax, DiagnosticBag diagnostics)
+        private BoundStatement BindReturn(ReturnStatementSyntax syntax, DiagnosticBag diagnostics)
+        {
+            if (syntax.Expression == null)
+            {
+                return BindReturnParts(syntax, diagnostics);
+            }
+
+            var binder = GetBinder(syntax);
+            Debug.Assert(binder != null);
+            return binder.WrapWithVariablesIfAny(syntax, binder.BindReturnParts(syntax, diagnostics));
+        }
+
+        private BoundReturnStatement BindReturnParts(ReturnStatementSyntax syntax, DiagnosticBag diagnostics)
         {
             var refKind = syntax.RefKeyword.Kind().GetRefKind();
 
@@ -3409,8 +3440,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
             }
 
+            var binder = GetBinder(node);
+            Debug.Assert(binder != null);
+
+            ImmutableArray<LocalSymbol> locals = binder.GetDeclaredLocalsForScope(node); 
             BoundExpression exceptionSource = null;
-            LocalSymbol local = this.Locals.FirstOrDefault();
+            LocalSymbol local = locals.FirstOrDefault();
 
             if (local?.DeclarationKind == LocalDeclarationKind.CatchVariable)
             {
@@ -3424,7 +3459,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             var block = BindEmbeddedBlock(node.Block, diagnostics);
-            return new BoundCatchBlock(node, this.Locals, exceptionSource, type, boundFilter, block, hasError);
+            return new BoundCatchBlock(node, locals, exceptionSource, type, boundFilter, block, hasError);
         }
 
         private BoundExpression BindCatchFilter(CatchFilterClauseSyntax filter, DiagnosticBag diagnostics)
@@ -3563,7 +3598,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             RefKind refKind = expressionBody.RefKeyword.Kind().GetRefKind();
             BoundExpression expression = bodyBinder.BindValue(expressionBody.Expression, diagnostics, refKind != RefKind.None ? BindValueKind.RefReturn : BindValueKind.RValue);
-            return bodyBinder.CreateBlockFromExpression(expressionBody, bodyBinder.Locals, refKind, expression, expressionBody.Expression, diagnostics);
+            return bodyBinder.CreateBlockFromExpression(expressionBody, bodyBinder.GetDeclaredLocalsForScope(expressionBody), refKind, expression, expressionBody.Expression, diagnostics);
         }
 
         /// <summary>
@@ -3575,14 +3610,14 @@ namespace Microsoft.CodeAnalysis.CSharp
             Debug.Assert(bodyBinder != null);
 
             BoundExpression expression = bodyBinder.BindValue(body, diagnostics, refKind != RefKind.None ? BindValueKind.RefReturn : BindValueKind.RValue);
-            return bodyBinder.CreateBlockFromExpression(body, bodyBinder.Locals, refKind, expression, body, diagnostics);
+            return bodyBinder.CreateBlockFromExpression(body, bodyBinder.GetDeclaredLocalsForScope(body), refKind, expression, body, diagnostics);
         }
 
         internal virtual ImmutableArray<LocalSymbol> Locals
         {
             get
             {
-                return this.Next.Locals;
+                return ImmutableArray<LocalSymbol>.Empty;
             }
         }
 
@@ -3590,7 +3625,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             get
             {
-                return this.Next.LocalFunctions;
+                return ImmutableArray<LocalFunctionSymbol>.Empty;
             }
         }
 
@@ -3598,7 +3633,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             get
             {
-                return this.Next.Labels;
+                return ImmutableArray<LabelSymbol>.Empty;
             }
         }
     }

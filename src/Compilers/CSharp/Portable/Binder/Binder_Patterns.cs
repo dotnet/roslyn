@@ -722,7 +722,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 var pattern = sectionBinder.BindPattern(section.Pattern, expression, expression.Type, section.HasErrors, diagnostics);
                 var guard = (section.WhenClause != null) ? sectionBinder.BindBooleanExpression(section.WhenClause.Condition, diagnostics) : null;
                 var e = sectionBinder.BindExpression(section.Expression, diagnostics);
-                sectionBuilder.Add(new BoundMatchCase(section, sectionBinder.Locals, pattern, guard, e, section.HasErrors));
+                sectionBuilder.Add(new BoundMatchCase(section, sectionBinder.GetDeclaredLocalsForScope(section), pattern, guard, e, section.HasErrors));
             }
 
             var resultType = BestType(node, sectionBuilder, diagnostics);
@@ -784,6 +784,13 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         private BoundStatement BindLetStatement(LetStatementSyntax node, DiagnosticBag diagnostics)
+        {
+            var letBinder = this.GetBinder(node);
+            Debug.Assert(letBinder != null);
+            return letBinder.WrapWithVariablesIfAny(node, letBinder.BindLetStatementParts(node, diagnostics));
+        }
+
+        private BoundStatement BindLetStatementParts(LetStatementSyntax node, DiagnosticBag diagnostics)
         {
             var expression = BindValue(node.Expression, diagnostics, BindValueKind.RValue);
             // TODO: any constraints on the expression must be enforced here. For example,

@@ -145,7 +145,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
             else
             {
-                var binder = new PatternVariableBinder(node, (ExpressionSyntax)body, _enclosing);
+                var binder = new PatternVariableBinder(body, (ExpressionSyntax)body, _enclosing);
                 AddToMap(body, binder);
                 Visit(body, binder);
             }
@@ -162,11 +162,21 @@ namespace Microsoft.CodeAnalysis.CSharp
             LocalFunctionSymbol match = null;
             // Don't use LookupLocalFunction because it recurses up the tree, as it
             // should be defined in the directly enclosing block (see note below)
-            foreach (var candidate in _enclosing.LocalFunctions)
+
+            Binder possibleScopeBinder = _enclosing;
+            while (possibleScopeBinder != null && !possibleScopeBinder.IsLocalFunctionsScopeBinder)
             {
-                if (candidate.Locations[0] == node.Identifier.GetLocation())
+                possibleScopeBinder = possibleScopeBinder.Next;
+            }
+
+            if (possibleScopeBinder != null)
+            {
+                foreach (var candidate in possibleScopeBinder.LocalFunctions)
                 {
-                    match = candidate;
+                    if (candidate.Locations[0] == node.Identifier.GetLocation())
+                    {
+                        match = candidate;
+                    }
                 }
             }
 
@@ -186,12 +196,14 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     addToMap = _enclosing;
                 }
-                addToMap = new InMethodBinder(match, addToMap);
+
                 AddToMap(node, addToMap);
+
                 if (body != null)
                 {
-                    Visit(body, addToMap);
+                    Visit(body, new InMethodBinder(match, addToMap));
                 }
+
                 _containingMemberOrLambda = oldMethod;
             }
             else
@@ -208,7 +220,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (_sawYield)
             {
-                _methodsWithYields.Add(node);
+                _methodsWithYields.Add(body);
             }
             _sawYield = oldSawYield;
         }
@@ -245,6 +257,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             if (_root == node)
             {
+                // We are supposed to get here only for constructor initializers
                 var argBinder = new PatternVariableBinder(node, node.Arguments, _enclosing);
                 AddToMap(node, argBinder);
 
@@ -384,8 +397,9 @@ namespace Microsoft.CodeAnalysis.CSharp
         public override void VisitForEachStatement(ForEachStatementSyntax node)
         {
             Debug.Assert((object)_containingMemberOrLambda == _enclosing.ContainingMemberOrLambda);
-            var patternBinder = new PatternVariableBinder(node, node.Expression, _enclosing);
+            var patternBinder = new PatternVariableBinder(node.Expression, node.Expression, _enclosing);
 
+            AddToMap(node.Expression, patternBinder);
             Visit(node.Expression, patternBinder);
 
             var binder = new ForEachLoopBinder(patternBinder, node);
@@ -451,7 +465,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         public override void VisitSwitchStatement(SwitchStatementSyntax node)
         {
             Debug.Assert((object)_containingMemberOrLambda == _enclosing.ContainingMemberOrLambda);
-            var patternBinder = new PatternVariableBinder(node, node.Expression, _enclosing);
+            var patternBinder = new PatternVariableBinder(node.Expression, node.Expression, _enclosing);
+            AddToMap(node.Expression, patternBinder);
 
             Visit(node.Expression, patternBinder);
 
@@ -490,10 +505,10 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public override void VisitIfStatement(IfStatementSyntax node)
         {
-            var ifBinder = new PatternVariableBinder(node, node.Condition, _enclosing);
+            var ifBinder = new PatternVariableBinder(node.Condition, node.Condition, _enclosing);
+            AddToMap(node.Condition, ifBinder);
             Visit(node.Condition, ifBinder);
             VisitPossibleEmbeddedStatement(node.Statement, ifBinder);
-            AddToMap(node, ifBinder);
 
             // pattern variables from the condition are not in scope within the else clause
             if (node.Else != null) AddToMap(node.Else.Statement, _enclosing);
