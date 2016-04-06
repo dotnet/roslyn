@@ -201,6 +201,113 @@ True
         }
 
         [Fact]
+        public void MethodsOfGenericTypesCoverage()
+        {
+            string source = @"
+using System;
+
+class MyBox<T> where T : class
+{
+    readonly T _value;
+
+    public MyBox(T value)
+    {
+        _value = value;
+    }
+
+    public T GetValue()
+    {
+        if (_value == null)
+        {
+            return null;
+        }
+
+        return _value;
+    }
+}
+
+public class Program
+{
+    public static void Main(string[] args)
+    {
+        TestMain();
+    }
+
+    [Xunit.Fact]
+    static void TestMain()
+    {
+        MyBox<object> x = new MyBox<object>(null);
+        Console.WriteLine(x.GetValue() == null ? ""null"" : x.GetValue().ToString());
+        MyBox<string> s = new MyBox<string>(""Hello"");
+        Console.WriteLine(s.GetValue() == null ? ""null"" : s.GetValue());
+    }
+}
+";
+            // PROTOTYPE (https://github.com/dotnet/roslyn/issues/9810):
+            // The output below is not completely correct -- all instrumentation points in method 2 should be True,
+            // and will be once the issue with rooting of payloads is corrected.
+            //
+            // This test verifies that the payloads of methods of generic types are in terms of method definitions and
+            // not method references -- the indices for the methods would be different for references.
+            string expectedOutput = @"null
+Hello
+Flushing
+1
+True
+2
+False
+True
+True
+3
+True
+4
+True
+True
+True
+True
+";
+
+            string expectedGetValueIL = @"{
+  // Code size       82 (0x52)
+  .maxstack  4
+  .locals init (T V_0)
+  IL_0000:  ldsfld     ""bool[] MyBox<T>.<GetValue>2ipayload__Field""
+  IL_0005:  brtrue.s   IL_001c
+  IL_0007:  ldsfld     ""System.Guid <PrivateImplementationDetails>.MVID""
+  IL_000c:  ldtoken    ""T MyBox<T>.GetValue()""
+  IL_0011:  ldsflda    ""bool[] MyBox<T>.<GetValue>2ipayload__Field""
+  IL_0016:  ldc.i4.3
+  IL_0017:  call       ""void Microsoft.CodeAnalysis.Runtime.Instrumentation.CreatePayload(System.Guid, int, ref bool[], int)""
+  IL_001c:  ldsfld     ""bool[] MyBox<T>.<GetValue>2ipayload__Field""
+  IL_0021:  ldc.i4.1
+  IL_0022:  ldc.i4.1
+  IL_0023:  stelem.i1
+  IL_0024:  ldarg.0
+  IL_0025:  ldfld      ""T MyBox<T>._value""
+  IL_002a:  box        ""T""
+  IL_002f:  brtrue.s   IL_0043
+  IL_0031:  ldsfld     ""bool[] MyBox<T>.<GetValue>2ipayload__Field""
+  IL_0036:  ldc.i4.0
+  IL_0037:  ldc.i4.1
+  IL_0038:  stelem.i1
+  IL_0039:  ldloca.s   V_0
+  IL_003b:  initobj    ""T""
+  IL_0041:  ldloc.0
+  IL_0042:  ret
+  IL_0043:  ldsfld     ""bool[] MyBox<T>.<GetValue>2ipayload__Field""
+  IL_0048:  ldc.i4.2
+  IL_0049:  ldc.i4.1
+  IL_004a:  stelem.i1
+  IL_004b:  ldarg.0
+  IL_004c:  ldfld      ""T MyBox<T>._value""
+  IL_0051:  ret
+}
+";
+            CompilationVerifier verifier = CompileAndVerify(source + InstrumentationHelperSource + XunitFactAttributeSource, emitOptions: EmitOptions.Default.WithInstrument("Test.Flag"), expectedOutput: expectedOutput);
+            verifier.VerifyIL("MyBox<T>.GetValue", expectedGetValueIL);
+        }
+       
+        [Fact]
         public void ImplicitBlockMethodsCoverage()
         {
             string source = @"
