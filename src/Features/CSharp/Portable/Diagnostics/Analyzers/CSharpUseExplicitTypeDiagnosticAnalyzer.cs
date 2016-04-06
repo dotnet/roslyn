@@ -10,10 +10,10 @@ using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 
-namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.TypingStyles
+namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.TypeStyle
 {
     [DiagnosticAnalyzer(LanguageNames.CSharp)]
-    internal sealed class CSharpUseExplicitTypingDiagnosticAnalyzer : CSharpTypingStyleDiagnosticAnalyzerBase
+    internal sealed class CSharpUseExplicitTypeDiagnosticAnalyzer : CSharpTypeStyleDiagnosticAnalyzerBase
     {
         private static readonly LocalizableString s_Title =
             new LocalizableResourceString(nameof(CSharpFeaturesResources.UseExplicitTypeDiagnosticTitle), CSharpFeaturesResources.ResourceManager, typeof(CSharpFeaturesResources));
@@ -21,8 +21,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.TypingStyles
         private static readonly LocalizableString s_Message =
             new LocalizableResourceString(nameof(CSharpFeaturesResources.UseExplicitType), CSharpFeaturesResources.ResourceManager, typeof(CSharpFeaturesResources));
 
-        public CSharpUseExplicitTypingDiagnosticAnalyzer()
-            : base(diagnosticId: IDEDiagnosticIds.UseExplicitTypingDiagnosticId,
+        public CSharpUseExplicitTypeDiagnosticAnalyzer()
+            : base(diagnosticId: IDEDiagnosticIds.UseExplicitTypeDiagnosticId,
                    title: s_Title,
                    message: s_Message)
         {
@@ -30,7 +30,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.TypingStyles
 
         protected override bool IsStylePreferred(SemanticModel semanticModel, OptionSet optionSet, State state, CancellationToken cancellationToken)
         {
-            var stylePreferences = state.TypeStyle;
+            var stylePreferences = state.TypeStylePreference;
             var shouldNotify = state.ShouldNotify();
 
             // If notification preference is None, don't offer the suggestion.
@@ -41,15 +41,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.TypingStyles
 
             if (state.IsInIntrinsicTypeContext)
             {
-                return !stylePreferences.HasFlag(TypeStyle.ImplicitTypeForIntrinsicTypes);
+                return !stylePreferences.HasFlag(TypeStylePreference.ImplicitTypeForIntrinsicTypes);
             }
-            else if (state.IsTypingApparentInContext)
+            else if (state.IsTypeApparentInContext)
             {
-                return !stylePreferences.HasFlag(TypeStyle.ImplicitTypeWhereApparent);
+                return !stylePreferences.HasFlag(TypeStylePreference.ImplicitTypeWhereApparent);
             }
             else
             {
-                return !stylePreferences.HasFlag(TypeStyle.ImplicitTypeWherePossible);
+                return !stylePreferences.HasFlag(TypeStylePreference.ImplicitTypeWherePossible);
             }
         }
 

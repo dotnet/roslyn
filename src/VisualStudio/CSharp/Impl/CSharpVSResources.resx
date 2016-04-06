@@ -411,13 +411,13 @@
   <data name="SetTypeInferencePreferences" xml:space="preserve">
     <value>Type Inference preferences:</value>
   </data>
-  <data name="UseVarForIntrinsicTypes" xml:space="preserve">
+  <data name="UseImplicitTypeForIntrinsicTypes" xml:space="preserve">
     <value>For built-in types</value>
   </data>
-  <data name="UseVarWhenPossible" xml:space="preserve">
+  <data name="UseImplicitTypeWhenPossible" xml:space="preserve">
     <value>Elsewhere</value>
   </data>
-  <data name="UseVarWhenTypeIsApparent" xml:space="preserve">
+  <data name="UseImplicitTypeWhenTypeIsApparent" xml:space="preserve">
     <value>When variable type is apparent</value>
   </data>
   <data name="QualifyEventAccessWithThis" xml:space="preserve">
