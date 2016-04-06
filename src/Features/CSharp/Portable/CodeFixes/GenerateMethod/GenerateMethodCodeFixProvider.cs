@@ -15,9 +15,7 @@ using Microsoft.CodeAnalysis.Shared.Extensions;
 
 namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.GenerateMethod
 {
-    [ExportCodeFixProvider(LanguageNames.CSharp, Name = PredefinedCodeFixProviderNames.GenerateMethod), Shared]
-    [ExtensionOrder(After = PredefinedCodeFixProviderNames.GenerateEnumMember)]
-    internal class GenerateMethodCodeFixProvider : AbstractGenerateMemberCodeFixProvider
+    internal static class GenerateMethodDiagnosticIds
     {
         private const string CS0103 = nameof(CS0103); // error CS0103: Error The name 'Foo' does not exist in the current context
         private const string CS1061 = nameof(CS1061); // error CS1061: Error 'Class' does not contain a definition for 'Foo' and no extension method 'Foo' 
@@ -32,12 +30,18 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.GenerateMethod
         private const string CS1739 = nameof(CS1739); // error CS1739: The best overload for 'M' does not have a parameter named 'x'
         private const string CS7036 = nameof(CS7036); // error CS7036: There is no argument given that corresponds to the required formal parameter 'x' of 'C.M(int)'
 
-        public override ImmutableArray<string> FixableDiagnosticIds
-        {
-            get { return ImmutableArray.Create(CS0103, CS1061, CS0117, CS0122, CS0539, CS1501, CS1503, CS0305, CS0308, CS1660, CS1739, CS7036); }
-        }
+        public static readonly ImmutableArray<string> FixableDiagnosticIds =
+            ImmutableArray.Create(CS0103, CS1061, CS0117, CS0122, CS0539, CS1501, CS1503, CS0305, CS0308, CS1660, CS1739, CS7036);
+    }
 
-        protected override bool IsCandidate(SyntaxNode node, Diagnostic diagnostic)
+    [ExportCodeFixProvider(LanguageNames.CSharp, Name = PredefinedCodeFixProviderNames.GenerateMethod), Shared]
+    [ExtensionOrder(After = PredefinedCodeFixProviderNames.GenerateEnumMember)]
+    internal class GenerateMethodCodeFixProvider : AbstractGenerateMemberCodeFixProvider
+    {
+        public override ImmutableArray<string> FixableDiagnosticIds { get; } = 
+            GenerateMethodDiagnosticIds.FixableDiagnosticIds;
+
+        protected override bool IsCandidate(SyntaxNode node, SyntaxToken token, Diagnostic diagnostic)
         {
             return node.IsKind(SyntaxKind.IdentifierName) ||
                    node.IsKind(SyntaxKind.MethodDeclaration) ||

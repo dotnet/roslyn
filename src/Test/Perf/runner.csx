@@ -1,8 +1,8 @@
 // Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-#load ".\util\runner_util.csx"
-#load ".\util\test_util.csx"
-#load ".\util\TraceManager_util.csx"
+#load "./util/runner_util.csx"
+#load "./util/test_util.csx"
+#load "./util/trace_manager_util.csx"
 
 using System.Collections.Generic;
 using System.IO;
@@ -27,9 +27,9 @@ traceManager.Setup();
 for(int i = 0; i < traceManager.Iterations; ++ i)
 {
     traceManager.Start();
-    
+
     // Run all the scripts that we've found and populate allResults.
-    foreach (var script in GetAllCsxRecursive(testDirectory)) 
+    foreach (var script in GetAllCsxRecursive(testDirectory))
     {
         var scriptName = Path.GetFileNameWithoutExtension(script);
         Log("\nRunning " + scriptName);
@@ -37,12 +37,12 @@ for(int i = 0; i < traceManager.Iterations; ++ i)
         {
             traceManager.StartScenario(scriptName, "csc");
             traceManager.StartEvent();
-            
+
             var state = await RunFile(script);
-            
+
             traceManager.EndEvent();
             traceManager.EndScenario();
-            
+
             var metrics = (List<Tuple<int, string, object>>) state.GetVariable("Metrics").Value;
             allResults.Add(Tuple.Create(scriptName, metrics));
         }
@@ -53,12 +53,12 @@ for(int i = 0; i < traceManager.Iterations; ++ i)
             return 1;
         }
     }
-    
+
     traceManager.EndScenarios();
     traceManager.WriteScenariosFileToDisk();
 
     traceManager.Stop();
-    
+
     traceManager.ResetScenarioGenerator();
 }
 
@@ -82,7 +82,8 @@ foreach (var testResult in allResults)
         var caseValue = testCase.Item3;
         System.Text.StringBuilder builder = null;
 
-        switch((ReportKind) reportKind) {
+        switch((ReportKind) reportKind)
+        {
             case ReportKind.CompileTime:
                 builder = compileTimeBuilder;
                 break;
@@ -96,7 +97,8 @@ foreach (var testResult in allResults)
                 throw new Exception("test specified an invalid report kind");
         }
 
-        if (builder.Length != 0) {
+        if (builder.Length != 0)
+        {
             builder.AppendLine();
         }
         builder.Append($"{test}, {caseDescription}, {caseValue}");

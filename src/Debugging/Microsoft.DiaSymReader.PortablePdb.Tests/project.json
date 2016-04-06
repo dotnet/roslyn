@@ -1,6 +1,6 @@
 ﻿{
   "dependencies": {
-    "Microsoft.NETCore.Portable.Compatibility": "1.0.1-beta-23504",
+    "Microsoft.NETCore.Portable.Compatibility": "1.0.0",
     "System.Collections": "4.0.10",
     "System.Diagnostics.Debug": "4.0.10",
     "System.Runtime": "4.0.20",
@@ -11,8 +11,8 @@
     "xunit": "2.1.0"
   },
   "frameworks": {
-    "dotnet5.4": {
-      "imports": "portable-net452"
+    "netstandard1.3": {
+      "imports": [ "portable-net452", "dotnet5.4" ]
     }
   }
 }

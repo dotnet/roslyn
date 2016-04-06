@@ -48,16 +48,16 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeStyle.TypeStyle
             CancellationToken cancellationToken) =>
                 semanticModel.GetTypeInfo(initializerExpression, cancellationToken).Type?.IsSpecialType() == true;
 
-        private static bool IsImplicitStylePreferred(TypeStyle stylePreferences,
+        private static bool IsImplicitStylePreferred(TypeStylePreference stylePreferences,
             bool isBuiltInTypeContext,
             bool isTypeApparentContext)
         {
 
             return isBuiltInTypeContext
-                    ? stylePreferences.HasFlag(TypeStyle.ImplicitTypeForIntrinsicTypes)
+                    ? stylePreferences.HasFlag(TypeStylePreference.ImplicitTypeForIntrinsicTypes)
                     : isTypeApparentContext
-                        ? stylePreferences.HasFlag(TypeStyle.ImplicitTypeWhereApparent)
-                        : stylePreferences.HasFlag(TypeStyle.ImplicitTypeWherePossible);
+                        ? stylePreferences.HasFlag(TypeStylePreference.ImplicitTypeWhereApparent)
+                        : stylePreferences.HasFlag(TypeStylePreference.ImplicitTypeWherePossible);
         }
 
         /// <summary>
@@ -69,7 +69,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeStyle.TypeStyle
         /// Things (like analyzers) that do have a local declaration already, should pass this in.
         /// </remarks>
         public static bool IsTypeApparentInAssignmentExpression(
-            TypeStyle stylePreferences,
+            TypeStylePreference stylePreferences,
             ExpressionSyntax initializerExpression,
             SemanticModel semanticModel,
             CancellationToken cancellationToken,
@@ -84,7 +84,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeStyle.TypeStyle
             // literals, use var if options allow usage here.
             if (initializerExpression.IsAnyLiteralExpression())
             {
-                return stylePreferences.HasFlag(TypeStyle.ImplicitTypeForIntrinsicTypes);
+                return stylePreferences.HasFlag(TypeStylePreference.ImplicitTypeForIntrinsicTypes);
             }
 
             // constructor invocations cases:
@@ -226,9 +226,9 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeStyle.TypeStyle
             return node;
         }
 
-        private static TypeStyle GetCurrentTypeStylePreferences(OptionSet optionSet)
+        private static TypeStylePreference GetCurrentTypeStylePreferences(OptionSet optionSet)
         {
-            var stylePreferences = TypeStyle.None;
+            var stylePreferences = TypeStylePreference.None;
 
             var styleForIntrinsicTypes = optionSet.GetOption(CSharpCodeStyleOptions.UseImplicitTypeForIntrinsicTypes);
             var styleForApparent = optionSet.GetOption(CSharpCodeStyleOptions.UseImplicitTypeWhereApparent);
@@ -236,17 +236,17 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeStyle.TypeStyle
 
             if (styleForIntrinsicTypes.IsChecked)
             {
-                stylePreferences |= TypeStyle.ImplicitTypeForIntrinsicTypes;
+                stylePreferences |= TypeStylePreference.ImplicitTypeForIntrinsicTypes;
             }
 
             if (styleForApparent.IsChecked)
             {
-                stylePreferences |= TypeStyle.ImplicitTypeWhereApparent;
+                stylePreferences |= TypeStylePreference.ImplicitTypeWhereApparent;
             }
 
             if (styleForElsewhere.IsChecked)
             {
-                stylePreferences |= TypeStyle.ImplicitTypeWherePossible;
+                stylePreferences |= TypeStylePreference.ImplicitTypeWherePossible;
             }
 
             return stylePreferences;
