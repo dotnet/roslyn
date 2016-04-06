@@ -706,14 +706,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.GenerateType
                                                       cancellationToken As CancellationToken,
                                                       ByRef propertySymbol As IPropertySymbol) As Boolean
             propertySymbol = Nothing
+
             Dim typeSymbol = GetPropertyType(propertyName, semanticModel, typeInferenceService, cancellationToken)
             If typeSymbol Is Nothing OrElse TypeOf typeSymbol Is IErrorTypeSymbol Then
                 propertySymbol = GenerateProperty(propertyName, semanticModel.Compilation.ObjectType)
-                Return True
+                Return propertySymbol IsNot Nothing
             End If
 
             propertySymbol = GenerateProperty(propertyName, typeSymbol)
-            Return True
+            Return propertySymbol IsNot Nothing
         End Function
 
         Friend Overrides Function GetDelegatingConstructor(document As SemanticDocument,

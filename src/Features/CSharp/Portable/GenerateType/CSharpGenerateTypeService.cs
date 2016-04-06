@@ -31,13 +31,7 @@ namespace Microsoft.CodeAnalysis.CSharp.GenerateType
     {
         private static readonly SyntaxAnnotation s_annotation = new SyntaxAnnotation();
 
-        protected override string DefaultFileExtension
-        {
-            get
-            {
-                return ".cs";
-            }
-        }
+        protected override string DefaultFileExtension => ".cs";
 
         protected override ExpressionSyntax GetLeftSideOfDot(SimpleNameSyntax simpleName)
         {
@@ -459,6 +453,19 @@ namespace Microsoft.CodeAnalysis.CSharp.GenerateType
                 }
             }
 
+            if (nameOrMemberAccessExpression.Parent is PropertyPatternSyntax)
+            {
+                var propertyPattern = nameOrMemberAccessExpression.Parent as PropertyPatternSyntax;
+                foreach (var subPattern in propertyPattern.SubPatterns)
+                {
+                    var patternName = (subPattern as IsPatternExpressionSyntax)?.Expression as IdentifierNameSyntax;
+                    if (patternName != null)
+                    {
+                        generateTypeServiceStateOptions.PropertiesToGenerate.Add(patternName);
+                    }
+                }
+            }
+
             return true;
         }
 
@@ -865,28 +872,37 @@ namespace Microsoft.CodeAnalysis.CSharp.GenerateType
         }
 
         private ITypeSymbol GetPropertyType(
-            SimpleNameSyntax property,
+            SimpleNameSyntax propertyName,
             SemanticModel semanticModel,
             ITypeInferenceService typeInference,
             CancellationToken cancellationToken)
         {
-            var parent = property.Parent as AssignmentExpressionSyntax;
-            if (parent != null)
+            var parentAssignment = propertyName.Parent as AssignmentExpressionSyntax;
+            if (parentAssignment != null)
             {
-                return typeInference.InferType(semanticModel, parent.Left, true, cancellationToken);
+                return typeInference.InferType(
+                    semanticModel, parentAssignment.Left, objectAsDefault: true, cancellationToken: cancellationToken);
+            }
+
+            var isPatternExpression = propertyName.Parent as IsPatternExpressionSyntax;
+            if (isPatternExpression != null)
+            {
+                return typeInference.InferType(
+                    semanticModel, isPatternExpression.Expression, objectAsDefault: true, cancellationToken: cancellationToken);
             }
 
             return null;
         }
 
-        private IPropertySymbol CreatePropertySymbol(SimpleNameSyntax propertyName, ITypeSymbol propertyType)
+        private IPropertySymbol CreatePropertySymbol(
+            SimpleNameSyntax propertyName, ITypeSymbol propertyType)
         {
             return CodeGenerationSymbolFactory.CreatePropertySymbol(
                 attributes: SpecializedCollections.EmptyList<AttributeData>(),
                 accessibility: Accessibility.Public,
                 modifiers: new DeclarationModifiers(),
                 explicitInterfaceSymbol: null,
-                name: propertyName.ToString(),
+                name: propertyName.Identifier.ValueText,
                 type: propertyType,
                 parameters: null,
                 getMethod: s_accessor,
@@ -911,11 +927,11 @@ namespace Microsoft.CodeAnalysis.CSharp.GenerateType
             if (propertyType == null || propertyType is IErrorTypeSymbol)
             {
                 property = CreatePropertySymbol(propertyName, semanticModel.Compilation.ObjectType);
-                return true;
+                return property != null;
             }
 
             property = CreatePropertySymbol(propertyName, propertyType);
-            return true;
+            return property != null;
         }
 
         internal override IMethodSymbol GetDelegatingConstructor(

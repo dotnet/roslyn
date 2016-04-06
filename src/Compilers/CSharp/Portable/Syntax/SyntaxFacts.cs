@@ -186,6 +186,9 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                     case DeclarationPattern:
                         return ((DeclarationPatternSyntax)parent).Type == node;
+
+                    case PropertyPattern:
+                        return ((PropertyPatternSyntax)parent).Type == node;
                 }
             }
 
