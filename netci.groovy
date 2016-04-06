@@ -7,10 +7,10 @@ def project = GithubProject
 static void addLogRotator(def myJob) {
   myJob.with {
     logRotator {
-      daysToKeep(21)
+      daysToKeep(90)
       numToKeep(-1)
-      artifactDaysToKeep(5)
-      artifactNumToKeep(25)
+      artifactDaysToKeep(21)
+      artifactNumToKeep(-1)
     }
   }
 }
