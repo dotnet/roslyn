@@ -47,6 +47,7 @@ namespace Microsoft.CodeAnalysis.CodeGen
             new ConcurrentDictionary<ImmutableArray<byte>, MappedField>(ByteSequenceComparer.Instance);
 
         private ModuleVersionIdField _mvidField;
+        private readonly ConcurrentDictionary<int, int> _instrumentationPayloadIndices = new ConcurrentDictionary<int, int>();
 
         // synthesized methods
         private ImmutableArray<Cci.IMethodDefinition> _orderedSynthesizedMethods;
@@ -168,6 +169,15 @@ namespace Microsoft.CodeAnalysis.CodeGen
 
             Debug.Assert(_mvidField.Type.Equals(mvidType));
             return _mvidField;
+        }
+
+        internal int GetInstrumentationPayloadIndex(Cci.IMethodDefinition method, Cci.ITypeReference payloadType, int analysisIndex)
+        {
+            int lastPayloadIndex;
+            if (_instrumentationPayloadIndices.TryGetValue(analysisIndex , out lastPayloadIndex))
+            {
+
+            }
         }
 
         // Add a new synthesized method indexed by its name if the method isn't already present.
