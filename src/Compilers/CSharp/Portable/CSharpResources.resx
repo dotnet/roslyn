@@ -4860,4 +4860,7 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   <data name="ERR_TupleReservedMemberNameAnyPosition" xml:space="preserve">
     <value>Tuple membername '{0}' is disallowed at any position.</value>
   </data>
+  <data name="ERR_PredefinedTypeMemberNotFoundInAssembly" xml:space="preserve">
+    <value>Member '{0}' was not found on type '{1}' from assembly '{2}'.</value>
+  </data>
 </root>

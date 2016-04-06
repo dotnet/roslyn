@@ -1387,6 +1387,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_TupleDuplicateMemberName = 8203,
         ERR_TupleExplicitNamesOnAllMembersOrNone = 8204,
 
-        ERR_PrototypeNotYetImplemented = 8204,
+        ERR_PredefinedTypeMemberNotFoundInAssembly = 8205,
+
+        ERR_PrototypeNotYetImplemented = 9000,
     }
 }

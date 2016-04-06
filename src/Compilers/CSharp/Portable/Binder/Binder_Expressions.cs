@@ -703,14 +703,14 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             ImmutableArray<TypeSymbol> elements = elementTypes.ToImmutableAndFree();
 
-            var type = new TupleTypeSymbol(
-                elements,
-                elementNames == null ?
-                    default(ImmutableArray<string>) :
-                    elementNames.ToImmutableAndFree(),
-                node,
-                this,
-                diagnostics);
+            var type = TupleTypeSymbol.Create(
+                                        elements,
+                                        elementNames == null ?
+                                            default(ImmutableArray<string>) :
+                                            elementNames.ToImmutableAndFree(),
+                                        node,
+                                        this,
+                                        diagnostics);
 
             return new BoundTupleCreationExpression(node, boundArguments.ToImmutableAndFree(), type, hasErrors);
         }
