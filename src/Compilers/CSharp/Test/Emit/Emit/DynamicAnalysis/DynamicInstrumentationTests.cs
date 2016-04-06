@@ -273,6 +273,8 @@ public class Program
     [Xunit.Fact]
     static void TestMain()
     {
+        int x;
+        int a, b;
         DoubleDeclaration(5);
         DoubleForDeclaration(5);
     }
@@ -281,9 +283,11 @@ public class Program
     {
         int c = x;
         int a, b;
-        a = b = c;
+        int f;
+
+        a = b = f = c;
         int d = a, e = b;
-        return d + e;
+        return d + e + f;
     }
 
     static int DoubleForDeclaration(int x)
@@ -308,7 +312,6 @@ True
 True
 True
 True
-True
 4
 True
 False
@@ -317,6 +320,75 @@ True
 ";
 
             CompilationVerifier verifier = CompileAndVerify(source + InstrumentationHelperSource + XunitFactAttributeSource, emitOptions: EmitOptions.Default.WithInstrument("Test.Flag"), expectedOutput: expectedOutput);
+        }
+
+        [Fact]
+        public void UsingAndFixedCoverage()
+        {
+            string source = @"
+using System;
+using System.IO;
+
+public class Program
+{
+    public static void Main(string[] args)
+    {
+        TestMain();
+    }
+
+    [Xunit.Fact]
+    static void TestMain()
+    {
+        using (var memoryStream = new MemoryStream())
+        {
+            ;
+        }
+
+        using (MemoryStream s1 = new MemoryStream(), s2 = new MemoryStream())
+        {
+            ;
+        }
+
+        var otherStream = new MemoryStream();
+        using (otherStream)
+        {
+            ;
+        }
+
+        unsafe
+        {
+            double[] a = { 1, 2, 3 };
+            fixed(double* p = a)
+            {
+                ;
+            }
+            fixed(double* q = a, r = a)
+            {
+                ;
+            }
+        }
+    }
+}
+";
+            string expectedOutput = @"Flushing
+1
+True
+2
+True
+True
+True
+True
+True
+True
+True
+True
+True
+True
+True
+True
+";
+           
+            CompilationVerifier verifier = CompileAndVerify(source + InstrumentationHelperSource + XunitFactAttributeSource, options: TestOptions.UnsafeDebugExe,  emitOptions: EmitOptions.Default.WithInstrument("Test.Flag"), expectedOutput: expectedOutput);
         }
 
         [Fact]
@@ -562,7 +634,7 @@ public class Program
 
     async static Task<string> Second(string s)
     {
-        string doubled;
+        string doubled = """";
         if (s.Length > 2)
             doubled = s + s;
         else
@@ -727,9 +799,9 @@ True
             verifier.VerifyIL("Program.MethodWithOutFactAttribute", expectedMethodWithOutFactAttributeIL);
         }
 
-        private CompilationVerifier CompileAndVerify(string source, EmitOptions emitOptions, string expectedOutput = null)
+        private CompilationVerifier CompileAndVerify(string source, EmitOptions emitOptions, string expectedOutput = null, CompilationOptions options = null)
         {
-            return base.CompileAndVerify(source, expectedOutput: expectedOutput, additionalRefs: s_asyncRefs, emitOptions: emitOptions);
+            return base.CompileAndVerify(source, expectedOutput: expectedOutput, additionalRefs: s_asyncRefs, options: options, emitOptions: emitOptions);
         }
 
         private static readonly MetadataReference[] s_asyncRefs = new[] { MscorlibRef_v4_0_30316_17626, SystemRef_v4_0_30319_17929, SystemCoreRef_v4_0_30319_17929 };

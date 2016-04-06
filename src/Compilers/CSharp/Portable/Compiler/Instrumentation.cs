@@ -176,6 +176,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             BoundStatement statement = node as BoundStatement;
             if (statement != null)
             {
+                // The default behavior is to instrument a statement unless it is compiler generated.
+                // Filter out statements that are not to be instrumented, and force instrumentation of some compiler-generated statements.
                 switch (statement.Kind)
                 {
                     case BoundKind.SwitchSection:
@@ -193,37 +195,116 @@ namespace Microsoft.CodeAnalysis.CSharp
                     case BoundKind.ForStatement:
                         return visited;
                     case BoundKind.ReturnStatement:
+                        // A synthesized return statement that does not return a value never requires instrumentation.
+                        // A property set method defined without a block has such a synthesized return statement.
                         if (!_methodHasExplicitBlock && ((BoundReturnStatement)statement).ExpressionOpt != null)
                         {
                             // The return statement for value-returning methods defined without a block is compiler generated, but requires instrumentation.
-                            return ForceCollectDynamicAnalysis(visited);
+                            return CollectDynamicAnalysis(visited);
                         }
                         break;
                     case BoundKind.ExpressionStatement:
                         if (!_methodHasExplicitBlock)
                         {
                             // The assignment statement for a property set method defined without a block is compiler generated, but requires instrumentation.
-                            return ForceCollectDynamicAnalysis(visited);
+                            return CollectDynamicAnalysis(visited);
                         }
                         break;
                     case BoundKind.LocalDeclaration:
-                        if (statement.Syntax.Parent.Kind() == SyntaxKind.VariableDeclaration && ((VariableDeclarationSyntax)statement.Syntax.Parent).Variables.Count > 1)
+                        if (statement.Syntax.Parent.Kind() == SyntaxKind.VariableDeclaration)
                         {
-                            // This declaration is part of a MultipleLocalDeclarations statement,
-                            // and so should not be treated as a separate statement.
+                            VariableDeclarationSyntax declarationSyntax = (VariableDeclarationSyntax)statement.Syntax.Parent;
+                            if (declarationSyntax.Variables.Count > 1)
+                            {
+                                // This declaration is part of a MultipleLocalDeclarations statement,
+                                // and so should not be treated as a separate statement.
+                                return visited;
+                            }
+
+                            // A statement that represents the declarations in a using or fixed statement should not be treated as a separate statement.
+                            switch (declarationSyntax.Parent.Kind())
+                            {
+                                case SyntaxKind.UsingStatement:
+                                    if (declarationSyntax == ((UsingStatementSyntax)declarationSyntax.Parent).Declaration)
+                                    {
+                                        return visited;
+                                    }
+                                    break;
+                                case SyntaxKind.FixedStatement:
+                                    if (declarationSyntax == ((FixedStatementSyntax)declarationSyntax.Parent).Declaration)
+                                    {
+                                        return visited;
+                                    }
+                                    break;
+                            }
+                        }
+
+                        // Declarations without initializers are not instrumented.
+                        if (!HasInitializer((BoundLocalDeclaration)statement))
+                        {
                             return visited;
                         }
+
+                        break;
+                    case BoundKind.MultipleLocalDeclarations:
+                        // Using and fixed statements have a multiple local declarations node even if they contain only one declaration.
+                        switch (statement.Syntax.Parent.Kind())
+                        {
+                            case SyntaxKind.UsingStatement:
+                                if (statement.Syntax == ((UsingStatementSyntax)statement.Syntax.Parent).Declaration)
+                                {
+                                    // This statement represents the declarations in a Using statement, and should not be treated as a separate statement.
+                                    return visited;
+                                }
+                                break;
+                            case SyntaxKind.FixedStatement:
+                                if (statement.Syntax == ((FixedStatementSyntax)statement.Syntax.Parent).Declaration)
+                                {
+                                    // This statement represents the declarations in a Fixed statement, and should not be treated as a separate statement.
+                                    return visited;
+                                }
+                                break;
+                        }
+
+                        // Declarations without initializers are not instrumented.
+                        // Ultimately the individual initializers will be implemented, but for now instrument the statement if it has any initializers.
+                        if (!HasInitializer((BoundMultipleLocalDeclarations)statement))
+                        {
+                            return visited;
+                        }
+
                         break;
                     default:
                         break;
                 }
 
-                return CollectDynamicAnalysis(visited);
+                if (!statement.WasCompilerGenerated)
+                {
+                    return CollectDynamicAnalysis(visited);
+                }
             }
 
             return visited;
         }
         
+        private static bool HasInitializer(BoundLocalDeclaration local)
+        {
+            return local.InitializerOpt != null;
+        }
+
+        private static bool HasInitializer(BoundMultipleLocalDeclarations multiple)
+        {
+            foreach (BoundLocalDeclaration local in multiple.LocalDeclarations)
+            {
+                if (HasInitializer(local))
+                {
+                    return true;
+                }
+            }
+
+            return false;
+        }
+
         private BoundNode CollectDynamicAnalysis(BoundNode node)
         {
             BoundStatement statement = node as BoundStatement;
@@ -236,21 +317,6 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         private BoundNode CollectDynamicAnalysis(BoundStatement statement)
-        {
-            if (statement.WasCompilerGenerated)
-            {
-                return statement;
-            }
-
-            return CollectDynamicAnalysisCore(statement);
-        }
-
-        private BoundNode ForceCollectDynamicAnalysis(BoundNode node)
-        {
-            return CollectDynamicAnalysisCore((BoundStatement)node);
-        }
-
-        private BoundNode CollectDynamicAnalysisCore(BoundStatement statement)
         {
             // Add an entry in the spans array.
 
@@ -300,6 +366,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                         syntaxForSpan = ((BoundNode)usingStatement.ExpressionOpt ?? usingStatement.DeclarationsOpt).Syntax;
                         break;
                     }
+                case BoundKind.FixedStatement:
+                    syntaxForSpan = ((BoundFixedStatement)statement).Declarations.Syntax;
+                    break;
                 case BoundKind.LockStatement:
                     syntaxForSpan = ((BoundLockStatement)statement).Argument.Syntax;
                     break;
