@@ -50,8 +50,23 @@ string MicrosoftDiaSymReaderPortablePdbVersion = GetExistingPackageVersion("Micr
 
 string GetExistingPackageVersion(string name)
 {
-    string path = Directory.Exists(OutDir) ? Directory.GetFiles(OutDir, name + ".*.nupkg").SingleOrDefault() : null;
-    return (path == null) ? null : Path.GetFileNameWithoutExtension(path).Substring(name.Length + 1);
+    if (!Directory.Exists(OutDir))
+    {
+        return null;
+    }
+
+    foreach (var file in Directory.GetFiles(OutDir, "*.nupkg"))
+    {
+        string packageNameAndVersion = Path.GetFileNameWithoutExtension(file);
+        string packageName = string.Join(".", packageNameAndVersion.Split('.').TakeWhile(s => !char.IsNumber(s[0])));
+
+        if (packageName == name)
+        {
+            return packageNameAndVersion.Substring(packageName.Length + 1);
+        }
+    }
+
+    return null;
 }
 
 #endregion
