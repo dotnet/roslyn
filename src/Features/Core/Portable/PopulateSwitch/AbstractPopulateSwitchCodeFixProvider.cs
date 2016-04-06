@@ -11,6 +11,7 @@ using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Simplification;
 using Microsoft.CodeAnalysis.Text;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.PopulateSwitch
 {
@@ -31,16 +32,16 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.PopulateSwitch
                     c => AddMissingSwitchLabelsAsync(context)),
                 context.Diagnostics);
 
-            return Task.FromResult(true);
+            return SpecializedTasks.EmptyTask;
         }
 
         protected abstract TExpressionSyntax GetSwitchExpression(TSwitchBlockSyntax switchBlock);
 
-        protected abstract int InsertPosition(List<TSwitchSectionSyntax> sections);
+        protected abstract int InsertPosition(SyntaxList<TSwitchSectionSyntax> sections);
 
-        protected abstract List<TSwitchSectionSyntax> GetSwitchSections(TSwitchBlockSyntax switchBlock);
+        protected abstract SyntaxList<TSwitchSectionSyntax> GetSwitchSections(TSwitchBlockSyntax switchBlock);
 
-        protected abstract SyntaxNode NewSwitchNode(TSwitchBlockSyntax switchBlock, List<TSwitchSectionSyntax> sections);
+        protected abstract TSwitchBlockSyntax NewSwitchNode(TSwitchBlockSyntax switchBlock, SyntaxList<TSwitchSectionSyntax> sections);
 
         protected abstract TSwitchBlockSyntax GetSwitchStatementNode(SyntaxNode root, TextSpan span);
 
@@ -74,19 +75,14 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.PopulateSwitch
                 var section = (TSwitchSectionSyntax)generator.SwitchSection(caseLabel, new List<SyntaxNode> { switchExitStatement });
 
                 // ensure that the new cases are above the last section if a default case exists, but below all other sections
-                if (containsDefaultLabel)
-                {
-                    newSections.Insert(InsertPosition(newSections), section);
-                }
-                else
-                {
-                    newSections.Add(section);
-                }
+                newSections = containsDefaultLabel
+                    ? newSections.Insert(InsertPosition(newSections), section)
+                    : newSections.Add(section);
             }
 
             if (!containsDefaultLabel)
             {
-                newSections.Add((TSwitchSectionSyntax)generator.DefaultSwitchSection(statements));
+                newSections = newSections.Add((TSwitchSectionSyntax)generator.DefaultSwitchSection(statements));
             }
 
             var newNode = NewSwitchNode(switchNode, newSections)

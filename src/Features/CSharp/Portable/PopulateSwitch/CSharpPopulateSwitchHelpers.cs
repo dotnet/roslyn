@@ -3,7 +3,7 @@ using Microsoft.CodeAnalysis.CSharp.Syntax;
 
 namespace Microsoft.CodeAnalysis.CSharp.PopulateSwitch
 {
-    internal static class CSharpPopulateSwitchHelperClass
+    internal static class CSharpPopulateSwitchHelpers
     {
         public static List<ExpressionSyntax> GetCaseLabels(SwitchStatementSyntax switchStatement, out bool containsDefaultLabel)
         {

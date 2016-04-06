@@ -16,7 +16,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeFixes.PopulateSwitch
             Return selectBlock.SelectStatement.Expression
         End Function
 
-        Protected Overrides Function InsertPosition(sections As List(Of CaseBlockSyntax)) As Integer
+        Protected Overrides Function InsertPosition(sections As SyntaxList(Of CaseBlockSyntax)) As Integer
             Dim cases = sections.OfType(Of CaseBlockSyntax).ToList()
             Dim numOfBlocksWithNoStatementsWithElse = 0
 
@@ -33,11 +33,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeFixes.PopulateSwitch
             Return numOfBlocksWithNoStatementsWithElse
         End Function
 
-        Protected Overrides Function GetSwitchSections(selectBlock As SelectBlockSyntax) As List(Of CaseBlockSyntax)
-            Return New List(Of CaseBlockSyntax)(selectBlock.CaseBlocks)
+        Protected Overrides Function GetSwitchSections(selectBlock As SelectBlockSyntax) As SyntaxList(Of CaseBlockSyntax)
+            Return selectBlock.CaseBlocks
         End Function
 
-        Protected Overrides Function NewSwitchNode(selectBlock As SelectBlockSyntax, sections As List(Of CaseBlockSyntax)) As SyntaxNode
+        Protected Overrides Function NewSwitchNode(selectBlock As SelectBlockSyntax, sections As SyntaxList(Of CaseBlockSyntax)) As SelectBlockSyntax
             Return selectBlock.WithCaseBlocks(SyntaxFactory.List(sections))
         End Function
 

@@ -15,6 +15,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.PopulateSwitch
         protected override ExpressionSyntax GetExpression(SwitchStatementSyntax switchBlock) => switchBlock.Expression;
 
         protected override List<ExpressionSyntax> GetCaseLabels(SwitchStatementSyntax switchBlock, out bool hasDefaultCase)
-            => CSharpPopulateSwitchHelperClass.GetCaseLabels(switchBlock, out hasDefaultCase);
+            => CSharpPopulateSwitchHelpers.GetCaseLabels(switchBlock, out hasDefaultCase);
     }
 }

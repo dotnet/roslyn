@@ -351,7 +351,7 @@
     <Compile Include="Organizing\Organizers\StructDeclarationOrganizer.cs" />
     <Compile Include="PopulateSwitch\CSharpPopulateSwitchCodeFixProvider.cs" />
     <Compile Include="PopulateSwitch\CSharpPopulateSwitchDiagnosticAnalyzer.cs" />
-    <Compile Include="PopulateSwitch\CSharpPopulateSwitchHelperClass.cs" />
+    <Compile Include="PopulateSwitch\CSharpPopulateSwitchHelpers.cs" />
     <Compile Include="RemoveUnnecessaryImports\CSharpRemoveUnnecessaryImportsService.cs" />
     <Compile Include="RemoveUnnecessaryImports\CSharpRemoveUnnecessaryImportsService.Rewriter.cs" />
     <Compile Include="ReplaceMethodWithProperty\CSharpReplaceMethodWithPropertyService.cs" />

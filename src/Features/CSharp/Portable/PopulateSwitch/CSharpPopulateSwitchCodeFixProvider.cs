@@ -19,14 +19,15 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.PopulateSwitch
 
         protected override ExpressionSyntax GetSwitchExpression(SwitchStatementSyntax switchStatement) => switchStatement.Expression;
 
-        protected override int InsertPosition(List<SwitchSectionSyntax> sections) => sections.Count - 1;
+        protected override int InsertPosition(SyntaxList<SwitchSectionSyntax> sections) => sections.Count - 1;
 
-        protected override List<SwitchSectionSyntax> GetSwitchSections(SwitchStatementSyntax switchStatement) => new List<SwitchSectionSyntax>(switchStatement.Sections);
+        protected override SyntaxList<SwitchSectionSyntax> GetSwitchSections(SwitchStatementSyntax switchStatement)
+            => switchStatement.Sections;
 
-        protected override SyntaxNode NewSwitchNode(SwitchStatementSyntax switchStatement, List<SwitchSectionSyntax> sections) => 
+        protected override SwitchStatementSyntax NewSwitchNode(SwitchStatementSyntax switchStatement, SyntaxList<SwitchSectionSyntax> sections) => 
             switchStatement.WithSections(SyntaxFactory.List(sections));
 
         protected override List<ExpressionSyntax> GetCaseLabels(SwitchStatementSyntax switchStatement, out bool containsDefaultLabel)
-            => CSharpPopulateSwitchHelperClass.GetCaseLabels(switchStatement, out containsDefaultLabel);
+            => CSharpPopulateSwitchHelpers.GetCaseLabels(switchStatement, out containsDefaultLabel);
     }
 }
