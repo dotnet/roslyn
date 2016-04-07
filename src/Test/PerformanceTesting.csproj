@@ -51,11 +51,11 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Folder Include="Perf\projects\csharp\" />
     <Folder Include="Perf\temp\cpc\" />
     <Folder Include="Properties\" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Perf\projects\HelloWorld.cs" />
     <Compile Include="Perf\util\Logger.cs" />
     <Compile Include="Perf\util\Tools.cs" />
     <Compile Include="Perf\util\TrivialLogger.cs" />
@@ -99,6 +99,16 @@
     <Content Include="Perf\runner.csx">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
+    <Content Include="Perf\projects\csharp\csharp_compiler.csx">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Perf\projects\csharp\csharp_compiler_no_analyzer.csx">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Perf\projects\csharp\csharp_compiler_no_analyzer_no_determinism.csx">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <None Include="Perf\projects\hello_world.csx" />
     <None Include="Perf\temp\compiler_time.csv" />
     <None Include="Perf\temp\file_size.csv" />
     <None Include="Perf\temp\run_time.csv" />
