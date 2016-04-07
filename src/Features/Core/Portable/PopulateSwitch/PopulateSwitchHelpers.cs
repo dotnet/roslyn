@@ -1,4 +1,7 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
+using Microsoft.CodeAnalysis.Semantics;
+using Microsoft.CodeAnalysis.Shared.Utilities;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.PopulateSwitch
@@ -8,12 +11,89 @@ namespace Microsoft.CodeAnalysis.PopulateSwitch
         public const string MissingCases = nameof(MissingCases);
         public const string MissingDefaultCase = nameof(MissingDefaultCase);
 
-        public static IReadOnlyList<ISymbol> GetMissingSwitchCases<TExpressionSyntax>(
-            SemanticModel model,
-            INamedTypeSymbol enumType,
-            IReadOnlyList<TExpressionSyntax> labelNames) where TExpressionSyntax : SyntaxNode
+        public static bool HasDefaultCase(ISwitchStatement switchStatement)
         {
-            var missingSwitchCases = new List<ISymbol>();
+            foreach (var switchCase in switchStatement.Cases)
+            {
+                if (HasDefaultCase(switchCase))
+                {
+                    return true;
+                }
+            }
+
+            return false;
+        }
+
+        private static bool HasDefaultCase(ISwitchCase switchCase)
+        {
+            foreach (var clause in switchCase.Clauses)
+            {
+                if (clause.CaseKind == CaseKind.Default)
+                {
+                    return true;
+                }
+            }
+
+            return false;
+        }
+
+        public static ICollection<ISymbol> GetMissingEnumMembers(
+            ISwitchStatement switchStatement, ITypeSymbol enumType)
+        {
+            var enumMembers = new Dictionary<long, ISymbol>();
+            if (!TryGetAllEnumMembers(enumType, enumMembers) ||
+                !TryRemoveExistingEnumMembers(switchStatement, enumMembers))
+            {
+                return SpecializedCollections.EmptyCollection<ISymbol>();
+            }
+
+            return enumMembers.Values;
+        }
+
+        private static bool TryRemoveExistingEnumMembers(ISwitchStatement switchStatement, Dictionary<long, ISymbol> enumValues)
+        {
+            foreach (var switchCase in switchStatement.Cases)
+            {
+                foreach (var clause in switchCase.Clauses)
+                {
+                    switch (clause.CaseKind)
+                    {
+                        default:
+                        case CaseKind.None:
+                        case CaseKind.Relational:
+                        case CaseKind.Range:
+                            // This was some sort of complex switch.  For now just ignore
+                            // these and assume that they're complete.
+                            return false;
+
+                        case CaseKind.Default:
+                            // ignore the 'default/else' clause.
+                            continue;
+
+                        case CaseKind.SingleValue:
+                            var value = ((ISingleValueCaseClause)clause).Value;
+                            if (!value.ConstantValue.HasValue)
+                            {
+                                // We had a case which didn't resolve properly.  
+                                // Assume the switch is complete.
+                                return false;
+                            }
+
+                            var caseValue = IntegerUtilities.ToInt64(value.ConstantValue.Value);
+                            enumValues.Remove(caseValue);
+
+                            break;
+                    }
+                }
+            }
+
+            return true;
+        }
+
+        private static bool TryGetAllEnumMembers(
+            ITypeSymbol enumType,
+            Dictionary<long, ISymbol> enumValues)
+        {
             foreach (var member in enumType.GetMembers())
             {
                 // skip `.ctor` and `__value`
@@ -23,24 +103,24 @@ namespace Microsoft.CodeAnalysis.PopulateSwitch
                     continue;
                 }
 
-                missingSwitchCases.Add(member);
-            }
-
-            foreach (var label in labelNames)
-            {
-                var symbol = model.GetSymbolInfo(label).Symbol;
-                if (symbol == null)
+                if (fieldSymbol.ConstantValue == null)
                 {
-                    // something is wrong with the label and the SemanticModel was unable to 
-                    // determine its symbol.  Abort the analyzer by considering this switch
-                    // statement as complete.
-                    return SpecializedCollections.EmptyReadOnlyList<ISymbol>();
+                    // We have an enum that has problems with it (i.e. non-const members).  We won't
+                    // be able to determine properly if the switch is complete.  Assume it is so we
+                    // don't offer to do anything.
+                    return false;
                 }
 
-                missingSwitchCases.Remove(symbol);
+                // Multiple enum members may have the same value.  Only consider the first one
+                // we run int.
+                var enumValue = IntegerUtilities.ToInt64(fieldSymbol.ConstantValue);
+                if (!enumValues.ContainsKey(enumValue))
+                {
+                    enumValues.Add(enumValue, fieldSymbol);
+                }
             }
 
-            return missingSwitchCases;
+            return true;
         }
     }
 }

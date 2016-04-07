@@ -10,15 +10,16 @@ using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.Formatting;
+using Microsoft.CodeAnalysis.Semantics;
 using Microsoft.CodeAnalysis.Simplification;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.PopulateSwitch
 {
     internal abstract class AbstractPopulateSwitchCodeFixProvider<TSwitchBlockSyntax, TExpressionSyntax, TSwitchSectionSyntax> : CodeFixProvider 
-            where TSwitchBlockSyntax : SyntaxNode
-            where TSwitchSectionSyntax : SyntaxNode
-            where TExpressionSyntax : SyntaxNode
+        where TSwitchBlockSyntax : SyntaxNode
+        where TSwitchSectionSyntax : SyntaxNode
+        where TExpressionSyntax : SyntaxNode
     {
         public override ImmutableArray<string> FixableDiagnosticIds => ImmutableArray.Create(IDEDiagnosticIds.PopulateSwitchDiagnosticId);
 
@@ -63,15 +64,11 @@ namespace Microsoft.CodeAnalysis.PopulateSwitch
             return SpecializedTasks.EmptyTask;
         }
 
-        protected abstract TExpressionSyntax GetSwitchExpression(TSwitchBlockSyntax switchBlock);
-
         protected abstract int InsertPosition(SyntaxList<TSwitchSectionSyntax> sections);
 
         protected abstract SyntaxList<TSwitchSectionSyntax> GetSwitchSections(TSwitchBlockSyntax switchBlock);
 
         protected abstract TSwitchBlockSyntax NewSwitchNode(TSwitchBlockSyntax switchBlock, SyntaxList<TSwitchSectionSyntax> sections);
-
-        protected abstract List<TExpressionSyntax> GetCaseLabels(TSwitchBlockSyntax switchBlock, out bool containsDefaultLabel);
 
         private async Task<Document> AddMissingSwitchCasesAsync(
             CodeFixContext context, bool includeMissingCases, bool includeDefaultCase)
@@ -82,13 +79,13 @@ namespace Microsoft.CodeAnalysis.PopulateSwitch
 
             var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
             var model = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
-            var switchNode = (TSwitchBlockSyntax) root.FindNode(span);
 
-            var enumType = (INamedTypeSymbol)model.GetTypeInfo(GetSwitchExpression(switchNode)).Type;
+            var switchNode = (TSwitchBlockSyntax)root.FindNode(span);
+            var switchStatement = (ISwitchStatement)model.GetOperation(switchNode, cancellationToken);
+            var enumType = switchStatement.Value.Type;
 
-            bool containsDefaultCase;
-            var caseLabels = GetCaseLabels(switchNode, out containsDefaultCase);
-            var missingLabels = PopulateSwitchHelpers.GetMissingSwitchCases(model, enumType, caseLabels);
+            var containsDefaultCase = PopulateSwitchHelpers.HasDefaultCase(switchStatement);
+            var missingLabels = PopulateSwitchHelpers.GetMissingEnumMembers(switchStatement, enumType);
 
             var generator = SyntaxGenerator.GetGenerator(document);
 

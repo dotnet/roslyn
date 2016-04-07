@@ -10,10 +10,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.PopulateSwitch
     Partial Friend Class VisualBasicPopulateSwitchCodeFixProvider
         Inherits AbstractPopulateSwitchCodeFixProvider(Of SelectBlockSyntax, ExpressionSyntax, CaseBlockSyntax)
 
-        Protected Overrides Function GetSwitchExpression(selectBlock As SelectBlockSyntax) As ExpressionSyntax
-            Return selectBlock.SelectStatement.Expression
-        End Function
-
         Protected Overrides Function InsertPosition(sections As SyntaxList(Of CaseBlockSyntax)) As Integer
             Dim cases = sections.OfType(Of CaseBlockSyntax).ToList()
             Dim numOfBlocksWithNoStatementsWithElse = 0
@@ -37,10 +33,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.PopulateSwitch
 
         Protected Overrides Function NewSwitchNode(selectBlock As SelectBlockSyntax, sections As SyntaxList(Of CaseBlockSyntax)) As SelectBlockSyntax
             Return selectBlock.WithCaseBlocks(SyntaxFactory.List(sections))
-        End Function
-
-        Protected Overrides Function GetCaseLabels(selectBlock As SelectBlockSyntax, <Out> ByRef containsDefaultLabel As Boolean) As List(Of ExpressionSyntax)
-            Return VisualBasicPopulateSwitchHelperClass.GetCaseLabels(selectBlock, containsDefaultLabel)
         End Function
     End Class
 End Namespace
