@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Composition;
 using System.Diagnostics;
 using System.Linq;
 using System.Threading;
@@ -16,8 +17,9 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.PopulateSwitch
 {
-    internal abstract class AbstractPopulateSwitchCodeFixProvider<TSwitchSectionSyntax> : CodeFixProvider 
-        where TSwitchSectionSyntax : SyntaxNode
+    [ExportCodeFixProvider(LanguageNames.CSharp, LanguageNames.VisualBasic, Name = PredefinedCodeFixProviderNames.PopulateSwitch), Shared]
+    [ExtensionOrder(After = PredefinedCodeFixProviderNames.ImplementInterface)]
+    internal class PopulateSwitchCodeFixProvider : CodeFixProvider
     {
         public override ImmutableArray<string> FixableDiagnosticIds => ImmutableArray.Create(IDEDiagnosticIds.PopulateSwitchDiagnosticId);
 

@@ -293,7 +293,7 @@
     <Compile Include="MakeMethodSynchronous\AbstractMakeMethodSynchronousCodeFixProvider.cs" />
     <Compile Include="Navigation\NavigationOptions.cs" />
     <Compile Include="Navigation\NavigationOptionsProvider.cs" />
-    <Compile Include="PopulateSwitch\AbstractPopulateSwitchCodeFixProvider.cs" />
+    <Compile Include="PopulateSwitch\PopulateSwitchCodeFixProvider.cs" />
     <Compile Include="PopulateSwitch\PopulateSwitchDiagnosticAnalyzer.cs" />
     <Compile Include="PopulateSwitch\PopulateSwitchHelpers.cs" />
     <Compile Include="QuickInfo\QuickInfoUtilities.cs" />
