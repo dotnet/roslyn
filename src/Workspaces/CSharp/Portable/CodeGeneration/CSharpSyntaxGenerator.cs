@@ -2510,6 +2510,26 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
             return this.WithParameterList(declaration, newList);
         }
 
+        public override IReadOnlyList<SyntaxNode> GetSwitchSections(SyntaxNode switchStatement)
+        {
+            var statement = switchStatement as SwitchStatementSyntax;
+            return statement == null
+                ? SpecializedCollections.EmptyReadOnlyList<SyntaxNode>()
+                : statement.Sections;
+        }
+
+        public override SyntaxNode InsertSwitchSections(SyntaxNode switchStatement, int index, IEnumerable<SyntaxNode> switchSections)
+        {
+            var statement = switchStatement as SwitchStatementSyntax;
+            if (statement == null)
+            {
+                return switchStatement;
+            }
+
+            return statement.WithSections(
+                statement.Sections.InsertRange(index, switchSections.Cast<SwitchSectionSyntax>()));
+        }
+
         private BaseParameterListSyntax GetParameterList(SyntaxNode declaration)
         {
             switch (declaration.Kind())
