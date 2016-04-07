@@ -5,12 +5,15 @@ namespace Microsoft.CodeAnalysis.PopulateSwitch
 {
     internal static class PopulateSwitchHelpers
     {
-        public static IReadOnlyList<ISymbol> GetUnusedSwitchLabels<TExpressionSyntax>(
+        public const string MissingCases = nameof(MissingCases);
+        public const string MissingDefaultCase = nameof(MissingDefaultCase);
+
+        public static IReadOnlyList<ISymbol> GetMissingSwitchCases<TExpressionSyntax>(
             SemanticModel model,
             INamedTypeSymbol enumType,
             IReadOnlyList<TExpressionSyntax> labelNames) where TExpressionSyntax : SyntaxNode
         {
-            var unusedSymbols = new List<ISymbol>();
+            var missingSwitchCases = new List<ISymbol>();
             foreach (var member in enumType.GetMembers())
             {
                 // skip `.ctor` and `__value`
@@ -20,7 +23,7 @@ namespace Microsoft.CodeAnalysis.PopulateSwitch
                     continue;
                 }
 
-                unusedSymbols.Add(member);
+                missingSwitchCases.Add(member);
             }
 
             foreach (var label in labelNames)
@@ -34,10 +37,10 @@ namespace Microsoft.CodeAnalysis.PopulateSwitch
                     return SpecializedCollections.EmptyReadOnlyList<ISymbol>();
                 }
 
-                unusedSymbols.Remove(symbol);
+                missingSwitchCases.Remove(symbol);
             }
 
-            return unusedSymbols;
+            return missingSwitchCases;
         }
     }
 }

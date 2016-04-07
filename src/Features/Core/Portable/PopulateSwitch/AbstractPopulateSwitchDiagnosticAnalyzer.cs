@@ -16,11 +16,11 @@ namespace Microsoft.CodeAnalysis.PopulateSwitch
         private static readonly LocalizableString s_localizableMessage = new LocalizableResourceString(nameof(WorkspacesResources.PopulateSwitch), WorkspacesResources.ResourceManager, typeof(WorkspacesResources));
 
         private static readonly DiagnosticDescriptor s_descriptor = new DiagnosticDescriptor(IDEDiagnosticIds.PopulateSwitchDiagnosticId,
-                                                                    s_localizableTitle,
-                                                                    s_localizableMessage,
-                                                                    DiagnosticCategory.Style,
-                                                                    DiagnosticSeverity.Hidden,
-                                                                    isEnabledByDefault: true);
+            s_localizableTitle,
+            s_localizableMessage,
+            DiagnosticCategory.Style,
+            DiagnosticSeverity.Hidden,
+            isEnabledByDefault: true);
 
         #region Interface methods
 
@@ -41,9 +41,15 @@ namespace Microsoft.CodeAnalysis.PopulateSwitch
             var tree = model.SyntaxTree;
             var switchBlock = (TSwitchBlockSyntax)context.Node;
 
-            if (SwitchIsIncomplete(model, switchBlock) &&
+            bool missingCases;
+            bool missingDefaultCase;
+            if (SwitchIsIncomplete(model, switchBlock, out missingCases, out missingDefaultCase) &&
                 !tree.OverlapsHiddenPosition(switchBlock.Span, context.CancellationToken))
             {
+                var properties = ImmutableDictionary<string, string>.Empty
+                    .Add(PopulateSwitchHelpers.MissingCases, missingCases.ToString())
+                    .Add(PopulateSwitchHelpers.MissingDefaultCase, missingDefaultCase.ToString());
+
                 var diagnostic = Diagnostic.Create(s_descriptor, switchBlock.GetLocation());
                 context.ReportDiagnostic(diagnostic);
             }
@@ -51,32 +57,31 @@ namespace Microsoft.CodeAnalysis.PopulateSwitch
 
         #endregion
 
-        private bool SwitchIsIncomplete(SemanticModel model, TSwitchBlockSyntax node)
+        private bool SwitchIsIncomplete(
+            SemanticModel model, TSwitchBlockSyntax node,
+            out bool missingCases, out bool missingDefaultCase)
         {
             bool hasDefaultCase;
             var caseLabels = GetCaseLabels(node, out hasDefaultCase);
 
-            if (!hasDefaultCase)
-            {
-                // If the switch doesn't have a 'default' label, always provide the option to the
-                // user to add one.
-                return true;
-            }
+            missingDefaultCase = !hasDefaultCase;
+            missingCases = false;
 
             // We know the switch has a 'default' label.  Now we need to determine if there are 
             // any missing labels so that we can offer to generate them for the user.
 
+            // If we can't determine the type of this switch, or we're switching over someting
+            // that sin't an enum, just consider this switch complete.  We can't add any cases
+            // here.
             var enumType = model.GetTypeInfo(GetExpression(node)).Type as INamedTypeSymbol;
-            if (enumType == null || enumType.TypeKind != TypeKind.Enum)
+            if (enumType != null && enumType.TypeKind == TypeKind.Enum)
             {
-                // If we can't determine the type of this switch, or we're switching over someting
-                // that sin't an enum, just consider this switch complete.  We can't add any cases
-                // here.
-                return false;
+                var missingSwitchCases = PopulateSwitchHelpers.GetMissingSwitchCases(model, enumType, caseLabels);
+                missingCases = missingSwitchCases.Count > 0;
             }
 
-            var unusedLabels = PopulateSwitchHelpers.GetUnusedSwitchLabels(model, enumType, caseLabels);
-            return unusedLabels.Count > 0;
+            // The switch is incomplete if we're missing any cases or we're missing a default case.
+            return missingDefaultCase || missingCases;
         }
 
         public DiagnosticAnalyzerCategory GetAnalyzerCategory() => DiagnosticAnalyzerCategory.SemanticSpanAnalysis;
