@@ -756,24 +756,6 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 #endif
         
-        internal Binder WithPatternVariablesIfAny(ExpressionSyntax scopeOpt)
-        {
-            Debug.Assert(Locals.Length == 0);
-            return new PatternVariableBinder(scopeOpt, scopeOpt, this);
-        }
-
-        internal Binder WithPatternVariablesIfAny(ArgumentListSyntax initializerArgumentListOpt)
-        {
-            Debug.Assert(Locals.Length == 0);
-
-            if (initializerArgumentListOpt == null || initializerArgumentListOpt.Arguments.Count == 0)
-            {
-                return this;
-            }
-
-            return new PatternVariableBinder(initializerArgumentListOpt, initializerArgumentListOpt.Arguments, this);
-        }
-
         internal void BuildAndAddPatternVariables(
             ArrayBuilder<LocalSymbol> builder,
             CSharpSyntaxNode node = null,
@@ -788,11 +770,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             patterns.Free();
         }
 
-        internal BoundExpression WrapWithVariablesIfAny(BoundExpression expression)
+        internal BoundExpression WrapWithVariablesIfAny(CSharpSyntaxNode node, BoundExpression expression)
         {
             return (Locals.Length == 0)
                 ? expression
-                : new BoundSequence(expression.Syntax, Locals, ImmutableArray<BoundExpression>.Empty, expression, expression.Type) { WasCompilerGenerated = true };
+                : new BoundSequence(node, Locals, ImmutableArray<BoundExpression>.Empty, expression, expression.Type) { WasCompilerGenerated = true };
         }
     }
 }

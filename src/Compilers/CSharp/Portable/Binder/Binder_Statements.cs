@@ -457,7 +457,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
                 else if (node.ExpressionBody != null)
                 {
-                    block = binder.GetBinder(node.ExpressionBody).BindExpressionBodyAsBlock(node.ExpressionBody, diagnostics);
+                    block = binder.BindExpressionBodyAsBlock(node.ExpressionBody, diagnostics);
                 }
                 else
                 {
@@ -3558,9 +3558,12 @@ namespace Microsoft.CodeAnalysis.CSharp
         internal BoundBlock BindExpressionBodyAsBlock(ArrowExpressionClauseSyntax expressionBody,
                                                       DiagnosticBag diagnostics)
         {
+            Binder bodyBinder = this.GetBinder(expressionBody);
+            Debug.Assert(bodyBinder != null);
+
             RefKind refKind = expressionBody.RefKeyword.Kind().GetRefKind();
-            BoundExpression expression = BindValue(expressionBody.Expression, diagnostics, refKind != RefKind.None ? BindValueKind.RefReturn : BindValueKind.RValue);
-            return CreateBlockFromExpression(expressionBody, this.Locals, refKind, expression, expressionBody.Expression, diagnostics);
+            BoundExpression expression = bodyBinder.BindValue(expressionBody.Expression, diagnostics, refKind != RefKind.None ? BindValueKind.RefReturn : BindValueKind.RValue);
+            return bodyBinder.CreateBlockFromExpression(expressionBody, bodyBinder.Locals, refKind, expression, expressionBody.Expression, diagnostics);
         }
 
         /// <summary>
@@ -3568,8 +3571,11 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// </summary>
         public BoundBlock BindLambdaExpressionAsBlock(RefKind refKind, ExpressionSyntax body, DiagnosticBag diagnostics)
         {
-            BoundExpression expression = BindValue(body, diagnostics, refKind != RefKind.None ? BindValueKind.RefReturn : BindValueKind.RValue);
-            return CreateBlockFromExpression(body, this.Locals, refKind, expression, body, diagnostics);
+            Binder bodyBinder = this.GetBinder(body);
+            Debug.Assert(bodyBinder != null);
+
+            BoundExpression expression = bodyBinder.BindValue(body, diagnostics, refKind != RefKind.None ? BindValueKind.RefReturn : BindValueKind.RValue);
+            return bodyBinder.CreateBlockFromExpression(body, bodyBinder.Locals, refKind, expression, body, diagnostics);
         }
 
         internal virtual ImmutableArray<LocalSymbol> Locals

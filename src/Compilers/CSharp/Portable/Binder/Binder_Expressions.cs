@@ -329,18 +329,34 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return null;
             }
 
+            SymbolKind containingMemberOrLambdaKind = this.ContainingMemberOrLambda.Kind;
+            Debug.Assert(containingMemberOrLambdaKind == SymbolKind.Field || containingMemberOrLambdaKind == SymbolKind.Method);
+            bool isMemberInitializer = containingMemberOrLambdaKind == SymbolKind.Field;
+            Binder initializerBinder = isMemberInitializer ? this.GetBinder(initializerOpt) : this;
+
+            Debug.Assert(initializerBinder != null);
+
             BindValueKind valueKind;
-            IsInitializerRefKindValid(initializerOpt, initializerOpt, refKind, diagnostics, out valueKind);
-            var initializer = BindPossibleArrayInitializer(initializerOpt.Value, varType, valueKind, diagnostics);
-            return GenerateConversionForAssignment(varType, initializer, diagnostics);
+            initializerBinder.IsInitializerRefKindValid(initializerOpt, initializerOpt, refKind, diagnostics, out valueKind);
+            var initializer = initializerBinder.BindPossibleArrayInitializer(initializerOpt.Value, varType, valueKind, diagnostics);
+            initializer = initializerBinder.GenerateConversionForAssignment(varType, initializer, diagnostics);
+
+            if (isMemberInitializer)
+            {
+                initializer = initializerBinder.WrapWithVariablesIfAny(initializerOpt, initializer);
+            }
+
+            return initializer;
         }
 
         internal Binder CreateBinderForParameterDefaultValue(
             ParameterSymbol parameter,
             EqualsValueClauseSyntax defaultValueSyntax)
         {
-            return new LocalScopeBinder(this.WithContainingMemberOrLambda(parameter.ContainingSymbol).WithAdditionalFlags(BinderFlags.ParameterDefaultValue)).
-                   WithPatternVariablesIfAny(defaultValueSyntax.Value);
+            var binder = new LocalScopeBinder(this.WithContainingMemberOrLambda(parameter.ContainingSymbol).WithAdditionalFlags(BinderFlags.ParameterDefaultValue));
+            return new ExecutableCodeBinder(defaultValueSyntax,
+                                            parameter.ContainingSymbol,
+                                            binder);
         }
 
         internal BoundExpression BindParameterDefaultValue(
@@ -353,21 +369,27 @@ namespace Microsoft.CodeAnalysis.CSharp
             Debug.Assert(this.ContainingMember().Kind == SymbolKind.Method || this.ContainingMember().Kind == SymbolKind.Property);
 
             // UNDONE: The binding and conversion has to be executed in a checked context.
+            Binder defaultValueBinder = this.GetBinder(defaultValueSyntax);
+            Debug.Assert(defaultValueBinder != null);
 
-            valueBeforeConversion = this.BindValue(defaultValueSyntax.Value, diagnostics, BindValueKind.RValue);
+            valueBeforeConversion = defaultValueBinder.BindValue(defaultValueSyntax.Value, diagnostics, BindValueKind.RValue);
 
             // Always generate the conversion, even if the expression is not convertible to the given type.
             // We want the erroneous conversion in the tree.
-            return WrapWithVariablesIfAny(GenerateConversionForAssignment(parameterType, valueBeforeConversion, diagnostics, isDefaultParameter: true));
+            return defaultValueBinder.WrapWithVariablesIfAny(defaultValueSyntax, defaultValueBinder.GenerateConversionForAssignment(parameterType, valueBeforeConversion, diagnostics, isDefaultParameter: true));
         }
 
         internal BoundExpression BindEnumConstantInitializer(
             SourceEnumConstantSymbol symbol,
-            ExpressionSyntax valueSyntax,
+            EqualsValueClauseSyntax equalsValueSyntax,
             DiagnosticBag diagnostics)
         {
-            var initializer = BindValue(valueSyntax, diagnostics, BindValueKind.RValue);
-            return GenerateConversionForAssignment(symbol.ContainingType.EnumUnderlyingType, initializer, diagnostics);
+            Binder initializerBinder = this.GetBinder(equalsValueSyntax);
+            Debug.Assert(initializerBinder != null);
+
+            var initializer = initializerBinder.BindValue(equalsValueSyntax.Value, diagnostics, BindValueKind.RValue);
+            initializer = initializerBinder.GenerateConversionForAssignment(symbol.ContainingType.EnumUnderlyingType, initializer, diagnostics);
+            return initializerBinder.WrapWithVariablesIfAny(equalsValueSyntax, initializer);
         }
 
         public BoundExpression BindExpression(ExpressionSyntax node, DiagnosticBag diagnostics)
@@ -2645,8 +2667,17 @@ namespace Microsoft.CodeAnalysis.CSharp
             MethodSymbol constructor,
             DiagnosticBag diagnostics)
         {
-            var result = BindConstructorInitializerCore(initializerArgumentListOpt, constructor, diagnostics);
-            return WrapWithVariablesIfAny(result);
+            Binder initializerBinder = initializerArgumentListOpt == null ? this : this.GetBinder(initializerArgumentListOpt);
+            Debug.Assert(initializerBinder != null);
+
+            var result = initializerBinder.BindConstructorInitializerCore(initializerArgumentListOpt, constructor, diagnostics);
+
+            if (initializerArgumentListOpt != null)
+            {
+                result = initializerBinder.WrapWithVariablesIfAny(initializerArgumentListOpt, result);
+            }
+
+            return result;
         }
 
         private BoundExpression BindConstructorInitializerCore(
@@ -2654,6 +2685,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             MethodSymbol constructor,
             DiagnosticBag diagnostics)
         {
+            Debug.Assert(initializerArgumentListOpt == null || this.SkipSemanticModelBinder() == this.GetBinder(initializerArgumentListOpt).SkipSemanticModelBinder());
             Debug.Assert((object)constructor != null);
             Debug.Assert(constructor.MethodKind == MethodKind.Constructor ||
                 constructor.MethodKind == MethodKind.StaticConstructor); // error scenario: constructor initializer on static constructor
