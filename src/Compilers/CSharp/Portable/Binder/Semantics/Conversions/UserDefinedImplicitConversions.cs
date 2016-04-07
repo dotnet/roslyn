@@ -599,6 +599,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 // Added for C# 7.
                 case ConversionKind.ImplicitThrow:
+                case ConversionKind.ImplicitTuple:
                     return true;
 
                 default:

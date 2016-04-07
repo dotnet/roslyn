@@ -37,5 +37,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             // Conversions involving interpolated strings require a Binder.
             throw ExceptionUtilities.Unreachable;
         }
+
+        protected override bool HasImplicitTupleConversion(BoundExpression source, TypeSymbol destination, ref HashSet<DiagnosticInfo> useSiteDiagnostics)
+        {
+            // Tuple conversions require a Binder, recursively
+            throw ExceptionUtilities.Unreachable;
+        }
     }
 }

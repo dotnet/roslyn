@@ -218,6 +218,77 @@ class C
         }
 
         [Fact]
+        public void SimpleTuple2()
+        {
+            var source = @"
+class C
+{
+    static void Main()
+    {
+        var s = Single((a:1, b:2));
+        System.Console.WriteLine(s[0].b.ToString());
+    }
+
+    static T[] Single<T>(T x)
+    {
+        return new T[]{x};
+    }
+}
+" + trivial2uple;
+
+            var comp = CompileAndVerify(source, expectedOutput: "2");
+            comp.VerifyDiagnostics();
+            comp.VerifyIL("C.Main", @"
+{
+  // Code size       34 (0x22)
+  .maxstack  2
+  IL_0000:  ldc.i4.1
+  IL_0001:  ldc.i4.2
+  IL_0002:  newobj     ""System.ValueTuple<int, int>..ctor(int, int)""
+  IL_0007:  call       ""<tuple: int a, int b>[] C.Single<<tuple: int a, int b>>(<tuple: int a, int b>)""
+  IL_000c:  ldc.i4.0
+  IL_000d:  ldelema    ""System.ValueTuple<int, int>""
+  IL_0012:  ldflda     ""int System.ValueTuple<int, int>.Item2""
+  IL_0017:  call       ""string int.ToString()""
+  IL_001c:  call       ""void System.Console.WriteLine(string)""
+  IL_0021:  ret
+}");
+        }
+
+        [Fact]
+        public void SimpleTupleTargetTyped()
+        {
+            var source = @"
+class C
+{
+    static void Main()
+    {
+        (object, object) x = (null, null);
+        System.Console.WriteLine(x.ToString());
+    }
+}
+" + trivial2uple;
+
+            var comp = CompileAndVerify(source, expectedOutput: "{, }");
+            comp.VerifyDiagnostics();
+            comp.VerifyIL("C.Main", @"
+{
+  // Code size       28 (0x1c)
+  .maxstack  3
+  .locals init (System.ValueTuple<object, object> V_0) //x
+  IL_0000:  ldloca.s   V_0
+  IL_0002:  ldnull
+  IL_0003:  ldnull
+  IL_0004:  call       ""System.ValueTuple<object, object>..ctor(object, object)""
+  IL_0009:  ldloca.s   V_0
+  IL_000b:  constrained. ""System.ValueTuple<object, object>""
+  IL_0011:  callvirt   ""string object.ToString()""
+  IL_0016:  call       ""void System.Console.WriteLine(string)""
+  IL_001b:  ret
+}");
+        }
+
+        [Fact]
         public void SimpleTupleNested()
         {
             var source = @"
@@ -1699,6 +1770,361 @@ class C
 ";
 
             var comp = CompileAndVerify(source, expectedOutput: "12345678901234567890123456789012345");
+        }
+
+
+        [Fact]
+        public void TupleTargetTypeTwice()
+        {
+            var source = @"
+class C
+{
+    static void Main()
+    {
+        // this works
+        (short, string) x1 = (1, ""hello"");
+        // this does not
+        (short, string) x2 = ((byte, string))(1, ""hello"");
+    }
+}
+" + trivial2uple;
+
+            CreateCompilationWithMscorlib(source).VerifyDiagnostics(
+                // (9,30): error CS0029: Cannot implicitly convert type '<tuple: byte Item1, string Item2>' to '<tuple: short Item1, string Item2>'
+                //         (short, string) x2 = ((byte, string))(1, "hello");
+                Diagnostic(ErrorCode.ERR_NoImplicitConv, @"((byte, string))(1, ""hello"")").WithArguments("<tuple: byte Item1, string Item2>", "<tuple: short Item1, string Item2>").WithLocation(9, 30)
+            );
+        }
+
+        [Fact]
+        public void TupleTargetTypeLambda()
+        {
+            var source = @"
+
+using System;
+
+class C
+{
+    static void Test(Func<Func<(short, short)>> d)
+    {
+        Console.WriteLine(""short"");
+    }
+
+    static void Test(Func<Func<(byte, byte)>> d)
+    {
+        Console.WriteLine(""byte"");
+    }
+
+    static void Main()
+    {
+        // this works
+        Test( ()=>()=>((byte, byte))(1,1)) ;
+
+        // this does not
+        Test(()=>()=>(1,1));
+    }
+}
+" + trivial2uple;
+
+            CreateCompilationWithMscorlib(source).VerifyDiagnostics(
+                // (23,9): error CS0121: The call is ambiguous between the following methods or properties: 'C.Test(Func<Func<<tuple: short Item1, short Item2>>>)' and 'C.Test(Func<Func<<tuple: byte Item1, byte Item2>>>)'
+                //         Test(()=>()=>(1,1));
+                Diagnostic(ErrorCode.ERR_AmbigCall, "Test").WithArguments("C.Test(System.Func<System.Func<<tuple: short Item1, short Item2>>>)", "C.Test(System.Func<System.Func<<tuple: byte Item1, byte Item2>>>)").WithLocation(23, 9)
+            );
+        }
+
+        [Fact]
+        public void TupleTargetTypeLambda1()
+        {
+            var source = @"
+
+using System;
+
+class C
+{
+    static void Test(Func<(Func<short>, int)> d)
+    {
+        Console.WriteLine(""short"");
+    }
+
+    static void Test(Func<(Func<byte>, int)> d)
+    {
+        Console.WriteLine(""byte"");
+    }
+
+    static void Main()
+    {
+        // this works
+        Test(()=>(()=>(byte)1, 1));
+
+        // this does not
+        Test(()=>(()=>1, 1));
+    }
+}
+" + trivial2uple;
+
+            CreateCompilationWithMscorlib(source).VerifyDiagnostics(
+                // (23,9): error CS0121: The call is ambiguous between the following methods or properties: 'C.Test(Func<<tuple: Func<short> Item1, int Item2>>)' and 'C.Test(Func<<tuple: Func<byte> Item1, int Item2>>)'
+                //         Test(()=>(()=>1, 1));
+                Diagnostic(ErrorCode.ERR_AmbigCall, "Test").WithArguments("C.Test(System.Func<<tuple: System.Func<short> Item1, int Item2>>)", "C.Test(System.Func<<tuple: System.Func<byte> Item1, int Item2>>)").WithLocation(23, 9)
+            );
+        }
+
+        [Fact]
+        public void TargetTypingOverload01()
+        {
+            var source = @"
+using System;
+class C
+{
+    static void Main()
+    {
+        Test((null, null));
+        Test((1, 1));
+        Test((()=>7, ()=>8), 2);
+    }
+
+    static void Test<T>((T, T) x)
+    {
+        System.Console.WriteLine(""first"");
+    }
+
+    static void Test((object, object) x)
+    {
+        System.Console.WriteLine(""second"");
+    }
+
+    static void Test<T>((Func<T>, Func<T>) x, T y)
+    {
+        System.Console.WriteLine(""third"");
+        System.Console.WriteLine(x.Item1().ToString());
+    }
+}
+" + trivial2uple;
+
+            var comp = CompileAndVerify(source, expectedOutput: @"
+second
+first
+third
+7
+");
+        }
+
+        [Fact(Skip = "PROTOTYPE: type inference through tuples NYI")]
+        public void TargetTypingOverload02()
+        {
+            var source = @"
+using System;
+class C
+{
+    static void Main()
+    {
+        Test((()=>7, ()=>8));
+    }
+
+    static void Test<T>((T, T) x)
+    {
+        System.Console.WriteLine(""first"");
+    }
+
+    static void Test((object, object) x)
+    {
+        System.Console.WriteLine(""second"");
+    }
+
+    static void Test<T>((Func<T>, Func<T>) x)
+    {
+        System.Console.WriteLine(""third"");
+        System.Console.WriteLine(x.Item1().ToString());
+    }
+}
+" + trivial2uple;
+
+            var comp = CompileAndVerify(source, expectedOutput: @"
+third
+7
+");
+        }
+
+        [Fact]
+        public void TargetTypingNullable01()
+        {
+            var source = @"
+using System;
+class C
+{
+    static void Main()
+    {
+        var x = M1();
+        Test(x);
+    }
+
+    static (int a, double b)? M1()
+    {
+        return (1, 2);
+    }
+
+    static void Test<T>(T arg)
+    {
+        System.Console.WriteLine(typeof(T));
+        System.Console.WriteLine(arg);
+    }
+}
+" + trivial2uple;
+
+            var comp = CompileAndVerify(source, expectedOutput: @"
+System.Nullable`1[System.ValueTuple`2[System.Int32,System.Double]]
+{1, 2}
+");
+        }
+
+        [Fact]
+        public void TargetTypingOverload01Long()
+        {
+            var source = @"
+using System;
+class C
+{
+    static void Main()
+    {
+        Test((null, null, null, null, null, null, null, null, null, null));
+        Test((1, 1, 1, 1, 1, 1, 1, 1, 1, 1));
+        Test((()=>7, ()=>8, ()=>8, ()=>8, ()=>8, ()=>8, ()=>8, ()=>8, ()=>8, ()=>8), 2);
+    }
+
+    static void Test<T>((T, T, T, T, T, T, T, T, T, T) x)
+    {
+        System.Console.WriteLine(""first"");
+    }
+
+    static void Test((object, object, object, object, object, object, object, object, object, object) x)
+    {
+        System.Console.WriteLine(""second"");
+    }
+
+    static void Test<T>((Func<T>, Func<T>, Func<T>, Func<T>, Func<T>, Func<T>, Func<T>, Func<T>, Func<T>, Func<T>) x, T y)
+    {
+        System.Console.WriteLine(""third"");
+        System.Console.WriteLine(x.Item1().ToString());
+    }
+}
+" + trivial2uple + trivial3uple + trivalRemainingTuples;
+
+            var comp = CompileAndVerify(source, expectedOutput: @"
+second
+first
+third
+7
+");
+        }
+
+        [Fact]
+        public void TargetTypingNullable02()
+        {
+            var source = @"
+using System;
+class C
+{
+    static void Main()
+    {
+        var x = M1();
+        Test(x);
+    }
+
+    static (int a, string b)? M1()
+    {
+        return (1, null);
+    }
+
+    static void Test<T>(T arg)
+    {
+        System.Console.WriteLine(typeof(T));
+        System.Console.WriteLine(arg);
+    }
+}
+" + trivial2uple;
+
+            var comp = CompileAndVerify(source, expectedOutput: @"
+System.Nullable`1[System.ValueTuple`2[System.Int32,System.String]]
+{1, }
+");
+        }
+
+        [Fact]
+        public void TargetTypingNullable02Long()
+        {
+            var source = @"
+using System;
+class C
+{
+    static void Main()
+    {
+        var x = M1();
+        System.Console.WriteLine(x?.a);
+        System.Console.WriteLine(x?.a8);
+        Test(x);
+    }
+
+    static (int a, string b, int a1, int a2, int a3, int a4, int a5, int a6, int a7, int a8)? M1()
+    {
+        return (1, null, 1, 2, 3, 4, 5, 6, 7, 8);
+    }
+
+    static void Test<T>(T arg)
+    {
+        System.Console.WriteLine(arg);
+    }
+}
+" + trivial2uple + trivial3uple + trivalRemainingTuples;
+
+            var comp = CompileAndVerify(source, expectedOutput: @"
+1
+8
+System.ValueTuple`8[System.Int32,System.String,System.Int32,System.Int32,System.Int32,System.Int32,System.Int32,System.ValueTuple`3[System.Int32,System.Int32,System.Int32]]
+");
+        }
+
+        [Fact]
+        public void TargetTypingNullableOverload()
+        {
+            var source = @"
+using System;
+class C
+{
+    static void Main()
+    {
+        Test((null, null, null, null, null, null, null, null, null, null));
+        Test((""a"", ""a"", ""a"", ""a"", ""a"", ""a"", ""a"", ""a"", ""a"", ""a""));
+        Test((1, 1, 1, 1, 1, 1, 1, 1, 1, 1));
+    }
+
+    static void Test((string, string, string, string, string, string, string, string, string, string) x)
+    {
+        System.Console.WriteLine(""first"");
+    }
+
+    static void Test((string, string, string, string, string, string, string, string, string, string)? x)
+    {
+        System.Console.WriteLine(""second"");
+    }
+
+    static void Test((int, int, int, int, int, int, int, int, int, int)? x)
+    {
+        System.Console.WriteLine(""third"");
+    }
+
+    static void Test((int, int, int, int, int, int, int, int, int, int) x)
+    {
+        System.Console.WriteLine(""fourth"");
+    }
+}
+" + trivial2uple + trivial3uple + trivalRemainingTuples;
+
+            var comp = CompileAndVerify(source, expectedOutput: @"
+first
+first
+fourth
+");
         }
     }
 }

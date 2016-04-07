@@ -7,7 +7,17 @@ namespace Microsoft.CodeAnalysis.CSharp
 {
     internal partial class LocalRewriter
     {
-        public override BoundNode VisitTupleCreationExpression(BoundTupleCreationExpression node)
+        public override BoundNode VisitNaturalTupleExpression(BoundNaturalTupleExpression node)
+        {
+            return VisitTupleExpression(node);
+        }
+
+        public override BoundNode VisitConvertedTupleExpression(BoundConvertedTupleExpression node)
+        {
+            return VisitTupleExpression(node);
+        }
+
+        private BoundNode VisitTupleExpression(BoundTupleExpression node)
         {
             ImmutableArray<BoundExpression> rewrittenArguments = VisitList(node.Arguments);
             return RewriteTupleCreationExpression(node, rewrittenArguments);
@@ -19,7 +29,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// For instance, for a long tuple we'll generate:
         /// creationExpression(ctor=largestCtor, args=firstArgs+(nested creationExpression for remainder, with smaller ctor and next few args))
         /// </summary>
-        private BoundNode RewriteTupleCreationExpression(BoundTupleCreationExpression node, ImmutableArray<BoundExpression> rewrittenArguments)
+        private BoundNode RewriteTupleCreationExpression(BoundTupleExpression node, ImmutableArray<BoundExpression> rewrittenArguments)
         {
             NamedTypeSymbol underlyingTupleType = ((TupleTypeSymbol)node.Type).UnderlyingTupleType;
 

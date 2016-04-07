@@ -6,6 +6,7 @@ using System.Diagnostics;
 using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Roslyn.Utilities;
+using System;
 
 namespace Microsoft.CodeAnalysis.CSharp
 {
@@ -1829,6 +1830,20 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return true;
             }
 
+            if (node.Kind == BoundKind.NaturalTupleExpression)
+            {
+                if ((object)node.Type != null)
+                {
+                    // expression has a natural type and 
+                    // did not have identity conversion to the target (since we are here), 
+                    // no point trying element-wise match - we know that will fail.
+                    return false;
+                }
+
+                // recurse into tuple constituent arguments
+                return ExpressionMatchExactly((BoundNaturalTupleExpression)node, t, ref useSiteDiagnostics);
+            }
+
             // - E is an anonymous function, T is either a delegate type D or an expression tree 
             //   type Expression<D>, D has a return type Y, and one of the following holds:
             NamedTypeSymbol d;
@@ -1922,6 +1937,57 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             return false;
+        }
+
+        // check every argument of a tuple vs corresponding type in destination tuple type
+        private bool ExpressionMatchExactly(BoundNaturalTupleExpression tupleSource, TypeSymbol targetType, ref HashSet<DiagnosticInfo> useSiteDiagnostics)
+        {
+            if (targetType.Kind != SymbolKind.NamedType)
+            {
+                // tuples can only cast to tuples or tuple underlying types.
+                return false;
+            }
+
+            var destination = (NamedTypeSymbol)targetType;
+
+            if (destination.IsTupleType)
+            {
+                destination = ((TupleTypeSymbol)destination).UnderlyingTupleType;
+            }
+
+            Debug.Assert(tupleSource.Type == null, "should not need dig into elements if tuple has natural type");
+            var sourceArguments = tupleSource.Arguments;
+
+            // check if underlying type is actually a possible underlying type for a tuple of given arity
+            if (!Compilation.IsTupleUnderlyingType(destination, sourceArguments.Length))
+            {
+                return false;
+            }
+
+            var destTypes = ArrayBuilder<TypeSymbol>.GetInstance(sourceArguments.Length);
+            TupleTypeSymbol.GetElementTypes(destination, destTypes);
+
+            try
+            {
+                if (sourceArguments.Length != destTypes.Count)
+                {
+                    return false;
+                }
+
+                for (int i = 0; i < sourceArguments.Length; i++)
+                {
+                    if (!ExpressionMatchExactly(sourceArguments[i], destTypes[i], ref useSiteDiagnostics))
+                    {
+                        return false;
+                    }
+                }
+
+                return true;
+            }
+            finally
+            {
+                destTypes.Free();
+            }
         }
 
         private class ReturnStatements : BoundTreeWalker

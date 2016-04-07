@@ -1723,6 +1723,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return false;
             }
 
+            if (constructedTarget.IsTupleType)
+            {
+                constructedTarget = ((TupleTypeSymbol)constructedTarget).UnderlyingTupleType;
+            }
+
             if (constructedTarget.AllTypeArgumentCount() == 0)
             {
                 return false;
@@ -1738,6 +1743,10 @@ namespace Microsoft.CodeAnalysis.CSharp
             // SPEC:   is made from each Ui to the corresponding Vi.
 
             var constructedSource = source as NamedTypeSymbol;
+            if (constructedSource?.IsTupleType == true)
+            {
+                constructedSource = ((TupleTypeSymbol)constructedSource).UnderlyingTupleType;
+            }
 
             if ((object)constructedSource != null &&
                 constructedSource.OriginalDefinition == constructedTarget.OriginalDefinition)
