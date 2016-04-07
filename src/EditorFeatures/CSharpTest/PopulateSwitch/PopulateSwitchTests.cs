@@ -1,11 +1,10 @@
-﻿using Microsoft.CodeAnalysis.CodeFixes;
-using Microsoft.CodeAnalysis.CSharp.PopulateSwitch;
-using Microsoft.CodeAnalysis.Diagnostics;
-using Roslyn.Test.Utilities;
-using System;
+﻿using System;
 using System.Threading.Tasks;
-using Xunit;
+using Microsoft.CodeAnalysis.CodeFixes;
+using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.PopulateSwitch;
+using Roslyn.Test.Utilities;
+using Xunit;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.PopulateSwitch
 {
@@ -14,7 +13,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.PopulateSwi
         internal override Tuple<DiagnosticAnalyzer, CodeFixProvider> CreateDiagnosticProviderAndFixer(Workspace workspace)
         {
             return new Tuple<DiagnosticAnalyzer, CodeFixProvider>(
-                new PopulateSwitchDiagnosticAnalyzer(), new CSharpPopulateSwitchCodeFixProvider());
+                new PopulateSwitchDiagnosticAnalyzer(), new PopulateSwitchCodeFixProvider());
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsPopulateSwitch)]
