@@ -47,8 +47,10 @@ namespace Microsoft.CodeAnalysis.CodeGen
             new ConcurrentDictionary<ImmutableArray<byte>, MappedField>(ByteSequenceComparer.Instance);
 
         private ModuleVersionIdField _mvidField;
-        // Maps from analysis kind (which is an arbitrary unique integer) to the greatest assigned payload index for the analysis kind.
+        // Dictionary that maps from analysis kind (which is an arbitrary unique integer) to the greatest assigned payload index for the analysis kind.
         private readonly ConcurrentDictionary<int, int> _instrumentationPayloadIndices = new ConcurrentDictionary<int, int>();
+        // Dictionary that maps from analysis kind to instrumentation payload field.
+        private readonly ConcurrentDictionary<int, InstrumentationPayloadField> _instrumentationPayloadFields = new ConcurrentDictionary<int, InstrumentationPayloadField>();
 
         // synthesized methods
         private ImmutableArray<Cci.IMethodDefinition> _orderedSynthesizedMethods;
@@ -120,6 +122,7 @@ namespace Microsoft.CodeAnalysis.CodeGen
             {
                 fieldsBuilder.Add(_mvidField);
             }
+            fieldsBuilder.AddRange(_instrumentationPayloadFields.Values);
             fieldsBuilder.Sort(FieldComparer.Instance);
             _orderedSynthesizedFields = fieldsBuilder.ToImmutableAndFree();
 
@@ -189,6 +192,7 @@ namespace Microsoft.CodeAnalysis.CodeGen
                     if (_instrumentationPayloadIndices.TryAdd(analysisIndex, lastPayloadIndex))
                     {
                         // This request has successfully established the map entry.
+                        _instrumentationPayloadFields.Add(analysisIndex, new InstrumentationPayloadField(this, payloadType));
                     }
                     else
                     {
@@ -201,7 +205,7 @@ namespace Microsoft.CodeAnalysis.CodeGen
                 lastPayloadIndex++;
                 if (_instrumentationPayloadIndices.TryUpdate(analysisIndex, lastPayloadIndex, lastPayloadIndex - 1))
                 {
-                    // Last index for this analysis kind as been successfully incremented.
+                    // Last index for this analysis kind has been successfully incremented.
                     return lastPayloadIndex;
                 }
             }
@@ -443,6 +447,16 @@ namespace Microsoft.CodeAnalysis.CodeGen
     {
         internal ModuleVersionIdField(Cci.INamedTypeDefinition containingType, Cci.ITypeReference type)
             : base("MVID", containingType, type)
+        {
+        }
+
+        public override ImmutableArray<byte> MappedData => default(ImmutableArray<byte>);
+    }
+
+    internal sealed class InstrumentationPayloadField : SynthesizedStaticField
+    {
+        internal InstrumentationPayloadField(Cci.INamedTypeDefinition containingType, Cci.ITypeReference payloadType)
+            : base("Payload", containingType, payloadType)
         {
         }
 
