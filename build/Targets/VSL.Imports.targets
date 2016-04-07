@@ -14,6 +14,7 @@
   </PropertyGroup>
 
   <Import Project="Signing.targets" />
+  <Import Project="Signing.Vsix.targets" />
 
   <Import Project="$(MSBuildExtensionsPath32)\Microsoft\Portable\$(TargetFrameworkVersion)\Microsoft.Portable.VisualBasic.targets"
           Condition="'$(ProjectLanguage)' == 'VB' And '$(TargetFrameworkIdentifier)' == '.NETPortable'"/>
