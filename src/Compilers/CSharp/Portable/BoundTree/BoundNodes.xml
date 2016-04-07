@@ -451,6 +451,13 @@
   </Node>
 
   <!-- Represents the GUID that is the current module's MVID. Implemented as a reference to PrivateImplementationDetails.MVID, which has no language-level symbol. -->
+  <Node Name="BoundInstrumentationPayload" Base="BoundExpression">
+    <Field Name="AnalysisKind" Type="int"/>
+    <!-- Non-null type is required for this node kind -->
+    <Field Name="Type" Type="TypeSymbol" Override="true" Null="disallow"/>
+  </Node>
+
+  <!-- Represents the dynamic analysis instrumentation payload array for the analysis kind in the current module. Implemented as a reference to a field of PrivateImplementationDetails, which has no language-level symbol. -->
   <Node Name="BoundModuleVersionId" Base="BoundExpression">
     <!-- Non-null type is required for this node kind -->
     <Field Name="Type" Type="TypeSymbol" Override="true" Null="disallow"/>

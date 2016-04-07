@@ -980,7 +980,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 ImmutableArray<SourceSpan> dynamicAnalysisSpans = ImmutableArray<SourceSpan>.Empty;
                 if (_moduleBeingBuiltOpt?.EmitOptions.EmitDynamicAnalysisData == true)
                 {
-                    flowAnalyzedBody = Instrumentation.InjectInstrumentation(methodSymbol, flowAnalyzedBody, methodOrdinal, compilationState, _diagnostics, _debugDocumentProvider, out dynamicAnalysisSpans);
+                    flowAnalyzedBody = Instrumentation.InjectInstrumentation(methodSymbol, flowAnalyzedBody, compilationState, _diagnostics, _debugDocumentProvider, out dynamicAnalysisSpans);
                 }
 
                 bool hasBody = flowAnalyzedBody != null;

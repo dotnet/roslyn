@@ -192,7 +192,7 @@ namespace Microsoft.CodeAnalysis.CodeGen
                     if (_instrumentationPayloadIndices.TryAdd(analysisIndex, lastPayloadIndex))
                     {
                         // This request has successfully established the map entry.
-                        _instrumentationPayloadFields.Add(analysisIndex, new InstrumentationPayloadField(this, payloadType));
+                        _instrumentationPayloadFields.Add(analysisIndex, new InstrumentationPayloadField(this, analysisIndex, payloadType));
                     }
                     else
                     {
@@ -455,8 +455,8 @@ namespace Microsoft.CodeAnalysis.CodeGen
 
     internal sealed class InstrumentationPayloadField : SynthesizedStaticField
     {
-        internal InstrumentationPayloadField(Cci.INamedTypeDefinition containingType, Cci.ITypeReference payloadType)
-            : base("Payload", containingType, payloadType)
+        internal InstrumentationPayloadField(Cci.INamedTypeDefinition containingType, int analysisIndex, Cci.ITypeReference payloadType)
+            : base("Payload" + analysisIndex.ToString(), containingType, payloadType)
         {
         }
 

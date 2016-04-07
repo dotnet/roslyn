@@ -15,7 +15,7 @@ namespace Microsoft.CodeAnalysis.CSharp.DynamicAnalysis.UnitTests
         private static bool[][] _payloads;
         private static System.Guid _mvid;
 
-        public static void CreatePayload(System.Guid mvid, int methodToken, ref bool[] payload, int payloadLength)
+        public static bool[] CreatePayload(System.Guid mvid, int methodToken, ref bool[] payload, int payloadLength)
         {
             if (_mvid != mvid)
             {
@@ -23,11 +23,14 @@ namespace Microsoft.CodeAnalysis.CSharp.DynamicAnalysis.UnitTests
                 _mvid = mvid;
             }
 
+            int methodIndex = methodToken & 0xffffff;
             if (System.Threading.Interlocked.CompareExchange(ref payload, new bool[payloadLength], null) == null)
             {
-                int methodIndex = methodToken & 0xffffff;
                 _payloads[methodIndex] = payload;
+                return payload;
             }
+
+            return _payloads[methodIndex];
         }
 
         public static void FlushPayload()

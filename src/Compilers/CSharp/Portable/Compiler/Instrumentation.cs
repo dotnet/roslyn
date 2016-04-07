@@ -12,7 +12,7 @@ namespace Microsoft.CodeAnalysis.CSharp
     /// </summary>
     internal static class Instrumentation
     {
-        internal static BoundBlock InjectInstrumentation(MethodSymbol method, BoundBlock methodBody, int methodOrdinal, TypeCompilationState compilationState, DiagnosticBag diagnostics, DebugDocumentProvider debugDocumentProvider, out ImmutableArray<SourceSpan> dynamicAnalysisSpans)
+        internal static BoundBlock InjectInstrumentation(MethodSymbol method, BoundBlock methodBody, TypeCompilationState compilationState, DiagnosticBag diagnostics, DebugDocumentProvider debugDocumentProvider, out ImmutableArray<SourceSpan> dynamicAnalysisSpans)
         {
             if (methodBody != null)
             {
@@ -30,27 +30,29 @@ namespace Microsoft.CodeAnalysis.CSharp
                     TypeSymbol boolType = factory.SpecialType(SpecialType.System_Boolean);
                     TypeSymbol payloadElementType = boolType;
                     ArrayTypeSymbol payloadType = ArrayTypeSymbol.CreateCSharpArray(compilation.Assembly, payloadElementType);
-                    FieldSymbol payloadField = GetPayloadField(method, methodOrdinal, payloadType, factory);
                     bool methodHasExplicitBlock = MethodHasExplicitBlock(method);
-
-                    var stumble = compilation.CreateArrayTypeSymbol(compilation.CreateArrayTypeSymbol(boolType));
-
+                    LocalSymbol methodPayload = factory.SynthesizedLocal(payloadType);
+                    ArrayTypeSymbol modulePayloadType = ArrayTypeSymbol.CreateCSharpArray(compilation.Assembly, payloadType);
+                    // PROTOTYPE (https://github.com/dotnet/roslyn/issues/10411): In the future there will be multiple analysis kinds.
+                    int analysisKind = 0;
                     // Synthesize the instrumentation and collect the spans of interest.
 
                     // PROTOTYPE (https://github.com/dotnet/roslyn/issues/9819): Try to integrate instrumentation with lowering, to avoid an extra pass over the bound tree.
-                    BoundBlock newMethodBody = InstrumentationInjectionRewriter.InstrumentMethod(method, methodBody, methodHasExplicitBlock, payloadField, compilationState, diagnostics, debugDocumentProvider, out dynamicAnalysisSpans);
+                    BoundBlock newMethodBody = InstrumentationInjectionRewriter.InstrumentMethod(method, methodBody, methodHasExplicitBlock, methodPayload, compilationState, diagnostics, debugDocumentProvider, out dynamicAnalysisSpans);
 
                     // Synthesize the initialization of the instrumentation payload array, using concurrency-safe code:
                     //
-                    // if (payloadField == null)
-                    //     Instrumentation.CreatePayload(mvid, method, ref payloadField, payloadLength);
-                    
+                    // var payload = PID.PayloadField[methodIndex];
+                    // if (payload == null)
+                    //     payload = Instrumentation.CreatePayload(mvid, methodIndex, ref PID.PayloadField[methodIndex], payloadLength);
+
+                    var payloadInitialization = factory.Assignment(factory.Local(methodPayload), factory.ArrayAccess(factory.InstrumentationPayload(analysisKind, modulePayloadType), ImmutableArray.Create(factory.MethodDefinitionToken(method))));
                     BoundExpression mvid = factory.ModuleVersionId();
-
                     BoundExpression methodToken = factory.MethodDefinitionToken(method);
-                    BoundStatement createPayloadCall = factory.ExpressionStatement(factory.Call(null, createPayload, mvid, methodToken, factory.Field(null, payloadField), factory.Literal(dynamicAnalysisSpans.Length)));
+                    BoundExpression payloadSlot = factory.ArrayAccess(factory.InstrumentationPayload(analysisKind, modulePayloadType), ImmutableArray.Create(factory.MethodDefinitionToken(method)));
+                    BoundStatement createPayloadCall = factory.Assignment(factory.Local(methodPayload), factory.Call(null, createPayload, mvid, methodToken, payloadSlot, factory.Literal(dynamicAnalysisSpans.Length)));
 
-                    BoundExpression payloadNullTest = factory.Binary(BinaryOperatorKind.ObjectEqual, boolType, factory.Field(null, payloadField), factory.Null(payloadType));
+                    BoundExpression payloadNullTest = factory.Binary(BinaryOperatorKind.ObjectEqual, boolType, factory.Local(methodPayload), factory.Null(payloadType));
                     BoundStatement payloadIf = factory.If(payloadNullTest, createPayloadCall);
 
                     // Methods defined without block syntax won't naturally get a sequence point for the entry of the method.
@@ -63,7 +65,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     }
 
                     ImmutableArray<BoundStatement> newStatements = newMethodBody.Statements.Insert(0, payloadIf);
-                    newMethodBody = newMethodBody.Update(newMethodBody.Locals, newMethodBody.LocalFunctions, newStatements);
+                    newMethodBody = newMethodBody.Update(newMethodBody.Locals.Add(methodPayload), newMethodBody.LocalFunctions, newStatements);
 
                     if (IsTestMethod(method))
                     {
@@ -101,21 +103,6 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             return false;
         }
-
-        private static FieldSymbol GetPayloadField(MethodSymbol method, int methodOrdinal, TypeSymbol payloadType, SyntheticBoundNodeFactory factory)
-        {
-            // PROTOTYPE (https://github.com/dotnet/roslyn/issues/9810):
-            // If the type containing the method is generic, synthesize a helper type and put the payload field there.
-            // If the payload field is part of a generic type, there will be a new instance of the field per instantiation of the generic,
-            // and so the payload field must be a member of another type.
-            // Or, preferably, add a single static field to PrivateImplementationDetails that is the root of payloads,
-            // an array of arrays of bools, and thereby avoid creating a large number of symbols.
-            NamedTypeSymbol containingType = method.ContainingType;
-
-            SynthesizedFieldSymbol payloadField = new SynthesizedFieldSymbol(containingType, payloadType, GeneratedNames.MakeSynthesizedInstrumentationPayloadFieldName(method, methodOrdinal), isStatic: true);
-            factory.AddField(containingType, payloadField);
-            return payloadField;
-        }
         
         private static MethodSymbol GetCreatePayload(CSharpCompilation compilation, CSharpSyntaxNode syntax, DiagnosticBag diagnostics)
         {
@@ -146,22 +133,22 @@ namespace Microsoft.CodeAnalysis.CSharp
     {
         private readonly MethodSymbol _method;
         private readonly ArrayBuilder<SourceSpan> _spansBuilder;
-        private readonly FieldSymbol _payload;
+        private readonly LocalSymbol _payload;
         private readonly TypeCompilationState _compilationState;
         private readonly DiagnosticBag _diagnostics;
         private readonly DebugDocumentProvider _debugDocumentProvider;
         private readonly bool _methodHasExplicitBlock;
 
-        public static BoundBlock InstrumentMethod(MethodSymbol method, BoundBlock methodBody, bool methodHasExplicitBlock, FieldSymbol payloadField, TypeCompilationState compilationState, DiagnosticBag diagnostics, DebugDocumentProvider debugDocumentProvider, out ImmutableArray<SourceSpan> dynamicAnalysisSpans)
+        public static BoundBlock InstrumentMethod(MethodSymbol method, BoundBlock methodBody, bool methodHasExplicitBlock, LocalSymbol payload, TypeCompilationState compilationState, DiagnosticBag diagnostics, DebugDocumentProvider debugDocumentProvider, out ImmutableArray<SourceSpan> dynamicAnalysisSpans)
         {
             ArrayBuilder<SourceSpan> spansBuilder = ArrayBuilder<SourceSpan>.GetInstance();
-            BoundTreeRewriter collector = new InstrumentationInjectionRewriter(method, methodHasExplicitBlock, spansBuilder, payloadField, compilationState, diagnostics, debugDocumentProvider);
+            BoundTreeRewriter collector = new InstrumentationInjectionRewriter(method, methodHasExplicitBlock, spansBuilder, payload, compilationState, diagnostics, debugDocumentProvider);
             BoundBlock newMethodBody = (BoundBlock)collector.Visit(methodBody);
             dynamicAnalysisSpans = spansBuilder.ToImmutableAndFree();
             return newMethodBody;
         }
 
-        private InstrumentationInjectionRewriter(MethodSymbol method, bool methodHasExplicitBlock, ArrayBuilder<SourceSpan> spansBuilder, FieldSymbol payload, TypeCompilationState compilationState, DiagnosticBag diagnostics, DebugDocumentProvider debugDocumentProvider)
+        private InstrumentationInjectionRewriter(MethodSymbol method, bool methodHasExplicitBlock, ArrayBuilder<SourceSpan> spansBuilder, LocalSymbol payload, TypeCompilationState compilationState, DiagnosticBag diagnostics, DebugDocumentProvider debugDocumentProvider)
         {
             _method = method;
             _spansBuilder = spansBuilder;
@@ -337,7 +324,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // Generate "_payload[pointIndex] = true".
 
             SyntheticBoundNodeFactory statementFactory = new SyntheticBoundNodeFactory(_method, statement.Syntax, _compilationState, _diagnostics);
-            BoundArrayAccess payloadCell = statementFactory.ArrayAccess(statementFactory.Field(null, _payload), statementFactory.Literal(spansIndex));
+            BoundArrayAccess payloadCell = statementFactory.ArrayAccess(statementFactory.Local(_payload), statementFactory.Literal(spansIndex));
             BoundExpressionStatement cellAssignment = statementFactory.Assignment(payloadCell, statementFactory.Literal(true));
             
             return statementFactory.Block(ImmutableArray.Create(cellAssignment, statement));

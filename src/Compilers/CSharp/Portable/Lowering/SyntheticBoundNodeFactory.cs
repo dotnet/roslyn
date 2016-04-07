@@ -995,6 +995,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             return new BoundModuleVersionId(Syntax, WellKnownType(Microsoft.CodeAnalysis.WellKnownType.System_Guid)) { WasCompilerGenerated = true };
         }
 
+        public BoundExpression InstrumentationPayload(int analysisKind, TypeSymbol payloadType)
+        {
+            return new BoundInstrumentationPayload(Syntax, analysisKind, payloadType) { WasCompilerGenerated = true };
+        }
+
         public BoundExpression MethodInfo(MethodSymbol method)
         {
             // The least overridden virtual method is only called for value type receivers
