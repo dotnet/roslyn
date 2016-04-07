@@ -62,8 +62,6 @@ namespace Microsoft.CodeAnalysis.PopulateSwitch
             return SpecializedTasks.EmptyTask;
         }
 
-        protected abstract int InsertPosition(IReadOnlyList<TSwitchSectionSyntax> sections);
-
         private async Task<Document> AddMissingSwitchCasesAsync(
             CodeFixContext context, bool includeMissingCases, bool includeDefaultCase)
         {
@@ -85,7 +83,6 @@ namespace Microsoft.CodeAnalysis.PopulateSwitch
 
             var sectionStatements = new[] { generator.ExitSwitchStatement() };
 
-            var allSections = (IReadOnlyList<TSwitchSectionSyntax>)generator.GetSwitchSections(switchNode);
             var newSections = new List<SyntaxNode>();
 
             if (includeMissingCases)
@@ -105,13 +102,31 @@ namespace Microsoft.CodeAnalysis.PopulateSwitch
                 newSections.Add(generator.DefaultSwitchSection(sectionStatements));
             }
 
-            var insertLocation = InsertPosition(allSections);
+            var insertLocation = InsertPosition(switchStatement);
 
             var newSwitchNode = generator.InsertSwitchSections(switchNode, insertLocation, newSections)
                 .WithAdditionalAnnotations(Formatter.Annotation, Simplifier.Annotation);
 
             var newRoot = root.ReplaceNode(switchNode, newSwitchNode);
             return document.WithSyntaxRoot(newRoot);
+        }
+
+        private int InsertPosition(ISwitchStatement switchStatement)
+        {
+            // If the last section has a default label, then we want to be above that.
+            // Otherwise, we just get inserted at the end.
+
+            var cases = switchStatement.Cases;
+            if (cases.Length > 0)
+            {
+                var lastCase = cases.Last();
+                if (lastCase.Clauses.Any(c => c.CaseKind == CaseKind.Default))
+                {
+                    return cases.Length - 1;
+                }
+            }
+
+            return cases.Length;
         }
 
         private class MyCodeAction : CodeAction.DocumentChangeAction
