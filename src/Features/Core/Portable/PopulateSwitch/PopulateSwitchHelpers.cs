@@ -37,14 +37,19 @@ namespace Microsoft.CodeAnalysis.PopulateSwitch
             return false;
         }
 
-        public static ICollection<ISymbol> GetMissingEnumMembers(
-            ISwitchStatement switchStatement, ITypeSymbol enumType)
+        public static ICollection<ISymbol> GetMissingEnumMembers(ISwitchStatement switchStatement)
         {
+            var switchExpression = switchStatement.Value;
+            var switchExpressionType = switchExpression?.Type;
+
             var enumMembers = new Dictionary<long, ISymbol>();
-            if (!TryGetAllEnumMembers(enumType, enumMembers) ||
-                !TryRemoveExistingEnumMembers(switchStatement, enumMembers))
+            if (switchExpressionType?.TypeKind == TypeKind.Enum)
             {
-                return SpecializedCollections.EmptyCollection<ISymbol>();
+                if (!TryGetAllEnumMembers(switchExpressionType, enumMembers) ||
+                !TryRemoveExistingEnumMembers(switchStatement, enumMembers))
+                {
+                    return SpecializedCollections.EmptyCollection<ISymbol>();
+                }
             }
 
             return enumMembers.Values;

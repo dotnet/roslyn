@@ -79,7 +79,7 @@ namespace Microsoft.CodeAnalysis.PopulateSwitch
             var enumType = switchStatement.Value.Type;
 
             var containsDefaultCase = PopulateSwitchHelpers.HasDefaultCase(switchStatement);
-            var missingEnumMembers = PopulateSwitchHelpers.GetMissingEnumMembers(switchStatement, enumType);
+            var missingEnumMembers = PopulateSwitchHelpers.GetMissingEnumMembers(switchStatement);
 
             var generator = SyntaxGenerator.GetGenerator(document);
 
