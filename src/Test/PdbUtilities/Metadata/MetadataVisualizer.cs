@@ -435,7 +435,7 @@ namespace Roslyn.Test.MetadataUtilities
             if (IsDelta)
             {
                 // we can't resolve the literal without aggregate reader
-                return string.Format("#{0:x}", _reader.GetHeapOffset(handle));
+                return $"#{_reader.GetHeapOffset(handle):x}";
             }
 
             // virtual heap handles don't have offset:
@@ -478,19 +478,16 @@ namespace Roslyn.Test.MetadataUtilities
                 return "<bad metadata>";
             }
 
-            if (handle.IsNil)
-            {
-                return "nil";
-            }
+            string tokenStr = handle.IsNil ? "nil" : $"0x{_reader.GetToken(handle):x8}";
 
             TableIndex table;
             if (displayTable && MetadataTokens.TryGetTableIndex(handle.Kind, out table))
             {
-                return string.Format("0x{0:x8} ({1})", _reader.GetToken(handle), table);
+                return $"{tokenStr} ({table})";
             }
             else
             {
-                return string.Format("0x{0:x8}", _reader.GetToken(handle));
+                return tokenStr;
             }
         }
 
