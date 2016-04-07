@@ -295,6 +295,7 @@
     <Compile Include="Navigation\NavigationOptionsProvider.cs" />
     <Compile Include="PopulateSwitch\AbstractPopulateSwitchCodeFixProvider.cs" />
     <Compile Include="PopulateSwitch\AbstractPopulateSwitchDiagnosticAnalyzer.cs" />
+    <Compile Include="PopulateSwitch\PopulateSwitchHelpers.cs" />
     <Compile Include="QuickInfo\QuickInfoUtilities.cs" />
     <Compile Include="RemoveUnnecessaryImports\AbstractRemoveUnnecessaryImportsService.cs" />
     <Compile Include="ReplaceMethodWithProperty\ReplaceMethodWithPropertyCodeRefactoringProvider.cs" />
