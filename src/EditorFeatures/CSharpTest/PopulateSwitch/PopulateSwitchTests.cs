@@ -1,6 +1,5 @@
 ﻿using Microsoft.CodeAnalysis.CodeFixes;
-using Microsoft.CodeAnalysis.CSharp.CodeFixes.PopulateSwitch;
-using Microsoft.CodeAnalysis.CSharp.Diagnostics.PopulateSwitch;
+using Microsoft.CodeAnalysis.CSharp.PopulateSwitch;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Roslyn.Test.Utilities;
 using System;

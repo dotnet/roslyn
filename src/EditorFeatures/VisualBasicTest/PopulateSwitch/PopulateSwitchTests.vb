@@ -1,7 +1,7 @@
 ﻿Imports Microsoft.CodeAnalysis.CodeFixes
 Imports Microsoft.CodeAnalysis.Diagnostics
-Imports Microsoft.CodeAnalysis.VisualBasic.CodeFixes.PopulateSwitch
 Imports Microsoft.CodeAnalysis.VisualBasic.Diagnostics.PopulateSwitch
+Imports Microsoft.CodeAnalysis.VisualBasic.PopulateSwitch
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Diagnostics.PopulateSwitch
     Partial Public Class PopulateSwitchTests
