@@ -1142,10 +1142,39 @@
     <Field Name="InitializerExpressionOpt" Type="BoundExpression" Null="allow"/>
   </Node>
   
-    <Node Name="BoundTupleCreationExpression" Base="BoundExpression">
-    <!-- Non-null type is required for this node kind -->
-    <Field Name="Type" Type="TypeSymbol" Override="true" Null="disallow"/>
+
+  <!-- 
+  Tuple literals can exist in two forms - natural and converted.
+  This is the base node for both forms.
+  -->
+  <AbstractNode Name="BoundTupleExpression" Base="BoundExpression">
     <Field Name="Arguments" Type="ImmutableArray&lt;BoundExpression&gt;"/>
+    <Field Name="ArgumentNamesOpt" Type="ImmutableArray&lt;string&gt;" Null="allow"/>
+  </AbstractNode>
+
+  <!-- 
+  Tuple literals can convert to the target type.
+  Once converted to a target type, they cannot convert through any conversion other than identity. 
+  The Natural tuple literal is one which has not been converted to a target type.
+  -->
+  <Node Name="BoundNaturalTupleExpression" Base="BoundTupleExpression">
+    <!-- 
+    It is possible for a tuple to not have a type in a natural form
+    Ex: 
+     (a: 1, b: (c: 1, d: null))  does not have a natural type, because "null" does not have one
+    -->
+    <Field Name="Type" Type="TypeSymbol" Override="true" Null="allow"/>
+  </Node>
+
+  <!-- 
+  Tuple literals can convert to the target type.
+  Once converted to a target type, they cannot convert through any conversion other than identity. 
+  The Converted tuple literal is one which has been already converted to a target type.
+  Converted tuple literal always has a type.
+  -->
+  <Node Name="BoundConvertedTupleExpression" Base="BoundTupleExpression">
+    <!-- Converted tuple must have a type -->
+    <Field Name="Type" Type="TypeSymbol" Override="true" Null="disallow"/>
   </Node>
   
   <Node Name="BoundDynamicObjectCreationExpression" Base="BoundExpression">

@@ -659,13 +659,13 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             bool hasErrors = false;
-
-            var boundArguments = ArrayBuilder<BoundExpression>.GetInstance(arguments.Count);
-            var elementTypes = ArrayBuilder<TypeSymbol>.GetInstance(arguments.Count);
+            bool hasNaturalType = true;
 
             // set of names already used
             var uniqueFieldNames = PooledHashSet<string>.GetInstance();
 
+            var boundArguments = ArrayBuilder<BoundExpression>.GetInstance(arguments.Count);
+            var elementTypes = ArrayBuilder<TypeSymbol>.GetInstance(arguments.Count);
             ArrayBuilder<string> elementNames = null;
             int countOfExplicitNames = 0;
 
@@ -684,15 +684,21 @@ namespace Microsoft.CodeAnalysis.CSharp
                         hasErrors = true;
                     }
                 }
+
                 CollectTupleFieldMemberNames(name, i + 1, numElements, ref elementNames);
 
                 BoundExpression boundArgument = BindValue(argumentSyntax.Expression, diagnostics, BindValueKind.RValue);
                 boundArguments.Add(boundArgument);
 
-                // PROTOTYPE(tuples): need to report distinc errors for tuples
-                TypeSymbol elementType = GetAnonymousTypeFieldType(boundArgument, argumentSyntax, diagnostics, ref hasErrors);
+                var elementType = GetTupleFieldType(boundArgument, argumentSyntax, diagnostics, ref hasErrors);
                 elementTypes.Add(elementType);
+
+                if ((object)elementType == null)
+                {
+                    hasNaturalType = false;
+                }
             }
+
             uniqueFieldNames.Free();
 
             if (countOfExplicitNames != 0 && countOfExplicitNames != elementTypes.Count)
@@ -701,18 +707,53 @@ namespace Microsoft.CodeAnalysis.CSharp
                 Error(diagnostics, ErrorCode.ERR_TupleExplicitNamesOnAllMembersOrNone, node);
             }
 
-            ImmutableArray<TypeSymbol> elements = elementTypes.ToImmutableAndFree();
+            var elementNamesArray = elementNames == null ?
+                                default(ImmutableArray<string>) :
+                                elementNames.ToImmutableAndFree();
 
-            var type = TupleTypeSymbol.Create(
-                                        elements,
-                                        elementNames == null ?
-                                            default(ImmutableArray<string>) :
-                                            elementNames.ToImmutableAndFree(),
-                                        node,
-                                        this,
-                                        diagnostics);
+            TupleTypeSymbol tupleTypeOpt = null;
+            var elements = elementTypes.ToImmutableAndFree();
 
-            return new BoundTupleCreationExpression(node, boundArguments.ToImmutableAndFree(), type, hasErrors);
+            if (hasNaturalType)
+            {
+                tupleTypeOpt = new TupleTypeSymbol(elements, elementNamesArray, node, this, diagnostics);
+            }
+
+            return new BoundNaturalTupleExpression(node, boundArguments.ToImmutableAndFree(), elementNamesArray, tupleTypeOpt, hasErrors);
+        }
+
+        /// <summary>
+        /// Returns the type to be used as a field type; generates errors in case the type is not
+        /// supported for anonymous type fields.
+        /// </summary>
+        private TypeSymbol GetTupleFieldType(BoundExpression expression, CSharpSyntaxNode errorSyntax, DiagnosticBag diagnostics, ref bool hasError)
+        {
+            TypeSymbol expressionType = expression.Type;
+
+            // PROTOTYPE: we could, in theory, allow restricted field types here
+            //            since they might be target-typed to something safe
+            //            
+
+            if (!expression.HasAnyErrors)
+            {
+                if (expression.HasExpressionType())
+                {
+                    if (expressionType.SpecialType == SpecialType.System_Void)
+                    {
+                        expressionType = CreateErrorType(SyntaxFacts.GetText(SyntaxKind.VoidKeyword));
+
+                        hasError = true;
+                        Error(diagnostics, ErrorCode.ERR_FieldCantHaveVoidType, errorSyntax);
+                    }
+                    else if (expressionType.IsRestrictedType())
+                    {
+                        hasError = true;
+                        Error(diagnostics, ErrorCode.ERR_ArrayElementCantBeRefAny, errorSyntax, expressionType);
+                    }
+                }
+            }
+
+            return expressionType;
         }
 
         private BoundExpression BindRefValue(RefValueExpressionSyntax node, DiagnosticBag diagnostics)

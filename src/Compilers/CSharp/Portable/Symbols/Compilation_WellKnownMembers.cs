@@ -141,6 +141,38 @@ namespace Microsoft.CodeAnalysis.CSharp
             return IsEqualOrDerivedFromWellKnownClass(type, WellKnownType.System_Exception, ref useSiteDiagnostics);
         }
 
+        internal bool IsTupleUnderlyingType(TypeSymbol typeToCheck, int requiredArity)
+        {
+            // NOTE: error type symbol is NamedTypeSymbol, 
+            //       but not SymbolKind.NamedType, so check the kind before casting.
+            if (typeToCheck.Kind != SymbolKind.NamedType)
+            {
+                return false;
+            }
+
+            NamedTypeSymbol currentType = (NamedTypeSymbol)typeToCheck;
+            const int maxArity = TupleTypeSymbol.RestPosition;
+
+            while (true)
+            {
+                if (currentType.OriginalDefinition != this.GetWellKnownType(TupleTypeSymbol.GetTupleType(Math.Min(requiredArity, maxArity))))
+                {
+                    return false;
+                }
+
+                if (requiredArity < maxArity)
+                {
+                    return true;
+                }
+                else
+                {
+                    Debug.Assert(currentType.Arity == maxArity);
+                    currentType = (NamedTypeSymbol)currentType.TypeArgumentsNoUseSiteDiagnostics[maxArity - 1];
+                    requiredArity -= maxArity - 1;
+                }
+            }
+        }
+
         internal bool IsEqualOrDerivedFromWellKnownClass(TypeSymbol type, WellKnownType wellKnownType, ref HashSet<DiagnosticInfo> useSiteDiagnostics)
         {
             Debug.Assert(wellKnownType == WellKnownType.System_Attribute ||

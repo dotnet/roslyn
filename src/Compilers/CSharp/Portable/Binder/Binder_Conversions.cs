@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Roslyn.Utilities;
+using System.Collections.Immutable;
 
 namespace Microsoft.CodeAnalysis.CSharp
 {
@@ -53,11 +54,22 @@ namespace Microsoft.CodeAnalysis.CSharp
             Debug.Assert(source != null);
             Debug.Assert((object)destination != null);
 
-            // We need to preserve any conversion that changes the type (even identity conversions, like object->dynamic),
-            // or that was explicitly written in code (so that GetSemanticInfo can find the syntax in the bound tree).
-            if (conversion.Kind == ConversionKind.Identity && !isCast && source.Type == destination)
+            if (conversion.IsIdentity)
             {
-                return source;
+                // identity tuple conversions result in a converted tuple
+                // to indicate that tuple conversions are no longer applicable.
+                if (source.Kind == BoundKind.NaturalTupleExpression)
+                {
+                    var tuple = (BoundNaturalTupleExpression)source;
+                    return new BoundConvertedTupleExpression(tuple.Syntax, tuple.Arguments, tuple.ArgumentNamesOpt, tuple.Type, tuple.HasErrors);
+                }
+
+                // We need to preserve any conversion that changes the type (even identity conversions, like object->dynamic),
+                // or that was explicitly written in code (so that GetSemanticInfo can find the syntax in the bound tree).
+                if (!isCast && source.Type == destination)
+                {
+                    return source;
+                }
             }
 
             ReportDiagnosticsIfObsolete(diagnostics, conversion, syntax, hasBaseReceiver: false);
@@ -70,6 +82,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (conversion.IsAnonymousFunction && source.Kind == BoundKind.UnboundLambda)
             {
                 return CreateAnonymousFunctionConversion(syntax, source, conversion, isCast, destination, diagnostics);
+            }
+
+            if (conversion.IsTuple)
+            {
+                return CreateTupleConversion(syntax, source, destination, diagnostics);
             }
 
             if (conversion.IsUserDefined)
@@ -307,6 +324,68 @@ namespace Microsoft.CodeAnalysis.CSharp
             return new BoundConversion(syntax, group, conversion, @checked: false, explicitCastInCode: isCast, constantValueOpt: ConstantValue.NotAvailable, type: destination, hasErrors: hasErrors) { WasCompilerGenerated = source.WasCompilerGenerated };
         }
 
+        private BoundExpression CreateTupleConversion(CSharpSyntaxNode syntax, BoundExpression source, TypeSymbol destination, DiagnosticBag diagnostics)
+        {
+            // We have a successful tuple conversion; rather than producing a node 
+            // which is a conversion on top of a tuple literal, tuple conversion is an element-wise conversion of arguments.
+
+            bool hasErrors = false;
+            NamedTypeSymbol destinationWithoutNullable = null;
+
+            var sourceTuple = (BoundNaturalTupleExpression)source;
+            var targetType = (NamedTypeSymbol)destination;
+
+            // strip nullable
+            if (targetType.IsNullableType())
+            {
+                destinationWithoutNullable = (NamedTypeSymbol)targetType.GetNullableUnderlyingType();
+                targetType = destinationWithoutNullable;
+            }
+
+            TupleTypeSymbol destTupleType;
+            if (targetType.IsTupleType)
+            {
+                destTupleType = (TupleTypeSymbol)targetType;
+                targetType = destTupleType.UnderlyingTupleType;
+            }
+
+            var arguments = sourceTuple.Arguments;
+            Debug.Assert(Compilation.IsTupleUnderlyingType(targetType, arguments.Length), "converting a tuple literal to incompatible type?");
+
+            var convertedArguments = ArrayBuilder<BoundExpression>.GetInstance(arguments.Length);
+            var targetElementTypes = ArrayBuilder<TypeSymbol>.GetInstance(arguments.Length);
+
+            TupleTypeSymbol.GetElementTypes(targetType, targetElementTypes);
+
+            for (int i = 0; i < arguments.Length; i++)
+            {
+                var argument = arguments[i];
+                var destType = targetElementTypes[i];
+                convertedArguments.Add(CreateConversion(argument, destType, diagnostics));
+            }
+
+            targetElementTypes.Free();
+
+            if ((object)destinationWithoutNullable == null)
+            {
+                return new BoundConvertedTupleExpression(syntax, convertedArguments.ToImmutableAndFree(), sourceTuple.ArgumentNamesOpt, destination, hasErrors);
+            }
+            else
+            {
+                var tuple = new BoundConvertedTupleExpression(syntax, convertedArguments.ToImmutableAndFree(), sourceTuple.ArgumentNamesOpt, destinationWithoutNullable, hasErrors);
+
+                return new BoundConversion(
+                    syntax,
+                    tuple,
+                    Conversion.ImplicitNullable,
+                    @checked: false,
+                    explicitCastInCode: false,
+                    constantValueOpt: ConstantValue.NotAvailable,
+                    type: destination)
+                { WasCompilerGenerated = true };
+            }
+        }
+
         private static bool IsMethodGroupWithTypeOrValueReceiver(BoundNode node)
         {
             if (node.Kind != BoundKind.MethodGroup)
@@ -317,7 +396,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             BoundNode receiverOpt = ((BoundMethodGroup)node).ReceiverOpt;
             return receiverOpt != null && receiverOpt.Kind == BoundKind.TypeOrValueExpression;
         }
-
 
         private BoundMethodGroup FixMethodGroupWithTypeOrValue(BoundMethodGroup group, Conversion conversion, DiagnosticBag diagnostics)
         {

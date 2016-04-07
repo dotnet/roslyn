@@ -155,6 +155,13 @@ namespace Microsoft.CodeAnalysis.CSharp
                     }
                     break;
 
+                case BoundKind.NaturalTupleExpression:
+                    if (HasImplicitTupleConversion(sourceExpression, destination, ref useSiteDiagnostics))
+                    {
+                        return Conversion.ImplicitTuple;
+                    }
+                    break;
+
                 case BoundKind.MethodGroup:
                     Conversion methodGroupConversion = GetMethodGroupConversion((BoundMethodGroup)sourceExpression, destination, ref useSiteDiagnostics);
                     if (methodGroupConversion.Exists)
@@ -392,6 +399,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 IsNumericType(source.Type.GetSpecialTypeSafe()) &&
                 IsConstantNumericZero(sourceConstantValue);
         }
+
+        protected abstract bool HasImplicitTupleConversion(BoundExpression source, TypeSymbol destination, ref HashSet<DiagnosticInfo> useSiteDiagnostics);
 
         private static LambdaConversionResult IsAnonymousFunctionCompatibleWithDelegate(UnboundLambda anonymousFunction, TypeSymbol type)
         {
@@ -660,6 +669,62 @@ namespace Microsoft.CodeAnalysis.CSharp
                 ToConversion(resolution.OverloadResolutionResult, resolution.MethodGroup, (NamedTypeSymbol)destination);
             resolution.Free();
             return conversion;
+        }
+
+        protected override bool HasImplicitTupleConversion(BoundExpression source, TypeSymbol destination, ref HashSet<DiagnosticInfo> useSiteDiagnostics)
+        {
+            if (source.Kind != BoundKind.NaturalTupleExpression)
+            {
+                // source must be a natural tuple expression
+                return false;
+            }
+
+            // strip nullable from the destination
+            // the following should work
+            //    (int, double)? x = (1,2);
+            if (destination.IsNullableType())
+            {
+                destination = destination.GetNullableUnderlyingType();
+            }
+
+            var tupleExpression = (BoundNaturalTupleExpression)source;
+            var arguments = tupleExpression.Arguments;
+
+            // unwrap tuple to its underlying
+            if (destination.IsTupleType)
+            {
+                destination = ((TupleTypeSymbol)destination).UnderlyingTupleType;
+            }
+
+            // check if underlying type is actually a possible underlying type for a tuple of given arity
+            if(!Compilation.IsTupleUnderlyingType(destination, arguments.Length))
+            {
+                return false;
+            }
+
+            var targetElementTypes = ArrayBuilder<TypeSymbol>.GetInstance(arguments.Length);
+            TupleTypeSymbol.GetElementTypes((NamedTypeSymbol)destination, targetElementTypes);
+            Debug.Assert(arguments.Length == targetElementTypes.Count);
+
+            try
+            {
+                // check arguments against flattened list of target element types 
+                for (int i = 0; i < arguments.Length; i++)
+                {
+                    var argument = arguments[i];
+                    var result = ClassifyImplicitConversionFromExpression(argument, targetElementTypes[i], ref useSiteDiagnostics);
+                    if (!result.Exists)
+                    {
+                        return false;
+                    }
+                }
+
+                return true;
+            }
+            finally
+            {
+                targetElementTypes.Free();
+            }
         }
 
         protected override Conversion GetInterpolatedStringConversion(BoundInterpolatedString source, TypeSymbol destination, ref HashSet<DiagnosticInfo> useSiteDiagnostics)

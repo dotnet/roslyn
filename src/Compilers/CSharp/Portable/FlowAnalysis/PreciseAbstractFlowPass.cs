@@ -910,7 +910,17 @@ namespace Microsoft.CodeAnalysis.CSharp
             return null;
         }
 
-        public override BoundNode VisitTupleCreationExpression(BoundTupleCreationExpression node)
+        public override BoundNode VisitNaturalTupleExpression(BoundNaturalTupleExpression node)
+        {
+            return VisitTupleExpression(node);
+        }
+
+        public override BoundNode VisitConvertedTupleExpression(BoundConvertedTupleExpression node)
+        {
+            return VisitTupleExpression(node);
+        }
+
+        private BoundNode VisitTupleExpression(BoundTupleExpression node)
         {
             VisitArguments(node.Arguments, default(ImmutableArray<RefKind>), null);
             if (_trackExceptions) NotePossibleException(node);
