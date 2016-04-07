@@ -99,9 +99,13 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV1
 #if DEBUG
             // this is a bit wierd, but if both analyzers and compilationWithAnalyzers are given,
             // make sure both are same.
+            // We also need to handle the fact that compilationWithAnalyzers is created with all non-supprssed analyzers.
             if (_lazyCompilationWithAnalyzers != null)
             {
-                Contract.ThrowIfFalse(_lazyCompilationWithAnalyzers.Analyzers.SetEquals(_analyzers));
+                var filteredAnalyzers = _analyzers
+                    .Where(a => !CompilationWithAnalyzers.IsDiagnosticAnalyzerSuppressed(a, _lazyCompilationWithAnalyzers.Compilation.Options, _lazyCompilationWithAnalyzers.AnalysisOptions.OnAnalyzerException))
+                    .Distinct();
+                Contract.ThrowIfFalse(_lazyCompilationWithAnalyzers.Analyzers.SetEquals(filteredAnalyzers));
             }
 #endif
         }
