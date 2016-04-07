@@ -83,8 +83,7 @@ namespace Microsoft.CodeAnalysis.PopulateSwitch
 
             var generator = SyntaxGenerator.GetGenerator(document);
 
-            var switchExitStatement = generator.ExitSwitchStatement();
-            var sectionStatements = new[] { switchExitStatement };
+            var sectionStatements = new[] { generator.ExitSwitchStatement() };
 
             var allSections = (IReadOnlyList<TSwitchSectionSyntax>)generator.GetSwitchSections(switchNode);
             var newSections = new List<SyntaxNode>();
