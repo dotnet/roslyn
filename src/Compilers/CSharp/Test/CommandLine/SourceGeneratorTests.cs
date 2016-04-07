@@ -136,14 +136,14 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 _generators = generators;
             }
 
-            protected override ImmutableArray<DiagnosticAnalyzer> ResolveAnalyzersFromArguments(List<DiagnosticInfo> diagnostics, CommonMessageProvider messageProvider, TouchedFileLogger touchedFiles)
+            protected override void ResolveAnalyzersAndGeneratorsFromArguments(
+                List<DiagnosticInfo> diagnostics,
+                CommonMessageProvider messageProvider,
+                out ImmutableArray<DiagnosticAnalyzer> analyzers,
+                out ImmutableArray<SourceGenerator> generators)
             {
-                return _analyzers;
-            }
-
-            protected override ImmutableArray<SourceGenerator> ResolveGeneratorsFromArguments(List<DiagnosticInfo> diagnostics, CommonMessageProvider messageProvider, TouchedFileLogger touchedFiles)
-            {
-                return _generators;
+                analyzers = _analyzers;
+                generators = _generators;
             }
 
             protected override void CompilerSpecificSqm(IVsSqmMulti sqm, uint sqmSession)

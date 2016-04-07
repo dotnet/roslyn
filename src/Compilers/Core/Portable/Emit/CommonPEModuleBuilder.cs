@@ -123,15 +123,10 @@ namespace Microsoft.CodeAnalysis.Emit
             _outputKind = outputKind;
             _emitOptions = emitOptions;
             this.CompilationState = compilationState;
-
-            if (compilation.IsCaseSensitive)
-            {
-                _debugDocuments = new ConcurrentDictionary<string, Cci.DebugSourceDocument>(StringComparer.Ordinal);
-            }
-            else
-            {
-                _debugDocuments = new ConcurrentDictionary<string, Cci.DebugSourceDocument>(StringComparer.OrdinalIgnoreCase);
-            }
+            _debugDocuments = new ConcurrentDictionary<string, Cci.DebugSourceDocument>(
+                compilation.IsCaseSensitive ?
+                StringComparer.Ordinal :
+                StringComparer.OrdinalIgnoreCase);
         }
 
         internal sealed override void CompilationFinished()

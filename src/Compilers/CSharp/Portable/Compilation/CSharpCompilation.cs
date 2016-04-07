@@ -1712,7 +1712,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        internal void ReportUnusedImports(DiagnosticBag diagnostics, CancellationToken cancellationToken, SyntaxTree filterTree = null)
+        internal override void ReportUnusedImports(SyntaxTree filterTree, DiagnosticBag diagnostics, CancellationToken cancellationToken)
         {
             if (_lazyImportInfos != null)
             {
@@ -1995,7 +1995,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 cancellationToken: cancellationToken);
 
             DocumentationCommentCompiler.WriteDocumentationCommentXml(this, null, null, diagnostics, cancellationToken);
-            this.ReportUnusedImports(diagnostics, cancellationToken);
+            this.ReportUnusedImports(null, diagnostics, cancellationToken);
         }
 
         private static bool IsDefinedOrImplementedInSourceTree(Symbol symbol, SyntaxTree tree, TextSpan? span)
@@ -2042,7 +2042,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // Otherwise we cannot determine if a particular directive is used outside of the given sub-span within the tree.
             if (!span.HasValue || span.Value == tree.GetRoot(cancellationToken).FullSpan)
             {
-                ReportUnusedImports(diagnostics, cancellationToken, tree);
+                ReportUnusedImports(tree, diagnostics, cancellationToken);
             }
 
             return diagnostics.ToReadOnlyAndFree();
@@ -2360,22 +2360,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             string assemblyName = FileNameUtilities.ChangeExtension(moduleBeingBuilt.EmitOptions.OutputNameOverride, extension: null);
             DocumentationCommentCompiler.WriteDocumentationCommentXml(this, assemblyName, xmlDocStream, xmlDiagnostics, cancellationToken);
 
-            if (!FilterAndAppendAndFreeDiagnostics(diagnostics, ref xmlDiagnostics))
-            {
-                return false;
-            }
-
-            // Use a temporary bag so we don't have to refilter pre-existing diagnostics.
-            DiagnosticBag importDiagnostics = DiagnosticBag.GetInstance();
-            this.ReportUnusedImports(importDiagnostics, cancellationToken);
-
-            if (!FilterAndAppendAndFreeDiagnostics(diagnostics, ref importDiagnostics))
-            {
-                Debug.Assert(false, "Should never produce an error");
-                return false;
-            }
-
-            return true;
+            return FilterAndAppendAndFreeDiagnostics(diagnostics, ref xmlDiagnostics);
         }
 
         // TODO: consider unifying with VB

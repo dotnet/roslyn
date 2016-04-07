@@ -5221,21 +5221,24 @@ partial class C
 
             var compilation = CreateCompilationWithMscorlib(source, null, options: opt);
             compilation.VerifyDiagnostics(
+                // (25,25): error CS0759: No defining declaration found for implementing declaration of partial method 'C.Foo6<T>()'
+                //     static partial void Foo6<[A][A] T>() { }
+                Diagnostic(ErrorCode.ERR_PartialMethodMustHaveLatent, "Foo6").WithArguments("C.Foo6<T>()").WithLocation(25, 25),
                 // (11,17): error CS0111: Type 'C' already defines a member called 'Foo2' with the same parameter types
                 //     static void Foo2<[A] T>() { }
                 Diagnostic(ErrorCode.ERR_MemberAlreadyExists, "Foo2").WithArguments("Foo2", "C").WithLocation(11, 17),
                 // (15,17): error CS0102: The type 'C' already contains a definition for 'Foo3'
                 //     private int Foo3;
                 Diagnostic(ErrorCode.ERR_DuplicateNameInClass, "Foo3").WithArguments("C", "Foo3").WithLocation(15, 17),
-                // (7,30): error CS0579: Duplicate 'A' attribute
-                //     static partial void Foo<[A] T>() { }
-                Diagnostic(ErrorCode.ERR_DuplicateAttribute, "A").WithArguments("A").WithLocation(7, 30),
                 // (18,34): error CS0579: Duplicate 'A' attribute
                 //     static partial void Foo4<[A][A] T>();
                 Diagnostic(ErrorCode.ERR_DuplicateAttribute, "A").WithArguments("A").WithLocation(18, 34),
                 // (25,34): error CS0579: Duplicate 'A' attribute
                 //     static partial void Foo6<[A][A] T>() { }
                 Diagnostic(ErrorCode.ERR_DuplicateAttribute, "A").WithArguments("A").WithLocation(25, 34),
+                // (7,30): error CS0579: Duplicate 'A' attribute
+                //     static partial void Foo<[A] T>() { }
+                Diagnostic(ErrorCode.ERR_DuplicateAttribute, "A").WithArguments("A").WithLocation(7, 30),
                 // (15,17): warning CS0169: The field 'C.Foo3' is never used
                 //     private int Foo3;
                 Diagnostic(ErrorCode.WRN_UnreferencedField, "Foo3").WithArguments("C.Foo3").WithLocation(15, 17));
@@ -5277,21 +5280,24 @@ partial class C
             var compilation = CreateCompilationWithMscorlib(source, null, options: opt);
 
             compilation.VerifyDiagnostics(
+                // (25,25): error CS0759: No defining declaration found for implementing declaration of partial method 'C.Foo6(int)'
+                //     static partial void Foo6([A][A] int y) { }
+                Diagnostic(ErrorCode.ERR_PartialMethodMustHaveLatent, "Foo6").WithArguments("C.Foo6(int)").WithLocation(25, 25),
                 // (11,17): error CS0111: Type 'C' already defines a member called 'Foo2' with the same parameter types
                 //     static void Foo2([A] int y) { }
                 Diagnostic(ErrorCode.ERR_MemberAlreadyExists, "Foo2").WithArguments("Foo2", "C").WithLocation(11, 17),
                 // (15,17): error CS0102: The type 'C' already contains a definition for 'Foo3'
                 //     private int Foo3;
                 Diagnostic(ErrorCode.ERR_DuplicateNameInClass, "Foo3").WithArguments("C", "Foo3").WithLocation(15, 17),
-                // (6,37): error CS0579: Duplicate 'A' attribute
-                //     static partial void Foo([param: A]int y);
-                Diagnostic(ErrorCode.ERR_DuplicateAttribute, "A").WithArguments("A").WithLocation(6, 37),
                 // (18,41): error CS0579: Duplicate 'A' attribute
                 //     static partial void Foo4([A][param: A] int y);
                 Diagnostic(ErrorCode.ERR_DuplicateAttribute, "A").WithArguments("A").WithLocation(18, 41),
                 // (25,34): error CS0579: Duplicate 'A' attribute
                 //     static partial void Foo6([A][A] int y) { }
                 Diagnostic(ErrorCode.ERR_DuplicateAttribute, "A").WithArguments("A").WithLocation(25, 34),
+                // (6,37): error CS0579: Duplicate 'A' attribute
+                //     static partial void Foo([param: A]int y);
+                Diagnostic(ErrorCode.ERR_DuplicateAttribute, "A").WithArguments("A").WithLocation(6, 37),
                 // (15,17): warning CS0169: The field 'C.Foo3' is never used
                 //     private int Foo3;
                 Diagnostic(ErrorCode.WRN_UnreferencedField, "Foo3").WithArguments("C.Foo3").WithLocation(15, 17));
