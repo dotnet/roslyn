@@ -65,12 +65,8 @@ namespace Microsoft.CodeAnalysis.PopulateSwitch
             var switchExpression = switchStatement.Value;
             var switchExpressionType = switchExpression?.Type;
 
-            if (switchExpressionType?.TypeKind == TypeKind.Enum)
-            {
-                var missingEnumMembers = PopulateSwitchHelpers.GetMissingEnumMembers(
-                    switchStatement, switchExpressionType);
-                missingCases = missingEnumMembers.Count > 0;
-            }
+            var missingEnumMembers = PopulateSwitchHelpers.GetMissingEnumMembers(switchStatement);
+            missingCases = missingEnumMembers.Count > 0;
 
             // The switch is incomplete if we're missing any cases or we're missing a default case.
             return missingDefaultCase || missingCases;
