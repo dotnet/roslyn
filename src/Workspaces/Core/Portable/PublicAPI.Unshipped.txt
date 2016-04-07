@@ -26,7 +26,6 @@ Microsoft.CodeAnalysis.Editing.OperatorKind.True = 23 -> Microsoft.CodeAnalysis.
 Microsoft.CodeAnalysis.Editing.OperatorKind.UnaryNegation = 24 -> Microsoft.CodeAnalysis.Editing.OperatorKind
 Microsoft.CodeAnalysis.Editing.OperatorKind.UnaryPlus = 25 -> Microsoft.CodeAnalysis.Editing.OperatorKind
 Microsoft.CodeAnalysis.Editing.SyntaxGenerator.AddSwitchSections(Microsoft.CodeAnalysis.SyntaxNode switchStatement, System.Collections.Generic.IEnumerable<Microsoft.CodeAnalysis.SyntaxNode> switchSections) -> Microsoft.CodeAnalysis.SyntaxNode
-Microsoft.CodeAnalysis.Editing.SyntaxGenerator.GetSwitchSections(Microsoft.CodeAnalysis.SyntaxNode switchStatement) -> System.Collections.Generic.IReadOnlyList<Microsoft.CodeAnalysis.SyntaxNode>
 Microsoft.CodeAnalysis.Editing.SyntaxGenerator.OperatorDeclaration(Microsoft.CodeAnalysis.IMethodSymbol method, System.Collections.Generic.IEnumerable<Microsoft.CodeAnalysis.SyntaxNode> statements = null) -> Microsoft.CodeAnalysis.SyntaxNode
 abstract Microsoft.CodeAnalysis.Editing.SyntaxGenerator.GetSwitchSections(Microsoft.CodeAnalysis.SyntaxNode switchStatement) -> System.Collections.Generic.IReadOnlyList<Microsoft.CodeAnalysis.SyntaxNode>
 abstract Microsoft.CodeAnalysis.Editing.SyntaxGenerator.InsertSwitchSections(Microsoft.CodeAnalysis.SyntaxNode switchStatement, int index, System.Collections.Generic.IEnumerable<Microsoft.CodeAnalysis.SyntaxNode> switchSections) -> Microsoft.CodeAnalysis.SyntaxNode
