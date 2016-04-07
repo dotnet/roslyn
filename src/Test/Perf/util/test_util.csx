@@ -1,6 +1,7 @@
 // Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 #r "System.IO.Compression.FileSystem"
+#r "../../Roslyn.Test.Performance.Utilities.dll"
 
 using System.IO;
 using System.IO.Compression;
@@ -13,6 +14,7 @@ using System.Collections.Generic;
 using System.Runtime.CompilerServices;
 using System.Net;
 using System.Globalization;
+using Roslyn.Test.Performance.Utilities;
 
 class RelativeDirectory 
 {
@@ -151,26 +153,26 @@ class RelativeDirectory
     }
 }
 
-abstract class PerfTest: RelativeDirectory {
-    private List<Tuple<int, string, object>> _metrics = new List<Tuple<int, string, object>>();
+//abstract class PerfTest: RelativeDirectory {
+//    private List<Tuple<int, string, object>> _metrics = new List<Tuple<int, string, object>>();
     
-    public PerfTest([CallerFilePath] string workingFile = ""): base(workingFile) {}
+//    public PerfTest([CallerFilePath] string workingFile = ""): base(workingFile) {}
     
-    /// Reports a metric to be recorded in the performance monitor.
-    protected void Report(ReportKind reportKind, string description, object value)
-    {
-        _metrics.Add(Tuple.Create((int) reportKind, description, value));
-        Log(description + ": " + value.ToString());
-    }
+//    /// Reports a metric to be recorded in the performance monitor.
+//    protected void Report(ReportKind reportKind, string description, object value)
+//    {
+//        _metrics.Add(Tuple.Create((int) reportKind, description, value));
+//        Log(description + ": " + value.ToString());
+//    }
     
-    public abstract bool ProvidesScenarios { get; }
-    public abstract string[] GetScenarios();
-    public abstract void Setup();
-    public abstract void Test();
-    public abstract int Iterations { get; }
-    public abstract string Name { get; }
-    public abstract string MeasuredProc { get; }
-}
+//    public abstract bool ProvidesScenarios { get; }
+//    public abstract string[] GetScenarios();
+//    public abstract void Setup();
+//    public abstract void Test();
+//    public abstract int Iterations { get; }
+//    public abstract string Name { get; }
+//    public abstract string MeasuredProc { get; }
+//}
 
 // This is a workaround for not being able to return
 // arbitrary objects from a csi script while not being
@@ -242,19 +244,19 @@ class ProcessResult
 
 /// Shells out, and if the process fails, log the error
 /// and quit the script.
-static void ShellOutVital(
-        string file,
-        string args,
-        string workingDirectory = null,
-        CancellationToken? cancelationToken = null)
-{
-    var result = ShellOut(file, args, workingDirectory, cancelationToken);
-    if (result.Failed)
-    {
-        LogProcessResult(result);
-        throw new System.Exception("ShellOutVital Failed");
-    }
-}
+//static void ShellOutVital(
+//        string file,
+//        string args,
+//        string workingDirectory = null,
+//        CancellationToken? cancelationToken = null)
+//{
+//    var result = ShellOut(file, args, workingDirectory, cancelationToken);
+//    if (result.Failed)
+//    {
+//        LogProcessResult(result);
+//        throw new System.Exception("ShellOutVital Failed");
+//    }
+//}
 
 static ProcessResult ShellOut(
         string file,
