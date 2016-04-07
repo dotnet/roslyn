@@ -13,7 +13,11 @@ using System.Runtime.InteropServices;
 
 namespace Microsoft.CodeAnalysis.CompilerServer
 {
-    internal abstract class ServerClient
+    /// <summary>
+    /// Base type for the build server code.  Contains the basic logic for running the actual server, startup 
+    /// and shutdown.
+    /// </summary>
+    internal abstract class BuildServerController
     {
         internal int Run(string[] args)
         {

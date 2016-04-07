@@ -17,7 +17,7 @@ namespace Microsoft.CodeAnalysis.CompilerServer.UnitTests
         {
             private static Task<int> RunShutdownAsync(string pipeName, bool waitForProcess = true, TimeSpan? timeout = null, CancellationToken cancellationToken = default(CancellationToken))
             {
-                return new DesktopServerClient().RunShutdownAsync(pipeName, waitForProcess, timeout, cancellationToken);
+                return new DesktopBuildServerController().RunShutdownAsync(pipeName, waitForProcess, timeout, cancellationToken);
             }
 
             [Fact]
@@ -150,7 +150,7 @@ namespace Microsoft.CodeAnalysis.CompilerServer.UnitTests
 
             private bool Parse(params string[] args)
             {
-                return ServerClient.ParseCommandLine(args, out _pipeName, out _shutdown);
+                return BuildServerController.ParseCommandLine(args, out _pipeName, out _shutdown);
             }
 
             [Fact]

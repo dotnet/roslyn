@@ -12,7 +12,7 @@ using System.Threading.Tasks;
 
 namespace Microsoft.CodeAnalysis.CompilerServer
 {
-    internal sealed class PortableServerClient : ServerClient
+    internal sealed class PortableBuildServerController : BuildServerController
     {
         // As a proof of concept implementation the portable code is using TCP as a communication
         // mechanism.  This will eventually switch to domain sockets or named pipes

@@ -65,7 +65,7 @@
       <Link>CoreClrAnalyzerAssemblyLoader.cs</Link>
     </Compile>
     <Compile Include="CoreClrCompilerServerHost.cs" />
-    <Compile Include="PortableServerClient.cs" />
+    <Compile Include="PortableBuildServerController.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="TcpClientConnection.cs" />
   </ItemGroup>

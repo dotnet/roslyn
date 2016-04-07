@@ -19,6 +19,6 @@ namespace Microsoft.CodeAnalysis.CompilerServer
 {
     internal static class VBCSCompiler 
     {
-        public static int Main(string[] args) => new DesktopServerClient().Run(args);
+        public static int Main(string[] args) => new DesktopBuildServerController().Run(args);
     }
 }

@@ -17,7 +17,7 @@ using System.Runtime.InteropServices;
 
 namespace Microsoft.CodeAnalysis.CompilerServer
 {
-    internal class DesktopServerClient : ServerClient
+    internal class DesktopBuildServerController : BuildServerController
     {
         protected override IClientConnectionHost CreateClientConnectionHost(string pipeName)
         {
@@ -108,8 +108,8 @@ namespace Microsoft.CodeAnalysis.CompilerServer
 
         internal static new int RunServer(string pipeName, IClientConnectionHost clientConnectionHost = null, IDiagnosticListener listener = null, TimeSpan? keepAlive = null, CancellationToken cancellationToken = default(CancellationToken))
         {
-            ServerClient serverClient = new DesktopServerClient();
-            return serverClient.RunServer(pipeName, clientConnectionHost, listener, keepAlive, cancellationToken);
+            BuildServerController controller = new DesktopBuildServerController();
+            return controller.RunServer(pipeName, clientConnectionHost, listener, keepAlive, cancellationToken);
         }
     }
 }

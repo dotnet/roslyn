@@ -8,6 +8,6 @@ namespace Microsoft.CodeAnalysis.CompilerServer
 {
     public class Program
     {
-        public static void Main(string[] args) => new PortableServerClient().Run(args);
+        public static void Main(string[] args) => new PortableBuildServerController().Run(args);
     }
 }

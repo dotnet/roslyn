@@ -312,7 +312,7 @@ class Hello
                 try
                 {
                     var host = new Mock<IClientConnectionHost>(MockBehavior.Strict);
-                    var result = DesktopServerClient.RunServer(pipeName, host.Object, keepAlive: null);
+                    var result = DesktopBuildServerController.RunServer(pipeName, host.Object, keepAlive: null);
                     Assert.Equal(CommonCompiler.Failed, result);
                 }
                 finally
@@ -364,7 +364,7 @@ class Hello
                     return new TaskCompletionSource<IClientConnection>().Task;
                 });
 
-            var result = DesktopServerClient.RunServer(pipeName, host.Object, keepAlive: TimeSpan.FromSeconds(1));
+            var result = DesktopBuildServerController.RunServer(pipeName, host.Object, keepAlive: TimeSpan.FromSeconds(1));
             Assert.Equal(CommonCompiler.Succeeded, result);
         }
 

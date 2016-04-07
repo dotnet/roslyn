@@ -103,7 +103,7 @@ namespace Microsoft.CodeAnalysis.CompilerServer.UnitTests
                 {
                     clientConnectionHost = clientConnectionHost ?? new NamedPipeClientConnectionHost(compilerServerHost, pipeName);
 
-                    DesktopServerClient.RunServer(
+                    DesktopBuildServerController.RunServer(
                         pipeName,
                         clientConnectionHost,
                         listener,
