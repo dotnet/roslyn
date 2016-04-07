@@ -31,6 +31,29 @@ class C
         }
 
         [Fact]
+        public void AsyncTasklikeMethod()
+        {
+            var source = @"
+using System.Runtime.CompilerServices;
+using System.Threading.Tasks;
+class C {
+    async ValueTask f() { await Task.Delay(0); }
+    async ValueTask<int> g() { await Task.Delay(0); return 1; }
+}
+[Tasklike(typeof(ValueTaskMethodBuilder))] struct ValueTask { }
+[Tasklike(typeof(ValueTaskMethodBuilder<>))] struct ValueTask<T> { }
+class ValueTaskMethodBuilder {}
+class ValueTaskMethodBuilder<T> {}
+namespace System.Runtime.CompilerServices { class TasklikeAttribute : Attribute { public TasklikeAttribute(Type builderType) { } } }
+";
+            var compilation = CreateCompilationWithMscorlib45(source).VerifyDiagnostics();
+            var methodf = (SourceMethodSymbol)compilation.GlobalNamespace.GetTypeMembers("C").Single().GetMembers("f").Single();
+            var methodg = (SourceMethodSymbol)compilation.GlobalNamespace.GetTypeMembers("C").Single().GetMembers("g").Single();
+            Assert.True(methodf.IsAsync);
+            Assert.True(methodg.IsAsync);
+        }
+
+        [Fact]
         public void AsyncLambdas()
         {
             var source = @"

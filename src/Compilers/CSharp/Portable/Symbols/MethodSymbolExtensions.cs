@@ -274,23 +274,66 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         }
 
         /// <summary>
-        /// Returns whether this method is async and returns a task.
+        /// Returns whether this method is async and returns a "nongeneric tasklike".
+        /// A "nongeneric tasklike" is defined as a type that either has [Tasklike] attribute
+        /// on it and has zero arity, or is System.Threading.Tasks.Task
         /// </summary>
-        public static bool IsTaskReturningAsync(this MethodSymbol method, CSharpCompilation compilation)
+        public static bool IsNongenericTasklikeReturningAsync(this MethodSymbol method, CSharpCompilation compilation)
         {
-            return method.IsAsync
-                && method.ReturnType == compilation.GetWellKnownType(WellKnownType.System_Threading_Tasks_Task);
+            if (!method.IsAsync)
+            {
+                return false;
+            }
+            if (method.ReturnType == compilation.GetWellKnownType(WellKnownType.System_Threading_Tasks_Task)
+                || (method.ReturnType.GetArity() == 0 && method.GetTasklikeBuilderFromAttribute(compilation) != null))
+            {
+                return true;
+            }
+            return false;
+        }
+
+
+        /// <summary>
+        /// Returns whether this method is async and returns a "generic tasklike".
+        /// A "generic tasklike" is defined as a type that either has [Tasklike] attribute
+        /// on it and has arity 1, or is System.Threading.Tasks.Task`1
+        /// </summary>
+        public static bool IsGenericTasklikeReturningAsync(this MethodSymbol method, CSharpCompilation compilation)
+        {
+            if (!method.IsAsync || method.ReturnType.Kind != SymbolKind.NamedType)
+            {
+                return false;
+            }
+            var returnType = (NamedTypeSymbol)method.ReturnType;
+            if (returnType == compilation.GetWellKnownType(WellKnownType.System_Threading_Tasks_Task_T)
+                || (returnType.Arity == 1 && method.GetTasklikeBuilderFromAttribute(compilation) != null))
+            {
+                return true;
+            }
+            return false;
         }
 
         /// <summary>
-        /// Returns whether this method is async and returns a generic task.
+        /// Given a method, and the method has a return-type, and that return-type
+        /// has an attribute [TaskLike(T)] on it, then returns that T. Otherwise, null.
         /// </summary>
-        public static bool IsGenericTaskReturningAsync(this MethodSymbol method, CSharpCompilation compilation)
+        public static NamedTypeSymbol GetTasklikeBuilderFromAttribute(this MethodSymbol method, CSharpCompilation compilation)
         {
-            return method.IsAsync
-                && (object)method.ReturnType != null
-                && method.ReturnType.Kind == SymbolKind.NamedType
-                && ((NamedTypeSymbol)method.ReturnType).ConstructedFrom == compilation.GetWellKnownType(WellKnownType.System_Threading_Tasks_Task_T);
+            var returnType = method.ReturnType;
+
+            foreach (var attr in returnType.GetAttributes())
+            {
+                if (attr.IsTargetAttribute(returnType, AttributeDescription.TasklikeAttribute))
+                {
+                    var builderArg = attr.CommonConstructorArguments.FirstOrNullable();
+                    if (builderArg?.Kind == TypedConstantKind.Type)
+                    {
+                        return builderArg?.Value as NamedTypeSymbol;
+                    }
+                }
+            }
+            return null;
         }
+
     }
 }

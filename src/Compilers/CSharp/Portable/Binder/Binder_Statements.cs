@@ -2784,13 +2784,13 @@ namespace Microsoft.CodeAnalysis.CSharp
         protected bool IsTaskReturningAsyncMethod()
         {
             var symbol = this.ContainingMemberOrLambda;
-            return symbol?.Kind == SymbolKind.Method && ((MethodSymbol)symbol).IsTaskReturningAsync(this.Compilation);
+            return symbol?.Kind == SymbolKind.Method && ((MethodSymbol)symbol).IsNongenericTasklikeReturningAsync(this.Compilation);
         }
 
         protected bool IsGenericTaskReturningAsyncMethod()
         {
             var symbol = this.ContainingMemberOrLambda;
-            return symbol?.Kind == SymbolKind.Method && ((MethodSymbol)symbol).IsGenericTaskReturningAsync(this.Compilation);
+            return symbol?.Kind == SymbolKind.Method && ((MethodSymbol)symbol).IsGenericTasklikeReturningAsync(this.Compilation);
         }
 
         protected virtual TypeSymbol GetCurrentReturnType()

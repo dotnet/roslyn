@@ -3155,6 +3155,49 @@ class C
         }
 
         [Fact]
+        public void PresentAsyncTasklikeBuilder()
+        {
+            var source = @"
+using System.Runtime.CompilerServices;
+using System.Threading.Tasks;
+class C
+{
+    async ValueTask f() { await Task.Delay(0); }
+    //async ValueTask<int> g() { await Task.Delay(0); return 1; }
+}
+[Tasklike(typeof(ValueTaskMethodBuilder))] struct ValueTask { }
+[Tasklike(typeof(ValueTaskMethodBuilder<>))] struct ValueTask<T> { }
+class ValueTaskMethodBuilder
+{
+    public ValueTask Task { get; }
+    public static ValueTaskMethodBuilder Create() => null;
+    public void AwaitOnCompleted<TAwaiter, TStateMachine>(ref TAwaiter awaiter, ref TStateMachine stateMachine) where TAwaiter : INotifyCompletion where TStateMachine : IAsyncStateMachine { }
+    public void AwaitUnsafeOnCompleted<TAwaiter, TStateMachine>(ref TAwaiter awaiter, ref TStateMachine stateMachine) where TAwaiter : ICriticalNotifyCompletion where TStateMachine : IAsyncStateMachine { }
+    public void SetException(System.Exception exception) { }
+    public void SetResult() { }
+    public void SetStateMachine(IAsyncStateMachine stateMachine) { }
+    public void Start<TStateMachine>(ref TStateMachine stateMachine) where TStateMachine : IAsyncStateMachine { }
+}
+class ValueTaskMethodBuilder<T>
+{
+    public ValueTask<T> Task { get; }
+    public static ValueTaskMethodBuilder<T> Create() => null;
+    public void AwaitOnCompleted<TAwaiter, TStateMachine>(ref TAwaiter awaiter, ref TStateMachine stateMachine) where TAwaiter : INotifyCompletion where TStateMachine : IAsyncStateMachine { }
+    public void AwaitUnsafeOnCompleted<TAwaiter, TStateMachine>(ref TAwaiter awaiter, ref TStateMachine stateMachine) where TAwaiter : ICriticalNotifyCompletion where TStateMachine : IAsyncStateMachine { }
+    public void SetException(System.Exception exception) { }
+    public void SetResult() { }
+    public void SetStateMachine(IAsyncStateMachine stateMachine) { }
+    public void Start<TStateMachine>(ref TStateMachine stateMachine) where TStateMachine : IAsyncStateMachine { }
+}
+namespace System.Runtime.CompilerServices { class TasklikeAttribute : Attribute { public TasklikeAttribute(Type builderType) { } } }
+";
+
+            var v = CompileAndVerify(source, null, options: TestOptions.ReleaseDll);
+            v.VerifyIL("C.f", "never expect the unexpected");
+        }
+
+
+        [Fact]
         [WorkItem(868822, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/868822")]
         public void AsyncDelegates()
         {

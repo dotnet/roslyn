@@ -410,7 +410,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             DiagnosticBag diagnostics = DiagnosticBag.GetInstance();
             Location errorLocation = this.Locations[0];
 
-            if (!this.IsGenericTaskReturningAsync(this.DeclaringCompilation) && !this.IsTaskReturningAsync(this.DeclaringCompilation) && !this.IsVoidReturningAsync())
+            if (!this.IsGenericTasklikeReturningAsync(this.DeclaringCompilation) && !this.IsNongenericTasklikeReturningAsync(this.DeclaringCompilation) && !this.IsVoidReturningAsync())
             {
                 // The return type of an async method must be void, Task or Task<T>
                 diagnostics.Add(ErrorCode.ERR_BadAsyncReturn, errorLocation);
