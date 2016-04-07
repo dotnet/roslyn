@@ -76,8 +76,6 @@ namespace Microsoft.CodeAnalysis.PopulateSwitch
             return missingDefaultCase || missingCases;
         }
 
-
-
         public DiagnosticAnalyzerCategory GetAnalyzerCategory() => DiagnosticAnalyzerCategory.SemanticSpanAnalysis;
     }
 }
