@@ -151,9 +151,11 @@
   </ItemGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug|AnyCPU'">
     <PlatformTarget>AnyCPU</PlatformTarget>
+    <CodeAnalysisRuleSet />
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Release|AnyCPU'">
     <PlatformTarget>AnyCPU</PlatformTarget>
+    <CodeAnalysisRuleSet />
   </PropertyGroup>
   <PropertyGroup>
     <StartAction>Program</StartAction>
