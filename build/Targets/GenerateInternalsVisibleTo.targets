@@ -1,4 +1,10 @@
 <Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <!-- ====================================================================================
+
+         Generation of InternalsVisibleTo attributes from the project
+
+       ==================================================================================== -->
+
   <PropertyGroup>
     <GeneratedInternalsVisibleToFile>$(IntermediateOutputPath)GeneratedInternalsVisibleTo$(DefaultLanguageSourceExtension)</GeneratedInternalsVisibleToFile>
   </PropertyGroup>
