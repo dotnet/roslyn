@@ -22,23 +22,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.PopulateSwitch
             End If
 
             Return sections.Count
-
-#If False Then
-            Dim cases = sections.OfType(Of CaseBlockSyntax).ToList()
-            Dim numOfBlocksWithNoStatementsWithElse = 0
-
-            ' skip the `Else` block
-            For i = cases.Count - 2 To 0 Step -1
-                If Not cases.ElementAt(i).Statements.Count = 0 Then
-
-                    ' insert the values immediately below the last item with statements
-                    numOfBlocksWithNoStatementsWithElse = i + 1
-                    Exit For
-                End If
-            Next
-
-            Return numOfBlocksWithNoStatementsWithElse
-#End If
         End Function
     End Class
 End Namespace
