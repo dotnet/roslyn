@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Diagnostics;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -10,7 +11,6 @@ using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Simplification;
-using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.PopulateSwitch
@@ -26,11 +26,39 @@ namespace Microsoft.CodeAnalysis.PopulateSwitch
 
         public sealed override Task RegisterCodeFixesAsync(CodeFixContext context)
         {
-            context.RegisterCodeFix(
-                new MyCodeAction(
-                    FeaturesResources.AddMissingSwitchCases,
-                    c => AddMissingSwitchLabelsAsync(context)),
-                context.Diagnostics);
+            var diagnostic = context.Diagnostics.First();
+            var properties = diagnostic.Properties;
+            var missingCases = bool.Parse(properties[PopulateSwitchHelpers.MissingCases]);
+            var missingDefaultCase = bool.Parse(properties[PopulateSwitchHelpers.MissingDefaultCase]);
+
+            Debug.Assert(missingCases || missingDefaultCase);
+
+            if (missingCases)
+            {
+                context.RegisterCodeFix(
+                    new MyCodeAction(
+                        FeaturesResources.Add_missing_switch_cases,
+                        c => AddMissingSwitchCasesAsync(context, includeMissingCases: true, includeDefaultCase: false)),
+                    context.Diagnostics);
+            }
+
+            if (missingDefaultCase)
+            {
+                context.RegisterCodeFix(
+                    new MyCodeAction(
+                        FeaturesResources.Add_default_switch_case,
+                        c => AddMissingSwitchCasesAsync(context, includeMissingCases: false, includeDefaultCase: true)),
+                    context.Diagnostics);
+            }
+
+            if (missingCases && missingDefaultCase)
+            {
+                context.RegisterCodeFix(
+                    new MyCodeAction(
+                        FeaturesResources.Add_both,
+                        c => AddMissingSwitchCasesAsync(context, includeMissingCases: true, includeDefaultCase: true)),
+                    context.Diagnostics);
+            }
 
             return SpecializedTasks.EmptyTask;
         }
@@ -45,7 +73,8 @@ namespace Microsoft.CodeAnalysis.PopulateSwitch
 
         protected abstract List<TExpressionSyntax> GetCaseLabels(TSwitchBlockSyntax switchBlock, out bool containsDefaultLabel);
 
-        private async Task<Document> AddMissingSwitchLabelsAsync(CodeFixContext context)
+        private async Task<Document> AddMissingSwitchCasesAsync(
+            CodeFixContext context, bool includeMissingCases, bool includeDefaultCase)
         {
             var document = context.Document;
             var span = context.Span;
@@ -57,8 +86,9 @@ namespace Microsoft.CodeAnalysis.PopulateSwitch
 
             var enumType = (INamedTypeSymbol)model.GetTypeInfo(GetSwitchExpression(switchNode)).Type;
 
-            bool containsDefaultLabel;
-            var missingLabels = GetMissingLabels(switchNode, model, enumType, out containsDefaultLabel);
+            bool containsDefaultCase;
+            var caseLabels = GetCaseLabels(switchNode, out containsDefaultCase);
+            var missingLabels = PopulateSwitchHelpers.GetMissingSwitchCases(model, enumType, caseLabels);
 
             var generator = SyntaxGenerator.GetGenerator(document);
 
@@ -66,19 +96,23 @@ namespace Microsoft.CodeAnalysis.PopulateSwitch
             var statements = new List<SyntaxNode> { switchExitStatement };
 
             var newSections = GetSwitchSections(switchNode);
-            foreach (var label in missingLabels)
+
+            if (includeMissingCases)
             {
-                var caseLabel = generator.MemberAccessExpression(generator.TypeExpression(enumType), label);
+                foreach (var label in missingLabels)
+                {
+                    var caseLabel = generator.MemberAccessExpression(generator.TypeExpression(enumType), label.Name);
 
-                var section = (TSwitchSectionSyntax)generator.SwitchSection(caseLabel, new List<SyntaxNode> { switchExitStatement });
+                    var section = (TSwitchSectionSyntax)generator.SwitchSection(caseLabel, new List<SyntaxNode> { switchExitStatement });
 
-                // ensure that the new cases are above the last section if a default case exists, but below all other sections
-                newSections = containsDefaultLabel
-                    ? newSections.Insert(InsertPosition(newSections), section)
-                    : newSections.Add(section);
+                    // ensure that the new cases are above the last section if a default case exists, but below all other sections
+                    newSections = containsDefaultCase
+                        ? newSections.Insert(InsertPosition(newSections), section)
+                        : newSections.Add(section);
+                }
             }
 
-            if (!containsDefaultLabel)
+            if (includeDefaultCase)
             {
                 newSections = newSections.Add((TSwitchSectionSyntax)generator.DefaultSwitchSection(statements));
             }
@@ -88,21 +122,6 @@ namespace Microsoft.CodeAnalysis.PopulateSwitch
 
             var newRoot = root.ReplaceNode(switchNode, newNode);
             return document.WithSyntaxRoot(newRoot);
-        }
-
-        private List<string> GetMissingLabels(TSwitchBlockSyntax switchBlock, SemanticModel model, INamedTypeSymbol enumType, out bool containsDefaultLabel)
-        {
-            var caseLabels = GetCaseLabels(switchBlock, out containsDefaultLabel);
-
-            var symbols = caseLabels.Select(label => model.GetSymbolInfo(label).Symbol).Where(symbol => symbol != null).ToList();
-
-            return (from member in enumType.GetMembers()
-                let field = member as IFieldSymbol
-                where field != null && field.Type.SpecialType == SpecialType.None
-                let memberExists = symbols.Any(symbol => symbol == member)
-                where !memberExists
-                select member.Name)
-                .ToList();
         }
 
         private class MyCodeAction : CodeAction.DocumentChangeAction

@@ -1,11 +1,11 @@
 ﻿using System.Collections.Generic;
 using System.Composition;
 using Microsoft.CodeAnalysis.CodeFixes;
-using Microsoft.CodeAnalysis.CSharp.PopulateSwitch;
+using Microsoft.CodeAnalysis.PopulateSwitch;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Text;
 
-namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.PopulateSwitch
+namespace Microsoft.CodeAnalysis.CSharp.PopulateSwitch
 {
     [ExportCodeFixProvider(LanguageNames.CSharp, Name = PredefinedCodeFixProviderNames.PopulateSwitch), Shared]
     [ExtensionOrder(After = PredefinedCodeFixProviderNames.ImplementInterface)]

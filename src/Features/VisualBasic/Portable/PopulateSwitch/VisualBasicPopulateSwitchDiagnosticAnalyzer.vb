@@ -1,7 +1,7 @@
 ﻿Imports System.Collections.Immutable
 Imports System.Runtime.InteropServices
 Imports Microsoft.CodeAnalysis.Diagnostics
-Imports Microsoft.CodeAnalysis.Diagnostics.PopulateSwitch
+Imports Microsoft.CodeAnalysis.PopulateSwitch
 Imports Microsoft.CodeAnalysis.VisualBasic.PopulateSwitch
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
