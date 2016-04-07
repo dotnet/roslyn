@@ -16,10 +16,8 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.PopulateSwitch
 {
-    internal abstract class AbstractPopulateSwitchCodeFixProvider<TSwitchBlockSyntax, TExpressionSyntax, TSwitchSectionSyntax> : CodeFixProvider 
-        where TSwitchBlockSyntax : SyntaxNode
+    internal abstract class AbstractPopulateSwitchCodeFixProvider<TSwitchSectionSyntax> : CodeFixProvider 
         where TSwitchSectionSyntax : SyntaxNode
-        where TExpressionSyntax : SyntaxNode
     {
         public override ImmutableArray<string> FixableDiagnosticIds => ImmutableArray.Create(IDEDiagnosticIds.PopulateSwitchDiagnosticId);
 
@@ -64,11 +62,7 @@ namespace Microsoft.CodeAnalysis.PopulateSwitch
             return SpecializedTasks.EmptyTask;
         }
 
-        protected abstract int InsertPosition(SyntaxList<TSwitchSectionSyntax> sections);
-
-        protected abstract SyntaxList<TSwitchSectionSyntax> GetSwitchSections(TSwitchBlockSyntax switchBlock);
-
-        protected abstract TSwitchBlockSyntax NewSwitchNode(TSwitchBlockSyntax switchBlock, SyntaxList<TSwitchSectionSyntax> sections);
+        protected abstract int InsertPosition(IReadOnlyList<TSwitchSectionSyntax> sections);
 
         private async Task<Document> AddMissingSwitchCasesAsync(
             CodeFixContext context, bool includeMissingCases, bool includeDefaultCase)
@@ -80,44 +74,44 @@ namespace Microsoft.CodeAnalysis.PopulateSwitch
             var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
             var model = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
 
-            var switchNode = (TSwitchBlockSyntax)root.FindNode(span);
+            var switchNode = root.FindNode(span);
             var switchStatement = (ISwitchStatement)model.GetOperation(switchNode, cancellationToken);
             var enumType = switchStatement.Value.Type;
 
             var containsDefaultCase = PopulateSwitchHelpers.HasDefaultCase(switchStatement);
-            var missingLabels = PopulateSwitchHelpers.GetMissingEnumMembers(switchStatement, enumType);
+            var missingEnumMembers = PopulateSwitchHelpers.GetMissingEnumMembers(switchStatement, enumType);
 
             var generator = SyntaxGenerator.GetGenerator(document);
 
             var switchExitStatement = generator.ExitSwitchStatement();
-            var statements = new List<SyntaxNode> { switchExitStatement };
+            var sectionStatements = new[] { switchExitStatement };
 
-            var newSections = GetSwitchSections(switchNode);
+            var allSections = (IReadOnlyList<TSwitchSectionSyntax>)generator.GetSwitchSections(switchNode);
+            var newSections = new List<SyntaxNode>();
 
             if (includeMissingCases)
             {
-                foreach (var label in missingLabels)
-                {
-                    var caseLabel = generator.MemberAccessExpression(generator.TypeExpression(enumType), label.Name);
+                var missingSections =
+                    from e in missingEnumMembers
+                    let caseLabel = generator.MemberAccessExpression(generator.TypeExpression(enumType), e.Name)
+                    let section = generator.SwitchSection(caseLabel, sectionStatements)
+                    select section;
 
-                    var section = (TSwitchSectionSyntax)generator.SwitchSection(caseLabel, new List<SyntaxNode> { switchExitStatement });
-
-                    // ensure that the new cases are above the last section if a default case exists, but below all other sections
-                    newSections = containsDefaultCase
-                        ? newSections.Insert(InsertPosition(newSections), section)
-                        : newSections.Add(section);
-                }
+                newSections.AddRange(missingSections);
             }
 
             if (includeDefaultCase)
             {
-                newSections = newSections.Add((TSwitchSectionSyntax)generator.DefaultSwitchSection(statements));
+                // Always add the default clause at the end.
+                newSections.Add(generator.DefaultSwitchSection(sectionStatements));
             }
 
-            var newNode = NewSwitchNode(switchNode, newSections)
+            var insertLocation = InsertPosition(allSections);
+
+            var newSwitchNode = generator.InsertSwitchSections(switchNode, insertLocation, newSections)
                 .WithAdditionalAnnotations(Formatter.Annotation, Simplifier.Annotation);
 
-            var newRoot = root.ReplaceNode(switchNode, newNode);
+            var newRoot = root.ReplaceNode(switchNode, newSwitchNode);
             return document.WithSyntaxRoot(newRoot);
         }
 

@@ -441,6 +441,7 @@
     <Compile Include="Utilities\BKTree.Serialization.cs" />
     <Compile Include="Utilities\ForegroundThreadDataKind.cs" />
     <Compile Include="Utilities\IReadOnlyDictionaryExtensions.cs" />
+    <Compile Include="Utilities\IReadOnlyListExtensions.cs" />
     <Compile Include="Utilities\SpellChecker.cs" />
     <Compile Include="Utilities\ValuesSources\CachedWeakValueSource.cs" />
     <Compile Include="Utilities\WeakEventHandler.cs" />
