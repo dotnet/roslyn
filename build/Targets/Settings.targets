@@ -287,18 +287,8 @@
   </Choose>
 
   <PropertyGroup>
-    <!-- SN is in the Framework SDK tools path, but TargetFrameworkSDKToolsDirectory isn't always available  -->
-    <SnToolPath Condition=" '$(TargetFrameworkSDKToolsDirectory)' != '' ">$(TargetFrameworkSDKToolsDirectory)\sn.exe</SnToolPath>
-    <SnToolPath Condition=" '$(TargetFrameworkSDKToolsDirectory)' == '' ">$(MSBuildProgramFiles32)\Microsoft SDKs\Windows\v8.0A\bin\NETFX 4.0 Tools\sn.exe</SnToolPath>
-
-    <EditBinToolPath>$(MSBuildProgramFiles32)\Microsoft Visual Studio $(VisualStudioVersion)\VC\bin\editbin.exe</EditBinToolPath>
-
-  </PropertyGroup>
-
-  <PropertyGroup>
     <CopyVSReferencesToOutput>True</CopyVSReferencesToOutput>
     <AuthenticodeCertificateName>Microsoft402</AuthenticodeCertificateName>
-    <FakeSignToolPath>$(NuGetPackageRoot)\FakeSign\0.9.2\tools\FakeSign.exe</FakeSignToolPath>
   </PropertyGroup>
 
   <!-- 
