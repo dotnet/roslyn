@@ -15,7 +15,7 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Test.Utilities
 {
-    public sealed class HostedRuntimeEnvironment : IDisposable, IRuntimeUtility, IInternalRuntimeUtility
+    public sealed class HostedRuntimeEnvironment : IDisposable, IRuntimeEnvironment, IInternalRuntimeUtility
     {
         private sealed class RuntimeData : IDisposable
         {

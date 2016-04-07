@@ -1,4 +1,5 @@
-﻿using System;
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.CodeGen;
@@ -6,7 +7,7 @@ using Roslyn.Test.Utilities;
 
 namespace Microsoft.CodeAnalysis.Test.Utilities
 {
-    class CoreCLRRuntimeEnvironment : IRuntimeUtility, IInternalRuntimeUtility
+    public class CoreCLRRuntimeEnvironment : IRuntimeEnvironment, IInternalRuntimeUtility
     {
         private IEnumerable<ModuleData> _additionalDependencies;
         private CompilationTestData _testData = new CompilationTestData();
@@ -75,39 +76,10 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             return _testData;
         }
 
-        #region IDisposable Support
-        private bool disposedValue = false; // To detect redundant calls
-
-        protected virtual void Dispose(bool disposing)
-        {
-            if (!disposedValue)
-            {
-                if (disposing)
-                {
-                    // TODO: dispose managed state (managed objects).
-                }
-
-                // TODO: free unmanaged resources (unmanaged objects) and override a finalizer below.
-                // TODO: set large fields to null.
-
-                disposedValue = true;
-            }
-        }
-
-        // TODO: override a finalizer only if Dispose(bool disposing) above has code to free unmanaged resources.
-        // ~CoreCLRRuntimeEnvironment() {
-        //   // Do not change this code. Put cleanup code in Dispose(bool disposing) above.
-        //   Dispose(false);
-        // }
-
-        // This code added to correctly implement the disposable pattern.
         public void Dispose()
         {
-            // Do not change this code. Put cleanup code in Dispose(bool disposing) above.
-            Dispose(true);
-            // TODO: uncomment the following line if the finalizer is overridden above.
-            // GC.SuppressFinalize(this);
+            // We need Dispose to satisfy the IRuntimeEnvironment interface, but 
+            // we don't really need it.
         }
-        #endregion
     }
 }

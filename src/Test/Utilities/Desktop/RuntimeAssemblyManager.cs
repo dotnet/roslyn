@@ -456,7 +456,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
 
                     if (dumpDirectory == null)
                     {
-                        var assemblyLocation = typeof(IRuntimeUtility).Assembly.Location;
+                        var assemblyLocation = typeof(IRuntimeEnvironment).Assembly.Location;
                         dumpDirectory = Path.Combine(
                             Path.GetDirectoryName(assemblyLocation),
                             "Dumps");

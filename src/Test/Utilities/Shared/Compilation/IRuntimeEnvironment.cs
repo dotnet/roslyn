@@ -1,4 +1,4 @@
-﻿
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -13,9 +13,9 @@ using Roslyn.Utilities;
 
 namespace Roslyn.Test.Utilities
 {
-    public class  RuntimeUtilityFactory
+    public class RuntimeEnvironmentFactory
     {
-        internal static IRuntimeUtility NewInstance(IEnumerable<ModuleData> additionalDependencies = null)
+        internal static IRuntimeEnvironment Create(IEnumerable<ModuleData> additionalDependencies = null)
     {
 
 #if DNX
@@ -98,6 +98,7 @@ namespace Roslyn.Test.Utilities
                 }
             }
         }
+
         /// <summary>
         /// Find all of the <see cref="Compilation"/> values reachable from this instance.
         /// </summary>
@@ -143,6 +144,7 @@ namespace Roslyn.Test.Utilities
 
             return list;
         }
+
         internal static EmitOutput? EmitCompilation(
             Compilation compilation,
             IEnumerable<ResourceDescription> manifestResources,
@@ -233,7 +235,7 @@ namespace Roslyn.Test.Utilities
         }
     }
 
-    public interface IRuntimeUtility: System.IDisposable
+    public interface IRuntimeEnvironment : IDisposable
     {
         void Emit(Microsoft.CodeAnalysis.Compilation mainCompilation, IEnumerable<ResourceDescription> manifestResources, bool usePdbForDebugging = false);
         int Execute(string moduleName, string expectedOutput);

@@ -89,7 +89,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
 
             public void Emit(string expectedOutput, IEnumerable<ResourceDescription> manifestResources, bool peVerify, SignatureDescription[] expectedSignatures)
             {
-                using (var testEnvironment = RuntimeUtilityFactory.NewInstance(_dependencies))
+                using (var testEnvironment = RuntimeEnvironmentFactory.Create(_dependencies))
                 {
                     string mainModuleName = Emit(testEnvironment, manifestResources);
                     _allModuleData = testEnvironment.GetAllModuleData();
@@ -115,7 +115,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             // Replace bool verify parameter with string[] expectedPeVerifyOutput. If null, no verification. If empty verify have to succeed. Otherwise compare errors.
             public void EmitAndVerify(params string[] expectedPeVerifyOutput)
             {
-                using (var testEnvironment = RuntimeUtilityFactory.NewInstance(_dependencies))
+                using (var testEnvironment = RuntimeEnvironmentFactory.Create(_dependencies))
                 {
                     string mainModuleName = Emit(testEnvironment, null);
                     string[] actualOutput = testEnvironment.PeVerifyModules(new[] { mainModuleName }, throwOnError: false);
@@ -123,7 +123,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
                 }
             }
 
-            private string Emit(IRuntimeUtility testEnvironment, IEnumerable<ResourceDescription> manifestResources)
+            private string Emit(IRuntimeEnvironment testEnvironment, IEnumerable<ResourceDescription> manifestResources)
             {
                 testEnvironment.Emit(_compilation, manifestResources);
 

@@ -23,7 +23,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
         /// <param name="appDomainHost">Unit test AppDomain host</param>
         /// <param name="expectedSignatures">Baseline signatures - use the Signature() factory method to create instances of SignatureDescription</param>
         internal static void VerifyMemberSignatures(
-            IRuntimeUtility appDomainHost, params SignatureDescription[] expectedSignatures)
+            IRuntimeEnvironment appDomainHost, params SignatureDescription[] expectedSignatures)
         {
             Assert.NotNull(expectedSignatures);
             Assert.NotEmpty(expectedSignatures);
@@ -76,7 +76,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
         /// <param name="actualSignatures">List of found signatures matching member name</param>
         /// <returns>True if a matching member signature was found, false otherwise</returns>
         private static bool VerifyMemberSignatureHelper(
-            IRuntimeUtility appDomainHost, string fullyQualifiedTypeName, string memberName,
+            IRuntimeEnvironment appDomainHost, string fullyQualifiedTypeName, string memberName,
             ref string expectedSignature, out List<string> actualSignatures)
         {
             Assert.False(string.IsNullOrWhiteSpace(fullyQualifiedTypeName), "'fullyQualifiedTypeName' can't be null or empty");

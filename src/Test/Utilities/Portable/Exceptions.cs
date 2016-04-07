@@ -6,26 +6,26 @@ using static Roslyn.Test.Utilities.ExceptionHelper;
 
 namespace Microsoft.CodeAnalysis.Test.Utilities
 {
-    public class EmitException : Exception
+    public sealed class EmitException : Exception
     {
         public IEnumerable<Diagnostic> Diagnostics { get; }
 
-        public EmitException(IEnumerable<Diagnostic> diagnostics, string directory)
+        internal EmitException(IEnumerable<Diagnostic> diagnostics, string directory)
             : base(GetMessageFromResult(diagnostics, directory))
         {
             this.Diagnostics = diagnostics;
         }
     }
 
-    public class PeVerifyException : Exception
+    public sealed class PeVerifyException : Exception
     {
-        public PeVerifyException(string output, string exePath) : base(GetMessageFromResult(output, exePath)) { }
+        internal PeVerifyException(string output, string exePath) : base(GetMessageFromResult(output, exePath)) { }
     }
 
-    public class ExecutionException : Exception
+    public sealed class ExecutionException : Exception
     {
-        public ExecutionException(string expectedOutput, string actualOutput, string exePath) : base(GetMessageFromResult(expectedOutput, actualOutput, exePath)) { }
+        internal ExecutionException(string expectedOutput, string actualOutput, string exePath) : base(GetMessageFromResult(expectedOutput, actualOutput, exePath)) { }
 
-        public ExecutionException(Exception innerException, string exePath) : base(GetMessageFromException(innerException, exePath), innerException) { }
+        internal ExecutionException(Exception innerException, string exePath) : base(GetMessageFromException(innerException, exePath), innerException) { }
     }
 }

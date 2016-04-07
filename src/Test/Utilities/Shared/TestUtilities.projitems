@@ -25,7 +25,7 @@
     <Compile Include="$(MSBuildThisFileDirectory)Compilation\CompilationExtensions.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Compilation\CompilationOutputFiles.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Compilation\CompilationTestDataExtensions.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)Compilation\IRuntimeUtility.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Compilation\IRuntimeEnvironment.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Compilation\SpeculativeSemanticModelTestsBase.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Compilation\TestOperationWalker.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Compilation\VersionTestHelpers.cs" />
