@@ -388,8 +388,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
         End Function
 
         Public Overrides Function DefaultSwitchSection(statements As IEnumerable(Of SyntaxNode)) As SyntaxNode
-            Return SyntaxFactory.CaseBlock(
-                SyntaxFactory.CaseStatement(SyntaxFactory.ElseCaseClause()),
+            Return SyntaxFactory.CaseElseBlock(
+                SyntaxFactory.CaseElseStatement(SyntaxFactory.ElseCaseClause()),
                 GetStatementList(statements))
         End Function
 

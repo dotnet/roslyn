@@ -197,6 +197,15 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Add missing switch cases.
+        /// </summary>
+        internal static string AddMissingSwitchCases {
+            get {
+                return ResourceManager.GetString("AddMissingSwitchCases", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Add optional parameters to &apos;{0}({1})&apos;.
         /// </summary>
         internal static string AddOptionalParametersTo {

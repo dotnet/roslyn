@@ -344,6 +344,8 @@
     <Compile Include="Outlining\RegionDirectiveOutlinerTests.vb" />
     <Compile Include="Outlining\TypeDeclarationOutlinerTests.vb" />
     <Compile Include="Outlining\XmlExpressionOutlinerTests.vb" />
+    <Compile Include="PopulateSwitch\PopulateSwitchTests.vb" />
+    <Compile Include="PopulateSwitch\PopulateSwitchTests_FixAllTests.vb" />
     <Compile Include="QuickInfo\SemanticQuickInfoSourceTests.vb" />
     <Compile Include="Recommendations\ArrayStatements\EraseKeywordRecommenderTests.vb" />
     <Compile Include="Recommendations\ArrayStatements\PreserveKeywordRecommenderTests.vb" />

@@ -85,25 +85,20 @@ namespace GitMergeBot
             var newBranchName = await MakePrBranch(_options.SourceUser, _options.RepoName, remoteIntoBranch, newBranchPrefix);
             var pullRequest = await SubmitPullRequest(newBranchName);
 
-            // pullRequest could be null if we are running in debug mode.
-            // Only write the comment if the pull request can be automatically merged.
-            if ((pullRequest?.Mergeable).HasValue && pullRequest.Mergeable.Value)
-            {
-                // The reason for this delay is twofold:
-                //
-                // * Github has a bug in which it can "create" a pull request without that pull request
-                //   being able to be commented on for a short period of time.
-                // * The Jenkins "comment watcher" has a bug whereby any comment posted shortly after
-                //   pull-request creation is ignored.
-                //
-                // Thus, this delay sidesteps both of those bugs by asking for a VSI test 30 seconds after 
-                // the creation of the PR.  Ugly, yes; but the only *real* way to sidestep this would be to 
-                // 1) Fix github, 2) Fix jenkins, and while those might be lofty goals, they are not in the 
-                // scope of this PR.
-                await Task.Delay(TimeSpan.FromSeconds(30.0));
-                await _client.Issue.Comment.Create(_options.DestinationUser, _options.RepoName, pullRequest.Number, "@dotnet-bot test vsi please");
-            }
-            return;
+            // The reason for this delay is twofold:
+            //
+            // * Github has a bug in which it can "create" a pull request without that pull request
+            //   being able to be commented on for a short period of time.
+            // * The Jenkins "comment watcher" has a bug whereby any comment posted shortly after
+            //   pull-request creation is ignored.
+            //
+            // Thus, this delay sidesteps both of those bugs by asking for a VSI test 30 seconds after 
+            // the creation of the PR.  Ugly, yes; but the only *real* way to sidestep this would be to 
+            // 1) Fix github, 2) Fix jenkins, and while those might be lofty goals, they are not in the 
+            // scope of this PR.
+            await Task.Delay(TimeSpan.FromSeconds(30.0));
+
+            await _client.Issue.Comment.Create(_options.DestinationUser, _options.RepoName, pullRequest.Number, "@dotnet-bot test vsi please");
         }
 
         /// <returns> The SHA at the tip of `branchName` in the repository `user/repo` </returns>

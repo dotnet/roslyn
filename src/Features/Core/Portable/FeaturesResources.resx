@@ -1001,4 +1001,7 @@ This version used in: {2}</value>
   <data name="Parameters" xml:space="preserve">
     <value>Parameters:</value>
   </data>
+  <data name="AddMissingSwitchCases" xml:space="preserve">
+    <value>Add missing switch cases</value>
+  </data>
 </root>
