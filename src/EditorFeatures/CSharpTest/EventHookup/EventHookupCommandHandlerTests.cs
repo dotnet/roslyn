@@ -1,12 +1,11 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using Microsoft.CodeAnalysis.Text;
 using Roslyn.Test.Utilities;
 using System.Threading.Tasks;
 using Xunit;
 using System.Collections.Generic;
 using Microsoft.CodeAnalysis.Options;
-using Microsoft.CodeAnalysis.Simplification;
+using Microsoft.CodeAnalysis.CodeStyle;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.EventHookup
 {
@@ -963,6 +962,6 @@ class C
             }
         }
 
-        private IDictionary<OptionKey, object> QualifyMethodAccess => new Dictionary<OptionKey, object>() { { new OptionKey(SimplificationOptions.QualifyMethodAccess, LanguageNames.CSharp), true } };
+        private IDictionary<OptionKey, object> QualifyMethodAccess => new Dictionary<OptionKey, object>() { { new OptionKey(CodeStyleOptions.QualifyMethodAccess, LanguageNames.CSharp), new SimpleCodeStyleOption(true, NotificationOption.Error) } };
     }
 }

@@ -489,26 +489,26 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options
 
         public int Style_QualifyFieldAccess
         {
-            get { return GetBooleanOption(SimplificationOptions.QualifyFieldAccess); }
-            set { SetBooleanOption(SimplificationOptions.QualifyFieldAccess, value); }
+            get { return GetBooleanOption(CodeStyleOptions.QualifyFieldAccess); }
+            set { SetBooleanOption(CodeStyleOptions.QualifyFieldAccess, value); }
         }
 
         public int Style_QualifyPropertyAccess
         {
-            get { return GetBooleanOption(SimplificationOptions.QualifyPropertyAccess); }
-            set { SetBooleanOption(SimplificationOptions.QualifyPropertyAccess, value); }
+            get { return GetBooleanOption(CodeStyleOptions.QualifyPropertyAccess); }
+            set { SetBooleanOption(CodeStyleOptions.QualifyPropertyAccess, value); }
         }
 
         public int Style_QualifyMethodAccess
         {
-            get { return GetBooleanOption(SimplificationOptions.QualifyMethodAccess); }
-            set { SetBooleanOption(SimplificationOptions.QualifyMethodAccess, value); }
+            get { return GetBooleanOption(CodeStyleOptions.QualifyMethodAccess); }
+            set { SetBooleanOption(CodeStyleOptions.QualifyMethodAccess, value); }
         }
 
         public int Style_QualifyEventAccess
         {
-            get { return GetBooleanOption(SimplificationOptions.QualifyEventAccess); }
-            set { SetBooleanOption(SimplificationOptions.QualifyEventAccess, value); }
+            get { return GetBooleanOption(CodeStyleOptions.QualifyEventAccess); }
+            set { SetBooleanOption(CodeStyleOptions.QualifyEventAccess, value); }
         }
 
         public int Style_UseVarWhenDeclaringLocals
@@ -594,6 +594,11 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options
             return _workspace.Options.GetOption(key, LanguageNames.CSharp) ? 1 : 0;
         }
 
+        private int GetBooleanOption(PerLanguageOption<SimpleCodeStyleOption> key)
+        {
+            return _workspace.Options.GetOption(key, LanguageNames.CSharp).IsChecked ? 1 : 0;
+        }
+
         private void SetBooleanOption(Option<bool> key, int value)
         {
             _workspace.Options = _workspace.Options.WithChangedOption(key, value != 0);
@@ -613,6 +618,13 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options
             }
 
             return option.Value ? 1 : 0;
+        }
+
+        private void SetBooleanOption(PerLanguageOption<SimpleCodeStyleOption> key, int value)
+        {
+            var opt = _workspace.Options.GetOption(key, LanguageNames.CSharp);
+            opt.IsChecked = value != 0;
+            _workspace.Options = _workspace.Options.WithChangedOption(key, LanguageNames.CSharp, opt);
         }
 
         private void SetBooleanOption(PerLanguageOption<bool?> key, int value)

@@ -367,9 +367,9 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
             return codeActions?.SelectMany(a => a.HasCodeActions ? a.GetCodeActions().ToArray() : new[] { a }).ToList();
         }
 
-        protected IDictionary<OptionKey, object> Option(PerLanguageOption<bool> option, bool value)
+        protected IDictionary<OptionKey, object> Option(PerLanguageOption<CodeStyle.SimpleCodeStyleOption> option, bool value, CodeStyle.NotificationOption notification)
         {
-            return new Dictionary<OptionKey, object>() { { new OptionKey(option, GetLanguage()), value } };
+            return new Dictionary<OptionKey, object>() { { new OptionKey(option, GetLanguage()), new CodeStyle.SimpleCodeStyleOption(value, notification) } };
         }
     }
 }

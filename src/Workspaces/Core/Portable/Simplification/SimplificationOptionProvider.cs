@@ -19,10 +19,6 @@ namespace Microsoft.CodeAnalysis.Simplification
                 SimplificationOptions.PreferImplicitTypeInLocalDeclaration,
                 SimplificationOptions.AllowSimplificationToGenericType,
                 SimplificationOptions.AllowSimplificationToBaseType,
-                SimplificationOptions.QualifyFieldAccess,
-                SimplificationOptions.QualifyPropertyAccess,
-                SimplificationOptions.QualifyMethodAccess,
-                SimplificationOptions.QualifyEventAccess,
                 SimplificationOptions.PreferIntrinsicPredefinedTypeKeywordInDeclaration,
                 SimplificationOptions.PreferIntrinsicPredefinedTypeKeywordInMemberAccess
             }.ToImmutableArray();

@@ -2,9 +2,9 @@
 
 using System;
 using System.Collections.Generic;
-using System.Collections.ObjectModel;
 using System.Windows.Data;
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.CodeStyle;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Simplification;
@@ -259,10 +259,10 @@ class C{
                 new CodeStylePreference(CSharpVSResources.PreferExplicitType, isChecked: false),
             };
 
-            CodeStyleItems.Add(new BooleanCodeStyleOptionViewModel(SimplificationOptions.QualifyFieldAccess, CSharpVSResources.QualifyFieldAccessWithThis, s_fieldDeclarationPreviewTrue, s_fieldDeclarationPreviewFalse, this, optionSet, qualifyGroupTitle, qualifyMemberAccessPreferences));
-            CodeStyleItems.Add(new BooleanCodeStyleOptionViewModel(SimplificationOptions.QualifyPropertyAccess, CSharpVSResources.QualifyPropertyAccessWithThis, s_propertyDeclarationPreviewTrue, s_propertyDeclarationPreviewFalse, this, optionSet, qualifyGroupTitle, qualifyMemberAccessPreferences));
-            CodeStyleItems.Add(new BooleanCodeStyleOptionViewModel(SimplificationOptions.QualifyMethodAccess, CSharpVSResources.QualifyMethodAccessWithThis, s_methodDeclarationPreviewTrue, s_methodDeclarationPreviewFalse, this, optionSet, qualifyGroupTitle, qualifyMemberAccessPreferences));
-            CodeStyleItems.Add(new BooleanCodeStyleOptionViewModel(SimplificationOptions.QualifyEventAccess, CSharpVSResources.QualifyEventAccessWithThis, s_eventDeclarationPreviewTrue, s_eventDeclarationPreviewFalse, this, optionSet, qualifyGroupTitle, qualifyMemberAccessPreferences));
+            CodeStyleItems.Add(new SimpleCodeStyleOptionViewModel(CodeStyleOptions.QualifyFieldAccess, CSharpVSResources.QualifyFieldAccessWithThis, s_fieldDeclarationPreviewTrue, s_fieldDeclarationPreviewFalse, this, optionSet, qualifyGroupTitle, qualifyMemberAccessPreferences));
+            CodeStyleItems.Add(new SimpleCodeStyleOptionViewModel(CodeStyleOptions.QualifyPropertyAccess, CSharpVSResources.QualifyPropertyAccessWithThis, s_propertyDeclarationPreviewTrue, s_propertyDeclarationPreviewFalse, this, optionSet, qualifyGroupTitle, qualifyMemberAccessPreferences));
+            CodeStyleItems.Add(new SimpleCodeStyleOptionViewModel(CodeStyleOptions.QualifyMethodAccess, CSharpVSResources.QualifyMethodAccessWithThis, s_methodDeclarationPreviewTrue, s_methodDeclarationPreviewFalse, this, optionSet, qualifyGroupTitle, qualifyMemberAccessPreferences));
+            CodeStyleItems.Add(new SimpleCodeStyleOptionViewModel(CodeStyleOptions.QualifyEventAccess, CSharpVSResources.QualifyEventAccessWithThis, s_eventDeclarationPreviewTrue, s_eventDeclarationPreviewFalse, this, optionSet, qualifyGroupTitle, qualifyMemberAccessPreferences));
 
             CodeStyleItems.Add(new BooleanCodeStyleOptionViewModel(SimplificationOptions.PreferIntrinsicPredefinedTypeKeywordInDeclaration, CSharpVSResources.PreferIntrinsicPredefinedTypeKeywordInDeclaration, s_intrinsicPreviewDeclarationTrue, s_intrinsicPreviewDeclarationFalse, this, optionSet, predefinedTypesGroupTitle, predefinedTypesPreferences));
             CodeStyleItems.Add(new BooleanCodeStyleOptionViewModel(SimplificationOptions.PreferIntrinsicPredefinedTypeKeywordInMemberAccess, CSharpVSResources.PreferIntrinsicPredefinedTypeKeywordInMemberAccess, s_intrinsicPreviewMemberAccessTrue, s_intrinsicPreviewMemberAccessFalse, this, optionSet, predefinedTypesGroupTitle, predefinedTypesPreferences));

@@ -2,6 +2,7 @@
 
 Imports System.Runtime.InteropServices
 Imports Microsoft.CodeAnalysis
+Imports Microsoft.CodeAnalysis.CodeStyle
 Imports Microsoft.CodeAnalysis.Editor.Shared.Options
 Imports Microsoft.CodeAnalysis.ExtractMethod
 Imports Microsoft.CodeAnalysis.Options
@@ -159,37 +160,37 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Options
 
         Public Property Style_QualifyFieldAccess As Boolean
             Get
-                Return GetBooleanOption(SimplificationOptions.QualifyFieldAccess)
+                Return GetBooleanOption(CodeStyleOptions.QualifyFieldAccess)
             End Get
             Set(value As Boolean)
-                SetBooleanOption(SimplificationOptions.QualifyFieldAccess, value)
+                SetBooleanOption(CodeStyleOptions.QualifyFieldAccess, value)
             End Set
         End Property
 
         Public Property Style_QualifyPropertyAccess As Boolean
             Get
-                Return GetBooleanOption(SimplificationOptions.QualifyPropertyAccess)
+                Return GetBooleanOption(CodeStyleOptions.QualifyPropertyAccess)
             End Get
             Set(value As Boolean)
-                SetBooleanOption(SimplificationOptions.QualifyPropertyAccess, value)
+                SetBooleanOption(CodeStyleOptions.QualifyPropertyAccess, value)
             End Set
         End Property
 
         Public Property Style_QualifyMethodAccess As Boolean
             Get
-                Return GetBooleanOption(SimplificationOptions.QualifyMethodAccess)
+                Return GetBooleanOption(CodeStyleOptions.QualifyMethodAccess)
             End Get
             Set(value As Boolean)
-                SetBooleanOption(SimplificationOptions.QualifyMethodAccess, value)
+                SetBooleanOption(CodeStyleOptions.QualifyMethodAccess, value)
             End Set
         End Property
 
         Public Property Style_QualifyEventAccess As Boolean
             Get
-                Return GetBooleanOption(SimplificationOptions.QualifyEventAccess)
+                Return GetBooleanOption(CodeStyleOptions.QualifyEventAccess)
             End Get
             Set(value As Boolean)
-                SetBooleanOption(SimplificationOptions.QualifyEventAccess, value)
+                SetBooleanOption(CodeStyleOptions.QualifyEventAccess, value)
             End Set
         End Property
 
@@ -220,14 +221,6 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Options
             End Set
         End Property
 
-        Private Function GetBooleanOption(key As [Option](Of Boolean)) As Boolean
-            Return _workspace.Options.GetOption(key)
-        End Function
-
-        Private Sub SetBooleanOption(key As [Option](Of Boolean), value As Boolean)
-            _workspace.Options = _workspace.Options.WithChangedOption(key, value)
-        End Sub
-
         Private Function GetBooleanOption(key As [PerLanguageOption](Of Boolean)) As Boolean
             Return _workspace.Options.GetOption(key, LanguageNames.VisualBasic)
         End Function
@@ -248,6 +241,16 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Options
         Private Sub SetBooleanOption(key As PerLanguageOption(Of Boolean?), value As Integer)
             Dim boolValue As Boolean? = If(value < 0, Nothing, value > 0)
             _workspace.Options = _workspace.Options.WithChangedOption(key, LanguageNames.VisualBasic, boolValue)
+        End Sub
+
+        Private Function GetBooleanOption(key As [PerLanguageOption](Of SimpleCodeStyleOption)) As Boolean
+            Return _workspace.Options.GetOption(key, LanguageNames.VisualBasic).IsChecked
+        End Function
+
+        Private Sub SetBooleanOption(key As [PerLanguageOption](Of SimpleCodeStyleOption), value As Boolean)
+            Dim opt = _workspace.Options.GetOption(key, LanguageNames.VisualBasic)
+            opt.IsChecked = value
+            _workspace.Options = _workspace.Options.WithChangedOption(key, LanguageNames.VisualBasic, opt)
         End Sub
     End Class
 End Namespace

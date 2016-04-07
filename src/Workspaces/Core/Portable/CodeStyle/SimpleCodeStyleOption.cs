@@ -11,7 +11,7 @@ namespace Microsoft.CodeAnalysis.CodeStyle
     /// notification styles. the preference is then 
     /// simply recorded as a boolean.
     /// </summary>
-    internal class SimpleCodeStyleOption
+    public class SimpleCodeStyleOption
     {
         private const int SerializationVersion = 1;
         public static readonly SimpleCodeStyleOption Default = new SimpleCodeStyleOption(false, NotificationOption.None);

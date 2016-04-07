@@ -1,6 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Linq;
+using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Roslyn.Utilities;
@@ -109,10 +110,10 @@ namespace Microsoft.CodeAnalysis.Simplification
         internal static bool ShouldSimplifyMemberAccessExpression(ISymbol symbol, string languageName, OptionSet optionSet)
         {
             if (!symbol.IsStatic && 
-                (symbol.IsKind(SymbolKind.Field) && optionSet.GetOption(SimplificationOptions.QualifyFieldAccess, languageName)) ||
-                (symbol.IsKind(SymbolKind.Property) && optionSet.GetOption(SimplificationOptions.QualifyPropertyAccess, languageName)) ||
-                (symbol.IsKind(SymbolKind.Method) && optionSet.GetOption(SimplificationOptions.QualifyMethodAccess, languageName)) ||
-                (symbol.IsKind(SymbolKind.Event) && optionSet.GetOption(SimplificationOptions.QualifyEventAccess, languageName)))
+                (symbol.IsKind(SymbolKind.Field) && optionSet.GetOption(CodeStyleOptions.QualifyFieldAccess, languageName).IsChecked ||
+                (symbol.IsKind(SymbolKind.Property) && optionSet.GetOption(CodeStyleOptions.QualifyPropertyAccess, languageName).IsChecked) ||
+                (symbol.IsKind(SymbolKind.Method) && optionSet.GetOption(CodeStyleOptions.QualifyMethodAccess, languageName).IsChecked) ||
+                (symbol.IsKind(SymbolKind.Event) && optionSet.GetOption(CodeStyleOptions.QualifyEventAccess, languageName).IsChecked)))
             {
                 return false;
             }
