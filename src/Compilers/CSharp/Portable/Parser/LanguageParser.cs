@@ -8232,6 +8232,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             SyntaxToken refTokenOpt,
             out LocalFunctionStatementSyntax localFunction)
         {
+            allowLocalFunctions = allowLocalFunctions && IsFeatureEnabled(MessageID.IDS_FeatureLocalFunctions);
+
             type = allowLocalFunctions ? ParseReturnType() : this.ParseType(false);
 
             VariableFlags flags = VariableFlags.Local;
