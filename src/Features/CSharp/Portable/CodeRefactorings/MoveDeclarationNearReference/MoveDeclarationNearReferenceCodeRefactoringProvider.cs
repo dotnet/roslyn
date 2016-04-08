@@ -54,7 +54,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.MoveDeclarationNearRefe
             context.RegisterRefactoring(
                 new MyCodeAction(
                     CSharpFeaturesResources.MoveDeclarationNearReference,
-                    (c) => MoveDeclarationNearReferenceAsync(document, state, c)));
+                    c => MoveDeclarationNearReferenceAsync(document, state, c)));
         }
 
         private async Task<Document> MoveDeclarationNearReferenceAsync(Document document, State state, CancellationToken cancellationToken)
@@ -174,7 +174,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.MoveDeclarationNearRefe
                 // Type inference.  Only merge if types match.
                 var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
                 var rightType = semanticModel.GetTypeInfo(expression.Right, cancellationToken);
-                return (localSymbol.Type == null && rightType.Type == null) || localSymbol.Type.Equals(rightType.Type);
+                return Equals(localSymbol.Type, rightType.Type);
             }
             else
             {

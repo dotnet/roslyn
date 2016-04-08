@@ -250,6 +250,8 @@
     <Compile Include="ImplementInterface\AbstractImplementInterfaceService.DisposePatternCodeAction.cs" />
     <Compile Include="IntroduceVariable\AbstractIntroduceVariableService.AbstractIntroduceVariableCodeAction.cs" />
     <Compile Include="IntroduceVariable\AbstractIntroduceVariableService.IntroduceVariableAllOccurrenceCodeAction.cs" />
+    <Compile Include="LambdaSimplifier\LambdaSimplifierCodeFixProvider.cs" />
+    <Compile Include="LambdaSimplifier\LambdaSimplifierDiagnosticAnalyzer.cs" />
     <Compile Include="LanguageServices\ProjectInfoService\IProjectInfoService.cs" />
     <Compile Include="MakeMethodSynchronous\AbstractMakeMethodSynchronousCodeFixProvider.cs" />
     <Compile Include="Navigation\NavigationOptions.cs" />

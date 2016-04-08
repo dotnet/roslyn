@@ -915,6 +915,11 @@ class C
             {
                 throw new NotImplementedException();
             }
+
+            public SyntaxNode GetInvocationExpressionExpression(SyntaxNode node)
+            {
+                throw new NotImplementedException();
+            }
         }
     }
 }

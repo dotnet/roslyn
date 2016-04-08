@@ -580,6 +580,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             return ((ArgumentSyntax)node).Expression;
         }
 
+        public SyntaxNode GetInvocationExpressionExpression(SyntaxNode node)
+        {
+            return (node as InvocationExpressionSyntax)?.Expression;
+        }
+
         public RefKind GetRefKindOfArgument(SyntaxNode node)
         {
             return (node as ArgumentSyntax).GetRefKind();

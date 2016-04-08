@@ -454,6 +454,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return TryCast(node, ArgumentSyntax).GetArgumentExpression()
         End Function
 
+        Public Function GetInvocationExpressionExpression(node As SyntaxNode) As SyntaxNode Implements ISyntaxFactsService.GetInvocationExpressionExpression
+            Return TryCast(node, InvocationExpressionSyntax)?.Expression
+        End Function
+
         Public Function GetRefKindOfArgument(node As Microsoft.CodeAnalysis.SyntaxNode) As Microsoft.CodeAnalysis.RefKind Implements ISyntaxFactsService.GetRefKindOfArgument
             ' TODO(cyrusn): Consider the method this argument is passed to, to determine this.
             Return RefKind.None

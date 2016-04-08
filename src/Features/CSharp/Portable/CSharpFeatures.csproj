@@ -98,8 +98,6 @@
     <Compile Include="CodeRefactorings\InlineTemporary\InlineTemporaryCodeRefactoringProvider.ReferenceRewriter.cs" />
     <Compile Include="CodeRefactorings\IntroduceVariable\IntroduceVariableCodeRefactoringProvider.cs" />
     <Compile Include="CodeRefactorings\InvertIf\InvertIfCodeRefactoringProvider.cs" />
-    <Compile Include="CodeRefactorings\LambdaSimplifier\LambdaSimplifierCodeRefactoringProvider.cs" />
-    <Compile Include="CodeRefactorings\LambdaSimplifier\LambdaSimplifierCodeRefactoringProvider.Rewriter.cs" />
     <Compile Include="CodeRefactorings\MoveDeclarationNearReference\MoveDeclarationNearReferenceCodeRefactoringProvider.cs" />
     <Compile Include="CodeRefactorings\MoveDeclarationNearReference\MoveDeclarationNearReferenceCodeRefactoringProvider.Rewriter.cs" />
     <Compile Include="CodeRefactorings\MoveDeclarationNearReference\MoveDeclarationNearReferenceCodeRefactoringProvider.State.cs" />

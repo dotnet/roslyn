@@ -1,51 +1,57 @@
 // Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.CSharp.CodeRefactorings.LambdaSimplifier;
+using Microsoft.CodeAnalysis.CodeFixes;
+using Microsoft.CodeAnalysis.Diagnostics;
+using Microsoft.CodeAnalysis.LambdaSimplifier;
 using Roslyn.Test.Utilities;
 using Xunit;
 
-namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeRefactorings.LambdaSimplifier
+namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.LambdaSimplifier
 {
-    public class LambdaSimplifierTests : AbstractCSharpCodeActionTest
+    public class LambdaSimplifierTests : AbstractCSharpDiagnosticProviderBasedUserDiagnosticTest
     {
-        protected override object CreateCodeRefactoringProvider(Workspace workspace)
+        internal override Tuple<DiagnosticAnalyzer, CodeFixProvider> CreateDiagnosticProviderAndFixer(Workspace workspace)
         {
-            return new LambdaSimplifierCodeRefactoringProvider();
+            return Tuple.Create<DiagnosticAnalyzer, CodeFixProvider>(
+                new LambdaSimplifierDiagnosticAnalyzer(),
+                new LambdaSimplifierCodeFixProvider());
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsLambdaSimplifier)]
         public async Task TestFixAll1()
         {
             await TestAsync(
-@"using System; class C { void Foo() { Bar(s [||]=> Quux(s)); } void Bar(Func<int,string> f); string Quux(int i); }",
+@"using System; class C { void Foo() { Bar({|FixAllInDocument:s => Quux(s)|}); } void Bar(Func<int,string> f); string Quux(int i); }",
 @"using System; class C { void Foo() { Bar(Quux); } void Bar(Func<int,string> f); string Quux(int i); }",
-                index: 1);
+fixAllActionEquivalenceKey: LambdaSimplifierCodeFixProvider.FixAllEquivalenceKey);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsLambdaSimplifier)]
         public async Task TestFixCoContravariance1()
         {
             await TestAsync(
-@"using System; class C { void Foo() { Bar(s [||]=> Quux(s)); } void Bar(Func<object,string> f); string Quux(object o); }",
+@"using System; class C { void Foo() { Bar({|FixAllInDocument:s => Quux(s)|}); } void Bar(Func<object,string> f); string Quux(object o); }",
 @"using System; class C { void Foo() { Bar(Quux); } void Bar(Func<object,string> f); string Quux(object o); }",
-                index: 1);
+fixAllActionEquivalenceKey: LambdaSimplifierCodeFixProvider.FixAllEquivalenceKey);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsLambdaSimplifier)]
         public async Task TestFixCoContravariance2()
         {
             await TestAsync(
-@"using System; class C { void Foo() { Bar(s [||]=> Quux(s)); } void Bar(Func<string, object> f); string Quux(object o); }",
+@"using System; class C { void Foo() { Bar({|FixAllInDocument:s => Quux(s)|}); } void Bar(Func<string, object> f); string Quux(object o); }",
 @"using System; class C { void Foo() { Bar(Quux); } void Bar(Func<string, object> f); string Quux(object o); }",
-                index: 1);
+fixAllActionEquivalenceKey: LambdaSimplifierCodeFixProvider.FixAllEquivalenceKey);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsLambdaSimplifier)]
         public async Task TestFixCoContravariance3()
         {
-            await TestMissingAsync(
-@"using System; class C { void Foo() { Bar(s [||]=> Quux(s)); } void Bar(Func<string, string> f); object Quux(object o); }");
+            await TestAsync(
+@"using System; class C { void Foo() { Bar(s [||]=> Quux(s)); } void Bar(Func<string, string> f); object Quux(object o); }",
+@"using System; class C { void Foo() { Bar(Quux); } void Bar(Func<string, string> f); object Quux(object o); }");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsLambdaSimplifier)]
@@ -66,27 +72,27 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeRefactorings.Lambda
         public async Task TestFixAll2()
         {
             await TestAsync(
-@"using System; class C { void Foo() { Bar((s1, s2) [||]=> Quux(s1, s2)); } void Bar(Func<int,bool,string> f); string Quux(int i, bool b); }",
+@"using System; class C { void Foo() { Bar({|FixAllInDocument:(s1, s2) => Quux(s1, s2)|}); } void Bar(Func<int,bool,string> f); string Quux(int i, bool b); }",
 @"using System; class C { void Foo() { Bar(Quux); } void Bar(Func<int,bool,string> f); string Quux(int i, bool b); }",
-                index: 1);
+fixAllActionEquivalenceKey: LambdaSimplifierCodeFixProvider.FixAllEquivalenceKey);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsLambdaSimplifier)]
         public async Task TestFixAll3()
         {
             await TestAsync(
-@"using System; class C { void Foo() { Bar((s1, s2) [||]=> { return Quux(s1, s2); }); } void Bar(Func<int,bool,string> f); string Quux(int i, bool b); }",
+@"using System; class C { void Foo() { Bar({|FixAllInDocument:(s1, s2) => { return Quux(s1, s2); }|}); } void Bar(Func<int,bool,string> f); string Quux(int i, bool b); }",
 @"using System; class C { void Foo() { Bar(Quux); } void Bar(Func<int,bool,string> f); string Quux(int i, bool b); }",
-                index: 1);
+fixAllActionEquivalenceKey: LambdaSimplifierCodeFixProvider.FixAllEquivalenceKey);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsLambdaSimplifier)]
         public async Task TestFixAll4()
         {
             await TestAsync(
-@"using System; class C { void Foo() { Bar((s1, s2) [||]=> { return this.Quux(s1, s2); }); } void Bar(Func<int,bool,string> f); string Quux(int i, bool b); }",
+@"using System; class C { void Foo() { Bar({|FixAllInDocument:(s1, s2) => { return this.Quux(s1, s2); }|}); } void Bar(Func<int,bool,string> f); string Quux(int i, bool b); }",
 @"using System; class C { void Foo() { Bar(this.Quux); } void Bar(Func<int,bool,string> f); string Quux(int i, bool b); }",
-                index: 1);
+fixAllActionEquivalenceKey: LambdaSimplifierCodeFixProvider.FixAllEquivalenceKey);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsLambdaSimplifier)]
@@ -98,9 +104,9 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeRefactorings.Lambda
                 index: 0);
 
             await TestAsync(
-@"using System; class C { void Foo() { Bar(s [||]=> Quux(s)); Bar(s => Quux(s)); } void Bar(Func<int,string> f); string Quux(int i); }",
+@"using System; class C { void Foo() { Bar({|FixAllInDocument:s => Quux(s)|}); Bar(s => Quux(s)); } void Bar(Func<int,string> f); string Quux(int i); }",
 @"using System; class C { void Foo() { Bar(Quux); Bar(Quux); } void Bar(Func<int,string> f); string Quux(int i); }",
-                index: 1);
+fixAllActionEquivalenceKey: LambdaSimplifierCodeFixProvider.FixAllEquivalenceKey);
         }
 
         [WorkItem(542562, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542562")]
@@ -236,9 +242,9 @@ class C
 
             await TestAsync(code, expected, compareTokens: false);
         }
-
+        
         [WorkItem(545856, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545856")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsLambdaSimplifier)]
+        [Fact(Skip = "NotYetImplemented"), Trait(Traits.Feature, Traits.Features.CodeActionsLambdaSimplifier)]
         public async Task TestWarningOnSideEffects()
         {
             await TestAsync(

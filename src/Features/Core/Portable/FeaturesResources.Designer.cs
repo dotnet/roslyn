@@ -2015,6 +2015,15 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Simplify lambda expression.
+        /// </summary>
+        internal static string Simplify_lambda_expression {
+            get {
+                return ResourceManager.GetString("Simplify_lambda_expression", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Simplify Member Access.
         /// </summary>
         internal static string SimplifyMemberAccess {
@@ -2519,6 +2528,15 @@ namespace Microsoft.CodeAnalysis {
         internal static string UseTheNavigationBarToSwitchContext {
             get {
                 return ResourceManager.GetString("UseTheNavigationBarToSwitchContext", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Warning: Code meaning changes after simplifying lambda.
+        /// </summary>
+        internal static string Warning_code_meaning_changes_after_simplifying_lambda {
+            get {
+                return ResourceManager.GetString("Warning_code_meaning_changes_after_simplifying_lambda", resourceCulture);
             }
         }
         

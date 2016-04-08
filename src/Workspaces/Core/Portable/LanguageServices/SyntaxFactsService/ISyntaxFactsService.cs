@@ -57,6 +57,8 @@ namespace Microsoft.CodeAnalysis.LanguageServices
         SyntaxNode GetExpressionOfMemberAccessExpression(SyntaxNode node);
         SyntaxNode GetExpressionOfConditionalMemberAccessExpression(SyntaxNode node);
         SyntaxNode GetExpressionOfArgument(SyntaxNode node);
+        SyntaxNode GetInvocationExpressionExpression(SyntaxNode node);
+
         bool IsConditionalMemberAccessExpression(SyntaxNode node);
         SyntaxNode GetNameOfAttribute(SyntaxNode node);
         SyntaxToken GetIdentifierOfGenericName(SyntaxNode node);

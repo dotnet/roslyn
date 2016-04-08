@@ -820,6 +820,10 @@ End Class]]></a>.Value.NormalizeLineEndings()
             Public Function GetNameForArgument(argument As SyntaxNode) As String Implements ISyntaxFactsService.GetNameForArgument
                 Throw New NotImplementedException()
             End Function
+
+            Public Function GetInvocationExpressionExpression(node As SyntaxNode) As SyntaxNode Implements ISyntaxFactsService.GetInvocationExpressionExpression
+                Throw New NotImplementedException()
+            End Function
         End Class
     End Class
 End Namespace
