@@ -1,8 +1,14 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
+using System.Linq;
 using Microsoft.CodeAnalysis.Completion;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
+using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
+using Microsoft.CodeAnalysis.Text;
+using Microsoft.CodeAnalysis.Text.Shared.Extensions;
 using Microsoft.VisualStudio.Language.Intellisense;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Editor;
@@ -11,14 +17,26 @@ using VSCompletion = Microsoft.VisualStudio.Language.Intellisense.Completion;
 
 namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion.Presentation
 {
-    internal sealed class CompletionSet2 : CompletionSet
+#if NEWCOMPLETION
+    internal sealed class CompletionSet3 : CompletionSet2
+#else
+    internal sealed class CompletionSet3 : CompletionSet
+#endif
     {
+        private readonly ForegroundThreadAffinitizedObject _foregroundObject = new ForegroundThreadAffinitizedObject();
         private readonly ITextView _textView;
         private readonly ITextBuffer _subjectBuffer;
         private readonly CompletionPresenterSession _completionPresenterSession;
-        private Dictionary<CompletionItem, VSCompletion> _completionItemMap;
+        private Dictionary<CompletionItem, VSCompletion> _completionItemToVSCompletion;
 
-        public CompletionSet2(CompletionPresenterSession completionPresenterSession, ITextView textView, ITextBuffer subjectBuffer)
+        private CompletionRules _completionRules;
+        private IReadOnlyList<IntellisenseFilter2> _filters;
+        private IReadOnlyDictionary<CompletionItem, string> _completionItemToFilterText;
+
+        public CompletionSet3(
+            CompletionPresenterSession completionPresenterSession,
+            ITextView textView,
+            ITextBuffer subjectBuffer)
         {
             _completionPresenterSession = completionPresenterSession;
             _textView = textView;
@@ -26,6 +44,10 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion.P
             this.Moniker = "All";
             this.DisplayName = "All";
         }
+
+#if NEWCOMPLETION
+        public override IReadOnlyList<IIntellisenseFilter> Filters => _filters;
+#endif
 
         internal void SetTrackingSpan(ITrackingSpan trackingSpan)
         {
@@ -37,17 +59,29 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion.P
             CompletionItem selectedItem,
             CompletionItem presetBuilder,
             bool suggestionMode,
-            bool isSoftSelected)
+            bool isSoftSelected,
+            ImmutableArray<CompletionItemFilter> completionItemFilters,
+            IReadOnlyDictionary<CompletionItem, string> completionItemToFilterText)
         {
+            this._foregroundObject.AssertIsForeground();
+
             VSCompletion selectedCompletionItem = null;
 
             // Initialize the completion map to a reasonable default initial size (+1 for the builder)
-            _completionItemMap = _completionItemMap ?? new Dictionary<CompletionItem, VSCompletion>(completionItems.Count + 1);
+            _completionItemToVSCompletion = _completionItemToVSCompletion ?? new Dictionary<CompletionItem, VSCompletion>(completionItems.Count + 1);
+            _completionItemToFilterText = completionItemToFilterText;
 
             try
             {
                 this.WritableCompletionBuilders.BeginBulkOperation();
                 this.WritableCompletionBuilders.Clear();
+
+                // If more than one filter was provided, then present it to the user.
+                if (_filters == null && completionItemFilters.Length > 1)
+                {
+                    _filters = completionItemFilters.Select(f => new IntellisenseFilter2(this, f))
+                                                    .ToArray();
+                }
 
                 var applicableToText = this.ApplicableTo.GetText(this.ApplicableTo.TextBuffer.CurrentSnapshot);
                 var filteredBuilder = new CompletionItem(null, applicableToText,
@@ -61,7 +95,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion.P
                     var builderCompletion = ConvertCompletionItem(bestBuilder);
                     this.WritableCompletionBuilders.Add(builderCompletion);
 
-                    if (selectedItem.IsBuilder)
+                    if (selectedItem != null && selectedItem.IsBuilder)
                     {
                         selectedCompletionItem = builderCompletion;
                     }
@@ -93,21 +127,20 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion.P
                 this.WritableCompletions.EndBulkOperation();
             }
 
-            Contract.ThrowIfNull(selectedCompletionItem);
             this.SelectionStatus = new CompletionSelectionStatus(
-                selectedCompletionItem, isSelected: !isSoftSelected, isUnique: true);
+                selectedCompletionItem, isSelected: !isSoftSelected, isUnique: selectedCompletionItem != null);
         }
 
         private VSCompletion ConvertCompletionItem(CompletionItem item, string displayTextOpt = null)
         {
             VSCompletion value;
-            if (!_completionItemMap.TryGetValue(item, out value))
+            if (!_completionItemToVSCompletion.TryGetValue(item, out value))
             {
                 value = new CustomCommitCompletion(
                     _completionPresenterSession,
                     item,
                     displayTextOpt ?? item.DisplayText);
-                _completionItemMap.Add(item, value);
+                _completionItemToVSCompletion.Add(item, value);
             }
 
             return value;
@@ -117,7 +150,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion.P
         {
             // Linear search is ok since this is only called by the user manually selecting 
             // an item.  Creating a reverse mapping uses too much memory and affects GCs.
-            foreach (var kvp in _completionItemMap)
+            foreach (var kvp in _completionItemToVSCompletion)
             {
                 if (kvp.Value == completion)
                 {
@@ -143,6 +176,61 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion.P
         public override void Recalculate()
         {
             // Do nothing.  Our controller will already recalculate if necessary.
+        }
+
+        private CompletionRules GetCompletionRules()
+        {
+            _foregroundObject.AssertIsForeground();
+            if (_completionRules == null)
+            {
+                var document = _subjectBuffer.CurrentSnapshot.GetOpenDocumentInCurrentContextWithChanges();
+                if (document != null)
+                {
+                    var service = document.Project.LanguageServices.GetService<ICompletionService>();
+                    if (service != null)
+                    {
+                        _completionRules = service.GetCompletionRules();
+                    }
+                }
+            }
+
+            return _completionRules;
+        }
+
+#if NEWCOMPLETION
+        public override IReadOnlyList<Span> GetHighlightedSpansInDisplayText(string displayText)
+#else
+        public IReadOnlyList<Span> GetHighlightedSpansInDisplayText(string displayText)
+#endif
+        {
+            if (_completionItemToFilterText != null)
+            {
+                var rules = this.GetCompletionRules();
+                if (rules != null)
+                {
+                    var completionItem = this._completionItemToVSCompletion.Keys.FirstOrDefault(k => k.DisplayText == displayText);
+
+                    if (completionItem != null && !completionItem.IsBuilder)
+                    {
+                        string filterText;
+                        if (_completionItemToFilterText.TryGetValue(completionItem, out filterText))
+                        {
+                            var highlightedSpans = rules.GetHighlightedSpans(completionItem, filterText);
+                            if (highlightedSpans != null)
+                            {
+                                return highlightedSpans.Select(s => s.ToSpan()).ToArray();
+                            }
+                        }
+                    }
+                }
+            }
+
+            return null;
+        }
+
+        internal void OnIntelliSenseFiltersChanged()
+        {
+            this._completionPresenterSession.OnIntelliSenseFiltersChanged(_filters);
         }
     }
 }

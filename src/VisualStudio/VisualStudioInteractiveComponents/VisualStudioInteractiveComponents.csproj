@@ -151,6 +151,16 @@
       </IncludeOutputGroupsInVSIXLocalOnly>
     </ProjectReference>
   </ItemGroup>
+  <ItemGroup>
+    <!-- Even though the VS process includes these, we need to also include them in the VSIX for the interactive host processes -->
+    <NuGetPackageToIncludeInVsix Include="System.Collections.Immutable" />
+    <NuGetPackageToIncludeInVsix Include="System.Reflection.Metadata" />
+    <!-- Other interactive host process dependencies -->
+    <NuGetPackageToIncludeInVsix Include="System.AppContext" />
+    <NuGetPackageToIncludeInVsix Include="System.Diagnostics.StackTrace" />
+    <NuGetPackageToIncludeInVsix Include="System.IO.FileSystem" />
+    <NuGetPackageToIncludeInVsix Include="System.IO.FileSystem.Primitives" />
+  </ItemGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
     <CodeAnalysisRuleSet>MinimumRecommendedRules.ruleset</CodeAnalysisRuleSet>
     <PlatformTarget>AnyCPU</PlatformTarget>

@@ -29,6 +29,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes
         public const string ImplementInterface = "Implement Interface";
         public const string InsertMissingCast = nameof(InsertMissingCast);
         public const string MoveToTopOfFile = "Move To Top Of File";
+        public const string PopulateSwitch = "Populate Switch";
         public const string QualifyMemberAccess = nameof(QualifyMemberAccess);
         public const string RemoveUnnecessaryCast = "Remove Unnecessary Casts";
         public const string RemoveUnnecessaryImports = "Remove Unnecessary Usings or Imports";

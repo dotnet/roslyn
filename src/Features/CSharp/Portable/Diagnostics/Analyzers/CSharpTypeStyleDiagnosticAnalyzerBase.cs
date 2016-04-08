@@ -12,9 +12,9 @@ using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Text;
 
-namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.TypingStyles
+namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.TypeStyle
 {
-    internal abstract partial class CSharpTypingStyleDiagnosticAnalyzerBase : DiagnosticAnalyzer, IBuiltInAnalyzer
+    internal abstract partial class CSharpTypeStyleDiagnosticAnalyzerBase : DiagnosticAnalyzer, IBuiltInAnalyzer
     {
         private readonly string _diagnosticId;
         private readonly LocalizableString _title;
@@ -25,7 +25,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.TypingStyles
         private readonly DiagnosticDescriptor _errorDiagnosticDescriptor;
         private readonly Dictionary<DiagnosticSeverity, DiagnosticDescriptor> _severityToDescriptorMap;
 
-        public CSharpTypingStyleDiagnosticAnalyzerBase(string diagnosticId, LocalizableString title, LocalizableString message)
+        public CSharpTypeStyleDiagnosticAnalyzerBase(string diagnosticId, LocalizableString title, LocalizableString message)
         {
             _diagnosticId = diagnosticId;
             _title = title;

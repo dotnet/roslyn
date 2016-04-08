@@ -14,7 +14,7 @@
 
     <Otherwise>
       <PropertyGroup>
-        <NuGetVersionSuffix>beta1-$(BuildNumber.Split('.')[0])</NuGetVersionSuffix>
+        <NuGetVersionSuffix>beta1-$(BuildNumber.Split('.')[0])-$(BuildNumber.Split('.')[1].PadLeft(2,'0'))</NuGetVersionSuffix>
         <BuildVersion>$(AssemblyVersion).$(BuildNumber.Split('.')[0])</BuildVersion>
       </PropertyGroup>
     </Otherwise>
