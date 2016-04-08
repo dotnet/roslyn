@@ -148,7 +148,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     }
                     break;
 
-                case BoundKind.NaturalTupleExpression:
+                case BoundKind.TupleLiteral:
                     kind = ClassifyImplicitTupleConversion(sourceExpression, destination, ref useSiteDiagnostics);
                     if (kind != ConversionKind.NoConversion)
                     {
@@ -700,13 +700,13 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         protected override bool HasImplicitTupleConversion(BoundExpression source, TypeSymbol destination, ref HashSet<DiagnosticInfo> useSiteDiagnostics)
         {
-            if (source.Kind != BoundKind.NaturalTupleExpression)
+            if (source.Kind != BoundKind.TupleLiteral)
             {
-                // source must be a natural tuple expression
+                // source must be a tuple literal with no conversions
                 return false;
             }
 
-            var tupleExpression = (BoundNaturalTupleExpression)source;
+            var tupleExpression = (BoundTupleLiteral)source;
             var arguments = tupleExpression.Arguments;
 
             // unwrap tuple to its underlying

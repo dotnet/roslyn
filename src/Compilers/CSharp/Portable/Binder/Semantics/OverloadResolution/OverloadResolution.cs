@@ -1830,7 +1830,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return true;
             }
 
-            if (node.Kind == BoundKind.NaturalTupleExpression)
+            if (node.Kind == BoundKind.TupleLiteral)
             {
                 if ((object)node.Type != null)
                 {
@@ -1841,7 +1841,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
 
                 // recurse into tuple constituent arguments
-                return ExpressionMatchExactly((BoundNaturalTupleExpression)node, t, ref useSiteDiagnostics);
+                return ExpressionMatchExactly((BoundTupleLiteral)node, t, ref useSiteDiagnostics);
             }
 
             // - E is an anonymous function, T is either a delegate type D or an expression tree 
@@ -1940,7 +1940,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         // check every argument of a tuple vs corresponding type in destination tuple type
-        private bool ExpressionMatchExactly(BoundNaturalTupleExpression tupleSource, TypeSymbol targetType, ref HashSet<DiagnosticInfo> useSiteDiagnostics)
+        private bool ExpressionMatchExactly(BoundTupleLiteral tupleSource, TypeSymbol targetType, ref HashSet<DiagnosticInfo> useSiteDiagnostics)
         {
             if (targetType.Kind != SymbolKind.NamedType)
             {

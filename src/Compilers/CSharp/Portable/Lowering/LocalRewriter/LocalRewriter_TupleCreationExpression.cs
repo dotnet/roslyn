@@ -7,12 +7,12 @@ namespace Microsoft.CodeAnalysis.CSharp
 {
     internal partial class LocalRewriter
     {
-        public override BoundNode VisitNaturalTupleExpression(BoundNaturalTupleExpression node)
+        public override BoundNode VisitTupleLiteral(BoundTupleLiteral node)
         {
             return VisitTupleExpression(node);
         }
 
-        public override BoundNode VisitConvertedTupleExpression(BoundConvertedTupleExpression node)
+        public override BoundNode VisitConvertedTupleLiteral(BoundConvertedTupleLiteral node)
         {
             return VisitTupleExpression(node);
         }
