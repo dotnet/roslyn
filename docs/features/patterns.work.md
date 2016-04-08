@@ -1,7 +1,8 @@
-This is a checklist (moved from #9375) of implementation of pattern matching as specified in [patterns.md](./patterns.md). For reference a previous prototype was at https://github.com/semihokur/pattern-matching-csharp
+> This is a checklist (moved from #9375) of design and implementation issues for pattern matching as specified in [patterns.md](./patterns.md). For reference a previous prototype was at [https://github.com/semihokur/pattern-matching-csharp](https://github.com/semihokur/pattern-matching-csharp).
 
 Open design issues (needing LDM decisions)
-- [ ] There would be an ambiguity with a hypothetical "type pattern" and the constant pattern. This is the reason we do not allow the latter in an is-pattern expression, and don't allow the former in a sub-property pattern. But that is irregular. Can we come up with name lookup rules that support both?
+- [ ] Checked items on this list have decisions recorded herein. They will be removed from this list when the specification reflects the decisions.
+- [x] There would be an ambiguity with a hypothetical "type pattern" and the constant pattern. This is the reason we do not allow the latter in an is-pattern expression, and don't allow the former in a sub-property pattern. But that is irregular. Can we come up with name lookup rules that support both?
 
   ```
     class Color { }
@@ -14,15 +15,18 @@ Open design issues (needing LDM decisions)
         // if x is Message { PayloadKind is OnedrivePayloadKinds.Request, Body is string req } ...
     }
   ```
-  - [ ] If we support `3 is 3`, is that a constant expression? Can a `match` expression be constant?
-- [ ] Do we want pattern-matching in the `switch` statement? Or do we want a separate statement-based construct instead? (#8821)
-    - [ ] What does `goto case` mean?
-      - [ ] Do we limit `goto case` to constants?
-      - [ ] Or do we allow a non-constant expression in a `goto case` statement?
-      - [ ] If limited to constants, must its value match an existing constant label?
-      - [ ] Can a constant `case` label with a `when` clause be the target of `goto case`?
-    - [ ] How do we write the rules for the switch-expression (conversion) and matching labels (i.e. constant patterns) so that it approximates the current behavior?
-    - [ ] Do we allow multiple cases in the same `switch` block if one of them defines a pattern variable?
+**Decision**: We do an ordinary lookup and use the thing we find, with the exception of a *type-pattern* on the right-hand-side of an `is` expression. In that case we look up a type, and only if we fail to find a type do we use the first-thing-found rule. In addition, the LDM approves of this hypothetical *type-pattern* (without an identifier).
+  - [x] If we support `3 is 3`, is that a constant expression? Can a `match` expression be constant?
+  **Decision**: It is not a constant expression; an *is-pattern-expression* is never a constant expression, even when we know the result statically. 
+- [x] Do we want pattern-matching in the `switch` statement? Or do we want a separate statement-based construct instead? (#8821)
+**Decision**: we have not seen anything to make us want to reverse the decision to extend the existing `switch` statement to support pattern-matching, and similarly we continue to be happy retrofitting the existing `is` expression.
+    - [x] What does `goto case` mean?
+      - [x] Do we limit `goto case` to constants? **Decision**: yes.
+      - [x] Or do we allow a non-constant expression in a `goto case` statement? **Decision**: no.
+      - [x] If limited to constants, must its value match an existing constant label? **Decision**: yes, one that has no `when` clause.
+      - [x] Can a constant `case` label with a `when` clause be the target of `goto case`? **Decision**: no, to be a valid target of a `goto case`, it must have a constant label and no `when` clause.
+    - [x] How do we write the rules for the switch-expression (conversion) and matching labels (i.e. constant patterns) so that it approximates the current behavior? **Decision**: For the constant cases, we allow the case expression to be converted by a user-defined conversion. If the constant is integral, then we seek an  integral conversion and ignore, for example, a conversion to `string`. For a `string` we consider a conversion to `string`. Similarly for enumeration types and other types that were switchable in C# 6. Other cases do not invoke a conversion. It is an error if there is more than one conversion used in the `switch` statement (i.e. one user-defined conversion used in one `case` and a different user-defined conversion for another). We do not consider user-defined conversions for pattern-matching in any other context or for any types not previously switchable.
+    - [x] Do we allow multiple cases in the same `switch` block if one of them defines a pattern variable? **Decision**: It is allowed, but the variable will not be definitely  assigned in the switch block if any of the other labels are reachable. However, such variables would be usable in the `when` clause. In other words, the below would not work.
     
     ```
     Expr IdentitySimplification(Expr src)
@@ -31,7 +35,7 @@ Open design issues (needing LDM decisions)
       {
          case Sum(0,i):
          case Sum(i,0):
-            return i; // this is pretty darn slick!
+            return i; // this would be pretty darn slick!
          case Mul(1,i):
          case Mul(i,1):
             return i;
@@ -56,13 +60,13 @@ Open design issues (needing LDM decisions)
   - [ ] [Pattern Matching] Should a property-pattern be capable of referencing an event? #9515
 - [x] Two small clarifications need to be integrated into the spec (#7703)
 - [ ] We need to specify and implement the user-defined pattern forms: user-defined `operator is`?
-  - [ ] static void with self-receiver
-  - [ ] static bool for active patterns
+  - [x] static void with self-receiver
+  - [x] static bool for active patterns
   - [ ] instance bool for captured data (regex)
 - [ ] Do we want to support "breakpoints inside" patterns (#9095)?
 - [ ] Do we want to support named "arguments" in recursive patterns? e.g. `if (p is Point(X: 3, Y: 4)) ...`
 - [ ] What is the correct precedence of *throw-expression*? Should *assignment* be allowed as its sub-expression?
-- [ ] @jaredpar suggested that, by analogy with the integral types, we should match floating-point literal patterns across floating-point types.
+- [x] @jaredpar suggested that, by analogy with the integral types, we should match floating-point literal patterns across floating-point types. **Decision**: Constant patterns match as follows: if the static type of the expression is integral and the pattern is an integral constant, we use the semantics of `==`. Otherwise we use the semantics of `object.Equals(object, object)`.
 - [ ] Should we allow throw expression on right of && and || ? #9453
 - [ ] Should `operator is` be allowed to take a ref first parameter, for example for value types? Is the answer the same as for all other operators?
 - [ ] We need to specify the meaning of the things we need the decision tree for: subsumption, completeness, irrefutable.
@@ -124,11 +128,11 @@ Implementation progress checklist:
   - [x] Code-gen tests
 - [x] An expression form for mutli-armed pattern-matching (`match`?)
 - [ ] Extend the scope of a pattern variable declared in a catch filter to the catch block. (#8814)
-- [ ] Implement and test pattern variable scoping for all statements (#8817)
-  - [ ] Test for error on reusing a variable name, and lambda-capturing.
-- [ ] Test for name conflicts with locals in enclosing scopes for normal and "odd" contexts.
+- [x] Implement and test pattern variable scoping for all statements (#8817)
+  - [x] Test for error on reusing a variable name, and lambda-capturing.
+- [x] Test for name conflicts with locals in enclosing scopes for normal and "odd" contexts.
 - [ ] Need a custom diagnostic for accessing a static property in a property pattern. Are there other contexts where the diagnostics need improvement?
-- [ ] Data-flow analysis and region analysis should be modified to handle pattern variables, which are definitely assigned when a pattern match succeeds.
+- [ ] Data-flow analysis and region analysis should be modified to handle pattern variables, which are definitely assigned when a pattern match succeeds, and not definitely assigned in `case` blocks with more than one reachable case.
   - [ ] Region analysis APIs versus pattern matching #9277 
   - [ ] Can't extract method on case expression in match/case clause. #9105
   - [ ] Consider pattern matching for extract method scenarios #9244
@@ -144,7 +148,6 @@ Implementation progress checklist:
     - [ ] Is a nested type
     - [x] Is inaccessible
     - [ ] Is ambiguous
-    - [ ] Does not exist
 - [ ] `IOperation` support for pattern-matching (#8699)
 - [ ] Some unit tests that were disabled during development need to be re-enabled (#8778)
 - [ ] WRN_UnreferencedVarAssg "The variable '...' is assigned but its value is never used" is not reported for pattern variables #9021
@@ -185,5 +188,4 @@ Related features possibly to be added at the same time as pattern-matching:
 - [ ] #6183 "out var" declarations
 - [ ] #188 Completeness checking for "match" and Algebraic Data Types
 - [x] #6400 destructuring assignment (let statement)
-- [ ] #206 Record types
-- [ ] #5172 "with" expressions
+
