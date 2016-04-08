@@ -58,10 +58,10 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 // identity tuple conversions result in a converted tuple
                 // to indicate that tuple conversions are no longer applicable.
-                if (source.Kind == BoundKind.NaturalTupleExpression)
+                if (source.Kind == BoundKind.TupleLiteral)
                 {
-                    var tuple = (BoundNaturalTupleExpression)source;
-                    return new BoundConvertedTupleExpression(tuple.Syntax, tuple.Arguments, tuple.ArgumentNamesOpt, tuple.Type, tuple.HasErrors);
+                    var tuple = (BoundTupleLiteral)source;
+                    return new BoundConvertedTupleLiteral(tuple.Syntax, tuple.Arguments, tuple.ArgumentNamesOpt, tuple.Type, tuple.HasErrors);
                 }
 
                 // We need to preserve any conversion that changes the type (even identity conversions, like object->dynamic),
@@ -85,7 +85,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             if (conversion.IsTuple || 
-                (conversion.Kind == ConversionKind.ImplicitNullable && source.Kind == BoundKind.NaturalTupleExpression))
+                (conversion.Kind == ConversionKind.ImplicitNullable && source.Kind == BoundKind.TupleLiteral))
             {
                 return CreateTupleConversion(syntax, source, conversion, destination, diagnostics);
             }
@@ -330,7 +330,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // We have a successful tuple conversion; rather than producing a node 
             // which is a conversion on top of a tuple literal, tuple conversion is an element-wise conversion of arguments.
 
-            var sourceTuple = (BoundNaturalTupleExpression)source;
+            var sourceTuple = (BoundTupleLiteral)source;
             var targetType = (NamedTypeSymbol)destination;
 
             Debug.Assert(conversion.Kind ==  ConversionKind.ImplicitTuple || conversion.Kind == ConversionKind.ImplicitNullable);
@@ -371,11 +371,11 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if ((object)destinationWithoutNullable == null)
             {
-                return new BoundConvertedTupleExpression(syntax, convertedArguments.ToImmutableAndFree(), sourceTuple.ArgumentNamesOpt, destination, hasErrors);
+                return new BoundConvertedTupleLiteral(syntax, convertedArguments.ToImmutableAndFree(), sourceTuple.ArgumentNamesOpt, destination, hasErrors);
             }
             else
             {
-                var tuple = new BoundConvertedTupleExpression(syntax, convertedArguments.ToImmutableAndFree(), sourceTuple.ArgumentNamesOpt, destinationWithoutNullable, hasErrors);
+                var tuple = new BoundConvertedTupleLiteral(syntax, convertedArguments.ToImmutableAndFree(), sourceTuple.ArgumentNamesOpt, destinationWithoutNullable, hasErrors);
 
                 return new BoundConversion(
                     syntax,
