@@ -1,7 +1,9 @@
+> Open issues for the design and implementation of this feature can be found at [patterns.work.md](patterns.work.md).
+
 Pattern Matching for C#
 =======================
 
-Pattern matching extensions for C# enable many of the benefits of algebraic data types and pattern matching from functional languages, but in a way that smoothly integrates with the feel of the underlying language. The basic features are: [record types](records.md), which are types whose semantic meaning is described by the shape of the data; and pattern matching, which is a new expression form that enables extremely concise multilevel decomposition of these data types. Elements of bese.pdf "Extensible Pattern Matching Via a Lightweight Language") and [Scala](http://lampwww.epfl.ch/~emir/written/MatchingObjectsWithPatterns-TR.pdf "Matching Objects With Patterns").
+Pattern matching extensions for C# enable many of the benefits of algebraic data types and pattern matching from functional languages, but in a way that smoothly integrates with the feel of the underlying language. The basic features are: [record types](records.md), which are types whose semantic meaning is described by the shape of the data; and pattern matching, which is a new expression form that enables extremely concise multilevel decomposition of these data types. Elements of this approach are inspired by related features in the programming languages [F#](http://www.msr-waypoint.net/pubs/79947/p29-syme.pdf "Extensible Pattern Matching Via a Lightweight Language") and [Scala](http://lampwww.epfl.ch/~emir/written/MatchingObjectsWithPatterns-TR.pdf "Matching Objects With Patterns").
 
 ## Is Expression
 
@@ -9,8 +11,7 @@ The `is` operator is extended to test an expression against a *pattern*.
 
 ```antlr
 relational_expression
-    : relational_expression 'is' complex_pattern
-    | relational_expression 'is' type
+    : relational_expression 'is' pattern
     ;
 ```
 
@@ -20,19 +21,45 @@ Every *identifier* of the pattern introduces a new local variable that is *defin
 
 ## Patterns
 
-Patterns are used in the `is` operator and in a *switch_statement* to express the shape of data against which incoming data is to be compared. Patterns may be recursive so that subparts of the data may be matched against subpatterns.
+Patterns are used in the `is` operator and in a *switch_statement* to express the shape of data against which incoming data is to be compared. Patterns may be recursive so that parts of the data may be matched against sub-patterns.
 
 ```antlr
-complex_pattern
-    : type identifier
+pattern
+    : type_pattern
+    | constant_pattern
+    | wildcard_pattern
+    | var_pattern
     | recursive_pattern
-    | recursive_pattern identifier
-    | property_pattern
-    | property_pattern identifier
+    ;
+
+type_pattern
+    : type identifier?
+    ;
+
+wildcard_pattern
+    : '*'
+    ;
+
+var_pattern
+    : 'var' identifier
+    ;
+
+constant_pattern
+    : shift_expression
     ;
 
 recursive_pattern
-    :  type '(' subpattern+ ')'
+    : positional_pattern
+    | property_pattern
+    ;
+
+positional_pattern
+    :  type '(' subpattern_list? ')'
+    ;
+
+subpattern_list
+    : subpattern
+    | subpattern ',' subpattern_list
     ;
 
 subpattern
@@ -40,48 +67,38 @@ subpattern
     ;
 
 property_pattern
-    :  type '{' property_subpattern+ '}'
+    :  type identifier? '{' property_subpattern_list? '}'
+    ;
+
+property_subpattern_list
+    : property_subpattern
+    | property_subpattern ',' property_subpattern_list
     ;
 
 property_subpattern
     : identifier 'is' pattern
     ;
-
-pattern
-    : simple_pattern
-    | complex_pattern
-    ;
-
-simple_pattern
-    : constant_pattern
-    | wildcard_pattern
-    | 'var' identifier
-    ;
-
-wildcard_pattern
-    : '*'
-    ;
-
-constant_pattern
-    : shift_expression
-    ;
 ```
+
+> Note: There is technically an ambiguity between *type_pattern* (when an *identifier* is absent) and *constant_pattern*, either of which might be a valid parse of a qualified identifier. In practice the ambiguity doesn't matter, and we disambiguate when we bind the name. If we find both a type and a value (e.g. the Color-Color situation), we resolve it to whichever is in the innermost scope. The one exception to this is the `is`-expression, for which we try to bind it as a type for compatibility with previous versions of the language; only if that fails do we resolve it as we do in other contexts.
 
 ### Type Pattern
 
-The type pattern both tests that an expression is of a given type and casts it to that type if the test succeeds. This introduces a local variable of the given type named by the given identifier. That local variable is *definitely assigned* when the is operator is true.
+The *type_pattern* both tests that an expression is of a given type and, if the *identifier* is present, casts it to that type if the test succeeds. This introduces a local variable of the given type named by the given identifier. That local variable is *definitely assigned* when the result of the pattern-matching operation is true.
 
 ```antlr
-complex_pattern
+type_pattern
     : type identifier
     ;
 ```
 
-The runtime semantic of this expression is that it tests the runtime type of the left-hand *relational_expression* operand against the *type* in the pattern. If it is of that runtime type (or some subtype), the result of the `is operator` is `true` and the local variable is assigned the value of the left-hand operand.
+The runtime semantic of this expression is that it tests the runtime type of the left-hand *relational_expression* operand against the *type* in the pattern. If it is of that runtime type (or some subtype), the result of the `is operator` is `true`. If the *identifier* is present, it declares a new local variable that is assigned the value of the left-hand operand when the result is `true`.
 
 Certain combinations of static type of the left-hand-side and the given type are considered incompatible and result in compile-time error. A value of static type `E` is said to be *pattern compatible* with the type `T` if there exists an identity conversion, an implicit reference conversion, a boxing conversion, an explicit reference conversion, or an unboxing conversion from `E` to `T`. It is a compile-time error if an expression of type `E` is not pattern compatible with the type in a type pattern that it is matched with.
 
-The type pattern is useful for performing runtime type tests of reference types, and replaces the idiom
+> Note: For compatibility with previous versions of the language we make an exception to this; this situation is merely a warning (not an error) in an *is_expression* if the *identifier* is absent.
+
+The type pattern is useful for performing run-time type tests of reference types, and replaces the idiom
 
 ```cs
 var v = expr as Type;
@@ -94,9 +111,9 @@ With the slightly more concise
 if (expr is Type v) { // code using v }
 ```
 
-It is an error if *type* is a nullable value type.
+It is an error if *type* is a nullable value type and the *identifier* is present.
 
-The type pattern can be used to test values of nullable types: a value of type `Nullable<T>` (or a boxed `T`) matches a type pattern `T2 id` if the value is non-null and the type is `T2` is `T`, or some base type or interface of `T`. For example, in the code fragment
+The type pattern can be used to test values of nullable types: a value of type `Nullable<T>` (or a boxed `T`) matches a type pattern `T2 id` if the value is non-null and the type of `T2` is `T`, or some base type or interface of `T`. For example, in the code fragment
 
 ```cs
 int? x = 3;
@@ -107,7 +124,7 @@ The condition of the `if` statement is `true` at runtime and the variable `v` ho
 
 ### Constant Pattern
 
-A constant pattern tests the runtime value of an expression against a constant value. The constant may be any constant expression, such as a literal, the name of a declared `const` variable, or an enumeration constant.
+A constant pattern tests the value of an expression against a constant value. The constant may be any constant expression, such as a literal, the name of a declared `const` variable, or an enumeration constant.
 
 An expression *e* matches a constant pattern *c* if `object.Equals(e, c)` returns `true`.
 
@@ -131,19 +148,19 @@ An expression *e* matches the pattern `var identifier` always. In other words, a
 
 An expression *e* matches the pattern `*` always. In other words, every expression matches the wildcard pattern.
 
-### Recursive Pattern
+### Positional Pattern
 
-A recursive pattern enables the program to invoke an appropriate `operator is`, and (if the operator returns `true`) perform further pattern matching on the values that are returned from it. In the absence of an `operator is`, if the named type was defined with a *parameter list*, then the properties declared in the type's parameters are read to match subpatterns.
+A positional pattern enables the program to invoke an appropriate `operator is`, and (if the operator returns `true`) perform further pattern matching on the values that are returned from it. In the absence of an `operator is`, if the named type was defined with a *parameter list*, then the properties declared in the type's parameters are read to match subpatterns.
 
 ```antlr
-recursive_pattern
+positional_pattern
     : type '(' subpattern_list? ')'
     ;
 ```
 
 Given a match of an expression *e* to the pattern *type* `(` *subpattern_list* `)`, a method is selected by searching in *type* for accessible declarations of `operator is` and selecting one among them using *match operator overload resolution*. It is a compile-time error if the expression *e* is not *pattern compatible* with the type of the first argument of the selected operator.
 
-- If a suitable `operator is` exists, at runtime, the value of the expression is tested against the type of the first argument as in a type pattern. If this fails then the recursive pattern match fails and the result is `false`. If it succeeds, the operator is invoked with fresh compiler-generated variables to receive the `out` parameters. Each value that was received is matched against the corresponding *subpattern*, and the match succeeds if all of these succeed. The order in which subpatterns are matched is not specified, and a failed match may not match all subpatterns.
+- If a suitable `operator is` exists, at runtime, the value of the expression is tested against the type of the first argument as in a type pattern. If this fails then the positional pattern match fails and the result is `false`. If it succeeds, the operator is invoked with fresh compiler-generated variables to receive the `out` parameters. Each value that was received is matched against the corresponding *subpattern*, and the match succeeds if all of these succeed. The order in which subpatterns are matched is not specified, and a failed match may not match all subpatterns.
 - If no suitable `operator is` was found, and *type* designates a type that was defined with a parameter list, the number of subpatterns must be the same as the number of parameters of the type. In that case the properties declared in the type's parameter list are read and matched against the subpatterns, as above.
 - Otherwise it is an error.
 
@@ -191,7 +208,7 @@ The use of a pattern variables is a value, not a variable. In other words patter
 
 ## User_defined operator is
 
-An explicit `operator is` may be declared to extend the pattern matching capabilities. Such a method is invoked by the `is` operator or a *switch_statement* with a *recursive_pattern*.
+An explicit `operator is` may be declared to extend the pattern matching capabilities. Such a method is invoked by the `is` operator or a *switch_statement* with a *positional_pattern*.
 
 For example, suppose we have a type representing a Cartesian point in 2-space:
 
@@ -460,7 +477,7 @@ Expr Deriv(Expr e)
 }
 ```
 
-An expression simplifier demonstrates recursive patterns:
+An expression simplifier demonstrates positional patterns:
 
 ```cs
 Expr Simplify(Expr e)
