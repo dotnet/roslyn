@@ -191,7 +191,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             get
             {
-                // PROTOTYPE: need to figure what is the right behavior when underlying is obsolete
+                // PROTOTYPE(tuples): need to figure what is the right behavior when underlying is obsolete
                 return null;
             }
         }

@@ -648,8 +648,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     }
                 }
 
-                //PROTOTYPE(tuples): rename ignoreDynamic or introduce another "ignoreTuple" flag
-                // if ignoring dynamic, compare underlying tuple types
+                // PROTOTYPE(tuples): rename ignoreDynamic or introduce another "ignoreTuple" flag
+                //                    if ignoring dynamic, compare underlying tuple types
                 if (t2.IsTupleType)
                 {
                     t2 = ((TupleTypeSymbol)t2).UnderlyingTupleType;

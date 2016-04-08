@@ -4,7 +4,6 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Roslyn.Utilities;
-using System.Collections.Immutable;
 
 namespace Microsoft.CodeAnalysis.CSharp
 {
@@ -87,7 +86,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (conversion.IsTuple || 
                 (conversion.Kind == ConversionKind.ImplicitNullable && source.Kind == BoundKind.TupleLiteral))
             {
-                return CreateTupleConversion(syntax, source, conversion, destination, diagnostics);
+                return CreateTupleConversion(syntax, source, conversion, isCast, destination, diagnostics);
             }
 
             if (conversion.IsUserDefined)
@@ -325,7 +324,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return new BoundConversion(syntax, group, conversion, @checked: false, explicitCastInCode: isCast, constantValueOpt: ConstantValue.NotAvailable, type: destination, hasErrors: hasErrors) { WasCompilerGenerated = source.WasCompilerGenerated };
         }
 
-        private BoundExpression CreateTupleConversion(CSharpSyntaxNode syntax, BoundExpression source, Conversion conversion, TypeSymbol destination, DiagnosticBag diagnostics)
+        private BoundExpression CreateTupleConversion(CSharpSyntaxNode syntax, BoundExpression source, Conversion conversion, bool isCast, TypeSymbol destination, DiagnosticBag diagnostics)
         {
             // We have a successful tuple conversion; rather than producing a node 
             // which is a conversion on top of a tuple literal, tuple conversion is an element-wise conversion of arguments.
@@ -353,7 +352,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             var arguments = sourceTuple.Arguments;
-            Debug.Assert(Compilation.IsTupleUnderlyingType(targetType, arguments.Length), "converting a tuple literal to incompatible type?");
+            Debug.Assert(Compilation.IsWellKnownTupleType(targetType, arguments.Length), "converting a tuple literal to incompatible type?");
 
             var convertedArguments = ArrayBuilder<BoundExpression>.GetInstance(arguments.Length);
             var targetElementTypes = ArrayBuilder<TypeSymbol>.GetInstance(arguments.Length);
@@ -377,15 +376,16 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 var tuple = new BoundConvertedTupleLiteral(syntax, convertedArguments.ToImmutableAndFree(), sourceTuple.ArgumentNamesOpt, destinationWithoutNullable, hasErrors);
 
+                //PROTOTYPE(tuples): need semantic info test covering different "isCast" situations.
                 return new BoundConversion(
                     syntax,
                     tuple,
                     conversion,
                     @checked: false,
-                    explicitCastInCode: false,
+                    explicitCastInCode: isCast,
                     constantValueOpt: ConstantValue.NotAvailable,
                     type: destination)
-                { WasCompilerGenerated = true };
+                { WasCompilerGenerated = source.WasCompilerGenerated };
             }
         }
 

@@ -715,8 +715,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                     break;
                 }
 
-                // PROTOTYPE(tuples) consider taking this out of the loop. tuples are always at the end of hierarchy
-                // PROTOTYPE(tuples) match this in other lookups
+                // PROTOTYPE(tuples): consider taking this out of the loop. tuples are always at the end of hierarchy
+                // PROTOTYPE(tuples): match this in other lookups
                 var tuple = currentType as TupleTypeSymbol;
                 if ((object)tuple != null)
                 {

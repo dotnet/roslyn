@@ -1959,7 +1959,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             var sourceArguments = tupleSource.Arguments;
 
             // check if underlying type is actually a possible underlying type for a tuple of given arity
-            if (!Compilation.IsTupleUnderlyingType(destination, sourceArguments.Length))
+            if (!Compilation.IsWellKnownTupleType(destination, sourceArguments.Length))
             {
                 return false;
             }

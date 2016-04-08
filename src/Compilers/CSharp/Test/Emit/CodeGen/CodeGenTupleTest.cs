@@ -554,7 +554,7 @@ class C
 }
 " + trivial2uple + trivial3uple;
 
-            // PROTOTYPE(tuples) there should be no mention of Item1, Item2 or Item3 in there error for this test
+            // PROTOTYPE(tuples): there should be no mention of Item1, Item2 or Item3 in there error for this test
             // (int a, string b) should print as < tuple: int a, string b> and(int, string) should print out as < tuple: int, string> (not < tuple:int Item1, string Item2>).
             // Only user-provided names should appear in the TupleTypeSymbol. The underlying type(ValueTuple) is the one that provides Item1, etc.
             // At the moment, because our error checking is incomplete, and also for purpose of error recovery, we assign "Item1" and such into the tuple symbol when the user missed some names.But I think this is a prototype bug.
@@ -932,7 +932,7 @@ class C
                 // (6,27): error CS0518: Predefined type 'System.ValueTuple`2' is not defined or imported
                 //         (int, string) x = (1, "hello");
                 Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, @"(1, ""hello"")").WithArguments("System.ValueTuple`2").WithLocation(6, 27)
-                               );
+                );
         }
 
         [Fact]
@@ -1263,7 +1263,7 @@ class C
                 // (12,16): error CS0518: Predefined type 'System.ValueTuple`2' is not defined or imported
                 //         return (default(T1), default(T2));
                 Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "(default(T1), default(T2))").WithArguments("System.ValueTuple`2").WithLocation(12, 16)
-                                );
+                );
         }
 
         [Fact]
@@ -1392,7 +1392,7 @@ static class C
 }
 " + trivial2uple;
 
-            // PROTOTYPE(tuples) this should probably fail with diagnostics. No extension methods on tuple types (but you can on ValueTuple)
+            // PROTOTYPE(tuples): this should probably fail with diagnostics. No extension methods on tuple types (but you can on ValueTuple)
             CompileAndVerify(source, additionalRefs: new[] { SystemCoreRef }, expectedOutput: @"42 Alice");
         }
 
@@ -1771,7 +1771,6 @@ class C
 
             var comp = CompileAndVerify(source, expectedOutput: "12345678901234567890123456789012345");
         }
-
 
         [Fact]
         public void TupleTargetTypeTwice()
