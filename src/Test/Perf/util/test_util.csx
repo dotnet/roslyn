@@ -12,6 +12,158 @@ using System.Threading;
 using System.Collections.Generic;
 using System.Runtime.CompilerServices;
 using System.Net;
+using System.Globalization;
+
+class RelativeDirectory 
+{
+    string _workingDir;
+    
+    public RelativeDirectory([CallerFilePath] string workingFile = "") 
+    {
+        _workingDir = Directory.GetParent(workingFile).FullName;
+    }
+    
+    public string MyWorkingDirectory => _workingDir;
+    
+
+    /// Returns the directory that you can put artifacts like
+    /// etl traces or compiled binaries
+    public string MyArtifactsDirectory 
+    { 
+        get 
+        {
+            var path = Path.Combine(MyWorkingDirectory, "artifacts");
+            Directory.CreateDirectory(path);
+            return path;
+        }
+    }
+
+    public string MyTempDirectory
+    {
+        get {
+            var workingDir = MyWorkingDirectory;
+            var path = Path.Combine(workingDir, "temp");
+            Directory.CreateDirectory(path);
+            return path;
+        }
+    }
+
+    public string RoslynDirectory
+    {
+        get {
+            // In Windows, our path could be reported as "src/Test/Perf" (as it should),
+            // or "src/TeSt/PeRf" which is completely insane.
+            var workingDir = MyWorkingDirectory;
+            var srcTestPerf = Path.Combine("src", "Test", "Perf").ToString();
+            CompareInfo inv = CultureInfo.InvariantCulture.CompareInfo;
+            var idx = inv.IndexOf(workingDir, srcTestPerf, CompareOptions.IgnoreCase);
+            return workingDir.Substring(0, idx);
+        }
+    }
+
+    public string PerfDirectory => Path.Combine(RoslynDirectory, "src", "Test", "Perf");
+
+    public string BinDirectory => Path.Combine(RoslynDirectory, "Binaries");
+    
+    public string BinDebugDirectory => Path.Combine(BinDirectory, "Debug");
+
+    public string BinReleaseDirectory => Path.Combine(BinDirectory, "Release");
+
+    public string DebugCscPath => Path.Combine(BinDebugDirectory, "csc.exe");
+    
+    public string ReleaseCscPath => Path.Combine(BinReleaseDirectory, "csc.exe");
+
+    public string DebugVbcPath => Path.Combine(BinDebugDirectory, "vbc.exe");
+
+    public string ReleaseVbcPath => Path.Combine(BinReleaseDirectory, "vbc.exe");
+    
+    public string CPCDirectoryPath
+    {
+        get {
+            return Environment.ExpandEnvironmentVariables(@"%SYSTEMDRIVE%\CPC");
+        }
+    }
+
+    public string GetViBenchToJsonExeFilePath => Path.Combine(CPCDirectoryPath, "ViBenchToJson.exe");
+    
+    
+    
+    /// Downloads a zip from azure store and extracts it into
+    /// the ./temp directory.
+    ///
+    /// If this current version has already been downloaded
+    /// and extracted, do nothing.
+    public void DownloadProject(string name, int version)
+    {
+        var zipFileName = $"{name}.{version}.zip";
+        var zipPath = Path.Combine(MyTempDirectory, zipFileName);
+        // If we've already downloaded the zip, assume that it
+        // has been downloaded *and* extracted.
+        if (File.Exists(zipPath))
+        {
+            Log($"Didn't download and extract {zipFileName} because one already exists.");
+            return;
+        }
+
+        // Remove all .zip files that were downloaded before.
+        foreach (var path in Directory.EnumerateFiles(MyTempDirectory, $"{name}.*.zip"))
+        {
+            Log($"Removing old zip {path}");
+            File.Delete(path);
+        }
+
+        // Download zip file to temp directory
+        var downloadTarget = $"https://dotnetci.blob.core.windows.net/roslyn-perf/{zipFileName}";
+        Log($"Downloading {downloadTarget}");
+        var client = new WebClient();
+        client.DownloadFile(downloadTarget, zipPath);
+        Log($"Done Downloading");
+
+        // Extract to temp directory
+        Log($"Extracting {zipPath} to {MyTempDirectory}");
+        ZipFile.ExtractToDirectory(zipPath, MyTempDirectory);
+        Log($"Done Extracting");
+    }
+}
+
+abstract class PerfTest: RelativeDirectory {
+    private List<Tuple<int, string, object>> _metrics = new List<Tuple<int, string, object>>();
+    
+    public PerfTest([CallerFilePath] string workingFile = ""): base(workingFile) {}
+    
+    /// Reports a metric to be recorded in the performance monitor.
+    protected void Report(ReportKind reportKind, string description, object value)
+    {
+        _metrics.Add(Tuple.Create((int) reportKind, description, value));
+        Log(description + ": " + value.ToString());
+    }
+    
+    public abstract void Setup();
+    public abstract void Test();
+    public abstract int Iterations { get; }
+    public abstract string Name { get; }
+    public abstract string MeasuredProc { get; }
+}
+
+static PerfTest[] TestThisPlease(params PerfTest[] tests) 
+{
+    if (IsRunFromRunner()) 
+    {
+        return tests;
+    }
+    else 
+    {
+        foreach (var test in tests) 
+        {
+            test.Setup();
+            for (int i = 0; i < test.Iterations; i++) 
+            {
+                test.Test();
+            }
+        }
+        return new PerfTest[] {};
+    }
+}
 
 //
 // Arguments
@@ -36,101 +188,9 @@ static bool IsVerbose()
     return StaticArgs.Contains("--verbose");
 }
 
-//
-// Directory Locating Functions
-//
-
-static string _myWorkingFile = null;
-
-static void InitUtilities([CallerFilePath] string sourceFilePath = "")
+static bool IsRunFromRunner() 
 {
-    _myWorkingFile = sourceFilePath;
-}
-
-/// Returns the directory that houses the currenly executing script.
-static string MyWorkingDirectory()
-{
-    if (_myWorkingFile == null)
-    {
-        throw new Exception("Tests must call InitUtilities before doing any path-dependent operations.");
-    }
-    return Directory.GetParent(_myWorkingFile).FullName;
-}
-
-/// Returns the directory that you can put artifacts like
-/// etl traces or compiled binaries
-static string MyArtifactsDirectory()
-{
-    var path = Path.Combine(MyWorkingDirectory(), "artifacts");
-    Directory.CreateDirectory(path);
-    return path;
-}
-
-static string MyTempDirectory()
-{
-    var workingDir = MyWorkingDirectory();
-    var path = Path.Combine(workingDir, "temp");
-    Directory.CreateDirectory(path);
-    return path;
-}
-
-static string RoslynDirectory()
-{
-    var workingDir = MyWorkingDirectory();
-    var srcTestPerf = Path.Combine("src", "Test", "Perf").ToString();
-    return workingDir.Substring(0, workingDir.IndexOf(srcTestPerf));
-}
-
-static string PerfDirectory()
-{
-    return Path.Combine(RoslynDirectory(), "src", "Test", "Perf");
-}
-
-static string BinDirectory()
-{
-    return Path.Combine(RoslynDirectory(), "Binaries");
-}
-
-static string BinDebugDirectory()
-{
-    return Path.Combine(BinDirectory(), "Debug");
-}
-
-static string BinReleaseDirectory()
-{
-    return Path.Combine(BinDirectory(), "Release");
-}
-
-static string DebugCscPath()
-{
-    return Path.Combine(BinDebugDirectory(), "csc.exe");
-}
-
-static string ReleaseCscPath()
-{
-    return Path.Combine(BinReleaseDirectory(), "csc.exe");
-}
-
-static string DebugVbcPath()
-{
-    return Path.Combine(BinDebugDirectory(), "vbc.exe");
-}
-
-static string ReleaseVbcPath()
-{
-    return Path.Combine(BinReleaseDirectory(), "vbc.exe");
-}
-
-static string GetCPCDirectoryPath()
-{
-    var path =  Path.Combine(PerfDirectory(), "temp", "cpc");
-    Directory.CreateDirectory(path);
-    return path;
-}
-
-static string GetViBenchToJsonExeFilePath()
-{
-    return Path.Combine(GetCPCDirectoryPath(), "ViBenchToJson.exe");
+    return StaticArgs.Contains("--from-runner");
 }
 
 //
@@ -168,20 +228,17 @@ static void ShellOutVital(
 static ProcessResult ShellOut(
         string file,
         string args,
-        string workingDirectory = null,
+        string workingDirectory,
         CancellationToken? cancelationToken = null)
 {
-    if (workingDirectory == null)
-    {
-        workingDirectory = MyWorkingDirectory();
-    }
-
     var tcs = new TaskCompletionSource<ProcessResult>();
     var startInfo = new ProcessStartInfo(file, args);
     startInfo.RedirectStandardOutput = true;
     startInfo.RedirectStandardError = true;
     startInfo.UseShellExecute = false;
     startInfo.WorkingDirectory = workingDirectory;
+    
+    
     var process = new Process
     {
         StartInfo = startInfo,
@@ -230,9 +287,14 @@ static ProcessResult ShellOut(
     };
 }
 
-string StdoutFrom(string program, string args = "")
+string StdoutFrom(string program, string args = "", string workingDirectory = null)
 {
-    var result = ShellOut(program, args);
+    if (workingDirectory == null) {
+        var directoryInfo = new RelativeDirectory();
+        workingDirectory = directoryInfo.MyTempDirectory;
+    }
+    
+    var result = ShellOut(program, args, workingDirectory);
     if (result.Failed)
     {
         LogProcessResult(result);
@@ -297,48 +359,4 @@ static void LogProcessResult(ProcessResult result)
         result.Code));
     Log($"Standard Out:\n{result.StdOut}");
     Log($"\nStandard Error:\n{result.StdErr}");
-}
-
-/// Reports a metric to be recorded in the performance monitor.
-static void Report(ReportKind reportKind, string description, object value)
-{
-    Metrics.Add(Tuple.Create((int) reportKind, description, value));
-    Log(description + ": " + value.ToString());
-}
-
-/// Downloads a zip from azure store and extracts it into
-/// the ./temp directory.
-///
-/// If this current version has already been downloaded
-/// and extracted, do nothing.
-static void DownloadProject(string name, int version)
-{
-    var zipFileName = $"{name}.{version}.zip";
-    var zipPath = Path.Combine(MyTempDirectory(), zipFileName);
-    // If we've already downloaded the zip, assume that it
-    // has been downloaded *and* extracted.
-    if (File.Exists(zipPath))
-    {
-        Log($"Didn't download and extract {zipFileName} because one already exists.");
-        return;
-    }
-
-    // Remove all .zip files that were downloaded before.
-    foreach (var path in Directory.EnumerateFiles(MyTempDirectory(), $"{name}.*.zip"))
-    {
-        Log($"Removing old zip {path}");
-        File.Delete(path);
-    }
-
-    // Download zip file to temp directory
-    var downloadTarget = $"https://dotnetci.blob.core.windows.net/roslyn-perf/{zipFileName}";
-    Log($"Downloading {downloadTarget}");
-    var client = new WebClient();
-    client.DownloadFile(downloadTarget, zipPath);
-    Log($"Done Downloading");
-
-    // Extract to temp directory
-    Log($"Extracting {zipPath} to {MyTempDirectory()}");
-    ZipFile.ExtractToDirectory(zipPath, MyTempDirectory());
-    Log($"Done Extracting");
 }

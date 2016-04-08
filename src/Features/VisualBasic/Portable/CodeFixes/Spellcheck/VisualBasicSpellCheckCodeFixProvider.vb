@@ -11,7 +11,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeFixes.Spellcheck
 
     <ExportCodeFixProvider(LanguageNames.VisualBasic, Name:=PredefinedCodeFixProviderNames.SpellCheck), [Shared]>
     <ExtensionOrder(After:=PredefinedCodeFixProviderNames.RemoveUnnecessaryCast)>
-    Partial Friend Class SpellCheckCodeFixProvider
+    Partial Friend Class VisualBasicSpellCheckCodeFixProvider
         Inherits AbstractSpellCheckCodeFixProvider(Of SimpleNameSyntax)
 
         ''' <summary>

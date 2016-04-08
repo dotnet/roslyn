@@ -4,18 +4,18 @@
 #load "../util/runner_util.csx"
 #load "../util/Download_util.csx"
 
-InitUtilities();
+var directoryUtil = new RelativeDirectory();
 
 // Update the repository
 string branch = StdoutFrom("git", "rev-parse --abbrev-ref HEAD");
 ShellOutVital("git", $"pull origin {branch}");
-ShellOutVital(Path.Combine(RoslynDirectory(), "Restore.cmd"), "", workingDirectory: RoslynDirectory());
+ShellOutVital(Path.Combine(directoryUtil.RoslynDirectory, "Restore.cmd"), "", workingDirectory: directoryUtil.RoslynDirectory);
 
 // Build Roslyn in Release Mode
-ShellOutVital("msbuild", "./Roslyn.sln /p:Configuration=Release", workingDirectory: RoslynDirectory());
+ShellOutVital("msbuild", "./Roslyn.sln /p:Configuration=Release", workingDirectory: directoryUtil.RoslynDirectory);
 
 // Run DownloadTools before using the TraceManager because TraceManager uses the downloaded CPC binaries
 DownloadTools();
 
 // Run run_and_report.csx
-await RunFile(Path.Combine(MyWorkingDirectory(), "run_and_report.csx"));
+await RunFile(Path.Combine(directoryUtil.MyWorkingDirectory, "run_and_report.csx"));

@@ -14,10 +14,10 @@ class Constants {
 static void addLogRotator(def myJob) {
   myJob.with {
     logRotator {
-      daysToKeep(21)
+      daysToKeep(90)
       numToKeep(-1)
-      artifactDaysToKeep(5)
-      artifactNumToKeep(25)
+      artifactDaysToKeep(21)
+      artifactNumToKeep(-1)
     }
   }
 }
@@ -232,7 +232,7 @@ def branchNames = []
                     batchFile("""set TEMP=%WORKSPACE%\\Binaries\\Temp
 mkdir %TEMP%
 set TMP=%TEMP%
-.\\cibuild.cmd ${(configuration == 'dbg') ? '/debug' : '/release'} ${(buildTarget == 'unit32') ? '/test32' : '/test64'} /buildTimeLimit ${BuildTimeLimit}""")
+.\\cibuild.cmd ${(configuration == 'dbg') ? '/debug' : '/release'} ${(buildTarget == 'unit32') ? '/test32' : '/test64'}""")
                   }
                 }
                 Utilities.setMachineAffinity(myJob, 'Windows_NT', 'latest-or-auto')

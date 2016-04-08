@@ -12,13 +12,13 @@ using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 
-namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.UseImplicitTyping
+namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.TypeStyle
 {
     [ExportCodeFixProvider(LanguageNames.CSharp, Name = PredefinedCodeFixProviderNames.UseImplicitType), Shared]
-    internal class UseImplicitTypingCodeFixProvider : CodeFixProvider
+    internal class UseImplicitTypeCodeFixProvider : CodeFixProvider
     {
         public override ImmutableArray<string> FixableDiagnosticIds =>
-            ImmutableArray.Create(IDEDiagnosticIds.UseImplicitTypingDiagnosticId);
+            ImmutableArray.Create(IDEDiagnosticIds.UseImplicitTypeDiagnosticId);
 
         public override FixAllProvider GetFixAllProvider() => BatchFixAllProvider.Instance;
 

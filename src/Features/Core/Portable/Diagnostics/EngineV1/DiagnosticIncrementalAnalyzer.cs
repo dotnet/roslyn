@@ -3,6 +3,7 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Diagnostics;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -937,11 +938,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV1
 
         private DiagnosticData UpdatePosition(DiagnosticData diagnostic, SyntaxTree tree, int delta)
         {
-            var start = Math.Min(Math.Max(diagnostic.TextSpan.Start + delta, 0), tree.Length);
-            var newSpan = new TextSpan(start, start >= tree.Length ? 0 : diagnostic.TextSpan.Length);
-
-            var mappedLineInfo = tree.GetMappedLineSpan(newSpan);
-            var originalLineInfo = tree.GetLineSpan(newSpan);
+            Debug.Assert(diagnostic.AdditionalLocations == null || diagnostic.AdditionalLocations.Count == 0);
+            var newDiagnosticLocation = UpdateDiagnosticLocation(diagnostic.DataLocation, tree, delta);
 
             return new DiagnosticData(
                 diagnostic.Id,
@@ -956,20 +954,34 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV1
                 diagnostic.Properties,
                 diagnostic.Workspace,
                 diagnostic.ProjectId,
-                new DiagnosticDataLocation(diagnostic.DocumentId, newSpan,
-                    originalFilePath: originalLineInfo.Path,
-                    originalStartLine: originalLineInfo.StartLinePosition.Line,
-                    originalStartColumn: originalLineInfo.StartLinePosition.Character,
-                    originalEndLine: originalLineInfo.EndLinePosition.Line,
-                    originalEndColumn: originalLineInfo.EndLinePosition.Character,
-                    mappedFilePath: mappedLineInfo.GetMappedFilePathIfExist(),
-                    mappedStartLine: mappedLineInfo.StartLinePosition.Line,
-                    mappedStartColumn: mappedLineInfo.StartLinePosition.Character,
-                    mappedEndLine: mappedLineInfo.EndLinePosition.Line,
-                    mappedEndColumn: mappedLineInfo.EndLinePosition.Character),
+                newDiagnosticLocation,
+                additionalLocations: diagnostic.AdditionalLocations,
                 description: diagnostic.Description,
                 helpLink: diagnostic.HelpLink,
                 isSuppressed: diagnostic.IsSuppressed);
+        }
+
+        private DiagnosticDataLocation UpdateDiagnosticLocation(
+            DiagnosticDataLocation dataLocation, SyntaxTree tree, int delta)
+        {
+            var span = dataLocation.SourceSpan.Value;
+            var start = Math.Min(Math.Max(span.Start + delta, 0), tree.Length);
+            var newSpan = new TextSpan(start, start >= tree.Length ? 0 : span.Length);
+
+            var mappedLineInfo = tree.GetMappedLineSpan(newSpan);
+            var originalLineInfo = tree.GetLineSpan(newSpan);
+
+            return new DiagnosticDataLocation(dataLocation.DocumentId, newSpan,
+                originalFilePath: originalLineInfo.Path,
+                originalStartLine: originalLineInfo.StartLinePosition.Line,
+                originalStartColumn: originalLineInfo.StartLinePosition.Character,
+                originalEndLine: originalLineInfo.EndLinePosition.Line,
+                originalEndColumn: originalLineInfo.EndLinePosition.Character,
+                mappedFilePath: mappedLineInfo.GetMappedFilePathIfExist(),
+                mappedStartLine: mappedLineInfo.StartLinePosition.Line,
+                mappedStartColumn: mappedLineInfo.StartLinePosition.Character,
+                mappedEndLine: mappedLineInfo.EndLinePosition.Line,
+                mappedEndColumn: mappedLineInfo.EndLinePosition.Character);
         }
 
         private static IEnumerable<DiagnosticData> GetDiagnosticData(Document document, SyntaxTree tree, TextSpan? span, IEnumerable<Diagnostic> diagnostics)
