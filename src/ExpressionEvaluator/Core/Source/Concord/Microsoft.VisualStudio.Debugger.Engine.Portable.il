@@ -6,17 +6,17 @@
 .assembly extern System.Globalization
 {
 	.publickeytoken = (B0 3F 5F 7F 11 D5 0A 3A)
-	.ver 4:0:10:0
+	.ver 4:0:0:0
 }
 .assembly extern System.Runtime
 {
 	.publickeytoken = (B0 3F 5F 7F 11 D5 0A 3A)
-	.ver 4:0:20:0
+	.ver 4:0:0:0
 }
 .assembly extern System.Runtime.InteropServices
 {
 	.publickeytoken = (B0 3F 5F 7F 11 D5 0A 3A)
-	.ver 4:0:20:0
+	.ver 4:0:0:0
 }
 .assembly Microsoft.VisualStudio.Debugger.Engine
 {
