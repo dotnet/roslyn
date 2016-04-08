@@ -1,5 +1,7 @@
 ﻿{
-  "dependencies": { },
+  "dependencies": { 
+    "System.AppContext": "4.1.0-rc2-24008"
+  },
   "frameworks": {
     "dnxcore50": {
       "imports": "portable-net452"
