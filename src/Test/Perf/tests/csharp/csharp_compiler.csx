@@ -32,7 +32,7 @@ class CSharpCompilerTest: PerfTest
     public override string MeasuredProc => "csc.exe";
 }
 
-return TestThisPlease(
+TestThisPlease(
     new CSharpCompilerTest("CSharpCompiler.rsp"),
     new CSharpCompilerTest("CSharpCompilerNoAnalyzer.rsp"),
     new CSharpCompilerTest("CSharpCompilerNoAnalyzerNoDeterminism.rsp"));
