@@ -2,17 +2,37 @@
 
 #load "../../util/test_util.csx"
 using System.IO;
+using System.Collections.Generic;
 
-InitUtilities();
+class CSharpCompilerTest: PerfTest 
+{
+    private string _rspFile; 
+    public CSharpCompilerTest(string rspFile): base() {
+        _rspFile = rspFile;
+    }
+    
+    public override void Setup() 
+    {
+        DownloadProject("csharp", version: 1);
+    }
+    
+    public override void Test() 
+    {
+        string responseFile = "@" + Path.Combine(MyTempDirectory, "csharp", _rspFile);
+        string keyfileLocation = Path.Combine(MyTempDirectory, "csharp", "keyfile", "35MSSharedLib1024.snk");
+        string args = $"{responseFile} /keyfile:{keyfileLocation}";
 
-DownloadProject("csharp", version: 1);
+        string executeInDirectory = Path.Combine(MyTempDirectory, "csharp");
 
-var rspFile = "CSharpCompiler.rsp";
-string responseFile = "@" + Path.Combine(MyTempDirectory(), "csharp", rspFile);
-string keyfileLocation = Path.Combine(MyTempDirectory(), "csharp", "keyfile", "35MSSharedLib1024.snk");
-string args = $"{responseFile} /keyfile:{keyfileLocation}";
+        ShellOutVital(ReleaseCscPath, args, executeInDirectory);
+    }
+    
+    public override int Iterations => 1;
+    public override string Name => "csharp " + _rspFile;
+    public override string MeasuredProc => "csc.exe";
+}
 
-string executeInDirectory = Path.Combine(MyTempDirectory(), "csharp");
-
-var msToCompile = WalltimeMs(() => ShellOutVital(ReleaseCscPath(), args, executeInDirectory));
-Report(ReportKind.CompileTime, $"{rspFile} compile duration (ms)", msToCompile);
+return TestThisPlease(
+    new CSharpCompilerTest("CSharpCompiler.rsp"),
+    new CSharpCompilerTest("CSharpCompilerNoAnalyzer.rsp"),
+    new CSharpCompilerTest("CSharpCompilerNoAnalyzerNoDeterminism.rsp"));
