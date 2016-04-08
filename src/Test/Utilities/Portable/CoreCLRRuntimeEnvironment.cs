@@ -4,10 +4,11 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.CodeGen;
 using Roslyn.Test.Utilities;
+using static Roslyn.Test.Utilities.RuntimeUtilities; 
 
 namespace Microsoft.CodeAnalysis.Test.Utilities
 {
-    public class CoreCLRRuntimeEnvironment : IRuntimeEnvironment, IInternalRuntimeUtility
+    public class CoreCLRRuntimeEnvironment : IRuntimeEnvironment, IInternalRuntimeEnvironment
     {
         private IEnumerable<ModuleData> _additionalDependencies;
         private CompilationTestData _testData = new CompilationTestData();
@@ -38,7 +39,10 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
                 _mainImage = default(ImmutableArray<byte>);
                 _pdb = default(ImmutableArray<byte>);
                 _diagnostics = default(ImmutableArray<Diagnostic>);
-                throw new EmitException(diagnostics.ToReadOnly(), null);
+
+                string dumpDir;
+                DumpAssemblyData(dependencies, out dumpDir);
+                throw new EmitException(diagnostics.ToReadOnly(), dumpDir);
             }
         }
 
@@ -71,7 +75,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             throw new NotImplementedException();
         }
 
-        CompilationTestData IInternalRuntimeUtility.GetCompilationTestData()
+        CompilationTestData IInternalRuntimeEnvironment.GetCompilationTestData()
         {
             return _testData;
         }

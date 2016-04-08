@@ -130,7 +130,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
                 _diagnostics = testEnvironment.GetDiagnostics();
                 EmittedAssemblyData = testEnvironment.GetMainImage();
                 EmittedAssemblyPdb = testEnvironment.GetMainPdb();
-                _testData = ((IInternalRuntimeUtility) testEnvironment).GetCompilationTestData();
+                _testData = ((IInternalRuntimeEnvironment) testEnvironment).GetCompilationTestData();
 
                 return _compilation.Assembly.Identity.GetDisplayName();
             }

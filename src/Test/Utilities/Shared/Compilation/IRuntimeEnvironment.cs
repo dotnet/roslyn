@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.IO;
 using System.Linq;
+using System.Text;
 using System.Threading;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CodeGen;
@@ -13,6 +14,7 @@ using Roslyn.Utilities;
 
 namespace Roslyn.Test.Utilities
 {
+
     public class RuntimeEnvironmentFactory
     {
         internal static IRuntimeEnvironment Create(IEnumerable<ModuleData> additionalDependencies = null)
@@ -40,6 +42,9 @@ namespace Roslyn.Test.Utilities
 
     internal static class RuntimeUtilities
     {
+
+        private static int s_dumpCount;
+
         private static IEnumerable<ModuleMetadata> EnumerateModules(Metadata metadata)
         {
             return (metadata.Kind == MetadataImageKind.Assembly) ? ((AssemblyMetadata)metadata).GetModules().AsEnumerable() : SpecializedCollections.SingletonEnumerable((ModuleMetadata)metadata);
@@ -233,6 +238,80 @@ namespace Roslyn.Test.Utilities
                 return null;
             }
         }
+
+
+        public static string DumpAssemblyData(IEnumerable<ModuleData> modules, out string dumpDirectory)
+        {
+            dumpDirectory = null;
+
+            StringBuilder sb = new StringBuilder();
+            foreach (var module in modules)
+            {
+                // Limit the number of dumps to 10.  After 10 we're likely in a bad state and are 
+                // dumping lots of unnecessary data.
+                if (s_dumpCount > 10)
+                {
+                    break;
+                }
+
+                if (module.InMemoryModule)
+                {
+                    Interlocked.Increment(ref s_dumpCount);
+
+                    if (dumpDirectory == null)
+                    {
+                        dumpDirectory = Path.GetTempPath();
+                        try
+                        {
+                            Directory.CreateDirectory(dumpDirectory);
+                        }
+                        catch
+                        {
+                            // Okay if directory already exists
+                        }
+                    }
+
+                    string fileName;
+                    if (module.Kind == OutputKind.NetModule)
+                    {
+                        fileName = module.FullName;
+                    }
+                    else
+                    {
+                        AssemblyIdentity identity;
+                        AssemblyIdentity.TryParseDisplayName(module.FullName, out identity);
+                        fileName = identity.Name;
+                    }
+
+                    string pePath = Path.Combine(dumpDirectory, fileName + module.Kind.GetDefaultExtension());
+                    string pdbPath = (module.Pdb != null) ? pdbPath = Path.Combine(dumpDirectory, fileName + ".pdb") : null;
+                    try
+                    {
+                        module.Image.WriteToFile(pePath);
+                        if (pdbPath != null)
+                        {
+                            module.Pdb.WriteToFile(pdbPath);
+                        }
+                    }
+                    catch (IOException)
+                    {
+                        pePath = "<unable to write file>";
+                        if (pdbPath != null)
+                        {
+                            pdbPath = "<unable to write file>";
+                        }
+                    }
+                    sb.Append("PE(" + module.Kind + "): ");
+                    sb.AppendLine(pePath);
+                    if (pdbPath != null)
+                    {
+                        sb.Append("PDB: ");
+                        sb.AppendLine(pdbPath);
+                    }
+                }
+            }
+            return sb.ToString();
+        }
     }
 
     public interface IRuntimeEnvironment : IDisposable
@@ -248,7 +327,7 @@ namespace Roslyn.Test.Utilities
         string[] PeVerifyModules(string[] modulesToVerify, bool throwOnError = true);
     }
 
-    internal interface IInternalRuntimeUtility
+    internal interface IInternalRuntimeEnvironment
     {
         CompilationTestData GetCompilationTestData();
     }

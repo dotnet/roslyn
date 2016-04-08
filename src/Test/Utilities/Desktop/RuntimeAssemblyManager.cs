@@ -1,21 +1,13 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
-using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
-using System.IO;
 using System.Linq;
 using System.Reflection;
-using System.Runtime.Serialization;
 using System.Text;
-using System.Threading;
-using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.CodeGen;
-using Microsoft.CodeAnalysis.Emit;
 using Roslyn.Test.Utilities;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Test.Utilities
 {
@@ -46,8 +38,6 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
                 Assembly = assembly;
             }
         }
-
-        private static int s_dumpCount;
 
         private readonly AppDomainAssemblyCache _assemblyCache = AppDomainAssemblyCache.GetOrCreate();
         private readonly Dictionary<string, AssemblyData> _fullNameToAssemblyDataMap;
@@ -89,6 +79,11 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
                 _preloadedSet.Add(assemblyData.Id.SimpleName);
                 AddAssemblyData(assemblyData);
             }
+        }
+
+        public string DumpAssemblyData(out string dumpDirectory)
+        {
+            return RuntimeUtilities.DumpAssemblyData(ModuleDatas, out dumpDirectory);
         }
 
         public void Dispose()
@@ -431,87 +426,6 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             return result is int ? (int)result : 0;
         }
 
-        public string DumpAssemblyData(out string dumpDirectory)
-        {
-            return DumpAssemblyData(ModuleDatas, out dumpDirectory);
-        }
-
-        public static string DumpAssemblyData(IEnumerable<ModuleData> modules, out string dumpDirectory)
-        {
-            dumpDirectory = null;
-
-            StringBuilder sb = new StringBuilder();
-            foreach (var module in modules)
-            {
-                // Limit the number of dumps to 10.  After 10 we're likely in a bad state and are 
-                // dumping lots of unnecessary data.
-                if (s_dumpCount > 10)
-                {
-                    break;
-                }
-
-                if (module.InMemoryModule)
-                {
-                    Interlocked.Increment(ref s_dumpCount);
-
-                    if (dumpDirectory == null)
-                    {
-                        var assemblyLocation = typeof(IRuntimeEnvironment).Assembly.Location;
-                        dumpDirectory = Path.Combine(
-                            Path.GetDirectoryName(assemblyLocation),
-                            "Dumps");
-                        try
-                        {
-                            Directory.CreateDirectory(dumpDirectory);
-                        }
-                        catch
-                        {
-                            // Okay if directory already exists
-                        }
-                    }
-
-                    string fileName;
-                    if (module.Kind == OutputKind.NetModule)
-                    {
-                        fileName = module.FullName;
-                    }
-                    else
-                    {
-                        AssemblyIdentity identity;
-                        AssemblyIdentity.TryParseDisplayName(module.FullName, out identity);
-                        fileName = identity.Name;
-                    }
-
-                    string pePath = Path.Combine(dumpDirectory, fileName + module.Kind.GetDefaultExtension());
-                    string pdbPath = (module.Pdb != null) ? pdbPath = Path.Combine(dumpDirectory, fileName + ".pdb") : null;
-                    try
-                    {
-                        module.Image.WriteToFile(pePath);
-                        if (pdbPath != null)
-                        {
-                            module.Pdb.WriteToFile(pdbPath);
-                        }
-                    }
-                    catch (IOException)
-                    {
-                        pePath = "<unable to write file>";
-                        if (pdbPath != null)
-                        {
-                            pdbPath = "<unable to write file>";
-                        }
-                    }
-                    sb.Append("PE(" + module.Kind + "): ");
-                    sb.AppendLine(pePath);
-                    if (pdbPath != null)
-                    {
-                        sb.Append("PDB: ");
-                        sb.AppendLine(pdbPath);
-                    }
-                }
-            }
-            return sb.ToString();
-        }
-
         public string[] PeVerifyModules(string[] modulesToVerify, bool throwOnError = true)
         {
             // For Windows RT (ARM) THE CLRHelper.Peverify appears to not work and will exclude this 
@@ -553,7 +467,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             if (throwOnError && errors.Length > 0)
             {
                 string dumpDir;
-                DumpAssemblyData(ModuleDatas, out dumpDir);
+                RuntimeUtilities.DumpAssemblyData(ModuleDatas, out dumpDir);
                 throw new PeVerifyException(errors.ToString(), dumpDir);
             }
             return allOutput.ToArray();

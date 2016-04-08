@@ -12,10 +12,11 @@ using Microsoft.CodeAnalysis.CodeGen;
 using Microsoft.CodeAnalysis.Emit;
 using Roslyn.Test.Utilities;
 using Roslyn.Utilities;
+using static Roslyn.Test.Utilities.RuntimeUtilities; 
 
 namespace Microsoft.CodeAnalysis.Test.Utilities
 {
-    public sealed class HostedRuntimeEnvironment : IDisposable, IRuntimeEnvironment, IInternalRuntimeUtility
+    public sealed class HostedRuntimeEnvironment : IDisposable, IRuntimeEnvironment, IInternalRuntimeEnvironment
     {
         private sealed class RuntimeData : IDisposable
         {
@@ -194,7 +195,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
 
             var diagnostics = DiagnosticBag.GetInstance();
             var dependencies = new List<ModuleData>();
-            var mainOutput = RuntimeUtilities.EmitCompilation(mainCompilation, manifestResources, dependencies, diagnostics, _testData);
+            var mainOutput = EmitCompilation(mainCompilation, manifestResources, dependencies, diagnostics, _testData);
 
             _emitData = new EmitData();
             _emitData.Diagnostics = diagnostics.ToReadOnlyAndFree();
@@ -221,7 +222,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             else
             {
                 string dumpDir;
-                RuntimeAssemblyManager.DumpAssemblyData(dependencies, out dumpDir);
+                DumpAssemblyData(dependencies, out dumpDir);
 
                 // This method MUST throw if compilation did not succeed.  If compilation succeeded and there were errors, that is bad.
                 // Please see KevinH if you intend to change this behavior as many tests expect the Exception to indicate failure.
@@ -345,7 +346,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             _disposed = true;
         }
 
-        CompilationTestData IInternalRuntimeUtility.GetCompilationTestData()
+        CompilationTestData IInternalRuntimeEnvironment.GetCompilationTestData()
         {
             if (_testData.Module == null)
             {
