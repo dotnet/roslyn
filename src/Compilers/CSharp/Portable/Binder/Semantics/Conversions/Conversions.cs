@@ -716,7 +716,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             // check if underlying type is actually a possible underlying type for a tuple of given arity
-            if(!Compilation.IsTupleUnderlyingType(destination, arguments.Length))
+            if(!Compilation.IsWellKnownTupleType(destination, arguments.Length))
             {
                 return false;
             }

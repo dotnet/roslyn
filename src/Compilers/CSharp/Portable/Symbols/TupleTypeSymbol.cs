@@ -160,8 +160,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        // Gets flattened type arguments of the underlying type
-        // That should correspond to the types of the elements left-to-right
+        /// <summary>
+        /// Gets flattened type arguments of the underlying type
+        /// which correspond to the types of the tuple elements left-to-right
+        /// </summary>
         internal static void GetElementTypes(NamedTypeSymbol underlyingTupleType, ArrayBuilder<TypeSymbol> tupleElementTypes)
         {
             NamedTypeSymbol currentType = underlyingTupleType;
@@ -416,7 +418,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// </summary>
         internal static int IsMemberNameReserved(string name)
         {
-            // PROTOTYPE handle others like "ToString"?
+            // PROTOTYPE(tuples): handle others like "ToString"?
 
             if (String.Equals(name, "Rest", StringComparison.Ordinal))
             {
@@ -552,8 +554,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         public override ImmutableArray<Symbol> GetMembers(string name)
         {
-            //PROTOTYPE(tuples): PERF do we need to have a dictionary here?
-            //      tuples will be typically small 2 or 3 elements only
+            // PROTOTYPE(tuples): PERF do we need to have a dictionary here?
+            //                    tuples will be typically small 2 or 3 elements only
             return ImmutableArray<Symbol>.CastUp(_fields).WhereAsArray(field => field.Name == name);
         }
 
@@ -634,8 +636,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             if (ignoreDynamic)
             {
-                //PROTOTYPE(tuples): rename ignoreDynamic or introduce another "ignoreTuple" flag
-                // if ignoring dynamic, compare underlying tuple types
+                // PROTOTYPE(tuples): rename ignoreDynamic or introduce another "ignoreTuple" flag
+                //                    if ignoring dynamic, compare underlying tuple types
                 if (t2.IsTupleType)
                 {
                     t2 = (t2 as TupleTypeSymbol).UnderlyingTupleType;

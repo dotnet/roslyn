@@ -48,7 +48,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.SuggestionMode
                     return CreateBuilder(text, position, CSharpFeaturesResources.LambdaExpression, CSharpFeaturesResources.AutoselectDisabledDueToPotentialLambdaDeclaration);
                 }
                 // PROTOTYPE(tuples): tuples in this context are very much like a kind of anonymous type
-                //            I wonder if we need a special CSharpFeaturesResources or just generalize the existing one
+                //                    I wonder if we need a special CSharpFeaturesResources or just generalize the existing one
                 else if (IsAnonymousObjectCreation(token) || IsPossibleTupleExpression(token))
                 {
                     return CreateBuilder(text, position, CSharpFeaturesResources.MemberName, CSharpFeaturesResources.AutoselectDisabledDueToPossibleExplicitlyNamesAnonTypeMemCreation);

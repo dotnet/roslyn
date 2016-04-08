@@ -369,6 +369,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             get
             {
+                // PROTOTYPE(tuples): we have introduced a new kind of implicit conversion in the language
+                //                   make sure it is well documented and conceptually matches the spec
                 return Kind == ConversionKind.ImplicitTuple;
             }
         }

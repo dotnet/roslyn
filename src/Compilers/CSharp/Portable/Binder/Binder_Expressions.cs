@@ -730,7 +730,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             TypeSymbol expressionType = expression.Type;
 
-            // PROTOTYPE: we could, in theory, allow restricted field types here
+            // PROTOTYPE(tuples): we could, in theory, allow restricted field types here
             //            since they might be target-typed to something safe
             //            
 

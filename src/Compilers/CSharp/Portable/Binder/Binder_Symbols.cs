@@ -432,7 +432,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             ImmutableArray<TypeSymbol> typesArray = types.ToImmutableAndFree();
             if (typesArray.Length < 2)
             {
-                // PROTOTYPE(tuples)
+                // PROTOTYPE(tuples):
                 return new ExtendedErrorTypeSymbol(this.Compilation.Assembly.GlobalNamespace, LookupResultKind.NotCreatable, diagnostics.Add(ErrorCode.ERR_PrototypeNotYetImplemented, syntax.Location));
             }
 

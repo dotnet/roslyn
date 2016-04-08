@@ -1726,6 +1726,11 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (constructedTarget.IsTupleType)
             {
+                //PROTOTYPE(tuples): we are losing tuple names here
+                //                   need to figure what to do with names. 
+                //                   in particular what if we have conflicting inference 
+                //                   differing in names only.
+                //                   From compat/interop point of view that should be somehow allowed
                 constructedTarget = ((TupleTypeSymbol)constructedTarget).UnderlyingTupleType;
             }
 
@@ -1746,6 +1751,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             var constructedSource = source as NamedTypeSymbol;
             if (constructedSource?.IsTupleType == true)
             {
+                //PROTOTYPE(tuples): we are losing tuple names here
                 constructedSource = ((TupleTypeSymbol)constructedSource).UnderlyingTupleType;
             }
 
