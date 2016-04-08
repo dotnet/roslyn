@@ -148,17 +148,18 @@ namespace Microsoft.CodeAnalysis.CSharp
                     }
                     break;
 
+                case BoundKind.NaturalTupleExpression:
+                    kind = ClassifyImplicitTupleConversion(sourceExpression, destination, ref useSiteDiagnostics);
+                    if (kind != ConversionKind.NoConversion)
+                    {
+                        return new Conversion(kind);
+                    }
+                    break;
+
                 case BoundKind.UnboundLambda:
                     if (HasAnonymousFunctionConversion(sourceExpression, destination))
                     {
                         return Conversion.AnonymousFunction;
-                    }
-                    break;
-
-                case BoundKind.NaturalTupleExpression:
-                    if (HasImplicitTupleConversion(sourceExpression, destination, ref useSiteDiagnostics))
-                    {
-                        return Conversion.ImplicitTuple;
                     }
                     break;
 
@@ -287,11 +288,39 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return ConversionKind.ImplicitConstant;
             }
 
+            // strip nullable from the destination
+            //
+            // the following should work and it is an ImplicitNullable conversion
+            //    int? x = 1;
             if (destination.Kind == SymbolKind.NamedType)
             {
                 var nt = (NamedTypeSymbol)destination;
                 if (nt.OriginalDefinition.GetSpecialTypeSafe() == SpecialType.System_Nullable_T &&
                     HasImplicitConstantExpressionConversion(source, nt.TypeArgumentsNoUseSiteDiagnostics[0]))
+                {
+                    return ConversionKind.ImplicitNullable;
+                }
+            }
+
+            return ConversionKind.NoConversion;
+        }
+
+        private ConversionKind ClassifyImplicitTupleConversion(BoundExpression source, TypeSymbol destination, ref HashSet<DiagnosticInfo> useSiteDiagnostics)
+        {
+            if (HasImplicitTupleConversion(source, destination, ref useSiteDiagnostics))
+            {
+                return ConversionKind.ImplicitTuple;
+            }
+
+            // strip nullable from the destination
+            //
+            // the following should work and it is an ImplicitNullable conversion
+            //    (int, double)? x = (1,2);
+            if (destination.Kind == SymbolKind.NamedType)
+            {
+                var nt = (NamedTypeSymbol)destination;
+                if (nt.OriginalDefinition.GetSpecialTypeSafe() == SpecialType.System_Nullable_T &&
+                    HasImplicitTupleConversion(source, nt.TypeArgumentsNoUseSiteDiagnostics[0], ref useSiteDiagnostics))
                 {
                     return ConversionKind.ImplicitNullable;
                 }
@@ -399,8 +428,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 IsNumericType(source.Type.GetSpecialTypeSafe()) &&
                 IsConstantNumericZero(sourceConstantValue);
         }
-
-        protected abstract bool HasImplicitTupleConversion(BoundExpression source, TypeSymbol destination, ref HashSet<DiagnosticInfo> useSiteDiagnostics);
 
         private static LambdaConversionResult IsAnonymousFunctionCompatibleWithDelegate(UnboundLambda anonymousFunction, TypeSymbol type)
         {
@@ -677,14 +704,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 // source must be a natural tuple expression
                 return false;
-            }
-
-            // strip nullable from the destination
-            // the following should work
-            //    (int, double)? x = (1,2);
-            if (destination.IsNullableType())
-            {
-                destination = destination.GetNullableUnderlyingType();
             }
 
             var tupleExpression = (BoundNaturalTupleExpression)source;

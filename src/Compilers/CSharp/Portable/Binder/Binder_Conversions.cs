@@ -84,9 +84,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return CreateAnonymousFunctionConversion(syntax, source, conversion, isCast, destination, diagnostics);
             }
 
-            if (conversion.IsTuple)
+            if (conversion.IsTuple || 
+                (conversion.Kind == ConversionKind.ImplicitNullable && source.Kind == BoundKind.NaturalTupleExpression))
             {
-                return CreateTupleConversion(syntax, source, destination, diagnostics);
+                return CreateTupleConversion(syntax, source, conversion, destination, diagnostics);
             }
 
             if (conversion.IsUserDefined)
@@ -324,19 +325,21 @@ namespace Microsoft.CodeAnalysis.CSharp
             return new BoundConversion(syntax, group, conversion, @checked: false, explicitCastInCode: isCast, constantValueOpt: ConstantValue.NotAvailable, type: destination, hasErrors: hasErrors) { WasCompilerGenerated = source.WasCompilerGenerated };
         }
 
-        private BoundExpression CreateTupleConversion(CSharpSyntaxNode syntax, BoundExpression source, TypeSymbol destination, DiagnosticBag diagnostics)
+        private BoundExpression CreateTupleConversion(CSharpSyntaxNode syntax, BoundExpression source, Conversion conversion, TypeSymbol destination, DiagnosticBag diagnostics)
         {
             // We have a successful tuple conversion; rather than producing a node 
             // which is a conversion on top of a tuple literal, tuple conversion is an element-wise conversion of arguments.
 
-            bool hasErrors = false;
-            NamedTypeSymbol destinationWithoutNullable = null;
-
             var sourceTuple = (BoundNaturalTupleExpression)source;
             var targetType = (NamedTypeSymbol)destination;
 
-            // strip nullable
-            if (targetType.IsNullableType())
+            Debug.Assert(conversion.Kind ==  ConversionKind.ImplicitTuple || conversion.Kind == ConversionKind.ImplicitNullable);
+            Debug.Assert((conversion.Kind == ConversionKind.ImplicitNullable) == targetType.IsNullableType());
+
+            bool hasErrors = false;
+            NamedTypeSymbol destinationWithoutNullable = null;
+
+            if (conversion.Kind == ConversionKind.ImplicitNullable)
             {
                 destinationWithoutNullable = (NamedTypeSymbol)targetType.GetNullableUnderlyingType();
                 targetType = destinationWithoutNullable;
@@ -377,7 +380,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return new BoundConversion(
                     syntax,
                     tuple,
-                    Conversion.ImplicitNullable,
+                    conversion,
                     @checked: false,
                     explicitCastInCode: false,
                     constantValueOpt: ConstantValue.NotAvailable,
