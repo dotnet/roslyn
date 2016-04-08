@@ -25,9 +25,9 @@ using Roslyn.VisualStudio.Setup;
 
 [assembly: ProvideBindingRedirection(
     AssemblyName = "System.Reflection.Metadata",
-    OldVersionLowerBound = "1.0.0.0",
+    OldVersionLowerBound = "0.0.0.0",
     OldVersionUpperBound = "1.2.0.0",
-    NewVersion = "1.2.0.0",
+    NewVersion = "1.3.0.0",
     PublicKeyToken = "b03f5f7f11d50a3a",
     GenerateCodeBase = true)]
 
@@ -36,9 +36,9 @@ using Roslyn.VisualStudio.Setup;
 
 [assembly: ProvideBindingRedirection(
     AssemblyName = "Microsoft.DiaSymReader",
-    OldVersionLowerBound = "1.0.0.0",
+    OldVersionLowerBound = "0.0.0.0",
     OldVersionUpperBound = "1.0.7.0",
-    NewVersion = "1.0.7.0",
+    NewVersion = "1.0.8.0",
     PublicKeyToken = "31bf3856ad364e35",
     GenerateCodeBase = true)]
 
