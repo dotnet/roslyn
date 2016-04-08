@@ -54,6 +54,28 @@ namespace System.Runtime.CompilerServices { class TasklikeAttribute : Attribute 
         }
 
         [Fact]
+        public void AsyncTasklikeInadmissibleArity()
+        {
+            var source = @"
+using System.Runtime.CompilerServices;
+using System.Threading.Tasks;
+class C {
+    async Mismatch2<int,int> g() { await Task.Delay(0); return 1; }
+}
+[Tasklike(typeof(Mismatch2MethodBuilder<>))] struct Mismatch2<T,U> { }
+class Mismatch2MethodBuilder<T> {}
+namespace System.Runtime.CompilerServices { class TasklikeAttribute : Attribute { public TasklikeAttribute(Type builderType) { } } }
+";
+            var comp = CreateCompilationWithMscorlib45(source);
+            comp.VerifyEmitDiagnostics(
+                // (5,30): error CS1983: The return type of an async method must be void, Task or Task<T>
+                //     async Mismatch2<int,int> g() { await Task.Delay(0); return 1; }
+                Diagnostic(ErrorCode.ERR_BadAsyncReturn, "g").WithLocation(5, 30)
+                );
+        }
+
+
+        [Fact]
         public void AsyncLambdas()
         {
             var source = @"

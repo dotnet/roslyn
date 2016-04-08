@@ -125,8 +125,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 Debug.Assert(method.ReturnType.GetArity() <= 1, "By lowering-async-method time, arity of return type should be 0 or 1");
                 if ((customBuilderType_Open.Arity != method.ReturnType.GetArity()) || (customBuilderType_Open.Arity > 1))
                 {
-                    collection = new AsyncMethodBuilderMemberCollection();
-                    return false;
+                    CSDiagnostic error = new CSDiagnostic(new CSDiagnosticInfo(ErrorCode.ERR_UnexpectedGenericName), F.Syntax.Location, false);
+                    throw new SyntheticBoundNodeFactory.MissingPredefinedMember(error);
                 }
             }
 

@@ -3274,6 +3274,29 @@ namespace System.Runtime.CompilerServices { class TasklikeAttribute : Attribute 
 
 
         [Fact]
+        public void AsyncTasklikeBuilderArityMismatch()
+        {
+            var source = @"
+using System.Runtime.CompilerServices;
+using System.Threading.Tasks;
+class C {
+    async Mismatch1<int> f() { await Task.Delay(0); return 1; }
+}
+[Tasklike(typeof(Mismatch1MethodBuilder))] struct Mismatch1<T> { }
+class Mismatch1MethodBuilder {}
+namespace System.Runtime.CompilerServices { class TasklikeAttribute : Attribute { public TasklikeAttribute(Type builderType) { } } }
+";
+            var comp = CreateCompilationWithMscorlib45(source);
+            comp.VerifyEmitDiagnostics(
+                // (5,30): error CS7002: Unexpected use of a generic name
+                //     async Mismatch1<int> f() { await Task.Delay(0); return 1; }
+                Diagnostic(ErrorCode.ERR_UnexpectedGenericName, "{ await Task.Delay(0); return 1; }").WithLocation(5, 30)
+                );
+        }
+
+
+
+        [Fact]
         [WorkItem(868822, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/868822")]
         public void AsyncDelegates()
         {
