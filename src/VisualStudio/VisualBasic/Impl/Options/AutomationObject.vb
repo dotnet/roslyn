@@ -243,13 +243,13 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Options
             _workspace.Options = _workspace.Options.WithChangedOption(key, LanguageNames.VisualBasic, boolValue)
         End Sub
 
-        Private Function GetBooleanOption(key As [PerLanguageOption](Of SimpleCodeStyleOption)) As Boolean
-            Return _workspace.Options.GetOption(key, LanguageNames.VisualBasic).IsChecked
+        Private Function GetBooleanOption(key As [PerLanguageOption](Of CodeStyleOption(Of Boolean))) As Boolean
+            Return _workspace.Options.GetOption(key, LanguageNames.VisualBasic).Value
         End Function
 
-        Private Sub SetBooleanOption(key As [PerLanguageOption](Of SimpleCodeStyleOption), value As Boolean)
+        Private Sub SetBooleanOption(key As [PerLanguageOption](Of CodeStyleOption(Of Boolean)), value As Boolean)
             Dim opt = _workspace.Options.GetOption(key, LanguageNames.VisualBasic)
-            opt.IsChecked = value
+            opt.Value = value
             _workspace.Options = _workspace.Options.WithChangedOption(key, LanguageNames.VisualBasic, opt)
         End Sub
     End Class

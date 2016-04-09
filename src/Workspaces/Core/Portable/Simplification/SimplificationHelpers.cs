@@ -110,10 +110,10 @@ namespace Microsoft.CodeAnalysis.Simplification
         internal static bool ShouldSimplifyMemberAccessExpression(ISymbol symbol, string languageName, OptionSet optionSet)
         {
             if (!symbol.IsStatic && 
-                (symbol.IsKind(SymbolKind.Field) && optionSet.GetOption(CodeStyleOptions.QualifyFieldAccess, languageName).IsChecked ||
-                (symbol.IsKind(SymbolKind.Property) && optionSet.GetOption(CodeStyleOptions.QualifyPropertyAccess, languageName).IsChecked) ||
-                (symbol.IsKind(SymbolKind.Method) && optionSet.GetOption(CodeStyleOptions.QualifyMethodAccess, languageName).IsChecked) ||
-                (symbol.IsKind(SymbolKind.Event) && optionSet.GetOption(CodeStyleOptions.QualifyEventAccess, languageName).IsChecked)))
+                (symbol.IsKind(SymbolKind.Field) && optionSet.GetOption(CodeStyleOptions.QualifyFieldAccess, languageName).Value ||
+                (symbol.IsKind(SymbolKind.Property) && optionSet.GetOption(CodeStyleOptions.QualifyPropertyAccess, languageName).Value) ||
+                (symbol.IsKind(SymbolKind.Method) && optionSet.GetOption(CodeStyleOptions.QualifyMethodAccess, languageName).Value) ||
+                (symbol.IsKind(SymbolKind.Event) && optionSet.GetOption(CodeStyleOptions.QualifyEventAccess, languageName).Value)))
             {
                 return false;
             }

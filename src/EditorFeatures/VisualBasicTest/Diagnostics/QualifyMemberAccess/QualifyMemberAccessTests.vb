@@ -15,11 +15,11 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Diagnostics.Qualif
             Return Tuple.Create(Of DiagnosticAnalyzer, CodeFixProvider)(New VisualBasicQualifyMemberAccessDiagnosticAnalyzer(), New VisualBasicQualifyMemberAccessCodeFixProvider())
         End Function
 
-        Private Function TestAsyncWithOption(code As String, expected As String, opt As PerLanguageOption(Of SimpleCodeStyleOption)) As Task
+        Private Function TestAsyncWithOption(code As String, expected As String, opt As PerLanguageOption(Of CodeStyleOption(Of Boolean))) As Task
             Return TestAsync(code, expected, options:=[Option](opt, True, NotificationOption.Error))
         End Function
 
-        Private Function TestMissingAsyncWithOption(code As String, opt As PerLanguageOption(Of SimpleCodeStyleOption)) As Task
+        Private Function TestMissingAsyncWithOption(code As String, opt As PerLanguageOption(Of CodeStyleOption(Of Boolean))) As Task
             Return TestMissingAsync(code, options:=[Option](opt, True, NotificationOption.Error))
         End Function
 

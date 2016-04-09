@@ -22,7 +22,9 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options.Formatting
     {
         internal override bool ShouldPersistOption(OptionKey key)
         {
-            return key.Option.Feature == CSharpCodeStyleOptions.FeatureName || key.Option.Feature == SimplificationOptions.PerLanguageFeatureName;
+            return key.Option.Feature == CSharpCodeStyleOptions.FeatureName ||
+                key.Option.Feature == CodeStyleOptions.PerLanguageCodeStyleOption ||
+                key.Option.Feature == SimplificationOptions.PerLanguageFeatureName;
         }
 
         #region "Preview Text"

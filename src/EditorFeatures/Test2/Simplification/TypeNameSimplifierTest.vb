@@ -2437,7 +2437,7 @@ class C
 }
 ]]>
                 </text>
-            Dim simplificationOptionSet = New Dictionary(Of OptionKey, Object) From {{New OptionKey(CodeStyleOptions.QualifyFieldAccess, LanguageNames.CSharp), New SimpleCodeStyleOption(True, NotificationOption.Error)}}
+            Dim simplificationOptionSet = New Dictionary(Of OptionKey, Object) From {{New OptionKey(CodeStyleOptions.QualifyFieldAccess, LanguageNames.CSharp), New CodeStyleOption(Of Boolean)(True, NotificationOption.Error)}}
             Await TestAsync(input, expected, simplificationOptionSet)
         End Function
 
@@ -5555,19 +5555,19 @@ End Class
 #Region "Helpers"
 
         Protected Function QualifyFieldAccessOption(languageName As String) As Dictionary(Of OptionKey, Object)
-            Return New Dictionary(Of OptionKey, Object) From {{New OptionKey(CodeStyleOptions.QualifyFieldAccess, languageName), New SimpleCodeStyleOption(True, NotificationOption.Error)}}
+            Return New Dictionary(Of OptionKey, Object) From {{New OptionKey(CodeStyleOptions.QualifyFieldAccess, languageName), New CodeStyleOption(Of Boolean)(True, NotificationOption.Error)}}
         End Function
 
         Protected Function QualifyPropertyAccessOption(languageName As String) As Dictionary(Of OptionKey, Object)
-            Return New Dictionary(Of OptionKey, Object) From {{New OptionKey(CodeStyleOptions.QualifyPropertyAccess, languageName), New SimpleCodeStyleOption(True, NotificationOption.Error)}}
+            Return New Dictionary(Of OptionKey, Object) From {{New OptionKey(CodeStyleOptions.QualifyPropertyAccess, languageName), New CodeStyleOption(Of Boolean)(True, NotificationOption.Error)}}
         End Function
 
         Protected Function QualifyMethodAccessOption(languageName As String) As Dictionary(Of OptionKey, Object)
-            Return New Dictionary(Of OptionKey, Object) From {{New OptionKey(CodeStyleOptions.QualifyMethodAccess, languageName), New SimpleCodeStyleOption(True, NotificationOption.Error)}}
+            Return New Dictionary(Of OptionKey, Object) From {{New OptionKey(CodeStyleOptions.QualifyMethodAccess, languageName), New CodeStyleOption(Of Boolean)(True, NotificationOption.Error)}}
         End Function
 
         Protected Function QualifyEventAccessOption(languageName As String) As Dictionary(Of OptionKey, Object)
-            Return New Dictionary(Of OptionKey, Object) From {{New OptionKey(CodeStyleOptions.QualifyEventAccess, languageName), New SimpleCodeStyleOption(True, NotificationOption.Error)}}
+            Return New Dictionary(Of OptionKey, Object) From {{New OptionKey(CodeStyleOptions.QualifyEventAccess, languageName), New CodeStyleOption(Of Boolean)(True, NotificationOption.Error)}}
         End Function
 
         Shared DontPreferIntrinsicPredefinedTypeKeywordInDeclaration As Dictionary(Of OptionKey, Object) = New Dictionary(Of OptionKey, Object) From {{New OptionKey(SimplificationOptions.PreferIntrinsicPredefinedTypeKeywordInDeclaration, LanguageNames.VisualBasic), False}}

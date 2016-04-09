@@ -962,6 +962,6 @@ class C
             }
         }
 
-        private IDictionary<OptionKey, object> QualifyMethodAccess => new Dictionary<OptionKey, object>() { { new OptionKey(CodeStyleOptions.QualifyMethodAccess, LanguageNames.CSharp), new SimpleCodeStyleOption(true, NotificationOption.Error) } };
+        private IDictionary<OptionKey, object> QualifyMethodAccess => new Dictionary<OptionKey, object>() { { new OptionKey(CodeStyleOptions.QualifyMethodAccess, LanguageNames.CSharp), new CodeStyleOption<bool>(true, NotificationOption.Error) } };
     }
 }

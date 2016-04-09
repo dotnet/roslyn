@@ -20,12 +20,12 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.QualifyMemb
             return Tuple.Create<DiagnosticAnalyzer, CodeFixProvider>(new CSharpQualifyMemberAccessDiagnosticAnalyzer(), new CSharpQualifyMemberAccessCodeFixProvider());
         }
 
-        private Task TestAsyncWithOption(string code, string expected, PerLanguageOption<SimpleCodeStyleOption> option)
+        private Task TestAsyncWithOption(string code, string expected, PerLanguageOption<CodeStyleOption<bool>> option)
         {
             return TestAsync(code, expected, options: Option(option, true, NotificationOption.Error));
         }
 
-        private Task TestMissingAsyncWithOption(string code, PerLanguageOption<SimpleCodeStyleOption> option)
+        private Task TestMissingAsyncWithOption(string code, PerLanguageOption<CodeStyleOption<bool>> option)
         {
             return TestMissingAsync(code, options: Option(option, true, NotificationOption.Error));
         }
