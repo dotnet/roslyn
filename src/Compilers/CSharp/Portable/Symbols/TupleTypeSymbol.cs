@@ -1,6 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using Microsoft.Cci;
+using Microsoft.CodeAnalysis.RuntimeMembers;
 using Roslyn.Utilities;
 using System;
 using System.Collections.Generic;
@@ -22,23 +23,71 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         internal const int RestPosition = 8; // The Rest field is in 8th position
 
         /// <summary>
-        /// Create a new TupleTypeSymbol from its declaration in source.
-        /// Parameter elementsNames may be uninitialized, or has to be fully populated.
+        /// Construct a TupleTypeSymbol from it's underlying ValueTuple type and element names.
+        ///
+        /// Parameter elementsNames has to empty or fully populated.
         /// </summary>
-        internal TupleTypeSymbol(
+        private TupleTypeSymbol(
+            NamedTypeSymbol underlyingType,
+            ImmutableArray<string> elementNames,
+            AssemblySymbol accessWithin)
+        {
+            _underlyingType = underlyingType;
+
+            // build the fields
+            int approxSize = elementNames.IsDefault ? underlyingType.Arity : elementNames.Length;
+            var fieldsBuilder = ArrayBuilder<TupleFieldSymbol>.GetInstance(approxSize);
+            NamedTypeSymbol currentLinkType = underlyingType;
+            int fieldIndex = 0;
+
+            while (currentLinkType.Arity == RestPosition)
+            {
+                for (int i = 0; i < RestPosition - 1; i++)
+                {
+                    string elementName = TupleMemberName(elementNames, fieldIndex + 1);
+                    var field = TupleFieldSymbol.Create(elementName, this, currentLinkType, fieldIndex, accessWithin);
+                    fieldsBuilder.Add(field);
+
+                    fieldIndex++;
+                }
+
+                currentLinkType = (NamedTypeSymbol)currentLinkType.TypeArgumentsNoUseSiteDiagnostics[RestPosition - 1];
+            }
+
+            for (int i = 0; i < currentLinkType.Arity; i++)
+            {
+                string elementName = TupleMemberName(elementNames, fieldIndex + 1);
+                var field = TupleFieldSymbol.Create(elementName, this, currentLinkType, fieldIndex, accessWithin);
+                fieldsBuilder.Add(field);
+
+                fieldIndex++;
+            }
+
+            _fields = fieldsBuilder.ToImmutableAndFree();
+        }
+
+        /// <summary>
+        /// Helps create a TupleTypeSymbol from source.
+        /// </summary>
+        internal static TupleTypeSymbol Create(
             ImmutableArray<TypeSymbol> elementTypes,
             ImmutableArray<string> elementNames,
             CSharpSyntaxNode syntax,
             Binder binder,
-            DiagnosticBag diagnostics)
+            DiagnosticBag diagnostics
+            )
         {
-            this._underlyingType = GetTupleUnderlyingTypeAndFields(
-                elementTypes,
-                elementNames,
-                syntax,
-                binder,
-                diagnostics,
-                out this._fields);
+            Debug.Assert(elementNames.IsDefault || elementTypes.Length == elementNames.Length);
+
+            int numElements = elementTypes.Length;
+
+            if (numElements <= 1)
+            {
+                throw ExceptionUtilities.Unreachable;
+            }
+            NamedTypeSymbol underlyingType = GetTupleUnderlyingType(elementTypes, syntax, binder, diagnostics);
+
+            return new TupleTypeSymbol(underlyingType, elementNames, binder.Compilation.Assembly);
         }
 
         /// <summary>
@@ -55,7 +104,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             int remainder = 0;
             NamedTypeSymbol currentLinkType = newUnderlyingType;
 
-            while(true)
+            while (true)
             {
                 TupleFieldSymbol originalField = originalTuple._fields[fieldIndex];
                 TypeSymbol fieldType = currentLinkType.TypeArgumentsNoUseSiteDiagnostics[remainder];
@@ -109,43 +158,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     break;
                 }
             }
-        }
-
-        private NamedTypeSymbol GetTupleUnderlyingTypeAndFields(
-            ImmutableArray<TypeSymbol> elementTypes,
-            ImmutableArray<string> elementNames,
-            CSharpSyntaxNode syntax,
-            Binder binder,
-            DiagnosticBag diagnostics,
-            out ImmutableArray<TupleFieldSymbol> fields
-            )
-        {
-            Debug.Assert(elementNames.IsDefault || elementTypes.Length == elementNames.Length);
-
-            int numElements = elementTypes.Length;
-
-            if (numElements <= 1)
-            {
-                throw ExceptionUtilities.Unreachable;
-            }
-            NamedTypeSymbol underlyingType = GetTupleUnderlyingType(elementTypes, syntax, binder, diagnostics);
-
-            // build the fields
-            var fieldsBuilder = ArrayBuilder<TupleFieldSymbol>.GetInstance(numElements);
-            for (int elementIndex = 0; elementIndex < numElements; elementIndex++)
-            {
-                FieldSymbol underlyingField = TupleFieldSymbol.GetUnderlyingField(numElements, underlyingType, elementIndex, syntax, binder, diagnostics);
-
-                var field = new TupleFieldSymbol(elementNames.IsDefault ? TupleMemberName(elementIndex + 1) : elementNames[elementIndex],
-                                           this,
-                                           elementTypes[elementIndex],
-                                           elementIndex + 1,
-                                           underlyingField);
-                fieldsBuilder.Add(field);
-            }
-            fields = fieldsBuilder.ToImmutableAndFree();
-
-            return underlyingType;
         }
 
         /// <summary>
@@ -330,6 +342,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return "Item" + position;
         }
 
+        internal static string TupleMemberName(ImmutableArray<string> elementNames, int position)
+        {
+            return elementNames.IsDefault ? TupleMemberName(position) : elementNames[position - 1];
+        }
+
         /// <summary>
         /// Checks whether the field name is reserved and tells us which position it's reserved for.
         ///
@@ -360,6 +377,48 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
 
             return -1;
+        }
+
+        /// <summary>
+        /// Lookup well-known member declaration in provided type.
+        ///
+        /// If a well-known member of a generic type instantiation is needed use this method to get the corresponding generic definition and
+        /// <see cref="MethodSymbol.AsMember"/> to construct an instantiation.
+        /// </summary>
+        /// <param name="type">Type that we'll try to find member in.</param>
+        /// <param name="relativeMember">A reference to a well-known member type descriptor. Note however that the type in that descriptor is ignored here.</param>
+        /// <param name="accessWithin">The assembly referencing the type.</param>
+        internal static Symbol GetWellKnownMemberInType(NamedTypeSymbol type, WellKnownMember relativeMember, AssemblySymbol accessWithin)
+        {
+            Debug.Assert(relativeMember >= 0 && relativeMember < WellKnownMember.Count);
+            Debug.Assert(type.IsDefinition);
+
+            MemberDescriptor relativeDescriptor = WellKnownMembers.GetDescriptor(relativeMember);
+            return CSharpCompilation.GetRuntimeMember(type, ref relativeDescriptor, CSharpCompilation.SpecialMembersSignatureComparer.Instance, accessWithinOpt: accessWithin);
+        }
+
+        /// <summary>
+        /// Lookup well-known member declaration in provided type and reports diagnostics.
+        /// </summary>
+        internal static Symbol GetWellKnownMemberInType(NamedTypeSymbol type, WellKnownMember relativeMember, AssemblySymbol accessWithin, DiagnosticBag diagnostics, SyntaxNode syntax)
+        {
+            Symbol member = GetWellKnownMemberInType(type, relativeMember, accessWithin);
+
+            if ((object)member == null)
+            {
+                MemberDescriptor relativeDescriptor = WellKnownMembers.GetDescriptor(relativeMember);
+                Binder.Error(diagnostics, ErrorCode.ERR_PredefinedTypeMemberNotFoundInAssembly, syntax, relativeDescriptor.Name, type, accessWithin);
+            }
+            else
+            {
+                DiagnosticInfo useSiteDiag = member.GetUseSiteDiagnostic();
+                if ((object)useSiteDiag != null && useSiteDiag.Severity == DiagnosticSeverity.Error)
+                {
+                    diagnostics.Add(useSiteDiag, syntax.GetLocation());
+                }
+            }
+
+            return member;
         }
 
         /// <summary>

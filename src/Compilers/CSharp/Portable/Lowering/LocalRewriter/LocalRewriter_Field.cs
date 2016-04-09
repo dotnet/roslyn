@@ -41,7 +41,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (loop > 1)
             {
                 WellKnownMember wellKnownTupleRest = TupleTypeSymbol.GetTupleTypeMember(TupleTypeSymbol.RestPosition, TupleTypeSymbol.RestPosition);
-                var tupleRestField = (FieldSymbol)Binder.GetWellKnownTypeMember(_compilation, wellKnownTupleRest, _diagnostics, syntax: node.Syntax);
+                var tupleRestField = (FieldSymbol)TupleTypeSymbol.GetWellKnownMemberInType(currentLinkType.OriginalDefinition, wellKnownTupleRest, _compilation.Assembly, _diagnostics, node.Syntax);
+
                 if ((object)tupleRestField == null)
                 {
                     return node;
@@ -61,7 +62,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             // make a field access for the most local access
             WellKnownMember wellKnownTypeMember = TupleTypeSymbol.GetTupleTypeMember(currentLinkType.Arity, fieldRemainder);
-            var linkField = (FieldSymbol)Binder.GetWellKnownTypeMember(_compilation, wellKnownTypeMember, _diagnostics, syntax: node.Syntax);
+            var linkField = (FieldSymbol)TupleTypeSymbol.GetWellKnownMemberInType(currentLinkType.OriginalDefinition, wellKnownTypeMember, _compilation.Assembly, _diagnostics, node.Syntax);
+
             if ((object)linkField == null)
             {
                 return node;
