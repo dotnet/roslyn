@@ -1,9 +1,9 @@
 // Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 using System;
-using System.Text;
 using System.Collections;
 using System.Collections.Generic;
 using System.Diagnostics.Contracts;
+using System.Text;
 
 namespace System
 {
@@ -24,8 +24,89 @@ namespace System
         object this[int i] { get; }
     }
 
-    public static class ValueTuple
+    public struct ValueTuple : IEquatable<ValueTuple>, IStructuralEquatable, IStructuralComparable, IComparable, ITupleInternal, ITuple
     {
+        public override Boolean Equals(Object obj)
+        {
+            return ((IStructuralEquatable)this).Equals(obj, EqualityComparer<Object>.Default);
+        }
+
+        public Boolean Equals(ValueTuple other)
+        {
+            return true;
+        }
+
+        Boolean IStructuralEquatable.Equals(Object other, IEqualityComparer comparer)
+        {
+            if (other == null || !(other is ValueTuple)) return false;
+
+            return true;
+        }
+
+        Int32 IComparable.CompareTo(Object obj)
+        {
+            return ((IStructuralComparable)this).CompareTo(obj, Comparer<Object>.Default);
+        }
+
+        Int32 IStructuralComparable.CompareTo(Object other, IComparer comparer)
+        {
+            if (other == null) return 1;
+
+            if (!(other is ValueTuple))
+            {
+                throw new ArgumentException();
+            }
+
+            return 0;
+        }
+
+        public override int GetHashCode()
+        {
+            return ((IStructuralEquatable)this).GetHashCode(EqualityComparer<Object>.Default);
+        }
+
+        Int32 IStructuralEquatable.GetHashCode(IEqualityComparer comparer)
+        {
+            return comparer.GetHashCode();
+        }
+
+        Int32 ITupleInternal.GetHashCode(IEqualityComparer comparer)
+        {
+            return ((IStructuralEquatable)this).GetHashCode(comparer);
+        }
+
+        public override string ToString()
+        {
+            StringBuilder sb = new StringBuilder();
+            sb.Append("(");
+            return ((ITupleInternal)this).ToString(sb);
+        }
+
+        string ITupleInternal.ToString(StringBuilder sb)
+        {
+            sb.Append(")");
+            return sb.ToString();
+        }
+
+        int ITuple.Size
+        {
+            get
+            {
+                return 0;
+            }
+        }
+
+        object ITuple.this[int i]
+        {
+            get
+            {
+                throw new IndexOutOfRangeException();
+            }
+        }
+
+        public static ValueTuple Create() =>
+            new ValueTuple();
+
         public static ValueTuple<T1> Create<T1>(T1 item1) =>
             new ValueTuple<T1>(item1);
 
@@ -125,7 +206,7 @@ namespace System
         {
             if (other == null) return 1;
 
-            if(!(other is ValueTuple<T1>))
+            if (!(other is ValueTuple<T1>))
             {
                 throw new ArgumentException();
             }
