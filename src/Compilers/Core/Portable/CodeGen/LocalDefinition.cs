@@ -2,6 +2,7 @@
 
 using System.Collections.Immutable;
 using System.Diagnostics;
+using System.Reflection.Metadata;
 using Microsoft.CodeAnalysis.Symbols;
 using Roslyn.Utilities;
 
@@ -38,7 +39,7 @@ namespace Microsoft.CodeAnalysis.CodeGen
         private readonly LocalSlotDebugInfo _slotInfo;
 
         /// <see cref="Cci.ILocalDefinition.PdbAttributes"/>.
-        private readonly uint _pdbAttributes;
+        private readonly LocalVariableAttributes _pdbAttributes;
 
         //Gives the synthesized dynamic attributes of the local definition
         private readonly ImmutableArray<TypedConstant> _dynamicTransformFlags;
@@ -63,7 +64,7 @@ namespace Microsoft.CodeAnalysis.CodeGen
             int slot,
             SynthesizedLocalKind synthesizedKind,
             LocalDebugId id,
-            uint pdbAttributes,
+            LocalVariableAttributes pdbAttributes,
             LocalSlotConstraints constraints,
             bool isDynamic,
             ImmutableArray<TypedConstant> dynamicTransformFlags)
@@ -128,7 +129,7 @@ namespace Microsoft.CodeAnalysis.CodeGen
 
         public bool IsDynamic => _isDynamic;
 
-        public uint PdbAttributes => _pdbAttributes;
+        public LocalVariableAttributes PdbAttributes => _pdbAttributes;
 
         public ImmutableArray<TypedConstant> DynamicTransformFlags => _dynamicTransformFlags;
 

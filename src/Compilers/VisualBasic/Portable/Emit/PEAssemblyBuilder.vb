@@ -90,15 +90,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
             Return False
         End Function
 
-        Private ReadOnly Property IAssemblyFlags As UInteger Implements Cci.IAssembly.Flags
+        Private ReadOnly Property IAssemblyFlags As AssemblyFlags Implements Cci.IAssembly.Flags
             Get
-                Dim result As System.Reflection.AssemblyNameFlags = m_SourceAssembly.Flags And Not System.Reflection.AssemblyNameFlags.PublicKey
+                Dim result As AssemblyFlags = m_SourceAssembly.Flags And Not AssemblyFlags.PublicKey
 
                 If Not m_SourceAssembly.PublicKey.IsDefaultOrEmpty Then
-                    result = result Or System.Reflection.AssemblyNameFlags.PublicKey
+                    result = result Or AssemblyFlags.PublicKey
                 End If
 
-                Return CUInt(result)
+                Return result
             End Get
         End Property
 

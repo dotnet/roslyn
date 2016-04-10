@@ -258,7 +258,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
                     nativePdbWriterOpt: null,
                     pdbPathOpt: null,
                     allowMissingMethodBodies: false,
-                    deterministic: false,
+                    isDeterministic: false,
                     cancellationToken: default(CancellationToken));
 
                 if (diagnostics.HasAnyErrors())
@@ -347,7 +347,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
                     nativePdbWriterOpt: null,
                     pdbPathOpt: null,
                     allowMissingMethodBodies: false,
-                    deterministic: false,
+                    isDeterministic: false,
                     cancellationToken: default(CancellationToken));
 
                 if (diagnostics.HasAnyErrors())
@@ -390,7 +390,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
                         nativePdbWriterOpt: null,
                         pdbPathOpt: null,
                         allowMissingMethodBodies: false,
-                        deterministic: false,
+                        isDeterministic: false,
                         cancellationToken: default(CancellationToken));
 
                     if (!diagnostics.HasAnyErrors())
