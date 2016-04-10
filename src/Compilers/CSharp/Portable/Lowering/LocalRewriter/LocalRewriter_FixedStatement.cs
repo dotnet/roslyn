@@ -246,7 +246,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 factory.Local(stringTemp),
                 fixedInitializer.ElementPointerTypeConversion);
 
-            BoundStatement localInit = AddLocalDeclarationSequencePointIfNecessary(localDecl, localSymbol,
+            BoundStatement localInit = InstrumentLocalDeclarationIfNecessary(localDecl, localSymbol,
                 factory.Assignment(factory.Local(localSymbol), convertedStringTemp));
 
             BoundExpression notNullCheck = MakeNullCheck(factory.Syntax, factory.Local(localSymbol), BinaryOperatorKind.NotEqual);
@@ -349,7 +349,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             BoundStatement localInit = factory.ExpressionStatement(
                 new BoundConditionalOperator(factory.Syntax, condition, consequenceAssignment, alternativeAssignment, ConstantValue.NotAvailable, localType));
 
-            return AddLocalDeclarationSequencePointIfNecessary(localDecl, localSymbol, localInit);
+            return InstrumentLocalDeclarationIfNecessary(localDecl, localSymbol, localInit);
         }
     }
 }

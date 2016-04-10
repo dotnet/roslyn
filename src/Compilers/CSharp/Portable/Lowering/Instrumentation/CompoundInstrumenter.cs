@@ -5,6 +5,14 @@ using System.Diagnostics;
 
 namespace Microsoft.CodeAnalysis.CSharp
 {
+    /// <summary>
+    /// Utility class, provides a convenient way of combining various <see cref="Instrumenter"/>s in a chain,
+    /// allowing each of them to apply specific instrumentations in particular order.
+    /// 
+    /// Default implementation of all APIs delegates to the "previous" <see cref="Instrumenter"/> passed as a parameter
+    /// to the constructor of this class. Usually, derived types are going to let the base (this class) to do its work first
+    /// and then operate on the result they get back.
+    /// </summary>
     internal class CompoundInstrumenter : Instrumenter
     {
         public CompoundInstrumenter(Instrumenter previous)
@@ -48,6 +56,11 @@ namespace Microsoft.CodeAnalysis.CSharp
         public override BoundStatement InstrumentExpressionStatement(BoundExpressionStatement original, BoundStatement rewritten)
         {
             return Previous.InstrumentExpressionStatement(original, rewritten);
+        }
+
+        public override BoundStatement InstrumentFieldOrPropertyInitializer(BoundExpressionStatement original, BoundStatement rewritten)
+        {
+            return Previous.InstrumentFieldOrPropertyInitializer(original, rewritten);
         }
 
         public override BoundStatement InstrumentBreakStatement(BoundBreakStatement original, BoundStatement rewritten)
@@ -173,6 +186,16 @@ namespace Microsoft.CodeAnalysis.CSharp
         public override BoundStatement InstrumentForEachStatementGotoContinue(BoundForEachStatement original, BoundStatement gotoContinue)
         {
             return Previous.InstrumentForEachStatementGotoContinue(original, gotoContinue);
+        }
+
+        public override BoundExpression InstrumentCatchClauseFilter(BoundCatchBlock original, BoundExpression rewrittenFilter, SyntheticBoundNodeFactory factory)
+        {
+            return Previous.InstrumentCatchClauseFilter(original, rewrittenFilter, factory);
+        }
+
+        public override BoundExpression InstrumentSwitchStatementExpression(BoundSwitchStatement original, BoundExpression rewrittenExpression, SyntheticBoundNodeFactory factory)
+        {
+            return Previous.InstrumentSwitchStatementExpression(original, rewrittenExpression, factory);
         }
     }
 }

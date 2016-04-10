@@ -66,10 +66,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                     localSymbol.RefKind),
                 hasErrors);
 
-            return AddLocalDeclarationSequencePointIfNecessary(originalOpt, localSymbol, rewrittenLocalDeclaration);
+            return InstrumentLocalDeclarationIfNecessary(originalOpt, localSymbol, rewrittenLocalDeclaration);
         }
 
-        private BoundStatement AddLocalDeclarationSequencePointIfNecessary(BoundLocalDeclaration originalOpt, LocalSymbol localSymbol, BoundStatement rewrittenLocalDeclaration)
+        private BoundStatement InstrumentLocalDeclarationIfNecessary(BoundLocalDeclaration originalOpt, LocalSymbol localSymbol, BoundStatement rewrittenLocalDeclaration)
         {
             // Add sequence points, if necessary.
             if (this.Instrument && originalOpt?.WasCompilerGenerated == false && !localSymbol.IsConst && 

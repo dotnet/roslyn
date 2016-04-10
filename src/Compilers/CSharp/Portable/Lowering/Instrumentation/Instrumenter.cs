@@ -6,8 +6,22 @@ using System;
 
 namespace Microsoft.CodeAnalysis.CSharp
 {
+    /// <summary>
+    /// A base class for components that instrument various portions of executable code.
+    /// It provides a set of APIs that are called by <see cref="LocalRewriter"/> to instrument
+    /// specific portions of the code. These APIs have at least two parameters:
+    ///     - original bound node produced by the <see cref="Binder"/> for the relevant portion of the code;
+    ///     - rewritten bound node created by the <see cref="LocalRewriter"/> for the original node.
+    /// The APIs are expected to return new state of the rewritten node, after they apply appropriate
+    /// modifications, if any.
+    /// 
+    /// The base class provides default implementation for all APIs, which simply returns the rewritten node. 
+    /// </summary>
     internal class Instrumenter
     {
+        /// <summary>
+        /// The singleton NoOp instrumenter, can be used to terminate the chain of <see cref="CompoundInstrumenter"/>s.
+        /// </summary>
         public static readonly Instrumenter NoOp = new Instrumenter();
 
         public Instrumenter()
@@ -28,7 +42,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public virtual BoundStatement InstrumentYieldBreakStatement(BoundYieldBreakStatement original, BoundStatement rewritten)
         {
-            return InstrumentStatement(original, rewritten);
+            Debug.Assert(!original.WasCompilerGenerated || original.Syntax.Kind() == SyntaxKind.Block);
+            return rewritten;
         }
 
         public virtual BoundStatement InstrumentYieldReturnStatement(BoundYieldReturnStatement original, BoundStatement rewritten)
@@ -73,6 +88,12 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public virtual BoundStatement InstrumentExpressionStatement(BoundExpressionStatement original, BoundStatement rewritten)
         {
+            return InstrumentStatement(original, rewritten);
+        }
+
+        public virtual BoundStatement InstrumentFieldOrPropertyInitializer(BoundExpressionStatement original, BoundStatement rewritten)
+        {
+            Debug.Assert(LocalRewriter.IsFieldOrPropertyInitializer(original));
             return InstrumentStatement(original, rewritten);
         }
 
@@ -232,6 +253,23 @@ namespace Microsoft.CodeAnalysis.CSharp
             Debug.Assert(!original.WasCompilerGenerated);
             Debug.Assert(original.Syntax.Kind() == SyntaxKind.ForEachStatement);
             return gotoContinue;
+        }
+
+        public virtual BoundExpression InstrumentCatchClauseFilter(BoundCatchBlock original, BoundExpression rewrittenFilter, SyntheticBoundNodeFactory factory)
+        {
+            Debug.Assert(!original.WasCompilerGenerated);
+            Debug.Assert(original.Syntax.Kind() == SyntaxKind.CatchClause);
+            Debug.Assert(((CatchClauseSyntax)original.Syntax).Filter != null);
+            Debug.Assert(factory != null);
+            return rewrittenFilter;
+        }
+
+        public virtual BoundExpression InstrumentSwitchStatementExpression(BoundSwitchStatement original, BoundExpression rewrittenExpression, SyntheticBoundNodeFactory factory)
+        {
+            Debug.Assert(!original.WasCompilerGenerated);
+            Debug.Assert(original.Syntax.Kind() == SyntaxKind.SwitchStatement);
+            Debug.Assert(factory != null);
+            return rewrittenExpression;
         }
     }
 }

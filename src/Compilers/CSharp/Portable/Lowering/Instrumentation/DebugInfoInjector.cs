@@ -2,22 +2,26 @@
 
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Text;
+using Roslyn.Utilities;
 using System.Collections.Immutable;
 
 namespace Microsoft.CodeAnalysis.CSharp
 {
-    internal class DebugInfoInjector : CompoundInstrumenter
+    /// <summary>
+    /// This type is responsible for adding debugging sequence points for the executable code.
+    /// It can be combined with other <see cref="Instrumenter"/>s. Usually, this class should be 
+    /// the root of the chain in order to ensure sound debugging experience for the instrumented code.
+    /// </summary>
+    internal partial class DebugInfoInjector : CompoundInstrumenter
     {
+        /// <summary>
+        /// A singleton object that performs only one type of instrumentation - addition of debugging sequence points. 
+        /// </summary>
         public static readonly DebugInfoInjector Singleton = new DebugInfoInjector(Instrumenter.NoOp);
 
         public DebugInfoInjector(Instrumenter previous)
             : base (previous)
         {
-        }
-
-        private BoundStatement AddSequencePoint(BoundStatement node)
-        {
-            return new BoundSequencePoint(node.Syntax, node);
         }
 
         public override BoundStatement InstrumentNoOpStatement(BoundNoOpStatement original, BoundStatement rewritten)
@@ -37,7 +41,44 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public override BoundStatement InstrumentExpressionStatement(BoundExpressionStatement original, BoundStatement rewritten)
         {
-            return AddSequencePoint(base.InstrumentExpressionStatement(original, rewritten));
+            rewritten = base.InstrumentExpressionStatement(original, rewritten);
+
+            if (original.IsConstructorInitializer())
+            {
+                switch (original.Syntax.Kind())
+                {
+                    case SyntaxKind.ConstructorDeclaration:
+                        // This is an implicit constructor initializer.
+                        var decl = (ConstructorDeclarationSyntax)original.Syntax;
+                        return new BoundSequencePointWithSpan(decl, rewritten, CreateSpanForConstructorInitializer(decl));
+                    case SyntaxKind.BaseConstructorInitializer:
+                    case SyntaxKind.ThisConstructorInitializer:
+                        var init = (ConstructorInitializerSyntax)original.Syntax;
+                        return new BoundSequencePointWithSpan(init, rewritten, CreateSpanForConstructorInitializer((ConstructorDeclarationSyntax)init.Parent));
+                }
+            }
+
+            return AddSequencePoint(rewritten);
+        }
+
+        public override BoundStatement InstrumentFieldOrPropertyInitializer(BoundExpressionStatement original, BoundStatement rewritten)
+        {
+            rewritten = base.InstrumentExpressionStatement(original, rewritten);
+            CSharpSyntaxNode syntax = original.Syntax;
+
+            switch (syntax.Parent.Parent.Kind())
+            {
+                case SyntaxKind.VariableDeclarator:
+                    var declaratorSyntax = (VariableDeclaratorSyntax)syntax.Parent.Parent;
+                    return AddSequencePoint(declaratorSyntax, rewritten);
+
+                case SyntaxKind.PropertyDeclaration:
+                    var declaration = (PropertyDeclarationSyntax)syntax.Parent.Parent;
+                    return AddSequencePoint(declaration, rewritten);
+
+                default:
+                    throw ExceptionUtilities.UnexpectedValue(syntax.Parent.Parent.Kind());
+            }
         }
 
         public override BoundStatement InstrumentGotoStatement(BoundGotoStatement original, BoundStatement rewritten)
@@ -52,7 +93,15 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public override BoundStatement InstrumentYieldBreakStatement(BoundYieldBreakStatement original, BoundStatement rewritten)
         {
-            return AddSequencePoint(base.InstrumentYieldBreakStatement(original, rewritten));
+            rewritten = base.InstrumentYieldBreakStatement(original, rewritten);
+
+            if (original.WasCompilerGenerated && original.Syntax.Kind() == SyntaxKind.Block)
+            {
+                // implicit yield break added by the compiler
+                return new BoundSequencePointWithSpan(original.Syntax, rewritten, ((BlockSyntax)original.Syntax).CloseBraceToken.Span);
+            }
+
+            return AddSequencePoint(rewritten);
         }
 
         public override BoundStatement InstrumentYieldReturnStatement(BoundYieldReturnStatement original, BoundStatement rewritten)
@@ -119,31 +168,6 @@ namespace Microsoft.CodeAnalysis.CSharp
         private static BoundExpression AddConditionSequencePoint(BoundExpression condition, BoundStatement containingStatement, SyntheticBoundNodeFactory factory)
         {
             return AddConditionSequencePoint(condition, containingStatement.Syntax, factory);
-        }
-
-        private static BoundExpression AddConditionSequencePoint(BoundExpression condition, SyntaxNode synthesizedVariableSyntax, SyntheticBoundNodeFactory factory)
-        {
-            if (!factory.Compilation.Options.EnableEditAndContinue)
-            {
-                return condition;
-            }
-
-            // The local has to be associated with a syntax that is tracked by EnC source mapping.
-            // At most one ConditionalBranchDiscriminator variable shall be associated with any given EnC tracked syntax node.
-            var local = factory.SynthesizedLocal(condition.Type, synthesizedVariableSyntax, kind: SynthesizedLocalKind.ConditionalBranchDiscriminator);
-
-            // Add hidden sequence point unless the condition is a constant expression.
-            // Constant expression must stay a const to not invalidate results of control flow analysis.
-            var valueExpression = (condition.ConstantValue == null) ?
-                new BoundSequencePointExpression(syntax: null, expression: factory.Local(local), type: condition.Type) :
-                condition;
-
-            return new BoundSequence(
-                condition.Syntax,
-                ImmutableArray.Create(local),
-                ImmutableArray.Create<BoundExpression>(factory.AssignmentExpression(factory.Local(local), condition)),
-                valueExpression,
-                condition.Type);
         }
 
         /// <summary>
@@ -269,7 +293,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public override BoundStatement InstrumentLocalInitialization(BoundLocalDeclaration original, BoundStatement rewritten)
         {
-            return LocalRewriter.AddSequencePoint(original.Syntax.Kind() == SyntaxKind.VariableDeclarator ?
+            return AddSequencePoint(original.Syntax.Kind() == SyntaxKind.VariableDeclarator ?
                                         (VariableDeclaratorSyntax)original.Syntax :
                                         ((LocalDeclarationStatementSyntax)original.Syntax).Declaration.Variables.First(), 
                                     base.InstrumentLocalInitialization(original, rewritten));
@@ -285,8 +309,15 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public override BoundStatement InstrumentReturnStatement(BoundReturnStatement original, BoundStatement rewritten)
         {
-            return new BoundSequencePoint(original.Syntax,
-                                          base.InstrumentReturnStatement(original, rewritten));
+            rewritten = base.InstrumentReturnStatement(original, rewritten);
+
+            if (original.WasCompilerGenerated && original.ExpressionOpt == null && original.Syntax.Kind() == SyntaxKind.Block)
+            {
+                // implicit return added by the compiler
+                return new BoundSequencePointWithSpan(original.Syntax, rewritten, ((BlockSyntax)original.Syntax).CloseBraceToken.Span);
+            }
+
+            return new BoundSequencePoint(original.Syntax, rewritten);
         }
 
         public override BoundStatement InstrumentSwitchStatement(BoundSwitchStatement original, BoundStatement rewritten)
@@ -305,7 +336,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public override BoundStatement InstrumentUsingTargetCapture(BoundUsingStatement original, BoundStatement usingTargetCapture)
         {
-            return LocalRewriter.AddSequencePoint((UsingStatementSyntax)original.Syntax, 
+            return AddSequencePoint((UsingStatementSyntax)original.Syntax, 
                                     base.InstrumentUsingTargetCapture(original, usingTargetCapture));
         }
 
@@ -318,5 +349,23 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             return new BoundSequencePoint(null, base.InstrumentWhileStatementGotoContinue(original, gotoContinue));
         }
+
+        public override BoundExpression InstrumentCatchClauseFilter(BoundCatchBlock original, BoundExpression rewrittenFilter, SyntheticBoundNodeFactory factory)
+        {
+            rewrittenFilter = base.InstrumentCatchClauseFilter(original, rewrittenFilter, factory);
+
+            // EnC: We need to insert a hidden sequence point to handle function remapping in case 
+            // the containing method is edited while methods invoked in the condition are being executed.
+            CatchFilterClauseSyntax filterClause = ((CatchClauseSyntax)original.Syntax).Filter;
+            return AddConditionSequencePoint(new BoundSequencePointExpression(filterClause, rewrittenFilter, rewrittenFilter.Type), filterClause, factory);
+        }
+
+        public override BoundExpression InstrumentSwitchStatementExpression(BoundSwitchStatement original, BoundExpression rewrittenExpression, SyntheticBoundNodeFactory factory)
+        {
+            // EnC: We need to insert a hidden sequence point to handle function remapping in case 
+            // the containing method is edited while methods invoked in the expression are being executed.
+            return AddConditionSequencePoint(base.InstrumentSwitchStatementExpression(original, rewrittenExpression, factory), original.Syntax, factory);
+        }
+
     }
 }

@@ -3464,7 +3464,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             boundFilter = patternBinder.WrapWithVariablesIfAny(boundFilter);
-            boundFilter = new BoundSequencePointExpression(filter, boundFilter, boundFilter.Type);
             return boundFilter;
         }
 

@@ -5333,7 +5333,10 @@ class Program
             CreateCompilationWithMscorlib(text).VerifyDiagnostics(
     // (11,25): warning CS7095: Filter expression is a constant, consider removing the filter
     //         catch (A) when (false) 
-    Diagnostic(ErrorCode.WRN_FilterIsConstant, "false").WithLocation(11, 25)
+    Diagnostic(ErrorCode.WRN_FilterIsConstant, "false").WithLocation(11, 25),
+    // (13,13): warning CS0162: Unreachable code detected
+    //             Console.WriteLine(1); 
+    Diagnostic(ErrorCode.WRN_UnreachableCode, "Console").WithLocation(13, 13)
                 );
         }
 
@@ -5364,6 +5367,39 @@ class Program
     // (10,33): warning CS7095: Filter expression is a constant, consider removing the filter
     //         catch (Exception) when (false) 
     Diagnostic(ErrorCode.WRN_FilterIsConstant, "false").WithLocation(10, 33),
+    // (12,13): warning CS0162: Unreachable code detected
+    //             Console.WriteLine(x);
+    Diagnostic(ErrorCode.WRN_UnreachableCode, "Console").WithLocation(12, 13)
+                );
+        }
+
+        [Fact]
+        public void CS0162WRN_UnreachableCode_Filter_ConstantCondition3()
+        {
+            var text = @"
+using System;
+
+class Program
+{
+    static void M()
+    {
+        int x;
+        try { }
+        catch (Exception) when (true) 
+        {
+            Console.WriteLine(x);
+        }
+    }
+}
+";
+            // Unlike an unreachable code in if statement block we don't allow using
+            // a variable that's not definitely assigned. The reason why we allow it in an if statement
+            // is to make conditional compilation easier. Such scenario doesn't apply to filters.
+
+            CreateCompilationWithMscorlib(text).VerifyDiagnostics(
+    // (10,33): warning CS7095: Filter expression is a constant, consider removing the filter
+    //         catch (Exception) when (true) 
+    Diagnostic(ErrorCode.WRN_FilterIsConstant, "true").WithLocation(10, 33),
     // (12,31): error CS0165: Use of unassigned local variable 'x'
     //             Console.WriteLine(x);
     Diagnostic(ErrorCode.ERR_UseDefViolation, "x").WithArguments("x").WithLocation(12, 31)
