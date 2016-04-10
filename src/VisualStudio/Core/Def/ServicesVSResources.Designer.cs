@@ -556,6 +556,17 @@ namespace Microsoft.VisualStudio.LanguageServices {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Installing &apos;{0}&apos; failed.
+        ///
+        ///Additional information: {1}.
+        /// </summary>
+        internal static string Installing_0_failed_Additional_information_1 {
+            get {
+                return ResourceManager.GetString("Installing_0_failed_Additional_information_1", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to To see what caused the issue, please try below.
         ///
         ///1. Close Visual Studio
@@ -596,17 +607,6 @@ namespace Microsoft.VisualStudio.LanguageServices {
         internal static string IntellisenseBuildFailedTitle {
             get {
                 return ResourceManager.GetString("IntellisenseBuildFailedTitle", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Installing &apos;{0}&apos; failed.
-        ///
-        ///Additional information: {1}.
-        /// </summary>
-        internal static string Installing_0_failed_Additional_information_1 {
-            get {
-                return ResourceManager.GetString("Installing_0_failed_Additional_information_1", resourceCulture);
             }
         }
         
@@ -796,6 +796,24 @@ namespace Microsoft.VisualStudio.LanguageServices {
         internal static string Modifier {
             get {
                 return ResourceManager.GetString("Modifier", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Move {0} below {1}.
+        /// </summary>
+        internal static string MoveDownAutomationText {
+            get {
+                return ResourceManager.GetString("MoveDownAutomationText", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Move {0} above {1}.
+        /// </summary>
+        internal static string MoveUpAutomationText {
+            get {
+                return ResourceManager.GetString("MoveUpAutomationText", resourceCulture);
             }
         }
         
@@ -1085,6 +1103,15 @@ namespace Microsoft.VisualStudio.LanguageServices {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Remove {0}.
+        /// </summary>
+        internal static string RemoveAutomationText {
+            get {
+                return ResourceManager.GetString("RemoveAutomationText", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Remove suppressions.
         /// </summary>
         internal static string RemoveSuppressMultipleOccurrences {
@@ -1108,6 +1135,15 @@ namespace Microsoft.VisualStudio.LanguageServices {
         internal static string Restore {
             get {
                 return ResourceManager.GetString("Restore", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Restore {0}.
+        /// </summary>
+        internal static string RestoreAutomationText {
+            get {
+                return ResourceManager.GetString("RestoreAutomationText", resourceCulture);
             }
         }
         
