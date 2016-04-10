@@ -1,5 +1,49 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+// TODO: the following lambda code doesn't work.
+// (1) There's a regression where the "f" case of better-betterness fails
+// (2) The "g" case isn't even using the better-betterness rule
+class Program
+{
+    static void Main()
+    {
+        f(async () => { await Task.Delay(0); return 1; });
+        g(async () => { await Task.Delay(0); return 1; });
+    }
+
+    static void f<T>(Func<Task<T>> lambda) { Console.WriteLine("best"); }
+    static void f<T>(Func<T> lambda) { Console.WriteLine("wrong"); }
+    static void f<T>(T arg) { Console.WriteLine("wrong"); }
+
+    static void g<T>(Func<MyTask<T>> lambda) { Console.WriteLine("best"); }
+    static void g<T>(Func<T> lambda) { Console.WriteLine("wrong"); }
+    static void g<T>(T arg) { Console.WriteLine("wrong"); }
+}
+
+[Tasklike(typeof(MyTaskBuilder<>))]
+public class MyTask<T> { }
+
+class MyTaskBuilder<T>
+{
+    public static MyTaskBuilder<T> Create() => new MyTaskBuilder<T>();
+    public void Start<TStateMachine>(ref TStateMachine stateMachine) where TStateMachine : IAsyncStateMachine { }
+    public void SetStateMachine(IAsyncStateMachine stateMachine) { }
+    public void SetResult(T result) { }
+    public void SetException(Exception exception) { }
+    public MyTask<T> Task => default(MyTask<T>);
+    public void AwaitOnCompleted<TAwaiter, TStateMachine>(ref TAwaiter awaiter, ref TStateMachine stateMachine) where TAwaiter : INotifyCompletion where TStateMachine : IAsyncStateMachine { }
+    public void AwaitUnsafeOnCompleted<TAwaiter, TStateMachine>(ref TAwaiter awaiter, ref TStateMachine stateMachine) where TAwaiter : ICriticalNotifyCompletion where TStateMachine : IAsyncStateMachine { }
+}
+
+namespace System.Runtime.CompilerServices
+{
+    public class TasklikeAttribute : Attribute
+    {
+        public TasklikeAttribute(Type builderType) { }
+    }
+}
+
+
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
