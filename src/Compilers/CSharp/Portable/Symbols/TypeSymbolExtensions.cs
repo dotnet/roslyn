@@ -1150,7 +1150,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// </summary>
         public static bool IsGenericTaskOrTasklike(this TypeSymbol type, CSharpCompilation compilation)
         {
-            if (type.Kind != SymbolKind.NamedType)
+            if (type == null || type.Kind != SymbolKind.NamedType)
             {
                 return false;
             }
@@ -1160,9 +1160,20 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         }
 
         /// <summary>
+        /// Says whether this is specifically either the arity-0 nongeneric Task or
+        /// an arity-0 Tasklike which has a [Tasklike] attribute on it.
+        /// </summary>
+        public static bool IsNongenericTaskOrTasklike(this TypeSymbol type, CSharpCompilation compilation)
+        {
+            return (type != null && type == compilation.GetWellKnownType(WellKnownType.System_Threading_Tasks_Task)
+                || (type.GetArity() == 0 && type.GetCustomBuilderForTasklike() != null));
+        }
+
+        /// <summary>
         /// Given a type, looks for a [Tasklike(typeof(Builder))] attribute on it, and if present then
         /// returns that Builder. In the case of a generic builder e.g. typeof(Builder&lt;&gt;) or
         /// or typeof(Builder&lt;int&gt;) it returns the argument of typeof as-is
+        /// </summary>
         public static NamedTypeSymbol GetCustomBuilderForTasklike(this TypeSymbol type)
         {
             foreach (var attr in type.GetAttributes())

@@ -104,10 +104,25 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             // Async:
 
+            // Async lambdas can be target-typed: they might return Task / Task<T>,
+            // or they might return Tasklike / Tasklike<T>,
+            // depending on context. Check if the context is a tasklike:
+            NamedTypeSymbol tasklikeType = null;
+            if (delegateTargetType != null && (delegateTargetType.IsDelegateType() || delegateTargetType.IsExpressionTree()))
+            {
+                var returnType = delegateTargetType.DelegateInvokeMethod().ReturnType as NamedTypeSymbol;
+                if (returnType != null && returnType.GetCustomBuilderForTasklike() != null)
+                {
+                    tasklikeType = returnType;
+                }
+            }
+
             if (resultTypes.IsEmpty)
             {
-                // No return statements have expressions; inferred type Task:
-                return binder.Compilation.GetWellKnownType(WellKnownType.System_Threading_Tasks_Task);
+                // No return statements have expressions; inferred type Task or Tasklike
+                return (tasklikeType != null && tasklikeType.Arity == 0)
+                    ? tasklikeType
+                    : binder.Compilation.GetWellKnownType(WellKnownType.System_Threading_Tasks_Task);
             }
 
             if ((object)bestResultType == null || bestResultType.SpecialType == SpecialType.System_Void)
@@ -117,17 +132,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return null;
             }
 
-            // Some non-void best type T was found; infer type Task<T>
-            // or, in case of a Tasklike, infer Tasklike<T>
-            if (delegateTargetType != null && (delegateTargetType.IsDelegateType() || delegateTargetType.IsExpressionTree()))
-            {
-                var tasklikeType = delegateTargetType.DelegateInvokeMethod().ReturnType as NamedTypeSymbol;
-                if (tasklikeType != null && tasklikeType.GetCustomBuilderForTasklike() != null && tasklikeType.GetArity() == 1)
-                {
-                    return tasklikeType.ConstructedFrom.Construct(bestResultType);
-                }
-            }
-            return binder.Compilation.GetWellKnownType(WellKnownType.System_Threading_Tasks_Task_T).Construct(bestResultType);
+            // Some non-void best type T was found; infer type Task<T> or Tasklike<T>
+            return (tasklikeType != null && tasklikeType.Arity == 1)
+                ? tasklikeType.ConstructedFrom.Construct(bestResultType)
+                : binder.Compilation.GetWellKnownType(WellKnownType.System_Threading_Tasks_Task_T).Construct(bestResultType);
         }
 
         private sealed class BlockReturns : BoundTreeWalker
@@ -329,7 +337,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return false;
             }
 
-            if (IsAsync && this.binder.Compilation.GetWellKnownType(WellKnownType.System_Threading_Tasks_Task) == d.DelegateInvokeMethod.ReturnType)
+            if (IsAsync && d.DelegateInvokeMethod.ReturnType.IsNongenericTaskOrTasklike(this.binder.Compilation))
             {
                 return false;
             }
@@ -394,9 +402,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 if ((object)returnType != null && // Can be null if "delegateType" is not actually a delegate type.
                     returnType.SpecialType != SpecialType.System_Void &&
-                    returnType != binder.Compilation.GetWellKnownType(WellKnownType.System_Threading_Tasks_Task) &&
-                    returnType.OriginalDefinition != binder.Compilation.GetWellKnownType(WellKnownType.System_Threading_Tasks_Task_T) &&
-                    returnType.GetCustomBuilderForTasklike() == null)
+                    !returnType.IsNongenericTaskOrTasklike(binder.Compilation) &&
+                    !returnType.IsGenericTaskOrTasklike(binder.Compilation))
                 {
                     // Cannot convert async {0} to delegate type '{1}'. An async {0} may return void, Task or Task&lt;T&gt;, none of which are convertible to '{1}'.
                     diagnostics.Add(ErrorCode.ERR_CantConvAsyncAnonFuncReturns, lambdaSymbol.Locations[0], lambdaSymbol.MessageID.Localize(), delegateType);

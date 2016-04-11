@@ -280,16 +280,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// </summary>
         public static bool IsNongenericTasklikeReturningAsync(this MethodSymbol method, CSharpCompilation compilation)
         {
-            if (!method.IsAsync)
-            {
-                return false;
-            }
-            if (method.ReturnType == compilation.GetWellKnownType(WellKnownType.System_Threading_Tasks_Task)
-                || (method.ReturnType?.GetArity() == 0 && method.ReturnType?.GetCustomBuilderForTasklike() != null))
-            {
-                return true;
-            }
-            return false;
+            return (method.IsAsync && (object)method.ReturnType != null
+                && method.ReturnType.IsNongenericTaskOrTasklike(compilation));
         }
 
 

@@ -3160,23 +3160,14 @@ class C
                 Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "{}").WithArguments("System.Runtime.CompilerServices.IAsyncStateMachine", "SetStateMachine").WithLocation(4, 20));
         }
 
-        // TASKLIKE TODO:
-        //I should audit the entire codebase for everyplace that uses Task and Task<T> wellknowntypes
-        //and check whether they need to be updated to look for Tasklikes
-        //System_Threading_Tasks_Task
-        //System_Threading_Tasks_Task_T
-        //System_Runtime_CompilerServices_AsyncVoidMethodBuilder
-        //System_Runtime_CompilerServices_AsyncTaskMethodBuilder
-        //System_Runtime_CompilerServices_AsyncTaskMethodBuilder_T
-
-        // TASKLIKE TODO: test lambdas
-
         // TASKLIKE TODO: what if someone has defined their own TasklikeAttribute class, one which doesn't take
         //a Task as an paramaeter(or which lacks parameters entirely).
 
         // TASKLIKE TODO: test supplying Tasklike(typeof(Something<int>)), i.e.with an instantiation, not an open type
 
         // TASKLIKE TODO: if you pass an async lambda into something that expects Func<T> or just <T>, will it default to Task?
+        // And what if there are competing overloads one for Task<T> and one for MyTask<T>
+        // And does it work for non-generic MyTask in overload resolution and generic type inference
 
         [Fact]
         public void AsyncTasklikeLambdas()
