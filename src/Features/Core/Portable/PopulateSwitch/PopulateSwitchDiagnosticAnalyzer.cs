@@ -1,11 +1,8 @@
-﻿using Microsoft.CodeAnalysis.Shared.Extensions;
-using System.Collections.Generic;
-using System.Collections.Immutable;
-using Microsoft.CodeAnalysis.Diagnostics;
+﻿using System.Collections.Immutable;
 using System.Diagnostics;
+using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Semantics;
-using System.Linq;
-using System;
+using Microsoft.CodeAnalysis.Shared.Extensions;
 
 namespace Microsoft.CodeAnalysis.PopulateSwitch
 {
