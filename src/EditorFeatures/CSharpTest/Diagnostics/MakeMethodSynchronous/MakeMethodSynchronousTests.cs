@@ -350,7 +350,38 @@ public class Class1
     {
         Foo();
     }
-}", compareTokens: false, fixAllActionEquivalenceKey: AbstractMakeMethodSynchronousCodeFixProvider.EquivalenceKey);
+}",
+fixAllActionEquivalenceKey: AbstractMakeMethodSynchronousCodeFixProvider.MakeMethodSynchronousChangingReturnTypeKey);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeMethodSynchronous)]
+        public async Task TestOverride()
+        {
+            await TestAsync(
+@"
+using System.Threading.Tasks;
+
+class Base
+{
+    public virtual Task OnStart() { .. }
+}
+
+class Derived : Base 
+{
+    public override async Task [|OnStart|]() {  }
+}",
+@"
+using System.Threading.Tasks;
+
+class Base
+{
+    public virtual Task OnStart() { .. }
+}
+
+class Derived : Base 
+{
+    public override Task OnStart() {  }
+}", index: 1);
         }
     }
 }

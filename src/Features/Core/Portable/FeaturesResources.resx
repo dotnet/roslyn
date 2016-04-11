@@ -961,4 +961,7 @@ This version used in: {2}</value>
   <data name="AddMissingSwitchCases" xml:space="preserve">
     <value>Add missing switch cases</value>
   </data>
+  <data name="Make_method_synchronous_changing_return_type" xml:space="preserve">
+    <value>Make method synchronous (changing return type)</value>
+  </data>
 </root>

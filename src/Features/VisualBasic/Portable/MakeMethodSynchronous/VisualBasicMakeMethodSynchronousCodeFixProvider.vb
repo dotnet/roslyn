@@ -30,7 +30,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.MakeMethodSynchronous
                 node.IsKind(SyntaxKind.SingleLineSubLambdaExpression)
         End Function
 
-        Protected Overrides Function RemoveAsyncTokenAndFixReturnType(methodSymbolOpt As IMethodSymbol, node As SyntaxNode, taskType As ITypeSymbol, taskOfTType As ITypeSymbol) As SyntaxNode
+        Protected Overrides Function RemoveAsyncTokenAndFixReturnType(
+                methodSymbolOpt As IMethodSymbol, node As SyntaxNode, changeReturnType As Boolean) As SyntaxNode
             If node.IsKind(SyntaxKind.SingleLineSubLambdaExpression) OrElse
                 node.IsKind(SyntaxKind.SingleLineFunctionLambdaExpression) Then
 
@@ -42,45 +43,48 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.MakeMethodSynchronous
             ElseIf node.IsKind(SyntaxKind.SubBlock) Then
                 Return FixSubBlock(DirectCast(node, MethodBlockSyntax))
             Else
-                Return FixFunctionBlock(methodSymbolOpt, DirectCast(node, MethodBlockSyntax), taskType, taskOfTType)
+                Return FixFunctionBlock(methodSymbolOpt, DirectCast(node, MethodBlockSyntax), changeReturnType)
             End If
         End Function
 
-        Private Function FixFunctionBlock(methodSymbol As IMethodSymbol, node As MethodBlockSyntax, taskType As ITypeSymbol, taskOfTType As ITypeSymbol) As SyntaxNode
+        Private Function FixFunctionBlock(methodSymbol As IMethodSymbol, node As MethodBlockSyntax, changeReturnType As Boolean) As SyntaxNode
             Dim functionStatement = node.SubOrFunctionStatement
 
             ' if this returns Task(of T), then we want to convert this to a T returning function.
             ' if this returns Task, then we want to convert it to a Sub method.
-            If methodSymbol.ReturnType.OriginalDefinition.Equals(taskOfTType) Then
-                Dim newAsClause = functionStatement.AsClause.WithType(methodSymbol.ReturnType.GetTypeArguments()(0).GenerateTypeSyntax())
-                Dim newFunctionStatement = functionStatement.WithAsClause(newAsClause)
-                newFunctionStatement = RemoveAsyncKeyword(newFunctionStatement)
-                Return node.WithSubOrFunctionStatement(newFunctionStatement)
-            ElseIf methodSymbol.ReturnType.OriginalDefinition Is taskType Then
-                ' Convert this to a 'Sub' method.
-                Dim subStatement = SyntaxFactory.SubStatement(
-                    functionStatement.AttributeLists,
-                    functionStatement.Modifiers,
-                    SyntaxFactory.Token(SyntaxKind.SubKeyword).WithTriviaFrom(functionStatement.SubOrFunctionKeyword),
-                    functionStatement.Identifier,
-                    functionStatement.TypeParameterList,
-                    functionStatement.ParameterList,
-                    functionStatement.AsClause,
-                    functionStatement.HandlesClause,
-                    functionStatement.ImplementsClause)
+            If changeReturnType Then
+                Dim typeArguments = methodSymbol.ReturnType.GetTypeArguments()
 
-                subStatement = subStatement.RemoveNode(subStatement.AsClause, SyntaxRemoveOptions.KeepTrailingTrivia)
-                subStatement = RemoveAsyncKeyword(subStatement)
+                If typeArguments.Length > 0 Then
+                    Dim newAsClause = functionStatement.AsClause.WithType(methodSymbol.ReturnType.GetTypeArguments()(0).GenerateTypeSyntax())
+                    Dim newFunctionStatement = functionStatement.WithAsClause(newAsClause)
+                    newFunctionStatement = RemoveAsyncKeyword(newFunctionStatement)
+                    Return node.WithSubOrFunctionStatement(newFunctionStatement)
+                Else
+                    ' Convert this to a 'Sub' method.
+                    Dim subStatement = SyntaxFactory.SubStatement(
+                        functionStatement.AttributeLists,
+                        functionStatement.Modifiers,
+                        SyntaxFactory.Token(SyntaxKind.SubKeyword).WithTriviaFrom(functionStatement.SubOrFunctionKeyword),
+                        functionStatement.Identifier,
+                        functionStatement.TypeParameterList,
+                        functionStatement.ParameterList,
+                        functionStatement.AsClause,
+                        functionStatement.HandlesClause,
+                        functionStatement.ImplementsClause)
 
-                Dim endSubStatement = SyntaxFactory.EndSubStatement(
+                    subStatement = subStatement.RemoveNode(subStatement.AsClause, SyntaxRemoveOptions.KeepTrailingTrivia)
+                    subStatement = RemoveAsyncKeyword(subStatement)
+
+                    Dim endSubStatement = SyntaxFactory.EndSubStatement(
                     node.EndSubOrFunctionStatement.EndKeyword,
                     SyntaxFactory.Token(SyntaxKind.SubKeyword).WithTriviaFrom(node.EndSubOrFunctionStatement.BlockKeyword))
 
-                Return SyntaxFactory.SubBlock(subStatement, node.Statements, endSubStatement)
-            Else
-                Dim newFunctionStatement = RemoveAsyncKeyword(functionStatement)
-                Return node.WithSubOrFunctionStatement(newFunctionStatement)
+                    Return SyntaxFactory.SubBlock(subStatement, node.Statements, endSubStatement)
+                End If
             End If
+
+            Return node.WithSubOrFunctionStatement(RemoveAsyncKeyword(functionStatement))
         End Function
 
         Private Function FixSubBlock(node As MethodBlockSyntax) As SyntaxNode

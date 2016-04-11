@@ -233,5 +233,37 @@ Class C
 End Class",
 compareTokens:=False)
         End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeMethodSynchronous)>
+        Public Async Function TestOverride() As Task
+            Await TestAsync(
+"
+imports System.Threading.Tasks
+
+class Base
+    public overridable function OnStart() as Task
+    end function
+end class
+
+class Derived 
+    inherits Base 
+    public overrides async function [|OnStart|]() as Task
+    end function
+end class",
+"
+imports System.Threading.Tasks
+
+class Base
+    public overridable function OnStart() as Task
+    end function
+end class
+
+class Derived 
+    inherits Base 
+    public overrides function OnStart() as Task
+    end function
+end class",
+index:=1)
+        End Function
     End Class
 End Namespace
