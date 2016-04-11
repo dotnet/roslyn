@@ -582,7 +582,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 // The bound block represents a closure scope for transparent identifiers captured in the let clause.
                 // Such closures shall be associated with the lambda body expression.
-                return lambdaBodyBinder.CreateBlockFromExpression(let.Expression, lambdaBodyBinder.Locals, RefKind.None, construction, null, d);
+                return lambdaBodyBinder.CreateBlockFromExpression(let.Expression, lambdaBodyBinder.GetDeclaredLocalsForScope(let.Expression), RefKind.None, construction, null, d);
             };
 
             var lambda = MakeQueryUnboundLambda(state.RangeVariableMap(), ImmutableArray.Create(x), let.Expression, bodyFactory);
@@ -664,7 +664,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // We transform the expression from "expr" to "expr.Cast<castTypeOpt>()".
                 boundExpression = lambdaBodyBinder.MakeQueryInvocation(expression, boundExpression, "Cast", castTypeSyntax, castType, diagnostics);
 
-                return lambdaBodyBinder.CreateBlockFromExpression(expression, lambdaBodyBinder.Locals, RefKind.None, boundExpression, expression, diagnostics);
+                return lambdaBodyBinder.CreateBlockFromExpression(expression, lambdaBodyBinder.GetDeclaredLocalsForScope(expression), RefKind.None, boundExpression, expression, diagnostics);
             }));
         }
 

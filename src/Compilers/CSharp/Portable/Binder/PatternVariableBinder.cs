@@ -13,17 +13,17 @@ namespace Microsoft.CodeAnalysis.CSharp
     {
         private readonly CSharpSyntaxNode _node;
         private readonly ImmutableArray<CSharpSyntaxNode> _nodes;
-        public readonly SyntaxNode Syntax;
+        public readonly CSharpSyntaxNode ScopeDesignator;
 
-        internal PatternVariableBinder(SyntaxNode syntax, ImmutableArray<ExpressionSyntax> expressions, Binder next) : base(next)
+        internal PatternVariableBinder(CSharpSyntaxNode scopeDesignator, ImmutableArray<ExpressionSyntax> expressions, Binder next) : base(next)
         {
-            this.Syntax = syntax;
+            this.ScopeDesignator = scopeDesignator;
             this._nodes = StaticCast<CSharpSyntaxNode>.From(expressions);
         }
 
-        internal PatternVariableBinder(SyntaxNode syntax, IEnumerable<VariableDeclaratorSyntax> declarations, Binder next) : base(next)
+        internal PatternVariableBinder(CSharpSyntaxNode scopeDesignator, IEnumerable<VariableDeclaratorSyntax> declarations, Binder next) : base(next)
         {
-            this.Syntax = syntax;
+            this.ScopeDesignator = scopeDesignator;
             var nodes = ArrayBuilder<CSharpSyntaxNode>.GetInstance();
             foreach (var decl in declarations)
             {
@@ -33,9 +33,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             this._nodes = nodes.ToImmutableAndFree();
         }
 
-        internal PatternVariableBinder(SyntaxNode syntax, IEnumerable<ArgumentSyntax> arguments, Binder next) : base(next)
+        internal PatternVariableBinder(CSharpSyntaxNode scopeDesignator, IEnumerable<ArgumentSyntax> arguments, Binder next) : base(next)
         {
-            this.Syntax = syntax;
+            this.ScopeDesignator = scopeDesignator;
             var nodes = ArrayBuilder<CSharpSyntaxNode>.GetInstance();
             foreach (var arg in arguments)
             {
@@ -45,11 +45,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             this._nodes = nodes.ToImmutableAndFree();
         }
 
-        internal PatternVariableBinder(SwitchSectionSyntax syntax, Binder next) : base(next)
+        internal PatternVariableBinder(SwitchSectionSyntax scopeDesignator, Binder next) : base(next)
         {
-            this.Syntax = syntax;
+            this.ScopeDesignator = scopeDesignator;
             var nodes = ArrayBuilder<CSharpSyntaxNode>.GetInstance();
-            foreach (var label in syntax.Labels)
+            foreach (var label in scopeDesignator.Labels)
             {
                 var match = label as CasePatternSwitchLabelSyntax;
                 if (match != null)
@@ -65,30 +65,30 @@ namespace Microsoft.CodeAnalysis.CSharp
             this._nodes = nodes.ToImmutableAndFree();
         }
 
-        internal PatternVariableBinder(MatchSectionSyntax syntax, Binder next) : base(next)
+        internal PatternVariableBinder(MatchSectionSyntax scopeDesignator, Binder next) : base(next)
         {
-            this.Syntax = syntax;
-            this._nodes = syntax.WhenClause != null
-                ? ImmutableArray.Create<CSharpSyntaxNode>(syntax.Pattern, syntax.WhenClause.Condition, syntax.Expression)
-                : ImmutableArray.Create<CSharpSyntaxNode>(syntax.Pattern, syntax.Expression)
+            this.ScopeDesignator = scopeDesignator;
+            this._nodes = scopeDesignator.WhenClause != null
+                ? ImmutableArray.Create<CSharpSyntaxNode>(scopeDesignator.Pattern, scopeDesignator.WhenClause.Condition, scopeDesignator.Expression)
+                : ImmutableArray.Create<CSharpSyntaxNode>(scopeDesignator.Pattern, scopeDesignator.Expression)
                 ;
         }
 
-        internal PatternVariableBinder(SyntaxNode syntax, ExpressionSyntax expression, Binder next) : base(next)
+        internal PatternVariableBinder(CSharpSyntaxNode scopeDesignator, ExpressionSyntax expression, Binder next) : base(next)
         {
             this._node = expression;
-            this.Syntax = syntax;
+            this.ScopeDesignator = scopeDesignator;
         }
 
-        internal PatternVariableBinder(AttributeSyntax syntax, Binder next) : base(next)
+        internal PatternVariableBinder(AttributeSyntax scopeDesignator, Binder next) : base(next)
         {
-            this.Syntax = syntax;
+            this.ScopeDesignator = scopeDesignator;
 
-            if (syntax.ArgumentList?.Arguments.Count > 0)
+            if (scopeDesignator.ArgumentList?.Arguments.Count > 0)
             {
-                var expressions = ArrayBuilder<CSharpSyntaxNode>.GetInstance(syntax.ArgumentList.Arguments.Count);
+                var expressions = ArrayBuilder<CSharpSyntaxNode>.GetInstance(scopeDesignator.ArgumentList.Arguments.Count);
 
-                foreach (var argument in syntax.ArgumentList.Arguments)
+                foreach (var argument in scopeDesignator.ArgumentList.Arguments)
                 {
                     expressions.Add(argument.Expression);
                 }
@@ -102,6 +102,21 @@ namespace Microsoft.CodeAnalysis.CSharp
             var builder = ArrayBuilder<LocalSymbol>.GetInstance();
             BuildAndAddPatternVariables(builder, _node, _nodes);
             return builder.ToImmutableAndFree();
+        }
+
+        internal override ImmutableArray<LocalSymbol> GetDeclaredLocalsForScope(CSharpSyntaxNode scopeDesignator)
+        {
+            if (ScopeDesignator == scopeDesignator)
+            {
+                return this.Locals;
+            }
+
+            throw ExceptionUtilities.Unreachable;
+        }
+
+        internal override ImmutableArray<LocalFunctionSymbol> GetDeclaredLocalFunctionsForScope(CSharpSyntaxNode scopeDesignator)
+        {
+            throw ExceptionUtilities.Unreachable;
         }
     }
 }

@@ -5,6 +5,7 @@ using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using System.Diagnostics;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp
 {
@@ -31,7 +32,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // Allow method groups during binding and then rule them out when we check that the expression has
             // a reference type.
             ExpressionSyntax exprSyntax = TargetExpressionSyntax;
-            BoundExpression expr = BindTargetExpression(diagnostics);
+            BoundExpression expr = BindTargetExpression(diagnostics, originalBinder);
             TypeSymbol exprType = expr.Type;
 
             bool hasErrors = false;

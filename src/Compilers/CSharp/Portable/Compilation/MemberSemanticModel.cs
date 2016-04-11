@@ -250,7 +250,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     binder = rootBinder.GetBinder(current);
                 }
-                else if (current is ExpressionSyntax && (current.Parent as LambdaExpressionSyntax)?.Body == current)
+                else if (current is ExpressionSyntax && 
+                            ((current.Parent as LambdaExpressionSyntax)?.Body == current ||
+                             (current.Parent as SwitchStatementSyntax)?.Expression == current ||
+                             (current.Parent as ForEachStatementSyntax)?.Expression == current ||
+                             (current.Parent as IfStatementSyntax)?.Condition == current))
                 {
                     binder = rootBinder.GetBinder(current);
                 }
@@ -305,8 +309,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                     var switchStmt = (SwitchStatementSyntax)stmt;
                     if (LookupPosition.IsBetweenTokens(position, switchStmt.OpenParenToken, switchStmt.OpenBraceToken))
                     {
-                        binder = binder.Next;
-                        Debug.Assert(binder is PatternVariableBinder);
+                        binder = binder.GetBinder(switchStmt.Expression);
+                        Debug.Assert(binder != null);
                     }
                     break;
 
@@ -314,8 +318,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                     var foreachStmt = (ForEachStatementSyntax)stmt;
                     if (LookupPosition.IsBetweenTokens(position, foreachStmt.OpenParenToken, foreachStmt.Statement.GetFirstToken()))
                     {
-                        binder = binder.Next;
-                        Debug.Assert(binder is PatternVariableBinder);
+                        binder = binder.GetBinder(foreachStmt.Expression);
+                        Debug.Assert(binder != null);
                     }
                     break;
             }
@@ -595,12 +599,21 @@ namespace Microsoft.CodeAnalysis.CSharp
             CheckSyntaxNode(declarationSyntax);
 
             var binder = this.GetEnclosingBinder(GetAdjustedNodePosition(declarationSyntax));
-            foreach (var label in binder.Labels)
+
+            while (binder != null && !binder.IsLabelsScopeBinder)
             {
-                if (label.IdentifierNodeOrToken.IsToken &&
-                    label.IdentifierNodeOrToken.AsToken() == declarationSyntax.Identifier)
+                binder = binder.Next;
+            }
+
+            if (binder != null)
+            {
+                foreach (var label in binder.Labels)
                 {
-                    return label;
+                    if (label.IdentifierNodeOrToken.IsToken &&
+                        label.IdentifierNodeOrToken.AsToken() == declarationSyntax.Identifier)
+                    {
+                        return label;
+                    }
                 }
             }
 

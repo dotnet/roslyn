@@ -472,15 +472,5 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             return false;
         }
-
-        internal override ImmutableArray<LocalSymbol> GetDeclaredLocalsForScope(CSharpSyntaxNode node)
-        {
-            return ImmutableArray<LocalSymbol>.Empty;
-        }
-
-        internal override ImmutableArray<LocalFunctionSymbol> GetDeclaredLocalFunctionsForScope(CSharpSyntaxNode node)
-        {
-            return ImmutableArray<LocalFunctionSymbol>.Empty;
-        }
     }
 }
