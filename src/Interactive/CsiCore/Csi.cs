@@ -24,6 +24,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Scripting.Hosting
                     baseDirectory: Directory.GetCurrentDirectory(),
                     sdkDirectoryOpt: CorLightup.Desktop.TryGetRuntimeDirectory(),
                     args: args,
+                    clientDirectory: AppContext.BaseDirectory,
                     analyzerLoader: new NotImplementedAnalyzerLoader());
 
                 var runner = new CommandLineRunner(

@@ -26,8 +26,9 @@ class TraceManagerFactory
 {
     public static ITraceManager GetTraceManager(int iterations = 1)
     {
-        var cpcFullPath = Path.Combine(GetCPCDirectoryPath(), "CPC.exe");
-        var scenarioPath = GetCPCDirectoryPath();
+        var directoryInfo = new RelativeDirectory();
+        var cpcFullPath = Path.Combine(directoryInfo.CPCDirectoryPath, "CPC.exe");
+        var scenarioPath = directoryInfo.CPCDirectoryPath;
         if (File.Exists(cpcFullPath))
         {
             return new TraceManager(iterations, cpcFullPath, scenarioPath);
@@ -102,19 +103,21 @@ class NoOpTraceManager : ITraceManager
     }
 }
 
-class TraceManager : ITraceManager
+class TraceManager: ITraceManager
 {
     private readonly ScenarioGenerator _scenarioGenerator;
+    private readonly int _iterations;
+    private readonly string _cpcPath;
+    
+    private RelativeDirectory _directoryInfo = new RelativeDirectory();
 
-    private string _cpcPath;
     private int _startEventAbsoluteInstance = 1;
     private int _stopEventAbsoluteInstance = 1;
-    private readonly int _iterations;
 
     public TraceManager(
         int iterations,
         string cpcPath,
-        string scenarioPath)
+        string scenarioPath): base()
     {
         _iterations = iterations;
         _cpcPath = cpcPath;
@@ -141,8 +144,8 @@ class TraceManager : ITraceManager
 
     public void Stop()
     {
-        var scenariosXmlPath = Path.Combine(GetCPCDirectoryPath(), "scenarios.xml");
-        var consumptionTempResultsPath = Path.Combine(GetCPCDirectoryPath(), "ConsumptionTempResultsPath.xml");
+        var scenariosXmlPath = Path.Combine(_directoryInfo.CPCDirectoryPath, "scenarios.xml");
+        var consumptionTempResultsPath = Path.Combine(_directoryInfo.CPCDirectoryPath, "ConsumptionTempResultsPath.xml");
         ShellOutVital(_cpcPath, $"/Stop /DisableArchive /ScenarioPath=\"{scenariosXmlPath}\" /ConsumptionTempResultsPath=\"{consumptionTempResultsPath}\"");
     }
 

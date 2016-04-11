@@ -2,6 +2,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.Linq;
 using System.Text;
 using System.Threading;
@@ -39,6 +40,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options
         private IContentTypeRegistryService _contentTypeRegistryService;
 
         public List<object> Items { get; set; }
+        public ObservableCollection<AbstractCodeStyleOptionViewModel> CodeStyleItems { get; set; }
 
         public OptionSet Options { get; set; }
 
@@ -46,6 +48,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options
         {
             this.Options = options;
             this.Items = new List<object>();
+            this.CodeStyleItems = new ObservableCollection<AbstractCodeStyleOptionViewModel>();
 
             _componentModel = (IComponentModel)serviceProvider.GetService(typeof(SComponentModel));
 

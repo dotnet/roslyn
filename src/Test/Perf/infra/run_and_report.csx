@@ -5,14 +5,14 @@
 
 using System.IO;
 
-InitUtilities();
+var directoryUtil = new RelativeDirectory();
 
 // Gather performance metrics and produce csv files
-await RunFile(Path.Combine(MyWorkingDirectory(), "..", "runner.csx"));
+await RunFile(Path.Combine(directoryUtil.MyWorkingDirectory, "..", "runner.csx"));
 
 // Convert the produced consumptionTempResults.xml file to consumptionTempResults.csv file
-var elapsedTimeCsvFilePath = Path.Combine(GetCPCDirectoryPath(), "consumptionTempResults_ElapsedTime.csv");
-var result = ConvertConsumptionToCsv(Path.Combine(GetCPCDirectoryPath(), "consumptionTempResults.xml"), elapsedTimeCsvFilePath, "Duration_TotalElapsedTime");
+var elapsedTimeCsvFilePath = Path.Combine(directoryUtil.CPCDirectoryPath, "consumptionTempResults_ElapsedTime.csv");
+var result = ConvertConsumptionToCsv(Path.Combine(directoryUtil.CPCDirectoryPath, "consumptionTempResults.xml"), elapsedTimeCsvFilePath, "Duration_TotalElapsedTime");
 
 if (result)
 {
@@ -29,4 +29,4 @@ else
 }
 
 // Move the traces to mlangfs1 share
-UploadTraces(GetCPCDirectoryPath(), @"\\mlangfs1\public\basoundr\PerfTraces");
+UploadTraces(directoryUtil.CPCDirectoryPath, @"\\mlangfs1\public\basoundr\PerfTraces");

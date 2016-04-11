@@ -1,14 +1,17 @@
 <Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <PropertyGroup>
     <RoslynSemanticVersion Condition="'$(RoslynSemanticVersion)' == ''">2.0.0</RoslynSemanticVersion>
+    <!-- Currently we version IW the same as Roslyn. -->
+    <MicrosoftVisualStudioInteractiveWindowVersion>$(RoslynSemanticVersion)</MicrosoftVisualStudioInteractiveWindowVersion>
     <!-- These are the versions of dependencies we insert into VS -->
-    <SystemReflectionMetadataVersion>1.2.0</SystemReflectionMetadataVersion>
-    <SystemCollectionsImmutableVersion>1.1.37</SystemCollectionsImmutableVersion>
-    <MicrosoftDiaSymReaderVersion>1.0.7</MicrosoftDiaSymReaderVersion>
+    <SystemReflectionMetadataVersion>1.3.0-rc3-24005-00</SystemReflectionMetadataVersion>
+    <SystemCollectionsImmutableVersion>1.2.0-rc3-24005-00</SystemCollectionsImmutableVersion>
+    <MicrosoftDiaSymReaderVersion>1.0.8-rc2-60325</MicrosoftDiaSymReaderVersion>
     <MicrosoftDiaSymReaderNativeVersion>1.3.3</MicrosoftDiaSymReaderNativeVersion>
     <MicrosoftDiaSymReaderPortablePdbVersion>1.0.0</MicrosoftDiaSymReaderPortablePdbVersion>
-    <!-- Versioning is independent, this should not be the Roslyn semantic version -->
-    <CodeAnalysisAnalyzersVersion Condition="'$(CodeAnalysisAnalyzersVersion)' == ''">1.1.0</CodeAnalysisAnalyzersVersion>
+    <MicrosoftCodeAnalysisElfieVersion>0.10.6-rc2</MicrosoftCodeAnalysisElfieVersion>
+    <ManagedEsentVersion>1.9.2</ManagedEsentVersion>
+    <CodeAnalysisAnalyzersVersion>1.1.0</CodeAnalysisAnalyzersVersion>
   </PropertyGroup>
   
   <Choose>

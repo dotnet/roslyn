@@ -492,7 +492,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options
             set { SetBooleanOption(CSharpCodeStyleOptions.UseVarWhenDeclaringLocals, value); }
         }
 
-        public string Style_UseVarWherePossible
+        public string Style_UseImplicitTypeWherePossible
         {
             get
             {
@@ -505,7 +505,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options
             }
         }
 
-        public string Style_UseVarWhenTypeIsApparent
+        public string Style_UseImplicitTypeWhereApparent
         {
             get
             {
@@ -518,7 +518,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options
             }
         }
 
-        public string Style_UseVarForIntrinsicTypes
+        public string Style_UseImplicitTypeForIntrinsicTypes
         {
             get
             {

@@ -2,6 +2,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.Completion;
 using Microsoft.VisualStudio.Text;
 
@@ -9,8 +10,11 @@ namespace Microsoft.CodeAnalysis.Editor
 {
     internal interface ICompletionPresenterSession : IIntelliSensePresenterSession
     {
-        void PresentItems(ITrackingSpan triggerSpan, IList<CompletionItem> items, CompletionItem selectedItem,
-            CompletionItem presetBuilder, bool suggestionMode, bool isSoftSelected);
+        void PresentItems(
+            ITrackingSpan triggerSpan, IList<CompletionItem> items, CompletionItem selectedItem,
+            CompletionItem presetBuilder, bool suggestionMode, bool isSoftSelected,
+            ImmutableArray<CompletionItemFilter> completionItemFilters,
+            IReadOnlyDictionary<CompletionItem, string> completionItemToFilterText);
 
         void SelectPreviousItem();
         void SelectNextItem();
@@ -19,5 +23,6 @@ namespace Microsoft.CodeAnalysis.Editor
 
         event EventHandler<CompletionItemEventArgs> ItemSelected;
         event EventHandler<CompletionItemEventArgs> ItemCommitted;
+        event EventHandler<CompletionItemFilterStateChangedEventArgs> FilterStateChanged;
     }
 }

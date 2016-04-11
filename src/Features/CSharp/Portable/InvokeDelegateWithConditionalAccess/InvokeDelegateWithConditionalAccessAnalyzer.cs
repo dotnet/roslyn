@@ -250,7 +250,7 @@ namespace Microsoft.CodeAnalysis.CSharp.InvokeDelegateWithConditionalAccess
 
         public DiagnosticAnalyzerCategory GetAnalyzerCategory()
         {
-            return DiagnosticAnalyzerCategory.SemanticSpanAnalysis;
+            return DiagnosticAnalyzerCategory.SemanticDocumentAnalysis;
         }
     }
 }

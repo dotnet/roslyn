@@ -103,7 +103,7 @@ namespace RunTests.Cache
             var obj = new JObject();
             obj[NameExitCode] = testResult.ExitCode;
             obj[NameOutputStandard] = testResult.StandardOutput;
-            obj[NameOutputStandard] = testResult.ErrorOutput;
+            obj[NameOutputError] = testResult.ErrorOutput;
             obj[NameResultsFileName] = resultsFileName;
             obj[NameResultsFileContent] = testResult.ResultsFileContent;
             obj[NameElapsedSeconds] = (int)testResult.Elapsed.TotalSeconds;
