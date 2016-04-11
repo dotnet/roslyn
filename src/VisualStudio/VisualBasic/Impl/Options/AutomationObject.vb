@@ -1,6 +1,7 @@
 ' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports System.Runtime.InteropServices
+Imports System.Xml.Linq
 Imports Microsoft.CodeAnalysis
 Imports Microsoft.CodeAnalysis.CodeStyle
 Imports Microsoft.CodeAnalysis.Editor.Shared.Options
@@ -158,39 +159,39 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Options
             End Set
         End Property
 
-        Public Property Style_QualifyFieldAccess As Boolean
+        Public Property Style_QualifyFieldAccess As String
             Get
-                Return GetBooleanOption(CodeStyleOptions.QualifyFieldAccess)
+                Return GetXmlOption(CodeStyleOptions.QualifyFieldAccess)
             End Get
-            Set(value As Boolean)
-                SetBooleanOption(CodeStyleOptions.QualifyFieldAccess, value)
+            Set(value As String)
+                SetXmlOption(CodeStyleOptions.QualifyFieldAccess, value)
             End Set
         End Property
 
-        Public Property Style_QualifyPropertyAccess As Boolean
+        Public Property Style_QualifyPropertyAccess As String
             Get
-                Return GetBooleanOption(CodeStyleOptions.QualifyPropertyAccess)
+                Return GetXmlOption(CodeStyleOptions.QualifyPropertyAccess)
             End Get
-            Set(value As Boolean)
-                SetBooleanOption(CodeStyleOptions.QualifyPropertyAccess, value)
+            Set(value As String)
+                SetXmlOption(CodeStyleOptions.QualifyPropertyAccess, value)
             End Set
         End Property
 
-        Public Property Style_QualifyMethodAccess As Boolean
+        Public Property Style_QualifyMethodAccess As String
             Get
-                Return GetBooleanOption(CodeStyleOptions.QualifyMethodAccess)
+                Return GetXmlOption(CodeStyleOptions.QualifyMethodAccess)
             End Get
-            Set(value As Boolean)
-                SetBooleanOption(CodeStyleOptions.QualifyMethodAccess, value)
+            Set(value As String)
+                SetXmlOption(CodeStyleOptions.QualifyMethodAccess, value)
             End Set
         End Property
 
-        Public Property Style_QualifyEventAccess As Boolean
+        Public Property Style_QualifyEventAccess As String
             Get
-                Return GetBooleanOption(CodeStyleOptions.QualifyEventAccess)
+                Return GetXmlOption(CodeStyleOptions.QualifyEventAccess)
             End Get
-            Set(value As Boolean)
-                SetBooleanOption(CodeStyleOptions.QualifyEventAccess, value)
+            Set(value As String)
+                SetXmlOption(CodeStyleOptions.QualifyEventAccess, value)
             End Set
         End Property
 
@@ -225,6 +226,10 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Options
             Return _workspace.Options.GetOption(key, LanguageNames.VisualBasic)
         End Function
 
+        Private Function GetXmlOption(key As PerLanguageOption(Of CodeStyleOption(Of Boolean))) As String
+            Return _workspace.Options.GetOption(key, LanguageNames.VisualBasic).ToXElement().ToString()
+        End Function
+
         Private Sub SetBooleanOption(key As [PerLanguageOption](Of Boolean), value As Boolean)
             _workspace.Options = _workspace.Options.WithChangedOption(key, LanguageNames.VisualBasic, value)
         End Sub
@@ -243,14 +248,10 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Options
             _workspace.Options = _workspace.Options.WithChangedOption(key, LanguageNames.VisualBasic, boolValue)
         End Sub
 
-        Private Function GetBooleanOption(key As [PerLanguageOption](Of CodeStyleOption(Of Boolean))) As Boolean
-            Return _workspace.Options.GetOption(key, LanguageNames.VisualBasic).Value
-        End Function
-
-        Private Sub SetBooleanOption(key As [PerLanguageOption](Of CodeStyleOption(Of Boolean)), value As Boolean)
-            Dim opt = _workspace.Options.GetOption(key, LanguageNames.VisualBasic)
-            opt.Value = value
-            _workspace.Options = _workspace.Options.WithChangedOption(key, LanguageNames.VisualBasic, opt)
+        Private Sub SetXmlOption(key As PerLanguageOption(Of CodeStyleOption(Of Boolean)), value As String)
+            Dim convertedValue = CodeStyleOption(Of Boolean).FromXElement(XElement.Parse(value))
+            _workspace.Options = _workspace.Options.WithChangedOption(key, LanguageNames.VisualBasic, convertedValue)
         End Sub
+
     End Class
 End Namespace

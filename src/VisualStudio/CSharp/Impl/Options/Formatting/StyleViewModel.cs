@@ -251,8 +251,8 @@ class C{
 
             var predefinedTypesPreferences = new List<CodeStylePreference>
             {
-                new CodeStylePreference(CSharpVSResources.PreferPredefinedType, isChecked: true),
-                new CodeStylePreference(CSharpVSResources.PreferFrameworkType, isChecked: false),
+                new CodeStylePreference(ServicesVSResources.PreferPredefinedType, isChecked: true),
+                new CodeStylePreference(ServicesVSResources.PreferFrameworkType, isChecked: false),
             };
 
             var typeStylePreferences = new List<CodeStylePreference>
