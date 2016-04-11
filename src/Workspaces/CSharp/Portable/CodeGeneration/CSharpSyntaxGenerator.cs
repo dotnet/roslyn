@@ -1202,50 +1202,29 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
 
         public override SyntaxNode InsertNamespaceImports(SyntaxNode declaration, int index, IEnumerable<SyntaxNode> imports)
         {
-            var usings = AsUsingDirectives(imports);
+            SyntaxList<UsingDirectiveSyntax> usingsToInsert = AsUsingDirectives(imports);
 
             switch (declaration.Kind())
             {
                 case SyntaxKind.CompilationUnit:
-                    var cu = ((CompilationUnitSyntax)declaration);
-
-                    if (index == 0 && usings.Count > 0)
-                    {
-                        // First. Copy any pp directives or banners from the compilation unit.  They have to
-                        // move to the first using node.
-                        usings = CopyBanner(cu, usings);
-
-                        // Now, we need to fix up the compilation unit.  We need to strip it of its banner, 
-                        // and we need to add additional whitespace to match the user's style.
-                        var blankLines = usings[0].GetLeadingBlankLines();
-                        cu = cu.GetNodeWithoutLeadingBannerAndPreprocessorDirectives()
-                            .WithPrependedLeadingTrivia(blankLines);
-                    }
-
-                    return cu.WithUsings(cu.Usings.InsertRange(index, usings));
+                    var cu = (CompilationUnitSyntax)declaration;
+                    return PreserveBanner(cu, usingsToInsert, index);
                 case SyntaxKind.NamespaceDeclaration:
-                    var nd = ((NamespaceDeclarationSyntax)declaration);
-                    return nd.WithUsings(nd.Usings.InsertRange(index, usings));
+                    var nd = (NamespaceDeclarationSyntax)declaration;
+                    return nd.WithUsings(nd.Usings.InsertRange(index, usingsToInsert));
                 default:
                     return declaration;
             }
         }
 
-        private static SyntaxList<UsingDirectiveSyntax> CopyBanner(CompilationUnitSyntax cu, SyntaxList<UsingDirectiveSyntax> usingsToInsert)
+        private static CompilationUnitSyntax PreserveBanner(CompilationUnitSyntax compilationUnit,
+            SyntaxList<UsingDirectiveSyntax> usingsToInsert, int insertAtOffset)
         {
-            // First. Strip any pp directives or banners on the compilation unit.  They
-            // have to stay at the top of the list.
-            IEnumerable<SyntaxTrivia> banner = cu.GetLeadingBannerAndPreprocessorDirectives();
-
-            // Now, we want to remove any blank lines from the new first node and then reattach the banner. 
-            var finalFirstNode = usingsToInsert[0];
-            finalFirstNode = finalFirstNode.GetNodeWithoutLeadingBlankLines();
-            finalFirstNode = finalFirstNode.WithLeadingTrivia(banner.Concat(finalFirstNode.GetLeadingTrivia()));
-
-            // Place the updated first node back in the result list.
-            List<UsingDirectiveSyntax> resultList = usingsToInsert.ToList();
-            resultList[0] = finalFirstNode;
-            return resultList.ToSyntaxList();
+            return (CompilationUnitSyntax) PreserveTrivia(compilationUnit, cu =>
+            {
+                var newUsings = cu.Usings.InsertRange(insertAtOffset, usingsToInsert);
+                return cu.WithUsings(newUsings);
+            });
         }
 
         public override IReadOnlyList<SyntaxNode> GetMembers(SyntaxNode declaration)
