@@ -23,7 +23,8 @@ foreach (var script in GetAllCsxRecursive(testDirectory))
 {
     var scriptName = Path.GetFileNameWithoutExtension(script);
     Log($"Collecting tests from {scriptName}");
-    var tests = (object[]) (await RunFile(script)).ReturnValue;
+    var state = await RunFile(script);
+    object[] tests = (object[]) state.GetVariable("resultTests").Value;
     testInstances.AddRange(tests);
 }
 
