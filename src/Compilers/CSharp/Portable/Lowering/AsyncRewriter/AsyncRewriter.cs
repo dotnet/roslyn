@@ -214,11 +214,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                             ImmutableArray.Create<BoundExpression>(F.Local(stateMachineVariable)))));
 
                 // return || return local.$Builder.Task
-                var e1 = F.Local(stateMachineVariable); string e1t = e1.Type.ToString();
-                var e2 = F.Field(e1, _builderField.AsMember(frameType)); string e2t = e2.ToString();
-                var e3 = F.Property(e2, "Task"); string e3t = e3.ToString();
-                var e4 = F.Return(e3);
-
                 bodyBuilder.Add(method.IsVoidReturningAsync()
                     ? F.Return()
                     : F.Return(F.Property(F.Field(F.Local(stateMachineVariable), _builderField.AsMember(frameType)), "Task"))); 

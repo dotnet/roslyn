@@ -146,6 +146,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     TryGetWellKnownPropertyAsMember(F, WellKnownMember.System_Runtime_CompilerServices_AsyncTaskMethodBuilder__Task, builderType, out task);
                 }
+                if (task == null)
+                {
+                    collection = default(AsyncMethodBuilderMemberCollection);
+                    return false;
+                }
+
 
                 return TryCreate(
                     F: F,
@@ -190,6 +196,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     TryGetWellKnownPropertyAsMember(F, WellKnownMember.System_Runtime_CompilerServices_AsyncTaskMethodBuilder_T__Task, builderType, out task);
                 }
+                if (task == null)
+                {
+                    collection = default(AsyncMethodBuilderMemberCollection);
+                    return false;
+                }
+
 
                 return TryCreate(
                     F: F,
@@ -237,8 +249,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 TryGetWellKnownMethodAsMember(F, awaitOnCompleted, builderType, requireWellKnownType, out awaitOnCompletedMethod) &&
                 TryGetWellKnownMethodAsMember(F, awaitUnsafeOnCompleted, builderType, requireWellKnownType, out awaitUnsafeOnCompletedMethod) &&
                 TryGetWellKnownMethodAsMember(F, start, builderType, requireWellKnownType, out startMethod) &&
-                TryGetWellKnownMethodAsMember(F, setStateMachine, builderType, requireWellKnownType, out setStateMachineMethod) &&
-                task != null)
+                TryGetWellKnownMethodAsMember(F, setStateMachine, builderType, requireWellKnownType, out setStateMachineMethod))
             {
                 collection = new AsyncMethodBuilderMemberCollection(
                     builderType,

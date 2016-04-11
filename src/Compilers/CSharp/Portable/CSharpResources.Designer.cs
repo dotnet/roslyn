@@ -9522,7 +9522,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Microsoft (R) Visual C# Compiler +ArbitraryAsyncReturns.
+        ///   Looks up a localized string similar to Microsoft (R) Visual C# Compiler.
         /// </summary>
         internal static string IDS_ToolName {
             get {
