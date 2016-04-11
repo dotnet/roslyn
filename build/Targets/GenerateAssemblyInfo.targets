@@ -1,4 +1,10 @@
 ﻿<Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <!-- ====================================================================================
+
+         Generation of AssemblyVersion attributes from the BuildVersion property
+
+       ==================================================================================== -->
+
   <PropertyGroup>
     <GeneratedAssemblyInfoFile>$(IntermediateOutputPath)GeneratedAssemblyInfo_$(BuildVersion)$(DefaultLanguageSourceExtension)</GeneratedAssemblyInfoFile>
   </PropertyGroup>
