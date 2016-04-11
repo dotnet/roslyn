@@ -841,10 +841,36 @@ namespace Microsoft.CodeAnalysis.Semantics
         /// Kind of conversion.
         /// </summary>
         ConversionKind ConversionKind { get; }
+
+        /// <summary>
+        /// Returns true if the conversion is an identity conversion.
+        /// </summary>
+        bool IsIdentity { get; }
+
+        /// <summary>
+        /// Returns true if the conversion is an implicit ('widening' in VB) conversion.
+        /// </summary>
+        bool IsImplicit { get; }
+
         /// <summary>
         /// True if and only if the conversion is indicated explicity by a cast operation in the source code.
         /// </summary>
         bool IsExplicit { get; }
+
+        /// <summary>
+        /// Returns true if the conversion is an implicit numeric conversion or explicit numeric conversion. 
+        /// </summary>
+        bool IsNumeric { get; }
+
+        /// <summary>
+        /// Returns true if the conversion is an implicit nullable conversion or explicit nullable conversion.
+        /// </summary>
+        bool IsNullable { get; }
+
+        /// <summary>
+        /// Returns true if the conversion is an implicit reference conversion or explicit reference conversion.
+        /// </summary>
+        bool IsReference { get; }
     }
 
     /// <summary>

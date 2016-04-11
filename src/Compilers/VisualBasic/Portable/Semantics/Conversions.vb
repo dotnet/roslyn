@@ -23,6 +23,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Private ReadOnly _convKind As ConversionKind
         Private ReadOnly _method As MethodSymbol
 
+        Friend Sub New(kind As ConversionKind)
+            _convKind = kind
+        End Sub
+
         Friend Sub New(conv As KeyValuePair(Of ConversionKind, MethodSymbol))
             _convKind = conv.Key
             _method = conv.Value

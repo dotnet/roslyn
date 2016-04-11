@@ -2349,7 +2349,7 @@ _Default:
                 End If
             End If
 
-            Return New Conversion(Nothing) ' NoConversion
+            Return New Conversion() ' NoConversion
         End Function
 
         ''' <summary>

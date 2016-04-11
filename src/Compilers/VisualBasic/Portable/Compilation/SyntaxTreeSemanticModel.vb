@@ -1391,7 +1391,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             ' going to hold off on this until we do a full sweep of the API.
             Dim binding = Me.GetMemberSemanticModel(expression)
             If binding Is Nothing Then
-                Return New Conversion(Nothing)  'NoConversion
+                Return New Conversion() 'NoConversion
             End If
 
             Return binding.ClassifyConversion(expression, vbdestination)
