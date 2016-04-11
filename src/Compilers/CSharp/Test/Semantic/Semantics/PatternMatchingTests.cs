@@ -15143,7 +15143,7 @@ True
 False");
         }
 
-        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/10465")]
+        [Fact, WorkItem(10465, "https://github.com/dotnet/roslyn/issues/10465")]
         public void Constants_Fail()
         {
             var source =
@@ -15153,17 +15153,32 @@ public class X
 {
     public static void Main()
     {
-        Console.WriteLine(1L is 1); // should fail to compile due to type mismatch
-        Console.WriteLine(1L is int.MaxValue); // should fail to compile due to type mismatch
+        Console.WriteLine(1L is string); // warning: type mismatch
         Console.WriteLine(1 is int[]); // warning: expression is never of the provided type
+
+        Console.WriteLine(1L is string s); // error: type mismatch
+        Console.WriteLine(1 is int[] a); // error: expression is never of the provided type
     }
 }
 ";
             var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe, parseOptions: patternParseOptions);
-            compilation.VerifyDiagnostics();
+            compilation.VerifyDiagnostics(
+                // (7,27): warning CS0184: The given expression is never of the provided ('string') type
+                //         Console.WriteLine(1L is string); // warning: type mismatch
+                Diagnostic(ErrorCode.WRN_IsAlwaysFalse, "1L is string").WithArguments("string").WithLocation(7, 27),
+                // (8,27): warning CS0184: The given expression is never of the provided ('int[]') type
+                //         Console.WriteLine(1 is int[]); // warning: expression is never of the provided type
+                Diagnostic(ErrorCode.WRN_IsAlwaysFalse, "1 is int[]").WithArguments("int[]").WithLocation(8, 27),
+                // (10,33): error CS0030: Cannot convert type 'long' to 'string'
+                //         Console.WriteLine(1L is string s); // error: type mismatch
+                Diagnostic(ErrorCode.ERR_NoExplicitConv, "string").WithArguments("long", "string").WithLocation(10, 33),
+                // (11,32): error CS0030: Cannot convert type 'int' to 'int[]'
+                //         Console.WriteLine(1 is int[] a); // error: expression is never of the provided type
+                Diagnostic(ErrorCode.ERR_NoExplicitConv, "int[]").WithArguments("int", "int[]").WithLocation(11, 32)
+                );
         }
 
-        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/10465")]
+        [Fact, WorkItem(10465, "https://github.com/dotnet/roslyn/issues/10465")]
         public void Types_Pass()
         {
             var source =
@@ -15173,9 +15188,10 @@ public class X
 {
     public static void Main()
     {
-        Console.WriteLine(1 is 1);
-        Console.WriteLine(1 is int.MaxValue);
-        Console.WriteLine(new int[] {1, 2} is int[]);
+        Console.WriteLine(1 is 1); // true
+        Console.WriteLine(1L is int.MaxValue); // OK, but false
+        Console.WriteLine(1 is int.MaxValue); // false
+        Console.WriteLine(new int[] {1, 2} is int[] a); // true
         object o = null;
         switch (o)
         {
@@ -15186,6 +15202,7 @@ public class X
             case int i:
                 break;
             case null:
+                Console.WriteLine(""null"");
                 break;
         }
     }
@@ -15193,6 +15210,12 @@ public class X
 ";
             var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe, parseOptions: patternParseOptions);
             compilation.VerifyDiagnostics();
+            CompileAndVerify(compilation, expectedOutput:
+@"True
+False
+False
+True
+null");
         }
     }
 }

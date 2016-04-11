@@ -65,13 +65,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                     if (node == null)
                     {
                         Debug.Assert(Precedence.Shift == Precedence.Relational + 1);
-                        if (IsExpectedBinaryOperator(tk) && GetPrecedence(SyntaxFacts.GetBinaryExpression(tk)) > Precedence.Relational)
+                        if (IsExpectedBinaryOperator(tk) && GetPrecedence(SyntaxFacts.GetBinaryExpression(tk)) > Precedence.Relational ||
+                            tk == SyntaxKind.DotToken)
                         {
                             this.Reset(ref resetPoint);
                             // We parse a shift-expression ONLY (nothing looser) - i.e. not a relational expression
                             // So x is y < z should be parsed as (x is y) < z
                             // But x is y << z should be parsed as x is (y << z)
-                            node = _syntaxFactory.ConstantPattern(this.ParseExpression(Precedence.Shift));
+                            node = _syntaxFactory.ConstantPattern(this.ParseSubExpression(Precedence.Shift));
                         }
                         // it is a typical is operator! 
                         else
@@ -90,7 +91,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             }
             else
             {
-                // it still might be a pattern such as (operand is 3) or (operand is -3)
+                // it still might be a pattern such as (operand is 3) or (operand is nameof(x))
                 node = _syntaxFactory.ConstantPattern(this.ParseExpressionCore());
             }
             return node;
