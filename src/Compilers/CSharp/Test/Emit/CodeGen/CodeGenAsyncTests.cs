@@ -3,45 +3,7 @@
 // TODO: the following lambda code doesn't work.
 // (1) There's a regression where the "f" case of better-betterness fails
 // (2) The "g" case isn't even using the better-betterness rule
-class Program
-{
-    static void Main()
-    {
-        f(async () => { await Task.Delay(0); return 1; });
-        g(async () => { await Task.Delay(0); return 1; });
-    }
 
-    static void f<T>(Func<Task<T>> lambda) { Console.WriteLine("best"); }
-    static void f<T>(Func<T> lambda) { Console.WriteLine("wrong"); }
-    static void f<T>(T arg) { Console.WriteLine("wrong"); }
-
-    static void g<T>(Func<MyTask<T>> lambda) { Console.WriteLine("best"); }
-    static void g<T>(Func<T> lambda) { Console.WriteLine("wrong"); }
-    static void g<T>(T arg) { Console.WriteLine("wrong"); }
-}
-
-[Tasklike(typeof(MyTaskBuilder<>))]
-public class MyTask<T> { }
-
-class MyTaskBuilder<T>
-{
-    public static MyTaskBuilder<T> Create() => new MyTaskBuilder<T>();
-    public void Start<TStateMachine>(ref TStateMachine stateMachine) where TStateMachine : IAsyncStateMachine { }
-    public void SetStateMachine(IAsyncStateMachine stateMachine) { }
-    public void SetResult(T result) { }
-    public void SetException(Exception exception) { }
-    public MyTask<T> Task => default(MyTask<T>);
-    public void AwaitOnCompleted<TAwaiter, TStateMachine>(ref TAwaiter awaiter, ref TStateMachine stateMachine) where TAwaiter : INotifyCompletion where TStateMachine : IAsyncStateMachine { }
-    public void AwaitUnsafeOnCompleted<TAwaiter, TStateMachine>(ref TAwaiter awaiter, ref TStateMachine stateMachine) where TAwaiter : ICriticalNotifyCompletion where TStateMachine : IAsyncStateMachine { }
-}
-
-namespace System.Runtime.CompilerServices
-{
-    public class TasklikeAttribute : Attribute
-    {
-        public TasklikeAttribute(Type builderType) { }
-    }
-}
 
 
 using System.Collections.Generic;
@@ -3214,8 +3176,71 @@ class C
 
         // TASKLIKE TODO: test supplying Tasklike(typeof(Something<int>)), i.e.with an instantiation, not an open type
 
+        // TASKLIKE TODO: if you pass an async lambda into something that expects Func<T> or just <T>, will it default to Task?
 
-       [Fact]
+        [Fact]
+        public void AsyncTasklikeLambdas()
+        {
+            var source = @"
+using System;
+using System.Runtime.CompilerServices;
+using System.Threading.Tasks;
+class C {
+    static void Main() {
+        f(async () => { await Task.Delay(0); return 1; });
+        g(async () => { await Task.Delay(0); return 1; });
+    }
+    static void f<T>(Func<Task<T>> lambda) { Console.WriteLine(""f1""); }
+    static void f<T>(Func<T> lambda) { Console.WriteLine(""f2""); }
+    static void f<T>(T arg) { Console.WriteLine(""f3""); }
+    static void g<T>(Func<MyTask<T>> lambda) { Console.WriteLine(""g1""); }
+    static void g<T>(Func<T> lambda) { Console.WriteLine(""g2""); }
+    static void g<T>(T arg) { Console.WriteLine(""g3""); }
+}
+[Tasklike(typeof(MyTaskBuilder<>))] public class MyTask<T> { }
+class MyTaskBuilder<T> {
+    public static MyTaskBuilder<T> Create() => new MyTaskBuilder<T>();
+    public void Start<TStateMachine>(ref TStateMachine stateMachine) where TStateMachine : IAsyncStateMachine { }
+    public void SetStateMachine(IAsyncStateMachine stateMachine) { }
+    public void SetResult(T result) { }
+    public void SetException(Exception exception) { }
+    public MyTask<T> Task => default(MyTask<T>);
+    public void AwaitOnCompleted<TAwaiter, TStateMachine>(ref TAwaiter awaiter, ref TStateMachine stateMachine) where TAwaiter : INotifyCompletion where TStateMachine : IAsyncStateMachine { }
+    public void AwaitUnsafeOnCompleted<TAwaiter, TStateMachine>(ref TAwaiter awaiter, ref TStateMachine stateMachine) where TAwaiter : ICriticalNotifyCompletion where TStateMachine : IAsyncStateMachine { }
+}
+
+namespace System.Runtime.CompilerServices { public class TasklikeAttribute : Attribute { public TasklikeAttribute(Type builderType) { } } }
+";
+            var v = CompileAndVerify(source, null, options: TestOptions.ReleaseDll);
+            v.VerifyIL("C.Main", @"
+{
+  // Code size       73 (0x49)
+  .maxstack  2
+  IL_0000:  ldsfld     ""System.Func<System.Threading.Tasks.Task<int>> C.<>c.<>9__0_0""
+  IL_0005:  dup
+  IL_0006:  brtrue.s   IL_001f
+  IL_0008:  pop
+  IL_0009:  ldsfld     ""C.<>c C.<>c.<>9""
+  IL_000e:  ldftn      ""System.Threading.Tasks.Task<int> C.<>c.<Main>b__0_0()""
+  IL_0014:  newobj     ""System.Func<System.Threading.Tasks.Task<int>>..ctor(object, System.IntPtr)""
+  IL_0019:  dup
+  IL_001a:  stsfld     ""System.Func<System.Threading.Tasks.Task<int>> C.<>c.<>9__0_0""
+  IL_001f:  call       ""void C.f<int>(System.Func<System.Threading.Tasks.Task<int>>)""
+  IL_0024:  ldsfld     ""System.Func<MyTask<int>> C.<>c.<>9__0_1""
+  IL_0029:  dup
+  IL_002a:  brtrue.s   IL_0043
+  IL_002c:  pop
+  IL_002d:  ldsfld     ""C.<>c C.<>c.<>9""
+  IL_0032:  ldftn      ""MyTask<int> C.<>c.<Main>b__0_1()""
+  IL_0038:  newobj     ""System.Func<MyTask<int>>..ctor(object, System.IntPtr)""
+  IL_003d:  dup
+  IL_003e:  stsfld     ""System.Func<MyTask<int>> C.<>c.<>9__0_1""
+  IL_0043:  call       ""void C.g<int>(System.Func<MyTask<int>>)""
+  IL_0048:  ret
+}");
+        }
+
+        [Fact]
         public void PresentAsyncTasklikeBuilder()
         {
             var source = @"

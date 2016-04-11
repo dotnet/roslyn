@@ -1852,7 +1852,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 if (lambda.Symbol.IsAsync)
                 {
                     // Dig through Task<...> for an async lambda.
-                    if (y.OriginalDefinition == Compilation.GetWellKnownType(WellKnownType.System_Threading_Tasks_Task_T))
+                    if (y.OriginalDefinition.IsGenericTaskOrTasklike(Compilation))
                     {
                         y = ((NamedTypeSymbol)y).TypeArgumentsNoUseSiteDiagnostics[0];
                     }
@@ -1996,28 +1996,23 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return BetterResult.Right;
             }
 
-            var task_T = Compilation.GetWellKnownType(WellKnownType.System_Threading_Tasks_Task_T);
-
-            if ((object)task_T != null)
+            if (type1.OriginalDefinition.IsGenericTaskOrTasklike(Compilation))
             {
-                if (type1.OriginalDefinition == task_T)
+                if (type2.OriginalDefinition.IsGenericTaskOrTasklike(Compilation))
                 {
-                    if (type2.OriginalDefinition == task_T)
-                    {
-                        // - T1 is Task<S1>, T2 is Task<S2>, and S1 is a better conversion target than S2
-                        return BetterConversionTarget(((NamedTypeSymbol)type1).TypeArgumentsNoUseSiteDiagnostics[0],
-                                                      ((NamedTypeSymbol)type2).TypeArgumentsNoUseSiteDiagnostics[0],
-                                                      ref useSiteDiagnostics);
-                    }
+                    // - T1 is Tasklike<S1>, T2 is Tasklike<S2>, and S1 is a better conversion target than S2
+                    return BetterConversionTarget(((NamedTypeSymbol)type1).TypeArgumentsNoUseSiteDiagnostics[0],
+                                                  ((NamedTypeSymbol)type2).TypeArgumentsNoUseSiteDiagnostics[0],
+                                                  ref useSiteDiagnostics);
+                }
 
-                    // A shortcut, Task<T> type cannot satisfy other rules.
-                    return BetterResult.Neither;
-                }
-                else if (type2.OriginalDefinition == task_T)
-                {
-                    // A shortcut, Task<T> type cannot satisfy other rules.
-                    return BetterResult.Neither;
-                }
+                // A shortcut, Tasklike<T> type cannot satisfy other rules.
+                return BetterResult.Neither;
+            }
+            else if (type2.OriginalDefinition.IsGenericTaskOrTasklike(Compilation))
+            {
+                // A shortcut, Tasklike<T> type cannot satisfy other rules.
+                return BetterResult.Neither;
             }
 
             NamedTypeSymbol d1;

@@ -40,7 +40,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             if (inferReturnType)
             {
-                _inferredReturnType = InferReturnType(this.Body, this.Binder, this.Symbol.IsAsync, ref _inferredReturnTypeUseSiteDiagnostics, out _inferredFromSingleType);
+                _inferredReturnType = InferReturnType(this.Body, this.Binder, this.Symbol.IsAsync, this.Type, ref _inferredReturnTypeUseSiteDiagnostics, out _inferredFromSingleType);
 
 #if DEBUG
                 _hasInferredReturnType = true;
@@ -76,7 +76,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return _inferredReturnType;
         }
 
-        private static TypeSymbol InferReturnType(BoundBlock block, Binder binder, bool isAsync, ref HashSet<DiagnosticInfo> useSiteDiagnostics, out bool inferredFromSingleType)
+        private static TypeSymbol InferReturnType(BoundBlock block, Binder binder, bool isAsync, TypeSymbol delegateTargetType, ref HashSet<DiagnosticInfo> useSiteDiagnostics, out bool inferredFromSingleType)
         {
             int numberOfDistinctReturns;
             var resultTypes = BlockReturns.GetReturnTypes(block, out numberOfDistinctReturns);
@@ -117,7 +117,16 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return null;
             }
 
-            // Some non-void best type T was found; infer type Task<T>:
+            // Some non-void best type T was found; infer type Task<T>
+            // or, in case of a Tasklike, infer Tasklike<T>
+            if (delegateTargetType != null && (delegateTargetType.IsDelegateType() || delegateTargetType.IsExpressionTree()))
+            {
+                var tasklikeType = delegateTargetType.DelegateInvokeMethod().ReturnType as NamedTypeSymbol;
+                if (tasklikeType != null && tasklikeType.GetCustomBuilderForTasklike() != null && tasklikeType.GetArity() == 1)
+                {
+                    return tasklikeType.ConstructedFrom.Construct(bestResultType);
+                }
+            }
             return binder.Compilation.GetWellKnownType(WellKnownType.System_Threading_Tasks_Task_T).Construct(bestResultType);
         }
 
@@ -386,7 +395,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 if ((object)returnType != null && // Can be null if "delegateType" is not actually a delegate type.
                     returnType.SpecialType != SpecialType.System_Void &&
                     returnType != binder.Compilation.GetWellKnownType(WellKnownType.System_Threading_Tasks_Task) &&
-                    returnType.OriginalDefinition != binder.Compilation.GetWellKnownType(WellKnownType.System_Threading_Tasks_Task_T))
+                    returnType.OriginalDefinition != binder.Compilation.GetWellKnownType(WellKnownType.System_Threading_Tasks_Task_T) &&
+                    returnType.GetCustomBuilderForTasklike() == null)
                 {
                     // Cannot convert async {0} to delegate type '{1}'. An async {0} may return void, Task or Task&lt;T&gt;, none of which are convertible to '{1}'.
                     diagnostics.Add(ErrorCode.ERR_CantConvAsyncAnonFuncReturns, lambdaSymbol.Locations[0], lambdaSymbol.MessageID.Localize(), delegateType);

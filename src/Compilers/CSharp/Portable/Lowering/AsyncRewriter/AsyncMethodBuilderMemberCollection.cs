@@ -119,11 +119,13 @@ namespace Microsoft.CodeAnalysis.CSharp
                     collection: out collection);
             }
 
-            NamedTypeSymbol customBuilderType_Open = method.GetTasklikeBuilderFromAttribute(F.Compilation); // it's what the user wrote in the attribute, likely an open type ValueTask<>
-            if (customBuilderType_Open != null)
+            // customBuilderType is what the user wrote in the attribute, either nongeneric
+            // MyBuilder or open MyBuilder<> or closed MyBuilder<int>
+            NamedTypeSymbol customBuilderType = method.ReturnType.GetCustomBuilderForTasklike(); 
+            if (customBuilderType != null)
             {
                 Debug.Assert(method.ReturnType.GetArity() <= 1, "By lowering-async-method time, arity of return type should be 0 or 1");
-                if ((customBuilderType_Open.Arity != method.ReturnType.GetArity()) || (customBuilderType_Open.Arity > 1))
+                if ((customBuilderType.Arity != method.ReturnType.GetArity()) || (customBuilderType.Arity > 1))
                 {
                     CSDiagnostic error = new CSDiagnostic(new CSDiagnosticInfo(ErrorCode.ERR_UnexpectedGenericName), F.Syntax.Location, false);
                     throw new SyntheticBoundNodeFactory.MissingPredefinedMember(error);
@@ -133,10 +135,10 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (method.IsNongenericTasklikeReturningAsync(F.Compilation))
             {
-                var builderType = customBuilderType_Open ?? F.WellKnownType(WellKnownType.System_Runtime_CompilerServices_AsyncTaskMethodBuilder);
+                var builderType = customBuilderType ?? F.WellKnownType(WellKnownType.System_Runtime_CompilerServices_AsyncTaskMethodBuilder);
 
                 PropertySymbol task;
-                if (customBuilderType_Open != null)
+                if (customBuilderType != null)
                 {
                     TryGetTaskPropertyAsMember(F, builderType, method.ReturnType, out task);
                 }
@@ -158,7 +160,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     start: WellKnownMember.System_Runtime_CompilerServices_AsyncTaskMethodBuilder__Start_T,
                     setStateMachine: WellKnownMember.System_Runtime_CompilerServices_AsyncTaskMethodBuilder__SetStateMachine,
                     task: task,
-                    requireWellKnownType: ((object)customBuilderType_Open == null),
+                    requireWellKnownType: ((object)customBuilderType == null),
                     collection: out collection);
             }
 
@@ -176,11 +178,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                     resultType = typeMap.SubstituteType(resultType).Type;
                 }
 
-                var builderType = customBuilderType_Open.ConstructedFrom ?? F.WellKnownType(WellKnownType.System_Runtime_CompilerServices_AsyncTaskMethodBuilder_T);
+                var builderType = customBuilderType?.ConstructedFrom ?? F.WellKnownType(WellKnownType.System_Runtime_CompilerServices_AsyncTaskMethodBuilder_T);
                 builderType = builderType.Construct(resultType);
 
                 PropertySymbol task;
-                if (customBuilderType_Open != null)
+                if (customBuilderType != null)
                 {
                     TryGetTaskPropertyAsMember(F, builderType, method.ReturnType, out task);
                 }
@@ -202,7 +204,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     start: WellKnownMember.System_Runtime_CompilerServices_AsyncTaskMethodBuilder_T__Start_T,
                     setStateMachine: WellKnownMember.System_Runtime_CompilerServices_AsyncTaskMethodBuilder_T__SetStateMachine,
                     task: task,
-                    requireWellKnownType: ((object)customBuilderType_Open == null),
+                    requireWellKnownType: ((object)customBuilderType == null),
                     collection: out collection);
             }
 

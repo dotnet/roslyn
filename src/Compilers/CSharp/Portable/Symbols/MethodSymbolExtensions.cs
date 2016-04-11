@@ -285,7 +285,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 return false;
             }
             if (method.ReturnType == compilation.GetWellKnownType(WellKnownType.System_Threading_Tasks_Task)
-                || (method.ReturnType.GetArity() == 0 && method.GetTasklikeBuilderFromAttribute(compilation) != null))
+                || (method.ReturnType?.GetArity() == 0 && method.ReturnType?.GetCustomBuilderForTasklike() != null))
             {
                 return true;
             }
@@ -300,40 +300,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// </summary>
         public static bool IsGenericTasklikeReturningAsync(this MethodSymbol method, CSharpCompilation compilation)
         {
-            if (!method.IsAsync || method.ReturnType.Kind != SymbolKind.NamedType)
-            {
-                return false;
-            }
-            var returnType = (NamedTypeSymbol)method.ReturnType;
-            if (returnType == compilation.GetWellKnownType(WellKnownType.System_Threading_Tasks_Task_T)
-                || (returnType.Arity == 1 && method.GetTasklikeBuilderFromAttribute(compilation) != null))
-            {
-                return true;
-            }
-            return false;
+            return (method.IsAsync && (object)method.ReturnType != null
+                    && method.ReturnType.IsGenericTaskOrTasklike(compilation));
         }
 
-        /// <summary>
-        /// Given a method, and the method has a return-type, and that return-type
-        /// has an attribute [TaskLike(T)] on it, then returns that T. Otherwise, null.
-        /// </summary>
-        public static NamedTypeSymbol GetTasklikeBuilderFromAttribute(this MethodSymbol method, CSharpCompilation compilation)
-        {
-            var returnType = method.ReturnType;
-
-            foreach (var attr in returnType.GetAttributes())
-            {
-                if (attr.IsTargetAttribute(returnType, AttributeDescription.TasklikeAttribute))
-                {
-                    var builderArg = attr.CommonConstructorArguments.FirstOrNullable();
-                    if (builderArg?.Kind == TypedConstantKind.Type)
-                    {
-                        return builderArg?.Value as NamedTypeSymbol;
-                    }
-                }
-            }
-            return null;
-        }
 
     }
 }
