@@ -46,10 +46,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                         return LowerConstantPattern(constantPattern, input);
                     }
 
-                case BoundKind.RecursivePattern:
+                case BoundKind.PositionalPattern:
                     {
-                        var recursivePattern = (BoundRecursivePattern)pattern;
-                        return LowerRecursivePattern(recursivePattern, input);
+                        var recursivePattern = (BoundPositionalPattern)pattern;
+                        return LowerPositionalPattern(recursivePattern, input);
                     }
 
                 default:
@@ -114,11 +114,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             return MakeDeclarationPattern(pattern.Syntax, input, pattern.LocalSymbol);
         }
 
-        private BoundExpression LowerRecursivePattern(BoundRecursivePattern recursivePattern, BoundExpression input)
+        private BoundExpression LowerPositionalPattern(BoundPositionalPattern pattern, BoundExpression input)
         {
             // cast the input to the argument type of 'operator is'.
-            var temp = _factory.SynthesizedLocal(recursivePattern.IsOperator.Parameters[0].Type, recursivePattern.Syntax);
-            var test = MakeDeclarationPattern(recursivePattern.Syntax, input, temp);
+            var temp = _factory.SynthesizedLocal(pattern.IsOperator.Parameters[0].Type, pattern.Syntax);
+            var test = MakeDeclarationPattern(pattern.Syntax, input, temp);
 
             // prepare arguments to call 'operator is'
             var arguments = ArrayBuilder<BoundExpression>.GetInstance();
@@ -126,18 +126,18 @@ namespace Microsoft.CodeAnalysis.CSharp
             var argumentRefKinds = ArrayBuilder<RefKind>.GetInstance();
             arguments.Add(_factory.Local(temp));
             argumentRefKinds.Add(RefKind.None);
-            foreach (var p in recursivePattern.IsOperator.Parameters)
+            foreach (var p in pattern.IsOperator.Parameters)
             {
                 if (p.Ordinal == 0) continue;
-                var argumentTemp = _factory.SynthesizedLocal(p.Type, recursivePattern.Patterns[p.Ordinal - 1].Syntax);
+                var argumentTemp = _factory.SynthesizedLocal(p.Type, pattern.Patterns[p.Ordinal - 1].Syntax);
                 argumentTemps.Add(argumentTemp);
                 argumentRefKinds.Add(RefKind.Out);
                 arguments.Add(_factory.Local(argumentTemp));
             }
 
             // invoke 'operator is' and use its result
-            BoundExpression invoke = _factory.Call(null, recursivePattern.IsOperator, argumentRefKinds.ToImmutableAndFree(), arguments.ToImmutableAndFree());
-            if (recursivePattern.IsOperator.ReturnsVoid)
+            BoundExpression invoke = _factory.Call(null, pattern.IsOperator, argumentRefKinds.ToImmutableAndFree(), arguments.ToImmutableAndFree());
+            if (pattern.IsOperator.ReturnsVoid)
             {
                 // if the user-defined operator is irrefutable, we treat it as returning true
                 invoke = _factory.Sequence(invoke, _factory.Literal(true));
@@ -146,9 +146,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             test = _factory.Sequence(temp, LogicalAndForPatterns(test, invoke));
 
             // handle each of the nested patterns.
-            for (int i = 0; i < recursivePattern.Patterns.Length; i++)
+            for (int i = 0; i < pattern.Patterns.Length; i++)
             {
-                var recursiveTest = LowerPattern(recursivePattern.Patterns[i], _factory.Local(argumentTemps[i]));
+                var recursiveTest = LowerPattern(pattern.Patterns[i], _factory.Local(argumentTemps[i]));
                 test = LogicalAndForPatterns(test, recursiveTest);
             }
 

@@ -44,10 +44,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                     tk = this.CurrentToken.ContextualKind;
                     if (!type.IsMissing)
                     {
-                        // X.Y.Z ( ... ) : RecursivePattern
+                        // X.Y.Z ( ... ) : PositionalPattern
                         if (tk == SyntaxKind.OpenParenToken)
                         {
-                            node = _syntaxFactory.RecursivePattern(type, this.ParseSubRecursivePatternList());
+                            node = _syntaxFactory.PositionalPattern(type, this.ParseSubPositionalPatternList());
                             node = CheckFeatureAvailability(node, MessageID.IDS_FeaturePatternMatching2);
                         }
                         // X.Y.Z { ... } : PropertyPattern
@@ -104,23 +104,23 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             return _syntaxFactory.PropertyPattern(type, open, list, close);
         }
 
-        private SubRecursivePatternListSyntax ParseSubRecursivePatternList()
+        private SubPositionalPatternListSyntax ParseSubPositionalPatternList()
         {
-            if (this.IsIncrementalAndFactoryContextMatches && this.CurrentNodeKind == SyntaxKind.SubRecursivePatternList)
+            if (this.IsIncrementalAndFactoryContextMatches && this.CurrentNodeKind == SyntaxKind.SubPositionalPatternList)
             {
-                return (SubRecursivePatternListSyntax)this.EatNode();
+                return (SubPositionalPatternListSyntax)this.EatNode();
             }
 
             SyntaxToken openToken, closeToken;
-            SeparatedSyntaxList<SubRecursivePatternSyntax> subPatterns;
-            ParseSubRecursivePatternList(out openToken, out subPatterns, out closeToken, SyntaxKind.OpenParenToken, SyntaxKind.CloseParenToken);
+            SeparatedSyntaxList<SubPositionalPatternSyntax> subPatterns;
+            ParseSubPositionalPatternList(out openToken, out subPatterns, out closeToken, SyntaxKind.OpenParenToken, SyntaxKind.CloseParenToken);
 
-            return _syntaxFactory.SubRecursivePatternList(openToken, subPatterns, closeToken);
+            return _syntaxFactory.SubPositionalPatternList(openToken, subPatterns, closeToken);
         }
 
-        private void ParseSubRecursivePatternList(
+        private void ParseSubPositionalPatternList(
             out SyntaxToken openToken,
-            out SeparatedSyntaxList<SubRecursivePatternSyntax> subPatterns,
+            out SeparatedSyntaxList<SubPositionalPatternSyntax> subPatterns,
             out SyntaxToken closeToken,
             SyntaxKind openKind,
             SyntaxKind closeKind)
@@ -129,7 +129,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             var saveTerm = _termState;
             _termState |= TerminatorState.IsEndOfArgumentList;
 
-            SeparatedSyntaxListBuilder<SubRecursivePatternSyntax> list = default(SeparatedSyntaxListBuilder<SubRecursivePatternSyntax>);
+            SeparatedSyntaxListBuilder<SubPositionalPatternSyntax> list = default(SeparatedSyntaxListBuilder<SubPositionalPatternSyntax>);
             try
             {
                 if (this.CurrentToken.Kind != closeKind && this.CurrentToken.Kind != SyntaxKind.SemicolonToken)
@@ -137,13 +137,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                     tryAgain:
                     if (list.IsNull)
                     {
-                        list = _pool.AllocateSeparated<SubRecursivePatternSyntax>();
+                        list = _pool.AllocateSeparated<SubPositionalPatternSyntax>();
                     }
 
                     if (this.IsPossibleArgumentExpression() || this.CurrentToken.Kind == SyntaxKind.CommaToken)
                     {
                         // first argument
-                        list.Add(this.ParseSubRecursivePattern());
+                        list.Add(this.ParseSubPositionalPattern());
 
                         // additional arguments
                         while (true)
@@ -155,7 +155,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                             else if (this.CurrentToken.Kind == SyntaxKind.CommaToken || this.IsPossibleArgumentExpression())
                             {
                                 list.AddSeparator(this.EatToken(SyntaxKind.CommaToken));
-                                list.Add(this.ParseSubRecursivePattern());
+                                list.Add(this.ParseSubPositionalPattern());
                                 continue;
                             }
                             else if (this.SkipBadSubPatternListTokens(ref open, list, SyntaxKind.CommaToken, closeKind) == PostSkipAction.Abort)
@@ -185,7 +185,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             }
         }
 
-        private SubRecursivePatternSyntax ParseSubRecursivePattern()
+        private SubPositionalPatternSyntax ParseSubPositionalPattern()
         {
             NameColonSyntax nameColon = null;
             if (this.CurrentToken.Kind == SyntaxKind.IdentifierToken && this.PeekToken(1).Kind == SyntaxKind.ColonToken)
@@ -199,7 +199,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                                             this.AddError(_syntaxFactory.ConstantPattern(this.CreateMissingIdentifierName()), ErrorCode.ERR_MissingArgument) :
                                             ParsePattern();
 
-            return _syntaxFactory.SubRecursivePattern(nameColon, pattern);
+            return _syntaxFactory.SubPositionalPattern(nameColon, pattern);
         }
 
         // This method is used when we always want a pattern as a result.
@@ -242,10 +242,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                     tk = this.CurrentToken.Kind;
                     if (!type.IsMissing)
                     {
-                        // X.Y.Z ( ... ) : RecursivePattern
+                        // X.Y.Z ( ... ) : PositionalPattern
                         if (tk == SyntaxKind.OpenParenToken)
                         {
-                            node = _syntaxFactory.RecursivePattern(type, this.ParseSubRecursivePatternList());
+                            node = _syntaxFactory.PositionalPattern(type, this.ParseSubPositionalPatternList());
                             node = CheckFeatureAvailability(node, MessageID.IDS_FeaturePatternMatching2);
                         }
                         // X.Y.Z { ... } : PropertyPattern

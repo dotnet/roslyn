@@ -1335,7 +1335,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return pattern.TypeSwitch(
                     (DeclarationPatternSyntax declarationPattern) => GetTypes(declarationPattern.Type),
                     (ConstantPatternSyntax constantPattern) => GetTypes(constantPattern.Expression),
-                    (RecursivePatternSyntax recursivePattern) => GetTypes(recursivePattern.Type),
+                    (PositionalPatternSyntax positionalPattern) => GetTypes(positionalPattern.Type),
                     (PropertyPatternSyntax propertyPattern) => GetTypes(propertyPattern.Type));
             }
 

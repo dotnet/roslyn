@@ -31,8 +31,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             syntaxKindsPatterns.Add(SyntaxKind.DeclarationPattern);
             syntaxKindsPatterns.Add(SyntaxKind.WildcardPattern);
             syntaxKindsPatterns.Add(SyntaxKind.ConstantPattern);
-            syntaxKindsPatterns.Add(SyntaxKind.RecursivePattern);
-            syntaxKindsPatterns.Add(SyntaxKind.SubRecursivePattern);
+            syntaxKindsPatterns.Add(SyntaxKind.PositionalPattern);
+            syntaxKindsPatterns.Add(SyntaxKind.SubPositionalPattern);
             syntaxKindsPatterns.Add(SyntaxKind.MatchSection);
             syntaxKindsPatterns.Add(SyntaxKind.MatchExpression);
             syntaxKindsPatterns.Add(SyntaxKind.ThrowExpression);

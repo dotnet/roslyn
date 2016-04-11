@@ -1338,9 +1338,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                         }
                         break;
                     }
-                case BoundKind.RecursivePattern:
+                case BoundKind.PositionalPattern:
                     {
-                        var pat = (BoundRecursivePattern)pattern;
+                        var pat = (BoundPositionalPattern)pattern;
                         foreach (var prop in pat.Patterns)
                         {
                             AssignPatternVariables(prop);
@@ -1413,9 +1413,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                         }
                         break;
                     }
-                case BoundKind.RecursivePattern:
+                case BoundKind.PositionalPattern:
                     {
-                        var pat = (BoundRecursivePattern)pattern;
+                        var pat = (BoundPositionalPattern)pattern;
                         foreach (var prop in pat.Patterns)
                         {
                             CreateSlots(prop);

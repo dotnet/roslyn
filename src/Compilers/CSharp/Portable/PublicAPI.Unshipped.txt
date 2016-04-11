@@ -126,6 +126,13 @@ Microsoft.CodeAnalysis.CSharp.Syntax.ParenthesizedLambdaExpressionSyntax.RefKeyw
 Microsoft.CodeAnalysis.CSharp.Syntax.ParenthesizedLambdaExpressionSyntax.Update(Microsoft.CodeAnalysis.SyntaxToken asyncKeyword, Microsoft.CodeAnalysis.CSharp.Syntax.ParameterListSyntax parameterList, Microsoft.CodeAnalysis.SyntaxToken arrowToken, Microsoft.CodeAnalysis.SyntaxToken refKeyword, Microsoft.CodeAnalysis.CSharp.CSharpSyntaxNode body) -> Microsoft.CodeAnalysis.CSharp.Syntax.ParenthesizedLambdaExpressionSyntax
 Microsoft.CodeAnalysis.CSharp.Syntax.ParenthesizedLambdaExpressionSyntax.WithRefKeyword(Microsoft.CodeAnalysis.SyntaxToken refKeyword) -> Microsoft.CodeAnalysis.CSharp.Syntax.ParenthesizedLambdaExpressionSyntax
 Microsoft.CodeAnalysis.CSharp.Syntax.PatternSyntax
+Microsoft.CodeAnalysis.CSharp.Syntax.PositionalPatternSyntax
+Microsoft.CodeAnalysis.CSharp.Syntax.PositionalPatternSyntax.AddPatternListSubPatterns(params Microsoft.CodeAnalysis.CSharp.Syntax.SubPositionalPatternSyntax[] items) -> Microsoft.CodeAnalysis.CSharp.Syntax.PositionalPatternSyntax
+Microsoft.CodeAnalysis.CSharp.Syntax.PositionalPatternSyntax.PatternList.get -> Microsoft.CodeAnalysis.CSharp.Syntax.SubPositionalPatternListSyntax
+Microsoft.CodeAnalysis.CSharp.Syntax.PositionalPatternSyntax.Type.get -> Microsoft.CodeAnalysis.CSharp.Syntax.TypeSyntax
+Microsoft.CodeAnalysis.CSharp.Syntax.PositionalPatternSyntax.Update(Microsoft.CodeAnalysis.CSharp.Syntax.TypeSyntax type, Microsoft.CodeAnalysis.CSharp.Syntax.SubPositionalPatternListSyntax patternList) -> Microsoft.CodeAnalysis.CSharp.Syntax.PositionalPatternSyntax
+Microsoft.CodeAnalysis.CSharp.Syntax.PositionalPatternSyntax.WithPatternList(Microsoft.CodeAnalysis.CSharp.Syntax.SubPositionalPatternListSyntax patternList) -> Microsoft.CodeAnalysis.CSharp.Syntax.PositionalPatternSyntax
+Microsoft.CodeAnalysis.CSharp.Syntax.PositionalPatternSyntax.WithType(Microsoft.CodeAnalysis.CSharp.Syntax.TypeSyntax type) -> Microsoft.CodeAnalysis.CSharp.Syntax.PositionalPatternSyntax
 Microsoft.CodeAnalysis.CSharp.Syntax.PropertyDeclarationSyntax.RefKeyword.get -> Microsoft.CodeAnalysis.SyntaxToken
 Microsoft.CodeAnalysis.CSharp.Syntax.PropertyDeclarationSyntax.Update(Microsoft.CodeAnalysis.SyntaxList<Microsoft.CodeAnalysis.CSharp.Syntax.AttributeListSyntax> attributeLists, Microsoft.CodeAnalysis.SyntaxTokenList modifiers, Microsoft.CodeAnalysis.SyntaxToken refKeyword, Microsoft.CodeAnalysis.CSharp.Syntax.TypeSyntax type, Microsoft.CodeAnalysis.CSharp.Syntax.ExplicitInterfaceSpecifierSyntax explicitInterfaceSpecifier, Microsoft.CodeAnalysis.SyntaxToken identifier, Microsoft.CodeAnalysis.CSharp.Syntax.AccessorListSyntax accessorList, Microsoft.CodeAnalysis.CSharp.Syntax.ArrowExpressionClauseSyntax expressionBody, Microsoft.CodeAnalysis.CSharp.Syntax.EqualsValueClauseSyntax initializer, Microsoft.CodeAnalysis.SyntaxToken semicolonToken) -> Microsoft.CodeAnalysis.CSharp.Syntax.PropertyDeclarationSyntax
 Microsoft.CodeAnalysis.CSharp.Syntax.PropertyDeclarationSyntax.WithRefKeyword(Microsoft.CodeAnalysis.SyntaxToken refKeyword) -> Microsoft.CodeAnalysis.CSharp.Syntax.PropertyDeclarationSyntax
@@ -140,34 +147,27 @@ Microsoft.CodeAnalysis.CSharp.Syntax.PropertyPatternSyntax.WithCloseBraceToken(M
 Microsoft.CodeAnalysis.CSharp.Syntax.PropertyPatternSyntax.WithOpenBraceToken(Microsoft.CodeAnalysis.SyntaxToken openBraceToken) -> Microsoft.CodeAnalysis.CSharp.Syntax.PropertyPatternSyntax
 Microsoft.CodeAnalysis.CSharp.Syntax.PropertyPatternSyntax.WithSubPatterns(Microsoft.CodeAnalysis.SeparatedSyntaxList<Microsoft.CodeAnalysis.CSharp.Syntax.ExpressionSyntax> subPatterns) -> Microsoft.CodeAnalysis.CSharp.Syntax.PropertyPatternSyntax
 Microsoft.CodeAnalysis.CSharp.Syntax.PropertyPatternSyntax.WithType(Microsoft.CodeAnalysis.CSharp.Syntax.TypeSyntax type) -> Microsoft.CodeAnalysis.CSharp.Syntax.PropertyPatternSyntax
-Microsoft.CodeAnalysis.CSharp.Syntax.RecursivePatternSyntax
-Microsoft.CodeAnalysis.CSharp.Syntax.RecursivePatternSyntax.AddPatternListSubPatterns(params Microsoft.CodeAnalysis.CSharp.Syntax.SubRecursivePatternSyntax[] items) -> Microsoft.CodeAnalysis.CSharp.Syntax.RecursivePatternSyntax
-Microsoft.CodeAnalysis.CSharp.Syntax.RecursivePatternSyntax.PatternList.get -> Microsoft.CodeAnalysis.CSharp.Syntax.SubRecursivePatternListSyntax
-Microsoft.CodeAnalysis.CSharp.Syntax.RecursivePatternSyntax.Type.get -> Microsoft.CodeAnalysis.CSharp.Syntax.TypeSyntax
-Microsoft.CodeAnalysis.CSharp.Syntax.RecursivePatternSyntax.Update(Microsoft.CodeAnalysis.CSharp.Syntax.TypeSyntax type, Microsoft.CodeAnalysis.CSharp.Syntax.SubRecursivePatternListSyntax patternList) -> Microsoft.CodeAnalysis.CSharp.Syntax.RecursivePatternSyntax
-Microsoft.CodeAnalysis.CSharp.Syntax.RecursivePatternSyntax.WithPatternList(Microsoft.CodeAnalysis.CSharp.Syntax.SubRecursivePatternListSyntax patternList) -> Microsoft.CodeAnalysis.CSharp.Syntax.RecursivePatternSyntax
-Microsoft.CodeAnalysis.CSharp.Syntax.RecursivePatternSyntax.WithType(Microsoft.CodeAnalysis.CSharp.Syntax.TypeSyntax type) -> Microsoft.CodeAnalysis.CSharp.Syntax.RecursivePatternSyntax
 Microsoft.CodeAnalysis.CSharp.Syntax.ReturnStatementSyntax.RefKeyword.get -> Microsoft.CodeAnalysis.SyntaxToken
 Microsoft.CodeAnalysis.CSharp.Syntax.ReturnStatementSyntax.Update(Microsoft.CodeAnalysis.SyntaxToken returnKeyword, Microsoft.CodeAnalysis.SyntaxToken refKeyword, Microsoft.CodeAnalysis.CSharp.Syntax.ExpressionSyntax expression, Microsoft.CodeAnalysis.SyntaxToken semicolonToken) -> Microsoft.CodeAnalysis.CSharp.Syntax.ReturnStatementSyntax
 Microsoft.CodeAnalysis.CSharp.Syntax.ReturnStatementSyntax.WithRefKeyword(Microsoft.CodeAnalysis.SyntaxToken refKeyword) -> Microsoft.CodeAnalysis.CSharp.Syntax.ReturnStatementSyntax
 Microsoft.CodeAnalysis.CSharp.Syntax.SimpleLambdaExpressionSyntax.RefKeyword.get -> Microsoft.CodeAnalysis.SyntaxToken
 Microsoft.CodeAnalysis.CSharp.Syntax.SimpleLambdaExpressionSyntax.Update(Microsoft.CodeAnalysis.SyntaxToken asyncKeyword, Microsoft.CodeAnalysis.CSharp.Syntax.ParameterSyntax parameter, Microsoft.CodeAnalysis.SyntaxToken arrowToken, Microsoft.CodeAnalysis.SyntaxToken refKeyword, Microsoft.CodeAnalysis.CSharp.CSharpSyntaxNode body) -> Microsoft.CodeAnalysis.CSharp.Syntax.SimpleLambdaExpressionSyntax
 Microsoft.CodeAnalysis.CSharp.Syntax.SimpleLambdaExpressionSyntax.WithRefKeyword(Microsoft.CodeAnalysis.SyntaxToken refKeyword) -> Microsoft.CodeAnalysis.CSharp.Syntax.SimpleLambdaExpressionSyntax
-Microsoft.CodeAnalysis.CSharp.Syntax.SubRecursivePatternListSyntax
-Microsoft.CodeAnalysis.CSharp.Syntax.SubRecursivePatternListSyntax.AddSubPatterns(params Microsoft.CodeAnalysis.CSharp.Syntax.SubRecursivePatternSyntax[] items) -> Microsoft.CodeAnalysis.CSharp.Syntax.SubRecursivePatternListSyntax
-Microsoft.CodeAnalysis.CSharp.Syntax.SubRecursivePatternListSyntax.CloseParenToken.get -> Microsoft.CodeAnalysis.SyntaxToken
-Microsoft.CodeAnalysis.CSharp.Syntax.SubRecursivePatternListSyntax.OpenParenToken.get -> Microsoft.CodeAnalysis.SyntaxToken
-Microsoft.CodeAnalysis.CSharp.Syntax.SubRecursivePatternListSyntax.SubPatterns.get -> Microsoft.CodeAnalysis.SeparatedSyntaxList<Microsoft.CodeAnalysis.CSharp.Syntax.SubRecursivePatternSyntax>
-Microsoft.CodeAnalysis.CSharp.Syntax.SubRecursivePatternListSyntax.Update(Microsoft.CodeAnalysis.SyntaxToken openParenToken, Microsoft.CodeAnalysis.SeparatedSyntaxList<Microsoft.CodeAnalysis.CSharp.Syntax.SubRecursivePatternSyntax> subPatterns, Microsoft.CodeAnalysis.SyntaxToken closeParenToken) -> Microsoft.CodeAnalysis.CSharp.Syntax.SubRecursivePatternListSyntax
-Microsoft.CodeAnalysis.CSharp.Syntax.SubRecursivePatternListSyntax.WithCloseParenToken(Microsoft.CodeAnalysis.SyntaxToken closeParenToken) -> Microsoft.CodeAnalysis.CSharp.Syntax.SubRecursivePatternListSyntax
-Microsoft.CodeAnalysis.CSharp.Syntax.SubRecursivePatternListSyntax.WithOpenParenToken(Microsoft.CodeAnalysis.SyntaxToken openParenToken) -> Microsoft.CodeAnalysis.CSharp.Syntax.SubRecursivePatternListSyntax
-Microsoft.CodeAnalysis.CSharp.Syntax.SubRecursivePatternListSyntax.WithSubPatterns(Microsoft.CodeAnalysis.SeparatedSyntaxList<Microsoft.CodeAnalysis.CSharp.Syntax.SubRecursivePatternSyntax> subPatterns) -> Microsoft.CodeAnalysis.CSharp.Syntax.SubRecursivePatternListSyntax
-Microsoft.CodeAnalysis.CSharp.Syntax.SubRecursivePatternSyntax
-Microsoft.CodeAnalysis.CSharp.Syntax.SubRecursivePatternSyntax.NameColon.get -> Microsoft.CodeAnalysis.CSharp.Syntax.NameColonSyntax
-Microsoft.CodeAnalysis.CSharp.Syntax.SubRecursivePatternSyntax.Pattern.get -> Microsoft.CodeAnalysis.CSharp.Syntax.PatternSyntax
-Microsoft.CodeAnalysis.CSharp.Syntax.SubRecursivePatternSyntax.Update(Microsoft.CodeAnalysis.CSharp.Syntax.NameColonSyntax nameColon, Microsoft.CodeAnalysis.CSharp.Syntax.PatternSyntax pattern) -> Microsoft.CodeAnalysis.CSharp.Syntax.SubRecursivePatternSyntax
-Microsoft.CodeAnalysis.CSharp.Syntax.SubRecursivePatternSyntax.WithNameColon(Microsoft.CodeAnalysis.CSharp.Syntax.NameColonSyntax nameColon) -> Microsoft.CodeAnalysis.CSharp.Syntax.SubRecursivePatternSyntax
-Microsoft.CodeAnalysis.CSharp.Syntax.SubRecursivePatternSyntax.WithPattern(Microsoft.CodeAnalysis.CSharp.Syntax.PatternSyntax pattern) -> Microsoft.CodeAnalysis.CSharp.Syntax.SubRecursivePatternSyntax
+Microsoft.CodeAnalysis.CSharp.Syntax.SubPositionalPatternListSyntax
+Microsoft.CodeAnalysis.CSharp.Syntax.SubPositionalPatternListSyntax.AddSubPatterns(params Microsoft.CodeAnalysis.CSharp.Syntax.SubPositionalPatternSyntax[] items) -> Microsoft.CodeAnalysis.CSharp.Syntax.SubPositionalPatternListSyntax
+Microsoft.CodeAnalysis.CSharp.Syntax.SubPositionalPatternListSyntax.CloseParenToken.get -> Microsoft.CodeAnalysis.SyntaxToken
+Microsoft.CodeAnalysis.CSharp.Syntax.SubPositionalPatternListSyntax.OpenParenToken.get -> Microsoft.CodeAnalysis.SyntaxToken
+Microsoft.CodeAnalysis.CSharp.Syntax.SubPositionalPatternListSyntax.SubPatterns.get -> Microsoft.CodeAnalysis.SeparatedSyntaxList<Microsoft.CodeAnalysis.CSharp.Syntax.SubPositionalPatternSyntax>
+Microsoft.CodeAnalysis.CSharp.Syntax.SubPositionalPatternListSyntax.Update(Microsoft.CodeAnalysis.SyntaxToken openParenToken, Microsoft.CodeAnalysis.SeparatedSyntaxList<Microsoft.CodeAnalysis.CSharp.Syntax.SubPositionalPatternSyntax> subPatterns, Microsoft.CodeAnalysis.SyntaxToken closeParenToken) -> Microsoft.CodeAnalysis.CSharp.Syntax.SubPositionalPatternListSyntax
+Microsoft.CodeAnalysis.CSharp.Syntax.SubPositionalPatternListSyntax.WithCloseParenToken(Microsoft.CodeAnalysis.SyntaxToken closeParenToken) -> Microsoft.CodeAnalysis.CSharp.Syntax.SubPositionalPatternListSyntax
+Microsoft.CodeAnalysis.CSharp.Syntax.SubPositionalPatternListSyntax.WithOpenParenToken(Microsoft.CodeAnalysis.SyntaxToken openParenToken) -> Microsoft.CodeAnalysis.CSharp.Syntax.SubPositionalPatternListSyntax
+Microsoft.CodeAnalysis.CSharp.Syntax.SubPositionalPatternListSyntax.WithSubPatterns(Microsoft.CodeAnalysis.SeparatedSyntaxList<Microsoft.CodeAnalysis.CSharp.Syntax.SubPositionalPatternSyntax> subPatterns) -> Microsoft.CodeAnalysis.CSharp.Syntax.SubPositionalPatternListSyntax
+Microsoft.CodeAnalysis.CSharp.Syntax.SubPositionalPatternSyntax
+Microsoft.CodeAnalysis.CSharp.Syntax.SubPositionalPatternSyntax.NameColon.get -> Microsoft.CodeAnalysis.CSharp.Syntax.NameColonSyntax
+Microsoft.CodeAnalysis.CSharp.Syntax.SubPositionalPatternSyntax.Pattern.get -> Microsoft.CodeAnalysis.CSharp.Syntax.PatternSyntax
+Microsoft.CodeAnalysis.CSharp.Syntax.SubPositionalPatternSyntax.Update(Microsoft.CodeAnalysis.CSharp.Syntax.NameColonSyntax nameColon, Microsoft.CodeAnalysis.CSharp.Syntax.PatternSyntax pattern) -> Microsoft.CodeAnalysis.CSharp.Syntax.SubPositionalPatternSyntax
+Microsoft.CodeAnalysis.CSharp.Syntax.SubPositionalPatternSyntax.WithNameColon(Microsoft.CodeAnalysis.CSharp.Syntax.NameColonSyntax nameColon) -> Microsoft.CodeAnalysis.CSharp.Syntax.SubPositionalPatternSyntax
+Microsoft.CodeAnalysis.CSharp.Syntax.SubPositionalPatternSyntax.WithPattern(Microsoft.CodeAnalysis.CSharp.Syntax.PatternSyntax pattern) -> Microsoft.CodeAnalysis.CSharp.Syntax.SubPositionalPatternSyntax
 Microsoft.CodeAnalysis.CSharp.Syntax.ThrowExpressionSyntax
 Microsoft.CodeAnalysis.CSharp.Syntax.ThrowExpressionSyntax.Expression.get -> Microsoft.CodeAnalysis.CSharp.Syntax.ExpressionSyntax
 Microsoft.CodeAnalysis.CSharp.Syntax.ThrowExpressionSyntax.ThrowKeyword.get -> Microsoft.CodeAnalysis.SyntaxToken
@@ -193,10 +193,10 @@ Microsoft.CodeAnalysis.CSharp.SyntaxKind.LocalFunctionStatement = 8830 -> Micros
 Microsoft.CodeAnalysis.CSharp.SyntaxKind.MatchExpression = 9011 -> Microsoft.CodeAnalysis.CSharp.SyntaxKind
 Microsoft.CodeAnalysis.CSharp.SyntaxKind.MatchKeyword = 8438 -> Microsoft.CodeAnalysis.CSharp.SyntaxKind
 Microsoft.CodeAnalysis.CSharp.SyntaxKind.MatchSection = 9010 -> Microsoft.CodeAnalysis.CSharp.SyntaxKind
+Microsoft.CodeAnalysis.CSharp.SyntaxKind.PositionalPattern = 9003 -> Microsoft.CodeAnalysis.CSharp.SyntaxKind
 Microsoft.CodeAnalysis.CSharp.SyntaxKind.PropertyPattern = 9006 -> Microsoft.CodeAnalysis.CSharp.SyntaxKind
-Microsoft.CodeAnalysis.CSharp.SyntaxKind.RecursivePattern = 9003 -> Microsoft.CodeAnalysis.CSharp.SyntaxKind
-Microsoft.CodeAnalysis.CSharp.SyntaxKind.SubRecursivePattern = 9004 -> Microsoft.CodeAnalysis.CSharp.SyntaxKind
-Microsoft.CodeAnalysis.CSharp.SyntaxKind.SubRecursivePatternList = 9005 -> Microsoft.CodeAnalysis.CSharp.SyntaxKind
+Microsoft.CodeAnalysis.CSharp.SyntaxKind.SubPositionalPattern = 9004 -> Microsoft.CodeAnalysis.CSharp.SyntaxKind
+Microsoft.CodeAnalysis.CSharp.SyntaxKind.SubPositionalPatternList = 9005 -> Microsoft.CodeAnalysis.CSharp.SyntaxKind
 Microsoft.CodeAnalysis.CSharp.SyntaxKind.ThrowExpression = 9012 -> Microsoft.CodeAnalysis.CSharp.SyntaxKind
 Microsoft.CodeAnalysis.CSharp.SyntaxKind.WhenClause = 9013 -> Microsoft.CodeAnalysis.CSharp.SyntaxKind
 Microsoft.CodeAnalysis.CSharp.SyntaxKind.WildcardPattern = 9001 -> Microsoft.CodeAnalysis.CSharp.SyntaxKind
@@ -208,10 +208,10 @@ override Microsoft.CodeAnalysis.CSharp.CSharpSyntaxRewriter.VisitLetStatement(Mi
 override Microsoft.CodeAnalysis.CSharp.CSharpSyntaxRewriter.VisitLocalFunctionStatement(Microsoft.CodeAnalysis.CSharp.Syntax.LocalFunctionStatementSyntax node) -> Microsoft.CodeAnalysis.SyntaxNode
 override Microsoft.CodeAnalysis.CSharp.CSharpSyntaxRewriter.VisitMatchExpression(Microsoft.CodeAnalysis.CSharp.Syntax.MatchExpressionSyntax node) -> Microsoft.CodeAnalysis.SyntaxNode
 override Microsoft.CodeAnalysis.CSharp.CSharpSyntaxRewriter.VisitMatchSection(Microsoft.CodeAnalysis.CSharp.Syntax.MatchSectionSyntax node) -> Microsoft.CodeAnalysis.SyntaxNode
+override Microsoft.CodeAnalysis.CSharp.CSharpSyntaxRewriter.VisitPositionalPattern(Microsoft.CodeAnalysis.CSharp.Syntax.PositionalPatternSyntax node) -> Microsoft.CodeAnalysis.SyntaxNode
 override Microsoft.CodeAnalysis.CSharp.CSharpSyntaxRewriter.VisitPropertyPattern(Microsoft.CodeAnalysis.CSharp.Syntax.PropertyPatternSyntax node) -> Microsoft.CodeAnalysis.SyntaxNode
-override Microsoft.CodeAnalysis.CSharp.CSharpSyntaxRewriter.VisitRecursivePattern(Microsoft.CodeAnalysis.CSharp.Syntax.RecursivePatternSyntax node) -> Microsoft.CodeAnalysis.SyntaxNode
-override Microsoft.CodeAnalysis.CSharp.CSharpSyntaxRewriter.VisitSubRecursivePattern(Microsoft.CodeAnalysis.CSharp.Syntax.SubRecursivePatternSyntax node) -> Microsoft.CodeAnalysis.SyntaxNode
-override Microsoft.CodeAnalysis.CSharp.CSharpSyntaxRewriter.VisitSubRecursivePatternList(Microsoft.CodeAnalysis.CSharp.Syntax.SubRecursivePatternListSyntax node) -> Microsoft.CodeAnalysis.SyntaxNode
+override Microsoft.CodeAnalysis.CSharp.CSharpSyntaxRewriter.VisitSubPositionalPattern(Microsoft.CodeAnalysis.CSharp.Syntax.SubPositionalPatternSyntax node) -> Microsoft.CodeAnalysis.SyntaxNode
+override Microsoft.CodeAnalysis.CSharp.CSharpSyntaxRewriter.VisitSubPositionalPatternList(Microsoft.CodeAnalysis.CSharp.Syntax.SubPositionalPatternListSyntax node) -> Microsoft.CodeAnalysis.SyntaxNode
 override Microsoft.CodeAnalysis.CSharp.CSharpSyntaxRewriter.VisitThrowExpression(Microsoft.CodeAnalysis.CSharp.Syntax.ThrowExpressionSyntax node) -> Microsoft.CodeAnalysis.SyntaxNode
 override Microsoft.CodeAnalysis.CSharp.CSharpSyntaxRewriter.VisitWhenClause(Microsoft.CodeAnalysis.CSharp.Syntax.WhenClauseSyntax node) -> Microsoft.CodeAnalysis.SyntaxNode
 override Microsoft.CodeAnalysis.CSharp.CSharpSyntaxRewriter.VisitWildcardPattern(Microsoft.CodeAnalysis.CSharp.Syntax.WildcardPatternSyntax node) -> Microsoft.CodeAnalysis.SyntaxNode
@@ -233,14 +233,14 @@ override Microsoft.CodeAnalysis.CSharp.Syntax.MatchExpressionSyntax.Accept(Micro
 override Microsoft.CodeAnalysis.CSharp.Syntax.MatchExpressionSyntax.Accept<TResult>(Microsoft.CodeAnalysis.CSharp.CSharpSyntaxVisitor<TResult> visitor) -> TResult
 override Microsoft.CodeAnalysis.CSharp.Syntax.MatchSectionSyntax.Accept(Microsoft.CodeAnalysis.CSharp.CSharpSyntaxVisitor visitor) -> void
 override Microsoft.CodeAnalysis.CSharp.Syntax.MatchSectionSyntax.Accept<TResult>(Microsoft.CodeAnalysis.CSharp.CSharpSyntaxVisitor<TResult> visitor) -> TResult
+override Microsoft.CodeAnalysis.CSharp.Syntax.PositionalPatternSyntax.Accept(Microsoft.CodeAnalysis.CSharp.CSharpSyntaxVisitor visitor) -> void
+override Microsoft.CodeAnalysis.CSharp.Syntax.PositionalPatternSyntax.Accept<TResult>(Microsoft.CodeAnalysis.CSharp.CSharpSyntaxVisitor<TResult> visitor) -> TResult
 override Microsoft.CodeAnalysis.CSharp.Syntax.PropertyPatternSyntax.Accept(Microsoft.CodeAnalysis.CSharp.CSharpSyntaxVisitor visitor) -> void
 override Microsoft.CodeAnalysis.CSharp.Syntax.PropertyPatternSyntax.Accept<TResult>(Microsoft.CodeAnalysis.CSharp.CSharpSyntaxVisitor<TResult> visitor) -> TResult
-override Microsoft.CodeAnalysis.CSharp.Syntax.RecursivePatternSyntax.Accept(Microsoft.CodeAnalysis.CSharp.CSharpSyntaxVisitor visitor) -> void
-override Microsoft.CodeAnalysis.CSharp.Syntax.RecursivePatternSyntax.Accept<TResult>(Microsoft.CodeAnalysis.CSharp.CSharpSyntaxVisitor<TResult> visitor) -> TResult
-override Microsoft.CodeAnalysis.CSharp.Syntax.SubRecursivePatternListSyntax.Accept(Microsoft.CodeAnalysis.CSharp.CSharpSyntaxVisitor visitor) -> void
-override Microsoft.CodeAnalysis.CSharp.Syntax.SubRecursivePatternListSyntax.Accept<TResult>(Microsoft.CodeAnalysis.CSharp.CSharpSyntaxVisitor<TResult> visitor) -> TResult
-override Microsoft.CodeAnalysis.CSharp.Syntax.SubRecursivePatternSyntax.Accept(Microsoft.CodeAnalysis.CSharp.CSharpSyntaxVisitor visitor) -> void
-override Microsoft.CodeAnalysis.CSharp.Syntax.SubRecursivePatternSyntax.Accept<TResult>(Microsoft.CodeAnalysis.CSharp.CSharpSyntaxVisitor<TResult> visitor) -> TResult
+override Microsoft.CodeAnalysis.CSharp.Syntax.SubPositionalPatternListSyntax.Accept(Microsoft.CodeAnalysis.CSharp.CSharpSyntaxVisitor visitor) -> void
+override Microsoft.CodeAnalysis.CSharp.Syntax.SubPositionalPatternListSyntax.Accept<TResult>(Microsoft.CodeAnalysis.CSharp.CSharpSyntaxVisitor<TResult> visitor) -> TResult
+override Microsoft.CodeAnalysis.CSharp.Syntax.SubPositionalPatternSyntax.Accept(Microsoft.CodeAnalysis.CSharp.CSharpSyntaxVisitor visitor) -> void
+override Microsoft.CodeAnalysis.CSharp.Syntax.SubPositionalPatternSyntax.Accept<TResult>(Microsoft.CodeAnalysis.CSharp.CSharpSyntaxVisitor<TResult> visitor) -> TResult
 override Microsoft.CodeAnalysis.CSharp.Syntax.ThrowExpressionSyntax.Accept(Microsoft.CodeAnalysis.CSharp.CSharpSyntaxVisitor visitor) -> void
 override Microsoft.CodeAnalysis.CSharp.Syntax.ThrowExpressionSyntax.Accept<TResult>(Microsoft.CodeAnalysis.CSharp.CSharpSyntaxVisitor<TResult> visitor) -> TResult
 override Microsoft.CodeAnalysis.CSharp.Syntax.WhenClauseSyntax.Accept(Microsoft.CodeAnalysis.CSharp.CSharpSyntaxVisitor visitor) -> void
@@ -281,18 +281,18 @@ static Microsoft.CodeAnalysis.CSharp.SyntaxFactory.MatchSection(Microsoft.CodeAn
 static Microsoft.CodeAnalysis.CSharp.SyntaxFactory.MatchSection(Microsoft.CodeAnalysis.SyntaxToken caseKeyword, Microsoft.CodeAnalysis.CSharp.Syntax.PatternSyntax pattern, Microsoft.CodeAnalysis.CSharp.Syntax.WhenClauseSyntax whenClause, Microsoft.CodeAnalysis.SyntaxToken colonToken, Microsoft.CodeAnalysis.CSharp.Syntax.ExpressionSyntax expression) -> Microsoft.CodeAnalysis.CSharp.Syntax.MatchSectionSyntax
 static Microsoft.CodeAnalysis.CSharp.SyntaxFactory.MethodDeclaration(Microsoft.CodeAnalysis.SyntaxList<Microsoft.CodeAnalysis.CSharp.Syntax.AttributeListSyntax> attributeLists, Microsoft.CodeAnalysis.SyntaxTokenList modifiers, Microsoft.CodeAnalysis.SyntaxToken refKeyword, Microsoft.CodeAnalysis.CSharp.Syntax.TypeSyntax returnType, Microsoft.CodeAnalysis.CSharp.Syntax.ExplicitInterfaceSpecifierSyntax explicitInterfaceSpecifier, Microsoft.CodeAnalysis.SyntaxToken identifier, Microsoft.CodeAnalysis.CSharp.Syntax.TypeParameterListSyntax typeParameterList, Microsoft.CodeAnalysis.CSharp.Syntax.ParameterListSyntax parameterList, Microsoft.CodeAnalysis.SyntaxList<Microsoft.CodeAnalysis.CSharp.Syntax.TypeParameterConstraintClauseSyntax> constraintClauses, Microsoft.CodeAnalysis.CSharp.Syntax.BlockSyntax body, Microsoft.CodeAnalysis.CSharp.Syntax.ArrowExpressionClauseSyntax expressionBody, Microsoft.CodeAnalysis.SyntaxToken semicolonToken) -> Microsoft.CodeAnalysis.CSharp.Syntax.MethodDeclarationSyntax
 static Microsoft.CodeAnalysis.CSharp.SyntaxFactory.ParenthesizedLambdaExpression(Microsoft.CodeAnalysis.SyntaxToken asyncKeyword, Microsoft.CodeAnalysis.CSharp.Syntax.ParameterListSyntax parameterList, Microsoft.CodeAnalysis.SyntaxToken arrowToken, Microsoft.CodeAnalysis.SyntaxToken refKeyword, Microsoft.CodeAnalysis.CSharp.CSharpSyntaxNode body) -> Microsoft.CodeAnalysis.CSharp.Syntax.ParenthesizedLambdaExpressionSyntax
+static Microsoft.CodeAnalysis.CSharp.SyntaxFactory.PositionalPattern(Microsoft.CodeAnalysis.CSharp.Syntax.TypeSyntax type) -> Microsoft.CodeAnalysis.CSharp.Syntax.PositionalPatternSyntax
+static Microsoft.CodeAnalysis.CSharp.SyntaxFactory.PositionalPattern(Microsoft.CodeAnalysis.CSharp.Syntax.TypeSyntax type, Microsoft.CodeAnalysis.CSharp.Syntax.SubPositionalPatternListSyntax patternList) -> Microsoft.CodeAnalysis.CSharp.Syntax.PositionalPatternSyntax
 static Microsoft.CodeAnalysis.CSharp.SyntaxFactory.PropertyDeclaration(Microsoft.CodeAnalysis.SyntaxList<Microsoft.CodeAnalysis.CSharp.Syntax.AttributeListSyntax> attributeLists, Microsoft.CodeAnalysis.SyntaxTokenList modifiers, Microsoft.CodeAnalysis.SyntaxToken refKeyword, Microsoft.CodeAnalysis.CSharp.Syntax.TypeSyntax type, Microsoft.CodeAnalysis.CSharp.Syntax.ExplicitInterfaceSpecifierSyntax explicitInterfaceSpecifier, Microsoft.CodeAnalysis.SyntaxToken identifier, Microsoft.CodeAnalysis.CSharp.Syntax.AccessorListSyntax accessorList, Microsoft.CodeAnalysis.CSharp.Syntax.ArrowExpressionClauseSyntax expressionBody, Microsoft.CodeAnalysis.CSharp.Syntax.EqualsValueClauseSyntax initializer, Microsoft.CodeAnalysis.SyntaxToken semicolonToken) -> Microsoft.CodeAnalysis.CSharp.Syntax.PropertyDeclarationSyntax
 static Microsoft.CodeAnalysis.CSharp.SyntaxFactory.PropertyPattern(Microsoft.CodeAnalysis.CSharp.Syntax.TypeSyntax type) -> Microsoft.CodeAnalysis.CSharp.Syntax.PropertyPatternSyntax
 static Microsoft.CodeAnalysis.CSharp.SyntaxFactory.PropertyPattern(Microsoft.CodeAnalysis.CSharp.Syntax.TypeSyntax type, Microsoft.CodeAnalysis.SeparatedSyntaxList<Microsoft.CodeAnalysis.CSharp.Syntax.ExpressionSyntax> subPatterns) -> Microsoft.CodeAnalysis.CSharp.Syntax.PropertyPatternSyntax
 static Microsoft.CodeAnalysis.CSharp.SyntaxFactory.PropertyPattern(Microsoft.CodeAnalysis.CSharp.Syntax.TypeSyntax type, Microsoft.CodeAnalysis.SyntaxToken openBraceToken, Microsoft.CodeAnalysis.SeparatedSyntaxList<Microsoft.CodeAnalysis.CSharp.Syntax.ExpressionSyntax> subPatterns, Microsoft.CodeAnalysis.SyntaxToken closeBraceToken) -> Microsoft.CodeAnalysis.CSharp.Syntax.PropertyPatternSyntax
-static Microsoft.CodeAnalysis.CSharp.SyntaxFactory.RecursivePattern(Microsoft.CodeAnalysis.CSharp.Syntax.TypeSyntax type) -> Microsoft.CodeAnalysis.CSharp.Syntax.RecursivePatternSyntax
-static Microsoft.CodeAnalysis.CSharp.SyntaxFactory.RecursivePattern(Microsoft.CodeAnalysis.CSharp.Syntax.TypeSyntax type, Microsoft.CodeAnalysis.CSharp.Syntax.SubRecursivePatternListSyntax patternList) -> Microsoft.CodeAnalysis.CSharp.Syntax.RecursivePatternSyntax
 static Microsoft.CodeAnalysis.CSharp.SyntaxFactory.ReturnStatement(Microsoft.CodeAnalysis.SyntaxToken returnKeyword, Microsoft.CodeAnalysis.SyntaxToken refKeyword, Microsoft.CodeAnalysis.CSharp.Syntax.ExpressionSyntax expression, Microsoft.CodeAnalysis.SyntaxToken semicolonToken) -> Microsoft.CodeAnalysis.CSharp.Syntax.ReturnStatementSyntax
 static Microsoft.CodeAnalysis.CSharp.SyntaxFactory.SimpleLambdaExpression(Microsoft.CodeAnalysis.SyntaxToken asyncKeyword, Microsoft.CodeAnalysis.CSharp.Syntax.ParameterSyntax parameter, Microsoft.CodeAnalysis.SyntaxToken arrowToken, Microsoft.CodeAnalysis.SyntaxToken refKeyword, Microsoft.CodeAnalysis.CSharp.CSharpSyntaxNode body) -> Microsoft.CodeAnalysis.CSharp.Syntax.SimpleLambdaExpressionSyntax
-static Microsoft.CodeAnalysis.CSharp.SyntaxFactory.SubRecursivePattern(Microsoft.CodeAnalysis.CSharp.Syntax.NameColonSyntax nameColon, Microsoft.CodeAnalysis.CSharp.Syntax.PatternSyntax pattern) -> Microsoft.CodeAnalysis.CSharp.Syntax.SubRecursivePatternSyntax
-static Microsoft.CodeAnalysis.CSharp.SyntaxFactory.SubRecursivePattern(Microsoft.CodeAnalysis.CSharp.Syntax.PatternSyntax pattern) -> Microsoft.CodeAnalysis.CSharp.Syntax.SubRecursivePatternSyntax
-static Microsoft.CodeAnalysis.CSharp.SyntaxFactory.SubRecursivePatternList(Microsoft.CodeAnalysis.SeparatedSyntaxList<Microsoft.CodeAnalysis.CSharp.Syntax.SubRecursivePatternSyntax> subPatterns = default(Microsoft.CodeAnalysis.SeparatedSyntaxList<Microsoft.CodeAnalysis.CSharp.Syntax.SubRecursivePatternSyntax>)) -> Microsoft.CodeAnalysis.CSharp.Syntax.SubRecursivePatternListSyntax
-static Microsoft.CodeAnalysis.CSharp.SyntaxFactory.SubRecursivePatternList(Microsoft.CodeAnalysis.SyntaxToken openParenToken, Microsoft.CodeAnalysis.SeparatedSyntaxList<Microsoft.CodeAnalysis.CSharp.Syntax.SubRecursivePatternSyntax> subPatterns, Microsoft.CodeAnalysis.SyntaxToken closeParenToken) -> Microsoft.CodeAnalysis.CSharp.Syntax.SubRecursivePatternListSyntax
+static Microsoft.CodeAnalysis.CSharp.SyntaxFactory.SubPositionalPattern(Microsoft.CodeAnalysis.CSharp.Syntax.NameColonSyntax nameColon, Microsoft.CodeAnalysis.CSharp.Syntax.PatternSyntax pattern) -> Microsoft.CodeAnalysis.CSharp.Syntax.SubPositionalPatternSyntax
+static Microsoft.CodeAnalysis.CSharp.SyntaxFactory.SubPositionalPattern(Microsoft.CodeAnalysis.CSharp.Syntax.PatternSyntax pattern) -> Microsoft.CodeAnalysis.CSharp.Syntax.SubPositionalPatternSyntax
+static Microsoft.CodeAnalysis.CSharp.SyntaxFactory.SubPositionalPatternList(Microsoft.CodeAnalysis.SeparatedSyntaxList<Microsoft.CodeAnalysis.CSharp.Syntax.SubPositionalPatternSyntax> subPatterns = default(Microsoft.CodeAnalysis.SeparatedSyntaxList<Microsoft.CodeAnalysis.CSharp.Syntax.SubPositionalPatternSyntax>)) -> Microsoft.CodeAnalysis.CSharp.Syntax.SubPositionalPatternListSyntax
+static Microsoft.CodeAnalysis.CSharp.SyntaxFactory.SubPositionalPatternList(Microsoft.CodeAnalysis.SyntaxToken openParenToken, Microsoft.CodeAnalysis.SeparatedSyntaxList<Microsoft.CodeAnalysis.CSharp.Syntax.SubPositionalPatternSyntax> subPatterns, Microsoft.CodeAnalysis.SyntaxToken closeParenToken) -> Microsoft.CodeAnalysis.CSharp.Syntax.SubPositionalPatternListSyntax
 static Microsoft.CodeAnalysis.CSharp.SyntaxFactory.ThrowExpression(Microsoft.CodeAnalysis.CSharp.Syntax.ExpressionSyntax expression) -> Microsoft.CodeAnalysis.CSharp.Syntax.ThrowExpressionSyntax
 static Microsoft.CodeAnalysis.CSharp.SyntaxFactory.ThrowExpression(Microsoft.CodeAnalysis.SyntaxToken throwKeyword, Microsoft.CodeAnalysis.CSharp.Syntax.ExpressionSyntax expression) -> Microsoft.CodeAnalysis.CSharp.Syntax.ThrowExpressionSyntax
 static Microsoft.CodeAnalysis.CSharp.SyntaxFactory.WhenClause(Microsoft.CodeAnalysis.CSharp.Syntax.ExpressionSyntax condition = null) -> Microsoft.CodeAnalysis.CSharp.Syntax.WhenClauseSyntax
@@ -354,10 +354,10 @@ virtual Microsoft.CodeAnalysis.CSharp.CSharpSyntaxVisitor.VisitLetStatement(Micr
 virtual Microsoft.CodeAnalysis.CSharp.CSharpSyntaxVisitor.VisitLocalFunctionStatement(Microsoft.CodeAnalysis.CSharp.Syntax.LocalFunctionStatementSyntax node) -> void
 virtual Microsoft.CodeAnalysis.CSharp.CSharpSyntaxVisitor.VisitMatchExpression(Microsoft.CodeAnalysis.CSharp.Syntax.MatchExpressionSyntax node) -> void
 virtual Microsoft.CodeAnalysis.CSharp.CSharpSyntaxVisitor.VisitMatchSection(Microsoft.CodeAnalysis.CSharp.Syntax.MatchSectionSyntax node) -> void
+virtual Microsoft.CodeAnalysis.CSharp.CSharpSyntaxVisitor.VisitPositionalPattern(Microsoft.CodeAnalysis.CSharp.Syntax.PositionalPatternSyntax node) -> void
 virtual Microsoft.CodeAnalysis.CSharp.CSharpSyntaxVisitor.VisitPropertyPattern(Microsoft.CodeAnalysis.CSharp.Syntax.PropertyPatternSyntax node) -> void
-virtual Microsoft.CodeAnalysis.CSharp.CSharpSyntaxVisitor.VisitRecursivePattern(Microsoft.CodeAnalysis.CSharp.Syntax.RecursivePatternSyntax node) -> void
-virtual Microsoft.CodeAnalysis.CSharp.CSharpSyntaxVisitor.VisitSubRecursivePattern(Microsoft.CodeAnalysis.CSharp.Syntax.SubRecursivePatternSyntax node) -> void
-virtual Microsoft.CodeAnalysis.CSharp.CSharpSyntaxVisitor.VisitSubRecursivePatternList(Microsoft.CodeAnalysis.CSharp.Syntax.SubRecursivePatternListSyntax node) -> void
+virtual Microsoft.CodeAnalysis.CSharp.CSharpSyntaxVisitor.VisitSubPositionalPattern(Microsoft.CodeAnalysis.CSharp.Syntax.SubPositionalPatternSyntax node) -> void
+virtual Microsoft.CodeAnalysis.CSharp.CSharpSyntaxVisitor.VisitSubPositionalPatternList(Microsoft.CodeAnalysis.CSharp.Syntax.SubPositionalPatternListSyntax node) -> void
 virtual Microsoft.CodeAnalysis.CSharp.CSharpSyntaxVisitor.VisitThrowExpression(Microsoft.CodeAnalysis.CSharp.Syntax.ThrowExpressionSyntax node) -> void
 virtual Microsoft.CodeAnalysis.CSharp.CSharpSyntaxVisitor.VisitWhenClause(Microsoft.CodeAnalysis.CSharp.Syntax.WhenClauseSyntax node) -> void
 virtual Microsoft.CodeAnalysis.CSharp.CSharpSyntaxVisitor.VisitWildcardPattern(Microsoft.CodeAnalysis.CSharp.Syntax.WildcardPatternSyntax node) -> void
@@ -369,10 +369,10 @@ virtual Microsoft.CodeAnalysis.CSharp.CSharpSyntaxVisitor<TResult>.VisitLetState
 virtual Microsoft.CodeAnalysis.CSharp.CSharpSyntaxVisitor<TResult>.VisitLocalFunctionStatement(Microsoft.CodeAnalysis.CSharp.Syntax.LocalFunctionStatementSyntax node) -> TResult
 virtual Microsoft.CodeAnalysis.CSharp.CSharpSyntaxVisitor<TResult>.VisitMatchExpression(Microsoft.CodeAnalysis.CSharp.Syntax.MatchExpressionSyntax node) -> TResult
 virtual Microsoft.CodeAnalysis.CSharp.CSharpSyntaxVisitor<TResult>.VisitMatchSection(Microsoft.CodeAnalysis.CSharp.Syntax.MatchSectionSyntax node) -> TResult
+virtual Microsoft.CodeAnalysis.CSharp.CSharpSyntaxVisitor<TResult>.VisitPositionalPattern(Microsoft.CodeAnalysis.CSharp.Syntax.PositionalPatternSyntax node) -> TResult
 virtual Microsoft.CodeAnalysis.CSharp.CSharpSyntaxVisitor<TResult>.VisitPropertyPattern(Microsoft.CodeAnalysis.CSharp.Syntax.PropertyPatternSyntax node) -> TResult
-virtual Microsoft.CodeAnalysis.CSharp.CSharpSyntaxVisitor<TResult>.VisitRecursivePattern(Microsoft.CodeAnalysis.CSharp.Syntax.RecursivePatternSyntax node) -> TResult
-virtual Microsoft.CodeAnalysis.CSharp.CSharpSyntaxVisitor<TResult>.VisitSubRecursivePattern(Microsoft.CodeAnalysis.CSharp.Syntax.SubRecursivePatternSyntax node) -> TResult
-virtual Microsoft.CodeAnalysis.CSharp.CSharpSyntaxVisitor<TResult>.VisitSubRecursivePatternList(Microsoft.CodeAnalysis.CSharp.Syntax.SubRecursivePatternListSyntax node) -> TResult
+virtual Microsoft.CodeAnalysis.CSharp.CSharpSyntaxVisitor<TResult>.VisitSubPositionalPattern(Microsoft.CodeAnalysis.CSharp.Syntax.SubPositionalPatternSyntax node) -> TResult
+virtual Microsoft.CodeAnalysis.CSharp.CSharpSyntaxVisitor<TResult>.VisitSubPositionalPatternList(Microsoft.CodeAnalysis.CSharp.Syntax.SubPositionalPatternListSyntax node) -> TResult
 virtual Microsoft.CodeAnalysis.CSharp.CSharpSyntaxVisitor<TResult>.VisitThrowExpression(Microsoft.CodeAnalysis.CSharp.Syntax.ThrowExpressionSyntax node) -> TResult
 virtual Microsoft.CodeAnalysis.CSharp.CSharpSyntaxVisitor<TResult>.VisitWhenClause(Microsoft.CodeAnalysis.CSharp.Syntax.WhenClauseSyntax node) -> TResult
 virtual Microsoft.CodeAnalysis.CSharp.CSharpSyntaxVisitor<TResult>.VisitWildcardPattern(Microsoft.CodeAnalysis.CSharp.Syntax.WildcardPatternSyntax node) -> TResult
