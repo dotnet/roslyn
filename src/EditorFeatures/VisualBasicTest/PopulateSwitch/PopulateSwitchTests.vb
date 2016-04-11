@@ -451,11 +451,11 @@ Class Foo
                 Exit Select
             Case Open
                 Exit Select
-            Case System.IO.FileMode.OpenOrCreate
+            Case OpenOrCreate
                 Exit Select
-            Case System.IO.FileMode.Truncate
+            Case Truncate
                 Exit Select
-            Case System.IO.FileMode.Append
+            Case Append
                 Exit Select
             Case Else
                 Exit Select
@@ -499,17 +499,17 @@ Class Foo
     Sub Bar()
         Dim e = CreateNew
         Select Case e
-            Case System.IO.FileMode.CreateNew
+            Case CreateNew
                 Exit Select
-            Case System.IO.FileMode.Create
+            Case Create
                 Exit Select
-            Case System.IO.FileMode.Open
+            Case Open
                 Exit Select
-            Case System.IO.FileMode.OpenOrCreate
+            Case OpenOrCreate
                 Exit Select
-            Case System.IO.FileMode.Truncate
+            Case Truncate
                 Exit Select
-            Case System.IO.FileMode.Append
+            Case Append
                 Exit Select
             Case Else
                 Exit Select

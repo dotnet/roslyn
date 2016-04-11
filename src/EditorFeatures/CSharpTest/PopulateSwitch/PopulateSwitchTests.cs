@@ -845,5 +845,53 @@ namespace ConsoleApplication1
 }
 ");
         }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsPopulateSwitch)]
+        public async Task NotAllMembersExist_NotDefault_UsingConstants()
+        {
+            await TestAsync(
+            @"
+    enum MyEnum
+    {
+        Fizz, Buzz, FizzBuzz
+    }
+    class MyClass
+    {
+        void Method()
+        {
+            var e = MyEnum.Fizz;
+            switch ([|e|])
+            {
+                case (MyEnum)0:
+                case (MyEnum)1:
+                    break;
+            }
+        }
+    }
+",
+                        @"
+    enum MyEnum
+    {
+        Fizz, Buzz, FizzBuzz
+    }
+    class MyClass
+    {
+        void Method()
+        {
+            var e = MyEnum.Fizz;
+            switch (e)
+            {
+                case (MyEnum)0:
+                case (MyEnum)1:
+                    break;
+                case MyEnum.FizzBuzz:
+                    break;
+                default:
+                    break;
+            }
+        }
+    }
+", index: 2);
+        }
     }
 }

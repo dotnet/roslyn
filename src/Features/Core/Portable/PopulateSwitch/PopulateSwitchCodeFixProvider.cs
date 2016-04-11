@@ -91,7 +91,7 @@ namespace Microsoft.CodeAnalysis.PopulateSwitch
             {
                 var missingSections =
                     from e in missingEnumMembers
-                    let caseLabel = generator.MemberAccessExpression(generator.TypeExpression(enumType), e.Name)
+                    let caseLabel = generator.MemberAccessExpression(generator.TypeExpression(enumType), e.Name).WithAdditionalAnnotations(Simplifier.Annotation)
                     let section = generator.SwitchSection(caseLabel, sectionStatements)
                     select section;
 
@@ -107,7 +107,7 @@ namespace Microsoft.CodeAnalysis.PopulateSwitch
             var insertLocation = InsertPosition(switchStatement);
 
             var newSwitchNode = generator.InsertSwitchSections(switchNode, insertLocation, newSections)
-                .WithAdditionalAnnotations(Formatter.Annotation, Simplifier.Annotation);
+                .WithAdditionalAnnotations(Formatter.Annotation);
 
             var newRoot = root.ReplaceNode(switchNode, newSwitchNode);
             return document.WithSyntaxRoot(newRoot);
