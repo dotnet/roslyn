@@ -543,9 +543,9 @@ namespace Microsoft.CodeAnalysis.CSharp
         DeclarationPattern = 9000,
         WildcardPattern = 9001,
         ConstantPattern = 9002,
-        RecursivePattern = 9003,
-        SubRecursivePattern = 9004,
-        SubRecursivePatternList = 9005,
+        PositionalPattern = 9003,
+        SubPositionalPattern = 9004,
+        SubPositionalPatternList = 9005,
         PropertyPattern = 9006,
 
         CasePatternSwitchLabel = 9009,

@@ -1671,24 +1671,24 @@
       </PropertyComment>
     </Field>
   </Node>
-  <Node Name="RecursivePatternSyntax" Base="PatternSyntax">
-    <Kind Name="RecursivePattern"/>
+  <Node Name="PositionalPatternSyntax" Base="PatternSyntax">
+    <Kind Name="PositionalPattern"/>
     <Field Name="Type" Type="TypeSyntax" />
-    <Field Name="PatternList" Type="SubRecursivePatternListSyntax">
+    <Field Name="PatternList" Type="SubPositionalPatternListSyntax">
       <PropertyComment>
-        <summary>SubPatternListSyntax node representing the list of patterns in a recursive pattern.</summary>
+        <summary>SubPatternListSyntax node representing the list of patterns in a positional pattern.</summary>
       </PropertyComment>
     </Field>
   </Node>
-  <Node Name="SubRecursivePatternListSyntax" Base="CSharpSyntaxNode">
-    <Kind Name="SubRecursivePatternList"/>
+  <Node Name="SubPositionalPatternListSyntax" Base="CSharpSyntaxNode">
+    <Kind Name="SubPositionalPatternList"/>
     <Field Name="OpenParenToken" Type="SyntaxToken">
       <Kind Name="OpenParenToken"/>
       <PropertyComment>
         <summary>SyntaxToken representing open parenthesis.</summary>
       </PropertyComment>
     </Field>
-    <Field Name="SubPatterns" Type="SeparatedSyntaxList&lt;SubRecursivePatternSyntax&gt;">
+    <Field Name="SubPatterns" Type="SeparatedSyntaxList&lt;SubPositionalPatternSyntax&gt;">
       <PropertyComment>
         <summary>SeparatedSyntaxList of SubPatternsSyntax representing the list of subpatterns.</summary>
       </PropertyComment>
@@ -1700,8 +1700,8 @@
       </PropertyComment>
     </Field>
   </Node>
-  <Node Name="SubRecursivePatternSyntax" Base="CSharpSyntaxNode">
-    <Kind Name="SubRecursivePattern"/>
+  <Node Name="SubPositionalPatternSyntax" Base="CSharpSyntaxNode">
+    <Kind Name="SubPositionalPattern"/>
     <Field Name="NameColon" Type="NameColonSyntax" Optional="true">
       <PropertyComment>
         <summary>NameColonSyntax node representing the optional name arguments.</summary>

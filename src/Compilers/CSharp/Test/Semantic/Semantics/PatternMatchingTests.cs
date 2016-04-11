@@ -15142,5 +15142,57 @@ True
 1001
 False");
         }
+
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/10465")]
+        public void Constants_Fail()
+        {
+            var source =
+@"
+using System;
+public class X
+{
+    public static void Main()
+    {
+        Console.WriteLine(1L is 1); // should fail to compile due to type mismatch
+        Console.WriteLine(1L is int.MaxValue); // should fail to compile due to type mismatch
+        Console.WriteLine(1 is int[]); // warning: expression is never of the provided type
+    }
+}
+";
+            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe, parseOptions: patternParseOptions);
+            compilation.VerifyDiagnostics();
+        }
+
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/10465")]
+        public void Types_Pass()
+        {
+            var source =
+@"
+using System;
+public class X
+{
+    public static void Main()
+    {
+        Console.WriteLine(1 is 1);
+        Console.WriteLine(1 is int.MaxValue);
+        Console.WriteLine(new int[] {1, 2} is int[]);
+        object o = null;
+        switch (o)
+        {
+            case int[] a:
+                break;
+            case int.MaxValue: // constant, not a type
+                break;
+            case int i:
+                break;
+            case null:
+                break;
+        }
+    }
+}
+";
+            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe, parseOptions: patternParseOptions);
+            compilation.VerifyDiagnostics();
+        }
     }
 }

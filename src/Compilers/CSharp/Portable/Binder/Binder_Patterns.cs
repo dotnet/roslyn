@@ -41,9 +41,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return BindPropertyPattern(
                         (PropertyPatternSyntax)node, operand, operandType, hasErrors, diagnostics);
 
-                case SyntaxKind.RecursivePattern:
-                    return BindRecursivePattern(
-                        (RecursivePatternSyntax)node, operand, operandType, hasErrors, diagnostics);
+                case SyntaxKind.PositionalPattern:
+                    return BindPositionalPattern(
+                        (PositionalPatternSyntax)node, operand, operandType, hasErrors, diagnostics);
 
                 case SyntaxKind.WildcardPattern:
                     return new BoundWildcardPattern(node);
@@ -54,8 +54,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        private BoundPattern BindRecursivePattern(
-            RecursivePatternSyntax node,
+        private BoundPattern BindPositionalPattern(
+            PositionalPatternSyntax node,
             BoundExpression operand,
             TypeSymbol operandType,
             bool hasErrors,
@@ -68,16 +68,16 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 // PROTOTYPE(patterns): As a temporary hack we recognize constructors and try to infer
                 // PROTOTYPE(patterns): a pattern-matching against properties based on constructor parameter names.
-                return BindInferredRecursivePattern(node, type, operand, operandType, hasErrors, diagnostics);
+                return BindInferredPositionalPattern(node, type, operand, operandType, hasErrors, diagnostics);
             }
             else
             {
-                return BindUserDefinedRecursivePattern(node, type, operators, operand, operandType, hasErrors, diagnostics);
+                return BindUserDefinedPositionalPattern(node, type, operators, operand, operandType, hasErrors, diagnostics);
             }
         }
 
-        private BoundPattern BindUserDefinedRecursivePattern(
-            RecursivePatternSyntax node,
+        private BoundPattern BindUserDefinedPositionalPattern(
+            PositionalPatternSyntax node,
             NamedTypeSymbol type,
             ImmutableArray<Symbol> operators,
             BoundExpression operand,
@@ -142,7 +142,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 patterns.Add(BindPattern(subPatterns[i].Pattern, null, isOperator.Parameters[i + 1].Type, hasErrors, diagnostics));
             }
 
-            return new BoundRecursivePattern(node, type, isOperator, patterns.ToImmutableAndFree(), hasErrors);
+            return new BoundPositionalPattern(node, type, isOperator, patterns.ToImmutableAndFree(), hasErrors);
         }
 
         /// <summary>
@@ -202,8 +202,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             return true;
         }
 
-        private BoundPattern BindInferredRecursivePattern(
-            RecursivePatternSyntax node,
+        private BoundPattern BindInferredPositionalPattern(
+            PositionalPatternSyntax node,
             NamedTypeSymbol type,
             BoundExpression operand,
             TypeSymbol operandType,
@@ -290,7 +290,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // PROTOTYPE(patterns): Given that we infer a set of properties to match as a temporary hack,
             // PROTOTYPE(patterns): we record the result as a BoundPropertyPattern.
             var properties = correspondingMembers;
-            var boundPatterns = BindRecursiveSubPropertyPatterns(node, properties, type, diagnostics);
+            var boundPatterns = BindPositionalSubPropertyPatterns(node, properties, type, diagnostics);
             var builder = ArrayBuilder<BoundSubPropertyPattern>.GetInstance(properties.Length);
             for (int i = 0; i < properties.Length; i++)
             {
@@ -311,8 +311,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             return new BoundPropertyPattern(node, type, builder.ToImmutableAndFree(), hasErrors: hasErrors);
         }
 
-        private ImmutableArray<BoundPattern> BindRecursiveSubPropertyPatterns(
-            RecursivePatternSyntax node,
+        private ImmutableArray<BoundPattern> BindPositionalSubPropertyPatterns(
+            PositionalPatternSyntax node,
             ImmutableArray<Symbol> properties,
             NamedTypeSymbol type,
             DiagnosticBag diagnostics)

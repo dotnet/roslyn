@@ -1470,7 +1470,7 @@
     <Field Name="ResultKind" PropertyOverrides="true" Type="LookupResultKind"/>
   </Node>
 
-  <Node Name="BoundRecursivePattern" Base="BoundPattern">
+  <Node Name="BoundPositionalPattern" Base="BoundPattern">
     <Field Name="Type" Type="TypeSymbol" Null="disallow"/>
     <Field Name="IsOperator" Type="MethodSymbol" Null="allow"/>
     <Field Name="Patterns" Type="ImmutableArray&lt;BoundPattern&gt;" Null="disallow"/>
