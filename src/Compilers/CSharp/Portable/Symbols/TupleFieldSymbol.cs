@@ -45,6 +45,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         }
 
         /// <summary>
+        /// Copy this tuple field, but modify it to use the new containing tuple, and field name.
+        /// </summary>
+        internal TupleFieldSymbol WithName(TupleTypeSymbol newContainingTuple, string newName)
+        {
+            return new TupleFieldSymbol(newName, newContainingTuple, _type, _position, _underlyingFieldOpt);
+        }
+
+        /// <summary>
         /// Helps construct a TupleFieldSymbol.
         ///
         /// Note that errors related to underlying field are ignored.
