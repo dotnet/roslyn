@@ -291,12 +291,15 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV1
 
                 using (var diagnostics = SharedPools.Default<List<Diagnostic>>().GetPooledObject())
                 {
-                    if (_project.SupportsCompilation)
+                    var projectAnalyzer = analyzer as ProjectDiagnosticAnalyzer;
+                    if (projectAnalyzer != null)
                     {
-                        await this.GetCompilationDiagnosticsAsync(analyzer, diagnostics.Object).ConfigureAwait(false);
+                        await this.GetProjectDiagnosticsWorkerAsync(projectAnalyzer, diagnostics.Object).ConfigureAwait(false);
+                        return diagnostics.Object.ToImmutableArray();
                     }
 
-                    await this.GetProjectDiagnosticsWorkerAsync(analyzer, diagnostics.Object).ConfigureAwait(false);
+                    Contract.ThrowIfFalse(_project.SupportsCompilation);
+                    await this.GetCompilationDiagnosticsAsync(analyzer, diagnostics.Object).ConfigureAwait(false);
 
                     return diagnostics.Object.ToImmutableArray();
                 }
@@ -307,29 +310,17 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV1
             }
         }
 
-        private async Task GetProjectDiagnosticsWorkerAsync(DiagnosticAnalyzer analyzer, List<Diagnostic> diagnostics)
+        private async Task GetProjectDiagnosticsWorkerAsync(ProjectDiagnosticAnalyzer analyzer, List<Diagnostic> diagnostics)
         {
+
             try
             {
-                var projectAnalyzer = analyzer as ProjectDiagnosticAnalyzer;
-                if (projectAnalyzer == null)
-                {
-                    return;
-                }
-
-                try
-                {
-                    await projectAnalyzer.AnalyzeProjectAsync(_project, diagnostics.Add, _cancellationToken).ConfigureAwait(false);
-                }
-                catch (Exception e) when (!IsCanceled(e, _cancellationToken))
-                {
-                    var compilation = await _project.GetCompilationAsync(_cancellationToken).ConfigureAwait(false);
-                    OnAnalyzerException(e, analyzer, compilation);
-                }
+                await analyzer.AnalyzeProjectAsync(_project, diagnostics.Add, _cancellationToken).ConfigureAwait(false);
             }
-            catch (Exception e) when (FatalError.ReportUnlessCanceled(e))
+            catch (Exception e) when (!IsCanceled(e, _cancellationToken))
             {
-                throw ExceptionUtilities.Unreachable;
+                var compilation = await _project.GetCompilationAsync(_cancellationToken).ConfigureAwait(false);
+                OnAnalyzerException(e, analyzer, compilation);
             }
         }
 

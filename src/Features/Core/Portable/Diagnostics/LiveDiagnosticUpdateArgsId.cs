@@ -11,14 +11,11 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         public readonly object Key;
         public readonly int Kind;
 
-        public LiveDiagnosticUpdateArgsId(DiagnosticAnalyzer analyzer, object key, int kind) :
-            this(analyzer, key, kind, analyzerPackageName: null)
-        {
-        }
-
         public LiveDiagnosticUpdateArgsId(DiagnosticAnalyzer analyzer, object key, int kind, string analyzerPackageName) :
             base(analyzer)
         {
+            Contract.ThrowIfNull(key);
+
             Key = key;
             Kind = kind;
 

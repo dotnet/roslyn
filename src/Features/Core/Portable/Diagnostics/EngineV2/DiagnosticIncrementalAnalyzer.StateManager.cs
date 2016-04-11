@@ -7,16 +7,14 @@ using System.Diagnostics;
 using System.Linq;
 using Roslyn.Utilities;
 
-namespace Microsoft.CodeAnalysis.Diagnostics.EngineV1
+namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
 {
     internal partial class DiagnosticIncrementalAnalyzer
     {
         private const string RoslynLanguageServices = "Roslyn Language Services";
 
-        private static readonly int s_stateTypeCount = Enum.GetNames(typeof(StateType)).Length;
-
         /// <summary>
-        /// This is in charge of anything related to <see cref="DiagnosticState"/>
+        /// This is in charge of anything related to <see cref="StateSet"/>
         /// </summary>
         private partial class StateManager
         {
@@ -109,14 +107,6 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV1
             }
 
             /// <summary>
-            /// Remove given <see cref="ProjectId"/>.
-            /// </summary>
-            public void RemoveStateSet(ProjectId projectId)
-            {
-                _projectStates.RemoveStateSet(projectId);
-            }
-
-            /// <summary>
             /// Return <see cref="StateSet"/>s that are added as the given <see cref="Project"/>'s AnalyzerReferences.
             /// This will never create new <see cref="StateSet"/> but will return ones already created.
             /// </summary>
@@ -159,6 +149,51 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV1
                 }
 
                 return stateSets.ToImmutable();
+            }
+
+            public bool OnDocumentReset(IEnumerable<StateSet> stateSets, DocumentId documentId)
+            {
+                var removed = false;
+                foreach (var stateSet in stateSets)
+                {
+                    removed |= stateSet.OnDocumentReset(documentId);
+                }
+
+                return removed;
+            }
+
+            public bool OnDocumentClosed(IEnumerable<StateSet> stateSets, DocumentId documentId)
+            {
+                var removed = false;
+                foreach (var stateSet in stateSets)
+                {
+                    removed |= stateSet.OnDocumentClosed(documentId);
+                }
+
+                return removed;
+            }
+
+            public bool OnDocumentRemoved(IEnumerable<StateSet> stateSets, DocumentId documentId)
+            {
+                var removed = false;
+                foreach (var stateSet in stateSets)
+                {
+                    removed |= stateSet.OnDocumentRemoved(documentId);
+                }
+
+                return removed;
+            }
+
+            public bool OnProjectRemoved(IEnumerable<StateSet> stateSets, ProjectId projectId)
+            {
+                var removed = false;
+                foreach (var stateSet in stateSets)
+                {
+                    removed |= stateSet.OnProjectRemoved(projectId);
+                }
+
+                _projectStates.RemoveStateSet(projectId);
+                return removed;
             }
 
             private void RaiseProjectAnalyzerReferenceChanged(ProjectAnalyzerReferenceChangedEventArgs args)
@@ -215,18 +250,13 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV1
             private static void VerifyDiagnosticStates(IEnumerable<StateSet> stateSets)
             {
                 // Ensure diagnostic state name is indeed unique.
-                for (var i = 0; i < s_stateTypeCount; i++)
+                var set = new HashSet<ValueTuple<string, string>>();
+
+                foreach (var stateSet in stateSets)
                 {
-                    var set = new HashSet<ValueTuple<string, string>>();
-
-                    foreach (var stateSet in stateSets)
+                    if (!(set.Add(ValueTuple.Create(stateSet.Language, stateSet.StateName))))
                     {
-                        var state = stateSet.GetState((StateType)i);
-
-                        if (!(set.Add(ValueTuple.Create(state.Language_TestingOnly, state.Name_TestingOnly))))
-                        {
-                            Contract.Fail();
-                        }
+                        Contract.Fail();
                     }
                 }
             }

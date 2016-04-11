@@ -199,22 +199,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         /// It is up to each incremental analyzer how they will merge this information with live diagnostic info.
         /// 
         /// this API doesn't have cancellationToken since it can't be cancelled.
-        /// 
-        /// given diagnostics are project wide diagnostics that doesn't contain a source location.
         /// </summary>
-        public abstract Task SynchronizeWithBuildAsync(DiagnosticAnalyzerService.BatchUpdateToken token, Project project, ImmutableArray<DiagnosticData> diagnostics);
-
-        /// <summary>
-        /// Callback from build listener.
-        /// 
-        /// Given diagnostics are errors host got from explicit build.
-        /// It is up to each incremental analyzer how they will merge this information with live diagnostic info
-        /// 
-        /// this API doesn't have cancellationToken since it can't be cancelled.
-        /// 
-        /// given diagnostics are ones that has a source location.
-        /// </summary>
-        public abstract Task SynchronizeWithBuildAsync(DiagnosticAnalyzerService.BatchUpdateToken token, Document document, ImmutableArray<DiagnosticData> diagnostics);
+        public abstract Task SynchronizeWithBuildAsync(Workspace workspace, ImmutableDictionary<ProjectId, ImmutableArray<DiagnosticData>> diagnostics);
         #endregion
 
         internal DiagnosticAnalyzerService Owner { get; }

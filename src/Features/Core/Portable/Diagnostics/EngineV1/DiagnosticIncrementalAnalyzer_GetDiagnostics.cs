@@ -236,7 +236,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV1
                 }
             }
 
-            protected virtual ImmutableArray<DiagnosticData> GetDiagnosticData()
+            protected ImmutableArray<DiagnosticData> GetDiagnosticData()
             {
                 return _builder != null ? _builder.ToImmutableArray() : ImmutableArray<DiagnosticData>.Empty;
             }

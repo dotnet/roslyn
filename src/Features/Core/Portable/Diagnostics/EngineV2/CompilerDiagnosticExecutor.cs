@@ -14,11 +14,9 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
     /// </summary>
     internal static class CompilerDiagnosticExecutor
     {
-        public static async Task<AnalysisResult> AnalyzeAsync(
-            this Compilation compilation, ImmutableArray<DiagnosticAnalyzer> analyzers, CompilationWithAnalyzersOptions options, CancellationToken cancellationToken)
+        public static async Task<ImmutableDictionary<DiagnosticAnalyzer, AnalysisResult>> AnalyzeAsync(this CompilationWithAnalyzers analyzerDriver, Project project, CancellationToken cancellationToken)
         {
-            // Create driver that holds onto compilation and associated analyzers
-            var analyzerDriver = compilation.WithAnalyzers(analyzers, options);
+            var version = await DiagnosticIncrementalAnalyzer.GetDiagnosticVersionAsync(project, cancellationToken).ConfigureAwait(false);
 
             // Run all analyzers at once.
             // REVIEW: why there are 2 different cancellation token? one that I can give to constructor and one I can give in to each method?
@@ -28,10 +26,14 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
             // this is wierd, but now we iterate through each analyzer for each tree to get cached result.
             // REVIEW: no better way to do this?
             var noSpanFilter = default(TextSpan?);
+            var analyzers = analyzerDriver.Analyzers;
+            var compilation = analyzerDriver.Compilation;
 
-            var resultMap = new AnalysisResult.ResultMap();
+            var builder = ImmutableDictionary.CreateBuilder<DiagnosticAnalyzer, AnalysisResult>();
             foreach (var analyzer in analyzers)
             {
+                var result = new Builder(project, version);
+
                 // REVIEW: more unnecessary allocations just to get diagnostics per analyzer
                 var oneAnalyzers = ImmutableArray.Create(analyzer);
 
@@ -39,49 +41,80 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                 {
                     var model = compilation.GetSemanticModel(tree);
 
-                    resultMap.AddSyntaxDiagnostics(analyzer, tree, await analyzerDriver.GetAnalyzerSyntaxDiagnosticsAsync(tree, oneAnalyzers, cancellationToken).ConfigureAwait(false));
-                    resultMap.AddSemanticDiagnostics(analyzer, tree, await analyzerDriver.GetAnalyzerSemanticDiagnosticsAsync(model, noSpanFilter, oneAnalyzers, cancellationToken).ConfigureAwait(false));
+                    var syntax = await analyzerDriver.GetAnalyzerSyntaxDiagnosticsAsync(tree, oneAnalyzers, cancellationToken).ConfigureAwait(false);
+                    result.AddSyntaxDiagnostics(tree, CompilationWithAnalyzers.GetEffectiveDiagnostics(syntax, compilation));
+
+                    var semantic = await analyzerDriver.GetAnalyzerSemanticDiagnosticsAsync(model, noSpanFilter, oneAnalyzers, cancellationToken).ConfigureAwait(false);
+                    result.AddSemanticDiagnostics(tree, CompilationWithAnalyzers.GetEffectiveDiagnostics(semantic, compilation));
                 }
 
-                resultMap.AddCompilationDiagnostics(analyzer, await analyzerDriver.GetAnalyzerCompilationDiagnosticsAsync(oneAnalyzers, cancellationToken).ConfigureAwait(false));
+                var rest = await analyzerDriver.GetAnalyzerCompilationDiagnosticsAsync(oneAnalyzers, cancellationToken).ConfigureAwait(false);
+                result.AddCompilationDiagnostics(CompilationWithAnalyzers.GetEffectiveDiagnostics(rest, compilation));
+
+                builder.Add(analyzer, result.ToResult());
             }
 
-            return new AnalysisResult(resultMap);
-        }
-    }
-
-    // REVIEW: this will probably go away once we have new API.
-    //         now things run sequencially, so no thread-safety.
-    internal struct AnalysisResult
-    {
-        private readonly ResultMap resultMap;
-
-        public AnalysisResult(ResultMap resultMap)
-        {
-            this.resultMap = resultMap;
+            return builder.ToImmutable();
         }
 
-        internal struct ResultMap
+        /// <summary>
+        /// We have this builder to avoid creating collections unnecessarily.
+        /// Expectation is that, most of time, most of analyzers doesn't have any diagnostics. so no need to actually create any objects.
+        /// </summary>
+        internal struct Builder
         {
-            private Dictionary<SyntaxTree, List<Diagnostic>> _lazySyntaxLocals;
-            private Dictionary<SyntaxTree, List<Diagnostic>> _lazySemanticLocals;
+            private readonly Project _project;
+            private readonly VersionStamp _version;
 
-            private Dictionary<SyntaxTree, List<Diagnostic>> _lazyNonLocals;
-            private List<Diagnostic> _lazyOthers;
+            private HashSet<DocumentId> _lazySet;
 
-            public void AddSyntaxDiagnostics(DiagnosticAnalyzer analyzer, SyntaxTree tree, ImmutableArray<Diagnostic> diagnostics)
+            private Dictionary<DocumentId, List<DiagnosticData>> _lazySyntaxLocals;
+            private Dictionary<DocumentId, List<DiagnosticData>> _lazySemanticLocals;
+            private Dictionary<DocumentId, List<DiagnosticData>> _lazyNonLocals;
+
+            private List<DiagnosticData> _lazyOthers;
+
+            public Builder(Project project, VersionStamp version)
+            {
+                _project = project;
+                _version = version;
+
+                _lazySet = null;
+                _lazySyntaxLocals = null;
+                _lazySemanticLocals = null;
+                _lazyNonLocals = null;
+                _lazyOthers = null;
+            }
+
+            public AnalysisResult ToResult()
+            {
+                var documentIds = _lazySet == null ? ImmutableHashSet<DocumentId>.Empty : _lazySet.ToImmutableHashSet();
+                var syntaxLocals = Convert(_lazySyntaxLocals);
+                var semanticLocals = Convert(_lazySemanticLocals);
+                var nonLocals = Convert(_lazyNonLocals);
+                var others = _lazyOthers == null ? ImmutableArray<DiagnosticData>.Empty : _lazyOthers.ToImmutableArray();
+
+                return new AnalysisResult(_project.Id, _version, documentIds, syntaxLocals, semanticLocals, nonLocals, others);
+            }
+
+            private ImmutableDictionary<DocumentId, ImmutableArray<DiagnosticData>> Convert(Dictionary<DocumentId, List<DiagnosticData>> map)
+            {
+                return map == null ? ImmutableDictionary<DocumentId, ImmutableArray<DiagnosticData>>.Empty : map.ToImmutableDictionary(kv => kv.Key, kv => kv.Value.ToImmutableArray());
+            }
+
+            public void AddSyntaxDiagnostics(SyntaxTree tree, IEnumerable<Diagnostic> diagnostics)
             {
                 AddDiagnostics(ref _lazySyntaxLocals, tree, diagnostics);
             }
 
-            public void AddSemanticDiagnostics(DiagnosticAnalyzer analyzer, SyntaxTree tree, ImmutableArray<Diagnostic> diagnostics)
+            public void AddSemanticDiagnostics(SyntaxTree tree, IEnumerable<Diagnostic> diagnostics)
             {
                 AddDiagnostics(ref _lazySemanticLocals, tree, diagnostics);
             }
 
-            public void AddCompilationDiagnostics(DiagnosticAnalyzer analyzer, ImmutableArray<Diagnostic> diagnostics)
+            public void AddCompilationDiagnostics(IEnumerable<Diagnostic> diagnostics)
             {
-                Dictionary<SyntaxTree, List<Diagnostic>> dummy = null;
+                Dictionary<DocumentId, List<DiagnosticData>> dummy = null;
                 AddDiagnostics(ref dummy, tree: null, diagnostics: diagnostics);
 
                 // dummy should be always null
@@ -89,47 +122,55 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
             }
 
             private void AddDiagnostics(
-                ref Dictionary<SyntaxTree, List<Diagnostic>> _lazyLocals, SyntaxTree tree, ImmutableArray<Diagnostic> diagnostics)
+                ref Dictionary<DocumentId, List<DiagnosticData>> lazyLocals, SyntaxTree tree, IEnumerable<Diagnostic> diagnostics)
             {
-                if (diagnostics.Length == 0)
+                foreach (var diagnostic in diagnostics)
                 {
-                    return;
-                }
-
-                for (var i = 0; i < diagnostics.Length; i++)
-                {
-                    var diagnostic = diagnostics[i];
-
                     // REVIEW: what is our plan for additional locations? 
                     switch (diagnostic.Location.Kind)
                     {
-                        case LocationKind.None:
                         case LocationKind.ExternalFile:
                             {
-                                // no location or reported to external files
-                                _lazyOthers = _lazyOthers ?? new List<Diagnostic>();
-                                _lazyOthers.Add(diagnostic);
+                                // TODO: currently additional file location is not supported.
+                                break;
+                            }
+                        case LocationKind.None:
+                            {
+                                _lazyOthers = _lazyOthers ?? new List<DiagnosticData>();
+                                _lazyOthers.Add(DiagnosticData.Create(_project, diagnostic));
                                 break;
                             }
                         case LocationKind.SourceFile:
                             {
                                 if (tree != null && diagnostic.Location.SourceTree == tree)
                                 {
-                                    // local diagnostics to a file
-                                    _lazyLocals = _lazyLocals ?? new Dictionary<SyntaxTree, List<Diagnostic>>();
-                                    _lazyLocals.GetOrAdd(diagnostic.Location.SourceTree, _ => new List<Diagnostic>()).Add(diagnostic);
+                                    var document = GetDocument(diagnostic);
+                                    if (document != null)
+                                    {
+                                        // local diagnostics to a file
+                                        lazyLocals = lazyLocals ?? new Dictionary<DocumentId, List<DiagnosticData>>();
+                                        lazyLocals.GetOrAdd(document.Id, _ => new List<DiagnosticData>()).Add(DiagnosticData.Create(document, diagnostic));
+
+                                        SetDocument(document);
+                                    }
                                 }
                                 else if (diagnostic.Location.SourceTree != null)
                                 {
-                                    // non local diagnostics to a file
-                                    _lazyNonLocals = _lazyNonLocals ?? new Dictionary<SyntaxTree, List<Diagnostic>>();
-                                    _lazyNonLocals.GetOrAdd(diagnostic.Location.SourceTree, _ => new List<Diagnostic>()).Add(diagnostic);
+                                    var document = _project.GetDocument(diagnostic.Location.SourceTree);
+                                    if (document != null)
+                                    {
+                                        // non local diagnostics to a file
+                                        _lazyNonLocals = _lazyNonLocals ?? new Dictionary<DocumentId, List<DiagnosticData>>();
+                                        _lazyNonLocals.GetOrAdd(document.Id, _ => new List<DiagnosticData>()).Add(DiagnosticData.Create(document, diagnostic));
+
+                                        SetDocument(document);
+                                    }
                                 }
                                 else
                                 {
                                     // non local diagnostics without location
-                                    _lazyOthers = _lazyOthers ?? new List<Diagnostic>();
-                                    _lazyOthers.Add(diagnostic);
+                                    _lazyOthers = _lazyOthers ?? new List<DiagnosticData>();
+                                    _lazyOthers.Add(DiagnosticData.Create(_project, diagnostic));
                                 }
 
                                 break;
@@ -147,6 +188,17 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                             }
                     }
                 }
+            }
+
+            private void SetDocument(Document document)
+            {
+                _lazySet = _lazySet ?? new HashSet<DocumentId>();
+                _lazySet.Add(document.Id);
+            }
+
+            private Document GetDocument(Diagnostic diagnostic)
+            {
+                return _project.GetDocument(diagnostic.Location.SourceTree);
             }
         }
     }
