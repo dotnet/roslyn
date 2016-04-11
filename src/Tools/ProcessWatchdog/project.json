@@ -2,7 +2,7 @@
   "dependencies": {
     "CommandLineParser": "2.0.273-beta",
     "System.Collections.Immutable": "1.2.0-rc3-24005-00",
-    "System.Reflection.Metadata": "1.2.0-rc2-23826"
+    "System.Reflection.Metadata": "1.3.0-rc3-24005-00"
   },
   "frameworks": {
     "net45": {}
