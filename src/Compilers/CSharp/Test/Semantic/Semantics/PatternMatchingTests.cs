@@ -5371,6 +5371,32 @@ public class X
 True");
         }
 
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/10487"), WorkItem(10487, "https://github.com/dotnet/roslyn/issues/10487")]
+        public void FieldInitializers_03()
+        {
+            var source =
+@"
+public class X
+{
+    public static void Main()
+    {
+        System.Console.WriteLine(Test1);
+    }
+
+    static bool Test1 = 1 is int x1 && Dummy(() => x1); 
+
+    static bool Dummy(System.Func<int> x) 
+    {
+        System.Console.WriteLine(x());
+        return true;
+    }
+}
+";
+            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe, parseOptions: patternParseOptions);
+            CompileAndVerify(compilation, expectedOutput: @"1
+True");
+        }
+
         [Fact]
         public void ScopeOfPatternVariables_FieldInitializers_01()
         {
