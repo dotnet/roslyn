@@ -119,14 +119,15 @@ namespace Microsoft.CodeAnalysis.CSharp
                     collection: out collection);
             }
 
-            // customBuilderType is what the user wrote in the attribute, either nongeneric
-            // MyBuilder or open MyBuilder<> or closed MyBuilder<int>
+            // customBuilderType is what the user wrote in the attribute
             NamedTypeSymbol customBuilderType = method.ReturnType.GetCustomBuilderForTasklike(); 
             if (customBuilderType != null)
             {
                 Debug.Assert(method.ReturnType.GetArity() <= 1, "By lowering-async-method time, arity of return type should be 0 or 1");
-                if ((customBuilderType.Arity != method.ReturnType.GetArity()) || (customBuilderType.Arity > 1))
+                if (customBuilderType.Arity != method.ReturnType.GetArity()
+                    || (customBuilderType.Arity == 1 && !customBuilderType.TypeArgumentsNoUseSiteDiagnostics[0].IsErrorType()))
                 {
+                    // report an error if arity isn't right, or if it's not an open generic type
                     CSDiagnostic error = new CSDiagnostic(new CSDiagnosticInfo(ErrorCode.ERR_UnexpectedGenericName), F.Syntax.Location, false);
                     throw new SyntheticBoundNodeFactory.MissingPredefinedMember(error);
                 }

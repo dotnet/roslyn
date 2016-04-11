@@ -1178,13 +1178,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             foreach (var attr in type.GetAttributes())
             {
-                if (attr.IsTargetAttribute(type, AttributeDescription.TasklikeAttribute))
+                if (attr.IsTargetAttribute(type, AttributeDescription.TasklikeAttribute)
+                    && attr.CommonConstructorArguments.Length == 1
+                    && attr.CommonConstructorArguments[0].Kind == TypedConstantKind.Type)
                 {
-                    var builderArg = attr.CommonConstructorArguments.FirstOrNullable();
-                    if (builderArg?.Kind == TypedConstantKind.Type)
-                    {
-                        return builderArg?.Value as NamedTypeSymbol;
-                    }
+                    return attr.CommonConstructorArguments[0].Value as NamedTypeSymbol;
                 }
             }
             return null;

@@ -1,11 +1,5 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-// TODO: the following lambda code doesn't work.
-// (1) There's a regression where the "f" case of better-betterness fails
-// (2) The "g" case isn't even using the better-betterness rule
-
-
-
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
@@ -3160,77 +3154,6 @@ class C
                 Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "{}").WithArguments("System.Runtime.CompilerServices.IAsyncStateMachine", "SetStateMachine").WithLocation(4, 20));
         }
 
-        // TASKLIKE TODO: what if someone has defined their own TasklikeAttribute class, one which doesn't take
-        //a Task as an paramaeter(or which lacks parameters entirely).
-
-        // TASKLIKE TODO: test supplying Tasklike(typeof(Something<int>)), i.e.with an instantiation, not an open type
-
-        // TASKLIKE TODO: if you pass an async lambda into something that expects Func<T> or just <T>, will it default to Task?
-        // And what if there are competing overloads one for Task<T> and one for MyTask<T>
-        // And does it work for non-generic MyTask in overload resolution and generic type inference
-
-        [Fact]
-        public void AsyncTasklikeLambdas()
-        {
-            var source = @"
-using System;
-using System.Runtime.CompilerServices;
-using System.Threading.Tasks;
-class C {
-    static void Main() {
-        f(async () => { await Task.Delay(0); return 1; });
-        g(async () => { await Task.Delay(0); return 1; });
-    }
-    static void f<T>(Func<Task<T>> lambda) { Console.WriteLine(""f1""); }
-    static void f<T>(Func<T> lambda) { Console.WriteLine(""f2""); }
-    static void f<T>(T arg) { Console.WriteLine(""f3""); }
-    static void g<T>(Func<MyTask<T>> lambda) { Console.WriteLine(""g1""); }
-    static void g<T>(Func<T> lambda) { Console.WriteLine(""g2""); }
-    static void g<T>(T arg) { Console.WriteLine(""g3""); }
-}
-[Tasklike(typeof(MyTaskBuilder<>))] public class MyTask<T> { }
-class MyTaskBuilder<T> {
-    public static MyTaskBuilder<T> Create() => new MyTaskBuilder<T>();
-    public void Start<TStateMachine>(ref TStateMachine stateMachine) where TStateMachine : IAsyncStateMachine { }
-    public void SetStateMachine(IAsyncStateMachine stateMachine) { }
-    public void SetResult(T result) { }
-    public void SetException(Exception exception) { }
-    public MyTask<T> Task => default(MyTask<T>);
-    public void AwaitOnCompleted<TAwaiter, TStateMachine>(ref TAwaiter awaiter, ref TStateMachine stateMachine) where TAwaiter : INotifyCompletion where TStateMachine : IAsyncStateMachine { }
-    public void AwaitUnsafeOnCompleted<TAwaiter, TStateMachine>(ref TAwaiter awaiter, ref TStateMachine stateMachine) where TAwaiter : ICriticalNotifyCompletion where TStateMachine : IAsyncStateMachine { }
-}
-
-namespace System.Runtime.CompilerServices { public class TasklikeAttribute : Attribute { public TasklikeAttribute(Type builderType) { } } }
-";
-            var v = CompileAndVerify(source, null, options: TestOptions.ReleaseDll);
-            v.VerifyIL("C.Main", @"
-{
-  // Code size       73 (0x49)
-  .maxstack  2
-  IL_0000:  ldsfld     ""System.Func<System.Threading.Tasks.Task<int>> C.<>c.<>9__0_0""
-  IL_0005:  dup
-  IL_0006:  brtrue.s   IL_001f
-  IL_0008:  pop
-  IL_0009:  ldsfld     ""C.<>c C.<>c.<>9""
-  IL_000e:  ldftn      ""System.Threading.Tasks.Task<int> C.<>c.<Main>b__0_0()""
-  IL_0014:  newobj     ""System.Func<System.Threading.Tasks.Task<int>>..ctor(object, System.IntPtr)""
-  IL_0019:  dup
-  IL_001a:  stsfld     ""System.Func<System.Threading.Tasks.Task<int>> C.<>c.<>9__0_0""
-  IL_001f:  call       ""void C.f<int>(System.Func<System.Threading.Tasks.Task<int>>)""
-  IL_0024:  ldsfld     ""System.Func<MyTask<int>> C.<>c.<>9__0_1""
-  IL_0029:  dup
-  IL_002a:  brtrue.s   IL_0043
-  IL_002c:  pop
-  IL_002d:  ldsfld     ""C.<>c C.<>c.<>9""
-  IL_0032:  ldftn      ""MyTask<int> C.<>c.<Main>b__0_1()""
-  IL_0038:  newobj     ""System.Func<MyTask<int>>..ctor(object, System.IntPtr)""
-  IL_003d:  dup
-  IL_003e:  stsfld     ""System.Func<MyTask<int>> C.<>c.<>9__0_1""
-  IL_0043:  call       ""void C.g<int>(System.Func<MyTask<int>>)""
-  IL_0048:  ret
-}");
-        }
-
         [Fact]
         public void PresentAsyncTasklikeBuilder()
         {
@@ -3314,6 +3237,81 @@ namespace System.Runtime.CompilerServices { class TasklikeAttribute : Attribute 
         }
 
         [Fact]
+        public void AsyncTasklikeLambdaOverloads()
+        {
+            var source = @"
+using System;
+using System.Runtime.CompilerServices;
+using System.Threading.Tasks;
+class C
+{
+    static void Main()
+    {
+        f(async () => { await (Task)null; });
+        g(async () => { await (Task)null; });
+        k(async () => { await (Task)null; });
+    }
+
+    static void f(Func<MyTask> lambda) { }
+    static void g(Func<Task> lambda) { }
+    static void k<T>(Func<T> lambda) { }
+}
+[Tasklike(typeof(MyTaskBuilder))]
+public class MyTask { }
+class MyTaskBuilder
+{
+    public static MyTaskBuilder Create() => new MyTaskBuilder();
+    public void Start<TStateMachine>(ref TStateMachine stateMachine) where TStateMachine : IAsyncStateMachine { }
+    public void SetStateMachine(IAsyncStateMachine stateMachine) { }
+    public void SetResult() { }
+    public void SetException(Exception exception) { }
+    public MyTask Task => default(MyTask);
+    public void AwaitOnCompleted<TAwaiter, TStateMachine>(ref TAwaiter awaiter, ref TStateMachine stateMachine) where TAwaiter : INotifyCompletion where TStateMachine : IAsyncStateMachine { }
+    public void AwaitUnsafeOnCompleted<TAwaiter, TStateMachine>(ref TAwaiter awaiter, ref TStateMachine stateMachine) where TAwaiter : ICriticalNotifyCompletion where TStateMachine : IAsyncStateMachine { }
+}
+
+namespace System.Runtime.CompilerServices { public class TasklikeAttribute : Attribute { public TasklikeAttribute(Type builderType) { } } }
+";
+            var v = CompileAndVerify(source, null, options: TestOptions.ReleaseDll);
+            v.VerifyIL("C.Main", @"
+{
+  // Code size      109 (0x6d)
+  .maxstack  2
+  IL_0000:  ldsfld     ""System.Func<MyTask> C.<>c.<>9__0_0""
+  IL_0005:  dup
+  IL_0006:  brtrue.s   IL_001f
+  IL_0008:  pop
+  IL_0009:  ldsfld     ""C.<>c C.<>c.<>9""
+  IL_000e:  ldftn      ""MyTask C.<>c.<Main>b__0_0()""
+  IL_0014:  newobj     ""System.Func<MyTask>..ctor(object, System.IntPtr)""
+  IL_0019:  dup
+  IL_001a:  stsfld     ""System.Func<MyTask> C.<>c.<>9__0_0""
+  IL_001f:  call       ""void C.f(System.Func<MyTask>)""
+  IL_0024:  ldsfld     ""System.Func<System.Threading.Tasks.Task> C.<>c.<>9__0_1""
+  IL_0029:  dup
+  IL_002a:  brtrue.s   IL_0043
+  IL_002c:  pop
+  IL_002d:  ldsfld     ""C.<>c C.<>c.<>9""
+  IL_0032:  ldftn      ""System.Threading.Tasks.Task C.<>c.<Main>b__0_1()""
+  IL_0038:  newobj     ""System.Func<System.Threading.Tasks.Task>..ctor(object, System.IntPtr)""
+  IL_003d:  dup
+  IL_003e:  stsfld     ""System.Func<System.Threading.Tasks.Task> C.<>c.<>9__0_1""
+  IL_0043:  call       ""void C.g(System.Func<System.Threading.Tasks.Task>)""
+  IL_0048:  ldsfld     ""System.Func<System.Threading.Tasks.Task> C.<>c.<>9__0_2""
+  IL_004d:  dup
+  IL_004e:  brtrue.s   IL_0067
+  IL_0050:  pop
+  IL_0051:  ldsfld     ""C.<>c C.<>c.<>9""
+  IL_0056:  ldftn      ""System.Threading.Tasks.Task C.<>c.<Main>b__0_2()""
+  IL_005c:  newobj     ""System.Func<System.Threading.Tasks.Task>..ctor(object, System.IntPtr)""
+  IL_0061:  dup
+  IL_0062:  stsfld     ""System.Func<System.Threading.Tasks.Task> C.<>c.<>9__0_2""
+  IL_0067:  call       ""void C.k<System.Threading.Tasks.Task>(System.Func<System.Threading.Tasks.Task>)""
+  IL_006c:  ret
+}");
+        }
+
+        [Fact]
         public void AsyncTasklikeIncompleteBuilder()
         {
             var source = @"
@@ -3357,17 +3355,23 @@ namespace System.Runtime.CompilerServices { class TasklikeAttribute : Attribute 
 using System.Runtime.CompilerServices;
 using System.Threading.Tasks;
 class C {
-    async Mismatch1<int> f() { await Task.Delay(0); return 1; }
+    async Mismatch1<int> f() { await (Task)null; return 1; }
+    async Mismatch2<int> g() { await (Task)null; return 1; }
 }
 [Tasklike(typeof(Mismatch1MethodBuilder))] struct Mismatch1<T> { }
-class Mismatch1MethodBuilder {}
+[Tasklike(typeof(Mismatch2MethodBuilder<int>))] struct Mismatch2<T> { }
+class Mismatch1MethodBuilder { }
+class Mismatch2MethodBuilder<T> {}
 namespace System.Runtime.CompilerServices { class TasklikeAttribute : Attribute { public TasklikeAttribute(Type builderType) { } } }
 ";
             var comp = CreateCompilationWithMscorlib45(source);
             comp.VerifyEmitDiagnostics(
                 // (5,30): error CS7002: Unexpected use of a generic name
-                //     async Mismatch1<int> f() { await Task.Delay(0); return 1; }
-                Diagnostic(ErrorCode.ERR_UnexpectedGenericName, "{ await Task.Delay(0); return 1; }").WithLocation(5, 30)
+                //     async Mismatch1<int> f() { await (Task)null; return 1; }
+                Diagnostic(ErrorCode.ERR_UnexpectedGenericName, "{ await (Task)null; return 1; }").WithLocation(5, 30),
+                // (6,30): error CS7002: Unexpected use of a generic name
+                //     async Mismatch2<int> g() { await (Task)null; return 1; }
+                Diagnostic(ErrorCode.ERR_UnexpectedGenericName, "{ await (Task)null; return 1; }").WithLocation(6, 30)
                 );
         }
 

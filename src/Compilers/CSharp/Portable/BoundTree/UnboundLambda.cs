@@ -358,7 +358,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // when binding for real (not for return inference), there is still
             // a good chance that we could reuse a body of a lambda previously bound for 
             // return type inference.
-            MethodSymbol cacheKey = GetCacheKey(delegateType);
+            MethodSymbol cacheKey = GetCacheKey(delegateType, delegateType.ContainingType);
 
             BoundLambda returnInferenceLambda;
             if (_returnInferenceCache.TryGetValue(cacheKey, out returnInferenceLambda) && returnInferenceLambda.InferredFromSingleType)
@@ -468,7 +468,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public BoundLambda BindForReturnTypeInference(NamedTypeSymbol delegateType)
         {
-            MethodSymbol cacheKey = GetCacheKey(delegateType);
+            MethodSymbol cacheKey = GetCacheKey(delegateType, binder.ContainingType);
 
             BoundLambda result;
             if (!_returnInferenceCache.TryGetValue(cacheKey, out result))
@@ -480,7 +480,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return result;
         }
 
-        private static MethodSymbol GetCacheKey(NamedTypeSymbol delegateType)
+        private static MethodSymbol GetCacheKey(NamedTypeSymbol delegateType, NamedTypeSymbol dummyContainingType)
         {
             delegateType = delegateType.GetDelegateType();
 
@@ -495,7 +495,10 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             // delegateType or DelegateInvokeMethod can be null in cases of malformed delegates
             // in such case we would want something trivial with no parameters, like a fake static ctor
-            return new SynthesizedStaticConstructor(delegateType);
+            // It's inelegant to have to plumb through a valid "dummyContainingType" just for this
+            // purpose. But we have to, since SynthesizedStatiConstructor needs that in order
+            // to synthesize its void return-type.
+            return new SynthesizedStaticConstructor(dummyContainingType);
         }
 
         public TypeSymbol InferReturnType(NamedTypeSymbol delegateType, ref HashSet<DiagnosticInfo> useSiteDiagnostics)
