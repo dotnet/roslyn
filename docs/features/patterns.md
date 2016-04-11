@@ -33,7 +33,7 @@ pattern
     ;
 
 type_pattern
-    : type identifier?
+    : type identifier
     ;
 
 wildcard_pattern
@@ -84,7 +84,7 @@ property_subpattern
 
 ### Type Pattern
 
-The *type_pattern* both tests that an expression is of a given type and, if the *identifier* is present, casts it to that type if the test succeeds. This introduces a local variable of the given type named by the given identifier. That local variable is *definitely assigned* when the result of the pattern-matching operation is true.
+The *type_pattern* both tests that an expression is of a given type and casts it to that type if the test succeeds. This introduces a local variable of the given type named by the given identifier. That local variable is *definitely assigned* when the result of the pattern-matching operation is true.
 
 ```antlr
 type_pattern
@@ -92,11 +92,9 @@ type_pattern
     ;
 ```
 
-The runtime semantic of this expression is that it tests the runtime type of the left-hand *relational_expression* operand against the *type* in the pattern. If it is of that runtime type (or some subtype), the result of the `is operator` is `true`. If the *identifier* is present, it declares a new local variable that is assigned the value of the left-hand operand when the result is `true`.
+The runtime semantic of this expression is that it tests the runtime type of the left-hand *relational_expression* operand against the *type* in the pattern. If it is of that runtime type (or some subtype), the result of the `is operator` is `true`. It declares a new local variable named by the *identifier* that is assigned the value of the left-hand operand when the result is `true`.
 
 Certain combinations of static type of the left-hand-side and the given type are considered incompatible and result in compile-time error. A value of static type `E` is said to be *pattern compatible* with the type `T` if there exists an identity conversion, an implicit reference conversion, a boxing conversion, an explicit reference conversion, or an unboxing conversion from `E` to `T`. It is a compile-time error if an expression of type `E` is not pattern compatible with the type in a type pattern that it is matched with.
-
-> Note: For compatibility with previous versions of the language we make an exception to this; this situation is merely a warning (not an error) in an *is_expression* if the *identifier* is absent.
 
 The type pattern is useful for performing run-time type tests of reference types, and replaces the idiom
 
@@ -124,9 +122,11 @@ The condition of the `if` statement is `true` at runtime and the variable `v` ho
 
 ### Constant Pattern
 
-A constant pattern tests the value of an expression against a constant value. The constant may be any constant expression, such as a literal, the name of a declared `const` variable, or an enumeration constant.
+A constant pattern tests the value of an expression against a constant value. The constant may be any constant expression, such as a literal, the name of a declared `const` variable, or an enumeration constant, or a `typeof` expression.
 
-An expression *e* matches a constant pattern *c* if `object.Equals(e, c)` returns `true`.
+If both *e* and *c* are of integral types, the pattern is considered matched if the result of the expression `e == c` is `true`.
+
+Otherwise the pattern is considered matching if `object.Equals(e, c)` returns `true`. In this case it is a compile-time error if the static type of *e* is not *pattern compatible* with the type of the constant.
 
 ```antlr
 constant_pattern
@@ -134,15 +134,11 @@ constant_pattern
     ;
 ```
 
-It is a compile-time error if the static type of *e* is not *pattern compatible* with the type of the constant.
-
-| Note |
-| --- |
-| We plan to relax the rules for matching constants so that a literal such as `1` would match a value of any integral type (`byte`, `sbyte`, `short`, `ushort`, `int`, `uint`, `long`, or `ulong`) whose value is `1`. |
-
 ### Var Pattern
 
 An expression *e* matches the pattern `var identifier` always. In other words, a match to a *var pattern* always succeeds. At runtime the value of *e* is bounds to a newly introduced local variable. The type of the local variable is the static type of *e*.
+
+If the name `var` binds to a type, then we instead treat the pattern as a *type_pattern*.
 
 ### Wildcard Pattern
 
