@@ -127,6 +127,25 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         }
 
         /// <summary>
+        /// Copy the original tuple, but modify it to use new field names.
+        /// </summary>
+        private TupleTypeSymbol(TupleTypeSymbol originalTuple,
+                                ImmutableArray<string> newElementNames)
+        {
+            _underlyingType = originalTuple._underlyingType;
+
+            var fieldsBuilder = ArrayBuilder<TupleFieldSymbol>.GetInstance(originalTuple._fields.Length);
+            var originalFields = originalTuple._fields;
+            
+            for (int i = 0; i < originalFields.Length; i++)
+            {
+                fieldsBuilder.Add(originalFields[i].WithName(this, GetFieldNameFromArrayOrDefaultName(newElementNames, i)));
+            }
+
+            _fields = fieldsBuilder.ToImmutableAndFree();
+        }
+
+        /// <summary>
         /// Copy this tuple, but modify it to use the new underlying type.
         /// </summary>
         internal TupleTypeSymbol WithUnderlyingType(NamedTypeSymbol newUnderlyingType)
@@ -134,6 +153,31 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             Debug.Assert((object)newUnderlyingType.OriginalDefinition == (object)UnderlyingTupleType.OriginalDefinition);
 
             return new TupleTypeSymbol(this, newUnderlyingType);
+        }
+
+        /// <summary>
+        /// Copy this tuple, but modify it to use the new element names.
+        /// </summary>
+        internal TupleTypeSymbol WithElementNames(ImmutableArray<string> newElementNames)
+        {
+            Debug.Assert(newElementNames.IsDefault || this._fields.Length == newElementNames.Length);
+
+            var originalFields = _fields;
+            for (int i = 0; i < originalFields.Length; i++)
+            {
+                var originalField = originalFields[i];
+                var originalName = originalField.Name;
+                var newName = GetFieldNameFromArrayOrDefaultName(newElementNames, i);
+
+                if (originalName != newName)
+                {
+                    // at least one name is different
+                    return new TupleTypeSymbol(this, newElementNames);
+                }
+            }
+
+            // all names are the same
+            return this;
         }
 
         /// <summary>
@@ -209,7 +253,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 FieldSymbol underlyingField = TupleFieldSymbol.GetUnderlyingField(numElements, underlyingType, elementIndex, syntax, binder, diagnostics);
 
-                var field = new TupleFieldSymbol(elementNames.IsDefault ? TupleMemberName(elementIndex + 1) : elementNames[elementIndex],
+                var field = new TupleFieldSymbol(GetFieldNameFromArrayOrDefaultName(elementNames, elementIndex),
                                            this,
                                            elementTypes[elementIndex],
                                            elementIndex + 1,
@@ -219,6 +263,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             fields = fieldsBuilder.ToImmutableAndFree();
 
             return underlyingType;
+        }
+
+        /// <summary>
+        /// Given an array of names returns a name at given position or a default name for that position.
+        /// </summary>
+        private static string GetFieldNameFromArrayOrDefaultName(ImmutableArray<string> elementNames, int elementIndex)
+        {
+            return elementNames.IsDefault ? TupleMemberName(elementIndex + 1) : elementNames[elementIndex];
         }
 
         /// <summary>

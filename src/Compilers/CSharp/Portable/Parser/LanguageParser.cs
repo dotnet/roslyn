@@ -6192,44 +6192,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             {
                 lastTokenOfType = this.EatToken();
 
-                var tupleElementType = ScanType(out lastTokenOfType);
-                if (tupleElementType != ScanTypeFlags.NotType)
+                result = this.ScanTupleType(out lastTokenOfType);
+                if (result == ScanTypeFlags.NotType)
                 {
-                    if (this.CurrentToken.Kind == SyntaxKind.IdentifierToken)
-                    {
-                        lastTokenOfType = this.EatToken();
-                    }
-
-                    if (this.CurrentToken.Kind == SyntaxKind.CommaToken)
-                    {
-                        do
-                        {
-                            lastTokenOfType = this.EatToken();
-                            tupleElementType = ScanType(out lastTokenOfType);
-
-                            if (tupleElementType == ScanTypeFlags.NotType)
-                            {
-                                lastTokenOfType = this.EatToken();
-                                return ScanTypeFlags.NotType;
-                            }
-
-                            if (this.CurrentToken.Kind == SyntaxKind.IdentifierToken)
-                            {
-                                lastTokenOfType = this.EatToken();
-                            }
-                        } while (this.CurrentToken.Kind == SyntaxKind.CommaToken);
-
-                        if (this.CurrentToken.Kind == SyntaxKind.CloseParenToken)
-                        {
-                            lastTokenOfType = this.EatToken();
-                            return ScanTypeFlags.MustBeType;
-                        }
-                    }
-
+                    return ScanTypeFlags.NotType;
                 }
-                // Can't be a type!
-                lastTokenOfType = null;
-                return ScanTypeFlags.NotType;
             }
             else
             {
@@ -6259,6 +6226,47 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             }
 
             return result;
+        }
+
+        private ScanTypeFlags ScanTupleType(out SyntaxToken lastTokenOfType)
+        {
+            var tupleElementType = ScanType(out lastTokenOfType);
+            if (tupleElementType != ScanTypeFlags.NotType)
+            {
+                if (this.CurrentToken.Kind == SyntaxKind.IdentifierToken)
+                {
+                    lastTokenOfType = this.EatToken();
+                }
+
+                if (this.CurrentToken.Kind == SyntaxKind.CommaToken)
+                {
+                    do
+                    {
+                        lastTokenOfType = this.EatToken();
+                        tupleElementType = ScanType(out lastTokenOfType);
+
+                        if (tupleElementType == ScanTypeFlags.NotType)
+                        {
+                            lastTokenOfType = this.EatToken();
+                            return ScanTypeFlags.NotType;
+                        }
+
+                        if (this.CurrentToken.Kind == SyntaxKind.IdentifierToken)
+                        {
+                            lastTokenOfType = this.EatToken();
+                        }
+                    } while (this.CurrentToken.Kind == SyntaxKind.CommaToken);
+
+                    if (this.CurrentToken.Kind == SyntaxKind.CloseParenToken)
+                    {
+                        lastTokenOfType = this.EatToken();
+                        return ScanTypeFlags.MustBeType;
+                    }
+                }
+            }
+            // Can't be a type!
+            lastTokenOfType = null;
+            return ScanTypeFlags.NotType;
         }
 
         private static bool IsPredefinedType(SyntaxKind keyword)

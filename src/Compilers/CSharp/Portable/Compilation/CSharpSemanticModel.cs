@@ -1855,7 +1855,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         conversion = binder.Conversions.ClassifyConversionFromExpression(boundExpr, convertedType, ref useSiteDiagnostics);
                     }
                 }
-                else if ((boundNodeForSyntacticParent != null) && (boundNodeForSyntacticParent.Kind == BoundKind.DelegateCreationExpression))
+                else if (boundNodeForSyntacticParent?.Kind == BoundKind.DelegateCreationExpression)
                 {
                     // A delegate creation expression takes the place of a method group or anonymous function conversion.
                     var delegateCreation = (BoundDelegateCreationExpression)boundNodeForSyntacticParent;
