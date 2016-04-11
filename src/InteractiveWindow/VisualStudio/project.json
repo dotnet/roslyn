@@ -1,9 +1,15 @@
 ﻿{
-  "dependencies": { },
+  "dependencies": {
+    "Microsoft.VisualStudio.Editor": "14.1.24720",
+    "Microsoft.VisualStudio.Shell.14.0": "14.1.24720",
+    "Microsoft.VisualStudio.Shell.Interop.10.0": "10.0.30319",
+    "Microsoft.VisualStudio.Shell.Interop.11.0": "11.0.61030",
+    "Microsoft.VisualStudio.TextManager.Interop.10.0": "10.0.30319"
+  },
   "frameworks": {
-    "net46": {}
+    "net46": { }
   },
   "runtimes": {
-    "win7": {}
+    "win7": { }
   }
 }

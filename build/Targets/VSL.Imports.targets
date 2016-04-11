@@ -218,6 +218,26 @@
     </NuGetPackageToIncludeInVsix>
   </ItemDefinitionGroup>
 
+  <!-- This is a copy of the Microsoft.VisualStudio.SDK.EmbedInteropTypes NuGet package, but only the list of
+       assemblies that we need. The package includes things like EnvDTE which are reasonable for consumers, but
+       strange since we actually _implement_ DTE and use it as an exchange type with generics in a few places. -->
+  <Target Name="LinkVSSDKEmbeddableAssemblies" DependsOnTargets="ResolveReferences" AfterTargets="ResolveReferences">
+    <ItemGroup>
+      <ReferencePath Condition="
+              '%(FileName)' == 'Microsoft.VisualStudio.Shell.Embeddable'
+           or '%(FileName)' == 'Microsoft.VisualStudio.Shell.Interop.12.0'
+           or '%(FileName)' == 'Microsoft.VisualStudio.Shell.Interop.14.0.DesignTime'
+           or '%(Filename)' == 'Microsoft.VisualStudio.Imaging.Interop.14.0.DesignTime'
+           or '%(FileName)' == 'Microsoft.VisualStudio.TextManager.Interop.12.1.DesignTime'
+           or '%(FileName)' == 'Microsoft.VisualStudio.ProjectSystem.Interop'
+           or '%(FileName)' == 'stdole'
+           or '%(FileName)' == 'Microsoft.VisualStudio.CommandBars'
+              ">
+        <EmbedInteropTypes>true</EmbedInteropTypes>
+      </ReferencePath>
+    </ItemGroup>
+  </Target>
+
   <!-- ====================================================================================
 
          Generation of AssemblyVersion attributes from the BuildVersion property

@@ -22,7 +22,7 @@ class C
 
         <WorkItem(726497, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/726497")>
         <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
-        Public Async Function SnippetExpansionNoteAddedToDescription_ExactMatch() As Threading.Tasks.Task
+        Public Async Function SnippetExpansionNoteAddedToDescription_ExactMatch() As Task
             Using state = CreateCSharpSnippetExpansionNoteTestState(_markup, "interface")
                 state.SendTypeChars("interfac")
                 Await state.AssertCompletionSession()
@@ -34,7 +34,7 @@ class C
 
         <WorkItem(726497, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/726497")>
         <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
-        Public Async Function SnippetExpansionNoteAddedToDescription_DifferentSnippetShortcutCasing() As Threading.Tasks.Task
+        Public Async Function SnippetExpansionNoteAddedToDescription_DifferentSnippetShortcutCasing() As Task
             Using state = CreateCSharpSnippetExpansionNoteTestState(_markup, "intErfaCE")
                 state.SendTypeChars("interfac")
                 Await state.AssertCompletionSession()
@@ -77,7 +77,7 @@ class C
         End Sub
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.Completion), Trait(Traits.Feature, Traits.Features.Interactive)>
-        Public Async Function SnippetExpansionNoteNotAddedToDescription_Interactive() As Threading.Tasks.Task
+        Public Async Function SnippetExpansionNoteNotAddedToDescription_Interactive() As Task
             Dim workspaceXml =
                 <Workspace>
                     <Submission Language="C#" CommonReferences="true">
