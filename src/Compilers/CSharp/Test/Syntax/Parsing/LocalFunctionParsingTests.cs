@@ -1,7 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using Microsoft.CodeAnalysis.CSharp.Syntax;
-using System.Collections.Generic;
 using System.Linq;
 using Xunit;
 
@@ -21,8 +20,16 @@ class c
     {
         int local() => 0;
     }
+    void m2()
+    {
+        int local()
+        {
+            return 0;
+        }
+    }
 }");
             Assert.NotNull(file);
+            Assert.True(file.DescendantNodes().All(n => n.Kind() != SyntaxKind.LocalFunctionStatement));
             Assert.True(file.HasErrors);
             file.SyntaxTree.GetDiagnostics().Verify(
                 // (6,18): error CS1528: Expected ; or = (cannot specify constructor arguments in declaration)
@@ -33,15 +40,42 @@ class c
                 Diagnostic(ErrorCode.ERR_SyntaxError, "(").WithArguments("[", "(").WithLocation(6, 18),
                 // (6,25): error CS1003: Syntax error, ']' expected
                 //         int local() => 0;
-                Diagnostic(ErrorCode.ERR_SyntaxError, ";").WithArguments("]", ";").WithLocation(6, 25));
+                Diagnostic(ErrorCode.ERR_SyntaxError, ";").WithArguments("]", ";").WithLocation(6, 25),
+                // (10,18): error CS1528: Expected ; or = (cannot specify constructor arguments in declaration)
+                //         int local()
+                Diagnostic(ErrorCode.ERR_BadVarDecl, @"()
+").WithLocation(10, 18),
+                // (10,18): error CS1003: Syntax error, '[' expected
+                //         int local()
+                Diagnostic(ErrorCode.ERR_SyntaxError, "(").WithArguments("[", "(").WithLocation(10, 18),
+                // (10,19): error CS1525: Invalid expression term ')'
+                //         int local()
+                Diagnostic(ErrorCode.ERR_InvalidExprTerm, ")").WithArguments(")").WithLocation(10, 19),
+                // (10,20): error CS1003: Syntax error, ']' expected
+                //         int local()
+                Diagnostic(ErrorCode.ERR_SyntaxError, "").WithArguments("]", "{").WithLocation(10, 20),
+                // (10,20): error CS1002: ; expected
+                //         int local()
+                Diagnostic(ErrorCode.ERR_SemicolonExpected, "").WithLocation(10, 20));
 
             Assert.Equal(0, file.SyntaxTree.Options.Features.Count);
             var c = Assert.IsType<ClassDeclarationSyntax>(file.Members.Single());
-            var m = Assert.IsType<MethodDeclarationSyntax>(c.Members.Single());
+            Assert.Equal(2, c.Members.Count);
+            var m = Assert.IsType<MethodDeclarationSyntax>(c.Members[0]);
             var s1 = Assert.IsType<LocalDeclarationStatementSyntax>(m.Body.Statements[0]);
             Assert.Equal(SyntaxKind.PredefinedType, s1.Declaration.Type.Kind());
             Assert.Equal("int", s1.Declaration.Type.ToString());
             var local = s1.Declaration.Variables.Single();
+            Assert.Equal("local", local.Identifier.ToString());
+            Assert.NotNull(local.ArgumentList);
+            Assert.Null(local.Initializer);
+            Assert.Equal(SyntaxKind.ParenthesizedLambdaExpression, local.ArgumentList.Arguments.Single().Expression.Kind());
+
+            var m2 = Assert.IsType<MethodDeclarationSyntax>(c.Members[1]);
+            s1 = Assert.IsType<LocalDeclarationStatementSyntax>(m.Body.Statements[0]);
+            Assert.Equal(SyntaxKind.PredefinedType, s1.Declaration.Type.Kind());
+            Assert.Equal("int", s1.Declaration.Type.ToString());
+            local = s1.Declaration.Variables.Single();
             Assert.Equal("local", local.Identifier.ToString());
             Assert.NotNull(local.ArgumentList);
             Assert.Null(local.Initializer);
@@ -60,12 +94,20 @@ class c
     {
         int local() => 0;
     }
+    void m2()
+    {
+        int local()
+        {
+            return 0;
+        }
+    }
 }");
             Assert.NotNull(file);
             Assert.False(file.HasErrors);
             Assert.Equal(0, file.SyntaxTree.Options.Features.Count);
             var c = Assert.IsType<ClassDeclarationSyntax>(file.Members.Single());
-            var m = Assert.IsType<MethodDeclarationSyntax>(c.Members.Single());
+            Assert.Equal(2, c.Members.Count);
+            var m = Assert.IsType<MethodDeclarationSyntax>(c.Members[0]);
             var s1 = Assert.IsType<LocalFunctionStatementSyntax>(m.Body.Statements[0]);
             Assert.Equal(SyntaxKind.PredefinedType, s1.ReturnType.Kind());
             Assert.Equal("int", s1.ReturnType.ToString());
@@ -74,6 +116,18 @@ class c
             Assert.Empty(s1.ParameterList.Parameters);
             Assert.NotNull(s1.ExpressionBody);
             Assert.Equal(SyntaxKind.NumericLiteralExpression, s1.ExpressionBody.Expression.Kind());
+
+            var m2 = Assert.IsType<MethodDeclarationSyntax>(c.Members[1]);
+            s1 = Assert.IsType<LocalFunctionStatementSyntax>(m2.Body.Statements[0]);
+            Assert.Equal(SyntaxKind.PredefinedType, s1.ReturnType.Kind());
+            Assert.Equal("int", s1.ReturnType.ToString());
+            Assert.Equal("local", s1.Identifier.ToString());
+            Assert.NotNull(s1.ParameterList);
+            Assert.Empty(s1.ParameterList.Parameters);
+            Assert.Null(s1.ExpressionBody);
+            Assert.NotNull(s1.Body);
+            var s2 = Assert.IsType<ReturnStatementSyntax>(s1.Body.Statements.Single());
+            Assert.Equal(SyntaxKind.NumericLiteralExpression, s2.Expression.Kind());
         }
 
         [Fact(Skip = "https://github.com/dotnet/roslyn/issues/10388")]
