@@ -453,7 +453,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 hasErrors |= this.ValidateDeclarationNameConflictsInScope(localSymbol, diagnostics);
             }
 
-            // Binder could be null in error scenarios (as above)
             BoundBlock block;
             if (node.Body != null)
             {

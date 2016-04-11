@@ -39,21 +39,21 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                     if (variable.Initializer != null)
                     {
-                        BuildAndAddPatternVariables(locals, variable.Initializer.Value);
+                        PatternVariableFinder.FindPatternVariables(this, locals, variable.Initializer.Value);
                     }
                 }
             }
             else
             {
-                BuildAndAddPatternVariables(locals, nodes:_syntax.Initializers.ToImmutableArray<CSharpSyntaxNode>());
+                PatternVariableFinder.FindPatternVariables(this, locals, _syntax.Initializers);
             }
 
             if (_syntax.Condition != null)
             {
-                BuildAndAddPatternVariables(locals, node: _syntax.Condition);
+                PatternVariableFinder.FindPatternVariables(this, locals, node: _syntax.Condition);
             }
 
-            BuildAndAddPatternVariables(locals, nodes: _syntax.Incrementors.ToImmutableArray<CSharpSyntaxNode>());
+            PatternVariableFinder.FindPatternVariables(this, locals, _syntax.Incrementors);
 
             return locals.ToImmutableAndFree();
         }

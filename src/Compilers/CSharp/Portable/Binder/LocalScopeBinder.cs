@@ -183,7 +183,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                             if (decl.Pattern != null)
                             {
                                 // Patterns from the let statement introduce bindings into the enclosing scope.
-                                BuildAndAddPatternVariables(locals, decl.Pattern);
+                                PatternVariableFinder.FindPatternVariables(this, locals, decl.Pattern);
                             }
                             else
                             {
