@@ -35,32 +35,35 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
             /// </summary>
             public async Task<CompilationWithAnalyzers> GetAnalyzerDriverAsync(Project project, IEnumerable<StateSet> stateSets, CancellationToken cancellationToken)
             {
-                Contract.ThrowIfFalse(project.SupportsCompilation);
+                if (!project.SupportsCompilation)
+                {
+                    return null;
+                }
 
-                CompilationWithAnalyzers analyzerDriver;
-                if (_map.TryGetValue(project, out analyzerDriver))
+                CompilationWithAnalyzers analyzerDriverOpt;
+                if (_map.TryGetValue(project, out analyzerDriverOpt))
                 {
                     // we have cached one, return that.
-                    AssertAnalyzers(analyzerDriver, stateSets);
-                    return analyzerDriver;
+                    AssertAnalyzers(analyzerDriverOpt, stateSets);
+                    return analyzerDriverOpt;
                 }
 
                 // Create driver that holds onto compilation and associated analyzers
                 var concurrentAnalysis = false;
                 var includeSuppressedDiagnostics = true;
-                var newAnalyzerDriver = await CreateAnalyzerDriverAsync(project, stateSets, concurrentAnalysis, includeSuppressedDiagnostics, cancellationToken).ConfigureAwait(false);
+                var newAnalyzerDriverOpt = await CreateAnalyzerDriverAsync(project, stateSets, concurrentAnalysis, includeSuppressedDiagnostics, cancellationToken).ConfigureAwait(false);
 
                 // Add new analyzer driver to the map
-                analyzerDriver = _map.GetValue(project, _ => newAnalyzerDriver);
+                analyzerDriverOpt = _map.GetValue(project, _ => newAnalyzerDriverOpt);
 
                 // if somebody has beat us, make sure analyzers are good.
-                if (analyzerDriver != newAnalyzerDriver)
+                if (analyzerDriverOpt != newAnalyzerDriverOpt)
                 {
-                    AssertAnalyzers(analyzerDriver, stateSets);
+                    AssertAnalyzers(analyzerDriverOpt, stateSets);
                 }
 
                 // return driver
-                return analyzerDriver;
+                return analyzerDriverOpt;
             }
 
             public Task<CompilationWithAnalyzers> CreateAnalyzerDriverAsync(
@@ -77,10 +80,13 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                 return CreateAnalyzerDriverAsync(project, analyzers, concurrentAnalysis, includeSuppressedDiagnostics, cancellationToken);
             }
 
-            public async Task<CompilationWithAnalyzers> CreateAnalyzerDriverAsync(
+            private async Task<CompilationWithAnalyzers> CreateAnalyzerDriverAsync(
                 Project project, ImmutableArray<DiagnosticAnalyzer> analyzers, bool concurrentAnalysis, bool includeSuppressedDiagnostics, CancellationToken cancellationToken)
             {
-                Contract.ThrowIfFalse(project.SupportsCompilation);
+                if (!project.SupportsCompilation)
+                {
+                    return null;
+                }
 
                 var compilation = await project.GetCompilationAsync(cancellationToken).ConfigureAwait(false);
 
@@ -89,7 +95,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                     project, compilation, analyzers, concurrentAnalysis: concurrentAnalysis, logAnalyzerExecutionTime: false, reportSuppressedDiagnostics: includeSuppressedDiagnostics);
             }
 
-            public CompilationWithAnalyzers CreateAnalyzerDriver(
+            private CompilationWithAnalyzers CreateAnalyzerDriver(
                 Project project,
                 Compilation compilation,
                 ImmutableArray<DiagnosticAnalyzer> analyzers,
@@ -97,6 +103,13 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                 bool logAnalyzerExecutionTime,
                 bool reportSuppressedDiagnostics)
             {
+                // PERF: there is no analyzers for this compilation.
+                //       compilationWithAnalyzer will throw if it is created with no analyzers which is perf optimization.
+                if (analyzers.IsEmpty)
+                {
+                    return null;
+                }
+
                 Contract.ThrowIfFalse(project.SupportsCompilation);
                 AssertCompilation(project, compilation);
 
@@ -154,6 +167,12 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
             [Conditional("DEBUG")]
             private void AssertAnalyzers(CompilationWithAnalyzers analyzerDriver, IEnumerable<StateSet> stateSets)
             {
+                if (analyzerDriver == null)
+                {
+                    // this can happen if project doesn't support compilation or no stateSets are given.
+                    return;
+                }
+
                 // make sure analyzers are same.
                 Contract.ThrowIfFalse(analyzerDriver.Analyzers.SetEquals(stateSets.Select(s => s.Analyzer)));
             }

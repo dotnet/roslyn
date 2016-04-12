@@ -37,13 +37,13 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                 }
 
                 var stateSets = _stateManager.GetOrUpdateStateSets(document.Project);
-                var analyzerDriver = await _compilationManager.GetAnalyzerDriverAsync(document.Project, stateSets, cancellationToken).ConfigureAwait(false);
+                var analyzerDriverOpt = await _compilationManager.GetAnalyzerDriverAsync(document.Project, stateSets, cancellationToken).ConfigureAwait(false);
 
                 foreach (var stateSet in stateSets)
                 {
                     var analyzer = stateSet.Analyzer;
 
-                    var result = await _executor.GetDocumentAnalysisDataAsync(analyzerDriver, document, stateSet, kind, cancellationToken).ConfigureAwait(false);
+                    var result = await _executor.GetDocumentAnalysisDataAsync(analyzerDriverOpt, document, stateSet, kind, cancellationToken).ConfigureAwait(false);
                     if (result.FromCache)
                     {
                         RaiseDocumentDiagnosticsIfNeeded(document, stateSet, kind, result.Items);
@@ -75,9 +75,9 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
 
                 // get driver only with active analyzers.
                 var includeSuppressedDiagnostics = true;
-                var analyzerDriver = await _compilationManager.CreateAnalyzerDriverAsync(project, activeAnalyzers, includeSuppressedDiagnostics, cancellationToken).ConfigureAwait(false);
+                var analyzerDriverOpt = await _compilationManager.CreateAnalyzerDriverAsync(project, activeAnalyzers, includeSuppressedDiagnostics, cancellationToken).ConfigureAwait(false);
 
-                var result = await _executor.GetProjectAnalysisDataAsync(analyzerDriver, project, stateSets, cancellationToken).ConfigureAwait(false);
+                var result = await _executor.GetProjectAnalysisDataAsync(analyzerDriverOpt, project, stateSets, cancellationToken).ConfigureAwait(false);
                 if (result.FromCache)
                 {
                     RaiseProjectDiagnosticsIfNeeded(project, stateSets, result.Result);
@@ -207,21 +207,6 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
             return document.IsOpen();
         }
 
-        private static ImmutableArray<DiagnosticData> GetResult(AnalysisResult result, AnalysisKind kind, DocumentId id)
-        {
-            switch (kind)
-            {
-                case AnalysisKind.Syntax:
-                    return result.GetResultOrEmpty(result.SyntaxLocals, id);
-                case AnalysisKind.Semantic:
-                    return result.GetResultOrEmpty(result.SemanticLocals, id);
-                case AnalysisKind.NonLocal:
-                    return result.GetResultOrEmpty(result.NonLocals, id);
-                default:
-                    return Contract.FailWithReturn<ImmutableArray<DiagnosticData>>("shouldn't reach here");
-            }
-        }
-
         private void RaiseLocalDocumentEventsFromProjectOverActiveFile(IEnumerable<StateSet> stateSets, Document document, bool activeFileDiagnosticExist)
         {
             // PERF: activeFileDiagnosticExist is perf optimization to reduce raising events unnecessarily.
@@ -292,8 +277,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                 {
                     var analyzer = stateSet.Analyzer;
 
-                    var oldAnalysisResult = ImmutableDictionary.GetValueOrDefault(oldResult, analyzer);
-                    var newAnalysisResult = ImmutableDictionary.GetValueOrDefault(newResult, analyzer);
+                    var oldAnalysisResult = GetResultOrEmpty(oldResult, analyzer, project.Id, VersionStamp.Default);
+                    var newAnalysisResult = GetResultOrEmpty(newResult, analyzer, project.Id, VersionStamp.Default);
 
                     // Perf - 4 different cases.
                     // upper 3 cases can be removed and it will still work. but this is hot path so if we can bail out

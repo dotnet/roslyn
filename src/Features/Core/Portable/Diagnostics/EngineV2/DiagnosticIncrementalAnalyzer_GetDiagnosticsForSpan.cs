@@ -46,7 +46,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
             private readonly Document _document;
 
             private readonly IEnumerable<StateSet> _stateSets;
-            private readonly CompilationWithAnalyzers _analyzerDriver;
+            private readonly CompilationWithAnalyzers _analyzerDriverOpt;
             private readonly DiagnosticAnalyzer _compilerAnalyzer;
 
             private readonly TextSpan _range;
@@ -62,17 +62,19 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                 DiagnosticIncrementalAnalyzer owner, Document document, TextSpan range, bool blockForData, bool includeSuppressedDiagnostics, CancellationToken cancellationToken)
             {
                 var concurrentAnalysis = false;
-                var stateSets = owner._stateManager.GetOrCreateStateSets(document.Project);
-                var analyzerDriver = await owner._compilationManager.CreateAnalyzerDriverAsync(document.Project, stateSets, concurrentAnalysis, includeSuppressedDiagnostics, cancellationToken).ConfigureAwait(false);
 
-                return new LatestDiagnosticsForSpanGetter(owner, document, stateSets, analyzerDriver, range, blockForData, includeSuppressedDiagnostics);
+                // REVIEW: IsAnalyzerSuppressed can be quite expensive in some cases. try to find a way to make it cheaper
+                var stateSets = owner._stateManager.GetOrCreateStateSets(document.Project).Where(s => !owner.Owner.IsAnalyzerSuppressed(s.Analyzer, document.Project));
+                var analyzerDriverOpt = await owner._compilationManager.CreateAnalyzerDriverAsync(document.Project, stateSets, concurrentAnalysis, includeSuppressedDiagnostics, cancellationToken).ConfigureAwait(false);
+
+                return new LatestDiagnosticsForSpanGetter(owner, analyzerDriverOpt, document, stateSets, range, blockForData, includeSuppressedDiagnostics);
             }
 
             private LatestDiagnosticsForSpanGetter(
                 DiagnosticIncrementalAnalyzer owner,
+                CompilationWithAnalyzers analyzerDriverOpt,
                 Document document,
                 IEnumerable<StateSet> stateSets,
-                CompilationWithAnalyzers analyzerDriver,
                 TextSpan range, bool blockForData, bool includeSuppressedDiagnostics)
             {
                 _owner = owner;
@@ -81,7 +83,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                 _document = document;
 
                 _stateSets = stateSets;
-                _analyzerDriver = analyzerDriver;
+                _analyzerDriverOpt = analyzerDriverOpt;
                 _compilerAnalyzer = _owner.HostAnalyzerManager.GetCompilerDiagnosticAnalyzer(_document.Project.Language);
 
                 _range = range;
@@ -180,7 +182,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
 
             private Task<IEnumerable<DiagnosticData>> GetSyntaxDiagnosticsAsync(DiagnosticAnalyzer analyzer, CancellationToken cancellationToken)
             {
-                return _owner._executor.ComputeDiagnosticsAsync(_analyzerDriver, _document, analyzer, AnalysisKind.Syntax, _range, cancellationToken);
+                return _owner._executor.ComputeDiagnosticsAsync(_analyzerDriverOpt, _document, analyzer, AnalysisKind.Syntax, _range, cancellationToken);
             }
 
             private Task<IEnumerable<DiagnosticData>> GetSemanticDiagnosticsAsync(DiagnosticAnalyzer analyzer, CancellationToken cancellationToken)
@@ -188,7 +190,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                 var supportsSemanticInSpan = analyzer.SupportsSpanBasedSemanticDiagnosticAnalysis();
 
                 var analysisSpan = supportsSemanticInSpan ? (TextSpan?)_range : null;
-                return _owner._executor.ComputeDiagnosticsAsync(_analyzerDriver, _document, analyzer, AnalysisKind.Semantic, analysisSpan, cancellationToken);
+                return _owner._executor.ComputeDiagnosticsAsync(_analyzerDriverOpt, _document, analyzer, AnalysisKind.Semantic, analysisSpan, cancellationToken);
             }
 
             private async Task<IEnumerable<DiagnosticData>> GetProjectDiagnosticsAsync(DiagnosticAnalyzer analyzer, CancellationToken cancellationToken)
@@ -196,7 +198,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                 if (_projectResultCache == null)
                 {
                     // execute whole project as one shot and cache the result.
-                    _projectResultCache = await _owner._executor.ComputeDiagnosticsAsync(_analyzerDriver, _project, _stateSets, cancellationToken).ConfigureAwait(false);
+                    _projectResultCache = await _owner._executor.ComputeDiagnosticsAsync(_analyzerDriverOpt, _project, _stateSets, cancellationToken).ConfigureAwait(false);
                 }
 
                 AnalysisResult result;
@@ -288,9 +290,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                 List<DiagnosticData> list,
                 CancellationToken cancellationToken)
             {
-                // REVIEW: IsAnalyzerSuppressed can be quite expensive in some cases. try to find a way to make it cheaper
-                if (!_owner.SupportAnalysisKind(stateSet.Analyzer, stateSet.Language, kind) ||
-                    _owner.Owner.IsAnalyzerSuppressed(stateSet.Analyzer, _document.Project))
+                if (!_owner.SupportAnalysisKind(stateSet.Analyzer, stateSet.Language, kind))
                 {
                     return true;
                 }
@@ -336,9 +336,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                 List<DiagnosticData> list,
                 CancellationToken cancellationToken)
             {
-                // REVIEW: IsAnalyzerSuppressed can be quite expensive in some cases. try to find a way to make it cheaper
-                if (!stateSet.Analyzer.SupportsProjectDiagnosticAnalysis() ||
-                    _owner.Owner.IsAnalyzerSuppressed(stateSet.Analyzer, _document.Project))
+                if (!stateSet.Analyzer.SupportsProjectDiagnosticAnalysis())
                 {
                     return true;
                 }

@@ -183,5 +183,36 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
         {
             return project.GetDependentVersionAsync(cancellationToken);
         }
+
+        private static AnalysisResult GetResultOrEmpty(ImmutableDictionary<DiagnosticAnalyzer, AnalysisResult> map, DiagnosticAnalyzer analyzer, ProjectId projectId, VersionStamp version)
+        {
+            AnalysisResult result;
+            if (map.TryGetValue(analyzer, out result))
+            {
+                return result;
+            }
+
+            return new AnalysisResult(projectId, version);
+        }
+
+        private static ImmutableArray<DiagnosticData> GetResult(AnalysisResult result, AnalysisKind kind, DocumentId id)
+        {
+            if (result.IsEmpty || !result.DocumentIds.Contains(id) || result.IsAggregatedForm)
+            {
+                return ImmutableArray<DiagnosticData>.Empty;
+            }
+
+            switch (kind)
+            {
+                case AnalysisKind.Syntax:
+                    return result.GetResultOrEmpty(result.SyntaxLocals, id);
+                case AnalysisKind.Semantic:
+                    return result.GetResultOrEmpty(result.SemanticLocals, id);
+                case AnalysisKind.NonLocal:
+                    return result.GetResultOrEmpty(result.NonLocals, id);
+                default:
+                    return Contract.FailWithReturn<ImmutableArray<DiagnosticData>>("shouldn't reach here");
+            }
+        }
     }
 }

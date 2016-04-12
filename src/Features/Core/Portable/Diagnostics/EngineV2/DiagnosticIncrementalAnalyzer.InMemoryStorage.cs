@@ -69,7 +69,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
             // make sure key is either documentId or projectId
             private static void AssertKey(object key)
             {
-                Contract.ThrowIfFalse(key is DocumentId || key is ProjectId);
+                var tuple = (ValueTuple<object, string>)key;
+                Contract.ThrowIfFalse(tuple.Item1 is DocumentId || tuple.Item1 is ProjectId);
             }
         }
 

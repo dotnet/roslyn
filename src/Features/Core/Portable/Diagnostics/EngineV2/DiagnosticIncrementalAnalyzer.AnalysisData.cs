@@ -46,34 +46,33 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
 
         private struct ProjectAnalysisData
         {
-            public static readonly ProjectAnalysisData Empty = new ProjectAnalysisData(
-                VersionStamp.Default, ImmutableDictionary<DiagnosticAnalyzer, AnalysisResult>.Empty, ImmutableDictionary<DiagnosticAnalyzer, AnalysisResult>.Empty);
-
+            public readonly ProjectId ProjectId;
             public readonly VersionStamp Version;
             public readonly ImmutableDictionary<DiagnosticAnalyzer, AnalysisResult> OldResult;
             public readonly ImmutableDictionary<DiagnosticAnalyzer, AnalysisResult> Result;
 
-
-            public ProjectAnalysisData(VersionStamp version, ImmutableDictionary<DiagnosticAnalyzer, AnalysisResult> result)
+            public ProjectAnalysisData(ProjectId projectId, VersionStamp version, ImmutableDictionary<DiagnosticAnalyzer, AnalysisResult> result)
             {
-                this.Version = version;
-                this.Result = result;
+                ProjectId = projectId;
+                Version = version;
+                Result = result;
 
-                this.OldResult = null;
+                OldResult = null;
             }
 
             public ProjectAnalysisData(
+                ProjectId projectId,
                 VersionStamp version,
                 ImmutableDictionary<DiagnosticAnalyzer, AnalysisResult> oldResult,
                 ImmutableDictionary<DiagnosticAnalyzer, AnalysisResult> newResult) :
-                this(version, newResult)
+                this(projectId, version, newResult)
             {
                 this.OldResult = oldResult;
             }
 
             public AnalysisResult GetResult(DiagnosticAnalyzer analyzer)
             {
-                return IDictionaryExtensions.GetValueOrDefault(Result, analyzer);
+                return GetResultOrEmpty(Result, analyzer, ProjectId, Version);
             }
 
             public bool FromCache
@@ -90,15 +89,19 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                 {
                     var state = stateSet.GetProjectState(project.Id);
                     var result = await state.GetAnalysisDataAsync(project, avoidLoadingData, cancellationToken).ConfigureAwait(false);
+                    Contract.ThrowIfFalse(project.Id == result.ProjectId);
 
                     if (!version.HasValue)
                     {
-                        version = result.Version;
+                        if (result.Version != VersionStamp.Default)
+                        {
+                            version = result.Version;
+                        }
                     }
                     else
                     {
-                        // all version must be same.
-                        Contract.ThrowIfFalse(version == result.Version);
+                        // all version must be same or default (means not there yet)
+                        Contract.Requires(version == result.Version || result.Version == VersionStamp.Default);
                     }
 
                     builder.Add(stateSet.Analyzer, result);
@@ -107,10 +110,10 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                 if (!version.HasValue)
                 {
                     // there is no saved data to return.
-                    return ProjectAnalysisData.Empty;
+                    return new ProjectAnalysisData(project.Id, VersionStamp.Default, ImmutableDictionary<DiagnosticAnalyzer, AnalysisResult>.Empty);
                 }
 
-                return new ProjectAnalysisData(version.Value, builder.ToImmutable());
+                return new ProjectAnalysisData(project.Id, version.Value, builder.ToImmutable());
             }
         }
     }

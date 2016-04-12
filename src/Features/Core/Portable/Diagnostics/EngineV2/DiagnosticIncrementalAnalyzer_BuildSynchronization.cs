@@ -57,7 +57,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
             var oldAnalysisData = await ProjectAnalysisData.CreateAsync(project, stateSets, avoidLoadingData, CancellationToken.None).ConfigureAwait(false);
             var newResult = CreateAnalysisResults(project, stateSets, oldAnalysisData, diagnostics);
 
-            return new ProjectAnalysisData(VersionStamp.Default, oldAnalysisData.Result, newResult);
+            return new ProjectAnalysisData(project.Id, VersionStamp.Default, oldAnalysisData.Result, newResult);
         }
 
         private ImmutableDictionary<DiagnosticAnalyzer, AnalysisResult> CreateAnalysisResults(
@@ -84,7 +84,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                         syntaxLocals: ImmutableDictionary<DocumentId, ImmutableArray<DiagnosticData>>.Empty,
                         semanticLocals: group.Where(g => g.Key != null).ToImmutableDictionary(g => g.Key, g => g.ToImmutableArray()),
                         nonLocals: ImmutableDictionary<DocumentId, ImmutableArray<DiagnosticData>>.Empty,
-                        others: ImmutableArray<DiagnosticData>.Empty);
+                        others: group.Where(g => g.Key == null).SelectMany(g => g).ToImmutableArrayOrEmpty());
 
                     builder.Add(stateSet.Analyzer, result);
                 }

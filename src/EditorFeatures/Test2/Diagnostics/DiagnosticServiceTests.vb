@@ -117,14 +117,12 @@ Namespace Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics.UnitTests
                 Assert.Equal(workspaceDiagnosticAnalyzer.DiagDescriptor.Id, descriptors(0).Id)
 
                 ' Add an existing workspace analyzer to the project, ensure no duplicate diagnostics.
-                Dim duplicateProjectAnalyzers = ImmutableArray.Create(Of DiagnosticAnalyzer)(workspaceDiagnosticAnalyzer)
-                Dim duplicateProjectAnalyzersReference = New AnalyzerImageReference(duplicateProjectAnalyzers)
+                Dim duplicateProjectAnalyzersReference = diagnosticService.HostAnalyzerReferences.FirstOrDefault()
                 project = project.WithAnalyzerReferences({duplicateProjectAnalyzersReference})
 
                 ' Verify duplicate descriptors or diagnostics.
-                ' We don't do de-duplication of analyzer that belong to different layer (host and project)
                 descriptorsMap = diagnosticService.GetDiagnosticDescriptors(project)
-                Assert.Equal(2, descriptorsMap.Count)
+                Assert.Equal(1, descriptorsMap.Count)
                 descriptors = descriptorsMap.Values.SelectMany(Function(d) d).OrderBy(Function(d) d.Id).ToImmutableArray()
                 Assert.Equal(workspaceDiagnosticAnalyzer.DiagDescriptor.Id, descriptors(0).Id)
 
@@ -132,7 +130,7 @@ Namespace Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics.UnitTests
                 diagnostics = diagnosticService.GetDiagnosticsForSpanAsync(document,
                                                                     document.GetSyntaxRootAsync().WaitAndGetResult(CancellationToken.None).FullSpan
                                                                     ).WaitAndGetResult(CancellationToken.None)
-                Assert.Equal(2, diagnostics.Count())
+                Assert.Equal(1, diagnostics.Count())
             End Using
         End Sub
 
@@ -732,23 +730,37 @@ class AnonymousFunctions
                 Assert.Equal(1, diagnostics.Count())
                 Assert.Equal(document.Id, diagnostics.First().DocumentId)
 
-                ' Verify compilation diagnostics are reported with correct location info when asked for project diagnostics.
-                Dim projectDiagnostics = diagnosticService.GetProjectDiagnosticsForIdsAsync(project.Solution, project.Id).WaitAndGetResult(CancellationToken.None)
-                Assert.Equal(2, projectDiagnostics.Count())
+                If options.GetOption(InternalDiagnosticsOptions.UseDiagnosticEngineV2) Then
+                    ' Verify compilation diagnostics are reported with correct location info when asked for project diagnostics.
+                    Dim projectDiagnostics = diagnosticService.GetProjectDiagnosticsForIdsAsync(project.Solution, project.Id).WaitAndGetResult(CancellationToken.None)
+                    Assert.Equal(1, projectDiagnostics.Count())
 
-                Dim noLocationDiagnostic = projectDiagnostics.First()
-                Assert.Equal(CompilationEndedAnalyzer.Descriptor.Id, noLocationDiagnostic.Id)
-                Assert.Equal(False, noLocationDiagnostic.HasTextSpan)
+                    Dim noLocationDiagnostic = projectDiagnostics.First()
+                    Assert.Equal(CompilationEndedAnalyzer.Descriptor.Id, noLocationDiagnostic.Id)
+                    Assert.Equal(False, noLocationDiagnostic.HasTextSpan)
+                Else
+                    ' REVIEW: GetProjectDiagnosticsForIdsAsync is for project diagnostics with no location. not sure why in v1, this API returns
+                    '         diagnostic with location?
 
-                Dim withDocumentLocationDiagnostic = projectDiagnostics.Last()
-                Assert.Equal(CompilationEndedAnalyzer.Descriptor.Id, withDocumentLocationDiagnostic.Id)
-                Assert.Equal(True, withDocumentLocationDiagnostic.HasTextSpan)
-                Assert.NotNull(withDocumentLocationDiagnostic.DocumentId)
-                Dim diagnosticDocument = project.GetDocument(withDocumentLocationDiagnostic.DocumentId)
-                Dim tree = diagnosticDocument.GetSyntaxTreeAsync().Result
-                Dim actualLocation = withDocumentLocationDiagnostic.ToDiagnosticAsync(project, CancellationToken.None).Result.Location
-                Dim expectedLocation = document.GetSyntaxRootAsync().Result.GetLocation
-                Assert.Equal(expectedLocation, actualLocation)
+                    ' Verify compilation diagnostics are reported with correct location info when asked for project diagnostics.
+                    Dim projectDiagnostics = diagnosticService.GetProjectDiagnosticsForIdsAsync(project.Solution, project.Id).WaitAndGetResult(CancellationToken.None)
+                    Assert.Equal(2, projectDiagnostics.Count())
+
+                    Dim noLocationDiagnostic = projectDiagnostics.First()
+                    Assert.Equal(CompilationEndedAnalyzer.Descriptor.Id, noLocationDiagnostic.Id)
+                    Assert.Equal(False, noLocationDiagnostic.HasTextSpan)
+
+                    Dim withDocumentLocationDiagnostic = projectDiagnostics.Last()
+                    Assert.Equal(CompilationEndedAnalyzer.Descriptor.Id, withDocumentLocationDiagnostic.Id)
+                    Assert.Equal(True, withDocumentLocationDiagnostic.HasTextSpan)
+                    Assert.NotNull(withDocumentLocationDiagnostic.DocumentId)
+
+                    Dim diagnosticDocument = project.GetDocument(withDocumentLocationDiagnostic.DocumentId)
+                    Dim tree = diagnosticDocument.GetSyntaxTreeAsync().Result
+                    Dim actualLocation = withDocumentLocationDiagnostic.ToDiagnosticAsync(project, CancellationToken.None).Result.Location
+                    Dim expectedLocation = document.GetSyntaxRootAsync().Result.GetLocation
+                    Assert.Equal(expectedLocation, actualLocation)
+                End If
             End Using
         End Sub
 

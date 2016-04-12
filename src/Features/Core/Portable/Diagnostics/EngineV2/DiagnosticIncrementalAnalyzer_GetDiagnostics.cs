@@ -45,9 +45,9 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
         {
             protected readonly DiagnosticIncrementalAnalyzer Owner;
 
-            protected readonly Solution Solution;
-            protected readonly ProjectId ProjectId;
-            protected readonly DocumentId DocumentId;
+            protected readonly Solution CurrentSolution;
+            protected readonly ProjectId CurrentProjectId;
+            protected readonly DocumentId CurrentDocumentId;
             protected readonly object Id;
             protected readonly bool IncludeSuppressedDiagnostics;
 
@@ -62,10 +62,10 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                 bool includeSuppressedDiagnostics)
             {
                 Owner = owner;
-                Solution = solution;
+                CurrentSolution = solution;
 
-                DocumentId = documentId;
-                ProjectId = projectId;
+                CurrentDocumentId = documentId;
+                CurrentProjectId = projectId;
 
                 Id = id;
                 IncludeSuppressedDiagnostics = includeSuppressedDiagnostics;
@@ -74,8 +74,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                 var argsId = id as LiveDiagnosticUpdateArgsId;
                 if (argsId != null)
                 {
-                    DocumentId = DocumentId ?? argsId.Key as DocumentId;
-                    ProjectId = ProjectId ?? (argsId.Key as ProjectId) ?? DocumentId.ProjectId;
+                    CurrentDocumentId = CurrentDocumentId ?? argsId.Key as DocumentId;
+                    CurrentProjectId = CurrentProjectId ?? (argsId.Key as ProjectId) ?? CurrentDocumentId.ProjectId;
                 }
 
                 _builder = null;
@@ -83,8 +83,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
 
             protected StateManager StateManager => this.Owner._stateManager;
 
-            protected Project Project => Solution.GetProject(ProjectId);
-            protected Document Document => Solution.GetDocument(DocumentId);
+            protected Project CurrentProject => CurrentSolution.GetProject(CurrentProjectId);
+            protected Document CurrentDocument => CurrentSolution.GetDocument(CurrentDocumentId);
 
             protected virtual bool ShouldIncludeDiagnostic(DiagnosticData diagnostic) => true;
 
@@ -98,7 +98,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
 
             public async Task<ImmutableArray<DiagnosticData>> GetSpecificDiagnosticsAsync(CancellationToken cancellationToken)
             {
-                if (Solution == null)
+                if (CurrentSolution == null)
                 {
                     return ImmutableArray<DiagnosticData>.Empty;
                 }
@@ -109,19 +109,19 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                     return ImmutableArray<DiagnosticData>.Empty;
                 }
 
-                if (Project == null)
+                if (CurrentProject == null)
                 {
                     // when we return cached result, make sure we at least return something that exist in current solution
                     return ImmutableArray<DiagnosticData>.Empty;
                 }
 
-                var stateSet = this.StateManager.GetOrCreateStateSet(Project, argsId.Analyzer);
+                var stateSet = this.StateManager.GetOrCreateStateSet(CurrentProject, argsId.Analyzer);
                 if (stateSet == null)
                 {
                     return ImmutableArray<DiagnosticData>.Empty;
                 }
 
-                var diagnostics = await GetDiagnosticsAsync(stateSet, Project, DocumentId, (AnalysisKind)argsId.Kind, cancellationToken).ConfigureAwait(false);
+                var diagnostics = await GetDiagnosticsAsync(stateSet, CurrentProject, CurrentDocumentId, (AnalysisKind)argsId.Kind, cancellationToken).ConfigureAwait(false);
                 if (diagnostics == null)
                 {
                     // Document or project might have been removed from the solution.
@@ -133,40 +133,34 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
 
             public async Task<ImmutableArray<DiagnosticData>> GetDiagnosticsAsync(CancellationToken cancellationToken)
             {
-                if (Solution == null)
+                if (CurrentSolution == null)
                 {
                     return ImmutableArray<DiagnosticData>.Empty;
                 }
 
-                if (ProjectId != null)
+                if (CurrentProjectId != null)
                 {
-                    if (Project == null)
+                    if (CurrentProject == null)
                     {
                         return GetDiagnosticData();
                     }
 
-                    var documentIds = DocumentId != null ? SpecializedCollections.SingletonEnumerable(DocumentId) : Project.DocumentIds;
+                    var documentIds = CurrentDocumentId != null ? SpecializedCollections.SingletonEnumerable(CurrentDocumentId) : CurrentProject.DocumentIds;
 
                     // return diagnostics specific to one project or document
-                    await AppendDiagnosticsAsync(Project, DocumentId, documentIds, cancellationToken).ConfigureAwait(false);
+                    await AppendDiagnosticsAsync(CurrentProject, CurrentDocumentId, documentIds, cancellationToken).ConfigureAwait(false);
                     return GetDiagnosticData();
                 }
 
-                await AppendDiagnosticsAsync(Solution, cancellationToken).ConfigureAwait(false);
+                await AppendDiagnosticsAsync(CurrentSolution, cancellationToken).ConfigureAwait(false);
                 return GetDiagnosticData();
             }
 
             protected async Task AppendDiagnosticsAsync(Solution solution, CancellationToken cancellationToken)
             {
-                // when we return cached result, make sure we at least return something that exist in current solution
-                if (Project == null)
-                {
-                    return;
-                }
-
                 // PERF: should run this concurrently? analyzer driver itself is already running concurrently.
                 DocumentId nullTargetDocumentId = null;
-                foreach (var project in Solution.Projects)
+                foreach (var project in solution.Projects)
                 {
                     await AppendDiagnosticsAsync(project, nullTargetDocumentId, project.DocumentIds, cancellationToken: cancellationToken).ConfigureAwait(false);
                 }
@@ -243,12 +237,12 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
             protected override async Task AppendDiagnosticsAsync(Project project, DocumentId targetDocumentId, IEnumerable<DocumentId> documentIds, CancellationToken cancellationToken)
             {
                 // when we return cached result, make sure we at least return something that exist in current solution
-                if (Project == null)
+                if (project == null)
                 {
                     return;
                 }
 
-                foreach (var stateSet in StateManager.GetOrCreateStateSets(project))
+                foreach (var stateSet in StateManager.GetStateSets(project.Id))
                 {
                     foreach (var documentId in documentIds)
                     {
@@ -286,7 +280,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
 
             private ImmutableArray<DiagnosticData>? GetActiveFileDiagnostics(StateSet stateSet, DocumentId documentId, AnalysisKind kind)
             {
-                if (documentId == null)
+                if (documentId == null || kind == AnalysisKind.NonLocal)
                 {
                     return null;
                 }
@@ -313,7 +307,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                 if (documentId != null)
                 {
                     // file doesn't exist in current solution
-                    var document = Solution.GetDocument(documentId);
+                    var document = project.Solution.GetDocument(documentId);
                     if (document == null)
                     {
                         return null;
@@ -358,20 +352,20 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
 
             public async Task<ImmutableArray<DiagnosticData>> GetProjectDiagnosticsAsync(CancellationToken cancellationToken)
             {
-                if (Solution == null)
+                if (CurrentSolution == null)
                 {
                     return GetDiagnosticData();
                 }
 
                 DocumentId nullTargetDocumentId = null;
 
-                if (ProjectId != null)
+                if (CurrentProjectId != null)
                 {
-                    await AppendDiagnosticsAsync(Project, nullTargetDocumentId, SpecializedCollections.EmptyEnumerable<DocumentId>(), cancellationToken).ConfigureAwait(false);
+                    await AppendDiagnosticsAsync(CurrentProject, nullTargetDocumentId, SpecializedCollections.EmptyEnumerable<DocumentId>(), cancellationToken).ConfigureAwait(false);
                     return GetDiagnosticData();
                 }
 
-                await AppendDiagnosticsAsync(Solution, cancellationToken).ConfigureAwait(false);
+                await AppendDiagnosticsAsync(CurrentSolution, cancellationToken).ConfigureAwait(false);
                 return GetDiagnosticData();
             }
 
@@ -383,7 +377,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
             protected override async Task AppendDiagnosticsAsync(Project project, DocumentId targetDocumentId, IEnumerable<DocumentId> documentIds, CancellationToken cancellationToken)
             {
                 // when we return cached result, make sure we at least return something that exist in current solution
-                if (Project == null)
+                if (project == null)
                 {
                     return;
                 }
@@ -393,9 +387,9 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                 var stateSets = StateManager.GetOrCreateStateSets(project).Where(s => ShouldIncludeStateSet(project, s)).ToImmutableArrayOrEmpty();
 
                 var concurrentAnalysis = true;
-                var analyzerDriver = await Owner._compilationManager.CreateAnalyzerDriverAsync(project, stateSets, concurrentAnalysis, IncludeSuppressedDiagnostics, cancellationToken).ConfigureAwait(false);
+                var analyzerDriverOpt = await Owner._compilationManager.CreateAnalyzerDriverAsync(project, stateSets, concurrentAnalysis, IncludeSuppressedDiagnostics, cancellationToken).ConfigureAwait(false);
 
-                var result = await Owner._executor.GetProjectAnalysisDataAsync(analyzerDriver, project, stateSets, cancellationToken).ConfigureAwait(false);
+                var result = await Owner._executor.GetProjectAnalysisDataAsync(analyzerDriverOpt, project, stateSets, cancellationToken).ConfigureAwait(false);
 
                 foreach (var stateSet in stateSets)
                 {
@@ -439,11 +433,11 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
 
                 var concurrentAnalysis = true;
                 var stateSets = SpecializedCollections.SingletonCollection(stateSet);
-                var analyzerDriver = await Owner._compilationManager.CreateAnalyzerDriverAsync(project, stateSets, concurrentAnalysis, IncludeSuppressedDiagnostics, cancellationToken).ConfigureAwait(false);
+                var analyzerDriverOpt = await Owner._compilationManager.CreateAnalyzerDriverAsync(project, stateSets, concurrentAnalysis, IncludeSuppressedDiagnostics, cancellationToken).ConfigureAwait(false);
 
                 if (documentId != null)
                 {
-                    var document = Solution.GetDocument(documentId);
+                    var document = project.Solution.GetDocument(documentId);
                     Contract.ThrowIfNull(document);
 
                     switch (kind)
@@ -451,12 +445,12 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                         case AnalysisKind.Syntax:
                         case AnalysisKind.Semantic:
                             {
-                                var result = await Owner._executor.GetDocumentAnalysisDataAsync(analyzerDriver, document, stateSet, kind, cancellationToken).ConfigureAwait(false);
+                                var result = await Owner._executor.GetDocumentAnalysisDataAsync(analyzerDriverOpt, document, stateSet, kind, cancellationToken).ConfigureAwait(false);
                                 return result.Items;
                             }
                         case AnalysisKind.NonLocal:
                             {
-                                var nonLocalDocumentResult = await Owner._executor.GetProjectAnalysisDataAsync(analyzerDriver, project, stateSets, cancellationToken).ConfigureAwait(false);
+                                var nonLocalDocumentResult = await Owner._executor.GetProjectAnalysisDataAsync(analyzerDriverOpt, project, stateSets, cancellationToken).ConfigureAwait(false);
                                 var analysisResult = nonLocalDocumentResult.GetResult(stateSet.Analyzer);
                                 return GetResult(analysisResult, AnalysisKind.NonLocal, documentId);
                             }
@@ -466,7 +460,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                 }
 
                 Contract.ThrowIfFalse(kind == AnalysisKind.NonLocal);
-                var projectResult = await Owner._executor.GetProjectAnalysisDataAsync(analyzerDriver, project, stateSets, cancellationToken).ConfigureAwait(false);
+                var projectResult = await Owner._executor.GetProjectAnalysisDataAsync(analyzerDriverOpt, project, stateSets, cancellationToken).ConfigureAwait(false);
                 return projectResult.GetResult(stateSet.Analyzer).Others;
             }
         }
