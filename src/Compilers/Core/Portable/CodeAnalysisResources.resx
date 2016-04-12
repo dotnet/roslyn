@@ -453,7 +453,10 @@
     <value>Invalid data at offset {0}: {1}{2}*{3}{4}</value>
   </data>
   <data name="SymWriterNotDeterministic" xml:space="preserve">
-    <value>SymWriter doesn't support deterministic compilation</value>
+    <value>Windows PDB writer doesn't support deterministic compilation -- could not find Microsoft.DiaSymReader.Native.{0}.dll</value>
+  </data>
+  <data name="SymWriterNotAvailable" xml:space="preserve">
+    <value>Windows PDB writer is not available -- could not find Microsoft.DiaSymReader.Native.{0}.dll</value>
   </data>
   <data name="RuleSetBadAttributeValue" xml:space="preserve">
     <value>The attribute {0} has an invalid value of {1}.</value>

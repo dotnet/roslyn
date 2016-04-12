@@ -292,15 +292,23 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                          currentMethod:=currentMethod)
         End Function
 
+        ''' <returns>
+        ''' Returns true if any members that we need are missing or have use-site errors.
+        ''' </returns>
         Friend Overrides Function EnsureAllSymbolsAndSignature() As Boolean
-            Dim hasErrors As Boolean = MyBase.EnsureAllSymbolsAndSignature
+            If MyBase.EnsureAllSymbolsAndSignature Then
+                Return True
+            End If
 
-            EnsureSpecialType(SpecialType.System_Object, hasErrors)
-            EnsureSpecialType(SpecialType.System_Void, hasErrors)
-            EnsureSpecialType(SpecialType.System_ValueType, hasErrors)
+            Dim bag = DiagnosticBag.GetInstance()
 
-            EnsureWellKnownType(WellKnownType.System_Runtime_CompilerServices_IAsyncStateMachine, hasErrors)
-            EnsureWellKnownMember(Of MethodSymbol)(WellKnownMember.System_Runtime_CompilerServices_IAsyncStateMachine_MoveNext, hasErrors)
+            EnsureSpecialType(SpecialType.System_Object, bag)
+            EnsureSpecialType(SpecialType.System_Void, bag)
+            EnsureSpecialType(SpecialType.System_ValueType, bag)
+
+            EnsureWellKnownType(WellKnownType.System_Runtime_CompilerServices_IAsyncStateMachine, bag)
+            EnsureWellKnownMember(WellKnownMember.System_Runtime_CompilerServices_IAsyncStateMachine_MoveNext, bag)
+            EnsureWellKnownMember(WellKnownMember.System_Runtime_CompilerServices_IAsyncStateMachine_SetStateMachine, bag)
 
             ' We don't ensure those types because we don't know if they will be actually used, 
             ' use-site errors will be reported later if any of those types is actually requested
@@ -314,15 +322,21 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
             Select Case Me._asyncMethodKind
                 Case AsyncMethodKind.GenericTaskFunction
-                    EnsureWellKnownType(WellKnownType.System_Runtime_CompilerServices_AsyncTaskMethodBuilder_T, hasErrors)
+                    EnsureWellKnownType(WellKnownType.System_Runtime_CompilerServices_AsyncTaskMethodBuilder_T, bag)
                 Case AsyncMethodKind.TaskFunction
-                    EnsureWellKnownType(WellKnownType.System_Runtime_CompilerServices_AsyncTaskMethodBuilder, hasErrors)
+                    EnsureWellKnownType(WellKnownType.System_Runtime_CompilerServices_AsyncTaskMethodBuilder, bag)
                 Case AsyncMethodKind.[Sub]
-                    EnsureWellKnownType(WellKnownType.System_Runtime_CompilerServices_AsyncVoidMethodBuilder, hasErrors)
+                    EnsureWellKnownType(WellKnownType.System_Runtime_CompilerServices_AsyncVoidMethodBuilder, bag)
                 Case Else
                     Throw ExceptionUtilities.UnexpectedValue(Me._asyncMethodKind)
             End Select
 
+            Dim hasErrors As Boolean = bag.HasAnyErrors
+            If hasErrors Then
+                Me.Diagnostics.AddRange(bag)
+            End If
+
+            bag.Free()
             Return hasErrors
         End Function
 

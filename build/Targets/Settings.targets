@@ -76,13 +76,6 @@
     <VisualStudioVersion Condition="'$(VisualStudioVersion)' == ''">14.0</VisualStudioVersion>
   </PropertyGroup>
 
-  <PropertyGroup Condition="'$(DevEnvDir)' == ''">
-    <DevEnvDir>$(VSINSTALLDIR)\Common7\IDE</DevEnvDir>
-    <DevEnvDir Condition="'$(VisualStudioVersion)' == '12.0'">$(VS120COMNTOOLS)\..\IDE</DevEnvDir>
-    <DevEnvDir Condition="'$(VisualStudioVersion)' == '14.0'">$(VS140COMNTOOLS)\..\IDE</DevEnvDir>
-    <DevEnvDir>$([System.IO.Path]::GetFullPath('$(DevEnvDir)'))</DevEnvDir>
-  </PropertyGroup>
-
   <PropertyGroup>
     <VisualStudioReferenceMajorVersion Condition="'$(VisualStudioReferenceMajorVersion)' == ''">$(VisualStudioVersion.Substring(0, $(VisualStudioVersion.IndexOf('.'))))</VisualStudioReferenceMajorVersion>
     <VisualStudioReferenceAssemblyVersion Condition="'$(VisualStudioReferenceAssemblyVersion)' == ''">$(VisualStudioReferenceMajorVersion).0.0.0</VisualStudioReferenceAssemblyVersion>
@@ -107,6 +100,15 @@
     <DebugType Condition="'$(OS)' == 'Windows_NT'">pdbonly</DebugType>
   </PropertyGroup>
 
+  <PropertyGroup Condition="'$(VSCOMNTOOLS)' == ''">
+    <VSCOMNTOOLS>$([System.Environment]::ExpandEnvironmentVariables("%VS$(VisualStudioReferenceMajorVersion)0COMNTOOLS%"))</VSCOMNTOOLS>
+  </PropertyGroup>
+  
+  <PropertyGroup Condition="'$(DevEnvDir)' == ''">
+    <DevEnvDir>$(VSCOMNTOOLS)\..\IDE</DevEnvDir>
+    <DevEnvDir>$([System.IO.Path]::GetFullPath('$(DevEnvDir)'))</DevEnvDir>
+  </PropertyGroup>
+  
   <Choose>
     <When Condition="'$(VisualStudioVersion)' == '12.0'">
       <PropertyGroup>
@@ -285,18 +287,8 @@
   </Choose>
 
   <PropertyGroup>
-    <!-- SN is in the Framework SDK tools path, but TargetFrameworkSDKToolsDirectory isn't always available  -->
-    <SnToolPath Condition=" '$(TargetFrameworkSDKToolsDirectory)' != '' ">$(TargetFrameworkSDKToolsDirectory)\sn.exe</SnToolPath>
-    <SnToolPath Condition=" '$(TargetFrameworkSDKToolsDirectory)' == '' ">$(MSBuildProgramFiles32)\Microsoft SDKs\Windows\v8.0A\bin\NETFX 4.0 Tools\sn.exe</SnToolPath>
-
-    <EditBinToolPath>$(MSBuildProgramFiles32)\Microsoft Visual Studio $(VisualStudioVersion)\VC\bin\editbin.exe</EditBinToolPath>
-
-  </PropertyGroup>
-
-  <PropertyGroup>
     <CopyVSReferencesToOutput>True</CopyVSReferencesToOutput>
     <AuthenticodeCertificateName>Microsoft402</AuthenticodeCertificateName>
-    <FakeSignToolPath>$(NuGetPackageRoot)\FakeSign\0.9.2\tools\FakeSign.exe</FakeSignToolPath>
   </PropertyGroup>
 
   <!-- 

@@ -12,7 +12,7 @@ void NGen(string file, bool x86Only = false)
     Log($"> NGen {file}");
     var output = StdoutFrom(ngen, $"install \"{file}\" /nologo /nodependencies");
     Log(output);
-    
+
     if (!x86Only)
     {
         Log($"> NGen (64 bit) {file}");

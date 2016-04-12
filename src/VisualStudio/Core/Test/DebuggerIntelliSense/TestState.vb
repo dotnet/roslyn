@@ -20,7 +20,6 @@ Imports Microsoft.VisualStudio.LanguageServices.Implementation.Extensions
 Imports Microsoft.VisualStudio.LanguageServices.VisualBasic
 Imports Microsoft.VisualStudio.Text
 Imports Microsoft.VisualStudio.Text.BraceCompletion
-Imports Microsoft.VisualStudio.Text.BraceCompletion.Implementation
 Imports Microsoft.VisualStudio.Text.Editor
 Imports Microsoft.VisualStudio.Text.Operations
 Imports Microsoft.VisualStudio.TextManager
@@ -68,7 +67,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.DebuggerIntelliSense
                 New TestCompletionPresenter(Me),
                 GetExports(Of IAsynchronousOperationListener, FeatureMetadata)(),
                 completionProviders,
-                GetExports(Of IBraceCompletionSessionProvider, IBraceCompletionMetadata)())
+                GetExports(Of IBraceCompletionSessionProvider, BraceCompletionMetadata)())
 
             Me.CompletionCommandHandler = New CompletionCommandHandler(Me.AsyncCompletionService)
 
