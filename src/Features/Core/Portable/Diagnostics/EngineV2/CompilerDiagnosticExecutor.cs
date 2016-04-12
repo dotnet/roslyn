@@ -105,11 +105,13 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
 
             public void AddExternalSyntaxDiagnostics(DocumentId documentId, IEnumerable<Diagnostic> diagnostics)
             {
+                // this is for diagnostic producer that doesnt use compiler based DiagnosticAnalyzer such as TypeScript.
                 AddExternalDiagnostics(ref _lazySyntaxLocals, documentId, diagnostics);
             }
 
             public void AddExternalSemanticDiagnostics(DocumentId documentId, IEnumerable<Diagnostic> diagnostics)
             {
+                // this is for diagnostic producer that doesnt use compiler based DiagnosticAnalyzer such as TypeScript.
                 AddExternalDiagnostics(ref _lazySemanticLocals, documentId, diagnostics);
             }
 
