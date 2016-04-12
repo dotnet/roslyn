@@ -86,11 +86,16 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             // EnC: We need to insert a hidden sequence point to handle function remapping in case 
             // the containing method is edited while methods invoked in the condition are being executed.
+            if (rewrittenFilter != null && !node.WasCompilerGenerated && this.Instrument)
+            {
+                rewrittenFilter = _instrumenter.InstrumentCatchClauseFilter(node, rewrittenFilter, _factory);
+            }
+
             return node.Update(
                 node.LocalOpt,
                 rewrittenExceptionSourceOpt,
                 rewrittenExceptionTypeOpt,
-                AddConditionSequencePoint(rewrittenFilter, node),
+                rewrittenFilter,
                 rewrittenBody,
                 node.IsSynthesizedAsyncCatchAll);
         }

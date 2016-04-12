@@ -378,6 +378,10 @@
     <Compile Include="Lowering\DiagnosticsPass_Warnings.cs" />
     <Compile Include="Lowering\Extensions.cs" />
     <Compile Include="Lowering\InitializerRewriter.cs" />
+    <Compile Include="Lowering\Instrumentation\CompoundInstrumenter.cs" />
+    <Compile Include="Lowering\Instrumentation\DebugInfoInjector.cs" />
+    <Compile Include="Lowering\Instrumentation\DebugInfoInjector_SequencePoints.cs" />
+    <Compile Include="Lowering\Instrumentation\Instrumenter.cs" />
     <Compile Include="Lowering\IteratorRewriter\IteratorConstructor.cs" />
     <Compile Include="Lowering\IteratorRewriter\IteratorFinallyMethodSymbol.cs" />
     <Compile Include="Lowering\IteratorRewriter\IteratorMethodToStateMachineRewriter.IteratorFinallyFrame.cs" />
@@ -436,7 +440,6 @@
     <Compile Include="Lowering\LocalRewriter\LocalRewriter_PropertyAccess.cs" />
     <Compile Include="Lowering\LocalRewriter\LocalRewriter_Query.cs" />
     <Compile Include="Lowering\LocalRewriter\LocalRewriter_ReturnStatement.cs" />
-    <Compile Include="Lowering\LocalRewriter\LocalRewriter_SequencePoints.cs" />
     <Compile Include="Lowering\LocalRewriter\LocalRewriter_StackAlloc.cs" />
     <Compile Include="Lowering\LocalRewriter\LocalRewriter_StringConcat.cs" />
     <Compile Include="Lowering\LocalRewriter\LocalRewriter_StringInterpolation.cs" />

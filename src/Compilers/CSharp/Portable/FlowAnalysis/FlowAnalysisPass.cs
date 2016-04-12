@@ -118,18 +118,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 ? (BoundStatement)BoundYieldBreakStatement.Synthesized(syntax)
                 : BoundReturnStatement.Synthesized(syntax, RefKind.None, null);
 
-            // Implicitly added return for async method does not need sequence points since lowering would add one.
-            if (syntax.IsKind(SyntaxKind.Block) && !method.IsAsync)
-            {
-                var blockSyntax = (BlockSyntax)syntax;
-
-                ret = new BoundSequencePointWithSpan(
-                    blockSyntax,
-                    ret,
-                    blockSyntax.CloseBraceToken.Span)
-                { WasCompilerGenerated = true };
-            }
-
             return body.Update(body.Locals, body.LocalFunctions, body.Statements.Add(ret));
         }
 
