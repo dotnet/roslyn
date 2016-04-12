@@ -254,7 +254,6 @@ Hello
 Flushing
 1
 True
-True
 2
 False
 True
