@@ -39,7 +39,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             return InstrumentStatement(original, rewritten);
         }
 
-
         public virtual BoundStatement InstrumentYieldBreakStatement(BoundYieldBreakStatement original, BoundStatement rewritten)
         {
             Debug.Assert(!original.WasCompilerGenerated || original.Syntax.Kind() == SyntaxKind.Block);
