@@ -78,15 +78,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case SyntaxKind.CaseSwitchLabel:
                     {
                         var caseLabelSyntax = (CaseSwitchLabelSyntax)node;
-                        var boundLabelExpression = sectionBinder.BindValue(caseLabelSyntax.Value, diagnostics, BindValueKind.RValue);
-                        // TODO: check compatibility of the bound switch expression with the label
-                        // TODO: check that it is a constant.
-                        if ((object)boundLabelExpression.Type == null && boundLabelExpression.ConstantValue?.IsNull == true)
-                        {
-                            // until we've implemeneted covnersions for the case expressions, ensure each has a type.
-                            boundLabelExpression = sectionBinder.CreateConversion(boundLabelExpression, sectionBinder.GetSpecialType(SpecialType.System_Object, diagnostics, node), diagnostics);
-                        }
+                        var boundLabelExpression = sectionBinder.BindPatternConstant(caseLabelSyntax.Value, diagnostics);
                         var pattern = new BoundConstantPattern(node, boundLabelExpression, node.HasErrors);
+                        // PROTOTYPE(patterns): still need to check compatibility of the bound switch expression with the label
                         return new BoundPatternSwitchLabel(node, pattern, null, node.HasErrors);
                     }
 

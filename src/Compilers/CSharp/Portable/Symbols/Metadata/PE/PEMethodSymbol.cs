@@ -799,7 +799,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             }
 
             return
-                (this.ReturnsVoid || this.ReturnType.SpecialType != SpecialType.System_Boolean) &&
+                (this.ReturnsVoid || this.ReturnType.SpecialType == SpecialType.System_Boolean) &&
                 !this.IsGenericMethod &&
                 !this.IsVararg &&
                 this.ParameterCount > 0 &&

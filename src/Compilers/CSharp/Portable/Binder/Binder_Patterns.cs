@@ -524,15 +524,28 @@ namespace Microsoft.CodeAnalysis.CSharp
             bool hasErrors,
             DiagnosticBag diagnostics)
         {
-            var expression = BindValue(node.Expression, diagnostics, BindValueKind.RValue);
-            if (!node.HasErrors && expression.ConstantValue == null)
-            {
-                diagnostics.Add(ErrorCode.ERR_ConstantExpected, node.Expression.Location);
-                hasErrors = true;
-            }
+            var expression = BindPatternConstant(node.Expression, diagnostics);
 
             // PROTOTYPE(patterns): we still need to check that the constant is valid for the given operand or operandType.
             return new BoundConstantPattern(node, expression, hasErrors);
+        }
+
+        internal BoundExpression BindPatternConstant(ExpressionSyntax expression, DiagnosticBag diagnostics)
+        {
+            var result = BindValue(expression, diagnostics, BindValueKind.RValue);
+
+            if ((object)result.Type == null && result.ConstantValue?.IsNull == true)
+            {
+                // until we've implemeneted covnersions for the case expressions, ensure each has a type.
+                result = CreateConversion(result, GetSpecialType(SpecialType.System_Object, diagnostics, expression), diagnostics);
+            }
+
+            if (!result.HasAnyErrors && result.ConstantValue == null)
+            {
+                diagnostics.Add(ErrorCode.ERR_ConstantExpected, expression.Location);
+            }
+
+            return result;
         }
 
         private bool CheckValidPatternType(

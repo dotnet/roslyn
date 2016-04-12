@@ -89,6 +89,7 @@ Open design issues (needing LDM decisions)
   if (t is (5,var s1)) ... // matches
   if (t is (5,string s1)) .. // doesn't match
   ```
+- [ ] Should we support switching (or pattern-matching) on a value of type `System.Type`, with `typeof(.)` expressions considered constant expressions for the purpose of pattern-matching? See https://github.com/dotnet/roslyn/issues/10459.
 - [ ] We've seen simple cases for Point, but will (user-defined pattern-matching operators) in practice produce readable code?
 
 Implementation progress checklist:
@@ -99,7 +100,7 @@ Implementation progress checklist:
   - [ ] subsumption checking: a branch of a switch statement or match expression may not be subsumed by the totality of previous branches (#8823)
   - [ ] irrefutable: a pattern that *always* matches given its context.
   - [ ] Generate efficient code like `switch` does in corresponding situations. (#8820)
-- [ ] Test `operator is` across assembly boundaries.
+- [x] Test `operator is` across assembly boundaries.
 - [x] Scoping for variables introduced in patterns (binders)
 - [x] `SemanticModel.GetDeclaredSymbol` for pattern variable declarations.
 - [x] Simple pattern matching expressions `expression is Type Identifier` in most statements.
