@@ -1,7 +1,7 @@
 ﻿{
   "dependencies": {
-    "System.Collections.Immutable": "1.2.0-rc3-24005-00",
-    "System.Reflection.Metadata": "1.3.0-rc3-24005-00",
+    "System.Collections.Immutable": "1.1.37",
+    "System.Reflection.Metadata": "1.2.0",
     "xunit": "2.1.0"
   },
   "frameworks": {
