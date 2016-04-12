@@ -12,6 +12,7 @@ Imports Microsoft.CodeAnalysis.CodeGen
 Imports Microsoft.CodeAnalysis.Diagnostics
 Imports Microsoft.CodeAnalysis.Emit
 Imports Microsoft.CodeAnalysis.InternalUtilities
+Imports Microsoft.CodeAnalysis.Semantics
 Imports Microsoft.CodeAnalysis.Symbols
 Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic.Emit
@@ -1717,6 +1718,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ' compilation, while the other method needs a bindings object to determine what bound node
         ' an expression syntax binds to.  Perhaps when we document these methods we should explain
         ' where a user can find the other.
+
+        Protected Overrides Function CommonClassifyConversion(source As ITypeSymbol, destination As ITypeSymbol) As IConversion
+            Return ClassifyConversion(source, destination)
+        End Function
 
         ''' <summary>
         ''' Determine what kind of conversion, if any, there is between the types 

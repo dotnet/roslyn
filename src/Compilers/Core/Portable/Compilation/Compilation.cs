@@ -17,6 +17,7 @@ using Microsoft.CodeAnalysis.CodeGen;
 using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Emit;
+using Microsoft.CodeAnalysis.Semantics;
 using Microsoft.CodeAnalysis.Symbols;
 using Roslyn.Utilities;
 
@@ -822,6 +823,13 @@ namespace Microsoft.CodeAnalysis
         }
 
         protected abstract INamedTypeSymbol CommonGetTypeByMetadataName(string metadataName);
+
+        public IConversion ClassifyConversion(ITypeSymbol source, ITypeSymbol destination)
+        {
+            return CommonClassifyConversion(source, destination);
+        }
+
+        protected abstract IConversion CommonClassifyConversion(ITypeSymbol source, ITypeSymbol destination);
 
         #endregion
 

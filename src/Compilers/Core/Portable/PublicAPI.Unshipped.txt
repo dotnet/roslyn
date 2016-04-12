@@ -1,3 +1,4 @@
+Microsoft.CodeAnalysis.Compilation.ClassifyConversion(Microsoft.CodeAnalysis.ITypeSymbol source, Microsoft.CodeAnalysis.ITypeSymbol destination) -> Microsoft.CodeAnalysis.Semantics.IConversion
 Microsoft.CodeAnalysis.CompilationOptions.PublicSign.get -> bool
 Microsoft.CodeAnalysis.CompilationOptions.WithPublicSign(bool publicSign) -> Microsoft.CodeAnalysis.CompilationOptions
 Microsoft.CodeAnalysis.CompilationReference.Equals(Microsoft.CodeAnalysis.CompilationReference other) -> bool

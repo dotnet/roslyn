@@ -18,6 +18,7 @@ using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Emit;
+using Microsoft.CodeAnalysis.Semantics;
 using Microsoft.CodeAnalysis.Symbols;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
@@ -1545,13 +1546,18 @@ namespace Microsoft.CodeAnalysis.CSharp
             return SourceAssembly.MightContainNoPiaLocalTypes();
         }
 
+        protected override IConversion CommonClassifyConversion(ITypeSymbol source, ITypeSymbol destination)
+        {
+            return ClassifyConversion(source, destination);
+        }
+
         // NOTE(cyrusn): There is a bit of a discoverability problem with this method and the same
         // named method in SyntaxTreeSemanticModel.  Technically, i believe these are the appropriate
         // locations for these methods.  This method has no dependencies on anything but the
         // compilation, while the other method needs a bindings object to determine what bound node
         // an expression syntax binds to.  Perhaps when we document these methods we should explain
         // where a user can find the other.
-        public Conversion ClassifyConversion(ITypeSymbol source, ITypeSymbol destination)
+        public new Conversion ClassifyConversion(ITypeSymbol source, ITypeSymbol destination)
         {
             // Note that it is possible for there to be both an implicit user-defined conversion
             // and an explicit built-in conversion from source to destination. In that scenario
