@@ -5,6 +5,7 @@ using System.Collections.Immutable;
 using System.Diagnostics;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.CodeAnalysis.Semantics;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
@@ -14,7 +15,7 @@ namespace Microsoft.CodeAnalysis.CSharp
     /// Summarizes whether a conversion is allowed, and if so, which kind of conversion (and in some cases, the
     /// associated symbol).
     /// </summary>
-    public struct Conversion : IEquatable<Conversion>
+    public struct Conversion : IEquatable<Conversion>, IConversion
     {
         internal static readonly Conversion NoConversion = new Conversion(ConversionKind.NoConversion);
         internal static readonly Conversion Identity = new Conversion(ConversionKind.Identity);
@@ -92,7 +93,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return (_flags & IsArrayIndexMask) != 0;
             }
         }
-
 
         internal Conversion ToArrayIndexConversion()
         {
@@ -304,6 +304,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return Kind == ConversionKind.NullLiteral;
             }
         }
+
+        bool IConversion.IsDefault => IsNullLiteral;
 
         /// <summary>
         /// Returns true if the conversion is an implicit dynamic conversion. 

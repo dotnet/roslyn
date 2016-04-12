@@ -1,15 +1,10 @@
 ﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports System.Collections.Immutable
-Imports System.Diagnostics
-Imports System.Linq
 Imports System.Runtime.InteropServices
-Imports Microsoft.CodeAnalysis.Collections
-Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
-Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols.TypeSymbolExtensions
-Imports TypeKind = Microsoft.CodeAnalysis.TypeKind
+Imports Microsoft.CodeAnalysis.Semantics
 
 Namespace Microsoft.CodeAnalysis.VisualBasic
 
@@ -19,12 +14,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
     ''' </summary>
     Public Structure Conversion
         Implements IEquatable(Of Conversion)
+        Implements IConversion
 
         Private ReadOnly _convKind As ConversionKind
         Private ReadOnly _method As MethodSymbol
 
-        Friend Sub New(kind As ConversionKind)
+        Friend Sub New(kind As ConversionKind, method As MethodSymbol)
             _convKind = kind
+            _method = method
         End Sub
 
         Friend Sub New(conv As KeyValuePair(Of ConversionKind, MethodSymbol))
@@ -45,7 +42,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' If this returns True, exactly one of <see cref="IsNarrowing"/> or <see cref="IsWidening"/> will return True. 
         ''' If this returns False, neither <see cref="IsNarrowing"/> or <see cref="IsWidening"/> will return True.
         ''' </remarks>
-        Public ReadOnly Property Exists As Boolean
+        Public ReadOnly Property Exists As Boolean Implements IConversion.Exists
             Get
                 Return Not Conversions.NoConversion(_convKind)
             End Get
@@ -54,7 +51,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' <summary>
         ''' Returns True if this conversion a narrowing conversion, and not a widening conversion. 
         ''' </summary>
-        Public ReadOnly Property IsNarrowing As Boolean
+        Public ReadOnly Property IsNarrowing As Boolean Implements IConversion.IsExplicit
             Get
                 Return Conversions.IsNarrowingConversion(_convKind)
             End Get
@@ -63,7 +60,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' <summary>
         ''' Returns True if this conversion is a widening conversion, and not a narrowing conversion.
         ''' </summary>
-        Public ReadOnly Property IsWidening As Boolean
+        Public ReadOnly Property IsWidening As Boolean Implements IConversion.IsImplicit
             Get
                 Return Conversions.IsWideningConversion(_convKind)
             End Get
@@ -75,7 +72,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' <remarks>
         ''' Note that identity conversion are also considered widening conversions.
         ''' </remarks>
-        Public ReadOnly Property IsIdentity As Boolean
+        Public ReadOnly Property IsIdentity As Boolean Implements IConversion.IsIdentity
             Get
                 Return Conversions.IsIdentityConversion(_convKind)
             End Get
@@ -85,7 +82,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' Returns True if this conversion is a default conversion (a conversion from the "Nothing" literal). 
         ''' </summary>
         ''' <remarks>Note that default conversions are considered widening conversions.</remarks>
-        Public ReadOnly Property IsDefault As Boolean
+        Public ReadOnly Property IsDefault As Boolean Implements IConversion.IsDefault
             Get
                 Return (_convKind And ConversionKind.WideningNothingLiteral) = ConversionKind.WideningNothingLiteral
             End Get
@@ -95,7 +92,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' Returns True if this conversion is a widening numeric conversion or a narrowing numeric conversion, as defined in
         ''' section 8.3.
         ''' </summary>
-        Public ReadOnly Property IsNumeric As Boolean
+        Public ReadOnly Property IsNumeric As Boolean Implements IConversion.IsNumeric
             Get
                 Return (_convKind And ConversionKind.Numeric) <> 0
             End Get
@@ -114,7 +111,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' Returns True if this conversion is a widening reference conversion or narrowing reference conversion, as defined in
         ''' section 8.4.
         ''' </summary>
-        Public ReadOnly Property IsReference As Boolean
+        Public ReadOnly Property IsReference As Boolean Implements IConversion.IsReference
             Get
                 Return (_convKind And ConversionKind.Reference) <> 0
             End Get
@@ -163,7 +160,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' Returns True if this conversion a widening nullable value type conversion or a narrowing nullable value type
         ''' conversion as defined in section 8.6.1.
         ''' </summary>
-        Public ReadOnly Property IsNullableValueType As Boolean
+        Public ReadOnly Property IsNullableValueType As Boolean Implements IConversion.IsNullable
             Get
                 Return (_convKind And ConversionKind.Nullable) <> 0
             End Get
@@ -197,7 +194,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' If this returns True, the involved conversion method can be obtained with the <see cref="Method"/>
         ''' property.
         ''' </remarks>
-        Public ReadOnly Property IsUserDefined As Boolean
+        Public ReadOnly Property IsUserDefined As Boolean Implements IConversion.IsUserDefined
             Get
                 Return (_convKind And ConversionKind.UserDefined) <> 0
             End Get

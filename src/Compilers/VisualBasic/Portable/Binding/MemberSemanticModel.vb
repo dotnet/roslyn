@@ -101,7 +101,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Dim boundExpression = TryCast(Me.GetLowerBoundNode(expression), boundExpression)
 
             If boundExpression Is Nothing OrElse vbDestination.IsErrorType() Then
-                Return New Conversion() ' NoConversion
+                Return New Conversion(Nothing) ' NoConversion
             End If
 
             Select Case boundExpression.Kind

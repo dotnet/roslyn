@@ -1735,7 +1735,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Dim vbdest = destination.EnsureVbSymbolOrNothing(Of TypeSymbol)(NameOf(destination))
 
             If vbsource.IsErrorType() OrElse vbdest.IsErrorType() Then
-                Return New Conversion() ' No conversion
+                Return New Conversion(Nothing) ' No conversion
             End If
 
             Return New Conversion(Conversions.ClassifyConversion(vbsource, vbdest, Nothing))

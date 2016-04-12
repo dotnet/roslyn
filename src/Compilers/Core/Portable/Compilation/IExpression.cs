@@ -828,19 +828,12 @@ namespace Microsoft.CodeAnalysis.Semantics
         }
     }
 
-    /// <summary>
-    /// Represents a conversion operation.
-    /// </summary>
-    public interface IConversionExpression : IHasOperatorMethodExpression
+    public interface IConversion
     {
         /// <summary>
-        /// Value to be converted.
+        /// Returns true if the conversion exists, either as an implicit or explicit conversion.
         /// </summary>
-        IOperation Operand { get; }
-        /// <summary>
-        /// Kind of conversion.
-        /// </summary>
-        ConversionKind ConversionKind { get; }
+        bool Exists { get; }
 
         /// <summary>
         /// Returns true if the conversion is an identity conversion.
@@ -853,7 +846,7 @@ namespace Microsoft.CodeAnalysis.Semantics
         bool IsImplicit { get; }
 
         /// <summary>
-        /// True if and only if the conversion is indicated explicity by a cast operation in the source code.
+        /// True if and only if the conversion is an explicit ('narrowing' in VB) conversion.
         /// </summary>
         bool IsExplicit { get; }
 
@@ -871,6 +864,43 @@ namespace Microsoft.CodeAnalysis.Semantics
         /// Returns true if the conversion is an implicit reference conversion or explicit reference conversion.
         /// </summary>
         bool IsReference { get; }
+
+        /// <summary>
+        /// Returns true if the conversion is an implicit user-defined conversion or explicit user-defined conversion.
+        /// </summary>
+        bool IsUserDefined { get; }
+
+        /// <summary>
+        /// Returns true if the conversion is an implicit default ('null' in C#, 'nothing' in VB) literal conversion.
+        /// </summary>
+        bool IsDefault { get; }
+    }
+
+    /// <summary>
+    /// Represents a conversion operation.
+    /// </summary>
+    public interface IConversionExpression : IHasOperatorMethodExpression
+    {
+        /// <summary>
+        /// Value to be converted.
+        /// </summary>
+        IOperation Operand { get; }
+
+        /// <summary>
+        /// Kind of conversion.
+        /// </summary>
+        ConversionKind ConversionKind { get; }
+
+        /// <summary>
+        /// Gets the <see cref="IConversion"/> instance that provides more information about what
+        /// sort of conversion this was.
+        /// </summary>
+        IConversion Conversion { get; }
+
+        /// <summary>
+        /// True if and only if the conversion is indicated explicity by a cast operation in the source code.
+        /// </summary>
+        bool IsExplicit { get; }
     }
 
     /// <summary>

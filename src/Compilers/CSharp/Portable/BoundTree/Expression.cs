@@ -710,19 +710,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        private Conversion Conversion => new Conversion(this.ConversionKind);
+        public IConversion Conversion => new Conversion(this.ConversionKind);
 
         bool IConversionExpression.IsExplicit => this.ExplicitCastInCode;
-
-        bool IConversionExpression.IsIdentity => this.Conversion.IsIdentity;
-
-        bool IConversionExpression.IsImplicit => this.Conversion.IsImplicit;
-
-        bool IConversionExpression.IsNullable => this.Conversion.IsNullable;
-
-        bool IConversionExpression.IsNumeric => this.Conversion.IsNumeric;
-
-        bool IConversionExpression.IsReference => this.Conversion.IsReference;
 
         IMethodSymbol IHasOperatorMethodExpression.OperatorMethod => this.SymbolOpt;
 
@@ -789,15 +779,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         bool IConversionExpression.IsExplicit => true;
 
-        bool IConversionExpression.IsIdentity => this.Conversion.IsIdentity;
-
-        bool IConversionExpression.IsImplicit => this.Conversion.IsImplicit;
-
-        bool IConversionExpression.IsNullable => this.Conversion.IsNullable;
-
-        bool IConversionExpression.IsNumeric => this.Conversion.IsNumeric;
-
-        bool IConversionExpression.IsReference => this.Conversion.IsReference;
+        IConversion IConversionExpression.Conversion => this.Conversion;
 
         IMethodSymbol IHasOperatorMethodExpression.OperatorMethod => null;
 

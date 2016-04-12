@@ -932,39 +932,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End Get
         End Property
 
-        Private ReadOnly Property Conversion As Conversion
+        Private ReadOnly Property IConversionExpression_Conversion As IConversion Implements IConversionExpression.Conversion
             Get
-                Return New Conversion(Me.ConversionKind)
-            End Get
-        End Property
-
-        Private ReadOnly Property IConversionExpression_IsIdentity As Boolean Implements Semantics.IConversionExpression.IsIdentity
-            Get
-                Return Me.Conversion.IsIdentity
-            End Get
-        End Property
-
-        Private ReadOnly Property IConversionExpression_IsImplicit As Boolean Implements Semantics.IConversionExpression.IsImplicit
-            Get
-                Return Me.Conversion.IsWidening
-            End Get
-        End Property
-
-        Private ReadOnly Property IConversionExpression_IsNullable As Boolean Implements Semantics.IConversionExpression.IsNullable
-            Get
-                Return Me.Conversion.IsNullableValueType
-            End Get
-        End Property
-
-        Private ReadOnly Property IConversionExpression_IsNumeric As Boolean Implements Semantics.IConversionExpression.IsNumeric
-            Get
-                Return Me.Conversion.IsNumeric
-            End Get
-        End Property
-
-        Private ReadOnly Property IConversionExpression_IsReference As Boolean Implements Semantics.IConversionExpression.IsReference
-            Get
-                Return Me.Conversion.IsReference
+                Return New Conversion(Me.ConversionKind, method:=Nothing)
             End Get
         End Property
 
@@ -1002,39 +972,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
     Friend Partial Class BoundDirectCast
         Implements IConversionExpression
 
-        Private ReadOnly Property Conversion As Conversion
+        Private ReadOnly Property IConversionExpression_Conversion As IConversion Implements IConversionExpression.Conversion
             Get
-                Return New Conversion(Me.ConversionKind)
-            End Get
-        End Property
-
-        Private ReadOnly Property IConversionExpression_IsIdentity As Boolean Implements Semantics.IConversionExpression.IsIdentity
-            Get
-                Return Me.Conversion.IsIdentity
-            End Get
-        End Property
-
-        Private ReadOnly Property IConversionExpression_IsImplicit As Boolean Implements Semantics.IConversionExpression.IsImplicit
-            Get
-                Return Me.Conversion.IsWidening
-            End Get
-        End Property
-
-        Private ReadOnly Property IConversionExpression_IsNullable As Boolean Implements Semantics.IConversionExpression.IsNullable
-            Get
-                Return Me.Conversion.IsNullableValueType
-            End Get
-        End Property
-
-        Private ReadOnly Property IConversionExpression_IsNumeric As Boolean Implements Semantics.IConversionExpression.IsNumeric
-            Get
-                Return Me.Conversion.IsNumeric
-            End Get
-        End Property
-
-        Private ReadOnly Property IConversionExpression_IsReference As Boolean Implements Semantics.IConversionExpression.IsReference
-            Get
-                Return Me.Conversion.IsReference
+                Return New Conversion(Me.ConversionKind, method:=Nothing)
             End Get
         End Property
 
@@ -1096,39 +1036,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End Get
         End Property
 
-        Private ReadOnly Property Conversion As Conversion
+        Private ReadOnly Property IConversionExpression_Conversion As IConversion Implements IConversionExpression.Conversion
             Get
-                Return New Conversion(Me.ConversionKind)
-            End Get
-        End Property
-
-        Private ReadOnly Property IConversionExpression_IsIdentity As Boolean Implements Semantics.IConversionExpression.IsIdentity
-            Get
-                Return Me.Conversion.IsIdentity
-            End Get
-        End Property
-
-        Private ReadOnly Property IConversionExpression_IsImplicit As Boolean Implements Semantics.IConversionExpression.IsImplicit
-            Get
-                Return Me.Conversion.IsWidening
-            End Get
-        End Property
-
-        Private ReadOnly Property IConversionExpression_IsNullable As Boolean Implements Semantics.IConversionExpression.IsNullable
-            Get
-                Return Me.Conversion.IsNullableValueType
-            End Get
-        End Property
-
-        Private ReadOnly Property IConversionExpression_IsNumeric As Boolean Implements Semantics.IConversionExpression.IsNumeric
-            Get
-                Return Me.Conversion.IsNumeric
-            End Get
-        End Property
-
-        Private ReadOnly Property IConversionExpression_IsReference As Boolean Implements Semantics.IConversionExpression.IsReference
-            Get
-                Return Me.Conversion.IsReference
+                Return New Conversion(Me.ConversionKind, method:=Nothing)
             End Get
         End Property
 
@@ -1172,39 +1082,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End Get
         End Property
 
+        Private ReadOnly Property IConversionExpression_Conversion As IConversion Implements IConversionExpression.Conversion
+            Get
+                Return New Conversion(ConversionKind.UserDefined, Me.Call.Method)
+            End Get
+        End Property
+
         Private ReadOnly Property IConversionExpression_IsExplicit As Boolean Implements IConversionExpression.IsExplicit
             Get
                 Return Not Me.WasCompilerGenerated
-            End Get
-        End Property
-
-        Private ReadOnly Property IConversionExpression_IsIdentity As Boolean Implements Semantics.IConversionExpression.IsIdentity
-            Get
-                Return False
-            End Get
-        End Property
-
-        Private ReadOnly Property IConversionExpression_IsImplicit As Boolean Implements Semantics.IConversionExpression.IsImplicit
-            Get
-                Return False
-            End Get
-        End Property
-
-        Private ReadOnly Property IConversionExpression_IsNullable As Boolean Implements Semantics.IConversionExpression.IsNullable
-            Get
-                Return False
-            End Get
-        End Property
-
-        Private ReadOnly Property IConversionExpression_IsNumeric As Boolean Implements Semantics.IConversionExpression.IsNumeric
-            Get
-                Return False
-            End Get
-        End Property
-
-        Private ReadOnly Property IConversionExpression_IsReference As Boolean Implements Semantics.IConversionExpression.IsReference
-            Get
-                Return False
             End Get
         End Property
 
