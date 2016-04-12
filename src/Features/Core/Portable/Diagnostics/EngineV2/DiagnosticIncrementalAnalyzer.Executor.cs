@@ -159,7 +159,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                     {
                         foreach (var document in project.Documents)
                         {
-                            if (project.SupportsCompilation)
+                            if (document.SupportsSyntaxTree)
                             {
                                 var tree = await document.GetSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
                                 builder.AddSyntaxDiagnostics(tree, await ComputeDocumentDiagnosticAnalyzerDiagnosticsAsync(document, documentAnalyzer, AnalysisKind.Syntax, compilationOpt, cancellationToken).ConfigureAwait(false));
@@ -256,11 +256,11 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                     case AnalysisKind.Syntax:
                         var tree = await document.GetSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
                         var diagnostics = await analyzerDriverOpt.GetAnalyzerSyntaxDiagnosticsAsync(tree, oneAnalyzers, cancellationToken).ConfigureAwait(false);
-                        return CompilationWithAnalyzers.GetEffectiveDiagnostics(diagnostics, analyzerDriverOpt.Compilation);
+                        return diagnostics.ToImmutableArrayOrEmpty();
                     case AnalysisKind.Semantic:
                         var model = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
                         diagnostics = await analyzerDriverOpt.GetAnalyzerSemanticDiagnosticsAsync(model, spanOpt, oneAnalyzers, cancellationToken).ConfigureAwait(false);
-                        return CompilationWithAnalyzers.GetEffectiveDiagnostics(diagnostics, analyzerDriverOpt.Compilation);
+                        return diagnostics.ToImmutableArrayOrEmpty();
                     default:
                         return Contract.FailWithReturn<ImmutableArray<Diagnostic>>("shouldn't reach here");
                 }
