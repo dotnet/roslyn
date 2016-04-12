@@ -49,4 +49,4 @@
     <Exec Command="&quot;$(IbcMergePath)&quot; -q -f -partialNGEN -minify -mo &quot;@(IntermediateAssembly)&quot; -incremental &quot;$(OptimizationDataFile)&quot;" />
 
   </Target>
-</Project>
+ </Project>
