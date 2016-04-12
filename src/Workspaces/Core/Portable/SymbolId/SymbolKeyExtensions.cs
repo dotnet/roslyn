@@ -8,14 +8,8 @@ namespace Microsoft.CodeAnalysis
     {
         public static SymbolKey GetSymbolKey(this ISymbol symbol)
         {
-            return SymbolKey.Create(symbol, null, CancellationToken.None);
+            var compilation = (symbol.ContainingAssembly as ISourceAssemblySymbol)?.Compilation;
+            return SymbolKey.Create(symbol, compilation, CancellationToken.None);
         }
-
-#if false
-        internal static SymbolKey GetSymbolKey(this ISymbol symbol, Compilation compilation, CancellationToken cancellationToken)
-        {
-            return SymbolKey.Create(symbol, compilation, cancellationToken);
-        }
-#endif
     }
 }

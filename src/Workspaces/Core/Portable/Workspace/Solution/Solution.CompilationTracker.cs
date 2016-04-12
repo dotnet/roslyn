@@ -659,8 +659,7 @@ namespace Microsoft.CodeAnalysis
                     compilation = compilation.WithReferences(newReferences);
                 }
 
-                // TODO: Record source assembly to project mapping
-                // RecordSourceOfAssemblySymbol(compilation.Assembly, this.ProjectState.Id);
+                RecordSourceOfAssemblySymbol(compilation.Assembly, this.ProjectState.Id);
 
                 foreach (var kvp in metadataReferenceToProjectId)
                 {

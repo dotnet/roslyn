@@ -332,23 +332,31 @@ namespace Microsoft.CodeAnalysis
                 return null;
             }
 
-            // TODO: Remove this loop when we add source assembly symbols to s_assemblyOrModuleSymbolToProjectMap
-            foreach (var state in _projectIdToProjectStateMap.Values)
+            ProjectId id;
+
+            s_assemblyOrModuleSymbolToProjectMap.TryGetValue(assemblySymbol, out id);
+            if (id == null)
             {
-                Compilation compilation;
-                if (this.TryGetCompilation(state.Id, out compilation))
+                return null;
+            }
+
+            var project = this.GetProject(id);
+            if (project == null)
+            {
+                return null;
+            }
+
+            Compilation compilation;
+            if (project.TryGetCompilation(out compilation))
+            {
+                var sourceAssemblySymbol = compilation.Assembly as ISourceAssemblySymbol;
+                if (sourceAssemblySymbol != null)
                 {
-                    // if the symbol is the compilation's assembly symbol, we are done
-                    if (compilation.Assembly == assemblySymbol)
-                    {
-                        return this.GetProject(state.Id);
-                    }
+                    return sourceAssemblySymbol == assemblySymbol ? project : null;
                 }
             }
 
-            ProjectId id;
-            s_assemblyOrModuleSymbolToProjectMap.TryGetValue(assemblySymbol, out id);
-            return id == null ? null : this.GetProject(id);
+            return this.GetProject(id);
         }
 
         /// <summary>
