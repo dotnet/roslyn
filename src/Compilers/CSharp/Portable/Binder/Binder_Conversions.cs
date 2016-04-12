@@ -61,7 +61,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                 if (source.Kind == BoundKind.TupleLiteral)
                 {
                     var sourceTuple = (BoundTupleLiteral)source;
-                    source = new BoundConvertedTupleLiteral(sourceTuple.Syntax, sourceTuple.Arguments, sourceTuple.ArgumentNamesOpt, sourceTuple.Type, sourceTuple.HasErrors);
+                    source = new BoundConvertedTupleLiteral(
+                        sourceTuple.Syntax,
+                        sourceTuple.Type, 
+                        sourceTuple.Arguments, 
+                        sourceTuple.Type, // same type to keep original element names 
+                        sourceTuple.HasErrors);
                 }
 
                 // We need to preserve any conversion that changes the type (even identity conversions, like object->dynamic),
@@ -369,7 +374,11 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             targetElementTypes.Free();
 
-            BoundExpression result = new BoundConvertedTupleLiteral(sourceTuple.Syntax, convertedArguments.ToImmutableAndFree(), sourceTuple.ArgumentNamesOpt, targetType);
+            BoundExpression result = new BoundConvertedTupleLiteral(
+                sourceTuple.Syntax,
+                sourceTuple.Type,
+                convertedArguments.ToImmutableAndFree(), 
+                targetType);
 
             // We need to preserve any conversion that changes the type (even identity conversions),
             // or that was explicitly written in code (so that GetSemanticInfo can find the syntax in the bound tree).

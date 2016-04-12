@@ -2243,7 +2243,7 @@ class C
             var node = nodes.OfType<TupleExpressionSyntax>().Single();
 
             Assert.Equal(@"(e: 1, f: ""hello"")", node.ToString());
-            Assert.Equal("<tuple: System.Int16 e, System.String f>", model.GetTypeInfo(node).Type.ToTestDisplayString());
+            Assert.Equal("<tuple: System.Int32 e, System.String f>", model.GetTypeInfo(node).Type.ToTestDisplayString());
             Assert.Equal("<tuple: System.Int16 a, System.String b>?", model.GetTypeInfo(node).ConvertedType.ToTestDisplayString());
             Assert.Equal(Conversion.ImplicitNullable, model.GetConversion(node));
 
@@ -2272,9 +2272,15 @@ class C
             var node = nodes.OfType<TupleExpressionSyntax>().Single();
 
             Assert.Equal(@"(e: 1, f: ""hello"")", node.ToString());
-            Assert.Equal("<tuple: System.Int16 e, System.String f>", model.GetTypeInfo(node).Type.ToTestDisplayString());
+            Assert.Equal("<tuple: System.Int32 e, System.String f>", model.GetTypeInfo(node).Type.ToTestDisplayString());
             Assert.Equal("<tuple: System.Int16 e, System.String f>", model.GetTypeInfo(node).ConvertedType.ToTestDisplayString());
-            Assert.Equal(Conversion.Identity, model.GetConversion(node));
+            Assert.Equal(Conversion.ImplicitTuple, model.GetConversion(node));
+
+            // semantic model returns topmost conversion from the sequence of conversions for
+            // ((short c, string d)?)(e: 1, f: ""hello"")
+            Assert.Equal("<tuple: System.Int16 c, System.String d>", model.GetTypeInfo(node.Parent).Type.ToTestDisplayString());
+            Assert.Equal("<tuple: System.Int16 a, System.String b>?", model.GetTypeInfo(node.Parent).ConvertedType.ToTestDisplayString());
+            Assert.Equal(Conversion.ImplicitNullable, model.GetConversion(node.Parent));
 
             var x = nodes.OfType<VariableDeclaratorSyntax>().First();
             Assert.Equal("<tuple: System.Int16 a, System.String b>? x", model.GetDeclaredSymbol(x).ToTestDisplayString());
@@ -2301,7 +2307,7 @@ class C
             var node = nodes.OfType<TupleExpressionSyntax>().Single();
 
             Assert.Equal(@"(e: 1, f: ""hello"")", node.ToString());
-            Assert.Equal("<tuple: System.Int16 e, System.String f>", model.GetTypeInfo(node).Type.ToTestDisplayString());
+            Assert.Equal("<tuple: System.Int32 e, System.String f>", model.GetTypeInfo(node).Type.ToTestDisplayString());
             Assert.Equal("<tuple: System.Int16 a, System.String b>?", model.GetTypeInfo(node).ConvertedType.ToTestDisplayString());
             Assert.Equal(Conversion.ImplicitNullable, model.GetConversion(node));
 
@@ -2330,9 +2336,16 @@ class C
             var node = nodes.OfType<TupleExpressionSyntax>().Single();
 
             Assert.Equal(@"(e: 1, f: ""hello"")", node.ToString());
-            Assert.Equal("<tuple: System.Int16 e, System.String f>", model.GetTypeInfo(node).Type.ToTestDisplayString());
+            Assert.Equal("<tuple: System.Int32 e, System.String f>", model.GetTypeInfo(node).Type.ToTestDisplayString());
             Assert.Equal("<tuple: System.Int16 e, System.String f>", model.GetTypeInfo(node).ConvertedType.ToTestDisplayString());
-            Assert.Equal(Conversion.Identity, model.GetConversion(node));
+            Assert.Equal(Conversion.ImplicitTuple, model.GetConversion(node));
+
+            // semantic model returns topmost conversion from the sequence of conversions for
+            // ((short c, string d))(e: 1, f: ""hello"")
+            Assert.Equal("<tuple: System.Int16 c, System.String d>", model.GetTypeInfo(node.Parent).Type.ToTestDisplayString());
+            Assert.Equal("<tuple: System.Int16 a, System.String b>?", model.GetTypeInfo(node.Parent).ConvertedType.ToTestDisplayString());
+            Assert.Equal(Conversion.ImplicitNullable, model.GetConversion(node.Parent));
+
 
             var x = nodes.OfType<VariableDeclaratorSyntax>().First();
             Assert.Equal("<tuple: System.Int16 a, System.String b>? x", model.GetDeclaredSymbol(x).ToTestDisplayString());
@@ -2393,6 +2406,12 @@ class C
             Assert.Equal("<tuple: System.Int32 e, System.String f>", model.GetTypeInfo(node).ConvertedType.ToTestDisplayString());
             Assert.Equal(Conversion.Identity, model.GetConversion(node));
 
+            // semantic model returns topmost conversion from the sequence of conversions for
+            // ((int c, string d)?)(e: 1, f: ""hello"")
+            Assert.Equal("<tuple: System.Int32 c, System.String d>", model.GetTypeInfo(node.Parent).Type.ToTestDisplayString());
+            Assert.Equal("<tuple: System.Int32 a, System.String b>?", model.GetTypeInfo(node.Parent).ConvertedType.ToTestDisplayString());
+            Assert.Equal(Conversion.ImplicitNullable, model.GetConversion(node.Parent));
+
             var x = nodes.OfType<VariableDeclaratorSyntax>().First();
             Assert.Equal("<tuple: System.Int32 a, System.String b>? x", model.GetDeclaredSymbol(x).ToTestDisplayString());
         }
@@ -2421,6 +2440,12 @@ class C
             Assert.Equal("<tuple: System.Int32 e, System.String f>", model.GetTypeInfo(node).Type.ToTestDisplayString());
             Assert.Equal("<tuple: System.Int32 e, System.String f>", model.GetTypeInfo(node).ConvertedType.ToTestDisplayString());
             Assert.Equal(Conversion.Identity, model.GetConversion(node));
+
+            // semantic model returns topmost conversion from the sequence of conversions for
+            // ((int c, string d))(e: 1, f: ""hello"")
+            Assert.Equal("<tuple: System.Int32 c, System.String d>", model.GetTypeInfo(node.Parent).Type.ToTestDisplayString());
+            Assert.Equal("<tuple: System.Int32 a, System.String b>?", model.GetTypeInfo(node.Parent).ConvertedType.ToTestDisplayString());
+            Assert.Equal(Conversion.ImplicitNullable, model.GetConversion(node.Parent));
 
             var x = nodes.OfType<VariableDeclaratorSyntax>().First();
             Assert.Equal("<tuple: System.Int32 a, System.String b>? x", model.GetDeclaredSymbol(x).ToTestDisplayString());
@@ -2505,7 +2530,7 @@ class C
             var node = nodes.OfType<TupleExpressionSyntax>().Single();
 
             Assert.Equal(@"(e: 1, f: ""hello"")", node.ToString());
-            Assert.Equal("<tuple: System.Int16 e, System.String f>", model.GetTypeInfo(node).Type.ToTestDisplayString());
+            Assert.Equal("<tuple: System.Int32 e, System.String f>", model.GetTypeInfo(node).Type.ToTestDisplayString());
             Assert.Equal("<tuple: System.Int16 a, System.String b>", model.GetTypeInfo(node).ConvertedType.ToTestDisplayString());
             Assert.Equal(Conversion.ImplicitTuple, model.GetConversion(node));
 
@@ -2534,9 +2559,14 @@ class C
             var node = nodes.OfType<TupleExpressionSyntax>().Single();
 
             Assert.Equal(@"(e: 1, f: ""hello"")", node.ToString());
-            Assert.Equal("<tuple: System.Int16 e, System.String f>", model.GetTypeInfo(node).Type.ToTestDisplayString());
+            Assert.Equal("<tuple: System.Int32 e, System.String f>", model.GetTypeInfo(node).Type.ToTestDisplayString());
             Assert.Equal("<tuple: System.Int16 e, System.String f>", model.GetTypeInfo(node).ConvertedType.ToTestDisplayString());
-            Assert.Equal(Conversion.Identity, model.GetConversion(node));
+            Assert.Equal(Conversion.ImplicitTuple, model.GetConversion(node));
+
+            // semantic model returns topmost conversion from the sequence of conversions for
+            // ((short c, string d))(e: 1, f: ""hello"")
+            Assert.Equal("<tuple: System.Int16 c, System.String d>", model.GetTypeInfo(node.Parent).Type.ToTestDisplayString());
+            Assert.Equal("<tuple: System.Int16 a, System.String b>", model.GetTypeInfo(node.Parent).ConvertedType.ToTestDisplayString());
             Assert.Equal(Conversion.Identity, model.GetConversion(node.Parent));
 
             var x = nodes.OfType<VariableDeclaratorSyntax>().First();
@@ -2564,7 +2594,7 @@ class C
             var node = nodes.OfType<TupleExpressionSyntax>().Single();
 
             Assert.Equal(@"(e: 1, f: null)", node.ToString());
-            Assert.Equal("<tuple: System.Int16 e, System.String f>", model.GetTypeInfo(node).Type.ToTestDisplayString());
+            Assert.Null(model.GetTypeInfo(node).Type);
             Assert.Equal("<tuple: System.Int16 a, System.String b>", model.GetTypeInfo(node).ConvertedType.ToTestDisplayString());
             Assert.Equal(Conversion.ImplicitTuple, model.GetConversion(node));
 
@@ -2593,9 +2623,14 @@ class C
             var node = nodes.OfType<TupleExpressionSyntax>().Single();
 
             Assert.Equal(@"(e: 1, f: null)", node.ToString());
-            Assert.Equal("<tuple: System.Int16 e, System.String f>", model.GetTypeInfo(node).Type.ToTestDisplayString());
+            Assert.Null(model.GetTypeInfo(node).Type);
             Assert.Equal("<tuple: System.Int16 e, System.String f>", model.GetTypeInfo(node).ConvertedType.ToTestDisplayString());
-            Assert.Equal(Conversion.Identity, model.GetConversion(node));
+            Assert.Equal(Conversion.ImplicitTuple, model.GetConversion(node));
+
+            // semantic model returns topmost conversion from the sequence of conversions for
+            // ((short c, string d))(e: 1, f: null)
+            Assert.Equal("<tuple: System.Int16 c, System.String d>", model.GetTypeInfo(node.Parent).Type.ToTestDisplayString());
+            Assert.Equal("<tuple: System.Int16 a, System.String b>", model.GetTypeInfo(node.Parent).ConvertedType.ToTestDisplayString());
             Assert.Equal(Conversion.Identity, model.GetConversion(node.Parent));
 
             var x = nodes.OfType<VariableDeclaratorSyntax>().First();
