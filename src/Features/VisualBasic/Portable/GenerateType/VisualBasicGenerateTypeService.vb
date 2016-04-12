@@ -412,10 +412,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.GenerateType
             Return argument.DetermineType(semanticModel, cancellationToken)
         End Function
 
-        Protected Overrides Function IsConversionImplicit(compilation As Compilation, sourceType As ITypeSymbol, targetType As ITypeSymbol) As Boolean
-            Return compilation.ClassifyConversion(sourceType, targetType).IsImplicit
-        End Function
-
         Public Overrides Async Function GetOrGenerateEnclosingNamespaceSymbolAsync(namedTypeSymbol As INamedTypeSymbol, containers() As String, selectedDocument As Document, selectedDocumentRoot As SyntaxNode, cancellationToken As CancellationToken) As Task(Of Tuple(Of INamespaceSymbol, INamespaceOrTypeSymbol, Location))
             Dim compilationUnit = DirectCast(selectedDocumentRoot, CompilationUnitSyntax)
             Dim semanticModel = Await selectedDocument.GetSemanticModelAsync(cancellationToken).ConfigureAwait(False)

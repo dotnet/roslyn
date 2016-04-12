@@ -571,11 +571,6 @@ namespace Microsoft.CodeAnalysis.CSharp.GenerateType
             return argument.DetermineParameterType(semanticModel, cancellationToken);
         }
 
-        protected override bool IsConversionImplicit(Compilation compilation, ITypeSymbol sourceType, ITypeSymbol targetType)
-        {
-            return compilation.ClassifyConversion(sourceType, targetType).IsImplicit;
-        }
-
         public override async Task<Tuple<INamespaceSymbol, INamespaceOrTypeSymbol, Location>> GetOrGenerateEnclosingNamespaceSymbolAsync(
             INamedTypeSymbol namedTypeSymbol, string[] containers, Document selectedDocument, SyntaxNode selectedDocumentRoot, CancellationToken cancellationToken)
         {
