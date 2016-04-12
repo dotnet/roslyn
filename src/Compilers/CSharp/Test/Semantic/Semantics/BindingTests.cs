@@ -2728,6 +2728,42 @@ public static class LazyToStringExtension
             Assert.Equal("System.Reflection.PropertyInfo x", model.GetDeclaredSymbol(param).ToTestDisplayString());
         }
 
+        [Fact, WorkItem(7520, "https://github.com/dotnet/roslyn/issues/7520")]
+        public void DelegateCreationWithIncompleteLambda()
+        {
+            var source =
+@"
+using System;
+class C
+{
+    public void F()
+    {
+        var x = new Action<int>(i => i.
+    }
+}
+";
+            var comp = CreateCompilationWithMscorlib(source, new[] { SystemCoreRef });
+            comp.VerifyDiagnostics(
+                // (7,40): error CS1001: Identifier expected
+                //         var x = new Action<int>(i => i.
+                Diagnostic(ErrorCode.ERR_IdentifierExpected, "").WithLocation(7, 40),
+                // (7,40): error CS1026: ) expected
+                //         var x = new Action<int>(i => i.
+                Diagnostic(ErrorCode.ERR_CloseParenExpected, "").WithLocation(7, 40),
+                // (7,40): error CS1002: ; expected
+                //         var x = new Action<int>(i => i.
+                Diagnostic(ErrorCode.ERR_SemicolonExpected, "").WithLocation(7, 40),
+                // (7,38): error CS0201: Only assignment, call, increment, decrement, and new object expressions can be used as a statement
+                //         var x = new Action<int>(i => i.
+                Diagnostic(ErrorCode.ERR_IllegalStatement, @"i.
+").WithLocation(7, 38));
+            var tree = comp.SyntaxTrees[0];
+            var model = comp.GetSemanticModel(tree);
+            var node = tree.GetRoot().DescendantNodes().Where(n => n.IsKind(SyntaxKind.SimpleLambdaExpression)).Single();
+            var param = node.ChildNodes().Where(n => n.IsKind(SyntaxKind.Parameter)).Single();
+            Assert.Equal("System.Int32 i", model.GetDeclaredSymbol(param).ToTestDisplayString());
+        }
+
         [Fact, WorkItem(5128, "https://github.com/dotnet/roslyn/issues/5128")]
         public void GetMemberGroupInsideIncompleteLambda_01()
         {

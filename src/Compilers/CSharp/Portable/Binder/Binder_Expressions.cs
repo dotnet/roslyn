@@ -2843,7 +2843,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                 bool hasErrors = false;
                 if (analyzedArguments.HasErrors)
                 {
-                    hasErrors = true;
+                    // Let's skip this part of further error checking without marking hasErrors = true here,
+                    // as the argument could be an unbound lambda, and the error could come from inside.
+                    // We'll check analyzedArguments.HasErrors again after we find if this is not the case.
                 }
                 else if (node.ArgumentList == null || analyzedArguments.Arguments.Count == 0)
                 {
@@ -2878,21 +2880,14 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
 
                 // There are four cases for a delegate creation expression (7.6.10.5):
-                // 1. A method group
-                else if (argument.Kind == BoundKind.MethodGroup)
-                {
-                    Conversion conversion;
-                    BoundMethodGroup methodGroup = (BoundMethodGroup)argument;
-                    if (!MethodGroupConversionDoesNotExistOrHasErrors(methodGroup, type, node.Location, diagnostics, out conversion))
-                    {
-                        methodGroup = FixMethodGroupWithTypeOrValue(methodGroup, conversion, diagnostics);
-                        return new BoundDelegateCreationExpression(node, methodGroup, conversion.Method, conversion.IsExtensionMethod, type);
-                    }
-                }
-
-                // 2. An anonymous function is treated as a conversion from the anonymous function to the delegate type.
+                // 1. An anonymous function is treated as a conversion from the anonymous function to the delegate type.
                 else if (argument is UnboundLambda)
                 {
+                    // analyzedArguments.HasErrors could be true,
+                    // but here the argument is an unbound lambda, the error comes from inside
+                    // eg: new Action<int>(x => x.)
+                    // We should try to bind it anyway in order for intellisense to work.
+
                     UnboundLambda unboundLambda = (UnboundLambda)argument;
                     HashSet<DiagnosticInfo> useSiteDiagnostics = null;
                     var conversion = this.Conversions.ClassifyConversionFromExpression(unboundLambda, type, ref useSiteDiagnostics);
@@ -2917,6 +2912,23 @@ namespace Microsoft.CodeAnalysis.CSharp
                     // its method form we will rewrite this expression to refer to the method.
 
                     return new BoundDelegateCreationExpression(node, boundLambda, methodOpt: null, isExtensionMethod: false, type: type, hasErrors: !conversion.IsImplicit);
+                }
+
+                else if (analyzedArguments.HasErrors)
+                {
+                    // There is no hope, skip.
+                }
+
+                // 2. A method group
+                else if (argument.Kind == BoundKind.MethodGroup)
+                {
+                    Conversion conversion;
+                    BoundMethodGroup methodGroup = (BoundMethodGroup)argument;
+                    if (!MethodGroupConversionDoesNotExistOrHasErrors(methodGroup, type, node.Location, diagnostics, out conversion))
+                    {
+                        methodGroup = FixMethodGroupWithTypeOrValue(methodGroup, conversion, diagnostics);
+                        return new BoundDelegateCreationExpression(node, methodGroup, conversion.Method, conversion.IsExtensionMethod, type);
+                    }
                 }
 
                 else if ((object)argument.Type == null)
