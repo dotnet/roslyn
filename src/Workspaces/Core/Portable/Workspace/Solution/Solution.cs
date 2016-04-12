@@ -342,6 +342,11 @@ namespace Microsoft.CodeAnalysis
                     {
                         return this.GetProject(state.Id);
                     }
+                    else if (compilation.Assembly.Identity == assemblySymbol.Identity)
+                    {
+                        // Tests are failing here. WHY?!
+                        return this.GetProject(state.Id);
+                    }
 
                     // otherwise check to see if this compilation has a metadata reference for this assembly symbol
                     // and if we know what project that metadata reference is associated with.
