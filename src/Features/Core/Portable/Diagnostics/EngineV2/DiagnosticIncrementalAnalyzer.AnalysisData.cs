@@ -11,15 +11,26 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
     internal partial class DiagnosticIncrementalAnalyzer
     {
         /// <summary>
-        /// 
+        /// Simple data holder for local diagnostics for an analyzer
         /// </summary>
         private struct DocumentAnalysisData
         {
             public static readonly DocumentAnalysisData Empty = new DocumentAnalysisData(VersionStamp.Default, ImmutableArray<DiagnosticData>.Empty);
 
+            /// <summary>
+            /// Version of the Items
+            /// </summary>
             public readonly VersionStamp Version;
-            public readonly ImmutableArray<DiagnosticData> OldItems;
+
+            /// <summary>
+            /// Current data that matches the version
+            /// </summary>
             public readonly ImmutableArray<DiagnosticData> Items;
+
+            /// <summary>
+            /// When present, This hold onto last data we broadcast to outer world
+            /// </summary>
+            public readonly ImmutableArray<DiagnosticData> OldItems;
 
             public DocumentAnalysisData(VersionStamp version, ImmutableArray<DiagnosticData> items)
             {
@@ -44,12 +55,30 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
             }
         }
 
+        /// <summary>
+        /// Data holder for all diagnostics for a project for an analyzer
+        /// </summary>
         private struct ProjectAnalysisData
         {
+            /// <summary>
+            /// ProjectId of this data
+            /// </summary>
             public readonly ProjectId ProjectId;
+
+            /// <summary>
+            /// Version of the Items
+            /// </summary>
             public readonly VersionStamp Version;
-            public readonly ImmutableDictionary<DiagnosticAnalyzer, AnalysisResult> OldResult;
+
+            /// <summary>
+            /// Current data that matches the version
+            /// </summary>
             public readonly ImmutableDictionary<DiagnosticAnalyzer, AnalysisResult> Result;
+
+            /// <summary>
+            /// When present, This hold onto last data we broadcast to outer world
+            /// </summary>
+            public readonly ImmutableDictionary<DiagnosticAnalyzer, AnalysisResult> OldResult;
 
             public ProjectAnalysisData(ProjectId projectId, VersionStamp version, ImmutableDictionary<DiagnosticAnalyzer, AnalysisResult> result)
             {

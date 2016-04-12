@@ -137,7 +137,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                                         lazyLocals = lazyLocals ?? new Dictionary<DocumentId, List<DiagnosticData>>();
                                         lazyLocals.GetOrAdd(document.Id, _ => new List<DiagnosticData>()).Add(DiagnosticData.Create(document, diagnostic));
 
-                                        SetDocument(document);
+                                        AddDocumentToSet(document);
                                     }
                                 }
                                 else if (diagnosticDocumentId != null)
@@ -149,7 +149,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                                         _lazyNonLocals = _lazyNonLocals ?? new Dictionary<DocumentId, List<DiagnosticData>>();
                                         _lazyNonLocals.GetOrAdd(document.Id, _ => new List<DiagnosticData>()).Add(DiagnosticData.Create(document, diagnostic));
 
-                                        SetDocument(document);
+                                        AddDocumentToSet(document);
                                     }
                                 }
                                 else
@@ -232,7 +232,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                                         lazyLocals = lazyLocals ?? new Dictionary<DocumentId, List<DiagnosticData>>();
                                         lazyLocals.GetOrAdd(document.Id, _ => new List<DiagnosticData>()).Add(DiagnosticData.Create(document, diagnostic));
 
-                                        SetDocument(document);
+                                        AddDocumentToSet(document);
                                     }
                                 }
                                 else if (diagnostic.Location.SourceTree != null)
@@ -244,7 +244,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                                         _lazyNonLocals = _lazyNonLocals ?? new Dictionary<DocumentId, List<DiagnosticData>>();
                                         _lazyNonLocals.GetOrAdd(document.Id, _ => new List<DiagnosticData>()).Add(DiagnosticData.Create(document, diagnostic));
 
-                                        SetDocument(document);
+                                        AddDocumentToSet(document);
                                     }
                                 }
                                 else
@@ -271,7 +271,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                 }
             }
 
-            private void SetDocument(Document document)
+            private void AddDocumentToSet(Document document)
             {
                 _lazySet = _lazySet ?? new HashSet<DocumentId>();
                 _lazySet.Add(document.Id);
