@@ -160,10 +160,18 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
             {
                 // PERF: should run this concurrently? analyzer driver itself is already running concurrently.
                 DocumentId nullTargetDocumentId = null;
+
+                var tasks = new Task[solution.ProjectIds.Count];
+                var index = 0;
                 foreach (var project in solution.Projects)
                 {
-                    await AppendDiagnosticsAsync(project, nullTargetDocumentId, project.DocumentIds, cancellationToken: cancellationToken).ConfigureAwait(false);
+                    var localProject = project;
+                    tasks[index++] = Task.Run(
+                        () => AppendDiagnosticsAsync(
+                            localProject, nullTargetDocumentId, localProject.DocumentIds, cancellationToken: cancellationToken), cancellationToken);
                 }
+
+                await Task.WhenAll(tasks).ConfigureAwait(false);
             }
 
             protected void AppendDiagnostics(IEnumerable<DiagnosticData> items)
@@ -386,8 +394,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                 // REVIEW: IsAnalyzerSuppressed call seems can be quite expensive in certain condition. is there any other way to do this?
                 var stateSets = StateManager.GetOrCreateStateSets(project).Where(s => ShouldIncludeStateSet(project, s)).ToImmutableArrayOrEmpty();
 
-                var concurrentAnalysis = true;
-                var analyzerDriverOpt = await Owner._compilationManager.CreateAnalyzerDriverAsync(project, stateSets, concurrentAnalysis, IncludeSuppressedDiagnostics, cancellationToken).ConfigureAwait(false);
+                var analyzerDriverOpt = await Owner._compilationManager.CreateAnalyzerDriverAsync(project, stateSets, IncludeSuppressedDiagnostics, cancellationToken).ConfigureAwait(false);
 
                 var result = await Owner._executor.GetProjectAnalysisDataAsync(analyzerDriverOpt, project, stateSets, cancellationToken).ConfigureAwait(false);
 
@@ -431,9 +438,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
             {
                 cancellationToken.ThrowIfCancellationRequested();
 
-                var concurrentAnalysis = true;
                 var stateSets = SpecializedCollections.SingletonCollection(stateSet);
-                var analyzerDriverOpt = await Owner._compilationManager.CreateAnalyzerDriverAsync(project, stateSets, concurrentAnalysis, IncludeSuppressedDiagnostics, cancellationToken).ConfigureAwait(false);
+                var analyzerDriverOpt = await Owner._compilationManager.CreateAnalyzerDriverAsync(project, stateSets, IncludeSuppressedDiagnostics, cancellationToken).ConfigureAwait(false);
 
                 if (documentId != null)
                 {

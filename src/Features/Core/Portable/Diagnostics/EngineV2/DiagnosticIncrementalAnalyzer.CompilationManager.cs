@@ -49,9 +49,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                 }
 
                 // Create driver that holds onto compilation and associated analyzers
-                var concurrentAnalysis = false;
                 var includeSuppressedDiagnostics = true;
-                var newAnalyzerDriverOpt = await CreateAnalyzerDriverAsync(project, stateSets, concurrentAnalysis, includeSuppressedDiagnostics, cancellationToken).ConfigureAwait(false);
+                var newAnalyzerDriverOpt = await CreateAnalyzerDriverAsync(project, stateSets, includeSuppressedDiagnostics, cancellationToken).ConfigureAwait(false);
 
                 // Add new analyzer driver to the map
                 analyzerDriverOpt = _map.GetValue(project, _ => newAnalyzerDriverOpt);
@@ -66,22 +65,14 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                 return analyzerDriverOpt;
             }
 
-            public Task<CompilationWithAnalyzers> CreateAnalyzerDriverAsync(
-                Project project, IEnumerable<StateSet> stateSets, bool concurrentAnalysis, bool includeSuppressedDiagnostics, CancellationToken cancellationToken)
+            public Task<CompilationWithAnalyzers> CreateAnalyzerDriverAsync(Project project, IEnumerable<StateSet> stateSets, bool includeSuppressedDiagnostics, CancellationToken cancellationToken)
             {
                 var analyzers = stateSets.Select(s => s.Analyzer).ToImmutableArrayOrEmpty();
-                return CreateAnalyzerDriverAsync(project, analyzers, concurrentAnalysis, includeSuppressedDiagnostics, cancellationToken);
+                return CreateAnalyzerDriverAsync(project, analyzers, includeSuppressedDiagnostics, cancellationToken);
             }
 
-            public Task<CompilationWithAnalyzers> CreateAnalyzerDriverAsync(
+            public async Task<CompilationWithAnalyzers> CreateAnalyzerDriverAsync(
                 Project project, ImmutableArray<DiagnosticAnalyzer> analyzers, bool includeSuppressedDiagnostics, CancellationToken cancellationToken)
-            {
-                var concurrentAnalysis = false;
-                return CreateAnalyzerDriverAsync(project, analyzers, concurrentAnalysis, includeSuppressedDiagnostics, cancellationToken);
-            }
-
-            private async Task<CompilationWithAnalyzers> CreateAnalyzerDriverAsync(
-                Project project, ImmutableArray<DiagnosticAnalyzer> analyzers, bool concurrentAnalysis, bool includeSuppressedDiagnostics, CancellationToken cancellationToken)
             {
                 if (!project.SupportsCompilation)
                 {
@@ -92,14 +83,13 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
 
                 // Create driver that holds onto compilation and associated analyzers
                 return CreateAnalyzerDriver(
-                    project, compilation, analyzers, concurrentAnalysis: concurrentAnalysis, logAnalyzerExecutionTime: false, reportSuppressedDiagnostics: includeSuppressedDiagnostics);
+                    project, compilation, analyzers, logAnalyzerExecutionTime: false, reportSuppressedDiagnostics: includeSuppressedDiagnostics);
             }
 
             private CompilationWithAnalyzers CreateAnalyzerDriver(
                 Project project,
                 Compilation compilation,
                 ImmutableArray<DiagnosticAnalyzer> analyzers,
-                bool concurrentAnalysis,
                 bool logAnalyzerExecutionTime,
                 bool reportSuppressedDiagnostics)
             {
@@ -113,7 +103,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                 Contract.ThrowIfFalse(project.SupportsCompilation);
                 AssertCompilation(project, compilation);
 
-                var analysisOptions = GetAnalyzerOptions(project, concurrentAnalysis, logAnalyzerExecutionTime, reportSuppressedDiagnostics);
+                var analysisOptions = GetAnalyzerOptions(project, logAnalyzerExecutionTime, reportSuppressedDiagnostics);
 
                 // Create driver that holds onto compilation and associated analyzers
                 return compilation.WithAnalyzers(analyzers, analysisOptions);
@@ -121,15 +111,16 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
 
             private CompilationWithAnalyzersOptions GetAnalyzerOptions(
                 Project project,
-                bool concurrentAnalysis,
                 bool logAnalyzerExecutionTime,
                 bool reportSuppressedDiagnostics)
             {
+                // in IDE, we always set concurrentAnalysis == false otherwise, we can get into thread starvation due to
+                // async being used with syncronous blocking concurrency.
                 return new CompilationWithAnalyzersOptions(
                     options: new WorkspaceAnalyzerOptions(project.AnalyzerOptions, project.Solution.Workspace),
                     onAnalyzerException: GetOnAnalyzerException(project.Id),
                     analyzerExceptionFilter: GetAnalyzerExceptionFilter(project),
-                    concurrentAnalysis: concurrentAnalysis,
+                    concurrentAnalysis: false,
                     logAnalyzerExecutionTime: logAnalyzerExecutionTime,
                     reportSuppressedDiagnostics: reportSuppressedDiagnostics);
             }

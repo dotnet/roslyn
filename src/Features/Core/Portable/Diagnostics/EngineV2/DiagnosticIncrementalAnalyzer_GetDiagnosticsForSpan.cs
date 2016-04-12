@@ -61,11 +61,9 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
             public static async Task<LatestDiagnosticsForSpanGetter> CreateAsync(
                 DiagnosticIncrementalAnalyzer owner, Document document, TextSpan range, bool blockForData, bool includeSuppressedDiagnostics, CancellationToken cancellationToken)
             {
-                var concurrentAnalysis = false;
-
                 // REVIEW: IsAnalyzerSuppressed can be quite expensive in some cases. try to find a way to make it cheaper
                 var stateSets = owner._stateManager.GetOrCreateStateSets(document.Project).Where(s => !owner.Owner.IsAnalyzerSuppressed(s.Analyzer, document.Project));
-                var analyzerDriverOpt = await owner._compilationManager.CreateAnalyzerDriverAsync(document.Project, stateSets, concurrentAnalysis, includeSuppressedDiagnostics, cancellationToken).ConfigureAwait(false);
+                var analyzerDriverOpt = await owner._compilationManager.CreateAnalyzerDriverAsync(document.Project, stateSets, includeSuppressedDiagnostics, cancellationToken).ConfigureAwait(false);
 
                 return new LatestDiagnosticsForSpanGetter(owner, analyzerDriverOpt, document, stateSets, range, blockForData, includeSuppressedDiagnostics);
             }
