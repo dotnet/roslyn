@@ -711,6 +711,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Utilities
             model.ClassifyConversion(expression, targetType);
 
         protected override Conversion ClassifyConversion(SemanticModel model, ITypeSymbol originalType, ITypeSymbol targetType) =>
-            model.Compilation.ClassifyConversion(originalType, targetType);
+            CSharpExtensions.ClassifyConversion(model.Compilation, originalType, targetType);
     }
 }

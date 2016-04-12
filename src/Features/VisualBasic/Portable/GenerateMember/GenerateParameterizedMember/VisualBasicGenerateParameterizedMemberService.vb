@@ -155,7 +155,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.GenerateMember.GenerateMethod
 
             Protected Overrides Function IsImplicitReferenceConversion(compilation As Compilation, sourceType As ITypeSymbol, targetType As ITypeSymbol) As Boolean
                 Dim conversion = compilation.ClassifyConversion(sourceType, targetType)
-                Return conversion.IsWidening AndAlso conversion.IsReference
+                Return conversion.IsImplicit AndAlso conversion.IsReference
             End Function
         End Class
     End Class

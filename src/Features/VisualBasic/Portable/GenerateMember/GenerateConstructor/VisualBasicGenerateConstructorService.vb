@@ -143,7 +143,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.GenerateMember.GenerateConstructor
         End Function
 
         Protected Overrides Function IsConversionImplicit(compilation As Compilation, sourceType As ITypeSymbol, targetType As ITypeSymbol) As Boolean
-            Return compilation.ClassifyConversion(sourceType, targetType).IsWidening
+            Return compilation.ClassifyConversion(sourceType, targetType).IsImplicit
         End Function
 
         Protected Overrides Function IsClassDeclarationGeneration(document As SemanticDocument,

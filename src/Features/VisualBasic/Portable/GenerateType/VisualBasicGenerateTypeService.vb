@@ -413,7 +413,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.GenerateType
         End Function
 
         Protected Overrides Function IsConversionImplicit(compilation As Compilation, sourceType As ITypeSymbol, targetType As ITypeSymbol) As Boolean
-            Return compilation.ClassifyConversion(sourceType, targetType).IsWidening
+            Return compilation.ClassifyConversion(sourceType, targetType).IsImplicit
         End Function
 
         Public Overrides Async Function GetOrGenerateEnclosingNamespaceSymbolAsync(namedTypeSymbol As INamedTypeSymbol, containers() As String, selectedDocument As Document, selectedDocumentRoot As SyntaxNode, cancellationToken As CancellationToken) As Task(Of Tuple(Of INamespaceSymbol, INamespaceOrTypeSymbol, Location))

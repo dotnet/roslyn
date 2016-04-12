@@ -3,6 +3,7 @@
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.CodeAnalysis.Semantics;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 
@@ -10,12 +11,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
 {
     internal static class ConversionExtensions
     {
-        public static bool IsIdentityOrImplicitReference(this Conversion conversion)
-        {
-            return conversion.IsIdentity ||
-                (conversion.IsImplicit && conversion.IsReference);
-        }
-
         public static bool IsImplicitUserDefinedConversion(this Conversion conversion)
         {
             return conversion.IsUserDefined &&

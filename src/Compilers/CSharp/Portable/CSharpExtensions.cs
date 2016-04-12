@@ -377,6 +377,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         #endregion
 
         #region Compilation 
+
         // NOTE(cyrusn): There is a bit of a discoverability problem with this method and the same
         // named method in SyntaxTreeSemanticModel.  Technically, i believe these are the appropriate
         // locations for these methods.  This method has no dependencies on anything but the

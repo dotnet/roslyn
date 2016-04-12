@@ -40,12 +40,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions
                         Dim parameterType = DirectCast(parameter.Type, IArrayTypeSymbol)
 
                         Dim conversion = _semanticModel.Compilation.ClassifyConversion(castType, parameterType)
-                        If conversion.Exists AndAlso conversion.IsWidening Then
+                        If conversion.Exists AndAlso conversion.IsImplicit Then
                             Return False
                         End If
 
                         Dim conversionElementType = _semanticModel.Compilation.ClassifyConversion(castType, parameterType.ElementType)
-                        If conversionElementType.Exists AndAlso (conversionElementType.IsIdentity OrElse conversionElementType.IsWidening) Then
+                        If conversionElementType.Exists AndAlso (conversionElementType.IsIdentity OrElse conversionElementType.IsImplicit) Then
                             Return True
                         End If
                     End If

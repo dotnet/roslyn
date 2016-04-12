@@ -539,7 +539,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Utilities
             If Me.OriginalSemanticModel.OptionStrict() <> OptionStrict.Off AndAlso
                Me.SpeculativeSemanticModel.GetConstantValue(newExpression).HasValue Then
                 Dim newExpressionType = Me.SpeculativeSemanticModel.GetTypeInfo(newExpression).ConvertedType
-                newConversion = Me.OriginalSemanticModel.Compilation.ClassifyConversion(newExpressionType, newTargetType)
+                newConversion = VisualBasicExtensions.ClassifyConversion(
+                Me.OriginalSemanticModel.Compilation, newExpressionType, newTargetType)
             End If
 
             Return ConversionsAreCompatible(originalConversion.Value, newConversion.Value)
@@ -586,7 +587,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Utilities
         End Function
 
         Protected Overrides Function ClassifyConversion(model As SemanticModel, originalType As ITypeSymbol, targetType As ITypeSymbol) As Conversion
-            Return model.Compilation.ClassifyConversion(originalType, targetType)
+            Return VisualBasicExtensions.ClassifyConversion(
+                model.Compilation, originalType, targetType)
         End Function
     End Class
 End Namespace
