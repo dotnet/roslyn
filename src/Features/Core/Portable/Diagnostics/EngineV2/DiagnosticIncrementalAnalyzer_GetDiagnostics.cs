@@ -158,7 +158,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
 
             protected async Task AppendDiagnosticsAsync(Solution solution, CancellationToken cancellationToken)
             {
-                // PERF: should run this concurrently? analyzer driver itself is already running concurrently.
+                // PERF; run projects parallely rather than running CompilationWithAnalyzer with concurrency == true.
+                //       we doing this to be safe (not get into thread starvation causing hundreds of threads to be spawn up).
                 DocumentId nullTargetDocumentId = null;
 
                 var tasks = new Task[solution.ProjectIds.Count];
