@@ -1202,29 +1202,24 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
 
         public override SyntaxNode InsertNamespaceImports(SyntaxNode declaration, int index, IEnumerable<SyntaxNode> imports)
         {
+            return PreserveTrivia(declaration, d => InsertNamespaceImportsInternal(d, index, imports));
+        }
+
+        private SyntaxNode InsertNamespaceImportsInternal(SyntaxNode declaration, int index, IEnumerable<SyntaxNode> imports)
+        {
             SyntaxList<UsingDirectiveSyntax> usingsToInsert = AsUsingDirectives(imports);
 
             switch (declaration.Kind())
             {
                 case SyntaxKind.CompilationUnit:
                     var cu = (CompilationUnitSyntax)declaration;
-                    return PreserveBanner(cu, usingsToInsert, index);
+                    return cu.WithUsings(cu.Usings.InsertRange(index, usingsToInsert));
                 case SyntaxKind.NamespaceDeclaration:
                     var nd = (NamespaceDeclarationSyntax)declaration;
                     return nd.WithUsings(nd.Usings.InsertRange(index, usingsToInsert));
                 default:
                     return declaration;
             }
-        }
-
-        private static CompilationUnitSyntax PreserveBanner(CompilationUnitSyntax compilationUnit,
-            SyntaxList<UsingDirectiveSyntax> usingsToInsert, int insertAtOffset)
-        {
-            return (CompilationUnitSyntax) PreserveTrivia(compilationUnit, cu =>
-            {
-                var newUsings = cu.Usings.InsertRange(insertAtOffset, usingsToInsert);
-                return cu.WithUsings(newUsings);
-            });
         }
 
         public override IReadOnlyList<SyntaxNode> GetMembers(SyntaxNode declaration)
