@@ -42,6 +42,9 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                 return IsEmpty(_lastResult, documentId);
             }
 
+            /// <summary>
+            /// Return all diagnostics for the given project stored in this state
+            /// </summary>
             public async Task<AnalysisResult> GetAnalysisDataAsync(Project project, bool avoidLoadingData, CancellationToken cancellationToken)
             {
                 // make a copy of last result.
@@ -54,14 +57,14 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                 }
 
                 // PERF: avoid loading data if version is not right one.
-                // avoid loading data flag is there as a strickly perf optimization.
+                // avoid loading data flag is there as a strictly perf optimization.
                 var version = await GetDiagnosticVersionAsync(project, cancellationToken).ConfigureAwait(false);
                 if (avoidLoadingData && lastResult.Version != version)
                 {
                     return lastResult;
                 }
 
-                // if given document doesnt have any diagnostics, return empty.
+                // if given project doesnt have any diagnostics, return empty.
                 if (lastResult.IsEmpty)
                 {
                     return new AnalysisResult(lastResult.ProjectId, lastResult.Version);
@@ -73,6 +76,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
 
                 foreach (var documentId in lastResult.DocumentIds)
                 {
+                    cancellationToken.ThrowIfCancellationRequested();
+
                     var document = project.GetDocument(documentId);
                     if (document == null)
                     {
@@ -94,6 +99,9 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                 return builder.ToResult();
             }
 
+            /// <summary>
+            /// Return all diagnostics for the given document stored in this state including non local diagnostics for this document
+            /// </summary>
             public async Task<AnalysisResult> GetAnalysisDataAsync(Document document, bool avoidLoadingData, CancellationToken cancellationToken)
             {
                 // make a copy of last result.
@@ -129,6 +137,9 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                 return builder.ToResult();
             }
 
+            /// <summary>
+            /// Return all no location diagnostics for the given project stored in this state
+            /// </summary>
             public async Task<AnalysisResult> GetProjectAnalysisDataAsync(Project project, bool avoidLoadingData, CancellationToken cancellationToken)
             {
                 // make a copy of last result.
@@ -209,6 +220,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
 
                 foreach (var document in project.Documents)
                 {
+                    cancellationToken.ThrowIfCancellationRequested();
+
                     if (!await TryDeserializeDocumentAsync(serializer, document, builder, cancellationToken).ConfigureAwait(false))
                     {
                         continue;

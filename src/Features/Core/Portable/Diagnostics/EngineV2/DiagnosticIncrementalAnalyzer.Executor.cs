@@ -41,6 +41,9 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                 return ConvertToLocalDiagnosticsWithoutCompilation(targetDocument, diagnostics, span);
             }
 
+            /// <summary>
+            /// Return all local diagnostics (syntax, semantic) that belong to given document for the given StateSet (analyzer) either from cache or by calculating them
+            /// </summary>
             public async Task<DocumentAnalysisData> GetDocumentAnalysisDataAsync(
                 CompilationWithAnalyzers analyzerDriverOpt, Document document, StateSet stateSet, AnalysisKind kind, CancellationToken cancellationToken)
             {
@@ -74,6 +77,9 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                 }
             }
 
+            /// <summary>
+            /// Return all diagnostics that belong to given project for the given StateSets (analyzers) either from cache or by calculating them
+            /// </summary>
             public async Task<ProjectAnalysisData> GetProjectAnalysisDataAsync(
                 CompilationWithAnalyzers analyzerDriverOpt, Project project, IEnumerable<StateSet> stateSets, CancellationToken cancellationToken)
             {
@@ -105,6 +111,9 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                 }
             }
 
+            /// <summary>
+            /// Return all local diagnostics (syntax, semantic) that belong to given document for the given StateSet (analyzer) by calculating them
+            /// </summary>
             public async Task<IEnumerable<DiagnosticData>> ComputeDiagnosticsAsync(
                 CompilationWithAnalyzers analyzerDriverOpt, Document document, DiagnosticAnalyzer analyzer, AnalysisKind kind, TextSpan? spanOpt, CancellationToken cancellationToken)
             {
@@ -119,6 +128,9 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                 return ConvertToLocalDiagnostics(document, documentDiagnostics);
             }
 
+            /// <summary>
+            /// Return all diagnostics that belong to given project for the given StateSets (analyzers) by calculating them
+            /// </summary>
             public async Task<ImmutableDictionary<DiagnosticAnalyzer, AnalysisResult>> ComputeDiagnosticsAsync(
                 CompilationWithAnalyzers analyzerDriverOpt, Project project, IEnumerable<StateSet> stateSets, CancellationToken cancellationToken)
             {
