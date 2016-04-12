@@ -332,7 +332,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private BoundExpression CreateTupleConversion(CSharpSyntaxNode syntax, BoundTupleLiteral sourceTuple, Conversion conversion, bool isCast, TypeSymbol destination, DiagnosticBag diagnostics)
         {
-            // We have a successful tuple conversion; rather than producing a node 
+            // We have a successful tuple conversion; rather than producing a separate conversion node 
             // which is a conversion on top of a tuple literal, tuple conversion is an element-wise conversion of arguments.
 
             Debug.Assert(conversion.Kind == ConversionKind.ImplicitTuple || conversion.Kind == ConversionKind.ImplicitNullable);
@@ -363,7 +363,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             var convertedArguments = ArrayBuilder<BoundExpression>.GetInstance(arguments.Length);
             var targetElementTypes = ArrayBuilder<TypeSymbol>.GetInstance(arguments.Length);
 
-            TupleTypeSymbol.GetElementTypes(targetUnderlyingType, targetElementTypes);
+            TupleTypeSymbol.AddElementTypes(targetUnderlyingType, targetElementTypes);
 
             for (int i = 0; i < arguments.Length; i++)
             {

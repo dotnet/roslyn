@@ -716,7 +716,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (hasNaturalType)
             {
-                tupleTypeOpt = new TupleTypeSymbol(elements, elementNamesArray, node, this, diagnostics);
+                tupleTypeOpt = TupleTypeSymbol.Create(elements, elementNamesArray, node, this, diagnostics);
             }
 
             return new BoundTupleLiteral(node, elementNamesArray, boundArguments.ToImmutableAndFree(), tupleTypeOpt, hasErrors);
@@ -724,7 +724,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         /// <summary>
         /// Returns the type to be used as a field type; generates errors in case the type is not
-        /// supported for anonymous type fields.
+        /// supported for tuple type fields.
         /// </summary>
         private TypeSymbol GetTupleFieldType(BoundExpression expression, CSharpSyntaxNode errorSyntax, DiagnosticBag diagnostics, ref bool hasError)
         {
@@ -733,6 +733,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             // PROTOTYPE(tuples): we could, in theory, allow restricted field types here
             //            since they might be target-typed to something safe
             //            
+
+            // PROTOTYPE(tuples): regardless of the decision on the above, need to test this.
 
             if (!expression.HasAnyErrors)
             {

@@ -141,8 +141,10 @@ namespace Microsoft.CodeAnalysis.CSharp
             return IsEqualOrDerivedFromWellKnownClass(type, WellKnownType.System_Exception, ref useSiteDiagnostics);
         }
 
-        internal bool IsWellKnownTupleType(TypeSymbol typeToCheck, int requiredArity)
+        internal bool IsWellKnownTupleType(TypeSymbol typeToCheck, int requiredNumberOfElements)
         {
+            Debug.Assert(!typeToCheck.IsTupleType, "The helper is meant to be used to validate underlying types, not with actual tuples");
+
             // NOTE: error type symbol is NamedTypeSymbol, 
             //       but not SymbolKind.NamedType, so check the kind before casting.
             if (typeToCheck.Kind != SymbolKind.NamedType)
@@ -151,24 +153,26 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             NamedTypeSymbol currentType = (NamedTypeSymbol)typeToCheck;
-            const int maxArity = TupleTypeSymbol.RestPosition;
+            const int maxNumberOfRegularElements = TupleTypeSymbol.RestPosition;
 
-            while (true)
+            // fetch largest tuple that is used to nest the rest
+            // but only if we really going to need one
+            var tupleWithNesting = requiredNumberOfElements >= maxNumberOfRegularElements ?
+                                        this.GetWellKnownType(TupleTypeSymbol.GetTupleType(maxNumberOfRegularElements)) :
+                                        null;
+
+            while (requiredNumberOfElements >= maxNumberOfRegularElements)
             {
-                if (currentType.OriginalDefinition != this.GetWellKnownType(TupleTypeSymbol.GetTupleType(Math.Min(requiredArity, maxArity))))
+                if ((object)currentType.OriginalDefinition != tupleWithNesting)
                 {
                     return false;
                 }
 
-                if (requiredArity < maxArity)
-                {
-                    return true;
-                }
-
-                Debug.Assert(currentType.Arity == maxArity);
-                currentType = (NamedTypeSymbol)currentType.TypeArgumentsNoUseSiteDiagnostics[maxArity - 1];
-                requiredArity -= maxArity - 1;
+                currentType = (NamedTypeSymbol)currentType.TypeArgumentsNoUseSiteDiagnostics[maxNumberOfRegularElements - 1];
+                requiredNumberOfElements -= maxNumberOfRegularElements - 1;
             }
+
+            return (object)currentType.OriginalDefinition == this.GetWellKnownType(TupleTypeSymbol.GetTupleType(requiredNumberOfElements));
         }
 
         internal bool IsEqualOrDerivedFromWellKnownClass(TypeSymbol type, WellKnownType wellKnownType, ref HashSet<DiagnosticInfo> useSiteDiagnostics)

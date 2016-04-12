@@ -1965,7 +1965,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             var destTypes = ArrayBuilder<TypeSymbol>.GetInstance(sourceArguments.Length);
-            TupleTypeSymbol.GetElementTypes(destination, destTypes);
+            TupleTypeSymbol.AddElementTypes(destination, destTypes);
 
             try
             {

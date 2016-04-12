@@ -208,7 +208,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// Gets flattened type arguments of the underlying type
         /// which correspond to the types of the tuple elements left-to-right
         /// </summary>
-        internal static void GetElementTypes(NamedTypeSymbol underlyingTupleType, ArrayBuilder<TypeSymbol> tupleElementTypes)
+        internal static void AddElementTypes(NamedTypeSymbol underlyingTupleType, ArrayBuilder<TypeSymbol> tupleElementTypes)
         {
             NamedTypeSymbol currentType = underlyingTupleType;
 
@@ -226,43 +226,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     break;
                 }
             }
-        }
-
-        private NamedTypeSymbol GetTupleUnderlyingTypeAndFields(
-            ImmutableArray<TypeSymbol> elementTypes,
-            ImmutableArray<string> elementNames,
-            CSharpSyntaxNode syntax,
-            Binder binder,
-            DiagnosticBag diagnostics,
-            out ImmutableArray<TupleFieldSymbol> fields
-            )
-        {
-            Debug.Assert(elementNames.IsDefault || elementTypes.Length == elementNames.Length);
-
-            int numElements = elementTypes.Length;
-
-            if (numElements <= 1)
-            {
-                throw ExceptionUtilities.Unreachable;
-            }
-            NamedTypeSymbol underlyingType = GetTupleUnderlyingType(elementTypes, syntax, binder, diagnostics);
-
-            // build the fields
-            var fieldsBuilder = ArrayBuilder<TupleFieldSymbol>.GetInstance(numElements);
-            for (int elementIndex = 0; elementIndex < numElements; elementIndex++)
-            {
-                FieldSymbol underlyingField = TupleFieldSymbol.GetUnderlyingField(numElements, underlyingType, elementIndex, syntax, binder, diagnostics);
-
-                var field = new TupleFieldSymbol(GetFieldNameFromArrayOrDefaultName(elementNames, elementIndex),
-                                           this,
-                                           elementTypes[elementIndex],
-                                           elementIndex + 1,
-                                           underlyingField);
-                fieldsBuilder.Add(field);
-            }
-            fields = fieldsBuilder.ToImmutableAndFree();
-
-            return underlyingType;
         }
 
         /// <summary>

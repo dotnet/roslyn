@@ -722,7 +722,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             var targetElementTypes = ArrayBuilder<TypeSymbol>.GetInstance(arguments.Length);
-            TupleTypeSymbol.GetElementTypes((NamedTypeSymbol)destination, targetElementTypes);
+            TupleTypeSymbol.AddElementTypes((NamedTypeSymbol)destination, targetElementTypes);
             Debug.Assert(arguments.Length == targetElementTypes.Count);
 
             try
