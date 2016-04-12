@@ -276,7 +276,11 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 if (!statement.WasCompilerGenerated)
                 {
-                    return CollectDynamicAnalysis(visited);
+                    // Do not instrument implicit constructor initializers
+                    if (!statement.IsConstructorInitializer() || statement.Syntax.Kind() != SyntaxKind.ConstructorDeclaration)
+                    {
+                        return CollectDynamicAnalysis(visited);
+                    }
                 }
             }
 
