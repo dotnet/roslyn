@@ -8,9 +8,9 @@
     </description>  
     <dependencies>
       <group targetFramework="netstandard1.1">
-        <dependency id="System.Runtime" version="4.1.0-rc3-24005-00" />
-        <dependency id="System.Runtime.InteropServices" version="4.1.0-rc3-24005-00" />
-        <dependency id="System.Diagnostics.Debug" version="4.0.11-rc3-24005-00" />
+        <dependency id="System.Runtime" version="4.1.0-rc2-23931" />
+        <dependency id="System.Runtime.InteropServices" version="4.1.0-rc2-23931" />
+        <dependency id="System.Diagnostics.Debug" version="4.0.11-rc2-23931" />            
       </group>
     </dependencies>    
     <language>en-US</language>

@@ -10,7 +10,7 @@
     "Microsoft.NETCore": "5.0.0",
     "Microsoft.NETCore.Portable.Compatibility": "1.0.0",
     "NuSpec.ReferenceGenerator": "1.4.2",
-    "System.Collections.Immutable": "1.2.0-rc3-24005-00"
+    "System.Collections.Immutable": "1.1.37"
   },
   "frameworks": {
     "dotnet": {}

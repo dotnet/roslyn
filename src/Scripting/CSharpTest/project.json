@@ -1,7 +1,5 @@
 ﻿{
-  "dependencies": {
-    "System.AppContext": "4.0.0"
-  },
+  "dependencies": { },
   "frameworks": {
     "netstandard1.3": {
       "imports": [ "portable-net452", "dotnet5.4" ]

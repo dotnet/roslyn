@@ -5,13 +5,12 @@
     "Microsoft.Build.Tasks.Core": "0.1.0-preview-00005",
     "Microsoft.Build.Utilities.Core": "0.1.0-preview-00005",
     "Microsoft.Win32.Primitives": "4.0.0",
-    "System.Console": "4.0.0-rc3-24005-00",
+    "System.Console": "4.0.0-rc2-23931",
     "System.Diagnostics.Tools": "4.0.0",
-    "System.Diagnostics.Process": "4.1.0-rc3-24005-00",
-    "System.IO.Pipes": "4.0.0-rc3-24005-00",
-    "System.Runtime.InteropServices.RuntimeInformation": "4.0.0-rc3-24005-00",
-    "System.IO.FileSystem": "4.0.1-rc3-24005-00",
-    "System.IO.FileSystem.DriveInfo": "4.0.0-rc3-24005-00"
+    "System.Diagnostics.Process": "4.1.0-rc2-23931",
+    "System.IO.Pipes": "4.0.0-rc2-23931",
+    "System.Runtime.InteropServices.RuntimeInformation": "4.0.0-rc2-23931",
+    "System.IO.FileSystem.DriveInfo": "4.0.0-rc2-23931"
   },
   "frameworks": {
     "netstandard1.3": {
