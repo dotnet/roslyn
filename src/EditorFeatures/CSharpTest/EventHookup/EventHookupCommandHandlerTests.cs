@@ -938,7 +938,7 @@ class C
         MyEvent +$$
     }
 }";
-            using (var testState = EventHookupTestState.CreateTestState(markup, QualifyMethodAccess))
+            using (var testState = EventHookupTestState.CreateTestState(markup, QualifyMethodAccessWithNotification(NotificationOption.Error)))
             {
                 testState.SendTypeChar('=');
                 testState.SendTab();
@@ -962,6 +962,46 @@ class C
             }
         }
 
-        private IDictionary<OptionKey, object> QualifyMethodAccess => new Dictionary<OptionKey, object>() { { new OptionKey(CodeStyleOptions.QualifyMethodAccess, LanguageNames.CSharp), new CodeStyleOption<bool>(true, NotificationOption.Error) } };
+        [WpfFact, Trait(Traits.Feature, Traits.Features.EventHookup)]
+        public async Task EventHookupWithQualifiedMethodAccessAndNotificationOptionNone()
+        {
+            // This validates the scenario where the user has stated that they prefer `this.` qualification but the
+            // notification level is `None`, which means existing violations of the rule won't be flagged but newly
+            // generated code will conform appropriately.
+            var markup = @"
+class C
+{
+    event System.Action MyEvent;
+    void M()
+    {
+        MyEvent +$$
+    }
+}";
+            using (var testState = EventHookupTestState.CreateTestState(markup, QualifyMethodAccessWithNotification(NotificationOption.None)))
+            {
+                testState.SendTypeChar('=');
+                testState.SendTab();
+                await testState.WaitForAsynchronousOperationsAsync();
+
+                var expectedCode = @"
+class C
+{
+    event System.Action MyEvent;
+    void M()
+    {
+        MyEvent += this.C_MyEvent;
+    }
+
+    private void C_MyEvent()
+    {
+        throw new System.NotImplementedException();
+    }
+}";
+                testState.AssertCodeIs(expectedCode);
+            }
+        }
+
+        private IDictionary<OptionKey, object> QualifyMethodAccessWithNotification(NotificationOption notification)
+            => new Dictionary<OptionKey, object>() { { new OptionKey(CodeStyleOptions.QualifyMethodAccess, LanguageNames.CSharp), new CodeStyleOption<bool>(true, notification) } };
     }
 }

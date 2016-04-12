@@ -13,7 +13,7 @@ using Xunit;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.QualifyMemberAccess
 {
-    public class QualifyMemberAccessTests : AbstractCSharpDiagnosticProviderBasedUserDiagnosticTest
+    public partial class QualifyMemberAccessTests : AbstractCSharpDiagnosticProviderBasedUserDiagnosticTest
     {
         internal override Tuple<DiagnosticAnalyzer, CodeFixProvider> CreateDiagnosticProviderAndFixer(Workspace workspace)
         {
@@ -22,12 +22,22 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.QualifyMemb
 
         private Task TestAsyncWithOption(string code, string expected, PerLanguageOption<CodeStyleOption<bool>> option)
         {
-            return TestAsync(code, expected, options: Option(option, true, NotificationOption.Error));
+            return TestAsyncWithOptionAndNotificationOption(code, expected, option, NotificationOption.Error);
+        }
+
+        private Task TestAsyncWithOptionAndNotificationOption(string code, string expected, PerLanguageOption<CodeStyleOption<bool>> option, NotificationOption notification)
+        {
+            return TestAsync(code, expected, options: Option(option, true, notification));
         }
 
         private Task TestMissingAsyncWithOption(string code, PerLanguageOption<CodeStyleOption<bool>> option)
         {
-            return TestMissingAsync(code, options: Option(option, true, NotificationOption.Error));
+            return TestMissingAsyncWithOptionAndNotificationOption(code, option, NotificationOption.Error);
+        }
+
+        private Task TestMissingAsyncWithOptionAndNotificationOption(string code, PerLanguageOption<CodeStyleOption<bool>> option, NotificationOption notification)
+        {
+            return TestMissingAsync(code, options: Option(option, true, notification));
         }
 
         [WorkItem(7065, "https://github.com/dotnet/roslyn/issues/7065")]
@@ -350,6 +360,41 @@ CodeStyleOptions.QualifyEventAccess);
             await TestMissingAsyncWithOption(
 @"using System; class C { static event EventHandler e; } void Handler(object sender, EventArgs args) { [|e|] += Handler; } }",
 CodeStyleOptions.QualifyEventAccess);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsQualifyMemberAccess)]
+        public async Task QualifyMemberAccessNotPresentOnNotificationOptionNone()
+        {
+            await TestMissingAsyncWithOptionAndNotificationOption(
+@"class Class { int Property { get; set; }; void M() { [|Property|] = 1; } }",
+CodeStyleOptions.QualifyPropertyAccess, NotificationOption.None);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsQualifyMemberAccess)]
+        public async Task QualifyMemberAccessOnNotificationOptionInfo()
+        {
+            await TestAsyncWithOptionAndNotificationOption(
+@"class Class { int Property { get; set; }; void M() { [|Property|] = 1; } }",
+@"class Class { int Property { get; set; }; void M() { this.Property = 1; } }",
+CodeStyleOptions.QualifyPropertyAccess, NotificationOption.Info);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsQualifyMemberAccess)]
+        public async Task QualifyMemberAccessOnNotificationOptionWarning()
+        {
+            await TestAsyncWithOptionAndNotificationOption(
+@"class Class { int Property { get; set; }; void M() { [|Property|] = 1; } }",
+@"class Class { int Property { get; set; }; void M() { this.Property = 1; } }",
+CodeStyleOptions.QualifyPropertyAccess, NotificationOption.Warning);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsQualifyMemberAccess)]
+        public async Task QualifyMemberAccessOnNotificationOptionError()
+        {
+            await TestAsyncWithOptionAndNotificationOption(
+@"class Class { int Property { get; set; }; void M() { [|Property|] = 1; } }",
+@"class Class { int Property { get; set; }; void M() { this.Property = 1; } }",
+CodeStyleOptions.QualifyPropertyAccess, NotificationOption.Error);
         }
     }
 }

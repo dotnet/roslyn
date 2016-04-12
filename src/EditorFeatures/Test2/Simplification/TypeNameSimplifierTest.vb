@@ -3046,6 +3046,150 @@ class C
                 </text>
             Await TestAsync(input, expected, QualifyEventAccessOption(LanguageNames.CSharp))
         End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
+        Public Async Function QualifyMemberAccessNotPresentOnNotificationOptionNone_CSharp() As Task
+            Dim input =
+                <Workspace>
+                    <Project Language="C#" CommonReferences="true">
+                        <Document>
+                            <![CDATA[
+class C
+{
+    int Property { get; set; }
+    void M()
+    {
+        {|Simplify:Property|} = 1;
+    }
+}
+]]>
+                        </Document>
+                    </Project>
+                </Workspace>
+
+            Dim expected =
+                <text>
+                    <![CDATA[
+class C
+{
+    int Property { get; set; }
+    void M()
+    {
+        Property = 1;
+    }
+}
+]]>
+                </text>
+            Await TestAsync(input, expected, QualifyPropertyAccessOptionWithNotification(LanguageNames.CSharp, NotificationOption.None))
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
+        Public Async Function QualifyMemberAccessOnNotificationOptionInfo_CSharp() As Task
+            Dim input =
+                <Workspace>
+                    <Project Language="C#" CommonReferences="true">
+                        <Document>
+                            <![CDATA[
+class C
+{
+    int Property { get; set; }
+    void M()
+    {
+        {|Simplify:this.Property|} = 1;
+    }
+}
+]]>
+                        </Document>
+                    </Project>
+                </Workspace>
+
+            Dim expected =
+                <text>
+                    <![CDATA[
+class C
+{
+    int Property { get; set; }
+    void M()
+    {
+        this.Property = 1;
+    }
+}
+]]>
+                </text>
+            Await TestAsync(input, expected, QualifyPropertyAccessOptionWithNotification(LanguageNames.CSharp, NotificationOption.Info))
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
+        Public Async Function QualifyMemberAccessOnNotificationOptionWarning_CSharp() As Task
+            Dim input =
+                <Workspace>
+                    <Project Language="C#" CommonReferences="true">
+                        <Document>
+                            <![CDATA[
+class C
+{
+    int Property { get; set; }
+    void M()
+    {
+        {|Simplify:this.Property|} = 1;
+    }
+}
+]]>
+                        </Document>
+                    </Project>
+                </Workspace>
+
+            Dim expected =
+                <text>
+                    <![CDATA[
+class C
+{
+    int Property { get; set; }
+    void M()
+    {
+        this.Property = 1;
+    }
+}
+]]>
+                </text>
+            Await TestAsync(input, expected, QualifyPropertyAccessOptionWithNotification(LanguageNames.CSharp, NotificationOption.Warning))
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
+        Public Async Function QualifyMemberAccessOnNotificationOptionError_CSharp() As Task
+            Dim input =
+                <Workspace>
+                    <Project Language="C#" CommonReferences="true">
+                        <Document>
+                            <![CDATA[
+class C
+{
+    int Property { get; set; }
+    void M()
+    {
+        {|Simplify:this.Property|} = 1;
+    }
+}
+]]>
+                        </Document>
+                    </Project>
+                </Workspace>
+
+            Dim expected =
+                <text>
+                    <![CDATA[
+class C
+{
+    int Property { get; set; }
+    void M()
+    {
+        this.Property = 1;
+    }
+}
+]]>
+                </text>
+            Await TestAsync(input, expected, QualifyPropertyAccessOptionWithNotification(LanguageNames.CSharp, NotificationOption.Error))
+        End Function
 #End Region
 
 #Region "Normal Visual Basic Tests"
@@ -5484,6 +5628,134 @@ End Class
             Await TestAsync(input, expected, QualifyEventAccessOption(LanguageNames.VisualBasic))
         End Function
 
+        <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
+        Public Async Function QualifyMemberAccessNotPresentOnNotificationOptionNone_VisualBasic() As Task
+            Dim input =
+                <Workspace>
+                    <Project Language="Visual Basic" CommonReferences="true">
+                        <Document>
+                            <![CDATA[
+Class C
+    Property I As Integer
+    Sub M()
+        {|Simplify:I|} = 1
+    End Sub
+End Class
+]]>
+                        </Document>
+                    </Project>
+                </Workspace>
+
+            Dim expected =
+                <text>
+                    <![CDATA[
+Class C
+    Property I As Integer
+    Sub M()
+        I = 1
+    End Sub
+End Class
+]]>
+                </text>
+            Await TestAsync(input, expected, QualifyPropertyAccessOptionWithNotification(LanguageNames.VisualBasic, NotificationOption.None))
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
+        Public Async Function QualifyMemberAccessOnNotificationOptionInfo_VisualBasic() As Task
+            Dim input =
+                <Workspace>
+                    <Project Language="Visual Basic" CommonReferences="true">
+                        <Document>
+                            <![CDATA[
+Class C
+    Property I As Integer
+    Sub M()
+        {|Simplify:Me.I|} = 1
+    End Sub
+End Class
+]]>
+                        </Document>
+                    </Project>
+                </Workspace>
+
+            Dim expected =
+                <text>
+                    <![CDATA[
+Class C
+    Property I As Integer
+    Sub M()
+        Me.I = 1
+    End Sub
+End Class
+]]>
+                </text>
+            Await TestAsync(input, expected, QualifyPropertyAccessOptionWithNotification(LanguageNames.VisualBasic, NotificationOption.Info))
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
+        Public Async Function QualifyMemberAccessOnNotificationOptionWarning_VisualBasic() As Task
+            Dim input =
+                <Workspace>
+                    <Project Language="Visual Basic" CommonReferences="true">
+                        <Document>
+                            <![CDATA[
+Class C
+    Property I As Integer
+    Sub M()
+        {|Simplify:Me.I|} = 1
+    End Sub
+End Class
+]]>
+                        </Document>
+                    </Project>
+                </Workspace>
+
+            Dim expected =
+                <text>
+                    <![CDATA[
+Class C
+    Property I As Integer
+    Sub M()
+        Me.I = 1
+    End Sub
+End Class
+]]>
+                </text>
+            Await TestAsync(input, expected, QualifyPropertyAccessOptionWithNotification(LanguageNames.VisualBasic, NotificationOption.Warning))
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
+        Public Async Function QualifyMemberAccessOnNotificationOptionError_VisualBasic() As Task
+            Dim input =
+                <Workspace>
+                    <Project Language="Visual Basic" CommonReferences="true">
+                        <Document>
+                            <![CDATA[
+Class C
+    Property I As Integer
+    Sub M()
+        {|Simplify:Me.I|} = 1
+    End Sub
+End Class
+]]>
+                        </Document>
+                    </Project>
+                </Workspace>
+
+            Dim expected =
+                <text>
+                    <![CDATA[
+Class C
+    Property I As Integer
+    Sub M()
+        Me.I = 1
+    End Sub
+End Class
+]]>
+                </text>
+            Await TestAsync(input, expected, QualifyPropertyAccessOptionWithNotification(LanguageNames.VisualBasic, NotificationOption.Error))
+        End Function
+
         <WorkItem(7955, "https://github.com/dotnet/roslyn/issues/7955")>
         <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
         Public Async Function UsePredefinedTypeKeywordIfTextIsTheSame() As Task
@@ -5559,7 +5831,7 @@ End Class
         End Function
 
         Protected Function QualifyPropertyAccessOption(languageName As String) As Dictionary(Of OptionKey, Object)
-            Return New Dictionary(Of OptionKey, Object) From {{New OptionKey(CodeStyleOptions.QualifyPropertyAccess, languageName), New CodeStyleOption(Of Boolean)(True, NotificationOption.Error)}}
+            Return QualifyPropertyAccessOptionWithNotification(languageName, NotificationOption.Error)
         End Function
 
         Protected Function QualifyMethodAccessOption(languageName As String) As Dictionary(Of OptionKey, Object)
@@ -5568,6 +5840,10 @@ End Class
 
         Protected Function QualifyEventAccessOption(languageName As String) As Dictionary(Of OptionKey, Object)
             Return New Dictionary(Of OptionKey, Object) From {{New OptionKey(CodeStyleOptions.QualifyEventAccess, languageName), New CodeStyleOption(Of Boolean)(True, NotificationOption.Error)}}
+        End Function
+
+        Protected Function QualifyPropertyAccessOptionWithNotification(languageName As String, notification As NotificationOption) As Dictionary(Of OptionKey, Object)
+            Return New Dictionary(Of OptionKey, Object) From {{New OptionKey(CodeStyleOptions.QualifyPropertyAccess, languageName), New CodeStyleOption(Of Boolean)(True, notification)}}
         End Function
 
         Shared DontPreferIntrinsicPredefinedTypeKeywordInDeclaration As Dictionary(Of OptionKey, Object) = New Dictionary(Of OptionKey, Object) From {{New OptionKey(SimplificationOptions.PreferIntrinsicPredefinedTypeKeywordInDeclaration, LanguageNames.VisualBasic), False}}

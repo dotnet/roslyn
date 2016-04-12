@@ -8,7 +8,7 @@ Imports Microsoft.CodeAnalysis.Options
 Imports Microsoft.CodeAnalysis.VisualBasic.CodeFixes.QualifyMemberAccess
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Diagnostics.QualifyMemberAccess
-    Public Class QualifyMemberAccessTests
+    Partial Public Class QualifyMemberAccessTests
         Inherits AbstractVisualBasicDiagnosticProviderBasedUserDiagnosticTest
 
         Friend Overrides Function CreateDiagnosticProviderAndFixer(workspace As Workspace) As Tuple(Of DiagnosticAnalyzer, CodeFixProvider)
@@ -16,11 +16,19 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Diagnostics.Qualif
         End Function
 
         Private Function TestAsyncWithOption(code As String, expected As String, opt As PerLanguageOption(Of CodeStyleOption(Of Boolean))) As Task
-            Return TestAsync(code, expected, options:=[Option](opt, True, NotificationOption.Error))
+            Return TestAsyncWithOptionAndNotification(code, expected, opt, NotificationOption.Error)
+        End Function
+
+        Private Function TestAsyncWithOptionAndNotification(code As String, expected As String, opt As PerLanguageOption(Of CodeStyleOption(Of Boolean)), notification As NotificationOption) As Task
+            Return TestAsync(code, expected, options:=[Option](opt, True, notification))
         End Function
 
         Private Function TestMissingAsyncWithOption(code As String, opt As PerLanguageOption(Of CodeStyleOption(Of Boolean))) As Task
-            Return TestMissingAsync(code, options:=[Option](opt, True, NotificationOption.Error))
+            Return TestMissingAsyncWithOptionAndNotification(code, opt, NotificationOption.Error)
+        End Function
+
+        Private Function TestMissingAsyncWithOptionAndNotification(code As String, opt As PerLanguageOption(Of CodeStyleOption(Of Boolean)), notification As NotificationOption) As Task
+            Return TestMissingAsync(code, options:=[Option](opt, True, notification))
         End Function
 
         <WorkItem(7065, "https://github.com/dotnet/roslyn/issues/7065")>
@@ -421,6 +429,37 @@ Class C
     End Function
 End Class",
 CodeStyleOptions.QualifyEventAccess)
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsQualifyMemberAccess)>
+        Public Async Function QualifyMemberAccessNotPresentOnNotificationOptionNone() As Task
+            Await TestMissingAsyncWithOptionAndNotification(
+"Class C : Property I As Integer : Sub M() : [|I|] = 1 : End Sub : End Class",
+CodeStyleOptions.QualifyPropertyAccess, NotificationOption.None)
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsQualifyMemberAccess)>
+        Public Async Function QualifyMemberAccessOnNotificationOptionInfo() As Task
+            Await TestAsyncWithOptionAndNotification(
+"Class C : Property I As Integer : Sub M() : [|I|] = 1 : End Sub : End Class",
+"Class C : Property I As Integer : Sub M() : Me.I = 1 : End Sub : End Class",
+CodeStyleOptions.QualifyPropertyAccess, NotificationOption.Info)
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsQualifyMemberAccess)>
+        Public Async Function QualifyMemberAccessOnNotificationOptionWarning() As Task
+            Await TestAsyncWithOptionAndNotification(
+"Class C : Property I As Integer : Sub M() : [|I|] = 1 : End Sub : End Class",
+"Class C : Property I As Integer : Sub M() : Me.I = 1 : End Sub : End Class",
+CodeStyleOptions.QualifyPropertyAccess, NotificationOption.Warning)
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsQualifyMemberAccess)>
+        Public Async Function QualifyMemberAccessOnNotificationOptionError() As Task
+            Await TestAsyncWithOptionAndNotification(
+"Class C : Property I As Integer : Sub M() : [|I|] = 1 : End Sub : End Class",
+"Class C : Property I As Integer : Sub M() : Me.I = 1 : End Sub : End Class",
+CodeStyleOptions.QualifyPropertyAccess, NotificationOption.Error)
         End Function
 
     End Class

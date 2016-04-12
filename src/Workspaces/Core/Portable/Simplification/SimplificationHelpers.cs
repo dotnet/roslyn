@@ -103,17 +103,13 @@ namespace Microsoft.CodeAnalysis.Simplification
 
         internal static bool ShouldSimplifyMemberAccessExpression(SemanticModel semanticModel, SyntaxNode expression, OptionSet optionSet)
         {
-            var nameSymbol = GetOriginalSymbolInfo(semanticModel, expression);
-            return nameSymbol != null && ShouldSimplifyMemberAccessExpression(nameSymbol, semanticModel.Language, optionSet);
-        }
-
-        internal static bool ShouldSimplifyMemberAccessExpression(ISymbol symbol, string languageName, OptionSet optionSet)
-        {
-            if (!symbol.IsStatic && 
-                (symbol.IsKind(SymbolKind.Field) && optionSet.GetOption(CodeStyleOptions.QualifyFieldAccess, languageName).Value ||
-                (symbol.IsKind(SymbolKind.Property) && optionSet.GetOption(CodeStyleOptions.QualifyPropertyAccess, languageName).Value) ||
-                (symbol.IsKind(SymbolKind.Method) && optionSet.GetOption(CodeStyleOptions.QualifyMethodAccess, languageName).Value) ||
-                (symbol.IsKind(SymbolKind.Event) && optionSet.GetOption(CodeStyleOptions.QualifyEventAccess, languageName).Value)))
+            var symbol = GetOriginalSymbolInfo(semanticModel, expression);
+            if (symbol == null ||
+                (!symbol.IsStatic &&
+                 (symbol.IsKind(SymbolKind.Field) && optionSet.GetOption(CodeStyleOptions.QualifyFieldAccess, semanticModel.Language).Value ||
+                 (symbol.IsKind(SymbolKind.Property) && optionSet.GetOption(CodeStyleOptions.QualifyPropertyAccess, semanticModel.Language).Value) ||
+                 (symbol.IsKind(SymbolKind.Method) && optionSet.GetOption(CodeStyleOptions.QualifyMethodAccess, semanticModel.Language).Value) ||
+                 (symbol.IsKind(SymbolKind.Event) && optionSet.GetOption(CodeStyleOptions.QualifyEventAccess, semanticModel.Language).Value))))
             {
                 return false;
             }
