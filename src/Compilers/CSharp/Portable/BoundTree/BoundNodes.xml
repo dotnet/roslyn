@@ -1149,7 +1149,6 @@
   -->
   <AbstractNode Name="BoundTupleExpression" Base="BoundExpression">
     <Field Name="Arguments" Type="ImmutableArray&lt;BoundExpression&gt;"/>
-    <Field Name="ArgumentNamesOpt" Type="ImmutableArray&lt;string&gt;" Null="allow"/>
   </AbstractNode>
 
   <!-- 
@@ -1164,6 +1163,7 @@
      (a: 1, b: (c: 1, d: null))  does not have a natural type, because "null" does not have one
     -->
     <Field Name="Type" Type="TypeSymbol" Override="true" Null="allow"/>
+    <Field Name="ArgumentNamesOpt" Type="ImmutableArray&lt;string&gt;" Null="allow"/>
   </Node>
 
   <!-- 
@@ -1175,6 +1175,7 @@
   <Node Name="BoundConvertedTupleLiteral" Base="BoundTupleExpression">
     <!-- Converted tuple must have a type -->
     <Field Name="Type" Type="TypeSymbol" Override="true" Null="disallow"/>
+    <Field Name="NaturalTypeOpt" Type="TypeSymbol" Null="allow"/>
   </Node>
   
   <Node Name="BoundDynamicObjectCreationExpression" Base="BoundExpression">

@@ -719,7 +719,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 tupleTypeOpt = new TupleTypeSymbol(elements, elementNamesArray, node, this, diagnostics);
             }
 
-            return new BoundTupleLiteral(node, boundArguments.ToImmutableAndFree(), elementNamesArray, tupleTypeOpt, hasErrors);
+            return new BoundTupleLiteral(node, elementNamesArray, boundArguments.ToImmutableAndFree(), tupleTypeOpt, hasErrors);
         }
 
         /// <summary>

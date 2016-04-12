@@ -1818,9 +1818,17 @@ namespace Microsoft.CodeAnalysis.CSharp
                             type = ((BoundLocal)boundExpr).LocalSymbol.Type;
                         }
                     }
+
+                    if (boundExpr.Kind == BoundKind.ConvertedTupleLiteral)
+                    {
+                        // The bound tree always fully binds tuple literals. From the language point of
+                        // view, however, converted tuple literals represent tuple conversions
+                        // from tuple literal expressions which may or may not have types
+                        type = ((BoundConvertedTupleLiteral)boundExpr).NaturalTypeOpt;
+                    }
                 }
 
-                if (highestBoundExpr != null && highestBoundExpr.Kind == BoundKind.Lambda) // the enclosing conversion is explicit
+                if (highestBoundExpr?.Kind == BoundKind.Lambda) // the enclosing conversion is explicit
                 {
                     var lambda = (BoundLambda)highestBoundExpr;
                     convertedType = lambda.Type;
@@ -1830,6 +1838,19 @@ namespace Microsoft.CodeAnalysis.CSharp
                     // Type and ConvertedType are the same, but the conversion isn't Identity.
                     type = null;
                     conversion = new Conversion(ConversionKind.AnonymousFunction, lambda.Symbol, false);
+                }
+                else if (highestBoundExpr?.Kind == BoundKind.ConvertedTupleLiteral) 
+                {
+                    Debug.Assert(highestBoundExpr == boundExpr);
+                    var convertedLiteral = (BoundConvertedTupleLiteral)highestBoundExpr;
+                    // The bound tree always fully binds tuple literals. From the language point of
+                    // view, however, converted tuple literals represent tuple conversions
+                    // from tuple literal expressions which may or may not have types
+                    type = convertedLiteral.NaturalTypeOpt;
+                    convertedType = convertedLiteral.Type;
+                    conversion = convertedType.Equals(type, ignoreDynamic: true) ?
+                                        Conversion.Identity :
+                                        Conversion.ImplicitTuple;
                 }
                 else if (highestBoundExpr != null && highestBoundExpr != boundExpr && highestBoundExpr.HasExpressionType())
                 {
