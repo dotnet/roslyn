@@ -1723,6 +1723,16 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return false;
             }
 
+            if (constructedTarget.IsTupleType)
+            {
+                //PROTOTYPE(tuples): we are losing tuple names here
+                //                   need to figure what to do with names. 
+                //                   in particular what if we have conflicting inference 
+                //                   differing in names only.
+                //                   From compat/interop point of view that should be somehow allowed
+                constructedTarget = ((TupleTypeSymbol)constructedTarget).UnderlyingTupleType;
+            }
+
             if (constructedTarget.AllTypeArgumentCount() == 0)
             {
                 return false;
@@ -1738,6 +1748,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             // SPEC:   is made from each Ui to the corresponding Vi.
 
             var constructedSource = source as NamedTypeSymbol;
+            if (constructedSource?.IsTupleType == true)
+            {
+                //PROTOTYPE(tuples): we are losing tuple names here
+                constructedSource = ((TupleTypeSymbol)constructedSource).UnderlyingTupleType;
+            }
 
             if ((object)constructedSource != null &&
                 constructedSource.OriginalDefinition == constructedTarget.OriginalDefinition)

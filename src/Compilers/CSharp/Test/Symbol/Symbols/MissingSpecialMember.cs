@@ -662,8 +662,8 @@ namespace System
                     case WellKnownMember.System_ValueTuple_T7__ctor:
                     case WellKnownMember.System_ValueTuple_TRest__ctor:
 
-                        // PROTOTYPE(tuples) tuples
-                        // Not yet in the platform.
+                        // PROTOTYPE(tuples): tuples
+                        //                    Not yet in the platform.
                         continue;
                 }
                 if (wkm == WellKnownMember.Count) continue; // Not a real value.

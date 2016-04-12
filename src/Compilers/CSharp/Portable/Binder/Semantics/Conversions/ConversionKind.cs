@@ -12,6 +12,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         Identity,
         ImplicitNumeric,
         ImplicitEnumeration,
+        ImplicitTuple,
         ImplicitThrow,
         ImplicitNullable,
         NullLiteral,

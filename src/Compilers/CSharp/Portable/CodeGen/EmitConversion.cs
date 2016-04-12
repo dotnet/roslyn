@@ -73,6 +73,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
                 case ConversionKind.ExplicitUserDefined:
                 case ConversionKind.AnonymousFunction:
                 case ConversionKind.MethodGroup:
+                case ConversionKind.ImplicitTuple:
                 case ConversionKind.ImplicitDynamic:
                 case ConversionKind.ExplicitDynamic:
                 case ConversionKind.ImplicitThrow:

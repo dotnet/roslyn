@@ -84,7 +84,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             if (numElements <= 1)
             {
                 throw ExceptionUtilities.Unreachable;
-            }
+        }
             NamedTypeSymbol underlyingType = GetTupleUnderlyingType(elementTypes, syntax, binder, diagnostics);
 
             return new TupleTypeSymbol(underlyingType, elementNames, binder.Compilation.Assembly);
@@ -127,6 +127,25 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         }
 
         /// <summary>
+        /// Copy the original tuple, but modify it to use new field names.
+        /// </summary>
+        private TupleTypeSymbol(TupleTypeSymbol originalTuple,
+                                ImmutableArray<string> newElementNames)
+        {
+            _underlyingType = originalTuple._underlyingType;
+
+            var fieldsBuilder = ArrayBuilder<TupleFieldSymbol>.GetInstance(originalTuple._fields.Length);
+            var originalFields = originalTuple._fields;
+            
+            for (int i = 0; i < originalFields.Length; i++)
+            {
+                fieldsBuilder.Add(originalFields[i].WithName(this, GetFieldNameFromArrayOrDefaultName(newElementNames, i)));
+            }
+
+            _fields = fieldsBuilder.ToImmutableAndFree();
+        }
+
+        /// <summary>
         /// Copy this tuple, but modify it to use the new underlying type.
         /// </summary>
         internal TupleTypeSymbol WithUnderlyingType(NamedTypeSymbol newUnderlyingType)
@@ -134,6 +153,31 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             Debug.Assert((object)newUnderlyingType.OriginalDefinition == (object)UnderlyingTupleType.OriginalDefinition);
 
             return new TupleTypeSymbol(this, newUnderlyingType);
+        }
+
+        /// <summary>
+        /// Copy this tuple, but modify it to use the new element names.
+        /// </summary>
+        internal TupleTypeSymbol WithElementNames(ImmutableArray<string> newElementNames)
+        {
+            Debug.Assert(newElementNames.IsDefault || this._fields.Length == newElementNames.Length);
+
+            var originalFields = _fields;
+            for (int i = 0; i < originalFields.Length; i++)
+            {
+                var originalField = originalFields[i];
+                var originalName = originalField.Name;
+                var newName = GetFieldNameFromArrayOrDefaultName(newElementNames, i);
+
+                if (originalName != newName)
+                {
+                    // at least one name is different
+                    return new TupleTypeSymbol(this, newElementNames);
+                }
+            }
+
+            // all names are the same
+            return this;
         }
 
         /// <summary>
@@ -158,6 +202,38 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     break;
                 }
             }
+        }
+
+        /// <summary>
+        /// Gets flattened type arguments of the underlying type
+        /// which correspond to the types of the tuple elements left-to-right
+        /// </summary>
+        internal static void AddElementTypes(NamedTypeSymbol underlyingTupleType, ArrayBuilder<TypeSymbol> tupleElementTypes)
+        {
+            NamedTypeSymbol currentType = underlyingTupleType;
+
+            while (true)
+            {
+                var regularElements = Math.Min(currentType.Arity, TupleTypeSymbol.RestPosition - 1);
+                tupleElementTypes.AddRange(currentType.TypeArguments, regularElements);
+
+                if (currentType.Arity == TupleTypeSymbol.RestPosition)
+                {
+                    currentType = (NamedTypeSymbol)currentType.TypeArgumentsNoUseSiteDiagnostics[TupleTypeSymbol.RestPosition - 1];
+                }
+                else
+                {
+                    break;
+                }
+            }
+        }
+
+        /// <summary>
+        /// Given an array of names returns a name at given position or a default name for that position.
+        /// </summary>
+        private static string GetFieldNameFromArrayOrDefaultName(ImmutableArray<string> elementNames, int elementIndex)
+        {
+            return elementNames.IsDefault ? TupleMemberName(elementIndex + 1) : elementNames[elementIndex];
         }
 
         /// <summary>
@@ -222,7 +298,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// For example, for arity=2:
         /// returns WellKnownType.System_ValueTuple_T2
         /// </summary>
-        private static WellKnownType GetTupleType(int arity)
+        internal static WellKnownType GetTupleType(int arity)
         {
             if (arity > RestPosition)
             {
@@ -357,7 +433,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// </summary>
         internal static int IsMemberNameReserved(string name)
         {
-            // PROTOTYPE handle others like "ToString"?
+            // PROTOTYPE(tuples): handle others like "ToString"?
 
             if (String.Equals(name, "Rest", StringComparison.Ordinal))
             {
@@ -493,8 +569,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         public override ImmutableArray<Symbol> GetMembers(string name)
         {
-            //PROTOTYPE(tuples): PERF do we need to have a dictionary here?
-            //      tuples will be typically small 2 or 3 elements only
+            // PROTOTYPE(tuples): PERF do we need to have a dictionary here?
+            //                    tuples will be typically small 2 or 3 elements only
             return ImmutableArray<Symbol>.CastUp(_fields).WhereAsArray(field => field.Name == name);
         }
 
@@ -575,11 +651,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             if (ignoreDynamic)
             {
-                //PROTOTYPE(tuples): rename ignoreDynamic or introduce another "ignoreTuple" flag
-                // if ignoring dynamic, compare underlying tuple types
-                if (t2.IsTupleType)
+                // PROTOTYPE(tuples): rename ignoreDynamic or introduce another "ignoreTuple" flag
+                //                    if ignoring dynamic, compare underlying tuple types
+                if (t2?.IsTupleType == true)
                 {
-                    t2 = (t2 as TupleTypeSymbol).UnderlyingTupleType;
+                    t2 = ((TupleTypeSymbol)t2).UnderlyingTupleType;
                 }
                 return _underlyingType.Equals(t2, ignoreCustomModifiers, ignoreDynamic);
             }
