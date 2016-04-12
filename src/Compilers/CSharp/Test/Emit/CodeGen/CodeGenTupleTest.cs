@@ -2637,5 +2637,105 @@ class C
             Assert.Equal("<tuple: System.Int16 a, System.String b> x", model.GetDeclaredSymbol(x).ToTestDisplayString());
         }
 
+        [Fact]
+        public void TupleConvertedTypeUDC01()
+        {
+            var source = @"
+class C
+{
+    static void Main()
+    {
+        (short a, string b) x = (e: 1, f: new C1(""qq""));
+        System.Console.WriteLine(x.ToString());
+    }
+
+    class C1
+    {
+        private string s;
+
+        public C1(string arg)
+        {
+            s = arg + 1;
+        }
+
+        public static implicit operator string (C1 arg)
+        {
+            return arg.s;
+        }
+    }
+}
+" + trivial2uple + trivial3uple;
+
+            var tree = Parse(source);
+            var comp = CreateCompilationWithMscorlib(tree, options: TestOptions.ReleaseExe);
+
+            var model = comp.GetSemanticModel(tree, ignoreAccessibility: false);
+            var nodes = tree.GetCompilationUnitRoot().DescendantNodes();
+            var node = nodes.OfType<TupleExpressionSyntax>().Single();
+
+            Assert.Equal(@"(e: 1, f: new C1(""qq""))", node.ToString());
+            Assert.Equal("<tuple: System.Int32 e, C.C1 f>", model.GetTypeInfo(node).Type.ToTestDisplayString());
+            Assert.Equal("<tuple: System.Int16 a, System.String b>", model.GetTypeInfo(node).ConvertedType.ToTestDisplayString());
+            Assert.Equal(Conversion.ImplicitTuple, model.GetConversion(node));
+
+            var x = nodes.OfType<VariableDeclaratorSyntax>().First();
+            Assert.Equal("<tuple: System.Int16 a, System.String b> x", model.GetDeclaredSymbol(x).ToTestDisplayString());
+
+            CompileAndVerify(comp, expectedOutput: "{1, qq1}");
+        }
+
+        [Fact]
+        public void TupleConvertedTypeUDC01insource()
+        {
+            var source = @"
+class C
+{
+    static void Main()
+    {
+        (short a, string b) x = ((short c, string d))(e: 1, f: new C1(""qq""));
+        System.Console.WriteLine(x.ToString());
+    }
+
+    class C1
+    {
+        private string s;
+
+        public C1(string arg)
+        {
+            s = arg + 1;
+        }
+
+        public static implicit operator string (C1 arg)
+        {
+            return arg.s;
+        }
+    }
+}
+" + trivial2uple + trivial3uple;
+
+            var tree = Parse(source);
+            var comp = CreateCompilationWithMscorlib(tree, options: TestOptions.ReleaseExe);
+
+            var model = comp.GetSemanticModel(tree, ignoreAccessibility: false);
+            var nodes = tree.GetCompilationUnitRoot().DescendantNodes();
+            var node = nodes.OfType<TupleExpressionSyntax>().Single();
+
+            Assert.Equal(@"(e: 1, f: new C1(""qq""))", node.ToString());
+            Assert.Equal("<tuple: System.Int32 e, C.C1 f>", model.GetTypeInfo(node).Type.ToTestDisplayString());
+            Assert.Equal("<tuple: System.Int16 e, System.String f>", model.GetTypeInfo(node).ConvertedType.ToTestDisplayString());
+            Assert.Equal(Conversion.ImplicitTuple, model.GetConversion(node));
+
+            // semantic model returns topmost conversion from the sequence of conversions for
+            // ((short c, string d))(e: 1, f: null)
+            Assert.Equal("<tuple: System.Int16 c, System.String d>", model.GetTypeInfo(node.Parent).Type.ToTestDisplayString());
+            Assert.Equal("<tuple: System.Int16 a, System.String b>", model.GetTypeInfo(node.Parent).ConvertedType.ToTestDisplayString());
+            Assert.Equal(Conversion.Identity, model.GetConversion(node.Parent));
+
+            var x = nodes.OfType<VariableDeclaratorSyntax>().First();
+            Assert.Equal("<tuple: System.Int16 a, System.String b> x", model.GetDeclaredSymbol(x).ToTestDisplayString());
+
+            CompileAndVerify(comp, expectedOutput: "{1, qq1}");
+        }
+
     }
 }
