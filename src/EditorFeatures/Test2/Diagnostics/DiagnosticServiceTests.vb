@@ -730,37 +730,27 @@ class AnonymousFunctions
                 Assert.Equal(1, diagnostics.Count())
                 Assert.Equal(document.Id, diagnostics.First().DocumentId)
 
-                If options.GetOption(InternalDiagnosticsOptions.UseDiagnosticEngineV2) Then
-                    ' Verify compilation diagnostics are reported with correct location info when asked for project diagnostics.
-                    Dim projectDiagnostics = diagnosticService.GetProjectDiagnosticsForIdsAsync(project.Solution, project.Id).WaitAndGetResult(CancellationToken.None)
-                    Assert.Equal(1, projectDiagnostics.Count())
+                ' REVIEW: GetProjectDiagnosticsForIdsAsync is for project diagnostics with no location. not sure why in v1, this API returns
+                '         diagnostic with location?
 
-                    Dim noLocationDiagnostic = projectDiagnostics.First()
-                    Assert.Equal(CompilationEndedAnalyzer.Descriptor.Id, noLocationDiagnostic.Id)
-                    Assert.Equal(False, noLocationDiagnostic.HasTextSpan)
-                Else
-                    ' REVIEW: GetProjectDiagnosticsForIdsAsync is for project diagnostics with no location. not sure why in v1, this API returns
-                    '         diagnostic with location?
+                ' Verify compilation diagnostics are reported with correct location info when asked for project diagnostics.
+                Dim projectDiagnostics = diagnosticService.GetDiagnosticsForIdsAsync(project.Solution, project.Id).WaitAndGetResult(CancellationToken.None)
+                Assert.Equal(2, projectDiagnostics.Count())
 
-                    ' Verify compilation diagnostics are reported with correct location info when asked for project diagnostics.
-                    Dim projectDiagnostics = diagnosticService.GetProjectDiagnosticsForIdsAsync(project.Solution, project.Id).WaitAndGetResult(CancellationToken.None)
-                    Assert.Equal(2, projectDiagnostics.Count())
+                Dim noLocationDiagnostic = projectDiagnostics.First(Function(d) Not d.HasTextSpan)
+                Assert.Equal(CompilationEndedAnalyzer.Descriptor.Id, noLocationDiagnostic.Id)
+                Assert.Equal(False, noLocationDiagnostic.HasTextSpan)
 
-                    Dim noLocationDiagnostic = projectDiagnostics.First()
-                    Assert.Equal(CompilationEndedAnalyzer.Descriptor.Id, noLocationDiagnostic.Id)
-                    Assert.Equal(False, noLocationDiagnostic.HasTextSpan)
+                Dim withDocumentLocationDiagnostic = projectDiagnostics.First(Function(d) d.HasTextSpan)
+                Assert.Equal(CompilationEndedAnalyzer.Descriptor.Id, withDocumentLocationDiagnostic.Id)
+                Assert.Equal(True, withDocumentLocationDiagnostic.HasTextSpan)
+                Assert.NotNull(withDocumentLocationDiagnostic.DocumentId)
 
-                    Dim withDocumentLocationDiagnostic = projectDiagnostics.Last()
-                    Assert.Equal(CompilationEndedAnalyzer.Descriptor.Id, withDocumentLocationDiagnostic.Id)
-                    Assert.Equal(True, withDocumentLocationDiagnostic.HasTextSpan)
-                    Assert.NotNull(withDocumentLocationDiagnostic.DocumentId)
-
-                    Dim diagnosticDocument = project.GetDocument(withDocumentLocationDiagnostic.DocumentId)
-                    Dim tree = diagnosticDocument.GetSyntaxTreeAsync().Result
-                    Dim actualLocation = withDocumentLocationDiagnostic.ToDiagnosticAsync(project, CancellationToken.None).Result.Location
-                    Dim expectedLocation = document.GetSyntaxRootAsync().Result.GetLocation
-                    Assert.Equal(expectedLocation, actualLocation)
-                End If
+                Dim diagnosticDocument = project.GetDocument(withDocumentLocationDiagnostic.DocumentId)
+                Dim tree = diagnosticDocument.GetSyntaxTreeAsync().Result
+                Dim actualLocation = withDocumentLocationDiagnostic.ToDiagnosticAsync(project, CancellationToken.None).Result.Location
+                Dim expectedLocation = document.GetSyntaxRootAsync().Result.GetLocation
+                Assert.Equal(expectedLocation, actualLocation)
             End Using
         End Sub
 
