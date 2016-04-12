@@ -12,6 +12,7 @@ Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 Imports TypeKind = Microsoft.CodeAnalysis.TypeKind
+Imports ILOpCode = Microsoft.CodeAnalysis.CodeGen.ILOpCode
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGen
 
