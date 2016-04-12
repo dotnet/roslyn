@@ -1806,11 +1806,11 @@ public class Example
 
             var semanticModel = comp.GetSemanticModel(syntaxTree, false);
 
-            var nameSyntax = syntaxRoot.FindNode(TextSpan.FromBounds(130, 138));
-            Assert.Equal("Lifetime", nameSyntax.ToString());
-            Assert.Equal("Lifetime.Persistent", nameSyntax.Parent.ToString());
+            var memberAccess = syntaxRoot.DescendantNodes().Single(node => node.IsKind(SyntaxKind.SimpleMemberAccessExpression)) as MemberAccessExpressionSyntax;
+            Assert.Equal("Lifetime", memberAccess.Expression.ToString());
+            Assert.Equal("Lifetime.Persistent", memberAccess.ToString());
 
-            var actualSymbol = semanticModel.GetSymbolInfo(nameSyntax);
+            var actualSymbol = semanticModel.GetSymbolInfo(memberAccess.Expression);
 
             Assert.Equal("Lifetime", actualSymbol.Symbol.ToTestDisplayString());
             Assert.Equal(SymbolKind.NamedType, actualSymbol.Symbol.Kind);
