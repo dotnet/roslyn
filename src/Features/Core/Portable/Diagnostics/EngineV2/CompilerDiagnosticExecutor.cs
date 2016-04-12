@@ -43,13 +43,16 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                     var model = compilation.GetSemanticModel(tree);
 
                     var syntax = await analyzerDriver.GetAnalyzerSyntaxDiagnosticsAsync(tree, oneAnalyzers, cancellationToken).ConfigureAwait(false);
+                    Contract.Requires(syntax.Count() == CompilationWithAnalyzers.GetEffectiveDiagnostics(syntax, analyzerDriver.Compilation).Count());
                     result.AddSyntaxDiagnostics(tree, syntax);
 
                     var semantic = await analyzerDriver.GetAnalyzerSemanticDiagnosticsAsync(model, noSpanFilter, oneAnalyzers, cancellationToken).ConfigureAwait(false);
+                    Contract.Requires(semantic.Count() == CompilationWithAnalyzers.GetEffectiveDiagnostics(semantic, analyzerDriver.Compilation).Count());
                     result.AddSemanticDiagnostics(tree, semantic);
                 }
 
                 var rest = await analyzerDriver.GetAnalyzerCompilationDiagnosticsAsync(oneAnalyzers, cancellationToken).ConfigureAwait(false);
+                Contract.Requires(rest.Count() == CompilationWithAnalyzers.GetEffectiveDiagnostics(rest, analyzerDriver.Compilation).Count());
                 result.AddCompilationDiagnostics(rest);
 
                 builder.Add(analyzer, result.ToResult());
