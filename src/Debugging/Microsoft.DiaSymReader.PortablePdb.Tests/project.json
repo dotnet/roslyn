@@ -1,13 +1,12 @@
 ﻿{
   "dependencies": {
     "Microsoft.NETCore.Portable.Compatibility": "1.0.0",
-    "System.Collections": "4.0.10",
-    "System.Diagnostics.Debug": "4.0.10",
-    "System.Runtime": "4.0.20",
-    "System.Runtime.Extensions": "4.0.10",
-    "System.Runtime.InteropServices": "4.0.20",
-    "System.IO.FileSystem": "4.0.0",
-    "System.Runtime.InteropServices": "4.0.20",
+    "System.Collections": "4.0.11-rc3-24005-00",
+    "System.Diagnostics.Debug": "4.0.11-rc3-24005-00",
+    "System.Runtime": "4.1.0-rc3-24005-00",
+    "System.Runtime.Extensions": "4.1.0-rc3-24005-00",
+    "System.Runtime.InteropServices": "4.1.0-rc3-24005-00",
+    "System.IO.FileSystem": "4.0.1-rc3-24005-00",
     "xunit": "2.1.0"
   },
   "frameworks": {
