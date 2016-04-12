@@ -116,7 +116,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return SyntaxFactory.TriviaList(sequence);
         }
 
-        internal static XmlNameAttributeElementKind GetElementKind(this XmlNameAttributeSyntax attributeSyntax)
+        public static XmlNameAttributeElementKind GetElementKind(this XmlNameAttributeSyntax attributeSyntax)
         {
             CSharpSyntaxNode parentSyntax = attributeSyntax.Parent;
             SyntaxKind parentKind = parentSyntax.Kind();

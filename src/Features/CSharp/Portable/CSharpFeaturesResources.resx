@@ -454,5 +454,10 @@
   </data>
   <data name="UseImplicitTypeDiagnosticTitle" xml:space="preserve">
     <value>Use implicit type</value>
+  <data name="AddParameterXmlDocumentation" xml:space="preserve">
+    <value>Add XML documentation for parameter {0}</value>
+  </data>
+  <data name="AddTypeParameterXmlDocumentation" xml:space="preserve">
+    <value>Add XML documentation for type parameter {0}</value>
   </data>
 </root>
