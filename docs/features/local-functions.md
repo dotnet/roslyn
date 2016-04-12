@@ -28,7 +28,7 @@ declaration-statement
 +   ;
 
 +local-function-modifiers
-+   : async
++   : (async | unsafe)
 +   ;
 
 +local-function-body
