@@ -1171,7 +1171,9 @@ class d : c
         [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task CommitAbstractMethodThrows()
         {
-            var markupBeforeCommit = @"abstract class c
+            var markupBeforeCommit = @"using System;
+
+abstract class c
 {
     public abstract void foo();
 }
@@ -1599,9 +1601,7 @@ class d : MyIndexer<T>
     override $$
 }";
 
-            var expectedCodeAfterCommit = @"using System;
-
-public class MyIndexer<T>
+            var expectedCodeAfterCommit = @"public class MyIndexer<T>
 {
     private T[] arr = new T[100];
     public abstract T this[int i] { get; set; }
@@ -1613,12 +1613,12 @@ class d : MyIndexer<T>
     {
         get
         {
-            throw new NotImplementedException();$$
+            throw new System.NotImplementedException();$$
         }
 
         set
         {
-            throw new NotImplementedException();
+            throw new System.NotImplementedException();
         }
     }
 }";
@@ -1729,7 +1729,9 @@ public class SomeClass : Base
         [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task CommitEscapedMethodName()
         {
-            var markupBeforeCommit = @"public abstract class Base
+            var markupBeforeCommit = @"using System;
+
+public abstract class Base
 {
     public abstract void @class();
 }
@@ -1829,7 +1831,9 @@ public class SomeClass : Base
         [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task CommitRefParameter()
         {
-            var markupBeforeCommit = @"public abstract class Base
+            var markupBeforeCommit = @"using System;
+
+public abstract class Base
 {
     public abstract void foo(int x, ref string y);
 }
@@ -1860,7 +1864,9 @@ public class SomeClass : Base
         [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task CommitOutParameter()
         {
-            var markupBeforeCommit = @"public abstract class Base
+            var markupBeforeCommit = @"using System;
+
+public abstract class Base
 {
     public abstract void foo(int x, out string y);
 }
@@ -2554,6 +2560,73 @@ namespace ConsoleApplication46
                 // there should only be one change: the replacement of "override " with a method.
                 Assert.Equal(change.Span, TextSpan.FromBounds(136, 145));
             }
+        }
+
+        [WorkItem(8257, "https://github.com/dotnet/roslyn/issues/8257")]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task NotImplementedQualifiedWhenSystemUsingNotPresent_Property()
+        {
+            var markupBeforeCommit = @"abstract class C
+{
+    public abstract int foo { get; set; };
+}
+
+class Program : C
+{
+    override $$
+}";
+
+            var expectedCodeAfterCommit = @"abstract class C
+{
+    public abstract int foo { get; set; };
+}
+
+class Program : C
+{
+    public override int foo
+    {
+        get
+        {
+            throw new System.NotImplementedException();$$
+        }
+
+        set
+        {
+            throw new System.NotImplementedException();
+        }
+    }
+}";
+
+            await VerifyCustomCommitProviderAsync(markupBeforeCommit, "foo", expectedCodeAfterCommit);
+        }
+
+        [WorkItem(8257, "https://github.com/dotnet/roslyn/issues/8257")]
+        public async Task NotImplementedQualifiedWhenSystemUsingNotPresent_Method()
+        {
+            var markupBeforeCommit = @"abstract class C
+{
+    public abstract void foo();
+}
+
+class Program : C
+{
+    override $$
+}";
+
+            var expectedCodeAfterCommit = @"abstract class C
+{
+    public abstract void foo();
+}
+
+class Program : C
+{
+    public override void foo()
+    {
+        throw new System.NotImplementedException();$$
+    }
+}";
+
+            await VerifyCustomCommitProviderAsync(markupBeforeCommit, "foo()", expectedCodeAfterCommit);
         }
     }
 }
