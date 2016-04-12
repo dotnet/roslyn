@@ -8454,7 +8454,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 semicolon);
 
             decl = CheckForBlockAndExpressionBody(blockBody, expressionBody, decl);
-            decl = CheckFeatureAvailability(decl, MessageID.IDS_FeatureLocalFunctions);
             return decl;
         }
 

@@ -3667,12 +3667,31 @@ class Program
 ";
             var option = TestOptions.ReleaseExe;
             CreateCompilationWithMscorlib(source, options: option, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp6)).VerifyDiagnostics(
-    // (6,9): error CS8058: Feature 'local functions' is experimental and unsupported; use '/features:localFunctions' to enable.
-    //         void Local()
-    Diagnostic(ErrorCode.ERR_FeatureIsExperimental, @"void Local()
-        {
-        }").WithArguments("local functions", "localFunctions").WithLocation(6, 9)
-                );
+                // (6,9): error CS1547: Keyword 'void' cannot be used in this context
+                //         void Local()
+                Diagnostic(ErrorCode.ERR_NoVoidHere, "void").WithLocation(6, 9),
+                // (6,19): error CS1528: Expected ; or = (cannot specify constructor arguments in declaration)
+                //         void Local()
+                Diagnostic(ErrorCode.ERR_BadVarDecl, @"()
+").WithLocation(6, 19),
+                // (6,19): error CS1003: Syntax error, '[' expected
+                //         void Local()
+                Diagnostic(ErrorCode.ERR_SyntaxError, "(").WithArguments("[", "(").WithLocation(6, 19),
+                // (6,20): error CS1525: Invalid expression term ')'
+                //         void Local()
+                Diagnostic(ErrorCode.ERR_InvalidExprTerm, ")").WithArguments(")").WithLocation(6, 20),
+                // (6,21): error CS1003: Syntax error, ']' expected
+                //         void Local()
+                Diagnostic(ErrorCode.ERR_SyntaxError, "").WithArguments("]", "{").WithLocation(6, 21),
+                // (6,21): error CS1002: ; expected
+                //         void Local()
+                Diagnostic(ErrorCode.ERR_SemicolonExpected, "").WithLocation(6, 21),
+                // (9,9): error CS0149: Method name expected
+                //         Local();
+                Diagnostic(ErrorCode.ERR_MethodNameExpected, "Local").WithLocation(9, 9),
+                // (9,9): error CS0165: Use of unassigned local variable 'Local'
+                //         Local();
+                Diagnostic(ErrorCode.ERR_UseDefViolation, "Local").WithArguments("Local").WithLocation(9, 9));
         }
     }
 }
