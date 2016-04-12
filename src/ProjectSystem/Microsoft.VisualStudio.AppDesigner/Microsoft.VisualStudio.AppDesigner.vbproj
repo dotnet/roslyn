@@ -1,0 +1,225 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="14.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <Import Project="..\..\..\build\Targets\VSL.Settings.targets" />
+  <PropertyGroup>
+    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
+    <ProjectGuid>{19725D6F-4690-412B-934A-FC48D752B802}</ProjectGuid>
+    <AssemblyName>Microsoft.VisualStudio.AppDesigner</AssemblyName>
+    <OutDir>$(OutDir)\ProjectSystem\</OutDir>
+    <OutputType>Library</OutputType>
+    <RootNamespace>
+    </RootNamespace>
+    <OptionCompare>binary</OptionCompare>
+    <OptionExplicit>On</OptionExplicit>
+    <OptionStrict>On</OptionStrict>
+    <OptionInfer>On</OptionInfer>
+    <SignAssembly>true</SignAssembly>
+    <NoWarn>$(NoWarn);42105;42107;42353;42307</NoWarn>
+    <CopyNuGetImplementations>false</CopyNuGetImplementations>
+    <CopyReferencesByDefault>false</CopyReferencesByDefault>
+    <TargetFrameworkVersion>v4.6</TargetFrameworkVersion>
+    <!-- Override Roslyn which embeds by default -->
+    <VBRuntime>Default</VBRuntime>
+    <TargetFrameworkProfile />
+  </PropertyGroup>
+  <ItemGroup>
+    <Import Include="VSErrorHandler=Microsoft.VisualStudio.ErrorHandler" />
+    <Import Include="VSConstants=Microsoft.VisualStudio.VSConstants" />
+  </ItemGroup>
+  <ItemGroup>
+    <Reference Include="EnvDTE" />
+    <Reference Include="EnvDTE80" />
+    <Reference Include="Microsoft.VisualStudio.Designer.Interfaces" />
+    <Reference Include="Microsoft.VisualStudio.OLE.Interop" />
+    <Reference Include="Microsoft.VisualStudio.Utilities" />
+    <Reference Include="Microsoft.VisualStudio.Shell.Design" />
+    <Reference Include="Microsoft.VisualStudio.Shell.Interop" />
+    <Reference Include="Microsoft.VisualStudio.Shell.Interop.8.0" />
+    <Reference Include="Microsoft.VisualStudio.Shell.Interop.11.0" />
+    <Reference Include="Microsoft.VisualStudio.Shell.14.0" />
+    <Reference Include="Microsoft.VisualStudio.TextManager.Interop" />
+    <Reference Include="Microsoft.VisualStudio.VSHelp" />
+    <Reference Include="Microsoft.VisualStudio.ManagedInterfaces" />
+    <Reference Include="System" />
+    <Reference Include="System.Core" />
+    <Reference Include="System.Design" />
+    <Reference Include="System.Drawing" />
+    <Reference Include="System.Windows.Forms" />
+    <Reference Include="VSLangProj" />
+    <Reference Include="VSLangProj80" />
+    <Reference Include="VsWebSite.Interop" />
+    <Reference Include="Microsoft.VSDesigner" />
+    <Reference Include="Microsoft.VSDesigner.WCF" />
+    <Reference Include="Microsoft.VisualStudio.WCFReference.Interop" />
+    <Reference Include="WindowsBase" />
+    <Reference Include="PresentationFramework" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="..\..\Common\IVsSqm.vb">
+      <Link>IVsSqm.vb</Link>
+    </Compile>
+    <Compile Include="..\..\Common\ManagedCodeMarkers.vb">
+      <Link>ManagedCodeMarkers.vb</Link>
+    </Compile>
+    <Compile Include="ApplicationDesigner\ApplicationDesignerEditorFactory.vb" />
+    <Compile Include="ApplicationDesigner\ApplicationDesignerLoader.vb" />
+    <Compile Include="ApplicationDesigner\ApplicationDesignerPanel.vb">
+      <SubType>Component</SubType>
+    </Compile>
+    <Compile Include="ApplicationDesigner\ApplicationDesignerRootComponent.vb">
+      <SubType>Component</SubType>
+    </Compile>
+    <Compile Include="ApplicationDesigner\ApplicationDesignerRootDesigner.vb" />
+    <Compile Include="ApplicationDesigner\ApplicationDesignerView.vb">
+      <SubType>Component</SubType>
+    </Compile>
+    <Compile Include="ApplicationDesigner\ApplicationDesignerWindowPane.vb" />
+    <Compile Include="ApplicationDesigner\ApplicationDesignerWindowPaneControl.vb">
+      <SubType>UserControl</SubType>
+    </Compile>
+    <Compile Include="ApplicationDesigner\CmdTargetHelper.vb" />
+    <Compile Include="ApplicationDesigner\CustomViewProvider.vb" />
+    <Compile Include="ApplicationDesigner\DeferrableWindowPaneProviderService.vb" />
+    <Compile Include="ApplicationDesigner\DesignerTabButton.vb">
+      <SubType>Component</SubType>
+    </Compile>
+    <Compile Include="ApplicationDesigner\DesignerTabControl.vb">
+      <SubType>Component</SubType>
+    </Compile>
+    <Compile Include="ApplicationDesigner\DesignerTabControlRenderer.vb" />
+    <Compile Include="ApplicationDesigner\ErrorControlCustomViewProvider.vb" />
+    <Compile Include="ApplicationDesigner\IVsEditWindowNotify.vb" />
+    <Compile Include="ApplicationDesigner\PropertyPageInfo.vb" />
+    <Compile Include="ApplicationDesigner\PropertyPageSite.vb" />
+    <Compile Include="ApplicationDesigner\SpecialFileCustomView.Designer.vb">
+      <DependentUpon>SpecialFileCustomView.vb</DependentUpon>
+    </Compile>
+    <Compile Include="ApplicationDesigner\SpecialFileCustomView.vb">
+      <SubType>UserControl</SubType>
+    </Compile>
+    <Compile Include="ApplicationDesigner\SpecialFileCustomViewProvider.vb" />
+    <Compile Include="Common\ArgumentValidation.vb" />
+    <Compile Include="Common\DTEUtils.vb" />
+    <Compile Include="Common\ShellUtil.vb" />
+    <Compile Include="Common\switches.vb" />
+    <Compile Include="Common\Utils.vb" />
+    <Compile Include="Common\WaitCursor.vb" />
+    <Compile Include="Common\wmuserconstants.vb" />
+    <Compile Include="Constants.vb" />
+    <Compile Include="DesignerFramework\BaseDialog.vb">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="DesignerFramework\BaseRootDesigner.vb" />
+    <Compile Include="DesignerFramework\DesignerMenuCommand.vb" />
+    <Compile Include="DesignerFramework\DesignerMessageBox.vb" />
+    <Compile Include="DesignerFramework\DesignerWindowPaneProviderBase.vb" />
+    <Compile Include="DesignerFramework\DesignUtil.vb" />
+    <Compile Include="DesignerFramework\ErrorControl.Designer.vb">
+      <DependentUpon>ErrorControl.vb</DependentUpon>
+    </Compile>
+    <Compile Include="DesignerFramework\ErrorControl.vb">
+      <SubType>UserControl</SubType>
+    </Compile>
+    <Compile Include="DesignerFramework\SourceCodeControlManager.vb" />
+    <Compile Include="GlobalSuppressions.vb" />
+    <Compile Include="InternalException.vb" />
+    <Compile Include="interop\ILangInactiveCfgPropertyNotifySink.vb" />
+    <Compile Include="interop\ISpecifyPropertyPages.vb" />
+    <Compile Include="interop\IVsAppId.vb" />
+    <Compile Include="interop\LOGVIEWID.vb" />
+    <Compile Include="interop\NativeMethods.vb" />
+    <Compile Include="interop\win.vb" />
+    <Compile Include="IVBPackage.vb" />
+    <Compile Include="My Project\AssemblyInfo.vb" />
+    <Compile Include="MyApplicationProperties.vb" />
+    <Compile Include="PropPageDesigner\ConfigurationState.vb" />
+    <Compile Include="PropPageDesigner\DeferrableWindowPaneProviderService.vb" />
+    <Compile Include="PropPageDesigner\MultipleValuesStore.vb" />
+    <Compile Include="PropPageDesigner\PropertyPagePropertyDescriptor.vb" />
+    <Compile Include="PropPageDesigner\PropertyPageSerializationService.vb" />
+    <Compile Include="PropPageDesigner\PropertyPageSerializationService_Store.vb" />
+    <Compile Include="PropPageDesigner\PropPageDesignerDocData.vb" />
+    <Compile Include="PropPageDesigner\PropPageDesignerEditorFactory.vb" />
+    <Compile Include="PropPageDesigner\PropPageDesignerLoader.vb" />
+    <Compile Include="PropPageDesigner\PropPageDesignerRootComponent.vb">
+      <SubType>Component</SubType>
+    </Compile>
+    <Compile Include="PropPageDesigner\PropPageDesignerRootDesigner.vb" />
+    <Compile Include="PropPageDesigner\PropPageDesignerView.vb">
+      <SubType>UserControl</SubType>
+    </Compile>
+    <Compile Include="PropPageDesigner\PropPageDesignerWindowPane.vb" />
+    <Compile Include="PropPages\ChildPageSite.vb" />
+    <Compile Include="PropPages\ControlDataFlags.vb" />
+    <Compile Include="PropPages\HiddenIfMissingPropertyControlData.vb" />
+    <Compile Include="PropPages\ProjectReloadedException.vb" />
+    <Compile Include="PropPages\PropertyControlData.vb" />
+    <Compile Include="PropPages\PropertyListener.vb" />
+    <Compile Include="PropPages\PropertyPageException.vb" />
+    <Compile Include="PropPages\PropPage.vb" />
+    <Compile Include="PropPages\PropPageHostDialog.vb">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="PropPages\PropPageUserControlBase.vb">
+      <SubType>UserControl</SubType>
+    </Compile>
+    <Compile Include="PropPages\SKUMatrix.vb" />
+    <Compile Include="PropPages\ValidationException.vb" />
+    <Compile Include="PropPages\ValidationResult.vb" />
+    <Compile Include="PropPages\VSThemedLinkLabel.vb">
+      <SubType>Component</SubType>
+    </Compile>
+    <Compile Include="Resources\Microsoft.VisualStudio.AppDesigner.Designer.Designer.vb">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>Microsoft.VisualStudio.AppDesigner.Designer.resx</DependentUpon>
+    </Compile>
+    <Compile Include="Resources\Resources.vb" />
+    <Compile Include="VisualStudioEditorsID.vb" />
+    <Compile Include="VSProductSKU.vb" />
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="ApplicationDesigner\ApplicationDesignerView.resx">
+      <DependentUpon>ApplicationDesignerView.vb</DependentUpon>
+      <SubType>Designer</SubType>
+    </EmbeddedResource>
+    <EmbeddedResource Include="ApplicationDesigner\SpecialFileCustomView.resx">
+      <DependentUpon>SpecialFileCustomView.vb</DependentUpon>
+      <SubType>Designer</SubType>
+    </EmbeddedResource>
+    <EmbeddedResource Include="PropPageDesigner\PropPageDesignerView.resx">
+      <DependentUpon>PropPageDesignerView.vb</DependentUpon>
+      <SubType>Designer</SubType>
+    </EmbeddedResource>
+    <EmbeddedResource Include="PropPages\PropPageHostDialog.resx">
+      <DependentUpon>PropPageHostDialog.vb</DependentUpon>
+      <SubType>Designer</SubType>
+    </EmbeddedResource>
+    <EmbeddedResource Include="PropPages\PropPageUserControlBase.resx">
+      <DependentUpon>PropPageUserControlBase.vb</DependentUpon>
+      <SubType>Designer</SubType>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Resources\Microsoft.VisualStudio.AppDesigner.Designer.resx">
+      <CustomToolNamespace>My.Resources</CustomToolNamespace>
+      <Generator>ResXFileCodeGenerator</Generator>
+      <LastGenOutput>Microsoft.VisualStudio.AppDesigner.Designer.Designer.vb</LastGenOutput>
+      <SubType>Designer</SubType>
+    </EmbeddedResource>
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="DesignerFramework\ErrorControl.resx">
+      <DependentUpon>ErrorControl.vb</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Resources\ApplicationDesigner\OverflowImage.png">
+      <LogicalName>Microsoft.VisualStudio.Editors.ApplicationDesigner.OverflowImage</LogicalName>
+    </EmbeddedResource>
+  </ItemGroup>
+  <ItemGroup>
+    <Service Include="{94E38DFF-614B-4CBD-B67C-F211BB35CE8B}" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="project.json" />
+  </ItemGroup>
+  <Import Project="..\..\..\build\Targets\VSL.Imports.targets" />
+</Project>

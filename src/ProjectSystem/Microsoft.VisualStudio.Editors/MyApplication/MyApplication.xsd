@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="utf-8" ?> 
+<xs:schema targetNamespace="uri:MyApplication"
+                  elementFormDefault="qualified"
+                  xmlns="uri:MyApplication"
+                  xmlns:xs="http://www.w3.org/2001/XMLSchema">
+
+    <xs:complexType name="MyApplicationType">
+        <xs:attribute name="StartupObject" type="xs:string" minOccurs="0" maxOccurs="1" />
+        <xs:attribute name="SingleInstance" type="xs:boolean" minOccurs="0" maxOccurs="1" />
+        <xs:attribute name="EnableVisualStyles" type="xs:boolean" minOccurs="0" maxOccurs="1" />
+        <xs:attribute name="ShutdownMode" type="xs:string" minOccurs="0" maxOccurs="1" />
+        <xs:attribute name="SplashScreen" type="xs:string" minOccurs="0" maxOccurs="1" />
+        <xs:attribute name="SaveMySettingsOnExit" type="xs:boolean" minOccurs="0" maxOccurs="1" />
+	</xs:complexType>
+
+    <xs:element name="MyApplicationData" type="MyApplicationType" />
+</xs:schema>
