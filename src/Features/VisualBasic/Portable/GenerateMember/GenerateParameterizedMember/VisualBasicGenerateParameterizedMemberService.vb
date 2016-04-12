@@ -152,11 +152,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.GenerateMember.GenerateMethod
             Protected Overrides Function IsIdentifierName() As Boolean
                 Return Me.State.SimpleNameOpt.Kind = SyntaxKind.IdentifierName
             End Function
-
-            Protected Overrides Function IsImplicitReferenceConversion(compilation As Compilation, sourceType As ITypeSymbol, targetType As ITypeSymbol) As Boolean
-                Dim conversion = compilation.ClassifyConversion(sourceType, targetType)
-                Return conversion.IsImplicit AndAlso conversion.IsReference
-            End Function
         End Class
     End Class
 End Namespace

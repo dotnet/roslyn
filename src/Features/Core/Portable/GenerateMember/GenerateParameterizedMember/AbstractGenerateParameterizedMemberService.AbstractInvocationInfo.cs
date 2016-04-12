@@ -88,8 +88,8 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateParameterizedMember
                         {
                             // For example 'FooAttribute'.
                             var type2 = classTypes[j];
-
-                            if (IsImplicitReferenceConversion(compilation, type2, type1))
+                            var conversion = compilation.ClassifyConversion(type2, type1);
+                            if (conversion.IsImplicit && conversion.IsReference)
                             {
                                 // If there's an implicit reference conversion (i.e. from
                                 // FooAttribute to Attribute), then we don't need Attribute as it's
@@ -103,8 +103,6 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateParameterizedMember
 
                 return classTypes;
             }
-
-            protected abstract bool IsImplicitReferenceConversion(Compilation compilation, ITypeSymbol sourceType, ITypeSymbol targetType);
         }
     }
 }
