@@ -1,7 +1,7 @@
 ﻿{
   "dependencies": {
     "Microsoft.DotNet.xunit.performance": "1.0.0-alpha-build0023",
-    "System.IO.FileSystem": "4.0.0"
+    "System.IO.FileSystem": "4.0.1-rc3-24005-00"
   },
   "frameworks": {
     "net46": {}
