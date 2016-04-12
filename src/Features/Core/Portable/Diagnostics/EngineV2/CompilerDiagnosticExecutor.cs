@@ -103,17 +103,17 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                 return map == null ? ImmutableDictionary<DocumentId, ImmutableArray<DiagnosticData>>.Empty : map.ToImmutableDictionary(kv => kv.Key, kv => kv.Value.ToImmutableArray());
             }
 
-            public void AddSyntaxDiagnostics(DocumentId documentId, IEnumerable<Diagnostic> diagnostics)
+            public void AddExternalSyntaxDiagnostics(DocumentId documentId, IEnumerable<Diagnostic> diagnostics)
             {
-                AddDiagnostics(ref _lazySyntaxLocals, documentId, diagnostics);
+                AddExternalDiagnostics(ref _lazySyntaxLocals, documentId, diagnostics);
             }
 
-            public void AddSemanticDiagnostics(DocumentId documentId, IEnumerable<Diagnostic> diagnostics)
+            public void AddExternalSemanticDiagnostics(DocumentId documentId, IEnumerable<Diagnostic> diagnostics)
             {
-                AddDiagnostics(ref _lazySemanticLocals, documentId, diagnostics);
+                AddExternalDiagnostics(ref _lazySemanticLocals, documentId, diagnostics);
             }
 
-            private void AddDiagnostics(
+            private void AddExternalDiagnostics(
                 ref Dictionary<DocumentId, List<DiagnosticData>> lazyLocals, DocumentId documentId, IEnumerable<Diagnostic> diagnostics)
             {
                 Contract.ThrowIfTrue(_project.SupportsCompilation);

@@ -167,8 +167,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                             }
                             else
                             {
-                                builder.AddSyntaxDiagnostics(document.Id, await ComputeDocumentDiagnosticAnalyzerDiagnosticsAsync(document, documentAnalyzer, AnalysisKind.Syntax, compilationOpt, cancellationToken).ConfigureAwait(false));
-                                builder.AddSemanticDiagnostics(document.Id, await ComputeDocumentDiagnosticAnalyzerDiagnosticsAsync(document, documentAnalyzer, AnalysisKind.Semantic, compilationOpt, cancellationToken).ConfigureAwait(false));
+                                builder.AddExternalSyntaxDiagnostics(document.Id, await ComputeDocumentDiagnosticAnalyzerDiagnosticsAsync(document, documentAnalyzer, AnalysisKind.Syntax, compilationOpt, cancellationToken).ConfigureAwait(false));
+                                builder.AddExternalSemanticDiagnostics(document.Id, await ComputeDocumentDiagnosticAnalyzerDiagnosticsAsync(document, documentAnalyzer, AnalysisKind.Semantic, compilationOpt, cancellationToken).ConfigureAwait(false));
                             }
                         }
                     }
@@ -335,7 +335,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                     var lineSpan = location.GetLineSpan();
 
                     var documentIds = project.Solution.GetDocumentIdsWithFilePath(lineSpan.Path);
-                    if (documentIds.IsEmpty || documentIds.Any(id => id != targetDocument.Id))
+                    if (documentIds.IsEmpty || documentIds.All(id => id != targetDocument.Id))
                     {
                         continue;
                     }
