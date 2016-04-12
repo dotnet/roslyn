@@ -142,10 +142,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.GenerateMember.GenerateConstructor
             Return False
         End Function
 
-        Protected Overrides Function IsConversionImplicit(compilation As Compilation, sourceType As ITypeSymbol, targetType As ITypeSymbol) As Boolean
-            Return compilation.ClassifyConversion(sourceType, targetType).IsImplicit
-        End Function
-
         Protected Overrides Function IsClassDeclarationGeneration(document As SemanticDocument,
                                                                   node As SyntaxNode,
                                                                   cancellationToken As CancellationToken) As Boolean
