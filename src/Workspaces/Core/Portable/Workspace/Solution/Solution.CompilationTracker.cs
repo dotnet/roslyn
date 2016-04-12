@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
+using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
@@ -576,6 +577,9 @@ namespace Microsoft.CodeAnalysis
                 }
             }
 
+            private ConditionalWeakTable<MetadataReference, Compilation> _metadataReferenceToReferencingCompilationMap =
+                new ConditionalWeakTable<MetadataReference, Compilation>();
+
             /// <summary>
             /// Add all appropriate references to the compilation and set it as our final compilation
             /// state.
@@ -640,6 +644,12 @@ namespace Microsoft.CodeAnalysis
                     bool hasSuccessfullyLoadedTransitively = !HasMissingReferences(compilation, this.ProjectState.MetadataReferences) && await ComputeHasSuccessfullyLoadedTransitivelyAsync(solution, hasSuccessfullyLoaded, cancellationToken).ConfigureAwait(false);
 
                     this.WriteState(new FinalState(State.CreateValueSource(compilation, solution.Services), hasSuccessfullyLoadedTransitively), solution);
+
+                    foreach (var reference in compilation.References)
+                    {
+                        _metadataReferenceToReferencingCompilationMap.Add(reference, compilation);
+                    }
+
                     return new CompilationInfo(compilation, hasSuccessfullyLoadedTransitively);
                 }
                 catch (Exception e) when (FatalError.ReportUnlessCanceled(e))
