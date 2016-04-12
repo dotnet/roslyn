@@ -26,4 +26,4 @@ class HelloWorldTest: PerfTest
     public override string MeasuredProc => "csc.exe";
 }
 
-return TestThisPlease(new HelloWorldTest());
+TestThisPlease(new HelloWorldTest());

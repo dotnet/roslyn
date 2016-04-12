@@ -3570,3 +3570,4 @@ partial class C&lt;{|Conflict:T|}&gt; {}
         End Sub
     End Class
 End Namespace
+
