@@ -7,6 +7,7 @@ using System.Diagnostics;
 using System.Globalization;
 using System.IO;
 using System.Linq;
+using System.Reflection;
 using System.Reflection.Metadata;
 using System.Reflection.Metadata.Ecma335;
 using System.Text;
@@ -318,18 +319,63 @@ namespace Roslyn.Test.MetadataUtilities
             }
         }
 
-        private string Literal(StringHandle handle)
+        private string ToString<T>(Func<T> getValue)
         {
+            T value;
+            try
+            {
+                value = getValue();
+            }
+            catch (BadImageFormatException)
+            {
+                return "<bad metadata>";
+            }
+
+            return value.ToString();
+        }
+
+        private string Literal(Func<StringHandle> getHandle)
+        {
+            StringHandle handle;
+            try
+            {
+                handle = getHandle();
+            }
+            catch (BadImageFormatException)
+            {
+                return "<bad metadata>";
+            }
+
             return Literal(handle, BlobKind.None, (r, h) => "'" + StringUtilities.EscapeNonPrintableCharacters(r.GetString((StringHandle)h)) + "'");
         }
 
-        private string Literal(NamespaceDefinitionHandle handle)
+        private string Literal(Func<NamespaceDefinitionHandle> getHandle)
         {
+            NamespaceDefinitionHandle handle;
+            try
+            {
+                handle = getHandle();
+            }
+            catch (BadImageFormatException)
+            {
+                return "<bad metadata>";
+            }
+
             return Literal(handle, BlobKind.None, (r, h) => "'" + StringUtilities.EscapeNonPrintableCharacters(r.GetString((NamespaceDefinitionHandle)h)) + "'");
         }
 
-        private string Literal(GuidHandle handle)
+        private string Literal(Func<GuidHandle> getHandle)
         {
+            GuidHandle handle;
+            try
+            {
+                handle = getHandle();
+            }
+            catch (BadImageFormatException)
+            {
+                return "<bad metadata>";
+            }
+
             return Literal(handle, BlobKind.None, (r, h) => "{" + r.GetGuid((GuidHandle)h) + "}");
         }
 
@@ -368,38 +414,63 @@ namespace Roslyn.Test.MetadataUtilities
             return "{" + guid + "}";
         }
 
-        private string Language(GuidHandle handle)
+        private string Language(Func<Handle> getHandle)
         {
-            return Literal(handle, BlobKind.None, (r, h) => GetLanguage(r.GetGuid((GuidHandle)h)));
+            return Literal(getHandle, BlobKind.None, (r, h) => GetLanguage(r.GetGuid((GuidHandle)h)));
         }
 
-        private string HashAlgorithm(GuidHandle handle)
+        private string HashAlgorithm(Func<Handle> getHandle)
         {
-            return Literal(handle, BlobKind.None, (r, h) => GetHashAlgorithm(r.GetGuid((GuidHandle)h)));
+            return Literal(getHandle, BlobKind.None, (r, h) => GetHashAlgorithm(r.GetGuid((GuidHandle)h)));
         }
 
-        private string CustomDebugInformationKind(GuidHandle handle)
+        private string CustomDebugInformationKind(Func<Handle> getHandle)
         {
-            return Literal(handle, BlobKind.None, (r, h) => GetCustomDebugInformationKind(r.GetGuid((GuidHandle)h)));
+            return Literal(getHandle, BlobKind.None, (r, h) => GetCustomDebugInformationKind(r.GetGuid((GuidHandle)h)));
         }
 
-        private string Literal(DocumentNameBlobHandle handle)
+        private string Literal(Func<DocumentNameBlobHandle> getHandle)
         {
-            return Literal((BlobHandle)handle, BlobKind.DocumentName, (r, h) => "'" + r.GetString((DocumentNameBlobHandle)(BlobHandle)h) + "'");
+            return Literal(() => (BlobHandle)getHandle(), BlobKind.DocumentName, (r, h) => "'" + r.GetString((DocumentNameBlobHandle)(BlobHandle)h) + "'");
         }
 
-        private string LiteralUtf8Blob(BlobHandle handle, BlobKind kind)
+        private string LiteralUtf8Blob(Func<Handle> getHandle, BlobKind kind)
         {
-            return Literal(handle, kind, (r, h) =>
+            return Literal(getHandle, kind, (r, h) =>
             {
                 var bytes = r.GetBlobBytes((BlobHandle)h);
                 return "'" + Encoding.UTF8.GetString(bytes, 0, bytes.Length) + "'";
             });
         }
 
-        private string Literal(BlobHandle handle, BlobKind kind)
+        private string Literal(Func<BlobHandle> getHandle, BlobKind kind)
         {
+            BlobHandle handle;
+            try
+            {
+                handle = getHandle();
+            }
+            catch (BadImageFormatException)
+            {
+                return "<bad metadata>";
+            }
+
             return Literal(handle, kind, (r, h) => BitConverter.ToString(r.GetBlobBytes((BlobHandle)h)));
+        }
+
+        private string Literal(Func<Handle> getHandle, BlobKind kind, Func<MetadataReader, Handle, string> getValue)
+        {
+            Handle handle;
+            try
+            {
+                handle = getHandle();
+            }
+            catch (BadImageFormatException)
+            {
+                return "<bad metadata>";
+            }
+
+            return Literal(handle, kind, getValue);
         }
 
         private string Literal(Handle handle, BlobKind kind, Func<MetadataReader, Handle, string> getValue)
@@ -493,15 +564,26 @@ namespace Roslyn.Test.MetadataUtilities
             }
         }
 
-        private static string EnumValue<T>(object value) where T : IEquatable<T>
+        private static string EnumValue<TIntegral>(Func<object> getValue) where TIntegral : IEquatable<TIntegral>
         {
-            T integralValue = (T)value;
-            if (integralValue.Equals(default(T)))
+            object value; 
+
+            try
+            {
+                value = getValue();
+            }
+            catch (BadImageFormatException)
+            {
+                return "<bad metadata>";
+            }
+
+            TIntegral integralValue = (TIntegral)value;
+            if (integralValue.Equals(default(TIntegral)))
             {
                 return "0";
             }
 
-            return string.Format("0x{0:x8} ({1})", integralValue, value);
+            return $"0x{integralValue:x8} ({value})";
         }
 
         // TODO (tomat): handle collections should implement IReadOnlyCollection<Handle>
@@ -571,13 +653,13 @@ namespace Roslyn.Test.MetadataUtilities
                 switch (import.Kind)
                 {
                     case ImportDefinitionKind.ImportNamespace:
-                        sb.AppendFormat("{0}", LiteralUtf8Blob(import.TargetNamespace, BlobKind.ImportNamespace));
+                        sb.AppendFormat("{0}", LiteralUtf8Blob(() => import.TargetNamespace, BlobKind.ImportNamespace));
                         break;
 
                     case ImportDefinitionKind.ImportAssemblyNamespace:
                         sb.AppendFormat("{0}::{1}",
                             Token(() => import.TargetAssembly),
-                            LiteralUtf8Blob(import.TargetNamespace, BlobKind.ImportNamespace));
+                            LiteralUtf8Blob(() => import.TargetNamespace, BlobKind.ImportNamespace));
                         break;
 
                     case ImportDefinitionKind.ImportType:
@@ -586,37 +668,37 @@ namespace Roslyn.Test.MetadataUtilities
 
                     case ImportDefinitionKind.ImportXmlNamespace:
                         sb.AppendFormat("<{0} = {1}>",
-                            LiteralUtf8Blob(import.Alias, BlobKind.ImportAlias),
-                            LiteralUtf8Blob(import.TargetNamespace, BlobKind.ImportNamespace));
+                            LiteralUtf8Blob(() => import.Alias, BlobKind.ImportAlias),
+                            LiteralUtf8Blob(() => import.TargetNamespace, BlobKind.ImportNamespace));
                         break;
 
                     case ImportDefinitionKind.ImportAssemblyReferenceAlias:
                         sb.AppendFormat("Extern Alias {0}",
-                            LiteralUtf8Blob(import.Alias, BlobKind.ImportAlias));
+                            LiteralUtf8Blob(() => import.Alias, BlobKind.ImportAlias));
                         break;
 
                     case ImportDefinitionKind.AliasAssemblyReference:
                         sb.AppendFormat("{0} = {1}",
-                            LiteralUtf8Blob(import.Alias, BlobKind.ImportAlias),
+                            LiteralUtf8Blob(() => import.Alias, BlobKind.ImportAlias),
                             Token(() => import.TargetAssembly));
                         break;
 
                     case ImportDefinitionKind.AliasNamespace:
                         sb.AppendFormat("{0} = {1}",
-                            LiteralUtf8Blob(import.Alias, BlobKind.ImportAlias),
-                            LiteralUtf8Blob(import.TargetNamespace, BlobKind.ImportNamespace));
+                            LiteralUtf8Blob(() => import.Alias, BlobKind.ImportAlias),
+                            LiteralUtf8Blob(() => import.TargetNamespace, BlobKind.ImportNamespace));
                         break;
 
                     case ImportDefinitionKind.AliasAssemblyNamespace:
                         sb.AppendFormat("{0} = {1}::{2}",
-                            LiteralUtf8Blob(import.Alias, BlobKind.ImportAlias),
+                            LiteralUtf8Blob(() => import.Alias, BlobKind.ImportAlias),
                             Token(() => import.TargetAssembly),
-                            LiteralUtf8Blob(import.TargetNamespace, BlobKind.ImportNamespace));
+                            LiteralUtf8Blob(() => import.TargetNamespace, BlobKind.ImportNamespace));
                         break;
 
                     case ImportDefinitionKind.AliasType:
                         sb.AppendFormat("{0} = {1}",
-                            LiteralUtf8Blob(import.Alias, BlobKind.ImportAlias),
+                            LiteralUtf8Blob(() => import.Alias, BlobKind.ImportAlias),
                             Token(() => import.TargetType));
                         break;
                 }
@@ -625,8 +707,19 @@ namespace Roslyn.Test.MetadataUtilities
             return sb.ToString();
         }
 
-        private string Version(Version version)
+        private string Version(Func<Version> getVersion)
         {
+            Version version;
+
+            try
+            {
+                version = getVersion();
+            }
+            catch (BadImageFormatException)
+            {
+                return "<bad metadata>";
+            }
+
             return version.Major + "." + version.Minor + "." + version.Build + "." + version.Revision;
         }
 
@@ -676,11 +769,11 @@ namespace Roslyn.Test.MetadataUtilities
             );
 
             AddRow(
-                def.Generation.ToString(),
-                Literal(def.Name),
-                Literal(def.Mvid),
-                Literal(def.GenerationId),
-                Literal(def.BaseGenerationId));
+                ToString(() => def.Generation),
+                Literal(() => def.Name),
+                Literal(() => def.Mvid),
+                Literal(() => def.GenerationId),
+                Literal(() => def.BaseGenerationId));
 
             WriteRows("Module (0x00):");
         }
@@ -699,8 +792,8 @@ namespace Roslyn.Test.MetadataUtilities
 
                 AddRow(
                     Token(() => entry.ResolutionScope),
-                    Literal(entry.Name),
-                    Literal(entry.Namespace)
+                    Literal(() => entry.Name),
+                    Literal(() => entry.Namespace)
                 );
             }
 
@@ -732,14 +825,14 @@ namespace Roslyn.Test.MetadataUtilities
                 var implementedInterfaces = entry.GetInterfaceImplementations().Select(h => _reader.GetInterfaceImplementation(h).Interface).ToArray();
 
                 AddRow(
-                    Literal(entry.Name),
-                    Literal(entry.Namespace),
+                    Literal(() => entry.Name),
+                    Literal(() => entry.Namespace),
                     Token(() => entry.GetDeclaringType()),
                     Token(() => entry.BaseType),
                     TokenList(implementedInterfaces),
                     TokenRange(entry.GetFields(), h => h),
                     TokenRange(entry.GetMethods(), h => h),
-                    EnumValue<int>(entry.Attributes),
+                    EnumValue<int>(() => entry.Attributes),
                     !layout.IsDefault ? layout.Size.ToString() : "n/a",
                     !layout.IsDefault ? layout.PackingSize.ToString() : "n/a"
                 );
@@ -763,15 +856,17 @@ namespace Roslyn.Test.MetadataUtilities
             {
                 var entry = _reader.GetFieldDefinition(handle);
 
-                int offset = entry.GetOffset();
-
                 AddRow(
-                    Literal(entry.Name),
-                    Literal(entry.Signature, BlobKind.FieldSignature),
-                    EnumValue<int>(entry.Attributes),
-                    Literal(entry.GetMarshallingDescriptor(), BlobKind.Marshalling),
-                    offset >= 0 ? offset.ToString() : "n/a",
-                    entry.GetRelativeVirtualAddress().ToString()
+                    Literal(() => entry.Name),
+                    Literal(() => entry.Signature, BlobKind.FieldSignature),
+                    EnumValue<int>(() => entry.Attributes),
+                    Literal(() => entry.GetMarshallingDescriptor(), BlobKind.Marshalling),
+                    ToString(() => 
+                    {
+                        int offset = entry.GetOffset();
+                        return offset >= 0 ? offset.ToString() : "n/a";
+                    }),
+                    ToString(() => entry.GetRelativeVirtualAddress())
                 );
             }
 
@@ -799,15 +894,15 @@ namespace Roslyn.Test.MetadataUtilities
                 var import = entry.GetImport();
 
                 AddRow(
-                    Literal(entry.Name),
-                    Literal(entry.Signature, BlobKind.MethodSignature),
+                    Literal(() => entry.Name),
+                    Literal(() => entry.Signature, BlobKind.MethodSignature),
                     Hex(entry.RelativeVirtualAddress),
                     TokenRange(entry.GetParameters(), h => h),
                     TokenRange(entry.GetGenericParameters(), h => h),
-                    EnumValue<int>(entry.Attributes),    // TODO: we need better visualizer than the default enum
-                    EnumValue<int>(entry.ImplAttributes),
-                    EnumValue<short>(import.Attributes),
-                    Literal(import.Name),
+                    EnumValue<int>(() => entry.Attributes),    // TODO: we need better visualizer than the default enum
+                    EnumValue<int>(() => entry.ImplAttributes),
+                    EnumValue<short>(() => import.Attributes),
+                    Literal(() => import.Name),
                     Token(() => import.Module)
                 );
             }
@@ -829,10 +924,10 @@ namespace Roslyn.Test.MetadataUtilities
                 var entry = _reader.GetParameter(MetadataTokens.ParameterHandle(i));
 
                 AddRow(
-                    Literal(entry.Name),
-                    entry.SequenceNumber.ToString(),
-                    EnumValue<int>(entry.Attributes),
-                    Literal(entry.GetMarshallingDescriptor(), BlobKind.Marshalling)
+                    Literal(() => entry.Name),
+                    ToString(() => entry.SequenceNumber),
+                    EnumValue<int>(() => entry.Attributes),
+                    Literal(() => entry.GetMarshallingDescriptor(), BlobKind.Marshalling)
                 );
             }
 
@@ -853,8 +948,8 @@ namespace Roslyn.Test.MetadataUtilities
 
                 AddRow(
                     Token(() => entry.Parent),
-                    Literal(entry.Name),
-                    Literal(entry.Signature, BlobKind.MemberRefSignature)
+                    Literal(() => entry.Name),
+                    Literal(() => entry.Signature, BlobKind.MemberRefSignature)
                 );
             }
 
@@ -875,8 +970,8 @@ namespace Roslyn.Test.MetadataUtilities
 
                 AddRow(
                     Token(() => entry.Parent),
-                    EnumValue<byte>(entry.TypeCode),
-                    Literal(entry.Value, BlobKind.ConstantValue)
+                    EnumValue<byte>(() => entry.TypeCode),
+                    Literal(() => entry.Value, BlobKind.ConstantValue)
                 );
             }
 
@@ -898,7 +993,7 @@ namespace Roslyn.Test.MetadataUtilities
                 AddRow(
                     Token(() => entry.Parent),
                     Token(() => entry.Constructor),
-                    Literal(entry.Value, BlobKind.CustomAttribute)
+                    Literal(() => entry.Value, BlobKind.CustomAttribute)
                 );
             }
 
@@ -919,8 +1014,8 @@ namespace Roslyn.Test.MetadataUtilities
 
                 AddRow(
                     Token(() => entry.Parent),
-                    Literal(entry.PermissionSet, BlobKind.PermissionSet),
-                    EnumValue<short>(entry.Action)
+                    Literal(() => entry.PermissionSet, BlobKind.PermissionSet),
+                    EnumValue<short>(() => entry.Action)
                 );
             }
 
@@ -935,7 +1030,7 @@ namespace Roslyn.Test.MetadataUtilities
             {
                 var value = _reader.GetStandaloneSignature(MetadataTokens.StandaloneSignatureHandle(i)).Signature;
 
-                AddRow(Literal(value, BlobKind.StandAloneSignature));
+                AddRow(Literal(() => value, BlobKind.StandAloneSignature));
             }
 
             WriteRows("StandAloneSig (0x11):");
@@ -957,11 +1052,11 @@ namespace Roslyn.Test.MetadataUtilities
                 var accessors = entry.GetAccessors();
 
                 AddRow(
-                    Literal(entry.Name),
+                    Literal(() => entry.Name),
                     Token(() => accessors.Adder),
                     Token(() => accessors.Remover),
                     Token(() => accessors.Raiser),
-                    EnumValue<int>(entry.Attributes)
+                    EnumValue<int>(() => entry.Attributes)
                 );
             }
 
@@ -983,10 +1078,10 @@ namespace Roslyn.Test.MetadataUtilities
                 var accessors = entry.GetAccessors();
 
                 AddRow(
-                    Literal(entry.Name),
+                    Literal(() => entry.Name),
                     Token(() => accessors.Getter),
                     Token(() => accessors.Setter),
-                    EnumValue<int>(entry.Attributes)
+                    EnumValue<int>(() => entry.Attributes)
                 );
             }
 
@@ -1021,8 +1116,8 @@ namespace Roslyn.Test.MetadataUtilities
 
             for (int i = 1, count = _reader.GetTableRowCount(TableIndex.ModuleRef); i <= count; i++)
             {
-                var value = _reader.GetModuleReference(MetadataTokens.ModuleReferenceHandle(i)).Name;
-                AddRow(Literal(value));
+                var entry = _reader.GetModuleReference(MetadataTokens.ModuleReferenceHandle(i));
+                AddRow(Literal(() => entry.Name));
             }
 
             WriteRows("ModuleRef (0x1a):");
@@ -1035,7 +1130,7 @@ namespace Roslyn.Test.MetadataUtilities
             for (int i = 1, count = _reader.GetTableRowCount(TableIndex.TypeSpec); i <= count; i++)
             {
                 var value = _reader.GetTypeSpecification(MetadataTokens.TypeSpecificationHandle(i)).Signature;
-                AddRow(Literal(value, BlobKind.TypeSpec));
+                AddRow(Literal(() => value, BlobKind.TypeSpec));
             }
 
             WriteRows("TypeSpec (0x1b):");
@@ -1051,7 +1146,7 @@ namespace Roslyn.Test.MetadataUtilities
             {
                 AddRow(
                     Token(() => entry.Handle),
-                    EnumValue<int>(entry.Operation));
+                    EnumValue<int>(() => entry.Operation));
             }
 
             WriteRows("EnC Log (0x1e):");
@@ -1081,7 +1176,7 @@ namespace Roslyn.Test.MetadataUtilities
 
                     AddRow(
                         Token(() => entry),
-                        primaryModule.Generation.ToString(),
+                        ToString(() => primaryModule.Generation),
                         "0x" + MetadataTokens.GetRowNumber(primary).ToString("x6"),
                         isUpdate ? "update" : "add");
                 }
@@ -1113,12 +1208,12 @@ namespace Roslyn.Test.MetadataUtilities
             var entry = _reader.GetAssemblyDefinition();
 
             AddRow(
-                Literal(entry.Name),
-                Version(entry.Version),
-                Literal(entry.Culture),
-                Literal(entry.PublicKey, BlobKind.Key),
-                EnumValue<int>(entry.Flags),
-                EnumValue<int>(entry.HashAlgorithm)
+                Literal(() => entry.Name),
+                Version(() => entry.Version),
+                Literal(() => entry.Culture),
+                Literal(() => entry.PublicKey, BlobKind.Key),
+                EnumValue<int>(() => entry.Flags),
+                EnumValue<int>(() => entry.HashAlgorithm)
             );
 
             WriteRows("Assembly (0x20):");
@@ -1139,11 +1234,11 @@ namespace Roslyn.Test.MetadataUtilities
                 var entry = _reader.GetAssemblyReference(handle);
 
                 AddRow(
-                    Literal(entry.Name),
-                    Version(entry.Version),
-                    Literal(entry.Culture),
-                    Literal(entry.PublicKeyOrToken, BlobKind.Key),
-                    EnumValue<int>(entry.Flags)
+                    Literal(() => entry.Name),
+                    Version(() => entry.Version),
+                    Literal(() => entry.Culture),
+                    Literal(() => entry.PublicKeyOrToken, BlobKind.Key),
+                    EnumValue<int>(() => entry.Flags)
                 );
             }
 
@@ -1163,14 +1258,15 @@ namespace Roslyn.Test.MetadataUtilities
                 var entry = _reader.GetAssemblyFile(handle);
 
                 AddRow(
-                    Literal(entry.Name),
+                    Literal(() => entry.Name),
                     entry.ContainsMetadata ? "Yes" : "No",
-                    Literal(entry.HashValue, BlobKind.FileHash)
+                    Literal(() => entry.HashValue, BlobKind.FileHash)
                 );
             }
 
             WriteRows("File (0x26):");
         }
+
         private void WriteExportedType()
         {
             AddHeader(
@@ -1181,13 +1277,16 @@ namespace Roslyn.Test.MetadataUtilities
                 "TypeDefinitionId"
             );
 
+            const TypeAttributes TypeForwarder = (TypeAttributes)0x00200000;
+
             foreach (var handle in _reader.ExportedTypes)
             {
                 var entry = _reader.GetExportedType(handle);
+
                 AddRow(
-                    Literal(entry.Name),
-                    Literal(entry.Namespace),
-                    entry.Attributes.ToString(),
+                    Literal(() => entry.Name),
+                    Literal(() => entry.Namespace),
+                    ToString(() => ((entry.Attributes & TypeForwarder) == TypeForwarder ? "TypeForwarder, " : "") + (entry.Attributes & ~TypeForwarder).ToString()),
                     Token(() => entry.Implementation),
                     Hex(entry.GetTypeDefinitionId())
                 );
@@ -1210,9 +1309,9 @@ namespace Roslyn.Test.MetadataUtilities
                 var entry = _reader.GetManifestResource(handle);
 
                 AddRow(
-                    Literal(entry.Name),
-                    entry.Attributes.ToString(),
-                    entry.Offset.ToString(),
+                    Literal(() => entry.Name),
+                    ToString(() => entry.Attributes),
+                    ToString(() => entry.Offset),
                     Token(() => entry.Implementation)
                 );
             }
@@ -1235,9 +1334,9 @@ namespace Roslyn.Test.MetadataUtilities
                 var entry = _reader.GetGenericParameter(MetadataTokens.GenericParameterHandle(i));
 
                 AddRow(
-                    Literal(entry.Name),
-                    entry.Index.ToString(),
-                    EnumValue<int>(entry.Attributes),
+                    Literal(() => entry.Name),
+                    ToString(() => entry.Index),
+                    EnumValue<int>(() => entry.Attributes),
                     Token(() => entry.Parent),
                     TokenRange(entry.GetConstraints(), h => h)
                 );
@@ -1259,7 +1358,7 @@ namespace Roslyn.Test.MetadataUtilities
 
                 AddRow(
                     Token(() => entry.Method),
-                    Literal(entry.Signature, BlobKind.MethodSpec)
+                    Literal(() => entry.Signature, BlobKind.MethodSpec)
                 );
             }
 
@@ -1472,10 +1571,10 @@ namespace Roslyn.Test.MetadataUtilities
                 var entry = _reader.GetDocument(handle);
 
                 AddRow(
-                    Literal(entry.Name),
-                    Language(entry.Language),
-                    HashAlgorithm(entry.HashAlgorithm),
-                    Literal(entry.Hash, BlobKind.DocumentHash)
+                    Literal(() => entry.Name),
+                    Language(() => entry.Language),
+                    HashAlgorithm(() => entry.HashAlgorithm),
+                    Literal(() => entry.Hash, BlobKind.DocumentHash)
                );
             }
 
@@ -1592,7 +1691,7 @@ namespace Roslyn.Test.MetadataUtilities
                 var entry = _reader.GetLocalVariable(handle);
 
                 AddRow(
-                    Literal(entry.Name),
+                    Literal(() => entry.Name),
                     entry.Index.ToString(),
                     entry.Attributes.ToString()
                );
@@ -1613,8 +1712,8 @@ namespace Roslyn.Test.MetadataUtilities
                 var entry = _reader.GetLocalConstant(handle);
 
                 AddRow(
-                    Literal(entry.Name),
-                    Literal(entry.Signature, BlobKind.LocalConstantSignature, (r, h) => FormatLocalConstant(r, (BlobHandle)h))
+                    Literal(() => entry.Name),
+                    Literal(() => entry.Signature, BlobKind.LocalConstantSignature, (r, h) => FormatLocalConstant(r, (BlobHandle)h))
                );
             }
 
@@ -1751,8 +1850,8 @@ namespace Roslyn.Test.MetadataUtilities
 
                 AddRow(
                     Token(() => entry.Parent),
-                    CustomDebugInformationKind(entry.Kind),
-                    Literal(entry.Value, BlobKind.CustomDebugInformation)
+                    CustomDebugInformationKind(() => entry.Kind),
+                    Literal(() => entry.Value, BlobKind.CustomDebugInformation)
                );
             }
 
@@ -1772,15 +1871,14 @@ namespace Roslyn.Test.MetadataUtilities
             var method = GetMethod(methodHandle);
             if (emitHeader)
             {
-                builder.AppendFormat("Method {0} (0x{1:X8})", Literal(method.Name), MetadataTokens.GetToken(methodHandle));
+                builder.AppendFormat("Method {0} (0x{1:X8})", Literal(() => method.Name), MetadataTokens.GetToken(methodHandle));
                 builder.AppendLine();
             }
 
             // TODO: decode signature
             if (!body.LocalSignature.IsNil)
             {
-                var localSignature = GetLocalSignature(body.LocalSignature);
-                builder.AppendFormat("  Locals: {0}", Literal(localSignature, BlobKind.StandAloneSignature));
+                builder.AppendFormat("  Locals: {0}", Literal(() => GetLocalSignature(body.LocalSignature), BlobKind.StandAloneSignature));
                 builder.AppendLine();
             }
 
