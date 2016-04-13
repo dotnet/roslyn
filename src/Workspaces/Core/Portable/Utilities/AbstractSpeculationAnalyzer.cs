@@ -20,20 +20,18 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
     /// the syntax replacement doesn't break the semantics of any parenting nodes of the original expression.
     /// </summary>
     internal abstract class AbstractSpeculationAnalyzer<
-            TSyntaxNode, 
             TExpressionSyntax, 
             TTypeSyntax, 
             TAttributeSyntax,
             TArgumentSyntax, 
             TForEachStatementSyntax, 
             TThrowStatementSyntax>
-        where TSyntaxNode : SyntaxNode
-        where TExpressionSyntax : TSyntaxNode
+        where TExpressionSyntax : SyntaxNode
         where TTypeSyntax : TExpressionSyntax
-        where TAttributeSyntax : TSyntaxNode
-        where TArgumentSyntax : TSyntaxNode
-        where TForEachStatementSyntax : TSyntaxNode
-        where TThrowStatementSyntax : TSyntaxNode
+        where TAttributeSyntax : SyntaxNode
+        where TArgumentSyntax : SyntaxNode
+        where TForEachStatementSyntax : SyntaxNode
+        where TThrowStatementSyntax : SyntaxNode
     {
         private readonly TExpressionSyntax _expression;
         private readonly TExpressionSyntax _newExpressionForReplace;
@@ -43,9 +41,9 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
         private readonly bool _failOnOverloadResolutionFailuresInOriginalCode;
         private readonly bool _isNewSemanticModelSpeculativeModel;
 
-        private TSyntaxNode _lazySemanticRootOfOriginalExpression;
+        private SyntaxNode _lazySemanticRootOfOriginalExpression;
         private TExpressionSyntax _lazyReplacedExpression;
-        private TSyntaxNode _lazySemanticRootOfReplacedExpression;
+        private SyntaxNode _lazySemanticRootOfReplacedExpression;
         private SemanticModel _lazySpeculativeSemanticModel;
 
         /// <summary>
@@ -97,7 +95,7 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
         /// field initializer, default parameter initializer or type syntax node.
         /// It serves as the root node for all semantic analysis for this syntax replacement.
         /// </summary>
-        public TSyntaxNode SemanticRootOfOriginalExpression
+        public SyntaxNode SemanticRootOfOriginalExpression
         {
             get
             {
@@ -138,7 +136,7 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
         /// This node is used as the argument to the GetSpeculativeSemanticModel API and serves as the root node for all
         /// semantic analysis of the speculated tree.
         /// </summary>
-        public TSyntaxNode SemanticRootOfReplacedExpression
+        public SyntaxNode SemanticRootOfReplacedExpression
         {
             get
             {
@@ -167,9 +165,9 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
             }
         }
 
-        protected abstract TSyntaxNode GetSemanticRootForSpeculation(TExpressionSyntax expression);
+        protected abstract SyntaxNode GetSemanticRootForSpeculation(TExpressionSyntax expression);
 
-        protected virtual TSyntaxNode GetSemanticRootOfReplacedExpression(TSyntaxNode semanticRootOfOriginalExpression, TExpressionSyntax annotatedReplacedExpression)
+        protected virtual SyntaxNode GetSemanticRootOfReplacedExpression(SyntaxNode semanticRootOfOriginalExpression, TExpressionSyntax annotatedReplacedExpression)
         {
             return semanticRootOfOriginalExpression.ReplaceNode(this.OriginalExpression, annotatedReplacedExpression);
         }
@@ -189,19 +187,19 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
         }
 
         [Conditional("DEBUG")]
-        protected abstract void ValidateSpeculativeSemanticModel(SemanticModel speculativeSemanticModel, TSyntaxNode nodeToSpeculate);
+        protected abstract void ValidateSpeculativeSemanticModel(SemanticModel speculativeSemanticModel, SyntaxNode nodeToSpeculate);
 
         private void EnsureSpeculativeSemanticModel()
         {
             if (_lazySpeculativeSemanticModel == null)
             {
-                TSyntaxNode nodeToSpeculate = this.SemanticRootOfReplacedExpression;
+                SyntaxNode nodeToSpeculate = this.SemanticRootOfReplacedExpression;
                 _lazySpeculativeSemanticModel = CreateSpeculativeSemanticModel(this.SemanticRootOfOriginalExpression, nodeToSpeculate, _semanticModel);
                 ValidateSpeculativeSemanticModel(_lazySpeculativeSemanticModel, nodeToSpeculate);
             }
         }
 
-        protected abstract SemanticModel CreateSpeculativeSemanticModel(TSyntaxNode originalNode, TSyntaxNode nodeToSpeculate, SemanticModel semanticModel);
+        protected abstract SemanticModel CreateSpeculativeSemanticModel(SyntaxNode originalNode, SyntaxNode nodeToSpeculate, SemanticModel semanticModel);
 
         #region Semantic comparison helpers
 
@@ -278,7 +276,7 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
 
         protected abstract bool ConversionsAreCompatible(TExpressionSyntax originalExpression, ITypeSymbol originalTargetType, TExpressionSyntax newExpression, ITypeSymbol newTargetType);
 
-        protected bool SymbolsAreCompatible(TSyntaxNode originalNode, TSyntaxNode newNode, bool requireNonNullSymbols = false)
+        protected bool SymbolsAreCompatible(SyntaxNode originalNode, SyntaxNode newNode, bool requireNonNullSymbols = false)
         {
             Debug.Assert(originalNode != null);
             Debug.Assert(this.SemanticRootOfOriginalExpression.DescendantNodesAndSelf().Contains(originalNode));
@@ -433,9 +431,9 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
                 skipVerificationForCurrentNode: _skipVerificationForReplacedNode);
         }
 
-        protected abstract bool IsParenthesizedExpression(TSyntaxNode node);
+        protected abstract bool IsParenthesizedExpression(SyntaxNode node);
 
-        protected bool ReplacementChangesSemantics(TSyntaxNode currentOriginalNode, TSyntaxNode currentReplacedNode, TSyntaxNode originalRoot, bool skipVerificationForCurrentNode)
+        protected bool ReplacementChangesSemantics(SyntaxNode currentOriginalNode, SyntaxNode currentReplacedNode, SyntaxNode originalRoot, bool skipVerificationForCurrentNode)
         {
             if (this.SpeculativeSemanticModel == null)
             {
@@ -443,7 +441,7 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
                 return true;
             }
 
-            TSyntaxNode previousOriginalNode = null, previousReplacedNode = null;
+            SyntaxNode previousOriginalNode = null, previousReplacedNode = null;
 
             while (true)
             {
@@ -460,8 +458,8 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
 
                 previousOriginalNode = currentOriginalNode;
                 previousReplacedNode = currentReplacedNode;
-                currentOriginalNode = (TSyntaxNode)currentOriginalNode.Parent;
-                currentReplacedNode = (TSyntaxNode)currentReplacedNode.Parent;
+                currentOriginalNode = (SyntaxNode)currentOriginalNode.Parent;
+                currentReplacedNode = (SyntaxNode)currentReplacedNode.Parent;
                 skipVerificationForCurrentNode = skipVerificationForCurrentNode && IsParenthesizedExpression(currentReplacedNode);
             }
 
@@ -483,9 +481,9 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
             return SymbolsAreCompatible(this.OriginalExpression, this.ReplacedExpression, requireNonNullSymbols: true);
         }
 
-        protected abstract bool ReplacementChangesSemanticsForNodeLanguageSpecific(TSyntaxNode currentOriginalNode, TSyntaxNode currentReplacedNode, TSyntaxNode previousOriginalNode, TSyntaxNode previousReplacedNode);
+        protected abstract bool ReplacementChangesSemanticsForNodeLanguageSpecific(SyntaxNode currentOriginalNode, SyntaxNode currentReplacedNode, SyntaxNode previousOriginalNode, SyntaxNode previousReplacedNode);
 
-        private bool ReplacementChangesSemanticsForNode(TSyntaxNode currentOriginalNode, TSyntaxNode currentReplacedNode, TSyntaxNode previousOriginalNode, TSyntaxNode previousReplacedNode)
+        private bool ReplacementChangesSemanticsForNode(SyntaxNode currentOriginalNode, SyntaxNode currentReplacedNode, SyntaxNode previousOriginalNode, SyntaxNode previousReplacedNode)
         {
             Debug.Assert(previousOriginalNode == null || previousOriginalNode.Parent == currentOriginalNode);
             Debug.Assert(previousReplacedNode == null || previousReplacedNode.Parent == currentReplacedNode);
@@ -672,7 +670,7 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
             return symbol != null && !SymbolsAreCompatible(symbol, newSymbol);
         }
 
-        protected abstract bool IsInvocableExpression(TSyntaxNode node);
+        protected abstract bool IsInvocableExpression(SyntaxNode node);
 
         private static bool IsDelegateInvoke(ISymbol symbol)
         {

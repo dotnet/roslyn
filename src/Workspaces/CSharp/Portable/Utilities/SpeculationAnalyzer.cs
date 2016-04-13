@@ -24,7 +24,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Utilities
     /// the syntax replacement doesn't break the semantics of any parenting nodes of the original expression.
     /// </summary>
     internal class SpeculationAnalyzer : AbstractSpeculationAnalyzer<
-        SyntaxNode, ExpressionSyntax, TypeSyntax, AttributeSyntax,
+        ExpressionSyntax, TypeSyntax, AttributeSyntax,
         ArgumentSyntax, ForEachStatementSyntax, ThrowStatementSyntax>
     {
         /// <summary>
