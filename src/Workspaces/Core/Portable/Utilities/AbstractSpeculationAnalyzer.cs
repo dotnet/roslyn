@@ -257,6 +257,13 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
             return ConversionsAreCompatible(this.OriginalSemanticModel, originalExpression, this.SpeculativeSemanticModel, newExpression);
         }
 
+        protected bool ConversionsAreCompatible(
+            SemanticModel originalModel, TExpressionSyntax originalExpression,
+            SemanticModel newModel, TExpressionSyntax newExpression)
+        {
+            return ConversionsAreCompatible(originalModel.GetConversion(originalExpression), newModel.GetConversion(newExpression));
+        }
+
         private bool ImplicitConversionsAreCompatible(TExpressionSyntax originalExpression, ITypeSymbol originalTargetType, TExpressionSyntax newExpression, ITypeSymbol newTargetType)
         {
             Debug.Assert(originalExpression != null);
@@ -269,7 +276,6 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
             return ConversionsAreCompatible(originalExpression, originalTargetType, newExpression, newTargetType);
         }
 
-        protected abstract bool ConversionsAreCompatible(SemanticModel model1, TExpressionSyntax expression1, SemanticModel model2, TExpressionSyntax expression2);
         protected abstract bool ConversionsAreCompatible(TExpressionSyntax originalExpression, ITypeSymbol originalTargetType, TExpressionSyntax newExpression, ITypeSymbol newTargetType);
 
         protected bool SymbolsAreCompatible(TSyntaxNode originalNode, TSyntaxNode newNode, bool requireNonNullSymbols = false)

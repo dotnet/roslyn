@@ -644,11 +644,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Utilities
                 !SymbolInfosAreCompatible(originalClauseInfo.OperationInfo, newClauseInfo.OperationInfo);
         }
 
-        protected override bool ConversionsAreCompatible(SemanticModel originalModel, ExpressionSyntax originalExpression, SemanticModel newModel, ExpressionSyntax newExpression)
-        {
-            return ConversionsAreCompatible(originalModel.GetConversion(originalExpression), newModel.GetConversion(newExpression));
-        }
-
         protected override bool ConversionsAreCompatible(ExpressionSyntax originalExpression, ITypeSymbol originalTargetType, ExpressionSyntax newExpression, ITypeSymbol newTargetType)
         {
             IConversion originalConversion = null;

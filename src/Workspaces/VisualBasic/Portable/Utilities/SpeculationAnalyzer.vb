@@ -519,10 +519,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Utilities
             Return node.IsKind(SyntaxKind.ParenthesizedExpression)
         End Function
 
-        Protected Overrides Function ConversionsAreCompatible(originalModel As SemanticModel, originalExpression As ExpressionSyntax, newModel As SemanticModel, newExpression As ExpressionSyntax) As Boolean
-            Return ConversionsAreCompatible(originalModel.GetConversion(originalExpression), newModel.GetConversion(newExpression))
-        End Function
-
         Protected Overrides Function ConversionsAreCompatible(originalExpression As ExpressionSyntax, originalTargetType As ITypeSymbol, newExpression As ExpressionSyntax, newTargetType As ITypeSymbol) As Boolean
             Dim originalConversion As IConversion = Nothing
             Dim newConversion As IConversion = Nothing
