@@ -203,6 +203,7 @@
     <Compile Include="CodeModel\Interop\IEventHandler.cs" />
     <Compile Include="CodeModel\Interop\IMethodXML.cs" />
     <Compile Include="CodeModel\Interop\IMethodXML2.cs" />
+    <Compile Include="CodeModel\Interop\IParameterKind.cs" />
     <Compile Include="CodeModel\Interop\IVBFileCodeModelEvents.cs" />
     <Compile Include="CodeModel\Interop\PropertyTypeEnum.cs" />
     <Compile Include="CodeModel\Interop\ReferenceSelectionEnum.cs" />

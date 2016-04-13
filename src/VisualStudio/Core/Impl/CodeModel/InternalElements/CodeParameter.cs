@@ -5,6 +5,7 @@ using System.Runtime.InteropServices;
 using System.Threading;
 using Microsoft.CodeAnalysis;
 using Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel.Collections;
+using Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel.Interop;
 using Microsoft.VisualStudio.LanguageServices.Implementation.Interop;
 using Microsoft.VisualStudio.LanguageServices.Implementation.Utilities;
 using Roslyn.Utilities;
@@ -13,7 +14,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel.Inter
 {
     [ComVisible(true)]
     [ComDefaultInterface(typeof(EnvDTE80.CodeParameter2))]
-    public sealed class CodeParameter : AbstractCodeElement, EnvDTE.CodeParameter, EnvDTE80.CodeParameter2
+    public sealed class CodeParameter : AbstractCodeElement, EnvDTE.CodeParameter, EnvDTE80.CodeParameter2, IParameterKind
     {
         internal static EnvDTE.CodeParameter Create(
             CodeModelState state,
@@ -186,6 +187,44 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel.Inter
             {
                 return FileCodeModel.AddAttribute(LookupNode(), name, value, position);
             });
+        }
+
+        void IParameterKind.SetParameterPassingMode(PARAMETER_PASSING_MODE passingMode)
+        {
+            ParameterKind = State.CodeModelService.UpdateParameterKind(ParameterKind, passingMode);
+        }
+
+        void IParameterKind.SetParameterArrayDimensions(int dimensions)
+        {
+            throw new NotImplementedException();
+        }
+
+        int IParameterKind.GetParameterArrayCount()
+        {
+            throw new NotImplementedException();
+        }
+
+        int IParameterKind.GetParameterArrayDimensions(int index)
+        {
+            throw new NotImplementedException();
+        }
+
+        PARAMETER_PASSING_MODE IParameterKind.GetParameterPassingMode()
+        {
+            var parameterKind = this.ParameterKind;
+
+            if ((parameterKind & EnvDTE80.vsCMParameterKind.vsCMParameterKindRef) != 0)
+            {
+                return PARAMETER_PASSING_MODE.cmParameterTypeInOut;
+            }
+            else if ((parameterKind & EnvDTE80.vsCMParameterKind.vsCMParameterKindOut) != 0)
+            {
+                return PARAMETER_PASSING_MODE.cmParameterTypeOut;
+            }
+            else
+            {
+                return PARAMETER_PASSING_MODE.cmParameterTypeIn;
+            }
         }
     }
 }
