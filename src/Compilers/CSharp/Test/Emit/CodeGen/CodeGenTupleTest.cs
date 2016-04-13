@@ -217,6 +217,39 @@ class C
 }");
         }
 
+        [Fact(Skip = "PROTOTYPE(tuples): this should work, just found a bug while working on other stuff.")]
+        public void SimpleTupleNew()
+        {
+            var source = @"
+class C
+{
+    static void Main()
+    {
+        var x = new (int, int)(1, 2);
+        System.Console.WriteLine(x.ToString());
+    }
+}
+" + trivial2uple;
+
+            var comp = CompileAndVerify(source, expectedOutput: "{1, 2}");
+            comp.VerifyDiagnostics();
+            comp.VerifyIL("C.Main", @"
+{
+  // Code size       28 (0x1c)
+  .maxstack  3
+  .locals init (System.ValueTuple<int, int> V_0) //x
+  IL_0000:  ldloca.s   V_0
+  IL_0002:  ldc.i4.1
+  IL_0003:  ldc.i4.2
+  IL_0004:  call       ""System.ValueTuple<int, int>..ctor(int, int)""
+  IL_0009:  ldloca.s   V_0
+  IL_000b:  constrained. ""System.ValueTuple<int, int>""
+  IL_0011:  callvirt   ""string object.ToString()""
+  IL_0016:  call       ""void System.Console.WriteLine(string)""
+  IL_001b:  ret
+}");
+        }
+
         [Fact]
         public void SimpleTuple2()
         {
@@ -2320,7 +2353,7 @@ third
 ");
         }
 
-        [Fact(Skip = "PROTOTYPE: type inference through tuples NYI")]
+        [Fact]
         public void TargetTypingOverload02()
         {
             var source = @"
