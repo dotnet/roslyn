@@ -553,9 +553,5 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Utilities
             getEnumeratorMethod = info.GetEnumeratorMethod
             elementType = info.ElementType
         End Sub
-
-        Protected Overrides Function ClassifyConversion(model As SemanticModel, expression As ExpressionSyntax, targetType As ITypeSymbol) As IConversion
-            Return model.ClassifyConversion(expression, targetType)
-        End Function
     End Class
 End Namespace

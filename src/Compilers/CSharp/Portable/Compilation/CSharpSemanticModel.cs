@@ -2379,6 +2379,11 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// type), use Compilation.ClassifyConversion.</remarks>
         public abstract Conversion ClassifyConversion(ExpressionSyntax expression, ITypeSymbol destination, bool isExplicitInSource = false);
 
+        protected internal override IConversion ClassifyConversionCore(SyntaxNode expression, ITypeSymbol destination, bool isExplicitInSource)
+        {
+            return ClassifyConversion((ExpressionSyntax)expression, destination, isExplicitInSource);
+        }
+
         /// <summary>
         /// Determines what type of conversion, if any, would be used if a given expression was
         /// converted to a given type.  If isExplicitInSource is true, the conversion produced is

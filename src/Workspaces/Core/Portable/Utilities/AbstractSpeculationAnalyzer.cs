@@ -1071,8 +1071,8 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
             if (this.OriginalSemanticModel.GetTypeInfo(originalExpression).Type != null &&
                 this.SpeculativeSemanticModel.GetTypeInfo(newExpression).Type != null)
             {
-                originalConversion = ClassifyConversion(this.OriginalSemanticModel, originalExpression, originalTargetType);
-                newConversion = ClassifyConversion(this.SpeculativeSemanticModel, newExpression, newTargetType);
+                originalConversion = this.OriginalSemanticModel.ClassifyConversion(originalExpression, originalTargetType);
+                newConversion = this.SpeculativeSemanticModel.ClassifyConversion(newExpression, newTargetType);
             }
             else
             {
@@ -1089,8 +1089,6 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
                 }
             }
         }
-
-        protected abstract IConversion ClassifyConversion(SemanticModel model, TExpressionSyntax expression, ITypeSymbol targetType);
 
         private IConversion ClassifyConversion(SemanticModel model, ITypeSymbol originalType, ITypeSymbol targetType)
         {

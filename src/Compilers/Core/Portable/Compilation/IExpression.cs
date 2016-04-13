@@ -890,6 +890,12 @@ namespace Microsoft.CodeAnalysis.Semantics
             return compilation.CommonClassifyConversion(source, destination);
         }
 
+        public static IConversion ClassifyConversion(
+            this SemanticModel semanticModel, SyntaxNode expression, ITypeSymbol destination, bool isExplicitInSource = false)
+        {
+            return semanticModel.ClassifyConversionCore(expression, destination, isExplicitInSource);
+        }
+
         public static IConversion GetConversion(
             this SemanticModel semanticModel, SyntaxNode expression, CancellationToken cancellationToken = default(CancellationToken))
         {

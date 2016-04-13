@@ -2317,6 +2317,10 @@ _Default:
         ''' type), use Compilation.ClassifyConversion.</remarks>
         Public MustOverride Shadows Function ClassifyConversion(expression As ExpressionSyntax, destination As ITypeSymbol) As Conversion
 
+        Protected Overrides Function ClassifyConversionCore(expression As SyntaxNode, destination As ITypeSymbol, isExplicitInSource As Boolean) As IConversion
+            Return ClassifyConversion(DirectCast(expression, ExpressionSyntax), destination)
+        End Function
+
         ''' <summary>
         ''' Determines what type of conversion, if any, would be used if a given expression was
         ''' converted to a given type.

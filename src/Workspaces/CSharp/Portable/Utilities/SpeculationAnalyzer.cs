@@ -673,8 +673,5 @@ namespace Microsoft.CodeAnalysis.CSharp.Utilities
             getEnumeratorMethod = info.GetEnumeratorMethod;
             elementType = info.ElementType;
         }
-
-        protected override IConversion ClassifyConversion(SemanticModel model, ExpressionSyntax expression, ITypeSymbol targetType) =>
-            model.ClassifyConversion(expression, targetType);
     }
 }
