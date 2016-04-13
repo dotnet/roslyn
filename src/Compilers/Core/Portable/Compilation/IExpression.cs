@@ -925,9 +925,11 @@ namespace Microsoft.CodeAnalysis.Semantics
         IConversion Conversion { get; }
 
         /// <summary>
-        /// True if and only if the conversion is indicated explicity by a cast operation in the source code.
+        /// True if and only if the conversion is indicated explicity by a cast operation 
+        /// (<code>(Type)</code> or <code>as Type</code> in C#, or 
+        /// <code>DirectCast/TryCast</code> in Visual Basic).
         /// </summary>
-        bool IsExplicit { get; }
+        bool ExplicitCastInSource { get; }
     }
 
     /// <summary>

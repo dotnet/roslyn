@@ -926,7 +926,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End Get
         End Property
 
-        Private ReadOnly Property IConversionExpresson_IsExplicit As Boolean Implements IConversionExpression.IsExplicit
+        Private ReadOnly Property IConversionExpression_HasCastInSource As Boolean Implements IConversionExpression.ExplicitCastInSource
             Get
                 Return True
             End Get
@@ -969,7 +969,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
     End Class
 
-    Friend Partial Class BoundDirectCast
+    Partial Friend Class BoundDirectCast
         Implements IConversionExpression
 
         Private ReadOnly Property IConversionExpression_Conversion As IConversion Implements IConversionExpression.Conversion
@@ -984,7 +984,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End Get
         End Property
 
-        Private ReadOnly Property IConversionExpression_IsExplicit As Boolean Implements IConversionExpression.IsExplicit
+        Private ReadOnly Property IConversionExpression_HasCastInSource As Boolean Implements IConversionExpression.ExplicitCastInSource
             Get
                 Return True
             End Get
@@ -1021,7 +1021,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
     End Class
 
-    Friend Partial Class BoundConversion
+    Partial Friend Class BoundConversion
         Implements IConversionExpression
 
         Private ReadOnly Property IConversionExpression_ConversionKind As Semantics.ConversionKind Implements IConversionExpression.ConversionKind
@@ -1030,7 +1030,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End Get
         End Property
 
-        Private ReadOnly Property IConversionExpression_IsExplicit As Boolean Implements IConversionExpression.IsExplicit
+        Private ReadOnly Property IConversionExpression_HasCastInSource As Boolean Implements IConversionExpression.ExplicitCastInSource
             Get
                 Return Me.ExplicitCastInCode
             End Get
@@ -1073,7 +1073,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
     End Class
 
-    Friend Partial Class BoundUserDefinedConversion
+    Partial Friend Class BoundUserDefinedConversion
         Implements IConversionExpression
 
         Private ReadOnly Property IConversionExpression_ConversionKind As Semantics.ConversionKind Implements IConversionExpression.ConversionKind
@@ -1088,7 +1088,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End Get
         End Property
 
-        Private ReadOnly Property IConversionExpression_IsExplicit As Boolean Implements IConversionExpression.IsExplicit
+        Private ReadOnly Property IConversionExpression_HasCastInSource As Boolean Implements IConversionExpression.ExplicitCastInSource
             Get
                 Return Not Me.WasCompilerGenerated
             End Get

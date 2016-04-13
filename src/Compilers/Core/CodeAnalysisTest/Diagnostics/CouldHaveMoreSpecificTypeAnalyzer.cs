@@ -261,7 +261,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Diagnostics.SystemLanguage
             if (value.Kind == OperationKind.ConversionExpression)
             {
                 IConversionExpression conversion = (IConversionExpression)value;
-                if (!conversion.IsExplicit)
+                if (!conversion.ExplicitCastInSource)
                 {
                     return conversion.Operand.Type;
                 }
