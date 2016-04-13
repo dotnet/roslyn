@@ -24,7 +24,7 @@ if [ -z "$RID" ]; then
 fi
 
 # Replace with a robust method for finding the right crossgen.exe
-CROSSGEN_UTIL=~/.nuget/packages/runtime.$RID.Microsoft.NETCore.Runtime.CoreCLR/1.0.2-rc2-23931/tools/crossgen
+CROSSGEN_UTIL=~/.nuget/packages/runtime.$RID.Microsoft.NETCore.Runtime.CoreCLR/1.0.2-rc3-24005-00/tools/crossgen
 
 cd $BIN_DIR
 
