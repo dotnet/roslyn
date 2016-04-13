@@ -159,10 +159,5 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.Async
             var returnType = taskTypeSymbol.Construct(existingReturnType).GenerateTypeSyntax();
             return AddAsyncKeyword(methodNode.WithReturnType(returnType));
         }
-
-        protected override bool DoesConversionExist(Compilation compilation, ITypeSymbol source, ITypeSymbol destination)
-        {
-            return compilation.ClassifyConversion(source, destination).Exists;
-        }
     }
 }

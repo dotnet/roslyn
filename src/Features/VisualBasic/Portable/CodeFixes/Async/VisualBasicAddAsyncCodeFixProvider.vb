@@ -104,9 +104,5 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeFixes.Async
             Dim returnType = taskTypeSymbol.Construct(existingReturnType).GenerateTypeSyntax()
             Return AddAsyncKeyword(methodNode.WithAsClause(methodNode.AsClause.WithType(returnType)))
         End Function
-
-        Protected Overrides Function DoesConversionExist(compilation As Compilation, source As ITypeSymbol, destination As ITypeSymbol) As Boolean
-            Return compilation.ClassifyConversion(source, destination).Exists
-        End Function
     End Class
 End Namespace

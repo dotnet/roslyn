@@ -5,6 +5,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.FindSymbols;
 using Microsoft.CodeAnalysis.LanguageServices;
+using Microsoft.CodeAnalysis.Semantics;
 
 namespace Microsoft.CodeAnalysis.CodeFixes.Async
 {
@@ -14,7 +15,6 @@ namespace Microsoft.CodeAnalysis.CodeFixes.Async
         protected const string SystemThreadingTasksTaskT = "System.Threading.Tasks.Task`1";
         protected abstract SyntaxNode AddAsyncKeyword(SyntaxNode methodNode);
         protected abstract SyntaxNode AddAsyncKeywordAndTaskReturnType(SyntaxNode methodNode, ITypeSymbol existingReturnType, INamedTypeSymbol taskTypeSymbol);
-        protected abstract bool DoesConversionExist(Compilation compilation, ITypeSymbol source, ITypeSymbol destination);
 
         protected async Task<SyntaxNode> ConvertMethodToAsync(Document document, SemanticModel semanticModel, SyntaxNode methodNode, CancellationToken cancellationToken)
         {
@@ -48,7 +48,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes.Async
                 var results = await SymbolFinder.FindDeclarationsAsync(
                     document.Project, typeName, ignoreCase: syntaxFacts.IsCaseSensitive, filter: SymbolFilter.Type, cancellationToken: cancellationToken).ConfigureAwait(false);
 
-                if (results.OfType<ITypeSymbol>().Any(s => DoesConversionExist(compilation, s, taskSymbol)))
+                if (results.OfType<ITypeSymbol>().Any(s => compilation.ClassifyConversion(s, taskSymbol).Exists))
                 {
                     return AddAsyncKeyword(methodNode);
                 }
@@ -56,7 +56,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes.Async
                 return AddAsyncKeywordAndTaskReturnType(methodNode, returnType, genericTaskSymbol);
             }
 
-            if (DoesConversionExist(compilation, returnType, taskSymbol))
+            if (compilation.ClassifyConversion(returnType, taskSymbol).Exists)
             {
                 return AddAsyncKeyword(methodNode);
             }
