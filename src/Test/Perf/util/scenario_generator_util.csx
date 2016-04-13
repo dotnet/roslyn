@@ -26,7 +26,6 @@ public class ScenarioGenerator
         }
 
         _buffer = new List<string>();
-        AddScenariosFileStart();
     }
 
     public void AddScenariosFileStart()
