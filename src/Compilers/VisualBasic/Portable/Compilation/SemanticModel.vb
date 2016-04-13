@@ -366,7 +366,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' <summary>
         ''' Gets the conversion that occurred between the expression's type and type implied by the expression's context.
         ''' </summary>
-        Public Shadows Function GetConversion(node As SyntaxNode, Optional cancellationToken As CancellationToken = Nothing) As Conversion
+        Public Function GetConversion(node As SyntaxNode, Optional cancellationToken As CancellationToken = Nothing) As Conversion
             Dim expression = TryCast(node, ExpressionSyntax)
             If expression IsNot Nothing Then
                 Return GetTypeInfoWorker(expression, cancellationToken).ImplicitConversion
