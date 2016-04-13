@@ -8,7 +8,7 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp
 {
-    internal partial class SymbolDisplayVisitor : AbstractSymbolDisplayVisitor<SemanticModel>
+    internal partial class SymbolDisplayVisitor : AbstractSymbolDisplayVisitor
     {
         private readonly bool _escapeKeywordIdentifiers;
         private IDictionary<INamespaceOrTypeSymbol, IAliasSymbol> _lazyAliasMap;
@@ -37,7 +37,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             _lazyAliasMap = aliasMap;
         }
 
-        protected override AbstractSymbolDisplayVisitor<SemanticModel> MakeNotFirstVisitor()
+        protected override AbstractSymbolDisplayVisitor MakeNotFirstVisitor()
         {
             return new SymbolDisplayVisitor(
                 this.builder,
