@@ -189,9 +189,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.LambdaSimplifier
             if (!lambdaMethod.ReturnsVoid)
             {
                 // Return type has to be covariant.
-                var conversion = CSharpExtensions.ClassifyConversion(
-                    document.SemanticModel.Compilation,
-                    invocationMethod.ReturnType, lambdaMethod.ReturnType);
+                var conversion = document.SemanticModel.Compilation.ClassifyConversion(invocationMethod.ReturnType, lambdaMethod.ReturnType);
                 if (!conversion.IsIdentityOrImplicitReference())
                 {
                     return false;

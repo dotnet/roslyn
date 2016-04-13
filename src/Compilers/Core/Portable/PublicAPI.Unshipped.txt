@@ -1,4 +1,3 @@
-Microsoft.CodeAnalysis.Compilation.ClassifyConversion(Microsoft.CodeAnalysis.ITypeSymbol source, Microsoft.CodeAnalysis.ITypeSymbol destination) -> Microsoft.CodeAnalysis.Semantics.IConversion
 Microsoft.CodeAnalysis.CompilationOptions.PublicSign.get -> bool
 Microsoft.CodeAnalysis.CompilationOptions.WithPublicSign(bool publicSign) -> Microsoft.CodeAnalysis.CompilationOptions
 Microsoft.CodeAnalysis.CompilationReference.Equals(Microsoft.CodeAnalysis.CompilationReference other) -> bool
@@ -331,6 +330,7 @@ Microsoft.CodeAnalysis.Semantics.CaseKind.None = 0 -> Microsoft.CodeAnalysis.Sem
 Microsoft.CodeAnalysis.Semantics.CaseKind.Range = 3 -> Microsoft.CodeAnalysis.Semantics.CaseKind
 Microsoft.CodeAnalysis.Semantics.CaseKind.Relational = 2 -> Microsoft.CodeAnalysis.Semantics.CaseKind
 Microsoft.CodeAnalysis.Semantics.CaseKind.SingleValue = 1 -> Microsoft.CodeAnalysis.Semantics.CaseKind
+Microsoft.CodeAnalysis.Semantics.ConversionExtensions
 Microsoft.CodeAnalysis.Semantics.ConversionKind
 Microsoft.CodeAnalysis.Semantics.ConversionKind.Basic = 3 -> Microsoft.CodeAnalysis.Semantics.ConversionKind
 Microsoft.CodeAnalysis.Semantics.ConversionKind.CSharp = 4 -> Microsoft.CodeAnalysis.Semantics.ConversionKind
@@ -691,6 +691,7 @@ Microsoft.CodeAnalysis.Semantics.UnaryOperationKind.UnsignedPrefixIncrement = 77
 Microsoft.CodeAnalysis.SyntaxNode.FindTrivia(int position, System.Func<Microsoft.CodeAnalysis.SyntaxTrivia, bool> stepInto) -> Microsoft.CodeAnalysis.SyntaxTrivia
 abstract Microsoft.CodeAnalysis.Diagnostics.OperationBlockStartAnalysisContext.RegisterOperationAction(System.Action<Microsoft.CodeAnalysis.Diagnostics.OperationAnalysisContext> action, System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.OperationKind> operationKinds) -> void
 abstract Microsoft.CodeAnalysis.Diagnostics.OperationBlockStartAnalysisContext.RegisterOperationBlockEndAction(System.Action<Microsoft.CodeAnalysis.Diagnostics.OperationBlockAnalysisContext> action) -> void
+abstract Microsoft.CodeAnalysis.SemanticModel.GetConversionCore(Microsoft.CodeAnalysis.SyntaxNode expression, System.Threading.CancellationToken cancellationToken) -> Microsoft.CodeAnalysis.Semantics.IConversion
 abstract Microsoft.CodeAnalysis.SemanticModel.GetOperationCore(Microsoft.CodeAnalysis.SyntaxNode node, System.Threading.CancellationToken cancellationToken) -> Microsoft.CodeAnalysis.IOperation
 override Microsoft.CodeAnalysis.CompilationReference.Equals(object obj) -> bool
 override Microsoft.CodeAnalysis.CompilationReference.GetHashCode() -> int
@@ -768,6 +769,8 @@ override Microsoft.CodeAnalysis.Semantics.OperationWalker.VisitVariableDeclarati
 override Microsoft.CodeAnalysis.Semantics.OperationWalker.VisitWhileUntilLoopStatement(Microsoft.CodeAnalysis.Semantics.IWhileUntilLoopStatement operation) -> void
 override Microsoft.CodeAnalysis.Semantics.OperationWalker.VisitWithStatement(Microsoft.CodeAnalysis.Semantics.IWithStatement operation) -> void
 override Microsoft.CodeAnalysis.Semantics.OperationWalker.VisitYieldBreakStatement(Microsoft.CodeAnalysis.Semantics.IReturnStatement operation) -> void
+static Microsoft.CodeAnalysis.Semantics.ConversionExtensions.ClassifyConversion(this Microsoft.CodeAnalysis.Compilation compilation, Microsoft.CodeAnalysis.ITypeSymbol source, Microsoft.CodeAnalysis.ITypeSymbol destination) -> Microsoft.CodeAnalysis.Semantics.IConversion
+static Microsoft.CodeAnalysis.Semantics.ConversionExtensions.GetConversion(this Microsoft.CodeAnalysis.SemanticModel semanticModel, Microsoft.CodeAnalysis.SyntaxNode expression, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> Microsoft.CodeAnalysis.Semantics.IConversion
 static Microsoft.CodeAnalysis.Semantics.OperationExtensions.Descendants(this Microsoft.CodeAnalysis.IOperation operation) -> System.Collections.Generic.IEnumerable<Microsoft.CodeAnalysis.IOperation>
 static Microsoft.CodeAnalysis.Semantics.OperationExtensions.DescendantsAndSelf(this Microsoft.CodeAnalysis.IOperation operation) -> System.Collections.Generic.IEnumerable<Microsoft.CodeAnalysis.IOperation>
 static Microsoft.CodeAnalysis.Semantics.OperationExtensions.GetRootOperation(this Microsoft.CodeAnalysis.ISymbol symbol, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> Microsoft.CodeAnalysis.IOperation

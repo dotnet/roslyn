@@ -800,6 +800,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                 : CSharpTypeInfo.None;
         }
 
+        protected internal override IConversion GetConversionCore(SyntaxNode expression, CancellationToken cancellationToken)
+        {
+            return GetConversion(expression, cancellationToken);
+        }
+
         /// <summary>
         /// Gets the conversion that occurred between the expression's type and type implied by the expression's context.
         /// </summary>

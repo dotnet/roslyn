@@ -1,6 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Collections.Immutable;
+using System.Threading;
 
 namespace Microsoft.CodeAnalysis.Semantics
 {
@@ -879,6 +880,21 @@ namespace Microsoft.CodeAnalysis.Semantics
         /// Returns the method that defines the user defined conversion, if any..
         /// </summary>
         IMethodSymbol MethodSymbol { get; }
+    }
+
+    public static class ConversionExtensions
+    {
+        public static IConversion ClassifyConversion(
+            this Compilation compilation, ITypeSymbol source, ITypeSymbol destination)
+        {
+            return compilation.CommonClassifyConversion(source, destination);
+        }
+
+        public static IConversion GetConversion(
+            this SemanticModel semanticModel, SyntaxNode expression, CancellationToken cancellationToken = default(CancellationToken))
+        {
+            return semanticModel.GetConversionCore(expression, cancellationToken);
+        }
     }
 
     /// <summary>

@@ -4,6 +4,7 @@ Imports System.Threading
 Imports Microsoft.CodeAnalysis
 Imports Microsoft.CodeAnalysis.ExtractMethod
 Imports Microsoft.CodeAnalysis.Options
+Imports Microsoft.CodeAnalysis.Semantics
 Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
@@ -198,8 +199,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExtractMethod
             Return If(info.Type.IsObjectType(), info.ConvertedType, info.Type)
         End Function
 
-        Private Shared Function IsCoClassImplicitConversion(info As TypeInfo, conversion As Conversion, coclassSymbol As ISymbol) As Boolean
-            If Not conversion.IsWidening OrElse
+        Private Shared Function IsCoClassImplicitConversion(info As TypeInfo, conversion As IConversion, coclassSymbol As ISymbol) As Boolean
+            If Not conversion.IsImplicit OrElse
                  info.ConvertedType Is Nothing OrElse
                  info.ConvertedType.TypeKind <> TypeKind.Interface Then
                 Return False

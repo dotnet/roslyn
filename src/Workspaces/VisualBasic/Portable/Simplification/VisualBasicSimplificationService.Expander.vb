@@ -6,6 +6,7 @@ Imports Microsoft.CodeAnalysis.Simplification
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 Imports Microsoft.CodeAnalysis.VisualBasic.Utilities
 Imports Microsoft.CodeAnalysis.VisualBasic.Extensions.ContextQuery
+Imports Microsoft.CodeAnalysis.Semantics
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.Simplification
     Partial Friend Class VisualBasicSimplificationService
@@ -69,13 +70,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Simplification
                 Return result
             End Function
 
-            Private Function AddCasts(expression As ExpressionSyntax, typeInfo As TypeInfo, conversion As Conversion, oldExpression As ExpressionSyntax) As ExpressionSyntax
+            Private Function AddCasts(expression As ExpressionSyntax, typeInfo As TypeInfo,
+                                      conversion As IConversion, oldExpression As ExpressionSyntax) As ExpressionSyntax
                 Dim result = expression
 
                 If typeInfo.Type IsNot Nothing AndAlso
                    typeInfo.Type.IsAnonymousDelegateType() AndAlso
                    conversion.IsUserDefined AndAlso
-                   conversion.IsWidening AndAlso
+                   conversion.IsImplicit AndAlso
                    conversion.MethodSymbol IsNot Nothing AndAlso
                    conversion.MethodSymbol.Parameters.Length > 0 Then
 

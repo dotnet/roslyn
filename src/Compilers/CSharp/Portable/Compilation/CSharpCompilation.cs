@@ -1546,7 +1546,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return SourceAssembly.MightContainNoPiaLocalTypes();
         }
 
-        protected override IConversion CommonClassifyConversion(ITypeSymbol source, ITypeSymbol destination)
+        protected internal override IConversion CommonClassifyConversion(ITypeSymbol source, ITypeSymbol destination)
         {
             return ClassifyConversion(source, destination);
         }
@@ -1557,7 +1557,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         // compilation, while the other method needs a bindings object to determine what bound node
         // an expression syntax binds to.  Perhaps when we document these methods we should explain
         // where a user can find the other.
-        public new Conversion ClassifyConversion(ITypeSymbol source, ITypeSymbol destination)
+        public Conversion ClassifyConversion(ITypeSymbol source, ITypeSymbol destination)
         {
             // Note that it is possible for there to be both an implicit user-defined conversion
             // and an explicit built-in conversion from source to destination. In that scenario

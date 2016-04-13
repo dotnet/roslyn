@@ -824,12 +824,7 @@ namespace Microsoft.CodeAnalysis
 
         protected abstract INamedTypeSymbol CommonGetTypeByMetadataName(string metadataName);
 
-        public IConversion ClassifyConversion(ITypeSymbol source, ITypeSymbol destination)
-        {
-            return CommonClassifyConversion(source, destination);
-        }
-
-        protected abstract IConversion CommonClassifyConversion(ITypeSymbol source, ITypeSymbol destination);
+        protected internal abstract IConversion CommonClassifyConversion(ITypeSymbol source, ITypeSymbol destination);
 
         #endregion
 

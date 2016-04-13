@@ -843,8 +843,7 @@ class C {
             else
             {
                 Assert.NotNull(info.Type);
-                var act2 = CSharpExtensions.ClassifyConversion(
-                    semanticModel.Compilation, info.Type, info.ConvertedType);
+                var act2 = semanticModel.Compilation.ClassifyConversion(info.Type, info.ConvertedType);
                 Assert.Equal(ept2, act2.Kind);
                 ValidateConversion(act2, ept2);
             }
