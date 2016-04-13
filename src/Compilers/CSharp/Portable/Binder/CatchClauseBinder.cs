@@ -31,7 +31,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (_syntax.Filter != null)
             {
-                BuildAndAddPatternVariables(locals, _syntax.Filter.FilterExpression);
+                PatternVariableFinder.FindPatternVariables(this, locals, _syntax.Filter.FilterExpression);
             }
 
             return locals.ToImmutableAndFree();

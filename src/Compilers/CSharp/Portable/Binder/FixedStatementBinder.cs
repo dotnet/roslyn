@@ -32,7 +32,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                     if (declarator.Initializer != null)
                     {
-                        BuildAndAddPatternVariables(locals, declarator.Initializer.Value);
+                        PatternVariableFinder.FindPatternVariables(this, locals, declarator.Initializer.Value);
                     }
                 }
 

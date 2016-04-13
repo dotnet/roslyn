@@ -72,6 +72,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 kind == SyntaxKind.ArgumentList ||
                 kind == SyntaxKind.ArrowExpressionClause ||
                 (syntax is ExpressionSyntax && 
+                    // All these nodes are valid scope designators due to the pattern matching feature.
                     ((syntax.Parent as LambdaExpressionSyntax)?.Body == syntax ||
                      (syntax.Parent as SwitchStatementSyntax)?.Expression == syntax ||
                      (syntax.Parent as ForEachStatementSyntax)?.Expression == syntax ||
