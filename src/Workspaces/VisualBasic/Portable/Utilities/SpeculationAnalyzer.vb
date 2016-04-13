@@ -547,26 +547,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Utilities
             Return ConversionsAreCompatible(originalConversion, newConversion)
         End Function
 
-        Private Overloads Function ConversionsAreCompatible(originalConversion As IConversion, newConversion As IConversion) As Boolean
-            If originalConversion.Exists <> newConversion.Exists OrElse
-                ((Not originalConversion.IsExplicit) AndAlso newConversion.IsExplicit) Then
-                Return False
-            End If
-
-            Dim originalIsUserDefined = originalConversion.IsUserDefined
-            Dim newIsUserDefined = newConversion.IsUserDefined
-
-            If (originalIsUserDefined <> newIsUserDefined) Then
-                Return False
-            End If
-
-            If (originalIsUserDefined OrElse originalConversion.MethodSymbol IsNot Nothing OrElse newConversion.MethodSymbol IsNot Nothing) Then
-                Return SymbolsAreCompatible(originalConversion.MethodSymbol, newConversion.MethodSymbol)
-            End If
-
-            Return True
-        End Function
-
         Protected Overrides Function ForEachConversionsAreCompatible(originalModel As SemanticModel, originalForEach As ForEachStatementSyntax, newModel As SemanticModel, newForEach As ForEachStatementSyntax) As Boolean
             Dim originalInfo = originalModel.GetForEachStatementInfo(originalForEach)
             Dim newInfo = newModel.GetForEachStatementInfo(newForEach)

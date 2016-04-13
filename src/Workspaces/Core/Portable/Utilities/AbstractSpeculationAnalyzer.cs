@@ -1092,5 +1092,30 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
         {
             return model.Compilation.ClassifyConversion(originalType, targetType);
         }
+
+        protected bool ConversionsAreCompatible(
+            IConversion originalConversion, IConversion newConversion)
+        {
+            if (originalConversion.Exists != newConversion.Exists ||
+                (!originalConversion.IsExplicit && newConversion.IsExplicit))
+            {
+                return false;
+            }
+
+            var originalIsUserDefined = originalConversion.IsUserDefined;
+            var newIsUserDefined = newConversion.IsUserDefined;
+
+            if (originalIsUserDefined != newIsUserDefined)
+            {
+                return false;
+            }
+
+            if (originalIsUserDefined || originalConversion.MethodSymbol != null || newConversion.MethodSymbol != null)
+            {
+                return SymbolsAreCompatible(originalConversion.MethodSymbol, newConversion.MethodSymbol);
+            }
+
+            return true;
+        }
     }
 }
