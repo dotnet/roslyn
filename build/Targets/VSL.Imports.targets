@@ -205,7 +205,8 @@
       </_ReferenceCopyLocalPathsWithPotentialInclusions>
 
       <VSIXCopyLocalReferenceSourceItem Include="@(_ReferenceCopyLocalPathsWithPotentialInclusions)"
-       Condition="'%(_ReferenceCopyLocalPathsWithPotentialInclusions.NuGetPackageId)' == '%(_ReferenceCopyLocalPathsWithPotentialInclusions.NuGetPackageToIncludeInVsix)'">
+        Condition="'%(_ReferenceCopyLocalPathsWithPotentialInclusions.NuGetPackageId)' == '%(_ReferenceCopyLocalPathsWithPotentialInclusions.NuGetPackageToIncludeInVsix)' and
+                   '%(_ReferenceCopyLocalPathsWithPotentialInclusions.Extension)' != '.pdb'">
         <ForceIncludeInVsix>true</ForceIncludeInVsix>
         <Private>true</Private>
       </VSIXCopyLocalReferenceSourceItem>
