@@ -558,10 +558,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Utilities
             elementType = info.ElementType
         End Sub
 
-        Protected Overrides Function IsReferenceConversion(compilation As Compilation, sourceType As ITypeSymbol, targetType As ITypeSymbol) As Boolean
-            Return compilation.ClassifyConversion(sourceType, targetType).IsReference
-        End Function
-
         Protected Overrides Function ClassifyConversion(model As SemanticModel, expression As ExpressionSyntax, targetType As ITypeSymbol) As IConversion
             Return model.ClassifyConversion(expression, targetType)
         End Function

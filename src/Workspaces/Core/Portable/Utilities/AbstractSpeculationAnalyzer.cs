@@ -740,7 +740,7 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
             // which has a delegate variance conversion to/from the original method's containing delegate type.
             if (newSymbol.ContainingType.IsDelegateType() &&
                 symbol.ContainingType.IsDelegateType() &&
-                IsReferenceConversion(this.OriginalSemanticModel.Compilation, newSymbol.ContainingType, symbol.ContainingType))
+                this.OriginalSemanticModel.Compilation.ClassifyConversion(newSymbol.ContainingType, symbol.ContainingType).IsReference)
             {
                 return false;
             }
@@ -771,8 +771,6 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
 
             return false;
         }
-
-        protected abstract bool IsReferenceConversion(Compilation model, ITypeSymbol sourceType, ITypeSymbol targetType);
 
         private bool IsCompatibleInterfaceMemberImplementation(
             ISymbol symbol,

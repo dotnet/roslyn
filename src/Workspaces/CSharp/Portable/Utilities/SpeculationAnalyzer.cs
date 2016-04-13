@@ -679,11 +679,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Utilities
             elementType = info.ElementType;
         }
 
-        protected override bool IsReferenceConversion(Compilation compilation, ITypeSymbol sourceType, ITypeSymbol targetType)
-        {
-            return compilation.ClassifyConversion(sourceType, targetType).IsReference;
-        }
-
         protected override IConversion ClassifyConversion(SemanticModel model, ExpressionSyntax expression, ITypeSymbol targetType) =>
             model.ClassifyConversion(expression, targetType);
     }
