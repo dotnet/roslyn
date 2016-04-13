@@ -710,8 +710,5 @@ namespace Microsoft.CodeAnalysis.CSharp.Utilities
 
         protected override IConversion ClassifyConversion(SemanticModel model, ExpressionSyntax expression, ITypeSymbol targetType) =>
             model.ClassifyConversion(expression, targetType);
-
-        protected override IConversion ClassifyConversion(SemanticModel model, ITypeSymbol originalType, ITypeSymbol targetType) =>
-            model.Compilation.ClassifyConversion(originalType, targetType);
     }
 }

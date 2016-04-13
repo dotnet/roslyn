@@ -1087,6 +1087,10 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
         }
 
         protected abstract IConversion ClassifyConversion(SemanticModel model, TExpressionSyntax expression, ITypeSymbol targetType);
-        protected abstract IConversion ClassifyConversion(SemanticModel model, ITypeSymbol originalType, ITypeSymbol targetType);
+
+        private IConversion ClassifyConversion(SemanticModel model, ITypeSymbol originalType, ITypeSymbol targetType)
+        {
+            return model.Compilation.ClassifyConversion(originalType, targetType);
+        }
     }
 }

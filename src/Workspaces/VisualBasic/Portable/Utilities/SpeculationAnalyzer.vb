@@ -524,12 +524,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Utilities
         End Function
 
         Protected Overrides Function ConversionsAreCompatible(originalExpression As ExpressionSyntax, originalTargetType As ITypeSymbol, newExpression As ExpressionSyntax, newTargetType As ITypeSymbol) As Boolean
-            Dim originalConversion As IConversion
-            Dim newConversion As IConversion
+            Dim originalConversion As IConversion = Nothing
+            Dim newConversion As IConversion = Nothing
 
             Me.GetConversions(originalExpression, originalTargetType, newExpression, newTargetType, originalConversion, newConversion)
 
-            If originalConversion Is Nothing OrElse newConversion Is Nothing
+            If originalConversion Is Nothing OrElse newConversion Is Nothing Then
                 Return False
             End If
 
@@ -585,11 +585,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Utilities
 
         Protected Overrides Function ClassifyConversion(model As SemanticModel, expression As ExpressionSyntax, targetType As ITypeSymbol) As IConversion
             Return model.ClassifyConversion(expression, targetType)
-        End Function
-
-        Protected Overrides Function ClassifyConversion(model As SemanticModel, originalType As ITypeSymbol, targetType As ITypeSymbol) As IConversion
-            Return VisualBasicExtensions.ClassifyConversion(
-                model.Compilation, originalType, targetType)
         End Function
     End Class
 End Namespace
