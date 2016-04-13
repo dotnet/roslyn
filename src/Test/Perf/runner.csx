@@ -9,7 +9,7 @@ using System.IO;
 using System;
 
 var directoryInfo = new RelativeDirectory();
-var testDirectory = Path.Combine(directoryInfo.MyWorkingDirectory, "Tests");
+var testDirectory = Path.Combine(directoryInfo.MyWorkingDirectory, "tests");
 
 // Print message at startup
 Log("Starting Performance Test Run");
@@ -29,45 +29,31 @@ foreach (var script in GetAllCsxRecursive(testDirectory))
 }
 
 var traceManager = TraceManagerFactory.GetTraceManager();
-traceManager.Setup();
-for (int i = 0; i < traceManager.Iterations; i++)
-{
-    traceManager.Start();
-    foreach (dynamic test in testInstances)
-    {
-        test.Setup();
-        traceManager.StartScenario(test.Name, test.MeasuredProc);
-        traceManager.StartEvent();
-        test.Test();
-        traceManager.EndEvent();
-        traceManager.EndScenario();
-    }
-    traceManager.EndScenarios();
-    traceManager.WriteScenariosFileToDisk();
-    traceManager.Stop();
-    traceManager.ResetScenarioGenerator();
-}
-traceManager.Cleanup();
-
-/*
-var traceManager = TraceManagerFactory.GetTraceManager();
-traceManager.Setup();
-// Run each of the tests
-foreach (dynamic test in testInstances) 
+traceManager.Initialize();
+foreach (dynamic test in testInstances)
 {
     test.Setup();
-    traceManager.Start();
-    for (int i = 0; i < test.Iterations; i++) 
+    traceManager.Setup();
+    
+    var iterations = traceManager.HasWarmUpIteration ? 
+                     test.Iterations + 1 :
+                     test.Iterations;
+                     
+    for (int i = 0; i < iterations; i++)
     {
-        traceManager.StartScenario("temp" + i, "csc");
+        traceManager.StartScenarios();
+        traceManager.Start();
+        traceManager.StartScenario(test.Name + i, test.MeasuredProc);
         traceManager.StartEvent();
         test.Test();
         traceManager.EndEvent();
         traceManager.EndScenario();
+        
+        traceManager.EndScenarios();
+        traceManager.WriteScenariosFileToDisk();
+        traceManager.Stop();
+        traceManager.ResetScenarioGenerator();
     }
-    traceManager.EndScenarios();
-    traceManager.WriteScenariosFileToDisk();
-    traceManager.Stop();
+
     traceManager.Cleanup();
 }
-*/
