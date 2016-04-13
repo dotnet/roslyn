@@ -1,7 +1,9 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System.Linq;
 using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.Options;
+using Microsoft.CodeAnalysis.Semantics;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
@@ -152,6 +154,19 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
             {
                 return this.Options.GetOption(ExtractMethodOptions.DontPutOutOrRefOnStruct, this.SemanticDocument.Project.Language);
             }
+        }
+
+        protected static bool IsCoClassImplicitConversion(TypeInfo info, IConversion conversion, ISymbol coclassSymbol)
+        {
+            if (!conversion.IsImplicit ||
+                 info.ConvertedType == null ||
+                 info.ConvertedType.TypeKind != TypeKind.Interface)
+            {
+                return false;
+            }
+
+            // let's see whether this interface has coclass attribute
+            return info.ConvertedType.GetAttributes().Any(c => c.AttributeClass.Equals(coclassSymbol));
         }
     }
 }

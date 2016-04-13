@@ -127,18 +127,5 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
                 return !info.Type.IsObjectType() ? info.Type : info.ConvertedType;
             }
         }
-
-        private static bool IsCoClassImplicitConversion(TypeInfo info, Conversion conversion, ISymbol coclassSymbol)
-        {
-            if (!conversion.IsImplicit ||
-                 info.ConvertedType == null ||
-                 info.ConvertedType.TypeKind != TypeKind.Interface)
-            {
-                return false;
-            }
-
-            // let's see whether this interface has coclass attribute
-            return info.ConvertedType.GetAttributes().Any(c => c.AttributeClass.Equals(coclassSymbol));
-        }
     }
 }

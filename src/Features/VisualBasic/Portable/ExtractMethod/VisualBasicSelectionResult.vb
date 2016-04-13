@@ -199,17 +199,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExtractMethod
             Return If(info.Type.IsObjectType(), info.ConvertedType, info.Type)
         End Function
 
-        Private Shared Function IsCoClassImplicitConversion(info As TypeInfo, conversion As IConversion, coclassSymbol As ISymbol) As Boolean
-            If Not conversion.IsImplicit OrElse
-                 info.ConvertedType Is Nothing OrElse
-                 info.ConvertedType.TypeKind <> TypeKind.Interface Then
-                Return False
-            End If
-
-            ' let's see whether this interface has coclass attribute
-            Return info.ConvertedType.GetAttributes().Any(Function(c) c.AttributeClass.Equals(coclassSymbol))
-        End Function
-
         Public Overloads Function GetFirstStatement() As ExecutableStatementSyntax
             Return GetFirstStatement(Of ExecutableStatementSyntax)()
         End Function
