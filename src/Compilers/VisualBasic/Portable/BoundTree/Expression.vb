@@ -926,7 +926,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End Get
         End Property
 
-        Private ReadOnly Property IConversionExpression_HasCastInSource As Boolean Implements IConversionExpression.ExplicitCastInSource
+        Private ReadOnly Property IConversionExpression_ExplicitCastInSource As Boolean Implements IConversionExpression.ExplicitCastInSource
             Get
                 Return True
             End Get
@@ -984,7 +984,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End Get
         End Property
 
-        Private ReadOnly Property IConversionExpression_HasCastInSource As Boolean Implements IConversionExpression.ExplicitCastInSource
+        Private ReadOnly Property IConversionExpression_ExplicitCastInSource As Boolean Implements IConversionExpression.ExplicitCastInSource
             Get
                 Return True
             End Get
@@ -1030,7 +1030,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End Get
         End Property
 
-        Private ReadOnly Property IConversionExpression_HasCastInSource As Boolean Implements IConversionExpression.ExplicitCastInSource
+        Private ReadOnly Property IConversionExpression_ExplicitCastInSource As Boolean Implements IConversionExpression.ExplicitCastInSource
             Get
                 Return Me.ExplicitCastInCode
             End Get
@@ -1088,7 +1088,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End Get
         End Property
 
-        Private ReadOnly Property IConversionExpression_HasCastInSource As Boolean Implements IConversionExpression.ExplicitCastInSource
+        Private ReadOnly Property IConversionExpression_ExplicitCastInSource As Boolean Implements IConversionExpression.ExplicitCastInSource
             Get
                 Return Not Me.WasCompilerGenerated
             End Get
